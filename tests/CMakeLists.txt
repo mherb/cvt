@@ -1,0 +1,10 @@
+PROJECT(Tests CXX C)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
+
+INCLUDE(BuildTypes)
+INCLUDE(CompileDefinitions)
+INCLUDE(CompilerFlags)
+
+ADD_SUBDIRECTORY(eigen2)
+ADD_SUBDIRECTORY(numericalJacobian)
