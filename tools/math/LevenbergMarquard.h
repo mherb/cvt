@@ -11,7 +11,19 @@
 
 #include <Eigen/Eigen>
 
+#include <boost/function.hpp>
+
 namespace tools {
+	typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DynamicEigenVec;
+	typedef boost::function<double (DynamicEigenVec const&, 
+									std::vector<DynamicEigenVec> const&,
+									std::vector<DynamicEigenVec> const&,
+									DynamicEigenVec &)> CostFunctionType;
+	
+	typedef boost::function<void (DynamicEigenVec const&,
+								  std::vector<DynamicEigenVec> const&,
+								  Eigen::MatrixXd &)> JacobianFunctionType;
+	
 	class LevenbergMarquard
 	{
 		public:
@@ -28,13 +40,15 @@ namespace tools {
 			void setMaxEpsilon(double maxEps);
 
 			virtual ~LevenbergMarquard();
+		
+		//double optimize(boost::Function<double ()>)
 
-			template <class CostFunctionType, class JacobianFunctionType>
-				double optimize(CostFunctionType& costs,
-								JacobianFunctionType& jacFunc,
-								Eigen::VectorXd & start,
-								std::vector<Eigen::VectorXd> & measurements,
-								std::vector<Eigen::VectorXd> & model,
+			//template <class CostFunctionType, class JacobianFunctionType>
+				double optimize(CostFunctionType & costs,
+								JacobianFunctionType & jacFunc,
+								Eigen::VectorXd const& start,
+								std::vector<Eigen::VectorXd> const& measurements,
+								std::vector<Eigen::VectorXd> const& model,
 								Eigen::VectorXd & deltaParameters);
 
 			bool checkTermination(unsigned int currIter, double currEpsilon);
