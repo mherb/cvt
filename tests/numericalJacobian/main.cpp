@@ -6,6 +6,11 @@
 // include all eigen stuff
 #include <Eigen/Eigen>
 
+#include <boost/bind.hpp>
+
+#include <cv.h>
+#include <ctime>
+
 using namespace Eigen;
 
 class TestCostFunc
@@ -20,31 +25,20 @@ class TestCostFunc
 		 *	@param meas			current measurements
 		 */
 		virtual double costs(Eigen::VectorXd const& startParams,
-							 std::vector<Eigen::VectorXd>& model,
-							 std::vector<Eigen::VectorXd>& meas)
+							 std::vector<Eigen::VectorXd> const& model,
+							 std::vector<Eigen::VectorXd> const& meas,
+							 Eigen::VectorXd & residual)
 		{
 			double costs = 0.0;
 			Eigen::VectorXd res(2);
-
+			
 			for (unsigned int i = 0; i < meas.size(); i++) {
 				this->transform(startParams, model[i], res);
 				res-=meas[i];
+				residual.block(i*res.rows(), 0, res.rows(), 1) = res;
 				costs += (res).squaredNorm();
 			}
 			return costs;
-		}
-
-		virtual void residual(Eigen::VectorXd const& params,
-							  std::vector<Eigen::VectorXd>& model,
-							  std::vector<Eigen::VectorXd>& meas,
-							  Eigen::VectorXd& res)
-		{
-			Eigen::VectorXd tmpRes(meas[0].rows());
-			for(unsigned int i = 0; i < model.size(); i++){
-				this->transform(params, model[i], tmpRes);
-				tmpRes-=meas[i];
-				res.block(i*tmpRes.rows(), 0, tmpRes.rows(), 1) = tmpRes;
-			}
 		}
 
 		void transform(Eigen::VectorXd const & parameters,
@@ -67,7 +61,7 @@ class TestCostFunc
 			jac(1, 2) = 1.0;
 		}
 
-		/*virtual void jacobians(Eigen::VectorXd const& parameters,
+		virtual void jacobians(Eigen::VectorXd const& parameters,
 							   std::vector<Eigen::VectorXd> const& points,
 							   Eigen::MatrixXd & jac)
 		{
@@ -84,9 +78,9 @@ class TestCostFunc
 					jac(2*i, 2) = 0.0;
 					jac(2*i+1, 2) = 1.0;
 			}
-		}*/
+		}
 
-		void jacobians(Eigen::VectorXd const& parameters,
+		/*void jacobians(Eigen::VectorXd const& parameters,
 					   std::vector<Eigen::VectorXd> const& points,
 					   Eigen::MatrixXd & jac)
 		{
@@ -113,14 +107,41 @@ class TestCostFunc
 					jac.block(i*pT.rows(), p, 2, 1) = pTplus;
 				}
 			}
-		}
+		}*/
 };
+
+
+void jacobians(Eigen::VectorXd const& parameters,
+			   std::vector<Eigen::VectorXd> const& points,
+			   Eigen::MatrixXd & jac)
+{
+	double sinp = sin(parameters[0]);
+	double cosp = cos(parameters[0]);
+	
+	for(unsigned int i = 0; i < points.size(); i++){
+		jac(2*i, 0) = -points[i][0] * sinp - points[i][1]*cosp;
+		jac(2*i+1, 0) =  points[i][0] * cosp - points[i][1]*sinp;
+		
+		jac(2*i, 1) = 1.0;
+		jac(2*i+1, 1) = 0.0;
+		
+		jac(2*i, 2) = 0.0;
+		jac(2*i+1, 2) = 1.0;
+	}
+}
+
 
 int main(void)
 {
 	int ret = EXIT_SUCCESS;
 
-	TestCostFunc costFunc;
+	TestCostFunc costs;
+	
+	tools::CostFunctionType costFunc = boost::bind(&TestCostFunc::costs, 
+												   &costs, 
+												   _1, _2, _3, _4);
+	
+	tools::JacobianFunctionType jacFunc = jacobians;
 
 	std::vector<Eigen::VectorXd> measurements;
 	std::vector<Eigen::VectorXd> originals;
@@ -139,9 +160,17 @@ int main(void)
 	originals.push_back(tmp);
 	tmp[0] = 100; tmp[1] = -100;
 	originals.push_back(tmp);
+	tmp[0] = 0; tmp[1] = 0;
+	originals.push_back(tmp);
+	tmp[0] = 80; tmp[1] =55;
+	originals.push_back(tmp);
 
+	cv::RNG rng(std::time(NULL));
+	
 	for(unsigned int i = 0; i < originals.size(); i++){
-		costFunc.transform(gtParameters, originals[i], tmp);
+		costs.transform(gtParameters, originals[i], tmp);
+		tmp[0]+= rng.uniform(-0.5, 0.5);
+		tmp[1]+= rng.uniform(-0.5, 0.5);
 		measurements.push_back(tmp);
 	}
 
@@ -149,11 +178,11 @@ int main(void)
 	currentParameters.setZero();
 
 	tools::LevenbergMarquard lm(tools::LevenbergMarquard::LevenbergMarquard::IterationsOrEpsilon);
-	lm.setMaxIterations(10);
-	lm.setMaxEpsilon(0.0000001);
+	lm.setMaxIterations(40);
+	lm.setMaxEpsilon(0.01);
 
 	Eigen::VectorXd result(3);
-	double eps = lm.optimize<TestCostFunc, TestCostFunc>(costFunc, costFunc, currentParameters, measurements, originals, result );
+	double eps = lm.optimize(costFunc, jacFunc, currentParameters, measurements, originals, result );
 
 	std::cout << "Ground Truth parameters: \n" << gtParameters << std::endl;
 	std::cout << "LM result: \n" << result << std::endl;
