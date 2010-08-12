@@ -2,6 +2,7 @@ PROJECT(cvt CXX C)
 
 INCLUDE(LibraryConfig)
 INCLUDE(MacroModuleConfiguration)
+INCLUDE(CVTTESTS)
 
 SET(MODULE_NAME "cvt")
 
@@ -62,3 +63,7 @@ MODULE_CONFIGURATION("${MODULE_NAME}"
 					 "${${MODULE_NAME}_HEADERS}" 
 					 "${${MODULE_NAME}_SOURCES}" 
 					 "${${MODULE_NAME}_DEP_LIBRARIES}")
+
+CVTTESTS(/lib/libcvt_d.so util/cvttestsproto.h)
+add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
+
