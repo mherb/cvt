@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
 
-// include all eigen stuff
-#include <Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Array>
+#include <Eigen/SVD>
 
 using namespace Eigen;
 
