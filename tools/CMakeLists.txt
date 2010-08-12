@@ -13,17 +13,11 @@ FIND_PACKAGE(Eigen2 REQUIRED)
 
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
-	math/Utils.hpp
-	math/CostFunction.h
 	math/LevenbergMarquard.h
-	math/NumericalJacobian.h
 )
 
 SET(${MODULE_NAME}_SOURCES
-	math/Utils.cpp
-	math/CostFunction.cpp
-#	math/LevenbergMarquard.cpp
-#	math/NumericalJacobian.cpp
+	math/LevenbergMarquard.cpp
 )
 
 # optional uEyeUsbCamera driver if available 

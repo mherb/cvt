@@ -63,7 +63,5 @@ namespace tools {
 	};
 }
 
-#include "LevenbergMarquard.cpp"
-
 #endif
 
