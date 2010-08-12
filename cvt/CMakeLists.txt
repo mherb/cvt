@@ -21,10 +21,13 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
 	math/LevenbergMarquard.h
+	util/Rect.h
+	util/CVTTest.h
 )
 
 SET(${MODULE_NAME}_SOURCES
 	math/LevenbergMarquard.cpp
+	util/Rect.cpp
 )
 
 # optional uEyeUsbCamera driver if available 
@@ -65,5 +68,7 @@ MODULE_CONFIGURATION("${MODULE_NAME}"
 					 "${${MODULE_NAME}_DEP_LIBRARIES}")
 
 CVTTESTS(/lib/libcvt_d.so util/cvttestsproto.h)
+link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
+target_link_libraries (cvttest ${MODULE_NAME}) 
 
