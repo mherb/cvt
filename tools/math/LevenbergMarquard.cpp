@@ -7,6 +7,8 @@
  *
  */
 
+#include "LevenbergMarquard.h"
+
 namespace tools {
 	
 	LevenbergMarquard::LevenbergMarquard(TerminationCriteria termCrit):
@@ -32,13 +34,6 @@ namespace tools {
 		maxEpsilon = maxEps;
 	}
 	
-	/*template <class CostFunctionType, class JacobianFunctionType>
-	double LevenbergMarquard::optimize(CostFunctionType& costs,
-									   JacobianFunctionType& jacFunc,
-									   Eigen::VectorXd & startParameters,
-									   std::vector<Eigen::VectorXd> & measurements,
-									   std::vector<Eigen::VectorXd> & model,
-									   Eigen::VectorXd & resultParameters)*/
 	double LevenbergMarquard::optimize(CostFunctionType & costFunction,
 									   JacobianFunctionType& jacobianFunction,
 									   Eigen::VectorXd const& startParameters,

@@ -8,3 +8,4 @@ INCLUDE(CompilerFlags)
 
 ADD_SUBDIRECTORY(eigen2)
 ADD_SUBDIRECTORY(numericalJacobian)
+ADD_SUBDIRECTORY(onboardTracking)
