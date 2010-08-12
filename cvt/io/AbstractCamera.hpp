@@ -3,7 +3,7 @@
 
 #include <opencv/cv.h>
 
-namespace tools {
+namespace cvt {
     struct CameraParameters {
         CameraParameters():
             width(752),

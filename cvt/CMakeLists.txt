@@ -1,9 +1,9 @@
-PROJECT(Tools CXX C)
+PROJECT(cvt CXX C)
 
 INCLUDE(LibraryConfig)
 INCLUDE(MacroModuleConfiguration)
 
-SET(MODULE_NAME "Tools")
+SET(MODULE_NAME "cvt")
 
 PROJECT(${MODULE_NAME} CXX C)
 

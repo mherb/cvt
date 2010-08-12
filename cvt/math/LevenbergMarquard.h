@@ -16,7 +16,7 @@
 
 #include <boost/function.hpp>
 
-namespace tools {
+namespace cvt {
 	typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DynamicEigenVec;
 	typedef boost::function<double (DynamicEigenVec const&, 
 									std::vector<DynamicEigenVec> const&,

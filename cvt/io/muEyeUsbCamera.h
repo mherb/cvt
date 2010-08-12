@@ -5,7 +5,7 @@
 
 #include <ueye.h>
 
-namespace tools
+namespace cvt
 {
 
 class muEyeUsbCamera : public AbstractCamera

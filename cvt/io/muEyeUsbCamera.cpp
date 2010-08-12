@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace tools
+namespace cvt
 {
     int muEyeUsbCamera::availableCameras()
     {
