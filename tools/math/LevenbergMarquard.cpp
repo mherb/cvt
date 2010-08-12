@@ -9,6 +9,9 @@
 
 #include "LevenbergMarquard.h"
 
+#include <Eigen/SVD>
+
+
 namespace tools {
 	
 	LevenbergMarquard::LevenbergMarquard(TerminationCriteria termCrit):

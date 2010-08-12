@@ -4,7 +4,7 @@
 #include <tools/math/LevenbergMarquard.h>
 
 // include all eigen stuff
-#include <Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <boost/bind.hpp>
 

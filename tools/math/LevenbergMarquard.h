@@ -9,7 +9,10 @@
 #ifndef TOOLS_LEVENBERG_MARQUARD_H
 #define TOOLS_LEVENBERG_MARQUARD_H
 
-#include <Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Array>
+
+#include <vector>
 
 #include <boost/function.hpp>
 
