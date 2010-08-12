@@ -18,7 +18,7 @@ case $OSTYPE in
     "linux-gnu") 
 		symextractor="objdump -t $1";
 		rm -f $2;
-		echo -e "#include <CVTTest.h>\n\nextern \"C\" { " >> $2;
+		echo -e "#include \"CVTTest.h\"\n\nextern \"C\" { " >> $2;
 		$symextractor | awk '/.*_test/ {print "\tbool "$6"( void );"}' >> $2;
 		echo -e "}\n" >> $2;
 
@@ -28,7 +28,7 @@ case $OSTYPE in
     "darwin10.0")
 		symextractor="nm -g $1";
 		rm -f $2;
-		echo -e "#include <CVTTest.h>\n\nextern \"C\" { " >> $2;
+		echo -e "#include \"CVTTest.h\"\n\nextern \"C\" { " >> $2;
 		$symextractor | awk '/.*_test/ {print "\tbool "$3"( void );"}' >> $2;
 		echo -e "}\n" >> $2;
 
