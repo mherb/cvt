@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include <tools/math/LevenbergMarquard.h>
+#include <cvt/math/LevenbergMarquard.h>
 
 // include all eigen stuff
 #include <Eigen/Core>
@@ -137,11 +137,11 @@ int main(void)
 
 	TestCostFunc costs;
 	
-	tools::CostFunctionType costFunc = boost::bind(&TestCostFunc::costs, 
+	cvt::CostFunctionType costFunc = boost::bind(&TestCostFunc::costs, 
 												   &costs, 
 												   _1, _2, _3, _4);
 	
-	tools::JacobianFunctionType jacFunc = jacobians;
+	cvt::JacobianFunctionType jacFunc = jacobians;
 
 	std::vector<Eigen::VectorXd> measurements;
 	std::vector<Eigen::VectorXd> originals;
@@ -177,7 +177,7 @@ int main(void)
 	Eigen::VectorXd currentParameters(3);
 	currentParameters.setZero();
 
-	tools::LevenbergMarquard lm(tools::LevenbergMarquard::LevenbergMarquard::IterationsOrEpsilon);
+	cvt::LevenbergMarquard lm(cvt::LevenbergMarquard::LevenbergMarquard::IterationsOrEpsilon);
 	lm.setMaxIterations(40);
 	lm.setMaxEpsilon(0.01);
 

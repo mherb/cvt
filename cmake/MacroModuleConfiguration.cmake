@@ -36,7 +36,7 @@ MACRO(MODULE_CONFIGURATION
 	foreach(HEADER_FILE ${MODULE_HEADERS})
 		GET_FILENAME_COMPONENT(pathName "${HEADER_FILE}" PATH)
 		INSTALL(FILES "${HEADER_FILE}" 
-				DESTINATION "include/visionTools/${folderName}/${pathName}" 
+				DESTINATION "include/cvt/${folderName}/${pathName}" 
 				COMPONENT headers
 		)
 	endforeach(HEADER_FILE)
