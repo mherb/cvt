@@ -21,6 +21,8 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
 	math/LevenbergMarquard.h
+	math/Math.h
+	gfx/Color.h
 	util/Rect.h
 	util/CVTTest.h
 )
@@ -28,6 +30,8 @@ SET(${MODULE_NAME}_HEADERS
 SET(${MODULE_NAME}_SOURCES
 	math/LevenbergMarquard.cpp
 	util/Rect.cpp
+	gfx/Image.cpp
+	math/Math.cpp
 )
 
 # optional uEyeUsbCamera driver if available 
