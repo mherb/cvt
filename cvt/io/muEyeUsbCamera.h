@@ -1,7 +1,7 @@
 #ifndef TOOLS_MUEYEUSBCAMERA_H
 #define TOOLS_MUEYEUSBCAMERA_H
 
-#include <tools/io/AbstractCamera.hpp>
+#include "io/AbstractCamera.hpp"
 
 #include <ueye.h>
 

@@ -1,7 +1,10 @@
 #ifndef CVTIMAGE_H
 #define CVTIMAGE_H
+#include <iostream>
+
 #include <stdlib.h>
 #include <stdint.h>
+#include <opencv/cv.h>
 
 namespace cvt {
 
@@ -19,6 +22,8 @@ namespace cvt {
 
     class Image
     {
+	friend std::ostream& operator<<(std::ostream &os, const Image &f);
+
 	public:
 	    Image( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 	    ~Image();
@@ -30,15 +35,21 @@ namespace cvt {
 	    ImageChannelType type() const;
 	    uint8_t* data();
 	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+	    IplImage const* iplimage() const;
 
 	private:
+	    void upateIpl();
+
 	    ImageChannelOrder _order;
 	    ImageChannelType _type;
 	    size_t _width;
 	    size_t _height;
 	    size_t _stride;
 	    uint8_t* _data;
+	    IplImage* _iplimage;
     };
+
+    std::ostream& operator<<(std::ostream &out, const Image &f);
 
     inline ImageChannelOrder Image::order() const
     {
@@ -70,6 +81,10 @@ namespace cvt {
 	return _data;
     }
 
+    inline IplImage const* Image::iplimage() const
+    {
+	return _iplimage;
+    }
 }
 
 #endif
