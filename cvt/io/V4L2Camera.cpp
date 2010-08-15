@@ -15,46 +15,52 @@
 #include <stdio.h>
 
 #include "util/CVTException.h"
+#include "math/Math.h"
 
 namespace cvt {
 
-    static inline uint32_t pixelYUV2BGRA(int y, int u, int v )
+    static inline void pixelYUV2BGRA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
     {
 	int r, g, b;
-	r = y + ((v*1436) >> 10);
-	g = y - ((u*352 + v*731) >> 10);
-	b = y + ((u*1814) >> 10);
+	int y0, y1, u, v;
+
+	v = ( yuyv >> 24 ) - 128;
+	y1 = ( ( yuyv >> 16 ) & 0xff );
+	u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+	y0 = ( ( yuyv ) & 0xff );
+	r = ((v*1436) >> 10);
+	g = ((u*352 + v*731) >> 10);
+	b = ((u*1814) >> 10);
 
 	// clamp the values
-	r = r < 0 ? 0 : r;
-	g = g < 0 ? 0 : g;
-	b = b < 0 ? 0 : b;
-	r = r > 255 ? 255 : r;
-	g = g > 255 ? 255 : g;
-	b = b > 255 ? 255 : b;
-	return ( 0xff000000 | ( r << 16 ) | ( g << 8) | b );
+	p1 = 0xff000000;
+	p1 |= Math::clamp( y0 + r, 0, 255 ) << 16;
+	p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
+	p1 |= Math::clamp( y0 + b, 0, 255 );
+	p2 = 0xff000000;
+	p2 |= Math::clamp( y1 + r, 0, 255 ) << 16;
+	p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
+	p2 |= Math::clamp( y1 + b, 0, 255 );
     }
 
     static void YUYV2BGR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc )
     {
-	uint8_t *s;
+	uint32_t *s;
 	uint32_t *d;
+	uint32_t p1, p2;
 	size_t l, c;
 	int y0, y1, u, v;
 
 	l = h;
 
 	while( l-- ) {
-	    s = src;
+	    s = ( uint32_t* ) src;
 	    d = ( uint32_t* ) dst;
 	    c = w >> 1;
 	    while (c--) {
-		y0 = *s++;
-		u = *s++; u -= 128;
-		y1 = *s++;
-		v = *s++; v -= 128;
-		*d++ = pixelYUV2BGRA(y0, u, v);
-		*d++ = pixelYUV2BGRA(y1, u, v);
+		pixelYUV2BGRA( *s++, p1, p2);
+		*d++ = p1;
+		*d++ = p2;
 	    }
 	    src += stridesrc;
 	    dst += stridedst;
