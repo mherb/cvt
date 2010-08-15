@@ -29,6 +29,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Rect.h
 	util/CVTTest.h
 	util/CVTException.h
+	util/Timer.h
 )
 
 SET(${MODULE_NAME}_SOURCES
