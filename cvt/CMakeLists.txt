@@ -20,11 +20,14 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
+	io/FileSystem.h
+	io/FloFile.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	gfx/Color.h
 	util/Rect.h
 	util/CVTTest.h
+	util/CVTException.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -32,6 +35,8 @@ SET(${MODULE_NAME}_SOURCES
 	util/Rect.cpp
 	gfx/Image.cpp
 	math/Math.cpp
+	io/FileSystem.cpp
+	io/FloFile.cpp
 )
 
 # optional uEyeUsbCamera driver if available 

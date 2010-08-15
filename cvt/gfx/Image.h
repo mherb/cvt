@@ -29,6 +29,7 @@ namespace cvt {
 	    ImageChannelOrder order() const;
 	    ImageChannelType type() const;
 	    uint8_t* data();
+	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 
 	private:
 	    ImageChannelOrder _order;
