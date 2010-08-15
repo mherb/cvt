@@ -22,6 +22,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
 	io/FileSystem.h
 	io/FloFile.h
+	io/V4L2Camera.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	gfx/Color.h
@@ -37,6 +38,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/Math.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
+	io/V4L2Camera.cpp
 )
 
 # optional uEyeUsbCamera driver if available 
