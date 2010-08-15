@@ -22,6 +22,18 @@ namespace cvt {
 	posix_memalign( ( void** ) &_data, 16, _stride * _height );
     }
 
+
+    void Image::reallocate( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type )
+    {
+	free( _data );
+	_order = order;
+	_type = type;
+	_width = w;
+	_height = h;
+	_stride = Math::pad16( _width ) * _order_channels[ _type ] * _type_size[ _type ];
+	posix_memalign( ( void** ) &_data, 16, _stride * _height );
+    }
+
     Image::~Image()
     {
 	free( _data );
