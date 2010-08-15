@@ -64,7 +64,7 @@ namespace cvt {
 	    flow.reallocate( width, height, CVT_GRAYALPHA, CVT_FLOAT );
 	    size_t h = flow.height();
 	    size_t w2 = flow.width() * 2;
-	    float* ptr = ( float* ) flow.data();
+	    uint8_t* ptr = flow.data();
 	    size_t stride = flow.stride();
 	    while( h-- ) {
 		if( fread( ptr, sizeof( float ), w2 , stream) != w2)
@@ -104,7 +104,7 @@ namespace cvt {
 
 	    size_t h = flow.height();
 	    size_t w2 = flow.width() * 2;
-	    float* ptr = ( float* ) flow.data();
+	    uint8_t* ptr = flow.data();
 	    size_t stride = flow.stride();
 	    while( h-- ) {
 		if( fwrite( ptr, sizeof( float ), w2 , stream ) != w2)
@@ -113,5 +113,85 @@ namespace cvt {
 	    }
 	    fclose(stream);
 	}
+
+	float FlowAEE( Image& flow, Image& gt )
+	{
+	    if( flow.width() != gt.width() ||
+	        flow.height() != gt.height() ||
+		flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
+		gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+		throw CVTException( "FlowAAE: illegal flow data" );
+
+	    size_t stride1, stride2;
+	    size_t w, h;
+	    uint8_t* ptr1;
+	    uint8_t* ptr2;
+	    float ee1, ee2;
+	    float aee = 0.0f;
+
+	    stride1 = flow.stride();
+	    stride2 = gt.stride();
+	    w = flow.width();
+	    h = flow.height();
+	    ptr1 = flow.data();
+	    ptr2 = gt.data();
+
+
+	    while( h-- ) {
+		float* d1 = ( float* ) ptr1;
+		float* d2 = ( float* ) ptr2;
+
+		for( size_t i = 0; i < w; i++ ) {
+		    ee1 = ( d1[ w * 2 ] - d2[ w * 2 ] );
+		    ee2 = ( d1[ w * 2 + 1 ] - d2[ w * 2 + 1 ] );
+		    aee += sqrtf( ee1 * ee1 + ee2 * ee2 );
+		}
+		ptr1 += stride1;
+		ptr2 += stride2;
+	    }
+
+	    return aee / ( ( float ) ( flow.width() * flow.height() ) );
+	}
+
+	float FlowAAE( Image& flow, Image& gt )
+	{
+	    if( flow.width() != gt.width() ||
+	        flow.height() != gt.height() ||
+		flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
+		gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+		throw CVTException( "FlowAAE: illegal flow data" );
+
+	    size_t stride1, stride2;
+	    size_t w, h;
+	    uint8_t* ptr1;
+	    uint8_t* ptr2;
+	    float dot ,dot1, dot2;
+	    float aae = 0.0f;
+
+	    stride1 = flow.stride();
+	    stride2 = gt.stride();
+	    w = flow.width();
+	    h = flow.height();
+	    ptr1 = flow.data();
+	    ptr2 = gt.data();
+
+
+	    while( h-- ) {
+		float* d1 = ( float* ) ptr1;
+		float* d2 = ( float* ) ptr2;
+
+		for( size_t i = 0; i < w; i++ ) {
+		    dot = 1.0f + ( d1[ w * 2 ] * d2[ w * 2 ] + d1[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
+		    dot1 = 1.0f + ( d1[ w * 2 ] * d1[ w * 2 ] + d1[ w * 2 + 1 ] * d1[ w * 2 + 1 ]);
+		    dot2 = 1.0f + ( d2[ w * 2 ] * d2[ w * 2 ] + d2[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
+		    aae += acosf( dot / ( sqrtf( dot1 ) * sqrtf( dot2 ) ) );
+		}
+		ptr1 += stride1;
+		ptr2 += stride2;
+	    }
+
+	    return aae / ( ( float ) ( flow.width() * flow.height() ) );
+	}
+
     }
 }
