@@ -43,32 +43,106 @@ namespace cvt {
 	p2 |= Math::clamp( y1 + b, 0, 255 );
     }
 
-    static void YUYV2BGR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc )
+    static inline void pixelYUV2RGBA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
     {
-	uint32_t *s;
-	uint32_t *d;
-	uint32_t p1, p2;
-	size_t l, c;
+	int r, g, b;
 	int y0, y1, u, v;
 
-	l = h;
+	v = ( yuyv >> 24 ) - 128;
+	y1 = ( ( yuyv >> 16 ) & 0xff );
+	u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+	y0 = ( ( yuyv ) & 0xff );
+	r = ((v*1436) >> 10);
+	g = ((u*352 + v*731) >> 10);
+	b = ((u*1814) >> 10);
 
-	while( l-- ) {
-	    s = ( uint32_t* ) src;
-	    d = ( uint32_t* ) dst;
-	    c = w >> 1;
-	    while (c--) {
-		pixelYUV2BGRA( *s++, p1, p2);
-		*d++ = p1;
-		*d++ = p2;
+	// clamp the values
+	p1 = 0xff;
+	p1 |= Math::clamp( y0 + r, 0, 255 ) << 8;
+	p1 |= Math::clamp( y0 - g, 0, 255 ) << 16;
+	p1 |= Math::clamp( y0 + b, 0, 255 ) << 24;
+	p2 = 0xff;
+	p2 |= Math::clamp( y1 + r, 0, 255 ) << 8;
+	p2 |= Math::clamp( y1 - g, 0, 255 ) << 16;
+	p2 |= Math::clamp( y1 + b, 0, 255 ) << 24;
+    }
+
+    static void YUYV2COLOR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc, ImageChannelOrder order )
+    {
+	size_t l, c;
+
+	l = h;
+	if( order == CVT_RGBA ) {
+	    uint32_t *s;
+	    uint32_t *d;
+	    uint32_t p1, p2;
+
+	    while( l-- ) {
+		s = ( uint32_t* ) src;
+		d = ( uint32_t* ) dst;
+		c = w >> 1;
+		while (c--) {
+		    pixelYUV2RGBA( *s++, p1, p2);
+		    *d++ = p1;
+		    *d++ = p2;
+		}
+		src += stridesrc;
+		dst += stridedst;
 	    }
-	    src += stridesrc;
-	    dst += stridedst;
+	} else if( order == CVT_BGRA ) {
+	    uint32_t *s;
+	    uint32_t *d;
+	    uint32_t p1, p2;
+
+	    while( l-- ) {
+		s = ( uint32_t* ) src;
+		d = ( uint32_t* ) dst;
+		c = w >> 1;
+		while (c--) {
+		    pixelYUV2BGRA( *s++, p1, p2);
+		    *d++ = p1;
+		    *d++ = p2;
+		}
+		src += stridesrc;
+		dst += stridedst;
+	    }
+	} else if( order == CVT_GRAY ) {
+	    uint32_t *s;
+	    uint8_t *d;
+
+	    while( l-- ) {
+		s = ( uint32_t* ) src;
+		d = dst;
+		c = w >> 1;
+		while (c--) {
+		    *d++ = *s & 0xff;
+		    *d++ = ( *s++ >> 16 ) & 0xff;
+		}
+		src += stridesrc;
+		dst += stridedst;
+	    }
+	} else if( order == CVT_GRAYALPHA ) {
+	    uint32_t *s;
+	    uint8_t *d;
+
+	    while( l-- ) {
+		s = ( uint32_t* ) src;
+		d = dst;
+		c = w >> 1;
+		while (c--) {
+		    *d++ = *s & 0xff;
+		    *d++ = 255;
+		    *d++ = ( *s++ >> 16 ) & 0xff;
+		    *d++ = 255;
+		}
+		src += stridesrc;
+		dst += stridedst;
+	    }
 	}
     }
 
 
-    V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps) :
+    V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, ImageChannelOrder order) :
 	mWidth(width),
 	mHeight(height),
 	mFps(fps),
@@ -80,6 +154,7 @@ namespace cvt {
 	mFd(-1),
 	mBuffers(0),
 	mFrame(NULL),
+	mImgorder( order ),
 	mExtControlsToSet(0),
 	mAutoExposure(true),
 	mAutoIris(true),
@@ -174,7 +249,7 @@ namespace cvt {
 
 	if( mFrame )
 	    delete mFrame;
-	mFrame = new Image( mWidth, mHeight, CVT_BGRA );
+	mFrame = new Image( mWidth, mHeight, mImgorder );
 
 	// set stream parameter (fps):
 	mStreamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -277,7 +352,7 @@ namespace cvt {
 
 	// decompress frame
 	if( mBuffer.bytesused >= mFrame->height() * mFrame->width() * 2 ) {
-	    YUYV2BGR( mFrame->data(), ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), mFrame->stride(), 2 * mFrame->width() );
+	    YUYV2COLOR( mFrame->data(), ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), mFrame->stride(), 2 * mFrame->width(), mImgorder );
 	}
 
 	ret = ioctl(mFd, VIDIOC_QBUF, &mBuffer);
