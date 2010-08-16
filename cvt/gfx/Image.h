@@ -39,15 +39,19 @@ namespace cvt {
 	    uint8_t* data();
 	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 	    void reallocate( const Image& i );
-	    IplImage const* iplimage() const;
+	    void copy( const Image& i );
+	    IplImage* iplimage() const;
 
 	    void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
 
 	    void fill( const Color& c );
 	    Image& operator=( const Color& c );
+	    Image& operator=( const Image& c );
+	    void mul( float alpha = 1.0f );
+	    void mad( const Image& i, float alpha = 1.0f );
 
-	    void dx( Image& dx ) const;
-	    void dy( Image& dy ) const;
+	    void ddx( Image& dx, bool forward = TRUE ) const;
+	    void ddy( Image& dy, bool forward = TRUE ) const;
 
 	private:
 	    void upateIpl();
@@ -98,9 +102,15 @@ namespace cvt {
 	reallocate( i._width, i._height, i._order, i._type );
     }
 
-    inline IplImage const* Image::iplimage() const
+    inline IplImage* Image::iplimage() const
     {
 	return _iplimage;
+    }
+
+    inline Image& Image::operator=( const Image& c )
+    {
+	copy( c );
+	return *this;
     }
 }
 
