@@ -25,6 +25,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/LevenbergMarquard.h
 	math/Math.h
 	gfx/Color.h
+	util/Range.h
 	util/Rect.h
 	util/CVTTest.h
 	util/CVTException.h
@@ -33,6 +34,7 @@ SET(${MODULE_NAME}_HEADERS
 
 SET(${MODULE_NAME}_SOURCES
 	math/LevenbergMarquard.cpp
+	util/Range.cpp
 	util/Rect.cpp
 	gfx/Image.cpp
 	math/Math.cpp
@@ -89,5 +91,8 @@ MODULE_CONFIGURATION("${MODULE_NAME}"
 CVTTESTS(cvt util/cvttestsproto.h)
 link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
+ENDIF()
 target_link_libraries (cvttest ${MODULE_NAME}) 
 
