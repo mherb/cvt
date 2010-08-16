@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <cv.h>
 
+#include "gfx/Color.h"
+
 namespace cvt {
 
     enum ImageChannelOrder {
@@ -37,6 +39,9 @@ namespace cvt {
 	    uint8_t* data();
 	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 	    IplImage const* iplimage() const;
+
+	    void fill( const Color& c );
+	    Image& operator=( const Color& c );
 
 	private:
 	    void upateIpl();
