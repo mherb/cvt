@@ -16,7 +16,27 @@ namespace cvt {
 	    virtual void set_value_u16( uint16_t* dst, const size_t n, const uint16_t value ) const;
 	    virtual void set_value_u32( uint32_t* dst, const size_t n, const uint32_t value ) const;
 	    virtual void set_value_f( float* dst, const size_t n, const float value ) const;
-	    virtual void set_value_4f( float* dst, const size_t n, const float value[ 4 ] ) const;
+	    virtual void set_value_4f( float* dst, const size_t n, const float (&value)[ 4 ] ) const;
+
+	    /* single precision floating point */
+	    /*virtual void add_value_f( float* dst, float* src, const size_t n, float value ) const;
+	    virtual void add_value_4f( float* dst, float* src, const size_t n, float (&value)[ 4 ] ) const;
+	    virtual void sub_value_f( float* dst, float* src, const size_t n, float value ) const;
+	    virtual void sub_value_4f( float* dst, float* src, const size_t n, float (&value)[ 4 ] ) const;
+	    virtual void mul_value_f( float* dst, float* src, const size_t n, float value ) const;
+	    virtual void mul_value_4f( float* dst, float* src, const size_t n, float (&value)[ 4 ] ) const;
+	    virtual void div_value_f( float* dst, float* src, const size_t n, float value ) const;
+	    virtual void div_value_4f( float* dst, float* src, const size_t n, float (&value)[ 4 ] ) const;*/
+
+	    virtual void add( float* dst, float const* src1, float const* src2, const size_t n ) const;
+	    virtual void sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
+	    virtual void mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
+	    virtual void div( float* dst, float const* src1, float const* src2, const size_t n ) const;
+
+	    virtual void conv_f_to_u8( uint8_t* dst, float* src, const size_t n );
+	    virtual void conv_u8_to_f( float* dst, uint8_t* src, const size_t n );
+//	    virtual void conv_srgbu8_to_f( uint8_t* dst, float* src, const size_t n );
+
 
 	    static SIMD* get();
 

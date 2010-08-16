@@ -1,4 +1,5 @@
-#include <util/SIMD.h>
+#include "util/SIMD.h"
+#include "math/Math.h"
 
 namespace cvt {
     SIMD* SIMD::_simd = 0;
@@ -47,7 +48,7 @@ namespace cvt {
 	    *dst++ = value;
     }
 
-    void SIMD::set_value_4f( float* dst, const size_t n, const float value[ 4 ] ) const
+    void SIMD::set_value_4f( float* dst, const size_t n, const float (&value)[ 4 ] ) const
     {
 	size_t i = n;
 	while( i-- ) {
@@ -56,6 +57,91 @@ namespace cvt {
 	    *dst++ = value[ 2 ];
 	    *dst++ = value[ 3 ];
 	}
+    }
+
+    void SIMD::add( float* dst, float const* src1, float const* src2, const size_t n ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = *src1++ + *src2++;
+	    *dst++ = *src1++ + *src2++;
+	    *dst++ = *src1++ + *src2++;
+	    *dst++ = *src1++ + *src2++;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = *src1++ + *src2++;
+    }
+
+    void SIMD::sub( float* dst, float const* src1, float const* src2, const size_t n ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = *src1++ - *src2++;
+	    *dst++ = *src1++ - *src2++;
+	    *dst++ = *src1++ - *src2++;
+	    *dst++ = *src1++ - *src2++;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = *src1++ - *src2++;
+    }
+
+    void SIMD::mul( float* dst, float const* src1, float const* src2, const size_t n ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = *src1++ * *src2++;
+	    *dst++ = *src1++ * *src2++;
+	    *dst++ = *src1++ * *src2++;
+	    *dst++ = *src1++ * *src2++;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = *src1++ * *src2++;
+    }
+
+    void SIMD::div( float* dst, float const* src1, float const* src2, const size_t n ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = *src1++ / *src2++;
+	    *dst++ = *src1++ / *src2++;
+	    *dst++ = *src1++ / *src2++;
+	    *dst++ = *src1++ / *src2++;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = *src1++ / *src2++;
+    }
+
+    void SIMD::conv_f_to_u8( uint8_t* dst, float* src, const size_t n )
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f, 0.0f, 255.0f );
+	    *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f, 0.0f, 255.0f );
+	    *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f, 0.0f, 255.0f );
+	    *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f, 0.0f, 255.0f );
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f, 0.0f, 255.0f );
+
+    }
+
+    void SIMD::conv_u8_to_f( float* dst, uint8_t* src, const size_t n )
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = ( float ) *src++ / 255.0f;
+	    *dst++ = ( float ) *src++ / 255.0f;
+	    *dst++ = ( float ) *src++ / 255.0f;
+	    *dst++ = ( float ) *src++ / 255.0f;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = ( float ) *src++ / 255.0f;
     }
 
 }

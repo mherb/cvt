@@ -27,7 +27,7 @@ namespace cvt {
 	friend std::ostream& operator<<(std::ostream &os, const Image &f);
 
 	public:
-	    Image( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+	    Image( size_t w = 1, size_t h = 1, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 	    Image( const Image& img );
 	    ~Image();
 
@@ -38,10 +38,16 @@ namespace cvt {
 	    ImageChannelType type() const;
 	    uint8_t* data();
 	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+	    void reallocate( const Image& i );
 	    IplImage const* iplimage() const;
+
+	    void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
 
 	    void fill( const Color& c );
 	    Image& operator=( const Color& c );
+
+	    void dx( Image& dx ) const;
+	    void dy( Image& dy ) const;
 
 	private:
 	    void upateIpl();
@@ -85,6 +91,11 @@ namespace cvt {
     inline uint8_t* Image::data()
     {
 	return _data;
+    }
+
+    inline void Image::reallocate( const Image& i )
+    {
+	reallocate( i._width, i._height, i._order, i._type );
     }
 
     inline IplImage const* Image::iplimage() const
