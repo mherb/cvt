@@ -1,10 +1,16 @@
 MACRO(CVTTESTS _LIB _OUT )
+	IF(UNIX AND NOT APPLE)
+		SET(LIBNAME "lib/lib${_LIB}_d.so")
+	ELSE()
+		SET(LIBNAME "lib/${_LIB}_d.dylib")
+	ENDIF()
+
     ADD_CUSTOM_COMMAND(
         OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/${_OUT}
         COMMAND ${CMAKE_SOURCE_DIR}/util/extracttests.sh
-                ${CMAKE_BINARY_DIR}/${_LIB}
+                ${CMAKE_BINARY_DIR}/${LIBNAME}
 		${CMAKE_CURRENT_SOURCE_DIR}/${_OUT}
-        DEPENDS ${CMAKE_BINARY_DIR}/${_LIB}
+        DEPENDS ${_LIB}
     )
 ENDMACRO(CVTTESTS)
 

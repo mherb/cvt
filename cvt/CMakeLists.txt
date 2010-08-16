@@ -22,7 +22,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
 	io/FileSystem.h
 	io/FloFile.h
-	io/V4L2Camera.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	gfx/Color.h
@@ -39,8 +38,16 @@ SET(${MODULE_NAME}_SOURCES
 	math/Math.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
-	io/V4L2Camera.cpp
 )
+	
+IF(UNIX AND NOT APPLE)
+	SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
+		io/V4L2Camera.h
+	)
+	SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
+		io/V4L2Camera.cpp
+	)
+ENDIF()
 
 # optional uEyeUsbCamera driver if available 
 FIND_PACKAGE(uEyeUsbCamera)
@@ -79,7 +86,7 @@ MODULE_CONFIGURATION("${MODULE_NAME}"
 					 "${${MODULE_NAME}_SOURCES}" 
 					 "${${MODULE_NAME}_DEP_LIBRARIES}")
 
-CVTTESTS(/lib/libcvt_d.so util/cvttestsproto.h)
+CVTTESTS(cvt util/cvttestsproto.h)
 link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 target_link_libraries (cvttest ${MODULE_NAME}) 
