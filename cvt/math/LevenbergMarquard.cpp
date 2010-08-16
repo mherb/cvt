@@ -8,6 +8,9 @@
  */
 
 #include "LevenbergMarquard.h"
+#include "util/CVTTest.h"
+
+#include <iostream>
 
 #include <Eigen/SVD>
 
@@ -154,5 +157,4 @@ namespace cvt {
 		
 		return false;
 	}
-	
 }

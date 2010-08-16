@@ -29,11 +29,11 @@ case $OSTYPE in
 		symextractor="nm -g $1";
 		rm -f $2;
 		echo -e "#include \"CVTTest.h\"\n\nextern \"C\" { " >> $2;
-		$symextractor | awk '/.*_test/ {print "\tbool "$3"( void );"}' >> $2;
+		$symextractor | awk '/.*_test/ {print "\tbool "substr($3, 2)"( void );"}' >> $2;
 		echo -e "}\n" >> $2;
 
 		echo -e "\nCVTTest _tests[] = {" >> $2;
-		$symextractor | awk '/.*_test/ {print "\t{ "$3", \""$3"\" }," }' >> $2;
+		$symextractor | awk '/.*_test/ {print "\t{ "substr($3, 2)", \""substr($3, 2)"\" }," }' >> $2;
 		echo -e "\t{ NULL, NULL}\n};" >> $2;;
     *) echo "Unknown OS";
        exit 1;;
