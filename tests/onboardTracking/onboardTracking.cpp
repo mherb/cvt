@@ -1,5 +1,6 @@
 #include <iostream>
-
+#include <vector>
+#include <Eigen/Core>
 
 int main(int argc, char* argv[])
 {
