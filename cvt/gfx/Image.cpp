@@ -24,6 +24,28 @@ namespace cvt {
     }
 
 
+    Image::Image( const Image& img )
+    {
+	_order = img._order;
+	_type = img._type;
+	_width = img._width;
+	_height = img._height;
+	_stride = Math::pad16( _width ) * _order_channels[ _order ] * _type_size[ _type ];
+	_iplimage = 0;
+	posix_memalign( ( void** ) &_data, 16, _stride * _height );
+
+	size_t h = _height;
+	uint8_t* dst = _data;
+	uint8_t* src = img._data;
+	while( h-- ) {
+	    memcpy( dst, src, _width );
+	    dst += _stride;
+	    src += img._stride;
+	}
+	upateIpl();
+    }
+
+
     void Image::reallocate( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type )
     {
 	free( _data );
