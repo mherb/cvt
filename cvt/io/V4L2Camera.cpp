@@ -57,14 +57,14 @@ namespace cvt {
 	b = ((u*1814) >> 10);
 
 	// clamp the values
-	p1 = 0xff;
-	p1 |= Math::clamp( y0 + r, 0, 255 ) << 8;
-	p1 |= Math::clamp( y0 - g, 0, 255 ) << 16;
-	p1 |= Math::clamp( y0 + b, 0, 255 ) << 24;
-	p2 = 0xff;
-	p2 |= Math::clamp( y1 + r, 0, 255 ) << 8;
-	p2 |= Math::clamp( y1 - g, 0, 255 ) << 16;
-	p2 |= Math::clamp( y1 + b, 0, 255 ) << 24;
+	p1 = 0xff000000;
+	p1 |= Math::clamp( y0 + r, 0, 255 );
+	p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
+	p1 |= Math::clamp( y0 + b, 0, 255 ) << 16;
+	p2 = 0xff000000;
+	p2 |= Math::clamp( y1 + r, 0, 255 );
+	p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
+	p2 |= Math::clamp( y1 + b, 0, 255 ) << 16;
     }
 
     static void YUYV2COLOR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc, ImageChannelOrder order )

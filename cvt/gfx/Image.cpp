@@ -1,5 +1,6 @@
 #include "gfx/Image.h"
 #include "math/Math.h"
+#include "util/SIMD.h"
 
 namespace cvt {
 
@@ -26,6 +27,7 @@ namespace cvt {
 
     Image::Image( const Image& img )
     {
+	std::cout << "COPY" << std::endl;
 	_order = img._order;
 	_type = img._type;
 	_width = img._width;
@@ -48,6 +50,9 @@ namespace cvt {
 
     void Image::reallocate( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type )
     {
+	if( _width == w && _height == h && _order == order && _type == type )
+	    return;
+
 	free( _data );
 	_order = order;
 	_type = type;
@@ -71,10 +76,78 @@ namespace cvt {
     Image::~Image()
     {
 	if( _iplimage )
-	    cvReleaseImage( &_iplimage );
+	    cvReleaseImageHeader( &_iplimage );
 	free( _data );
     }
 
+    void Image::fill( const Color& c )
+    {
+	size_t h;
+	uint8_t* dst;
+	SIMD* simd = SIMD::get();
+
+	switch( _order ) {
+	    case CVT_GRAY:
+		{
+		    uint8_t v = ( uint8_t ) ( 255.0f * c.gray() );
+		    h = _height;
+		    dst = _data;
+		    while( h-- ) {
+			simd->set_value_u8( dst, _width, v );
+			dst += _stride;
+		    }
+		}
+		break;
+	    case CVT_GRAYALPHA:
+		{
+		    uint16_t v = ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8;
+		    v |= ( ( uint16_t ) ( 255.0f * c.gray() ));
+		    h = _height;
+		    dst = _data;
+		    while( h-- ) {
+			simd->set_value_u16( ( uint16_t* ) dst, _width, v );
+			dst += _stride;
+		    }
+		}
+		break;
+	    case CVT_RGBA:
+		{
+		    uint32_t v = ( ( uint32_t ) ( 255.0f * c.gray() ) ) << 24;
+		    v |= ( ( uint32_t ) ( 255.0f * c.blue() ) ) << 16;
+		    v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
+		    v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
+
+		    h = _height;
+		    dst = _data;
+		    while( h-- ) {
+			simd->set_value_u32( ( uint32_t* ) dst, _width, v );
+			dst += _stride;
+		    }
+		}
+		break;
+	    case CVT_BGRA:
+		{
+		    uint32_t v = ( ( uint32_t ) ( 255.0f * c.gray() ) ) << 24;
+		    v |= ( ( uint32_t ) ( 255.0f * c.red() ) ) << 16;
+		    v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
+		    v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );
+
+		    h = _height;
+		    dst = _data;
+		    while( h-- ) {
+			simd->set_value_u32( ( uint32_t* ) dst, _width, v );
+			dst += _stride;
+		    }
+		}
+		break;
+	}
+    }
+
+    Image& Image::operator=( const Color& c )
+    {
+	fill( c );
+	return *this;
+    }
 
     std::ostream& operator<<(std::ostream &out, const Image &f)
     {

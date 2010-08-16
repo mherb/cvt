@@ -4,23 +4,26 @@
 #include "math/Math.h"
 
 namespace cvt {
+    class Image;
 
     class Color
     {
+	friend class Image;
 	public:
-	    Color( float r, float g, float b, float a )
-	    Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a );
+	    Color( float r, float g, float b, float a );
+	    Color( int r, int g, int b, int a );
 
-	    set( float r, float g, float b, float a );
-	    set( uint8_t r, uint8_t g, uint8_t b, uint8_t a );
+	    void set( float r, float g, float b, float a );
+	    void set( int r, int g, int b, int a );
 
-	    get( float& r, float& g, float& b, float& a ) const;
-	    get( uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a ) const;
+	    void get( float& r, float& g, float& b, float& a ) const;
+	    void get( int& r, int& g, int& b, int& a ) const;
 
 	    float red() const { return _r; };
 	    float green() const { return _g; };
 	    float blue() const { return _b; };
 	    float alpha() const { return _a; };
+	    float gray() const;
 
 	    void setRed( float r ) { _r = r; };
 	    void setGreen( float g ) { _g = g; };
@@ -28,37 +31,38 @@ namespace cvt {
 	    void setAlpha( float a ) { _a = a; };
 
 
+
 	private:
 	    float _r, _g, _b, _a;
     };
 
-    Color::Color( float r, float g, float b, float a )
+    inline Color::Color( float r, float g, float b, float a )
     {
 	set( r, g, b, a );
-    };
+    }
 
-    Color::Color( uint8_t r, uint8_t g, uint8_t b, uint8_t a )
+    inline Color::Color( int r, int g, int b, int a )
     {
-	_r = ( float ) r / 255.0f;
-	_g = ( float ) g / 255.0f;
-	_b = ( float ) b / 255.0f;
-	_a = ( float ) a / 255.0f;
-    };
+	_r = Math::clamp( ( float ) r / 255.0f, 0.0f, 1.0f );
+	_g = Math::clamp( ( float ) g / 255.0f, 0.0f, 1.0f );
+	_b = Math::clamp( ( float ) b / 255.0f, 0.0f, 1.0f );
+	_a = Math::clamp( ( float ) a / 255.0f, 0.0f, 1.0f );
+    }
 
-    Color::set( float r, float g, float b, float a )
+    inline void Color::set( float r, float g, float b, float a )
     {
 	_r = Math::clamp( r, 0.0f, 1.0f );
 	_g = Math::clamp( g, 0.0f, 1.0f );
 	_b = Math::clamp( b, 0.0f, 1.0f );
 	_a = Math::clamp( a, 0.0f, 1.0f );
-    };
+    }
 
-    Color::set( uint8_t r, uint8_t g, uint8_t b, uint8_t a )
+    inline void Color::set( int r, int g, int b, int a )
     {
-	_r = ( float ) r / 255.0f;
-	_g = ( float ) g / 255.0f;
-	_b = ( float ) b / 255.0f;
-	_a = ( float ) a / 255.0f;
+	_r = Math::clamp( ( float ) r / 255.0f, 0.0f, 1.0f );
+	_g = Math::clamp( ( float ) g / 255.0f, 0.0f, 1.0f );
+	_b = Math::clamp( ( float ) b / 255.0f, 0.0f, 1.0f );
+	_a = Math::clamp( ( float ) a / 255.0f, 0.0f, 1.0f );
     }
 
     inline void Color::get( float& r, float& g, float& b, float& a ) const
@@ -67,15 +71,21 @@ namespace cvt {
 	g = _g;
 	b = _b;
 	a = _a;
-    };
+    }
 
-    inline void Color::get( uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a ) const
+    inline void Color::get( int& r, int& g, int& b, int& a ) const
     {
-	r = ( uint8_t ) ( _r * 255.0f );
-	g = ( uint8_t ) ( _g * 255.0f );
-	b = ( uint8_t ) ( _b * 255.0f );
-	a = ( uint8_t ) ( _a * 255.0f );
-    };
+	r = ( int ) ( _r * 255.0f );
+	g = ( int ) ( _g * 255.0f );
+	b = ( int ) ( _b * 255.0f );
+	a = ( int ) ( _a * 255.0f );
+    }
+
+    inline float Color::gray() const
+    {
+	return 0.2126f * _r + 0.7152f * _g + 0.0722f * _b;
+    }
+
 
 }
 

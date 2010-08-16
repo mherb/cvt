@@ -30,6 +30,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/CVTTest.h
 	util/CVTException.h
 	util/Timer.h
+	util/SIMD.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -40,6 +41,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/Math.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
+	util/SIMD.cpp
 )
 	
 IF(UNIX AND NOT APPLE)
