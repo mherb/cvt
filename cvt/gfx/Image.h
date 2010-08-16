@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <opencv/cv.h>
+#include <cv.h>
 
 namespace cvt {
 
@@ -26,6 +26,7 @@ namespace cvt {
 
 	public:
 	    Image( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+	    Image( const Image& img );
 	    ~Image();
 
 	    size_t width() const;
