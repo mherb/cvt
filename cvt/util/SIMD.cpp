@@ -115,6 +115,83 @@ namespace cvt {
 	    *dst++ = *src1++ / *src2++;
     }
 
+    void SIMD::mul_valuef_add( float* dst, float const* src1, const size_t n, float value ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ += *src1++ * value;
+	    *dst++ += *src1++ * value;
+	    *dst++ += *src1++ * value;
+	    *dst++ += *src1++ * value;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ += *src1++ * value;
+    }
+
+    void SIMD::mul_valuef( float* dst, float* src, const size_t n, float value ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ = *src++ * value;
+	    *dst++ = *src++ * value;
+	    *dst++ = *src++ * value;
+	    *dst++ = *src++ * value;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ = *src++ * value;
+
+    }
+
+    void SIMD::mul_valuef_sub( float* dst, float const* src1, const size_t n, float value ) const
+    {
+	size_t i = n >> 2;
+	while( i-- ) {
+	    *dst++ -= *src1++ * value;
+	    *dst++ -= *src1++ * value;
+	    *dst++ -= *src1++ * value;
+	    *dst++ -= *src1++ * value;
+	}
+	i = n & 0x02;
+	while( i-- )
+	    *dst++ -= *src1++ * value;
+    }
+
+    void SIMD::mul_value4f_add( float* dst, float const* src1, const size_t n, float (&value)[ 4 ] ) const
+    {
+	size_t i = n >> 2;
+	size_t x = 0;
+	while( i-- ) {
+	    *dst++ += *src1++ * value[ 0 ];
+	    *dst++ += *src1++ * value[ 1 ];
+	    *dst++ += *src1++ * value[ 2 ];
+	    *dst++ += *src1++ * value[ 3 ];
+	}
+	i = n & 0x02;
+	while( i-- ) {
+	    *dst++ += *src1++ * value[ x++ ];
+	    x &= 0x02;
+	}
+    }
+
+    void SIMD::mul_value4f_sub( float* dst, float const* src1, const size_t n, float (&value)[ 4 ] ) const
+    {
+	size_t i = n >> 2;
+	size_t x = 0;
+	while( i-- ) {
+	    *dst++ -= *src1++ * value[ 0 ];
+	    *dst++ -= *src1++ * value[ 1 ];
+	    *dst++ -= *src1++ * value[ 2 ];
+	    *dst++ -= *src1++ * value[ 3 ];
+	}
+	i = n & 0x02;
+	while( i-- ) {
+	    *dst++ -= *src1++ * value[ x++ ];
+	    x &= 0x02;
+	}
+    }
+
     void SIMD::conv_f_to_u8( uint8_t* dst, float* src, const size_t n )
     {
 	size_t i = n >> 2;

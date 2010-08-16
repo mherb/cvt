@@ -11,11 +11,13 @@ PROJECT(${MODULE_NAME} CXX C)
 FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
+FIND_PACKAGE(LibPng REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
 	${Boost_LIBRARIES}
 	${OpenCV_LIBS}
+	${LIBPNG_LIBRARY}
 )
 
 SET(${MODULE_NAME}_HEADERS
@@ -31,6 +33,8 @@ SET(${MODULE_NAME}_HEADERS
 	util/CVTException.h
 	util/Timer.h
 	util/SIMD.h
+	gfx/ifilter/ROFDenoise.h
+	io/ImageIO.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -42,6 +46,8 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	util/SIMD.cpp
+	gfx/ifilter/ROFDenoise.cpp
+	io/ImageIO.cpp
 )
 	
 IF(UNIX AND NOT APPLE)
@@ -83,6 +89,7 @@ INCLUDE_DIRECTORIES(
 	${Boost_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${Eigen2_INCLUDE_DIR}	
+	${LIBPNG_INCLUDE_DIR}
 )
 
 MODULE_CONFIGURATION("${MODULE_NAME}" 

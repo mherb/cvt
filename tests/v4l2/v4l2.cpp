@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
 	int key;
 	size_t frames = 0;
 	Timer timer;
-	Image f, dx, dy;
 
 
 	cam.open();
@@ -27,11 +26,7 @@ int main(int argc, char* argv[])
 	    cam.captureNext();
 	    frame = cam.image();
 
-	    frame->convert( f, CVT_GRAY, CVT_FLOAT );
-	    f.dx( dx );
-	    f.dy( dy );
-	    cvShowImage( "V4L2", dx.iplimage() );
-	    cvShowImage( "V4L2-2", dy.iplimage() );
+	    cvShowImage( "V4L2", frame->iplimage() );
 
 	    key = cvWaitKey( 10 );
 	    if( ( key & 0xff ) == 27 )
