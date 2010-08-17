@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 	cvSmooth( itmp.iplimage(), out.iplimage(), CV_MEDIAN, 3, 0, 0 );*/
 	denoise.apply( out, itmp, 0.125f, 100 );
 	itmp.mad( out, -0.95f );
-//	out = itmp;
-	out.mad( itmp, 2.0f );
+	out = itmp;
+	out.mul( 10.0f );
 
 	while( 1 ) {
 
