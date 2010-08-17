@@ -12,33 +12,35 @@ using namespace cvt;
 int main(int argc, char* argv[])
 {
 	int key;
-	Image img, out, itmp;
+	Image img1,img2;
+	Image in1, in2;
 	ROFDenoise denoise;
-	bool dofilter = true;
 
-	ImageIO::loadPNG( img, argv[ 1 ] );
+	if( argc != 3 )
+	    return 1;
 
-	img.convert( itmp, CVT_GRAY, CVT_FLOAT );
-/*	out.reallocate( itmp );
-	cvSmooth( itmp.iplimage(), out.iplimage(), CV_MEDIAN, 3, 0, 0 );*/
-	denoise.apply( out, itmp, 0.125f, 100 );
-	itmp.mad( out, -0.95f );
-	out = itmp;
-	out.mul( 10.0f );
+	ImageIO::loadPNG( img1, argv[ 1 ] );
+	ImageIO::loadPNG( img2, argv[ 2 ] );
+
+	Image* tmp = new Image();
+	img1.convert( *tmp, CVT_GRAY, CVT_FLOAT );
+	denoise.apply( in1, *tmp, 0.125f, 100 );
+	in1.mad( *tmp, -0.95f );
+	img2.convert( *tmp, CVT_GRAY, CVT_FLOAT );
+	denoise.apply( in2, *tmp, 0.125f, 100 );
+	in2.mad( *tmp, -0.95f );
+	delete tmp;
 
 	while( 1 ) {
 
-	    if( dofilter ) {
-		cvShowImage( "V4L2", out.iplimage() );
-	    } else
-		cvShowImage( "V4L2", img.iplimage() );
+	    cvShowImage( "V4L2 - Frame 1", img1.iplimage() );
+	    cvShowImage( "V4L2 - Frame 2", img2.iplimage() );
+	    cvShowImage( "V4L2 - Frame 1 Structure", in1.iplimage() );
+	    cvShowImage( "V4L2 - Frame 2 Structure", in2.iplimage() );
 
-	    key = cvWaitKey( 10 );
-	    if( ( key & 0xff ) == 27 )
+	    key = cvWaitKey( 10 ) & 0xff;
+	    if( key == 27 )
 		break;
-	    else if( ( key & 0xff ) == ' ' )
-		dofilter = !dofilter;
-
 	}
 
 	return 0;

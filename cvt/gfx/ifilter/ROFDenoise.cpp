@@ -59,6 +59,8 @@ namespace cvt {
 	size_t w, h;
 	float tmp1, tmp2, norm;
 
+
+
 	dst1 = idst1.data();
 	stridedst1 = idst1.stride();
 	dst2 = idst2.data();
@@ -95,24 +97,41 @@ namespace cvt {
     void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter )
     {
 	Image dx, dy, px, py, ptmp;
+	Image kerndx( 3, 1, CVT_GRAY, CVT_FLOAT );
+	Image kerndy( 1, 3, CVT_GRAY, CVT_FLOAT );
+
+	{
+	    float* data;
+	    data = ( float* ) kerndx.data();
+	    *data++ = -1.0f;
+	    *data++ =  0.0f;
+	    *data++ =  1.0f;
+
+	    data = ( float* ) kerndy.scanline( 0 );
+	    *data++ = -1.0f;
+	    data = ( float* ) kerndy.scanline( 1 );
+	    *data++ =  0.0f;
+	    data = ( float* ) kerndy.scanline( 2 );
+	    *data++ =  1.0f;
+	}
 
 	dst.copy( src );
-	src.ddx( px );
-	src.ddy( py );
+	src.convolve( px, kerndx, false );
+	src.convolve( py, kerndy, false );
 
 #define TAU 0.25f
 
 	while( iter-- ) {
-	    px.ddx( dx );
-	    py.ddy( dy );
+	    px.convolve( dx, kerndx, false );
+	    py.convolve( dy, kerndy, false );
 	    ptmp =  src;
 	    multadd2( ptmp, dx, dy, lambda );
-	    ptmp.ddx( dx, false );
-	    ptmp.ddy( dy, false );
+	    ptmp.convolve( dx, kerndx, false );
+	    ptmp.convolve( dy, kerndy, false );
 	    multadd2_th( px, py, dx, dy, TAU / lambda );
 	}
-	px.ddx( dx );
-	py.ddy( dy );
+	px.convolve( dx, kerndx, false );
+	py.convolve( dy, kerndy, false );
 	multadd2( dst, dx, dy, lambda );
     }
 
