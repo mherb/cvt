@@ -15,18 +15,35 @@
 
 #include <vector>
 
-typedef std::vector<Eigen::Vector4d> PointsHom;
+struct ViewInformation
+{
+	ViewInformation(unsigned int numPoints)
+	{
+		points.setZero(4, numPoints);
+		edges.setZero(4, 2*numPoints);
+	}
+
+	Eigen::Matrix<double, 4, Eigen::Dynamic> points;
+	Eigen::Matrix<double, 4, Eigen::Dynamic> edges;
+};
 
 class VisiblePoints
 {
 public:
 	VisiblePoints(std::string file);
 
-	void visiblityInfoForViewAngles(double alpha,
-									double beta,
-									PointsHom & point,
-									PointsHom & edges);
-
+	/**
+	  *	get the visible points and corresponding edges
+	  *	for a specific viewing angle in camera coordinates
+	  *
+	  *	@param alpha	rotation around x axis in camera frame in RAD!
+	  *	@param beta		rotation around y axis in camera frame in RAD!
+	  *	@return			ViewInformation for given angles (stored in matrices column wise)
+	  *
+	  *	@note	The results still have to be transformed according
+	  *			to the z-Rotation + translations
+	  */
+	ViewInformation const& get(double alpha, double beta);
 
 private:
 	cvt::Range<double> xAngleRange;
@@ -35,8 +52,7 @@ private:
 	double xAngleStep;
 	double yAngleStep;
 
-	std::vector<std::vector<PointsHom> > visiblePointsForAngles;
-	std::vector<std::vector<PointsHom> > linesForPoints;
+	std::vector<std::vector<ViewInformation> > viewInformations;
 
 	void parse(std::string fileName);
 };

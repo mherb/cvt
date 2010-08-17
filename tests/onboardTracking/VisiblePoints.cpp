@@ -9,6 +9,11 @@
 
 #include "VisiblePoints.h"
 
+#include <cvt/io/FileSystem.h>
+#include <cvt/util/CVTException.h>
+
+#include <Eigen/Geometry>
+
 #include <fstream>
 #include <sstream>
 
@@ -16,6 +21,10 @@ VisiblePoints::VisiblePoints(std::string fileName):
 	xAngleRange(0, 0),
 	yAngleRange(0, 0)
 {
+	if(!cvt::FileSystem::exists(fileName)){
+		throw cvt::CVTException("File not found: \"" + fileName + "\"");
+	}
+
 	this->parse(fileName);
 }
 
@@ -28,28 +37,37 @@ void VisiblePoints::parse(std::string fileName)
 	in >> yAngleRange.min;
 	in >> yAngleRange.max;
 
+
 	unsigned int numXAngles;
 	unsigned int numYAngles;
 	in >> numXAngles;
 	in >> numYAngles;
 
-	visiblePointsForAngles.resize(numXAngles);
-	linesForPoints.resize(numXAngles);
-	for (unsigned int i = 0; i < numXAngles; i++) {
-		visiblePointsForAngles[i].resize(numYAngles);
-		linesForPoints[i].resize(numYAngles);
-	}
+	std::cout << "XRange: " << xAngleRange;
+	std::cout << "YRange: " << yAngleRange;
+	std::cout << "NumXAngles: " << numXAngles << std::endl;
+	std::cout << "NumYAngles: " << numYAngles << std::endl;
+
+	viewInformations.resize(numXAngles);
 
 	xAngleStep = (xAngleRange.max - xAngleRange.min) / numXAngles;
 	yAngleStep = (yAngleRange.max - yAngleRange.min) / numYAngles;
 
+	Eigen::Transform3d T(Eigen::AngleAxisd(-M_PI/2.0, Eigen::Vector3d::UnitX()));
+	std::cout << T.linear() << std::endl;
+
 	std::string line;
 
 	unsigned int currentAlphaIdx, currentBetaIdx;
-	unsigned int lineInFile = 0;
+	unsigned int lineInFile = 1;
+	std::getline(in, line);
 	while (!in.eof()) {
 		std::getline(in, line);
 		lineInFile++;
+
+		// skip empty line
+		if(line.size() == 0)
+			continue;
 
 		std::istringstream lineParsing(line);
 
@@ -58,34 +76,44 @@ void VisiblePoints::parse(std::string fileName)
 
 		Eigen::Vector4d currentP;
 		currentP[3] = 1.0;
+		std::vector<Eigen::Vector4d> points;
+		std::vector<Eigen::Vector4d> edges;
 
 		while (!lineParsing.eof()) {
+			// One 3D Point ...
 			lineParsing >> currentP[0];
 			lineParsing >> currentP[1];
 			lineParsing >> currentP[2];
+			points.push_back(currentP);
 
-			visiblePointsForAngles[currentAlphaIdx][currentBetaIdx].push_back(currentP);
+			// Corresponding 3D line  (start and endpoint)
+			lineParsing >> currentP[0];
+			lineParsing >> currentP[1];
+			lineParsing >> currentP[2];
+			edges.push_back(currentP);
 
 			lineParsing >> currentP[0];
 			lineParsing >> currentP[1];
 			lineParsing >> currentP[2];
-
-			linesForPoints[currentAlphaIdx][currentBetaIdx].push_back(currentP);
-
-			lineParsing >> currentP[0];
-			lineParsing >> currentP[1];
-			lineParsing >> currentP[2];
-
-			linesForPoints[currentAlphaIdx][currentBetaIdx].push_back(currentP);
-
+			edges.push_back(currentP);
 		}
+
+		unsigned int numPoints = (unsigned int)points.size();
+		viewInformations[currentAlphaIdx].push_back(ViewInformation(numPoints));
+		for(unsigned int p = 0; p < numPoints; p++){
+			viewInformations[currentAlphaIdx][currentBetaIdx].points.block(0, p, 4, 1) = T.matrix()*points[p];
+			viewInformations[currentAlphaIdx][currentBetaIdx].edges.block(0, 2*p, 4, 1) = T.matrix()*edges[2*p];
+			viewInformations[currentAlphaIdx][currentBetaIdx].edges.block(0, 2*p+1, 4, 1) = T.matrix()*edges[2*p+1];
+		}
+
 	}
 }
 
-void VisiblePoints::visiblityInfoForViewAngles(double alpha, double beta,
-											   PointsHom & points,
-											   PointsHom & edges)
+ViewInformation const& VisiblePoints::get( double alpha, double beta )
 {
+	alpha = (alpha*180.0/M_PI);
+	beta = (beta*180.0/M_PI);
+
 	if(alpha > xAngleRange.max)
 		alpha = xAngleRange.max;
 	else if( alpha < xAngleRange.min)
@@ -96,9 +124,8 @@ void VisiblePoints::visiblityInfoForViewAngles(double alpha, double beta,
 	else if( beta < yAngleRange.min)
 		beta = yAngleRange.min;
 
-	unsigned int aIdx = static_cast<unsigned int>(alpha / xAngleStep);
-	unsigned int bIdx = static_cast<unsigned int>(beta / yAngleStep);
+	unsigned int aIdx = viewInformations.size() * (alpha - xAngleRange.min) / xAngleRange.size();
+	unsigned int bIdx = viewInformations[0].size() * (beta - yAngleRange.min) / yAngleRange.size();
 
-	points = visiblePointsForAngles[aIdx][bIdx];
-	edges = linesForPoints[aIdx][bIdx];
+	return viewInformations[aIdx][bIdx];
 }
