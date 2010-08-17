@@ -345,4 +345,409 @@ namespace cvt {
 	    *dst++ = ( float ) *src++ / 255.0f;
     }
 
+    void SIMD::ConvolveClampSet1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn )
+    {
+	float const* wp;
+	float const* sp;
+	float tmp;
+	size_t i, k, b1, b2;
+
+	b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+	b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+	/* border 1 */
+	i = b1;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp = *sp * *wp++;
+	    k = i;
+	    while( k-- )
+		tmp += *sp * *wp++;
+	    k = wn - 1 - i;
+	    while( k-- ) {
+		tmp += *sp++ * *wp++;
+	    }
+	    *dst++ = tmp;
+	}
+
+
+	/* center */
+	i = width - wn + 1;
+	while( i-- ) {
+	    k = wn;
+	    sp = src;
+	    wp = weights;
+	    tmp = *sp++ * *wp++;
+	    k--;
+	    while( k-- )
+		tmp += *sp++ * *wp++;
+	    *dst++ = tmp;
+	    src++;
+	}
+
+	/* border 2 */
+	i = b2;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp = *sp++ * *wp++;
+	    k = b1 + i;
+	    while( k-- ) {
+		tmp += *sp++ * *wp++;
+	    }
+	    k = b2 - i;
+	    sp--;
+	    while( k-- )
+		tmp += *sp * *wp++;
+	    *dst++ = tmp;
+	    src++;
+	}
+    }
+
+    void SIMD::ConvolveClampAdd1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn )
+    {
+	float const* wp;
+	float const* sp;
+	float tmp;
+	size_t i, k, b1, b2;
+
+	b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+	b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+	/* border 1 */
+	i = b1;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp = *sp * *wp++;
+	    k = i;
+	    while( k-- )
+		tmp += *sp * *wp++;
+	    k = wn - 1 - i;
+	    while( k-- ) {
+		tmp += *sp++ * *wp++;
+	    }
+	    *dst++ += tmp;
+	}
+
+
+	/* center */
+	i = width - wn + 1;
+	while( i-- ) {
+	    k = wn;
+	    sp = src;
+	    wp = weights;
+	    tmp = *sp++ * *wp++;
+	    k--;
+	    switch( k & 7 ) {
+		case 0: while( k ) {
+			    tmp += *sp++ * *wp++;
+			    k--;
+			    case 7:	tmp += *sp++ * *wp++;
+					k--;
+			    case 6:	tmp += *sp++ * *wp++;
+					k--;
+			    case 5:	tmp += *sp++ * *wp++;
+					k--;
+			    case 4:	tmp += *sp++ * *wp++;
+					k--;
+			    case 3:	tmp += *sp++ * *wp++;
+					k--;
+			    case 2:	tmp += *sp++ * *wp++;
+					k--;
+			    case 1:	tmp += *sp++ * *wp++;
+					k--;
+			}
+	    }
+	    *dst++ += tmp;
+	    src++;
+	}
+
+	/* border 2 */
+	i = b2;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp = *sp++ * *wp++;
+	    k = b1 + i;
+	    while( k-- ) {
+		tmp += *sp++ * *wp++;
+	    }
+	    k = b2 - i;
+	    sp--;
+	    while( k-- )
+		tmp += *sp * *wp++;
+	    *dst++ += tmp;
+	    src++;
+	}
+    }
+
+    void SIMD::ConvolveClampSet4f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn )
+    {
+	float const* wp;
+	float const* sp;
+	float tmp[ 4 ];
+	size_t i, k, b1, b2;
+
+	b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+	b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+	/* border 1 */
+	i = b1;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp[ 0 ] = *( sp + 0 ) * *wp;
+	    tmp[ 1 ] = *( sp + 1 ) * *wp;
+	    tmp[ 2 ] = *( sp + 2 ) * *wp;
+	    tmp[ 3 ] = *( sp + 3 ) * *wp++;
+	    k = i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    k = wn - 1 - i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+		sp += 4;
+	    }
+	    *dst++ = tmp[ 0 ];
+	    *dst++ = tmp[ 1 ];
+	    *dst++ = tmp[ 2 ];
+	    *dst++ = tmp[ 3 ];
+	}
+
+
+	/* center */
+	i = width - wn + 1;
+	while( i-- ) {
+	    k = wn;
+	    sp = src;
+	    wp = weights;
+	    tmp[ 0 ] = *( sp + 0 ) * *wp;
+	    tmp[ 1 ] = *( sp + 1 ) * *wp;
+	    tmp[ 2 ] = *( sp + 2 ) * *wp;
+	    tmp[ 3 ] = *( sp + 3 ) * *wp++;
+	    sp += 4;
+	    k--;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+		sp += 4;
+	    }
+	    *dst++ = tmp[ 0 ];
+	    *dst++ = tmp[ 1 ];
+	    *dst++ = tmp[ 2 ];
+	    *dst++ = tmp[ 3 ];
+	    src += 4;
+	}
+
+	/* border 2 */
+	i = b2;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp[ 0 ] = *( sp + 0 ) * *wp;
+	    tmp[ 1 ] = *( sp + 1 ) * *wp;
+	    tmp[ 2 ] = *( sp + 2 ) * *wp;
+	    tmp[ 3 ] = *( sp + 3 ) * *wp++;
+	    k = b1 + i;
+	    while( k-- ) {
+		sp += 4;
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    k = b2 - i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    *dst++ = tmp[ 0 ];
+	    *dst++ = tmp[ 1 ];
+	    *dst++ = tmp[ 2 ];
+	    *dst++ = tmp[ 3 ];
+	    src += 4;
+	}
+    }
+
+    void SIMD::ConvolveClampAdd4f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn )
+    {
+	float const* wp;
+	float const* sp;
+	float tmp[ 4 ];
+	size_t i, k, b1, b2;
+
+	b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+	b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+	/* border 1 */
+	i = b1;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp[ 0 ] = *( sp + 0 ) * *wp;
+	    tmp[ 1 ] = *( sp + 1 ) * *wp;
+	    tmp[ 2 ] = *( sp + 2 ) * *wp;
+	    tmp[ 3 ] = *( sp + 3 ) * *wp++;
+	    k = i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    k = wn - 1 - i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+		sp += 4;
+	    }
+	    *dst++ += tmp[ 0 ];
+	    *dst++ += tmp[ 1 ];
+	    *dst++ += tmp[ 2 ];
+	    *dst++ += tmp[ 3 ];
+	}
+
+
+	/* center */
+	i = width - wn + 1;
+	while( i-- ) {
+	    float w;
+	    k = wn;
+	    sp = src;
+	    wp = weights;
+	    w = *wp++;
+	    tmp[ 0 ] = *( sp + 0 ) * w;
+	    tmp[ 1 ] = *( sp + 1 ) * w;
+	    tmp[ 2 ] = *( sp + 2 ) * w;
+	    tmp[ 3 ] = *( sp + 3 ) * w;
+	    sp += 4;
+	    k--;
+	    switch( k & 7 ) {
+		case 0: while( k ) {
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 7:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 6:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 5:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 4:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 3:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 2:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			    case 1:
+			    w = *wp++;
+			    tmp[ 0 ] += *( sp + 0 ) * w;
+			    tmp[ 1 ] += *( sp + 1 ) * w;
+			    tmp[ 2 ] += *( sp + 2 ) * w;
+			    tmp[ 3 ] += *( sp + 3 ) * w;
+			    sp += 4;
+			    k--;
+			}
+	    }
+	    /*	while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+		sp += 4;
+		}*/
+	    *dst++ += tmp[ 0 ];
+	    *dst++ += tmp[ 1 ];
+	    *dst++ += tmp[ 2 ];
+	    *dst++ += tmp[ 3 ];
+	    src += 4;
+	}
+
+	/* border 2 */
+	i = b2;
+	while( i-- ) {
+	    wp = weights;
+	    sp = src;
+	    tmp[ 0 ] = *( sp + 0 ) * *wp;
+	    tmp[ 1 ] = *( sp + 1 ) * *wp;
+	    tmp[ 2 ] = *( sp + 2 ) * *wp;
+	    tmp[ 3 ] = *( sp + 3 ) * *wp++;
+	    k = b1 + i;
+	    while( k-- ) {
+		sp += 4;
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    k = b2 - i;
+	    while( k-- ) {
+		tmp[ 0 ] += *( sp + 0 ) * *wp;
+		tmp[ 1 ] += *( sp + 1 ) * *wp;
+		tmp[ 2 ] += *( sp + 2 ) * *wp;
+		tmp[ 3 ] += *( sp + 3 ) * *wp++;
+	    }
+	    *dst++ += tmp[ 0 ];
+	    *dst++ += tmp[ 1 ];
+	    *dst++ += tmp[ 2 ];
+	    *dst++ += tmp[ 3 ];
+	    src += 4;
+	}
+    }
+
 }

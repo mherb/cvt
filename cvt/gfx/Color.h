@@ -11,6 +11,7 @@ namespace cvt {
 	friend class Image;
 	public:
 	    Color( float r, float g, float b, float a );
+	    Color( float gray );
 	    Color( int r, int g, int b, int a );
 
 	    void set( float r, float g, float b, float a );
@@ -36,9 +37,15 @@ namespace cvt {
 	    float _r, _g, _b, _a;
     };
 
+
     inline Color::Color( float r, float g, float b, float a )
     {
 	set( r, g, b, a );
+    }
+
+    inline Color::Color( float g )
+    {
+	set( g, g, g, 1.0f );
     }
 
     inline Color::Color( int r, int g, int b, int a )
