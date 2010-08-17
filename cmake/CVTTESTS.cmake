@@ -1,8 +1,14 @@
 MACRO(CVTTESTS _LIB _OUT )
-	IF(UNIX AND NOT APPLE)
-		SET(LIBNAME "lib/lib${_LIB}_d.so")
+	IF(UNIX)
+		IF(NOT APPLE)
+			# linux
+			SET(LIBNAME "lib/lib${_LIB}_d.so")
+		ELSE()
+			# mac os
+			SET(LIBNAME "lib/${_LIB}_d.dylib")
+		ENDIF()
 	ELSE()
-		SET(LIBNAME "lib/${_LIB}_d.dylib")
+		# windows
 	ENDIF()
 
     ADD_CUSTOM_COMMAND(

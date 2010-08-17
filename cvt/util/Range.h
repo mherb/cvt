@@ -19,7 +19,7 @@ template <typename T>
 class Range 
 {
 public:
-	Range(T min , T max);
+	Range(T min, T max);
 	
 	T min;
 	T max;	
