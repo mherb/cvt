@@ -4,6 +4,42 @@
 #include "util/CVTException.h"
 
 namespace cvt {
+    float* Image::imageToKernel( const Image& kernel, bool normalize )
+    {
+	float* pksrc;
+	float* ret;
+	float* pw;
+	size_t i, k;
+	float norm = 0.0f;
+
+	ret = new float[ kernel._width * kernel._height ];
+
+	i = kernel._width;
+	pw = ret;
+
+	while( i-- ) {
+	    pksrc = ( float* )( kernel._data + ( i + 1 ) * kernel._stride );
+	    k = kernel._width;
+	    while( k-- ) {
+		*pw++ = *( --pksrc );
+		norm += *pksrc;
+	    }
+	}
+
+	/* normalize if needed and norm != 0 */
+	/* FIXME: use correct EPSILON */
+	if( normalize && fabs( norm - 1.0f ) > 1e-5f && fabs( norm ) > 1e-5f) {
+	    i = kernel._height * kernel._width;
+	    norm = 1.0f / norm;
+	    pw = ret;
+	    while( i-- )
+		*pw++ *= norm;
+	}
+
+	return ret;
+    }
+
+
     void Image::convert( Image& img, ImageChannelOrder order, ImageChannelType type ) const
     {
 	SIMD* simd = SIMD::get();
@@ -435,5 +471,109 @@ namespace cvt {
 	    default:
 		throw CVTException("Unimplemented");
 	}
+    }
+
+    void Image::convolve( Image& idst, const Image& kernel, bool normalize )
+    {
+	if( kernel._order == CVT_GRAY && kernel._type == CVT_FLOAT && _type == CVT_FLOAT )
+	    convolveFloat( idst, kernel, normalize );
+	else
+	    throw CVTException("Unimplemented");
+    }
+
+    void Image::convolveFloat( Image& idst, const Image& kernel, bool normalize )
+    {
+	float* weights;
+	float* pweights;
+	uint8_t* src;
+	uint8_t* psrc;
+	uint8_t* dst;
+	size_t i, k, b1, b2;
+	void (SIMD::*convfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	SIMD* simd = SIMD::get();
+
+	if( channels() == 1 ) {
+	    convfunc = &SIMD::ConvolveClampSet1f;
+	    convaddfunc = &SIMD::ConvolveClampAdd1f;
+	} else {
+	    convfunc = &SIMD::ConvolveClampSet4f;
+	    convaddfunc = &SIMD::ConvolveClampAdd4f;
+	}
+
+	src = _data;
+
+	/* kernel should at least fit once into the image */
+	if( _width < kernel._width || _height < kernel._height )
+	    throw CVTException( "Image smaller than convolution kernel");
+
+	idst.reallocate( *this );
+	dst = idst.data();
+
+	/* flip and normalize kernel image */
+	weights = imageToKernel( kernel, normalize );
+
+	b1 = ( kernel._height - ( 1 - ( kernel._height & 1 ) ) ) / 2;
+	b2 = ( kernel._height + ( 1 - ( kernel._height & 1 ) ) ) / 2;
+
+	/* upper border */
+	i = b1;
+	while( i-- ) {
+	    psrc = src;
+	    pweights = weights;
+	    ( simd->*convfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    pweights += kernel._width;
+	    k = i;
+	    while( k-- ) {
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		pweights += kernel._width;
+	    }
+	    k = kernel._height - ( i + 1 );
+	    while( k-- ) {
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		psrc += _stride;
+		pweights += kernel._width;
+	    }
+	    dst += idst._stride;
+	}
+
+	/* center */
+	i = _height - kernel._height + 1;
+	while( i-- ) {
+	    psrc = src;
+	    pweights = weights;
+	    ( simd->*convfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    k = kernel._height - 1;
+	    while( k-- ) {
+		psrc += _stride;
+		pweights += kernel._width;
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    }
+	    dst += idst._stride;
+	    src += _stride;
+	}
+
+	/* lower border */
+	i = b2;
+	while( i-- ) {
+	    psrc = src;
+	    pweights = weights;
+	    ( simd->*convfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    k = b1 + i;
+	    while( k-- ) {
+		psrc += _stride;
+		pweights += kernel._width;
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    }
+	    k = b2 - i;
+	    while( k-- ) {
+		pweights += kernel._width;
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    }
+	    dst += idst._stride;
+	    src += _stride;
+	}
+
+	delete[] weights;
     }
 }

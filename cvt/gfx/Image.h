@@ -56,6 +56,8 @@ namespace cvt {
 	    void sub( const Color& c );
 	    void mul( const Color& c );
 
+	    void convolve( Image& dst, const Image& kernel, bool normalize = true );
+
 	    Image& operator=( const Color& c );
 	    Image& operator=( const Image& c );
 
@@ -65,6 +67,8 @@ namespace cvt {
 
 	private:
 	    void upateIpl();
+	    float* imageToKernel( const Image& k, bool normalize );
+	    void convolveFloat( Image& dst, const Image& kernel, bool normalize );
 
 	    ImageChannelOrder _order;
 	    ImageChannelType _type;

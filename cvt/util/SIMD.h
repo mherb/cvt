@@ -44,6 +44,10 @@ namespace cvt {
 	    virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
 
 
+	    void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	    void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	    void ConvolveClampSet4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	    void ConvolveClampAdd4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 
 
 
