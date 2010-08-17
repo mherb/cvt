@@ -1,6 +1,6 @@
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <cv.h>
+#include <highgui.h>
 
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Timer.h>
