@@ -50,8 +50,8 @@ namespace cvt {
 	    void mul( float alpha = 1.0f );
 	    void mad( const Image& i, float alpha = 1.0f );
 
-	    void ddx( Image& dx, bool forward = TRUE ) const;
-	    void ddy( Image& dy, bool forward = TRUE ) const;
+	    void ddx( Image& dx, bool forward = true ) const;
+	    void ddy( Image& dy, bool forward = true ) const;
 
 	private:
 	    void upateIpl();

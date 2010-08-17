@@ -16,7 +16,6 @@ int main(int argc, char* argv[])
 	size_t frames = 0;
 	Timer timer;
 
-
 	cam.open();
 	cam.init();
 	cam.captureStart();

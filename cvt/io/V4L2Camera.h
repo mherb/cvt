@@ -46,14 +46,6 @@ class V4L2Camera
 		bool mCapturing;
 		int mNextBuf;
 
-		unsigned int mAbsExposureVal;
-		bool mAutoExposure;
-		bool mAutoIris;
-		bool mAutoFocus;
-		bool mAutoWhiteBalance;
-		bool mBackLightCompensation;
-
-
 		// the device file descriptor
 		int mFd;
 
@@ -64,6 +56,7 @@ class V4L2Camera
 		ImageChannelOrder mImgorder;
 
 		/** V4L2 specific **/
+		v4l2_ext_control * mExtControlsToSet;
 		v4l2_format mFmt;
 		v4l2_streamparm mStreamParameter;
 		v4l2_requestbuffers mRequestBuffers;
@@ -74,7 +67,14 @@ class V4L2Camera
 		v4l2_input mInput;
 		v4l2_control mControl;
 		v4l2_ext_controls mExtendedControls;
-		v4l2_ext_control * mExtControlsToSet;
+
+		bool mAutoExposure;
+		bool mAutoIris;
+		bool mAutoFocus;
+		bool mAutoWhiteBalance;
+		bool mBackLightCompensation;
+		unsigned int mAbsExposureVal;
+
 
 		// private helper funcs ...
 		void queryBuffers(bool unmap = false);

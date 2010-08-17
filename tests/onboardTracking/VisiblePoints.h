@@ -9,7 +9,7 @@
 #ifndef VISIBLE_POINTS_H
 #define VISIBLE_POINTS_H
 
-#include "Range.h"
+#include <cvt/util/Range.h>
 
 #include <Eigen/Core>
 
@@ -20,25 +20,24 @@ typedef std::vector<Eigen::Vector4d> PointsHom;
 class VisiblePoints
 {
 public:
-	
 	VisiblePoints(std::string file);
-	
-	void visiblityInfoForViewAngles(double alpha, 
+
+	void visiblityInfoForViewAngles(double alpha,
 									double beta,
 									PointsHom & point,
 									PointsHom & edges);
-	
-	
+
+
 private:
-	Range<double> xAngleRange;
-	Range<double> yAngleRange;
-	
+	cvt::Range<double> xAngleRange;
+	cvt::Range<double> yAngleRange;
+
 	double xAngleStep;
-	double yAngleStep;	
-	
+	double yAngleStep;
+
 	std::vector<std::vector<PointsHom> > visiblePointsForAngles;
 	std::vector<std::vector<PointsHom> > linesForPoints;
-	
+
 	void parse(std::string fileName);
 };
 
