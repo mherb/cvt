@@ -19,8 +19,7 @@ namespace cvt {
 
     Image::Image( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type ) :  _order( order ), _type( type ), _width( w ), _height( h ), _data( 0 ), _iplimage( 0 )
     {
-
-	_stride = Math::pad16( _width ) * _order_channels[ _order ] * _type_size[ _type ];
+	_stride = Math::pad16( _width * _order_channels[ _order ] * _type_size[ _type ] );
 	posix_memalign( ( void** ) &_data, 16, _stride * _height );
 	upateIpl();
     }
@@ -29,6 +28,12 @@ namespace cvt {
     Image::Image( const Image& img ) : _order( CVT_BGRA ), _type( CVT_UBYTE ), _width( 0 ), _height( 0 ), _data( 0 ), _iplimage( 0 )
     {
 	copy( img );
+    }
+
+
+    size_t Image::channels() const
+    {
+	 return _order_channels[ _order ];
     }
 
 
@@ -42,7 +47,7 @@ namespace cvt {
 	_type = type;
 	_width = w;
 	_height = h;
-	_stride = Math::pad16( _width ) * _order_channels[ _order ] * _type_size[ _type ];
+	_stride = Math::pad16( _width * _order_channels[ _order ] * _type_size[ _type ] );
 	posix_memalign( ( void** ) &_data, 16, _stride * _height );
 	upateIpl();
     }
@@ -307,7 +312,7 @@ namespace cvt {
 
     std::ostream& operator<<(std::ostream &out, const Image &f)
     {
-	out << "Size: " << f.width() << " x " << f.height() << " Channels: " << _order_channels[ f._order ] << " Stride: " << f.stride() << std::endl;
+	out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Stride: " << f.stride() << std::endl;
 	return out;
     }
 

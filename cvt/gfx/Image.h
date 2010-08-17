@@ -34,6 +34,7 @@ namespace cvt {
 	    size_t width() const;
 	    size_t height() const;
 	    size_t stride() const;
+	    size_t channels() const;
 	    ImageChannelOrder order() const;
 	    ImageChannelType type() const;
 	    uint8_t* data();
