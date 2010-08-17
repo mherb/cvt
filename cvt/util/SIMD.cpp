@@ -1,6 +1,8 @@
 #include "util/SIMD.h"
 #include "math/Math.h"
 
+#include <iostream>
+
 namespace cvt {
     SIMD* SIMD::_simd = 0;
 
