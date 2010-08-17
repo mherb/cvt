@@ -132,7 +132,7 @@ namespace cvt {
 			h = _height;
 			dst = _data;
 			while( h-- ) {
-			    simd->set_value_u8( dst, _width, v );
+			    simd->SetValueU8( dst, _width, v );
 			    dst += _stride;
 			}
 		    }
@@ -144,7 +144,7 @@ namespace cvt {
 			h = _height;
 			dst = _data;
 			while( h-- ) {
-			    simd->set_value_u16( ( uint16_t* ) dst, _width, v );
+			    simd->SetValueU16( ( uint16_t* ) dst, _width, v );
 			    dst += _stride;
 			}
 		    }
@@ -159,7 +159,7 @@ namespace cvt {
 			h = _height;
 			dst = _data;
 			while( h-- ) {
-			    simd->set_value_u32( ( uint32_t* ) dst, _width, v );
+			    simd->SetValueU32( ( uint32_t* ) dst, _width, v );
 			    dst += _stride;
 			}
 		    }
@@ -174,7 +174,7 @@ namespace cvt {
 			h = _height;
 			dst = _data;
 			while( h-- ) {
-			    simd->set_value_u32( ( uint32_t* ) dst, _width, v );
+			    simd->SetValueU32( ( uint32_t* ) dst, _width, v );
 			    dst += _stride;
 			}
 		    }
@@ -200,7 +200,7 @@ namespace cvt {
 
 		    size_t h = _height;
 		    while( h-- ) {
-			simd->mul_valuef( ( float* ) dst, ( float* ) dst, _width * _order_channels[ _order ], alpha );
+			simd->Mul( ( float* ) dst, ( float* ) dst, alpha, _width * _order_channels[ _order ] );
 			dst += _stride;
 		    }
 		}
@@ -225,7 +225,7 @@ namespace cvt {
 
 		    size_t h = _height;
 		    while( h-- ) {
-			simd->mul_valuef_add( ( float* ) dst, ( float* ) src, _width * _order_channels[ _order ], alpha );
+			simd->MulAdd( ( float* ) dst, ( float* ) src, alpha, _width * _order_channels[ _order ] );
 			src += i._stride;
 			dst += _stride;
 		    }
@@ -260,7 +260,7 @@ namespace cvt {
 			    while( i-- )
 				*fdst++ = 0.0f;
 			}
-			simd->sub( fdst, ( float* ) src1, ( float* ) src2, ( _width - 1 ) * _order_channels[ _order ] );
+			simd->Sub( fdst, ( float* ) src1, ( float* ) src2, ( _width - 1 ) * _order_channels[ _order ] );
 			if( forward ) {
 			    fdst += ( _width - 1 ) * _order_channels[ _order ];
 			    while( i-- )
@@ -291,17 +291,17 @@ namespace cvt {
 		    uint8_t* src1 = _data;
 		    uint8_t* src2 = _data + _stride;
 		    if( !forward ) {
-			simd->set_value_f( ( float* ) dst, _width * _order_channels[ dy._order ], 0.0f );
+			simd->SetValue1F( ( float* ) dst, _width * _order_channels[ dy._order ], 0.0f );
 			dst += dy._stride;
 		    }
 		    while( h-- ) {
-			simd->sub( ( float* ) dst, ( float* ) src1, ( float* ) src2, _width * _order_channels[ dy._order ] );
+			simd->Sub( ( float* ) dst, ( float* ) src1, ( float* ) src2, _width * _order_channels[ dy._order ] );
 			dst += dy._stride;
 			src1 += _stride;
 			src2 += _stride;
 		    }
 		    if( forward )
-			simd->set_value_f( ( float* ) dst, _width * _order_channels[ dy._order ], 0.0f );
+			simd->SetValue1F( ( float* ) dst, _width * _order_channels[ dy._order ], 0.0f );
 		}
 		break;
 	    default:

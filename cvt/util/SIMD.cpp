@@ -12,43 +12,43 @@ namespace cvt {
 	return _simd;
     }
 
-    void SIMD::set_value_u8( uint8_t* dst, const size_t n, const uint8_t value ) const
+    void SIMD::SetValueU8( uint8_t* dst, const size_t n, const uint8_t value ) const
     {
 	size_t i = n & 0x2;
 	uint32_t v = ( value << 24 ) | ( value << 16 ) | ( value << 8 ) | value;
 
-	set_value_u32( ( uint32_t* ) dst, n >> 2, v );
+	SetValueU32( ( uint32_t* ) dst, n >> 2, v );
 	dst += n & ( ~ 0x02 );
 	while( i-- )
 	    *dst++ = value;
     }
 
-    void SIMD::set_value_u16( uint16_t* dst, const size_t n, const uint16_t value ) const
+    void SIMD::SetValueU16( uint16_t* dst, const size_t n, const uint16_t value ) const
     {
 	uint32_t v = ( value << 16 ) | value;
 
-	set_value_u32( ( uint32_t* ) dst, n >> 1, v );
+	SetValueU32( ( uint32_t* ) dst, n >> 1, v );
 	if( n & 1 ) {
 	    dst += n & ( ~ 0x01 );
 	    *dst++ = value;
 	}
     }
 
-    void SIMD::set_value_u32( uint32_t* dst, const size_t n, const uint32_t value ) const
+    void SIMD::SetValueU32( uint32_t* dst, const size_t n, const uint32_t value ) const
     {
 	size_t i = n;
 	while( i-- )
 	    *dst++ = value;
     }
 
-    void SIMD::set_value_f( float* dst, const size_t n, const float value ) const
+    void SIMD::SetValue1F( float* dst, const size_t n, const float value ) const
     {
 	size_t i = n;
 	while( i-- )
 	    *dst++ = value;
     }
 
-    void SIMD::set_value_4f( float* dst, const size_t n, const float (&value)[ 4 ] ) const
+    void SIMD::SetValue4f( float* dst, const size_t n, const float (&value)[ 4 ] ) const
     {
 	size_t i = n;
 	while( i-- ) {
@@ -59,7 +59,7 @@ namespace cvt {
 	}
     }
 
-    void SIMD::add( float* dst, float const* src1, float const* src2, const size_t n ) const
+    void SIMD::Add( float* dst, float const* src1, float const* src2, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -73,7 +73,7 @@ namespace cvt {
 	    *dst++ = *src1++ + *src2++;
     }
 
-    void SIMD::sub( float* dst, float const* src1, float const* src2, const size_t n ) const
+    void SIMD::Sub( float* dst, float const* src1, float const* src2, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -87,7 +87,7 @@ namespace cvt {
 	    *dst++ = *src1++ - *src2++;
     }
 
-    void SIMD::mul( float* dst, float const* src1, float const* src2, const size_t n ) const
+    void SIMD::Mul( float* dst, float const* src1, float const* src2, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -101,7 +101,7 @@ namespace cvt {
 	    *dst++ = *src1++ * *src2++;
     }
 
-    void SIMD::div( float* dst, float const* src1, float const* src2, const size_t n ) const
+    void SIMD::Div( float* dst, float const* src1, float const* src2, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -115,7 +115,7 @@ namespace cvt {
 	    *dst++ = *src1++ / *src2++;
     }
 
-    void SIMD::mul_valuef_add( float* dst, float const* src1, const size_t n, float value ) const
+    void SIMD::MulAdd( float* dst, float const* src1, float value, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -129,7 +129,7 @@ namespace cvt {
 	    *dst++ += *src1++ * value;
     }
 
-    void SIMD::mul_valuef( float* dst, float* src, const size_t n, float value ) const
+    void SIMD::Mul( float* dst, float* src, float value, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -144,7 +144,7 @@ namespace cvt {
 
     }
 
-    void SIMD::mul_valuef_sub( float* dst, float const* src1, const size_t n, float value ) const
+    void SIMD::MulSub( float* dst, float const* src1, float value, const size_t n ) const
     {
 	size_t i = n >> 2;
 	while( i-- ) {
@@ -158,7 +158,7 @@ namespace cvt {
 	    *dst++ -= *src1++ * value;
     }
 
-    void SIMD::mul_value4f_add( float* dst, float const* src1, const size_t n, float (&value)[ 4 ] ) const
+    void SIMD::MulAdd( float* dst, float const* src1, float (&value)[ 4 ], const size_t n ) const
     {
 	size_t i = n >> 2;
 	size_t x = 0;
@@ -175,7 +175,7 @@ namespace cvt {
 	}
     }
 
-    void SIMD::mul_value4f_sub( float* dst, float const* src1, const size_t n, float (&value)[ 4 ] ) const
+    void SIMD::MulSub( float* dst, float const* src1, float (&value)[ 4 ], const size_t n ) const
     {
 	size_t i = n >> 2;
 	size_t x = 0;
