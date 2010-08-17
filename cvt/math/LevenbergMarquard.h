@@ -18,15 +18,15 @@
 
 namespace cvt {
 	typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DynamicEigenVec;
-	typedef boost::function<double (DynamicEigenVec const&, 
+	typedef boost::function<double (DynamicEigenVec const&,
 									std::vector<DynamicEigenVec> const&,
 									std::vector<DynamicEigenVec> const&,
 									DynamicEigenVec &)> CostFunctionType;
-	
+
 	typedef boost::function<void (DynamicEigenVec const&,
 								  std::vector<DynamicEigenVec> const&,
 								  Eigen::MatrixXd &)> JacobianFunctionType;
-	
+
 	class LevenbergMarquard
 	{
 		public:
@@ -43,7 +43,7 @@ namespace cvt {
 			void setMaxEpsilon(double maxEps);
 
 			virtual ~LevenbergMarquard();
-		
+
 		//double optimize(boost::Function<double ()>)
 
 			//template <class CostFunctionType, class JacobianFunctionType>
