@@ -15,6 +15,17 @@ int main(int argc, char* argv[])
 	int key;
 	size_t frames = 0;
 	Timer timer;
+	bool doprocess = true;
+	Image x, y;
+	Image kernel( 3, 1, CVT_GRAY, CVT_FLOAT );
+
+	{
+	    float* data;
+	    data = ( float* ) kernel.data();
+	    *data++ = 1.0f;
+	    *data++ = 0.0f;
+	    *data++ = -1.0f;
+	}
 
 	cam.open();
 	cam.init();
@@ -25,11 +36,20 @@ int main(int argc, char* argv[])
 	    cam.captureNext();
 	    frame = cam.image();
 
-	    cvShowImage( "V4L2", frame->iplimage() );
+	    if( doprocess ) {
+		frame->convert( x, frame->order(), CVT_FLOAT );
+		x.convolve( y, kernel );
+		y = ( y + 1.0f ) * 0.5f;
+	        cvShowImage( "V4L2", y.iplimage() );
+	    } else
+	        cvShowImage( "V4L2", frame->iplimage() );
 
-	    key = cvWaitKey( 10 );
-	    if( ( key & 0xff ) == 27 )
+	    key = cvWaitKey( 10 ) & 0xff;
+	    if( key == 27 )
 		break;
+	    else if( key == ' ')
+		doprocess = !doprocess;
+
 	    frames++;
 	    if( timer.elapsedSeconds() > 5.0f ) {
 		std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
