@@ -18,7 +18,6 @@ int main(int argc, char* argv[])
 
 	ImageIO::loadPNG( img, argv[ 1 ] );
 
-	out = img;
 	img.convert( itmp, CVT_GRAY, CVT_FLOAT );
 /*	out.reallocate( itmp );
 	cvSmooth( itmp.iplimage(), out.iplimage(), CV_MEDIAN, 3, 0, 0 );*/
