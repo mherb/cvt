@@ -4,7 +4,7 @@
 #include "util/CVTException.h"
 
 namespace cvt {
-    float* Image::imageToKernel( const Image& kernel, bool normalize )
+    float* Image::imageToKernel( const Image& kernel, bool normalize ) const
     {
 	float* pksrc;
 	float* ret;
@@ -473,7 +473,7 @@ namespace cvt {
 	}
     }
 
-    void Image::convolve( Image& idst, const Image& kernel, bool normalize )
+    void Image::convolve( Image& idst, const Image& kernel, bool normalize ) const
     {
 	if( kernel._order == CVT_GRAY && kernel._type == CVT_FLOAT && _type == CVT_FLOAT )
 	    convolveFloat( idst, kernel, normalize );
@@ -481,7 +481,7 @@ namespace cvt {
 	    throw CVTException("Unimplemented");
     }
 
-    void Image::convolveFloat( Image& idst, const Image& kernel, bool normalize )
+    void Image::convolveFloat( Image& idst, const Image& kernel, bool normalize ) const
     {
 	float* weights;
 	float* pweights;

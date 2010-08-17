@@ -38,6 +38,7 @@ namespace cvt {
 	    ImageChannelOrder order() const;
 	    ImageChannelType type() const;
 	    uint8_t* data();
+	    uint8_t* scanline( size_t i );
 	    void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 	    void reallocate( const Image& i );
 	    void copy( const Image& i );
@@ -56,7 +57,7 @@ namespace cvt {
 	    void sub( const Color& c );
 	    void mul( const Color& c );
 
-	    void convolve( Image& dst, const Image& kernel, bool normalize = true );
+	    void convolve( Image& dst, const Image& kernel, bool normalize = true ) const;
 
 	    Image& operator=( const Color& c );
 	    Image& operator=( const Image& c );
@@ -77,8 +78,8 @@ namespace cvt {
 
 	private:
 	    void upateIpl();
-	    float* imageToKernel( const Image& k, bool normalize );
-	    void convolveFloat( Image& dst, const Image& kernel, bool normalize );
+	    float* imageToKernel( const Image& k, bool normalize ) const;
+	    void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 
 	    ImageChannelOrder _order;
 	    ImageChannelType _type;
@@ -123,6 +124,12 @@ namespace cvt {
     inline uint8_t* Image::data()
     {
 	return _data;
+    }
+
+    inline uint8_t* Image::scanline( size_t y )
+    {
+	y = Math::min( y, _height - 1 );
+	return _data + _stride * y;
     }
 
     inline void Image::reallocate( const Image& i )
