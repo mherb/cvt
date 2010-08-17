@@ -9,6 +9,7 @@ namespace cvt {
     class Color
     {
 	friend class Image;
+
 	public:
 	    Color( float r, float g, float b, float a );
 	    Color( float gray );
@@ -30,8 +31,6 @@ namespace cvt {
 	    void setGreen( float g ) { _g = g; };
 	    void setBlue( float b ) { _b = b; };
 	    void setAlpha( float a ) { _a = a; };
-
-
 
 	private:
 	    float _r, _g, _b, _a;
@@ -92,7 +91,6 @@ namespace cvt {
     {
 	return 0.2126f * _r + 0.7152f * _g + 0.0722f * _b;
     }
-
 
 }
 
