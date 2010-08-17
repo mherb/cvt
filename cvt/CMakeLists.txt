@@ -27,6 +27,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/LevenbergMarquard.h
 	math/Math.h
 	gfx/Color.h
+	gfx/Image.h
 	util/Range.h
 	util/Rect.h
 	util/CVTTest.h
@@ -42,6 +43,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/Range.cpp
 	util/Rect.cpp
 	gfx/Image.cpp
+	gfx/ImageOperations.cpp
 	math/Math.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
