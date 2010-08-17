@@ -54,6 +54,9 @@ namespace cvt {
 
     void Image::copy( const Image& img )
     {
+	if( this == &img )
+	    return;
+
 	reallocate( img._width, img._height, img._order, img._type );
 
 	size_t cw = _width * _order_channels[ _order ] * _type_size[ _type ];

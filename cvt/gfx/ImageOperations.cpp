@@ -14,11 +14,11 @@ namespace cvt {
 
 	ret = new float[ kernel._width * kernel._height ];
 
-	i = kernel._width;
 	pw = ret;
 
+	i = kernel._height;
 	while( i-- ) {
-	    pksrc = ( float* )( kernel._data + ( i + 1 ) * kernel._stride );
+	    pksrc = ( float* )( kernel._data + i * kernel._stride + sizeof( float ) * kernel._width );
 	    k = kernel._width;
 	    while( k-- ) {
 		*pw++ = *( --pksrc );
@@ -493,7 +493,7 @@ namespace cvt {
 	void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 	SIMD* simd = SIMD::get();
 
-	if( channels() == 1 ) {
+	if( _order_channels[ _order ] == 1 ) {
 	    convfunc = &SIMD::ConvolveClampSet1f;
 	    convaddfunc = &SIMD::ConvolveClampAdd1f;
 	} else {
@@ -525,12 +525,12 @@ namespace cvt {
 	    pweights += kernel._width;
 	    k = i;
 	    while( k-- ) {
-		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 		pweights += kernel._width;
 	    }
 	    k = kernel._height - ( i + 1 );
 	    while( k-- ) {
-		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 		psrc += _stride;
 		pweights += kernel._width;
 	    }
@@ -542,12 +542,12 @@ namespace cvt {
 	while( i-- ) {
 	    psrc = src;
 	    pweights = weights;
-	    ( simd->*convfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    ( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 	    k = kernel._height - 1;
 	    while( k-- ) {
 		psrc += _stride;
 		pweights += kernel._width;
-		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 	    }
 	    dst += idst._stride;
 	    src += _stride;
@@ -558,17 +558,17 @@ namespace cvt {
 	while( i-- ) {
 	    psrc = src;
 	    pweights = weights;
-	    ( simd->*convfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+	    ( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 	    k = b1 + i;
 	    while( k-- ) {
 		psrc += _stride;
 		pweights += kernel._width;
-		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 	    }
 	    k = b2 - i;
 	    while( k-- ) {
 		pweights += kernel._width;
-		( simd->*convaddfunc )( ( float* ) dst, ( float* ) src, _width, pweights, kernel._width );
+		( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _width, pweights, kernel._width );
 	    }
 	    dst += idst._stride;
 	    src += _stride;

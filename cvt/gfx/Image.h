@@ -61,7 +61,17 @@ namespace cvt {
 	    Image& operator=( const Color& c );
 	    Image& operator=( const Image& c );
 
+	    Image& operator*( float alpha );
+	    Image& operator+( float alpha );
+	    Image& operator-( float alpha );
 
+	    Image& operator*( const Color& c );
+	    Image& operator+( const Color& c );
+	    Image& operator-( const Color& c );
+
+
+
+	    /* FIXME: remove - use convolve instead */
 	    void ddx( Image& dx, bool forward = true ) const;
 	    void ddy( Image& dy, bool forward = true ) const;
 
@@ -128,6 +138,41 @@ namespace cvt {
     inline Image& Image::operator=( const Image& c )
     {
 	copy( c );
+	return *this;
+    }
+
+    inline Image& Image::operator*( float alpha )
+    {
+	mul( alpha );
+	return *this;
+    }
+
+    inline Image& Image::operator+( float alpha )
+    {
+	add( alpha );
+	return *this;
+    }
+
+    inline Image& Image::operator-( float alpha )
+    {
+	sub( alpha );
+	return *this;
+    }
+
+    inline Image& Image::operator*( const Color& c )
+    {
+	mul( c );
+	return *this;
+    }
+
+    inline Image& Image::operator+( const Color& c )
+    {
+	add( c );
+	return *this;
+    }
+    inline Image& Image::operator-( const Color& c )
+    {
+	sub( c );
 	return *this;
     }
 }
