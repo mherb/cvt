@@ -46,6 +46,8 @@ namespace cvt {
 
 	    void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 	    void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	    void ConvolveClampSet2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+	    void ConvolveClampAdd2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 	    void ConvolveClampSet4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 	    void ConvolveClampAdd4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
 

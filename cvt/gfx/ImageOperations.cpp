@@ -219,6 +219,17 @@ namespace cvt {
 	    case CVT_FLOAT:
 		{
 		    switch( _order ) {
+			case CVT_GRAY:
+			    {
+				uint8_t* dst = _data;
+				size_t h = _height;
+
+				while( h-- ) {
+				    simd->Add( ( float* ) dst, ( float* ) dst, c.gray(), _width );
+				    dst += _stride;
+				}
+			    }
+			    break;
 			case CVT_RGBA:
 			    {
 				float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
@@ -280,6 +291,17 @@ namespace cvt {
 	    case CVT_FLOAT:
 		{
 		    switch( _order ) {
+			    case CVT_GRAY:
+			    {
+				uint8_t* dst = _data;
+				size_t h = _height;
+
+				while( h-- ) {
+				    simd->Sub( ( float* ) dst, ( float* ) dst, c.gray(), _width );
+				    dst += _stride;
+				}
+			    }
+			    break;
 			case CVT_RGBA:
 			    {
 				float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
@@ -341,6 +363,17 @@ namespace cvt {
 	    case CVT_FLOAT:
 		{
 		    switch( _order ) {
+			case CVT_GRAY:
+			    {
+				uint8_t* dst = _data;
+				size_t h = _height;
+
+				while( h-- ) {
+				    simd->Mul( ( float* ) dst, ( float* ) dst, c.gray(), _width );
+				    dst += _stride;
+				}
+			    }
+			    break;
 			case CVT_RGBA:
 			    {
 				float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
@@ -496,6 +529,9 @@ namespace cvt {
 	if( _order_channels[ _order ] == 1 ) {
 	    convfunc = &SIMD::ConvolveClampSet1f;
 	    convaddfunc = &SIMD::ConvolveClampAdd1f;
+	} else if( _order_channels[ _order ] == 2 ) {
+	    convfunc = &SIMD::ConvolveClampSet2f;
+	    convaddfunc = &SIMD::ConvolveClampAdd2f;
 	} else {
 	    convfunc = &SIMD::ConvolveClampSet4f;
 	    convaddfunc = &SIMD::ConvolveClampAdd4f;
