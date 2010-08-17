@@ -46,10 +46,19 @@ namespace cvt {
 	    void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
 
 	    void fill( const Color& c );
-	    Image& operator=( const Color& c );
-	    Image& operator=( const Image& c );
+
+	    void add( float alpha = 0.0f );
+	    void sub( float alpha = 0.0f );
 	    void mul( float alpha = 1.0f );
 	    void mad( const Image& i, float alpha = 1.0f );
+
+	    void add( const Color& c );
+	    void sub( const Color& c );
+	    void mul( const Color& c );
+
+	    Image& operator=( const Color& c );
+	    Image& operator=( const Image& c );
+
 
 	    void ddx( Image& dx, bool forward = true ) const;
 	    void ddy( Image& dy, bool forward = true ) const;
@@ -64,6 +73,10 @@ namespace cvt {
 	    size_t _stride;
 	    uint8_t* _data;
 	    IplImage* _iplimage;
+
+
+	    static size_t _type_size[];
+	    static size_t _order_channels[];
     };
 
     std::ostream& operator<<(std::ostream &out, const Image &f);
