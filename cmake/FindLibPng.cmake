@@ -2,20 +2,21 @@
 #  LIBPNG_FOUND, If false, do not try to use libpng.
 
 FIND_PATH( LIBPNG_INCLUDE_DIR png.h
-	      /usr/include/eigen2
-	      /usr/local/include/eigen2
-	      /opt/local/include/eigen2
 	      ${CMAKE_INCLUDE_PATH}
 	      $ENV{HOME}/include/
 	      /usr/include/libpng/
-	     )
+		  /usr/local/include/libpng
+		  /opt/local/include/libpng12
+)
 
 FIND_LIBRARY(LIBPNG_LIBRARY
 		 NAMES
-		 libpng.so
+		 png
 		 PATHS
 		 ${CMAKE_LIBRARY_PATH}
 		 /usr/lib
+		 /usr/local/lib
+		 /opt/local/lib
 		)
 
 IF(LIBPNG_INCLUDE_DIR)
