@@ -12,7 +12,7 @@ using namespace cvt;
 int main(int argc, char* argv[])
 {
 	const Image* frame;
-	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
+	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
 	int key;
 	size_t frames = 0;
 	Timer timer;

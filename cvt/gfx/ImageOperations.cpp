@@ -682,11 +682,11 @@ namespace cvt {
 				l++;
 				pyw++;
 			}
-			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width );
+			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _order_channels[ _order ] );
 			l++;
 			for( ; l < pysw->numw; l++ ) {
 				if( Math::abs( *pyw ) > Math::EPSILONF )
-					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width );
+					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _order_channels[ _order ] );
 				pyw++;
 			}
 			pysw++;
