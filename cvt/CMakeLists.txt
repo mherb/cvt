@@ -36,6 +36,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMD.h
 	gfx/ifilter/ROFDenoise.h
 	io/ImageIO.h
+	gfx/IScaleFilter.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -50,6 +51,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMD.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	io/ImageIO.cpp
+	gfx/IScaleFilter.cpp
 )
 	
 IF(UNIX AND NOT APPLE)
