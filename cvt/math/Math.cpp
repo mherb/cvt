@@ -76,7 +76,7 @@ namespace cvt {
 	};
 
 
-	size_t solveQuadraticf( float a, float b, float c, float (&result)[2] )
+	size_t solveQuadratic( float a, float b, float c, float (&result)[2] )
 	{
 	    float d;
 
@@ -103,7 +103,7 @@ namespace cvt {
 	    return 2;
 	}
 
-	size_t solveQuadraticd( double a, double b, double c, double (&result)[ 2 ] )
+	size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] )
 	{
 	    double d;
 

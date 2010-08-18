@@ -48,7 +48,7 @@ namespace cvt {
 	    return a * PI / 180.0f;
 	}
 
-	static inline float dad2Deg( float a )
+	static inline float rad2Deg( float a )
 	{
 	    return a * 180.0f / PI;
 	}

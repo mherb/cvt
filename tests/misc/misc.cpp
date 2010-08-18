@@ -7,6 +7,6 @@ int main()
     float x = Math::PI / 2.0f;
     double d = x;
 
-    Math::Cos( x );
-    Math::Cos( d );
+    Math::cos( x );
+    Math::cos( d );
 }
