@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 
 		if( doprocess ) {
 			frame->convert( x, frame->order(), CVT_FLOAT );
-			x.scale( y, 800, 600, IScaleFilterLanczos() );
+			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 			/*		x.convolve( y, kernel );
 					y = ( y + 1.0f ) * 0.5f;*/
 			cvShowImage( "V4L2", y.iplimage() );

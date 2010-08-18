@@ -120,6 +120,16 @@ namespace cvt {
 		return ::floor( x );
 	}
 
+	static inline float exp( float x )
+	{
+		return ::expf( x );
+	}
+
+	static inline double exp( double x )
+	{
+		return ::exp( x );
+	}
+
 	/*
 	   The famous fast inverse square root approximation found in the code
 	   of id-tech 3/4.
