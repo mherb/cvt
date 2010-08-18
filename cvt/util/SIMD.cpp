@@ -513,8 +513,6 @@ namespace cvt {
 	    }
 	    *dst++ = tmp[ 0 ];
 	    *dst++ = tmp[ 1 ];
-	    *dst++ = tmp[ 2 ];
-	    *dst++ = tmp[ 3 ];
 	}
 
 
