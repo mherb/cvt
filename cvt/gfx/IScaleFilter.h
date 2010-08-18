@@ -84,6 +84,13 @@ namespace cvt {
 			virtual const std::string name() const { return "BlackmanHarris"; };
 	};
 
+	class IScaleFilterGauss : public IScaleFilter
+	{
+		public:
+			IScaleFilterGauss( float support = 2.0f, float sharpsmooth = 0.0f ) : IScaleFilter( support, sharpsmooth ) {};
+			virtual float eval( float x ) const ;
+			virtual const std::string name() const { return "Gauss"; };
+	};
 
 };
 

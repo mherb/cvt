@@ -43,6 +43,11 @@ namespace cvt {
 		return 0.0f;
 	}
 
+	static float _filter_gauss( float x, float sigma )
+	{
+		return Math::exp( -( ( Math::sqr( x ) ) / ( 2.0f * sigma * sigma ) ) ) / ( sigma * 2.506628275f );
+	}
+
 	/* 4th order (cubic) b-spline */
 	static float _filter_cubic( float x )
 	{
@@ -278,6 +283,11 @@ namespace cvt {
 	float IScaleFilterBlackmanHarris::eval( float x ) const
 	{
 		return _filter_sinc( x ) * _filter_window_blackmanharris( x / _support );
+	}
+
+	float IScaleFilterGauss::eval( float x ) const
+	{
+		return _filter_gauss( x, _support * 0.5f );
 	}
 
 }
