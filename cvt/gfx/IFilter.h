@@ -6,11 +6,11 @@
 
 namespace cvt {
 
-    class IFilter {
-/*	public:
-	    virtual IFilterAttributes* getAttributes() const = 0;
-	    virtual void apply( const IFilterAttributes* attribs ) = 0;*/
-    };
+	class IFilter {
+		/*	public:
+			virtual IFilterAttributes* getAttributes() const = 0;
+			virtual void apply( const IFilterAttributes* attribs ) = 0;*/
+	};
 
 }
 

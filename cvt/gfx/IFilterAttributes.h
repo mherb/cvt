@@ -3,15 +3,15 @@
 
 namespace cvt {
 
-    class IFilterAttributes
-    {
+	class IFilterAttributes
+	{
 
-	public:
-	    IFilterAttributes( const IFilterAttributes& a );
+		public:
+			IFilterAttributes( const IFilterAttributes& a );
 
-	private:
-	    IFilterAttributes();
-    };
+		private:
+			IFilterAttributes();
+	};
 }
 
 #endif
