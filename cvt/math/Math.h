@@ -20,10 +20,11 @@ namespace cvt {
 	    double d;
 	} _flint64;
 
-	static const float PI	   = 3.14159265358979323846f;
-	static const float TWO_PI  = 2.0f * PI;
-	static const float HALF_PI = 0.5f * PI;
-	static const float E	   = 2.71828182845904523536f;
+	static const float PI	    = 3.14159265358979323846f;
+	static const float TWO_PI   = 2.0f * PI;
+	static const float HALF_PI  = 0.5f * PI;
+	static const float E	    = 2.71828182845904523536f;
+	static const float EPSILONF = 1.1e-07f;
 
 	template<class T> static inline T max( T x, T y ) { return ( x > y ) ? x : y; }
 	template<class T> static inline T min( T x, T y ) { return ( x < y ) ? x : y; }
@@ -81,22 +82,42 @@ namespace cvt {
 
 	static inline float cos( float x )
 	{
-	    return cosf( x );
+		return ::cosf( x );
 	}
 
 	static inline double cos( double x )
 	{
-	    return cos( x );
+		return ::cos( x );
 	}
 
 	static inline float sin( float x )
 	{
-	    return sinf( x );
+		return ::sinf( x );
 	}
 
 	static inline double sin( double x )
 	{
-	    return sin( x );
+		return ::sin( x );
+	}
+
+	static inline float ceil( float x )
+	{
+		return ::ceilf( x );
+	}
+
+	static inline double ceil( double x )
+	{
+		return ::ceil( x );
+	}
+
+	static inline float floor( float x )
+	{
+		return ::floorf( x );
+	}
+
+	static inline double floor( double x )
+	{
+		return ::floor( x );
 	}
 
 	/*

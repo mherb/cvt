@@ -522,8 +522,8 @@ namespace cvt {
 		uint8_t* psrc;
 		uint8_t* dst;
 		size_t i, k, b1, b2;
-		void (SIMD::*convfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
-		void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn );
+		void (SIMD::*convfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
+		void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 		SIMD* simd = SIMD::get();
 
 		if( _order_channels[ _order ] == 1 ) {
