@@ -3,6 +3,7 @@
 #include <opencv/highgui.h>
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/Image.h>
 #include <cvt/io/V4L2Camera.h>
 #include <cvt/util/Timer.h>
 
@@ -36,12 +37,13 @@ int main(int argc, char* argv[])
 	    cam.captureNext();
 	    frame = cam.image();
 
-	    if( doprocess ) {
-		frame->convert( x, frame->order(), CVT_FLOAT );
-		x.convolve( y, kernel );
-		y = ( y + 1.0f ) * 0.5f;
-	        cvShowImage( "V4L2", y.iplimage() );
-	    } else
+		if( doprocess ) {
+			frame->convert( x, frame->order(), CVT_FLOAT );
+			x.scale( y, 800, 600, IScaleFilterLanczos() );
+			/*		x.convolve( y, kernel );
+					y = ( y + 1.0f ) * 0.5f;*/
+			cvShowImage( "V4L2", y.iplimage() );
+		} else
 	        cvShowImage( "V4L2", frame->iplimage() );
 
 	    key = cvWaitKey( 10 ) & 0xff;

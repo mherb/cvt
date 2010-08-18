@@ -612,4 +612,93 @@ namespace cvt {
 
 		delete[] weights;
 	}
+
+	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
+	{
+		if(_type == CVT_FLOAT )
+			scaleFloat( idst, width, height, filter );
+		else
+			throw CVTException("Unimplemented");
+	}
+
+	void Image::scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
+	{
+		IConvolveAdaptivef scalerx;
+		IConvolveAdaptivef scalery;
+		IConvolveAdaptiveSize* pysw;
+		float* pyw;
+		uint8_t* src;
+		uint8_t* send;
+		uint8_t* dst;
+		size_t i, l;
+		int32_t k;
+		float** buf;
+		size_t bufsize;
+		size_t curbuf;
+		void (SIMD::*scalex_func)( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
+		SIMD* simd = SIMD::get();
+
+		if( _order_channels[ _order ] == 1 ) {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp1f;
+		} else if( _order_channels[ _order ] == 2 ) {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp2f;
+		} else {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
+		}
+
+		idst.reallocate( width, height, _order, _type );
+
+		src = _data;
+		dst = idst._data;
+		send = src + _stride * _height;
+
+		bufsize = filter.getAdaptiveConvolutionWeights( height, _height, scalery, TRUE );
+		filter.getAdaptiveConvolutionWeights( width, _width, scalerx, FALSE );
+
+		buf = new float*[ bufsize ];
+		/* allocate and fill buffer */
+		for( i = 0; i < bufsize; i++ ) {
+			/* FIXME: use aligned buffer !!! */
+			buf[ i ] = new float[ width * _order_channels[ _order ] ];
+			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
+			src += _stride;
+		}
+		curbuf = 0;
+
+		pysw = scalery.size;
+		pyw = scalery.weights;
+
+		while( height-- ) {
+			if( pysw->incr ) {
+				for( k = 0; k < pysw->incr && src < send ; k++ ) {
+					( simd->*scalex_func )( ( float* ) buf[ ( curbuf + k ) % bufsize ], ( float* ) src, width, &scalerx );
+					src += _stride;
+				}
+				curbuf = ( curbuf + pysw->incr ) % bufsize;
+			}
+
+			l = 0;
+			while( Math::abs( *pyw ) < Math::EPSILONF ) {
+				l++;
+				pyw++;
+			}
+			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width );
+			l++;
+			for( ; l < pysw->numw; l++ ) {
+				if( Math::abs( *pyw ) > Math::EPSILONF )
+					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width );
+				pyw++;
+			}
+			pysw++;
+			dst += idst._stride;
+		}
+
+		for( i = 0; i < bufsize; i++ )
+			delete[] buf[ i ];
+		delete[] buf;
+		delete[] scalerx.size;
+		delete[] scalerx.weights;
+		delete[] scalery.size;
+		delete[] scalery.weights;
+	}
 }

@@ -7,6 +7,7 @@
 #include <cv.h>
 
 #include "gfx/Color.h"
+#include "gfx/IScaleFilter.h"
 
 namespace cvt {
 
@@ -45,6 +46,7 @@ namespace cvt {
 		IplImage* iplimage() const;
 
 		void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
+		void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 		void fill( const Color& c );
 
@@ -80,6 +82,7 @@ namespace cvt {
 		void upateIpl();
 		float* imageToKernel( const Image& k, bool normalize ) const;
 		void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
+		void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 		ImageChannelOrder _order;
 		ImageChannelType _type;

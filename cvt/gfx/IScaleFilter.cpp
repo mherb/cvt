@@ -92,10 +92,9 @@ namespace cvt {
 	}
 
 
-	IConvolveAdaptivef* IScaleFilter::getAdaptiveConvolutionWeights( size_t dst, size_t src, size_t& maxsupport, bool nonegincr ) const
+	size_t IScaleFilter::getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptivef& conva, bool nonegincr ) const
 	{
 		IConvolveAdaptiveSize* sweights;
-		IConvolveAdaptivef* scalerf;
 		float*  weights;
 		uint32_t numweight;
 		size_t i;
@@ -106,6 +105,7 @@ namespace cvt {
 		float norm;
 		float a;
 		size_t support;
+		size_t maxsupport = 0;
 
 		/* set center to zero and substract 1 from src and dst to retain the borders while scaling */
 		if( /*incr <= 1.0*/ dst >= src ) {  /* upscale */
@@ -122,12 +122,11 @@ namespace cvt {
 
 #define SRC2DST( n ) ( ( float ) ( n * src ) / ( float ) ( dst ) + offset  )
 
-		scalerf = new IConvolveAdaptivef;
-		scalerf->size = new IConvolveAdaptiveSize[ dst ];
-		scalerf->weights = new float[ dst * support * 2 ];
+		conva.size = new IConvolveAdaptiveSize[ dst ];
+		conva.weights = new float[ dst * support * 2 ];
 		i = 0;
-		sweights = scalerf->size;
-		weights = scalerf->weights;
+		sweights = conva.size;
+		weights = conva.weights;
 		lx = 0;
 
 		/* border */
@@ -243,8 +242,7 @@ namespace cvt {
 			i++;
 			center = SRC2DST( i );
 		}
-
-		return scalerf;
+		return maxsupport;
 	}
 
 	float IScaleFilterBilinear::eval( float x ) const
