@@ -654,8 +654,8 @@ namespace cvt {
 		dst = idst._data;
 		send = src + _stride * _height;
 
-		bufsize = filter.getAdaptiveConvolutionWeights( height, _height, scalery, TRUE );
-		filter.getAdaptiveConvolutionWeights( width, _width, scalerx, FALSE );
+		bufsize = filter.getAdaptiveConvolutionWeights( height, _height, scalery, true );
+		filter.getAdaptiveConvolutionWeights( width, _width, scalerx, true );
 
 		buf = new float*[ bufsize ];
 		/* allocate and fill buffer */
