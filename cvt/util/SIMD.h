@@ -60,6 +60,11 @@ namespace cvt {
 
 	    virtual void Conv_f_to_u8( uint8_t* dst, float* src, const size_t n ) const;
 	    virtual void Conv_u8_to_f( float* dst, uint8_t* src, const size_t n ) const;
+//		virtual void Conv_XYZA_to_ZYXA_f( float* dst, float* src, const size_t n ) const;
+//		virtual void Conv_XYZA_to_ZYXA_u8( uint32_t* dst, uint32_t* src, const size_t n ) const;
+//		virtual void Conv_XYZA_f_to_ZYXA_u8( uint32_t* dst, float* src, const size_t n ) const;
+//		virtual void Conv_XYZA_u8_to_ZYXA_f( uint32_t* dst, float* src, const size_t n ) const;
+
 //	    virtual void conv_srgbu8_to_f( uint8_t* dst, float* src, const size_t n );
 
 
