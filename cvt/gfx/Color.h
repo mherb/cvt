@@ -13,6 +13,7 @@ namespace cvt {
 		public:
 		Color( float r, float g, float b, float a );
 		Color( float gray );
+		Color( float gray, float alpha );
 		Color( int r, int g, int b, int a );
 
 		void set( float r, float g, float b, float a );
@@ -45,6 +46,11 @@ namespace cvt {
 	inline Color::Color( float g )
 	{
 		set( g, g, g, 1.0f );
+	}
+
+	inline Color::Color( float g, float alpha )
+	{
+		set( g, g, g, alpha );
 	}
 
 	inline Color::Color( int r, int g, int b, int a )
