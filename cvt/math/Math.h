@@ -130,6 +130,17 @@ namespace cvt {
 		return ::exp( x );
 	}
 
+	static inline float atan2( float y, float x )
+	{
+		return ::atan2f( y, x );
+	}
+
+	static inline double atan2( double y, double x )
+	{
+		return ::atan2( y, x );
+	}
+
+
 	/*
 	   The famous fast inverse square root approximation found in the code
 	   of id-tech 3/4.

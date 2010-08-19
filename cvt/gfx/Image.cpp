@@ -1,7 +1,7 @@
 #include "gfx/Image.h"
 #include "math/Math.h"
 #include "util/SIMD.h"
-#include "util/CVTException.h"
+#include "util/Exception.h"
 
 namespace cvt {
 

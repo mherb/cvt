@@ -1,5 +1,5 @@
 #include "FileSystem.h"
-#include "util/CVTException.h"
+#include "util/Exception.h"
 #include <boost/filesystem.hpp>
 
 namespace cvt {

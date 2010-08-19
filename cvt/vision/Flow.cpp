@@ -1,0 +1,207 @@
+#include "Flow.h"
+
+namespace cvt {
+	namespace Flow {
+
+#define NUMCOLORS 55
+		static float _colorwheel[ NUMCOLORS * 4 ] = {
+			1.000000f, 0.000000f, 0.000000f, 1.0f,
+			1.000000f, 0.066667f, 0.000000f, 1.0f,
+			1.000000f, 0.133333f, 0.000000f, 1.0f,
+			1.000000f, 0.200000f, 0.000000f, 1.0f,
+			1.000000f, 0.266667f, 0.000000f, 1.0f,
+			1.000000f, 0.333333f, 0.000000f, 1.0f,
+			1.000000f, 0.400000f, 0.000000f, 1.0f,
+			1.000000f, 0.466667f, 0.000000f, 1.0f,
+			1.000000f, 0.533333f, 0.000000f, 1.0f,
+			1.000000f, 0.600000f, 0.000000f, 1.0f,
+			1.000000f, 0.666667f, 0.000000f, 1.0f,
+			1.000000f, 0.733333f, 0.000000f, 1.0f,
+			1.000000f, 0.800000f, 0.000000f, 1.0f,
+			1.000000f, 0.866667f, 0.000000f, 1.0f,
+			1.000000f, 0.933333f, 0.000000f, 1.0f,
+			1.000000f, 1.000000f, 0.000000f, 1.0f,
+			0.833333f, 1.000000f, 0.000000f, 1.0f,
+			0.666667f, 1.000000f, 0.000000f, 1.0f,
+			0.500000f, 1.000000f, 0.000000f, 1.0f,
+			0.333333f, 1.000000f, 0.000000f, 1.0f,
+			0.166667f, 1.000000f, 0.000000f, 1.0f,
+			0.000000f, 1.000000f, 0.000000f, 1.0f,
+			0.000000f, 1.000000f, 0.250000f, 1.0f,
+			0.000000f, 1.000000f, 0.500000f, 1.0f,
+			0.000000f, 1.000000f, 0.750000f, 1.0f,
+			0.000000f, 1.000000f, 1.000000f, 1.0f,
+			0.000000f, 0.909091f, 1.000000f, 1.0f,
+			0.000000f, 0.818182f, 1.000000f, 1.0f,
+			0.000000f, 0.727273f, 1.000000f, 1.0f,
+			0.000000f, 0.636364f, 1.000000f, 1.0f,
+			0.000000f, 0.545455f, 1.000000f, 1.0f,
+			0.000000f, 0.454545f, 1.000000f, 1.0f,
+			0.000000f, 0.363636f, 1.000000f, 1.0f,
+			0.000000f, 0.272727f, 1.000000f, 1.0f,
+			0.000000f, 0.181818f, 1.000000f, 1.0f,
+			0.000000f, 0.090909f, 1.000000f, 1.0f,
+			0.000000f, 0.000000f, 1.000000f, 1.0f,
+			0.076923f, 0.000000f, 1.000000f, 1.0f,
+			0.153846f, 0.000000f, 1.000000f, 1.0f,
+			0.230769f, 0.000000f, 1.000000f, 1.0f,
+			0.307692f, 0.000000f, 1.000000f, 1.0f,
+			0.384615f, 0.000000f, 1.000000f, 1.0f,
+			0.461538f, 0.000000f, 1.000000f, 1.0f,
+			0.538462f, 0.000000f, 1.000000f, 1.0f,
+			0.615385f, 0.000000f, 1.000000f, 1.0f,
+			0.692308f, 0.000000f, 1.000000f, 1.0f,
+			0.769231f, 0.000000f, 1.000000f, 1.0f,
+			0.846154f, 0.000000f, 1.000000f, 1.0f,
+			0.923077f, 0.000000f, 1.000000f, 1.0f,
+			1.000000f, 0.000000f, 1.000000f, 1.0f,
+			1.000000f, 0.000000f, 0.833333f, 1.0f,
+			1.000000f, 0.000000f, 0.666667f, 1.0f,
+			1.000000f, 0.000000f, 0.500000f, 1.0f,
+			1.000000f, 0.000000f, 0.333333f, 1.0f,
+			1.000000f, 0.000000f, 0.166667f, 1.0f };
+
+
+		float AEE( Image& flow, Image& gt )
+		{
+			if( flow.width() != gt.width() ||
+			   flow.height() != gt.height() ||
+			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
+			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+				throw CVTException( "FlowAAE: illegal flow data" );
+
+			size_t stride1, stride2;
+			size_t w, h;
+			uint8_t* ptr1;
+			uint8_t* ptr2;
+			float ee1, ee2;
+			float aee = 0.0f;
+
+			stride1 = flow.stride();
+			stride2 = gt.stride();
+			w = flow.width();
+			h = flow.height();
+			ptr1 = flow.data();
+			ptr2 = gt.data();
+
+
+			while( h-- ) {
+				float* d1 = ( float* ) ptr1;
+				float* d2 = ( float* ) ptr2;
+
+				for( size_t i = 0; i < w; i++ ) {
+					ee1 = ( d1[ w * 2 ] - d2[ w * 2 ] );
+					ee2 = ( d1[ w * 2 + 1 ] - d2[ w * 2 + 1 ] );
+					aee += sqrtf( ee1 * ee1 + ee2 * ee2 );
+				}
+				ptr1 += stride1;
+				ptr2 += stride2;
+			}
+
+			return aee / ( ( float ) ( flow.width() * flow.height() ) );
+		}
+
+		float AAE( Image& flow, Image& gt )
+		{
+			if( flow.width() != gt.width() ||
+			   flow.height() != gt.height() ||
+			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
+			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+				throw CVTException( "FlowAAE: illegal flow data" );
+
+			size_t stride1, stride2;
+			size_t w, h;
+			uint8_t* ptr1;
+			uint8_t* ptr2;
+			float dot ,dot1, dot2;
+			float aae = 0.0f;
+
+			stride1 = flow.stride();
+			stride2 = gt.stride();
+			w = flow.width();
+			h = flow.height();
+			ptr1 = flow.data();
+			ptr2 = gt.data();
+
+
+			while( h-- ) {
+				float* d1 = ( float* ) ptr1;
+				float* d2 = ( float* ) ptr2;
+
+				for( size_t i = 0; i < w; i++ ) {
+					dot = 1.0f + ( d1[ w * 2 ] * d2[ w * 2 ] + d1[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
+					dot1 = 1.0f + ( d1[ w * 2 ] * d1[ w * 2 ] + d1[ w * 2 + 1 ] * d1[ w * 2 + 1 ]);
+					dot2 = 1.0f + ( d2[ w * 2 ] * d2[ w * 2 ] + d2[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
+					aae += acosf( dot / ( sqrtf( dot1 ) * sqrtf( dot2 ) ) );
+				}
+				ptr1 += stride1;
+				ptr2 += stride2;
+			}
+
+			return aae / ( ( float ) ( flow.width() * flow.height() ) );
+		}
+
+		void colorCode( Image& idst, Image& flow )
+		{
+			if( flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT )
+				throw CVTException( "Illegal flow data" );
+
+			uint8_t* dst;
+			uint8_t* src;
+			size_t stridedst;
+			size_t stridesrc;
+			float* pdst;
+			float* psrc;
+			size_t w, h;
+			float u[ 2 ];
+			float color[ 4 ];
+			float radius;
+			float angle;
+			float val;
+			float alpha;
+			size_t i1, i2;
+
+			idst.reallocate( flow.width(), flow.height(), CVT_BGRA, CVT_FLOAT );
+
+			dst = idst.data();
+			stridedst = idst.stride();
+			src = flow.data();
+			stridesrc = flow.stride();
+
+			h = idst.height();
+			while( h-- ) {
+				pdst = ( float* ) dst;
+				psrc = ( float* ) src;
+
+				w = idst.width();
+				while( w-- ) {
+					u[ 0 ] = *psrc++;
+					u[ 1 ] = *psrc++;
+					radius = Math::sqrt( Math::sqr( u[ 0 ] ) + Math::sqr( u[ 1 ] ) );
+					angle = Math::atan2( -u[ 1 ], -u[ 0 ] ) / Math::PI;
+					val = ( ( angle + 1.0f ) / 2.0f ) *  ( float ) ( NUMCOLORS );
+					alpha = val - Math::floor( val );
+					i1 = ( ( size_t ) val ) % NUMCOLORS;
+					i2 = ( i1 + 1 ) % NUMCOLORS;
+					color[ 2 ] = Math::mix( _colorwheel[ i1 * 4 ], _colorwheel[ i2 * 4 ], alpha  );
+					color[ 1 ] = Math::mix( _colorwheel[ i1 * 4 + 1 ], _colorwheel[ i2 * 4 + 1 ], alpha  );
+					color[ 0 ] = Math::mix( _colorwheel[ i1 * 4 + 2 ], _colorwheel[ i2 * 4 + 2 ], alpha  );
+					color[ 3 ] = 1.0f; //Math::mix( _colorwheel[ i1 * 4 + 3 ], _colorwheel[ i2 * 4 + 3 ], alpha  );
+					color[ 0 ] = Math::mix( 1.0f, color[ 0 ], Math::min( radius / 2.0f, 1.0f ) );
+					color[ 1 ] = Math::mix( 1.0f, color[ 1 ], Math::min( radius / 2.0f, 1.0f ) );
+					color[ 2 ] = Math::mix( 1.0f, color[ 2 ], Math::min( radius / 2.0f, 1.0f ) );
+					/* alpha remains */
+					*pdst++ = color[ 0 ];
+					*pdst++ = color[ 1 ];
+					*pdst++ = color[ 2 ];
+					*pdst++ = color[ 3 ];
+				}
+
+				dst += stridedst;
+				src += stridesrc;
+			}
+
+		}
+
+	}
+}

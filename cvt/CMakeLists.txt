@@ -31,12 +31,13 @@ SET(${MODULE_NAME}_HEADERS
 	util/Range.h
 	util/Rect.h
 	util/CVTTest.h
-	util/CVTException.h
+	util/Exception.h
 	util/Timer.h
 	util/SIMD.h
 	gfx/ifilter/ROFDenoise.h
 	io/ImageIO.h
 	gfx/IScaleFilter.h
+	vision/Flow.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -52,6 +53,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/ROFDenoise.cpp
 	io/ImageIO.cpp
 	gfx/IScaleFilter.cpp
+	vision/Flow.cpp
 )
 	
 IF(UNIX AND NOT APPLE)

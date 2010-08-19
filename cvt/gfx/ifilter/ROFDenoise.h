@@ -5,11 +5,11 @@
 
 namespace cvt {
 
-    class ROFDenoise : public IFilter
-    {
-	public:
-	    void apply( Image& dst, const Image& src, float lambda = 70.0f, size_t iter = 10 );
-    };
+	class ROFDenoise : public IFilter
+	{
+		public:
+			void apply( Image& dst, const Image& src, float lambda = 70.0f, size_t iter = 10 );
+	};
 }
 
 

@@ -7,7 +7,7 @@
 
 #include "VisiblePoints.h"
 
-#include <cvt/util/CVTException.h>
+#include <cvt/util/Exception.h>
 #include <cvt/util/Timer.h>
 #include <cvt/gfx/Image.h>
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "Time: " << timer.elapsedMiliSeconds()/100.0 << "ms" << std::endl;
 
-	} catch (cvt::CVTException const & e){
+	} catch (cvt::Exception const & e){
 		std::cout << e.what() << std::endl;
 	}
 

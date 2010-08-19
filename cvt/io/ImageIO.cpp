@@ -1,5 +1,5 @@
 #include "io/ImageIO.h"
-#include "util/CVTException.h"
+#include "util/Exception.h"
 
 #include <png.h>
 

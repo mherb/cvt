@@ -1,7 +1,7 @@
 #include "gfx/Image.h"
 #include "math/Math.h"
 #include "util/SIMD.h"
-#include "util/CVTException.h"
+#include "util/Exception.h"
 
 namespace cvt {
 	float* Image::imageToKernel( const Image& kernel, bool normalize ) const
@@ -510,8 +510,10 @@ namespace cvt {
 	{
 		if( kernel._order == CVT_GRAY && kernel._type == CVT_FLOAT && _type == CVT_FLOAT )
 			convolveFloat( idst, kernel, normalize );
-		else
+		else {
+			std::cout << "type: " << _type << std::endl;
 			throw CVTException("Unimplemented");
+		}
 	}
 
 	void Image::convolveFloat( Image& idst, const Image& kernel, bool normalize ) const
