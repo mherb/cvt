@@ -80,7 +80,7 @@ namespace cvt {
 			while( w-- ) {
 				tmp1 = *pdst1 + taulambda * *psrc1++;
 				tmp2 = *pdst2 + taulambda * *psrc2++;
-				norm = 1.0f / Math::max( 1.0f, sqrtf( tmp1 * tmp1 + tmp2 * tmp2 ) );
+				norm = 1.0f / Math::max( 1.0f, Math::sqrt( tmp1 * tmp1 + tmp2 * tmp2 ) );
 				*pdst1++ = tmp1 * norm;
 				*pdst2++ = tmp2 * norm;
 			}
@@ -97,6 +97,8 @@ namespace cvt {
 		Image dx, dy, px, py, ptmp;
 		Image kerndx( 3, 1, CVT_GRAY, CVT_FLOAT );
 		Image kerndy( 1, 3, CVT_GRAY, CVT_FLOAT );
+		Image kerndxrev( 3, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndyrev( 1, 3, CVT_GRAY, CVT_FLOAT );
 
 		{
 			float* data;
@@ -111,6 +113,19 @@ namespace cvt {
 			*data++ =  0.0f;
 			data = ( float* ) kerndy.scanline( 2 );
 			*data++ =  1.0f;
+
+			data = ( float* ) kerndxrev.data();
+			*data++ =  1.0f;
+			*data++ =  0.0f;
+			*data++ = -1.0f;
+
+			data = ( float* ) kerndyrev.scanline( 0 );
+			*data++ =  1.0f;
+			data = ( float* ) kerndyrev.scanline( 1 );
+			*data++ =  0.0f;
+			data = ( float* ) kerndyrev.scanline( 2 );
+			*data++ = -1.0f;
+
 		}
 
 		dst.copy( src );
