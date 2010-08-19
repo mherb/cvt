@@ -44,31 +44,296 @@ namespace cvt {
 		SIMD* simd = SIMD::get();
 		img.reallocate( _width, _height, order, type );
 
-		if( order != _order )
-			throw CVTException( "Unimplemented" );
+		if( _order == order && _type == type ) {
+			img.copy( *this );
+			return;
+		}
 
-		/* same order - different type */
-		if( _type == CVT_UBYTE && type == CVT_FLOAT ) {
-			uint8_t* src = _data;
-			uint8_t* dst = img._data;
-			size_t h = _height;
+		/* FIXME: no gamma correction for gray/grayalpha */
+		/* FIXME: missing conversion routines */
+		uint8_t* src = _data;
+		uint8_t* dst = img._data;
+		size_t h = _height;
 
-			while( h-- ) {
-				simd->Conv_u8_to_f( ( float* ) dst, src, _width * _order_channels[ _order ] );
-				src += _stride;
-				dst += img._stride;
+		if( _type == CVT_UBYTE && type == CVT_UBYTE ) {
+			switch( _order ) {
+				case CVT_GRAY:
+					{
+						switch( order ) {
+							case CVT_GRAYALPHA:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_GRAYALPHA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_RGBA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAu8_to_ZYXAu8( dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+				case CVT_BGRA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAu8_to_ZYXAu8( dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+			}
+		} else if( _type == CVT_FLOAT && type == CVT_FLOAT ) {
+			switch( _order ) {
+				case CVT_GRAY:
+					{
+						switch( order ) {
+							case CVT_GRAYALPHA:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_GRAYALPHA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_RGBA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAf_to_ZYXAf( ( float* ) dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+				case CVT_BGRA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAf_to_ZYXAf( ( float* ) dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+			}
+		} else if( _type == CVT_UBYTE && type == CVT_FLOAT ) {
+			switch( _order ) {
+				case CVT_GRAY:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+								{
+									while( h-- ) {
+										simd->Conv_u8_to_f( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+
+							case CVT_GRAYALPHA:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_GRAYALPHA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_RGBA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XXXAu8_to_XXXAf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAu8_to_ZYXAf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+				case CVT_BGRA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XXXAu8_to_XXXAf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAu8_to_ZYXAf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
 			}
 		} else if( _type == CVT_FLOAT && type == CVT_UBYTE ) {
-			uint8_t* src = _data;
-			uint8_t* dst = img._data;
+			switch( _order ) {
+				case CVT_GRAY:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+								{
+									while( h-- ) {
+										simd->Conv_f_to_u8( dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+							case CVT_GRAYALPHA:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_GRAYALPHA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_RGBA:
+							case CVT_BGRA:
+								break;
+						}
+					}
+				case CVT_RGBA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XXXAf_to_XXXAu8( dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAf_to_ZYXAu8( dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
+				case CVT_BGRA:
+					{
+						switch( order ) {
+							case CVT_GRAY:
+							case CVT_GRAYALPHA:
+								break;
+							case CVT_BGRA:
+								{
+									while( h-- ) {
+										simd->Conv_XXXAf_to_XXXAu8( dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
 
-			size_t h = _height;
-			while( h-- ) {
-				simd->Conv_f_to_u8( dst, ( float* ) src, _width * _order_channels[ _order ] );
-				src += _stride;
-				dst += img._stride;
+							case CVT_RGBA:
+								{
+									while( h-- ) {
+										simd->Conv_XYZAf_to_ZYXAu8( dst, ( float* ) src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+						}
+					}
 			}
-		}
+		} else
+			throw CVTException( "Color conversion not implemented" );
 	}
 
 	void Image::fill( const Color& c )

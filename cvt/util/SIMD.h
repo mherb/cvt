@@ -58,15 +58,14 @@ namespace cvt {
 	    virtual void ConvolveAdaptiveClamp4f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 
 
-	    virtual void Conv_f_to_u8( uint8_t* dst, float* src, const size_t n ) const;
-	    virtual void Conv_u8_to_f( float* dst, uint8_t* src, const size_t n ) const;
-//		virtual void Conv_XYZA_to_ZYXA_f( float* dst, float* src, const size_t n ) const;
-//		virtual void Conv_XYZA_to_ZYXA_u8( uint32_t* dst, uint32_t* src, const size_t n ) const;
-//		virtual void Conv_XYZA_f_to_ZYXA_u8( uint32_t* dst, float* src, const size_t n ) const;
-//		virtual void Conv_XYZA_u8_to_ZYXA_f( uint32_t* dst, float* src, const size_t n ) const;
-
-//	    virtual void conv_srgbu8_to_f( uint8_t* dst, float* src, const size_t n );
-
+	    virtual void Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const;
+	    virtual void Conv_u8_to_f( float* dst, uint8_t const* src, const size_t n ) const;
+		virtual void Conv_XXXAf_to_XXXAu8( uint8_t* dst, float const* src, const size_t n ) const;
+		virtual void Conv_XYZAf_to_ZYXAu8( uint8_t* dst, float const* src, const size_t n ) const;
+		virtual void Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const;
+		virtual void Conv_XXXAu8_to_XXXAf( float* dst, uint8_t const* src, const size_t n ) const;
+		virtual void Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* src, const size_t n ) const;
+		virtual void Conv_XYZAu8_to_ZYXAu8( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 
 	    static SIMD* get();
 
