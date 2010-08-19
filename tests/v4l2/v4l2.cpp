@@ -21,11 +21,11 @@ int main(int argc, char* argv[])
 	Image kernel( 3, 1, CVT_GRAY, CVT_FLOAT );
 
 	{
-	    float* data;
-	    data = ( float* ) kernel.data();
-	    *data++ = 1.0f;
-	    *data++ = 0.0f;
-	    *data++ = -1.0f;
+		float* data;
+		data = ( float* ) kernel.data();
+		*data++ = 1.0f;
+		*data++ = 0.0f;
+		*data++ = -1.0f;
 	}
 
 	cam.open();
@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 
 	timer.reset();
 	while( 1 ) {
-	    cam.captureNext();
-	    frame = cam.image();
+		cam.captureNext();
+		frame = cam.image();
 
 		if( doprocess ) {
 			frame->convert( x, frame->order(), CVT_FLOAT );
@@ -44,20 +44,20 @@ int main(int argc, char* argv[])
 					y = ( y + 1.0f ) * 0.5f;*/
 			cvShowImage( "V4L2", y.iplimage() );
 		} else
-	        cvShowImage( "V4L2", frame->iplimage() );
+			cvShowImage( "V4L2", frame->iplimage() );
 
-	    key = cvWaitKey( 10 ) & 0xff;
-	    if( key == 27 )
-		break;
-	    else if( key == ' ')
-		doprocess = !doprocess;
+		key = cvWaitKey( 10 ) & 0xff;
+		if( key == 27 )
+			break;
+		else if( key == ' ')
+			doprocess = !doprocess;
 
-	    frames++;
-	    if( timer.elapsedSeconds() > 5.0f ) {
-		std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-		frames = 0;
-		timer.reset();
-	    }
+		frames++;
+		if( timer.elapsedSeconds() > 5.0f ) {
+			std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
+			frames = 0;
+			timer.reset();
+		}
 	}
 
 	return 0;

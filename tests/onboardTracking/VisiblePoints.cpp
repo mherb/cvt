@@ -10,7 +10,7 @@
 #include "VisiblePoints.h"
 
 #include <cvt/io/FileSystem.h>
-#include <cvt/util/CVTException.h>
+#include <cvt/util/Exception.h>
 
 #include <Eigen/Geometry>
 
@@ -22,7 +22,7 @@ VisiblePoints::VisiblePoints(std::string fileName):
 	yAngleRange(0, 0)
 {
 	if(!cvt::FileSystem::exists(fileName)){
-		throw cvt::CVTException("File not found: \"" + fileName + "\"");
+		throw CVTException("File not found: \"" + fileName + "\"");
 	}
 
 	this->parse(fileName);

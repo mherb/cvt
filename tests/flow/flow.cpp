@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/FloFile.h>
+#include <cvt/vision/Flow.h>
 
 using namespace cvt;
 
@@ -18,8 +19,8 @@ int main(int argc, char* argv[])
 	FloFile::FloReadFile( img2, argv[ 1 ] );
 
 
-	aee = FloFile::FlowAEE( img1, img2 );
-	aae = FloFile::FlowAAE( img1, img2 );
+	aee = Flow::AEE( img1, img2 );
+	aae = Flow::AAE( img1, img2 );
 
 	std::cout << "AEE: " << aee << std::endl;
 	std::cout << "AAE: " << aae << std::endl;

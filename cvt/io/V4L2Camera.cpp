@@ -14,7 +14,7 @@
 #include <linux/videodev2.h>
 #include <stdio.h>
 
-#include "util/CVTException.h"
+#include "util/Exception.h"
 #include "math/Math.h"
 
 namespace cvt {
