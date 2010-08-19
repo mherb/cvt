@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>
 
@@ -12,8 +13,8 @@
 int main(int argc, char* argv[])
 {
     std::string dataFolder(DATA_FOLDER);
-    std::string inputFile(dataFolder + "/atomium.png");
-    std::string inputGray(dataFolder + "/sebi_wa.png");
+    std::string inputFile(dataFolder + "/lena.png");
+    std::string inputGray(dataFolder + "/lena_ga.png");
         
     // RGBA UBYTE IMAGE
     cvt::Image img(640, 480);
@@ -32,8 +33,17 @@ int main(int argc, char* argv[])
     if(imgGray.order() == cvt::CVT_GRAY)
 	std::cout << "Loaded grayscale image" << std::endl;
     
-    if(imgGray.order() == cvt::CVT_GRAYALPHA)
-	std::cout << "Loaded grayscale image with alpha channel" << std::endl;
+    if(imgGray.order() == cvt::CVT_GRAYALPHA) {
+	std::cout << "Gray With Alpha" << std::endl;
+	cvt::ROFDenoise rof;
+	
+	cvt::Image imgF, outF;
+	imgGray.convert(imgF, cvt::CVT_GRAYALPHA, cvt::CVT_FLOAT);
+	
+	rof.apply(outF, imgF, 0.1f, 100);
+	
+	cvt::ImageIO::savePNG(outF, "out_gray_rof.png");
+    }	
     
     cvt::ImageIO::savePNG(imgGray, "out_gray.png");
         
