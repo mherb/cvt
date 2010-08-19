@@ -29,7 +29,7 @@ namespace cvt {
 			psrc1 = ( float* ) src1;
 			psrc2 = ( float* ) src2;
 
-			w = idst.width();
+			w = idst.width() * idst.channels();
 			while( w-- ) {
 				*pdst++ += lambda * ( *psrc1++ + *psrc2++ );
 			}
@@ -76,7 +76,7 @@ namespace cvt {
 			psrc1 = ( float* ) src1;
 			psrc2 = ( float* ) src2;
 
-			w = idst1.width();
+			w = idst1.width() * idst1.channels();
 			while( w-- ) {
 				tmp1 = *pdst1 + taulambda * *psrc1++;
 				tmp2 = *pdst2 + taulambda * *psrc2++;
