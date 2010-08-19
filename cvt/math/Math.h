@@ -56,8 +56,7 @@ namespace cvt {
 
 	static inline float sqrt( float f )
 	{
-	    //(return f * invSqrt( f );
-		return ::sqrtf( f );
+	    return f * invSqrt( f );
 	}
 
 	static inline double sqrt( double d )
@@ -67,11 +66,10 @@ namespace cvt {
 
 	static inline float abs( float f )
 	{
-/*	    _flint32 u;
+	    _flint32 u;
 	    u.f = f;
 	    u.i &= 0x7FFFFFFF;
-	    return u.f;*/
-		return ::fabsf( f );
+	    return u.f;
 	}
 
 	static inline double abs( double d )
