@@ -655,7 +655,7 @@ namespace cvt {
 		send = src + _stride * _height;
 
 		bufsize = filter.getAdaptiveConvolutionWeights( height, _height, scalery, true );
-		filter.getAdaptiveConvolutionWeights( width, _width, scalerx, true );
+		filter.getAdaptiveConvolutionWeights( width, _width, scalerx, false );
 
 		buf = new float*[ bufsize ];
 		/* allocate and fill buffer */
