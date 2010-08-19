@@ -7,6 +7,7 @@ INCLUDE(CompileDefinitions)
 INCLUDE(CompilerFlags)
 
 ADD_SUBDIRECTORY(eigen2)
+ADD_SUBDIRECTORY(image)
 ADD_SUBDIRECTORY(numericalJacobian)
 ADD_SUBDIRECTORY(onboardTracking)
 ADD_SUBDIRECTORY(optflow)
