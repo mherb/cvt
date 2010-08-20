@@ -108,13 +108,8 @@ namespace cvt {
 				throw CVTException("Could not create png info struct");
 			}
 
-			Image * tmpImage;
-			if(img.type() == CVT_FLOAT){
-				tmpImage = new Image(img.width(), img.height(), img.order(), CVT_UBYTE);
-				img.convert(*tmpImage, tmpImage->order(), tmpImage->type());
-			} else {
-				tmpImage = new Image(img);
-			}
+			Image tmpImage;
+			img.convert(tmpImage, img.order(), CVT_UBYTE);
 
 			/* Set error handling.  REQUIRED if you aren't supplying your own
 			 * error handling functions in the png_create_write_struct() call.
@@ -122,17 +117,14 @@ namespace cvt {
 			if (setjmp(png_jmpbuf(png_ptr))){		
 				fclose(fp);
 				png_destroy_write_struct(&png_ptr, &info_ptr);
-				delete tmpImage;
 				throw CVTException("Error while writing png");
 			}
-
-			/* One of the following I/O initialization functions is REQUIRED */
 
 			/* Set up the output control if you are using standard C streams */
 			png_init_io(png_ptr, fp);
 
 			int channels;
-			switch (tmpImage->order()) {
+			switch (tmpImage.order()) {
 				case CVT_GRAY:
 					channels = PNG_COLOR_TYPE_GRAY;
 					break;
@@ -147,15 +139,14 @@ namespace cvt {
 					png_set_bgr(png_ptr);
 					break;		    
 				default:
-					delete tmpImage;
 					throw CVTException("Input channel format not supported for writing");
 					break;
 			}
 
 			png_set_IHDR(png_ptr, info_ptr, 
-						 tmpImage->width(), 
-						 tmpImage->height(), 
-						 tmpImage->bpc(), 
+						 tmpImage.width(), 
+						 tmpImage.height(), 
+						 tmpImage.bpc(), 
 						 channels,
 						 PNG_INTERLACE_NONE, 
 						 PNG_COMPRESSION_TYPE_BASE, 
@@ -171,15 +162,14 @@ namespace cvt {
 			/* Write the file header information.  REQUIRED */
 			png_write_info(png_ptr, info_ptr);
 
-			png_bytep row_pointers[tmpImage->height()];
+			png_bytep row_pointers[tmpImage.height()];
 
-			if (tmpImage->height() > PNG_UINT_32_MAX/png_sizeof(png_bytep)){
-				delete tmpImage;
+			if (tmpImage.height() > PNG_UINT_32_MAX/png_sizeof(png_bytep)){
 				throw CVTException("Image is too tall to process in memory");
 			}
 
-			for (size_t k = 0; k < img.height(); k++)
-				row_pointers[k] = (const png_bytep)(img.scanline(k));
+			for (size_t k = 0; k < tmpImage.height(); k++)
+				row_pointers[k] = (const png_bytep)(tmpImage.scanline(k));
 
 			png_write_image(png_ptr, row_pointers);
 
@@ -191,8 +181,6 @@ namespace cvt {
 
 			/* Close the file */
 			fclose(fp);    
-
-			delete tmpImage;
 		}
 	}
 }
