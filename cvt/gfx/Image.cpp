@@ -91,6 +91,70 @@ namespace cvt {
 		fill( c );
 		return *this;
 	}
+	
+	Color Image::operator() (size_t row, size_t column)
+	{
+		switch (_type) {
+			case CVT_UBYTE:
+			{
+				uint8_t * p = ((uint8_t*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
+				switch (_order) {
+					case CVT_RGBA:
+						return Color(p[0], p[1], p[2], p[3]);
+						break;
+					case CVT_BGRA:
+						return Color(p[2], p[1], p[0], p[3]);
+						break;
+					case CVT_GRAY:
+						return Color(p[0]);
+						break;
+					case CVT_GRAYALPHA:
+						return Color(p[0], p[1]);
+						break;					
+					default:
+						throw CVTException("Unsupported Channel Order for UBYTE Type");
+						break;
+				}
+			}
+			case CVT_FLOAT:
+			{
+				float * p = ((float*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
+				switch (_order) {
+					case CVT_RGBA:
+						return Color(p[0], p[1], p[2], p[3]);
+						break;
+					case CVT_BGRA:
+						return Color(p[2], p[1], p[0], p[3]);
+						break;
+					case CVT_GRAY:
+						return Color(p[0]);
+						break;
+					case CVT_GRAYALPHA:
+						return Color(p[0], p[1]);
+						break;					
+					default:
+						throw CVTException("Unsupported Channel Order for float Type");
+						break;
+				}
+			}			
+			default:
+				throw CVTException("Not implemented");
+				break;
+		}
+	}
+	
+	Color Image::operator() ( float row, float column )
+	{
+		size_t r = (size_t)floor( row );
+		size_t c = (size_t)floor( column );
+		float alpha = row - r;
+		float beta = column - c;
+		
+		Color c1 = Math::mix( this->operator()( r, c ), this->operator()( r, c+1 ), alpha );
+		Color c2 = Math::mix( this->operator()( r+1, c ), this->operator()( r+1, c+1 ), alpha );
+				
+		return Math::mix( c1, c2, beta );
+	}
 
 	std::ostream& operator<<(std::ostream &out, const Image &f)
 	{

@@ -66,7 +66,7 @@ namespace cvt {
 		void mul( const Color& c );
 
 		void convolve( Image& dst, const Image& kernel, bool normalize = true ) const;
-
+				
 		Image& operator=( const Color& c );
 		Image& operator=( const Image& c );
 
@@ -77,6 +77,9 @@ namespace cvt {
 		Image& operator*( const Color& c );
 		Image& operator+( const Color& c );
 		Image& operator-( const Color& c );
+		
+		Color operator() (size_t row, size_t column);
+		Color operator() (float row, float column);
 
 		/* FIXME: remove - use convolve instead */
 		void ddx( Image& dx, bool forward = true ) const;
@@ -195,6 +198,7 @@ namespace cvt {
 		add( c );
 		return *this;
 	}
+	
 	inline Image& Image::operator-( const Color& c )
 	{
 		sub( c );
