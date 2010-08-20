@@ -92,8 +92,10 @@ namespace cvt {
 		return *this;
 	}
 	
-	Color Image::operator() (size_t row, size_t column)
+	Color Image::operator() (int x, int y)
 	{
+		int column = Math::clamp( x, (int)0, (int)(_width-1) );
+		int row = Math::clamp( y, (int)0, (int)(_height-1) );
 		switch (_type) {
 			case CVT_UBYTE:
 			{
@@ -143,12 +145,15 @@ namespace cvt {
 		}
 	}
 	
-	Color Image::operator() ( float row, float column )
+	Color Image::operator() ( float x, float y )
 	{
-		size_t r = (size_t)floor( row );
-		size_t c = (size_t)floor( column );
-		float alpha = row - r;
-		float beta = column - c;
+		x = Math::clamp(x, 0.0f, (float)(_width-1));
+		y = Math::clamp(y, 0.0f, (float)(_height-1));
+		
+		int r = (int)floor( y );
+		int c = (int)floor( x );
+		float alpha = y - r;
+		float beta = x - c;
 		
 		Color c1 = Math::mix( this->operator()( r, c ), this->operator()( r, c+1 ), alpha );
 		Color c2 = Math::mix( this->operator()( r+1, c ), this->operator()( r+1, c+1 ), alpha );
@@ -221,7 +226,26 @@ namespace cvt {
 		b &= *( ( ( float* ) y.data() ) + 3 ) == 1.0f;
 		CVTTEST_PRINT("BGRA FLOAT", b );
 
-
+		// operator x, y:
+		Image test(2, 2, CVT_RGBA, CVT_UBYTE);		
+		test.fill(color);
+		Color c = test(0, 0);
+		b = (c.red() == 1.0f);
+		b &= (c.green() == 0.0f);
+		b &= (c.blue() == 0.0f);
+		b &= (c.alpha() == 1.0f);
+		CVTTEST_PRINT("INDEX OPERATOR: ", b );
+		
+		uint8_t * p = test.scanline(1);
+		p[0] = 0; p[1] = 255; p[2] = 0;	p[3] = 255;	
+		p[4] = 0; p[5] = 255; p[6] = 0;	p[7] = 255;	
+		cvt::Color cback = test(0.2f, 0.2f);
+		b = (cback.red() == 0.8f);
+		b &= (cback.green() == 0.2f);
+		b &= (cback.blue() == 0.0f);
+		b &= (cback.alpha() == 1.0f);
+		CVTTEST_PRINT("PIXEL INTERPOLATOR: ", b );
+	
 		return true;
 	END_CVTTEST
 }
