@@ -78,8 +78,8 @@ namespace cvt {
 		Image& operator+( const Color& c );
 		Image& operator-( const Color& c );
 		
-		Color operator() (int x, int y);
-		Color operator() (float x, float y);
+		Color operator() (int x, int y) const;
+		Color operator() (float x, float y) const;
 
 		/* FIXME: remove - use convolve instead */
 		void ddx( Image& dx, bool forward = true ) const;

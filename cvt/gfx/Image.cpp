@@ -92,14 +92,14 @@ namespace cvt {
 		return *this;
 	}
 	
-	Color Image::operator() (int x, int y)
+	Color Image::operator() (int x, int y) const
 	{
 		int column = Math::clamp( x, (int)0, (int)(_width-1) );
 		int row = Math::clamp( y, (int)0, (int)(_height-1) );
 		switch (_type) {
 			case CVT_UBYTE:
 			{
-				uint8_t * p = ((uint8_t*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
+				uint8_t const * p = ((uint8_t const*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
 				switch (_order) {
 					case CVT_RGBA:
 						return Color(p[0], p[1], p[2], p[3]);
@@ -120,7 +120,7 @@ namespace cvt {
 			}
 			case CVT_FLOAT:
 			{
-				float * p = ((float*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
+				float const * p = ((float const*)this->scanline(row)) + column * _order_channels[_order] * _type_size[_type];
 				switch (_order) {
 					case CVT_RGBA:
 						return Color(p[0], p[1], p[2], p[3]);
@@ -145,7 +145,7 @@ namespace cvt {
 		}
 	}
 	
-	Color Image::operator() ( float x, float y )
+	Color Image::operator() ( float x, float y ) const
 	{
 		x = Math::clamp(x, 0.0f, (float)(_width-1));
 		y = Math::clamp(y, 0.0f, (float)(_height-1));

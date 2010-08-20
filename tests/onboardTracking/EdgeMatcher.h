@@ -4,6 +4,7 @@
 #include <Eigen/Core>
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/Color.h>
 
 namespace cvt {
 
@@ -30,11 +31,11 @@ namespace cvt {
 			unsigned int normalSearchLength;
 
 			bool normalSearch(cvt::Image const& img,
-							  Eigen::Vector2d const & sn,
-							  Eigen::Vector2d const& sc,
-							  Eigen::Vector2d & match);
+							  Eigen::Vector2f const & sn,
+							  Eigen::Vector2f const& sc,
+							  Eigen::Vector2f & match);
 
-			bool matchFunc(float* value);
+		bool matchFunc(cvt::Color & color);
 	};
 
 }
