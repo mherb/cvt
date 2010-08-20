@@ -42,9 +42,11 @@ int main(int argc, char* argv[])
 	
 	rof.apply(outF, imgF, 0.1f, 100);
 	
+	// hand over a floating point image to the save routine
 	cvt::ImageIO::savePNG(outF, "out_gray_rof.png");
-    }	
+    }   
     
+    // save the gray image
     cvt::ImageIO::savePNG(imgGray, "out_gray.png");
         
     return 0;    
