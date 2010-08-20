@@ -43,6 +43,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/ImageIO.h
 	gfx/IScaleFilter.h
 	vision/Flow.h
+	gui/GLView.h
+	gui/GLObject.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -60,6 +62,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/IScaleFilter.cpp
 	vision/Flow.cpp
 	gui/Display.cpp
+	gui/GLView.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
