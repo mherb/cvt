@@ -143,7 +143,7 @@ namespace cvt {
 		y = Math::min( y, _height - 1 );
 		return _data + _stride * y;
 	}
-	
+
 	inline uint8_t const* Image::scanline( size_t y ) const
 	{
 		y = Math::min( y, _height - 1 );
