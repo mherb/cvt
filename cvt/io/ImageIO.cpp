@@ -179,7 +179,7 @@ namespace cvt {
 			}
 
 			for (size_t k = 0; k < img.height(); k++)
-				row_pointers[k] = (const png_bytep)tmpImage->data() + k * tmpImage->stride() * tmpImage->bpp();
+				row_pointers[k] = (const png_bytep)(img.scanline(k));
 
 			png_write_image(png_ptr, row_pointers);
 
