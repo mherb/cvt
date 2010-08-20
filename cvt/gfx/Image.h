@@ -45,6 +45,7 @@ namespace cvt {
 		uint8_t* data();
 		uint8_t const* data() const;
 		uint8_t* scanline( size_t i );
+		uint8_t const* scanline( size_t i ) const;
 		void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 		void reallocate( const Image& i );
 		void copy( const Image& i );
@@ -138,6 +139,12 @@ namespace cvt {
 	}
 
 	inline uint8_t* Image::scanline( size_t y )
+	{
+		y = Math::min( y, _height - 1 );
+		return _data + _stride * y;
+	}
+	
+	inline uint8_t const* Image::scanline( size_t y ) const
 	{
 		y = Math::min( y, _height - 1 );
 		return _data + _stride * y;
