@@ -63,7 +63,7 @@ namespace cvt {
 							case CVT_GRAYALPHA:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_GRAYALPHA:
@@ -72,7 +72,7 @@ namespace cvt {
 							case CVT_GRAY:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_RGBA:
@@ -118,7 +118,7 @@ namespace cvt {
 							case CVT_GRAYALPHA:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_GRAYALPHA:
@@ -127,7 +127,7 @@ namespace cvt {
 							case CVT_GRAY:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_RGBA:
@@ -135,7 +135,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 							case CVT_BGRA:
 								{
 									while( h-- ) {
@@ -152,7 +152,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 							case CVT_RGBA:
 								{
 									while( h-- ) {
@@ -183,7 +183,7 @@ namespace cvt {
 							case CVT_GRAYALPHA:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_GRAYALPHA:
@@ -192,7 +192,7 @@ namespace cvt {
 							case CVT_GRAY:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_RGBA:
@@ -200,7 +200,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 							case CVT_RGBA:
 								{
 									while( h-- ) {
@@ -266,7 +266,7 @@ namespace cvt {
 							case CVT_GRAYALPHA:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_GRAYALPHA:
@@ -275,7 +275,7 @@ namespace cvt {
 							case CVT_GRAY:
 							case CVT_RGBA:
 							case CVT_BGRA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 						}
 					}
 				case CVT_RGBA:
@@ -283,7 +283,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 							case CVT_RGBA:
 								{
 									while( h-- ) {
@@ -309,7 +309,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
-								break;
+								throw CVTException( "Color conversion not implemented" );
 							case CVT_BGRA:
 								{
 									while( h-- ) {
