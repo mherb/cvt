@@ -13,7 +13,7 @@ using namespace cvt;
 #define IFX( img, x, y ) (*( ( float* ) ( img.data() + Math::clamp(y, (size_t)0, img.height()-1) * img.stride() + ( Math::clamp(x, (size_t)0,img.width()-1) * 2 ) * sizeof( float ) ) ) )
 #define IFY( img, x, y ) (*( ( float* ) ( img.data() + Math::clamp(y, (size_t)0, img.height()-1) * img.stride() + ( Math::clamp(x,(size_t)0,img.width()-1) * 2 + 1 ) * sizeof( float ) ) ) )
 
-#define WS 10
+#define WS 5
 
 void flowsearch( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Image& img2, float theta )
 {
@@ -59,7 +59,7 @@ void flowsearch( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Ima
 void calcflow( Image& flow, Image& img1, Image& img2 )
 {
 	size_t iter;
-	float theta = 20.0f;
+	float theta = 10.0f;
 	ROFDenoise rof;
 	Image tmpflow;
 	Image tmpflow2;
@@ -72,7 +72,7 @@ void calcflow( Image& flow, Image& img1, Image& img2 )
 	tmpflow2.fill( Color( 0.0f, 0.0f ) );
 	while( iter-- ) {
 		flowsearch( tmpflow, flow, tmpflow2, img1, img2, theta );
-		rof.apply( tmpflow2, tmpflow, 0.5f, 20 );
+		rof.apply( tmpflow2, tmpflow, 0.5f, 100 );
 		flow.copy( tmpflow );
 		{
 			Image x;
@@ -83,6 +83,6 @@ void calcflow( Image& flow, Image& img1, Image& img2 )
 			cvWaitKey( 25 );
 			std::cout << "Iter: " << iter << " Theta: " << theta << std::endl;
 		}
-		theta = 20.0f - 10.0f * ( ( 50 - iter ) / 50.0f );
+		theta = 10.0f - 10.0f * ( ( 50 - iter ) / 50.0f );
 	}
 }
