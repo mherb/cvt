@@ -387,7 +387,7 @@ namespace cvt {
 					break;
 				case CVT_RGBA:
 					{
-						uint32_t v = ( ( uint32_t ) ( 255.0f * c.gray() ) ) << 24;
+						uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
 						v |= ( ( uint32_t ) ( 255.0f * c.blue() ) ) << 16;
 						v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
 						v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
@@ -402,7 +402,7 @@ namespace cvt {
 					break;
 				case CVT_BGRA:
 					{
-						uint32_t v = ( ( uint32_t ) ( 255.0f * c.gray() ) ) << 24;
+						uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
 						v |= ( ( uint32_t ) ( 255.0f * c.red() ) ) << 16;
 						v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
 						v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );

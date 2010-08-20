@@ -2,6 +2,7 @@
 #include "math/Math.h"
 #include "util/SIMD.h"
 #include "util/Exception.h"
+#include "util/CVTTest.h"
 
 namespace cvt {
 
@@ -95,4 +96,66 @@ namespace cvt {
 		return out;
 	}
 
+
+	BEGIN_CVTTEST( image )
+		Color color( 255, 0, 0, 255 );
+		Image y;
+		uint32_t val;
+		bool b;
+
+		Image x( 1, 1, CVT_RGBA, CVT_UBYTE );
+		x.fill( color );
+
+		std::cerr << "RGBA UBYTE TO:" << std::endl;
+
+		val = *( ( uint32_t* ) x.data() );
+		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
+
+		x.convert( y, CVT_BGRA, CVT_UBYTE );
+		val = *( ( uint32_t* ) y.data() );
+		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
+
+		x.convert( y, CVT_RGBA, CVT_FLOAT );
+		b = *( ( ( float* ) y.data() ) + 0 ) == 1.0f;
+		b &= *( ( ( float* ) y.data() ) + 1 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 2 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 3 ) == 1.0f;
+		CVTTEST_PRINT("RGBA FLOAT", b );
+
+		x.convert( y, CVT_BGRA, CVT_FLOAT );
+		b = *( ( ( float* ) y.data() ) + 0 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 1 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 2 ) == 1.0f;
+		b &= *( ( ( float* ) y.data() ) + 3 ) == 1.0f;
+		CVTTEST_PRINT("BGRA FLOAT", b );
+
+		x = Image( 1, 1, CVT_RGBA, CVT_FLOAT );
+		x.fill( color );
+		std::cerr << "RGBA FLOAT TO:" << std::endl;
+
+		x.convert( y, CVT_RGBA, CVT_UBYTE );
+		val = *( ( uint32_t* ) y.data() );
+		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
+
+		x.convert( y, CVT_BGRA, CVT_UBYTE );
+		val = *( ( uint32_t* ) y.data() );
+		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
+
+		x.convert( y, CVT_RGBA, CVT_FLOAT );
+		b = *( ( ( float* ) y.data() ) + 0 ) == 1.0f;
+		b &= *( ( ( float* ) y.data() ) + 1 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 2 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 3 ) == 1.0f;
+		CVTTEST_PRINT("RGBA FLOAT", b );
+
+		x.convert( y, CVT_BGRA, CVT_FLOAT );
+		b = *( ( ( float* ) y.data() ) + 0 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 1 ) == 0.0f;
+		b &= *( ( ( float* ) y.data() ) + 2 ) == 1.0f;
+		b &= *( ( ( float* ) y.data() ) + 3 ) == 1.0f;
+		CVTTEST_PRINT("BGRA FLOAT", b );
+
+
+		return true;
+	END_CVTTEST
 }
