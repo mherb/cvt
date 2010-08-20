@@ -21,7 +21,8 @@ namespace cvt {
 	Image::Image( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type ) :  _order( order ), _type( type ), _width( w ), _height( h ), _data( 0 ), _iplimage( 0 )
 	{
 		_stride = Math::pad16( _width * _order_channels[ _order ] * _type_size[ _type ] );
-		posix_memalign( ( void** ) &_data, 16, _stride * _height );
+		if( posix_memalign( ( void** ) &_data, 16, _stride * _height ) )
+				throw CVTException("Out of memory");
 		upateIpl();
 	}
 
@@ -42,7 +43,8 @@ namespace cvt {
 		_width = w;
 		_height = h;
 		_stride = Math::pad16( _width * _order_channels[ _order ] * _type_size[ _type ] );
-		posix_memalign( ( void** ) &_data, 16, _stride * _height );
+		if( posix_memalign( ( void** ) &_data, 16, _stride * _height ) )
+				throw CVTException("Out of memory");
 		upateIpl();
 	}
 

@@ -375,7 +375,7 @@ namespace cvt {
 					break;
 				case CVT_GRAYALPHA:
 					{
-						uint16_t v = ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8;
+						uint16_t v = ( uint16_t ) ( ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8 );
 						v |= ( ( uint16_t ) ( 255.0f * c.gray() ));
 						h = _height;
 						dst = _data;
@@ -942,8 +942,8 @@ namespace cvt {
 		buf = new float*[ bufsize ];
 		/* allocate and fill buffer */
 		for( i = 0; i < bufsize; i++ ) {
-			/* FIXME: use aligned buffer !!! */
-			buf[ i ] = new float[ width * _order_channels[ _order ] ];
+			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _order_channels[ _order ] ) )
+				throw CVTException("Out of memory");
 			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
 			src += _stride;
 		}
