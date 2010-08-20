@@ -9,13 +9,8 @@
 
 namespace cvt {
 
-<<<<<<< HEAD
 	namespace Math {
 
-=======
-    namespace Math
-	{
->>>>>>> Small fixes
 		typedef union {
 			uint32_t i;
 			float f;
@@ -40,8 +35,8 @@ namespace cvt {
 		template<class T> static inline size_t maxIndex( T x, T y ) { return  ( x > y ) ? 0 : 1; }
 		template<class T> static inline size_t minIndex( T x, T y ) { return ( x < y ) ? 0 : 1; }
 
-		template<typename T> static inline T mix( T a, T b, float alpha ) { return a + alpha * ( b - a ); }
-		template<typename T> static inline T mix( T a, T b, double alpha ) { return a + alpha * ( b - a ); }
+		template<typename T> static inline T mix( T a, T b, float alpha ) { return a + ( b - a ) * alpha; }
+		template<typename T> static inline T mix( T a, T b, double alpha ) { return a + ( b - a ) * alpha; }
 
 		template<typename T> static inline T clamp( T v, T min, T max ) { return ( v < min ) ? min : ( v > max ) ? max : v; }
 

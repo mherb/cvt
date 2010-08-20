@@ -15,7 +15,9 @@ namespace cvt {
 		Color( float gray );
 		Color( float gray, float alpha );
 		Color( int r, int g, int b, int a );
-
+		Color( int gray );
+		Color( int gray, int alpha );
+		
 		void set( float r, float g, float b, float a );
 		void set( int r, int g, int b, int a );
 
@@ -32,6 +34,10 @@ namespace cvt {
 		void setGreen( float g ) { _g = g; };
 		void setBlue( float b ) { _b = b; };
 		void setAlpha( float a ) { _a = a; };
+		
+		Color& operator+( const Color & c );
+		Color& operator-( const Color & c );
+		Color& operator*( float s );
 
 		private:
 		float _r, _g, _b, _a;
@@ -59,6 +65,22 @@ namespace cvt {
 		_g = Math::clamp( ( float ) g / 255.0f, 0.0f, 1.0f );
 		_b = Math::clamp( ( float ) b / 255.0f, 0.0f, 1.0f );
 		_a = Math::clamp( ( float ) a / 255.0f, 0.0f, 1.0f );
+	}
+	
+	inline Color::Color( int gray, int alpha )
+	{
+		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
+		_g = _r;
+		_b = _r;
+		_a = Math::clamp( ( float ) alpha / 255.0f, 0.0f, 1.0f );
+	}
+	
+	inline Color::Color( int gray )
+	{
+		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
+		_g = _r;
+		_b = _r;
+		_a = 1.0f;
 	}
 
 	inline void Color::set( float r, float g, float b, float a )
@@ -96,6 +118,36 @@ namespace cvt {
 	inline float Color::gray() const
 	{
 		return 0.2126f * _r + 0.7152f * _g + 0.0722f * _b;
+	}
+	
+	inline Color& Color::operator+( const Color & c )
+	{
+		_r += c.red();
+		_g += c.green();
+		_b += c.blue();
+		_a += c.alpha();
+		
+		return *this;
+	}
+	
+	inline Color& Color::operator-( const Color & c )
+	{
+		_r -= c.red();
+		_g -= c.green();
+		_b -= c.blue();
+		_a -= c.alpha();
+		
+		return *this;		
+	}
+	
+	inline Color& Color::operator*( float s )
+	{
+		_r *= s;
+		_g *= s;
+		_b *= s;
+		_a *= s;
+		
+		return *this;
 	}
 
 }
