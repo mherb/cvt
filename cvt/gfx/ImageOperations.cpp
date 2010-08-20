@@ -179,7 +179,6 @@ namespace cvt {
 									}
 									return;
 								}
-
 							case CVT_GRAYALPHA:
 							case CVT_RGBA:
 							case CVT_BGRA:
@@ -193,6 +192,15 @@ namespace cvt {
 							case CVT_RGBA:
 							case CVT_BGRA:
 								throw CVTException( "Color conversion not implemented" );
+							case CVT_GRAYALPHA:
+								{
+									while( h-- ) {
+										simd->Conv_u8_to_f( ( float* ) dst, src, _width * _order_channels[ _order ] );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
 						}
 					}
 				case CVT_RGBA:
@@ -276,6 +284,16 @@ namespace cvt {
 							case CVT_RGBA:
 							case CVT_BGRA:
 								throw CVTException( "Color conversion not implemented" );
+							case CVT_GRAYALPHA:
+								{
+									while( h-- ) {
+										simd->Conv_f_to_u8( dst, ( float* ) src, _width * _order_channels[ _order ] );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
+
 						}
 					}
 				case CVT_RGBA:
