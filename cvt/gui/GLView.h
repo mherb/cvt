@@ -1,7 +1,10 @@
 #ifndef GLVIEW_H
 #define GLVIEW_H
 
+#include <QGLWidget>
 #include <list>
+
+#include "gui/GLObject.h"
 
 namespace cvt {
 

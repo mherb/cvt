@@ -63,10 +63,12 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Flow.cpp
 	gui/Display.cpp
 	gui/GLView.cpp
+	gui/GLImage.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
 	gui/Display.h
+	gui/GLView.h
 )
 QT4_WRAP_CPP(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_MOC_FILES})
 	

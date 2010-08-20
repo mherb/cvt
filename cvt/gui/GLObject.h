@@ -2,14 +2,17 @@
 #define GLOBJECT_H
 
 #include <cvt/util/Rect.h>
-
-#include <opengl/gl.h>
+#include <cvt/gfx/Color.h>
+#include <GL/gl.h>
 
 namespace cvt {
 
 	class GLObject {
 		public:
-			virtual void draw() const;
+			GLObject() : _rect( 0, 0, 1, 1 ) , _color( 1.0f, 1.0f ) {};
+			virtual ~GLObject() {};
+
+			virtual void draw() const = 0;
 
 			const Recti& rect() const { return _rect; };
 			void setRect( const Recti& r ) { _rect = r; };
@@ -19,6 +22,7 @@ namespace cvt {
 
 		protected:
 			Recti _rect;
+			Color _color;
 	};
 
 }
