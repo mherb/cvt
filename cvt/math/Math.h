@@ -9,8 +9,13 @@
 
 namespace cvt {
 
+<<<<<<< HEAD
 	namespace Math {
 
+=======
+    namespace Math
+	{
+>>>>>>> Small fixes
 		typedef union {
 			uint32_t i;
 			float f;
