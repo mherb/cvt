@@ -2,6 +2,7 @@
 
 #include "math/Math.h"
 #include "util/CVTTest.h"
+#include "util/Timer.h"
 
 namespace cvt {
 
@@ -130,6 +131,7 @@ namespace cvt {
 			return 2;
 		}
 
+#if 0
 		/*
 		   Based on implementation of Ken Turkowski.
 		   Here with 8-bit lookup-table and standard IEEE floating point format.
@@ -171,12 +173,15 @@ namespace cvt {
 			d = d * ( 1.5 - dhalf * d * d );
 			return d;
 		}
+#endif
 
 
 		BEGIN_CVTTEST( math )
 			float f;
-			float d;
+			double d, t1, t2;
+			int i;
 			bool b;
+			Timer t;
 
 			f = Math::mix( 0.0f, 1.0f, 0.5f );
 			CVTTEST_PRINT( "Mix with float", f == 0.5f );
@@ -187,14 +192,51 @@ namespace cvt {
 
 			/* SQRT */
 			b = true;
-			for( f = 0.0f; f <= 1000.0f; f += 0.1f ) {
-				 b &= ( Math::abs( Math::sqrt( f ) - ::sqrtf( f ) ) < 1e-5f );
+			for( size_t i = 0; i <= 10000; i++ ) {
+				 f = Math::rand( 0, Math::MAXF );
+				 bool b2 = ( Math::abs( Math::sqrt( f ) - ::sqrtf( f ) ) / ::sqrtf( f ) < 0.001f );
+				 if( !b2 ) {
+					std::cerr << "Math::sqrt failed for " << f << " Math::sqrt = " << Math::sqrt( f ) << " sqrtf = " << ::sqrtf( f ) << std::endl;
+				 }
+				 b &= b2;
 			}
-			CVTTEST_PRINT( "Math::sqrt", b );
+
+			/*CVTTEST_PRINT( "Math::sqrt", b );
+			t.reset();
+			for( size_t i = 0; i <= 800000; i++ ){
+				 f = Math::rand( 0.0f, Math::MAXF );
+				 f = Math::invSqrt( f );
+			}
+			t1 = t.elapsedMiliSeconds();
+			t.reset();
+			for( size_t i = 0; i <= 800000; i++ ){
+				 f = Math::rand( 0.0f, Math::MAXF );
+				 f = 1.0f / ::sqrtf( f );
+			}
+			t2 = t.elapsedMiliSeconds();
+			std::cerr << "Math::invSqrt " << t1 << " ms 1.0/::sqrtf " << t2 << " ms" << std::endl;
+			CVTTEST_PRINT( "Math::abs performance", t1 < t2 );*/
+
+
+			t.reset();
+			for( size_t i = 0; i <= 800000; i++ ){
+				 f = Math::rand( -1e5f, 1e5f );
+				 f = Math::abs( f );
+			}
+			t1 = t.elapsedMiliSeconds();
+			t.reset();
+			for( size_t i = 0; i <= 800000; i++ ){
+				 f = Math::rand( -1e5f, 1e5f );
+				 f = ::fabsf( f );
+			}
+			t2 = t.elapsedMiliSeconds();
+			std::cerr << "Math::abs " << t1 << " ms ::fabsf " << t2 << " ms" << std::endl;
+			CVTTEST_PRINT( "Math::abs performance", t1 - 0.5f < t2 );
 
 			/* ABS */
 			b = true;
-			for( f = -100.0f; f <= 1000.0f; f += 0.1f ) {
+			for( size_t i = 0; i <= 20000; i++ ) {
+				 f = Math::rand( -1e5f, 1e5f );
 				 b &= ( Math::abs( f ) * ::fabsf( f ) > 0.0f );
 			}
 			CVTTEST_PRINT( "Math::abs", b );
