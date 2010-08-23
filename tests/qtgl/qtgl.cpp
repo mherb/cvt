@@ -19,17 +19,22 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 	std::string dataFolder(DATA_FOLDER);
     std::string inputFile(dataFolder + "/lena.png");
+    std::string inputFile2(dataFolder + "/lena_g.png");
 	cvt::Image img;
-
-    cvt::ImageIO::loadPNG(img, inputFile);
 
 	cvt::GLView view;
 
 	view.makeCurrent();
 
+    cvt::ImageIO::loadPNG(img, inputFile);
 	cvt::GLImage obj( img );
 	view.addGLObject( &obj );
-	obj.setSize( 512, 512 );
+	obj.setSize( 256, 256 );
+
+	cvt::ImageIO::loadPNG(img, inputFile2 );
+	cvt::GLImage obj2( img );
+	view.addGLObject( &obj2 );
+	obj2.setSize( 256, 256 );
 
 	view.show();
 	return app.exec();
