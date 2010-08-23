@@ -28,9 +28,12 @@ namespace cvt {
 			void mousePressEvent( QMouseEvent *event );
 			void mouseMoveEvent( QMouseEvent *event );
 			void wheelEvent( QWheelEvent *event );
+			GLObject* objectAt( int x, int y );
 
 		private:
 			std::list<GLObject*> _objects;
+			GLObject* _selected;
+			int _lx, _ly;
 
 	};
 }

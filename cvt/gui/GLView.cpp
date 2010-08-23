@@ -1,4 +1,5 @@
 #include <iostream>
+#include <QMouseEvent>
 
 #include "gui/GLView.h"
 
@@ -8,7 +9,7 @@
 namespace cvt {
 
 	GLView::GLView(QWidget *parent)
-		: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+		: QGLWidget(QGLFormat(QGL::SampleBuffers), parent), _selected( 0 )
 	{
 
 	}
@@ -60,7 +61,7 @@ namespace cvt {
 		glTranslatef(0.0, 0.0, -1.0f );
 
 		if( _objects.size() ) {
-			for ( std::list<GLObject*>::iterator it=_objects.begin(); it != _objects.end(); ++it ) {
+			for ( std::list<GLObject*>::reverse_iterator it=_objects.rbegin(); it != _objects.rend(); ++it ) {
 				(*it)->draw();
 			}
 		}
@@ -75,19 +76,61 @@ namespace cvt {
 		glMatrixMode(GL_MODELVIEW);
 	}
 
+
+	GLObject* GLView::objectAt( int x, int y )
+	{
+		for ( std::list<GLObject*>::iterator it=_objects.begin(); it != _objects.end(); ++it ) {
+			if( (*it)->rect().contains( x, y ) ) {
+				return (*it);
+			}
+		}
+		return NULL;
+	}
+
 	void GLView::wheelEvent( QWheelEvent *event )
 	{
-		//		scale = qMin( qMax( scale - event->delta() / 1000.0f , 0.25f ), 10.0f );
-		//		updateGL();
-
+		GLObject* x = objectAt( event->x(), event->y() );
+		if( x )  {
+			size_t delta = event->delta() / 10;
+			if( x->rect().width + delta > 20 && x->rect().height + delta > 20 ) {
+				x->setSize( x->rect().width + delta, x->rect().height + delta );
+				updateGL();
+			}
 		}
+	}
 
 	void GLView::mousePressEvent(QMouseEvent *event)
 	{
+		_selected = NULL;
+		if( _objects.size() ) {
+			for ( std::list<GLObject*>::iterator it=_objects.begin(); it != _objects.end(); ++it ) {
+				if( (*it)->rect().contains( event->x(), event->y() ) ) {
+					GLObject* x = (*it);
+					_objects.erase( it );
+					_objects.push_front( x );
+					_selected = x;
+					_lx = event->x();
+					_ly = event->y();
+					updateGL();
+					break;
+				}
+			}
+		}
 	}
 
 	void GLView::mouseMoveEvent(QMouseEvent *event)
 	{
+		if( _objects.size() && _selected ) {
+//			if( _selected->rect().contains( event->x(), event->y() ) ) {
+				int dx = event->x() - _lx;
+				int dy = event->y() - _ly;
+				_selected->setPosition( _selected->rect().x + dx, _selected->rect().y + dy );
+				_lx = event->x();
+				_ly = event->y();
+				updateGL();
+//			} else
+//				_selected = NULL;
+		}
 
 	}
 

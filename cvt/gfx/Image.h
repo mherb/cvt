@@ -212,12 +212,12 @@ namespace cvt {
 
 	inline size_t Image::bpc() const
 	{
-		return _type_size[_type] * 8;
+		return _type_size[ _type ] * 8;
 	}
 
 	inline size_t Image::bpp() const
 	{
-		return _type_size[_type] * _order_channels[_type];
+		return _type_size[ _type ] * _order_channels[ _order ];
 	}
 }
 
