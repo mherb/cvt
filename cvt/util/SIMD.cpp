@@ -1,5 +1,8 @@
 #include "util/SIMD.h"
 #include "math/Math.h"
+#include "util/Timer.h"
+#include "util/CVTTest.h"
+#include "util/SIMDSSE.h"
 
 namespace cvt {
 	const float _table_alpha_u8_f[256] = {
@@ -666,10 +669,21 @@ namespace cvt {
 
 	SIMD* SIMD::_simd = 0;
 
-	SIMD* SIMD::get()
+	SIMD* SIMD::get( SIMDType type )
 	{
+		/* FIXME */
 		if( !_simd ) {
 			_simd = new SIMD();
+		} else if( _simd->type() != type ) {
+			if( _simd )
+				delete _simd;
+			switch( type ) {
+				default:
+				case SIMD_BASE: _simd = new SIMD();
+								break;
+				case SIMD_SSE: _simd = new SIMDSSE();
+							   break;
+			}
 		}
 		return _simd;
 	}
@@ -742,7 +756,7 @@ namespace cvt {
 			*dst++ = *src1++ + *src2++;
 			*dst++ = *src1++ + *src2++;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src1++ + *src2++;
 	}
@@ -756,7 +770,7 @@ namespace cvt {
 			*dst++ = *src1++ - *src2++;
 			*dst++ = *src1++ - *src2++;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src1++ - *src2++;
 	}
@@ -770,7 +784,7 @@ namespace cvt {
 			*dst++ = *src1++ * *src2++;
 			*dst++ = *src1++ * *src2++;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src1++ * *src2++;
 	}
@@ -784,7 +798,7 @@ namespace cvt {
 			*dst++ = *src1++ / *src2++;
 			*dst++ = *src1++ / *src2++;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src1++ / *src2++;
 	}
@@ -798,7 +812,7 @@ namespace cvt {
 			*dst++ += *src1++ * value;
 			*dst++ += *src1++ * value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ += *src1++ * value;
 	}
@@ -812,7 +826,7 @@ namespace cvt {
 			*dst++ = *src++ + value;
 			*dst++ = *src++ + value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src++ + value;
 	}
@@ -826,7 +840,7 @@ namespace cvt {
 			*dst++ = *src++ - value;
 			*dst++ = *src++ - value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src++ - value;
 	}
@@ -840,7 +854,7 @@ namespace cvt {
 			*dst++ = *src++ * value;
 			*dst++ = *src++ * value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src++ * value;
 	}
@@ -854,7 +868,7 @@ namespace cvt {
 			*dst++ = *src++ / value;
 			*dst++ = *src++ / value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = *src++ / value;
 	}
@@ -869,10 +883,10 @@ namespace cvt {
 			*dst++ = *src1++ + value[ 2 ];
 			*dst++ = *src1++ + value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ = *src1++ + value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -886,10 +900,10 @@ namespace cvt {
 			*dst++ = *src1++ - value[ 2 ];
 			*dst++ = *src1++ - value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ = *src1++ - value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -904,10 +918,10 @@ namespace cvt {
 			*dst++ = *src1++ * value[ 2 ];
 			*dst++ = *src1++ * value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ = *src1++ * value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -922,10 +936,10 @@ namespace cvt {
 			*dst++ = *src1++ / value[ 2 ];
 			*dst++ = *src1++ / value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ = *src1++ / value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -939,7 +953,7 @@ namespace cvt {
 			*dst++ -= *src1++ * value;
 			*dst++ -= *src1++ * value;
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ -= *src1++ * value;
 	}
@@ -954,10 +968,10 @@ namespace cvt {
 			*dst++ += *src1++ * value[ 2 ];
 			*dst++ += *src1++ * value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ += *src1++ * value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -971,10 +985,10 @@ namespace cvt {
 			*dst++ -= *src1++ * value[ 2 ];
 			*dst++ -= *src1++ * value[ 3 ];
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- ) {
 			*dst++ -= *src1++ * value[ x++ ];
-			x &= 0x02;
+			x &= 0x03;
 		}
 	}
 
@@ -987,7 +1001,7 @@ namespace cvt {
 			*dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
 			*dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
 
@@ -1003,7 +1017,7 @@ namespace cvt {
 			*dst++ = U8_TO_F( *src++ );
 			*dst++ = U8_TO_F( *src++ );
 		}
-		i = n & 0x02;
+		i = n & 0x03;
 		while( i-- )
 			*dst++ = U8_TO_F( *src++ );
 	}
@@ -1795,5 +1809,102 @@ namespace cvt {
 			sw++;
 		}
 	}
+
+	BEGIN_CVTTEST( simd )
+		float* fdst;
+		float* fsrc1;
+		float* fsrc2;
+		float val1 = 1.23f;
+		float val4[ 4 ] = { 0.5f, 2.0f, 1.4323f, 0.2f };
+		Timer tmr;
+		double t;
+
+#define TESTSIZE ( 32 + 3 )
+		fdst = new float[ TESTSIZE ];
+		fsrc1 = new float[ TESTSIZE ];
+		fsrc2 = new float[ TESTSIZE ];
+
+		for( size_t i = 0; i < TESTSIZE; i++ ) {
+			fsrc1[ i ] = ( ( float ) i ) / 10.0f;
+			fsrc2[ i ] = 1.0f - fsrc1[ i ];
+			fdst[ i ] = 0.0f;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			for( size_t i = 0; i < TESTSIZE; i++ )
+				fdst[ i ] = 0.0f;
+			simd->Add( fdst, fsrc1, fsrc2, TESTSIZE );
+			std::cout << simd->name() << " Add:" << std::endl;
+			for( size_t i = 0; i < TESTSIZE; i++ )
+				std::cout << fsrc1[ i ] << " + " << fsrc2[ i ] << " = " << fdst[ i ] << std::endl;
+			std::cout << std::endl;
+		}
+		delete[] fdst;
+		delete[] fsrc1;
+		delete[] fsrc2;
+#undef TESTSIZE
+
+
+#define TESTSIZE ( 4096 * 4096 )
+		fdst = new float[ TESTSIZE ];
+		fsrc1 = new float[ TESTSIZE ];
+		fsrc2 = new float[ TESTSIZE ];
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Add( fdst, fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Add "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Sub( fdst, fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Sub "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Mul( fdst, fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Mul "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Div( fdst, fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Div "  << t  << " ms" << std::endl;
+		}
+
+		delete[] fdst;
+		delete[] fsrc1;
+		delete[] fsrc2;
+#undef TESTSIZE
+
+		return true;
+	END_CVTTEST
 
 }

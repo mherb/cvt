@@ -39,6 +39,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Exception.h
 	util/Timer.h
 	util/SIMD.h
+	util/SIMDSSE.h
 	gfx/ifilter/ROFDenoise.h
 	io/ImageIO.h
 	gfx/IScaleFilter.h
@@ -57,6 +58,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	util/SIMD.cpp
+	util/SIMDSSE.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	io/ImageIO.cpp
 	gfx/IScaleFilter.cpp
