@@ -60,6 +60,8 @@ namespace cvt {
 		void sub( float alpha = 0.0f );
 		void mul( float alpha = 1.0f );
 		void mad( const Image& i, float alpha = 1.0f );
+		void add( const Image& i );
+		void sub( const Image& i );
 
 		void add( const Color& c );
 		void sub( const Color& c );
@@ -77,7 +79,10 @@ namespace cvt {
 		Image& operator*( const Color& c );
 		Image& operator+( const Color& c );
 		Image& operator-( const Color& c );
-		
+
+		Image& operator+( const Image& i );
+		Image& operator-( const Image& i );
+
 		Color operator() (int x, int y) const;
 		Color operator() (float x, float y) const;
 
@@ -198,10 +203,22 @@ namespace cvt {
 		add( c );
 		return *this;
 	}
-	
+
 	inline Image& Image::operator-( const Color& c )
 	{
 		sub( c );
+		return *this;
+	}
+
+	inline Image& Image::operator+( const Image& i )
+	{
+		add( i );
+		return *this;
+	}
+
+	inline Image& Image::operator-( const Image& i )
+	{
+		sub( i );
 		return *this;
 	}
 

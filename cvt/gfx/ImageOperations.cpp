@@ -689,6 +689,60 @@ namespace cvt {
 		}
 	}
 
+	void Image::add( const Image& i )
+	{
+		if( _width != i._width || _height != i._height ||
+		   _type != i._type || _order != i._order )
+			throw CVTException("Image mismatch");
+
+		SIMD* simd = SIMD::get();
+		switch( _type ) {
+			case CVT_FLOAT:
+				{
+					uint8_t* src = i._data;
+					uint8_t* dst = _data;
+
+					size_t h = _height;
+					while( h-- ) {
+						simd->Add( ( float* ) dst, ( float* ) dst, ( float* ) src, _width * _order_channels[ _order ] );
+						src += i._stride;
+						dst += _stride;
+					}
+				}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+
+		}
+	}
+
+	void Image::sub( const Image& i )
+	{
+		if( _width != i._width || _height != i._height ||
+		   _type != i._type || _order != i._order )
+			throw CVTException("Image mismatch");
+
+		SIMD* simd = SIMD::get();
+		switch( _type ) {
+			case CVT_FLOAT:
+				{
+					uint8_t* src = i._data;
+					uint8_t* dst = _data;
+
+					size_t h = _height;
+					while( h-- ) {
+						simd->Sub( ( float* ) dst, ( float* ) dst, ( float* ) src, _width * _order_channels[ _order ] );
+						src += i._stride;
+						dst += _stride;
+					}
+				}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+
+		}
+	}
+
 	void Image::mad( const Image& i, float alpha )
 	{
 		if( _width != i._width || _height != i._height ||

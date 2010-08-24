@@ -690,11 +690,11 @@ namespace cvt {
 
 	void SIMD::SetValueU8( uint8_t* dst, const uint8_t value, const size_t n ) const
 	{
-		size_t i = n & 0x2;
+		size_t i = n & 0x3;
 		uint32_t v = ( value << 24 ) | ( value << 16 ) | ( value << 8 ) | value;
 
 		SetValueU32( ( uint32_t* ) dst, v, n >> 2 );
-		dst += n & ( ~ 0x02 );
+		dst += n & ( ~ 0x03 );
 		while( i-- )
 			*dst++ = value;
 	}
@@ -726,11 +726,10 @@ namespace cvt {
 
 	void SIMD::SetValue2f( float* dst, const float (&value)[ 2 ], const size_t n ) const
 	{
-		size_t i = n & 0x02;
 		float v[ 4 ] = { value[ 0 ], value[ 1 ], value[ 0 ], value[ 1 ] };
 
 		SetValue4f( dst, v, n >> 1 );
-		while( i-- ) {
+		if( n & 0x01 ) {
 			*dst++ = value[ 0 ];
 			*dst++ = value[ 1 ];
 		}
