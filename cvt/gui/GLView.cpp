@@ -1,10 +1,15 @@
+
 #include <iostream>
 #include <QMouseEvent>
+
+#include <boost/bind.hpp>
 
 #include "gui/GLView.h"
 
 #include "gui/GLImage.h"
 #include "io/ImageIO.h"
+
+
 
 namespace cvt {
 
@@ -24,11 +29,14 @@ namespace cvt {
 			_objects.push_front( obj );
 		else
 			_objects.push_back( obj );
+		/* FIXME: save connection */
+		obj->updated.connect( boost::bind( &GLView::updateGL, this ) );
 		updateGL();
 	}
 
 	void GLView::removeGLObject( GLObject* obj )
 	{
+		/* FIXME: discconect previously saved connection */
 		_objects.remove( obj );
 		updateGL();
 	}

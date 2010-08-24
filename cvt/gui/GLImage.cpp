@@ -56,5 +56,6 @@ namespace cvt {
 		glPixelStorei( GL_UNPACK_ALIGNMENT, ( img.bpc() >> 3 ) );
 		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) img.stride() / ( img.bpp() ) );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) img.width(), ( GLsizei ) img.height(), 0, format, (img.type()==CVT_UBYTE)?GL_UNSIGNED_BYTE:GL_FLOAT, ( void* ) img.data() );
+		updated();
 	}
 }
