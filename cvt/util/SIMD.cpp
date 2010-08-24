@@ -1846,7 +1846,7 @@ namespace cvt {
 #undef TESTSIZE
 
 
-#define TESTSIZE ( 4096 * 4096 )
+#define TESTSIZE ( 2048 * 2048 )
 		fdst = new float[ TESTSIZE ];
 		fsrc1 = new float[ TESTSIZE ];
 		fsrc2 = new float[ TESTSIZE ];
