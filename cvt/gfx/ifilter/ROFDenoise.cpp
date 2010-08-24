@@ -95,53 +95,72 @@ namespace cvt {
 	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter )
 	{
 		Image dx, dy, px, py, ptmp;
-		Image kerndx( 3, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndy( 1, 3, CVT_GRAY, CVT_FLOAT );
-		Image kerndxrev( 3, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndyrev( 1, 3, CVT_GRAY, CVT_FLOAT );
+		Image kerndx( 5, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndy( 1, 5, CVT_GRAY, CVT_FLOAT );
+		Image kerndxrev( 5, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndyrev( 1, 5, CVT_GRAY, CVT_FLOAT );
 
 		{
 			float* data;
 			data = ( float* ) kerndx.data();
-			*data++ = -1.0f;
+			*data++ = -0.1f;
+			*data++ = -0.9f;
+			*data++ =  0.9f;
+			*data++ =  0.1f;
 			*data++ =  0.0f;
-			*data++ =  1.0f;
 
 			data = ( float* ) kerndy.scanline( 0 );
-			*data++ = -1.0f;
+			*data++ = -0.1f;
 			data = ( float* ) kerndy.scanline( 1 );
-			*data++ =  0.0f;
+			*data++ = -0.9f;
 			data = ( float* ) kerndy.scanline( 2 );
-			*data++ =  1.0f;
+			*data++ =  0.9f;
+			data = ( float* ) kerndy.scanline( 3 );
+			*data++ =  0.1f;
+			data = ( float* ) kerndy.scanline( 4 );
+			*data++ =  0.0f;
 
 			data = ( float* ) kerndxrev.data();
-			*data++ =  1.0f;
 			*data++ =  0.0f;
-			*data++ = -1.0f;
+			*data++ = -0.1f;
+			*data++ = -0.9f;
+			*data++ =  0.9f;
+			*data++ =  0.1f;
 
 			data = ( float* ) kerndyrev.scanline( 0 );
-			*data++ =  1.0f;
-			data = ( float* ) kerndyrev.scanline( 1 );
 			*data++ =  0.0f;
+			data = ( float* ) kerndyrev.scanline( 1 );
+			*data++ = -0.1f;
 			data = ( float* ) kerndyrev.scanline( 2 );
-			*data++ = -1.0f;
+			*data++ = -0.9f;
+			data = ( float* ) kerndyrev.scanline( 3 );
+			*data++ =  0.9f;
+			data = ( float* ) kerndyrev.scanline( 4 );
+			*data++ =  0.1f;
+
+
+
 
 		}
 
-		dst.copy( src );
-		src.convolve( px, kerndx, false );
-		src.convolve( py, kerndy, false );
-
 #define TAU 0.25f
 
+		dst.copy( src );
+		src.convolve( dx, kerndx, false );
+		src.convolve( dy, kerndy, false );
+		px.reallocate( dx );
+		py.reallocate( dy );
+		px.fill( Color( 0.0f, 0.0f ) );
+		py.fill( Color( 0.0f, 0.0f ) );
+
 		while( iter-- ) {
+			multadd2_th( px, py, dx, dy, TAU / lambda );
 			px.convolve( dx, kerndx, false );
 			py.convolve( dy, kerndy, false );
-			ptmp =  src;
+			ptmp = src;
 			multadd2( ptmp, dx, dy, lambda );
-			ptmp.convolve( dx, kerndx, false );
-			ptmp.convolve( dy, kerndy, false );
-			multadd2_th( px, py, dx, dy, TAU / lambda );
+			ptmp.convolve( dx, kerndxrev, false );
+			ptmp.convolve( dy, kerndyrev, false );
 		}
 		px.convolve( dx, kerndx, false );
 		py.convolve( dy, kerndy, false );

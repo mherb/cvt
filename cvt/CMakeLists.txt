@@ -8,7 +8,7 @@ SET(MODULE_NAME "cvt")
 
 PROJECT(${MODULE_NAME} CXX C)
 
-FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options signals REQUIRED)
+FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options signals thread REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)

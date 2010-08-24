@@ -25,13 +25,14 @@ namespace cvt {
 
 	void GLView::addGLObject( GLObject* obj, bool front )
 	{
+//		makeCurrent();
 		if( front )
 			_objects.push_front( obj );
 		else
 			_objects.push_back( obj );
 		/* FIXME: save connection */
 		obj->updated.connect( boost::bind( &GLView::updateGL, this ) );
-		updateGL();
+	//	updateGL();
 	}
 
 	void GLView::removeGLObject( GLObject* obj )
