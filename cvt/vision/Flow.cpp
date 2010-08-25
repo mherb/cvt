@@ -61,47 +61,13 @@ namespace cvt {
 			1.000000f, 0.000000f, 0.333333f, 1.0f,
 			1.000000f, 0.000000f, 0.166667f, 1.0f };
 
-
-		float AEE( Image& flow, Image& gt )
-		{
-			if( flow.width() != gt.width() ||
-			   flow.height() != gt.height() ||
-			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
-			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
-				throw CVTException( "FlowAAE: illegal flow data" );
-
-			size_t stride1, stride2;
-			size_t w, h;
-			uint8_t* ptr1;
-			uint8_t* ptr2;
-			float ee1, ee2;
-			float aee = 0.0f;
-
-			stride1 = flow.stride();
-			stride2 = gt.stride();
-			w = flow.width();
-			h = flow.height();
-			ptr1 = flow.data();
-			ptr2 = gt.data();
-
-
-			while( h-- ) {
-				float* d1 = ( float* ) ptr1;
-				float* d2 = ( float* ) ptr2;
-
-				for( size_t i = 0; i < w; i++ ) {
-					ee1 = ( d1[ w * 2 ] - d2[ w * 2 ] );
-					ee2 = ( d1[ w * 2 + 1 ] - d2[ w * 2 + 1 ] );
-					aee += sqrtf( ee1 * ee1 + ee2 * ee2 );
-				}
-				ptr1 += stride1;
-				ptr2 += stride2;
-			}
-
-			return aee / ( ( float ) ( flow.width() * flow.height() ) );
+		static bool _unknown_flow( float u, float v ) {
+#define UFLOW 1e9f
+			return ( Math::abs(u) > UFLOW )	|| ( Math::abs(v) > UFLOW ) || isnan(u) || isnan(v);
+#undef UFLOW
 		}
 
-		float AAE( Image& flow, Image& gt )
+		float AEE( const Image& flow, const Image& gt )
 		{
 			if( flow.width() != gt.width() ||
 			   flow.height() != gt.height() ||
@@ -111,10 +77,54 @@ namespace cvt {
 
 			size_t stride1, stride2;
 			size_t w, h;
-			uint8_t* ptr1;
-			uint8_t* ptr2;
+			uint8_t const* ptr1;
+			uint8_t const* ptr2;
+			float ee1, ee2;
+			float aee = 0.0f;
+			size_t unknown = 0;
+
+			stride1 = flow.stride();
+			stride2 = gt.stride();
+			w = gt.width();
+			h = gt.height();
+			ptr1 = flow.data();
+			ptr2 = gt.data();
+
+
+			while( h-- ) {
+				float const* d1 = ( float const* ) ptr1;
+				float const* d2 = ( float const* ) ptr2;
+
+				for( size_t i = 0; i < w; i++ ) {
+					if( !_unknown_flow( d2[ i * 2], d2[ i * 2 + 1 ] ) ) {
+						ee1 = ( d1[ i * 2 ] - d2[ i * 2 ] );
+						ee2 = ( d1[ i * 2 + 1 ] - d2[ i * 2 + 1 ] );
+						aee += Math::sqrt( Math::sqr( ee1 ) + Math::sqr( ee2 ) );
+					} else
+						unknown++;
+				}
+				ptr1 += stride1;
+				ptr2 += stride2;
+			}
+
+			return  aee / ( ( float ) ( gt.width() * gt.height() - unknown ) );
+		}
+
+		float AAE( const Image& flow, const Image& gt )
+		{
+			if( flow.width() != gt.width() ||
+			   flow.height() != gt.height() ||
+			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
+			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+				throw CVTException( "FlowAAE: illegal flow data" );
+
+			size_t stride1, stride2;
+			size_t w, h;
+			uint8_t const* ptr1;
+			uint8_t const* ptr2;
 			float dot ,dot1, dot2;
 			float aae = 0.0f;
+			size_t unknown = 0;
 
 			stride1 = flow.stride();
 			stride2 = gt.stride();
@@ -125,20 +135,23 @@ namespace cvt {
 
 
 			while( h-- ) {
-				float* d1 = ( float* ) ptr1;
-				float* d2 = ( float* ) ptr2;
+				float const* d1 = ( float const* ) ptr1;
+				float const* d2 = ( float const* ) ptr2;
 
 				for( size_t i = 0; i < w; i++ ) {
-					dot = 1.0f + ( d1[ w * 2 ] * d2[ w * 2 ] + d1[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
-					dot1 = 1.0f + ( d1[ w * 2 ] * d1[ w * 2 ] + d1[ w * 2 + 1 ] * d1[ w * 2 + 1 ]);
-					dot2 = 1.0f + ( d2[ w * 2 ] * d2[ w * 2 ] + d2[ w * 2 + 1 ] * d2[ w * 2 + 1 ]);
-					aae += acosf( dot / ( sqrtf( dot1 ) * sqrtf( dot2 ) ) );
+					if( !_unknown_flow( d2[ i * 2], d2[ i * 2 + 1 ] ) ) {
+						dot = 1.0f + ( d1[ i * 2 ] * d2[ i * 2 ] + d1[ i * 2 + 1 ] * d2[ i * 2 + 1 ]);
+						dot1 = 1.0f + ( d1[ i * 2 ] * d1[ i * 2 ] + d1[ i * 2 + 1 ] * d1[ i * 2 + 1 ]);
+						dot2 = 1.0f + ( d2[ i * 2 ] * d2[ i * 2 ] + d2[ i * 2 + 1 ] * d2[ i * 2 + 1 ]);
+						aae += Math::acos( dot / ( Math::sqrt( dot1 ) * Math::sqrt( dot2 ) ) );
+					} else
+						unknown++;
 				}
 				ptr1 += stride1;
 				ptr2 += stride2;
 			}
 
-			return aae / ( ( float ) ( flow.width() * flow.height() ) );
+			return Math::rad2Deg( aae / ( ( float ) ( gt.width() * gt.height() - unknown ) ) );
 		}
 
 		void colorCode( Image& idst, Image& flow )

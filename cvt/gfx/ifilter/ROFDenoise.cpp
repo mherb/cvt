@@ -81,6 +81,7 @@ namespace cvt {
 				tmp1 = *pdst1 + taulambda * *psrc1++;
 				tmp2 = *pdst2 + taulambda * *psrc2++;
 				norm = 1.0f / Math::max( 1.0f, Math::sqrt( tmp1 * tmp1 + tmp2 * tmp2 ) );
+//				norm = 1.0f / Math::max( 1.0f,  Math::abs( tmp1 ) + Math::abs( tmp2 ) );
 				*pdst1++ = tmp1 * norm;
 				*pdst2++ = tmp2 * norm;
 			}
@@ -103,40 +104,40 @@ namespace cvt {
 		{
 			float* data;
 			data = ( float* ) kerndx.data();
-			*data++ = -0.1f;
-			*data++ = -0.9f;
-			*data++ =  0.9f;
-			*data++ =  0.1f;
+			*data++ = -0.2f;
+			*data++ = -0.8f;
+			*data++ =  0.8f;
+			*data++ =  0.2f;
 			*data++ =  0.0f;
 
 			data = ( float* ) kerndy.scanline( 0 );
-			*data++ = -0.1f;
+			*data++ = -0.2f;
 			data = ( float* ) kerndy.scanline( 1 );
-			*data++ = -0.9f;
+			*data++ = -0.8f;
 			data = ( float* ) kerndy.scanline( 2 );
-			*data++ =  0.9f;
+			*data++ =  0.8f;
 			data = ( float* ) kerndy.scanline( 3 );
-			*data++ =  0.1f;
+			*data++ =  0.2f;
 			data = ( float* ) kerndy.scanline( 4 );
 			*data++ =  0.0f;
 
 			data = ( float* ) kerndxrev.data();
 			*data++ =  0.0f;
-			*data++ = -0.1f;
-			*data++ = -0.9f;
-			*data++ =  0.9f;
-			*data++ =  0.1f;
+			*data++ = -0.2f;
+			*data++ = -0.8f;
+			*data++ =  0.8f;
+			*data++ =  0.2f;
 
 			data = ( float* ) kerndyrev.scanline( 0 );
 			*data++ =  0.0f;
 			data = ( float* ) kerndyrev.scanline( 1 );
-			*data++ = -0.1f;
+			*data++ = -0.2f;
 			data = ( float* ) kerndyrev.scanline( 2 );
-			*data++ = -0.9f;
+			*data++ = -0.8f;
 			data = ( float* ) kerndyrev.scanline( 3 );
-			*data++ =  0.9f;
+			*data++ =  0.8f;
 			data = ( float* ) kerndyrev.scanline( 4 );
-			*data++ =  0.1f;
+			*data++ =  0.2f;
 
 
 

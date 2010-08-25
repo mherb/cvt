@@ -46,6 +46,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Flow.h
 	gui/GLView.h
 	gui/GLObject.h
+	util/CPU.h
 )
 
 SET(${MODULE_NAME}_SOURCES

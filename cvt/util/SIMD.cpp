@@ -3,6 +3,7 @@
 #include "util/Timer.h"
 #include "util/CVTTest.h"
 #include "util/SIMDSSE.h"
+#include "util/CPU.h"
 
 namespace cvt {
 	const float _table_alpha_u8_f[256] = {
@@ -672,9 +673,14 @@ namespace cvt {
 	SIMD* SIMD::get( SIMDType type )
 	{
 		/* FIXME */
-		if( !_simd ) {
-			_simd = new SIMD();
-		} else if( _simd->type() != type ) {
+		if( !_simd && type == SIMD_BEST ) {
+			uint32_t cpuf;
+			cpuf = cpuFeatures();
+			if( !cpuf )
+				_simd = new SIMD();
+			else if( cpuf & CPU_SSE )
+				_simd = new SIMDSSE();
+		} else if( !_simd || _simd->type() != type ) {
 			if( _simd )
 				delete _simd;
 			switch( type ) {
@@ -1898,6 +1904,53 @@ namespace cvt {
 			std::cout << simd->name() << " Div "  << t  << " ms" << std::endl;
 		}
 
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Add( fdst, fsrc1, 10.0f, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Add Const "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Sub( fdst, fsrc1, 10.0f, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Sub Const "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Mul( fdst, fsrc1, 10.0f, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Mul Const "  << t  << " ms" << std::endl;
+		}
+
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->Div( fdst, fsrc1, 10.0f, TESTSIZE );
+				t += tmr.elapsedMiliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
+		}
 		delete[] fdst;
 		delete[] fsrc1;
 		delete[] fsrc2;

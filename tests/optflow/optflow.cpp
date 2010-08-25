@@ -7,8 +7,9 @@
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/util/Exception.h>
-#include <cvt/vision/Flow.h>
 #include <cvt/io/FloFile.h>
+#include <cvt/vision/Flow.h>
+
 #include "calcflow.h"
 
 using namespace cvt;
@@ -20,6 +21,8 @@ int main(int argc, char* argv[])
 	Image in1, in2;
 	Image flow, cflow;
 	ROFDenoise denoise;
+	Image _gt;
+	Image* gt = NULL;
 
 	if( argc < 3 )
 		return 1;
@@ -30,32 +33,28 @@ int main(int argc, char* argv[])
 	Image* tmp = new Image();
 #if 1
 	img1.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in1, *tmp, 0.125f, 100 );
+	denoise.apply( in1, *tmp, 0.1f, 100 );
 	in1.mad( *tmp, -0.95f );
-	in1.mul( 5.0f );
+	in1.mul( 6.0f );
 	img2.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in2, *tmp, 0.125f, 100 );
+	denoise.apply( in2, *tmp, 0.1f, 100 );
 	in2.mad( *tmp, -0.95f );
-	in2.mul( 5.0f );
+	in2.mul( 6.0f );
 #else
 	img1.convert( in1, CVT_BGRA, CVT_FLOAT );
 	img2.convert( in2, CVT_BGRA, CVT_FLOAT );
 #endif
 	delete tmp;
 
-	cvShowImage( "Frame 1", in1.iplimage() );
-	cvShowImage( "Frame 2", in2.iplimage() );
-
-	calcflow( flow, in1, in2 );
-	Flow::colorCode( cflow, flow );
-
+//	cvShowImage( "Frame 1", in1.iplimage() );
+//	cvShowImage( "Frame 2", in2.iplimage() );
 	if( argc == 4 ) {
-		Image gt;
-		FloFile::FloReadFile( gt, argv[ 3 ] );
-		float aee = Flow::AEE( flow, gt );
-		float aae = Flow::AAE( flow, gt );
-		std::cout << "AEE: " << aee << " AAE: " << aae << std::endl;
+		FloFile::FloReadFile( _gt, argv[ 3 ] );
+		gt = &_gt;
 	}
+
+	calcflow( flow, in1, in2, gt );
+	Flow::colorCode( cflow, flow );
 
 	while( 1 ) {
 		cvShowImage( "Flow", cflow.iplimage() );

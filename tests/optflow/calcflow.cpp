@@ -1,7 +1,6 @@
 #include "calcflow.h"
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/math/Math.h>
-
 #include <cvt/vision/Flow.h>
 
 #include <iostream>
@@ -67,7 +66,7 @@ void flowsearch2( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Im
 
 	for( y = 0; y < img1.height(); y++ ) {
 		for( x = 0; x < img1.width(); x++ ) {
-			float cost = 1e15f;
+			float cost = 1e7;
 			Color fin;
 			Color fin2;
 			float fout[ 2 ];
@@ -80,8 +79,8 @@ void flowsearch2( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Im
 
 			i1 = img1( (int)x, (int)y );
 
-			for( ly = -WS; ly <= WS; ly += 0.5f ) {
-				for( lx = -WS; lx <= WS; lx += 0.5f ) {
+			for( ly = -WS; ly <= WS; ly += 0.25f ) {
+				for( lx = -WS; lx <= WS; lx += 0.25f ) {
 					float c;
 					c = ( Math::sqr( fin.gray() + lx - fin2.gray() ) + Math::sqr( fin.alpha() + ly - fin2.alpha() ) ) / ( 2.0f * theta );
 
@@ -91,6 +90,7 @@ void flowsearch2( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Im
 					c += Math::abs( diff.red() );
 					c += Math::abs( diff.green() );
 					c += Math::abs( diff.blue() );
+//					c += Math::sqrt( Math::sqr( diff.red() ) + Math::sqr( diff.green() ) + Math::sqr( diff.blue() ) + Math::sqr( diff.alpha()) );
 					//std::cout << "Cost: " << c << std::endl;
 					if( c < cost ) {
 						cost = c;
@@ -106,11 +106,11 @@ void flowsearch2( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Im
 	}
 }
 
-void calcflow( Image& flow, Image& img1, Image& img2 )
+void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 {
 	size_t iter;
 	float theta = 1.0f;
-	float lambda = 50.0f;
+	float lambda = 200.0f;
 	ROFDenoise rof;
 	Image tmpflow;
 	Image tmpflow2;
@@ -118,14 +118,16 @@ void calcflow( Image& flow, Image& img1, Image& img2 )
 	flow.reallocate( img1.width(), img1.height(), CVT_GRAYALPHA, CVT_FLOAT );
 	tmpflow2.reallocate( img1.width(), img1.height(), CVT_GRAYALPHA, CVT_FLOAT );
 
-	iter = 40;
+	iter = 20;
 	flow.fill( Color( 0.0f, 0.0f ) );
 	tmpflow2.fill( Color( 0.0f, 0.0f ) );
 
 	while( iter-- ) {
 		flowsearch2( tmpflow, flow, tmpflow2, img1, img2, theta * lambda );
-		rof.apply( tmpflow2, tmpflow, 0.2f + theta * 0.6f, 30 );
-		flow = Math::mix( tmpflow, tmpflow2, 0.2f );
+		cvSmooth( tmpflow.iplimage(), tmpflow.iplimage(), CV_MEDIAN, 5 );
+		rof.apply( tmpflow2, tmpflow, 0.7f * theta + 0.2f, 25 );
+		//flow = tmpflow;
+		flow = Math::mix( tmpflow, tmpflow2, 0.4f );
 		{
 			Image x;
 			Flow::colorCode( x, flow );
@@ -134,6 +136,14 @@ void calcflow( Image& flow, Image& img1, Image& img2 )
 			cvShowImage( "Iter2", x.iplimage() );
 			cvWaitKey( 15 );
 			std::cout << "Iter: " << iter << " Theta: " << theta << std::endl;
+			if( gt ) {
+				float aee = Flow::AEE( flow, *gt );
+				float aae = Flow::AAE( flow, *gt );
+				std::cout << "AEE: " << aee << " AAE: " << aae << std::endl;
+				aee = Flow::AEE( tmpflow2, *gt );
+				aae = Flow::AAE( tmpflow2, *gt );
+				std::cout << "( AEE: " << aee << " AAE: " << aae << " )" << std::endl;
+			}
 		}
 		theta *= 0.8f; //20.0f - 10.0f * ( ( 50 - iter ) / 50.0f );
 	}

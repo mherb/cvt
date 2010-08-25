@@ -23,6 +23,11 @@ namespace cvt {
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
 
+			virtual void Add( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void Sub( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void Mul( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void Div( float* dst, float const* src1, const float v, const size_t n ) const;
+
 			virtual std::string name() const;
 			virtual SIMDType type() const;
 	};

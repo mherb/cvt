@@ -113,6 +113,26 @@ namespace cvt {
 			return ::sin( x );
 		}
 
+		static inline float acos( float x )
+		{
+			return ::acosf( x );
+		}
+
+		static inline double acos( double x )
+		{
+			return ::acos( x );
+		}
+
+		static inline float asin( float x )
+		{
+			return ::asinf( x );
+		}
+
+		static inline double asin( double x )
+		{
+			return ::asin( x );
+		}
+
 		static inline float ceil( float x )
 		{
 			return ::ceilf( x );
