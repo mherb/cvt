@@ -822,7 +822,7 @@ namespace cvt {
 			*dst++ += *src1++ * value;
 	}
 
-	void SIMD::Add( float* dst, float* src, const float value, const size_t n ) const
+	void SIMD::Add( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -836,7 +836,7 @@ namespace cvt {
 			*dst++ = *src++ + value;
 	}
 
-	void SIMD::Sub( float* dst, float* src, const float value, const size_t n ) const
+	void SIMD::Sub( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -850,7 +850,7 @@ namespace cvt {
 			*dst++ = *src++ - value;
 	}
 
-	void SIMD::Mul( float* dst, float* src, const float value, const size_t n ) const
+	void SIMD::Mul( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -864,7 +864,7 @@ namespace cvt {
 			*dst++ = *src++ * value;
 	}
 
-	void SIMD::Div( float* dst, float* src, const float value, const size_t n ) const
+	void SIMD::Div( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
