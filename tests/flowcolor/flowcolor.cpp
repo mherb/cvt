@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/FloFile.h>
+#include <cvt/io/ImageIO.h>
 #include <cvt/vision/Flow.h>
 
 #include <cv.h>
@@ -14,7 +15,7 @@ int main(int argc, char* argv[])
 	Image flow;
 	Image color;
 
-	if( argc != 2 ) {
+	if( argc < 2 ) {
 	    std::cerr << "usage: " << argv[ 0 ] << "file.flo" << std::endl;
 	    exit( 1 );
 	}
@@ -29,6 +30,10 @@ int main(int argc, char* argv[])
 		key = cvWaitKey( 10 ) & 0xff;
 		if( key == 27 )
 			break;
+	}
+
+	if( argc == 3 ) {
+		ImageIO::savePNG( color, argv[ 2 ] );
 	}
 
 	return 0;

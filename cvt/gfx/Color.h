@@ -20,6 +20,7 @@ namespace cvt {
 			Color( int gray, int alpha );
 
 			void set( float r, float g, float b, float a );
+			void set( float g, float a );
 			void set( int r, int g, int b, int a );
 
 			void get( float& r, float& g, float& b, float& a ) const;
@@ -93,6 +94,14 @@ namespace cvt {
 		_r = r;
 		_g = g;
 		_b = b;
+		_a = a;
+	}
+
+	inline void Color::set( float g, float a )
+	{
+		_r = g;
+		_g = g;
+		_b = g;
 		_a = a;
 	}
 
