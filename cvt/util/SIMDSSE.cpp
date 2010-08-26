@@ -186,7 +186,7 @@ namespace cvt {
 
 #define OPFAC1(d,s1,v,n,aluop) asm(					\
 			"xorq %%rsi, %%rsi;\n"					\
-			"movss (%2),%%xmm0;\n"					\
+			"movss %2,%%xmm0;\n"					\
 			"shufps $0, %%xmm0, %%xmm0;\n"			\
 			"movq %3, %%rdi;\n"						\
 			"andq $(~0x0f), %%rdi;\n"				\
@@ -220,7 +220,7 @@ namespace cvt {
 			"jl 1b;\n"                              \
 			"0:\n"                                  \
 			:                                       \
-			: "r"(d),"r"(s1),"r"(&v),"r"(n)			\
+			: "r"(d),"r"(s1),"m"(v),"r"(n)			\
 			: "rsi","rdi","xmm0","xmm1","xmm2","xmm3","xmm4" \
 		   );
 
@@ -266,6 +266,47 @@ namespace cvt {
 			:                                       \
 			: "r"(d),"r"(s1),"r"(s2),"r"(n)   \
 			: "rsi","edi","xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7" \
+		   );
+
+
+#define OPFAC1(d,s1,v,n,aluop) asm(					\
+			"xorq %%esi, %%esi;\n"					\
+			"movss %2,%%xmm0;\n"					\
+			"shufps $0, %%xmm0, %%xmm0;\n"			\
+			"movq %3, %%edi;\n"						\
+			"andq $(~0x0f), %%edi;\n"				\
+			"jz 5f;\n"								\
+			"4:\n"									\
+			"movaps  (%1,%%esi,4),%%xmm1;\n"		\
+			#aluop " %%xmm0, %%xmm1;\n"				\
+			"movntps %%xmm1,(%0,%%esi,4);\n"		\
+			"movaps  16(%1,%%esi,4),%%xmm2;\n"		\
+			#aluop " %%xmm0, %%xmm2;\n"				\
+			"movntps %%xmm2, 16(%0,%%esi,4);\n"		\
+			"movaps  32(%1,%%esi,4),%%xmm3;\n"		\
+			#aluop " %%xmm0, %%xmm3;\n"             \
+			"movntps %%xmm3, 32(%0,%%esi,4);\n"		\
+			"movaps  48(%1,%%esi,4),%%xmm4;\n"		\
+			#aluop " %%xmm0, %%xmm4;\n"             \
+			"movntps %%xmm4, 48(%0,%%esi,4);\n"		\
+			"addq $0x10, %%esi;\n"                  \
+			"cmpq %%edi, %%esi;\n"                  \
+			"jl 4b;\n"                              \
+			"5:\n"									\
+			"testq $0xf, %3;\n"						\
+			"jz 0f;\n"                              \
+			"\n"                                    \
+			"1:\n"                                  \
+			"movss (%1,%%esi,4), %%xmm1\n"			\
+			#aluop " %%xmm0, %%xmm1;\n"				\
+			"movss %%xmm1,(%0,%%esi,4);\n"			\
+			"addq $1, %%esi;\n"                     \
+			"cmpq %3, %%esi;\n"						\
+			"jl 1b;\n"                              \
+			"0:\n"                                  \
+			:                                       \
+			: "r"(d),"r"(s1),"m"(v),"r"(n)			\
+			: "esi","edi","xmm0","xmm1","xmm2","xmm3","xmm4" \
 		   );
 #endif
 

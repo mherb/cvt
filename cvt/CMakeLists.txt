@@ -51,18 +51,19 @@ SET(${MODULE_NAME}_HEADERS
 
 SET(${MODULE_NAME}_SOURCES
 	math/LevenbergMarquard.cpp
+	math/Math.cpp
 	util/Range.cpp
 	util/Rect.cpp
-	gfx/Image.cpp
-	gfx/ImageOperations.cpp
-	math/Math.cpp
-	io/FileSystem.cpp
-	io/FloFile.cpp
 	util/SIMD.cpp
 	util/SIMDSSE.cpp
+	util/SIMDTest.cpp
+	gfx/Image.cpp
+	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
-	io/ImageIO.cpp
 	gfx/IScaleFilter.cpp
+	io/FileSystem.cpp
+	io/FloFile.cpp
+	io/ImageIO.cpp
 	vision/Flow.cpp
 	gui/Display.cpp
 	gui/GLView.cpp
