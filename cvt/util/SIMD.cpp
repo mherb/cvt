@@ -674,10 +674,13 @@ namespace cvt {
 		if( !_simd && type == SIMD_BEST ) {
 			uint32_t cpuf;
 			cpuf = cpuFeatures();
-			if( !cpuf )
-				_simd = new SIMD();
-			else if( cpuf & CPU_SSE )
+			if( cpuf & CPU_SSE ) {
 				_simd = new SIMDSSE();
+//				std::cout << "CREATED SIMD-SSE" << std::endl;
+			} else {
+				_simd = new SIMD();
+//				std::cout << "CREATED SIMD-BASE" << std::endl;
+			}
 		} else if( !_simd || _simd->type() != type ) {
 			if( _simd )
 				delete _simd;
@@ -806,20 +809,6 @@ namespace cvt {
 			*dst++ = *src1++ / *src2++;
 	}
 
-	void SIMD::MulAdd( float* dst, float const* src1, float value, const size_t n ) const
-	{
-		size_t i = n >> 2;
-		while( i-- ) {
-			*dst++ += *src1++ * value;
-			*dst++ += *src1++ * value;
-			*dst++ += *src1++ * value;
-			*dst++ += *src1++ * value;
-		}
-		i = n & 0x03;
-		while( i-- )
-			*dst++ += *src1++ * value;
-	}
-
 	void SIMD::Add( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -946,6 +935,19 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::MulAdd( float* dst, float const* src1, const float value, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ += *src1++ * value;
+			*dst++ += *src1++ * value;
+			*dst++ += *src1++ * value;
+			*dst++ += *src1++ * value;
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ += *src1++ * value;
+	}
 
 	void SIMD::MulSub( float* dst, float const* src1, const float value, const size_t n ) const
 	{

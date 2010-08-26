@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	float aee, aae;
 
 	FloFile::FloReadFile( img1, argv[ 1 ] );
-	FloFile::FloReadFile( img2, argv[ 1 ] );
+	FloFile::FloReadFile( img2, argv[ 2 ] );
 
 
 	aee = Flow::AEE( img1, img2 );

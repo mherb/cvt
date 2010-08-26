@@ -122,7 +122,7 @@ namespace cvt {
 			size_t w, h;
 			uint8_t const* ptr1;
 			uint8_t const* ptr2;
-			float dot ,dot1, dot2;
+			float dot ,dot1, dot2, v;
 			float aae = 0.0f;
 			size_t unknown = 0;
 
@@ -143,7 +143,9 @@ namespace cvt {
 						dot = 1.0f + ( d1[ i * 2 ] * d2[ i * 2 ] + d1[ i * 2 + 1 ] * d2[ i * 2 + 1 ]);
 						dot1 = 1.0f + ( d1[ i * 2 ] * d1[ i * 2 ] + d1[ i * 2 + 1 ] * d1[ i * 2 + 1 ]);
 						dot2 = 1.0f + ( d2[ i * 2 ] * d2[ i * 2 ] + d2[ i * 2 + 1 ] * d2[ i * 2 + 1 ]);
-						aae += Math::acos( dot / ( Math::sqrt( dot1 ) * Math::sqrt( dot2 ) ) );
+						v = ( dot / ( Math::sqrt( dot1 ) * Math::sqrt( dot2 ) ) );
+						if( v <= 1.0f )
+							aae += Math::acos( v );
 					} else
 						unknown++;
 				}

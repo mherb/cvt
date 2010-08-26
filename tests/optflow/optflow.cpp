@@ -33,11 +33,11 @@ int main(int argc, char* argv[])
 	Image* tmp = new Image();
 #if 1
 	img1.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in1, *tmp, 0.1f, 100 );
+	denoise.apply( in1, *tmp, 0.3f, 100 );
 	in1.mad( *tmp, -0.95f );
 	in1.mul( 6.0f );
 	img2.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in2, *tmp, 0.1f, 100 );
+	denoise.apply( in2, *tmp, 0.3f, 100 );
 	in2.mad( *tmp, -0.95f );
 	in2.mul( 6.0f );
 #else
@@ -54,13 +54,15 @@ int main(int argc, char* argv[])
 	}
 
 	calcflow( flow, in1, in2, gt );
-	Flow::colorCode( cflow, flow );
+//	Flow::colorCode( cflow, flow );
 
-	while( 1 ) {
+/*	while( 1 ) {
 		cvShowImage( "Flow", cflow.iplimage() );
 		key = cvWaitKey( 10 ) & 0xff;
 		if( key == 27 )
 			break;
-	}
+	}*/
+
+	FloFile::FloWriteFile( flow, "out.flo" );
 	return 0;
 }
