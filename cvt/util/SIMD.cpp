@@ -1,7 +1,5 @@
 #include "util/SIMD.h"
 #include "math/Math.h"
-#include "util/Timer.h"
-#include "util/CVTTest.h"
 #include "util/SIMDSSE.h"
 #include "util/CPU.h"
 
@@ -1131,6 +1129,11 @@ namespace cvt {
 		float tmp;
 		size_t i, k, b1, b2;
 
+		if( wn == 1 ) {
+			Mul( dst, src, *weights, width * 2 );
+			return;
+		}
+
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
 
@@ -1190,6 +1193,11 @@ namespace cvt {
 		float const* sp;
 		float tmp;
 		size_t i, k, b1, b2;
+
+		if( wn == 1 ) {
+			MulAdd( dst, src, *weights, width );
+			return;
+		}
 
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
@@ -1269,6 +1277,11 @@ namespace cvt {
 		float tmp[ 2 ];
 		size_t i, k, b1, b2;
 
+		if( wn == 1 ) {
+			Mul( dst, src, *weights, width * 2 );
+			return;
+		}
+
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
 
@@ -1345,6 +1358,11 @@ namespace cvt {
 		float const* sp;
 		float tmp[ 2 ];
 		size_t i, k, b1, b2;
+
+		if( wn == 1 ) {
+			MulAdd( dst, src, *weights, width * 2 );
+			return;
+		}
 
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
@@ -1471,6 +1489,11 @@ namespace cvt {
 		float tmp[ 4 ];
 		size_t i, k, b1, b2;
 
+		if( wn == 1 ) {
+			Mul( dst, src, *weights, width * 4 );
+			return;
+		}
+
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
 
@@ -1569,6 +1592,11 @@ namespace cvt {
 		float const* sp;
 		float tmp[ 4 ];
 		size_t i, k, b1, b2;
+
+		if( wn == 1 ) {
+			MulAdd( dst, src, *weights, width * 4 );
+			return;
+		}
 
 		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
 		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
@@ -1814,149 +1842,5 @@ namespace cvt {
 			sw++;
 		}
 	}
-
-	BEGIN_CVTTEST( simd )
-		float* fdst;
-		float* fsrc1;
-		float* fsrc2;
-		float val1 = 1.23f;
-		float val4[ 4 ] = { 0.5f, 2.0f, 1.4323f, 0.2f };
-		Timer tmr;
-		double t;
-
-#define TESTSIZE ( 32 + 3 )
-		fdst = new float[ TESTSIZE ];
-		fsrc1 = new float[ TESTSIZE ];
-		fsrc2 = new float[ TESTSIZE ];
-
-		for( size_t i = 0; i < TESTSIZE; i++ ) {
-			fsrc1[ i ] = ( ( float ) i ) / 10.0f;
-			fsrc2[ i ] = 1.0f - fsrc1[ i ];
-			fdst[ i ] = 0.0f;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			for( size_t i = 0; i < TESTSIZE; i++ )
-				fdst[ i ] = 0.0f;
-			simd->Add( fdst, fsrc1, fsrc2, TESTSIZE );
-			std::cout << simd->name() << " Add:" << std::endl;
-			for( size_t i = 0; i < TESTSIZE; i++ )
-				std::cout << fsrc1[ i ] << " + " << fsrc2[ i ] << " = " << fdst[ i ] << std::endl;
-			std::cout << std::endl;
-		}
-		delete[] fdst;
-		delete[] fsrc1;
-		delete[] fsrc2;
-#undef TESTSIZE
-
-
-#define TESTSIZE ( 2048 * 2048 )
-		fdst = new float[ TESTSIZE ];
-		fsrc1 = new float[ TESTSIZE ];
-		fsrc2 = new float[ TESTSIZE ];
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Add( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Add "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Sub( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Sub "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Mul( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Mul "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Div( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Div "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Add( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Add Const "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Sub( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Sub Const "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Mul( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Mul Const "  << t  << " ms" << std::endl;
-		}
-
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
-			SIMD* simd = SIMD::get( ( SIMDType ) st );
-			t = 0;
-			for( int iter = 0; iter < 100; iter++ ) {
-				tmr.reset();
-				simd->Div( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
-			}
-			t /= 100.0;
-			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
-		}
-		delete[] fdst;
-		delete[] fsrc1;
-		delete[] fsrc2;
-#undef TESTSIZE
-
-		return true;
-	END_CVTTEST
 
 }
