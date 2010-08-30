@@ -27,27 +27,40 @@ int main(int argc, char* argv[])
 	if( argc < 3 )
 		return 1;
 
+	try {
 	ImageIO::loadPNG( img1, argv[ 1 ] );
 	ImageIO::loadPNG( img2, argv[ 2 ] );
 
 	Image* tmp = new Image();
 #if 1
 	img1.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in1, *tmp, 0.3f, 100 );
+	/*{
+		Image x;
+		IScaleFilterGauss sf;
+		tmp->scale( x, tmp->width()/2, tmp->height()/2, sf );
+		tmp->copy( x );
+	}*/
+	denoise.apply( in1, *tmp, 0.1f, 100 );
 	in1.mad( *tmp, -0.95f );
-	in1.mul( 6.0f );
+	in1.mul( 5.0f );
 	img2.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	denoise.apply( in2, *tmp, 0.3f, 100 );
+	/*{
+		Image x;
+		IScaleFilterGauss sf;
+		tmp->scale( x, tmp->width()/2, tmp->height()/2, sf );
+		tmp->copy( x );
+	}*/
+	denoise.apply( in2, *tmp, 0.1f, 100 );
 	in2.mad( *tmp, -0.95f );
-	in2.mul( 6.0f );
+	in2.mul( 5.0f );
 #else
 	img1.convert( in1, CVT_BGRA, CVT_FLOAT );
 	img2.convert( in2, CVT_BGRA, CVT_FLOAT );
 #endif
 	delete tmp;
 
-//	cvShowImage( "Frame 1", in1.iplimage() );
-//	cvShowImage( "Frame 2", in2.iplimage() );
+	cvShowImage( "Frame 1", in1.iplimage() );
+	cvShowImage( "Frame 2", in2.iplimage() );
 	if( argc == 4 ) {
 		FloFile::FloReadFile( _gt, argv[ 3 ] );
 		gt = &_gt;
@@ -64,5 +77,8 @@ int main(int argc, char* argv[])
 	}*/
 
 	FloFile::FloWriteFile( flow, "out.flo" );
+	} catch( Exception e ) {
+		std::cout << e.what() << std::endl;
+	}
 	return 0;
 }
