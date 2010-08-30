@@ -6,6 +6,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/io/V4L2Camera.h>
 #include <cvt/util/Timer.h>
+#include <cvt/gfx/ifilter/ROFDenoise.h>
 
 using namespace cvt;
 
@@ -17,8 +18,9 @@ int main(int argc, char* argv[])
 	size_t frames = 0;
 	Timer timer;
 	bool doprocess = true;
-	Image x, y;
+	Image x, y, z;
 	Image kernel( 3, 1, CVT_GRAY, CVT_FLOAT );
+	ROFDenoise rof;
 
 	{
 		float* data;
@@ -39,10 +41,12 @@ int main(int argc, char* argv[])
 
 		if( doprocess ) {
 			frame->convert( x, frame->order(), CVT_FLOAT );
-			x.scale( y, 1024, 786, IScaleFilterBilinear() );
+			rof.apply( y, x, 0.01f, 20.0f );
+			y.convert( z, frame->order(), CVT_UBYTE );
+//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 			/*		x.convolve( y, kernel );
 					y = ( y + 1.0f ) * 0.5f;*/
-			cvShowImage( "V4L2", y.iplimage() );
+			cvShowImage( "V4L2", z.iplimage() );
 		} else
 			cvShowImage( "V4L2", frame->iplimage() );
 
