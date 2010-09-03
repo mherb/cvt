@@ -157,7 +157,18 @@ namespace cvt {
 
 	std::ostream& operator<<(std::ostream &out, const Image &f)
 	{
-		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Stride: " << f.stride() << std::endl;
+		static const char* _order_string[] = {
+			"GRAY",
+			"GRAYALPHA",
+			"RGBA",
+			"BGRA"
+		};
+		static const char* _type_string[] = {
+			"UBYTE",
+			"FLOAT"
+		};
+
+		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Order:" << _order_string[ f.order() ] << " Type:" << _type_string[ f.type() ]  << " Stride: " << f.stride() << std::endl;
 		return out;
 	}
 

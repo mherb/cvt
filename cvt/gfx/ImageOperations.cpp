@@ -4,6 +4,7 @@
 #include "util/Exception.h"
 
 namespace cvt {
+
 	float* Image::imageToKernel( const Image& kernel, bool normalize ) const
 	{
 		float* pksrc;
@@ -80,6 +81,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
+								throw CVTException( "Color conversion not implemented" );
 								break;
 							case CVT_BGRA:
 								{
@@ -97,6 +99,7 @@ namespace cvt {
 						switch( order ) {
 							case CVT_GRAY:
 							case CVT_GRAYALPHA:
+								throw CVTException( "Color conversion not implemented" );
 								break;
 							case CVT_RGBA:
 								{
@@ -207,6 +210,14 @@ namespace cvt {
 					{
 						switch( order ) {
 							case CVT_GRAY:
+								{
+									while( h-- ) {
+										simd->Conv_RGBAu8_to_GRAYf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
 							case CVT_GRAYALPHA:
 								throw CVTException( "Color conversion not implemented" );
 							case CVT_RGBA:
@@ -233,7 +244,16 @@ namespace cvt {
 					{
 						switch( order ) {
 							case CVT_GRAY:
+								{
+									while( h-- ) {
+										simd->Conv_BGRAu8_to_GRAYf( ( float* ) dst, src, _width );
+										src += _stride;
+										dst += img._stride;
+									}
+									return;
+								}
 							case CVT_GRAYALPHA:
+								throw CVTException( "Color conversion not implemented" );
 								break;
 							case CVT_BGRA:
 								{
@@ -743,6 +763,33 @@ namespace cvt {
 		}
 	}
 
+	void Image::mul( const Image& i )
+	{
+		if( _width != i._width || _height != i._height ||
+		   _type != i._type || _order != i._order )
+			throw CVTException("Image mismatch");
+
+		SIMD* simd = SIMD::get();
+		switch( _type ) {
+			case CVT_FLOAT:
+				{
+					uint8_t* src = i._data;
+					uint8_t* dst = _data;
+
+					size_t h = _height;
+					while( h-- ) {
+						simd->Mul(( float* ) dst, ( float* ) dst, ( float* ) src, _width * _order_channels[ _order ] );
+						src += i._stride;
+						dst += _stride;
+					}
+				}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+
+		}
+	}
+
 	void Image::mad( const Image& i, float alpha )
 	{
 		if( _width != i._width || _height != i._height ||
@@ -1032,11 +1079,67 @@ namespace cvt {
 		}
 
 		for( i = 0; i < bufsize; i++ )
-			delete[] buf[ i ];
+			free( buf[ i ] );
 		delete[] buf;
 		delete[] scalerx.size;
 		delete[] scalerx.weights;
 		delete[] scalery.size;
 		delete[] scalery.weights;
 	}
+
+	void Image::warpBilinear( Image& idst, const Image& warp ) const
+	{
+		size_t m, n, k, K;
+		size_t sstride, dstride, wstride;
+
+		if( _type == CVT_FLOAT && warp._type == CVT_FLOAT && warp._order == CVT_GRAYALPHA ) {
+			uint8_t* src;
+			uint8_t* dst;
+			uint8_t* wrp;
+			float* psrc;
+			float* pdst;
+			float* pwrp;
+			float data[ 4 ];
+
+			idst.reallocate( warp._width, warp._height, _order, _type );
+
+			src = _data;
+			sstride = _stride;
+			dst = idst._data;
+			dstride = idst._stride;
+			wrp = warp._data;
+			wstride = warp._stride;
+			K = channels();
+
+			for( n = 0; n < warp._height; n++ ) {
+				pdst = ( float* ) dst;
+				pwrp = ( float* ) wrp;
+				for( m = 0; m < warp._width; m++ ) {
+					float x, y, alpha, beta;
+					size_t ix[ 2 ], iy[ 2 ];
+					x = *pwrp++;
+					y = *pwrp++;
+					alpha = x - Math::floor( x );
+					beta  = y - Math::floor( y );
+					ix[ 0 ] = ( size_t ) Math::clamp( ( float ) m + x, 0.0f, ( float ) ( _width - 1 ) );
+					iy[ 0 ] = ( size_t ) Math::clamp( ( float ) n + y, 0.0f, ( float ) ( _height - 1 ) );
+					ix[ 1 ] = Math::min( ix[ 0 ] + 1, _width - 1 );
+					iy[ 1 ] = Math::min( iy[ 0 ] + 1, _height - 1 );
+					for( k = 0; k < K; k++ ) {
+						data[ 0 ] = *( ( float* ) ( src + sstride * iy[ 0 ] + ( ix[ 0 ] * K + k ) * sizeof( float ) ) );
+						data[ 1 ] = *( ( float* ) ( src + sstride * iy[ 0 ] + ( ix[ 1 ] * K + k ) * sizeof( float ) ) );
+						data[ 2 ] = *( ( float* ) ( src + sstride * iy[ 1 ] + ( ix[ 0 ] * K + k ) * sizeof( float ) ) );
+						data[ 3 ] = *( ( float* ) ( src + sstride * iy[ 1 ] + ( ix[ 1 ] * K + k ) * sizeof( float ) ) );
+						data[ 0 ] = Math::mix( data[ 0 ], data[ 1 ], alpha );
+						data[ 2 ] = Math::mix( data[ 2 ], data[ 3 ], alpha );
+						*pdst++ = Math::mix( data[ 0 ], data[ 2 ], beta );
+					}
+				}
+				dst += dstride;
+				wrp += wstride;
+			}
+		} else
+			throw CVTException("Unimplemented");
+	}
+
 }

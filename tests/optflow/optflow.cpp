@@ -31,25 +31,31 @@ int main(int argc, char* argv[])
 	ImageIO::loadPNG( img1, argv[ 1 ] );
 	ImageIO::loadPNG( img2, argv[ 2 ] );
 
+//#define SCALE 2
+
 	Image* tmp = new Image();
 #if 1
 	img1.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	/*{
+#ifdef SCALE
+	{
 		Image x;
-		IScaleFilterGauss sf;
-		tmp->scale( x, tmp->width()/2, tmp->height()/2, sf );
+		IScaleFilterBilinear sf;
+		tmp->scale( x, tmp->width()/SCALE, tmp->height()/SCALE, sf );
 		tmp->copy( x );
-	}*/
+	}
+#endif
 	denoise.apply( in1, *tmp, 0.1f, 100 );
 	in1.mad( *tmp, -0.95f );
 	in1.mul( 5.0f );
 	img2.convert( *tmp, CVT_BGRA, CVT_FLOAT );
-	/*{
+#if SCALE
+	{
 		Image x;
-		IScaleFilterGauss sf;
-		tmp->scale( x, tmp->width()/2, tmp->height()/2, sf );
+		IScaleFilterBilinear sf;
+		tmp->scale( x, tmp->width()/SCALE, tmp->height()/SCALE, sf );
 		tmp->copy( x );
-	}*/
+	}
+#endif
 	denoise.apply( in2, *tmp, 0.1f, 100 );
 	in2.mad( *tmp, -0.95f );
 	in2.mul( 5.0f );
@@ -63,6 +69,15 @@ int main(int argc, char* argv[])
 	cvShowImage( "Frame 2", in2.iplimage() );
 	if( argc == 4 ) {
 		FloFile::FloReadFile( _gt, argv[ 3 ] );
+#ifdef SCALE
+		{
+			Image x;
+			IScaleFilterBilinear sf;
+			_gt.scale( x, _gt.width()/SCALE, _gt.height()/SCALE, sf );
+			_gt.copy( x );
+			_gt.mul( 1.0f / ( float ) SCALE );
+		}
+#endif
 		gt = &_gt;
 	}
 

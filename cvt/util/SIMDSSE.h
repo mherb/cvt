@@ -16,6 +16,8 @@ namespace cvt {
 			using SIMD::Sub;
 			using SIMD::Mul;
 			using SIMD::Div;
+			using SIMD::MulAdd;
+			using SIMD::MulSub;
 
 			/* memory blocks */
 			virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
