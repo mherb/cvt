@@ -681,7 +681,7 @@ namespace cvt {
 				_simd = new SIMD();
 //				std::cout << "CREATED SIMD-BASE" << std::endl;
 			}
-		} else if( !_simd || _simd->type() != type ) {
+		} else if( !_simd || ( _simd->type() != type && type != SIMD_BEST ) ) {
 			if( _simd )
 				delete _simd;
 			switch( type ) {
@@ -737,6 +737,7 @@ namespace cvt {
 
 		SetValue4f( dst, v, n >> 1 );
 		if( n & 0x01 ) {
+			dst += ( n & ( ~0x01 ) ) * 2;
 			*dst++ = value[ 0 ];
 			*dst++ = value[ 1 ];
 		}
@@ -1124,6 +1125,39 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::Conv_RGBAu8_to_GRAYf( float* dst, uint8_t const* _src, const size_t n ) const
+	{
+		size_t i = n;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t tmp;
+		float v;
+
+		while( i-- ) {
+			tmp = *src++;
+			v = 0.2126f * SRGB_U8_TO_F( tmp & 0xff );
+			v += 0.7152f * SRGB_U8_TO_F( ( tmp >> 8 ) & 0xff );
+			v += 0.0722f * SRGB_U8_TO_F( ( tmp >> 16 ) & 0xff );
+			*dst++ = v;
+		}
+	}
+
+	void SIMD::Conv_BGRAu8_to_GRAYf( float* dst, uint8_t const* _src, const size_t n ) const
+	{
+		size_t i = n;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t tmp;
+		float v;
+
+		while( i-- ) {
+			tmp = *src++;
+			v = 0.2126f * SRGB_U8_TO_F( (tmp >> 16 ) & 0xff );
+			v += 0.7152f * SRGB_U8_TO_F( ( tmp >> 8 ) & 0xff );
+			v += 0.0722f * SRGB_U8_TO_F( ( tmp ) & 0xff );
+			*dst++ = v;
+		}
+	}
+
+
 	void SIMD::ConvolveClampSet1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
 	{
 		float const* wp;
@@ -1132,7 +1166,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width * 2 );
+			Mul( dst, src, *weights, width );
 			return;
 		}
 
@@ -1488,11 +1522,11 @@ namespace cvt {
 	{
 		float const* wp;
 		float const* sp;
-		float tmp[ 4 ];
+		float tmp[ 4 ], w;
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width * 4 );
+			this->Mul( dst, src, ( const float ) *weights, width * 4 );
 			return;
 		}
 
@@ -1542,13 +1576,81 @@ namespace cvt {
 			tmp[ 3 ] = *( sp + 3 ) * *wp++;
 			sp += 4;
 			k--;
-			while( k-- ) {
+			switch( k & 7 ) {
+				case 0: while( k ) {
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 7:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 6:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 5:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 4:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 3:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 2:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+							case 1:
+							w = *wp++;
+							tmp[ 0 ] += *( sp + 0 ) * w;
+							tmp[ 1 ] += *( sp + 1 ) * w;
+							tmp[ 2 ] += *( sp + 2 ) * w;
+							tmp[ 3 ] += *( sp + 3 ) * w;
+							sp += 4;
+							k--;
+						}
+			}
+
+/*			while( k-- ) {
 				tmp[ 0 ] += *( sp + 0 ) * *wp;
 				tmp[ 1 ] += *( sp + 1 ) * *wp;
 				tmp[ 2 ] += *( sp + 2 ) * *wp;
 				tmp[ 3 ] += *( sp + 3 ) * *wp++;
 				sp += 4;
-			}
+			} */
 			*dst++ = tmp[ 0 ];
 			*dst++ = tmp[ 1 ];
 			*dst++ = tmp[ 2 ];
@@ -1790,7 +1892,7 @@ namespace cvt {
 		IConvolveAdaptiveSize* sw;
 		float* weights;
 		uint32_t x;
-		float pixel[ 4 ];
+		float pixel[ 2 ];
 		float* dst = ( float* ) _dst;
 		float* src = ( float* ) _src;
 		size_t width = w;
@@ -1803,8 +1905,8 @@ namespace cvt {
 			pixel[ 1 ] = 0.0f;
 			src += sw->incr * 2;
 			for( x = 0; x < sw->numw; x++ ) {
-				pixel[ 0 ] += *( src + x * 4 + 0 ) * *weights;
-				pixel[ 1 ] += *( src + x * 4 + 1 ) * *weights++;
+				pixel[ 0 ] += *( src + x * 2 + 0 ) * *weights;
+				pixel[ 1 ] += *( src + x * 2 + 1 ) * *weights++;
 			}
 			*dst++ = pixel[ 0 ];
 			*dst++ = pixel[ 1 ];

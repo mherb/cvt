@@ -120,7 +120,7 @@ namespace cvt {
 			offset = 0.5f * incr - 0.5f;
 		} else { /* downscale */
 			incr = ( float ) ( src )  / ( float ) ( dst );
-			a = incr * 0.5f + 0.1f; /* add a little bit blur to avoid the strongest aliasing artifacts */
+			a = incr * 0.5f + 0.1f + _sharpsmooth; /* add a little bit blur to avoid the strongest aliasing artifacts */
 			support = ( size_t ) Math::ceil( _support * incr * 0.5f );
 			offset =  0.5f * incr - 0.5f;
 		}

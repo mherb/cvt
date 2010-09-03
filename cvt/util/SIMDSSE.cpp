@@ -1,5 +1,4 @@
 #include "util/SIMDSSE.h"
-#include <xmmintrin.h>
 
 
 namespace cvt {

@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 
 		if( doprocess ) {
 			frame->convert( x, frame->order(), CVT_FLOAT );
-			rof.apply( y, x, 0.25f, 50.0f );
+			rof.apply( y, x, 0.25f, 50 );
 			y.convert( z, frame->order(), CVT_UBYTE );
 //			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 			/*		x.convolve( y, kernel );

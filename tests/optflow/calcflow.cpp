@@ -12,12 +12,15 @@ using namespace cvt;
 #define IFX( img, x, y ) (*( ( float* ) ( img.data() + Math::clamp(y, (size_t)0, img.height()-1) * img.stride() + ( Math::clamp(x, (size_t)0,img.width()-1) * 2 ) * sizeof( float ) ) ) )
 #define IFY( img, x, y ) (*( ( float* ) ( img.data() + Math::clamp(y, (size_t)0, img.height()-1) * img.stride() + ( Math::clamp(x,(size_t)0,img.width()-1) * 2 + 1 ) * sizeof( float ) ) ) )
 
-#define WS 9
+#define WS 30
 
 void flowsearch( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Image& img2, float theta, float lambda )
 {
 	size_t x, y;
 	ssize_t lx, ly;
+	const int i1C = img1.channels();
+	const int i2C = img2.channels();
+
 	flowout.reallocate( flowin.width(), flowin.height(), CVT_GRAYALPHA, CVT_FLOAT );
 
 	for( y = 0; y < img1.height(); y++ ) {
@@ -33,8 +36,8 @@ void flowsearch( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Ima
 			fin2[ 0 ] = IFX( flowin2, x, y );
 			fin2[ 1 ] = IFY( flowin2, x, y );
 
-			for( int i = 0; i < img1.channels(); i++ )
-				i1[ i ] = I( img1, x * img1.channels() + i, y );
+			for( int i = 0; i < i1C; i++ )
+				i1[ i ] = I( img1, x * i1C + i, y );
 
 			for( ly = -WS; ly <= WS; ly++ ) {
 				for( lx = -WS; lx <= WS; lx++ ) {
@@ -42,8 +45,8 @@ void flowsearch( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Ima
 					c = ( Math::sqr( fin[ 0 ] + ( float ) lx - fin2[ 0 ] ) + Math::sqr( fin[ 1 ] + ( float ) ly - fin2[ 1 ] ) ) / ( 2.0f * theta );
 
 					float t = 0.0f;
-					for( int i = 0; i < img2.channels(); i++ )
-						t += Math::abs( i1[ i ] - I( img2, ( x + ( size_t ) ( fin[ 0 ] + 0.5f ) + lx ) * img2.channels() + i, ( y + ( size_t ) ( fin[ 1 ] + 0.5f ) + ly ) ) );
+					for( int i = 0; i < i2C; i++ )
+						t += Math::abs( i1[ i ] - I( img2, ( x + ( size_t ) ( fin[ 0 ] + 0.5f ) + lx ) * i2C + i, ( y + ( size_t ) ( fin[ 1 ] + 0.5f ) + ly ) ) );
 					c +=  t * lambda;
 					//std::cout << "Cost: " << c << std::endl;
 					if( c < cost ) {
@@ -176,8 +179,8 @@ void flowsearch2( Image& flowout, Image& flowin, Image& flowin2, Image& img1, Im
 void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 {
 	size_t iter;
-	float theta = 15.0f;
-	float lambda = 100.0f;
+	float theta = 50.0f;
+	float lambda = 50.0f;
 	ROFDenoise rof;
 	Image tmpflow;
 	Image tmpflow2;
@@ -185,17 +188,17 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 	flow.reallocate( img1.width(), img1.height(), CVT_GRAYALPHA, CVT_FLOAT );
 	tmpflow2.reallocate( img1.width(), img1.height(), CVT_GRAYALPHA, CVT_FLOAT );
 
-	iter = 40;
+	iter = 35;
 	flow.fill( Color( 0.0f, 0.0f ) );
 	tmpflow2.fill( Color( 0.0f, 0.0f ) );
 
 	while( iter-- ) {
 //		cvSmooth( tmpflow2.iplimage(), tmpflow2.iplimage(), CV_GAUSSIAN, 3 );
 //		flow = tmpflow2;
-		flowsearch2( tmpflow, flow, tmpflow2, img1, img2, theta, lambda );
+		flowsearch( tmpflow, flow, tmpflow2, img1, img2, theta, lambda );
 		cvSmooth( tmpflow.iplimage(), tmpflow.iplimage(), CV_MEDIAN, 3 );
 		flow.copy( tmpflow );
-		rof.apply( tmpflow2, tmpflow, theta + 0.75f, 500 );
+		rof.apply( tmpflow2, tmpflow, Math::max( theta * 2.0f, 0.2f ), 100 );
 //		flow = Math::mix( tmpflow, tmpflow2, 0.5f );
 		{
 			Image x;
@@ -214,8 +217,8 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 				std::cout << "( AEE: " << aee << " AAE: " << aae << " )" << std::endl;
 			}
 		}
-		theta *= 0.85f;
-		theta = Math::max( theta, 1e-6f );
+		theta *= 0.8f;
+		theta = Math::max( theta, 1e-3f );
 	//	theta *= 0.6f; //20.0f - 10.0f * ( ( 50 - iter ) / 50.0f );
 	}
 	flow.copy( tmpflow2 );

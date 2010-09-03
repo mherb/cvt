@@ -32,7 +32,13 @@
 namespace cvt {
 	namespace FloFile {
 
-		void FloReadFile( Image& flow, std::string const& filename )
+		static bool _unknown_flow( float u, float v ) {
+#define UFLOW 1e9f
+			return ( Math::abs(u) > UFLOW )	|| ( Math::abs(v) > UFLOW ) || isnan(u) || isnan(v);
+#undef UFLOW
+		}
+
+		void FloReadFile( Image& flow, std::string const& filename, bool zerounknown )
 		{
 
 			if( filename.compare( filename.length() -4, 4, ".flo" ) != 0 )
@@ -74,6 +80,24 @@ namespace cvt {
 
 			if( fgetc(stream) != EOF)
 				throw CVTException("ReadFlowFile(" + filename + "): file is too long" );
+
+			if( zerounknown ) {
+				size_t w = flow.width();
+				h = flow.height();
+				ptr = flow.data();
+				while( h-- ) {
+					float* pptr = ( float* ) ptr;
+					w2 = w;
+					while( w2-- ) {
+						if( _unknown_flow( *pptr, *( pptr + 1 ) ) ) {
+							*pptr = 0.0f;
+							*( pptr + 1 ) = 0.0f;
+						}
+						pptr += 2;
+					}
+					ptr += stride;
+				}
+			}
 
 			fclose(stream);
 		}

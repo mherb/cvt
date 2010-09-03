@@ -122,7 +122,7 @@ namespace cvt {
 			while( w-- ) {
 				tmp1 = *pdst1 + taulambda * *psrc1++;
 				tmp2 = *pdst2 + taulambda * *psrc2++;
-				norm = 1.0f / Math::max( 1.0f, Math::sqrt( tmp1 * tmp1 + tmp2 * tmp2 ) );
+				norm = Math::min( 1.0f, Math::fastInvSqrtf( tmp1 * tmp1 + tmp2 * tmp2 ) );
 				*pdst1++ = tmp1 * norm;
 				*pdst2++ = tmp2 * norm;
 
@@ -186,8 +186,8 @@ namespace cvt {
 			*data++ = -0.1f;
 		}
 #else
-		Image kerndx( 3, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndy( 1, 3, CVT_GRAY, CVT_FLOAT );
+		Image kerndx( 2, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndy( 1, 2, CVT_GRAY, CVT_FLOAT );
 		Image kerndxrev( 3, 1, CVT_GRAY, CVT_FLOAT );
 		Image kerndyrev( 1, 3, CVT_GRAY, CVT_FLOAT );
 
@@ -196,14 +196,14 @@ namespace cvt {
 			data = ( float* ) kerndx.data();
 			*data++ = -1.0f;
 			*data++ =  1.0f;
-			*data++ =  0.0f;
+//			*data++ =  0.0f;
 
 			data = ( float* ) kerndy.scanline( 0 );
 			*data++ = -1.0f;
 			data = ( float* ) kerndy.scanline( 1 );
 			*data++ =  1.0f;
-			data = ( float* ) kerndy.scanline( 2 );
-			*data++ =  0.0f;
+//			data = ( float* ) kerndy.scanline( 2 );
+//			*data++ =  0.0f;
 
 			data = ( float* ) kerndxrev.data();
 			*data++ =  0.0f;
@@ -229,9 +229,14 @@ namespace cvt {
 		while( iter-- ) {
 			dst.convolve( dx, kerndx, false );
 			dst.convolve( dy, kerndy, false );
+//			dst.ddx( dx );
+//			dst.ddy( dy );
 			multadd2_th( px, py, dx, dy, TAU / lambda );
 			px.convolve( dx, kerndxrev, false );
 			py.convolve( dy, kerndyrev, false );
+//			px.ddx( dx, false );
+//			py.ddy( dy, false );
+
 			multadd3( dst, src, dx, dy, lambda );
 		}
 
