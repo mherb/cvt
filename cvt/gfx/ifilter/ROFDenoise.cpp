@@ -101,8 +101,6 @@ namespace cvt {
 		size_t w, h;
 		float tmp1, tmp2, norm;
 
-
-
 		dst1 = idst1.data();
 		stridedst1 = idst1.stride();
 		dst2 = idst2.data();
@@ -125,9 +123,12 @@ namespace cvt {
 				tmp1 = *pdst1 + taulambda * *psrc1++;
 				tmp2 = *pdst2 + taulambda * *psrc2++;
 				norm = 1.0f / Math::max( 1.0f, Math::sqrt( tmp1 * tmp1 + tmp2 * tmp2 ) );
-//				norm = 1.0f / Math::max( 1.0f,  Math::abs( tmp1 ) + Math::abs( tmp2 ) );
 				*pdst1++ = tmp1 * norm;
 				*pdst2++ = tmp2 * norm;
+
+//				norm = 1.0f / Math::max( 1.0f,  Math::abs( tmp1 ) + Math::abs( tmp2 ) );
+//				*pdst1++ = tmp1 / Math::max( 1.0f, Math::abs( tmp1 ) );
+//				*pdst2++ = tmp2 / Math::max( 1.0f, Math::abs( tmp2 ) );
 			}
 
 			dst1 += stridedst1;
@@ -140,55 +141,85 @@ namespace cvt {
 	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter )
 	{
 		Image dx, dy, px, py;
-		Image kerndx( 4, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndy( 1, 4, CVT_GRAY, CVT_FLOAT );
-		Image kerndxrev( 4, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndyrev( 1, 4, CVT_GRAY, CVT_FLOAT );
+#if 0
+		Image kerndx( 5, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndy( 1, 5, CVT_GRAY, CVT_FLOAT );
+		Image kerndxrev( 5, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndyrev( 1, 5, CVT_GRAY, CVT_FLOAT );
 
 		{
 			float* data;
 			data = ( float* ) kerndx.data();
-			*data++ = -0.1f;
+			*data++ =  0.1f;
 			*data++ = -0.9f;
 			*data++ =  0.9f;
-			*data++ =  0.1f;
+			*data++ = -0.1f;
 			*data++ =  0.0f;
 
 			data = ( float* ) kerndy.scanline( 0 );
-			*data++ = -0.1f;
+			*data++ =  0.1f;
 			data = ( float* ) kerndy.scanline( 1 );
 			*data++ = -0.9f;
 			data = ( float* ) kerndy.scanline( 2 );
 			*data++ =  0.9f;
 			data = ( float* ) kerndy.scanline( 3 );
-			*data++ =  0.1f;
+			*data++ = -0.1f;
 			data = ( float* ) kerndy.scanline( 4 );
 			*data++ =  0.0f;
 
 			data = ( float* ) kerndxrev.data();
 			*data++ =  0.0f;
-			*data++ = -0.1f;
+			*data++ =  0.1f;
 			*data++ = -0.9f;
 			*data++ =  0.9f;
-			*data++ =  0.1f;
+			*data++ = -0.1f;
 
 			data = ( float* ) kerndyrev.scanline( 0 );
 			*data++ =  0.0f;
 			data = ( float* ) kerndyrev.scanline( 1 );
-			*data++ = -0.1f;
+			*data++ =  0.1f;
 			data = ( float* ) kerndyrev.scanline( 2 );
 			*data++ = -0.9f;
 			data = ( float* ) kerndyrev.scanline( 3 );
 			*data++ =  0.9f;
 			data = ( float* ) kerndyrev.scanline( 4 );
-			*data++ =  0.1f;
-
-
-
-
+			*data++ = -0.1f;
 		}
+#else
+		Image kerndx( 3, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndy( 1, 3, CVT_GRAY, CVT_FLOAT );
+		Image kerndxrev( 3, 1, CVT_GRAY, CVT_FLOAT );
+		Image kerndyrev( 1, 3, CVT_GRAY, CVT_FLOAT );
 
-#define TAU 0.149f
+		{
+			float* data;
+			data = ( float* ) kerndx.data();
+			*data++ = -1.0f;
+			*data++ =  1.0f;
+			*data++ =  0.0f;
+
+			data = ( float* ) kerndy.scanline( 0 );
+			*data++ = -1.0f;
+			data = ( float* ) kerndy.scanline( 1 );
+			*data++ =  1.0f;
+			data = ( float* ) kerndy.scanline( 2 );
+			*data++ =  0.0f;
+
+			data = ( float* ) kerndxrev.data();
+			*data++ =  0.0f;
+			*data++ = -1.0f;
+			*data++ =  1.0f;
+
+			data = ( float* ) kerndyrev.scanline( 0 );
+			*data++ =  0.0f;
+			data = ( float* ) kerndyrev.scanline( 1 );
+			*data++ = -1.0f;
+			data = ( float* ) kerndyrev.scanline( 2 );
+			*data++ =  1.0f;
+		}
+#endif
+
+#define TAU 0.249f
 		dst.copy( src );
 		px.reallocate( src );
 		py.reallocate( src );
