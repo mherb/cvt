@@ -37,9 +37,10 @@ namespace cvt {
 			void setBlue( float b ) { _b = b; };
 			void setAlpha( float a ) { _a = a; };
 
-			Color& operator+( const Color & c );
-			Color& operator-( const Color & c );
-			Color& operator*( float s );
+			Color& operator=( const Color & c );
+			Color operator+( const Color & c ) const;
+			Color operator-( const Color & c ) const;
+			Color operator*( float s ) const;
 
 		private:
 			float _r, _g, _b, _a;
@@ -133,35 +134,46 @@ namespace cvt {
 	{
 		return 0.2126f * _r + 0.7152f * _g + 0.0722f * _b;
 	}
-	
-	inline Color& Color::operator+( const Color & c )
+
+	inline Color& Color::operator=( const Color & c )
 	{
-		_r += c._r;
-		_g += c._g;
-		_b += c._b;
-		_a += c._a;
-		
+		_r = c._r;
+		_g = c._g;
+		_b = c._b;
+		_a = c._a;
 		return *this;
 	}
-	
-	inline Color& Color::operator-( const Color & c )
+
+	inline Color Color::operator+( const Color & c ) const
 	{
-		_r -= c._r;
-		_g -= c._g;
-		_b -= c._b;
-		_a -= c._a;
-	
-		return *this;
+		Color r;
+		r._r = _r + c._r;
+		r._g = _g + c._g;
+		r._b = _b + c._b;
+		r._a = _a + c._a;
+		
+		return r;
 	}
 	
-	inline Color& Color::operator*( float s )
+	inline Color Color::operator-( const Color & c ) const
 	{
-		_r *= s;
-		_g *= s;
-		_b *= s;
-		_a *= s;
-		
-		return *this;
+		Color r;
+		r._r = _r - c._r;
+		r._g = _g - c._g;
+		r._b = _b - c._b;
+		r._a = _a - c._a;
+	
+		return r;
+	}
+	
+	inline Color Color::operator*( float s ) const
+	{
+		Color r;
+		r._r = _r * s;
+		r._g = _g * s;
+		r._b = _b * s;
+		r._a = _a * s;
+		return r;
 	}
 
 }
