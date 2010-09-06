@@ -308,13 +308,9 @@ void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, 
 		threshold( v, u, ig2, it, ix, iy, v0, lambda * theta );
 		u->convolve( dx, kerndx, false );
 		u->convolve( dy, kerndy, false );
-		//			dst.ddx( dx );
-		//			dst.ddy( dy );
 		multadd2_th( *px, *py, dx, dy, TAU / theta );
 		px->convolve( dx, kerndxrev, false );
 		py->convolve( dy, kerndyrev, false );
-		//			px.ddx( dx, false );
-		//			py.ddy( dy, false );
 		multadd3( *u, *v, dx, dy, theta );
 	}
 }

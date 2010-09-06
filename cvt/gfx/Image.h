@@ -87,10 +87,6 @@ namespace cvt {
 			Color operator() (int x, int y) const;
 			Color operator() (float x, float y) const;
 
-			/* FIXME: remove - use convolve instead */
-			void ddx( Image& dx, bool forward = true ) const;
-			void ddy( Image& dy, bool forward = true ) const;
-
 			void warpBilinear( Image& idst, const Image& warp ) const;
 
 		private:
