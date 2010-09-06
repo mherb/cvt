@@ -6,8 +6,6 @@
 #include <string>
 
 namespace cvt {
-	namespace cl {
-
 
 		class CLManager;
 		class CLParameterSet;
@@ -50,6 +48,5 @@ namespace cvt {
 		};
 
 		std::ostream& operator<<( std::ostream &out, const CLFilter &f );
-	}
 }
 #endif

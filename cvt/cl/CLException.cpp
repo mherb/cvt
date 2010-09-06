@@ -1,7 +1,6 @@
 #include <cvt/cl/CLException.h>
 
 namespace cvt {
-	namespace cl {
 
 		static const char* _clerrorToString( cl_int error )
 		{
@@ -63,5 +62,4 @@ namespace cvt {
 			msg = location + " : " + msg;
 		};
 
-	}
 }

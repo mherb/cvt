@@ -8,15 +8,14 @@
 #include <cvt/cl/CLException.h>
 
 namespace cvt {
-	namespace cl {
 
 		class CLFilter;
 
-		class CLManager
+		class CLContext
 		{
 			public:
-				CLManager( void );
-				~CLManager( );
+				CLContext( void );
+				~CLContext( );
 
 				CLFilter* getFilter( const std::string name ) { return filters[ name ]; };
 
@@ -52,7 +51,7 @@ namespace cvt {
 				static void info( std::ostream& out );
 
 			private:
-				CLManager( const CLManager& );
+				CLContext( const CLContext& );
 				void loadFilters( void );
 				CLFilter* loadFilter( const char* path );
 
@@ -71,6 +70,5 @@ namespace cvt {
 				static const char* PLUGIN_SUFFIX;
 		};
 
-	}
 }
 #endif

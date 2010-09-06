@@ -3,6 +3,17 @@
 
 namespace cvt {
 
+	static const IFilterParameterInfo _pinfo[ 4 ] = {
+		IFilterParameterInfo( "Input", IFILTERPARAMETER_IMAGE ),
+		IFilterParameterInfo( "Output", IFILTERPARAMETER_IMAGE, IFILTERPARAMETER_OUT ),
+		IFilterParameterInfo( "Iterations", IFILTERPARAMETER_SCALAR ),
+		IFilterParameterInfo( "Lambda", IFILTERPARAMETER_SCALAR ),
+	};
+
+	ROFDenoise::ROFDenoise() : IFilter( "ROFDenoise", _pinfo, 4, IFILTER_CPU )
+	{
+	}
+
 	static void multadd2( Image& idst, Image& dx, Image& dy, float lambda )
 	{
 		uint8_t* dst;
