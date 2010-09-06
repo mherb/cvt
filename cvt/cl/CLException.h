@@ -4,7 +4,6 @@
 #include <cvt/util/Exception.h>
 
 namespace cvt {
-	namespace cl {
 
 		class CLException : cvt::Exception
 		{
@@ -23,6 +22,5 @@ namespace cvt {
 				std::string msg;
 				std::string log;
 		};
-	}
 }
 #endif

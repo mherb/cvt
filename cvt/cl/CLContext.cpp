@@ -1,17 +1,16 @@
-#include <cvt/cl/CLManager.h>
+#include <cvt/cl/CLContext.h>
 #include <cvt/io/FileSystem.h>
 #include <dlfcn.h>
 
 namespace cvt {
-	namespace cl {
 
 #if defined( __APPLE__ ) || defined( __MACOSX )
-		const char* CLManager::PLUGIN_SUFFIX = ".dylib";
+		const char* CLContext::PLUGIN_SUFFIX = ".dylib";
 #else
-		const char* CLManager::PLUGIN_SUFFIX = ".so";
+		const char* CLContext::PLUGIN_SUFFIX = ".so";
 #endif
 
-		const char* CLManager::getImageFormatChannelOrderString( ::cl::ImageFormat format )
+		const char* CLContext::getImageFormatChannelOrderString( ::cl::ImageFormat format )
 		{
 			/* cl_channel_order */
 			switch( format.image_channel_order ) {
@@ -29,7 +28,7 @@ namespace cvt {
 			}
 		}
 
-		const char* CLManager::getImageFormatChannelTypeString( ::cl::ImageFormat format )
+		const char* CLContext::getImageFormatChannelTypeString( ::cl::ImageFormat format )
 		{
 			/* cl_channel_type */
 			switch( format.image_channel_data_type ) {
@@ -52,7 +51,7 @@ namespace cvt {
 			}
 		}
 
-		CLManager::CLManager( ) : cunits( 0 ), maxworkgroupsize( 0 )
+		CLContext::CLContext( ) : cunits( 0 ), maxworkgroupsize( 0 )
 		{
 			cl_int err;
 			std::vector< ::cl::Platform> platforms;
@@ -87,7 +86,7 @@ namespace cvt {
 			loadFilters( );
 		}
 
-		void CLManager::loadFilters( void )
+		void CLContext::loadFilters( void )
 		{
 			CLFilter* filter;
 			std::vector<std::string> files;
@@ -109,7 +108,7 @@ namespace cvt {
 			}
 		}
 
-		CLFilter* CLManager::loadFilter( const char* path )
+		CLFilter* CLContext::loadFilter( const char* path )
 		{
 			CLFilterPlugin* plugin;
 			CLFilter* ret;
@@ -137,7 +136,7 @@ error:
 			return 0;
 		}
 
-		CLManager::~CLManager( )
+		CLContext::~CLContext( )
 		{
 			for( std::map<const std::string, CLFilter*>::iterator iter = filters.begin( ); iter != filters.end( ); ++iter )
 				delete iter->second;
@@ -145,7 +144,7 @@ error:
 			::cl::UnloadCompiler( );
 		}
 
-		void CLManager::infoImageFormats( std::ostream& out )
+		void CLContext::infoImageFormats( std::ostream& out )
 		{
 			cl_int err;
 			std::vector< ::cl::ImageFormat> imgformats;
@@ -159,7 +158,7 @@ error:
 			}
 		}
 
-		void CLManager::info( std::ostream& out )
+		void CLContext::info( std::ostream& out )
 		{
 			std::vector< ::cl::Platform> platforms;
 			size_t nump = 0;
@@ -197,5 +196,4 @@ error:
 			}
 		}
 
-	}
 }

@@ -34,7 +34,7 @@ namespace cvt {
 
 		static bool _unknown_flow( float u, float v ) {
 #define UFLOW 1e9f
-			return ( Math::abs(u) > UFLOW )	|| ( Math::abs(v) > UFLOW ) || isnan(u) || isnan(v);
+			return ( Math::abs(u) > UFLOW )	|| ( Math::abs(v) > UFLOW ) || std::isnan(u) || std::isnan(v);
 #undef UFLOW
 		}
 

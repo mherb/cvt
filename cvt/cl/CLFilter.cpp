@@ -2,7 +2,6 @@
 #include <cvt/util/Timer.h>
 
 namespace cvt {
-	namespace cl {
 
 		CLFilter::CLFilter( CLManager* cl, std::string n, const CLParameterInfo* ps, size_t psize ) : name( n ), pinfo( ps ), pinfosize( psize )
 		{
@@ -84,5 +83,4 @@ namespace cvt {
 			t = timer.elapsedSeconds( );
 		}
 
-	}
 }

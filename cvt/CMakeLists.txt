@@ -49,17 +49,6 @@ SET(${MODULE_NAME}_HEADERS
 	gui/GLView.h
 	gui/GLObject.h
 	util/CPU.h
-	cl/CLBuffer.h
-	cl/CLColor.h
-	cl/CLException.h
-	cl/CLFilter.h
-	cl/CLImage.h
-	cl/CLManager.h
-	cl/CLParameter.h
-	cl/CLParameterInfo.h
-	cl/CLParameterSet.h
-	cl/CLScalar.h
-	cl/CLVector.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -81,13 +70,6 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Display.cpp
 	gui/GLView.cpp
 	gui/GLImage.cpp
-	cl/CLColor.cpp
-	cl/CLException.cpp
-	cl/CLFilter.cpp
-   	cl/CLImage.cpp
-   	cl/CLManager.cpp
-   	cl/CLParameterSet.cpp
-   	cl/CLScalar.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
