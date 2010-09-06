@@ -12,6 +12,7 @@ FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options signals thr
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
+FIND_PACKAGE(OpenCL REQUIRED)
 
 FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
@@ -23,6 +24,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${OpenCV_LIBS}
 	${LIBPNG_LIBRARY}
 	${QT_LIBRARIES}
+	${OPENCL_LIBRARIES}
 )
 
 SET(${MODULE_NAME}_HEADERS
@@ -47,6 +49,17 @@ SET(${MODULE_NAME}_HEADERS
 	gui/GLView.h
 	gui/GLObject.h
 	util/CPU.h
+	cl/CLBuffer.h
+	cl/CLColor.h
+	cl/CLException.h
+	cl/CLFilter.h
+	cl/CLImage.h
+	cl/CLManager.h
+	cl/CLParameter.h
+	cl/CLParameterInfo.h
+	cl/CLParameterSet.h
+	cl/CLScalar.h
+	cl/CLVector.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -68,6 +81,13 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Display.cpp
 	gui/GLView.cpp
 	gui/GLImage.cpp
+	cl/CLColor.cpp
+	cl/CLException.cpp
+	cl/CLFilter.cpp
+   	cl/CLImage.cpp
+   	cl/CLManager.cpp
+   	cl/CLParameterSet.cpp
+   	cl/CLScalar.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
@@ -114,16 +134,26 @@ INCLUDE_DIRECTORIES(
 	${OpenCV_INCLUDE_DIRS}
 	${Eigen2_INCLUDE_DIR}	
 	${LIBPNG_INCLUDE_DIR}
+	${OPENCL_INCLUDE_DIR}
 )
+
+#set opencl filter path
+
 
 MODULE_CONFIGURATION("${MODULE_NAME}" 
 					 "${${MODULE_NAME}_HEADERS}" 
 					 "${${MODULE_NAME}_SOURCES}" 
 					 "${${MODULE_NAME}_DEP_LIBRARIES}")
 
+set_target_properties(${MODULE_NAME}
+	      PROPERTIES COMPILE_DEFINITIONS
+	      PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" )
+
 CVTTESTS(cvt util/cvttestsproto.h)
 link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
+
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
 ENDIF()
