@@ -8,3 +8,5 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(cvt)
 ADD_SUBDIRECTORY(tests)
+
+add_executable(cltoheader util/cltoheader.cpp)
