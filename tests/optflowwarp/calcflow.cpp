@@ -402,7 +402,7 @@ void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, s
 
 void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 {
-	IScaleFilterCubic sfgauss;
+	IScaleFilterCubic sfp;
 	std::deque<std::pair<Image*,Image*> > pylevel;
 	Image* cimg1;
 	Image* cimg2;
@@ -414,8 +414,8 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 		cimg1 = new Image();
 		cimg2 = new Image();
 		std::pair<Image*,Image*> prev = pylevel.front();
-		prev.first->scale( *cimg1, ( size_t ) ( prev.first->width() * SF + 0.5f ), ( size_t ) ( prev.first->height() * SF + 0.5f ), sfgauss );
-		prev.second->scale( *cimg2, ( size_t ) ( prev.second->width() * SF + 0.5f ), ( size_t ) ( prev.second->height() * SF + 0.5f ), sfgauss );
+		prev.first->scale( *cimg1, ( size_t ) ( prev.first->width() * SF + 0.5f ), ( size_t ) ( prev.first->height() * SF + 0.5f ), sfp );
+		prev.second->scale( *cimg2, ( size_t ) ( prev.second->width() * SF + 0.5f ), ( size_t ) ( prev.second->height() * SF + 0.5f ), sfp );
 
 //		rof.apply( *itmp, *cimg1, 0.1f, 100 );
 //		cimg1->mad( *itmp, -0.90f );
