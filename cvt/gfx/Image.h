@@ -8,6 +8,7 @@
 
 #include "gfx/Color.h"
 #include "gfx/IScaleFilter.h"
+#include "gfx/IFilterParameter.h"
 
 namespace cvt {
 
@@ -23,7 +24,7 @@ namespace cvt {
 		CVT_FLOAT,
 	};
 
-	class Image
+	class Image : public IFilterParameter
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
 
@@ -51,6 +52,7 @@ namespace cvt {
 			void copy( const Image& i );
 			IplImage* iplimage() const;
 
+			Image* clone() const;
 			void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
@@ -110,6 +112,11 @@ namespace cvt {
 	};
 
 	std::ostream& operator<<(std::ostream &out, const Image &f);
+
+	inline Image* Image::clone() const
+	{
+		return new Image( *this );
+	}
 
 	inline ImageChannelOrder Image::order() const
 	{

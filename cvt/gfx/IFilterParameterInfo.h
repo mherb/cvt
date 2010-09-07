@@ -22,16 +22,16 @@ namespace cvt {
 	class IFilterParameterInfo
 	{
 		public:
-			IFilterParameterInfo( std::string n, IFilterParameterType t, IFilterParameterDirection d = IFILTERPARAMETER_IN ) : type( t ), dir( d ), name( n ) {};
+			IFilterParameterInfo( const char* n, IFilterParameterType t, IFilterParameterDirection d = IFILTERPARAMETER_IN ) : name( n ), type( t ), dir( d ) {};
 
 			IFilterParameterType getType( ) const { return type; };
 			IFilterParameterDirection getDirection( ) const	{ return dir; };
-			std::string getName( ) const { return name; };
+			const char* getName( ) const { return name; };
 
 		private:
+			const char* name;
 			IFilterParameterType type;
 			IFilterParameterDirection dir;
-			std::string name;
 	};
 
 }

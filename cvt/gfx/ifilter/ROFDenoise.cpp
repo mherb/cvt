@@ -1,16 +1,22 @@
 #include "gfx/ifilter/ROFDenoise.h"
+#include "gfx/IFilterScalar.h"
+#include "gfx/IFilterParameterInfo.h"
+#include "gfx/IFilterParameterSet.h"
+#include "util/Exception.h"
 #include "math/Math.h"
+
+#include <iostream>
 
 namespace cvt {
 
-	static const IFilterParameterInfo _pinfo[ 4 ] = {
+	static const IFilterParameterInfo _params[ 4 ] = {
 		IFilterParameterInfo( "Input", IFILTERPARAMETER_IMAGE ),
 		IFilterParameterInfo( "Output", IFILTERPARAMETER_IMAGE, IFILTERPARAMETER_OUT ),
 		IFilterParameterInfo( "Iterations", IFILTERPARAMETER_SCALAR ),
-		IFilterParameterInfo( "Lambda", IFILTERPARAMETER_SCALAR ),
+		IFilterParameterInfo( "Lambda", IFILTERPARAMETER_SCALAR )
 	};
 
-	ROFDenoise::ROFDenoise() : IFilter( "ROFDenoise", _pinfo, 4, IFILTER_CPU )
+	ROFDenoise::ROFDenoise() : IFilter( "ROFDenoise", _params, 4, IFILTER_CPU )
 	{
 	}
 
@@ -149,7 +155,7 @@ namespace cvt {
 		}
 	}
 
-	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter )
+	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter ) const
 	{
 		Image dx, dy, px, py;
 #if 0
@@ -251,6 +257,29 @@ namespace cvt {
 			multadd3( dst, src, dx, dy, lambda );
 		}
 
+	}
+
+	void ROFDenoise::apply( const IFilterParameterSet* set, IFilterType t ) const
+	{
+		if( !(getIFilterType() & t) )
+			throw CVTException("Invalid filter type (CPU/GPU)!");
+		Image* dst;
+		Image* src;
+		IFilterScalar* lambda;
+		IFilterScalar* iter;
+
+		if( !set->isValid())
+			throw CVTException("Invalid argument(s)");
+
+		if( !( dst = dynamic_cast<Image*>( set->getParameter( 1 ) ) ) )
+			throw CVTException("Invalid argument");
+		if( !( src = dynamic_cast<Image*>( set->getParameter( 0 ) ) ) )
+			throw CVTException("Invalid argument");
+		if( !( lambda = dynamic_cast<IFilterScalar*>( set->getParameter( 3 ) ) ) )
+			throw CVTException("Invalid argument");
+		if( !( iter = dynamic_cast<IFilterScalar*>( set->getParameter( 2 ) ) ) )
+			throw CVTException("Invalid argument");
+		apply( *dst, *src, lambda->get(), ( size_t ) iter->get() );
 	}
 
 }

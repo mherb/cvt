@@ -13,15 +13,17 @@ namespace cvt {
 
 	class IFilter {
 		public:
-			virtual IFilterParameterSet* getAttributes() const { return new IFilterParameterSet( _pinfo, _pinfosize ); };
-			virtual void apply( const IFilterParameterSet* attribs, IFilterType iftype = IFILTER_CPU ) = 0;
+			virtual IFilterParameterSet* getParameterSet() const { return new IFilterParameterSet( _pinfo, _pinfosize ); };
+			virtual void apply( const IFilterParameterSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
+			IFilterType getIFilterType() const { return ( IFilterType ) _iftype; };
 
 		protected:
 			IFilter( std::string name, IFilterParameterInfo const* pinfo, size_t pinfosize, uint32_t ifiltertype ) : _iftype( ifiltertype ), _name( name ), _pinfo( pinfo), _pinfosize( pinfosize) {};
 
+		private:
 			uint32_t _iftype;
 			std::string _name;
-			IFilterParameterInfo const* _pinfo;
+			const IFilterParameterInfo* _pinfo;
 			size_t _pinfosize;
 	};
 
