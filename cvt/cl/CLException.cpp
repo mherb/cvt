@@ -51,7 +51,7 @@ namespace cvt {
 				case CL_INVALID_GL_OBJECT:                  return "Invalid OpenGL object";
 				case CL_INVALID_BUFFER_SIZE:                return "Invalid buffer size";
 				case CL_INVALID_MIP_LEVEL:                  return "Invalid mip-map level";
-				default:                    return "Unknown";
+				default:									return "Unknown";
 			}
 		}
 

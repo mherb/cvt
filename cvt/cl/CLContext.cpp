@@ -1,14 +1,7 @@
 #include <cvt/cl/CLContext.h>
-#include <cvt/io/FileSystem.h>
 #include <dlfcn.h>
 
 namespace cvt {
-
-#if defined( __APPLE__ ) || defined( __MACOSX )
-		const char* CLContext::PLUGIN_SUFFIX = ".dylib";
-#else
-		const char* CLContext::PLUGIN_SUFFIX = ".so";
-#endif
 
 		const char* CLContext::getImageFormatChannelOrderString( ::cl::ImageFormat format )
 		{
@@ -51,6 +44,8 @@ namespace cvt {
 			}
 		}
 
+		CLContext* CLContext::_current = NULL;
+
 		CLContext::CLContext( ) : cunits( 0 ), maxworkgroupsize( 0 )
 		{
 			cl_int err;
@@ -71,76 +66,21 @@ namespace cvt {
 			context = ::cl::Context( devices, NULL, NULL, NULL, &err );
 			if( err != CL_SUCCESS )
 				throw CLException( __PRETTY_FUNCTION__, err );
-			queue = ::cl::CommandQueue( context, device, NULL, &err );
+			queue = ::cl::CommandQueue( context, device, 0, &err );
 			if( err != CL_SUCCESS )
 				throw CLException( __PRETTY_FUNCTION__, err );
 
 			device.getInfo( CL_DEVICE_MAX_COMPUTE_UNITS, &cunits );
-			std::cout << "COMPUTING UNITS: " << cunits << std::endl;
 
 			device.getInfo( CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxworkgroupsize );
-			std::cout << "MAX WORK-GROUP SIZE: " << maxworkgroupsize << std::endl;
 
 			device.getInfo( CL_DEVICE_MAX_WORK_ITEM_SIZES, &maxworkdim );
-
-			loadFilters( );
-		}
-
-		void CLContext::loadFilters( void )
-		{
-			CLFilter* filter;
-			std::vector<std::string> files;
-
-			FileSystem::getFilesWithExtension( PLUGIN_PATH, files, PLUGIN_SUFFIX );
-			for( std::vector<std::string>::iterator iter = files.begin( ); iter != files.end( ); iter++ ) {
-				std::string path = PLUGIN_PATH + *iter;
-
-				filter = loadFilter( path.c_str( ) );
-				if( filter ) {
-					if( filter->isExecuteable( ) ) {
-						std::cout << "Loaded filter " << filter->getName( ) << std::endl;
-						//	       std::cout << *filter;
-						filters[ filter->getName( ) ] = filter;
-					} else {
-						std::cout << "Filter " << filter->getName( ) << " has errors..." << std::endl;
-					}
-				}
-			}
-		}
-
-		CLFilter* CLContext::loadFilter( const char* path )
-		{
-			CLFilterPlugin* plugin;
-			CLFilter* ret;
-			void* handle;
-
-			handle = dlopen( path, RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE );
-			if( !handle ) {
-				std::cout << "No handle:" << dlerror( ) << std::endl;
-				return 0;
-			}
-
-			plugin = reinterpret_cast<CLFilterPlugin*>( dlsym( handle, "_clfilter" ) );
-			if( !plugin )
-				goto error;
-			if( plugin->ID != 0xC7C7C7C7 )
-				goto error;
-			ret = plugin->getFilter( this );
-
-			/* MacOS X dose not know RTLD_NODELETE */
-			//dlclose( handle );
-			return ret;
-
-error:
-			dlclose( handle );
-			return 0;
 		}
 
 		CLContext::~CLContext( )
 		{
-			for( std::map<const std::string, CLFilter*>::iterator iter = filters.begin( ); iter != filters.end( ); ++iter )
-				delete iter->second;
-			filters.clear( );
+			if( _current == this )
+				_current = NULL;
 			::cl::UnloadCompiler( );
 		}
 

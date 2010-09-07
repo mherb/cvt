@@ -8,8 +8,8 @@ namespace cvt {
 		class IFilterParameter
 		{
 			public:
-				IFilterParameterType getType( ) const {	return type; };
-				inline bool isType( IFilterParameterType t ) const { return type == t; };
+				IFilterParameterType getIFilterParameterType( ) const {	return type; };
+				inline bool isIFilterParameterType( IFilterParameterType t ) const { return type == t; };
 				virtual ~IFilterParameter( ) {};
 
 			protected:

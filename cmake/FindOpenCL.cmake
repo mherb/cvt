@@ -39,12 +39,12 @@ ELSE (WIN32)
 		# We also search for OpenCL in the NVIDIA SDK default location
 		FIND_PATH(OPENCL_INCLUDE_DIR
 		   NAMES	
-			opencl.h 
+			CL/opencl.h 
 		   PATHS
-			/usr/local/cuda/include/CL
+			/usr/local/cuda/include/
 			~/NVIDIA_GPU_Computing_SDK/OpenCL/common/inc/ 
+			/usr/local/nvgpu/OpenCL/common/inc/ 
 		)
-		INCLUDE_DIRECTORIES(${OPENCL_INCLUDE_DIR}/../)
 	
 		FIND_LIBRARY(OPENCL_LIBRARIES 
 			OpenCL 

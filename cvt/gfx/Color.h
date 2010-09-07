@@ -1,14 +1,16 @@
 #ifndef CVTCOLOR_H
 #define CVTCOLOR_H
 
-#include "math/Math.h"
+#include <cvt/math/Math.h>
+#include <cvt/gfx/IFilterParameter.h>
 
 namespace cvt {
 	class Image;
 
-	class Color
+	class Color : public IFilterParameter
 	{
 		friend class Image;
+		friend class CLKernel;
 
 		public:
 			Color();
@@ -43,30 +45,35 @@ namespace cvt {
 			Color operator*( float s ) const;
 
 		private:
-			float _r, _g, _b, _a;
+			union {
+				struct {
+					float _r, _g, _b, _a;
+				};
+				float v[ 4 ];
+			}  __attribute__((aligned(16)));
 	};
 
-	inline Color::Color()
+	inline Color::Color() : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		set( 0.0f, 0.0f, 0.0f, 0.0f );
 	}
 
-	inline Color::Color( float r, float g, float b, float a )
+	inline Color::Color( float r, float g, float b, float a ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		set( r, g, b, a );
 	}
 
-	inline Color::Color( float g )
+	inline Color::Color( float g ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		set( g, g, g, 1.0f );
 	}
 
-	inline Color::Color( float g, float alpha )
+	inline Color::Color( float g, float alpha ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		set( g, g, g, alpha );
 	}
 
-	inline Color::Color( int r, int g, int b, int a )
+	inline Color::Color( int r, int g, int b, int a ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		_r = Math::clamp( ( float ) r / 255.0f, 0.0f, 1.0f );
 		_g = Math::clamp( ( float ) g / 255.0f, 0.0f, 1.0f );
@@ -74,7 +81,7 @@ namespace cvt {
 		_a = Math::clamp( ( float ) a / 255.0f, 0.0f, 1.0f );
 	}
 	
-	inline Color::Color( int gray, int alpha )
+	inline Color::Color( int gray, int alpha ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
 		_g = _r;
@@ -82,7 +89,7 @@ namespace cvt {
 		_a = Math::clamp( ( float ) alpha / 255.0f, 0.0f, 1.0f );
 	}
 	
-	inline Color::Color( int gray )
+	inline Color::Color( int gray ) : IFilterParameter( IFILTERPARAMETER_COLOR )
 	{
 		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
 		_g = _r;

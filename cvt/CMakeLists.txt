@@ -45,10 +45,19 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/ROFDenoise.h
 	io/ImageIO.h
 	gfx/IScaleFilter.h
+	gfx/IFilterParameter.h
+	gfx/IFilterParameterInfo.h
+	gfx/IFilterParameterSet.h
+	gfx/IFilterScalar.h
+	gfx/IFilterVector.h
 	vision/Flow.h
 	gui/GLView.h
 	gui/GLObject.h
 	util/CPU.h
+	cl/CLContext.h
+	cl/CLException.h
+	cl/CLKernel.h
+	cl/CLImage.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -70,6 +79,10 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Display.cpp
 	gui/GLView.cpp
 	gui/GLImage.cpp
+	cl/CLContext.cpp
+	cl/CLException.cpp
+	cl/CLKernel.cpp
+	cl/CLImage.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
