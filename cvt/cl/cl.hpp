@@ -2825,7 +2825,7 @@ namespace cl
 						   __ENQUEUE_READ_IMAGE_ERR );
 			}
 
-			cl_int enqueueWriteImage( const Image& image, cl_bool blocking, const size_t<3>& origin, const size_t<3>& region, ::size_t row_pitch, ::size_t slice_pitch, void* ptr, const VECTOR_CLASS<Event>* events = NULL, Event* event = NULL ) const
+			cl_int enqueueWriteImage( const Image& image, cl_bool blocking, const size_t<3>& origin, const size_t<3>& region, ::size_t row_pitch, ::size_t slice_pitch, const void* ptr, const VECTOR_CLASS<Event>* events = NULL, Event* event = NULL ) const
 			{
 				return detail::errHandler(
 						   ::clEnqueueWriteImage(
