@@ -18,7 +18,7 @@ namespace cvt {
 		4  /* CVT_BGRA */
 	};
 
-	Image::Image( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type ) :  _order( order ), _type( type ), _width( w ), _height( h ), _data( 0 ), _iplimage( 0 )
+	Image::Image( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _order( order ), _type( type ), _width( w ), _height( h ), _data( 0 ), _iplimage( 0 )
 	{
 		_stride = Math::pad16( _width * _order_channels[ _order ] * _type_size[ _type ] );
 		if( posix_memalign( ( void** ) &_data, 16, _stride * _height ) )
@@ -27,7 +27,7 @@ namespace cvt {
 	}
 
 
-	Image::Image( const Image& img ) : _order( CVT_BGRA ), _type( CVT_UBYTE ), _width( 0 ), _height( 0 ), _data( 0 ), _iplimage( 0 )
+	Image::Image( const Image& img ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _order( CVT_BGRA ), _type( CVT_UBYTE ), _width( 0 ), _height( 0 ), _data( 0 ), _iplimage( 0 )
 	{
 		copy( img );
 	}

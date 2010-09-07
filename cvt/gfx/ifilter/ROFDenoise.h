@@ -10,8 +10,8 @@ namespace cvt {
 	{
 		public:
 			ROFDenoise();
-			void apply( Image& dst, const Image& src, float lambda = 70.0f, size_t iter = 10 );
-			void apply( const IFilterParameterSet* set, IFilterType t ) {};
+			void apply( Image& dst, const Image& src, float lambda = 70.0f, size_t iter = 10 ) const;
+			void apply( const IFilterParameterSet* set, IFilterType t = IFILTER_CPU ) const;
 	};
 }
 

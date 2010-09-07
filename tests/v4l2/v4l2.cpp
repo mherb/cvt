@@ -6,7 +6,9 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/io/V4L2Camera.h>
 #include <cvt/util/Timer.h>
+#include <cvt/util/Exception.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
+#include <cvt/gfx/IFilterScalar.h>
 
 using namespace cvt;
 
@@ -21,6 +23,13 @@ int main(int argc, char* argv[])
 	Image x, y, z;
 	Image kernel( 3, 1, CVT_GRAY, CVT_FLOAT );
 	ROFDenoise rof;
+	IFilterParameterSet* rofparam;
+
+	rofparam = rof.getParameterSet();
+	IFilterScalar lambda( 0.1f );
+	IFilterScalar iter( 50.0f );
+	rofparam->setParameter( "Lambda", &lambda );
+	rofparam->setParameter( "Iterations", &iter );
 
 	{
 		float* data;
@@ -30,38 +39,45 @@ int main(int argc, char* argv[])
 		*data++ = -1.0f;
 	}
 
-	cam.open();
-	cam.init();
-	cam.captureStart();
+	try {
+		cam.open();
+		cam.init();
+		cam.captureStart();
 
-	timer.reset();
-	while( 1 ) {
-		cam.captureNext();
-		frame = cam.image();
+		timer.reset();
+		while( 1 ) {
+			cam.captureNext();
+			frame = cam.image();
 
-		if( doprocess ) {
-			frame->convert( x, frame->order(), CVT_FLOAT );
-			rof.apply( y, x, 0.25f, 50 );
-			y.convert( z, frame->order(), CVT_UBYTE );
-//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
-			/*		x.convolve( y, kernel );
-					y = ( y + 1.0f ) * 0.5f;*/
-			cvShowImage( "V4L2", z.iplimage() );
-		} else
-			cvShowImage( "V4L2", frame->iplimage() );
+			if( doprocess ) {
+				frame->convert( x, frame->order(), CVT_FLOAT );
+				rofparam->setParameter( "Input", &x );
+				rofparam->setParameter( "Output", &y );
+				//			rof.apply( y, x, 0.25f, 50 );
+				rof.apply( rofparam );
+				y.convert( z, frame->order(), CVT_UBYTE );
+				//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
+				/*		x.convolve( y, kernel );
+						y = ( y + 1.0f ) * 0.5f;*/
+				cvShowImage( "V4L2", z.iplimage() );
+			} else
+				cvShowImage( "V4L2", frame->iplimage() );
 
-		key = cvWaitKey( 10 ) & 0xff;
-		if( key == 27 )
-			break;
-		else if( key == ' ')
-			doprocess = !doprocess;
+			key = cvWaitKey( 10 ) & 0xff;
+			if( key == 27 )
+				break;
+			else if( key == ' ')
+				doprocess = !doprocess;
 
-		frames++;
-		if( timer.elapsedSeconds() > 5.0f ) {
-			std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-			frames = 0;
-			timer.reset();
+			frames++;
+			if( timer.elapsedSeconds() > 5.0f ) {
+				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
+				frames = 0;
+				timer.reset();
+			}
 		}
+	} catch( Exception e ) {
+		std::cout << e.what() << std::endl;
 	}
 
 	return 0;
