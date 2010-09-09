@@ -12,6 +12,7 @@ FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options signals thr
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
 
 FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
@@ -24,6 +25,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${OpenCV_LIBS}
 	${LIBPNG_LIBRARY}
 	${QT_LIBRARIES}
+	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
 )
 
@@ -31,10 +33,9 @@ SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
 	io/FileSystem.h
 	io/FloFile.h
+	io/ImageIO.h
 	math/LevenbergMarquard.h
 	math/Math.h
-	gfx/Color.h
-	gfx/Image.h
 	util/Range.h
 	util/Rect.h
 	util/CVTTest.h
@@ -43,7 +44,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMD.h
 	util/SIMDSSE.h
 	gfx/ifilter/ROFDenoise.h
-	io/ImageIO.h
+	gfx/ifilter/Sobel.h
 	gfx/IScaleFilter.h
 	gfx/IFilterParameter.h
 	gfx/IFilterParameterInfo.h
@@ -71,12 +72,13 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/Image.cpp
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
+	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageIO.cpp
 	vision/Flow.cpp
-	gui/Display.cpp
+	gui/Display.cpp	
 	gui/GLView.cpp
 	gui/GLImage.cpp
 	cl/CLContext.cpp
@@ -91,13 +93,22 @@ SET(${MODULE_NAME}_MOC_FILES
 )
 QT4_WRAP_CPP(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_MOC_FILES})
 	
-IF(UNIX AND NOT APPLE)
-	SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
-		io/V4L2Camera.h
-	)
-	SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
-		io/V4L2Camera.cpp
-	)
+IF(UNIX)
+	IF(APPLE)
+		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
+			#io/QTKitCamera.h
+		)
+		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
+			#io/QTKitCamera.cpp
+		)
+	ELSE(APPLE)
+		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
+			io/V4L2Camera.h
+		)
+		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
+			io/V4L2Camera.cpp
+		)
+	ENDIF(APPLE)
 ENDIF()
 
 # optional uEyeUsbCamera driver if available 
