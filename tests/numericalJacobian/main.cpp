@@ -25,66 +25,66 @@ public:
      *	@param meas			current measurements
      */
     virtual double costs(Eigen::VectorXd const& startParams,
-			 std::vector<Eigen::VectorXd> const& model,
-			 std::vector<Eigen::VectorXd> const& meas,
-			 Eigen::VectorXd & residual)
+						 std::vector<Eigen::VectorXd> const& model,
+						 std::vector<Eigen::VectorXd> const& meas,
+						 Eigen::VectorXd & residual)
     {
-	double costs = 0.0;
-	Eigen::VectorXd res(2);
-	
-	for (unsigned int i = 0; i < meas.size(); i++) {
-	    this->transform(startParams, model[i], res);
-	    res-=meas[i];
-	    residual.block(i*res.rows(), 0, res.rows(), 1) = res;
-	    costs += (res).squaredNorm();
-	}
-	return costs;
+		double costs = 0.0;
+		Eigen::VectorXd res(2);
+		
+		for (unsigned int i = 0; i < meas.size(); i++) {
+			this->transform(startParams, model[i], res);
+			res-=meas[i];
+			residual.block(i*res.rows(), 0, res.rows(), 1) = res;
+			costs += (res).squaredNorm();
+		}
+		return costs;
     }
     
     void transform(Eigen::VectorXd const & parameters,
-		   Eigen::VectorXd const & point,
-		   Eigen::VectorXd & transformed)
+				   Eigen::VectorXd const & point,
+				   Eigen::VectorXd & transformed)
     {
-	transformed[0] = point[0] * cos(parameters[0]) - point[1]*sin(parameters[0]) + parameters[1];
-	transformed[1] = point[0] * sin(parameters[0]) + point[1]*cos(parameters[0]) + parameters[2];
+		transformed[0] = point[0] * cos(parameters[0]) - point[1]*sin(parameters[0]) + parameters[1];
+		transformed[1] = point[0] * sin(parameters[0]) + point[1]*cos(parameters[0]) + parameters[2];
     }
     
     virtual void jacobian(Eigen::VectorXd const& parameters, Eigen::VectorXd const& point, Eigen::MatrixXd & jac)
     {
-	jac(0, 0) = -point[0] * sin(parameters[0]) - point[1]*cos(parameters[0]);
-	jac(1, 0) =  point[0] * cos(parameters[0]) - point[1]*sin(parameters[0]);
-	
-	jac(0, 1) = 1.0;
-	jac(1, 1) = 0.0;
-	
-	jac(0, 2) = 0.0;
-	jac(1, 2) = 1.0;
+		jac(0, 0) = -point[0] * sin(parameters[0]) - point[1]*cos(parameters[0]);
+		jac(1, 0) =  point[0] * cos(parameters[0]) - point[1]*sin(parameters[0]);
+		
+		jac(0, 1) = 1.0;
+		jac(1, 1) = 0.0;
+		
+		jac(0, 2) = 0.0;
+		jac(1, 2) = 1.0;
     }
     
     virtual void jacobians(Eigen::VectorXd const& parameters,
-			   std::vector<Eigen::VectorXd> const& points,
-			   Eigen::MatrixXd & jac)
+						   std::vector<Eigen::VectorXd> const& points,
+						   Eigen::MatrixXd & jac)
     {
-	double sinp = sin(parameters[0]);
-	double cosp = cos(parameters[0]);
-	
-	for(unsigned int i = 0; i < points.size(); i++){
-	    jac(2*i, 0) = -points[i][0] * sinp - points[i][1]*cosp;
-	    jac(2*i+1, 0) =  points[i][0] * cosp - points[i][1]*sinp;
-	    
-	    jac(2*i, 1) = 1.0;
-	    jac(2*i+1, 1) = 0.0;
-	    
-	    jac(2*i, 2) = 0.0;
-	    jac(2*i+1, 2) = 1.0;
-	}
+		double sinp = sin(parameters[0]);
+		double cosp = cos(parameters[0]);
+		
+		for(unsigned int i = 0; i < points.size(); i++){
+			jac(2*i, 0) = -points[i][0] * sinp - points[i][1]*cosp;
+			jac(2*i+1, 0) =  points[i][0] * cosp - points[i][1]*sinp;
+			
+			jac(2*i, 1) = 1.0;
+			jac(2*i+1, 1) = 0.0;
+			
+			jac(2*i, 2) = 0.0;
+			jac(2*i+1, 2) = 1.0;
+		}
     }  
 };
 
 void numericalJacobians(cvt::TransformFunctionType & transform,
-			Eigen::VectorXd const& parameters,
-			std::vector<Eigen::VectorXd> const& points,
-			Eigen::MatrixXd & jac)
+						Eigen::VectorXd const& parameters,
+						std::vector<Eigen::VectorXd> const& points,
+						Eigen::MatrixXd & jac)
 {
     std::cout << __FUNCTION__ << " called" << std::endl;
     
@@ -95,41 +95,41 @@ void numericalJacobians(cvt::TransformFunctionType & transform,
     double possibleStep;
     
     for(unsigned int i = 0; i < points.size(); i++){
-	transform(parameters, points[i], pT);
-	for(int p = 0; p < parameters.rows(); p++){
-	    parPlus = parameters;
-	    
-	    possibleStep = fabs(parameters[p]*0.0001);
-	    delta = (possibleStep>0.000001)?possibleStep:0.000001;
-	    parPlus[p] += delta;
-	    
-	    transform(parPlus, points[i], pTplus);
-	    
-	    pTplus-=pT;
-	    pTplus*=(1.0/delta);
-	    
-	    jac.block(i*pT.rows(), p, 2, 1) = pTplus;
-	}
+		transform(parameters, points[i], pT);
+		for(int p = 0; p < parameters.rows(); p++){
+			parPlus = parameters;
+			
+			possibleStep = fabs(parameters[p]*0.0001);
+			delta = (possibleStep>0.000001)?possibleStep:0.000001;
+			parPlus[p] += delta;
+			
+			transform(parPlus, points[i], pTplus);
+			
+			pTplus-=pT;
+			pTplus*=(1.0/delta);
+			
+			jac.block(i*pT.rows(), p, 2, 1) = pTplus;
+		}
     }
 }
 
 void jacobians(Eigen::VectorXd const& parameters,
-	       std::vector<Eigen::VectorXd> const& points,
-	       Eigen::MatrixXd & jac)
+			   std::vector<Eigen::VectorXd> const& points,
+			   Eigen::MatrixXd & jac)
 {
     std::cout << __FUNCTION__ << " called" << std::endl;
     double sinp = sin(parameters[0]);
     double cosp = cos(parameters[0]);
     
     for(unsigned int i = 0; i < points.size(); i++){
-	jac(2*i, 0) = -points[i][0] * sinp - points[i][1]*cosp;
-	jac(2*i+1, 0) =  points[i][0] * cosp - points[i][1]*sinp;
-	
-	jac(2*i, 1) = 1.0;
-	jac(2*i+1, 1) = 0.0;
-	
-	jac(2*i, 2) = 0.0;
-	jac(2*i+1, 2) = 1.0;
+		jac(2*i, 0) = -points[i][0] * sinp - points[i][1]*cosp;
+		jac(2*i+1, 0) =  points[i][0] * cosp - points[i][1]*sinp;
+		
+		jac(2*i, 1) = 1.0;
+		jac(2*i+1, 1) = 0.0;
+		
+		jac(2*i, 2) = 0.0;
+		jac(2*i+1, 2) = 1.0;
     }
 }
 
@@ -141,19 +141,19 @@ int main(void)
     TestCostFunc costs;
     
     cvt::CostFunctionType costFunc = boost::bind(&TestCostFunc::costs, 
-						 &costs, 
-						 _1, _2, _3, _4);
+												 &costs, 
+												 _1, _2, _3, _4);
     
     cvt::TransformFunctionType tFunc = boost::bind(&TestCostFunc::transform, 
-						   &costs, 
-						   _1, _2, _3);
+												   &costs, 
+												   _1, _2, _3);
     
     // use exact jacobian computation:
     //cvt::JacobianFunctionType jacFunc = jacobians;
     
     // numerical
     cvt::JacobianFunctionType jacFunc = boost::bind(&numericalJacobians,
-						    tFunc, _1, _2, _3);    
+													tFunc, _1, _2, _3);    
     
     std::vector<Eigen::VectorXd> measurements;
     std::vector<Eigen::VectorXd> originals;
@@ -180,10 +180,10 @@ int main(void)
     cv::RNG rng(std::time(NULL));
     
     for(unsigned int i = 0; i < originals.size(); i++){
-	costs.transform(gtParameters, originals[i], tmp);
-	tmp[0]+= rng.uniform(-0.2, 0.2);
-	tmp[1]+= rng.uniform(-0.2, 0.2);
-	measurements.push_back(tmp);
+		costs.transform(gtParameters, originals[i], tmp);
+		tmp[0]+= rng.uniform(-0.2, 0.2);
+		tmp[1]+= rng.uniform(-0.2, 0.2);
+		measurements.push_back(tmp);
     }
     
     Eigen::VectorXd currentParameters(3);
