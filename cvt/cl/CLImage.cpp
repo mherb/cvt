@@ -43,21 +43,31 @@ namespace cvt {
 
 	}
 
+	void CLImage::reallocate( const CLImage& i )
+	{
+		cl_int err;
+
+		if( i.width() != _width || i.height() != _height ||
+		   i.order() != _order || i.type() != _type  ) {
+			_cl = i._cl;
+			_width = i._width;
+			_height = i._height;
+			_order = i._order;
+			_type = i._type;
+			_climage = cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _order, _type ), _width, _height, 0, NULL, &err );
+
+			if( err != CL_SUCCESS )
+				throw CLException( __PRETTY_FUNCTION__, err );
+		}
+	}
+
 	void CLImage::copy( const CLImage& i )
 	{
 		cl_int err;
 		cl::size_t<3> origin;
 		cl::size_t<3> region;
 
-		_cl = i._cl;
-		_width = i._width;
-		_height = i._height;
-		_order = i._order;
-		_type = i._type;
-		_climage = cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _order, _type ), _width, _height, 0, NULL, &err );
-
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
+		reallocate( i );
 
 		origin[ 0 ] = 0;
 		origin[ 1 ] = 0;
@@ -115,7 +125,7 @@ namespace cvt {
 		region[ 1 ] = _height;
 		region[ 2 ] = 1;
 
-		err = _cl->getCLQueue( ).enqueueWriteImage( _climage, CL_FALSE, origin, region, stride, 0, data );
+		err = _cl->getCLQueue( ).enqueueWriteImage( _climage, CL_TRUE, origin, region, stride, 0, data );
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}

@@ -1,11 +1,13 @@
 #include <cvt/cl/CLContext.h>
-#include <cvt/cl/CLKernel.h>
-#include <cvt/cl/CLImage.h>
+#include "CLOptflow.h"
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Color.h>
+#include <cvt/gfx/IFilterScalar.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/Timer.h>
+#include <cvt/io/FloFile.h>
+#include <cvt/vision/Flow.h>
 #include <string>
 #include <iostream>
 #include <opencv/cv.h>
@@ -16,10 +18,14 @@
 #include "calcp2.h"
 #include "clearimg.h"
 #include "copyimg.h"
+#include "bilindown.h"
+#include "warp.h"
+#include "warpsub.h"
+#include "grad.h"
 
 using namespace cvt;
 
-int main()
+int main( int argc, char** argv )
 {
 	const Image* frame;
 	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
@@ -28,52 +34,51 @@ int main()
 	int key;
 	size_t frames = 0;
 	Timer timer;
+	std::vector<cl::Event> sync;
+	cl::Event event;
+	int pyridx = 0;
+	CLImage* u;
 
-	CLContext cl;
-	cl.makeCurrent();
+	try {
+		CLContext cl;
+		cl.makeCurrent();
+		CLOptflow flow;
 
-	CLKernel kernelp1, kernelp2, kernelcopyimg, kernelclearimg;
 
-	kernelcopyimg.build( "Denoise_COPYIMG", _copyimg_source, strlen( _copyimg_source ), log );
-	std::cout << "Log: " << log << std::endl;
-	kernelclearimg.build( "Denoise_CLEARIMG", _clearimg_source, strlen( _clearimg_source ), log );
-	std::cout << "Log: " << log << std::endl;
-	kernelp1.build( "Denoise_CALCP1", _calcp1_source, strlen( _calcp1_source ), log );
-	std::cout << "Log: " << log << std::endl;
-	kernelp2 .build( "Denoise_CALCP2", _calcp2_source, strlen( _calcp2_source ), log );
-	std::cout << "Log: " << log << std::endl;
+		Image iflow( 640, 480, CVT_RGBA, CVT_UBYTE );
 
-	cam.open();
-	cam.init();
-	cam.captureStart();
-	timer.reset();
+		cam.open();
+		cam.init();
+		cam.captureStart();
+		timer.reset();
 
-	while( 1 ) {
-		cam.captureNext();
-		frame = cam.image();
-		if( doprocess )
-			cvShowImage( "Video", frame->iplimage() );
-		else
-			cvShowImage( "Video", frame->iplimage() );
+		while( 1 ) {
+			cam.captureNext();
+			frame = cam.image();
+			if( doprocess ) {
+				int pyridx2 = pyridx ^ 0x01;
+				u = flow.updateFlow( *frame );
+				u->readData( iflow.data(), iflow.stride() );
+				delete u;
+				cvShowImage( "Video", iflow.iplimage() );
+			} else
+				cvShowImage( "Video", frame->iplimage() );
 
-		key = cvWaitKey( 10 ) & 0xff;
-		if( key == 27 )
-			break;
-		else if( key == ' ')
-			doprocess = !doprocess;
+			key = cvWaitKey( 10 ) & 0xff;
+			if( key == 27 )
+				break;
+			else if( key == ' ')
+				doprocess = !doprocess;
 
-		frames++;
-		if( timer.elapsedSeconds() > 5.0f ) {
-			std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-			frames = 0;
-			timer.reset();
+			frames++;
+			if( timer.elapsedSeconds() > 5.0f ) {
+				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
+				frames = 0;
+				timer.reset();
+			}
+
 		}
-
+	} catch( CLException e ) {
+		std::cout << e.what() << std::endl;
 	}
-
-	/*	CLImage image( 640, 480 );
-		Color c( 1.0f, 0.0f, 0.0f, 1.0f );
-		kernel.setArg( 0 , &image );
-		kernel.setArg( 1 , &c );
-		kernel.run( ::cl::NullRange, image.globalRange(), ::cl::NDRange( 16, 16 ) );*/
 }

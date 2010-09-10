@@ -1,50 +1,46 @@
-__kernel void Denoise_TH( __write_only image2d_t outimg, __read_only image2d_t inimg,
-			  __read_only image2d_t px,  __read_only image2d_t py,
-			  __read_only image2d_t origimg, __local float8* bufin, const float lambda, const float thetalambda )
+//void threshold( Image* idst, Image* isrc, Image* ig2, Image* it, Image* ix, Image* iy, Image* isrc0, float lambdatheta )
+__kernel void THRESHOLD( __write_only image2d_t iout,
+						  __read_only image2d_t src, __read_only image2d_t ig2, __read_only image2d_t it,
+						 __read_only image2d_t ix, __read_only image2d_t iy, __read_only image2d_t src0 , const float lambdatheta )
 {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
-    const sampler_t sampleredge = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
-    const int lstride = get_local_size( 0 ) + 1;
-    const int lx = get_local_id( 0 );
-    const int ly = get_local_id( 1 );
-    int2 coord;
-    float4 u, pdx, pdy, f, out, duf;
-    float8 pval, ptmp;
-    int4 cmp;
-    float len;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	float4 dt, dx, dy, th, dxy, v, in1, in2, in10, in20, out;
+	float4 ux, uy;
+	int2 coord;
+	int2 cmp;
 
     coord.x = get_global_id( 0 );
     coord.y = get_global_id( 1 );
 
-    pval.lo = read_imagef( px, sampleredge, coord );
-    pval.hi = read_imagef( py, sampleredge, coord );
-    bufin[ lstride * ( ly + 1 ) + lx + 1 ] = pval;
+	dt = read_imagef( it, sampler, coord );
+	dx = read_imagef( ix, sampler, coord );
+	dy = read_imagef( iy, sampler, coord );
+	dxy = read_imagef( ig2, sampler, coord );
+	th = dxy * lambdatheta;
 
-    if( lx == 0 ) {
-	ptmp.lo = read_imagef( px, sampleredge, coord - ( int2 ) ( 1, 0 ) );
-	ptmp.hi = read_imagef( py, sampleredge, coord - ( int2 ) ( 0, 1 ) );
-	bufin[ lstride * ( ly + 1 ) ] = ptmp;
-    }
-    if( ly == 0 ) {
-	ptmp.lo = read_imagef( px, sampleredge, coord - ( int2 ) ( 1, 0 ) );
-	ptmp.hi = read_imagef( py, sampleredge, coord - ( int2 ) ( 0, 1 ) );
-	bufin[ lx + 1 ] = ptmp;
-    }
+	coord.x = coord.x * 2;
+	in1 = read_imagef( src, sampler, coord );
+	in2 = read_imagef( src, sampler, coord + ( int2 ) ( 1, 0 ) );
+	in10 = read_imagef( src0, sampler, coord );
+	in20 = read_imagef( src0, sampler, coord  + ( int2 ) ( 1, 0 ) );
 
-    barrier( CLK_LOCAL_MEM_FENCE );
+	ux = ( float4 ) ( ( in1.xz - in10.xz ), ( in2.xz - in20.xz ) );
+	uy = ( float4 ) ( ( in1.yw - in10.yw ), ( in2.yw - in20.yw ) );
+	v = dt + ux * dx +  uy * dy;
 
-    u = read_imagef( inimg, sampler, coord );
-    f = read_imagef( origimg, sampler, coord );
+	out.xz = in1.xz - v.xy * dx.xy / dxy.xy;
+	out.yw = in1.yw - v.xy * dy.xy / dxy.xy;
+	cmp = isless( v.xy, -th.xy );
+	out = select( out, in1 + lambdatheta * ( float4 ) ( dx.x, dy.x, dx.y, dy.y ), ( int4 ) cmp.xxyy );
+	cmp = isgreater( v.xy, th.xy );
+	out = select( out, in1 - lambdatheta * ( float4 ) ( dx.x, dy.x, dx.y, dy.y ), ( int4 ) cmp.xxyy );
+	write_imagef( iout, coord, out );
 
-    pdx = pval.lo - bufin[ lstride * ( ly + 1 ) + lx ].lo;
-    pdy = pval.hi - bufin[ lstride * ( ly ) + lx + 1 ].hi;
-
-    u = u + lambda * ( pdx + pdy );
-    duf = u - f;
-    cmp = isgreater( duf, ( float4 ) thetalambda );
-    out = select( f, u - ( float4 ) thetalambda, cmp );
-    cmp = isless( duf, ( float4 ) -thetalambda );
-    out = select( out, u + ( float4 ) thetalambda, cmp );
-    write_imagef( outimg, coord, out );
+	out.xz = in2.xz - v.zw * dx.zw / dxy.zw;
+	out.yw = in2.yw - v.zw * dy.zw / dxy.zw;
+	cmp = isless( v.zw, -th.zw );
+	out = select( out, in2 + lambdatheta * ( float4 ) ( dx.z, dy.z, dx.w, dy.w ), ( int4 ) cmp.xxyy );
+	cmp = isgreater( v.zw, th.zw );
+	out = select( out, in2 - lambdatheta * ( float4 ) ( dx.z, dy.z, dx.w, dy.w ), ( int4 ) cmp.xxyy );
+	write_imagef( iout, coord + ( int2 ) ( 1, 0 ), out );
 }
-

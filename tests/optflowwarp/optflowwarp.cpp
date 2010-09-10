@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 		img1.convert( in1, CVT_GRAY, CVT_FLOAT );
 		img2.convert( in2, CVT_GRAY, CVT_FLOAT );
 
-
+#if 0
 		ROFDenoise rof;
 		Image* itmp = new Image();
 		rof.apply( *itmp, in1, 0.1f, 100 );
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 		in2.mad( *itmp, -0.95f );
 
 		delete itmp;
-
+#endif
 
 		if( argc == 4 ) {
 			FloFile::FloReadFile( _gt, argv[ 3 ] );

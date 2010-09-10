@@ -12,6 +12,7 @@ namespace cvt {
 		cl::Program::Sources source( 1, std::make_pair<const char*, size_t>( src, len ) );
 		std::vector<cl::Device> devices;
 
+		_name = name;
 		_cl = CLContext::getCurrent();
 
 		cl::Program prog( _cl->getCLContext( ), source, &err );
@@ -23,6 +24,7 @@ namespace cvt {
 		err = prog.build( devices, "-w" );
 		buildinfo = prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( _cl->getCLDevice( ) );
 		if( err != CL_SUCCESS ) {
+			std::cout << buildinfo << std::endl;
 			throw CLException( err, buildinfo );
 		}
 
@@ -69,7 +71,7 @@ namespace cvt {
 		if( _cl ) {
 			cl_int err = _cl->getCLQueue( ).enqueueNDRangeKernel( _kernel, offset, global, local, events, event );
 			if( err != CL_SUCCESS ) {
-				throw CLException( err );
+				throw CLException( _name, err );
 			}
 		}
 	}

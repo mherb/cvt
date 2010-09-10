@@ -304,6 +304,7 @@ void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, 
 #endif
 
 #define TAU 0.249f
+	v0->copy( *v );
 	while( iter-- ) {
 		threshold( v, u, ig2, it, ix, iy, v0, lambda * theta );
 		u->convolve( dx, kerndx, false );
