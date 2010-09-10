@@ -19,6 +19,7 @@ namespace cvt {
 		private:
 			CLKernel( const CLKernel& ) : _cl( 0 ) {};
 
+			const char* _name;
 			::cl::Kernel _kernel;
 			CLContext* _cl;
 	};

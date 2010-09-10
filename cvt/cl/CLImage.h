@@ -20,6 +20,7 @@ namespace cvt {
 			ImageChannelType type() const { return _type; };
 			::cl::NDRange globalRange() const { return ::cl::NDRange( _width, _height ); };
 
+			void reallocate( const CLImage& i );
 			void copy( const CLImage& i );
 			void readImage( Image& i );
 			void readData( void* data, size_t stride );

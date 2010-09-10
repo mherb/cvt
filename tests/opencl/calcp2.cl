@@ -20,7 +20,10 @@ __kernel void Denoise_CALCP2( __write_only image2d_t dst,
 //	} else if( coord.x == 0) {
 //		pdx = px;
 //	} else {
-		pdx = px - read_imagef( pxin, sampler, coord - ( int2 ) ( 1, 0 ) );
+//		pdx = px - read_imagef( pxin, sampler, coord - ( int2 ) ( 1, 0 ) );
+		pdx.zw = px.zw - px.xy;
+		pdx.xy = px.xy - read_imagef( pxin, sampler, coord - ( int2 )( 1, 0 ) ).zw;
+
 //	}
 
 //	if( coord.y == height - 1 ) {
@@ -31,7 +34,7 @@ __kernel void Denoise_CALCP2( __write_only image2d_t dst,
 		pdy = py - read_imagef( pyin, sampler, coord - ( int2 )( 0, 1 ) );
 //	}
 
-	i = i - lambda * ( pdx + pdy );
+	i = i + lambda * ( pdx + pdy );
     write_imagef( dst, coord, i );
 }
 
