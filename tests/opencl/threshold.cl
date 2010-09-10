@@ -26,7 +26,7 @@ __kernel void THRESHOLD( __write_only image2d_t iout,
 
 	ux = ( float4 ) ( ( in1.xz - in10.xz ), ( in2.xz - in20.xz ) );
 	uy = ( float4 ) ( ( in1.yw - in10.yw ), ( in2.yw - in20.yw ) );
-	v = dt + ux * dx +  uy * dy;
+	v = dt + ux * dx + uy * dy;
 
 	out.xz = in1.xz - v.xy * dx.xy / dxy.xy;
 	out.yw = in1.yw - v.xy * dy.xy / dxy.xy;

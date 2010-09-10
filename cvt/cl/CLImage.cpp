@@ -54,7 +54,7 @@ namespace cvt {
 			_height = i._height;
 			_order = i._order;
 			_type = i._type;
-			_climage = cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _order, _type ), _width, _height, 0, NULL, &err );
+			_climage = cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE, getCLFormat( _order, _type ), _width, _height, 0, NULL, &err );
 
 			if( err != CL_SUCCESS )
 				throw CLException( __PRETTY_FUNCTION__, err );

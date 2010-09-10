@@ -53,7 +53,7 @@ namespace cvt {
 		if( this == &img )
 			return;
 
-		checkFormatAndSizes( img, __PRETTY_FUNCTION__, __LINE__ );
+		checkFormatAndSize( img, __PRETTY_FUNCTION__, __LINE__ );
 
 		size_t cw = _width * _order_channels[ _order ] * _type_size[ _type ];
 		size_t h = _height;
@@ -182,21 +182,21 @@ namespace cvt {
 		}
 	}
 	
-	void Image::checkSizes( const Image & img, const char* func, size_t lineNum ) const
+	void Image::checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const
 	{
-		if( this->width() != img.width() ){			
+		if( w != img.width() ){			
 			throw Exception("Image formats differ: width check failed", "Image", lineNum, func);
 		}
 		
-		if( this->height() != img.height() ){
+		if( h != img.height() ){
 			throw Exception("Image formats differ: height check failed", "Image", lineNum, func);
 		}		
 	}
 	
-	void Image::checkFormatAndSizes( const Image & img, const char* func, size_t lineNum ) const
+	void Image::checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const
 	{
 		checkFormat(img, func, lineNum);
-		checkSizes(img, func, lineNum);
+		checkSize(img, func, lineNum, _width, _height );
 	}
 
 	BEGIN_CVTTEST( image )

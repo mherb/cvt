@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
 		ImageIO::loadPNG( img1, argv[ 1 ] );
 		ImageIO::loadPNG( img2, argv[ 2 ] );
 
+		in1.reallocate( img1.width(), img1.height(), CVT_GRAY, CVT_FLOAT );
+		in2.reallocate( img2.width(), img2.height(), CVT_GRAY, CVT_FLOAT );
 		img1.convert( in1, CVT_GRAY, CVT_FLOAT );
 		img2.convert( in2, CVT_GRAY, CVT_FLOAT );
 

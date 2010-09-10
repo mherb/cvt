@@ -224,7 +224,6 @@ void threshold( Image* idst, Image* isrc, Image* ig2, Image* it, Image* ix, Imag
 
 void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, Image* ig2, Image* it, Image* ix, Image* iy, Image* v0, size_t iter )
 {
-	Image dx, dy;
 #if 0
 		Image kerndx( 5, 1, CVT_GRAY, CVT_FLOAT );
 		Image kerndy( 1, 5, CVT_GRAY, CVT_FLOAT );
@@ -302,6 +301,8 @@ void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, 
 		*data++ =  1.0f;
 	}
 #endif
+	Image dx( u->width(), u->height(), CVT_GRAYALPHA, CVT_FLOAT );
+    Image dy( u->width(), u->height(), CVT_GRAYALPHA, CVT_FLOAT );
 
 #define TAU 0.249f
 	v0->copy( *v );
@@ -321,7 +322,7 @@ void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, s
 	float* data;
 	Image kerndx( 5, 1, CVT_GRAY, CVT_FLOAT );
 	Image kerndy( 1, 5, CVT_GRAY, CVT_FLOAT );
-	Image i1x, i1y, i2x, i2y, iw, iwx, iwy, it, igsqr, v0;
+	Image v0;
 
 	/* FIXME: use -1 0 1 */
 	data = ( float* ) kerndx.data();
@@ -342,15 +343,25 @@ void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, s
 	data = ( float* ) kerndy.scanline( 4 );
 	*data++ =  0.1f;
 
+	Image i1x( img1->width(), img1->height(), CVT_GRAY, CVT_FLOAT );
+	Image i1y( img1->width(), img1->height(), CVT_GRAY, CVT_FLOAT );
+	Image i2x( img2->width(), img2->height(), CVT_GRAY, CVT_FLOAT );
+	Image i2y( img2->width(), img2->height(), CVT_GRAY, CVT_FLOAT );
 	img1->convolve( i1x, kerndx, false );
 	img1->convolve( i1y, kerndy, false );
 	img2->convolve( i2x, kerndx, false );
 	img2->convolve( i2y, kerndy, false );
 
+	Image iw( img2->width(), img2->height(), CVT_GRAY, CVT_FLOAT );
+	Image iwx( img2->width(), img2->height(), CVT_GRAY, CVT_FLOAT );
+	Image iwy( img2->width(), img2->height(), CVT_GRAY, CVT_FLOAT );
+	Image it( img1->width(), img1->height(), CVT_GRAY, CVT_FLOAT );
+	Image igsqr( img1->width(), img1->height(), CVT_GRAY, CVT_FLOAT );
+
 	/* median filter v before warping */
+	v0.reallocate( *v );
 
 	while( iter-- ) {
-		v0.reallocate( *v );
 		cvSmooth( v->iplimage(), v0.iplimage(), CV_MEDIAN, 5 );
 
 		img2->warpBilinear( iw, v0 );
@@ -376,8 +387,7 @@ void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, s
 		igsqr.copy( iwx );
 		igsqr.mul( iwx );
 		{
-			Image tmp;
-			tmp.copy( iwy );
+			Image tmp( iwy );
 			tmp.mul( iwy );
 			igsqr.add( tmp );
 			igsqr.add( 1e-6f );
@@ -408,9 +418,9 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 
 	pylevel.push_front( std::make_pair<Image*,Image*>( &img1, &img2 ) );
 	do {
-		cimg1 = new Image();
-		cimg2 = new Image();
 		std::pair<Image*,Image*> prev = pylevel.front();
+		cimg1 = new Image( ( size_t ) ( prev.first->width() * SF + 0.5f ), ( size_t ) ( prev.first->height() * SF + 0.5f ), CVT_GRAY, CVT_FLOAT );
+		cimg2 = new Image( ( size_t ) ( prev.second->width() * SF + 0.5f ), ( size_t ) ( prev.second->height() * SF + 0.5f ), CVT_GRAY, CVT_FLOAT );
 		prev.first->scale( *cimg1, ( size_t ) ( prev.first->width() * SF + 0.5f ), ( size_t ) ( prev.first->height() * SF + 0.5f ), sfp );
 		prev.second->scale( *cimg2, ( size_t ) ( prev.second->width() * SF + 0.5f ), ( size_t ) ( prev.second->height() * SF + 0.5f ), sfp );
 
@@ -479,6 +489,7 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 		}
 		warp( u, v, px, py, pair.first, pair.second, NUMWARP );
 	}
+	flow.reallocate( *u );
 	flow.copy( *u );
 	delete u;
 	delete v;
