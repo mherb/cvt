@@ -44,7 +44,7 @@ namespace cvt {
 	{
 		SIMD* simd = SIMD::get();
 		
-		this->checkSizes( img, __PRETTY_FUNCTION__, __LINE__);
+		checkSize( img, __PRETTY_FUNCTION__, __LINE__, _width, _height );
 		
 		if( _order == order && _type == type ) {
 			img.copy( *this );
@@ -862,7 +862,7 @@ namespace cvt {
 		if( _width < kernel._width || _height < kernel._height )
 			throw CVTException( "Image smaller than convolution kernel");
 
-		checkFormatAndSizes( idst, __PRETTY_FUNCTION__, __LINE__ );
+		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
 		
 		dst = idst.data();
 
@@ -958,6 +958,7 @@ namespace cvt {
 		void (SIMD::*scalex_func)( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 		SIMD* simd = SIMD::get();
 
+
 		if( _order_channels[ _order ] == 1 ) {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp1f;
 		} else if( _order_channels[ _order ] == 2 ) {
@@ -965,6 +966,9 @@ namespace cvt {
 		} else {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
 		}
+
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__ );
+		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
 
 		src = _data;
 		dst = idst._data;
@@ -1034,7 +1038,7 @@ namespace cvt {
 			float* pwrp;
 			float data[ 4 ];
 		
-			checkFormatAndSizes( idst, __PRETTY_FUNCTION__, __LINE__ );
+			checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
 
 			src = _data;
 			sstride = _stride;

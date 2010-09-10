@@ -17,10 +17,10 @@
 #include "colorcode.h"
 
 #define LAMBDA 80.0f
-#define THETA 0.1f
+#define THETA 0.15f
 #define NUMWARP 5
 #define NUMROF 5
-#define TAU 0.1149f
+#define TAU 0.1249f
 
 namespace cvt {
 
@@ -104,7 +104,7 @@ namespace cvt {
 		clear( py );
 		warp( u, v, px, py, pyr[ 4 ][ pyridx2 ], pyr[ 4 ][ pyridx ], NUMWARP );
 
-		for( int level = 3; level >= 0; level-- ) {
+		for( int level = 3; level >= 1; level-- ) {
 			size_t w = pyr[ level ][ 0 ]->width();
 			size_t h = pyr[ level ][ 0 ]->height();
 			CLImage* unew = biup( u, 2.0f );

@@ -102,8 +102,8 @@ namespace cvt {
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 		
 			void checkFormat( const Image & img, const char* func, size_t lineNum ) const;
-			void checkSizes( const Image & img, const char* func, size_t lineNum ) const;
-			void checkFormatAndSizes( const Image & img, const char* func, size_t lineNum ) const;
+			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
+			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
 
 			ImageChannelOrder _order;
 			ImageChannelType _type;

@@ -66,7 +66,7 @@ namespace cvt {
 			context = ::cl::Context( devices, NULL, NULL, NULL, &err );
 			if( err != CL_SUCCESS )
 				throw CLException( __PRETTY_FUNCTION__, err );
-			queue = ::cl::CommandQueue( context, device, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err );
+			queue = ::cl::CommandQueue( context, device, 0, &err );
 			if( err != CL_SUCCESS )
 				throw CLException( __PRETTY_FUNCTION__, err );
 

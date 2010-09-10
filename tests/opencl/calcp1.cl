@@ -2,8 +2,10 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 							  __read_only image2d_t pxin, __read_only image2d_t pyin,
 							  __read_only image2d_t dst, const float taulambda )
 {
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	float4 p, px, py, pdx, pdy, norm;
+	int width = get_global_size( 0 );
+	int height = get_global_size( 1 );
 	int2 coord;
 
 	coord.x = get_global_id( 0 );
@@ -13,21 +15,20 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 	px = read_imagef( pxin, sampler, coord );
 	py = read_imagef( pyin, sampler, coord );
 
-//	if( coord.x != 0) {
-		pdx.xy = p.zw - p.xy;
+	pdx.xy = p.zw - p.xy;
+	if( coord.x != width - 1 )
 		pdx.zw = read_imagef( dst, sampler, coord + ( int2 )( 1, 0 ) ).xy - p.zw;
-//	} else {
-//		pdx = ( float4 ) 0.0f;
-//	}
+	else
+		pdx.zw = ( float2 ) 0.0f;
 
-//	if( coord.y != 0) {
+
+	if( coord.y != height - 1 )
 		pdy = read_imagef( dst, sampler, coord + ( int2 )( 0, 1 ) ) - p;
-//	} else {
-//		pdy = ( float4 ) 0.0f;
-//	}
+	else
+		pdy = ( float4 ) 0.0f;
 
-	px = px + taulambda * pdx;
-	py = py + taulambda * pdy;
+	px = px - taulambda * pdx;
+	py = py - taulambda * pdy;
 
 	norm = fmin( ( float4 ) 1.0f, native_rsqrt( px * px + py * py ) );
 	px = px * norm;
