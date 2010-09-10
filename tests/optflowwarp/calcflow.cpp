@@ -305,7 +305,7 @@ void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, 
     Image dy( u->width(), u->height(), CVT_GRAYALPHA, CVT_FLOAT );
 
 #define TAU 0.249f
-	v0->copy( *v );
+//	v0->copy( *v );
 	while( iter-- ) {
 		threshold( v, u, ig2, it, ix, iy, v0, lambda * theta );
 		u->convolve( dx, kerndx, false );
@@ -489,6 +489,7 @@ void calcflow( Image& flow, Image& img1, Image& img2, Image* gt )
 		}
 		warp( u, v, px, py, pair.first, pair.second, NUMWARP );
 	}
+
 	flow.reallocate( *u );
 	flow.copy( *u );
 	delete u;

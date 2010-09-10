@@ -29,6 +29,7 @@ namespace cvt {
 
 	Image::Image( const Image& img ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _order( CVT_BGRA ), _type( CVT_UBYTE ), _width( 0 ), _height( 0 ), _data( 0 ), _iplimage( 0 )
 	{
+		reallocate( img );
 		copy( img );
 	}
 	
