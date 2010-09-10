@@ -108,8 +108,8 @@ namespace cvt {
 				throw CVTException("Could not create png info struct");
 			}
 
-			Image tmpImage;
-			img.convert(tmpImage, img.order(), CVT_UBYTE);
+			Image tmpImage( img.width(), img.height(), img.order(), CVT_UBYTE );
+			img.convert( tmpImage, img.order(), CVT_UBYTE );
 
 			/* Set error handling.  REQUIRED if you aren't supplying your own
 			 * error handling functions in the png_create_write_struct() call.

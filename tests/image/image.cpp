@@ -20,10 +20,12 @@ int main(int argc, char* argv[])
 	
 	try {
 		// RGBA UBYTE IMAGE
-		cvt::Image img(640, 480);
-		cvt::Image imgGray(640, 480, cvt::CVT_GRAYALPHA, cvt::CVT_UBYTE);
-		
+		cvt::Image img;		
 		cvt::ImageIO::loadPNG(img, inputFile);
+		cvt::Image imgGray(img.width(), 
+						   img.height(), 
+						   cvt::CVT_GRAYALPHA, 
+						   cvt::CVT_UBYTE);
 		
 		cvNamedWindow("Test Image");
 		
@@ -36,6 +38,8 @@ int main(int argc, char* argv[])
 		
 		if(imgGray.order() == cvt::CVT_GRAY)
 			std::cout << "Loaded grayscale image" << std::endl;
+		else if(imgGray.order() == cvt::CVT_GRAYALPHA)
+			std::cout << "Loaded grayscale image with alpha channel" << std::endl;
 		
 		// save the gray image
 		cvt::ImageIO::savePNG(imgGray, "out_gray.png");

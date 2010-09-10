@@ -30,7 +30,8 @@ namespace cvt {
 
 		public:
 			Image( size_t w = 1, size_t h = 1, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
-			Image( const Image& img );
+			Image( const Image& img );	
+			
 			~Image();
 
 			size_t width() const;
@@ -47,13 +48,16 @@ namespace cvt {
 			uint8_t const* data() const;
 			uint8_t* scanline( size_t i );
 			uint8_t const* scanline( size_t i ) const;
+			
 			void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 			void reallocate( const Image& i );
+			
 			void copy( const Image& i );
 			IplImage* iplimage() const;
 
 			Image* clone() const;
 			void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
+			void convert( Image& dst ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 			void fill( const Color& c );
@@ -96,7 +100,10 @@ namespace cvt {
 			float* imageToKernel( const Image& k, bool normalize ) const;
 			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
-
+		
+			void checkFormat( const Image & img, const char* func, size_t lineNum ) const;
+			void checkSizes( const Image & img, const char* func, size_t lineNum ) const;
+			void checkFormatAndSizes( const Image & img, const char* func, size_t lineNum ) const;
 
 			ImageChannelOrder _order;
 			ImageChannelType _type;

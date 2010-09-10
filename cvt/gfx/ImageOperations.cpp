@@ -43,8 +43,9 @@ namespace cvt {
 	void Image::convert( Image& img, ImageChannelOrder order, ImageChannelType type ) const
 	{
 		SIMD* simd = SIMD::get();
-		img.reallocate( _width, _height, order, type );
-
+		
+		this->checkSizes( img, __PRETTY_FUNCTION__, __LINE__);
+		
 		if( _order == order && _type == type ) {
 			img.copy( *this );
 			return;
@@ -61,7 +62,7 @@ namespace cvt {
 				case CVT_GRAY:
 					{
 						switch( order ) {
-							case CVT_GRAYALPHA:
+							case CVT_GRAYALPHA:							
 							case CVT_RGBA:
 							case CVT_BGRA:
 								throw CVTException( "Color conversion not implemented" );
@@ -372,6 +373,11 @@ namespace cvt {
 			}
 		} else
 			throw CVTException( "Color conversion not implemented" );
+	}
+	
+	void Image::convert( Image& dst ) const
+	{
+		this->convert( dst, dst.order(), dst.type());
 	}
 
 	void Image::fill( const Color& c )
@@ -856,7 +862,8 @@ namespace cvt {
 		if( _width < kernel._width || _height < kernel._height )
 			throw CVTException( "Image smaller than convolution kernel");
 
-		idst.reallocate( *this );
+		checkFormatAndSizes( idst, __PRETTY_FUNCTION__, __LINE__ );
+		
 		dst = idst.data();
 
 		/* flip and normalize kernel image */
@@ -959,8 +966,6 @@ namespace cvt {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
 		}
 
-		idst.reallocate( width, height, _order, _type );
-
 		src = _data;
 		dst = idst._data;
 		send = src + _stride * _height;
@@ -1028,8 +1033,8 @@ namespace cvt {
 			float* pdst;
 			float* pwrp;
 			float data[ 4 ];
-
-			idst.reallocate( warp._width, warp._height, _order, _type );
+		
+			checkFormatAndSizes( idst, __PRETTY_FUNCTION__, __LINE__ );
 
 			src = _data;
 			sstride = _stride;
