@@ -10,3 +10,6 @@ ADD_SUBDIRECTORY(cvt)
 ADD_SUBDIRECTORY(tests)
 
 add_executable(cltoheader util/cltoheader.cpp)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	SET_TARGET_PROPERTIES(cltoheader PROPERTIES PREFIX "../")	
+ENDIF()

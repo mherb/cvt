@@ -10,8 +10,8 @@
 #include <cvt/vision/Flow.h>
 #include <string>
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <cv.h>
+#include <highgui.h>
 #include <cvt/io/V4L2Camera.h>
 
 #include "calcp1.h"

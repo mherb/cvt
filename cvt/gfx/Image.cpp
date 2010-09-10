@@ -31,7 +31,7 @@ namespace cvt {
 	{
 		copy( img );
 	}
-
+	
 	void Image::reallocate( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type )
 	{
 		if( _width == w && _height == h && _order == order && _type == type )
@@ -53,7 +53,7 @@ namespace cvt {
 		if( this == &img )
 			return;
 
-		reallocate( img._width, img._height, img._order, img._type );
+		checkFormatAndSizes( img, __PRETTY_FUNCTION__, __LINE__ );
 
 		size_t cw = _width * _order_channels[ _order ] * _type_size[ _type ];
 		size_t h = _height;
@@ -66,7 +66,6 @@ namespace cvt {
 			src += img._stride;
 		}
 	}
-
 
 	void Image::upateIpl()
 	{
@@ -171,7 +170,34 @@ namespace cvt {
 		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Order:" << _order_string[ f.order() ] << " Type:" << _type_string[ f.type() ]  << " Stride: " << f.stride() << std::endl;
 		return out;
 	}
-
+	
+	void Image::checkFormat(const Image & img, const char* func, size_t lineNum) const
+	{		
+		if( this->order() != img.order() ){
+			throw Exception("Image formats differ: channel order check failed", "Image", lineNum, func);
+		}
+		
+		if( this->type() != img.type() ){
+			throw Exception("Image formats differ: channel type check failed", "Image", lineNum, func);
+		}
+	}
+	
+	void Image::checkSizes( const Image & img, const char* func, size_t lineNum ) const
+	{
+		if( this->width() != img.width() ){			
+			throw Exception("Image formats differ: width check failed", "Image", lineNum, func);
+		}
+		
+		if( this->height() != img.height() ){
+			throw Exception("Image formats differ: height check failed", "Image", lineNum, func);
+		}		
+	}
+	
+	void Image::checkFormatAndSizes( const Image & img, const char* func, size_t lineNum ) const
+	{
+		checkFormat(img, func, lineNum);
+		checkSizes(img, func, lineNum);
+	}
 
 	BEGIN_CVTTEST( image )
 		Color color( 255, 0, 0, 255 );
