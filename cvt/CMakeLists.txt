@@ -96,11 +96,19 @@ QT4_WRAP_CPP(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_MOC_FILES})
 IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
-			#io/QTKitCamera.h
+#			io/QTKit.h
+#			io/QTKitCamera.h
 		)
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
-			#io/QTKitCamera.cpp
+#			io/QTKit.mm
+#			io/QTKitCamera.cpp
 		)
+		
+#		SET(${MODULE_NAME}_DEP_LIBRARIES
+#			${${MODULE_NAME}_DEP_LIBRARIES}
+#			"-framework CoreFoundation"
+#			"-framework QTKit"
+#		)		
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h

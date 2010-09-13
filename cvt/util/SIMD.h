@@ -53,8 +53,11 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
-
-
+		
+			/* memory block reductions */
+			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
+			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
+			
 			virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampSet2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;

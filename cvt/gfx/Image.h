@@ -9,6 +9,7 @@
 #include "gfx/Color.h"
 #include "gfx/IScaleFilter.h"
 #include "gfx/IFilterParameter.h"
+#include "util/Rect.h"
 
 namespace cvt {
 
@@ -31,6 +32,7 @@ namespace cvt {
 		public:
 			Image( size_t w = 1, size_t h = 1, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
 			Image( const Image& img );	
+			Image( const Image& source, Recti roi, bool ref = false  );
 			
 			~Image();
 
@@ -69,6 +71,9 @@ namespace cvt {
 			void sub( const Image& i );
 			void mul( const Image& i );
 			void mad( const Image& i, float alpha = 1.0f );
+		
+			float ssd( const Image& i ) const;
+			float sad( const Image& i ) const;
 
 			void add( const Color& c );
 			void sub( const Color& c );
