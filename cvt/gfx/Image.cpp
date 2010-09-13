@@ -33,12 +33,36 @@ namespace cvt {
 		copy( img );
 	}
 	
+	Image::Image( const Image& source, Recti roi, bool ref ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _order( CVT_BGRA ), _type( CVT_UBYTE ), _width( 0 ), _height( 0 ), _data( 0 ), _iplimage( 0 )
+	{
+		if( !ref ){
+			reallocate( roi.width, roi.height, source.order(), source.type() );
+			
+			// copy the content
+			size_t h = _height;
+			size_t copyWidth = _width * _order_channels[ _order ] * _type_size[ _type ];
+			uint8_t * src = (uint8_t *)source.scanline( roi.y ) + ( _order_channels[ _order ] * _type_size[ _type ] * roi.x );
+			uint8_t * dst = _data;
+			
+			while ( h-- ) {
+				memcpy( dst, src, copyWidth );
+				dst += _stride;
+				src += source.stride();
+			}
+			
+		} else {
+			throw CVTException("Shared image memory not implemented yet");
+		}
+	}
+	
 	void Image::reallocate( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type )
 	{
 		if( _width == w && _height == h && _order == order && _type == type )
 			return;
 
-		free( _data );
+		if( _data )
+			free( _data );
+		
 		_order = order;
 		_type = type;
 		_width = w;

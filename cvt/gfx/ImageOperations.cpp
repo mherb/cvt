@@ -822,6 +822,69 @@ namespace cvt {
 
 		}
 	}
+	
+	float Image::ssd( const Image& i ) const
+	{
+		if( _width != i._width || _height != i._height ||
+		   _type != i._type || _order != i._order )
+			throw CVTException("Image mismatch");
+		
+		SIMD* simd = SIMD::get();
+		
+		float ssd = 0.0f;
+		
+		switch( _type ) {
+			case CVT_FLOAT:
+			{
+				uint8_t* srcA = i._data;
+				uint8_t* srcB = _data;
+											
+				size_t h = _height;
+				while( h-- ) {
+					ssd += simd->SSD( ( float* ) srcA, ( float* )srcB, _width * _order_channels[ _order ] );
+					srcA += i._stride;
+					srcB += _stride;
+				}
+			}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+				
+		}
+		return ssd;
+	}
+	
+	float Image::sad( const Image& i ) const
+	{
+		if( _width != i._width || _height != i._height ||
+		   _type != i._type || _order != i._order )
+			throw CVTException("Image mismatch");
+		
+		SIMD* simd = SIMD::get();
+		
+		float sad = 0.0f;
+		
+		switch( _type ) {
+			case CVT_FLOAT:
+			{
+				uint8_t* srcA = i._data;
+				uint8_t* srcB = _data;
+				
+				size_t h = _height;
+				while( h-- ) {
+					sad += simd->SAD( ( float* ) srcA, ( float* )srcB, _width * _order_channels[ _order ] );
+					srcA += i._stride;
+					srcB += _stride;
+				}
+			}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+				
+		}
+		
+		return sad ;
+	}	
 
 	void Image::convolve( Image& idst, const Image& kernel, bool normalize ) const
 	{

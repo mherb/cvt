@@ -1,6 +1,7 @@
 #ifndef TOOLS_ABSTRACT_CAMERA
 #define TOOLS_ABSTRACT_CAMERA
 
+#include <iostream>
 #include <cv.h>
 
 namespace cvt {

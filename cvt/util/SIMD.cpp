@@ -935,7 +935,47 @@ namespace cvt {
 			x &= 0x03;
 		}
 	}
-
+	
+	float SIMD::SSD( float const* src1, float const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		
+		float ssd = 0.0f;
+		while( i-- ) {
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+		}
+		
+		i = n & 0x03;
+		while( i-- ) {
+			ssd += Math::sqr( *src1++ - *src2++ );
+		}
+		
+		return ssd;
+	}
+	
+	float SIMD::SAD( float const* src1, float const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		
+		float sad = 0.0f;
+		while( i-- ) {
+			sad += Math::abs( *src1++ - *src2++ );			
+			sad += Math::abs( *src1++ - *src2++ );
+			sad += Math::abs( *src1++ - *src2++ );
+			sad += Math::abs( *src1++ - *src2++ );
+		}
+		
+		i = n & 0x03;
+		while( i-- ) {
+			sad += Math::abs( *src1++ - *src2++ );
+		}
+		
+		return sad;
+	}
+	
 	void SIMD::MulAdd( float* dst, float const* src1, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;

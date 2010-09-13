@@ -2,7 +2,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
-
+#include <cvt/util/Rect.h>
 #include <cvt/io/ImageIO.h>
 
 #include <cv.h>
@@ -18,16 +18,22 @@ int main()
 		cvt::Image imgGray;		
 		cvt::ImageIO::loadPNG( imgGray, inputFile );
 		
+		cvt::Image imgF( imgGray.width(), imgGray.height(), imgGray.order(), cvt::CVT_FLOAT );
+		imgGray.convert( imgF );
 		
 		cvNamedWindow( "Test Image" );
 		
+		cvt::Recti rect(100, 100, 100, 100);
+		cvt::Image patchA(imgF, rect, false);
+		
+		//rect.x = 100;
+		cvt::Image patchB(imgF, rect, false);		
+		
+		std::cout << "SSD: " << patchA.ssd( patchB ) << std::endl;
+		std::cout << "SAD: " << patchA.sad( patchB ) << std::endl;
+		
 		cvShowImage( "Test Image", imgGray.iplimage() );
-		cvWaitKey( 0 );
-		
-		cvt::Image gray;
-		imgGray.convert( gray, cvt::CVT_GRAY, cvt::CVT_FLOAT );		
-				
-		
+		cvWaitKey( 0 );		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;
