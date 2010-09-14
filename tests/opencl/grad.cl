@@ -23,7 +23,7 @@ __kernel void GRAD( __write_only image2d_t g2, __write_only image2d_t gx, __writ
 //	dx = -dx;
 //	dy = -dy;
 
-    write_imagef( g2, coord, ( dx * dx + dy * dy ) + ( float4 ) 1e-10f );
+    write_imagef( g2, coord, ( dx * dx + dy * dy ) + ( float4 ) 1e-6f );
     write_imagef( gx, coord, dx );
     write_imagef( gy, coord, dy );
 }

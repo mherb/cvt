@@ -1,6 +1,6 @@
 __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t gradient )
 {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
     int2 coord;
     float4 grad, color;
     float4 black = ( float4 ) ( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -80,7 +80,7 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
     index1 = ( ( unsigned int ) bla ) % NUMCOLORS;
     index2 = ( index1 + 1 ) % NUMCOLORS;
     color = mix( colorwheel[ index1 ], colorwheel[ index2 ], frac  ).zyxw;
-    color = mix( white, color, fmin( rad / 2.0f, 1.0f ) );
+    color = mix( white, color, fmin( rad / 10.0f, 1.0f ) );
     write_imagef( out, coord, color );
 
     rad = length( grad.zw );
@@ -90,6 +90,6 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
     index1 = ( ( unsigned int ) bla ) % NUMCOLORS;
     index2 = ( index1 + 1 ) % NUMCOLORS;
     color = mix( colorwheel[ index1 ], colorwheel[ index2 ], frac  ).zyxw;
-    color = mix( white, color, fmin( rad / 2.0f, 1.0f ) );
+    color = mix( white, color, fmin( rad / 10.0f, 1.0f ) );
     write_imagef( out, coord + ( int2 ) ( 1, 0 ), color );
 }

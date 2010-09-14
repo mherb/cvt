@@ -9,10 +9,10 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	float alpha, v1, v2, d;
     uint idx;
 	float x;
-	const float4 _e[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f,
+/*	const float4 _e[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f,
 							 0.0f, 1.0f, 0.0f, 0.0f,
 					         0.0f, 0.0f, 1.0f, 0.0f,
-							 0.0f, 0.0f, 0.0f, 1.0f };
+							 0.0f, 0.0f, 0.0f, 1.0f };*/
 
 
 	coord.x = get_global_id( 0 );
@@ -23,7 +23,7 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
     in1 = read_imagef( warp, samplernn, coordw );
     in2 = read_imagef( warp, samplernn, coordw + ( int2 ) ( 1, 0 ) );
 
-#define index(v,i) ( dot( v, _e[ i ] ) )
+#define index(v,i) (((float*)&v)[i])//( dot( v, _e[ i ] ) )
 
 	coordin = in1.xy;
 	x = coordin.x + ( ( float ) coord.x ) * 4.0f + 0.0f;

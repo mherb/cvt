@@ -1,7 +1,7 @@
 
 __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __read_only image2d_t warp )
 {
-	const sampler_t samplernn = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const sampler_t samplernn = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 	int2 coord, coordw;
     float2 coordin;
@@ -9,10 +9,10 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	float alpha, v1, v2, d;
     uint idx;
 	float x;
-	const float4 _e[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f,
+/*	const float4 _e[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f,
 							 0.0f, 1.0f, 0.0f, 0.0f,
 					         0.0f, 0.0f, 1.0f, 0.0f,
-							 0.0f, 0.0f, 0.0f, 1.0f };
+							 0.0f, 0.0f, 0.0f, 1.0f };*/
 
 
 	coord.x = get_global_id( 0 );
@@ -23,14 +23,14 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
     in1 = read_imagef( warp, samplernn, coordw );
     in2 = read_imagef( warp, samplernn, coordw + ( int2 ) ( 1, 0 ) );
 
-#define index(v,i) ( dot( v, _e[ i ] ) )
+#define index(v,i) (((float*)&v)[i])//( dot( v, _e[ i ] ) )
 
 	coordin = in1.xy;
 	x = coordin.x + ( ( float ) coord.x ) * 4.0f + 0.0f;
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = coord.y + coordin.y;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -44,7 +44,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = coord.y + coordin.y;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -58,7 +58,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = coord.y + coordin.y;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -72,7 +72,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( ( float ) ( ( ( int ) d ) >> 2 ) ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = coord.y + coordin.y;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
