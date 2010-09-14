@@ -66,6 +66,12 @@ namespace cvt {
 		}
 	}
 
+	void CLKernel::setArg( size_t n, size_t size )
+	{
+		_kernel.setArg( ( cl_uint ) n, size, NULL );
+	}
+
+
 	void CLKernel::run( const cl::NDRange& offset, const cl::NDRange& global, const cl::NDRange& local, std::vector<cl::Event>* events, cl::Event* event )
 	{
 		if( _cl ) {
@@ -74,6 +80,17 @@ namespace cvt {
 				throw CLException( _name, err );
 			}
 		}
+	}
+
+
+	size_t CLKernel::workGroupSize( ) const
+	{
+		size_t ret;
+		cl_int err;
+		err = _kernel.getWorkGroupInfo( _cl->getCLDevice(), CL_KERNEL_WORK_GROUP_SIZE, &ret );
+		if( err != CL_SUCCESS )
+			throw CLException( _name, err );
+		return ret;
 	}
 
 }
