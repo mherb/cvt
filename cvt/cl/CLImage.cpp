@@ -136,7 +136,7 @@ namespace cvt {
 		cl_channel_type  cltype;
 
 		switch( order ) {
-			case CVT_GRAY: clorder = CL_LUMINANCE; break;
+			case CVT_GRAY: clorder = CL_INTENSITY; break;
 			case CVT_GRAYALPHA: clorder =CL_RA; break;
 			case CVT_RGBA:	clorder = CL_RGBA; break;
 			case CVT_BGRA:	clorder = CL_BGRA; break;
