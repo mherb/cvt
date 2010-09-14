@@ -89,7 +89,6 @@ namespace cvt {
 		std::vector<cl::Event> sync;
 		cl::Event event;
 
-
 		pyridx ^= 0x01;
 		pyr[ 0 ][ pyridx ]->writeData( i.data(), i.stride() );
 		for( int i = 0; i < 4; i++ ) {

@@ -34,7 +34,8 @@ namespace cvt {
 			CLContext* _cl;
 			ImageChannelOrder _order;
 			ImageChannelType _type;
-			size_t _width, _height;
+			size_t _width;
+			size_t _height;
 			cl::Image2D _climage;
 	};
 
