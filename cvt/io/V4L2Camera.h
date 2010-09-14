@@ -26,7 +26,7 @@ class V4L2Camera
 		void captureStart();
 		void captureStop();
 		void captureNext();
-		Image const * image();
+		const Image* image();
 
 		void updateAutoIrisExp();
 		void setAutoIris(bool b);

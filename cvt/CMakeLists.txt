@@ -14,6 +14,7 @@ FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
+FIND_PACKAGE(DC1394 REQUIRED)
 
 FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
@@ -27,6 +28,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
+	${LIBDC1394_LIBRARY}
 )
 
 SET(${MODULE_NAME}_HEADERS
@@ -34,6 +36,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/FileSystem.h
 	io/FloFile.h
 	io/ImageIO.h
+	io/DC1394Camera.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	util/Range.h
@@ -77,6 +80,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageIO.cpp
+	io/DC1394Camera.cpp
 	vision/Flow.cpp
 	gui/Display.cpp	
 	gui/GLView.cpp
@@ -149,6 +153,7 @@ INCLUDE_DIRECTORIES(
 	${Eigen2_INCLUDE_DIR}	
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
+	${LIBDC1394_INCLUDE_DIR}
 )
 
 #set opencl filter path
