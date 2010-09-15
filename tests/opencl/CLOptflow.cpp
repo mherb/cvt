@@ -14,12 +14,13 @@
 #include "warpsub.h"
 #include "grad.h"
 #include "threshold.h"
+#include "median.h"
 #include "colorcode.h"
 
 #define LAMBDA 80.0f
 #define THETA 0.15f
-#define NUMWARP 3
-#define NUMROF 2
+#define NUMWARP 10
+#define NUMROF 10
 #define TAU 0.1249f
 
 namespace cvt {
@@ -52,13 +53,25 @@ namespace cvt {
 		kernelth.build("THRESHOLD", _threshold_source, strlen( _threshold_source ), log );
 		std::cout << "WG-Size THRESHOLD: " << kernelth.workGroupSize() << std::endl;
 		std::cout << "Log TH: " << log << std::endl;
+		kernelmed.build("MEDIAN3", _median_source, strlen( _median_source ), log );
+		std::cout << "WG-Size MEDIAN: " << kernelth.workGroupSize() << std::endl;
+		std::cout << "Log MEDIAN: " << log << std::endl;
 		kernelcflow.build("FlowColorCode", _colorcode_source, strlen( _colorcode_source ), log );
 		std::cout << "WG-Size FlowColorCode: " << kernelcflow.workGroupSize() << std::endl;
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
+		{
+			std::vector<char*>* bin = kernelp1.getBinaries();
+			for(std::vector<char*>::iterator it = bin->begin(); it != bin->end(); it++ ) {
+				std::cout << ( *it ) << std::endl;
+				delete *it;
+			}
+			delete bin;
+		}
 
-		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
-		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
+		/* FIXME: lowest level defines input format */
+		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_FLOAT  );
+		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, CVT_RGBA, CVT_FLOAT  );
 		pyr[ 1 ][ 0 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
 		pyr[ 1 ][ 1 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
 		pyr[ 2 ][ 0 ] = new CLImage( 40, 120, CVT_RGBA, CVT_FLOAT  );
@@ -147,6 +160,10 @@ namespace cvt {
 		CLImage iwy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage iwxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage it( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
+		CLImage v0( v->width(), v->height(), CVT_GRAYALPHA, CVT_FLOAT );
+
+
+
 
 		if( img1->width() <= 20  ) {
 			wx = wy = 10;
@@ -164,37 +181,45 @@ namespace cvt {
 		sync.push_back( event );
 
 		while( iter-- ) {
+#define MX 10
+#define MY 10
+			kernelmed.setArg( 0, &v0 );
+			kernelmed.setArg( 1, v );
+			kernelmed.setArg( 2, sizeof( cl_float4 ) * ( MX + 2 ) * ( MY + 2 ) );
+			kernelmed.run( cl::NullRange, v->globalRange(), cl::NDRange( MX, MY ), &sync, &event );
+			sync[ 0 ] =  event;
+
 			/* warp dx */
 			kernelwarp.setArg( 0, &iwx );
 			kernelwarp.setArg( 1, &dx );
-			kernelwarp.setArg( 2, v );
+			kernelwarp.setArg( 2, &v0 );
 			kernelwarp.run( cl::NullRange, iwx.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			/* warp dy */
 			kernelwarp.setArg( 0, &iwy );
 			kernelwarp.setArg( 1, &dy );
-			kernelwarp.setArg( 2, v );
+			kernelwarp.setArg( 2, &v0 );
 			kernelwarp.run( cl::NullRange, iwy.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			/* warp dxy */
 			kernelwarp.setArg( 0, &iwxy );
 			kernelwarp.setArg( 1, &dxy );
-			kernelwarp.setArg( 2, v );
+			kernelwarp.setArg( 2, &v0 );
 			kernelwarp.run( cl::NullRange, iwxy.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			/* warpsub dt */
 			kernelwarpsub.setArg( 0, &it );
 			kernelwarpsub.setArg( 1, img2 );
-			kernelwarpsub.setArg( 2, v );
+			kernelwarpsub.setArg( 2, &v0 );
 			kernelwarpsub.setArg( 3, img1 );
 			kernelwarpsub.run( cl::NullRange, it.globalRange(), cl::NDRange( wx, wy), &sync );
 
-			tvl1( u, v, px, py, LAMBDA, THETA, &iwxy, &it, &iwx, &iwy, NULL, NUMROF );
+			tvl1( u, v, px, py, LAMBDA, THETA, &iwxy, &it, &iwx, &iwy, &v0, NUMROF );
 		}
 
 	}
 
-	void CLOptflow::tvl1( CLImage* u, CLImage* v, CLImage* px, CLImage* py, float lambda, float _theta, CLImage* ig2, CLImage* it, CLImage* ix, CLImage* iy, CLImage* _v0, size_t iter )
+	void CLOptflow::tvl1( CLImage* u, CLImage* v, CLImage* px, CLImage* py, float lambda, float _theta, CLImage* ig2, CLImage* it, CLImage* ix, CLImage* iy, CLImage* v0, size_t iter )
 	{
 		CLImage pxt, pyt;
 		IFilterScalar tautheta( TAU / _theta );
@@ -207,8 +232,6 @@ namespace cvt {
 		pxt.reallocate( *px );
 		pyt.reallocate( *py );
 
-//		CLImage v0( *v );
-
 		/* Set threshold kernel parameter */
 		kernelth.setArg( 0, v );
 		kernelth.setArg( 1, u );
@@ -216,23 +239,8 @@ namespace cvt {
 		kernelth.setArg( 3, it );
 		kernelth.setArg( 4, ix );
 		kernelth.setArg( 5, iy );
-		kernelth.setArg( 6, u );
+		kernelth.setArg( 6, v0 );
 		kernelth.setArg( 7, &lambdatheta  );
-
-		/* Set kernel p1 parameter */
-		//	kernelp1.setArg( 0, &pxt );
-		//	kernelp1.setArg( 1, &pyt );
-		//	kernelp1.setArg( 2, &px );
-		//	kernelp1.setArg( 3, &py );
-		kernelp1.setArg( 4, u );
-		kernelp1.setArg( 5, &tautheta );
-
-		/* Set kernel p2 parameter */
-		kernelp2.setArg( 0, u );
-		kernelp2.setArg( 1, v );
-		kernelp2.setArg( 2, px );
-		kernelp2.setArg( 3, py );
-		kernelp2.setArg( 4, &theta );
 
 		if( u->width() <= 20 || u->height() <= 20 ) {
 			wx = 10;
@@ -242,7 +250,21 @@ namespace cvt {
 			wy = 15;
 		}
 
+		/* Set kernel p1 parameter */
+		//	kernelp1.setArg( 0, &pxt );
+		//	kernelp1.setArg( 1, &pyt );
+		//	kernelp1.setArg( 2, &px );
+		//	kernelp1.setArg( 3, &py );
+		kernelp1.setArg( 4, u );
+		kernelp1.setArg( 5, &tautheta );
 		kernelp1.setArg( 6, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
+
+		/* Set kernel p2 parameter */
+		kernelp2.setArg( 0, u );
+		kernelp2.setArg( 1, v );
+		kernelp2.setArg( 2, px );
+		kernelp2.setArg( 3, py );
+		kernelp2.setArg( 4, &theta );
 		kernelp2.setArg( 5, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 		kernelp2.setArg( 6, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 
@@ -262,8 +284,8 @@ namespace cvt {
 			kernelp2.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
 
-			//kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
-			//sync[ 0 ] = event;
+//			kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
+//			sync[ 0 ] = event;
 
 			kernelp1.setArg( 0, px );
 			kernelp1.setArg( 1, py );

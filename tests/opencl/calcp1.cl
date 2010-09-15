@@ -16,12 +16,13 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 	coord.y = get_global_id( 1 );
 
 	p = read_imagef( dst, sampler, coord );
-	buf[ ly * ( lw + 1 ) + lx ] = p;
+#define BUF( x, y ) buf[ ( y ) * ( lw + 1 ) + x ]
+	BUF( lx, ly ) = p;
 
 	if( lx == lw - 1 )
-		buf[ ly * ( lw + 1 ) + lx + 1 ] = read_imagef( dst, sampler, coord + ( int2 )( 1, 0 ) );
+		BUF( lx + 1 , ly ) = read_imagef( dst, sampler, coord + ( int2 )( 1, 0 ) );
 	if( ly == lh - 1 )
-		buf[ ( ly + 1 ) * ( lw + 1 ) + lx ] = read_imagef( dst, sampler, coord + ( int2 )( 0, 1 ) );
+		BUF( lx, ly + 1 ) = read_imagef( dst, sampler, coord + ( int2 )( 0, 1 ) );
 
     barrier( CLK_LOCAL_MEM_FENCE );
 
@@ -30,20 +31,21 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 
 	pdx.xy = p.zw - p.xy;
 	if( coord.x != width - 1 )
-		pdx.zw = buf[ ly * ( lw + 1 ) + lx + 1 ].xy - p.zw;
+		pdx.zw = BUF( lx + 1, ly ).xy - p.zw;
 	else
 		pdx.zw = ( float2 ) 0.0f;
 
 
 	if( coord.y != height - 1 )
-		pdy = buf[ ( ly + 1 ) * ( lw + 1 ) + lx ] - p;
+		pdy = BUF( lx, ly + 1 )  - p;
 	else
 		pdy = ( float4 ) 0.0f;
 
-	px = px - taulambda * pdx;
-	py = py - taulambda * pdy;
+	px = px + taulambda * pdx;
+	py = py + taulambda * pdy;
 
 	norm = fmin( ( float4 ) 1.0f, native_rsqrt( px * px + py * py ) );
+//	norm = max( norm, ( float4 ) 1e-6f);
 	px = px * norm;
 	py = py * norm;
 

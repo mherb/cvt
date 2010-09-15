@@ -13,6 +13,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <cvt/io/V4L2Camera.h>
+#include <cvt/io/DC1394Camera.h>
 
 #include "calcp1.h"
 #include "calcp2.h"
@@ -27,41 +28,56 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
+	const Image* frame;
+	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
+//	DC1394Camera cam;
 	std::string log;
+	bool doprocess = true;
 	int key;
+	size_t frames = 0;
+	Timer timer;
 	std::vector<cl::Event> sync;
 	cl::Event event;
 	int pyridx = 0;
 	CLImage* u;
-	Image img1, img2, in1, in2;
 
 	try {
 		CLContext cl;
 		cl.makeCurrent();
 		CLOptflow flow;
 
-		ImageIO::loadPNG( img1, argv[ 1 ] );
-		ImageIO::loadPNG( img2, argv[ 2 ] );
-
-		in1.reallocate( img1.width(), img1.height(), CVT_GRAY, CVT_FLOAT );
-		in2.reallocate( img2.width(), img2.height(), CVT_GRAY, CVT_FLOAT );
-		img1.convert( in1, CVT_GRAY, CVT_FLOAT );
-		img2.convert( in2, CVT_GRAY, CVT_FLOAT );
 
 		Image iflow( 640, 480, CVT_RGBA, CVT_UBYTE );
-		u = flow.updateFlow( in1 );
-		delete u;
-		u = flow.updateFlow( in2 );
-		u->readData( iflow.data(), iflow.stride() );
-		delete u;
 
+		cam.open();
+		cam.init();
+		cam.captureStart();
+		timer.reset();
 
 		while( 1 ) {
-			cvShowImage( "Video", iflow.iplimage() );
+			cam.captureNext();
+			frame = cam.image();
+			if( doprocess ) {
+				int pyridx2 = pyridx ^ 0x01;
+				u = flow.updateFlow( *frame );
+				u->readData( iflow.data(), iflow.stride() );
+				delete u;
+				cvShowImage( "Video", iflow.iplimage() );
+			} else
+				cvShowImage( "Video", frame->iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
 				break;
+			else if( key == ' ')
+				doprocess = !doprocess;
+
+			frames++;
+			if( timer.elapsedSeconds() > 5.0f ) {
+				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
+				frames = 0;
+				timer.reset();
+			}
 
 		}
 	} catch( CLException e ) {

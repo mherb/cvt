@@ -15,20 +15,20 @@ namespace cvt {
 		_name = name;
 		_cl = CLContext::getCurrent();
 
-		cl::Program prog( _cl->getCLContext( ), source, &err );
+		_prog = cl::Program( _cl->getCLContext( ), source, &err );
 		if( err != CL_SUCCESS ) {
 			throw CLException( err );
 		}
 
 		devices.push_back( _cl->getCLDevice( ) );
-		err = prog.build( devices, "-w" );
-		buildinfo = prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( _cl->getCLDevice( ) );
+		err = _prog.build( devices, "-w" );
+		buildinfo = _prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( _cl->getCLDevice( ) );
 		if( err != CL_SUCCESS ) {
 			std::cout << buildinfo << std::endl;
 			throw CLException( err, buildinfo );
 		}
 
-		_kernel = cl::Kernel( prog, name, &err );
+		_kernel = cl::Kernel( _prog, name, &err );
 		if( err != CL_SUCCESS ) {
 			throw CLException( err );
 		}
@@ -90,6 +90,21 @@ namespace cvt {
 		err = _kernel.getWorkGroupInfo( _cl->getCLDevice(), CL_KERNEL_WORK_GROUP_SIZE, &ret );
 		if( err != CL_SUCCESS )
 			throw CLException( _name, err );
+		return ret;
+	}
+
+
+	std::vector<char*>* CLKernel::getBinaries( )
+	{
+		std::vector<size_t> sizes;
+		std::vector<char*>* ret;
+
+		_prog.getInfo( CL_PROGRAM_BINARY_SIZES, &sizes );
+		ret = new std::vector<char*>;
+		for( std::vector<size_t>::iterator it = sizes.begin(); it != sizes.end(); it++ ) {
+			ret->push_back( new char[ *it ] );
+		}
+		_prog.getInfo( CL_PROGRAM_BINARIES, ret );
 		return ret;
 	}
 
