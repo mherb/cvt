@@ -35,6 +35,7 @@ namespace cvt {
 		    CLKernel kernelgrad;
 			CLKernel kernelth;
 			CLKernel kernelcflow;
+			CLKernel kernelmed;
 	};
 
 

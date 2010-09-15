@@ -5,6 +5,7 @@
 #include <cvt/cl/CLException.h>
 #include <cvt/gfx/IFilterParameter.h>
 #include <string>
+#include <vector>
 
 
 namespace cvt {
@@ -17,12 +18,14 @@ namespace cvt {
 			void build( const char* name, const char* src, size_t len, std::string& buildinfo );
 			void run( const cl::NDRange& offset, const cl::NDRange& global, const cl::NDRange& local, std::vector<cl::Event>* events = NULL, cl::Event* event = NULL );
 			size_t workGroupSize( ) const;
+			std::vector<char*>* getBinaries( );
 
 		private:
 			CLKernel( const CLKernel& ) : _cl( 0 ) {};
 
 			const char* _name;
 			::cl::Kernel _kernel;
+			::cl::Program _prog;
 			CLContext* _cl;
 	};
 

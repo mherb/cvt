@@ -4,7 +4,7 @@
 namespace cvt
 {
 
-	DC1394Camera::DC1394Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, ImageChannelOrder order ) :	dmaBufNum( 5 ), mCamIndex( camIndex ), mFrame( NULL), mWidth( width ), mHeight( height ), mFps( fps ), mIorder( order ), capturing( false ), mDcHandle( NULL), mCamera( NULL ),  mSpeed( DC1394_ISO_SPEED_400 )
+	DC1394Camera::DC1394Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, ImageChannelOrder order ) :	dmaBufNum( 10 ), mCamIndex( camIndex ), mFrame( NULL), mWidth( width ), mHeight( height ), mFps( fps ), mIorder( order ), capturing( false ), mDcHandle( NULL), mCamera( NULL ),  mSpeed( DC1394_ISO_SPEED_400 )
 	{
 		mDcHandle = dc1394_new( );
 		dc1394camera_list_t* list;
@@ -43,7 +43,7 @@ namespace cvt
 		enableWhiteBalanceAuto( true );
 		enableShutterAuto( true );
 		enableGainAuto( true );
-		enableIrisAuto( true );
+		enableIrisAuto( false );
 	}
 
 
