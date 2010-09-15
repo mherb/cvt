@@ -19,9 +19,9 @@
 
 #define LAMBDA 80.0f
 #define THETA 0.15f
-#define NUMWARP 10
-#define NUMROF 10
-#define TAU 0.1249f
+#define NUMWARP 4
+#define NUMROF 3
+#define TAU 0.249f
 
 namespace cvt {
 
@@ -59,15 +59,6 @@ namespace cvt {
 		kernelcflow.build("FlowColorCode", _colorcode_source, strlen( _colorcode_source ), log );
 		std::cout << "WG-Size FlowColorCode: " << kernelcflow.workGroupSize() << std::endl;
 		std::cout << "Log FlowColorCode: " << log << std::endl;
-
-		{
-			std::vector<char*>* bin = kernelp1.getBinaries();
-			for(std::vector<char*>::iterator it = bin->begin(); it != bin->end(); it++ ) {
-				std::cout << ( *it ) << std::endl;
-				delete *it;
-			}
-			delete bin;
-		}
 
 		/* FIXME: lowest level defines input format */
 		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_FLOAT  );
@@ -161,8 +152,6 @@ namespace cvt {
 		CLImage iwxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage it( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage v0( v->width(), v->height(), CVT_GRAYALPHA, CVT_FLOAT );
-
-
 
 
 		if( img1->width() <= 20  ) {
@@ -262,8 +251,6 @@ namespace cvt {
 		/* Set kernel p2 parameter */
 		kernelp2.setArg( 0, u );
 		kernelp2.setArg( 1, v );
-		kernelp2.setArg( 2, px );
-		kernelp2.setArg( 3, py );
 		kernelp2.setArg( 4, &theta );
 		kernelp2.setArg( 5, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 		kernelp2.setArg( 6, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
@@ -279,18 +266,24 @@ namespace cvt {
 			kernelp1.setArg( 2, px );
 			kernelp1.setArg( 3, py );
 
+			kernelp2.setArg( 2, &pxt );
+			kernelp2.setArg( 3, &pyt );
+
 			kernelp1.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
 			kernelp2.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
 
-//			kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
-//			sync[ 0 ] = event;
+			kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
+			sync[ 0 ] = event;
 
 			kernelp1.setArg( 0, px );
 			kernelp1.setArg( 1, py );
 			kernelp1.setArg( 2, &pxt );
 			kernelp1.setArg( 3, &pyt );
+
+			kernelp2.setArg( 2, px );
+			kernelp2.setArg( 3, py );
 
 			kernelp1.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
