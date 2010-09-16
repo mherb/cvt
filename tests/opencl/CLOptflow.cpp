@@ -2,6 +2,7 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <string>
 #include <iostream>
+#include <highgui.h>
 
 /* Kernel include */
 #include "calcp1.h"
@@ -16,8 +17,9 @@
 #include "threshold.h"
 #include "median.h"
 #include "colorcode.h"
+#include "gradxy.h"
 
-#define LAMBDA 100.0f
+#define LAMBDA 80.0f
 #define THETA 0.15f
 #define NUMWARP 4
 #define NUMROF 3
@@ -50,6 +52,11 @@ namespace cvt {
 		kernelgrad.build("GRAD", _grad_source, strlen( _grad_source ), log );
 		std::cout << "WG-Size GRAD: " << kernelgrad.workGroupSize() << std::endl;
 		std::cout << "Log GRAD: " << log << std::endl;
+
+		kernelgradxy.build("GRADXY", _gradxy_source, strlen( _gradxy_source ), log );
+		std::cout << "WG-Size GRADXY: " << kernelgradxy.workGroupSize() << std::endl;
+		std::cout << "Log GRADXY: " << log << std::endl;
+
 		kernelth.build("THRESHOLD", _threshold_source, strlen( _threshold_source ), log );
 		std::cout << "WG-Size THRESHOLD: " << kernelth.workGroupSize() << std::endl;
 		std::cout << "Log TH: " << log << std::endl;
@@ -117,7 +124,7 @@ namespace cvt {
 			size_t w = pyr[ level ][ 0 ]->width();
 			size_t h = pyr[ level ][ 0 ]->height();
 			CLImage* unew = biup( u, 2.0f );
-			CLImage* vnew = biup( u, 2.0f );
+			CLImage* vnew = biup( v, 2.0f );
 			CLImage* pxnew = biup( px, 1.0f );
 			CLImage* pynew = biup( py, 1.0f );
 			delete u;
@@ -130,12 +137,17 @@ namespace cvt {
 			py = pynew;
 			warp( u, v, px, py, pyr[ level ][ pyridx2 ], pyr[ level ][ pyridx ], NUMWARP );
 		}
-		delete v;
+			showColorCode( "Flow", u );
+/*		{
+			Image tmp( 320, 240, CVT_GRAY, CVT_FLOAT );
+			pyr[ 1 ][ pyridx ]->readData( tmp.data(), tmp.stride() );
+			cvShowImage( "Input", tmp.iplimage() );
+		}*/
 		delete px;
 		delete py;
-		CLImage* ret = colorcode( u );
+		delete v;
 		delete u;
-		return ret;
+		return NULL;
 	}
 
 	void CLOptflow::warp( CLImage* u, CLImage* v, CLImage* px, CLImage* py, CLImage* img1, CLImage* img2, size_t iter )
@@ -143,7 +155,11 @@ namespace cvt {
 		std::vector<cl::Event> sync;
 		cl::Event event;
 		size_t wx, wy;
+		IFilterScalar mul( 1.0 );
 
+		CLImage dx1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
+		CLImage dy1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
+		CLImage dxy1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage dx( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage dy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage dxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
@@ -151,7 +167,7 @@ namespace cvt {
 		CLImage iwy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage iwxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
 		CLImage it( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage v0( v->width(), v->height(), CVT_GRAYALPHA, CVT_FLOAT );
+		CLImage v0( v->width(), v->height(), CVT_RGBA, CVT_FLOAT );
 
 
 		if( img1->width() <= 20  ) {
@@ -168,9 +184,18 @@ namespace cvt {
 		kernelgrad.setArg( 3, img2 );
 		kernelgrad.setArg( 4, sizeof( cl_float4 ) * ( wx + 2 ) * ( wy + 2 ) );
 		kernelgrad.run( cl::NullRange, img2->globalRange(), cl::NDRange( wx, wy ), NULL, &event );
+
+		kernelgradxy.setArg( 0, &dxy1 );
+		kernelgradxy.setArg( 1, &dx1 );
+		kernelgradxy.setArg( 2, &dy1 );
+		kernelgradxy.setArg( 3, img1 );
+		kernelgradxy.setArg( 4, sizeof( cl_float4 ) * ( wx + 2 ) * ( wy + 2 ) );
+		kernelgradxy.run( cl::NullRange, img1->globalRange(), cl::NDRange( wx, wy ), NULL, &event );
 		sync.push_back( event );
 
+//		v0.copy( *u );
 		while( iter-- ) {
+
 #define MX 10
 #define MY 10
 			kernelmed.setArg( 0, &v0 );
@@ -179,34 +204,42 @@ namespace cvt {
 			kernelmed.run( cl::NullRange, v->globalRange(), cl::NDRange( MX, MY ), &sync, &event );
 			sync[ 0 ] =  event;
 
+			mul.set( 0.5f );
 			/* warp dx */
-			kernelwarp.setArg( 0, &iwx );
-			kernelwarp.setArg( 1, &dx );
-			kernelwarp.setArg( 2, &v0 );
-			kernelwarp.run( cl::NullRange, iwx.globalRange(), cl::NDRange( wx, wy), &sync );
+			kernelwarpsub.setArg( 0, &iwx );
+			kernelwarpsub.setArg( 1, &dx );
+			kernelwarpsub.setArg( 2, &v0 );
+			kernelwarpsub.setArg( 3, &dx1 );
+			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.run( cl::NullRange, iwx.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			/* warp dy */
-			kernelwarp.setArg( 0, &iwy );
-			kernelwarp.setArg( 1, &dy );
-			kernelwarp.setArg( 2, &v0 );
-			kernelwarp.run( cl::NullRange, iwy.globalRange(), cl::NDRange( wx, wy), &sync );
+			kernelwarpsub.setArg( 0, &iwy );
+			kernelwarpsub.setArg( 1, &dy );
+			kernelwarpsub.setArg( 2, &v0 );
+			kernelwarpsub.setArg( 3, &dy1 );
+			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.run( cl::NullRange, iwy.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			/* warp dxy */
-			kernelwarp.setArg( 0, &iwxy );
-			kernelwarp.setArg( 1, &dxy );
-			kernelwarp.setArg( 2, &v0 );
-			kernelwarp.run( cl::NullRange, iwxy.globalRange(), cl::NDRange( wx, wy), &sync );
+			kernelwarpsub.setArg( 0, &iwxy );
+			kernelwarpsub.setArg( 1, &dxy );
+			kernelwarpsub.setArg( 2, &v0 );
+			kernelwarpsub.setArg( 3, &dxy1 );
+			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.run( cl::NullRange, iwxy.globalRange(), cl::NDRange( wx, wy), &sync );
 
+			mul.set( 1.0f );
 			/* warpsub dt */
 			kernelwarpsub.setArg( 0, &it );
 			kernelwarpsub.setArg( 1, img2 );
 			kernelwarpsub.setArg( 2, &v0 );
 			kernelwarpsub.setArg( 3, img1 );
+			kernelwarpsub.setArg( 4, &mul );
 			kernelwarpsub.run( cl::NullRange, it.globalRange(), cl::NDRange( wx, wy), &sync );
 
 			tvl1( u, v, px, py, LAMBDA, THETA, &iwxy, &it, &iwx, &iwy, &v0, NUMROF );
 		}
-
 	}
 
 	void CLOptflow::tvl1( CLImage* u, CLImage* v, CLImage* px, CLImage* py, float lambda, float _theta, CLImage* ig2, CLImage* it, CLImage* ix, CLImage* iy, CLImage* v0, size_t iter )
@@ -290,7 +323,7 @@ namespace cvt {
 			kernelp2.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
 		}
-		kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
+//		kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
 	}
 
 	void CLOptflow::clear( CLImage* i )
@@ -328,4 +361,12 @@ namespace cvt {
 		return ret;
 	}
 
+	void CLOptflow::showColorCode( const char* name, CLImage* i )
+	{
+		CLImage* ret = colorcode( i );
+		Image iflow( 640, 480, CVT_RGBA, CVT_UBYTE );
+		ret->readData( iflow.data(), iflow.stride() );
+		cvShowImage( name, iflow.iplimage() );
+		delete ret;
+	}
 }

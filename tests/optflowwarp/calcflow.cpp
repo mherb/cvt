@@ -10,7 +10,7 @@
 #include <deque>
 #include <iostream>
 
-#define SF 0.8f
+#define SF 0.5f
 #define LAMBDA 80.0f
 #define THETA 0.15f
 #define NUMWARP 10
@@ -315,6 +315,7 @@ void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float theta, 
 		py->convolve( dy, kerndyrev, false );
 		multadd3( *u, *v, dx, dy, theta );
 	}
+	threshold( v, u, ig2, it, ix, iy, v0, lambda * theta );
 }
 
 void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, size_t iter )
@@ -362,7 +363,7 @@ void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, s
 	v0.reallocate( *v );
 
 	while( iter-- ) {
-		cvSmooth( v->iplimage(), v0.iplimage(), CV_MEDIAN, 5 );
+		cvSmooth( v->iplimage(), v0.iplimage(), CV_MEDIAN, 3 );
 
 		img2->warpBilinear( iw, v0 );
 		i2x.warpBilinear( iwx, v0 );

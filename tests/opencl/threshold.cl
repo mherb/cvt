@@ -23,9 +23,10 @@ __kernel void THRESHOLD( __write_only image2d_t iout,
 	in2 = read_imagef( src, sampler, coord + ( int2 ) ( 1, 0 ) );
 	in10 = read_imagef( src0, sampler, coord );
 	in20 = read_imagef( src0, sampler, coord  + ( int2 ) ( 1, 0 ) );
-
-	ux = ( float4 ) ( ( in1.xz - in10.xz ), ( in2.xz - in20.xz ) );
-	uy = ( float4 ) ( ( in1.yw - in10.yw ), ( in2.yw - in20.yw ) );
+	ux.xy = in1.xz - in10.xz;
+    ux.zw = in2.xz - in20.xz;
+	uy.xy = in1.yw - in10.yw;
+    uy.zw = in2.yw - in20.yw;
 	v = dt + ux * dx + uy * dy;
 
 	out.xz = in1.xz - v.xy * dx.xy / dxy.xy;
