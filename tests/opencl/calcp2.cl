@@ -18,8 +18,8 @@ __kernel void Denoise_CALCP2( __write_only image2d_t dst,
 	px = read_imagef( pxin, sampler, coord );
 	py = read_imagef( pyin, sampler, coord );
 
-#define PXBUF( x, y ) pxbuf[ ( y + 1 ) * ( lw + 1 ) + ( x + 1 ) ]
-#define PYBUF( x, y ) pybuf[ ( y + 1 ) * ( lw + 1 ) + ( x + 1 ) ]
+#define PXBUF( x, y ) pxbuf[ mul24(( y + 1 ), ( lw + 1 )) + ( x + 1 ) ]
+#define PYBUF( x, y ) pybuf[ mul24(( y + 1 ), ( lw + 1 )) + ( x + 1 ) ]
 
     PXBUF( lx, ly ) = px;
     PYBUF( lx, ly ) = py;

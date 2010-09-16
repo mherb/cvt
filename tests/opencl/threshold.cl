@@ -3,7 +3,7 @@ __kernel void THRESHOLD( __write_only image2d_t iout,
 						  __read_only image2d_t src, __read_only image2d_t ig2, __read_only image2d_t it,
 						 __read_only image2d_t ix, __read_only image2d_t iy, __read_only image2d_t src0 , const float lambdatheta )
 {
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	float4 dt, dx, dy, th, dxy, v, in1, in2, in10, in20, out;
 	float4 ux, uy;
 	int2 coord;
