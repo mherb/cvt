@@ -16,7 +16,7 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 	coord.y = get_global_id( 1 );
 
 	p = read_imagef( dst, sampler, coord );
-#define BUF( x, y ) buf[ ( y ) * ( lw + 1 ) + x ]
+#define BUF( x, y ) buf[ mul24(( y ),( lw + 1 )) + x ]
 	BUF( lx, ly ) = p;
 
 	if( lx == lw - 1 )

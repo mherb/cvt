@@ -17,7 +17,7 @@
 #include "median.h"
 #include "colorcode.h"
 
-#define LAMBDA 80.0f
+#define LAMBDA 100.0f
 #define THETA 0.15f
 #define NUMWARP 4
 #define NUMROF 3
@@ -61,8 +61,8 @@ namespace cvt {
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
 		/* FIXME: lowest level defines input format */
-		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, CVT_RGBA, CVT_FLOAT  );
+		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
+		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
 		pyr[ 1 ][ 0 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
 		pyr[ 1 ][ 1 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
 		pyr[ 2 ][ 0 ] = new CLImage( 40, 120, CVT_RGBA, CVT_FLOAT  );
@@ -113,7 +113,7 @@ namespace cvt {
 		clear( py );
 		warp( u, v, px, py, pyr[ 4 ][ pyridx2 ], pyr[ 4 ][ pyridx ], NUMWARP );
 
-		for( int level = 3; level >= 0; level-- ) {
+		for( int level = 3; level >= 1; level-- ) {
 			size_t w = pyr[ level ][ 0 ]->width();
 			size_t h = pyr[ level ][ 0 ]->height();
 			CLImage* unew = biup( u, 2.0f );
@@ -166,6 +166,7 @@ namespace cvt {
 		kernelgrad.setArg( 1, &dx );
 		kernelgrad.setArg( 2, &dy );
 		kernelgrad.setArg( 3, img2 );
+		kernelgrad.setArg( 4, sizeof( cl_float4 ) * ( wx + 2 ) * ( wy + 2 ) );
 		kernelgrad.run( cl::NullRange, img2->globalRange(), cl::NDRange( wx, wy ), NULL, &event );
 		sync.push_back( event );
 
@@ -273,7 +274,6 @@ namespace cvt {
 			sync[ 0 ] = event;
 			kernelp2.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
-
 			kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
 			sync[ 0 ] = event;
 
