@@ -1,4 +1,4 @@
-__kernel void BILINUP( __write_only image2d_t out,  __read_only image2d_t in, float mul )
+__kernel void BILINUP( __write_only image2d_t out,  __read_only image2d_t in, const float mul )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 	float2 coord;
@@ -8,7 +8,7 @@ __kernel void BILINUP( __write_only image2d_t out,  __read_only image2d_t in, fl
 	coordout.x = get_global_id( 0 );
 	coordout.y = get_global_id( 1 );
     coord.x = ( float ) coordout.x + 0.5f;
-    coord.y = ( float ) coordout.y + 0.25;
+    coord.y = ( float ) coordout.y + 0.25f;
 	coordout = coordout * 2;
 
     in1 = read_imagef( in, sampler, coord - ( float2 ) ( 1.0f, 0.0f ));

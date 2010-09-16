@@ -12,7 +12,7 @@ __kernel void GRAD( __write_only image2d_t g2, __write_only image2d_t gx, __writ
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-#define BUF(x,y) buf[ mul24( ( y ) + 1, lw + 2 ) + ( x ) + 1 ]
+#define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), ( lw + 2 ) ) + ( x ) + 1 ]
 	BUF( lx, ly ) = read_imagef( in, sampler, coord );
 
 	if( lx == lw - 1 ) {
@@ -37,7 +37,7 @@ __kernel void GRAD( __write_only image2d_t g2, __write_only image2d_t gx, __writ
 
     barrier( CLK_LOCAL_MEM_FENCE );
 
-	dy = BUF( lx, ly - 1 ) - BUF( lx, ly + 1 );
+	dy = BUF( lx, ly + 1 ) - BUF( lx, ly - 1 );
 
 	x1 = BUF( lx - 1, ly );
 	x2 = BUF( lx, ly );

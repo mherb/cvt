@@ -30,7 +30,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -44,7 +44,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -58,7 +58,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
@@ -72,7 +72,7 @@ __kernel void WARP( __write_only image2d_t out,  __read_only image2d_t in,  __re
 	alpha = fract( x, &d );
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( ( float ) ( ( ( int ) d ) >> 2 ) ) + 0.5f;
-	coordin.y = coord.y + coordin.y + 0.5f;
+	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
 	v = read_imagef( in, sampler, coordin );
 	v1 = index( v, idx );
 	if( idx < 3 )
