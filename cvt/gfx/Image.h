@@ -25,6 +25,10 @@ namespace cvt {
 		CVT_FLOAT,
 	};
 
+	enum IBayerPattern {
+		IBAYER_RGGB = 0
+	};
+
 	class Image : public IFilterParameter
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
@@ -99,6 +103,7 @@ namespace cvt {
 			Color operator() (float x, float y) const;
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
+			void debayer( Image& dst, IBayerPattern pattern ) const;
 
 		private:
 			void upateIpl();
@@ -106,7 +111,7 @@ namespace cvt {
 			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 		
-			void checkFormat( const Image & img, const char* func, size_t lineNum ) const;
+			void checkFormat( const Image & img, const char* func, size_t lineNum, ImageChannelOrder oder, ImageChannelType type ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
 			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
 

@@ -29,8 +29,8 @@ using namespace cvt;
 int main( int argc, char** argv )
 {
 	const Image* frame;
-	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
-//	DC1394Camera cam;
+//	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
+	DC1394Camera cam;
 	std::string log;
 	bool doprocess = true;
 	int key;

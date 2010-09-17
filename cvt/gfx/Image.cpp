@@ -196,13 +196,13 @@ namespace cvt {
 		return out;
 	}
 	
-	void Image::checkFormat(const Image & img, const char* func, size_t lineNum) const
+	void Image::checkFormat( const Image & img, const char* func, size_t lineNum, ImageChannelOrder order, ImageChannelType type ) const
 	{		
-		if( this->order() != img.order() ){
+		if( order != img.order() ){
 			throw Exception("Image formats differ: channel order check failed", "Image", lineNum, func);
 		}
 		
-		if( this->type() != img.type() ){
+		if( type != img.type() ){
 			throw Exception("Image formats differ: channel type check failed", "Image", lineNum, func);
 		}
 	}
@@ -220,7 +220,7 @@ namespace cvt {
 	
 	void Image::checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const
 	{
-		checkFormat(img, func, lineNum);
+		checkFormat(img, func, lineNum, _order, _type );
 		checkSize(img, func, lineNum, _width, _height );
 	}
 

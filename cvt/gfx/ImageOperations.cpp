@@ -1030,7 +1030,7 @@ namespace cvt {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
 		}
 
-		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__ );
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _order, _type );
 		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
 
 		src = _data;
@@ -1142,4 +1142,46 @@ namespace cvt {
 			throw CVTException("Unimplemented");
 	}
 
+	void Image::debayer( Image& idst, IBayerPattern pattern ) const
+	{
+		const uint32_t* src1;
+		const uint32_t* src2;
+		const uint32_t* src3;
+		uint32_t* dst;
+		size_t sstride;
+		size_t dstride;
+		size_t h;
+		size_t w, i;
+		SIMD* simd = SIMD::get();
+
+		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, _width, _height );
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, CVT_RGBA, CVT_UBYTE );
+		checkFormat( *this, __PRETTY_FUNCTION__, __LINE__, CVT_GRAY, CVT_UBYTE );
+
+		src1 = ( uint32_t* ) data();
+		sstride = stride() >> 2;
+		src2 = src1 + sstride;
+		src3 = src2 + sstride;
+		w = width();
+		h = height();
+		dst = ( uint32_t* ) idst.data();
+		dstride = idst.stride() >> 2;
+
+		simd->debayer_FIRST_RGGBu8_RGBAu8( dst, src1, src2, w >> 2 );
+		dst += dstride;
+		h = h - 2 ;
+		while( h-- ) {
+			i = ( w >> 2 ) - 2;
+			if(  h & 1 ) {
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+			} else {
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+			}
+			dst += dstride;
+			src1 += sstride;
+			src2 += sstride;
+			src3 += sstride;
+		}
+		simd->debayer_LAST_RGGBu8_RGBAu8( dst, src1, src2, w >> 2 );
+	}
 }
