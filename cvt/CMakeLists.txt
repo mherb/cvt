@@ -37,6 +37,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/FloFile.h
 	io/ImageIO.h
 	io/DC1394Camera.h
+	io/Resources.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	util/Range.h
@@ -46,6 +47,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Timer.h
 	util/SIMD.h
 	util/SIMDSSE.h
+	util/CPU.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Sobel.h
 	gfx/IScaleFilter.h
@@ -57,7 +59,6 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Flow.h
 	gui/GLView.h
 	gui/GLObject.h
-	util/CPU.h
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
@@ -65,6 +66,11 @@ SET(${MODULE_NAME}_HEADERS
 )
 
 SET(${MODULE_NAME}_SOURCES
+	io/FileSystem.cpp
+	io/FloFile.cpp
+	io/ImageIO.cpp
+	io/DC1394Camera.cpp
+	io/Resources.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
 	util/Range.cpp
@@ -77,10 +83,6 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
-	io/FileSystem.cpp
-	io/FloFile.cpp
-	io/ImageIO.cpp
-	io/DC1394Camera.cpp
 	vision/Flow.cpp
 	gui/Display.cpp	
 	gui/GLView.cpp

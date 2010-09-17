@@ -14,3 +14,6 @@ ENDIF(WIN32)
 
 # add global definitions (all platforms, all compilers, all sources)
 ADD_DEFINITIONS(-DNOMINMAX)
+
+SET(DATA_FOLDER	"${CMAKE_SOURCE_DIR}/data")
+ADD_DEFINITIONS(-DDATA_FOLDER="${DATA_FOLDER}")
