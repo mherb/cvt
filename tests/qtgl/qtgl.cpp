@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
 	view.addGLObject( &obj );
 	obj.setSize( 256, 256 );
 
-	cvt::Image img2;
-	img.convert( img2, cvt::CVT_RGBA, cvt::CVT_FLOAT );
+	cvt::Image img2( img.width(), img.height(), cvt::CVT_RGBA, cvt::CVT_FLOAT );
+	img.convert( img2 );
 	cvt::GLImage obj3( img );
 	view.addGLObject( &obj3 );
 	obj3.setSize( 256, 256 );

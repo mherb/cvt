@@ -6,6 +6,7 @@
 
 #include <cvt/util/Exception.h>
 
+#include <cvt/util/Timer.h>
 
 #include <cv.h>
 #include <highgui.h>
@@ -18,6 +19,8 @@ int main( int argc, char* argv[] )
 	std::string inputFile( dataFolder + "/lena_g.png" );
 		
 	try {
+		cvt::Timer timer;
+		
 		// RGBA UBYTE IMAGE
 		cvt::Image imgGray;		
 		cvt::ImageIO::loadPNG( imgGray, inputFile );
@@ -52,9 +55,18 @@ int main( int argc, char* argv[] )
 		
 		cvt::Sobel sobel;
 		
+		
+		timer.reset();
 		sobel.apply( sobelX, sobelY, gray, true );
+		std::cout << "Sobel computation: " << timer.elapsedMiliSeconds() << "ms" << std::endl;
+		
+		timer.reset();
 		cvt::Sobel::magnitude( sobelMag, sobelX, sobelY );
+		std::cout << "Sobel Magnitude computation: " << timer.elapsedMiliSeconds() << "ms" << std::endl;
+		
+		timer.reset();
 		cvt::Sobel::nonMaximalSuppression(suppr, sobelX, sobelY, sobelMag);
+		std::cout << "Sobel nonMax Suppression computation: " << timer.elapsedMiliSeconds() << "ms" << std::endl;
 		
 		sobelX.convert( imgGray );
 		cvShowImage( "Test Image", imgGray.iplimage() );
