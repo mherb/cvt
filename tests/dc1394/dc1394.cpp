@@ -10,6 +10,7 @@
 
 using namespace cvt;
 
+
 int main(int argc, char* argv[])
 {
 	const Image* frame;
@@ -25,11 +26,15 @@ int main(int argc, char* argv[])
 		cam.init();
 		cam.captureStart();
 
+		Image out( 640, 480, CVT_RGBA, CVT_UBYTE );
+
 		timer.reset();
 		while( 1 ) {
 			cam.captureNext();
 			frame = cam.image();
-			cvShowImage( "DC1394", frame->iplimage() );
+
+			frame->debayer( out, IBAYER_RGGB );
+			cvShowImage( "DC1394", out.iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )

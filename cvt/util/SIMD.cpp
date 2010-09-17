@@ -676,10 +676,10 @@ namespace cvt {
 			cpuf = cpuFeatures();
 			if( cpuf & CPU_SSE ) {
 				_simd = new SIMDSSE();
-//				std::cout << "CREATED SIMD-SSE" << std::endl;
+				//				std::cout << "CREATED SIMD-SSE" << std::endl;
 			} else {
 				_simd = new SIMD();
-//				std::cout << "CREATED SIMD-BASE" << std::endl;
+				//				std::cout << "CREATED SIMD-BASE" << std::endl;
 			}
 		} else if( !_simd || ( _simd->type() != type && type != SIMD_BEST ) ) {
 			if( _simd )
@@ -935,11 +935,11 @@ namespace cvt {
 			x &= 0x03;
 		}
 	}
-	
+
 	float SIMD::SSD( float const* src1, float const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
-		
+
 		float ssd = 0.0f;
 		while( i-- ) {
 			ssd += Math::sqr( *src1++ - *src2++ );
@@ -947,19 +947,19 @@ namespace cvt {
 			ssd += Math::sqr( *src1++ - *src2++ );
 			ssd += Math::sqr( *src1++ - *src2++ );
 		}
-		
+
 		i = n & 0x03;
 		while( i-- ) {
 			ssd += Math::sqr( *src1++ - *src2++ );
 		}
-		
+
 		return ssd;
 	}
-	
+
 	float SIMD::SAD( float const* src1, float const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
-		
+
 		float sad = 0.0f;
 		while( i-- ) {
 			sad += Math::abs( *src1++ - *src2++ );			
@@ -967,15 +967,15 @@ namespace cvt {
 			sad += Math::abs( *src1++ - *src2++ );
 			sad += Math::abs( *src1++ - *src2++ );
 		}
-		
+
 		i = n & 0x03;
 		while( i-- ) {
 			sad += Math::abs( *src1++ - *src2++ );
 		}
-		
+
 		return sad;
 	}
-	
+
 	void SIMD::MulAdd( float* dst, float const* src1, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -1684,13 +1684,13 @@ namespace cvt {
 						}
 			}
 
-/*			while( k-- ) {
-				tmp[ 0 ] += *( sp + 0 ) * *wp;
-				tmp[ 1 ] += *( sp + 1 ) * *wp;
-				tmp[ 2 ] += *( sp + 2 ) * *wp;
-				tmp[ 3 ] += *( sp + 3 ) * *wp++;
-				sp += 4;
-			} */
+			/*			while( k-- ) {
+						tmp[ 0 ] += *( sp + 0 ) * *wp;
+						tmp[ 1 ] += *( sp + 1 ) * *wp;
+						tmp[ 2 ] += *( sp + 2 ) * *wp;
+						tmp[ 3 ] += *( sp + 3 ) * *wp++;
+						sp += 4;
+						} */
 			*dst++ = tmp[ 0 ];
 			*dst++ = tmp[ 1 ];
 			*dst++ = tmp[ 2 ];
@@ -1985,6 +1985,318 @@ namespace cvt {
 			*dst++ = pixel[ 3 ];
 			sw++;
 		}
+	}
+
+#define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
+#define BAYER_RGGB_R2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
+#define BAYER_RGGB_EVEN_G1( x ) ( ( x ) & 0xff )
+#define BAYER_RGGB_EVEN_G2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
+#define BAYER_RGGB_ODD_G1( x ) ( ( ( x ) & 0xff00 ) >> 8 )
+#define BAYER_RGGB_ODD_G2( x ) ( ( x ) >> 24 )
+#define BAYER_RGGB_B1( x ) ( ( ( x ) & 0xff00 ) >> 8 )
+#define BAYER_RGGB_B2( x ) ( ( x ) >> 24 )
+
+#define BAYER_MIX2( x, y ) ( ( ( x ) + ( y ) ) >> 1 )
+#define BAYER_MIX4( x, y, z, w  ) ( ( ( x ) + ( y ) + ( z ) + ( w ) ) >> 2 )
+
+	void SIMD::debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	{
+		uint32_t v;
+		size_t i;
+
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R1( *src3 ) ); // RED
+		v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX4( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R1( *src3 ), BAYER_RGGB_R2( *src3 ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src3 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ) ); // RED
+		v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+		v |=  BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX4( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ), BAYER_RGGB_R1( *( src1 + 1  ) ), BAYER_RGGB_R1( *( src3 + 1 ) ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_ODD_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src2 ), BAYER_RGGB_EVEN_G1( *( src2 + 1 ) ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		i = n - 2;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R1( *src3 ) ); // RED
+			v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *( src2 - 1 ) ) ) <<16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX4( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R1( *src3 ), BAYER_RGGB_R2( *src3 ) ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src3 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+			v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ) ); // RED
+			v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX4( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ), BAYER_RGGB_R1( *( src1 + 1  ) ), BAYER_RGGB_R1( *( src3 + 1 ) ) ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_ODD_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src2 ), BAYER_RGGB_EVEN_G1( *( src2 + 1 ) ) ) << 8; // GREEN
+			v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+		}
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R1( *src3 ) ); // RED
+		v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX4( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R1( *src3 ), BAYER_RGGB_R2( *src3 ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src3 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ) ); // RED
+		v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+		v |=  BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R2( *src3 ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_ODD_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+		*dst++ = v;
+	}
+
+	void SIMD::debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	{
+		uint32_t v;
+		size_t i;
+
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G1( *src2 ) ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ) ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+		v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_MIX4( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src2 ), BAYER_RGGB_R1( *( src2 + 1 ) ) ); // RED
+		v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		i = n - 2;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= BAYER_RGGB_R1( *src2 ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_EVEN_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *( src2 - 1 ) ) ) << 8; // GREEN
+			v |= BAYER_MIX4( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *( src1 - 1 ) ), BAYER_RGGB_B2( *( src3 - 1 ) ) ) <<16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+			v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ) ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_RGGB_R2( *src2 ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+			v |= BAYER_MIX4( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R2( *src2 ), BAYER_RGGB_R1( *( src2 + 1 ) ) ); // RED
+			v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+		}
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *( src2 - 1 ) ) ) << 8; // GREEN
+		v |= BAYER_MIX4( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *( src1 - 1 ) ), BAYER_RGGB_B2( *( src3 - 1 ) ) ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+		v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B1( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_MIX4( BAYER_RGGB_B1( *src1 ), BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B2( *src1 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+	}
+
+	void SIMD::debayer_FIRST_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	{
+		uint32_t v;
+		size_t i;
+
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src2 ); // RED
+		v |= BAYER_MIX2( BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src3 ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+		v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src3 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src2 ), BAYER_RGGB_R1( *( src2 + 1 ) ) ); // RED
+		v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src3 ) << 16; // BLUE
+		*dst++ = v;
+		src2++;
+		src3++;
+		i = n - 2;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= BAYER_RGGB_R1( *src2 ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *( src2 - 1 ) ) ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *( src3 - 1 ) ) ) <<16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+			v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+			v |= BAYER_RGGB_B1( *src3 ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_RGGB_R2( *src2 ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R2( *src2 ), BAYER_RGGB_R1( *( src2 + 1 ) ) ); // RED
+			v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+			v |= BAYER_RGGB_B2( *src3 ) << 16; // BLUE
+			*dst++ = v;
+			src2++;
+			src3++;
+		}
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_EVEN_G1( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *( src2 - 1 ) ) ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *( src3 - 1 ) ) ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src2 ), BAYER_RGGB_R2( *src2 ) ); // RED
+		v |= BAYER_RGGB_ODD_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src3 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_EVEN_G2( *src3 ), BAYER_RGGB_ODD_G1( *src2 ), BAYER_RGGB_ODD_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_MIX2( BAYER_RGGB_B1( *src3 ), BAYER_RGGB_B2( *src3 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src2 ); // RED
+		v |= BAYER_RGGB_ODD_G2( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src3 ) << 16; // BLUE
+		*dst++ = v;
+	}
+
+	void SIMD::debayer_LAST_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const size_t n ) const
+	{
+		uint32_t v;
+		size_t i;
+
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src1 ); // RED
+		v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |=BAYER_RGGB_R2( *src1 ); // RED
+		v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+		v |=  BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R1( *( src1 + 1  ) ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src2 ), BAYER_RGGB_EVEN_G1( *( src2 + 1 ) ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		i = n - 2;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= BAYER_RGGB_R1( *src1 ); // RED
+			v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *( src2 - 1 ) ) ) <<16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ) ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+			v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |=BAYER_RGGB_R2( *src1 ); // RED
+			v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+			v |= BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+			*dst++ = v;
+			v = 0xff000000;
+			v |= BAYER_MIX2( BAYER_RGGB_R2( *src1 ), BAYER_RGGB_R1( *( src1 + 1  ) ) ); // RED
+			v |= BAYER_MIX4( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src2 ), BAYER_RGGB_EVEN_G1( *( src2 + 1 ) ) ) << 8; // GREEN
+			v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+		}
+		v = 0xff000000;
+		v |= BAYER_RGGB_R1( *src1 ); // RED
+		v |= BAYER_RGGB_EVEN_G1( *src2 ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) <<16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_MIX2( BAYER_RGGB_R1( *src1 ), BAYER_RGGB_R2( *src1 ) ); // RED
+		v |= BAYER_MIX4( BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_ODD_G1( *src1 ), BAYER_RGGB_EVEN_G1( *src2 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B1( *src2 ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |=BAYER_RGGB_R2( *src1 ); // RED
+		v |= BAYER_RGGB_EVEN_G2( *src2 ) << 8; // GREEN
+		v |=  BAYER_MIX2( BAYER_RGGB_B1( *src2 ), BAYER_RGGB_B2( *src2 ) ) << 16; // BLUE
+		*dst++ = v;
+		v = 0xff000000;
+		v |= BAYER_RGGB_R2( *src1 ); // RED
+		v |= BAYER_MIX2( BAYER_RGGB_ODD_G2( *src1 ), BAYER_RGGB_EVEN_G2( *src2 ) ) << 8; // GREEN
+		v |= BAYER_RGGB_B2( *src2 ) << 16; // BLUE
+		*dst++ = v;
 	}
 
 }
