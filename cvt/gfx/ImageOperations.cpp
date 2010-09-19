@@ -1152,11 +1152,26 @@ namespace cvt {
 		size_t dstride;
 		size_t h;
 		size_t w, i;
+		void (SIMD::*debayereven)( uint32_t*, const uint32_t* , const uint32_t*, const uint32_t*, const size_t ) const;
+		void (SIMD::*debayerodd)( uint32_t*, const uint32_t* , const uint32_t*, const uint32_t*, const size_t ) const;
 		SIMD* simd = SIMD::get();
 
 		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, _width, _height );
-		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, CVT_RGBA, CVT_UBYTE );
 		checkFormat( *this, __PRETTY_FUNCTION__, __LINE__, CVT_GRAY, CVT_UBYTE );
+		if( !( idst._type == CVT_UBYTE && ( idst._order == CVT_RGBA || idst._order == CVT_BGRA || idst._order == CVT_GRAY ) ) )
+			throw CVTException("Unsupported destination format!");
+
+		if( idst._order == CVT_RGBA ) {
+			debayereven = &SIMD::debayer_EVEN_RGGBu8_RGBAu8;
+			debayerodd = &SIMD::debayer_ODD_RGGBu8_RGBAu8;
+		} else if( idst._order == CVT_BGRA ) {
+			debayereven = &SIMD::debayer_EVEN_RGGBu8_BGRAu8;
+			debayerodd = &SIMD::debayer_ODD_RGGBu8_BGRAu8;
+		} else {
+			debayereven = &SIMD::debayer_EVEN_RGGBu8_GRAYu8;
+			debayerodd = &SIMD::debayer_ODD_RGGBu8_GRAYu8;
+		}
+
 
 		src1 = ( uint32_t* ) data();
 		sstride = stride() >> 2;
@@ -1167,21 +1182,21 @@ namespace cvt {
 		dst = ( uint32_t* ) idst.data();
 		dstride = idst.stride() >> 2;
 
-		simd->debayer_FIRST_RGGBu8_RGBAu8( dst, src1, src2, w >> 2 );
+		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
 		dst += dstride;
 		h = h - 2 ;
 		while( h-- ) {
 			i = ( w >> 2 ) - 2;
 			if(  h & 1 ) {
-				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				( simd->*debayereven )( dst, src1, src2, src3, w >> 2 );
 			} else {
-				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				( simd->*debayerodd )( dst, src1, src2, src3, w >> 2 );
 			}
 			dst += dstride;
 			src1 += sstride;
 			src2 += sstride;
 			src3 += sstride;
 		}
-		simd->debayer_LAST_RGGBu8_RGBAu8( dst, src1, src2, w >> 2 );
+		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
 	}
 }
