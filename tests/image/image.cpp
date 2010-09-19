@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 		cvt::ImageIO::loadPNG(img, inputFile);
 		cvt::Image imgGray(img.width(), 
 						   img.height(), 
-						   cvt::CVT_GRAYALPHA, 
-						   cvt::CVT_UBYTE);
+						   cvt::IOrder::GRAYALPHA, 
+						   cvt::IType::UBYTE);
 		
 		cvNamedWindow("Test Image");
 		
@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 		
 		cvt::ImageIO::loadPNG(imgGray, inputGray);
 		
-		if(imgGray.order() == cvt::CVT_GRAY)
+		if(imgGray.order() == cvt::IOrder::GRAY )
 			std::cout << "Loaded grayscale image" << std::endl;
-		else if(imgGray.order() == cvt::CVT_GRAYALPHA)
+		else if(imgGray.order() == cvt::IOrder::GRAYALPHA )
 			std::cout << "Loaded grayscale image with alpha channel" << std::endl;
 		
 		// save the gray image

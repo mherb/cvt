@@ -9,15 +9,15 @@ namespace cvt {
 	class CLImage : public IFilterParameter {
 		friend class CLKernel;
 		public:
-			CLImage( size_t w = 0, size_t h = 0, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+			CLImage( size_t w = 0, size_t h = 0, IOrder order = IOrder::RGBA, IType type = IType::UBYTE );
 			CLImage( const CLImage& i );
 			CLImage( const Image& i );
 			~CLImage();
 
 			size_t width() const { return _width; };
 			size_t height() const { return _height; };
-			ImageChannelOrder order() const { return _order; };
-			ImageChannelType type() const { return _type; };
+			const IOrder order() const { return _order; };
+			const IType type() const { return _type; };
 			::cl::NDRange globalRange() const { return ::cl::NDRange( _width, _height ); };
 
 			void reallocate( const CLImage& i );
@@ -29,11 +29,11 @@ namespace cvt {
 
 
 		private:
-			static ::cl::ImageFormat getCLFormat( ImageChannelOrder order, ImageChannelType type );
+			static ::cl::ImageFormat getCLFormat( IOrder order, IType type );
 
 			CLContext* _cl;
-			ImageChannelOrder _order;
-			ImageChannelType _type;
+			IOrder _order;
+			IType _type;
 			size_t _width;
 			size_t _height;
 			cl::Image2D _climage;

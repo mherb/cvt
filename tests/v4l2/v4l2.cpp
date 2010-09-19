@@ -15,13 +15,13 @@ using namespace cvt;
 int main(int argc, char* argv[])
 {
 	const Image* frame;
-	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
+	V4L2Camera cam( 0, 640, 480, 30.0, IOrder::RGBA );
 	int key;
 	size_t frames = 0;
 	Timer timer;
 	bool doprocess = true;
 	Image x, y, z;
-	Image kernel( 3, 1, CVT_GRAY, CVT_FLOAT );
+	Image kernel( 3, 1, IOrder::GRAY, IType::FLOAT );
 	ROFDenoise rof;
 	IFilterParameterSet* rofparam;
 
@@ -33,10 +33,11 @@ int main(int argc, char* argv[])
 
 	{
 		float* data;
-		data = ( float* ) kernel.data();
+		data = ( float* ) kernel.map();
 		*data++ = 1.0f;
 		*data++ = 0.0f;
 		*data++ = -1.0f;
+		kernel.unmap();
 	}
 
 	try {
@@ -50,12 +51,12 @@ int main(int argc, char* argv[])
 			frame = cam.image();
 
 			if( doprocess ) {
-				frame->convert( x, frame->order(), CVT_FLOAT );
+				frame->convert( x, frame->order(), IType::FLOAT );
 				rofparam->setParameter( "Input", &x );
 				rofparam->setParameter( "Output", &y );
 				//			rof.apply( y, x, 0.25f, 50 );
 				rof.apply( rofparam );
-				y.convert( z, frame->order(), CVT_UBYTE );
+				y.convert( z, frame->order(), IType::UBYTE );
 				//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 				/*		x.convolve( y, kernel );
 						y = ( y + 1.0f ) * 0.5f;*/

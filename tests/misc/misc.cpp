@@ -8,7 +8,9 @@ using namespace cvt;
 int main()
 {
 #define SCALE 50.0f
-	Image i( 200, 200, CVT_GRAYALPHA, CVT_FLOAT );
+	Image i( 200, 200, IOrder::GRAYALPHA, IType::FLOAT );
+	uint8_t* base = i.map();
+	ssize_t istride = i.stride();
 	for( size_t y = 0; y < 200; y++ ) {
 		for( size_t x = 0; x < 200; x++ ) {
 			float xf = ( ( float ) x ) - 100.0f;
@@ -22,10 +24,11 @@ int main()
 				c[ 0 ] = xf / SCALE;
 				c[ 1 ] = yf / SCALE;
 			}
-			*( ( ( float* ) i.scanline( y ) ) + 2 * x ) = c[ 0 ];
-			*( ( ( float* ) i.scanline( y ) ) + 2 * x + 1 ) = c[ 1 ];
+			*( ( ( float* ) ( base + y * istride ) ) + 2 * x ) = c[ 0 ];
+			*( ( ( float* ) ( base + y * istride ) ) + 2 * x + 1 ) = c[ 1 ];
 		}
 	}
+	i.unmap();
 
 	FloFile::FloWriteFile( i, "colorcode.flo" );
 }

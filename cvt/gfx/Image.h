@@ -10,34 +10,20 @@
 #include "gfx/IScaleFilter.h"
 #include "gfx/IFilterParameter.h"
 #include "util/Rect.h"
+#include "gfx/ImageTypes.h"
+#include "gfx/ImageAllocator.h"
 
 namespace cvt {
-
-	enum ImageChannelOrder {
-		CVT_GRAY = 0,
-		CVT_GRAYALPHA,
-		CVT_RGBA,
-		CVT_BGRA
-	};
-
-	enum ImageChannelType {
-		CVT_UBYTE = 0,
-		CVT_FLOAT,
-	};
-
-	enum IBayerPattern {
-		IBAYER_RGGB = 0
-	};
 
 	class Image : public IFilterParameter
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
 
 		public:
-			Image( size_t w = 1, size_t h = 1, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
-			Image( const Image& img );	
-			Image( const Image& source, Recti roi, bool ref = false  );
-			
+			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE );
+			Image( const Image& img );
+			Image( const Image& source, const Recti* roi, bool ref = false  );
+
 			~Image();
 
 			size_t width() const;
@@ -48,21 +34,22 @@ namespace cvt {
 			size_t bpc() const;
 			// bytes per pixel
 			size_t bpp() const;
-			ImageChannelOrder order() const;
-			ImageChannelType type() const;
-			uint8_t* data();
-			uint8_t const* data() const;
-			uint8_t* scanline( size_t i );
-			uint8_t const* scanline( size_t i ) const;
-			
-			void reallocate( size_t w, size_t h, ImageChannelOrder order = CVT_RGBA, ImageChannelType type = CVT_UBYTE );
+			const IOrder order() const;
+			const IType type() const;
+			uint8_t* map() { return _mem->map(); };
+			uint8_t const* map() const { return ( const uint8_t* ) _mem->map(); };
+			void unmap() const { _mem->unmap(); };
+/*			uint8_t* scanline( size_t i );
+			uint8_t const* scanline( size_t i ) const;*/
+
+			void reallocate( size_t w, size_t h, IOrder order = IOrder::RGBA, IType type = IType::UBYTE );
 			void reallocate( const Image& i );
-			
+
 			void copy( const Image& i );
 			IplImage* iplimage() const;
 
 			Image* clone() const;
-			void convert( Image& dst, ImageChannelOrder order, ImageChannelType type ) const;
+			void convert( Image& dst, IOrder order, IType type ) const;
 			void convert( Image& dst ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
@@ -75,7 +62,7 @@ namespace cvt {
 			void sub( const Image& i );
 			void mul( const Image& i );
 			void mad( const Image& i, float alpha = 1.0f );
-		
+
 			float ssd( const Image& i ) const;
 			float sad( const Image& i ) const;
 
@@ -99,33 +86,25 @@ namespace cvt {
 			Image& operator+( const Image& i );
 			Image& operator-( const Image& i );
 
-			Color operator() (int x, int y) const;
-			Color operator() (float x, float y) const;
+/*			Color operator() (int x, int y) const;
+			Color operator() (float x, float y) const;*/
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
-			void debayer( Image& dst, IBayerPattern pattern ) const;
+			void debayer( Image& dst, IBayerPattern_t pattern ) const;
 
 		private:
 			void upateIpl();
 			float* imageToKernel( const Image& k, bool normalize ) const;
 			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
-		
-			void checkFormat( const Image & img, const char* func, size_t lineNum, ImageChannelOrder oder, ImageChannelType type ) const;
+
+			void checkFormat( const Image & img, const char* func, size_t lineNum, IOrder order, IType type ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
 			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
 
-			ImageChannelOrder _order;
-			ImageChannelType _type;
-			size_t _width;
-			size_t _height;
-			size_t _stride;
-			uint8_t* _data;
+			ImageAllocator* _mem;
 			IplImage* _iplimage;
 
-
-			static size_t _type_size[];
-			static size_t _order_channels[];
 	};
 
 	std::ostream& operator<<(std::ostream &out, const Image &f);
@@ -135,56 +114,46 @@ namespace cvt {
 		return new Image( *this );
 	}
 
-	inline ImageChannelOrder Image::order() const
+	const inline IOrder Image::order() const
 	{
-		return _order;
+		return _mem->_order;
 	}
 
-	inline ImageChannelType Image::type() const
+	const inline IType Image::type() const
 	{
-		return _type;
+		return _mem->_type;
 	}
 
 	inline size_t Image::width() const
 	{
-		return _width;
+		return _mem->_width;
 	}
 
 	inline size_t Image::height() const
 	{
-		return _height;
+		return _mem->_height;
 	}
 
 	inline size_t Image::stride() const
 	{
-		return _stride;
+		return _mem->_stride;
 	}
 
-	inline uint8_t* Image::data()
+	/*inline uint8_t* Image::scanline( size_t y )
 	{
-		return _data;
-	}
-
-	inline uint8_t const* Image::data() const
-	{
-		return _data;
-	}
-
-	inline uint8_t* Image::scanline( size_t y )
-	{
-		y = Math::min( y, _height - 1 );
-		return _data + _stride * y;
+		y = Math::min( y, _mem->_height - 1 );
+		return _data + _mem->_stride * y;
 	}
 
 	inline uint8_t const* Image::scanline( size_t y ) const
 	{
-		y = Math::min( y, _height - 1 );
-		return _data + _stride * y;
-	}
+		y = Math::min( y, _mem->_height - 1 );
+		return _data + _mem->_stride * y;
+	}*/
 
 	inline void Image::reallocate( const Image& i )
 	{
-		reallocate( i._width, i._height, i._order, i._type );
+		reallocate( i._mem->_width, i._mem->_height, i._mem->_order, i._mem->_type );
 	}
 
 	inline IplImage* Image::iplimage() const
@@ -248,17 +217,17 @@ namespace cvt {
 
 	inline size_t Image::channels() const
 	{
-		return _order_channels[ _order ];
+		return _mem->_order.channels;
 	}
 
 	inline size_t Image::bpc() const
 	{
-		return _type_size[ _type ] * 8;
+		return _mem->_type.size * 8;
 	}
 
 	inline size_t Image::bpp() const
 	{
-		return _type_size[ _type ] * _order_channels[ _order ];
+		return _mem->_type.size * _mem->_order.channels;
 	}
 }
 

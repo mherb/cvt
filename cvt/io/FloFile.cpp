@@ -67,10 +67,10 @@ namespace cvt {
 				throw CVTException("ReadFlowFile(" + filename + "): illegal height" );
 
 
-			flow.reallocate( width, height, CVT_GRAYALPHA, CVT_FLOAT );
+			flow.reallocate( width, height, IOrder::GRAYALPHA, IType::FLOAT );
 			size_t h = flow.height();
 			size_t w2 = flow.width() * 2;
-			uint8_t* ptr = flow.data();
+			uint8_t* ptr = flow.map();
 			size_t stride = flow.stride();
 			while( h-- ) {
 				if( fread( ptr, sizeof( float ), w2 , stream) != w2)
@@ -78,13 +78,15 @@ namespace cvt {
 				ptr += stride;
 			}
 
+			flow.unmap();
+
 			if( fgetc(stream) != EOF)
 				throw CVTException("ReadFlowFile(" + filename + "): file is too long" );
 
 			if( zerounknown ) {
 				size_t w = flow.width();
 				h = flow.height();
-				ptr = flow.data();
+				ptr = flow.map();
 				while( h-- ) {
 					float* pptr = ( float* ) ptr;
 					w2 = w;
@@ -97,19 +99,20 @@ namespace cvt {
 					}
 					ptr += stride;
 				}
+				flow.unmap();
 			}
 
 			fclose(stream);
 		}
 
 
-		void FloWriteFile( Image& flow, std::string const & filename )
+		void FloWriteFile( const Image& flow, std::string const & filename )
 		{
 
 			if( filename.compare( filename.length() -4, 4, ".flo" ) != 0 )
 				throw CVTException("FloWriteFile " + filename + ": extension .flo expected");
 
-			if( flow.order() != CVT_GRAYALPHA && flow.type() != CVT_FLOAT )
+			if( flow.order() != IOrder::GRAYALPHA && flow.type() != IType::FLOAT )
 				throw CVTException("FloWriteFile " + filename + ": illeagal image format");
 
 			FILE *stream = fopen(filename.c_str(), "wb");
@@ -128,13 +131,14 @@ namespace cvt {
 
 			size_t h = flow.height();
 			size_t w2 = flow.width() * 2;
-			uint8_t* ptr = flow.data();
+			const uint8_t* ptr = flow.map();
 			size_t stride = flow.stride();
 			while( h-- ) {
 				if( fwrite( ptr, sizeof( float ), w2 , stream ) != w2)
 					throw CVTException("ReadFlowFile(" + filename + "): problem writing data" );
 				ptr += stride;
 			}
+			flow.unmap();
 			fclose(stream);
 		}
 

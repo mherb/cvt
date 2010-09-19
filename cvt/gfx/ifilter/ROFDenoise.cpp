@@ -20,6 +20,7 @@ namespace cvt {
 	{
 	}
 
+#if 0
 	static void multadd2( Image& idst, Image& dx, Image& dy, float lambda )
 	{
 		uint8_t* dst;
@@ -56,30 +57,31 @@ namespace cvt {
 			src2 += stridesrc2;
 		}
 	}
+#endif
 
-	static void multadd3( Image& idst, const Image& isrc, Image& dx, Image& dy, float lambda )
+	static void multadd3( Image& idst, const Image& isrc, const Image& dx, const Image& dy, float lambda )
 	{
 		uint8_t* dst;
-		uint8_t const* src1;
-		uint8_t* src2;
-		uint8_t* src3;
+		const uint8_t* src1;
+		const uint8_t* src2;
+		const uint8_t* src3;
 		size_t stridedst;
 		size_t stridesrc1;
 		size_t stridesrc2;
 		size_t stridesrc3;
 		float* pdst;
-		float const* psrc1;
-		float* psrc2;
-		float* psrc3;
+		const float* psrc1;
+		const float* psrc2;
+		const float* psrc3;
 		size_t w, h;
 
-		dst = idst.data();
+		dst = idst.map();
 		stridedst = idst.stride();
-		src1 = isrc.data();
+		src1 = isrc.map();
 		stridesrc1 = isrc.stride();
-		src2 = dx.data();
+		src2 = dx.map();
 		stridesrc2 = dx.stride();
-		src3 = dy.data();
+		src3 = dy.map();
 		stridesrc3 = dy.stride();
 
 		h = idst.height();
@@ -99,32 +101,36 @@ namespace cvt {
 			src2 += stridesrc2;
 			src3 += stridesrc3;
 		}
+		dy.unmap();
+		dx.unmap();
+		isrc.unmap();
+		idst.unmap();
 	}
 
-	static void multadd2_th( Image& idst1, Image& idst2, Image& dx, Image& dy, float taulambda )
+	static void multadd2_th( Image& idst1, Image& idst2, const Image& dx, const Image& dy, float taulambda )
 	{
 		uint8_t* dst1;
 		uint8_t* dst2;
-		uint8_t* src1;
-		uint8_t* src2;
+		const uint8_t* src1;
+		const uint8_t* src2;
 		size_t stridedst1;
 		size_t stridedst2;
 		size_t stridesrc1;
 		size_t stridesrc2;
 		float* pdst1;
 		float* pdst2;
-		float* psrc1;
-		float* psrc2;
+		const float* psrc1;
+		const float* psrc2;
 		size_t w, h;
 		float tmp1, tmp2, norm;
 
-		dst1 = idst1.data();
+		dst1 = idst1.map();
 		stridedst1 = idst1.stride();
-		dst2 = idst2.data();
+		dst2 = idst2.map();
 		stridedst2 = idst2.stride();
-		src1 = dx.data();
+		src1 = dx.map();
 		stridesrc1 = dx.stride();
-		src2 = dy.data();
+		src2 = dy.map();
 		stridesrc2 = dy.stride();
 
 
@@ -153,16 +159,20 @@ namespace cvt {
 			src1 += stridesrc1;
 			src2 += stridesrc2;
 		}
+		dy.unmap();
+		dx.unmap();
+		idst2.unmap();
+		idst1.unmap();
 	}
 
 	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter ) const
 	{
 		Image dx, dy, px, py;
 #if 0
-		Image kerndx( 5, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndy( 1, 5, CVT_GRAY, CVT_FLOAT );
-		Image kerndxrev( 5, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndyrev( 1, 5, CVT_GRAY, CVT_FLOAT );
+		Image kerndx( 5, 1, IOrder::GRAY, IType::FLOAT );
+		Image kerndy( 1, 5, IOrder::GRAY, IType::FLOAT );
+		Image kerndxrev( 5, 1, IOrder::GRAY, IType::FLOAT );
+		Image kerndyrev( 1, 5, IOrder::GRAY, IType::FLOAT );
 
 		{
 			float* data;
@@ -203,36 +213,44 @@ namespace cvt {
 			*data++ = -0.1f;
 		}
 #else
-		Image kerndx( 2, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndy( 1, 2, CVT_GRAY, CVT_FLOAT );
-		Image kerndxrev( 3, 1, CVT_GRAY, CVT_FLOAT );
-		Image kerndyrev( 1, 3, CVT_GRAY, CVT_FLOAT );
+		Image kerndx( 2, 1, IOrder::GRAY, IType::FLOAT );
+		Image kerndy( 1, 2, IOrder::GRAY, IType::FLOAT );
+		Image kerndxrev( 3, 1, IOrder::GRAY, IType::FLOAT );
+		Image kerndyrev( 1, 3, IOrder::GRAY, IType::FLOAT );
 
 		{
 			float* data;
-			data = ( float* ) kerndx.data();
+			uint8_t* base;
+
+			data = ( float* ) kerndx.map();
 			*data++ = -1.0f;
 			*data++ =  1.0f;
 //			*data++ =  0.0f;
+			kerndx.unmap();
 
-			data = ( float* ) kerndy.scanline( 0 );
+			base = kerndy.map();
+			data = ( float* ) ( base );
 			*data++ = -1.0f;
-			data = ( float* ) kerndy.scanline( 1 );
+			data = ( float* ) ( base + kerndy.stride() );
 			*data++ =  1.0f;
 //			data = ( float* ) kerndy.scanline( 2 );
 //			*data++ =  0.0f;
+			kerndy.unmap();
 
-			data = ( float* ) kerndxrev.data();
+			data = ( float* ) kerndxrev.map();
 			*data++ =  0.0f;
 			*data++ = -1.0f;
 			*data++ =  1.0f;
+			kerndxrev.unmap();
 
-			data = ( float* ) kerndyrev.scanline( 0 );
+			base = kerndyrev.map();
+			data = ( float* ) ( base );
 			*data++ =  0.0f;
-			data = ( float* ) kerndyrev.scanline( 1 );
+			data = ( float* ) ( base + kerndyrev.stride() );
 			*data++ = -1.0f;
-			data = ( float* ) kerndyrev.scanline( 2 );
+			data = ( float* ) ( base + kerndyrev.stride() * 2 );
 			*data++ =  1.0f;
+			kerndyrev.unmap();
 		}
 #endif
 

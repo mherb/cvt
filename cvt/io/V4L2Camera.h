@@ -17,7 +17,7 @@ namespace cvt {
 class V4L2Camera
 {
 	public:
-		V4L2Camera(int camIndex = 0, unsigned int width=640, unsigned int height=480, unsigned int fps = 30, ImageChannelOrder order = CVT_BGRA);
+		V4L2Camera(int camIndex = 0, unsigned int width=640, unsigned int height=480, unsigned int fps = 30, IOrder order = IOrder::BGRA);
 		virtual ~V4L2Camera();
 
 		void open();
@@ -53,7 +53,7 @@ class V4L2Camera
 		void** mBuffers;
 
 		Image* mFrame;
-		ImageChannelOrder mImgorder;
+		IOrder mImgorder;
 
 		/** V4L2 specific **/
 		v4l2_ext_control * mExtControlsToSet;

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 	Image* tmp = new Image();
 #if 1
-	img1.convert( *tmp, CVT_BGRA, CVT_FLOAT );
+	img1.convert( *tmp, IOrder::BGRA, IType::FLOAT );
 #ifdef SCALE
 	{
 		Image x;
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 	denoise.apply( in1, *tmp, 0.1f, 100 );
 	in1.mad( *tmp, -0.95f );
 	in1.mul( 5.0f );
-	img2.convert( *tmp, CVT_BGRA, CVT_FLOAT );
+	img2.convert( *tmp, IOrder::BGRA, IType::FLOAT );
 #if SCALE
 	{
 		Image x;
@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
 	in2.mad( *tmp, -0.95f );
 	in2.mul( 5.0f );
 #else
-	img1.convert( in1, CVT_BGRA, CVT_FLOAT );
-	img2.convert( in2, CVT_BGRA, CVT_FLOAT );
+	img1.convert( in1, IOrder::BGRA, IType::FLOAT );
+	img2.convert( in2, IOrder::BGRA, IType::FLOAT );
 #endif
 	delete tmp;
 

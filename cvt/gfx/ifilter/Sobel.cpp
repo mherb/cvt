@@ -27,12 +27,12 @@ namespace cvt {
 	void Sobel::nonMaximalSuppression(Image & nonMaxSuppressed, Image const& dx, 
 									  Image const& dy, Image const& magnitude )
 	{
-		const float * magData;
-		const float * mag0;
-		const float * mag1;
-		const float * dxData;
-		const float * dyData;
-		float * suppr;
+		const float* magData;
+		const float* mag0;
+		const float* mag1;
+		const float* dxData;
+		const float* dyData;
+		float* suppr;
 		
 		float angle;
 		for(size_t row = 1; row < magnitude.height(); row++){

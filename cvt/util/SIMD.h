@@ -21,7 +21,7 @@ namespace cvt {
 			SIMD( const SIMD& x ) {};
 
 		public:
-			virtual void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n );
+			virtual void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 
 			/* set to constant */
 			virtual void SetValueU8( uint8_t* dst, const uint8_t value, const size_t n ) const;
@@ -100,7 +100,7 @@ namespace cvt {
 			static SIMD* _simd;
 	};
 
-	inline void SIMD::Memcpy( uint8_t* dst, uint8_t const* src, const size_t n )
+	inline void SIMD::Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const
 	{
 		::memcpy( dst, src, n );
 	}

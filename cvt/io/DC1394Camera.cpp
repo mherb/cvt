@@ -4,7 +4,7 @@
 namespace cvt
 {
 
-	DC1394Camera::DC1394Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, ImageChannelOrder order ) :	dmaBufNum( 10 ), mCamIndex( camIndex ), mFrame( NULL), mWidth( width ), mHeight( height ), mFps( fps ), mIorder( order ), capturing( false ), mDcHandle( NULL), mCamera( NULL ),  mSpeed( DC1394_ISO_SPEED_400 )
+	DC1394Camera::DC1394Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, IOrder order ) :	dmaBufNum( 10 ), mCamIndex( camIndex ), mFrame( NULL), mWidth( width ), mHeight( height ), mFps( fps ), mIorder( order ), capturing( false ), mDcHandle( NULL), mCamera( NULL ),  mSpeed( DC1394_ISO_SPEED_400 )
 	{
 		mDcHandle = dc1394_new( );
 		dc1394camera_list_t* list;
@@ -27,7 +27,7 @@ namespace cvt
 
 		mFramerate = DC1394_FRAMERATE_30;
 		mMode = DC1394_VIDEO_MODE_640x480_MONO8;
-		mFrame = new Image( 640, 480, CVT_GRAY, CVT_UBYTE );
+		mFrame = new Image( 640, 480, mIorder, IType::UBYTE );
 	}
 
 	DC1394Camera::~DC1394Camera( )
@@ -99,7 +99,9 @@ namespace cvt
 
 		dc1394video_frame_t* frame;
 		dc1394_capture_dequeue( mCamera, DC1394_CAPTURE_POLICY_WAIT, &frame );
-		memcpy( mFrame->data(), frame->image, mWidth * mHeight * sizeof( uint8_t ) );
+		uint8_t* dst = mFrame->map();
+		memcpy( dst, frame->image, mWidth * mHeight * sizeof( uint8_t ) );
+		mFrame->unmap();
 		/* FIXME: convert to image format ... */
 		dc1394_capture_enqueue( mCamera, frame );
 	}

@@ -11,7 +11,7 @@ namespace cvt
 	{
 
 		public:
-			DC1394Camera(int camIndex = 0, unsigned int width=640, unsigned int height=480, unsigned int fps = 30, ImageChannelOrder order = CVT_BGRA);
+			DC1394Camera(int camIndex = 0, unsigned int width=640, unsigned int height=480, unsigned int fps = 30, IOrder order = IOrder::BGRA);
 			~DC1394Camera();
 
 			void open();
@@ -42,7 +42,7 @@ namespace cvt
 			unsigned int mWidth;
 			unsigned int mHeight;
 			unsigned int mFps;
-			ImageChannelOrder mIorder;
+			IOrder mIorder;
 
 			bool capturing;
 			dc1394_t* mDcHandle;
