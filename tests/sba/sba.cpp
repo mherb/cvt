@@ -10,7 +10,6 @@
 #include <cvt/util/Timer.h>
 
 #include <Eigen/Core>
-#include <Eigen/Eigen>
 #include <Eigen/Geometry>
 
 #include <cv.h>

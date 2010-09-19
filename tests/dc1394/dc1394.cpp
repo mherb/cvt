@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 		cam.captureStart();
 
 		Image out( 640, 480, CVT_RGBA, CVT_UBYTE );
+		Image out2( 640, 480, CVT_BGRA, CVT_UBYTE );
 
 		timer.reset();
 		while( 1 ) {
@@ -34,7 +35,8 @@ int main(int argc, char* argv[])
 			frame = cam.image();
 
 			frame->debayer( out, IBAYER_RGGB );
-			cvShowImage( "DC1394", out.iplimage() );
+			out.convert( out2 );
+			cvShowImage( "DC1394", out2.iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
