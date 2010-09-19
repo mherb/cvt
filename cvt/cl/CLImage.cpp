@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	CLImage::CLImage( size_t w, size_t h, ImageChannelOrder order, ImageChannelType type ) : IFilterParameter( IFILTERPARAMETER_IMAGE ),
+	CLImage::CLImage( size_t w, size_t h, IOrder order, IType type ) : IFilterParameter( IFILTERPARAMETER_IMAGE ),
 																							 _order( order ), _type( type ), _width( w ), _height( h )
 	{
 		if( _width == 0 || _height == 0 ) {
@@ -83,7 +83,8 @@ namespace cvt {
 	void CLImage::readImage( Image& i )
 	{
 		i.reallocate( _width, _height, _order, _type );
-		readData( i.data(), i.stride() );
+		readData( i.map(), i.stride() );
+		i.unmap();
 	}
 
 	void CLImage::readData( void* data, size_t stride )
@@ -109,7 +110,8 @@ namespace cvt {
 		if( i.width() != _width || i.height() != _height ||
 		   i.order() != _order || i.type() != _type  )
 			throw CVTException("Image mismatch!");
-		writeData( i.data(), i.stride() );
+		writeData( i.map(), i.stride() );
+		i.unmap();
 	}
 
 	void CLImage::writeData( void const* data, size_t stride ) const
@@ -130,21 +132,21 @@ namespace cvt {
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
-	::cl::ImageFormat CLImage::getCLFormat( ImageChannelOrder order, ImageChannelType type )
+	::cl::ImageFormat CLImage::getCLFormat( IOrder order, IType type )
 	{
 		cl_channel_order clorder;
 		cl_channel_type  cltype;
 
-		switch( order ) {
-			case CVT_GRAY: clorder = CL_INTENSITY; break;
-			case CVT_GRAYALPHA: clorder =CL_RA; break;
-			case CVT_RGBA:	clorder = CL_RGBA; break;
-			case CVT_BGRA:	clorder = CL_BGRA; break;
+		switch( order.id ) {
+			case ICHANNELORDER_GRAY: clorder = CL_INTENSITY; break;
+			case ICHANNELORDER_GRAYALPHA: clorder =CL_RA; break;
+			case ICHANNELORDER_RGBA:	clorder = CL_RGBA; break;
+			case ICHANNELORDER_BGRA:	clorder = CL_BGRA; break;
 		}
 
-		switch( type ) {
-			case CVT_UBYTE: cltype = CL_UNORM_INT8; break;
-			case CVT_FLOAT: cltype = CL_FLOAT; break;
+		switch( type.id ) {
+			case ICHANNELTYPE_UBYTE: cltype = CL_UNORM_INT8; break;
+			case ICHANNELTYPE_FLOAT: cltype = CL_FLOAT; break;
 		}
 
 		return cl::ImageFormat( clorder, cltype );

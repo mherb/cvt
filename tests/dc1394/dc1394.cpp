@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 		cam.init();
 		cam.captureStart();
 
-		Image out( 640, 480, CVT_GRAY, CVT_UBYTE );
+		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
 
 		timer.reset();
 		while( 1 ) {

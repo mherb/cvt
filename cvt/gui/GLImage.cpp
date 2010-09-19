@@ -47,15 +47,16 @@ namespace cvt {
 		_ih = ( float ) img.height();
 
 		glBindTexture( GL_TEXTURE_2D, _tex );
-		switch( img.order() ) {
-			case CVT_GRAY: format = GL_LUMINANCE; break;
-			case CVT_GRAYALPHA: format = GL_LUMINANCE_ALPHA; break;
-			case CVT_RGBA: format = GL_RGBA; break;
-			case CVT_BGRA: format = GL_BGRA; break;
+		switch( img.order().id ) {
+			case ICHANNELORDER_GRAY: format = GL_LUMINANCE; break;
+			case ICHANNELORDER_GRAYALPHA: format = GL_LUMINANCE_ALPHA; break;
+			case ICHANNELORDER_RGBA: format = GL_RGBA; break;
+			case ICHANNELORDER_BGRA: format = GL_BGRA; break;
 		}
 		glPixelStorei( GL_UNPACK_ALIGNMENT, ( img.bpc() >> 3 ) );
 		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) img.stride() / ( img.bpp() ) );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) img.width(), ( GLsizei ) img.height(), 0, format, (img.type()==CVT_UBYTE)?GL_UNSIGNED_BYTE:GL_FLOAT, ( void* ) img.data() );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) img.width(), ( GLsizei ) img.height(), 0, format, (img.type()==IType::UBYTE)?GL_UNSIGNED_BYTE:GL_FLOAT, ( void* ) img.map() );
+		img.unmap();
 		updated();
 	}
 }

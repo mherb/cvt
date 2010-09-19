@@ -48,14 +48,18 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMD.h
 	util/SIMDSSE.h
 	util/CPU.h
+	gfx/Image.h
+	gfx/ImageTypes.h
 	gfx/ifilter/ROFDenoise.h
-	gfx/ifilter/Sobel.h
+#	gfx/ifilter/Sobel.h
 	gfx/IScaleFilter.h
 	gfx/IFilterParameter.h
 	gfx/IFilterParameterInfo.h
 	gfx/IFilterParameterSet.h
 	gfx/IFilterScalar.h
 	gfx/IFilterVector.h
+	gfx/ImageAllocator.h
+	gfx/ImageAllocatorMem.h
 	vision/Flow.h
 	gui/GLView.h
 	gui/GLObject.h
@@ -79,10 +83,12 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDSSE.cpp
 	util/SIMDTest.cpp
 	gfx/Image.cpp
+	gfx/ImageTypes.cpp
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
-	gfx/ifilter/Sobel.cpp
+#	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
+	gfx/ImageAllocatorMem.cpp
 	vision/Flow.cpp
 	gui/Display.cpp	
 	gui/GLView.cpp

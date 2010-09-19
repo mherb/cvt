@@ -16,21 +16,21 @@ namespace cvt {
 	void Display::addImage(cvt::Image & img)
 	{
 		QGraphicsPixmapItem * pi = 0;
-		switch (img.order()) {
-			case CVT_BGRA:
-			case CVT_RGBA:
+		switch (img.order().id ) {
+			case ICHANNELORDER_BGRA:
+			case ICHANNELORDER_RGBA:
 				{    
-					QImage i((uchar*)img.data(), 
+					QImage i((uchar*)img.map(), 
 							 img.width(), 
 							 img.height(), 
 							 img.stride(), 
 							 QImage::Format_ARGB32);
-
+					img.unmap();
 					pi = scene->addPixmap(QPixmap::fromImage(i));
 					break;
 				}	    
-			case CVT_GRAY:				
-			case CVT_GRAYALPHA:
+			case ICHANNELORDER_GRAY:				
+			case ICHANNELORDER_GRAYALPHA:
 				return;
 				break;
 			default:

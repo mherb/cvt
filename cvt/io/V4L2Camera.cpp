@@ -67,12 +67,12 @@ namespace cvt {
 		p2 |= Math::clamp( y1 + b, 0, 255 ) << 16;
 	}
 
-	static void YUYV2COLOR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc, ImageChannelOrder order )
+	static void YUYV2COLOR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc, IOrder order )
 	{
 		size_t l, c;
 
 		l = h;
-		if( order == CVT_RGBA ) {
+		if( order == IOrder::RGBA ) {
 			uint32_t *s;
 			uint32_t *d;
 			uint32_t p1, p2;
@@ -89,7 +89,7 @@ namespace cvt {
 				src += stridesrc;
 				dst += stridedst;
 			}
-		} else if( order == CVT_BGRA ) {
+		} else if( order == IOrder::BGRA ) {
 			uint32_t *s;
 			uint32_t *d;
 			uint32_t p1, p2;
@@ -106,7 +106,7 @@ namespace cvt {
 				src += stridesrc;
 				dst += stridedst;
 			}
-		} else if( order == CVT_GRAY ) {
+		} else if( order == IOrder::GRAY ) {
 			uint32_t *s;
 			uint8_t *d;
 
@@ -121,7 +121,7 @@ namespace cvt {
 				src += stridesrc;
 				dst += stridedst;
 			}
-		} else if( order == CVT_GRAYALPHA ) {
+		} else if( order == IOrder::GRAYALPHA ) {
 			uint32_t *s;
 			uint8_t *d;
 
@@ -142,7 +142,7 @@ namespace cvt {
 	}
 
 
-	V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, ImageChannelOrder order) :
+	V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, IOrder order) :
 		mWidth(width),
 		mHeight(height),
 		mFps(fps),
@@ -352,7 +352,8 @@ namespace cvt {
 
 		// decompress frame
 		if( mBuffer.bytesused >= mFrame->height() * mFrame->width() * 2 ) {
-			YUYV2COLOR( mFrame->data(), ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), mFrame->stride(), 2 * mFrame->width(), mImgorder );
+			YUYV2COLOR( mFrame->map(), ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), mFrame->stride(), 2 * mFrame->width(), mImgorder );
+			mFrame->unmap();
 		}
 
 		ret = ioctl(mFd, VIDIOC_QBUF, &mBuffer);

@@ -47,7 +47,7 @@ int main( int argc, char** argv )
 		CLOptflow flow;
 
 
-		Image iflow( 640, 480, CVT_RGBA, CVT_UBYTE );
+		Image iflow( 640, 480, IOrder::RGBA, IType::UBYTE );
 
 		cam.open();
 		cam.init();

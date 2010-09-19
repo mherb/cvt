@@ -71,8 +71,8 @@ namespace cvt {
 		{
 			if( flow.width() != gt.width() ||
 			   flow.height() != gt.height() ||
-			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
-			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+			   flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT ||
+			   gt.order() != IOrder::GRAYALPHA || gt.type() != IType::FLOAT )
 				throw CVTException( "FlowAAE: illegal flow data" );
 
 			size_t stride1, stride2;
@@ -87,8 +87,8 @@ namespace cvt {
 			stride2 = gt.stride();
 			w = gt.width();
 			h = gt.height();
-			ptr1 = flow.data();
-			ptr2 = gt.data();
+			ptr1 = flow.map();
+			ptr2 = gt.map();
 
 
 			while( h-- ) {
@@ -106,7 +106,8 @@ namespace cvt {
 				ptr1 += stride1;
 				ptr2 += stride2;
 			}
-
+			flow.unmap();
+			gt.unmap();
 			return  aee / ( ( float ) ( gt.width() * gt.height() - unknown ) );
 		}
 
@@ -114,8 +115,8 @@ namespace cvt {
 		{
 			if( flow.width() != gt.width() ||
 			   flow.height() != gt.height() ||
-			   flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT ||
-			   gt.order() != CVT_GRAYALPHA || gt.type() != CVT_FLOAT )
+			   flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT ||
+			   gt.order() != IOrder::GRAYALPHA || gt.type() != IType::FLOAT )
 				throw CVTException( "FlowAAE: illegal flow data" );
 
 			size_t stride1, stride2;
@@ -130,8 +131,8 @@ namespace cvt {
 			stride2 = gt.stride();
 			w = flow.width();
 			h = flow.height();
-			ptr1 = flow.data();
-			ptr2 = gt.data();
+			ptr1 = flow.map();
+			ptr2 = gt.map();
 
 
 			while( h-- ) {
@@ -152,13 +153,15 @@ namespace cvt {
 				ptr1 += stride1;
 				ptr2 += stride2;
 			}
+			flow.unmap();
+			gt.unmap();
 
 			return Math::rad2Deg( aae / ( ( float ) ( gt.width() * gt.height() - unknown ) ) );
 		}
 
 		void colorCode( Image& idst, Image& flow )
 		{
-			if( flow.order() != CVT_GRAYALPHA || flow.type() != CVT_FLOAT )
+			if( flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT )
 				throw CVTException( "Illegal flow data" );
 
 			uint8_t* dst;
@@ -176,11 +179,11 @@ namespace cvt {
 			float alpha;
 			size_t i1, i2;
 
-			idst.reallocate( flow.width(), flow.height(), CVT_BGRA, CVT_FLOAT );
+			idst.reallocate( flow.width(), flow.height(), IOrder::BGRA, IType::FLOAT );
 
-			dst = idst.data();
+			dst = idst.map();
 			stridedst = idst.stride();
-			src = flow.data();
+			src = flow.map();
 			stridesrc = flow.stride();
 
 			h = idst.height();
@@ -215,7 +218,8 @@ namespace cvt {
 				dst += stridedst;
 				src += stridesrc;
 			}
-
+			idst.unmap();
+			flow.unmap();
 		}
 
 	}

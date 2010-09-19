@@ -68,16 +68,16 @@ namespace cvt {
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
 		/* FIXME: lowest level defines input format */
-		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
-		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, CVT_RGBA, CVT_UBYTE  );
-		pyr[ 1 ][ 0 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 1 ][ 1 ] = new CLImage( 80, 240, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 2 ][ 0 ] = new CLImage( 40, 120, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 2 ][ 1 ] = new CLImage( 40, 120, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 3 ][ 0 ] = new CLImage( 20, 60, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 3 ][ 1 ] = new CLImage( 20, 60, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 4 ][ 0 ] = new CLImage( 10, 30, CVT_RGBA, CVT_FLOAT  );
-		pyr[ 4 ][ 1 ] = new CLImage( 10, 30, CVT_RGBA, CVT_FLOAT  );
+		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, IOrder::RGBA, IType::UBYTE  );
+		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, IOrder::RGBA, IType::UBYTE  );
+		pyr[ 1 ][ 0 ] = new CLImage( 80, 240, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 1 ][ 1 ] = new CLImage( 80, 240, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 2 ][ 0 ] = new CLImage( 40, 120, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 2 ][ 1 ] = new CLImage( 40, 120, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 3 ][ 0 ] = new CLImage( 20, 60, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 3 ][ 1 ] = new CLImage( 20, 60, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 4 ][ 0 ] = new CLImage( 10, 30, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 4 ][ 1 ] = new CLImage( 10, 30, IOrder::RGBA, IType::FLOAT  );
 	}
 
 	CLOptflow::~CLOptflow()
@@ -101,7 +101,8 @@ namespace cvt {
 		cl::Event event;
 
 		pyridx ^= 0x01;
-		pyr[ 0 ][ pyridx ]->writeData( i.data(), i.stride() );
+		pyr[ 0 ][ pyridx ]->writeData( i.map(), i.stride() );
+		i.unmap();
 		for( int i = 0; i < 4; i++ ) {
 			kernelbidown.setArg( 0, pyr[ i + 1 ][ pyridx ] );
 			kernelbidown.setArg( 1, pyr[ i ][ pyridx ] );
@@ -110,10 +111,10 @@ namespace cvt {
 			sync.push_back( event );
 		}
 
-		CLImage* u = new CLImage( 20, 30, CVT_RGBA, CVT_FLOAT );
-		CLImage* v = new CLImage( 20, 30, CVT_RGBA, CVT_FLOAT );
-		CLImage* px = new CLImage( 20, 30, CVT_RGBA, CVT_FLOAT );
-		CLImage* py = new CLImage( 20, 30, CVT_RGBA, CVT_FLOAT );
+		CLImage* u = new CLImage( 20, 30, IOrder::RGBA, IType::FLOAT );
+		CLImage* v = new CLImage( 20, 30, IOrder::RGBA, IType::FLOAT );
+		CLImage* px = new CLImage( 20, 30, IOrder::RGBA, IType::FLOAT );
+		CLImage* py = new CLImage( 20, 30, IOrder::RGBA, IType::FLOAT );
 		clear( u );
 		clear( v );
 		clear( px );
@@ -139,7 +140,7 @@ namespace cvt {
 		}
 			showColorCode( "Flow", u );
 /*		{
-			Image tmp( 320, 240, CVT_GRAY, CVT_FLOAT );
+			Image tmp( 320, 240, CVT_GRAY, IType::FLOAT );
 			pyr[ 1 ][ pyridx ]->readData( tmp.data(), tmp.stride() );
 			cvShowImage( "Input", tmp.iplimage() );
 		}*/
@@ -157,17 +158,17 @@ namespace cvt {
 		size_t wx, wy;
 		IFilterScalar mul( 1.0 );
 
-		CLImage dx1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage dy1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage dxy1( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage dx( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage dy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage dxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage iwx( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage iwy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage iwxy( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage it( img1->width(), img1->height(), CVT_RGBA, CVT_FLOAT );
-		CLImage v0( v->width(), v->height(), CVT_RGBA, CVT_FLOAT );
+		CLImage dx1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage dy1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage dxy1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage dx( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage dy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage dxy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage iwx( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage iwy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage iwxy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage it( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT );
+		CLImage v0( v->width(), v->height(), IOrder::RGBA, IType::FLOAT );
 
 
 		if( img1->width() <= 20  ) {
@@ -335,7 +336,7 @@ namespace cvt {
 	CLImage* CLOptflow::biup( CLImage* in, float mul )
 	{
 		IFilterScalar m( mul );
-		CLImage* ret = new CLImage( in->width() * 2, in->height() * 2, CVT_RGBA, CVT_FLOAT );
+		CLImage* ret = new CLImage( in->width() * 2, in->height() * 2, IOrder::RGBA, IType::FLOAT );
 		kernelbiup.setArg( 0, ret );
 		kernelbiup.setArg( 1, in );
 		kernelbiup.setArg( 2, &m );
@@ -345,7 +346,7 @@ namespace cvt {
 
 	CLImage* CLOptflow::colorcode( CLImage* in )
 	{
-		CLImage* ret = new CLImage( in->width() * 2, in->height(), CVT_RGBA, CVT_UBYTE );
+		CLImage* ret = new CLImage( in->width() * 2, in->height(), IOrder::RGBA, IType::UBYTE );
 		size_t wx, wy;
 
 		if( in->width() <= 20  ) {
@@ -364,8 +365,9 @@ namespace cvt {
 	void CLOptflow::showColorCode( const char* name, CLImage* i )
 	{
 		CLImage* ret = colorcode( i );
-		Image iflow( 640, 480, CVT_RGBA, CVT_UBYTE );
-		ret->readData( iflow.data(), iflow.stride() );
+		Image iflow( 640, 480, IOrder::RGBA, IType::UBYTE );
+		ret->readData( iflow.map(), iflow.stride() );
+		iflow.unmap();
 		cvShowImage( name, iflow.iplimage() );
 		delete ret;
 	}

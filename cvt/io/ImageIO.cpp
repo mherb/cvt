@@ -56,17 +56,17 @@ namespace cvt {
 				case PNG_COLOR_TYPE_GRAY:
 					if(bit_depth < 8)
 						png_set_expand(png_ptr);
-					img.reallocate( width, height, CVT_GRAY, CVT_UBYTE );		    
+					img.reallocate( width, height, IOrder::GRAY, IType::UBYTE );		    
 					break;
 				case PNG_COLOR_TYPE_GRAY_ALPHA:
-					img.reallocate( width, height, CVT_GRAYALPHA, CVT_UBYTE );
+					img.reallocate( width, height, IOrder::GRAYALPHA, IType::UBYTE );
 					break;
 				case PNG_COLOR_TYPE_RGB:
 					/* expand paletted colors into true RGB triplets */		    
 					png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 				case PNG_COLOR_TYPE_RGBA:
 					png_set_bgr(png_ptr);
-					img.reallocate( width, height, CVT_BGRA, CVT_UBYTE );
+					img.reallocate( width, height, IOrder::BGRA, IType::UBYTE );
 					break;
 				default:
 					break;
@@ -74,13 +74,16 @@ namespace cvt {
 
 
 			png_bytepp row_pointers = new png_bytep[height];
+			uint8_t* base = img.map();
 			for (unsigned y = 0; y < height; y++)
-				row_pointers[y] = img.data() + y * img.stride();
+				row_pointers[y] = base + y * img.stride();
 
 			png_read_image(png_ptr, row_pointers);
 			png_read_end(png_ptr, info_ptr);
 
 			delete [] row_pointers;
+			img.unmap();
+
 			fclose( fp );
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
 			png_destroy_info_struct( png_ptr, (png_infopp) &info_ptr);
@@ -108,8 +111,8 @@ namespace cvt {
 				throw CVTException("Could not create png info struct");
 			}
 
-			Image tmpImage( img.width(), img.height(), img.order(), CVT_UBYTE );
-			img.convert( tmpImage, img.order(), CVT_UBYTE );
+			Image tmpImage( img.width(), img.height(), img.order(), IType::UBYTE );
+			img.convert( tmpImage );
 
 			/* Set error handling.  REQUIRED if you aren't supplying your own
 			 * error handling functions in the png_create_write_struct() call.
@@ -124,20 +127,20 @@ namespace cvt {
 			png_init_io(png_ptr, fp);
 
 			int channels;
-			switch (tmpImage.order()) {
-				case CVT_GRAY:
+			switch (tmpImage.order().id ) {
+				case ICHANNELORDER_GRAY:
 					channels = PNG_COLOR_TYPE_GRAY;
 					break;
-				case CVT_GRAYALPHA:
+				case ICHANNELORDER_GRAYALPHA:
 					channels = PNG_COLOR_TYPE_GA;
 					break;
-				case CVT_RGBA:
+				case ICHANNELORDER_RGBA:
 					channels = PNG_COLOR_TYPE_RGBA;
 					break;
-				case CVT_BGRA:
+				case ICHANNELORDER_BGRA:
 					channels = PNG_COLOR_TYPE_RGBA;
 					png_set_bgr(png_ptr);
-					break;		    
+					break;
 				default:
 					throw CVTException("Input channel format not supported for writing");
 					break;
@@ -168,13 +171,16 @@ namespace cvt {
 				throw CVTException("Image is too tall to process in memory");
 			}
 
+			uint8_t* base = tmpImage.map();
 			for (size_t k = 0; k < tmpImage.height(); k++)
-				row_pointers[k] = (const png_bytep)(tmpImage.scanline(k));
+				row_pointers[k] = base + tmpImage.stride() * k;
 
 			png_write_image(png_ptr, row_pointers);
 
 			/* It is REQUIRED to call this to finish writing the rest of the file */
 			png_write_end(png_ptr, info_ptr);
+
+			tmpImage.unmap();
 
 			/* Clean up after the write, and free any memory allocated */
 			png_destroy_write_struct(&png_ptr, &info_ptr);
