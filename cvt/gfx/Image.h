@@ -46,6 +46,8 @@ namespace cvt {
 			void reallocate( const Image& i );
 
 			void copy( const Image& i );
+			void copyRect( int x, int y, const Image& i, int sx, int sy, int swidth, int sheight );
+
 			IplImage* iplimage() const;
 
 			Image* clone() const;

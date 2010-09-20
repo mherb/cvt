@@ -49,6 +49,43 @@ namespace cvt {
 		_mem->copy( img._mem );
 	}
 
+	void Image::copyRect( int x, int y, const Image& img, int sx, int sy, int swidth, int sheight )
+	{
+		checkFormat( img, __PRETTY_FUNCTION__, __LINE__, _mem->_order, _mem->_type );
+		int tx, ty;
+
+		tx = -x + sx;
+		ty = -y + sy;
+		Recti rdst( 0, 0, ( int ) _mem->_width, ( int ) _mem->_height );
+		rdst.translate( tx, ty );
+		Recti rsrc( 0, 0, ( int ) img._mem->_width, ( int ) img._mem->_height );
+		rsrc.intersect( sx, sy, swidth, sheight );
+		rsrc.intersect( rdst );
+		if( rsrc.isEmpty() )
+			return;
+		rdst.copy( rsrc );
+		rdst.translate( -tx, -ty );
+
+		SIMD* simd = SIMD::get();
+		uint8_t* dst = map();
+		dst += rdst.y * stride() + bpp() * rdst.x;
+
+		const uint8_t* src = img.map();
+		src += rsrc.y * img.stride() + rsrc.x * img.bpp();
+
+		size_t n = rsrc.width * img.bpp();
+		size_t i = rsrc.height;
+
+		while( i-- ) {
+			simd->Memcpy( dst, src, n );
+			src += img._mem->_stride;
+			dst += _mem->_stride;
+		}
+		img.unmap();
+		unmap();
+	}
+
+
 	void Image::upateIpl()
 	{
 		/* FIXME: only update data, do not reallocate header */

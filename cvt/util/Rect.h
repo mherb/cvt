@@ -18,11 +18,13 @@ namespace cvt {
 			friend std::ostream& operator<< <>(std::ostream &os, const Rect<T> &r );
 
 			public:
-			Rect( T rx = 0, T ry = 0, T rw = 1, T rh = 1 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
+			Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
 			Rect( const Rect<T>& r2 );
-			void set( const T x, const T y, const T width, const T height );
-			void setPosition( const T x, const T y );
-			void setSize( const T w, const T h );
+			void copy( const Rect<T>& r2 );
+			void set( T x, T y, T width, T height );
+			void setPosition( T x, T y );
+			void setSize( T w, T h );
+			void translate( T x, T y );
 			T size() const;
 			void getPosition( T& x, T& y ) const;
 			void getSize( T& w, T& h ) const;
@@ -33,6 +35,7 @@ namespace cvt {
 			bool intersects( T x, T y, T w, T h ) const;
 			void intersect( const Rect<T>& r2 );
 			void intersect( T x, T y, T w, T h );
+			bool isEmpty() const;
 
 			T x, y, width, height;
 		};
@@ -49,6 +52,15 @@ namespace cvt {
 
 	template<typename T>
 		Rect<T>::Rect( const Rect<T>& r2 )
+		{
+			x = r2.x;
+			y = r2.y;
+			width = r2.width;
+			height = r2.height;
+		}
+
+	template<typename T>
+		inline void Rect<T>::copy( const Rect<T>& r2 )
 		{
 			x = r2.x;
 			y = r2.y;
@@ -83,6 +95,13 @@ namespace cvt {
 		{
 			this->width = w;
 			this->height = h;
+		}
+
+	template<typename T>
+		inline void Rect<T>::translate( T x, T y )
+		{
+			this->x += x;
+			this->y += y;
 		}
 
 	template<typename T>
@@ -161,6 +180,12 @@ namespace cvt {
 			y = Math::max( y, y2 );
 			width = xend - x;
 			height = yend - y;
+		}
+
+	template<typename T>
+		inline bool Rect<T>::isEmpty() const
+		{
+			return ( width == 0 || height == 0 );
 		}
 
 }
