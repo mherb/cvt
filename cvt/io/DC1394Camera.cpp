@@ -27,7 +27,7 @@ namespace cvt
 
 		mFramerate = DC1394_FRAMERATE_30;
 		mMode = DC1394_VIDEO_MODE_640x480_MONO8;
-		mFrame = new Image( 640, 480, mIorder, IType::UBYTE );
+		mFrame = new Image( 640, 480, IOrder::GRAY, IType::UBYTE );
 	}
 
 	DC1394Camera::~DC1394Camera( )

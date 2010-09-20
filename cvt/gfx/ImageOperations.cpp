@@ -78,7 +78,7 @@ namespace cvt {
 				case ICHANNELORDER_GRAY:
 					{
 						switch( order.id ) {
-							case ICHANNELORDER_GRAYALPHA:							
+							case ICHANNELORDER_GRAYALPHA:
 							case ICHANNELORDER_RGBA:
 							case ICHANNELORDER_BGRA:
 								throw CVTException( "Color conversion not implemented" );
