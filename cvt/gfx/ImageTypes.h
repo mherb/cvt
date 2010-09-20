@@ -1,6 +1,7 @@
 #ifndef IMAGETYPES_H
 #define IMAGETYPES_H
 #include <stdlib.h>
+#include <iostream>
 
 namespace cvt {
 

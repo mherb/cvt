@@ -46,19 +46,7 @@ namespace cvt {
 			return;
 
 		checkFormatAndSize( img, __PRETTY_FUNCTION__, __LINE__ );
-
-		size_t cw = _mem->_width * _mem->_order.channels * _mem->_type.size;
-		size_t h = _mem->_height;
-		uint8_t* dst = map();
-		const uint8_t* src = img.map();
-
-		while( h-- ) {
-			memcpy( dst, src, cw );
-			dst += _mem->_stride;
-			src += img._mem->_stride;
-		}
-		unmap();
-		img.unmap();
+		_mem->copy( img._mem );
 	}
 
 	void Image::upateIpl()

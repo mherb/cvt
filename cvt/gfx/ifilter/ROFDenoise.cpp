@@ -258,6 +258,8 @@ namespace cvt {
 		dst.copy( src );
 		px.reallocate( src );
 		py.reallocate( src );
+		dx.reallocate( dst );
+		dy.reallocate( dst );
 		px.fill( Color( 0.0f, 0.0f ) );
 		py.fill( Color( 0.0f, 0.0f ) );
 

@@ -15,12 +15,11 @@ using namespace cvt;
 int main(int argc, char* argv[])
 {
 	const Image* frame;
-	V4L2Camera cam( 0, 640, 480, 30.0, IOrder::RGBA );
+	V4L2Camera cam( 0, 640, 480, 30.0, IOrder::BGRA );
 	int key;
 	size_t frames = 0;
 	Timer timer;
 	bool doprocess = true;
-	Image x, y, z;
 	Image kernel( 3, 1, IOrder::GRAY, IType::FLOAT );
 	ROFDenoise rof;
 	IFilterParameterSet* rofparam;
@@ -30,6 +29,10 @@ int main(int argc, char* argv[])
 	IFilterScalar iter( 50.0f );
 	rofparam->setParameter( "Lambda", &lambda );
 	rofparam->setParameter( "Iterations", &iter );
+
+	Image x( 640, 480, IOrder::BGRA, IType::FLOAT );
+	Image y( 640, 480, IOrder::BGRA, IType::FLOAT );
+	Image z( 640, 480, IOrder::BGRA, IType::UBYTE );
 
 	{
 		float* data;
@@ -51,12 +54,12 @@ int main(int argc, char* argv[])
 			frame = cam.image();
 
 			if( doprocess ) {
-				frame->convert( x, frame->order(), IType::FLOAT );
+				frame->convert( x );
 				rofparam->setParameter( "Input", &x );
 				rofparam->setParameter( "Output", &y );
 				//			rof.apply( y, x, 0.25f, 50 );
 				rof.apply( rofparam );
-				y.convert( z, frame->order(), IType::UBYTE );
+				y.convert( z );
 				//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 				/*		x.convolve( y, kernel );
 						y = ( y + 1.0f ) * 0.5f;*/
