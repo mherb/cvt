@@ -1,10 +1,15 @@
-__kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t gradient )
+#define MAXFLOW 5.0f
+//#define OVERLAY 1
+
+__kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t gradient,  __read_only image2d_t img  )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
     int2 coord;
     float4 grad, color;
     float4 black = ( float4 ) ( 0.0f, 0.0f, 0.0f, 1.0f );
     float4 white = ( float4 ) ( 1.0f, 1.0f, 1.0f, 1.0f );
+	float4 bg;
+	float2 bg2;
     float rad, angle, val, frac;
     unsigned int index1, index2;
     float bla;
@@ -71,6 +76,12 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
     coord.y = get_global_id( 1 );
     grad = read_imagef( gradient, sampler, coord );
 
+
+	int2 bgx = coord;
+	bgx.x = bgx.x >> 1;
+    bg = read_imagef( img, sampler, bgx );
+	bg2 = select( bg.xy, bg.zw, ( int2 ) -( coord.x & 1 ) );
+
 	coord.x = coord.x * 2;
 
     rad = length( grad.xy );
@@ -80,7 +91,11 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
     index1 = ( ( unsigned int ) bla ) % NUMCOLORS;
     index2 = ( index1 + 1 ) % NUMCOLORS;
     color = mix( colorwheel[ index1 ], colorwheel[ index2 ], frac  ).zyxw;
-    color = mix( white, color, fmin( rad / 2.0f, 1.0f ) );
+#ifdef OVERLAY
+	white = ( float4 ) bg2.x;
+	white.w = 1.0f;
+#endif
+    color = mix( white, color, fmin( rad / MAXFLOW, 1.0f ) );
     write_imagef( out, coord, color );
 
     rad = length( grad.zw );
@@ -90,6 +105,10 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
     index1 = ( ( unsigned int ) bla ) % NUMCOLORS;
     index2 = ( index1 + 1 ) % NUMCOLORS;
     color = mix( colorwheel[ index1 ], colorwheel[ index2 ], frac  ).zyxw;
-    color = mix( white, color, fmin( rad / 2.0f, 1.0f ) );
+#ifdef OVERLAY
+	white = ( float4 ) bg2.y;
+	white.w = 1.0f;
+#endif
+    color = mix( white, color, fmin( rad / MAXFLOW, 1.0f ) );
     write_imagef( out, coord + ( int2 ) ( 1, 0 ), color );
 }

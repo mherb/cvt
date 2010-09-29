@@ -50,7 +50,7 @@ __kernel void Denoise_CALCP2( __write_only image2d_t dst,
 		pdy = py - PYBUF( lx, ly - 1 );
 
 	i = read_imagef( src, sampler, coord );
-	i = i - lambda * ( pdx + pdy );
+	i = i + lambda * ( pdx + pdy );
     write_imagef( dst, coord, i );
 }
 

@@ -53,6 +53,8 @@ namespace cvt {
 			i = rect.height;
 			while( i-- ) {
 				simd->Memcpy( dst, src, n );
+				dst += x->_stride;
+				src += _stride;
 			}
 			x->unmap();
 		} else {
@@ -69,6 +71,8 @@ namespace cvt {
 			i = x->_height;
 			while( i-- ) {
 				simd->Memcpy( dst, src, n );
+				dst += x->_stride;
+				src += _stride;
 			}
 			x->unmap();
 		}

@@ -41,12 +41,14 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 	else
 		pdy = ( float4 ) 0.0f;
 
-	px = px - taulambda * pdx;
-	py = py - taulambda * pdy;
+	px = px + taulambda * ( pdx - 0.01f * px );
+	py = py + taulambda * ( pdy - 0.01f * py );
 
-	norm = fmin( ( float4 ) 1.0f, rsqrt( px * px + py * py ) );
+	norm = fmin( ( float4 ) 1.0f, native_rsqrt( px * px + py * py ) );
 	px = px * norm;
 	py = py * norm;
+/*	px = px / fmax( ( float4 ) 1.0f, fabs( px ) );
+	py = py / fmax( ( float4 ) 1.0f, fabs( py ) );*/
 
     write_imagef( pxout, coord, px );
     write_imagef( pyout, coord, py );

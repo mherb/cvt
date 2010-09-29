@@ -19,8 +19,8 @@ namespace cvt {
 			CLImage* biup( CLImage* in, float mul );
 			void warp( CLImage* u, CLImage* v, CLImage* px, CLImage* py, CLImage* img1, CLImage* img2, size_t iter );
 			void tvl1( CLImage* u, CLImage* v, CLImage* px, CLImage* py, float lambda, float _theta, CLImage* ig2, CLImage* it, CLImage* ix, CLImage* iy, CLImage* _v0, size_t iter );
-			CLImage* colorcode( CLImage* in );
-			void showColorCode( const char* name, CLImage* i );
+			CLImage* colorcode( CLImage* in, CLImage* bg );
+			void showColorCode( const char* name, CLImage* i, CLImage* bg );
 
 
 			int pyridx;

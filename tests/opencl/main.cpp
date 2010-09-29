@@ -13,7 +13,6 @@
 #include <cv.h>
 #include <highgui.h>
 #include <cvt/io/V4L2Camera.h>
-#include <cvt/io/DC1394Camera.h>
 
 #include "calcp1.h"
 #include "calcp2.h"
@@ -28,53 +27,65 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	const Image* frame;
-//	V4L2Camera cam( 0, 640, 480, 30.0, CVT_GRAY );
-	DC1394Camera cam;
 	std::string log;
-	bool doprocess = true;
 	int key;
-	size_t frames = 0;
-	Timer timer;
 	std::vector<cl::Event> sync;
 	cl::Event event;
 	int pyridx = 0;
 	CLImage* u;
+	Image img1, img2, in1, in2, inp1, inp2, iflow, flowpad;
+
 
 	try {
 		CLContext cl;
 		cl.makeCurrent();
 		CLOptflow flow;
 
+		ImageIO::loadPNG( img1, argv[ 1 ] );
+		ImageIO::loadPNG( img2, argv[ 2 ] );
 
-		Image iflow( 640, 480, IOrder::RGBA, IType::UBYTE );
+		in1.reallocate( img1.width(), img1.height(), IOrder::GRAY, IType::FLOAT );
+		in2.reallocate( img2.width(), img2.height(), IOrder::GRAY, IType::FLOAT );
+		iflow.reallocate( img2.width(), img2.height(), IOrder::GRAYALPHA, IType::FLOAT );
+		flowpad.reallocate( 640, 480, IOrder::GRAYALPHA, IType::FLOAT );
+		inp1.reallocate( 640, 480, IOrder::GRAY, IType::FLOAT );
+		inp2.reallocate( 640, 480, IOrder::GRAY, IType::FLOAT );
+		img1.convert( in1, IOrder::GRAY, IType::FLOAT );
+		img2.convert( in2, IOrder::GRAY, IType::FLOAT );
+		inp1.fill( Color( 0.0f ) );
+		inp2.fill( Color( 0.0f ) );
+		inp1.copyRect( 0,0, in1, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
+		inp2.copyRect( 0,0, in2, 0, 0, ( int ) in2.width(), ( int ) in2.height() );
 
-		cam.open();
-		cam.init();
-		cam.captureStart();
-		timer.reset();
+		u = flow.updateFlow( inp1 );
+		delete u;
+		u = flow.updateFlow( inp2 );
+		{
+			uint8_t* base = flowpad.map();
+			u->readData( base, flowpad.stride() );
+			flowpad.unmap();
+			iflow.copyRect( 0,0, flowpad, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
+			delete u;
+		}
 
 		while( 1 ) {
-			cam.captureNext();
-			frame = cam.image();
-			if( doprocess ) {
-				int pyridx2 = pyridx ^ 0x01;
-				flow.updateFlow( *frame );
-			} else
-				cvShowImage( "Video", frame->iplimage() );
+//			cvShowImage( "Video", iflow.iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
 				break;
-			else if( key == ' ')
-				doprocess = !doprocess;
 
-			frames++;
-			if( timer.elapsedSeconds() > 5.0f ) {
-				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-				frames = 0;
-				timer.reset();
-			}
+		}
+		
+		FloFile::FloWriteFile( iflow, "out.flo" );
+		if( argc == 4 ) {
+			Image gt;
+			FloFile::FloReadFile( gt, argv[ 3 ] );
+			float aee = Flow::AEE( iflow, gt );
+			float aae = Flow::AAE( iflow, gt );
+
+			std::cout << "AEE: " << aee << std::endl;
+			std::cout << "AAE: " << aae << std::endl;
 
 		}
 	} catch( CLException e ) {
