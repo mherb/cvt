@@ -28,7 +28,6 @@ namespace cvt {
 
 			size_t width() const;
 			size_t height() const;
-			size_t stride() const;
 			size_t channels() const;
 			// bits per channel
 			size_t bpc() const;
@@ -36,9 +35,9 @@ namespace cvt {
 			size_t bpp() const;
 			const IOrder order() const;
 			const IType type() const;
-			uint8_t* map() { return _mem->map(); };
-			uint8_t const* map() const { return ( const uint8_t* ) _mem->map(); };
-			void unmap() const { _mem->unmap(); };
+			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
+			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
+			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
 /*			uint8_t* scanline( size_t i );
 			uint8_t const* scanline( size_t i ) const;*/
 
@@ -134,11 +133,6 @@ namespace cvt {
 	inline size_t Image::height() const
 	{
 		return _mem->_height;
-	}
-
-	inline size_t Image::stride() const
-	{
-		return _mem->_stride;
 	}
 
 	/*inline uint8_t* Image::scanline( size_t y )

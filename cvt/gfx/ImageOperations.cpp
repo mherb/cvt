@@ -10,6 +10,7 @@ namespace cvt {
 		float* pksrc;
 		float* ret;
 		float* pw;
+		size_t kstride;
 		size_t i, k;
 		float norm = 0.0f;
 
@@ -18,16 +19,16 @@ namespace cvt {
 		pw = ret;
 
 		i = kernel._mem->_height;
-		const uint8_t* data = kernel.map();
+		const uint8_t* data = kernel.map( &kstride );
 		while( i-- ) {
-			pksrc = ( float* )( data + i * kernel._mem->_stride + sizeof( float ) * kernel._mem->_width );
+			pksrc = ( float* )( data + i * kstride + sizeof( float ) * kernel._mem->_width );
 			k = kernel._mem->_width;
 			while( k-- ) {
 				*pw++ = *( --pksrc );
 				norm += *pksrc;
 			}
 		}
-		kernel.unmap();
+		kernel.unmap( data );
 
 		/* normalize if needed and norm != 0 */
 		if( normalize && Math::abs( norm - 1.0f ) > Math::EPSILONF && Math::abs( norm ) > Math::EPSILONF ) {
@@ -43,16 +44,16 @@ namespace cvt {
 
 #define CONV( func, dsttype, srctype, width )							\
 	{																	\
-		src = map();													\
-		dst = img.map();												\
+		sbase = src = map( &sstride );													\
+		dbase = dst = img.map( &dstride );												\
 		h = _mem->_height;												\
 		while( h-- ) {													\
 			simd->func( ( dsttype ) dst, ( const srctype ) src, width );\
-			src += _mem->_stride;										\
-			dst += img._mem->_stride;									\
+			src += sstride;										\
+			dst += dstride;									\
 		}																\
-		unmap();														\
-		img.unmap();													\
+		unmap( sbase );														\
+		img.unmap( dbase );													\
 		return;															\
 	}
 
@@ -60,7 +61,11 @@ namespace cvt {
 	{
 		SIMD* simd = SIMD::get();
 		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
 		uint8_t* dst;
+		uint8_t* dbase;
 		size_t h;
 
 		checkSize( img, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
@@ -271,8 +276,9 @@ namespace cvt {
 
 	void Image::fill( const Color& c )
 	{
-		size_t h;
+		size_t h, stride;
 		uint8_t* dst;
+		uint8_t* dbase;
 		SIMD* simd = SIMD::get();
 
 		if( _mem->_type == IType::UBYTE ) {
@@ -281,12 +287,12 @@ namespace cvt {
 					{
 						uint8_t v = ( uint8_t ) ( 255.0f * c.gray() );
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValueU8( dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_GRAYALPHA:
@@ -294,12 +300,12 @@ namespace cvt {
 						uint16_t v = ( uint16_t ) ( ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8 );
 						v |= ( ( uint16_t ) ( 255.0f * c.gray() ));
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValueU16( ( uint16_t* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_RGBA:
@@ -310,12 +316,12 @@ namespace cvt {
 						v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_BGRA:
@@ -326,12 +332,12 @@ namespace cvt {
 						v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 			}
@@ -342,12 +348,12 @@ namespace cvt {
 						float v = c.gray();
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValue1f( ( float* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_GRAYALPHA:
@@ -355,12 +361,12 @@ namespace cvt {
 						float v[ 2 ] = { c.gray(), c.alpha() };
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValue2f( ( float* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_RGBA:
@@ -368,12 +374,12 @@ namespace cvt {
 						float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValue4f( ( float* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 				case ICHANNELORDER_BGRA:
@@ -381,12 +387,12 @@ namespace cvt {
 						float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
 
 						h = _mem->_height;
-						dst = map();
+						dbase = dst = map( &stride );
 						while( h-- ) {
 							simd->SetValue4f( ( float* ) dst, v, _mem->_width );
-							dst += _mem->_stride;
+							dst += stride;
 						}
-						unmap();
+						unmap( dbase );
 					}
 					break;
 
@@ -401,13 +407,15 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					uint8_t* dst = map();
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->Add( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
-						dst += _mem->_stride;
+						dst += stride;
 					}
-					unmap();
+					unmap( dbase );
 				}
 				break;
 			default:
@@ -426,40 +434,46 @@ namespace cvt {
 					switch( _mem->_order.id ) {
 						case ICHANNELORDER_GRAY:
 							{
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( & stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Add( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_RGBA:
 							{
 								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_BGRA:
 							{
 								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 					}
@@ -477,14 +491,15 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					uint8_t* dst = map();
-
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->Sub( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
-						dst += _mem->_stride;
+						dst += stride;
 					}
-					unmap();
+					unmap( dbase );
 				}
 				break;
 			default:
@@ -502,40 +517,46 @@ namespace cvt {
 					switch( _mem->_order.id ) {
 						case ICHANNELORDER_GRAY:
 							{
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Sub( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_RGBA:
 							{
 								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_BGRA:
 							{
 								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 					}
@@ -553,14 +574,16 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					uint8_t* dst = map();
-
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
+
 					while( h-- ) {
 						simd->Mul( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
-						dst += _mem->_stride;
+						dst += stride;
 					}
-					unmap();
+					unmap( dbase );
 				}
 				break;
 			default:
@@ -578,40 +601,46 @@ namespace cvt {
 					switch( _mem->_order.id ) {
 						case ICHANNELORDER_GRAY:
 							{
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Mul( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_RGBA:
 							{
 								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 						case ICHANNELORDER_BGRA:
 							{
 								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								uint8_t* dst = map();
+								size_t stride;
+								uint8_t* dst = map( &stride );
+								uint8_t* dbase = dst;
 								size_t h = _mem->_height;
 
 								while( h-- ) {
 									simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += _mem->_stride;
+									dst += stride;
 								}
-								unmap();
+								unmap( dbase );
 							}
 							break;
 					}
@@ -633,17 +662,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					const uint8_t* src = i.map();
-					uint8_t* dst = map();
+					size_t sstride, dstride;
+					const uint8_t* src = i.map( &sstride );
+					const uint8_t* sbase = src;
+					uint8_t* dst = map( &dstride );
+					uint8_t* dbase = dst;
 
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->Add( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
-						src += i._mem->_stride;
-						dst += _mem->_stride;
+						src += sstride;
+						dst += dstride;
 					}
-					unmap();
-					i.unmap();
+					unmap( dbase );
+					i.unmap( sbase );
 				}
 				break;
 			default:
@@ -662,17 +694,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					const uint8_t* src = i.map();
-					uint8_t* dst = map();
+					size_t sstride, dstride;
+					const uint8_t* src = i.map( &sstride );
+					const uint8_t* sbase = src;
+					uint8_t* dst = map( &dstride );
+					uint8_t* dbase = dst;
 
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->Sub( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
-						src += i._mem->_stride;
-						dst += _mem->_stride;
+						src += sstride;
+						dst += dstride;
 					}
-					unmap();
-					i.unmap();
+					unmap( dbase );
+					i.unmap( sbase );
 				}
 				break;
 			default:
@@ -691,17 +726,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					const uint8_t* src = i.map();
-					uint8_t* dst = map();
+					size_t sstride, dstride;
+					const uint8_t* src = i.map( &sstride );
+					const uint8_t* sbase = src;
+					uint8_t* dst = map( &dstride );
+					uint8_t* dbase = dst;
 
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->Mul(( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
-						src += i._mem->_stride;
-						dst += _mem->_stride;
+						src += sstride;
+						dst += dstride;
 					}
-					unmap();
-					i.unmap();
+					unmap( dbase);
+					i.unmap( sbase );
 				}
 				break;
 			default:
@@ -720,17 +758,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					const uint8_t* src = i.map();
-					uint8_t* dst = map();
+					size_t sstride, dstride;
+					const uint8_t* src = i.map( &sstride );
+					const uint8_t* sbase = src;
+					uint8_t* dst = map( &dstride );
+					uint8_t* dbase = dst;
 
 					size_t h = _mem->_height;
 					while( h-- ) {
 						simd->MulAdd( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_order.channels );
-						src += i._mem->_stride;
-						dst += _mem->_stride;
+						src += sstride;
+						dst += dstride;
 					}
-					unmap();
-					i.unmap();
+					unmap( dbase);
+					i.unmap( sbase );
 				}
 				break;
 			default:
@@ -752,17 +793,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 			{
-				const uint8_t* srcA = i.map();
-				const uint8_t* srcB = map();
+				size_t astride, bstride;
+				const uint8_t* srcA = i.map( &astride );
+				const uint8_t* baseA = srcA;
+				const uint8_t* srcB = map( &bstride );
+				const uint8_t* baseB = srcB;
 											
 				size_t h = _mem->_height;
 				while( h-- ) {
 					ssd += simd->SSD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_order.channels );
-					srcA += i._mem->_stride;
-					srcB += _mem->_stride;
+					srcA += astride;
+					srcB += bstride;
 				}
-				unmap();
-				i.unmap();
+				unmap( baseB );
+				i.unmap( baseA );
 			}
 				break;
 			default:
@@ -785,17 +829,20 @@ namespace cvt {
 		switch( _mem->_type.id ) {
 			case ICHANNELTYPE_FLOAT:
 				{
-					const uint8_t* srcA = i.map();
-					const uint8_t* srcB = map();
+					size_t astride, bstride;
+					const uint8_t* srcA = i.map( &astride );
+					const uint8_t* baseA = srcA;
+					const uint8_t* srcB = map( &bstride );
+					const uint8_t* baseB = srcB;
 
 					size_t h = _mem->_height;
 					while( h-- ) {
 						sad += simd->SAD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_order.channels );
-						srcA += i._mem->_stride;
-						srcB += _mem->_stride;
+						srcA += astride;
+						srcB += bstride;
 					}
-					unmap();
-					i.unmap();
+					unmap( baseB );
+					i.unmap( baseA );
 				}
 				break;
 			default:
@@ -820,9 +867,12 @@ namespace cvt {
 		float* weights;
 		float* pweights;
 		const uint8_t* src;
+		const uint8_t* osrc;
 		const uint8_t* psrc;
-		const uint8_t* dst;
+		uint8_t* dst;
+		uint8_t* odst;
 		size_t i, k, b1, b2;
+		size_t sstride, dstride;
 		void (SIMD::*convfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 		void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 		SIMD* simd = SIMD::get();
@@ -846,8 +896,8 @@ namespace cvt {
 
 		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
 
-		src = map();
-		dst = idst.map();
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
 
 		/* flip and normalize kernel image */
 		weights = imageToKernel( kernel, normalize );
@@ -870,10 +920,10 @@ namespace cvt {
 			k = kernel._mem->_height - ( i + 1 );
 			while( k-- ) {
 				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
-				psrc += _mem->_stride;
+				psrc += sstride;
 				pweights += kernel._mem->_width;
 			}
-			dst += idst._mem->_stride;
+			dst += dstride;
 		}
 
 		/* center */
@@ -884,12 +934,12 @@ namespace cvt {
 			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
 			k = kernel._mem->_height - 1;
 			while( k-- ) {
-				psrc += _mem->_stride;
+				psrc += sstride;
 				pweights += kernel._mem->_width;
 				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
 			}
-			dst += idst._mem->_stride;
-			src += _mem->_stride;
+			dst += dstride;
+			src += sstride;
 		}
 
 		/* lower border */
@@ -900,7 +950,7 @@ namespace cvt {
 			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
 			k = b1 + i;
 			while( k-- ) {
-				psrc += _mem->_stride;
+				psrc += sstride;
 				pweights += kernel._mem->_width;
 				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
 			}
@@ -909,12 +959,12 @@ namespace cvt {
 				pweights += kernel._mem->_width;
 				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
 			}
-			dst += idst._mem->_stride;
-			src += _mem->_stride;
+			dst += dstride;
+			src += sstride;
 		}
 
-		unmap();
-		idst.unmap();
+		unmap( osrc );
+		idst.unmap( odst );
 		delete[] weights;
 	}
 
@@ -933,8 +983,11 @@ namespace cvt {
 		IConvolveAdaptiveSize* pysw;
 		float* pyw;
 		const uint8_t* src;
+		const uint8_t* osrc;
 		const uint8_t* send;
 		uint8_t* dst;
+		uint8_t* odst;
+		size_t sstride, dstride;
 		size_t i, l;
 		int32_t k;
 		float** buf;
@@ -955,9 +1008,9 @@ namespace cvt {
 		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_order, _mem->_type );
 		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
 
-		src = map();
-		dst = idst.map();
-		send = src + _mem->_stride * _mem->_height;
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
+		send = src + sstride * _mem->_height;
 
 		bufsize = filter.getAdaptiveConvolutionWeights( height, _mem->_height, scalery, true );
 		filter.getAdaptiveConvolutionWeights( width, _mem->_width, scalerx, false );
@@ -968,7 +1021,7 @@ namespace cvt {
 			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _mem->_order.channels) )
 				throw CVTException("Out of memory");
 			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
-			src += _mem->_stride;
+			src += sstride;
 		}
 		curbuf = 0;
 
@@ -979,7 +1032,7 @@ namespace cvt {
 			if( pysw->incr ) {
 				for( k = 0; k < pysw->incr && src < send ; k++ ) {
 					( simd->*scalex_func )( ( float* ) buf[ ( curbuf + k ) % bufsize ], ( float* ) src, width, &scalerx );
-					src += _mem->_stride;
+					src += sstride;
 				}
 				curbuf = ( curbuf + pysw->incr ) % bufsize;
 			}
@@ -997,11 +1050,11 @@ namespace cvt {
 				pyw++;
 			}
 			pysw++;
-			dst += idst._mem->_stride;
+			dst += dstride;
 		}
 
-		idst.unmap();
-		unmap();
+		idst.unmap( odst );
+		unmap( osrc );
 
 		for( i = 0; i < bufsize; i++ )
 			free( buf[ i ] );
@@ -1019,8 +1072,11 @@ namespace cvt {
 
 		if( _mem->_type == IType::FLOAT && warp._mem->_type == IType::FLOAT && warp._mem->_order == IOrder::GRAYALPHA ) {
 			const uint8_t* src;
+			const uint8_t* osrc;
 			uint8_t* dst;
+			uint8_t* odst;
 			const uint8_t* wrp;
+			const uint8_t* owrp;
 			const float* psrc;
 			float* pdst;
 			const float* pwrp;
@@ -1028,12 +1084,9 @@ namespace cvt {
 
 			checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
 
-			src = map();
-			sstride = _mem->_stride;
-			dst = idst.map();
-			dstride = idst._mem->_stride;
-			wrp = warp.map();
-			wstride = warp._mem->_stride;
+			osrc = src = map( &sstride );
+			odst = dst = idst.map( &dstride );
+			owrp = wrp = warp.map( &wstride );
 			K = channels();
 
 			for( n = 0; n < warp._mem->_height; n++ ) {
@@ -1063,9 +1116,9 @@ namespace cvt {
 				dst += dstride;
 				wrp += wstride;
 			}
-			warp.unmap();
-			idst.unmap();
-			unmap();
+			warp.unmap( owrp );
+			idst.unmap( odst );
+			unmap( osrc );
 		} else
 			throw CVTException("Unimplemented");
 	}
@@ -1075,7 +1128,9 @@ namespace cvt {
 		const uint32_t* src1;
 		const uint32_t* src2;
 		const uint32_t* src3;
+		const uint8_t* osrc;
 		uint32_t* dst;
+		uint8_t* odst;
 		size_t sstride;
 		size_t dstride;
 		size_t h;
@@ -1101,14 +1156,16 @@ namespace cvt {
 		}
 
 
-		src1 = ( uint32_t* ) map();
-		sstride = stride() >> 2;
+		osrc = map( &sstride );
+		src1 = ( uint32_t* ) osrc;
+		sstride = sstride >> 2;
 		src2 = src1 + sstride;
 		src3 = src2 + sstride;
 		w = width();
 		h = height();
-		dst = ( uint32_t* ) idst.map();
-		dstride = idst.stride() >> 2;
+		odst = idst.map( &dstride );
+		dst = ( uint32_t* ) odst;
+		dstride = dstride >> 2;
 
 		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
 		dst += dstride;
@@ -1126,7 +1183,7 @@ namespace cvt {
 			src3 += sstride;
 		}
 		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
-		idst.unmap();
-		unmap();
+		idst.unmap( odst );
+		unmap( osrc );
 	}
 }

@@ -9,8 +9,10 @@ int main()
 {
 #define SCALE 50.0f
 	Image i( 200, 200, IOrder::GRAYALPHA, IType::FLOAT );
-	uint8_t* base = i.map();
-	ssize_t istride = i.stride();
+	ssize_t istride;
+	size_t stride;
+	uint8_t* base = i.map( &stride );
+	istride = ( ssize_t ) stride;
 	for( size_t y = 0; y < 200; y++ ) {
 		for( size_t x = 0; x < 200; x++ ) {
 			float xf = ( ( float ) x ) - 100.0f;
@@ -28,7 +30,7 @@ int main()
 			*( ( ( float* ) ( base + y * istride ) ) + 2 * x + 1 ) = c[ 1 ];
 		}
 	}
-	i.unmap();
+	i.unmap( base );
 
 	FloFile::FloWriteFile( i, "colorcode.flo" );
 }

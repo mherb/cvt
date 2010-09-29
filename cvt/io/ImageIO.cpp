@@ -74,15 +74,16 @@ namespace cvt {
 
 
 			png_bytepp row_pointers = new png_bytep[height];
-			uint8_t* base = img.map();
+			size_t stride;
+			uint8_t* base = img.map( &stride );
 			for (unsigned y = 0; y < height; y++)
-				row_pointers[y] = base + y * img.stride();
+				row_pointers[y] = base + y * stride;
 
 			png_read_image(png_ptr, row_pointers);
 			png_read_end(png_ptr, info_ptr);
 
 			delete [] row_pointers;
-			img.unmap();
+			img.unmap( base );
 
 			fclose( fp );
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
@@ -171,16 +172,17 @@ namespace cvt {
 				throw CVTException("Image is too tall to process in memory");
 			}
 
-			uint8_t* base = tmpImage.map();
+			size_t stride;
+			uint8_t* base = tmpImage.map( &stride );
 			for(size_t k = 0; k < tmpImage.height(); k++)
-				row_pointers[k] = base + tmpImage.stride() * k;
+				row_pointers[k] = base + stride * k;
 
 			png_write_image(png_ptr, row_pointers);
 
 			/* It is REQUIRED to call this to finish writing the rest of the file */
 			png_write_end(png_ptr, info_ptr);
 
-			tmpImage.unmap();
+			tmpImage.unmap( base );
 
 			/* Clean up after the write, and free any memory allocated */
 			png_destroy_write_struct(&png_ptr, &info_ptr);

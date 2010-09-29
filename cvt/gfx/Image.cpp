@@ -67,33 +67,40 @@ namespace cvt {
 		rdst.translate( -tx, -ty );
 
 		SIMD* simd = SIMD::get();
-		uint8_t* dst = map();
-		dst += rdst.y * stride() + bpp() * rdst.x;
+		size_t dstride;
+		uint8_t* dst = map( &dstride );
+		uint8_t* dbase = dst;
+		dst += rdst.y * dstride + bpp() * rdst.x;
 
-		const uint8_t* src = img.map();
-		src += rsrc.y * img.stride() + rsrc.x * img.bpp();
+		size_t sstride;
+		const uint8_t* src = img.map( &sstride );
+		const uint8_t* sbase = src;
+		src += rsrc.y * sstride + rsrc.x * img.bpp();
 
 		size_t n = rsrc.width * img.bpp();
 		size_t i = rsrc.height;
 
 		while( i-- ) {
 			simd->Memcpy( dst, src, n );
-			src += img._mem->_stride;
-			dst += _mem->_stride;
+			src += sstride;
+			dst += dstride;
 		}
-		img.unmap();
-		unmap();
+		img.unmap( sbase );
+		unmap( dbase );
 	}
 
 
 	void Image::upateIpl()
 	{
+		uint8_t* ptr;
+		size_t stride;
 		/* FIXME: only update data, do not reallocate header */
 		if( _iplimage )
 			cvReleaseImageHeader( &_iplimage );
 		_iplimage = cvCreateImageHeader( cvSize( ( int ) _mem->_width, ( int ) _mem->_height ),
 										_mem->_type.id == ICHANNELTYPE_UBYTE ? IPL_DEPTH_8U : IPL_DEPTH_32F, ( int ) _mem->_order.channels );
-		cvSetData( _iplimage, map(), ( int ) _mem->_stride );
+		ptr = map( &stride );
+		cvSetData( _iplimage, ptr, ( int ) stride );
 	}
 
 
@@ -186,7 +193,7 @@ namespace cvt {
 			"FLOAT"
 		};
 
-		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Order:" << _order_string[ f.order().id ] << " Type:" << _type_string[ f.type().id ]  << " Stride: " << f.stride() << std::endl;
+		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Order:" << _order_string[ f.order().id ] << " Type:" << _type_string[ f.type().id ] << std::endl;
 		return out;
 	}
 	
@@ -224,38 +231,39 @@ namespace cvt {
 		uint32_t val;
 		bool b;
 		float* base;
+		size_t stride;
 
 		Image x( 1, 1, IOrder::RGBA, IType::UBYTE );
 		x.fill( color );
 
 		std::cerr << "RGBA UBYTE TO:" << std::endl;
 
-		val = *( ( uint32_t* ) x.map() );
+		val = *( ( uint32_t* ) x.map( &stride ) );
 		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
-		x.unmap();
+		x.unmap( ( uint8_t* ) val );
 
 		x.convert( y, IOrder::BGRA, IType::UBYTE );
-		val = *( ( uint32_t* ) y.map() );
+		val = *( ( uint32_t* ) y.map( &stride ) );
 		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
-		y.unmap();
+		y.unmap( ( uint8_t* ) val );
 
 		x.convert( y, IOrder::RGBA, IType::FLOAT );
-		base = ( float* ) y.map();
+		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 1.0f;
 		b &= *( base + 1 ) == 0.0f;
 		b &= *( base + 2 ) == 0.0f;
 		b &= *( base + 3 ) == 1.0f;
 		CVTTEST_PRINT("RGBA FLOAT", b );
-		y.unmap();
+		y.unmap( ( uint8_t* ) base );
 
 		x.convert( y, IOrder::BGRA, IType::FLOAT );
-		base = ( float* ) y.map();
+		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 0.0f;
 		b &= *( base + 1 ) == 0.0f;
 		b &= *( base + 2 ) == 1.0f;
 		b &= *( base + 3 ) == 1.0f;
 		CVTTEST_PRINT("BGRA FLOAT", b );
-		y.unmap();
+		y.unmap( ( uint8_t* ) base );
 
 		x.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
 		x.fill( color );
@@ -263,35 +271,35 @@ namespace cvt {
 
 		y.reallocate( 1, 1, IOrder::RGBA, IType::UBYTE );
 		x.convert( y );
-		val = *( ( uint32_t* ) y.map() );
+		val = *( ( uint32_t* ) y.map( &stride ) );
 		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
-		y.unmap();
+		y.unmap( ( uint8_t* ) val );
 
 		y.reallocate( 1, 1, IOrder::BGRA, IType::UBYTE );
 		x.convert( y );
-		val = *( ( uint32_t* ) y.map() );
+		val = *( ( uint32_t* ) y.map( &stride ) );
 		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
-		y.unmap();
+		y.unmap( ( uint8_t* ) val );
 
 		y.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
 		x.convert( y );
-		base = ( float* ) y.map();
+		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 1.0f;
 		b &= *( base + 1 ) == 0.0f;
 		b &= *( base + 2 ) == 0.0f;
 		b &= *( base + 3 ) == 1.0f;
 		CVTTEST_PRINT("RGBA FLOAT", b );
-		y.unmap();
+		y.unmap( ( uint8_t* ) base );
 
 		y.reallocate( 1, 1, IOrder::BGRA, IType::FLOAT );
 		x.convert( y );
-		base = ( float* ) y.map();
+		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 0.0f;
 		b &= *( base + 1 ) == 0.0f;
 		b &= *( base + 2 ) == 1.0f;
 		b &= *( base + 3 ) == 1.0f;
 		CVTTEST_PRINT("BGRA FLOAT", b );
-		y.unmap();
+		y.unmap( ( uint8_t* ) base );
 
 #if 0
 		// operator x, y:

@@ -82,13 +82,13 @@ namespace cvt {
 			float ee1, ee2;
 			float aee = 0.0f;
 			size_t unknown = 0;
+			uint8_t const* optr1;
+			uint8_t const* optr2;
 
-			stride1 = flow.stride();
-			stride2 = gt.stride();
 			w = gt.width();
 			h = gt.height();
-			ptr1 = flow.map();
-			ptr2 = gt.map();
+			optr1 = ptr1 = flow.map( &stride1 );
+			optr2 = ptr2 = gt.map( &stride2 );
 
 
 			while( h-- ) {
@@ -106,8 +106,8 @@ namespace cvt {
 				ptr1 += stride1;
 				ptr2 += stride2;
 			}
-			flow.unmap();
-			gt.unmap();
+			flow.unmap( optr1 );
+			gt.unmap( optr2 );
 			return  aee / ( ( float ) ( gt.width() * gt.height() - unknown ) );
 		}
 
@@ -126,13 +126,14 @@ namespace cvt {
 			float dot ,dot1, dot2, v;
 			float aae = 0.0f;
 			size_t unknown = 0;
+			uint8_t const* optr1;
+			uint8_t const* optr2;
 
-			stride1 = flow.stride();
-			stride2 = gt.stride();
+
 			w = flow.width();
 			h = flow.height();
-			ptr1 = flow.map();
-			ptr2 = gt.map();
+			optr1 = ptr1 = flow.map( &stride1 );
+			optr2 = ptr2 = gt.map( &stride2 );
 
 
 			while( h-- ) {
@@ -153,8 +154,8 @@ namespace cvt {
 				ptr1 += stride1;
 				ptr2 += stride2;
 			}
-			flow.unmap();
-			gt.unmap();
+			flow.unmap( optr1 );
+			gt.unmap( optr2 );
 
 			return Math::rad2Deg( aae / ( ( float ) ( gt.width() * gt.height() - unknown ) ) );
 		}
@@ -178,13 +179,13 @@ namespace cvt {
 			float val;
 			float alpha;
 			size_t i1, i2;
+			uint8_t const* optr1;
+			uint8_t const* optr2;
 
 			idst.reallocate( flow.width(), flow.height(), IOrder::BGRA, IType::FLOAT );
 
-			dst = idst.map();
-			stridedst = idst.stride();
-			src = flow.map();
-			stridesrc = flow.stride();
+			optr1 = dst = idst.map( &stridedst );
+			optr2 = src = flow.map( &stridesrc );
 
 			h = idst.height();
 			while( h-- ) {
@@ -218,8 +219,8 @@ namespace cvt {
 				dst += stridedst;
 				src += stridesrc;
 			}
-			idst.unmap();
-			flow.unmap();
+			idst.unmap( optr1 );
+			flow.unmap( optr2 );
 		}
 
 	}

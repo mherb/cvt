@@ -9,18 +9,19 @@ namespace cvt {
 			~ImageAllocatorMem();
 			virtual void alloc( size_t width, size_t height, const IOrder order, const IType type );
 			virtual void copy( const ImageAllocator* x, const Recti* r );
-			virtual void retain();
-			virtual void release();
-			virtual uint8_t* map() { return _data; };
-			virtual const uint8_t* map() const { return _data; };
-			virtual void unmap() const {};
-			virtual IAllocatorType type() { return IALLOCATOR_MEM; };
+			virtual uint8_t* map( size_t* stride ) { *stride = _stride; return _data; };
+			virtual const uint8_t* map( size_t* stride ) const { *stride = _stride; return _data; };
+			virtual void unmap( const uint8_t* ptr ) const {};
+			virtual IAllocatorType type() const { return IALLOCATOR_MEM; };
 
 		private:
 			ImageAllocatorMem( const ImageAllocatorMem& );
+			void retain();
+			void release();
 
 		private:
 			uint8_t* _data;
+			size_t _stride;
 			uint8_t* _mem;
 			size_t* _refcnt;
 	};

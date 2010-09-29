@@ -34,48 +34,30 @@ namespace cvt {
 
 	void ImageAllocatorMem::copy( const ImageAllocator* x, const Recti* r = NULL )
 	{
+		const uint8_t* src;
+		const uint8_t* osrc;
+		uint8_t* dst;
+		size_t sstride;
+		size_t i, n;
+		Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
 		SIMD* simd = SIMD::get();
 
-		Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
-		if( r ) {
-			const uint8_t* src;
-			uint8_t* dst;
-			size_t i, n;
-
+		if( r )
 			rect.intersect( *r );
-			alloc( rect.width, rect.height, x->_order, x->_type );
+		alloc( rect.width, rect.height, x->_order, x->_type );
 
-			src = x->map();
-			src += rect.y * x->_stride + x->_type.size * x->_order.channels * rect.x;
-			dst = _data;
-			n =  x->_type.size * x->_order.channels * rect.width;
+		osrc = src = x->map( &sstride );
+		src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
+		dst = _data;
+		n =  x->_type.size * x->_order.channels * rect.width;
 
-			i = rect.height;
-			while( i-- ) {
-				simd->Memcpy( dst, src, n );
-				dst += x->_stride;
-				src += _stride;
-			}
-			x->unmap();
-		} else {
-			const uint8_t* src;
-			uint8_t* dst;
-			size_t i, n;
-
-			alloc( x->_width, x->_height, x->_order, x->_type );
-
-			src = x->map();
-			dst = _data;
-			n =  x->_type.size * x->_order.channels * x->_width;
-
-			i = x->_height;
-			while( i-- ) {
-				simd->Memcpy( dst, src, n );
-				dst += x->_stride;
-				src += _stride;
-			}
-			x->unmap();
+		i = rect.height;
+		while( i-- ) {
+			simd->Memcpy( dst, src, n );
+			dst += sstride;
+			src += _stride;
 		}
+		x->unmap( osrc );
 	}
 
 	void ImageAllocatorMem::release()
