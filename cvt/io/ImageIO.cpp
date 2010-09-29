@@ -165,14 +165,14 @@ namespace cvt {
 			/* Write the file header information.  REQUIRED */
 			png_write_info(png_ptr, info_ptr);
 
-			png_bytep row_pointers[tmpImage.height()];
+			png_bytep row_pointers[ tmpImage.height() ];
 
 			if (tmpImage.height() > PNG_UINT_32_MAX/png_sizeof(png_bytep)){
 				throw CVTException("Image is too tall to process in memory");
 			}
 
 			uint8_t* base = tmpImage.map();
-			for (size_t k = 0; k < tmpImage.height(); k++)
+			for(size_t k = 0; k < tmpImage.height(); k++)
 				row_pointers[k] = base + tmpImage.stride() * k;
 
 			png_write_image(png_ptr, row_pointers);

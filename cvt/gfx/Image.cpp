@@ -257,21 +257,24 @@ namespace cvt {
 		CVTTEST_PRINT("BGRA FLOAT", b );
 		y.unmap();
 
-		x = Image( 1, 1, IOrder::RGBA, IType::FLOAT );
+		x.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
 		x.fill( color );
 		std::cerr << "RGBA FLOAT TO:" << std::endl;
 
-		x.convert( y, IOrder::RGBA, IType::UBYTE );
+		y.reallocate( 1, 1, IOrder::RGBA, IType::UBYTE );
+		x.convert( y );
 		val = *( ( uint32_t* ) y.map() );
 		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
 		y.unmap();
 
-		x.convert( y, IOrder::BGRA, IType::UBYTE );
+		y.reallocate( 1, 1, IOrder::BGRA, IType::UBYTE );
+		x.convert( y );
 		val = *( ( uint32_t* ) y.map() );
 		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
 		y.unmap();
 
-		x.convert( y, IOrder::RGBA, IType::FLOAT );
+		y.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
+		x.convert( y );
 		base = ( float* ) y.map();
 		b  = *( base + 0 ) == 1.0f;
 		b &= *( base + 1 ) == 0.0f;
@@ -280,7 +283,8 @@ namespace cvt {
 		CVTTEST_PRINT("RGBA FLOAT", b );
 		y.unmap();
 
-		x.convert( y, IOrder::BGRA, IType::FLOAT );
+		y.reallocate( 1, 1, IOrder::BGRA, IType::FLOAT );
+		x.convert( y );
 		base = ( float* ) y.map();
 		b  = *( base + 0 ) == 0.0f;
 		b &= *( base + 1 ) == 0.0f;

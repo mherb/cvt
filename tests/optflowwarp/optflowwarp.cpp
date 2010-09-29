@@ -29,19 +29,20 @@ int main(int argc, char* argv[])
 		ImageIO::loadPNG( img1, argv[ 1 ] );
 		ImageIO::loadPNG( img2, argv[ 2 ] );
 
-		in1.reallocate( img1.width(), img1.height(), CVT_GRAY, CVT_FLOAT );
-		in2.reallocate( img2.width(), img2.height(), CVT_GRAY, CVT_FLOAT );
-		img1.convert( in1, CVT_GRAY, CVT_FLOAT );
-		img2.convert( in2, CVT_GRAY, CVT_FLOAT );
+		in1.reallocate( img1.width(), img1.height(), IOrder::GRAY, IType::FLOAT );
+		in2.reallocate( img2.width(), img2.height(), IOrder::GRAY, IType::FLOAT );
+		img1.convert( in1, IOrder::GRAY, IType::FLOAT );
+		img2.convert( in2, IOrder::GRAY, IType::FLOAT );
 
 #if 0
 		ROFDenoise rof;
 		Image* itmp = new Image();
-		rof.apply( *itmp, in1, 0.1f, 100 );
-		in1.mad( *itmp, -0.95f );
+		itmp->reallocate( img1.width(), img1.height(), IOrder::GRAY, IType::FLOAT );
+		rof.apply( *itmp, in1, 0.1f, 25 );
+		in1.mad( *itmp, -0.5f );
 
-		rof.apply( *itmp, in2, 0.1f, 100 );
-		in2.mad( *itmp, -0.95f );
+		rof.apply( *itmp, in2, 0.1f, 25 );
+		in2.mad( *itmp, -0.5f );
 
 		delete itmp;
 #endif
@@ -54,6 +55,7 @@ int main(int argc, char* argv[])
 		calcflow( flow, in1, in2, gt );
 
 		FloFile::FloWriteFile( flow, "out.flo" );
+		sleep( 1 );
 	} catch( Exception e ) {
 		std::cout << e.what() << std::endl;
 	}

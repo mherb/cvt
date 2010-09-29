@@ -205,9 +205,9 @@ namespace cvt {
 					color[ 1 ] = Math::mix( _colorwheel[ i1 * 4 + 1 ], _colorwheel[ i2 * 4 + 1 ], alpha  );
 					color[ 0 ] = Math::mix( _colorwheel[ i1 * 4 + 2 ], _colorwheel[ i2 * 4 + 2 ], alpha  );
 					color[ 3 ] = 1.0f; //Math::mix( _colorwheel[ i1 * 4 + 3 ], _colorwheel[ i2 * 4 + 3 ], alpha  );
-					color[ 0 ] = Math::mix( 1.0f, color[ 0 ], Math::min( radius / 2.0f, 1.0f ) );
-					color[ 1 ] = Math::mix( 1.0f, color[ 1 ], Math::min( radius / 2.0f, 1.0f ) );
-					color[ 2 ] = Math::mix( 1.0f, color[ 2 ], Math::min( radius / 2.0f, 1.0f ) );
+					color[ 0 ] = Math::mix( 1.0f, color[ 0 ], Math::min( radius / 10.0f, 1.0f ) );
+					color[ 1 ] = Math::mix( 1.0f, color[ 1 ], Math::min( radius / 10.0f, 1.0f ) );
+					color[ 2 ] = Math::mix( 1.0f, color[ 2 ], Math::min( radius / 10.0f, 1.0f ) );
 					/* alpha remains */
 					*pdst++ = color[ 0 ];
 					*pdst++ = color[ 1 ];

@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	Image color;
 
 	if( argc < 2 ) {
-	    std::cerr << "usage: " << argv[ 0 ] << "file.flo" << std::endl;
+	    std::cerr << "usage: " << argv[ 0 ] << "file.flo [out.png]" << std::endl;
 	    exit( 1 );
 	}
 

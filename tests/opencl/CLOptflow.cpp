@@ -2,7 +2,9 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <string>
 #include <iostream>
+
 #include <highgui.h>
+#include <cvt/io/ImageIO.h>
 
 /* Kernel include */
 #include "calcp1.h"
@@ -20,9 +22,9 @@
 #include "gradxy.h"
 
 #define LAMBDA 80.0f
-#define THETA 0.15f
-#define NUMWARP 4
-#define NUMROF 3
+#define THETA 0.2f
+#define NUMWARP 5
+#define NUMROF 10
 #define TAU 0.249f
 
 namespace cvt {
@@ -68,8 +70,8 @@ namespace cvt {
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
 		/* FIXME: lowest level defines input format */
-		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, IOrder::RGBA, IType::UBYTE  );
-		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, IOrder::RGBA, IType::UBYTE  );
+		pyr[ 0 ][ 0 ] = new CLImage( 160, 480, IOrder::RGBA, IType::FLOAT  );
+		pyr[ 0 ][ 1 ] = new CLImage( 160, 480, IOrder::RGBA, IType::FLOAT  );
 		pyr[ 1 ][ 0 ] = new CLImage( 80, 240, IOrder::RGBA, IType::FLOAT  );
 		pyr[ 1 ][ 1 ] = new CLImage( 80, 240, IOrder::RGBA, IType::FLOAT  );
 		pyr[ 2 ][ 0 ] = new CLImage( 40, 120, IOrder::RGBA, IType::FLOAT  );
@@ -121,7 +123,7 @@ namespace cvt {
 		clear( py );
 		warp( u, v, px, py, pyr[ 4 ][ pyridx2 ], pyr[ 4 ][ pyridx ], NUMWARP );
 
-		for( int level = 3; level >= 1; level-- ) {
+		for( int level = 3; level >= 0; level-- ) {
 			size_t w = pyr[ level ][ 0 ]->width();
 			size_t h = pyr[ level ][ 0 ]->height();
 			CLImage* unew = biup( u, 2.0f );
@@ -138,7 +140,8 @@ namespace cvt {
 			py = pynew;
 			warp( u, v, px, py, pyr[ level ][ pyridx2 ], pyr[ level ][ pyridx ], NUMWARP );
 		}
-			showColorCode( "Flow", u );
+
+		showColorCode( "Flow", u, pyr[ 0 ][ pyridx2 ] );
 /*		{
 			Image tmp( 320, 240, CVT_GRAY, IType::FLOAT );
 			pyr[ 1 ][ pyridx ]->readData( tmp.data(), tmp.stride() );
@@ -147,8 +150,7 @@ namespace cvt {
 		delete px;
 		delete py;
 		delete v;
-		delete u;
-		return NULL;
+		return u;
 	}
 
 	void CLOptflow::warp( CLImage* u, CLImage* v, CLImage* px, CLImage* py, CLImage* img1, CLImage* img2, size_t iter )
@@ -205,6 +207,12 @@ namespace cvt {
 			kernelmed.run( cl::NullRange, v->globalRange(), cl::NDRange( MX, MY ), &sync, &event );
 			sync[ 0 ] =  event;
 
+
+/*			showColorCode( "FlowX", &v0, img2 );
+			cvWaitKey( 10 );
+			cvWaitKey( 10 );
+			sleep( 1 );*/
+
 			mul.set( 0.5f );
 			/* warp dx */
 			kernelwarpsub.setArg( 0, &iwx );
@@ -246,7 +254,8 @@ namespace cvt {
 	void CLOptflow::tvl1( CLImage* u, CLImage* v, CLImage* px, CLImage* py, float lambda, float _theta, CLImage* ig2, CLImage* it, CLImage* ix, CLImage* iy, CLImage* v0, size_t iter )
 	{
 		CLImage pxt, pyt;
-		IFilterScalar tautheta( TAU / _theta );
+//		IFilterScalar tautheta( TAU / _theta );
+		IFilterScalar tautheta( 1.0f / ( 4.0f * _theta + 0.01f ) );
 		IFilterScalar theta( _theta );
 		IFilterScalar lambdatheta( _theta * lambda );
 		std::vector<cl::Event> sync;
@@ -324,7 +333,7 @@ namespace cvt {
 			kernelp2.run( cl::NullRange, u->globalRange(), cl::NDRange( wx, wy ), &sync, &event );
 			sync[ 0 ] = event;
 		}
-//		kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
+		kernelth.run( cl::NullRange, ig2->globalRange(), cl::NDRange( 10, 10 ), &sync, &event );
 	}
 
 	void CLOptflow::clear( CLImage* i )
@@ -344,7 +353,7 @@ namespace cvt {
 		return ret;
 	}
 
-	CLImage* CLOptflow::colorcode( CLImage* in )
+	CLImage* CLOptflow::colorcode( CLImage* in, CLImage* bg )
 	{
 		CLImage* ret = new CLImage( in->width() * 2, in->height(), IOrder::RGBA, IType::UBYTE );
 		size_t wx, wy;
@@ -358,16 +367,22 @@ namespace cvt {
 
 		kernelcflow.setArg( 0, ret );
 		kernelcflow.setArg( 1, in );
+		kernelcflow.setArg( 2, bg );
 		kernelcflow.run( cl::NullRange, in->globalRange(), cl::NDRange( wx, wy ) );
 		return ret;
 	}
 
-	void CLOptflow::showColorCode( const char* name, CLImage* i )
+	void CLOptflow::showColorCode( const char* name, CLImage* i, CLImage* bg )
 	{
-		CLImage* ret = colorcode( i );
-		Image iflow( 640, 480, IOrder::RGBA, IType::UBYTE );
+		CLImage* ret = colorcode( i, bg );
+		Image iflow( 640, 480, IOrder::BGRA, IType::UBYTE );
 		ret->readData( iflow.map(), iflow.stride() );
 		iflow.unmap();
+		{
+			Image tmp( 512, 480, IOrder::BGRA, IType::UBYTE );
+			tmp.copyRect( 0, 0, iflow, 0, 0, 512, 480 );
+			ImageIO::savePNG( tmp, "out.png" );
+		}
 		cvShowImage( name, iflow.iplimage() );
 		delete ret;
 	}

@@ -10,6 +10,16 @@
 
 using namespace cvt;
 
+struct Params {
+	Image* src;
+	Image* dst;
+};
+
+void mouseevent(int event, int x, int y, int flags, Params* p )
+{
+	p->dst->copyRect( 220, 140, *(p->src), x - 100, y - 100, 200, 200 );
+	cvShowImage( "Region", p->dst->iplimage() );
+}
 
 int main(int argc, char* argv[])
 {
@@ -26,7 +36,14 @@ int main(int argc, char* argv[])
 		cam.init();
 		cam.captureStart();
 
+
 		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
+		Image region( 640, 480, IOrder::GRAY, IType::UBYTE );
+
+
+		Params p = { &out, &region };
+		cvShowImage( "DC1394", out.iplimage() );
+		cvSetMouseCallback( "DC1394", ( CvMouseCallback ) mouseevent, &p );
 
 		timer.reset();
 		while( 1 ) {
