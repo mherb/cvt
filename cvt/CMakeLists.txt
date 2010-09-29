@@ -60,9 +60,10 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IFilterVector.h
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
+	gfx/ImageAllocatorCL.h
 	vision/Flow.h
-	gui/GLView.h
-	gui/GLObject.h
+#	gui/GLView.h
+#	gui/GLObject.h
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
@@ -89,10 +90,11 @@ SET(${MODULE_NAME}_SOURCES
 #	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
 	gfx/ImageAllocatorMem.cpp
+	gfx/ImageAllocatorCL.cpp
 	vision/Flow.cpp
-	gui/Display.cpp	
-	gui/GLView.cpp
-	gui/GLImage.cpp
+#	gui/Display.cpp	
+#	gui/GLView.cpp
+#	gui/GLImage.cpp
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
@@ -100,8 +102,8 @@ SET(${MODULE_NAME}_SOURCES
 )
 
 SET(${MODULE_NAME}_MOC_FILES
-	gui/Display.h
-	gui/GLView.h
+#	gui/Display.h
+#	gui/GLView.h
 )
 QT4_WRAP_CPP(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_MOC_FILES})
 	

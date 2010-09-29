@@ -103,8 +103,11 @@ namespace cvt {
 		cl::Event event;
 
 		pyridx ^= 0x01;
-		pyr[ 0 ][ pyridx ]->writeData( i.map(), i.stride() );
-		i.unmap();
+		const uint8_t* ptr;
+		size_t stride;
+		ptr = i.map( &stride );
+		pyr[ 0 ][ pyridx ]->writeData( ptr, stride );
+		i.unmap( ptr );
 		for( int i = 0; i < 4; i++ ) {
 			kernelbidown.setArg( 0, pyr[ i + 1 ][ pyridx ] );
 			kernelbidown.setArg( 1, pyr[ i ][ pyridx ] );
@@ -376,8 +379,11 @@ namespace cvt {
 	{
 		CLImage* ret = colorcode( i, bg );
 		Image iflow( 640, 480, IOrder::BGRA, IType::UBYTE );
-		ret->readData( iflow.map(), iflow.stride() );
-		iflow.unmap();
+		size_t stride;
+		uint8_t* ptr;
+		ptr = iflow.map( &stride );
+		ret->readData( ptr, stride );
+		iflow.unmap( ptr );
 		{
 			Image tmp( 512, 480, IOrder::BGRA, IType::UBYTE );
 			tmp.copyRect( 0, 0, iflow, 0, 0, 512, 480 );

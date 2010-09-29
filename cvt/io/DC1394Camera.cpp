@@ -99,9 +99,11 @@ namespace cvt
 
 		dc1394video_frame_t* frame;
 		dc1394_capture_dequeue( mCamera, DC1394_CAPTURE_POLICY_WAIT, &frame );
-		uint8_t* dst = mFrame->map();
-		memcpy( dst, frame->image, mWidth * mHeight * sizeof( uint8_t ) );
-		mFrame->unmap();
+		size_t stride;
+		uint8_t* dst = mFrame->map( &stride );
+		for( size_t i = 0; i < mHeight; i++ )
+			memcpy( dst + i * stride, frame->image + i * mWidth * sizeof( uint8_t ), mWidth * sizeof( uint8_t ) );
+		mFrame->unmap( dst );
 		/* FIXME: convert to image format ... */
 		dc1394_capture_enqueue( mCamera, frame );
 	}

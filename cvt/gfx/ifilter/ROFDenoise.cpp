@@ -62,9 +62,13 @@ namespace cvt {
 	static void multadd3( Image& idst, const Image& isrc, const Image& dx, const Image& dy, float lambda )
 	{
 		uint8_t* dst;
+		uint8_t* odst;
 		const uint8_t* src1;
 		const uint8_t* src2;
 		const uint8_t* src3;
+		const uint8_t* osrc1;
+		const uint8_t* osrc2;
+		const uint8_t* osrc3;
 		size_t stridedst;
 		size_t stridesrc1;
 		size_t stridesrc2;
@@ -75,14 +79,10 @@ namespace cvt {
 		const float* psrc3;
 		size_t w, h;
 
-		dst = idst.map();
-		stridedst = idst.stride();
-		src1 = isrc.map();
-		stridesrc1 = isrc.stride();
-		src2 = dx.map();
-		stridesrc2 = dx.stride();
-		src3 = dy.map();
-		stridesrc3 = dy.stride();
+		odst = dst = idst.map( &stridedst );
+		osrc1 = src1 = isrc.map( &stridesrc1 );
+		osrc2 = src2 = dx.map( &stridesrc2 );
+		osrc3 = src3 = dy.map( &stridesrc3 );
 
 		h = idst.height();
 		while( h-- ) {
@@ -101,18 +101,22 @@ namespace cvt {
 			src2 += stridesrc2;
 			src3 += stridesrc3;
 		}
-		dy.unmap();
-		dx.unmap();
-		isrc.unmap();
-		idst.unmap();
+		dy.unmap( osrc3 );
+		dx.unmap( osrc2 );
+		isrc.unmap( osrc1 );
+		idst.unmap( odst );
 	}
 
 	static void multadd2_th( Image& idst1, Image& idst2, const Image& dx, const Image& dy, float taulambda )
 	{
 		uint8_t* dst1;
 		uint8_t* dst2;
+		uint8_t* odst1;
+		uint8_t* odst2;
 		const uint8_t* src1;
 		const uint8_t* src2;
+		const uint8_t* osrc1;
+		const uint8_t* osrc2;
 		size_t stridedst1;
 		size_t stridedst2;
 		size_t stridesrc1;
@@ -124,15 +128,10 @@ namespace cvt {
 		size_t w, h;
 		float tmp1, tmp2, norm;
 
-		dst1 = idst1.map();
-		stridedst1 = idst1.stride();
-		dst2 = idst2.map();
-		stridedst2 = idst2.stride();
-		src1 = dx.map();
-		stridesrc1 = dx.stride();
-		src2 = dy.map();
-		stridesrc2 = dy.stride();
-
+		odst1 = dst1 = idst1.map( &stridedst1 );
+		odst2 = dst2 = idst2.map( &stridedst2 );
+		osrc1 = src1 = dx.map( &stridesrc1 );
+		osrc2 = src2 = dy.map( &stridesrc2 );
 
 		h = idst1.height();
 		while( h-- ) {
@@ -159,10 +158,10 @@ namespace cvt {
 			src1 += stridesrc1;
 			src2 += stridesrc2;
 		}
-		dy.unmap();
-		dx.unmap();
-		idst2.unmap();
-		idst1.unmap();
+		dy.unmap( osrc2 );
+		dx.unmap( osrc1 );
+		idst2.unmap( odst2 );
+		idst1.unmap( odst1 );
 	}
 
 	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter ) const
@@ -221,36 +220,39 @@ namespace cvt {
 		{
 			float* data;
 			uint8_t* base;
+			size_t stride;
 
-			data = ( float* ) kerndx.map();
+			base =  kerndx.map( &stride );
+			data = ( float* ) base;
 			*data++ = -1.0f;
 			*data++ =  1.0f;
 //			*data++ =  0.0f;
-			kerndx.unmap();
+			kerndx.unmap( base );
 
-			base = kerndy.map();
+			base = kerndy.map( &stride );
 			data = ( float* ) ( base );
 			*data++ = -1.0f;
-			data = ( float* ) ( base + kerndy.stride() );
+			data = ( float* ) ( base + stride );
 			*data++ =  1.0f;
 //			data = ( float* ) kerndy.scanline( 2 );
 //			*data++ =  0.0f;
-			kerndy.unmap();
+			kerndy.unmap( base );
 
-			data = ( float* ) kerndxrev.map();
+			base = kerndxrev.map( &stride );
+			data = ( float* ) base;
 			*data++ =  0.0f;
 			*data++ = -1.0f;
 			*data++ =  1.0f;
-			kerndxrev.unmap();
+			kerndxrev.unmap( base );
 
-			base = kerndyrev.map();
+			base = kerndyrev.map( &stride );
 			data = ( float* ) ( base );
 			*data++ =  0.0f;
-			data = ( float* ) ( base + kerndyrev.stride() );
+			data = ( float* ) ( base + stride );
 			*data++ = -1.0f;
-			data = ( float* ) ( base + kerndyrev.stride() * 2 );
+			data = ( float* ) ( base + stride * 2 );
 			*data++ =  1.0f;
-			kerndyrev.unmap();
+			kerndyrev.unmap( base );
 		}
 #endif
 

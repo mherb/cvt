@@ -352,8 +352,10 @@ namespace cvt {
 
 		// decompress frame
 		if( mBuffer.bytesused >= mFrame->height() * mFrame->width() * 2 ) {
-			YUYV2COLOR( mFrame->map(), ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), mFrame->stride(), 2 * mFrame->width(), mImgorder );
-			mFrame->unmap();
+			size_t stride;
+			uint8_t* ptr = mFrame->map( &stride );
+			YUYV2COLOR( ptr, ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), stride, 2 * mFrame->width(), mImgorder );
+			mFrame->unmap( ptr );
 		}
 
 		ret = ioctl(mFd, VIDIOC_QBUF, &mBuffer);

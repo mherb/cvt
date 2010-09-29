@@ -70,23 +70,25 @@ namespace cvt {
 			flow.reallocate( width, height, IOrder::GRAYALPHA, IType::FLOAT );
 			size_t h = flow.height();
 			size_t w2 = flow.width() * 2;
-			uint8_t* ptr = flow.map();
-			size_t stride = flow.stride();
+			size_t stride;
+			uint8_t* ptr = flow.map( &stride );
+			uint8_t* optr = ptr;
 			while( h-- ) {
 				if( fread( ptr, sizeof( float ), w2 , stream) != w2)
 					throw CVTException("ReadFlowFile(" + filename + "): file is too short" );
 				ptr += stride;
 			}
 
-			flow.unmap();
+			flow.unmap( optr );
 
 			if( fgetc(stream) != EOF)
 				throw CVTException("ReadFlowFile(" + filename + "): file is too long" );
 
 			if( zerounknown ) {
 				size_t w = flow.width();
+				uint8_t* optr;
 				h = flow.height();
-				ptr = flow.map();
+				optr = ptr = flow.map( &stride );
 				while( h-- ) {
 					float* pptr = ( float* ) ptr;
 					w2 = w;
@@ -99,7 +101,7 @@ namespace cvt {
 					}
 					ptr += stride;
 				}
-				flow.unmap();
+				flow.unmap( optr );
 			}
 
 			fclose(stream);
@@ -131,14 +133,15 @@ namespace cvt {
 
 			size_t h = flow.height();
 			size_t w2 = flow.width() * 2;
-			const uint8_t* ptr = flow.map();
-			size_t stride = flow.stride();
+			size_t stride;
+			const uint8_t* ptr = flow.map( &stride );
+			const uint8_t* optr = ptr;
 			while( h-- ) {
 				if( fwrite( ptr, sizeof( float ), w2 , stream ) != w2)
 					throw CVTException("ReadFlowFile(" + filename + "): problem writing data" );
 				ptr += stride;
 			}
-			flow.unmap();
+			flow.unmap( optr );
 			fclose(stream);
 		}
 

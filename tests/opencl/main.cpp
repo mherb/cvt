@@ -61,9 +61,10 @@ int main( int argc, char** argv )
 		delete u;
 		u = flow.updateFlow( inp2 );
 		{
-			uint8_t* base = flowpad.map();
-			u->readData( base, flowpad.stride() );
-			flowpad.unmap();
+			size_t stride;
+			uint8_t* base = flowpad.map( &stride );
+			u->readData( base, stride );
+			flowpad.unmap( base );
 			iflow.copyRect( 0,0, flowpad, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
 			delete u;
 		}

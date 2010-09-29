@@ -82,9 +82,12 @@ namespace cvt {
 
 	void CLImage::readImage( Image& i )
 	{
+		uint8_t* ptr;
+		size_t stride;
 		i.reallocate( _width, _height, _order, _type );
-		readData( i.map(), i.stride() );
-		i.unmap();
+		ptr = i.map( &stride );
+		readData( ptr, stride );
+		i.unmap( ptr );
 	}
 
 	void CLImage::readData( void* data, size_t stride )
@@ -110,8 +113,12 @@ namespace cvt {
 		if( i.width() != _width || i.height() != _height ||
 		   i.order() != _order || i.type() != _type  )
 			throw CVTException("Image mismatch!");
-		writeData( i.map(), i.stride() );
-		i.unmap();
+
+		const uint8_t* ptr;
+		size_t stride;
+		ptr = i.map( &stride );
+		writeData( ptr, stride );
+		i.unmap( ptr );
 	}
 
 	void CLImage::writeData( void const* data, size_t stride ) const

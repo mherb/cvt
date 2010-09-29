@@ -35,12 +35,15 @@ int main(int argc, char* argv[])
 	Image z( 640, 480, IOrder::BGRA, IType::UBYTE );
 
 	{
+		size_t stride;
+		uint8_t* ptr;
 		float* data;
-		data = ( float* ) kernel.map();
+		ptr = kernel.map( &stride );
+		data = ( float* ) ptr;
 		*data++ = 1.0f;
 		*data++ = 0.0f;
 		*data++ = -1.0f;
-		kernel.unmap();
+		kernel.unmap( ptr );
 	}
 
 	try {
