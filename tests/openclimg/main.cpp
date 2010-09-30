@@ -25,7 +25,7 @@ int main( int argc, char** argv )
 
 	kernel.setArg( 0, &x );
 
-	kernel.run( cl::NullRange, cl::NDRange( 400, 300 ), cl::NullRange );
+	kernel.run( x, cl::NullRange );
 
 	ImageIO::savePNG( x, "bla.png" );
 	} catch( CLException e ) {

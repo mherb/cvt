@@ -62,6 +62,7 @@ namespace cvt {
 					img.reallocate( width, height, IOrder::GRAYALPHA, IType::UBYTE );
 					break;
 				case PNG_COLOR_TYPE_RGB:
+				case PNG_COLOR_TYPE_PALETTE:
 					/* expand paletted colors into true RGB triplets */		    
 					png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 				case PNG_COLOR_TYPE_RGBA:
@@ -69,6 +70,8 @@ namespace cvt {
 					img.reallocate( width, height, IOrder::BGRA, IType::UBYTE );
 					break;
 				default:
+					std::cout << color_type << std::endl;
+					throw CVTException("Unsupported PNG format");
 					break;
 			}
 
