@@ -8,6 +8,8 @@
 
 #include <cvt/util/Exception.h>
 #include <cvt/util/Timer.h>
+#include <cvt/math/SparseBundleAdjustment.h>
+#include <cvt/math/SBAData.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -109,8 +111,7 @@ void parsePtsFile( const std::string & file, std::vector<Point3d> & points3d )
 		lineBuffer >> x; lineBuffer >> y; lineBuffer >> z;
 		points3d.push_back( Point3d( x, y, z ) );
 		
-		lineBuffer >> numFrames;
-		std::cout << numFrames << std::endl;		
+		lineBuffer >> numFrames;		
 		while (numFrames--) {
 			lineBuffer >> frameId;
 			lineBuffer >> x; lineBuffer >> y;
@@ -218,6 +219,38 @@ void convertDataToOpenCv(Eigen::Matrix3d & K,
 	}
 }
 
+void convertData(Eigen::Matrix3d & K, 
+				 std::vector<CameraTransform> & cameras, 
+				 std::vector<Point3d> & points3d,
+				 cvt::SBAData & sbaData)
+{
+	for( unsigned int i = 0; i < cameras.size(); i++ ){
+		cvt::CameraModel & cam =  sbaData.addCamera( K );		
+		cam.set( cameras[ i ].orientation, cameras[ i ].translation );
+		cam.updateProjectionMatrix();			
+	}
+	
+	for( unsigned int i = 0; i < points3d.size(); i++ ){
+		cvt::Measurements & m = sbaData.addMeasurements( points3d[ i ].P, 
+														 points3d[ i ].observations,
+														 points3d[ i ].frameIds );
+		m.screenPredictions.resize( m.viewIds.size() );
+		m.residuals.resize( m.viewIds.size() );
+		m.inverseCovariances.resize( m.viewIds.size() );
+		m.jacWRTCamParams.resize( m.viewIds.size() );
+		m.jacWRTPointParams.resize( m.viewIds.size() );
+						
+		for (unsigned int p = 0; p < m.viewIds.size(); p++) {
+			cvt::CameraModel & cam = sbaData.cameraWithId( m.viewIds[ p ] );
+			
+			cam.project( m.pointParameters, m.screenPredictions[ p ] );
+			m.updateResidualForMeasurement( p );
+			m.inverseCovariances[ p ].setIdentity();			
+		}
+	}
+	sbaData.updateCurrentCosts();
+}
+
 void testOpenCVImplementation( Eigen::Matrix3d & K, 
 							   std::vector<CameraTransform> & cameras, 
 							   std::vector<Point3d> & points3d )
@@ -249,8 +282,25 @@ void testOpenCVImplementation( Eigen::Matrix3d & K,
 									 distortions,
 									 criteria );
 	
-	std::cout << "OpenCV BA took: " << timer.elapsedMiliSeconds() << "ms" << std::endl;
+	std::cout << "OpenCV BA took: " << timer.elapsedMiliSeconds() << "ms" << std::endl;	
+}
+
+void testMVGImplementation( Eigen::Matrix3d & K, 
+						    std::vector<CameraTransform> & cameras, 
+						    std::vector<Point3d> & points3d )
+{
+	cvt::SBAData sbaData;
+	cvt::SparseBundleAdjustment sba;
+	sba.setTerminationCriteria( 0.6, 17 );
 	
+	convertData( K, cameras, points3d, sbaData );
+	
+	cvt::Timer timer;
+	sba.optimize( sbaData );
+	
+	std::cout << "MVG BA took: " << timer.elapsedMiliSeconds() << "ms" << std::endl;	
+	std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.epsilon() << std::endl; 
+	std::cout << "Time/iteration: " << timer.elapsedSeconds() / sba.iterations() << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -281,10 +331,10 @@ int main(int argc, char* argv[])
 		parseCameraFile( camFile, cameras );
 		parsePtsFile( pointFile, points3d );
 		
-		printLoadedData( K, cameras, points3d );
+		//printLoadedData( K, cameras, points3d );
 		
-		testOpenCVImplementation( K, cameras, points3d );
-
+		//testOpenCVImplementation( K, cameras, points3d );
+		testMVGImplementation( K, cameras, points3d );
 	}
 	catch (const cvt::Exception & e) {
 		std::cout << e.what() << std::endl;

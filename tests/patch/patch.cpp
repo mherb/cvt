@@ -18,22 +18,27 @@ int main()
 		cvt::Image imgGray;		
 		cvt::ImageIO::loadPNG( imgGray, inputFile );
 		
-		cvt::Image imgF( imgGray.width(), imgGray.height(), imgGray.order(), cvt::CVT_FLOAT );
+		cvt::Image imgF( imgGray.width(), imgGray.height(), imgGray.order(), cvt::IType::FLOAT );
 		imgGray.convert( imgF );
 		
 		cvNamedWindow( "Test Image" );
 		
 		cvt::Recti rect(100, 100, 100, 100);
-		cvt::Image patchA(imgF, rect, false);
+		cvt::Image patchA(imgF, &rect, false);
 		
 		//rect.x = 100;
-		cvt::Image patchB(imgF, rect, false);		
+		cvt::Image patchB(imgF, &rect, false);		
 		
 		std::cout << "SSD: " << patchA.ssd( patchB ) << std::endl;
 		std::cout << "SAD: " << patchA.sad( patchB ) << std::endl;
 		
+		cvShowImage( "Test Image", patchA.iplimage() );
+		cvWaitKey( 0 );
+		cvShowImage( "Test Image", patchB.iplimage() );
+		cvWaitKey( 0 );
+		
 		cvShowImage( "Test Image", imgGray.iplimage() );
-		cvWaitKey( 0 );		
+		cvWaitKey( 0 );
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;

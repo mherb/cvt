@@ -14,24 +14,9 @@
 
 #include <vector>
 
-#include <boost/function.hpp>
+#include "Optimization.h"
 
-namespace cvt {
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DynamicEigenVec;
-    
-    typedef boost::function<double (DynamicEigenVec const&,
-									std::vector<DynamicEigenVec> const&,
-									std::vector<DynamicEigenVec> const&,
-									DynamicEigenVec &)> CostFunctionType;
-    
-    typedef boost::function<void (DynamicEigenVec const&,
-								  std::vector<DynamicEigenVec> const&,
-								  Eigen::MatrixXd &)> JacobianFunctionType;
-    
-    typedef boost::function<void (DynamicEigenVec const&,
-								  DynamicEigenVec const&,
-								  DynamicEigenVec &)> TransformFunctionType;
-    
+namespace cvt {    
     class LevenbergMarquard
     {
     public:
