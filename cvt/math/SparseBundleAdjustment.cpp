@@ -1,6 +1,5 @@
 #include "SparseBundleAdjustment.h"
 
-#include <Eigen/Eigen>
 #include <Eigen/LU>
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
