@@ -18,9 +18,10 @@ namespace cvt {
 	class Image : public IFilterParameter
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
+		friend class CLKernel;
 
 		public:
-			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE );
+			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType = IALLOCATOR_MEM );
 			Image( const Image& img );
 			Image( const Image& source, const Recti* roi, bool ref = false  );
 
@@ -35,6 +36,7 @@ namespace cvt {
 			size_t bpp() const;
 			const IOrder order() const;
 			const IType type() const;
+			const IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
 			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };

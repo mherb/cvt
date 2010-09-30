@@ -1,5 +1,6 @@
 #include <cvt/cl/CLKernel.h>
 #include <cvt/cl/CLImage.h>
+#include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/IFilterScalar.h>
 #include <cvt/gfx/IFilterVector.h>
@@ -57,9 +58,15 @@ namespace cvt {
 				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float16 ), ( void* ) ( ( IFilterVector16* ) p )->vec );
 				break;
 			case IFILTERPARAMETER_IMAGE:
-				CLImage* img;
-				if( ( img = dynamic_cast<CLImage*>( p ) ) != NULL ) {
-					_kernel.setArg( ( cl_uint ) i, img->_climage() );
+				CLImage* climg;
+				Image* img;
+				if( ( climg = dynamic_cast<CLImage*>( p ) ) != NULL ) {
+					_kernel.setArg( ( cl_uint ) i, climg->_climage() );
+				} else if( ( img = dynamic_cast<Image*>( p ) ) != NULL ) {
+					if( img->memType() != IALLOCATOR_CL )
+						throw CVTException("Need CLImage for CLKernel");
+					ImageAllocatorCL* clmem = ( ImageAllocatorCL* ) img->_mem;
+					_kernel.setArg( ( cl_uint ) i, *clmem->_climage );
 				} else
 					throw CVTException("Need CLImage for CLKernel");
 				break;
