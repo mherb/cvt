@@ -23,6 +23,7 @@ namespace cvt {
 	{
 		_mem = new ImageAllocatorMem();
 		_mem->copy( img._mem );
+		upateIpl();
 	}
 
 	Image::Image( const Image& source, const Recti* roi, bool ref ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
@@ -30,6 +31,7 @@ namespace cvt {
 		if( !ref ){
 			_mem = new ImageAllocatorMem();
 			_mem->copy( source._mem, roi );
+			upateIpl();
 		} else {
 			throw CVTException("Shared image memory not implemented yet");
 		}
