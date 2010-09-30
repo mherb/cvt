@@ -44,6 +44,7 @@ namespace cvt {
 
 		if( r )
 			rect.intersect( *r );
+
 		alloc( rect.width, rect.height, x->_order, x->_type );
 
 		osrc = src = x->map( &sstride );
@@ -54,8 +55,8 @@ namespace cvt {
 		i = rect.height;
 		while( i-- ) {
 			simd->Memcpy( dst, src, n );
-			dst += sstride;
-			src += _stride;
+			dst += _stride;
+			src += sstride;
 		}
 		x->unmap( osrc );
 	}
