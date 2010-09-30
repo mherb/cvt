@@ -19,17 +19,23 @@ namespace cvt {
 	}
 
 
-	Image::Image( const Image& img ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( const Image& img, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
 	{
-		_mem = new ImageAllocatorMem();
+		if( memtype == IALLOCATOR_CL )
+			_mem = new ImageAllocatorCL();
+		else
+			_mem = new ImageAllocatorMem();
 		_mem->copy( img._mem );
 		upateIpl();
 	}
 
-	Image::Image( const Image& source, const Recti* roi, bool ref ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
 	{
 		if( !ref ){
-			_mem = new ImageAllocatorMem();
+			if( memtype == IALLOCATOR_CL )
+				_mem = new ImageAllocatorCL();
+			else
+				_mem = new ImageAllocatorMem();
 			_mem->copy( source._mem, roi );
 			upateIpl();
 		} else {
@@ -37,11 +43,17 @@ namespace cvt {
 		}
 	}
 
-	void Image::reallocate( size_t w, size_t h, IOrder order, IType type )
+	void Image::reallocate( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype )
 	{
-		if( _mem->_width == w && _mem->_height == h && _mem->_order == order && _mem->_type == type )
+		if( _mem->_width == w && _mem->_height == h && _mem->_order == order && _mem->_type == type && _mem->type() == memtype )
 			return;
-
+		if( _mem->type() != memtype ) {
+			delete _mem;
+			if( memtype == IALLOCATOR_CL )
+				_mem = new ImageAllocatorCL();
+			else
+				_mem = new ImageAllocatorMem();
+		}
 		_mem->alloc( w, h, order, type );
 		upateIpl();
 	}
