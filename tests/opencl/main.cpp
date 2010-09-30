@@ -32,7 +32,7 @@ int main( int argc, char** argv )
 	std::vector<cl::Event> sync;
 	cl::Event event;
 	int pyridx = 0;
-	CLImage* u;
+	Image* u;
 	Image img1, img2, in1, in2, inp1, inp2, iflow, flowpad;
 
 
@@ -61,10 +61,28 @@ int main( int argc, char** argv )
 		delete u;
 		u = flow.updateFlow( inp2 );
 		{
-			size_t stride;
-			uint8_t* base = flowpad.map( &stride );
-			u->readData( base, stride );
-			flowpad.unmap( base );
+			size_t dstride;
+			uint8_t* dbase = flowpad.map( &dstride );
+			size_t sstride;
+			const uint8_t* sbase;
+			size_t h, n;
+			const uint8_t* src;
+			uint8_t* dst;
+
+			sbase = u->map( &sstride );
+			h = u->height();
+			n = u->width() * u->bpp();
+			dst = dbase;
+			src = sbase;
+			while( h-- ) {
+				memcpy( dst, src, n );
+				dst += dstride;
+				src += sstride;
+			}
+
+			u->unmap( sbase );
+			flowpad.unmap( dbase );
+
 			iflow.copyRect( 0,0, flowpad, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
 			delete u;
 		}

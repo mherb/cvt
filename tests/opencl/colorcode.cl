@@ -96,6 +96,7 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
 	white.w = 1.0f;
 #endif
     color = mix( white, color, fmin( rad / MAXFLOW, 1.0f ) );
+	color.xyzw = color.zyxw;
     write_imagef( out, coord, color );
 
     rad = length( grad.zw );
@@ -110,5 +111,6 @@ __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t g
 	white.w = 1.0f;
 #endif
     color = mix( white, color, fmin( rad / MAXFLOW, 1.0f ) );
+	color.xyzw = color.zyxw;
     write_imagef( out, coord + ( int2 ) ( 1, 0 ), color );
 }

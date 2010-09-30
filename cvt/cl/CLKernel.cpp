@@ -90,6 +90,18 @@ namespace cvt {
 	}
 
 
+	void CLKernel::run( const Image& img, const cl::NDRange& local, std::vector<cl::Event>* events, cl::Event* event )
+	{
+		if( _cl ) {
+
+			cl_int err = _cl->getCLQueue( ).enqueueNDRangeKernel( _kernel, cl::NullRange, cl::NDRange( img.width(), img.height() ), local, events, event );
+			if( err != CL_SUCCESS ) {
+				throw CLException( _name, err );
+			}
+		}
+	}
+
+
 	size_t CLKernel::workGroupSize( ) const
 	{
 		size_t ret;

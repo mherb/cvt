@@ -21,12 +21,10 @@ namespace cvt {
 		friend class CLKernel;
 
 		public:
-			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType = IALLOCATOR_MEM );
-			Image( const Image& img );
-			Image( const Image& source, const Recti* roi, bool ref = false  );
-
+			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType memtype = IALLOCATOR_MEM );
+			Image( const Image& img, IAllocatorType memtype = IALLOCATOR_MEM );
+			Image( const Image& source, const Recti* roi, bool ref = false, IAllocatorType memtype = IALLOCATOR_MEM );
 			~Image();
-
 			size_t width() const;
 			size_t height() const;
 			size_t channels() const;
@@ -36,15 +34,15 @@ namespace cvt {
 			size_t bpp() const;
 			const IOrder order() const;
 			const IType type() const;
-			const IAllocatorType memType() const { return _mem->type(); };
+			IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
 			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
 /*			uint8_t* scanline( size_t i );
 			uint8_t const* scanline( size_t i ) const;*/
 
-			void reallocate( size_t w, size_t h, IOrder order = IOrder::RGBA, IType type = IType::UBYTE );
-			void reallocate( const Image& i );
+			void reallocate( size_t w, size_t h, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType memtype = IALLOCATOR_MEM );
+			void reallocate( const Image& i, IAllocatorType memtype = IALLOCATOR_MEM );
 
 			void copy( const Image& i );
 			void copyRect( int x, int y, const Image& i, int sx, int sy, int swidth, int sheight );
@@ -149,9 +147,9 @@ namespace cvt {
 		return _data + _mem->_stride * y;
 	}*/
 
-	inline void Image::reallocate( const Image& i )
+	inline void Image::reallocate( const Image& i, IAllocatorType memtype )
 	{
-		reallocate( i._mem->_width, i._mem->_height, i._mem->_order, i._mem->_type );
+		reallocate( i._mem->_width, i._mem->_height, i._mem->_order, i._mem->_type, memtype );
 	}
 
 	inline IplImage* Image::iplimage() const
