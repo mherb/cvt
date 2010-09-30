@@ -70,7 +70,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
-	cl/CLImage.h
+#	cl/CLImage.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -102,7 +102,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
-	cl/CLImage.cpp
+#	cl/CLImage.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
