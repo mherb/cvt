@@ -40,6 +40,9 @@ SET(${MODULE_NAME}_HEADERS
 	io/Resources.h
 	math/LevenbergMarquard.h
 	math/Math.h
+	math/Optimization.h
+	math/SBAData.h
+	math/SparseBundleAdjustment.h
 	util/Range.h
 	util/Rect.h
 	util/CVTTest.h
@@ -78,6 +81,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/Resources.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
+	math/SparseBundleAdjustment.cpp
 	util/Range.cpp
 	util/Rect.cpp
 	util/SIMD.cpp
