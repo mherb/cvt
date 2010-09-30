@@ -1,5 +1,6 @@
 #include "gfx/Image.h"
 #include "gfx/ImageAllocatorMem.h"
+#include "gfx/ImageAllocatorCL.h"
 #include "math/Math.h"
 #include "util/SIMD.h"
 #include "util/Exception.h"
@@ -7,9 +8,12 @@
 
 namespace cvt {
 
-	Image::Image( size_t w, size_t h, IOrder order, IType type ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
 	{
-		_mem = new ImageAllocatorMem();
+		if( memtype == IALLOCATOR_CL )
+			_mem = new ImageAllocatorCL();
+		else
+			_mem = new ImageAllocatorMem();
 	    _mem->alloc( w, h, order, type );
 		upateIpl();
 	}

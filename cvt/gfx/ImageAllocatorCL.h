@@ -5,6 +5,8 @@
 
 namespace cvt {
 	class ImageAllocatorCL : public ImageAllocator {
+		friend class CLKernel;
+
 		public:
 			ImageAllocatorCL();
 			~ImageAllocatorCL();
