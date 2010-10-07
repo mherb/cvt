@@ -222,9 +222,10 @@ namespace cvt {
 			std::set<size_t>::const_iterator otherCam = corresp.begin();
 			std::set<size_t>::const_iterator otherCamEnd = corresp.end();
 						
-			Eigen::MatrixXd blockRow = Eigen::MatrixXd::Zero( 6, 6*corresp.size() );
+			// values for the c-th column of the S matrix
+			Eigen::MatrixXd blockCol = Eigen::MatrixXd::Zero(6,  6 * corresp.size());
 			
-			size_t col = 0;
+			size_t row = 0;
 		
 			bool sameCam;
 			while( otherCam != otherCamEnd )
@@ -237,14 +238,14 @@ namespace cvt {
 				while ( point != sbaData.frames()[ c ]->measurements.end() ) {
 					// S_ck -= Y_ck * W_ck^T
 					size_t i = point->point3d->id;
-					if( Y[ i ][ c ] ){
+					if( Y[ i ][ *otherCam ] ){
 						// eCam_c = e_ac - sum( Y_ic*e_bi ) <- contribution only once! 
 						if( sameCam ){
-							eCam.block( eRow, 0, 6, 1) -= (*Y[ i ][ c ] * residualSumForPoint[ i ] );
+							eCam.block( eRow, 0, 6, 1) -= (*Y[ i ][ *otherCam ] * residualSumForPoint[ i ] );
 						}
 						
-						if( W[ i ][ *otherCam ] ){
-							blockRow.block( 0, col, 6, 6 ) -= ( *Y[ i ][ c ] * W[ i ][ *otherCam ]->transpose() );
+						if( W[ i ][ c ] ){
+							blockCol.block( 0, row, 6, 6 ) -= ( *Y[ i ][ *otherCam ] * W[ i ][ c ]->transpose() );
 						}
 					}
 					++point;
@@ -252,31 +253,31 @@ namespace cvt {
 				
 				// the diagonal need the augmented U added
 				if ( sameCam ){
-					blockRow.block( 0, col, 6, 6 ) += U_augmented;
+					blockCol.block( 0, row, 6, 6 ) += U_augmented;
 				}			
 				
 				++otherCam;
-				col+=6;
+				row+=6;
 			}
 						
 			size_t c2;
 			
-			for( size_t r = 0; r < 6; r++ ){
+			for( size_t bCol = 0; bCol < 6; bCol++ ){
 				otherCam = corresp.begin();
-				col = 0;
+				row = 0;
 
 				while ( otherCam != otherCamEnd ) {
 					c2 = *otherCam * 6;
 				
-					SRCS.fill( eRow + r, c2 ) = blockRow( r, col );
-					SRCS.fill( eRow + r, c2 + 1 ) = blockRow( r, col+1 );
-					SRCS.fill( eRow + r, c2 + 2 ) = blockRow( r, col+2 );
-					SRCS.fill( eRow + r, c2 + 3 ) = blockRow( r, col+3 );
-					SRCS.fill( eRow + r, c2 + 4 ) = blockRow( r, col+4 );
-					SRCS.fill( eRow + r, c2 + 5 ) = blockRow( r, col+5 );
+					SRCS.fill( c2, eRow + bCol ) = blockCol( bCol, row );
+					SRCS.fill( c2+1, eRow + bCol ) = blockCol( bCol, row+1 );
+					SRCS.fill( c2+2, eRow + bCol ) = blockCol( bCol, row+2 );
+					SRCS.fill( c2+3, eRow + bCol ) = blockCol( bCol, row+3 );
+					SRCS.fill( c2+4, eRow + bCol ) = blockCol( bCol, row+4 );
+					SRCS.fill( c2+5, eRow + bCol ) = blockCol( bCol, row+5 );
 					
 					otherCam++;
-					col+=6;
+					row+=6;
 				}
 			}
 		}	
