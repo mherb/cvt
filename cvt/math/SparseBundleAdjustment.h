@@ -2,11 +2,14 @@
 #define CVT_SPARSE_BUNDLE_ADJUSTMENT
 
 #include <vector>
+#include <set>
+
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
 #include "SBAData.h"
 #include "Optimization.h"
+
 
 namespace cvt {
 	class SparseBundleAdjustment 
@@ -52,9 +55,9 @@ namespace cvt {
 		
 		bool checkTermination( )
 		{
-			if( numIterations >= maxIterations )
-				return true;
-			if( minEps > lastCosts )
+			if( ( costDecr < 1e-12 ) || 
+			    ( numIterations >= maxIterations ) ||
+			    ( minEps > lastCosts ) )
 				return true;
 			return false;
 		}
@@ -62,30 +65,20 @@ namespace cvt {
 		/* computing the intermediate block matrices (Schur complementing ...) */
 		void computeIntermediateValues( SBAData & sbaData );
 		
-		void fillSparseMatrix(std::vector<Measurements> & measurements,											 
-							  std::vector<Eigen::Matrix<double, 6, 6> > & cameraJacAccum,
-							  std::vector<Eigen::Matrix<double, 6, 1> > & residualAccumForCam,
-							  Eigen::VectorXd & eCam,
-							  std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & W,
-							  std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & Y,
-							  int fillSize,
-							  Eigen::SparseMatrix<double, Eigen::RowMajor> & RCS );
-		
-		void fillRCSMatrix(std::vector<Measurements> & measurements,											 
-						   std::vector<Eigen::Matrix<double, 6, 6> > & cameraJacAccum,
-						   std::vector<Eigen::Matrix<double, 6, 1> > & residualAccumForCam,
-						   Eigen::VectorXd & eCam,
-						   std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & W,
-						   std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & Y,
-						   Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> & RCS );
+		void fillSparseMatrix( SBAData & sbaData );	
+		void fillRCSMatrix( SBAData & sbaData );
 		
 		void cleanUp();
 		
 		void resizeMatrices( SBAData & sbaData );
 		void clearMatrices();
-		void solveStructure( std::vector<Measurements> & measurements, 
-							Eigen::VectorXd & deltaCam, 
-							Eigen::VectorXd & deltaStruct );
+		void solveStructure( Eigen::VectorXd & deltaCam, Eigen::VectorXd & deltaStruct );
+		void calcAugmentations();
+		void fillAndSolveMatrix( SBAData & sbaData, Eigen::VectorXd & deltaCam, Eigen::VectorXd & deltaStruct );
+		double augmentAndSolveSystem( SBAData & sbaData, 
+									  Eigen::VectorXd & deltaCam, 
+									  Eigen::VectorXd & deltaStruct );
+		
 		
 		
 		Eigen::Vector3d currProjection;
@@ -93,7 +86,8 @@ namespace cvt {
 		
 		const double jacDelta;
 		double lambda;
-		double lastCosts;		
+		double lastCosts;
+		double costDecr;
 		size_t numIterations;
 		double minEps;
 		size_t maxIterations;
@@ -102,7 +96,7 @@ namespace cvt {
 		std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > W;
 		std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > Y;
 
-		/* V_i */
+		/* for each point V_i = J_P_i^T Cov_i^{-1} J_P_ */
 		std::vector<Eigen::Matrix<double, 3, 3> > V;
 		/* V_i^* */
 		std::vector<Eigen::Matrix<double, 3, 3> > V_aug;
@@ -113,8 +107,15 @@ namespace cvt {
 		std::vector<Eigen::Matrix<double, 6, 6> > U;
 		/* e_a_j */
 		std::vector<Eigen::Matrix<double, 6, 1> > residualSumForCamera;
-		Eigen::MatrixXd RCS;
+		/* e_b_i */
+		std::vector<Eigen::Vector3d> residualSumForPoint;
+
+		Eigen::SparseMatrix<double, Eigen::RowMajor> SRCS;		
+		Eigen::SparseLDLT<Eigen::SparseMatrix<double, Eigen::RowMajor> > ldlt;
 		
+		Eigen::VectorXd eCam;
+		
+		typedef double (SparseBundleAdjustment::*UpdateFunc)( SBAData&, Eigen::VectorXd&, Eigen::VectorXd& );
 	};
 }
 
