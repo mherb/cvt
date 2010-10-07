@@ -7,7 +7,13 @@
 
 #include <cvt/math/Math.h>
 
+#include <cstring>
+
+#define USE_SPARSE_MAT
+
+
 namespace cvt {
+	
 	SparseBundleAdjustment::SparseBundleAdjustment():
 		jacDelta( 1e-6 )
 	{		
@@ -25,6 +31,7 @@ namespace cvt {
 		
 		lastCosts = sbaData.costs();
 		double newCosts;
+		costDecr = 1000.0;
 
 		Eigen::VectorXd deltaCam = Eigen::VectorXd::Zero( sbaData.numCams() * 6 );
 		Eigen::VectorXd deltaStruct = Eigen::VectorXd::Zero( sbaData.numPoints() * 3 );
@@ -33,8 +40,10 @@ namespace cvt {
 		
 		this->resizeMatrices(sbaData);
 		
+		SparseBundleAdjustment::UpdateFunc update = &SparseBundleAdjustment::buildAndSolveSystem;
+						
 		while ( true ) {
-			newCosts = buildAndSolveSystem(sbaData, deltaCam, deltaStruct);
+			newCosts = (this->*update)(sbaData, deltaCam, deltaStruct);
 			
 			std::cout << "Iteration " << numIterations << 
 						 ", Costs = " << newCosts << 
@@ -42,13 +51,18 @@ namespace cvt {
 						 ", lastCosts = " << lastCosts << std::endl;
 			
 			if(newCosts < lastCosts){
-				lambda /= 1.5;
+				lambda *= 0.8;
+				costDecr = lastCosts-newCosts;
 				lastCosts = newCosts;
+				//update = &SparseBundleAdjustment::buildAndSolveSystem;
 			} else {
-				lambda += 1e-5;
+				//lambda *= 10;
 				//lambda *= 2.0;
+				lambda += 1e-5;
+				
 				sbaData.revertDelta( deltaCam, deltaStruct );
 				sbaData.costs() = lastCosts;
+				//update = &SparseBundleAdjustment::augmentAndSolveSystem;
 			}
 			numIterations++;			
 			
@@ -57,155 +71,114 @@ namespace cvt {
 			else {
 				this->clearMatrices();
 			}
-
 		}
 		
 		this->cleanUp();
 		
-		return 0.0;		
+		return lastCosts;		
 	}
 	
 	double SparseBundleAdjustment::buildAndSolveSystem( SBAData & sbaData, 
 													    Eigen::VectorXd & deltaCam,
-													    Eigen::VectorXd & deltaStruct)
+													    Eigen::VectorXd & deltaStruct )
 	{
 		this->computeIntermediateValues( sbaData );
-		
-		// -> build and solve the RCS:
-		/* reduced camera system */
-		size_t numCams = sbaData.numCams();
-		size_t dimension = numCams * 6;
-		/* camera residuals */
-		Eigen::VectorXd eCam( sbaData.numCams() * 6 );
-		
-		/*
-		Eigen::SparseMatrix<double, Eigen::RowMajor> RCS( dimension, dimension );		
+		return augmentAndSolveSystem( sbaData, deltaCam, deltaStruct );
+	}
 	
-		int fillSize = nonZeroEntries * 6 * 6;
-
-		fillSparseMatrix(measurements, 
-						 cameraJacAccum, 
-						 residualAccumForCam, 
-						 eCam, 
-						 W, 
-						 Y, 
-						 fillSize, 
-						 RCS );
+	double SparseBundleAdjustment::augmentAndSolveSystem( SBAData & sbaData, 
+														  Eigen::VectorXd & deltaCam, 
+														  Eigen::VectorXd & deltaStruct )
+	{
+		this->calcAugmentations();
 		
-		// solve RCS for delta_a
-		Eigen::SparseLDLT<Eigen::SparseMatrix<double, Eigen::RowMajor> > ldlt( RCS );
-		deltaCam = eCam;		
-		ldlt.solveInPlace<Eigen::Matrix<double, Eigen::Dynamic, 1> >( deltaCam );
-		*/
-				
+		this->fillAndSolveMatrix(sbaData, deltaCam, deltaStruct);
 		
-		// fill and solve the reduced camera system		
-		fillRCSMatrix( sbaData.measurements(), U, residualSumForCamera, eCam, W, Y, RCS);		
-		RCS.ldlt().solve( eCam, &deltaCam );
-		
-		
-		// now compute the delta for the structure by back substitution
-		this->solveStructure( sbaData.measurements(), deltaCam, deltaStruct );
-	
 		// apply the parameters and evaluate the new costs
 		return sbaData.applyDelta( deltaCam, deltaStruct );
 	}
 	
 	void SparseBundleAdjustment::computeIntermediateValues( SBAData & sbaData )
-	{		
-		std::vector<Measurements> & measurements = sbaData.measurements();			
-		std::vector<Measurements>::iterator features = measurements.begin();
-		std::vector<Measurements>::iterator featureEnd = measurements.end();
+	{
+		std::vector<KeyFrame*> & frames = sbaData.frames();
 		
-		std::vector<size_t>::iterator cameraId;
-		std::vector<Eigen::Vector2d>::iterator observation;
-		std::vector<Eigen::Vector2d>::iterator observationEnd;
-		std::vector<Eigen::Vector3d>::iterator projection;
-		std::vector<Eigen::Vector2d>::iterator residual;
-		std::vector<Eigen::Matrix2d>::iterator inverseCovariance;
+		/* compute J^T * Cov^-1 only once */
+		Eigen::Matrix<double, 6, 2> JcamTCov;
+		Eigen::Matrix<double, 3, 2> JPointTCov;
 		
-		// A_ij
-		std::vector<Eigen::Matrix<double, 2, 6> >::iterator jacobiansWRTCamera;
-		// B_ij
-		std::vector<Eigen::Matrix<double, 2, 3> >::iterator jacobiansWRTPoint;		
-		
-		std::vector<Eigen::Matrix<double, 3, 3> >::iterator pointAccumIterator = V.begin();		
-		std::vector<Eigen::Matrix<double, 3, 3> >::iterator augmentedPointAccumIterator = V_aug.begin();
-		std::vector<Eigen::Matrix<double, 3, 3> >::iterator augmentedPointAccumInverseIterator = V_aug_inv.begin();
-		
-		size_t pointIdx = 0;
-		size_t nonZeroEntries = 0;
-		
-		while ( features != featureEnd ) {
-			cameraId = features->viewIds.begin();
-			observation = features->observations.begin();
-			observationEnd = features->observations.end();			
-			projection = features->screenPredictions.begin();
-			residual = features->residuals.begin();
-			inverseCovariance = features->inverseCovariances.begin();
-			jacobiansWRTCamera = features->jacWRTCamParams.begin();
-			jacobiansWRTPoint = features->jacWRTPointParams.begin();
+		// for every camera
+		std::vector<SBAMeasurement>::iterator m;
+		size_t pIdx;
+		for( size_t c = 0; c < frames.size(); c++ ){
+			// A_ij
+			frames[ c ]->cameraJacobians();
+			residualSumForCamera[ c ].setZero();
+			U[ c ].setZero();
 			
-			features->accumulatedResiduals.setZero();
-			pointAccumIterator->setZero();
-			augmentedPointAccumIterator->setZero();
-			
-			while ( observation != observationEnd ) {				
-				// camera for this observation
-				CameraModel & cam = sbaData.cameraWithId( *cameraId );
-				Eigen::Matrix<double, 6, 6> & currentU = U[ *cameraId ];
+			// jacobians wrt point parameters
+			for( m = frames[ c ]->measurements.begin(); m != frames[ c ]->measurements.end(); ++m ){
+				CameraModel & camera = frames[ c ]->camera;
 				
-				// jac WRT cam params
-				cam.screenJacobians( features->pointParameters, *projection, *jacobiansWRTCamera );
+				/*frames[ c ]->pointJacobians( camera.K(), camera.R(), 
+											 camera.t(), *(m->point3d->data), m->screenJacobiansWRTPoint );*/
+				frames[ c ]->pointJacobians(*(m->point3d->data), 
+											m->projection,
+											m->screenJacobiansWRTPoint );
+				// accumulate results
+				pIdx = m->point3d->id;
+				JcamTCov = m->screenJacobiansWRTCam.transpose() * m->inverseCovariance;
+				JPointTCov = m->screenJacobiansWRTPoint.transpose() * m->inverseCovariance;
 				
-				// jac WRT point params
-				pointJacobians(cam, features->pointParameters, *projection, *jacobiansWRTPoint );
+				V[ pIdx ] += ( JPointTCov * m->screenJacobiansWRTPoint );				
+				U[ c ] += ( JcamTCov * m->screenJacobiansWRTCam );
 				
-				// weighted sums of jacobians U_j and V_i:				
-				currentU += ( jacobiansWRTCamera->transpose() * (*inverseCovariance) * (*jacobiansWRTCamera) );
-				
-				*pointAccumIterator += ( jacobiansWRTPoint->transpose() * (*inverseCovariance) * (*jacobiansWRTPoint) );
-				
-				// the mixed jacobian weights
-				// TODO: try to avoid double computations: e.g. A_ij^T*Cov_ij^-1 
-				if( W[ pointIdx ][ *cameraId ] == NULL ){
-					W[ pointIdx ][ *cameraId ] = new Eigen::Matrix<double, 6, 3>;
-					Y[ pointIdx ][ *cameraId ] = new Eigen::Matrix<double, 6, 3>;
-					nonZeroEntries++;
+				if( W[ pIdx ][ c ] == NULL ){
+					W[ pIdx ][ c ] = new Eigen::Matrix<double, 6, 3>;
+					Y[ pIdx ][ c ] = new Eigen::Matrix<double, 6, 3>;
 				} 		
 				
-				*( W[ pointIdx ][ *cameraId ] ) = jacobiansWRTCamera->transpose() * *inverseCovariance * (*jacobiansWRTPoint);
+				*( W[ pIdx ][ c ] ) = JcamTCov * m->screenJacobiansWRTPoint;
+				
+				//std::cout << " W[" << pIdx << "][" << c << "] = \n" << *W[ pIdx ][ c ] << std::endl;
 				
 				// e_b_i:
-				features->accumulatedResiduals += jacobiansWRTPoint->transpose() * *inverseCovariance * (*residual);
+				residualSumForPoint[ pIdx ] += ( JPointTCov * m->residual );
 				
 				// e_a_j:
-				residualSumForCamera[ *cameraId ] += jacobiansWRTCamera->transpose() * *inverseCovariance * (*residual);
-				
-				// increment iterators
-				++observation;
-				++cameraId;
-				++projection;
-				++residual;
-				++inverseCovariance;
-				++jacobiansWRTCamera;
-				++jacobiansWRTPoint;
+				residualSumForCamera[ c ] += ( JcamTCov * m->residual );
 			}
+		}		
+	}
+	
+	void SparseBundleAdjustment::fillAndSolveMatrix( SBAData & sbaData,
+													 Eigen::VectorXd & deltaCam,
+													 Eigen::VectorXd & deltaStruct )
+	{	
+		this->fillSparseMatrix( sbaData );
+		
+		ldlt.compute( SRCS );
+		deltaCam = eCam;
+		
+		ldlt.solveInPlace<Eigen::Matrix<double, Eigen::Dynamic, 1> >( deltaCam );
+		
+		// now compute the delta for the structure by back substitution
+		this->solveStructure( deltaCam, deltaStruct );
+	}
+	
+	void SparseBundleAdjustment::calcAugmentations()
+	{
+		// calc the Y_ij
+		for( size_t i = 0; i < W.size(); i++ ){
+			// calc augmented V_i and inverse
+			V_aug[ i ] = V[ i ]; 
+			V_aug[ i ].diagonal() *= ( 1.0 + lambda );
+			V_aug[ i ].computeInverse( &V_aug_inv[ i ] );
 			
-			*augmentedPointAccumIterator = *pointAccumIterator;
-			augmentedPointAccumIterator->diagonal() *= ( 1.0 + lambda );
-			augmentedPointAccumIterator->computeInverse( &( *augmentedPointAccumInverseIterator ) );
-			
-			// for all cameras j, observing point i, compute Y_ij
-			for( unsigned int j = 0; j < features->viewIds.size(); j++ ){
-				*(Y[ pointIdx ][ features->viewIds[ j ] ]) = *(W[ pointIdx ][ features->viewIds[ j ] ]) * (*augmentedPointAccumInverseIterator);
+			for( size_t j = 0; j < W[ i ].size(); j++ ){
+				if( W[ i ][ j ] ){
+					*(Y[ i ][ j ]) = *(W[ i ][ j ]) * V_aug_inv[ i ];
+				}
 			}
-			
-			++augmentedPointAccumIterator;
-			++augmentedPointAccumInverseIterator;
-			++pointAccumIterator;
-			++features;	
-			pointIdx++;
 		}
 	}
 	
@@ -220,182 +193,168 @@ namespace cvt {
 					Y[ i ][ j ] = NULL;
 				}					
 			}
-		}		
+		}
 	}	
 	
-	void SparseBundleAdjustment::fillSparseMatrix(std::vector<Measurements> & measurements,											 
-												  std::vector<Eigen::Matrix<double, 6, 6> > & cameraJacAccum,
-												  std::vector<Eigen::Matrix<double, 6, 1> > & residualAccumForCam,
-												  Eigen::VectorXd & eCam,
-												  std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & W,
-												  std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & Y,
-												  int fillSize,
-												  Eigen::SparseMatrix<double, Eigen::RowMajor> & RCS )
-	{
-		Eigen::Matrix<double, 6, 6> tmpBlock;
-		bool zero;
-		
+	void SparseBundleAdjustment::fillSparseMatrix( SBAData & sbaData )
+	{			
 		Eigen::Matrix<double, 6, 6> U_augmented;
 		
-		size_t numCams = cameraJacAccum.size();
+		size_t numCams = U.size();
+		size_t numPoints = V.size();
 		
-		RCS.startFill(fillSize);
+		size_t fillSize = sbaData.numNonZero() * 6 * 6;	
+
+
+		size_t eRow = 0;
+		
+		SRCS.startFill( fillSize );		
 		for( unsigned int c = 0; c < numCams; c++ ){			
-			U_augmented = cameraJacAccum[ c ];
+			// get the jacobian accumulations for this camera
+			U_augmented = U[ c ];
 			U_augmented.diagonal() *= (1.0 + lambda);
 			
-			eCam.block( c*6, 0, 6, 1) = residualAccumForCam[ c ];
-			for( unsigned int k = 0; k < numCams; k++ ){
-				tmpBlock.setZero();
-				zero = true;
-				
-				// for each point
-				for( unsigned int i = 0; i < measurements.size(); i++ ){
-					// S_ck -= Y_ck * W_ck^T
-					if( Y[ i ][ c ] && W[ i ][ k ] ){
-						zero = false;
-						tmpBlock -= ( *Y[ i ][ c ] * W[ i ][ k ]->transpose() );
-					}
-					
-					if( k == 0 ){
-						if( Y[ i ][ c ] )
-							eCam.block( c*6, 0, 6, 1) -= (*Y[ i ][ c ] * measurements[ i ].accumulatedResiduals );
-					}
-				}
-				
-				if ( c == k ){
-					zero = false;
-					tmpBlock += U_augmented;
-				}
-				
-				if( !zero ){
-					for(unsigned int row = 0; row < 6; row++)
-						for(unsigned int col = 0; col < 6; col++)
-							RCS.fill( c*6+row, k*6+col ) = tmpBlock( row, col );
-				}
-			}			
-		}
-		RCS.endFill();		
-	}
-	
-	void SparseBundleAdjustment::fillRCSMatrix(std::vector<Measurements> & measurements,											 
-					   std::vector<Eigen::Matrix<double, 6, 6> > & cameraJacAccum,
-					   std::vector<Eigen::Matrix<double, 6, 1> > & residualAccumForCam,
-					   Eigen::VectorXd & eCam,
-					   std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & W,
-					   std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > & Y,
-					   Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> & RCS )
-	{
-		Eigen::Matrix<double, 6, 6> tmpBlock;
-		bool zero;
-		
-		Eigen::Matrix<double, 6, 6> U_augmented;
-		
-		size_t numCams = cameraJacAccum.size();
-		
-		for( unsigned int c = 0; c < numCams; c++ ){			
-			U_augmented = cameraJacAccum[ c ];
-			U_augmented.diagonal() *= (1.0 + lambda);
+			eRow = c*6;
+			eCam.block( eRow, 0, 6, 1) = residualSumForCamera[ c ];
 			
-			eCam.block( c*6, 0, 6, 1) = residualAccumForCam[ c ];
-			for( unsigned int k = 0; k < numCams; k++ ){
-				tmpBlock.setZero();
-				zero = true;
+			
+			std::set<size_t> const & corresp = sbaData.correspondenceSet( c );
+			std::set<size_t>::const_iterator otherCam = corresp.begin();
+			std::set<size_t>::const_iterator otherCamEnd = corresp.end();
+						
+			Eigen::MatrixXd blockRow = Eigen::MatrixXd::Zero( 6, 6*corresp.size() );
+			
+			size_t col = 0;
+		
+			bool sameCam;
+			while( otherCam != otherCamEnd )
+			{
+				sameCam = ( *otherCam == c );
 				
-				// for each point
-				for( unsigned int i = 0; i < measurements.size(); i++ ){
+				// for each point visible in camera c
+				std::vector<SBAMeasurement>::const_iterator point = sbaData.frames()[ c ]->measurements.begin();
+				
+				while ( point != sbaData.frames()[ c ]->measurements.end() ) {
 					// S_ck -= Y_ck * W_ck^T
+					size_t i = point->point3d->id;
 					if( Y[ i ][ c ] ){
-						if( k == 0 ){
-							eCam.block( c*6, 0, 6, 1) -= (*Y[ i ][ c ] * measurements[ i ].accumulatedResiduals );
-						}						
-						if( W[ i ][ k ] ){
-							zero = false;
-							tmpBlock -= ( *Y[ i ][ c ] * W[ i ][ k ]->transpose() );
+						// eCam_c = e_ac - sum( Y_ic*e_bi ) <- contribution only once! 
+						if( sameCam ){
+							eCam.block( eRow, 0, 6, 1) -= (*Y[ i ][ c ] * residualSumForPoint[ i ] );
 						}
-					}					
+						
+						if( W[ i ][ *otherCam ] ){
+							blockRow.block( 0, col, 6, 6 ) -= ( *Y[ i ][ c ] * W[ i ][ *otherCam ]->transpose() );
+						}
+					}
+					++point;
 				}
 				
-				if ( c == k ){
-					zero = false;
-					tmpBlock += U_augmented;
-				}
+				// the diagonal need the augmented U added
+				if ( sameCam ){
+					blockRow.block( 0, col, 6, 6 ) += U_augmented;
+				}			
 				
-				if( !zero ){
-					RCS.block( c*6, k*6, 6, 6 ) = tmpBlock;
+				++otherCam;
+				col+=6;
+			}
+						
+			size_t c2;
+			
+			for( size_t r = 0; r < 6; r++ ){
+				otherCam = corresp.begin();
+				col = 0;
+
+				while ( otherCam != otherCamEnd ) {
+					c2 = *otherCam * 6;
+				
+					SRCS.fill( eRow + r, c2 ) = blockRow( r, col );
+					SRCS.fill( eRow + r, c2 + 1 ) = blockRow( r, col+1 );
+					SRCS.fill( eRow + r, c2 + 2 ) = blockRow( r, col+2 );
+					SRCS.fill( eRow + r, c2 + 3 ) = blockRow( r, col+3 );
+					SRCS.fill( eRow + r, c2 + 4 ) = blockRow( r, col+4 );
+					SRCS.fill( eRow + r, c2 + 5 ) = blockRow( r, col+5 );
+					
+					otherCam++;
+					col+=6;
 				}
-			}			
-		}
-	}	
-	
-	void SparseBundleAdjustment::pointJacobians(const CameraModel & camera, 
-												const Eigen::Vector4d & pointParams,
-												const Eigen::Vector3d & p3,
-												Eigen::Matrix<double, 2, 3> & jacobians)
-	{
-		double currentDelta;
-		currPointParams = pointParams;
-		for( unsigned int i = 0; i < 3; i++ ){
-			currentDelta = cvt::Math::max( 0.0001 * currPointParams( i ), 0.000001 );
-			currPointParams( i ) += currentDelta;
-			
-			camera.project( currPointParams, currProjection );
-			
-			jacobians( 0, i ) = ( currProjection( 0 ) / currProjection( 2 ) - p3( 0 ) / p3( 2 ) ) / currentDelta;
-			jacobians( 1, i ) = ( currProjection( 1 ) / currProjection( 2 ) - p3( 1 ) / p3( 2 ) ) / currentDelta;
-			
-			currPointParams( i ) -= currentDelta;
-		}		
-	}	
+			}
+		}	
+		SRCS.endFill();
+	}
 	
 	void SparseBundleAdjustment::resizeMatrices( SBAData & sbaData )
 	{
-		W.resize( sbaData.numPoints() );
-		Y.resize( sbaData.numPoints() );
-				
-		V.resize( sbaData.numPoints() );		
-		V_aug.resize( sbaData.numPoints() );
-		V_aug_inv.resize( sbaData.numPoints() );				
+		size_t numCams = sbaData.numCams();
+		size_t numPoints = sbaData.numPoints();
 		
-		/* diagonal augmented by (1 + lambda) */		
+		W.resize( numPoints );
+		Y.resize( numPoints );
+				
+		V.resize( numPoints );		
+		V_aug.resize( numPoints );
+		V_aug_inv.resize( numPoints );
+		residualSumForPoint.resize( numPoints );		
+		
+		/* diagonal augmented by (1 + lambda) */
 		for(unsigned int i = 0; i < V.size(); i++){
 			V[ i ].setZero();
 			V_aug[ i ].setZero();
+			residualSumForPoint[ i ].setZero();
 			
-			W[ i ].resize( sbaData.numCams(), NULL );
-			Y[ i ].resize( sbaData.numCams(), NULL );
+			W[ i ].resize( numCams, NULL );
+			Y[ i ].resize( numCams, NULL );
 		}
 		
-		U.resize( sbaData.numCams() );
-		residualSumForCamera.resize( sbaData.numCams() );
-		for(unsigned int i = 0; i < U.size(); i++){
-			U[ i ].setZero();
-			residualSumForCamera[ i ].setZero();
-		}
+		U.resize( numCams );
+		residualSumForCamera.resize( numCams );				
 		
-		size_t dimension = sbaData.numCams()*6;
-		RCS = Eigen::MatrixXd::Zero( dimension, dimension );
+		size_t dimension = numCams*6;
+		
+		//RCS = Eigen::MatrixXd::Zero( dimension, dimension );	
+
+		eCam.resize( dimension );
+		
+		SRCS.resize( dimension, dimension );
+		
+		SRCS.setZero();
 	}
 	
 	void SparseBundleAdjustment::clearMatrices()
 	{		
-		for( unsigned int i = 0; i < U.size(); i++ ){
-			U[ i ].setZero();
-			residualSumForCamera[ i ].setZero();
+		// cameras matrices are clear in the loop
+		std::vector<Eigen::Matrix<double, 3, 3> >::iterator v = V.begin();
+		std::vector<Eigen::Matrix<double, 3, 3> >::const_iterator vEnd = V.end();
+		std::vector<Eigen::Vector3d>::iterator r = residualSumForPoint.begin();
+		
+		while ( v != vEnd ) {
+			v->setZero();
+			r->setZero();
+			
+			++v;
+			++r;
 		}
+		
+		/*for( unsigned int i = 0; i < V.size(); i++ ){
+			V[ i ].setZero();
+			residualSumForPoint[ i ].setZero();
+		}*/
+		
+		SRCS.setZero();
 	}
 	
-	void SparseBundleAdjustment::solveStructure( std::vector<Measurements> & measurements, 
-												 Eigen::VectorXd & deltaCam, 
+	void SparseBundleAdjustment::solveStructure( Eigen::VectorXd & deltaCam, 
 												 Eigen::VectorXd & deltaStruct )
 	{
 		Eigen::Vector3d tmpDelta;		
-		for( unsigned int i = 0; i < measurements.size(); i++ ){
-			tmpDelta = measurements[ i ].accumulatedResiduals;			
-			for(unsigned int j = 0; j < measurements[ i ].viewIds.size(); j++){
-				tmpDelta -= W[ i ][ measurements[ i ].viewIds[ j ] ]->transpose() * deltaCam.block( j*6, 0, 6, 1 );
+		for( unsigned int i = 0; i < V.size(); i++ ){
+			tmpDelta = residualSumForPoint[ i ];
+			
+			for(unsigned int j = 0; j < U.size(); j++){
+				if( W[ i ][ j ] )
+					tmpDelta -= W[ i ][ j ]->transpose() * deltaCam.block( j*6, 0, 6, 1 );
 			}
 			deltaStruct.block( i * 3, 0, 3, 1) = V_aug_inv[ i ] * tmpDelta;
 		}		
-	}
+	}	
 }
