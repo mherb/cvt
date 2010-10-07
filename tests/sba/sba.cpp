@@ -570,7 +570,7 @@ void testMVGImplementation( Eigen::Matrix3d & K,
 {
 	cvt::SBAData sbaData;
 	cvt::SparseBundleAdjustment sba;
-	sba.setTerminationCriteria( 1e-12, 30 );
+	sba.setTerminationCriteria( 1e-12, 17 );
 	
 	convertData( K, cameras, points3d, sbaData );
 	
@@ -622,11 +622,11 @@ int main(int argc, char* argv[])
 	try {
 		std::string intrinsicsFile = resources.find("sba/calib.txt");
 				
-		//std::string camFile = resources.find("sba/7cams.txt");
+		std::string camFile = resources.find("sba/7cams.txt");
 		//std::string camFile = resources.find("sba/7camsvarK.txt");
-		//std::string pointFile = resources.find("sba/7pts.txt");
-		//std::string camGT = resources.find("sba/resultCams7.txt");
-		//std::string pointGT = resources.find("sba/resultPts7.txt");
+		std::string pointFile = resources.find("sba/7pts.txt");
+		std::string camGT = resources.find("sba/resultCams7.txt");
+		std::string pointGT = resources.find("sba/resultPts7.txt");
 		
 		//std::string camFile = resources.find("sba/9cams.txt");
 		//std::string camFile = resources.find("sba/9camsvarK.txt");
@@ -645,7 +645,7 @@ int main(int argc, char* argv[])
 		std::vector<Eigen::Vector3d> gtTrans;
 		std::vector<Eigen::Vector3d> gtPts;
 		
-		/*
+		
 		parseCalibFile( intrinsicsFile, K );		
 		parseCameraFile( camFile, cameras );
 		parsePtsFile( pointFile, points3d );		
@@ -656,8 +656,8 @@ int main(int argc, char* argv[])
 		
 		//testOpenCVImplementation( K, cameras, points3d );
 		testMVGImplementation( K, cameras, points3d, gtRots, gtTrans, gtPts );
-		 */
-		testSimulation();
+		
+		//testSimulation();
 	}
 	catch (const cvt::Exception & e) {
 		std::cout << e.what() << std::endl;

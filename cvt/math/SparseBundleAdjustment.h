@@ -79,8 +79,6 @@ namespace cvt {
 									  Eigen::VectorXd & deltaCam, 
 									  Eigen::VectorXd & deltaStruct );
 		
-		
-		
 		Eigen::Vector3d currProjection;
 		Eigen::Vector4d currPointParams;
 		
@@ -110,8 +108,8 @@ namespace cvt {
 		/* e_b_i */
 		std::vector<Eigen::Vector3d> residualSumForPoint;
 
-		Eigen::SparseMatrix<double, Eigen::RowMajor> SRCS;		
-		Eigen::SparseLDLT<Eigen::SparseMatrix<double, Eigen::RowMajor> > ldlt;
+		Eigen::SparseMatrix<double, Eigen::ColMajor> SRCS;		
+		Eigen::SparseLDLT<Eigen::SparseMatrix<double, Eigen::ColMajor> > ldlt;
 		
 		Eigen::VectorXd eCam;
 		
