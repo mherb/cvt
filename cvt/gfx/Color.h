@@ -2,6 +2,7 @@
 #define CVTCOLOR_H
 
 #include <cvt/math/Math.h>
+#include <cvt/gfx/ImageTypes.h>
 #include <cvt/gfx/IFilterParameter.h>
 
 namespace cvt {
