@@ -31,6 +31,9 @@ namespace cvt {
 				a = vec[ pos ];
 			};
 
+			T& operator[] ( unsigned i ) { return vec[ i ]; };
+			T operator[] ( unsigned i ) const { return vec[ i ]; };
+
 			void set( float, float );
 			void get( float&, float& ) const;
 			void set( float, float, float, float );
@@ -45,9 +48,9 @@ namespace cvt {
 
 #define IFILTERVECTOR_TYPE( a, b, c ) \
 	template<> \
-	IFilterVector<a,b>::IFilterVector() : IFilterParameter( c ) {}; \
+	inline IFilterVector<a,b>::IFilterVector() : IFilterParameter( c ) {}; \
 	template<> \
-	IFilterVector<a,b>::IFilterVector( const IFilterVector& ifv ) : IFilterParameter( c ) \
+	inline IFilterVector<a,b>::IFilterVector( const IFilterVector& ifv ) : IFilterParameter( c ) \
 	{ \
 		for( size_t i = 0; i < b; i++ ) \
 			vec[ i ] = ifv.vec[ i ]; \
@@ -55,21 +58,21 @@ namespace cvt {
 
 
 	template<>
-	void IFilterVector<float,2>::set( float a, float b )
+	inline void IFilterVector<float,2>::set( float a, float b )
 	{
 		vec[ 0 ] = a;
 		vec[ 1 ] = b;
 	}
 
 	template<>
-	void IFilterVector<float,2>::get( float& a, float& b ) const
+	inline void IFilterVector<float,2>::get( float& a, float& b ) const
 	{
 		a = vec[ 0 ];
 		b = vec[ 1 ];
 	}
 
 	template<>
-		void IFilterVector<float, 4>::set( float a, float b, float c, float d )
+	inline void IFilterVector<float, 4>::set( float a, float b, float c, float d )
 		{
 			vec[ 0 ] = a;
 			vec[ 1 ] = b;
@@ -78,7 +81,7 @@ namespace cvt {
 		}
 
 	template<>
-		void IFilterVector<float, 4>::get( float& a, float& b, float& c, float& d ) const
+	inline void IFilterVector<float, 4>::get( float& a, float& b, float& c, float& d ) const
 		{
 			a = vec[ 0 ];
 			b = vec[ 1 ];
@@ -87,7 +90,7 @@ namespace cvt {
 		}
 
 	template<>
-		void IFilterVector<float, 8>::set( float a, float b, float c, float d, float e, float f, float g, float h )
+	inline void IFilterVector<float, 8>::set( float a, float b, float c, float d, float e, float f, float g, float h )
 		{
 			vec[ 0 ] = a;
 			vec[ 1 ] = b;
@@ -100,7 +103,7 @@ namespace cvt {
 		}
 
 	template<>
-		void IFilterVector<float, 8>::get( float& a, float& b, float& c, float& d, float& e, float& f, float& g, float& h ) const
+	inline void IFilterVector<float, 8>::get( float& a, float& b, float& c, float& d, float& e, float& f, float& g, float& h ) const
 		{
 			a = vec[ 0 ];
 			b = vec[ 1 ];

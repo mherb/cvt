@@ -54,6 +54,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/Image.h
 	gfx/ImageTypes.h
 	gfx/ifilter/ROFDenoise.h
+	gfx/ifilter/Homography.h
 #	gfx/ifilter/Sobel.h
 	gfx/IScaleFilter.h
 	gfx/IFilterParameter.h
@@ -70,7 +71,6 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
-#	cl/CLImage.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -91,6 +91,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageTypes.cpp
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
+	gfx/ifilter/Homography.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
 	gfx/ImageAllocatorMem.cpp
@@ -102,7 +103,6 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
-#	cl/CLImage.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES

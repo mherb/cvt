@@ -72,6 +72,16 @@ namespace cvt {
 		_kernel.setArg( ( cl_uint ) n, size, NULL );
 	}
 
+	void CLKernel::setArg( size_t n, cl::Memory mem )
+	{
+		_kernel.setArg( ( cl_uint ) n, mem );
+	}
+
+	void CLKernel::setArg( size_t n, size_t size, void* ptr )
+	{
+		_kernel.setArg( ( cl_uint ) n, size, ptr );
+	}
+
 
 	void CLKernel::run( const cl::NDRange& offset, const cl::NDRange& global, const cl::NDRange& local, std::vector<cl::Event>* events, cl::Event* event )
 	{
@@ -83,11 +93,21 @@ namespace cvt {
 		}
 	}
 
+	void CLKernel::run( const cl::NDRange& global, const cl::NDRange& local, std::vector<cl::Event>* events, cl::Event* event )
+	{
+		if( _cl ) {
+			cl_int err = _cl->getCLQueue( ).enqueueNDRangeKernel( _kernel, cl::NullRange, global, local, events, event );
+			if( err != CL_SUCCESS ) {
+				throw CLException( _name, err );
+			}
+		}
+	}
+
+
 
 	void CLKernel::run( const Image& img, const cl::NDRange& local, std::vector<cl::Event>* events, cl::Event* event )
 	{
 		if( _cl ) {
-
 			cl_int err = _cl->getCLQueue( ).enqueueNDRangeKernel( _kernel, cl::NullRange, cl::NDRange( img.width(), img.height() ), local, events, event );
 			if( err != CL_SUCCESS ) {
 				throw CLException( _name, err );
