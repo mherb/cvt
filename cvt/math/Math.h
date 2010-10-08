@@ -212,7 +212,63 @@ namespace cvt {
 			__asm__ __volatile__ ("fistpl %0" : "=m" (i) : "t" (f) : "st") ;
 			return i;
 		}
-
+		
+		/* 
+		 * Algorithm from Goloub, v. Loan p.573f.
+		 * but with fixed number of pade approximants;
+		 * 6 approximants give precision 3.39452e-16
+		 */
+		template<class Matrix> 
+		static inline void exponential( const Matrix & A, Matrix & result, size_t padeApprox = 6 )
+		{	
+			
+			double infNorm = 0;
+			
+			for( ssize_t r = 0; r < A.rows(); r++ ){
+				double sum = 0.0;
+				for( ssize_t c = 0; c < A.cols(); c++ ){
+					sum += A( r, c ); 
+				}
+				if( sum > infNorm )
+					infNorm = sum;
+			}
+				
+			
+			int j = max( 0, 1 + int( log( infNorm ) / log( 2 ) ) );
+			
+			// tmpA = A * 2^j
+			Matrix tmpA = A / ( 1 << j ) ;
+			
+			Matrix D = Matrix::Identity();
+			Matrix N = Matrix::Identity();
+			Matrix X = Matrix::Identity();
+			Matrix cX;
+			
+			double c = 1.0;
+			
+			double s = -1.0;
+			size_t q = padeApprox;
+			size_t twoq = 2 * padeApprox;
+			
+			for( size_t k = 1; k < padeApprox; k++ ){
+				c *= q / double( twoq * k );
+				X = tmpA * X;
+				cX = X*c;
+				N += cX;
+				D += ( s*cX );
+				
+				--q;
+				--twoq;
+				
+				s *= -1;
+			}
+			
+			D.computeInverse( &result );
+			result *= N;
+			
+			for( int k = 0; k < j; k++ )
+				result = result * result;
+		}
 	}
 }
 
