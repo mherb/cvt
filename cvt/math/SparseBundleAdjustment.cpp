@@ -9,9 +9,6 @@
 
 #include <cstring>
 
-#define USE_SPARSE_MAT
-
-
 namespace cvt {
 	
 	SparseBundleAdjustment::SparseBundleAdjustment():
@@ -223,7 +220,7 @@ namespace cvt {
 			std::set<size_t>::const_iterator otherCamEnd = corresp.end();
 						
 			// values for the c-th column of the S matrix
-			Eigen::MatrixXd blockCol = Eigen::MatrixXd::Zero(6,  6 * corresp.size());
+			Eigen::MatrixXd blockCol = Eigen::MatrixXd::Zero( 6 * corresp.size(), 6 );
 			
 			size_t row = 0;
 		
@@ -245,7 +242,7 @@ namespace cvt {
 						}
 						
 						if( W[ i ][ c ] ){
-							blockCol.block( 0, row, 6, 6 ) -= ( *Y[ i ][ *otherCam ] * W[ i ][ c ]->transpose() );
+							blockCol.block( row, 0, 6, 6 ) -= ( *Y[ i ][ *otherCam ] * W[ i ][ c ]->transpose() );
 						}
 					}
 					++point;
@@ -253,7 +250,7 @@ namespace cvt {
 				
 				// the diagonal need the augmented U added
 				if ( sameCam ){
-					blockCol.block( 0, row, 6, 6 ) += U_augmented;
+					blockCol.block( row, 0, 6, 6 ) += U_augmented;
 				}			
 				
 				++otherCam;
@@ -269,12 +266,12 @@ namespace cvt {
 				while ( otherCam != otherCamEnd ) {
 					c2 = *otherCam * 6;
 				
-					SRCS.fill( c2, eRow + bCol ) = blockCol( bCol, row );
-					SRCS.fill( c2+1, eRow + bCol ) = blockCol( bCol, row+1 );
-					SRCS.fill( c2+2, eRow + bCol ) = blockCol( bCol, row+2 );
-					SRCS.fill( c2+3, eRow + bCol ) = blockCol( bCol, row+3 );
-					SRCS.fill( c2+4, eRow + bCol ) = blockCol( bCol, row+4 );
-					SRCS.fill( c2+5, eRow + bCol ) = blockCol( bCol, row+5 );
+					SRCS.fill( c2, eRow + bCol ) = blockCol( row, bCol );
+					SRCS.fill( c2+1, eRow + bCol ) = blockCol( row+1, bCol );
+					SRCS.fill( c2+2, eRow + bCol ) = blockCol( row+2, bCol );
+					SRCS.fill( c2+3, eRow + bCol ) = blockCol( row+3, bCol );
+					SRCS.fill( c2+4, eRow + bCol ) = blockCol( row+4, bCol );
+					SRCS.fill( c2+5, eRow + bCol ) = blockCol( row+5, bCol );
 					
 					otherCam++;
 					row+=6;

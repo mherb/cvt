@@ -17,6 +17,9 @@
 #include <cv.h>
 #include <cvaux.hpp>
 
+// 0->simul 7->7cams 9->9cams, 54->54cams
+#define POINTSDATA ( 0 )
+
 // test app for sparse bundle adjustment, 
 // test input files from the sba-lib:
 struct Point3d 
@@ -570,7 +573,7 @@ void testMVGImplementation( Eigen::Matrix3d & K,
 {
 	cvt::SBAData sbaData;
 	cvt::SparseBundleAdjustment sba;
-	sba.setTerminationCriteria( 1e-12, 17 );
+	sba.setTerminationCriteria( 1e-12, 21 );
 	
 	convertData( K, cameras, points3d, sbaData );
 	
@@ -620,26 +623,27 @@ int main(int argc, char* argv[])
 	std::vector<Point3d> points3d;
 		
 	try {
+		
 		std::string intrinsicsFile = resources.find("sba/calib.txt");
-				
+		
+		/*
 		std::string camFile = resources.find("sba/7cams.txt");
-		//std::string camFile = resources.find("sba/7camsvarK.txt");
 		std::string pointFile = resources.find("sba/7pts.txt");
 		std::string camGT = resources.find("sba/resultCams7.txt");
 		std::string pointGT = resources.find("sba/resultPts7.txt");
+		*/
 		
-		//std::string camFile = resources.find("sba/9cams.txt");
-		//std::string camFile = resources.find("sba/9camsvarK.txt");
-		//std::string pointFile = resources.find("sba/9pts.txt");
-		//std::string camGT = resources.find("sba/resultCams9.txt");
-		//std::string pointGT = resources.find("sba/resultPts9.txt");
+		/*
+		std::string camFile = resources.find("sba/9cams.txt");
+		std::string pointFile = resources.find("sba/9pts.txt");
+		std::string camGT = resources.find("sba/resultCams9.txt");
+		std::string pointGT = resources.find("sba/resultPts9.txt");
+		*/
 		
-		//std::string camFile = resources.find("sba/54cams.txt");
-		//std::string camFile = resources.find("sba/54camsvarK.txt");
-		//std::string camFile = resources.find("sba/54camsvarKD.txt");
-		//std::string pointFile = resources.find("sba/54pts.txt");
-		//std::string camGT = resources.find("sba/resultCams54.txt");
-		//std::string pointGT = resources.find("sba/resultPts54.txt");
+		std::string camFile = resources.find("sba/54cams.txt");
+		std::string pointFile = resources.find("sba/54pts.txt");
+		std::string camGT = resources.find("sba/resultCams54.txt");
+		std::string pointGT = resources.find("sba/resultPts54.txt");
 		
 		std::vector<Eigen::Matrix3d> gtRots;
 		std::vector<Eigen::Vector3d> gtTrans;
@@ -649,12 +653,7 @@ int main(int argc, char* argv[])
 		parseCalibFile( intrinsicsFile, K );		
 		parseCameraFile( camFile, cameras );
 		parsePtsFile( pointFile, points3d );		
-		loadGroundTruth( camGT, pointGT, gtRots, gtTrans, gtPts );
-		
-		
-		//printLoadedData( K, cameras, points3d );
-		
-		//testOpenCVImplementation( K, cameras, points3d );
+		loadGroundTruth( camGT, pointGT, gtRots, gtTrans, gtPts );		
 		testMVGImplementation( K, cameras, points3d, gtRots, gtTrans, gtPts );
 		
 		//testSimulation();
