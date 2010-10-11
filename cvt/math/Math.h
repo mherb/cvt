@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include <Eigen/Core>
+#include <Eigen/LU>
 
 namespace cvt {
 
