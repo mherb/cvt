@@ -53,6 +53,10 @@ namespace cvt {
 		// compute gradients of the template image
 		temp.convolve( tmpDx, dx );
 		temp.convolve( tmpDy, dy );
+		
+		cvShowImage( "dx", tmpDx.iplimage() );
+		cvShowImage( "dy", tmpDy.iplimage() );
+		cvWaitKey( 0 );
 	}
 	
 	ESM::~ESM()
@@ -185,6 +189,7 @@ namespace cvt {
 				ssd += Math::sqr( deltaI[ pointIdx ] );
 				
 				pointIdx++;
+				
 				if( x != 0 )
 					xLast++;
 				if( x < temp.width() - 1 )
@@ -201,7 +206,7 @@ namespace cvt {
 			if( h != 0 )
 				wLast += strideW;
 			
-			if( h < temp.width() - 2)
+			if( h < temp.height() - 1 )
 				wNext += strideW;
 			
 			h++;
