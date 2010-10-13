@@ -38,10 +38,12 @@ SET(${MODULE_NAME}_HEADERS
 	io/ImageIO.h
 	io/DC1394Camera.h
 	io/Resources.h
+	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
 	math/Optimization.h
 	math/SBAData.h
+	math/SL3Transform.h
 	math/SparseBundleAdjustment.h
 	util/Range.h
 	util/Rect.h
@@ -79,8 +81,10 @@ SET(${MODULE_NAME}_SOURCES
 	io/ImageIO.cpp
 	io/DC1394Camera.cpp
 	io/Resources.cpp
+	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
+	math/SL3Transform.cpp
 	math/SparseBundleAdjustment.cpp
 	util/Range.cpp
 	util/Rect.cpp

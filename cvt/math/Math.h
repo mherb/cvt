@@ -7,7 +7,7 @@
 #include <float.h>
 #include <iostream>
 
-#include <Eigen/Core>
+#include <cvt/util/Exception.h>
 #include <Eigen/LU>
 
 namespace cvt {
@@ -223,18 +223,16 @@ namespace cvt {
 		static inline void exponential( const Matrix & A, Matrix & result, size_t padeApprox = 6 )
 		{	
 			
-			double infNorm = 0;
-			
-			for( ssize_t r = 0; r < A.rows(); r++ ){
-				double sum = 0.0;
-				for( ssize_t c = 0; c < A.cols(); c++ ){
-					sum += A( r, c ); 
-				}
-				if( sum > infNorm )
-					infNorm = sum;
-			}
-				
-			
+			double infNorm = 0.0;
+			for( int r = 0; r < A.rows(); r++ ){
+				double rowSum = 0.0;
+				for( int c = 0; c < A.cols(); c++ ){
+					rowSum += A( r, c );
+				}				
+				if( rowSum > infNorm )
+					infNorm = rowSum;
+			}				
+						
 			int j = max( 0, 1 + int( log( infNorm ) / log( 2 ) ) );
 			
 			// tmpA = A * 2^j
@@ -249,10 +247,10 @@ namespace cvt {
 			
 			double s = -1.0;
 			size_t q = padeApprox;
-			size_t twoq = 2 * padeApprox;
+			size_t twoq = (padeApprox << 1);
 			
-			for( size_t k = 1; k < padeApprox; k++ ){
-				c *= q / double( twoq * k );
+			for( size_t k = 1; k < padeApprox; ++k ){
+				c *= q / ( double )(twoq * k);
 				X = tmpA * X;
 				cX = X*c;
 				N += cX;
@@ -267,7 +265,7 @@ namespace cvt {
 			D.computeInverse( &result );
 			result *= N;
 			
-			for( int k = 0; k < j; k++ )
+			for( int k = 0; k < j; ++k )
 				result = result * result;
 		}
 	}

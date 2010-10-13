@@ -44,6 +44,7 @@ namespace cvt {
 
 		if( r )
 			rect.intersect( *r );
+		std::cout << "Rect: " << rect << std::endl;
 
 		alloc( rect.width, rect.height, x->_order, x->_type );
 
