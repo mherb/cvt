@@ -185,6 +185,11 @@ namespace cvt {
 				ssd += Math::sqr( deltaI[ pointIdx ] );
 				
 				pointIdx++;
+				if( x != 0 )
+					xLast++;
+				if( x < temp.width() - 1 )
+					xNext++;
+				xCurrent++;
 			}		
 			
 			tempPtr += strideT;
