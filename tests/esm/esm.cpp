@@ -5,13 +5,13 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/DC1394Camera.h>
-#include <cvt/io/V4L2Camera.h>
+//#include <cvt/io/V4L2Camera.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Timer.h>
 #include <cvt/util/Exception.h>
 #include <cvt/math/ESM.h>
 
-#define CAMINPUT 1
+//#define CAMINPUT 1
 
 //#define FILETEMPLATE
 
@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
 //		std::cout << "Homography: " << homography.matrix() << std::endl;
 //		std::cout << "Det: " << homography.matrix().determinant() << std::endl;
 						
-		drawEstimate( *temp, out, homography );
-		cvShowImage( "ESM", out.iplimage() );				
+		drawEstimate( *temp, outF, homography );
+		cvShowImage( "ESM", outF.iplimage() );				
 		cvShowImage( "Template", temp->iplimage() );				
 		cvWaitKey( 0 );
 				
@@ -206,8 +206,8 @@ int main(int argc, char* argv[])
 			
 			esm.optimize( homography, outF );
 			
-			drawEstimate( *temp, out, homography );	
-			cvShowImage( "ESM", out.iplimage() );
+			drawEstimate( *temp, outF, homography );	
+			cvShowImage( "ESM", outF.iplimage() );
 			
 			key = ( cvWaitKey( 5 ) & 0xff );
 			if( key == 27 )
