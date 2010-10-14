@@ -37,6 +37,8 @@ namespace cvt {
 			IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
 			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
+			template<typename _T> _T* map( size_t* stride );
+			template<typename _T> const _T* map( size_t* stride ) const;
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
 /*			uint8_t* scanline( size_t i );
 			uint8_t const* scanline( size_t i ) const;*/
@@ -150,6 +152,22 @@ namespace cvt {
 	inline void Image::reallocate( const Image& i, IAllocatorType memtype )
 	{
 		reallocate( i._mem->_width, i._mem->_height, i._mem->_order, i._mem->_type, memtype );
+	}
+
+	template<typename _T>
+	inline _T* Image::map( size_t* stride )
+	{
+		uint8_t* ret = _mem->map( stride );
+		*stride /= sizeof( _T );
+		return ( _T * ) ret;
+	}
+
+	template<typename _T>
+	inline const _T* Image::map( size_t* stride ) const
+	{
+		const uint8_t* ret = _mem->map( stride );
+		*stride /= sizeof( _T );
+		return ( const _T * ) ret;
 	}
 
 	inline IplImage* Image::iplimage() const

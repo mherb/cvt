@@ -26,16 +26,16 @@ namespace cvt {
 	{
 		size_t stride;
 		float * p = ( float* )dx.map( &stride );
-		p[ 0 ] =  0.0f; 
-		p[ 1 ] =  1.0f; 
+		p[ 0 ] =  1.0f; 
+		p[ 1 ] =  0.0f; 
 		p[ 2 ] =  -1.0f;
 		dx.unmap( ( uint8_t* )p );
 		
 		p = ( float* )dy.map( &stride );
 		stride /= sizeof( float );
 		
-		p[ 0 ] =  0.0f; 
-		p[ stride ] = 1.0f; 
+		p[ 0 ] =  1.0f; 
+		p[ stride ] = 0.0f; 
 		p[ 2*stride ] = -1.0f;		
 		dy.unmap( ( uint8_t* ) p );
 		
@@ -133,56 +133,57 @@ namespace cvt {
 	{
 		Eigen::Vector2d p( Eigen::Vector2d::Zero() );
 		
-		size_t strideT;
-		uint8_t * t = temp.map( &strideT );
-		strideT /= sizeof( float );
-		
-		size_t strideW;
-		uint8_t * w = warped.map( &strideW );
-		strideW /= sizeof( float );
-		
-		
-		size_t strideTDX;
-		uint8_t * tDx = tmpDx.map( &strideTDX );
-		strideTDX /= sizeof( float );
-		
-		size_t strideTDY;
-		uint8_t * tDy = tmpDy.map( &strideTDY );
-		strideTDY /= sizeof( float );		
-		
-		float * tempPtr = ( float* )t;
-		float * warpedPtr = ( float* )w;
-		float * wLast = ( float* )w;
-		float * wNext = ( float* )w + strideW;
-		
-		float * tempDxPtr = ( float* )tDx; 
-		float * tempDyPtr = ( float* )tDy;
-		
-		float * xLast;
-		float * xCurrent;
-		float * xNext;		
+		warped.convolve( warpedDx, dx );
+		warped.convolve( warpedDy, dy );
+
+		float* timg;
+	    float* tptr;
+		size_t tstride;
+		float* tdximg;
+		float* tdxptr;
+		size_t tdxstride;
+		float* tdyimg;
+	    float* tdyptr;
+		size_t tdystride;
+		float* wimg;
+		float* wptr;
+		size_t wstride;
+		float* wdximg;
+		float* wdxptr;
+		size_t wdxstride;
+		float* wdyimg;
+		float* wdyptr;
+		size_t wdystride;
+
+		timg = temp.map<float>( & tstride );
+		tptr = timg;
+		tdximg = tmpDx.map<float>( & tdxstride );
+		tdxptr = tdximg;
+		tdyimg = tmpDy.map<float>( & tdystride );
+		tdyptr = tdyimg;
+		wimg = warped.map<float>( & wstride );
+		wptr = wimg;
+		wdximg = warpedDx.map<float>( & wdxstride );
+		wdxptr = wdximg;
+		wdyimg = warpedDy.map<float>( & wdystride );
+		wdyptr = wdyimg;
 
 		Eigen::Matrix<double, 1, 2> grad;
 
 		ssd = 0.0;
-		
+
 		size_t pointIdx = 0;
-		size_t h = 0;
-		while ( h < temp.height() ) {			
-			p[ 1 ] = ( double ) h;		
-			
-			xCurrent = warpedPtr;
-			xLast = xCurrent;
-			xNext = xCurrent + 1;
+		for( size_t h = 0; h < temp.height(); h++ ) {
+			p[ 1 ] = ( double ) h;
+
 			for( size_t x = 0; x < temp.width(); x++ ){
 				p[ 0 ] = ( double ) x;
 				
-				grad( 0, 0 ) = *xNext - *xLast;				
-				grad( 0, 1 ) = wNext[ x ] - wLast[ x ];
+				grad( 0, 0 ) = wdxptr[ x ];
+				grad( 0, 1 ) = wdyptr[ x ];
 				
-				// add the template gradients
-				grad( 0, 0 ) += tempDxPtr[ x ];
-				grad( 0, 1 ) += tempDyPtr[ x ];
+				grad( 0, 0 ) += tdxptr[ x ];
+				grad( 0, 1 ) += tdyptr[ x ];
 
 //				std::cout << "GRAD: " << std::endl << grad( 0, 0 ) << std::endl;
 //				std::cout << grad( 0, 1 ) << std::endl;
@@ -192,41 +193,29 @@ namespace cvt {
 				
 				// multiply by the gradients
 				jCombined.block( pointIdx, 0, 1, 8 ) = grad * jPose.block( pointIdx << 1, 0, 2, 8 );
-				
-//				std::cout << jCombined.block( pointIdx, 0, 1, 8 ) << " -- " << grad << std::endl;
+			
+/*				if( jCombined.block( pointIdx, 0, 1, 8 ).maxCoeff() >= 1e5 )
+					std::cout << "IDX " << pointIdx << "( " << temp.width() << " , " << temp.height() << " ) -- " << jCombined.block( pointIdx, 0, 1, 8 ) << " -- " << grad << " " << tempDyPtr[ x ] << tempDyPtr[ x ] << std::endl;*/
 				// compute delta between intensities + ssd
-				deltaI[ pointIdx ] = *xCurrent - tempPtr[ x ];
-				
+				deltaI[ pointIdx ] = wptr[ x ] - tptr[ x ];
+
 				ssd += Math::sqr( deltaI[ pointIdx ] );
-				
 				pointIdx++;
-				
-				if( x != 0 )
-					xLast++;
-				if( x < temp.width() - 1 )
-					xNext++;
-				xCurrent++;
-			}		
-			
-			tempPtr += strideT;
-			warpedPtr += strideW;
-			
-			tempDxPtr += strideTDX;
-			tempDyPtr += strideTDY;
-			
-			if( h != 0 )
-				wLast += strideW;
-			
-			if( h < temp.height() - 1 )
-				wNext += strideW;
-			
-			h++;
+			}
+
+			tptr += tstride;
+			tdxptr += tdxstride;
+			tdyptr += tdystride;
+			wptr += wstride;
+			wdxptr += wdxstride;
+			wdyptr += wdystride;
 		}
 		ssd /= deltaI.rows();
-		
-		temp.unmap( t );
-		warped.unmap( w );	
-		tmpDx.unmap( tDx );
-		tmpDy.unmap( tDy );
-	}	
+		temp.unmap( ( uint8_t* ) timg );
+		tmpDx.unmap( ( uint8_t* ) tdximg );
+		tmpDy.unmap( ( uint8_t* ) tdyimg );
+		warped.unmap( ( uint8_t* ) wimg );
+		warpedDx.unmap( ( uint8_t* ) wdximg );
+		warpedDy.unmap( ( uint8_t* ) wdyimg );
+	}
 }
