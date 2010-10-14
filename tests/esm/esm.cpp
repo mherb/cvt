@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	const Image* frame;
 	
 #ifdef CAMINPUT
-	V4L2Camera cam( 0, 640, 480, 30.0f, IOrder::GRAY );
+	DC1394Camera cam;
 #endif
 
 	int key;
@@ -143,10 +143,10 @@ int main(int argc, char* argv[])
 			cam.captureNext();
 			frame = cam.image();
 
-			out.copy( *frame );
+			frame->debayer( out, IBAYER_RGGB );
+//			out.copy( *frame );
 
 			cvShowImage( "ESM", out.iplimage() );
-//			frame->debayer( out, IBAYER_RGGB );
 #endif
 			out.convert( outF );
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 		filetemplate.convert( *temp );
 #endif
 		
-		ESM esm( *temp, 10, 1e-6 );
+		ESM esm( *temp, 20, 1e-6 );
 		
 		
 		SL3Transform homography;
