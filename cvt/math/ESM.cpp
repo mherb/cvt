@@ -18,25 +18,28 @@ namespace cvt {
 	ESM::ESM( const Image & img, size_t maxIter, double ssdEpsilon ):
 		maxIter( maxIter ),
 		ssdEpsilon( ssdEpsilon ),
-		dx( 3, 1, IOrder::GRAY, IType::FLOAT ),
-		dy( 1, 3, IOrder::GRAY, IType::FLOAT ),
+		dx( 5, 1, IOrder::GRAY, IType::FLOAT ),
+		dy( 1, 5, IOrder::GRAY, IType::FLOAT ),
 		temp( img ),
 		ssd( 0.0 ),
 		iteration( 0 )
 	{
 		size_t stride;
 		float * p = ( float* )dx.map( &stride );
-		p[ 0 ] =  1.0f; 
-		p[ 1 ] =  0.0f; 
-		p[ 2 ] =  -1.0f;
+		p[ 0 ] =  -0.1f;
+		p[ 1 ] =   0.8f;
+		p[ 2 ] =   0.0f;
+		p[ 3 ] =  -0.8f;
+		p[ 4 ] =   0.1f;
 		dx.unmap( ( uint8_t* )p );
 		
 		p = ( float* )dy.map( &stride );
 		stride /= sizeof( float );
-		
-		p[ 0 ] =  1.0f; 
-		p[ stride ] = 0.0f; 
-		p[ 2*stride ] = -1.0f;		
+		p[ 0 * stride ] =  -0.1f; 
+		p[ 1 * stride ] =   0.8f; 
+		p[ 2 * stride ] =   0.0f;
+		p[ 3 * stride ] =  -0.8f;
+		p[ 4 * stride ] =   0.1f;
 		dy.unmap( ( uint8_t* ) p );
 		
 		warped.reallocate( temp );
