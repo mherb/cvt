@@ -116,7 +116,7 @@ namespace cvt {
 			H.update( deltaH );
 			
 //			std::cout << "ESM: iter = " << iteration << ", " ;
-//			std::cout << " ssd = " << ssd << "\n";
+			std::cout << " ssd = " << ssd << std::endl;
 			//std::cout << H.matrix() << std::endl;  
 			
 			iteration++;
@@ -214,11 +214,11 @@ namespace cvt {
 			wdyptr += wdystride;
 		}
 		ssd /= deltaI.rows();
-		temp.unmap( ( uint8_t* ) timg );
-		tmpDx.unmap( ( uint8_t* ) tdximg );
-		tmpDy.unmap( ( uint8_t* ) tdyimg );
-		warped.unmap( ( uint8_t* ) wimg );
-		warpedDx.unmap( ( uint8_t* ) wdximg );
-		warpedDy.unmap( ( uint8_t* ) wdyimg );
+		temp.unmap<float>( timg );
+		tmpDx.unmap<float>( tdximg );
+		tmpDy.unmap<float>( tdyimg );
+		warped.unmap<float>( wimg );
+		warpedDx.unmap<float>( wdximg );
+		warpedDy.unmap<float>( wdyimg );
 	}
 }

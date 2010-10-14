@@ -40,6 +40,7 @@ namespace cvt {
 			template<typename _T> _T* map( size_t* stride );
 			template<typename _T> const _T* map( size_t* stride ) const;
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
+			template<typename _T> void unmap( const _T* ptr ) const;
 /*			uint8_t* scanline( size_t i );
 			uint8_t const* scanline( size_t i ) const;*/
 
@@ -168,6 +169,12 @@ namespace cvt {
 		const uint8_t* ret = _mem->map( stride );
 		*stride /= sizeof( _T );
 		return ( const _T * ) ret;
+	}
+
+	template<typename _T>
+	inline void Image::unmap( const _T* ptr ) const
+	{
+		 _mem->unmap( ( uint8_t* ) ptr );
 	}
 
 	inline IplImage* Image::iplimage() const
