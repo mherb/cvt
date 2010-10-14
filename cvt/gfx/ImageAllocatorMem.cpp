@@ -44,14 +44,13 @@ namespace cvt {
 
 		if( r )
 			rect.intersect( *r );
-		std::cout << "Rect: " << rect << std::endl;
 
 		alloc( rect.width, rect.height, x->_order, x->_type );
 
 		osrc = src = x->map( &sstride );
 		src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
 		dst = _data;
-		n =  x->_type.size * x->_order.channels * rect.width;
+		n =  _type.size * _order.channels * rect.width;
 
 		i = rect.height;
 		while( i-- ) {

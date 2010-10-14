@@ -5,12 +5,15 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/DC1394Camera.h>
+#include <cvt/io/V4L2Camera.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Timer.h>
 #include <cvt/util/Exception.h>
 #include <cvt/math/ESM.h>
 
-#define CAMINPUT
+#define CAMINPUT 1
+
+//#define FILETEMPLATE
 
 using namespace cvt;
 
@@ -77,10 +80,10 @@ void drawEstimate( const Image& temp, Image & out, SL3Transform & hom )
 	p3.x = pPrime[ 0 ] / pPrime[ 2 ];
 	p3.y = pPrime[ 1 ] / pPrime[ 2 ];
 	
-	std::cout << "P: " << p0.x << ", " << p0.y << std::endl;
-	std::cout << "P: " << p1.x << ", " << p1.y << std::endl;
-	std::cout << "P: " << p2.x << ", " << p2.y << std::endl;
-	std::cout << "P: " << p3.x << ", " << p3.y << std::endl;
+//	std::cout << "P: " << p0.x << ", " << p0.y << std::endl;
+//	std::cout << "P: " << p1.x << ", " << p1.y << std::endl;
+//	std::cout << "P: " << p2.x << ", " << p2.y << std::endl;
+//	std::cout << "P: " << p3.x << ", " << p3.y << std::endl;
 	
 	cvLine( out.iplimage(), p0, p1, CV_RGB(255, 255, 255), 2 );
 	cvLine( out.iplimage(), p1, p2, CV_RGB(255, 255, 255), 2 );
@@ -95,7 +98,7 @@ int main(int argc, char* argv[])
 	const Image* frame;
 	
 #ifdef CAMINPUT
-	DC1394Camera cam;
+	V4L2Camera cam( 0, 640, 480, 30.0f, IOrder::GRAY );
 #endif
 
 	int key;
@@ -125,7 +128,8 @@ int main(int argc, char* argv[])
 		
 		/* the template */
 		Image * temp;
-		
+
+#ifndef FILETEMPLATE		
 		Params p = { 0, 0, 0, 0, 0 };
 		cvShowImage( "ESM", out.iplimage() );
 		cvSetMouseCallback( "ESM", ( CvMouseCallback ) mouseevent, &p );
@@ -138,42 +142,54 @@ int main(int argc, char* argv[])
 #ifdef CAMINPUT
 			cam.captureNext();
 			frame = cam.image();
-			
-			frame->debayer( out, IBAYER_RGGB );
+
+			out.copy( *frame );
+
+			cvShowImage( "ESM", out.iplimage() );
+//			frame->debayer( out, IBAYER_RGGB );
 #endif
 			out.convert( outF );
-			
+
 			if( selectPatch ){
 				if( p.numClick == 1 ){
 					cvCircle( out.iplimage(), cvPoint( p.x0, p.y0), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
-				}
-				if( p.numClick == 2 ){
+				} else if( p.numClick == 2 ){
 					Recti roi( p.x0, p.y0, p.x1-p.x0, p.y1-p.y0 );
 					temp = new Image( outF, &roi );
 					selectPatch = false;
-				}				
-			}			
-			
-			cvShowImage( "ESM", out.iplimage() );
-			
+				}
+			}
+
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
-				break;			
-		}		
+				break;
+		}
 		if( selectPatch )
 			return 0;
+#else
+		Image filetemplate;
+		ImageIO::loadPNG(filetemplate,"/home/heise/Pictures/PRML.png");
+		temp = new Image( filetemplate.width(), filetemplate.height(), IOrder::GRAY, IType::FLOAT );
+		filetemplate.convert( *temp );
+#endif
 		
-		ESM esm( *temp, 10, 1e-5 );
+		ESM esm( *temp, 10, 1e-6 );
 		
 		
 		SL3Transform homography;
 		Eigen::Matrix<double, 8, 1> params = Eigen::Matrix<double, 8, 1>::Zero();
+#ifndef FILETEMPLATE
 		params[ 0 ] = p.x0;
 		params[ 1 ] = p.y0;
+#else
+		params[ 0 ] = 150.0;
+		params[ 1 ] = 250.0;
+
+#endif
 		homography.update( params );
 		
-		std::cout << "Homography: " << homography.matrix() << std::endl;
-		std::cout << "Det: " << homography.matrix().determinant() << std::endl;
+//		std::cout << "Homography: " << homography.matrix() << std::endl;
+//		std::cout << "Det: " << homography.matrix().determinant() << std::endl;
 						
 		drawEstimate( *temp, out, homography );
 		cvShowImage( "ESM", out.iplimage() );				

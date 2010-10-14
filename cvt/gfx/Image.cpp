@@ -65,6 +65,7 @@ namespace cvt {
 
 		checkFormatAndSize( img, __PRETTY_FUNCTION__, __LINE__ );
 		_mem->copy( img._mem );
+		upateIpl();
 	}
 
 	void Image::copyRect( int x, int y, const Image& img, int sx, int sy, int swidth, int sheight )
