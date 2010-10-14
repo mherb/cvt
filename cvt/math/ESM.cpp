@@ -58,6 +58,18 @@ namespace cvt {
 		temp.convolve( tmpDx, dx );
 		temp.convolve( tmpDy, dy );
 		
+		Eigen::Vector2d P;
+		size_t pointIdx = 0;
+		for( size_t y = 0; y < temp.height(); y++ ){
+			P[ 1 ] = y;
+			for( size_t x = 0; x < temp.width(); x++ ){
+				P[ 0 ] = x;
+				SL3Transform::jacobiansAtIdentity( P, jPose, pointIdx );
+				pointIdx+=2;
+			}
+		}
+			
+		
 		cvShowImage( "dx", tmpDx.iplimage() );
 		cvShowImage( "dy", tmpDy.iplimage() );
 		cvWaitKey( 0 );
@@ -190,9 +202,6 @@ namespace cvt {
 
 //				std::cout << "GRAD: " << std::endl << grad( 0, 0 ) << std::endl;
 //				std::cout << grad( 0, 1 ) << std::endl;
-				
-				// calc jacobians at this point
-				H.jacobiansAtPoint( p, jPose, ( pointIdx << 1 ) );
 				
 				// multiply by the gradients
 				jCombined.block( pointIdx, 0, 1, 8 ) = grad * jPose.block( pointIdx << 1, 0, 2, 8 );

@@ -35,12 +35,10 @@ namespace cvt {
 			void jacobiansAtPoint( const Eigen::Vector3d & p, Eigen::Matrix<double, 2, 8> & J ) const;
 			void jacobiansAtPoint( const Eigen::Vector2d & p, Eigen::Matrix<double, 2, 8> & J ) const;		
 
-			void jacobiansAtPoint( const Eigen::Vector2d & p, Eigen::MatrixXd & J, size_t rowOffset=0 ) const;
-		
-			const Eigen::Matrix<double, 9, 8> & generatorMatrix();
+			/* evaluated at e -> always the same */
+			static void jacobiansAtIdentity( const Eigen::Vector2d & p, Eigen::MatrixXd & J, size_t rowOffset=0 );
 								
 		private:
-			Eigen::Matrix<double, 9, 8> gMatrix;
 			Eigen::Matrix3d transform;	
 			std::vector<Eigen::Matrix3d> jacs;
 		

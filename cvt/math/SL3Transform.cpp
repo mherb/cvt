@@ -13,22 +13,10 @@
 namespace cvt {
 	
 SL3Transform::SL3Transform():
-	gMatrix( Eigen::Matrix<double, 9, 8>::Zero() ),
 	transform( Eigen::Matrix3d::Identity() ),
 	jacs( 8, Eigen::Matrix3d::Zero() )
 {
 	updateJacobians();
-	
-	gMatrix( 2, 0 ) = 1.0;
-	gMatrix( 5, 1 ) = 1.0;
-	gMatrix( 1, 2 ) = 1.0;
-	gMatrix( 3, 3 ) = 1.0;
-	gMatrix( 0, 4 ) = 1.0;
-	gMatrix( 4, 4 ) = -1.0;
-	gMatrix( 4, 5 ) = -1.0;
-	gMatrix( 8, 5 ) = 1.0;
-	gMatrix( 6, 6 ) = 1.0;
-	gMatrix( 7, 7 ) = 1.0;
 }
 
 SL3Transform::~SL3Transform()
@@ -100,33 +88,8 @@ void SL3Transform::jacobiansAtPoint( const Eigen::Vector2d & p, Eigen::Matrix<do
 	}
 }
 	
-void SL3Transform::jacobiansAtPoint( const Eigen::Vector2d & p, Eigen::MatrixXd & J, size_t rowOffset ) const
+void SL3Transform::jacobiansAtIdentity( const Eigen::Vector2d & p, Eigen::MatrixXd & J, size_t rowOffset )
 {	
-	/*
-	J( 0 + rowOffset, 0 ) = transform( 0, 0 );
-	J( 1 + rowOffset, 0 ) = transform( 1, 0 );
-		
-	J( 0 + rowOffset, 1 ) = transform( 0, 1 );
-	J( 1 + rowOffset, 1 ) = transform( 1, 1 );
-		
-	J( 0 + rowOffset, 2 ) = J( 0, 0 );
-	J( 1 + rowOffset, 2 ) = J( 1, 0 );
-	
-	J( 0 + rowOffset, 3 ) = J( 0, 1 );
-	J( 1 + rowOffset, 3 ) = J( 1, 1 );
-		
-	J( 0 + rowOffset, 4 ) = ( p[0] * transform( 0, 0 ) - p[1] * transform( 0, 1 ) );
-	J( 1 + rowOffset, 4 ) = ( p[0] * transform( 1, 0 ) - p[1] * transform( 1, 1 ) );
-		
-	J( 0 + rowOffset, 5 ) = ( -p[1] * transform( 0, 1 ) + transform( 0, 2 ) );
-	J( 1 + rowOffset, 5 ) = ( -p[1] * transform( 1, 1 ) + transform( 1, 2 ) );
-	
-	J( 0 + rowOffset, 6 ) = transform( 0, 2 );
-	J( 1 + rowOffset, 6 ) = transform( 1, 2 );		
-		
-	J( 0 + rowOffset, 7 ) = J( 0, 6 );
-	J( 1 + rowOffset, 7 ) = J( 1, 6 );*/
-	
 	J( 0 + rowOffset, 0 ) = 1.0;
 	J( 1 + rowOffset, 0 ) = 0.0;
 	
@@ -192,12 +155,6 @@ void SL3Transform::updateJacobians()
 	jacs[ 7 ]( 0, 1 ) = transform( 0, 2 );	
 	jacs[ 7 ]( 1, 1 ) = transform( 1, 2 );
 	jacs[ 7 ]( 2, 1 ) = transform( 2, 2 );
-}
-	
-	
-const Eigen::Matrix<double, 9, 8> & SL3Transform::generatorMatrix()
-{
-	return gMatrix;
 }
 	
 }

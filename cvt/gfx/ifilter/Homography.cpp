@@ -40,7 +40,7 @@ namespace cvt {
 		h33 = ( ( H[ 6 ] * ( H[ 1 ] * H[ 5 ] - H[ 4 ] * H[ 2 ] ) +
 			   H[ 7 ] * ( H[ 3 ] * H[ 2 ] - H[ 0 ] * H[ 5 ] ) ) - 1.0f ) / ( H[ 3 ] * H[ 1 ] - H[ 0 ] * H[ 4 ] );
 
-		if( h33 == 0.0f || isinf( h33 ) || isnan( h33 ) )
+		if( h33 == 0.0f || std::isinf( h33 ) || std::isnan( h33 ) )
 			return;
 
 		dst = idst.map( &dstride );
