@@ -191,6 +191,11 @@ namespace cvt {
 			return min + ( ( max - min ) * ( ( double ) ::random() / ( ( double ) RAND_MAX + 1.0 )  ) );
 		}
 
+		template<typename T> static inline T sgn( T x )
+		{
+			return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
+		}
+
 		/*
 		   The famous fast inverse square root approximation found in the code
 		   of id-tech 3/4.
@@ -213,58 +218,55 @@ namespace cvt {
 			__asm__ __volatile__ ("fistpl %0" : "=m" (i) : "t" (f) : "st") ;
 			return i;
 		}
-		
-		/* 
-		 * Algorithm from Goloub, v. Loan p.573f.
+
+		/*
+		 * Algorithm from Goloub, v. Loan p.573f
 		 * but with fixed number of pade approximants;
 		 * 6 approximants give precision 3.39452e-16
 		 */
-		template<class Matrix> 
+		template<class Matrix>
 		static inline void exponential( const Matrix & A, Matrix & result, size_t padeApprox = 6 )
-		{	
-			
+		{
 			double infNorm = 0.0;
+
 			for( int r = 0; r < A.rows(); r++ ){
 				double rowSum = 0.0;
 				for( int c = 0; c < A.cols(); c++ ){
 					rowSum += A( r, c );
-				}				
+				}
 				if( rowSum > infNorm )
 					infNorm = rowSum;
-			}				
-						
+			}
+
 			int j = max( 0, 1 + int( log( infNorm ) / log( 2 ) ) );
-			
+
 			// tmpA = A * 2^j
 			Matrix tmpA = A / ( 1 << j ) ;
-			
+
 			Matrix D = Matrix::Identity();
 			Matrix N = Matrix::Identity();
 			Matrix X = Matrix::Identity();
 			Matrix cX;
-			
+
 			double c = 1.0;
-			
 			double s = -1.0;
 			size_t q = padeApprox;
 			size_t twoq = (padeApprox << 1);
-			
+
 			for( size_t k = 1; k < padeApprox; ++k ){
 				c *= q / ( double )(twoq * k);
 				X = tmpA * X;
 				cX = X*c;
 				N += cX;
 				D += ( s*cX );
-				
 				--q;
 				--twoq;
-				
 				s *= -1;
 			}
-			
+
 			D.computeInverse( &result );
 			result *= N;
-			
+
 			for( int k = 0; k < j; ++k )
 				result = result * result;
 		}
