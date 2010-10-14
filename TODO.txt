@@ -1,0 +1,12 @@
+- unified Camera Interface ( Firewire, V4L2, UEye, MacOS )
+- IKernel interface for convolution
+- more Image formats (int8_t, uint16_t, int16_t)
+- unmap without pointer
+- opengl gui
+- more Lie parametrized transforms (pose abstraction)
+- filter interface überarbeiten
+- AGAST filtern
+- BSP Tree ( doom src )
+- KDTree
+- Rapid
+- Red-Black-Tree
