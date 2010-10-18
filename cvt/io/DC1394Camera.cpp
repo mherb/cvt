@@ -25,7 +25,7 @@ namespace cvt
 		if( !mCamera )
 			throw CVTException( "Could not open camera" );
 
-		mFramerate = DC1394_FRAMERATE_30;
+		mFramerate = DC1394_FRAMERATE_60;
 		mMode = DC1394_VIDEO_MODE_640x480_MONO8;
 		mFrame = new Image( 640, 480, IOrder::GRAY, IType::UBYTE );
 	}
@@ -40,11 +40,7 @@ namespace cvt
 
 	void DC1394Camera::open( )
 	{
-		enableWhiteBalanceAuto( true );
-		enableShutterAuto( true );
-		enableGainAuto( true );
-		enableIrisAuto( false );
-	}
+		}
 
 
 	void DC1394Camera::close( )
@@ -79,6 +75,12 @@ namespace cvt
 		dc1394_video_set_framerate( mCamera, mFramerate );
 		dc1394_capture_setup( mCamera, dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
 		dc1394_video_set_transmission( mCamera, DC1394_ON );
+		enableWhiteBalanceAuto( false );
+		enableShutterAuto( false );
+		enableGainAuto( false );
+		enableIrisAuto( false );
+		setShutter( 1200 );
+
 		capturing = true;
 	}
 
