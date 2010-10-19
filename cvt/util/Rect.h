@@ -20,6 +20,7 @@ namespace cvt {
 			public:
 			Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
 			Rect( const Rect<T>& r2 );
+			const Rect<T>& operator=( const Rect<T>& r2 );
 			void copy( const Rect<T>& r2 );
 			void set( T x, T y, T width, T height );
 			void setPosition( T x, T y );
@@ -36,6 +37,7 @@ namespace cvt {
 			void intersect( const Rect<T>& r2 );
 			void intersect( T x, T y, T w, T h );
 			bool isEmpty() const;
+			bool operator==( const Rect<T>& r2 ) const;
 
 			T x, y, width, height;
 		};
@@ -58,6 +60,16 @@ namespace cvt {
 			width = r2.width;
 			height = r2.height;
 		}
+
+	template<typename T>
+	inline const Rect<T>& Rect<T>::operator=( const Rect<T>& r2 )
+	{
+		x = r2.x;
+		y = r2.y;
+		width = r2.width;
+		height = r2.height;
+		return *this;
+	}
 
 	template<typename T>
 		inline void Rect<T>::copy( const Rect<T>& r2 )
@@ -187,6 +199,14 @@ namespace cvt {
 		{
 			return ( width == 0 || height == 0 );
 		}
+
+
+	template<typename T>
+		inline bool Rect<T>::operator==( const Rect<T>& r2 ) const
+		{
+			return ( x == r2.x && y == r2.y && width == r2.width && height == r2.height );
+		}
+
 
 }
 #endif

@@ -15,6 +15,7 @@ FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
+FIND_PACKAGE(X11 REQUIRED)
 
 FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)
@@ -29,6 +30,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
 	${LIBDC1394_LIBRARY}
+	${X11_LIBRARIES}
 )
 
 SET(${MODULE_NAME}_HEADERS
@@ -71,6 +73,9 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
+	gui/Application.h
+	gui/Window.h
+	gui/Widget.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -102,6 +107,13 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
+	gui/Application.cpp
+	gui/Window.cpp
+	gui/Widget.cpp
+	gui/GFX.cpp
+	gui/GFXGL.cpp
+	gui/internal/WidgetImplWinGLX11.cpp
+	gui/internal/ApplicationX11.cpp
 )
 
 SET(${MODULE_NAME}_MOC_FILES
@@ -165,6 +177,7 @@ INCLUDE_DIRECTORIES(
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
 	${LIBDC1394_INCLUDE_DIR}
+	${X11_INCLUDE_DIR}
 )
 
 #set opencl filter path
