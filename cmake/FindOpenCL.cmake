@@ -44,11 +44,13 @@ ELSE (WIN32)
 			/usr/local/cuda/include/
 			~/NVIDIA_GPU_Computing_SDK/OpenCL/common/inc/ 
 			/usr/local/nvgpu/OpenCL/common/inc/ 
+			/usr/local/ati-stream-sdk/include/
 		)
 	
 		FIND_LIBRARY(OPENCL_LIBRARIES 
 			OpenCL 
 			ENV LD_LIBRARY_PATH
+			/usr/local/ati-stream-sdk/lib/x86_64
 		)
 	ENDIF (APPLE)
 ENDIF (WIN32)
