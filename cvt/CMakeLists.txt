@@ -17,21 +17,19 @@ FIND_PACKAGE(OpenCL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
 FIND_PACKAGE(X11 REQUIRED)
 
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-SET(QT_USE_QTOPENGL TRUE)
-INCLUDE(${QT_USE_FILE})
-
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
 	${Boost_LIBRARIES}
 	${OpenCV_LIBS}
 	${LIBPNG_LIBRARY}
-	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
 	${LIBDC1394_LIBRARY}
 	${X11_LIBRARIES}
 )
+
+GLSLTOHEADER(gl/shader/basic.vert)
+GLSLTOHEADER(gl/shader/basic.frag)
 
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
@@ -76,6 +74,11 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Application.h
 	gui/Window.h
 	gui/Widget.h
+	gl/OpenGL.h
+	gl/GLException.h
+	gl/GLProgram.h
+	gl/shader/basic_vert.h
+	gl/shader/basic_frag.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -114,12 +117,9 @@ SET(${MODULE_NAME}_SOURCES
 	gui/GFXGL.cpp
 	gui/internal/WidgetImplWinGLX11.cpp
 	gui/internal/ApplicationX11.cpp
+	gl/GLProgram.cpp
 )
 
-SET(${MODULE_NAME}_MOC_FILES
-)
-QT4_WRAP_CPP(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_MOC_FILES})
-	
 IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
