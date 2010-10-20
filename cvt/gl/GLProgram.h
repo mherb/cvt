@@ -11,9 +11,11 @@ namespace cvt {
 			GLProgram();
 			~GLProgram();
 			void build( const char* vertsrc, const char* fragsrc );
-			void bind() { glUseProgram( program ); };
+			void bind();
+			void bindAttribLocation( const char *name, size_t location );
 			void setArg( size_t n, IFilterParameter* p );
 			void setArg( const char* name, IFilterParameter* p );
+			void setArg( const char* name, int i );
 
 		private:
 			GLuint program;

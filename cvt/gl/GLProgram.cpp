@@ -1,4 +1,7 @@
 #include <cvt/gl/GLProgram.h>
+#include <cvt/gfx/Color.h>
+#include <cvt/gfx/IFilterVector.h>
+#include <cvt/gfx/IFilterScalar.h>
 
 namespace cvt {
 	GLProgram::GLProgram()
@@ -9,6 +12,11 @@ namespace cvt {
 	GLProgram::~GLProgram()
 	{
 		glDeleteProgram( program );
+	}
+
+	void GLProgram::bind()
+	{
+		glUseProgram( program );
 	}
 
 	void GLProgram::build( const char* vertsrc, const char* fragsrc )
@@ -68,6 +76,48 @@ namespace cvt {
 			logbuf.resize( loglen );
 			glGetProgramInfoLog( program, loglen, &loglen, &logbuf[ 0 ] );
 			throw GLException("Shader link error\n", logbuf );
+		}
+	}
+
+
+	void GLProgram::bindAttribLocation( const char *name, size_t location )
+	{
+		glBindAttribLocation( program, ( GLuint ) location, name );
+	}
+
+	/*void GLProgram::bindFragDataLocation( const char *name, size_t location )
+	{
+		glBindFragDataLocation( program, ( GLuint ) location, name );
+	}*/
+
+	void GLProgram::setArg( const char* name, int i )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniform1i( loc, i );
+	}
+
+	void GLProgram::setArg( const char* name, IFilterParameter* p )
+	{
+		switch( p->getIFilterParameterType() )
+		{
+			case IFILTERPARAMETER_COLOR:
+				{
+					GLint loc = glGetUniformLocation( program, name);
+					glUniform4fv( loc, 1, ( GLfloat* ) ( ( Color* ) p )->data() );
+				}
+				break;
+			case IFILTERPARAMETER_SCALAR:
+				{
+					GLint loc = glGetUniformLocation( program, name);
+					glUniform1f( loc, ( ( IFilterScalar* ) p )->get() );
+				}
+			case IFILTERPARAMETER_VECTOR16:
+				{
+					GLint loc = glGetUniformLocation( program, name);
+					glUniformMatrix4fv( loc, 1, false , ( GLfloat* ) ( ( IFilterVector16* ) p )->vec );
+				}
+			default:
+				break;
 		}
 	}
 

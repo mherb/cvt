@@ -1,6 +1,9 @@
-uniform vec4 Color;  
+#version 330
 
-void main(void)  
-{   
-	gl_FragColor = Color;  
-}  
+in vec4 vtx_Color;
+layout( location = 0, index = 0 ) out vec4 Output;
+
+void main()
+{
+	Output = vtx_Color;
+}

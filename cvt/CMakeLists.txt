@@ -30,6 +30,8 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 
 GLSLTOHEADER(gl/shader/basic.vert)
 GLSLTOHEADER(gl/shader/basic.frag)
+GLSLTOHEADER(gl/shader/text.vert)
+GLSLTOHEADER(gl/shader/text.frag)
 
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
@@ -79,6 +81,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLProgram.h
 	gl/shader/basic_vert.h
 	gl/shader/basic_frag.h
+	gl/shader/text_vert.h
+	gl/shader/text_frag.h
 )
 
 SET(${MODULE_NAME}_SOURCES

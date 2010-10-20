@@ -17,6 +17,7 @@ namespace cvt {
 
 			virtual void fillRect( const Recti& rect ) = 0;
 			virtual void fillRect( int x, int y, int width, int height ) = 0;
+			virtual void drawText( int x, int y, const char* text ) = 0;
 
 		protected:
 			Color color;

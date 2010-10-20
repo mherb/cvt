@@ -18,10 +18,13 @@ namespace cvt {
 
 	void Window::paintEvent( PaintEvent* event, GFX* gfx )
 	{
-		Recti r;
-		getRect( r );
-//		gfx->getColor().set( 0.5f, 0.5f, 0.5f, 1.0f );
-		gfx->fillRect( r );
+		int w, h;
+		getSize( w, h );
+		gfx->getColor().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		gfx->fillRect( 0, 0, w, h );
+		gfx->getColor().set( 0.0f, 1.0f, 0.0f, 1.0f );
+		gfx->fillRect( 100, 100, 100, 100 );
+//		gfx->drawText( 10, 10, "Test" );
 	}
 
 }
