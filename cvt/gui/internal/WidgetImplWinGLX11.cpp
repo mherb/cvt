@@ -106,8 +106,6 @@ namespace cvt {
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
 		glXMakeCurrent(dpy, win, ctx);
-		glLoadIdentity();
-		glTranslatef(0.0, 0.0, -1.0f );
 		gfx->setDefault();
 		gfx->updateState();
 		widget->paintEvent( event, gfx );
@@ -120,10 +118,7 @@ namespace cvt {
 
 		glXMakeCurrent(dpy, win, ctx);
 		glViewport(0, 0, (GLsizei) rect.width, (GLsizei) rect.height );
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glFrustum(0.0f, rect.width, rect.height, 0.0f, 0.999999f, 20.0f);
-		glMatrixMode(GL_MODELVIEW);
+		gfx->setViewport( rect.width, rect.height );
 		widget->resizeEvent( event );
 	}
 

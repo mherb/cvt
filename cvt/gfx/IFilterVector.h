@@ -9,6 +9,7 @@ namespace cvt {
 	class IFilterVector : public IFilterParameter
 	{
 		friend class CLKernel;
+		friend class GLProgram;
 
 		public:
 			IFilterVector();

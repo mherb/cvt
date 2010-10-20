@@ -100,12 +100,12 @@ namespace cvt {
 					break;
 				case Expose:
 					{
-						if( event.xexpose.count == 0 ) {
+//						if( event.xexpose.count == 0 ) {
 							WidgetImplWinGLX11* w = windows[ event.xexpose.window ];
 							PaintEvent* pevent = new PaintEvent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
 							w->paintEvent( pevent );
 							delete pevent;
-						}
+//						}
 					}
 					break;
 				case ClientMessage:

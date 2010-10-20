@@ -45,6 +45,8 @@ namespace cvt {
 			Color operator-( const Color & c ) const;
 			Color operator*( float s ) const;
 
+			const float* data() const { return v; };
+
 		private:
 			union {
 				struct {
