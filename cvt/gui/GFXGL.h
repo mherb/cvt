@@ -2,6 +2,7 @@
 #define CVTGFXGL_H
 
 #include <cvt/gui/GFX.h>
+#include <cvt/gl/OpenGL.h>
 
 namespace cvt {
 	class GFXGL : public GFX

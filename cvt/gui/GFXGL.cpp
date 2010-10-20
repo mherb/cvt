@@ -1,5 +1,5 @@
 #include <cvt/gui/GFXGL.h>
-#include <GL/gl.h>
+#include <cvt/gl/OpenGL.h>
 
 namespace cvt {
 

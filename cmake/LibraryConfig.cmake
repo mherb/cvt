@@ -12,6 +12,7 @@ INCLUDE(OutOfSourceBuild)
 INCLUDE(BuildTypes)
 INCLUDE(CompileDefinitions)
 INCLUDE(CompilerFlags)
+INCLUDE(GLCLTOHEADER)
 
 # add source, current source and binary dir to search for includes
 INCLUDE_DIRECTORIES(

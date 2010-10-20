@@ -5,6 +5,7 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/event/Event.h>
+#include <cvt/gl/OpenGL.h>
 #include <map>
 
 namespace cvt {

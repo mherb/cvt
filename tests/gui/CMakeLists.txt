@@ -1,3 +1,3 @@
-INCLUDE(MacroGuiApplication)
+INCLUDE(MacroTestApplication)
 
-GUI_APPLICATION()
+MACRO_TEST_APPLICATION()
