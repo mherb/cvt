@@ -25,7 +25,7 @@ namespace cvt {
 
 	void Widget::setPosition( int x, int y )
 	{
-		impl->setPosition( x, x );
+		impl->setPosition( x, y );
 	}
 
 	void Widget::getPosition( int& x, int& y ) const

@@ -7,6 +7,7 @@
 #include <cvt/gui/event/Event.h>
 #include <cvt/gl/OpenGL.h>
 #include <map>
+#include <queue>
 
 namespace cvt {
 	class ApplicationX11 : public Application
@@ -27,6 +28,7 @@ namespace cvt {
 			::XVisualInfo *visinfo;
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
+			std::queue< WidgetImplWinGLX11* > updates;
 			::Atom xatom_wmdelete;
 			::Atom xatom_wmproto;
 

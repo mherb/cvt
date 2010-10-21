@@ -43,7 +43,7 @@ namespace cvt {
 	{
 		WidgetImpl* ret;
 		if( !w->getParent() ) {
-			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w );
+			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &updates );
 			XSetWMProtocols(dpy, impl->win, &xatom_wmdelete, 1);
 			windows.insert( std::pair< ::Window, WidgetImplWinGLX11*>( impl->win, impl ) );
 			ret = impl;
@@ -69,58 +69,87 @@ namespace cvt {
 						int oldheight = w->rect.height;
 						int oldx = w->rect.x;
 						int oldy = w->rect.y;
+						int gx, gy;
+						::Window c;
 
 						if( oldwidth != event.xconfigure.width || oldheight != event.xconfigure.height ) {
-							ResizeEvent* revent = new ResizeEvent( event.xconfigure.width, event.xconfigure.height, oldwidth, oldheight );
-							w->resizeEvent( revent );
-							delete revent;
+							ResizeEvent revent( event.xconfigure.width, event.xconfigure.height, oldwidth, oldheight );
+							w->resizeEvent( &revent );
 						}
-						if( oldx != event.xconfigure.x || oldy != event.xconfigure.y ) {
-							MoveEvent* mevent = new MoveEvent( event.xconfigure.x, event.xconfigure.y, oldx, oldy );
-							w->moveEvent( mevent );
-							delete mevent;
+						XTranslateCoordinates( dpy, event.xconfigure.window, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, &gx, &gy, &c );
+						if( oldx != gx || oldy != gy ) {
+							MoveEvent mevent( gx, gy, oldx, oldy );
+							w->moveEvent( &mevent );
 						}
 					}
+					break;
+				case ReparentNotify:
 					break;
 				case MapNotify:
 					{
 							WidgetImplWinGLX11* w = windows[ event.xmap.window ];
-							ShowEvent* sevent = new ShowEvent();
-							w->showEvent( sevent );
-							delete sevent;
+							ShowEvent sevent;
+							w->showEvent( &sevent );
 					}
 					break;
 				case UnmapNotify:
 					{
 							WidgetImplWinGLX11* w = windows[ event.xunmap.window ];
-							HideEvent* hevent = new HideEvent();
-							w->hideEvent( hevent );
-							delete hevent;
+							HideEvent hevent;
+							w->hideEvent( &hevent );
 					}
 					break;
 				case Expose:
 					{
 //						if( event.xexpose.count == 0 ) {
 							WidgetImplWinGLX11* w = windows[ event.xexpose.window ];
-							PaintEvent* pevent = new PaintEvent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
-							w->paintEvent( pevent );
-							delete pevent;
+							PaintEvent pevent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
+							w->paintEvent( &pevent );
 //						}
+					}
+					break;
+				case ButtonPress:
+					{
+						WidgetImplWinGLX11* w = windows[ event.xbutton.window ];
+						MousePressEvent mpevent( event.xbutton.x, event.xbutton.y, event.xbutton.button );
+						w->widget->mousePressEvent( &mpevent );
+					}
+					break;
+				case ButtonRelease:
+					{
+						WidgetImplWinGLX11* w = windows[ event.xbutton.window ];
+						MouseReleaseEvent mrevent( event.xbutton.x, event.xbutton.y, event.xbutton.button );
+						w->widget->mouseReleaseEvent( &mrevent );
+					}
+					break;
+				case MotionNotify:
+					{
+						WidgetImplWinGLX11* w = windows[ event.xmotion.window ];
+						MouseMoveEvent mmevent( event.xmotion.x, event.xmotion.y );
+						w->widget->mouseMoveEvent( &mmevent );
 					}
 					break;
 				case ClientMessage:
 					{
 						if (event.xclient.message_type == xatom_wmproto && ( ::Atom ) event.xclient.data.l[0] == xatom_wmdelete ) {
 							WidgetImplWinGLX11* w = windows[ event.xclient.window ];
-							CloseEvent* cevent = new CloseEvent();
-							( ( Window* ) w->widget )->closeEvent( cevent );
-							delete cevent;
+							CloseEvent cevent;
+							( ( Window* ) w->widget )->closeEvent( &cevent );
 						}
 					}
 					break;
 				default:
 					break;
 			}
+
+			while( updates.size() ) {
+				WidgetImplWinGLX11* w = updates.front();
+				updates.pop();
+				PaintEvent* pevent = new PaintEvent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
+				w->paintEvent( pevent );
+				delete pevent;
+			}
+
 		}
 
 		/* FIXME: do cleanup - iteratre over windows and delete widget and only widgets */

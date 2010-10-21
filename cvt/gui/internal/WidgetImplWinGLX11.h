@@ -5,6 +5,7 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
+#include <queue>
 
 namespace cvt {
 
@@ -13,7 +14,7 @@ namespace cvt {
 		friend class ApplicationX11;
 
 		public:
-			WidgetImplWinGLX11( ::Display* dpy, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window );
+			WidgetImplWinGLX11( ::Display* dpy, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, std::queue<WidgetImplWinGLX11*>* uq );
 			~WidgetImplWinGLX11();
 			virtual void setTitle( const std::string& title );
 			virtual void setRect( const Recti& rect );
@@ -40,6 +41,8 @@ namespace cvt {
 			bool visible;
 			Recti rect;
 			GFXGL* gfx;
+			bool needsupdate;
+			std::queue<WidgetImplWinGLX11*>* updateq;
 		};
 }
 
