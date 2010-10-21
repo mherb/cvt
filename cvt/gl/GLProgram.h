@@ -16,6 +16,7 @@ namespace cvt {
 			void setArg( size_t n, IFilterParameter* p );
 			void setArg( const char* name, IFilterParameter* p );
 			void setArg( const char* name, int i );
+			void setArg( const char* name, float f );
 
 		private:
 			GLuint program;
