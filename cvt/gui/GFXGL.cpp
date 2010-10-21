@@ -6,6 +6,9 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/io/ImageIO.h>
 
+#include <cstring>
+#include <cvt/gui/internal/glfont.h>
+
 /* Shaders */
 #include <cvt/gl/shader/basic_vert.h>
 #include <cvt/gl/shader/basic_frag.h>
@@ -43,30 +46,25 @@ namespace cvt {
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
 		}
+
+		updateState();
+
 		glGenBuffers( 1, &vbuffer );
 		glGenVertexArrays( 1, &varray );
 		glGenTextures( 1, &texfont );
 
-		{
-			Image fontpng;
-			uint8_t* data;
-			size_t stride;
-
-			ImageIO::loadPNG( fontpng, "/home/heise/Pictures/font.png" );
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texfont );
-			data = fontpng.map( &stride );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, fontpng.width(), fontpng.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-			fontpng.unmap( data );
-		}
-
-		updateState();
+		glBindTexture(GL_TEXTURE_2D, texfont );
+		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RED, _glfont.width, _glfont.height, 0, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
 	}
 
 	void GFXGL::updateState()
 	{
 		glEnable( GL_BLEND );
-		glEnable(GL_TEXTURE_2D);
+		glEnable( GL_TEXTURE_2D );
+		glEnable( GL_POINT_SPRITE );
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
@@ -112,37 +110,43 @@ namespace cvt {
 
 	void GFXGL::drawText( int x, int y, const char* text )
 	{
-#define TW 32
-			int vertices[ 8 ] = {
-			x + 0 * TW , y,
-			x + 1 * TW , y,
-			x + 2 * TW , y,
-			x + 3 * TW , y
-		};
+		int len = ( int ) strlen( text );
+		int* vertices = new int[ len * 3 ];
+		x += _glfont.offx;
+		y += _glfont.offy;
+		for( int i = 0; i < len; i++ ) {
+			vertices[ i * 3 + 0 ] = x;
+			vertices[ i * 3 + 1 ] = y;
+			vertices[ i * 3 + 2 ] = text[ i ];
+			x += _glfont.advance[ ( uint8_t ) text[ i ] ];
+		}
 
 		progtext.bind();
 		progtext.bindAttribLocation( "Vertex", 0 );
 		progtext.bindAttribLocation( "Color", 1 );
 		IFilterScalar scalar( 0 );
 		progtext.setArg("TexFont", 0 );
+		progtext.setArg("Scale", _glfont.ptsize / ( float ) ( _glfont.width ) );
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
 
 		glBindBuffer( GL_ARRAY_BUFFER, vbuffer );
-		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 8, vertices, GL_DYNAMIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 3 * len, vertices, GL_DYNAMIC_DRAW );
+		delete[] vertices;
 
 		// Attrib 0 is Vertex data
 		glBindVertexArray( varray );
-		glVertexAttribPointer( 0 , 2, GL_INT, GL_FALSE, 0, 0 );
+		glVertexAttribPointer( 0 , 3, GL_INT, GL_FALSE, 0, 0 );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 		// Attrib 1 is Color - constant here
 		glVertexAttrib4fv( 1, color.data() );
 
-		glPointSize( 32.0f );
+		glPointSize( _glfont.ptsize );
+		glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT );
 		glEnableVertexAttribArray( 0 );
-		glDrawArrays( GL_POINTS, 0, 4 );
+		glDrawArrays( GL_POINTS, 0, len );
 		glDisableVertexAttribArray( 0 );
 
 		glBindVertexArray( 0 );

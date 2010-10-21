@@ -26,6 +26,7 @@ namespace cvt {
 			GLuint vbuffer;
 			GLuint varray;
 			GLuint texfont;
+			GLuint sampler;
 			int width, height;
 	};
 }
