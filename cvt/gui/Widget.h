@@ -33,9 +33,9 @@ namespace cvt {
 			virtual void paintEvent( PaintEvent* event, GFX* gfx ) {};
 			virtual void showEvent( ShowEvent* event ) {};
 			virtual void hideEvent( HideEvent* event ) {};
-			virtual void mouseMoveEvent( ) {};
-			virtual void mousePressEvent() {};
-			virtual void mouseReleaseEvent() {};
+			virtual void mouseMoveEvent( MouseMoveEvent* event ) {};
+			virtual void mousePressEvent( MousePressEvent* event ) {};
+			virtual void mouseReleaseEvent( MouseReleaseEvent* event ) {};
 			virtual void mouseWheelEvent() {};
 			virtual void mouseEnterEvent() {};
 			virtual void mouseLeaveEvent() {};

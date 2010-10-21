@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 )
+	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, std::queue<WidgetImplWinGLX11*>* _updateq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), updateq( _updateq )
 	{
 		::XSetWindowAttributes attr;
 		unsigned long mask;
@@ -11,7 +11,7 @@ namespace cvt {
 		attr.background_pixmap = None;
 		attr.border_pixel = 0;
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
-		attr.event_mask = StructureNotifyMask | ButtonPressMask | ExposureMask;
+		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
 		mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask;
 
 		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, rect.width, rect.height,
@@ -100,7 +100,9 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::update()
 	{
-
+		if( needsupdate || !visible )
+			return;
+		updateq->push( this );
 	}
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
@@ -110,6 +112,7 @@ namespace cvt {
 		gfx->updateState();
 		widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
+		needsupdate = false;
 	}
 
 	void WidgetImplWinGLX11::resizeEvent( ResizeEvent* event )
