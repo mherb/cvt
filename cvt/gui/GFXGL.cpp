@@ -84,26 +84,26 @@ namespace cvt {
 
 
 		progbasic.bind();
-		progbasic.bindAttribLocation( "Vertex", 0 );
-		progbasic.bindAttribLocation( "Color", 1 );
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progbasic.setArg( "MVP", &vec );
+		unsigned int vtx = progbasic.getAttribLocation( "Vertex" );
+		unsigned int col = progbasic.getAttribLocation( "Color" );
 
 		glBindBuffer( GL_ARRAY_BUFFER, vbuffer );
 		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 8, vertices, GL_DYNAMIC_DRAW );
 
 		// Attrib 0 is Vertex data
 		glBindVertexArray( varray );
-		glVertexAttribPointer( 0 , 2, GL_INT, GL_FALSE, 0, 0 );
+		glVertexAttribPointer( vtx , 2, GL_INT, GL_FALSE, 0, 0 );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 		// Attrib 1 is Color - constant here
-		glVertexAttrib4fv( 1, color.data() );
+		glVertexAttrib4fv( col, color.data() );
 
-		glEnableVertexAttribArray( 0 );
+		glEnableVertexAttribArray( vtx );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		glDisableVertexAttribArray( 0 );
+		glDisableVertexAttribArray( vtx );
 
 		glBindVertexArray( 0 );
 	}
@@ -122,14 +122,15 @@ namespace cvt {
 		}
 
 		progtext.bind();
-		progtext.bindAttribLocation( "Vertex", 0 );
-		progtext.bindAttribLocation( "Color", 1 );
 		IFilterScalar scalar( 0 );
 		progtext.setArg("TexFont", 0 );
 		progtext.setArg("Scale", _glfont.ptsize / ( float ) ( _glfont.width ) );
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
+		unsigned int vtx = progbasic.getAttribLocation( "Vertex" );
+		unsigned int col = progbasic.getAttribLocation( "Color" );
+
 
 		glBindBuffer( GL_ARRAY_BUFFER, vbuffer );
 		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 3 * len, vertices, GL_DYNAMIC_DRAW );
@@ -137,17 +138,17 @@ namespace cvt {
 
 		// Attrib 0 is Vertex data
 		glBindVertexArray( varray );
-		glVertexAttribPointer( 0 , 3, GL_INT, GL_FALSE, 0, 0 );
+		glVertexAttribPointer( vtx , 3, GL_INT, GL_FALSE, 0, 0 );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 		// Attrib 1 is Color - constant here
-		glVertexAttrib4fv( 1, color.data() );
+		glVertexAttrib4fv( col, color.data() );
 
 		glPointSize( _glfont.ptsize );
 		glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT );
-		glEnableVertexAttribArray( 0 );
+		glEnableVertexAttribArray( vtx );
 		glDrawArrays( GL_POINTS, 0, len );
-		glDisableVertexAttribArray( 0 );
+		glDisableVertexAttribArray( vtx );
 
 		glBindVertexArray( 0 );
 	}
