@@ -68,8 +68,8 @@ namespace cvt {
 			sprintf( buf, "MousePress: %d x %d", mx, my );
 			gfx->drawText( 10, 44, buf );
 
-			gfx->getColor().set( 0.0f, 1.0f, 0.0f, 1.0f );
-			gfx->fillRect( mx - 5, my - 5, 10, 10 );
+			gfx->getColor().set( 0.0f, 1.0f, 0.0f, 0.5f );
+			gfx->fillRect( mx - 15, my - 15, 30, 30 );
 		}
 
 //		gfx->getColor().set( 0.0f, 1.0f, 1.0f, 1.0f );
