@@ -1,4 +1,4 @@
-#version 330
+#version 150
 
 in vec4 vtx_Color;
 in vec2 vtx_Index;
