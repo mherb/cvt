@@ -80,13 +80,13 @@ namespace cvt {
 	}
 
 
-	void GLProgram::bindAttribLocation( const char *name, size_t location )
+	void GLProgram::bindAttribLocation( const char *name, unsigned int location )
 	{
 	    glBindAttribLocation( program, ( GLuint ) location, name );
 	}
 
 
-	size_t GLProgram::getAttribLocation( const char* name )
+	unsigned int GLProgram::getAttribLocation( const char* name )
 	{
 	    return glGetAttribLocation( program, name );
 	}

@@ -2,11 +2,10 @@
 
 in vec4 vtx_Color;
 in vec2 vtx_Index;
-in vec2 gl_PointCoord;
 uniform sampler2D TexFont;
 uniform float Scale;
 
-layout( location = 0 ) out vec4 Output;
+out vec4 Output;
 
 void main()
 {
