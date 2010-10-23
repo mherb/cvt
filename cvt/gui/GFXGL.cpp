@@ -41,7 +41,11 @@ namespace cvt {
 	GFXGL::GFXGL()
 	{
 		try {
+			// Workaround for AMD/ATI bug
+			progbasic.bindAttribLocation("in_Position", 0 );
 			progbasic.build( _basic_vert_source, _basic_frag_source );
+			// Workaround for AMD/ATI bug
+			progtext.bindAttribLocation("in_Position", 0 );
 			progtext.build( _text_vert_source, _text_frag_source );
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
@@ -75,36 +79,34 @@ namespace cvt {
 
 	void GFXGL::fillRect( int x, int y, int w, int h )
 	{
-		int vertices[ 8 ] = {
+		GLint vertices[ 8 ] = {
 			x	 , y + h,
 			x	 , y    ,
 			x + w, y + h,
 			x + w, y
 		};
 
-
 		progbasic.bind();
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progbasic.setArg( "MVP", &vec );
-		unsigned int vtx = progbasic.getAttribLocation( "Vertex" );
-		unsigned int col = progbasic.getAttribLocation( "Color" );
+		unsigned int vtx = progbasic.getAttribLocation( "in_Position" );
+		unsigned int col = progbasic.getAttribLocation( "in_Color" );
 
 		glBindBuffer( GL_ARRAY_BUFFER, vbuffer );
 		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 8, vertices, GL_DYNAMIC_DRAW );
 
-		// Attrib 0 is Vertex data
+		//  Vertex data
 		glBindVertexArray( varray );
-		glVertexAttribPointer( vtx , 2, GL_INT, GL_FALSE, 0, 0 );
+		glVertexAttribPointer( vtx, 2, GL_INT, GL_FALSE, 0, 0 );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
-		// Attrib 1 is Color - constant here
+		// Color attrib - constant here
 		glVertexAttrib4fv( col, color.data() );
 
 		glEnableVertexAttribArray( vtx );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		glDisableVertexAttribArray( vtx );
-
 		glBindVertexArray( 0 );
 	}
 
@@ -128,28 +130,26 @@ namespace cvt {
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
-		unsigned int vtx = progbasic.getAttribLocation( "Vertex" );
-		unsigned int col = progbasic.getAttribLocation( "Color" );
+		unsigned int vtx = progbasic.getAttribLocation( "in_Position" );
+		unsigned int col = progbasic.getAttribLocation( "in_Color" );
 
 
 		glBindBuffer( GL_ARRAY_BUFFER, vbuffer );
 		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 3 * len, vertices, GL_DYNAMIC_DRAW );
 		delete[] vertices;
 
-		// Attrib 0 is Vertex data
+		//  Vertex data
 		glBindVertexArray( varray );
 		glVertexAttribPointer( vtx , 3, GL_INT, GL_FALSE, 0, 0 );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
-		// Attrib 1 is Color - constant here
+		// Color attrib - constant here
 		glVertexAttrib4fv( col, color.data() );
 
 		glPointSize( _glfont.ptsize );
-		glPointParameteri( GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT );
 		glEnableVertexAttribArray( vtx );
 		glDrawArrays( GL_POINTS, 0, len );
 		glDisableVertexAttribArray( vtx );
-
 		glBindVertexArray( 0 );
 	}
 }

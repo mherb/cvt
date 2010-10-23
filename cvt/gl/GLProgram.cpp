@@ -19,6 +19,11 @@ namespace cvt {
 		glUseProgram( program );
 	}
 
+	void GLProgram::unbind()
+	{
+		glUseProgram( 0 );
+	}
+
 	void GLProgram::build( const char* vertsrc, const char* fragsrc )
 	{
 		GLuint vs = 0, fs = 0;
