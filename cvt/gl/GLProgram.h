@@ -12,6 +12,7 @@ namespace cvt {
 			~GLProgram();
 			void build( const char* vertsrc, const char* fragsrc );
 			void bind();
+			void unbind();
 			void bindAttribLocation( const char *name, unsigned int location );
 			unsigned int getAttribLocation( const char* name );
 			void setArg( size_t n, IFilterParameter* p );
