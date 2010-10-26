@@ -3,6 +3,7 @@
 
 #include <cvt/util/Rect.h>
 #include <cvt/gfx/Color.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 	class GFX {
@@ -18,6 +19,7 @@ namespace cvt {
 			virtual void fillRect( const Recti& rect ) = 0;
 			virtual void fillRect( int x, int y, int width, int height ) = 0;
 			virtual void drawText( int x, int y, const char* text ) = 0;
+			virtual void drawImage( int x, int y, const Image& img ) = 0;
 
 		protected:
 			Color color;

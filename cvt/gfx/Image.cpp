@@ -1,6 +1,7 @@
 #include "gfx/Image.h"
 #include "gfx/ImageAllocatorMem.h"
 #include "gfx/ImageAllocatorCL.h"
+#include "gfx/ImageAllocatorGL.h"
 #include "math/Math.h"
 #include "util/SIMD.h"
 #include "util/Exception.h"
@@ -12,6 +13,8 @@ namespace cvt {
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
+		else if( memtype == IALLOCATOR_GL )
+			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
 	    _mem->alloc( w, h, order, type );
@@ -23,6 +26,8 @@ namespace cvt {
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
+		else if( memtype == IALLOCATOR_GL )
+			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
 		_mem->copy( img._mem );
@@ -34,6 +39,8 @@ namespace cvt {
 		if( !ref ){
 			if( memtype == IALLOCATOR_CL )
 				_mem = new ImageAllocatorCL();
+			else if( memtype == IALLOCATOR_GL )
+				_mem = new ImageAllocatorGL();
 			else
 				_mem = new ImageAllocatorMem();
 			_mem->copy( source._mem, roi );
@@ -51,6 +58,8 @@ namespace cvt {
 			delete _mem;
 			if( memtype == IALLOCATOR_CL )
 				_mem = new ImageAllocatorCL();
+			else if( memtype == IALLOCATOR_GL )
+				_mem = new ImageAllocatorGL();
 			else
 				_mem = new ImageAllocatorMem();
 		}
@@ -113,6 +122,8 @@ namespace cvt {
 	{
 		uint8_t* ptr;
 		size_t stride;
+
+		return;
 		/* FIXME: only update data, do not reallocate header */
 		if( _iplimage )
 			cvReleaseImageHeader( &_iplimage );
@@ -211,8 +222,16 @@ namespace cvt {
 			"UBYTE",
 			"FLOAT"
 		};
+		static const char* _mem_string[] = {
+			"MEM",
+			"CL",
+			"GL"
+		};
 
-		out << "Size: " << f.width() << " x " << f.height() << " Channels: " << f.channels() << " Order:" << _order_string[ f.order().id ] << " Type:" << _type_string[ f.type().id ] << std::endl;
+
+		out << "Size: " << f.width() << " x " << f.height()
+			<< " Channels: " << f.channels() << " Order:" << _order_string[ f.order().id ]
+			<< " Type:" << _type_string[ f.type().id ] << " Memory:" << _mem_string[ f.memType() ] << std::endl;
 		return out;
 	}
 	
