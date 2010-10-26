@@ -1,12 +1,20 @@
 #include <cvt/gui/Window.h>
 #include <cvt/gui/Application.h>
 
+#include <cvt/io/ImageIO.h>
+
 #include <cstdio>
 
 namespace cvt {
 	Window::Window( const std::string& title ) : Widget( NULL ), mouse( false )
 	{
 		setTitle( title );
+
+		Image lena;
+		ImageIO::loadPNG( lena, "./lena.png" );
+		img.reallocate( lena, IALLOCATOR_GL );
+		img = lena;
+		return;
 	}
 
 	Window::~Window( )
@@ -68,8 +76,9 @@ namespace cvt {
 			sprintf( buf, "MousePress: %d x %d", mx, my );
 			gfx->drawText( 10, 44, buf );
 
-			gfx->getColor().set( 0.0f, 1.0f, 0.0f, 0.5f );
-			gfx->fillRect( mx - 15, my - 15, 30, 30 );
+			gfx->getColor().set( 1.0f, 0.0f, 0.0f, 0.5f );
+//			gfx->fillRect( mx - 15, my - 15, 30, 30 );
+			gfx->drawImage( mx - 20, my - 20, img );
 		}
 
 //		gfx->getColor().set( 0.0f, 1.0f, 1.0f, 1.0f );

@@ -32,6 +32,9 @@ GLSLTOHEADER(gl/shader/basic.vert)
 GLSLTOHEADER(gl/shader/basic.frag)
 GLSLTOHEADER(gl/shader/text.vert)
 GLSLTOHEADER(gl/shader/text.frag)
+GLSLTOHEADER(gl/shader/basictex.vert)
+GLSLTOHEADER(gl/shader/basictex.frag)
+
 
 SET(${MODULE_NAME}_HEADERS
 	io/AbstractCamera.hpp
@@ -69,6 +72,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
 	gfx/ImageAllocatorCL.h
+	gfx/ImageAllocatorGL.h
 	vision/Flow.h
 	cl/CLContext.h
 	cl/CLException.h
@@ -83,6 +87,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/basic_frag.h
 	gl/shader/text_vert.h
 	gl/shader/text_frag.h
+	gl/shader/basictex_vert.h
+	gl/shader/basictex_frag.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -110,6 +116,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/IScaleFilter.cpp
 	gfx/ImageAllocatorMem.cpp
 	gfx/ImageAllocatorCL.cpp
+	gfx/ImageAllocatorGL.cpp
 	vision/Flow.cpp
 	cl/CLContext.cpp
 	cl/CLException.cpp

@@ -6,14 +6,16 @@
 namespace cvt {
 
 	enum IAllocatorType {
-		IALLOCATOR_MEM = 0,
-		IALLOCATOR_CL = 1
+		IALLOCATOR_MEM = ( 0 ),
+		IALLOCATOR_CL = ( 1 << 0 ),
+		IALLOCATOR_GL = ( 1 << 1 )
 	};
 
 	class ImageAllocator {
 		friend class Image;
 		friend class ImageAllocatorMem;
 		friend class ImageAllocatorCL;
+		friend class ImageAllocatorGL;
 
 		public:
 			virtual ~ImageAllocator() {};
