@@ -12,15 +12,15 @@ namespace cvt {
 			void bind() const;
 			size_t size() const;
 			GLenum target() const;
-			void* map( size_t offset, size_t length, GLbitfield	access );
-			void sync( size_t offset, size_t length );
-			void unmap();
+			void* map( size_t offset, size_t length, GLbitfield	access ) const;
+			void sync( size_t offset, size_t length ) const;
+			void unmap() const;
 
 		private:
 			GLuint _buffer;
 			GLenum _target;
 			size_t _size;
-			GLbitfield _access;
+			mutable GLbitfield _access;
 	};
 
 	inline GLBuffer::GLBuffer( GLenum target ) : _buffer( 0 ), _target( target ), _size( 0 ), _access( 0 )
@@ -56,9 +56,13 @@ namespace cvt {
 		glBindBuffer( _target, 0 );
 	}
 
-	inline void* GLBuffer::map( size_t offset, size_t length, GLbitfield access )
+	inline void* GLBuffer::map( size_t offset, size_t length, GLbitfield access ) const
 	{
 		void* ptr;
+
+		if( access )
+			return NULL;
+
 		glBindBuffer( _target, _buffer );
 		_access = ( access & GL_MAP_READ_BIT ) | ( access & GL_MAP_WRITE_BIT );
 		ptr = glMapBufferRange( _target, ( GLintptr ) offset, ( GLsizeiptr ) length, _access | GL_MAP_FLUSH_EXPLICIT_BIT  );
@@ -66,7 +70,7 @@ namespace cvt {
 		return _ptr;
 	}
 
-	inline void GLBuffer::sync( size_t offset, size_t length )
+	inline void GLBuffer::sync( size_t offset, size_t length ) const
 	{
 		if( ! ( access & GL_MAP_WRITE_BIT ) )
 			return;
@@ -75,7 +79,7 @@ namespace cvt {
 		glBindBuffer( _target, 0 );
 	}
 
-	inline void GLBuffer::unmap()
+	inline void GLBuffer::unmap() const
 	{
 		glBindBuffer( _target, _buffer );
 		glUnmapBuffer( _target );
