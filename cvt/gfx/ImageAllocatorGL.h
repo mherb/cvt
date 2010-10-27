@@ -24,6 +24,7 @@ namespace cvt {
 			GLuint _tex2d;
 			GLuint _glbuf;
 			size_t _stride;
+			size_t _size;
 			/* PBO can only be mapped once, we need refcounting in our const methods and
 			   need to check if the buffer is dirty ( only in case of non-const map )  */
 			mutable void* _ptr;
