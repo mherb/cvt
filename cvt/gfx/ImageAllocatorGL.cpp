@@ -21,17 +21,16 @@ namespace cvt {
 	void ImageAllocatorGL::alloc( size_t width, size_t height, const IOrder order, const IType type )
 	{
 		GLenum glformat, gltype;
-		GLsizeiptr size;
 
 		_width = width;
 		_height = height;
 		_order = order;
 		_type = type;
 		_stride = Math::pad16( _width * _order.channels* _type.size );
-		size = _stride * _height;
+		_size = _stride * _height;
 
 		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-		glBufferData( GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_DYNAMIC_DRAW );
+		glBufferData( GL_PIXEL_UNPACK_BUFFER, _size, NULL, GL_DYNAMIC_DRAW );
 		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 
 		glBindTexture( GL_TEXTURE_2D, _tex2d );
@@ -45,33 +44,33 @@ namespace cvt {
 
 	void ImageAllocatorGL::copy( const ImageAllocator* x, const Recti* r = NULL )
 	{
-			const uint8_t* src;
-			const uint8_t* osrc;
-			size_t sstride, dstride;
-			uint8_t* dst;
-			uint8_t* odst;
-			size_t i, n;
-			Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
-			SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* osrc;
+		size_t sstride, dstride;
+		uint8_t* dst;
+		uint8_t* odst;
+		size_t i, n;
+		Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
+		SIMD* simd = SIMD::get();
 
-			if( r )
-				rect.intersect( *r );
-			alloc( rect.width, rect.height, x->_order, x->_type );
+		if( r )
+			rect.intersect( *r );
+		alloc( rect.width, rect.height, x->_order, x->_type );
 
-			osrc = src = x->map( &sstride );
-			src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
-			odst = dst = map( &dstride );
-			n =  x->_type.size * x->_order.channels * rect.width;
+		osrc = src = x->map( &sstride );
+		src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
+		odst = dst = map( &dstride );
+		n =  x->_type.size * x->_order.channels * rect.width;
 
-			i = rect.height;
-			while( i-- ) {
-				simd->Memcpy( dst, src, n );
-				dst += sstride;
-				src += dstride;
-			}
-			x->unmap( osrc );
-			unmap( odst );
+		i = rect.height;
+		while( i-- ) {
+			simd->Memcpy( dst, src, n );
+			dst += sstride;
+			src += dstride;
 		}
+		x->unmap( osrc );
+		unmap( odst );
+	}
 
 	uint8_t* ImageAllocatorGL::map( size_t* stride )
 	{
@@ -80,7 +79,7 @@ namespace cvt {
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-			_ptr = ( uint8_t* ) glMapBuffer( GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE );
+			_ptr = ( uint8_t* ) glMapBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT  );
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 		}
 		_ptrcount++;
@@ -95,7 +94,7 @@ namespace cvt {
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-			_ptr = ( uint8_t* ) glMapBuffer( GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE );
+			_ptr = ( uint8_t* ) glMapBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT  );
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 		}
 		_ptrcount++;
@@ -107,14 +106,19 @@ namespace cvt {
 		_ptrcount--;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-			glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
 			if( _dirty ) {
 				GLenum glformat, gltype;
+
+				glFlushMappedBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size );
+				glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
+
 				glBindTexture( GL_TEXTURE_2D, _tex2d );
 				glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _type.size * _order.channels ) ) );
 				getGLFormat( _order, _type, glformat, gltype );
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ( GLsizei ) _width, ( GLsizei ) _height, glformat, gltype, NULL);
 				_dirty = false;
+			} else {
+				glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
 			}
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 			_ptr = NULL;
