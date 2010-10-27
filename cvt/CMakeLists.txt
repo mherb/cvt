@@ -89,6 +89,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/text_frag.h
 	gl/shader/basictex_vert.h
 	gl/shader/basictex_frag.h
+	util/Thread.h
 )
 
 SET(${MODULE_NAME}_SOURCES
