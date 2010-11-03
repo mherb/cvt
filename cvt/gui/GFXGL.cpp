@@ -44,14 +44,8 @@ namespace cvt {
 	GFXGL::GFXGL() : vbo( GL_ARRAY_BUFFER )
 	{
 		try {
-			// Workaround for AMD/ATI
-			progbasic.bindAttribLocation("in_Position", 0 );
 			progbasic.build( _basic_vert_source, _basic_frag_source );
-			// Workaround for AMD/ATI
-			progbasictex.bindAttribLocation("in_Position", 0 );
 			progbasictex.build( _basictex_vert_source, _basictex_frag_source );
-			// Workaround for AMD/ATI
-			progtext.bindAttribLocation("in_Position", 0 );
 			progtext.build( _text_vert_source, _text_frag_source );
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
