@@ -83,6 +83,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/OpenGL.h
 	gl/GLException.h
 	gl/GLProgram.h
+	gl/GLBuffer.h
+	gl/GLVertexArray.h
 	gl/shader/basic_vert.h
 	gl/shader/basic_frag.h
 	gl/shader/text_vert.h
@@ -130,6 +132,8 @@ SET(${MODULE_NAME}_SOURCES
 	gui/internal/WidgetImplWinGLX11.cpp
 	gui/internal/ApplicationX11.cpp
 	gl/GLProgram.cpp
+	gl/GLBuffer.cpp
+	gl/GLVertexArray.cpp
 )
 
 IF(UNIX)

@@ -6,7 +6,11 @@
 namespace cvt {
 	GLProgram::GLProgram()
 	{
-	   program = glCreateProgram();
+		program = glCreateProgram();
+		bindAttribLocation( "in_Vertex", GLSL_VERTEX_IDX );
+		bindAttribLocation( "in_Color", GLSL_COLOR_IDX );
+		bindAttribLocation( "in_Normal", GLSL_NORMAL_IDX );
+		bindAttribLocation( "in_TexCoord", GLSL_TEXCOORD_IDX );
 	}
 
 	GLProgram::~GLProgram()

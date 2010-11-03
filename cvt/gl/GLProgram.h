@@ -6,6 +6,12 @@
 #include <cvt/gfx/IFilterParameter.h>
 
 namespace cvt {
+
+#define GLSL_VERTEX_IDX   0
+#define GLSL_COLOR_IDX    1
+#define GLSL_NORMAL_IDX   2
+#define GLSL_TEXCOORD_IDX 3
+
 	class GLProgram {
 		public:
 			GLProgram();
