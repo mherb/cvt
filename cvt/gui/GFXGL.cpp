@@ -41,7 +41,7 @@ namespace cvt {
 		vec[ 3 + 12 ] = 1.0f;
 	}
 
-	GFXGL::GFXGL()
+	GFXGL::GFXGL() : vbo( GL_ARRAY_BUFFER )
 	{
 		try {
 			// Workaround for AMD/ATI
@@ -59,8 +59,6 @@ namespace cvt {
 
 		updateState();
 
-		glGenBuffers( 2, vbuffer );
-		glGenVertexArrays( 1, &varray );
 		glGenTextures( 1, &texfont );
 
 		glBindTexture(GL_TEXTURE_2D, texfont );
@@ -68,6 +66,7 @@ namespace cvt {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RED, _glfont.width, _glfont.height, 0, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
+		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 
 	GFXGL::~GFXGL()
@@ -101,24 +100,12 @@ namespace cvt {
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progbasic.setArg( "MVP", &vec );
-		unsigned int vtx = progbasic.getAttribLocation( "in_Position" );
-		unsigned int col = progbasic.getAttribLocation( "in_Color" );
 
-		glBindBuffer( GL_ARRAY_BUFFER, vbuffer[ 0 ] );
-		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 8, vertices, GL_DYNAMIC_DRAW );
+		vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8, vertices );
 
-		//  Vertex data
-		glBindVertexArray( varray );
-		glVertexAttribPointer( vtx, 2, GL_INT, GL_FALSE, 0, 0 );
-		glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-		// Color attrib - constant here
-		glVertexAttrib4fv( col, color.data() );
-
-		glEnableVertexAttribArray( vtx );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		glDisableVertexAttribArray( vtx );
-		glBindVertexArray( 0 );
+		vao.setColor( color );
+		vao.setVertexData( vbo, 2, GL_INT );
+		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 	}
 
 	void GFXGL::drawText( int x, int y, const char* text )
@@ -141,28 +128,19 @@ namespace cvt {
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
-		unsigned int vtx = progbasic.getAttribLocation( "in_Position" );
-		unsigned int col = progbasic.getAttribLocation( "in_Color" );
 
-		glBindTexture(GL_TEXTURE_2D, texfont );
+		glBindTexture( GL_TEXTURE_2D, texfont );
 
-		glBindBuffer( GL_ARRAY_BUFFER, vbuffer[ 0 ] );
-		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 3 * len, vertices, GL_DYNAMIC_DRAW );
-		delete[] vertices;
+		GLBuffer tvbo( GL_ARRAY_BUFFER );
+		tvbo.alloc( GL_STATIC_DRAW, sizeof( int ) * 3 * len, vertices );
 
-		//  Vertex data
-		glBindVertexArray( varray );
-		glVertexAttribPointer( vtx , 3, GL_INT, GL_FALSE, 0, 0 );
-		glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-		// Color attrib - constant here
-		glVertexAttrib4fv( col, color.data() );
-
+		vao.setColor( color );
+		vao.setVertexData( tvbo, 3, GL_INT );
 		glPointSize( _glfont.ptsize );
-		glEnableVertexAttribArray( vtx );
-		glDrawArrays( GL_POINTS, 0, len );
-		glDisableVertexAttribArray( vtx );
-		glBindVertexArray( 0 );
+		vao.draw( GL_POINTS, 0, len );
+
+		glBindTexture( GL_TEXTURE_2D, 0 );
+		delete[] vertices;
 	}
 
 
@@ -200,27 +178,19 @@ namespace cvt {
 		ImageAllocatorGL* glmem = ( ImageAllocatorGL* ) img._mem;
 		glBindTexture(GL_TEXTURE_2D, glmem->_tex2d );
 
-		glBindBuffer( GL_ARRAY_BUFFER, vbuffer[ 0 ] );
-		glBufferData( GL_ARRAY_BUFFER, sizeof( int ) * 8, vertices, GL_DYNAMIC_DRAW );
+		GLBuffer vbuf( GL_ARRAY_BUFFER );
+		vbuf.alloc( GL_STATIC_DRAW, sizeof( int ) * 8, vertices );
 
-		//  Vertex data
-		glBindVertexArray( varray );
-		glVertexAttribPointer( vtx , 2, GL_INT, GL_FALSE, 0, 0 );
+		GLBuffer tbuf( GL_ARRAY_BUFFER );
+		tbuf.alloc( GL_STATIC_DRAW, sizeof( int ) * 8, texcoords );
 
-		glBindBuffer( GL_ARRAY_BUFFER, vbuffer[ 1 ] );
-		glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * 8, texcoords, GL_DYNAMIC_DRAW );
-		glVertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, 0 );
+		vao.setVertexData( vbuf, 2, GL_INT );
+		vao.setTexCoordData( tbuf, 2, GL_FLOAT );
+		vao.setColor( color );
+		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 
-		glBindBuffer( GL_ARRAY_BUFFER, 0 );
+		vao.resetTexCoord();
 
-		// Color attrib - constant here
-		glVertexAttrib4fv( col, color.data() );
-
-		glEnableVertexAttribArray( vtx );
-		glEnableVertexAttribArray( tex );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		glDisableVertexAttribArray( vtx );
-		glDisableVertexAttribArray( tex );
-		glBindVertexArray( 0 );
+		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 }

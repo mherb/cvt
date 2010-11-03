@@ -4,6 +4,7 @@
 #include <cvt/gui/GFX.h>
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
+#include <cvt/gl/GLVertexArray.h>
 
 namespace cvt {
 	class GFXGL : public GFX
@@ -25,10 +26,9 @@ namespace cvt {
 			GLProgram progbasic;
 			GLProgram progbasictex;
 			GLProgram progtext;
-			GLuint vbuffer[ 2 ];
-			GLuint varray;
 			GLuint texfont;
-			GLuint sampler;
+			GLVertexArray vao;
+			GLBuffer vbo;
 			int width, height;
 	};
 }
