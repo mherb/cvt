@@ -1,6 +1,10 @@
 #include <cvt/gl/GLBuffer.h>
 
 namespace cvt {
+	
+#ifdef __APPLE__
+#define glFlushMappedBufferRange glFlushMappedBufferRangeAPPLE
+#endif
 
 	GLBuffer::GLBuffer( GLenum target ) : _buffer( 0 ), _target( target ), _size( 0 ), _access( 0 )
 	{
@@ -30,7 +34,7 @@ namespace cvt {
 		glBindBuffer( _target, 0 );
 	}
 
-	void* GLBuffer::map( size_t offset, size_t length, GLbitfield access ) const
+	/*void* GLBuffer::map( size_t offset, size_t length, GLbitfield access ) const
 	{
 		void* ptr;
 
@@ -40,6 +44,7 @@ namespace cvt {
 		glBindBuffer( _target, _buffer );
 		_access = ( access & GL_MAP_READ_BIT ) | ( access & GL_MAP_WRITE_BIT );
 		ptr = glMapBufferRange( _target, ( GLintptr ) offset, ( GLsizeiptr ) length, _access | GL_MAP_FLUSH_EXPLICIT_BIT  );
+		
 		glBindBuffer( _target, 0 );
 		return ptr;
 	}
@@ -59,5 +64,5 @@ namespace cvt {
 		glUnmapBuffer( _target );
 		_access = 0;
 		glBindBuffer( _target, 0 );
-	}
+	}*/
 }
