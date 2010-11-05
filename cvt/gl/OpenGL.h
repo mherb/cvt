@@ -11,14 +11,15 @@
 
 namespace cvt {
 	class GL {
+		friend class ApplicationX11;
 
 		public:
-			static bool init();
 			static void GLVersion( unsigned int* major, unsigned int* minor );
 			static void GLSLVersion( unsigned int* major, unsigned int* minor );
 			static void info( std::ostream& out );
 
 		private:
+			static bool init();
 			GL();
 			~GL();
 			static void parseVersion( const char* str, unsigned int* major, unsigned int* minor );
