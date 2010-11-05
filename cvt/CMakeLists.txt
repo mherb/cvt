@@ -134,6 +134,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLProgram.cpp
 	gl/GLBuffer.cpp
 	gl/GLVertexArray.cpp
+	gl/OpenGL.cpp
 )
 
 IF(UNIX)
