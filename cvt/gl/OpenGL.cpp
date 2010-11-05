@@ -9,6 +9,12 @@ namespace cvt {
 	unsigned int GL::_glslminor = 0;
 	std::vector<std::string*> GL::_extensions;
 
+	void ( *GL::glBindVertexArray )( GLuint array ) = NULL;
+	void ( *GL::glDeleteVertexArrays )( GLsizei n, const GLuint *arrays ) = NULL;
+	void ( *GL::glGenVertexArrays )( GLsizei n, GLuint *arrays) = NULL;
+	GLboolean ( *GL::glIsVertexArray )( GLuint array) = NULL;
+
+
 	void GL::parseExtensions( const char* str )
 	{
 		const char* sptr = str;
@@ -43,31 +49,69 @@ namespace cvt {
 		*minor = ( unsigned int ) strtol( sptr, &eptr, 10 );
 	}
 
-	bool GL::init()
+	void GL::init()
 	{
 		static bool init = false;
 		const GLubyte* str;
 		if( init )
-			return true;
+			return;
 		init = true;
 
+		/* version check */
 		str = glGetString( GL_VERSION );
 		parseVersion( ( const char* ) str, &_glmajor, &_glminor );
 		str = glGetString( GL_SHADING_LANGUAGE_VERSION );
 		parseVersion( ( const char* ) str, &_glslmajor, &_glslminor );
 
-		if( _glmajor < 2 ) {
-			return false;
-			if( _glmajor == 2 && _glminor == 0 )
-				return false;
+		if( _glmajor < 2  || ( _glmajor == 2 && _glminor == 0 ) ) {
+			std::cerr << "GL Version too old, at least GL 2.1 is needed" << std::endl;
+			std::exit( EXIT_FAILURE );
 		}
 
-		if( _glslmajor == 1 && _glslminor < 20 )
-			return false;
+		if( _glslmajor == 1 && _glslminor < 20 ) {
+			std::cerr << "GLSL Version too old, at least GLSL 1.20 is needed" << std::endl;
+			std::exit( EXIT_FAILURE );
+		}
 
+		/* extensions check */
 		str = glGetString( GL_EXTENSIONS );
 		parseExtensions( ( const char* ) str );
-		return true;
+
+		if( existsExtension( "GL_ARB_vertex_array_object" ) ) {
+			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArrays" );
+			glDeleteVertexArrays = ( void (*)( GLsizei, const GLuint* ) ) getProcAddress( "glDeleteVertexArrays" );
+			glBindVertexArray = ( void (*)( GLuint ) ) getProcAddress( "glBindVertexArray" );
+			glIsVertexArray = ( GLboolean (*)( GLuint ) ) getProcAddress( "glIsVertexArray" );
+		} else if( existsExtension( "GL_APPLE_vertex_array_object" ) ) {
+			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArraysAPPLE" );
+			glDeleteVertexArrays = ( void (*)( GLsizei, const GLuint* ) ) getProcAddress( "glDeleteVertexArraysAPPLE" );
+			glBindVertexArray = ( void (*)( GLuint ) ) getProcAddress( "glBindVertexArrayAPPLE" );
+			glIsVertexArray = ( GLboolean (*)( GLuint ) ) getProcAddress( "glIsVertexArrayAPPLE" );
+		} else {
+			std::cerr << "GL vertex array object extension missing" << std::endl;
+			std::exit( EXIT_FAILURE );
+		}
+
+
+
+	}
+
+	bool GL::existsExtension( const std::string& extname )
+	{
+		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); it++ ) {
+			if( !extname.compare( **it ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void (* GL::getProcAddress(const char* str ))()
+	{
+/*#ifdef APPLE
+#else*/
+		return glXGetProcAddressARB( ( const GLubyte * ) str );
+/*#endif*/
 	}
 
 	void GL::info( std::ostream& out )

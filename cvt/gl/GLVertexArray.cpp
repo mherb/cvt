@@ -1,21 +1,16 @@
 #include <cvt/gl/GLVertexArray.h>
 
 namespace cvt {
-	
-#ifdef __APPLE__
-	#define glBindVertexArray glBindVertexArrayAPPLE
-	#define glGenVertexArrays glGenVertexArraysAPPLE
-	#define glDeleteVertexArrays glDeleteVertexArraysAPPLE
-#endif
+
 
 	GLVertexArray::GLVertexArray() : _arrays( 0 )
 	{
-		glGenVertexArrays( 1, &_vao );
+		GL::glGenVertexArrays( 1, &_vao );
 	}
 
 	GLVertexArray::~GLVertexArray()
 	{
-		glDeleteVertexArrays( 1, &_vao );
+		GL::glDeleteVertexArrays( 1, &_vao );
 	}
 
 	void GLVertexArray::setAttribData( GLuint index, const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
@@ -23,12 +18,12 @@ namespace cvt {
 		CVTAssert( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
 		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
 
-		glBindVertexArray( _vao );
+		GL::glBindVertexArray( _vao );
 		_arrays |= ( 1 << index );
 		buffer.bind();
 		glVertexAttribPointer( index, size, type, GL_FALSE, stride, offset );
 		buffer.unbind();
-		glBindVertexArray( 0 );
+		GL::glBindVertexArray( 0 );
 	}
 
 	void GLVertexArray::setAttribData( GLuint index, float v1 )
@@ -68,21 +63,21 @@ namespace cvt {
 	void GLVertexArray::setVertexData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
 	{
 		CVTAssert( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
-		glBindVertexArray( _vao );
+		GL::glBindVertexArray( _vao );
 		_arrays |= ( 1 << GLSL_VERTEX_IDX );
 		buffer.bind();
 
 		glVertexAttribPointer( GLSL_VERTEX_IDX, size, type, GL_FALSE, stride, offset );
 
 		buffer.unbind();
-		glBindVertexArray( 0 );
+		GL::glBindVertexArray( 0 );
 	}
 
 	void GLVertexArray::draw( GLenum mode, GLint first, GLsizei count) const
 	{
 		if( !_arrays ) return;
 
-		glBindVertexArray( _vao );
+		GL::glBindVertexArray( _vao );
 
 		for( unsigned int i = 0; i < 16; i++ ) {
 			if( _arrays & ( 1 << i ) ) {
@@ -97,7 +92,7 @@ namespace cvt {
 			}
 		}
 
-		glBindVertexArray( 0 );
+		GL::glBindVertexArray( 0 );
 	}
 
 }
