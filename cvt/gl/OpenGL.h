@@ -5,10 +5,7 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
-#ifdef APPLE
-#elif LINUX
 #include <GL/glx.h>
-#endif
 
 #include <iostream>
 #include <string>
