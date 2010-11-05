@@ -29,6 +29,22 @@ namespace cvt {
 		if( !ctx )
 			throw CVTException( "Error: glXCreateContext failed\n" );
 
+		::XSetWindowAttributes attr;
+		unsigned long mask;
+		attr.background_pixmap = None;
+		attr.border_pixel = 0;
+		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
+		mask = CWBackPixmap | CWBorderPixel | CWColormap;
+
+		::Window xw = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, 1, 1,
+							  0, visinfo->depth, InputOutput, visinfo->visual, mask, &attr );
+		glXMakeCurrent( dpy, xw, ctx );
+
+		GL::init();
+
+		XDestroyWindow( dpy, xw );
+		glXMakeCurrent( dpy, None, NULL );
+
 		xatom_wmproto = XInternAtom( dpy , "WM_PROTOCOLS", False);
 		xatom_wmdelete = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	}

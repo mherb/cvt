@@ -107,7 +107,7 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
-		glXMakeCurrent(dpy, win, ctx);
+		glXMakeCurrent(dpy, win, ctx );
 		gfx->setDefault();
 		gfx->updateState();
 		widget->paintEvent( event, gfx );
