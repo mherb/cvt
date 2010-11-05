@@ -92,6 +92,10 @@ namespace cvt {
 			std::exit( EXIT_FAILURE );
 		}
 
+		if( !existsExtension( "GL_ARB_texture_non_power_of_two" ) ) {
+			std::cerr << "GL texture non power of two extension missing" << std::endl;
+			std::exit( EXIT_FAILURE );
+		}
 
 
 	}
