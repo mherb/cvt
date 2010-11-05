@@ -117,11 +117,11 @@ namespace cvt {
 					break;
 				case Expose:
 					{
-//						if( event.xexpose.count == 0 ) {
+						if( event.xexpose.count == 0 ) {
 							WidgetImplWinGLX11* w = windows[ event.xexpose.window ];
 							PaintEvent pevent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
 							w->paintEvent( &pevent );
-//						}
+						}
 					}
 					break;
 				case ButtonPress:
@@ -168,7 +168,7 @@ namespace cvt {
 
 		}
 
-		/* FIXME: do cleanup - iteratre over windows and delete widget and only widgets */
+		/* FIXME: do cleanup - iterate over windows and delete widget and only widgets */
 	}
 }
 

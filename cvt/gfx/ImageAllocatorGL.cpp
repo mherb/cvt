@@ -38,7 +38,7 @@ namespace cvt {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _type.size * _order.channels ) ) );
 		getGLFormat( _order, _type, glformat, gltype );
-		/* do not copy non-meaningful PBO content - just allocate space, current PBO is therefore 0 */
+		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
 

@@ -145,8 +145,8 @@ namespace cvt {
 		if( img.memType() != IALLOCATOR_GL )
 			return;
 
-		w = img.width();
-		h = img.height();
+		w = ( GLint ) img.width();
+		h = ( GLint ) img.height();
 		GLint vertices[ 8 ] = {
 			x	 , y + h,
 			x	 , y    ,
