@@ -117,6 +117,12 @@ namespace cvt {
 		glUniform1f( loc, f );
 	}
 
+	void GLProgram::setArg( const char* name, float f1, float f2 )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniform2f( loc, f1, f2 );
+	}
+
 	void GLProgram::setArg( const char* name, IFilterParameter* p )
 	{
 		switch( p->getIFilterParameterType() )

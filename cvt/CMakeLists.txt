@@ -34,6 +34,7 @@ GLSLTOHEADER(gl/shader/text.vert)
 GLSLTOHEADER(gl/shader/text.frag)
 GLSLTOHEADER(gl/shader/basictex.vert)
 GLSLTOHEADER(gl/shader/basictex.frag)
+GLSLTOHEADER(gl/shader/basicrrtex.frag)
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -91,6 +92,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/text_frag.h
 	gl/shader/basictex_vert.h
 	gl/shader/basictex_frag.h
+	gl/shader/basicrrtex_frag.h
 	util/Thread.h
 )
 

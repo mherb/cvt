@@ -17,6 +17,7 @@
 #include <cvt/gl/shader/basictex_frag.h>
 #include <cvt/gl/shader/text_vert.h>
 #include <cvt/gl/shader/text_frag.h>
+#include <cvt/gl/shader/basicrrtex_frag.h>
 
 
 namespace cvt {
@@ -45,7 +46,7 @@ namespace cvt {
 	{
 		try {
 			progbasic.build( _basic_vert_source, _basic_frag_source );
-			progbasictex.build( _basictex_vert_source, _basictex_frag_source );
+			progbasictex.build( _basictex_vert_source, _basicrrtex_frag_source );
 			progtext.build( _text_vert_source, _text_frag_source );
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
@@ -165,9 +166,8 @@ namespace cvt {
 		IFilterVector16 vec;
 		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
 		progbasictex.setArg( "MVP", &vec );
-		unsigned int vtx = progbasictex.getAttribLocation( "in_Position" );
-		unsigned int tex = progbasictex.getAttribLocation( "in_TexCoord" );
-		unsigned int col = progbasictex.getAttribLocation( "in_Color" );
+		progbasictex.setArg( "ImageSize", ( float ) w, ( float ) h );
+		progbasictex.setArg( "Radius", 25.0f );
 
 		ImageAllocatorGL* glmem = ( ImageAllocatorGL* ) img._mem;
 		glBindTexture(GL_TEXTURE_2D, glmem->_tex2d );
