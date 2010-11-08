@@ -405,7 +405,7 @@ namespace cvt {
 			tmp.copyRect( 0, 0, iflow, 0, 0, 512, 480 );
 			ImageIO::savePNG( tmp, "out.png" );
 		}
-		cvShowImage( name, iflow.iplimage() );
+//		cvShowImage( name, iflow.iplimage() );
 		delete ret;
 	}
 }

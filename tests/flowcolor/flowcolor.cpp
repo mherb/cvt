@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
 
 	while( 1 ) {
-		cvShowImage( "Flow", color.iplimage() );
+//		cvShowImage( "Flow", color.iplimage() );
 
 		key = cvWaitKey( 10 ) & 0xff;
 		if( key == 27 )

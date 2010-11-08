@@ -70,8 +70,8 @@ namespace cvt {
 		}
 			
 		
-		cvShowImage( "dx", tmpDx.iplimage() );
-		cvShowImage( "dy", tmpDy.iplimage() );
+//		cvShowImage( "dx", tmpDx.iplimage() );
+//		cvShowImage( "dy", tmpDy.iplimage() );
 		cvWaitKey( 0 );
 	}
 	
@@ -109,7 +109,7 @@ namespace cvt {
 			// get the pixels using the current warp
 			hFilter.apply( warped, currI, hVec, black );
 			
-			cvShowImage("Warped", warped.iplimage());
+//			cvShowImage("Warped", warped.iplimage());
 			//cvWaitKey( 0 );
 			
 			// calc combined jacobians and deltaI

@@ -66,9 +66,9 @@ int main(int argc, char* argv[])
 				//			x.scale( y, 1024, 786, IScaleFilterBilinear() );
 				/*		x.convolve( y, kernel );
 						y = ( y + 1.0f ) * 0.5f;*/
-				cvShowImage( "V4L2", z.iplimage() );
+//				cvShowImage( "V4L2", z.iplimage() );
 			} else
-				cvShowImage( "V4L2", frame->iplimage() );
+//				cvShowImage( "V4L2", frame->iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )

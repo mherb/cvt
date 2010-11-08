@@ -32,12 +32,12 @@ int main()
 		std::cout << "SSD: " << patchA.ssd( patchB ) << std::endl;
 		std::cout << "SAD: " << patchA.sad( patchB ) << std::endl;
 		
-		cvShowImage( "Test Image", patchA.iplimage() );
+//		cvShowImage( "Test Image", patchA.iplimage() );
 		cvWaitKey( 0 );
-		cvShowImage( "Test Image", patchB.iplimage() );
+//		cvShowImage( "Test Image", patchB.iplimage() );
 		cvWaitKey( 0 );
 		
-		cvShowImage( "Test Image", imgGray.iplimage() );
+//		cvShowImage( "Test Image", imgGray.iplimage() );
 		cvWaitKey( 0 );
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;

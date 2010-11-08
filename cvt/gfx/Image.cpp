@@ -9,7 +9,7 @@
 
 namespace cvt {
 
-	Image::Image( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -18,11 +18,10 @@ namespace cvt {
 		else
 			_mem = new ImageAllocatorMem();
 	    _mem->alloc( w, h, order, type );
-		upateIpl();
 	}
 
 
-	Image::Image( const Image& img, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( const Image& img, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -31,10 +30,9 @@ namespace cvt {
 		else
 			_mem = new ImageAllocatorMem();
 		_mem->copy( img._mem );
-		upateIpl();
 	}
 
-	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE ), _iplimage( 0 )
+	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
 	{
 		if( !ref ){
 			if( memtype == IALLOCATOR_CL )
@@ -44,7 +42,6 @@ namespace cvt {
 			else
 				_mem = new ImageAllocatorMem();
 			_mem->copy( source._mem, roi );
-			upateIpl();
 		} else {
 			throw CVTException("Shared image memory not implemented yet");
 		}
@@ -64,7 +61,6 @@ namespace cvt {
 				_mem = new ImageAllocatorMem();
 		}
 		_mem->alloc( w, h, order, type );
-		upateIpl();
 	}
 
 	void Image::copy( const Image& img )
@@ -74,7 +70,6 @@ namespace cvt {
 
 		checkFormatAndSize( img, __PRETTY_FUNCTION__, __LINE__ );
 		_mem->copy( img._mem );
-		upateIpl();
 	}
 
 	void Image::copyRect( int x, int y, const Image& img, int sx, int sy, int swidth, int sheight )
@@ -115,22 +110,6 @@ namespace cvt {
 		}
 		img.unmap( sbase );
 		unmap( dbase );
-	}
-
-
-	void Image::upateIpl()
-	{
-		uint8_t* ptr;
-		size_t stride;
-
-		return;
-		/* FIXME: only update data, do not reallocate header */
-		if( _iplimage )
-			cvReleaseImageHeader( &_iplimage );
-		_iplimage = cvCreateImageHeader( cvSize( ( int ) _mem->_width, ( int ) _mem->_height ),
-										_mem->_type.id == ICHANNELTYPE_UBYTE ? IPL_DEPTH_8U : IPL_DEPTH_32F, ( int ) _mem->_order.channels );
-		ptr = map( &stride );
-		cvSetData( _iplimage, ptr, ( int ) stride );
 	}
 
 
