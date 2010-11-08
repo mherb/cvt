@@ -1,9 +1,10 @@
+#version 150
 
 uniform mat4 MVP;
 
-attribute vec3 in_Vertex;
-attribute vec4 in_Color;
-varying vec4 vtx_Color;
+in vec3 in_Vertex;
+in vec4 in_Color;
+out vec4 vtx_Color;
 
 void main()
 {

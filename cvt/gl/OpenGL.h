@@ -19,6 +19,7 @@ namespace cvt {
 		public:
 			static void GLVersion( unsigned int* major, unsigned int* minor );
 			static void GLSLVersion( unsigned int* major, unsigned int* minor );
+			static bool isGLSLVersionSupported( unsigned int major, unsigned int minor );
 			static bool existsExtension( const std::string& extname );
 			static void ( *getProcAddress( const char* str ) ) ();
 			static void info( std::ostream& out );
@@ -39,6 +40,12 @@ namespace cvt {
 			static unsigned int _glslmajor, _glslminor;
 			static std::vector<std::string*> _extensions;
 	};
+
+	inline bool GL::isGLSLVersionSupported( unsigned int major, unsigned int minor )
+	{
+		return ( _glslmajor > major || ( _glslmajor == major && _glslminor >= minor ) );
+	}
+
 }
 
 #endif
