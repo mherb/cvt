@@ -11,13 +11,21 @@
 #include <cvt/gui/internal/glfont.h>
 
 /* Shaders */
-#include <cvt/gl/shader/basic_vert.h>
-#include <cvt/gl/shader/basic_frag.h>
-#include <cvt/gl/shader/basictex_vert.h>
-#include <cvt/gl/shader/basictex_frag.h>
-#include <cvt/gl/shader/text_vert.h>
-#include <cvt/gl/shader/text_frag.h>
-#include <cvt/gl/shader/basicrrtex_frag.h>
+#include <cvt/gl/shader/120/basic_120_vert.h>
+#include <cvt/gl/shader/120/basic_120_frag.h>
+#include <cvt/gl/shader/120/basictex_120_vert.h>
+#include <cvt/gl/shader/120/basictex_120_frag.h>
+#include <cvt/gl/shader/120/text_120_vert.h>
+#include <cvt/gl/shader/120/text_120_frag.h>
+#include <cvt/gl/shader/120/basicrrtex_120_frag.h>
+
+#include <cvt/gl/shader/150/basic_150_vert.h>
+#include <cvt/gl/shader/150/basic_150_frag.h>
+#include <cvt/gl/shader/150/basictex_150_vert.h>
+#include <cvt/gl/shader/150/basictex_150_frag.h>
+#include <cvt/gl/shader/150/text_150_vert.h>
+#include <cvt/gl/shader/150/text_150_frag.h>
+#include <cvt/gl/shader/150/basicrrtex_150_frag.h>
 
 
 namespace cvt {
@@ -45,9 +53,15 @@ namespace cvt {
 	GFXGL::GFXGL() : vbo( GL_ARRAY_BUFFER )
 	{
 		try {
-			progbasic.build( _basic_vert_source, _basic_frag_source );
-			progbasictex.build( _basictex_vert_source, _basicrrtex_frag_source );
-			progtext.build( _text_vert_source, _text_frag_source );
+			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
+				progbasic.build( _basic_150_vert_source, _basic_150_frag_source );
+				progbasictex.build( _basictex_150_vert_source, _basicrrtex_150_frag_source );
+				progtext.build( _text_150_vert_source, _text_150_frag_source );
+			} else {
+				progbasic.build( _basic_120_vert_source, _basic_120_frag_source );
+				progbasictex.build( _basictex_120_vert_source, _basicrrtex_120_frag_source );
+				progtext.build( _text_120_vert_source, _text_120_frag_source );
+			}
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
 		}

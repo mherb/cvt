@@ -1,3 +1,4 @@
+#version 120
 
 varying vec4 vtx_Color;
 varying vec2 vtx_TexCoord;

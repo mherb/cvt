@@ -28,13 +28,22 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${X11_LIBRARIES}
 )
 
-GLSLTOHEADER(gl/shader/basic.vert)
-GLSLTOHEADER(gl/shader/basic.frag)
-GLSLTOHEADER(gl/shader/text.vert)
-GLSLTOHEADER(gl/shader/text.frag)
-GLSLTOHEADER(gl/shader/basictex.vert)
-GLSLTOHEADER(gl/shader/basictex.frag)
-GLSLTOHEADER(gl/shader/basicrrtex.frag)
+GLSLTOHEADER(gl/shader/120/basic_120.vert)
+GLSLTOHEADER(gl/shader/120/basic_120.frag)
+GLSLTOHEADER(gl/shader/120/text_120.vert)
+GLSLTOHEADER(gl/shader/120/text_120.frag)
+GLSLTOHEADER(gl/shader/120/basictex_120.vert)
+GLSLTOHEADER(gl/shader/120/basictex_120.frag)
+GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
+
+GLSLTOHEADER(gl/shader/150/basic_150.vert)
+GLSLTOHEADER(gl/shader/150/basic_150.frag)
+GLSLTOHEADER(gl/shader/150/text_150.vert)
+GLSLTOHEADER(gl/shader/150/text_150.frag)
+GLSLTOHEADER(gl/shader/150/basictex_150.vert)
+GLSLTOHEADER(gl/shader/150/basictex_150.frag)
+GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
+
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -87,14 +96,21 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLProgram.h
 	gl/GLBuffer.h
 	gl/GLVertexArray.h
-	gl/shader/basic_vert.h
-	gl/shader/basic_frag.h
-	gl/shader/text_vert.h
-	gl/shader/text_frag.h
-	gl/shader/basictex_vert.h
-	gl/shader/basictex_frag.h
-	gl/shader/basicrrtex_frag.h
 	util/Thread.h
+	gl/shader/120/basic_120_vert.h
+	gl/shader/120/basic_120_frag.h
+	gl/shader/120/text_120_vert.h
+	gl/shader/120/text_120_frag.h
+	gl/shader/120/basictex_120_vert.h
+	gl/shader/120/basictex_120_frag.h
+	gl/shader/120/basicrrtex_120_frag.h
+	gl/shader/150/basic_150_vert.h
+	gl/shader/150/basic_150_frag.h
+	gl/shader/150/text_150_vert.h
+	gl/shader/150/text_150_frag.h
+	gl/shader/150/basictex_150_vert.h
+	gl/shader/150/basictex_150_frag.h
+	gl/shader/150/basicrrtex_150_frag.h
 )
 
 SET(${MODULE_NAME}_SOURCES

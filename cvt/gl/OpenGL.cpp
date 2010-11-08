@@ -126,4 +126,5 @@ namespace cvt {
 		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); it++ )
 			out << "\t" << **it << std::endl;
 	}
+
 }
