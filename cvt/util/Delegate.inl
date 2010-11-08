@@ -23,16 +23,16 @@ class DelegateMember<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 	typedef T0 (T::*MemberPtr)( TYPELIST );
 
 	public:
-	DelegateMember( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
+		DelegateMember( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
 
-	virtual T0 invoke( TYPEARGLIST ) const
-	{
-		return (_obj->*_mptr)( ARGLIST );
-	}
+		virtual T0 invoke( TYPEARGLIST ) const
+		{
+			return (_obj->*_mptr)( ARGLIST );
+		}
 
 	private:
-	T* _obj;
-	MemberPtr _mptr;
+		T* _obj;
+		MemberPtr _mptr;
 };
 
 /* Delegate implementation for pointer to const member */
@@ -42,16 +42,16 @@ class DelegateMemberConst<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIS
 	typedef T0 (T::*MemberPtr)( TYPELIST ) const;
 
 	public:
-	DelegateMemberConst( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
+		DelegateMemberConst( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
 
-	virtual T0 invoke( TYPEARGLIST ) const
-	{
-		return (_obj->*_mptr)( ARGLIST );
-	}
+		virtual T0 invoke( TYPEARGLIST ) const
+		{
+			return (_obj->*_mptr)( ARGLIST );
+		}
 
 	private:
-	T* _obj;
-	MemberPtr _mptr;
+		T* _obj;
+		MemberPtr _mptr;
 };
 
 /* Delegate implementation for function pointers */
@@ -61,15 +61,15 @@ class DelegateFunction<T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 	typedef T0 (*FuncPtr)( TYPELIST );
 
 	public:
-	DelegateFunction( FuncPtr fptr ) : _fptr( fptr ) {}
+		DelegateFunction( FuncPtr fptr ) : _fptr( fptr ) {}
 
-	virtual T0 invoke( TYPEARGLIST ) const
-	{
-		return _fptr( ARGLIST );
-	}
+		virtual T0 invoke( TYPEARGLIST ) const
+		{
+			return _fptr( ARGLIST );
+		}
 
 	private:
-	FuncPtr _fptr;
+		FuncPtr _fptr;
 };
 
 /* The real delegate */
