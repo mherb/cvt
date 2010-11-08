@@ -15,109 +15,220 @@ namespace cvt {
     template<typename, typename> class DelegateMember;
     template<typename, typename> class DelegateMemberConst;
 
-    /* General delegate interface */
-    template <typename T0, typename T1>
-	class DelegateImpl<T0 (T1)>
-	{
-	    public:
-		virtual ~DelegateImpl() {}
-		virtual T0 invoke( T1 ) const = 0;
-	};
+/* ", typename T1, typename T2, ... , typename T10 " */
+#define TYPENAMELIST_N0
+#define TYPENAMELIST_N1 TYPENAMELIST_N0, typename T1
+#define TYPENAMELIST_N2 TYPENAMELIST_N1, typename T2
+#define TYPENAMELIST_N3 TYPENAMELIST_N2, typename T3
+#define TYPENAMELIST_N4 TYPENAMELIST_N3, typename T4
+#define TYPENAMELIST_N5 TYPENAMELIST_N4, typename T5
+#define TYPENAMELIST_N6 TYPENAMELIST_N5, typename T6
+#define TYPENAMELIST_N7 TYPENAMELIST_N6, typename T7
+#define TYPENAMELIST_N8 TYPENAMELIST_N7, typename T8
+#define TYPENAMELIST_N9 TYPENAMELIST_N8, typename T9
+#define TYPENAMELIST_N10 TYPENAMELIST_N9, typename T10
 
-    /* Delegate implementation for pointer to member */
-    template <class T, typename T0, typename T1 >
-	class DelegateMember<T, T0 (T1)> : public DelegateImpl<T0 (T1)>
-	{
-	    typedef T0 (T::*MemberPtr)(T1);
+/* " T1, T2, ... , T10 " */
+#define TYPELIST_N0
+#define TYPELIST_N1	 T1
+#define TYPELIST_N2  TYPELIST_N1, T2
+#define TYPELIST_N3  TYPELIST_N2, T3
+#define TYPELIST_N4  TYPELIST_N3, T4
+#define TYPELIST_N5  TYPELIST_N4, T5
+#define TYPELIST_N6  TYPELIST_N5, T6
+#define TYPELIST_N7  TYPELIST_N6, T7
+#define TYPELIST_N8  TYPELIST_N7, T8
+#define TYPELIST_N9  TYPELIST_N8, T9
+#define TYPELIST_N10 TYPELIST_N9, T10
 
-	    public:
-		DelegateMember( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
+/* " T1 arg1, T2 arg2, ..., T10 arg10 " */
+#define TYPEARGLIST_N0
+#define TYPEARGLIST_N1	T1  arg1
+#define TYPEARGLIST_N2  TYPEARGLIST_N1, T2  arg2
+#define TYPEARGLIST_N3  TYPEARGLIST_N2, T3  arg3
+#define TYPEARGLIST_N4  TYPEARGLIST_N3, T4  arg4
+#define TYPEARGLIST_N5  TYPEARGLIST_N4, T5  arg5
+#define TYPEARGLIST_N6  TYPEARGLIST_N5, T6  arg6
+#define TYPEARGLIST_N7  TYPEARGLIST_N6, T7  arg7
+#define TYPEARGLIST_N8  TYPEARGLIST_N7, T8  arg8
+#define TYPEARGLIST_N9  TYPEARGLIST_N8, T9  arg9
+#define TYPEARGLIST_N10 TYPEARGLIST_N9, T10 arg10
 
-		virtual T0 invoke( T1 arg ) const
-		{
-		    return (_obj->*_mptr)( arg );
-		}
+/* " arg1, arg2, ..., arg10 " */
+#define ARGLIST_N0
+#define ARGLIST_N1	arg1
+#define ARGLIST_N2  ARGLIST_N1, arg2
+#define ARGLIST_N3  ARGLIST_N2, arg3
+#define ARGLIST_N4  ARGLIST_N3, arg4
+#define ARGLIST_N5  ARGLIST_N4, arg5
+#define ARGLIST_N6  ARGLIST_N5, arg6
+#define ARGLIST_N7  ARGLIST_N6, arg7
+#define ARGLIST_N8  ARGLIST_N7, arg8
+#define ARGLIST_N9  ARGLIST_N8, arg9
+#define ARGLIST_N10 ARGLIST_N9, arg10
 
-	    private:
-		T* _obj;
-		MemberPtr _mptr;
-	};
+/* 0 arguments */
 
-    /* Delegate implementation for pointer to const member */
-    template <class T, typename T0, typename T1 >
-	class DelegateMemberConst<T, T0 (T1)> : public DelegateImpl<T0 (T1)>
-	{
-	    typedef T0 (T::*MemberPtr)(T1) const;
+#define TYPENAMELIST TYPENAMELIST_N0
+#define TYPELIST TYPELIST_N0
+#define TYPEARGLIST TYPEARGLIST_N0
+#define ARGLIST ARGLIST_N0
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-	    public:
-		DelegateMemberConst( T* obj, MemberPtr mptr ) : _obj( obj ), _mptr( mptr ) {}
+/* 1 argument ... */
+#define TYPENAMELIST TYPENAMELIST_N1
+#define TYPELIST TYPELIST_N1
+#define TYPEARGLIST TYPEARGLIST_N1
+#define ARGLIST ARGLIST_N1
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-		virtual T0 invoke( T1 arg ) const
-		{
-		    return (_obj->*_mptr)( arg );
-		}
+#define TYPENAMELIST TYPENAMELIST_N2
+#define TYPELIST TYPELIST_N2
+#define TYPEARGLIST TYPEARGLIST_N2
+#define ARGLIST ARGLIST_N2
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-	    private:
-		T* _obj;
-		MemberPtr _mptr;
-	};
+#define TYPENAMELIST TYPENAMELIST_N3
+#define TYPELIST TYPELIST_N3
+#define TYPEARGLIST TYPEARGLIST_N3
+#define ARGLIST ARGLIST_N3
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-    /* Delegate implementation for function pointers */
-    template <typename T0, typename T1 >
-	class DelegateFunction<T0 (T1)> : public DelegateImpl<T0 (T1)>
-	{
-	    typedef T0 (*FuncPtr)(T1);
+#define TYPENAMELIST TYPENAMELIST_N4
+#define TYPELIST TYPELIST_N4
+#define TYPEARGLIST TYPEARGLIST_N4
+#define ARGLIST ARGLIST_N4
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-	    public:
-		DelegateFunction( FuncPtr fptr ) : _fptr( fptr ) {}
+#define TYPENAMELIST TYPENAMELIST_N5
+#define TYPELIST TYPELIST_N5
+#define TYPEARGLIST TYPEARGLIST_N5
+#define ARGLIST ARGLIST_N5
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-		virtual T0 invoke( T1 arg ) const
-		{
-		    return _fptr( arg );
-		}
+#define TYPENAMELIST TYPENAMELIST_N6
+#define TYPELIST TYPELIST_N6
+#define TYPEARGLIST TYPEARGLIST_N6
+#define ARGLIST ARGLIST_N6
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-	    private:
-		FuncPtr _fptr;
-	};
+#define TYPENAMELIST TYPENAMELIST_N7
+#define TYPELIST TYPELIST_N7
+#define TYPEARGLIST TYPEARGLIST_N7
+#define ARGLIST ARGLIST_N7
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-    /* The real delegate */
-    template <typename T0, typename T1>
-	class Delegate<T0 (T1)>
-	{
-	    public:
-		template <class T>
-		Delegate( T* t, T0 ( T::*ptr )( T1 ) )
-		{
-		    _impl = new DelegateMember<T, T0 ( T1 )>( t, ptr );
-		}
+#define TYPENAMELIST TYPENAMELIST_N8
+#define TYPELIST TYPELIST_N8
+#define TYPEARGLIST TYPEARGLIST_N8
+#define ARGLIST ARGLIST_N8
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-		template <class T>
-		Delegate( T* t, T0 ( T::*ptr )( T1 ) const )
-		{
-		    _impl = new DelegateMemberConst<T, T0 ( T1 )>( t, ptr );
-		}
+#define TYPENAMELIST TYPENAMELIST_N9
+#define TYPELIST TYPELIST_N9
+#define TYPEARGLIST TYPEARGLIST_N9
+#define ARGLIST ARGLIST_N9
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-		Delegate( T0 ( *func )( T1 ) )
-		{
-		    _impl = new DelegateFunction<T0 ( T1 )>( func );
-		}
+/* 10 arguments */
 
-		virtual ~Delegate()
-		{
-		    delete _impl;
-		}
+#define TYPENAMELIST TYPENAMELIST_N10
+#define TYPELIST TYPELIST_N10
+#define TYPEARGLIST TYPEARGLIST_N10
+#define ARGLIST ARGLIST_N10
+#include "Delegate.inl"
+#undef TYPENAMELIST
+#undef TYPELIST
+#undef TYPEARGLIST
+#undef ARGLIST
 
-		virtual T0 operator()( T1 arg ) const
-		{
-		    return _impl->invoke( arg );
-		}
+#undef TYPENAMELIST_N0
+#undef TYPENAMELIST_N1
+#undef TYPENAMELIST_N2
+#undef TYPENAMELIST_N3
+#undef TYPENAMELIST_N4
+#undef TYPENAMELIST_N5
+#undef TYPENAMELIST_N6
+#undef TYPENAMELIST_N7
+#undef TYPENAMELIST_N8
+#undef TYPENAMELIST_N9
+#undef TYPENAMELIST_N10
 
-	    private:
-		DelegateImpl<T0 (T1)>* _impl;
-	};
+#undef TYPELIST_N0
+#undef TYPELIST_N1
+#undef TYPELIST_N2
+#undef TYPELIST_N3
+#undef TYPELIST_N4
+#undef TYPELIST_N5
+#undef TYPELIST_N6
+#undef TYPELIST_N7
+#undef TYPELIST_N8
+#undef TYPELIST_N9
+#undef TYPELIST_N10
 
+#undef TYPEARGLIST_N0
+#undef TYPEARGLIST_N1
+#undef TYPEARGLIST_N2
+#undef TYPEARGLIST_N3
+#undef TYPEARGLIST_N4
+#undef TYPEARGLIST_N5
+#undef TYPEARGLIST_N6
+#undef TYPEARGLIST_N7
+#undef TYPEARGLIST_N8
+#undef TYPEARGLIST_N9
+#undef TYPEARGLIST_N10
 
-
+#undef ARGLIST_N0
+#undef ARGLIST_N1
+#undef ARGLIST_N2
+#undef ARGLIST_N3
+#undef ARGLIST_N4
+#undef ARGLIST_N5
+#undef ARGLIST_N6
+#undef ARGLIST_N7
+#undef ARGLIST_N8
+#undef ARGLIST_N9
+#undef ARGLIST_N10
 }
 
 #endif

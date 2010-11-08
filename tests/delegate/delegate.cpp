@@ -20,6 +20,12 @@ static int bli( int x )
 	std::cout << "bli " << x << std::endl;
 }
 
+void bla( )
+{
+	std::cout << "bla " << std::endl;
+}
+
+
 int main()
 {
 	A a;
@@ -27,9 +33,11 @@ int main()
 	Delegate<int (int)> d2( &bli );
 	Delegate<int (int)> d3( &blub );
 	Delegate<int (int)> d4( &a, &A::blo );
+	Delegate<void ()> d5( &bla );
 
 	d1( 10 );
 	d2( 20 );
 	d3( 30 );
 	d4( 40 );
+	d5( );
 }
