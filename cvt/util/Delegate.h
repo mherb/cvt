@@ -1,19 +1,12 @@
 #ifndef CVTDELEGATE_H
 #define CVTDELEGATE_H
 
-/*
-    Mediocre Delegate implementation:
-    - needs heap memory
-    - additional indirection
-    + but readable code
- */
-
 namespace cvt {
     template<typename> class Delegate;
     template<typename> class DelegateImpl;
     template<typename> class DelegateFunction;
-    template<typename, typename> class DelegateMember;
-    template<typename, typename> class DelegateMemberConst;
+    template<class, typename> class DelegateMember;
+    template<class, typename> class DelegateMemberConst;
 
 /* ", typename T1, typename T2, ... , typename T10 " */
 #define TYPENAMELIST_N0
