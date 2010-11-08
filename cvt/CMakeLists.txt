@@ -59,6 +59,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMD.h
 	util/SIMDSSE.h
 	util/CPU.h
+	util/Delegate.h
 	gfx/Image.h
 	gfx/ImageTypes.h
 	gfx/ifilter/ROFDenoise.h
