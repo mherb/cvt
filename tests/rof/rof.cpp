@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 
 		cvNamedWindow("Test Image");
 		
-		cvShowImage("Test Image", out.iplimage());
+//		cvShowImage("Test Image", out.iplimage());
 		cvWaitKey(0);
 		
 		

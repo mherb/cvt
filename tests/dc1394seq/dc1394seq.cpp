@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
 			out = new Image( 640, 480, IOrder::GRAY, IType::UBYTE );
 			frame->debayer( *out, IBAYER_RGGB );
-			cvShowImage( "DC1394", out->iplimage() );
+//			cvShowImage( "DC1394", out->iplimage() );
 			list.push_back( out );
 
 			key = cvWaitKey( 10 ) & 0xff;

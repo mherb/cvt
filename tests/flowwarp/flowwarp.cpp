@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 
 
 	while( 1 ) {
-		cvShowImage( "Flow", output.iplimage() );
+//		cvShowImage( "Flow", output.iplimage() );
 
 		key = cvWaitKey( 10 ) & 0xff;
 		if( key == 27 )

@@ -85,10 +85,10 @@ void drawEstimate( const Image& temp, Image & out, SL3Transform & hom )
 //	std::cout << "P: " << p2.x << ", " << p2.y << std::endl;
 //	std::cout << "P: " << p3.x << ", " << p3.y << std::endl;
 	
-	cvLine( out.iplimage(), p0, p1, CV_RGB(255, 255, 255), 2 );
-	cvLine( out.iplimage(), p1, p2, CV_RGB(255, 255, 255), 2 );
-	cvLine( out.iplimage(), p2, p3, CV_RGB(255, 255, 255), 2 );
-	cvLine( out.iplimage(), p0, p3, CV_RGB(255, 255, 255), 2 );
+//	cvLine( out.iplimage(), p0, p1, CV_RGB(255, 255, 255), 2 );
+//	cvLine( out.iplimage(), p1, p2, CV_RGB(255, 255, 255), 2 );
+//	cvLine( out.iplimage(), p2, p3, CV_RGB(255, 255, 255), 2 );
+//	cvLine( out.iplimage(), p0, p3, CV_RGB(255, 255, 255), 2 );
 }
 
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
 #ifndef FILETEMPLATE		
 		Params p = { 0, 0, 0, 0, 0 };
-		cvShowImage( "ESM", out.iplimage() );
+//		cvShowImage( "ESM", out.iplimage() );
 		cvSetMouseCallback( "ESM", ( CvMouseCallback ) mouseevent, &p );
 		
 		timer.reset();
@@ -146,13 +146,13 @@ int main(int argc, char* argv[])
 			frame->debayer( out, IBAYER_RGGB );
 //			out.copy( *frame );
 
-			cvShowImage( "ESM", out.iplimage() );
+//			cvShowImage( "ESM", out.iplimage() );
 #endif
 			out.convert( outF );
 
 			if( selectPatch ){
 				if( p.numClick == 1 ){
-					cvCircle( out.iplimage(), cvPoint( p.x0, p.y0), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
+//					cvCircle( out.iplimage(), cvPoint( p.x0, p.y0), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
 				} else if( p.numClick == 2 ){
 					Recti roi( p.x0, p.y0, p.x1-p.x0, p.y1-p.y0 );
 					temp = new Image( outF, &roi );
@@ -192,8 +192,8 @@ int main(int argc, char* argv[])
 //		std::cout << "Det: " << homography.matrix().determinant() << std::endl;
 						
 		drawEstimate( *temp, outF, homography );
-		cvShowImage( "ESM", outF.iplimage() );				
-		cvShowImage( "Template", temp->iplimage() );				
+//		cvShowImage( "ESM", outF.iplimage() );				
+//		cvShowImage( "Template", temp->iplimage() );				
 		cvWaitKey( 0 );
 				
 		while( 1 ) {
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 			esm.optimize( homography, outF );
 			
 			drawEstimate( *temp, outF, homography );	
-			cvShowImage( "ESM", outF.iplimage() );
+//			cvShowImage( "ESM", outF.iplimage() );
 			
 			key = ( cvWaitKey( 5 ) & 0xff );
 			if( key == 27 )

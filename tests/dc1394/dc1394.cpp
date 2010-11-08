@@ -18,7 +18,7 @@ struct Params {
 void mouseevent(int event, int x, int y, int flags, Params* p )
 {
 	p->dst->copyRect( 220, 140, *(p->src), x - 100, y - 100, 200, 200 );
-	cvShowImage( "Region", p->dst->iplimage() );
+//	cvShowImage( "Region", p->dst->iplimage() );
 }
 
 int main(int argc, char* argv[])
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 
 
 		Params p = { &out, &region };
-		cvShowImage( "DC1394", out.iplimage() );
+//		cvShowImage( "DC1394", out.iplimage() );
 		cvSetMouseCallback( "DC1394", ( CvMouseCallback ) mouseevent, &p );
 
 		timer.reset();
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 			frame = cam.image();
 
 			frame->debayer( out, IBAYER_RGGB );
-			cvShowImage( "DC1394", out.iplimage() );
+//			cvShowImage( "DC1394", out.iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )

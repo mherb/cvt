@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 		
 		cvNamedWindow("Test Image");
 		
-		cvShowImage("Test Image", img.iplimage());
+//		cvShowImage("Test Image", img.iplimage());
 		cvWaitKey(0);
 		
 		cvt::ImageIO::savePNG(img, "out.png");

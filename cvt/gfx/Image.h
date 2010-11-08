@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <cv.h>
 
 #include "gfx/Color.h"
 #include "gfx/IScaleFilter.h"
@@ -51,8 +50,6 @@ namespace cvt {
 			void copy( const Image& i );
 			void copyRect( int x, int y, const Image& i, int sx, int sy, int swidth, int sheight );
 
-			IplImage* iplimage() const;
-
 			Image* clone() const;
 			void convert( Image& dst, IOrder order, IType type ) const;
 			void convert( Image& dst ) const;
@@ -98,7 +95,6 @@ namespace cvt {
 			void debayer( Image& dst, IBayerPattern_t pattern ) const;
 
 		private:
-			void upateIpl();
 			float* imageToKernel( const Image& k, bool normalize ) const;
 			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
@@ -108,8 +104,6 @@ namespace cvt {
 			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
 
 			ImageAllocator* _mem;
-			IplImage* _iplimage;
-
 	};
 
 	std::ostream& operator<<(std::ostream &out, const Image &f);
@@ -176,11 +170,6 @@ namespace cvt {
 	inline void Image::unmap( const _T* ptr ) const
 	{
 		 _mem->unmap( ( uint8_t* ) ptr );
-	}
-
-	inline IplImage* Image::iplimage() const
-	{
-		return _iplimage;
 	}
 
 	inline Image& Image::operator=( const Image& c )
