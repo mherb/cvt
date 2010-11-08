@@ -6,8 +6,10 @@ using namespace cvt;
 
 class A {
 	public:
-		int bla( int x ) { std::cout << "A::bla " << x << std::endl; };
+		int bla(  ) { std::cout << "A::bla() " << std::endl; };
+		int bla( int x ) { std::cout << "A::bla( int ) " << x << std::endl; };
 		int blo( int x ) const { std::cout << "A::blo " << x << std::endl; };
+		void blim( int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10 ) const { std::cout << "A::blim " << x1 << " " << x10 << std::endl; };
 };
 
 int blub( int x )
@@ -34,10 +36,12 @@ int main()
 	Delegate<int (int)> d3( &blub );
 	Delegate<int (int)> d4( &a, &A::blo );
 	Delegate<void ()> d5( &bla );
+	Delegate<void (int, int, int, int, int, int, int, int, int, int )> d6( &a, &A::blim );
 
 	d1( 10 );
 	d2( 20 );
 	d3( 30 );
 	d4( 40 );
 	d5( );
+	d6( 1, 2, 3, 4, 5, 6, 7, 8 ,9, 10 );
 }
