@@ -94,12 +94,12 @@ class Delegate<T0 ( TYPELIST )>
 			_impl = new DelegateFunction<T0 ( TYPELIST )>( func );
 		}
 
-		virtual ~Delegate()
+		~Delegate()
 		{
 			delete _impl;
 		}
 
-		virtual T0 operator()( TYPEARGLIST ) const
+		T0 operator()( TYPEARGLIST ) const
 		{
 			return _impl->invoke( ARGLIST );
 		}
