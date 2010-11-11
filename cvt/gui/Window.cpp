@@ -10,10 +10,10 @@ namespace cvt {
 	{
 		setTitle( title );
 
-		Image lena;
-		ImageIO::loadPNG( lena, "./lena.png" );
-		img.reallocate( lena, IALLOCATOR_GL );
-		img = lena;
+//		Image lena;
+		ImageIO::loadPNG( img, "./lena.png" );
+//		img.reallocate( lena, IALLOCATOR_GL );
+//		img = lena;
 		return;
 	}
 

@@ -1,10 +1,12 @@
 #ifndef CVTMUTEX_H
 #define CVTMUTEX_H
 
+#include <cvt/util/Exception.h>
 #include <pthread.h>
 
 namespace cvt {
 	class Mutex {
+		friend class Condition;
 		public:
 			Mutex();
 			~Mutex();
@@ -12,17 +14,25 @@ namespace cvt {
 			void unlock();
 			bool trylock();
 		private:
-			pthread_mutex_t* _tmutex;
+			Mutex( const Mutex& t );
+
+			pthread_mutex_t _tmutex;
 	};
 
 	inline Mutex::Mutex()
 	{
-		pthread_mutex_init( &_tmutex, NULL );
+		int err;
+		err = pthread_mutex_init( &_tmutex, NULL );
+		if( err )
+			throw CVTException( err );
 	}
 
 	inline Mutex::~Mutex()
 	{
-		pthread_mutex_destroy( &_tmutex );
+		int err;
+		err = pthread_mutex_destroy( &_tmutex );
+		if( err )
+			throw CVTException( err );
 	}
 
 	inline void Mutex::lock()
@@ -33,12 +43,17 @@ namespace cvt {
 	inline bool Mutex::trylock()
 	{
 		int ret = pthread_mutex_trylock( &_tmutex );
+		if( ret && ret != EBUSY )
+			throw CVTException( err );
 		return ( ret == EBUSY );
 	}
 
 	inline void Mutex::unlock()
 	{
-		pthread_mutex_unlock( &_tmutex );
+		int err;
+		err = pthread_mutex_unlock( &_tmutex );
+		if( err )
+			throw CVTException( err );
 	}
 }
 

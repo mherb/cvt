@@ -2,6 +2,7 @@
 #define EXCEPTION_H
 #include <exception>
 #include <sstream>
+#include <cstring>
 
 namespace cvt {
 
@@ -14,6 +15,20 @@ namespace cvt {
 			Exception( std::string s ) throw() : msg( s ) {};
 			~Exception() throw() {};
 			const char* what() const throw() { return msg.c_str(); };
+
+			Exception( int err, const char* file, size_t line, const char* func ) throw()
+			{
+				std::stringstream str;
+				str << strerror( err );
+				str << " ( FILE: ";
+				str << file;
+				str << " LINE: ";
+				str << line;
+				str << " FUNC: ";
+				str << func;
+				str << " )";
+				msg = str.str();
+			};
 
 
 			Exception( std::string s, const char* file, size_t line, const char* func ) throw()
