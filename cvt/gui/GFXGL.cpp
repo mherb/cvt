@@ -156,9 +156,16 @@ namespace cvt {
 	void GFXGL::drawImage( int x, int y, const Image& img )
 	{
 		GLint w, h;
+		Image* tmp = NULL;
+		ImageAllocatorGL* glmem;
 
-		if( img.memType() != IALLOCATOR_GL )
-			return;
+
+		if( img.memType() == IALLOCATOR_GL ) {
+			glmem = ( ImageAllocatorGL* ) img._mem;
+		} else {
+			tmp = new Image( img, IALLOCATOR_GL );
+			glmem = ( ImageAllocatorGL* ) tmp->_mem;
+		}
 
 		w = ( GLint ) img.width();
 		h = ( GLint ) img.height();
@@ -183,7 +190,6 @@ namespace cvt {
 		progbasictex.setArg( "ImageSize", ( float ) w, ( float ) h );
 		progbasictex.setArg( "Radius", 25.0f );
 
-		ImageAllocatorGL* glmem = ( ImageAllocatorGL* ) img._mem;
 		glBindTexture(GL_TEXTURE_2D, glmem->_tex2d );
 
 		GLBuffer vbuf( GL_ARRAY_BUFFER );
@@ -200,5 +206,7 @@ namespace cvt {
 		vao.resetTexCoord();
 
 		glBindTexture( GL_TEXTURE_2D, 0 );
+		if( tmp )
+			delete tmp;
 	}
 }

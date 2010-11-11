@@ -1,6 +1,7 @@
 #ifndef CVTTHREAD_H
 #define CVTTHREAD_H
 
+#include <cvt/util/Exception.h>
 #include <pthread.h>
 
 namespace cvt {
@@ -14,6 +15,7 @@ namespace cvt {
 			void join();
 
 		private:
+			Thread( const Thread& t );
 			static void* _run( Thread* t );
 
 			pthread_t _tid;
@@ -24,21 +26,32 @@ namespace cvt {
 	template<typename T>
 	Thread<T>::Thread() : _arg( NULL )
 	{
-		pthread_attr_init( &_tattr );
-		pthread_attr_setdetachstate(&_tattr, PTHREAD_CREATE_JOINABLE );
+		int err;
+		err = pthread_attr_init( &_tattr );
+		if( err )
+			throw CVTException( err );
+		err = pthread_attr_setdetachstate(&_tattr, PTHREAD_CREATE_JOINABLE );
+		if( err )
+			throw CVTException( err );
 	}
 
 	template<typename T>
 	void Thread<T>::run( T* arg )
 	{
+		int err;
 		_arg = arg;
-		pthread_create( &_tid, &_tattr, ( void* (*)( void* ) )  Thread::_run, this );
+		err = pthread_create( &_tid, &_tattr, ( void* (*)( void* ) )  Thread::_run, this );
+		if( err )
+			throw CVTException( err );
 	}
 
 	template<typename T>
 	void Thread<T>::join( )
 	{
-		pthread_join( _tid, NULL );
+		int err;
+		err = pthread_join( _tid, NULL );
+		if( err )
+			throw CVTException( err );
 	}
 
 	template<typename T>
