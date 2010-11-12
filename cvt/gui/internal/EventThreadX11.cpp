@@ -17,20 +17,24 @@ namespace cvt {
 		xatom_wmdelete = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 
 		while( run ) {
+//			std::cout << "Poll" << std::endl;
 			poll( &pfd, 1, -1 );
+//			std::cout << "Poll return" << std::endl;
 			do {
 				XNextEvent( dpy, &xevent );
 				switch( xevent.type ) {
 					case ConfigureNotify:
 						{
-							int gx, gy;
-							::Window c;
+//							int gx, gy;
+//							::Window c;
 
 							e = new ResizeEvent( xevent.xconfigure.width, xevent.xconfigure.height, 0, 0 );
 							enqueue( xevent.xconfigure.window, e );
-							XTranslateCoordinates( dpy, xevent.xconfigure.window, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, &gx, &gy, &c );
-							e = new MoveEvent( gx, gy, 0, 0 );
-							enqueue( xevent.xconfigure.window, e );
+//							std::cout << "MOVE " << xevent.xconfigure.send_event << " " << xevent.xconfigure.x << " , " << xevent.xconfigure.y << std::endl;
+							if( xevent.xconfigure.send_event ) {
+								e = new MoveEvent( xevent.xconfigure.x, xevent.xconfigure.y, 0, 0 );
+								enqueue( xevent.xconfigure.window, e );
+							}
 						}
 						break;
 					case ReparentNotify:
@@ -84,7 +88,7 @@ namespace cvt {
 					default:
 						break;
 				}
-			} while( XPending( dpy ) );
+			} while( XQLength( dpy ) );
 		}
 	}
 
