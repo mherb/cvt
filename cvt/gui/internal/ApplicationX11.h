@@ -32,7 +32,7 @@ namespace cvt {
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
 			std::queue< WidgetImplWinGLX11* > updates;
-			TQueue<std::pair<WidgetImplWinGLX11*,Event*> > events;
+			TQueue<std::pair< ::Window,Event*> > events;
 	};
 }
 

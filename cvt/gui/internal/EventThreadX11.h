@@ -12,16 +12,15 @@ namespace cvt {
 
 	class EventThreadX11 : public Thread<void>  {
 		public:
-			EventThreadX11( ::Display* display, TQueue<std::pair<WidgetImplWinGLX11*,Event*> >* q, std::map< ::Window, WidgetImplWinGLX11*>& winmap ) : dpy( display ), _queue( q ), windows( winmap ) {};
+			EventThreadX11( ::Display* display, TQueue<std::pair< ::Window,Event*> >* q ) : dpy( display ), _queue( q ) {};
 			~EventThreadX11() {};
 			void execute( void* );
 
 		private:
-			inline void enqueue( WidgetImplWinGLX11* w, Event* e ) { _queue->enqueue( std::make_pair<WidgetImplWinGLX11*, Event*>( w, e ) ); }
+			inline void enqueue( ::Window w, Event* e ) { _queue->enqueue( std::make_pair< ::Window, Event*>( w, e ) ); }
 
 			::Display* dpy;
-			TQueue<std::pair<WidgetImplWinGLX11*,Event*> >* _queue;
-			std::map< ::Window, WidgetImplWinGLX11*> windows;
+			TQueue<std::pair< ::Window,Event*> >* _queue;
 			::Atom xatom_wmdelete;
 			::Atom xatom_wmproto;
 	};
