@@ -25,8 +25,8 @@ namespace cvt {
 	{
 		_mutex.lock();
 		_queue.push_back( e );
-		_mutex.unlock();
 		_cond.notify();
+		_mutex.unlock();
 	}
 
 	template<typename T>
