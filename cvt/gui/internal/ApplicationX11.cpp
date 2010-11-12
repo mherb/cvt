@@ -1,5 +1,6 @@
 #include <cvt/gui/internal/ApplicationX11.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
+#include <cvt/gui/internal/EventThreadX11.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
@@ -17,9 +18,12 @@ namespace cvt {
 			GLX_DOUBLEBUFFER,
 			None };
 
+		XInitThreads();
 		dpy = ::XOpenDisplay( NULL );
 		if( !dpy )
 			throw CVTException( "Error: Couldn't connect to X-Server\n" );
+
+		xatom_wmdelete = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 
 		visinfo = glXChooseVisual( dpy, DefaultScreen( dpy ), attrib );
 		if( !visinfo )
@@ -44,9 +48,6 @@ namespace cvt {
 
 		XDestroyWindow( dpy, xw );
 		glXMakeCurrent( dpy, None, NULL );
-
-		xatom_wmproto = XInternAtom( dpy , "WM_PROTOCOLS", False);
-		xatom_wmdelete = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 	}
 
 	ApplicationX11::~ApplicationX11()
@@ -71,87 +72,85 @@ namespace cvt {
 
 	void ApplicationX11::runApp()
 	{
-		::XEvent event;
+		std::pair<WidgetImplWinGLX11*, Event*> event;
+		EventThreadX11 eventthread( dpy, &events, windows );
 
 		run = true;
 
+		eventthread.run( NULL );
+		XFlush( dpy );
+
 		while( run ) {
-			::XNextEvent( dpy, &event );
-			switch( event.type ) {
-				case ConfigureNotify:
+			event = events.waitNext();
+			switch( event.second->type() ) {
+				case EVENT_RESIZE:
 					{
-						WidgetImplWinGLX11* w = windows[ event.xconfigure.window ];
+						WidgetImplWinGLX11* w = event.first;
 						int oldwidth = w->rect.width;
 						int oldheight = w->rect.height;
+
+						if( oldwidth != ( ( ResizeEvent* ) event.second )->width() || oldheight != ( ( ResizeEvent* ) event.second )->height() ) {
+							( ( ResizeEvent* ) event.second )->_oldwidth = oldwidth;
+							( ( ResizeEvent* ) event.second )->_oldheight = oldheight;
+							w->resizeEvent( ( ResizeEvent* ) event.second );
+						}
+						delete event.second;
+					}
+					break;
+				case EVENT_MOVE:
+					{
+						WidgetImplWinGLX11* w = event.first;
 						int oldx = w->rect.x;
 						int oldy = w->rect.y;
-						int gx, gy;
-						::Window c;
 
-						if( oldwidth != event.xconfigure.width || oldheight != event.xconfigure.height ) {
-							ResizeEvent revent( event.xconfigure.width, event.xconfigure.height, oldwidth, oldheight );
-							w->resizeEvent( &revent );
+						if( oldx != ( ( MoveEvent* ) event.second )->x()  || oldy != ( ( MoveEvent* ) event.second )->y() ) {
+							( ( MoveEvent* ) event.second )->_oldx = oldx;
+							( ( MoveEvent* ) event.second )->_oldy = oldy;
+							w->moveEvent( ( MoveEvent* ) event.second );
 						}
-						XTranslateCoordinates( dpy, event.xconfigure.window, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, &gx, &gy, &c );
-						if( oldx != gx || oldy != gy ) {
-							MoveEvent mevent( gx, gy, oldx, oldy );
-							w->moveEvent( &mevent );
-						}
+						delete event.second;
 					}
 					break;
-				case ReparentNotify:
-					break;
-				case MapNotify:
+				case EVENT_SHOW:
 					{
-							WidgetImplWinGLX11* w = windows[ event.xmap.window ];
-							ShowEvent sevent;
-							w->showEvent( &sevent );
+						event.first->showEvent( ( ShowEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case UnmapNotify:
+				case EVENT_HIDE:
 					{
-							WidgetImplWinGLX11* w = windows[ event.xunmap.window ];
-							HideEvent hevent;
-							w->hideEvent( &hevent );
+						event.first->hideEvent( ( HideEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case Expose:
+				case EVENT_PAINT:
 					{
-						if( event.xexpose.count == 0 ) {
-							WidgetImplWinGLX11* w = windows[ event.xexpose.window ];
-							PaintEvent pevent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
-							w->paintEvent( &pevent );
-						}
+						event.first->paintEvent( ( PaintEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case ButtonPress:
+				case EVENT_MOUSEPRESS:
 					{
-						WidgetImplWinGLX11* w = windows[ event.xbutton.window ];
-						MousePressEvent mpevent( event.xbutton.x, event.xbutton.y, event.xbutton.button );
-						w->widget->mousePressEvent( &mpevent );
+						event.first->widget->mousePressEvent( ( MousePressEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case ButtonRelease:
+				case EVENT_MOUSERELEASE:
 					{
-						WidgetImplWinGLX11* w = windows[ event.xbutton.window ];
-						MouseReleaseEvent mrevent( event.xbutton.x, event.xbutton.y, event.xbutton.button );
-						w->widget->mouseReleaseEvent( &mrevent );
+						event.first->widget->mouseReleaseEvent( ( MouseReleaseEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case MotionNotify:
+				case EVENT_MOUSEMOVE:
 					{
-						WidgetImplWinGLX11* w = windows[ event.xmotion.window ];
-						MouseMoveEvent mmevent( event.xmotion.x, event.xmotion.y );
-						w->widget->mouseMoveEvent( &mmevent );
+						event.first->widget->mouseMoveEvent( ( MouseMoveEvent* ) event.second );
+						delete event.second;
 					}
 					break;
-				case ClientMessage:
+				case EVENT_CLOSE:
 					{
-						if (event.xclient.message_type == xatom_wmproto && ( ::Atom ) event.xclient.data.l[0] == xatom_wmdelete ) {
-							WidgetImplWinGLX11* w = windows[ event.xclient.window ];
-							CloseEvent cevent;
-							( ( Window* ) w->widget )->closeEvent( &cevent );
-						}
+						( ( Window* ) event.first->widget )->closeEvent( ( CloseEvent* ) event.second );
+						delete event.second;
 					}
 					break;
 				default:
@@ -161,7 +160,7 @@ namespace cvt {
 			while( updates.size() ) {
 				WidgetImplWinGLX11* w = updates.front();
 				updates.pop();
-				PaintEvent* pevent = new PaintEvent( event.xexpose.x, event.xexpose.y, event.xexpose.width, event.xexpose.height );
+				PaintEvent* pevent = new PaintEvent( 0, 0, 0, 0 );
 				w->paintEvent( pevent );
 				delete pevent;
 			}

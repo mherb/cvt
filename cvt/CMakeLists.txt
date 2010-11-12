@@ -150,6 +150,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/GFXGL.cpp
 	gui/internal/WidgetImplWinGLX11.cpp
 	gui/internal/ApplicationX11.cpp
+	gui/internal/EventThreadX11.cpp
 	gl/GLProgram.cpp
 	gl/GLBuffer.cpp
 	gl/GLVertexArray.cpp

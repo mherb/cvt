@@ -5,7 +5,7 @@
 #include <cvt/util/Rect.h>
 
 namespace cvt {
-	class PaintEvent : Event
+	class PaintEvent : public Event
 	{
 		public:
 			PaintEvent( int x, int y, int width, int height ) : Event( EVENT_PAINT ), rect( x, y, width, height ) {};

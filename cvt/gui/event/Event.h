@@ -23,12 +23,12 @@ namespace cvt {
 
 	class Event {
 		public:
-			Event( EventType t ) : type( t ) {};
+			Event( EventType t ) : _type( t ) {};
 			~Event() {};
-			EventType getType() const { return type; };
+			EventType type() const { return _type; };
 
 		private:
-			EventType type;
+			EventType _type;
 	};
 }
 
