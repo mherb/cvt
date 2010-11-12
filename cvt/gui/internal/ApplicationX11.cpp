@@ -78,7 +78,7 @@ namespace cvt {
 		run = true;
 
 		eventthread.run( NULL );
-		XFlush( dpy );
+//		XFlush( dpy );
 
 		while( run ) {
 			event = events.waitNext();
