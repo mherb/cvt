@@ -78,7 +78,7 @@ namespace cvt {
 		run = true;
 
 		eventthread.run( NULL );
-//		XFlush( dpy );
+		XSync( dpy, false );
 
 		while( run ) {
 			event = events.waitNext();
@@ -167,9 +167,8 @@ namespace cvt {
 			while( updates.size() ) {
 				WidgetImplWinGLX11* w = updates.front();
 				updates.pop();
-				PaintEvent* pevent = new PaintEvent( 0, 0, 0, 0 );
-				w->paintEvent( pevent );
-				delete pevent;
+				PaintEvent pevent( 0, 0, 0, 0 );
+				w->paintEvent( &pevent );
 			}
 
 		}
