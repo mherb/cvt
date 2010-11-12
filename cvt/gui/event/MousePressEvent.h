@@ -4,7 +4,7 @@
 #include <cvt/gui/event/Event.h>
 
 namespace cvt {
-	class MousePressEvent : Event
+	class MousePressEvent : public Event
 	{
 		public:
 			MousePressEvent( int x, int y, int button ) : Event( EVENT_MOUSEPRESS ), _x( x ), _y( y ), _button( button ) { };

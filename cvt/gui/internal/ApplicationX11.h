@@ -6,8 +6,10 @@
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/event/Event.h>
 #include <cvt/gl/OpenGL.h>
+#include <cvt/util/TQueue.h>
 #include <map>
 #include <queue>
+#include <utility>
 
 namespace cvt {
 	class ApplicationX11 : public Application
@@ -26,12 +28,11 @@ namespace cvt {
 			::Display* dpy;
 			::GLXContext ctx;
 			::XVisualInfo *visinfo;
+			::Atom xatom_wmdelete;
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
 			std::queue< WidgetImplWinGLX11* > updates;
-			::Atom xatom_wmdelete;
-			::Atom xatom_wmproto;
-
+			TQueue<std::pair<WidgetImplWinGLX11*,Event*> > events;
 	};
 }
 
