@@ -1,7 +1,9 @@
 #ifndef CVTTQUEUE_H
 #define CVTTQUEUE_H
 
-#include <dequeue>
+#include <deque>
+#include <cvt/util/Mutex.h>
+#include <cvt/util/Condition.h>
 
 namespace cvt {
 	template<typename T>
@@ -13,11 +15,12 @@ namespace cvt {
 			T waitNext();
 
 		private:
-			std::dequeue<T> _queue;
+			std::deque<T> _queue;
 			Mutex _mutex;
 			Condition _cond;
 	};
 
+	template<typename T>
 	void TQueue<T>::enqueue( T e )
 	{
 		_mutex.lock();
@@ -26,6 +29,7 @@ namespace cvt {
 		_cond.notify();
 	}
 
+	template<typename T>
 	T TQueue<T>::waitNext()
 	{
 		T ret;

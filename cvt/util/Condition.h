@@ -3,13 +3,14 @@
 
 #include <cvt/util/Exception.h>
 #include <pthread.h>
+#include <errno.h>
 
 namespace cvt {
 	class Condition {
 		public:
 			Condition();
 			~Condition();
-			void wait( const Mutex& mtx );
+			void wait( Mutex& mtx );
 			void notify();
 			void notifyAll();
 		private:
@@ -33,7 +34,7 @@ namespace cvt {
 			throw CVTException( err );
 	}
 
-	inline void Condition::wait( const Mutex& mtx )
+	inline void Condition::wait( Mutex& mtx )
 	{
 		int err;
 		err = pthread_cond_wait( &_tcond, &mtx._tmutex );
@@ -43,7 +44,7 @@ namespace cvt {
 
 	inline void Condition::notify()
 	{
-		int ret;
+		int err;
 		err = pthread_cond_signal( &_tcond );
 		if( err )
 			throw CVTException( err );

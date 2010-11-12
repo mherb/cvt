@@ -3,6 +3,7 @@
 
 #include <cvt/util/Exception.h>
 #include <pthread.h>
+#include <errno.h>
 
 namespace cvt {
 	class Mutex {
@@ -44,7 +45,7 @@ namespace cvt {
 	{
 		int ret = pthread_mutex_trylock( &_tmutex );
 		if( ret && ret != EBUSY )
-			throw CVTException( err );
+			throw CVTException( ret );
 		return ( ret == EBUSY );
 	}
 

@@ -1,31 +1,41 @@
 #include <cvt/util/Thread.h>
+#include <cvt/util/TQueue.h>
 #include <iostream>
 
 
 using namespace cvt;
 
-class MyThread : public Thread<int>
+class MyThread : public Thread<void>
 {
 	public:
-		MyThread() {};
-		void execute( int* val );
+		MyThread( TQueue<int>* q ) : _q( q ) {};
+		void execute(void*);
+	private:
+		TQueue<int>* _q;
 };
 
-void MyThread::execute( int* val )
+void MyThread::execute( void* )
 {
 	std::cout << "THREAD start" << std::endl;
-	std::cout << "THREAD value: " << *val << std::endl;
-	sleep( *val );
+	for( int i = 0; i < 10; i++) {
+		_q->enqueue( i );
+		sleep( 1 );
+	}
 	std::cout << "THREAD end" << std::endl;
 }
 
 int main()
 {
-	MyThread t;
-	int val = 2;
+	TQueue<int> q;
+	MyThread t( &q );
+	int val;
 
-	t.run( &val );
+	t.run( NULL );
+
+	do {
+		val = q.waitNext();
+		std::cout << "Value: " << val << std::endl;
+	} while( val != 9 );
 
 	t.join();
-	std::cout << "EXIT" << std::endl;
 }
