@@ -72,8 +72,8 @@ namespace cvt {
 
 	void ApplicationX11::runApp()
 	{
-		std::pair<WidgetImplWinGLX11*, Event*> event;
-		EventThreadX11 eventthread( dpy, &events, windows );
+		std::pair< ::Window, Event*> event;
+		EventThreadX11 eventthread( dpy, &events );
 
 		run = true;
 
@@ -85,7 +85,7 @@ namespace cvt {
 			switch( event.second->type() ) {
 				case EVENT_RESIZE:
 					{
-						WidgetImplWinGLX11* w = event.first;
+						WidgetImplWinGLX11* w = windows[ event.first ];
 						int oldwidth = w->rect.width;
 						int oldheight = w->rect.height;
 
@@ -99,7 +99,7 @@ namespace cvt {
 					break;
 				case EVENT_MOVE:
 					{
-						WidgetImplWinGLX11* w = event.first;
+						WidgetImplWinGLX11* w = windows[ event.first ];
 						int oldx = w->rect.x;
 						int oldy = w->rect.y;
 
@@ -113,43 +113,50 @@ namespace cvt {
 					break;
 				case EVENT_SHOW:
 					{
-						event.first->showEvent( ( ShowEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->showEvent( ( ShowEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_HIDE:
 					{
-						event.first->hideEvent( ( HideEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->hideEvent( ( HideEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_PAINT:
 					{
-						event.first->paintEvent( ( PaintEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->paintEvent( ( PaintEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_MOUSEPRESS:
 					{
-						event.first->widget->mousePressEvent( ( MousePressEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->widget->mousePressEvent( ( MousePressEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_MOUSERELEASE:
 					{
-						event.first->widget->mouseReleaseEvent( ( MouseReleaseEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->widget->mouseReleaseEvent( ( MouseReleaseEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_MOUSEMOVE:
 					{
-						event.first->widget->mouseMoveEvent( ( MouseMoveEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						w->widget->mouseMoveEvent( ( MouseMoveEvent* ) event.second );
 						delete event.second;
 					}
 					break;
 				case EVENT_CLOSE:
 					{
-						( ( Window* ) event.first->widget )->closeEvent( ( CloseEvent* ) event.second );
+						WidgetImplWinGLX11* w = windows[ event.first ];
+						( ( Window* ) w->widget )->closeEvent( ( CloseEvent* ) event.second );
 						delete event.second;
 					}
 					break;
