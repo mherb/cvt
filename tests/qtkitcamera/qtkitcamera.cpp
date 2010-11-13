@@ -11,11 +11,11 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	unsigned int numCams = QTKitCamera::numberOfCameras();
+	unsigned int numCams = QTKitCamera::count();
 	
 	std::cout << "Available QTKit Devices: " << numCams << std::endl;
 	
-	QTKitCamera cam( 0 );
+	QTKitCamera cam( 0, 320, 240 );
 
 	int key;
 	size_t frames = 0;
@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 
 	try {		
 		timer.reset();
+
 		while( 1 ) {
 			cam.nextFrame();
 			const Image & frame = cam.frame();
@@ -38,12 +39,13 @@ int main(int argc, char* argv[])
 			if( key == 27 )
 				break;
 
-			frames++;
+			frames++;			
 			if( timer.elapsedSeconds() > 5.0f ) {
 				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
 				frames = 0;
 				timer.reset();
 			}
+			
 		}
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
