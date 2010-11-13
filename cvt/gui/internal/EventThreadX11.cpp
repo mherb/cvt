@@ -56,12 +56,25 @@ namespace cvt {
 			    break;
 			case Expose:
 			    {
-				if( xevent.xexpose.count == 0 ) {
-				    while( XCheckTypedWindowEvent( dpy, xevent.xexpose.window, Expose, &xevent ) )
-					;
-				    e = new PaintEvent( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
-				    enqueue( xevent.xexpose.window, e );
+				// Compress resize/motions before sending expose events
+				int cfevent = 0;
+				XEvent xevent2;
+				while( ( cfevent = XCheckTypedWindowEvent( dpy, xevent.xexpose.window, ConfigureNotify, &xevent2 ) ) )
+				    ;
+				if( cfevent ) {
+				    e = new ResizeEvent( xevent2.xconfigure.width, xevent2.xconfigure.height, 0, 0 );
+				    enqueue( xevent2.xconfigure.window, e );
+				    if( xevent2.xconfigure.send_event ) {
+					e = new MoveEvent( xevent2.xconfigure.x, xevent2.xconfigure.y, 0, 0 );
+					enqueue( xevent2.xconfigure.window, e );
+				    }
 				}
+
+				// Comporess expose
+				while( XCheckTypedWindowEvent( dpy, xevent.xexpose.window, Expose, &xevent ) )
+				    ;
+				e = new PaintEvent( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
+				enqueue( xevent.xexpose.window, e );
 			    }
 			    break;
 			case ButtonPress:
