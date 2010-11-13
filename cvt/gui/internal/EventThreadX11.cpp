@@ -31,8 +31,6 @@ namespace cvt {
 				    e = new MoveEvent( xevent.xconfigure.x, xevent.xconfigure.y, 0, 0 );
 				    enqueue( xevent.xconfigure.window, e );
 				}
-				e = new PaintEvent( 0, 0, 0, 0 );
-				enqueue( xevent.xexpose.window, e );
 			    }
 			    break;
 			case ReparentNotify:
@@ -59,6 +57,8 @@ namespace cvt {
 			case Expose:
 			    {
 				if( xevent.xexpose.count == 0 ) {
+				    while( XCheckTypedWindowEvent( dpy, xevent.xexpose.window, Expose, &xevent ) )
+					;
 				    e = new PaintEvent( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
 				    enqueue( xevent.xexpose.window, e );
 				}
