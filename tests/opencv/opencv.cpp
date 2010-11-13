@@ -118,11 +118,43 @@ void testKLT()
 	cvReleaseCapture( &cam );	
 }
 
+void edgeTests()
+{
+	std::string input( "/Users/sebi/Documents/keynotes+powerpoints/iros2010/cam1.jpg" );
+	
+	cv::Mat in  = cv::imread( input );
+	cv::Mat gray;
+	cv::cvtColor( in, gray, CV_RGB2GRAY );
+	
+	cv::Mat canny( in.rows, in.cols, CV_8UC1 );
+	cv::Mat sobelX( in.rows, in.cols, CV_32FC1 );
+	cv::Mat sobelY( in.rows, in.cols, CV_32FC1 );
+	
+	cv::Canny( gray, canny, 30.0, 100.0 );
+	cv::imshow( "Edges", canny );
+	cv::waitKey( 0 );
+	
+	cv::Sobel( gray, sobelX, CV_32F, 1, 0 );
+	cv::Sobel( gray, sobelY, CV_32F, 0, 1 );
+	
+	cv::convertScaleAbs( sobelX, gray );
+	
+	cv::imshow( "Edges", gray );
+	cv::waitKey( 0 );
+	cv::convertScaleAbs( sobelY, gray );
+	cv::imshow( "Edges", gray );
+	cv::waitKey( 0 );
+	
+	cv::imwrite( "canny1.jpg", canny );
+	cv::imwrite( "sobelX1.jpg", sobelX );
+	cv::imwrite( "sobelY1.jpg", sobelY );
+}
+
 int main(int argc, char* argv[])
 {
 	// for opencv tests ...
-	
-	testKLT();
+	edgeTests();
+	//testKLT();
 	
 	return 0;
 }
