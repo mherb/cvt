@@ -2,6 +2,9 @@ PROJECT(cvt CXX C)
 
 INCLUDE(LibraryConfig)
 INCLUDE(MacroModuleConfiguration)
+
+INCLUDE(GLCLTOHEADER)
+
 INCLUDE(CVTTESTS)
 
 SET(MODULE_NAME "cvt")
@@ -12,7 +15,20 @@ FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options signals thr
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
+
 FIND_PACKAGE(OpenGL REQUIRED)
+IF( APPLE )
+	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
+	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
+	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
+	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
+	SET( OPENGL_LIBRARIES 
+		${OPENGL_gl_LIBRARY}
+		${OPENGL_glu_LIBRARY} )
+	
+	LINK_DIRECTORIES(/usr/X11/lib)
+ENDIF( APPLE )
+
 FIND_PACKAGE(OpenCL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
 FIND_PACKAGE(X11 REQUIRED)
@@ -25,7 +41,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
 	${LIBDC1394_LIBRARY}
-	${X11_LIBRARIES}
+	${X11_X11_LIB}
 )
 
 GLSLTOHEADER(gl/shader/120/basic_120.vert)
@@ -51,6 +67,9 @@ SET(${MODULE_NAME}_HEADERS
 	io/FileSystem.h
 	io/FloFile.h
 	io/ImageIO.h
+	io/VideoInput.h
+	io/CameraInfo.h
+	io/Camera.h
 	io/DC1394Camera.h
 	io/Resources.h
 	math/ESM.cpp
@@ -117,6 +136,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageIO.cpp
+	io/Camera.cpp
 	io/DC1394Camera.cpp
 	io/Resources.cpp
 	math/ESM.cpp
@@ -160,19 +180,20 @@ SET(${MODULE_NAME}_SOURCES
 IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
-#			io/QTKit.h
-#			io/QTKitCamera.h
-		)
-		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
-#			io/QTKit.mm
-#			io/QTKitCamera.cpp
+			io/QTKitCamera.h
 		)
 		
-#		SET(${MODULE_NAME}_DEP_LIBRARIES
-#			${${MODULE_NAME}_DEP_LIBRARIES}
-#			"-framework CoreFoundation"
-#			"-framework QTKit"
-#		)		
+		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
+			io/QTKitCamera.mm
+		)
+		
+		SET(${MODULE_NAME}_DEP_LIBRARIES
+			${${MODULE_NAME}_DEP_LIBRARIES}			
+			"-framework Cocoa"
+			"-framework CoreFoundation"
+			"-framework QuartzCore"
+			"-framework QTKit"
+		)
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
@@ -214,7 +235,7 @@ INCLUDE_DIRECTORIES(
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
 	${LIBDC1394_INCLUDE_DIR}
-	${X11_INCLUDE_DIR}
+	${X11_X11_INCLUDE_PATH}
 )
 
 #set opencl filter path
@@ -233,6 +254,7 @@ CVTTESTS(cvt util/cvttestsproto.h)
 link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
+MESSAGE( "LIBS: ${${MODULE_NAME}_DEP_LIBRARIES}" )
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
