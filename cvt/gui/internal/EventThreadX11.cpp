@@ -31,6 +31,8 @@ namespace cvt {
 				    e = new MoveEvent( xevent.xconfigure.x, xevent.xconfigure.y, 0, 0 );
 				    enqueue( xevent.xconfigure.window, e );
 				}
+				e = new PaintEvent( 0, 0, 0, 0 );
+				enqueue( xevent.xexpose.window, e );
 			    }
 			    break;
 			case ReparentNotify:
