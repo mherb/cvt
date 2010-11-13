@@ -23,6 +23,8 @@ namespace cvt {
 		    switch( xevent.type ) {
 			case ConfigureNotify:
 			    {
+				while( XCheckTypedWindowEvent( dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
+				    ;
 				e = new ResizeEvent( xevent.xconfigure.width, xevent.xconfigure.height, 0, 0 );
 				enqueue( xevent.xconfigure.window, e );
 				if( xevent.xconfigure.send_event ) {
@@ -74,6 +76,8 @@ namespace cvt {
 			    break;
 			case MotionNotify:
 			    {
+				while( XCheckTypedWindowEvent( dpy, xevent.xmotion.window, MotionNotify, &xevent ) )
+				    ;
 				e = new MouseMoveEvent( xevent.xmotion.x, xevent.xmotion.y );
 				enqueue( xevent.xmotion.window, e );
 			    }
