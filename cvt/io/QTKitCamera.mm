@@ -90,15 +90,14 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 			 cvt::IOrder::BGRA != img->order() ||
 			 cvt::IType::UBYTE != img->type() ){
 			 img->reallocate( width, height, cvt::IOrder::RGBA, cvt::IType::UBYTE );
-		}
-		
+		}		
 				
 		// copy the image: 
 		size_t stride;
 		uint8_t * dstBase = img->map( &stride );
-		if( rowBytes == stride )
+		if( rowBytes == stride ){
 			memcpy( dstBase, sourceBase, height*stride );
-		else {
+		} else {
 			size_t i = height;
 			cvt::SIMD * simd = cvt::SIMD::get();
 			uint8_t * dst = dstBase;			
@@ -133,11 +132,16 @@ namespace cvt {
 	class QTKitCameraInterface
 	{
 		public:
-			QTKitCameraInterface( size_t camIndex );		
+		QTKitCameraInterface( size_t camIndex, 
+							  size_t width, 
+							  size_t height, 
+							  size_t fps, 
+							  IOrder order,
+							  IType type );		
 			~QTKitCameraInterface();	
 			void nextFrame( cvt::Image & img );
 
-			static size_t numberOfCameras();
+			static size_t count();
 			static void nameForIndex( size_t index, std::string & n );
 		
 		private:	
@@ -148,7 +152,12 @@ namespace cvt {
 			QTCaptureDecompressedVideoOutput  * _output;
 	};
 	
-	QTKitCameraInterface::QTKitCameraInterface( size_t camIndex ):
+	QTKitCameraInterface::QTKitCameraInterface( size_t camIndex,
+											    size_t width, 
+											    size_t height, 
+											    size_t fps, 
+											    IOrder order,
+											    IType type):
 		_pool( 0 ),
 		_qtDevice( 0 ),
 		_session( 0 ),
@@ -181,8 +190,8 @@ namespace cvt {
 		[_output setAutomaticallyDropsLateVideoFrames:YES];
 		
 		NSDictionary * attr = [NSDictionary dictionaryWithObjectsAndKeys:
-							   [NSNumber numberWithInt:640], kCVPixelBufferWidthKey,
-							   [NSNumber numberWithInt:480], kCVPixelBufferHeightKey, 
+							   [NSNumber numberWithInt:width], kCVPixelBufferWidthKey,
+							   [NSNumber numberWithInt:height], kCVPixelBufferHeightKey,
 							   [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA], (id)kCVPixelBufferPixelFormatTypeKey,
 							   nil];
 		[_output setPixelBufferAttributes:attr];
@@ -211,19 +220,19 @@ namespace cvt {
 	
 	void QTKitCameraInterface::nextFrame( cvt::Image & img )
 	{		
-		double sleepTime = 0.005; 
+		double sleepTime = 0.01; 
 		NSDate *loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
 		
-		while( ![ _camDelegate isNewFrame ] && 			   
-			   [ [ NSRunLoop currentRunLoop ] runMode: NSDefaultRunLoopMode 
-										   beforeDate:loopUntil ] )
-			loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime]; 
+		while( ![ _camDelegate isNewFrame ] && 
+			   [ [ NSRunLoop currentRunLoop ] runMode: NSDefaultRunLoopMode beforeDate:loopUntil ] ){
+			loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
+		}
 		
 		[ _camDelegate copyCurrentFrame: &img ];
 	}
 	
 	
-	size_t QTKitCameraInterface::numberOfCameras()
+	size_t QTKitCameraInterface::count()
 	{			
 		NSAutoreleasePool * pool = [[ NSAutoreleasePool alloc ] init];
 		size_t count = [[QTCaptureDevice inputDevicesWithMediaType:QTMediaTypeVideo] count ];
@@ -268,7 +277,7 @@ namespace cvt {
 							 IType type ):
 		_frame( width, height, order, type )
 	{
-		_device = new QTKitCameraInterface( camIndex );
+		_device = new QTKitCameraInterface( camIndex, width, height, fps, order, type );
 	}
 	
 	QTKitCamera::~QTKitCamera()
@@ -281,9 +290,9 @@ namespace cvt {
 		_device->nextFrame( _frame );
 	}
 	
-	size_t QTKitCamera::numberOfCameras()
+	size_t QTKitCamera::count()
 	{	
-		return QTKitCameraInterface::numberOfCameras();
+		return QTKitCameraInterface::count();
 	}
 	
 	void QTKitCamera::nameForIndex( size_t index, std::string & name )

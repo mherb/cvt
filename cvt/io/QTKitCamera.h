@@ -27,7 +27,7 @@ class QTKitCamera : public Camera
 		virtual const IOrder order() const;
 		virtual const IType type() const;
 	
-		static size_t numberOfCameras();
+		static size_t count();
 		static void nameForIndex( size_t index, std::string & name );
 		
 	private:
