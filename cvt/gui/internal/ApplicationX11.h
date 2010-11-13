@@ -31,7 +31,6 @@ namespace cvt {
 			::Atom xatom_wmdelete;
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
-			std::queue< WidgetImplWinGLX11* > updates;
 			TQueue<std::pair< ::Window,Event*> > events;
 	};
 }
