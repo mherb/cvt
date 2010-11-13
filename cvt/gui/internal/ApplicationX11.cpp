@@ -60,7 +60,7 @@ namespace cvt {
 	{
 		WidgetImpl* ret;
 		if( !w->getParent() ) {
-			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &updates );
+			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &events );
 			XSetWMProtocols(dpy, impl->win, &xatom_wmdelete, 1);
 			windows.insert( std::pair< ::Window, WidgetImplWinGLX11*>( impl->win, impl ) );
 			ret = impl;
@@ -163,17 +163,9 @@ namespace cvt {
 				default:
 					break;
 			}
-
-			while( updates.size() ) {
-				WidgetImplWinGLX11* w = updates.front();
-				updates.pop();
-				PaintEvent pevent( 0, 0, 0, 0 );
-				w->paintEvent( &pevent );
-			}
-
 		}
 
-		/* FIXME: do cleanup - iterate over windows and delete widget and only widgets */
+		/* FIXME: do cleanup afterwards */
 	}
 }
 
