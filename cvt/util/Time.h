@@ -1,6 +1,7 @@
 #ifndef CVT_TIME_H
 #define CVT_TIME_H
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -27,6 +28,8 @@ namespace cvt {
 			double operator-( const Time& t ) const;
 			double operator+( double ms ) const;
 			double operator-( double ms ) const;
+			const Time& operator+=( size_t ms );
+			int compare( const Time& t ) const;
 
 		private:
 			double timespecToMS( const struct timespec& ts ) const;
@@ -107,6 +110,27 @@ namespace cvt {
 	inline double Time::ms() const
 	{
 		return timespecToMS( _ts );
+	}
+
+	inline const Time& Time::operator+=( size_t ms )
+	{
+		long ns, sec;
+		ldiv_t res;
+		ns = ms * 1000000L + _ts.tv_nsec;
+		res = ldiv( ns, 1000000000L );
+		_ts.tv_sec += res.quot;
+		_ts.tv_nsec = res.rem;
+		return *this;
+	}
+
+	inline int Time::compare( const Time& t ) const
+	{
+		if ( _ts.tv_sec < t._ts.tv_sec)
+			return -1;
+		if ( _ts.tv_sec > t._ts.tv_sec)
+			return 1;
+		// FIXME: under/overflow
+		return ( int ) ( _ts.tv_nsec - t._ts.tv_nsec );
 	}
 }
 

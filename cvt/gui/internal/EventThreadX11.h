@@ -6,13 +6,14 @@
 #include <cvt/util/Thread.h>
 #include <cvt/util/TQueue.h>
 #include <cvt/gui/event/Event.h>
+#include <cvt/gui/TimerInfoList.h>
 #include <map>
 
 namespace cvt {
 
 	class EventThreadX11 : public Thread<void>  {
 		public:
-			EventThreadX11( ::Display* display, TQueue<std::pair< ::Window,Event*> >* q ) : dpy( display ), _queue( q ) {};
+			EventThreadX11( ::Display* display, TQueue<std::pair< ::Window,Event*> >* q, TimerInfoList* timers ) : dpy( display ), _queue( q ), _timers( timers ) {};
 			~EventThreadX11() {};
 			void execute( void* );
 
@@ -21,6 +22,7 @@ namespace cvt {
 
 			::Display* dpy;
 			TQueue<std::pair< ::Window,Event*> >* _queue;
+			TimerInfoList* _timers;
 			::Atom xatom_wmdelete;
 			::Atom xatom_wmproto;
 	};
