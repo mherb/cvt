@@ -2,7 +2,7 @@
 
 #include "math/Math.h"
 #include "util/CVTTest.h"
-#include "util/Timer.h"
+#include "util/Time.h"
 
 namespace cvt {
 
@@ -181,7 +181,7 @@ namespace cvt {
 			double d, t1, t2;
 			int i;
 			bool b;
-			Timer t;
+			Time t;
 
 			f = Math::mix( 0.0f, 1.0f, 0.5f );
 			CVTTEST_PRINT( "Mix with float", f == 0.5f );
@@ -207,13 +207,13 @@ namespace cvt {
 				 f = Math::rand( 0.0f, Math::MAXF );
 				 f = Math::invSqrt( f );
 			}
-			t1 = t.elapsedMiliSeconds();
+			t1 = t.elapsedMilliSeconds();
 			t.reset();
 			for( size_t i = 0; i <= 800000; i++ ){
 				 f = Math::rand( 0.0f, Math::MAXF );
 				 f = 1.0f / ::sqrtf( f );
 			}
-			t2 = t.elapsedMiliSeconds();
+			t2 = t.elapsedMilliSeconds();
 			std::cerr << "Math::invSqrt " << t1 << " ms 1.0/::sqrtf " << t2 << " ms" << std::endl;
 			CVTTEST_PRINT( "Math::abs performance", t1 < t2 );*/
 
@@ -223,13 +223,13 @@ namespace cvt {
 				 f = Math::rand( -1e5f, 1e5f );
 				 f = Math::abs( f );
 			}
-			t1 = t.elapsedMiliSeconds();
+			t1 = t.elapsedMilliSeconds();
 			t.reset();
 			for( size_t i = 0; i <= 800000; i++ ){
 				 f = Math::rand( -1e5f, 1e5f );
 				 f = ::fabsf( f );
 			}
-			t2 = t.elapsedMiliSeconds();
+			t2 = t.elapsedMilliSeconds();
 			std::cerr << "Math::abs " << t1 << " ms ::fabsf " << t2 << " ms" << std::endl;
 			CVTTEST_PRINT( "Math::abs performance", t1 - 0.5f < t2 );
 

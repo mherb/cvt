@@ -1,5 +1,5 @@
 #include "util/SIMD.h"
-#include "util/Timer.h"
+#include "util/Time.h"
 #include "util/CVTTest.h"
 #include "math/Math.h"
 #include <sstream>
@@ -59,7 +59,7 @@ BEGIN_CVTTEST( simd )
 		float* fsrc2;
 		float val1;
 		float val4[ 4 ] = { 0.5f, 2.0f, 1.4323f, 0.2f };
-		Timer tmr;
+		Time tmr;
 		double t;
 
 #define TESTSIZE ( 32 + 3 )
@@ -94,7 +94,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Add( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Add "  << t  << " ms" << std::endl;
@@ -106,7 +106,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Sub( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Sub "  << t  << " ms" << std::endl;
@@ -118,7 +118,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Mul( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Mul "  << t  << " ms" << std::endl;
@@ -130,7 +130,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Div( fdst, fsrc1, fsrc2, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Div "  << t  << " ms" << std::endl;
@@ -142,7 +142,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Add( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Add Const "  << t  << " ms" << std::endl;
@@ -154,7 +154,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Sub( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Sub Const "  << t  << " ms" << std::endl;
@@ -166,7 +166,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Mul( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Mul Const "  << t  << " ms" << std::endl;
@@ -178,7 +178,7 @@ BEGIN_CVTTEST( simd )
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
 				simd->Div( fdst, fsrc1, 10.0f, TESTSIZE );
-				t += tmr.elapsedMiliSeconds();
+				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;

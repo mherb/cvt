@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 
 void testKLT()
 {	
@@ -17,7 +17,7 @@ void testKLT()
 	
 	IplImage * ipl = 0;
 	
-	cvt::Timer timer;
+	cvt::Time timer;
 	
 	int threshold = 40;
 	double nonMaxSuppr = true;

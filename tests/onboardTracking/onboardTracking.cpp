@@ -8,7 +8,7 @@
 #include "VisiblePoints.h"
 
 #include <cvt/util/Exception.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/gfx/Image.h>
 
 #include <cv.h>
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
 	cvt::Image img(640, 480);
 
-	cvt::Timer timer;
+	cvt::Time timer;
 
 	try {
 		VisiblePoints visiblePoints(argv[1]);

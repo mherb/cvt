@@ -1,5 +1,5 @@
 #include <cvt/io/Camera.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
 #include <cv.h>
@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
 
 	int key;
 	size_t frames = 0;
-	Timer timer;
+	Time timer;
 	Camera * cam = 0;
 	
 	try {

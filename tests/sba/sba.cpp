@@ -7,7 +7,7 @@
 #include <cvt/io/Resources.h>
 
 #include <cvt/util/Exception.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/math/SparseBundleAdjustment.h>
 #include <cvt/math/SBAData.h>
 
@@ -329,7 +329,7 @@ void testOpenCVImplementation( Eigen::Matrix3d & K,
 	
 	cv::TermCriteria criteria( cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, DBL_EPSILON );
 		
-	cvt::Timer timer;
+	cvt::Time timer;
 		
 	std::cout << pointsOCV.size() << std::endl;
 	cv::LevMarqSparse::bundleAdjust( pointsOCV,
@@ -341,7 +341,7 @@ void testOpenCVImplementation( Eigen::Matrix3d & K,
 									 distortions,
 									 criteria );
 	
-	std::cout << "OpenCV BA took: " << timer.elapsedMiliSeconds() << "ms" << std::endl;	
+	std::cout << "OpenCV BA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
 }
 
 void showResults( cvt::SBAData & sbaData )
@@ -577,10 +577,10 @@ void testMVGImplementation( Eigen::Matrix3d & K,
 	
 	convertData( K, cameras, points3d, sbaData );
 	
-	cvt::Timer timer;
+	cvt::Time timer;
 	sba.optimize( sbaData );
 	
-	std::cout << "MVG BA took: " << timer.elapsedMiliSeconds() << "ms" << std::endl;	
+	std::cout << "MVG BA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
 	std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.epsilon() << std::endl; 
 	std::cout << "Time/iteration: " << timer.elapsedSeconds() / sba.iterations() << std::endl;
 	
@@ -601,7 +601,7 @@ void testSimulation()
 	cvt::SparseBundleAdjustment sba;
 	sba.setTerminationCriteria( 1e-10, 40 );
 
-	cvt::Timer timer;
+	cvt::Time timer;
 	
 	sba.optimize( sbaData );
 	
