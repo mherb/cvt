@@ -5,6 +5,8 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/event/Event.h>
+#include <cvt/gui/EventTimer.h>
+#include <cvt/gui/TimerInfoList.h>
 #include <cvt/gl/OpenGL.h>
 #include <cvt/util/TQueue.h>
 #include <map>
@@ -18,9 +20,13 @@ namespace cvt {
 			ApplicationX11();
 			~ApplicationX11();
 
-			virtual WidgetImpl* getWidgetImpl( Widget* win );
 			virtual void runApp();
 			virtual void exitApp() { run = false; };
+
+			virtual uint32_t registerTimer( size_t interval, EventTimer* t ) { return timers.registerTimer( interval, t ); };
+			virtual void unregisterTimer( uint32_t id ) { timers.unregisterTimer( id ); };
+
+			virtual WidgetImpl* getWidgetImpl( Widget* win );
 
 		private:
 			ApplicationX11( const Application& );
@@ -32,6 +38,7 @@ namespace cvt {
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
 			TQueue<std::pair< ::Window,Event*> > events;
+			TimerInfoList timers;
 	};
 }
 

@@ -83,7 +83,6 @@ SET(${MODULE_NAME}_HEADERS
 	util/Rect.h
 	util/CVTTest.h
 	util/Exception.h
-	util/Timer.h
 	util/SIMD.h
 	util/SIMDSSE.h
 	util/CPU.h
@@ -110,6 +109,9 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Application.h
 	gui/Window.h
 	gui/Widget.h
+	gui/Timer.h
+	gui/TimerInfo.h
+	gui/TimerInfoList.h
 	gl/OpenGL.h
 	gl/GLException.h
 	gl/GLProgram.h
@@ -168,6 +170,8 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Widget.cpp
 	gui/GFX.cpp
 	gui/GFXGL.cpp
+	gui/TimerInfo.cpp
+	gui/TimerInfoList.cpp
 	gui/internal/WidgetImplWinGLX11.cpp
 	gui/internal/ApplicationX11.cpp
 	gui/internal/EventThreadX11.cpp

@@ -1,6 +1,7 @@
 #include <cvt/gui/internal/ApplicationX11.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/internal/EventThreadX11.h>
+#include <cvt/gui/TimerInfo.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
@@ -73,7 +74,7 @@ namespace cvt {
 	void ApplicationX11::runApp()
 	{
 		std::pair< ::Window, Event*> event;
-		EventThreadX11 eventthread( dpy, &events );
+		EventThreadX11 eventthread( dpy, &events, &timers );
 
 		run = true;
 
@@ -158,6 +159,13 @@ namespace cvt {
 						WidgetImplWinGLX11* w = windows[ event.first ];
 						( ( Window* ) w->widget )->closeEvent( ( CloseEvent* ) event.second );
 						delete event.second;
+					}
+					break;
+				case EVENT_TIMER:
+					{
+						std::cout << "EVENT_TIMER" << std::endl;
+						TimerInfo* tinfo = ( ( TimerEvent * ) event.second )->timerinfo;
+						tinfo->dispatch();
 					}
 					break;
 				default:
