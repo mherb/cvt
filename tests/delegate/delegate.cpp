@@ -1,5 +1,5 @@
 #include <cvt/util/Delegate.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 
 #include <iostream>
 
@@ -50,15 +50,15 @@ int main()
 
 #define CALLMAX 90000000
 
-	Timer t;
+	Time t;
 	t.reset();
 	for( size_t i = 0; i < CALLMAX; i++ )
 		a.bla();
-	std::cout << "Time: " << t.elapsedMiliSeconds() << std::endl;
+	std::cout << "Time: " << t.elapsedMilliSeconds() << std::endl;
 
 	t.reset();
 	for( size_t i = 0; i < CALLMAX; i++ )
 		d7();
-	std::cout << "Time: " << t.elapsedMiliSeconds() << std::endl;
+	std::cout << "Time: " << t.elapsedMilliSeconds() << std::endl;
 
 }

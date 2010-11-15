@@ -5,7 +5,6 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Exception.h>
-#include <cvt/util/Timer.h>
 #include <cvt/io/FloFile.h>
 #include <cvt/vision/Flow.h>
 #include <string>

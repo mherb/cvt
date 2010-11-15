@@ -5,7 +5,7 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Exception.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/io/FloFile.h>
 #include <cvt/vision/Flow.h>
 #include <string>
@@ -40,7 +40,7 @@ int main( int argc, char** argv )
 	bool doprocess = true;
 	int key;
 	size_t frames = 0;
-	Timer timer;
+	Time timer;
 	std::vector<cl::Event> sync;
 	cl::Event event;
 	int pyridx = 0;

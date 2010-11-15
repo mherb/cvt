@@ -6,7 +6,7 @@
 
 #include <cvt/util/Exception.h>
 
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 
 #include <cv.h>
 #include <highgui.h>
@@ -19,7 +19,7 @@ int main( int argc, char* argv[] )
 	std::string inputFile( dataFolder + "/lena_g.png" );
 		
 	try {
-		cvt::Timer timer;
+		cvt::Time timer;
 		
 		// RGBA UBYTE IMAGE
 		cvt::Image imgGray;		

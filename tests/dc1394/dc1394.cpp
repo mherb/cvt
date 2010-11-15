@@ -5,7 +5,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/DC1394Camera.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
 using namespace cvt;
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 //	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
 	int key;
 	size_t frames = 0;
-	Timer timer;
+	Time timer;
 
 
 	try {

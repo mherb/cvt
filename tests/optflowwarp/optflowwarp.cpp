@@ -3,7 +3,6 @@
 #include <highgui.h>
 
 #include <cvt/gfx/Image.h>
-#include <cvt/util/Timer.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/util/Exception.h>

@@ -7,7 +7,7 @@
 #include <cvt/io/DC1394Camera.h>
 //#include <cvt/io/V4L2Camera.h>
 #include <cvt/io/ImageIO.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 #include <cvt/math/ESM.h>
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
 	int key;
 	size_t frames = 0;
-	Timer timer;	
+	Time timer;	
 	
 	try {
 		

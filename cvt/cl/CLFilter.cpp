@@ -1,5 +1,5 @@
 #include <cvt/cl/CLFilter.h>
-#include <cvt/util/Timer.h>
+#include <cvt/util/Time.h>
 
 namespace cvt {
 
@@ -76,7 +76,7 @@ namespace cvt {
 
 		void CLFilter::apply( CLParameterSet* set, double& t )
 		{
-			Timer timer;
+			Time timer;
 
 			apply( set );
 			cl->getCLQueue( ).finish( );

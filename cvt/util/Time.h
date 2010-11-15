@@ -23,11 +23,10 @@ namespace cvt {
 			double elapsedMilliSeconds() const;
 			double elapsedMicroSeconds() const;
 			double ms() const;
-			double operator-( const Time& t ) const;
 			double operator+( const Time& t ) const;
-			double operator-( double ms ) const;
+			double operator-( const Time& t ) const;
 			double operator+( double ms ) const;
-
+			double operator-( double ms ) const;
 
 		private:
 			double timespecToMS( const struct timespec& ts ) const;
@@ -54,12 +53,12 @@ namespace cvt {
 		clock_gettime( CLOCK_MONOTONIC, &_ts );
 	}
 
-	double Time::timespecToMS( const struct timespec& ts ) const
+	inline double Time::timespecToMS( const struct timespec& ts ) const
 	{
 		return ( ( double ) ts.tv_sec ) * 1000.0 + ( ( double ) ts.tv_nsec ) * 0.000001;
 	}
 
-	double Time::timespecToUS( const struct timespec& ts ) const
+	inline double Time::timespecToUS( const struct timespec& ts ) const
 	{
 		return ( ( double ) ts.tv_sec ) * 1000000.0 + ( ( double ) ts.tv_nsec ) * 0.001;
 	}
@@ -85,27 +84,27 @@ namespace cvt {
 		return timespecToUS( ts2 ) - timespecToUS( _ts );
 	}
 
-	double Time::operator-( const Time& t ) const
+	inline double Time::operator-( const Time& t ) const
 	{
 		return timespecToMS( _ts ) - timespecToMS( t._ts );
 	}
 
-	double Time::operator+( const Time& t ) const
+	inline double Time::operator+( const Time& t ) const
 	{
 		return timespecToMS( _ts ) + timespecToMS( t._ts );
 	}
 
-	double Time::operator-( double ms ) const
+	inline double Time::operator-( double ms ) const
 	{
 		return timespecToMS( _ts ) - ms;
 	}
 
-	double Time::operator+( double ms ) const
+	inline double Time::operator+( double ms ) const
 	{
 		return timespecToMS( _ts ) + ms;
 	}
 
-	double Time::ms() const
+	inline double Time::ms() const
 	{
 		return timespecToMS( _ts );
 	}
