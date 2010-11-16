@@ -62,7 +62,7 @@ namespace cvt {
 
 		void TimerInfoList::queueEvents( TQueue<std::pair< ::Window,Event*> >* queue )
 		{
-			_mtx.lock();
+			ScopeLock lock( &_mtx );
 			Time now;
 			std::list<TimerInfo*> tmplist;
 
@@ -81,7 +81,6 @@ namespace cvt {
 					}
 					insertTimer( &_timers, tinfo );
 			}
-			_mtx.unlock();
 		}
 
 }

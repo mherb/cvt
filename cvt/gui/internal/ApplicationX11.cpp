@@ -1,10 +1,11 @@
 #include <cvt/gui/internal/ApplicationX11.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
-#include <cvt/gui/internal/EventThreadX11.h>
+#include <cvt/gui/internal/X11Handler.h>
 #include <cvt/gui/TimerInfo.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
+
 
 namespace cvt {
 	ApplicationX11::ApplicationX11()
@@ -61,7 +62,7 @@ namespace cvt {
 	{
 		WidgetImpl* ret;
 		if( !w->getParent() ) {
-			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &events );
+			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &updates );
 			XSetWMProtocols(dpy, impl->win, &xatom_wmdelete, 1);
 			windows.insert( std::pair< ::Window, WidgetImplWinGLX11*>( impl->win, impl ) );
 			ret = impl;
@@ -73,104 +74,28 @@ namespace cvt {
 
 	void ApplicationX11::runApp()
 	{
-		std::pair< ::Window, Event*> event;
-		EventThreadX11 eventthread( dpy, &events, &timers );
+		X11Handler x11handler( dpy, &windows );
+		_ioselect.registerIOHandler( &x11handler );
 
 		run = true;
 
-		eventthread.run( NULL );
 		XSync( dpy, false );
 
 		while( run ) {
-			event = events.waitNext();
-			switch( event.second->type() ) {
-				case EVENT_RESIZE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						int oldwidth = w->rect.width;
-						int oldheight = w->rect.height;
+			_ioselect.handleIO( 1000 );
+			if( !updates.empty() ) {
+				PaintEvent pe( 0, 0, 0, 0 );
+				WidgetImplWinGLX11* win;
 
-						if( oldwidth != ( ( ResizeEvent* ) event.second )->width() || oldheight != ( ( ResizeEvent* ) event.second )->height() ) {
-							( ( ResizeEvent* ) event.second )->_oldwidth = oldwidth;
-							( ( ResizeEvent* ) event.second )->_oldheight = oldheight;
-							w->resizeEvent( ( ResizeEvent* ) event.second );
-						}
-						delete event.second;
-					}
-					break;
-				case EVENT_MOVE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						int oldx = w->rect.x;
-						int oldy = w->rect.y;
-
-						if( oldx != ( ( MoveEvent* ) event.second )->x()  || oldy != ( ( MoveEvent* ) event.second )->y() ) {
-							( ( MoveEvent* ) event.second )->_oldx = oldx;
-							( ( MoveEvent* ) event.second )->_oldy = oldy;
-							w->moveEvent( ( MoveEvent* ) event.second );
-						}
-						delete event.second;
-					}
-					break;
-				case EVENT_SHOW:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->showEvent( ( ShowEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_HIDE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->hideEvent( ( HideEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_PAINT:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->paintEvent( ( PaintEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_MOUSEPRESS:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->widget->mousePressEvent( ( MousePressEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_MOUSERELEASE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->widget->mouseReleaseEvent( ( MouseReleaseEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_MOUSEMOVE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						w->widget->mouseMoveEvent( ( MouseMoveEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_CLOSE:
-					{
-						WidgetImplWinGLX11* w = windows[ event.first ];
-						( ( Window* ) w->widget )->closeEvent( ( CloseEvent* ) event.second );
-						delete event.second;
-					}
-					break;
-				case EVENT_TIMER:
-					{
-						TimerInfo* tinfo = ( ( TimerEvent * ) event.second )->timerinfo;
-						tinfo->dispatch();
-					}
-					break;
-				default:
-					break;
+				while( !updates.empty() ) {
+					win = updates.front();
+					updates.pop_front();
+					win->paintEvent( &pe );
+				}
 			}
 		}
+
+		_ioselect.unregisterIOHandler( &x11handler );
 
 		/* FIXME: do cleanup afterwards */
 	}

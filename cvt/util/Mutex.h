@@ -56,6 +56,28 @@ namespace cvt {
 		if( err )
 			throw CVTException( err );
 	}
+
+	class ScopeLock
+	{
+		public:
+			ScopeLock( Mutex* mtx );
+			~ScopeLock();
+
+		private:
+			ScopeLock( const ScopeLock& sl );
+
+			Mutex* _mtx;
+	};
+
+	inline ScopeLock::ScopeLock( Mutex* mtx ) : _mtx( mtx )
+	{
+		_mtx->lock();
+	}
+
+	inline ScopeLock::~ScopeLock()
+	{
+		_mtx->unlock();
+	}
 }
 
 #endif
