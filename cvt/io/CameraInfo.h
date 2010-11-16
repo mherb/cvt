@@ -15,36 +15,21 @@ namespace cvt {
 		CAMERATYPE_UEYE
 	};
 	
-	static const std::string CamTypeString[] =
-	{
-		"V4L2", "QTKIT", "DC1394", "UEYE"
-	};
-	
 	class CameraInfo
 	{	
-		friend class Camera;
-			
 		public:
-			const std::string & name() const;			
-			const CameraType type() const;
-			size_t index() const;
-			size_t maxFPS() const;
-			size_t maxWidth() const;
-			size_t maxHeight() const;
-			IOrder imageOrder() const;
-			IType imageType() const;
-					
-		private:		
 			CameraInfo();
-		
+			const std::string & name( ) const;			
+			void setName( const std::string & name );
+			const CameraType type() const;
+			void setType( CameraType type );
+			size_t index() const;
+			void setIndex( size_t index );
+			
+		private:		
 			std::string _name;
 			CameraType _type;
 			size_t _index;
-			size_t _maxFPS;
-			size_t _maxWidth;
-			size_t _maxHeight;
-			IOrder _imageOrder;
-			IType _imageType;
 	};
 	
 	inline CameraInfo::CameraInfo()
@@ -56,9 +41,19 @@ namespace cvt {
 		return _name;
 	}
 	
+	inline void CameraInfo::setName( const std::string & name )
+	{
+		_name = name;
+	}
+	
 	inline const CameraType CameraInfo::type() const
 	{
 		return _type;
+	}
+	
+	inline void CameraInfo::setType( CameraType type )
+	{
+		_type = type;
 	}
 	
 	inline size_t CameraInfo::index() const
@@ -66,29 +61,9 @@ namespace cvt {
 		return _index;		
 	}
 	
-	inline size_t CameraInfo::maxFPS() const
+	inline void CameraInfo::setIndex( size_t index )
 	{
-		return _maxFPS;
-	}
-	
-	inline size_t CameraInfo::maxWidth() const
-	{
-		return _maxWidth;
-	}
-	
-	inline size_t CameraInfo::maxHeight() const
-	{
-		return _maxHeight;
-	}
-	
-	inline IOrder CameraInfo::imageOrder() const
-	{
-		return _imageOrder;
-	}
-	
-	inline IType CameraInfo::imageType() const
-	{
-		return _imageType;
+		_index = index;
 	}
 }
 

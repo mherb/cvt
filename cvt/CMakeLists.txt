@@ -151,6 +151,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMD.cpp
 	util/SIMDSSE.cpp
 	util/SIMDTest.cpp
+	util/Time.cpp
 	gfx/Image.cpp
 	gfx/ImageTypes.cpp
 	gfx/ImageOperations.cpp

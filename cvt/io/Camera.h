@@ -17,6 +17,9 @@ namespace cvt {
 			static void updateInfo();			
 			static Camera* get( size_t index, size_t width = 640, size_t height = 480, 
 							    size_t fps = 30, cvt::IOrder order = IOrder::BGRA, cvt::IType type = IType::UBYTE );
+		
+			virtual void startCapture() = 0;
+			virtual void stopCapture() = 0;
 			
 		private:
 			static std::vector<CameraInfo> _camInfos;			

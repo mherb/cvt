@@ -5,6 +5,10 @@
 #include <unistd.h>
 #include <time.h>
 
+#ifdef APPLE
+	#include <mach/mach_time.h> 
+#endif
+
 #ifndef _POSIX_TIMERS
 #error "Posix timers not supported"
 #endif
@@ -34,12 +38,21 @@ namespace cvt {
 		private:
 			double timespecToMS( const struct timespec& ts ) const;
 			double timespecToUS( const struct timespec& ts ) const;
+			void updateTimespec( struct timespec& ts ) const;
 
 			struct timespec _ts;
+		
+#ifdef APPLE
+			static mach_timebase_info_data_t _machTimebase;
+#endif
 	};
 
 	inline Time::Time()
-	{
+	{		
+#ifdef APPLE
+		if( _machTimebase.denom == 0 )  
+               mach_timebase_info( &_machTimebase );
+#endif
 		reset();
 	}
 
@@ -53,7 +66,19 @@ namespace cvt {
 
 	inline void Time::reset()
 	{
-		clock_gettime( CLOCK_MONOTONIC, &_ts );
+		updateTimespec( _ts );
+	}
+	
+	inline void Time::updateTimespec( struct timespec& ts ) const
+	{
+#ifdef APPLE
+		uint64_t t = mach_absolute_time();
+		uint64_t ns = t * ( _machTimebase.numer / _machTimebase.denom );
+		ts.tv_sec = ns / 1000000000L;  
+        ts.tv_nsec = ns - (ts.tv_sec * 1000000000L);
+#else
+		clock_gettime( CLOCK_MONOTONIC, &ts );
+#endif		
 	}
 
 	inline double Time::timespecToMS( const struct timespec& ts ) const
@@ -69,21 +94,21 @@ namespace cvt {
 	inline double Time::elapsedSeconds() const
 	{
 		struct timespec ts2;
-		clock_gettime( CLOCK_MONOTONIC, &ts2 );
+		updateTimespec( ts2 );
 		return ( double ) ts2.tv_sec - ( double ) _ts.tv_sec;
 	}
 
 	inline double Time::elapsedMilliSeconds() const
 	{
 		struct timespec ts2;
-		clock_gettime( CLOCK_MONOTONIC, &ts2 );
+		updateTimespec( ts2 );
 		return timespecToMS( ts2 ) - timespecToMS( _ts );
 	}
 
 	inline double Time::elapsedMicroSeconds() const
 	{
 		struct timespec ts2;
-		clock_gettime( CLOCK_MONOTONIC, &ts2 );
+		updateTimespec( ts2 );
 		return timespecToUS( ts2 ) - timespecToUS( _ts );
 	}
 

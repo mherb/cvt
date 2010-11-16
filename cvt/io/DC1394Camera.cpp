@@ -4,124 +4,128 @@
 namespace cvt
 {
 
-	DC1394Camera::DC1394Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, IOrder order ) :	dmaBufNum( 10 ), mCamIndex( camIndex ), mFrame( NULL), mWidth( width ), mHeight( height ), mFps( fps ), mIorder( order ), capturing( false ), mDcHandle( NULL), mCamera( NULL ),  mSpeed( DC1394_ISO_SPEED_400 )
+	DC1394Camera::DC1394Camera(size_t camIndex, size_t width, size_t height, 
+							   size_t fps, IOrder order, IType type) :	
+		_dmaBufNum( 10 ), _camIndex( camIndex ), _frame( width, height, order, type ), 
+		_width( width ), _height( height ), _fps( fps ), 
+		_order( order ), _type( type ),	_capturing( false ), 
+		_dcHandle( NULL ), _camera( NULL ),  _speed( DC1394_ISO_SPEED_400 )
 	{
-		mDcHandle = dc1394_new( );
+		_dcHandle = dc1394_new( );
 		dc1394camera_list_t* list;
 
-		dc1394_camera_enumerate( mDcHandle, &list );
+		dc1394_camera_enumerate( _dcHandle, &list );
 
 		if( list->num == 0 ) {
 			throw CVTException( "No Firewire cameras found" );
 		}
 
-		if( list->num <= mCamIndex ) {
+		if( list->num <= _camIndex ) {
 			throw CVTException(	"No camera with this index found" );
 		}
 
-		mCamera = dc1394_camera_new( mDcHandle, list->ids[ mCamIndex ].guid );
+		_camera = dc1394_camera_new( _dcHandle, list->ids[ _camIndex ].guid );
 		dc1394_camera_free_list( list );
 
-		if( !mCamera )
+		if( !_camera )
 			throw CVTException( "Could not open camera" );
 
-		mFramerate = DC1394_FRAMERATE_60;
-		mMode = DC1394_VIDEO_MODE_640x480_MONO8;
-		mFrame = new Image( 640, 480, IOrder::GRAY, IType::UBYTE );
+		_framerate = DC1394_FRAMERATE_60;
+		_mode = DC1394_VIDEO_MODE_640x480_MONO8;
 	}
 
 	DC1394Camera::~DC1394Camera( )
 	{
 		close( );
-		dc1394_camera_free( mCamera );
-		dc1394_free( mDcHandle );
-		delete mFrame;
+		dc1394_camera_free( _camera );
+		dc1394_free( _dcHandle );
 	}
 
 	void DC1394Camera::open( )
 	{
-		}
+	}
 
 
 	void DC1394Camera::close( )
 	{
-		if( capturing ) {
-			captureStop( );
+		if( _capturing ) {
+			stopCapture();
 		}
 	}
 
 	void DC1394Camera::init( )
 	{
-		if( capturing ) {
-			captureStop( );
-			captureStart( );
+		if( _capturing ) {
+			stopCapture();
+			startCapture();
 		}
 		reset();
 	}
 
 	void DC1394Camera::reset( )
 	{
-		dc1394_camera_reset( mCamera );
+		dc1394_camera_reset( _camera );
 	}
 
 
-	void DC1394Camera::captureStart( )
+	void DC1394Camera::startCapture( )
 	{
-		if( capturing )
+		if( _capturing )
 			return;
 
-		dc1394_video_set_iso_speed( mCamera, mSpeed );
-		dc1394_video_set_mode( mCamera, mMode );
-		dc1394_video_set_framerate( mCamera, mFramerate );
-		dc1394_capture_setup( mCamera, dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
-		dc1394_video_set_transmission( mCamera, DC1394_ON );
+		dc1394_video_set_iso_speed( _camera, _speed );
+		dc1394_video_set_mode( _camera, _mode );
+		dc1394_video_set_framerate( _camera, _framerate );
+		dc1394_capture_setup( _camera, _dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
+		dc1394_video_set_transmission( _camera, DC1394_ON );
 		enableWhiteBalanceAuto( false );
 		enableShutterAuto( false );
 		enableGainAuto( false );
 		enableIrisAuto( false );
 		setShutter( 1200 );
 
-		capturing = true;
+		_capturing = true;
 	}
 
-	void DC1394Camera::captureStop( )
+	void DC1394Camera::stopCapture( )
 	{
-		if( !capturing )
+		if( !_capturing )
 			return;
-		dc1394_video_set_transmission( mCamera, DC1394_OFF );
-		dc1394_capture_stop( mCamera );
-		capturing = false;
+		dc1394_video_set_transmission( _camera, DC1394_OFF );
+		dc1394_capture_stop( _camera );
+		_capturing = false;
 	}
 
 
-	void DC1394Camera::captureNext( )
+	void DC1394Camera::nextFrame( )
 	{
-		if( !capturing )
+		if( !_capturing )
 			return;
 
 		dc1394video_frame_t* frame;
-		dc1394_capture_dequeue( mCamera, DC1394_CAPTURE_POLICY_WAIT, &frame );
+		dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_WAIT, &frame );
 		size_t stride;
-		uint8_t* dst = mFrame->map( &stride );
-		for( size_t i = 0; i < mHeight; i++ )
-			memcpy( dst + i * stride, frame->image + i * mWidth * sizeof( uint8_t ), mWidth * sizeof( uint8_t ) );
-		mFrame->unmap( dst );
+		uint8_t* dst = _frame.map( &stride );
+		for( size_t i = 0; i < _height; i++ )
+			memcpy( dst + i * stride, frame->image + i * _width * sizeof( uint8_t ), _width * sizeof( uint8_t ) );
+		_frame.unmap( dst );
+
 		/* FIXME: convert to image format ... */
-		dc1394_capture_enqueue( mCamera, frame );
+		dc1394_capture_enqueue( _camera, frame );
 	}
 
 	/**
-	 * @brief Return a pointer to the next image.
-	 * @return Pointer to the image raw data within the dma ring buffer.
+	 * @brief Return a reference to the next image.
+	 * @return reference to the image raw data within the dma ring buffer.
 	 *
-	 * Use this pointer to read the image data from the camera. You may also
+	 * Use reference to read the image data from the camera. You may also
 	 * need to know the image size and format to avoid memory access violations.
 	 */
-	const Image* DC1394Camera::image( )
+	const Image& DC1394Camera::frame() const
 	{
-		if( capturing)
-			return mFrame;
-		return NULL;
+		if( !_capturing)
+			throw CVTException( "Camera is not in capturing mode!" );
+		return _frame;		
 	}
 
 	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
@@ -134,17 +138,17 @@ namespace cvt
 			mode = DC1394_FEATURE_MODE_MANUAL;
 		}
 
-		dc1394_feature_set_mode( mCamera, DC1394_FEATURE_WHITE_BALANCE, mode );
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_WHITE_BALANCE, mode );
 	}
 
 	void DC1394Camera::getWhiteBalance( unsigned int* ubValue, unsigned int* vrValue )
 	{
-		dc1394_feature_whitebalance_get_value( mCamera, ubValue, vrValue );
+		dc1394_feature_whitebalance_get_value( _camera, ubValue, vrValue );
 	}
 
 	void DC1394Camera::setWhiteBalance( unsigned int ubValue, unsigned int vrValue )
 	{
-		dc1394_feature_whitebalance_set_value( mCamera, ubValue, vrValue );
+		dc1394_feature_whitebalance_set_value( _camera, ubValue, vrValue );
 	}
 
 	void DC1394Camera::enableShutterAuto( bool enable )
@@ -157,17 +161,17 @@ namespace cvt
 			mode = DC1394_FEATURE_MODE_MANUAL;
 		}
 
-		dc1394_feature_set_mode( mCamera, DC1394_FEATURE_SHUTTER, mode );
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_SHUTTER, mode );
 	}
 
 	void DC1394Camera::getShutter( unsigned int* value )
 	{
-		dc1394_feature_get_value( mCamera, DC1394_FEATURE_SHUTTER, value );
+		dc1394_feature_get_value( _camera, DC1394_FEATURE_SHUTTER, value );
 	}
 
 	void DC1394Camera::setShutter( unsigned int value )
 	{
-		dc1394_feature_set_value( mCamera, DC1394_FEATURE_SHUTTER, value );
+		dc1394_feature_set_value( _camera, DC1394_FEATURE_SHUTTER, value );
 	}
 
 	void DC1394Camera::enableGainAuto( bool enable )
@@ -180,7 +184,7 @@ namespace cvt
 			mode = DC1394_FEATURE_MODE_MANUAL;
 		}
 
-		dc1394_feature_set_mode( mCamera, DC1394_FEATURE_GAIN, mode );
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_GAIN, mode );
 	}
 
 	void DC1394Camera::enableIrisAuto( bool enable )
@@ -193,12 +197,12 @@ namespace cvt
 			mode = DC1394_FEATURE_MODE_MANUAL;
 		}
 
-		dc1394_feature_set_mode( mCamera, DC1394_FEATURE_IRIS, mode );
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_IRIS, mode );
 	}
 
-	int DC1394Camera::getNumberOfCameras( )
+	size_t DC1394Camera::count()
 	{
-		int numCameras = 0;
+		size_t numCameras = 0;
 
 		dc1394camera_list_t* list;
 		dc1394_t* handle = dc1394_new( );
@@ -207,5 +211,12 @@ namespace cvt
 		dc1394_camera_free_list( list );
 		dc1394_free( handle );
 		return numCameras;
+	}
+	
+	void DC1394Camera::cameraInfo( size_t index, CameraInfo & info )
+	{
+		info.setIndex( index );
+		info.setName( "Firewire camera" );
+		info.setType( CAMERATYPE_DC1394 );
 	}
 }
