@@ -8,10 +8,9 @@
 #include <cvt/gui/EventTimer.h>
 #include <cvt/gui/TimerInfoList.h>
 #include <cvt/gl/OpenGL.h>
-#include <cvt/util/TQueue.h>
+#include <cvt/io/IOSelect.h>
 #include <map>
-#include <queue>
-#include <utility>
+#include <deque>
 
 namespace cvt {
 	class ApplicationX11 : public Application
@@ -23,8 +22,8 @@ namespace cvt {
 			virtual void runApp();
 			virtual void exitApp() { run = false; };
 
-			virtual uint32_t registerTimer( size_t interval, EventTimer* t ) { return timers.registerTimer( interval, t ); };
-			virtual void unregisterTimer( uint32_t id ) { timers.unregisterTimer( id ); };
+/*			virtual uint32_t registerTimer( size_t interval, EventTimer* t ) { return timers.registerTimer( interval, t ); };
+			virtual void unregisterTimer( uint32_t id ) { timers.unregisterTimer( id ); };*/
 
 			virtual WidgetImpl* getWidgetImpl( Widget* win );
 
@@ -37,8 +36,8 @@ namespace cvt {
 			::Atom xatom_wmdelete;
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
-			TQueue<std::pair< ::Window,Event*> > events;
-			TimerInfoList timers;
+			std::deque< WidgetImplWinGLX11*> updates;
+			IOSelect _ioselect;
 	};
 }
 

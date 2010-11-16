@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, TQueue<std::pair< ::Window,Event*> >* eq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), eventq( eq )
+	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
 	{
 		::XSetWindowAttributes attr;
 		unsigned long mask;
@@ -104,7 +104,7 @@ namespace cvt {
 	{
 		if( needsupdate || !visible )
 			return;
-		eventq->enqueue( std::make_pair< ::Window, Event*>(win, new PaintEvent( 0, 0, 0, 0 ) ) );
+		_updateq->push_back( this );
 	}
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )

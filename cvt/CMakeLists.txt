@@ -72,6 +72,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/Camera.h
 	io/DC1394Camera.h
 	io/Resources.h
+	io/IOHandler.h
+	io/IOSelect.h
 	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -141,6 +143,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/Camera.cpp
 	io/DC1394Camera.cpp
 	io/Resources.cpp
+	io/IOSelect.cpp
 	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
@@ -176,6 +179,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/internal/WidgetImplWinGLX11.cpp
 	gui/internal/ApplicationX11.cpp
 	gui/internal/EventThreadX11.cpp
+	gui/internal/X11Handler.cpp
 	gl/GLProgram.cpp
 	gl/GLBuffer.cpp
 	gl/GLVertexArray.cpp
