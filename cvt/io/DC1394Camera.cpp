@@ -41,11 +41,6 @@ namespace cvt
 		dc1394_free( _dcHandle );
 	}
 
-	void DC1394Camera::open( )
-	{
-	}
-
-
 	void DC1394Camera::close( )
 	{
 		if( _capturing ) {
@@ -70,6 +65,8 @@ namespace cvt
 
 	void DC1394Camera::startCapture( )
 	{
+		this->init();
+		
 		if( _capturing )
 			return;
 

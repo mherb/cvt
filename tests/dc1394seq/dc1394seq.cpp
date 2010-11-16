@@ -28,8 +28,6 @@ int main(int argc, char* argv[])
 
 
 	try {
-		cam.open();
-		cam.init();
 		cam.startCapture();
 
 		timer.reset();
@@ -53,6 +51,8 @@ int main(int argc, char* argv[])
 				timer.reset();
 			}
 		}
+		
+		cam.stopCapture();
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
