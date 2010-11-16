@@ -1,6 +1,8 @@
 #include "DC1394Camera.h"
 #include <cvt/util/Exception.h>
 
+#include <sstream>
+
 namespace cvt
 {
 
@@ -213,7 +215,27 @@ namespace cvt
 	void DC1394Camera::cameraInfo( size_t index, CameraInfo & info )
 	{
 		info.setIndex( index );
-		info.setName( "Firewire camera" );
 		info.setType( CAMERATYPE_DC1394 );
+		
+		dc1394camera_list_t* list;
+		dc1394_t* handle = dc1394_new( );
+		dc1394_camera_enumerate( handle, &list );
+		
+		if( index > list->num )
+			throw CVTException( "Camera index out of bounds" );
+		
+		dc1394camera_t * cam = 0;
+		cam = dc1394_camera_new( handle, list->ids[ index ].guid );
+		
+		if( !cam )
+			throw CVTException( "Could not create camera handle" );
+		
+		std::stringstream name;
+		name << cam->vendor << " " << cam->model;
+		info.setName( name.str() );
+
+		dc1394_camera_free( cam );
+		dc1394_camera_free_list( list );
+		dc1394_free( handle );
 	}
 }
