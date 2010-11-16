@@ -163,7 +163,6 @@ namespace cvt {
 					break;
 				case EVENT_TIMER:
 					{
-						std::cout << "EVENT_TIMER" << std::endl;
 						TimerInfo* tinfo = ( ( TimerEvent * ) event.second )->timerinfo;
 						tinfo->dispatch();
 					}
