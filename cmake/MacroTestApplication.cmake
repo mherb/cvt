@@ -57,6 +57,8 @@ INCLUDE_DIRECTORIES(
 	"${OPENCL_INCLUDE_DIR}"
 )
 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 TARGET_LINK_LIBRARIES(
 	${APP_NAME}
 	cvt	
@@ -65,6 +67,12 @@ TARGET_LINK_LIBRARIES(
 	"-framework QuartzCore"
 	"-framework QTKit"
 )
+ELSE()
+TARGET_LINK_LIBRARIES(
+	${APP_NAME}
+	cvt	
+)
+ENDIF()
 
 add_dependencies(${APP_NAME} cvt)
 
