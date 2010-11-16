@@ -20,11 +20,7 @@ namespace cvt
 						 IType type = IType::UBYTE);
 		
 			~DC1394Camera();
-
-			void open();
-			void close();
-			void init();
-			void reset();
+			
 			void startCapture();
 			void stopCapture();
 									
@@ -39,6 +35,10 @@ namespace cvt
 			static void cameraInfo( size_t index, CameraInfo & info );
 
 		private:
+			void close();
+			void init();
+			void reset();
+		
 			void enableWhiteBalanceAuto(bool enable);
 			void getWhiteBalance(unsigned int* ubValue, unsigned int* vrValue);
 			void setWhiteBalance(unsigned int ubValue, unsigned int vrValue);

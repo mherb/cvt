@@ -31,8 +31,6 @@ int main(int argc, char* argv[])
 
 
 	try {
-		cam.open();
-		cam.init();
 		cam.startCapture();
 
 		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
@@ -62,6 +60,9 @@ int main(int argc, char* argv[])
 				timer.reset();
 			}
 		}
+		
+		cam.stopCapture();
+		
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
