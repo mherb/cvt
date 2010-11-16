@@ -6,14 +6,14 @@
 #include <time.h>
 
 #ifdef APPLE
-	#include <mach/mach_time.h> 
-#endif
-
-#ifndef _POSIX_TIMERS
-#error "Posix timers not supported"
-#endif
-#ifndef _POSIX_MONOTONIC_CLOCK
-#error "Posix monotonic clock not supported"
+	#include <mach/mach_time.h>
+#else
+	#ifndef _POSIX_TIMERS
+		#error "Posix timers not supported"
+	#endif
+	#ifndef _POSIX_MONOTONIC_CLOCK
+		#error "Posix monotonic clock not supported"
+	#endif
 #endif
 
 namespace cvt {

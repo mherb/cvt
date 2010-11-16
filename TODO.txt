@@ -1,10 +1,35 @@
+Camera
+=======
 - unified Camera Interface ( Firewire, V4L2, UEye, MacOS )
+- callback on new Frame ?
+
+Image
+=====
 - IKernel interface for convolution
 - more Image formats (int8_t, uint16_t, int16_t)
 - unmap without pointer
-- opengl gui
+
+GUI
+===
+- Add general Signal template
+	o add,remove delegates
+	o and signal method to call delegate
+- Add startAnimation( FPS ), stopAnimation to Widget
+- Add BasicTimer with timeout-Signal
+- Fix/Implement Widgets
+- Add basic widgets ( Button/Label/Slider)
+- Make bounds of text calculateable in GFX
+- Extend GFX
+- Add KeyEvents
+
+Math
+====
 - more Lie parametrized transforms (pose abstraction)
-- filter interface überarbeiten
+- add simple Matrix2/3/4 and Vector2/3/4
+
+Vision/GFX
+==========
+- filter interface überarbeiten -> fix ParameterSet
 - AGAST filtern
 - BSP Tree ( doom src )
 - KDTree
