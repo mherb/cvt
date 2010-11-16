@@ -17,34 +17,29 @@ namespace cvt {
 			for( std::list<TimerInfo*>::reverse_iterator rit = list->rbegin() ; rit != list->rend(); ++rit ) {
 				if( ( *rit )->compare( t ) < 0  ) {
 					_timers.insert( rit.base(), t );
-					_mtx.unlock();
 					return;
 				}
 			}
 			_timers.push_front( t );
 		}
 
-		uint32_t TimerInfoList::registerTimer( size_t intervalms, EventTimer* t )
+		uint32_t TimerInfoList::registerTimer( size_t intervalms, TimeoutHandler* th )
 		{
-			TimerInfo* ti = TimerInfo::create( intervalms, t );
-			_mtx.lock();
+			TimerInfo* ti = new TimerInfo( intervalms, th );
 			insertTimer( &_timers, ti );
-			_mtx.unlock();
 			return ti->id();
 		}
 
 		void TimerInfoList::unregisterTimer( uint32_t id )
 		{
-			_mtx.lock();
 			for( std::list<TimerInfo*>::iterator it =_timers.begin() ; it != _timers.end(); ++it ) {
 				if( ( *it )->id() == id  ) {
-					( *it )->release();
+					TimerInfo* ti = *it;
 					_timers.erase( it );
-					_mtx.unlock();
+					delete ti;
 					return;
 				}
 			}
-			_mtx.unlock();
 		}
 
 		int TimerInfoList::nextTimeout()
@@ -60,9 +55,8 @@ namespace cvt {
 				return 0;
 		}
 
-		void TimerInfoList::queueEvents( TQueue<std::pair< ::Window,Event*> >* queue )
+		void TimerInfoList::handleTimers( )
 		{
-			ScopeLock lock( &_mtx );
 			Time now;
 			std::list<TimerInfo*> tmplist;
 
@@ -75,10 +69,8 @@ namespace cvt {
 			while( !tmplist.empty() ) {
 					TimerInfo* tinfo = tmplist.back();
 					tmplist.pop_back();
-					TimerEvent* event = tinfo->event();
-					if( event ) {
-						queue->enqueue( std::make_pair< ::Window, Event*>( 0, event ) );
-					}
+					tinfo->_th->onTimeout();
+					tinfo->nextTimeout();
 					insertTimer( &_timers, tinfo );
 			}
 		}

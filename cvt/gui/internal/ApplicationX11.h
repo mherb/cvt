@@ -5,7 +5,7 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/event/Event.h>
-#include <cvt/gui/EventTimer.h>
+#include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/TimerInfoList.h>
 #include <cvt/gl/OpenGL.h>
 #include <cvt/io/IOSelect.h>
@@ -22,8 +22,8 @@ namespace cvt {
 			virtual void runApp();
 			virtual void exitApp() { run = false; };
 
-/*			virtual uint32_t registerTimer( size_t interval, EventTimer* t ) { return timers.registerTimer( interval, t ); };
-			virtual void unregisterTimer( uint32_t id ) { timers.unregisterTimer( id ); };*/
+			virtual uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); };
+			virtual void unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); };
 
 			virtual WidgetImpl* getWidgetImpl( Widget* win );
 
@@ -38,6 +38,7 @@ namespace cvt {
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
 			std::deque< WidgetImplWinGLX11*> updates;
 			IOSelect _ioselect;
+			TimerInfoList _timers;
 	};
 }
 
