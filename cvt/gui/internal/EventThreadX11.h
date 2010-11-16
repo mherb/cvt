@@ -18,6 +18,7 @@ namespace cvt {
 			void execute( void* );
 
 		private:
+			void handleX11();
 			inline void enqueue( ::Window w, Event* e ) { _queue->enqueue( std::make_pair< ::Window, Event*>( w, e ) ); }
 
 			::Display* dpy;
