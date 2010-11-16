@@ -6,7 +6,7 @@
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/event/Event.h>
 #include <cvt/gui/TimeoutHandler.h>
-#include <cvt/gui/TimerInfoList.h>
+#include <cvt/gui/internal/TimerInfoList.h>
 #include <cvt/gl/OpenGL.h>
 #include <cvt/io/IOSelect.h>
 #include <map>

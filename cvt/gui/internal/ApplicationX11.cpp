@@ -1,7 +1,6 @@
 #include <cvt/gui/internal/ApplicationX11.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
 #include <cvt/gui/internal/X11Handler.h>
-#include <cvt/gui/TimerInfo.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
