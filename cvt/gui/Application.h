@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <cvt/gui/EventTimer.h>
+#include <cvt/gui/TimeoutHandler.h>
 
 namespace cvt {
 	class WidgetImpl;
@@ -17,9 +17,10 @@ namespace cvt {
 			static void run() { instance()->runApp(); };
 			static void exit() { instance()->exitApp(); };
 
-/*			virtual uint32_t registerTimer( size_t interval, EventTimer* t ) = 0;
-			virtual void unregisterTimer( uint32_t id ) = 0;*/
+			virtual uint32_t registerTimer( size_t interval, TimeoutHandler* t ) = 0;
+			virtual void unregisterTimer( uint32_t id ) = 0;
 
+			static Application* instance();
 		protected:
 			Application() {};
 			Application( const Application& );
@@ -30,7 +31,6 @@ namespace cvt {
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
 
-			static Application* instance();
 			static Application* app;
 	};
 }

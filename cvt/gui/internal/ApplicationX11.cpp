@@ -74,6 +74,7 @@ namespace cvt {
 
 	void ApplicationX11::runApp()
 	{
+		int timeout;
 		X11Handler x11handler( dpy, &windows );
 		_ioselect.registerIOHandler( &x11handler );
 
@@ -82,7 +83,9 @@ namespace cvt {
 		XSync( dpy, false );
 
 		while( run ) {
-			_ioselect.handleIO( 1000 );
+			_timers.handleTimers();
+			timeout = _timers.nextTimeout();
+			_ioselect.handleIO( timeout );
 			if( !updates.empty() ) {
 				PaintEvent pe( 0, 0, 0, 0 );
 				WidgetImplWinGLX11* win;
