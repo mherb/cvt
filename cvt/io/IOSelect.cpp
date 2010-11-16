@@ -14,7 +14,7 @@ namespace cvt {
 
 	}
 
-	int IOSelect::handleIO( size_t ms )
+	int IOSelect::handleIO( ssize_t ms )
 	{
 		int maxfd = 0;
 		int numfd, ret, active;
@@ -22,7 +22,6 @@ namespace cvt {
 		if( _handlers.empty() )
 			return 0;
 
-		msToTimespec( ms, _timeout );
 
 		FD_ZERO( &_readfds );
 		FD_ZERO( &_writefds );
@@ -41,7 +40,12 @@ namespace cvt {
 			}
 		}
 
-		ret = pselect( maxfd + 1, &_readfds, &_writefds, &_execeptfds, &_timeout, NULL );
+		if( ms < 0 ) {
+			ret = pselect( maxfd + 1, &_readfds, &_writefds, &_execeptfds, NULL, NULL );
+		} else {
+			msToTimespec( ms, _timeout );
+			ret = pselect( maxfd + 1, &_readfds, &_writefds, &_execeptfds, &_timeout, NULL );
+		}
 		/* FIXME: do error handling */
 		if( ret <= 0 )
 			return ret;
