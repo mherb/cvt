@@ -32,7 +32,7 @@ ENDIF(${ARGC} GREATER 0)
 MESSAGE(STATUS "Configuring: ${APP_NAME}") 
 
 # get all headers and cpp files in the folder:
-FILE(GLOB SRCS_${APP_NAME} "*.cpp" "*.h" "*.hpp")
+FILE(GLOB SRCS_${APP_NAME} "*.cpp" "*.h" "*.hpp" "*.mm")
 
 FILE(GLOB CLSRCS_${APP_NAME} "*.cl")
 
@@ -59,7 +59,11 @@ INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
 	${APP_NAME}
-	cvt
+	cvt	
+	"-framework Cocoa"
+	"-framework CoreFoundation"
+	"-framework QuartzCore"
+	"-framework QTKit"
 )
 
 add_dependencies(${APP_NAME} cvt)

@@ -8,10 +8,6 @@ SET(LIBRARYCONFIG TRUE)
 # postfix for debug builds
 SET(LIBRARY_POSTFIX_DEBUG "_d")
 
-INCLUDE(OutOfSourceBuild)
-INCLUDE(BuildTypes)
-INCLUDE(CompileDefinitions)
-INCLUDE(CompilerFlags)
 INCLUDE(GLCLTOHEADER)
 
 # add source, current source and binary dir to search for includes

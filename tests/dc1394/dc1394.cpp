@@ -22,8 +22,7 @@ void mouseevent(int event, int x, int y, int flags, Params* p )
 }
 
 int main(int argc, char* argv[])
-{
-	const Image* frame;
+{	
 	DC1394Camera cam;
 //	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
 	int key;
@@ -34,8 +33,7 @@ int main(int argc, char* argv[])
 	try {
 		cam.open();
 		cam.init();
-		cam.captureStart();
-
+		cam.startCapture();
 
 		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
 		Image region( 640, 480, IOrder::GRAY, IType::UBYTE );
@@ -47,10 +45,10 @@ int main(int argc, char* argv[])
 
 		timer.reset();
 		while( 1 ) {
-			cam.captureNext();
-			frame = cam.image();
+			cam.nextFrame();
+			const Image & frame = cam.frame();
 
-			frame->debayer( out, IBAYER_RGGB );
+			frame.debayer( out, IBAYER_RGGB );
 //			cvShowImage( "DC1394", out.iplimage() );
 
 			key = cvWaitKey( 10 ) & 0xff;
