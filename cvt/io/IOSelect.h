@@ -14,7 +14,7 @@ namespace cvt {
 		public:
 			IOSelect();
 			~IOSelect();
-			int handleIO( size_t timeout_ms );
+			int handleIO( ssize_t timeout_ms );
 			void registerIOHandler( IOHandler* ioh );
 			void unregisterIOHandler( IOHandler* ion );
 

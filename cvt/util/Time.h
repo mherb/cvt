@@ -41,16 +41,16 @@ namespace cvt {
 			void updateTimespec( struct timespec& ts ) const;
 
 			struct timespec _ts;
-		
+
 #ifdef APPLE
 			static mach_timebase_info_data_t _machTimebase;
 #endif
 	};
 
 	inline Time::Time()
-	{		
+	{
 #ifdef APPLE
-		if( _machTimebase.denom == 0 )  
+		if( _machTimebase.denom == 0 )
                mach_timebase_info( &_machTimebase );
 #endif
 		reset();
@@ -68,17 +68,17 @@ namespace cvt {
 	{
 		updateTimespec( _ts );
 	}
-	
+
 	inline void Time::updateTimespec( struct timespec& ts ) const
 	{
 #ifdef APPLE
 		uint64_t t = mach_absolute_time();
 		uint64_t ns = t * ( _machTimebase.numer / _machTimebase.denom );
-		ts.tv_sec = ns / 1000000000L;  
+		ts.tv_sec = ns / 1000000000L;
         ts.tv_nsec = ns - (ts.tv_sec * 1000000000L);
 #else
 		clock_gettime( CLOCK_MONOTONIC, &ts );
-#endif		
+#endif
 	}
 
 	inline double Time::timespecToMS( const struct timespec& ts ) const
@@ -154,7 +154,6 @@ namespace cvt {
 			return -1;
 		if ( _ts.tv_sec > t._ts.tv_sec)
 			return 1;
-		// FIXME: under/overflow
 		return ( int ) ( _ts.tv_nsec - t._ts.tv_nsec );
 	}
 }
