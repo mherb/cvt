@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	w.setSize( 640, 480 );
 	w.setVisible( true );
 
-	Application::instance()->registerTimer( 50, &mytimer );
+	Application::instance()->registerTimer( 15, &mytimer );
 
     Application::run();
 	return 0;
