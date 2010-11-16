@@ -4,23 +4,20 @@
 #include <cvt/io/QTKitCamera.h>
 #endif
 
+#include <cvt/io/DC1394Camera.h>
+
 namespace cvt {
 	
 	std::vector<CameraInfo> Camera::_camInfos;
 	
 	void Camera::updateInfo()
 	{
-#ifdef LINUX
-		std::cout << "getting all V4L2 devices" << std::endl;
-#endif
-
-#ifdef APPLE
-		std::cout << "getting all QTKit devices" << std::endl;
-		for( unsigned int i = 0; i < QTKitCamera::count(); i++ ){
+		size_t cams = 0;
+#ifdef APPLE		
+		cams = QTKitCamera::count();
+		for( size_t i = 0; i < cams; i++ ){
 			Camera::_camInfos.push_back( CameraInfo() );
-			Camera::_camInfos.back()._type = CAMERATYPE_QTKIT;
-			Camera::_camInfos.back()._index = i;
-			QTKitCamera::nameForIndex( i, Camera::_camInfos.back()._name );			
+			QTKitCamera::cameraInfo( i, Camera::_camInfos.back() );			
 		}
 #endif
 #ifdef LINUX
@@ -28,6 +25,12 @@ namespace cvt {
 #endif
 				
 		// dc1394 cameras
+		cams = DC1394Camera::count();
+		for( size_t i = 0; i < cams; i++){
+			Camera::_camInfos.push_back( CameraInfo() );
+			DC1394Camera::cameraInfo( i, Camera::_camInfos.back() );
+		}
+		
 		
 		// ueye cameras
 	}
@@ -46,7 +49,7 @@ namespace cvt {
 				throw CVTException( "TODO IMPLEMENT UEYE camera handling" );
 				break;
 			case CAMERATYPE_DC1394:
-				throw CVTException( "TODO IMPLEMENT DC1394 camera handling" );
+				cam = new DC1394Camera( Camera::_camInfos[ index ].index(), width, height, fps, order, type );
 				break;
 			case CAMERATYPE_V4L2:
 				throw CVTException( "TODO IMPLEMENT DC1394 camera handling" );

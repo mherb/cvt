@@ -142,7 +142,7 @@ namespace cvt {
 			void nextFrame( cvt::Image & img );
 
 			static size_t count();
-			static void nameForIndex( size_t index, std::string & n );
+			static void cameraInfo( size_t index, CameraInfo & info );
 		
 		private:	
 			NSAutoreleasePool * _pool;
@@ -241,34 +241,11 @@ namespace cvt {
 		return count;
 	}
 	
-	void QTKitCameraInterface::nameForIndex( size_t index, std::string & name )
+	void QTKitCameraInterface::cameraInfo( size_t index, CameraInfo & info )
 	{
-		NSAutoreleasePool * pool = [[ NSAutoreleasePool alloc ] init];
-		QTCaptureDevice * device = [[QTCaptureDevice inputDevicesWithMediaType:QTMediaTypeVideo] objectAtIndex:index ];
 		
-		NSString * n = [device localizedDisplayName];		
-
-		name = std::string( [n UTF8String] );		
-		
-		NSDictionary * attributes = [device deviceAttributes];
-		
-		for( id attr in attributes){
-			NSLog(@"Key: %@, Value:%@", attr, [attributes objectForKey:attr] );
-		}
-		
-		NSArray * formatDesc = [device formatDescriptions];
-		for( QTFormatDescription * desc in formatDesc ){
-			NSLog(@"Format Description Attributes");
-			attributes = [desc formatDescriptionAttributes];
-			for( id attr in attributes){
-				NSLog(@"Key: %@, Value:%@", attr, [attributes objectForKey:attr] );
-			}
-			NSLog(@"Localized Description: %@", [desc localizedFormatSummary]);
-		}
-		
-		[pool release];
 	}
-	
+
 	QTKitCamera::QTKitCamera( size_t camIndex, 
 							 size_t width, 
 							 size_t height, 
@@ -290,14 +267,34 @@ namespace cvt {
 		_device->nextFrame( _frame );
 	}
 	
+	void QTKitCamera::startCapture()
+	{
+		// TODO ...
+	}
+	
+	void QTKitCamera::stopCapture()
+	{
+		// TODO ...
+	}
+	
 	size_t QTKitCamera::count()
 	{	
 		return QTKitCameraInterface::count();
 	}
 	
-	void QTKitCamera::nameForIndex( size_t index, std::string & name )
+	void QTKitCamera::cameraInfo( size_t index, CameraInfo & info )
 	{
-		QTKitCameraInterface::nameForIndex( index, name );
+		NSAutoreleasePool * pool = [[ NSAutoreleasePool alloc ] init];
+		NSArray * availableDevices = [ QTCaptureDevice inputDevicesWithMediaType:QTMediaTypeVideo ];
+		
+		if( index > [ availableDevices count] )
+			throw CVTException( "Camera index out of bounds!" );
+		
+		QTCaptureDevice * dev = [ availableDevices objectAtIndex:index ];
+		
+		info.setName( [[dev localizedDisplayName] UTF8String] );
+		info.setIndex( index );
+		info.setType( CAMERATYPE_QTKIT );
 	}
 	
 }

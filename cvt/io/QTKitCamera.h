@@ -20,27 +20,30 @@ class QTKitCamera : public Camera
 	
 		virtual ~QTKitCamera();
 		
-		virtual size_t width();
-		virtual size_t height();
-		virtual const Image & frame() const ;
-		virtual void nextFrame();
-		virtual const IOrder order() const;
-		virtual const IType type() const;
+		size_t width() const;
+		size_t height() const;
+		void nextFrame();
+		const Image & frame() const;
+		void startCapture();
+		void stopCapture();	
+
+		IOrder order() const;
+		IType type() const;
 	
-		static size_t count();
-		static void nameForIndex( size_t index, std::string & name );
+		static size_t count();		
+		static void cameraInfo( size_t index, CameraInfo & info );
 		
 	private:
 		QTKitCameraInterface * _device;
 		Image _frame;
 };
 	
-	inline size_t QTKitCamera::width()
+	inline size_t QTKitCamera::width() const
 	{
 		return _frame.width();
 	}
 	
-	inline size_t QTKitCamera::height()
+	inline size_t QTKitCamera::height() const
 	{
 		return _frame.height();
 	}
@@ -50,12 +53,12 @@ class QTKitCamera : public Camera
 		return _frame;
 	}
 		
-	inline const IOrder QTKitCamera::order() const
+	inline IOrder QTKitCamera::order() const
 	{
 		return _frame.order();
 	}
 	
-	inline const IType QTKitCamera::type() const
+	inline IType QTKitCamera::type() const
 	{
 		return _frame.type();
 	}
