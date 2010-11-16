@@ -64,18 +64,22 @@ namespace cvt {
 		{
 			_mtx.lock();
 			Time now;
+			std::list<TimerInfo*> tmplist;
 
-			for( std::list<TimerInfo*>::iterator it =_timers.begin() ; it != _timers.end(); ++it ) {
-				if( ( *it )->timeout().compare( now ) < 0 ) {
-					TimerInfo* tinfo = ( *it );
-					TimerEvent* event = tinfo->event();
-					if( event ) {
-						_timers.erase( it );
-						insertTimer( &_timers, tinfo );
-						queue->enqueue( std::make_pair< ::Window, Event*>( 0, event ) );
-					}
+			while( !_timers.empty() ) {
+				if( ( _timers.front() )->timeout().compare( now ) < 0 ) {
+					tmplist.splice( tmplist.begin(), _timers, _timers.begin() );
 				} else
 					break;
+			}
+			while( !tmplist.empty() ) {
+					TimerInfo* tinfo = tmplist.back();
+					tmplist.pop_back();
+					TimerEvent* event = tinfo->event();
+					if( event ) {
+						queue->enqueue( std::make_pair< ::Window, Event*>( 0, event ) );
+					}
+					insertTimer( &_timers, tinfo );
 			}
 			_mtx.unlock();
 		}
