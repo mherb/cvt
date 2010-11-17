@@ -7,9 +7,11 @@ int main( int argc, char** argv )
     char val;
 
     if( argc != 4 ) {
-	std::cerr << "usage: " << argv[ 0 ] << "cl-file header-file name" << std::endl;
+	std::cerr << "usage: " << argv[ 0 ] << " cl-file header-file name" << std::endl;
 	return 1;
     }
+
+//	std::cout << "\n\n\n" << argv[ 0 ] << " " << argv[ 1 ] << " " << argv[ 2 ] << "\n\n\n" << std::endl;
 
     std::ifstream input;
     input.open( argv[ 1 ] );
