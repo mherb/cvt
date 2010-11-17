@@ -5,8 +5,9 @@ MACRO(GLSLTOHEADER _filename)
 
 	string(REGEX REPLACE "\\.(.*)" "\\1" _ext ${_ext} )
 
-	IF( ${_path} )       
-		SET(${_path} "${_path}/" )
+	STRING( STRIP "${_path}" _path )
+	IF( NOT "${_path}" STREQUAL "" )       
+		SET(_path "${_path}/" )
     ENDIF()
 
 	SET(GLSLTOHEADER_DST "${CMAKE_BINARY_DIR}/bin/glcltoheader")
@@ -26,8 +27,9 @@ MACRO(CLTOHEADER _filename)
 
 	SET(CLTOHEADER_DST "${CMAKE_BINARY_DIR}/bin/glcltoheader")
 
-	IF( ${_path} )       
-		SET(${_path} "${_path}/" )
+	STRING( STRIP "${_path}" _path )
+	IF( NOT "${_path}" STREQUAL "" )       
+		SET(_path "${_path}/" )
     ENDIF()
 
     ADD_CUSTOM_COMMAND(
