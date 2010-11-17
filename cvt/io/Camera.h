@@ -12,30 +12,30 @@ namespace cvt {
 	{
 		public:
 			/* number of available cameras */
-			static size_t count();		
+			static size_t count();
 			static const CameraInfo & info( size_t index );
-			static void updateInfo();			
-			static Camera* get( size_t index, size_t width = 640, size_t height = 480, 
+			static void updateInfo();
+			static Camera* get( size_t index, size_t width = 640, size_t height = 480,
 							    size_t fps = 30, cvt::IOrder order = IOrder::BGRA, cvt::IType type = IType::UBYTE );
-		
+
 			virtual void startCapture() = 0;
 			virtual void stopCapture() = 0;
-			
+
 		private:
-			static std::vector<CameraInfo> _camInfos;			
+			static std::vector<CameraInfo> _camInfos;
 	};
-	
+
 	inline size_t Camera::count()
 	{
-		return _camInfos.size();		
+		return _camInfos.size();
 	}
-	
+
 	inline const CameraInfo & Camera::info( size_t index )
 	{
 		if( index > _camInfos.size() ){
 			throw CVTException( "Could not return CameraInfo: Index out of bounds!" );
 		}
-		
+
 		return _camInfos[ index ];
 	}
 }

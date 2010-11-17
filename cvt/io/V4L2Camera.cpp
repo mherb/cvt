@@ -1,4 +1,4 @@
-#include "V4L2Camera.h"
+#include <cvt/io/V4L2Camera.h>
 
 #include <iostream>
 #include <string>
@@ -142,7 +142,7 @@ namespace cvt {
 	}
 
 
-	V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, IOrder order) :
+	V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, IOrder order, IType type) :
 		mWidth(width),
 		mHeight(height),
 		mFps(fps),
@@ -163,6 +163,8 @@ namespace cvt {
 		mBackLightCompensation(false),
 		mAbsExposureVal(250)
 	{
+		this->open();
+		this->init();
 	}
 
 	V4L2Camera::~V4L2Camera()
@@ -177,16 +179,12 @@ namespace cvt {
 		stream << "/dev/video" << mCamIndex;
 		std::string videoDevice = stream.str();
 
-		// TODO: check if the filename exists
-
 		mFd = ::open(videoDevice.c_str(), O_RDWR);
 
 		if( mFd == -1){
 			throw CVTException("Could not open device named \"" + videoDevice + "\"");
 		}
 
-		//    this->showCapabilities();
-		//    this->showExtendedControls();
 		mOpened = true;
 	}
 
@@ -234,14 +232,9 @@ namespace cvt {
 		ret = ioctl( mFd, VIDIOC_S_FMT, &mFmt);
 
 		if(ret < 0){
-			std::cerr << "VIDIOC_S_FORMAT - Unable to set format!" << std::endl;
+			throw CVTException( "Inable to set requested format!" );
 		}
 
-		// check if the requested format is available:
-		if( mFmt.fmt.pix.width != reqWidth || mFmt.fmt.pix.height != reqHeight ){
-			std::cout << "Requested Size not supported: " << reqWidth << "x" << reqHeight << std::endl;
-			std::cout << "Switching to supported Size: " << mFmt.fmt.pix.width << "x" << mFmt.fmt.pix.height << std::endl;
-		}
 		mWidth = mFmt.fmt.pix.width;
 		mHeight = mFmt.fmt.pix.height;
 
@@ -284,7 +277,7 @@ namespace cvt {
 		this->enqueueBuffers();
 	}
 
-	void V4L2Camera::captureStart()
+	void V4L2Camera::startCapture()
 	{
 		if(!mCapturing){
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -300,7 +293,7 @@ namespace cvt {
 		}
 	}
 
-	void V4L2Camera::captureStop()
+	void V4L2Camera::stopCapture()
 	{
 		if(mCapturing){
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -316,14 +309,14 @@ namespace cvt {
 		}
 	}
 
-	void V4L2Camera::captureNext()
+	void V4L2Camera::nextFrame()
 	{
 		fd_set rdset;
 		struct timeval timeout;
 
 		//make sure we are capturing
 		if(mCapturing)
-			captureStart();
+			startCapture();
 
 		FD_ZERO(&rdset);
 		FD_SET(mFd, &rdset);
@@ -365,28 +358,28 @@ namespace cvt {
 		}
 	}
 
-	const Image* V4L2Camera::image()
+	const Image & V4L2Camera::frame() const
 	{
 		assert(mFrame != NULL);
-		return mFrame;
+		return *mFrame;
 	}
 
 	void V4L2Camera::updateAutoIrisExp()
 	{
 		if(mAutoExposure){
 			if(mAutoIris){
-				this->control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_AUTO);
+				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_AUTO );
 			} else {
-				this->control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY);
+				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY );
 			}
 		} else {
 			if(mAutoIris) {
-				this->control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_SHUTTER_PRIORITY);
+				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_SHUTTER_PRIORITY );
 			} else {
-				this->control(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
+				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL );
 			}
 
-			this->control(V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal);
+			V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal );
 		}
 	}
 
@@ -405,28 +398,28 @@ namespace cvt {
 	void V4L2Camera::setExposureValue( unsigned int val )
 	{
 		mAbsExposureVal = val;
-		this->control(V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal);
+		V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal );
 	}
 
 	void V4L2Camera::setAutoFocus(bool b)
 	{
 		mAutoFocus = b;
-		this->control(V4L2_CID_FOCUS_AUTO, mAutoFocus);
+		V4L2Camera::control( mFd, V4L2_CID_FOCUS_AUTO, mAutoFocus );
 	}
 
 	void V4L2Camera::setAutoWhiteBalance(bool b)
 	{
 		mAutoWhiteBalance = b;
-		this->control(V4L2_CID_AUTO_WHITE_BALANCE, mAutoWhiteBalance);
+		V4L2Camera::control( mFd, V4L2_CID_AUTO_WHITE_BALANCE, mAutoWhiteBalance);
 	}
 
 	void V4L2Camera::setBacklightCompensation(bool b)
 	{
 		mBackLightCompensation = b;
-		this->control(V4L2_CID_BACKLIGHT_COMPENSATION, mBackLightCompensation);
+		V4L2Camera::control( mFd, V4L2_CID_BACKLIGHT_COMPENSATION, mBackLightCompensation );
 	}
 
-	void V4L2Camera::control(int field, int value)
+	void V4L2Camera::control(int fd, int field, int value)
 	{
 		struct v4l2_queryctrl queryctrl;
 
@@ -434,7 +427,7 @@ namespace cvt {
 		// set the field
 		queryctrl.id = field;
 
-		if( ioctl(mFd, VIDIOC_QUERYCTRL, &queryctrl) == -1 ){
+		if( ioctl( fd, VIDIOC_QUERYCTRL, &queryctrl) == -1 ){
 			std::cout << "Error: This ioctl is not supported by the device" << std::endl;
 		} else if( queryctrl.flags & V4L2_CTRL_FLAG_DISABLED ) {
 			std::cout << "Field " << field << " is not supported" << std::endl;
@@ -444,7 +437,7 @@ namespace cvt {
 			control.id = field;
 			control.value = value;
 
-			if( ioctl(mFd, VIDIOC_S_CTRL, &control) == -1){
+			if( ioctl(fd, VIDIOC_S_CTRL, &control) == -1){
 				std::cout << "VIDIOC_S_CTRL ERROR: while setting value for field" << std::endl;
 			}
 		}
@@ -597,6 +590,46 @@ namespace cvt {
 			mQueryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
 		}
 		std::cout << "****************** END *****************" << std::endl;
+	}
+
+
+	size_t V4L2Camera::count()
+	{
+		return 0;
+	}
+
+	void V4L2Camera::cameraInfo( size_t index, CameraInfo & info )
+	{
+		std::stringstream ss;
+		ss << "/dev/video" << index << std::endl;
+
+		int fd = ::open( ss.str().c_str(), O_RDONLY );
+		struct v4l2_capability caps;
+		ioctl( fd, VIDIOC_QUERYCAP, &caps );
+
+		std::cout << "Driver: " << caps.driver << std::endl;
+		std::cout << "Card: " << caps.card << std::endl;
+		std::cout << "BusInfo: " << caps.bus_info << std::endl;
+
+		ss.str( "" );
+		ss.clear();
+		if ( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
+			ss << " VideoCapturing";
+		if ( caps.capabilities & V4L2_CAP_VIDEO_OVERLAY )
+			ss << " VideoOverlay";
+		if ( caps.capabilities & V4L2_CAP_VIDEO_OUTPUT )
+			ss << " VideoOutput";
+		if ( caps.capabilities & V4L2_CAP_VIDEO_OUTPUT_OVERLAY )
+			ss << " VideoOutputOverlay";
+		if ( caps.capabilities & V4L2_CAP_READWRITE )
+			ss << " ReadWrite";
+		if ( caps.capabilities & V4L2_CAP_ASYNCIO )
+			ss << " AsyncIO";
+		if ( caps.capabilities & V4L2_CAP_STREAMING )
+			ss << " Streaming";
+		std::cout << "Capabilities: " << ss.str() << std::endl;
+
+		::close( fd );
 	}
 
 }

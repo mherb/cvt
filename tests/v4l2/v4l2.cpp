@@ -14,9 +14,13 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	const Image* frame;
+	CameraInfo info;
+	V4L2Camera::cameraInfo( 0, info );
+	return 0;
+
 	V4L2Camera cam( 0, 640, 480, 30.0, IOrder::BGRA );
-	int key;
+
+	int key = 0;
 	size_t frames = 0;
 	Time timer;
 	bool doprocess = true;
@@ -47,17 +51,15 @@ int main(int argc, char* argv[])
 	}
 
 	try {
-		cam.open();
-		cam.init();
-		cam.captureStart();
+		cam.startCapture();
 
 		timer.reset();
 		while( 1 ) {
-			cam.captureNext();
-			frame = cam.image();
+			cam.nextFrame();
+			const Image & frame = cam.frame();
 
 			if( doprocess ) {
-				frame->convert( x );
+				frame.convert( x );
 				rofparam->setParameter( "Input", &x );
 				rofparam->setParameter( "Output", &y );
 				//			rof.apply( y, x, 0.25f, 50 );
@@ -83,6 +85,9 @@ int main(int argc, char* argv[])
 				timer.reset();
 			}
 		}
+
+		cam.stopCapture();
+
 	} catch( Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
