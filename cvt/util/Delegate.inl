@@ -8,7 +8,7 @@
  */
 
 /* General delegate interface */
-template <typename T0 TYPENAMELIST>
+template<typename T0 TYPENAMELIST>
 class DelegateImpl<T0 ( TYPELIST )>
 {
 	public:
@@ -17,7 +17,7 @@ class DelegateImpl<T0 ( TYPELIST )>
 };
 
 /* Delegate implementation for pointer to member */
-template <class T, typename T0 TYPENAMELIST >
+template<class T, typename T0 TYPENAMELIST >
 class DelegateMember<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 {
 	typedef T0 (T::*MemberPtr)( TYPELIST );
@@ -36,7 +36,7 @@ class DelegateMember<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 };
 
 /* Delegate implementation for pointer to const member */
-template <class T, typename T0 TYPENAMELIST >
+template<class T, typename T0 TYPENAMELIST >
 class DelegateMemberConst<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 {
 	typedef T0 (T::*MemberPtr)( TYPELIST ) const;
@@ -55,7 +55,7 @@ class DelegateMemberConst<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIS
 };
 
 /* Delegate implementation for function pointers */
-template <typename T0 TYPENAMELIST >
+template<typename T0 TYPENAMELIST >
 class DelegateFunction<T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 {
 	typedef T0 (*FuncPtr)( TYPELIST );
@@ -73,17 +73,17 @@ class DelegateFunction<T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 };
 
 /* The real delegate */
-template <typename T0 TYPENAMELIST >
+template<typename T0 TYPENAMELIST >
 class Delegate<T0 ( TYPELIST )>
 {
 	public:
-		template <class T>
+		template<class T>
 			Delegate( T* t, T0 ( T::*ptr )( TYPELIST ) )
 			{
 				_impl = new DelegateMember<T, T0 ( TYPELIST )>( t, ptr );
 			}
 
-		template <class T>
+		template<class T>
 			Delegate( T* t, T0 ( T::*ptr )( TYPELIST ) const )
 			{
 				_impl = new DelegateMemberConst<T, T0 ( TYPELIST )>( t, ptr );
