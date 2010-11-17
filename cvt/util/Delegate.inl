@@ -14,6 +14,7 @@ class DelegateImpl<T0 ( TYPELIST )>
 	public:
 		virtual ~DelegateImpl() {}
 		virtual T0 invoke( TYPELIST ) const = 0;
+		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const = 0;
 };
 
 /* Delegate implementation for pointer to member */
@@ -28,6 +29,11 @@ class DelegateMember<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 		virtual T0 invoke( TYPEARGLIST ) const
 		{
 			return (_obj->*_mptr)( ARGLIST );
+		}
+
+		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const
+		{
+			return new DelegateMember<T, T0 ( TYPELIST )>( _obj, _mptr );
 		}
 
 	private:
@@ -49,6 +55,11 @@ class DelegateMemberConst<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIS
 			return (_obj->*_mptr)( ARGLIST );
 		}
 
+		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const
+		{
+			return new DelegateMemberConst<T, T0 ( TYPELIST )>( _obj, _mptr );
+		}
+
 	private:
 		T* _obj;
 		MemberPtr _mptr;
@@ -66,6 +77,11 @@ class DelegateFunction<T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 		virtual T0 invoke( TYPEARGLIST ) const
 		{
 			return _fptr( ARGLIST );
+		}
+
+		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const
+		{
+			return new DelegateFunction<T0 ( TYPELIST )>( _fptr );
 		}
 
 	private:
@@ -89,6 +105,11 @@ class Delegate<T0 ( TYPELIST )>
 				_impl = new DelegateMemberConst<T, T0 ( TYPELIST )>( t, ptr );
 			}
 
+		Delegate( const Delegate<T0 ( TYPELIST )>& d )
+		{
+			_impl = d._impl->clone();
+		}
+
 		Delegate( T0 ( *func )( TYPELIST ) )
 		{
 			_impl = new DelegateFunction<T0 ( TYPELIST )>( func );
@@ -99,7 +120,7 @@ class Delegate<T0 ( TYPELIST )>
 			delete _impl;
 		}
 
-		T0 operator()( TYPEARGLIST ) const
+		inline T0 operator()( TYPEARGLIST ) const
 		{
 			return _impl->invoke( ARGLIST );
 		}
