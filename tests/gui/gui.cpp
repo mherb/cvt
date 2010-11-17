@@ -1,38 +1,30 @@
 #include <iostream>
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/BasicTimer.h>
+#include <cvt/util/Time.h>
 
 using namespace cvt;
 
-#include <cvt/gui/TimeoutHandler.h>
-#include <cvt/util/Time.h>
-
-
-class MyTimer : public TimeoutHandler
+void timeout( BasicTimer* timer )
 {
-	public:
-	MyTimer()
-	{
-	}
+    static Time t;
 
-	void onTimeout()
-	{
-		std::cout << "Timer: " << _last.elapsedMilliSeconds() << std::endl;
-		_last.reset();
-	}
-
-	Time _last;
-};
+    std::cout << "Timeout: " << t.elapsedMilliSeconds() << " ms" << std::endl;
+    t.reset();
+}
 
 int main(int argc, char* argv[])
 {
-	MyTimer mytimer;
+    BasicTimer t( 30 );
     Window w( "Test" );
-	w.setSize( 640, 480 );
-	w.setVisible( true );
+    w.setSize( 640, 480 );
+    w.setVisible( true );
 
-	Application::instance()->registerTimer( 33, &mytimer );
+    Delegate<void (BasicTimer*)> d( &timeout );
+    t.timeout.add( &d );
+    t.start();
 
     Application::run();
-	return 0;
+    return 0;
 }

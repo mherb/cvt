@@ -22,8 +22,8 @@ namespace cvt {
 			virtual void runApp();
 			virtual void exitApp() { run = false; };
 
-			virtual uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); };
-			virtual void unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); };
+			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); };
+			virtual void _unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); };
 
 			virtual WidgetImpl* getWidgetImpl( Widget* win );
 
