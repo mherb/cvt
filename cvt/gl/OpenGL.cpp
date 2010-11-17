@@ -40,6 +40,13 @@ namespace cvt {
 	{
 		const char* sptr = str;
 		char* eptr;
+
+		if( !str ){
+			*major = 0;
+			*minor = 0;
+			return;
+		}
+
 		*major = ( unsigned int ) strtol( sptr, &eptr, 10 );
 		if( sptr == eptr )
 			return;
