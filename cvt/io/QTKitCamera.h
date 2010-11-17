@@ -6,37 +6,37 @@
 
 namespace cvt {
 
-class QTKitCameraInterface;
+	class QTKitCameraInterface;
 	
-class QTKitCamera : public Camera
-{
-	public:
-		QTKitCamera(size_t camIndex = 0, 
-					size_t width=640, 
-					size_t height=480, 
-					size_t fps = 30, 
-					IOrder order = IOrder::BGRA,
-					IType type = IType::UBYTE);
-	
-		virtual ~QTKitCamera();
+	class QTKitCamera : public Camera
+	{
+		public:
+			QTKitCamera(size_t camIndex = 0, 
+						size_t width=640, 
+						size_t height=480, 
+						size_t fps = 30, 
+						IOrder order = IOrder::BGRA,
+						IType type = IType::UBYTE);
 		
-		size_t width() const;
-		size_t height() const;
-		void nextFrame();
-		const Image & frame() const;
-		void startCapture();
-		void stopCapture();	
-
-		IOrder order() const;
-		IType type() const;
-	
-		static size_t count();		
-		static void cameraInfo( size_t index, CameraInfo & info );
+			virtual ~QTKitCamera();
 		
-	private:
-		QTKitCameraInterface * _device;
-		Image _frame;
-};
+			size_t width() const;
+			size_t height() const;
+			void nextFrame();
+			const Image & frame() const;
+			void startCapture();
+			void stopCapture();	
+		
+			IOrder order() const;
+			IType type() const;
+		
+			static size_t count();		
+			static void cameraInfo( size_t index, CameraInfo & info );
+		
+		private:
+			QTKitCameraInterface * _device;
+			Image _frame;
+	};
 	
 	inline size_t QTKitCamera::width() const
 	{

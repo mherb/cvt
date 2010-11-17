@@ -37,7 +37,9 @@ int main( int argc, char* argv[] )
 	Camera * cam = 0;
 	
 	try {
-		cam = Camera::get( selection, 800, 600 );			
+		cam = Camera::get( selection, 800, 600 );
+
+		cam->startCapture();
 		
 		timer.reset();
 		while( 1 ) {
@@ -60,7 +62,9 @@ int main( int argc, char* argv[] )
 				frames = 0;
 				timer.reset();
 			}			
-		}		
+		}
+		
+		cam->stopCapture();
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	} 

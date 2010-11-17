@@ -132,14 +132,18 @@ namespace cvt {
 	class QTKitCameraInterface
 	{
 		public:
-		QTKitCameraInterface( size_t camIndex, 
-							  size_t width, 
-							  size_t height, 
-							  size_t fps, 
-							  IOrder order,
-							  IType type );		
+			QTKitCameraInterface( size_t camIndex, 
+								  size_t width, 
+								  size_t height, 
+								  size_t fps, 
+								  IOrder order,
+								  IType type );
+		
 			~QTKitCameraInterface();	
+			
 			void nextFrame( cvt::Image & img );
+			void startCapture();
+			void stopCapture();
 
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
@@ -200,8 +204,6 @@ namespace cvt {
 		if( !success ){
 			throw CVTException( "Could not add output to session" );
 		}		
-		
-		[_session startRunning];
 	}
 	
 	QTKitCameraInterface::~QTKitCameraInterface()
@@ -210,8 +212,10 @@ namespace cvt {
 			[_qtDevice release];
 		if( _camDelegate )
 			[_camDelegate release];
-		if( _session )
+		if( _session ){
+			this->stopCapture();
 			[_session release];
+		}			
 		if( _output )
 			[_output release];
 		if( _pool )
@@ -229,6 +233,17 @@ namespace cvt {
 		}
 		
 		[ _camDelegate copyCurrentFrame: &img ];
+	}
+	
+	void QTKitCameraInterface::startCapture()
+	{
+		std::cout << "Starting session" << std::endl;
+		[_session startRunning];
+	}
+	
+	void QTKitCameraInterface::stopCapture()
+	{
+		[_session stopRunning];
 	}
 	
 	
@@ -268,13 +283,13 @@ namespace cvt {
 	}
 	
 	void QTKitCamera::startCapture()
-	{
-		// TODO ...
+	{	
+		_device->startCapture();
 	}
 	
 	void QTKitCamera::stopCapture()
 	{
-		// TODO ...
+		_device->stopCapture();
 	}
 	
 	size_t QTKitCamera::count()
