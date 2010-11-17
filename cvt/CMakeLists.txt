@@ -90,6 +90,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/CPU.h
 	util/Delegate.h
 	gfx/Image.h
+	gfx/IFormat.h
 	gfx/ImageTypes.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
@@ -155,6 +156,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDTest.cpp
 	util/Time.cpp
 	gfx/Image.cpp
+	gfx/IFormat.cpp
 	gfx/ImageTypes.cpp
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
