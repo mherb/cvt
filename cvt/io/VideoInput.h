@@ -14,9 +14,6 @@ namespace cvt {
 		virtual void nextFrame() = 0;
 		virtual IOrder order() const = 0;
 		virtual IType type() const = 0;
-		
-	private:
-
 	};
 }
 
