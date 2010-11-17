@@ -17,20 +17,23 @@ namespace cvt {
 			static void run() { instance()->runApp(); };
 			static void exit() { instance()->exitApp(); };
 
-			virtual uint32_t registerTimer( size_t interval, TimeoutHandler* t ) = 0;
-			virtual void unregisterTimer( uint32_t id ) = 0;
+			static uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return instance()->_registerTimer( interval, t ); }
+			static void unregisterTimer( uint32_t id ) { instance()->_unregisterTimer( id ); }
 
-			static Application* instance();
 		protected:
 			Application() {};
 			Application( const Application& );
 			virtual ~Application() {};
 
 			virtual WidgetImpl* getWidgetImpl( Widget* widget ) = 0;
+			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) = 0;
+			virtual void _unregisterTimer( uint32_t id ) = 0;
+
 
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
 
+			static Application* instance();
 			static Application* app;
 	};
 }
