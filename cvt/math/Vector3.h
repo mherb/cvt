@@ -17,6 +17,7 @@ namespace cvt {
 		Vector3<T>	operator-() const;
 		T			operator*( const Vector3<T> &v ) const;
 		Vector3<T>	operator*( const T c ) const;
+		Vector3<T>	cmul( const Vector3<T>& v ) const;
 		Vector3<T>	operator/( const T c ) const;
 		Vector3<T>	operator+( const Vector3<T> &v ) const;
 		Vector3<T>	operator-( const Vector3<T> &v ) const;
@@ -106,15 +107,21 @@ namespace cvt {
 	}
 
     template<typename T>
-	inline T operator*( float c, const Vector3<T> &v )
+	inline Vector3<T> operator*( float c, const Vector3<T> &v )
 	{
-	    return c * v.x + c * v.y;
+	    return Vector3<T>( c * v.x, c * v.y, c * v.z );
 	}
 
     template<typename T>
 	inline Vector3<T> Vector3<T>::operator*( const T c ) const
 	{
 	    return Vector3<T>( x * c, y * c, z * c );
+	}
+
+    template<typename T>
+	inline Vector3<T> Vector3<T>::cmul( const Vector3<T>& v ) const
+	{
+	    return Vector3<T>( v.x * x, v.y * y, v.z * z );
 	}
 
     template<typename T>

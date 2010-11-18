@@ -17,6 +17,7 @@ namespace cvt {
 		Vector2<T>	operator-() const;
 		T			operator*( const Vector2<T> &v ) const;
 		Vector2<T>	operator*( const T c ) const;
+		Vector2<T>	cmul( const Vector2<T>& v ) const;
 		Vector2<T>	operator/( const T c ) const;
 		Vector2<T>	operator+( const Vector2<T> &v ) const;
 		Vector2<T>	operator-( const Vector2<T> &v ) const;
@@ -101,15 +102,21 @@ namespace cvt {
 	}
 
     template<typename T>
-	inline T operator*( float c, const Vector2<T> &v )
+	inline Vector2<T> operator*( float c, const Vector2<T> &v )
 	{
-	    return c * v.x + c * v.y;
+	    return Vector2<T>( c * v.x, c * v.y );
 	}
 
     template<typename T>
 	inline Vector2<T> Vector2<T>::operator*( const T c ) const
 	{
 	    return Vector2<T>( x * c, y * c );
+	}
+
+    template<typename T>
+	inline Vector2<T> Vector2<T>::cmul( const Vector2<T>& v ) const
+	{
+	    return Vector2<T>( v.x * x, v.y * y );
 	}
 
     template<typename T>
