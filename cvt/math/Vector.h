@@ -7,5 +7,6 @@
 
 #include <cvt/math/Vector2.h>
 #include <cvt/math/Vector3.h>
+#include <cvt/math/Vector4.h>
 
 #endif
