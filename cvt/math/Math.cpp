@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "math/Math.h"
-#include "util/CVTTest.h"
-#include "util/Time.h"
+#include <cvt/math/Math.h>
+#include <cvt/util/CVTTest.h>
+#include <cvt/util/Time.h>
 
 namespace cvt {
 

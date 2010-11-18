@@ -77,6 +77,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
+	math/Vector.h
 	math/Optimization.h
 	math/SBAData.h
 	math/SL3Transform.h
@@ -148,6 +149,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
+	math/Vector.cpp
 	math/SL3Transform.cpp
 	math/SparseBundleAdjustment.cpp
 	util/Range.cpp
