@@ -6,7 +6,7 @@ namespace cvt {
 	class Vector2 {
 	    public:
 					Vector2();
-					Vector2( T x, T y );
+					Vector2( const T x, const T y );
 					Vector2( const Vector2<T>& vec2 );
 
 		void		set( T x, T y );
@@ -56,7 +56,7 @@ namespace cvt {
 	}
 
     template<typename T>
-	inline Vector2<T>::Vector2( T x, T y )
+	inline Vector2<T>::Vector2( const T x, const T y )
 	{
 	    this->x = x;
 	    this->y = y;
