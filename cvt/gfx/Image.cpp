@@ -189,7 +189,7 @@ namespace cvt {
 	}
 #endif
 
-	std::ostream& operator<<(std::ostream &out, const Image &f)
+	std::ostream& operator<<( std::ostream &out, const Image &f )
 	{		
 		static const char* _mem_string[] = {
 			"MEM",
@@ -198,7 +198,7 @@ namespace cvt {
 		};
 
 
-		out << "Size: " << f.width() << " x " << f.height()
+		out << "Size: " << f.width() << " x " << f.height() << " "
 			<< f.format()
 			<< " Memory:" << _mem_string[ f.memType() ] << std::endl;
 		return out;

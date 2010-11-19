@@ -86,14 +86,14 @@ int main( int argc, char** argv )
 			delete u;
 		}
 
-		while( 1 ) {
+//		while( 1 ) {
 //			cvShowImage( "Video", iflow.iplimage() );
-
-			key = cvWaitKey( 10 ) & 0xff;
-			if( key == 27 )
-				break;
-
-		}
+//
+//			key = cvWaitKey( 10 ) & 0xff;
+//			if( key == 27 )
+//				break;
+//
+//		}
 
 		FloFile::FloWriteFile( iflow, "out.flo" );
 		if( argc == 4 ) {
