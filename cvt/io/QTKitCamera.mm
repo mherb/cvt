@@ -87,9 +87,8 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 		// test if image sizes match
 		if ( width != img->width() ||
 			 height != img->height() ||
-			 cvt::IOrder::BGRA != img->order() ||
-			 cvt::IType::UBYTE != img->type() ){
-			 img->reallocate( width, height, cvt::IOrder::RGBA, cvt::IType::UBYTE );
+			 img->format() != cvt::IFormat::RGBA_UINT8 ) {
+			 img->reallocate( width, height, cvt::IFormat::RGBA_UINT8 );
 		}		
 				
 		// copy the image: 
@@ -136,8 +135,7 @@ namespace cvt {
 								  size_t width, 
 								  size_t height, 
 								  size_t fps, 
-								  IOrder order,
-								  IType type );
+								  const IFormat & format );
 		
 			~QTKitCameraInterface();	
 			
@@ -160,8 +158,7 @@ namespace cvt {
 											    size_t width, 
 											    size_t height, 
 											    size_t fps, 
-											    IOrder order,
-											    IType type):
+											    const IFormat & format ):
 		_pool( 0 ),
 		_qtDevice( 0 ),
 		_session( 0 ),
@@ -262,14 +259,13 @@ namespace cvt {
 	}
 
 	QTKitCamera::QTKitCamera( size_t camIndex, 
-							 size_t width, 
-							 size_t height, 
-							 size_t fps, 
-							 IOrder order,
-							 IType type ):
-		_frame( width, height, order, type )
+							  size_t width, 
+							  size_t height, 
+							  size_t fps, 
+							  const IFormat & format ):
+		_frame( width, height, format )
 	{
-		_device = new QTKitCameraInterface( camIndex, width, height, fps, order, type );
+		_device = new QTKitCameraInterface( camIndex, width, height, fps, format );
 	}
 	
 	QTKitCamera::~QTKitCamera()

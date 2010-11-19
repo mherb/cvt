@@ -477,15 +477,15 @@ namespace cvt {
 		}
 		
 		/* add a new point, return a pointer to it, and store its identifier in id */
-		Eigen::Vector4d * addPoint( const Eigen::Vector4d & p, size_t & id )
+		Eigen::Vector4d * addPoint( const Eigen::Vector4d & p, size_t & identifier )
 		{
-			id = points3dHom.size();
+			identifier = points3dHom.size();
 			points3dHom.push_back( new Eigen::Vector4d( p ) );
 			
 			// initialize viewIds
 			viewIdsForPoint.push_back( std::set<size_t>() );
 			
-			return points3dHom[ id ];
+			return points3dHom[ identifier ];
 		}
 		
 		/* observation of pointId in viewId has been made */

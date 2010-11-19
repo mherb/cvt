@@ -18,8 +18,8 @@ namespace cvt {
 	ESM::ESM( const Image & img, size_t maxIter, double ssdEpsilon ):
 		maxIter( maxIter ),
 		ssdEpsilon( ssdEpsilon ),
-		dx( 5, 1, IOrder::GRAY, IType::FLOAT ),
-		dy( 1, 5, IOrder::GRAY, IType::FLOAT ),
+		dx( 5, 1, IFormat::GRAY_FLOAT ),
+		dy( 1, 5, IFormat::GRAY_FLOAT ),
 		temp( img ),
 		ssd( 0.0 ),
 		iteration( 0 )

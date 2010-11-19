@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 	{
 		Image tmp;
 		ImageIO::loadPNG( tmp, argv[ 2 ] );
-		tmp.convert( input, IOrder::BGRA, IType::FLOAT );
+		tmp.convert( input, IFormat::BGRA_FLOAT );
 	}
 	input.warpBilinear( output, flow );
 

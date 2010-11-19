@@ -9,7 +9,7 @@
 
 namespace cvt {
 
-	Image::Image( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	Image::Image( size_t w, size_t h, const IFormat & format, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -17,7 +17,7 @@ namespace cvt {
 			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
-	    _mem->alloc( w, h, order, type );
+	    _mem->alloc( w, h, format );
 	}
 
 
@@ -47,9 +47,9 @@ namespace cvt {
 		}
 	}
 
-	void Image::reallocate( size_t w, size_t h, IOrder order, IType type, IAllocatorType memtype )
+	void Image::reallocate( size_t w, size_t h, const IFormat & format, IAllocatorType memtype )
 	{
-		if( _mem->_width == w && _mem->_height == h && _mem->_order == order && _mem->_type == type && _mem->type() == memtype )
+		if( _mem->_width == w && _mem->_height == h && _mem->_format == format && _mem->type() == memtype )
 			return;
 		if( _mem->type() != memtype ) {
 			delete _mem;
@@ -60,7 +60,7 @@ namespace cvt {
 			else
 				_mem = new ImageAllocatorMem();
 		}
-		_mem->alloc( w, h, order, type );
+		_mem->alloc( w, h, format );
 	}
 
 	void Image::copy( const Image& img )
@@ -74,7 +74,7 @@ namespace cvt {
 
 	void Image::copyRect( int x, int y, const Image& img, int sx, int sy, int swidth, int sheight )
 	{
-		checkFormat( img, __PRETTY_FUNCTION__, __LINE__, _mem->_order, _mem->_type );
+		checkFormat( img, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
 		int tx, ty;
 
 		tx = -x + sx;
@@ -190,17 +190,7 @@ namespace cvt {
 #endif
 
 	std::ostream& operator<<(std::ostream &out, const Image &f)
-	{
-		static const char* _order_string[] = {
-			"GRAY",
-			"GRAYALPHA",
-			"RGBA",
-			"BGRA"
-		};
-		static const char* _type_string[] = {
-			"UBYTE",
-			"FLOAT"
-		};
+	{		
 		static const char* _mem_string[] = {
 			"MEM",
 			"CL",
@@ -209,19 +199,15 @@ namespace cvt {
 
 
 		out << "Size: " << f.width() << " x " << f.height()
-			<< " Channels: " << f.channels() << " Order:" << _order_string[ f.order().id ]
-			<< " Type:" << _type_string[ f.type().id ] << " Memory:" << _mem_string[ f.memType() ] << std::endl;
+			<< f.format()
+			<< " Memory:" << _mem_string[ f.memType() ] << std::endl;
 		return out;
 	}
 	
-	void Image::checkFormat( const Image & img, const char* func, size_t lineNum, IOrder order, IType type ) const
+	void Image::checkFormat( const Image & img, const char* func, size_t lineNum, const IFormat & format ) const
 	{		
-		if( order != img.order() ){
+		if( format != img.format() ){
 			throw Exception("Image formats differ: channel order check failed", "Image", lineNum, func);
-		}
-		
-		if( type != img.type() ){
-			throw Exception("Image formats differ: channel type check failed", "Image", lineNum, func);
 		}
 	}
 	
@@ -238,7 +224,7 @@ namespace cvt {
 	
 	void Image::checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const
 	{
-		checkFormat(img, func, lineNum, _mem->_order, _mem->_type );
+		checkFormat(img, func, lineNum, _mem->_format );
 		checkSize(img, func, lineNum, _mem->_width, _mem->_height );
 	}
 
@@ -246,25 +232,28 @@ namespace cvt {
 		Color color( 255, 0, 0, 255 );
 		Image y;
 		uint32_t val;
+		uint8_t* valPtr;
 		bool b;
 		float* base;
 		size_t stride;
 
-		Image x( 1, 1, IOrder::RGBA, IType::UBYTE );
+		Image x( 1, 1, IFormat::RGBA_UINT8 );
 		x.fill( color );
 
 		std::cerr << "RGBA UBYTE TO:" << std::endl;
 
-		val = *( ( uint32_t* ) x.map( &stride ) );
+		valPtr = x.map( &stride );
+		val = *( ( uint32_t* ) valPtr );
 		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
-		x.unmap( ( uint8_t* ) val );
+		x.unmap( valPtr );
 
-		x.convert( y, IOrder::BGRA, IType::UBYTE );
-		val = *( ( uint32_t* ) y.map( &stride ) );
+		x.convert( y, IFormat::BGRA_UINT8 );
+		valPtr = y.map( &stride );
+		val = *( ( uint32_t* ) valPtr );
 		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
-		y.unmap( ( uint8_t* ) val );
+		y.unmap( valPtr );
 
-		x.convert( y, IOrder::RGBA, IType::FLOAT );
+		x.convert( y, IFormat::RGBA_FLOAT );
 		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 1.0f;
 		b &= *( base + 1 ) == 0.0f;
@@ -273,7 +262,7 @@ namespace cvt {
 		CVTTEST_PRINT("RGBA FLOAT", b );
 		y.unmap( ( uint8_t* ) base );
 
-		x.convert( y, IOrder::BGRA, IType::FLOAT );
+		x.convert( y, IFormat::BGRA_FLOAT );
 		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 0.0f;
 		b &= *( base + 1 ) == 0.0f;
@@ -282,23 +271,26 @@ namespace cvt {
 		CVTTEST_PRINT("BGRA FLOAT", b );
 		y.unmap( ( uint8_t* ) base );
 
-		x.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
+		x.reallocate( 1, 1, IFormat::BGRA_FLOAT );
 		x.fill( color );
 		std::cerr << "RGBA FLOAT TO:" << std::endl;
 
-		y.reallocate( 1, 1, IOrder::RGBA, IType::UBYTE );
+		y.reallocate( 1, 1, IFormat::RGBA_UINT8 );
 		x.convert( y );
-		val = *( ( uint32_t* ) y.map( &stride ) );
+		
+		valPtr = y.map( &stride );
+		val = *( ( uint32_t* ) valPtr );		
 		CVTTEST_PRINT("RGBA UBYTE", val == 0xFF0000FF );
-		y.unmap( ( uint8_t* ) val );
+		y.unmap( valPtr );
 
-		y.reallocate( 1, 1, IOrder::BGRA, IType::UBYTE );
+		y.reallocate( 1, 1, IFormat::BGRA_UINT8 );
 		x.convert( y );
-		val = *( ( uint32_t* ) y.map( &stride ) );
+		valPtr = y.map( &stride );
+		val = *( ( uint32_t* ) valPtr );		
 		CVTTEST_PRINT("BGRA UBYTE", val == 0xFFFF0000 );
-		y.unmap( ( uint8_t* ) val );
+		y.unmap( valPtr );
 
-		y.reallocate( 1, 1, IOrder::RGBA, IType::FLOAT );
+		y.reallocate( 1, 1, IFormat::RGBA_FLOAT );
 		x.convert( y );
 		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 1.0f;
@@ -308,7 +300,7 @@ namespace cvt {
 		CVTTEST_PRINT("RGBA FLOAT", b );
 		y.unmap( ( uint8_t* ) base );
 
-		y.reallocate( 1, 1, IOrder::BGRA, IType::FLOAT );
+		y.reallocate( 1, 1, IFormat::BGRA_FLOAT );
 		x.convert( y );
 		base = ( float* ) y.map( &stride );
 		b  = *( base + 0 ) == 0.0f;
@@ -320,7 +312,7 @@ namespace cvt {
 
 #if 0
 		// operator x, y:
-		Image test(2, 2, IOrder::RGBA, IType::UBYTE);		
+		Image test(2, 2, IFormat::RGBA_UINT8);		
 		test.fill(color);
 		Color c = test(0, 0);
 		b = (c.red() == 1.0f);

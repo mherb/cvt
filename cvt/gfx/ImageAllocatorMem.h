@@ -7,7 +7,7 @@ namespace cvt {
 		public:
 			ImageAllocatorMem();
 			~ImageAllocatorMem();
-			virtual void alloc( size_t width, size_t height, const IOrder order, const IType type );
+			virtual void alloc( size_t width, size_t height, const IFormat & format );
 			virtual void copy( const ImageAllocator* x, const Recti* r );
 			virtual uint8_t* map( size_t* stride ) { *stride = _stride; return _data; };
 			virtual const uint8_t* map( size_t* stride ) const { *stride = _stride; return _data; };

@@ -71,8 +71,8 @@ namespace cvt {
 		{
 			if( flow.width() != gt.width() ||
 			   flow.height() != gt.height() ||
-			   flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT ||
-			   gt.order() != IOrder::GRAYALPHA || gt.type() != IType::FLOAT )
+			   flow.format() != IFormat::GRAYALPHA_FLOAT ||
+			   gt.format() != IFormat::GRAYALPHA_FLOAT )			   
 				throw CVTException( "FlowAAE: illegal flow data" );
 
 			size_t stride1, stride2;
@@ -115,8 +115,8 @@ namespace cvt {
 		{
 			if( flow.width() != gt.width() ||
 			   flow.height() != gt.height() ||
-			   flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT ||
-			   gt.order() != IOrder::GRAYALPHA || gt.type() != IType::FLOAT )
+			   flow.format() != IFormat::GRAYALPHA_FLOAT ||
+			   gt.format() != IFormat::GRAYALPHA_FLOAT )
 				throw CVTException( "FlowAAE: illegal flow data" );
 
 			size_t stride1, stride2;
@@ -162,7 +162,7 @@ namespace cvt {
 
 		void colorCode( Image& idst, Image& flow )
 		{
-			if( flow.order() != IOrder::GRAYALPHA || flow.type() != IType::FLOAT )
+			if( flow.format() != IFormat::GRAYALPHA_FLOAT )
 				throw CVTException( "Illegal flow data" );
 
 			uint8_t* dst;
@@ -182,7 +182,7 @@ namespace cvt {
 			uint8_t const* optr1;
 			uint8_t const* optr2;
 
-			idst.reallocate( flow.width(), flow.height(), IOrder::BGRA, IType::FLOAT );
+			idst.reallocate( flow.width(), flow.height(), IFormat::BGRA_FLOAT );
 
 			optr1 = dst = idst.map( &stridedst );
 			optr2 = src = flow.map( &stridesrc );

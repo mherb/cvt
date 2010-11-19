@@ -212,10 +212,10 @@ namespace cvt {
 			*data++ = -0.1f;
 		}
 #else
-		Image kerndx( 2, 1, IOrder::GRAY, IType::FLOAT );
-		Image kerndy( 1, 2, IOrder::GRAY, IType::FLOAT );
-		Image kerndxrev( 3, 1, IOrder::GRAY, IType::FLOAT );
-		Image kerndyrev( 1, 3, IOrder::GRAY, IType::FLOAT );
+		Image kerndx( 2, 1, IFormat::GRAY_FLOAT );
+		Image kerndy( 1, 2, IFormat::GRAY_FLOAT );
+		Image kerndxrev( 3, 1, IFormat::GRAY_FLOAT );
+		Image kerndyrev( 1, 3, IFormat::GRAY_FLOAT );
 
 		{
 			float* data;

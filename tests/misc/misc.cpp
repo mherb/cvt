@@ -8,7 +8,7 @@ using namespace cvt;
 int main()
 {
 #define SCALE 50.0f
-	Image i( 200, 200, IOrder::GRAYALPHA, IType::FLOAT );
+	Image i( 200, 200, IFormat::GRAYALPHA_FLOAT );
 	ssize_t istride;
 	size_t stride;
 	uint8_t* base = i.map( &stride );

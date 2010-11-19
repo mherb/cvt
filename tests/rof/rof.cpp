@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 		cvt::Image out, tmp;
 		cvt::ImageIO::loadPNG(img, inputFile);
 		
-		out.reallocate( img.width(), img.height(), img.order(), cvt::IType::FLOAT );
+		out.reallocate( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );
 		tmp.reallocate( out );
 		img.convert( tmp );
 		cvt::ROFDenoise rof;

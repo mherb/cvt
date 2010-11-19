@@ -3,6 +3,8 @@
 #include "util/SIMD.h"
 #include "util/Exception.h"
 
+#include <cvt/gfx/IConvert.h>
+
 namespace cvt {
 
 	float* Image::imageToKernel( const Image& kernel, bool normalize ) const
@@ -42,377 +44,181 @@ namespace cvt {
 		return ret;
 	}
 
-#define CONV( func, dsttype, srctype, width )							\
-	{																	\
-		sbase = src = map( &sstride );													\
-		dbase = dst = img.map( &dstride );												\
-		h = _mem->_height;												\
-		while( h-- ) {													\
-			simd->func( ( dsttype ) dst, ( const srctype ) src, width );\
-			src += sstride;										\
-			dst += dstride;									\
-		}																\
-		unmap( sbase );														\
-		img.unmap( dbase );													\
-		return;															\
-	}
-
-	void Image::convert( Image& img, IOrder order, IType type ) const
-	{
-		SIMD* simd = SIMD::get();
-		const uint8_t* src;
-		const uint8_t* sbase;
-		size_t sstride;
-		size_t dstride;
-		uint8_t* dst;
-		uint8_t* dbase;
-		size_t h;
-
-		checkSize( img, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
-		
-		if( _mem->_order == order && _mem->_type == type ) {
-			img.copy( *this );
-			return;
-		}
-
-		/* FIXME: no gamma correction for gray/grayalpha */
-		/* FIXME: missing conversion routines */
-
-		if( _mem->_type == IType::UBYTE && type == IType::UBYTE ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAYALPHA:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_RGBA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-								break;
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XYZAu8_to_ZYXAu8, uint8_t*, uint8_t*, _mem->_width  )
-						}
-					}
-				case ICHANNELORDER_BGRA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-								break;
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XYZAu8_to_ZYXAu8, uint8_t*, uint8_t*, _mem->_width  )
-						}
-					}
-			}
-		} else if( _mem->_type == IType::FLOAT && type == IType::FLOAT ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAYALPHA:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_RGBA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XYZAf_to_ZYXAf, float*, float*, _mem->_width  )
-						}
-					}
-				case ICHANNELORDER_BGRA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XYZAf_to_ZYXAf, float*, float*, _mem->_width  )
-						}
-					}
-			}
-		} else if( _mem->_type == IType::UBYTE && type == IType::FLOAT ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-								CONV( Conv_u8_to_f, float*, uint8_t*, _mem->_width  )
-							case ICHANNELORDER_GRAYALPHA:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_GRAYALPHA:
-								CONV( Conv_u8_to_f, float*, uint8_t*, _mem->_width * _mem->_order.channels )
-						}
-					}
-				case ICHANNELORDER_RGBA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-								CONV( Conv_RGBAu8_to_GRAYf, float*, uint8_t*, _mem->_width )
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XXXAu8_to_XXXAf, float*, uint8_t*, _mem->_width )
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XYZAu8_to_ZYXAf, float*, uint8_t*, _mem->_width )
-						}
-					}
-				case ICHANNELORDER_BGRA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-								CONV( Conv_BGRAu8_to_GRAYf, float*, uint8_t*, _mem->_width )
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-								break;
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XXXAu8_to_XXXAf, float*, uint8_t*, _mem->_width )
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XYZAu8_to_ZYXAf, float*, uint8_t*, _mem->_width )
-						}
-					}
-			}
-		} else if( _mem->_type == IType::FLOAT && type == IType::UBYTE ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-								CONV( Conv_f_to_u8, uint8_t*, float*, _mem->_width )
-							case ICHANNELORDER_GRAYALPHA:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-						}
-					}
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_RGBA:
-							case ICHANNELORDER_BGRA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_GRAYALPHA:
-								CONV( Conv_f_to_u8, uint8_t*, float*, _mem->_width * _mem->_order.channels )
-						}
-					}
-				case ICHANNELORDER_RGBA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XXXAf_to_XXXAu8, uint8_t*, float*, _mem->_width )
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XYZAf_to_ZYXAu8, uint8_t*, float*, _mem->_width )
-						}
-					}
-				case ICHANNELORDER_BGRA:
-					{
-						switch( order.id ) {
-							case ICHANNELORDER_GRAY:
-							case ICHANNELORDER_GRAYALPHA:
-								throw CVTException( "Color conversion not implemented" );
-							case ICHANNELORDER_BGRA:
-								CONV( Conv_XXXAf_to_XXXAu8, uint8_t*, float*, _mem->_width )
-							case ICHANNELORDER_RGBA:
-								CONV( Conv_XYZAf_to_ZYXAu8, uint8_t*, float*, _mem->_width )
-						}
-					}
-			}
-		} else
-			throw CVTException( "Color conversion not implemented" );
-	}
-
-#undef CONV
-
 	void Image::convert( Image& dst ) const
 	{
-		this->convert( dst, dst.order(), dst.type());
+		IConvert::convert( dst, *this );
 	}
-
+	
+	void Image::convert( Image & dst, const IFormat & dstFormat ) const
+	{
+		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
+		IConvert::convert( dst, *this );
+	}
+	
 	void Image::fill( const Color& c )
 	{
 		size_t h, stride;
 		uint8_t* dst;
 		uint8_t* dbase;
 		SIMD* simd = SIMD::get();
-
-		if( _mem->_type == IType::UBYTE ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						uint8_t v = ( uint8_t ) ( 255.0f * c.gray() );
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValueU8( dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+		
+		switch ( _mem->_format.formatID ) {
+			case IFORMAT_GRAY_UINT8:
+				{
+					uint8_t v = ( uint8_t ) ( 255.0f * c.gray() );
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValueU8( dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						uint16_t v = ( uint16_t ) ( ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8 );
-						v |= ( ( uint16_t ) ( 255.0f * c.gray() ));
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValueU16( ( uint16_t* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;				
+			case IFORMAT_GRAY_UINT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_GRAY_INT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_GRAY_FLOAT:
+				{
+					float v = c.gray();
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValue1f( ( float* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_RGBA:
-					{
-						uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
-						v |= ( ( uint32_t ) ( 255.0f * c.blue() ) ) << 16;
-						v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
-						v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;
+			
+			case IFORMAT_GRAYALPHA_UINT8:
+				{
+					uint16_t v = ( uint16_t ) ( ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8 );
+					v |= ( ( uint16_t ) ( 255.0f * c.gray() ));
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValueU16( ( uint16_t* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_BGRA:
-					{
-						uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
-						v |= ( ( uint32_t ) ( 255.0f * c.red() ) ) << 16;
-						v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
-						v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_GRAYALPHA_UINT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_GRAYALPHA_INT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_GRAYALPHA_FLOAT:
+				{
+					float v[ 2 ] = { c.gray(), c.alpha() };
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValue2f( ( float* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-			}
-		} else if( _mem->_type == IType::FLOAT ) {
-			switch( _mem->_order.id ) {
-				case ICHANNELORDER_GRAY:
-					{
-						float v = c.gray();
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValue1f( ( float* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_RGBA_UINT8:
+				{
+					uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
+					v |= ( ( uint32_t ) ( 255.0f * c.blue() ) ) << 16;
+					v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
+					v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_GRAYALPHA:
-					{
-						float v[ 2 ] = { c.gray(), c.alpha() };
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValue2f( ( float* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_RGBA_UINT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_RGBA_INT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_RGBA_FLOAT:
+				{
+					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValue4f( ( float* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_RGBA:
-					{
-						float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValue4f( ( float* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_BGRA_UINT8:
+				{
+					uint32_t v = ( ( uint32_t ) ( 255.0f * c.alpha() ) ) << 24;
+					v |= ( ( uint32_t ) ( 255.0f * c.red() ) ) << 16;
+					v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
+					v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValueU32( ( uint32_t* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-				case ICHANNELORDER_BGRA:
-					{
-						float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-
-						h = _mem->_height;
-						dbase = dst = map( &stride );
-						while( h-- ) {
-							simd->SetValue4f( ( float* ) dst, v, _mem->_width );
-							dst += stride;
-						}
-						unmap( dbase );
+					unmap( dbase );
+				}	
+				break;
+			case IFORMAT_BGRA_UINT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_BGRA_INT16:
+				throw CVTException("Unimplemented");
+				break;
+			case IFORMAT_BGRA_FLOAT:
+				{						
+					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
+					
+					h = _mem->_height;
+					dbase = dst = map( &stride );
+					while( h-- ) {
+						simd->SetValue4f( ( float* ) dst, v, _mem->_width );
+						dst += stride;
 					}
-					break;
-
-			}
-		} else
-			throw CVTException("Unimplemented");
+					unmap( dbase );
+				}
+				break;
+				
+			case IFORMAT_BAYER_RGGB_UINT8:
+				throw CVTException("Unimplemented");
+				break;
+			default:
+				throw CVTException("Unimplemented");
+				break;				
+		}
 	}
 
 	void Image::add( float alpha )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t stride;
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
+						simd->Add( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -428,57 +234,51 @@ namespace cvt {
 	void Image::add( const Color& c )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.formatID ) {
+			case IFORMAT_GRAY_FLOAT:
 				{
-					switch( _mem->_order.id ) {
-						case ICHANNELORDER_GRAY:
-							{
-								size_t stride;
-								uint8_t* dst = map( & stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Add( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_RGBA:
-							{
-								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_BGRA:
-							{
-								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
+					size_t stride;
+					uint8_t* dst = map( & stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Add( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						dst += stride;
 					}
+					unmap( dbase );
 				}
 				break;
+			case IFORMAT_RGBA_FLOAT:
+				{
+					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_BGRA_FLOAT:
+				{
+					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;				
 			default:
 				throw CVTException("Unimplemented");
 
@@ -488,15 +288,15 @@ namespace cvt {
 	void Image::sub( float alpha )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t stride;
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
+						simd->Sub( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -511,57 +311,53 @@ namespace cvt {
 	void Image::sub( const Color& c )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.formatID ) {
+			case IFORMAT_GRAY_FLOAT:
 				{
-					switch( _mem->_order.id ) {
-						case ICHANNELORDER_GRAY:
-							{
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Sub( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_RGBA:
-							{
-								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_BGRA:
-							{
-								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Sub( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						dst += stride;
 					}
+					unmap( dbase );
 				}
 				break;
+			case IFORMAT_RGBA_FLOAT:
+				{
+					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_BGRA_FLOAT:
+				{
+					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;
+				
+				
 			default:
 				throw CVTException("Unimplemented");
 
@@ -571,8 +367,9 @@ namespace cvt {
 	void Image::mul( float alpha )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t stride;
 					uint8_t* dst = map( &stride );
@@ -580,7 +377,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 
 					while( h-- ) {
-						simd->Mul( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_order.channels );
+						simd->Mul( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -595,57 +392,51 @@ namespace cvt {
 	void Image::mul( const Color& c )
 	{
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.formatID ) {
+			case IFORMAT_GRAY_FLOAT:
 				{
-					switch( _mem->_order.id ) {
-						case ICHANNELORDER_GRAY:
-							{
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Mul( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_RGBA:
-							{
-								float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
-						case ICHANNELORDER_BGRA:
-							{
-								float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-								size_t stride;
-								uint8_t* dst = map( &stride );
-								uint8_t* dbase = dst;
-								size_t h = _mem->_height;
-
-								while( h-- ) {
-									simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_order.channels );
-									dst += stride;
-								}
-								unmap( dbase );
-							}
-							break;
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Mul( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						dst += stride;
 					}
+					unmap( dbase );
 				}
 				break;
+			case IFORMAT_RGBA_FLOAT:
+				{
+					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;
+			case IFORMAT_BGRA_FLOAT:
+				{
+					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
+					size_t stride;
+					uint8_t* dst = map( &stride );
+					uint8_t* dbase = dst;
+					size_t h = _mem->_height;
+					
+					while( h-- ) {
+						simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+				break;				
 			default:
 				throw CVTException("Unimplemented");
 
@@ -654,13 +445,14 @@ namespace cvt {
 
 	void Image::add( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width || 
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t sstride, dstride;
 					const uint8_t* src = i.map( &sstride );
@@ -670,7 +462,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
+						simd->Add( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_format.channels );
 						src += sstride;
 						dst += dstride;
 					}
@@ -686,13 +478,14 @@ namespace cvt {
 
 	void Image::sub( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width || 
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t sstride, dstride;
 					const uint8_t* src = i.map( &sstride );
@@ -702,7 +495,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
+						simd->Sub( ( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_format.channels );
 						src += sstride;
 						dst += dstride;
 					}
@@ -718,13 +511,14 @@ namespace cvt {
 
 	void Image::mul( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width || 
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t sstride, dstride;
 					const uint8_t* src = i.map( &sstride );
@@ -734,7 +528,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Mul(( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_order.channels );
+						simd->Mul(( float* ) dst, ( float* ) dst, ( float* ) src, _mem->_width * _mem->_format.channels );
 						src += sstride;
 						dst += dstride;
 					}
@@ -750,13 +544,14 @@ namespace cvt {
 
 	void Image::mad( const Image& i, float alpha )
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width ||
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::get();
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t sstride, dstride;
 					const uint8_t* src = i.map( &sstride );
@@ -766,7 +561,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->MulAdd( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_order.channels );
+						simd->MulAdd( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_format.channels );
 						src += sstride;
 						dst += dstride;
 					}
@@ -782,16 +577,17 @@ namespace cvt {
 	
 	float Image::ssd( const Image& i ) const
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width ||
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 		
 		SIMD* simd = SIMD::get();
 		
 		float ssd = 0.0f;
 		
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 			{
 				size_t astride, bstride;
 				const uint8_t* srcA = i.map( &astride );
@@ -801,7 +597,7 @@ namespace cvt {
 											
 				size_t h = _mem->_height;
 				while( h-- ) {
-					ssd += simd->SSD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_order.channels );
+					ssd += simd->SSD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_format.channels );
 					srcA += astride;
 					srcB += bstride;
 				}
@@ -818,16 +614,17 @@ namespace cvt {
 	
 	float Image::sad( const Image& i ) const
 	{
-		if( _mem->_width != i._mem->_width || _mem->_height != i._mem->_height ||
-		   _mem->_type != i._mem->_type || _mem->_order != i._mem->_order )
+		if( _mem->_width != i._mem->_width || 
+		    _mem->_height != i._mem->_height ||
+		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 		
 		SIMD* simd = SIMD::get();
 		
 		float sad = 0.0f;
 		
-		switch( _mem->_type.id ) {
-			case ICHANNELTYPE_FLOAT:
+		switch( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
 				{
 					size_t astride, bstride;
 					const uint8_t* srcA = i.map( &astride );
@@ -837,7 +634,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						sad += simd->SAD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_order.channels );
+						sad += simd->SAD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_format.channels );
 						srcA += astride;
 						srcB += bstride;
 					}
@@ -855,7 +652,8 @@ namespace cvt {
 
 	void Image::convolve( Image& idst, const Image& kernel, bool normalize ) const
 	{
-		if( kernel._mem->_order == IOrder::GRAY && kernel._mem->_type == IType::FLOAT && _mem->_type == IType::FLOAT )
+		if( kernel._mem->_format == IFormat::GRAY_FLOAT &&
+		    _mem->_format.type == IFORMAT_TYPE_FLOAT )
 			convolveFloat( idst, kernel, normalize );
 		else {
 			throw CVTException("Unimplemented");
@@ -877,10 +675,10 @@ namespace cvt {
 		void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 		SIMD* simd = SIMD::get();
 
-		if( _mem->_order.channels == 1 ) {
+		if( _mem->_format.channels == 1 ) {
 			convfunc = &SIMD::ConvolveClampSet1f;
 			convaddfunc = &SIMD::ConvolveClampAdd1f;
-		} else if( _mem->_order.channels == 2 ) {
+		} else if( _mem->_format.channels == 2 ) {
 			convfunc = &SIMD::ConvolveClampSet2f;
 			convaddfunc = &SIMD::ConvolveClampAdd2f;
 		} else {
@@ -970,7 +768,7 @@ namespace cvt {
 
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
-		if(_mem->_type == IType::FLOAT )
+		if( _mem->_format.type == IFORMAT_TYPE_FLOAT )
 			scaleFloat( idst, width, height, filter );
 		else
 			throw CVTException("Unimplemented");
@@ -997,15 +795,15 @@ namespace cvt {
 		SIMD* simd = SIMD::get();
 
 
-		if( _mem->_order.channels == 1 ) {
+		if( _mem->_format.channels == 1 ) {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp1f;
-		} else if( _mem->_order.channels == 2 ) {
+		} else if( _mem->_format.channels == 2 ) {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp2f;
 		} else {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
 		}
 
-		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_order, _mem->_type );
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
 		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
 
 		osrc = src = map( &sstride );
@@ -1018,7 +816,7 @@ namespace cvt {
 		buf = new float*[ bufsize ];
 		/* allocate and fill buffer */
 		for( i = 0; i < bufsize; i++ ) {
-			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _mem->_order.channels) )
+			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _mem->_format.channels) )
 				throw CVTException("Out of memory");
 			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
 			src += sstride;
@@ -1042,11 +840,11 @@ namespace cvt {
 				l++;
 				pyw++;
 			}
-			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_order.channels );
+			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
 			l++;
 			for( ; l < pysw->numw; l++ ) {
 				if( Math::abs( *pyw ) > Math::EPSILONF )
-					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_order.channels );
+					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
 				pyw++;
 			}
 			pysw++;
@@ -1070,7 +868,8 @@ namespace cvt {
 		size_t m, n, k, K;
 		size_t sstride, dstride, wstride;
 
-		if( _mem->_type == IType::FLOAT && warp._mem->_type == IType::FLOAT && warp._mem->_order == IOrder::GRAYALPHA ) {
+		if( _mem->_format.type == IFORMAT_TYPE_FLOAT && 
+			warp._mem->_format == IFormat::GRAYALPHA_FLOAT ) {
 			const uint8_t* src;
 			const uint8_t* osrc;
 			uint8_t* dst;
@@ -1121,69 +920,5 @@ namespace cvt {
 			unmap( osrc );
 		} else
 			throw CVTException("Unimplemented");
-	}
-
-	void Image::debayer( Image& idst, IBayerPattern_t pattern ) const
-	{
-		const uint32_t* src1;
-		const uint32_t* src2;
-		const uint32_t* src3;
-		const uint8_t* osrc;
-		uint32_t* dst;
-		uint8_t* odst;
-		size_t sstride;
-		size_t dstride;
-		size_t h;
-		size_t w, i;
-		void (SIMD::*debayereven)( uint32_t*, const uint32_t* , const uint32_t*, const uint32_t*, const size_t ) const;
-		void (SIMD::*debayerodd)( uint32_t*, const uint32_t* , const uint32_t*, const uint32_t*, const size_t ) const;
-		SIMD* simd = SIMD::get();
-
-		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
-		checkFormat( *this, __PRETTY_FUNCTION__, __LINE__, IOrder::GRAY, IType::UBYTE );
-		if( !( idst._mem->_type == IType::UBYTE && ( idst._mem->_order == IOrder::RGBA || idst._mem->_order == IOrder::BGRA || idst._mem->_order == IOrder::GRAY ) ) )
-			throw CVTException("Unsupported destination format!");
-
-		if( idst._mem->_order == IOrder::RGBA ) {
-			debayereven = &SIMD::debayer_EVEN_RGGBu8_RGBAu8;
-			debayerodd = &SIMD::debayer_ODD_RGGBu8_RGBAu8;
-		} else if( idst._mem->_order == IOrder::BGRA ) {
-			debayereven = &SIMD::debayer_EVEN_RGGBu8_BGRAu8;
-			debayerodd = &SIMD::debayer_ODD_RGGBu8_BGRAu8;
-		} else {
-			debayereven = &SIMD::debayer_EVEN_RGGBu8_GRAYu8;
-			debayerodd = &SIMD::debayer_ODD_RGGBu8_GRAYu8;
-		}
-
-
-		osrc = map( &sstride );
-		src1 = ( uint32_t* ) osrc;
-		sstride = sstride >> 2;
-		src2 = src1 + sstride;
-		src3 = src2 + sstride;
-		w = width();
-		h = height();
-		odst = idst.map( &dstride );
-		dst = ( uint32_t* ) odst;
-		dstride = dstride >> 2;
-
-		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
-		dst += dstride;
-		h = h - 2 ;
-		while( h-- ) {
-			i = ( w >> 2 ) - 2;
-			if(  h & 1 ) {
-				( simd->*debayereven )( dst, src1, src2, src3, w >> 2 );
-			} else {
-				( simd->*debayerodd )( dst, src1, src2, src3, w >> 2 );
-			}
-			dst += dstride;
-			src1 += sstride;
-			src2 += sstride;
-			src3 += sstride;
-		}
-		( simd->*debayerodd )( dst, src2, src1, src2, w >> 2 );
-		idst.unmap( odst );
-		unmap( osrc );
 	}
 }

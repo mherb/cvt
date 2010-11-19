@@ -13,7 +13,7 @@ namespace cvt {
 			delete _climage;
 	}
 
-	void ImageAllocatorCL::alloc( size_t width, size_t height, const IOrder order, const IType type )
+	void ImageAllocatorCL::alloc( size_t width, size_t height, const IFormat & format )
 	{
 		cl_int err;
 
@@ -21,10 +21,9 @@ namespace cvt {
 			delete _climage;
 		_width = width;
 		_height = height;
-		_order = order;
-		_type = type;
+		_format = format;
 		_cl = CLContext::getCurrent();
-		_climage = new cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _order, _type ), _width, _height, 0, NULL, &err );
+		_climage = new cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _format ), _width, _height, 0, NULL, &err );
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}
@@ -43,12 +42,12 @@ namespace cvt {
 
 			if( r )
 				rect.intersect( *r );
-			alloc( rect.width, rect.height, x->_order, x->_type );
+			alloc( rect.width, rect.height, x->_format );
 
 			osrc = src = x->map( &sstride );
-			src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
+			src += rect.y * sstride + x->_format.bpp * rect.x;
 			odst = dst = map( &dstride );
-			n =  x->_type.size * x->_order.channels * rect.width;
+			n =  x->_format.bpp * rect.width;
 
 			i = rect.height;
 			while( i-- ) {
@@ -67,7 +66,7 @@ namespace cvt {
 			Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
 			if( r )
 				rect.intersect( *r );
-			alloc( rect.width, rect.height, x->_order, x->_type );
+			alloc( rect.width, rect.height, x->_format );
 
 			dst[ 0 ] = 0;
 			dst[ 1 ] = 0;
@@ -135,22 +134,37 @@ namespace cvt {
 	}
 
 
-	::cl::ImageFormat ImageAllocatorCL::getCLFormat( IOrder order, IType type )
+	::cl::ImageFormat ImageAllocatorCL::getCLFormat( const IFormat & format )
 	{
 		cl_channel_order clorder;
 		cl_channel_type  cltype;
+		
+		switch ( format.formatID ) {
+			case IFORMAT_GRAY_UINT8:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_GRAY_UINT16:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_GRAY_INT16:		clorder = CL_INTENSITY; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_GRAY_FLOAT:		clorder = CL_INTENSITY;	cltype = CL_FLOAT; break;
+			
+			case IFORMAT_GRAYALPHA_UINT8:	clorder = CL_RA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_GRAYALPHA_UINT16:	clorder = CL_RA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_INT16:	clorder = CL_RA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	clorder = CL_RA; cltype = CL_FLOAT; break;
+				
+			case IFORMAT_RGBA_UINT8:		clorder = CL_RGBA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_RGBA_UINT16:		clorder = CL_RGBA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_RGBA_INT16:		clorder = CL_RGBA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_RGBA_FLOAT:		clorder = CL_RGBA; cltype = CL_FLOAT; break;
+				
+			case IFORMAT_BGRA_UINT8:		clorder = CL_BGRA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_BGRA_UINT16:		clorder = CL_BGRA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_BGRA_INT16:		clorder = CL_BGRA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_BGRA_FLOAT:		clorder = CL_BGRA; cltype = CL_FLOAT; break;
 
-		switch( order.id ) {
-			case ICHANNELORDER_GRAY: clorder = CL_INTENSITY; break;
-			case ICHANNELORDER_GRAYALPHA: clorder =CL_RA; break;
-			case ICHANNELORDER_RGBA:	clorder = CL_RGBA; break;
-			case ICHANNELORDER_BGRA:	clorder = CL_BGRA; break;
-		}
-
-		switch( type.id ) {
-			case ICHANNELTYPE_UBYTE: cltype = CL_UNORM_INT8; break;
-			case ICHANNELTYPE_FLOAT: cltype = CL_FLOAT; break;
-		}
+			case IFORMAT_BAYER_RGGB_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
+			default:
+				throw CVTException( "No equivalent CL format found" );
+				break;
+		}		
 
 		return cl::ImageFormat( clorder, cltype );
 	}

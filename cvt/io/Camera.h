@@ -16,7 +16,7 @@ namespace cvt {
 			static const CameraInfo & info( size_t index );
 			static void updateInfo();
 			static Camera* get( size_t index, size_t width = 640, size_t height = 480,
-							    size_t fps = 30, cvt::IOrder order = IOrder::BGRA, cvt::IType type = IType::UBYTE );
+							    size_t fps = 30, const IFormat & format = IFormat::BGRA_UINT8 );
 
 			virtual void startCapture() = 0;
 			virtual void stopCapture() = 0;

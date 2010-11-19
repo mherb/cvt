@@ -18,15 +18,14 @@ namespace cvt {
 		glDeleteBuffers( 1, &_glbuf );
 	}
 
-	void ImageAllocatorGL::alloc( size_t width, size_t height, const IOrder order, const IType type )
+	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat & format )
 	{
 		GLenum glformat, gltype;
 
 		_width = width;
 		_height = height;
-		_order = order;
-		_type = type;
-		_stride = Math::pad16( _width * _order.channels* _type.size );
+		_format = format;
+		_stride = Math::pad16( _width * _format.bpp );
 		_size = _stride * _height;
 
 		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
@@ -36,8 +35,8 @@ namespace cvt {
 		glBindTexture( GL_TEXTURE_2D, _tex2d );
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _type.size * _order.channels ) ) );
-		getGLFormat( _order, _type, glformat, gltype );
+		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _format.bpp ) ) );
+		getGLFormat( _format, glformat, gltype );
 		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
@@ -55,12 +54,12 @@ namespace cvt {
 
 		if( r )
 			rect.intersect( *r );
-		alloc( rect.width, rect.height, x->_order, x->_type );
+		alloc( rect.width, rect.height, x->_format );
 
 		osrc = src = x->map( &sstride );
-		src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
+		src += rect.y * sstride + x->_format.bpp * rect.x;
 		odst = dst = map( &dstride );
-		n =  x->_type.size * x->_order.channels * rect.width;
+		n =  x->_format.bpp * rect.width;
 
 		i = rect.height;
 		while( i-- ) {
@@ -79,7 +78,7 @@ namespace cvt {
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-			_ptr = ( uint8_t* ) glMapBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT  );
+			_ptr = ( uint8_t* ) glMapBuffer( GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE );
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 		}
 		_ptrcount++;
@@ -94,7 +93,7 @@ namespace cvt {
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
-			_ptr = ( uint8_t* ) glMapBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT  );
+			_ptr = ( uint8_t* ) glMapBuffer( GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE );
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
 		}
 		_ptrcount++;
@@ -108,13 +107,12 @@ namespace cvt {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
 			if( _dirty ) {
 				GLenum glformat, gltype;
-
-				glFlushMappedBufferRange( GL_PIXEL_UNPACK_BUFFER, 0, _size );
+				
 				glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
 
 				glBindTexture( GL_TEXTURE_2D, _tex2d );
-				glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _type.size * _order.channels ) ) );
-				getGLFormat( _order, _type, glformat, gltype );
+				glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _format.bpp ) ) );
+				getGLFormat( _format, glformat, gltype );
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ( GLsizei ) _width, ( GLsizei ) _height, glformat, gltype, NULL);
 				_dirty = false;
 			} else {
@@ -126,18 +124,33 @@ namespace cvt {
 	}
 
 
-	void ImageAllocatorGL::getGLFormat( IOrder order, IType type, GLenum& glformat, GLenum& gltype ) const
+	void ImageAllocatorGL::getGLFormat( const IFormat & format, GLenum& glformat, GLenum& gltype ) const
 	{
-		switch( order.id ) {
-			case ICHANNELORDER_GRAY: glformat = GL_RED; break;
-			case ICHANNELORDER_GRAYALPHA: glformat =GL_RG; break;
-			case ICHANNELORDER_RGBA:	glformat = GL_RGBA; break;
-			case ICHANNELORDER_BGRA:	glformat = GL_BGRA; break;
-		}
-
-		switch( type.id ) {
-			case ICHANNELTYPE_UBYTE: gltype = GL_UNSIGNED_BYTE; break;
-			case ICHANNELTYPE_FLOAT: gltype = GL_FLOAT; break;
+		switch ( format.formatID ) {
+			case IFORMAT_GRAY_UINT8:		glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAY_UINT16:		glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAY_INT16:		glformat = GL_RED; gltype = GL_SHORT; break;
+			case IFORMAT_GRAY_FLOAT:		glformat = GL_RED; gltype = GL_FLOAT; break;
+				
+			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RG; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RG; gltype = GL_SHORT; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RG; gltype = GL_FLOAT; break;
+				
+			case IFORMAT_RGBA_UINT8:		glformat = GL_RGBA; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_RGBA_UINT16:		glformat = GL_RGBA; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_RGBA_INT16:		glformat = GL_RGBA; gltype = GL_SHORT; break;
+			case IFORMAT_RGBA_FLOAT:		glformat = GL_RGBA; gltype = GL_FLOAT; break;
+				
+			case IFORMAT_BGRA_UINT8:		glformat = GL_BGRA; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_BGRA_UINT16:		glformat = GL_BGRA; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
+			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
+				
+			case IFORMAT_BAYER_RGGB_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+			default:
+				throw CVTException( "No equivalent CL format found" );
+				break;
 		}
 	}
 }

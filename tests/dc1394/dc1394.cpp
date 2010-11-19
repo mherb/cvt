@@ -33,12 +33,11 @@ int main(int argc, char* argv[])
 	try {
 		cam.startCapture();
 
-		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
-		Image region( 640, 480, IOrder::GRAY, IType::UBYTE );
+		Image out( 640, 480, IFormat::BGRA_UINT8 );
+		Image region( 640, 480, IFormat::GRAY_UINT8 );
 
 
 		Params p = { &out, &region };
-//		cvShowImage( "DC1394", out.iplimage() );
 		cvSetMouseCallback( "DC1394", ( CvMouseCallback ) mouseevent, &p );
 
 		timer.reset();
@@ -46,8 +45,12 @@ int main(int argc, char* argv[])
 			cam.nextFrame();
 			const Image & frame = cam.frame();
 
-			frame.debayer( out, IBAYER_RGGB );
-//			cvShowImage( "DC1394", out.iplimage() );
+			frame.convert( out );
+			size_t stride;
+			const uint8_t * data = out.map( &stride );
+			cv::Mat ocvImage( out.height(), out.width(), CV_8UC4, (void *)data, stride );
+			cv::imshow( "DC1394", ocvImage );
+			frame.unmap( data );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
