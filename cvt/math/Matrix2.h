@@ -9,52 +9,50 @@ namespace cvt {
     template<typename T>
 	class Matrix2 {
 	    public:
-		Matrix2<T>( void );
-		explicit Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
-		explicit Matrix2<T>( const T a, const T b, const T c, const T d );
-		explicit Matrix2<T>( const T src[ 2 ][ 2 ] );
+							Matrix2<T>( void );
+		explicit			Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
+		explicit			Matrix2<T>( const T a, const T b, const T c, const T d );
+		explicit			Matrix2<T>( const T src[ 2 ][ 2 ] );
 
 		const Vector2<T>&	operator[]( int index ) const;
-		Vector2<T>&		operator[]( int index );
-		Matrix2<T>		operator-() const;
-		Matrix2<T>		operator*( const T c ) const;
-		Matrix2<T>		operator+( const T c ) const;
-		Matrix2<T>		operator-( const T c ) const;
-		Vector2<T>		operator*( const Vector2<T> &vec ) const;
-		Matrix2<T>		operator*( const Matrix2<T>& m ) const;
-		Matrix2<T>		operator+( const Matrix2<T>& m ) const;
-		Matrix2<T>		operator-( const Matrix2<T>& m ) const;
-		Matrix2<T>&		operator*=( const T c );
-		Matrix2<T>&		operator+=( const T c );
-		Matrix2<T>&		operator-=( const T c );
-		Matrix2<T>&		operator*=( const Matrix2<T>& m );
-		Matrix2<T>&		operator+=( const Matrix2<T>& m );
-		Matrix2<T>&		operator-=( const Matrix2<T>& m );
+		Vector2<T>&			operator[]( int index );
+		Matrix2<T>			operator-() const;
+		Matrix2<T>			operator*( const T c ) const;
+		Matrix2<T>			operator+( const T c ) const;
+		Matrix2<T>			operator-( const T c ) const;
+		Vector2<T>			operator*( const Vector2<T> &vec ) const;
+		Matrix2<T>			operator*( const Matrix2<T>& m ) const;
+		Matrix2<T>			operator+( const Matrix2<T>& m ) const;
+		Matrix2<T>			operator-( const Matrix2<T>& m ) const;
+		Matrix2<T>&			operator*=( const T c );
+		Matrix2<T>&			operator+=( const T c );
+		Matrix2<T>&			operator-=( const T c );
+		Matrix2<T>&			operator*=( const Matrix2<T>& m );
+		Matrix2<T>&			operator+=( const Matrix2<T>& m );
+		Matrix2<T>&			operator-=( const Matrix2<T>& m );
 
+		bool				operator==( const Matrix2<T> &m ) const;
+		bool				operator!=( const Matrix2<T> &m ) const;
 
-		bool			operator==( const Matrix2<T> &m ) const;
-		bool			operator!=( const Matrix2<T> &m ) const;
+		void				zero( void );
+		void				identity( void );
+		bool				isIdentity( ) const;
+		bool				isSymmetric( ) const;
+		bool				isDiagonal( ) const;
 
-		void			zero( void );
-		void			identity( void );
-		bool			isIdentity( ) const;
-		bool			isSymmetric( ) const;
-		bool			isDiagonal( ) const;
+		T					trace( void ) const;
+		T					determinant( void ) const;
+		Matrix2<T>			transpose( void ) const;
+		Matrix2<T>&			transposeSelf( void );
+		Matrix2<T>			inverse( void ) const;
+		bool				inverseSelf( void );
 
-		T				trace( void ) const;
-		T				determinant( void ) const;
-		Matrix2<T>		transpose( void ) const;
-		Matrix2<T>&		transposeSelf( void );
-		Matrix2<T>		inverse( void ) const;
-		bool			inverseSelf( void );
-		Matrix2<T>		inverseFast( void ) const;
-		bool			inverseFastSelf( void );
-
-		int				dimension( void ) const;
+		int					dimension( void ) const;
 
 		friend std::ostream& operator<< <>( std::ostream& out, const Matrix2<T>& m );
+
 	    private:
-		Vector2<T>		mat[ 2 ];
+		Vector2<T>			mat[ 2 ];
 	};
 
 	template<typename T>
@@ -62,6 +60,13 @@ namespace cvt {
 	{
 	    mat[ 0 ].zero();
 	    mat[ 1 ].zero();
+	}
+
+	template<typename T>
+	inline Matrix2<T>::Matrix2( const Vector2<T>& x, const Vector2<T>& y )
+	{
+	    mat[ 0 ] = x;
+	    mat[ 1 ] = y;
 	}
 
 	template<typename T>
@@ -276,6 +281,37 @@ namespace cvt {
 		return mat[ 0 ].x + mat[ 1 ].y;
 	}
 
+	template<typename T>
+	inline T Matrix2<T>::determinant() const
+	{
+		return mat[ 0 ].x * mat[ 1 ].y - mat[ 1 ].x * mat[ 0 ].y;
+	}
+
+	template<typename T>
+	inline Matrix2<T> Matrix2<T>::transpose() const
+	{
+		return Matrix2<T>( mat[ 0 ].x, mat[ 1 ].x, mat[ 0 ].y, mat[ 1 ].y );
+	}
+
+	template<typename T>
+	inline Matrix2<T>& Matrix2<T>::transposeSelf()
+	{
+		T tmp;
+		tmp = mat[ 0 ].y;
+		mat[ 0 ].y = mat[ 1 ].x;
+		mat[ 1 ].x = tmp;
+		return *this;
+	}
+
+	template<typename T>
+	inline Matrix2<T> Matrix2<T>::inverse( void ) const
+	{
+		Matrix2<T> inv;
+
+		inv = *this;
+		inv.inverseSelf();
+		return inv;
+	}
 
 	template<typename T>
 	int	Matrix2<T>::dimension( void ) const

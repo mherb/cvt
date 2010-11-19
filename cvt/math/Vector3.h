@@ -31,7 +31,6 @@ namespace cvt {
 		Vector3<T>&	operator/=( const T c );
 		Vector3<T>&	operator*=( const T c );
 
-/*		int		compare( const Vector3<T> &v ) const; **/
 		bool		operator==( const Vector3<T> &v ) const;
 		bool		operator!=( const Vector3<T> &v ) const;
 
