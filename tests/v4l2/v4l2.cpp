@@ -14,17 +14,13 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	CameraInfo info;
-	V4L2Camera::cameraInfo( 0, info );
-	return 0;
-
-	V4L2Camera cam( 0, 640, 480, 30.0, IOrder::BGRA );
+	V4L2Camera cam( 0, 640, 480, 30.0, IFormat::BGRA_UINT8 );
 
 	int key = 0;
 	size_t frames = 0;
 	Time timer;
 	bool doprocess = true;
-	Image kernel( 3, 1, IOrder::GRAY, IType::FLOAT );
+	Image kernel( 3, 1, IFormat::GRAY_FLOAT );
 	ROFDenoise rof;
 	IFilterParameterSet* rofparam;
 
@@ -34,9 +30,9 @@ int main(int argc, char* argv[])
 	rofparam->setParameter( "Lambda", &lambda );
 	rofparam->setParameter( "Iterations", &iter );
 
-	Image x( 640, 480, IOrder::BGRA, IType::FLOAT );
-	Image y( 640, 480, IOrder::BGRA, IType::FLOAT );
-	Image z( 640, 480, IOrder::BGRA, IType::UBYTE );
+	Image x( 640, 480, IFormat::BGRA_FLOAT );
+	Image y( 640, 480, IFormat::BGRA_FLOAT );
+	Image z( 640, 480, IFormat::BGRA_UINT8 );
 
 	{
 		size_t stride;

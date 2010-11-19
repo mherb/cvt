@@ -15,15 +15,13 @@ namespace cvt {
 					    unsigned int width=640,
 					    unsigned int height=480,
 					    unsigned int fps = 30,
-					    IOrder order = IOrder::BGRA,
-						IType type = IType::UBYTE);
+						const IFormat & format = IFormat::BGRA_UINT8 );
 
 			virtual ~V4L2Camera();
 
 			size_t width() const;
 			size_t height() const;
-			IOrder order() const;
-			IType type() const;
+			const IFormat & format() const;
 			const Image & frame() const;
 			void nextFrame();
 			void startCapture();
@@ -57,7 +55,7 @@ namespace cvt {
 			void** mBuffers;
 
 			Image* mFrame;
-			IOrder mImgorder;
+			const IFormat & mFormat;
 
 			/** V4L2 specific **/
 			v4l2_ext_control * mExtControlsToSet;
@@ -103,17 +101,10 @@ namespace cvt {
 		return mHeight;
 	}
 
-	inline IOrder V4L2Camera::order() const
+	inline const IFormat & V4L2Camera::format() const
 	{
-		return mFrame->order();
+		return mFormat;
 	}
-
-	inline IType V4L2Camera::type() const
-	{
-		return mFrame->type();
-	}
-
-
 
 }
 

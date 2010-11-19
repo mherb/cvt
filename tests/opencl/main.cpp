@@ -43,14 +43,14 @@ int main( int argc, char** argv )
 		ImageIO::loadPNG( img1, argv[ 1 ] );
 		ImageIO::loadPNG( img2, argv[ 2 ] );
 
-		in1.reallocate( img1.width(), img1.height(), IOrder::GRAY, IType::FLOAT );
-		in2.reallocate( img2.width(), img2.height(), IOrder::GRAY, IType::FLOAT );
-		iflow.reallocate( img2.width(), img2.height(), IOrder::GRAYALPHA, IType::FLOAT );
-		flowpad.reallocate( 640, 480, IOrder::GRAYALPHA, IType::FLOAT );
-		inp1.reallocate( 640, 480, IOrder::GRAY, IType::FLOAT );
-		inp2.reallocate( 640, 480, IOrder::GRAY, IType::FLOAT );
-		img1.convert( in1, IOrder::GRAY, IType::FLOAT );
-		img2.convert( in2, IOrder::GRAY, IType::FLOAT );
+		in1.reallocate( img1.width(), img1.height(), IFormat::GRAY_FLOAT );
+		in2.reallocate( img2.width(), img2.height(), IFormat::GRAY_FLOAT );
+		iflow.reallocate( img2.width(), img2.height(), IFormat::GRAYALPHA_FLOAT );
+		flowpad.reallocate( 640, 480, IFormat::GRAYALPHA_FLOAT);
+		inp1.reallocate( 640, 480, IFormat::GRAY_FLOAT );
+		inp2.reallocate( 640, 480, IFormat::GRAY_FLOAT );
+		img1.convert( in1, IFormat::GRAY_FLOAT );
+		img2.convert( in2, IFormat::GRAY_FLOAT );
 		inp1.fill( Color( 0.0f ) );
 		inp2.fill( Color( 0.0f ) );
 		inp1.copyRect( 0,0, in1, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
@@ -94,7 +94,7 @@ int main( int argc, char** argv )
 				break;
 
 		}
-		
+
 		FloFile::FloWriteFile( iflow, "out.flo" );
 		if( argc == 4 ) {
 			Image gt;

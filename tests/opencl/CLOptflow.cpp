@@ -70,16 +70,16 @@ namespace cvt {
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
 		/* FIXME: lowest level defines input format */
-		pyr[ 0 ][ 0 ] = new Image( 160, 480, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 0 ][ 1 ] = new Image( 160, 480, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 1 ][ 0 ] = new Image( 80, 240, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 1 ][ 1 ] = new Image( 80, 240, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 2 ][ 0 ] = new Image( 40, 120, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 2 ][ 1 ] = new Image( 40, 120, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 3 ][ 0 ] = new Image( 20, 60, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 3 ][ 1 ] = new Image( 20, 60, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 4 ][ 0 ] = new Image( 10, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
-		pyr[ 4 ][ 1 ] = new Image( 10, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL  );
+		pyr[ 0 ][ 0 ] = new Image( 160, 480, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 0 ][ 1 ] = new Image( 160, 480, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 1 ][ 0 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 1 ][ 1 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 2 ][ 0 ] = new Image( 40, 120, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 2 ][ 1 ] = new Image( 40, 120, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 3 ][ 0 ] = new Image( 20, 60, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 3 ][ 1 ] = new Image( 20, 60, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 4 ][ 0 ] = new Image( 10, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 4 ][ 1 ] = new Image( 10, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
 	}
 
 	CLOptflow::~CLOptflow()
@@ -137,10 +137,10 @@ namespace cvt {
 			sync.push_back( event );
 		}
 
-		Image* u = new Image( 20, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image* v = new Image( 20, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image* px = new Image( 20, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image* py = new Image( 20, 30, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
+		Image* u = new Image( 20, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image* v = new Image( 20, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image* px = new Image( 20, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image* py = new Image( 20, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		clear( u );
 		clear( v );
 		clear( px );
@@ -184,17 +184,17 @@ namespace cvt {
 		size_t wx, wy;
 		IFilterScalar mul( 1.0 );
 
-		Image dx1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image dy1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image dxy1( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image dx( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image dy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image dxy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image iwx( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image iwy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image iwxy( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image it( img1->width(), img1->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
-		Image v0( v->width(), v->height(), IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
+		Image dx1( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image dy1( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image dxy1( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image dx( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image dy( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image dxy( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image iwx( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image iwy( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image iwxy( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image it( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image v0( v->width(), v->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 
 		if( img1->width() <= 20  ) {
@@ -369,7 +369,7 @@ namespace cvt {
 	Image* CLOptflow::biup( Image* in, float mul )
 	{
 		IFilterScalar m( mul );
-		Image* ret = new Image( in->width() * 2, in->height() * 2, IOrder::RGBA, IType::FLOAT, IALLOCATOR_CL );
+		Image* ret = new Image( in->width() * 2, in->height() * 2, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		kernelbiup.setArg( 0, ret );
 		kernelbiup.setArg( 1, in );
 		kernelbiup.setArg( 2, &m );
@@ -379,7 +379,7 @@ namespace cvt {
 
 	Image* CLOptflow::colorcode( Image* in, Image* bg )
 	{
-		Image* ret = new Image( in->width() * 2, in->height(), IOrder::BGRA, IType::UBYTE, IALLOCATOR_CL );
+		Image* ret = new Image( in->width() * 2, in->height(), IFormat::BGRA_UINT8, IALLOCATOR_CL );
 		size_t wx, wy;
 
 		if( in->width() <= 20  ) {
@@ -401,7 +401,7 @@ namespace cvt {
 		Image* ret = colorcode( i, bg );
 		Image iflow( *ret );
 		{
-			Image tmp( 512, 480, IOrder::BGRA, IType::UBYTE );
+			Image tmp( 512, 480, IFormat::BGRA_UINT8 );
 			tmp.copyRect( 0, 0, iflow, 0, 0, 512, 480 );
 			ImageIO::savePNG( tmp, "out.png" );
 		}
