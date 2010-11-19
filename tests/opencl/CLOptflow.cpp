@@ -104,7 +104,6 @@ namespace cvt {
 
 		pyridx ^= 0x01;
 
-		pyr[ 0 ][ pyridx ];
 		{
 			size_t dstride;
 			uint8_t* dbase;

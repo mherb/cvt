@@ -24,15 +24,16 @@ int main(int argc, char* argv[])
 	Flow::colorCode( color, flow );
 
 
-	while( 1 ) {
+//	while( 1 ) {
 //		cvShowImage( "Flow", color.iplimage() );
 
-		key = cvWaitKey( 10 ) & 0xff;
-		if( key == 27 )
-			break;
-	}
+//		key = cvWaitKey( 10 ) & 0xff;
+//		if( key == 27 )
+//			break;
+//	}
 
 	if( argc == 3 ) {
+		std::cout << color << std::endl;
 		ImageIO::savePNG( color, argv[ 2 ] );
 	}
 

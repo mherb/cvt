@@ -115,14 +115,14 @@ namespace cvt {
 				throw CVTException("Could not create png info struct");
 			}
 
-			// convert image to UINT8 equivalent!			
+			// convert image to UINT8 equivalent!
 			Image tmpImage( img.width(), img.height(), IFormat::uint8Equivalent( img.format() ) );
 			img.convert( tmpImage );
 
 			/* Set error handling.  REQUIRED if you aren't supplying your own
 			 * error handling functions in the png_create_write_struct() call.
 			 */
-			if (setjmp(png_jmpbuf(png_ptr))){		
+			if (setjmp(png_jmpbuf(png_ptr))){
 				fclose(fp);
 				png_destroy_write_struct(&png_ptr, &info_ptr);
 				throw CVTException("Error while writing png");
@@ -154,7 +154,7 @@ namespace cvt {
 			png_set_IHDR(png_ptr, info_ptr, 
 						 tmpImage.width(), 
 						 tmpImage.height(), 
-						 tmpImage.bpc(), 
+						 tmpImage.bpc() * 8, 
 						 channels,
 						 PNG_INTERLACE_NONE, 
 						 PNG_COMPRESSION_TYPE_BASE, 
