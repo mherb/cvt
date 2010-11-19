@@ -29,7 +29,6 @@ namespace cvt {
 		Vector2<T>&	operator/=( const T c );
 		Vector2<T>&	operator*=( const T c );
 
-/*		int		compare( const Vector2<T> &v ) const; **/
 		bool		operator==( const Vector2<T> &v ) const;
 		bool		operator!=( const Vector2<T> &v ) const;
 
