@@ -1,9 +1,13 @@
 #ifdef CVT_MATRIX_H
 
 namespace cvt {
+	template<typename T> class Matrix2;
+
+	template<typename T>
+	std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m );
 
     template<typename T>
-	class Matrix2<T> {
+	class Matrix2 {
 	    public:
 		Matrix2<T>( void );
 		explicit Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
@@ -48,6 +52,7 @@ namespace cvt {
 
 		int				dimension( void ) const;
 
+		friend std::ostream& operator<< <>( std::ostream& out, const Matrix2<T>& m );
 	    private:
 		Vector2<T>		mat[ 2 ];
 	};
@@ -90,7 +95,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator-( )
+	inline Matrix2<T> Matrix2<T>::operator-( ) const
 	{
 	    return Matrix2<T>( -mat[ 0 ][ 0 ], -mat[ 0 ][ 1 ],
 			       -mat[ 1 ][ 0 ], -mat[ 1 ][ 1 ] );
@@ -143,7 +148,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator*( const T c  ) const
+	inline Matrix2<T>& Matrix2<T>::operator*=( const T c  )
 	{
 	    mat[ 0 ] *= c;
 	    mat[ 1 ] *= c;
@@ -151,7 +156,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator+( const T c  ) const
+	inline Matrix2<T>& Matrix2<T>::operator+=( const T c  )
 	{
 	    mat[ 0 ] += c;
 	    mat[ 1 ] += c;
@@ -159,7 +164,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator-( const T c  ) const
+	inline Matrix2<T>& Matrix2<T>::operator-=( const T c  )
 	{
 	    mat[ 0 ] -= c;
 	    mat[ 1 ] -= c;
@@ -236,47 +241,59 @@ namespace cvt {
 	}
 
 	template<>
-	inline bool Matrix2<double>::isIdentity()
+	inline bool Matrix2<double>::isIdentity() const
 	{
 		return mat[ 0 ] == Vector2<double>( 1.0, 0.0 ) && mat[ 1 ] == Vector2<double>( 0.0, 1.0 );
 	}
 
 	template<>
-	inline bool Matrix2<float>::isIdentity()
+	inline bool Matrix2<float>::isIdentity() const
 	{
 		return mat[ 0 ] == Vector2<float>( 1.0f, 0.0f ) && mat[ 1 ] == Vector2<float>( 0.0f, 1.0f );
 	}
 
-	template<T>
-	inline bool Matrix2<T>::isSymmetric()
+	template<typename T>
+	inline bool Matrix2<T>::isSymmetric() const
 	{
 		return mat[ 0 ].y == mat[ 1 ].x;
 	}
 
 	template<>
-	inline bool Matrix2<float>::isDiagonal()
+	inline bool Matrix2<float>::isDiagonal() const
 	{
 		return Math::abs( mat[ 0 ].y ) < Math::EPSILONF && Math::abs( mat[ 1 ].x ) < Math::EPSILONF;
 	}
 
 	template<>
-	inline bool Matrix2<double>::isDiagonal()
+	inline bool Matrix2<double>::isDiagonal() const
 	{
 		return Math::abs( mat[ 0 ].y ) < Math::EPSILOND && Math::abs( mat[ 1 ].x ) < Math::EPSILOND;
 	}
 
-	template<T>
-	inline T Matrix2<T>::trace()
+	template<typename T>
+	inline T Matrix2<T>::trace() const
 	{
 		return mat[ 0 ].x + mat[ 1 ].y;
 	}
 
 
-	template<T>
+	template<typename T>
 	int	Matrix2<T>::dimension( void ) const
 	{
 		return 2;
 	}
+
+	template<typename T>
+	inline std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m )
+	{
+		out << " | " << m.mat[ 0 ].x << " " << m.mat[ 0 ].y << " | " << std::endl;
+		out << " | " << m.mat[ 1 ].x << " " << m.mat[ 1 ].y << " | ";
+		return out;
+	}
+
+	typedef Matrix2<float> Matrix2f;
+	typedef Matrix2<double> Matrix2d;
+
 }
 
 
