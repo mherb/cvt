@@ -36,7 +36,7 @@ namespace cvt {
 	}
 	
 	Camera * Camera::get( size_t index, size_t width, size_t height, 
-						  size_t fps, cvt::IOrder order, cvt::IType type )
+						  size_t fps, const IFormat & format )
 	{
 		if( index > Camera::_camInfos.size() ){
 			throw CVTException( "Camera index out of bounds!" );
@@ -49,14 +49,14 @@ namespace cvt {
 				throw CVTException( "TODO IMPLEMENT UEYE camera handling" );
 				break;
 			case CAMERATYPE_DC1394:
-				cam = new DC1394Camera( Camera::_camInfos[ index ].index(), width, height, fps, order, type );
+				cam = new DC1394Camera( Camera::_camInfos[ index ].index(), width, height, fps, format );
 				break;
 			case CAMERATYPE_V4L2:
-				throw CVTException( "TODO IMPLEMENT DC1394 camera handling" );
+				throw CVTException( "TODO IMPLEMENT V4L2 camera handling" );
 				break;
 			case CAMERATYPE_QTKIT:
 #ifdef APPLE
-				cam = new QTKitCamera( Camera::_camInfos[ index ].index(), width, height, fps, order, type );
+				cam = new QTKitCamera( Camera::_camInfos[ index ].index(), width, height, fps, format );
 #endif
 				break;
 			default:

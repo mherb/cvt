@@ -35,9 +35,10 @@ int main(int argc, char* argv[])
 			cam.nextFrame();
 			const Image & frame = cam.frame();
 
-			out = new Image( 640, 480, IOrder::GRAY, IType::UBYTE );
-			frame.debayer( *out, IBAYER_RGGB );
-//			cvShowImage( "DC1394", out->iplimage() );
+			out = new Image( 640, 480, IFormat::GRAY_UINT8 );
+			frame.convert( *out );
+
+			// cvShowImage( "DC1394", out->iplimage() );
 			list.push_back( out );
 
 			key = cvWaitKey( 10 ) & 0xff;

@@ -6,11 +6,10 @@
 namespace cvt
 {
 
-	DC1394Camera::DC1394Camera(size_t camIndex, size_t width, size_t height, 
-							   size_t fps, IOrder order, IType type) :	
-		_dmaBufNum( 10 ), _camIndex( camIndex ), _frame( width, height, order, type ), 
-		_width( width ), _height( height ), _fps( fps ), 
-		_order( order ), _type( type ),	_capturing( false ), 
+	DC1394Camera::DC1394Camera( size_t camIndex, size_t width, size_t height, 
+							    size_t fps, const IFormat & format ) :	
+		_dmaBufNum( 10 ), _camIndex( camIndex ), _frame( width, height, format ), 
+		_width( width ), _height( height ), _fps( fps ), _capturing( false ), 
 		_dcHandle( NULL ), _camera( NULL ),  _speed( DC1394_ISO_SPEED_400 )
 	{
 		_dcHandle = dc1394_new( );
@@ -34,6 +33,7 @@ namespace cvt
 
 		_framerate = DC1394_FRAMERATE_60;
 		_mode = DC1394_VIDEO_MODE_640x480_MONO8;
+		_frame.reallocate( width, height, IFormat::BAYER_RGGB_UINT8 );
 	}
 
 	DC1394Camera::~DC1394Camera( )

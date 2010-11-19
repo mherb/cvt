@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "gfx/Color.h"
-#include "gfx/IScaleFilter.h"
-#include "gfx/IFilterParameter.h"
-#include "util/Rect.h"
-#include "gfx/ImageTypes.h"
-#include "gfx/ImageAllocator.h"
+#include <cvt/gfx/Color.h>
+#include <cvt/gfx/IFormat.h>
+#include <cvt/gfx/IScaleFilter.h>
+#include <cvt/gfx/IFilterParameter.h>
+#include <cvt/util/Rect.h>
+#include <cvt/gfx/ImageAllocator.h>
 
 namespace cvt {
 
@@ -21,7 +21,7 @@ namespace cvt {
 		friend class GFXGL;
 
 		public:
-			Image( size_t w = 1, size_t h = 1, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType memtype = IALLOCATOR_MEM );
+			Image( size_t w = 1, size_t h = 1, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );
 			Image( const Image& img, IAllocatorType memtype = IALLOCATOR_MEM );
 			Image( const Image& source, const Recti* roi, bool ref = false, IAllocatorType memtype = IALLOCATOR_MEM );
 			~Image();
@@ -32,8 +32,7 @@ namespace cvt {
 			size_t bpc() const;
 			// bytes per pixel
 			size_t bpp() const;
-			const IOrder order() const;
-			const IType type() const;
+			const IFormat & format() const;
 			IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
 			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
@@ -41,17 +40,15 @@ namespace cvt {
 			template<typename _T> const _T* map( size_t* stride ) const;
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
 			template<typename _T> void unmap( const _T* ptr ) const;
-/*			uint8_t* scanline( size_t i );
-			uint8_t const* scanline( size_t i ) const;*/
 
-			void reallocate( size_t w, size_t h, IOrder order = IOrder::RGBA, IType type = IType::UBYTE, IAllocatorType memtype = IALLOCATOR_MEM );
+			void reallocate( size_t w, size_t h, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );
 			void reallocate( const Image& i, IAllocatorType memtype = IALLOCATOR_MEM );
 
 			void copy( const Image& i );
 			void copyRect( int x, int y, const Image& i, int sx, int sy, int swidth, int sheight );
 
 			Image* clone() const;
-			void convert( Image& dst, IOrder order, IType type ) const;
+			void convert( Image& dst, const IFormat & format ) const;
 			void convert( Image& dst ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
@@ -92,14 +89,13 @@ namespace cvt {
 			Color operator() (float x, float y) const;*/
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
-			void debayer( Image& dst, IBayerPattern_t pattern ) const;
-
+			
 		private:
 			float* imageToKernel( const Image& k, bool normalize ) const;
 			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
-			void checkFormat( const Image & img, const char* func, size_t lineNum, IOrder order, IType type ) const;
+			void checkFormat( const Image & img, const char* func, size_t lineNum, const IFormat & format ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
 			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
 
@@ -113,14 +109,9 @@ namespace cvt {
 		return new Image( *this );
 	}
 
-	const inline IOrder Image::order() const
+	const inline IFormat & Image::format() const
 	{
-		return _mem->_order;
-	}
-
-	const inline IType Image::type() const
-	{
-		return _mem->_type;
+		return _mem->_format;
 	}
 
 	inline size_t Image::width() const
@@ -133,21 +124,9 @@ namespace cvt {
 		return _mem->_height;
 	}
 
-	/*inline uint8_t* Image::scanline( size_t y )
-	{
-		y = Math::min( y, _mem->_height - 1 );
-		return _data + _mem->_stride * y;
-	}
-
-	inline uint8_t const* Image::scanline( size_t y ) const
-	{
-		y = Math::min( y, _mem->_height - 1 );
-		return _data + _mem->_stride * y;
-	}*/
-
 	inline void Image::reallocate( const Image& i, IAllocatorType memtype )
 	{
-		reallocate( i._mem->_width, i._mem->_height, i._mem->_order, i._mem->_type, memtype );
+		reallocate( i._mem->_width, i._mem->_height, i._mem->_format, memtype );
 	}
 
 	template<typename _T>
@@ -228,17 +207,17 @@ namespace cvt {
 
 	inline size_t Image::channels() const
 	{
-		return _mem->_order.channels;
+		return _mem->_format.channels;
 	}
 
 	inline size_t Image::bpc() const
 	{
-		return _mem->_type.size * 8;
+		return _mem->_format.bpc;
 	}
 
 	inline size_t Image::bpp() const
 	{
-		return _mem->_type.size * _mem->_order.channels;
+		return _mem->_format.bpp;
 	}
 }
 

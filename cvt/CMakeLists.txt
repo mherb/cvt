@@ -93,7 +93,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Delegate.h
 	gfx/Image.h
 	gfx/IFormat.h
-	gfx/ImageTypes.h
+	gfx/IConvert.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
 #	gfx/ifilter/Sobel.h
@@ -162,7 +162,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/Time.cpp
 	gfx/Image.cpp
 	gfx/IFormat.cpp
-	gfx/ImageTypes.cpp
+	gfx/IConvert.cpp
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp

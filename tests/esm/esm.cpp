@@ -62,23 +62,23 @@ void drawEstimate( const Image& temp, Image & out, SL3Transform & hom )
 	
 	pHom[ 0 ] = 0; pHom[ 1 ] = 0; pHom[ 2 ] = 1.0;
 	pPrime = hom.matrix() * pHom;
-	p0.x = pPrime[ 0 ] / pPrime[ 2 ];
-	p0.y = pPrime[ 1 ] / pPrime[ 2 ];
+	p0.x = (int) ( pPrime[ 0 ] / pPrime[ 2 ] );
+	p0.y = (int) ( pPrime[ 1 ] / pPrime[ 2 ] );
 	
 	pHom[ 0 ] = temp.width()-1; pHom[ 1 ] = 0; pHom[ 2 ] = 1.0;
 	pPrime = hom.matrix() * pHom;
-	p1.x = pPrime[ 0 ] / pPrime[ 2 ];
-	p1.y = pPrime[ 1 ] / pPrime[ 2 ];
+	p1.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
+	p1.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
 	
 	pHom[ 0 ] = temp.width()-1; pHom[ 1 ] = temp.height()-1; pHom[ 2 ] = 1.0;
 	pPrime = hom.matrix() * pHom;
-	p2.x = pPrime[ 0 ] / pPrime[ 2 ];
-	p2.y = pPrime[ 1 ] / pPrime[ 2 ];
+	p2.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
+	p2.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
 	
 	pHom[ 0 ] = 0.0; pHom[ 1 ] = temp.height()-1; pHom[ 2 ] = 1.0;
 	pPrime = hom.matrix() * pHom;
-	p3.x = pPrime[ 0 ] / pPrime[ 2 ];
-	p3.y = pPrime[ 1 ] / pPrime[ 2 ];
+	p3.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
+	p3.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
 	
 //	std::cout << "P: " << p0.x << ", " << p0.y << std::endl;
 //	std::cout << "P: " << p1.x << ", " << p1.y << std::endl;
@@ -121,13 +121,13 @@ int main(int argc, char* argv[])
 		// RGBA UBYTE IMAGE
 		cvt::Image out;		
 		cvt::ImageIO::loadPNG(out, inputFile);
-		Image outF( out.width(), out.height(), IOrder::GRAY, IType::FLOAT );
+		Image outF( out.width(), out.height(), IFormat::GRAY_FLOAT );
 		
 		out.convert( outF );
 #endif
 		
 		/* the template */
-		Image * temp;
+		Image * temp = 0;
 
 #ifndef FILETEMPLATE		
 		Params p = { 0, 0, 0, 0, 0 };

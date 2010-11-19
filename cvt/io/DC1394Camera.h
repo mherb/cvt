@@ -12,12 +12,11 @@ namespace cvt
 	{
 
 		public:
-			DC1394Camera(size_t camIndex = 0,
-						 size_t width=640,
-						 size_t height=480,
-						 size_t fps = 30,
-						 IOrder order = IOrder::BGRA,
-						 IType type = IType::UBYTE);
+			DC1394Camera( size_t camIndex = 0,
+						  size_t width=640,
+						  size_t height=480,
+						  size_t fps = 30,
+						  const IFormat & format = IFormat::BGRA_UINT8 );
 
 			~DC1394Camera();
 
@@ -28,8 +27,7 @@ namespace cvt
 			const Image& frame() const;
 			size_t width() const { return _width;}
 			size_t height() const { return _height;}
-			IOrder order() const { return _order;}
-			IType type() const { return _type;}
+			const IFormat & format() const { return _frame.format();}
 
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
@@ -54,8 +52,6 @@ namespace cvt
 			size_t _width;
 			size_t _height;
 			size_t _fps;
-			IOrder _order;
-			IType _type;
 
 			bool _capturing;
 			dc1394_t* _dcHandle;

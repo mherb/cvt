@@ -118,9 +118,8 @@ namespace cvt {
 	void Homography::apply( Image& dst, const Image& src, const IFilterVector8& h, const Color& c ) const
 	{
 
-		if( dst.type() != src.type() ||
-		    dst.order() != src.order() ||
-			dst.type() != IType::FLOAT )
+		if( dst.format() != src.format() || 
+			dst.format().type != IFORMAT_TYPE_FLOAT )
 			throw CVTException( "Invalid image formats/types");
 
 		applyFloat( dst, src, h, c );

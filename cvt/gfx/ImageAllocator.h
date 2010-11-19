@@ -1,6 +1,7 @@
 #ifndef IMAGEALLOCATOR_H
 #define IMAGEALLOCATOR_H
-#include <cvt/gfx/ImageTypes.h>
+
+#include <cvt/gfx/IFormat.h>
 #include <cvt/util/Rect.h>
 
 namespace cvt {
@@ -19,7 +20,7 @@ namespace cvt {
 
 		public:
 			virtual ~ImageAllocator() {};
-			virtual void alloc( size_t width, size_t height, const IOrder order, const IType type ) = 0;
+			virtual void alloc( size_t width, size_t height, const IFormat & format ) = 0;
 			virtual void copy( const ImageAllocator* x, const Recti* r = NULL ) = 0;
 			virtual uint8_t* map( size_t* stride ) = 0;
 			virtual const uint8_t* map( size_t* stride ) const = 0;
@@ -27,14 +28,13 @@ namespace cvt {
 			virtual IAllocatorType type() const = 0;
 
 		protected:
-			ImageAllocator() : _width( 0 ), _height( 0 ), _order( IOrder::RGBA ), _type( IType::UBYTE )  {};
+			ImageAllocator() : _width( 0 ), _height( 0 ), _format( IFormat::RGBA_UINT8 ) {};
 			ImageAllocator( const ImageAllocator& );
 
 		protected:
 			size_t _width;
 			size_t _height;
-			IOrder _order;
-			IType _type;
+			IFormat _format;
 	};
 }
 

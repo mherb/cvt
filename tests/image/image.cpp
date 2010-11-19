@@ -3,6 +3,8 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/io/ImageIO.h>
+#include <cvt/io/Resources.h>
+
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 
@@ -15,17 +17,17 @@
 int main(int argc, char* argv[])
 {
 	std::string dataFolder(DATA_FOLDER);
-	std::string inputFile(dataFolder + "/lena.png");
-	std::string inputGray(dataFolder + "/lena_ga.png");
+	cvt::Resources resources;
+	std::string inputFile = resources.find( "lena.png" );
+	std::string inputGray = resources.find( "lena_ga.png" );
 	
 	try {
 		// RGBA UBYTE IMAGE
 		cvt::Image img;		
 		cvt::ImageIO::loadPNG(img, inputFile);
 		cvt::Image imgGray(img.width(), 
-						   img.height(), 
-						   cvt::IOrder::GRAYALPHA, 
-						   cvt::IType::UBYTE);
+						   img.height(),
+						   cvt::IFormat::GRAYALPHA_UINT8 );
 		
 		cvNamedWindow("Test Image");
 		
@@ -36,10 +38,7 @@ int main(int argc, char* argv[])
 		
 		cvt::ImageIO::loadPNG(imgGray, inputGray);
 		
-		if(imgGray.order() == cvt::IOrder::GRAY )
-			std::cout << "Loaded grayscale image" << std::endl;
-		else if(imgGray.order() == cvt::IOrder::GRAYALPHA )
-			std::cout << "Loaded grayscale image with alpha channel" << std::endl;
+		std::cout << "Loaded image: " << imgGray << std::endl;
 		
 		// save the gray image
 		cvt::ImageIO::savePNG(imgGray, "out_gray.png");

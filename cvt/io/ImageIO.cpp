@@ -56,10 +56,10 @@ namespace cvt {
 				case PNG_COLOR_TYPE_GRAY:
 					if(bit_depth < 8)
 						png_set_expand(png_ptr);
-					img.reallocate( width, height, IOrder::GRAY, IType::UBYTE );		    
+					img.reallocate( width, height, IFormat::GRAY_UINT8 );		    
 					break;
 				case PNG_COLOR_TYPE_GRAY_ALPHA:
-					img.reallocate( width, height, IOrder::GRAYALPHA, IType::UBYTE );
+					img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );
 					break;
 				case PNG_COLOR_TYPE_RGB:
 				case PNG_COLOR_TYPE_PALETTE:
@@ -67,7 +67,7 @@ namespace cvt {
 					png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 				case PNG_COLOR_TYPE_RGBA:
 					png_set_bgr(png_ptr);
-					img.reallocate( width, height, IOrder::BGRA, IType::UBYTE );
+					img.reallocate( width, height, IFormat::BGRA_UINT8 );
 					break;
 				default:
 					std::cout << color_type << std::endl;
@@ -115,7 +115,8 @@ namespace cvt {
 				throw CVTException("Could not create png info struct");
 			}
 
-			Image tmpImage( img.width(), img.height(), img.order(), IType::UBYTE );
+			// convert image to UINT8 equivalent!			
+			Image tmpImage( img.width(), img.height(), IFormat::uint8Equivalent( img.format() ) );
 			img.convert( tmpImage );
 
 			/* Set error handling.  REQUIRED if you aren't supplying your own
@@ -131,17 +132,17 @@ namespace cvt {
 			png_init_io(png_ptr, fp);
 
 			int channels;
-			switch (tmpImage.order().id ) {
-				case ICHANNELORDER_GRAY:
+			switch( tmpImage.format().formatID ) {
+				case IFORMAT_GRAY_UINT8:
 					channels = PNG_COLOR_TYPE_GRAY;
 					break;
-				case ICHANNELORDER_GRAYALPHA:
+				case IFORMAT_GRAYALPHA_UINT8:
 					channels = PNG_COLOR_TYPE_GA;
 					break;
-				case ICHANNELORDER_RGBA:
+				case IFORMAT_RGBA_UINT8:
 					channels = PNG_COLOR_TYPE_RGBA;
 					break;
-				case ICHANNELORDER_BGRA:
+				case IFORMAT_BGRA_UINT8:
 					channels = PNG_COLOR_TYPE_RGBA;
 					png_set_bgr(png_ptr);
 					break;

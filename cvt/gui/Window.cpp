@@ -2,6 +2,7 @@
 #include <cvt/gui/Application.h>
 
 #include <cvt/io/ImageIO.h>
+#include <cvt/io/Resources.h>
 
 #include <cstdio>
 
@@ -11,7 +12,8 @@ namespace cvt {
 		setTitle( title );
 
 //		Image lena;
-		ImageIO::loadPNG( img, "./lena.png" );
+		cvt::Resources resources;
+		ImageIO::loadPNG( img, resources.find( "lena.png" ) );
 //		img.reallocate( lena, IALLOCATOR_GL );
 //		img = lena;
 		return;

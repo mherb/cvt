@@ -18,14 +18,13 @@ namespace cvt {
 		release();
 	}
 
-	void ImageAllocatorMem::alloc( size_t width, size_t height, const IOrder order, const IType type )
+	void ImageAllocatorMem::alloc( size_t width, size_t height, const IFormat & format )
 	{
 		release();
 		_width = width;
 		_height = height;
-		_order = order;
-		_type = type;
-		_stride = Math::pad16( _width * _order.channels* _type.size );
+		_format = format;
+		_stride = Math::pad16( _width * _format.bpp );
 		_mem = new uint8_t[ _stride * _height + 16 ];
 		_data = alignptr( _mem, 16 );
 		_refcnt = new size_t;
@@ -45,12 +44,12 @@ namespace cvt {
 		if( r )
 			rect.intersect( *r );
 
-		alloc( rect.width, rect.height, x->_order, x->_type );
+		alloc( rect.width, rect.height, x->_format );
 
 		osrc = src = x->map( &sstride );
-		src += rect.y * sstride + x->_type.size * x->_order.channels * rect.x;
+		src += rect.y * sstride + x->_format.bpp * rect.x;
 		dst = _data;
-		n =  _type.size * _order.channels * rect.width;
+		n =  _format.bpp * rect.width;
 
 		i = rect.height;
 		while( i-- ) {

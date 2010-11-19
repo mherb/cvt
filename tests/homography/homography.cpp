@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 		Image img;
 		ImageIO::loadPNG(img, inputFile);
 
-		Image imgf( img.width(), img.height(), IOrder::RGBA, IType::FLOAT );
-		Image out( img.width(), img.height(), IOrder::RGBA, IType::FLOAT );
+		Image imgf( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image out( img.width(), img.height(), IFormat::RGBA_FLOAT );
 		img.convert( imgf );
 
 		Homography hfilter;

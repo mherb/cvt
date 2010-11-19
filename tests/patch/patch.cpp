@@ -18,7 +18,7 @@ int main()
 		cvt::Image imgGray;		
 		cvt::ImageIO::loadPNG( imgGray, inputFile );
 		
-		cvt::Image imgF( imgGray.width(), imgGray.height(), imgGray.order(), cvt::IType::FLOAT );
+		cvt::Image imgF( imgGray.width(), imgGray.height(), cvt::IFormat::floatEquivalent( imgGray.format() ) );
 		imgGray.convert( imgF );
 		
 		cvNamedWindow( "Test Image" );

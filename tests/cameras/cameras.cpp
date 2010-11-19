@@ -14,6 +14,10 @@ int main( int argc, char* argv[] )
 	size_t numCams = Camera::count();
 	
 	std::cout << "Overall number of Cameras: " << numCams << std::endl;
+	if( numCams == 0 ){
+		std::cout << "Please connect a camera!" << std::endl;
+		return 0;
+	}
 	
 	for( size_t i = 0; i < numCams; i++ ){
 		const CameraInfo & info = Camera::info( i );

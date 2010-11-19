@@ -67,7 +67,7 @@ namespace cvt {
 				throw CVTException("ReadFlowFile(" + filename + "): illegal height" );
 
 
-			flow.reallocate( width, height, IOrder::GRAYALPHA, IType::FLOAT );
+			flow.reallocate( width, height, IFormat::GRAYALPHA_FLOAT );
 			size_t h = flow.height();
 			size_t w2 = flow.width() * 2;
 			size_t stride;
@@ -114,7 +114,7 @@ namespace cvt {
 			if( filename.compare( filename.length() -4, 4, ".flo" ) != 0 )
 				throw CVTException("FloWriteFile " + filename + ": extension .flo expected");
 
-			if( flow.order() != IOrder::GRAYALPHA && flow.type() != IType::FLOAT )
+			if( flow.format() != IFormat::GRAYALPHA_FLOAT )
 				throw CVTException("FloWriteFile " + filename + ": illeagal image format");
 
 			FILE *stream = fopen(filename.c_str(), "wb");

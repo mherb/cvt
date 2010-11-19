@@ -11,12 +11,11 @@ namespace cvt {
 	class QTKitCamera : public Camera
 	{
 		public:
-			QTKitCamera(size_t camIndex = 0, 
-						size_t width=640, 
-						size_t height=480, 
-						size_t fps = 30, 
-						IOrder order = IOrder::BGRA,
-						IType type = IType::UBYTE);
+			QTKitCamera( size_t camIndex = 0, 
+						 size_t width=640, 
+						 size_t height=480, 
+						 size_t fps = 30,
+						 const IFormat & format = IFormat::BGRA_UINT8 );
 		
 			virtual ~QTKitCamera();
 		
@@ -27,8 +26,7 @@ namespace cvt {
 			void startCapture();
 			void stopCapture();	
 		
-			IOrder order() const;
-			IType type() const;
+			const IFormat & format() const;
 		
 			static size_t count();		
 			static void cameraInfo( size_t index, CameraInfo & info );
@@ -53,14 +51,9 @@ namespace cvt {
 		return _frame;
 	}
 		
-	inline IOrder QTKitCamera::order() const
+	inline const IFormat & QTKitCamera::format() const
 	{
-		return _frame.order();
-	}
-	
-	inline IType QTKitCamera::type() const
-	{
-		return _frame.type();
+		return _frame.format();
 	}
 	
 }

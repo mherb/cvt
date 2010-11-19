@@ -9,7 +9,7 @@ namespace cvt {
 		public:
 			ImageAllocatorGL();
 			~ImageAllocatorGL();
-			virtual void alloc( size_t width, size_t height, const IOrder order, const IType type );
+			virtual void alloc( size_t width, size_t height, const IFormat & format );
 			virtual void copy( const ImageAllocator* x, const Recti* r );
 			virtual uint8_t* map( size_t* stride );
 			virtual const uint8_t* map( size_t* stride ) const;
@@ -18,7 +18,7 @@ namespace cvt {
 
 		private:
 			ImageAllocatorGL( const ImageAllocatorGL& );
-			void getGLFormat( IOrder order, IType type, GLenum& glformat, GLenum& gltype ) const;
+			void getGLFormat( const IFormat & format, GLenum& glformat, GLenum& gltype ) const;
 
 		private:
 			GLuint _tex2d;
