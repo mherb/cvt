@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
 //	}
 
 	if( argc == 3 ) {
-		std::cout << color << std::endl;
 		ImageIO::savePNG( color, argv[ 2 ] );
 	}
 
