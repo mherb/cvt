@@ -37,16 +37,16 @@ namespace cvt {
 		bool			isSymmetric( ) const;
 		bool			isDiagonal( ) const;
 
-		T			trace( void ) const;
-		T			determinant( void ) const;
+		T				trace( void ) const;
+		T				determinant( void ) const;
 		Matrix2<T>		transpose( void ) const;
-		Matrix2<T> &		transposeSelf( void );
+		Matrix2<T>&		transposeSelf( void );
 		Matrix2<T>		inverse( void ) const;
 		bool			inverseSelf( void );
 		Matrix2<T>		inverseFast( void ) const;
 		bool			inverseFastSelf( void );
 
-		int			dimension( void ) const;
+		int				dimension( void ) const;
 
 	    private:
 		Vector2<T>		mat[ 2 ];
@@ -182,7 +182,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator+( const Matrix2<T>& m  )
+	inline Matrix2<T>& Matrix2<T>::operator+=( const Matrix2<T>& m  )
 	{
 	    mat[ 0 ] += m[ 0 ];
 	    mat[ 1 ] += m[ 1 ];
@@ -190,12 +190,25 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix2<T>& Matrix2<T>::operator-( const Matrix2<T>& m  )
+	inline Matrix2<T>& Matrix2<T>::operator-=( const Matrix2<T>& m  )
 	{
 	    mat[ 0 ] -= m[ 0 ];
 	    mat[ 1 ] -= m[ 1 ];
 	    return *this;
 	}
+
+	template<typename T>
+	inline bool Matrix2<T>::operator==( const Matrix2<T> &m ) const
+	{
+		return mat[ 0 ] == m[ 0 ] && mat[ 1 ] == m[ 1 ];
+	}
+
+	template<typename T>
+	inline bool Matrix2<T>::operator!=( const Matrix2<T> &m ) const
+	{
+		return mat[ 0 ] != m[ 0 ] || mat[ 1 ] != m[ 1 ];
+	}
+
 
 	template<typename T>
 	inline void Matrix2<T>::zero()
@@ -220,6 +233,49 @@ namespace cvt {
 	    mat[ 0 ].y = 0.0;
 	    mat[ 1 ].x = 0.0;
 	    mat[ 1 ].y = 1.0;
+	}
+
+	template<>
+	inline bool Matrix2<double>::isIdentity()
+	{
+		return mat[ 0 ] == Vector2<double>( 1.0, 0.0 ) && mat[ 1 ] == Vector2<double>( 0.0, 1.0 );
+	}
+
+	template<>
+	inline bool Matrix2<float>::isIdentity()
+	{
+		return mat[ 0 ] == Vector2<float>( 1.0f, 0.0f ) && mat[ 1 ] == Vector2<float>( 0.0f, 1.0f );
+	}
+
+	template<T>
+	inline bool Matrix2<T>::isSymmetric()
+	{
+		return mat[ 0 ].y == mat[ 1 ].x;
+	}
+
+	template<>
+	inline bool Matrix2<float>::isDiagonal()
+	{
+		return Math::abs( mat[ 0 ].y ) < Math::EPSILONF && Math::abs( mat[ 1 ].x ) < Math::EPSILONF;
+	}
+
+	template<>
+	inline bool Matrix2<double>::isDiagonal()
+	{
+		return Math::abs( mat[ 0 ].y ) < Math::EPSILOND && Math::abs( mat[ 1 ].x ) < Math::EPSILOND;
+	}
+
+	template<T>
+	inline T Matrix2<T>::trace()
+	{
+		return mat[ 0 ].x + mat[ 1 ].y;
+	}
+
+
+	template<T>
+	int	Matrix2<T>::dimension( void ) const
+	{
+		return 2;
 	}
 }
 
