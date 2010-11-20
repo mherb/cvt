@@ -5,7 +5,6 @@
 #include <cvt/gui/GFX.h>
 #include <cvt/gui/Events.h>
 
-
 namespace cvt {
 	class WidgetImpl;
 	class WidgetImplWinGLX11;
@@ -18,19 +17,24 @@ namespace cvt {
 			virtual ~Widget();
 
 			bool isToplevel() const { return _toplevel; };
-			const Widget* getParent() const { return _parent; };
-			void getSize( int& width, int& height ) const;
+			Widget* parent() const;
+			void size( int& width, int& height ) const;
 			void setSize( int width, int height );
-			void getPosition( int& x, int& y ) const;
+			void position( int& x, int& y ) const;
 			void setPosition( int x, int y );
 			void setRect( const Recti& rect );
-			void getRect( Recti& rect ) const;
+			void rect( Recti& rect ) const;
 			void setVisible( bool b );
 			bool isVisible() const;
 			void show() { setVisible( true ); };
 			void hide() { setVisible( false ); };
 			void setTitle( const std::string& title );
+			void setMinimumSize( int width, int height );
+			void setMaximumSize( int width, int height );
+			void minimumSize( int& w, int& h );
+			void maximumSize( int& w, int& h );
 			void update();
+			void update( const Recti& rect );
 
 		protected:
 			virtual void resizeEvent( ResizeEvent* event ) {};
@@ -50,11 +54,10 @@ namespace cvt {
 		private:
 			Widget( const Widget& w );
 
-			void setParent( Widget* parent ){ _parent = parent; };
+			void setParent( Widget* parent );
 
 			bool _toplevel;
 			WidgetImpl* impl;
-			Widget* _parent;
 	};
 }
 

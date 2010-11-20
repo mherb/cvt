@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
     Window w( "Test" );
     w.setSize( 640, 480 );
     w.setVisible( true );
+    w.setMinimumSize( 320, 240 );
 
     Delegate<void (BasicTimer*)> d( &timeout );
     t.timeout.add( &d );

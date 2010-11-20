@@ -16,16 +16,16 @@ namespace cvt {
 						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
 							;
 						win = (*_windows)[ xevent.xconfigure.window ];
-						int oldwidth = win->rect.width;
-						int oldheight = win->rect.height;
+						int oldwidth = win->_rect.width;
+						int oldheight = win->_rect.height;
 
 						if( oldwidth != xevent.xconfigure.width || oldheight != xevent.xconfigure.height ) {
 							ResizeEvent re( xevent.xconfigure.width, xevent.xconfigure.height, oldwidth, oldheight );
 							win->resizeEvent( &re );
 						}
 						if( xevent.xconfigure.send_event ) {
-							int oldx = win->rect.x;
-							int oldy = win->rect.y;
+							int oldx = win->_rect.x;
+							int oldy = win->_rect.y;
 
 							if( oldx != xevent.xconfigure.x  || oldy != xevent.xconfigure.y ) {
 								MoveEvent me( xevent.xconfigure.x, xevent.xconfigure.y, oldx, oldy );
@@ -39,8 +39,8 @@ namespace cvt {
 						win = (*_windows)[ xevent.xreparent.window ];
 						::Window child;
 						int gx, gy;
-						int oldx = win->rect.x;
-						int oldy = win->rect.y;
+						int oldx = win->_rect.x;
+						int oldy = win->_rect.y;
 
 						XTranslateCoordinates( _dpy, xevent.xreparent.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &gx, &gy, &child );
 						if( oldx != gx  || oldy != gy ) {
@@ -96,14 +96,14 @@ namespace cvt {
 					{
 						win = ( *_windows )[ xevent.xbutton.window ];
 						MousePressEvent mp( xevent.xbutton.x, xevent.xbutton.y, xevent.xbutton.button );
-						( ( Window* ) win->widget )->mousePressEvent( &mp );
+						( ( Window* ) win->_widget )->mousePressEvent( &mp );
 					}
 					break;
 				case ButtonRelease:
 					{
 						win = ( *_windows )[ xevent.xbutton.window ];
 						MouseReleaseEvent mr( xevent.xbutton.x, xevent.xbutton.y, xevent.xbutton.button );
-						( ( Window* ) win->widget )->mouseReleaseEvent( &mr );
+						( ( Window* ) win->_widget )->mouseReleaseEvent( &mr );
 					}
 					break;
 				case MotionNotify:
@@ -112,7 +112,7 @@ namespace cvt {
 						while( XCheckTypedWindowEvent( _dpy, xevent.xmotion.window, MotionNotify, &xevent ) )
 							;
 						MouseMoveEvent mme( xevent.xmotion.x, xevent.xmotion.y );
-						( ( Window* ) win->widget )->mouseMoveEvent( &mme );
+						( ( Window* ) win->_widget )->mouseMoveEvent( &mme );
 					}
 					break;
 				case ClientMessage:
@@ -120,7 +120,7 @@ namespace cvt {
 						if( xevent.xclient.message_type == xatom_wmproto && ( ::Atom ) xevent.xclient.data.l[0] == xatom_wmdelete ) {
 							CloseEvent ce;
 							win = ( *_windows )[ xevent.xclient.window ];
-							( ( Window* ) win->widget )->closeEvent( &ce );
+							( ( Window* ) win->_widget )->closeEvent( &ce );
 						}
 					}
 					break;

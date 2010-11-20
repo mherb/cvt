@@ -20,7 +20,7 @@ namespace cvt {
 
 	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat & format )
 	{
-		GLenum glformat, gltype;
+		GLenum glformat, gltype, internalformat;
 
 		_width = width;
 		_height = height;
@@ -37,6 +37,10 @@ namespace cvt {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _format.bpp ) ) );
 		getGLFormat( _format, glformat, gltype );
+/*		if( _format.bpc <= 1 )
+		    internalformat = GL_SRGB8_ALPHA8_EXT;
+		else*/
+		    internalformat = GL_RGBA;
 		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
@@ -107,7 +111,7 @@ namespace cvt {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
 			if( _dirty ) {
 				GLenum glformat, gltype;
-				
+
 				glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
 
 				glBindTexture( GL_TEXTURE_2D, _tex2d );
@@ -131,25 +135,25 @@ namespace cvt {
 			case IFORMAT_GRAY_UINT16:		glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
 			case IFORMAT_GRAY_INT16:		glformat = GL_RED; gltype = GL_SHORT; break;
 			case IFORMAT_GRAY_FLOAT:		glformat = GL_RED; gltype = GL_FLOAT; break;
-				
-			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
-			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RG; gltype = GL_UNSIGNED_SHORT; break;
-			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RG; gltype = GL_SHORT; break;
-			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RG; gltype = GL_FLOAT; break;
-				
+
+			case IFORMAT_GRAYALPHA_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAYALPHA_UINT16:		glformat = GL_RG; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAYALPHA_INT16:		glformat = GL_RG; gltype = GL_SHORT; break;
+			case IFORMAT_GRAYALPHA_FLOAT:		glformat = GL_RG; gltype = GL_FLOAT; break;
+
 			case IFORMAT_RGBA_UINT8:		glformat = GL_RGBA; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_RGBA_UINT16:		glformat = GL_RGBA; gltype = GL_UNSIGNED_SHORT; break;
 			case IFORMAT_RGBA_INT16:		glformat = GL_RGBA; gltype = GL_SHORT; break;
 			case IFORMAT_RGBA_FLOAT:		glformat = GL_RGBA; gltype = GL_FLOAT; break;
-				
+
 			case IFORMAT_BGRA_UINT8:		glformat = GL_BGRA; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_BGRA_UINT16:		glformat = GL_BGRA; gltype = GL_UNSIGNED_SHORT; break;
 			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
-				
-			case IFORMAT_BAYER_RGGB_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+
+			case IFORMAT_BAYER_RGGB_UINT8:		glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
 			default:
-				throw CVTException( "No equivalent CL format found" );
+				throw CVTException( "No equivalent GL format found" );
 				break;
 		}
 	}

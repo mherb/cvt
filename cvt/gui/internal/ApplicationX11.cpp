@@ -17,6 +17,7 @@ namespace cvt {
 			GLX_ALPHA_SIZE, 8,
 			GLX_DEPTH_SIZE, 8,
 			GLX_DOUBLEBUFFER,
+//			GLX_EXT_framebuffer_sRGB,
 			None };
 
 		XInitThreads();

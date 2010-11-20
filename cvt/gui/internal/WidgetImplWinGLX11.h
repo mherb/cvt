@@ -5,8 +5,9 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
+#include <cvt/math/Math.h>
+#include <cvt/math/Vector.h>
 #include <deque>
-
 
 namespace cvt {
 
@@ -20,14 +21,21 @@ namespace cvt {
 			~WidgetImplWinGLX11();
 			virtual void setTitle( const std::string& title );
 			virtual void setRect( const Recti& rect );
-			virtual void getRect( Recti& _rect ) const { _rect = rect; };
-			virtual void getSize( int& width, int& height ) const;
+			virtual void rect( Recti& rect ) const { rect = _rect; };
+			virtual void size( int& width, int& height ) const;
 			virtual void setSize( int width, int height );
-			virtual void getPosition( int& x, int& y ) const;
+			virtual void position( int& x, int& y ) const;
 			virtual void setPosition( int x, int y );
 			virtual void setVisible( bool b );
 			virtual bool isVisible( ) const { return visible; };
 			virtual void update();
+			virtual void update( const Recti& rect );
+			virtual void setMinimumSize( int w, int h );
+			virtual void setMaximumSize( int w, int h );
+			virtual void minimumSize( int& w, int& h );
+			virtual void maximumSize( int& w, int& h );
+			virtual void setParent( Widget* w ) {};
+			virtual Widget* parent( ) const { return NULL; };
 
 		private:
 			void paintEvent( PaintEvent* event );
@@ -37,13 +45,16 @@ namespace cvt {
 			void hideEvent( HideEvent* event );
 
 		private:
+			Widget* _widget;
 			::Display* dpy;
 			::Window win;
 			::GLXContext ctx;
 			bool visible;
-			Recti rect;
+			Recti _rect;
 			GFXGL* gfx;
 			bool needsupdate;
+			Vector2<int> _minSize;
+			Vector2<int> _maxSize;
 			std::deque<WidgetImplWinGLX11*>* _updateq;
 		};
 }

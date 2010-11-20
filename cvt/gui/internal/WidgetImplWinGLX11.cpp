@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
+	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : _widget( _window ), dpy( display ), ctx( context ), visible( false ), _rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
 	{
 		::XSetWindowAttributes attr;
 		unsigned long mask;
@@ -15,7 +15,7 @@ namespace cvt {
 		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
 		mask = CWBackPixmap | CWColormap | CWEventMask | CWBitGravity | CWWinGravity;
 
-		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, rect.width, rect.height,
+		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, _rect.width, _rect.height,
 							  0, visinfo->depth, InputOutput,
 							  visinfo->visual, mask, &attr );
 
@@ -30,29 +30,29 @@ namespace cvt {
 		delete gfx;
 	}
 
-	void WidgetImplWinGLX11::getSize( int& width, int& height ) const
+	void WidgetImplWinGLX11::size( int& width, int& height ) const
 	{
-		width = rect.width;
-		height = rect.height;
+		width = _rect.width;
+		height = _rect.height;
 	}
 
 	void WidgetImplWinGLX11::setSize( int width, int height )
 	{
-		if( rect.width == width && rect.height == height )
+		if( _rect.width == width && _rect.height == height )
 			return;
 
 		::XResizeWindow( dpy, win, width, height );
 	}
 
-	void WidgetImplWinGLX11::getPosition( int& x, int& y ) const
+	void WidgetImplWinGLX11::position( int& x, int& y ) const
 	{
-		x = rect.x;
-		y = rect.y;
+		x = _rect.x;
+		y = _rect.y;
 	}
 
 	void WidgetImplWinGLX11::setPosition( int x, int y )
 	{
-		if( rect.x == x && rect.y == y )
+		if( _rect.x == x && _rect.y == y )
 			return;
 
 		::XMoveWindow( dpy, win, x, y );
@@ -76,7 +76,7 @@ namespace cvt {
 	{
 		::XWindowChanges values;
 
-		if( rect == r )
+		if( _rect == r )
 			return;
 
 		values.x = r.x;
@@ -106,42 +106,80 @@ namespace cvt {
 		_updateq->push_back( this );
 	}
 
+	void WidgetImplWinGLX11::update( const Recti& rect )
+	{
+	    update();
+	}
+
+	void WidgetImplWinGLX11::setMinimumSize( int w, int h )
+	{
+	    _minSize.set( Math::max( w, 0 ), Math::max( h, 0 ) );
+	    XSizeHints hints;
+	    hints.flags = PMinSize;
+	    hints.min_width = ( uint32_t ) _minSize[ 0 ];
+	    hints.min_height = ( uint32_t ) _minSize[ 1 ];
+	    ::XSetWMNormalHints( dpy, win , &hints );
+	}
+
+	void WidgetImplWinGLX11::setMaximumSize( int w, int h )
+	{
+	    _maxSize.set( Math::max( w, 0 ), Math::max( h, 0 ) );
+	    XSizeHints hints;
+	    hints.flags = PMaxSize;
+	    hints.max_width = ( uint32_t ) _maxSize[ 0 ];
+	    hints.max_height = ( uint32_t ) _maxSize[ 1 ];
+	    ::XSetWMNormalHints( dpy, win , &hints );
+	}
+
+	void WidgetImplWinGLX11::minimumSize( int& w, int& h )
+	{
+	    w = _minSize[ 0 ];
+	    h = _minSize[ 1 ];
+	}
+
+	void WidgetImplWinGLX11::maximumSize( int& w, int& h )
+	{
+	    w = _maxSize[ 0 ];
+	    h = _maxSize[ 1 ];
+	}
+
+
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
 		glXMakeCurrent(dpy, win, ctx );
 		gfx->setDefault();
 		gfx->updateState();
-		widget->paintEvent( event, gfx );
+		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
 		needsupdate = false;
 	}
 
 	void WidgetImplWinGLX11::resizeEvent( ResizeEvent* event )
 	{
-		event->getSize( rect.width, rect.height );
+		event->getSize( _rect.width, _rect.height );
 
 		glXMakeCurrent(dpy, win, ctx);
-		glViewport(0, 0, (GLsizei) rect.width, (GLsizei) rect.height );
-		gfx->setViewport( rect.width, rect.height );
-		widget->resizeEvent( event );
+		glViewport(0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
+		gfx->setViewport( _rect.width, _rect.height );
+		_widget->resizeEvent( event );
 	}
 
 	void WidgetImplWinGLX11::moveEvent( MoveEvent* event )
 	{
-		event->getPosition( rect.x, rect.y );
-		widget->moveEvent( event );
+		event->getPosition( _rect.x, _rect.y );
+		_widget->moveEvent( event );
 	}
 
 	void WidgetImplWinGLX11::showEvent( ShowEvent* event )
 	{
 		visible = true;
-		widget->showEvent( event );
+		_widget->showEvent( event );
 	}
 
 	void WidgetImplWinGLX11::hideEvent( HideEvent* event )
 	{
 		visible = false;
-		widget->hideEvent( event );
+		_widget->hideEvent( event );
 	}
 
 }

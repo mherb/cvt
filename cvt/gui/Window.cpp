@@ -55,7 +55,7 @@ namespace cvt {
 	void Window::paintEvent( PaintEvent* event, GFX* gfx )
 	{
 		int w, h, x, y;
-		getSize( w, h );
+		size( w, h );
 		gfx->getColor().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );
 //		gfx->getColor().set( 0.0f, 1.0f, 0.0f, 1.0f );
@@ -68,7 +68,7 @@ namespace cvt {
 		sprintf( buf, "Size: %d x %d", w, h );
 		gfx->drawText( 10, 20, buf );
 
-		getPosition( x, y );
+		position( x, y );
 		sprintf( buf, "Position: %d x %d", x, y );
 		gfx->drawText( 10, 32, buf );
 

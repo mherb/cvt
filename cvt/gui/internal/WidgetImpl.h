@@ -8,20 +8,24 @@
 namespace cvt {
 	class WidgetImpl {
 		public:
-			WidgetImpl( Widget* w ) : widget( w ) {};
+			virtual void	    setSize( int width, int height ) = 0;
+			virtual void	    size( int& width, int& height ) const = 0;
+			virtual void	    setPosition( int width, int height ) = 0;
+			virtual void	    position( int& width, int& height ) const = 0;
+			virtual void	    setRect( const Recti& rect ) = 0;
+			virtual void	    rect( Recti& rect ) const = 0;
+			virtual void	    setVisible( bool visibility ) = 0;
+			virtual bool	    isVisible() const = 0;
+			virtual void	    setTitle( const std::string& title ) {};
+			virtual void	    update() = 0;
+			virtual void	    update( const Recti& rect ) = 0;
+			virtual void	    setMinimumSize( int w, int h ) = 0;
+			virtual void	    setMaximumSize( int w, int h ) = 0;
+			virtual void	    minimumSize( int& w, int& h ) = 0;
+			virtual void	    maximumSize( int& w, int& h ) = 0;
+			virtual void	    setParent( Widget* w ) = 0;
+			virtual Widget*	    parent() const = 0;
 
-			virtual void setSize( int width, int height ) = 0;
-			virtual void getSize( int& width, int& height ) const = 0;
-			virtual void setPosition( int width, int height ) = 0;
-			virtual void getPosition( int& width, int& height ) const = 0;
-			virtual void setRect( const Recti& rect ) = 0;
-			virtual void getRect( Recti& rect ) const = 0;
-			virtual void setVisible( bool visibility ) = 0;
-			virtual bool isVisible() const = 0;
-			virtual void setTitle( const std::string& title ) {};
-			virtual void update() = 0;
-
-			Widget* widget;
 	};
 }
 
