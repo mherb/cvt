@@ -148,9 +148,9 @@ namespace cvt {
 	{
 		glXMakeCurrent(dpy, win, ctx );
 		gfx->setDefault();
-		gfx->updateState();
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfx->setViewport( viewport );
+		gfx->setChildrect( viewport );
 		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
 		needsupdate = false;

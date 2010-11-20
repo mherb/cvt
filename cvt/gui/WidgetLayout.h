@@ -39,61 +39,63 @@ namespace cvt {
 		_vertical.set( 0, 10 );
 	}
 
-	void WidgetLayout::setAnchoredLeft( unsigned int marginleft, unsigned int width )
+	inline void WidgetLayout::setAnchoredLeft( unsigned int marginleft, unsigned int width )
 	{
 		_layouth = LAYOUT_HL;
 		_horizontal.set( marginleft, width );
 	}
 
-	void WidgetLayout::setAnchoredRight( unsigned int marginright, unsigned int width )
+	inline void WidgetLayout::setAnchoredRight( unsigned int marginright, unsigned int width )
 	{
 		_layouth = LAYOUT_HR;
 		_horizontal.set( marginright, width );
 	}
 
-	void WidgetLayout::setAnchoredLeftRight( unsigned int marginleft, unsigned int marginright )
+	inline void WidgetLayout::setAnchoredLeftRight( unsigned int marginleft, unsigned int marginright )
 	{
 		_layouth = LAYOUT_HLR;
 		_horizontal.set( marginleft, marginright );
 	}
 
-	void WidgetLayout::setAnchoredTop( unsigned int margintop, unsigned int height )
+	inline void WidgetLayout::setAnchoredTop( unsigned int margintop, unsigned int height )
 	{
 		_layoutv = LAYOUT_VT;
-		_horizontal.set( margintop, height );
+		_vertical.set( margintop, height );
 	}
 
-	void WidgetLayout::setAnchoredBottom( unsigned int marginbottom, unsigned int height )
+	inline void WidgetLayout::setAnchoredBottom( unsigned int marginbottom, unsigned int height )
 	{
 		_layoutv = LAYOUT_VB;
-		_horizontal.set( marginbottom, height );
+		_vertical.set( marginbottom, height );
 	}
 
-	void WidgetLayout::setAnchoredTopBottom( unsigned int margintop, unsigned int marginbottom )
+	inline void WidgetLayout::setAnchoredTopBottom( unsigned int margintop, unsigned int marginbottom )
 	{
 		_layoutv = LAYOUT_VTB;
-		_horizontal.set( margintop, marginbottom );
+		_vertical.set( margintop, marginbottom );
 	}
 
-	void WidgetLayout::rect( Recti& rect, unsigned int w, unsigned int h ) const
+	inline void WidgetLayout::rect( Recti& rect, unsigned int width, unsigned int height ) const
 	{
+		int w = width;
+		int h = height;
 		switch( _layouth ) {
 			case LAYOUT_HL:
 				{
-					rect.x = _vertical[ 0 ];
-					rect.width = _vertical[ 1 ];
+					rect.x = _horizontal[ 0 ];
+					rect.width = _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HR:
 				{
-					rect.x = w - _vertical[ 0 ] - _vertical[ 1 ];
-					rect.width = _vertical[ 1 ];
+					rect.x = w - _horizontal[ 0 ] - _horizontal[ 1 ];
+					rect.width = _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HLR:
 				{
-					rect.x = _vertical[ 0 ];
-					rect.width = w - _vertical[ 0 ] - _vertical[ 1 ];
+					rect.x = _horizontal[ 0 ];
+					rect.width = w - _horizontal[ 0 ] - _horizontal[ 1 ];
 				}
 				break;
 		}

@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/WidgetLayout.h>
+#include <cvt/gui/Button.h>
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/util/Time.h>
 
@@ -16,15 +18,22 @@ void timeout( BasicTimer* timer )
 
 int main(int argc, char* argv[])
 {
-    BasicTimer t( 30 );
+//    BasicTimer t( 30 );
+
     Window w( "Test" );
     w.setSize( 640, 480 );
     w.setVisible( true );
     w.setMinimumSize( 320, 240 );
 
-    Delegate<void (BasicTimer*)> d( &timeout );
-    t.timeout.add( &d );
-    t.start();
+    Button button( "BLA" );
+    WidgetLayout wl;
+    wl.setAnchoredRight( 10, 50 );
+    wl.setAnchoredBottom( 10, 20 );
+    w.addWidget( &button, wl );
+
+  //  Delegate<void (BasicTimer*)> d( &timeout );
+    //t.timeout.add( &d );
+    //t.start();
 
     Application::run();
     return 0;

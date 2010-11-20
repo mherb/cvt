@@ -28,10 +28,16 @@ namespace cvt {
 		private:
 			void setViewport( const Recti& r ) { _viewport = r; };
 			void viewport( Recti& r ) const { r = _viewport; };
+			void setChildrect( const Recti& r ) { _childrect = r; updateState(); };
+			void childrect( Recti& r ) const { r = _childrect; };
+
 
 		protected:
+			virtual void updateState() = 0;
+
 			Color _color;
 			Recti _viewport;
+			Recti _childrect;
 	};
 }
 

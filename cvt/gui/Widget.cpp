@@ -113,25 +113,25 @@ namespace cvt {
 
 		// FIXME: is rect in local coords or in child coords
 
-		Recti viewport, newviewport;
+		Recti crect, newcrect;
 
-		/* get current viewport */
-	    gfx->viewport( viewport );
+		/* get current childrect */
+	    gfx->childrect( crect );
 		/* get child rectangle */
 		Recti rchild;
 		w->rect( rchild );
-		/* bring child rect in the local widget coordinates */
-		rchild.translate( viewport.x, viewport.y );
-		newviewport.intersect( rchild );
 
-		/* set new viewport */
-		gfx->setViewport( newviewport );
+		newcrect = crect;
+		newcrect.intersect( rchild );
+
+		/* set new childrect */
+		gfx->setChildrect( newcrect );
 		/* do painting with default GFX */
-		PaintEvent pe( rect.x, rect.y, rect.width, rect.height );
+		PaintEvent pe( 0, 0, newcrect.width, newcrect.height );
 		gfx->setDefault();
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
-		gfx->setViewport( viewport );
+		gfx->setChildrect( crect );
 	}
 
 }

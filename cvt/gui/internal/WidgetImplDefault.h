@@ -84,7 +84,7 @@ namespace cvt {
 	inline void WidgetImplDefault::setRect( const Recti& rect )
 	{
 		setPosition( rect.x, rect.y );
-		setSize( rect.width, rect.width );
+		setSize( rect.width, rect.height );
 	}
 
 	inline void WidgetImplDefault::rect( Recti& rect ) const
