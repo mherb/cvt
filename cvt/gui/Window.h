@@ -1,11 +1,11 @@
 #ifndef CVTWINDOW_H
 #define CVTWINDOW_H
 
-#include <cvt/gui/Widget.h>
+#include <cvt/gui/WidgetContainer.h>
 
 namespace cvt {
 
-	class Window : public Widget
+	class Window : public WidgetContainer
 	{
 		public:
 			Window( const std::string& title );

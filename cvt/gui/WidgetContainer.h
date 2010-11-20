@@ -24,6 +24,7 @@ namespace cvt {
 
 		protected:
 			void paintChildren( GFX* gfx, const Recti& r );
+			void resizeChildren( );
 			void resizeEvent( ResizeEvent* event );
 			void paintEvent( PaintEvent* event, GFX* gfx );
 
@@ -45,6 +46,7 @@ namespace cvt {
 	inline void WidgetContainer::addWidget( Widget* w, const WidgetLayout& layout )
 	{
 		w->setParent( this );
+		w->setVisible( true );
 		_children.push_back( std::make_pair<Widget*, WidgetLayout>( w, layout ) );
 	}
 

@@ -117,6 +117,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/BasicTimer.h
 	gui/WidgetContainer.h
 	gui/WidgetLayout.h
+	gui/Button.h
 	gui/internal/WidgetImplDefault.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
@@ -185,6 +186,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/GFXGL.cpp
 	gui/BasicTimer.cpp
 	gui/WidgetContainer.cpp
+	gui/Button.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
 	gui/internal/WidgetImplWinGLX11.cpp

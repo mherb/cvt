@@ -76,6 +76,11 @@ namespace cvt {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RED, _glfont.width, _glfont.height, 0, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
 		glBindTexture( GL_TEXTURE_2D, 0 );
+
+		glEnable( GL_BLEND );
+		glEnable( GL_TEXTURE_2D );
+		glEnable( GL_POINT_SPRITE );
+		glEnable( GL_SCISSOR_TEST );
 	}
 
 	GFXGL::~GFXGL()
@@ -85,19 +90,20 @@ namespace cvt {
 
 	void GFXGL::updateState()
 	{
-		glEnable( GL_BLEND );
-		glEnable( GL_TEXTURE_2D );
-		glEnable( GL_POINT_SPRITE );
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glScissor( _childrect.x, _viewport.height - ( _childrect.y + _childrect.height ), _childrect.width, _childrect.height );
 	}
 
 	void GFXGL::fillRect( const Recti& rect )
 	{
-		fillRect( rect.x + _viewport.x, rect.y + _viewport.y , rect.width, rect.height );
+		fillRect( rect.x, rect.y, rect.width, rect.height );
 	}
 
 	void GFXGL::fillRect( int x, int y, int w, int h )
 	{
+		x += _childrect.x;
+		y += _childrect.y;
+
 		GLint vertices[ 8 ] = {
 			x	 , y + h,
 			x	 , y    ,
@@ -107,7 +113,7 @@ namespace cvt {
 
 		progbasic.bind();
 		IFilterVector16 vec;
-		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
+		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
 		progbasic.setArg( "MVP", &vec );
 
 		vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8, vertices );
@@ -121,8 +127,13 @@ namespace cvt {
 	{
 		int len = ( int ) strlen( text );
 		int* vertices = new int[ len * 3 ];
+
+		x += _childrect.x;
+		y += _childrect.y;
 		x += _glfont.offx;
 		y += _glfont.offy;
+
+
 		for( int i = 0; i < len; i++ ) {
 			vertices[ i * 3 + 0 ] = x;
 			vertices[ i * 3 + 1 ] = y;
@@ -135,7 +146,7 @@ namespace cvt {
 		progtext.setArg("TexFont", 0 );
 		progtext.setArg("Scale", _glfont.ptsize / ( float ) ( _glfont.width ) );
 		IFilterVector16 vec;
-		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
+		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
 
 		glBindTexture( GL_TEXTURE_2D, texfont );
@@ -167,6 +178,9 @@ namespace cvt {
 			glmem = ( ImageAllocatorGL* ) tmp->_mem;
 		}
 
+		x += _childrect.x;
+		y += _childrect.y;
+
 		w = ( GLint ) img.width();
 		h = ( GLint ) img.height();
 		GLint vertices[ 8 ] = {
@@ -185,7 +199,7 @@ namespace cvt {
 		progbasictex.bind();
 		progbasictex.setArg("Tex", 0 );
 		IFilterVector16 vec;
-		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
+		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
 		progbasictex.setArg( "MVP", &vec );
 		progbasictex.setArg( "ImageSize", ( float ) w, ( float ) h );
 		progbasictex.setArg( "Radius", 25.0f );

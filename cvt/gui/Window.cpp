@@ -7,7 +7,7 @@
 #include <cstdio>
 
 namespace cvt {
-	Window::Window( const std::string& title ) : Widget( true ), mouse( false )
+	Window::Window( const std::string& title ) : WidgetContainer( true ), mouse( false )
 	{
 		setTitle( title );
 
@@ -81,9 +81,9 @@ namespace cvt {
 			gfx->drawImage( mx, my, img );
 		}
 
-//		gfx->color().set( 0.0f, 1.0f, 1.0f, 1.0f );
-//		gfx->fillRect( 10, 20, 1, 1 );
-
+		Recti r;
+		rect( r );
+		paintChildren( gfx, r );
 	}
 
 }

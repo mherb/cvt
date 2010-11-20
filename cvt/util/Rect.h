@@ -45,7 +45,8 @@ namespace cvt {
 	template<typename T>
 		inline std::ostream& operator<<(std::ostream &out, const Rect<T> &r)
 		{
-			return out << r.x << " " << r.y << "  " << r.width << " x " << r.height << std::endl;
+			out << r.x << " " << r.y << "  " << r.width << " x " << r.height;
+			return out;
 		}
 
 	typedef Rect<double> Rectd;
@@ -167,7 +168,7 @@ namespace cvt {
 		{
 			if( x2 + w2 < x || x2 > x + width )
 				return false;
-			if( y2 + h2 < y || y2 > y + width )
+			if( y2 + h2 < y || y2 > y + height )
 				return false;
 			return true;
 		}
@@ -185,7 +186,9 @@ namespace cvt {
 				set( 0, 0, 0, 0 );
 				return;
 			}
+
 			T xend, yend;
+
 			xend = Math::min( x + width, x2 + w2 );
 			yend = Math::min( y + height, y2 + h2 );
 			x = Math::max( x, x2 );
