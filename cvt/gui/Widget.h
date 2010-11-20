@@ -8,13 +8,17 @@
 
 namespace cvt {
 	class WidgetImpl;
+	class WidgetImplWinGLX11;
 
 	class Widget {
+		friend class WidgetImplWinGLX11;
+
 		public:
-			Widget( const Widget* parent );
+			Widget( bool toplevel = false );
 			virtual ~Widget();
 
-			const Widget* getParent() const { return parent; };
+			bool isToplevel() const { return _toplevel; };
+			const Widget* getParent() const { return _parent; };
 			void getSize( int& width, int& height ) const;
 			void setSize( int width, int height );
 			void getPosition( int& x, int& y ) const;
@@ -28,6 +32,7 @@ namespace cvt {
 			void setTitle( const std::string& title );
 			void update();
 
+		protected:
 			virtual void resizeEvent( ResizeEvent* event ) {};
 			virtual void moveEvent( MoveEvent* event ) {};
 			virtual void paintEvent( PaintEvent* event, GFX* gfx ) {};
@@ -42,11 +47,14 @@ namespace cvt {
 			virtual void keyPressEvent() {};
 			virtual void keyReleaseEvent() {};
 
-		protected:
+		private:
 			Widget( const Widget& w );
 
+			void setParent( Widget* parent ){ _parent = parent; };
+
+			bool _toplevel;
 			WidgetImpl* impl;
-			const Widget* parent;
+			Widget* _parent;
 	};
 }
 

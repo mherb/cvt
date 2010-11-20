@@ -25,7 +25,12 @@ namespace cvt {
 			Application( const Application& );
 			virtual ~Application() {};
 
-			virtual WidgetImpl* getWidgetImpl( Widget* widget ) = 0;
+			static WidgetImpl* registerWindow( Widget* w ) { return instance()->_registerWindow( w ); }
+			static void unregisterWindow( WidgetImpl* w ) { instance()->_unregisterWindow( w ); }
+
+			virtual WidgetImpl* _registerWindow( Widget* widget ) = 0;
+			virtual void _unregisterWindow( WidgetImpl* widget ) = 0;
+
 			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) = 0;
 			virtual void _unregisterTimer( uint32_t id ) = 0;
 
@@ -34,7 +39,7 @@ namespace cvt {
 			virtual void exitApp() = 0;
 
 			static Application* instance();
-			static Application* app;
+			static Application* _app;
 	};
 }
 

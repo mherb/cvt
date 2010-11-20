@@ -3,14 +3,17 @@
 #include <cvt/gui/internal/WidgetImpl.h>
 
 namespace cvt {
-	Widget::Widget( const Widget* _parent ) : parent( _parent )
+	Widget::Widget( bool toplevel ) : _toplevel( toplevel ), _parent( NULL )
 	{
-		impl = Application::instance()->getWidgetImpl( this );
+	    if( _toplevel )
+		impl = Application::instance()->registerWindow( this );
 	}
 
 	Widget::~Widget( )
 	{
-		delete impl;
+	    if( _toplevel )
+		Application::instance()->unregisterWindow( impl );
+	    delete impl;
 	}
 
 	void Widget::setSize( int width, int height )

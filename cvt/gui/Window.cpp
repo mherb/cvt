@@ -7,15 +7,13 @@
 #include <cstdio>
 
 namespace cvt {
-	Window::Window( const std::string& title ) : Widget( NULL ), mouse( false )
+	Window::Window( const std::string& title ) : Widget( true ), mouse( false )
 	{
 		setTitle( title );
 
-//		Image lena;
 		cvt::Resources resources;
 		ImageIO::loadPNG( img, resources.find( "lena.png" ) );
-//		img.reallocate( lena, IALLOCATOR_GL );
-//		img = lena;
+
 		return;
 	}
 

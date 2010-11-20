@@ -57,18 +57,23 @@ namespace cvt {
 	}
 
 
-	WidgetImpl* ApplicationX11::getWidgetImpl( Widget* w )
+	WidgetImpl* ApplicationX11::_registerWindow( Widget* w )
 	{
 		WidgetImpl* ret;
-		if( !w->getParent() ) {
-			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, ( Window* ) w, &updates );
-			XSetWMProtocols(dpy, impl->win, &xatom_wmdelete, 1);
+		if( w->isToplevel() ) {
+			WidgetImplWinGLX11* impl = new WidgetImplWinGLX11( dpy, ctx, visinfo, w, &updates );
+			XSetWMProtocols(dpy, impl->win, &xatom_wmdelete, 1 );
 			windows.insert( std::pair< ::Window, WidgetImplWinGLX11*>( impl->win, impl ) );
 			ret = impl;
 		} else {
-			ret = NULL;//new WidgetImplGL( w );
+			ret = NULL;
 		}
 		return ret;
+	};
+
+	void ApplicationX11::_unregisterWindow( WidgetImpl* impl )
+	{
+		    windows.erase( ( ( WidgetImplWinGLX11* ) impl )->win );
 	};
 
 	void ApplicationX11::runApp()

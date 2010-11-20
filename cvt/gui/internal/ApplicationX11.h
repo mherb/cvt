@@ -25,10 +25,12 @@ namespace cvt {
 			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); };
 			virtual void _unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); };
 
-			virtual WidgetImpl* getWidgetImpl( Widget* win );
 
 		private:
 			ApplicationX11( const Application& );
+
+			virtual WidgetImpl* _registerWindow( Widget* w );
+			virtual void _unregisterWindow( WidgetImpl* w );
 
 			::Display* dpy;
 			::GLXContext ctx;

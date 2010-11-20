@@ -2,11 +2,10 @@
 
 namespace cvt {
 
-	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
+	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : WidgetImpl( _window ), dpy( display ), ctx( context ), visible( false ), rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
 	{
 		::XSetWindowAttributes attr;
 		unsigned long mask;
-		::Atom wmDelete;
 
 		attr.background_pixmap = None;
 //		attr.border_pixel = 0;
