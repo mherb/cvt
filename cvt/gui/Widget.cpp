@@ -106,5 +106,32 @@ namespace cvt {
 	    impl->update( rect );
 	}
 
+	void Widget::paintChild( Widget* w, GFX* gfx, const Recti& rect ) const
+	{
+		if( w->parent() != this )
+			return;
+
+		// FIXME: is rect in local coords or in child coords
+
+		Recti viewport, newviewport;
+
+		/* get current viewport */
+	    gfx->viewport( viewport );
+		/* get child rectangle */
+		Recti rchild;
+		w->rect( rchild );
+		/* bring child rect in the local widget coordinates */
+		rchild.translate( viewport.x, viewport.y );
+		newviewport.intersect( rchild );
+
+		/* set new viewport */
+		gfx->setViewport( newviewport );
+		/* do painting with default GFX */
+		PaintEvent pe( rect.x, rect.y, rect.width, rect.height );
+		gfx->setDefault();
+		w->paintEvent( &pe, gfx );
+		/* restore old viewport */
+		gfx->setViewport( viewport );
+	}
 
 }

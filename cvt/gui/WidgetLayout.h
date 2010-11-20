@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <cvt/math/Vector.h>
 #include <cvt/util/Rect.h>
-#include <cvt/util/Math.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 
@@ -75,7 +75,7 @@ namespace cvt {
 		_horizontal.set( margintop, marginbottom );
 	}
 
-	void WidgetLayout::rect( Recti& r, int w, int h ) const
+	void WidgetLayout::rect( Recti& rect, unsigned int w, unsigned int h ) const
 	{
 		switch( _layouth ) {
 			case LAYOUT_HL:

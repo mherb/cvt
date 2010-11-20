@@ -149,6 +149,8 @@ namespace cvt {
 		glXMakeCurrent(dpy, win, ctx );
 		gfx->setDefault();
 		gfx->updateState();
+		Recti viewport( 0, 0, _rect.width, _rect.height );
+		gfx->setViewport( viewport );
 		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
 		needsupdate = false;
@@ -160,7 +162,6 @@ namespace cvt {
 
 		glXMakeCurrent(dpy, win, ctx);
 		glViewport(0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
-		gfx->setViewport( _rect.width, _rect.height );
 		_widget->resizeEvent( event );
 	}
 

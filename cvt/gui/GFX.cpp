@@ -12,7 +12,7 @@ namespace cvt {
 
 	void GFX::setDefault()
 	{
-		color.set( 0.0f, 0.0f, 0.0f, 1.0f );
+		_color.set( 0.0f, 0.0f, 0.0f, 1.0f );
 	}
 }
 

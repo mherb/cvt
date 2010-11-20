@@ -33,7 +33,7 @@ namespace cvt {
 		private:
 			WidgetImplDefault( const WidgetImpl& wi );
 
-			Widget*	 _self;
+			Widget*	 _widget;
 			Widget*	 _parent;
 			Recti	 _rect;
 			bool	 _visible;
@@ -42,15 +42,21 @@ namespace cvt {
 	};
 
 
-	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _self( w )
+	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _widget( w )
 	{
 	}
 
 	inline void WidgetImplDefault::setSize( int width, int height )
 	{
+		if( _rect.width == width && _rect.height == height )
+			return;
+
+		width  = Math::max( width, 0 );
+		height = Math::max( height, 0 );
+		ResizeEvent re( width, height, _rect.width, _rect.height );
 		_rect.width  = width;
 		_rect.height = height;
-		update();
+		_widget->resizeEvent( &re );
 	}
 
 	inline void WidgetImplDefault::size( int& width, int& height ) const
@@ -61,9 +67,12 @@ namespace cvt {
 
 	inline void WidgetImplDefault::setPosition( int x, int y )
 	{
+		if( _rect.x == x && _rect.y == y )
+			return;
+		MoveEvent me( x, y, _rect.x, _rect.y );
 		_rect.x  = x;
 		_rect.y  = y;
-		update();
+		_widget->moveEvent( &me );
 	}
 
 	inline void WidgetImplDefault::position( int& x, int& y ) const
@@ -74,8 +83,8 @@ namespace cvt {
 
 	inline void WidgetImplDefault::setRect( const Recti& rect )
 	{
-		_rect = rect;
-		update();
+		setPosition( rect.x, rect.y );
+		setSize( rect.width, rect.width );
 	}
 
 	inline void WidgetImplDefault::rect( Recti& rect ) const
@@ -85,8 +94,16 @@ namespace cvt {
 
 	inline void WidgetImplDefault::setVisible( bool visibility )
 	{
+		if( _visible == visibility )
+			return;
 		_visible = visibility;
-		update();
+		if( _visible ) {
+			ShowEvent se;
+			_widget->showEvent( &se );
+		} else {
+			HideEvent he;
+			_widget->hideEvent( &he );
+		}
 	}
 
 	inline bool WidgetImplDefault::isVisible() const

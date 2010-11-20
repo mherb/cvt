@@ -10,6 +10,7 @@ namespace cvt {
 	class GFXGL : public GFX
 	{
 		friend class WidgetImplWinGLX11;
+
 		public:
 			GFXGL();
 			~GFXGL();
@@ -21,7 +22,6 @@ namespace cvt {
 
 		private:
 			void updateState();
-			void setViewport( int w, int h ) { width = w; height = h; };
 
 			GLProgram progbasic;
 			GLProgram progbasictex;
@@ -29,7 +29,6 @@ namespace cvt {
 			GLuint texfont;
 			GLVertexArray vao;
 			GLBuffer vbo;
-			int width, height;
 	};
 }
 
