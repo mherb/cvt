@@ -6,23 +6,32 @@
 #include <cvt/gfx/Image.h>
 
 namespace cvt {
+
 	class GFX {
+		friend class Widget;
+		friend class WidgetImplWinGLX11;
+
 		public:
 			GFX();
 			//GFX( const GFX& g );
 			virtual ~GFX();
 
 			void setDefault();
-			void setColor( const Color& c ) { color = c; };
-			Color& getColor() { return color; };
+			void setColor( const Color& c ) { _color = c; };
+			Color& color() { return _color; };
 
 			virtual void fillRect( const Recti& rect ) = 0;
 			virtual void fillRect( int x, int y, int width, int height ) = 0;
 			virtual void drawText( int x, int y, const char* text ) = 0;
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
 
+		private:
+			void setViewport( const Recti& r ) { _viewport = r; };
+			void viewport( Recti& r ) const { r = _viewport; };
+
 		protected:
-			Color color;
+			Color _color;
+			Recti _viewport;
 	};
 }
 

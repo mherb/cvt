@@ -93,7 +93,7 @@ namespace cvt {
 
 	void GFXGL::fillRect( const Recti& rect )
 	{
-		fillRect( rect.x, rect.y, rect.width, rect.height );
+		fillRect( rect.x + _viewport.x, rect.y + _viewport.y , rect.width, rect.height );
 	}
 
 	void GFXGL::fillRect( int x, int y, int w, int h )
@@ -107,12 +107,12 @@ namespace cvt {
 
 		progbasic.bind();
 		IFilterVector16 vec;
-		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
+		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
 		progbasic.setArg( "MVP", &vec );
 
 		vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8, vertices );
 
-		vao.setColor( color );
+		vao.setColor( _color );
 		vao.setVertexData( vbo, 2, GL_INT );
 		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 	}
@@ -135,7 +135,7 @@ namespace cvt {
 		progtext.setArg("TexFont", 0 );
 		progtext.setArg("Scale", _glfont.ptsize / ( float ) ( _glfont.width ) );
 		IFilterVector16 vec;
-		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
+		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
 		progtext.setArg( "MVP", &vec );
 
 		glBindTexture( GL_TEXTURE_2D, texfont );
@@ -143,7 +143,7 @@ namespace cvt {
 		GLBuffer tvbo( GL_ARRAY_BUFFER );
 		tvbo.alloc( GL_STATIC_DRAW, sizeof( int ) * 3 * len, vertices );
 
-		vao.setColor( color );
+		vao.setColor( _color );
 		vao.setVertexData( tvbo, 3, GL_INT );
 		glPointSize( _glfont.ptsize );
 		vao.draw( GL_POINTS, 0, len );
@@ -185,7 +185,7 @@ namespace cvt {
 		progbasictex.bind();
 		progbasictex.setArg("Tex", 0 );
 		IFilterVector16 vec;
-		ortho2d( vec, 0.0f, ( float ) width, 0.0f, ( float ) height, -10.0f, 10.0f );
+		ortho2d( vec, ( float ) _viewport.x, ( float ) _viewport.width, ( float )_viewport.y, ( float ) _viewport.height, -10.0f, 10.0f );
 		progbasictex.setArg( "MVP", &vec );
 		progbasictex.setArg( "ImageSize", ( float ) w, ( float ) h );
 		progbasictex.setArg( "Radius", 25.0f );
@@ -200,7 +200,7 @@ namespace cvt {
 
 		vao.setVertexData( vbuf, 2, GL_INT );
 		vao.setTexCoordData( tbuf, 2, GL_FLOAT );
-		vao.setColor( color );
+		vao.setColor( _color );
 		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 
 		vao.resetTexCoord();

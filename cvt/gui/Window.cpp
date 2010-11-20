@@ -56,13 +56,13 @@ namespace cvt {
 	{
 		int w, h, x, y;
 		size( w, h );
-		gfx->getColor().set( 0.4f, 0.4f, 0.4f, 1.0f );
+		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );
-//		gfx->getColor().set( 0.0f, 1.0f, 0.0f, 1.0f );
+//		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 //		gfx->fillRect( 100, 100, 100, 100 );
 
 
-		gfx->getColor().set( 0.0f, 0.0f, 0.0f, 1.0f );
+		gfx->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 		char buf[ 200 ];
 
 		sprintf( buf, "Size: %d x %d", w, h );
@@ -76,12 +76,12 @@ namespace cvt {
 			sprintf( buf, "MousePress: %d x %d", mx, my );
 			gfx->drawText( 10, 44, buf );
 
-			gfx->getColor().set( 1.0f, 0.0f, 0.0f, 1.0f );
+			gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
 //			gfx->fillRect( mx - 15, my - 15, 30, 30 );
 			gfx->drawImage( mx, my, img );
 		}
 
-//		gfx->getColor().set( 0.0f, 1.0f, 1.0f, 1.0f );
+//		gfx->color().set( 0.0f, 1.0f, 1.0f, 1.0f );
 //		gfx->fillRect( 10, 20, 1, 1 );
 
 	}
