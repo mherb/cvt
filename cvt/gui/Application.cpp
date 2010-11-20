@@ -8,18 +8,18 @@
 
 namespace cvt {
 
-	Application* Application::app = NULL;
+	Application* Application::_app = NULL;
 
 	Application* Application::instance()
 	{
-		if( !app ) {
+		if( !_app ) {
 #ifdef _APPX11_
-			app = new ApplicationX11();
+			_app = new ApplicationX11();
 #else
 		#error "Platform for Application undefined"
 #endif
 		}
-		return app;
+		return _app;
 	}
 
 }

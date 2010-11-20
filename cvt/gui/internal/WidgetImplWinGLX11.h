@@ -16,7 +16,7 @@ namespace cvt {
 		friend class X11Handler;
 
 		public:
-			WidgetImplWinGLX11( ::Display* dpy, ::GLXContext context, ::XVisualInfo* visinfo, Window* _window, std::deque<WidgetImplWinGLX11*>* updates );
+			WidgetImplWinGLX11( ::Display* dpy, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updates );
 			~WidgetImplWinGLX11();
 			virtual void setTitle( const std::string& title );
 			virtual void setRect( const Recti& rect );
