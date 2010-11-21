@@ -5,5 +5,6 @@
 #include <cvt/math/Vector.h>
 
 #include <cvt/math/Matrix2.h>
+#include <cvt/math/Matrix3.h>
 
 #endif
