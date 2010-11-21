@@ -48,6 +48,9 @@ namespace cvt {
 		bool				inverseSelf( void );
 
 		int					dimension( void ) const;
+		const T*			ptr( void ) const;
+		T*					ptr( void );
+
 
 		friend std::ostream& operator<< <>( std::ostream& out, const Matrix2<T>& m );
 
@@ -318,6 +321,19 @@ namespace cvt {
 	{
 		return 2;
 	}
+
+    template<typename T>
+	const T* Matrix2<T>::ptr( void ) const
+	{
+	    return mat[ 0 ].ptr();
+	}
+
+    template<typename T>
+	T* Matrix2<T>::ptr( void )
+	{
+	    return mat[ 0 ].ptr();
+	}
+
 
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m )
