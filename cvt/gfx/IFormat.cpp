@@ -24,7 +24,7 @@ namespace cvt {
 	const IFormat IFormat::BAYER_RGGB_UINT8		= FORMATDESC( 1, uint8_t	, IFORMAT_BAYER_RGGB_UINT8  , IFORMAT_TYPE_UINT8 );
 
 #undef FORMATDESC
-	
+
 	std::ostream& operator<<(std::ostream &out, const IFormat &f)
 	{
 		static const char * _iformatstring[] = {
@@ -46,9 +46,9 @@ namespace cvt {
 			"BGRA_FLOAT",
 			"BAYER_RGGB_UINT8"
 		};
-		
+
 		out << "Channels: " << f.channels << " Format: " << _iformatstring[ f.formatID - 1 ];
-		
+
 		return out;
 	}
 
