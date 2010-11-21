@@ -6,7 +6,7 @@
 #	or (if none is passed) the name of the folder
 #
 #	Dependencies we search for and link against:
-#	- Boost (filesystem, system, program_options)
+#	- Boost
 #	- OpenCV (2.1)
 #	- Eigen2
 
@@ -14,7 +14,7 @@ MACRO (MACRO_TEST_APPLICATION)
 
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
-FIND_PACKAGE(Boost 1.40 COMPONENTS filesystem system program_options REQUIRED)
+FIND_PACKAGE(Boost 1.40 REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
 
 include(GLCLTOHEADER)

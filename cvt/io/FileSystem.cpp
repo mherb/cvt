@@ -1,65 +1,124 @@
 #include "FileSystem.h"
 #include "util/Exception.h"
-#include <boost/filesystem.hpp>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <stdio.h>
+
+#include "util/CVTTest.h"
 
 namespace cvt {
 
-    bool FileSystem::exists(std::string const & path)
-    {
-	if(boost::filesystem::is_directory(path))
-	    return true;
-	if(boost::filesystem::exists(path))
-	    return true;
-	return false;
-    }
+	bool FileSystem::exists( const std::string & path )
+	{
+		struct stat attr;
+		if ( stat( path.c_str(), &attr ) == -1 )
+			return false;
+		else
+			return true;		
+	}
 
     void FileSystem::rename(const std::string & from, const std::string & to)
     {
-	boost::filesystem::rename(from, to);
+		if ( ::rename( from.c_str(), to.c_str() ) < 0 )
+			throw CVTException("Could not rename file");
     }
 
     bool FileSystem::isFile(std::string const & file)
     {
-	return boost::filesystem::is_regular_file(file);
+		struct stat attr;
+		if( stat( file.c_str(), &attr ) == -1 )
+			CVTException( "Given path does not exist" );
+		return S_ISREG( attr.st_mode );
     }
 
     bool FileSystem::isDirectory(std::string const & dir)
     {
-	return boost::filesystem::is_directory(dir);
+		struct stat attr;
+		if( stat( dir.c_str(), &attr ) == -1 )
+			CVTException( "Given path does not exist" );
+		return S_ISDIR( attr.st_mode );
     }
-
-    void FileSystem::getFilesWithExtension(std::string const &path, std::vector<std::string>& result, std::string const & ext)
-    {
-	boost::filesystem::path full_path(boost::filesystem::initial_path());
-	full_path = boost::filesystem::system_complete(boost::filesystem::path(path, boost::filesystem::native));
-
-	if (!boost::filesystem::exists(full_path)){
-	    throw CVTException("\nNot found: " + full_path.native_file_string());
-	}
-
-	if (boost::filesystem::is_directory(full_path)){
-	    boost::filesystem::directory_iterator end_iter;
-
-	    for (boost::filesystem::directory_iterator dir_itr(full_path); dir_itr != end_iter; ++dir_itr) {
-		try {
-		    // is this a file?
-		    if (boost::filesystem::is_regular(*dir_itr)) {
-			std::string name = dir_itr->filename();
-
-			if (name.size() >= ext.size()) {
-			    // does it have the right extension (postfix)?
-			    if (name.substr(name.size() - ext.size(), ext.size()) == ext) {
-				result.push_back(name);
-			    }
-			}
-		    }
-		} catch (const std::exception & ex) {
-		    CVTException(dir_itr->filename() + " " + ex.what());
+	
+	void FileSystem::ls( const std::string & path, std::vector<std::string> & entries )
+	{
+		if( !exists( path ) ){
+			throw CVTException( "Path not found: " + path );
 		}
-	    }
-	} else {
-	    throw CVTException("\n'" + path + "' is a file, but must be a directory.");
+		
+		DIR * dirEntries = opendir( path.c_str() );
+		if( dirEntries == NULL ){
+			CVTException( "Directory not readable: " + path );
+		}
+		
+		struct dirent * entry = NULL;
+		
+		while( ( entry = readdir( dirEntries ) ) != NULL ) {
+			std::string entryName( entry->d_name );
+			
+			if( entryName.compare( "." ) == 0 ||
+			    entryName.compare( ".." ) == 0 )
+				continue;
+			
+			entries.push_back( entryName );
+		}
 	}
-    }
 
+    void FileSystem::filesWithExtension( std::string const &path, std::vector<std::string>& result, std::string const & ext )
+	{
+		if( !exists( path ) ){
+			throw CVTException( "Path not found: " + path );
+		}
+		
+		DIR * dirEntries = opendir( path.c_str() );
+		if( dirEntries == NULL ){
+			CVTException( "Directory not readable: " + path );
+		}
+		
+		struct dirent * entry = NULL;
+		
+		while( ( entry = readdir( dirEntries ) ) != NULL ) {
+			std::string entryName( path + "/" + entry->d_name );
+						
+			if( isFile( entryName ) ) {
+				if( entryName.length() >= ext.length() ){
+					std::string entryExt = entryName.substr( entryName.length() - ext.length() );
+					if( entryExt.compare( ext ) == 0 ){					
+						result.push_back( entryName );
+					}										
+				}				
+			}
+		}
+	}
+	
+	
+	
+	BEGIN_CVTTEST( filesystem )
+		std::string dataFolder( DATA_FOLDER );
+		bool b = FileSystem::exists( "/usr/include" );
+		b &= FileSystem::exists( dataFolder );
+		b &= !FileSystem::exists( "bla" );
+		CVTTEST_PRINT( "exists: ", b );
+	
+		b = FileSystem::isDirectory( "/usr/include" );
+
+		b &= !FileSystem::isDirectory( dataFolder + "/lena.png" );
+		CVTTEST_PRINT( "isDirectory: ", b );
+	
+		b = !FileSystem::isFile( "/usr/include" );
+		b &= FileSystem::isFile( dataFolder + "/lena.png" );
+		CVTTEST_PRINT( "isFile: ", b );
+	
+		b = true;
+		FileSystem::rename( dataFolder + "/lena.png", dataFolder + "/blubb.png" );
+		b &= FileSystem::exists( dataFolder + "/blubb.png" );
+		b &= !FileSystem::exists( dataFolder + "/lena.png" );
+		FileSystem::rename( dataFolder + "/blubb.png", dataFolder + "/lena.png" );
+		b &= !FileSystem::exists( dataFolder + "/blubb.png" );
+		b &= FileSystem::exists( dataFolder + "/lena.png" );
+		CVTTEST_PRINT( "rename: ", b );
+	
+		return true;
+	END_CVTTEST
 }

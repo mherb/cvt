@@ -1,6 +1,8 @@
 #ifndef CVTTEST_H
 #define CVTTEST_H
 
+#include <iostream>
+
 typedef bool (*CVTTestFunc)( void );
 
 typedef struct {
