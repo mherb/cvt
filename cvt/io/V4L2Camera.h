@@ -11,10 +11,10 @@ namespace cvt {
 	class V4L2Camera : public Camera
 	{
 		public:
-			V4L2Camera( int camIndex = 0,
-					    unsigned int width=640,
-					    unsigned int height=480,
-					    unsigned int fps = 30,
+			V4L2Camera( size_t camIndex = 0,
+					    size_t width=640,
+					    size_t height=480,
+					    size_t fps = 30,
 						const IFormat & format = IFormat::BGRA_UINT8 );
 
 			virtual ~V4L2Camera();
@@ -39,11 +39,11 @@ namespace cvt {
 			static void cameraInfo( size_t index, CameraInfo & info );
 
 		private:
-			unsigned int mWidth;
-			unsigned int mHeight;
-			unsigned int mFps;
-			unsigned int mNumBuffers;
-			int mCamIndex;
+			size_t mWidth;
+			size_t mHeight;
+			size_t mFps;
+			size_t mNumBuffers;
+			size_t mCamIndex;
 			bool mOpened;
 			bool mCapturing;
 			int mNextBuf;
@@ -82,13 +82,14 @@ namespace cvt {
 			void open();
 			void close();
 			void init();
-			void queryBuffers(bool unmap = false);
+			void queryBuffers( bool unmap = false );
 			void enqueueBuffers();
 			void enumerateMenu();
 			void showExtendedControls();
 			void extendedControl();
 			void showCapabilities();
-			static void control(int fd, int field, int value);
+			static void control( int fd, int field, int value );
+			static void listDevices( std::vector<std::string> & devices );
 	};
 
 	inline size_t V4L2Camera::width() const

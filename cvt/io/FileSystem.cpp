@@ -16,7 +16,7 @@ namespace cvt {
 		if ( stat( path.c_str(), &attr ) == -1 )
 			return false;
 		else
-			return true;		
+			return true;
 	}
 
     void FileSystem::rename(const std::string & from, const std::string & to)
@@ -40,27 +40,27 @@ namespace cvt {
 			CVTException( "Given path does not exist" );
 		return S_ISDIR( attr.st_mode );
     }
-	
+
 	void FileSystem::ls( const std::string & path, std::vector<std::string> & entries )
 	{
 		if( !exists( path ) ){
 			throw CVTException( "Path not found: " + path );
 		}
-		
+
 		DIR * dirEntries = opendir( path.c_str() );
 		if( dirEntries == NULL ){
 			CVTException( "Directory not readable: " + path );
 		}
-		
+
 		struct dirent * entry = NULL;
-		
+
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
 			std::string entryName( entry->d_name );
-			
+
 			if( entryName.compare( "." ) == 0 ||
 			    entryName.compare( ".." ) == 0 )
 				continue;
-			
+
 			entries.push_back( entryName );
 		}
 	}
@@ -70,55 +70,58 @@ namespace cvt {
 		if( !exists( path ) ){
 			throw CVTException( "Path not found: " + path );
 		}
-		
+
 		DIR * dirEntries = opendir( path.c_str() );
 		if( dirEntries == NULL ){
 			CVTException( "Directory not readable: " + path );
 		}
-		
+
 		struct dirent * entry = NULL;
-		
+
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
 			std::string entryName( path + "/" + entry->d_name );
-						
+
 			if( isFile( entryName ) ) {
 				if( entryName.length() >= ext.length() ){
 					std::string entryExt = entryName.substr( entryName.length() - ext.length() );
-					if( entryExt.compare( ext ) == 0 ){					
+					if( entryExt.compare( ext ) == 0 ){
 						result.push_back( entryName );
-					}										
-				}				
+					}
+				}
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	BEGIN_CVTTEST( filesystem )
+		bool result = true;
 		std::string dataFolder( DATA_FOLDER );
 		bool b = FileSystem::exists( "/usr/include" );
 		b &= FileSystem::exists( dataFolder );
 		b &= !FileSystem::exists( "bla" );
 		CVTTEST_PRINT( "exists: ", b );
-	
-		b = FileSystem::isDirectory( "/usr/include" );
+		result &= b;
 
+		b = FileSystem::isDirectory( "/usr/include" );
 		b &= !FileSystem::isDirectory( dataFolder + "/lena.png" );
 		CVTTEST_PRINT( "isDirectory: ", b );
-	
+		result &= b;
+
 		b = !FileSystem::isFile( "/usr/include" );
 		b &= FileSystem::isFile( dataFolder + "/lena.png" );
 		CVTTEST_PRINT( "isFile: ", b );
-	
-		b = true;
+		result &= b;
+
 		FileSystem::rename( dataFolder + "/lena.png", dataFolder + "/blubb.png" );
-		b &= FileSystem::exists( dataFolder + "/blubb.png" );
+		b = FileSystem::exists( dataFolder + "/blubb.png" );
 		b &= !FileSystem::exists( dataFolder + "/lena.png" );
 		FileSystem::rename( dataFolder + "/blubb.png", dataFolder + "/lena.png" );
 		b &= !FileSystem::exists( dataFolder + "/blubb.png" );
 		b &= FileSystem::exists( dataFolder + "/lena.png" );
 		CVTTEST_PRINT( "rename: ", b );
-	
-		return true;
+		result &= b;
+
+		return result;
 	END_CVTTEST
 }

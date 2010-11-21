@@ -1,4 +1,5 @@
 #include <cvt/io/V4L2Camera.h>
+#include <cvt/io/FileSystem.h>
 
 #include <iostream>
 #include <string>
@@ -142,7 +143,11 @@ namespace cvt {
 	}
 
 
-	V4L2Camera::V4L2Camera(int camIndex, unsigned int width, unsigned int height, unsigned int fps, const IFormat & format) :
+	V4L2Camera::V4L2Camera( size_t camIndex,
+						    size_t width,
+							size_t height,
+							size_t fps,
+							const IFormat & format) :
 		mWidth(width),
 		mHeight(height),
 		mFps(fps),
@@ -218,14 +223,14 @@ namespace cvt {
 		// ret value of ioctl ...
 		int ret = 0;
 
-		unsigned int reqWidth = mWidth;
-		unsigned int reqHeight = mHeight;
+		size_t reqWidth = mWidth;
+		size_t reqHeight = mHeight;
 
 		// initialize V4L2 stuff
 		memset(&mFmt, 0, sizeof(struct v4l2_format));
 		mFmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		mFmt.fmt.pix.width = reqWidth;
-		mFmt.fmt.pix.height = reqHeight;
+		mFmt.fmt.pix.width = (int)reqWidth;
+		mFmt.fmt.pix.height = (int)reqHeight;
 		mFmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		mFmt.fmt.pix.field = V4L2_FIELD_ANY;
 
@@ -247,7 +252,7 @@ namespace cvt {
 		// set stream parameter (fps):
 		mStreamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		mStreamParameter.parm.capture.timeperframe.numerator=1;
-		mStreamParameter.parm.capture.timeperframe.denominator=mFps;
+		mStreamParameter.parm.capture.timeperframe.denominator=(int)mFps;
 
 		ret = ioctl( mFd, VIDIOC_S_PARM, &mStreamParameter);
 
@@ -261,7 +266,7 @@ namespace cvt {
 
 		// request the buffers:
 		memset(&mRequestBuffers, 0, sizeof(struct v4l2_requestbuffers));
-		mRequestBuffers.count = mNumBuffers;
+		mRequestBuffers.count = (int)mNumBuffers;
 		mRequestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		mRequestBuffers.memory = V4L2_MEMORY_MMAP;
 
@@ -595,41 +600,67 @@ namespace cvt {
 
 	size_t V4L2Camera::count()
 	{
-		return 0;
+		std::vector<std::string> devs;
+		listDevices( devs );
+		return devs.size();
 	}
 
 	void V4L2Camera::cameraInfo( size_t index, CameraInfo & info )
 	{
-		std::stringstream ss;
-		ss << "/dev/video" << index << std::endl;
+		std::vector<std::string> deviceNames;
+		listDevices( deviceNames );
 
-		int fd = ::open( ss.str().c_str(), O_RDONLY );
+		if( index >= deviceNames.size() )
+			throw CVTException( "No device with such index!" );
+
+		int fd = ::open( deviceNames[ index ].c_str(), O_RDWR | O_NONBLOCK );
+		if( fd < 0 )
+			throw CVTException( "Could not open device to get information: " + deviceNames[ index ] );
+
 		struct v4l2_capability caps;
-		ioctl( fd, VIDIOC_QUERYCAP, &caps );
+		if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
+			throw CVTException( "ioctl failed!" );
 
-		std::cout << "Driver: " << caps.driver << std::endl;
-		std::cout << "Card: " << caps.card << std::endl;
-		std::cout << "BusInfo: " << caps.bus_info << std::endl;
-
-		ss.str( "" );
-		ss.clear();
-		if ( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
-			ss << " VideoCapturing";
-		if ( caps.capabilities & V4L2_CAP_VIDEO_OVERLAY )
-			ss << " VideoOverlay";
-		if ( caps.capabilities & V4L2_CAP_VIDEO_OUTPUT )
-			ss << " VideoOutput";
-		if ( caps.capabilities & V4L2_CAP_VIDEO_OUTPUT_OVERLAY )
-			ss << " VideoOutputOverlay";
-		if ( caps.capabilities & V4L2_CAP_READWRITE )
-			ss << " ReadWrite";
-		if ( caps.capabilities & V4L2_CAP_ASYNCIO )
-			ss << " AsyncIO";
-		if ( caps.capabilities & V4L2_CAP_STREAMING )
-			ss << " Streaming";
-		std::cout << "Capabilities: " << ss.str() << std::endl;
+		std::stringstream ss;
+		ss << caps.card;
+		info.setName( ss.str() );
+		info.setIndex( index );
+		info.setType( CAMERATYPE_V4L2 );
 
 		::close( fd );
+	}
+
+	/* check for openable v4l devices in /sys/class/video4linux */
+	void V4L2Camera::listDevices( std::vector<std::string> & devices )
+	{
+		std::vector<std::string> possibleDevs;
+		FileSystem::ls( "/sys/class/video4linux", possibleDevs );
+
+		struct v4l2_capability caps;
+		std::stringstream ss;
+		for( size_t i = 0; i < possibleDevs.size(); i++ ){
+			ss.str("");
+			ss.clear();
+
+			ss << "/dev/" << possibleDevs[ i ];
+
+			int fd = ::open( ss.str().c_str(), O_RDWR | O_NONBLOCK );
+			if( fd < 0 )
+				continue;
+
+			if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
+				continue;
+
+			if( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
+				devices.push_back( ss.str() );
+
+			/*
+			std::cout << "\tDriver: " << caps.driver << std::endl;
+			std::cout << "\tCard: " << caps.card << std::endl;
+			std::cout << "\tBusInfo: " << caps.bus_info << std::endl;
+			*/
+			::close( fd );
+		}
 	}
 
 }

@@ -19,10 +19,13 @@ namespace cvt {
 	{
 		public:
 			CameraInfo();
+
 			const std::string & name( ) const;
 			void setName( const std::string & name );
+
 			CameraType type() const;
 			void setType( CameraType type );
+
 			size_t index() const;
 			void setIndex( size_t index );
 
@@ -50,21 +53,23 @@ namespace cvt {
 	{
 		return _type;
 	}
-	
+
 	inline void CameraInfo::setType( CameraType type )
 	{
 		_type = type;
 	}
-	
+
 	inline size_t CameraInfo::index() const
 	{
-		return _index;		
+		return _index;
 	}
-	
+
 	inline void CameraInfo::setIndex( size_t index )
 	{
 		_index = index;
 	}
+
+	std::ostream& operator<<( std::ostream &out, const CameraInfo &info );
 }
 
 #endif

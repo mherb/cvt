@@ -148,6 +148,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageIO.cpp
+	io/CameraInfo.cpp
 	io/Camera.cpp
 	io/DC1394Camera.cpp
 	io/Resources.cpp

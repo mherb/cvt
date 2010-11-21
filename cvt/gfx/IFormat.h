@@ -31,7 +31,7 @@ namespace cvt
 
 		IFORMAT_BAYER_RGGB_UINT8
 	};
-	
+
 	enum IFormatType
 	{
 		IFORMAT_TYPE_OTHER = 0,
@@ -46,7 +46,7 @@ namespace cvt
 		bool operator==( const IFormat & other ) const;
 		bool operator!=( const IFormat & other ) const;
 		void operator=( const IFormat & other );
-		
+
 		size_t channels;
 		size_t bpc;
 		size_t bpp;
@@ -70,21 +70,21 @@ namespace cvt
 		static const IFormat BGRA_INT16;
 		static const IFormat BGRA_FLOAT;
 		static const IFormat BAYER_RGGB_UINT8;
-		
+
 		static const IFormat & uint8Equivalent( const IFormat & format );
 		static const IFormat & floatEquivalent( const IFormat & format );
 	};
-	
+
 	inline bool IFormat::operator==( const IFormat & other ) const
 	{
 		return ( other.formatID == formatID );
 	}
-	
+
 	inline bool IFormat::operator!=( const IFormat & other ) const
 	{
 		return ( other.formatID != formatID );
 	}
-	
+
 	inline void IFormat::operator=( const IFormat & other )
 	{
 		channels = other.channels;
@@ -93,7 +93,7 @@ namespace cvt
 		formatID = other.formatID;
 		type = other.type;
 	}
-	
+
 	inline const IFormat & IFormat::uint8Equivalent( const IFormat & format )
 	{
 		switch ( format.formatID ) {
@@ -123,13 +123,13 @@ namespace cvt
 				break;
 			case IFORMAT_BAYER_RGGB_UINT8:
 				return IFormat::BAYER_RGGB_UINT8;
-				break;			
+				break;
 			default:
 				throw CVTException( "NO UINT8 equivalent for requested FORMAT" );
 				break;
 		}
 	}
-	
+
 	inline const IFormat & IFormat::floatEquivalent( const IFormat & format )
 	{
 		switch ( format.formatID ) {
@@ -156,15 +156,15 @@ namespace cvt
 			case IFORMAT_BGRA_INT16:
 			case IFORMAT_BGRA_FLOAT:
 				return IFormat::BGRA_FLOAT;
-				break;			
+				break;
 			default:
 				throw CVTException( "NO UINT8 equivalent for requested FORMAT" );
 				break;
 		}
 	}
-	
+
 	std::ostream& operator<<(std::ostream &out, const IFormat &f);
-	
+
 }
 
 #endif
