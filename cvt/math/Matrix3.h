@@ -309,6 +309,56 @@ namespace cvt {
 		return mat[ 0 ].x + mat[ 1 ].y + mat[ 2 ].z;
 	}
 
+	template<typename T>
+	inline T Matrix3<T>::determinant() const
+	{
+		T cofactor[ 3 ];
+
+		cofactor[ 0 ] = mat[ 1 ][ 1 ] * mat[ 2 ][ 2 ] - mat[ 2 ][ 1 ] * mat[ 1 ][ 2 ];
+		cofactor[ 1 ] = mat[ 2 ][ 0 ] * mat[ 1 ][ 2 ] - mat[ 1 ][ 0 ] * mat[ 2 ][ 2 ];
+		cofactor[ 2 ] = mat[ 1 ][ 0 ] * mat[ 2 ][ 1 ] - mat[ 2 ][ 0 ] * mat[ 1 ][ 1 ];
+
+		return mat[ 0 ][ 0 ] * cofactor[ 0 ] + mat[ 0 ][ 1 ] * cofactor[ 1 ] + mat[ 0 ][ 2 ] * cofactor[ 2 ];
+	}
+
+
+	template<typename T>
+	inline Matrix3<T> Matrix3<T>::transpose() const
+	{
+		return Matrix3<T>( mat[ 0 ][ 0 ], mat[ 1 ][ 0 ], mat[ 2 ][ 0 ],
+						   mat[ 0 ][ 1 ], mat[ 1 ][ 1 ], mat[ 2 ][ 1 ],
+						   mat[ 0 ][ 2 ], mat[ 1 ][ 2 ], mat[ 2 ][ 2 ] );
+	}
+
+	template<typename T>
+	inline Matrix3<T>& Matrix3<T>::transposeSelf()
+	{
+		float tmp;
+		tmp = mat[ 0 ][ 1 ];
+		mat[ 0 ][ 1 ] = mat[ 1 ][ 0 ];
+		mat[ 1 ][ 0 ] = tmp;
+
+		tmp = mat[ 0 ][ 2 ];
+		mat[ 0 ][ 2 ] = mat[ 2 ][ 0 ];
+		mat[ 2 ][ 0 ] = tmp;
+
+		tmp = mat[ 1 ][ 2 ];
+		mat[ 1 ][ 2 ] = mat[ 2 ][ 1 ];
+		mat[ 2 ][ 1 ] = tmp;
+
+		return *this;
+	}
+
+
+	template<typename T>
+	inline Matrix3<T> Matrix3<T>::inverse( void ) const
+	{
+		Matrix3<T> inv;
+
+		inv = *this;
+		inv.inverseSelf();
+		return inv;
+	}
 
 	template<typename T>
 	int	Matrix3<T>::dimension( void ) const
@@ -331,9 +381,9 @@ namespace cvt {
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix3<T>& m )
 	{
-		out << " | " << m[ 0 ].x << " " << m[ 0 ].y << m[ 0 ].z << " | " << std::endl;
-		out << " | " << m[ 1 ].x << " " << m[ 1 ].y << m[ 1 ].z << " | " << std::endl;
-		out << " | " << m[ 2 ].x << " " << m[ 2 ].y << m[ 2 ].z << " | ";
+		out << " | " << m[ 0 ].x << " " << m[ 0 ].y << " " << m[ 0 ].z << " | " << std::endl;
+		out << " | " << m[ 1 ].x << " " << m[ 1 ].y << " " << m[ 1 ].z << " | " << std::endl;
+		out << " | " << m[ 2 ].x << " " << m[ 2 ].y << " " << m[ 2 ].z << " | ";
 		return out;
 	}
 
