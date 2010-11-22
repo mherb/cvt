@@ -130,9 +130,11 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLBuffer.h
 	gl/GLVertexArray.h
 	gl/progs/GLFillRectProg.h
+	gl/progs/GLFillRoundRectProg.h
 	util/Thread.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
+	gl/shader/120/basicrr_120_frag.h
 	gl/shader/120/text_120_vert.h
 	gl/shader/120/text_120_frag.h
 	gl/shader/120/basictex_120_vert.h
@@ -140,6 +142,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/120/basicrrtex_120_frag.h
 	gl/shader/150/basic_150_vert.h
 	gl/shader/150/basic_150_frag.h
+	gl/shader/150/basicrr_150_frag.h
 	gl/shader/150/text_150_vert.h
 	gl/shader/150/text_150_frag.h
 	gl/shader/150/basictex_150_vert.h
@@ -202,6 +205,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
 	gl/progs/GLFillRectProg.cpp
+	gl/progs/GLFillRoundRectProg.cpp
 )
 
 IF(UNIX)
