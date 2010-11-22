@@ -1,6 +1,9 @@
 #ifndef CVT_MATRIX_H
 #define CVT_MATRIX_H
 
+#include <iostream>
+#include <iomanip>
+
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
 
