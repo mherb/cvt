@@ -134,4 +134,18 @@ namespace cvt {
 			out << "\t" << **it << std::endl;
 	}
 
+	void GL::ortho2d( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	{
+		mat.zero();
+		mat[ 0 ][ 0 ] = 2.0f / ( right - left );
+		mat[ 0 ][ 3 ] = - ( right + left ) / ( right - left );
+
+		mat[ 1 ][ 1 ] = 2.0f / ( top - bottom );
+		mat[ 1 ][ 3 ] = - ( top + bottom ) / ( top - bottom );
+
+		mat[ 2 ][ 2 ] = -2.0f / ( far - near );
+		mat[ 2 ][ 3 ] = - ( far + near ) / ( far - near );
+
+		mat[ 3 ][ 3 ] = 1.0f;
+	}
 }

@@ -6,6 +6,8 @@
 #include <cvt/gl/GLProgram.h>
 #include <cvt/gl/GLVertexArray.h>
 
+#include <cvt/gl/progs/GLFillRectProg.h>
+
 namespace cvt {
 	class GFXGL : public GFX
 	{
@@ -23,6 +25,7 @@ namespace cvt {
 		private:
 			void updateState();
 
+			GLFillRectProg fillrectp;
 			GLProgram progbasic;
 			GLProgram progbasictex;
 			GLProgram progtext;
