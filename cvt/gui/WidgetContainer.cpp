@@ -6,7 +6,7 @@ namespace cvt {
 
 	}
 
-	WidgetContainer::WidgetContainer( bool toplevel ) : Widget( toplevel )
+	WidgetContainer::WidgetContainer( bool toplevel ) : Widget( toplevel ), _activeWidget( NULL )
 	{
 
 	}
@@ -57,7 +57,7 @@ namespace cvt {
 		resizeChildren();
 	}
 
-	void WidgetContainer::resizeChildren(  )
+	void WidgetContainer::resizeChildren()
 	{
 		Recti r;
 		int width, height;
@@ -112,4 +112,41 @@ namespace cvt {
 		}
 
 	}
+
+	void WidgetContainer::mousePressEvent( MousePressEvent* event )
+	{
+		_activeWidget = childAt( event->x, event->y );
+		if( _activeWidget ) {
+			int cx, cy;
+			_activeWidget->position( cx, cy );
+			event->x -= cx;
+			event->y -= cy;
+			_activeWidget->mousePressEvent( event );
+		}
+
+	}
+
+	void WidgetContainer::mouseMoveEvent( MouseMoveEvent* event )
+	{
+		if( _activeWidget ) {
+			int cx, cy;
+			_activeWidget->position( cx, cy );
+			event->x -= cx;
+			event->y -= cy;
+			_activeWidget->mouseMoveEvent( event );
+		}
+	}
+
+	void WidgetContainer::mouseReleaseEvent( MouseReleaseEvent* event )
+	{
+		if( _activeWidget ) {
+			int cx, cy;
+			_activeWidget->position( cx, cy );
+			event->x -= cx;
+			event->y -= cy;
+			_activeWidget->mouseReleaseEvent( event );
+		}
+		_activeWidget = NULL;
+	}
+
 };

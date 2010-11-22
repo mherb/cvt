@@ -18,4 +18,15 @@ namespace cvt {
 		g->fillRect( 0, 0, w, h );
 	}
 
+	void Button::mousePressEvent( MousePressEvent* event )
+	{
+		std::cout << "PRESS: " << event->x << ", " << event->y  << std::endl;
+	}
+
+	void Button::mouseReleaseEvent( MouseReleaseEvent* event )
+	{
+		std::cout << "Release: " << event->x << ", " << event->y  << std::endl;
+	}
+
+
 }

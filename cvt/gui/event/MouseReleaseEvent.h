@@ -7,12 +7,12 @@ namespace cvt {
 	class MouseReleaseEvent : public Event
 	{
 		public:
-			MouseReleaseEvent( int x, int y, int button ) : Event( EVENT_MOUSERELEASE ), _x( x ), _y( y ), _button( button ) { };
-			void getPosition( int& x, int& y ) { x = _x; y = _y;  };
-			unsigned int getButton() { return _button; };
+			MouseReleaseEvent( int _x, int _y, int button ) : Event( EVENT_MOUSERELEASE ), x( _x ), y( _y ), _button( button ) { };
+			void position( int& x, int& y ) { x = this->x; y = this->y;  };
+			unsigned int button() { return _button; };
 
+			int x, y;
 		private:
-			int _x, _y;
 			unsigned int _button;
 	};
 };

@@ -7,11 +7,10 @@ namespace cvt {
 	class MouseMoveEvent : public Event
 	{
 		public:
-			MouseMoveEvent( int x, int y ) : Event( EVENT_MOUSEMOVE ), _x( x ), _y( y ) { };
-			void getPosition( int& x, int& y ) { x = _x; y = _y;  };
+			MouseMoveEvent( int _x, int _y ) : Event( EVENT_MOUSEMOVE ), x( _x ), y( _y ) { };
+			void position( int& x, int& y ) { x = this->x; y = this->y;  };
 
-		private:
-			int _x, _y;
+			int x, y;
 	};
 };
 

@@ -22,11 +22,13 @@ namespace cvt {
 			size_t	childrenCount() const;
 			Widget* childAt( int x, int y );
 
-		protected:
 			void paintChildren( GFX* gfx, const Recti& r );
 			void resizeChildren( );
 			void resizeEvent( ResizeEvent* event );
 			void paintEvent( PaintEvent* event, GFX* gfx );
+			void mousePressEvent( MousePressEvent* event );
+			void mouseMoveEvent( MouseMoveEvent* event );
+			void mouseReleaseEvent( MouseReleaseEvent* event );
 
 		private:
 			typedef std::list< std::pair<Widget*, WidgetLayout> > ChildList;
@@ -35,6 +37,7 @@ namespace cvt {
 
 			//	    std::list<Widget*> _mchildren;
 			ChildList _children;
+			Widget* _activeWidget;
 	};
 
 	inline size_t WidgetContainer::childrenCount() const
