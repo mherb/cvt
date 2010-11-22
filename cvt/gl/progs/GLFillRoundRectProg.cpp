@@ -6,7 +6,7 @@
 #include <cvt/gl/shader/150/basicrr_150_frag.h>
 
 namespace cvt {
-	GLFillRoundRectProg::GLFillRoundRectProg() : _vbo( GL_ARRAY_BUFFER )
+	GLFillRoundRectProg::GLFillRoundRectProg() : _vbo( GL_ARRAY_BUFFER ), _tvbo( GL_ARRAY_BUFFER )
 	{
 		try {
 			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
@@ -20,7 +20,7 @@ namespace cvt {
 
 		_vbo.alloc( GL_DYNAMIC_DRAW, sizeof( GLint ) * 8 );
 
-		GLBuffer _tvbo( GL_ARRAY_BUFFER );
+//		GLBuffer _tvbo( GL_ARRAY_BUFFER );
 		_tvbo.alloc( GL_STATIC_DRAW, sizeof( float ) * 8 );
 		float* tv = ( float* ) _tvbo.map( GL_WRITE_ONLY );
 		*tv++ = 0.0f; *tv++ = 1.0f;
