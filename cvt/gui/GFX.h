@@ -22,6 +22,8 @@ namespace cvt {
 
 			virtual void fillRect( const Recti& rect ) = 0;
 			virtual void fillRect( int x, int y, int width, int height ) = 0;
+			virtual void fillRoundRect( const Recti& rect, float radius ) = 0;
+			virtual void fillRoundRect( int x, int y, int width, int height, float radius ) = 0;
 			virtual void drawText( int x, int y, const char* text ) = 0;
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
 

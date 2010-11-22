@@ -13,9 +13,9 @@ namespace cvt {
 	void Button::paintEvent( PaintEvent* event, GFX* g )
 	{
 		int w, h;
-		g->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		g->color().set( 0.2f, 0.2f, 0.2f, 1.0f );
 		size( w, h );
-		g->fillRect( 0, 0, w, h );
+		g->fillRoundRect( 0, 0, w, h, 0.5f * ( float ) h );
 	}
 
 	void Button::mousePressEvent( MousePressEvent* event )

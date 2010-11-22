@@ -99,35 +99,37 @@ namespace cvt {
 		fillRect( rect.x, rect.y, rect.width, rect.height );
 	}
 
-	void GFXGL::fillRect( int x, int y, int w, int h )
+	void GFXGL::fillRect( int x, int y, int width, int height )
 	{
 		x += _childrect.x;
 		y += _childrect.y;
 
-/*		GLint vertices[ 8 ] = {
-			x	 , y + h,
-			x	 , y    ,
-			x + w, y + h,
-			x + w, y
-		};
-
-		progbasic.bind();
-		IFilterVector16 vec;
-		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
-		progbasic.setArg( "MVP", &vec );
-
-		vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8, vertices );
-
-		vao.setColor( _color );
-		vao.setVertexData( vbo, 2, GL_INT );
-		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );*/
 		Matrix4f proj;
 		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
 		fillrectp.bind();
 		fillrectp.setProjection( proj );
 		fillrectp.setColor( _color );
-		fillrectp.fillRect( x, y, w, h );
+		fillrectp.fillRect( x, y, width, height );
 	}
+
+	void GFXGL::fillRoundRect( const Recti& rect, float radius )
+	{
+		fillRoundRect( rect.x, rect.y, rect.width, rect.height, radius );
+	}
+
+	void GFXGL::fillRoundRect( int x, int y, int width, int height, float radius )
+	{
+		x += _childrect.x;
+		y += _childrect.y;
+
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		fillrrectp.bind();
+		fillrrectp.setProjection( proj );
+		fillrrectp.setColor( _color );
+		fillrrectp.fillRoundRect( x, y, width, height, radius );
+	}
+
 
 	void GFXGL::drawText( int x, int y, const char* text )
 	{
