@@ -12,8 +12,12 @@ namespace cvt {
 			~Button();
 
 			Signal<Button*> clicked;
+
 		private:
 			void paintEvent( PaintEvent* e, GFX* g );
+			void mousePressEvent( MousePressEvent* event );
+			void mouseReleaseEvent( MouseReleaseEvent* event );
+
 
 			Button( const Button& b );
 

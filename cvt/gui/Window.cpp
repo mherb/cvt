@@ -26,41 +26,13 @@ namespace cvt {
 		Application::exit();
 	}
 
-	void Window::moveEvent( MoveEvent* event )
-	{
-		update();
-	}
-
-	void Window::mousePressEvent( MousePressEvent* event )
-	{
-		mouse = true;
-		event->getPosition( mx, my );
-		update();
-	}
-
-	void Window::mouseReleaseEvent( MouseReleaseEvent* event )
-	{
-		mouse = false;
-		update();
-	}
-
-
-	void Window::mouseMoveEvent( MouseMoveEvent* event )
-	{
-		event->getPosition( mx, my );
-		update();
-	}
-
-
 	void Window::paintEvent( PaintEvent* event, GFX* gfx )
 	{
 		int w, h, x, y;
 		size( w, h );
+
 		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );
-//		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
-//		gfx->fillRect( 100, 100, 100, 100 );
-
 
 		gfx->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 		char buf[ 200 ];
@@ -71,15 +43,6 @@ namespace cvt {
 		position( x, y );
 		sprintf( buf, "Position: %d x %d", x, y );
 		gfx->drawText( 10, 32, buf );
-
-		if( mouse ) {
-			sprintf( buf, "MousePress: %d x %d", mx, my );
-			gfx->drawText( 10, 44, buf );
-
-			gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
-//			gfx->fillRect( mx - 15, my - 15, 30, 30 );
-			gfx->drawImage( mx, my, img );
-		}
 
 		Recti r;
 		rect( r );
