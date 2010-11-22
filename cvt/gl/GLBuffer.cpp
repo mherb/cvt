@@ -34,35 +34,29 @@ namespace cvt {
 		glBindBuffer( _target, 0 );
 	}
 
-	/*void* GLBuffer::map( size_t offset, size_t length, GLbitfield access ) const
+	void* GLBuffer::map( GLenum access ) const
 	{
 		void* ptr;
 
-		if( access )
-			return NULL;
-
 		glBindBuffer( _target, _buffer );
-		_access = ( access & GL_MAP_READ_BIT ) | ( access & GL_MAP_WRITE_BIT );
-		ptr = glMapBufferRange( _target, ( GLintptr ) offset, ( GLsizeiptr ) length, _access | GL_MAP_FLUSH_EXPLICIT_BIT  );
-		
+		ptr = glMapBuffer( _target, access );
 		glBindBuffer( _target, 0 );
 		return ptr;
 	}
 
-	void GLBuffer::sync( size_t offset, size_t length ) const
+/*	void GLBuffer::sync( size_t offset, size_t length ) const
 	{
 		if( ! ( _access & GL_MAP_WRITE_BIT ) )
 			return;
 		glBindBuffer( _target, _buffer );
 		glFlushMappedBufferRange( _target, ( GLintptr ) offset, ( GLsizeiptr ) length );
 		glBindBuffer( _target, 0 );
-	}
+	}*/
 
 	void GLBuffer::unmap() const
 	{
 		glBindBuffer( _target, _buffer );
 		glUnmapBuffer( _target );
-		_access = 0;
 		glBindBuffer( _target, 0 );
-	}*/
+	}
 }

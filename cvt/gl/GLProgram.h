@@ -20,7 +20,8 @@ namespace cvt {
 			void bind();
 			void unbind();
 			void bindAttribLocation( const char *name, unsigned int location );
-			unsigned int getAttribLocation( const char* name );
+			unsigned int getAttribLocation( const char* name ) const;
+			GLint uniformLocation( const char* name ) const;
 			void setArg( size_t n, IFilterParameter* p );
 			void setArg( const char* name, IFilterParameter* p );
 			void setArg( const char* name, int i );

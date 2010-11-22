@@ -104,7 +104,7 @@ namespace cvt {
 		x += _childrect.x;
 		y += _childrect.y;
 
-		GLint vertices[ 8 ] = {
+/*		GLint vertices[ 8 ] = {
 			x	 , y + h,
 			x	 , y    ,
 			x + w, y + h,
@@ -120,7 +120,13 @@ namespace cvt {
 
 		vao.setColor( _color );
 		vao.setVertexData( vbo, 2, GL_INT );
-		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
+		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );*/
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		fillrectp.bind();
+		fillrectp.setProjection( proj );
+		fillrectp.setColor( _color );
+		fillrectp.fillRect( x, y, w, h );
 	}
 
 	void GFXGL::drawText( int x, int y, const char* text )

@@ -52,6 +52,7 @@ GLSLTOHEADER(gl/shader/120/text_120.frag)
 GLSLTOHEADER(gl/shader/120/basictex_120.vert)
 GLSLTOHEADER(gl/shader/120/basictex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
+GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
 
 GLSLTOHEADER(gl/shader/150/basic_150.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.frag)
@@ -60,6 +61,7 @@ GLSLTOHEADER(gl/shader/150/text_150.frag)
 GLSLTOHEADER(gl/shader/150/basictex_150.vert)
 GLSLTOHEADER(gl/shader/150/basictex_150.frag)
 GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
+GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
 
 
 
@@ -127,6 +129,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLProgram.h
 	gl/GLBuffer.h
 	gl/GLVertexArray.h
+	gl/progs/GLFillRectProg.h
 	util/Thread.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
@@ -198,6 +201,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLBuffer.cpp
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
+	gl/progs/GLFillRectProg.cpp
 )
 
 IF(UNIX)

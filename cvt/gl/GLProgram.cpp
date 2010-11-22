@@ -95,7 +95,7 @@ namespace cvt {
 	}
 
 
-	unsigned int GLProgram::getAttribLocation( const char* name )
+	unsigned int GLProgram::getAttribLocation( const char* name ) const
 	{
 	    return glGetAttribLocation( program, name );
 	}
@@ -104,6 +104,11 @@ namespace cvt {
 	{
 		glBindFragDataLocation( program, ( GLuint ) location, name );
 	}*/
+
+	GLint GLProgram::uniformLocation( const char* name ) const
+	{
+		return glGetUniformLocation( program, name);
+	}
 
 	void GLProgram::setArg( const char* name, int i )
 	{

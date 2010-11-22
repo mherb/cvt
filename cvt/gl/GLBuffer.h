@@ -13,7 +13,9 @@ namespace cvt {
 			void unbind() const;
 			size_t size() const;
 			GLenum target() const;
-			
+
+			void* map( GLenum access ) const;
+			void unmap() const;
 			/*
 			void* map( size_t offset, size_t length, GLbitfield	access ) const;
 			void sync( size_t offset, size_t length ) const;

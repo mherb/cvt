@@ -31,7 +31,7 @@ namespace cvt {
 			static void ( *glGenVertexArrays )( GLsizei n, GLuint *arrays);
 			static GLboolean ( *glIsVertexArray )( GLuint array);
 
-//			static void ortho2d( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void ortho2d( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
 
 		private:
 			static void init();
@@ -50,9 +50,6 @@ namespace cvt {
 		return ( _glslmajor > major || ( _glslmajor == major && _glslminor >= minor ) );
 	}
 
-/*	inline static void GL::ortho2d( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
-	{
-	}*/
 }
 
 #endif
