@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
 
     Button button( "BLA" );
     WidgetLayout wl;
-    wl.setAnchoredRight( 10, 50 );
-    wl.setAnchoredBottom( 10, 20 );
+    wl.setAnchoredRight( 10, 120 );
+    wl.setAnchoredBottom( 10, 30 );
     w.addWidget( &button, wl );
 
   //  Delegate<void (BasicTimer*)> d( &timeout );
