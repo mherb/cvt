@@ -24,6 +24,7 @@ namespace cvt {
 		private:
 			GLVertexArray _vao;
 			GLBuffer _vbo;
+			GLBuffer _tvbo;
 			GLint _mvploc;
 			GLint _radiusloc;
 			GLint _sizeloc;
