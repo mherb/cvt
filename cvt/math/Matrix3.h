@@ -148,6 +148,21 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline Matrix3<T> Matrix3<T>::operator*( const Matrix3<T>& m  ) const
+	{
+	    return Matrix3<T>( mat[ 0 ][ 0 ] * m[ 0 ][ 0 ] + mat[ 0 ][ 1 ] * m[ 1 ][ 0 ] + mat[ 0 ][ 2 ] * m[ 2 ][ 0 ],
+						   mat[ 0 ][ 0 ] * m[ 0 ][ 1 ] + mat[ 0 ][ 1 ] * m[ 1 ][ 1 ] + mat[ 0 ][ 2 ] * m[ 2 ][ 1 ],
+						   mat[ 0 ][ 0 ] * m[ 0 ][ 2 ] + mat[ 0 ][ 1 ] * m[ 1 ][ 2 ] + mat[ 0 ][ 2 ] * m[ 2 ][ 2 ],
+						   mat[ 1 ][ 0 ] * m[ 0 ][ 0 ] + mat[ 1 ][ 1 ] * m[ 1 ][ 0 ] + mat[ 1 ][ 2 ] * m[ 2 ][ 0 ],
+						   mat[ 1 ][ 0 ] * m[ 0 ][ 1 ] + mat[ 1 ][ 1 ] * m[ 1 ][ 1 ] + mat[ 1 ][ 2 ] * m[ 2 ][ 1 ],
+						   mat[ 1 ][ 0 ] * m[ 0 ][ 2 ] + mat[ 1 ][ 1 ] * m[ 1 ][ 2 ] + mat[ 1 ][ 2 ] * m[ 2 ][ 2 ],
+						   mat[ 2 ][ 0 ] * m[ 0 ][ 0 ] + mat[ 2 ][ 1 ] * m[ 1 ][ 0 ] + mat[ 2 ][ 2 ] * m[ 2 ][ 0 ],
+						   mat[ 2 ][ 0 ] * m[ 0 ][ 1 ] + mat[ 2 ][ 1 ] * m[ 1 ][ 1 ] + mat[ 2 ][ 2 ] * m[ 2 ][ 1 ],
+						   mat[ 2 ][ 0 ] * m[ 0 ][ 2 ] + mat[ 2 ][ 1 ] * m[ 1 ][ 2 ] + mat[ 2 ][ 2 ] * m[ 2 ][ 2 ] );
+	}
+
+
+	template<typename T>
 	inline Matrix3<T> Matrix3<T>::operator+( const Matrix3<T>& m  ) const
 	{
 	    return Matrix3<T>( mat[ 0 ] + m[ 0 ], mat[ 1 ] + m[ 1 ], mat[ 2 ] + m[ 2 ] );
@@ -202,6 +217,13 @@ namespace cvt {
 	    mat[ 1 ] -= m[ 1 ];
 	    mat[ 2 ] -= m[ 2 ];
 	    return *this;
+	}
+
+	template<typename T>
+	inline Matrix3<T>&  Matrix3<T>::operator*=( const Matrix3<T>& m )
+	{
+		*this = (*this) * m;
+		return *this;
 	}
 
 	template<typename T>
@@ -262,7 +284,7 @@ namespace cvt {
 	{
 		return mat[ 0 ] == Vector3<double>( 1.0, 0.0, 0.0 )
 			&& mat[ 1 ] == Vector3<double>( 0.0, 1.0, 0.0 )
-			&& mat[ 1 ] == Vector3<double>( 0.0, 0.0, 1.0 );
+			&& mat[ 2 ] == Vector3<double>( 0.0, 0.0, 1.0 );
 	}
 
 	template<>
@@ -270,37 +292,46 @@ namespace cvt {
 	{
 		return mat[ 0 ] == Vector3<float>( 1.0f, 0.0f, 0.0f )
 			&& mat[ 1 ] == Vector3<float>( 0.0f, 1.0f, 0.0f )
-			&& mat[ 1 ] == Vector3<float>( 0.0f, 0.0f, 1.0f );
+			&& mat[ 2 ] == Vector3<float>( 0.0f, 0.0f, 1.0f );
 	}
 
-	template<typename T>
-	inline bool Matrix3<T>::isSymmetric() const
+	template<>
+	inline bool Matrix3<float>::isSymmetric() const
 	{
-		return mat[ 0 ].y == mat[ 1 ].x
-			&& mat[ 0 ].z == mat[ 2 ].x
-			&& mat[ 1 ].z == mat[ 2 ].y;
+		return Math::abs( mat[ 0 ][ 1 ] - mat[ 1 ][ 0 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 0 ][ 2 ] - mat[ 2 ][ 0 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 1 ][ 2 ] - mat[ 2 ][ 1 ] ) < Math::EPSILONF;
 	}
+
+	template<>
+	inline bool Matrix3<double>::isSymmetric() const
+	{
+		return Math::abs( mat[ 0 ][ 1 ] - mat[ 1 ][ 0 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 0 ][ 2 ] - mat[ 2 ][ 0 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 1 ][ 2 ] - mat[ 2 ][ 1 ] ) < Math::EPSILOND;
+	}
+
 
 	template<>
 	inline bool Matrix3<float>::isDiagonal() const
 	{
-		return Math::abs( mat[ 0 ].y ) < Math::EPSILONF
-			&& Math::abs( mat[ 0 ].z ) < Math::EPSILONF
-			&& Math::abs( mat[ 1 ].x ) < Math::EPSILONF
-			&& Math::abs( mat[ 1 ].z ) < Math::EPSILONF
-			&& Math::abs( mat[ 2 ].x ) < Math::EPSILONF
-			&& Math::abs( mat[ 2 ].y ) < Math::EPSILONF;
+		return Math::abs( mat[ 0 ][ 1 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 0 ][ 2 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 1 ][ 0 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 1 ][ 2 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 2 ][ 0 ] ) < Math::EPSILONF
+			&& Math::abs( mat[ 2 ][ 1 ] ) < Math::EPSILONF;
 	}
 
 	template<>
 	inline bool Matrix3<double>::isDiagonal() const
 	{
-		return Math::abs( mat[ 0 ].y ) < Math::EPSILOND
-			&& Math::abs( mat[ 0 ].z ) < Math::EPSILOND
-			&& Math::abs( mat[ 1 ].x ) < Math::EPSILOND
-			&& Math::abs( mat[ 1 ].z ) < Math::EPSILOND
-			&& Math::abs( mat[ 2 ].x ) < Math::EPSILOND
-			&& Math::abs( mat[ 2 ].y ) < Math::EPSILOND;
+		return Math::abs( mat[ 0 ][ 1 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 0 ][ 2 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 1 ][ 0 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 1 ][ 2 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 2 ][ 0 ] ) < Math::EPSILOND
+			&& Math::abs( mat[ 2 ][ 1 ] ) < Math::EPSILOND;
 	}
 
 	template<typename T>
