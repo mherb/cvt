@@ -57,7 +57,9 @@ namespace cvt {
 				cam = new DC1394Camera( Camera::_camInfos[ index ].index(), width, height, fps, format );
 				break;
 			case CAMERATYPE_V4L2:
+#ifdef LINUX
 				cam = new V4L2Camera( Camera::_camInfos[ index ].index(), width, height, fps, format );
+#endif				
 				break;
 			case CAMERATYPE_QTKIT:
 #ifdef APPLE
