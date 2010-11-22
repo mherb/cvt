@@ -260,10 +260,16 @@ namespace cvt {
 		return mat[ 0 ] == Vector2<float>( 1.0f, 0.0f ) && mat[ 1 ] == Vector2<float>( 0.0f, 1.0f );
 	}
 
-	template<typename T>
-	inline bool Matrix2<T>::isSymmetric() const
+	template<>
+	inline bool Matrix2<float>::isSymmetric() const
 	{
-		return mat[ 0 ].y == mat[ 1 ].x;
+		return Math::abs( mat[ 0 ][ 1 ] - mat[ 1 ][ 0 ] ) < Math::EPSILONF;
+	}
+
+	template<>
+	inline bool Matrix2<double>::isSymmetric() const
+	{
+		return Math::abs( mat[ 0 ][ 1 ] - mat[ 1 ][ 0 ] ) < Math::EPSILOND;
 	}
 
 	template<>

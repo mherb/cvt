@@ -5,9 +5,11 @@
 #include <iomanip>
 
 #include <cvt/math/Math.h>
+
 #include <cvt/math/Vector.h>
 
 #include <cvt/math/Matrix2.h>
 #include <cvt/math/Matrix3.h>
+#include <cvt/math/Matrix4.h>
 
 #endif
