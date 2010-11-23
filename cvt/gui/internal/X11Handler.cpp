@@ -18,6 +18,12 @@ namespace cvt {
 						int oldheight = win->_rect.height;
 						int nx = 0, ny = 0, npos = 0;
 
+						if( xevent.xconfigure.send_event ) {
+							nx = xevent.xconfigure.x;
+							ny = xevent.xconfigure.y;
+							npos = 1;
+						}
+
 						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
 							if( xevent.xconfigure.send_event ) {
 								nx = xevent.xconfigure.x;
@@ -82,7 +88,7 @@ namespace cvt {
 						XEvent xevent2;
 						int nx = 0, ny = 0, npos = 0;
 
-						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent2 ) ) {
+						while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, ConfigureNotify, &xevent2 ) ) {
 							if( xevent2.xconfigure.send_event ) {
 								nx = xevent2.xconfigure.x;
 								ny = xevent2.xconfigure.y;
