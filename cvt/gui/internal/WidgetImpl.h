@@ -8,7 +8,7 @@
 namespace cvt {
 	class WidgetImpl {
 		public:
-			virtual				~WidgetImpl();
+			virtual				~WidgetImpl() {};
 			virtual void	    setSize( int width, int height ) = 0;
 			virtual void	    size( int& width, int& height ) const = 0;
 			virtual void	    setPosition( int width, int height ) = 0;
