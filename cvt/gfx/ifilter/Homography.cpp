@@ -19,7 +19,7 @@ namespace cvt {
 	{
 	}
 
-	void Homography::applyFloat( Image& idst, const Image& isrc, const IFilterVector8& H, const Color& color ) const
+	void Homography::applyFloat( Image& idst, const Image& isrc, const IFilterVector8& H, const Color& ) const
 	{
 		float h33;
 		const uint8_t* src;
@@ -58,7 +58,6 @@ namespace cvt {
 			i = w;
 			x = 0.0f;
 			while( i-- ) {
-				float alpha, beta;
 				ssize_t ix[ 2 ], iy[ 2 ];
 
 				// Evaluate homography
