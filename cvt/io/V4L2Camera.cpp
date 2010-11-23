@@ -122,9 +122,11 @@ namespace cvt {
 			case IFORMAT_GRAY_UINT8:
 				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
 				break;
+			/*
 			case IFORMAT_BAYER_RGGB_UINT8:
 				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8;
 				break;
+			*/
 			default:
 				throw CVTException( "Format not supported!" );
 				break;
