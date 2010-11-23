@@ -489,9 +489,11 @@ namespace cvt {
 				case V4L2_PIX_FMT_YUYV:
 					currentMode.format = IFormat::YUYV_UINT8;
 					break;
-				case V4L2_PIX_FMT_SRGGB8:
+				/*
+				   case V4L2_PIX_FMT_SRGGB8:
 					currentMode.format = IFormat::BAYER_RGGB_UINT8;
 					break;
+				*/
 				case V4L2_PIX_FMT_BGR32:
 					currentMode.format = IFormat::BGRA_UINT8;
 					break;
