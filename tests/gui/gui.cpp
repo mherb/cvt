@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
     wl.setAnchoredBottom( 10, 30 );
     w.addWidget( &button, wl );
 
+	w.addWidgetMoveable( NULL );
+
   //  Delegate<void (BasicTimer*)> d( &timeout );
     //t.timeout.add( &d );
     //t.start();

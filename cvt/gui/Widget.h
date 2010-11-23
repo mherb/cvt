@@ -12,6 +12,7 @@ namespace cvt {
 		friend class WidgetImplWinGLX11;
 		friend class WidgetImplDefault;
 		friend class WidgetContainer;
+		friend class Moveable;
 
 		public:
 			Widget( bool toplevel = false );
