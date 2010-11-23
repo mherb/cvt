@@ -35,7 +35,7 @@ namespace cvt {
 			const IFormat & format() const;
 			IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
-			uint8_t const* map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
+			const uint8_t * map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
 			template<typename _T> _T* map( size_t* stride );
 			template<typename _T> const _T* map( size_t* stride ) const;
 			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };

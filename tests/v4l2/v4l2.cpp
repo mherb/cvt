@@ -14,7 +14,19 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	V4L2Camera cam( 0, 640, 480, 30.0, IFormat::BGRA_UINT8 );
+	CameraInfo camInfo;
+	std::cout << "V4L2 cameras: " << std::endl;
+	for( size_t i = 0; i < V4L2Camera::count(); i++ ){
+		V4L2Camera::cameraInfo( i, camInfo );
+		CameraModeSet modeSet = camInfo.modeSet().filter( IFormat::YUYV_UINT8, 640, 480, 25 );
+		std::cout << "Camera: " << camInfo.name() << "\n" << modeSet << std::endl;
+	}
+
+	V4L2Camera::cameraInfo( 0, camInfo );
+	CameraMode mode = camInfo.bestMatchingMode( IFormat::BGRA_UINT8, 640, 480, 30 );
+	std::cout << "Selected mode: " << mode << std::endl;
+
+	V4L2Camera cam( 0, mode );
 
 	int key = 0;
 	size_t frames = 0;
@@ -34,6 +46,8 @@ int main(int argc, char* argv[])
 	Image y( 640, 480, IFormat::BGRA_FLOAT );
 	Image z( 640, 480, IFormat::BGRA_UINT8 );
 
+	Image frame( mode.width, mode.height, IFormat::BGRA_UINT8 );
+
 	{
 		size_t stride;
 		uint8_t* ptr;
@@ -52,7 +66,7 @@ int main(int argc, char* argv[])
 		timer.reset();
 		while( 1 ) {
 			cam.nextFrame();
-			const Image & frame = cam.frame();
+			cam.frame().convert( frame );
 
 			if( doprocess ) {
 				frame.convert( x );

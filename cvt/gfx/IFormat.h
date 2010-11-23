@@ -29,7 +29,8 @@ namespace cvt
 		IFORMAT_BGRA_INT16,
 		IFORMAT_BGRA_FLOAT,
 
-		IFORMAT_BAYER_RGGB_UINT8
+		IFORMAT_BAYER_RGGB_UINT8,
+		IFORMAT_YUYV_UINT8
 	};
 
 	enum IFormatType
@@ -43,9 +44,9 @@ namespace cvt
 
 	struct IFormat
 	{
+		IFormat( const IFormat & f );
 		bool operator==( const IFormat & other ) const;
 		bool operator!=( const IFormat & other ) const;
-		void operator=( const IFormat & other );
 
 		size_t channels;
 		size_t bpc;
@@ -70,9 +71,13 @@ namespace cvt
 		static const IFormat BGRA_INT16;
 		static const IFormat BGRA_FLOAT;
 		static const IFormat BAYER_RGGB_UINT8;
+		static const IFormat YUYV_UINT8;
 
 		static const IFormat & uint8Equivalent( const IFormat & format );
 		static const IFormat & floatEquivalent( const IFormat & format );
+
+		private:
+			IFormat( size_t c, size_t bpc, size_t bpp, IFormatID formatID, IFormatType type );
 	};
 
 	inline bool IFormat::operator==( const IFormat & other ) const
@@ -85,15 +90,6 @@ namespace cvt
 		return ( other.formatID != formatID );
 	}
 
-	inline void IFormat::operator=( const IFormat & other )
-	{
-		channels = other.channels;
-		bpc = other.bpc;
-		bpp = other.bpp;
-		formatID = other.formatID;
-		type = other.type;
-	}
-
 	inline const IFormat & IFormat::uint8Equivalent( const IFormat & format )
 	{
 		switch ( format.formatID ) {
@@ -102,31 +98,27 @@ namespace cvt
 			case IFORMAT_GRAY_INT16:
 			case IFORMAT_GRAY_FLOAT:
 				return IFormat::GRAY_UINT8;
-				break;
 			case IFORMAT_GRAYALPHA_UINT8:
 			case IFORMAT_GRAYALPHA_UINT16:
 			case IFORMAT_GRAYALPHA_INT16:
 			case IFORMAT_GRAYALPHA_FLOAT:
 				return IFormat::GRAYALPHA_UINT8;
-				break;
 			case IFORMAT_RGBA_UINT8:
 			case IFORMAT_RGBA_UINT16:
 			case IFORMAT_RGBA_INT16:
 			case IFORMAT_RGBA_FLOAT:
 				return IFormat::RGBA_UINT8;
-				break;
 			case IFORMAT_BGRA_UINT8:
 			case IFORMAT_BGRA_UINT16:
 			case IFORMAT_BGRA_INT16:
 			case IFORMAT_BGRA_FLOAT:
 				return IFormat::BGRA_UINT8;
-				break;
 			case IFORMAT_BAYER_RGGB_UINT8:
 				return IFormat::BAYER_RGGB_UINT8;
-				break;
+			case IFORMAT_YUYV_UINT8:
+				return IFormat::YUYV_UINT8;
 			default:
 				throw CVTException( "NO UINT8 equivalent for requested FORMAT" );
-				break;
 		}
 	}
 
@@ -138,25 +130,21 @@ namespace cvt
 			case IFORMAT_GRAY_INT16:
 			case IFORMAT_GRAY_FLOAT:
 				return IFormat::GRAY_FLOAT;
-				break;
 			case IFORMAT_GRAYALPHA_UINT8:
 			case IFORMAT_GRAYALPHA_UINT16:
 			case IFORMAT_GRAYALPHA_INT16:
 			case IFORMAT_GRAYALPHA_FLOAT:
 				return IFormat::GRAYALPHA_FLOAT;
-				break;
 			case IFORMAT_RGBA_UINT8:
 			case IFORMAT_RGBA_UINT16:
 			case IFORMAT_RGBA_INT16:
 			case IFORMAT_RGBA_FLOAT:
 				return IFormat::RGBA_FLOAT;
-				break;
 			case IFORMAT_BGRA_UINT8:
 			case IFORMAT_BGRA_UINT16:
 			case IFORMAT_BGRA_INT16:
 			case IFORMAT_BGRA_FLOAT:
 				return IFormat::BGRA_FLOAT;
-				break;
 			default:
 				throw CVTException( "NO UINT8 equivalent for requested FORMAT" );
 				break;

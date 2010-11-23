@@ -11,11 +11,8 @@ namespace cvt {
 	class V4L2Camera : public Camera
 	{
 		public:
-			V4L2Camera( size_t camIndex = 0,
-					    size_t width=640,
-					    size_t height=480,
-					    size_t fps = 30,
-						const IFormat & format = IFormat::BGRA_UINT8 );
+			V4L2Camera( size_t camIndex,
+						const CameraMode & mode );
 
 			virtual ~V4L2Camera();
 
@@ -39,43 +36,43 @@ namespace cvt {
 			static void cameraInfo( size_t index, CameraInfo & info );
 
 		private:
-			size_t mWidth;
-			size_t mHeight;
-			size_t mFps;
-			size_t mNumBuffers;
-			size_t mCamIndex;
-			bool mOpened;
-			bool mCapturing;
-			int mNextBuf;
+			size_t _width;
+			size_t _height;
+			size_t _fps;
+			size_t _numBuffers;
+			size_t _camIndex;
+			bool _opened;
+			bool _capturing;
+			int _nextBuf;
 
 			// the device file descriptor
-			int mFd;
+			int _fd;
 
 			// memory buffers for mmap frames
-			void** mBuffers;
+			void** _buffers;
 
-			Image* mFrame;
-			const IFormat & mFormat;
+			Image* _frame;
+			IFormat _format;
 
 			/** V4L2 specific **/
-			v4l2_ext_control * mExtControlsToSet;
-			v4l2_format mFmt;
-			v4l2_streamparm mStreamParameter;
-			v4l2_requestbuffers mRequestBuffers;
-			v4l2_buffer mBuffer;
-			v4l2_timecode mTimeCode;
-			v4l2_queryctrl mQueryCtrl;
-			v4l2_querymenu mQueryMenu;
-			v4l2_input mInput;
-			v4l2_control mControl;
-			v4l2_ext_controls mExtendedControls;
+			v4l2_ext_control *	_extControlsToSet;
+			v4l2_format			_fmt;
+			v4l2_streamparm		_streamParameter;
+			v4l2_requestbuffers _requestBuffers;
+			v4l2_buffer			_buffer;
+			v4l2_timecode		_timeCode;
+			v4l2_queryctrl		_queryCtrl;
+			v4l2_querymenu		_queryMenu;
+			v4l2_input			_input;
+			v4l2_control		_control;
+			v4l2_ext_controls	_extendedControls;
 
-			bool mAutoExposure;
-			bool mAutoIris;
-			bool mAutoFocus;
-			bool mAutoWhiteBalance;
-			bool mBackLightCompensation;
-			unsigned int mAbsExposureVal;
+			bool	_autoExposure;
+			bool	_autoIris;
+			bool	_autoFocus;
+			bool	_autoWhiteBalance;
+			bool	_backLightCompensation;
+			size_t	_absExposureVal;
 
 
 			// private helper funcs ...
@@ -84,27 +81,24 @@ namespace cvt {
 			void init();
 			void queryBuffers( bool unmap = false );
 			void enqueueBuffers();
-			void enumerateMenu();
-			void showExtendedControls();
 			void extendedControl();
-			void showCapabilities();
 			static void control( int fd, int field, int value );
 			static void listDevices( std::vector<std::string> & devices );
 	};
 
 	inline size_t V4L2Camera::width() const
 	{
-		return mWidth;
+		return _width;
 	}
 
 	inline size_t V4L2Camera::height() const
 	{
-		return mHeight;
+		return _height;
 	}
 
 	inline const IFormat & V4L2Camera::format() const
 	{
-		return mFormat;
+		return _format;
 	}
 
 }

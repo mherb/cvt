@@ -11,10 +11,13 @@ namespace cvt {
 	class Camera : public VideoInput
 	{
 		public:
+			virtual ~Camera();
 			/* number of available cameras */
 			static size_t count();
 			static const CameraInfo & info( size_t index );
 			static void updateInfo();
+
+			/* will create camera with index and closest possible parameters */
 			static Camera* get( size_t index, size_t width = 640, size_t height = 480,
 							    size_t fps = 30, const IFormat & format = IFormat::BGRA_UINT8 );
 
@@ -22,7 +25,10 @@ namespace cvt {
 			virtual void stopCapture() = 0;
 
 		private:
+			Camera( const Camera & other );
 			static std::vector<CameraInfo> _camInfos;
+		protected:
+			Camera();
 	};
 
 	inline size_t Camera::count()
