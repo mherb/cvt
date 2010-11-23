@@ -18,7 +18,8 @@ namespace cvt {
 	{
 		protected:
 			SIMD() {};
-			SIMD( const SIMD& x ) {};
+			SIMD( const SIMD& ) {};
+			virtual ~SIMD() {};
 
 		public:
 			virtual void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const;

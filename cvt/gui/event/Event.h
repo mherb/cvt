@@ -25,7 +25,7 @@ namespace cvt {
 	class Event {
 		public:
 			Event( EventType t ) : _type( t ) {};
-			~Event() {};
+			virtual ~Event() {};
 			EventType type() const { return _type; };
 
 		private:
