@@ -1,20 +1,8 @@
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
-	#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-	#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funit-at-a-time")
-	#####SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-	# Too much is too much
-	#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdisabled-optimization -Winline -Wredundant-decls -Wconversion -Wsign-compare")
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wredundant-decls -Wconversion -Wsign-compare")
 
 # RELEASE:
 

@@ -14,6 +14,6 @@ ADD_SUBDIRECTORY(cvt)
 ADD_SUBDIRECTORY(tests)
 
 add_executable(glcltoheader util/glcltoheader.cpp)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
 	SET_TARGET_PROPERTIES(glcltoheader PROPERTIES PREFIX "../")	
 ENDIF()
