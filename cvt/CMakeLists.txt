@@ -293,7 +293,7 @@ CVTTESTS(cvt util/cvttestsproto.h)
 link_directories (${CMAKE_BINARY_DIR}/lib/) 
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
 	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
 ENDIF()
 target_link_libraries (cvttest ${MODULE_NAME}) 

@@ -4,8 +4,12 @@ MACRO(CVTTESTS _LIB _OUT )
 			# linux
 			SET(LIBNAME "lib/lib${_LIB}_d.so")
 		ELSE()
-			# mac os
-			SET(LIBNAME "lib/${_LIB}_d.dylib")
+			# mac os xcode
+			IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
+				SET(LIBNAME "lib/${_LIB}_d.dylib")
+			ELSE()
+				SET(LIBNAME "lib/lib${_LIB}_d.dylib")
+			ENDIF()
 		ENDIF()
 	ELSE()
 		# windows
