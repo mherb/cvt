@@ -20,153 +20,26 @@
 
 namespace cvt {
 
-	static inline void pixelYUV2BGRA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
-	{
-		int r, g, b;
-		int y0, y1, u, v;
-
-		v = ( yuyv >> 24 ) - 128;
-		y1 = ( ( yuyv >> 16 ) & 0xff );
-		u = ( ( yuyv >> 8 ) & 0xff ) - 128;
-		y0 = ( ( yuyv ) & 0xff );
-		r = ((v*1436) >> 10);
-		g = ((u*352 + v*731) >> 10);
-		b = ((u*1814) >> 10);
-
-		// clamp the values
-		p1 = 0xff000000;
-		p1 |= Math::clamp( y0 + r, 0, 255 ) << 16;
-		p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
-		p1 |= Math::clamp( y0 + b, 0, 255 );
-		p2 = 0xff000000;
-		p2 |= Math::clamp( y1 + r, 0, 255 ) << 16;
-		p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
-		p2 |= Math::clamp( y1 + b, 0, 255 );
-	}
-
-	static inline void pixelYUV2RGBA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
-	{
-		int r, g, b;
-		int y0, y1, u, v;
-
-		v = ( yuyv >> 24 ) - 128;
-		y1 = ( ( yuyv >> 16 ) & 0xff );
-		u = ( ( yuyv >> 8 ) & 0xff ) - 128;
-		y0 = ( ( yuyv ) & 0xff );
-		r = ((v*1436) >> 10);
-		g = ((u*352 + v*731) >> 10);
-		b = ((u*1814) >> 10);
-
-		// clamp the values
-		p1 = 0xff000000;
-		p1 |= Math::clamp( y0 + r, 0, 255 );
-		p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
-		p1 |= Math::clamp( y0 + b, 0, 255 ) << 16;
-		p2 = 0xff000000;
-		p2 |= Math::clamp( y1 + r, 0, 255 );
-		p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
-		p2 |= Math::clamp( y1 + b, 0, 255 ) << 16;
-	}
-
-	static void YUYV2COLOR( uint8_t* dst, uint8_t* src, size_t w, size_t h, size_t stridedst, size_t stridesrc, const IFormat & format )
-	{
-		size_t l, c;
-
-		l = h;
-		if( format == IFormat::RGBA_UINT8 ) {
-			uint32_t *s;
-			uint32_t *d;
-			uint32_t p1, p2;
-
-			while( l-- ) {
-				s = ( uint32_t* ) src;
-				d = ( uint32_t* ) dst;
-				c = w >> 1;
-				while (c--) {
-					pixelYUV2RGBA( *s++, p1, p2);
-					*d++ = p1;
-					*d++ = p2;
-				}
-				src += stridesrc;
-				dst += stridedst;
-			}
-		} else if( format == IFormat::BGRA_UINT8 ) {
-			uint32_t *s;
-			uint32_t *d;
-			uint32_t p1, p2;
-
-			while( l-- ) {
-				s = ( uint32_t* ) src;
-				d = ( uint32_t* ) dst;
-				c = w >> 1;
-				while (c--) {
-					pixelYUV2BGRA( *s++, p1, p2);
-					*d++ = p1;
-					*d++ = p2;
-				}
-				src += stridesrc;
-				dst += stridedst;
-			}
-		} else if( format == IFormat::GRAY_UINT8 ) {
-			uint32_t *s;
-			uint8_t *d;
-
-			while( l-- ) {
-				s = ( uint32_t* ) src;
-				d = dst;
-				c = w >> 1;
-				while (c--) {
-					*d++ = *s & 0xff;
-					*d++ = ( *s++ >> 16 ) & 0xff;
-				}
-				src += stridesrc;
-				dst += stridedst;
-			}
-		} else if( format == IFormat::GRAYALPHA_UINT8 ) {
-			uint32_t *s;
-			uint8_t *d;
-
-			while( l-- ) {
-				s = ( uint32_t* ) src;
-				d = dst;
-				c = w >> 1;
-				while (c--) {
-					*d++ = *s & 0xff;
-					*d++ = 255;
-					*d++ = ( *s++ >> 16 ) & 0xff;
-					*d++ = 255;
-				}
-				src += stridesrc;
-				dst += stridedst;
-			}
-		}
-	}
-
-
-	V4L2Camera::V4L2Camera( size_t camIndex,
-						    size_t width,
-							size_t height,
-							size_t fps,
-							const IFormat & format) :
-		mWidth(width),
-		mHeight(height),
-		mFps(fps),
-		mNumBuffers(2),
-		mCamIndex(camIndex),
-		mOpened(false),
-		mCapturing(false),
-		mNextBuf(-1),
-		mFd(-1),
-		mBuffers(0),
-		mFrame(NULL),
-		mFormat( format ),
-		mExtControlsToSet(0),
-		mAutoExposure(false),
-		mAutoIris(false),
-		mAutoFocus(true),
-		mAutoWhiteBalance(true),
-		mBackLightCompensation(false),
-		mAbsExposureVal(250)
+	V4L2Camera::V4L2Camera( size_t camIndex, const CameraMode & mode ) :
+		_width(mode.width),
+		_height(mode.height),
+		_fps(mode.fps),
+		_numBuffers(2),
+		_camIndex(camIndex),
+		_opened(false),
+		_capturing(false),
+		_nextBuf(-1),
+		_fd(-1),
+		_buffers(0),
+		_frame(NULL),
+		_format( mode.format ),
+		_extControlsToSet(0),
+		_autoExposure(false),
+		_autoIris(false),
+		_autoFocus(true),
+		_autoWhiteBalance(true),
+		_backLightCompensation(false),
+		_absExposureVal(250)
 	{
 		this->open();
 		this->init();
@@ -174,143 +47,163 @@ namespace cvt {
 
 	V4L2Camera::~V4L2Camera()
 	{
-		if(mOpened)
+		if( _opened )
 			this->close();
 	}
 
 	void V4L2Camera::open()
 	{
-		std::stringstream stream;
-		stream << "/dev/video" << mCamIndex;
-		std::string videoDevice = stream.str();
+		std::vector<std::string> devices;
+		V4L2Camera::listDevices( devices );
 
-		mFd = ::open(videoDevice.c_str(), O_RDWR);
-
-		if( mFd == -1){
-			throw CVTException("Could not open device named \"" + videoDevice + "\"");
+		if( _camIndex >= devices.size() ){
+			throw CVTException( "device index out of bounds!" );
 		}
 
-		mOpened = true;
+		_fd = ::open( devices[ _camIndex ].c_str(), O_RDWR | O_NONBLOCK );
+
+		if( _fd == -1){
+			throw CVTException("Could not open device named \"" + devices[ _camIndex ] + "\"");
+		}
+
+		_opened = true;
 	}
 
 	void V4L2Camera::close()
 	{
-		for(unsigned int i= 0; i < mNumBuffers; i++){
-			if( (mBuffers[i] != MAP_FAILED) && mBuffer.length ){
-				if( munmap( mBuffers[i], mBuffer.length ) < 0 ){
-					throw CVTException("Could not unmap buffer " + i);
+		for(unsigned int i= 0; i < _numBuffers; i++){
+			if( ( _buffers[ i ] != MAP_FAILED ) && _buffer.length ){
+				if( munmap( _buffers[ i ], _buffer.length ) < 0 ){
+					throw CVTException( "Could not unmap buffer " + i );
 				}
 			}
 		}
 
-		if(mExtControlsToSet != 0)
-			delete[] mExtControlsToSet;
+		if( _extControlsToSet != 0 )
+			delete[] _extControlsToSet;
 
-		if( mBuffers != 0 )
-			delete[] mBuffers;
+		if( _buffers != 0 )
+			delete[] _buffers;
 
-		if(mFd != -1)
-			::close(mFd);
-		mOpened = false;
+		if( _fd != -1 )
+			::close(_fd);
+		_opened = false;
 	}
 
 	void V4L2Camera::init()
 	{
 		// set the time code
-		mTimeCode.type = V4L2_TC_TYPE_30FPS;
-		mTimeCode.flags = V4L2_TC_FLAG_DROPFRAME;
+		_timeCode.type = V4L2_TC_TYPE_30FPS;
+		_timeCode.flags = V4L2_TC_FLAG_DROPFRAME;
 
 		// ret value of ioctl ...
 		int ret = 0;
 
-		size_t reqWidth = mWidth;
-		size_t reqHeight = mHeight;
+		size_t reqWidth = _width;
+		size_t reqHeight = _height;
 
 		// initialize V4L2 stuff
-		memset(&mFmt, 0, sizeof(struct v4l2_format));
-		mFmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		mFmt.fmt.pix.width = (int)reqWidth;
-		mFmt.fmt.pix.height = (int)reqHeight;
-		mFmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-		mFmt.fmt.pix.field = V4L2_FIELD_ANY;
+		memset( &_fmt, 0, sizeof( struct v4l2_format ) );
+		_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		_fmt.fmt.pix.width = (int)reqWidth;
+		_fmt.fmt.pix.height = (int)reqHeight;
+		_fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
-		ret = ioctl( mFd, VIDIOC_S_FMT, &mFmt);
+		switch( _format.formatID ){
+			case IFORMAT_YUYV_UINT8:
+				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+				break;
+			case IFORMAT_BGRA_UINT8:
+				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
+				break;
+			case IFORMAT_RGBA_UINT8:
+				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+				break;
+			case IFORMAT_GRAY_UINT8:
+				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
+				break;
+			case IFORMAT_BAYER_RGGB_UINT8:
+				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8;
+				break;
+			default:
+				throw CVTException( "Format not supported!" );
+				break;
+		}
+
+		ret = ioctl( _fd, VIDIOC_S_FMT, &_fmt);
 
 		if(ret < 0){
 			throw CVTException( "Inable to set requested format!" );
 		}
 
-		mWidth = mFmt.fmt.pix.width;
-		mHeight = mFmt.fmt.pix.height;
+		_width = _fmt.fmt.pix.width;
+		_height = _fmt.fmt.pix.height;
 
-		// now alloc the tmpimage: YUYV needs 3/2 bytes per pixel => allocate two!?!?!
-
-		if( mFrame )
-			delete mFrame;
-		mFrame = new Image( mWidth, mHeight, mFormat );
+		if( _frame )
+			delete _frame;
+		_frame = new Image( _width, _height, _format );
 
 		// set stream parameter (fps):
-		mStreamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		mStreamParameter.parm.capture.timeperframe.numerator=1;
-		mStreamParameter.parm.capture.timeperframe.denominator=(int)mFps;
+		_streamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		_streamParameter.parm.capture.timeperframe.numerator=1;
+		_streamParameter.parm.capture.timeperframe.denominator=(int)_fps;
 
-		ret = ioctl( mFd, VIDIOC_S_PARM, &mStreamParameter);
-
-		if(ret < 0){
-			std::cerr << "VIDIOC_S_PARM error: Unable to set FPS to " << mFps << std::endl;
+		ret = ioctl( _fd, VIDIOC_S_PARM, &_streamParameter );
+		if( ret < 0 ){
+			throw CVTException( "Could not set stream parameters!" );
 		}
-		if(mStreamParameter.parm.capture.timeperframe.denominator != mFps){
-			std::cout << "Requested framerate (" << mFps << ") not supported by device => using " <<
-				mStreamParameter.parm.capture.timeperframe.denominator << " fps" << std::endl;
+
+		if(_streamParameter.parm.capture.timeperframe.denominator != _fps){
+			std::cout << "Requested framerate (" << _fps << ") not supported by device => using " <<
+				_streamParameter.parm.capture.timeperframe.denominator << " fps" << std::endl;
 		}
 
 		// request the buffers:
-		memset(&mRequestBuffers, 0, sizeof(struct v4l2_requestbuffers));
-		mRequestBuffers.count = (int)mNumBuffers;
-		mRequestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		mRequestBuffers.memory = V4L2_MEMORY_MMAP;
+		memset( &_requestBuffers, 0, sizeof(struct v4l2_requestbuffers) );
+		_requestBuffers.count = (int)_numBuffers;
+		_requestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		_requestBuffers.memory = V4L2_MEMORY_MMAP;
 
-		ret = ioctl(mFd, VIDIOC_REQBUFS, &mRequestBuffers);
-		if (ret < 0)
-		{
+		ret = ioctl(_fd, VIDIOC_REQBUFS, &_requestBuffers);
+		if (ret < 0){
 			throw CVTException("VIDIOC_REQBUFS - Unable to allocate buffers");
 		}
 
-		mBuffers = new void*[mNumBuffers];
+		_buffers = new void*[_numBuffers];
 
-		this->queryBuffers(false);
+		this->queryBuffers( false );
 		this->enqueueBuffers();
 	}
 
 	void V4L2Camera::startCapture()
 	{
-		if(!mCapturing){
+		if(!_capturing){
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			int ret=0;
 
-			ret = ioctl(mFd, VIDIOC_STREAMON, &type);
+			ret = ioctl(_fd, VIDIOC_STREAMON, &type);
 			if (ret < 0)
 			{
 				perror("VIDIOC_STREAMON - Unable to start capture");
-				std::cout << "Error starting capturing" << std::endl;
+				throw CVTException( "Could not start streaming!" );
 			}
-			mCapturing = true;
+			_capturing = true;
 		}
 	}
 
 	void V4L2Camera::stopCapture()
 	{
-		if(mCapturing){
+		if( _capturing ){
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			int ret=0;
 
-			ret = ioctl(mFd, VIDIOC_STREAMOFF, &type);
+			ret = ioctl( _fd, VIDIOC_STREAMOFF, &type );
 			if (ret < 0)
 			{
 				perror("VIDIOC_STREAMOFF - Unable to stop capture");
 				throw CVTException("Error stopping capturing");
 			}
-			mCapturing = false;
+			_capturing = false;
 		}
 	}
 
@@ -320,43 +213,53 @@ namespace cvt {
 		struct timeval timeout;
 
 		//make sure we are capturing
-		if(mCapturing)
+		if(_capturing)
 			startCapture();
 
 		FD_ZERO(&rdset);
-		FD_SET(mFd, &rdset);
+		FD_SET(_fd, &rdset);
 		timeout.tv_sec = 2; // 1 sec timeout
 		timeout.tv_usec = 0;
 
 		// select - wait for data or timeout
-		int ret = select(mFd + 1, &rdset, NULL, NULL, &timeout);
+		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
 		if (ret < 0){
 			perror(" Could not grab image (select error)");
 			throw CVTException("Could not grab image (select error)");
-		} else if (ret == 0) {
-			perror(" Could not grab image (select timeout)");
-			throw CVTException("Could not grab image (select timeout)");
-		} else if ((ret > 0) && (FD_ISSET(mFd, &rdset))){
-			memset(&mBuffer, 0, sizeof(struct v4l2_buffer));
-			mBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			mBuffer.memory = V4L2_MEMORY_MMAP;
+		} else if( ret == 0 ) {
+			perror( "Could not grab image (select timeout)" );
+			throw CVTException( "Could not grab image (select timeout)" );
+		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
+			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
+			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			_buffer.memory = V4L2_MEMORY_MMAP;
 
-			ret = ioctl(mFd, VIDIOC_DQBUF, &mBuffer);
-			if (ret < 0) {
-				perror("VIDIOC_DQBUF - Unable to dequeue buffer ");
-				throw CVTException("Unable to dequeue buffer!");
+			ret = ioctl( _fd, VIDIOC_DQBUF, &_buffer );
+			if ( ret < 0 ) {
+				perror( "VIDIOC_DQBUF - Unable to dequeue buffer " );
+				throw CVTException( "Unable to dequeue buffer!" );
 			}
 		}
 
-		// decompress frame
-		if( mBuffer.bytesused >= mFrame->height() * mFrame->width() * 2 ) {
+		// get frame from buffer
+		if( _buffer.bytesused >= _frame->height() * _frame->width() * _format.bpp ) {
 			size_t stride;
-			uint8_t* ptr = mFrame->map( &stride );
-			YUYV2COLOR( ptr, ( uint8_t* ) mBuffers[mBuffer.index], mFrame->width(), mFrame->height(), stride, 2 * mFrame->width(), mFormat );
-			mFrame->unmap( ptr );
+			uint8_t* ptrM;
+			uint8_t* ptr;
+
+			ptrM = ptr = _frame->map( &stride );
+			size_t h = _frame->height();
+			uint8_t * bufPtr = (uint8_t*)_buffers[ _buffer.index ];
+			size_t bufStride = _frame->width() * _format.bpp;
+			while( h-- ){
+				memcpy( ptr, bufPtr, bufStride );
+				ptr += stride;
+				bufPtr += bufStride;
+			}
+			_frame->unmap( ptrM );
 		}
 
-		ret = ioctl(mFd, VIDIOC_QBUF, &mBuffer);
+		ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
 		if (ret < 0){
 			perror("VIDIOC_QBUF - Unable to requeue buffer");
 			throw CVTException("Unable to requeue buffer");
@@ -365,63 +268,63 @@ namespace cvt {
 
 	const Image & V4L2Camera::frame() const
 	{
-		assert(mFrame != NULL);
-		return *mFrame;
+		assert(_frame != NULL);
+		return *_frame;
 	}
 
 	void V4L2Camera::updateAutoIrisExp()
 	{
-		if(mAutoExposure){
-			if(mAutoIris){
-				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_AUTO );
+		if(_autoExposure){
+			if(_autoIris){
+				V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_AUTO );
 			} else {
-				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY );
+				V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY );
 			}
 		} else {
-			if(mAutoIris) {
-				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_SHUTTER_PRIORITY );
+			if(_autoIris) {
+				V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_SHUTTER_PRIORITY );
 			} else {
-				V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL );
+				V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL );
 			}
 
-			V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal );
+			V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_ABSOLUTE, (int)_absExposureVal );
 		}
 	}
 
 	void V4L2Camera::setAutoIris(bool b)
 	{
-		mAutoIris = b;
+		_autoIris = b;
 		this->updateAutoIrisExp();
 	}
 
 	void V4L2Camera::setAutoExposure(bool b)
 	{
-		mAutoExposure = b;
+		_autoExposure = b;
 		this->updateAutoIrisExp();
 	}
 
 	void V4L2Camera::setExposureValue( unsigned int val )
 	{
-		mAbsExposureVal = val;
-		V4L2Camera::control( mFd, V4L2_CID_EXPOSURE_ABSOLUTE, mAbsExposureVal );
+		_absExposureVal = val;
+		V4L2Camera::control( _fd, V4L2_CID_EXPOSURE_ABSOLUTE, (int)_absExposureVal );
 	}
 
 	void V4L2Camera::setAutoFocus(bool b)
 	{
-		mAutoFocus = b;
-		V4L2Camera::control( mFd, V4L2_CID_FOCUS_AUTO, mAutoFocus );
+		_autoFocus = b;
+		V4L2Camera::control( _fd, V4L2_CID_FOCUS_AUTO, _autoFocus );
 	}
 
 	void V4L2Camera::setAutoWhiteBalance(bool b)
 	{
-		mAutoWhiteBalance = b;
-		V4L2Camera::control( mFd, V4L2_CID_AUTO_WHITE_BALANCE, mAutoWhiteBalance);
+		_autoWhiteBalance = b;
+		V4L2Camera::control( _fd, V4L2_CID_AUTO_WHITE_BALANCE, _autoWhiteBalance);
 	}
 
 	void V4L2Camera::setBacklightCompensation(bool b)
 	{
-		mBackLightCompensation = b;
-		V4L2Camera::control( mFd, V4L2_CID_BACKLIGHT_COMPENSATION, mBackLightCompensation );
+		_backLightCompensation = b;
+		V4L2Camera::control( _fd, V4L2_CID_BACKLIGHT_COMPENSATION, _backLightCompensation );
 	}
 
 	void V4L2Camera::control(int fd, int field, int value)
@@ -450,55 +353,36 @@ namespace cvt {
 
 	void V4L2Camera::extendedControl()
 	{
-		// set the vield in mExtendedControls:
-		memset(&mExtendedControls, 0, sizeof(v4l2_ext_controls));
-		mExtendedControls.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
-		mExtendedControls.count = 2;
-		mExtendedControls.controls = mExtControlsToSet;
+		// set the vield in _extendedControls:
+		memset(&_extendedControls, 0, sizeof(v4l2_ext_controls));
+		_extendedControls.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
+		_extendedControls.count = 2;
+		_extendedControls.controls = _extControlsToSet;
 
-		if(mExtControlsToSet != 0)
-			delete[] mExtControlsToSet;
+		if(_extControlsToSet != 0)
+			delete[] _extControlsToSet;
 
-		mExtControlsToSet = new v4l2_ext_control[2];
-		memset(&mExtControlsToSet[0], 0, sizeof(v4l2_ext_control));
-		memset(&mExtControlsToSet[1], 0, sizeof(v4l2_ext_control));
+		_extControlsToSet = new v4l2_ext_control[2];
+		memset(&_extControlsToSet[0], 0, sizeof(v4l2_ext_control));
+		memset(&_extControlsToSet[1], 0, sizeof(v4l2_ext_control));
 
 		// set pan:
-		mExtControlsToSet[0].id = V4L2_CID_PAN_ABSOLUTE;
-		//mExtControlsToSet[0].value64 = 10*3600;
+		_extControlsToSet[0].id = V4L2_CID_PAN_ABSOLUTE;
+		//_extControlsToSet[0].value64 = 10*3600;
 
-		mExtControlsToSet[1].id = V4L2_CID_TILT_ABSOLUTE;
-		//mExtControlsToSet[1].value64 = -10*3600;
+		_extControlsToSet[1].id = V4L2_CID_TILT_ABSOLUTE;
+		//_extControlsToSet[1].value64 = -10*3600;
 
-		if(ioctl(mFd, VIDIOC_G_EXT_CTRLS, &mExtendedControls) == -1 ){
+		if(ioctl(_fd, VIDIOC_G_EXT_CTRLS, &_extendedControls) == -1 ){
 			std::cout << "Error setting extended controls ..." << std::endl;
 
-			std::cout << "Error at index " << mExtendedControls.error_idx << std::endl;
+			std::cout << "Error at index " << _extendedControls.error_idx << std::endl;
 			perror("Problem:");
 		} else {
 			std::cout << "CURRENT VALUES:" << std::endl;
-			std::cout << "PAN: " << mExtControlsToSet[0].value << std::endl;
-			std::cout << "TILT: " << mExtControlsToSet[1].value << std::endl;
+			std::cout << "PAN: " << _extControlsToSet[0].value << std::endl;
+			std::cout << "TILT: " << _extControlsToSet[1].value << std::endl;
 		}
-
-	}
-
-	void V4L2Camera::showCapabilities()
-	{
-		// TODO: iterate over control fields of the device and display the results
-		/* list all available formats */
-		for (int i = 0; ; i++) {
-			struct v4l2_fmtdesc fmtdesc;
-
-			fmtdesc.index = i;
-			fmtdesc.type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			if (ioctl(mFd, VIDIOC_ENUM_FMT, &fmtdesc) < 0) {
-				break;
-			}
-			printf("Format: %s\n", fmtdesc.description);
-		}
-
-		this->showExtendedControls();
 
 	}
 
@@ -506,31 +390,31 @@ namespace cvt {
 	{
 		int ret=0;
 
-		for (unsigned int i = 0; i < mNumBuffers ; i++){
+		for (unsigned int i = 0; i < _numBuffers ; i++){
 			// unmap old buffer
 			if(unmap)
-				if( munmap(mBuffers[i], mBuffer.length) < 0 )
+				if( munmap(_buffers[i], _buffer.length) < 0 )
 					perror("couldn't unmap buff");
 
-			memset(&mBuffer, 0, sizeof(struct v4l2_buffer));
-			mBuffer.index = i;
-			mBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			mBuffer.flags = V4L2_BUF_FLAG_TIMECODE;
-			mBuffer.timecode = mTimeCode;
-			mBuffer.timestamp.tv_sec = 0;//get frame as soon as possible
-			mBuffer.timestamp.tv_usec = 0;
-			mBuffer.memory = V4L2_MEMORY_MMAP;
-			ret = ioctl(mFd, VIDIOC_QUERYBUF, &mBuffer);
+			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
+			_buffer.index = i;
+			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			_buffer.flags = V4L2_BUF_FLAG_TIMECODE;
+			_buffer.timecode = _timeCode;
+			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
+			_buffer.timestamp.tv_usec = 0;
+			_buffer.memory = V4L2_MEMORY_MMAP;
+			ret = ioctl(_fd, VIDIOC_QUERYBUF, &_buffer);
 			if (ret < 0){
 				perror("VIDIOC_QUERYBUF - Unable to query buffer");
 				exit(0);
 			}
-			if (mBuffer.length <= 0)
-				std::cerr << "WARNING VIDIOC_QUERYBUF - buffer length is " << mBuffer.length << std::endl;
+			if (_buffer.length <= 0)
+				std::cerr << "WARNING VIDIOC_QUERYBUF - buffer length is " << _buffer.length << std::endl;
 
 			// map new buffer
-			mBuffers[i] = mmap( 0, mBuffer.length, PROT_READ, MAP_SHARED, mFd, mBuffer.m.offset );
-			if (mBuffers[i] == MAP_FAILED)
+			_buffers[i] = mmap( 0, _buffer.length, PROT_READ, MAP_SHARED, _fd, _buffer.m.offset );
+			if (_buffers[i] == MAP_FAILED)
 			{
 				perror("Unable to map buffer");
 				exit(0);
@@ -542,16 +426,16 @@ namespace cvt {
 	void V4L2Camera::enqueueBuffers()
 	{
 		int ret=0;
-		for (unsigned int i = 0; i < mNumBuffers; i++) {
-			memset(&mBuffer, 0, sizeof(struct v4l2_buffer));
-			mBuffer.index = i;
-			mBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			mBuffer.flags = V4L2_BUF_FLAG_TIMECODE;
-			mBuffer.timecode = mTimeCode;
-			mBuffer.timestamp.tv_sec = 0;//get frame as soon as possible
-			mBuffer.timestamp.tv_usec = 0;
-			mBuffer.memory = V4L2_MEMORY_MMAP;
-			ret = ioctl(mFd, VIDIOC_QBUF, &mBuffer);
+		for (unsigned int i = 0; i < _numBuffers; i++) {
+			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
+			_buffer.index = i;
+			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			_buffer.flags = V4L2_BUF_FLAG_TIMECODE;
+			_buffer.timecode = _timeCode;
+			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
+			_buffer.timestamp.tv_usec = 0;
+			_buffer.memory = V4L2_MEMORY_MMAP;
+			ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
 			if (ret < 0)
 			{
 				perror("VIDIOC_QBUF - Unable to queue buffer");
@@ -559,44 +443,6 @@ namespace cvt {
 			}
 		}
 	}
-
-	void V4L2Camera::enumerateMenu()
-	{
-		std::cout << "  Menu items: " << std::endl;
-
-		memset (&mQueryMenu, 0, sizeof (mQueryMenu));
-		mQueryMenu.id = mQueryCtrl.id;
-
-		for (mQueryMenu.index = mQueryCtrl.minimum;
-			 static_cast<int>(mQueryMenu.index) <= mQueryCtrl.maximum;
-			 mQueryMenu.index++) {
-			if (0 == ioctl (mFd, VIDIOC_QUERYMENU, &mQueryMenu)) {
-				std::cout << "\t" << mQueryMenu.name << std::endl;
-			} else {
-				perror ("VIDIOC_QUERYMENU");
-				throw CVTException("Error during menu query!!!");
-			}
-		}
-	}
-
-	void V4L2Camera::showExtendedControls()
-	{
-		memset(&mQueryCtrl, 0, sizeof (mQueryCtrl));
-
-		mQueryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
-
-		std::cout << "************ EXTENDED CTRLS ************" << std::endl;
-		while( ioctl( mFd, VIDIOC_QUERYCTRL, &mQueryCtrl ) == 0 ){
-			std::cout << "Control " << mQueryCtrl.name << std::endl;
-
-			if (mQueryCtrl.type == V4L2_CTRL_TYPE_MENU)
-				enumerateMenu();
-
-			mQueryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-		}
-		std::cout << "****************** END *****************" << std::endl;
-	}
-
 
 	size_t V4L2Camera::count()
 	{
@@ -627,6 +473,72 @@ namespace cvt {
 		info.setIndex( index );
 		info.setType( CAMERATYPE_V4L2 );
 
+		struct v4l2_fmtdesc formatDescription;
+		memset( &formatDescription, 0, sizeof( v4l2_fmtdesc ) );
+		formatDescription.index = 0;
+		formatDescription.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+		CameraMode currentMode;
+
+		while( ioctl( fd, VIDIOC_ENUM_FMT, &formatDescription ) == 0 ){
+			formatDescription.index++;
+			bool validFormat = true;
+			switch( formatDescription.pixelformat ){
+				case V4L2_PIX_FMT_YUYV:
+					currentMode.format = IFormat::YUYV_UINT8;
+					break;
+				case V4L2_PIX_FMT_SRGGB8:
+					currentMode.format = IFormat::BAYER_RGGB_UINT8;
+					break;
+				case V4L2_PIX_FMT_BGR32:
+					currentMode.format = IFormat::BGRA_UINT8;
+					break;
+				case V4L2_PIX_FMT_RGB32:
+					currentMode.format = IFormat::RGBA_UINT8;
+					break;
+				case V4L2_PIX_FMT_GREY:
+					currentMode.format = IFormat::GRAY_UINT8;
+					break;
+				default:
+					validFormat = false;
+					std::cout << "\tFOURCC: " << char( formatDescription.pixelformat & 0xFF )
+											<< char( ( formatDescription.pixelformat >> 8 ) & 0xFF )
+											<< char( ( formatDescription.pixelformat >> 16 ) & 0xFF )
+											<< char( ( formatDescription.pixelformat >> 24 ) & 0xFF ) << " available but not supported" << std::endl;
+					break;
+			}
+
+			if( validFormat ){
+				struct v4l2_frmsizeenum frameSize;
+				memset( &frameSize, 0, sizeof( v4l2_frmsizeenum ) );
+				frameSize.index = 0;
+				frameSize.pixel_format = formatDescription.pixelformat;
+
+				while( ioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize ) == 0 ){
+					frameSize.index++;
+					if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
+						currentMode.width = frameSize.discrete.width;
+						currentMode.height = frameSize.discrete.height;
+
+						// enumerate frame intervals:
+						struct v4l2_frmivalenum fps;
+						memset( &fps, 0, sizeof( v4l2_frmivalenum ) );
+						fps.index = 0;
+						fps.pixel_format = formatDescription.pixelformat;
+						fps.width = frameSize.discrete.width;
+						fps.height = frameSize.discrete.height;
+						while( ioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
+							fps.index++;
+							if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
+								currentMode.fps = fps.discrete.denominator / fps.discrete.numerator;
+								info.addMode( currentMode );
+							}
+						}
+					}
+				}
+			}
+		}
+
 		::close( fd );
 	}
 
@@ -654,13 +566,7 @@ namespace cvt {
 			if( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
 				devices.push_back( ss.str() );
 
-			/*
-			std::cout << "\tDriver: " << caps.driver << std::endl;
-			std::cout << "\tCard: " << caps.card << std::endl;
-			std::cout << "\tBusInfo: " << caps.bus_info << std::endl;
-			*/
 			::close( fd );
 		}
 	}
-
 }

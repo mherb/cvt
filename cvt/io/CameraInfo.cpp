@@ -13,7 +13,9 @@ namespace cvt
 
 		out << "Name: " << info.name() <<
 			   ", local Index: " << info.index() <<
-			   ", Type: " << _typeNames[ info.type() ];
+			   ", Type: " << _typeNames[ info.type() ] << "\n";
+
+		out << info.modeSet();
 
 		return out;
 	}

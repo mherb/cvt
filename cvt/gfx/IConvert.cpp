@@ -16,7 +16,7 @@ namespace cvt {
 		dI.unmap( dbase );												\
 		return;															\
 	}
-	
+
 	static void Conv_XYZAf_to_ZYXAf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -27,9 +27,9 @@ namespace cvt {
 		uint8_t* dst;
 		uint8_t* dbase;
 		size_t h;
-		CONV( Conv_XYZAf_to_ZYXAf, dstImage, float*, sourceImage, float*, sourceImage.width() )	
+		CONV( Conv_XYZAf_to_ZYXAf, dstImage, float*, sourceImage, float*, sourceImage.width() )
 	}
-	
+
 	static void Conv_XYZAu8_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -40,9 +40,9 @@ namespace cvt {
 		uint8_t* dst;
 		uint8_t* dbase;
 		size_t h;
-		CONV( Conv_XYZAu8_to_ZYXAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )	
+		CONV( Conv_XYZAu8_to_ZYXAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
 	}
-	
+
 	static void Conv_u8_to_f( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -53,9 +53,9 @@ namespace cvt {
 		uint8_t* dst;
 		uint8_t* dbase;
 		size_t h;
-		CONV( Conv_u8_to_f, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() * dstImage.channels() )	
+		CONV( Conv_u8_to_f, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() * dstImage.channels() )
 	}
-	
+
 	static void Conv_f_to_u8( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -67,9 +67,9 @@ namespace cvt {
 		uint8_t* dbase;
 		size_t h;
 
-		CONV( Conv_f_to_u8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )	
+		CONV( Conv_f_to_u8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
 	}
-		
+
 	static void Conv_RGBAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -81,9 +81,9 @@ namespace cvt {
 		uint8_t* dbase;
 		size_t h;
 
-		CONV( Conv_RGBAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )	
+		CONV( Conv_RGBAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
 	}
-	
+
 	static void Conv_XXXAu8_to_XXXAf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -95,9 +95,9 @@ namespace cvt {
 		uint8_t* dbase;
 		size_t h;
 
-		CONV( Conv_XXXAu8_to_XXXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )	
+		CONV( Conv_XXXAu8_to_XXXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
 	}
-	
+
 	static void Conv_XXXAf_to_XXXAu8( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -108,10 +108,10 @@ namespace cvt {
 		uint8_t* dst;
 		uint8_t* dbase;
 		size_t h;
-		
-		CONV( Conv_XXXAf_to_XXXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )	
+
+		CONV( Conv_XXXAf_to_XXXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )
 	}
-	
+
 	static void Conv_XYZAu8_to_ZYXAf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -123,9 +123,9 @@ namespace cvt {
 		uint8_t* dbase;
 		size_t h;
 
-		CONV( Conv_XYZAu8_to_ZYXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )	
+		CONV( Conv_XYZAu8_to_ZYXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
 	}
-	
+
 	static void Conv_XYZAf_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -136,10 +136,10 @@ namespace cvt {
 		uint8_t* dst;
 		uint8_t* dbase;
 		size_t h;
-		
-		CONV( Conv_XYZAf_to_ZYXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )	
+
+		CONV( Conv_XYZAf_to_ZYXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )
 	}
-	
+
 	static void Conv_BGRAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::get();
@@ -151,10 +151,10 @@ namespace cvt {
 		uint8_t* dbase;
 		size_t h;
 
-		CONV( Conv_BGRAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )	
-	}	
+		CONV( Conv_BGRAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
+	}
 #undef CONV
-	
+
 	void _debayer_RGGB_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
 		const uint32_t* src1;
@@ -169,7 +169,7 @@ namespace cvt {
 		size_t w, i;
 
 		SIMD* simd = SIMD::get();
-					
+
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;
 		sstride = sstride >> 2;
@@ -180,7 +180,7 @@ namespace cvt {
 		odst = dstImage.map( &dstride );
 		dst = ( uint32_t* ) odst;
 		dstride = dstride >> 2;
-		
+
 		simd->debayer_ODD_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
 		dst += dstride;
 		h = h - 2 ;
@@ -200,7 +200,7 @@ namespace cvt {
 		dstImage.unmap( odst );
 		sourceImage.unmap( osrc );
 	}
-	
+
 	void _debayer_RGGB_to_BGRAu8( Image & dstImage, const Image & sourceImage )
 	{
 		const uint32_t* src1;
@@ -213,9 +213,9 @@ namespace cvt {
 		size_t dstride;
 		size_t h;
 		size_t w, i;
-		
+
 		SIMD* simd = SIMD::get();
-		
+
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;
 		sstride = sstride >> 2;
@@ -226,7 +226,7 @@ namespace cvt {
 		odst = dstImage.map( &dstride );
 		dst = ( uint32_t* ) odst;
 		dstride = dstride >> 2;
-		
+
 		simd->debayer_ODD_RGGBu8_BGRAu8( dst, src2, src1, src2, w >> 2 );
 		dst += dstride;
 		h = h - 2 ;
@@ -246,7 +246,7 @@ namespace cvt {
 		dstImage.unmap( odst );
 		sourceImage.unmap( osrc );
 	}
-	
+
 	void _debayer_RGGB_to_GRAYu8( Image & dstImage, const Image & sourceImage )
 	{
 		const uint32_t* src1;
@@ -259,9 +259,9 @@ namespace cvt {
 		size_t dstride;
 		size_t h;
 		size_t w, i;
-		
+
 		SIMD* simd = SIMD::get();
-		
+
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;
 		sstride = sstride >> 2;
@@ -272,7 +272,7 @@ namespace cvt {
 		odst = dstImage.map( &dstride );
 		dst = ( uint32_t* ) odst;
 		dstride = dstride >> 2;
-		
+
 		simd->debayer_ODD_RGGBu8_GRAYu8( dst, src2, src1, src2, w >> 2 );
 		dst += dstride;
 		h = h - 2 ;
@@ -291,10 +291,196 @@ namespace cvt {
 		simd->debayer_ODD_RGGBu8_GRAYu8( dst, src2, src1, src2, w >> 2 );
 		dstImage.unmap( odst );
 		sourceImage.unmap( osrc );
-	}	
-	
+	}
+
+	static inline void _pixelYUV2BGRA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
+	{
+		int r, g, b;
+		int y0, y1, u, v;
+
+		v = ( yuyv >> 24 ) - 128;
+		y1 = ( ( yuyv >> 16 ) & 0xff );
+		u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+		y0 = ( ( yuyv ) & 0xff );
+		r = ((v*1436) >> 10);
+		g = ((u*352 + v*731) >> 10);
+		b = ((u*1814) >> 10);
+
+		// clamp the values
+		p1 = 0xff000000;
+		p1 |= Math::clamp( y0 + r, 0, 255 ) << 16;
+		p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
+		p1 |= Math::clamp( y0 + b, 0, 255 );
+		p2 = 0xff000000;
+		p2 |= Math::clamp( y1 + r, 0, 255 ) << 16;
+		p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
+		p2 |= Math::clamp( y1 + b, 0, 255 );
+	}
+
+	static inline void _pixelYUV2RGBA( uint32_t yuyv, uint32_t& p1, uint32_t& p2 )
+	{
+		int r, g, b;
+		int y0, y1, u, v;
+
+		v = ( yuyv >> 24 ) - 128;
+		y1 = ( ( yuyv >> 16 ) & 0xff );
+		u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+		y0 = ( ( yuyv ) & 0xff );
+		r = ((v*1436) >> 10);
+		g = ((u*352 + v*731) >> 10);
+		b = ((u*1814) >> 10);
+
+		// clamp the values
+		p1 = 0xff000000;
+		p1 |= Math::clamp( y0 + r, 0, 255 );
+		p1 |= Math::clamp( y0 - g, 0, 255 ) << 8;
+		p1 |= Math::clamp( y0 + b, 0, 255 ) << 16;
+		p2 = 0xff000000;
+		p2 |= Math::clamp( y1 + r, 0, 255 );
+		p2 |= Math::clamp( y1 - g, 0, 255 ) << 8;
+		p2 |= Math::clamp( y1 + b, 0, 255 ) << 16;
+	}
+
+
+	static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+	{
+		size_t l = dstImage.height();
+		size_t w = dstImage.width();
+		size_t c;
+		uint32_t *s;
+		uint32_t *d;
+		uint32_t p1, p2;
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+	    uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+		while( l-- ) {
+			s = ( uint32_t* ) src;
+			d = ( uint32_t* ) dst;
+			c = w >> 1;
+			while (c--) {
+				_pixelYUV2RGBA( *s++, p1, p2 );
+				*d++ = p1;
+				*d++ = p2;
+			}
+			src += stridesrc;
+			dst += stridedst;
+		}
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
+
+	static void Conv_YUYVu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+	{
+		size_t l = dstImage.height();
+		size_t w = dstImage.width();
+		size_t c;
+		uint32_t *s;
+		uint32_t *d;
+		uint32_t p1, p2;
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+	    uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+
+		while( l-- ) {
+			s = ( uint32_t* ) src;
+			d = ( uint32_t* ) dst;
+			c = w >> 1;
+			while (c--) {
+				_pixelYUV2BGRA( *s++, p1, p2 );
+				*d++ = p1;
+				*d++ = p2;
+			}
+			src += stridesrc;
+			dst += stridedst;
+		}
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
+
+	static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+	{
+		size_t l = dstImage.height();
+		size_t w = dstImage.width();
+		size_t c;
+		uint32_t *s;
+		uint8_t *d;
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+	    uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+		while( l-- ) {
+			s = ( uint32_t* ) src;
+			d = dst;
+			c = w >> 1;
+			while (c--) {
+				*d++ = *s & 0xff;
+				*d++ = ( *s++ >> 16 ) & 0xff;
+			}
+			src += stridesrc;
+			dst += stridedst;
+		}
+
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
+
+	static void Conv_YUYVu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
+	{
+		size_t l = dstImage.height();
+		size_t w = dstImage.width();
+		size_t c;
+		uint32_t *s;
+		uint8_t *d;
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+	    uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+		while( l-- ) {
+			s = ( uint32_t* ) src;
+			d = dst;
+			c = w >> 1;
+			while (c--) {
+				*d++ = *s & 0xff;
+				*d++ = 255;
+				*d++ = ( *s++ >> 16 ) & 0xff;
+				*d++ = 255;
+			}
+			src += stridesrc;
+			dst += stridedst;
+		}
+
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
+
 	/* source2dst table */
-	static ConversionFunction _convertFuncs[ 17 ][ 17 ] = {
+	static ConversionFunction _convertFuncs[ 18 ][ 18 ] = {
 	/* G_U8     */	{ 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	/* G_U16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	/* G_I16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -311,30 +497,31 @@ namespace cvt {
 	/* BGRA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	/* BGRA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	/* BGRA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, 0 },
-	/* RGGB_U8  */	{ &_debayer_RGGB_to_GRAYu8, 0, 0, 0, 0, 0, 0, 0, &_debayer_RGGB_to_RGBAu8, 0, 0, 0, &_debayer_RGGB_to_BGRAu8, 0, 0, 0, 0 }
+	/* RGGB_U8  */	{ &_debayer_RGGB_to_GRAYu8, 0, 0, 0, 0, 0, 0, 0, &_debayer_RGGB_to_RGBAu8, 0, 0, 0, &_debayer_RGGB_to_BGRAu8, 0, 0, 0, 0 },
+	/* YUYV_U8  */	{ &Conv_YUYVu8_to_GRAYu8, 0, 0, 0, &Conv_YUYVu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_YUYVu8_to_RGBAu8, 0, 0, 0, &Conv_YUYVu8_to_BGRAu8, 0, 0, 0, 0 }
 	};
-	
+
 	void IConvert::convert( Image & dst, const Image & src )
-	{	
+	{
 		//checkSize( src, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
 		if( src.format() == dst.format() ) {
 			dst.copy( src );
 			return;
 		}
-		
+
 		IFormatID sourceID = src.format().formatID;
 		IFormatID dstID = dst.format().formatID;
-		
+
 		if( sourceID - 1 > 17 )
 			throw CVTException( "Source format unkown" );
 		if( dstID - 1 > 17 )
 			throw CVTException( "Destination format unkown" );
-		
+
 		if( _convertFuncs[ sourceID - 1 ][ dstID - 1 ] ){
 			_convertFuncs[ sourceID - 1 ][ dstID - 1 ]( dst, src );
 		} else {
 			throw CVTException( "Conversion not implemented!" );
-		}		
+		}
 	}
-	
+
 }

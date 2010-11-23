@@ -14,6 +14,14 @@ namespace cvt {
 
 	std::vector<CameraInfo> Camera::_camInfos;
 
+	Camera::Camera()
+	{
+	}
+
+	Camera::~Camera()
+	{
+	}
+
 	void Camera::updateInfo()
 	{
 #ifdef APPLE
@@ -47,23 +55,29 @@ namespace cvt {
 			throw CVTException( "Camera index out of bounds!" );
 		}
 
+		CameraInfo & camInfo = Camera::_camInfos[ index ];
+
 		Camera * cam = NULL;
 
-		switch( Camera::_camInfos[ index ].type() ){
+		switch( camInfo.type() ){
 			case CAMERATYPE_UEYE:
 				throw CVTException( "TODO IMPLEMENT UEYE camera handling" );
 				break;
 			case CAMERATYPE_DC1394:
-				cam = new DC1394Camera( Camera::_camInfos[ index ].index(), width, height, fps, format );
+				cam = new DC1394Camera( camInfo.index(), width, height, fps, format );
 				break;
 			case CAMERATYPE_V4L2:
 #ifdef LINUX
-				cam = new V4L2Camera( Camera::_camInfos[ index ].index(), width, height, fps, format );
-#endif				
+				{
+					const CameraMode & mode = camInfo.bestMatchingMode( format, width, height, fps );
+					std::cout << "Selecting mode: " << mode << std::endl;
+					cam = new V4L2Camera( camInfo.index(), mode );
+				}
+#endif
 				break;
 			case CAMERATYPE_QTKIT:
 #ifdef APPLE
-				cam = new QTKitCamera( Camera::_camInfos[ index ].index(), width, height, fps, format );
+				cam = new QTKitCamera( Camera::camInfo.index(), width, height, fps, format );
 #endif
 				break;
 			default:

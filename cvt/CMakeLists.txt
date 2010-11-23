@@ -72,6 +72,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/ImageIO.h
 	io/VideoInput.h
 	io/CameraInfo.h
+	io/CameraMode.h
+	io/CameraModeSet.h
 	io/Camera.h
 	io/DC1394Camera.h
 	io/Resources.h
@@ -159,6 +161,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FloFile.cpp
 	io/ImageIO.cpp
 	io/CameraInfo.cpp
+	io/CameraModeSet.cpp
 	io/Camera.cpp
 	io/DC1394Camera.cpp
 	io/Resources.cpp
