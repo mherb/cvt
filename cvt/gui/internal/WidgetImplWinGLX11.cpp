@@ -154,6 +154,7 @@ namespace cvt {
 		gfx->setChildrect( viewport );
 		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
+		std::cout << "GL BufferSwap" << std::endl;
 		needsupdate = false;
 	}
 

@@ -12,22 +12,30 @@ namespace cvt {
 			switch( xevent.type ) {
 				case ConfigureNotify:
 					{
-						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
-							;
 						win = (*_windows)[ xevent.xconfigure.window ];
+
 						int oldwidth = win->_rect.width;
 						int oldheight = win->_rect.height;
+						int nx = 0, ny = 0, npos = 0;
+
+						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
+							if( xevent.xconfigure.send_event ) {
+								nx = xevent.xconfigure.x;
+								ny = xevent.xconfigure.y;
+								npos = 1;
+							}
+						}
 
 						if( oldwidth != xevent.xconfigure.width || oldheight != xevent.xconfigure.height ) {
 							ResizeEvent re( xevent.xconfigure.width, xevent.xconfigure.height, oldwidth, oldheight );
 							win->resizeEvent( &re );
 						}
-						if( xevent.xconfigure.send_event ) {
+						if( npos ) {
 							int oldx = win->_rect.x;
 							int oldy = win->_rect.y;
 
-							if( oldx != xevent.xconfigure.x  || oldy != xevent.xconfigure.y ) {
-								MoveEvent me( xevent.xconfigure.x, xevent.xconfigure.y, oldx, oldy );
+							if( oldx != nx  || oldy != ny ) {
+								MoveEvent me( nx, ny, oldx, oldy );
 								win->moveEvent( &me );
 							}
 						}
@@ -70,18 +78,37 @@ namespace cvt {
 
 						// Compress resize/motions before sending expose events
 						// FIXME
-/*						int cfevent = 0;
+						int cfevent = 0;
 						XEvent xevent2;
-						while( ( cfevent = XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, ConfigureNotify, &xevent2 ) ) )
-							;
-						if( cfevent ) {
-							ResizeEvent re( xevent2.xconfigure.width, xevent2.xconfigure.height, 0, 0 );
-							enqueue( xevent2.xconfigure.window, e );
+						int nx = 0, ny = 0, npos = 0;
+
+						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent2 ) ) {
 							if( xevent2.xconfigure.send_event ) {
-								e = new MoveEvent( xevent2.xconfigure.x, xevent2.xconfigure.y, 0, 0 );
-								enqueue( xevent2.xconfigure.window, e );
+								nx = xevent2.xconfigure.x;
+								ny = xevent2.xconfigure.y;
+								npos = 1;
 							}
-						}*/
+							cfevent = 1;
+						}
+
+						if( cfevent ) {
+							int oldwidth = win->_rect.width;
+							int oldheight = win->_rect.height;
+
+							if( oldwidth != xevent2.xconfigure.width || oldheight != xevent2.xconfigure.height ) {
+								ResizeEvent re( xevent2.xconfigure.width, xevent2.xconfigure.height, oldwidth, oldheight );
+								win->resizeEvent( &re );
+							}
+						}
+						if( npos ) {
+							int oldx = win->_rect.x;
+							int oldy = win->_rect.y;
+
+							if( oldx != nx  || oldy != ny ) {
+								MoveEvent me( nx, ny, oldx, oldy );
+								win->moveEvent( &me );
+							}
+						}
 
 						// Compress expose
 						// FIXME: fix the rect information
