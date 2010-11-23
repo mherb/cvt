@@ -8,6 +8,8 @@
 
 #include <cvt/gl/progs/GLFillRectProg.h>
 #include <cvt/gl/progs/GLFillRoundRectProg.h>
+#include <cvt/gl/progs/GLDrawTextProg.h>
+#include <cvt/gl/progs/GLDrawImageProg.h>
 
 namespace cvt {
 	class GFXGL : public GFX
@@ -24,18 +26,15 @@ namespace cvt {
 			virtual void fillRoundRect( int x, int y, int width, int height, float radius );
 			virtual void drawText( int x, int y, const char* text );
 			virtual void drawImage( int x, int y, const Image& img );
+			virtual void drawImage( int x, int y, int width, int height, const Image& img );
 
 		private:
 			void updateState();
 
 			GLFillRectProg fillrectp;
 			GLFillRoundRectProg fillrrectp;
-			GLProgram progbasic;
-			GLProgram progbasictex;
-			GLProgram progtext;
-			GLuint texfont;
-			GLVertexArray vao;
-			GLBuffer vbo;
+			GLDrawTextProg drawtextp;
+			GLDrawImageProg drawimgp;
 	};
 }
 

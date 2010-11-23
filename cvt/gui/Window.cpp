@@ -26,13 +26,23 @@ namespace cvt {
 		Application::exit();
 	}
 
+
+	void Window::moveEvent( MoveEvent* event )
+	{
+		update();
+	}
+
 	void Window::paintEvent( PaintEvent* event, GFX* gfx )
 	{
 		int w, h, x, y;
 		size( w, h );
 
+
 		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );
+
+		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
+		gfx->drawImage( 100, 100, 100, 100, img );
 
 		gfx->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 		char buf[ 200 ];

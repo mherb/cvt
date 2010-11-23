@@ -12,6 +12,7 @@ namespace cvt {
 			virtual ~Window();
 
 			virtual void closeEvent( CloseEvent* event );
+			virtual void moveEvent( MoveEvent* event );
 			virtual void paintEvent( PaintEvent* event, GFX* gfx );
 
 		private:

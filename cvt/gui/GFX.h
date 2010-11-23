@@ -26,6 +26,7 @@ namespace cvt {
 			virtual void fillRoundRect( int x, int y, int width, int height, float radius ) = 0;
 			virtual void drawText( int x, int y, const char* text ) = 0;
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
+			virtual void drawImage( int x, int y, int width, int height, const Image& img ) = 0;
 
 		private:
 			void setViewport( const Recti& r ) { _viewport = r; };

@@ -16,6 +16,7 @@ namespace cvt {
 			~GLFillRoundRectProg();
 
 			using GLProgram::bind;
+			using GLProgram::unbind;
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
 			void fillRoundRect( int x, int y, int w, int h, float radius );

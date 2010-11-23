@@ -128,9 +128,12 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLException.h
 	gl/GLProgram.h
 	gl/GLBuffer.h
+	gl/GLTexture.h
 	gl/GLVertexArray.h
 	gl/progs/GLFillRectProg.h
 	gl/progs/GLFillRoundRectProg.h
+	gl/progs/GLDrawTextProg.h
+	gl/progs/GLDrawImageProg.h
 	util/Thread.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
@@ -202,10 +205,13 @@ SET(${MODULE_NAME}_SOURCES
 	gui/internal/X11Handler.cpp
 	gl/GLProgram.cpp
 	gl/GLBuffer.cpp
+	gl/GLTexture.cpp
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
 	gl/progs/GLFillRectProg.cpp
 	gl/progs/GLFillRoundRectProg.cpp
+	gl/progs/GLDrawTextProg.cpp
+	gl/progs/GLDrawImageProg.cpp
 )
 
 IF(UNIX)
