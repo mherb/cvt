@@ -3,6 +3,7 @@
 
 #include <cvt/gui/Widget.h>
 #include <cvt/gui/WidgetLayout.h>
+#include <cvt/gui/Moveable.h>
 #include <list>
 #include <utility>
 
@@ -17,7 +18,7 @@ namespace cvt {
 			~WidgetContainer();
 
 			void    addWidget( Widget* w, const WidgetLayout& layout );
-			//	    void    addWidgetMoveable( Widget* w );
+			void    addWidgetMoveable( Widget* w );
 			void    removeWidget( Widget* w );
 			size_t	childrenCount() const;
 			Widget* childAt( int x, int y );
@@ -32,10 +33,11 @@ namespace cvt {
 
 		private:
 			typedef std::list< std::pair<Widget*, WidgetLayout> > ChildList;
+			typedef std::list< Moveable* > MChildList;
 
 			WidgetContainer( bool toplevel );
 
-			//	    std::list<Widget*> _mchildren;
+			MChildList _mchildren;
 			ChildList _children;
 			Widget* _activeWidget;
 	};
