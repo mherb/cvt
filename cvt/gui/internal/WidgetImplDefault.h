@@ -45,6 +45,11 @@ namespace cvt {
 	{
 	}
 
+	inline WidgetImplDefault::~WidgetImplDefault( )
+	{
+	}
+
+
 	inline void WidgetImplDefault::setSize( int width, int height )
 	{
 		if( _rect.width == width && _rect.height == height )
