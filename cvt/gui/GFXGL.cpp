@@ -131,4 +131,18 @@ namespace cvt {
 		if( tmp )
 			delete tmp;
 	}
+
+	void GFXGL::drawIcon( int x, int y, Icon i )
+	{
+		x += _childrect.x;
+		y += _childrect.y;
+
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		drawiconp.bind();
+		drawiconp.setProjection( proj );
+		drawiconp.setColor( _color );
+		drawiconp.drawIcon( x, y, i );
+		drawiconp.unbind();
+	}
 }

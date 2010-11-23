@@ -12,6 +12,15 @@ namespace cvt {
 		friend class WidgetImplWinGLX11;
 
 		public:
+			enum Icon { ICON_CIRCLECROSS = 0,
+				ICON_RECTCROSS,
+				ICON_CIRCLERIGHT,
+				ICON_CIRCLELEFT,
+				ICON_RECT,
+				ICON_CIRCLE,
+				ICON_CIRCLEUP,
+				ICON_CIRCLEDOWN	};
+
 			GFX();
 			//GFX( const GFX& g );
 			virtual ~GFX();
@@ -27,6 +36,7 @@ namespace cvt {
 			virtual void drawText( int x, int y, const char* text ) = 0;
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
 			virtual void drawImage( int x, int y, int width, int height, const Image& img ) = 0;
+			virtual void drawIcon( int x, int y, Icon i ) = 0;
 
 		private:
 			void setViewport( const Recti& r ) { _viewport = r; };

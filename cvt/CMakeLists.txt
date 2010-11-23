@@ -134,6 +134,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
 	gl/progs/GLDrawImageProg.h
+	gl/progs/GLDrawIconProg.h
 	util/Thread.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
@@ -212,6 +213,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/progs/GLFillRoundRectProg.cpp
 	gl/progs/GLDrawTextProg.cpp
 	gl/progs/GLDrawImageProg.cpp
+	gl/progs/GLDrawIconProg.cpp
 )
 
 IF(UNIX)
