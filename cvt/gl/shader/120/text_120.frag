@@ -7,6 +7,6 @@ uniform float Scale;
 void main()
 {
 	vec4 c = vtx_Color;
-	c *= texture2D( TexFont, gl_PointCoord * Scale + vtx_Index * Scale ).r;
+	c.a *= texture2D( TexFont, gl_PointCoord * Scale + vtx_Index * Scale ).r;
 	gl_FragColor = c;
 }

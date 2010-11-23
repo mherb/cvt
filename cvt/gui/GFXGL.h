@@ -10,6 +10,7 @@
 #include <cvt/gl/progs/GLFillRoundRectProg.h>
 #include <cvt/gl/progs/GLDrawTextProg.h>
 #include <cvt/gl/progs/GLDrawImageProg.h>
+#include <cvt/gl/progs/GLDrawIconProg.h>
 
 namespace cvt {
 	class GFXGL : public GFX
@@ -27,6 +28,7 @@ namespace cvt {
 			virtual void drawText( int x, int y, const char* text );
 			virtual void drawImage( int x, int y, const Image& img );
 			virtual void drawImage( int x, int y, int width, int height, const Image& img );
+			virtual void drawIcon( int x, int y, Icon icon );
 
 		private:
 			void updateState();
@@ -35,6 +37,7 @@ namespace cvt {
 			GLFillRoundRectProg fillrrectp;
 			GLDrawTextProg drawtextp;
 			GLDrawImageProg drawimgp;
+			GLDrawIconProg drawiconp;
 	};
 }
 
