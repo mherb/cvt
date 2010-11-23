@@ -5,77 +5,14 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/ImageIO.h>
-#include <cvt/gfx/ImageAllocatorGL.h>
 
 #include <cstring>
-#include <cvt/gui/internal/glfont.h>
-
-/* Shaders */
-#include <cvt/gl/shader/120/basic_120_vert.h>
-#include <cvt/gl/shader/120/basic_120_frag.h>
-#include <cvt/gl/shader/120/basictex_120_vert.h>
-#include <cvt/gl/shader/120/basictex_120_frag.h>
-#include <cvt/gl/shader/120/text_120_vert.h>
-#include <cvt/gl/shader/120/text_120_frag.h>
-#include <cvt/gl/shader/120/basicrrtex_120_frag.h>
-
-#include <cvt/gl/shader/150/basic_150_vert.h>
-#include <cvt/gl/shader/150/basic_150_frag.h>
-#include <cvt/gl/shader/150/basictex_150_vert.h>
-#include <cvt/gl/shader/150/basictex_150_frag.h>
-#include <cvt/gl/shader/150/text_150_vert.h>
-#include <cvt/gl/shader/150/text_150_frag.h>
-#include <cvt/gl/shader/150/basicrrtex_150_frag.h>
-
 
 namespace cvt {
 
-	static void ortho2d( IFilterVector16& vec, float left, float right, float top, float bottom, float near, float far )
+	GFXGL::GFXGL()
 	{
-		vec[ 0 ] = 2.0f / ( right - left );
-		vec[ 1 ] = 0.0f;
-		vec[ 2 ] = 0.0f;
-		vec[ 3 ] = 0.0f;
-		vec[ 0 + 4 ] = 0.0f;
-		vec[ 1 + 4 ] = 2.0f / ( top - bottom );
-		vec[ 2 + 4 ] = 0.0f;
-		vec[ 3 + 4 ] = 0.0f;
-		vec[ 0 + 8 ] = 0.0f;
-		vec[ 1 + 8 ] = 0.0f;
-		vec[ 2 + 8 ] = -2.0f / ( far - near );
-		vec[ 3 + 8 ] = 0.0f;
-		vec[ 0 + 12 ] = - ( right + left ) / ( right - left );
-		vec[ 1 + 12 ] = - ( top + bottom ) / ( top - bottom );
-		vec[ 2 + 12 ] = - ( far + near ) / ( far - near );
-		vec[ 3 + 12 ] = 1.0f;
-	}
-
-	GFXGL::GFXGL() : vbo( GL_ARRAY_BUFFER )
-	{
-		try {
-			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
-				progbasic.build( _basic_150_vert_source, _basic_150_frag_source );
-				progbasictex.build( _basictex_150_vert_source, _basicrrtex_150_frag_source );
-				progtext.build( _text_150_vert_source, _text_150_frag_source );
-			} else {
-				progbasic.build( _basic_120_vert_source, _basic_120_frag_source );
-				progbasictex.build( _basictex_120_vert_source, _basicrrtex_120_frag_source );
-				progtext.build( _text_120_vert_source, _text_120_frag_source );
-			}
-		} catch( GLException e ) {
-			std::cout << e.what() << e.log() << std::endl;
-		}
-
 		updateState();
-
-		glGenTextures( 1, &texfont );
-
-		glBindTexture(GL_TEXTURE_2D, texfont );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RED, _glfont.width, _glfont.height, 0, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
-		glBindTexture( GL_TEXTURE_2D, 0 );
 
 		glEnable( GL_BLEND );
 		glEnable( GL_TEXTURE_2D );
@@ -110,6 +47,7 @@ namespace cvt {
 		fillrectp.setProjection( proj );
 		fillrectp.setColor( _color );
 		fillrectp.fillRect( x, y, width, height );
+		fillrectp.unbind();
 	}
 
 	void GFXGL::fillRoundRect( const Recti& rect, float radius )
@@ -128,106 +66,68 @@ namespace cvt {
 		fillrrectp.setProjection( proj );
 		fillrrectp.setColor( _color );
 		fillrrectp.fillRoundRect( x, y, width, height, radius );
+		fillrrectp.unbind();
 	}
 
 
 	void GFXGL::drawText( int x, int y, const char* text )
 	{
-		int len = ( int ) strlen( text );
-		int* vertices = new int[ len * 3 ];
-
 		x += _childrect.x;
 		y += _childrect.y;
-		x += _glfont.offx;
-		y += _glfont.offy;
 
-
-		for( int i = 0; i < len; i++ ) {
-			vertices[ i * 3 + 0 ] = x;
-			vertices[ i * 3 + 1 ] = y;
-			vertices[ i * 3 + 2 ] = text[ i ];
-			x += _glfont.advance[ ( uint8_t ) text[ i ] ];
-		}
-
-		progtext.bind();
-		IFilterScalar scalar( 0 );
-		progtext.setArg("TexFont", 0 );
-		progtext.setArg("Scale", _glfont.ptsize / ( float ) ( _glfont.width ) );
-		IFilterVector16 vec;
-		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
-		progtext.setArg( "MVP", &vec );
-
-		glBindTexture( GL_TEXTURE_2D, texfont );
-
-		GLBuffer tvbo( GL_ARRAY_BUFFER );
-		tvbo.alloc( GL_STATIC_DRAW, sizeof( int ) * 3 * len, vertices );
-
-		vao.setColor( _color );
-		vao.setVertexData( tvbo, 3, GL_INT );
-		glPointSize( _glfont.ptsize );
-		vao.draw( GL_POINTS, 0, len );
-
-		glBindTexture( GL_TEXTURE_2D, 0 );
-		delete[] vertices;
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		drawtextp.bind();
+		drawtextp.setProjection( proj );
+		drawtextp.setColor( _color );
+		drawtextp.drawText( x, y, text );
+		drawtextp.unbind();
 	}
 
 
 	void GFXGL::drawImage( int x, int y, const Image& img )
 	{
-		GLint w, h;
 		Image* tmp = NULL;
-		ImageAllocatorGL* glmem;
 
-
-		if( img.memType() == IALLOCATOR_GL ) {
-			glmem = ( ImageAllocatorGL* ) img._mem;
-		} else {
+		if( img.memType() != IALLOCATOR_GL ) {
 			tmp = new Image( img, IALLOCATOR_GL );
-			glmem = ( ImageAllocatorGL* ) tmp->_mem;
 		}
 
 		x += _childrect.x;
 		y += _childrect.y;
 
-		w = ( GLint ) img.width();
-		h = ( GLint ) img.height();
-		GLint vertices[ 8 ] = {
-			x	 , y + h,
-			x	 , y    ,
-			x + w, y + h,
-			x + w, y
-		};
-		GLfloat texcoords[ 8 ] = {
-			0.0f, 1.0f,
-			0.0f, 0.0f,
-			1.0f, 1.0f,
-			1.0f, 0.0f
-		};
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		drawimgp.bind();
+		drawimgp.setProjection( proj );
+		drawimgp.setAlpha( 1.0f );
+		drawimgp.drawImage( x, y, tmp?*tmp:img );
+		drawimgp.unbind();
 
-		progbasictex.bind();
-		progbasictex.setArg("Tex", 0 );
-		IFilterVector16 vec;
-		ortho2d( vec, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
-		progbasictex.setArg( "MVP", &vec );
-		progbasictex.setArg( "ImageSize", ( float ) w, ( float ) h );
-		progbasictex.setArg( "Radius", 25.0f );
+		if( tmp )
+			delete tmp;
+	}
 
-		glBindTexture(GL_TEXTURE_2D, glmem->_tex2d );
 
-		GLBuffer vbuf( GL_ARRAY_BUFFER );
-		vbuf.alloc( GL_STATIC_DRAW, sizeof( int ) * 8, vertices );
+	void GFXGL::drawImage( int x, int y, int width, int height, const Image& img )
+	{
+		Image* tmp = NULL;
 
-		GLBuffer tbuf( GL_ARRAY_BUFFER );
-		tbuf.alloc( GL_STATIC_DRAW, sizeof( int ) * 8, texcoords );
+		if( img.memType() != IALLOCATOR_GL ) {
+			tmp = new Image( img, IALLOCATOR_GL );
+		}
 
-		vao.setVertexData( vbuf, 2, GL_INT );
-		vao.setTexCoordData( tbuf, 2, GL_FLOAT );
-		vao.setColor( _color );
-		vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
+		x += _childrect.x;
+		y += _childrect.y;
 
-		vao.resetTexCoord();
+		Matrix4f proj;
+		GL::ortho2d( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		drawimgp.bind();
+		drawimgp.setProjection( proj );
+		drawimgp.setAlpha( 1.0f );
+		drawimgp.drawImage( x, y, width, height, tmp?*tmp:img );
+		drawimgp.unbind();
 
-		glBindTexture( GL_TEXTURE_2D, 0 );
 		if( tmp )
 			delete tmp;
 	}

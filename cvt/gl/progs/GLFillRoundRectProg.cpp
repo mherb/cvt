@@ -30,9 +30,11 @@ namespace cvt {
 		_tvbo.unmap();
 		_vao.setTexCoordData( _tvbo, 2, GL_FLOAT );
 
+		bind();
 		_mvploc = uniformLocation( "MVP" );
 		_radiusloc = uniformLocation( "Radius" );
 		_sizeloc = uniformLocation( "Size" );
+		unbind();
 	}
 
 	GLFillRoundRectProg::~GLFillRoundRectProg()

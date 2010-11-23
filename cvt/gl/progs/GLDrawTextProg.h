@@ -1,38 +1,35 @@
-#ifndef CVT_GLFILLRECTPROG_H
-#define CVT_GLFILLRECTPROG_H
+#ifndef CVT_GLDRAWTEXTPROG_H
+#define CVT_GLDRAWTEXTPROG_H
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
 #include <cvt/gl/GLVertexArray.h>
 #include <cvt/gl/GLBuffer.h>
+#include <cvt/gl/GLTexture.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/Rect.h>
 
 namespace cvt {
-	class GLFillRectProg : private GLProgram
+	class GLDrawTextProg : private GLProgram
 	{
 		public:
-			GLFillRectProg();
-			~GLFillRectProg();
+			GLDrawTextProg();
+			~GLDrawTextProg();
 
 			using GLProgram::bind;
 			using GLProgram::unbind;
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
-			void fillRect( int x, int y, int w, int h );
-			void fillRect( const Recti& rect );
+			void drawText( int x, int y, const char* txt );
 
 		private:
 			GLVertexArray _vao;
 			GLBuffer _vbo;
+			GLTexture _tex;
 			GLint _mvploc;
+			GLint _texloc;
+			GLint _scaleloc;
 	};
-
-	inline void GLFillRectProg::fillRect( const Recti& rect )
-	{
-		fillRect( rect.x, rect.y, rect.width, rect.height );
-	}
-
 }
 
 #endif

@@ -8,12 +8,12 @@ namespace cvt {
 		unsigned long mask;
 
 		attr.background_pixmap = None;
-//		attr.border_pixel = 0;
+		attr.border_pixel = 0;
 		attr.bit_gravity = ForgetGravity;
 		attr.win_gravity = NorthWestGravity;
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
 		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
-		mask = CWBackPixmap | CWColormap | CWEventMask | CWBitGravity | CWWinGravity;
+		mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask | CWBitGravity | CWWinGravity;
 
 		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, _rect.width, _rect.height,
 							  0, visinfo->depth, InputOutput,

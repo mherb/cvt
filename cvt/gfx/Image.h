@@ -18,7 +18,7 @@ namespace cvt {
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
 		friend class CLKernel;
-		friend class GFXGL;
+		friend class GLDrawImageProg;
 
 		public:
 			Image( size_t w = 1, size_t h = 1, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );
