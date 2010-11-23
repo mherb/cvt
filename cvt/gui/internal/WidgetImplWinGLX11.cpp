@@ -146,7 +146,8 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
-		glXMakeCurrent( dpy, win, ctx );
+		if( win != glXGetCurrentDrawable() )
+			glXMakeCurrent( dpy, win, ctx );
 		gfx->setDefault();
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfx->setViewport( viewport );
