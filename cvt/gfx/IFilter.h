@@ -19,8 +19,12 @@ namespace cvt {
 
 		protected:
 			IFilter( std::string name, IFilterParameterInfo const* pinfo, size_t pinfosize, uint32_t ifiltertype ) : _iftype( ifiltertype ), _name( name ), _pinfo( pinfo), _pinfosize( pinfosize) {};
+			virtual ~IFilter() {};
 
 		private:
+			IFilter( const IFilter& ifilter );
+			IFilter& operator=( const IFilter& ifilter );
+
 			uint32_t _iftype;
 			std::string _name;
 			const IFilterParameterInfo* _pinfo;

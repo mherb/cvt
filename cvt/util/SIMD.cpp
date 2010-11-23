@@ -1056,7 +1056,7 @@ namespace cvt {
 	void SIMD::Conv_u8_to_f( float* dst, uint8_t const* src, const size_t n ) const
 	{
 		size_t i = n >> 2;
-		uint32_t* src2;
+
 		while( i-- ) {
 			*dst++ = U8_TO_F( *src++ );
 			*dst++ = U8_TO_F( *src++ );

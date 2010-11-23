@@ -19,6 +19,7 @@ namespace cvt {
 	class IScaleFilter {
 		public:
 			IScaleFilter( float support = 1.0f, float sharpsmooth = 0.0f ) : _support( support ), _sharpsmooth( sharpsmooth ) {};
+			virtual ~IScaleFilter() {};
 			virtual float eval( float x ) const = 0;
 			virtual const std::string name() const = 0;
 			size_t getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptivef& conva, bool nonegincr = true ) const;

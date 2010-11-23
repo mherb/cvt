@@ -23,7 +23,8 @@ namespace cvt {
 				it->second = p;
 			}
 
-			~IFilterParameterSet( );
+			virtual ~IFilterParameterSet( ) {};
+
 			IFilterParameter* getParameter( const std::string s ) const
 			{
 				std::map<const std::string, IFilterParameter*>::const_iterator it  = params.find( s );
@@ -66,6 +67,7 @@ namespace cvt {
 			};
 			IFilterParameterSet( );
 			IFilterParameterSet( const IFilterParameterSet& pset );
+			IFilterParameterSet& operator=( const IFilterParameterSet& pset );
 
 			std::map<const std::string, IFilterParameter*> params;
 			const IFilterParameterInfo* pinfo;

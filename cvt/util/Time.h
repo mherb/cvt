@@ -139,7 +139,7 @@ namespace cvt {
 
 	inline const Time& Time::operator+=( size_t ms )
 	{
-		long ns, sec;
+		long ns;
 		ldiv_t res;
 		ns = ms * 1000000L + _ts.tv_nsec;
 		res = ldiv( ns, 1000000000L );
