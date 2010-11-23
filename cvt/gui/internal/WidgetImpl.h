@@ -8,6 +8,7 @@
 namespace cvt {
 	class WidgetImpl {
 		public:
+			virtual				~WidgetImpl();
 			virtual void	    setSize( int width, int height ) = 0;
 			virtual void	    size( int& width, int& height ) const = 0;
 			virtual void	    setPosition( int width, int height ) = 0;
@@ -16,7 +17,7 @@ namespace cvt {
 			virtual void	    rect( Recti& rect ) const = 0;
 			virtual void	    setVisible( bool visibility ) = 0;
 			virtual bool	    isVisible() const = 0;
-			virtual void	    setTitle( const std::string& title ) {};
+			virtual void	    setTitle( const std::string& ) {};
 			virtual void	    update() = 0;
 			virtual void	    update( const Recti& rect ) = 0;
 			virtual void	    setMinimumSize( int w, int h ) = 0;

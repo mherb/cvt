@@ -58,7 +58,6 @@ BEGIN_CVTTEST( simd )
 		float* fsrc1;
 		float* fsrc2;
 		float val1;
-		float val4[ 4 ] = { 0.5f, 2.0f, 1.4323f, 0.2f };
 		Time tmr;
 		double t;
 

@@ -876,7 +876,6 @@ namespace cvt {
 			uint8_t* odst;
 			const uint8_t* wrp;
 			const uint8_t* owrp;
-			const float* psrc;
 			float* pdst;
 			const float* pwrp;
 			float data[ 4 ];
