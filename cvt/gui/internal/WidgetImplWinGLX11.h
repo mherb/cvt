@@ -34,7 +34,7 @@ namespace cvt {
 			virtual void setMaximumSize( int w, int h );
 			virtual void minimumSize( int& w, int& h );
 			virtual void maximumSize( int& w, int& h );
-			virtual void setParent( Widget* w ) {};
+			virtual void setParent( Widget* ) {};
 			virtual Widget* parent( ) const { return NULL; };
 
 		private:

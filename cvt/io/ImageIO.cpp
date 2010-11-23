@@ -9,6 +9,7 @@ namespace cvt {
 		/* FIXME ... */
 		void loadPNG( Image& img, std::string path )
 		{
+			size_t rdlen;
 			FILE *fp = fopen( path.c_str(), "rb");
 			if (!fp)
 				throw CVTException( "Cannot open PNG image file: " + path );
@@ -17,7 +18,9 @@ namespace cvt {
 			png_uint_32 width, height;
 			int bit_depth, color_type, interlace_type;
 
-			fread( header, 1, 8, fp);
+			rdlen = fread( header, 1, 8, fp);
+			if( rdlen != 8 )
+				throw CVTException( "Invalid PNG image header: " + path );
 
 			if( png_sig_cmp(header, 0, 8) != 0 )
 				throw CVTException( "Invalid PNG image header: " + path );
@@ -51,7 +54,6 @@ namespace cvt {
 			if (color_type == PNG_COLOR_TYPE_PALETTE)
 				png_set_expand(png_ptr);
 
-			int channels = png_get_channels(png_ptr, info_ptr);
 			switch (color_type) {
 				case PNG_COLOR_TYPE_GRAY:
 					if(bit_depth < 8)

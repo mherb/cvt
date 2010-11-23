@@ -21,18 +21,18 @@ namespace cvt {
 	{
 	}
 
-	void Window::closeEvent( CloseEvent* event )
+	void Window::closeEvent( CloseEvent* )
 	{
 		Application::exit();
 	}
 
 
-	void Window::moveEvent( MoveEvent* event )
+	void Window::moveEvent( MoveEvent* )
 	{
 		update();
 	}
 
-	void Window::paintEvent( PaintEvent* event, GFX* gfx )
+	void Window::paintEvent( PaintEvent* , GFX* gfx )
 	{
 		int w, h, x, y;
 		size( w, h );

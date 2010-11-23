@@ -5,7 +5,6 @@ namespace cvt {
 	void X11Handler::onDataReadable()
 	{
 		XEvent xevent;
-		Event* e;
 		WidgetImplWinGLX11* win;
 
 		while( XPending( _dpy ) ) {

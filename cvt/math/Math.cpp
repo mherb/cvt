@@ -178,8 +178,7 @@ namespace cvt {
 
 		BEGIN_CVTTEST( math )
 			float f;
-			double d, t1, t2;
-			int i;
+			double t1, t2;
 			bool b;
 			Time t;
 

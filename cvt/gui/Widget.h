@@ -38,14 +38,14 @@ namespace cvt {
 			void update( const Recti& rect );
 
 		protected:
-			virtual void resizeEvent( ResizeEvent* event ) {};
-			virtual void moveEvent( MoveEvent* event ) {};
-			virtual void paintEvent( PaintEvent* event, GFX* gfx ) {};
-			virtual void showEvent( ShowEvent* event ) {};
-			virtual void hideEvent( HideEvent* event ) {};
-			virtual void mouseMoveEvent( MouseMoveEvent* event ) {};
-			virtual void mousePressEvent( MousePressEvent* event ) {};
-			virtual void mouseReleaseEvent( MouseReleaseEvent* event ) {};
+			virtual void resizeEvent( ResizeEvent* ) {};
+			virtual void moveEvent( MoveEvent* ) {};
+			virtual void paintEvent( PaintEvent* , GFX* ) {};
+			virtual void showEvent( ShowEvent* ) {};
+			virtual void hideEvent( HideEvent* ) {};
+			virtual void mouseMoveEvent( MouseMoveEvent* ) {};
+			virtual void mousePressEvent( MousePressEvent* ) {};
+			virtual void mouseReleaseEvent( MouseReleaseEvent* ) {};
 			virtual void mouseWheelEvent() {};
 			virtual void mouseEnterEvent() {};
 			virtual void mouseLeaveEvent() {};

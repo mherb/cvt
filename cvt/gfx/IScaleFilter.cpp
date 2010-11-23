@@ -27,12 +27,12 @@ namespace cvt {
 	}
 
 	/* Hamming window */
-	static float _filter_window_hamming( float x )
+	/*static float _filter_window_hamming( float x )
 	{
 		if( x < -1.0f ) return 0.0f;
 		if( x > 1.0f ) return 0.0f;
 		return 0.54f + 0.46f * Math::cos( Math::PI * x );
-	}
+	}*/
 
 	/* triangle filter, bilinear */
 	static float _filter_triangle( float x )
