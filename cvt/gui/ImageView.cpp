@@ -14,7 +14,6 @@ namespace cvt {
 	{
 		int w, h;
 		size( w, h );
-		std::cout << w << " , " << h << std::endl;
 		g->drawImage( 0, 0, w, h, _img );
 	}
 
