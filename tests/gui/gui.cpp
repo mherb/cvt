@@ -2,6 +2,7 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/WidgetLayout.h>
+#include <cvt/gui/Moveable.h>
 #include <cvt/gui/Button.h>
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/util/Time.h>
@@ -31,7 +32,9 @@ int main(int argc, char* argv[])
     wl.setAnchoredBottom( 10, 30 );
     w.addWidget( &button, wl );
 
-	w.addWidgetMoveable( NULL );
+	Moveable m( NULL );
+	m.setSize( 200, 200 );
+	w.addWidget( &m );
 
   //  Delegate<void (BasicTimer*)> d( &timeout );
     //t.timeout.add( &d );

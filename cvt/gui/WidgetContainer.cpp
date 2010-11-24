@@ -18,37 +18,8 @@ namespace cvt {
 		_children.clear();
 	}
 
-
-	void WidgetContainer::addWidgetMoveable( Widget* w )
-	{
-		Moveable* m = new Moveable( NULL );
-		m->setParent( this );
-		m->setSize( 200, 200 );
-		m->show();
-		_mchildren.push_back( m );
-	}
-
 	Widget* WidgetContainer::childAt( int x, int y )
 	{
-		MChildList::iterator mit = _mchildren.begin();
-		while( mit != _mchildren.end() )
-		{
-			Moveable* w = *mit;
-			if( w->parent() != this ) {
-				MChildList::iterator it2 = mit;
-				++mit;
-				_mchildren.erase( it2 );
-				continue;
-			}
-
-			Recti r;
-			w->rect( r );
-			if( r.contains( x, y ) )
-				return w;
-			++mit;
-		}
-
-
 		ChildList::iterator it = _children.begin();
 		while( it != _children.end() )
 		{
@@ -71,17 +42,6 @@ namespace cvt {
 
 	void WidgetContainer::removeWidget( Widget* w  )
 	{
-		MChildList::iterator mit = _mchildren.begin();
-		while( mit != _mchildren.end() )
-		{
-			Moveable* widget = *mit;
-			if( widget->child() == w ) {
-				_mchildren.erase( mit );
-				return;
-			}
-			++mit;
-		}
-
 		ChildList::iterator it = _children.begin();
 		while( it != _children.end() )
 		{
@@ -151,25 +111,6 @@ namespace cvt {
 				paintChild( w, gfx, rc );
 			}
 			++it;
-		}
-
-		MChildList::iterator mit = _mchildren.begin();
-		while( mit != _mchildren.end() )
-		{
-			Widget* w = *mit;
-			if( w->parent() != this ) {
-				MChildList::iterator it2 = mit;
-				++mit;
-				_mchildren.erase( it2 );
-				continue;
-			}
-			if( w->isVisible() ) {
-				Recti rc;
-				w->rect( rc );
-				rc.intersect( r );
-				paintChild( w, gfx, rc );
-			}
-			++mit;
 		}
 	}
 

@@ -22,8 +22,8 @@ namespace cvt {
 			void rect( Recti& r, unsigned int w, unsigned int h ) const;
 
 		private:
-			enum LayoutH { LAYOUT_HL, LAYOUT_HR, LAYOUT_HLR };
-			enum LayoutV { LAYOUT_VT, LAYOUT_VB, LAYOUT_VTB };
+			enum LayoutH { LAYOUT_HNONE, LAYOUT_HL, LAYOUT_HR, LAYOUT_HLR };
+			enum LayoutV { LAYOUT_VNONE, LAYOUT_VT, LAYOUT_VB, LAYOUT_VTB };
 
 			LayoutH _layouth;
 			LayoutV _layoutv;
@@ -33,10 +33,10 @@ namespace cvt {
 
 	inline WidgetLayout::WidgetLayout()
 	{
-		_layouth = LAYOUT_HL;
-		_layoutv = LAYOUT_VT;
-		_horizontal.set( 0, 10 );
-		_vertical.set( 0, 10 );
+		_layouth = LAYOUT_HNONE;
+		_layoutv = LAYOUT_VNONE;
+		_horizontal.set( 0, 0 );
+		_vertical.set( 0, 0 );
 	}
 
 	inline void WidgetLayout::setAnchoredLeft( unsigned int marginleft, unsigned int width )
@@ -98,6 +98,8 @@ namespace cvt {
 					rect.width = w - _horizontal[ 0 ] - _horizontal[ 1 ];
 				}
 				break;
+			case LAYOUT_HNONE:
+				break;
 		}
 
 		switch( _layoutv ) {
@@ -118,6 +120,8 @@ namespace cvt {
 					rect.y = _vertical[ 0 ];
 					rect.height = h - _vertical[ 0 ] - _vertical[ 1 ];
 				}
+				break;
+			case LAYOUT_VNONE:
 				break;
 		}
 	}
