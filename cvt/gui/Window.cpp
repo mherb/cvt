@@ -44,7 +44,7 @@ namespace cvt {
 		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->drawImage( 100, 100, 100, 100, img );
 
-		gfx->color().set( 0.8f, 0.8f, 0.8f, 1.0f );
+		gfx->color().set( 0.5f, 0.5f, 0.5f, 1.0f );
 		gfx->drawIcon( 100, 100, GFX::ICON_CIRCLECROSS );
 		gfx->drawIcon( 100, 116, GFX::ICON_RECTCROSS );
 		gfx->drawIcon( 100, 132, GFX::ICON_RECT );

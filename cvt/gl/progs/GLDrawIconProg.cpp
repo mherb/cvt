@@ -61,8 +61,8 @@ namespace cvt {
 		GLint* buf;
 
 		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
-		buf[ 0 ] = x;
-		buf[ 1 ] = y;
+		buf[ 0 ] = x + 8;
+		buf[ 1 ] = y + 8;
 		buf[ 2 ] = icon;
 		_vbo.unmap();
 
