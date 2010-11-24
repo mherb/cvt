@@ -106,6 +106,30 @@ namespace cvt {
 	    impl->update( rect );
 	}
 
+	void Widget::mapGlobal( int&x, int& y )
+	{
+		int gx, gy;
+
+		if( isToplevel() )
+			return;
+
+		position( gx, gy );
+		x += gx;
+		y += gy;
+	}
+
+	void Widget::mapLocal( int& x, int& y )
+	{
+		int gx, gy;
+
+		if( isToplevel() )
+			return;
+
+		position( gx, gy );
+		x -= gx;
+		y -= gy;
+	}
+
 	void Widget::paintChild( Widget* w, GFX* gfx, const Recti& rect ) const
 	{
 		if( w->parent() != this )

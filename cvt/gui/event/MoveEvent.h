@@ -8,15 +8,12 @@ namespace cvt {
 	{
 		friend class ApplicationX11;
 		public:
-			MoveEvent( int x, int y, int oldx, int oldy ) : Event( EVENT_MOVE ), _x( x ), _y( y ), _oldx( oldx ), _oldy( oldy ) { };
-			void getPosition( int& x, int& y ) const { x = _x; y = _y;  };
-			void getOldPosition( int& x, int& y ) const { x = _oldx; y = _oldy;  };
-			int x() const { return _x; };
-			int y() const { return _y; };
+			MoveEvent( int _x, int _y, int _oldx, int _oldy ) : Event( EVENT_MOVE ), x( _x ), y( _y ), oldx( _oldx ), oldy( _oldy ) { };
+			void position( int& _x, int& _y ) const { _x = x; _y = y; };
+			void oldPosition( int& _x, int& _y ) const { _x = oldx; _y = oldy;  };
 
-		private:
-			int _x, _y;
-			int _oldx, _oldy;
+			int x, y;
+			int oldx, oldy;
 	};
 };
 
