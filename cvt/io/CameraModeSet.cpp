@@ -93,8 +93,10 @@ namespace cvt {
 		size_t dist, bestDist = 100000, bestIdx = 0;
 		for( size_t i = 0; i < this->size(); i++ ) {
 			const CameraMode & mode = this->mode( i );
-			dist = ( mode.format.formatID - format.formatID ) +
-				   ( mode.width - width ) +
+			if( mode.format == format )
+				dist = 0;
+			else dist = 1;
+			dist = ( mode.width - width ) +
 				   ( mode.height - height ) +
 				   ( mode.fps - fps );
 

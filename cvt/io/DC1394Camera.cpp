@@ -99,7 +99,7 @@ namespace cvt
 		enableShutterAuto( false );
 		enableGainAuto( false );
 		enableIrisAuto( false );
-		setShutter( 500 );
+		setShutter( 300 );
 
 		_capturing = true;
 	}
