@@ -21,6 +21,7 @@ namespace cvt {
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
 			void drawText( int x, int y, const char* txt );
+			int  textWidth( const char* txt );
 
 		private:
 			GLVertexArray _vao;

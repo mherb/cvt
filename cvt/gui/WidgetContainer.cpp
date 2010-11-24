@@ -94,12 +94,12 @@ namespace cvt {
 	void WidgetContainer::paintChildren( GFX* gfx, const Recti& r )
 	{
 
-		ChildList::iterator it = _children.begin();
-		while( it != _children.end() )
+		ChildList::reverse_iterator it = _children.rbegin();
+		while( it != _children.rend() )
 		{
 			Widget* w = it->first;
 			if( w->parent() != this ) {
-				ChildList::iterator it2 = it;
+				ChildList::iterator it2 = it.base();
 				++it;
 				_children.erase( it2 );
 				continue;

@@ -47,6 +47,17 @@ namespace cvt {
 		_vao.setColor( color );
 	}
 
+
+	int GLDrawTextProg::textWidth( const char* text )
+	{
+		int len = ( int ) strlen( text );
+		int width = 0;
+		for( int i = 0; i < len; i++ ) {
+			width += _glfont.advance[ ( uint8_t ) text[ i ] ];
+		}
+		return width;
+	}
+
 	void GLDrawTextProg::drawText( int x, int y, const char* text )
 	{
 		GLint* buf;
