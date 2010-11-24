@@ -1,7 +1,12 @@
 #include <cvt/gui/Moveable.h>
 
 namespace cvt {
-	Moveable::Moveable( Widget* child ) : _child( child ), _activeWidget( NULL ), _activeMode( 0 ), _togglebutton( false, GFX::ICON_CIRCLEUP, GFX::ICON_CIRCLEDOWN ), _onToggleDelegate( this, &Moveable::onToggle)
+	Moveable::Moveable( Widget* child ) : _child( child ),
+										  _activeWidget( NULL ),
+										  _activeMode( 0 ),
+										  _title("Unnamed"),
+										  _togglebutton( false, GFX::ICON_CIRCLEUP, GFX::ICON_CIRCLEDOWN ),
+										  _onToggleDelegate( this, &Moveable::onToggle)
 	{
 
 		WidgetLayout layout;
@@ -22,6 +27,10 @@ namespace cvt {
 
 	}
 
+	void Moveable::setTitle( const std::string& title )
+	{
+		_title = title;
+	}
 	void Moveable::paintEvent( PaintEvent* , GFX* gfx )
 	{
 		int w, h;
@@ -29,6 +38,9 @@ namespace cvt {
 		size( w, h );
 		gfx->color().set( 0.2f, 0.2f, 0.2f, 0.8f );
 		gfx->fillRoundRect( 0, 0, w, h, 10.0f );
+		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx->drawText( 8, 15, _title.c_str() );
+
 
 		Recti r;
 		rect( r );

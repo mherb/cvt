@@ -41,7 +41,7 @@ namespace cvt {
 	};
 
 
-	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _widget( w )
+	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _widget( w ), _parent( NULL ), _rect( 0, 0, 1, 1), _visible( false ), _minSize( 1, 1 )
 	{
 	}
 
