@@ -24,6 +24,7 @@ namespace cvt {
 	const IFormat IFormat::BGRA_FLOAT			= FORMATDESC( 4, float		, IFORMAT_BGRA_FLOAT		, IFORMAT_TYPE_FLOAT );
 	const IFormat IFormat::BAYER_RGGB_UINT8		= FORMATDESC( 1, uint8_t	, IFORMAT_BAYER_RGGB_UINT8  , IFORMAT_TYPE_UINT8 );
 	const IFormat IFormat::YUYV_UINT8			= FORMATDESC( 2, uint8_t	, IFORMAT_YUYV_UINT8		, IFORMAT_TYPE_UINT8 );
+	const IFormat IFormat::UYVY_UINT8			= FORMATDESC( 2, uint8_t	, IFORMAT_UYVY_UINT8		, IFORMAT_TYPE_UINT8 );
 
 #undef FORMATDESC
 
@@ -57,7 +58,8 @@ namespace cvt {
 			"BGRA_INT16",
 			"BGRA_FLOAT",
 			"BAYER_RGGB_UINT8",
-			"YUYV_UINT8"
+			"YUYV_UINT8",
+			"UYVY_UINT8"
 		};
 
 		out << "Format: " << _iformatstring[ f.formatID - 1 ];

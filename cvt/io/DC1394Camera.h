@@ -12,11 +12,7 @@ namespace cvt
 	{
 
 		public:
-			DC1394Camera( size_t camIndex = 0,
-						  size_t width=640,
-						  size_t height=480,
-						  size_t fps = 30,
-						  const IFormat & format = IFormat::BGRA_UINT8 );
+			DC1394Camera( size_t camIndex, const CameraMode & mode );
 
 			~DC1394Camera();
 
@@ -45,7 +41,12 @@ namespace cvt
 			void setShutter(unsigned int value);
 			void enableGainAuto(bool enable);
 			void enableIrisAuto(bool enable);
-
+					
+			/* find fitting dc1394 settings for given camera mode */
+			void dcSettings( const CameraMode & mode );
+		
+			dc1394video_mode_t dcMode( const CameraMode & mode );
+			
 			int _dmaBufNum;
 			size_t _camIndex;
 			Image _frame;

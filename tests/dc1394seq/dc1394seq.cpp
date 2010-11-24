@@ -16,8 +16,12 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	DC1394Camera cam;
-//	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
+	CameraInfo info;
+	DC1394Camera::cameraInfo( 0, info );
+	const CameraMode & mode = info.bestMatchingMode( IFormat::RGBA_UINT8, 640, 480, 30 );
+	
+	DC1394Camera cam( 0, mode );
+
 	int key;
 	size_t frames = 0;
 	Time timer;
@@ -25,8 +29,7 @@ int main(int argc, char* argv[])
 	char buffer[ 512 ];
 	Image* out;
 	std::list<Image*> list;
-
-
+	
 	try {
 		cam.startCapture();
 

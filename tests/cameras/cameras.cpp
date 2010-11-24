@@ -38,7 +38,7 @@ int main()
 	Camera * cam = 0;
 
 	try {
-		cam = Camera::get( selection, 640, 480, 30, IFormat::YUYV_UINT8 );
+		cam = Camera::get( selection, 640, 480, 30, IFormat::UYVY_UINT8 );
 
 		Image frame( cam->width(), cam->height(), IFormat::BGRA_UINT8 );
 

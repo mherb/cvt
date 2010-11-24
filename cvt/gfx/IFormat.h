@@ -30,7 +30,8 @@ namespace cvt
 		IFORMAT_BGRA_FLOAT,
 
 		IFORMAT_BAYER_RGGB_UINT8,
-		IFORMAT_YUYV_UINT8
+		IFORMAT_YUYV_UINT8,
+		IFORMAT_UYVY_UINT8
 	};
 
 	enum IFormatType
@@ -72,6 +73,7 @@ namespace cvt
 		static const IFormat BGRA_FLOAT;
 		static const IFormat BAYER_RGGB_UINT8;
 		static const IFormat YUYV_UINT8;
+		static const IFormat UYVY_UINT8;
 
 		static const IFormat & uint8Equivalent( const IFormat & format );
 		static const IFormat & floatEquivalent( const IFormat & format );
@@ -117,6 +119,8 @@ namespace cvt
 				return IFormat::BAYER_RGGB_UINT8;
 			case IFORMAT_YUYV_UINT8:
 				return IFormat::YUYV_UINT8;
+			case IFORMAT_UYVY_UINT8:
+				return IFormat::UYVY_UINT8;
 			default:
 				throw CVTException( "NO UINT8 equivalent for requested FORMAT" );
 		}
