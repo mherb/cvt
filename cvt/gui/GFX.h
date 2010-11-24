@@ -19,7 +19,8 @@ namespace cvt {
 				ICON_RECT,
 				ICON_CIRCLE,
 				ICON_CIRCLEUP,
-				ICON_CIRCLEDOWN	};
+				ICON_CIRCLEDOWN,
+				ICON_CORNER };
 
 			GFX();
 			//GFX( const GFX& g );

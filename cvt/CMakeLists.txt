@@ -49,6 +49,8 @@ GLSLTOHEADER(gl/shader/120/basic_120.vert)
 GLSLTOHEADER(gl/shader/120/basic_120.frag)
 GLSLTOHEADER(gl/shader/120/text_120.vert)
 GLSLTOHEADER(gl/shader/120/text_120.frag)
+GLSLTOHEADER(gl/shader/120/icon_120.vert)
+GLSLTOHEADER(gl/shader/120/icon_120.frag)
 GLSLTOHEADER(gl/shader/120/basictex_120.vert)
 GLSLTOHEADER(gl/shader/120/basictex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
@@ -58,6 +60,8 @@ GLSLTOHEADER(gl/shader/150/basic_150.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.frag)
 GLSLTOHEADER(gl/shader/150/text_150.vert)
 GLSLTOHEADER(gl/shader/150/text_150.frag)
+GLSLTOHEADER(gl/shader/150/icon_150.vert)
+GLSLTOHEADER(gl/shader/150/icon_150.frag)
 GLSLTOHEADER(gl/shader/150/basictex_150.vert)
 GLSLTOHEADER(gl/shader/150/basictex_150.frag)
 GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
@@ -144,6 +148,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/120/basicrr_120_frag.h
 	gl/shader/120/text_120_vert.h
 	gl/shader/120/text_120_frag.h
+	gl/shader/120/icon_120_vert.h
+	gl/shader/120/icon_120_frag.h
 	gl/shader/120/basictex_120_vert.h
 	gl/shader/120/basictex_120_frag.h
 	gl/shader/120/basicrrtex_120_frag.h
@@ -152,6 +158,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/150/basicrr_150_frag.h
 	gl/shader/150/text_150_vert.h
 	gl/shader/150/text_150_frag.h
+	gl/shader/150/icon_150_vert.h
+	gl/shader/150/icon_150_frag.h
 	gl/shader/150/basictex_150_vert.h
 	gl/shader/150/basictex_150_frag.h
 	gl/shader/150/basicrrtex_150_frag.h
