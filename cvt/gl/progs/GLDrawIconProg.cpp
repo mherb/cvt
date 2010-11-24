@@ -4,19 +4,19 @@
 #include <cvt/io/Resources.h>
 
 
-#include <cvt/gl/shader/120/text_120_vert.h>
-#include <cvt/gl/shader/120/text_120_frag.h>
-#include <cvt/gl/shader/150/text_150_vert.h>
-#include <cvt/gl/shader/150/text_150_frag.h>
+#include <cvt/gl/shader/120/icon_120_vert.h>
+#include <cvt/gl/shader/120/icon_120_frag.h>
+#include <cvt/gl/shader/150/icon_150_vert.h>
+#include <cvt/gl/shader/150/icon_150_frag.h>
 
 namespace cvt {
 	GLDrawIconProg::GLDrawIconProg() : _vbo( GL_ARRAY_BUFFER )
 	{
 		try {
 			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
-				build( _text_150_vert_source, _text_150_frag_source );
+				build( _icon_150_vert_source, _icon_150_frag_source );
 			} else {
-				build( _text_120_vert_source, _text_120_frag_source );
+				build( _icon_120_vert_source, _icon_120_frag_source );
 			}
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
