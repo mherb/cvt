@@ -27,8 +27,11 @@ namespace cvt {
 
 	void GFXGL::updateState()
 	{
+		Recti clip;
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glScissor( _childrect.x, _viewport.height - ( _childrect.y + _childrect.height ), _childrect.width, _childrect.height );
+		clip = _viewport;
+		clip.intersect( _childrect );
+		glScissor( clip.x, _viewport.height - ( clip.y + clip.height ), clip.width, clip.height );
 	}
 
 	void GFXGL::fillRect( const Recti& rect )

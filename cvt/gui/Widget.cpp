@@ -113,7 +113,7 @@ namespace cvt {
 
 		// FIXME: is rect in local coords or in child coords
 
-		Recti crect, newcrect;
+		Recti crect;
 
 		/* get current childrect */
 	    gfx->childrect( crect );
@@ -121,13 +121,10 @@ namespace cvt {
 		Recti rchild;
 		w->rect( rchild );
 
-		newcrect = crect;
-		newcrect.intersect( rchild );
-
 		/* set new childrect */
-		gfx->setChildrect( newcrect );
+		gfx->setChildrect( rchild );
 		/* do painting with default GFX */
-		PaintEvent pe( 0, 0, newcrect.width, newcrect.height );
+		PaintEvent pe( 0, 0, rchild.width, rchild.height );
 		gfx->setDefault();
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
