@@ -163,6 +163,7 @@ namespace cvt {
 			case IFORMAT_BAYER_RGGB_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
 
 			case IFORMAT_YUYV_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_UYVY_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
 			default:
 				throw CVTException( "No equivalent CL format found" );
 				break;

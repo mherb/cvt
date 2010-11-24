@@ -23,17 +23,21 @@ void mouseevent(int event, int x, int y, int flags, Params* p )
 
 int main(int argc, char* argv[])
 {	
-	DC1394Camera cam;
-//	V4L2Camera cam( 0, 640, 480, 30.0, CVT_BGRA );
+	CameraInfo info;
+	DC1394Camera::cameraInfo( 0, info );
+	const CameraMode & mode = info.bestMatchingMode( IFormat::GRAY_UINT8, 640, 480, 60 );
+	std::cout << mode << std::endl;
+	
+	DC1394Camera cam( 0, mode );
+
 	int key;
 	size_t frames = 0;
 	Time timer;
 
-
 	try {
 		cam.startCapture();
 
-		Image out( 640, 480, IFormat::BGRA_UINT8 );
+		Image out( 640, 480, IFormat::GRAY_UINT8 );
 		Image region( 640, 480, IFormat::GRAY_UINT8 );
 
 
@@ -48,7 +52,7 @@ int main(int argc, char* argv[])
 			frame.convert( out );
 			size_t stride;
 			const uint8_t * data = out.map( &stride );
-			cv::Mat ocvImage( out.height(), out.width(), CV_8UC4, (void *)data, stride );
+			cv::Mat ocvImage( out.height(), out.width(), CV_8UC1, (void *)data, stride );
 			cv::imshow( "DC1394", ocvImage );
 			frame.unmap( data );
 
