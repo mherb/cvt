@@ -1,11 +1,13 @@
 #include <cvt/gl/progs/GLDrawIconProg.h>
+#include <cvt/gfx/Image.h>
+#include <cvt/io/ImageIO.h>
+#include <cvt/io/Resources.h>
+
 
 #include <cvt/gl/shader/120/text_120_vert.h>
 #include <cvt/gl/shader/120/text_120_frag.h>
 #include <cvt/gl/shader/150/text_150_vert.h>
 #include <cvt/gl/shader/150/text_150_frag.h>
-
-#include <cvt/gui/internal/icons.h>
 
 namespace cvt {
 	GLDrawIconProg::GLDrawIconProg() : _vbo( GL_ARRAY_BUFFER )
@@ -25,7 +27,14 @@ namespace cvt {
 		_texloc = uniformLocation( "TexFont" );
 		_scaleloc = uniformLocation( "Scale" );
 
-		_tex.alloc( GL_RED, 128, 128, GL_RED, GL_UNSIGNED_BYTE, _icondata );
+		Image icons;
+		size_t stride;
+		cvt::Resources resources;
+		ImageIO::loadPNG( icons, resources.find( "Icons/Icons.png" ) );
+
+		uint8_t* ptr = icons.map( &stride );
+		_tex.alloc( GL_RED, 128, 128, GL_RED, GL_UNSIGNED_BYTE, ptr );
+		icons.unmap( ptr );
 		bind();
 		glUniform1f( _texloc, 0 );
 		glUniform1f( _scaleloc, 16.0f / 128.0f );
