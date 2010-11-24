@@ -129,6 +129,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/WidgetLayout.h
 	gui/Button.h
 	gui/ToggleButton.h
+	gui/ImageView.h
 	gui/internal/WidgetImplDefault.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
@@ -214,6 +215,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Moveable.cpp
 	gui/Button.cpp
 	gui/ToggleButton.cpp
+	gui/ImageView.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
 	gui/internal/WidgetImplWinGLX11.cpp

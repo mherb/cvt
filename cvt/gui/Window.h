@@ -17,9 +17,6 @@ namespace cvt {
 
 		private:
 			Window( const Window& w );
-			bool mouse;
-			int mx, my;
-			Image img;
 	};
 }
 

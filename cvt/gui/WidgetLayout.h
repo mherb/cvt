@@ -93,7 +93,7 @@ namespace cvt {
 			case LAYOUT_HLR:
 				{
 					rect.x = prect.x + _horizontal[ 0 ];
-					rect.width = prect.x + prect.width - _horizontal[ 0 ] - _horizontal[ 1 ];
+					rect.width = prect.width - _horizontal[ 0 ] - _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HNONE:
@@ -116,7 +116,7 @@ namespace cvt {
 			case LAYOUT_VTB:
 				{
 					rect.y = prect.y + _vertical[ 0 ];
-					rect.height = prect.y + prect.width - _vertical[ 0 ] - _vertical[ 1 ];
+					rect.height = prect.height - _vertical[ 0 ] - _vertical[ 1 ];
 				}
 				break;
 			case LAYOUT_VNONE:

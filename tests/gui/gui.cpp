@@ -4,8 +4,10 @@
 #include <cvt/gui/WidgetLayout.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Button.h>
-#include <cvt/gui/ToggleButton.h>
+#include <cvt/gui/ImageView.h>
 #include <cvt/gui/BasicTimer.h>
+#include <cvt/io/ImageIO.h>
+#include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
 
 using namespace cvt;
@@ -21,6 +23,9 @@ void timeout( BasicTimer* timer )
 int main(int argc, char* argv[])
 {
 //    BasicTimer t( 30 );
+    cvt::Resources resources;
+	Image img;
+	ImageIO::loadPNG( img, resources.find( "lena.png" ) );
 
     Window w( "Test" );
     w.setSize( 640, 480 );
@@ -36,14 +41,12 @@ int main(int argc, char* argv[])
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
-	ToggleButton tb( false );
-    wl.setAnchoredRight( 10, 50 );
-    wl.setAnchoredTop( 10, 20 );
-    w.addWidget( &tb, wl );
-
-	Moveable m( NULL );
+	ImageView view;
+	Moveable m( &view );
 	m.setSize( 200, 200 );
 	w.addWidget( &m );
+
+	view.setImage( img );
 
   //  Delegate<void (BasicTimer*)> d( &timeout );
     //t.timeout.add( &d );
