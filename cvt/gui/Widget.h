@@ -37,6 +37,8 @@ namespace cvt {
 			void maximumSize( int& w, int& h );
 			void update();
 			void update( const Recti& rect );
+			void mapGlobal( int&x, int& y );
+			void mapLocal( int& x, int& y );
 
 		protected:
 			virtual void resizeEvent( ResizeEvent* ) {};

@@ -19,7 +19,7 @@ namespace cvt {
 			void setAnchoredTop( unsigned int margintop, unsigned int height );
 			void setAnchoredBottom( unsigned int marginbottom, unsigned int height );
 			void setAnchoredTopBottom( unsigned int margintop, unsigned int marginbottom );
-			void rect( Recti& r, unsigned int w, unsigned int h ) const;
+			void rect( Recti& r, const Recti& parentrect ) const;
 
 		private:
 			enum LayoutH { LAYOUT_HNONE, LAYOUT_HL, LAYOUT_HR, LAYOUT_HLR };
@@ -75,27 +75,25 @@ namespace cvt {
 		_vertical.set( margintop, marginbottom );
 	}
 
-	inline void WidgetLayout::rect( Recti& rect, unsigned int width, unsigned int height ) const
+	inline void WidgetLayout::rect( Recti& rect, const Recti& prect ) const
 	{
-		int w = width;
-		int h = height;
 		switch( _layouth ) {
 			case LAYOUT_HL:
 				{
-					rect.x = _horizontal[ 0 ];
+					rect.x = prect.x + _horizontal[ 0 ];
 					rect.width = _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HR:
 				{
-					rect.x = w - _horizontal[ 0 ] - _horizontal[ 1 ];
+					rect.x = prect.x + prect.width - _horizontal[ 0 ] - _horizontal[ 1 ];
 					rect.width = _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HLR:
 				{
-					rect.x = _horizontal[ 0 ];
-					rect.width = w - _horizontal[ 0 ] - _horizontal[ 1 ];
+					rect.x = prect.x + _horizontal[ 0 ];
+					rect.width = prect.x + prect.width - _horizontal[ 0 ] - _horizontal[ 1 ];
 				}
 				break;
 			case LAYOUT_HNONE:
@@ -105,20 +103,20 @@ namespace cvt {
 		switch( _layoutv ) {
 			case LAYOUT_VT:
 				{
-					rect.y = _vertical[ 0 ];
+					rect.y = prect.y + _vertical[ 0 ];
 					rect.height = _vertical[ 1 ];
 				}
 				break;
 			case LAYOUT_VB:
 				{
-					rect.y = h - _vertical[ 0 ] - _vertical[ 1 ];
+					rect.y = prect.y + prect.height - _vertical[ 0 ] - _vertical[ 1 ];
 					rect.height = _vertical[ 1 ];
 				}
 				break;
 			case LAYOUT_VTB:
 				{
-					rect.y = _vertical[ 0 ];
-					rect.height = h - _vertical[ 0 ] - _vertical[ 1 ];
+					rect.y = prect.y + _vertical[ 0 ];
+					rect.height = prect.y + prect.width - _vertical[ 0 ] - _vertical[ 1 ];
 				}
 				break;
 			case LAYOUT_VNONE:

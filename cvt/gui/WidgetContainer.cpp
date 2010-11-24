@@ -62,6 +62,40 @@ namespace cvt {
 	void WidgetContainer::resizeChildren()
 	{
 		Recti r;
+		Recti rself;
+
+		rect( rself );
+		if( isToplevel() )
+			rself.setPosition( 0, 0 );
+
+		ChildList::iterator it = _children.begin();
+		while( it != _children.end() )
+		{
+			Widget* w = it->first;
+			if( w->parent() != this ) {
+				ChildList::iterator it2 = it;
+				++it;
+				_children.erase( it2 );
+				continue;
+			}
+
+			w->rect( r );
+			it->second.rect( r, rself );
+			w->setRect( r );
+			++it;
+		}
+	}
+
+	void WidgetContainer::moveEvent( MoveEvent* me )
+	{
+		int dx = me->x - me->oldx;
+		int dy = me->y - me->oldy;
+		moveChildren( dx, dy );
+	}
+
+	void WidgetContainer::moveChildren( int dx, int dy )
+	{
+		Recti r;
 		int width, height;
 
 		size( width, height );
@@ -78,7 +112,8 @@ namespace cvt {
 			}
 
 			w->rect( r );
-			it->second.rect( r, width, height );
+			r.x += dx;
+			r.y += dy;
 			w->setRect( r );
 			++it;
 		}
@@ -116,12 +151,15 @@ namespace cvt {
 
 	void WidgetContainer::mousePressEvent( MousePressEvent* event )
 	{
-		_activeWidget = childAt( event->x, event->y );
+		int x, y;
+
+		event->position( x, y );
+		mapGlobal( x, y );
+		_activeWidget = childAt( x, y );
+
 		if( _activeWidget ) {
-			int cx, cy;
-			_activeWidget->position( cx, cy );
-			event->x -= cx;
-			event->y -= cy;
+			mapGlobal( event->x, event->y );
+			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mousePressEvent( event );
 		}
 
@@ -130,10 +168,8 @@ namespace cvt {
 	void WidgetContainer::mouseMoveEvent( MouseMoveEvent* event )
 	{
 		if( _activeWidget ) {
-			int cx, cy;
-			_activeWidget->position( cx, cy );
-			event->x -= cx;
-			event->y -= cy;
+			mapGlobal( event->x, event->y );
+			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mouseMoveEvent( event );
 		}
 	}
@@ -141,10 +177,8 @@ namespace cvt {
 	void WidgetContainer::mouseReleaseEvent( MouseReleaseEvent* event )
 	{
 		if( _activeWidget ) {
-			int cx, cy;
-			_activeWidget->position( cx, cy );
-			event->x -= cx;
-			event->y -= cy;
+			mapGlobal( event->x, event->y );
+			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mouseReleaseEvent( event );
 		}
 		_activeWidget = NULL;

@@ -23,6 +23,7 @@ namespace cvt {
 			Widget* childAt( int x, int y );
 
 			void resizeEvent( ResizeEvent* event );
+			void moveEvent( MoveEvent* event );
 			void paintEvent( PaintEvent* event, GFX* gfx );
 			void mousePressEvent( MousePressEvent* event );
 			void mouseMoveEvent( MouseMoveEvent* event );
@@ -31,6 +32,7 @@ namespace cvt {
 		protected:
 			void paintChildren( GFX* gfx, const Recti& r );
 			void resizeChildren( );
+			void moveChildren( int dx, int dy );
 
 		private:
 			typedef std::list< std::pair<Widget*, WidgetLayout> > ChildList;

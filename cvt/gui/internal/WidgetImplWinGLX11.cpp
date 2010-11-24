@@ -165,7 +165,7 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::moveEvent( MoveEvent* event )
 	{
-		event->getPosition( _rect.x, _rect.y );
+		event->position( _rect.x, _rect.y );
 		_widget->moveEvent( event );
 	}
 

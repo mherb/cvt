@@ -11,17 +11,15 @@ namespace cvt {
 			Button( const std::string& label );
 			~Button();
 
-			Signal<Button*> clicked;
+			Signal<void> clicked;
 
 		private:
 			void paintEvent( PaintEvent* e, GFX* g );
-			void mousePressEvent( MousePressEvent* event );
 			void mouseReleaseEvent( MouseReleaseEvent* event );
 
 
 			Button( const Button& b );
 
-			bool _click;
 			std::string _label;
 	};
 }
