@@ -1,10 +1,10 @@
 #ifndef CVT_MOVEABLE_H
 #define CVT_MOVEABLE_H
 
-#include <cvt/gui/Widget.h>
+#include <cvt/gui/WidgetContainer.h>
 
 namespace cvt {
-	class Moveable : public Widget
+	class Moveable : public WidgetContainer
 	{
 		public:
 			Moveable( Widget* child );
@@ -20,7 +20,8 @@ namespace cvt {
 			void mouseReleaseEvent( MouseReleaseEvent* ev );
 
 			Widget* _child;
-			bool _active;
+			Widget* _activeWidget;
+			int _activeMode;
 			int _lx, _ly;
 	};
 
