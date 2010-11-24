@@ -38,6 +38,7 @@ namespace cvt {
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
 			virtual void drawImage( int x, int y, int width, int height, const Image& img ) = 0;
 			virtual void drawIcon( int x, int y, Icon i ) = 0;
+			virtual int  textWidth( const char* text ) = 0;
 
 		private:
 			void setViewport( const Recti& r ) { _viewport = r; };

@@ -29,6 +29,7 @@ namespace cvt {
 			virtual void drawImage( int x, int y, const Image& img );
 			virtual void drawImage( int x, int y, int width, int height, const Image& img );
 			virtual void drawIcon( int x, int y, Icon icon );
+			virtual int textWidth( const char* text );
 
 		private:
 			void updateState();

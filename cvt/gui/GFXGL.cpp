@@ -87,6 +87,11 @@ namespace cvt {
 		drawtextp.unbind();
 	}
 
+	int GFXGL::textWidth( const char* text )
+	{
+		return drawtextp.textWidth( text );
+	}
+
 
 	void GFXGL::drawImage( int x, int y, const Image& img )
 	{

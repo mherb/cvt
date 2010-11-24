@@ -58,7 +58,7 @@ namespace cvt {
 	{
 		w->setParent( this );
 		w->setVisible( true );
-		_children.push_back( std::make_pair<Widget*, WidgetLayout>( w, WidgetLayout() ) );
+		_children.push_front( std::make_pair<Widget*, WidgetLayout>( w, WidgetLayout() ) );
 	}
 
 

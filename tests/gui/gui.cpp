@@ -26,10 +26,10 @@ int main(int argc, char* argv[])
     w.setVisible( true );
     w.setMinimumSize( 320, 240 );
 
-    Button button( "BLA" );
+    Button button( "Quit" );
     WidgetLayout wl;
-    wl.setAnchoredRight( 10, 120 );
-    wl.setAnchoredBottom( 10, 30 );
+    wl.setAnchoredRight( 10, 50 );
+    wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
 	Moveable m( NULL );
