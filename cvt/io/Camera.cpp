@@ -7,6 +7,9 @@
 #ifdef LINUX
 	#include <cvt/io/V4L2Camera.h>
 #endif
+#ifdef UEYE_FOUND
+	#include <cvt/io/UEyeUsbCamera.h>
+#endif
 
 #include <cvt/io/DC1394Camera.h>
 
@@ -46,6 +49,13 @@ namespace cvt {
 		}
 
 		// ueye cameras
+#ifdef UEYE_FOUND
+		size_t count = UEyeUsbCamera::count();
+		std::cout << "Numcams: " << count << std::endl;
+		for( size_t i = 0; i < count; i++){
+			UEyeUsbCamera::cameraInfo( i, Camera::_camInfos.back() );
+		}
+#endif
 	}
 
 	Camera * Camera::get( size_t index, size_t width, size_t height,
@@ -58,7 +68,7 @@ namespace cvt {
 		CameraInfo & camInfo = Camera::_camInfos[ index ];
 
 		Camera * cam = NULL;
-		
+
 		const CameraMode & mode = camInfo.bestMatchingMode( format, width, height, fps );
 		std::cout << "Selecting mode: " << mode << std::endl;
 
