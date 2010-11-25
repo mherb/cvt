@@ -265,11 +265,11 @@ FIND_PACKAGE(uEyeUsbCamera)
 IF(UEYEUSB_FOUND)
 	SET(${MODULE_NAME}_HEADERS
 		${${MODULE_NAME}_HEADERS}
-		io/muEyeUsbCamera.h
+		io/UEyeUsbCamera.h
 	)
 	SET(${MODULE_NAME}_SOURCES
 		${${MODULE_NAME}_SOURCES}
-		io/muEyeUsbCamera.cpp
+		io/UEyeUsbCamera.cpp
 	)
 	INCLUDE_DIRECTORIES(
 		BEFORE

@@ -1,4 +1,4 @@
-#include "muEyeUsbCamera.h"
+#include "UEyeUsbCamera.h"
 
 #include <iostream>
 
@@ -14,8 +14,8 @@ namespace cvt
 
 	UEyeUsbCamera::~UEyeUsbCamera()
 	{
-		if ( _camHandle != 0 )
-		{
+		if ( _camHandle != 0 ){
+			this->stopCapture();
 			//free old image mem.
 			is_FreeImageMem( _camHandle, _bufferPtr, _bufferID );
 			is_ExitCamera( _camHandle );
@@ -142,6 +142,8 @@ namespace cvt
 
 	void UEyeUsbCamera::stopCapture()
 	{
+		if( is_StopLiveVideo( _camHandle, IS_WAIT ) == IS_NO_SUCCESS )
+			throw CVTException( "Could not stop capture process" );
 	}
 
 	void UEyeUsbCamera::nextFrame()
@@ -153,8 +155,18 @@ namespace cvt
 
 	size_t UEyeUsbCamera::count()
 	{
-		INT ret;
-		is_GetNumberOfCameras( &ret );
+		INT ret = 0;
+
+		UEYE_CAMERA_LIST list;
+
+		std::cout << "GETTING CAMERA LIST ... " << std::endl;
+		if( is_GetCameraList( &list ) == IS_NO_SUCCESS )
+			throw CVTException( "Could not get number of cameras" );
+
+		std::cout << "DONE" << std::endl;
+
+		ret = (size_t)list.dwCount;
+		std::cout << "RET:" << ret << std::endl;
 
 		return (size_t)ret;
 	}
@@ -167,7 +179,7 @@ namespace cvt
 		}
 
 		// retrieve camera information
-		HIDS handle = index +1;// ids handle index starts at 1
+		HIDS handle = index + 1;// ids handle index starts at 1
 		SENSORINFO sInfo;
 		is_GetSensorInfo( handle, &sInfo );
 
