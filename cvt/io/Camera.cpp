@@ -53,6 +53,7 @@ namespace cvt {
 		size_t count = UEyeUsbCamera::count();
 		std::cout << "Numcams: " << count << std::endl;
 		for( size_t i = 0; i < count; i++){
+			Camera::_camInfos.push_back( CameraInfo() );
 			UEyeUsbCamera::cameraInfo( i, Camera::_camInfos.back() );
 		}
 #endif
