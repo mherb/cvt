@@ -1,6 +1,7 @@
 #include "UEyeUsbCamera.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace cvt
 {
@@ -129,7 +130,7 @@ namespace cvt
 			std::cout << "Could not set FrameRate" << std::endl;
 		}
 
-		// FIXME: can't it be done differenty?
+		// FIXME: use buffers
 		is_AllocImageMem( _camHandle, _width, _height, mode.format.bpp * 8, &_bufferPtr, &_bufferID );
 		is_SetImageMem( _camHandle, _bufferPtr, _bufferID );
 		is_SetColorMode( _camHandle, IS_CM_BGR8_PACKED );
@@ -157,16 +158,8 @@ namespace cvt
 	{
 		INT ret = 0;
 
-		UEYE_CAMERA_LIST list;
-
-		std::cout << "GETTING CAMERA LIST ... " << std::endl;
-		if( is_GetCameraList( &list ) == IS_NO_SUCCESS )
+		if( is_GetNumberOfCameras( &ret ) == IS_NO_SUCCESS )
 			throw CVTException( "Could not get number of cameras" );
-
-		std::cout << "DONE" << std::endl;
-
-		ret = (size_t)list.dwCount;
-		std::cout << "RET:" << ret << std::endl;
 
 		return (size_t)ret;
 	}
@@ -178,15 +171,62 @@ namespace cvt
 			throw CVTException( "Index out of bounds" );
 		}
 
-		// retrieve camera information
-		HIDS handle = index + 1;// ids handle index starts at 1
-		SENSORINFO sInfo;
-		is_GetSensorInfo( handle, &sInfo );
+		UEYE_CAMERA_LIST * camList = new UEYE_CAMERA_LIST;
+		camList->dwCount = 0;
+		if( is_GetCameraList( camList ) == IS_NO_SUCCESS ){
+			throw CVTException( "Could not get Camera list" );
+		}
+		DWORD numCams = camList->dwCount;
+		delete camList;
 
-		info.setName( std::string( sInfo.strSensorName ) );
-		info.setIndex( index + 1 );
+		camList = (UEYE_CAMERA_LIST *)new char[ sizeof(DWORD) + numCams * sizeof( UEYE_CAMERA_INFO ) ];
+		camList->dwCount = numCams;
+		if( is_GetCameraList( camList ) == IS_NO_SUCCESS ){
+			throw CVTException( "Could not get Camera list" );
+		}
+
+		info.setName( camList->uci[ index ].Model );
+		info.setIndex( camList->uci[index].dwDeviceID );
 		info.setType( CAMERATYPE_UEYE );
 
+		// get frame information
+		SENSORINFO sensorInfo;
+		HIDS handle = (HIDS)( camList->uci[ index ].dwDeviceID | IS_USE_DEVICE_ID );
+
+		if( is_InitCamera( &handle, 0 ) == IS_CANT_OPEN_DEVICE )
+			throw CVTException( "Cannot initialize camera" );
+
+		if( is_GetSensorInfo( handle, &sensorInfo ) == IS_NO_SUCCESS )
+			throw CVTException( "Could not get image information" );
+
+		INT pixClkMin, pixClkMax;
+		if( is_GetPixelClockRange( handle, &pixClkMin, &pixClkMax ) == IS_NO_SUCCESS ){
+			std::cout << "Could not get PixelClockRange" << std::endl;
+		}
+
+		if( is_SetPixelClock( handle, pixClkMax ) == IS_NO_SUCCESS ){
+			std::cout << "Could not set PixelClock" << std::endl;
+		}
+
+		double min, max, interval;
+		if( is_GetFrameTimeRange( handle, &min, &max, &interval ) == IS_NO_SUCCESS ){
+			std::cout << "Could not get TimeRange" << std::endl;
+		}
+
+		size_t width = (size_t)sensorInfo.nMaxWidth;
+		size_t height = (size_t)sensorInfo.nMaxHeight;
+		size_t fps = (size_t)( 1.0 / min );
+		if( sensorInfo.nColorMode == IS_COLORMODE_BAYER )
+			info.addMode( CameraMode( width, height, fps, IFormat::BAYER_RGGB_UINT8 ) );
+		else if( sensorInfo.nColorMode == IS_COLORMODE_MONOCHROME )
+			info.addMode( CameraMode( width, height, fps, IFormat::GRAY_UINT8 ) );
+		else
+			throw CVTException( "Invalid color mode" );
+
+		if( is_ExitCamera( handle ) == IS_CANT_CLOSE_DEVICE )
+			throw CVTException( "Could not exit camera" );
+
+		delete[] (char*)camList;
 	}
 
 }
