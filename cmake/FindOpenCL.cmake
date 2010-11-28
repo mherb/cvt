@@ -51,6 +51,7 @@ ELSE (WIN32)
 			OpenCL 
 			ENV LD_LIBRARY_PATH
 			/usr/local/ati-stream-sdk/lib/x86_64
+			/usr/local/ati-stream-sdk/lib/x86
 		)
 	ENDIF (APPLE)
 ENDIF (WIN32)
