@@ -6,15 +6,15 @@
  *  Copyright 2010. All rights reserved.
  *
  */
-#ifndef TOOLS_LEVENBERG_MARQUARD_H
-#define TOOLS_LEVENBERG_MARQUARD_H
+#ifndef CVT_LEVENBERG_MARQUARD_H
+#define CVT_LEVENBERG_MARQUARD_H
 
 #include <Eigen/Core>
 #include <Eigen/Array>
 
 #include <vector>
 
-#include "Optimization.h"
+#include <cvt/math/Optimization.h>
 
 namespace cvt {    
     class LevenbergMarquard

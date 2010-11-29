@@ -75,7 +75,9 @@ namespace cvt {
 
 		switch( camInfo.type() ){
 			case CAMERATYPE_UEYE:
+#ifdef UEYE_FOUND
 				cam = new UEyeUsbCamera( camInfo.index(), mode );
+#endif
 				break;
 			case CAMERATYPE_DC1394:
 				cam = new DC1394Camera( camInfo.index(), mode );
