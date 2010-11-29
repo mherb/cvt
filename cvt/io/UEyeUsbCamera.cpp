@@ -7,18 +7,23 @@ namespace cvt
 {
 
 	UEyeUsbCamera::UEyeUsbCamera(  size_t camIndex, const CameraMode & mode ) :
-		_camIndex( camIndex ), _camHandle( 0 ), _width( mode.width ), _height( mode.height ),
-		_bufferID( -1 ), _bufferPtr( NULL ), _frame( _width, _height, mode.format )
+		_camIndex( camIndex ), _camHandle( 0 ),
+		_width( mode.width ), _height( mode.height ),
+		_frame( _width, _height, mode.format )
 	{
 		this->open( mode );
+		this->setPixelClock( 40 );
+		this->setFramerate( 80.0 );
+		this->setAutoSensorShutter( true );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
 	{
 		if ( _camHandle != 0 ){
 			this->stopCapture();
-			//free old image mem.
-			is_FreeImageMem( _camHandle, _bufferPtr, _bufferID );
+
+			is_ExitImageQueue( _camHandle );
+			this->freeMemories();
 			is_ExitCamera( _camHandle );
 		}
 	}
@@ -51,6 +56,12 @@ namespace cvt
 		is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_WHITEBALANCE, &pVal1, &pVal2 );
 	}
 
+	void UEyeUsbCamera::setWhiteBalanceOnce()
+	{
+		double val = 1.0;
+		is_SetAutoParameter( _camHandle, IS_SET_AUTO_WB_ONCE, &val , NULL );
+	}
+
 	void UEyeUsbCamera::setMaxAutoShutter( double value )
 	{
 		double pVal1 = value;
@@ -79,6 +90,13 @@ namespace cvt
 		is_SetRopEffect( _camHandle, IS_SET_ROP_MIRROR_LEFTRIGHT, value?1:0, 0 );
 	}
 
+	void UEyeUsbCamera::setFramerate( double fps )
+	{
+		double newFps;
+		if( is_SetFrameRate( _camHandle, fps, &newFps ) == IS_NO_SUCCESS )
+			std::cout << "New framerate: " << newFps << std::endl;
+	}
+
 	bool UEyeUsbCamera::initCam()
 	{
 		INT nRet = is_InitCamera( &_camHandle, NULL );
@@ -104,7 +122,7 @@ namespace cvt
 	{
 		if ( _camHandle != 0 ) {
 			//free old image mem.
-			is_FreeImageMem( _camHandle, _bufferPtr, _bufferID );
+			this->freeMemories();
 			is_ExitCamera( _camHandle );
 		}
 
@@ -121,7 +139,6 @@ namespace cvt
 
 		double newFPS;
 
-		//is_SetImageSize( _camHandle, _width, _height );
 		is_SetAOI( _camHandle, IS_SET_IMAGE_AOI, &xPos, &yPos, &_width, &_height );
 
 		_frame.reallocate( _width, _height, _frame.format() );
@@ -130,15 +147,33 @@ namespace cvt
 			std::cout << "Could not set FrameRate" << std::endl;
 		}
 
-		// FIXME: use buffers
-		is_AllocImageMem( _camHandle, _width, _height, mode.format.bpp * 8, &_bufferPtr, &_bufferID );
-		is_SetImageMem( _camHandle, _bufferPtr, _bufferID );
-		is_SetColorMode( _camHandle, IS_CM_BGR8_PACKED );
+		this->initMemories( mode );
+
+		is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
+		is_InitImageQueue( _camHandle, 0 );
+	}
+
+	void UEyeUsbCamera::initMemories( const CameraMode & mode )
+	{
+		for( size_t i = 0; i < _numImageBuffers; i++ ){
+			is_AllocImageMem( _camHandle, _width, _height, mode.format.bpp * 8, (char**)&_buffers[ i ], &_bufferIds[ i ] );
+			is_AddToSequence( _camHandle, (char*)_buffers[ i ], _bufferIds[ i ] );
+		}
+		is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] );
+
+	}
+
+	void UEyeUsbCamera::freeMemories()
+	{
+		for( size_t i = 0; i < _numImageBuffers; i++ ){
+			is_FreeImageMem( _camHandle, (char*)_buffers[ i ], _bufferIds[ i ] );
+		}
 	}
 
 	void UEyeUsbCamera::startCapture()
 	{
 		is_CaptureVideo ( _camHandle, IS_WAIT );
+		this->setWhiteBalanceOnce();
 	}
 
 	void UEyeUsbCamera::stopCapture()
@@ -149,9 +184,18 @@ namespace cvt
 
 	void UEyeUsbCamera::nextFrame()
 	{
-		// FIXME: find out how to do it right
-		//is_WaitForNextImage( _camHandle )
-		//is_CopyImageMem( _camHandle, _bufferPtr, _bufferID, img->imageData );
+		uint8_t*	buffer;
+		INT			bufferId;
+		if( IS_TIMED_OUT == is_WaitForNextImage( _camHandle, 1000/*timeout in ms*/, (char**)&buffer, &bufferId ) ){
+			throw CVTException( "Timeout when waiting for next image" );
+		}
+
+		size_t stride;
+		uint8_t * framePtr = _frame.map( &stride );
+		is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
+		_frame.unmap( framePtr );
+
+		is_UnlockSeqBuf( _camHandle, bufferId, (char*)buffer );
 	}
 
 	size_t UEyeUsbCamera::count()

@@ -75,7 +75,7 @@ namespace cvt {
 
 		switch( camInfo.type() ){
 			case CAMERATYPE_UEYE:
-				throw CVTException( "TODO IMPLEMENT UEYE camera handling" );
+				cam = new UEyeUsbCamera( camInfo.index(), mode );
 				break;
 			case CAMERATYPE_DC1394:
 				cam = new DC1394Camera( camInfo.index(), mode );
