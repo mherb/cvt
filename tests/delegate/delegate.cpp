@@ -48,7 +48,7 @@ int main()
 	d5( );
 	d6( 1, 2, 3, 4, 5, 6, 7, 8 ,9, 10 );
 
-#define CALLMAX 100000
+#define CALLMAX 1000000
 
 	Time t;
 	t.reset();

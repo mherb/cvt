@@ -1,4 +1,5 @@
 #include <cvt/io/CameraModeSet.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 
@@ -95,10 +96,11 @@ namespace cvt {
 			const CameraMode & mode = this->mode( i );
 			if( mode.format == format )
 				dist = 0;
-			else dist = 1;
-			dist = ( mode.width - width ) +
-				   ( mode.height - height ) +
-				   ( mode.fps - fps );
+			else
+				dist = 1;
+			dist += Math::sqr( mode.width - width ) +
+					Math::sqr( mode.height - height ) +
+					Math::sqr( mode.fps - fps );
 
 			if( dist < bestDist ){
 				bestIdx = i;

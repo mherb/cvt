@@ -5,13 +5,14 @@
 #include <cvt/gfx/IFilterScalar.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Exception.h>
+#include <cvt/util/Time.h>
 #include <cvt/io/FloFile.h>
 #include <cvt/vision/Flow.h>
 #include <string>
 #include <iostream>
 #include <cv.h>
 #include <highgui.h>
-#include <cvt/io/V4L2Camera.h>
+#include <cvt/io/Camera.h>
 
 #include "calcp1.h"
 #include "calcp2.h"
@@ -26,86 +27,73 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
+	Image frame( 640, 480, IFormat::GRAY_UINT8 );
+	Camera* cam;
 	std::string log;
+	bool doprocess = true;
 	int key;
+	size_t frames = 0;
+	Time timer;
 	std::vector<cl::Event> sync;
 	cl::Event event;
-	int pyridx = 0;
 	Image* u;
-	Image img1, img2, in1, in2, inp1, inp2, iflow, flowpad;
 
+	Camera::updateInfo();
+	cam = Camera::get( 0, 640, 480, 30.0, IFormat::YUYV_UINT8 );
 
 	try {
 		CLContext cl;
 		cl.makeCurrent();
+
+		cl.info( std::cout );
 		CLOptflow flow;
 
-		ImageIO::loadPNG( img1, argv[ 1 ] );
-		ImageIO::loadPNG( img2, argv[ 2 ] );
 
-		in1.reallocate( img1.width(), img1.height(), IFormat::GRAY_FLOAT );
-		in2.reallocate( img2.width(), img2.height(), IFormat::GRAY_FLOAT );
-		iflow.reallocate( img2.width(), img2.height(), IFormat::GRAYALPHA_FLOAT );
-		flowpad.reallocate( 640, 480, IFormat::GRAYALPHA_FLOAT);
-		inp1.reallocate( 640, 480, IFormat::GRAY_FLOAT );
-		inp2.reallocate( 640, 480, IFormat::GRAY_FLOAT );
-		img1.convert( in1, IFormat::GRAY_FLOAT );
-		img2.convert( in2, IFormat::GRAY_FLOAT );
-		inp1.fill( Color( 0.0f ) );
-		inp2.fill( Color( 0.0f ) );
-		inp1.copyRect( 0,0, in1, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
-		inp2.copyRect( 0,0, in2, 0, 0, ( int ) in2.width(), ( int ) in2.height() );
+//		Image iflow( 640, 480, IFormat::RGBA_UINT8 );
 
-		u = flow.updateFlow( inp1 );
-		delete u;
-		u = flow.updateFlow( inp2 );
-		{
-			size_t dstride;
-			uint8_t* dbase = flowpad.map( &dstride );
-			size_t sstride;
-			const uint8_t* sbase;
-			size_t h, n;
-			const uint8_t* src;
-			uint8_t* dst;
+		timer.reset();
 
-			sbase = u->map( &sstride );
-			h = u->height();
-			n = u->width() * u->bpp();
-			dst = dbase;
-			src = sbase;
-			while( h-- ) {
-				memcpy( dst, src, n );
-				dst += dstride;
-				src += sstride;
+		cam->startCapture();
+
+		while( 1 ) {
+			cam->nextFrame();
+			cam->frame().convert( frame );
+			if( doprocess ) {
+				u = flow.updateFlow( frame );
+				//u->readData( iflow.data(), iflow.stride() );
+
+				size_t stride;
+				const uint8_t * data = u->map( &stride );
+				cv::Mat ocvImage( (int)u->height(), (int)u->width(), CV_8UC4, (void *)data, stride );
+				cv::imshow( "frame", ocvImage );
+				u->unmap( data );
+
+//				delete u;
+
+//				cvShowImage( "Video", iflow.iplimage() );
+			} else {
+				size_t stride;
+				const uint8_t * data = frame.map( &stride );
+				cv::Mat ocvImage( (int)frame.height(), (int)frame.width(), CV_8UC1, (void *)data, stride );
+				cv::imshow( "frame", ocvImage );
+				frame.unmap( data );
+			}
+			key = cvWaitKey( 5 ) & 0xff;
+			if( key == 27 )
+				break;
+			else if( key == ' ')
+				doprocess = !doprocess;
+
+			frames++;
+			if( timer.elapsedSeconds() > 5.0f ) {
+				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
+				frames = 0;
+				timer.reset();
 			}
 
-			u->unmap( sbase );
-			flowpad.unmap( dbase );
-
-			iflow.copyRect( 0,0, flowpad, 0, 0, ( int ) in1.width(), ( int ) in1.height() );
-			delete u;
 		}
 
-//		while( 1 ) {
-//			cvShowImage( "Video", iflow.iplimage() );
-//
-//			key = cvWaitKey( 10 ) & 0xff;
-//			if( key == 27 )
-//				break;
-//
-//		}
-
-		FloFile::FloWriteFile( iflow, "out.flo" );
-		if( argc == 4 ) {
-			Image gt;
-			FloFile::FloReadFile( gt, argv[ 3 ] );
-			float aee = Flow::AEE( iflow, gt );
-			float aae = Flow::AAE( iflow, gt );
-
-			std::cout << "AEE: " << aee << std::endl;
-			std::cout << "AAE: " << aae << std::endl;
-
-		}
+		cam->stopCapture();
 	} catch( CLException e ) {
 		std::cout << e.what() << std::endl;
 	} catch( Exception e ) {
