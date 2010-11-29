@@ -21,10 +21,10 @@
 #include "colorcode.h"
 #include "gradxy.h"
 
-#define LAMBDA 80.0f
-#define THETA 0.2f
-#define NUMWARP 5
-#define NUMROF 10
+#define LAMBDA 50.0f
+#define THETA 0.15f
+#define NUMWARP 4
+#define NUMROF 3
 #define TAU 0.249f
 
 namespace cvt {
@@ -70,8 +70,8 @@ namespace cvt {
 		std::cout << "Log FlowColorCode: " << log << std::endl;
 
 		/* FIXME: lowest level defines input format */
-		pyr[ 0 ][ 0 ] = new Image( 160, 480, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 0 ][ 1 ] = new Image( 160, 480, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 0 ][ 0 ] = new Image( 160, 480, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 0 ][ 1 ] = new Image( 160, 480, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
 		pyr[ 1 ][ 0 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
 		pyr[ 1 ][ 1 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
 		pyr[ 2 ][ 0 ] = new Image( 40, 120, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
@@ -131,7 +131,9 @@ namespace cvt {
 		for( int i = 0; i < 4; i++ ) {
 			kernelbidown.setArg( 0, pyr[ i + 1 ][ pyridx ] );
 			kernelbidown.setArg( 1, pyr[ i ][ pyridx ] );
-			kernelbidown.run( *pyr[ i + 1 ][ pyridx ], cl::NDRange( 10, 10 ), &sync, &event );
+			int w = pyr[ i + 1 ][ pyridx ]->width();
+			int h = pyr[ i + 1 ][ pyridx ]->height();
+			kernelbidown.run( cl::NDRange( w, h ), cl::NDRange( 10, 10 ), &sync, &event );
 			sync.clear();
 			sync.push_back( event );
 		}
@@ -146,7 +148,7 @@ namespace cvt {
 		clear( py );
 		warp( u, v, px, py, pyr[ 4 ][ pyridx2 ], pyr[ 4 ][ pyridx ], NUMWARP );
 
-		for( int level = 3; level >= 0; level-- ) {
+		for( int level = 3; level >= 1; level-- ) {
 			size_t w = pyr[ level ][ 0 ]->width();
 			size_t h = pyr[ level ][ 0 ]->height();
 			Image* unew = biup( u, 2.0f );
@@ -164,16 +166,18 @@ namespace cvt {
 			warp( u, v, px, py, pyr[ level ][ pyridx2 ], pyr[ level ][ pyridx ], NUMWARP );
 		}
 
-		showColorCode( "Flow", u, pyr[ 0 ][ pyridx2 ] );
+//		showColorCode( "Flow", u, pyr[ 0 ][ pyridx2 ] );
 /*		{
 			Image tmp( 320, 240, CVT_GRAY, IType::FLOAT );
 			pyr[ 1 ][ pyridx ]->readData( tmp.data(), tmp.stride() );
 			cvShowImage( "Input", tmp.iplimage() );
 		}*/
+		Image* ret = colorcode(  u, pyr[ 1 ][ pyridx ] );
 		delete px;
 		delete py;
 		delete v;
-		return u;
+		delete u;
+		return ret;
 	}
 
 	void CLOptflow::warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, size_t iter )
@@ -400,8 +404,8 @@ namespace cvt {
 		Image* ret = colorcode( i, bg );
 		Image iflow( *ret );
 		{
-			Image tmp( 512, 480, IFormat::BGRA_UINT8 );
-			tmp.copyRect( 0, 0, iflow, 0, 0, 512, 480 );
+			Image tmp( 640, 480, IFormat::BGRA_UINT8 );
+			tmp.copyRect( 0, 0, iflow, 0, 0, 640, 480 );
 			ImageIO::savePNG( tmp, "out.png" );
 		}
 //		cvShowImage( name, iflow.iplimage() );
