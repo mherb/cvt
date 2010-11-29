@@ -70,19 +70,18 @@ GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
 
 
 SET(${MODULE_NAME}_HEADERS
-	io/AbstractCamera.hpp
-	io/FileSystem.h
-	io/FloFile.h
-	io/ImageIO.h
-	io/VideoInput.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h
 	io/Camera.h
 	io/DC1394Camera.h
-	io/Resources.h
+	io/FileSystem.h
+	io/FloFile.h
+	io/ImageIO.h
 	io/IOHandler.h
 	io/IOSelect.h
+	io/Resources.h
+	io/VideoInput.h
 	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -168,15 +167,15 @@ SET(${MODULE_NAME}_HEADERS
 )
 
 SET(${MODULE_NAME}_SOURCES
-	io/FileSystem.cpp
-	io/FloFile.cpp
-	io/ImageIO.cpp
 	io/CameraInfo.cpp
 	io/CameraModeSet.cpp
 	io/Camera.cpp
 	io/DC1394Camera.cpp
-	io/Resources.cpp
+	io/FileSystem.cpp
+	io/FloFile.cpp
+	io/ImageIO.cpp
 	io/IOSelect.cpp
+	io/Resources.cpp
 	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
