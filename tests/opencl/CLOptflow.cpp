@@ -21,10 +21,10 @@
 #include "colorcode.h"
 #include "gradxy.h"
 
-#define LAMBDA 50.0f
-#define THETA 0.15f
-#define NUMWARP 4
-#define NUMROF 3
+#define LAMBDA 70.0f
+#define THETA 0.2f
+#define NUMWARP 2
+#define NUMROF 4
 #define TAU 0.249f
 
 namespace cvt {

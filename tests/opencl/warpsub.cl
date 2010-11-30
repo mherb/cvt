@@ -5,7 +5,7 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 	int2 coord, coordw;
     float2 coordin;
-	float4 in1, in2, v, o;
+	float4 in1, in2, v[ 2 ], o;
 	float alpha, v1, v2, d;
     uint idx;
 	float x;
@@ -31,12 +31,10 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
 	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
-	v = read_imagef( in, sampler, coordin );
+	v[ 0 ] = read_imagef( in, sampler, coordin );
+	v[ 1 ] = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) );
 	v1 = index( v, idx );
-	if( idx < 3 )
-		v2 = index( v, idx + 1 );
-	else
-		v2 = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) ).x;
+	v2 = index( v, idx + 1 );
 	o.x = mix( v1, v2, alpha );
 
 	coordin = in1.zw;
@@ -45,12 +43,10 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
 	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
-	v = read_imagef( in, sampler, coordin );
+	v[ 0 ] = read_imagef( in, sampler, coordin );
+	v[ 1 ] = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) );
 	v1 = index( v, idx );
-	if( idx < 3 )
-		v2 = index( v, idx + 1 );
-	else
-		v2 = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) ).x;
+	v2 = index( v, idx + 1 );
 	o.y = mix( v1, v2, alpha );
 
 	coordin = in2.xy;
@@ -59,12 +55,10 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( float ) ( ( ( int ) d ) >> 2 ) + 0.5f;
 	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
-	v = read_imagef( in, sampler, coordin );
+	v[ 0 ] = read_imagef( in, sampler, coordin );
+	v[ 1 ] = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) );
 	v1 = index( v, idx );
-	if( idx < 3 )
-		v2 = index( v, idx + 1 );
-	else
-		v2 = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) ).x;
+	v2 = index( v, idx + 1 );
 	o.z = mix( v1, v2, alpha );
 
 	coordin = in2.zw;
@@ -73,12 +67,10 @@ __kernel void WARPSUB( __write_only image2d_t out,  __read_only image2d_t in,  _
 	idx = ( ( int ) d ) & 0x03;
 	coordin.x = ( ( float ) ( ( ( int ) d ) >> 2 ) ) + 0.5f;
 	coordin.y = ( float ) coord.y + coordin.y + 0.5f;
-	v = read_imagef( in, sampler, coordin );
+	v[ 0 ] = read_imagef( in, sampler, coordin );
+	v[ 1 ] = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) );
 	v1 = index( v, idx );
-	if( idx < 3 )
-		v2 = index( v, idx + 1 );
-	else
-		v2 = read_imagef( in, sampler, coordin + ( float2 ) ( 1.0f, 0.0f ) ).x;
+	v2 = index( v, idx + 1 );
 	o.w = mix( v1, v2, alpha );
 
 	o = o - read_imagef( sub, samplernn, coord );
