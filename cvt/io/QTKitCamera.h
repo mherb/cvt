@@ -11,11 +11,7 @@ namespace cvt {
 	class QTKitCamera : public Camera
 	{
 		public:
-			QTKitCamera( size_t camIndex = 0, 
-						 size_t width=640, 
-						 size_t height=480, 
-						 size_t fps = 30,
-						 const IFormat & format = IFormat::BGRA_UINT8 );
+			QTKitCamera( size_t camIndex, const CameraMode & mode );
 		
 			virtual ~QTKitCamera();
 		

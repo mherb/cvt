@@ -69,8 +69,6 @@ namespace cvt {
 		double currentCosts = costFunction(resultParameters, model, measurements, residual);
 		double lastCosts;
 		
-		double decay = 1.0;
-		
 		while (true) {
 			jacobianFunction(resultParameters,
 							 model,

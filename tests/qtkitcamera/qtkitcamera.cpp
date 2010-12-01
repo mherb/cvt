@@ -14,8 +14,12 @@ int main(int argc, char* argv[])
 	unsigned int numCams = QTKitCamera::count();
 	
 	std::cout << "Available QTKit Devices: " << numCams << std::endl;
+	if( numCams == 0 )
+		return 0;
+	CameraInfo info;
+	QTKitCamera::QTKitCamera::cameraInfo( 0, info );
 	
-	QTKitCamera cam( 0, 320, 240 );
+	QTKitCamera cam( 0, info.bestMatchingMode(IFormat::BGRA_UINT8, 800, 600, 30) );
 
 	int key;
 	size_t frames = 0;

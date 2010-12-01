@@ -22,7 +22,7 @@ namespace cvt {
 		}
 
 		devices.push_back( _cl->getCLDevice( ) );
-		err = _prog.build( devices, "-w -cl-mad-enable -O3" );
+		err = _prog.build( devices, "-w -cl-mad-enable" );
 		buildinfo = _prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( _cl->getCLDevice( ) );
 		if( err != CL_SUCCESS ) {
 			std::cout << buildinfo << std::endl;

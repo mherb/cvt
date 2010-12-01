@@ -89,7 +89,7 @@ namespace cvt {
 				break;
 			case CAMERATYPE_QTKIT:
 #ifdef APPLE
-				cam = new QTKitCamera( camInfo.index(), width, height, fps, format );
+				cam = new QTKitCamera( camInfo.index(), mode );
 #endif
 				break;
 			default:
