@@ -87,7 +87,8 @@ void SL3Transform::jacobiansAtPoint( const Eigen::Vector2d & p, Eigen::Matrix<do
 		J( 1, i ) = tmp[ 1 ] * dehom;
 	}
 }
-	
+
+	/* these are the screen jacobians! ( projection included! ) */
 void SL3Transform::jacobiansAtIdentity( const Eigen::Vector2d & p, Eigen::MatrixXd & J, size_t rowOffset )
 {	
 	J( 0 + rowOffset, 0 ) = 1.0;

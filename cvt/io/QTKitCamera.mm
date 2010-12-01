@@ -63,8 +63,7 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 - (void)captureOutput:(QTCaptureOutput *)captureOutput 
 didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer 
 	   fromConnection:(QTCaptureConnection *)connection 
-{
-	//std::cout << "Camera dropped frame!" << std::endl; 
+{	
 }
 
 
@@ -83,14 +82,7 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 	size_t height = CVPixelBufferGetHeight( data );
 	size_t rowBytes = CVPixelBufferGetBytesPerRow( data );
 	
-	if ( rowBytes != 0 ) {
-		// test if image sizes match
-		if ( width != img->width() ||
-			 height != img->height() ||
-			 img->format() != cvt::IFormat::RGBA_UINT8 ) {
-			 img->reallocate( width, height, cvt::IFormat::RGBA_UINT8 );
-		}		
-				
+	if ( rowBytes != 0 ) {						
 		// copy the image: 
 		size_t stride;
 		uint8_t * dstBase = img->map( &stride );
@@ -144,7 +136,6 @@ namespace cvt {
 			void stopCapture();
 
 			static size_t count();
-			static void cameraInfo( size_t index, CameraInfo & info );
 		
 		private:	
 			NSAutoreleasePool * _pool;
@@ -172,8 +163,11 @@ namespace cvt {
 		
 		std::cout << "Device name: " << [[dev localizedDisplayName] UTF8String] << std::endl;
 		
-		BOOL success = [dev open:nil];
-		if( !success ){
+		NSError * error;
+		BOOL success = [dev open:&error];
+				
+		if( success == NO ){
+			std::cout << "Error: " << [[error localizedDescription] UTF8String] << std::endl;			
 			throw CVTException( "Could not open device" );
 		}
 		
@@ -190,10 +184,19 @@ namespace cvt {
 		[_output setDelegate:_camDelegate];
 		[_output setAutomaticallyDropsLateVideoFrames:YES];
 		
+		NSNumber* pixFormat;
+		if( format == IFormat::BGRA_UINT8 )
+			pixFormat = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA];
+		else if( format == IFormat::RGBA_UINT8 ){
+			pixFormat = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32RGBA];
+		} else {
+			throw CVTException( "No matching pixel format in QTKit" );
+		}
+		
 		NSDictionary * attr = [NSDictionary dictionaryWithObjectsAndKeys:
 							   [NSNumber numberWithInt:width], kCVPixelBufferWidthKey,
 							   [NSNumber numberWithInt:height], kCVPixelBufferHeightKey,
-							   [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA], (id)kCVPixelBufferPixelFormatTypeKey,
+							   pixFormat, (id)kCVPixelBufferPixelFormatTypeKey,
 							   nil];
 		[_output setPixelBufferAttributes:attr];
 
@@ -253,19 +256,11 @@ namespace cvt {
 		return count;
 	}
 	
-	void QTKitCameraInterface::cameraInfo( size_t index, CameraInfo & info )
+	QTKitCamera::QTKitCamera( size_t camIndex, const CameraMode & mode):
+		_device( NULL ),
+		_frame( mode.width, mode.height, mode.format )
 	{
-		
-	}
-
-	QTKitCamera::QTKitCamera( size_t camIndex, 
-							  size_t width, 
-							  size_t height, 
-							  size_t fps, 
-							  const IFormat & format ):
-		_frame( width, height, format )
-	{
-		_device = new QTKitCameraInterface( camIndex, width, height, fps, format );
+		_device = new QTKitCameraInterface( camIndex, mode.width, mode.height, mode.fps, mode.format );
 	}
 	
 	QTKitCamera::~QTKitCamera()
@@ -306,6 +301,12 @@ namespace cvt {
 		info.setName( [[dev localizedDisplayName] UTF8String] );
 		info.setIndex( index );
 		info.setType( CAMERATYPE_QTKIT );
+		
+		// FIXME: how can we find out the supported modes from QTKit? Is scales to whatever you want ...
+		CameraMode mode( 640, 480, 30, IFormat::BGRA_UINT8 );
+		info.addMode( mode );
+		
+		[pool release];
 	}
 	
 }

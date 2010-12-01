@@ -13,7 +13,8 @@ namespace cvt {
 		CameraMode( const CameraMode & other ) :
 			 width( other.width ), height( other.height ),
 			 fps( other.fps ), format( other.format )
-		{}
+		{
+		}
 
 		CameraMode & operator=( const CameraMode & other )
 		{
