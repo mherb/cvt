@@ -21,6 +21,14 @@ namespace cvt {
 	}
 
 
+	Image::Image( size_t w, size_t h, const IFormat & format, uint8_t* data, size_t stride ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	{
+		_mem = new ImageAllocatorMem();
+		ImageAllocatorMem * memAllocator = (ImageAllocatorMem *)_mem;
+		memAllocator->alloc( w, h, format, data, stride );
+	}
+
+
 	Image::Image( const Image& img, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
 	{
 		if( memtype == IALLOCATOR_CL )

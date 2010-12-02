@@ -22,6 +22,7 @@ namespace cvt {
 
 		public:
 			Image( size_t w = 1, size_t h = 1, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );
+			Image( size_t w, size_t h, const IFormat & format, uint8_t* data, size_t stride = 0 );
 			Image( const Image& img, IAllocatorType memtype = IALLOCATOR_MEM );
 			Image( const Image& source, const Recti* roi, bool ref = false, IAllocatorType memtype = IALLOCATOR_MEM );
 			~Image();
