@@ -62,7 +62,7 @@ namespace cvt {
 	Camera * Camera::get( size_t index, size_t width, size_t height,
 						  size_t fps, const IFormat & format )
 	{
-		if( index > Camera::_camInfos.size() ){
+		if( index >= Camera::_camInfos.size() ){
 			throw CVTException( "Camera index out of bounds!" );
 		}
 

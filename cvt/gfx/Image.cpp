@@ -132,7 +132,7 @@ namespace cvt {
 		return *this;
 	}
 
-#if 0	
+#if 0
 	Color Image::operator() (int _x, int _y) const
 	{
 		int x = Math::clamp( _x, ( int ) 0, ( int )( _mem->_width - 1 ) );
