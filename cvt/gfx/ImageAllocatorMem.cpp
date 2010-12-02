@@ -33,6 +33,8 @@ namespace cvt {
 
 		_mem = NULL;
 		_data = data;
+		_refcnt = new size_t;
+		*_refcnt = 0;
 		retain();
 	}
 
@@ -46,6 +48,7 @@ namespace cvt {
 		_mem = new uint8_t[ _stride * _height + 16 ];
 		_data = alignptr( _mem, 16 );
 		_refcnt = new size_t;
+		*_refcnt = 0;
 		retain();
 	}
 
