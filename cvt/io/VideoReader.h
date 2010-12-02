@@ -41,8 +41,8 @@ namespace cvt {
 			size_t				_height;
 			IFormat				_format;
 
-			bool nextAVFrame();
 			void updateFormat();
+			void rewind();
 	};
 
 	inline size_t VideoReader::width() const
