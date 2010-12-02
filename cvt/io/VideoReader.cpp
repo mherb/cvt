@@ -106,13 +106,13 @@ namespace cvt {
 
 	void VideoReader::nextFrame()
 	{
-		int			frameFinished;
+		int	frameFinished;
 
 		AVPacket packet;
-
-		while( av_read_frame( _formatContext, &packet ) >= 0 ) {
+		int ret;
+		while( ( ret = av_read_frame( _formatContext, &packet ) ) >= 0 ) {
 			// Is this a packet from the video stream?
-			if( packet.stream_index== _streamIndex ) {
+			if( packet.stream_index == _streamIndex ) {
 				// Decode video frame
 				avcodec_decode_video( _codecContext, _avFrame, &frameFinished, packet.data, packet.size );
 
@@ -163,6 +163,14 @@ namespace cvt {
 			av_free_packet( &packet );
 		}
 		av_free_packet( &packet );
+
+		if( ret < 0 )
+			this->rewind();
+	}
+
+	void VideoReader::rewind()
+	{
+		av_seek_frame( _formatContext, _streamIndex, 0, AVSEEK_FLAG_BACKWARD );
 	}
 }
 
