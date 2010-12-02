@@ -1,6 +1,7 @@
 #include <cvt/io/VideoReader.h>
 
 #include <cvt/io/FileSystem.h>
+#include <cvt/util/SIMD.h>
 #include <cvt/util/Exception.h>
 
 #include <iostream>
@@ -95,7 +96,7 @@ namespace cvt {
 				_format = IFormat::UYVY_UINT8;
 				break;
 			case PIX_FMT_YUV420P:
-				_format = IFormat::YUV420_UINT8;
+				_format = IFormat::BGRA_UINT8;
 				break;
 			default:
 				std::cout << "Pixelformat:" << (int)_codecContext->pix_fmt << std::endl;
@@ -120,22 +121,39 @@ namespace cvt {
 					// decoded a new frame lying in _avFrame
 					if( _codecContext->pix_fmt == PIX_FMT_YUV420P ) {
 						if( !_frame )
-							_frame = new Image( _width, _height, IFormat::YUV420_UINT8 );
-						size_t stride;
-						uint8_t* base = _frame->map<uint8_t>( &stride );
-						uint8_t* dst = base;
-						for( size_t i = 0; i < _height; i++ ) {
-							memcpy( dst + i * stride, _avFrame->data[ 0 ] + i * _avFrame->linesize[ 0 ], _width );
+							_frame = new Image( _width, _height, _format );
+
+						SIMD* simd = SIMD::get();
+
+						const uint8_t * sOrig;
+						uint8_t * dOrig;
+						const uint8_t * src = _avFrame->data[ 0 ];
+						const uint8_t *srcu;
+						const uint8_t *srcv;
+
+						size_t stridedst;
+						uint8_t * dst = _frame->map( &stridedst );
+						sOrig = src;
+						dOrig = dst;
+
+						srcu = _avFrame->data[ 1 ];
+						srcv = _avFrame->data[ 2 ];
+
+						size_t n = _height >> 1;
+						while( n-- ) {
+							simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, _width );
+							src += _avFrame->linesize[ 0 ];
+							dst += stridedst;
+							simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, _width );
+							src += _avFrame->linesize[ 0 ];
+							dst += stridedst;
+							srcu += _avFrame->linesize[ 1 ];
+							srcv += _avFrame->linesize[ 2 ];
 						}
-						dst = base + stride * _height;
-						for( size_t i = 0; i < _height / 2; i++ ) {
-							memcpy( dst + i * stride, _avFrame->data[ 1 ] + i * _avFrame->linesize[ 1 ], _width / 2 );
-						}
-						dst = base + stride * _height + _width / 2;
-						for( size_t i = 0; i < _height / 2; i++ ) {
-							memcpy( dst + i * stride, _avFrame->data[ 2 ] + i * _avFrame->linesize[ 2 ], _width / 2 );
-						}
-						_frame->unmap( base );
+						_frame->unmap( dOrig );
+					} else {
+						delete _frame;
+						_frame = new Image( _width, _height, _format, _avFrame->data[ 0 ], _avFrame->linesize[ 0 ] );
 					}
 					break;
 				}
