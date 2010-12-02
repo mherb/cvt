@@ -17,6 +17,7 @@ FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
+FIND_PACKAGE(ffmpeg REQUIRED)
 
 IF( APPLE )
 	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
@@ -43,6 +44,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${OPENCL_LIBRARIES}
 	${LIBDC1394_LIBRARY}
 	${X11_X11_LIB}
+	${FFMPEG_LIBRARIES}
 )
 
 GLSLTOHEADER(gl/shader/120/basic_120.vert)
@@ -82,6 +84,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/IOSelect.h
 	io/Resources.h
 	io/VideoInput.h
+	io/VideoReader.h
 	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -176,6 +179,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/ImageIO.cpp
 	io/IOSelect.cpp
 	io/Resources.cpp
+	io/VideoReader.cpp
 	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
@@ -291,6 +295,7 @@ INCLUDE_DIRECTORIES(
 	${OPENCL_INCLUDE_DIR}
 	${LIBDC1394_INCLUDE_DIR}
 	${X11_X11_INCLUDE_PATH}
+	${FFMPEG_INCLUDES}
 )
 
 #set opencl filter path

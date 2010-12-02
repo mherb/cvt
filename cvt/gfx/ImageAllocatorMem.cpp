@@ -18,6 +18,24 @@ namespace cvt {
 		release();
 	}
 
+	void ImageAllocatorMem::alloc( size_t width, size_t height, const IFormat & format, uint8_t* data, size_t stride )
+	{
+		release();
+		_width = width;
+		_height = height;
+		_format = format;
+
+		if( stride == 0 ){
+			stride = _width * _format.bpp;
+		} else {
+			_stride = stride;
+		}
+
+		_mem = NULL;
+		_data = data;
+		retain();
+	}
+
 	void ImageAllocatorMem::alloc( size_t width, size_t height, const IFormat & format )
 	{
 		release();

@@ -216,6 +216,7 @@ namespace cvt {
 		SIMD* simd = SIMD::get();
 		size_t w = dstImage.width();
 		size_t h = dstImage.height();
+		size_t n = h >> 1;
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -229,14 +230,17 @@ namespace cvt {
 		dOrig = dst;
 
 		srcu = src + h * stridesrc;
-		srcv = srcu + h * ( stridesrc >> 1 );
+		srcv = srcu + h * ( stridesrc >> 2 );
 
-		while( h-- ) {
+		while( n-- ) {
 			simd->Conv_YUV420u8_to_RGBAu8( dst, src, srcu, srcv, w );
 			src += stridesrc;
+			dst += stridedst;
+			simd->Conv_YUV420u8_to_RGBAu8( dst, src, srcu, srcv, w );
+			src += stridesrc;
+			dst += stridedst;
 			srcu += stridesrc >> 1;
 			srcv += stridesrc >> 1;
-			dst += stridedst;
 		}
 		sourceImage.unmap( sOrig );
 		dstImage.unmap( dOrig );
@@ -247,6 +251,7 @@ namespace cvt {
 		SIMD* simd = SIMD::get();
 		size_t w = dstImage.width();
 		size_t h = dstImage.height();
+		size_t n = h >> 1;
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -260,14 +265,17 @@ namespace cvt {
 		dOrig = dst;
 
 		srcu = src + h * stridesrc;
-		srcv = srcu + h * ( stridesrc >> 1 );
+		srcv = srcu + h * ( stridesrc >> 2 );
 
-		while( h-- ) {
+		while( n-- ) {
 			simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, w );
 			src += stridesrc;
+			dst += stridedst;
+			simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, w );
+			src += stridesrc;
+			dst += stridedst;
 			srcu += stridesrc >> 1;
 			srcv += stridesrc >> 1;
-			dst += stridedst;
 		}
 		sourceImage.unmap( sOrig );
 		dstImage.unmap( dOrig );
@@ -785,26 +793,27 @@ namespace cvt {
 	}
 
 	/* source2dst table */
-	static ConversionFunction _convertFuncs[ 19 ][ 19 ] = {
-	/* G_U8     */	{ 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_U16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_I16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_F	    */	{ &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_U8    */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_U16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_I16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_F     */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_U8  */	{ 0, 0, 0, &Conv_RGBAu8_to_GRAYf, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0 },
-	/* RGBA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, 0, 0, 0 },
-	/* BGRA_U8  */	{ 0, 0, 0, &Conv_BGRAu8_to_GRAYf, 0, 0, 0, 0, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, 0, 0, 0 },
-	/* BGRA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* BGRA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* BGRA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, 0, 0, 0 },
-	/* RGGB_U8  */	{ &_debayer_RGGB_to_GRAYu8, 0, 0, 0, 0, 0, 0, 0, &_debayer_RGGB_to_RGBAu8, 0, 0, 0, &_debayer_RGGB_to_BGRAu8, 0, 0, 0, 0, 0, 0 },
-	/* YUYV_U8  */	{ &Conv_YUYVu8_to_GRAYu8, 0, 0, 0, &Conv_YUYVu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_YUYVu8_to_RGBAu8, 0, 0, 0, &Conv_YUYVu8_to_BGRAu8, 0, 0, 0, 0, 0, 0 },
-	/* YUYV_U8  */	{ &Conv_UYVYu8_to_GRAYu8, 0, 0, 0, &Conv_UYVYu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_UYVYu8_to_RGBAu8, 0, 0, 0, &Conv_UYVYu8_to_BGRAu8, 0, 0, 0, 0, 0, 0 }
+	static ConversionFunction _convertFuncs[ 20 ][ 20 ] = {
+	/* G_U8     */	{ 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* G_U16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* G_I16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* G_F	    */	{ &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* GA_U8    */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* GA_U16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* GA_I16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* GA_F     */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* RGBA_U8  */	{ 0, 0, 0, &Conv_RGBAu8_to_GRAYf, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0, 0 },
+	/* RGBA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* RGBA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* RGBA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, 0, 0, 0, 0 },
+	/* BGRA_U8  */	{ 0, 0, 0, &Conv_BGRAu8_to_GRAYf, 0, 0, 0, 0, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, 0, 0, 0, 0 },
+	/* BGRA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* BGRA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* BGRA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, 0, 0, 0, 0 },
+	/* RGGB_U8  */	{ &_debayer_RGGB_to_GRAYu8, 0, 0, 0, 0, 0, 0, 0, &_debayer_RGGB_to_RGBAu8, 0, 0, 0, &_debayer_RGGB_to_BGRAu8, 0, 0, 0, 0, 0, 0, 0 },
+	/* YUYV_U8  */	{ &Conv_YUYVu8_to_GRAYu8, 0, 0, 0, &Conv_YUYVu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_YUYVu8_to_RGBAu8, 0, 0, 0, &Conv_YUYVu8_to_BGRAu8, 0, 0, 0, 0, 0, 0, 0 },
+	/* YUYV_U8  */	{ &Conv_UYVYu8_to_GRAYu8, 0, 0, 0, &Conv_UYVYu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_UYVYu8_to_RGBAu8, 0, 0, 0, &Conv_UYVYu8_to_BGRAu8, 0, 0, 0, 0, 0, 0, 0 },
+	/* YUV420_U8 */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_YUV420u8_to_RGBAu8, 0, 0, 0, &Conv_YUV420u8_to_BGRAu8, 0, 0, 0, 0, 0, 0, 0 }
 	};
 
 	void IConvert::convert( Image & dst, const Image & src )
@@ -818,9 +827,9 @@ namespace cvt {
 		IFormatID sourceID = src.format().formatID;
 		IFormatID dstID = dst.format().formatID;
 
-		if( sourceID - 1 > 18 )
+		if( sourceID - 1 > 19 )
 			throw CVTException( "Source format unkown" );
-		if( dstID - 1 > 18 )
+		if( dstID - 1 > 19 )
 			throw CVTException( "Destination format unkown" );
 
 		if( _convertFuncs[ sourceID - 1 ][ dstID - 1 ] ){
