@@ -52,9 +52,6 @@ namespace cvt {
 			throw CVTException( "No appropriate codec found" );
 		}
 
-		if( _codec->capabilities & CODEC_CAP_TRUNCATED )
-			_codecContext->flags |= CODEC_FLAG_TRUNCATED;
-
 		if( avcodec_open( _codecContext, _codec ) < 0 )
 			throw CVTException( "Could not open codec!" );
 
@@ -102,7 +99,7 @@ namespace cvt {
 				break;
 			default:
 				std::cout << "Pixelformat:" << (int)_codecContext->pix_fmt << std::endl;
-				//throw CVTException( "Cannot map Pixelformat to CVT Format!" );
+				throw CVTException( "Cannot map Pixelformat to CVT Format!" );
 		}
 	}
 
@@ -116,14 +113,30 @@ namespace cvt {
 			// Is this a packet from the video stream?
 			if( packet.stream_index== _streamIndex ) {
 				// Decode video frame
-				avcodec_decode_video2( _codecContext, _avFrame, &frameFinished, &packet );
+				avcodec_decode_video( _codecContext, _avFrame, &frameFinished, packet.data, packet.size );
 
 				// Did we get a video frame?
 				if(frameFinished) {
 					// decoded a new frame lying in _avFrame
-					if( _frame )
-						delete _frame;
-					_frame = new Image( _width, _height, _format, _avFrame->data[ 0 ], _avFrame->linesize[ 0 ] );
+					if( _codecContext->pix_fmt == PIX_FMT_YUV420P ) {
+						if( !_frame )
+							_frame = new Image( _width, _height, IFormat::YUV420_UINT8 );
+						size_t stride;
+						uint8_t* base = _frame->map<uint8_t>( &stride );
+						uint8_t* dst = base;
+						for( size_t i = 0; i < _height; i++ ) {
+							memcpy( dst + i * stride, _avFrame->data[ 0 ] + i * _avFrame->linesize[ 0 ], _width );
+						}
+						dst = base + stride * _height;
+						for( size_t i = 0; i < _height / 2; i++ ) {
+							memcpy( dst + i * stride, _avFrame->data[ 1 ] + i * _avFrame->linesize[ 1 ], _width / 2 );
+						}
+						dst = base + stride * _height + _width / 2;
+						for( size_t i = 0; i < _height / 2; i++ ) {
+							memcpy( dst + i * stride, _avFrame->data[ 2 ] + i * _avFrame->linesize[ 2 ], _width / 2 );
+						}
+						_frame->unmap( base );
+					}
 					break;
 				}
 			}
