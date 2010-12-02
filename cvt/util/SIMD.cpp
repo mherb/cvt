@@ -1453,7 +1453,7 @@ namespace cvt {
 			*dst++ = out;
 		}
 
-	/*	if( n & 0x2 ) {
+		if( n & 0x2 ) {
 			_srcy = ( uint8_t* ) srcy;
 			u = *srcu - 128;
 			v = *srcv - 128;
@@ -1474,7 +1474,7 @@ namespace cvt {
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 );
 			*dst++ = out;
-		}*/
+		}
 	}
 
 

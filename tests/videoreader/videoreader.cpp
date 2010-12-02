@@ -8,15 +8,15 @@
 
 using namespace cvt;
 
-int main()
+int main( int argc, char** argv )
 {
 	int key;
 	size_t frames = 0;
 	Time timer;
-	Resources resources;
+	std::string xxx( argv[ 1 ] );
 
 	try {
-		VideoReader video( resources.find("test.avi") );
+		VideoReader video( xxx );
 
 		Image frame( video.width(), video.height(), IFormat::BGRA_UINT8 );
 

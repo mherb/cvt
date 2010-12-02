@@ -265,7 +265,7 @@ namespace cvt {
 		dOrig = dst;
 
 		srcu = src + h * stridesrc;
-		srcv = srcu + h * ( stridesrc >> 2 );
+		srcv = srcu + ( w >> 1 );
 
 		while( n-- ) {
 			simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, w );
@@ -274,8 +274,8 @@ namespace cvt {
 			simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, w );
 			src += stridesrc;
 			dst += stridedst;
-			srcu += stridesrc >> 1;
-			srcv += stridesrc >> 1;
+			srcu += stridesrc;
+			srcv += stridesrc;
 		}
 		sourceImage.unmap( sOrig );
 		dstImage.unmap( dOrig );
