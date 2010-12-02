@@ -21,10 +21,10 @@
 #include "colorcode.h"
 #include "gradxy.h"
 
-#define LAMBDA 70.0f
-#define THETA 0.2f
-#define NUMWARP 2
-#define NUMROF 4
+#define LAMBDA 80.0f
+#define THETA 0.1f
+#define NUMWARP 5
+#define NUMROF 2
 #define TAU 0.249f
 
 namespace cvt {
@@ -72,14 +72,14 @@ namespace cvt {
 		/* FIXME: lowest level defines input format */
 		pyr[ 0 ][ 0 ] = new Image( 160, 480, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
 		pyr[ 0 ][ 1 ] = new Image( 160, 480, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
-		pyr[ 1 ][ 0 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 1 ][ 1 ] = new Image( 80, 240, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 2 ][ 0 ] = new Image( 40, 120, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 2 ][ 1 ] = new Image( 40, 120, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 3 ][ 0 ] = new Image( 20, 60, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 3 ][ 1 ] = new Image( 20, 60, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 4 ][ 0 ] = new Image( 10, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
-		pyr[ 4 ][ 1 ] = new Image( 10, 30, IFormat::RGBA_FLOAT, IALLOCATOR_CL  );
+		pyr[ 1 ][ 0 ] = new Image( 80, 240, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 1 ][ 1 ] = new Image( 80, 240, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 2 ][ 0 ] = new Image( 40, 120, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 2 ][ 1 ] = new Image( 40, 120, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 3 ][ 0 ] = new Image( 20, 60, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 3 ][ 1 ] = new Image( 20, 60, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 4 ][ 0 ] = new Image( 10, 30, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
+		pyr[ 4 ][ 1 ] = new Image( 10, 30, IFormat::RGBA_UINT8, IALLOCATOR_CL  );
 	}
 
 	CLOptflow::~CLOptflow()

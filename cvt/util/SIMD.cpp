@@ -1197,6 +1197,286 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::Conv_YUYVu8_to_RGBAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
+	{
+		size_t n1 = n & ( ~1 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t yuyv, out;
+		int r, g, b, y0, y1, u, v;
+
+		while( n1-- ) {
+			yuyv = *src++;
+			v = ( yuyv >> 24 ) - 128;
+			y1 = ( ( yuyv >> 16 ) & 0xff );
+			u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+			y0 = ( ( yuyv ) & 0xff );
+			r = ( ( v * 1436 ) >> 10 );
+			g = ( ( u * 352 + v*731 ) >> 10 );
+			b = ( ( u * 1814 ) >> 10 );
+
+			// clamp the values
+			out = 0xff000000;
+			out |= Math::clamp( y0 + r, 0, 255 );
+			out |= Math::clamp( y0 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y0 + b, 0, 255 ) << 16;
+			*dst++ = out;
+			out = 0xff000000;
+			out |= Math::clamp( y1 + r, 0, 255 );
+			out |= Math::clamp( y1 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y1 + b, 0, 255 ) << 16;
+			*dst++ = out;
+		}
+	}
+
+	void SIMD::Conv_YUYVu8_to_BGRAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
+	{
+		size_t n1 = n & ( ~1 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t yuyv, out;
+		int r, g, b, y0, y1, u, v;
+
+		while( n1-- ) {
+			yuyv = *src++;
+			v = ( yuyv >> 24 ) - 128;
+			y1 = ( ( yuyv >> 16 ) & 0xff );
+			u = ( ( yuyv >> 8 ) & 0xff ) - 128;
+			y0 = ( ( yuyv ) & 0xff );
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			// clamp the values
+			out = 0xff000000;
+			out |= Math::clamp( y0 + r, 0, 255 ) << 16;
+			out |= Math::clamp( y0 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y0 + b, 0, 255 );
+			*dst++ = out;
+			out = 0xff000000;
+			out |= Math::clamp( y1 + r, 0, 255 ) << 16;
+			out |= Math::clamp( y1 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y1 + b, 0, 255 );
+			*dst++ = out;
+		}
+	}
+
+	void SIMD::Conv_UYVYu8_to_RGBAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
+	{
+		size_t n1 = n & ( ~1 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t uyvy, out;
+		int r, g, b, y0, y1, u, v;
+
+		while( n1-- ) {
+			uyvy = *src++;
+			v = ( ( uyvy >> 16 ) & 0xff ) - 128;
+			y1 = ( uyvy >> 24 );
+			u = ( uyvy & 0xff ) - 128;
+			y0 = ( ( uyvy >> 8 ) & 0xff );
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			// clamp the values
+			out = 0xff000000;
+			out |= Math::clamp( y0 + r, 0, 255 );
+			out |= Math::clamp( y0 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y0 + b, 0, 255 ) << 16;
+			*dst++ = out;
+			out = 0xff000000;
+			out |= Math::clamp( y1 + r, 0, 255 );
+			out |= Math::clamp( y1 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y1 + b, 0, 255 ) << 16;
+			*dst++ = out;
+		}
+	}
+
+	void SIMD::Conv_UYVYu8_to_BGRAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
+	{
+		size_t n1 = n & ( ~1 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t uyvy, out;
+		int r, g, b, y0, y1, u, v;
+
+		while( n1-- ) {
+			uyvy = *src++;
+			v = ( ( uyvy >> 16 ) & 0xff ) - 128;
+			y1 = ( uyvy >> 24 );
+			u = ( uyvy & 0xff ) - 128;
+			y0 = ( ( uyvy >> 8 ) & 0xff );
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			// clamp the values
+			out = 0xff000000;
+			out |= Math::clamp( y0 + r, 0, 255 ) << 16;
+			out |= Math::clamp( y0 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y0 + b, 0, 255 );
+			*dst++ = out;
+			out = 0xff000000;
+			out |= Math::clamp( y1 + r, 0, 255 ) << 16;
+			out |= Math::clamp( y1 - g, 0, 255 ) << 8;
+			out |= Math::clamp( y1 + b, 0, 255 );
+			*dst++ = out;
+		}
+	}
+
+	void SIMD::Conv_YUV420u8_to_RGBAu8( uint8_t* _dst, const uint8_t* _srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const
+	{
+		size_t n1 = n & ( ~2 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* srcy = ( uint32_t* ) _srcy;
+		uint32_t y4, out;
+		int r, g, b, y, u, v;
+
+		while( n1-- ) {
+			y4 = *srcy++;
+
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = ( y4 >> 24 );
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+
+			y = ( y4 >> 16 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = ( y4 >> 8 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+
+			y = ( y4 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+		}
+
+		if( n & 0x2 ) {
+			_srcy = ( uint8_t* ) srcy;
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = *_srcy++;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+
+			y = *_srcy++;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 );
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 ) << 16;
+			*dst++ = out;
+		}
+	}
+	void SIMD::Conv_YUV420u8_to_BGRAu8( uint8_t* _dst, const uint8_t* _srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const
+	{
+		size_t n1 = n & ( ~2 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t* srcy = ( uint32_t* ) _srcy;
+		uint32_t y4, out;
+		int r, g, b, y, u, v;
+
+		while( n1-- ) {
+			y4 = *srcy++;
+
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = ( y4 >> 24 );
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+
+			y = ( y4 >> 16 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = ( y4 >> 8 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+
+			y = ( y4 ) & 0xff;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+		}
+
+		if( n & 0x2 ) {
+			_srcy = ( uint8_t* ) srcy;
+			u = *srcu++ - 128;
+			v = *srcv++ - 128;
+			r = ((v*1436) >> 10);
+			g = ((u*352 + v*731) >> 10);
+			b = ((u*1814) >> 10);
+
+			y = *_srcy++;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+
+			y = *_srcy++;
+			out = 0xff000000;
+			out |= Math::clamp( y + r, 0, 255 ) << 16;
+			out |= Math::clamp( y - g, 0, 255 ) << 8;
+			out |= Math::clamp( y + b, 0, 255 );
+			*dst++ = out;
+		}
+	}
+
+
 
 	void SIMD::ConvolveClampSet1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
 	{

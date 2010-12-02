@@ -153,7 +153,125 @@ namespace cvt {
 
 		CONV( Conv_BGRAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
 	}
+
+	static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_YUYVu8_to_RGBAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_YUYVu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_YUYVu8_to_BGRAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_UYVYu8_to_RGBAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_UYVYu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_UYVYu8_to_BGRAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
 #undef CONV
+
+	static void Conv_YUV420u8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		size_t w = dstImage.width();
+		size_t h = dstImage.height();
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+		uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		const uint8_t *srcu;
+		const uint8_t *srcv;
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+		srcu = src + h * stridesrc;
+		srcv = srcu + h * ( stridesrc >> 1 );
+
+		while( h-- ) {
+			simd->Conv_YUV420u8_to_RGBAu8( dst, src, srcu, srcv, w );
+			src += stridesrc;
+			srcu += stridesrc >> 1;
+			srcv += stridesrc >> 1;
+			dst += stridedst;
+		}
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
+
+	static void Conv_YUV420u8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		size_t w = dstImage.width();
+		size_t h = dstImage.height();
+
+		size_t stridesrc;
+		size_t stridedst;
+		const uint8_t * sOrig;
+		uint8_t * dOrig;
+		const uint8_t * src = sourceImage.map( &stridesrc );
+		const uint8_t *srcu;
+		const uint8_t *srcv;
+		uint8_t * dst = dstImage.map( &stridedst );
+		sOrig = src;
+		dOrig = dst;
+
+		srcu = src + h * stridesrc;
+		srcv = srcu + h * ( stridesrc >> 1 );
+
+		while( h-- ) {
+			simd->Conv_YUV420u8_to_BGRAu8( dst, src, srcu, srcv, w );
+			src += stridesrc;
+			srcu += stridesrc >> 1;
+			srcv += stridesrc >> 1;
+			dst += stridedst;
+		}
+		sourceImage.unmap( sOrig );
+		dstImage.unmap( dOrig );
+	}
 
 	void _debayer_RGGB_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
@@ -391,7 +509,7 @@ namespace cvt {
 	}
 
 
-	static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+/*	static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
 		size_t l = dstImage.height();
 		size_t w = dstImage.width();
@@ -459,7 +577,8 @@ namespace cvt {
 		sourceImage.unmap( sOrig );
 		dstImage.unmap( dOrig );
 	}
-	
+	*/
+
 	static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
 	{
 		size_t l = dstImage.height();
@@ -528,7 +647,7 @@ namespace cvt {
 		dstImage.unmap( dOrig );
 	}
 	
-	static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+/*	static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
 		size_t l = dstImage.height();
 		size_t w = dstImage.width();
@@ -595,7 +714,7 @@ namespace cvt {
 		}
 		sourceImage.unmap( sOrig );
 		dstImage.unmap( dOrig );
-	}
+	}*/
 
 	static void Conv_UYVYu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
 	{
