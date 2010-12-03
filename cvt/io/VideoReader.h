@@ -17,7 +17,7 @@ namespace cvt {
 	class VideoReader : public VideoInput
 	{
 		public:
-			VideoReader( const std::string & fileName );
+			VideoReader( const std::string & fileName, bool autoRewind = true );
 			~VideoReader();
 
 			size_t width() const;
@@ -40,6 +40,7 @@ namespace cvt {
 			size_t				_width;
 			size_t				_height;
 			IFormat				_format;
+			bool				_autoRewind;
 
 			void updateFormat();
 			void rewind();

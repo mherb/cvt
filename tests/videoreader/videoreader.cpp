@@ -17,16 +17,15 @@ int main( int argc, char** argv )
 
 	try {
 		VideoReader video( xxx );
-
 		Image frame( video.width(), video.height(), IFormat::BGRA_UINT8 );
 
 		timer.reset();
-		//while( 1 ) {
-		for(size_t i = 0; i < 100; i++){
+//		while( 1 ) {
+		for(size_t i = 0; i < 300; i++){
 			video.nextFrame();
 			video.frame().convert( frame );
-
-/*			size_t stride;
+/*
+			size_t stride;
 			const uint8_t * data = frame.map( &stride );
 			cv::Mat ocvImage( (int)frame.height(), (int)frame.width(), CV_8UC4, (void *)data, stride );
 			cv::imshow( "frame", ocvImage );
@@ -34,7 +33,8 @@ int main( int argc, char** argv )
 
 			key = cvWaitKey( 3 ) & 0xff;
 			if( key == 27 )
-				break;*/
+				break;
+*/
 
 			frames++;
 			if( timer.elapsedSeconds() > 5.0f ) {
