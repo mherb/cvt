@@ -2,6 +2,14 @@
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
+
+#define LAST_FORMAT	( IFORMAT_UYVY_UINT8 )
+
+#define TABLE( table, source, dst ) ( table[ ( source - 1 ) * LAST_FORMAT + dst - 1 ] )
+
+	IConvert * IConvert::_instance = 0;
+
+
 	#define CONV( func, dI, dsttype, sI, srctype, width )				\
 	{																	\
 		sbase = src = sI.map( &sstride );								\
@@ -721,30 +729,80 @@ namespace cvt {
 		dstImage.unmap( dOrig );
 	}
 
-	/* source2dst table */
-	static ConversionFunction _convertFuncs[ 19 ][ 19 ] = {
-	/* G_U8     */	{ 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_U16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_I16    */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* G_F	    */	{ &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_U8    */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_u8_to_f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_U16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_I16   */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* GA_F     */	{ 0, 0, 0, 0, 0, 0, 0, &Conv_f_to_u8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_U8  */	{ 0, 0, 0, &Conv_RGBAu8_to_GRAYf, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0 },
-	/* RGBA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* RGBA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, 0, 0, 0 },
-	/* BGRA_U8  */	{ 0, 0, 0, &Conv_BGRAu8_to_GRAYf, 0, 0, 0, 0, &Conv_XYZAu8_to_ZYXAu8, 0, 0, &Conv_XYZAu8_to_ZYXAf, 0, 0, 0, &Conv_XXXAu8_to_XXXAf, 0, 0, 0 },
-	/* BGRA_U16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* BGRA_I16 */	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	/* BGRA_F   */	{ 0, 0, 0, 0, 0, 0, 0, 0, &Conv_XYZAf_to_ZYXAu8, 0, 0, &Conv_XYZAf_to_ZYXAf, &Conv_XXXAf_to_XXXAu8, 0, 0, 0, 0, 0, 0 },
-	/* RGGB_U8  */	{ &_debayer_RGGB_to_GRAYu8, 0, 0, 0, 0, 0, 0, 0, &_debayer_RGGB_to_RGBAu8, 0, 0, 0, &_debayer_RGGB_to_BGRAu8, 0, 0, 0, 0, 0, 0 },
-	/* YUYV_U8  */	{ &Conv_YUYVu8_to_GRAYu8, 0, 0, 0, &Conv_YUYVu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_YUYVu8_to_RGBAu8, 0, 0, 0, &Conv_YUYVu8_to_BGRAu8, 0, 0, 0, 0, 0, 0 },
-	/* YUYV_U8  */	{ &Conv_UYVYu8_to_GRAYu8, 0, 0, 0, &Conv_UYVYu8_to_GRAYALPHAu8, 0, 0, 0, &Conv_UYVYu8_to_RGBAu8, 0, 0, 0, &Conv_UYVYu8_to_BGRAu8, 0, 0, 0, 0, 0, 0 }
-	};
+	IConvert::IConvert():
+		_convertFuncs( 0 )
+	{
+		_convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ];
+		memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
 
-	void IConvert::convert( Image & dst, const Image & src )
+		this->initTable();
+	}
+
+	void IConvert::initTable()
+	{
+		/* GRAY_UINT8 TO X */
+		TABLE( _convertFuncs, IFORMAT_GRAY_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_u8_to_f;
+
+		/* GRAY_FLOAT TO X */
+		TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_GRAY_UINT8 ) = &Conv_f_to_u8;
+
+		/* GRAYALPHA_UINT8 TO X */
+		TABLE( _convertFuncs, IFORMAT_GRAYALPHA_UINT8, IFORMAT_GRAYALPHA_FLOAT ) = &Conv_u8_to_f;
+
+		/* GRAYALPHA_FLOAT TO X */
+		TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_f_to_u8;
+
+		/* RGBA_UINT8 TO X */
+		TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_RGBAu8_to_GRAYf;
+		TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_RGBA_FLOAT ) = &Conv_XXXAu8_to_XXXAf;
+		TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_XYZAu8_to_ZYXAu8;
+		TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_BGRA_FLOAT ) = &Conv_XYZAu8_to_ZYXAf;
+
+		/* RGBA_FLOAT TO X */
+		TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_RGBA_UINT8 ) = &Conv_XXXAf_to_XXXAu8;
+		TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_UINT8 ) = &Conv_XYZAf_to_ZYXAu8;
+		TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_FLOAT ) = &Conv_XYZAf_to_ZYXAf;
+
+		/* BGRA_UINT8 TO X */
+		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_BGRAu8_to_GRAYf;
+		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_XYZAu8_to_ZYXAu8;
+		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_RGBA_FLOAT ) = &Conv_XYZAu8_to_ZYXAf;
+		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_BGRA_FLOAT ) = &Conv_XXXAu8_to_XXXAf;
+
+		/* BGRA_FLOAT TO X */
+		TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_BGRA_UINT8 ) = &Conv_XXXAf_to_XXXAu8;
+		TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_UINT8 ) = &Conv_XYZAf_to_ZYXAu8;
+		TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_FLOAT ) = &Conv_XYZAf_to_ZYXAf;
+
+		/* RGGB_UINT8 to X */
+		TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_GRAY_UINT8 ) = &_debayer_RGGB_to_GRAYu8;
+		TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_RGBA_UINT8 ) = &_debayer_RGGB_to_RGBAu8;
+		TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_BGRA_UINT8 ) = &_debayer_RGGB_to_BGRAu8;
+
+		/* YUYV_UINT8 to X */
+		TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_YUYVu8_to_GRAYu8;
+		TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_YUYVu8_to_GRAYALPHAu8;
+		TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_YUYVu8_to_RGBAu8;
+		TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_YUYVu8_to_BGRAu8;
+
+		/* UYVY_UINT8 to X */
+		TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_UYVYu8_to_GRAYu8;
+		TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_UYVYu8_to_GRAYALPHAu8;
+		TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_UYVYu8_to_RGBAu8;
+		TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_UYVYu8_to_BGRAu8;
+	}
+
+	const IConvert & IConvert::instance()
+	{
+		if( IConvert::_instance == 0 ){
+			_instance = new IConvert();
+		}
+
+		return *_instance;
+	}
+
+
+	void IConvert::convert( Image & dst, const Image & src ) const
 	{
 		//checkSize( src, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
 		if( src.format() == dst.format() ) {
@@ -755,13 +813,13 @@ namespace cvt {
 		IFormatID sourceID = src.format().formatID;
 		IFormatID dstID = dst.format().formatID;
 
-		if( sourceID - 1 > 18 )
+		if( sourceID > LAST_FORMAT )
 			throw CVTException( "Source format unkown" );
-		if( dstID - 1 > 18 )
+		if( dstID > LAST_FORMAT )
 			throw CVTException( "Destination format unkown" );
 
-		if( _convertFuncs[ sourceID - 1 ][ dstID - 1 ] ){
-			_convertFuncs[ sourceID - 1 ][ dstID - 1 ]( dst, src );
+		if( TABLE( _convertFuncs, sourceID, dstID ) ){
+			TABLE( _convertFuncs, sourceID, dstID)( dst, src );
 		} else {
 			throw CVTException( "Conversion not implemented!" );
 		}

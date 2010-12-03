@@ -8,16 +8,23 @@
 namespace cvt
 {
 	typedef void (*ConversionFunction)( Image&, const Image& );
-	
+
 	class IConvert
 	{
 		public:
 			/* conversion from source format to dst format */
-			static void convert( Image & dst, const Image & src );
-		
-		private:			
+			void convert( Image & dst, const Image & src ) const;
+
+			static const IConvert & instance();
+
+		private:
 			IConvert();
-	};	
+
+			static IConvert * _instance;
+			ConversionFunction * _convertFuncs;
+
+			void initTable();
+	};
 }
 
 #endif

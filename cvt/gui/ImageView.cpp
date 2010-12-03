@@ -21,7 +21,8 @@ namespace cvt {
 	{
 		_img.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 		try {
-			IConvert::convert( _img, img );
+			const IConvert & conv = IConvert::instance();
+			conv.convert( _img, img );
 		} catch( Exception e ) {
 		}
 		update();

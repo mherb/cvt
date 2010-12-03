@@ -46,13 +46,15 @@ namespace cvt {
 
 	void Image::convert( Image& dst ) const
 	{
-		IConvert::convert( dst, *this );
+		const IConvert & conv = IConvert::instance();
+		conv.convert( dst, *this );
 	}
 	
 	void Image::convert( Image & dst, const IFormat & dstFormat ) const
 	{
 		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
-		IConvert::convert( dst, *this );
+		const IConvert & conv = IConvert::instance();
+		conv.convert( dst, *this );
 	}
 	
 	void Image::fill( const Color& c )
