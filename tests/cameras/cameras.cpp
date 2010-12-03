@@ -2,12 +2,48 @@
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
-#include <cv.h>
-#include <highgui.h>
+#include <cvt/gui/Application.h>
+#include <cvt/gui/Window.h>
+#include <cvt/gui/WidgetLayout.h>
+#include <cvt/gui/Moveable.h>
+#include <cvt/gui/Button.h>
+#include <cvt/gui/ImageView.h>
+#include <cvt/gui/BasicTimer.h>
+#include <cvt/gui/TimeoutHandler.h>
 
 using namespace cvt;
 
-int main()
+class CameraTimeout : public TimeoutHandler
+{
+	public:
+		CameraTimeout( Camera * cam, ImageView * imageView ) :
+			TimeoutHandler(),
+			_cam( cam ),
+			_view( imageView ),
+			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 )
+		{
+			_cam->startCapture();
+		}
+
+		~CameraTimeout()
+		{
+			_cam->stopCapture();
+		}
+
+		void onTimeout()
+		{
+			_cam->nextFrame();
+			_cam->frame().convert( _image );
+			_view->setImage( _image );
+		}
+
+	private:
+		Camera *	_cam;
+		ImageView *	_view;
+		Image		_image;
+};
+
+int main( )
 {
 	Camera::updateInfo();
 	size_t numCams = Camera::count();
@@ -31,46 +67,37 @@ int main()
 		std::cin >> selection;
 	}
 
+	Window w( "Camera Test" );
+	w.setSize( 800, 600 );
+	w.setVisible( true );
+	w.setMinimumSize( 320, 240 );
 
-	int key;
-	size_t frames = 0;
-	Time timer;
+	Button button( "Quit" );
+	Delegate<void ()> dquit( &Application::exit );
+	button.clicked.add( &dquit );
+    WidgetLayout wl;
+    wl.setAnchoredRight( 10, 50 );
+    wl.setAnchoredBottom( 10, 20 );
+    w.addWidget( &button, wl );
+
 	Camera * cam = 0;
 
 	try {
 		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
+		ImageView camView;
+		Moveable m( &camView );
+		m.setSize( 320, 240 );
+		w.addWidget( &m );
 
-		Image frame( cam->width(), cam->height(), IFormat::BGRA_UINT8 );
+		CameraTimeout camTimeOut( cam, &camView );
+		uint32_t timerId = Application::registerTimer( 40, &camTimeOut );
+		Application::run();
+		Application::unregisterTimer( timerId );
 
-		cam->startCapture();
-
-		timer.reset();
-		while( 1 ) {
-			cam->nextFrame();
-			cam->frame().convert( frame );
-
-			size_t stride;
-			const uint8_t * data = frame.map( &stride );
-			cv::Mat ocvImage( (int)frame.height(), (int)frame.width(), CV_8UC4, (void *)data, stride );
-			cv::imshow( "frame", ocvImage );
-			frame.unmap( data );
-
-			key = cvWaitKey( 3 ) & 0xff;
-			if( key == 27 )
-				break;
-
-			frames++;
-			if( timer.elapsedSeconds() > 5.0f ) {
-				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-				frames = 0;
-				timer.reset();
-			}
-		}
-
-		cam->stopCapture();
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
+
 
 	if(cam)
 		delete cam;
