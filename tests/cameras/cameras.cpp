@@ -36,8 +36,7 @@ class CameraTimeout : public TimeoutHandler
 		void onTimeout()
 		{
 			_cam->nextFrame();
-			_cam->frame().convert( _image );
-			_view->setImage( _image );
+			_view->setImage( _cam->frame() );
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
 				char buf[ 200 ];
