@@ -13,7 +13,7 @@ namespace cvt
 	{
 		public:
 			/* conversion from source format to dst format */
-			void convert( Image & dst, const Image & src ) const;
+			static void convert( Image & dst, const Image & src );
 
 			static const IConvert & instance();
 

@@ -5,7 +5,7 @@ namespace cvt {
 
 #define LAST_FORMAT	( IFORMAT_UYVY_UINT8 )
 
-#define TABLE( table, source, dst ) ( table[ ( source - 1 ) * LAST_FORMAT + dst - 1 ] )
+#define TABLE( table, source, dst ) table[ ( ( source ) - 1 ) * LAST_FORMAT + ( dst ) - 1 ]
 
 	IConvert * IConvert::_instance = 0;
 
@@ -799,7 +799,7 @@ namespace cvt {
 	}
 
 
-	void IConvert::convert( Image & dst, const Image & src ) const
+	void IConvert::convert( Image & dst, const Image & src )
 	{
 		//checkSize( src, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
 		if( src.format() == dst.format() ) {
@@ -815,8 +815,9 @@ namespace cvt {
 		if( dstID > LAST_FORMAT )
 			throw CVTException( "Destination format unkown" );
 
-		if( TABLE( _convertFuncs, sourceID, dstID ) ){
-			TABLE( _convertFuncs, sourceID, dstID)( dst, src );
+		IConvert self = IConvert::instance();
+		if( self.TABLE( _convertFuncs, sourceID, dstID ) ){
+			self.TABLE( _convertFuncs, sourceID, dstID)( dst, src );
 		} else {
 			throw CVTException( "Conversion not implemented!" );
 		}
