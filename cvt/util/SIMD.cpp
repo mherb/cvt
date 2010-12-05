@@ -1199,7 +1199,7 @@ namespace cvt {
 
 	void SIMD::Conv_YUYVu8_to_RGBAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
 	{
-		size_t n1 = n & ( ~1 );
+		size_t n1 = n >> 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 		uint32_t* src = ( uint32_t* ) _src;
 		uint32_t yuyv, out;
@@ -1231,7 +1231,7 @@ namespace cvt {
 
 	void SIMD::Conv_YUYVu8_to_BGRAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
 	{
-		size_t n1 = n & ( ~1 );
+		size_t n1 = n >> 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 		uint32_t* src = ( uint32_t* ) _src;
 		uint32_t yuyv, out;
@@ -1263,7 +1263,7 @@ namespace cvt {
 
 	void SIMD::Conv_UYVYu8_to_RGBAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
 	{
-		size_t n1 = n & ( ~1 );
+		size_t n1 = n >> 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 		uint32_t* src = ( uint32_t* ) _src;
 		uint32_t uyvy, out;
@@ -1295,7 +1295,7 @@ namespace cvt {
 
 	void SIMD::Conv_UYVYu8_to_BGRAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
 	{
-		size_t n1 = n & ( ~1 );
+		size_t n1 = n >> 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 		uint32_t* src = ( uint32_t* ) _src;
 		uint32_t uyvy, out;

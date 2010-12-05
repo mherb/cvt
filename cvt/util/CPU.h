@@ -21,11 +21,15 @@ namespace cvt {
 		uint32_t ret = CPU_BASE;
 		uint32_t eax, ebx, ecx, edx;
 
-		asm("\tmovl %%ebx, %%esi;\n\t"
+		/* FIXME: what a clusterfuck - this works only for x86_64, we need to save ebx on x86
+				  BUT cpuid on x86_64 destroys rbx and not only ebx
+		 */
+		asm volatile(
 			"movl $1, %%eax;\n\t"
 			"cpuid;\n\t"
-			"xchgl %%esi, %%ebx;\n\t"
-				: "=a"(eax), "=S"(ebx), "=c"(ecx), "=d"(edx)
+				: "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+				:
+				:
 			);
 		if( edx & ( 1 << 23 ) )
 			ret |= CPU_MMX;
