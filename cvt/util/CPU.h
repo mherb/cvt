@@ -21,6 +21,7 @@ namespace cvt {
 		uint32_t ret = CPU_BASE;
 		uint32_t eax, ebx, ecx, edx;
 
+#ifdef ARCH_x86_64
 		/* FIXME: what a clusterfuck - this works only for x86_64, we need to save ebx on x86
 				  BUT cpuid on x86_64 destroys rbx and not only ebx
 		 */
@@ -31,6 +32,21 @@ namespace cvt {
 				:
 				:
 			);
+#elif ARCH_x86
+		asm volatile(
+			"movl %%ebx, %%esi;\n\t"
+			"movl $1, %%eax;\n\t"
+			"cpuid;\n\t"
+			"xchgl %%ebx, %%esi;\n\t"
+				: "=a"(eax), "=S"(ebx), "=c"(ecx), "=d"(edx)
+				:
+				:
+			);
+
+#else
+		eax = ebx = ecx = edx = 0;
+#endif
+
 		if( edx & ( 1 << 23 ) )
 			ret |= CPU_MMX;
 		if( edx & ( 1 << 25 ) )

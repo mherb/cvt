@@ -12,6 +12,13 @@ ELSE(WIN32)
 	ADD_DEFINITIONS(-DPOSIX -DLINUX -D__LINUX__)
 ENDIF(WIN32)
 
+#define the architecture
+IF("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" )
+ ADD_DEFINITIONS(-D ARCH_x86_64)
+ELSE()
+ ADD_DEFINITIONS(-D ARCH_x86)
+ENDIF() 
+
 # add global definitions (all platforms, all compilers, all sources)
 ADD_DEFINITIONS(-DNOMINMAX)
 
