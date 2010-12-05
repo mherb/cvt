@@ -21,9 +21,11 @@ namespace cvt {
 		uint32_t ret = CPU_BASE;
 		uint32_t eax, ebx, ecx, edx;
 
-		asm( "\tmovl $1, %%eax;\n\t"
-			 "cpuid;"
-				: "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+		asm("\tmovl %%ebx, %%esi;\n\t"
+			"movl $1, %%eax;\n\t"
+			"cpuid;\n\t"
+			"xchgl %%esi, %%ebx;\n\t"
+				: "=a"(eax), "=S"(ebx), "=c"(ecx), "=d"(edx)
 			);
 		if( edx & ( 1 << 23 ) )
 			ret |= CPU_MMX;
