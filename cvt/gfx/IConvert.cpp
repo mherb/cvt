@@ -230,7 +230,7 @@ namespace cvt {
 		size_t sstride;
 		size_t dstride;
 		size_t h;
-		size_t w, i;
+		size_t w;
 
 		SIMD* simd = SIMD::get();
 
@@ -249,7 +249,6 @@ namespace cvt {
 		dst += dstride;
 		h = h - 2 ;
 		while( h-- ) {
-			i = ( w >> 2 ) - 2;
 			if(  h & 1 ) {
 				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
 			} else {
@@ -276,7 +275,7 @@ namespace cvt {
 		size_t sstride;
 		size_t dstride;
 		size_t h;
-		size_t w, i;
+		size_t w;
 
 		SIMD* simd = SIMD::get();
 
@@ -295,7 +294,6 @@ namespace cvt {
 		dst += dstride;
 		h = h - 2 ;
 		while( h-- ) {
-			i = ( w >> 2 ) - 2;
 			if(  h & 1 ) {
 				simd->debayer_EVEN_RGGBu8_BGRAu8( dst, src1, src2, src3, w >> 2 );
 			} else {
@@ -322,7 +320,7 @@ namespace cvt {
 		size_t sstride;
 		size_t dstride;
 		size_t h;
-		size_t w, i;
+		size_t w;
 
 		SIMD* simd = SIMD::get();
 
@@ -341,7 +339,6 @@ namespace cvt {
 		dst += dstride;
 		h = h - 2 ;
 		while( h-- ) {
-			i = ( w >> 2 ) - 2;
 			if(  h & 1 ) {
 				simd->debayer_EVEN_RGGBu8_GRAYu8( dst, src1, src2, src3, w >> 2 );
 			} else {
