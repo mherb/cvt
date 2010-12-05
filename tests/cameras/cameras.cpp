@@ -16,13 +16,16 @@ using namespace cvt;
 class CameraTimeout : public TimeoutHandler
 {
 	public:
-		CameraTimeout( Camera * cam, ImageView * imageView ) :
+		CameraTimeout( Camera * cam, Moveable* mov, ImageView * imageView ) :
 			TimeoutHandler(),
 			_cam( cam ),
+			_moveable( mov ),
 			_view( imageView ),
-			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 )
+			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
+			_frames( 0.0f )
 		{
 			_cam->startCapture();
+			_timer.reset();
 		}
 
 		~CameraTimeout()
@@ -35,12 +38,23 @@ class CameraTimeout : public TimeoutHandler
 			_cam->nextFrame();
 			_cam->frame().convert( _image );
 			_view->setImage( _image );
+			_frames++;
+			if( _timer.elapsedSeconds() > 5.0f ) {
+				char buf[ 200 ];
+				sprintf( buf,"Camera FPS: %.2f", _frames / _timer.elapsedSeconds() );
+				_moveable->setTitle( buf );
+				_frames = 0;
+				_timer.reset();
+			}
 		}
 
 	private:
 		Camera *	_cam;
+		Moveable*   _moveable;
 		ImageView *	_view;
 		Image		_image;
+		Time		_timer;
+		float		_frames;
 };
 
 int main( )
@@ -86,11 +100,12 @@ int main( )
 		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
 		ImageView camView;
 		Moveable m( &camView );
+		m.setTitle( "Camera" );
 		m.setSize( 320, 240 );
 		w.addWidget( &m );
 
-		CameraTimeout camTimeOut( cam, &camView );
-		uint32_t timerId = Application::registerTimer( 40, &camTimeOut );
+		CameraTimeout camTimeOut( cam, &m, &camView );
+		uint32_t timerId = Application::registerTimer( 25, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 
