@@ -10,8 +10,18 @@ namespace cvt {
 	template <typename T, size_t dimension = 2>
 	struct Feature
 	{
-		Feature(){ memset( coords, 0, sizeof( T ) * dimension ); }
-		~Feature(){}
+		Feature()
+		{
+			memset( coords, 0, sizeof( T ) * dimension );
+		}
+
+		Feature( const Feature & other )
+		{
+			memcpy( this->coords, other.coords, sizeof( T ) * dimension );
+		}
+
+		~Feature()
+		{}
 
 		T coords[ dimension ];
 

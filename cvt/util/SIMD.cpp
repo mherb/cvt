@@ -1068,6 +1068,22 @@ namespace cvt {
 			*dst++ = U8_TO_F( *src++ );
 	}
 
+	void SIMD::Conv_GRAYu8_to_XXXAu8( uint8_t* _dst, const uint8_t* src, const size_t n ) const
+	{
+		size_t i = n;
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t tmp;
+
+		while( i-- ){
+			tmp = 0xff000000;
+			tmp |= ( *src );
+			tmp |= ( *src ) << 8;
+			tmp |= ( *src++ ) << 16;
+
+			*dst++ = tmp;
+		}
+	}
+
 	void SIMD::Conv_XXXAf_to_XXXAu8( uint8_t* _dst, float const* src, const size_t n ) const
 	{
 		size_t i = n;
@@ -1196,20 +1212,20 @@ namespace cvt {
 			*dst++ = v;
 		}
 	}
-	
+
 	void SIMD::Conv_BGRAu8_to_GRAYu8( uint8_t* dst, const uint8_t * _src, const size_t n ) const
 	{
 		size_t i = n;
 		uint32_t* src = ( uint32_t* ) _src;
 		uint32_t tmp;
-		float v;
-		
+		int v;
+
 		while( i-- ) {
 			tmp = *src++;
-			v = 0.299f * ( tmp >>16 );
-			v += 0.587f * ( tmp >> 8 );
-			v += 0.114f * ( tmp & 0xff );
-			*dst++ = ( uint8_t )v;
+			v = 306 * ( ( tmp >>16 ) & 0xff );
+			v += 601 * (  ( tmp >> 8 ) & 0xff );
+			v += 117 * ( tmp & 0xff );
+			*dst++ = ( uint8_t ) ( v >> 10 );
 		}
 	}
 

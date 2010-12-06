@@ -7,7 +7,8 @@ namespace cvt
 #define Compare(X, Y) ((X)>=(Y))
 
 	FAST::FAST( FASTSize size ) :
-		_threshold( 50 ),
+		_threshold( 25 ),
+		_minScore( 30 ),
 		_extract( 0 ),
 		_score( 0 )
 	{
@@ -117,6 +118,8 @@ namespace cvt
 
 		for( size_t i = 0; i < numCorners; i++ ) {
 			int score = scores[ i ];
+			if( score < _minScore )
+				continue;
 			const Feature2D & pos = corners[ i ];
 
 			/* Check left */

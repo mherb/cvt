@@ -27,6 +27,7 @@ namespace cvt
 
 		private:
 			uint8_t		_threshold;
+			int32_t		_minScore;
 			ExtractFunc	_extract;
 			ScoreFunc	_score;
 
