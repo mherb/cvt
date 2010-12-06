@@ -1196,6 +1196,22 @@ namespace cvt {
 			*dst++ = v;
 		}
 	}
+	
+	void SIMD::Conv_BGRAu8_to_GRAYu8( uint8_t* dst, const uint8_t * _src, const size_t n ) const
+	{
+		size_t i = n;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t tmp;
+		float v;
+		
+		while( i-- ) {
+			tmp = *src++;
+			v = 0.299f * ( tmp >>16 );
+			v += 0.587f * ( tmp >> 8 );
+			v += 0.114f * ( tmp & 0xff );
+			*dst++ = ( uint8_t )v;
+		}
+	}
 
 	void SIMD::Conv_YUYVu8_to_RGBAu8( uint8_t* _dst, const uint8_t* _src, const size_t n ) const
 	{

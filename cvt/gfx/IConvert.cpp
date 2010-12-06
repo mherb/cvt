@@ -147,6 +147,20 @@ namespace cvt {
 
 		CONV( Conv_XYZAf_to_ZYXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )
 	}
+	
+	static void Conv_BGRAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::get();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+		
+		CONV( Conv_BGRAu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
 
 	static void Conv_BGRAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
 	{
@@ -761,6 +775,7 @@ namespace cvt {
 		TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_FLOAT ) = &Conv_XYZAf_to_ZYXAf;
 
 		/* BGRA_UINT8 TO X */
+		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_BGRAu8_to_GRAYu8;
 		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_BGRAu8_to_GRAYf;
 		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_XYZAu8_to_ZYXAu8;
 		TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_RGBA_FLOAT ) = &Conv_XYZAu8_to_ZYXAf;
