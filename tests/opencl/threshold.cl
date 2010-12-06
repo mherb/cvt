@@ -18,7 +18,7 @@ __kernel void THRESHOLD( __write_only image2d_t iout,
 	dxy = read_imagef( ig2, sampler, coord ) + ( float4 ) 1e-4f;
 	th = dxy * lambdatheta;
 
-	coord.x = coord.x * 2;
+	coord.x = coord.x << 1;
 	in1 = read_imagef( src, sampler, coord );
 	in2 = read_imagef( src, sampler, coord + ( int2 ) ( 1, 0 ) );
 	in10 = read_imagef( src0, sampler, coord );

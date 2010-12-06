@@ -39,7 +39,7 @@ int main( int argc, char** argv )
 	Image* u;
 
 	Camera::updateInfo();
-	cam = Camera::get( 3, 640, 480, 60.0, IFormat::YUYV_UINT8 );
+	cam = Camera::get( 0, 640, 480, 60.0, IFormat::YUYV_UINT8 );
 
 	try {
 		CLContext cl;
