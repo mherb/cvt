@@ -119,6 +119,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
 	vision/Flow.h
+	vision/FeatureExtractor.h
+	vision/FAST.h
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
@@ -204,6 +206,11 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageAllocatorMem.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
+	vision/FAST.cpp
+	vision/fast/fast9.cpp
+	vision/fast/fast10.cpp
+	vision/fast/fast11.cpp
+	vision/fast/fast12.cpp
 	vision/Flow.cpp
 	cl/CLContext.cpp
 	cl/CLException.cpp
