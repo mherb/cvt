@@ -54,11 +54,11 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
-		
+
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
 			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
-			
+
 			virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampSet2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
@@ -73,6 +73,7 @@ namespace cvt {
 
 			virtual void Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const;
 			virtual void Conv_u8_to_f( float* dst, uint8_t const* src, const size_t n ) const;
+			virtual void Conv_GRAYu8_to_XXXAu8( uint8_t* _dst, const uint8_t* src, const size_t n ) const;
 			virtual void Conv_XXXAf_to_XXXAu8( uint8_t* dst, float const* src, const size_t n ) const;
 			virtual void Conv_XYZAf_to_ZYXAu8( uint8_t* dst, float const* src, const size_t n ) const;
 			virtual void Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const;

@@ -7,9 +7,9 @@
 #include <cvt/gui/WidgetLayout.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Button.h>
-#include <cvt/gui/ImageView.h>
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/gui/TimeoutHandler.h>
+#include "FeatureView.h"
 
 #include <cvt/vision/FAST.h>
 
@@ -18,11 +18,11 @@ using namespace cvt;
 class CameraTimeout : public TimeoutHandler
 {
 	public:
-		CameraTimeout( Camera * cam, Moveable* mov, ImageView * imageView ) :
+		CameraTimeout( Camera * cam, Moveable* mov, FeatureView * view ) :
 			TimeoutHandler(),
 			_cam( cam ),
 			_moveable( mov ),
-			_view( imageView ),
+			_view( view ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
@@ -40,13 +40,14 @@ class CameraTimeout : public TimeoutHandler
 		void onTimeout()
 		{
 			_cam->nextFrame();
-			_view->setImage( _cam->frame() );
 
 			_cam->frame().convert( _gray );
+			_view->setImage( _gray );
 
 			std::vector<Feature2D> features;
 			_fastFeatures.extract( _gray, features );
-			std::cout << "Number of FAST features: " << features.size() << std::endl;
+
+			_view->setFeatures( features );
 
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
@@ -59,14 +60,14 @@ class CameraTimeout : public TimeoutHandler
 		}
 
 	private:
-		Camera *	_cam;
-		Moveable*   _moveable;
-		ImageView *	_view;
-		Image		_image;
-		Image		_gray;
-		Time		_timer;
-		float		_frames;
-		FAST		_fastFeatures;
+		Camera *		_cam;
+		Moveable*		_moveable;
+		FeatureView *	_view;
+		Image			_image;
+		Image			_gray;
+		Time			_timer;
+		float			_frames;
+		FAST			_fastFeatures;
 };
 
 int main( )
@@ -110,7 +111,7 @@ int main( )
 
 	try {
 		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
-		ImageView camView;
+		FeatureView camView;
 		Moveable m( &camView );
 		m.setTitle( "Camera" );
 		m.setSize( 320, 240 );
