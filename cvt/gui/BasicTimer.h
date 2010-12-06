@@ -6,33 +6,33 @@
 #include <stdint.h>
 
 namespace cvt {
-    class BasicTimer : public TimeoutHandler {
-	public:
-	    BasicTimer( size_t interval_ms );
-	    ~BasicTimer();
-	    void start();
-	    void stop();
-	    Signal<BasicTimer*> timeout;
-	private:
-	    void onTimeout();
+	class BasicTimer : public TimeoutHandler {
+		public:
+			BasicTimer( size_t interval_ms );
+			~BasicTimer();
+			void start();
+			void stop();
+			Signal<BasicTimer*> timeout;
+		private:
+			void onTimeout();
 
-	    uint32_t _id;
-	    size_t _interval;
-    };
+			uint32_t _id;
+			size_t _interval;
+	};
 
-    inline BasicTimer::BasicTimer( size_t ms ) : _id( 0 ), _interval( ms )
-    {
-    }
+	inline BasicTimer::BasicTimer( size_t ms ) : _id( 0 ), _interval( ms )
+	{
+	}
 
-    inline BasicTimer::~BasicTimer( )
-    {
-	stop();
-    }
+	inline BasicTimer::~BasicTimer( )
+	{
+		stop();
+	}
 
-    inline void BasicTimer::onTimeout()
-    {
-	timeout.notify( this );
-    }
+	inline void BasicTimer::onTimeout()
+	{
+		timeout.notify( this );
+	}
 };
 
 

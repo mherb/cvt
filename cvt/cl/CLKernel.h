@@ -23,6 +23,7 @@ namespace cvt {
 			void run( const cl::NDRange& global, const cl::NDRange& local, std::vector<cl::Event>* events = NULL, cl::Event* event = NULL );
 			void run( const Image& img, const cl::NDRange& local, std::vector<cl::Event>* events = NULL, cl::Event* event = NULL );
 			size_t workGroupSize( ) const;
+			size_t workGroupSizePreferredMultiple( ) const;
 			std::vector<char*>* getBinaries( );
 
 		private:

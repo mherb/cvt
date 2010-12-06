@@ -17,7 +17,7 @@ namespace cvt {
 		private:
 			void clear( Image* img );
 			Image* biup( Image* in, float mul );
-			void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, size_t iter );
+			void warp( Image* u, Image* v, Image* px, Image* py, Image* img1, Image* img2, size_t iter, float level );
 			void tvl1( Image* u, Image* v, Image* px, Image* py, float lambda, float _theta, Image* ig2, Image* it, Image* ix, Image* iy, Image* _v0, size_t iter );
 			Image* colorcode( Image* in, Image* bg );
 			void showColorCode( const char* name, Image* i, Image* bg );
