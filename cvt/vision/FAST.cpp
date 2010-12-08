@@ -7,7 +7,7 @@ namespace cvt
 #define Compare(X, Y) ((X)>=(Y))
 
 	FAST::FAST( FASTSize size ) :
-		_threshold( 25 ),
+		_threshold( 30 ),
 		_minScore( 30 ),
 		_extract( 0 ),
 		_score( 0 )

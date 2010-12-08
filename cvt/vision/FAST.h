@@ -24,6 +24,8 @@ namespace cvt
 			void extract( const Image & image, std::vector<Feature2D> & features );
 			void setThreshold( uint8_t threshold );
 			uint8_t threshold();
+			void setMinScore( int32_t minscore );
+			int32_t minScore();
 
 		private:
 			uint8_t		_threshold;
@@ -54,6 +56,16 @@ namespace cvt
 	inline uint8_t FAST::threshold()
 	{
 		return _threshold;
+	}
+
+	inline void FAST::setMinScore( int32_t minscore )
+	{
+		_minScore = minscore;
+	}
+
+	inline int32_t FAST::minScore()
+	{
+		return _minScore;
 	}
 }
 
