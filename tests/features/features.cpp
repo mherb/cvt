@@ -12,6 +12,7 @@
 #include "FeatureView.h"
 
 #include <cvt/vision/FAST.h>
+#include <cvt/vision/AGAST.h>
 
 using namespace cvt;
 
@@ -26,10 +27,19 @@ class CameraTimeout : public TimeoutHandler
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
-			_fastFeatures( SEGMENT_9 )
+			//_detector( SEGMENT_9 )
+			//_detector( AGAST_5_8 )
+			//_detector( AGAST_7_12D )
+			_detector( AGAST_7_12S )
+			//_detector( OAST_9_16 )
 		{
 			_cam->startCapture();
 			_timer.reset();
+			_processingTime.reset();
+			_iter = 0;
+			_timeSum = 0;
+			//_detector.setMinScore( 25 );
+			//_detector.setThreshold( 25 );
 		}
 
 		~CameraTimeout()
@@ -45,7 +55,15 @@ class CameraTimeout : public TimeoutHandler
 			_view->setImage( _gray );
 
 			std::vector<Feature2D> features;
-			_fastFeatures.extract( _gray, features );
+
+			_processingTime.reset();
+			_detector.extract( _gray, features );
+
+			_timeSum += _processingTime.elapsedMilliSeconds();
+
+			_iter++;
+			if( (_iter % 100) == 0 )
+				std::cout << "Avg. Feature extraction time: " << _timeSum / _iter << "ms" << std::endl;
 
 			_view->setFeatures( features );
 
@@ -66,8 +84,12 @@ class CameraTimeout : public TimeoutHandler
 		Image			_image;
 		Image			_gray;
 		Time			_timer;
+		Time			_processingTime;
+		size_t			_iter;
+		double			_timeSum;
 		float			_frames;
-		FAST			_fastFeatures;
+		//FAST			_detector;
+		AGAST			_detector;
 };
 
 int main( )
