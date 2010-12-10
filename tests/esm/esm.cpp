@@ -4,14 +4,13 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/io/DC1394Camera.h>
-//#include <cvt/io/V4L2Camera.h>
+#include <cvt/io/Camera.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 #include <cvt/math/ESM.h>
 
-//#define CAMINPUT 1
+#define CAMINPUT 1
 
 //#define FILETEMPLATE
 
@@ -85,10 +84,15 @@ void drawEstimate( const Image& temp, Image & out, SL3Transform & hom )
 //	std::cout << "P: " << p2.x << ", " << p2.y << std::endl;
 //	std::cout << "P: " << p3.x << ", " << p3.y << std::endl;
 	
-//	cvLine( out.iplimage(), p0, p1, CV_RGB(255, 255, 255), 2 );
-//	cvLine( out.iplimage(), p1, p2, CV_RGB(255, 255, 255), 2 );
-//	cvLine( out.iplimage(), p2, p3, CV_RGB(255, 255, 255), 2 );
-//	cvLine( out.iplimage(), p0, p3, CV_RGB(255, 255, 255), 2 );
+	size_t stride;
+	uint8_t * data = out.map( & stride );
+	cv::Mat ocvImage( out.height(), out.width(), CV_32FC1, (void *)data, stride );
+	cv::line( ocvImage, p0, p1, CV_RGB(255, 255, 255), 2 );
+	cv::line( ocvImage, p1, p2, CV_RGB(255, 255, 255), 2 );
+	cv::line( ocvImage, p2, p3, CV_RGB(255, 255, 255), 2 );
+	cv::line( ocvImage, p0, p3, CV_RGB(255, 255, 255), 2 );
+	cv::imshow( "ESM", ocvImage );
+	out.unmap( data );
 }
 
 
@@ -98,7 +102,29 @@ int main(int argc, char* argv[])
 	const Image* frame;
 	
 #ifdef CAMINPUT
-	DC1394Camera cam;
+	Camera::updateInfo();
+	size_t numCams = Camera::count();
+	
+	std::cout << "Overall number of Cameras: " << numCams << std::endl;
+	if( numCams == 0 ){
+		std::cout << "Please connect a camera!" << std::endl;
+		return 0;
+	}
+	
+	for( size_t i = 0; i < numCams; i++ ){
+		const CameraInfo & info = Camera::info( i );
+		std::cout << "Camera " << i << ": " << info << std::endl;
+	}
+	
+	size_t selection = numCams;
+	std::cout << "Select camera: ";
+	std::cin >> selection;
+	while ( selection >= numCams ){
+		std::cout << "Index out of bounds -> select camera in Range:";
+		std::cin >> selection;
+	}	
+	Camera * cam;
+	cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
 #endif
 
 	int key;
@@ -108,12 +134,10 @@ int main(int argc, char* argv[])
 	try {
 		
 #ifdef CAMINPUT
-		cam.open();
-		cam.init();
-		cam.captureStart();		
+		cam->startCapture();		
 		
-		Image out( 640, 480, IOrder::GRAY, IType::UBYTE );
-		Image outF( 640, 480, IOrder::GRAY, IType::FLOAT );
+		Image out( cam->width(), cam->height(), IFormat::GRAY_UINT8 );
+		Image outF( cam->width(), cam->height(), IFormat::GRAY_FLOAT );
 #else
 		std::string dataFolder(DATA_FOLDER);
 		std::string inputFile(dataFolder + "/lena_g.png");
@@ -131,7 +155,7 @@ int main(int argc, char* argv[])
 
 #ifndef FILETEMPLATE		
 		Params p = { 0, 0, 0, 0, 0 };
-//		cvShowImage( "ESM", out.iplimage() );
+		cv::namedWindow( "ESM" );
 		cvSetMouseCallback( "ESM", ( CvMouseCallback ) mouseevent, &p );
 		
 		timer.reset();
@@ -140,25 +164,26 @@ int main(int argc, char* argv[])
 		
 		while( selectPatch ) {
 #ifdef CAMINPUT
-			cam.captureNext();
-			frame = cam.image();
-
-			frame->debayer( out, IBAYER_RGGB );
-//			out.copy( *frame );
-
-//			cvShowImage( "ESM", out.iplimage() );
+			cam->nextFrame();
+			cam->frame().convert( out );
 #endif
 			out.convert( outF );
+			
+			size_t stride;
+			uint8_t * data = out.map( & stride );
+			cv::Mat ocvImage( out.height(), out.width(), CV_8UC1, (void *)data, stride );
 
 			if( selectPatch ){
 				if( p.numClick == 1 ){
-//					cvCircle( out.iplimage(), cvPoint( p.x0, p.y0), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
+					cv::circle( ocvImage, cv::Point( p.x0, p.y0 ), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
 				} else if( p.numClick == 2 ){
 					Recti roi( p.x0, p.y0, p.x1-p.x0, p.y1-p.y0 );
 					temp = new Image( outF, &roi );
 					selectPatch = false;
 				}
 			}
+			cv::imshow( "ESM", ocvImage );
+			out.unmap( data );
 
 			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
@@ -169,7 +194,7 @@ int main(int argc, char* argv[])
 #else
 		Image filetemplate;
 		ImageIO::loadPNG(filetemplate,"/home/heise/Pictures/PRML.png");
-		temp = new Image( filetemplate.width(), filetemplate.height(), IOrder::GRAY, IType::FLOAT );
+		temp = new Image( filetemplate.width(), filetemplate.height(), IFormat::GRAY_FLOAT );
 		filetemplate.convert( *temp );
 #endif
 		
@@ -198,16 +223,14 @@ int main(int argc, char* argv[])
 				
 		while( 1 ) {
 #ifdef CAMINPUT
-			cam.captureNext();
-			frame = cam.image();			
-			frame->debayer( out, IBAYER_RGGB );
+			cam->nextFrame();
+			cam->frame().convert( out );
 #endif
 			out.convert( outF );
 			
 			esm.optimize( homography, outF );
 			
 			drawEstimate( *temp, outF, homography );	
-//			cvShowImage( "ESM", outF.iplimage() );
 			
 			key = ( cvWaitKey( 5 ) & 0xff );
 			if( key == 27 )

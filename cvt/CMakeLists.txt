@@ -125,6 +125,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
+	geom/KDTree.h
 	gui/Application.h
 	gui/Window.h
 	gui/Widget.h
