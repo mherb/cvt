@@ -36,13 +36,13 @@ __kernel void Denoise_CALCP1( __write_only image2d_t pxout,  __write_only image2
 		pdx.zw = ( float2 ) 0.0f;
 
 
-	if( coord.y != height - 1 )
+//	if( coord.y != height - 1 )
 		pdy = BUF( lx, ly + 1 )  - p;
-	else
-		pdy = ( float4 ) 0.0f;
+//	else
+//		pdy = ( float4 ) 0.0f;
 
-	px = px + taulambda * ( pdx - 0.01f * px );
-	py = py + taulambda * ( pdy - 0.01f * py );
+	px = px + taulambda * ( pdx - 0.02f * px );
+	py = py + taulambda * ( pdy - 0.02f * py );
 
 	norm = fmax( ( float4 ) 1.0f, native_sqrt( px * px + py * py ) );
 	px = px / norm;

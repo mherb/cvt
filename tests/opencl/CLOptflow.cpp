@@ -303,7 +303,7 @@ namespace cvt {
 			kernelwarpsub.setArg( 4, &mul );
 			kernelwarpsub.run( it, clWorkGroupSize2D( kernelwarpsub.workGroupSize(), kernelwarpsub.workGroupSizePreferredMultiple(), it.width(), it.height() ), &sync );
 
-			tvl1( u, v, px, py, LAMBDA, THETA / ( level * 1.0f + 1.0f), &iwxy, &it, &iwx, &iwy, &v0, NUMROF );
+			tvl1( u, v, px, py, LAMBDA, THETA / ( level * 2.0f + 1.0f), &iwxy, &it, &iwx, &iwy, &v0, NUMROF );
 		}
 	}
 
