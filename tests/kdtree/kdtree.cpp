@@ -85,7 +85,7 @@ void KDTree::select(  uint32_t l, uint32_t h, uint32_t x, int idx )
 	if( l == h ) return;
 
 	uint32_t i = partition( l, h, idx );
-	uint32_t k = i - l + 1;
+	uint32_t k = i - l ;
 
 	if( x == k )
 		return;
@@ -108,7 +108,7 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, int idx )
 	SWAP( mid, h );
 
 	// i defines is the partitioning index
-	int32_t i = l -1;
+	int32_t i = l - 1;
 	for( uint32_t j = l ; j < h; j++ ){
 		if( PT( j ) <= PT( h ) ){
 			i++;
@@ -125,11 +125,11 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, int idx )
 
 int main()
 {
-	Point2f pts[ 10 ];
+	Point2f pts[ 11 ];
 
-	for( int i = 0; i < 10; i++ )
+	for( int i = 0; i < 11; i++ )
 		pts[ i ].set( Math::rand( 0.0f, 10.0f ), Math::rand( 0.0f, 10.0f ) );
 
-	KDTree kdtree( pts, 10 );
+	KDTree kdtree( pts, 11 );
 	return 0;
 }
