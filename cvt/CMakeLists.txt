@@ -68,6 +68,8 @@ GLSLTOHEADER(gl/shader/150/basictex_150.vert)
 GLSLTOHEADER(gl/shader/150/basictex_150.frag)
 GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
 GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
+GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
+GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
 
 
 
@@ -171,6 +173,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/150/basictex_150_vert.h
 	gl/shader/150/basictex_150_frag.h
 	gl/shader/150/basicrrtex_150_frag.h
+	gl/shader/150/basiclight_150_frag.h
+	gl/shader/150/basiclight_150_vert.h
 )
 
 SET(${MODULE_NAME}_SOURCES
