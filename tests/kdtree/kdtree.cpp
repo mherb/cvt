@@ -26,6 +26,7 @@ class KDTree {
 		/* select the x-th element according to dimension idx */
 		void select(  uint32_t l, uint32_t h, uint32_t x, uint32_t idx );
 		void print();
+		void check( uint32_t l, uint32_t h, uint32_t idx );
 
 		Point2f* _pts;
 		uint32_t* _ptidx;
@@ -49,6 +50,7 @@ KDTree::KDTree( Point2f* pts, size_t npts )
 	medsort2( 0, _npts - 1, npts >> 1, 0 );
 	std::cout  << "final: " << std::endl;
 	print();
+	check( 0, _npts - 1, 0 );
 }
 
 KDTree::~KDTree()
@@ -138,6 +140,22 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 	}
 }
 
+void KDTree::check( uint32_t l, uint32_t h, uint32_t idx )
+{
+	uint32_t med = ( l + h ) >> 1;
+
+	if( h >= l )
+		return;
+
+	for( uint32_t x = l; x < h; x++ ) {
+		if( x < med && PT( x ) > PT( med ) )
+			std::cout << "lower than median has bigger value" << std::endl;
+		if( x > med && PT( x ) < PT( med ) )
+			std::cout << "lower than median has bigger value" << std::endl;
+	}
+	check( l, med - 1, idx ^ 0x01 );
+	check( med + 1, h, idx ^ 0x01 );
+}
 
 
 void KDTree::select(  uint32_t l, uint32_t h, uint32_t i, uint32_t idx )
@@ -200,7 +218,7 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, uint32_t idx )
 
 int main()
 {
-#define SIZE 6
+#define SIZE 21
 
 	Point2f pts[ SIZE ];
 
