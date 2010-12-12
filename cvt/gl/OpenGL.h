@@ -31,7 +31,8 @@ namespace cvt {
 			static void ( *glGenVertexArrays )( GLsizei n, GLuint *arrays);
 			static GLboolean ( *glIsVertexArray )( GLuint array);
 
-			static void ortho2d( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void perspective( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
 
 		private:
 			static void init();

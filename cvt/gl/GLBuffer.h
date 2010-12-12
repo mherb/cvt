@@ -6,7 +6,7 @@
 namespace cvt {
 	class GLBuffer {
 		public:
-			GLBuffer( GLenum target );
+			GLBuffer( GLenum target = GL_ARRAY_BUFFER );
 			~GLBuffer();
 			void alloc( GLenum usage, size_t size, const void *data = NULL );
 			void bind() const;
@@ -14,7 +14,7 @@ namespace cvt {
 			size_t size() const;
 			GLenum target() const;
 
-			void* map( GLenum access ) const;
+			void* map( GLenum access = GL_READ_WRITE ) const;
 			void unmap() const;
 			/*
 			void* map( size_t offset, size_t length, GLbitfield	access ) const;

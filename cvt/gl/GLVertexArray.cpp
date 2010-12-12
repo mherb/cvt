@@ -56,8 +56,10 @@ namespace cvt {
 
 	void GLVertexArray::setColor( const Color& color )
 	{
+		GL::glBindVertexArray( _vao );
 		_arrays &= ~( 1 << GLSL_COLOR_IDX );
 		glVertexAttrib4fv( GLSL_COLOR_IDX, color.data() );
+		GL::glBindVertexArray( 0 );
 	}
 
 	void GLVertexArray::setVertexData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
