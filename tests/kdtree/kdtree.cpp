@@ -45,7 +45,7 @@ KDTree::KDTree( Point2f* pts, size_t npts )
 	print();
 	std::cout  << std::endl;
 
-	//medsort( 0, _npts - 1, 0 );
+//	medsort( 0, _npts - 1, 0 );
 	medsort2( 0, _npts - 1, npts >> 1, 0 );
 	std::cout  << "final: " << std::endl;
 	print();
@@ -59,12 +59,13 @@ KDTree::~KDTree()
 void KDTree::print()
 {
 	int idx = 0;
+	std::cout << "x : ";
 	for( uint32_t i = 0; i < _npts; i++ )
 		std::cout << PT( i ) << " ";
-	idx ^= 0x01;
 
 	std::cout << std::endl;
-
+	idx ^= 0x01;
+	std::cout << "y : ";
 	for( uint32_t i = 0; i < _npts; i++ )
 		std::cout << PT( i ) << " ";
 	std::cout << std::endl;
@@ -85,24 +86,30 @@ void KDTree::medsort( uint32_t l, uint32_t h, uint32_t idx )
 
 void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 {
-	if( _h <= _l + 1 )
-		return;
-
 	uint32_t l = _l;
 	uint32_t h = _h;
 	uint32_t p;
 
 
-//	std::cout << "medsort(" << med <<") " << _l << " < - > " << _h << " index: " << idx << std::endl;
+	if( h <= l  )
+		return;
+	std::cout << "medsort(" << med <<") " << _l << " < - > " << _h << " index: " << idx << std::endl;
 
 	while( 1 ) {
 		if( h <= l ) {
+			std::cout << ( PT( med ) ) << std::endl;
 			medsort2( _l, med - 1, ( _l + med - 1 ) >> 1, idx ^ 0x01 );
 			medsort2( med + 1, _h, ( _h + med + 1 ) >> 1, idx ^ 0x01 );
 			return;
-		} else {
+		} /*else if( l + 1 == h ) {
+			if( PT( l ) > PT( h ) )
+				SWAP( l, h  );
+			return;
+		}*/ else {
 			uint32_t mid = ( l + h ) >> 1;
 			uint32_t i, k;
+
+			std::cout << l << " < - > " << h << std::endl;
 
 			if( PT( l ) > PT( mid ) )
 				SWAP( l, mid  );
@@ -111,22 +118,22 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			if( PT( l ) > PT( mid ) )
 				SWAP( l, mid  );
 			SWAP( mid, h );
-			p = h;
+			print();
+			p = h--;
 			i = l;
 			k = h;
-			h--;
 			while( 1 ) {
-				do i++; while( PT( i ) <= PT( p ) );
-				do k--; while( PT( k ) > PT( p ) );
+				while( PT( i ) < PT( p ) ) i++;
+				while( PT( k ) > PT( p ) ) k--;
 				if( i >= k) break;
 				SWAP( i, k );
 			}
 			SWAP( i , p);
 			h++;
-//			print();
+			print();
 			if( med < i - 1 ) h = i - 1;
-			else if( med > i + 1 ) l = i + 1;
-			else { h = l; };
+			else /*if( med > i + 1 )*/ l = i + 1;
+//			else { h = l; };
 		}
 	}
 }
@@ -144,7 +151,7 @@ void KDTree::select(  uint32_t l, uint32_t h, uint32_t i, uint32_t idx )
 	}
 
 	uint32_t q = partition( l, h, idx );
-	std::cout << "Partitioned: low = " << l << ", high = " << h << ", index of partitioning element: " << q << std::endl;
+//	std::cout << "Partitioned: low = " << l << ", high = " << h << ", index of partitioning element: " << q << std::endl;
 
 	if( l == 11 ){
 		std::cout << std::endl;
@@ -172,7 +179,7 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, uint32_t idx )
 	if( PT( l ) > PT( mid ) )
 		SWAP( l, mid  );
 	SWAP( mid, h );
-	std::cout << "SELECTED MEDIAN at index " << h << ", " << PT( h ) << std::endl;;
+//	std::cout << "SELECTED MEDIAN at index " << h << ", " << PT( h ) << std::endl;;
 
 	// i defines the partitioning index
 	int32_t i = l - 1;
@@ -193,11 +200,13 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, uint32_t idx )
 
 int main()
 {
-	Point2f pts[ 21 ];
+#define SIZE 7
 
-	for( int i = 0; i < 21; i++ )
+	Point2f pts[ SIZE ];
+
+	for( int i = 0; i < SIZE; i++ )
 		pts[ i ].set( Math::rand( 0.0f, 10.0f ), Math::rand( 0.0f, 10.0f ) );
 
-	KDTree kdtree( pts, 21 );
+	KDTree kdtree( pts, SIZE );
 	return 0;
 }
