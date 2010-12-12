@@ -93,25 +93,25 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 	uint32_t p;
 
 
-	if( h <= l  )
+	if( h <= l + 1 )
 		return;
-	std::cout << "medsort(" << med <<") " << _l << " < - > " << _h << " index: " << idx << std::endl;
+//	std::cout << "medsort(" << med <<") " << _l << " < - > " << _h << " index: " << idx << std::endl;
 
 	while( 1 ) {
 		if( h <= l ) {
-			std::cout << ( PT( med ) ) << std::endl;
+//			std::cout << ( PT( med ) ) << std::endl;
 			medsort2( _l, med - 1, ( _l + med - 1 ) >> 1, idx ^ 0x01 );
 			medsort2( med + 1, _h, ( _h + med + 1 ) >> 1, idx ^ 0x01 );
 			return;
-		} else if( l + 1 == h ) {
+		} /*else if( l + 1 == h ) {
 			if( PT( l ) > PT( h ) )
 				SWAP( l, h  );
 			return;
-		} else {
+		}*/ else {
 			uint32_t mid = ( l + h ) >> 1;
 			uint32_t i, k;
 
-			std::cout << l << " < - > " << h << std::endl;
+//			std::cout << l << " < - > " << h << std::endl;
 
 			if( PT( l ) > PT( mid ) )
 				SWAP( l, mid  );
@@ -120,7 +120,7 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			if( PT( l ) > PT( mid ) )
 				SWAP( l, mid  );
 			SWAP( mid, h );
-			print();
+//			print();
 			p = h--;
 			i = l;
 			k = h;
@@ -132,7 +132,7 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			}
 			SWAP( i , p);
 			h++;
-			print();
+//			print();
 			if( med < i ) h = i;
 			else if( med > i ) l = i;
 			else { h = l; };
