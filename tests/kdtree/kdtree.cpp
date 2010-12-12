@@ -101,11 +101,11 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			medsort2( _l, med - 1, ( _l + med - 1 ) >> 1, idx ^ 0x01 );
 			medsort2( med + 1, _h, ( _h + med + 1 ) >> 1, idx ^ 0x01 );
 			return;
-		} /*else if( l + 1 == h ) {
+		} else if( l + 1 == h ) {
 			if( PT( l ) > PT( h ) )
 				SWAP( l, h  );
 			return;
-		}*/ else {
+		} else {
 			uint32_t mid = ( l + h ) >> 1;
 			uint32_t i, k;
 
@@ -131,9 +131,9 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			SWAP( i , p);
 			h++;
 			print();
-			if( med < i - 1 ) h = i - 1;
-			else /*if( med > i + 1 )*/ l = i + 1;
-//			else { h = l; };
+			if( med < i ) h = i;
+			else if( med > i ) l = i;
+			else { h = l; };
 		}
 	}
 }
@@ -163,9 +163,9 @@ void KDTree::select(  uint32_t l, uint32_t h, uint32_t i, uint32_t idx )
 	if( i == q )
 		return;
 	else if( i < q )
-		select( l, q - 1, i, idx );
+		select( l, q , i, idx );
 	else
-		select( q + 1, h, i, idx );
+		select( q , h, i, idx );
 }
 
 uint32_t KDTree::partition( uint32_t l, uint32_t h, uint32_t idx )
@@ -200,7 +200,7 @@ uint32_t KDTree::partition( uint32_t l, uint32_t h, uint32_t idx )
 
 int main()
 {
-#define SIZE 7
+#define SIZE 6
 
 	Point2f pts[ SIZE ];
 
