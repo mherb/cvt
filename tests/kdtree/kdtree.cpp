@@ -8,7 +8,7 @@ using namespace cvt;
 
 typedef Vector2f Point2f;
 
-#define PT( n ) _pts[ _ptidx[ n ] ][ idx ] 
+#define PT( n ) _pts[ _ptidx[ n ] ][ idx ]
 #define SWAP( a, b ) do { uint32_t t = _ptidx[ a ]; _ptidx[ a ] = _ptidx[ b ]; _ptidx[ b ] = t; } while( 0 )
 
 
@@ -85,12 +85,15 @@ void KDTree::medsort( uint32_t l, uint32_t h, uint32_t idx )
 
 void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 {
-	if( _h <= _l )
+	if( _h <= _l + 1 )
 		return;
 
 	uint32_t l = _l;
 	uint32_t h = _h;
 	uint32_t p;
+
+
+//	std::cout << "medsort(" << med <<") " << _l << " < - > " << _h << " index: " << idx << std::endl;
 
 	while( 1 ) {
 		if( h <= l ) {
@@ -99,6 +102,7 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 			return;
 		} else {
 			uint32_t mid = ( l + h ) >> 1;
+			uint32_t i, k;
 
 			if( PT( l ) > PT( mid ) )
 				SWAP( l, mid  );
@@ -108,18 +112,21 @@ void KDTree::medsort2( uint32_t _l, uint32_t _h, uint32_t med, int idx )
 				SWAP( l, mid  );
 			SWAP( mid, h );
 			p = h;
+			i = l;
+			k = h;
 			h--;
 			while( 1 ) {
-				do l++; while( PT( l ) < PT( p ) );
-				do h--; while( PT( h ) > PT( p ) );
-				if( l >= h) break;
-				SWAP( l, h );
+				do i++; while( PT( i ) <= PT( p ) );
+				do k--; while( PT( k ) > PT( p ) );
+				if( i >= k) break;
+				SWAP( i, k );
 			}
-			SWAP( l , p);
+			SWAP( i , p);
 			h++;
-			if( med < l - 1 ) h = l - 1;
-			else if( med > l + 1 ) l = l + 1;
-			return;
+//			print();
+			if( med < i - 1 ) h = i - 1;
+			else if( med > i + 1 ) l = i + 1;
+			else { h = l; };
 		}
 	}
 }
