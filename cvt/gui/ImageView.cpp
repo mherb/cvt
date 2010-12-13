@@ -2,7 +2,7 @@
 #include <cvt/gfx/IConvert.h>
 
 namespace cvt {
-	ImageView::ImageView() : _img( 1, 1, IFormat::RGBA_UINT8, IALLOCATOR_GL )
+	ImageView::ImageView() : _img( 1, 1, IFormat::BGRA_UINT8, IALLOCATOR_GL )
 	{
 	}
 
@@ -19,7 +19,7 @@ namespace cvt {
 
 	void ImageView::setImage( const Image& img )
 	{
-		_img.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
+		_img.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8, IALLOCATOR_GL );
 		try {
 			IConvert::convert( _img, img );
 		} catch( Exception e ) {
