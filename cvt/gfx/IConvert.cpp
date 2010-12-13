@@ -572,10 +572,10 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				tmp = ( ( ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
-				tmp = ( ( ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
+				tmp = ( ( ( int ) ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
+				tmp = ( ( ( ( int ) ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 			}
 			src += stridesrc;
 			dst += stridedst;
@@ -609,11 +609,11 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				tmp = ( ( ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
+				tmp = ( ( ( int ) ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 				*d++ = 255;
-				tmp = ( ( ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
+				tmp = ( ( ( int ) ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 				*d++ = 255;
 			}
 			src += stridesrc;
@@ -716,11 +716,10 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				tmp = ( ( ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
-				tmp = ( ( ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
-
+				tmp = ( ( ( int ) ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
+				tmp = ( ( ( int ) ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 			}
 			src += stridesrc;
 			dst += stridedst;
@@ -753,11 +752,11 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				tmp = ( ( ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
+				tmp = ( ( ( int ) ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 				*d++ = 255;
-				tmp = ( ( ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = tmp;
+				tmp = ( ( ( int ) ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = Math::clamp( tmp, 0, 255 );
 				*d++ = 255;
 			}
 			src += stridesrc;
