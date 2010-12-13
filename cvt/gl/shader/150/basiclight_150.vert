@@ -19,7 +19,7 @@ void main()
 	vtx_Color = in_Color;
 
     vec4 ecPosition = MVP * vec4( in_Vertex, 1.0 );
-    vec3 tnorm      = normalize( NORMM * gl_Normal );
+    vec3 tnorm      = normalize( NORMM * in_Normal );
     vec3 lightVec   = normalize( LIGHTPOS - vec3( ecPosition ) );
     vec3 reflectVec = reflect( -lightVec, tnorm );
     vec3 viewVec    = normalize( -vec3( ecPosition ) );
