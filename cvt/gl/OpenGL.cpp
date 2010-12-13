@@ -149,18 +149,32 @@ namespace cvt {
 		mat[ 3 ][ 3 ] = 1.0f;
 	}
 
-	void GL::perspective( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
 	{
 		mat.zero();
-		mat[ 0 ][ 0 ] = 2.0f * near / ( right - left );
+		mat[ 0 ][ 0 ] = ( 2.0f * near ) / ( right - left );
 		mat[ 0 ][ 2 ] = ( right + left ) / ( right - left );
-
 		mat[ 1 ][ 1 ] = 2.0f * near / ( top - bottom );
 		mat[ 1 ][ 2 ] = ( top + bottom ) / ( top - bottom );
-
-		mat[ 2 ][ 2 ] = -( far + near )  / ( far - near );
-		mat[ 2 ][ 3 ] = - 2.0f * far * near / ( far - near );
-
-		mat[ 3 ][ 2 ] = -1.0f;
+		mat[ 2 ][ 2 ] = - ( far + near )  / ( far - near );
+		mat[ 2 ][ 3 ] = - ( 2.0f * far * near ) / ( far - near );
+		mat[ 3 ][ 2 ] = - 1.0f;
 	}
+
+	void GL::perspective( Matrix4f& mat, float fovy, float aspect, float near, float far )
+	{
+		float range = Math::tan( Math::deg2Rad( fovy / 2.0f ) ) * near;
+		float left = -range * aspect;
+		float right = range * aspect;
+		float bottom = -range;
+		float top = range;
+
+		mat.zero();
+		mat[0][0] = ( 2.0f * near ) / ( right - left );
+		mat[1][1] = ( 2.0f * near ) / ( top - bottom );
+		mat[2][2] = - ( far + near ) / ( far - near );
+		mat[2][3] = - ( 2.0f * far * near) / ( far - near );
+		mat[3][2] = - 1.0f;
+	}
+
 }

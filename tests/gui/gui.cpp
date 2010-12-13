@@ -45,9 +45,9 @@ View3d::View3d() : Widget()
 	Vector3f* buf = ( Vector3f* ) vtx.map( GL_READ_WRITE );
 	/* face1 */
 	buf[ 0 ].set( -1.0f, -1.0f, 0.0f );
-	buf[ 1 ].set( -1.0f, 1.0f, 0.0f );
-	buf[ 2 ].set( 1.0f, 1.0f, 0.0f );
-	buf[ 3 ].set( 1.0f, -1.0f, 0.0f );
+	buf[ 1 ].set( -1.0f,  1.0f, 0.0f );
+	buf[ 2 ].set(  1.0f, -1.0f, 0.0f );
+	buf[ 3 ].set(  1.0f,  1.0f, 0.0f );
 
 
 /*	buf[ 0 ] = -1.0f;
@@ -94,23 +94,24 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	int w, h, x, y;
 	position( x , y );
 	size( w, h );
-//	g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-//	g->fillRect( 0, 0, w, h );
+	g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+	g->fillRect( 0, 0, w, h );
+
+
+	Matrix4f vw;
+	vw.identity();
+	vw[ 0 ][ 0 ] = w / 640.0f;
+	vw[ 0 ][ 2 ] = ( x + ( w - 640.0f ) / 2.0f ) / 320.0f;
+	vw[ 1 ][ 1 ] = h / 480.0f;
+	vw[ 1 ][ 2 ] = ( -y - ( h - 480.0f ) / 2.0f ) / 240.0f;
 
 
 	Matrix4f proj;
-//	x = y = 0;
-//	GL::perspective( proj, ( float ) x, ( float ) x + w, ( float ) y , ( float ) y + h, 1.0f, 10.0f );
-	GL::perspective( proj, ( float ) -320, ( float ) 320, ( float ) 240 , ( float ) -240, 100.0f, 100.0f );
-//	GL::perspective( proj, ( float ) -1, ( float ) 1, ( float ) 1 , ( float ) -1, 20.0f, 20.0f );
+	GL::perspective( proj, 60.0f, 640.0f / 480.0f, 0.01f, 100.0f );
 
 	Matrix4f trans;
 	trans.identity();
-//	trans[ 0 ][ 3 ] = ( float )( x + ( w / 2 ) );
-//	trans[ 1 ][ 3 ] = ( float )( y + ( h / 2 ) );
-	trans[ 2 ][ 3 ] = -80.0f;
-
-//	proj.transposeSelf();
+	trans[ 2 ][ 3 ] = -3.0f;
 
 	R++;
 	if( R > 360 )
@@ -130,9 +131,7 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	rot2[ 2 ][ 0 ] = -Math::sin( Math::deg2Rad( alpha ) );
 	rot2[ 2 ][ 2 ] = Math::cos( Math::deg2Rad( alpha ) );
 
-
-//	trans *= rot;
-	proj *= trans;// * rot;// * rot2;
+	proj = vw * proj * trans * rot * rot2;
 
 	Matrix3f nmat;
 	for( int y = 0; y < 3; y++ )
@@ -145,18 +144,18 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	_glprog.bind();
 	GLint loc = _glprog.uniformLocation( "MVP" );
 
-	glUniformMatrix4fv( loc, 1, false , ( const GLfloat* ) proj.ptr() );
+	glUniformMatrix4fv( loc, 1, true, ( const GLfloat* ) proj.ptr() );
 	loc = _glprog.uniformLocation( "NORMM" );
-	glUniformMatrix3fv( loc, 1, false , ( const GLfloat* ) nmat.ptr() );
+	glUniformMatrix3fv( loc, 1, true, ( const GLfloat* ) nmat.ptr() );
 	loc = _glprog.uniformLocation( "LIGHTPOS" );
-	Vector3f lightpos( 0.0f, 2.0f, 0.0f );
+	Vector3f lightpos( 0.0f, 0.0f, -4.0f );
 	glUniform3fv( loc, 1, lightpos.ptr() );
 //	glClear( GL_DEPTH_BUFFER_BIT );
 //	glEnable( GL_DEPTH_TEST );
 	Color c( 1.0f, 0.0f, 0.0f, 1.0f );
 	_vao.setColor( c );
 
-	_vao.draw( GL_QUADS, 0, 4 );
+	_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 //	glDisable( GL_DEPTH_TEST );
 	_glprog.unbind();
 }
@@ -200,8 +199,8 @@ int main(int argc, char* argv[])
 
 	View3d v3d;
 	Moveable m2( &v3d );
-	m2.setSize( 200, 200 );
-	m2.setPosition( 400, 400 );
+	m2.setSize( 160, 120 );
+	m2.setPosition( 240, 180 );
 	w.addWidget( &m2 );
 
   //  Delegate<void (BasicTimer*)> d( &timeout );

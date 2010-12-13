@@ -32,7 +32,8 @@ namespace cvt {
 			static GLboolean ( *glIsVertexArray )( GLuint array);
 
 			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
-			static void perspective( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void perspective( Matrix4f& mat, float fovy, float aspect, float near, float far );
 
 		private:
 			static void init();

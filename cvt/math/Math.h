@@ -166,6 +166,16 @@ namespace cvt {
 			return ::exp( x );
 		}
 
+		static inline float tan( float x )
+		{
+			return ::tanf( x );
+		}
+
+		static inline double tan( double x )
+		{
+			return ::tan( x );
+		}
+
 		static inline float atan2( float y, float x )
 		{
 			return ::atan2f( y, x );

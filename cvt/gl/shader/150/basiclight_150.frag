@@ -1,10 +1,13 @@
 #version 150
-in float vtx_LightIntensity;
-in vec4 vtx_Color;
+
+uniform vec3 LIGHTPOS;
+
+in vec4  vtx_Color;
+in vec3  vtx_Normal;
 out vec4 Output;
 
 void main()
 {
-//    Output = vec4( vtx_Color.xyz * vtx_LightIntensity, vtx_Color.w );
-	Output = vtx_Color;
+    float intensity  = abs( dot( normalize( LIGHTPOS ), normalize( vtx_Normal ) ) );
+    Output = vec4( vtx_Color.xyz * intensity, vtx_Color.w );
 }
