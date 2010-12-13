@@ -14,6 +14,8 @@
 
 #include <cvt/gl/shader/150/basiclight_150_vert.h>
 #include <cvt/gl/shader/150/basiclight_150_frag.h>
+#include <cvt/gl/shader/120/basiclight_120_vert.h>
+#include <cvt/gl/shader/120/basiclight_120_frag.h>
 
 using namespace cvt;
 
@@ -33,7 +35,11 @@ class View3d : public Widget
 View3d::View3d() : Widget()
 {
 	try {
-	_glprog.build( _basiclight_150_vert_source, _basiclight_150_frag_source );
+		if( GL::isGLSLVersionSupported( 1, 50 ) ) {
+			_glprog.build( _basiclight_150_vert_source, _basiclight_150_frag_source );
+		} else {
+			_glprog.build( _basiclight_120_vert_source, _basiclight_120_frag_source );
+		}
 	} catch( GLException e )
 	{
 		std::cout << e.what() << std::endl << e.log() << std::endl;
