@@ -91,7 +91,12 @@ SET(${MODULE_NAME}_HEADERS
 	math/LevenbergMarquard.h
 	math/Math.h
 	math/Vector.h
-	math/Matrix.h
+	math/Vector2.h
+	math/Vector3.h
+	math/Vector4.h
+	math/Matrix2.h
+	math/Matrix3.h
+	math/Matrix4.h
 	math/Optimization.h
 	math/SBAData.h
 	math/SL3Transform.h
@@ -226,6 +231,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
+	geom/KDTree.cpp
 	gui/Application.cpp
 	gui/Window.cpp
 	gui/Widget.cpp
