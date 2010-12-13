@@ -36,7 +36,7 @@ namespace cvt {
 		_tex.alloc( GL_RED, 128, 128, GL_RED, GL_UNSIGNED_BYTE, ptr );
 		icons.unmap( ptr );
 		bind();
-		glUniform1f( _texloc, 0 );
+		glUniform1i( _texloc, 0 );
 		glUniform1f( _scaleloc, 16.0f / 128.0f );
 		unbind();
 	}

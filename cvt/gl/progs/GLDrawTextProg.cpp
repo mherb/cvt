@@ -27,7 +27,7 @@ namespace cvt {
 
 		_tex.alloc( GL_RED, _glfont.width, _glfont.height, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
 		bind();
-		glUniform1f( _texloc, 0 );
+		glUniform1i( _texloc, 0 );
 		glUniform1f( _scaleloc, _glfont.ptsize / ( float ) ( _glfont.width ) );
 		unbind();
 	}
