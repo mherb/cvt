@@ -11,6 +11,8 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include "FeatureView.h"
 
+#include <cvt/io/ImageIO.h>
+
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/AGAST.h>
 
@@ -52,6 +54,14 @@ class CameraTimeout : public TimeoutHandler
 			_cam->nextFrame();
 
 			_cam->frame().convert( _gray );
+			
+			{
+				static int i = 0;
+				char buf[200];
+				sprintf( buf, "out_%05d.png", i++ );
+				ImageIO::savePNG( gray, buf );								
+			}
+			
 			_view->setImage( _gray );
 
 			std::vector<Feature2D> features;
