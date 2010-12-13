@@ -1374,14 +1374,14 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( ( y4 & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( y4 & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 ) << 16;
 			*dst++ = out;
 
-			y = ( ( ( ( y4 >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( ( y4 >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
@@ -1394,7 +1394,7 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( ( ( y4 >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( ( y4 >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
@@ -1402,7 +1402,7 @@ namespace cvt {
 			out |= Math::clamp( y + b, 0, 255 ) << 16;
 			*dst++ = out;
 
-			y = ( ( ( y4 >> 24 ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( y4 >> 24 ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
@@ -1418,14 +1418,14 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( *_srcy++ - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) *_srcy++ - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 ) << 16;
 			*dst++ = out;
 
-			y = ( ( *_srcy++ - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) *_srcy++ - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
@@ -1451,14 +1451,14 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( ( y4 & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( y4 & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 );
 			*dst++ = out;
 
-			y = ( ( ( ( y4 >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( ( y4 >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
@@ -1471,14 +1471,14 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( ( ( y4 >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( ( y4 >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 );
 			*dst++ = out;
 
-			y = ( ( ( y4 >> 24 ) - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) ( y4 >> 24 ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
@@ -1494,14 +1494,14 @@ namespace cvt {
 			g = ((u*401 + v*832) >> 10);
 			b = ((u*2066) >> 10);
 
-			y = ( ( *_srcy++ - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) *_srcy++ - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 );
 			*dst++ = out;
 
-			y = ( ( *_srcy++ - 16 ) * 1192 ) >> 10;
+			y = ( ( ( int ) *_srcy++ - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 ) << 16;
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
