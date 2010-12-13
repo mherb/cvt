@@ -101,14 +101,14 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	Matrix4f proj;
 //	x = y = 0;
 //	GL::perspective( proj, ( float ) x, ( float ) x + w, ( float ) y , ( float ) y + h, 1.0f, 10.0f );
-	GL::perspective( proj, ( float ) -320, ( float ) 320, ( float ) 240 , ( float ) -240, 50.0f, 50.0f );
+	GL::perspective( proj, ( float ) -320, ( float ) 320, ( float ) 240 , ( float ) -240, 100.0f, 100.0f );
 //	GL::perspective( proj, ( float ) -1, ( float ) 1, ( float ) 1 , ( float ) -1, 20.0f, 20.0f );
 
 	Matrix4f trans;
 	trans.identity();
 //	trans[ 0 ][ 3 ] = ( float )( x + ( w / 2 ) );
 //	trans[ 1 ][ 3 ] = ( float )( y + ( h / 2 ) );
-	trans[ 2 ][ 3 ] = -10.0f;
+	trans[ 2 ][ 3 ] = -80.0f;
 
 //	proj.transposeSelf();
 
@@ -145,7 +145,7 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	_glprog.bind();
 	GLint loc = _glprog.uniformLocation( "MVP" );
 
-	glUniformMatrix4fv( loc, 1, true , ( const GLfloat* ) proj.ptr() );
+	glUniformMatrix4fv( loc, 1, false , ( const GLfloat* ) proj.ptr() );
 	loc = _glprog.uniformLocation( "NORMM" );
 	glUniformMatrix3fv( loc, 1, false , ( const GLfloat* ) nmat.ptr() );
 	loc = _glprog.uniformLocation( "LIGHTPOS" );
