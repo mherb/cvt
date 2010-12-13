@@ -130,13 +130,14 @@ namespace cvt {
 	{
 #ifndef CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE
 		return 32;
-#endif
+# else 
 		size_t ret;
 		cl_int err;
 		err = _kernel.getWorkGroupInfo( _cl->getCLDevice(), CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, &ret );
 		if( err != CL_SUCCESS )
 			throw CLException( _name, err );
 		return ret;
+#endif
 	}
 
 	std::vector<char*>* CLKernel::getBinaries( )

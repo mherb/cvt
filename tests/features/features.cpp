@@ -59,7 +59,7 @@ class CameraTimeout : public TimeoutHandler
 				static int i = 0;
 				char buf[200];
 				sprintf( buf, "out_%05d.png", i++ );
-				ImageIO::savePNG( gray, buf );								
+				ImageIO::savePNG( _gray, buf );								
 			}
 			
 			_view->setImage( _gray );
