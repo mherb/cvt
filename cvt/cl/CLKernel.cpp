@@ -128,6 +128,9 @@ namespace cvt {
 
 	size_t CLKernel::workGroupSizePreferredMultiple( ) const
 	{
+#ifndef CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE
+		return 32;
+#endif
 		size_t ret;
 		cl_int err;
 		err = _kernel.getWorkGroupInfo( _cl->getCLDevice(), CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, &ret );
