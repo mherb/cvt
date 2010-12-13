@@ -556,6 +556,7 @@ namespace cvt {
 		size_t c;
 		uint32_t *s;
 		uint8_t *d;
+		int tmp;
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -571,8 +572,10 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				*d++ = *s & 0xff;
-				*d++ = ( *s++ >> 16 ) & 0xff;
+				tmp = ( ( ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
+				tmp = ( ( ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
 			}
 			src += stridesrc;
 			dst += stridedst;
@@ -589,6 +592,8 @@ namespace cvt {
 		size_t c;
 		uint32_t *s;
 		uint8_t *d;
+		int tmp;
+
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -604,9 +609,11 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				*d++ = *s & 0xff;
+				tmp = ( ( ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
 				*d++ = 255;
-				*d++ = ( *s++ >> 16 ) & 0xff;
+				tmp = ( ( ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
 				*d++ = 255;
 			}
 			src += stridesrc;
@@ -693,6 +700,7 @@ namespace cvt {
 		size_t c;
 		uint32_t *s;
 		uint8_t *d;
+		int tmp;
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -708,8 +716,11 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				*d++ = ( *s >> 8 ) & 0xff;
-				*d++ = ( *s++ >> 24 ) & 0xff;
+				tmp = ( ( ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
+				tmp = ( ( ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
+
 			}
 			src += stridesrc;
 			dst += stridedst;
@@ -726,6 +737,7 @@ namespace cvt {
 		size_t c;
 		uint32_t *s;
 		uint8_t *d;
+		int tmp;
 
 		size_t stridesrc;
 		size_t stridedst;
@@ -741,9 +753,11 @@ namespace cvt {
 			d = dst;
 			c = w >> 1;
 			while (c--) {
-				*d++ = ( *s >> 8 ) & 0xff;
+				tmp = ( ( ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
 				*d++ = 255;
-				*d++ = ( *s++ >> 24 ) & 0xff;
+				tmp = ( ( ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+				*d++ = tmp;
 				*d++ = 255;
 			}
 			src += stridesrc;

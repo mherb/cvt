@@ -57,9 +57,11 @@ class CameraTimeout : public TimeoutHandler
 			
 			{
 				static int i = 0;
+				Image tmp( _cam->width(), _cam->height(), IFormat::BGRA_UINT8 );
 				char buf[200];
 				sprintf( buf, "out_%05d.png", i++ );
-				ImageIO::savePNG( _gray, buf );								
+				_cam->frame().convert( tmp );
+				ImageIO::savePNG( tmp, buf );
 			}
 			
 			_view->setImage( _gray );
