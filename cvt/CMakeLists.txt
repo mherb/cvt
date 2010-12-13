@@ -57,6 +57,8 @@ GLSLTOHEADER(gl/shader/120/basictex_120.vert)
 GLSLTOHEADER(gl/shader/120/basictex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
+GLSLTOHEADER(gl/shader/120/basiclight_120.frag)
+GLSLTOHEADER(gl/shader/120/basiclight_120.vert)
 
 GLSLTOHEADER(gl/shader/150/basic_150.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.frag)
@@ -168,6 +170,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/120/basictex_120_vert.h
 	gl/shader/120/basictex_120_frag.h
 	gl/shader/120/basicrrtex_120_frag.h
+	gl/shader/120/basiclight_120_frag.h
+	gl/shader/120/basiclight_120_vert.h
 	gl/shader/150/basic_150_vert.h
 	gl/shader/150/basic_150_frag.h
 	gl/shader/150/basicrr_150_frag.h
