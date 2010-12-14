@@ -16,7 +16,7 @@ namespace cvt {
 			size_t trianglesSize();
 
 			void addVertex( const Vector3f& vtx );
-			void addNormal( const Vector3f& normal, bool normalize = false );
+			void addNormal( const Vector3f& normal );
 			void addTexCoord( const Vector2f& texcoord );
 
 			void addTriangle( size_t idxv1, size_t idxv2, size_t idxv3 );
@@ -74,6 +74,28 @@ namespace cvt {
 	inline const Vector2f& Model::texcoord( size_t i ) const
 	{
 		return _texcoords[ i ];
+	}
+
+	inline void Model::addVertex( const Vector3f& vtx )
+	{
+		_vertices.push_back( vtx );
+	}
+
+	inline void Model::addNormal( const Vector3f& normal )
+	{
+		_normals.push_back( normal );
+	}
+
+	inline void Model::addTexCoord( const Vector2f& texcoord )
+	{
+		_texcoords.push_back( texcoord );
+	}
+
+	inline void Model::addTriangle( size_t idxv1, size_t idxv2, size_t idxv3 )
+	{
+		_triVertices.push_back( idxv1 );
+		_triVertices.push_back( idxv2 );
+		_triVertices.push_back( idxv3 );
 	}
 
 	inline void Model::clear()

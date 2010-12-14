@@ -27,6 +27,7 @@ namespace cvt {
 		bool hasProperty( const std::string& name ) const;
 	};
 
+
 	bool PlyElement::hasProperty( const std::string& name ) const
 	{
 		for( std::vector<PlyProperty>::const_iterator it = properties.begin();
@@ -34,6 +35,21 @@ namespace cvt {
 			if( ( *it ).name == name )
 				return true;
 		return false;
+	}
+
+	static inline size_t PlyTypeSize( PlyPropertyType type )
+	{
+		switch( type ) {
+			case PLY_U8:
+			case PLY_S8: return 1;
+			case PLY_U16:
+			case PLY_S16: return 2;
+			case PLY_U32:
+			case PLY_S32:
+			case PLY_FLOAT: return 4;
+			case PLY_DOUBLE: return 8;
+			default: return 0;
+		}
 	}
 
 	static inline uint8_t* PlyEatWS( uint8_t* pos, uint8_t* end )
@@ -74,6 +90,19 @@ namespace cvt {
 		else
 			return 0;
 
+		return wspos;
+	}
+
+	static inline uint8_t* PlyDiscardWord( uint8_t* pos, uint8_t* end )
+	{
+		uint8_t* wspos;
+		pos = PlyEatWS( pos, end );
+		wspos = pos;
+		while( wspos < end && ( *wspos != ' ' && *wspos != '\t' && *wspos != '\n' && *wspos != '\r' ) ) {
+			wspos++;
+		}
+		if( pos == wspos )
+			return 0;
 		return wspos;
 	}
 
@@ -185,7 +214,7 @@ namespace cvt {
 		}
 
 
-		std::cout << "\tProperty: " << p.type << " Name: " << p.name << std::endl;
+//		std::cout << "\tProperty: " << p.type << " Name: " << p.name << std::endl;
 		return pos;
 	}
 
@@ -206,7 +235,7 @@ namespace cvt {
 		e.name = strname;
 		e.size = ( size_t ) size;
 
-		std::cout << "Element: " << strname << " " << size << std::endl;
+//		std::cout << "Element: " << strname << " " << size << std::endl;
 		while( 1 ) {
 
 			pold = pos;
@@ -271,7 +300,7 @@ namespace cvt {
 
 		if( !( pos = PlyNextWord( pos, end, str ) ) )
 			return 0;
-		std::cout << "PLY VERSION: " << str << std::endl;
+//		std::cout << "PLY VERSION: " << str << std::endl;
 
 		while( 1 ) {
 			if( !( pos = PlyNextWord( pos, end, str ) ) )
@@ -288,6 +317,183 @@ namespace cvt {
 		}
 		pos = PlyEatWS( pos, end );
 
+		return pos;
+	}
+
+	static uint8_t* PlyDiscardPropertyAscii( uint8_t* pos, uint8_t* end, const PlyProperty& p )
+	{
+		if( p.type != PLY_LIST ) {
+			if( !( pos = PlyDiscardWord( pos, end ) ) )
+				return 0;
+		} else {
+			/* discard list elements */
+			ssize_t nlist;
+			if( !( pos = PlyNextIntNumber( pos, end, nlist ) ) )
+				return 0;
+			if( nlist < 0 )
+				return 0;
+			while( nlist-- ) {
+				if( !( pos = PlyDiscardWord( pos, end ) ) )
+					return 0;
+			}
+		}
+		return pos;
+	}
+
+	static uint8_t* PlyDiscardElementAscii( uint8_t* pos, uint8_t* end, const PlyElement& e )
+	{
+		bool fastdiscard = true;
+
+		for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+			it != e.properties.end(); ++it ) {
+			if( ( *it ).type == PLY_LIST ) {
+				fastdiscard = false;
+				break;
+			}
+		}
+
+		if( fastdiscard ) {
+			size_t n = e.properties.size() * e.size;
+			while( n-- ) {
+				if( !( pos = PlyDiscardWord( pos, end ) ) )
+					return 0;
+			}
+		} else {
+			size_t n = e.size;
+			while( n-- ) {
+				for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+					it != e.properties.end(); ++it )
+					if( !( pos = PlyDiscardPropertyAscii( pos, end, *it ) ) )
+						return 0;
+			}
+		}
+		return pos;
+	}
+
+	static uint8_t* PlyDiscardElementBinary( uint8_t* pos, uint8_t* end, const PlyElement& e, bool swap )
+	{
+		bool fastdiscard = true;
+		size_t bytes = 0;
+
+		for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+			it != e.properties.end(); ++it ) {
+			if( ( *it ).type == PLY_LIST ) {
+				fastdiscard = false;
+				break;
+			}
+			bytes += PlyTypeSize( ( *it ).type );
+		}
+
+		if( fastdiscard ) {
+			pos += bytes * e.size;
+			if( pos >= end )
+				return 0;
+			return pos;
+		} else {
+			size_t n = e.size;
+			while( n-- ) {
+				for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+					it != e.properties.end(); ++it ) {
+					if( ( *it ).type != PLY_LIST ) {
+						pos += PlyTypeSize( ( *it ).type );
+						if( pos >= end )
+							return 0;
+					} else {
+						/* discard list elements */
+						ssize_t nlist;
+						// FIXME
+						pos += nlist * PlyTypeSize( ( *it ).ltype );
+						if( pos >= end )
+							return 0;
+					}
+				}
+			}
+		}
+		return pos;
+	}
+
+	static uint8_t* PlyReadVertexAscii( uint8_t* pos, uint8_t* end, const PlyElement& e, bool normals, Model& mdl )
+	{
+		size_t n = e.size;
+		std::string str;
+		double x , y, z, nx, ny, nz;
+
+		x = y = z = nx = ny = nz = 0;
+
+		while( n-- ) {
+			for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+				it != e.properties.end(); ++it ) {
+				if( it->name == "x" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					x = strtod( str.c_str(), NULL );
+				} else if( it->name == "y" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					y = strtod( str.c_str(), NULL );
+				} else if( it->name == "z" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					z = strtod( str.c_str(), NULL );
+				} else	if( it->name == "nx" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					x = strtod( str.c_str(), NULL );
+				} else if( it->name == "ny" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					y = strtod( str.c_str(), NULL );
+				} else if( it->name == "nz" ) {
+					if( !( pos = PlyNextWord( pos, end, str ) ) )
+						return 0;
+					z = strtod( str.c_str(), NULL );
+				} else {
+					if( !( pos = PlyDiscardPropertyAscii( pos, end, *it ) ) )
+						return 0;
+				}
+			}
+//			std::cout << x << " , " << y << " , " << z << std::endl;
+			mdl.addVertex( Vector3f( x, y, z ) );
+			if( normals )
+				mdl.addNormal( Vector3f( nx, ny, nz ) );
+		}
+
+		return pos;
+	}
+
+	static uint8_t* PlyReadFacesAscii( uint8_t* pos, uint8_t* end, const PlyElement& e, Model& mdl )
+	{
+		size_t n = e.size;
+		ssize_t nindeces, index;
+		std::vector<size_t> indices;
+
+		while( n-- ) {
+			indices.clear();
+			for( std::vector<PlyProperty>::const_iterator it = e.properties.begin();
+				it != e.properties.end(); ++it ) {
+				if( it->name == "vertex_indices" ) {
+					if( !( pos = PlyNextIntNumber( pos, end, nindeces ) ) )
+						return 0;
+					if( nindeces < 0 )
+						return 0;
+					while( nindeces-- ) {
+						if( !( pos = PlyNextIntNumber( pos, end, index ) ) )
+							return 0;
+						if( index < 0 )
+							return 0;
+						indices.push_back( ( size_t ) index );
+					}
+				} else {
+					if( !( pos = PlyDiscardPropertyAscii( pos, end, *it ) ) )
+						return 0;
+				}
+			}
+			if( indices.size() == 3 ) {
+				mdl.addTriangle( indices[ 0 ], indices[ 1 ], indices[ 2  ] );
+			} else {
+				//			mdl.addFace( indices );
+			}
+		}
 		return pos;
 	}
 
@@ -320,7 +526,11 @@ namespace cvt {
 		}
 
 		end = base + statbuf.st_size;
-		pos = PlyReadHeader(base, end, elements, format );
+		if( !( pos = PlyReadHeader(base, end, elements, format ) ) ) {
+			munmap( ( void* ) base, statbuf.st_size );
+			return;
+		}
+
 		if( !PlyCheckElements( elements, normals ) ) {
 			munmap( ( void* ) base, statbuf.st_size );
 			return;
@@ -328,9 +538,29 @@ namespace cvt {
 
 		switch( format )
 		{
-			case PLY_ASCII: break;
-			case PLY_BIN_LE: break;
-			case PLY_BIN_BE: break;
+			case PLY_ASCII:
+				{
+					for( std::vector<PlyElement>::iterator it = elements.begin();
+						 it != elements.end(); ++it ) {
+						if( it->name == "vertex" ) {
+							if( !( pos = PlyReadVertexAscii( pos, end, *it, normals, mdl ) ) )
+								return;
+						} else if( it->name == "face" ) {
+							if( !( pos = PlyReadFacesAscii( pos, end, *it, mdl ) ) )
+								return;
+						} else {
+							if( !( pos = PlyDiscardElementAscii( pos, end, *it ) ) )
+								return;
+						}
+					}
+				}
+				break;
+			case PLY_BIN_LE:
+			case PLY_BIN_BE:
+				{
+					std::cout << "currently not supported" << std::endl;
+				}
+				break;
 		}
 
 		munmap( ( void* ) base, statbuf.st_size );
