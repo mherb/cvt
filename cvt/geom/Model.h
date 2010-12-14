@@ -10,10 +10,10 @@ namespace cvt {
 			Model();
 			~Model();
 
-			size_t vertexSize();
-			size_t normalsSize();
-			size_t texcoordSize();
-			size_t trianglesSize();
+			size_t vertexSize() const;
+			size_t normalsSize() const;
+			size_t texcoordSize() const;
+			size_t trianglesSize() const;
 
 			void addVertex( const Vector3f& vtx );
 			void addNormal( const Vector3f& normal );
@@ -29,6 +29,9 @@ namespace cvt {
 			const Vector3f& vertex( size_t i ) const;
 			const Vector3f& normal( size_t i ) const;
 			const Vector2f& texcoord( size_t i ) const;
+			size_t index( size_t i ) const;
+
+			void calcNormals();
 
 			void clear();
 
@@ -41,24 +44,24 @@ namespace cvt {
 			std::vector<size_t>	_triTexcoords;
 	};
 
-	inline size_t Model::vertexSize()
+	inline size_t Model::vertexSize() const
 	{
 		return _vertices.size();
 	}
 
-	inline size_t Model::normalsSize()
+	inline size_t Model::normalsSize() const
 	{
 		return _normals.size();
 	}
 
-	inline size_t Model::texcoordSize()
+	inline size_t Model::texcoordSize() const
 	{
 		return _texcoords.size();
 	}
 
-	inline size_t Model::trianglesSize()
+	inline size_t Model::trianglesSize() const
 	{
-		return _triVertices.size();
+		return _triVertices.size() / 3;
 	}
 
 	inline const Vector3f& Model::vertex( size_t i ) const
@@ -74,6 +77,11 @@ namespace cvt {
 	inline const Vector2f& Model::texcoord( size_t i ) const
 	{
 		return _texcoords[ i ];
+	}
+
+	inline size_t Model::index( size_t i ) const
+	{
+		return _triVertices[ i ];
 	}
 
 	inline void Model::addVertex( const Vector3f& vtx )
@@ -107,6 +115,17 @@ namespace cvt {
 		_triNormals.clear();
 		_triTexcoords.clear();
 	}
+
+	inline std::ostream& operator<<( std::ostream& out, const Model& mdl )
+	{
+		out << "Model:" << std::endl;
+		out << "\t  vertices: " << mdl.vertexSize() << std::endl;
+		out << "\t   normals: " << mdl.normalsSize() << std::endl;
+		out << "\ttex-coords: " << mdl.texcoordSize() << std::endl;
+		out << "\t triangles: " << mdl.trianglesSize();
+		return out;
+	}
+
 }
 
 #endif
