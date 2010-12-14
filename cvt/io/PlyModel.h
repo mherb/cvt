@@ -7,6 +7,7 @@ namespace cvt {
 	class PlyModel {
 		public:
 			static void load( Model& model, const char* file );
+			static void save( const char* file, const Model& model );
 		private:
 			PlyModel();
 			PlyModel( const PlyModel& );

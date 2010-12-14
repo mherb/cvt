@@ -298,7 +298,11 @@ namespace cvt {
 	    lenInv = Math::invSqrt( lenSqr );
 	    x *= lenInv;
 	    y *= lenInv;
-	    return lenSqr * lenInv;
+		z *= lenInv;
+
+		//FIXME: return nan on for zero vector
+
+	    return lenSqr;// * lenInv;
 	}
 
     template<typename T>

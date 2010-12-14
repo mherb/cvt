@@ -14,4 +14,8 @@ int main( int argc, char** argv )
 
 	Model mdl;
 	PlyModel::load( mdl, argv[ 1 ] );
+	std::cout << mdl << std::endl;
+
+	mdl.calcNormals();
+	PlyModel::save( "output.ply", mdl );
 }

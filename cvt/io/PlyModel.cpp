@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 namespace cvt {
 	enum PlyFormat { PLY_ASCII, PLY_BIN_LE, PLY_BIN_BE };
@@ -564,5 +565,38 @@ namespace cvt {
 		}
 
 		munmap( ( void* ) base, statbuf.st_size );
+	}
+
+
+	void PlyModel::save( const char* file, const Model& mdl )
+	{
+		FILE* f;
+		Vector3f v, n;
+
+		f = fopen( file, "w+" );
+		if( f == NULL )
+			return;
+		fprintf( f, "ply\nformat ascii 1.0\ncomment CVT Ply\nelement vertex %zd\n" \
+				"property float x\nproperty float y\nproperty float z\n", mdl.vertexSize() );
+		if( mdl.normalsSize() == mdl.vertexSize() )
+			fprintf( f, "property float nx\nproperty float ny\nproperty float nz\n" );
+		fprintf( f, "element face %zd\nproperty list uchar uint vertex_indices\nend_header\n", mdl.trianglesSize() );
+
+		if( mdl.normalsSize() == mdl.vertexSize() ) {
+			for( size_t i = 0; i < mdl.vertexSize(); i++ ) {
+				v = mdl.vertex( i );
+				n = mdl.normal( i );
+				fprintf( f, "%f %f %f %f %f %f\n", v[ 0 ], v[ 1 ], v[ 2 ], n[ 0 ], n[ 1 ], n[ 2 ] );
+			}
+		} else {
+			for( size_t i = 0; i < mdl.vertexSize(); i++ ) {
+				v = mdl.vertex( i );
+				fprintf( f, "%f %f %f\n", v[ 0 ], v[ 1 ], v[ 2 ] );
+			}
+		}
+		for( size_t i = 0; i < mdl.trianglesSize(); i++ ) {
+			fprintf( f, "3 %zd %zd %zd\n", mdl.index( i * 3 + 0 ), mdl.index( i * 3 + 1 ), mdl.index( i * 3 + 2 ) );
+		}
+		fclose( f );
 	}
 }
