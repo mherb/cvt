@@ -24,7 +24,17 @@ namespace cvt {
 		std::string name;
 		size_t size;
 		std::vector<PlyProperty> properties;
+		bool hasProperty( const std::string& name ) const;
 	};
+
+	bool PlyElement::hasProperty( const std::string& name ) const
+	{
+		for( std::vector<PlyProperty>::const_iterator it = properties.begin();
+			 it != properties.end(); ++it )
+			if( ( *it ).name == name )
+				return true;
+		return false;
+	}
 
 	static inline uint8_t* PlyEatWS( uint8_t* pos, uint8_t* end )
 	{
@@ -99,23 +109,23 @@ namespace cvt {
 			return 0;
 
 		/* type */
-		if( strtype.compare("uchar") == 0 )
+		if( strtype == "uchar" )
 			p.type  = PLY_U8;
-		else if( strtype.compare("ushort") == 0 )
+		else if( strtype == "ushort" )
 			p.type  = PLY_U16;
-		else if( strtype.compare("uint") == 0 )
+		else if( strtype == "uint" )
 			p.type  = PLY_U32;
-		else if( strtype.compare("char") == 0 )
+		else if( strtype == "char" )
 			p.type  = PLY_S8;
-		else if( strtype.compare("short") == 0 )
+		else if( strtype == "short" )
 			p.type  = PLY_S16;
-		else if( strtype.compare("int") == 0 )
+		else if( strtype == "int" )
 			p.type  = PLY_S32;
-		else if( strtype.compare("float") == 0 )
+		else if( strtype == "float" )
 			p.type  = PLY_FLOAT;
-		else if( strtype.compare("double") == 0 )
+		else if( strtype == "double" )
 			p.type  = PLY_DOUBLE;
-		else if( strtype.compare("list") == 0 )
+		else if( strtype == "list" )
 			p.type  = PLY_LIST;
 		else
 			return 0;
@@ -129,17 +139,17 @@ namespace cvt {
 			if( !( pos = PlyNextWord( pos, end, strtype ) ) )
 				return 0;
 
-			if( strtype.compare("uchar") == 0 )
+			if( strtype == "uchar" )
 				type  = PLY_U8;
-			else if( strtype.compare("ushort") == 0 )
+			else if( strtype == "ushort" )
 				type  = PLY_U16;
-			else if( strtype.compare("uint") == 0 )
+			else if( strtype == "uint" )
 				type  = PLY_U32;
-			else if( strtype.compare("char") == 0 )
+			else if( strtype == "char" )
 				type  = PLY_S8;
-			else if( strtype.compare("short") == 0 )
+			else if( strtype == "short" )
 				type  = PLY_S16;
-			else if( strtype.compare("int") == 0 )
+			else if( strtype == "int" )
 				type  = PLY_S32;
 			else
 				return 0;
@@ -149,21 +159,21 @@ namespace cvt {
 			if( !( pos = PlyNextWord( pos, end, strtype ) ) )
 				return 0;
 
-			if( strtype.compare("uchar") == 0 )
+			if( strtype == "uchar" )
 				type  = PLY_U8;
-			else if( strtype.compare("ushort") == 0 )
+			else if( strtype == "ushort" )
 				type  = PLY_U16;
-			else if( strtype.compare("uint") == 0 )
+			else if( strtype == "uint" )
 				type  = PLY_U32;
-			else if( strtype.compare("char") == 0 )
+			else if( strtype == "char" )
 				type  = PLY_S8;
-			else if( strtype.compare("short") == 0 )
+			else if( strtype == "short" )
 				type  = PLY_S16;
-			else if( strtype.compare("int") == 0 )
+			else if( strtype == "int" )
 				type  = PLY_S32;
-			else if( strtype.compare("float") == 0 )
+			else if( strtype == "float" )
 				type  = PLY_FLOAT;
-			else if( strtype.compare("double") == 0 )
+			else if( strtype == "double" )
 				type  = PLY_DOUBLE;
 			else
 				return 0;
@@ -203,10 +213,10 @@ namespace cvt {
 			if( !( pos = PlyNextWord( pos, end, str ) ) )
 				return 0;
 
-			if( str.compare( "comment" ) == 0 ) {
+			if( str == "comment"  ) {
 				if( !( pos = PlyEatLine( pos, end ) ) )
 					return 0;
-			} else if( str.compare( "property" ) == 0 ) {
+			} else if( str == "property"  ) {
 				e.properties.resize( e.properties.size() + 1 );
 				if( !( pos = PlyReadProperty( pos, end, e.properties[ e.properties.size() - 1 ] ) ) )
 					return 0;
@@ -215,10 +225,32 @@ namespace cvt {
 		}
 	}
 
-	static uint8_t* PlyReadHeader( uint8_t* base, size_t size, std::vector<PlyElement>& elements, PlyFormat& format )
+	static bool PlyCheckElements( std::vector<PlyElement>& elements, bool& normals )
 	{
-		uint8_t* pos = base;
-		uint8_t* end = base + size;
+		bool vertex, face;
+
+		vertex = face = normals = false;
+
+		for( std::vector<PlyElement>::iterator it = elements.begin(); it != elements.end(); ++it ) {
+			if( ( *it ).name == "vertex" ) {
+				if( ( *it ).hasProperty( "x" )
+				   && ( *it ).hasProperty( "y" )
+				   && ( *it ).hasProperty( "z" ) )
+					vertex = true;
+				if( ( *it ).hasProperty( "nx" )
+				   && ( *it ).hasProperty( "ny" )
+				   && ( *it ).hasProperty( "nz" ) )
+					normals = true;
+			} else if( ( *it ).name == "face" ) {
+				if( ( *it ).hasProperty( "vertex_indices" ) )
+					face = true;
+			}
+		}
+		return vertex && face;
+	}
+
+	static uint8_t* PlyReadHeader( uint8_t* pos, uint8_t* end, std::vector<PlyElement>& elements, PlyFormat& format )
+	{
 		std::string str;
 
 		if( !( pos = PlyMatchWord( pos, end, "ply", 3 ) ) )
@@ -228,11 +260,11 @@ namespace cvt {
 		if( !( pos = PlyNextWord( pos, end, str ) ) )
 			return 0;
 		/* which format */
-		if( str.compare( "ascii" ) == 0 )
+		if( str == "ascii" )
 			format = PLY_ASCII;
-		else if( str.compare("binary_big_endian") == 0 )
+		else if( str == "binary_big_endian" )
 			format = PLY_BIN_BE;
-		else if( str.compare("binary_little_endian") == 0 )
+		else if( str == "binary_little_endian" )
 			format = PLY_BIN_LE;
 		else
 			return 0;
@@ -244,14 +276,14 @@ namespace cvt {
 		while( 1 ) {
 			if( !( pos = PlyNextWord( pos, end, str ) ) )
 				return 0;
-			if( str.compare( "comment" ) == 0 ) {
+			if( str == "comment" ) {
 				if( !( pos = PlyEatLine( pos, end ) ) )
 					return 0;
-			} else if( str.compare( "element" ) == 0 ) {
+			} else if( str == "element" ) {
 				elements.resize( elements.size() + 1 );
 				if( !( pos = PlyReadElement( pos, end, elements[ elements.size() - 1 ] ) ) )
 					return 0;
-			} else if( str.compare( "end_header" ) == 0 )
+			} else if( str == "end_header" )
 				break;
 		}
 		pos = PlyEatWS( pos, end );
@@ -263,10 +295,12 @@ namespace cvt {
 	{
 		int fd;
 		uint8_t* base;
-		uint8_t* data;
+		uint8_t* pos;
+		uint8_t* end;
 		struct stat statbuf;
 		PlyFormat format;
 		std::vector<PlyElement> elements;
+		bool normals = false;
 
 		mdl.clear();
 
@@ -285,7 +319,12 @@ namespace cvt {
 			return;
 		}
 
-		data = PlyReadHeader(base, statbuf.st_size, elements, format );
+		end = base + statbuf.st_size;
+		pos = PlyReadHeader(base, end, elements, format );
+		if( !PlyCheckElements( elements, normals ) ) {
+			munmap( ( void* ) base, statbuf.st_size );
+			return;
+		}
 
 		switch( format )
 		{
