@@ -89,6 +89,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/Resources.h
 	io/VideoInput.h
 	io/VideoReader.h
+	io/PlyModel.h
 	math/ESM.cpp
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -135,6 +136,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLException.h
 	cl/CLKernel.h
 	geom/KDTree.h
+	geom/Model.h
 	gui/Application.h
 	gui/Window.h
 	gui/Widget.h
@@ -197,6 +199,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/IOSelect.cpp
 	io/Resources.cpp
 	io/VideoReader.cpp
+	io/PlyModel.cpp
 	math/ESM.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
@@ -236,6 +239,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLException.cpp
 	cl/CLKernel.cpp
 	geom/KDTree.cpp
+	geom/Model.cpp
 	gui/Application.cpp
 	gui/Window.cpp
 	gui/Widget.cpp
