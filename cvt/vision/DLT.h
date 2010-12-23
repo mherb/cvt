@@ -29,7 +29,7 @@ namespace cvt
 							
 		private:
 			static void normalize( const std::vector<Eigen::Vector2d> & pts,
-			 					   std::vector<Eigen::Vector2d> & pts,
+			 					   std::vector<Eigen::Vector2d> & normalizedPts,
 								   Eigen::Matrix3d & similarity );
 								
 			static void normalize( const Eigen::Matrix<double, 3, Eigen::Dynamic> & pts,
