@@ -439,15 +439,15 @@ namespace cvt {
 				} else	if( it->name == "nx" ) {
 					if( !( pos = PlyNextWord( pos, end, str ) ) )
 						return 0;
-					x = strtod( str.c_str(), NULL );
+					nx = strtod( str.c_str(), NULL );
 				} else if( it->name == "ny" ) {
 					if( !( pos = PlyNextWord( pos, end, str ) ) )
 						return 0;
-					y = strtod( str.c_str(), NULL );
+					ny = strtod( str.c_str(), NULL );
 				} else if( it->name == "nz" ) {
 					if( !( pos = PlyNextWord( pos, end, str ) ) )
 						return 0;
-					z = strtod( str.c_str(), NULL );
+					nz = strtod( str.c_str(), NULL );
 				} else {
 					if( !( pos = PlyDiscardPropertyAscii( pos, end, *it ) ) )
 						return 0;

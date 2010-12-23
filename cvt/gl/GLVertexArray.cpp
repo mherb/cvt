@@ -97,4 +97,30 @@ namespace cvt {
 		GL::glBindVertexArray( 0 );
 	}
 
+	void GLVertexArray::drawIndirect( const GLBuffer& elembuf, GLenum type, GLenum mode, GLsizei count ) const
+	{
+		CVTAssert( elembuf.target() == GL_ELEMENT_ARRAY_BUFFER, "Buffer is not an element array buffer!" );
+		if( !_arrays ) return;
+
+		GL::glBindVertexArray( _vao );
+
+		for( unsigned int i = 0; i < 16; i++ ) {
+			if( _arrays & ( 1 << i ) ) {
+				glEnableVertexAttribArray( i );
+			}
+		}
+
+		elembuf.bind();
+		glDrawElements( mode, count, type, 0 );
+		elembuf.unbind();
+
+		for( unsigned int i = 0; i < 16; i++ ) {
+			if( _arrays & ( 1 << i ) ) {
+				glDisableVertexAttribArray( i );
+			}
+		}
+
+		GL::glBindVertexArray( 0 );
+	}
+
 }

@@ -154,4 +154,25 @@ namespace cvt {
 		drawiconp.drawIcon( x, y, i );
 		drawiconp.unbind();
 	}
+
+
+	void GFXGL::drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far )
+	{
+		Matrix4f proj, tmp;
+		GL::subviewport( proj, _childrect.x, _childrect.y, _childrect.width, _childrect.height, _viewport.width, _viewport.height );
+		GL::perspective( tmp, 60.0f, ( float ) _viewport.width / ( float ) _viewport.height, near, far );
+
+		proj *= tmp;
+		proj *= modelview;
+
+		glClear( GL_DEPTH_BUFFER_BIT );
+		glEnable( GL_DEPTH_TEST );
+		modelp.bind();
+		mdl.setColor( _color );
+		modelp.setLightPosition( Vector3f( 0.0f, 0.0f, -1.0f ) );
+		modelp.setProjection( proj );
+		modelp.drawModel( mdl );
+		modelp.unbind();
+		glDisable( GL_DEPTH_TEST );
+	}
 }

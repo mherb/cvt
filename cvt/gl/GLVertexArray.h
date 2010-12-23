@@ -32,6 +32,7 @@ namespace cvt {
 			void setAttribData( GLuint index, float v1, float v2, float v3, float v4 );
 
 			void draw( GLenum mode, GLint first, GLsizei count ) const;
+			void drawIndirect( const GLBuffer& elembuf, GLenum type, GLenum mode, GLsizei count ) const;
 
 		private:
 			GLuint _vao;

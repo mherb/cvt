@@ -105,11 +105,12 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 
 
 	Matrix4f vw;
-	vw.identity();
+/*	vw.identity();
 	vw[ 0 ][ 0 ] = w / 640.0f;
 	vw[ 0 ][ 2 ] = ( x + ( w - 640.0f ) / 2.0f ) / 320.0f;
 	vw[ 1 ][ 1 ] = h / 480.0f;
-	vw[ 1 ][ 2 ] = ( -y - ( h - 480.0f ) / 2.0f ) / 240.0f;
+	vw[ 1 ][ 2 ] = ( -y - ( h - 480.0f ) / 2.0f ) / 240.0f;*/
+	GL::subviewport( vw, x, y, w, h, 640, 480 );
 
 
 	Matrix4f proj;
@@ -117,7 +118,7 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 
 	Matrix4f trans;
 	trans.identity();
-	trans[ 2 ][ 3 ] = -3.0f;
+	trans[ 2 ][ 3 ] = -1.0f;
 
 	R++;
 	if( R > 360 )
