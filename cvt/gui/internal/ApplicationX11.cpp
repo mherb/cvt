@@ -25,7 +25,7 @@ namespace cvt {
 		if( !dpy )
 			throw CVTException( "Error: Couldn't connect to X-Server\n" );
 
-		xatom_wmdelete = XInternAtom( dpy, "WM_DELETE_WINDOW", False);
+		xatom_wmdelete = ::XInternAtom( dpy, "WM_DELETE_WINDOW", False);
 
 		visinfo = glXChooseVisual( dpy, DefaultScreen( dpy ), attrib );
 		if( !visinfo )

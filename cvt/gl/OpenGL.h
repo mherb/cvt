@@ -5,8 +5,6 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
-#include <GL/glx.h>
-
 #include <cvt/math/Matrix.h>
 
 #include <iostream>
@@ -34,6 +32,7 @@ namespace cvt {
 			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
 			static void frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
 			static void perspective( Matrix4f& mat, float fovy, float aspect, float near, float far );
+			static void subviewport( Matrix4f& mat, int x, int y, int width, int height, int viewportwidth, int viewportheight );
 
 		private:
 			static void init();

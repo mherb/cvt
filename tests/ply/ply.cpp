@@ -16,6 +16,6 @@ int main( int argc, char** argv )
 	PlyModel::load( mdl, argv[ 1 ] );
 	std::cout << mdl << std::endl;
 
-	mdl.calcNormals();
+//	mdl.calcNormals();
 	PlyModel::save( "output.ply", mdl );
 }

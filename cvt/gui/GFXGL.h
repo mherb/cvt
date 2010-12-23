@@ -11,6 +11,7 @@
 #include <cvt/gl/progs/GLDrawTextProg.h>
 #include <cvt/gl/progs/GLDrawImageProg.h>
 #include <cvt/gl/progs/GLDrawIconProg.h>
+#include <cvt/gl/progs/GLDrawModelProg.h>
 
 namespace cvt {
 	class GFXGL : public GFX
@@ -30,6 +31,7 @@ namespace cvt {
 			virtual void drawImage( int x, int y, int width, int height, const Image& img );
 			virtual void drawIcon( int x, int y, Icon icon );
 			virtual int textWidth( const char* text );
+			virtual void drawModel( GLModel& mdl, const Matrix4f& modelview, float near = 0.01f, float far = 100.0f );
 
 		private:
 			void updateState();
@@ -39,6 +41,7 @@ namespace cvt {
 			GLDrawTextProg drawtextp;
 			GLDrawImageProg drawimgp;
 			GLDrawIconProg drawiconp;
+			GLDrawModelProg modelp;
 	};
 }
 
