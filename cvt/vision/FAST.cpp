@@ -1,5 +1,6 @@
 #include <cvt/vision/FAST.h>
 #include <cvt/util/Exception.h>
+#include <cvt/gfx/IScaleFilter.h>
 
 namespace cvt
 {
@@ -8,7 +9,7 @@ namespace cvt
 
 	FAST::FAST( FASTSize size ) :
 		_threshold( 30 ),
-		_minScore( 30 ),
+		_minScore( 1 ),
 		_extract( 0 ),
 		_score( 0 )
 	{
@@ -59,6 +60,52 @@ namespace cvt
 
 		// non maximal suppression
 		this->nonmaxSuppression( allCorners, cornerScores, features );
+	}
+
+
+	void FAST::extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves )
+	{
+		// construct the scale space
+		std::vector<Image> pyramid;
+		std::vector<Image> pyramidF;
+		size_t width = image.width();
+		size_t height = image.height();
+
+		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
+
+		Image fImg( width, height, IFormat::GRAY_FLOAT );
+		image.convert( fImg );
+
+		pyramidF.resize( octaves - 1 );
+		pyramid.resize( octaves - 1 );
+
+		const Image * prevScale = &fImg;
+
+		for( size_t i = 1; i < octaves; i++ ){
+			width >>= 1;
+			height >>= 1;
+
+			pyramidF[ i - 1 ].reallocate( width, height, IFormat::GRAY_FLOAT );
+			prevScale->scale( pyramidF[ i - 1 ], width, height, scaleFilter );
+			prevScale = &pyramidF[ i - 1 ];
+
+			pyramid[ i - 1 ].reallocate( width, height, image.format() );
+			pyramidF[ i - 1 ].convert( pyramid[ i - 1 ] );
+		}
+
+		this->extract( image, features );
+		size_t previousScaleEnd = features.size();
+
+		int32_t scale = 1;
+		for( size_t i = 1; i < octaves; i++ ){
+			scale >>= 1;
+
+			this->extract( pyramid[ i - 1 ], features );
+			while( previousScaleEnd < features.size() ){
+				features[ previousScaleEnd ]*=scale;
+				previousScaleEnd++;
+			}
+		}
 	}
 
 	void FAST::make_offsets(int pixel[], size_t row_stride)

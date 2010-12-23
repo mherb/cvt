@@ -13,13 +13,14 @@ namespace cvt {
 		AGAST_7_12S
 	};
 
-	class AGAST : public FeatureExtractor<int32_t, 2>
+	class AGAST : public FeatureExtractor<int32_t>
 	{
 		public:
 			AGAST( ASTType type = AGAST_5_8 );
 			~AGAST();
 
 			void extract( const Image & image, std::vector<Feature2D> & features );
+			void extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves );
 
 		private:
 			ASTType		_type;

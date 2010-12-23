@@ -1,6 +1,8 @@
 #include <cvt/vision/AGAST.h>
 #include <cvt/util/Exception.h>
 
+#include <cvt/gfx/IScaleFilter.h>
+
 namespace cvt
 {
 
@@ -71,6 +73,45 @@ namespace cvt
 
 			default:
 				throw CVTException( "ASTType not implemented" );
+		}
+	}
+
+
+	void AGAST::extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves )
+	{
+		// construct the scale space
+		std::vector<Image> pyramid;
+		size_t width = image.width();
+		size_t height = image.height();
+
+		pyramid.resize( octaves - 1 );
+
+		const Image * prevScale = &image;
+
+		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
+
+		for( size_t i = 1; i < octaves; i++ ){
+			width >>= 1;
+			height >>= 1;
+
+			pyramid[ i ].reallocate( width, height, image.format() );
+			prevScale->scale( pyramid[ i ], width, height, scaleFilter );
+
+			prevScale = &pyramid[ i ];
+		}
+
+		this->extract( image, features );
+		size_t previousScaleEnd = features.size();
+
+		int32_t scale = 1;
+		for( size_t i = 1; i < octaves; i++ ){
+			scale >>= 1;
+
+			this->extract( pyramid[ i ], features );
+			while( previousScaleEnd < features.size() ){
+				features[ previousScaleEnd ]*=scale;
+				previousScaleEnd++;
+			}
 		}
 	}
 

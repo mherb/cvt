@@ -70,6 +70,12 @@ namespace cvt {
 			return ::sqrt( d );
 		}
 
+		template <typename T>
+		static inline float sqrt( T f )
+		{
+			return ::sqrtf( ( float )f );
+		}
+
 		static inline float invSqrt( float f )
 		{
 			return 1.0f / ::sqrtf( f );
@@ -190,11 +196,16 @@ namespace cvt {
 		{
 			return ( ssize_t ) ::random();
 		}
+		
+		static inline size_t rand( size_t min, size_t max )
+		{
+			return min + ( ( max - min ) * ( ( float ) ::random() / ( ( size_t ) RAND_MAX + 1 )  ) );
+		}
 
 		static inline float rand( float min, float max )
 		{
 			return min + ( ( max - min ) * ( ( float ) ::random() / ( ( float ) RAND_MAX + 1.0f )  ) );
-		}
+		}	
 
 		static inline double rand( double min, double max )
 		{

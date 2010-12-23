@@ -10,7 +10,6 @@
 
 #include <cvt/gfx/ifilter/Homography.h>
 
-#include <highgui.h>
 #include <stdio.h>
 
 namespace cvt {
@@ -68,11 +67,6 @@ namespace cvt {
 				pointIdx+=2;
 			}
 		}
-			
-		
-//		cvShowImage( "dx", tmpDx.iplimage() );
-//		cvShowImage( "dy", tmpDy.iplimage() );
-		cvWaitKey( 0 );
 	}
 	
 	ESM::~ESM()
@@ -109,9 +103,6 @@ namespace cvt {
 			// get the pixels using the current warp
 			hFilter.apply( warped, currI, hVec, black );
 			
-//			cvShowImage("Warped", warped.iplimage());
-			//cvWaitKey( 0 );
-			
 			// calc combined jacobians and deltaI
 			updateData( H );
 			
@@ -136,10 +127,7 @@ namespace cvt {
 			if( iteration > maxIter ){
 //				std::cout << "Maxiter threshold reached -> done" << std::endl;
 				break;
-			}
-			{
-//				cvWaitKey( 0 );
-			}
+			}			
 				
 		}		
 	}

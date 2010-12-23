@@ -12,7 +12,7 @@ namespace cvt
 		SEGMENT_12
 	};
 
-	class FAST : public FeatureExtractor<int32_t, 2>
+	class FAST : public FeatureExtractor<int32_t>
 	{
 		typedef void (FAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
 		typedef int (FAST::*ScoreFunc)( const uint8_t* p, const int pixel[] );
@@ -22,6 +22,7 @@ namespace cvt
 			~FAST();
 
 			void extract( const Image & image, std::vector<Feature2D> & features );
+			void extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves );
 			void setThreshold( uint8_t threshold );
 			uint8_t threshold();
 			void setMinScore( int32_t minscore );

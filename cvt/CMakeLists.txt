@@ -103,9 +103,10 @@ SET(${MODULE_NAME}_HEADERS
 	math/Optimization.h
 	math/SBAData.h
 	math/SL3Transform.h
-	math/SparseBundleAdjustment.h
+	math/SparseBundleAdjustment.h	
 	util/Range.h
 	util/Rect.h
+	util/RNG.h
 	util/CVTTest.h
 	util/Exception.h
 	util/SIMD.h
@@ -128,10 +129,13 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocatorMem.h
 	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
-	vision/Flow.h
-	vision/FeatureExtractor.h
-	vision/FAST.h
 	vision/AGAST.h
+	vision/DLT.h
+	vision/FAST.h
+	vision/FeatureExtractor.h
+	vision/Ferns.h
+	vision/Flow.h
+	vision/PatchGenerator.h
 	cl/CLContext.h
 	cl/CLException.h
 	cl/CLKernel.h
@@ -229,12 +233,15 @@ SET(${MODULE_NAME}_SOURCES
 	vision/agast/agast7_12s.cpp
 	vision/agast/agast7_12d.cpp
 	vision/agast/oast9_16.cpp
+	vision/DLT.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp
 	vision/fast/fast10.cpp
 	vision/fast/fast11.cpp
 	vision/fast/fast12.cpp
+	vision/Ferns.cpp
 	vision/Flow.cpp
+	vision/PatchGenerator.cpp
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
