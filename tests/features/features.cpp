@@ -16,6 +16,9 @@
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/AGAST.h>
 
+#include "FeatureTracker.h"
+#include <algorithm>
+
 using namespace cvt;
 
 class CameraTimeout : public TimeoutHandler
@@ -28,20 +31,15 @@ class CameraTimeout : public TimeoutHandler
 			_view( view ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
+			_grayLast( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
-			//_detector( SEGMENT_9 )
-			//_detector( AGAST_5_8 )
-			//_detector( AGAST_7_12D )
-			_detector( AGAST_7_12S )
-			//_detector( OAST_9_16 )
+			_featureTracker()
 		{
 			_cam->startCapture();
 			_timer.reset();
 			_processingTime.reset();
 			_iter = 0;
 			_timeSum = 0;
-			//_detector.setMinScore( 25 );
-			//_detector.setThreshold( 25 );
 		}
 
 		~CameraTimeout()
@@ -54,30 +52,21 @@ class CameraTimeout : public TimeoutHandler
 			_cam->nextFrame();
 
 			_cam->frame().convert( _gray );
-			
-			{
-				static int i = 0;
-				Image tmp( _cam->width(), _cam->height(), IFormat::BGRA_UINT8 );
-				char buf[200];
-				sprintf( buf, "out_%05d.png", i++ );
-				_cam->frame().convert( tmp );
-				ImageIO::savePNG( tmp, buf );
-			}
-			
+
 			_view->setImage( _gray );
 
-			std::vector<Feature2D> features;
-
+			std::vector<Feature2D> trackedPoints;
+			std::vector<Feature2D> newFeatures;
+			std::vector<size_t> matchedIndices;
 			_processingTime.reset();
-			_detector.extract( _gray, features );
-
+			_featureTracker.run( _gray, _grayLast, _currentFeatures, trackedPoints, matchedIndices, newFeatures );
 			_timeSum += _processingTime.elapsedMilliSeconds();
 
 			_iter++;
-			if( (_iter % 100) == 0 )
-				std::cout << "Avg. Feature extraction time: " << _timeSum / _iter << "ms" << std::endl;
+			if( ( _iter % 20 ) == 0 )
+				std::cout << "Avg. Feature Tracking time: " << _timeSum / _iter << "ms" << std::endl;
 
-			_view->setFeatures( features );
+			_view->setFeatures( trackedPoints );
 
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
@@ -87,21 +76,29 @@ class CameraTimeout : public TimeoutHandler
 				_frames = 0;
 				_timer.reset();
 			}
+
+			_currentFeatures.clear();
+			_currentFeatures.resize( trackedPoints.size() + newFeatures.size() );
+			std::copy( trackedPoints.begin(), trackedPoints.end(), _currentFeatures.begin() );
+			std::copy( newFeatures.begin(), newFeatures.end(), _currentFeatures.begin() + trackedPoints.size() );
+
+			_grayLast = _gray;
 		}
 
 	private:
-		Camera *		_cam;
-		Moveable*		_moveable;
-		FeatureView *	_view;
-		Image			_image;
-		Image			_gray;
-		Time			_timer;
-		Time			_processingTime;
-		size_t			_iter;
-		double			_timeSum;
-		float			_frames;
-		//FAST			_detector;
-		AGAST			_detector;
+		Camera *				_cam;
+		Moveable*				_moveable;
+		FeatureView *			_view;
+		Image					_image;
+		Image					_gray;
+		Image					_grayLast;
+		Time					_timer;
+		Time					_processingTime;
+		size_t					_iter;
+		double					_timeSum;
+		float					_frames;
+		std::vector<Feature2D>	_currentFeatures;
+		FeatureTracker			_featureTracker;
 };
 
 int main( )

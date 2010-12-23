@@ -10,15 +10,15 @@ using namespace cvt;
 
 int main()
 {
-#define SIZE 11
+#define SIZE 1000
 
 	std::vector<Point2f> pts;
 	pts.resize( SIZE );
 
 	for( int i = 0; i < SIZE; i++ )
-		pts[ i ].set( Math::rand( 0.0f, 10.0f ), Math::rand( 0.0f, 10.0f ) );
+		pts[ i ].set( Math::rand( 0.0f, 640.0f ), Math::rand( 0.0f, 480.0f ) );
 
-	std::cout << "Original array:\nx:\t";
+	/*std::cout << "Original array:\nx:\t";
 	for( int i = 0; i < SIZE; i++ ){
 		std::cout << pts[ i ][ 0 ] << "\t";
 	}
@@ -27,6 +27,7 @@ int main()
 		std::cout << pts[ i ][ 1 ] << "\t";
 	}
 	std::cout << std::endl;
+*/
 
 	KDTree<Point2f> kdtree( pts );
 

@@ -305,6 +305,7 @@ namespace cvt {
 
 	typedef Vector2<float> Vector2f;
 	typedef Vector2<double> Vector2d;
+	typedef Vector2<int32_t> Vector2i;
 }
 
 #endif
