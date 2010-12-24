@@ -165,7 +165,6 @@ namespace cvt {
 		proj *= tmp;
 		proj *= modelview;
 
-		glClear( GL_DEPTH_BUFFER_BIT );
 		glEnable( GL_DEPTH_TEST );
 		modelp.bind();
 		mdl.setColor( _color );
