@@ -149,6 +149,7 @@ namespace cvt {
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfx->setViewport( viewport );
 		gfx->setChildrect( viewport );
+		glClear( GL_DEPTH_BUFFER_BIT );
 		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
 		needsupdate = false;
