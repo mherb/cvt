@@ -18,6 +18,7 @@ namespace cvt {
 		glEnable( GL_TEXTURE_2D );
 		glEnable( GL_POINT_SPRITE );
 		glEnable( GL_SCISSOR_TEST );
+		glDisable( GL_DEPTH_TEST );
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	}
 
