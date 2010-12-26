@@ -100,6 +100,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h
+	math/Quaternion.h
 	math/Optimization.h
 	math/SBAData.h
 	math/SL3Transform.h

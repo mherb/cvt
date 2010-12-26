@@ -296,6 +296,8 @@ namespace cvt {
 	    lenInv = Math::invSqrt( lenSqr );
 	    x *= lenInv;
 	    y *= lenInv;
+		z *= lenInv;
+		w *= lenInv;
 	    return lenSqr * lenInv;
 	}
 
