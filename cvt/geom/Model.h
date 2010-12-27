@@ -32,6 +32,9 @@ namespace cvt {
 			size_t index( size_t i ) const;
 
 			void calcNormals();
+			void meanVertex( Vector3f& mean ) const;
+			void translate( const Vector3f& translation );
+			void scale( float scale );
 
 			void clear();
 
@@ -115,6 +118,31 @@ namespace cvt {
 		_triNormals.clear();
 		_triTexcoords.clear();
 	}
+
+
+	inline void Model::meanVertex( Vector3f& mean ) const
+	{
+		float inv;
+		mean.zero();
+		for( size_t i = 0; i < _triVertices.size(); i++ )
+			mean += _triVertices[ i ];
+		inv = 1.0f / ( float ) _triVertices().size();
+		mean *= inv;
+	}
+
+
+	inline void Model::translate( const Vector3f& translation )
+	{
+		for( size_t i = 0; i < _triVertices.size(); i++ )
+			_triVertices[ i ] += translation;
+	}
+
+	inline void Model::scale( float scale )
+	{
+		for( size_t i = 0; i < _triVertices.size(); i++ )
+			_triVertices[ i ] *= scale;
+	}
+
 
 	inline std::ostream& operator<<( std::ostream& out, const Model& mdl )
 	{
