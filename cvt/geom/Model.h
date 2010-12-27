@@ -2,6 +2,7 @@
 #define CVT_MODEL_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/geom/Box.h>
 #include <vector>
 
 namespace cvt {
@@ -31,11 +32,13 @@ namespace cvt {
 			const Vector2f& texcoord( size_t i ) const;
 			size_t index( size_t i ) const;
 
+			void cleanup();
 			void calcNormals();
+			void calcAABB( Boxf& box ) const;
 			void meanVertex( Vector3f& mean ) const;
 			void translate( const Vector3f& translation );
 			void scale( float scale );
-
+			void center();
 			void clear();
 
 		private:
@@ -143,6 +146,33 @@ namespace cvt {
 			_vertices[ i ] *= scale;
 	}
 
+	inline void Model::cleanup()
+	{
+		if( normalsSize() != vertexSize() )
+			calcNormals();
+	}
+
+	inline void Model::center()
+	{
+		Vector3f m;
+		meanVertex( m );
+		translate( -m );
+	}
+
+	inline void Model::calcAABB( Boxf& box ) const
+	{
+		Vector3f min, max;
+		min = max = _vertices[ 0 ];
+		for( size_t i = 1; i < _vertices.size(); i++ ) {
+			min.x = Math::min( min.x, _vertices[ i ].x );
+			min.y = Math::min( min.y, _vertices[ i ].y );
+			min.z = Math::min( min.z, _vertices[ i ].z );
+			max.x = Math::max( max.x, _vertices[ i ].x );
+			max.y = Math::max( max.y, _vertices[ i ].y );
+			max.z = Math::max( max.z, _vertices[ i ].z );
+		}
+		box.set( min, max );
+	}
 
 	inline std::ostream& operator<<( std::ostream& out, const Model& mdl )
 	{

@@ -38,7 +38,7 @@ namespace cvt {
 		int w, h;
 
 		_rotation.identity();
-		_trans = -5.0f;
+		_trans = -2.0f;
 		size( w, h );
 		_arcball.setViewportSize( w, h );
 	}
