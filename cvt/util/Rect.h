@@ -9,37 +9,32 @@ namespace cvt {
 
 	template<typename T> class Rect;
 
-	template<typename T>
-		inline std::ostream& operator<<(std::ostream &out, const Rect<T> &r);
-
 	template< typename T>
 		class Rect
 		{
-			friend std::ostream& operator<< <>(std::ostream &os, const Rect<T> &r );
-
 			public:
-			Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
-			Rect( const Rect<T>& r2 );
-			const Rect<T>& operator=( const Rect<T>& r2 );
-			void copy( const Rect<T>& r2 );
-			void set( T x, T y, T width, T height );
-			void setPosition( T x, T y );
-			void setSize( T w, T h );
-			void translate( T x, T y );
-			T size() const;
-			void getPosition( T& x, T& y ) const;
-			void getSize( T& w, T& h ) const;
-			bool contains( const T px, const T py ) const;
-			bool contains( T x, T y, T width, T height ) const;
-			bool contains( const Rect<T>& r2 ) const;
-			bool intersects( const Rect<T>& r2 ) const;
-			bool intersects( T x, T y, T w, T h ) const;
-			void intersect( const Rect<T>& r2 );
-			void intersect( T x, T y, T w, T h );
-			bool isEmpty() const;
-			bool operator==( const Rect<T>& r2 ) const;
+				Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
+				Rect( const Rect<T>& r2 );
+				const Rect<T>& operator=( const Rect<T>& r2 );
+				void copy( const Rect<T>& r2 );
+				void set( T x, T y, T width, T height );
+				void setPosition( T x, T y );
+				void setSize( T w, T h );
+				void translate( T x, T y );
+				T size() const;
+				void getPosition( T& x, T& y ) const;
+				void getSize( T& w, T& h ) const;
+				bool contains( const T px, const T py ) const;
+				bool contains( T x, T y, T width, T height ) const;
+				bool contains( const Rect<T>& r2 ) const;
+				bool intersects( const Rect<T>& r2 ) const;
+				bool intersects( T x, T y, T w, T h ) const;
+				void intersect( const Rect<T>& r2 );
+				void intersect( T x, T y, T w, T h );
+				bool isEmpty() const;
+				bool operator==( const Rect<T>& r2 ) const;
 
-			T x, y, width, height;
+				T x, y, width, height;
 		};
 
 	template<typename T>
