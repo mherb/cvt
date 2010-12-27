@@ -2,7 +2,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 #include <cvt/io/ImageIO.h>
 
 #include <cv.h>

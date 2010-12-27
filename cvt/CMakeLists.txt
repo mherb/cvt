@@ -106,7 +106,6 @@ SET(${MODULE_NAME}_HEADERS
 	math/SL3Transform.h
 	math/SparseBundleAdjustment.h	
 	util/Range.h
-	util/Rect.h
 	util/RNG.h
 	util/CVTTest.h
 	util/Exception.h
@@ -141,6 +140,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLException.h
 	cl/CLKernel.h
 	geom/KDTree.h
+	geom/Rect.h
 	geom/Model.h
 	geom/ArcBall.h
 	gui/Application.h
@@ -216,7 +216,6 @@ SET(${MODULE_NAME}_SOURCES
 	math/SL3Transform.cpp
 	math/SparseBundleAdjustment.cpp
 	util/Range.cpp
-	util/Rect.cpp
 	util/SIMD.cpp
 	util/SIMDSSE.cpp
 	util/SIMDTest.cpp
@@ -251,6 +250,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLKernel.cpp
 	geom/KDTree.cpp
 	geom/Model.cpp
+	geom/Rect.cpp
 	gui/Application.cpp
 	gui/Window.cpp
 	gui/Widget.cpp

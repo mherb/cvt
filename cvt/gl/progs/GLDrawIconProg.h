@@ -7,7 +7,7 @@
 #include <cvt/gl/GLBuffer.h>
 #include <cvt/gl/GLTexture.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 
 namespace cvt {
 	class GLDrawIconProg : private GLProgram
