@@ -143,7 +143,7 @@ namespace cvt {
 						win = ( *_windows )[ xevent.xmotion.window ];
 						while( XCheckTypedWindowEvent( _dpy, xevent.xmotion.window, MotionNotify, &xevent ) )
 							;
-						MouseMoveEvent mme( xevent.xmotion.x, xevent.xmotion.y );
+						MouseMoveEvent mme( xevent.xmotion.x, xevent.xmotion.y, ( xevent.xmotion.state >> 8 ) & 0x1F );
 						( ( Window* ) win->_widget )->mouseMoveEvent( &mme );
 					}
 					break;

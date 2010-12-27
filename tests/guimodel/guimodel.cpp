@@ -8,6 +8,7 @@
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/PlyModel.h>
+#include <cvt/geom/ArcBall.h>
 #include <cvt/util/Time.h>
 
 using namespace cvt;
@@ -20,7 +21,16 @@ class View3d : public Widget
 		void setModel( GLModel* mdl );
 	protected:
 		virtual void paintEvent( PaintEvent* , GFX* );
+		virtual void resizeEvent( ResizeEvent* e );
+		virtual void mousePressEvent( MousePressEvent* e );
+		virtual void mouseMoveEvent( MouseMoveEvent* e );
+		virtual void mouseReleaseEvent( MouseReleaseEvent* e );
+
 		GLModel* _mdl;
+		int		 _x1, _y1;
+		Matrix4f _rotation;
+		float	 _trans;
+		ArcBall  _arcball;
 };
 
 inline void View3d::setModel( GLModel* mdl )
@@ -28,8 +38,14 @@ inline void View3d::setModel( GLModel* mdl )
 	_mdl = mdl;
 }
 
-View3d::View3d() : Widget()
+View3d::View3d() : Widget(), _x1( 0 ), _y1( 0 )
 {
+	int w, h;
+
+	_rotation.identity();
+	_trans = -5.0f;
+	size( w, h );
+	_arcball.setViewportSize( w, h );
 }
 
 View3d::~View3d()
@@ -39,9 +55,8 @@ View3d::~View3d()
 
 void View3d::paintEvent( PaintEvent* , GFX* g )
 {
-	static int R = 0;
-	int w, h, x, y;
-	position( x , y );
+	int w, h;
+
 	size( w, h );
 	g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 	g->fillRect( 0, 0, w, h );
@@ -50,28 +65,47 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 
 	Matrix4f trans;
 	trans.identity();
-	trans[ 2 ][ 3 ] = -3.0f;
-
-	R++;
-	if( R > 360 )
-		R = 0;
-	Matrix4f rot;
-	float alpha = ( float ) R;
-	rot.identity();
-	rot[ 1 ][ 1 ] = Math::cos( Math::deg2Rad( alpha ) );
-	rot[ 1 ][ 2 ] = -Math::sin( Math::deg2Rad( alpha ) );
-	rot[ 2 ][ 1 ] = Math::sin( Math::deg2Rad( alpha ) );
-	rot[ 2 ][ 2 ] = Math::cos( Math::deg2Rad( alpha ) );
-	alpha = 30.0f;
-	Matrix4f rot2;
-	rot2.identity();
-	rot2[ 0 ][ 0 ] = Math::cos( Math::deg2Rad( alpha ) );
-	rot2[ 0 ][ 2 ] = Math::sin( Math::deg2Rad( alpha ) );
-	rot2[ 2 ][ 0 ] = -Math::sin( Math::deg2Rad( alpha ) );
-	rot2[ 2 ][ 2 ] = Math::cos( Math::deg2Rad( alpha ) );
-
-	trans *= rot;
+	trans[ 2 ][ 3 ] = _trans;
+	trans *= _rotation;
 	g->drawModel( *_mdl, trans );
+}
+
+void View3d::mousePressEvent( MousePressEvent* e )
+{
+	if( e->button() == 1 ) {
+		_x1 = e->x;
+		_y1 = e->y;
+	}
+}
+
+
+void View3d::mouseReleaseEvent( MouseReleaseEvent* e )
+{
+	if( e->button() == 4 ) {
+		_trans += 0.25f;
+		update();
+	} else if( e->button() == 5 ) {
+		_trans -= 0.25f;
+		update();
+	}
+}
+
+void View3d::mouseMoveEvent( MouseMoveEvent* e )
+{
+	Matrix4f rot;
+	if( e->buttonMask() & 1 ) {
+		_arcball.getRotation( rot, _x1, _y1, e->x, e->y );
+		_rotation = rot * _rotation;
+		update();
+		_x1 = e->x;
+		_y1 = e->y;
+	}
+}
+
+
+void View3d::resizeEvent( ResizeEvent* e )
+{
+	_arcball.setViewportSize( e->width(), e->height() );
 }
 
 

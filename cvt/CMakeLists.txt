@@ -142,6 +142,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLKernel.h
 	geom/KDTree.h
 	geom/Model.h
+	geom/ArcBall.h
 	gui/Application.h
 	gui/Window.h
 	gui/Widget.h
