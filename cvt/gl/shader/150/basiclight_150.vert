@@ -8,7 +8,7 @@ in vec3 in_Normal;
 in vec4 in_Color;
 
 out vec4 vtx_Color;
-out vec3 vtx_Normal;
+smooth out vec3 vtx_Normal;
 
 void main()
 {
