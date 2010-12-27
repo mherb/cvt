@@ -14,6 +14,7 @@ namespace cvt {
 
 				const Box<T>& operator=( const Box<T>& b2 );
 				void		  copy( const Box<T>& b2 );
+				void		  set( const Vector3<T>& p1, const Vector3<T>& p2 );
 				void		  set( T x = 0, T y = 0, T z = 0, T x2 = 0, T y2 = 0, T z2 = 0 );
 				void		  setPosition( T x, T y, T z );
 				void		  setSize( T w, T h, T d );
@@ -66,7 +67,14 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void Box<T>::set( T x = 0, T y = 0, T z = 0, T x2 = 0, T y2 = 0, T z2 = 0 )
+		inline void Box<T>::set( const Vector3<T>& p1, const Vector3<T>& p2 )
+		{
+			this->p1 = p1;
+			this->p2 = p2;
+		}
+
+	template<typename T>
+		inline void Box<T>::set( T x, T y, T z, T x2, T y2, T z2 )
 		{
 			p1.set( x, y, z );
 			p2.set( x2, y2, z2 );
@@ -167,7 +175,7 @@ namespace cvt {
 	template<typename T>
 		inline void Box<T>::intersect( const Box<T>& b2 )
 		{
-			if( !intersects( t2 ) ) {
+			if( !intersects( b2 ) ) {
 				p1.zero();
 				p2.zero();
 				return;
@@ -192,6 +200,7 @@ namespace cvt {
 			return ( p1 == b2.p1 && p2 == b2.p2 );
 		}
 
+	typedef Box<float> Boxf;
 }
 
 #endif

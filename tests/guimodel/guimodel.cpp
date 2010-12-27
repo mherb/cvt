@@ -47,7 +47,14 @@ int main(int argc, char* argv[])
 
 	Model mdl;
 	PlyModel::load( mdl, argv[ 1 ] );
+	mdl.center();
 	mdl.calcNormals();
+	Boxf box;
+	Vector3f tsize;
+	mdl.calcAABB( box );
+	box.getSize( tsize );
+	float scale = 1.0f / ( Math::max( tsize.x, Math::max( tsize.y, tsize.z ) ) );
+	mdl.scale( scale );
 	GLModel glmdl( mdl );
 	v3d.setModel( &glmdl );
 
