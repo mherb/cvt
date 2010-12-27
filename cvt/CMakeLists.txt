@@ -153,6 +153,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Button.h
 	gui/ToggleButton.h
 	gui/ImageView.h
+	gui/View3D.h
 	gui/internal/WidgetImplDefault.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
