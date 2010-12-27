@@ -42,7 +42,7 @@ namespace cvt {
 
 			v1.normalize();
 			v2.normalize();
-			n = v1.cross( v2 );
+			n.cross( v1, v2 );
 
 			_normals[ idx1 ] += n;
 			_normals[ idx2 ] += n;
