@@ -149,7 +149,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline Vector3<T> Quaternion<T>::operator*( const Vector3<T> &q ) const
+		inline Vector3<T> Quaternion<T>::operator*( const Vector3<T> &v ) const
 		{
 			T xxzz = x * x - z * z;
 			T wwyy = w * w - y * y;
@@ -162,9 +162,9 @@ namespace cvt {
 			T zw2 = z * w * 2;
 
 			return Vector3<T>(
-							  ( xxzz + wwyy ) * a.x	+ ( xy2 + zw2 ) * a.y					 + ( xz2 - yw2 ) * a.z,
-							  ( xy2 - zw2 ) * a.x	+ ( y * y + w * w- x * x - z * z ) * a.y + ( yz2 + xw2 ) * a.z,
-							  ( xz2 + yw2 ) * a.x	+ ( yz2 - xw2 ) * a.y					 + ( wwyy - xxzz ) * a.z
+							  ( xxzz + wwyy ) * v.x	+ ( xy2 + zw2 ) * v.y					 + ( xz2 - yw2 ) * v.z,
+							  ( xy2 - zw2 ) * v.x	+ ( y * y + w * w- x * x - z * z ) * v.y + ( yz2 + xw2 ) * v.z,
+							  ( xz2 + yw2 ) * v.x	+ ( yz2 - xw2 ) * v.y					 + ( wwyy - xxzz ) * v.z
 							 );
 		}
 
@@ -175,7 +175,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline Quaternion<T>& Quaternion<T>::operator*=( T c );
+		inline Quaternion<T>& Quaternion<T>::operator*=( T c )
 	{
 		x *= c;
 		y *= c;
@@ -362,6 +362,8 @@ namespace cvt {
 		return out;
 	}
 
+	typedef Quaternion<float> Quaternionf;
+	typedef Quaternion<double> Quaterniond;
 }
 
 #endif

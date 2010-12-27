@@ -140,6 +140,7 @@ namespace cvt {
 			mapGlobal( event->x, event->y );
 			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mouseReleaseEvent( event );
+			_activeWidget = NULL;
 		} else
 			_activeMode = 0;
 	}
