@@ -124,23 +124,23 @@ namespace cvt {
 	{
 		float inv;
 		mean.zero();
-		for( size_t i = 0; i < _triVertices.size(); i++ )
-			mean += _triVertices[ i ];
-		inv = 1.0f / ( float ) _triVertices().size();
+		for( size_t i = 0; i < _vertices.size(); i++ )
+			mean += _vertices[ i ];
+		inv = 1.0f / ( float ) _vertices.size();
 		mean *= inv;
 	}
 
 
 	inline void Model::translate( const Vector3f& translation )
 	{
-		for( size_t i = 0; i < _triVertices.size(); i++ )
-			_triVertices[ i ] += translation;
+		for( size_t i = 0; i < _vertices.size(); i++ )
+			_vertices[ i ] += translation;
 	}
 
 	inline void Model::scale( float scale )
 	{
-		for( size_t i = 0; i < _triVertices.size(); i++ )
-			_triVertices[ i ] *= scale;
+		for( size_t i = 0; i < _vertices.size(); i++ )
+			_vertices[ i ] *= scale;
 	}
 
 
