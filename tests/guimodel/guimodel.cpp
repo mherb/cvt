@@ -61,7 +61,7 @@ void View3d::paintEvent( PaintEvent* , GFX* g )
 	g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 	g->fillRect( 0, 0, w, h );
 
-	g->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+	g->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
 
 	Matrix4f trans;
 	trans.identity();
