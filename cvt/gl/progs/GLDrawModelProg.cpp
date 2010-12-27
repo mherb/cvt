@@ -28,12 +28,15 @@ namespace cvt {
 
 	}
 
-	void GLDrawModelProg::setProjection( const Matrix4f& projection )
+	void GLDrawModelProg::setProjection( const Matrix4f& projection, const Matrix4f& modelview )
 	{
-		Matrix3f normm( projection );
-		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) projection.ptr() );
+		Matrix4f mvp( projection );
+		mvp *= modelview;
+		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) mvp.ptr() );
+		Matrix3f normm( modelview );
 		normm.inverseSelf();
 		normm.transposeSelf();
+//		std::cout << normm << std::endl;
 		glUniformMatrix3fv( _normmloc, 1, true , ( const GLfloat* ) normm.ptr() );
 	}
 

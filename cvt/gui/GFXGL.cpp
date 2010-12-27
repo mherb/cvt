@@ -164,13 +164,12 @@ namespace cvt {
 		GL::perspective( tmp, 60.0f, ( float ) _viewport.width / ( float ) _viewport.height, near, far );
 
 		proj *= tmp;
-		proj *= modelview;
 
 		glEnable( GL_DEPTH_TEST );
 		modelp.bind();
 		mdl.setColor( _color );
-		modelp.setLightPosition( Vector3f( 0.0f, 0.0f, 10.0f ) );
-		modelp.setProjection( proj );
+		modelp.setLightPosition( Vector3f( 0.0f, 0.0f, -1.0f ) );
+		modelp.setProjection( proj, modelview );
 		modelp.drawModel( mdl );
 		modelp.unbind();
 		glDisable( GL_DEPTH_TEST );

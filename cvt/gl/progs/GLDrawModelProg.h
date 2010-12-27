@@ -17,7 +17,7 @@ namespace cvt {
 			using GLProgram::bind;
 			using GLProgram::unbind;
 			void setLightPosition( const Vector3f& position );
-			void setProjection( const Matrix4f& projection );
+			void setProjection( const Matrix4f& projection, const Matrix4f& modelview );
 			void drawModel( const GLModel& mdl ) const;
 
 		private:
