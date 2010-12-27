@@ -2,7 +2,7 @@
 #define CVTPAINTEVENT_H
 
 #include <cvt/gui/event/Event.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 
 namespace cvt {
 	class PaintEvent : public Event

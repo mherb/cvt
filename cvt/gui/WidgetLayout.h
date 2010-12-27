@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <cvt/math/Vector.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 #include <cvt/math/Math.h>
 
 namespace cvt {

@@ -6,7 +6,7 @@
 #include <cvt/gl/GLVertexArray.h>
 #include <cvt/gl/GLBuffer.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 
 namespace cvt {
 	class GLFillRectProg : private GLProgram

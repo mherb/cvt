@@ -2,7 +2,7 @@
 #define IMAGEALLOCATOR_H
 
 #include <cvt/gfx/IFormat.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 
 namespace cvt {
 

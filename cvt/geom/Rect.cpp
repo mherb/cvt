@@ -1,5 +1,5 @@
-#include "Rect.h"
-#include "CVTTest.h"
+#include <cvt/geom/Rect.h>
+#include <cvt/util/CVTTest.h>
 
 BEGIN_CVTTEST(rect)
     cvt::Rectf r( 0.0f, 0.0f, 100.0f, 100.0f );

@@ -1,7 +1,7 @@
 #ifndef CVTWIDGET_H
 #define CVTWIDGET_H
 
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 #include <cvt/gui/GFX.h>
 #include <cvt/gui/Events.h>
 

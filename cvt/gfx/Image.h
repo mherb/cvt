@@ -9,7 +9,7 @@
 #include <cvt/gfx/IFormat.h>
 #include <cvt/gfx/IScaleFilter.h>
 #include <cvt/gfx/IFilterParameter.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 #include <cvt/gfx/ImageAllocator.h>
 
 namespace cvt {

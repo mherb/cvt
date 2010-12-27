@@ -1,7 +1,7 @@
 #ifndef CVTGFX_H
 #define CVTGFX_H
 
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/gl/GLModel.h>

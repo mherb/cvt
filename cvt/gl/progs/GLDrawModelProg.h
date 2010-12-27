@@ -5,7 +5,7 @@
 #include <cvt/gl/GLProgram.h>
 #include <cvt/gl/GLModel.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/util/Rect.h>
+#include <cvt/geom/Rect.h>
 
 namespace cvt {
 	class GLDrawModelProg : private GLProgram
