@@ -169,7 +169,7 @@ namespace cvt {
 		glEnable( GL_DEPTH_TEST );
 		modelp.bind();
 		mdl.setColor( _color );
-		modelp.setLightPosition( Vector3f( 0.0f, 0.0f, -1.0f ) );
+		modelp.setLightPosition( Vector3f( 0.0f, 0.0f, 10.0f ) );
 		modelp.setProjection( proj );
 		modelp.drawModel( mdl );
 		modelp.unbind();
