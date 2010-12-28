@@ -3,12 +3,12 @@
 namespace cvt {
 
 	GLModel::GLModel() : _vtxbuf( GL_ARRAY_BUFFER ), _normbuf( GL_ARRAY_BUFFER ), _facebuf( GL_ELEMENT_ARRAY_BUFFER ),
-						 _numvertices( 0 ), _numfaces( 0 )
+						 _numvertices( 0 ), _numfaces( 0 ), _mode( GL_TRIANGLES )
 	{
 	}
 
 	GLModel::GLModel( const Model& mdl ) : _vtxbuf( GL_ARRAY_BUFFER ), _normbuf( GL_ARRAY_BUFFER ),
-										   _facebuf( GL_ELEMENT_ARRAY_BUFFER ), _numvertices( 0 ), _numfaces( 0 )
+										   _facebuf( GL_ELEMENT_ARRAY_BUFFER ), _numvertices( 0 ), _numfaces( 0 ), _mode( GL_TRIANGLES )
 	{
 		_numvertices = mdl.vertexSize();
 		_numfaces	 = mdl.trianglesSize();

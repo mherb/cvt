@@ -103,7 +103,7 @@ namespace cvt {
 	{
 		mat[ 0 ].x = mat4[ 0 ].x;
 		mat[ 0 ].y = mat4[ 0 ].y;
-		mat[ 0 ].z = mat4[ 0 ].y;
+		mat[ 0 ].z = mat4[ 0 ].z;
 
 		mat[ 1 ].x = mat4[ 1 ].x;
 		mat[ 1 ].y = mat4[ 1 ].y;

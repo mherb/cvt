@@ -24,17 +24,19 @@ namespace cvt
 			GLBuffer	  _facebuf;
 			size_t		  _numvertices;
 			size_t		  _numfaces;
+			GLenum		  _mode;
 	};
 
 	inline void GLModel::draw() const
 	{
-		_vao.drawIndirect( _facebuf, GL_UNSIGNED_INT, GL_TRIANGLES, _numfaces * 3 );
+		_vao.drawIndirect( _facebuf, GL_UNSIGNED_INT, _mode, _numfaces * 3 );
 	}
 
 	inline void GLModel::setColor( const Color& col )
 	{
 		_vao.setColor( col );
 	}
+
 }
 
 #endif
