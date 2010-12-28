@@ -34,8 +34,8 @@ namespace cvt {
 		mvp *= modelview;
 		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) mvp.ptr() );
 		Matrix3f normm( modelview );
-		normm.inverseSelf();
 		normm.transposeSelf();
+		normm.inverseSelf();
 //		std::cout << normm << std::endl;
 		glUniformMatrix3fv( _normmloc, 1, true , ( const GLfloat* ) normm.ptr() );
 	}
