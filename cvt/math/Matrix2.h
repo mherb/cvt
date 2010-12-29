@@ -349,9 +349,6 @@ namespace cvt {
 		return out;
 	}
 
-	typedef Matrix2<float> Matrix2f;
-	typedef Matrix2<double> Matrix2d;
-
 }
 
 
