@@ -7,6 +7,7 @@
 #include <cvt/gl/GLBuffer.h>
 #include <cvt/gl/GLTexture.h>
 #include <cvt/math/Matrix.h>
+#include <cvt/math/Vector.h>
 #include <cvt/geom/Rect.h>
 
 namespace cvt {
@@ -21,6 +22,7 @@ namespace cvt {
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
 			void drawIcon( int x, int y, int icon );
+			void drawIcons( const Vector2i* pts, size_t npts, int icon, int offx = 0, int offy = 0 );
 
 		private:
 			GLVertexArray _vao;

@@ -30,6 +30,7 @@ namespace cvt {
 			virtual void drawImage( int x, int y, const Image& img );
 			virtual void drawImage( int x, int y, int width, int height, const Image& img );
 			virtual void drawIcon( int x, int y, Icon icon );
+			virtual void drawIcons( const Vector2i* pts, size_t npts, Icon i );
 			virtual int textWidth( const char* text );
 			virtual void drawModel( GLModel& mdl, const Matrix4f& modelview, float near = 0.01f, float far = 100.0f );
 
