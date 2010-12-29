@@ -28,7 +28,10 @@ namespace cvt
 				void clear();
 				PTTYPE& operator[]( int i );
 				const PTTYPE& operator[]( int i ) const;
+				PTTYPE mean() const;
 				size_t size() const;
+				void translate( const PTTYPE& t );
+				void scale( _T t );
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset );
 
 			private:
@@ -75,6 +78,41 @@ namespace cvt
 		}
 
 	template<int dim, typename _T>
+		inline	typename PointSet<dim,_T>::PTTYPE PointSet<dim,_T>::mean() const
+		{
+			const PTTYPE* pt = &_pts[ 0 ];
+			PTTYPE mean;
+			size_t n = _pts.size();
+			_T inv = 1 / ( _T ) n;
+
+			mean.zero();
+			while( n-- )
+				mean += *pt++;
+
+			mean *= inv;
+			return mean;
+		}
+
+
+	template<int dim, typename _T>
+		void PointSet<dim,_T>::translate( const PTTYPE& t )
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			size_t n = _pts.size();
+			while( n-- )
+				*pt++ -= t;
+		}
+
+	template<int dim, typename _T>
+		void PointSet<dim,_T>::scale( _T s )
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			size_t n = _pts.size();
+			while( n-- )
+				*pt++ *= s;
+		}
+
+	template<int dim, typename _T>
 		inline size_t PointSet<dim,_T>::size( ) const
 		{
 			return _pts.size();
@@ -88,5 +126,17 @@ namespace cvt
 			mat.identity();
 			return mat;
 		}
+
+	template<int dim, typename _T>
+	inline std::ostream& operator<<( std::ostream& out, const PointSet<dim,_T>& ptset )
+	{
+		out << "PointSet" << dim << " ( " << ptset.size() << " entries ):" << std::endl;
+		const typename Vector<dim,_T>::TYPE* pt = &ptset[ 0 ];
+		size_t n = ptset.size();
+		while( n-- )
+			std::cout << "\t" << ( *pt++ ) << std::endl;
+		return out;
+	}
+
 }
 #endif
