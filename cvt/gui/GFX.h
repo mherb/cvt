@@ -5,6 +5,7 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/gl/GLModel.h>
+#include <cvt/math/Vector.h>
 
 namespace cvt {
 
@@ -40,6 +41,7 @@ namespace cvt {
 			virtual void drawImage( int x, int y, const Image& img ) = 0;
 			virtual void drawImage( int x, int y, int width, int height, const Image& img ) = 0;
 			virtual void drawIcon( int x, int y, Icon i ) = 0;
+			virtual void drawIcons( const Vector2i* pts, size_t npts, Icon i ) = 0;
 			virtual int  textWidth( const char* text ) = 0;
 			virtual void drawModel( GLModel& mdl, const Matrix4f& modelview, float near = 0.01f, float far = 100.0f ) = 0;
 

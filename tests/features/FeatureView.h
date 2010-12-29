@@ -3,6 +3,7 @@
 
 #include <cvt/gui/ImageView.h>
 #include <cvt/vision/FeatureExtractor.h>
+#include <cvt/math/Vector.h>
 
 class FeatureView : public cvt::ImageView
 {
@@ -26,15 +27,20 @@ void FeatureView::paintEvent( cvt::PaintEvent* ev, cvt::GFX* g )
 {
 	cvt::ImageView::paintEvent( ev, g );
 
-	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 0.3f ) );
+	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 0.5f ) );
 
 	int w, h;
 	size( w, h );
+	cvt::Vector2i* pts = new cvt::Vector2i[ _features.size() ];
 	float xScale = ( float ) w / 640.0f;
 	float yScale = ( float ) h / 480.0f;
 	for( size_t i = 0; i < _features.size(); i++ ){
-		g->drawIcon( _features[ i ][ 0 ] * xScale - 8.0f, _features[ i ][ 1 ] * yScale -8.0f, cvt::GFX::ICON_CROSS );
+		pts[ i ].x = ( int ) ( _features[ i ][ 0 ] * xScale - 8.0f );
+		pts[ i ].y = ( int ) ( _features[ i ][ 1 ] * yScale - 8.0f );
 	}
+	//g->drawIcon( _features[ i ][ 0 ] * xScale - 8.0f, _features[ i ][ 1 ] * yScale -8.0f, cvt::GFX::ICON_CROSS );
+	g->drawIcons( pts, _features.size(), cvt::GFX::ICON_CROSS );
+	delete[] pts;
 }
 
 inline FeatureView::~FeatureView()

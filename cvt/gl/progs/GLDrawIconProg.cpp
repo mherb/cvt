@@ -22,7 +22,7 @@ namespace cvt {
 			std::cout << e.what() << e.log() << std::endl;
 		}
 
-		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8 );
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 3 );
 		_mvploc = uniformLocation( "MVP" );
 		_texloc = uniformLocation( "TexFont" );
 		_scaleloc = uniformLocation( "Scale" );
@@ -73,4 +73,27 @@ namespace cvt {
 		_tex.unbind();
 	}
 
+	void GLDrawIconProg::drawIcons( const Vector2i* pts, size_t npts, int icon, int offx, int offy )
+	{
+		GLint* buf;
+
+		offx += 8;
+		offy += 8;
+
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 3 * npts );
+		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
+		for( size_t i = 0; i < npts; i++ ) {
+			buf[ i * 3 + 0 ] = pts[ i ].x + offx;
+			buf[ i * 3 + 1 ] = pts[ i ].y + offy;
+			buf[ i * 3 + 2 ] = icon;
+		}
+		_vbo.unmap();
+
+		_vao.setVertexData( _vbo, 3, GL_INT );
+		_tex.bind();
+		glPointSize( 16.0f );
+		_vao.draw( GL_POINTS, 0, npts );
+		_tex.unbind();
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 3 );
+	}
 }

@@ -156,6 +156,17 @@ namespace cvt {
 		drawiconp.unbind();
 	}
 
+	void GFXGL::drawIcons( const Vector2i* pts, size_t npts, Icon i )
+	{
+		Matrix4f proj;
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		drawiconp.bind();
+		drawiconp.setProjection( proj );
+		drawiconp.setColor( _color );
+		drawiconp.drawIcons( pts, npts, i, _childrect.x, _childrect.y );
+		drawiconp.unbind();
+	}
+
 
 	void GFXGL::drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far )
 	{
