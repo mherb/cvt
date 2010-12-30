@@ -344,8 +344,8 @@ namespace cvt {
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m )
 	{
-		out << " | " << m.mat[ 0 ].x << " " << m.mat[ 0 ].y << " | " << std::endl;
-		out << " | " << m.mat[ 1 ].x << " " << m.mat[ 1 ].y << " | ";
+		out << m.mat[ 0 ] << std::endl;
+		out << m.mat[ 1 ];
 		return out;
 	}
 

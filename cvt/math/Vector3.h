@@ -342,13 +342,10 @@ namespace cvt {
 	template<typename T>
 	std::ostream& operator<<( std::ostream& out, const Vector3<T> &v )
 	{
-		out << " [ " << v.x << " " << v.y << " " << v.z << " ] ";
+		out << " | " << std::setprecision( 5 ) << std::setw( 12 ) << v.x << " " << std::setw( 12 ) << v.y << " " << std::setw( 12 ) << v.z << " | ";
 		return out;
 	}
 
-
-	typedef Vector3<float> Vector3f;
-	typedef Vector3<double> Vector3d;
 }
 
 #endif
