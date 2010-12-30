@@ -2,6 +2,7 @@
 #define CVT_MODEL_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/math/Matrix.h>
 #include <cvt/geom/Box.h>
 #include <vector>
 
@@ -32,14 +33,16 @@ namespace cvt {
 			const Vector2f& texcoord( size_t i ) const;
 			size_t index( size_t i ) const;
 
-			void cleanup();
-			void calcNormals();
-			void calcAABB( Boxf& box ) const;
-			void meanVertex( Vector3f& mean ) const;
-			void translate( const Vector3f& translation );
-			void scale( float scale );
-			void center();
-			void clear();
+			void	 cleanup();
+			void	 calcNormals();
+			void	 calcAABB( Boxf& box ) const;
+			Vector3f meanVertex(  ) const;
+			void	 translate( const Vector3f& translation );
+			void     scale( float scale );
+			void	 transform( const Matrix3f& mat );
+			void	 transform( const Matrix4f& mat );
+			void	 center();
+			void	 clear();
 
 		private:
 			std::vector<Vector3f>	_vertices;
@@ -123,27 +126,71 @@ namespace cvt {
 	}
 
 
-	inline void Model::meanVertex( Vector3f& mean ) const
+	inline Vector3f Model::meanVertex( ) const
 	{
 		float inv;
+		size_t n = _vertices.size();
+		const Vector3f* pt = &_vertices[ 0 ];
+		Vector3f mean;
+
 		mean.zero();
-		for( size_t i = 0; i < _vertices.size(); i++ )
-			mean += _vertices[ i ];
+		while( n-- )
+			mean += *pt++;
 		inv = 1.0f / ( float ) _vertices.size();
 		mean *= inv;
+		return mean;
 	}
 
 
 	inline void Model::translate( const Vector3f& translation )
 	{
-		for( size_t i = 0; i < _vertices.size(); i++ )
-			_vertices[ i ] += translation;
+		size_t n = _vertices.size();
+		Vector3f* pt = &_vertices[ 0 ];
+
+		while( n-- )
+			*pt++ += translation;
 	}
 
 	inline void Model::scale( float scale )
 	{
-		for( size_t i = 0; i < _vertices.size(); i++ )
-			_vertices[ i ] *= scale;
+		size_t n = _vertices.size();
+		Vector3f* pt = &_vertices[ 0 ];
+
+		while( n-- )
+			*pt++ *= scale;
+	}
+
+	inline void Model::transform( const Matrix3f& mat )
+	{
+		size_t n = _vertices.size();
+		Vector3f* pt = &_vertices[ 0 ];
+
+		while( n-- ) {
+			*pt = mat * *pt;
+			pt++;
+		}
+	}
+
+	inline void Model::transform( const Matrix4f& mat )
+	{
+		size_t n = _vertices.size();
+		Vector3f* pt = &_vertices[ 0 ];
+
+		/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
+		if( mat[ 3 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
+			Matrix3f _mat( mat );
+			Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
+			while( n-- ) {
+				*pt = _mat * *pt;
+				*pt += trans;
+				pt++;
+			}
+		} else {
+			while( n-- ) {
+				*pt = mat * *pt;
+				pt++;
+			}
+		}
 	}
 
 	inline void Model::cleanup()
@@ -154,8 +201,7 @@ namespace cvt {
 
 	inline void Model::center()
 	{
-		Vector3f m;
-		meanVertex( m );
+		Vector3f m = meanVertex();
 		translate( -m );
 	}
 
