@@ -2,6 +2,7 @@
 
 namespace cvt {
 	template<typename T> class Matrix2;
+	template<typename T> class Matrix3;
 
 	template<typename T>
 	std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m );
@@ -13,6 +14,7 @@ namespace cvt {
 		explicit			Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
 		explicit			Matrix2<T>( const T a, const T b, const T c, const T d );
 		explicit			Matrix2<T>( const T src[ 2 ][ 2 ] );
+		explicit			Matrix2<T>( const Matrix3<T>& mat3 );
 
 		const Vector2<T>&	operator[]( int index ) const;
 		Vector2<T>&			operator[]( int index );
@@ -88,6 +90,16 @@ namespace cvt {
 	    mat[ 0 ].y = src[ 0 ][ 1 ];
 	    mat[ 1 ].x = src[ 1 ][ 0 ];
 	    mat[ 1 ].y = src[ 1 ][ 1 ];
+	}
+
+	template<typename T>
+	inline Matrix2<T>::Matrix2( const Matrix3<T>& mat3 )
+	{
+		mat[ 0 ].x = mat3[ 0 ].x;
+		mat[ 0 ].y = mat3[ 0 ].y;
+
+		mat[ 1 ].x = mat3[ 1 ].x;
+		mat[ 1 ].y = mat3[ 1 ].y;
 	}
 
 	template<typename T>
