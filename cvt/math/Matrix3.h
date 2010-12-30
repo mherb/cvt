@@ -26,7 +26,8 @@ namespace cvt {
 		Matrix3<T>			operator*( const T c ) const;
 		Matrix3<T>			operator+( const T c ) const;
 		Matrix3<T>			operator-( const T c ) const;
-		Vector3<T>			operator*( const Vector3<T> &vec ) const;
+		Vector2<T>			operator*( const Vector2<T>& vec  ) const;
+		Vector3<T>			operator*( const Vector3<T>& vec ) const;
 		Matrix3<T>			operator*( const Matrix3<T>& m ) const;
 		Matrix3<T>			operator+( const Matrix3<T>& m ) const;
 		Matrix3<T>			operator-( const Matrix3<T>& m ) const;
@@ -164,6 +165,16 @@ namespace cvt {
 						   mat[ 1 ].x * vec.x + mat[ 1 ].y * vec.y + mat[ 1 ].z * vec.z,
 						   mat[ 2 ].x * vec.x + mat[ 2 ].y * vec.y + mat[ 2 ].z * vec.z );
 	}
+
+	template<typename T>
+	inline Vector2<T> Matrix3<T>::operator*( const Vector2<T>& vec  ) const
+	{
+	    Vector2<T> ret( mat[ 0 ].x * vec.x + mat[ 0 ].y * vec.y + mat[ 0 ].z,
+					    mat[ 1 ].x * vec.x + mat[ 1 ].y * vec.y + mat[ 1 ].z );
+		ret /= mat[ 2 ].x * vec.x + mat[ 2 ].y * vec.y + mat[ 2 ].z;
+		return ret;
+	}
+
 
 	template<typename T>
 	inline Matrix3<T> Matrix3<T>::operator*( const Matrix3<T>& m  ) const
@@ -430,9 +441,9 @@ namespace cvt {
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix3<T>& m )
 	{
-		out << " | " << m[ 0 ].x << " " << m[ 0 ].y << " " << m[ 0 ].z << " | " << std::endl;
-		out << " | " << m[ 1 ].x << " " << m[ 1 ].y << " " << m[ 1 ].z << " | " << std::endl;
-		out << " | " << m[ 2 ].x << " " << m[ 2 ].y << " " << m[ 2 ].z << " | ";
+		out << m[ 0 ] << std::endl;
+		out << m[ 1 ] << std::endl;
+		out << m[ 2 ];
 		return out;
 	}
 

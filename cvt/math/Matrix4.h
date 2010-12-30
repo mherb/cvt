@@ -25,6 +25,7 @@ namespace cvt {
 		Matrix4<T>			operator*( const T c ) const;
 		Matrix4<T>			operator+( const T c ) const;
 		Matrix4<T>			operator-( const T c ) const;
+		Vector3<T>			operator*( const Vector3<T> &vec ) const;
 		Vector4<T>			operator*( const Vector4<T> &vec ) const;
 		Matrix4<T>			operator*( const Matrix4<T>& m ) const;
 		Matrix4<T>			operator+( const Matrix4<T>& m ) const;
@@ -151,13 +152,24 @@ namespace cvt {
 	    return Matrix4<T>( mat[ 0 ] - c, mat[ 1 ] - c, mat[ 2 ] - c, mat[ 3 ] - c );
 	}
 
+
+	template<typename T>
+	inline Vector3<T>	Matrix4<T>::operator*( const Vector3<T> &vec ) const
+	{
+		Vector3<T> ret( mat[ 0 ].x * vec.x + mat[ 0 ].y * vec.y + mat[ 0 ].z * vec.z + mat[ 0 ].w,
+					    mat[ 1 ].x * vec.x + mat[ 1 ].y * vec.y + mat[ 1 ].z * vec.z + mat[ 1 ].w,
+					    mat[ 2 ].x * vec.x + mat[ 2 ].y * vec.y + mat[ 2 ].z * vec.z + mat[ 2 ].w );
+		ret /= mat[ 3 ].x * vec.x + mat[ 3 ].y * vec.y + mat[ 3 ].z * vec.z + mat[ 3 ].w;
+		return ret;
+	}
+
 	template<typename T>
 	inline Vector4<T> Matrix4<T>::operator*( const Vector4<T>& vec  ) const
 	{
-	    return Vector4<T>( mat[ 0 ].x * vec.x + mat[ 0 ].y * vec.y + mat[ 0 ].z * vec.z, mat[ 0 ].w * vec.w,
-						   mat[ 1 ].x * vec.x + mat[ 1 ].y * vec.y + mat[ 1 ].z * vec.z, mat[ 1 ].w * vec.w,
-						   mat[ 2 ].x * vec.x + mat[ 2 ].y * vec.y + mat[ 2 ].z * vec.z, mat[ 2 ].w * vec.w,
-						   mat[ 3 ].x * vec.x + mat[ 3 ].y * vec.y + mat[ 3 ].z * vec.z, mat[ 3 ].w * vec.w );
+	    return Vector4<T>( mat[ 0 ].x * vec.x + mat[ 0 ].y * vec.y + mat[ 0 ].z * vec.z + mat[ 0 ].w * vec.w,
+						   mat[ 1 ].x * vec.x + mat[ 1 ].y * vec.y + mat[ 1 ].z * vec.z + mat[ 1 ].w * vec.w,
+						   mat[ 2 ].x * vec.x + mat[ 2 ].y * vec.y + mat[ 2 ].z * vec.z + mat[ 2 ].w * vec.w,
+						   mat[ 3 ].x * vec.x + mat[ 3 ].y * vec.y + mat[ 3 ].z * vec.z + mat[ 3 ].w * vec.w );
 	}
 
 	template<typename T>
@@ -489,10 +501,10 @@ namespace cvt {
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix4<T>& m )
 	{
-		out << " | " << m[ 0 ].x << " " << m[ 0 ].y << " " << m[ 0 ].z << " " << m[ 0 ].w << " | " << std::endl;
-		out << " | " << m[ 1 ].x << " " << m[ 1 ].y << " " << m[ 1 ].z << " " << m[ 1 ].w << " | " << std::endl;
-		out << " | " << m[ 2 ].x << " " << m[ 2 ].y << " " << m[ 2 ].z << " " << m[ 2 ].w << " | " << std::endl;
-		out << " | " << m[ 3 ].x << " " << m[ 3 ].y << " " << m[ 3 ].z << " " << m[ 3 ].w << " | ";
+		out << m[ 0 ] << std::endl;
+		out << m[ 1 ] << std::endl;
+		out << m[ 2 ] << std::endl;
+		out << m[ 3 ];
 		return out;
 	}
 
