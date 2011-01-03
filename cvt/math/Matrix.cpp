@@ -196,23 +196,23 @@ namespace cvt {
 		det3_012_012  =  mat[ 0 ][ 0 ] * det2_12_12 - mat[ 0 ][ 1 ] * det2_12_02 + mat[ 0 ][ 2 ] * det2_12_01;
 
 		mat[ 0 ][ 0 ] =   det3_123_123 * invD;
-		mat[ 0 ][ 1 ] = - det3_123_023 * invD;
-		mat[ 0 ][ 2 ] =   det3_123_013 * invD;
-		mat[ 0 ][ 3 ] = - det3_123_012 * invD;
+		mat[ 0 ][ 1 ] = - det3_023_123 * invD;
+		mat[ 0 ][ 2 ] =   det3_013_123 * invD;
+		mat[ 0 ][ 3 ] = - det3_012_123 * invD;
 
-		mat[ 1 ][ 0 ] = - det3_023_123 * invD;
+		mat[ 1 ][ 0 ] = - det3_123_023 * invD;
 		mat[ 1 ][ 1 ] =   det3_023_023 * invD;
-		mat[ 1 ][ 2 ] = - det3_023_013 * invD;
-		mat[ 1 ][ 3 ] =   det3_023_012 * invD;
+		mat[ 1 ][ 2 ] = - det3_013_023 * invD;
+		mat[ 1 ][ 3 ] =   det3_012_023 * invD;
 
-		mat[ 2 ][ 0 ] =   det3_013_123 * invD;
-		mat[ 2 ][ 1 ] = - det3_013_023 * invD;
+		mat[ 2 ][ 0 ] =   det3_123_013 * invD;
+		mat[ 2 ][ 1 ] = - det3_023_013 * invD;
 		mat[ 2 ][ 2 ] =   det3_013_013 * invD;
-		mat[ 2 ][ 3 ] = - det3_013_012 * invD;
+		mat[ 2 ][ 3 ] = - det3_012_013 * invD;
 
-		mat[ 3 ][ 0 ] = - det3_012_123 * invD;
-		mat[ 3 ][ 1 ] =   det3_012_023 * invD;
-		mat[ 3 ][ 2 ] = - det3_012_013 * invD;
+		mat[ 3 ][ 0 ] = - det3_123_012 * invD;
+		mat[ 3 ][ 1 ] =   det3_023_012 * invD;
+		mat[ 3 ][ 2 ] = - det3_013_012 * invD;
 		mat[ 3 ][ 3 ] =   det3_012_012 * invD;
 
 		return true;

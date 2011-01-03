@@ -277,26 +277,28 @@ namespace cvt
 			n2.normalize( m2 );
 
 			m.identity();
-			mat.Zero();
+			mat.setZero();
 
 			size_t n = ptset.size();
 			PTTYPE* pt1 = &n1[ 0 ];
 			PTTYPE* pt2 = &n2[ 0 ];
 			while( n-- ) {
-				mat( 0, 0 ) += pt1[ 0 ] * pt2[ 0 ];
-				mat( 0, 1 ) += pt1[ 0 ] * pt2[ 1 ];
-				mat( 0, 2 ) += pt1[ 0 ] * pt2[ 2 ];
-				mat( 1, 0 ) += pt1[ 1 ] * pt2[ 0 ];
-				mat( 1, 1 ) += pt1[ 1 ] * pt2[ 1 ];
-				mat( 1, 2 ) += pt1[ 1 ] * pt2[ 2 ];
-				mat( 2, 0 ) += pt1[ 2 ] * pt2[ 0 ];
-				mat( 2, 1 ) += pt1[ 2 ] * pt2[ 1 ];
-				mat( 2, 2 ) += pt1[ 2 ] * pt2[ 2 ];
+				mat( 0, 0 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 0 ];
+				mat( 0, 1 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 1 ];
+				mat( 0, 2 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 2 ];
+				mat( 1, 0 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 0 ];
+				mat( 1, 1 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 1 ];
+				mat( 1, 2 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 2 ];
+				mat( 2, 0 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 0 ];
+				mat( 2, 1 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 1 ];
+				mat( 2, 2 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 2 ];
 				pt1++;
 				pt2++;
 			}
+
 			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd = mat.svd();
-			mat = svd.matrixU() * svd.matrixV();
+
+			mat = svd.matrixU() * svd.matrixV().transpose();
 			m[ 0 ][ 0 ] = mat( 0, 0 );
 			m[ 0 ][ 1 ] = mat( 0, 1 );
 			m[ 0 ][ 2 ] = mat( 0, 2 );
