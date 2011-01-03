@@ -35,7 +35,7 @@ namespace cvt
 				void scale( _T t );
 				void transform( const MATTYPENT& mat );
 				void transform( const MATTYPE& mat );
-				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset );
+				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 
 			private:
 				std::vector<PTTYPE>	_pts;
