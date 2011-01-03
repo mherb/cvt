@@ -79,8 +79,8 @@ void testFerns()
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	img.convert( gray );
 	
-	/* patchSize, numOverallTests, numClasses */	
-	Ferns ferns( 31, 330, 30 );	
+	/* patchSize, numOverallTests, testsPerClass */	
+	Ferns ferns( 51, 550, 50 );	
 	ferns.train( gray );
 	
 	std::vector<Feature2D> features;		

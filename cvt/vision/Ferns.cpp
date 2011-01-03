@@ -32,16 +32,18 @@ namespace cvt
 	{
 		RNG rng( time( NULL ) );
 		
-		// generate the Ferns for the tests
-		uint32_t maxTestIdx = ( _patchSize * _patchSize ) * ( _patchSize * _patchSize - 1 );
-		
+		Eigen::Vector2i x0, x1;		
 		for( uint32_t i = 0; i < _numFerns; i++ ){
 			_ferns.push_back( Fern( _testsPerFern, _patchSize ) );
 			
 			uint32_t testIdx;
 			for( uint32_t t = 0; t < _testsPerFern; t++ ){
-				testIdx = rng.uniform( 0, maxTestIdx );
-				_ferns.back().addTest( testIdx );
+				x0[ 0 ] = rng.uniform( 0, _patchSize );
+				x0[ 1 ] = rng.uniform( 0, _patchSize );
+				x1[ 0 ] = rng.uniform( 0, _patchSize );
+				x1[ 1 ] = rng.uniform( 0, _patchSize );
+
+				_ferns.back().addTest( x0, x1 );
 			}
 		}	
 		
@@ -77,7 +79,7 @@ namespace cvt
 		}
 	}
 	
-	float Ferns::classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p )
+	double Ferns::classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p )
 	{
 		size_t imStride;
         
@@ -93,7 +95,7 @@ namespace cvt
         
 		const uint8_t * uL = imP + imStride * ( p[ 1 ] - patchHalfSize ) + p[ 0 ] - patchHalfSize;
 
-		std::vector<float> classProbs( _modelFeatures.size(), 0.0f );
+		std::vector<double> classProbs( _modelFeatures.size(), 0.0 );
 		
 		uint32_t testResult;
 
@@ -103,10 +105,10 @@ namespace cvt
 			testResult = _ferns[ i ].test( uL, imStride );
 			
 			// get the trained probabilities for the classes:
-			const std::vector<float> & trainedProbs = _ferns[ i ].probsForResult( testResult );
+			const std::vector<double> & trainedProbs = _ferns[ i ].probsForResult( testResult );
 			
 			for( size_t f = 0; f < trainedProbs.size(); f++ ){
-				classProbs[ f ] += trainedProbs[ f ];				
+				classProbs[ f ] += log( trainedProbs[ f ] );
 			}
 		}
 		img.unmap( imP );
