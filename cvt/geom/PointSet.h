@@ -243,8 +243,7 @@ namespace cvt
 			_T s = 0;
 			for( int i = 0; i < dsqr.dimension(); i++ )
 				s += dsqr[ i ];
-			s = Math::sqrt( s ) / ( _T ) size();
-			s = ( Math::sqrt( ( _T ) 2 ) ) / s;
+			s = ( size() ) / Math::sqrt( 2 * s );
 			scale( s );
 			mat.identity();
 
@@ -296,9 +295,9 @@ namespace cvt
 				pt2++;
 			}
 
-			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd = mat.svd();
-
-			mat = svd.matrixU() * svd.matrixV().transpose();
+			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd;
+			svd.compute( mat );
+			mat = svd.matrixV() * svd.matrixU().transpose();
 			m[ 0 ][ 0 ] = mat( 0, 0 );
 			m[ 0 ][ 1 ] = mat( 0, 1 );
 			m[ 0 ][ 2 ] = mat( 0, 2 );
