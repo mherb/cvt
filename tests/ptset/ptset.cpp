@@ -8,7 +8,9 @@ int main()
 {
 	PointSet3f ptset;
 
-	for( int i = 0; i < 10; i++ )
+	srand( time( NULL ) );
+
+	for( int i = 0; i < 50; i++ )
 		ptset.add( Vector3f( Math::rand( -1.0f, 1.0f), Math::rand( -1.0f, 1.0f), Math::rand( -1.0f, 1.0f) ) );
 
 	std::cout << "Initial " << ptset << std::endl;
@@ -21,7 +23,7 @@ int main()
 	m[ 1 ][ 3 ] = 5.0f;
 	m[ 2 ][ 3 ] = -2.0f;
 
-	Quaternionf qrot( 1.0f, 0.0f, 0.0f, 0.5f );
+	Quaternionf qrot( 1.0f, 0.0f, 0.0f, Math::rand( -1.0f, 1.0f ) );
 	m = qrot.toMatrix4();
 
 	PointSet3f ptset2( ptset );
@@ -32,4 +34,6 @@ int main()
 	std::cout << "Transform\n" << m << std::endl;
 	ms = ptset.alignSimilarity( ptset2 );
 	std::cout << "Transform estimated\n" << ( ms) << std::endl;
+
+	std::cout << "Diff\n" << (m - ms) << std::endl;
 }
