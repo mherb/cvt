@@ -7,6 +7,7 @@
 
 #include <Eigen/Core>
 #include <vector>
+#include <utility>
 
 namespace cvt 
 {
@@ -19,14 +20,14 @@ namespace cvt
 			~Ferns();
 			
 			void train( const Image & img );
-			float classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p );
+			double classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p );
 			
 		private:
 			/* a fern is a set of pixel tests */
 			struct Fern
 			{
 				Fern( uint32_t numTests, uint32_t patchSize ) : 
-					_regPrior( 1.0f ),
+					_regPrior( 1.0 ),
 					_patchSize( patchSize )
 				{					
 					_tests.reserve( numTests );
@@ -40,18 +41,18 @@ namespace cvt
 				{
 				}			
 				
-				void addTest( uint32_t idx )
+				void addTest( const Eigen::Vector2i & p0, const Eigen::Vector2i & p1 )
 				{
-					_tests.push_back( idx );
+					_tests.push_back( std::make_pair( p0, p1 ) );
 				}
 				
 				/* imP must point to the top left corner of the patch */
 				uint32_t test( const uint8_t * imP, size_t stride )
 				{										
 					uint32_t idx = 0;
-					Eigen::Vector2i x0, x1;
 					for( size_t i = 0; i < _tests.size(); i++ ){						
-						id2pos( _tests[ i ], x0, x1 );
+						Eigen::Vector2i & x0 = _tests[ i ].first;
+						Eigen::Vector2i & x1 = _tests[ i ].second;
 						
 						if( imP[ x0[ 1 ] * stride + x0[ 0 ] ] < imP[ x1[ 1 ] * stride + x1[ 0 ] ] )
 							idx++;
@@ -64,17 +65,18 @@ namespace cvt
 			
 				void normalize( uint32_t numSamples, size_t classIndex )
 				{
-					float normalizer = 0.0f;
-					float tmp;
+					double normalizer = 0.0;
+					double tmp;
 					for( uint32_t i = 0; i < _numProbs; i++ ){
-						tmp = ( _probsForResult[ i ][ classIndex ] + _regPrior ) / ( ( float )numSamples * _regPrior * _numProbs );
+						tmp = ( _probsForResult[ i ][ classIndex ] + _regPrior ) / ( ( double )numSamples * _regPrior * _numProbs );
 						_probsForResult[ i ][ classIndex ] = tmp;						
 						normalizer += tmp;
 					}
 					
 					for( uint32_t i = 0; i < _numProbs; i++ ){
 						tmp = _probsForResult[ i ][ classIndex ] / normalizer;
-						_probsForResult[ i ][ classIndex ] = log( tmp );
+						//_probsForResult[ i ][ classIndex ] = log( tmp );
+						_probsForResult[ i ][ classIndex ] = tmp;
 					}
 				}
 				
@@ -86,63 +88,46 @@ namespace cvt
 					}
 					
 					/* train the class */
-					PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.8f, 1.2f ), _patchSize );
+					PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize );
+					
 					Image patch( _patchSize, _patchSize, img.format() );
 					
 					uint32_t testResult;
 					size_t pStride;
-					uint8_t * p = patch.map( &pStride );
 					
-					uint32_t _numTrainingPatches = 2000;
+					
+					uint32_t _numTrainingPatches = 1000;
 					
 					for( size_t i = 0; i < _numTrainingPatches; i++ ){
 						patchGen.next( patch, img, pos );
 						
+						uint8_t * p = patch.map( &pStride );
 						testResult = test( p, pStride );
+						patch.unmap( p );						
 						
 						_probsForResult[ testResult ][ classIndex ] += 1.0;
-					}
-					
-					patch.unmap( p );
+					}					
 					
 					/* normalize the results for this class */
 					normalize( _numTrainingPatches, classIndex );
 				}
 				
-				const std::vector<float> & probsForResult( uint32_t result )
+				const std::vector<double> & probsForResult( uint32_t result )
 				{
 					return _probsForResult[ result ];					
 				}
 				
 				private:				
-					// tests in a fern are accessible by ids
-					std::vector<uint32_t> 	_tests;
-					uint32_t	_numProbs;
-					float		_regPrior;
-					uint32_t 	_patchSize;
+					// tests in a fern: two points w.r.t. upper left corner of patch
+					typedef std::pair<Eigen::Vector2i, Eigen::Vector2i> PixelPair;
+					std::vector<PixelPair>	_tests;
+					uint32_t				_numProbs;
+					float					_regPrior;
+					uint32_t				_patchSize;
 					
 					/* trained probabilities for each possible result and classes (2^S per class) */
-					std::vector< std::vector<float> > _probsForResult;
+					std::vector< std::vector<double> > _probsForResult;					
 					
-					/* every test has a unique id within the n*(n-1) overall possible tests */
-					void id2pos( uint32_t id, Eigen::Vector2i & x0, Eigen::Vector2i & x1 )
-					{
-						uint32_t numPositions = Math::sqr( _patchSize );
-						
-						div_t decode0 = div( id, numPositions );		
-						div_t point = div( decode0.quot, numPositions );
-						
-						x0[ 0 ] = point.rem;
-						x0[ 1 ] = point.quot;
-
-						uint32_t localIdx = decode0.rem;
-						if( localIdx >= ( uint32_t )decode0.quot )
-							localIdx++;
-
-						point = div( localIdx, numPositions );		
-						x1[ 0 ] = point.rem;
-						x1[ 1 ] = point.quot;
-					}
 			};
 			
 			uint32_t 			_patchSize;
@@ -150,9 +135,9 @@ namespace cvt
 			uint32_t 			_nTests;
 			uint32_t			_testsPerFern;
 			
-			std::vector<Fern>			_ferns;
+			std::vector<Fern>				_ferns;
 						
-			FeatureExtractor<int32_t>* 	_featureDetector;
+			FeatureExtractor<int32_t>*		_featureDetector;
 			
 			std::vector<Eigen::Vector2i>	_modelFeatures;	
 	};
