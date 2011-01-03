@@ -3,7 +3,9 @@
 
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
+#include <cvt/util/Exception.h>
 #include <vector>
+#include <Eigen/SVD>
 
 namespace cvt
 {
@@ -35,6 +37,7 @@ namespace cvt
 				void scale( _T t );
 				void transform( const MATTYPENT& mat );
 				void transform( const MATTYPE& mat );
+				void normalize( MATTYPE& mat );
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 
 			private:
@@ -52,7 +55,7 @@ namespace cvt
 		}
 
 	template<int dim, typename _T>
-		inline PointSet<dim,_T>::PointSet( const PointSet<dim,_T>& ptset ) : _pts( ptset.pts )
+		inline PointSet<dim,_T>::PointSet( const PointSet<dim,_T>& ptset ) : _pts( ptset._pts )
 	{
 	}
 
@@ -125,6 +128,7 @@ namespace cvt
 				pt++;
 			}
 		}
+
 
 	template<>
 		inline void PointSet<2,float>::transform( const MATTYPE& mat )
@@ -219,18 +223,92 @@ namespace cvt
 		}
 
 	template<int dim, typename _T>
+		inline void PointSet<dim,_T>::normalize( MATTYPE& mat )
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			PTTYPE dsqr, cur;
+			PTTYPE m = mean();
+			size_t n = size();
+
+			dsqr.zero();
+
+			/* remove mean */
+			while( n-- ) {
+				*pt -= m;
+				dsqr += pt->lengthSqr();
+				pt++;
+			}
+
+			/* scale */
+			_T s = 0;
+			for( int i = 0; i < dsqr.dimension(); i++ )
+				s += dsqr[ i ];
+			s = Math::sqrt( s ) / ( _T ) size();
+			s = ( Math::sqrt( ( _T ) 2 ) ) / s;
+			scale( s );
+			mat.identity();
+
+			for( int i = 0; i < mat.dimension() - 1; i++ ) {
+				mat[ i ][ i ] = s;
+				mat[ i ][ mat.dimension() - 1 ] = -m[ i ] * s;
+			}
+		}
+
+
+	template<int dim, typename _T>
 		inline size_t PointSet<dim,_T>::size( ) const
 		{
 			return _pts.size();
 		}
 
 	template<int dim, typename _T>
-		inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignSimilarity( const PointSet<dim,_T>& ptset )
+		inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignSimilarity( const PointSet<dim,_T>& ptset ) const
 		{
-			MATTYPE mat;
-			ptset.size();
-			mat.identity();
-			return mat;
+			if( size() != ptset.size() )
+				throw CVTException( "PointSets differ in size!" );
+
+			MATTYPE m1, m2, m;
+			Eigen::Matrix<_T,dim,dim> mat;
+
+			PointSet<dim,_T> n1( *this );
+			PointSet<dim,_T> n2( ptset );
+
+			n1.normalize( m1 );
+			n2.normalize( m2 );
+
+			m.identity();
+			mat.Zero();
+
+			size_t n = ptset.size();
+			PTTYPE* pt1 = &n1[ 0 ];
+			PTTYPE* pt2 = &n2[ 0 ];
+			while( n-- ) {
+				mat( 0, 0 ) += pt1[ 0 ] * pt2[ 0 ];
+				mat( 0, 1 ) += pt1[ 0 ] * pt2[ 1 ];
+				mat( 0, 2 ) += pt1[ 0 ] * pt2[ 2 ];
+				mat( 1, 0 ) += pt1[ 1 ] * pt2[ 0 ];
+				mat( 1, 1 ) += pt1[ 1 ] * pt2[ 1 ];
+				mat( 1, 2 ) += pt1[ 1 ] * pt2[ 2 ];
+				mat( 2, 0 ) += pt1[ 2 ] * pt2[ 0 ];
+				mat( 2, 1 ) += pt1[ 2 ] * pt2[ 1 ];
+				mat( 2, 2 ) += pt1[ 2 ] * pt2[ 2 ];
+				pt1++;
+				pt2++;
+			}
+			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd = mat.svd();
+			mat = svd.matrixU() * svd.matrixV();
+			m[ 0 ][ 0 ] = mat( 0, 0 );
+			m[ 0 ][ 1 ] = mat( 0, 1 );
+			m[ 0 ][ 2 ] = mat( 0, 2 );
+			m[ 1 ][ 0 ] = mat( 1, 0 );
+			m[ 1 ][ 1 ] = mat( 1, 1 );
+			m[ 1 ][ 2 ] = mat( 1, 2 );
+			m[ 2 ][ 0 ] = mat( 2, 0 );
+			m[ 2 ][ 1 ] = mat( 2, 1 );
+			m[ 2 ][ 2 ] = mat( 2, 2 );
+
+			m2.inverseSelf();
+			return m2 * m * m1;
 		}
 
 	template<int dim, typename _T>
