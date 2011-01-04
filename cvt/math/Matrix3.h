@@ -14,6 +14,7 @@ namespace cvt {
 	class Matrix3 {
 	    public:
 							Matrix3<T>( void );
+							Matrix3<T>( const Matrix3<T>& mat3 );
 		explicit			Matrix3<T>( const Vector3<T>& x, const Vector3<T>& y, const Vector3<T>& z );
 		explicit			Matrix3<T>( const T a, const T b, const T c,
 									    const T d, const T e, const T f,
@@ -73,9 +74,6 @@ namespace cvt {
 	template<typename T>
 	inline Matrix3<T>::Matrix3()
 	{
-	    mat[ 0 ].zero();
-	    mat[ 1 ].zero();
-	    mat[ 2 ].zero();
 	}
 
 	template<typename T>
@@ -118,6 +116,13 @@ namespace cvt {
 		mat[ 2 ].x = 0;
 		mat[ 2 ].y = 0;
 		mat[ 2 ].z = 1;
+	}
+
+	template<typename T>
+	inline Matrix3<T>::Matrix3( const Matrix3<T>& mat3 )
+	{
+		SIMD* simd = SIMD::get();
+		simd->Memcpy( ( uint8_t* ) this->ptr(), ( const uint8_t* ) mat3.ptr(), sizeof( T ) * 9 );
 	}
 
 	template<typename T>

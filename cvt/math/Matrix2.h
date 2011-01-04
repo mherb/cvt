@@ -65,8 +65,6 @@ namespace cvt {
 	template<typename T>
 	inline Matrix2<T>::Matrix2()
 	{
-	    mat[ 0 ].zero();
-	    mat[ 1 ].zero();
 	}
 
 	template<typename T>
