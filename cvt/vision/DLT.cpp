@@ -146,11 +146,12 @@ namespace cvt
 			scale += tmp.norm();
 		}
 		scale /= pts.cols();
+		scale = -sqrt( 2.0 ) / scale;
 
 		similarity( 0, 0 ) = scale; similarity( 0, 2 ) = mean[ 0 ] * scale;
 		similarity( 1, 1 ) = scale; similarity( 1, 2 ) = mean[ 1 ] * scale;
 
-		normalizedPts = similarity * pts;	
+		normalizedPts = similarity * pts;			
 	}
 
 	void DLT::normalize( const std::vector<Eigen::Vector2d> & pts,
@@ -184,6 +185,6 @@ namespace cvt
 
 		for( size_t i = 0; i < normalized.size(); i++ ){
 			normalized[ i ] *= scale;
-		}	
+		}
 	}	
 }

@@ -7,6 +7,7 @@
 
 #include <Eigen/Core>
 #include <vector>
+#include <string>
 #include <utility>
 
 namespace cvt 
@@ -17,10 +18,12 @@ namespace cvt
 		
 		public:
 			Ferns( uint32_t patchSize = 21, uint32_t numOverallTests = 300, uint32_t numFerns = 30 );
+			Ferns( const std::string & fileName );
 			~Ferns();
 			
 			void train( const Image & img );
 			double classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p );
+			void save( const std::string & fileName );
 			
 		private:
 			/* a fern is a set of pixel tests */
@@ -75,8 +78,7 @@ namespace cvt
 					
 					for( uint32_t i = 0; i < _numProbs; i++ ){
 						tmp = _probsForResult[ i ][ classIndex ] / normalizer;
-						//_probsForResult[ i ][ classIndex ] = log( tmp );
-						_probsForResult[ i ][ classIndex ] = tmp;
+						_probsForResult[ i ][ classIndex ] = log( tmp );						
 					}
 				}
 				
@@ -88,7 +90,7 @@ namespace cvt
 					}
 					
 					/* train the class */
-					PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize );
+					PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 10.0 /* noise */ );
 					
 					Image patch( _patchSize, _patchSize, img.format() );
 					
@@ -96,7 +98,7 @@ namespace cvt
 					size_t pStride;
 					
 					
-					uint32_t _numTrainingPatches = 1000;
+					uint32_t _numTrainingPatches = 10000;
 					
 					for( size_t i = 0; i < _numTrainingPatches; i++ ){
 						patchGen.next( patch, img, pos );
@@ -117,6 +119,35 @@ namespace cvt
 					return _probsForResult[ result ];					
 				}
 				
+				void setProbabilityForTest( size_t p, size_t c, double prob )
+				{
+					if( _probsForResult[ p ].size() <= c ){
+						_probsForResult[ p ].resize( c + 1 );
+					}
+										
+					_probsForResult[ p ][ c ] = prob;
+				}
+				
+				void serialize( std::ofstream & out )
+				{
+					out << _numProbs << std::endl;
+					out << _regPrior << std::endl;
+					
+					for( size_t t = 0; t < _tests.size(); t++){
+						out << _tests[ t ].first.x() << " "
+							<< _tests[ t ].first.y() << " "
+							<< _tests[ t ].second.x() << " "
+							<< _tests[ t ].second.y() << std::endl;
+					}
+					
+					for( size_t i = 0; i <  _probsForResult.size(); i++ ){
+						for( size_t c = 0; c < _probsForResult[ i ].size(); c++ ){
+							out << _probsForResult[ i ][ c ] << " ";
+						}
+						out << std::endl;
+					}
+				}
+				
 				private:				
 					// tests in a fern: two points w.r.t. upper left corner of patch
 					typedef std::pair<Eigen::Vector2i, Eigen::Vector2i> PixelPair;
@@ -135,10 +166,8 @@ namespace cvt
 			uint32_t 			_nTests;
 			uint32_t			_testsPerFern;
 			
-			std::vector<Fern>				_ferns;
-						
-			FeatureExtractor<int32_t>*		_featureDetector;
-			
+			std::vector<Fern>				_ferns;						
+			FeatureExtractor<int32_t>*		_featureDetector;			
 			std::vector<Eigen::Vector2i>	_modelFeatures;	
 	};
 	
