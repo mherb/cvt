@@ -361,15 +361,21 @@ namespace cvt {
 			mat[ 0 ][ 0 ] = ( T ) 1 - ( yy + zz );
 			mat[ 0 ][ 1 ] = xy + wz;
 			mat[ 0 ][ 2 ] = xz - wy;
+			mat[ 0 ][ 3 ] = 0;
 
 			mat[ 1 ][ 0 ] = xy - wz;
 			mat[ 1 ][ 1 ] = ( T ) 1 - ( xx + zz );
 			mat[ 1 ][ 2 ] = yz + wx;
+			mat[ 1 ][ 3 ] = 0;
 
 			mat[ 2 ][ 0 ] = xz + wy;
 			mat[ 2 ][ 1 ] = yz - wx;
 			mat[ 2 ][ 2 ] = ( T ) 1 - ( xx + yy );
+			mat[ 2 ][ 3 ] = 0;
 
+			mat[ 3 ][ 0 ] = 0;
+			mat[ 3 ][ 1 ] = 0;
+			mat[ 3 ][ 2 ] = 0;
 			mat[ 3 ][ 3 ] = ( T ) 1;
 
 			return mat;

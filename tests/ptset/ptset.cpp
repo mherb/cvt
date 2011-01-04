@@ -16,7 +16,12 @@ int main()
 	std::cout << "Initial " << ptset << std::endl;
 
 	Matrix4f m, ms;
+
+
 	m.identity();
+
+	std::cout << m << std::endl;
+
 //	m[ 3 ][ 3 ] = 1.0f;
 	m[ 0 ][ 3 ] = 3.0f;
 	m[ 1 ][ 3 ] = 5.0f;

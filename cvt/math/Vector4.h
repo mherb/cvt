@@ -7,7 +7,7 @@ namespace cvt {
 	    public:
 					Vector4();
 					Vector4( T x, T y, T z, T w );
-					Vector4( const Vector4<T>& vec2 );
+					Vector4( const Vector4<T>& vec );
 
 		void		set( T x, T y, T z, T w );
 		void		zero( void );

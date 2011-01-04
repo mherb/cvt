@@ -13,6 +13,7 @@ namespace cvt {
 	class Matrix4 {
 	    public:
 							Matrix4<T>( void );
+							Matrix4<T>( const Matrix4<T>& mat4 );
 		explicit			Matrix4<T>( const Vector4<T>& x, const Vector4<T>& y, const Vector4<T>& z, const Vector4<T>& w );
 		explicit			Matrix4<T>( const T a, const T b, const T c, const T d,
 									    const T e, const T f, const T g, const T h,
@@ -71,10 +72,38 @@ namespace cvt {
 	template<typename T>
 	inline Matrix4<T>::Matrix4()
 	{
-	    mat[ 0 ].zero();
-	    mat[ 1 ].zero();
-	    mat[ 2 ].zero();
-	    mat[ 3 ].zero();
+	}
+
+	template<typename T>
+	inline Matrix4<T>::Matrix4( const Matrix4<T>& m )
+	{
+		SIMD* simd = SIMD::get();
+		simd->Memcpy( ( uint8_t* ) this->ptr(), ( const uint8_t* ) m.ptr(), sizeof( T ) * 16 );
+	}
+
+	template<typename T>
+	inline Matrix4<T>::Matrix4( const Matrix3<T>& m )
+	{
+		mat[ 0 ].x = m[ 0 ].x;
+		mat[ 0 ].y = m[ 0 ].y;
+		mat[ 0 ].z = m[ 0 ].z;
+		mat[ 0 ].w = 0;
+
+		mat[ 1 ].x = m[ 1 ].x;
+		mat[ 1 ].y = m[ 1 ].y;
+		mat[ 1 ].z = m[ 1 ].z;
+		mat[ 1 ].w = 0;
+
+		mat[ 2 ].x = m[ 2 ].x;
+		mat[ 2 ].y = m[ 2 ].y;
+		mat[ 2 ].z = m[ 2 ].z;
+		mat[ 2 ].w = 0;
+
+		mat[ 3 ].x = 0;
+		mat[ 3 ].y = 0;
+		mat[ 3 ].z = 0;
+		mat[ 3 ].w = 1;
+
 	}
 
 	template<typename T>
