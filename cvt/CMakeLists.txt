@@ -134,6 +134,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/FAST.h
 	vision/FeatureExtractor.h
 	vision/Ferns.h
+	vision/internal/Fern.h
 	vision/Flow.h
 	vision/PatchGenerator.h
 	cl/CLContext.h

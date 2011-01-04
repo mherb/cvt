@@ -129,77 +129,83 @@ void testFerns()
 	gray.convert( grayf );
 	
 	/* patchSize, numOverallTests, testsPerClass */	
-	/*Ferns ferns( 51, 550, 50 );	
+	Ferns ferns( 31, 550, 50 );	
 	ferns.train( gray );
-	ferns.save( "lena.ferns" );*/
+	ferns.save( "lena.ferns" );
 	
-	std::cout << "Loading ferns ... ";
+	/*std::cout << "Loading ferns ... ";
 	Ferns ferns( "lena.ferns" );
-	std::cout << "done" << std::endl;
+	std::cout << "done" << std::endl;*/
 	
 	Image warpedf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	
 	Homography hfilter;
-	IFilterVector8 H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.001f, 0.0f );
+	IFilterVector8 H = calc_homography( 25.0f, 0.0f, 1.01f, 1.01f, 100.0f, 100.0f, 0.0f, 0.0f );
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
 	
-	std::vector<Feature2D> features;		
-	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );
-	static_cast<FAST*>(fe)->setMinScore( 50 );
-	static_cast<FAST*>(fe)->setThreshold( 30 );
-	fe->extractMultiScale( warped, features, 3 );
+	ImageIO::savePNG( warped, "test.png" );
 	
-	std::cout << "NUMBER OF FEATURES: " << features.size() << std::endl;
 	
-	Eigen::Vector2i testPoint, bestPoint;
+	std::cout << "H: \n";
+	std::cout << H[ 0 ] << ", " << H[ 1 ] << ", " << H[ 2 ] << "\n"; 
+	std::cout << H[ 3 ] << ", " << H[ 4 ] << ", " << H[ 5 ] << "\n"; 
+	std::cout << H[ 6 ] << ", " << H[ 7 ] << ", " << 1.0f << std::endl; 
 	
 	Eigen::Matrix3d homMat = Eigen::Matrix3d::Identity();
-	/*homMat( 0, 0 ) = H[ 0 ];	homMat( 0, 1 ) = H[ 1 ];	homMat( 0, 2 ) = H[ 2 ];
+	homMat( 0, 0 ) = H[ 0 ];	homMat( 0, 1 ) = H[ 1 ];	homMat( 0, 2 ) = H[ 2 ];
 	homMat( 1, 0 ) = H[ 3 ];	homMat( 1, 1 ) = H[ 4 ];	homMat( 1, 2 ) = H[ 5 ];
-	homMat( 2, 0 ) = H[ 6 ];	homMat( 2, 1 ) = H[ 7 ];	homMat( 2, 2 ) = 1.0;*/
+	homMat( 2, 0 ) = H[ 6 ];	homMat( 2, 1 ) = H[ 7 ];	homMat( 2, 2 ) = 1.0;
+		
+	std::vector<Feature2D> features;		
+	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );
+	static_cast<FAST*>(fe)->setMinScore( 60 );
+	static_cast<FAST*>(fe)->setThreshold( 40 );
 	
-	Eigen::Vector3d p, pp;
-	
-	float prob;
-	
-	std::vector<Eigen::Vector2d> reference, imageFeatures;
-	Eigen::Matrix3d H_calculated;
-	Eigen::Vector2d tmpP;
-	
-	for( size_t i = 0; i < features.size(); i++ ){
-		testPoint[ 0 ] = features[ i ][ 0 ];
-		testPoint[ 1 ] = features[ i ][ 1 ];
+	fe->extractMultiScale( warped, features, 3 );
+	//fe->extractMultiScale( gray, features, 3 );
 				
-		prob = ferns.classify( bestPoint, warped, testPoint );
-		
-		p[ 0 ] = bestPoint[ 0 ];
-		p[ 1 ] = bestPoint[ 1 ];
-		p[ 2 ] = 1.0;
-		
-		pp = homMat * p;
-		
-		if( prob < 0.0 ) {
-			tmpP[ 0 ] = testPoint[ 0 ];
-			tmpP[ 1 ] = testPoint[ 1 ];
-			imageFeatures.push_back( tmpP );
-			
-			tmpP[ 0 ] = bestPoint[ 0 ];
-			tmpP[ 1 ] = bestPoint[ 1 ];
-			reference.push_back( tmpP );
-			
-			std::cout << "\nPOINTS:" << std::endl;
-			std::cout << "P: " << testPoint[ 0 ] << ", " << testPoint[ 1 ] << std::endl;
-			std::cout << "M: " << pp[ 0 ] / pp[ 2 ] << ", " << pp[ 1 ] / pp[ 2 ] << std::endl;
-			std::cout << "Prob: " << prob << std::endl;			
-		}		
-	}
+	std::vector<Eigen::Vector2d> reference, imageFeatures;
+	std::vector<Eigen::Vector2i> featurePoints;
 	
+	Eigen::Vector2i tmp;
+	for( size_t i = 0; i < features.size(); i++ ){
+		tmp[ 0 ] = features[ i ][ 0 ];
+		tmp[ 1 ] = features[ i ][ 1 ];
+		featurePoints.push_back( tmp );
+	}
+
+	ferns.match( featurePoints, warped, reference, imageFeatures );
+	
+	std::cout << "Matched points: \n";
+	
+	Eigen::Vector3d pp, p;
+	
+	for( size_t i = 0; i < reference.size(); i++ ){
+		pp[ 0 ] = imageFeatures[ i ][ 0 ];
+		pp[ 1 ] = imageFeatures[ i ][ 1 ];
+		pp[ 2 ] = 1.0;
+		p = homMat * pp;
+		double diff = fabs( reference[ i ][ 0 ] - p[ 0 ] / p[ 2 ] );
+		diff+= fabs( reference[ i ][ 1 ] - p[ 1 ] / p[ 2 ] );
+		std::cout << "Model: " << reference[ i ][ 0 ] << ", " << reference[ i ][ 1 ];
+		std::cout << " Associated image point: " << imageFeatures[ i ][ 0 ] << ", " << imageFeatures[ i ][ 1 ];
+		std::cout << " Image backproj. with GT: " << p[ 0 ] / p[ 2 ] << ", " << p[ 1 ] / p[ 2 ];
+		if(  diff > 8.0 ){
+			std::cout << ": bad " << std::endl;
+		} else {
+			std::cout << ": good " << std::endl;
+		}
+	}
+
+	Eigen::Matrix3d H_calculated;
 	DLT::ndlt( reference, imageFeatures, H_calculated );
+	
 	std::cout << "Reference homography:\n" << homMat << std::endl; 
 	std::cout << "Computed homography: \n" << H_calculated << std::endl;
+	
 }
 
 int main()

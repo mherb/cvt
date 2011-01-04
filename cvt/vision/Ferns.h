@@ -4,6 +4,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/PatchGenerator.h>
 #include <cvt/vision/FeatureExtractor.h>
+#include <cvt/vision/internal/Fern.h>
 
 #include <Eigen/Core>
 #include <vector>
@@ -22,153 +23,28 @@ namespace cvt
 			~Ferns();
 			
 			void train( const Image & img );
+			
 			double classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p );
+		
+			void match( const::std::vector<Eigen::Vector2i> & features,
+						const Image & img,
+						std::vector<Eigen::Vector2d> & matchedModel,
+					    std::vector<Eigen::Vector2d> & matchedFeatures );
+			
 			void save( const std::string & fileName );
 			
-		private:
-			/* a fern is a set of pixel tests */
-			struct Fern
-			{
-				Fern( uint32_t numTests, uint32_t patchSize ) : 
-					_regPrior( 1.0 ),
-					_patchSize( patchSize )
-				{					
-					_tests.reserve( numTests );
-					_numProbs = ( 1 << numTests );
-					
-					// one result per class
-					_probsForResult.resize( _numProbs );
-				}
-				
-				~Fern()
-				{
-				}			
-				
-				void addTest( const Eigen::Vector2i & p0, const Eigen::Vector2i & p1 )
-				{
-					_tests.push_back( std::make_pair( p0, p1 ) );
-				}
-				
-				/* imP must point to the top left corner of the patch */
-				uint32_t test( const uint8_t * imP, size_t stride )
-				{										
-					uint32_t idx = 0;
-					for( size_t i = 0; i < _tests.size(); i++ ){						
-						Eigen::Vector2i & x0 = _tests[ i ].first;
-						Eigen::Vector2i & x1 = _tests[ i ].second;
-						
-						if( imP[ x0[ 1 ] * stride + x0[ 0 ] ] < imP[ x1[ 1 ] * stride + x1[ 0 ] ] )
-							idx++;
-						idx <<= 1;
-					}
-					idx >>= 1;
-					
-					return idx;
-				}
-			
-				void normalize( uint32_t numSamples, size_t classIndex )
-				{
-					double normalizer = 0.0;
-					double tmp;
-					for( uint32_t i = 0; i < _numProbs; i++ ){
-						tmp = ( _probsForResult[ i ][ classIndex ] + _regPrior ) / ( ( double )numSamples * _regPrior * _numProbs );
-						_probsForResult[ i ][ classIndex ] = tmp;						
-						normalizer += tmp;
-					}
-					
-					for( uint32_t i = 0; i < _numProbs; i++ ){
-						tmp = _probsForResult[ i ][ classIndex ] / normalizer;
-						_probsForResult[ i ][ classIndex ] = log( tmp );						
-					}
-				}
-				
-				void addClass( const Image & img, const Eigen::Vector2i & pos )
-				{	
-					size_t classIndex = _probsForResult[ 0 ].size();				
-					for( size_t i = 0; i < _probsForResult.size(); i++ ){
-						_probsForResult[ i ].push_back( 0.0 );
-					}
-					
-					/* train the class */
-					PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 10.0 /* noise */ );
-					
-					Image patch( _patchSize, _patchSize, img.format() );
-					
-					uint32_t testResult;
-					size_t pStride;
-					
-					
-					uint32_t _numTrainingPatches = 10000;
-					
-					for( size_t i = 0; i < _numTrainingPatches; i++ ){
-						patchGen.next( patch, img, pos );
-						
-						uint8_t * p = patch.map( &pStride );
-						testResult = test( p, pStride );
-						patch.unmap( p );						
-						
-						_probsForResult[ testResult ][ classIndex ] += 1.0;
-					}					
-					
-					/* normalize the results for this class */
-					normalize( _numTrainingPatches, classIndex );
-				}
-				
-				const std::vector<double> & probsForResult( uint32_t result )
-				{
-					return _probsForResult[ result ];					
-				}
-				
-				void setProbabilityForTest( size_t p, size_t c, double prob )
-				{
-					if( _probsForResult[ p ].size() <= c ){
-						_probsForResult[ p ].resize( c + 1 );
-					}
-										
-					_probsForResult[ p ][ c ] = prob;
-				}
-				
-				void serialize( std::ofstream & out )
-				{
-					out << _numProbs << std::endl;
-					out << _regPrior << std::endl;
-					
-					for( size_t t = 0; t < _tests.size(); t++){
-						out << _tests[ t ].first.x() << " "
-							<< _tests[ t ].first.y() << " "
-							<< _tests[ t ].second.x() << " "
-							<< _tests[ t ].second.y() << std::endl;
-					}
-					
-					for( size_t i = 0; i <  _probsForResult.size(); i++ ){
-						for( size_t c = 0; c < _probsForResult[ i ].size(); c++ ){
-							out << _probsForResult[ i ][ c ] << " ";
-						}
-						out << std::endl;
-					}
-				}
-				
-				private:				
-					// tests in a fern: two points w.r.t. upper left corner of patch
-					typedef std::pair<Eigen::Vector2i, Eigen::Vector2i> PixelPair;
-					std::vector<PixelPair>	_tests;
-					uint32_t				_numProbs;
-					float					_regPrior;
-					uint32_t				_patchSize;
-					
-					/* trained probabilities for each possible result and classes (2^S per class) */
-					std::vector< std::vector<double> > _probsForResult;					
-					
-			};
-			
-			uint32_t 			_patchSize;
-			uint32_t			_numFerns;
-			uint32_t 			_nTests;
-			uint32_t			_testsPerFern;
+		private:						
+			uint32_t	_patchSize;
+			uint32_t	_numFerns;
+			uint32_t 	_nTests;
+			uint32_t	_testsPerFern;
+			uint32_t	_trainingSamples;
 			
 			std::vector<Fern>				_ferns;						
 			FeatureExtractor<int32_t>*		_featureDetector;			
 			std::vector<Eigen::Vector2i>	_modelFeatures;	
+
+			void trainClass( size_t idx, PatchGenerator & patchGen, const Image & img );
 	};
 	
 }

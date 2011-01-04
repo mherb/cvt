@@ -9,7 +9,8 @@ namespace cvt
 		_patchSize( patchSize ),
 		_numFerns( numFerns ),
 		_nTests( numOverallTests ),		
-		_featureDetector( 0 )
+		_trainingSamples( 15000 ),
+		_featureDetector( 0 )		
 	{		
 		_ferns.reserve( numFerns );
 		
@@ -141,12 +142,16 @@ namespace cvt
 		
 		int32_t patchHalfSize = _patchSize >> 1;
 		
+		/* train the class */
+		PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 5.0 /* noise */ );
+		
 		Eigen::Vector2i pCenter;
 		int x, y;
 		for( size_t i = 0; i < features.size(); i++ ){
 			std::cout << "FEATURE " << i+1 << " / " << features.size() << std::endl;
 			x = features[ i ][ 0 ];
 			y = features[ i ][ 1 ];
+			
 			if( ( x - patchHalfSize ) < 0 ||
 			 	( x + patchHalfSize ) >= ( int32_t )img.width() ||
 				( y - patchHalfSize ) < 0 ||
@@ -158,16 +163,79 @@ namespace cvt
 						
 			_modelFeatures.push_back( pCenter );
 			
-			for( size_t f = 0; f < _ferns.size(); f++ ){
-				_ferns[ f ].addClass( img, pCenter );
+			this->trainClass( _modelFeatures.size() - 1, patchGen, img );			
+		}
+		
+		for( size_t i = 0; i < _ferns.size(); i++ ){
+			_ferns[ i ].normalizeStatistics( _trainingSamples );
+		}
+	}
+	
+	void Ferns::match( const::std::vector<Eigen::Vector2i> & features,
+					   const Image & img,
+					   std::vector<Eigen::Vector2d> & matchedModel,
+					   std::vector<Eigen::Vector2d> & matchedFeatures )
+	{
+		std::vector<double> bestProbsForPoint( _modelFeatures.size(), 0.0 );		
+		std::vector<size_t> featureIndicesForPoint( _modelFeatures.size(), 0 );
+		
+		int32_t patchHalfSize = _patchSize >> 1;
+		
+		size_t stride;
+		const uint8_t * p = img.map( &stride );
+				
+		uint32_t testResult;
+		for( size_t i = 0; i < features.size(); i++ ){
+			if( features[ i ][ 0 ] - patchHalfSize < 0 ||
+			    features[ i ][ 0 ] + patchHalfSize > ( int32_t )img.width() || 
+			    features[ i ][ 1 ] - patchHalfSize < 0 ||
+			    features[ i ][ 1 ] + patchHalfSize > ( int32_t )img.height() ){
+				continue;
+			}
+			
+			const uint8_t * uL = p + stride * ( features[ i ][ 1 ] - patchHalfSize ) + features[ i ][ 0 ] - patchHalfSize;
+			std::vector<double> classProbs( _modelFeatures.size(), 0.0 );
+			
+			
+			for( size_t f = 0; f < _ferns.size(); f++) {
+				testResult = _ferns[ f ].test( uL, stride );
+				const std::vector<double> & trainedProbabilities = _ferns[ f ].probsForResult( testResult );
+				for( size_t k = 0; k < trainedProbabilities.size(); k++ ){
+					classProbs[ k ] += trainedProbabilities[ k ];
+				}
+			}		
+			
+			size_t bestIdx = 0;
+			double probSum = exp( classProbs[ 0 ] );
+			for( size_t k = 1; k < classProbs.size(); k++ ){
+				probSum += exp( classProbs[ k ] );
+				if( classProbs[ k ] > classProbs[ bestIdx ] )
+					bestIdx = k;
+			}
+			
+			double probability = exp( classProbs[ bestIdx ] ) / probSum;
+			
+			if( probability > bestProbsForPoint[ bestIdx ] ){
+				bestProbsForPoint[ bestIdx ] = probability;
+				featureIndicesForPoint[ bestIdx ] = i;
+			}
+		}		
+		img.unmap( p );
+		
+		// no check the result:
+		for( size_t i = 0; i < bestProbsForPoint.size(); i++ ){
+			std::cout << "Prob: " << bestProbsForPoint[ i ] << std::endl;
+			if( bestProbsForPoint[ i ] > 0.9 ){				
+				matchedModel.push_back( _modelFeatures[ i ].cast<double>() );
+				matchedFeatures.push_back( features[ featureIndicesForPoint[ i ] ].cast<double>() );				
 			}
 		}
+		
 	}
 	
 	double Ferns::classify( Eigen::Vector2i & bestClass, const Image & img, const Eigen::Vector2i & p )
 	{
-		size_t imStride;
-        
+		size_t imStride;        
 		
         const uint8_t * imP = img.map( &imStride );
 		int32_t patchHalfSize = _patchSize >> 1;
@@ -197,7 +265,9 @@ namespace cvt
 		img.unmap( imP );
 		
 		uint32_t bestIdx = 0;
+		double probSum = 0.0;
 		for( size_t i = 0; i < classProbs.size(); i++ ){
+			probSum += exp( classProbs[ i ] );
 			if( classProbs[ i ] > classProbs[ bestIdx ] )
 				bestIdx = i;
 		}
@@ -205,7 +275,7 @@ namespace cvt
 		bestClass[ 0 ] = _modelFeatures[ bestIdx ][ 0 ];
 		bestClass[ 1 ] = _modelFeatures[ bestIdx ][ 1 ];
 		
-		return classProbs[ bestIdx ];						
+		return exp( classProbs[ bestIdx ] ) / probSum;						
 	}
 	
 	void Ferns::save( const std::string & fileName )
@@ -231,4 +301,24 @@ namespace cvt
 		out.close();
 	}
 		
+	void Ferns::trainClass( size_t idx, PatchGenerator & patchGen, const Image & img )
+	{
+		Image patch( _patchSize, _patchSize, img.format() );
+		size_t pStride;
+		uint8_t * p;
+		
+		for( size_t i = 0; i < _trainingSamples; i++ ) {
+			// generate a new patch
+			patchGen.next( patch, img, _modelFeatures[ idx ] );			
+			
+			p = patch.map( &pStride );
+			
+			// train each fern
+			for( size_t f = 0; f < _ferns.size(); f++ ){
+				_ferns[ f ].trainClass( idx , p,  pStride );
+			}
+			
+			patch.unmap( p );
+		}
+	}
 }
