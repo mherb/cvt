@@ -3,6 +3,7 @@
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
+	template<typename T> class Matrix3;
 	template<typename T> class Matrix4;
 
 	template<typename T>
@@ -18,6 +19,7 @@ namespace cvt {
 										const T i, const T j, const T k, const T l,
 										const T m, const T n, const T o, const T p );
 		explicit			Matrix4<T>( const T src[ 4 ][ 4 ] );
+		explicit			Matrix4<T>( const Matrix3<T>& mat3 );
 
 		const Vector4<T>&	operator[]( int index ) const;
 		Vector4<T>&			operator[]( int index );
@@ -52,6 +54,8 @@ namespace cvt {
 		Matrix4<T>&			transposeSelf( void );
 		Matrix4<T>			inverse( void ) const;
 		bool				inverseSelf( void );
+
+		Matrix3<T>			toMatrix3( void );
 
 		int					dimension( void ) const;
 		const T*			ptr( void ) const;
@@ -479,6 +483,15 @@ namespace cvt {
 		inv.inverseSelf();
 		return inv;
 	}
+
+	template<typename T>
+	inline Matrix3<T> Matrix4<T>::toMatrix3()
+	{
+		return Matrix3<T>( mat[ 0 ][ 0 ], mat[ 0 ][ 1 ], mat[ 0 ][ 2 ],
+						   mat[ 1 ][ 0 ], mat[ 1 ][ 1 ], mat[ 1 ][ 2 ],
+						   mat[ 2 ][ 0 ], mat[ 2 ][ 1 ], mat[ 2 ][ 2 ] );
+	}
+
 
 	template<typename T>
 	int	Matrix4<T>::dimension( void ) const

@@ -52,9 +52,6 @@ namespace cvt {
     template<typename T>
 	inline Vector3<T>::Vector3()
 	{
-	    this->x = 0;
-	    this->y = 0;
-	    this->z = 0;
 	}
 
     template<typename T>

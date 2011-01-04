@@ -3,6 +3,7 @@
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
+	template<typename T> class Matrix2;
 	template<typename T> class Matrix3;
 	template<typename T> class Matrix4;
 
@@ -18,6 +19,7 @@ namespace cvt {
 									    const T d, const T e, const T f,
 									    const T g, const T h, const T i );
 		explicit			Matrix3<T>( const T src[ 3 ][ 3 ] );
+		explicit			Matrix3<T>( const Matrix2<T>& mat2 );
 		explicit			Matrix3<T>( const Matrix4<T>& mat4 );
 
 		const Vector3<T>&	operator[]( int index ) const;
@@ -53,6 +55,9 @@ namespace cvt {
 		Matrix3<T>&			transposeSelf( void );
 		Matrix3<T>			inverse( void ) const;
 		bool				inverseSelf( void );
+
+		Matrix4<T>			toMatrix4( void );
+		Matrix2<T>			toMatrix2( void );
 
 		int					dimension( void ) const;
 		const T*			ptr( void ) const;
@@ -97,6 +102,22 @@ namespace cvt {
 	    mat[ 2 ].x = g;
 	    mat[ 2 ].y = h;
 	    mat[ 2 ].z = i;
+	}
+
+	template<typename T>
+	inline Matrix3<T>::Matrix3( const Matrix2<T>& mat2 )
+	{
+		mat[ 0 ].x = mat2[ 0 ].x;
+		mat[ 0 ].y = mat2[ 0 ].y;
+		mat[ 0 ].z = 0;
+
+		mat[ 1 ].x = mat2[ 1 ].x;
+		mat[ 1 ].y = mat2[ 1 ].y;
+		mat[ 1 ].z = 0;
+
+		mat[ 2 ].x = 0;
+		mat[ 2 ].y = 0;
+		mat[ 2 ].z = 1;
 	}
 
 	template<typename T>
@@ -409,6 +430,18 @@ namespace cvt {
 		return *this;
 	}
 
+	template<typename T>
+	inline Matrix2<T> Matrix3<T>::toMatrix2()
+	{
+		return Matrix2<T>( mat[ 0 ][ 0 ], mat[ 0 ][ 1 ],
+						   mat[ 1 ][ 0 ], mat[ 1 ][ 1 ] );
+	}
+
+	template<typename T>
+	inline Matrix4<T> Matrix3<T>::toMatrix4()
+	{
+		return Matrix4<T>( *this );
+	}
 
 	template<typename T>
 	inline Matrix3<T> Matrix3<T>::inverse( void ) const

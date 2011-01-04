@@ -14,6 +14,8 @@ namespace cvt {
 				Quaternion( const Quaternion& q2 );
 
 				void				set( T x, T y, T z, T w );
+				void				setRotation( T x, T y, T z, T rad );
+				void				setRotation( const Vector3<T>& axis, T rad );
 				T					operator[]( int index ) const;
 				T&					operator[]( int index );
 				Quaternion<T>		operator-() const;
@@ -48,7 +50,6 @@ namespace cvt {
 	template<typename T>
 		inline Quaternion<T>::Quaternion()
 		{
-			x = y = z = w = 0;
 		}
 
 	template<typename T>
@@ -77,6 +78,37 @@ namespace cvt {
 			this->z = z;
 			this->w = w;
 		}
+
+	template<typename T>
+		inline void Quaternion<T>::setRotation( T x, T y, T z, T rad )
+		{
+			Vector3<T> axis( x, y, z );
+			axis.normalize();
+			T c, s;
+
+			c = Math::cos( rad * ( T ) 0.5 );
+			s = Math::sin( rad * ( T ) 0.5 );
+			this->x = axis.x * s;
+			this->y = axis.y * s;
+			this->z = axis.z * s;
+			this->w = c;
+		}
+
+	template<typename T>
+		inline void Quaternion<T>::setRotation( const Vector3<T>& _axis, T rad )
+		{
+			Vector3<T> axis( _axis );
+			axis.normalize();
+			T c, s;
+
+			c = Math::cos( rad * ( T ) 0.5 );
+			s = Math::sin( rad * ( T ) 0.5 );
+			this->x = axis.x * s;
+			this->y = axis.y * s;
+			this->z = axis.z * s;
+			this->w = c;
+		}
+
 
 	template<typename T>
 		inline T Quaternion<T>::operator[]( int index ) const
