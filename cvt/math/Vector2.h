@@ -50,8 +50,6 @@ namespace cvt {
     template<typename T>
 	inline Vector2<T>::Vector2()
 	{
-	    this->x = 0;
-	    this->y = 0;
 	}
 
     template<typename T>

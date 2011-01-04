@@ -50,10 +50,6 @@ namespace cvt {
     template<typename T>
 	inline Vector4<T>::Vector4()
 	{
-	    this->x = 0;
-	    this->y = 0;
-	    this->z = 0;
-	    this->w = 0;
 	}
 
     template<typename T>
