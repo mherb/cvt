@@ -27,7 +27,9 @@ namespace cvt
 		phi = _rng.uniform( _angleRange.min, _angleRange.max );
 		theta = _rng.uniform( _angleRange.min, _angleRange.max );
 		s1 = _rng.uniform( _scaleRange.min, _scaleRange.max );
-		s2 = _rng.uniform( _scaleRange.min, _scaleRange.max );		
+		s2 = _rng.uniform( _scaleRange.min, _scaleRange.max );	
+		
+		//std::cout << s1 << ", " << s2 << std::endl;
 		
 		S << s1, 0.0f, 0.0f, s2;
 		
