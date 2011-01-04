@@ -89,13 +89,12 @@ namespace cvt
 			const PTTYPE* pt = &_pts[ 0 ];
 			PTTYPE mean;
 			size_t n = _pts.size();
-			_T inv = 1 / ( _T ) n;
 
 			mean.zero();
 			while( n-- )
 				mean += *pt++;
 
-			mean *= inv;
+			mean /= ( _T ) size();
 			return mean;
 		}
 
@@ -226,24 +225,20 @@ namespace cvt
 		inline void PointSet<dim,_T>::normalize( MATTYPE& mat )
 		{
 			PTTYPE* pt = &_pts[ 0 ];
-			PTTYPE dsqr, cur;
 			PTTYPE m = mean();
+			_T s = 0;
 			size_t n = size();
 
-			dsqr.zero();
 
 			/* remove mean */
 			while( n-- ) {
 				*pt -= m;
-				dsqr += pt->lengthSqr();
+				s += pt->lengthSqr();
 				pt++;
 			}
 
 			/* scale */
-			_T s = 0;
-			for( int i = 0; i < dsqr.dimension(); i++ )
-				s += dsqr[ i ];
-			s = ( size() ) / Math::sqrt( 2 * s );
+			s = ( ( _T ) size() ) / s;
 			scale( s );
 			mat.identity();
 
@@ -265,39 +260,53 @@ namespace cvt
 		{
 			if( size() != ptset.size() )
 				throw CVTException( "PointSets differ in size!" );
+			if( size() == dim )
+				throw CVTException( "PointSets to small!" );
 
-			MATTYPE m1, m2, m;
 			Eigen::Matrix<_T,dim,dim> mat;
+			MATTYPE m;
+			PTTYPE mean1, mean2;
+			_T s2 = 0;
 
-			PointSet<dim,_T> n1( *this );
-			PointSet<dim,_T> n2( ptset );
-
-			n1.normalize( m1 );
-			n2.normalize( m2 );
+			mean1 = mean();
+			mean2 = ptset.mean();
 
 			m.identity();
 			mat.setZero();
 
-			size_t n = ptset.size();
-			PTTYPE* pt1 = &n1[ 0 ];
-			PTTYPE* pt2 = &n2[ 0 ];
+			size_t n = size();
+			const PTTYPE* pt1 = &(*this)[ 0 ];
+			const PTTYPE* pt2 = &ptset[ 0 ];
+			PTTYPE c1, c2;
 			while( n-- ) {
-				mat( 0, 0 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 0 ];
-				mat( 0, 1 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 1 ];
-				mat( 0, 2 ) += ( *pt1 )[ 0 ] * ( *pt2 )[ 2 ];
-				mat( 1, 0 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 0 ];
-				mat( 1, 1 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 1 ];
-				mat( 1, 2 ) += ( *pt1 )[ 1 ] * ( *pt2 )[ 2 ];
-				mat( 2, 0 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 0 ];
-				mat( 2, 1 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 1 ];
-				mat( 2, 2 ) += ( *pt1 )[ 2 ] * ( *pt2 )[ 2 ];
+				c1 = *pt1 - mean1;
+				c2 = *pt2 - mean2;
+				s2 += c1.lengthSqr();
+				mat( 0, 0 ) += c2[ 0 ] * c1[ 0 ];
+				mat( 0, 1 ) += c2[ 0 ] * c1[ 1 ];
+				mat( 0, 2 ) += c2[ 0 ] * c1[ 2 ];
+				mat( 1, 0 ) += c2[ 1 ] * c1[ 0 ];
+				mat( 1, 1 ) += c2[ 1 ] * c1[ 1 ];
+				mat( 1, 2 ) += c2[ 1 ] * c1[ 2 ];
+				mat( 2, 0 ) += c2[ 2 ] * c1[ 0 ];
+				mat( 2, 1 ) += c2[ 2 ] * c1[ 1 ];
+				mat( 2, 2 ) += c2[ 2 ] * c1[ 2 ];
 				pt1++;
 				pt2++;
 			}
 
-			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd;
-			svd.compute( mat );
-			mat = svd.matrixV() * svd.matrixU().transpose();
+			mat /= ( _T ) size();
+			s2 /= ( _T ) size();
+
+			Eigen::Matrix<_T,dim,1> s;
+			s.setOnes();
+			if( mat.determinant() < 0 )
+				s( dim - 1 ) = -1;
+
+			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd( mat );
+			mat = svd.matrixU() * s.asDiagonal() * svd.matrixV().transpose();
+			mat *= ( svd.singularValues().asDiagonal() * s.asDiagonal() ).trace() / s2;
+
 			m[ 0 ][ 0 ] = mat( 0, 0 );
 			m[ 0 ][ 1 ] = mat( 0, 1 );
 			m[ 0 ][ 2 ] = mat( 0, 2 );
@@ -308,8 +317,12 @@ namespace cvt
 			m[ 2 ][ 1 ] = mat( 2, 1 );
 			m[ 2 ][ 2 ] = mat( 2, 2 );
 
-			m2.inverseSelf();
-			return m2 * m * m1;
+			PTTYPE t = mean2 - m * mean1;
+			m[ 0 ][ 3 ] = t[ 0 ];
+			m[ 1 ][ 3 ] = t[ 1 ];
+			m[ 2 ][ 3 ] = t[ 2 ];
+
+			return m;
 		}
 
 	template<int dim, typename _T>
