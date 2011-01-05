@@ -32,6 +32,7 @@ namespace cvt
 				PTTYPE& operator[]( int i );
 				const PTTYPE& operator[]( int i ) const;
 				PTTYPE mean() const;
+				PTTYPE variance() const;
 				size_t size() const;
 				void translate( const PTTYPE& t );
 				void scale( _T t );
@@ -39,6 +40,7 @@ namespace cvt
 				void transform( const MATTYPE& mat );
 				void normalize( MATTYPE& mat );
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
+				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
 
 			private:
 				std::vector<PTTYPE>	_pts;
@@ -96,6 +98,22 @@ namespace cvt
 
 			mean /= ( _T ) size();
 			return mean;
+		}
+
+	template<int dim, typename _T>
+		inline	typename PointSet<dim,_T>::PTTYPE PointSet<dim,_T>::variance() const
+		{
+			const PTTYPE* pt = &_pts[ 0 ];
+			size_t n = size();
+			PTTYPE mu = mean();
+			PTTYPE var;
+
+			var.zero();
+			while( n-- )
+				var += ( *pt++ - mu ).lengthSqr();
+
+			var /= ( _T ) size();
+			return var;
 		}
 
 
@@ -321,6 +339,61 @@ namespace cvt
 
 			return m;
 		}
+
+	template<int dim, typename _T>
+		inline Matrix3<_T> PointSet<dim,_T>::alignPerspective( const PointSet<dim,_T>& ) const
+	{
+		return Matrix3<_T>().identity();
+	}
+
+/*	template<>
+		inline Matrix3<float> PointSet<2,float>::alignPerspective( const PointSet<2,float>& ptset ) const
+		{
+			if( size() != ptset.size() )
+				throw CVTException( "PointSets differ in size!" );
+			if( size() <= 2 )
+				throw CVTException( "PointSets to small!" );
+
+			// we use H33 = 1
+			Eigen::MatrixXd A( 2 * size(), 8 );
+			Eigen::VectorXd b( 2 * size() );
+			Eigen::Matrix<float, 8, 1> x;
+			Matrix3<float> ret;
+			PTTYPE mean1, mean2;
+
+			mean1 = mean();
+			mean2 = ptset.mean();
+
+			for( size_t i = 0; i < size(); i++ ){
+				A( 2 * i, 0 )	  = 0.0;
+				A( 2 * i, 1 )	  = 0.0;
+				A( 2 * i, 2 )	  = 0.0;
+				A( 2 * i, 3 )	  = -reference[ i ][ 0 ];
+				A( 2 * i, 4 )	  = -reference[ i ][ 1 ];
+				A( 2 * i, 5 )	  = 1.0;
+				A( 2 * i, 6 )	  = reference[ i ][ 0 ] * transformed[ i ][ 1 ];
+				A( 2 * i, 7 )	  = reference[ i ][ 1 ] * transformed[ i ][ 1 ];
+
+				A( 2 * i + 1, 0 ) = reference[ i ][ 0 ];
+				A( 2 * i + 1, 1 ) = reference[ i ][ 1 ];
+				A( 2 * i + 1, 2 ) = 1.0;
+				A( 2 * i + 1, 3 ) = 0.0;
+				A( 2 * i + 1, 4 ) = 0.0;
+				A( 2 * i + 1, 5 ) = 0.0;
+				A( 2 * i + 1, 6 ) = -reference[ i ][ 0 ] * transformed[ i ][ 0 ];
+				A( 2 * i + 1, 7 ) = -reference[ i ][ 1 ] * transformed[ i ][ 0 ];
+
+				b[ 2 * i ]		  = -transformed[ i ][ 1 ];
+				b[ 2 * i + 1 ]	  =  transformed[ i ][ 0 ];
+			}
+
+			A.svd().solve( b, &x );
+
+			ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];
+			ret[ 1 ][ 0 ] = x[ 3 ];	ret[ 1 ][ 1 ] = x[ 4 ]; ret[ 1 ][ 2 ] = x[ 5 ];
+			ret[ 2 ][ 0 ] = x[ 6 ];	ret[ 2 ][ 1 ] = x[ 7 ]; ret[ 2 ][ 2 ] = 1.0;
+		}*/
+
 
 	template<int dim, typename _T>
 	inline std::ostream& operator<<( std::ostream& out, const PointSet<dim,_T>& ptset )
