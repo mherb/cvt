@@ -27,7 +27,7 @@ namespace cvt {
 
 	static void Conv_XYZAf_to_ZYXAf( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -40,7 +40,7 @@ namespace cvt {
 
 	static void Conv_XYZAu8_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -53,7 +53,7 @@ namespace cvt {
 
 	static void Conv_u8_to_f( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -66,7 +66,7 @@ namespace cvt {
 
 	static void Conv_f_to_u8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -80,7 +80,7 @@ namespace cvt {
 
 	static void Conv_RGBAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -94,7 +94,7 @@ namespace cvt {
 
 	static void Conv_GRAYu8_to_XXXAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -108,7 +108,7 @@ namespace cvt {
 
 	static void Conv_XXXAu8_to_XXXAf( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -122,7 +122,7 @@ namespace cvt {
 
 	static void Conv_XXXAf_to_XXXAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -136,7 +136,7 @@ namespace cvt {
 
 	static void Conv_XYZAu8_to_ZYXAf( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -150,7 +150,7 @@ namespace cvt {
 
 	static void Conv_XYZAf_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -164,7 +164,7 @@ namespace cvt {
 
 	static void Conv_BGRAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -178,7 +178,7 @@ namespace cvt {
 
 	static void Conv_BGRAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -192,7 +192,7 @@ namespace cvt {
 
 	static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -206,7 +206,7 @@ namespace cvt {
 
 	static void Conv_YUYVu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -220,7 +220,7 @@ namespace cvt {
 
 	static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -234,7 +234,7 @@ namespace cvt {
 
 	static void Conv_UYVYu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		const uint8_t* src;
 		const uint8_t* sbase;
 		size_t sstride;
@@ -260,7 +260,7 @@ namespace cvt {
 		size_t h;
 		size_t w;
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;
@@ -305,7 +305,7 @@ namespace cvt {
 		size_t h;
 		size_t w;
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;
@@ -350,7 +350,7 @@ namespace cvt {
 		size_t h;
 		size_t w;
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 		osrc = sourceImage.map( &sstride );
 		src1 = ( uint32_t* ) osrc;

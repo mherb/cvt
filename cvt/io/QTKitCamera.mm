@@ -90,7 +90,7 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 			memcpy( dstBase, sourceBase, height*stride );
 		} else {
 			size_t i = height;
-			cvt::SIMD * simd = cvt::SIMD::get();
+			cvt::SIMD * simd = cvt::SIMD::instance();
 			uint8_t * dst = dstBase;			
 			while( i-- ){
 				simd->Memcpy( dst, sourceBase, rowBytes );

@@ -97,7 +97,7 @@ namespace cvt {
 		rdst.copy( rsrc );
 		rdst.translate( -tx, -ty );
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		size_t dstride;
 		uint8_t* dst = map( &dstride );
 		uint8_t* dbase = dst;

@@ -26,6 +26,7 @@ using namespace cvt;
 		}																							\
 		ss << simd->name();																			\
 		ss << " "#op" array array" ;																\
+		delete simd;																				\
 		CVTTEST_PRINT( ss.str(), !fail );															\
 	}
 
@@ -50,6 +51,7 @@ using namespace cvt;
 		}																							\
 		ss << simd->name();																			\
 		ss << " "#op" array const" ;																\
+		delete simd;																				\
 		CVTTEST_PRINT( ss.str(), !fail );															\
 	}
 
@@ -97,6 +99,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Add "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -109,6 +112,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Sub "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -121,6 +125,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Mul "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -133,6 +138,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Div "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -145,6 +151,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Add Const "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -157,6 +164,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Sub Const "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -169,6 +177,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Mul Const "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
@@ -181,6 +190,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
+			delete simd;
 		}
 		delete[] fdst;
 		delete[] fsrc1;

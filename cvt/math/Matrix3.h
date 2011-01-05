@@ -121,7 +121,7 @@ namespace cvt {
 	template<typename T>
 	inline Matrix3<T>::Matrix3( const Matrix3<T>& mat3 )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		simd->Memcpy( ( uint8_t* ) this->ptr(), ( const uint8_t* ) mat3.ptr(), sizeof( T ) * 9 );
 	}
 
@@ -144,7 +144,7 @@ namespace cvt {
 	template<typename T>
 	inline Matrix3<T>::Matrix3( const T src[ 3 ][ 3 ] )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		simd->Memcpy( this->ptr(), src, sizeof( T ) * 9 );
 	}
 
