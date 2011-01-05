@@ -205,7 +205,7 @@ int main( int argc, char** argv )
 		//	kernel.run( x, cl::NullRange );
 
 		IFilterVector4 n, m ,d ;
-		GaussIIRCoeff( 5.0f, 0, n, m , d );
+		GaussIIRCoeff( 50.0f, 0, n, m , d );
 
 		kerneliir.setArg( 0, buf );
 		kerneliir.setArg( 1, &x );
