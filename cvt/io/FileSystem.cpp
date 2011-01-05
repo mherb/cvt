@@ -99,7 +99,7 @@ namespace cvt {
 		std::string dataFolder( DATA_FOLDER );
 		bool b = FileSystem::exists( "/usr/include" );
 		b &= FileSystem::exists( dataFolder );
-		b &= !FileSystem::exists( "bla" );
+		b &= !FileSystem::exists( "bliblabluiamnothere" );
 		CVTTEST_PRINT( "exists: ", b );
 		result &= b;
 

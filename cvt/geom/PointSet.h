@@ -260,13 +260,14 @@ namespace cvt
 		{
 			if( size() != ptset.size() )
 				throw CVTException( "PointSets differ in size!" );
-			if( size() == dim )
+			if( size() <= dim )
 				throw CVTException( "PointSets to small!" );
 
 			Eigen::Matrix<_T,dim,dim> mat;
 			MATTYPE m;
 			PTTYPE mean1, mean2;
 			_T s2 = 0;
+			_T mdet;
 
 			mean1 = mean();
 			mean2 = ptset.mean();
@@ -282,15 +283,11 @@ namespace cvt
 				c1 = *pt1 - mean1;
 				c2 = *pt2 - mean2;
 				s2 += c1.lengthSqr();
-				mat( 0, 0 ) += c2[ 0 ] * c1[ 0 ];
-				mat( 0, 1 ) += c2[ 0 ] * c1[ 1 ];
-				mat( 0, 2 ) += c2[ 0 ] * c1[ 2 ];
-				mat( 1, 0 ) += c2[ 1 ] * c1[ 0 ];
-				mat( 1, 1 ) += c2[ 1 ] * c1[ 1 ];
-				mat( 1, 2 ) += c2[ 1 ] * c1[ 2 ];
-				mat( 2, 0 ) += c2[ 2 ] * c1[ 0 ];
-				mat( 2, 1 ) += c2[ 2 ] * c1[ 1 ];
-				mat( 2, 2 ) += c2[ 2 ] * c1[ 2 ];
+
+				for( int i = 0; i < dim; i++)
+					for( int k = 0; k < dim; k++)
+						mat( i, k ) += c2[ i ] * c1[ k ];
+
 				pt1++;
 				pt2++;
 			}
@@ -300,27 +297,27 @@ namespace cvt
 
 			Eigen::Matrix<_T,dim,1> s;
 			s.setOnes();
-			if( mat.determinant() < 0 )
-				s( dim - 1 ) = -1;
+			mdet = mat.determinant();
 
 			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd( mat );
+			if( mdet / svd.singularValues().asDiagonal().determinant() < 0 )
+				s( dim - 1 ) = -1;
+
 			mat = svd.matrixU() * s.asDiagonal() * svd.matrixV().transpose();
+
+			if( mdet < 0 )
+				s( dim - 1 ) = -1;
+			else
+				s( dim - 1 ) = 1;
 			mat *= ( svd.singularValues().asDiagonal() * s.asDiagonal() ).trace() / s2;
 
-			m[ 0 ][ 0 ] = mat( 0, 0 );
-			m[ 0 ][ 1 ] = mat( 0, 1 );
-			m[ 0 ][ 2 ] = mat( 0, 2 );
-			m[ 1 ][ 0 ] = mat( 1, 0 );
-			m[ 1 ][ 1 ] = mat( 1, 1 );
-			m[ 1 ][ 2 ] = mat( 1, 2 );
-			m[ 2 ][ 0 ] = mat( 2, 0 );
-			m[ 2 ][ 1 ] = mat( 2, 1 );
-			m[ 2 ][ 2 ] = mat( 2, 2 );
+			for( int i = 0; i < dim; i++)
+				for( int k = 0; k < dim; k++)
+					m[ i ][ k ] = mat( i, k );
 
 			PTTYPE t = mean2 - m * mean1;
-			m[ 0 ][ 3 ] = t[ 0 ];
-			m[ 1 ][ 3 ] = t[ 1 ];
-			m[ 2 ][ 3 ] = t[ 2 ];
+			for( int i = 0; i < dim; i++)
+				m[ i ][ dim ] = t[ i ];
 
 			return m;
 		}
