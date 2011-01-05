@@ -19,9 +19,9 @@ namespace cvt {
 		protected:
 			SIMD() {};
 			SIMD( const SIMD& ) {};
+		public:
 			virtual ~SIMD() {};
 
-		public:
 			virtual void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 
 			/* set to constant */
@@ -107,6 +107,7 @@ namespace cvt {
 			virtual SIMDType type() const;
 
 			static SIMD* get( SIMDType type = SIMD_BEST );
+			static SIMD* instance();
 
 		private:
 			static SIMD* _simd;

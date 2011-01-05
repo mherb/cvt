@@ -124,7 +124,7 @@ namespace cvt {
 						if( !_frame )
 							_frame = new Image( _width, _height, _format );
 
-						SIMD* simd = SIMD::get();
+						SIMD* simd = SIMD::instance();
 
 						const uint8_t * sOrig;
 						uint8_t * dOrig;

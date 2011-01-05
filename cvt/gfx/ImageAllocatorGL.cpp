@@ -54,7 +54,7 @@ namespace cvt {
 		uint8_t* odst;
 		size_t i, n;
 		Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 		if( r )
 			rect.intersect( *r );

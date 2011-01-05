@@ -60,7 +60,7 @@ namespace cvt {
 		size_t h, stride;
 		uint8_t* dst;
 		uint8_t* dbase;
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		
 		switch ( _mem->_format.formatID ) {
 			case IFORMAT_GRAY_UINT8:
@@ -209,7 +209,7 @@ namespace cvt {
 
 	void Image::add( float alpha )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -233,7 +233,7 @@ namespace cvt {
 
 	void Image::add( const Color& c )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.formatID ) {
 			case IFORMAT_GRAY_FLOAT:
 				{
@@ -287,7 +287,7 @@ namespace cvt {
 
 	void Image::sub( float alpha )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -310,7 +310,7 @@ namespace cvt {
 
 	void Image::sub( const Color& c )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.formatID ) {
 			case IFORMAT_GRAY_FLOAT:
 				{
@@ -366,7 +366,7 @@ namespace cvt {
 
 	void Image::mul( float alpha )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
@@ -391,7 +391,7 @@ namespace cvt {
 
 	void Image::mul( const Color& c )
 	{
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.formatID ) {
 			case IFORMAT_GRAY_FLOAT:
 				{
@@ -450,7 +450,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -483,7 +483,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -516,7 +516,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -549,7 +549,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -582,7 +582,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 		
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		
 		float ssd = 0.0f;
 		
@@ -619,7 +619,7 @@ namespace cvt {
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 		
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 		
 		float sad = 0.0f;
 		
@@ -673,7 +673,7 @@ namespace cvt {
 		size_t sstride, dstride;
 		void (SIMD::*convfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 		void (SIMD::*convaddfunc)( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 		if( _mem->_format.channels == 1 ) {
 			convfunc = &SIMD::ConvolveClampSet1f;
@@ -792,7 +792,7 @@ namespace cvt {
 		size_t bufsize;
 		size_t curbuf;
 		void (SIMD::*scalex_func)( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
-		SIMD* simd = SIMD::get();
+		SIMD* simd = SIMD::instance();
 
 
 		if( _mem->_format.channels == 1 ) {

@@ -670,28 +670,27 @@ namespace cvt {
 
 	SIMD* SIMD::get( SIMDType type )
 	{
-		/* FIXME */
-		if( !_simd && type == SIMD_BEST ) {
+		if( type == SIMD_BEST ) {
 			uint32_t cpuf;
 			cpuf = cpuFeatures();
 			if( cpuf & CPU_SSE ) {
-				_simd = new SIMDSSE();
-				//				std::cout << "CREATED SIMD-SSE" << std::endl;
+				return new SIMDSSE();
 			} else {
-				_simd = new SIMD();
-				//				std::cout << "CREATED SIMD-BASE" << std::endl;
+				return new SIMD();
 			}
-		} else if( !_simd || ( _simd->type() != type && type != SIMD_BEST ) ) {
-			if( _simd )
-				delete _simd;
+		} else {
 			switch( type ) {
 				default:
-				case SIMD_BASE: _simd = new SIMD();
-								break;
-				case SIMD_SSE: _simd = new SIMDSSE();
-							   break;
+				case SIMD_BASE: return new SIMD();
+				case SIMD_SSE: return new SIMDSSE();
 			}
 		}
+	}
+
+	SIMD* SIMD::instance()
+	{
+		if( !_simd )
+			_simd = get( SIMD_BEST );
 		return _simd;
 	}
 
