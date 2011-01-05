@@ -1,6 +1,7 @@
 #ifndef CVT_PARAMINFO_H
 #define CVT_PARAMINFO_H
 
+#include <stdint.h>
 #include <string>
 
 namespace cvt
