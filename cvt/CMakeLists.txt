@@ -105,14 +105,17 @@ SET(${MODULE_NAME}_HEADERS
 	math/SBAData.h
 	math/SL3Transform.h
 	math/SparseBundleAdjustment.h	
+	util/CPU.h
+	util/CVTTest.h
+	util/Delegate.h
+	util/Exception.h
+	util/ParamInfo.h
+	util/ParamSet.h
 	util/Range.h
 	util/RNG.h
-	util/CVTTest.h
-	util/Exception.h
 	util/SIMD.h
-	util/SIMDSSE.h
-	util/CPU.h
-	util/Delegate.h
+	util/SIMDSSE.h	
+	util/Thread.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
@@ -171,7 +174,6 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLDrawImageProg.h
 	gl/progs/GLDrawIconProg.h
 	gl/progs/GLDrawModelProg.h
-	util/Thread.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
 	gl/shader/120/basicrr_120_frag.h
@@ -217,6 +219,8 @@ SET(${MODULE_NAME}_SOURCES
 	math/Matrix.cpp
 	math/SL3Transform.cpp
 	math/SparseBundleAdjustment.cpp
+	util/ParamInfo.cpp
+	util/ParamSet.cpp
 	util/Range.cpp
 	util/SIMD.cpp
 	util/SIMDSSE.cpp
