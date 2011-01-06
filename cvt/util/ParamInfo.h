@@ -20,9 +20,12 @@ namespace cvt
 		PTYPE_DOUBLE
 	};
 	
-	template<class T, ParamType pType> struct TypeToEnum;	
-	template<> struct TypeToEnum<uint8_t, PTYPE_INT8>{ typedef uint8_t type; static const ParamType paramType = PTYPE_UINT8; };
+	template<class T> struct PTypeCheck;
 	
+	#define X(TYPE, PTYPE) template<> struct PTypeCheck<TYPE>{ static const ParamType paramType = PTYPE; static bool check( ParamType other ) { if( other != paramType ) return false; return true; } };
+	#include <cvt/util/internal/ParamTypes.def>
+	#undef X
+		
 	class ParamInfo
 	{
 		public:

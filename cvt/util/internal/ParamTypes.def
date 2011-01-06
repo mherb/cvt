@@ -1,0 +1,11 @@
+X( uint8_t, PTYPE_UINT8 )
+X( int8_t,  PTYPE_INT8  )
+X( uint16_t, PTYPE_UINT16 )
+X( int16_t,  PTYPE_INT16  )
+X( uint32_t, PTYPE_UINT32 )
+X( int32_t,  PTYPE_INT32  )
+X( uint64_t, PTYPE_UINT64 )
+X( int64_t,  PTYPE_INT64  )
+X( float,  PTYPE_FLOAT )
+X( double, PTYPE_DOUBLE )
+
