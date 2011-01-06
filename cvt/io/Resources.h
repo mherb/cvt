@@ -5,7 +5,7 @@
 #include <list>
 
 namespace cvt {
-	
+
 	class Resources
 	{
 		public:
@@ -16,16 +16,16 @@ namespace cvt {
 			 */
 			Resources();
 			~Resources();
-		
+
 			std::string find( const std::string& resource );
-		
+
 			/**
-			 * adds another location to search for resources. 
+			 * adds another location to search for resources.
 			 */
 			void addSearchLocation( const std::string& loc, bool prepend=true );
-		
+
 		private:
-			std::list<std::string> searchFolders;		
-	};	
+			std::list<std::string> searchFolders;
+	};
 }
 #endif

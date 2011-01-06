@@ -21,4 +21,8 @@ typedef struct {
 								std::cerr << str << " : " << c <<"[1;31mFAILED" << c << "[0;m" << std::endl; \
 							} while( 0 )
 
+#define CVTTEST_LOG( str)	do { \
+								std::cerr << str << std::endl; \
+							} while( 0 )
+
 #endif

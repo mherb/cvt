@@ -107,6 +107,7 @@ namespace cvt {
 			virtual SIMDType type() const;
 
 			static SIMD* get( SIMDType type = SIMD_BEST );
+			static void  force( SIMDType type );
 			static SIMD* instance();
 
 		private:

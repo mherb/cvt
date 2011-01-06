@@ -227,6 +227,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDTest.cpp
 	util/Time.cpp
 	gfx/Image.cpp
+	gfx/ImageTest.cpp
 	gfx/IFormat.cpp
 	gfx/IConvert.cpp
 	gfx/ImageOperations.cpp

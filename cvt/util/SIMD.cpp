@@ -687,6 +687,13 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::force( SIMDType type )
+	{
+		if( _simd )
+			delete _simd;
+		_simd = get( type );
+	}
+
 	SIMD* SIMD::instance()
 	{
 		if( !_simd )
