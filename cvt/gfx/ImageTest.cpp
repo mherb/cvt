@@ -3,17 +3,43 @@
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/SIMD.h>
+#include <cvt/util/Time.h>
 
 namespace cvt {
 
-	static void _image_conversion_test()
+#define CONVTEST( x ) do { \
+			mps = 0; \
+			Image out( img.width(), img.height(), x ); \
+			for( int i = 0; i < 500; i++ ) { \
+				t.reset(); \
+				img.convert( out ); \
+				s = t.elapsedMicroSeconds(); \
+				mps += ( img.width() * img.height() ) / s; \
+			} \
+			mps /= 500.0; \
+			std::cerr << "\t" << img.format() << " -> " << out.format() << " conversion: " << mps << " MP/s" << std::endl; \
+		} while( 0 )
+
+
+	static void _image_conversion_speed()
 	{
+		Resources res;
+		Image img;
+		Time t;
+		float mps, s;
 
+		std::string imgpath = res.find( "bbc-hd.png");
+		ImageIO::loadPNG( img, imgpath );
 
-
+		CONVTEST( IFormat::GRAY_UINT8 );
+		CONVTEST( IFormat::BGRA_UINT8 );
+		CONVTEST( IFormat::RGBA_UINT8 );
+		CONVTEST( IFormat::GRAY_FLOAT );
+		CONVTEST( IFormat::BGRA_FLOAT );
+		CONVTEST( IFormat::RGBA_FLOAT );
 	}
 
-	BEGIN_CVTTEST( image )
+	BEGIN_CVTTEST( Image )
 		Color color( 255, 0, 0, 255 );
 		Image y;
 		uint32_t val;
@@ -98,10 +124,10 @@ namespace cvt {
 
 		CVTTEST_LOG("Image Convert Speed BASE");
 		SIMD::force( SIMD_BASE );
-		_image_conversion_test();
+		_image_conversion_speed();
 		CVTTEST_LOG("Image Convert Speed SSE");
 		SIMD::force( SIMD_SSE );
-		_image_conversion_test();
+		_image_conversion_speed();
 
 		SIMD::force( SIMD_BEST );
 
