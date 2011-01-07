@@ -23,15 +23,20 @@ namespace cvt
 	{
 		size_t allSize = 0;
 		
-		ParamInfo * p = _pInfos;
+		ParamInfo * p;
 		
-		for( size_t i = 0; i < _numParameters; i++ ){			
-			if( genOffsets ){
+		if( genOffsets ){
+			p = pInfos;
+			for( size_t i = 0; i < _numParameters; i++ ){			
 				p->offset = allSize;
+				allSize += _PTYPE2SIZE[ p->type ] * p->count; ;
+				
+				p++;
 			}
-			allSize += _PTYPE2SIZE[ p->type ] * p->count; ;
-			
-			p++;
+		} else {
+			// offsets initialized:
+			p = &pInfos[ n-1 ];
+			allSize = p->offset + _PTYPE2SIZE[ p->type ] * p->count;
 		}
 		
 		_parameterMem = new uint8_t[ allSize ];
