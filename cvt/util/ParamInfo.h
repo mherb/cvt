@@ -29,11 +29,11 @@ namespace cvt
 	class ParamInfo
 	{
 		public:
-			ParamInfo( ParamType t, const std::string & n, size_t c = 1 ) : 
+			ParamInfo( ParamType t, const std::string & n, size_t c = 1, size_t o = 0 ) : 
 				type( t ), 
-				name( n ), 
-				offset( 0 ),
-				count( c )
+				name( n ), 				
+				count( c ),
+				offset( o )
 			{}		
 			
 			ParamType 	type;	
