@@ -23,23 +23,23 @@ using namespace cvt;
 void testRNG()
 {
 	RNG rng( time( NULL ) );
-	
+
 	float val;
-	
+
 	for( size_t i = 0; i < 1000; i++ ){
 		val = rng.fl();
 		if( val > 1.0 || val < 0.0 )
 			std::cout << "ERROR: FLOAT: " << val << std::endl;
-			
+
 		val = rng.uniform( -300.0f, 300.0f );
 		if( val > 300.0f || val < -300.0f )
 			std::cout << "ERROR: uniform FLOAT: " << val << std::endl;
 	}
-	
+
 	int intVal;
 	for( size_t i = 0; i < 10000; i++ ){
 		intVal = rng.uniform( 0, 72 );
-		
+
 		if( intVal < 0 || intVal > 200 )
 			std::cout << "ERROR IN RNG: " << intVal << std::endl;
 	}
@@ -49,31 +49,31 @@ void testPatchGen()
 {
 	Rangef sRange( 0.6f, 1.5f );
 	Rangef rotRange( 0.0f, Math::TWO_PI );
-	
-	uint32_t patchSize = 31;
+
+	uint32_t patchSize = 81;
 	PatchGenerator gen( rotRange, sRange, patchSize );
-	
-	Resources res;	
+
+	Resources res;
 	Image img;
 	std::string fileName = res.find( "lena.png" );
 	ImageIO::loadPNG( img, fileName );
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	img.convert( gray );
-	
+
 	Image patch( patchSize, patchSize, gray.format() );
-	
-	uint32_t numPatches = 10;
+
+	uint32_t numPatches = 3;
 	char buf[ 255 ];
 	Eigen::Vector2i p;
 	p[ 0 ] = gray.width() / 2;
 	p[ 1 ] = gray.height() / 2;
-	
+
 	for( size_t i = 0; i < numPatches; i++ ){
 		gen.next( patch, gray, p );
-		
+
 		sprintf( buf, "patch_%03zu.png", i );
 		ImageIO::savePNG( patch, buf );
-	}	
+	}
 }
 
 static IFilterVector8 calc_homography( float theta, float phi, float sx, float sy, float tx, float ty, float v1, float v2 )
@@ -211,9 +211,9 @@ void testFerns()
 int main()
 {
 	//testRNG();
-	//testPatchGen();
+	testPatchGen();
 	
-	testFerns();
+	//testFerns();
 	
 	return 0;	
 }
