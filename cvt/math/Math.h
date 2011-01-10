@@ -141,6 +141,16 @@ namespace cvt {
 		{
 			return ::asin( x );
 		}
+		
+		static inline float round( float x )
+		{
+			return ::roundf( x );
+		}
+		
+		static inline float round( double x )
+		{
+			return ::round( x );
+		}
 
 		static inline float ceil( float x )
 		{
