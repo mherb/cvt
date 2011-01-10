@@ -26,7 +26,6 @@ namespace cvt {
 		Time t;
 		float mps, s;
 
-	
 //		CONVTEST( IFormat::GRAY_UINT8 );
 		CONVTEST( IFormat::BGRA_UINT8 );
 		CONVTEST( IFormat::RGBA_UINT8 );
@@ -116,7 +115,10 @@ namespace cvt {
 		b &= *( base + 3 ) == 1.0f;
 		CVTTEST_PRINT("BGRA FLOAT", b );
 		y.unmap( ( uint8_t* ) base );
+		return true;
+	END_CVTTEST
 
+	BEGIN_CVTTEST( ImageSpeed )
 		/* Image conversion */
 
 		Image img;
