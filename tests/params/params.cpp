@@ -4,6 +4,8 @@
 #include <cvt/util/ParamSet.h>
 #include <cvt/util/Exception.h>
 
+#include <cvt/gfx/Image.h>
+
 using namespace cvt;
 
 void testStandard()
@@ -11,22 +13,30 @@ void testStandard()
 	ParamInfo params[] =
 	{
 		ParamInfo( PTYPE_INT8, "int8Param",  1 ),
-		ParamInfo( PTYPE_DOUBLE, "doubleParam",  1 )
+		ParamInfo( PTYPE_DOUBLE, "doubleParam",  1 ),
+		ParamInfo( PTYPE_IMAGEPTR, "image",  1 )
 	};
 
-	ParamSet pSet( params, 2, true );
+	ParamSet pSet( params, 3, true );
 
 	size_t i8 = pSet.paramHandle( "int8Param" );
 	size_t db = pSet.paramHandle( "doubleParam" );
+	size_t img = pSet.paramHandle( "image" );
+
+	Image testImage;
+	std::cout << "Adress of Image: " << &testImage << std::endl;
 
 	pSet.setArg<double>( db, 2.1 );
 	pSet.setArg<int8_t>( i8, 2 );
+	pSet.setArg<Image*>( img, &testImage );
 
 	double val = pSet.arg<double>( db );
 	int8_t vali = pSet.arg<int8_t>( i8 );
+	Image * iPtr = pSet.arg<Image*>( img );
 
 	std::cout << "Double: " << val << std::endl;
 	std::cout << "int8: " << (int)vali << std::endl;
+	std::cout << "Image: " << iPtr << std::endl;
 
 	std::cout << pSet << std::endl;
 }
