@@ -250,6 +250,162 @@ namespace cvt {
 		return maxsupport;
 	}
 
+	
+	size_t IScaleFilter::getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptiveFixed& conva, bool nonegincr ) const
+	{
+		IConvolveAdaptiveSize* sweights;
+		Fixed*  weights;
+		uint32_t numweight;
+		size_t i;
+		ssize_t x1, x2, lx, x;
+		float center = 0.0;
+		float offset;
+		float incr;
+		float norm;
+		float a;
+		size_t support;
+		size_t maxsupport = 0;
+		
+		/* set center to zero and substract 1 from src and dst to retain the borders while scaling */
+		if( /*incr <= 1.0*/ dst >= src ) {  /* upscale */
+			incr = ( float ) ( src )  / ( float ) ( dst );
+			a = 1.0f;
+			support = ( size_t ) Math::ceil( _support );
+			offset = 0.5f * incr - 0.5f;
+		} else { /* downscale */
+			incr = ( float ) ( src )  / ( float ) ( dst );
+			a = incr * 0.5f + 0.1f + _sharpsmooth; /* add a little bit blur to avoid the strongest aliasing artifacts */
+			support = ( size_t ) Math::ceil( _support * incr * 0.5f );
+			offset =  0.5f * incr - 0.5f;
+		}
+		
+#define SRC2DST( n ) ( ( float ) ( n * src ) / ( float ) ( dst ) + offset  )
+		
+		conva.size = new IConvolveAdaptiveSize[ dst ];
+		conva.weights = new Fixed[ dst * support * 2 ];
+		i = 0;
+		sweights = conva.size;
+		weights = conva.weights;
+		lx = 0;
+		
+		Fixed ZeroFixed;
+		
+		/* border */
+		while( ( x1 = ( ( ssize_t ) Math::ceil( center ) ) - support ) < 0 && i < dst ) {
+			x2 = x1 + 2 * support;
+			numweight = 0;
+			norm = 0.0f;
+			
+			for( x = 0; x < x2 && x < ( ssize_t ) src; x++ )
+				norm += eval( ( ( ( float ) x ) - center ) / a );
+			
+			sweights->incr = 0 - lx;
+			lx = 0;
+			
+			for( x = 0; x < x2 && x < ( ssize_t ) src; x++ ) {
+				*weights = ( eval( ( ( ( float ) x ) - center ) / a ) / norm );
+				/* skip leading zeros */
+				if( *weights != (Fixed)0.0f || numweight || nonegincr ) {
+					weights++;
+					numweight++;
+				} else {
+					sweights->incr++;
+					lx++;
+				}
+			}
+			/* remove trailing zeros */
+			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+				numweight--;
+				weights--;
+			}
+			
+			if( numweight > maxsupport )
+				maxsupport = numweight;
+			
+			sweights->numw = numweight;
+			sweights++;
+			i++;
+			center = SRC2DST( i );
+		}
+		
+		/* center */
+		while( ( x2 = ( ( ssize_t ) Math::ceil( center ) ) + support ) <= ( ssize_t ) src && i < dst ) { /* x2 <= src, x2 is exclusive bound*/
+			x1 = x2 - 2 * support;
+			numweight = 0;
+			norm = 0.0f;
+			
+			for( x = x1; x < x2; x++ )
+				norm += eval( ( ( ( float ) x ) - center ) / a );
+			
+			sweights->incr = x1 - lx;
+			lx = x1;
+			
+			for( x = x1; x < x2; x++ ) {
+				*weights = eval( ( ( ( float ) x ) - center ) / a ) / norm;
+				/* skip leading zeros */
+				if( *weights != ZeroFixed || numweight || nonegincr ) {
+					weights++;
+					numweight++;
+				} else {
+					sweights->incr++;
+					lx++;
+				}
+			}
+			/* remove trailing zeros */
+			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+				numweight--;
+				weights--;
+			}
+			
+			if( numweight > maxsupport )
+				maxsupport = numweight;
+			
+			sweights->numw = numweight;
+			sweights++;
+			i++;
+			center = SRC2DST( i );
+		}
+		
+		/* border2 */
+		while( i < dst ) {
+			x1 = ( ( ssize_t ) Math::ceil( center ) ) - support;
+			numweight = 0;
+			norm = 0.0f;
+			
+			for( x = x1; x < ( ssize_t ) src; x++ )
+				norm += eval( ( ( ( float ) x ) - center ) / a );
+			
+			sweights->incr = x1 - lx;
+			lx = x1;
+			
+			for( x = x1; x < ( ssize_t ) src; x++ ) {
+				*weights = eval( ( ( ( float ) x ) - center ) / a ) / norm;
+				/* skip leading zeros */
+				if( *weights != ZeroFixed || numweight || nonegincr ) {
+					weights++;
+					numweight++;
+				} else {
+					sweights->incr++;
+					lx++;
+				}
+			}
+			/* remove trailing zeros */
+			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+				numweight--;
+				weights--;
+			}
+			
+			if( numweight > maxsupport )
+				maxsupport = numweight;
+			
+			sweights->numw = numweight;
+			sweights++;
+			i++;
+			center = SRC2DST( i );
+		}
+		return maxsupport;
+	}
+
 	float IScaleFilterBilinear::eval( float x ) const
 	{
 		return _filter_triangle( x );

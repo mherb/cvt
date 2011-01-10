@@ -862,6 +862,98 @@ namespace cvt {
 		delete[] scalery.size;
 		delete[] scalery.weights;
 	}
+	
+	void Image::scaleFixedu8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
+	{
+		/* TODO!!!
+		IConvolveAdaptiveFixed scalerx;
+		IConvolveAdaptiveFixed scalery;
+		
+		IConvolveAdaptiveSize* pysw;		
+		Fixed* pyw;
+		
+		const uint8_t* src;
+		const uint8_t* osrc;
+		const uint8_t* send;
+		uint8_t* dst;
+		uint8_t* odst;
+		size_t sstride, dstride;
+		size_t i, l;
+		int32_t k;
+		Fixed** buf;
+		size_t bufsize;
+		size_t curbuf;
+		void (SIMD::*scalex_func)( float* _dst, float const* _src, const size_t width, IConvolveAdaptiveFixed* conva ) const;
+		SIMD* simd = SIMD::instance();
+		
+		
+		if( _mem->_format.channels == 1 ) {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp1Fixedu8;
+		} else if( _mem->_format.channels == 2 ) {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp2Fixedu8;
+		} else {
+			scalex_func = &SIMD::ConvolveAdaptiveClamp4Fixedu8;
+		}
+		
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
+		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
+		
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
+		send = src + sstride * _mem->_height;
+		
+		bufsize = filter.getAdaptiveConvolutionWeights( height, _mem->_height, scalery, true );
+		filter.getAdaptiveConvolutionWeights( width, _mem->_width, scalerx, false );
+		
+		buf = new float*[ bufsize ];
+		// allocate and fill buffer
+		for( i = 0; i < bufsize; i++ ) {
+			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _mem->_format.channels) )
+				throw CVTException("Out of memory");
+			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
+			src += sstride;
+		}
+		curbuf = 0;
+		
+		pysw = scalery.size;
+		pyw = scalery.weights;
+		
+		while( height-- ) {
+			if( pysw->incr ) {
+				for( k = 0; k < pysw->incr && src < send ; k++ ) {
+					( simd->*scalex_func )( ( float* ) buf[ ( curbuf + k ) % bufsize ], ( float* ) src, width, &scalerx );
+					src += sstride;
+				}
+				curbuf = ( curbuf + pysw->incr ) % bufsize;
+			}
+			
+			l = 0;
+			while( Math::abs( *pyw ) < Math::EPSILONF ) {
+				l++;
+				pyw++;
+			}
+			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
+			l++;
+			for( ; l < pysw->numw; l++ ) {
+				if( Math::abs( *pyw ) > Math::EPSILONF )
+					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
+				pyw++;
+			}
+			pysw++;
+			dst += dstride;
+		}
+		
+		idst.unmap( odst );
+		unmap( osrc );
+		
+		for( i = 0; i < bufsize; i++ )
+			free( buf[ i ] );
+		delete[] buf;
+		delete[] scalerx.size;
+		delete[] scalerx.weights;
+		delete[] scalery.size;
+		delete[] scalery.weights;*/
+	}
 
 	void Image::warpBilinear( Image& idst, const Image& warp ) const
 	{

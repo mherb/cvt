@@ -10,7 +10,6 @@ namespace cvt {
 	class Color : public IFilterParameter
 	{
 		friend class Image;
-		friend class CLKernel;
 
 		public:
 			Color();
@@ -44,15 +43,16 @@ namespace cvt {
 			Color operator-( const Color & c ) const;
 			Color operator*( float s ) const;
 
-			const float* data() const { return v; };
+			const float* data() const { return &_r; };
 
 		private:
-			union {
+			/*union {
 				struct {
 					float _r, _g, _b, _a;
 				};
 				float v[ 4 ];
-			}  __attribute__((aligned(16)));
+			}  __attribute__((aligned(16)));*/
+					float _r, _g, _b, _a;
 	};
 
 	inline Color::Color() : IFilterParameter( IFILTERPARAMETER_COLOR )
