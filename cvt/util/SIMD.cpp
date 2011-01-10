@@ -1,6 +1,7 @@
 #include "util/SIMD.h"
 #include "math/Math.h"
 #include "util/SIMDSSE.h"
+#include "util/SIMDSSE41.h"
 #include "util/CPU.h"
 
 namespace cvt {
@@ -673,7 +674,9 @@ namespace cvt {
 		if( type == SIMD_BEST ) {
 			uint32_t cpuf;
 			cpuf = cpuFeatures();
-			if( cpuf & CPU_SSE ) {
+			if( cpuf & CPU_SSE4_1 ) {
+				return new SIMDSSE41();
+			} else if( cpuf & CPU_SSE ) {
 				return new SIMDSSE();
 			} else {
 				return new SIMD();
@@ -683,6 +686,7 @@ namespace cvt {
 				default:
 				case SIMD_BASE: return new SIMD();
 				case SIMD_SSE: return new SIMDSSE();
+				case SIMD_SSE41: return new SIMDSSE41();
 			}
 		}
 	}
@@ -1231,6 +1235,22 @@ namespace cvt {
 			v = 306 * ( ( tmp >>16 ) & 0xff );
 			v += 601 * (  ( tmp >> 8 ) & 0xff );
 			v += 117 * ( tmp & 0xff );
+			*dst++ = ( uint8_t ) ( v >> 10 );
+		}
+	}
+
+	void SIMD::Conv_RGBAu8_to_GRAYu8( uint8_t* dst, const uint8_t * _src, const size_t n ) const
+	{
+		size_t i = n;
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t tmp;
+		int v;
+
+		while( i-- ) {
+			tmp = *src++;
+			v = 117 * ( ( tmp >>16 ) & 0xff );
+			v += 601 * (  ( tmp >> 8 ) & 0xff );
+			v += 306 * ( tmp & 0xff );
 			*dst++ = ( uint8_t ) ( v >> 10 );
 		}
 	}

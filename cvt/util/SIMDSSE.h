@@ -7,6 +7,7 @@ namespace cvt {
 
 	class SIMDSSE : public SIMD {
 		friend class SIMD;
+		friend class SIMDSSE41;
 
 		private:
 			SIMDSSE() {};
@@ -32,6 +33,10 @@ namespace cvt {
 
 			virtual void MulAdd( float* dst, float const* src1, const float value, const size_t n ) const;
 			virtual void MulSub( float* dst, float const* src1, const float value, const size_t n ) const;
+
+
+			/*shuffle*/
+			virtual void Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const;
 
 			virtual std::string name() const;
 			virtual SIMDType type() const;

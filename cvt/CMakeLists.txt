@@ -116,6 +116,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/RNG.h
 	util/SIMD.h
 	util/SIMDSSE.h	
+	util/SIMDSSE41.h	
 	util/Thread.h
 	gfx/Image.h
 	gfx/IFormat.h
@@ -226,6 +227,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/Range.cpp
 	util/SIMD.cpp
 	util/SIMDSSE.cpp
+	util/SIMDSSE41.cpp
 	util/SIMDTest.cpp
 	util/Time.cpp
 	gfx/Image.cpp
@@ -376,4 +378,5 @@ target_link_libraries (cvttest ${MODULE_NAME})
 
 #special flags for some files
 set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-msse")
+set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-msse4.1")
 
