@@ -40,7 +40,7 @@ namespace cvt {
 		switch( p->getIFilterParameterType() )
 		{
 			case IFILTERPARAMETER_COLOR:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float4 ), ( void* ) ( ( Color* ) p )->v );
+				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float4 ), ( void* ) ( ( Color* ) p )->data() );
 				break;
 			case IFILTERPARAMETER_SCALAR:
 				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float ), ( void* ) &( ( IFilterScalar* ) p )->value );

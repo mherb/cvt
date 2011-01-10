@@ -90,7 +90,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/VideoInput.h
 	io/VideoReader.h
 	io/PlyModel.h
-	math/ESM.cpp
+	math/ESM.h
+	math/Fixed.h
 	math/LevenbergMarquard.h
 	math/Math.h
 	math/Vector.h
@@ -213,6 +214,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/VideoReader.cpp
 	io/PlyModel.cpp
 	math/ESM.cpp
+	math/Fixed.cpp
 	math/LevenbergMarquard.cpp
 	math/Math.cpp
 	math/Vector.cpp

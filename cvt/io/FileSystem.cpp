@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <stdio.h>
 
-#include "util/CVTTest.h"
+#include <cvt/util/CVTTest.h>
 
 namespace cvt {
 

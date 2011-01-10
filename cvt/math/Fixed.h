@@ -33,6 +33,7 @@ namespace cvt
 			Fixed operator+( Fixed other ) const;
 			Fixed operator-( Fixed other ) const;
 			Fixed operator*( Fixed other ) const;
+			Fixed operator*( uint8_t other ) const;
 			Fixed operator/( Fixed other ) const;
 			Fixed operator+=( Fixed other );
 			Fixed operator-=( Fixed other );
@@ -129,8 +130,7 @@ namespace cvt
 	
 	inline Fixed Fixed::operator*( Fixed other ) const
 	{
-		int s = 1;
-	    
+		int s = 1;	    
 	
 		int32_t a = _val;
 		
@@ -143,6 +143,13 @@ namespace cvt
 		Fixed ret;
 		ret._val = ( s > 0 ) ? c : -c;
 	
+	    return ret;
+	}
+	
+	inline Fixed Fixed::operator*( uint8_t other ) const
+	{		
+		Fixed ret( *this );		
+		ret._val *= other;
 	    return ret;
 	}
 	

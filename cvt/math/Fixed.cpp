@@ -273,9 +273,22 @@ namespace cvt
 		b = ( Math::abs( (float)cFixed - cf ) < 0.001 ) && ( Math::abs( (float)sFixed - sf ) < 0.001 );		
 		CVTTEST_PRINT( "sin_cos()", b );
 		result &=b;
-		
-		
-		
+	
+		float scale = -0.5f;
+		Fixed scaled;
+		b = true;
+		uint8_t u8 = 0;
+		while ( u8 != 255 ) {
+			f = scale;
+			scaled = f * u8;
+			b &= ( (float)scaled == ( scale * (float)( u8 ) ) );
+			f = -scale;
+			scaled = f * u8;
+			b &= ( (float)scaled == ( -scale * (float)( u8 ) ) );			
+			u8++;
+		}
+		CVTTEST_PRINT( "operator*( uint8_t )", b );
+		result &=b;	
 	
 		return result;	
 	END_CVTTEST

@@ -2,6 +2,7 @@
 #define ISCALEFILTER_H
 
 #include <string>
+#include <cvt/math/Fixed.h>
 
 namespace cvt {
 
@@ -14,7 +15,11 @@ namespace cvt {
 		IConvolveAdaptiveSize* size;
 		float* weights;
 	};
-
+	
+	struct IConvolveAdaptiveFixed {
+		IConvolveAdaptiveSize* size;
+		Fixed* weights;
+	};
 
 	class IScaleFilter {
 		public:
@@ -23,6 +28,7 @@ namespace cvt {
 			virtual float eval( float x ) const = 0;
 			virtual const std::string name() const = 0;
 			size_t getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptivef& conva, bool nonegincr = true ) const;
+			size_t getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptiveFixed& conva, bool nonegincr = true ) const;
 
 		protected:
 			float _support;
