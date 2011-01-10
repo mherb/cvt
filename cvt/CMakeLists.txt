@@ -290,6 +290,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/progs/GLDrawModelProg.cpp
 )
 
+
 IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
@@ -372,4 +373,7 @@ IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
 	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
 ENDIF()
 target_link_libraries (cvttest ${MODULE_NAME}) 
+
+#special flags for some files
+set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-msse")
 
