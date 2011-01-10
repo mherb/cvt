@@ -11,6 +11,7 @@ namespace cvt {
 	enum SIMDType {
 		SIMD_BASE = 0,
 		SIMD_SSE,
+		SIMD_SSE41,
 		SIMD_BEST
 	};
 
@@ -82,6 +83,7 @@ namespace cvt {
 			virtual void Conv_XYZAu8_to_ZYXAu8( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 			virtual void Conv_RGBAu8_to_GRAYf( float* _dst, uint8_t const* _src, const size_t n ) const;
 			virtual void Conv_BGRAu8_to_GRAYf( float* _dst, uint8_t const* _src, const size_t n ) const;
+			virtual void Conv_RGBAu8_to_GRAYu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const;
 			virtual void Conv_BGRAu8_to_GRAYu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const;
 
 			virtual void Conv_YUYVu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;

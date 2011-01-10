@@ -1,4 +1,5 @@
-#include "util/SIMDSSE.h"
+#include <cvt/util/SIMDSSE.h>
+#include <xmmintrin.h>
 
 
 namespace cvt {
@@ -408,5 +409,30 @@ namespace cvt {
 	void SIMDSSE::MulSub( float* dst, float const* src1, const float value, const size_t n ) const
 	{
 		OPF2AC1( dst, src1, value, n, mulps, subps )
+	}
+
+
+	void SIMDSSE::Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const
+	{
+		size_t i = n;
+		__m128 x;
+
+		if( ( ( size_t ) dst | ( size_t ) src ) & 0xF ) {
+			while( i-- ) {
+				x = _mm_loadu_ps( src );
+				x = _mm_shuffle_ps( x, x, _MM_SHUFFLE( 3, 0, 1, 2 ) );
+				_mm_storeu_ps( dst, x  );
+				src += 4;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				x = _mm_load_ps( src );
+				x = _mm_shuffle_ps( x, x, _MM_SHUFFLE( 3, 0, 1, 2 ) );
+				_mm_stream_ps( dst, x  );
+				src += 4;
+				dst += 4;
+			}
+		}
 	}
 }

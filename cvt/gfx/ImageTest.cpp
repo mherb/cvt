@@ -10,31 +10,27 @@ namespace cvt {
 #define CONVTEST( x ) do { \
 			mps = 0; \
 			Image out( img.width(), img.height(), x ); \
-			for( int i = 0; i < 500; i++ ) { \
+			for( int i = 0; i < 100; i++ ) { \
 				t.reset(); \
 				img.convert( out ); \
 				s = t.elapsedMicroSeconds(); \
 				mps += ( img.width() * img.height() ) / s; \
 			} \
-			mps /= 500.0; \
+			mps /= 100.0; \
 			std::cerr << "\t" << img.format() << " -> " << out.format() << " conversion: " << mps << " MP/s" << std::endl; \
 		} while( 0 )
 
 
-	static void _image_conversion_speed()
+	static void _image_conversion_speed( const Image& img )
 	{
-		Resources res;
-		Image img;
 		Time t;
 		float mps, s;
 
-		std::string imgpath = res.find( "bbc-hd.png");
-		ImageIO::loadPNG( img, imgpath );
-
-		CONVTEST( IFormat::GRAY_UINT8 );
+	
+//		CONVTEST( IFormat::GRAY_UINT8 );
 		CONVTEST( IFormat::BGRA_UINT8 );
 		CONVTEST( IFormat::RGBA_UINT8 );
-		CONVTEST( IFormat::GRAY_FLOAT );
+//		CONVTEST( IFormat::GRAY_FLOAT );
 		CONVTEST( IFormat::BGRA_FLOAT );
 		CONVTEST( IFormat::RGBA_FLOAT );
 	}
@@ -121,13 +117,59 @@ namespace cvt {
 		CVTTEST_PRINT("BGRA FLOAT", b );
 		y.unmap( ( uint8_t* ) base );
 
+		/* Image conversion */
+
+		Image img;
+		Resources res;
+		std::string imgpath = res.find( "bbc-hd.png");
+		ImageIO::loadPNG( img, imgpath );
+		Image imgt;
+
 
 		CVTTEST_LOG("Image Convert Speed BASE");
 		SIMD::force( SIMD_BASE );
-		_image_conversion_speed();
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+
 		CVTTEST_LOG("Image Convert Speed SSE");
 		SIMD::force( SIMD_SSE );
-		_image_conversion_speed();
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+
+		CVTTEST_LOG("Image Convert Speed SSE41");
+		SIMD::force( SIMD_SSE41 );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
 
 		SIMD::force( SIMD_BEST );
 
