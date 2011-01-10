@@ -81,12 +81,12 @@ static IFilterVector8 calc_homography( float theta, float phi, float sx, float s
 	Eigen::Matrix3f h, ih;
 	Eigen::Transform<float,2> affine;
 	IFilterVector8 ret;
-	
+
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( phi ) );
 	affine = Eigen::Scaling2f( sx, sy ) * affine;
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( -phi ) ) * affine;
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( theta ) ) * affine;
-	
+
 	h( 0, 0 ) = affine( 0, 0 );
 	h( 0, 1 ) = affine( 0, 1 );
 	h( 1, 0 ) = affine( 1, 0 );
@@ -96,14 +96,14 @@ static IFilterVector8 calc_homography( float theta, float phi, float sx, float s
 	h( 2, 0 ) = v1;
 	h( 2, 1 ) = v2;
 	h( 2, 2 ) = 1.0f;
-	
+
 	std::cout << h << std::endl;
 	ih = h.inverse();
 	std::cout << "DET " <<ih.determinant() << std::endl;
 	ih /= powf( ih.determinant(), 1.0f / 3.0f );
 	std::cout << "DET " <<ih.determinant() << std::endl;
 	std::cout << ih << std::endl;
-	
+
 	ret[ 0 ] = ih( 0, 0 );
 	ret[ 1 ] = ih( 0, 1 );
 	ret[ 2 ] = ih( 0, 2 );
@@ -117,59 +117,59 @@ static IFilterVector8 calc_homography( float theta, float phi, float sx, float s
 
 void testFerns()
 {
-	Resources res;	
+	Resources res;
 	Image img;
 	std::string fileName = res.find( "lena.png" );
 	ImageIO::loadPNG( img, fileName );
-	
+
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	Image grayf( img.width(), img.height(), IFormat::GRAY_FLOAT );
-	
+
 	img.convert( gray );
 	gray.convert( grayf );
-	
-	/* patchSize, numOverallTests, testsPerClass */	
-	Ferns ferns( 31, 550, 50 );	
+
+	/* patchSize, numOverallTests, testsPerClass */
+	Ferns ferns( 31, 550, 50 );
 	ferns.train( gray );
 	ferns.save( "lena.ferns" );
-	
+
 	/*std::cout << "Loading ferns ... ";
 	Ferns ferns( "lena.ferns" );
 	std::cout << "done" << std::endl;*/
-	
+
 	Image warpedf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
-	
+
 	Homography hfilter;
 	IFilterVector8 H = calc_homography( 25.0f, 0.0f, 1.01f, 1.01f, 100.0f, 100.0f, 0.0f, 0.0f );
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
-	
+
 	ImageIO::savePNG( warped, "test.png" );
-	
-	
+
+
 	std::cout << "H: \n";
-	std::cout << H[ 0 ] << ", " << H[ 1 ] << ", " << H[ 2 ] << "\n"; 
-	std::cout << H[ 3 ] << ", " << H[ 4 ] << ", " << H[ 5 ] << "\n"; 
-	std::cout << H[ 6 ] << ", " << H[ 7 ] << ", " << 1.0f << std::endl; 
-	
+	std::cout << H[ 0 ] << ", " << H[ 1 ] << ", " << H[ 2 ] << "\n";
+	std::cout << H[ 3 ] << ", " << H[ 4 ] << ", " << H[ 5 ] << "\n";
+	std::cout << H[ 6 ] << ", " << H[ 7 ] << ", " << 1.0f << std::endl;
+
 	Eigen::Matrix3d homMat = Eigen::Matrix3d::Identity();
 	homMat( 0, 0 ) = H[ 0 ];	homMat( 0, 1 ) = H[ 1 ];	homMat( 0, 2 ) = H[ 2 ];
 	homMat( 1, 0 ) = H[ 3 ];	homMat( 1, 1 ) = H[ 4 ];	homMat( 1, 2 ) = H[ 5 ];
 	homMat( 2, 0 ) = H[ 6 ];	homMat( 2, 1 ) = H[ 7 ];	homMat( 2, 2 ) = 1.0;
-		
-	std::vector<Feature2D> features;		
+
+	std::vector<Feature2D> features;
 	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );
 	static_cast<FAST*>(fe)->setMinScore( 60 );
 	static_cast<FAST*>(fe)->setThreshold( 40 );
-	
+
 	fe->extractMultiScale( warped, features, 3 );
 	//fe->extractMultiScale( gray, features, 3 );
-				
+
 	std::vector<Eigen::Vector2d> reference, imageFeatures;
 	std::vector<Eigen::Vector2i> featurePoints;
-	
+
 	Eigen::Vector2i tmp;
 	for( size_t i = 0; i < features.size(); i++ ){
 		tmp[ 0 ] = features[ i ][ 0 ];
@@ -178,11 +178,11 @@ void testFerns()
 	}
 
 	ferns.match( featurePoints, warped, reference, imageFeatures );
-	
+
 	std::cout << "Matched points: \n";
-	
+
 	Eigen::Vector3d pp, p;
-	
+
 	for( size_t i = 0; i < reference.size(); i++ ){
 		pp[ 0 ] = imageFeatures[ i ][ 0 ];
 		pp[ 1 ] = imageFeatures[ i ][ 1 ];
@@ -202,18 +202,18 @@ void testFerns()
 
 	Eigen::Matrix3d H_calculated;
 	DLT::ndlt( reference, imageFeatures, H_calculated );
-	
-	std::cout << "Reference homography:\n" << homMat << std::endl; 
+
+	std::cout << "Reference homography:\n" << homMat << std::endl;
 	std::cout << "Computed homography: \n" << H_calculated << std::endl;
-	
+
 }
 
 int main()
 {
 	//testRNG();
 	testPatchGen();
-	
+
 	//testFerns();
-	
-	return 0;	
+
+	return 0;
 }

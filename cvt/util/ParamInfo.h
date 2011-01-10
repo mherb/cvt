@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <cvt/gfx/Image.h>
 
 namespace cvt
 {
