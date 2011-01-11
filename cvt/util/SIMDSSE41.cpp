@@ -20,8 +20,8 @@ namespace cvt {
 	{
 		__m128i v;
 		__m128 fsqr, f, forig;
-		size_t n2 = n >> 3;
-		size_t n3 = n & 0x07;
+		size_t n2 = n >> 1;
+		size_t n3 = n & 0x01;
 
 		__m128i zero = _mm_setzero_si128();
 		__m128 A = _mm_set1_ps( 0.28387f );
@@ -134,8 +134,8 @@ namespace cvt {
 	{
 		__m128i v;
 		__m128 fsqr, f, forig;
-		size_t n2 = n >> 3;
-		size_t n3 = n & 0x07;
+		size_t n2 = n >> 1;
+		size_t n3 = n & 0x01;
 
 		__m128i zero = _mm_setzero_si128();
 		__m128 A = _mm_set1_ps( 0.28387f );

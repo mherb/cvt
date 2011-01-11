@@ -1,18 +1,15 @@
 #ifndef SIMDSSE41_H
 #define SIMDSSE41_H
 
-#include <cvt/util/SIMDSSE.h>
+#include <cvt/util/SIMDSSE2.h>
 
 namespace cvt {
 
-	class SIMDSSE41 : public SIMDSSE {
+	class SIMDSSE41 : public SIMDSSE2 {
 		friend class SIMD;
 
 		private:
 			SIMDSSE41() {};
-
-			using SIMDSSE::Conv_XXXAf_to_XXXAu8;
-			using SIMDSSE::Conv_XYZAf_to_ZYXAu8;
 
 			virtual void Conv_XXXAu8_to_XXXAf( float* dst, uint8_t const* src, const size_t n ) const;
 			virtual void Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* src, const size_t n ) const;

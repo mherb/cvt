@@ -11,6 +11,7 @@ namespace cvt {
 	enum SIMDType {
 		SIMD_BASE = 0,
 		SIMD_SSE,
+		SIMD_SSE2,
 		SIMD_SSE41,
 		SIMD_BEST
 	};

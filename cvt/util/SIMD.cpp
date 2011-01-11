@@ -676,7 +676,9 @@ namespace cvt {
 			cpuf = cpuFeatures();
 			if( cpuf & CPU_SSE4_1 ) {
 				return new SIMDSSE41();
-			} else if( cpuf & CPU_SSE ) {
+			}  else if( cpuf & CPU_SSE2 ) {
+				return new SIMDSSE2();
+			}else if( cpuf & CPU_SSE ) {
 				return new SIMDSSE();
 			} else {
 				return new SIMD();
@@ -686,6 +688,7 @@ namespace cvt {
 				default:
 				case SIMD_BASE: return new SIMD();
 				case SIMD_SSE: return new SIMDSSE();
+				case SIMD_SSE2: return new SIMDSSE2();
 				case SIMD_SSE41: return new SIMDSSE41();
 			}
 		}

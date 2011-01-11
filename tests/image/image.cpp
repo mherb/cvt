@@ -25,9 +25,12 @@ int main(int argc, char* argv[])
 	try {
 		// RGBA UBYTE IMAGE
 		cvt::Image img, img2;		
-		cvt::ImageIO::loadPNG(img, inputGray);
-		//cvt::Image imgF( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );		
-		//img.convert( imgF );
+		cvt::ImageIO::loadPNG(img, inputFile );
+		cvt::Image imgF( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );		
+		img.convert( imgF );
+
+		cvt::ImageIO::savePNG( imgF, "float.png" );
+		return 0;
 		
 		cvt::Image resized;
 		
