@@ -85,7 +85,7 @@ namespace cvt {
 		{
 			return 1.0 / ::sqrt( d );
 		}
-
+		
 		static inline float abs( float f )
 		{
 			_flint32 u;
@@ -100,6 +100,11 @@ namespace cvt {
 			u.d = d;
 			u.i &= 0x7FFFFFFFFFFFFFFFULL;
 			return u.d;
+		}
+		
+		static inline int abs( int i )
+		{						
+			return ::abs( i );
 		}
 
 		static inline float cos( float x )

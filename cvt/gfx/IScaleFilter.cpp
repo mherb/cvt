@@ -279,8 +279,6 @@ namespace cvt {
 			offset =  0.5f * incr - 0.5f;
 		}
 		
-#define SRC2DST( n ) ( ( float ) ( n * src ) / ( float ) ( dst ) + offset  )
-		
 		conva.size = new IConvolveAdaptiveSize[ dst ];
 		conva.weights = new Fixed[ dst * support * 2 ];
 		i = 0;
@@ -288,7 +286,7 @@ namespace cvt {
 		weights = conva.weights;
 		lx = 0;
 		
-		Fixed ZeroFixed;
+		Fixed ZeroFixed = 0.0f;
 		
 		/* border */
 		while( ( x1 = ( ( ssize_t ) Math::ceil( center ) ) - support ) < 0 && i < dst ) {
@@ -305,7 +303,7 @@ namespace cvt {
 			for( x = 0; x < x2 && x < ( ssize_t ) src; x++ ) {
 				*weights = ( eval( ( ( ( float ) x ) - center ) / a ) / norm );
 				/* skip leading zeros */
-				if( *weights != (Fixed)0.0f || numweight || nonegincr ) {
+				if( *weights != ZeroFixed || numweight || nonegincr ) {
 					weights++;
 					numweight++;
 				} else {
@@ -314,7 +312,7 @@ namespace cvt {
 				}
 			}
 			/* remove trailing zeros */
-			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+			while( numweight && *( weights - 1 ) == ZeroFixed ) {
 				numweight--;
 				weights--;
 			}
@@ -352,7 +350,7 @@ namespace cvt {
 				}
 			}
 			/* remove trailing zeros */
-			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+			while( numweight && *( weights - 1 ) == ZeroFixed ) {
 				numweight--;
 				weights--;
 			}
@@ -390,7 +388,7 @@ namespace cvt {
 				}
 			}
 			/* remove trailing zeros */
-			while( numweight && *( weights - 1 ) != ZeroFixed ) {
+			while( numweight && *( weights - 1 ) == ZeroFixed ) {
 				numweight--;
 				weights--;
 			}

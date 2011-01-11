@@ -38,7 +38,7 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Div( float* dst, float const* src, const float value, const size_t n ) const;
-
+		
 			virtual void Add( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Sub( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
@@ -55,10 +55,16 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
+		
+			/* Fixed point numbers */
+			virtual void Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const;
+			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
 
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
+			virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
+			virtual float SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
 			virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
@@ -70,6 +76,9 @@ namespace cvt {
 			virtual void ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 			virtual void ConvolveAdaptiveClamp2f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 			virtual void ConvolveAdaptiveClamp4f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
+			virtual void ConvolveAdaptive1Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const;
+			virtual void ConvolveAdaptive2Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const;
+			virtual void ConvolveAdaptive4Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const;
 
 
 			virtual void Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const;

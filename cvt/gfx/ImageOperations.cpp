@@ -605,6 +605,24 @@ namespace cvt {
 				i.unmap( baseA );
 			}
 				break;
+			case IFORMAT_TYPE_UINT8:
+			{				
+				size_t astride, bstride;
+				const uint8_t* srcA = i.map( &astride );
+				const uint8_t* baseA = srcA;
+				const uint8_t* srcB = map( &bstride );
+				const uint8_t* baseB = srcB;
+				
+				size_t h = _mem->_height;
+				while( h-- ) {
+					ssd += simd->SSD( srcA, srcB, _mem->_width * _mem->_format.channels );
+					srcA += astride;
+					srcB += bstride;
+				}
+				unmap( baseB );
+				i.unmap( baseA );
+			}
+				break;
 			default:
 				throw CVTException("Unimplemented");
 				
@@ -641,6 +659,24 @@ namespace cvt {
 					unmap( baseB );
 					i.unmap( baseA );
 				}
+				break;
+			case IFORMAT_TYPE_UINT8:
+			{
+				size_t astride, bstride;
+				const uint8_t* srcA = i.map( &astride );
+				const uint8_t* baseA = srcA;
+				const uint8_t* srcB = map( &bstride );
+				const uint8_t* baseB = srcB;
+				
+				size_t h = _mem->_height;
+				while( h-- ) {
+					sad += simd->SAD( srcA, srcB, _mem->_width * _mem->_format.channels );
+					srcA += astride;
+					srcB += bstride;
+				}
+				unmap( baseB );
+				i.unmap( baseA );
+			}
 				break;
 			default:
 				throw CVTException("Unimplemented");
@@ -768,10 +804,17 @@ namespace cvt {
 
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
-		if( _mem->_format.type == IFORMAT_TYPE_FLOAT )
-			scaleFloat( idst, width, height, filter );
-		else
-			throw CVTException("Unimplemented");
+		switch ( _mem->_format.type ) {
+			case IFORMAT_TYPE_FLOAT:
+				scaleFloat( idst, width, height, filter );
+				break;
+			case IFORMAT_TYPE_UINT8:
+				scaleFixedu8( idst, width, height, filter );
+				break;
+			default:
+				throw CVTException("Unimplemented");
+				break;
+		}		
 	}
 
 	void Image::scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
@@ -803,8 +846,9 @@ namespace cvt {
 			scalex_func = &SIMD::ConvolveAdaptiveClamp4f;
 		}
 
-		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
-		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
+		//checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
+		//checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
+		idst.reallocate( width, height, this->format() );
 
 		osrc = src = map( &sstride );
 		odst = dst = idst.map( &dstride );
@@ -865,11 +909,10 @@ namespace cvt {
 	
 	void Image::scaleFixedu8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
-		/* TODO!!!
 		IConvolveAdaptiveFixed scalerx;
 		IConvolveAdaptiveFixed scalery;
 		
-		IConvolveAdaptiveSize* pysw;		
+		IConvolveAdaptiveSize* pysw;
 		Fixed* pyw;
 		
 		const uint8_t* src;
@@ -883,20 +926,18 @@ namespace cvt {
 		Fixed** buf;
 		size_t bufsize;
 		size_t curbuf;
-		void (SIMD::*scalex_func)( float* _dst, float const* _src, const size_t width, IConvolveAdaptiveFixed* conva ) const;
-		SIMD* simd = SIMD::instance();
-		
+		void (SIMD::*scalex_func)( Fixed* _dst, uint8_t const* _src, const size_t width, IConvolveAdaptiveFixed* conva ) const;
+		SIMD* simd = SIMD::instance();		
 		
 		if( _mem->_format.channels == 1 ) {
-			scalex_func = &SIMD::ConvolveAdaptiveClamp1Fixedu8;
+			scalex_func = &SIMD::ConvolveAdaptive1Fixed;
 		} else if( _mem->_format.channels == 2 ) {
-			scalex_func = &SIMD::ConvolveAdaptiveClamp2Fixedu8;
+			scalex_func = &SIMD::ConvolveAdaptive2Fixed;
 		} else {
-			scalex_func = &SIMD::ConvolveAdaptiveClamp4Fixedu8;
+			scalex_func = &SIMD::ConvolveAdaptive4Fixed;
 		}
 		
-		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
-		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, width, height );
+		idst.reallocate( width, height, this->format() );
 		
 		osrc = src = map( &sstride );
 		odst = dst = idst.map( &dstride );
@@ -905,12 +946,12 @@ namespace cvt {
 		bufsize = filter.getAdaptiveConvolutionWeights( height, _mem->_height, scalery, true );
 		filter.getAdaptiveConvolutionWeights( width, _mem->_width, scalerx, false );
 		
-		buf = new float*[ bufsize ];
+		buf = new Fixed*[ bufsize ];
 		// allocate and fill buffer
 		for( i = 0; i < bufsize; i++ ) {
-			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( float ) * width * _mem->_format.channels) )
+			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( Fixed ) * width * _mem->_format.channels) )
 				throw CVTException("Out of memory");
-			( simd->*scalex_func )( ( float* ) buf[ i ], ( float* ) src, width, &scalerx );
+			( simd->*scalex_func )( buf[ i ], src, width, &scalerx );
 			src += sstride;
 		}
 		curbuf = 0;
@@ -918,27 +959,33 @@ namespace cvt {
 		pysw = scalery.size;
 		pyw = scalery.weights;
 		
+		Fixed* accumBuf = new Fixed[ width * _mem->_format.channels ];
 		while( height-- ) {
 			if( pysw->incr ) {
 				for( k = 0; k < pysw->incr && src < send ; k++ ) {
-					( simd->*scalex_func )( ( float* ) buf[ ( curbuf + k ) % bufsize ], ( float* ) src, width, &scalerx );
+					( simd->*scalex_func )( buf[ ( curbuf + k ) % bufsize ], src, width, &scalerx );
 					src += sstride;
 				}
 				curbuf = ( curbuf + pysw->incr ) % bufsize;
 			}
 			
 			l = 0;
-			while( Math::abs( *pyw ) < Math::EPSILONF ) {
+			while( *pyw == ( Fixed )0.0f ) {
 				l++;
 				pyw++;
 			}
-			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
+			simd->Mul( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
 			l++;
 			for( ; l < pysw->numw; l++ ) {
-				if( Math::abs( *pyw ) > Math::EPSILONF )
-					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
+				if( *pyw != ( Fixed )0.0f )
+					simd->MulAdd( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
 				pyw++;
 			}
+			
+			for( size_t w = 0;  w < width * _mem->_format.channels; w++ ){
+				dst[ w ] = Math::clamp( accumBuf[ w ].round(), 0, 255 );
+			}
+			
 			pysw++;
 			dst += dstride;
 		}
@@ -952,7 +999,8 @@ namespace cvt {
 		delete[] scalerx.size;
 		delete[] scalerx.weights;
 		delete[] scalery.size;
-		delete[] scalery.weights;*/
+		delete[] scalery.weights;
+		delete[] accumBuf;
 	}
 
 	void Image::warpBilinear( Image& idst, const Image& warp ) const
