@@ -722,7 +722,6 @@ namespace cvt {
 			convaddfunc = &SIMD::ConvolveClampAdd4f;
 		}
 
-
 		/* kernel should at least fit once into the image */
 		if( _mem->_width < kernel._mem->_width || _mem->_height < kernel._mem->_height ) {
 			throw CVTException( "Image smaller than convolution kernel");
@@ -800,7 +799,7 @@ namespace cvt {
 		unmap( osrc );
 		idst.unmap( odst );
 		delete[] weights;
-	}
+	}	
 
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
