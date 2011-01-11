@@ -250,7 +250,7 @@ namespace cvt {
 		return maxsupport;
 	}
 
-	
+
 	size_t IScaleFilter::getAdaptiveConvolutionWeights( size_t dst, size_t src, IConvolveAdaptiveFixed& conva, bool nonegincr ) const
 	{
 		IConvolveAdaptiveSize* sweights;

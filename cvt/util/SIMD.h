@@ -5,7 +5,7 @@
 #include <string.h>
 #include <string>
 
-#include "gfx/IScaleFilter.h"
+#include <cvt/gfx/IScaleFilter.h>
 
 namespace cvt {
 	enum SIMDType {
