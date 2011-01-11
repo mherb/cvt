@@ -34,6 +34,16 @@ namespace cvt {
 		CONVTEST( IFormat::RGBA_FLOAT );
 	}
 
+	static void _image_conversionyuyv_speed( const Image& img )
+	{
+		Time t;
+		float mps, s;
+
+		CONVTEST( IFormat::BGRA_UINT8 );
+		CONVTEST( IFormat::RGBA_UINT8 );
+	}
+
+
 	BEGIN_CVTTEST( Image )
 		Color color( 255, 0, 0, 255 );
 		Image y;
@@ -124,9 +134,30 @@ namespace cvt {
 		Image img;
 		Resources res;
 		std::string imgpath = res.find( "bbc-hd.png");
+		std::string yuyvpath = res.find( "bbc-hd.yuyv");
 		ImageIO::loadPNG( img, imgpath );
 		Image imgt;
+		Image imgyuyv( 1920, 1080, IFormat::UYVY_UINT8 );
 
+		{
+			size_t stride;
+			uint8_t* base = imgyuyv.map<uint8_t>( &stride );
+			uint8_t* dst = base;
+			FILE* f = fopen( yuyvpath.c_str(), "r" );
+			for( int i = 0; i < 1080; i++ ) {
+				if( fread( dst, 1920, sizeof( uint8_t ) * 2, f ) != 1920 ) {
+					fclose( f );
+					return false;
+				}
+				dst += stride;
+			}
+			fclose( f );
+			imgyuyv.unmap( base );
+		}
+
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		imgyuyv.convert( imgt );
+		ImageIO::savePNG( imgt, "vid.png" );
 
 		CVTTEST_LOG("Image Convert Speed BASE");
 		SIMD::force( SIMD_BASE );
@@ -142,6 +173,7 @@ namespace cvt {
 		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
 		img.convert( imgt );
 		_image_conversion_speed( imgt );
+		_image_conversionyuyv_speed( imgyuyv );
 
 		CVTTEST_LOG("Image Convert Speed SSE");
 		SIMD::force( SIMD_SSE );
@@ -157,6 +189,7 @@ namespace cvt {
 		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
 		img.convert( imgt );
 		_image_conversion_speed( imgt );
+		_image_conversionyuyv_speed( imgyuyv );
 
 		CVTTEST_LOG("Image Convert Speed SSE41");
 		SIMD::force( SIMD_SSE41 );
@@ -172,6 +205,7 @@ namespace cvt {
 		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
 		img.convert( imgt );
 		_image_conversion_speed( imgt );
+		_image_conversionyuyv_speed( imgyuyv );
 
 		SIMD::force( SIMD_BEST );
 

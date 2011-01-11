@@ -7,7 +7,7 @@ namespace cvt {
 
 	class SIMDSSE : public SIMD {
 		friend class SIMD;
-		friend class SIMDSSE41;
+		friend class SIMDSSE2;
 
 		private:
 			SIMDSSE() {};
