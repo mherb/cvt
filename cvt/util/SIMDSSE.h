@@ -1,7 +1,7 @@
 #ifndef SIMDSSE_H
 #define SIMDSSE_H
 
-#include "util/SIMD.h"
+#include <cvt/util/SIMD.h>
 
 namespace cvt {
 

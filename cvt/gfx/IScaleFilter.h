@@ -15,7 +15,7 @@ namespace cvt {
 		IConvolveAdaptiveSize* size;
 		float* weights;
 	};
-	
+
 	struct IConvolveAdaptiveFixed {
 		IConvolveAdaptiveSize* size;
 		Fixed* weights;

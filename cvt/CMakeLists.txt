@@ -377,6 +377,6 @@ ENDIF()
 target_link_libraries (cvttest ${MODULE_NAME}) 
 
 #special flags for some files
-set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-msse")
-set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
+set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
 

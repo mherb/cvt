@@ -11,6 +11,12 @@ namespace cvt {
 		private:
 			SIMDSSE41() {};
 
+			using SIMDSSE::Conv_XXXAf_to_XXXAu8;
+			using SIMDSSE::Conv_XYZAf_to_ZYXAu8;
+
+			virtual void Conv_XXXAu8_to_XXXAf( float* dst, uint8_t const* src, const size_t n ) const;
+			virtual void Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* src, const size_t n ) const;
+
 		public:
 			virtual std::string name() const;
 			virtual SIMDType type() const;
