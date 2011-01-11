@@ -14,21 +14,23 @@ void testStandard()
 	{
 		ParamInfo( PTYPE_INT8, "int8Param",  1 ),
 		ParamInfo( PTYPE_DOUBLE, "doubleParam",  1 ),
+		ParamInfo( PTYPE_DOUBLE, "rangedDouble", -10.0, 10.0, 0.0 ),
 		ParamInfo( PTYPE_IMAGEPTR, "image",  1 )
 	};
 
-	ParamSet pSet( params, 3, true );
+	ParamSet pSet( params, 4, true );
 
 	size_t i8 = pSet.paramHandle( "int8Param" );
 	size_t db = pSet.paramHandle( "doubleParam" );
+	size_t rdb = pSet.paramHandle( "rangedDouble" );
 	size_t img = pSet.paramHandle( "image" );
 
 	Image testImage;
-	std::cout << "Adress of Image: " << &testImage << std::endl;
 
 	pSet.setArg<double>( db, 2.1 );
 	pSet.setArg<int8_t>( i8, 2 );
-	pSet.setArg<Image*>( img, &testImage );
+	pSet.setArg( img, &testImage );
+	pSet.setArg( rdb, 9.5 );
 
 	double val = pSet.arg<double>( db );
 	int8_t vali = pSet.arg<int8_t>( i8 );
@@ -37,6 +39,8 @@ void testStandard()
 	std::cout << "Double: " << val << std::endl;
 	std::cout << "int8: " << (int)vali << std::endl;
 	std::cout << "Image: " << iPtr << std::endl;
+	val = pSet.arg<double>( rdb );
+	std::cout << "Ranged double: " << val << std::endl;
 
 	std::cout << pSet << std::endl;
 }

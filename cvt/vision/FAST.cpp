@@ -67,40 +67,32 @@ namespace cvt
 	{
 		// construct the scale space
 		std::vector<Image> pyramid;
-		std::vector<Image> pyramidF;
 		size_t width = image.width();
 		size_t height = image.height();
 
 		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
-
-		Image fImg( width, height, IFormat::GRAY_FLOAT );
-		image.convert( fImg );
-
-		pyramidF.resize( octaves - 1 );
+		
 		pyramid.resize( octaves - 1 );
 
-		const Image * prevScale = &fImg;
+		const Image * prevScale = &image;
 
-		for( size_t i = 1; i < octaves; i++ ){
+		for( size_t i = 0; i < pyramid.size(); i++ ){
 			width >>= 1;
 			height >>= 1;
 
-			pyramidF[ i - 1 ].reallocate( width, height, IFormat::GRAY_FLOAT );
-			prevScale->scale( pyramidF[ i - 1 ], width, height, scaleFilter );
-			prevScale = &pyramidF[ i - 1 ];
-
-			pyramid[ i - 1 ].reallocate( width, height, image.format() );
-			pyramidF[ i - 1 ].convert( pyramid[ i - 1 ] );
+			pyramid[ i ].reallocate( width, height, image.format() );
+			prevScale->scale( pyramid[ i  ], width, height, scaleFilter );
+			prevScale = &pyramid[ i ];			
 		}
 
 		this->extract( image, features );
 		size_t previousScaleEnd = features.size();
 
 		int32_t scale = 1;
-		for( size_t i = 1; i < octaves; i++ ){
+		for( size_t i = 0; i < pyramid.size(); i++ ){
 			scale >>= 1;
 
-			this->extract( pyramid[ i - 1 ], features );
+			this->extract( pyramid[ i ], features );
 			while( previousScaleEnd < features.size() ){
 				features[ previousScaleEnd ]*=scale;
 				previousScaleEnd++;

@@ -89,8 +89,7 @@ namespace cvt
 		const Image * prevScale = &image;
 
 		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
-
-		for( size_t i = 1; i < octaves; i++ ){
+		for( size_t i = 0; i < pyramid.size(); i++ ){
 			width >>= 1;
 			height >>= 1;
 
@@ -104,7 +103,7 @@ namespace cvt
 		size_t previousScaleEnd = features.size();
 
 		int32_t scale = 1;
-		for( size_t i = 1; i < octaves; i++ ){
+		for( size_t i = 0; i < pyramid.size(); i++ ){
 			scale >>= 1;
 
 			this->extract( pyramid[ i ], features );

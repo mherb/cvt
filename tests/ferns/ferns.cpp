@@ -141,13 +141,12 @@ void testFerns()
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
 
 	Homography hfilter;
-	IFilterVector8 H = calc_homography( 25.0f, 0.0f, 1.01f, 1.01f, 100.0f, 100.0f, 0.0f, 0.0f );
+	IFilterVector8 H = calc_homography( 25.0f, 0.0f, 1.2f, 1.2f, 100.0f, 100.0f, 0.0f, 0.0f );
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
 
 	ImageIO::savePNG( warped, "test.png" );
-
 
 	std::cout << "H: \n";
 	std::cout << H[ 0 ] << ", " << H[ 1 ] << ", " << H[ 2 ] << "\n";
@@ -211,9 +210,9 @@ void testFerns()
 int main()
 {
 	//testRNG();
-	testPatchGen();
+	//testPatchGen();
 
-	//testFerns();
+	testFerns();
 
 	return 0;
 }

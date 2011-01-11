@@ -47,16 +47,19 @@ namespace cvt
 	inline void ParamSet::setArg( size_t handle, T value, size_t localIndex )
 	{
 		ParamInfo * pInfo = &_pInfos[ handle ];
-
+		
 		if( localIndex > pInfo->count )
 			throw CVTException( "Parameter \"" + pInfo->name + "\" local index out of bounds!" );
 
 		if( !PTypeCheck<T>::check( pInfo->type ) ){
 			throw CVTException( "Parameter \"" + pInfo->name + "\" types do not match!" );
 		}
+		
+		if( pInfo->rangeAndDefaultSet ){
+			
+		}
 
 		*( T* )( _parameterMem + pInfo->offset + localIndex * sizeof( T ) ) = value;
-
 	}
 
 	template <class T>

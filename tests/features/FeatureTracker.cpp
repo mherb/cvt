@@ -12,8 +12,8 @@ namespace cvt {
 	FeatureTracker::FeatureTracker() :
 		_featureDetector( 0 )
 	{
-		//_featureDetector = new AGAST( AGAST_7_12D );
-		_featureDetector = new FAST( SEGMENT_9 );
+		_featureDetector = new AGAST( OAST_9_16 );
+		//_featureDetector = new FAST( SEGMENT_9 );
 	}
 
 	FeatureTracker::~FeatureTracker()
@@ -112,7 +112,6 @@ namespace cvt {
 		}
 		
 		float currentDistance = bestDistance;
-		// no only update the current distance:
 
 		return bestDistance / Math::sqr( h );
 	}
