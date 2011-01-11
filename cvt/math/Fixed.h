@@ -51,7 +51,7 @@ namespace cvt
 			int32_t		_val;			
 	};
 	
-	inline Fixed::Fixed() : _val( 0 )
+	inline Fixed::Fixed()
 	{		
 	}
 	
@@ -147,7 +147,7 @@ namespace cvt
 	}
 	
 	inline Fixed Fixed::operator*( uint8_t other ) const
-	{		
+	{
 		Fixed ret( *this );		
 		ret._val *= other;
 	    return ret;

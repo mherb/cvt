@@ -945,6 +945,34 @@ namespace cvt {
 			x &= 0x03;
 		}
 	}
+	
+	void SIMD::Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src++ * value;
+	}
+	
+	void SIMD::MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ += *src++ * value;
+			*dst++ += *src++ * value;
+			*dst++ += *src++ * value;
+			*dst++ += *src++ * value;
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ += *src++ * value;	
+	}
 
 	float SIMD::SSD( float const* src1, float const* src2, const size_t n ) const
 	{
@@ -965,6 +993,26 @@ namespace cvt {
 
 		return ssd;
 	}
+	
+	float SIMD::SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		
+		float ssd = 0.0f;
+		while( i-- ) {
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+			ssd += Math::sqr( *src1++ - *src2++ );
+		}
+		
+		i = n & 0x03;
+		while( i-- ) {
+			ssd += Math::sqr( *src1++ - *src2++ );
+		}
+		
+		return ssd;
+	}
 
 	float SIMD::SAD( float const* src1, float const* src2, const size_t n ) const
 	{
@@ -983,6 +1031,26 @@ namespace cvt {
 			sad += Math::abs( *src1++ - *src2++ );
 		}
 
+		return sad;
+	}
+	
+	float SIMD::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		
+		float sad = 0.0f;
+		while( i-- ) {
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );			
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
+		}
+		
+		i = n & 0x03;
+		while( i-- ) {
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
+		}
+		
 		return sad;
 	}
 
@@ -2318,6 +2386,88 @@ namespace cvt {
 				pixel[ 1 ] += *( src + x * 4 + 1 ) * *weights;
 				pixel[ 2 ] += *( src + x * 4 + 2 ) * *weights;
 				pixel[ 3 ] += *( src + x * 4 + 3 ) * *weights++;
+			}
+			*dst++ = pixel[ 0 ];
+			*dst++ = pixel[ 1 ];
+			*dst++ = pixel[ 2 ];
+			*dst++ = pixel[ 3 ];
+			sw++;
+		}
+	}
+	
+	void SIMD::ConvolveAdaptive1Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
+	{
+		IConvolveAdaptiveSize* sw;
+		Fixed* weights;
+		uint32_t x;
+		
+		Fixed pixel;
+		Fixed* dst = _dst;
+		const uint8_t* src = _src;
+		
+		sw = conva->size;
+		weights = conva->weights;
+		
+		while( width-- ) {
+			pixel = 0.0f;
+			src += sw->incr;
+			for( x = 0; x < sw->numw; x++ ) {
+				pixel +=  ( *weights++ * *( src + x ) );
+			}
+			*dst++ = pixel;
+			sw++;
+		}	
+	}
+	
+	void SIMD::ConvolveAdaptive2Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
+	{
+		IConvolveAdaptiveSize* sw;
+		Fixed* weights;
+		uint32_t x;
+		Fixed pixel[ 2 ];
+		Fixed* dst = _dst;
+		const uint8_t* src = _src;
+		
+		sw = conva->size;
+		weights = conva->weights;
+		
+		while( width-- ) {
+			pixel[ 0 ] = 0.0f;
+			pixel[ 1 ] = 0.0f;
+			src += sw->incr * 2;
+			for( x = 0; x < sw->numw; x++ ) {
+				pixel[ 0 ] += *weights * *( src + x * 2 + 0 );
+				pixel[ 1 ] += *weights++ * *( src + x * 2 + 1 );
+			}
+			*dst++ = pixel[ 0 ];
+			*dst++ = pixel[ 1 ];
+			sw++;
+		}
+	}
+	
+	void SIMD::ConvolveAdaptive4Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
+	{
+		IConvolveAdaptiveSize* sw;
+		Fixed* weights;
+		uint32_t x;
+		Fixed pixel[ 4 ];
+		Fixed* dst = _dst;
+		const uint8_t* src = _src;
+		
+		sw = conva->size;
+		weights = conva->weights;
+		
+		while( width-- ) {
+			pixel[ 0 ] = 0.0f;
+			pixel[ 1 ] = 0.0f;
+			pixel[ 2 ] = 0.0f;
+			pixel[ 3 ] = 0.0f;
+			src += sw->incr * 4;
+			for( x = 0; x < sw->numw; x++ ) {
+				pixel[ 0 ] += *weights * *( src + x * 4 + 0 );
+				pixel[ 1 ] += *weights * *( src + x * 4 + 1 );
+				pixel[ 2 ] += *weights * *( src + x * 4 + 2 );
+				pixel[ 3 ] += *weights++ * *( src + x * 4 + 3 );
 			}
 			*dst++ = pixel[ 0 ];
 			*dst++ = pixel[ 1 ];
