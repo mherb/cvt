@@ -18,7 +18,7 @@ namespace cvt
 			 * @param n				size of array
 			 * @param genOffsets	if true, the offsets will be generated and set during construction
 			 */
-			ParamSet( ParamInfo * pInfos, size_t n, bool genOffsets = true );
+			ParamSet( ParamInfo** pInfos, size_t n, bool genOffsets = true );
 
 			~ParamSet();
 
@@ -37,7 +37,7 @@ namespace cvt
 
 		private:
 			uint8_t *	_parameterMem;
-			ParamInfo *	_pInfos;
+			ParamInfo**	_pInfos;
 			size_t		_numParameters;
 
 			friend std::ostream& operator<< ( std::ostream &, const ParamSet& );
@@ -46,7 +46,7 @@ namespace cvt
 	template<class T>
 	inline void ParamSet::setArg( size_t handle, T value, size_t localIndex )
 	{
-		ParamInfo * pInfo = &_pInfos[ handle ];
+		ParamInfo * pInfo = _pInfos[ handle ];
 		
 		if( localIndex > pInfo->count )
 			throw CVTException( "Parameter \"" + pInfo->name + "\" local index out of bounds!" );
@@ -55,8 +55,14 @@ namespace cvt
 			throw CVTException( "Parameter \"" + pInfo->name + "\" types do not match!" );
 		}
 		
+		// Type T is ensured here!
+		TypedParamInfo<T>* pInfoT =  ( TypedParamInfo<T>* )pInfo;
 		if( pInfo->rangeAndDefaultSet ){
-			
+			if( value < pInfoT->minValue() ){
+				value = pInfoT->minValue();
+			} else if( value > pInfoT->maxValue() ) {
+				value = pInfoT->maxValue();
+			}			
 		}
 
 		*( T* )( _parameterMem + pInfo->offset + localIndex * sizeof( T ) ) = value;
@@ -65,7 +71,7 @@ namespace cvt
 	template <class T>
 	inline T ParamSet::arg( size_t handle, size_t localIndex )
 	{
-		ParamInfo * pInfo = &_pInfos[ handle ];
+		ParamInfo * pInfo = _pInfos[ handle ];
 
 		if( localIndex > pInfo->count )
 			throw CVTException( "Parameter \"" + pInfo->name + "\" local index out of bounds!" );

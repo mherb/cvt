@@ -10,14 +10,14 @@ using namespace cvt;
 
 void testStandard()
 {
-	ParamInfo params[] =
+	ParamInfo* params[] =
 	{
-		ParamInfo( PTYPE_INT8, "int8Param",  1 ),
-		ParamInfo( PTYPE_DOUBLE, "doubleParam",  1 ),
-		ParamInfo( PTYPE_DOUBLE, "rangedDouble", -10.0, 10.0, 0.0 ),
-		ParamInfo( PTYPE_IMAGEPTR, "image",  1 )
+		new TypedParamInfo<int8_t>( "int8Param",  1 ),
+		new TypedParamInfo<double>( "doubleParam",  1 ),
+		new TypedParamInfo<double>( "rangedDouble", -10.0, 10.0, 0.0 ),
+		new TypedParamInfo<Image*>( "image",  1 )
 	};
-
+		
 	ParamSet pSet( params, 4, true );
 
 	size_t i8 = pSet.paramHandle( "int8Param" );
@@ -30,7 +30,7 @@ void testStandard()
 	pSet.setArg<double>( db, 2.1 );
 	pSet.setArg<int8_t>( i8, 2 );
 	pSet.setArg( img, &testImage );
-	pSet.setArg( rdb, 9.5 );
+	pSet.setArg( rdb, 45.5 );
 
 	double val = pSet.arg<double>( db );
 	int8_t vali = pSet.arg<int8_t>( i8 );
@@ -53,14 +53,13 @@ struct MyParams
 };
 
 void testWithStruct()
-{
-	std::cout << "MyParams size: " << sizeof( MyParams ) << std::endl;
-
-	ParamInfo pInfos[] =
+{	
+	
+	ParamInfo* pInfos[] =
 	{
-		ParamInfo( PTYPE_INT8, "i", 1, offsetof( MyParams, i ) ),
-		ParamInfo( PTYPE_DOUBLE, "d", 1, offsetof( MyParams, d ) ),
-		ParamInfo( PTYPE_FLOAT, "f", 1, offsetof( MyParams, f ) )
+		new TypedParamInfo<int8_t>( "i", 1, offsetof( MyParams, i ) ),
+		new TypedParamInfo<double>( "d", 1, offsetof( MyParams, d ) ),
+		new TypedParamInfo<float>( "f", 1, offsetof( MyParams, f ) )
 	};
 
 	ParamSet pSet( pInfos, 3, false );
