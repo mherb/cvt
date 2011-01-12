@@ -9,11 +9,11 @@
 
 namespace cvt {
 
-	static const IFilterParameterInfo _params[ 4 ] = {
-		IFilterParameterInfo( "Input", IFILTERPARAMETER_IMAGE ),
-		IFilterParameterInfo( "Output", IFILTERPARAMETER_IMAGE, IFILTERPARAMETER_OUT ),
-		IFilterParameterInfo( "Iterations", IFILTERPARAMETER_SCALAR ),
-		IFilterParameterInfo( "Lambda", IFILTERPARAMETER_SCALAR )
+	static ParamInfo * _params[ 4 ] = {
+		new ParamInfoTyped<Image*>( "Input", true ),
+		new ParamInfoTyped<Image*>( "Output", false ),
+		new ParamInfoTyped<uint64_t>( "Iterations", true),
+		new ParamInfoTyped<float>( "Lambda", true )
 	};
 
 	ROFDenoise::ROFDenoise() : IFilter( "ROFDenoise", _params, 4, IFILTER_CPU )
@@ -164,7 +164,7 @@ namespace cvt {
 		idst1.unmap( odst1 );
 	}
 
-	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, size_t iter ) const
+	void ROFDenoise::apply( Image& dst, const Image& src, float lambda, uint64_t iter ) const
 	{
 		Image dx, dy, px, py;
 #if 0
@@ -281,27 +281,21 @@ namespace cvt {
 
 	}
 
-	void ROFDenoise::apply( const IFilterParameterSet* set, IFilterType t ) const
+	void ROFDenoise::apply( const ParamSet* set, IFilterType t ) const
 	{
-		if( !(getIFilterType() & t) )
+		if( !( getIFilterType() & t ) )
 			throw CVTException("Invalid filter type (CPU/GPU)!");
 		Image* dst;
 		Image* src;
-		IFilterScalar* lambda;
-		IFilterScalar* iter;
+		float lambda;
+		uint64_t iter;
+		
+		src = set->arg<Image*>( 0 );
+		dst = set->arg<Image*>( 1 );
+		iter = set->arg<uint64_t>( 2 );
+		lambda = set->arg<float>( 3 );				
 
-		if( !set->isValid())
-			throw CVTException("Invalid argument(s)");
-
-		if( !( dst = dynamic_cast<Image*>( set->getParameter( 1 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( src = dynamic_cast<Image*>( set->getParameter( 0 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( lambda = dynamic_cast<IFilterScalar*>( set->getParameter( 3 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( iter = dynamic_cast<IFilterScalar*>( set->getParameter( 2 ) ) ) )
-			throw CVTException("Invalid argument");
-		apply( *dst, *src, lambda->get(), ( size_t ) iter->get() );
+		apply( *dst, *src, lambda, iter );
 	}
 
 }

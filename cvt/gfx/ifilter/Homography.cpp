@@ -8,20 +8,19 @@
 
 namespace cvt {
 
-	static const IFilterParameterInfo _params[ 4 ] = {
-		IFilterParameterInfo( "Input", IFILTERPARAMETER_IMAGE ),
-		IFilterParameterInfo( "Output", IFILTERPARAMETER_IMAGE, IFILTERPARAMETER_OUT ),
-		IFilterParameterInfo( "H", IFILTERPARAMETER_VECTOR8 ),
-		IFilterParameterInfo( "Color", IFILTERPARAMETER_COLOR )
+	static ParamInfo* _params[ 4 ] = {
+		new ParamInfoTyped<Image*>( "Input", true ),
+		new ParamInfoTyped<Image*>( "Output", false ),
+		new ParamInfoTyped<Matrix3f>( "H", true ),
+		new ParamInfoTyped<Vector4f>( "Color", true )
 	};
 
 	Homography::Homography() : IFilter( "Homography", _params, 4, IFILTER_CPU )
 	{
 	}
 
-	void Homography::applyFloat( Image& idst, const Image& isrc, const IFilterVector8& H, const Color& ) const
+	void Homography::applyFloat( Image& idst, const Image& isrc, const Matrix3f& H, const Color& ) const
 	{
-		float h33;
 		const uint8_t* src;
 		uint8_t* dst;
 		uint8_t* dst2;
@@ -30,18 +29,12 @@ namespace cvt {
 		float* pdst;
 		size_t w, h, i;
 		ssize_t sw, sh;
-		float x, y;
-		float hx, hy, hz;
+
+		float hx, hy;
 		float data[ 4 ];
 		float col[ 4 ] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		float alpha, beta;
 		size_t C;
-
-		h33 = ( ( H[ 6 ] * ( H[ 1 ] * H[ 5 ] - H[ 4 ] * H[ 2 ] ) +
-			   H[ 7 ] * ( H[ 3 ] * H[ 2 ] - H[ 0 ] * H[ 5 ] ) ) - 1.0f ) / ( H[ 3 ] * H[ 1 ] - H[ 0 ] * H[ 4 ] );
-
-		if( h33 == 0.0f || std::isinf( h33 ) || std::isnan( h33 ) )
-			return;
 
 		dst = idst.map( &dstride );
 		src = isrc.map( &sstride );
@@ -51,30 +44,34 @@ namespace cvt {
 		sh = ( ssize_t ) isrc.height();
 		C = idst.channels();
 		dst2 = dst;
-		y = 0.0f;
+
+		
+		cvt::Vector3f point( 0.0f, 0.0f, 1.0f );
+		cvt::Vector3f pprime;
 
 		while( h-- ) {
 			pdst = ( float * ) dst2;
 			i = w;
-			x = 0.0f;
+
+			point[ 0 ] = 0.0f;
 			while( i-- ) {
 				ssize_t ix[ 2 ], iy[ 2 ];
-
+				
 				// Evaluate homography
-				hx = x * H[ 0 ] + y * H[ 1 ] + H[ 2 ];
-				hy = x * H[ 3 ] + y * H[ 4 ] + H[ 5 ];
-				hz = x * H[ 6 ] + y * H[ 7 ] + h33;
-				hx /= hz;
-				hy /= hz;
-
-				if( Math::abs( hz ) > Math::EPSILONF ) {
-				alpha = hx - Math::floor( hx );
-				beta  = hy - Math::floor( hy );
-				// need to floor in order to get correct result for negative values
-				ix[ 0 ] = ( ssize_t ) Math::floor( hx );
-				iy[ 0 ] = ( ssize_t ) Math::floor( hy );
-				ix[ 1 ] = ix[ 0 ] + 1;
-				iy[ 1 ] = iy[ 0 ] + 1;
+				pprime = H * point;
+				
+				hx = pprime[ 0 ] / pprime[ 2 ];
+				hy = pprime[ 1 ] / pprime[ 2 ];
+				
+				if( Math::abs( pprime[ 2 ] ) > Math::EPSILONF ) {
+					alpha = hx - Math::floor( hx );
+					beta  = hy - Math::floor( hy );
+					
+					// need to floor in order to get correct result for negative values
+					ix[ 0 ] = ( ssize_t ) Math::floor( hx );
+					iy[ 0 ] = ( ssize_t ) Math::floor( hy );
+					ix[ 1 ] = ix[ 0 ] + 1;
+					iy[ 1 ] = iy[ 0 ] + 1;
 
 					for( size_t k = 0; k < C; k++ ) {
 						if( iy[ 0 ] >= 0 && iy[ 0 ] < sh && ix[ 0 ] >= 0 && ix[ 0 ] < sw )
@@ -105,47 +102,41 @@ namespace cvt {
 					for( size_t k = 0; k < C; k++ )
 						*pdst++ = col[ k ];
 				}
-				x += 1.0f;
+				point[ 0 ] += 1.0f;
 			}
-			y += 1.0f;
+			point[ 1 ] += 1.0f;
 			dst2 += dstride;
 		}
 		idst.unmap( dst );
 		isrc.unmap( src );
 	}
 
-	void Homography::apply( Image& dst, const Image& src, const IFilterVector8& h, const Color& c ) const
+	void Homography::apply( Image& dst, const Image& src, const Matrix3f& H, const Color& c ) const
 	{
 
 		if( dst.format() != src.format() || 
 			dst.format().type != IFORMAT_TYPE_FLOAT )
 			throw CVTException( "Invalid image formats/types");
 
-		applyFloat( dst, src, h, c );
+		applyFloat( dst, src, H, c );
 	}
 
-	void Homography::apply( const IFilterParameterSet* set, IFilterType t ) const
+	void Homography::apply( const ParamSet* set, IFilterType t ) const
 	{
 		if( !(getIFilterType() & t) )
 			throw CVTException("Invalid filter type (CPU/GPU)!");
 
 		Image* dst;
 		Image* src;
-		IFilterVector8* h;
-		Color* c;
+		Matrix3f H;
+		Color c;
+		
+		src = set->arg<Image*>( 0 );
+		dst = set->arg<Image*>( 1 );
+		H = set->arg<Matrix3f>( 2 );
+		c = set->arg<Color>( 3 );
 
-		if( !set->isValid())
-			throw CVTException("Invalid argument(s)");
-
-		if( !( dst = dynamic_cast<Image*>( set->getParameter( 1 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( src = dynamic_cast<Image*>( set->getParameter( 0 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( h = dynamic_cast<IFilterVector8*>( set->getParameter( 2 ) ) ) )
-			throw CVTException("Invalid argument");
-		if( !( c = dynamic_cast<Color*>( set->getParameter( 3 ) ) ) )
-			throw CVTException("Invalid argument");
-		apply( *dst, *src, *h, *c );
+		apply( *dst, *src, H, c );
 	}
 
 }

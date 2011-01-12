@@ -17,10 +17,10 @@ void testStandard()
 	
 	ParamInfo* params[] =
 	{
-		new ParamInfoTyped<int8_t>( "int8Param",  1 ),
-		new ParamInfoTyped<double>( "doubleParam",  1 ),
+		new ParamInfoTyped<int8_t>( "int8Param" ),
+		new ParamInfoTyped<double>( "doubleParam" ),
 		new ParamInfoTyped<double>( "rangedDouble", -10.0, 10.0, 0.0 ),
-		new ParamInfoTyped<Image*>( "image",  1 ),
+		new ParamInfoTyped<Image*>( "image" ),
 		new ParamInfoTyped<Selection>( "selection", 4, selectable )
 	};
 		
@@ -68,9 +68,9 @@ void testWithStruct()
 	
 	ParamInfo* pInfos[] =
 	{
-		new ParamInfoTyped<int8_t>( "i", 1, offsetof( MyParams, i ) ),
-		new ParamInfoTyped<double>( "d", 1, offsetof( MyParams, d ) ),
-		new ParamInfoTyped<float>( "f", 1, offsetof( MyParams, f ) )
+		new ParamInfoTyped<int8_t>( "i", true, 1, offsetof( MyParams, i ) ),
+		new ParamInfoTyped<double>( "d", true, 1, offsetof( MyParams, d ) ),
+		new ParamInfoTyped<float>( "f", true, 1, offsetof( MyParams, f ) )
 	};
 
 	ParamSet pSet( pInfos, 3, false );
@@ -82,7 +82,6 @@ void testWithStruct()
 	pSet.setArg( iHandle, int8_t( 3 ) );
 	pSet.setArg<float>( fHandle, 1.8f );
 	pSet.setArg<double>( dHandle, 0.55 );
-
 
 	MyParams * params;
 	params = pSet.ptr<MyParams>();
