@@ -145,7 +145,7 @@ namespace cvt {
 			uint8_t* dst = base;
 			FILE* f = fopen( yuyvpath.c_str(), "r" );
 			for( int i = 0; i < 1080; i++ ) {
-				if( fread( dst, 1920, sizeof( uint8_t ) * 2, f ) != 1920 ) {
+				if( fread( dst, sizeof( uint8_t ) * 2, 1920, f ) != 1920 ) {
 					fclose( f );
 					return false;
 				}
@@ -177,6 +177,22 @@ namespace cvt {
 
 		CVTTEST_LOG("Image Convert Speed SSE");
 		SIMD::force( SIMD_SSE );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		_image_conversionyuyv_speed( imgyuyv );
+
+		CVTTEST_LOG("Image Convert Speed SSE2");
+		SIMD::force( SIMD_SSE2 );
 		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
 		img.convert( imgt );
 		_image_conversion_speed( imgt );
