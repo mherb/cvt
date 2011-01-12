@@ -34,6 +34,9 @@ namespace cvt
 
 			template <typename T>
 			T * ptr();
+		
+			template <class T>
+			const std::string & selectionString( size_t handle );
 
 		private:
 			uint8_t *	_parameterMem;
@@ -56,7 +59,7 @@ namespace cvt
 		}
 		
 		// Type T is ensured here!
-		TypedParamInfo<T>* pInfoT =  ( TypedParamInfo<T>* )pInfo;
+		ParamInfoTyped<T>* pInfoT =  ( ParamInfoTyped<T>* )pInfo;
 		if( pInfo->rangeAndDefaultSet ){
 			if( value < pInfoT->minValue() ){
 				value = pInfoT->minValue();
@@ -81,14 +84,26 @@ namespace cvt
 		}
 
 		return *( T* )( _parameterMem + pInfo->offset + localIndex * sizeof( T ) );
-	}
+	}	
 
-	template <typename T>
+	template <class T>
 	inline T * ParamSet::ptr()
 	{
 		return ( T* )_parameterMem;
 	}
+	
+	template<>
+	inline const std::string & ParamSet::selectionString<Selection>( size_t handle )
+	{
+		ParamInfo * p = _pInfos[ handle ];
+		if( p->type != PTYPE_SELECTION ){
+			throw CVTException( "Not a selection type" );
+		}
 
+		Selection current = this->arg<Selection>( handle );
+		
+		return ( ( ParamInfoTyped<Selection>* )p )->description( current );
+	}
 }
 
 #endif

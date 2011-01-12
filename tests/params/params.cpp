@@ -10,37 +10,48 @@ using namespace cvt;
 
 void testStandard()
 {
+	std::string selectable[] = 
+	{
+		"bla", "blubb", "foo", "bar"
+	};
+	
 	ParamInfo* params[] =
 	{
-		new TypedParamInfo<int8_t>( "int8Param",  1 ),
-		new TypedParamInfo<double>( "doubleParam",  1 ),
-		new TypedParamInfo<double>( "rangedDouble", -10.0, 10.0, 0.0 ),
-		new TypedParamInfo<Image*>( "image",  1 )
+		new ParamInfoTyped<int8_t>( "int8Param",  1 ),
+		new ParamInfoTyped<double>( "doubleParam",  1 ),
+		new ParamInfoTyped<double>( "rangedDouble", -10.0, 10.0, 0.0 ),
+		new ParamInfoTyped<Image*>( "image",  1 ),
+		new ParamInfoTyped<Selection>( "selection", 4, selectable )
 	};
 		
-	ParamSet pSet( params, 4, true );
+	ParamSet pSet( params, 5, true );
 
 	size_t i8 = pSet.paramHandle( "int8Param" );
 	size_t db = pSet.paramHandle( "doubleParam" );
 	size_t rdb = pSet.paramHandle( "rangedDouble" );
 	size_t img = pSet.paramHandle( "image" );
+	size_t sel = pSet.paramHandle( "selection" );
 
 	Image testImage;
 
 	pSet.setArg<double>( db, 2.1 );
 	pSet.setArg<int8_t>( i8, 2 );
-	pSet.setArg( img, &testImage );
-	pSet.setArg( rdb, 45.5 );
+	pSet.setArg<Image*>( img, &testImage );
+	pSet.setArg<double>( rdb, 45.5 );
+	pSet.setArg<Selection>( sel, 20 );	
+
 
 	double val = pSet.arg<double>( db );
 	int8_t vali = pSet.arg<int8_t>( i8 );
 	Image * iPtr = pSet.arg<Image*>( img );
+	Selection s = pSet.arg<Selection>( sel );
 
 	std::cout << "Double: " << val << std::endl;
 	std::cout << "int8: " << (int)vali << std::endl;
 	std::cout << "Image: " << iPtr << std::endl;
 	val = pSet.arg<double>( rdb );
 	std::cout << "Ranged double: " << val << std::endl;
+	std::cout << "Selection: " << s.value << " string: " << pSet.selectionString<Selection>( sel ) << std::endl;
 
 	std::cout << pSet << std::endl;
 }
@@ -57,9 +68,9 @@ void testWithStruct()
 	
 	ParamInfo* pInfos[] =
 	{
-		new TypedParamInfo<int8_t>( "i", 1, offsetof( MyParams, i ) ),
-		new TypedParamInfo<double>( "d", 1, offsetof( MyParams, d ) ),
-		new TypedParamInfo<float>( "f", 1, offsetof( MyParams, f ) )
+		new ParamInfoTyped<int8_t>( "i", 1, offsetof( MyParams, i ) ),
+		new ParamInfoTyped<double>( "d", 1, offsetof( MyParams, d ) ),
+		new ParamInfoTyped<float>( "f", 1, offsetof( MyParams, f ) )
 	};
 
 	ParamSet pSet( pInfos, 3, false );
