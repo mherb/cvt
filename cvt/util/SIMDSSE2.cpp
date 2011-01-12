@@ -14,16 +14,13 @@ namespace cvt {
 											 -832, -401, -832, -401);
 		const __m128i UV2B  = _mm_set_epi16(0, 2066, 0, 2066,
 											0, 2066, 0, 2066);
-		const __m128i offset= _mm_set_epi16(  16,  128, 16, 128,
-											  16,  128, 16, 128 );
+		const __m128i uvoffset = _mm_set1_epi16( 128 );
+		const __m128i yoffset = _mm_set1_epi16( 16 );
 		const __m128i  A32  = _mm_set_epi32(255, 255, 255, 255);
+		const __m128i mask= _mm_set_epi8( 0xff, 0x0, 0xff, 0x0, 0xff, 0x0, 0xff, 0x0,
+										  0xff, 0x0, 0xff, 0x0, 0xff, 0x0, 0xff, 0x0 );
 
-		/* nomenclatura:
-		 *   lower-case letters denote  8bit values (like "r" is red, 8bit)
-		 *   upper-case letters denote 16bit (or 32bit) values (like "G" is green, 16bit)
-		 */
-
-		__m128i uyvy, UYVY0, UYVY1;
+		__m128i uyvy;
 		__m128i UV, YZ, Y, Z;
 		__m128i UV_R, UV_G, UV_B;
 		__m128i R, G, B, A;
@@ -33,26 +30,22 @@ namespace cvt {
 
 		int i= n >> 3; /* we do 2*128bit per cycle: this is 2*4*32bit == 8 pixels */
 		while( i-- ){
-			uyvy = _mm_load_si128( ( __m128i* ) src );
+			uyvy = _mm_loadu_si128( ( __m128i* ) src );
 			src += 16;
 			/* u0 y0 v0 z0 u1 y1 v1 z1 u2 y2 v2 z2 u3 y3 v3 z3 */
 
-			UYVY0 = _mm_unpacklo_epi8(uyvy, _mm_setzero_si128()); /* U0 Y0 V0 Z0 U1 Y1 V1 Z1 */
-			UYVY1 = _mm_unpackhi_epi8(uyvy, _mm_setzero_si128()); /* U2 Y2 V2 Z2 U3 Y3 V3 Z3 */
+			UV = _mm_and_si128( mask, uyvy );
+			UV = _mm_srli_si128( UV, 1 );
+			UV = _mm_sub_epi16( UV, yoffset );
+			UV = _mm_shuffle_epi32( UV, shuffle);
 
-			UYVY0 = _mm_sub_epi16(UYVY0, offset);
-			UYVY1 = _mm_sub_epi16(UYVY1, offset);
+			YZ = _mm_andnot_si128( mask, uyvy );
+			YZ = _mm_sub_epi16( YZ, uvoffset );
+			YZ = _mm_shuffle_epi32( YZ, shuffle);
 
-			UYVY0 = _mm_shufflelo_epi16(UYVY0, shuffle);
-			UYVY0 = _mm_shufflehi_epi16(UYVY0, shuffle);
-			UYVY0 = _mm_shuffle_epi32  (UYVY0, shuffle); /* U0 V0 U1 V1 Y0 Z0 Y1 Z1 */
-
-			UYVY1 = _mm_shufflelo_epi16(UYVY1, shuffle);
-			UYVY1 = _mm_shufflehi_epi16(UYVY1, shuffle);
-			UYVY1 = _mm_shuffle_epi32  (UYVY1, shuffle); /* U2 V2 U3 V3 Y2 Z2 Y3 Z3 */
-
-			UV = _mm_unpacklo_epi32(UYVY0, UYVY1); /* U0 V0 U2 V2 U1 V1 U3 V3 */
-			YZ = _mm_unpackhi_epi32(UYVY0, UYVY1); /* Y0 Z0 Y2 Z2 Y1 Z1 Y3 Z3 */
+			__m128i tmp = UV;
+			UV = YZ;
+			YZ = tmp;
 
 			Z = _mm_madd_epi16(YZ, Y2RGB);                    /* Z0' Z2' Z1' Z3' */
 			Y = _mm_madd_epi16(YZ, _mm_srli_si128(Y2RGB, 2)); /* Y0' Y2' Y1' Y3' */
