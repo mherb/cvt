@@ -12,7 +12,7 @@ namespace cvt {
 	static ParamInfo * _params[ 4 ] = {
 		new ParamInfoTyped<Image*>( "Input", true ),
 		new ParamInfoTyped<Image*>( "Output", false ),
-		new ParamInfoTyped<uint64_t>( "Iterations", true),
+		new ParamInfoTyped<int>( "Iterations", true),
 		new ParamInfoTyped<float>( "Lambda", true )
 	};
 
@@ -292,7 +292,7 @@ namespace cvt {
 		
 		src = set->arg<Image*>( 0 );
 		dst = set->arg<Image*>( 1 );
-		iter = set->arg<uint64_t>( 2 );
+		iter = set->arg<int>( 2 );
 		lambda = set->arg<float>( 3 );				
 
 		apply( *dst, *src, lambda, iter );
