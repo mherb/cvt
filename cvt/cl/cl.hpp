@@ -1232,7 +1232,7 @@ namespace cl
 		}
 
 #else
-		static inline cl_int errHandler( cl_int err, const char* errStr = NULL )
+		static inline cl_int errHandler( cl_int err, const char* = NULL )
 		{
 			return err;
 		}
@@ -3217,7 +3217,7 @@ namespace cl
 		local_( rhs.local_ )
 	{}
 
-	Event KernelFunctor::operator()( const VECTOR_CLASS<Event>* events )
+	Event KernelFunctor::operator()( const VECTOR_CLASS<Event>* )
 	{
 		Event event;
 
