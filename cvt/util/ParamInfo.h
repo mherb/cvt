@@ -20,42 +20,11 @@ namespace cvt
 	#include <cvt/util/internal/ParamTypes.def>
 	#undef X
 	
-	template<ParamType p> struct PTypeSize;
-	#define X( TYPE, PTYPE ) template<> struct PTypeSize<PTYPE>{ static const size_t SIZE = sizeof( TYPE ); };
-	#include <cvt/util/internal/ParamTypes.def>
-	#undef X
-	
-	// this generates a Union including all parameter types accessible by union._PTYPE_XXX
-	#define X( TYPE, PTYPE ) TYPE _##PTYPE;
-	union UnifiedType
-	{
-		#include <cvt/util/internal/ParamTypes.def>
-	};
-	#undef X	
-
 	class ParamInfo
-	{
+	{		
 		public:
-			ParamInfo( ParamType t, 
-					   const std::string & n, 
-					   size_t c = 1, 
-					   size_t o = 0, 
-					   bool input = true ) :
-				type( t ), name( n ), count( c ), offset( o ), input( input ), rangeAndDefaultSet( false )
-			{}
-					
-			ParamInfo( ParamType t, 
-					   const std::string & n,
-					   UnifiedType min, 
-					   UnifiedType max, 
-					   UnifiedType defVal,
-				       size_t c = 1, 
-				       size_t o = 0, 
-					   bool input = true ) :
-				type( t ), name( n ), count( c ), offset( o ), 
-				input( input ), rangeAndDefaultSet( true ), min( min ), max( max ), defaultValue( defVal )
-			{}
-
+			virtual ~ParamInfo(){}
+		
 			ParamType	type;			
 
 			/* descriptive name */
@@ -70,10 +39,45 @@ namespace cvt
 			const bool input;
 			const bool rangeAndDefaultSet;
 		
-			UnifiedType min;
-			UnifiedType max;
-			UnifiedType defaultValue;
+			virtual void setDefaultValue( void * ) const = 0;
+		
+		protected:
+			ParamInfo( ParamType t, const std::string & n, size_t c, 
+					   size_t o, bool input, bool rangeType = false ) :
+				type( t ), name( n ), count( c ), offset( o ), 
+				input( input ), rangeAndDefaultSet( rangeType )
+			{}
 	};
+	
+	template<class T> 
+	class TypedParamInfo : public ParamInfo	
+	{
+		public:
+			TypedParamInfo( const std::string & n, size_t c = 1, size_t o = 0, bool input = true );
+		
+			TypedParamInfo( const std::string & n, T min, T max, T defaultValue, size_t c = 1, size_t o = 0, bool input = true );
+		
+			virtual ~TypedParamInfo() {}
+		
+			T minValue() const { return min; }
+			T maxValue() const { return max; }
+			T defaultValue() const { return defValue; }			
+			virtual void setDefaultValue( void * ptr ) const { *( ( T* )ptr ) = defValue; }
+		
+			T min;
+			T max;
+			T defValue;
+	};
+	
+#define X( TYPE, PTYPE ) \
+	template<> inline TypedParamInfo<TYPE>::TypedParamInfo( const std::string & n, size_t c, size_t o, bool input ) : \
+		ParamInfo( PTYPE, n, c, o, input ) {} \
+	template<> inline TypedParamInfo<TYPE>::TypedParamInfo( const std::string & n, TYPE min, TYPE max, TYPE defaultValue, size_t c, size_t o, bool input ) : \
+		ParamInfo( PTYPE, n, c, o, input, true ), min( min ), max( max ), defValue( defaultValue ) {}		
+	#include <cvt/util/internal/ParamTypes.def>
+#undef X	
+
+	
 }
 
 #endif

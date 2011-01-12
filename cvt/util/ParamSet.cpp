@@ -9,7 +9,7 @@ namespace cvt
 #undef X
 	};
 
-	ParamSet::ParamSet( ParamInfo * pInfos, size_t n, bool genOffsets ) :
+	ParamSet::ParamSet( ParamInfo** pInfos, size_t n, bool genOffsets ) :
 		_parameterMem( 0 ),
 		_pInfos( pInfos ),
 		_numParameters( n )
@@ -18,21 +18,25 @@ namespace cvt
 
 		ParamInfo * p;
 
-		if( genOffsets ){
-			p = pInfos;
+		if( genOffsets ){			
 			for( size_t i = 0; i < _numParameters; i++ ){
+				p = pInfos[ i ];
 				p->offset = allSize;
-				allSize += _PTYPE2SIZE[ p->type ] * p->count; ;
-
-				p++;
+				allSize += _PTYPE2SIZE[ p->type ] * p->count;				
 			}
 		} else {
 			// offsets initialized:
-			p = &pInfos[ n-1 ];
+			p = pInfos[ n-1 ];
 			allSize = p->offset + _PTYPE2SIZE[ p->type ] * p->count;
 		}
 
-		_parameterMem = new uint8_t[ allSize ];
+		_parameterMem = new uint8_t[ allSize ];		
+		
+		for( size_t i = 0; i < _numParameters; i++ ){
+			p = _pInfos[ i ];
+			if( p->rangeAndDefaultSet )
+				p->setDefaultValue( _parameterMem + p->offset );
+		}
 	}
 
 	ParamSet::~ParamSet()
@@ -43,11 +47,11 @@ namespace cvt
 
 	size_t ParamSet::paramHandle( const std::string & name )
 	{
-		ParamInfo * p = _pInfos;
+		ParamInfo * p;
 		for( size_t i = 0; i < _numParameters; i++ ){
+			p = _pInfos[ i ];
 			if( name == p->name )
-				return i;
-			p++;
+				return i;			
 		}
 
 		throw CVTException( "Parameter \"" + name + "\" not in parameterset" );
@@ -55,10 +59,10 @@ namespace cvt
 
 	std::ostream& operator<<( std::ostream& out, const ParamSet& pSet )
 	{
-		ParamInfo * p = pSet._pInfos;
+		ParamInfo * p; 
 		for( size_t i = 0; i < pSet._numParameters; i++ ){
+			p = pSet._pInfos[ i ];
 			out << "Name: " << p->name << " numElements: " << p->count << std::endl;
-			p++;
 		}
 		return out;
 	}
