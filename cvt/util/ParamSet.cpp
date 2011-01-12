@@ -2,11 +2,19 @@
 
 namespace cvt
 {
+	#define X( TYPE, PTYPE ) sizeof( TYPE ),
 	static size_t _PTYPE2SIZE[] =
 	{
-#define X( TYPE, PTYPE ) sizeof( TYPE ),
-#include <cvt/util/internal/ParamTypes.def>
-#undef X
+		#include <cvt/util/internal/ParamTypes.def>
+		X( Selection, PTYPE_SELECTION )
+	};
+	#undef X
+	
+	#define X( TYPE, PTYPE ) #PTYPE,
+	static std::string _PTYPENAMES[] = 
+	{
+		#include <cvt/util/internal/ParamTypes.def>
+		X( Selection, PTYPE_SELECTION )
 	};
 
 	ParamSet::ParamSet( ParamInfo** pInfos, size_t n, bool genOffsets ) :
@@ -62,7 +70,11 @@ namespace cvt
 		ParamInfo * p; 
 		for( size_t i = 0; i < pSet._numParameters; i++ ){
 			p = pSet._pInfos[ i ];
-			out << "Name: " << p->name << " numElements: " << p->count << std::endl;
+			out << "Name: " << p->name << " Type: " << _PTYPENAMES[ p->type ] << " numElements: " << p->count;
+			if( p->rangeAndDefaultSet ){
+				out << " Range and Default available"; 
+			}
+			out << std::endl;
 		}
 		return out;
 	}
