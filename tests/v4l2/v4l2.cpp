@@ -7,8 +7,8 @@
 #include <cvt/io/V4L2Camera.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
+#include <cvt/util/ParamSet.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
-#include <cvt/gfx/IFilterScalar.h>
 
 using namespace cvt;
 
@@ -34,13 +34,13 @@ int main(int argc, char* argv[])
 	bool doprocess = true;
 	Image kernel( 3, 1, IFormat::GRAY_FLOAT );
 	ROFDenoise rof;
-	IFilterParameterSet* rofparam;
+	ParamSet* rofparam;
 
-	rofparam = rof.getParameterSet();
-	IFilterScalar lambda( 0.1f );
-	IFilterScalar iter( 50.0f );
-	rofparam->setParameter( "Lambda", &lambda );
-	rofparam->setParameter( "Iterations", &iter );
+	rofparam = rof.parameterSet();
+	size_t handle = rofparam->paramHandle("Lambda");
+	rofparam->setArg( handle, 0.1f );
+	handle = rofparam->paramHandle("Iterations");
+	rofparam->setArg( handle, 50 );
 
 	Image x( 640, 480, IFormat::BGRA_FLOAT );
 	Image y( 640, 480, IFormat::BGRA_FLOAT );
@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
 
 			if( doprocess ) {
 				frame.convert( x );
-				rofparam->setParameter( "Input", &x );
-				rofparam->setParameter( "Output", &y );
+				rofparam->setArg( rofparam->paramHandle("Input"), &x );
+				rofparam->setArg( rofparam->paramHandle("Output"), &y );
 				//			rof.apply( y, x, 0.25f, 50 );
 				rof.apply( rofparam );
 				y.convert( z );
