@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <string>
 #include <cvt/gfx/Image.h>
+#include <cvt/math/Vector.h>
+#include <cvt/math/Matrix.h>
+#include <cvt/gfx/Color.h>
 
 namespace cvt
 {
@@ -66,9 +69,9 @@ namespace cvt
 	template<> class ParamInfoTyped<TYPE> : public ParamInfo \
 	{\
 		public:\
-			ParamInfoTyped( const std::string & n, size_t c = 1, size_t o = 0, bool input = true ) :\
+			ParamInfoTyped( const std::string & n, bool input = true, size_t c = 1, size_t o = 0 ) :\
 			ParamInfo( PTYPE, n, c, o, input ) {}\
-			ParamInfoTyped( const std::string & n, TYPE min, TYPE max, TYPE defaultValue, size_t c = 1, size_t o = 0, bool input = true ) :\
+			ParamInfoTyped( const std::string & n, TYPE min, TYPE max, TYPE defaultValue, bool input = true, size_t c = 1, size_t o = 0 ) :\
 			ParamInfo( PTYPE, n, c, o, input, true ), min( min ), max( max ), defValue( defaultValue ) {}\
 			virtual ~ParamInfoTyped() {}\
 			TYPE minValue() const { return min; }\
@@ -83,7 +86,7 @@ namespace cvt
 	template<> class ParamInfoTyped<Selection> : public ParamInfo
 	{
 		public:
-		ParamInfoTyped( const std::string & n, size_t numVals, std::string* desc, size_t o = 0, bool input = true ) :
+		ParamInfoTyped( const std::string & n, size_t numVals, std::string* desc, bool input = true, size_t o = 0 ) :
 				ParamInfo( PTYPE_SELECTION, n, 1, o, input, true ),
 				min( 0 ), max( numVals - 1 ), defValue( 0 ), values( desc )
 			{}

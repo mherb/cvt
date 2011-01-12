@@ -76,12 +76,11 @@ void testPatchGen()
 	}
 }
 
-static IFilterVector8 calc_homography( float theta, float phi, float sx, float sy, float tx, float ty, float v1, float v2 )
+static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy, float tx, float ty, float v1, float v2 )
 {
 	Eigen::Matrix3f h, ih;
 	Eigen::Transform<float,2> affine;
-	IFilterVector8 ret;
-
+	
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( phi ) );
 	affine = Eigen::Scaling2f( sx, sy ) * affine;
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( -phi ) ) * affine;
@@ -96,23 +95,12 @@ static IFilterVector8 calc_homography( float theta, float phi, float sx, float s
 	h( 2, 0 ) = v1;
 	h( 2, 1 ) = v2;
 	h( 2, 2 ) = 1.0f;
-
-	std::cout << h << std::endl;
-	ih = h.inverse();
-	std::cout << "DET " <<ih.determinant() << std::endl;
+	
+	ih = h.inverse();	
 	ih /= powf( ih.determinant(), 1.0f / 3.0f );
-	std::cout << "DET " <<ih.determinant() << std::endl;
-	std::cout << ih << std::endl;
+	ih.transposeInPlace(); // hack: Eigen by default stores column major order
 
-	ret[ 0 ] = ih( 0, 0 );
-	ret[ 1 ] = ih( 0, 1 );
-	ret[ 2 ] = ih( 0, 2 );
-	ret[ 3 ] = ih( 1, 0 );
-	ret[ 4 ] = ih( 1, 1 );
-	ret[ 5 ] = ih( 1, 2 );
-	ret[ 6 ] = ih( 2, 0 );
-	ret[ 7 ] = ih( 2, 1 );
-	return ret;
+	return *( ( cvt::Matrix3f* )ih.data() );
 }
 
 void testFerns()
@@ -141,22 +129,13 @@ void testFerns()
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
 
 	Homography hfilter;
-	IFilterVector8 H = calc_homography( 25.0f, 0.0f, 1.2f, 1.2f, 100.0f, 100.0f, 0.0f, 0.0f );
+	cvt::Matrix3f H = calc_homography( 25.0f, 0.0f, 1.2f, 1.2f, 100.0f, 100.0f, 0.0f, 0.0f );
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
+	
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
-
 	ImageIO::savePNG( warped, "test.png" );
 
-	std::cout << "H: \n";
-	std::cout << H[ 0 ] << ", " << H[ 1 ] << ", " << H[ 2 ] << "\n";
-	std::cout << H[ 3 ] << ", " << H[ 4 ] << ", " << H[ 5 ] << "\n";
-	std::cout << H[ 6 ] << ", " << H[ 7 ] << ", " << 1.0f << std::endl;
-
-	Eigen::Matrix3d homMat = Eigen::Matrix3d::Identity();
-	homMat( 0, 0 ) = H[ 0 ];	homMat( 0, 1 ) = H[ 1 ];	homMat( 0, 2 ) = H[ 2 ];
-	homMat( 1, 0 ) = H[ 3 ];	homMat( 1, 1 ) = H[ 4 ];	homMat( 1, 2 ) = H[ 5 ];
-	homMat( 2, 0 ) = H[ 6 ];	homMat( 2, 1 ) = H[ 7 ];	homMat( 2, 2 ) = 1.0;
 
 	std::vector<Feature2D> features;
 	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );
@@ -180,13 +159,12 @@ void testFerns()
 
 	std::cout << "Matched points: \n";
 
-	Eigen::Vector3d pp, p;
-
+	cvt::Vector3f pp, p;
 	for( size_t i = 0; i < reference.size(); i++ ){
 		pp[ 0 ] = imageFeatures[ i ][ 0 ];
 		pp[ 1 ] = imageFeatures[ i ][ 1 ];
 		pp[ 2 ] = 1.0;
-		p = homMat * pp;
+		p = H * pp;
 		double diff = fabs( reference[ i ][ 0 ] - p[ 0 ] / p[ 2 ] );
 		diff+= fabs( reference[ i ][ 1 ] - p[ 1 ] / p[ 2 ] );
 		std::cout << "Model: " << reference[ i ][ 0 ] << ", " << reference[ i ][ 1 ];
@@ -202,7 +180,7 @@ void testFerns()
 	Eigen::Matrix3d H_calculated;
 	DLT::ndlt( reference, imageFeatures, H_calculated );
 
-	std::cout << "Reference homography:\n" << homMat << std::endl;
+	std::cout << "Reference homography:\n" << H << std::endl;
 	std::cout << "Computed homography: \n" << H_calculated << std::endl;
 
 }

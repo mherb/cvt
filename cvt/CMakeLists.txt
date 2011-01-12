@@ -98,6 +98,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Vector2.h
 	math/Vector3.h
 	math/Vector4.h
+	math/Matrix.h
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h

@@ -30,7 +30,7 @@ namespace cvt
 			void setArg( size_t handle, T value, size_t localIndex = 0 );
 
 			template <class T>
-			T arg( size_t handle, size_t localIndex = 0 );
+			T arg( size_t handle, size_t localIndex = 0 ) const;
 
 			template <typename T>
 			T * ptr();
@@ -72,7 +72,7 @@ namespace cvt
 	}
 
 	template <class T>
-	inline T ParamSet::arg( size_t handle, size_t localIndex )
+	inline T ParamSet::arg( size_t handle, size_t localIndex ) const
 	{
 		ParamInfo * pInfo = _pInfos[ handle ];
 

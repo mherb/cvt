@@ -11,6 +11,7 @@
 #include <cvt/gfx/ifilter/Homography.h>
 
 #include <stdio.h>
+#include <cvt/math/Matrix.h>
 
 namespace cvt {
 	
@@ -76,7 +77,7 @@ namespace cvt {
 	void ESM::optimize( SL3Transform & H, const Image & currI)
 	{
 		Homography hFilter;
-		IFilterVector8 hVec;
+
 		Eigen::Matrix3d hInverse;
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
@@ -85,23 +86,17 @@ namespace cvt {
 		Eigen::MatrixXd jT( jCombined.cols(), jCombined.rows() );
 		
 		iteration = 0;
+		
+		cvt::Matrix3f warpMat;
 				
 		while ( true ) {			
 			const Eigen::Matrix3d & hMat = H.matrix();			
-
-			// get the matrix into vector form for the filter
-			hVec[ 0 ] = hMat( 0, 0 );
-			hVec[ 1 ] = hMat( 0, 1 );
-			hVec[ 2 ] = hMat( 0, 2 );
-			hVec[ 3 ] = hMat( 1, 0 );
-			hVec[ 4 ] = hMat( 1, 1 );
-			hVec[ 5 ] = hMat( 1, 2 );
-			hVec[ 6 ] = hMat( 2, 0 );
-			hVec[ 7 ] = hMat( 2, 1 );
-//			hVec[ 8 ] = hMat( 2, 2 );
+			warpMat[ 0 ].x = ( float )hMat( 0, 0 ); warpMat[ 0 ].y = ( float )hMat( 0, 1 ); warpMat[ 0 ].z = ( float )hMat( 0, 2 );
+			warpMat[ 1 ].x = ( float )hMat( 0, 0 ); warpMat[ 1 ].y = ( float )hMat( 1, 1 ); warpMat[ 1 ].z = ( float )hMat( 1, 2 );
+			warpMat[ 2 ].x = ( float )hMat( 0, 0 ); warpMat[ 2 ].y = ( float )hMat( 2, 1 ); warpMat[ 2 ].z = ( float )hMat( 2, 2 );
 			
 			// get the pixels using the current warp
-			hFilter.apply( warped, currI, hVec, black );
+			hFilter.apply( warped, currI, warpMat, black );
 			
 			// calc combined jacobians and deltaI
 			updateData( H );

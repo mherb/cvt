@@ -1,8 +1,9 @@
 #ifndef IFILTER_H
 #define IFILTER_H
+
 #include <stdint.h>
 #include <string>
-#include "gfx/IFilterParameterSet.h"
+#include <cvt/util/ParamSet.h>
 
 namespace cvt {
 	enum IFilterType {
@@ -13,21 +14,21 @@ namespace cvt {
 
 	class IFilter {
 		public:
-			virtual IFilterParameterSet* getParameterSet() const { return new IFilterParameterSet( _pinfo, _pinfosize ); };
-			virtual void apply( const IFilterParameterSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
-			IFilterType getIFilterType() const { return ( IFilterType ) _iftype; };
+			virtual ParamSet* parameterSet() const { return new ParamSet( _pinfo, _pinfosize ); };
+			virtual void apply( const ParamSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
+			IFilterType getIFilterType() const { return _iftype; };
 
 		protected:
-			IFilter( std::string name, IFilterParameterInfo const* pinfo, size_t pinfosize, uint32_t ifiltertype ) : _iftype( ifiltertype ), _name( name ), _pinfo( pinfo), _pinfosize( pinfosize) {};
+			IFilter( std::string name, ParamInfo** pinfo, size_t pinfosize, IFilterType ifiltertype ) : _iftype( ifiltertype ), _name( name ), _pinfo( pinfo ), _pinfosize( pinfosize ) {};
 			virtual ~IFilter() {};
 
 		private:
 			IFilter( const IFilter& ifilter );
 			IFilter& operator=( const IFilter& ifilter );
 
-			uint32_t _iftype;
+			IFilterType _iftype;
 			std::string _name;
-			const IFilterParameterInfo* _pinfo;
+			ParamInfo** _pinfo;
 			size_t _pinfosize;
 	};
 
