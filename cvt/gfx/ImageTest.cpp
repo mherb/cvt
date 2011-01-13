@@ -134,7 +134,7 @@ namespace cvt {
 		Image img;
 		Resources res;
 		std::string imgpath = res.find( "bbc-hd.png");
-		std::string yuyvpath = res.find( "bbc-hd.yuyv");
+		std::string uyvypath = res.find( "bbc-hd.uyvy");
 		ImageIO::loadPNG( img, imgpath );
 		Image imgt;
 		Image imgyuyv( 1920, 1080, IFormat::UYVY_UINT8 );
@@ -143,7 +143,7 @@ namespace cvt {
 			size_t stride;
 			uint8_t* base = imgyuyv.map<uint8_t>( &stride );
 			uint8_t* dst = base;
-			FILE* f = fopen( yuyvpath.c_str(), "r" );
+			FILE* f = fopen( uyvypath.c_str(), "r" );
 			for( int i = 0; i < 1080; i++ ) {
 				if( fread( dst, sizeof( uint8_t ) * 2, 1920, f ) != 1920 ) {
 					fclose( f );
