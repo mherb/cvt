@@ -13,6 +13,7 @@ namespace cvt {
 			SIMDSSE2() {};
 
 			virtual void Conv_UYVYu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
+			virtual void Conv_UYVYu8_to_BGRAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
 		public:
 			virtual std::string name() const;
 			virtual SIMDType type() const;
