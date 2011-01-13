@@ -4,7 +4,8 @@
 #include <cvt/cl/CLContext.h>
 #include <cvt/cl/CLException.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/gfx/IFilterParameter.h>
+#include <cvt/math/Vector.h>
+#include <cvt/math/Matrix.h>
 #include <string>
 #include <vector>
 
@@ -14,8 +15,16 @@ namespace cvt {
 	class CLKernel {
 		public:
 			CLKernel() : _cl( 0 ) {};
-			void setArg( size_t n, IFilterParameter* p );
 			void setArg( size_t n, size_t size );
+			void setArg( size_t n, float f );
+			void setArg( size_t n, const Color & c );
+			void setArg( size_t n, const Vector2f & v );
+			void setArg( size_t n, const Vector3f & v );
+			void setArg( size_t n, const Vector4f & v );
+			void setArg( size_t n, const Matrix2f & m );
+			void setArg( size_t n, const Matrix3f & m );
+			void setArg( size_t n, const Matrix4f & m );
+			void setArg( size_t n, const Image & img );
 			void setArg( size_t n, cl::Memory mem );
 			void setArg( size_t n, size_t size, void* ptr );
 			void build( const char* name, const char* src, size_t len, std::string& buildinfo );

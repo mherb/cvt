@@ -1,5 +1,4 @@
 #include <CLOptflow.h>
-#include <cvt/gfx/IFilterScalar.h>
 #include <string>
 #include <iostream>
 
@@ -154,8 +153,8 @@ namespace cvt {
 		}
 
 		for( int i = 0; i < 4; i++ ) {
-			kernelbidown.setArg( 0, pyr[ i + 1 ][ pyridx ] );
-			kernelbidown.setArg( 1, pyr[ i ][ pyridx ] );
+			kernelbidown.setArg( 0, *pyr[ i + 1 ][ pyridx ] );
+			kernelbidown.setArg( 1, *pyr[ i ][ pyridx ] );
 			int w = pyr[ i + 1 ][ pyridx ]->width();
 			int h = pyr[ i + 1 ][ pyridx ]->height();
 			kernelbidown.run( cl::NDRange( w, h ), clWorkGroupSize2D( kernelbidown.workGroupSize(), kernelbidown.workGroupSizePreferredMultiple(), w, h ), &sync, &event );
@@ -211,7 +210,7 @@ namespace cvt {
 		cl::Event event;
 //		size_t wx, wy;
 		cl::NDRange nd;
-		IFilterScalar mul( 1.0 );
+		float mul = 1.0f;
 
 		Image dx1( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image dy1( img1->width(), img1->height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
@@ -234,18 +233,18 @@ namespace cvt {
 		}*/
 
 		/* calc gradients */
-		kernelgrad.setArg( 0, &dxy );
-		kernelgrad.setArg( 1, &dx );
-		kernelgrad.setArg( 2, &dy );
-		kernelgrad.setArg( 3, img2 );
+		kernelgrad.setArg( 0, dxy );
+		kernelgrad.setArg( 1, dx );
+		kernelgrad.setArg( 2, dy );
+		kernelgrad.setArg( 3, *img2 );
 		nd = clWorkGroupSize2D( kernelgrad.workGroupSize(), kernelgrad.workGroupSizePreferredMultiple(), img2->width(), img2->height() );
 		kernelgrad.setArg( 4, sizeof( cl_float4 ) * ( ( ( const ::size_t* ) nd)[ 0 ] + 2 ) * ( ( ( const ::size_t* ) nd)[ 1 ] + 2 ) );
 		kernelgrad.run( *img2, nd, NULL, &event );
 
-		kernelgradxy.setArg( 0, &dxy1 );
-		kernelgradxy.setArg( 1, &dx1 );
-		kernelgradxy.setArg( 2, &dy1 );
-		kernelgradxy.setArg( 3, img1 );
+		kernelgradxy.setArg( 0, dxy1 );
+		kernelgradxy.setArg( 1, dx1 );
+		kernelgradxy.setArg( 2, dy1 );
+		kernelgradxy.setArg( 3, *img1 );
 		nd = clWorkGroupSize2D( kernelgradxy.workGroupSize(), kernelgradxy.workGroupSizePreferredMultiple(), img1->width(), img1->height() );
 		kernelgradxy.setArg( 4, sizeof( cl_float4 ) * ( ( ( const ::size_t* ) nd)[ 0 ] + 2 ) * ( ( ( const ::size_t* ) nd)[ 1 ] + 2 ) );
 		kernelgradxy.run( *img1, nd, NULL, &event );
@@ -256,8 +255,8 @@ namespace cvt {
 
 #define MX 10
 #define MY 10
-			kernelmed.setArg( 0, &v0 );
-			kernelmed.setArg( 1, v );
+			kernelmed.setArg( 0, v0 );
+			kernelmed.setArg( 1, *v );
 			nd = clWorkGroupSize2D( kernelmed.workGroupSize(), kernelmed.workGroupSizePreferredMultiple(), v->width(), v->height() );
 			kernelmed.setArg( 2, sizeof( cl_float4 ) * ( ( ( const ::size_t* ) nd)[ 0 ] + 2 ) * ( ( ( const ::size_t* ) nd)[ 1 ] + 2 ) );
 			kernelmed.run( *v, nd, &sync, &event );
@@ -269,38 +268,38 @@ namespace cvt {
 						cvWaitKey( 10 );
 						sleep( 1 );*/
 
-			mul.set( 0.5f );
+			mul = 0.5f;
 			/* warp dx */
-			kernelwarpsub.setArg( 0, &iwx );
-			kernelwarpsub.setArg( 1, &dx );
-			kernelwarpsub.setArg( 2, &v0 );
-			kernelwarpsub.setArg( 3, &dx1 );
-			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.setArg( 0, iwx );
+			kernelwarpsub.setArg( 1, dx );
+			kernelwarpsub.setArg( 2, v0 );
+			kernelwarpsub.setArg( 3, dx1 );
+			kernelwarpsub.setArg( 4, mul );
 			kernelwarpsub.run( iwx, clWorkGroupSize2D( kernelwarpsub.workGroupSize(), kernelwarpsub.workGroupSizePreferredMultiple(), iwx.width(), iwx.height() ), &sync );
 
 			/* warp dy */
-			kernelwarpsub.setArg( 0, &iwy );
-			kernelwarpsub.setArg( 1, &dy );
-			kernelwarpsub.setArg( 2, &v0 );
-			kernelwarpsub.setArg( 3, &dy1 );
-			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.setArg( 0, iwy );
+			kernelwarpsub.setArg( 1, dy );
+			kernelwarpsub.setArg( 2, v0 );
+			kernelwarpsub.setArg( 3, dy1 );
+			kernelwarpsub.setArg( 4, mul );
 			kernelwarpsub.run( iwy, clWorkGroupSize2D( kernelwarpsub.workGroupSize(), kernelwarpsub.workGroupSizePreferredMultiple(), iwy.width(), iwy.height() ), &sync );
 
 			/* warp dxy */
-			kernelwarpsub.setArg( 0, &iwxy );
-			kernelwarpsub.setArg( 1, &dxy );
-			kernelwarpsub.setArg( 2, &v0 );
-			kernelwarpsub.setArg( 3, &dxy1 );
-			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.setArg( 0, iwxy );
+			kernelwarpsub.setArg( 1, dxy );
+			kernelwarpsub.setArg( 2, v0 );
+			kernelwarpsub.setArg( 3, dxy1 );
+			kernelwarpsub.setArg( 4, mul );
 			kernelwarpsub.run( iwxy, clWorkGroupSize2D( kernelwarpsub.workGroupSize(), kernelwarpsub.workGroupSizePreferredMultiple(), iwxy.width(), iwxy.height() ), &sync );
 
-			mul.set( 1.0f );
+			mul = 1.0f;
 			/* warpsub dt */
-			kernelwarpsub.setArg( 0, &it );
-			kernelwarpsub.setArg( 1, img2 );
-			kernelwarpsub.setArg( 2, &v0 );
-			kernelwarpsub.setArg( 3, img1 );
-			kernelwarpsub.setArg( 4, &mul );
+			kernelwarpsub.setArg( 0, it );
+			kernelwarpsub.setArg( 1, *img2 );
+			kernelwarpsub.setArg( 2, v0 );
+			kernelwarpsub.setArg( 3, *img1 );
+			kernelwarpsub.setArg( 4, mul );
 			kernelwarpsub.run( it, clWorkGroupSize2D( kernelwarpsub.workGroupSize(), kernelwarpsub.workGroupSizePreferredMultiple(), it.width(), it.height() ), &sync );
 
 			tvl1( u, v, px, py, LAMBDA, THETA / ( level * 2.0f + 1.0f), &iwxy, &it, &iwx, &iwy, &v0, NUMROF );
@@ -311,9 +310,9 @@ namespace cvt {
 	{
 		Image pxt, pyt;
 		//		IFilterScalar tautheta( TAU / _theta );
-		IFilterScalar tautheta( 1.0f / ( 4.0f * _theta + 0.01f ) );
-		IFilterScalar theta( _theta );
-		IFilterScalar lambdatheta( _theta * lambda );
+		float tautheta =  1.0f / ( 4.0f * _theta + 0.01f );
+		float theta = _theta;
+		float lambdatheta = _theta * lambda;
 		std::vector<cl::Event> sync;
 		cl::Event event;
 //		size_t wx, wy;
@@ -323,14 +322,14 @@ namespace cvt {
 		pyt.reallocate( *py, IALLOCATOR_CL );
 
 		/* Set threshold kernel parameter */
-		kernelth.setArg( 0, v );
-		kernelth.setArg( 1, u );
-		kernelth.setArg( 2, ig2 );
-		kernelth.setArg( 3, it );
-		kernelth.setArg( 4, ix );
-		kernelth.setArg( 5, iy );
-		kernelth.setArg( 6, v0 );
-		kernelth.setArg( 7, &lambdatheta  );
+		kernelth.setArg( 0, *v );
+		kernelth.setArg( 1, *u );
+		kernelth.setArg( 2, *ig2 );
+		kernelth.setArg( 3, *it );
+		kernelth.setArg( 4, *ix );
+		kernelth.setArg( 5, *iy );
+		kernelth.setArg( 6, *v0 );
+		kernelth.setArg( 7, lambdatheta  );
 
 /*		if( u->width() <= 20 || u->height() <= 20 ) {
 			wx = 10;
@@ -347,14 +346,14 @@ namespace cvt {
 		//	kernelp1.setArg( 1, &pyt );
 		//	kernelp1.setArg( 2, &px );
 		//	kernelp1.setArg( 3, &py );
-		kernelp1.setArg( 4, u );
-		kernelp1.setArg( 5, &tautheta );
+		kernelp1.setArg( 4, *u );
+		kernelp1.setArg( 5, tautheta );
 //		kernelp1.setArg( 6, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 		kernelp1.setArg( 6, sizeof( cl_float4 ) * ( ( ( const ::size_t* ) ndp1)[ 0 ] + 1 ) * ( ( ( const ::size_t* ) ndp1)[ 1 ] + 1 ) );
 		/* Set kernel p2 parameter */
-		kernelp2.setArg( 0, u );
-		kernelp2.setArg( 1, v );
-		kernelp2.setArg( 4, &theta );
+		kernelp2.setArg( 0, *u );
+		kernelp2.setArg( 1, *v );
+		kernelp2.setArg( 4, theta );
 //		kernelp2.setArg( 5, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 //		kernelp2.setArg( 6, sizeof( cl_float4 ) * ( wx + 1 ) * ( wy + 1 ) );
 		kernelp2.setArg( 5, sizeof( cl_float4 ) * ( ( ( const ::size_t* ) ndp2)[ 0 ] + 1 ) * ( ( ( const ::size_t* ) ndp2)[ 1 ] + 1 ) );
@@ -365,13 +364,13 @@ namespace cvt {
 			sync.clear();
 			sync.push_back( event );
 
-			kernelp1.setArg( 0, &pxt );
-			kernelp1.setArg( 1, &pyt );
-			kernelp1.setArg( 2, px );
-			kernelp1.setArg( 3, py );
+			kernelp1.setArg( 0, pxt );
+			kernelp1.setArg( 1, pyt );
+			kernelp1.setArg( 2, *px );
+			kernelp1.setArg( 3, *py );
 
-			kernelp2.setArg( 2, &pxt );
-			kernelp2.setArg( 3, &pyt );
+			kernelp2.setArg( 2, pxt );
+			kernelp2.setArg( 3, pyt );
 
 //			kernelp1.run( *u, cl::NDRange( wx, wy ), &sync, &event );
 			kernelp1.run( *u, ndp1, &sync, &event );
@@ -382,13 +381,13 @@ namespace cvt {
 			kernelth.run( *ig2, clWorkGroupSize2D( kernelth.workGroupSize(), kernelth.workGroupSizePreferredMultiple(), ig2->width(), ig2->height() ), &sync, &event );
 			sync[ 0 ] = event;
 
-			kernelp1.setArg( 0, px );
-			kernelp1.setArg( 1, py );
-			kernelp1.setArg( 2, &pxt );
-			kernelp1.setArg( 3, &pyt );
+			kernelp1.setArg( 0, *px );
+			kernelp1.setArg( 1, *py );
+			kernelp1.setArg( 2, pxt );
+			kernelp1.setArg( 3, pyt );
 
-			kernelp2.setArg( 2, px );
-			kernelp2.setArg( 3, py );
+			kernelp2.setArg( 2, *px );
+			kernelp2.setArg( 3, *py );
 
 //			kernelp1.run( *u, cl::NDRange( wx, wy ), &sync, &event );
 			kernelp1.run( *u, ndp1, &sync, &event );
@@ -402,17 +401,17 @@ namespace cvt {
 
 	void CLOptflow::clear( Image* i )
 	{
-		kernelclearimg.setArg( 0, i );
+		kernelclearimg.setArg( 0, *i );
 		kernelclearimg.run( *i, clWorkGroupSize2D( kernelclearimg.workGroupSize(), kernelclearimg.workGroupSizePreferredMultiple(), i->width(), i->height() ) );
 	}
 
 	Image* CLOptflow::biup( Image* in, float mul )
 	{
-		IFilterScalar m( mul );
+		float m( mul );
 		Image* ret = new Image( in->width() * 2, in->height() * 2, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
-		kernelbiup.setArg( 0, ret );
-		kernelbiup.setArg( 1, in );
-		kernelbiup.setArg( 2, &m );
+		kernelbiup.setArg( 0, *ret );
+		kernelbiup.setArg( 1, *in );
+		kernelbiup.setArg( 2, m );
 		kernelbiup.run( *in, clWorkGroupSize2D( kernelbiup.workGroupSize(), kernelbiup.workGroupSizePreferredMultiple(), in->width(), in->height() ) );
 		return ret;
 	}
@@ -429,9 +428,9 @@ namespace cvt {
 			wy = 15;
 		}
 
-		kernelcflow.setArg( 0, ret );
-		kernelcflow.setArg( 1, in );
-		kernelcflow.setArg( 2, bg );
+		kernelcflow.setArg( 0, *ret );
+		kernelcflow.setArg( 1, *in );
+		kernelcflow.setArg( 2, *bg );
 		kernelcflow.run( *in, clWorkGroupSize2D( kernelcflow.workGroupSize(), kernelcflow.workGroupSizePreferredMultiple(), in->width(), in->height() ) );
 		return ret;
 	}

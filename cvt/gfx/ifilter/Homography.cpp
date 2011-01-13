@@ -1,14 +1,12 @@
-#include "gfx/ifilter/Homography.h"
-#include "gfx/IFilterParameterInfo.h"
-#include "gfx/IFilterParameterSet.h"
-#include "util/Exception.h"
-#include "math/Math.h"
+#include <cvt/gfx/ifilter/Homography.h>
+#include <cvt/util/Exception.h>
+#include <cvt/math/Math.h>
 
 #include <iostream>
 
 namespace cvt {
 
-	static ParamInfo* _params[ 4 ] = {
+	ParamInfo* _params[ 4 ] = {
 		new ParamInfoTyped<Image*>( "Input", true ),
 		new ParamInfoTyped<Image*>( "Output", false ),
 		new ParamInfoTyped<Matrix3f>( "H", true ),

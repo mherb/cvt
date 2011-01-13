@@ -1,8 +1,5 @@
 #include <cvt/gui/GFXGL.h>
 #include <cvt/gl/OpenGL.h>
-
-#include <cvt/gfx/IFilterVector.h>
-#include <cvt/gfx/IFilterScalar.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/ImageIO.h>
 

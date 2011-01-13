@@ -1,7 +1,5 @@
 #include <cvt/gl/GLProgram.h>
 #include <cvt/gfx/Color.h>
-#include <cvt/gfx/IFilterVector.h>
-#include <cvt/gfx/IFilterScalar.h>
 
 namespace cvt {
 	GLProgram::GLProgram()
@@ -127,30 +125,16 @@ namespace cvt {
 		GLint loc = glGetUniformLocation( program, name);
 		glUniform2f( loc, f1, f2 );
 	}
-
-	void GLProgram::setArg( const char* name, IFilterParameter* p )
+	
+	void GLProgram::setArg( const char* name, const Color & c )
 	{
-		switch( p->getIFilterParameterType() )
-		{
-			case IFILTERPARAMETER_COLOR:
-				{
-					GLint loc = glGetUniformLocation( program, name);
-					glUniform4fv( loc, 1, ( GLfloat* ) ( ( Color* ) p )->data() );
-				}
-				break;
-			case IFILTERPARAMETER_SCALAR:
-				{
-					GLint loc = glGetUniformLocation( program, name);
-					glUniform1f( loc, ( ( IFilterScalar* ) p )->get() );
-				}
-			case IFILTERPARAMETER_VECTOR16:
-				{
-					GLint loc = glGetUniformLocation( program, name);
-					glUniformMatrix4fv( loc, 1, false , ( GLfloat* ) ( ( IFilterVector16* ) p )->vec );
-				}
-			default:
-				break;
-		}
+		GLint loc = glGetUniformLocation( program, name);
+		glUniform4fv( loc, 1, ( GLfloat* )c.data() );
 	}
-
+	
+	void GLProgram::setArg( const char* name, const cvt::Matrix4f & m )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniform4fv( loc, 1, ( GLfloat* )m.ptr() );
+	}
 }

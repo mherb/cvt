@@ -2,7 +2,6 @@
 #include "CLOptflow.h"
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Color.h>
-#include <cvt/gfx/IFilterScalar.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/Time.h>

@@ -2,8 +2,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/Color.h>
-#include <cvt/gfx/IFilterScalar.h>
-#include <cvt/gfx/IFilterVector.h>
 
 namespace cvt {
 
@@ -34,37 +32,53 @@ namespace cvt {
 			throw CLException( err );
 		}
 	}
-
-	void CLKernel::setArg( size_t i, IFilterParameter* p )
+	
+	void CLKernel::setArg( size_t n, float f )
 	{
-		switch( p->getIFilterParameterType() )
-		{
-			case IFILTERPARAMETER_COLOR:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float4 ), ( void* ) ( ( Color* ) p )->data() );
-				break;
-			case IFILTERPARAMETER_SCALAR:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float ), ( void* ) &( ( IFilterScalar* ) p )->value );
-				break;
-			case IFILTERPARAMETER_VECTOR2:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float2 ), ( void* ) ( ( IFilterVector2* ) p )->vec );
-				break;
-			case IFILTERPARAMETER_VECTOR4:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float4 ), ( void* ) ( ( IFilterVector4* ) p )->vec );
-				break;
-			case IFILTERPARAMETER_VECTOR8:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float8 ), ( void* ) ( ( IFilterVector8* ) p )->vec );
-				break;
-			case IFILTERPARAMETER_VECTOR16:
-				_kernel.setArg( ( cl_uint ) i, sizeof( cl_float16 ), ( void* ) ( ( IFilterVector16* ) p )->vec );
-				break;
-			case IFILTERPARAMETER_IMAGE:
-				Image* img = ( Image* ) p;
-				if( img->memType() != IALLOCATOR_CL )
-					throw CVTException("Need Image with CL memory for CLKernel");
-				ImageAllocatorCL* clmem = ( ImageAllocatorCL* ) img->_mem;
-				_kernel.setArg( ( cl_uint ) i, *clmem->_climage );
-				break;
-		}
+		_kernel.setArg( ( cl_uint ) n, sizeof( cl_float ), ( void* ) &f );
+	}
+	
+	void CLKernel::setArg( size_t n, const Color & c )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( cl_float4 ), ( void* ) c.data() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Vector2f & v )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( cl_float2 ), ( void* )v.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Vector3f & v )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( Vector3f ), ( void* )v.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Vector4f & v )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( cl_float4 ), ( void* )v.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Matrix2f & m )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( Matrix2f ), ( void* )m.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Matrix3f & m )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( Matrix3f ), ( void* )m.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Matrix4f & m )
+	{
+		_kernel.setArg( ( cl_uint ) n, sizeof( cl_float16 ), ( void* )m.ptr() );
+	}
+	
+	void CLKernel::setArg( size_t n, const Image & img )
+	{
+		if( img.memType() != IALLOCATOR_CL )
+			throw CVTException("Need Image with CL memory for CLKernel");
+		ImageAllocatorCL* clmem = ( ImageAllocatorCL* ) img._mem;
+		_kernel.setArg( ( cl_uint ) n, *clmem->_climage );
 	}
 
 	void CLKernel::setArg( size_t n, size_t size )

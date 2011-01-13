@@ -8,13 +8,12 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/IFormat.h>
 #include <cvt/gfx/IScaleFilter.h>
-#include <cvt/gfx/IFilterParameter.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/ImageAllocator.h>
 
 namespace cvt {
 
-	class Image : public IFilterParameter
+	class Image
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
 		friend class CLKernel;

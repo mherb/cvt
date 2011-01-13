@@ -15,7 +15,6 @@
 
 #include <cvt/vision/DLT.h>
 
-#include <cvt/gfx/IFilterVector.h>
 #include <cvt/gfx/ifilter/Homography.h>
 
 using namespace cvt;
