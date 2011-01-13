@@ -120,6 +120,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE2.h	
 	util/SIMDSSE41.h	
 	util/Thread.h
+	util/Util.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
