@@ -1,8 +1,8 @@
-#include "util/SIMD.h"
-#include "math/Math.h"
-#include "util/SIMDSSE.h"
-#include "util/SIMDSSE41.h"
-#include "util/CPU.h"
+#include <cvt/util/SIMD.h>
+#include <cvt/math/Math.h>
+#include <cvt/util/SIMDSSE.h>
+#include <cvt/util/SIMDSSE41.h>
+#include <cvt/util/CPU.h>
 
 namespace cvt {
 	const float _table_alpha_u8_f[256] = {

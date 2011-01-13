@@ -1,7 +1,7 @@
-#include "util/SIMD.h"
-#include "util/Time.h"
-#include "util/CVTTest.h"
-#include "math/Math.h"
+#include <cvt/util/SIMD.h>
+#include <cvt/util/Time.h>
+#include <cvt/util/CVTTest.h>
+#include <cvt/math/Math.h>
 #include <sstream>
 
 using namespace cvt;

@@ -1,8 +1,8 @@
 #ifndef FLOW_H
 #define FLOW_H
 
-#include "gfx/Image.h"
-#include "util/Exception.h"
+#include <cvt/gfx/Image.h>
+#include <cvt/util/Exception.h>
 
 namespace cvt {
 	namespace Flow {
