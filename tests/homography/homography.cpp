@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <cvt/gfx/Image.h>
-#include <cvt/gfx/IFilterVector.h>
 #include <cvt/gfx/ifilter/Homography.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>

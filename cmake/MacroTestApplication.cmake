@@ -62,7 +62,7 @@ TARGET_LINK_LIBRARIES(
 	cvt	
 )
 
-add_dependencies(${APP_NAME} cvt)
+add_dependencies( ${APP_NAME} cvt ${CMAKE_CURRENT_SOURCE_DIR} )
 
 SET_TARGET_PROPERTIES("${APP_NAME}" PROPERTIES DEBUG_POSTFIX "_d")
 

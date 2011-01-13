@@ -1,9 +1,6 @@
-#include "gfx/ifilter/ROFDenoise.h"
-#include "gfx/IFilterScalar.h"
-#include "gfx/IFilterParameterInfo.h"
-#include "gfx/IFilterParameterSet.h"
-#include "util/Exception.h"
-#include "math/Math.h"
+#include <cvt/gfx/ifilter/ROFDenoise.h>
+#include <cvt/util/Exception.h>
+#include <cvt/math/Math.h>
 
 #include <iostream>
 

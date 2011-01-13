@@ -3,7 +3,8 @@
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLException.h>
-#include <cvt/gfx/IFilterParameter.h>
+#include <cvt/math/Matrix.h>
+#include <cvt/gfx/Color.h>
 
 namespace cvt {
 
@@ -22,11 +23,12 @@ namespace cvt {
 			void bindAttribLocation( const char *name, unsigned int location );
 			unsigned int getAttribLocation( const char* name ) const;
 			GLint uniformLocation( const char* name ) const;
-			void setArg( size_t n, IFilterParameter* p );
-			void setArg( const char* name, IFilterParameter* p );
+
 			void setArg( const char* name, int i );
 			void setArg( const char* name, float f );
 			void setArg( const char* name, float f1, float f2 );
+			void setArg( const char* name, const Color & c );
+			void setArg( const char* name, const Matrix4f & m );
 
 		private:
 			GLuint program;

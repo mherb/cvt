@@ -127,11 +127,6 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/Homography.h
 #	gfx/ifilter/Sobel.h
 	gfx/IScaleFilter.h
-	gfx/IFilterParameter.h
-	gfx/IFilterParameterInfo.h
-	gfx/IFilterParameterSet.h
-	gfx/IFilterScalar.h
-	gfx/IFilterVector.h
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
 	gfx/ImageAllocatorCL.h

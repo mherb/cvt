@@ -8,7 +8,7 @@
 
 namespace cvt {
 
-	Image::Image( size_t w, size_t h, const IFormat & format, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	Image::Image( size_t w, size_t h, const IFormat & format, IAllocatorType memtype )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -20,7 +20,7 @@ namespace cvt {
 	}
 
 
-	Image::Image( size_t w, size_t h, const IFormat & format, uint8_t* data, size_t stride ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	Image::Image( size_t w, size_t h, const IFormat & format, uint8_t* data, size_t stride )
 	{
 		_mem = new ImageAllocatorMem();
 		ImageAllocatorMem * memAllocator = (ImageAllocatorMem *)_mem;
@@ -28,7 +28,7 @@ namespace cvt {
 	}
 
 
-	Image::Image( const Image& img, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	Image::Image( const Image& img, IAllocatorType memtype )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -39,7 +39,7 @@ namespace cvt {
 		_mem->copy( img._mem );
 	}
 
-	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype ) : IFilterParameter( IFILTERPARAMETER_IMAGE )
+	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype )
 	{
 		if( !ref ){
 			if( memtype == IALLOCATOR_CL )
