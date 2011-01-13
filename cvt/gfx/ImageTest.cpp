@@ -155,7 +155,7 @@ namespace cvt {
 			imgyuyv.unmap( base );
 		}
 
-		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
 		imgyuyv.convert( imgt );
 		ImageIO::savePNG( imgt, "vid.png" );
 
