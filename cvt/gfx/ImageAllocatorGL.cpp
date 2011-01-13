@@ -77,8 +77,6 @@ namespace cvt {
 
 	uint8_t* ImageAllocatorGL::map( size_t* stride )
 	{
-		uint8_t* ptr;
-
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
@@ -92,8 +90,6 @@ namespace cvt {
 
 	const uint8_t* ImageAllocatorGL::map( size_t* stride ) const
 	{
-		uint8_t* ptr;
-
 		*stride = _stride;
 		if( !_ptrcount ) {
 			glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _glbuf );
@@ -104,7 +100,7 @@ namespace cvt {
 		return ( uint8_t* ) _ptr;
 	}
 
-	void ImageAllocatorGL::unmap( const uint8_t* ptr ) const
+	void ImageAllocatorGL::unmap( const uint8_t* ) const
 	{
 		_ptrcount--;
 		if( !_ptrcount ) {

@@ -252,7 +252,7 @@ namespace cvt {
 		void pointJacobians( const Eigen::Matrix3d & K, 
 							 const Eigen::Matrix3d & rot, 
 							 const Eigen::Vector3d & t, 
-							 const Eigen::Vector4d & p, 
+							 const Eigen::Vector4d & , 
 							 Eigen::Matrix<double, 2, 3> & J )
 		{
 			Eigen::Vector3d tmp = t.block( 0, 0, 3, 1 );

@@ -12,7 +12,7 @@ namespace cvt {
 			virtual void copy( const ImageAllocator* x, const Recti* r );
 			virtual uint8_t* map( size_t* stride ) { *stride = _stride; return _data; };
 			virtual const uint8_t* map( size_t* stride ) const { *stride = _stride; return _data; };
-			virtual void unmap( const uint8_t* ptr ) const {};
+			virtual void unmap( const uint8_t* ) const {};
 			virtual IAllocatorType type() const { return IALLOCATOR_MEM; };
 
 		private:

@@ -114,7 +114,7 @@ namespace cvt {
 			
 			// jacobians wrt point parameters
 			for( m = frames[ c ]->measurements.begin(); m != frames[ c ]->measurements.end(); ++m ){
-				CameraModel & camera = frames[ c ]->camera;
+				/* CameraModel & camera = frames[ c ]->camera; */
 				
 				/*frames[ c ]->pointJacobians( camera.K(), camera.R(), 
 											 camera.t(), *(m->point3d->data), m->screenJacobiansWRTPoint );*/
@@ -198,7 +198,7 @@ namespace cvt {
 		Eigen::Matrix<double, 6, 6> U_augmented;
 		
 		size_t numCams = U.size();
-		size_t numPoints = V.size();
+//		size_t numPoints = V.size();
 		
 		size_t fillSize = sbaData.numNonZero() * 6 * 6;	
 
