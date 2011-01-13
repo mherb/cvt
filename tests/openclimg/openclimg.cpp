@@ -3,6 +3,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/math/Math.h>
+#include <cvt/io/Resources.h>
 #include <cvt/math/Vector.h>
 
 #include <string>
@@ -127,61 +128,12 @@ void GaussIIRCoeff( float sigma, int order, Vector4f& n, Vector4f& m, Vector4f& 
 	}
 }
 
-/*struct GaussIIRCoeff {
-	float a0, a1, a2, a3;
-	float b1, b2;
-	float coefp, coefn;
-};
-
-GaussIIRCoeff gaussiir_coeff( float sigma, int order )
-{
-	// compute filter coefficients
-	const float	nsigma = sigma < 0.1f ? 0.1f : sigma,
-				alpha = 1.695f / nsigma,
-			    ema = (float)std::exp(-alpha),
-			    ema2 = (float)std::exp(-2*alpha);
-	GaussIIRCoeff ret;
-	ret.b1 = -2*ema,
-	ret.b2 = ema2;
-	ret.a0 = ret.a1 = ret.a2 = ret.a3 = ret.coefp = ret.coefn = 0;
-
-	switch (order) {
-		default:
-		case 0: {
-					const float k = (1-ema)*(1-ema)/(1+2*alpha*ema-ema2);
-					ret.a0 = k;
-					ret.a1 = k*(alpha-1)*ema;
-					ret.a2 = k*(alpha+1)*ema;
-					ret.a3 = -k*ema2;
-				} break;
-
-		case 1: {
-					const float k = (1-ema)*(1-ema)/ema;
-					ret.a0 = k*ema;
-					ret.a1 = ret.a3 = 0;
-					ret.a2 = -ret.a0;
-				} break;
-
-		case 2: {
-					const float
-						ea = (float)std::exp(-alpha),
-						   k = -(ema2-1)/(2*alpha*ema),
-						   kn = (-2*(-1+3*ea-3*ea*ea+ea*ea*ea)/(3*ea+1+3*ea*ea+ea*ea*ea));
-					ret.a0 = kn;
-					ret.a1 = -kn*(1+k*alpha)*ema;
-					ret.a2 = kn*(1-k*alpha)*ema;
-					ret.a3 = -kn*ema2;
-				} break;
-	}
-	ret.coefp = (ret.a0+ret.a1)/(1+ret.b1+ret.b2);
-	ret.coefn = (ret.a2+ret.a3)/(1+ret.b1+ret.b2);
-	return ret;
-}*/
-
 int main( int argc, char** argv )
 {
 	CLContext cl;
 	std::string log;
+	
+	Resources resources;
 
 	try {
 
@@ -193,7 +145,7 @@ int main( int argc, char** argv )
 		kerneliir2.build("gaussiir2", _gaussiir2_source, strlen( _gaussiir2_source ), log );
 
 		Image* tmp = new Image();
-		ImageIO::loadPNG( *tmp, "lena.png" );
+		ImageIO::loadPNG( *tmp, resources.find( "lena.png" ) );
 		Image x( *tmp, IALLOCATOR_CL );
 		delete tmp;
 		Image x2;
@@ -205,7 +157,7 @@ int main( int argc, char** argv )
 		//	kernel.run( x, cl::NullRange );
 
 		Vector4f n, m ,d ;
-		GaussIIRCoeff( 50.0f, 0, n, m , d );
+		GaussIIRCoeff( 3.5f, 0, n, m , d );
 
 		kerneliir.setArg( 0, buf );
 		kerneliir.setArg( 1, x );
