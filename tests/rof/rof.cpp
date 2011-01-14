@@ -6,10 +6,6 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 
-
-#include <cv.h>
-#include <highgui.h>
-
 #include <string>
 
 int main(int argc, char* argv[])
@@ -29,12 +25,6 @@ int main(int argc, char* argv[])
 		cvt::ROFDenoise rof;
 		rof.apply( out, tmp, 0.3f, 100 );
 
-		cvNamedWindow("Test Image");
-		
-//		cvShowImage("Test Image", out.iplimage());
-		cvWaitKey(0);
-		
-		
 		cvt::ImageIO::savePNG(out, "out.png");
 		
 		

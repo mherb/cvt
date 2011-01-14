@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 
-#include <highgui.h>
 #include <cvt/io/ImageIO.h>
 
 /* Kernel include */

@@ -14,9 +14,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include <cv.h>
-#include <cvaux.hpp>
-
 // 0->simul 7->7cams 9->9cams, 54->54cams
 #define POINTSDATA ( 0 )
 
@@ -206,71 +203,6 @@ void printLoadedData( Eigen::Matrix3d & K,
 	}
 }
 
-void convertDataToOpenCv(Eigen::Matrix3d & K, 
-						 std::vector<CameraTransform> & cameras, 
-						 std::vector<Point3d> & points3d,
-						 cv::vector<cv::Point3d> & pointsOCV, /* 3d points */
-						 cv::vector<cv::vector<cv::Point2d> > & imagePoints, /* projections of every point for every camera */
-						 cv::vector<cv::vector<int> > & visibility,/* visibility of every 3d point for every camera */
-						 cv::vector<cv::Mat> & intrinsics, /* for each cam*/
-						 cv::vector<cv::Mat> & rotations,
-						 cv::vector<cv::Mat> & translations,
-						 cv::vector<cv::Mat> & distortions )
-{
-	imagePoints.resize( cameras.size() );
-	visibility.resize( cameras.size() );
-
-	for( unsigned int i = 0; i < imagePoints.size(); i++ ) {
-		imagePoints[ i ].resize( points3d.size() );
-		visibility[ i ].resize( points3d.size(), 0 );
-	}
-	
-	cv::Point3d currentPoint;
-	for(unsigned int i = 0; i < points3d.size(); i++){
-		currentPoint.x = points3d[ i ].P.x();
-		currentPoint.y = points3d[ i ].P.y();
-		currentPoint.z = points3d[ i ].P.z();
-		pointsOCV.push_back( currentPoint );
-		
-		for( unsigned int p = 0; p < points3d[i].observations.size(); p++ ){
-			imagePoints[ points3d[ i ].frameIds[ p ] ][ p ].x = points3d[ i ].observations[ p ].x();
-			imagePoints[ points3d[ i ].frameIds[ p ] ][ p ].y = points3d[ i ].observations[ p ].y();
-			
-			visibility[ points3d[ i ].frameIds[ p ] ][ p ] = 1; // visible
-		}
-	}
-		
-	cv::Mat intr( 3, 3, CV_64F );
-	cv::Mat rot( 3, 3, CV_64F );
-	cv::Mat trans( 3, 1, CV_64F );
-	cv::Mat dist = cv::Mat::zeros( 5, 1, CV_64F );
-	
-	for(unsigned int r = 0; r < 3; r++)
-		for(unsigned int c = 0; c < 3; c++)
-			intr.at<double>( r, c ) = K( r, c );
-	
-	// fill initial camera estimates:
-	Eigen::Matrix3d rotEI;
-	for(unsigned int i = 0; i < cameras.size(); i++){
-		// same intrinsics for all
-		intrinsics.push_back( intr );		
-		distortions.push_back( dist );
-		
-		// rotation init:
-		rotEI = cameras[ i ].orientation.toRotationMatrix();
-		for(unsigned int r = 0; r < 3; r++)
-			for(unsigned int c = 0; c < 3; c++)
-				rot.at<double>( r, c ) = rotEI( r, c );
-		rotations.push_back( rot );
-			
-		// translation init:
-		trans.at<double>( 0, 0 ) = cameras[ i ].translation.x();
-		trans.at<double>( 1, 0 ) = cameras[ i ].translation.y();
-		trans.at<double>( 2, 0 ) = cameras[ i ].translation.z();
-		translations.push_back( trans );
-	}
-}
-
 void convertData(Eigen::Matrix3d & K, 
 				 std::vector<CameraTransform> & cameras, 
 				 std::vector<Point3d> & points3d,
@@ -309,39 +241,6 @@ void convertData(Eigen::Matrix3d & K,
 	
 //	std::cout << *(sbaData.frames()[0]->measurements[0].point3d->data) << std::endl;
 
-}
-
-void testOpenCVImplementation( Eigen::Matrix3d & K, 
-							   std::vector<CameraTransform> & cameras, 
-							   std::vector<Point3d> & points3d )
-{
-	cv::vector<cv::Point3d> pointsOCV;
-	cv::vector<cv::vector<cv::Point2d> > imagePoints;
-	cv::vector<cv::vector<int> > visibility;
-	cv::vector<cv::Mat> intrinsics;
-	cv::vector<cv::Mat> rotations;
-	cv::vector<cv::Mat> translations;
-	cv::vector<cv::Mat> distortions;
-	
-	convertDataToOpenCv( K, cameras, points3d,
-						 pointsOCV, imagePoints, visibility, 
-						 intrinsics, rotations, translations, distortions );
-	
-	cv::TermCriteria criteria( cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, DBL_EPSILON );
-		
-	cvt::Time timer;
-		
-	std::cout << pointsOCV.size() << std::endl;
-	cv::LevMarqSparse::bundleAdjust( pointsOCV,
-									 imagePoints,
-									 visibility,
-									 intrinsics,
-									 rotations, 
-									 translations,
-									 distortions,
-									 criteria );
-	
-	std::cout << "OpenCV BA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
 }
 
 void showResults( cvt::SBAData & sbaData )

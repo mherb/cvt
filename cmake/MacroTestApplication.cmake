@@ -7,12 +7,11 @@
 #
 #	Dependencies we search for and link against:
 #	- Boost
-#	- OpenCV (2.1)
 #	- Eigen2
 
 MACRO (MACRO_TEST_APPLICATION)
 
-FIND_PACKAGE(OpenCV REQUIRED)
+#FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(Boost 1.40 REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)

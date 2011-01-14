@@ -4,8 +4,6 @@
 #include <cvt/io/ImageIO.h>
 #include <cvt/vision/Flow.h>
 
-#include <cv.h>
-#include <highgui.h>
 
 using namespace cvt;
 

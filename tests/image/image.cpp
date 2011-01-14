@@ -9,10 +9,6 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 
-
-#include <cv.h>
-#include <highgui.h>
-
 #include <string>
 
 int main(int argc, char* argv[])
@@ -49,11 +45,6 @@ int main(int argc, char* argv[])
 		cvt::Image imgGray(img.width(), 
 						   img.height(),
 						   cvt::IFormat::GRAYALPHA_UINT8 );
-		
-		cvNamedWindow("Test Image");
-		
-//		cvShowImage("Test Image", img.iplimage());
-		cvWaitKey(0);
 		
 		cvt::ImageIO::savePNG(img, "out.png");
 		
