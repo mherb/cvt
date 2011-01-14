@@ -49,3 +49,17 @@ Philipp:
 	o face recognition using PCA of faces
 	o Intensity based optimization for model -> to get Similarity and basis components
 
+Sebastian:
+==========
+- remove boost from cmake
+- make a template application for the gui
+- implement CPU version of GaussIIR
+- use smoothing in PatchGenerator and test it with ferns
+- implement SE3 Pose representation
+- refactor Levenberg-Marquard
+- Feature Tracking
+	o revisit PTAM and other papers
+	o implement active patch search
+- SBA: refactor to use SE3
+- RBA
+
