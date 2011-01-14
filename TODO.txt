@@ -11,7 +11,7 @@ Image
 GUI
 ===
 - Add startAnimation( FPS ), stopAnimation to Widget
-- Add basic widgets ( Button/Label/Slider)
+- Add basic widgets ( Label/Slider)
 - Make bounds of text calculateable in GFX
 - Extend GFX
 - Add KeyEvents
@@ -28,3 +28,18 @@ Vision/GFX
 - KDTree
 - Rapid
 - Red-Black-Tree
+
+Philipp:
+========
+- DLT for PointSet
+- PCA class in math
+- ActiveShape
+	o GFXGL::drawLines
+	o Image::sampleLine
+	o Edge-based optimization for model -> to get Similarity and basis components
+	o Track faces and expressions
+- AAM
+	o use ActiveShape to build/calc PCA of face
+	o face recognition using PCA of faces
+	o Intensity based optimization for model -> to get Similarity and basis components
+
