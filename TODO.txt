@@ -15,6 +15,7 @@ GUI
 - Make bounds of text calculateable in GFX
 - Extend GFX
 - Add KeyEvents
+- Add Plot widget for data
 
 Math
 ====
