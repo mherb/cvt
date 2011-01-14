@@ -26,8 +26,13 @@ Vision/GFX
 - filter interface überarbeiten -> fix ParameterSet
 - AGAST filtern
 - BSP Tree ( doom src )
-- KDTree
 - Rapid
+- Integral image
+- Guided filter
+- Haar-Cascade/AdaBoost -> face detection ?
+
+General
+=======
 - Red-Black-Tree
 
 Philipp:
