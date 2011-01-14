@@ -3,9 +3,6 @@
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
-#include <cv.h>
-#include <highgui.h>
-
 using namespace cvt;
 
 int main( int argc, char** argv )
@@ -24,16 +21,6 @@ int main( int argc, char** argv )
 //		for(size_t i = 0; i < 300; i++){
 			video.nextFrame();
 			video.frame().convert( frame );
-
-			size_t stride;
-			const uint8_t * data = frame.map( &stride );
-			cv::Mat ocvImage( (int)frame.height(), (int)frame.width(), CV_8UC4, (void *)data, stride );
-			cv::imshow( "frame", ocvImage );
-			frame.unmap( data );
-
-			key = cvWaitKey( 3 ) & 0xff;
-			if( key == 27 )
-				break;
 
 			frames++;
 			if( timer.elapsedSeconds() > 5.0f ) {

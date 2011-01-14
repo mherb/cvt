@@ -9,8 +9,7 @@
 #include <cvt/vision/Flow.h>
 #include <string>
 #include <iostream>
-#include <cv.h>
-#include <highgui.h>
+
 #include <cvt/io/Camera.h>
 
 #include "calcp1.h"

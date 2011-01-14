@@ -12,7 +12,7 @@ SET(MODULE_NAME "cvt")
 PROJECT(${MODULE_NAME} CXX C)
 
 FIND_PACKAGE(Boost 1.40 REQUIRED)
-FIND_PACKAGE(OpenCV REQUIRED)
+#FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -38,7 +38,7 @@ FIND_PACKAGE(X11 REQUIRED)
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
 #	${Boost_LIBRARIES}
-	${OpenCV_LIBS}
+#	${OpenCV_LIBS}
 	${LIBPNG_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
@@ -73,9 +73,83 @@ GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
 
-
+CLTOHEADER( cl/kernel/gaussiir.cl )
+CLTOHEADER( cl/kernel/gaussiir2.cl )
 
 SET(${MODULE_NAME}_HEADERS
+	cl/CLContext.h
+	cl/CLException.h
+	cl/CLKernel.h
+	cl/kernel/gaussiir.h
+	cl/kernel/gaussiir2.h
+	geom/KDTree.h
+	geom/Rect.h
+	geom/Model.h
+	geom/ArcBall.h
+	gfx/Image.h
+	gfx/IFormat.h
+	gfx/IConvert.h
+	gfx/ifilter/ROFDenoise.h
+	gfx/ifilter/Homography.h
+	gfx/ifilter/GaussIIR.h
+#	gfx/ifilter/Sobel.h
+	gfx/IFilter.h
+	gfx/IScaleFilter.h
+	gfx/ImageAllocator.h
+	gfx/ImageAllocatorMem.h
+	gfx/ImageAllocatorCL.h
+	gfx/ImageAllocatorGL.h
+	gl/OpenGL.h
+	gl/GLException.h
+	gl/GLProgram.h
+	gl/GLBuffer.h
+	gl/GLTexture.h
+	gl/GLVertexArray.h
+	gl/GLModel.cpp
+	gl/progs/GLFillRectProg.h
+	gl/progs/GLFillRoundRectProg.h
+	gl/progs/GLDrawTextProg.h
+	gl/progs/GLDrawImageProg.h
+	gl/progs/GLDrawIconProg.h
+	gl/progs/GLDrawModelProg.h
+	gl/shader/120/basic_120_vert.h
+	gl/shader/120/basic_120_frag.h
+	gl/shader/120/basicrr_120_frag.h
+	gl/shader/120/text_120_vert.h
+	gl/shader/120/text_120_frag.h
+	gl/shader/120/icon_120_vert.h
+	gl/shader/120/icon_120_frag.h
+	gl/shader/120/basictex_120_vert.h
+	gl/shader/120/basictex_120_frag.h
+	gl/shader/120/basicrrtex_120_frag.h
+	gl/shader/120/basiclight_120_frag.h
+	gl/shader/120/basiclight_120_vert.h
+	gl/shader/150/basic_150_vert.h
+	gl/shader/150/basic_150_frag.h
+	gl/shader/150/basicrr_150_frag.h
+	gl/shader/150/text_150_vert.h
+	gl/shader/150/text_150_frag.h
+	gl/shader/150/icon_150_vert.h
+	gl/shader/150/icon_150_frag.h
+	gl/shader/150/basictex_150_vert.h
+	gl/shader/150/basictex_150_frag.h
+	gl/shader/150/basicrrtex_150_frag.h
+	gl/shader/150/basiclight_150_frag.h
+	gl/shader/150/basiclight_150_vert.h	
+	gui/Application.h
+	gui/Window.h
+	gui/Widget.h
+	gui/BasicTimer.h
+	gui/WidgetContainer.h
+	gui/Moveable.h
+	gui/WidgetLayout.h
+	gui/Button.h
+	gui/ToggleButton.h
+	gui/ImageView.h
+	gui/View3D.h
+	gui/internal/WidgetImplDefault.h
+	gui/internal/TimerInfo.h
+	gui/internal/TimerInfoList.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h
@@ -121,17 +195,6 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE41.h	
 	util/Thread.h
 	util/Util.h
-	gfx/Image.h
-	gfx/IFormat.h
-	gfx/IConvert.h
-	gfx/ifilter/ROFDenoise.h
-	gfx/ifilter/Homography.h
-#	gfx/ifilter/Sobel.h
-	gfx/IScaleFilter.h
-	gfx/ImageAllocator.h
-	gfx/ImageAllocatorMem.h
-	gfx/ImageAllocatorCL.h
-	gfx/ImageAllocatorGL.h
 	vision/AGAST.h
 	vision/DLT.h
 	vision/FAST.h
@@ -140,64 +203,6 @@ SET(${MODULE_NAME}_HEADERS
 	vision/internal/Fern.h
 	vision/Flow.h
 	vision/PatchGenerator.h
-	cl/CLContext.h
-	cl/CLException.h
-	cl/CLKernel.h
-	geom/KDTree.h
-	geom/Rect.h
-	geom/Model.h
-	geom/ArcBall.h
-	gui/Application.h
-	gui/Window.h
-	gui/Widget.h
-	gui/BasicTimer.h
-	gui/WidgetContainer.h
-	gui/Moveable.h
-	gui/WidgetLayout.h
-	gui/Button.h
-	gui/ToggleButton.h
-	gui/ImageView.h
-	gui/View3D.h
-	gui/internal/WidgetImplDefault.h
-	gui/internal/TimerInfo.h
-	gui/internal/TimerInfoList.h
-	gl/OpenGL.h
-	gl/GLException.h
-	gl/GLProgram.h
-	gl/GLBuffer.h
-	gl/GLTexture.h
-	gl/GLVertexArray.h
-	gl/GLModel.cpp
-	gl/progs/GLFillRectProg.h
-	gl/progs/GLFillRoundRectProg.h
-	gl/progs/GLDrawTextProg.h
-	gl/progs/GLDrawImageProg.h
-	gl/progs/GLDrawIconProg.h
-	gl/progs/GLDrawModelProg.h
-	gl/shader/120/basic_120_vert.h
-	gl/shader/120/basic_120_frag.h
-	gl/shader/120/basicrr_120_frag.h
-	gl/shader/120/text_120_vert.h
-	gl/shader/120/text_120_frag.h
-	gl/shader/120/icon_120_vert.h
-	gl/shader/120/icon_120_frag.h
-	gl/shader/120/basictex_120_vert.h
-	gl/shader/120/basictex_120_frag.h
-	gl/shader/120/basicrrtex_120_frag.h
-	gl/shader/120/basiclight_120_frag.h
-	gl/shader/120/basiclight_120_vert.h
-	gl/shader/150/basic_150_vert.h
-	gl/shader/150/basic_150_frag.h
-	gl/shader/150/basicrr_150_frag.h
-	gl/shader/150/text_150_vert.h
-	gl/shader/150/text_150_frag.h
-	gl/shader/150/icon_150_vert.h
-	gl/shader/150/icon_150_frag.h
-	gl/shader/150/basictex_150_vert.h
-	gl/shader/150/basictex_150_frag.h
-	gl/shader/150/basicrrtex_150_frag.h
-	gl/shader/150/basiclight_150_frag.h
-	gl/shader/150/basiclight_150_vert.h
 )
 
 SET(${MODULE_NAME}_SOURCES
@@ -236,6 +241,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageOperations.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp
+	gfx/ifilter/GaussIIR.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/IScaleFilter.cpp
 	gfx/ImageAllocatorMem.cpp

@@ -8,7 +8,6 @@
 
 #include <boost/bind.hpp>
 
-#include <cv.h>
 #include <ctime>
 
 using namespace Eigen;
@@ -177,8 +176,7 @@ int main(void)
     tmp[0] = 80; tmp[1] =55;
     originals.push_back(tmp);
     
-    cv::RNG rng(std::time(NULL));
-    
+ 
     for(unsigned int i = 0; i < originals.size(); i++){
 		costs.transform(gtParameters, originals[i], tmp);
 		tmp[0]+= rng.uniform(-0.2, 0.2);

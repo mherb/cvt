@@ -5,9 +5,6 @@
 #include <cvt/geom/Rect.h>
 #include <cvt/io/ImageIO.h>
 
-#include <cv.h>
-#include <highgui.h>
-
 int main()
 {
 	std::string dataFolder( DATA_FOLDER );
@@ -21,8 +18,6 @@ int main()
 		cvt::Image imgF( imgGray.width(), imgGray.height(), cvt::IFormat::floatEquivalent( imgGray.format() ) );
 		imgGray.convert( imgF );
 		
-		cvNamedWindow( "Test Image" );
-		
 		cvt::Recti rect(100, 100, 100, 100);
 		cvt::Image patchA(imgF, &rect, false);
 		
@@ -32,13 +27,6 @@ int main()
 		std::cout << "SSD: " << patchA.ssd( patchB ) << std::endl;
 		std::cout << "SAD: " << patchA.sad( patchB ) << std::endl;
 		
-//		cvShowImage( "Test Image", patchA.iplimage() );
-		cvWaitKey( 0 );
-//		cvShowImage( "Test Image", patchB.iplimage() );
-		cvWaitKey( 0 );
-		
-//		cvShowImage( "Test Image", imgGray.iplimage() );
-		cvWaitKey( 0 );
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;

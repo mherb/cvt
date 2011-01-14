@@ -6,7 +6,7 @@
 
 namespace cvt {
 
-	ParamInfo* _params[ 4 ] = {
+	static ParamInfo* _params[ 4 ] = {
 		new ParamInfoTyped<Image*>( "Input", true ),
 		new ParamInfoTyped<Image*>( "Output", false ),
 		new ParamInfoTyped<Matrix3f>( "H", true ),

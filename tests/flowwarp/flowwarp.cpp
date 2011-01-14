@@ -4,9 +4,6 @@
 #include <cvt/io/ImageIO.h>
 #include <cvt/vision/Flow.h>
 
-#include <cv.h>
-#include <highgui.h>
-
 using namespace cvt;
 
 int main(int argc, char* argv[])
@@ -27,15 +24,6 @@ int main(int argc, char* argv[])
 		tmp.convert( input, IFormat::BGRA_FLOAT );
 	}
 	input.warpBilinear( output, flow );
-
-
-	while( 1 ) {
-//		cvShowImage( "Flow", output.iplimage() );
-
-		key = cvWaitKey( 10 ) & 0xff;
-		if( key == 27 )
-			break;
-	}
 
 	if( argc == 4 ) {
 		ImageIO::savePNG( output, argv[ 3 ] );
