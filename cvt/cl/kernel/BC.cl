@@ -7,10 +7,14 @@ __kernel void BC( __write_only image2d_t out,  __read_only image2d_t in, float b
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 	pixel = read_imagef( in, sampler, coord );
-	pixel.xyz -= 0.5f;
-	pixel.xyz *= ( 1.0f + contrast );
-	pixel.xyz += 0.5f;
-	pixel.xyz += brightness;
+//	pixel.xyz -= 0.5f;
+//	pixel.xyz *= ( 1.0f + contrast );
+//	pixel.xyz += 0.5f;
+//	pixel.xyz *= contrast;
+	float a = pixel.w;
+	pixel *=  ( 1.0f + contrast );
+	pixel +=  brightness;
+	pixel.w = a;
 	write_imagef( out, coord, pixel );
 }
 

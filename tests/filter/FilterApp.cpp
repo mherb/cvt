@@ -125,10 +125,10 @@ void FilterApp::initFilter()
 	_params = _filter->parameterSet();
 	
 	size_t bloc = _params->paramHandle( "Brightness" );
-	_params->setArg<float>( bloc, 0.25f );
+	_params->setArg<float>( bloc, 0.1f );
 	
 	size_t cloc = _params->paramHandle( "Contrast" );
-	_params->setArg<float>( cloc, 0.1f );
+	_params->setArg<float>( cloc, 0.0f );
 	
 	_outputHandle = _params->paramHandle( "Output" );
 	_params->setArg<Image*>( _outputHandle, &_outCL );
