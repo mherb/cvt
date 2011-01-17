@@ -40,6 +40,9 @@ namespace cvt {
 
 	void ImageAllocatorMem::alloc( size_t width, size_t height, const IFormat & format )
 	{
+		if( _width == width && _height == height && _format == format )
+			return;
+
 		release();
 		_width = width;
 		_height = height;

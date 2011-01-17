@@ -22,6 +22,9 @@ namespace cvt {
 	{
 		GLenum glformat, gltype, internalformat;
 
+		if( _width == width && _height == height && _format == format )
+			return;
+
 		_width = width;
 		_height = height;
 		_format = format;
