@@ -58,7 +58,7 @@ FilterApp::FilterApp( const std::string & name ) :
 	_appWindow.addWidget( &_mOut );
 	_mOut.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 0 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
 	
 	_cl.makeCurrent();
 	initCamera();
@@ -133,17 +133,26 @@ void FilterApp::initFilter()
 
 void FilterApp::onTimeout()
 {
-	_cam->nextFrame();
-	_inImageView.setImage( _cam->frame() );
-	
-	_inCL = _cam->frame();
-	_params->setArg<Image*>( _inputHandle, &_inCL );
-	
-	_filter->apply( _params, _filterType );	
-			
-	_outImageView.setImage( _outCL );
-	
-	_frames++;
+
+	try {
+		_cam->nextFrame();
+		_inImageView.setImage( _cam->frame() );
+
+//		_inCL.copy( _cam->frame() );
+//		_outCL.copy( _cam->frame() );
+
+		//_inCL = _cam->frame();
+		_params->setArg<Image*>( _inputHandle, &_inCL );
+		_params->setArg<Image*>( _outputHandle, &_outCL );
+
+		_filter->apply( _params, _filterType );
+
+//		_outImageView.setImage( _outCL );
+
+		_frames++;
+	} catch( CLException e ) {
+		std::cout << e.what() << std::endl;
+	}
 	
 	if( _timer.elapsedSeconds() > 5.0f ) {
 		char buf[ 200 ];

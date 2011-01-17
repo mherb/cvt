@@ -17,6 +17,9 @@ namespace cvt {
 	{
 		cl_int err;
 
+		if( _width == width && _height == height && _format == format && _climage )
+			return;
+
 		if( _climage )
 			delete _climage;
 		_width = width;
