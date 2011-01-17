@@ -153,7 +153,7 @@ void FilterApp::onTimeout()
 
 		_filter->apply( _params, _filterType );
 
-		//_outImageView.setImage( _outCL );
+		_outImageView.setImage( _outCL );
 
 		_frames++;
 	} catch( CLException e ) {

@@ -255,6 +255,18 @@ namespace cvt {
 			return i;
 		}
 
+		template<typename T>
+		static inline size_t gcd( T x, T y )
+		{
+			T remainder;
+
+			while ( ( remainder = x % y ) != 0 ) {
+				x = y;
+				y = remainder;
+			}
+			return y;
+		}
+
 		/*
 		 * Algorithm from Goloub, v. Loan p.573f
 		 * but with fixed number of pade approximants;
