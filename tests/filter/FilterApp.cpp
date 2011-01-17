@@ -58,7 +58,7 @@ FilterApp::FilterApp( const std::string & name ) :
 	_appWindow.addWidget( &_mOut );
 	_mOut.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 30 /* as fast as possible*/, this );
 	
 	_cl.makeCurrent();
 	initCamera();
@@ -67,8 +67,11 @@ FilterApp::FilterApp( const std::string & name ) :
 
 FilterApp::~FilterApp()
 {
-	if( _cam )
+	if( _cam ){
+		_cam->stopCapture();
 		delete _cam;
+	}
+
 	if( _params )
 		delete _params;
 		
@@ -92,11 +95,16 @@ void FilterApp::initCamera()
 	}
 
 	size_t selection = numCams;
-	std::cout << "Select camera: ";
-	std::cin >> selection;
-	while ( selection >= numCams ){
-		std::cout << "Index out of bounds -> select camera in Range:";
+	
+	if( numCams == 1 ){
+		selection = 0;
+	} else {
+		std::cout << "Select camera: ";
 		std::cin >> selection;
+		while ( selection >= numCams ){
+			std::cout << "Index out of bounds -> select camera in Range:";
+			std::cin >> selection;
+		}
 	}
 	
 	_cam = cvt::Camera::get( selection, 640, 480, 60, cvt::IFormat::UYVY_UINT8 );
@@ -117,7 +125,7 @@ void FilterApp::initFilter()
 	_params = _filter->parameterSet();
 	
 	size_t sigma = _params->paramHandle( "Sigma" );
-	_params->setArg<float>( sigma, 3.5f );
+	_params->setArg<float>( sigma, 3.0f );
 	
 	size_t order = _params->paramHandle( "Order" );
 	_params->setArg<int>( order, 0 );
@@ -138,16 +146,14 @@ void FilterApp::onTimeout()
 		_cam->nextFrame();
 		_inImageView.setImage( _cam->frame() );
 
-//		_inCL.copy( _cam->frame() );
-//		_outCL.copy( _cam->frame() );
+		_inCL.copy( _cam->frame() );
 
-		//_inCL = _cam->frame();
 		_params->setArg<Image*>( _inputHandle, &_inCL );
 		_params->setArg<Image*>( _outputHandle, &_outCL );
 
 		_filter->apply( _params, _filterType );
 
-//		_outImageView.setImage( _outCL );
+		//_outImageView.setImage( _outCL );
 
 		_frames++;
 	} catch( CLException e ) {
