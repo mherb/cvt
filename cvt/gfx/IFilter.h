@@ -17,6 +17,7 @@ namespace cvt {
 			virtual ParamSet* parameterSet() const { return new ParamSet( _pinfo, _pinfosize ); };
 			virtual void apply( const ParamSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
 			uint32_t getIFilterType() const { return _iftype; };
+			const std::string & name() const { return _name; };
 
 		protected:
 			IFilter( std::string name, ParamInfo** pinfo, size_t pinfosize, uint32_t ifiltertype ) : _iftype( ifiltertype ), _name( name ), _pinfo( pinfo ), _pinfosize( pinfosize ) {};
