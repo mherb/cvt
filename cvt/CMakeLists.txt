@@ -37,8 +37,6 @@ FIND_PACKAGE(X11 REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
-#	${Boost_LIBRARIES}
-#	${OpenCV_LIBS}
 	${LIBPNG_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
@@ -137,19 +135,19 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/150/basiclight_150_frag.h
 	gl/shader/150/basiclight_150_vert.h	
 	gui/Application.h
-	gui/Window.h
-	gui/Widget.h
 	gui/BasicTimer.h
-	gui/WidgetContainer.h
-	gui/Moveable.h
-	gui/WidgetLayout.h
 	gui/Button.h
-	gui/ToggleButton.h
 	gui/ImageView.h
-	gui/View3D.h
-	gui/internal/WidgetImplDefault.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
+	gui/internal/WidgetImplDefault.h
+	gui/Moveable.h
+	gui/ToggleButton.h
+	gui/View3D.h
+	gui/Window.h
+	gui/Widget.h
+	gui/WidgetContainer.h
+	gui/WidgetLayout.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h
@@ -206,6 +204,53 @@ SET(${MODULE_NAME}_HEADERS
 )
 
 SET(${MODULE_NAME}_SOURCES
+	cl/CLContext.cpp
+	cl/CLException.cpp
+	cl/CLKernel.cpp
+	gfx/IConvert.cpp
+	gfx/IFormat.cpp
+	gfx/Image.cpp
+	gfx/ImageOperations.cpp
+	gfx/ImageTest.cpp
+	gfx/ifilter/ROFDenoise.cpp
+	gfx/ifilter/Homography.cpp
+	gfx/ifilter/GaussIIR.cpp
+#	gfx/ifilter/Sobel.cpp
+	gfx/ImageAllocatorCL.cpp
+	gfx/ImageAllocatorGL.cpp
+	gfx/ImageAllocatorMem.cpp
+	gfx/IScaleFilter.cpp
+	geom/KDTree.cpp
+	geom/Model.cpp
+	geom/Rect.cpp
+	gl/GLBuffer.cpp
+	gl/GLModel.cpp
+	gl/GLProgram.cpp
+	gl/GLTexture.cpp
+	gl/GLVertexArray.cpp
+	gl/OpenGL.cpp
+	gl/progs/GLFillRectProg.cpp
+	gl/progs/GLFillRoundRectProg.cpp
+	gl/progs/GLDrawTextProg.cpp
+	gl/progs/GLDrawImageProg.cpp
+	gl/progs/GLDrawIconProg.cpp
+	gl/progs/GLDrawModelProg.cpp
+	gui/Application.cpp
+	gui/BasicTimer.cpp
+	gui/Button.cpp
+	gui/GFX.cpp
+	gui/GFXGL.cpp
+	gui/Moveable.cpp	
+	gui/ImageView.cpp
+	gui/internal/ApplicationX11.cpp
+	gui/internal/TimerInfo.cpp
+	gui/internal/TimerInfoList.cpp
+	gui/internal/WidgetImplWinGLX11.cpp
+	gui/internal/X11Handler.cpp
+	gui/ToggleButton.cpp
+	gui/Widget.cpp
+	gui/WidgetContainer.cpp
+	gui/Window.cpp
 	io/CameraInfo.cpp
 	io/CameraModeSet.cpp
 	io/Camera.cpp
@@ -234,19 +279,6 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDSSE41.cpp
 	util/SIMDTest.cpp
 	util/Time.cpp
-	gfx/Image.cpp
-	gfx/ImageTest.cpp
-	gfx/IFormat.cpp
-	gfx/IConvert.cpp
-	gfx/ImageOperations.cpp
-	gfx/ifilter/ROFDenoise.cpp
-	gfx/ifilter/Homography.cpp
-	gfx/ifilter/GaussIIR.cpp
-#	gfx/ifilter/Sobel.cpp
-	gfx/IScaleFilter.cpp
-	gfx/ImageAllocatorMem.cpp
-	gfx/ImageAllocatorCL.cpp
-	gfx/ImageAllocatorGL.cpp
 	vision/AGAST.cpp
 	vision/agast/agast5_8.cpp
 	vision/agast/agast7_12s.cpp
@@ -261,40 +293,6 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/PatchGenerator.cpp
-	cl/CLContext.cpp
-	cl/CLException.cpp
-	cl/CLKernel.cpp
-	geom/KDTree.cpp
-	geom/Model.cpp
-	geom/Rect.cpp
-	gui/Application.cpp
-	gui/Window.cpp
-	gui/Widget.cpp
-	gui/GFX.cpp
-	gui/GFXGL.cpp
-	gui/BasicTimer.cpp
-	gui/WidgetContainer.cpp
-	gui/Moveable.cpp
-	gui/Button.cpp
-	gui/ToggleButton.cpp
-	gui/ImageView.cpp
-	gui/internal/TimerInfo.cpp
-	gui/internal/TimerInfoList.cpp
-	gui/internal/WidgetImplWinGLX11.cpp
-	gui/internal/ApplicationX11.cpp
-	gui/internal/X11Handler.cpp
-	gl/GLProgram.cpp
-	gl/GLBuffer.cpp
-	gl/GLTexture.cpp
-	gl/GLVertexArray.cpp
-	gl/GLModel.cpp
-	gl/OpenGL.cpp
-	gl/progs/GLFillRectProg.cpp
-	gl/progs/GLFillRoundRectProg.cpp
-	gl/progs/GLDrawTextProg.cpp
-	gl/progs/GLDrawImageProg.cpp
-	gl/progs/GLDrawIconProg.cpp
-	gl/progs/GLDrawModelProg.cpp
 )
 
 

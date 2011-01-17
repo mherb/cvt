@@ -10,7 +10,7 @@ namespace cvt {
 	{
 	}
 
-	void ImageView::paintEvent( PaintEvent* ev, GFX* g )
+	void ImageView::paintEvent( PaintEvent*, GFX* g )
 	{
 		int w, h;
 		size( w, h );
@@ -23,6 +23,7 @@ namespace cvt {
 		try {
 			IConvert::convert( _img, img );
 		} catch( Exception e ) {
+			std::cerr << "Conversion error: " << e.what() << std::endl;
 		}
 		update();
 	}

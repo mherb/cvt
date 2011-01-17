@@ -131,7 +131,7 @@ namespace cvt {
 		new ParamInfoTyped<int>( "Order", 0 /* min */, 2 /* max */, 0 /* default */, true )
 	};
 	
-	GaussIIR::GaussIIR() : IFilter( "GaussIIR", _params, 4, ( IFILTER_OPENCL ) ), _kernelIIR( 0 ), _kernelIIR2( 0 )
+	GaussIIR::GaussIIR() : IFilter( "GaussIIR", _params, 4, IFILTER_OPENCL ), _kernelIIR( 0 ), _kernelIIR2( 0 )
 	{			
 	}
 	
