@@ -7,7 +7,7 @@
 
 
 namespace cvt {
-	
+
 	#define L1 ( _IIR[ order ][ 0 ][ 3 ] )
 	#define L2 ( _IIR[ order ][ 1 ][ 3 ] )
 	#define W1 ( _IIR[ order ][ 0 ][ 2 ] )
@@ -16,19 +16,23 @@ namespace cvt {
 	#define B2 ( _IIR[ order ][ 1 ][ 1 ] )
 	#define A1 ( _IIR[ order ][ 0 ][ 0 ] )
 	#define A2 ( _IIR[ order ][ 1 ][ 0 ] )
-	
+
 	static const float _IIR[ 3 ][ 2 ][ 4 ] =
 	{
-	 	1.680f  ,  3.735f,  0.6318f, -1.783f,
-		-0.6803f , -0.2598,  1.997f,  -1.723f,
-
-	 	-0.6472f, -4.531f,  0.6719f, -1.527f,
-	  	0.6494f,  0.9557f, 2.072f,  -1.516f,
-
-	 	-1.331f  ,  3.661f, 0.7480f, -1.240f,
-	  	0.3225f , -1.738f, 2.166f,  -1.314f	
+		{
+			{ 1.680f  ,  3.735f,  0.6318f, -1.783f },
+			{ -0.6803f , -0.2598,  1.997f,  -1.723f },
+		},
+		{
+			{ -0.6472f, -4.531f,  0.6719f, -1.527f },
+			{ 0.6494f,  0.9557f, 2.072f,  -1.516f },
+		},
+		{
+			{ -1.331f  ,  3.661f, 0.7480f, -1.240f },
+			{ 0.3225f , -1.738f, 2.166f,  -1.314f }
+		}
 	};
-	
+
 	static void _GaussIIRCoeff_D( float sigma, int order, Vector4f& d, float& SD )
 	{
 		const float cw1 = Math::cos( W1 / sigma );

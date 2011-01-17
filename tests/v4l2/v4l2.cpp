@@ -1,6 +1,4 @@
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
 
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
@@ -82,11 +80,11 @@ int main(int argc, char* argv[])
 			} else
 //				cvShowImage( "V4L2", frame->iplimage() );
 
-			key = cvWaitKey( 10 ) & 0xff;
+/*			key = cvWaitKey( 10 ) & 0xff;
 			if( key == 27 )
 				break;
 			else if( key == ' ')
-				doprocess = !doprocess;
+				doprocess = !doprocess;*/
 
 			frames++;
 			if( timer.elapsedSeconds() > 5.0f ) {
