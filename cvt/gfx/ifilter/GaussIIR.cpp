@@ -137,6 +137,11 @@ namespace cvt {
 	
 	GaussIIR::~GaussIIR() 
 	{
+		if( _kernelIIR )
+			delete _kernelIIR;
+		if( _kernelIIR2 )
+			delete _kernelIIR2;
+
 	}
 	
 	void GaussIIR::apply( const ParamSet* set, IFilterType t ) const

@@ -73,6 +73,8 @@ GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
+CLTOHEADER( cl/kernel/BC.cl )
+
 
 SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
@@ -80,6 +82,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLKernel.h
 	cl/kernel/gaussiir.h
 	cl/kernel/gaussiir2.h
+	cl/kernel/BC.h
 	geom/KDTree.h
 	geom/Rect.h
 	geom/Model.h
@@ -90,6 +93,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
 	gfx/ifilter/GaussIIR.h
+	gfx/ifilter/BrightnessContrast.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -215,6 +219,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp
 	gfx/ifilter/GaussIIR.cpp
+	gfx/ifilter/BrightnessContrast.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
