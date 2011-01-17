@@ -88,7 +88,7 @@ namespace cvt {
 	}
 
 	uint8_t* ImageAllocatorCL::map( size_t* stride )
-	{
+	{		
 		uint8_t* ptr;
 		cl_int err;
 		cl::size_t<3> src;
@@ -109,7 +109,7 @@ namespace cvt {
 	}
 
 	const uint8_t* ImageAllocatorCL::map( size_t* stride ) const
-	{
+	{		
 		uint8_t* ptr;
 		cl_int err;
 		cl::size_t<3> src;
@@ -129,7 +129,7 @@ namespace cvt {
 	}
 
 	void ImageAllocatorCL::unmap( const uint8_t* ptr ) const
-	{
+	{		
 		cl_int err;
 		err = _cl->getCLQueue( ).enqueueUnmapMemObject( *_climage, ( void* ) ptr, NULL, NULL );
 		if( err != CL_SUCCESS )
