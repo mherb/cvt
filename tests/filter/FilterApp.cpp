@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include <cvt/gfx/ifilter/BrightnessContrast.h>
-//#include <cvt/gfx/ifilter/GaussIIR.h>
+#include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/io/ImageIO.h>
 
 using namespace cvt;
@@ -114,30 +114,35 @@ void FilterApp::initCamera()
 	
 	std::cout << _cam->frame() << std::endl;
 	
-	_inCL.reallocate( _cam->frame(), IALLOCATOR_CL );
-	_outCL.reallocate( _inCL, IALLOCATOR_CL );
+	//_in.reallocate( _cam->frame(), IALLOCATOR_CL );
+	//_out.reallocate( _in, IALLOCATOR_CL );
+	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
+	_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
 }
 
 void FilterApp::initFilter()
 {
 	// select the filter and set parameters	
-	_filter = new BrightnessContrast();
-//	_filter = new GaussIIR();
-
-	_filterType = IFILTER_OPENCL;
+	//_filter = new BrightnessContrast();
+	_filter = new GaussIIR();
+	//_filterType = IFILTER_OPENCL;
+	_filterType = IFILTER_CPU;
+	
 	_params = _filter->parameterSet();
 	
-	size_t bloc = _params->paramHandle( "Brightness" );
+	/*size_t bloc = _params->paramHandle( "Brightness" );
 	_params->setArg<float>( bloc, 0.1f );
 	
 	size_t cloc = _params->paramHandle( "Contrast" );
-	_params->setArg<float>( cloc, 0.0f );
+	_params->setArg<float>( cloc, 0.0f );*/
 	
 	_outputHandle = _params->paramHandle( "Output" );
-	_params->setArg<Image*>( _outputHandle, &_outCL );
-	
 	_inputHandle = _params->paramHandle( "Input" );
-	_params->setArg<Image*>( _inputHandle, &_inCL );
+	size_t sigma = _params->paramHandle( "Sigma" );
+	
+	_params->setArg<Image*>( _outputHandle, &_out );	
+	_params->setArg<Image*>( _inputHandle, &_in );
+	_params->setArg<float>( sigma, 6.5f );
 
 	std::cout << *_params << std::endl;
 }
@@ -149,14 +154,15 @@ void FilterApp::onTimeout()
 		_cam->nextFrame();
 		_inImageView.setImage( _cam->frame() );
 
-		_inCL.copy( _cam->frame() );
+		//_in.copy( _cam->frame() );
+		_cam->frame().convert( _in );
 
-		_params->setArg<Image*>( _inputHandle, &_inCL );
-		_params->setArg<Image*>( _outputHandle, &_outCL );
+		_params->setArg<Image*>( _inputHandle, &_in );
+		_params->setArg<Image*>( _outputHandle, &_out );
 
 		_filter->apply( _params, _filterType );
 
-		_outImageView.setImage( _outCL );
+		_outImageView.setImage( _out );
 
 		_frames++;
 	} catch( CLException e ) {
