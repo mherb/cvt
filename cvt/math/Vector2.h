@@ -125,7 +125,7 @@ namespace cvt {
     template<typename T>
 	inline Vector2<T> Vector2<T>::operator/( const T c ) const
 	{
-	    T inv = ( ( T ) 1.0 ) / c;
+	    T inv = ( ( T ) 1 ) / c;
 	    return Vector2<T>( x * inv, y * inv );
 	}
 
