@@ -224,6 +224,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE41.h	
 	util/Thread.h
 	util/Util.h
+	util/Flags.h
 	vision/AGAST.h
 	vision/DLT.h
 	vision/FAST.h
