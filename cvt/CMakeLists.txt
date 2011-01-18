@@ -11,7 +11,6 @@ SET(MODULE_NAME "cvt")
 
 PROJECT(${MODULE_NAME} CXX C)
 
-FIND_PACKAGE(Boost 1.40 REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -195,7 +194,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/PlyModel.h
 	math/ESM.h
 	math/Fixed.h
-	math/LevenbergMarquard.h
 	math/Math.h
 	math/Vector.h
 	math/Vector2.h
@@ -206,7 +204,6 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix3.h
 	math/Matrix4.h
 	math/Quaternion.h
-	math/Optimization.h
 	math/SBAData.h
 	math/SL3Transform.h
 	math/SparseBundleAdjustment.h	
@@ -307,7 +304,6 @@ SET(${MODULE_NAME}_SOURCES
 	io/PlyModel.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
-	math/LevenbergMarquard.cpp
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
@@ -391,7 +387,6 @@ ENDIF(UEYEUSB_FOUND)
 INCLUDE_DIRECTORIES(
     BEFORE
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${Boost_INCLUDE_DIRS}
 	${Eigen2_INCLUDE_DIR}	
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
