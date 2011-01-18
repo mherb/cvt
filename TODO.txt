@@ -49,6 +49,18 @@ Philipp:
 	o face recognition using PCA of faces
 	o Intensity based optimization for model -> to get Similarity and basis components
 
+- Refactor GFX system:
+	o add class Drawable ( or Paintable or whatever )
+
+		Drawable:
+			GFXEngine* getGFXEngine()
+
+	o add class GFXEngine provided by a Drawable and used by GFX to draw into the Drawable
+		Drawing code:				GFX:
+		GFX gfx( Drawable )   ->	_engine = Drawable.getGFXEngine();
+
+
+
 Sebastian:
 ==========
 - remove boost from cmake
