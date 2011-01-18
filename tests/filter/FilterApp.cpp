@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include <cvt/gfx/ifilter/BrightnessContrast.h>
+//#include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/io/ImageIO.h>
 
 using namespace cvt;
@@ -121,6 +122,8 @@ void FilterApp::initFilter()
 {
 	// select the filter and set parameters	
 	_filter = new BrightnessContrast();
+//	_filter = new GaussIIR();
+
 	_filterType = IFILTER_OPENCL;
 	_params = _filter->parameterSet();
 	
