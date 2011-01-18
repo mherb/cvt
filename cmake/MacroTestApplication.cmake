@@ -6,14 +6,12 @@
 #	or (if none is passed) the name of the folder
 #
 #	Dependencies we search for and link against:
-#	- Boost
 #	- Eigen2
+#	- OpenCL
 
 MACRO (MACRO_TEST_APPLICATION)
 
-#FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
-FIND_PACKAGE(Boost 1.40 REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
 
 include(GLCLTOHEADER)
@@ -50,9 +48,7 @@ INCLUDE_DIRECTORIES(
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_SOURCE_DIR}/cvt"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-#	"${OpenCV_INCLUDE_DIRS}"
 	"${Eigen2_INCLUDE_DIR}"
-	"${Boost_INCLUDE_DIRS}"
 	"${OPENCL_INCLUDE_DIR}"
 )
 

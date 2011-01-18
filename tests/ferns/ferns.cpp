@@ -128,13 +128,13 @@ void testFerns()
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
 
 	Homography hfilter;
-	cvt::Matrix3f H = calc_homography( 25.0f, 0.0f, 1.2f, 1.2f, 100.0f, 100.0f, 0.0f, 0.0f );
+	cvt::Matrix3f H = calc_homography( 25.0f, 0.0f, 1.3f, 1.3f, 100.0f, 100.0f, 0.0f, 0.0f );
+	H *= 1.0f / H[ 2 ][ 2 ];
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
-	
+
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
 	ImageIO::savePNG( warped, "test.png" );
-
 
 	std::vector<Feature2D> features;
 	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );

@@ -87,7 +87,7 @@ namespace cvt
 	}
 
 
-	void DLT::dlt( std::vector<Eigen::Vector2d> & reference, 
+	void DLT::dlt( std::vector<Eigen::Vector2d> & reference,
 				   std::vector<Eigen::Vector2d> & transformed,
 				   Eigen::Matrix3d & H )
 	{
@@ -97,26 +97,26 @@ namespace cvt
 		Eigen::Matrix<double, 8, 1> x;
 
 		for( size_t i = 0; i < reference.size(); i++ ){
-			A( 2 * i, 0 ) = 0.0; 
-			A( 2 * i, 1 ) = 0.0; 
+			A( 2 * i, 0 ) = 0.0;
+			A( 2 * i, 1 ) = 0.0;
 			A( 2 * i, 2 ) = 0.0;
-			A( 2 * i, 3 ) = -reference[ i ][ 0 ]; 
-			A( 2 * i, 4 ) = -reference[ i ][ 1 ]; 
+			A( 2 * i, 3 ) = -reference[ i ][ 0 ];
+			A( 2 * i, 4 ) = -reference[ i ][ 1 ];
 			A( 2 * i, 5 ) = -1.0;
 			A( 2 * i, 6 ) = reference[ i ][ 0 ] * transformed[ i ][ 1 ];
 			A( 2 * i, 7 ) = reference[ i ][ 1 ] * transformed[ i ][ 1 ];
 
-			A( 2 * i + 1, 0 ) = reference[ i ][ 0 ]; 
-			A( 2 * i + 1, 1 ) = reference[ i ][ 1 ]; 
+			A( 2 * i + 1, 0 ) = reference[ i ][ 0 ];
+			A( 2 * i + 1, 1 ) = reference[ i ][ 1 ];
 			A( 2 * i + 1, 2 ) = 1.0;
-			A( 2 * i + 1, 3 ) = 0.0; 
-			A( 2 * i + 1, 4 ) = 0.0; 
+			A( 2 * i + 1, 3 ) = 0.0;
+			A( 2 * i + 1, 4 ) = 0.0;
 			A( 2 * i + 1, 5 ) = 0.0;
 			A( 2 * i + 1, 6 ) = -reference[ i ][ 0 ] * transformed[ i ][ 0 ];
 			A( 2 * i + 1, 7 ) = -reference[ i ][ 1 ] * transformed[ i ][ 0 ];
 
-			b[ 2 * i ] 		= -transformed[ i ][ 1 ];
-			b[ 2 * i + 1 ] 	=  transformed[ i ][ 0 ];
+			b[ 2 * i ]		= -transformed[ i ][ 1 ];
+			b[ 2 * i + 1 ]	=  transformed[ i ][ 0 ];
 		}
 
 		A.svd().solve( b, &x );
@@ -128,7 +128,7 @@ namespace cvt
 
 	void DLT::normalize( const Eigen::Matrix<double, 3, Eigen::Dynamic> & pts,
 					     Eigen::Matrix<double, 3, Eigen::Dynamic> & normalizedPts,
-	 					 Eigen::Matrix3d & similarity )
+						 Eigen::Matrix3d & similarity )
 	{
 		similarity = Eigen::Matrix3d::Identity();
 
@@ -146,30 +146,30 @@ namespace cvt
 			scale += tmp.norm();
 		}
 		scale /= pts.cols();
-		scale = -sqrt( 2.0 ) / scale;
+		scale = sqrt( 2.0 ) / scale;
 
-		similarity( 0, 0 ) = scale; similarity( 0, 2 ) = mean[ 0 ] * scale;
-		similarity( 1, 1 ) = scale; similarity( 1, 2 ) = mean[ 1 ] * scale;
+		similarity( 0, 0 ) = scale; similarity( 0, 2 ) = -mean[ 0 ] * scale;
+		similarity( 1, 1 ) = scale; similarity( 1, 2 ) = -mean[ 1 ] * scale;
 
-		normalizedPts = similarity * pts;			
+		normalizedPts = similarity * pts;
 	}
 
 	void DLT::normalize( const std::vector<Eigen::Vector2d> & pts,
-	 					 std::vector<Eigen::Vector2d> & normalized,
+						 std::vector<Eigen::Vector2d> & normalized,
 						 Eigen::Matrix3d & similarity )
 	{
 		Eigen::Vector2d t = Eigen::Vector2d::Zero();
 		similarity = Eigen::Matrix3d::Identity();
 
 		for( size_t i = 0; i < pts.size(); i++ ){
-			t += pts[ i ]; 
+			t += pts[ i ];
 		}
 
 		t *= -1.0 / pts.size();
 
 		double scale = 0.0;
-		Eigen::Vector2d p;	
-		for( size_t i = 0; i < pts.size(); i++ ){		
+		Eigen::Vector2d p;
+		for( size_t i = 0; i < pts.size(); i++ ){
 			p = pts[ i ] + t;
 			scale += p.norm();
 			normalized.push_back( p );
@@ -180,11 +180,11 @@ namespace cvt
 
 		similarity( 0, 0 ) =  scale;
 		similarity( 1, 1 ) =  scale;
-		t *= scale; 
+		t *= scale;
 		similarity.block( 0, 2, 2, 1) = t;
 
 		for( size_t i = 0; i < normalized.size(); i++ ){
 			normalized[ i ] *= scale;
 		}
-	}	
+	}
 }
