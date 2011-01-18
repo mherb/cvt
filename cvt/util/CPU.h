@@ -2,9 +2,10 @@
 #define CPU_H
 #include <iostream>
 #include <stdint.h>
+#include <cvt/util/Flags.h>
 
 namespace cvt {
-	enum CPUFeature {
+	enum CPUFeatureFlags {
 		CPU_BASE   =  0,
 		CPU_MMX    = ( 1 << 1 ),
 		CPU_SSE    = ( 1 << 2 ),
@@ -16,9 +17,11 @@ namespace cvt {
 		CPU_AVX    = ( 1 << 8 ),
 	};
 
-	static inline uint32_t cpuFeatures( void )
+	typedef Flags<CPUFeatureFlags> CPUFeatures;
+
+	static inline CPUFeatures cpuFeatures( void )
 	{
-		uint32_t ret = CPU_BASE;
+		CPUFeatures ret = CPU_BASE;
 		uint32_t eax, ebx, ecx, edx;
 
 #ifdef ARCH_x86_64
@@ -70,8 +73,8 @@ namespace cvt {
 
 	static inline void cpuFeaturesPrint()
 	{
-		uint32_t f;
-		f = cpuFeatures();
+		CPUFeatures f = cpuFeatures();
+
 		std::cout << "CPU features: ";
 		if( f & CPU_MMX )
 			std::cout << "MMX ";

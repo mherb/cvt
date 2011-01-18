@@ -672,7 +672,7 @@ namespace cvt {
 	SIMD* SIMD::get( SIMDType type )
 	{
 		if( type == SIMD_BEST ) {
-			uint32_t cpuf;
+			CPUFeatures cpuf;
 			cpuf = cpuFeatures();
 			if( cpuf & CPU_SSE4_1 ) {
 				return new SIMDSSE41();
