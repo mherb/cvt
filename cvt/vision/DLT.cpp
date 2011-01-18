@@ -102,10 +102,7 @@ namespace cvt
 			A( 2 * i, 2 ) = 0.0;
 			A( 2 * i, 3 ) = -reference[ i ][ 0 ]; 
 			A( 2 * i, 4 ) = -reference[ i ][ 1 ]; 
-
-			/* FIXME: this should be -1.0 */
-
-			A( 2 * i, 5 ) = 1.0;
+			A( 2 * i, 5 ) = -1.0;
 			A( 2 * i, 6 ) = reference[ i ][ 0 ] * transformed[ i ][ 1 ];
 			A( 2 * i, 7 ) = reference[ i ][ 1 ] * transformed[ i ][ 1 ];
 

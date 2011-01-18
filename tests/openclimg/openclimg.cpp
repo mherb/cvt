@@ -3,6 +3,7 @@
 #include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
+#include <cvt/util/Time.h>
 
 #include <iostream>
 
@@ -38,7 +39,15 @@ int main( void )
 		pSet->setArg( sigma, 1.5f );
 		pSet->setArg<int>( order, 0 );
 		
-		filter.apply( pSet, IFILTER_OPENCL );		
+		Time timer;
+		timer.reset();
+		int i;
+		for( i = 0; i < 60; i++ ){
+			filter.apply( pSet, IFILTER_OPENCL );			
+		}
+		std::cout << "Average Time: " << timer.elapsedMilliSeconds() / i << std::endl;
+		std::cout << "Average FPS: " << i * 1000.0f / timer.elapsedMilliSeconds() << std::endl;
+		
 
 		ImageIO::savePNG( x2, "bla.png" );
 	} catch( CLException e ) {

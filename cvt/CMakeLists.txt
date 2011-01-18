@@ -12,7 +12,6 @@ SET(MODULE_NAME "cvt")
 PROJECT(${MODULE_NAME} CXX C)
 
 FIND_PACKAGE(Boost 1.40 REQUIRED)
-#FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Eigen2 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -24,10 +23,7 @@ IF( APPLE )
 	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
 	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
 	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
-	SET( OPENGL_LIBRARIES 
-		${OPENGL_gl_LIBRARY}
-		${OPENGL_glu_LIBRARY} )
-	
+	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
 	LINK_DIRECTORIES(/usr/X11/lib)
 ENDIF( APPLE )
 
@@ -45,6 +41,33 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${FFMPEG_LIBRARIES}
 )
 
+SET( GLSL_SHADER
+	gl/shader/120/basic_120.vert
+	gl/shader/120/basic_120.frag
+	gl/shader/120/text_120.vert
+	gl/shader/120/text_120.frag
+	gl/shader/120/icon_120.vert
+	gl/shader/120/icon_120.frag
+	gl/shader/120/basictex_120.vert
+	gl/shader/120/basictex_120.frag
+	gl/shader/120/basicrrtex_120.frag
+	gl/shader/120/basicrr_120.frag
+	gl/shader/120/basiclight_120.frag
+	gl/shader/120/basiclight_120.vert
+	gl/shader/150/basic_150.vert
+	gl/shader/150/basic_150.frag
+	gl/shader/150/text_150.vert
+	gl/shader/150/text_150.frag
+	gl/shader/150/icon_150.vert
+	gl/shader/150/icon_150.frag
+	gl/shader/150/basictex_150.vert
+	gl/shader/150/basictex_150.frag
+	gl/shader/150/basicrrtex_150.frag
+	gl/shader/150/basicrr_150.frag
+	gl/shader/150/basiclight_150.frag
+	gl/shader/150/basiclight_150.vert	
+)
+
 GLSLTOHEADER(gl/shader/120/basic_120.vert)
 GLSLTOHEADER(gl/shader/120/basic_120.frag)
 GLSLTOHEADER(gl/shader/120/text_120.vert)
@@ -57,7 +80,6 @@ GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
 GLSLTOHEADER(gl/shader/120/basiclight_120.frag)
 GLSLTOHEADER(gl/shader/120/basiclight_120.vert)
-
 GLSLTOHEADER(gl/shader/150/basic_150.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.frag)
 GLSLTOHEADER(gl/shader/150/text_150.vert)
@@ -71,10 +93,15 @@ GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
 
+SET( CL_KERNELS
+	cl/kernel/gaussiir.cl
+	cl/kernel/gaussiir2.cl
+	cl/kernel/BC.cl
+)
+
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
-
 
 SET(${MODULE_NAME}_HEADERS
 	cl/CLContext.h
@@ -205,7 +232,17 @@ SET(${MODULE_NAME}_HEADERS
 	vision/internal/Fern.h
 	vision/Flow.h
 	vision/PatchGenerator.h
+	${GLSL_SHADER}
+	${CL_KERNELS}
 )
+
+#SET_SOURCE_FILES_PROPERTIES( ${GLSL_FILES} 
+#	PROPERTIES
+#	MACOSX_PACKAGE_LOCATION RESOURCE
+#)
+
+SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
+SOURCE_GROUP( CL FILES ${CL_KERNELS} )
 
 SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
@@ -354,7 +391,6 @@ INCLUDE_DIRECTORIES(
     BEFORE
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${Boost_INCLUDE_DIRS}
-#	${OpenCV_INCLUDE_DIRS}
 	${Eigen2_INCLUDE_DIR}	
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
@@ -362,9 +398,6 @@ INCLUDE_DIRECTORIES(
 	${X11_X11_INCLUDE_PATH}
 	${FFMPEG_INCLUDES}
 )
-
-#set opencl filter path
-
 
 MODULE_CONFIGURATION("${MODULE_NAME}" 
 					 "${${MODULE_NAME}_HEADERS}" 

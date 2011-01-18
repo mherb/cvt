@@ -40,8 +40,8 @@ class FilterApp : public cvt::TimeoutHandler
 		cvt::Time				_timer;
 		
 		cvt::CLContext			_cl;
-		cvt::Image				_inCL;
-		cvt::Image				_outCL;
+		cvt::Image				_in;		
+		cvt::Image				_out;
 		
 		uint32_t 				_timerId;
 		size_t					_inputHandle; // handle to set the input Image in the paramset!

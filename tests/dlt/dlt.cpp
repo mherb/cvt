@@ -51,7 +51,8 @@ void transform3d( std::vector<Eigen::Vector2d> & pts, std::vector<Eigen::Vector2
 						  Eigen::AngleAxisd( Math::deg2Rad( 10.0f ), Eigen::Vector3d::UnitX() ) ).toRotationMatrix();
 	Eigen::Vector3d t( 500, 300, 200 );
 	
-	std::cout << "R:\n" << R << std::endl;
+	std::cout << "Ground Truth Rotation:\n" << R << std::endl;
+	std::cout << "Ground Truth Translation:\n" << t << std::endl;
 	
 	Eigen::Vector3d p, pPrime;
 	Eigen::Vector2d p2;
@@ -132,8 +133,6 @@ int main( )
 	//tMat = H_gt * pMat;
 	
 	Time time;
-	
-	std::cout << "GT: \n" << H_gt << "\n" << std::endl;
 	
 	#define NUMITER ( 1 )
 	time.reset();
