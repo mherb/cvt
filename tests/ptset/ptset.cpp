@@ -4,7 +4,7 @@
 
 using namespace cvt;
 
-int main()
+void similarity()
 {
 	PointSet3f ptset;
 
@@ -13,16 +13,13 @@ int main()
 	for( int i = 0; i < 10; i++ )
 		ptset.add( Vector3f( Math::rand( -100.0f, 100.0f), Math::rand( -100.0f, 100.0f), Math::rand( -100.0f, 100.0f) ) );
 
-	std::cout << "Initial " << ptset << std::endl;
+//	std::cout << "Initial " << ptset << std::endl;
 
 	Matrix4f m, ms;
 
-
 	m.identity();
 
-	std::cout << m << std::endl;
-
-//	m[ 3 ][ 3 ] = 1.0f;
+//	std::cout << m << std::endl;
 	m[ 0 ][ 3 ] = 3.0f;
 	m[ 1 ][ 3 ] = 5.0f;
 	m[ 2 ][ 3 ] = -2.0f;
@@ -34,11 +31,51 @@ int main()
 	PointSet3f ptset2( ptset );
 	ptset2.transform( m );
 
-	std::cout << "Transformed " << ptset2 << std::endl;
+//	std::cout << "Transformed " << ptset2 << std::endl;
 
 	std::cout << "Transform\n" << m << std::endl;
 	ms = ptset.alignSimilarity( ptset2 );
 	std::cout << "Transform estimated\n" << ( ms) << std::endl;
-
 	std::cout << "Diff\n" << (m - ms) << std::endl;
+}
+
+void perspective()
+{
+	PointSet2f ptset;
+
+	srand( time( NULL ) );
+
+	for( int i = 0; i < 10; i++ )
+		ptset.add( Vector2f( Math::rand( -100.0f, 100.0f), Math::rand( -100.0f, 100.0f) ) );
+
+//	std::cout << "Initial " << ptset << std::endl;
+
+	Matrix3f m, ms;
+
+	m.identity();
+
+	Quaternionf qrot;
+	qrot.setRotation( 0.0f, 0.0f, 1.0f, Math::rand( -1.0f, 1.0f ) );
+	m *= qrot.toMatrix3();
+	qrot.setRotation( 0.0f, 1.0f, 0.0f, Math::rand( -1.0f, 1.0f ) );
+	m *= qrot.toMatrix3();
+	qrot.setRotation( 1.0f, 0.0f, 0.0f, Math::rand( -1.0f, 1.0f ) );
+	m *= qrot.toMatrix3();
+
+	m *= 1.0f / m[ 2 ][ 2 ];
+
+
+	PointSet2f ptset2( ptset );
+	ptset2.transform( m );
+
+	std::cout << "Transform\n" << m << std::endl;
+	ms = ptset.alignPerspective( ptset2 );
+	std::cout << "Transform estimated\n" << ( ms) << std::endl;
+	std::cout << "Diff\n" << (m - ms) << std::endl;
+}
+
+int main()
+{
+	similarity();
+	perspective();
 }
