@@ -60,27 +60,27 @@ int main( int argc, char** argv )
 				u = flow.updateFlow( frame );
 				//u->readData( iflow.data(), iflow.stride() );
 
-				size_t stride;
+/*				size_t stride;
 				const uint8_t * data = u->map( &stride );
 				cv::Mat ocvImage( (int)u->height(), (int)u->width(), CV_8UC4, (void *)data, stride );
 				cv::imshow( "frame", ocvImage );
-				u->unmap( data );
+				u->unmap( data );*/
 
-//				delete u;
+				delete u;
 
 //				cvShowImage( "Video", iflow.iplimage() );
 			} else {
-				size_t stride;
+/*				size_t stride;
 				const uint8_t * data = frame.map( &stride );
 				cv::Mat ocvImage( (int)frame.height(), (int)frame.width(), CV_8UC1, (void *)data, stride );
 				cv::imshow( "frame", ocvImage );
-				frame.unmap( data );
+				frame.unmap( data );*/
 			}
-			key = cvWaitKey( 5 ) & 0xff;
+/*			key = cvWaitKey( 5 ) & 0xff;
 			if( key == 27 )
 				break;
 			else if( key == ' ')
-				doprocess = !doprocess;
+				doprocess = !doprocess;*/
 
 			frames++;
 			if( timer.elapsedSeconds() > 5.0f ) {
