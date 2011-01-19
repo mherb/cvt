@@ -160,8 +160,10 @@ namespace cvt {
 	{
 		event->getSize( _rect.width, _rect.height );
 
-		glXMakeCurrent(dpy, win, ctx);
-		glViewport(0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
+		if( win != glXGetCurrentDrawable() )
+			glXMakeCurrent(dpy, win, ctx);
+
+		glViewport( 0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
 		_widget->resizeEvent( event );
 	}
 
