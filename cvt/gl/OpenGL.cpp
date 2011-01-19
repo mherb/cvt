@@ -106,7 +106,6 @@ namespace cvt {
 			std::exit( EXIT_FAILURE );
 		}
 
-//		glEnable( GL_FRAMEBUFFER_SRGB_EXT );
 	}
 
 	bool GL::existsExtension( const std::string& extname )
