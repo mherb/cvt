@@ -27,7 +27,7 @@ namespace cvt {
 		FD_ZERO( &_writefds );
 		FD_ZERO( &_execeptfds );
 
-		for( std::list<IOHandler*>::iterator it = _handlers.begin(); it != _handlers.end(); ++it ) {
+		for( std::list<IOHandler*>::iterator it = _handlers.begin(), end = _handlers.end(); it != end; ++it ) {
 			IOHandler* ioh = *it;
 			if( ioh->_read || ioh->_write || ioh->_except ) {
 				maxfd = Math::max( maxfd, ioh->_fd );
@@ -52,7 +52,7 @@ namespace cvt {
 
 		numfd = ret;
 
-		for( std::list<IOHandler*>::iterator it = _handlers.begin(); it != _handlers.end(); ++it ) {
+		for( std::list<IOHandler*>::iterator it = _handlers.begin(), end = _handlers.end(); it != end; ++it ) {
 			IOHandler* ioh = *it;
 			if( ioh->_read || ioh->_write || ioh->_except ) {
 				active = 0;

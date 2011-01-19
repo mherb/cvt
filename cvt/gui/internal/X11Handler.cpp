@@ -120,8 +120,9 @@ namespace cvt {
 						// FIXME: fix the rect information
 						while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, Expose, &xevent ) )
 							;
-						PaintEvent pe( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
-						win->paintEvent( &pe );
+						win->update();
+//						PaintEvent pe( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
+//						win->paintEvent( &pe );
 					}
 					break;
 				case ButtonPress:
