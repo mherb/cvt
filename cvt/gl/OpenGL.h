@@ -29,7 +29,7 @@ namespace cvt {
 			static void ( *glGenVertexArrays )( GLsizei n, GLuint *arrays);
 			static GLboolean ( *glIsVertexArray )( GLuint array);
 
-			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
+			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near = -1.0f, float far = 1.0f );
 			static void frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far );
 			static void perspective( Matrix4f& mat, float fovy, float aspect, float near, float far );
 			static void subviewport( Matrix4f& mat, int x, int y, int width, int height, int viewportwidth, int viewportheight );

@@ -73,11 +73,15 @@ int main( )
 	}
 
 	size_t selection = numCams;
-	std::cout << "Select camera: ";
-	std::cin >> selection;
-	while ( selection >= numCams ){
-		std::cout << "Index out of bounds -> select camera in Range:";
+	if( numCams == 1 )
+		selection = 0;
+	else {
+		std::cout << "Select camera: ";
 		std::cin >> selection;
+		while ( selection >= numCams ){
+			std::cout << "Index out of bounds -> select camera in Range:";
+			std::cin >> selection;
+		}
 	}
 
 	Window w( "Camera Test" );
@@ -104,7 +108,7 @@ int main( )
 		w.addWidget( &m );
 
 		CameraTimeout camTimeOut( cam, &m, &camView );
-		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 0, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 

@@ -15,7 +15,7 @@ namespace cvt {
 			GLX_GREEN_SIZE, 8,
 			GLX_BLUE_SIZE, 8,
 			GLX_ALPHA_SIZE, 8,
-			GLX_DEPTH_SIZE, 8,
+			GLX_DEPTH_SIZE, 16,
 			GLX_DOUBLEBUFFER,
 //			GLX_EXT_framebuffer_sRGB,
 			None };
