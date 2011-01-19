@@ -15,9 +15,11 @@ namespace cvt {
 			X11Handler( ::Display* dpy, std::map< ::Window, WidgetImplWinGLX11*>* windows );
 			~X11Handler();
 			virtual void onDataReadable();
+			void handleQueued();
 
 		private:
 			X11Handler( const X11Handler& );
+			void handleEvents();
 
 			::Display* _dpy;
 			std::map< ::Window, WidgetImplWinGLX11*>* _windows;

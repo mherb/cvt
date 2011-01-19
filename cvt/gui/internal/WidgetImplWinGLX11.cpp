@@ -146,17 +146,6 @@ namespace cvt {
 		if( win != glXGetCurrentDrawable() )
 			glXMakeCurrent( dpy, win, ctx );
 
-		{
-			::Window r;
-			int x, y;
-			unsigned int w, h, b, d;
-			XGetGeometry( dpy, win, &r, &x, &y, &w, &h, &b, &d );
-			if( _rect.width != w || _rect.height != h ) {
-				ResizeEvent re( w, h, _rect.width, _rect.height );
-				this->resizeEvent( &re );
-			}
-		}
-
 		gfx->setDefault();
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfx->setViewport( viewport );
