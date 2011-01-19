@@ -90,7 +90,10 @@ namespace cvt {
 		while( run ) {
 			_timers.handleTimers();
 			timeout = _timers.nextTimeout();
+
+			x11handler.handleQueued();
 			_ioselect.handleIO( timeout );
+
 			if( !updates.empty() ) {
 				PaintEvent pe( 0, 0, 0, 0 );
 				WidgetImplWinGLX11* win;
