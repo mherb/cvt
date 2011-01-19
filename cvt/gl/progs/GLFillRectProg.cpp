@@ -18,8 +18,10 @@ namespace cvt {
 			std::cout << e.what() << e.log() << std::endl;
 		}
 
+		bind();
 		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8 );
 		_mvploc = uniformLocation( "MVP" );
+		unbind();
 	}
 
 	GLFillRectProg::~GLFillRectProg()

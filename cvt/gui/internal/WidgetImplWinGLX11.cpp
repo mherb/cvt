@@ -7,10 +7,12 @@ namespace cvt {
 		::XSetWindowAttributes attr;
 		unsigned long mask;
 
-		attr.win_gravity = NorthWestGravity;
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
 		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
-		mask = CWColormap | CWEventMask | CWWinGravity;
+		attr.background_pixmap = None;
+		attr.border_pixel = 0;
+
+		mask = CWColormap | CWEventMask | CWBackPixmap | CWBorderPixel;
 
 		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, _rect.width, _rect.height,
 							  0, visinfo->depth, InputOutput,
@@ -146,11 +148,27 @@ namespace cvt {
 		if( win != glXGetCurrentDrawable() )
 			glXMakeCurrent( dpy, win, ctx );
 
+/*		{
+			int x, y;
+			::Window wp;
+			unsigned int w, h, b, d;
+			XGetGeometry( dpy, win, &wp, &x, &y, &w, &h, &b, &d );
+			if( _rect.width != w || _rect.height != h ) {
+				int ow, oh;
+				ow = _rect.width;
+				oh = _rect.height;
+				_rect.width = w;
+				_rect.height = h;
+				ResizeEvent re( w, h, ow, oh );
+				resizeEvent( & re );
+			}
+		}*/
+
 		gfx->setDefault();
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfx->setViewport( viewport );
 		gfx->setChildrect( viewport );
-		glClear( GL_DEPTH_BUFFER_BIT );
+		glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
 		_widget->paintEvent( event, gfx );
 		glXSwapBuffers( dpy, win );
 		needsupdate = false;

@@ -16,7 +16,6 @@ namespace cvt {
 		glEnable( GL_POINT_SPRITE );
 		glEnable( GL_SCISSOR_TEST );
 		glDisable( GL_DEPTH_TEST );
-		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	}
 
 	GFXGL::~GFXGL()
@@ -44,7 +43,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		fillrectp.bind();
 		fillrectp.setProjection( proj );
 		fillrectp.setColor( _color );
@@ -63,7 +62,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		fillrrectp.bind();
 		fillrrectp.setProjection( proj );
 		fillrrectp.setColor( _color );
@@ -78,7 +77,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		drawtextp.bind();
 		drawtextp.setProjection( proj );
 		drawtextp.setColor( _color );
@@ -104,7 +103,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		drawimgp.bind();
 		drawimgp.setProjection( proj );
 		drawimgp.setAlpha( 1.0f );
@@ -128,7 +127,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		drawimgp.bind();
 		drawimgp.setProjection( proj );
 		drawimgp.setAlpha( 1.0f );
@@ -145,7 +144,7 @@ namespace cvt {
 		y += _childrect.y;
 
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		drawiconp.bind();
 		drawiconp.setProjection( proj );
 		drawiconp.setColor( _color );
@@ -156,7 +155,7 @@ namespace cvt {
 	void GFXGL::drawIcons( const Vector2i* pts, size_t npts, Icon i )
 	{
 		Matrix4f proj;
-		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, -10.0f, 10.0f );
+		GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
 		drawiconp.bind();
 		drawiconp.setProjection( proj );
 		drawiconp.setColor( _color );
