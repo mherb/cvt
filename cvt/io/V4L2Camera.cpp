@@ -24,7 +24,7 @@ namespace cvt {
 		_width(mode.width),
 		_height(mode.height),
 		_fps(mode.fps),
-		_numBuffers(2),
+		_numBuffers(4),
 		_camIndex(camIndex),
 		_opened(false),
 		_capturing(false),
@@ -134,8 +134,8 @@ namespace cvt {
 
 		ret = ioctl( _fd, VIDIOC_S_FMT, &_fmt);
 
-		if(ret < 0){
-			throw CVTException( "Inable to set requested format!" );
+		if( ret < 0 ) {
+			throw CVTException( "Unable to set requested format!" );
 		}
 
 		_width = _fmt.fmt.pix.width;
@@ -186,7 +186,6 @@ namespace cvt {
 			ret = ioctl(_fd, VIDIOC_STREAMON, &type);
 			if (ret < 0)
 			{
-				perror("VIDIOC_STREAMON - Unable to start capture");
 				throw CVTException( "Could not start streaming!" );
 			}
 			_capturing = true;
@@ -202,8 +201,7 @@ namespace cvt {
 			ret = ioctl( _fd, VIDIOC_STREAMOFF, &type );
 			if (ret < 0)
 			{
-				perror("VIDIOC_STREAMOFF - Unable to stop capture");
-				throw CVTException("Error stopping capturing");
+				throw CVTException("Could not stop streaming!");
 			}
 			_capturing = false;
 		}
@@ -220,17 +218,16 @@ namespace cvt {
 
 		FD_ZERO(&rdset);
 		FD_SET(_fd, &rdset);
-		timeout.tv_sec = 2; // 1 sec timeout
-		timeout.tv_usec = 0;
+		timeout.tv_sec = 0; // 1 sec timeout
+		timeout.tv_usec = 10000;
 
 		// select - wait for data or timeout
 		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
 		if (ret < 0){
-			perror(" Could not grab image (select error)");
 			throw CVTException("Could not grab image (select error)");
 		} else if( ret == 0 ) {
-			perror( "Could not grab image (select timeout)" );
-			throw CVTException( "Could not grab image (select timeout)" );
+			return;
+//			throw CVTException( "Could not grab image (select timeout)" );
 		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -238,7 +235,6 @@ namespace cvt {
 
 			ret = ioctl( _fd, VIDIOC_DQBUF, &_buffer );
 			if ( ret < 0 ) {
-				perror( "VIDIOC_DQBUF - Unable to dequeue buffer " );
 				throw CVTException( "Unable to dequeue buffer!" );
 			}
 		}
@@ -263,7 +259,6 @@ namespace cvt {
 
 		ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
 		if (ret < 0){
-			perror("VIDIOC_QBUF - Unable to requeue buffer");
 			throw CVTException("Unable to requeue buffer");
 		}
 	}
@@ -394,9 +389,10 @@ namespace cvt {
 
 		for (unsigned int i = 0; i < _numBuffers ; i++){
 			// unmap old buffer
-			if(unmap)
+			if(unmap) {
 				if( munmap(_buffers[i], _buffer.length) < 0 )
 					perror("couldn't unmap buff");
+			}
 
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
 			_buffer.index = i;
