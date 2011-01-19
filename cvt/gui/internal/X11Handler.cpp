@@ -23,6 +23,8 @@ namespace cvt {
 						npos = 1;
 					}
 
+					/* fuck it */
+					XSync( _dpy, 0 );
 					while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
 						if( xevent.xconfigure.send_event ) {
 							nx = xevent.xconfigure.x;
