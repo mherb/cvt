@@ -4,6 +4,7 @@
 #include <cvt/cl/CLContext.h>
 #include <cvt/cl/kernel/gaussiir.h>
 #include <cvt/cl/kernel/gaussiir2.h>
+#include <cvt/math/Fixed.h>
 
 
 namespace cvt {
@@ -123,19 +124,19 @@ namespace cvt {
 			m[ 3 ] = -m[ 3 ];
 		}
 	}
-	
+
 	static ParamInfo* _params[ 4 ] = {
 		new ParamInfoTyped<Image*>( "Input", true /* inputParam */ ),
 		new ParamInfoTyped<Image*>( "Output", false ),
-		new ParamInfoTyped<float>( "Sigma", true ),		
+		new ParamInfoTyped<float>( "Sigma", true ),
 		new ParamInfoTyped<int>( "Order", 0 /* min */, 2 /* max */, 0 /* default */, true )
 	};
-	
+
 	GaussIIR::GaussIIR() : IFilter( "GaussIIR", _params, 4, IFILTER_OPENCL ), _kernelIIR( 0 ), _kernelIIR2( 0 )
-	{			
+	{
 	}
-	
-	GaussIIR::~GaussIIR() 
+
+	GaussIIR::~GaussIIR()
 	{
 		if( _kernelIIR )
 			delete _kernelIIR;
@@ -143,29 +144,40 @@ namespace cvt {
 			delete _kernelIIR2;
 
 	}
-	
+
 	void GaussIIR::apply( const ParamSet* set, IFilterType t ) const
 	{
 		Image * in = set->arg<Image*>( 0 );
 		Image * out = set->arg<Image*>( 1 );
 		float sigma = set->arg<float>( 2 );
 		int   order = set->arg<int>( 3 );
-		
+
 		Vector4f n, m, d;
 		_GaussIIRCoeff( sigma, order, n, m, d );
-		
+
 		switch ( t ) {
 			case IFILTER_OPENCL:
+				// TODO: check mem type to be opencl!
 				this->applyOpenCL( *out, *in, n, m, d );
 				break;
 			case IFILTER_CPU:
-				this->applyCPUf( *out, *in, n, m, d );
+				switch( in->format().type ){
+					case IFORMAT_TYPE_FLOAT:
+						this->applyCPUf( *out, *in, n, m, d );
+						break;
+					case IFORMAT_TYPE_UINT8:
+						this->applyCPUu8( *out, *in, n, m, d );
+						break;
+					default:
+						throw CVTException( "GaussIIR CPU not implemented for given Image format" );
+						break;
+				}
 				break;
 			default:
 				throw CVTException( "Not implemented" );
 		}
 	}
-	
+
 	void GaussIIR::applyOpenCL( Image& dst, const Image& src, const Vector4f & n, const Vector4f & m, const Vector4f & d ) const
 	{
 		// TODO: THIS IS A HACK -> we change members of a const object!
@@ -174,132 +186,131 @@ namespace cvt {
 			_kernelIIR = new CLKernel();
 			_kernelIIR->build("gaussiir", _gaussiir_source, strlen( _gaussiir_source ), log );
 		}
-		
+
 		if( _kernelIIR2 == 0 ){
 			_kernelIIR2 = new CLKernel();
 			_kernelIIR2->build("gaussiir2", _gaussiir2_source, strlen( _gaussiir2_source ), log );
-		}		
-		
+		}
+
 		int32_t w = src.width();
 		int32_t h = src.height();
 		CLContext * cl = CLContext::getCurrent();
 		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h );
 		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h );
-		
+
 		_kernelIIR->setArg( 0, buf );
-		_kernelIIR->setArg( 1, src );		
+		_kernelIIR->setArg( 1, src );
 		_kernelIIR->setArg( 2, sizeof( int32_t ), &w );
 		_kernelIIR->setArg( 3, n );
 		_kernelIIR->setArg( 4, m );
 		_kernelIIR->setArg( 5, d );
 		//std::cout << "W GCD( " << w << ", " << _kernelIIR->workGroupSize() << " ) = " << Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) << std::endl;
 		_kernelIIR->run( cl::NDRange( h ), cl::NDRange( Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) ) );
-						
+
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
 		_kernelIIR2->setArg( 2, buf2 );
-		
+
 		_kernelIIR2->setArg( 3, sizeof( int32_t ), &h );
 		_kernelIIR2->setArg( 4, n );
 		_kernelIIR2->setArg( 5, m );
 		_kernelIIR2->setArg( 6, d );
 		//std::cout << "H GCD: " << Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) << std::endl;
 		_kernelIIR2->run( cl::NDRange( w ), cl::NDRange( Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) ) );
-		
-		cl->getCLQueue().finish();		
+
+		cl->getCLQueue().finish();
 	}
-	
+
 	void GaussIIR::applyCPUf( Image& dst, const Image& src, const Vector4f & n, const Vector4f & m, const Vector4f & d ) const
-	{			
+	{
 		float b1 = ( n[ 0 ] + n[ 1 ] + n[ 2 ] + n[ 3 ] ) / ( d[ 0 ] + d[ 1 ] + d[ 2 ] + d[ 3 ] + 1.0f );
 		float b2 = ( m[ 0 ] + m[ 1 ] + m[ 2 ] + m[ 3 ] ) / ( d[ 0 ] + d[ 1 ] + d[ 2 ] + d[ 3 ] + 1.0f );
-		
+
 		size_t sstride, dstride;
-		const float * inTmp = src.map<float>( &sstride ); 
+		const float * inTmp = src.map<float>( &sstride );
 		float * outTmp = dst.map<float>( &dstride );
 		const float * in = inTmp;
 		float * out = outTmp;
-		
+
 		uint32_t h = dst.height();
 		uint32_t w = dst.width();
 		uint32_t channels = dst.channels();
-		
+
 		/* last four values */
 		const float* x;
 		float* y;
-				
+
 		float tmpLine[ channels * w ];
 		float * tmpBuf = tmpLine + channels * ( w - 1 );
-		
+
 		// horizontal pass
-		for( uint32_t k = 0; k < h; k++ ){			
+		for( uint32_t k = 0; k < h; k++ ){
 			x = in;
 			y = out;
-						
+
 			for( uint32_t c = 0; c < channels; c++ ){
 				y[ c ] = n[ 0 ] * x[ c ] + n[ 1 ] * x[ c ] + n[ 2 ] * x[ c ] + n[ 3 ] * x[ c ]
 				- b1 * ( d[ 0 ] * x[ c ] + d[ 1 ] * x[ c ] + d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				y[ c + channels  ] = n[ 0 ] * x[ c + channels ] + n[ 1 ] * x[ c ] + n[ 2 ] * x[ c ] + n[ 3 ] * x[ c ]
 				- d[ 0 ] * y[ c ] - b1 * ( d[ 1 ] * x[ c ] + d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				y[ c + 2 * channels ] = n[ 0 ] * x[ c + 2 * channels ] + n[ 1 ] * x[ c + channels ] + n[ 2 ] * x[ c ] + n[ 3 ] * x[ c ]
 				- d[ 0 ] * y[ c + channels ] - d[ 1 ] * y[ c ] - b1 * (  d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				y[ c + 3 * channels ] = n[ 0 ] * x[ c + 3 * channels ] + n[ 1 ] * x[ c + 2 * channels ] + n[ 2 ] * x[ c + channels ] + n[ 3 ] * x[ c ]
-				- d[ 0 ] * y[ c + 2 * channels ] - d[ 1 ] * y[ c + channels ] - d[ 2 ] * y[ c ] - b1 * d[ 3 ] * x[ c ];				
-			}			
-			
+				- d[ 0 ] * y[ c + 2 * channels ] - d[ 1 ] * y[ c + channels ] - d[ 2 ] * y[ c ] - b1 * d[ 3 ] * x[ c ];
+			}
+
 			// forward pass
 			for( uint32_t i = 4; i < w; i++ ){
 				x+=channels; /* last 4 pixels, x[ 3*channels ] is current pixel */
-				
+
 				for( uint32_t c = 0; c < channels; c++ ){
 					y[ 4 * channels + c ] = n[ 0 ] * x[ 3 * channels + c ] + n[ 1 ] * x[ 2 * channels + c ] + n[ 2 ] * x[ channels + c ] + n[ 3 ] * x[ c ]
 					- d[ 0 ] * y[ 3 * channels + c ] - d[ 1 ] * y[ 2 * channels + c ] - d[ 2 ] * y[ channels + c ] - d[ 3 ] * y[ c ];
 				}
-				y+=channels;				
+				y+=channels;
 			}
-			
+
 			// backward border init:
 			x = ( in + channels * ( w - 1 ) );
 			y = ( out + channels * ( w - 1 ) );
-			for( uint32_t c = 0; c < channels; c++ ){				
+			for( uint32_t c = 0; c < channels; c++ ){
 				tmpBuf[ c ] = m[ 0 ] * x[ c ] + m[ 1 ] * x[ c ] + m[ 2 ] * x[ c ] + m[ 3 ] * x[ c ]
 				- b2 * ( d[ 0 ] * x[ c ] + d[ 1 ] * x[ c ] + d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				*( tmpBuf - channels + c ) = m[ 0 ] * *( x - channels + c ) + m[ 1 ] * x[ c ] + m[ 2 ] * x[ c ] + m[ 3 ] * x[ c ]
 				- d[ 0 ] * tmpBuf[ c ] - b2 * ( d[ 1 ] * x[ c ] + d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				*( tmpBuf - 2 * channels + c ) = m[ 0 ] * *( x - 2 * channels + c ) + m[ 1 ] * *( x - channels + c ) + m[ 2 ] * x[ c ] + m[ 3 ] * x[ c ]
 				- d[ 0 ] * *( tmpBuf - channels + c ) - d[ 1 ] * tmpBuf[ c ] - b2 * (  d[ 2 ] * x[ c ] + d[ 3 ] * x[ c ] );
-				
+
 				*( tmpBuf - 3 * channels + c ) = m[ 0 ] * *( x - 3 * channels + c ) + m[ 1 ] * *( x - 2 * channels + c ) + m[ 2 ] * *( x - channels + c ) + m[ 3 ] * x[ c ]
 				- d[ 0 ] * *( tmpBuf - 2 * channels + c ) - d[ 1 ] * *( tmpBuf - channels + c ) - d[ 2 ] * tmpBuf[ c ] - b2 * d[ 3 ] * x[ c ];
-				
+
 				y[ c ] += tmpBuf[ c ];
 				*( y - channels + c ) += *( tmpBuf - channels + c );
 				*( y - 2 * channels + c ) += *( tmpBuf - 2 * channels + c );
 				*( y - 3 * channels + c ) += *( tmpBuf - 3 * channels + c );
 			}
-			
+
 			// backward pass
 			y -= ( 4 * channels );
 			for (int i = w-4; i > 0; i--) {
-				x-=channels;				
+				x-=channels;
 				for( uint32_t c = 0; c < channels; c++ ){
 					*( tmpBuf - 4 * channels + c ) = ( m[ 0 ] * *( x - 3 * channels + c ) + m[ 1 ] * *( x - 2 * channels + c ) + m[ 2 ] * *( x - channels + c ) + m[ 3 ] * x[ c ]
 					- d[ 0 ] * *( tmpBuf - 3 * channels + c ) - d[ 1 ] * *( tmpBuf - 2 * channels + c ) - d[ 2 ] * *( tmpBuf - channels + c ) - d[ 3 ] * tmpBuf[ c ] );
 					y[ c ] += *( tmpBuf - 4 * channels + c );
-				}				
+				}
 				tmpBuf-=channels;
 			}
-			
+
 			in += sstride;
 			out += dstride;
 		}
-				
-		
+
 		// vertical pass
 		const float * x0 = inTmp;
 		const float * x1 = x0 + sstride;
@@ -313,83 +324,83 @@ namespace cvt {
 			for( uint32_t c = 0; c < channels; c++ ){
 				y0[ c ] = n[ 0 ] * x0[ c ] + n[ 1 ] * x0[ c ] + n[ 2 ] * x0[ c ] + n[ 3 ] * x0[ c ]
 				- b1 * ( d[ 0 ] * x0[ c ] + d[ 1 ] * x0[ c ] + d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
-				
+
 				y1[ c ] = n[ 0 ] * x1[ c ] + n[ 1 ] * x0[ c ] + n[ 2 ] * x0[ c ] + n[ 3 ] * x0[ c ]
 				- d[ 0 ] * y0[ c ] - b1 * ( d[ 1 ] * x0[ c ] + d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
-				
+
 				y2[ c ] = n[ 0 ] * x2[ c ] + n[ 1 ] * x1[ c ] + n[ 2 ] * x0[ c ] + n[ 3 ] * x0[ c ]
 				- d[ 0 ] * y1[ c ] - d[ 1 ] * y0[ c ] - b1 * (  d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
-				
+
 				y3[ c ] = n[ 0 ] * x3[ c ] + n[ 1 ] * x2[ c ] + n[ 2 ] * x1[ c ] + n[ 3 ] * x0[ c ]
-				- d[ 0 ] * y2[ c ] - d[ 1 ] * y1[ c ] - d[ 2 ] * y0[ c ] - b1 * d[ 3 ] * x0[ c ];				
+				- d[ 0 ] * y2[ c ] - d[ 1 ] * y1[ c ] - d[ 2 ] * y0[ c ] - b1 * d[ 3 ] * x0[ c ];
 			}
 			x0+=channels; x1+=channels; x2+=channels; x3+=channels;
 			y0+=channels; y1+=channels; y2+=channels; y3+=channels;
 		}
-		
-		float * currOut;		
+
+		float * currOut;
 		// from fourth line to end:
 		for( uint32_t i = 4; i < h; i++ ){
 			x0 = inTmp + i * sstride;
 			x1 = x0 + sstride;
 			x2 = x1 + sstride;
 			x3 = x2 + sstride;
-			
+
 			y0 = outTmp + ( i - 4 ) * dstride;
 			y1 = y0 + dstride;
 			y2 = y1 + dstride;
 			y3 = y2 + dstride;
 			currOut = y3 + dstride;
-			
+
 			for( uint32_t j = 0; j < w; j++ ){
 				for( uint32_t c = 0; c < channels; c++ ){
 					currOut[ c ] = n[ 0 ] * x3[ c ] + n[ 1 ] * x2[ c ] + n[ 2 ] * x1[ c ] + n[ 3 ] * x0[ c ]
-					- d[ 0 ] * y3[ c ] - d[ 1 ] * y2[ c ] - d[ 2 ] * y1[ c ] - d[ 3 ] * y0[ c ];				
+					- d[ 0 ] * y3[ c ] - d[ 1 ] * y2[ c ] - d[ 2 ] * y1[ c ] - d[ 3 ] * y0[ c ];
 				}
 				x0+=channels; x1+=channels; x2+=channels; x3+=channels;
 				y0+=channels; y1+=channels; y2+=channels; y3+=channels;
 				currOut+=channels;
-			}			
+			}
 		}
-		
+
 		x0 = inTmp + ( h - 1 ) * sstride;
 		x1 = x0 - sstride;
 		x2 = x1 - sstride;
 		x3 = x2 - sstride;
-		
+
 		float tmpBuffer[ 4 * w * channels ];
-		y0 = outTmp + ( h - 1 ) * dstride;		
+		y0 = outTmp + ( h - 1 ) * dstride;
 		y1 = y0 - dstride;
 		y2 = y1 - dstride;
 		y3 = y2 - dstride;
-		
+
 		float * t0 = ( tmpBuffer + 3 * w * channels );
 		float * t1 = ( tmpBuffer + 2 * w * channels );
 		float * t2 = ( tmpBuffer + 1 * w * channels );
 		float * t3 = ( tmpBuffer );
-		
+
 		for( size_t i = 0; i < w; i++ ){
 			for( uint32_t c = 0; c < channels; c++ ){
 				t0[ c ] = m[ 0 ] * x0[ c ] + m[ 1 ] * x0[ c ] + m[ 2 ] * x0[ c ] + m[ 3 ] * x0[ c ]
 				- b1 * ( d[ 0 ] * x0[ c ] + d[ 1 ] * x0[ c ] + d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
 				y0[ c ] += t0[ c ];
-				
+
 				t1[ c ] = m[ 0 ] * x1[ c ] + m[ 1 ] * x0[ c ] + m[ 2 ] * x0[ c ] + m[ 3 ] * x0[ c ]
 				- d[ 0 ] * t0[ c ] - b1 * ( d[ 1 ] * x0[ c ] + d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
 				y1[ c ] += t1[ c ];
-				
+
 				t2[ c ] = m[ 0 ] * x2[ c ] + m[ 1 ] * x1[ c ] + m[ 2 ] * x0[ c ] + m[ 3 ] * x0[ c ]
 				- d[ 0 ] * t1[ c ] - d[ 1 ] * t0[ c ] - b1 * (  d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );
 				y2[ c ] += t2[ c ];
-				
+
 				t3[ c ] = m[ 0 ] * x3[ c ] + m[ 1 ] * x2[ c ] + m[ 2 ] * x1[ c ] + m[ 3 ] * x0[ c ]
-				- d[ 0 ] * t2[ c ] - d[ 1 ] * t1[ c ] - d[ 2 ] * t0[ c ] - b1 * d[ 3 ] * x0[ c ];				
+				- d[ 0 ] * t2[ c ] - d[ 1 ] * t1[ c ] - d[ 2 ] * t0[ c ] - b1 * d[ 3 ] * x0[ c ];
 				y3[ c ] += t3[ c ];
 			}
 			x0+=channels; x1+=channels; x2+=channels; x3+=channels;
 			y0+=channels; y1+=channels; y2+=channels; y3+=channels;
 			t0+=channels; t1+=channels; t2+=channels; t3+=channels;
-		}		
+		}
 
 		float* tmp;
 		t0 = ( tmpBuffer + 3 * w * channels );
@@ -401,26 +412,77 @@ namespace cvt {
 			x1 = x0 - sstride;
 			x2 = x1 - sstride;
 			x3 = x2 - sstride;
-			
+
 			currOut = outTmp + ( i - 1 ) * dstride;
-	
+
 			for( uint32_t j = 0; j < w; j++ ){
-				for( uint32_t c = 0; c < channels; c++ ){					
+				for( uint32_t c = 0; c < channels; c++ ){
 					t0[ j * channels + c ] = n[ 0 ] * x3[ c ] + n[ 1 ] * x2[ c ] + n[ 2 ] * x1[ c ] + n[ 3 ] * x0[ c ]
 					- d[ 0 ] * t3[ j * channels + c ] - d[ 1 ] * t2[ j * channels + c ] - d[ 2 ] * t1[ j * channels + c ] - d[ 3 ] * t0[ j * channels + c ];
-					currOut[ c ] += t0[ j * channels + c ];										
+					currOut[ c ] += t0[ j * channels + c ];
 				}
-				
+
 				// next pixel of row
-				x0+=channels; x1+=channels; x2+=channels; x3+=channels;				
+				x0+=channels; x1+=channels; x2+=channels; x3+=channels;
 				currOut+=channels;
 			}
 			tmp = t0;
 			t0 = t1; t1 = t2; t2 = t3; t3 = tmp;
-		}		
-		
+		}
+
 		src.unmap( inTmp );
-		dst.unmap( outTmp );		
-	}	
-		
+		dst.unmap( outTmp );
+	}
+
+	void GaussIIR::applyCPUu8( Image& dst, const Image& src, const Vector4f & _n, const Vector4f & _m, const Vector4f & _d ) const
+	{
+		Fixed n[ 4 ], m[ 4 ], d[ 4 ];
+		n[ 0 ] = _n[ 0 ]; n[ 1 ] = _n[ 1 ]; n[ 2 ] = _n[ 2 ]; n[ 3 ] = _n[ 3 ];
+		m[ 0 ] = _m[ 0 ]; m[ 1 ] = _m[ 1 ]; m[ 2 ] = _m[ 2 ]; m[ 3 ] = _m[ 3 ];
+		d[ 0 ] = _d[ 0 ]; d[ 1 ] = _d[ 1 ]; d[ 2 ] = _d[ 2 ]; d[ 3 ] = _d[ 3 ];
+
+		Fixed one( 1.0f );
+		Fixed b1 = ( n[ 0 ] + n[ 1 ] + n[ 2 ] + n[ 3 ] ) / ( d[ 0 ] + d[ 1 ] + d[ 2 ] + d[ 3 ] + one );
+		Fixed b2 = ( m[ 0 ] + m[ 1 ] + m[ 2 ] + m[ 3 ] ) / ( d[ 0 ] + d[ 1 ] + d[ 2 ] + d[ 3 ] + one );
+
+		size_t sstride, dstride;
+		const uint8_t * in = src.map<uint8_t>( &sstride );
+		uint8_t * out = dst.map<uint8_t>( &dstride );
+
+		uint32_t h = dst.height();
+		uint32_t w = dst.width();
+		uint32_t channels = dst.channels();
+
+		/* last four values */
+		const uint8_t* x = in;
+		uint8_t* y = out;
+
+		Fixed tmpLine[ channels * w ];
+
+		SIMD * simd = SIMD::instance();
+
+		// horizontal pass
+		for( uint32_t k = 0; k < h; k++ ){
+			simd->IIR4FwdHorizontal4Fx( tmpLine, x, w, n, d, b1 );
+			simd->IIR4BwdHorizontal4Fx( y, tmpLine, x, w, m, d, b2 );
+
+			x += sstride;
+			y += dstride;
+		}
+
+		// vertical pass:
+		// buffer for 4 lines:
+		Fixed column[ channels * h ];
+		x = in;
+		y = out;
+		for( uint32_t k = 0; k < w; k++ ){
+			simd->IIR4FwdVertical4Fx( column, x, sstride, h, n, d, b1 );
+			simd->IIR4BwdVertical4Fx( y, dstride, column, x, sstride, h, n, d, b1 );
+			x += channels;
+			y += channels;
+		}
+
+		src.unmap( in );
+		dst.unmap( out );
+	}
 }

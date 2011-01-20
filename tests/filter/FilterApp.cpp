@@ -107,40 +107,40 @@ void FilterApp::initCamera()
 			std::cin >> selection;
 		}
 	}
-	
+
 	_cam = cvt::Camera::get( selection, 640, 480, 60, cvt::IFormat::UYVY_UINT8 );
 	_cam->startCapture();
 	_cam->nextFrame();
-	
+
 	std::cout << _cam->frame() << std::endl;
-	
+
 	//_in.reallocate( _cam->frame(), IALLOCATOR_CL );
 	//_out.reallocate( _in, IALLOCATOR_CL );
-	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
-	_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
+	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
+	_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
 }
 
 void FilterApp::initFilter()
 {
-	// select the filter and set parameters	
+	// select the filter and set parameters
 	//_filter = new BrightnessContrast();
 	_filter = new GaussIIR();
 	//_filterType = IFILTER_OPENCL;
 	_filterType = IFILTER_CPU;
-	
+
 	_params = _filter->parameterSet();
-	
+
 	/*size_t bloc = _params->paramHandle( "Brightness" );
 	_params->setArg<float>( bloc, 0.1f );
-	
+
 	size_t cloc = _params->paramHandle( "Contrast" );
 	_params->setArg<float>( cloc, 0.0f );*/
-	
+
 	_outputHandle = _params->paramHandle( "Output" );
 	_inputHandle = _params->paramHandle( "Input" );
 	size_t sigma = _params->paramHandle( "Sigma" );
-	
-	_params->setArg<Image*>( _outputHandle, &_out );	
+
+	_params->setArg<Image*>( _outputHandle, &_out );
 	_params->setArg<Image*>( _inputHandle, &_in );
 	_params->setArg<float>( sigma, 6.5f );
 
@@ -168,7 +168,7 @@ void FilterApp::onTimeout()
 	} catch( CLException e ) {
 		std::cout << e.what() << std::endl;
 	}
-	
+
 	if( _timer.elapsedSeconds() > 5.0f ) {
 		char buf[ 200 ];
 		sprintf( buf, "%s: FPS: %.2f", _filter->name().c_str(), _frames / _timer.elapsedSeconds() );

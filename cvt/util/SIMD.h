@@ -39,7 +39,7 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Div( float* dst, float const* src, const float value, const size_t n ) const;
-		
+
 			virtual void Add( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Sub( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
@@ -56,7 +56,7 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
-		
+
 			/* Fixed point numbers */
 			virtual void Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const;
 			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
@@ -66,6 +66,20 @@ namespace cvt {
 			virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
 			virtual float SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
+
+			/* Infinite Impulse Response */
+			/* IIR_#coefs_#pass_#direction_#channels_inputType */
+			virtual void IIR4FwdHorizontal4Fx( Fixed* dst, const uint8_t * src, size_t width, const Fixed * n,
+											   const Fixed * d, const Fixed & b1 ) const;
+
+			virtual void IIR4BwdHorizontal4Fx( uint8_t * dst, const Fixed* fwdRes, const uint8_t * src, size_t w,
+											   const Fixed * n, const Fixed * d, const Fixed & b ) const;
+
+			virtual void IIR4FwdVertical4Fx( Fixed* buffer, const uint8_t * src, size_t sstride,
+											 size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
+
+			virtual void IIR4BwdVertical4Fx( uint8_t * dst, size_t dstride, Fixed* fwdRes, const uint8_t * src, size_t sstride,
+											 size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
 
 			virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
