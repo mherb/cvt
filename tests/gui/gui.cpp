@@ -19,6 +19,11 @@
 
 using namespace cvt;
 
+void timeout( BasicTimer* t )
+{
+//	std::cout << "Timeout" << std::endl;
+	usleep( 50000 );
+}
 
 int main(int argc, char* argv[])
 {
@@ -52,8 +57,12 @@ int main(int argc, char* argv[])
 	m2.setSize( 200, 200 );
 	m2.setPosition( 200, 0 );
 	w.addWidget( &m2 );
-
 	view2.setImage( img );
+
+	BasicTimer t( 0 );
+	Delegate<void (BasicTimer*)> d( timeout );
+	t.timeout.add( &d );
+	t.start();
 
     Application::run();
     return 0;
