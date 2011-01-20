@@ -13,11 +13,31 @@ namespace cvt {
 				{
 					win = (*_windows)[ xevent.xconfigure.window ];
 
-					int oldwidth = win->_rect.width;
-					int oldheight = win->_rect.height;
-					int nx = 0, ny = 0, npos = 0;
+					::Window wp;
+					int oldx = win->_rect.x;
+					int oldy = win->_rect.y;
+					unsigned int oldwidth = win->_rect.width;
+					unsigned int oldheight = win->_rect.height;
+					int nx = 0, ny = 0;
+				    unsigned int nw, nh, b, d;
 
-					if( xevent.xconfigure.send_event ) {
+					while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
+						;
+
+					XGetGeometry( _dpy, xevent.xconfigure.window, &wp, &nx, &ny, &nw, &nh, &b, &d );
+					XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ) , 0, 0, &nx, &ny, &wp);
+
+					if( oldx != nx  || oldy != ny ) {
+						MoveEvent me( nx, ny, oldx, oldy );
+						win->moveEvent( &me );
+					}
+
+					if( oldwidth != nw || oldheight != nh ) {
+						ResizeEvent re( nw, nh, oldwidth, oldheight );
+						win->resizeEvent( & re );
+					}
+
+/*					if( xevent.xconfigure.send_event ) {
 						nx = xevent.xconfigure.x;
 						ny = xevent.xconfigure.y;
 						npos = 1;
@@ -44,20 +64,20 @@ namespace cvt {
 							MoveEvent me( nx, ny, oldx, oldy );
 							win->moveEvent( &me );
 						}
-					}
+					}*/
 				}
 				break;
 			case ReparentNotify:
 				{
 					win = (*_windows)[ xevent.xreparent.window ];
 					::Window child;
-					int gx, gy;
+					int nx, ny;
 					int oldx = win->_rect.x;
 					int oldy = win->_rect.y;
 
-					XTranslateCoordinates( _dpy, xevent.xreparent.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &gx, &gy, &child );
-					if( oldx != gx  || oldy != gy ) {
-						MoveEvent me( gx, gy, 0, 0 );
+					XTranslateCoordinates( _dpy, xevent.xreparent.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &nx, &ny, &child );
+					if( oldx != nx  || oldy != ny ) {
+						MoveEvent me( nx, ny, oldx, oldy );
 						win->moveEvent( &me );
 					}
 				}
@@ -81,48 +101,40 @@ namespace cvt {
 			case Expose:
 				{
 					win = (*_windows)[ xevent.xexpose.window ];
-#if 1
+
 					// Compress resize/motions before sending expose events
-					// FIXME
-					int cfevent = 0;
-					XEvent xevent2;
-					int nx = 0, ny = 0, npos = 0;
-
-					while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, ConfigureNotify, &xevent2 ) ) {
-						if( xevent2.xconfigure.send_event ) {
-							nx = xevent2.xconfigure.x;
-							ny = xevent2.xconfigure.y;
-							npos = 1;
-						}
-						cfevent = 1;
-					}
-
-					if( cfevent ) {
-						int oldwidth = win->_rect.width;
-						int oldheight = win->_rect.height;
-
-						if( oldwidth != xevent2.xconfigure.width || oldheight != xevent2.xconfigure.height ) {
-							ResizeEvent re( xevent2.xconfigure.width, xevent2.xconfigure.height, oldwidth, oldheight );
-							win->resizeEvent( &re );
-						}
-					}
-					if( npos ) {
+					if( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
+						::Window wp;
 						int oldx = win->_rect.x;
 						int oldy = win->_rect.y;
+						unsigned int oldwidth = win->_rect.width;
+						unsigned int oldheight = win->_rect.height;
+						int nx = 0, ny = 0;
+						unsigned int nw, nh, b, d;
+
+						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
+							;
+
+						XGetGeometry( _dpy, xevent.xconfigure.window, &wp, &nx, &ny, &nw, &nh, &b, &d );
+						XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ) , 0, 0, &nx, &ny, &wp);
 
 						if( oldx != nx  || oldy != ny ) {
 							MoveEvent me( nx, ny, oldx, oldy );
 							win->moveEvent( &me );
 						}
+
+						if( oldwidth != nw || oldheight != nh ) {
+							ResizeEvent re( nw, nh, oldwidth, oldheight );
+							win->resizeEvent( & re );
+						}
 					}
-#endif
+
 					// Compress expose
 					// FIXME: fix the rect information
 					while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, Expose, &xevent ) )
 						;
-					win->update();
-					//						PaintEvent pe( xevent.xexpose.x, xevent.xexpose.y, xevent.xexpose.width, xevent.xexpose.height );
-					//						win->paintEvent( &pe );
+					PaintEvent pe( 0, 0, win->_rect.width, win->_rect.height );
+					win->paintEvent( &pe );
 				}
 				break;
 			case ButtonPress:

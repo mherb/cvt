@@ -101,7 +101,8 @@ namespace cvt {
 				while( !updates.empty() ) {
 					win = updates.front();
 					updates.pop_front();
-					win->paintEvent( &pe );
+					if( win->needsupdate )
+						win->paintEvent( &pe );
 				}
 			}
 		}
