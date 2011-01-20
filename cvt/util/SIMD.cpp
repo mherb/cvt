@@ -3076,7 +3076,7 @@ namespace cvt {
 	{
 		static const uint8_t channels = 4;
 
-		const uint8_t * x0 = src + sstride;
+		const uint8_t * x0 = src;
 		const uint8_t * x1 = x0 + sstride;
 		const uint8_t * x2 = x1 + sstride;
 		const uint8_t * x3 = x2 + sstride;
@@ -3086,10 +3086,10 @@ namespace cvt {
 		Fixed * l2 = l1 + channels;
 		Fixed * l3 = l2 + channels;
 
-		_IIR_INITIAL4( 0 );
-		_IIR_INITIAL4( 1 );
-		_IIR_INITIAL4( 2 );
-		_IIR_INITIAL4( 3 );
+		_IIR_INITIAL4( 0 )
+		_IIR_INITIAL4( 1 )
+		_IIR_INITIAL4( 2 )
+		_IIR_INITIAL4( 3 )
 
 		h-= 4;
 
@@ -3100,10 +3100,10 @@ namespace cvt {
 			x2 += sstride;
 			x3 += sstride;
 
-			_IIR_CURRENT( 0 );
-			_IIR_CURRENT( 1 );
-			_IIR_CURRENT( 2 );
-			_IIR_CURRENT( 3 );
+			_IIR_CURRENT( 0 )
+			_IIR_CURRENT( 1 )
+			_IIR_CURRENT( 2 )
+			_IIR_CURRENT( 3 )
 
 			l0 += channels;
 			l1 += channels;
