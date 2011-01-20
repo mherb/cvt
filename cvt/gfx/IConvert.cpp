@@ -625,8 +625,7 @@ namespace cvt {
 
 
 	void IConvert::convert( Image & dst, const Image & src )
-	{
-		//checkSize( src, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
+	{		
 		if( src.format() == dst.format() ) {
 			dst.copy( src );
 			return;

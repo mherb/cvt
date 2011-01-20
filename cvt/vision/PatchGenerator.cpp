@@ -1,5 +1,6 @@
 #include <cvt/vision/PatchGenerator.h>
 
+
 namespace cvt
 {
 	
@@ -13,6 +14,12 @@ namespace cvt
 		_whiteNoiseSigma( whiteNoiseSigma ),
 		_rng( time( NULL ) )
 	{
+		_gaussParams = _gaussFilter.parameterSet();
+		size_t sigma = _gaussParams->paramHandle( "Sigma" );
+		_inHandle = _gaussParams->paramHandle( "Input" );
+		_outHandle = _gaussParams->paramHandle( "Output" );
+		
+		_gaussParams->setArg<float>( sigma, 2.5f );
 	}
 	
 	PatchGenerator::~PatchGenerator()
@@ -107,7 +114,11 @@ namespace cvt
 		
 		inputImage.unmap( in );
 		outputPatch.unmap( outSave );
-			
+		
+		Image tmpPatch( outputPatch );		
+		_gaussParams->setArg<Image*>( _inHandle, &tmpPatch );
+		_gaussParams->setArg<Image*>( _outHandle, &outputPatch );
+		_gaussFilter.apply( _gaussParams, IFILTER_CPU );			
 	}
 	
 }

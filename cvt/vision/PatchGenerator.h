@@ -2,10 +2,12 @@
 #define CVT_PATCH_GENERATOR
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/Range.h>
 #include <cvt/util/RNG.h>
 #include <Eigen/Core>
+
 
 namespace cvt
 {
@@ -25,6 +27,9 @@ namespace cvt
 			double				_whiteNoiseSigma;			
 			Eigen::Matrix2f		_affine;
 			RNG					_rng;
+			GaussIIR			_gaussFilter;
+			ParamSet*			_gaussParams;
+			size_t				_inHandle, _outHandle;
 			
 			void randomizeAffine();		
 	};	
