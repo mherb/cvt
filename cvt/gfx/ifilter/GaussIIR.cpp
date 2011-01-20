@@ -470,17 +470,19 @@ namespace cvt {
 			y += dstride;
 		}
 
+
 		// vertical pass:
 		// buffer for 4 lines:
 		Fixed column[ channels * h ];
 		x = in;
 		y = out;
 		for( uint32_t k = 0; k < w; k++ ){
-			simd->IIR4FwdVertical4Fx( column, x, sstride, h, n, d, b1 );
-			simd->IIR4BwdVertical4Fx( y, dstride, column, x, sstride, h, n, d, b1 );
+			simd->IIR4FwdVertical4Fx( column, y, sstride, h, n, d, b1 );
+			simd->IIR4BwdVertical4Fx( y, dstride, column, y, sstride, h, m, d, b2 );
 			x += channels;
 			y += channels;
 		}
+
 
 		src.unmap( in );
 		dst.unmap( out );
