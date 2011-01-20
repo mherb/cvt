@@ -106,6 +106,16 @@ namespace cvt {
 	    impl->update( rect );
 	}
 
+	void Widget::raise()
+	{
+			impl->raise();
+	}
+
+	void Widget::lower()
+	{
+			impl->lower();
+	}
+
 	void Widget::mapGlobal( int&x, int& y )
 	{
 		int gx, gy;

@@ -111,6 +111,17 @@ namespace cvt {
 	    update();
 	}
 
+	void WidgetImplWinGLX11::raise()
+	{
+		XRaiseWindow( dpy, win );
+	}
+
+	void WidgetImplWinGLX11::lower()
+	{
+		XLowerWindow( dpy, win );
+	}
+
+
 	void WidgetImplWinGLX11::setMinimumSize( int w, int h )
 	{
 	    _minSize.set( Math::max( w, 0 ), Math::max( h, 0 ) );

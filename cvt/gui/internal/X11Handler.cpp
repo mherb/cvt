@@ -36,35 +36,6 @@ namespace cvt {
 						ResizeEvent re( nw, nh, oldwidth, oldheight );
 						win->resizeEvent( & re );
 					}
-
-/*					if( xevent.xconfigure.send_event ) {
-						nx = xevent.xconfigure.x;
-						ny = xevent.xconfigure.y;
-						npos = 1;
-					}
-
-					XSync( _dpy, 0 );
-					while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
-						if( xevent.xconfigure.send_event ) {
-							nx = xevent.xconfigure.x;
-							ny = xevent.xconfigure.y;
-							npos = 1;
-						}
-					}
-
-					if( oldwidth != xevent.xconfigure.width || oldheight != xevent.xconfigure.height ) {
-						ResizeEvent re( xevent.xconfigure.width, xevent.xconfigure.height, oldwidth, oldheight );
-						win->resizeEvent( &re );
-					}
-					if( npos ) {
-						int oldx = win->_rect.x;
-						int oldy = win->_rect.y;
-
-						if( oldx != nx  || oldy != ny ) {
-							MoveEvent me( nx, ny, oldx, oldy );
-							win->moveEvent( &me );
-						}
-					}*/
 				}
 				break;
 			case ReparentNotify:
@@ -116,7 +87,7 @@ namespace cvt {
 							;
 
 						XGetGeometry( _dpy, xevent.xconfigure.window, &wp, &nx, &ny, &nw, &nh, &b, &d );
-						XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ) , 0, 0, &nx, &ny, &wp);
+						XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &nx, &ny, &wp);
 
 						if( oldx != nx  || oldy != ny ) {
 							MoveEvent me( nx, ny, oldx, oldy );

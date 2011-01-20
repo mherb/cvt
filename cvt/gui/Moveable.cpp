@@ -82,6 +82,7 @@ namespace cvt {
 		Recti rcorner;
 
 
+		raise();
 		event->position( _lx, _ly );
 		size( rcorner.x, rcorner.y );
 		rcorner.x -= 20;
