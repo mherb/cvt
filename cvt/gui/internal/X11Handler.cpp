@@ -23,6 +23,7 @@ namespace cvt {
 						npos = 1;
 					}
 
+					XSync( _dpy, 0 );
 					while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
 						if( xevent.xconfigure.send_event ) {
 							nx = xevent.xconfigure.x;
@@ -80,7 +81,7 @@ namespace cvt {
 			case Expose:
 				{
 					win = (*_windows)[ xevent.xexpose.window ];
-#if 0
+#if 1
 					// Compress resize/motions before sending expose events
 					// FIXME
 					int cfevent = 0;
