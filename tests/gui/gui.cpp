@@ -22,7 +22,7 @@ using namespace cvt;
 void timeout( BasicTimer* t )
 {
 //	std::cout << "Timeout" << std::endl;
-	usleep( 50000 );
+//	usleep( 50000 );
 }
 
 int main(int argc, char* argv[])
