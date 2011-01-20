@@ -436,6 +436,29 @@ namespace cvt {
 
 	void GaussIIR::applyCPUu8( Image& dst, const Image& src, const Vector4f & _n, const Vector4f & _m, const Vector4f & _d ) const
 	{
+		uint32_t h = dst.height();
+		uint32_t w = dst.width();
+		uint32_t channels = dst.channels();
+		
+		void (SIMD::*fwdHoriz)( Fixed* dst, const uint8_t * src, size_t width, const Fixed * n, const Fixed * d, const Fixed & b1 ) const;
+		void (SIMD::*bwdHoriz)( uint8_t * dst, const Fixed* fwdRes, const uint8_t * src, size_t w, const Fixed * n, const Fixed * d, const Fixed & b  ) const;
+		void (SIMD::*fwdVert)( Fixed* buffer, const uint8_t * src, size_t sstride, size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
+		void (SIMD::*bwdVert)( Fixed * dst, Fixed* fwdRes, const uint8_t * src, size_t sstride, size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
+		
+		SIMD * simd = SIMD::instance();		
+		switch ( channels ) {
+			case 4:
+				fwdHoriz = &SIMD::IIR4FwdHorizontal4Fx;
+				bwdHoriz = &SIMD::IIR4BwdHorizontal4Fx;
+				fwdVert = &SIMD::IIR4FwdVertical4Fx;
+				bwdVert = &SIMD::IIR4BwdVertical4Fx;
+				break;
+			default:
+				throw CVTException( "Not implement for number of channles: " + channels );
+				break;
+		}
+		
+		
 		Fixed n[ 4 ], m[ 4 ], d[ 4 ];
 		n[ 0 ] = _n[ 0 ]; n[ 1 ] = _n[ 1 ]; n[ 2 ] = _n[ 2 ]; n[ 3 ] = _n[ 3 ];
 		m[ 0 ] = _m[ 0 ]; m[ 1 ] = _m[ 1 ]; m[ 2 ] = _m[ 2 ]; m[ 3 ] = _m[ 3 ];
@@ -449,22 +472,16 @@ namespace cvt {
 		const uint8_t * in = src.map<uint8_t>( &sstride );
 		uint8_t * out = dst.map<uint8_t>( &dstride );
 
-		uint32_t h = dst.height();
-		uint32_t w = dst.width();
-		uint32_t channels = dst.channels();
-
 		/* last four values */
 		const uint8_t* x = in;
 		uint8_t* y = out;
 
-		Fixed tmpLine[ channels * w ];
-
-		SIMD * simd = SIMD::instance();
+		Fixed tmpLine[ channels * w ];		
 
 		// horizontal pass
 		for( uint32_t k = 0; k < h; k++ ){
-			simd->IIR4FwdHorizontal4Fx( tmpLine, x, w, n, d, b1 );
-			simd->IIR4BwdHorizontal4Fx( y, tmpLine, x, w, m, d, b2 );
+			(simd->*fwdHoriz)( tmpLine, x, w, n, d, b1 );
+			(simd->*bwdHoriz)( y, tmpLine, x, w, m, d, b2 );
 
 			x += sstride;
 			y += dstride;
@@ -474,11 +491,17 @@ namespace cvt {
 		// vertical pass:
 		// buffer for 4 lines:
 		Fixed column[ channels * h ];
+		Fixed res[ channels * h ];
 		x = in;
 		y = out;
 		for( uint32_t k = 0; k < w; k++ ){
-			simd->IIR4FwdVertical4Fx( column, y, sstride, h, n, d, b1 );
-			simd->IIR4BwdVertical4Fx( y, dstride, column, y, sstride, h, m, d, b2 );
+			(simd->*fwdVert)( column, y, dstride, h, n, d, b1 );
+			(simd->*bwdVert)( res, column, y, dstride, h, m, d, b2 );
+			
+			for( uint32_t i = 0; i < h; i++ ){
+				y[ i * dstride + k ] = Math::clamp( res[ i ].round(), 0, 255 );
+			}
+			
 			x += channels;
 			y += channels;
 		}
