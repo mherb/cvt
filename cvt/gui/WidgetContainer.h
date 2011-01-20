@@ -33,6 +33,8 @@ namespace cvt {
 			void paintChildren( GFX* gfx, const Recti& r );
 			void resizeChildren( );
 			void moveChildren( int dx, int dy );
+			void raiseChild( Widget* c );
+			void lowerChild( Widget* c );
 
 		private:
 			typedef std::list< std::pair<Widget*, WidgetLayout> > ChildList;

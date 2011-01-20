@@ -18,6 +18,8 @@ namespace cvt {
 			virtual void	    setVisible( bool visibility ) = 0;
 			virtual bool	    isVisible() const = 0;
 			virtual void	    setTitle( const std::string& ) {};
+			virtual void		raise() = 0;
+			virtual void		lower() = 0;
 			virtual void	    update() = 0;
 			virtual void	    update( const Recti& rect ) = 0;
 			virtual void	    setMinimumSize( int w, int h ) = 0;

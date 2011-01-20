@@ -28,6 +28,8 @@ namespace cvt {
 			virtual void setPosition( int x, int y );
 			virtual void setVisible( bool b );
 			virtual bool isVisible( ) const { return visible; };
+			virtual void raise();
+			virtual void lower();
 			virtual void update();
 			virtual void update( const Recti& rect );
 			virtual void setMinimumSize( int w, int h );

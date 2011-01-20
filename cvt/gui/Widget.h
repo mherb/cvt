@@ -30,6 +30,8 @@ namespace cvt {
 			bool isVisible() const;
 			void show() { setVisible( true ); };
 			void hide() { setVisible( false ); };
+			void raise();
+			void lower();
 			void setTitle( const std::string& title );
 			void setMinimumSize( int width, int height );
 			void setMaximumSize( int width, int height );
@@ -55,7 +57,11 @@ namespace cvt {
 			virtual void keyPressEvent() {};
 			virtual void keyReleaseEvent() {};
 
+			virtual void raiseChild( Widget* ) {};
+			virtual void lowerChild( Widget* ) {};
+
 			void paintChild( Widget* w, GFX* gfx, const Recti& rect ) const;
+
 
 		private:
 			Widget( const Widget& w );

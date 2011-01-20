@@ -20,6 +20,8 @@ namespace cvt {
 			virtual void	    rect( Recti& rect ) const;
 			virtual void	    setVisible( bool visibility );
 			virtual bool	    isVisible() const;
+			virtual void		raise();
+			virtual void		lower();
 			virtual void	    update();
 			virtual void	    update( const Recti& rect );
 			virtual void	    setMinimumSize( int w, int h );
@@ -161,6 +163,18 @@ namespace cvt {
 	inline Widget* WidgetImplDefault::parent() const
 	{
 		return _parent;
+	}
+
+	inline void WidgetImplDefault::raise()
+	{
+		if( _parent )
+			_parent->raiseChild( _widget );
+	}
+
+	inline void WidgetImplDefault::lower()
+	{
+		if( _parent )
+			_parent->lowerChild( _widget );
 	}
 
 }

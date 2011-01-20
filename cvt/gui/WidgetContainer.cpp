@@ -184,4 +184,36 @@ namespace cvt {
 		_activeWidget = NULL;
 	}
 
+	void WidgetContainer::raiseChild( Widget* c )
+	{
+		if( c->parent() != this )
+			return;
+
+		for( ChildList::iterator it = _children.begin(), end = _children.end(); it != end; ++it  ) {
+			if( it->first == c ) {
+				if( _children.begin() != it ) {
+					_children.splice( _children.begin(), _children, it );
+					update();
+				}
+				return;
+			}
+		}
+	}
+
+	void WidgetContainer::lowerChild( Widget* c )
+	{
+		if( c->parent() != this )
+			return;
+
+		for( ChildList::iterator it = _children.begin(), end = _children.end(); it != end; ++it  ) {
+			if( it->first == c ) {
+				if( _children.rend().base() != it ) {
+					_children.splice( _children.rend().base(), _children, it );
+					update();
+				}
+				return;
+			}
+		}
+	}
+
 };
