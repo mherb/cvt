@@ -35,8 +35,12 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
+			Time camt;
+			camt.reset();
 			_cam->nextFrame();
 			_view->setImage( _cam->frame() );
+			if( camt.elapsedMicroSeconds() > 3000.0 )
+				std::cout << camt.elapsedMicroSeconds() << std::endl;
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
 				char buf[ 200 ];
@@ -108,7 +112,7 @@ int main( )
 		w.addWidget( &m );
 
 		CameraTimeout camTimeOut( cam, &m, &camView );
-		uint32_t timerId = Application::registerTimer( 0, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 30, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 
