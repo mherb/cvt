@@ -219,25 +219,23 @@ namespace cvt {
 		FD_ZERO(&rdset);
 		FD_SET(_fd, &rdset);
 		timeout.tv_sec = 0; // 1 sec timeout
-		timeout.tv_usec = 100000;
+		timeout.tv_usec = 10000;
 
-		int ret;
 		// select - wait for data or timeout
-/*		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
+		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
 		if (ret < 0){
 			throw CVTException("Could not grab image (select error)");
 		} else if( ret == 0 ) {
 			return;
 //			throw CVTException( "Could not grab image (select timeout)" );
-		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) )*/{
+		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			_buffer.memory = V4L2_MEMORY_MMAP;
 
 			ret = ioctl( _fd, VIDIOC_DQBUF, &_buffer );
 			if ( ret < 0 ) {
-				return;
-//				throw CVTException( "Unable to dequeue buffer!" );
+				throw CVTException( "Unable to dequeue buffer!" );
 			}
 		}
 
