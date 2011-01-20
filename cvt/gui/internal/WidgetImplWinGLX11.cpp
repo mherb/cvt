@@ -103,6 +103,7 @@ namespace cvt {
 		if( needsupdate || !visible )
 			return;
 		_updateq->push_back( this );
+		needsupdate = true;
 	}
 
 	void WidgetImplWinGLX11::update( const Recti& rect )
