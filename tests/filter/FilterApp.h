@@ -30,18 +30,20 @@ class FilterApp : public cvt::TimeoutHandler
 		cvt::Delegate<void ()> 	_quitDel;
 		cvt::ImageView 			_inImageView;
 		cvt::ImageView			_outImageView;
-		cvt::Moveable			_mIn, _mOut;
+		cvt::ImageView			_outImageViewCL;
+		cvt::Moveable			_mIn, _mCPU, _mCL;
 		
 		cvt::Camera*			_cam;
 		cvt::IFilter*			_filter;
 		cvt::IFilterType		_filterType;
 		cvt::ParamSet*			_params;
-		uint32_t				_frames;
-		cvt::Time				_timer;
+		uint32_t				_framesCPU;
+		uint32_t				_framesCL;
+		cvt::Time				_timerCPU, _timerCL;
 		
 		cvt::CLContext			_cl;
-		cvt::Image				_in;		
-		cvt::Image				_out;
+		cvt::Image				_in, _inCL;
+		cvt::Image				_out, _outCL;
 		
 		uint32_t 				_timerId;
 		size_t					_inputHandle; // handle to set the input Image in the paramset!

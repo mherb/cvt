@@ -11,6 +11,8 @@
 #include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/io/ImageIO.h>
 
+//#define GAUSSIIR_CL
+
 using namespace cvt;
 
 int FilterApp::run( const std::string & title )
@@ -32,11 +34,13 @@ FilterApp::FilterApp( const std::string & name ) :
 	_quitButton( "Quit" ),
 	_quitDel( &cvt::Application::exit ),
 	_mIn( &_inImageView ),
-	_mOut( &_outImageView ),
+	_mCPU( &_outImageView ),
+	_mCL( &_outImageViewCL ),
 	_cam( 0 ),
 	_filter( 0 ),
 	_params( 0 ),
-	_frames( 0 )
+	_framesCPU( 0 ),
+	_framesCL( 0 )
 {	
 	_appWindow.setSize( 800, 600 );
 	_appWindow.setVisible( true );
@@ -54,12 +58,17 @@ FilterApp::FilterApp( const std::string & name ) :
 	_appWindow.addWidget( &_mIn );
 	_mIn.setPosition( 20, 140 );
 	
-	_mOut.setTitle( "Output Image" );
-	_mOut.setSize( 320, 240 );
-	_appWindow.addWidget( &_mOut );
-	_mOut.setPosition( 360, 140 );
+	_mCPU.setTitle( "Output CPU" );
+	_mCPU.setSize( 320, 240 );
+	_appWindow.addWidget( &_mCPU );
+	_mCPU.setPosition( 360, 140 );
+	
+	_mCL.setTitle( "Output GPU" );
+	_mCL.setSize( 320, 240 );
+	_appWindow.addWidget( &_mCL );
+	_mCL.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 30 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
 	
 	_cl.makeCurrent();
 	initCamera();
@@ -77,7 +86,6 @@ FilterApp::~FilterApp()
 		delete _params;
 		
 	cvt::Application::unregisterTimer( _timerId );
-	_timer.reset();
 }
 
 void FilterApp::initCamera()
@@ -114,10 +122,12 @@ void FilterApp::initCamera()
 
 	std::cout << _cam->frame() << std::endl;
 
-//	_in.reallocate( _cam->frame(), IALLOCATOR_CL );
-//	_out.reallocate( _in, IALLOCATOR_CL );
+	_inCL.reallocate( _cam->frame(), IALLOCATOR_CL );
+	_outCL.reallocate( _inCL, IALLOCATOR_CL );
+
 	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
 	_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
+
 }
 
 void FilterApp::initFilter()
@@ -125,8 +135,6 @@ void FilterApp::initFilter()
 	// select the filter and set parameters
 	//_filter = new BrightnessContrast();
 	_filter = new GaussIIR();
-	//_filterType = IFILTER_OPENCL;
-	_filterType = IFILTER_CPU;
 
 	_params = _filter->parameterSet();
 
@@ -140,8 +148,6 @@ void FilterApp::initFilter()
 	_inputHandle = _params->paramHandle( "Input" );
 	size_t sigma = _params->paramHandle( "Sigma" );
 
-	_params->setArg<Image*>( _outputHandle, &_out );
-	_params->setArg<Image*>( _inputHandle, &_in );
 	_params->setArg<float>( sigma, 10.0f );
 
 	std::cout << *_params << std::endl;
@@ -154,28 +160,43 @@ void FilterApp::onTimeout()
 		_cam->nextFrame();
 		_inImageView.setImage( _cam->frame() );
 
-		//_in.copy( _cam->frame() );
 		_cam->frame().convert( _in );
+		_cam->frame().convert( _inCL );
 
 		_params->setArg<Image*>( _inputHandle, &_in );
 		_params->setArg<Image*>( _outputHandle, &_out );
-
-		_filter->apply( _params, _filterType );
-
+		_filter->apply( _params, IFILTER_CPU );
+		
+		_framesCPU++;
+		if( _timerCPU.elapsedSeconds() > 5.0f ) {
+			char buf[ 200 ];
+			sprintf( buf, "%s CPU: FPS: %.2f", _filter->name().c_str(), _framesCPU / _timerCPU.elapsedSeconds() );
+			_mCPU.setTitle( buf );
+			_framesCPU = 0;
+			_timerCPU.reset();
+		}
+		
 		_outImageView.setImage( _out );
+		
+		_params->setArg<Image*>( _inputHandle, &_inCL );
+		_params->setArg<Image*>( _outputHandle, &_outCL );
+		_filter->apply( _params, IFILTER_OPENCL );
+		
+		_framesCL++;
+		if( _timerCL.elapsedSeconds() > 5.0f ) {
+			char buf[ 200 ];
+			sprintf( buf, "%s CL: FPS: %.2f", _filter->name().c_str(), _framesCL / _timerCL.elapsedSeconds() );
+			_mCL.setTitle( buf );
+			_framesCL = 0;
+			_timerCL.reset();
+		}		
+		_outImageViewCL.setImage( _outCL );
 
-		_frames++;
+		
 	} catch( CLException e ) {
 		std::cout << e.what() << std::endl;
 	}
-
-	if( _timer.elapsedSeconds() > 5.0f ) {
-		char buf[ 200 ];
-		sprintf( buf, "%s: FPS: %.2f", _filter->name().c_str(), _frames / _timer.elapsedSeconds() );
-		_mOut.setTitle( buf );
-		_frames = 0;
-		_timer.reset();
-	}
+	
 }
 
 
