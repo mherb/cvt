@@ -114,10 +114,10 @@ void FilterApp::initCamera()
 
 	std::cout << _cam->frame() << std::endl;
 
-	_in.reallocate( _cam->frame(), IALLOCATOR_CL );
-	_out.reallocate( _in, IALLOCATOR_CL );
-	//_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
-	//_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_FLOAT );
+//	_in.reallocate( _cam->frame(), IALLOCATOR_CL );
+//	_out.reallocate( _in, IALLOCATOR_CL );
+	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
+	_out.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
 }
 
 void FilterApp::initFilter()
@@ -125,8 +125,8 @@ void FilterApp::initFilter()
 	// select the filter and set parameters
 	//_filter = new BrightnessContrast();
 	_filter = new GaussIIR();
-	_filterType = IFILTER_OPENCL;
-	//_filterType = IFILTER_CPU;
+	//_filterType = IFILTER_OPENCL;
+	_filterType = IFILTER_CPU;
 
 	_params = _filter->parameterSet();
 
