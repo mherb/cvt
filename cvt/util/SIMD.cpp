@@ -2952,11 +2952,12 @@ namespace cvt {
 #define _IIR_CURRENT_BWD( c ) \
 		tmpVal[ c ] = n[ 0 ] * x3[ c ] + n[ 1 ] * x2[ c ] + n[ 2 ] * x1[ c ] + n[ 3 ] * x0[ c ]\
 							- d[ 0 ] * l3[ c ] - d[ 1 ] * l2[ c ] - d[ 2 ] * l1[ c ] - d[ 3 ] * l0[ c ];\
-		y3[ c ] = Math::clamp( ( x3[ c ] + tmpVal[ c ] ).round(), 0, 255 );
+		y3[ c ] = Math::clamp( ( t3[ c ] + tmpVal[ c ] ).round(), 0, 255 );
 	
 #define _IIR_CURRENT_VERT_BWD( c ) \
-		y3[ c ] = n[ 0 ] * x3[ c ] + n[ 1 ] * x2[ c ] + n[ 2 ] * x1[ c ] + n[ 3 ] * x0[ c ]\
+	tmpVal[ c ] = n[ 0 ] * t3[ c ] + n[ 1 ] * t2[ c ] + n[ 2 ] * t1[ c ] + n[ 3 ] * t0[ c ]\
 		- d[ 0 ] * l3[ c ] - d[ 1 ] * l2[ c ] - d[ 2 ] * l1[ c ] - d[ 3 ] * l0[ c ];\
+		y3[ c ] = Math::clamp( ( t3[ c ] + tmpVal[ c ] ).round(), 0, 255 );
 
 	void SIMD::IIR4FwdHorizontal4Fx( Fixed* dst, const uint8_t * src, size_t w,
 									 const Fixed * n, const Fixed * d, const Fixed & b ) const
@@ -2980,11 +2981,9 @@ namespace cvt {
 		_IIR_INITIAL4( 1 )
 		_IIR_INITIAL4( 2 )
 		_IIR_INITIAL4( 3 )
-
-		w-= 4;
-
+		
 		// forward pass
-		while( w-- ) {
+		for( uint32_t i = 4; i < w; i++ ) {
 			x0 += channels;
 			x1 += channels;
 			x2 += channels;
@@ -3132,11 +3131,15 @@ namespace cvt {
 		x2 = x1 - channels;
 		x3 = x2 - channels;
 
-		Fixed *y0, *y1, *y2, *y3;
-		y0 = dst + channels * ( h - 1 ); // last pixel in output col
-		y1 = y0 - channels;
-		y2 = y1 - channels;
-		y3 = y2 - channels;
+		uint8_t *y0, *y1, *y2, *y3;
+		y0 = dst + dstride * ( h - 1 ); // last pixel in output col
+		y1 = y0 - dstride;
+		y2 = y1 - dstride;
+		y3 = y2 - dstride;
+		
+		uint8_t tmpu8[ 5 * channels ];
+		uint8_t *t0, *t1, *t2, *t3, *ttmp, *u8tmp;
+		t3 = tmpu8; t2 = t3 + channels; t1 = t2 + channels; t0 = t1 + channels; ttmp = t0 + channels;
 
 		Fixed lastValues[ 5 * channels ];
 		Fixed *l0, *l1, *l2, *l3, *tmpVal, *tmpPtr;
@@ -3144,21 +3147,25 @@ namespace cvt {
 
 		// backward border init:
 		_IIR_INITIAL4( 0 );
+		t0[ 0 ] = x0[ 0 ]; t1[ 0 ] = x1[ 0 ]; t2[ 0 ] = x2[ 0 ]; t3[ 0 ] = x3[ 0 ];
 		y0[ 0 ] = Math::clamp( ( l0[ 0 ] + x0[ 0 ] ).round(), 0, 255 );
 		y1[ 0 ] = Math::clamp( ( l1[ 0 ] + x1[ 0 ] ).round(), 0, 255 );
 		y2[ 0 ] = Math::clamp( ( l2[ 0 ] + x2[ 0 ] ).round(), 0, 255 );
 		y3[ 0 ] = Math::clamp( ( l3[ 0 ] + x3[ 0 ] ).round(), 0, 255 );
 		_IIR_INITIAL4( 1 );
+		t0[ 1 ] = x0[ 0 ]; t1[ 1 ] = x1[ 0 ]; t2[ 1 ] = x2[ 1 ]; t3[ 1 ] = x3[ 1 ];
 		y0[ 1 ] = Math::clamp( ( l0[ 1 ] + x0[ 1 ] ).round(), 0, 255 );
 		y1[ 1 ] = Math::clamp( ( l1[ 1 ] + x1[ 1 ] ).round(), 0, 255 );
 		y2[ 1 ] = Math::clamp( ( l2[ 1 ] + x2[ 1 ] ).round(), 0, 255 );
 		y3[ 1 ] = Math::clamp( ( l3[ 1 ] + x3[ 1 ] ).round(), 0, 255 );
 		_IIR_INITIAL4( 2 );
+		t0[ 2 ] = x0[ 2 ]; t1[ 2 ] = x1[ 2 ]; t2[ 2 ] = x2[ 2 ]; t3[ 2 ] = x3[ 2 ];
 		y0[ 2 ] = Math::clamp( ( l0[ 2 ] + x0[ 2 ] ).round(), 0, 255 );
 		y1[ 2 ] = Math::clamp( ( l1[ 2 ] + x1[ 2 ] ).round(), 0, 255 );
 		y2[ 2 ] = Math::clamp( ( l2[ 2 ] + x2[ 2 ] ).round(), 0, 255 );
 		y3[ 2 ] = Math::clamp( ( l3[ 2 ] + x3[ 2 ] ).round(), 0, 255 );
 		_IIR_INITIAL4( 3 );
+		t0[ 3 ] = x0[ 3 ]; t1[ 3 ] = x1[ 3 ]; t2[ 3 ] = x2[ 3 ]; t3[ 3 ] = x3[ 3 ];
 		y0[ 3 ] = Math::clamp( ( l0[ 3 ] + x0[ 3 ] ).round(), 0, 255 );
 		y1[ 3 ] = Math::clamp( ( l1[ 3 ] + x1[ 3 ] ).round(), 0, 255 );
 		y2[ 3 ] = Math::clamp( ( l2[ 3 ] + x2[ 3 ] ).round(), 0, 255 );
@@ -3173,12 +3180,21 @@ namespace cvt {
 			x2 -= channels;
 			x3 -= channels;
 
-			y3 -= channels; // y3 is current output pixel!
-
+			y3 -= dstride; // y3 is current output pixel!
+			
+			u8tmp = ttmp;
+			u8tmp = t0; t0 = t1; t1 = t2; t2 = t3; t3 = ttmp;
+			t3[ 0 ] = x3[ 0 ]; 
+			t3[ 1 ] = x3[ 1 ]; 
+			t3[ 2 ] = t3[ 2 ]; 
+			t3[ 3 ] = x3[ 3 ];			
+			
+			
 			_IIR_CURRENT_VERT_BWD( 0 )
 			_IIR_CURRENT_VERT_BWD( 1 )
 			_IIR_CURRENT_VERT_BWD( 2 )
 			_IIR_CURRENT_VERT_BWD( 3 )
+			
 
 			// swap pointers:
 			tmpPtr = tmpVal;

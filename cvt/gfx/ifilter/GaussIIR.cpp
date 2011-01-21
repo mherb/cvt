@@ -443,7 +443,7 @@ namespace cvt {
 		void (SIMD::*fwdHoriz)( Fixed* dst, const uint8_t * src, size_t width, const Fixed * n, const Fixed * d, const Fixed & b1 ) const;
 		void (SIMD::*bwdHoriz)( uint8_t * dst, const Fixed* fwdRes, const uint8_t * src, size_t w, const Fixed * n, const Fixed * d, const Fixed & b  ) const;
 		void (SIMD::*fwdVert)( Fixed* buffer, const uint8_t * src, size_t sstride, size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
-		void (SIMD::*bwdVert)( Fixed * dst, Fixed* fwdRes, const uint8_t * src, size_t sstride, size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
+		void (SIMD::*bwdVert)( uint8_t * dst, size_t dstride, Fixed* fwdRes, size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
 		
 		SIMD * simd = SIMD::instance();		
 		switch ( channels ) {
@@ -487,15 +487,13 @@ namespace cvt {
 			y += dstride;
 		}
 
-
 		// vertical pass:
 		// buffer for 4 lines:
 		Fixed column[ channels * h ];
-		Fixed res[ channels * h ];
 		x = in;
 		y = out;
 		for( uint32_t k = 0; k < w; k++ ){
-			simd->IIR4FwdVertical4Fx( column, y, sstride, h, n, d, b1 );
+			simd->IIR4FwdVertical4Fx( column, y, dstride, h, n, d, b1 );
 			simd->IIR4BwdVertical4Fx( y, dstride, column, h, m, d, b2 );
 			x += channels;
 			y += channels;
