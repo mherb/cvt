@@ -495,13 +495,8 @@ namespace cvt {
 		x = in;
 		y = out;
 		for( uint32_t k = 0; k < w; k++ ){
-			(simd->*fwdVert)( column, y, dstride, h, n, d, b1 );
-			(simd->*bwdVert)( res, column, y, dstride, h, m, d, b2 );
-			
-			for( uint32_t i = 0; i < h; i++ ){
-				y[ i * dstride + k ] = Math::clamp( res[ i ].round(), 0, 255 );
-			}
-			
+			simd->IIR4FwdVertical4Fx( column, y, sstride, h, n, d, b1 );
+			simd->IIR4BwdVertical4Fx( y, dstride, column, h, m, d, b2 );
 			x += channels;
 			y += channels;
 		}
