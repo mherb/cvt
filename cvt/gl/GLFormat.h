@@ -1,6 +1,8 @@
 #ifndef CVT_GLFORMAT_H
 #define CVT_GLFORMAT_H
 
+#include <iostream>
+
 namespace cvt {
 
 	class GLFormat {
@@ -10,21 +12,21 @@ namespace cvt {
 			void defaultValues();
 
 			void setRedSize( unsigned int size );
-			unsigned int redSize();
+			unsigned int redSize() const;
 			void setGreenSize( unsigned int size );
-			unsigned int greenSize();
+			unsigned int greenSize() const;
 			void setBlueSize( unsigned int size );
-			unsigned int blueSize();
+			unsigned int blueSize() const;
 			void setAlphaSize( unsigned int size );
-			unsigned int alphaSize();
+			unsigned int alphaSize() const;
 			void setDepthSize( unsigned int size );
-			unsigned int depthSize();
+			unsigned int depthSize() const;
 			void setStencilSize( unsigned int size );
-			unsigned int stencilSize();
-			bool setDoubleBuffer( bool v );
-			bool doubleBuffer();
-			bool setDirect( bool v );
-			bool direct();
+			unsigned int stencilSize() const;
+			void setDoubleBuffer( bool v );
+			bool doubleBuffer() const;
+			void setDirect( bool v );
+			bool direct() const;
 
 		private:
 			unsigned int _red, _green, _blue, _alpha, _depth, _stencil;
@@ -42,44 +44,45 @@ namespace cvt {
 		_depth = 16;
 		_stencil = 0;
 		_db = true;
+		_direct = true;
 	}
 
-	inline unsigned int GLFormat::redSize()
+	inline unsigned int GLFormat::redSize() const
 	{
 		return _red;
 	}
 
-	inline unsigned int GLFormat::greenSize()
+	inline unsigned int GLFormat::greenSize() const
 	{
 		return _green;
 	}
 
-	inline unsigned int GLFormat::blueSize()
+	inline unsigned int GLFormat::blueSize() const
 	{
 		return _blue;
 	}
 
-	inline unsigned int GLFormat::alphaSize()
+	inline unsigned int GLFormat::alphaSize() const
 	{
 		return _alpha;
 	}
 
-	inline unsigned int GLFormat::depthSize()
+	inline unsigned int GLFormat::depthSize() const
 	{
 		return _depth;
 	}
 
-	inline unsigned int GLFormat::stencilSize()
+	inline unsigned int GLFormat::stencilSize() const
 	{
 		return _red;
 	}
 
-	inline bool GLFormat::doubleBuffer()
+	inline bool GLFormat::doubleBuffer() const
 	{
 		return _db;
 	}
 
-	inline bool GLFormat::direct()
+	inline bool GLFormat::direct() const
 	{
 		return _direct;
 	}
@@ -123,6 +126,20 @@ namespace cvt {
 	{
 		_direct = v;
 	}
+
+	inline std::ostream& operator<<( std::ostream& out, const GLFormat& glformat )
+	{
+		out << "GLFormat:\n\tRED-Size: " << glformat.redSize()
+			<< "\n\tGREEN-Size: " << glformat.greenSize()
+			<< "\n\tBLUE-Size: " << glformat.blueSize()
+			<< "\n\tALPHA-Size: " << glformat.alphaSize()
+			<< "\n\tDEPTH-Size: " << glformat.depthSize()
+			<< "\n\tSTENCIL-Size: " << glformat.stencilSize()
+			<< "\n\tDoubleBuffer: " << glformat.doubleBuffer()
+			<< "\n\tDirect: " << glformat.direct();
+		return out;
+	}
+
 }
 
 #endif
