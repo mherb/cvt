@@ -12,7 +12,7 @@ static const char _gaussiir_source[ ] =
 "	coord.x = 0;\n" \
 "    coord.y = get_global_id( 0 );\n" \
 "\n" \
-"	buffer += w * coord.y;\n" \
+"	buffer += get_global_id( 0 ) * w;\n" \
 "\n" \
 "	float b1 = ( n.s0 + n.s1 + n.s2 + n.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
 "	float b2 = ( m.s0 + m.s1 + m.s2 + m.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
@@ -37,7 +37,7 @@ static const char _gaussiir_source[ ] =
 "	buffer[ 2 ] = y[ 2 ];\n" \
 "	buffer[ 3 ] = y[ 3 ];\n" \
 "\n" \
-"    for (int i = 4; i < w; i++) {\n" \
+"    for( int i = 4; i < w; i++ ) {\n" \
 "		coord.x = i;\n" \
 "        x[ 0 ] = x[ 1 ]; x[ 1 ] = x[ 2 ]; x[ 2 ] = x[ 3 ];\n" \
 "        x[ 3 ] = read_imagef( input, sampler, coord );\n" \
@@ -68,13 +68,13 @@ static const char _gaussiir_source[ ] =
 "	buffer[ w - 3 ] += y[ 2 ];\n" \
 "	buffer[ w - 4 ] += y[ 3 ];\n" \
 "\n" \
-"    for (int i = w-4; i > 0; i--) {\n" \
+"    for (int i = w-5; i >= 0; i--) {\n" \
 "		coord.x = i;\n" \
 "        x[ 0 ] = x[ 1 ]; x[ 1 ] = x[ 2 ]; x[ 2 ] = x[ 3 ];\n" \
 "        x[ 3 ] = read_imagef( input, sampler, coord );\n" \
 "		yn = m.s0 * x[ 3 ] + m.s1 * x[ 2 ] + m.s2 * x[ 1 ] + m.s3 * x[ 0 ]\n" \
 "			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];\n" \
-"		buffer[ i - 1 ] += yn;\n" \
+"		buffer[ i ] += yn;\n" \
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \
 "}\n" \

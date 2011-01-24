@@ -37,21 +37,14 @@ int main( void )
 
 		pSet->setArg( in, &x );
 		pSet->setArg( out, &x2 );
-		pSet->setArg( sigma, 1.5f );
+		pSet->setArg( sigma, 2.5f );
 		pSet->setArg<int>( order, 0 );
 
-		Time timer;
-		timer.reset();
-		int i;
-		for( i = 0; i < 1; i++ ){
-			//filter.apply( pSet, IFILTER_OPENCL );
-			filter.apply( pSet, IFILTER_CPU );
-		}
-		std::cout << "Average Time: " << timer.elapsedMilliSeconds() / i << std::endl;
-		std::cout << "Average FPS: " << i * 1000.0f / timer.elapsedMilliSeconds() << std::endl;
+		filter.apply( pSet, IFILTER_OPENCL );
+		ImageIO::savePNG( x2, "output-cl.png" );
+		filter.apply( pSet, IFILTER_CPU );
+		ImageIO::savePNG( x2, "output-cpu.png" );
 
-
-		ImageIO::savePNG( x2, "bla.png" );
 	} catch( CLException e ) {
 		std::cout << e.what() << std::endl;
 	} catch( Exception e ) {

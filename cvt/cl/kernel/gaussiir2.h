@@ -46,6 +46,7 @@ static const char _gaussiir2_source[ ] =
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \
 "\n" \
+"\n" \
 "    // reverse pass\n" \
 "	coord.y = h - 1;\n" \
 "	x[ 0 ] = buffer[ ( h - 1 ) * stride ];\n" \
@@ -67,12 +68,12 @@ static const char _gaussiir2_source[ ] =
 "	write_imagef( output, coord - ( int2 ) ( 0, 2 ),  buffer2[ h - 3 ] + y[ 2 ] );\n" \
 "	write_imagef( output, coord - ( int2 ) ( 0, 3 ),  buffer2[ h - 4 ] + y[ 3 ] );\n" \
 "\n" \
-"    for (int i = h-4; i > 0; i--) {\n" \
+"    for (int i = h-5; i >= 0; i--) {\n" \
 "        x[ 0 ] = x[ 1 ]; x[ 1 ] = x[ 2 ]; x[ 2 ] = x[ 3 ];\n" \
 "        x[ 3 ] = buffer[ i * stride ];\n" \
 "		yn = m.s0 * x[ 3 ] + m.s1 * x[ 2 ] + m.s2 * x[ 1 ] + m.s3 * x[ 0 ]\n" \
 "			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];\n" \
-"		coord.y = i - 1;\n" \
+"		coord.y = i;\n" \
 "		write_imagef( output, coord, buffer2[ i ] + yn );\n" \
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \

@@ -5,7 +5,7 @@
 
 namespace cvt {
 
-	void CLKernel::build( const char* name, const char* src, size_t len, std::string& buildinfo )
+	void CLKernel::build( const char* name, const char* src, size_t len, std::string& buildinfo, const std::string& options )
 	{
 		cl_int err;
 		cl::Program::Sources source( 1, std::make_pair<const char*, size_t>( src, len ) );
@@ -20,7 +20,9 @@ namespace cvt {
 		}
 
 		devices.push_back( _cl->getCLDevice( ) );
-		err = _prog.build( devices, "-w -cl-mad-enable" );
+		std::string cflags = "-w ";
+		cflags += options;
+		err = _prog.build( devices, cflags.c_str() );
 		buildinfo = _prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( _cl->getCLDevice( ) );
 		if( err != CL_SUCCESS ) {
 			std::cout << buildinfo << std::endl;

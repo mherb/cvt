@@ -45,6 +45,14 @@ namespace cvt {
 
 		static inline size_t pad16( size_t v ) { return v & 0xf ?  ( ( v | 0xf ) + 1 ) : v; }
 
+		static inline size_t pad( size_t v, size_t multiple )
+		{
+			size_t r = v % multiple;
+			if( !r )
+				return v;
+			return v + multiple - r;
+		}
+
 		template<typename T> static inline T sqr( T v ) { return v * v; }
 
 		size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
@@ -85,7 +93,7 @@ namespace cvt {
 		{
 			return 1.0 / ::sqrt( d );
 		}
-		
+
 		static inline float abs( float f )
 		{
 			_flint32 u;
@@ -101,9 +109,9 @@ namespace cvt {
 			u.i &= 0x7FFFFFFFFFFFFFFFULL;
 			return u.d;
 		}
-		
+
 		static inline int abs( int i )
-		{						
+		{
 			return ::abs( i );
 		}
 
@@ -146,12 +154,12 @@ namespace cvt {
 		{
 			return ::asin( x );
 		}
-		
+
 		static inline float round( float x )
 		{
 			return ::roundf( x );
 		}
-		
+
 		static inline float round( double x )
 		{
 			return ::round( x );
@@ -211,7 +219,7 @@ namespace cvt {
 		{
 			return ( ssize_t ) ::random();
 		}
-		
+
 		static inline size_t rand( size_t min, size_t max )
 		{
 			return min + ( ( max - min ) * ( ( float ) ::random() / ( ( size_t ) RAND_MAX + 1 )  ) );
@@ -220,7 +228,7 @@ namespace cvt {
 		static inline float rand( float min, float max )
 		{
 			return min + ( ( max - min ) * ( ( float ) ::random() / ( ( float ) RAND_MAX + 1.0f )  ) );
-		}	
+		}
 
 		static inline double rand( double min, double max )
 		{

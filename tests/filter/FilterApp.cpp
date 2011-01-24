@@ -165,7 +165,7 @@ void FilterApp::onTimeout()
 
 		_params->setArg<Image*>( _inputHandle, &_in );
 		_params->setArg<Image*>( _outputHandle, &_out );
-		_filter->apply( _params, IFILTER_CPU );
+//		_filter->apply( _params, IFILTER_CPU );
 		
 		_framesCPU++;
 		if( _timerCPU.elapsedSeconds() > 5.0f ) {
