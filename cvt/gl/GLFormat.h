@@ -6,6 +6,8 @@
 namespace cvt {
 
 	class GLFormat {
+		friend class GLXContext;
+
 		public:
 			GLFormat();
 
@@ -33,7 +35,7 @@ namespace cvt {
 			bool _db, _direct;
 	};
 
-	GLFormat::GLFormat()
+	inline GLFormat::GLFormat()
 	{
 		defaultValues();
 	}

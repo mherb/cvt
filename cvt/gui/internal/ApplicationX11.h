@@ -1,9 +1,10 @@
-#ifndef CVTAPPLICATIONX11_H
-#define CVTAPPLICATIONX11_H
+#ifndef CVT_APPLICATIONX11_H
+#define CVT_APPLICATIONX11_H
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/internal/WidgetImplWinGLX11.h>
+#include <cvt/gui/internal/GLXContext.h>
 #include <cvt/gui/event/Event.h>
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/internal/TimerInfoList.h>
@@ -33,9 +34,9 @@ namespace cvt {
 			virtual void _unregisterWindow( WidgetImpl* w );
 
 			::Display* dpy;
-			::GLXContext ctx;
-			::XVisualInfo *visinfo;
+			GLXContext* _defaultctx;
 			::Atom xatom_wmdelete;
+			::Window _dummywin;
 			bool run;
 			std::map< ::Window, WidgetImplWinGLX11*> windows;
 			std::deque< WidgetImplWinGLX11*> updates;

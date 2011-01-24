@@ -1,8 +1,9 @@
-#ifndef CVTWIDGETIMPLWINGLX11_H
-#define CVTWIDGETIMPLWINGLX11_H
+#ifndef CVT_WIDGETIMPLWINGLX11_H
+#define CVT_WIDGETIMPLWINGLX11_H
 
 #include <cvt/gui/internal/WidgetImpl.h>
 #include <cvt/gui/internal/X.h>
+#include <cvt/gui/internal/GLXContext.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/GFXGL.h>
 #include <cvt/math/Math.h>
@@ -17,7 +18,7 @@ namespace cvt {
 		friend class X11Handler;
 
 		public:
-			WidgetImplWinGLX11( ::Display* dpy, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updates );
+			WidgetImplWinGLX11( ::Display* dpy, const GLXContext* sharecontext, Widget* _window, std::deque<WidgetImplWinGLX11*>* updates );
 			~WidgetImplWinGLX11();
 			virtual void setTitle( const std::string& title );
 			virtual void setRect( const Recti& rect );
@@ -50,7 +51,7 @@ namespace cvt {
 			Widget* _widget;
 			::Display* dpy;
 			::Window win;
-			::GLXContext ctx;
+			GLXContext* _ctx;
 			bool visible;
 			Recti _rect;
 			GFXGL* gfx;

@@ -36,8 +36,6 @@ namespace cvt {
 			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) = 0;
 			virtual void _unregisterTimer( uint32_t id ) = 0;
 
-//			virtual GLContextImpl* _createGLContext( const GLFormat& format, const GLContext* other = NULL ) = 0;
-
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
 

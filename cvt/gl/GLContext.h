@@ -4,23 +4,26 @@
 #include <cvt/gl/GLFormat.h>
 
 namespace cvt {
-	class GLContextImpl;
 
 	class GLContext {
 		public:
-			GLContext( const GLFormat& format );
-			~GLContext();
+			virtual ~GLContext();
 
 			const GLFormat& format() const;
-			void makeCurrent();
-			void swapBuffers();
+			virtual void makeCurrent() = 0;
+			virtual void swapBuffers() = 0;
+			virtual void resetCurrent() = 0;
 
 			static GLContext* currentContext();
 
-		private:
-			GLContext( const GLContext& ctx );
+		protected:
+			GLContext( const GLFormat& format );
+			GLFormat _format;
+			static void setCurrent( GLContext* ctx );
 
-			GLContextImpl* _ctx;
+		private:
+			GLContext();
+			GLContext( const GLContext& ctx );
 
 			static GLContext* _current;
 	};
@@ -28,6 +31,16 @@ namespace cvt {
 	inline GLContext* GLContext::currentContext()
 	{
 		return _current;
+	}
+
+	inline const GLFormat& GLContext::format() const
+	{
+		return _format;
+	}
+
+	inline void GLContext::setCurrent( GLContext* c )
+	{
+		_current = c;
 	}
 }
 
