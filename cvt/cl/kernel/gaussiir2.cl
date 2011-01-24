@@ -43,6 +43,7 @@ __kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer,
 		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;
     }
 
+
     // reverse pass
 	coord.y = h - 1;
 	x[ 0 ] = buffer[ ( h - 1 ) * stride ];
@@ -64,12 +65,12 @@ __kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer,
 	write_imagef( output, coord - ( int2 ) ( 0, 2 ),  buffer2[ h - 3 ] + y[ 2 ] );
 	write_imagef( output, coord - ( int2 ) ( 0, 3 ),  buffer2[ h - 4 ] + y[ 3 ] );
 
-    for (int i = h-4; i > 0; i--) {
+    for (int i = h-5; i >= 0; i--) {
         x[ 0 ] = x[ 1 ]; x[ 1 ] = x[ 2 ]; x[ 2 ] = x[ 3 ];
         x[ 3 ] = buffer[ i * stride ];
 		yn = m.s0 * x[ 3 ] + m.s1 * x[ 2 ] + m.s2 * x[ 1 ] + m.s3 * x[ 0 ]
 			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];
-		coord.y = i - 1;
+		coord.y = i;
 		write_imagef( output, coord, buffer2[ i ] + yn );
 		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;
     }

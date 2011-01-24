@@ -194,9 +194,10 @@ namespace cvt {
 
 		int32_t w = src.width();
 		int32_t h = src.height();
+
 		CLContext * cl = CLContext::getCurrent();
-		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h );
-		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h );
+		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h * 2 );
+		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h * 2);
 
 		_kernelIIR->setArg( 0, buf );
 		_kernelIIR->setArg( 1, src );
@@ -210,7 +211,6 @@ namespace cvt {
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
 		_kernelIIR2->setArg( 2, buf2 );
-
 		_kernelIIR2->setArg( 3, sizeof( int32_t ), &h );
 		_kernelIIR2->setArg( 4, n );
 		_kernelIIR2->setArg( 5, m );
