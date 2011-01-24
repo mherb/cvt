@@ -5,35 +5,17 @@ namespace cvt {
 
 	GLContext* GLContext::_current = NULL;
 
-	GLContext::GLContext( const GLFormat& glformat )
+	GLContext::GLContext( const GLFormat& glformat ) : _format( glformat )
 	{
-		_ctx = Application::instance()._createGLContext( glformat );
 	}
+
 
 	GLContext::~GLContext()
 	{
 		if( _current == this ) {
-			 _ctx->resetCurrent();
-			_current = NULL
+			//FIXME:
+			// resetCurrent();
+			_current = NULL;
 		}
-		delete _ctx;
-	}
-
-	const GLFormat& GLContext::format() const
-	{
-		return _ctx->format();
-	}
-
-	void GLContext::makeCurrent()
-	{
-		if( current == this )
-			return;
-		_ctx->makeCurrent();
-		_current = this;
-	}
-
-	void GLContext::swapBuffers()
-	{
-		_ctx->swapBuffers();
 	}
 }

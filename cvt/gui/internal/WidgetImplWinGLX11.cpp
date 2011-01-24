@@ -2,29 +2,33 @@
 
 namespace cvt {
 
-	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, ::GLXContext context, ::XVisualInfo* visinfo, Widget* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : _widget( _window ), dpy( display ), ctx( context ), visible( false ), _rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
+	WidgetImplWinGLX11::WidgetImplWinGLX11( ::Display* display, const GLXContext* context, Widget* _window, std::deque<WidgetImplWinGLX11*>* updateq ) : _widget( _window ), dpy( display ), visible( false ), _rect( 0, 0, 1, 1 ), needsupdate( false ), _updateq( updateq )
 	{
 		::XSetWindowAttributes attr;
-		unsigned long mask;
+		GLFormat format;
 
+		_ctx = new GLXContext( dpy, format, context );
+
+		const ::XVisualInfo* visinfo = _ctx->XVisualInfo();
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
 		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
 		attr.background_pixmap = None;
 		attr.border_pixel = 0;
 
-		mask = CWColormap | CWEventMask | CWBackPixmap | CWBorderPixel;
+		unsigned long mask = CWColormap | CWEventMask | CWBackPixmap | CWBorderPixel;
 
 		win = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, _rect.width, _rect.height,
 							  0, visinfo->depth, InputOutput,
 							  visinfo->visual, mask, &attr );
-
-		glXMakeCurrent(dpy, win, ctx);
+		_ctx->setDrawable( win );
+		_ctx->makeCurrent();
 		gfx = new GFXGL();
 	}
 
 	WidgetImplWinGLX11::~WidgetImplWinGLX11()
 	{
 		setVisible( false );
+		delete _ctx;
 		::XDestroyWindow( dpy , win );
 		delete gfx;
 	}
@@ -106,7 +110,7 @@ namespace cvt {
 		needsupdate = true;
 	}
 
-	void WidgetImplWinGLX11::update( const Recti& rect )
+	void WidgetImplWinGLX11::update( const Recti& )
 	{
 	    update();
 	}
@@ -157,9 +161,7 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
-		if( win != glXGetCurrentDrawable() )
-			glXMakeCurrent( dpy, win, ctx );
-
+		_ctx->makeCurrent();
 /*		{
 			int x, y;
 			::Window wp;
@@ -182,7 +184,7 @@ namespace cvt {
 		gfx->setChildrect( viewport );
 		glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
 		_widget->paintEvent( event, gfx );
-		glXSwapBuffers( dpy, win );
+		_ctx->swapBuffers();
 		needsupdate = false;
 	}
 
@@ -190,9 +192,7 @@ namespace cvt {
 	{
 		event->getSize( _rect.width, _rect.height );
 
-		if( win != glXGetCurrentDrawable() )
-			glXMakeCurrent(dpy, win, ctx);
-
+		_ctx->makeCurrent();
 		glViewport( 0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
 		_widget->resizeEvent( event );
 	}

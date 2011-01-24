@@ -128,6 +128,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
 	gl/OpenGL.h
+	gl/GLFormat.h
+	gl/GLContext.h
 	gl/GLException.h
 	gl/GLProgram.h
 	gl/GLBuffer.h
@@ -171,6 +173,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h
+	gui/internal/GLXContext.h
 	gui/Moveable.h
 	gui/ToggleButton.h
 	gui/View3D.h
@@ -263,6 +266,7 @@ SET(${MODULE_NAME}_SOURCES
 	geom/KDTree.cpp
 	geom/Model.cpp
 	geom/Rect.cpp
+	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLModel.cpp
 	gl/GLProgram.cpp
