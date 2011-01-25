@@ -196,27 +196,31 @@ namespace cvt {
 		int32_t h = src.height();
 
 		CLContext * cl = CLContext::getCurrent();
-		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h * 2 );
-		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( float ) * src.channels() * w * h * 2);
+		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( cl_float4 ) * w * h * 2 );
+		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( cl_float4 ) * w * h * 2);
 
 		_kernelIIR->setArg( 0, buf );
 		_kernelIIR->setArg( 1, src );
 		_kernelIIR->setArg( 2, sizeof( int32_t ), &w );
-		_kernelIIR->setArg( 3, n );
-		_kernelIIR->setArg( 4, m );
-		_kernelIIR->setArg( 5, d );
+		_kernelIIR->setArg( 3, sizeof( int32_t ), &h );
+		_kernelIIR->setArg( 4, n );
+		_kernelIIR->setArg( 5, m );
+		_kernelIIR->setArg( 6, d );
 		//std::cout << "W GCD( " << w << ", " << _kernelIIR->workGroupSize() << " ) = " << Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) << std::endl;
-		_kernelIIR->run( cl::NDRange( h ), cl::NDRange( Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) ) );
+		_kernelIIR->run( cl::NDRange( h ), cl::NDRange( Math::gcd<size_t>( Math::pad16( h ), _kernelIIR->workGroupSize() ) ) );
+
+		return;
 
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
 		_kernelIIR2->setArg( 2, buf2 );
-		_kernelIIR2->setArg( 3, sizeof( int32_t ), &h );
-		_kernelIIR2->setArg( 4, n );
-		_kernelIIR2->setArg( 5, m );
-		_kernelIIR2->setArg( 6, d );
+		_kernelIIR2->setArg( 3, sizeof( int32_t ), &w );
+		_kernelIIR2->setArg( 4, sizeof( int32_t ), &h );
+		_kernelIIR2->setArg( 5, n );
+		_kernelIIR2->setArg( 6, m );
+		_kernelIIR2->setArg( 7, d );
 		//std::cout << "H GCD: " << Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) << std::endl;
-		_kernelIIR2->run( cl::NDRange( w ), cl::NDRange( Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) ) );
+		_kernelIIR2->run( cl::NDRange( w ), cl::NDRange( Math::gcd<size_t>( Math::pad16( w ), _kernelIIR2->workGroupSize() ) ) );
 
 		cl->getCLQueue().finish();
 	}

@@ -1,15 +1,16 @@
-__kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer, __global float4* buffer2, const int h, const float4 n, const float4 m, const float4 d )
+__kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer, __global float4* buffer2, const int w, const int h, const float4 n, const float4 m, const float4 d )
 {
 	int2 coord;
     float4 x[ 4 ];
     float4 y[ 4 ];
 	float4 xn, yn;
-	const int stride = get_global_size( 0 );
+	const int stride = w;
 
     coord.x = get_global_id( 0 );
-
 	buffer += get_global_id( 0 );
-	buffer2 += get_global_id( 0 ) * h;
+
+	if( coord.x >= w )
+		return;
 
 	float b1 = ( n.s0 + n.s1 + n.s2 + n.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );
 	float b2 = ( m.s0 + m.s1 + m.s2 + m.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );
@@ -43,6 +44,8 @@ __kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer,
 		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;
     }
 
+
+	mem_fence( CLK_GLOBAL_MEM_FENCE );
 
     // reverse pass
 	coord.y = h - 1;
