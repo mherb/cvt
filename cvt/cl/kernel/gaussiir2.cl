@@ -73,7 +73,6 @@ __kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer,
 			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];
 		coord.y = i;
 		write_imagef( output, coord, buffer2[ i ] + yn );
-//		write_imagef( output, coord, x[ 3 ] );
 		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;
     }
 }

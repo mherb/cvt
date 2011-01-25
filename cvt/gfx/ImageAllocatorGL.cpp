@@ -43,9 +43,9 @@ namespace cvt {
 /*		if( _format.bpc <= 1 )
 		    internalformat = GL_SRGB8_ALPHA8_EXT;
 		else*/
-		    internalformat = GL_RGBA;
+//		    internalformat = GL_RGBA;
 		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
 
 	void ImageAllocatorGL::copy( const ImageAllocator* x, const Recti* r = NULL )
