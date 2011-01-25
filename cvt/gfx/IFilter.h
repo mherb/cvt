@@ -13,7 +13,7 @@ namespace cvt {
 					   IFILTER_OPENCL = ( 1 << 2 )
 					 };
 
-	typedef Flags<IFilterTypeFlags> IFilterType;
+	CVT_ENUM_TO_FLAGS( IFilterTypeFlags, IFilterType )
 
 	class IFilter {
 		public:
