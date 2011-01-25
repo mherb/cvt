@@ -17,7 +17,7 @@ namespace cvt {
 		CPU_AVX    = ( 1 << 8 ),
 	};
 
-	typedef Flags<CPUFeatureFlags> CPUFeatures;
+	CVT_ENUM_TO_FLAGS( CPUFeatureFlags, CPUFeatures )
 
 	static inline CPUFeatures cpuFeatures( void )
 	{
