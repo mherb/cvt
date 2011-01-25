@@ -45,11 +45,9 @@ static const char _gaussiir_source[ ] =
 "        x[ 3 ] = read_imagef( input, sampler, coord );\n" \
 "        yn = n.s0 * x[ 3 ] + n.s1 * x[ 2 ] + n.s2 * x[ 1 ] + n.s3 * x[ 0 ]\n" \
 "			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];\n" \
-"		buffer[ i ] = x[ 3 ];\n" \
+"		buffer[ i ] = yn;\n" \
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \
-"\n" \
-"	mem_fence( CLK_GLOBAL_MEM_FENCE );\n" \
 "\n" \
 "    // reverse pass\n" \
 "	coord.x = w - 1;\n" \
