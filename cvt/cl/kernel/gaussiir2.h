@@ -1,18 +1,19 @@
 #ifndef CL_gaussiir2_H
 #define CL_gaussiir2_H
 static const char _gaussiir2_source[ ] =
-"__kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer, __global float4* buffer2, const int h, const float4 n, const float4 m, const float4 d )\n" \
+"__kernel void gaussiir2( __write_only image2d_t output, __global float4* buffer, __global float4* buffer2, const int w, const int h, const float4 n, const float4 m, const float4 d )\n" \
 "{\n" \
 "	int2 coord;\n" \
 "    float4 x[ 4 ];\n" \
 "    float4 y[ 4 ];\n" \
 "	float4 xn, yn;\n" \
-"	const int stride = get_global_size( 0 );\n" \
+"	const int stride = w;\n" \
 "\n" \
 "    coord.x = get_global_id( 0 );\n" \
-"\n" \
 "	buffer += get_global_id( 0 );\n" \
-"	buffer2 += get_global_id( 0 ) * h;\n" \
+"\n" \
+"	if( coord.x >= w )\n" \
+"		return;\n" \
 "\n" \
 "	float b1 = ( n.s0 + n.s1 + n.s2 + n.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
 "	float b2 = ( m.s0 + m.s1 + m.s2 + m.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
@@ -46,6 +47,8 @@ static const char _gaussiir2_source[ ] =
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \
 "\n" \
+"\n" \
+"	mem_fence( CLK_GLOBAL_MEM_FENCE );\n" \
 "\n" \
 "    // reverse pass\n" \
 "	coord.y = h - 1;\n" \

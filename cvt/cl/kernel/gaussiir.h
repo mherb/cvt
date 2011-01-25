@@ -1,7 +1,7 @@
 #ifndef CL_gaussiir_H
 #define CL_gaussiir_H
 static const char _gaussiir_source[ ] =
-"__kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, const int w, const float4 n, const float4 m, const float4 d )\n" \
+"__kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, const int w, const int h, const float4 n, const float4 m, const float4 d )\n" \
 "{\n" \
 "	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;\n" \
 "	int2 coord;\n" \
@@ -11,8 +11,10 @@ static const char _gaussiir_source[ ] =
 "\n" \
 "	coord.x = 0;\n" \
 "    coord.y = get_global_id( 0 );\n" \
-"\n" \
 "	buffer += get_global_id( 0 ) * w;\n" \
+"\n" \
+"	if( coord.y >= h )\n" \
+"		return;\n" \
 "\n" \
 "	float b1 = ( n.s0 + n.s1 + n.s2 + n.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
 "	float b2 = ( m.s0 + m.s1 + m.s2 + m.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );\n" \
@@ -43,9 +45,11 @@ static const char _gaussiir_source[ ] =
 "        x[ 3 ] = read_imagef( input, sampler, coord );\n" \
 "        yn = n.s0 * x[ 3 ] + n.s1 * x[ 2 ] + n.s2 * x[ 1 ] + n.s3 * x[ 0 ]\n" \
 "			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];\n" \
-"		buffer[ i ] = yn;\n" \
+"		buffer[ i ] = x[ 3 ];\n" \
 "		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;\n" \
 "    }\n" \
+"\n" \
+"	mem_fence( CLK_GLOBAL_MEM_FENCE );\n" \
 "\n" \
 "    // reverse pass\n" \
 "	coord.x = w - 1;\n" \

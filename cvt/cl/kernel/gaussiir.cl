@@ -1,4 +1,4 @@
-__kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, const int w, const float4 n, const float4 m, const float4 d )
+__kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, const int w, const int h, const float4 n, const float4 m, const float4 d )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	int2 coord;
@@ -8,8 +8,10 @@ __kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, co
 
 	coord.x = 0;
     coord.y = get_global_id( 0 );
-
 	buffer += get_global_id( 0 ) * w;
+
+	if( coord.y >= h )
+		return;
 
 	float b1 = ( n.s0 + n.s1 + n.s2 + n.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );
 	float b2 = ( m.s0 + m.s1 + m.s2 + m.s3 ) / ( d.s0 + d.s1 + d.s2 + d.s3 + 1.0f );
@@ -40,9 +42,11 @@ __kernel void gaussiir( __global float4* buffer, __read_only image2d_t input, co
         x[ 3 ] = read_imagef( input, sampler, coord );
         yn = n.s0 * x[ 3 ] + n.s1 * x[ 2 ] + n.s2 * x[ 1 ] + n.s3 * x[ 0 ]
 			 - d.s0 * y[ 3 ] - d.s1 * y[ 2 ] - d.s2 * y[ 1 ] - d.s3 * y[ 0 ];
-		buffer[ i ] = yn;
+		buffer[ i ] = x[ 3 ];
 		y[ 0 ] = y[ 1 ]; y[ 1 ] = y[ 2 ]; y[ 2 ] = y[ 3 ]; y[ 3 ]= yn;
     }
+
+	mem_fence( CLK_GLOBAL_MEM_FENCE );
 
     // reverse pass
 	coord.x = w - 1;
