@@ -2,7 +2,7 @@
 #define CVT_FLAGS_H
 
 namespace cvt
-{
+{	
 	template<typename ENUM>
 	class Flags
 	{
@@ -32,11 +32,12 @@ namespace cvt
 		private:
 			size_t _flags;
 	};
-
-	template<typename ENUM>
-	inline Flags<ENUM> operator|( ENUM flag1, ENUM flag2 )
-	{
-		return Flags<ENUM>( flag1 ) | flag2;
+	
+#define CVT_ENUM_TO_FLAGS( ENUM, NAME ) \
+	typedef Flags<ENUM> NAME; \
+	inline Flags<ENUM> operator|( ENUM flag1, ENUM flag2 ) \
+	{ \
+		return Flags<ENUM>( flag1 ) | flag2; \
 	}
 
 }
