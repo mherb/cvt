@@ -192,8 +192,8 @@ namespace cvt {
 			_kernelIIR2->build("gaussiir2", _gaussiir2_source, strlen( _gaussiir2_source ), log );
 		}
 
-		int32_t w = src.width();
-		int32_t h = src.height();
+		int w = src.width();
+		int h = src.height();
 
 		CLContext * cl = CLContext::getCurrent();
 		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( cl_float4 ) * w * h * 2 );
@@ -201,28 +201,25 @@ namespace cvt {
 
 		_kernelIIR->setArg( 0, buf );
 		_kernelIIR->setArg( 1, src );
-		_kernelIIR->setArg( 2, sizeof( int32_t ), &w );
-		_kernelIIR->setArg( 3, sizeof( int32_t ), &h );
+		_kernelIIR->setArg( 2, sizeof( int ), &w );
+		_kernelIIR->setArg( 3, sizeof( int ), &h );
 		_kernelIIR->setArg( 4, n );
 		_kernelIIR->setArg( 5, m );
 		_kernelIIR->setArg( 6, d );
 		//std::cout << "W GCD( " << w << ", " << _kernelIIR->workGroupSize() << " ) = " << Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) << std::endl;
 		_kernelIIR->run( cl::NDRange( h ), cl::NDRange( Math::gcd<size_t>( Math::pad16( h ), _kernelIIR->workGroupSize() ) ) );
 
-		return;
-
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
 		_kernelIIR2->setArg( 2, buf2 );
-		_kernelIIR2->setArg( 3, sizeof( int32_t ), &w );
-		_kernelIIR2->setArg( 4, sizeof( int32_t ), &h );
+		_kernelIIR2->setArg( 3, sizeof( int ), &w );
+		_kernelIIR2->setArg( 4, sizeof( int ), &h );
 		_kernelIIR2->setArg( 5, n );
 		_kernelIIR2->setArg( 6, m );
 		_kernelIIR2->setArg( 7, d );
 		//std::cout << "H GCD: " << Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) << std::endl;
 		_kernelIIR2->run( cl::NDRange( w ), cl::NDRange( Math::gcd<size_t>( Math::pad16( w ), _kernelIIR2->workGroupSize() ) ) );
 
-		cl->getCLQueue().finish();
 	}
 
 	void GaussIIR::applyCPUf( Image& dst, const Image& src, const Vector4f & n, const Vector4f & m, const Vector4f & d ) const
