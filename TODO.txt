@@ -42,6 +42,8 @@ Philipp:
 ========
 - PCA class in math
 
+- fix SSE use intrinsics instead of asm
+
 - Integral image computation resp. filter
 
 - Guided filter implementation
