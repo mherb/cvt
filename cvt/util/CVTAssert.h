@@ -1,10 +1,11 @@
 #ifndef CVTASSERT_H
 #define CVTASSERT_H
 
+
 #ifdef DEBUG
-#define CVTAssert( a, msg ) do { if( !( a ) ) { std::cout << "Assertion "#a" failed: " << msg << std::endl; } } while( 0 )
+#define CVT_ASSERT( a, msg ) do { if( !( a ) ) { std::cerr << "Assertion "#a" failed ( " << __FILE__ << " : " << __LINE__ << " : " << __PRETTY_FUNCTION__ << " ) : "  << msg << std::endl; } } while( 0 )
 #else
-#define CVTAssert
+#define CVT_ASSERT( a, msg )
 #endif
 
 #endif

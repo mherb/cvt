@@ -1,9 +1,9 @@
 #ifndef CVT_DRAWABLE_H
 #define CVT_DRAWABLE_H
 
-#include <cvt/gfx/GFXEngine.h>
-
 namespace cvt {
+	class GFXEngine;
+
 	class Drawable
 	{
 		public:

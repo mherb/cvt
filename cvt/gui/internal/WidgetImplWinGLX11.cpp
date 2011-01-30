@@ -22,15 +22,15 @@ namespace cvt {
 							  visinfo->visual, mask, &attr );
 		_ctx->setDrawable( win );
 		_ctx->makeCurrent();
-		gfx = new GFXGL();
+		gfxgl = new GFXEngineGL( _ctx );
 	}
 
 	WidgetImplWinGLX11::~WidgetImplWinGLX11()
 	{
 		setVisible( false );
+		delete gfxgl;
 		delete _ctx;
 		::XDestroyWindow( dpy , win );
-		delete gfx;
 	}
 
 	void WidgetImplWinGLX11::size( int& width, int& height ) const
@@ -161,39 +161,16 @@ namespace cvt {
 
 	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
 	{
-		_ctx->makeCurrent();
-/*		{
-			int x, y;
-			::Window wp;
-			unsigned int w, h, b, d;
-			XGetGeometry( dpy, win, &wp, &x, &y, &w, &h, &b, &d );
-			if( _rect.width != w || _rect.height != h ) {
-				int ow, oh;
-				ow = _rect.width;
-				oh = _rect.height;
-				_rect.width = w;
-				_rect.height = h;
-				ResizeEvent re( w, h, ow, oh );
-				resizeEvent( & re );
-			}
-		}*/
-
-		gfx->setDefault();
 		Recti viewport( 0, 0, _rect.width, _rect.height );
-		gfx->setViewport( viewport );
-		gfx->setChildrect( viewport );
-		glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-		_widget->paintEvent( event, gfx );
-		_ctx->swapBuffers();
+		gfxgl->setViewport( viewport );
+		GFX g( gfxgl );
+		_widget->paintEvent( event, &g );
 		needsupdate = false;
 	}
 
 	void WidgetImplWinGLX11::resizeEvent( ResizeEvent* event )
 	{
 		event->getSize( _rect.width, _rect.height );
-
-		_ctx->makeCurrent();
-		glViewport( 0, 0, (GLsizei) _rect.width, (GLsizei) _rect.height );
 		_widget->resizeEvent( event );
 	}
 
@@ -213,6 +190,11 @@ namespace cvt {
 	{
 		visible = false;
 		_widget->hideEvent( event );
+	}
+
+	GFXEngine* WidgetImplWinGLX11::gfxEngine()
+	{
+		return NULL;
 	}
 
 }

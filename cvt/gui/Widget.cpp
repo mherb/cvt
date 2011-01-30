@@ -147,10 +147,8 @@ namespace cvt {
 
 		// FIXME: is rect in local coords or in child coords
 
-		Recti crect;
-
 		/* get current childrect */
-	    gfx->childrect( crect );
+	    Recti crect = gfx->childrect( );
 		/* get child rectangle */
 		Recti rchild;
 		w->rect( rchild );
@@ -163,6 +161,11 @@ namespace cvt {
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
 		gfx->setChildrect( crect );
+	}
+
+	GFXEngine* Widget::gfxEngine()
+	{
+		return impl->gfxEngine();
 	}
 
 }

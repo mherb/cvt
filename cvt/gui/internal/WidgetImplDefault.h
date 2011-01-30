@@ -30,6 +30,7 @@ namespace cvt {
 			virtual void	    maximumSize( int& w, int& h );
 			virtual void	    setParent( Widget* w );
 			virtual Widget*	    parent() const;
+			virtual GFXEngine* gfxEngine();
 
 		private:
 			WidgetImplDefault( const WidgetImpl& wi );
@@ -177,5 +178,9 @@ namespace cvt {
 			_parent->lowerChild( _widget );
 	}
 
+	inline GFXEngine* WidgetImplDefault::gfxEngine()
+	{
+		return NULL;
+	}
 }
 #endif

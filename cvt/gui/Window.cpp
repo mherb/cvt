@@ -36,6 +36,6 @@ namespace cvt {
 
 	GFXEngine* Window::gfxEngine()
 	{
-		return NULL;
+		return Widget::gfxEngine();
 	}
 }
