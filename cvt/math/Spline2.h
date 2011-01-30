@@ -16,15 +16,19 @@ namespace cvt {
 			void set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
 			void set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
 
+			const Vector2<T>& operator[]( int x ) const;
+
 			void samplePoint( Vector2<T>& pt, T t );
 			void sampleDerivative( Vector2<T>& pt, T t );
 
-			void split( Spline2<T>& out1, Spline2<T>& out2, T t );
-			void splitHalf( Spline2<T>& out1, Spline2<T>& out2 );
+			void remove( T t );
+			void split( Spline2<T>& out1, Spline2<T>& out2, T t ) const;
+			void splitHalf( Spline2<T>& out1, Spline2<T>& out2 ) const;
 
 			size_t inflectionPoints( T (&t)[ 2 ] ) const;
 			T flatten( T tolerance ) const;
 			T flattenOffset( T offset, T tolerance ) const;
+
 
 		private:
 			Vector2<T> _pts[ 4 ];
@@ -89,8 +93,15 @@ namespace cvt {
 	}
 
 	template<typename T>
+	const Vector2<T>& Spline2<T>::operator[]( int x ) const
+	{
+		return _pts[ x ];
+	}
+
+	template<typename T>
 	void Spline2<T>::samplePoint( Vector2<T>& pt, T t )
 	{
+		/* t (t (t (-p0+3 p1-3 p2+p3)+3 p0-6 p1+3 p2)-3 p0+3 p1)+p0 */
 		Vector2<T> tmp;
 		pt = _pts[ 1 ] - _pts[ 2 ];
 		pt *= 3;
@@ -112,6 +123,7 @@ namespace cvt {
 	template<typename T>
 	void Spline2<T>::sampleDerivative( Vector2<T>& pt, T t )
 	{
+		/* 3 (t (t (-p0+3 p1-3 p2+p3)+2 (p0-2 p1+p2))-p0+p1) */
 		Vector2<T> tmp;
 		pt = _pts[ 1 ] - _pts[ 2 ];
 		pt *= 3;
@@ -125,10 +137,26 @@ namespace cvt {
 		pt *= t;
 		pt += _pts[ 1 ];
 		pt -= _pts[ 0 ];
+		pt *= 3;
 	}
 
 	template<typename T>
-	void Spline2<T>::split( Spline2<T>& out1, Spline2<T>& out2, T t )
+	void Spline2<T>::remove( T t )
+	{
+		Vector2<T> dummy[ 5 ];
+
+		/* _pts[ 3 ] stays unchanged */
+		dummy[ 0 ] = _pts[ 1 ] + ( _pts[ 2 ] - _pts[ 1 ] ) * t;
+		dummy[ 1 ] = _pts[ 0 ] + ( _pts[ 1 ] - _pts[ 0 ] ) * t;
+		dummy[ 1 ] += ( dummy[ 0 ] - dummy[ 1 ] ) * t;
+
+		_pts[ 2 ] += ( _pts[ 3 ] - _pts[ 2 ] ) * t;
+		_pts[ 1 ] = dummy[ 0 ] + ( _pts[ 2 ] - dummy[ 0 ] ) * t;
+		_pts[ 0 ] = dummy[ 1 ] + ( _pts[ 1 ] - dummy[ 1 ] ) * t;
+	}
+
+	template<typename T>
+	void Spline2<T>::split( Spline2<T>& out1, Spline2<T>& out2, T t ) const
 	{
 		Vector2<T> dummy;
 
@@ -140,6 +168,23 @@ namespace cvt {
 		out1._pts[ 2 ] = out1._pts[ 1 ] + ( dummy - out1._pts[ 1 ] ) * t;
 		out2._pts[ 1 ] = dummy + ( out2._pts[ 2 ] - dummy ) * t;
 		out1._pts[ 3 ] = out1._pts[ 2 ] + ( out2._pts[ 1 ] - out1._pts[ 2 ] ) * t;
+		out2._pts[ 0 ] = out1._pts[ 3 ];
+	}
+
+	template<typename T>
+	void Spline2<T>::splitHalf( Spline2<T>& out1, Spline2<T>& out2 ) const
+	{
+		Vector2<T> dummy;
+		T half = ( T ) 1 / ( T ) 2;
+
+		out1._pts[ 0 ] = _pts[ 0 ]; /*first point from spl to out1*/
+		out2._pts[ 3 ] = _pts[ 3 ]; /*last point from spl to out2*/
+		out1._pts[ 1 ] = _pts[ 0 ] + ( _pts[ 1 ] - _pts[ 0 ] ) * half;
+		dummy = _pts[ 1 ] + ( _pts[ 2 ] - _pts[ 1 ] ) * half;
+		out2._pts[ 2 ] = _pts[ 2 ] + ( _pts[ 3 ] - _pts[ 2 ] ) * half;
+		out1._pts[ 2 ] = out1._pts[ 1 ] + ( dummy - out1._pts[ 1 ] ) * half;
+		out2._pts[ 1 ] = dummy + ( out2._pts[ 2 ] - dummy ) * half;
+		out1._pts[ 3 ] = out1._pts[ 2 ] + ( out2._pts[ 1 ] - out1._pts[ 2 ] ) * half;
 		out2._pts[ 0 ] = out1._pts[ 3 ];
 	}
 
