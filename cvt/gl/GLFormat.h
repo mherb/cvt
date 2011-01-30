@@ -29,9 +29,11 @@ namespace cvt {
 			bool doubleBuffer() const;
 			void setDirect( bool v );
 			bool direct() const;
+			void setSamples( unsigned int size );
+			unsigned int samples() const;
 
 		private:
-			unsigned int _red, _green, _blue, _alpha, _depth, _stencil;
+			unsigned int _red, _green, _blue, _alpha, _depth, _stencil, _samples;
 			bool _db, _direct;
 	};
 
@@ -45,6 +47,7 @@ namespace cvt {
 		_red = _green = _blue = _alpha = 8;
 		_depth = 16;
 		_stencil = 0;
+		_samples = 0;
 		_db = true;
 		_direct = true;
 	}
@@ -127,6 +130,16 @@ namespace cvt {
 	inline void GLFormat::setDirect( bool v )
 	{
 		_direct = v;
+	}
+
+	inline void GLFormat::setSamples( unsigned int size )
+	{
+		_samples = size;
+	}
+
+	inline unsigned int GLFormat::samples() const
+	{
+		return _samples;
 	}
 
 	inline std::ostream& operator<<( std::ostream& out, const GLFormat& glformat )

@@ -28,7 +28,7 @@ namespace cvt {
 	{
 		::GLXFBConfig* fbconfig = NULL;
 		int nconfigs, val;
-		int attribs[] = {
+		int attribs[ 20 ] = {
 			GLX_RED_SIZE,	  _format.redSize(),
 			GLX_GREEN_SIZE,	  _format.greenSize(),
 			GLX_BLUE_SIZE,	  _format.blueSize(),
@@ -39,6 +39,13 @@ namespace cvt {
 			None
 		};
 
+		if( _format.samples() != 0 ) {
+			attribs[ 14 ] = GLX_SAMPLE_BUFFERS;
+			attribs[ 15 ] = GL_TRUE;
+			attribs[ 16 ] = GLX_SAMPLES;
+			attribs[ 17 ] = _format.samples();
+			attribs[ 18 ] = None;
+		}
 
 		fbconfig = glXChooseFBConfig( _dpy,  DefaultScreen( _dpy ), attribs, &nconfigs );
 		if( !nconfigs )

@@ -6,7 +6,8 @@ namespace cvt {
 	{
 		::XSetWindowAttributes attr;
 		GLFormat format;
-
+		format.setStencilSize( 8 );
+//		format.setSamples( 8 );
 		_ctx = new GLXContext( dpy, format, context );
 
 		const ::XVisualInfo* visinfo = _ctx->XVisualInfo();
