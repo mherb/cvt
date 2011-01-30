@@ -28,7 +28,7 @@ namespace cvt {
 			virtual void	    maximumSize( int& w, int& h ) = 0;
 			virtual void	    setParent( Widget* w ) = 0;
 			virtual Widget*	    parent() const = 0;
-
+			virtual GFXEngine* gfxEngine() = 0;
 	};
 }
 

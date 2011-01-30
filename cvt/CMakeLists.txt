@@ -127,6 +127,9 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocatorMem.h
 	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
+	gfx/Drawable.h
+	gfx/GFXEngine.h
+	gfx/GFX.h
 	gl/OpenGL.h
 	gl/GLFormat.h
 	gl/GLContext.h
@@ -136,6 +139,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLTexture.h
 	gl/GLVertexArray.h
 	gl/GLModel.cpp
+	gl/GFXEngineGL.cpp
 	gl/progs/GLFillRectProg.h
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
@@ -249,6 +253,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLContext.cpp
 	cl/CLException.cpp
 	cl/CLKernel.cpp
+	gfx/GFX.cpp
 	gfx/IConvert.cpp
 	gfx/IFormat.cpp
 	gfx/Image.cpp
@@ -273,6 +278,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLTexture.cpp
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
+	gl/GFXEngineGL.cpp
 	gl/progs/GLFillRectProg.cpp
 	gl/progs/GLFillRoundRectProg.cpp
 	gl/progs/GLDrawTextProg.cpp
@@ -282,8 +288,6 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp
-	gui/GFX.cpp
-	gui/GFXGL.cpp
 	gui/Moveable.cpp	
 	gui/ImageView.cpp
 	gui/internal/ApplicationX11.cpp

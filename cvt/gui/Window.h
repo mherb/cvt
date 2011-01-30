@@ -15,7 +15,7 @@ namespace cvt {
 			virtual void closeEvent( CloseEvent* event );
 			virtual void moveEvent( MoveEvent* event );
 			virtual void paintEvent( PaintEvent* event, GFX* gfx );
-			virtual GFXEngine* gfxEngine();
+			GFXEngine* gfxEngine();
 
 		private:
 			Window( const Window& w );

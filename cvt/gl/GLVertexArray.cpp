@@ -15,8 +15,8 @@ namespace cvt {
 
 	void GLVertexArray::setAttribData( GLuint index, const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
 	{
-		CVTAssert( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
-		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
+		CVT_ASSERT( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
+		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 
 		GL::glBindVertexArray( _vao );
 		_arrays |= ( 1 << index );
@@ -28,28 +28,28 @@ namespace cvt {
 
 	void GLVertexArray::setAttribData( GLuint index, float v1 )
 	{
-		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
+		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
 		glVertexAttrib1f( index, v1 );
 	}
 
 	void GLVertexArray::setAttribData( GLuint index, float v1, float v2 )
 	{
-		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
+		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
 		glVertexAttrib2f( index, v1, v2 );
 	}
 
 	void GLVertexArray::setAttribData( GLuint index, float v1, float v2, float v3 )
 	{
-		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
+		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
 		glVertexAttrib3f( index, v1, v2, v3 );
 	}
 
 	void GLVertexArray::setAttribData( GLuint index, float v1, float v2, float v3, float v4 )
 	{
-		CVTAssert( index < 16, "OpenGL attrib is greater than 16!" );
+		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
 		glVertexAttrib4f( index, v1, v2, v3, v4 );
 	}
@@ -64,7 +64,7 @@ namespace cvt {
 
 	void GLVertexArray::setVertexData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
 	{
-		CVTAssert( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
+		CVT_ASSERT( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );
 		GL::glBindVertexArray( _vao );
 		_arrays |= ( 1 << GLSL_VERTEX_IDX );
 		buffer.bind();
@@ -99,7 +99,7 @@ namespace cvt {
 
 	void GLVertexArray::drawIndirect( const GLBuffer& elembuf, GLenum type, GLenum mode, GLsizei count ) const
 	{
-		CVTAssert( elembuf.target() == GL_ELEMENT_ARRAY_BUFFER, "Buffer is not an element array buffer!" );
+		CVT_ASSERT( elembuf.target() == GL_ELEMENT_ARRAY_BUFFER, "Buffer is not an element array buffer!" );
 		if( !_arrays ) return;
 
 		GL::glBindVertexArray( _vao );

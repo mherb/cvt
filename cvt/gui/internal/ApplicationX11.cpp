@@ -3,8 +3,6 @@
 #include <cvt/gui/internal/X11Handler.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
-#include <cvt/gui/GFXGL.h>
-
 
 namespace cvt {
 	ApplicationX11::ApplicationX11()

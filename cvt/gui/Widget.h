@@ -2,11 +2,12 @@
 #define CVTWIDGET_H
 
 #include <cvt/geom/Rect.h>
-#include <cvt/gui/GFX.h>
+#include <cvt/gfx/GFX.h>
 #include <cvt/gui/Events.h>
 
 namespace cvt {
 	class WidgetImpl;
+	class GFXEngine;
 
 	class Widget {
 		friend class WidgetImplWinGLX11;
@@ -62,6 +63,7 @@ namespace cvt {
 
 			void paintChild( Widget* w, GFX* gfx, const Recti& rect ) const;
 
+			GFXEngine* gfxEngine();
 
 		private:
 			Widget( const Widget& w );

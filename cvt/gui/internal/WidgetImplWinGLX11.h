@@ -5,9 +5,10 @@
 #include <cvt/gui/internal/X.h>
 #include <cvt/gui/internal/GLXContext.h>
 #include <cvt/gui/Window.h>
-#include <cvt/gui/GFXGL.h>
+#include <cvt/gfx/GFX.h>
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
+#include <cvt/gl/GFXEngineGL.h>
 #include <deque>
 
 namespace cvt {
@@ -39,6 +40,7 @@ namespace cvt {
 			virtual void maximumSize( int& w, int& h );
 			virtual void setParent( Widget* ) {};
 			virtual Widget* parent( ) const { return NULL; };
+			virtual GFXEngine* gfxEngine();
 
 		private:
 			void paintEvent( PaintEvent* event );
@@ -54,7 +56,7 @@ namespace cvt {
 			GLXContext* _ctx;
 			bool visible;
 			Recti _rect;
-			GFXGL* gfx;
+			GFXEngineGL* gfxgl;
 			bool needsupdate;
 			Vector2<int> _minSize;
 			Vector2<int> _maxSize;
