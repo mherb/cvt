@@ -18,6 +18,8 @@ namespace cvt {
 				glEnable( GL_POINT_SPRITE );
 				glEnable( GL_SCISSOR_TEST );
 				glDisable( GL_DEPTH_TEST );
+				if( _ctx->format().samples() )
+					glEnable( GL_MULTISAMPLE );
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glViewport( 0, 0, _viewport.width, _viewport.height );
 				glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
