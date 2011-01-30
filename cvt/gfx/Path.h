@@ -17,12 +17,12 @@ namespace cvt {
 			void moveTo( const Vector2<T>& pt );
 			void lineTo( T x, T y );
 			void lineTo( const Vector2<T>& pt );
-			void curveTo( T dx1, T dy1, T dx2, Tdy2, T x, T y );
-			void curveTo( const Vector2<T>& d1, const Vector2<T>& d2  const Vector2<T>& pt );
+			void curveTo( T dx1, T dy1, T dx2, T dy2, T x, T y );
+			void curveTo( const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt );
 			void close();
 
 		private:
-			enum PathNodeType { PATHNODE_MOVE, PATHNODE_LINE, PATHNODE_CUVE, PATHNODE_CLOSE };
+			enum PathNodeType { PATHNODE_MOVE, PATHNODE_LINE, PATHNODE_CURVE, PATHNODE_CLOSE };
 			struct PathNode {
 				PathNode( PathNodeType t ) : type( t ) {};
 				PathNode( PathNodeType t, const Vector2<T>& pt ) : type( t ) { pt[ 0 ] = pt; };
@@ -46,43 +46,43 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Path<T>::moveTo( T x, T y )
+	inline void Path<T>::moveTo( T x, T y )
 	{
 		_nodes.push_back( PathNode( PATHNODE_MOVE, Vector2<T>( x, y ) ) );
 	}
 
 	template<typename T>
-	inline Path<T>::moveTo( const Vector2<T>& pt )
+	inline void Path<T>::moveTo( const Vector2<T>& pt )
 	{
 		_nodes.push_back( PathNode( PATHNODE_MOVE, pt ) );
 	}
 
 	template<typename T>
-	inline Path<T>::lineTo( T x, T y )
+	inline void Path<T>::lineTo( T x, T y )
 	{
 		_nodes.push_back( PathNode( PATHNODE_MOVE, Vector2<T>( x, y ) ) );
 	}
 
 	template<typename T>
-	inline Path<T>::lineTo( const Vector2<T>& pt )
+	inline void Path<T>::lineTo( const Vector2<T>& pt )
 	{
 		_nodes.push_back( PathNode( PATHNODE_MOVE, pt ) );
 	}
 
 	template<typename T>
-	inline void Path<T>::curveTo( T dx1, T dy1, T dx2, Tdy2, T x, T y )
+	inline void Path<T>::curveTo( T dx1, T dy1, T dx2, T dy2, T x, T y )
 	{
 		_nodes.push_back( PathNode( PATHNODE_CURVE, Vector2<T>( dx1, dy1 ), Vector2<T>( dx2, dy2), Vector2<T>( x, y ) ) );
 	}
 
 	template<typename T>
-	inline void Path<T>::curveTo( const Vector2<T>& d1, const Vector2<T>& d2  const Vector2<T>& pt )
+	inline void Path<T>::curveTo( const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt )
 	{
 		_nodes.push_back( PathNode( PATHNODE_CURVE, d1, d2, pt ) );
 	}
 
 	template<typename T>
-	inline Path<T>::close()
+	inline void Path<T>::close()
 	{
 		_nodes.push_back( PathNode( PATHNODE_CLOSE ) );
 	}
