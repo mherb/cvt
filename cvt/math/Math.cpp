@@ -84,7 +84,7 @@ namespace cvt {
 			if( a == 0.0f ) {
 				if( b == 0.0f )
 					return 0;
-				result[0] = -c / b;
+				result[ 0 ] = -c / b;
 				return 1;
 			}
 
@@ -94,13 +94,13 @@ namespace cvt {
 				return 0;
 
 			if( d == 0.0f ) {
-				result[0] = -b / ( 2.0f * a );
+				result[ 0 ] = -b / ( 2.0f * a );
 				return 1;
 			}
 
 			d = sqrt( d );
-			result[0] = ( -b + d ) / ( 2.0f * a );
-			result[1] = ( -b - d ) / ( 2.0f * a );
+			result[ 0 ] = ( -b + d ) / ( 2.0f * a );
+			result[ 1 ] = ( -b - d ) / ( 2.0f * a );
 			return 2;
 		}
 
@@ -111,7 +111,7 @@ namespace cvt {
 			if( a == 0.0 ) {
 				if( b == 0.0 )
 					return 0;
-				result[0] = -c / b;
+				result[ 0 ] = -c / b;
 				return 1;
 			}
 
@@ -121,13 +121,13 @@ namespace cvt {
 				return 0;
 
 			if( d == 0.0 ) {
-				result[0] = -b / ( 2.0 * a );
+				result[ 0 ] = -b / ( 2.0 * a );
 				return 1;
 			}
 
 			d = sqrt( d );
-			result[0] = ( -b + d ) / ( 2.0 * a );
-			result[1] = ( -b - d ) / ( 2.0 * a );
+			result[ 0 ] = ( -b + d ) / ( 2.0 * a );
+			result[ 1 ] = ( -b - d ) / ( 2.0 * a );
 			return 2;
 		}
 
