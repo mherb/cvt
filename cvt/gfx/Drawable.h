@@ -1,13 +1,14 @@
 #ifndef CVT_DRAWABLE_H
 #define CVT_DRAWABLE_H
 
-#include <cvg/gfx/GFXEngine.h>
+#include <cvt/gfx/GFXEngine.h>
 
 namespace cvt {
 	class Drawable
 	{
 		public:
-			virtual GFXEngine* GFXEngine() = 0;
+			virtual ~Drawable() {};
+			virtual GFXEngine* gfxEngine() = 0;
 	};
 }
 

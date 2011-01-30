@@ -34,4 +34,8 @@ namespace cvt {
 		paintChildren( gfx, r );
 	}
 
+	GFXEngine* Window::gfxEngine()
+	{
+		return NULL;
+	}
 }
