@@ -42,20 +42,24 @@ namespace cvt {
 
 			void GFXEngineGL::drawLines( const Vector2f* pts, size_t n, float width, const Color& c )
 			{
+				Matrix4f proj;
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
+				basicp.bind();
+				basicp.setProjection( proj );
+				basicp.setColor( c );
+				basicp.drawLines( pts, n, width );
+				basicp.unbind();
 			}
 
 			void GFXEngineGL::fillRect( const Recti& rect, const Color& c )
 			{
-				int x = rect.x + _childrect.x;
-				int y = rect.y + _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
-				fillrectp.bind();
-				fillrectp.setProjection( proj );
-				fillrectp.setColor( c );
-				fillrectp.fillRect( x, y, rect.width, rect.height );
-				fillrectp.unbind();
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
+				basicp.bind();
+				basicp.setProjection( proj );
+				basicp.setColor( c );
+				basicp.fillRect( rect.x, rect.y, rect.width, rect.height );
+				basicp.unbind();
 			}
 
 			void GFXEngineGL::drawRect( const Recti& rect, float width, const Color& c )
@@ -63,15 +67,12 @@ namespace cvt {
 
 			void GFXEngineGL::fillRoundRect( const Recti& rect, float radius, const Color& c )
 			{
-				int x = rect.x + _childrect.x;
-				int y = rect.y + _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				fillrrectp.bind();
 				fillrrectp.setProjection( proj );
 				fillrrectp.setColor( c );
-				fillrrectp.fillRoundRect( x, y, rect.width, rect.height, radius );
+				fillrrectp.fillRoundRect( rect.x, rect.y, rect.width, rect.height, radius );
 				fillrrectp.unbind();
 			}
 
@@ -92,11 +93,8 @@ namespace cvt {
 
 			void GFXEngineGL::drawText( int x, int y, const char* text, const Color& c )
 			{
-				x += _childrect.x;
-				y += _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawtextp.bind();
 				drawtextp.setProjection( proj );
 				drawtextp.setColor( c );
@@ -112,11 +110,8 @@ namespace cvt {
 					tmp = new Image( img, IALLOCATOR_GL );
 				}
 
-				x += _childrect.x;
-				y += _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawimgp.bind();
 				drawimgp.setProjection( proj );
 				drawimgp.setAlpha( alpha );
@@ -135,15 +130,12 @@ namespace cvt {
 					tmp = new Image( img, IALLOCATOR_GL );
 				}
 
-				int x = rect.x + _childrect.x;
-				int y = rect.y + _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawimgp.bind();
 				drawimgp.setProjection( proj );
 				drawimgp.setAlpha( 1.0f );
-				drawimgp.drawImage( x, y, rect.width, rect.height, tmp?*tmp:img );
+				drawimgp.drawImage( rect.x, rect.y, rect.width, rect.height, tmp?*tmp:img );
 				drawimgp.unbind();
 
 				if( tmp )
@@ -152,11 +144,8 @@ namespace cvt {
 
 			void GFXEngineGL::drawIcon( int x, int y, GFX::Icon i, const Color& c )
 			{
-				x += _childrect.x;
-				y += _childrect.y;
-
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );
@@ -167,11 +156,11 @@ namespace cvt {
 			void GFXEngineGL::drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c )
 			{
 				Matrix4f proj;
-				GL::ortho( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x + 8, ( float ) _childrect.y + 8 );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );
-				drawiconp.drawIcons( pts, npts, i, _childrect.x, _childrect.y );
+				drawiconp.drawIcons( pts, npts, i );
 				drawiconp.unbind();
 			}
 

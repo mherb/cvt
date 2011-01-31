@@ -140,7 +140,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLVertexArray.h
 	gl/GLModel.cpp
 	gl/GFXEngineGL.cpp
-	gl/progs/GLFillRectProg.h
+	gl/progs/GLBasicProg.h
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
 	gl/progs/GLDrawImageProg.h
@@ -279,7 +279,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
 	gl/GFXEngineGL.cpp
-	gl/progs/GLFillRectProg.cpp
+	gl/progs/GLBasicProg.cpp
 	gl/progs/GLFillRoundRectProg.cpp
 	gl/progs/GLDrawTextProg.cpp
 	gl/progs/GLDrawImageProg.cpp

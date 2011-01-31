@@ -73,18 +73,15 @@ namespace cvt {
 		_tex.unbind();
 	}
 
-	void GLDrawIconProg::drawIcons( const Vector2i* pts, size_t npts, int icon, int offx, int offy )
+	void GLDrawIconProg::drawIcons( const Vector2i* pts, size_t npts, int icon )
 	{
 		GLint* buf;
-
-		offx += 8;
-		offy += 8;
 
 		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 3 * npts );
 		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
 		for( size_t i = 0; i < npts; i++ ) {
-			buf[ i * 3 + 0 ] = pts[ i ].x + offx;
-			buf[ i * 3 + 1 ] = pts[ i ].y + offy;
+			buf[ i * 3 + 0 ] = pts[ i ].x;
+			buf[ i * 3 + 1 ] = pts[ i ].y;
 			buf[ i * 3 + 2 ] = icon;
 		}
 		_vbo.unmap();

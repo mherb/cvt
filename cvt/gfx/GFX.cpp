@@ -9,7 +9,7 @@ namespace cvt {
 		setDefault();
 	}
 
-	GFX::GFX( const GFX& g ) :  _engine( NULL ), _active( false ), _color( g._color )
+	GFX::GFX( const GFX& g ) :  _engine( NULL ), _active( false ), _color( g._color ), _linewidth( g._linewidth )
 	{
 	}
 
@@ -64,6 +64,20 @@ namespace cvt {
 	void GFX::setDefault()
 	{
 		_color.set( 1.0f, 1.0f, 1.0f, 1.0f );
+		_linewidth = 1.0f;
+	}
+
+	void GFX::drawLine( int x1, int y1, int x2, int y2 )
+	{
+		Vector2f pts[ 2 ];
+		pts[ 0 ].set( ( float ) x1, ( float ) y1 );
+		pts[ 1 ].set( ( float ) x2, ( float ) y2 );
+		_engine->drawLines( pts, 2, _linewidth, _color );
+	}
+
+	void GFX::drawLines( const Vector2f* pts, size_t n )
+	{
+		_engine->drawLines( pts, n, _linewidth, _color );
 	}
 
 	void GFX::fillRect( const Recti& rect )

@@ -41,8 +41,14 @@ namespace cvt {
 			void end();
 
 			void setDefault();
+
 			void setColor( const Color& c );
 			Color& color();
+			void setLineWidth( float w );
+			float lineWidth();
+
+			void drawLine( int x1, int y1, int x2, int y2 );
+			void drawLines( const Vector2f* pts, size_t n );
 
 			void fillRect( const Recti& rect );
 			void fillRect( int x, int y, int width, int height );
@@ -68,6 +74,7 @@ namespace cvt {
 			GFXEngine* _engine;
 			bool _active;
 			Color _color;
+			float _linewidth;
 	};
 
 	inline void GFX::setColor( const Color& c )
@@ -80,6 +87,15 @@ namespace cvt {
 		return _color;
 	}
 
+	inline void GFX::setLineWidth( float w )
+	{
+		_linewidth = w;
+	}
+
+	inline float GFX::lineWidth()
+	{
+		return _linewidth;
+	}
 
 
 
