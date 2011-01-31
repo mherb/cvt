@@ -1,5 +1,5 @@
-#ifndef CVT_GLFILLRECTPROG_H
-#define CVT_GLFILLRECTPROG_H
+#ifndef CVT_GLBASICPROG_H
+#define CVT_GLBASICPROG_H
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
@@ -9,11 +9,11 @@
 #include <cvt/geom/Rect.h>
 
 namespace cvt {
-	class GLFillRectProg : private GLProgram
+	class GLBasicProg : private GLProgram
 	{
 		public:
-			GLFillRectProg();
-			~GLFillRectProg();
+			GLBasicProg();
+			~GLBasicProg();
 
 			using GLProgram::bind;
 			using GLProgram::unbind;
@@ -21,6 +21,7 @@ namespace cvt {
 			void setColor( const Color& color );
 			void fillRect( int x, int y, int w, int h );
 			void fillRect( const Recti& rect );
+			void drawLines( const Vector2f* pts, size_t n, float width );
 
 		private:
 			GLVertexArray _vao;
@@ -28,7 +29,7 @@ namespace cvt {
 			GLint _mvploc;
 	};
 
-	inline void GLFillRectProg::fillRect( const Recti& rect )
+	inline void GLBasicProg::fillRect( const Recti& rect )
 	{
 		fillRect( rect.x, rect.y, rect.width, rect.height );
 	}

@@ -5,7 +5,7 @@
 #include <cvt/gl/GLProgram.h>
 #include <cvt/gl/GLVertexArray.h>
 
-#include <cvt/gl/progs/GLFillRectProg.h>
+#include <cvt/gl/progs/GLBasicProg.h>
 #include <cvt/gl/progs/GLFillRoundRectProg.h>
 #include <cvt/gl/progs/GLDrawTextProg.h>
 #include <cvt/gl/progs/GLDrawImageProg.h>
@@ -50,7 +50,7 @@ namespace cvt {
 			Recti _viewport;
 			Recti _childrect;
 
-			GLFillRectProg fillrectp;
+			GLBasicProg basicp;
 			GLFillRoundRectProg fillrrectp;
 			GLDrawTextProg drawtextp;
 			GLDrawImageProg drawimgp;

@@ -22,7 +22,7 @@ namespace cvt {
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
 			void drawIcon( int x, int y, int icon );
-			void drawIcons( const Vector2i* pts, size_t npts, int icon, int offx = 0, int offy = 0 );
+			void drawIcons( const Vector2i* pts, size_t npts, int icon );
 
 		private:
 			GLVertexArray _vao;
