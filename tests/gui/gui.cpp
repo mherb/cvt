@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	Delegate<void ()> dquit( &Application::exit );
 	button.clicked.add( &dquit );
 
-	Slider<float> slider( 0, 1.0f, 0.0f );
+	Slider<float> slider( 0, 1.0f, 1.0f );
     WidgetLayout wlslider;
     wlslider.setAnchoredRight( 70, 100 );
     wlslider.setAnchoredBottom( 14, 12 );
@@ -56,6 +56,8 @@ int main(int argc, char* argv[])
 	Moveable m( &view );
 	m.setSize( 200, 200 );
 	w.addWidget( &m );
+	Delegate<void (float)> sliderChange( &view, &ImageView::setAlpha );
+	slider.valueChanged.add( &sliderChange );
 
 	view.setImage( img );
 
