@@ -65,8 +65,13 @@ namespace cvt {
 		}
 	}
 
-    void FileSystem::filesWithExtension( std::string const &path, std::vector<std::string>& result, std::string const & ext )
+    void FileSystem::filesWithExtension( std::string const& _path, std::vector<std::string>& result, std::string const & ext )
 	{
+		std::string path = _path;
+
+		if( path[ path.length()-1 ] != '/' )
+			path += '/';
+
 		if( !exists( path ) ){
 			throw CVTException( "Path not found: " + path );
 		}
@@ -79,7 +84,7 @@ namespace cvt {
 		struct dirent * entry = NULL;
 
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
-			std::string entryName( path + "/" + entry->d_name );
+			std::string entryName( path + entry->d_name );
 
 			if( isFile( entryName ) ) {
 				if( entryName.length() >= ext.length() ){
