@@ -16,9 +16,14 @@ namespace cvt {
 			void setValue( T value );
 			T	 value() const;
 
-		private:
+		protected:
 			void paintEvent( PaintEvent* e, GFX* g );
-			void mouseReleaseEvent( MouseReleaseEvent* event );
+			void mousePressEvent( MousePressEvent* event );
+			void mouseMoveEvent( MouseMoveEvent* event );
+//			void mouseReleaseEvent( MouseReleaseEvent* event );
+
+		private:
+			void xToValue( int x );
 
 			T _min, _max, _value;
 	};
@@ -82,16 +87,31 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Slider<T>::mouseReleaseEvent( MouseReleaseEvent* event )
+	void Slider<T>::mousePressEvent( MousePressEvent* event )
 	{
-		Recti self;
-		self.setPosition( 0, 0 );
-		size( self.width, self.height );
-		if( self.contains( event->x, event->y ) && event->button() == 1 ) {
-			float pos = ( float ) ( event->x - self.height / 2 ) / ( float ) ( self.width - self.height );
-			_value =  Math::clamp<T>( ( T ) ( pos * ( float )( _max - _min ) ) + _min, _min, _max );
-			update();
+		if( event->button() == 1 ) {
+			xToValue( event->x );
 		}
+	}
+
+	template<typename T>
+	void Slider<T>::mouseMoveEvent( MouseMoveEvent* event )
+	{
+		if( event->buttonMask() & 1 ) {
+			xToValue( event->x );
+		}
+	}
+
+	template<typename T>
+	inline void Slider<T>::xToValue( int x )
+	{
+		int w, h;
+		size( w, h );
+		float pos = ( float ) ( x - h / 2 ) / ( float ) ( w - h );
+		T old = _value;
+		_value =  Math::clamp<T>( ( T ) ( pos * ( float )( _max - _min ) ) + _min, _min, _max );
+		if( _value != old )
+			update();
 	}
 
 
