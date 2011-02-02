@@ -1,7 +1,10 @@
 #ifndef CVTGL_H
 #define CVTGL_H
 
-#define GL_GLEXT_PROTOTYPES
+#ifndef GL_GLEXT_PROTOTYPES 
+	#define GL_GLEXT_PROTOTYPES
+#endif
+
 #include <GL/gl.h>
 #include <GL/glext.h>
 

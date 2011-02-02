@@ -101,25 +101,32 @@ namespace cvt
 	inline void SE3<T>::apply( const ParameterVectorType & delta )
 	{
 		// exponential can be evaluated in closed form in this case:
-		T theta = Math::sqrt( Math::sqr( delta[ 0 ] ) + Math::sqr( delta[ 1 ] ) + Math::sqr( delta[ 2 ] ) );		
-		T sinTheta = Math::sin( theta );
-		T cosTheta = Math::cos( theta );
-		
-		T t2 = ( 1 - cosTheta ) / ( theta * theta );
-		T t3 = theta * theta * theta;
-		
-		Eigen::Matrix<T, 3, 3> angleSkew;
-		angleSkew( 0, 0 ) =         0  ; angleSkew( 0, 1 ) = -delta[ 2 ]; angleSkew( 0, 2 ) =  delta[ 1 ];
-		angleSkew( 1, 0 ) =  delta[ 2 ]; angleSkew( 1, 1 ) =         0  ; angleSkew( 1, 2 ) = -delta[ 0 ];
-		angleSkew( 2, 0 ) = -delta[ 1 ]; angleSkew( 2, 1 ) =  delta[ 0 ]; angleSkew( 2, 2 ) =         0  ;
-		
-		Eigen::Matrix<T, 3, 3> angleSkew2 = angleSkew * angleSkew;
+		T theta = Math::sqrt( Math::sqr( delta[ 0 ] ) + Math::sqr( delta[ 1 ] ) + Math::sqr( delta[ 2 ] ) );
 		
 		Eigen::Matrix<T, 4, 4> trans;
-		trans.template block<3, 3>( 0, 0 ) = Eigen::Matrix<T, 3, 3>::Identity() + ( sinTheta / theta ) * angleSkew + t2 * angleSkew2;		
-		trans.template block<3, 1>( 0, 3 ) = ( Eigen::Matrix<T, 3, 3>::Identity() + t2 * angleSkew + ( ( 1 - sinTheta / theta ) / t3 ) * angleSkew2 ) * delta.template segment<3>( 3 );
 		
-		trans( 3, 0 ) = 0; trans( 3, 1 ) = 0; trans( 3, 2 ) = 0; trans( 3, 3 ) = 1;
+		if( theta == 0 ){
+			trans( 0, 0 ) = 1.0; trans( 0, 1 ) = 0.0; trans( 0, 2 ) = 0.0; trans( 0, 3 ) = delta[ 3 ];
+			trans( 1, 0 ) = 0.0; trans( 1, 1 ) = 1.0; trans( 1, 2 ) = 0.0; trans( 1, 3 ) = delta[ 4 ];
+			trans( 2, 0 ) = 0.0; trans( 2, 1 ) = 0.0; trans( 2, 2 ) = 1.0; trans( 2, 3 ) = delta[ 5 ];
+			trans( 3, 0 ) = 0.0; trans( 3, 1 ) = 0.0; trans( 3, 2 ) = 0.0; trans( 3, 3 ) =        1.0;
+		} else {			
+			T a = Math::sin( theta ) / theta;
+			T thetaSqr = theta * theta;
+			T b = ( 1 - Math::cos( theta ) ) / ( thetaSqr );			
+			
+			Eigen::Matrix<T, 3, 3> angleSkew;
+			angleSkew( 0, 0 ) =         0  ; angleSkew( 0, 1 ) = -delta[ 2 ]; angleSkew( 0, 2 ) =  delta[ 1 ];
+			angleSkew( 1, 0 ) =  delta[ 2 ]; angleSkew( 1, 1 ) =         0  ; angleSkew( 1, 2 ) = -delta[ 0 ];
+			angleSkew( 2, 0 ) = -delta[ 1 ]; angleSkew( 2, 1 ) =  delta[ 0 ]; angleSkew( 2, 2 ) =         0  ;
+			
+			Eigen::Matrix<T, 3, 3> angleSkewSqr = angleSkew * angleSkew;
+			
+			trans.template block<3, 3>( 0, 0 ) = Eigen::Matrix<T, 3, 3>::Identity() + a * angleSkew + b * angleSkewSqr;					
+			trans.template block<3, 1>( 0, 3 ) = ( Eigen::Matrix<T, 3, 3>::Identity() + b * angleSkew + (1 - a ) / thetaSqr * angleSkewSqr ) * delta.template segment<3>( 3 );
+			
+			trans( 3, 0 ) = 0; trans( 3, 1 ) = 0; trans( 3, 2 ) = 0; trans( 3, 3 ) = 1;
+		}
 				
 		_current = trans * _current;
 	}

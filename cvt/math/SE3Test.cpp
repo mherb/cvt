@@ -6,6 +6,54 @@
 
 namespace cvt {
 	
+	static bool testJacobian()
+	{
+		Eigen::Matrix<double, 6, 1> parameter = Eigen::Matrix<double, 6, 1>::Zero();
+		Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();
+		Eigen::Matrix<double, 3, 6> jNumeric, jAnalytic, jDiff;
+		
+		parameter[ 0 ] = Math::deg2Rad(  10 );
+		parameter[ 1 ] = Math::deg2Rad( -10 );
+		parameter[ 2 ] = Math::deg2Rad(  30 );
+		parameter[ 3 ] = 40;
+		parameter[ 4 ] = 50;
+		parameter[ 5 ] = 60;
+		
+		SE3<double> pose;
+		pose.set( parameter );
+		
+		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> p, pp;
+		point[ 0 ] = 13; point[ 1 ] = 8; point[ 2 ] = 12;;
+		
+		pose.transform( p, point );
+		double h = 0.000000001;		
+		for( size_t i = 0; i < 6; i++ ){
+			delta[ i ] = h;
+			
+			pose.apply( delta );
+			
+			pose.transform( pp, point );
+
+			jNumeric.col( i ) = ( pp - p ) / h;
+			
+			delta[ i ] = 0;
+			pose.set( parameter );
+		}
+		
+		pose.jacobian( jAnalytic, point );
+		
+		jDiff = jAnalytic - jNumeric;
+		bool ret = ( jDiff.cwise().abs().sum() / 18.0 ) < 0.00001;
+		if( !ret ){
+			std::cout << "Analytic:\n" << jAnalytic << std::endl;
+			std::cout << "Numeric:\n" << jNumeric << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		
+		return ret;		
+	}
+	
 BEGIN_CVTTEST( SE3 )
 	bool ret = true;
 
@@ -65,19 +113,23 @@ BEGIN_CVTTEST( SE3 )
 	expectedT.block<3, 3>( 0, 0 ) = Eigen::AngleAxis<double>( angle, axis ).toRotationMatrix();	
 	diff = expectedT - pose.transformation();
 	
-	b = ( diff.cwise().abs().sum() / 12 < 0.01 );
+	b = ( diff.cwise().abs().sum() / 12 < 0.001 );
 	
 	if( !b ){
 		std::cout << expectedT << std::endl;
 		std::cout << pose.transformation() << std::endl;
+		std::cout << "avg SAD: " << diff.cwise().abs().sum() / 12 << std::endl;
 	}
 	
 	pose.apply( -delta );
 	expectedT.setIdentity();
 	
-	b &= ( ( expectedT - pose.transformation() ).cwise().abs().sum() / 12 < 0.01 );
-	
+	b &= ( ( expectedT - pose.transformation() ).cwise().abs().sum() / 12 < 0.000001 );	
 	CVTTEST_PRINT( "apply", b );
+	ret &= b;
+		
+	b = testJacobian();
+	CVTTEST_PRINT( "jacobian", b );
 	ret &= b;
 		
 	return ret;
