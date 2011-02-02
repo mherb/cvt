@@ -44,7 +44,7 @@ void SL3Transform::update( const Eigen::Matrix<double, 8, 1> & delta )
 	cvt::Math::exponential( m, m );
 	
 	/* update the current transformation */
-	transform *= m;
+	transform *= m; // FIXME!!! 
 	
 	/* update the jacobians */
 	updateJacobians();

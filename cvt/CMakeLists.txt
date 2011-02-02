@@ -109,10 +109,10 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir.h
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
-	geom/KDTree.h
-	geom/Rect.h
-	geom/Model.h
 	geom/ArcBall.h
+	geom/KDTree.h
+	geom/Model.h
+	geom/Rect.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
@@ -200,21 +200,25 @@ SET(${MODULE_NAME}_HEADERS
 	io/VideoInput.h
 	io/VideoReader.h
 	io/PlyModel.h
+	math/CostFunction.h
 	math/ESM.h
 	math/Fixed.h
-	math/Math.h
-	math/Vector.h
-	math/Vector2.h
-	math/Vector3.h
-	math/Vector4.h
+	math/LevenbergMarquard.h
+	math/Math.h	
 	math/Matrix.h
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h
+	math/Optimization.h
 	math/Quaternion.h
 	math/SBAData.h
+	math/SE3.h
 	math/SL3Transform.h
-	math/SparseBundleAdjustment.h	
+	math/SparseBundleAdjustment.h
+	math/Vector.h
+	math/Vector2.h
+	math/Vector3.h
+	math/Vector4.h
 	util/CPU.h
 	util/CVTTest.h
 	util/Delegate.h
@@ -231,6 +235,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Util.h
 	util/Flags.h
 	vision/AGAST.h
+	vision/CamModel.h
 	vision/DLT.h
 	vision/FAST.h
 	vision/FeatureExtractor.h
@@ -238,6 +243,8 @@ SET(${MODULE_NAME}_HEADERS
 	vision/internal/Fern.h
 	vision/Flow.h
 	vision/PatchGenerator.h
+	vision/PointMeasurements.h
+	vision/Warp.h
 	${GLSL_SHADER}
 	${CL_KERNELS}
 )
@@ -316,6 +323,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
+	math/SE3Test.cpp
 	math/SL3Transform.cpp
 	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
@@ -341,6 +349,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/PatchGenerator.cpp
+	vision/WarpTest.cpp
 )
 
 
