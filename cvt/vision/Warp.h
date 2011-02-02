@@ -78,30 +78,31 @@ namespace cvt
 										   const SE3<T> & pose, 
 										   const Eigen::Matrix<T, 3, 1> & point3d )
 	{
-		Eigen::Matrix<T, 4, 1> pHom, pCam;
+		Eigen::Matrix<T, 4, 1> pHom, p;
 		Eigen::Matrix<T, 3, 1> screenHom, camDehom;
 		pHom[ 0 ] = point3d[ 0 ];
 		pHom[ 1 ] = point3d[ 1 ];
 		pHom[ 2 ] = point3d[ 2 ];
 		pHom[ 3 ] = 1;
 
-		Eigen::Matrix<T, 3, 6> jT;		
-		pose.jacobian( jT, point3d );
+		Eigen::Matrix<T, 3, 6> jT;
 		
-		pCam = cam.camToWorld() * pose.transformation() * pHom;
-		camDehom = pCam.template segment<3>( 0 );
+		// evaluate jacobian at current pose
+		p = pose.transformation() * pHom;
+		pose.jacobianAroundT( jT, p );
 		
-		T tmp = pCam[ 2 ];
-				
+		// project the point
+		p = cam.projection() * p;
+
+		point2d[ 0 ] = p[ 0 ] / p[ 2 ];
+		point2d[ 1 ] = p[ 1 ] / p[ 2 ];
+		
 		const Eigen::Matrix<T, 3, 3> & K = cam.K();
-		screenHom = K * camDehom;
-		point2d[ 0 ] = screenHom[ 0 ] / screenHom[ 2 ];
-		point2d[ 1 ] = screenHom[ 1 ] / screenHom[ 2 ];
-		
 		Eigen::Matrix<T, 2, 3> jP;
-		jP( 0, 0 ) = K( 0, 0 ) / tmp; jP( 0, 1 ) = K( 0, 1 ) / tmp; jP( 0, 2 ) = ( K( 0, 2 ) - point2d[ 0 ] ) / tmp;
-		jP( 1, 0 ) = 0;				  jP( 1, 1 ) = K( 1, 1 ) / tmp; jP( 1, 2 ) = ( K( 1, 2 ) - point2d[ 1 ] ) / tmp;
+		jP( 0, 0 ) = K( 0, 0 ) / p[ 2 ]; jP( 0, 1 ) = K( 0, 1 ) / p[ 2 ]; jP( 0, 2 ) = ( K( 0, 2 ) - point2d[ 0 ] ) / p[ 2 ];
+		jP( 1, 0 ) = 0;				  jP( 1, 1 ) = K( 1, 1 ) / p[ 2 ]; jP( 1, 2 ) = ( K( 1, 2 ) - point2d[ 1 ] ) / p[ 2 ];
 		
+		// chain rule jacobian:
 		J = jP * jT;
 	}	
 }
