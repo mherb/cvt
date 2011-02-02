@@ -43,14 +43,12 @@ namespace cvt {
 	inline void LevenbergMarquard<T>::optimize( SE3<T> & model, const PointCorrespondences3d2d<T> & data, TerminationType termType )
 	{				
 		size_t numMeas = data.size();		
-		OutVec residuals[ numMeas ];
-		OutVec warped[ numMeas ];
+		OutVec r;
+		OutVec w;
 						
 		CameraRegistry<T> & camReg = CameraRegistry<T>::instance();		
 		const CamModel<T> & camModel = camReg.model( data.cameraId() );
-		
-		OutVec * r = residuals;	
-		OutVec * w = warped;
+
 		typename PointCorrespondences3d2d<T>::ConstDataPtr d = data.data();
 		typename PointCorrespondences3d2d<T>::ConstMeasPtr m = data.meas();
 		
@@ -58,10 +56,11 @@ namespace cvt {
 		
 		// calculate residuals & current costs
 		for( size_t i = 0; i < numMeas; i++ ){
-			Warp::toScreen<T>( *w, camModel, model, *d );
-			*r = *m - *w;			
-			currentCosts += _costFunc.cost( *r );						
-			r++; m++; w++; d++;
+			Warp::toScreen<T>( w, camModel, model, *d );
+			r = *m - w;			
+			currentCosts += _costFunc.cost( r );						
+			m++; 
+			d++;
 		}
 				
 		_lastCosts = currentCosts;
@@ -72,25 +71,26 @@ namespace cvt {
 		Eigen::Matrix<T, 6, 1> b, delta;
 		Eigen::Matrix<T, 6, 6> lamda = Eigen::Matrix<T, 6, 6>::Identity();
 		
-		while( !_termCrit.finished( termType, _lastCosts, _iterations ) ){			
-			r = residuals;
-			w = warped;
-			d = data.data();
-			m = data.meas();
-			
-			A.setZero();
-			b.setZero();			
-
-			for( size_t i = 0; i < numMeas; i++ ){							
-				Warp::toScreenAndJacobian<T>( *w, J, camModel, model, *d );
-				
-				*r = *m - *w;
-				
-				A += ( J.transpose() * J );
-				b += ( J.transpose() * ( *r ) );
-				
-				m++; w++; r++; d++;
-			}			
+		bool reEvaluate = true;
+		
+		while( !_termCrit.finished( termType, _lastCosts, _iterations ) ){
+			if( reEvaluate ){
+				d = data.data();
+				m = data.meas();
+				A.setZero();
+				b.setZero();			
+				for( size_t i = 0; i < numMeas; i++ ){							
+					Warp::toScreenAndJacobian<T>( w, J, camModel, model, *d );
+					
+					r = *m - w;
+					
+					A += ( J.transpose() * J );
+					b += ( J.transpose() * ( r ) );
+					
+					m++;
+					d++;
+				}			
+			}
 			
 			// solve the system
 			delta.setZero();
@@ -99,28 +99,28 @@ namespace cvt {
 			// apply delta parameters:			
 			model.apply( delta );
 			
-			r = residuals;
-			w = warped;
 			d = data.data();
 			m = data.meas();
 			
 			// calculate residuals & current costs
 			currentCosts = 0;
 			for( size_t i = 0; i < numMeas; i++ ){
-				Warp::toScreen<T>( *w, camModel, model, *d );
-				*r = *m - *w;
-				currentCosts += _costFunc.cost( *r );
-				r++; m++; w++; d++;
+				Warp::toScreen<T>( w, camModel, model, *d );
+				r = *m - w;
+				currentCosts += _costFunc.cost( r );
+				m++;
+				d++;
 			}
 			
 			if( currentCosts < _lastCosts ){
 				lamda *= 0.1;
 				_lastCosts = currentCosts;
+				reEvaluate = true;
 			} else {
 				lamda *= 10.0;
 				model.apply( -delta );
+				reEvaluate = false;
 			}
-			
 			_iterations++;
 		}		
 	}	
