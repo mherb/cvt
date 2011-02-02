@@ -24,6 +24,7 @@ namespace cvt {
 	void Button::mouseReleaseEvent( MouseReleaseEvent* event )
 	{
 		Recti self;
+		self.setPosition( 0, 0 );
 		size( self.width, self.height );
 		if( self.contains( event->x, event->y ) && event->button() == 1 )
 			clicked.notify();

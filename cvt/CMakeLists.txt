@@ -174,6 +174,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/BasicTimer.h
 	gui/Button.h
 	gui/ImageView.h
+	gui/Slider.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h

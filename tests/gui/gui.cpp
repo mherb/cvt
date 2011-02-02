@@ -9,6 +9,7 @@
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
+#include <cvt/gui/Slider.h>
 
 #include <cvt/gl/GLVertexArray.h>
 
@@ -39,6 +40,12 @@ int main(int argc, char* argv[])
     Button button( "Quit" );
 	Delegate<void ()> dquit( &Application::exit );
 	button.clicked.add( &dquit );
+
+	Slider<float> slider( 0, 1.0f, 0.5f );
+    WidgetLayout wlslider;
+    wlslider.setAnchoredRight( 70, 100 );
+    wlslider.setAnchoredBottom( 14, 12 );
+    w.addWidget( &slider, wlslider );
 
     WidgetLayout wl;
     wl.setAnchoredRight( 10, 50 );
