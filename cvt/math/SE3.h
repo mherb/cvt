@@ -43,6 +43,9 @@ namespace cvt
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
 			
+			/* p has to be pretransformed with the current T in this case! */
+			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
+			
 			
 			const MatrixType & transformation() const 
 			{ 
@@ -134,29 +137,29 @@ namespace cvt
 	template <typename T>
 	inline void SE3<T>::jacobian( JacMatType & J, const PointType & pp ) const
 	{
-		Eigen::Matrix<T, 3, 1> p;	
-		this->transform( p, pp );
+		Eigen::Matrix<T, 4, 1> p;	
+		p.template segment<3>( 0 ) = pp;
+		p[ 3 ] = 1.0;
 		
-		Eigen::Matrix<T, 3, 3> skew;
-		skew( 0, 0 ) =	   0  ; skew( 0, 1 ) = -p[ 2 ]; skew( 0, 2 ) =  p[ 1 ];
-		skew( 1, 0 ) =  p[ 2 ]; skew( 1, 1 ) =	   0  ; skew( 1, 2 ) = -p[ 0 ];
-		skew( 2, 0 ) = -p[ 1 ]; skew( 2, 1 ) =  p[ 0 ]; skew( 2, 2 ) =	   0  ;
-		
-		J.template block<3, 3>( 0, 0 ) = -skew;
-		J.template block<3, 3>( 0, 3 ) = Eigen::Matrix<T, 3, 3>::Identity();
+		this->jacobian( J, p );
 	}
 	
 	template <typename T>
 	inline void SE3<T>::jacobian( JacMatType & J, const PointTypeHom & pp ) const
 	{
-		PointTypeHom p = _current * pp;
+		PointTypeHom p = _current * pp;	
+		jacobianAroundT( J, p );
+	}
 	
+	template <typename T>
+	inline void SE3<T>::jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const
+	{		
 		Eigen::Matrix<T, 3, 3> skew;
-		skew( 0, 0 ) =	   0  ; skew( 0, 1 ) = -p[ 2 ]; skew( 0, 2 ) =  p[ 1 ];
-		skew( 1, 0 ) =  p[ 2 ]; skew( 1, 1 ) =	   0  ; skew( 1, 2 ) = -p[ 0 ];
-		skew( 2, 0 ) = -p[ 1 ]; skew( 2, 1 ) =  p[ 0 ]; skew( 2, 2 ) =	   0  ;
+		skew( 0, 0 ) =	   0  ; skew( 0, 1 ) =  p[ 2 ]; skew( 0, 2 ) = -p[ 1 ];
+		skew( 1, 0 ) = -p[ 2 ]; skew( 1, 1 ) =	   0  ; skew( 1, 2 ) =  p[ 0 ];
+		skew( 2, 0 ) =  p[ 1 ]; skew( 2, 1 ) = -p[ 0 ]; skew( 2, 2 ) =	   0  ;
 		
-		J.template block<3, 3>( 0, 0 ) = -skew;
+		J.template block<3, 3>( 0, 0 ) = skew;
 		J.template block<3, 3>( 0, 3 ) = Eigen::Matrix<T, 3, 3>::Identity() * p[ 3 ];
 	}
 	
