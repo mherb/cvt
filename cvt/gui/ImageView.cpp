@@ -2,7 +2,7 @@
 #include <cvt/gfx/IConvert.h>
 
 namespace cvt {
-	ImageView::ImageView() : _img( 1, 1, IFormat::RGBA_UINT8, IALLOCATOR_GL )
+	ImageView::ImageView() : _alpha( 1.0f ), _img( 1, 1, IFormat::RGBA_UINT8, IALLOCATOR_GL )
 	{
 	}
 
@@ -14,6 +14,7 @@ namespace cvt {
 	{
 		int w, h;
 		size( w, h );
+		g->color().setAlpha( _alpha );
 		g->drawImage( 0, 0, w, h, _img );
 	}
 

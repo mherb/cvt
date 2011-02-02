@@ -134,7 +134,7 @@ namespace cvt {
 				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawimgp.bind();
 				drawimgp.setProjection( proj );
-				drawimgp.setAlpha( 1.0f );
+				drawimgp.setAlpha( alpha );
 				drawimgp.drawImage( rect.x, rect.y, rect.width, rect.height, tmp?*tmp:img );
 				drawimgp.unbind();
 

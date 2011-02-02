@@ -16,6 +16,7 @@ namespace cvt {
 			void setValue( T value );
 			T	 value() const;
 
+			Signal<T> valueChanged;
 		protected:
 			void paintEvent( PaintEvent* e, GFX* g );
 			void mousePressEvent( MousePressEvent* event );
@@ -48,7 +49,11 @@ namespace cvt {
 	template<typename T>
 	inline void Slider<T>::setValue( T val )
 	{
+		if( _value == val )
+			return;
 		_value = val;
+		valueChanged.notify( _value );
+		update();
 	}
 
 	template<typename T>
@@ -74,7 +79,7 @@ namespace cvt {
 	{
 		int w, h;
 		size( w, h );
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx->color().set( 0.5f, 0.5f, 0.5f, 1.0f );
 		gfx->fillRoundRect( 0, 0, w, h, 0.5f * ( float ) h );
 		float pos = ( float ) ( w - h ) * ( float  ) ( _value - _min ) / ( float ) ( _max - _min );
 		gfx->color().set( 0.2f, 0.2f, 0.2f, 1.0f );
@@ -108,10 +113,8 @@ namespace cvt {
 		int w, h;
 		size( w, h );
 		float pos = ( float ) ( x - h / 2 ) / ( float ) ( w - h );
-		T old = _value;
-		_value =  Math::clamp<T>( ( T ) ( pos * ( float )( _max - _min ) ) + _min, _min, _max );
-		if( _value != old )
-			update();
+		T value =  Math::clamp<T>( ( T ) ( pos * ( float )( _max - _min ) ) + _min, _min, _max );
+		setValue( value );
 	}
 
 
