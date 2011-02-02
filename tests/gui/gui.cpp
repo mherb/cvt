@@ -20,7 +20,7 @@
 
 using namespace cvt;
 
-void timeout( BasicTimer* t )
+void timeout( BasicTimer*  )
 {
 //	std::cout << "Timeout" << std::endl;
 //	usleep( 50000 );
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	Delegate<void ()> dquit( &Application::exit );
 	button.clicked.add( &dquit );
 
-	Slider<float> slider( 0, 1.0f, 0.5f );
+	Slider<float> slider( 0, 1.0f, 0.0f );
     WidgetLayout wlslider;
     wlslider.setAnchoredRight( 70, 100 );
     wlslider.setAnchoredBottom( 14, 12 );
