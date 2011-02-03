@@ -14,6 +14,8 @@
 
 #include <vector>
 
+#include <cvt/vision/CamModel.h>
+
 namespace cvt
 {
 	template<typename T>
@@ -42,6 +44,15 @@ namespace cvt
 			void transform( PointType & warped, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
+		
+			void project( Eigen::Matrix<T, 2, 1> & sp, 
+						  const CamModel<T> & cam, 
+						  const PointType & p3d ) const;
+		
+			void project( Eigen::Matrix<T, 2, 1> & sp,
+						  Eigen::Matrix<T, 2, 6> & screenJac,
+						  const CamModel<T> & cam,
+						  const PointType & p3d ) const;
 			
 			/* p has to be pretransformed with the current T in this case! */
 			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
@@ -154,19 +165,58 @@ namespace cvt
 	template <typename T>
 	inline void SE3<T>::jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const
 	{		
-		Eigen::Matrix<T, 3, 3> skew;
-		skew( 0, 0 ) =	   0  ; skew( 0, 1 ) =  p[ 2 ]; skew( 0, 2 ) = -p[ 1 ];
-		skew( 1, 0 ) = -p[ 2 ]; skew( 1, 1 ) =	   0  ; skew( 1, 2 ) =  p[ 0 ];
-		skew( 2, 0 ) =  p[ 1 ]; skew( 2, 1 ) = -p[ 0 ]; skew( 2, 2 ) =	   0  ;
-		
-		J.template block<3, 3>( 0, 0 ) = skew;
-		J.template block<3, 3>( 0, 3 ) = Eigen::Matrix<T, 3, 3>::Identity() * p[ 3 ];
+		J( 0, 0 ) =	    0  ; J( 0, 1 ) =  p[ 2 ]; J( 0, 2 ) = -p[ 1 ]; J( 0, 3 ) = p[ 3 ]; J( 0, 4 ) =    0  ; J( 0, 5 ) = 0;
+		J( 1, 0 ) = -p[ 2 ]; J( 1, 1 ) =	 0  ; J( 1, 2 ) =  p[ 0 ]; J( 1, 3 ) =    0  ; J( 1, 4 ) = p[ 3 ]; J( 1, 5 ) = 0;
+		J( 2, 0 ) =  p[ 1 ]; J( 2, 1 ) = -p[ 0 ]; J( 2, 2 ) =	  0  ; J( 2, 3 ) =    0  ; J( 2, 4 ) =    0  ; J( 2, 5 ) = p[ 3 ];
 	}
 	
 	template<typename T>
 	inline void SE3<T>::transform( PointType & warped, const PointType & p ) const
 	{		
 		warped = _current.template block<3, 3>( 0, 0 ) * p + _current.template block<3, 1>( 0, 3 );
+	}
+	
+	template < typename T >
+	inline void SE3<T>::project( Eigen::Matrix<T, 2, 1> & sp, const CamModel<T> & cam, const PointType & p3d ) const
+	{
+		PointTypeHom pHom;
+		pHom.template segment<3>( 0 ) = p3d;
+		pHom[ 3 ] = 1.0;
+		
+		pHom = cam.projection() * _current * pHom;
+		sp[ 0 ] = pHom[ 0 ] / pHom[ 2 ];
+		sp[ 1 ] = pHom[ 1 ] / pHom[ 2 ];
+	}
+	
+	template < typename T > 
+	inline void SE3<T>::project( Eigen::Matrix<T, 2, 1> & sp,
+								 Eigen::Matrix<T, 2, 6> & screenJac,
+								 const CamModel<T> & cam,
+								 const PointType & p3d ) const
+	{
+		PointTypeHom pHom, p;
+		pHom.template segment<3>( 0 ) = p3d;
+		pHom[ 3 ] = 1.0;
+		
+		p = _current * pHom;
+		Eigen::Matrix<T, 3, 6> poseJ;
+		this->jacobianAroundT( poseJ, p );
+		
+		pHom = cam.projection() * p;
+		sp[ 0 ] = pHom[ 0 ] / pHom[ 2 ];
+		sp[ 1 ] = pHom[ 1 ] / pHom[ 2 ];
+		
+		const Eigen::Matrix<T, 3, 3> & K = cam.K();
+		Eigen::Matrix<T, 2, 3> projJ;
+		projJ( 0, 0 ) = K( 0, 0 ) / pHom[ 2 ]; 
+		projJ( 0, 1 ) = K( 0, 1 ) / pHom[ 2 ]; 
+		projJ( 0, 2 ) = ( K( 0, 2 ) - sp[ 0 ] ) / pHom[ 2 ];
+		
+		projJ( 1, 0 ) = 0;
+		projJ( 1, 1 ) = K( 1, 1 ) / pHom[ 2 ]; 
+		projJ( 1, 2 ) = ( K( 1, 2 ) - sp[ 1 ] ) / pHom[ 2 ];
+		
+		screenJac = projJ * poseJ;
 	}
 }
 
