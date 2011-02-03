@@ -30,7 +30,7 @@ namespace cvt {
 	};
 
 	template<typename T>
-	inline Slider<T>::Slider( T min, T max, T value ) : _min( min ), _max( max ), _value( value )
+	inline Slider<T>::Slider( T min = 0, T max = 1, T value = 0 ) : _min( min ), _max( max ), _value( value )
 	{
 	}
 

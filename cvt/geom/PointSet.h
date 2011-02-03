@@ -34,11 +34,13 @@ namespace cvt
 				PTTYPE mean() const;
 				PTTYPE variance() const;
 				size_t size() const;
+				void resize( size_t );
 				void translate( const PTTYPE& t );
 				void scale( _T t );
 				void transform( const MATTYPENT& mat );
 				void transform( const MATTYPE& mat );
 				void normalize( MATTYPE& mat );
+				void normalize( );
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
 
@@ -266,12 +268,42 @@ namespace cvt
 			}
 		}
 
+	template<int dim, typename _T>
+		inline void PointSet<dim,_T>::normalize()
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			PTTYPE m = mean();
+			_T s = 0;
+			size_t n = size();
+
+
+			/* remove mean */
+			while( n-- ) {
+				*pt -= m;
+				s += pt->length();
+				pt++;
+			}
+
+			/* scale */
+			s = ( Math::sqrt( ( _T ) 2 ) * ( _T ) size() ) / s;
+			scale( s );
+		}
+
+
+
 
 	template<int dim, typename _T>
 		inline size_t PointSet<dim,_T>::size( ) const
 		{
 			return _pts.size();
 		}
+
+	template<int dim, typename _T>
+		inline void PointSet<dim,_T>::resize( size_t n )
+		{
+			return _pts.resize( n );
+		}
+
 
 	template<int dim, typename _T>
 		inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignSimilarity( const PointSet<dim,_T>& ptset ) const
