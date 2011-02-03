@@ -4,12 +4,9 @@
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 
-#include <cvt/vision/CamModel.h>
 #include <cvt/math/Optimization.h>
 #include <cvt/math/CostFunction.h>
-#include <cvt/math/SE3.h>
-#include <cvt/vision/PointMeasurements.h>
-#include <cvt/vision/Warp.h>
+#include <cvt/vision/MeasurementModel.h>
 
 namespace cvt {
 	
@@ -17,79 +14,42 @@ namespace cvt {
 	class LevenbergMarquard
 	{
 		public:
-			typedef Eigen::Matrix<T, 3, 1> InVec;
-			typedef Eigen::Matrix<T, 2, 1> OutVec;
-			typedef Eigen::Matrix<T, 6, 1> ParamVec;
-		
 			LevenbergMarquard( const TerminationCriteria<T> & termCrit ) : _termCrit( termCrit )
 			{}
 		
 			~LevenbergMarquard(){}
 			
-			void optimize( SE3<T> & model, const PointCorrespondences3d2d<T> & measurements, TerminationType termType );
+			template <class AType, class bType, class MeasType, class ParamType>
+			void optimize( MeasurementModel<T, AType, bType, MeasType, ParamType> & model, CostFunction<T, MeasType> costFunc, TerminationType termType );
 			
 			T		costs() const { return _lastCosts; }
 			size_t	iterations() const { return _iterations; }
 							
 		private:
-			size_t			_iterations;
-			T				_lastCosts;
-		
-			CostFunction<T, OutVec>		_costFunc;
+			size_t						_iterations;
+			T							_lastCosts;
 			TerminationCriteria<T>		_termCrit;						
 	};
 	
 	template<typename T>
-	inline void LevenbergMarquard<T>::optimize( SE3<T> & model, const PointCorrespondences3d2d<T> & data, TerminationType termType )
-	{				
-		size_t numMeas = data.size();		
-		OutVec r;
-		OutVec w;
-						
-		CameraRegistry<T> & camReg = CameraRegistry<T>::instance();		
-		const CamModel<T> & camModel = camReg.model( data.cameraId() );
-
-		typename PointCorrespondences3d2d<T>::ConstDataPtr d = data.data();
-		typename PointCorrespondences3d2d<T>::ConstMeasPtr m = data.meas();
+	template <class AType, class bType, class MeasType, class ParamType>
+	inline void LevenbergMarquard<T>::optimize( MeasurementModel<T, AType, bType, MeasType, ParamType> & model, CostFunction<T, MeasType> costFunc, TerminationType termType )
+	{
+		T currentCosts = model.evaluateCosts( costFunc );
 		
-		T currentCosts = 0;
-		
-		// calculate residuals & current costs
-		for( size_t i = 0; i < numMeas; i++ ){
-			Warp::toScreen<T>( w, camModel, model, *d );
-			r = *m - w;			
-			currentCosts += _costFunc.cost( r );						
-			m++; 
-			d++;
-		}
-				
 		_lastCosts = currentCosts;
 		_iterations = 0;
 		
-		Eigen::Matrix<T, 2, 6> J;
-		Eigen::Matrix<T, 6, 6> A;
-		Eigen::Matrix<T, 6, 1> b, delta;
-		Eigen::Matrix<T, 6, 6> lamda = Eigen::Matrix<T, 6, 6>::Identity();
+		AType A;
+		bType b;
+		ParamType delta;
+		AType lamda = AType::Identity();
 		
 		bool reEvaluate = true;
 		
 		while( !_termCrit.finished( termType, _lastCosts, _iterations ) ){
 			if( reEvaluate ){
-				d = data.data();
-				m = data.meas();
-				A.setZero();
-				b.setZero();			
-				for( size_t i = 0; i < numMeas; i++ ){							
-					Warp::toScreenAndJacobian<T>( w, J, camModel, model, *d );
-					
-					r = *m - w;
-					
-					A += ( J.transpose() * J );
-					b += ( J.transpose() * ( r ) );
-					
-					m++;
-					d++;
-				}			
+				currentCosts = model.buildLSSystem( A, b, costFunc );
 			}
 			
 			// solve the system
@@ -99,18 +59,8 @@ namespace cvt {
 			// apply delta parameters:			
 			model.apply( delta );
 			
-			d = data.data();
-			m = data.meas();
-			
 			// calculate residuals & current costs
-			currentCosts = 0;
-			for( size_t i = 0; i < numMeas; i++ ){
-				Warp::toScreen<T>( w, camModel, model, *d );
-				r = *m - w;
-				currentCosts += _costFunc.cost( r );
-				m++;
-				d++;
-			}
+			currentCosts = model.evaluateCosts( costFunc );
 			
 			if( currentCosts < _lastCosts ){
 				lamda *= 0.1;

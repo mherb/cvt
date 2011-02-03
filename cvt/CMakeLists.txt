@@ -242,17 +242,13 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Ferns.h
 	vision/internal/Fern.h
 	vision/Flow.h
+	vision/MeasurementModel.h
 	vision/PatchGenerator.h
-	vision/PointMeasurements.h
+	vision/PointCorrespondences3d2d.h
 	vision/Warp.h
 	${GLSL_SHADER}
 	${CL_KERNELS}
 )
-
-#SET_SOURCE_FILES_PROPERTIES( ${GLSL_FILES} 
-#	PROPERTIES
-#	MACOSX_PACKAGE_LOCATION RESOURCE
-#)
 
 SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
 SOURCE_GROUP( CL FILES ${CL_KERNELS} )

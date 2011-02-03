@@ -36,6 +36,12 @@ namespace cvt
 				_projection = K4 * extr;
 			}
 		
+			CamModel( const CamModel & o ) : 
+				_intrinsics( o._intrinsics ),
+				_extrinsics( o._extrinsics ),
+				_projection( o._projection )
+			{}
+		
 			const MAT3 & K() const { return _intrinsics; }
 			const MAT4 & camToWorld() const { return _extrinsics; }
 			const MAT4 & projection() const { return _projection; }
