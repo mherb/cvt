@@ -16,11 +16,12 @@ struct ASFEntry
 	int num, from, to;
 };
 
+#define SCALE 2
 
 class FaceShapeWin : public Window
 {
 	public:
-	FaceShapeWin( const std::string& pngfile, const std::string& asffile ) : Window( "FaceShape" )
+	FaceShapeWin( const std::string& pngfile, const std::string& asffile ) : Window( asffile )
 	{
 		/* read png stuff */
 		Image png;
@@ -45,12 +46,12 @@ class FaceShapeWin : public Window
 		}
 		file.close();
 		for( int i =0; i < asfentries.size(); i++ ) {
-			Vector2f x( asfentries[ i ].relx * png.width(), asfentries[ i ].rely * png.height() );
-			Vector2i k( asfentries[ i ].relx * ( float ) png.width() - 8, asfentries[ i ].rely * ( float ) png.height() - 8 );
+			Vector2f x( asfentries[ i ].relx * png.width() * SCALE, asfentries[ i ].rely * png.height() * SCALE );
+			Vector2i k( asfentries[ i ].relx * ( float ) png.width() * SCALE - 8, asfentries[ i ].rely * ( float ) png.height() * SCALE - 8 );
 			_pts.push_back( x );
 			_ptsi.push_back( k );
 			int to = asfentries[ i ].to;
-			x.set( asfentries[ to ].relx * png.width(), asfentries[ to ].rely * png.height() );
+			x.set( asfentries[ to ].relx * png.width() * SCALE, asfentries[ to ].rely * png.height() * SCALE );
 //			k.set( asfentries[ to ].relx * ( float ) png.width(), asfentries[ to ].rely * ( float ) png.height() );
 			_pts.push_back( x );
 //			_ptsi.push_back( k );
@@ -64,11 +65,16 @@ class FaceShapeWin : public Window
 		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );
 
-		gfx->drawImage( 0, 0, _imgface );
+		gfx->drawImage( 0, 0, _imgface.width() * SCALE, _imgface.height() * SCALE, _imgface );
 
 		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		gfx->drawLines( &_pts[ 0 ], _pts.size() );
-		gfx->drawIcons( &_ptsi[ 0 ], _ptsi.size(), GFX::ICON_CROSS );
+		for( int i = 0; i < _ptsi.size(); i++ ) {
+			char buf[ 50 ];
+			sprintf( buf, "%d", i );
+			gfx->drawText( _ptsi[ i ].x, _ptsi[ i ].y, buf );
+//			gfx->drawIcons( &_ptsi[ 0 ], _ptsi.size(), GFX::ICON_CROSS );
+		}
 
 	};
 
@@ -85,7 +91,7 @@ int main( int argc, char** argv )
 		return 1;
 	}
 	FaceShapeWin win( argv[ 1 ], argv[ 2 ] );
-	win.setSize( 640, 480 );
+	win.setSize( 640 * SCALE, 480 * SCALE );
 	win.show();
 
 	Application::run();

@@ -41,6 +41,7 @@ namespace cvt
 				void transform( const MATTYPE& mat );
 				void normalize( MATTYPE& mat );
 				void normalize( );
+				_T	 ssd( const PointSet<dim, _T>& ptset ) const;
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
 
@@ -304,6 +305,25 @@ namespace cvt
 			return _pts.resize( n );
 		}
 
+	template<int dim, typename _T>
+	_T	 PointSet<dim,_T>::ssd( const PointSet<dim, _T>& ptset ) const
+	{
+		if( size() != ptset.size() )
+			throw CVTException( "PointSets differ in size!" );
+
+		const PTTYPE* pt1 = &_pts[ 0 ];
+		const PTTYPE* pt2 = &ptset._pts[ 0 ];
+		PTTYPE diff;
+		size_t n = size();
+		_T ret = 0;
+
+		/* remove mean */
+		while( n-- ) {
+			diff = *pt1++ - *pt2++;
+			ret += diff.lengthSqr();
+		}
+		return ret;
+	}
 
 	template<int dim, typename _T>
 		inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignSimilarity( const PointSet<dim,_T>& ptset ) const

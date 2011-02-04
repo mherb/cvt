@@ -197,6 +197,7 @@ int main( int argc, char** argv )
 	for( size_t i = 0; i < files.size(); i++ ) {
 			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
 			allpts[ i ].transform( sim );
+//			std::cout << files[ i ] << " " << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
 	}
 
 	std::cout << "Aligned shapes" << std::endl;
