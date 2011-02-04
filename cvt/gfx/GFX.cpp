@@ -134,6 +134,12 @@ namespace cvt {
 		_engine->drawIcons( pts, npts, i, _color );
 	}
 
+	void GFX::drawIcons( const Vector2f* pts, size_t npts, Icon i )
+	{
+		_engine->drawIcons( pts, npts, i, _color );
+	}
+
+
 	void GFX::drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far  )
 	{
 

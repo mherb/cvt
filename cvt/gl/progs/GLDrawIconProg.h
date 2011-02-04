@@ -23,6 +23,7 @@ namespace cvt {
 			void setColor( const Color& color );
 			void drawIcon( int x, int y, int icon );
 			void drawIcons( const Vector2i* pts, size_t npts, int icon );
+			void drawIcons( const Vector2f* pts, size_t npts, int icon );
 
 		private:
 			GLVertexArray _vao;
