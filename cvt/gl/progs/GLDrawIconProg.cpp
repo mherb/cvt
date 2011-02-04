@@ -93,4 +93,25 @@ namespace cvt {
 		_tex.unbind();
 		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 3 );
 	}
+
+	void GLDrawIconProg::drawIcons( const Vector2f* pts, size_t npts, int icon )
+	{
+		GLfloat* buf;
+
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * npts );
+		buf = ( GLfloat* ) _vbo.map( GL_WRITE_ONLY );
+		for( size_t i = 0; i < npts; i++ ) {
+			buf[ i * 3 + 0 ] = pts[ i ].x;
+			buf[ i * 3 + 1 ] = pts[ i ].y;
+			buf[ i * 3 + 2 ] = icon;
+		}
+		_vbo.unmap();
+
+		_vao.setVertexData( _vbo, 3, GL_FLOAT );
+		_tex.bind();
+		glPointSize( 16.0f );
+		_vao.draw( GL_POINTS, 0, npts );
+		_tex.unbind();
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GL_FLOAT ) * 3 );
+	}
 }

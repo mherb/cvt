@@ -36,6 +36,7 @@ namespace cvt {
 			void drawImage( const Recti& rect, const Image& img, float alpha );
 			void drawIcon( int x, int y, GFX::Icon i, const Color& c );
 			void drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c );
+			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c );
 
 
 			void setViewport( const Recti& viewport );

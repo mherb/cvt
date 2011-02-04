@@ -156,7 +156,18 @@ namespace cvt {
 			void GFXEngineGL::drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x + 8, ( float ) _childrect.y + 8 );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
+				drawiconp.bind();
+				drawiconp.setProjection( proj );
+				drawiconp.setColor( c );
+				drawiconp.drawIcons( pts, npts, i );
+				drawiconp.unbind();
+			}
+
+			void GFXEngineGL::drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c )
+			{
+				Matrix4f proj;
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );

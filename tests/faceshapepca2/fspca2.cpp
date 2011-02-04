@@ -13,7 +13,7 @@
 
 using namespace cvt;
 
-#define SAMPLEPTS 58
+#define SAMPLEPTS 76
 
 class FaceShapeWin : public Window
 {
@@ -42,7 +42,6 @@ class FaceShapeWin : public Window
 
 
 		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawLines( &_pts[ 0 ], _pts.size() );
 		gfx->drawIcons( &_pts[ 0 ], _pts.size(), GFX::ICON_CROSS );
 		paintChildren( gfx, Recti( 0, 0, w, h ) );
 	};
@@ -51,8 +50,8 @@ class FaceShapeWin : public Window
 	{
 		Eigen::VectorXf current( SAMPLEPTS * 2 );
 	   current = 100.0 * ( _mean + _pc * _weights );
-	   current.cwise() += 200.0f;
-		int map[ SAMPLEPTS ][ 2 ] = {{ 0 	,1 },
+	   current.cwise() += 250.0f;
+/*		int map[ SAMPLEPTS ][ 2 ] = {{ 0 	,1 },
 		{ 1 	,2 },
 		{ 2 	,3 },
 		{ 3 	,4 },
@@ -110,15 +109,15 @@ class FaceShapeWin : public Window
 		{ 55 	,56},
 		{ 56 	,57},
 		{ 57 	,57}
-	};
+	};*/
 		_pts.clear();
 		for( int i = 0; i < SAMPLEPTS; i++ ) {
-			int a = map[ i ][ 0 ];
-			int b = map[ i ][ 1 ];
-			if( a == b )
-				continue;
-			_pts.push_back( Vector2f( current( a * 2 ), current( a * 2 + 1 ) ) );
-			_pts.push_back( Vector2f( current( b * 2 ), current( b * 2 + 1 ) ) );
+//			int a = map[ i ][ 0 ];
+//			int b = map[ i ][ 1 ];
+//			if( a == b )
+//				continue;
+			_pts.push_back( Vector2f( current( i * 2 ), current( i * 2 + 1 ) ) );
+//			_pts.push_back( Vector2f( current( b * 2 ), current( b * 2 + 1 ) ) );
 		}
 	}
 
@@ -129,63 +128,72 @@ class FaceShapeWin : public Window
 		Eigen::MatrixXf _pc;
 };
 
-void readPoints( PointSet2f& pts, const std::string& path )
-{
-	std::ifstream file;
-	file.open( path.c_str() );
-	size_t num = 58;
-	while( !file.eof() && num-- ) {
-		Vector2f pt;
-		std::string rest;
-		int dummy;
-		file >> dummy;
-		file >> dummy;
-		file >> pt.x >> pt.y;
-		std::getline( file, rest );
-		pts.add( pt );
-	}
-	file.close();
-}
-
 int main( int argc, char** argv )
 {
 	if( argc != 2 ) {
-		std::cerr << "usage: " << argv[ 0 ] << " asf-files-path" << std::endl;
+		std::cerr << "usage: " << argv[ 0 ] << " csv-file" << std::endl;
 		return 1;
 	}
 
-	std::vector<std::string> files;
-	FileSystem::filesWithExtension( argv[ 1 ], files, "asf" );
-
 	std::vector<PointSet2f> allpts;
-	allpts.resize( files.size() );
 
-	for( size_t i = 0; i < files.size(); i++ ) {
-		readPoints( allpts[ i ], files[ i ] );
-		allpts[ i ].normalize();
+	std::ifstream file;
+	file.open( argv[ 1 ] );
+	while( !file.eof() ) {
+		size_t n = SAMPLEPTS;
+		Vector2f pt;
+		char buf[ 200 ];
+		PointSet2f pts;
+		std::string str;
+		bool discard = false;
+
+		file.getline( buf, 200, ',' );
+		file.getline( buf, 200, ',' );
+
+		while( n-- ) {
+			file.getline( buf, 200, ',' );
+			pt.x = atof( buf );
+			file.getline( buf, 200, ',' );
+			pt.y = atof( buf );
+			pts.add( pt );
+			if( pt.x == 0.0f || pt.y == 0.0f ) {
+				discard = true;
+				break;
+			}
+		}
+		std::getline( file, str );
+		if( !discard ) {
+			pts.normalize();
+			allpts.push_back( pts );
+		}
 	}
-	std::cout << "Read " << files.size() << " files" << std::endl;
+	file.close();
+
+	std::cout << "Read " << allpts.size() << " entries" << std::endl;
 
 	/* align stuff */
 
-	PointSet2f meanshape( allpts[ 0 ] );
+#define INITMEAN 20
+	PointSet2f meanshape( allpts[ INITMEAN ] );
 
-	for( size_t i = 1; i < files.size(); i++ ) {
-		Matrix3f sim = allpts[ i ].alignSimilarity( allpts[ 0 ] );
+	for( size_t i = 0; i < allpts.size(); i++ ) {
+		if( i == INITMEAN )
+			continue;
+		Matrix3f sim = allpts[ i ].alignSimilarity( allpts[ INITMEAN ] );
 		for( size_t k = 0; k < meanshape.size(); k++ )
 			meanshape[ k ] += sim * allpts[ i ][ k ];
 	}
 	meanshape.normalize();
 
 	std::cout << "Initial mean" << std::endl;
-	size_t iter = 500;
+	size_t iter = 200;
 	while( iter-- ) {
 		PointSet2f newmean;
 		newmean.resize( SAMPLEPTS );
 		for( size_t k = 0; k < newmean.size(); k++ )
 			newmean[ k ].set( 0.0f, 0.0f );
 
-		for( size_t i = 0; i < files.size(); i++ ) {
+		for( size_t i = 0; i < allpts.size(); i++ ) {
 			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
 			for( size_t k = 0; k < newmean.size(); k++ )
 				newmean[ k ] += sim * allpts[ i ][ k ];
@@ -194,7 +202,7 @@ int main( int argc, char** argv )
 		meanshape = newmean;
 	}
 
-	for( size_t i = 0; i < files.size(); i++ ) {
+	for( size_t i = 0; i < allpts.size(); i++ ) {
 			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
 			allpts[ i ].transform( sim );
 //			std::cout << files[ i ] << " " << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
@@ -203,7 +211,7 @@ int main( int argc, char** argv )
 	std::cout << "Aligned shapes" << std::endl;
 
 	PCAf pca( SAMPLEPTS * 2 );
-	for( size_t i = 0; i < files.size(); i++ ) {
+	for( size_t i = 0; i < allpts.size(); i++ ) {
 		pca.addSample( ( float* ) &allpts[ i ][ 0 ] );
 	}
 
