@@ -227,6 +227,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/ParamSet.h
 	util/Range.h
 	util/RNG.h
+	util/Signal.h
 	util/SIMD.h
 	util/SIMDSSE.h	
 	util/SIMDSSE2.h	
@@ -245,7 +246,6 @@ SET(${MODULE_NAME}_HEADERS
 	vision/MeasurementModel.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
-	vision/Warp.h
 	${GLSL_SHADER}
 	${CL_KERNELS}
 )
@@ -345,7 +345,6 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/PatchGenerator.cpp
-	vision/WarpTest.cpp
 )
 
 

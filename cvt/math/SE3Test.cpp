@@ -1,6 +1,7 @@
 #include <cvt/math/SE3.h>
-#include <cvt/util/CVTTest.h>
 #include <cvt/math/Math.h>
+#include <cvt/vision/CamModel.h>
+#include <cvt/util/CVTTest.h>
 
 #include <Eigen/Array>
 
@@ -11,6 +12,7 @@ namespace cvt {
 		Eigen::Matrix<double, 6, 1> parameter = Eigen::Matrix<double, 6, 1>::Zero();
 		Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();
 		Eigen::Matrix<double, 3, 6> jNumeric, jAnalytic, jDiff;
+		Eigen::Matrix<double, 2, 6> sJN, sJA, sJDiff;
 		
 		parameter[ 0 ] = Math::deg2Rad(  10 );
 		parameter[ 1 ] = Math::deg2Rad( -10 );
@@ -24,9 +26,17 @@ namespace cvt {
 		
 		Eigen::Matrix<double, 3, 1> point;
 		Eigen::Matrix<double, 3, 1> p, pp;
+		Eigen::Matrix<double, 2, 1> sp, spp;
 		point[ 0 ] = 13; point[ 1 ] = 8; point[ 2 ] = 12;;
 		
 		pose.transform( p, point );
+		
+		Eigen::Matrix<double, 3, 3> K = Eigen::Matrix<double, 3, 3>::Identity();
+		K( 0, 0 ) = K( 1, 1 ) = 600;
+		K( 0, 2 ) = 320; K( 1, 2 ) = 240;  		
+		CamModel<double> cam( K );
+		pose.project( sp, cam, point );
+		
 		double h = 0.000000001;		
 		for( size_t i = 0; i < 6; i++ ){
 			delta[ i ] = h;
@@ -34,22 +44,39 @@ namespace cvt {
 			pose.apply( delta );
 			
 			pose.transform( pp, point );
-
 			jNumeric.col( i ) = ( pp - p ) / h;
 			
+			pose.project( spp, cam, point );
+			sJN.col( i ) = ( spp - sp ) / h;
+						
 			delta[ i ] = 0;
 			pose.set( parameter );
 		}
 		
 		pose.jacobian( jAnalytic, point );
+		pose.project( spp, sJA, cam, point );
 		
+		bool b, ret = true;
 		jDiff = jAnalytic - jNumeric;
-		bool ret = ( jDiff.cwise().abs().sum() / 18.0 ) < 0.00001;
-		if( !ret ){
+		b = ( jDiff.cwise().abs().sum() / 18.0 ) < 0.00001;
+		CVTTEST_PRINT( "Pose Jacobian", b );
+		if( !b ){			
 			std::cout << "Analytic:\n" << jAnalytic << std::endl;
 			std::cout << "Numeric:\n" << jNumeric << std::endl;
 			std::cout << "Difference:\n" << jDiff << std::endl;
 		}
+		ret &= b;
+		
+		sJDiff = sJA - sJN;
+		b = ( sJDiff.cwise().abs().sum() / 12.0 ) < 0.0001;
+		CVTTEST_PRINT( "Screen Jacobian", b );
+		if( !b ){			
+			std::cout << "Analytic:\n" << sJA << std::endl;
+			std::cout << "Numeric:\n" << sJN << std::endl;
+			std::cout << "Difference:\n" << sJDiff << std::endl;
+			std::cout << "Avg. Diff: " << sJDiff.cwise().abs().sum() / 12.0 << std::endl;
+		}
+		ret &= b;
 		
 		return ret;		
 	}
@@ -128,9 +155,7 @@ BEGIN_CVTTEST( SE3 )
 	CVTTEST_PRINT( "apply", b );
 	ret &= b;
 		
-	b = testJacobian();
-	CVTTEST_PRINT( "jacobian", b );
-	ret &= b;
+	ret &= testJacobian();
 		
 	return ret;
 END_CVTTEST

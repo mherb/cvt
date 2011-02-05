@@ -2,8 +2,8 @@
 
 #include <Eigen/Core>
 
-#include <cvt/math/LevenbergMarquard.h>
 #include <cvt/math/CostFunction.h>
+#include <cvt/math/LevenbergMarquard.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/RNG.h>
 #include <cvt/util/Time.h>
@@ -13,7 +13,7 @@
 
 using namespace cvt;
 
-void generateData( PointCorrespondences3d2d<double> & data, size_t n )
+void generateData( PointCorrespondences3d2d<double> & data, size_t n, size_t numOutliers )
 {
 	RNG rng( time( NULL ) );
 	double sigma = 0.01;
@@ -34,11 +34,27 @@ void generateData( PointCorrespondences3d2d<double> & data, size_t n )
 		
 		data.add( p3d, p2d );
 	}
+	
+	// add outlier
+	while( numOutliers-- ){
+		p3d[ 0 ] = rng.uniform( -100.0, 100.0 );
+		p3d[ 1 ] = rng.uniform( -100.0, 100.0 );
+		p3d[ 2 ] = rng.uniform( -100.0, 100.0 );	
+		
+		data.pose().project( p2d, data.camModel(), p3d );
+		
+		// add some noise
+		p2d[ 0 ] += 300;
+		p2d[ 1 ] += 200;
+		
+		data.add( p3d, p2d );
+	}
 }
 
 int main()
 {
-	size_t numPoints = 300;
+	size_t numPoints = 800;
+	size_t numOutlier = 500;
 	
 	Eigen::Matrix<double, 3, 3> K = Eigen::Matrix<double, 3, 3>::Identity();
 	Eigen::Matrix<double, 4, 4> T = Eigen::Matrix<double, 4, 4>::Identity();
@@ -61,7 +77,7 @@ int main()
 	std::cout << "Ground Truth:\n" << model.pose().transformation() << std::endl;
 	
 	// generate random points
-	generateData( model, numPoints );		
+	generateData( model, numPoints, numOutlier );		
 	
 	// perturbe the current pose, to use it as initial estimate
 	poseVec = Eigen::Matrix<double, 6, 1>::Zero();
@@ -78,11 +94,12 @@ int main()
 	termCriteria.setCostThreshold( 0.00001 );
 	termCriteria.setMaxIterations( 100 );
 	
-	LevenbergMarquard<double> lm( termCriteria );
-	CostFunction<double, Eigen::Matrix<double, 2, 1> > costFunc;
-	
+	SquaredDistance<double, PointCorrespondences3d2d<double>::MeasType> costFunction;
+	//RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
+	LevenbergMarquard<double, PointCorrespondences3d2d<double> > lm( termCriteria );
+		
 	Time timer;
-	lm.optimize( model, costFunc, ( TERM_COSTS_THRESH | TERM_MAX_ITER ) );
+	lm.optimize( model, costFunction, ( TERM_COSTS_THRESH | TERM_MAX_ITER ) );
 
 	std::cout << "Elapsed time: " << timer.elapsedMilliSeconds() << "ms" << std::endl;
 	std::cout << "Optimized:\n" << model.pose().transformation() << std::endl;

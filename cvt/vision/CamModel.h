@@ -25,7 +25,7 @@ namespace cvt
 			typedef Eigen::Matrix<T, 3, 3> MAT3;
 			typedef Eigen::Matrix<T, 4, 4> MAT4;
 		
-			CamModel( const MAT3 & intr, const MAT4 & extr ) :
+			CamModel( const MAT3 & intr, const MAT4 & extr = MAT4::Identity() ) :
 				_intrinsics( intr ),
 				_extrinsics( extr )
 			{

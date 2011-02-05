@@ -10,18 +10,17 @@
 
 namespace cvt {
 	
-	template<typename T>
+	template<typename T, class ModelType>
 	class LevenbergMarquard
 	{
 		public:
-			LevenbergMarquard( const TerminationCriteria<T> & termCrit ) : _termCrit( termCrit )
+			LevenbergMarquard( const TerminationCriteria<T> & termCrit ) : 
+				_termCrit( termCrit )
 			{}
 		
 			~LevenbergMarquard(){}
-			
-			template <class AType, class bType, class MeasType, class ParamType>
-			void optimize( MeasurementModel<T, AType, bType, MeasType, ParamType> & model, CostFunction<T, MeasType> costFunc, TerminationType termType );
-			
+
+			void	optimize( ModelType & model, const CostFunction<T, typename ModelType::MeasType> & costFunc, TerminationType termType );			
 			T		costs() const { return _lastCosts; }
 			size_t	iterations() const { return _iterations; }
 							
@@ -31,19 +30,18 @@ namespace cvt {
 			TerminationCriteria<T>		_termCrit;						
 	};
 	
-	template<typename T>
-	template <class AType, class bType, class MeasType, class ParamType>
-	inline void LevenbergMarquard<T>::optimize( MeasurementModel<T, AType, bType, MeasType, ParamType> & model, CostFunction<T, MeasType> costFunc, TerminationType termType )
+	template<typename T, class ModelType>
+	inline void LevenbergMarquard<T, ModelType>::optimize( ModelType & model, const CostFunction<T, typename ModelType::MeasType> & costFunc, TerminationType termType )
 	{
 		T currentCosts = model.evaluateCosts( costFunc );
 		
 		_lastCosts = currentCosts;
 		_iterations = 0;
 		
-		AType A;
-		bType b;
-		ParamType delta;
-		AType lamda = AType::Identity();
+		typename ModelType::AType A;
+		typename ModelType::bType b;
+		typename ModelType::ParamType delta;
+		typename ModelType::AType lamda = ModelType::AType::Identity();
 		
 		bool reEvaluate = true;
 		
