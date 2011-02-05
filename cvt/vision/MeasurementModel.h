@@ -12,15 +12,26 @@
 
 namespace cvt
 {	
-	template <typename T, class AType, class bType, class MeasType, class ParamType>
+	template < typename T, template <typename Type> class Derived, class AType, class bType, class ParamType, class MeasType >
 	class MeasurementModel
 	{
-		public:
-			virtual			~MeasurementModel() {};
-			/* build LeastSquares System  */
-			virtual T		buildLSSystem( AType & A, bType & b, CostFunction<T, MeasType> & costFunc ) = 0;		
-			virtual T		evaluateCosts( CostFunction<T, MeasType> & costFunc ) = 0;
-			virtual void	apply( const ParamType & delta ) = 0;
+		public:			
+			virtual ~MeasurementModel() {};
+            
+			inline T buildLSSystem( AType & A, bType & b, const CostFunction<T, MeasType> & costFunc )
+			{ 
+				return static_cast< Derived<T>* >( this )->buildLSSystem( A, b, costFunc ); 
+			}
+					
+			inline T evaluateCosts( const CostFunction<T, MeasType> & costFunc ) 
+			{
+				return static_cast< Derived<T>* >( this )->evaluateCosts( costFunc ); 
+			}
+		
+			inline void	apply( const ParamType & delta )
+			{
+				static_cast< Derived<T>* >( this )->apply( delta );
+			}	
 	};	
 }
 
