@@ -55,9 +55,9 @@ namespace cvt {
 		impl->setRect( rect );
 	}
 
-	void Widget::rect( Recti& rect ) const
+	const Recti& Widget::rect( ) const
 	{
-		impl->rect( rect );
+		return impl->rect();
 	}
 
 	void Widget::setVisible( bool visibility )
@@ -150,8 +150,7 @@ namespace cvt {
 		/* get current childrect */
 	    Recti crect = gfx->childrect( );
 		/* get child rectangle */
-		Recti rchild;
-		w->rect( rchild );
+		Recti rchild = w->rect();
 
 		/* set new childrect */
 		gfx->setChildrect( rchild );

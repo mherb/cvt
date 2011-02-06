@@ -17,7 +17,7 @@ namespace cvt {
 			virtual void	    setPosition( int width, int height );
 			virtual void	    position( int& width, int& height ) const;
 			virtual void	    setRect( const Recti& rect );
-			virtual void	    rect( Recti& rect ) const;
+			virtual const Recti& rect() const;
 			virtual void	    setVisible( bool visibility );
 			virtual bool	    isVisible() const;
 			virtual void		raise();
@@ -94,9 +94,9 @@ namespace cvt {
 		setSize( rect.width, rect.height );
 	}
 
-	inline void WidgetImplDefault::rect( Recti& rect ) const
+	inline const Recti& WidgetImplDefault::rect( ) const
 	{
-		rect = _rect;
+		return _rect;
 	}
 
 	inline void WidgetImplDefault::setVisible( bool visibility )

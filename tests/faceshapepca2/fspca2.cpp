@@ -18,7 +18,7 @@ using namespace cvt;
 class FaceShapeWin : public Window
 {
 	public:
-	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc ) : Window( "FaceShape" ), _weights( SAMPLEPTS * 2 ), _mean( mean ), _pc( pc )
+	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc ) : Window( "FaceShape" ), _current( SAMPLEPTS * 2 ), _weights( SAMPLEPTS * 2 ), _mean( mean ), _pc( pc )
 	{
 		_weights.setZero();
 		recalc();
@@ -42,87 +42,108 @@ class FaceShapeWin : public Window
 
 
 		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawIcons( &_pts[ 0 ], _pts.size(), GFX::ICON_CROSS );
+		gfx->drawLines( &_pts[ 0 ], _pts.size() );
+		for( int i = 0; i < SAMPLEPTS; i++ ) {
+			int x, y;
+			char buf[ 200 ];
+			x = _current( i * 2 );
+			y = _current( i * 2 + 1 );
+			sprintf( buf, "%d", i );
+			gfx->drawText( x, y, buf );
+		}
+
+//		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
 		paintChildren( gfx, Recti( 0, 0, w, h ) );
 	};
 
 	void recalc()
 	{
-		Eigen::VectorXf current( SAMPLEPTS * 2 );
-	   current = 100.0 * ( _mean + _pc * _weights );
-	   current.cwise() += 250.0f;
-/*		int map[ SAMPLEPTS ][ 2 ] = {{ 0 	,1 },
-		{ 1 	,2 },
-		{ 2 	,3 },
-		{ 3 	,4 },
-		{ 4 	,5 },
-		{ 5 	,6 },
-		{ 6 	,7 },
-		{ 7 	,8 },
-		{ 8 	,9 },
-		{ 9 	,10},
-		{ 10 	,11},
-		{ 11 	,12},
-		{ 12 	,12},
-		{ 13 	,14},
-		{ 14 	,15},
-		{ 15 	,16},
-		{ 16 	,17},
-		{ 17 	,18},
-		{ 18 	,19},
-		{ 19 	,20},
-		{ 20 	,13},
-		{ 21 	,22},
-		{ 22 	,23},
-		{ 23 	,24},
-		{ 24 	,25},
-		{ 25 	,26},
-		{ 26 	,27},
-		{ 27 	,28},
-		{ 28 	,21},
-		{ 29 	,30},
-		{ 30 	,31},
-		{ 31 	,32},
-		{ 32 	,33},
-		{ 33 	,33},
-		{ 34 	,35},
-		{ 35 	,36},
-		{ 36 	,37},
-		{ 37 	,38},
-		{ 38 	,38},
-		{ 39 	,40},
-		{ 40 	,41},
-		{ 41 	,42},
-		{ 42 	,43},
-		{ 43 	,44},
-		{ 44 	,45},
-		{ 45 	,46},
-		{ 46 	,39},
-		{ 47 	,48},
-		{ 48 	,49},
-		{ 49 	,50},
-		{ 50 	,51},
-		{ 51 	,52},
-		{ 52 	,53},
-		{ 53 	,54},
-		{ 54 	,55},
-		{ 55 	,56},
-		{ 56 	,57},
-		{ 57 	,57}
-	};*/
+	   _current = 200.0 * ( _mean + _pc * _weights );
+	   _current.cwise() += 450.0f;
+	   int map[ SAMPLEPTS ][ 2 ] = {
+		   { 0,1 },
+		   { 1,2 },
+		   { 2,3 },
+		   { 3,4 },
+		   { 4,5 },
+		   { 5,6 },
+		   { 6,7 },
+		   { 7,8 },
+		   { 8,9 },
+		   { 9,10},
+		   { 10,11},
+		   { 11,12},
+		   { 12,13},
+		   { 13,14},
+		   { 14,14},
+		   { 15,16},
+		   { 16,17},
+		   { 17,18},
+		   { 18,19},
+		   { 19,20},
+		   { 20,15},
+		   { 21,22},
+		   { 22,23},
+		   { 23,24},
+		   { 24,25},
+		   { 25,26},
+		   { 26,21},
+		   { 27,28},
+		   { 28,29},
+		   { 29,30},
+		   { 30,27},
+		   { 31,31},
+		   { 32,33},
+		   { 33,34},
+		   { 34,35},
+		   { 35,32},
+		   { 36,36},
+		   { 37,38},
+		   { 38,39},
+		   { 39,40},
+		   { 40,41},
+		   { 41,42},
+		   { 42,43},
+		   { 43,44},
+		   { 44,45},
+		   { 45,45},
+		   { 46,46},
+		   { 47,47},
+		   { 48,49},
+		   { 49,50},
+		   { 50,51},
+		   { 51,52},
+		   { 52,53},
+		   { 53,54},
+		   { 54,55},
+		   { 55,56},
+		   { 56,57},
+		   { 57,58},
+		   { 58,59},
+		   { 59,48},
+		   { 48,60},
+		   { 60,61},
+		   { 61,62},
+		   { 62,54},
+		   { 54,63},
+		   { 63,64},
+		   { 64,65},
+		   { 65,48},
+	   };
 		_pts.clear();
 		for( int i = 0; i < SAMPLEPTS; i++ ) {
-//			int a = map[ i ][ 0 ];
-//			int b = map[ i ][ 1 ];
-//			if( a == b )
-//				continue;
-			_pts.push_back( Vector2f( current( i * 2 ), current( i * 2 + 1 ) ) );
-//			_pts.push_back( Vector2f( current( b * 2 ), current( b * 2 + 1 ) ) );
+			int a = map[ i ][ 0 ];
+			int b = map[ i ][ 1 ];
+			if( a == b )
+				continue;
+			_pts.push_back( Vector2f( _current( a * 2 ), _current( a * 2 + 1 ) ) );
+			_pts.push_back( Vector2f( _current( b * 2 ), _current( b * 2 + 1 ) ) );
 		}
 	}
 
 	private:
 		std::vector<Vector2f> _pts;
+		Eigen::VectorXf _current;
 		Eigen::VectorXf _weights;
 		Eigen::VectorXf _mean;
 		Eigen::MatrixXf _pc;
@@ -173,7 +194,7 @@ int main( int argc, char** argv )
 
 	/* align stuff */
 
-#define INITMEAN 20
+#define INITMEAN 50
 	PointSet2f meanshape( allpts[ INITMEAN ] );
 
 	for( size_t i = 0; i < allpts.size(); i++ ) {

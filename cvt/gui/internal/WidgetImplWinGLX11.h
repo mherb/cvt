@@ -23,7 +23,7 @@ namespace cvt {
 			~WidgetImplWinGLX11();
 			virtual void setTitle( const std::string& title );
 			virtual void setRect( const Recti& rect );
-			virtual void rect( Recti& rect ) const { rect = _rect; };
+			virtual const Recti& rect( ) const { return _rect; };
 			virtual void size( int& width, int& height ) const;
 			virtual void setSize( int width, int height );
 			virtual void position( int& x, int& y ) const;
