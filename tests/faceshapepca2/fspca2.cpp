@@ -43,14 +43,14 @@ class FaceShapeWin : public Window
 
 		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		gfx->drawLines( &_pts[ 0 ], _pts.size() );
-		for( int i = 0; i < SAMPLEPTS; i++ ) {
+/*		for( int i = 0; i < SAMPLEPTS; i++ ) {
 			int x, y;
 			char buf[ 200 ];
 			x = _current( i * 2 );
 			y = _current( i * 2 + 1 );
 			sprintf( buf, "%d", i );
 			gfx->drawText( x, y, buf );
-		}
+		}*/
 
 //		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
 		paintChildren( gfx, Recti( 0, 0, w, h ) );
@@ -58,8 +58,8 @@ class FaceShapeWin : public Window
 
 	void recalc()
 	{
-	   _current = 200.0 * ( _mean + _pc * _weights );
-	   _current.cwise() += 450.0f;
+	   _current = 100.0 * ( _mean + _pc * _weights );
+	   _current.cwise() += 250.0f;
 	   int map[ SAMPLEPTS ][ 2 ] = {
 		   { 0,1 },
 		   { 1,2 },
@@ -246,7 +246,7 @@ int main( int argc, char** argv )
 	win.show();
 
 	WidgetLayout wlslider;
-	Slider<float> slider[ 10 ];
+	Slider<float> slider[ 15 ];
 #define SLIDERN( num ) \
 		slider[ num ].setMinimum( -1.0f ); \
 		slider[ num ].setMaximum( 1.0f ); \
@@ -265,6 +265,11 @@ int main( int argc, char** argv )
 	SLIDERN( 7 )
 	SLIDERN( 8 )
 	SLIDERN( 9 )
+/*	SLIDERN( 10 )
+	SLIDERN( 11 )
+	SLIDERN( 12 )
+	SLIDERN( 13 )
+	SLIDERN( 14 )*/
 
 	Application::run();
 }
