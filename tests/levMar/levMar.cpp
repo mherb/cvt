@@ -53,8 +53,8 @@ void generateData( PointCorrespondences3d2d<double> & data, size_t n, size_t num
 
 int main()
 {
-	size_t numPoints = 800;
-	size_t numOutlier = 500;
+	size_t numPoints = 200;
+	size_t numOutlier = 20;
 	
 	Eigen::Matrix<double, 3, 3> K = Eigen::Matrix<double, 3, 3>::Identity();
 	Eigen::Matrix<double, 4, 4> T = Eigen::Matrix<double, 4, 4>::Identity();
@@ -92,11 +92,11 @@ int main()
 
 	TerminationCriteria<double> termCriteria;
 	termCriteria.setCostThreshold( 0.00001 );
-	termCriteria.setMaxIterations( 100 );
+	termCriteria.setMaxIterations( 300 );
 	
-	SquaredDistance<double, PointCorrespondences3d2d<double>::MeasType> costFunction;
-	//RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
-	LevenbergMarquard<double, PointCorrespondences3d2d<double> > lm( termCriteria );
+	//SquaredDistance<double, PointCorrespondences3d2d<double>::MeasType> costFunction;
+	RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
+	LevenbergMarquard<double> lm( termCriteria );
 		
 	Time timer;
 	lm.optimize( model, costFunction, ( TERM_COSTS_THRESH | TERM_MAX_ITER ) );

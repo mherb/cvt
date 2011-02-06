@@ -12,6 +12,12 @@
 
 namespace cvt
 {	
+	/**
+	 MeasurmentModel Interface
+	 CRTP is needed, because the interface is dependant on template variables 
+	 (AType, bType often have known sizes at compile time) so the functions cannot be virtual
+	 */
+	
 	template < typename T, template <typename Type> class Derived, class AType, class bType, class ParamType, class MeasType >
 	class MeasurementModel
 	{
