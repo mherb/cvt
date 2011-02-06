@@ -42,8 +42,7 @@ namespace cvt {
 		gfx->drawText( 8, 15, _title.c_str() );
 
 
-		Recti r;
-		rect( r );
+		Recti r = rect();
 		paintChildren( gfx, r );
 
 		if( !_togglebutton.state() ) {

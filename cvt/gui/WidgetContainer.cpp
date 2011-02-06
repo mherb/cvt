@@ -31,8 +31,7 @@ namespace cvt {
 				continue;
 			}
 
-			Recti r;
-			w->rect( r );
+			Recti r = w->rect();
 			if( r.contains( x, y ) )
 				return w;
 			++it;
@@ -64,7 +63,7 @@ namespace cvt {
 		Recti r;
 		Recti rself;
 
-		rect( rself );
+		rself = rect();
 		if( isToplevel() )
 			rself.setPosition( 0, 0 );
 
@@ -79,7 +78,7 @@ namespace cvt {
 				continue;
 			}
 
-			w->rect( r );
+			r = w->rect( );
 			it->second.rect( r, rself );
 			w->setRect( r );
 			++it;
@@ -111,7 +110,7 @@ namespace cvt {
 				continue;
 			}
 
-			w->rect( r );
+			r = w->rect( );
 			r.x += dx;
 			r.y += dy;
 			w->setRect( r );
@@ -121,8 +120,7 @@ namespace cvt {
 
 	void WidgetContainer::paintEvent( PaintEvent* , GFX* gfx )
 	{
-		Recti r;
-		rect( r );
+		Recti r = rect();
 		paintChildren( gfx, r );
 	}
 
@@ -141,7 +139,7 @@ namespace cvt {
 			}
 			if( w->isVisible() ) {
 				Recti rc;
-				w->rect( rc );
+				rc = w->rect();
 				rc.intersect( r );
 				paintChild( w, gfx, rc );
 			}

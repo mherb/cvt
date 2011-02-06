@@ -14,7 +14,7 @@ namespace cvt {
 			virtual void	    setPosition( int width, int height ) = 0;
 			virtual void	    position( int& width, int& height ) const = 0;
 			virtual void	    setRect( const Recti& rect ) = 0;
-			virtual void	    rect( Recti& rect ) const = 0;
+			virtual const Recti&  rect() const = 0;
 			virtual void	    setVisible( bool visibility ) = 0;
 			virtual bool	    isVisible() const = 0;
 			virtual void	    setTitle( const std::string& ) {};

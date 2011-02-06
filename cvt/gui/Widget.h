@@ -26,7 +26,7 @@ namespace cvt {
 			void position( int& x, int& y ) const;
 			void setPosition( int x, int y );
 			void setRect( const Recti& rect );
-			void rect( Recti& rect ) const;
+			const Recti& rect( ) const;
 			void setVisible( bool b );
 			bool isVisible() const;
 			void show() { setVisible( true ); };
