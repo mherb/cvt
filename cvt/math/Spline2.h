@@ -16,6 +16,7 @@ namespace cvt {
 			void set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
 			void set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
 
+			Vector2<T>& operator[]( int x );
 			const Vector2<T>& operator[]( int x ) const;
 
 			void samplePoint( Vector2<T>& pt, T t );
@@ -94,6 +95,12 @@ namespace cvt {
 
 	template<typename T>
 	const Vector2<T>& Spline2<T>::operator[]( int x ) const
+	{
+		return _pts[ x ];
+	}
+
+	template<typename T>
+	Vector2<T>& Spline2<T>::operator[]( int x )
 	{
 		return _pts[ x ];
 	}
