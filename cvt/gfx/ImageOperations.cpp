@@ -777,7 +777,7 @@ namespace cvt {
 			default:
 				throw CVTException("Unimplemented");
 				break;
-		}		
+		}
 	}
 
 	void Image::scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
