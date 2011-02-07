@@ -7,43 +7,6 @@
 
 namespace cvt {
 
-	float* Image::imageToKernel( const Image& kernel, bool normalize ) const
-	{
-		float* pksrc;
-		float* ret;
-		float* pw;
-		size_t kstride;
-		size_t i, k;
-		float norm = 0.0f;
-
-		ret = new float[ kernel._mem->_width * kernel._mem->_height ];
-
-		pw = ret;
-
-		i = kernel._mem->_height;
-		const uint8_t* data = kernel.map( &kstride );
-		while( i-- ) {
-			pksrc = ( float* )( data + i * kstride + sizeof( float ) * kernel._mem->_width );
-			k = kernel._mem->_width;
-			while( k-- ) {
-				*pw++ = *( --pksrc );
-				norm += *pksrc;
-			}
-		}
-		kernel.unmap( data );
-
-		/* normalize if needed and norm != 0 */
-		if( normalize && Math::abs( norm - 1.0f ) > Math::EPSILONF && Math::abs( norm ) > Math::EPSILONF ) {
-			i = kernel._mem->_height * kernel._mem->_width;
-			norm = 1.0f / norm;
-			pw = ret;
-			while( i-- )
-				*pw++ *= norm;
-		}
-
-		return ret;
-	}
-
 	void Image::convert( Image& dst ) const
 	{
 		IConvert::convert( dst, *this );
@@ -686,20 +649,20 @@ namespace cvt {
 		return sad ;
 	}	
 
-	void Image::convolve( Image& idst, const Image& kernel, bool normalize ) const
+	void Image::convolve( Image& idst, const IKernel& kernel ) const
 	{
-		if( kernel._mem->_format == IFormat::GRAY_FLOAT &&
-		    _mem->_format.type == IFORMAT_TYPE_FLOAT )
-			convolveFloat( idst, kernel, normalize );
+		if( _mem->_format.type == IFORMAT_TYPE_FLOAT )
+			convolveFloat( idst, kernel );
 		else {
 			throw CVTException("Unimplemented");
 		}
 	}
 
-	void Image::convolveFloat( Image& idst, const Image& kernel, bool normalize ) const
+	void Image::convolveFloat( Image& idst, const IKernel& kernel ) const
 	{
-		float* weights;
-		float* pweights;
+		const float* weights;
+		const float* pweights;
+		size_t kwidth, kheight;
 		const uint8_t* src;
 		const uint8_t* osrc;
 		const uint8_t* psrc;
@@ -723,7 +686,7 @@ namespace cvt {
 		}
 
 		/* kernel should at least fit once into the image */
-		if( _mem->_width < kernel._mem->_width || _mem->_height < kernel._mem->_height ) {
+		if( _mem->_width < kernel.width() || _mem->_height < kernel.height() ) {
 			throw CVTException( "Image smaller than convolution kernel");
 		}
 
@@ -733,43 +696,45 @@ namespace cvt {
 		odst = dst = idst.map( &dstride );
 
 		/* flip and normalize kernel image */
-		weights = imageToKernel( kernel, normalize );
+		weights = &kernel( 0, 0 );
+		kwidth = kernel.width();
+		kheight = kernel.height();
 
-		b1 = ( kernel._mem->_height - ( 1 - ( kernel._mem->_height & 1 ) ) ) / 2;
-		b2 = ( kernel._mem->_height + ( 1 - ( kernel._mem->_height & 1 ) ) ) / 2;
+		b1 = ( kernel.height() - ( 1 - ( kernel.height() & 1 ) ) ) / 2;
+		b2 = ( kernel.height() + ( 1 - ( kernel.height() & 1 ) ) ) / 2;
 
 		/* upper border */
 		i = b1;
 		while( i-- ) {
 			psrc = src;
 			pweights = weights;
-			( simd->*convfunc )( ( float* ) dst, ( float* ) src, _mem->_width, pweights, kernel._mem->_width );
-			pweights += kernel._mem->_width;
+			( simd->*convfunc )( ( float* ) dst, ( float* ) src, _mem->_width, pweights, kwidth );
+			pweights += kwidth;
 			k = i;
 			while( k-- ) {
-				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
-				pweights += kernel._mem->_width;
+				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
+				pweights += kwidth;
 			}
-			k = kernel._mem->_height - ( i + 1 );
+			k = kheight - ( i + 1 );
 			while( k-- ) {
-				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
+				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
 				psrc += sstride;
-				pweights += kernel._mem->_width;
+				pweights += kwidth;
 			}
 			dst += dstride;
 		}
 
 		/* center */
-		i = _mem->_height - kernel._mem->_height + 1;
+		i = _mem->_height - kheight + 1;
 		while( i-- ) {
 			psrc = src;
 			pweights = weights;
-			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
-			k = kernel._mem->_height - 1;
+			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
+			k = kheight - 1;
 			while( k-- ) {
 				psrc += sstride;
-				pweights += kernel._mem->_width;
-				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
+				pweights += kwidth;
+				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
 			}
 			dst += dstride;
 			src += sstride;
@@ -780,17 +745,17 @@ namespace cvt {
 		while( i-- ) {
 			psrc = src;
 			pweights = weights;
-			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
+			( simd->*convfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
 			k = b1 + i;
 			while( k-- ) {
 				psrc += sstride;
-				pweights += kernel._mem->_width;
-				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
+				pweights += kwidth;
+				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
 			}
 			k = b2 - i;
 			while( k-- ) {
-				pweights += kernel._mem->_width;
-				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kernel._mem->_width );
+				pweights += kwidth;
+				( simd->*convaddfunc )( ( float* ) dst, ( float* ) psrc, _mem->_width, pweights, kwidth );
 			}
 			dst += dstride;
 			src += sstride;
@@ -798,8 +763,7 @@ namespace cvt {
 
 		unmap( osrc );
 		idst.unmap( odst );
-		delete[] weights;
-	}	
+	}
 
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{

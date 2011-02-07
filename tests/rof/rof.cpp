@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/IKernel.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>
@@ -22,8 +23,9 @@ int main(int argc, char* argv[])
 		out.reallocate( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );
 		tmp.reallocate( out );
 		img.convert( tmp );
+
 		cvt::ROFDenoise rof;
-		rof.apply( out, tmp, 0.3f, 100 );
+		rof.apply( out, tmp, 0.05f, 10 );
 
 		cvt::ImageIO::savePNG(out, "out.png");
 		
