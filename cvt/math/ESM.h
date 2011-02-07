@@ -24,9 +24,6 @@ namespace cvt {
 			/* stopping citerions */
 			size_t maxIter;
 			double ssdEpsilon;
-			/* filter kernels */
-			Image dx;
-			Image dy;
 		
 			/* the template & warped */
 			Image temp;

@@ -10,6 +10,7 @@
 #include <cvt/gfx/IScaleFilter.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/ImageAllocator.h>
+#include <cvt/gfx/IKernel.h>
 
 namespace cvt {
 
@@ -69,7 +70,8 @@ namespace cvt {
 			void sub( const Color& c );
 			void mul( const Color& c );
 
-			void convolve( Image& dst, const Image& kernel, bool normalize = true ) const;
+			void convolve( Image& dst, const IKernel& kernel ) const;
+//			void convolve( Image& dst, const IKernel& hkernel, const IKernel& vkernel ) const;
 
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
@@ -91,8 +93,7 @@ namespace cvt {
 			void warpBilinear( Image& idst, const Image& warp ) const;
 			
 		private:
-			float* imageToKernel( const Image& k, bool normalize ) const;
-			void convolveFloat( Image& dst, const Image& kernel, bool normalize ) const;
+			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 			void scaleFixedu8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 

@@ -18,30 +18,10 @@ namespace cvt {
 	ESM::ESM( const Image & img, size_t maxIter, double ssdEpsilon ):
 		maxIter( maxIter ),
 		ssdEpsilon( ssdEpsilon ),
-		dx( 5, 1, IFormat::GRAY_FLOAT ),
-		dy( 1, 5, IFormat::GRAY_FLOAT ),
 		temp( img ),
 		ssd( 0.0 ),
 		iteration( 0 )
 	{
-		size_t stride;
-		float * p = ( float* )dx.map( &stride );
-		p[ 0 ] =  -0.1f;
-		p[ 1 ] =   0.8f;
-		p[ 2 ] =   0.0f;
-		p[ 3 ] =  -0.8f;
-		p[ 4 ] =   0.1f;
-		dx.unmap( ( uint8_t* )p );
-		
-		p = ( float* )dy.map( &stride );
-		stride /= sizeof( float );
-		p[ 0 * stride ] =  -0.1f; 
-		p[ 1 * stride ] =   0.8f; 
-		p[ 2 * stride ] =   0.0f;
-		p[ 3 * stride ] =  -0.8f;
-		p[ 4 * stride ] =   0.1f;
-		dy.unmap( ( uint8_t* ) p );
-		
 		warped.reallocate( temp );
 		
 		jPose.resize( 2 * temp.width() * temp.height(), 8 );
@@ -55,8 +35,8 @@ namespace cvt {
 		warpedDy.reallocate( temp );
 
 		// compute gradients of the template image
-		temp.convolve( tmpDx, dx );
-		temp.convolve( tmpDy, dy );
+		temp.convolve( tmpDx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
+		temp.convolve( tmpDy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
 		
 		Eigen::Vector2d P;
 		size_t pointIdx = 0;
@@ -131,8 +111,8 @@ namespace cvt {
 	{
 		Eigen::Vector2d p( Eigen::Vector2d::Zero() );
 		
-		warped.convolve( warpedDx, dx );
-		warped.convolve( warpedDy, dy );
+		warped.convolve( warpedDx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
+		warped.convolve( warpedDy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
 
 		float* timg;
 	    float* tptr;

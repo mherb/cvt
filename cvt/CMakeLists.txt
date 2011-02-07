@@ -130,6 +130,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/Drawable.h
 	gfx/GFXEngine.h
 	gfx/GFX.h
+	gfx/IKernel.h
 	gl/OpenGL.h
 	gl/GLFormat.h
 	gl/GLContext.h
@@ -272,6 +273,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageAllocatorGL.cpp
 	gfx/ImageAllocatorMem.cpp
 	gfx/IScaleFilter.cpp
+	gfx/IKernel.cpp
 	geom/KDTree.cpp
 	geom/Model.cpp
 	geom/Rect.cpp

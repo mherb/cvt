@@ -209,48 +209,12 @@ namespace cvt {
 			*data++ = -0.1f;
 		}
 #else
-		Image kerndx( 2, 1, IFormat::GRAY_FLOAT );
-		Image kerndy( 1, 2, IFormat::GRAY_FLOAT );
-		Image kerndxrev( 3, 1, IFormat::GRAY_FLOAT );
-		Image kerndyrev( 1, 3, IFormat::GRAY_FLOAT );
-
-		{
-			float* data;
-			uint8_t* base;
-			size_t stride;
-
-			base =  kerndx.map( &stride );
-			data = ( float* ) base;
-			*data++ = -1.0f;
-			*data++ =  1.0f;
-//			*data++ =  0.0f;
-			kerndx.unmap( base );
-
-			base = kerndy.map( &stride );
-			data = ( float* ) ( base );
-			*data++ = -1.0f;
-			data = ( float* ) ( base + stride );
-			*data++ =  1.0f;
-//			data = ( float* ) kerndy.scanline( 2 );
-//			*data++ =  0.0f;
-			kerndy.unmap( base );
-
-			base = kerndxrev.map( &stride );
-			data = ( float* ) base;
-			*data++ =  0.0f;
-			*data++ = -1.0f;
-			*data++ =  1.0f;
-			kerndxrev.unmap( base );
-
-			base = kerndyrev.map( &stride );
-			data = ( float* ) ( base );
-			*data++ =  0.0f;
-			data = ( float* ) ( base + stride );
-			*data++ = -1.0f;
-			data = ( float* ) ( base + stride * 2 );
-			*data++ =  1.0f;
-			kerndyrev.unmap( base );
-		}
+		IKernel kerndx( IKernel::HAAR_HORIZONTAL_3 );
+		IKernel kerndy( IKernel::HAAR_VERTICAL_3 );
+		IKernel kerndxrev( IKernel::HAAR_HORIZONTAL_3 );
+//		kerndxrev.scale( -1.0f );
+		IKernel kerndyrev( IKernel::HAAR_VERTICAL_3 );
+//		kerndyrev.scale( -1.0f );
 #endif
 
 #define TAU 0.249f
@@ -263,13 +227,13 @@ namespace cvt {
 		py.fill( Color( 0.0f, 0.0f ) );
 
 		while( iter-- ) {
-			dst.convolve( dx, kerndx, false );
-			dst.convolve( dy, kerndy, false );
+			dst.convolve( dx, kerndx );
+			dst.convolve( dy, kerndy );
 //			dst.ddx( dx );
 //			dst.ddy( dy );
 			multadd2_th( px, py, dx, dy, TAU / lambda );
-			px.convolve( dx, kerndxrev, false );
-			py.convolve( dy, kerndyrev, false );
+			px.convolve( dx, kerndxrev );
+			py.convolve( dy, kerndyrev );
 //			px.ddx( dx, false );
 //			py.ddy( dy, false );
 

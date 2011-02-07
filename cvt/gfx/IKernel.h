@@ -1,0 +1,151 @@
+#ifndef CVT_IKERNEL_H
+#define CVT_IKERNEL_H
+
+#include <cvt/util/SIMD.h>
+
+namespace cvt {
+	class IKernel {
+		public:
+			IKernel();
+			IKernel( const IKernel& kernel );
+			IKernel( size_t w, size_t h );
+			~IKernel();
+			IKernel& operator=(const IKernel& kernel );
+
+			size_t width() const;
+			size_t height() const;
+
+			float& operator()( int x, int y );
+			const float& operator()( int x, int y ) const;
+
+			float sum() const;
+			void normalize();
+			void scale( float value );
+
+			static const IKernel GAUSS_HORIZONTAL_3;
+			static const IKernel GAUSS_HORIZONTAL_5;
+			static const IKernel GAUSS_HORIZONTAL_7;
+
+			static const IKernel MEAN_HORIZONTAL_3;
+			static const IKernel MEAN_HORIZONTAL_5;
+			static const IKernel MEAN_HORIZONTAL_7;
+
+			static const IKernel HAAR_HORIZONTAL_2;
+			static const IKernel HAAR_HORIZONTAL_3;
+
+			static const IKernel GAUSS_VERTICAL_3;
+			static const IKernel GAUSS_VERTICAL_5;
+			static const IKernel GAUSS_VERTICAL_7;
+
+			static const IKernel MEAN_VERTICAL_3;
+			static const IKernel MEAN_VERTICAL_5;
+			static const IKernel MEAN_VERTICAL_7;
+
+			static const IKernel HAAR_VERTICAL_2;
+			static const IKernel HAAR_VERTICAL_3;
+			static const IKernel FIVEPOINT_DERIVATIVE_HORIZONTAL;
+			static const IKernel FIVEPOINT_DERIVATIVE_VERTICAL;
+
+			const static IKernel LAPLACE_33;
+
+		private:
+			IKernel( size_t w, size_t h, float* data );
+			size_t _width, _height;
+			float* _mem;
+			float* _data;
+	};
+
+	inline IKernel::IKernel() : _width( 0 ), _height( 0 ), _mem( NULL ), _data( NULL )
+	{
+	}
+
+	inline IKernel::IKernel( const IKernel& kernel ) : _width( kernel._width ),
+													   _height( kernel._height )
+	{
+		if( &kernel == this )
+			return;
+		_mem = new float[ _width * _height ];
+		_data = _mem;
+		SIMD* simd = SIMD::instance();
+		simd->Memcpy( ( uint8_t* ) _data, ( const uint8_t* ) kernel._data, _width * _height * sizeof( float ) );
+	}
+
+
+	inline IKernel& IKernel::operator=(const IKernel& kernel )
+	{
+		if( &kernel == this )
+			return *this;
+		_width = kernel._width;
+		_height = kernel._height;
+		if( _mem )
+			delete[] _mem;
+		_mem = new float[ _width * _height ];
+		_data = _mem;
+		SIMD* simd = SIMD::instance();
+		simd->Memcpy( ( uint8_t* ) _data, ( const uint8_t* ) kernel._data, _width * _height * sizeof( float ) );
+		return *this;
+	}
+
+	inline IKernel::IKernel( size_t w, size_t h, float* data ) : _width( w ),
+																	   _height( h ),
+																	   _mem( NULL ),
+																	   _data( data )
+	{
+	}
+
+	inline IKernel::~IKernel()
+	{
+		if( _mem )
+			delete[] _mem;
+	}
+
+	inline size_t IKernel::width() const
+	{
+		return _width;
+	}
+
+	inline size_t IKernel::height() const
+	{
+		return _height;
+	}
+
+	inline float& IKernel::operator()( int x, int y )
+	{
+		return _data[ y * _width + x ];
+	}
+
+	inline const float& IKernel::operator()( int x, int y ) const
+	{
+		return _data[ y * _width + x ];
+	}
+
+	inline float IKernel::sum() const
+	{
+		size_t n = _width * _height;
+		float* ptr = _data;
+		float ret = 0;
+		while( n-- )
+			ret += *ptr++;
+		return ret;
+	}
+
+	inline void IKernel::normalize()
+	{
+		size_t n = _width * _height;
+		float* ptr = _data;
+		float invsum = 1.0f / sum();
+		while( n-- )
+			*ptr++ *= invsum;
+	}
+
+	inline void IKernel::scale ( float value )
+	{
+		size_t n = _width * _height;
+		float* ptr = _data;
+		while( n-- )
+			*ptr++ *= value;
+	}
+
+}
+
+#endif
