@@ -43,6 +43,22 @@ class SplineUI : public Window
 				g->fillRoundRect( pt.x - 2, pt.y - 2,  4, 4, 2.0f );
 			}
 
+/*			if( n == 2 && t[ 0 ] > t[ 1 ] ) {
+				float tmp = t[ 0 ];
+				t[ 0 ] = t[ 1 ];
+				t[ 1 ] = tmp;
+			}
+			g->color().set( 0.0f, 0.0f, 1.0f, 0.2f );
+				Spline2f a, b;
+				if( n != 0 && t[ 0 ] > 0.0f && t[ 0 ] < 1.0f ) {
+					_spline.split( a, b, t[ 0 ] );
+					g->fillRect( a[ 3 ].x - 4, a[ 3 ].y - 4,  8, 8 );
+					if( n == 2 && t[ 1 ] > 0.0f && t[ 1 ] < 1.0f ) {
+						Vector2f pt;
+						b.samplePoint( pt, ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
+						g->fillRect( pt.x - 4, pt.y - 4,  8, 8 );
+					}
+				}*/
 		}
 	}
 
