@@ -214,7 +214,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Quaternion.h
 	math/SBAData.h
 	math/SE3.h
-	math/SL3Transform.h
+	math/SL3.h
 	math/SparseBundleAdjustment.h
 	math/Vector.h
 	math/Vector2.h
@@ -322,7 +322,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/Vector.cpp
 	math/Matrix.cpp
 	math/SE3Test.cpp
-	math/SL3Transform.cpp
+	math/SL3Test.cpp
 	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
 	util/ParamSet.cpp
