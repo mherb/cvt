@@ -91,12 +91,13 @@ namespace cvt {
 			Color operator() (float x, float y) const;*/
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
-			
+
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
+			void convolveU8_to_S16( Image& idst, const IKernel& kernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
-			void scaleFixedU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
+			void scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 			void checkFormat( const Image & img, const char* func, size_t lineNum, const IFormat & format ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;

@@ -655,6 +655,8 @@ namespace cvt {
 			convolveFloat( idst, kernel );
 		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_UINT8 )
 			convolveU8( idst, kernel );
+		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_INT16 )
+			convolveU8_to_S16( idst, kernel );
 		else {
 			throw CVTException("Unimplemented");
 		}
@@ -888,6 +890,127 @@ namespace cvt {
 		delete[] weights;
 	}
 
+	void Image::convolveU8_to_S16( Image& idst, const IKernel& kernel ) const
+	{
+		Fixed* weights;
+		const Fixed* pweights;
+		size_t kwidth, kheight;
+		const uint8_t* src;
+		const uint8_t* osrc;
+		const uint8_t* psrc;
+		Fixed* buf;
+		uint8_t* dst;
+		uint8_t* odst;
+		size_t i, k, b1, b2, widthchannels;
+		size_t sstride, dstride;
+		void (SIMD::*convfunc)( Fixed* _dst, const uint8_t* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+		void (SIMD::*convaddfunc)( Fixed* _dst, const uint8_t* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+		SIMD* simd = SIMD::instance();
+
+		if( _mem->_format.channels == 1 ) {
+			convfunc = &SIMD::ConvolveClampSet1fx;
+			convaddfunc = &SIMD::ConvolveClampAdd1fx;
+		} else if( _mem->_format.channels == 2 ) {
+			convfunc = &SIMD::ConvolveClampSet2fx;
+			convaddfunc = &SIMD::ConvolveClampAdd2fx;
+		} else {
+			convfunc = &SIMD::ConvolveClampSet4fx;
+			convaddfunc = &SIMD::ConvolveClampAdd4fx;
+		}
+
+		/* kernel should at least fit once into the image */
+		if( _mem->_width < kernel.width() || _mem->_height < kernel.height() ) {
+			throw CVTException( "Image smaller than convolution kernel");
+		}
+
+		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
+
+		widthchannels = _mem->_width * _mem->_format.channels;
+		buf = new Fixed[ _mem->_width * _mem->_format.channels ];
+
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
+
+		kwidth = kernel.width();
+		kheight = kernel.height();
+		weights = new Fixed[ kwidth * kheight ];
+
+		for( size_t ky = 0; ky < kheight; ky++ ) {
+			for( size_t kx = 0; kx < kwidth; kx++ ) {
+				weights[ ky * kwidth + kx ] = kernel( kx, ky );
+			}
+		}
+
+		b1 = ( kernel.height() - ( 1 - ( kernel.height() & 1 ) ) ) / 2;
+		b2 = ( kernel.height() + ( 1 - ( kernel.height() & 1 ) ) ) / 2;
+
+		/* upper border */
+		i = b1;
+		while( i-- ) {
+			psrc = src;
+			pweights = weights;
+			( simd->*convfunc )( buf, ( uint8_t* ) src, _mem->_width, pweights, kwidth );
+			pweights += kwidth;
+			k = i;
+			while( k-- ) {
+				( simd->*convaddfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+				pweights += kwidth;
+			}
+			k = kheight - ( i + 1 );
+			while( k-- ) {
+				( simd->*convaddfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+				psrc += sstride;
+				pweights += kwidth;
+			}
+			simd->Conv_fx_to_s16( ( int16_t* ) dst, buf, widthchannels );
+			dst += dstride;
+		}
+
+		/* center */
+		i = _mem->_height - kheight + 1;
+		while( i-- ) {
+			psrc = src;
+			pweights = weights;
+			( simd->*convfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+			k = kheight - 1;
+			while( k-- ) {
+				psrc += sstride;
+				pweights += kwidth;
+				( simd->*convaddfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+			}
+			simd->Conv_fx_to_s16( ( int16_t* ) dst, buf, widthchannels );
+			dst += dstride;
+			src += sstride;
+		}
+
+		/* lower border */
+		i = b2;
+		while( i-- ) {
+			psrc = src;
+			pweights = weights;
+			( simd->*convfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+			k = b1 + i;
+			while( k-- ) {
+				psrc += sstride;
+				pweights += kwidth;
+				( simd->*convaddfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+			}
+			k = b2 - i;
+			while( k-- ) {
+				pweights += kwidth;
+				( simd->*convaddfunc )( buf, ( uint8_t* ) psrc, _mem->_width, pweights, kwidth );
+			}
+			simd->Conv_fx_to_s16( ( int16_t* ) dst, buf, widthchannels );
+			dst += dstride;
+			src += sstride;
+		}
+
+		unmap( osrc );
+		idst.unmap( odst );
+		delete[] buf;
+		delete[] weights;
+	}
+
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
 		switch ( _mem->_format.type ) {
@@ -895,7 +1018,7 @@ namespace cvt {
 				scaleFloat( idst, width, height, filter );
 				break;
 			case IFORMAT_TYPE_UINT8:
-				scaleFixedU8( idst, width, height, filter );
+				scaleU8( idst, width, height, filter );
 				break;
 			default:
 				throw CVTException("Unimplemented");
@@ -993,7 +1116,7 @@ namespace cvt {
 		delete[] scalery.weights;
 	}
 	
-	void Image::scaleFixedU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
+	void Image::scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
 		IConvolveAdaptiveFixed scalerx;
 		IConvolveAdaptiveFixed scalery;
