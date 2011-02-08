@@ -895,7 +895,7 @@ namespace cvt {
 				scaleFloat( idst, width, height, filter );
 				break;
 			case IFORMAT_TYPE_UINT8:
-				scaleFixedu8( idst, width, height, filter );
+				scaleFixedU8( idst, width, height, filter );
 				break;
 			default:
 				throw CVTException("Unimplemented");
