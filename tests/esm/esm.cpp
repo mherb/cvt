@@ -161,6 +161,8 @@ class EsmWindow : public Window
 			_camView.selectionComplete.add( _selectionDelegate );
 			
 			_imgFloatGray.reallocate( _cam->width(), _cam->height(), IFormat::GRAY_FLOAT );			
+			_time.reset();
+			_iters = 0;
 		}
 		
 		~EsmWindow()
@@ -185,6 +187,15 @@ class EsmWindow : public Window
 				//std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
 				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
+			}
+			_iters++;
+			
+			if( _time.elapsedSeconds() > 2 ){
+				char buf[ 100 ];
+				sprintf( buf, "Camera Image fps: %0.1f", _iters / _time.elapsedSeconds() );
+				_camMov.setTitle( buf );
+				_time.reset();
+				_iters = 0;
 			}
 		}
 
@@ -259,6 +270,9 @@ class EsmWindow : public Window
 		ESM<double> _esm;
 		SL3<double> _homography;
 		bool		_selectionReady;
+		Time		_time;
+		Time		_esmTime;
+		size_t		_iters;
 };
 
 int main( void )
