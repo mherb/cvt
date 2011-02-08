@@ -60,6 +60,9 @@ namespace cvt {
 			/* Fixed point numbers */
 			virtual void Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const;
 			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+			virtual void Mul( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const;
+			virtual void MulAdd( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
+
 
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
@@ -88,6 +91,14 @@ namespace cvt {
 			virtual void ConvolveClampSet4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
 
+			virtual void ConvolveClampSet1fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+			virtual void ConvolveClampAdd1fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+			virtual void ConvolveClampSet2fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+			virtual void ConvolveClampAdd2fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+			virtual void ConvolveClampSet4fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+			virtual void ConvolveClampAdd4fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+
+
 			virtual void ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 			virtual void ConvolveAdaptiveClamp2f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
 			virtual void ConvolveAdaptiveClamp4f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
@@ -97,6 +108,7 @@ namespace cvt {
 
 
 			virtual void Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const;
+			virtual void Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const;
 			virtual void Conv_u8_to_f( float* dst, uint8_t const* src, const size_t n ) const;
 			virtual void Conv_GRAYu8_to_XXXAu8( uint8_t* _dst, const uint8_t* src, const size_t n ) const;
 			virtual void Conv_XXXAf_to_XXXAu8( uint8_t* dst, float const* src, const size_t n ) const;
