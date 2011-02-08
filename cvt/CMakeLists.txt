@@ -131,6 +131,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/GFXEngine.h
 	gfx/GFX.h
 	gfx/IKernel.h
+	gfx/ColorspaceXYZ.h
 	gl/OpenGL.h
 	gl/GLFormat.h
 	gl/GLContext.h
@@ -274,6 +275,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageAllocatorMem.cpp
 	gfx/IScaleFilter.cpp
 	gfx/IKernel.cpp
+	gfx/ColorspaceXYZ.cpp
 	geom/KDTree.cpp
 	geom/Model.cpp
 	geom/Rect.cpp
