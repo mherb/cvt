@@ -99,7 +99,8 @@ namespace cvt {
 		cvt::Math::exponential( m, m );
 		
 		/* update the current transformation */
-		_current = m * _current;		
+		//_current = m * _current;		
+		_current *= m;
 	}
 	
 	template < typename T >

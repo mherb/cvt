@@ -77,6 +77,7 @@ public:
 		
 		this->size( w, h );
 		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );		
+		gfx->setLineWidth( 5 );
 		gfx->drawLine( w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ], w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ] );
 		gfx->drawLine( w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ], w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ] );
 		gfx->drawLine( w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ], w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ] );
@@ -131,7 +132,7 @@ class EsmWindow : public Window
 			_tempMov( &_templateView ),
 			_camView(),
 			_camMov( &_camView ),
-			_esm( 40, 0.01 ),
+			_esm( 25, 0.001 ),
 			_selectionReady( false )
 		{	
 			this->setVisible( true );			
@@ -178,11 +179,10 @@ class EsmWindow : public Window
 			
 			if( _selectionReady ){
 				_esm.optimize( _homography, _imgFloatGray );
-				std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
 				
+				//std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
 				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;				
-				_camView.updatePoints( pt, _cam->width(), _cam->height() );								
-				
+				_camView.updatePoints( pt, _cam->width(), _cam->height() );
 			}
 		}
 	
