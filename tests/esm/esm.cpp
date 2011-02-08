@@ -216,7 +216,7 @@ class EsmWindow : public Window
 			Image tmp( _imgFloatGray, &roi );
 			_esm.updateTemplate( tmp );
 
-			Image tmpu8( _cam->frame(), &roi );
+			Image tmpu8( _camImage, &roi );
 			_templateView.setImage( tmpu8 );
 
 			_points( 0, 0 ) = 0;
