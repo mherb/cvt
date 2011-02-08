@@ -20,7 +20,7 @@ namespace cvt {
 	class ESM
 	{
 	public:
-		ESM( size_t maxIter = 40, double ssdEpsilon = 1e-8 );		
+		ESM( size_t maxIter = 20, double ssdEpsilon = 1e-8 );		
 		~ESM(){}
 		
 		void updateTemplate( const Image & img );
@@ -32,7 +32,7 @@ namespace cvt {
 	private:	
 		/* stopping citerions */
 		size_t maxIter;
-		double ssdEpsilon;
+		T ssdEpsilon;
 		
 		/* the template & warped */
 		Image temp;
@@ -47,14 +47,16 @@ namespace cvt {
 		/* intensity difference multiplied by JesmT */
 		Eigen::Matrix<T, 8, 1> deltaI;
 		
-		double ssd;
+		T ssd;
 		size_t iteration;
 		
 		/* gradients of template & current warped */
 		Image tmpDx;
 		Image tmpDy;
 		Image warpedDx;
-		Image warpedDy;		
+		Image warpedDy;
+		
+		IKernel kdx, kdy;
 		
 		/* calc jacobians of current warped and deltaI */
 		void updateData( const SL3<T> & pose );
@@ -65,8 +67,10 @@ namespace cvt {
 	
 	template <typename T>
 	inline ESM<T>::ESM( size_t maxIter, double ssdEpsilon ):
-		maxIter( maxIter ),	ssdEpsilon( ssdEpsilon ), ssd( 0.0 ), iteration( 0 )
-	{}
+		maxIter( maxIter ),	ssdEpsilon( ssdEpsilon ), ssd( 0.0 ), iteration( 0 ),
+		kdx( IKernel::HAAR_HORIZONTAL_3 ), kdy( IKernel::HAAR_VERTICAL_3 )
+	{		
+	}
 	
 	template < typename T >
 	inline void ESM<T>::updateTemplate( const Image & img )
@@ -82,8 +86,8 @@ namespace cvt {
 		warpedDy.reallocate( temp );
 		
 		// compute gradients of the template image
-		temp.convolve( tmpDx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
-		temp.convolve( tmpDy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );		
+		temp.convolve( tmpDx, kdx );
+		temp.convolve( tmpDy, kdy );		
 	}	
 	
 	template <typename T>
@@ -107,17 +111,16 @@ namespace cvt {
 			hFilter.apply( warped, currI, warpMat, black );			
 									
 			// calc combined jacobians and deltaI
-			updateData( H );		
-						
+			updateData( H );
+			
 			if( ssd < ssdEpsilon ){
 				break;
-			}	
-						
-			deltaH = jEsm.inverse() * deltaI;			
-									
+			}
+											
+			deltaH = jEsm.inverse() * deltaI;									
 			H.apply( deltaH );
 			
-			iteration++;			
+			iteration++;
 			if( iteration > maxIter ){
 				break;
 			}			
@@ -130,8 +133,8 @@ namespace cvt {
 	{
 		Eigen::Vector2d p( Eigen::Vector2d::Zero() );
 		
-		warped.convolve( warpedDx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
-		warped.convolve( warpedDy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );		
+		warped.convolve( warpedDx, kdx );
+		warped.convolve( warpedDy, kdy );		
 		
 		float* timg;
 		float* tptr;
@@ -194,10 +197,10 @@ namespace cvt {
 				jEsm += j.transpose() * j;				
 				
 				// compute delta between intensities + ssd				
-				intensityDelta =  wptr[ x ] - tptr[ x ];				
+				intensityDelta = ( wptr[ x ] - tptr[ x ] );
 				
 				deltaI += intensityDelta * j.transpose();
-											
+				
 				ssd += Math::sqr( intensityDelta );
 				pointIdx++;
 			}
@@ -210,7 +213,7 @@ namespace cvt {
 			wdyptr += wdystride;
 		}
 		
-		ssd /= ( temp.width() * temp.height() );
+		ssd /= ( float )( temp.width() * temp.height() );
 		
 		temp.unmap<float>( timg );
 		tmpDx.unmap<float>( tdximg );
