@@ -1,107 +1,265 @@
 #include <iostream>
-#include <cv.h>
-#include <highgui.h>
-
-#include <cvt/gfx/Image.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/Camera.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/util/Time.h>
+#include <cvt/math/Math.h>
 #include <cvt/util/Exception.h>
 #include <cvt/math/ESM.h>
 
-#define CAMINPUT 1
+#include <cvt/gui/Application.h>
+#include <cvt/gui/Window.h>
+#include <cvt/gui/ImageView.h>
+#include <cvt/gui/Moveable.h>
+#include <cvt/gui/BasicTimer.h>
 
-//#define FILETEMPLATE
+#include <cvt/util/Delegate.h>
 
 using namespace cvt;
 
-struct Params {		
-	size_t numClick;
-	int x0, y0, x1, y1;
-};
-
-void mouseevent(int event, int x, int y, int flags, Params* p )
+class RectSelectImageView : public ImageView
 {
-	if(event == CV_EVENT_LBUTTONUP){
-		std::cout << " Click: " << x << ", " << y << " numClick: " << p->numClick << std::endl;
-		switch ( p->numClick ) {
-			case 0:
-				// first point
-				p->x0 = x; 
-				p->y0 = y;
-				p->numClick++;
-				break;
-			case 1:
-				// second point				
-				if( x < p->x0 ){
-					p->x1 = p->x0;
-					p->x0 = x;
-				} else {
-					p->x1 = x;
-				}
-				if( y < p->y0 ){
-					p->y1 = p->y0;
-					p->y0 = y;
-				} else {
-					p->y1 = y;
-				}
-				p->numClick++;		
-				break;
-			default:
-				break;
+public:
+	RectSelectImageView() : ImageView()
+	{
+		pts[ 0 ][ 0 ] = 0;
+		pts[ 0 ][ 1 ] = 0;
+		pts[ 1 ][ 0 ] = 0;
+		pts[ 1 ][ 1 ] = 0;
+		pts[ 2 ][ 0 ] = 0;
+		pts[ 2 ][ 1 ] = 0;
+		pts[ 3 ][ 0 ] = 0;
+		pts[ 3 ][ 1 ] = 0;
+	}
+	
+	void mouseMoveEvent( MouseMoveEvent* e )
+	{
+		if( ! ( e->buttonMask() & 1 ) ) return;
+		
+		int w, h;
+		this->size( w, h );
+		float x = ( float )e->x / ( float )w;
+		float y = ( float )e->y / ( float )h;
+		updateSelection( x, y );			
+	}
+	
+	void mousePressEvent( MousePressEvent* e )
+	{
+		if( e->button() != 1 ) return;		
+		
+		int w, h;
+		this->size( w, h );
+		
+		_firstClick[ 0 ] = ( float )( e->x ) / ( float )w;
+		_firstClick[ 1 ] = ( float )( e->y ) / ( float )h;
+		
+		updateSelection( _firstClick[ 0 ] , _firstClick[ 1 ] );
+	}
+	
+	void mouseReleaseEvent( MouseReleaseEvent* e )
+	{
+		if( e->button() != 1 ) return;
+		
+		int w, h;
+		this->size( w, h );
+		float x = ( float )e->x / ( float )w;
+		float y = ( float )e->y / ( float )h;
+
+		updateSelection( x, y );
+		
+		selectionComplete.notify();
+	}
+	
+	void paintEvent( PaintEvent* e , GFX* gfx ) 
+	{
+		ImageView::paintEvent( e, gfx );
+		
+		int w, h;
+		
+		this->size( w, h );
+		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );		
+		gfx->drawLine( w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ], w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ] );
+		gfx->drawLine( w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ], w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ] );
+		gfx->drawLine( w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ], w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ] );
+		gfx->drawLine( w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ], w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ] );
+		update();
+	}
+	
+	void selectedRect( Rectf & r )
+	{
+		r.x = Math::min( pts[ 0 ][ 0 ], pts[ 2 ][ 0 ] );
+		r.y = Math::min( pts[ 0 ][ 1 ], pts[ 2 ][ 1 ] );
+		r.width = Math::abs( pts[ 1 ][ 0 ] - pts[ 0 ][ 0 ] );
+		r.height = Math::abs( pts[ 1 ][ 1 ] - pts[ 2 ][ 1 ] );
+	}
+	
+	void updatePoints( Eigen::Matrix<double, 3, 4> & pt, float width, float height )
+	{
+		for( size_t i = 0; i < 4; i++ ){
+			pts[ i ][ 0 ] = ( float ) ( pt( 0, i ) / pt( 2, i ) ) / width;
+			pts[ i ][ 1 ] = ( float ) ( pt( 1, i ) / pt( 2, i ) ) / height;
 		}
 	}
-}
+	
+	// normalized dimensions!
+	Vector2f pts[ 4 ];
+	Signal<void>	selectionComplete;
+	
+private:
+	Vector2f _firstClick;
+	
+	void updateSelection( float x, float y )
+	{		
+		pts[ 0 ][ 0 ] = _firstClick[ 0 ];
+		pts[ 0 ][ 1 ] = _firstClick[ 1 ];
+		pts[ 1 ][ 0 ] = x;
+		pts[ 1 ][ 1 ] = _firstClick[ 1 ];
+		pts[ 2 ][ 0 ] = x;
+		pts[ 2 ][ 1 ] = y;
+		pts[ 3 ][ 0 ] = _firstClick[ 0 ];
+		pts[ 3 ][ 1 ] = y;
+	}
+};
 
-void drawEstimate( const Image& temp, Image & out, SL3Transform & hom )
+class EsmWindow : public Window
 {
-	CvPoint p0, p1, p2, p3;
-	Eigen::Vector3d pHom, pPrime;
+	public: 
+		EsmWindow( Camera * cam ) : 
+			Window( "ESM"), 
+			_bt( 10 ) /* update in ms */,
+			_cam( cam ), 
+			_templateView(),
+			_tempMov( &_templateView ),
+			_camView(),
+			_camMov( &_camView ),
+			_esm( 40, 0.01 ),
+			_selectionReady( false )
+		{	
+			this->setVisible( true );			
+			this->setSize( 800, 600 );
+			
+			// container for the template image 
+			_tempMov.setSize( 160, 120 );
+			_tempMov.setTitle( "Template Image" );			
+			this->addWidget( &_tempMov );
+			
+			// container for the template image 			
+			_camMov.setSize( 320, 240 );
+			_camMov.setTitle( "Camera Image" );			
+			this->addWidget( &_camMov );
+			
+			_cam->nextFrame();
+			_camView.setImage( _cam->frame() );
+			
+			// timer to call the loop:
+			_runLoopDelegate = new  Delegate<void ( BasicTimer* )>( this, &EsmWindow::loop );
+			_bt.timeout.add( _runLoopDelegate );
+			_bt.start();
+			
+			_selectionDelegate = new Delegate<void () >( this, &EsmWindow::newTemplateSelection );
+			_camView.selectionComplete.add( _selectionDelegate );
+			
+			_imgFloatGray.reallocate( _cam->width(), _cam->height(), IFormat::GRAY_FLOAT );			
+		}
+		
+		~EsmWindow()
+		{
+			_bt.timeout.remove( _runLoopDelegate );
+			delete _runLoopDelegate;
+			
+			_camView.selectionComplete.remove( _selectionDelegate );
+			delete _selectionDelegate;			
+		}
 	
-	pHom[ 0 ] = 0; pHom[ 1 ] = 0; pHom[ 2 ] = 1.0;
-	pPrime = hom.matrix() * pHom;
-	p0.x = (int) ( pPrime[ 0 ] / pPrime[ 2 ] );
-	p0.y = (int) ( pPrime[ 1 ] / pPrime[ 2 ] );
+		void loop( BasicTimer* )
+		{
+			_cam->nextFrame();			
+			_camView.setImage( _cam->frame() );			
+			_cam->frame().convert( _imgFloatGray );
+			
+			if( _selectionReady ){
+				_esm.optimize( _homography, _imgFloatGray );
+				std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
+				
+				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;				
+				_camView.updatePoints( pt, _cam->width(), _cam->height() );								
+				
+			}
+		}
 	
-	pHom[ 0 ] = temp.width()-1; pHom[ 1 ] = 0; pHom[ 2 ] = 1.0;
-	pPrime = hom.matrix() * pHom;
-	p1.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
-	p1.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
+		void newTemplateSelection()
+		{
+			int w, h;
+			_camView.size( w, h );
+			
+			float sx = ( float )_cam->width();
+			float sy = ( float )_cam->height();
+			
+			Rectf rect;
+			_camView.selectedRect( rect );
+			std::cout << sx << std::endl;
+			std::cout << sy << std::endl;
+			rect.x *= sx;
+			rect.y *= sy;
+			rect.width *= sx;
+			rect.height *= sy;
+			
+			std::cout << rect << std::endl;
+			
+			Recti roi;
+			roi.x = ( int )rect.x;
+			roi.y = ( int )rect.y;
+			roi.width = Math::max( ( int )rect.width, 5 );
+			roi.height = Math::max( ( int )rect.height, 5);
+			
+			Image tmp( _imgFloatGray, &roi );
+			_esm.updateTemplate( tmp );
+			
+			Image tmpu8( _cam->frame(), &roi );
+			_templateView.setImage( tmpu8 );			
+			
+			_points( 0, 0 ) = 0; 
+			_points( 1, 0 ) = 0; 
+			_points( 2, 0 ) = 1;
+			
+			_points( 0 , 1 ) = roi.width;
+			_points( 1 , 1 ) = 0; 
+			_points( 2 , 1 ) = 1; 
+			
+			_points( 0 , 2 ) = roi.width;
+			_points( 1 , 2 ) = roi.height; 
+			_points( 2 , 2 ) = 1;
+			
+			_points( 0 , 3 ) = 0;
+			_points( 1 , 3 ) = roi.height; 
+			_points( 2 , 3 ) = 1;
+						
+			// set the homography
+			_homography.set( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
+			
+			_selectionReady = true;
+		}
+			
+	private:
+		BasicTimer				_bt;
+		Camera*					_cam;
+		ImageView				_templateView;
+		Moveable				_tempMov;		
+		RectSelectImageView		_camView;
+		Moveable				_camMov;
 	
-	pHom[ 0 ] = temp.width()-1; pHom[ 1 ] = temp.height()-1; pHom[ 2 ] = 1.0;
-	pPrime = hom.matrix() * pHom;
-	p2.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
-	p2.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
+		Image					_imgFloatGray;
 	
-	pHom[ 0 ] = 0.0; pHom[ 1 ] = temp.height()-1; pHom[ 2 ] = 1.0;
-	pPrime = hom.matrix() * pHom;
-	p3.x = (int)( pPrime[ 0 ] / pPrime[ 2 ] );
-	p3.y = (int)( pPrime[ 1 ] / pPrime[ 2 ] );
+		Eigen::Matrix<double, 3, 4>	_points;	
+		Delegate<void ( BasicTimer* )>*	 _runLoopDelegate;
+		Delegate<void ()>*				 _selectionDelegate;
 	
-//	std::cout << "P: " << p0.x << ", " << p0.y << std::endl;
-//	std::cout << "P: " << p1.x << ", " << p1.y << std::endl;
-//	std::cout << "P: " << p2.x << ", " << p2.y << std::endl;
-//	std::cout << "P: " << p3.x << ", " << p3.y << std::endl;
-	
-	size_t stride;
-	uint8_t * data = out.map( & stride );
-	cv::Mat ocvImage( out.height(), out.width(), CV_32FC1, (void *)data, stride );
-	cv::line( ocvImage, p0, p1, CV_RGB(255, 255, 255), 2 );
-	cv::line( ocvImage, p1, p2, CV_RGB(255, 255, 255), 2 );
-	cv::line( ocvImage, p2, p3, CV_RGB(255, 255, 255), 2 );
-	cv::line( ocvImage, p0, p3, CV_RGB(255, 255, 255), 2 );
-	cv::imshow( "ESM", ocvImage );
-	out.unmap( data );
-}
+		ESM<double> _esm;
+		SL3<double> _homography;
+		bool		_selectionReady;
+};
 
-
-
-int main(int argc, char* argv[])
+int main( void )
 {
-	const Image* frame;
-	
-#ifdef CAMINPUT
 	Camera::updateInfo();
 	size_t numCams = Camera::count();
 	
@@ -123,131 +281,15 @@ int main(int argc, char* argv[])
 		std::cout << "Index out of bounds -> select camera in Range:";
 		std::cin >> selection;
 	}	
+
 	Camera * cam;
 	cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
-#endif
-
-	int key;
-	size_t frames = 0;
-	Time timer;	
+	cam->startCapture();	
+	EsmWindow window( cam );
 	
-	try {
+	Application::run();
+	cam->stopCapture();
+	delete cam;	
 		
-#ifdef CAMINPUT
-		cam->startCapture();		
-		
-		Image out( cam->width(), cam->height(), IFormat::GRAY_UINT8 );
-		Image outF( cam->width(), cam->height(), IFormat::GRAY_FLOAT );
-#else
-		std::string dataFolder(DATA_FOLDER);
-		std::string inputFile(dataFolder + "/lena_g.png");
-	
-		// RGBA UBYTE IMAGE
-		cvt::Image out;		
-		cvt::ImageIO::loadPNG(out, inputFile);
-		Image outF( out.width(), out.height(), IFormat::GRAY_FLOAT );
-		
-		out.convert( outF );
-#endif
-		
-		/* the template */
-		Image * temp = 0;
-
-#ifndef FILETEMPLATE		
-		Params p = { 0, 0, 0, 0, 0 };
-		cv::namedWindow( "ESM" );
-		cvSetMouseCallback( "ESM", ( CvMouseCallback ) mouseevent, &p );
-		
-		timer.reset();
-		
-		bool selectPatch = true;
-		
-		while( selectPatch ) {
-#ifdef CAMINPUT
-			cam->nextFrame();
-			cam->frame().convert( out );
-#endif
-			out.convert( outF );
-			
-			size_t stride;
-			uint8_t * data = out.map( & stride );
-			cv::Mat ocvImage( out.height(), out.width(), CV_8UC1, (void *)data, stride );
-
-			if( selectPatch ){
-				if( p.numClick == 1 ){
-					cv::circle( ocvImage, cv::Point( p.x0, p.y0 ), 2, CV_RGB( 255, 255, 255 ), 2, CV_FILLED );
-				} else if( p.numClick == 2 ){
-					Recti roi( p.x0, p.y0, p.x1-p.x0, p.y1-p.y0 );
-					temp = new Image( outF, &roi );
-					selectPatch = false;
-				}
-			}
-			cv::imshow( "ESM", ocvImage );
-			out.unmap( data );
-
-			key = cvWaitKey( 10 ) & 0xff;
-			if( key == 27 )
-				break;
-		}
-		if( selectPatch )
-			return 0;
-#else
-		Image filetemplate;
-		ImageIO::loadPNG(filetemplate,"/home/heise/Pictures/PRML.png");
-		temp = new Image( filetemplate.width(), filetemplate.height(), IFormat::GRAY_FLOAT );
-		filetemplate.convert( *temp );
-#endif
-		
-		ESM esm( *temp, 20, 1e-6 );
-		
-		
-		SL3Transform homography;
-		Eigen::Matrix<double, 8, 1> params = Eigen::Matrix<double, 8, 1>::Zero();
-#ifndef FILETEMPLATE
-		params[ 0 ] = p.x0;
-		params[ 1 ] = p.y0;
-#else
-		params[ 0 ] = 150.0;
-		params[ 1 ] = 250.0;
-
-#endif
-		homography.update( params );
-		
-//		std::cout << "Homography: " << homography.matrix() << std::endl;
-//		std::cout << "Det: " << homography.matrix().determinant() << std::endl;
-						
-		drawEstimate( *temp, outF, homography );
-//		cvShowImage( "ESM", outF.iplimage() );				
-//		cvShowImage( "Template", temp->iplimage() );				
-		cvWaitKey( 0 );
-				
-		while( 1 ) {
-#ifdef CAMINPUT
-			cam->nextFrame();
-			cam->frame().convert( out );
-#endif
-			out.convert( outF );
-			
-			esm.optimize( homography, outF );
-			
-			drawEstimate( *temp, outF, homography );	
-			
-			key = ( cvWaitKey( 5 ) & 0xff );
-			if( key == 27 )
-				break;
-			
-			frames++;
-			if( timer.elapsedSeconds() > 5.0f ) {
-				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-				frames = 0;
-				timer.reset();
-			}
-		}
-		
-		
-	} catch( cvt::Exception e ) {
-		std::cout << e.what() << std::endl;
-	}
-	
 	return 0;
 }

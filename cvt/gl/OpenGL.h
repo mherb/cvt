@@ -1,7 +1,7 @@
 #ifndef CVTGL_H
 #define CVTGL_H
 
-#ifndef GL_GLEXT_PROTOTYPES 
+#ifndef GL_GLEXT_PROTOTYPES
 	#define GL_GLEXT_PROTOTYPES
 #endif
 
