@@ -993,7 +993,7 @@ namespace cvt {
 		delete[] scalery.weights;
 	}
 	
-	void Image::scaleFixedu8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
+	void Image::scaleFixedU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
 		IConvolveAdaptiveFixed scalerx;
 		IConvolveAdaptiveFixed scalery;
