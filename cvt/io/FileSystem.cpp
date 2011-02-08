@@ -43,14 +43,13 @@ namespace cvt {
 
 	void FileSystem::ls( const std::string & path, std::vector<std::string> & entries )
 	{
-		if( !exists( path ) ){
-			throw CVTException( "Path not found: " + path );
-		}
+		entries.clear();
+		if( !exists( path ) )
+			return;
 
 		DIR * dirEntries = opendir( path.c_str() );
-		if( dirEntries == NULL ){
-			CVTException( "Directory not readable: " + path );
-		}
+		if( dirEntries == NULL )
+			return;
 
 		struct dirent * entry = NULL;
 

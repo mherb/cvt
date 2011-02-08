@@ -104,12 +104,12 @@ public:
 	// normalized dimensions!
 	Vector2f pts[ 4 ];
 	Signal<void>	selectionComplete;
-	
+
 private:
 	Vector2f _firstClick;
-	
+
 	void updateSelection( float x, float y )
-	{		
+	{
 		pts[ 0 ][ 0 ] = _firstClick[ 0 ];
 		pts[ 0 ][ 1 ] = _firstClick[ 1 ];
 		pts[ 1 ][ 0 ] = x;
@@ -123,31 +123,32 @@ private:
 
 class EsmWindow : public Window
 {
-	public: 
-		EsmWindow( Camera * cam ) : 
-			Window( "ESM"), 
-			_bt( 10 ) /* update in ms */,
-			_cam( cam ), 
+	public:
+		EsmWindow( Camera * cam ) :
+			Window( "ESM"),
+			_bt( 1 ) /* update in ms */,
+			_cam( cam ),
 			_templateView(),
 			_tempMov( &_templateView ),
 			_camView(),
 			_camMov( &_camView ),
+			_camImage( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_esm( 25, 0.001 ),
 			_selectionReady( false )
-		{	
-			this->setVisible( true );			
+		{
+			this->setVisible( true );
 			this->setSize( 800, 600 );
-			
-			// container for the template image 
+
+			// container for the template image
 			_tempMov.setSize( 160, 120 );
-			_tempMov.setTitle( "Template Image" );			
+			_tempMov.setTitle( "Template Image" );
 			this->addWidget( &_tempMov );
-			
-			// container for the template image 			
+
+			// container for the template image
 			_camMov.setSize( 320, 240 );
-			_camMov.setTitle( "Camera Image" );			
+			_camMov.setTitle( "Camera Image" );
 			this->addWidget( &_camMov );
-			
+
 			_cam->nextFrame();
 			_camView.setImage( _cam->frame() );
 			
@@ -173,27 +174,28 @@ class EsmWindow : public Window
 	
 		void loop( BasicTimer* )
 		{
-			_cam->nextFrame();			
-			_camView.setImage( _cam->frame() );			
-			_cam->frame().convert( _imgFloatGray );
-			
+			_cam->nextFrame();
+			_cam->frame().convert( _camImage );
+			_camView.setImage( _camImage );
+			_camImage.convert( _imgFloatGray );
+
 			if( _selectionReady ){
 				_esm.optimize( _homography, _imgFloatGray );
-				
+
 				//std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
-				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;				
+				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
 			}
 		}
-	
+
 		void newTemplateSelection()
 		{
 			int w, h;
 			_camView.size( w, h );
-			
+
 			float sx = ( float )_cam->width();
 			float sy = ( float )_cam->height();
-			
+
 			Rectf rect;
 			_camView.selectedRect( rect );
 			std::cout << sx << std::endl;
@@ -202,28 +204,28 @@ class EsmWindow : public Window
 			rect.y *= sy;
 			rect.width *= sx;
 			rect.height *= sy;
-			
+
 			std::cout << rect << std::endl;
-			
+
 			Recti roi;
 			roi.x = ( int )rect.x;
 			roi.y = ( int )rect.y;
 			roi.width = Math::max( ( int )rect.width, 5 );
 			roi.height = Math::max( ( int )rect.height, 5);
-			
+
 			Image tmp( _imgFloatGray, &roi );
 			_esm.updateTemplate( tmp );
-			
+
 			Image tmpu8( _cam->frame(), &roi );
-			_templateView.setImage( tmpu8 );			
-			
-			_points( 0, 0 ) = 0; 
-			_points( 1, 0 ) = 0; 
+			_templateView.setImage( tmpu8 );
+
+			_points( 0, 0 ) = 0;
+			_points( 1, 0 ) = 0;
 			_points( 2, 0 ) = 1;
-			
+
 			_points( 0 , 1 ) = roi.width;
-			_points( 1 , 1 ) = 0; 
-			_points( 2 , 1 ) = 1; 
+			_points( 1 , 1 ) = 0;
+			_points( 2 , 1 ) = 1;
 			
 			_points( 0 , 2 ) = roi.width;
 			_points( 1 , 2 ) = roi.height; 
@@ -232,7 +234,7 @@ class EsmWindow : public Window
 			_points( 0 , 3 ) = 0;
 			_points( 1 , 3 ) = roi.height; 
 			_points( 2 , 3 ) = 1;
-						
+
 			// set the homography
 			_homography.set( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
 			
@@ -248,6 +250,7 @@ class EsmWindow : public Window
 		Moveable				_camMov;
 	
 		Image					_imgFloatGray;
+		Image					_camImage;
 	
 		Eigen::Matrix<double, 3, 4>	_points;	
 		Delegate<void ( BasicTimer* )>*	 _runLoopDelegate;
@@ -268,28 +271,32 @@ int main( void )
 		std::cout << "Please connect a camera!" << std::endl;
 		return 0;
 	}
-	
+
 	for( size_t i = 0; i < numCams; i++ ){
 		const CameraInfo & info = Camera::info( i );
 		std::cout << "Camera " << i << ": " << info << std::endl;
 	}
-	
+
 	size_t selection = numCams;
 	std::cout << "Select camera: ";
 	std::cin >> selection;
 	while ( selection >= numCams ){
 		std::cout << "Index out of bounds -> select camera in Range:";
 		std::cin >> selection;
-	}	
+	}
 
+	try {
 	Camera * cam;
 	cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
-	cam->startCapture();	
+	cam->startCapture();
 	EsmWindow window( cam );
-	
+
 	Application::run();
 	cam->stopCapture();
-	delete cam;	
-		
+	delete cam;
+	} catch( const Exception & e ){
+		std::cout << e.what() << std::endl;
+	}
+
 	return 0;
 }

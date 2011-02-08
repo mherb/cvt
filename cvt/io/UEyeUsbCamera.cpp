@@ -14,7 +14,7 @@ namespace cvt
 		this->open( mode );
 		this->setPixelClock( 40 );
 		this->setFramerate( 80.0 );
-		this->setAutoSensorShutter( true );
+		this->setAutoSensorShutter( false );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
