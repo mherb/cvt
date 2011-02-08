@@ -71,6 +71,13 @@ namespace cvt {
 	}
 
 
+	inline IKernel::IKernel( size_t w, size_t h ) : _width( w ),
+												    _height( h )
+	{
+		_mem = new float[ _width * _height ];
+		_data = _mem;
+	}
+
 	inline IKernel& IKernel::operator=(const IKernel& kernel )
 	{
 		if( &kernel == this )
