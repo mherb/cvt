@@ -1,3 +1,5 @@
+#define __STDC_LIMIT_MACROS 1
+
 #include <cvt/util/SIMD.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMDSSE.h>
@@ -1178,6 +1180,26 @@ namespace cvt {
 		i = n & 0x03;
 		while( i-- ) {
 			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
+		}
+	}
+
+	void SIMD::Conv_fx_to_s16( int16_t* dst, const Fixed* src, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
+			src++;
+			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
+			src++;
+			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
+			src++;
+			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
+			src++;
+		}
+		i = n & 0x03;
+		while( i-- ) {
+			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
 			src++;
 		}
 	}

@@ -96,7 +96,7 @@ namespace cvt {
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
-			void scaleFixedu8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
+			void scaleFixedU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 			void checkFormat( const Image & img, const char* func, size_t lineNum, const IFormat & format ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
