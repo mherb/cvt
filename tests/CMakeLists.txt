@@ -48,6 +48,7 @@ ADD_SUBDIRECTORY(faceshape)
 ADD_SUBDIRECTORY(faceshapepca)
 ADD_SUBDIRECTORY(faceshapepca2)
 ADD_SUBDIRECTORY(splineui)
+ADD_SUBDIRECTORY(colorxyz)
 
 IF(UNIX)
 	IF(APPLE)
