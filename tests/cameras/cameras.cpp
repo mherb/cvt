@@ -112,7 +112,7 @@ int main( )
 		w.addWidget( &m );
 
 		CameraTimeout camTimeOut( cam, &m, &camView );
-		uint32_t timerId = Application::registerTimer( 30, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 

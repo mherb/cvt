@@ -47,7 +47,7 @@ class UEyeUsbCamera : public Camera
             INT			_width;			// width of video
             INT			_height;		// height of video
 
-			static const size_t	_numImageBuffers = 4;
+			static const size_t	_numImageBuffers = 2;
 			int8_t*				_buffers[ _numImageBuffers ];
 			INT					_bufferIds[ _numImageBuffers ];
 
