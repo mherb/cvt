@@ -58,7 +58,7 @@ namespace cvt {
 				case PNG_COLOR_TYPE_GRAY:
 					if(bit_depth < 8)
 						png_set_expand(png_ptr);
-					img.reallocate( width, height, IFormat::GRAY_UINT8 );		    
+					img.reallocate( width, height, IFormat::GRAY_UINT8 );
 					break;
 				case PNG_COLOR_TYPE_GRAY_ALPHA:
 					img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );

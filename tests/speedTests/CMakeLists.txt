@@ -1,0 +1,11 @@
+INCLUDE(MacroTestApplication)
+
+FIND_PACKAGE( OpenCV )
+
+IF( NOT "${OpenCV_LIBS}" EQUAL "" )
+	SET( OTHER_LIBS
+		"${OpenCV_LIBS}"
+	)
+
+	MACRO_TEST_APPLICATION( "${OTHER_LIBS}" )
+ENDIF()
