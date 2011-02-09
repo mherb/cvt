@@ -220,7 +220,7 @@ namespace cvt {
 		T weight;
 		int height = _temp.height();		
 		while( height-- ){
-			for( int x = 0; x < _temp.width(); x++ ){
+			for( size_t x = 0; x < _temp.width(); x++ ){
 				_costs+= costFunc.cost( w[ x ] - t[ x ], weight );
 			}
 			w += wstride;

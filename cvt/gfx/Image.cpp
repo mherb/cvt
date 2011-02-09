@@ -1,4 +1,5 @@
 #include <cvt/gfx/Image.h>
+#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>
@@ -37,6 +38,17 @@ namespace cvt {
 		else
 			_mem = new ImageAllocatorMem();
 		_mem->copy( img._mem );
+	}
+
+	Image::Image( const std::string & fileName, IAllocatorType memtype )
+	{
+		if( memtype == IALLOCATOR_CL )
+			_mem = new ImageAllocatorCL();
+		else if( memtype == IALLOCATOR_GL )
+			_mem = new ImageAllocatorGL();
+		else
+			_mem = new ImageAllocatorMem();
+		ImageIO::loadPNG( *this, fileName );
 	}
 
 	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype )
