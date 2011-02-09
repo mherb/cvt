@@ -1,6 +1,8 @@
 #ifndef CVT_COSTFUNCTION_H
 #define CVT_COSTFUNCTION_H
 
+#include <cvt/math/Math.h>
+
 namespace cvt {
 	
 	template <typename T, class ComputeType>
