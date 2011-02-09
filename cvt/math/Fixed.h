@@ -36,6 +36,9 @@ namespace cvt
 			Fixed operator*( uint8_t other ) const;
 			Fixed operator+( uint8_t other ) const;
 			Fixed operator/( Fixed other ) const;
+			Fixed operator<<( uint8_t other ) const;
+			int32_t native() const;
+
 			Fixed operator+=( Fixed other );
 			Fixed operator-=( Fixed other );
 			Fixed operator*=( Fixed other );
@@ -184,6 +187,19 @@ namespace cvt
 		ret._val = ( s < 0 ? -q : q );
 	    return ret;
 	}
+
+	inline Fixed Fixed::operator<<( uint8_t other ) const
+	{
+		Fixed ret( *this );
+		ret._val <<= other;
+		return ret;
+	}
+
+	inline int32_t Fixed::native() const
+	{
+		return _val;
+	}
+
 
 	inline Fixed Fixed::operator+=( Fixed other )
 	{

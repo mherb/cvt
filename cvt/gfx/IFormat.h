@@ -76,6 +76,7 @@ namespace cvt
 		static const IFormat UYVY_UINT8;
 
 		static const IFormat & uint8Equivalent( const IFormat & format );
+		static const IFormat & int16Equivalent( const IFormat & format );
 		static const IFormat & floatEquivalent( const IFormat & format );
 
 		private:
@@ -126,6 +127,34 @@ namespace cvt
 		}
 	}
 
+	inline const IFormat & IFormat::int16Equivalent( const IFormat & format )
+	{
+		switch ( format.formatID ) {
+			case IFORMAT_GRAY_UINT8:
+			case IFORMAT_GRAY_UINT16:
+			case IFORMAT_GRAY_INT16:
+			case IFORMAT_GRAY_FLOAT:
+				return IFormat::GRAY_INT16;
+			case IFORMAT_GRAYALPHA_UINT8:
+			case IFORMAT_GRAYALPHA_UINT16:
+			case IFORMAT_GRAYALPHA_INT16:
+			case IFORMAT_GRAYALPHA_FLOAT:
+				return IFormat::GRAYALPHA_INT16;
+			case IFORMAT_RGBA_UINT8:
+			case IFORMAT_RGBA_UINT16:
+			case IFORMAT_RGBA_INT16:
+			case IFORMAT_RGBA_FLOAT:
+				return IFormat::RGBA_INT16;
+			case IFORMAT_BGRA_UINT8:
+			case IFORMAT_BGRA_UINT16:
+			case IFORMAT_BGRA_INT16:
+			case IFORMAT_BGRA_FLOAT:
+				return IFormat::BGRA_INT16;
+			default:
+				throw CVTException( "NO INT16 equivalent for requested FORMAT" );
+				break;
+		}
+	}
 	inline const IFormat & IFormat::floatEquivalent( const IFormat & format )
 	{
 		switch ( format.formatID ) {

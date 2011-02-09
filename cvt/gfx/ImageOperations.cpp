@@ -923,7 +923,8 @@ namespace cvt {
 			throw CVTException( "Image smaller than convolution kernel");
 		}
 
-		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
+		checkFormat( idst, __PRETTY_FUNCTION__, __LINE__, IFormat::int16Equivalent( _mem->_format ) );
+		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
 
 		widthchannels = _mem->_width * _mem->_format.channels;
 		buf = new Fixed[ _mem->_width * _mem->_format.channels ];
