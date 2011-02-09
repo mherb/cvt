@@ -1188,19 +1188,14 @@ namespace cvt {
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
-			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
-			src++;
-			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
-			src++;
-			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
-			src++;
-			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
-			src++;
+			*dst++ = ( int16_t ) Math::clamp( ( *src++ ).native() >> 8, INT16_MIN, INT16_MAX );
+			*dst++ = ( int16_t ) Math::clamp( ( *src++ ).native() >> 8, INT16_MIN, INT16_MAX );
+			*dst++ = ( int16_t ) Math::clamp( ( *src++ ).native() >> 8, INT16_MIN, INT16_MAX );
+			*dst++ = ( int16_t ) Math::clamp( ( *src++ ).native() >> 8, INT16_MIN, INT16_MAX );
 		}
 		i = n & 0x03;
 		while( i-- ) {
-			*dst++ = ( uint16_t ) Math::clamp( src->round(), INT16_MIN, INT16_MAX );
-			src++;
+			*dst++ = ( int16_t ) Math::clamp( ( *src++ ).native() >> 8, INT16_MIN, INT16_MAX );
 		}
 	}
 
