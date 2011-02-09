@@ -80,12 +80,7 @@ Philipp:
 
 Sebastian:
 ==========
-- remove boost from cmake
 - make a template application for the gui
-- implement CPU version of GaussIIR
-- use smoothing in PatchGenerator and test it with ferns
-- implement SE3 Pose representation
-- refactor Levenberg-Marquard
 - Feature Tracking
 	o revisit PTAM and other papers
 	o implement active patch search
