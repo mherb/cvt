@@ -29,7 +29,7 @@ namespace cvt
 				return static_cast< Derived<T>* >( this )->buildLSSystem( A, b, costFunc ); 
 			}
 					
-			inline T evaluateCosts( const CostFunction<T, MeasType> & costFunc ) 
+			inline T evaluateCosts( const CostFunction<T, MeasType> & costFunc )
 			{
 				return static_cast< Derived<T>* >( this )->evaluateCosts( costFunc ); 
 			}

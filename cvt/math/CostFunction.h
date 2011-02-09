@@ -17,10 +17,18 @@ namespace cvt {
 	class SquaredDistance : public CostFunction<T, ComputeType>
 	{
 		public:			
-			
 			SquaredDistance() : CostFunction<T, ComputeType>( false ) {}
 			~SquaredDistance(){}
 			inline T cost( const ComputeType & r, T& ) const { return 0.5 * r.squaredNorm(); }
+	};
+	
+	template <typename T>
+	class SquaredDistance<T, T> : public CostFunction<T, T>
+	{
+		public:
+			SquaredDistance() : CostFunction<T, T>( false ) {}
+			~SquaredDistance(){}
+			inline T cost( const T & r, T& ) const { return r*r; }
 	};
 	
 	template<typename T, class ComputeType>
@@ -45,6 +53,30 @@ namespace cvt {
 		
 		private:
 			T _k;
+	};
+	
+	template< typename T >
+	class RobustHuber<T, T> : public CostFunction<T, T>
+	{
+	public:		
+		RobustHuber( T k ) : CostFunction<T, T>( true ), _k( k ) {}
+		~RobustHuber(){}
+		
+		inline T cost( const T & r, T & weight ) const 
+		{
+			T norm = Math::abs( r );
+			
+			if( norm <= _k ){
+				weight = 1; 
+				return norm * norm;
+			} else {
+				weight = _k / norm;
+				return _k * ( norm - 0.5 * _k );
+			}				
+		}
+		
+	private:
+		T _k;
 	};
 	
 }
