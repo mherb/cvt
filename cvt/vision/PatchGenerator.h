@@ -27,7 +27,6 @@ namespace cvt
 			double				_whiteNoiseSigma;			
 			Eigen::Matrix2f		_affine;
 			RNG					_rng;
-			GaussIIR			_gaussFilter;
 			ParamSet*			_gaussParams;
 			size_t				_inHandle, _outHandle;
 			
