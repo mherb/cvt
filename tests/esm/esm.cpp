@@ -53,6 +53,7 @@ public:
 		_firstClick[ 1 ] = ( float )( e->y ) / ( float )h;
 		
 		updateSelection( _firstClick[ 0 ] , _firstClick[ 1 ] );
+		selectionDidStart.notify();
 	}
 	
 	void mouseReleaseEvent( MouseReleaseEvent* e )
@@ -104,6 +105,7 @@ public:
 	// normalized dimensions!
 	Vector2f pts[ 4 ];
 	Signal<void>	selectionComplete;
+	Signal<void>	selectionDidStart;
 
 private:
 	Vector2f _firstClick;
@@ -157,8 +159,12 @@ class EsmWindow : public Window
 			_bt.timeout.add( _runLoopDelegate );
 			_bt.start();
 			
-			_selectionDelegate = new Delegate<void () >( this, &EsmWindow::newTemplateSelection );
+			_selectionDelegate = new Delegate< void () >( this, &EsmWindow::newTemplateSelection );
 			_camView.selectionComplete.add( _selectionDelegate );
+			
+			_selectionDidStart = new Delegate< void () >( this, &EsmWindow::selectionStart );
+			_camView.selectionDidStart.add( _selectionDidStart );
+			
 			
 			_imgFloatGray.reallocate( _cam->width(), _cam->height(), IFormat::GRAY_FLOAT );			
 			_time.reset();
@@ -251,6 +257,11 @@ class EsmWindow : public Window
 			
 			_selectionReady = true;
 		}
+	
+		void selectionStart()
+		{
+			_selectionReady = false;
+		}
 			
 	private:
 		BasicTimer				_bt;
@@ -266,6 +277,7 @@ class EsmWindow : public Window
 		Eigen::Matrix<double, 3, 4>	_points;	
 		Delegate<void ( BasicTimer* )>*	 _runLoopDelegate;
 		Delegate<void ()>*				 _selectionDelegate;
+		Delegate<void ()>*				 _selectionDidStart;
 	
 		ESM<double> _esm;
 		SL3<double> _homography;
