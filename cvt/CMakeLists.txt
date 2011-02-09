@@ -203,8 +203,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/VideoReader.h
 	io/PlyModel.h
 	math/CostFunction.h
-	math/ESM.h
 	math/Fixed.h
+	math/GaussNewton.h
 	math/LevenbergMarquard.h
 	math/Math.h	
 	math/Matrix.h
@@ -240,6 +240,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/AGAST.h
 	vision/CamModel.h
 	vision/DLT.h
+	vision/ESM.h
 	vision/FAST.h
 	vision/FeatureExtractor.h
 	vision/Ferns.h

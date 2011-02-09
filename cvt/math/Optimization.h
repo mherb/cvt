@@ -16,33 +16,45 @@ namespace cvt
 	template<typename T>
 	class TerminationCriteria {
 		public:
-			TerminationCriteria() :
-				costThreshold( std::numeric_limits<T>::min() ),
-				maxIterations( 100 )
+			TerminationCriteria( TerminationType termType = ( TERM_COSTS_THRESH | TERM_MAX_ITER ) ) :
+				_costThreshold( std::numeric_limits<T>::min() ),
+				_maxIterations( 40 ),
+				_termType( termType )
 			{}
 
 			TerminationCriteria( const TerminationCriteria & other ) :
-				costThreshold( other.costThreshold ), maxIterations( other.maxIterations )
+				_costThreshold( other._costThreshold ), _maxIterations( other._maxIterations )
 			{}
 
-			void setCostThreshold( T c ){ costThreshold = c; }
-			void setMaxIterations( size_t c ){ maxIterations = c; }
+			void setCostThreshold( T c ){ _costThreshold = c; }
+			void setMaxIterations( size_t c ){ _maxIterations = c; }
 
-			bool finished( TerminationType & termType, T costs, size_t iters ) const
+			bool finished( T costs, size_t iters ) const
 			{
 				bool ret = false;
-				if( termType & TERM_MAX_ITER ){
-					ret |= ( iters > maxIterations );
+				if( _termType & TERM_MAX_ITER ){
+					ret |= checkIters( iters );
 				}
-				if( termType & TERM_COSTS_THRESH ){
-					ret |= ( costs < costThreshold );
+				if( _termType & TERM_COSTS_THRESH ){
+					ret |= checkCosts( costs );
 				}
 				return ret;
 			}
+		
+			bool checkCosts( T c ) const
+			{
+				return c < _costThreshold;
+			}
+		
+			bool checkIters( size_t i ) const
+			{
+				return i > _maxIterations;
+			}
 
 			private:
-				T		costThreshold;
-				size_t	maxIterations;
+				T					_costThreshold;
+				size_t				_maxIterations;
+				TerminationType		_termType;
 	};
 }
 

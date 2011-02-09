@@ -14,26 +14,26 @@ namespace cvt {
 	class LevenbergMarquard
 	{
 		public:
-			LevenbergMarquard( const TerminationCriteria<T> & termCrit ) : 
-				_termCrit( termCrit )
-			{}
-		
+			LevenbergMarquard(){}		
 			~LevenbergMarquard(){}
 
 			template < template <typename Type> class Derived, class AType, class bType, class ParamType, class MeasType >
-			void	optimize( MeasurementModel<T, Derived, AType, bType, ParamType, MeasType> & model, const CostFunction<T, MeasType> & costFunc, TerminationType termType );			
+			void	optimize( MeasurementModel<T, Derived, AType, bType, ParamType, MeasType> & model, 
+							  const CostFunction<T, MeasType> & costFunc, 
+							  const TerminationCriteria<T> & termCrit );			
 			T		costs() const { return _lastCosts; }
 			size_t	iterations() const { return _iterations; }
 							
 		private:
 			size_t						_iterations;
 			T							_lastCosts;
-			TerminationCriteria<T>		_termCrit;						
 	};
 	
 	template<typename T>
 	template < template <typename Type> class Derived, class AType, class bType, class ParamType, class MeasType >
-	inline void LevenbergMarquard<T>::optimize( MeasurementModel<T, Derived, AType, bType, ParamType, MeasType> & model, const CostFunction<T, MeasType> & costFunc, TerminationType termType )
+	inline void LevenbergMarquard<T>::optimize( MeasurementModel<T, Derived, AType, bType, ParamType, MeasType> & model, 
+											    const CostFunction<T, MeasType> & costFunc, 
+											    const TerminationCriteria<T> & termCrit )
 	{
 		T currentCosts = model.evaluateCosts( costFunc );
 		
@@ -47,7 +47,7 @@ namespace cvt {
 		
 		bool reEvaluate = true;
 		
-		while( !_termCrit.finished( termType, _lastCosts, _iterations ) ){
+		while( !termCrit.finished( _lastCosts, _iterations ) ){
 			if( reEvaluate ){
 				currentCosts = model.buildLSSystem( A, b, costFunc );
 			}

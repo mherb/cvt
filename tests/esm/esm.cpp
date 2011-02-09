@@ -3,8 +3,10 @@
 #include <cvt/io/Camera.h>
 #include <cvt/util/Time.h>
 #include <cvt/math/Math.h>
+#include <cvt/math/GaussNewton.h>
+#include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Exception.h>
-#include <cvt/math/ESM.h>
+#include <cvt/vision/ESM.h>
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
@@ -135,7 +137,8 @@ class EsmWindow : public Window
 			_camView(),
 			_camMov( &_camView ),
 			_camImage( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
-			_esm( 25, 0.001 ),
+			_termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH ),
+			_costFunc( 5 ),/* huber */ 
 			_selectionReady( false )
 		{
 			this->setVisible( true );
@@ -169,6 +172,9 @@ class EsmWindow : public Window
 			_imgFloatGray.reallocate( _cam->width(), _cam->height(), IFormat::GRAY_FLOAT );			
 			_time.reset();
 			_iters = 0;
+			
+			_termCrit.setCostThreshold( 0.00001 );
+			_termCrit.setMaxIterations( 40 );
 		}
 		
 		~EsmWindow()
@@ -188,10 +194,10 @@ class EsmWindow : public Window
 			_camImage.convert( _imgFloatGray );
 
 			if( _selectionReady ){
-				_esm.optimize( _homography, _imgFloatGray );
-
-				//std::cout << "Result: " << _esm.error() << ", after " << _esm.iterations() << " iters" << std::endl;
-				Eigen::Matrix<double, 3, 4> pt = _homography.transformation() * _points;
+				_esm.updateInput( &_imgFloatGray );
+				_gn.optimize( _esm, _costFunc, _termCrit );
+								
+				Eigen::Matrix<double, 3, 4> pt = _esm.pose().transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
 			}
 			_iters++;
@@ -253,7 +259,8 @@ class EsmWindow : public Window
 			_points( 2 , 3 ) = 1;
 
 			// set the homography
-			_homography.set( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
+			_esm.updateInput( &_imgFloatGray );
+			_esm.setPose( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
 			
 			_selectionReady = true;
 		}
@@ -271,20 +278,27 @@ class EsmWindow : public Window
 		RectSelectImageView		_camView;
 		Moveable				_camMov;
 	
-		Image					_imgFloatGray;
-		Image					_camImage;
+		Image							_imgFloatGray;
+		Image							_camImage;	
+		Eigen::Matrix<double, 3, 4>		_points;	
 	
-		Eigen::Matrix<double, 3, 4>	_points;	
 		Delegate<void ( BasicTimer* )>*	 _runLoopDelegate;
 		Delegate<void ()>*				 _selectionDelegate;
 		Delegate<void ()>*				 _selectionDidStart;
 	
-		ESM<double> _esm;
-		SL3<double> _homography;
-		bool		_selectionReady;
-		Time		_time;
-		Time		_esmTime;
-		size_t		_iters;
+		ESM<double>					_esm;
+		TerminationCriteria<double>	_termCrit;
+		//GaussNewton<double>			_gn;
+		LevenbergMarquard<double>			_gn;
+	
+		// costfunction to use
+		//SquaredDistance<double, double> _costFunc;
+		RobustHuber<double, double> _costFunc;
+
+		bool			_selectionReady;
+		Time			_time;
+		Time			_esmTime;
+		size_t			_iters;
 };
 
 int main( void )

@@ -90,13 +90,13 @@ int main()
 	model.apply( poseVec );
 	std::cout << "Initial Transformation: \n" << model.pose().transformation() << std::endl; 
 
-	TerminationCriteria<double> termCriteria;
+	TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
 	termCriteria.setCostThreshold( 0.00001 );
 	termCriteria.setMaxIterations( 300 );
 	
 	//SquaredDistance<double, PointCorrespondences3d2d<double>::MeasType> costFunction;
 	RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
-	LevenbergMarquard<double> lm( termCriteria );
+	LevenbergMarquard<double> lm;
 		
 	Time timer;
 	lm.optimize( model, costFunction, ( TERM_COSTS_THRESH | TERM_MAX_ITER ) );
