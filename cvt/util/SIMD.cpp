@@ -2805,7 +2805,7 @@ namespace cvt {
 			tmp[ 3 ] = *( sp + 3 ) * *wp++;
 			sp += 4;
 			k--;
-			switch( k & 7 ) {
+/*			switch( k & 7 ) {
 				case 0: while( k ) {
 							w = *wp++;
 							tmp[ 0 ] += *( sp + 0 ) * w;
@@ -2871,15 +2871,15 @@ namespace cvt {
 							sp += 4;
 							k--;
 						}
-			}
+			}*/
 
-			/*			while( k-- ) {
+			while( k-- ) {
 						tmp[ 0 ] += *( sp + 0 ) * *wp;
 						tmp[ 1 ] += *( sp + 1 ) * *wp;
 						tmp[ 2 ] += *( sp + 2 ) * *wp;
 						tmp[ 3 ] += *( sp + 3 ) * *wp++;
 						sp += 4;
-						} */
+			}
 			*dst++ = tmp[ 0 ];
 			*dst++ = tmp[ 1 ];
 			*dst++ = tmp[ 2 ];
