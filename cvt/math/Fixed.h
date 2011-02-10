@@ -134,18 +134,19 @@ namespace cvt
 
 	inline Fixed Fixed::operator*( Fixed other ) const
 	{
-		int s = 1;
+//		int s = 1;
 
-		int32_t a = _val;
+//		int32_t a = _val;
 
-	    if( a < 0 ) { a = -a; s = -1; }
-	    if( other._val < 0 ) { other._val = -other._val; s = -s; }
+//	    if( a < 0 ) { a = -a; s = -1; }
+//	    if( other._val < 0 ) { other._val = -other._val; s = -s; }
 
 		int32_t c;
-	    c = ( ( (int64_t) a * other._val + 0x8000 ) >> 16 );
+	    c = ( ( (int64_t) _val * other._val + 0x8000 ) >> 16 );
 
 		Fixed ret;
-		ret._val = ( s > 0 ) ? c : -c;
+		ret._val = c;
+//		ret._val = ( s > 0 ) ? c : -c;
 
 	    return ret;
 	}

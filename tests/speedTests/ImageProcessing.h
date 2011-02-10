@@ -6,6 +6,7 @@
 #include <cvt/util/Time.h>
 #include <cvt/io/Resources.h>
 
+#include <opencv/cv.h>
 #include <opencv/cv.hpp>
 #include <opencv/highgui.h>
 
@@ -27,8 +28,7 @@ void testConvolutionCVT()
 	std::cout << "Running Convolution Tests" << std::endl;
 	t.reset();
 	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
-		lena.convolve( outx, kx );
-		outx.convolve( outy, kx );
+		lena.convolve( outx, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 	}
 	std::cout << "CVT:\tGauss_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
 
@@ -36,8 +36,7 @@ void testConvolutionCVT()
 	ky = IKernel::GAUSS_VERTICAL_5;
 	t.reset();
 	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
-		lena.convolve( outx, kx );
-		outx.convolve( outy, kx );
+		lena.convolve( outx, kx, ky );
 	}
 	std::cout << "CVT:\tGauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
 
@@ -45,8 +44,7 @@ void testConvolutionCVT()
 	ky = IKernel::GAUSS_VERTICAL_7;
 	t.reset();
 	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
-		lena.convolve( outx, kx );
-		outx.convolve( outy, kx );
+		lena.convolve( outx, kx, ky );
 	}
 	std::cout << "CVT:\tGauss_7x7\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
 

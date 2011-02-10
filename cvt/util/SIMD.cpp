@@ -968,6 +968,10 @@ namespace cvt {
 	void SIMD::MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
+
+		if( value.native() == 0 )
+			return;
+
 		while( i-- ) {
 			*dst++ += *src++ * value;
 			*dst++ += *src++ * value;
@@ -996,6 +1000,10 @@ namespace cvt {
 	void SIMD::MulAdd( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
+
+		if( value.native() == 0 )
+			return;
+
 		while( i-- ) {
 			*dst++ += *src++ * value;
 			*dst++ += *src++ * value;
