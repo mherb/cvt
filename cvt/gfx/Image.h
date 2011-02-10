@@ -72,7 +72,7 @@ namespace cvt {
 			void mul( const Color& c );
 
 			void convolve( Image& dst, const IKernel& kernel ) const;
-//			void convolve( Image& dst, const IKernel& hkernel, const IKernel& vkernel ) const;
+			void convolve( Image& dst, const IKernel& hkernel, const IKernel& vkernel ) const;
 
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
@@ -96,6 +96,7 @@ namespace cvt {
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
+			void convolveSeperableU8( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
 			void convolveU8_to_S16( Image& idst, const IKernel& kernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 			void scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;

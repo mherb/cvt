@@ -50,6 +50,7 @@ ADD_SUBDIRECTORY(faceshapepca)
 ADD_SUBDIRECTORY(faceshapepca2)
 ADD_SUBDIRECTORY(splineui)
 ADD_SUBDIRECTORY(colorxyz)
+ADD_SUBDIRECTORY(convolve)
 
 IF(UNIX)
 	IF(APPLE)

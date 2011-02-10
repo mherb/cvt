@@ -662,6 +662,19 @@ namespace cvt {
 		}
 	}
 
+	void Image::convolve( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const
+	{
+/*		if( _mem->_format.type == IFORMAT_TYPE_FLOAT )
+			convolveFloat( idst, hkernel, vkernel );
+		else*/ if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_UINT8 )
+			convolveSeperableU8( idst, hkernel, vkernel );
+/*		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_INT16 )
+			convolveU8_to_S16( idst, hkernel, vkernel );*/
+		else {
+			throw CVTException("Unimplemented");
+		}
+	}
+
 	void Image::convolveFloat( Image& idst, const IKernel& kernel ) const
 	{
 		const float* weights;
@@ -888,6 +901,137 @@ namespace cvt {
 		idst.unmap( odst );
 		delete[] buf;
 		delete[] weights;
+	}
+
+	void Image::convolveSeperableU8( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const
+	{
+		Fixed* hweights;
+		Fixed* vweights;
+		Fixed* pweights;
+		size_t kwidth, kheight;
+		const uint8_t* src;
+		const uint8_t* osrc;
+		Fixed** buf;
+		Fixed*	accumBuf;
+		size_t curbuf;
+		uint8_t* dst;
+		uint8_t* odst;
+		size_t i, k, b1, b2, widthchannels;
+		size_t sstride, dstride;
+		void (SIMD::*convfunc)( Fixed* _dst, const uint8_t* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+		SIMD* simd = SIMD::instance();
+
+		if( _mem->_format.channels == 1 ) {
+			convfunc = &SIMD::ConvolveClampSet1fx;
+		} else if( _mem->_format.channels == 2 ) {
+			convfunc = &SIMD::ConvolveClampSet2fx;
+		} else {
+			convfunc = &SIMD::ConvolveClampSet4fx;
+		}
+
+		/* kernel should at least fit once into the image */
+		if( _mem->_width < hkernel.width() || _mem->_height < vkernel.height() ) {
+			throw CVTException( "Image smaller than convolution kernel");
+		}
+
+		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
+
+
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
+
+		kwidth = hkernel.width();
+		kheight = vkernel.height();
+		hweights = new Fixed[ kwidth ];
+		vweights = new Fixed[ kheight ];
+
+		for( size_t kx = 0; kx < kwidth; kx++ ) {
+			hweights[ kx ] = hkernel( kx, 0 );
+		}
+
+		for( size_t ky = 0; ky < kheight; ky++ ) {
+			vweights[ ky ] = vkernel( 0, ky );
+		}
+
+		widthchannels = _mem->_width * _mem->_format.channels;
+		buf = new Fixed*[ kheight ];
+		// allocate and fill buffer
+		for( i = 0; i < kheight; i++ ) {
+			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( Fixed ) * widthchannels ) )
+				throw CVTException("Out of memory");
+			( simd->*convfunc )( buf[ i ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
+			src += sstride;
+		}
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * widthchannels ) )
+			throw CVTException("Out of memory");
+
+
+		b1 = ( kheight - ( 1 - ( kheight & 1 ) ) ) / 2;
+		b2 = ( kheight + ( 1 - ( kheight & 1 ) ) ) / 2;
+
+		/* upper border */
+		i = b1;
+		while( i-- ) {
+			pweights = vweights;
+			simd->Mul( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+			k = i;
+			while( k-- ) {
+				simd->MulAdd( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+			}
+			k = kheight - ( i + 1 );
+			curbuf = 0;
+			while( k-- ) {
+				simd->MulAdd( accumBuf, buf[ curbuf++ ], *pweights++, widthchannels );
+			}
+			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
+			dst += dstride;
+		}
+
+		/* center */
+		curbuf = 0;
+		i = _mem->_height - kheight + 1;
+		while( i-- ) {
+			pweights = vweights;
+			simd->Mul( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
+			for( k = 1; k < kheight; k++ ) {
+				simd->MulAdd( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
+			}
+			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
+
+			if( i != 0 ) {
+				( simd->*convfunc )( buf[ curbuf ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
+				curbuf = ( curbuf + 1 ) % kheight;
+			}
+
+			dst += dstride;
+			src += sstride;
+		}
+
+		/* lower border */
+		i = b2;
+		while( i-- ) {
+			pweights = vweights;
+			simd->Mul( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
+			for( k = 1; k < b1 + i + 1; k++ ) {
+				simd->MulAdd( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
+			}
+			k = b2 - i;
+			while( k-- ) {
+				simd->MulAdd( accumBuf, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
+			}
+			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
+			curbuf = ( curbuf + 1 ) % kheight;
+			dst += dstride;
+		}
+
+		unmap( osrc );
+		idst.unmap( odst );
+		free( accumBuf );
+		for( size_t i = 0; i < kheight; i++ )
+			free( buf[ i ] );
+		delete[] buf;
+		delete[] vweights;
+		delete[] hweights;
 	}
 
 	void Image::convolveU8_to_S16( Image& idst, const IKernel& kernel ) const
