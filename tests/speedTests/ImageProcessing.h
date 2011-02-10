@@ -88,7 +88,7 @@ void testConvolutionOCV()
 
 	t.reset();
 	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
-		cv::Laplacian( img, out, CV_32F );
+		cv::Laplacian( img, out, CV_8U );
 	}
 	std::cout << "OCV:\tLaplace_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
 
