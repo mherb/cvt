@@ -51,6 +51,7 @@ namespace cvt {
 			d = _mm_add_epi32( d, s );
 
 			_mm_storeu_si128( ( __m128i* ) dst, d );
+
 			src += 4;
 			dst += 4;
 		}
