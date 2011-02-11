@@ -378,20 +378,54 @@ namespace cvt
 
 	void SIMDSSE2::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
 	{
-		size_t i = n >> 2;
+		size_t i = n >> 4;
+		__m128i x0, x1, x2, x3, rnd;
+		rnd = _mm_set1_epi32( 0x8000 );
 
-		while( i-- ) {
-			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
-			src++;
-			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
-			src++;
-			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
-			src++;
-			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
-			src++;
+		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
+			while( i-- ) {
+				x0 = _mm_loadu_si128( ( __m128i* ) src );
+				x1 = _mm_loadu_si128( ( __m128i* ) ( src + 4 ) );
+				x2 = _mm_loadu_si128( ( __m128i* ) ( src + 8 ) );
+				x3 = _mm_loadu_si128( ( __m128i* ) ( src + 12 ) );
+
+				x0 = _mm_srai_epi32( _mm_add_epi32( x0, rnd ), 16 );
+				x1 = _mm_srai_epi32( _mm_add_epi32( x1, rnd ), 16 );
+				x2 = _mm_srai_epi32( _mm_add_epi32( x2, rnd ), 16 );
+				x3 = _mm_srai_epi32( _mm_add_epi32( x3, rnd ), 16 );
+
+				x0 = _mm_packs_epi32( x0, x1 );
+				x1 = _mm_packs_epi32( x2, x3 );
+
+				x0 = _mm_packus_epi16( x0, x1 );
+				_mm_storeu_si128( ( __m128i* ) dst, x0 );
+				src += 16;
+				dst += 16;
+			}
+		} else {
+			while( i-- ) {
+				x0 = _mm_load_si128( ( __m128i* ) src );
+				x1 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
+				x2 = _mm_load_si128( ( __m128i* ) ( src + 8 ) );
+				x3 = _mm_load_si128( ( __m128i* ) ( src + 12 ) );
+
+				x0 = _mm_srai_epi32( _mm_add_epi32( x0, rnd ), 16 );
+				x1 = _mm_srai_epi32( _mm_add_epi32( x1, rnd ), 16 );
+				x2 = _mm_srai_epi32( _mm_add_epi32( x2, rnd ), 16 );
+				x3 = _mm_srai_epi32( _mm_add_epi32( x3, rnd ), 16 );
+
+				x0 = _mm_packs_epi32( x0, x1 );
+				x1 = _mm_packs_epi32( x2, x3 );
+
+				x0 = _mm_packus_epi16( x0, x1 );
+				_mm_store_si128( ( __m128i* ) dst, x0 );
+				src += 16;
+				dst += 16;
+			}
+
 		}
 
-		i = n & 0x03;
+		i = n & 0x0f;
 		while( i-- ) {
 			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
 			src++;
