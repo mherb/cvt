@@ -16,7 +16,7 @@ namespace cvt {
 		return xmm;
 	}
 
-	void SIMDSSE41::MulAdd( Fixed* _dst, const Fixed* _src, Fixed value, size_t n ) const
+/*	void SIMDSSE41::MulAdd( Fixed* _dst, const Fixed* _src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 		int32_t* dst = ( int32_t* ) _dst;
@@ -61,7 +61,7 @@ namespace cvt {
 		_src = ( const Fixed* ) src;
 		while( i-- )
 			*_dst++ += *_src++ * value;
-	}
+	} */
 
 	void SIMDSSE41::Conv_XXXAu8_to_XXXAf( float* dst, uint8_t const* src, const size_t n ) const
 	{
