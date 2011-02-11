@@ -5,25 +5,25 @@
 
 namespace cvt
 {
-
 	UEyeUsbCamera::UEyeUsbCamera(  size_t camIndex, const CameraMode & mode ) :
 		_camIndex( camIndex ), _camHandle( 0 ),
-		_width( mode.width ), _height( mode.height ),
+		_width( mode.width ), _height( mode.height ), _stride( _width ),
 		_frame( _width, _height, mode.format )
 	{
 		this->open( mode );
-		this->setPixelClock( 40 );
+		this->setPixelClock( 35 );
 		this->setFramerate( 80.0 );
+		this->setAutoShutter( false );
 		this->setAutoSensorShutter( false );
+		this->setExposureTime( 12 );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
 	{
 		if ( _camHandle != 0 ){
 			this->stopCapture();
-
-			is_ExitImageQueue( _camHandle );
 			this->freeMemories();
+			is_ExitImageQueue( _camHandle );
 			is_ExitCamera( _camHandle );
 		}
 	}
@@ -126,7 +126,7 @@ namespace cvt
 			is_ExitCamera( _camHandle );
 		}
 
-		_camHandle = _camIndex;
+		_camHandle = _camIndex | IS_USE_DEVICE_ID;
 
 		if( !initCam() )
 			throw CVTException( "Could not initialize camera" );
@@ -140,6 +140,7 @@ namespace cvt
 		double newFPS;
 
 		is_SetAOI( _camHandle, IS_SET_IMAGE_AOI, &xPos, &yPos, &_width, &_height );
+		is_GetImageMemPitch( _camHandle, &_stride );
 
 		_frame.reallocate( _width, _height, _frame.format() );
 
@@ -148,9 +149,10 @@ namespace cvt
 		}
 
 		this->initMemories( mode );
+		if( is_InitImageQueue( _camHandle, 0 ) != IS_SUCCESS )
+			std::cout << "COULD NOT INIT IMAGE QUEUE" << std::endl;
 
 		is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
-		is_InitImageQueue( _camHandle, 0 );
 	}
 
 	void UEyeUsbCamera::initMemories( const CameraMode & mode )
@@ -159,8 +161,9 @@ namespace cvt
 			is_AllocImageMem( _camHandle, _width, _height, mode.format.bpp * 8, (char**)&_buffers[ i ], &_bufferIds[ i ] );
 			is_AddToSequence( _camHandle, (char*)_buffers[ i ], _bufferIds[ i ] );
 		}
-		is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] );
 
+		if( is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] ) == IS_NO_SUCCESS )
+		   throw CVTException( "Could not set current memory buffer" );
 	}
 
 	void UEyeUsbCamera::freeMemories()
@@ -172,12 +175,19 @@ namespace cvt
 
 	void UEyeUsbCamera::startCapture()
 	{
-		is_CaptureVideo ( _camHandle, IS_WAIT );
+		is_CaptureVideo ( _camHandle, IS_DONT_WAIT );
+
+		is_InitEvent( _camHandle, NULL, IS_SET_EVENT_FRAME );
+		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
+
 		this->setWhiteBalanceOnce();
 	}
 
 	void UEyeUsbCamera::stopCapture()
 	{
+		is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
+		is_ExitEvent( _camHandle, IS_SET_EVENT_FRAME );
+
 		if( is_StopLiveVideo( _camHandle, IS_WAIT ) == IS_NO_SUCCESS )
 			throw CVTException( "Could not stop capture process" );
 	}
@@ -185,25 +195,45 @@ namespace cvt
 	void UEyeUsbCamera::nextFrame()
 	{
 		uint8_t*	buffer;
-		INT			bufferId;
-		if( IS_TIMED_OUT == is_WaitForNextImage( _camHandle, 1000/*timeout in ms*/, (char**)&buffer, &bufferId ) ){
-			throw CVTException( "Timeout when waiting for next image" );
+		INT	bufferId = 0;
+
+		INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 1000 );
+
+		switch( ret ){
+			case IS_SUCCESS:
+				{
+					// new frame available:
+					if( is_GetActSeqBuf( _camHandle, &bufferId, NULL, ( char** )&buffer ) == IS_SUCCESS ){
+						int bufSeqNum = bufNumForAddr( buffer );
+						is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )buffer );
+
+						size_t stride;
+						uint8_t * framePtr = _frame.map( &stride );
+
+						if( _stride != ( int )stride )
+							std::cout << "STRIDE ERROR" << std::endl;
+
+						is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
+
+						_frame.unmap( framePtr );
+
+						if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)buffer ) == IS_NO_SUCCESS )
+							std::cout << "UNLOCK FAILED" << std::endl;
+					}
+				}
+				break;
+			case IS_TIMED_OUT:
+				std::cout << "Timeout in nextFrame()" << std::endl;
+				break;
 		}
-
-		size_t stride;
-		uint8_t * framePtr = _frame.map( &stride );
-		is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
-		_frame.unmap( framePtr );
-
-		is_UnlockSeqBuf( _camHandle, bufferId, (char*)buffer );
 	}
 
 	size_t UEyeUsbCamera::count()
 	{
 		INT ret = 0;
 
-		if( is_GetNumberOfCameras( &ret ) == IS_NO_SUCCESS )
-			throw CVTException( "Could not get number of cameras" );
+		if( is_GetNumberOfCameras( &ret ) != IS_SUCCESS )
+			std::cout << "FAILURE IN GET NUM CAMS" << std::endl;
 
 		return (size_t)ret;
 	}
@@ -211,48 +241,44 @@ namespace cvt
 
 	void UEyeUsbCamera::cameraInfo( size_t index, CameraInfo & info )
 	{
-		if( index > UEyeUsbCamera::count() ){
+		size_t camCount = ( ULONG )UEyeUsbCamera::count();
+		if( index > camCount ){
 			throw CVTException( "Index out of bounds" );
 		}
-
-		UEYE_CAMERA_LIST * camList = new UEYE_CAMERA_LIST;
-		camList->dwCount = 0;
-		if( is_GetCameraList( camList ) == IS_NO_SUCCESS ){
-			throw CVTException( "Could not get Camera list" );
-		}
-		DWORD numCams = camList->dwCount;
-		delete camList;
-
-		camList = (UEYE_CAMERA_LIST *)new char[ sizeof(DWORD) + numCams * sizeof( UEYE_CAMERA_INFO ) ];
-		camList->dwCount = numCams;
-		if( is_GetCameraList( camList ) == IS_NO_SUCCESS ){
-			throw CVTException( "Could not get Camera list" );
-		}
-
-		info.setName( camList->uci[ index ].Model );
-		info.setIndex( camList->uci[index].dwDeviceID );
-		info.setType( CAMERATYPE_UEYE );
-
 		// get frame information
-		SENSORINFO sensorInfo;
-		HIDS handle = (HIDS)( camList->uci[ index ].dwDeviceID | IS_USE_DEVICE_ID );
+		HIDS handle = ( index + 1 ) | IS_USE_DEVICE_ID;
 
 		if( is_InitCamera( &handle, 0 ) == IS_CANT_OPEN_DEVICE )
 			throw CVTException( "Cannot initialize camera" );
 
+		CAMINFO cinfo;
+		if( is_GetCameraInfo ( handle, &cinfo ) == IS_NO_SUCCESS ){
+			std::cout << "PROBLEM getting info" << std::endl;
+		}
+
+		if( cinfo.Type == IS_CAMERA_TYPE_UEYE_USB_LE )
+			info.setName( "UEye USB LE" );
+		else {
+			info.setName( "UEye USB" );
+		}
+		info.setIndex( index + 1 );
+		info.setType( CAMERATYPE_UEYE );
+
+
+		SENSORINFO sensorInfo;
+		memset( &sensorInfo, 0, sizeof( SENSORINFO ) );
 		if( is_GetSensorInfo( handle, &sensorInfo ) == IS_NO_SUCCESS )
 			throw CVTException( "Could not get image information" );
 
-		INT pixClkMin, pixClkMax;
+		INT pixClkMin = 0, pixClkMax = 0;
 		if( is_GetPixelClockRange( handle, &pixClkMin, &pixClkMax ) == IS_NO_SUCCESS ){
 			std::cout << "Could not get PixelClockRange" << std::endl;
 		}
-
 		if( is_SetPixelClock( handle, pixClkMax ) == IS_NO_SUCCESS ){
 			std::cout << "Could not set PixelClock" << std::endl;
 		}
 
-		double min, max, interval;
+		double min = 0, max = 0, interval = 0;
 		if( is_GetFrameTimeRange( handle, &min, &max, &interval ) == IS_NO_SUCCESS ){
 			std::cout << "Could not get TimeRange" << std::endl;
 		}
@@ -269,8 +295,16 @@ namespace cvt
 
 		if( is_ExitCamera( handle ) == IS_CANT_CLOSE_DEVICE )
 			throw CVTException( "Could not exit camera" );
+	}
 
-		delete[] (char*)camList;
+    int	UEyeUsbCamera::bufNumForAddr( const uint8_t * buffAddr ) const
+	{
+		for( size_t i = 0; i < _numImageBuffers; i++ ){
+			if( _buffers[ i ] == buffAddr )
+				return ( int ) i+1;
+		}
+
+		return -1;
 	}
 
 }

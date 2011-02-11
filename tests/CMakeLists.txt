@@ -52,6 +52,8 @@ ADD_SUBDIRECTORY(splineui)
 ADD_SUBDIRECTORY(colorxyz)
 ADD_SUBDIRECTORY(convolve)
 
+ADD_SUBDIRECTORY(mueyeapi)
+
 IF(UNIX)
 	IF(APPLE)
 #		ADD_SUBDIRECTORY(qtkitcamera)

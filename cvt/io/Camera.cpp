@@ -51,7 +51,6 @@ namespace cvt {
 		// ueye cameras
 #ifdef UEYE_FOUND
 		size_t count = UEyeUsbCamera::count();
-		std::cout << "Numcams: " << count << std::endl;
 		for( size_t i = 0; i < count; i++){
 			Camera::_camInfos.push_back( CameraInfo() );
 			UEyeUsbCamera::cameraInfo( i, Camera::_camInfos.back() );
@@ -84,7 +83,7 @@ namespace cvt {
 				break;
 			case CAMERATYPE_V4L2:
 #ifdef LINUX
-				cam = new V4L2Camera( camInfo.index(), mode );				
+				cam = new V4L2Camera( camInfo.index(), mode );
 #endif
 				break;
 			case CAMERATYPE_QTKIT:

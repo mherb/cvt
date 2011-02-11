@@ -130,7 +130,7 @@ class EsmWindow : public Window
 	public:
 		EsmWindow( Camera * cam ) :
 			Window( "ESM"),
-			_bt( 1 ) /* update in ms */,
+			_bt( 10 ) /* update in ms */,
 			_cam( cam ),
 			_templateView(),
 			_tempMov( &_templateView ),
