@@ -13,16 +13,26 @@ namespace cvt
 		if( value.native() == 0 )
 			return;
 
-		__m128 mul = _mm_set1_ps( ( ( float ) value.native() ) / ( float )( 1 << 16 ) );
+		__m128 mul = _mm_set1_ps( ( float ) value );
 		__m128i in;
 		__m128 inf;
 
-		while( i-- ) {
-			in = _mm_loadu_si128( ( __m128i* ) src );
-			inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
-			_mm_storeu_si128( ( __m128i* ) dst, _mm_cvtps_epi32( inf ) );
-			src += 4;
-			dst += 4;
+		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
+			while( i-- ) {
+				in = _mm_loadu_si128( ( __m128i* ) src );
+				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
+				_mm_storeu_si128( ( __m128i* ) dst, _mm_cvtps_epi32( inf ) );
+				src += 4;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				in = _mm_load_si128( ( __m128i* ) src );
+				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
+				_mm_store_si128( ( __m128i* ) dst, _mm_cvtps_epi32( inf ) );
+				src += 4;
+				dst += 4;
+			}
 		}
 
 		i = n & 0x03;
@@ -37,18 +47,30 @@ namespace cvt
 		if( value.native() == 0 )
 			return;
 
-		__m128 mul = _mm_set1_ps( ( float ) value.native() / ( float )( 1 << 16 ) );
+		__m128 mul = _mm_set1_ps( ( float ) value );
 		__m128i in, out;
 		__m128 inf;
 
-		while( i-- ) {
-			in = _mm_loadu_si128( ( __m128i* ) src );
-			inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
-			in = _mm_loadu_si128( ( __m128i* ) dst );
-			out = _mm_add_epi32( in, _mm_cvtps_epi32( inf )  );
-			_mm_storeu_si128( ( __m128i* ) dst, out );
-			src += 4;
-			dst += 4;
+		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
+			while( i-- ) {
+				in = _mm_loadu_si128( ( __m128i* ) src );
+				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
+				in = _mm_loadu_si128( ( __m128i* ) dst );
+				out = _mm_add_epi32( in, _mm_cvtps_epi32( inf )  );
+				_mm_storeu_si128( ( __m128i* ) dst, out );
+				src += 4;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				in = _mm_load_si128( ( __m128i* ) src );
+				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
+				in = _mm_load_si128( ( __m128i* ) dst );
+				out = _mm_add_epi32( in, _mm_cvtps_epi32( inf )  );
+				_mm_store_si128( ( __m128i* ) dst, out );
+				src += 4;
+				dst += 4;
+			}
 		}
 
 		i = n & 0x03;
@@ -351,6 +373,28 @@ namespace cvt
 			*dst++ += tmp[ 2 ];
 			*dst++ += tmp[ 3 ];
 			src += 4;
+		}
+	}
+
+	void SIMDSSE2::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
+	{
+		size_t i = n >> 2;
+
+		while( i-- ) {
+			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
+			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
+			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
+			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
+		}
+
+		i = n & 0x03;
+		while( i-- ) {
+			*dst++ = ( uint8_t ) Math::clamp( src->round(), 0x0, 0xff );
+			src++;
 		}
 	}
 
