@@ -24,31 +24,33 @@ class UEyeUsbCamera : public Camera
 			size_t height() const;
 			const IFormat & format() const;
         private:
-            bool initCam();
-            void open( const CameraMode & mode );
-			void initMemories( const CameraMode & mode );
-			void freeMemories();
-			void setAutoGain( bool value );
-            void setAutoShutter( bool value );
-            void setAutoSensorShutter( bool value );
-            void setAutoWhiteBalance( bool value );
-			void setWhiteBalanceOnce();
-            void setMaxAutoShutter( double value );
-            void setExposureTime( double value );
-            void setPixelClock( unsigned int value );
-            void setHorizontalMirror( bool value );
-            void setVerticalMirror( bool value );
-            void setFramerate( double fps );
+            bool	initCam();
+            void	open( const CameraMode & mode );
+			void	initMemories( const CameraMode & mode );
+			void	freeMemories();
+			void	setAutoGain( bool value );
+            void	setAutoShutter( bool value );
+            void	setAutoSensorShutter( bool value );
+            void	setAutoWhiteBalance( bool value );
+			void	setWhiteBalanceOnce();
+            void	setMaxAutoShutter( double value );
+            void	setExposureTime( double value );
+            void	setPixelClock( unsigned int value );
+            void	setHorizontalMirror( bool value );
+            void	setVerticalMirror( bool value );
+            void	setFramerate( double fps );
+            int		bufNumForAddr( const uint8_t * buffAddr ) const;
 
             int _camIndex;
 
             // uEye variables
             HIDS		_camHandle;		// handle to camera
-            INT			_width;			// width of video
-            INT			_height;		// height of video
+            INT			_width;			// width of image
+            INT			_height;		// height of image
+            INT			_stride;		// stride of imagte
 
-			static const size_t	_numImageBuffers = 2;
-			int8_t*				_buffers[ _numImageBuffers ];
+			static const size_t	_numImageBuffers = 4;
+			uint8_t*			_buffers[ _numImageBuffers ];
 			INT					_bufferIds[ _numImageBuffers ];
 
 			Image _frame;
