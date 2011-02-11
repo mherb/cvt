@@ -116,13 +116,16 @@ void testFerns()
 	gray.convert( grayf );
 
 	/* patchSize, numOverallTests, testsPerClass */
-	Ferns ferns( 31, 550, 50 );
+	/*
+	Ferns ferns( 35, 440, 40 );
 	ferns.train( gray );
 	ferns.save( "lena.ferns" );
+	 */
 
-	/*std::cout << "Loading ferns ... ";
+	std::cout << "Loading ferns ... ";
+	std::flush( std::cout );
 	Ferns ferns( "lena.ferns" );
-	std::cout << "done" << std::endl;*/
+	std::cout << "done" << std::endl;
 
 	Image warpedf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
@@ -137,9 +140,9 @@ void testFerns()
 	ImageIO::savePNG( warped, "test.png" );
 
 	std::vector<Feature2D> features;
-	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_10 );
-	static_cast<FAST*>(fe)->setMinScore( 60 );
-	static_cast<FAST*>(fe)->setThreshold( 40 );
+	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_9 );
+	static_cast<FAST*>(fe)->setMinScore( 50 );
+	static_cast<FAST*>(fe)->setThreshold( 30 );
 
 	fe->extractMultiScale( warped, features, 3 );
 	//fe->extractMultiScale( gray, features, 3 );
@@ -179,7 +182,7 @@ void testFerns()
 	Eigen::Matrix3d H_calculated;
 	DLT::ndlt( reference, imageFeatures, H_calculated );
 
-	std::cout << "Reference homography:\n" << H << std::endl;
+	std::cout << "Reference homography:\n" << H.inverse() << std::endl;
 	std::cout << "Computed homography: \n" << H_calculated << std::endl;
 
 }

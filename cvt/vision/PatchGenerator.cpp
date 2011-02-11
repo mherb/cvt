@@ -111,7 +111,7 @@ namespace cvt
 		
 		Image tmpPatch( outputPatch );
 		
-		tmpPatch.convolve( outputPatch, IKernel::GAUSS_HORIZONTAL_3 );
+		outputPatch.convolve( tmpPatch, IKernel::GAUSS_HORIZONTAL_3 );
 		tmpPatch.convolve( outputPatch, IKernel::GAUSS_VERTICAL_3 );
 	}
 	

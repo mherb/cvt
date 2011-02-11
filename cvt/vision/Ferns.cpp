@@ -19,7 +19,7 @@ namespace cvt
 		}
 		_testsPerFern = _nTests / _numFerns;
 		
-		_featureDetector = new FAST( SEGMENT_10 );
+		_featureDetector = new FAST( SEGMENT_9 );
 		static_cast<FAST*>(_featureDetector)->setMinScore( 60 );
 		static_cast<FAST*>(_featureDetector)->setThreshold( 40 );
 	}
@@ -143,7 +143,7 @@ namespace cvt
 		int32_t patchHalfSize = _patchSize >> 1;
 		
 		/* train the class */
-		PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 5.0 /* noise */ );
+		PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 3.0 /* noise */ );
 		
 		Eigen::Vector2i pCenter;
 		int x, y;
@@ -225,7 +225,7 @@ namespace cvt
 		// no check the result:
 		for( size_t i = 0; i < bestProbsForPoint.size(); i++ ){
 			std::cout << "Prob: " << bestProbsForPoint[ i ] << std::endl;
-			if( bestProbsForPoint[ i ] > 0.9 ){				
+			if( bestProbsForPoint[ i ] > 0.96 ){				
 				matchedModel.push_back( _modelFeatures[ i ].cast<double>() );
 				matchedFeatures.push_back( features[ featureIndicesForPoint[ i ] ].cast<double>() );				
 			}
