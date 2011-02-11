@@ -1278,6 +1278,7 @@ namespace cvt {
 		size_t i, l;
 		int32_t k;
 		Fixed** buf;
+		Fixed* accumBuf;
 		size_t bufsize;
 		size_t curbuf;
 		void (SIMD::*scalex_func)( Fixed* _dst, uint8_t const* _src, const size_t width, IConvolveAdaptiveFixed* conva ) const;
@@ -1313,7 +1314,9 @@ namespace cvt {
 		pysw = scalery.size;
 		pyw = scalery.weights;
 		
-		Fixed* accumBuf = new Fixed[ width * _mem->_format.channels ];
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * width * _mem->_format.channels ) )
+			throw CVTException("Out of memory");
+
 		while( height-- ) {
 			if( pysw->incr ) {
 				for( k = 0; k < pysw->incr && src < send ; k++ ) {
@@ -1347,6 +1350,7 @@ namespace cvt {
 		idst.unmap( odst );
 		unmap( osrc );
 		
+		free( accumBuf );
 		for( i = 0; i < bufsize; i++ )
 			free( buf[ i ] );
 		delete[] buf;
@@ -1354,7 +1358,6 @@ namespace cvt {
 		delete[] scalerx.weights;
 		delete[] scalery.size;
 		delete[] scalery.weights;
-		delete[] accumBuf;
 	}
 
 	void Image::warpBilinear( Image& idst, const Image& warp ) const

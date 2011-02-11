@@ -11,8 +11,8 @@ namespace cvt {
 		private:
 			SIMDSSE41() {};
 
-			using SIMDSSE2::MulAdd;
-			virtual void MulAdd( Fixed* _dst, const Fixed* _src, Fixed value, size_t n ) const;
+//			using SIMDSSE2::MulAdd;
+//			virtual void MulAdd( Fixed* _dst, const Fixed* _src, Fixed value, size_t n ) const;
 
 			virtual void Conv_XXXAu8_to_XXXAf( float* dst, uint8_t const* src, const size_t n ) const;
 			virtual void Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* src, const size_t n ) const;
