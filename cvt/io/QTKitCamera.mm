@@ -42,10 +42,10 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 	[super dealloc];
 }
 
-- (void)captureOutput:(QTCaptureOutput *)captureOutput 
-  didOutputVideoFrame:(CVImageBufferRef)videoFrame 
-	 withSampleBuffer:(QTSampleBuffer *)sampleBuffer 
-	   fromConnection:(QTCaptureConnection *)connection
+- (void)captureOutput:( QTCaptureOutput * )		captureOutput 
+  didOutputVideoFrame:( CVImageBufferRef  )		videoFrame 
+	 withSampleBuffer:( QTSampleBuffer * )		sampleBuffer 
+	   fromConnection:( QTCaptureConnection * ) connection
 {
 	CVImageBufferRef imageBufferToRelease;
 	
@@ -78,7 +78,6 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 	CVPixelBufferLockBaseAddress( data, 0 );
 	uint8_t* sourceBase = ( uint8_t* )CVPixelBufferGetBaseAddress( data );
 	
-	size_t width = CVPixelBufferGetWidth( data );
 	size_t height = CVPixelBufferGetHeight( data );
 	size_t rowBytes = CVPixelBufferGetBytesPerRow( data );
 	

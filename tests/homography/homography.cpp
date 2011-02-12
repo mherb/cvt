@@ -39,7 +39,7 @@ static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy
 	return *( ( cvt::Matrix3f* )ih.data() );	
 }
 
-int main( int argc, char* argv[] )
+int main()
 {
 	std::string dataFolder(DATA_FOLDER);
 	std::string inputFile(dataFolder + "/lena.png");

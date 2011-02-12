@@ -68,7 +68,7 @@ namespace cvt {
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
 			virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
-			virtual float SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
+			virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
 			/* Infinite Impulse Response */
 			/* IIR_#coefs_#pass_#direction_#channels_inputType */

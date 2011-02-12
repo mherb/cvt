@@ -13,7 +13,7 @@
 
 using namespace cvt;
 
-void timeout( BasicTimer* timer )
+void timeout( BasicTimer* )
 {
     static cvt::Time t;
 

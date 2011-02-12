@@ -77,6 +77,40 @@ namespace cvt
 		while( i-- )
 			*dst++ += *src++ * value;
 	}
+	
+	size_t SIMDSSE2::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
+	{
+		size_t i = n >> 4;	
+		size_t sad = 0;
+				
+		__m128i simdA, simdB, simdC;
+		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
+			while( i-- ) {
+				simdA = _mm_loadu_si128( ( __m128i* )src1 );
+				simdB = _mm_loadu_si128( ( __m128i* )src2 );			
+				simdC = _mm_sad_epu8( simdA, simdB );
+				sad += _mm_extract_epi16( simdC, 0 );
+				sad += _mm_extract_epi16( simdC, 4 );				
+				src1 += 16; src2 += 16;
+			}
+		} else {
+			while( i-- ) {
+				simdA = _mm_load_si128( ( __m128i* )src1 );
+				simdB = _mm_load_si128( ( __m128i* )src2 );			
+				simdC = _mm_sad_epu8( simdA, simdB );
+				sad += _mm_extract_epi16( simdC, 0 );
+				sad += _mm_extract_epi16( simdC, 4 );				
+				src1 += 16; src2 += 16;
+			}
+		}
+		
+		i = n & 0x03;
+		while( i-- ) {
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
+		}
+		
+		return sad;
+	}
 
 	void SIMDSSE2::ConvolveClampSet4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
 	{

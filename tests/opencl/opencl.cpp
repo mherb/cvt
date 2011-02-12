@@ -23,13 +23,12 @@
 
 using namespace cvt;
 
-int main( int argc, char** argv )
+int main()
 {
 	Image frame( 640, 480, IFormat::GRAY_UINT8 );
 	Camera* cam;
 	std::string log;
 	bool doprocess = true;
-	int key;
 	size_t frames = 0;
 	Time timer;
 	std::vector<cl::Event> sync;

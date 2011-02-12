@@ -1076,7 +1076,7 @@ namespace cvt {
 		return sad;
 	}
 	
-	float SIMD::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
+	size_t SIMD::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		

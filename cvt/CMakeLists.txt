@@ -423,7 +423,9 @@ set_target_properties(${MODULE_NAME}
 	      PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" )
 
 CVTTESTS(cvt util/cvttestsproto.h)
-link_directories (${CMAKE_BINARY_DIR}/lib/) 
+
+#link_directories (${CMAKE_BINARY_DIR}/lib/) 
+
 add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
 IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )

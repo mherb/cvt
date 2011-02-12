@@ -192,6 +192,24 @@ BEGIN_CVTTEST( simd )
 			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
 			delete simd;
 		}
+		
+		uint8_t * usrc0 = new uint8_t[ TESTSIZE ];
+		uint8_t * udst = new uint8_t[ TESTSIZE ];
+		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			tmr.reset();
+			for( int iter = 0; iter < 100; iter++ ) {				
+				simd->SAD( udst, usrc0, TESTSIZE );
+			}
+			t += tmr.elapsedMilliSeconds();
+			t /= 100.0;
+			std::cout << simd->name() << " SAD "  << t  << " ms" << std::endl;
+			delete simd;
+		}
+		delete[] usrc0;
+		delete[] udst;	
+			
 		delete[] fdst;
 		delete[] fsrc1;
 		delete[] fsrc2;
