@@ -7,9 +7,14 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	int key;
 	size_t frames = 0;
 	Time timer;
+	
+	if( argc < 2 ){
+		std::cout << "Usage: " << argv[ 0 ] << " <filename>" << std::endl;
+		return 0;
+	}
+	
 	std::string xxx( argv[ 1 ] );
 
 	try {

@@ -63,60 +63,6 @@ namespace cvt {
 		}
 	}
 	
-	float FeatureTracker::matchPatch( const Image & im0, const Image & im1,
-									 const Feature2D & pos0, const Feature2D & pos1)
-	{
-		size_t stride0, stride1;
-		const uint8_t * i0 = im0.map( &stride0 );
-		const uint8_t * i1 = im1.map( &stride1 );
-
-		/* 7x7 Offset */
-		int32_t h = 7;
-		int32_t xOffset = h >> 1;
-		int32_t yOffset = h >> 1;
-		
-		if( pos0[ 0 ] < xOffset ||
-		    pos0[ 1 ] < yOffset ||
-		    pos0[ 0 ] + xOffset >= im0.width() ||
-		    pos0[ 1 ] + yOffset >= im1.height() )
-			return 1000.0f;
-			
-		size_t searchRange = 5;
-		if( pos1[ 0 ] < ( xOffset + searchRange ) ||
-			pos1[ 1 ] < ( yOffset + searchRange ) ||
-		    ( pos1[ 0 ] + xOffset + searchRange )  >= im0.width() || 
-			( pos1[ 1 ] + yOffset + searchRange )  >= im0.height() )
-			return 1000.0f;
-
-		const uint8_t * p0 = i0 + stride0 * ( pos0[ 1 ] - yOffset ) + pos0[ 0 ] - xOffset;
-		const uint8_t * p1 = i1 + stride1 * ( pos1[ 1 ] - yOffset - searchRange ) + pos1[ 0 ] - xOffset;
-		
-		const uint8_t* buffer[ h ];
-		const uint8_t* addPtrX[ h ];
-		const uint8_t* subPtrX[ h ];
-		
-		// init buffer ptr
-		for( size_t i = 0; i < h; i++ ){
-			buffer[ i ] = i1 + stride1 * i;
-			subPtrX[ i ] = buffer[ i ];
-			addPtrX[ i ] = subPtrX[ i ] + h;
-		}
-		
-
-		float bestDistance = 0.0f;
-		for( size_t y = 0; y < h; y++ ){
-			for( size_t x = 0; x < h; x++ ){			
-				bestDistance +=  Math::sqr( ( float )p0[ y * stride0 + x ] - ( float )buffer[ y ][ x ] );
-			}
-			buffer[ y ]++;
-		}
-		
-		float currentDistance = bestDistance;
-
-		return bestDistance / Math::sqr( h );
-	}
-
-
 	float FeatureTracker::patchDistance( const Image & im0, const Image & im1,
 									     const Feature2D & pos0, const Feature2D & pos1 )
 	{

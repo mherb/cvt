@@ -11,7 +11,7 @@
 
 #include <string>
 
-int main(int argc, char* argv[])
+int main()
 {
 	std::string dataFolder(DATA_FOLDER);
 	cvt::Resources resources;

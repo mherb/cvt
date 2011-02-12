@@ -8,20 +8,23 @@ using namespace cvt;
 
 class A {
 	public:
-		virtual int bla(  ) { /*std::cout << "A::bla() " << std::endl;*/ };
-		int bla( int x ) { std::cout << "A::bla( int ) " << x << std::endl; };
-		int blo( int x ) const { std::cout << "A::blo " << x << std::endl; };
-		void blim( int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10 ) const { std::cout << "A::blim " << x1 << " " << x10 << std::endl; };
+		virtual ~A(){} 
+		virtual int bla(  ) { /*std::cout << "A::bla() " << std::endl;*/ return 0; }
+		int bla( int x ) { std::cout << "A::bla( int ) " << x << std::endl; return 0; }
+		int blo( int x ) const { std::cout << "A::blo " << x << std::endl; return 0; }
+		void blim( int x1, int , int, int, int, int, int, int, int, int x10 ) const { std::cout << "A::blim " << x1 << " " << x10 << std::endl; };
 };
 
 int blub( int x )
 {
 	std::cout << "blub " << x << std::endl;
+	return 0;
 }
 
 static int bli( int x )
 {
 	std::cout << "bli " << x << std::endl;
+	return 0;
 }
 
 void bla( )

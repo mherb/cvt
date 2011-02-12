@@ -8,7 +8,6 @@ using namespace cvt;
 
 int main(int argc, char* argv[])
 {
-	int key;
 	Image flow;
 	Image input, output;
 

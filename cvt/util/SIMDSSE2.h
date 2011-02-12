@@ -12,10 +12,12 @@ namespace cvt {
 		private:
 			SIMDSSE2() {};
 
-			using SIMDSSE::Mul;
-			using SIMDSSE::MulAdd;
+			using SIMDSSE::Mul;			
 			void Mul( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+			using SIMDSSE::MulAdd;
 			void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+			using SIMDSSE::SAD;
+			size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
 			virtual void ConvolveClampSet4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const;
 			virtual void ConvolveClampAdd4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const;

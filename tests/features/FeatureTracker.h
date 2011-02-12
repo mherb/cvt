@@ -30,9 +30,7 @@ namespace cvt
 			FeatureExtractor<int32_t> * _featureDetector;
 
 			float patchDistance( const Image & im0, const Image & im1,
-								 const Feature2D & pos0, const Feature2D & pos1 );
-			float matchPatch( const Image & im0, const Image & im1,
-							  const Feature2D & pos0, const Feature2D & pos1 );
+								 const Feature2D & pos0, const Feature2D & pos1 );			
 	};
 }
 

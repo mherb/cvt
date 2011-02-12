@@ -26,7 +26,7 @@ void timeout( BasicTimer*  )
 //	usleep( 50000 );
 }
 
-int main(int argc, char* argv[])
+int main()
 {
     cvt::Resources resources;
 	Image img;
