@@ -88,7 +88,7 @@ namespace cvt
 
 		const Image * prevScale = &image;
 
-		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
+		IScaleFilterGauss scaleFilter( 3.0f, 2.0f );
 		for( size_t i = 0; i < pyramid.size(); i++ ){
 			width >>= 1;
 			height >>= 1;
@@ -191,15 +191,15 @@ namespace cvt
 				{
 					if( (int)t != currCornerMaxAbove_ind )
 					{
-						if(scores[currCornerMaxAbove_ind] < scores[t])
+						if( scores[currCornerMaxAbove_ind] < scores[t])
 						{
 							nmsFlags[currCornerMaxAbove_ind]=t;
 							nmsFlags[currCorner_ind]=t;
 						}
 						else
 						{
-							nmsFlags[t]=currCornerMaxAbove_ind;
-							nmsFlags[currCorner_ind]=currCornerMaxAbove_ind;
+							nmsFlags[ t ]=currCornerMaxAbove_ind;
+							nmsFlags[ currCorner_ind ]=currCornerMaxAbove_ind;
 						}
 					}
 				}

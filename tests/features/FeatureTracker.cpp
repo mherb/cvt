@@ -12,8 +12,8 @@ namespace cvt {
 	FeatureTracker::FeatureTracker() :
 		_featureDetector( 0 )
 	{
-		_featureDetector = new AGAST( OAST_9_16 );
-		//_featureDetector = new FAST( SEGMENT_9 );
+		//_featureDetector = new AGAST( OAST_9_16 );
+		_featureDetector = new FAST( SEGMENT_9 );
 	}
 
 	FeatureTracker::~FeatureTracker()
@@ -29,38 +29,8 @@ namespace cvt {
 							  std::vector<size_t> & indices,
 							  std::vector<Feature2D> & newFeatures )
 	{
-		std::vector<Feature2D> newPoints;
-
-		//_featureDetector->extract( current, newPoints );
-		_featureDetector->extractMultiScale( current, newPoints, 3 );
-
-		if( newPoints.size() ){
-			KDTree<Feature2D> kd( newPoints );
-
-			std::set<uint32_t> matchedIndices;
-
-			// find nearest neighbor for each point
-			for( size_t i = 0; i < predicted.size(); i++ ){
-				// locate within 7x7 pixel distance
-				uint32_t index = kd.locate( predicted[ i ], 5.0f );
-
-				// prune too far points
-				if( ( newPoints[ index ] - predicted[ i ] ).length() < 5.0 ){
-					float dist = patchDistance( current, last, newPoints[ index ], predicted[ i ] );
-					if( dist < 20.0f ){
-						trackedPoints.push_back( newPoints[ index ] );
-						indices.push_back( index );
-						matchedIndices.insert( index );
-					}
-				}
-			}
-
-			for( uint32_t i = 0; i < newPoints.size(); i++ ){
-				if( matchedIndices.find( i ) == matchedIndices.end() ){
-					newFeatures.push_back( newPoints[ i ] );
-				}
-			}
-		}
+		_featureDetector->extract( current, newFeatures );
+		//_featureDetector->extractMultiScale( current, newFeatures, 2 );
 	}
 	
 	float FeatureTracker::patchDistance( const Image & im0, const Image & im1,
