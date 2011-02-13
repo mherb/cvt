@@ -29,6 +29,7 @@ int main(int argc, char* argv[])
 		img.convolve( out, kern );
 		cvt::ImageIO::savePNG(out, "convolve1.png");
 
+		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		img.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
 		cvt::ImageIO::savePNG(out, "convolve2.png");
 	
