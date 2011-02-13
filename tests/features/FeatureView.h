@@ -27,7 +27,7 @@ void FeatureView::paintEvent( cvt::PaintEvent* ev, cvt::GFX* g )
 {
 	cvt::ImageView::paintEvent( ev, g );
 
-	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 0.5f ) );
+	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 1.0f ) );
 
 	int w, h;
 	size( w, h );
@@ -35,8 +35,8 @@ void FeatureView::paintEvent( cvt::PaintEvent* ev, cvt::GFX* g )
 	float xScale = ( float ) w / 640.0f;
 	float yScale = ( float ) h / 480.0f;
 	for( size_t i = 0; i < _features.size(); i++ ){
-		pts[ i ].x = ( int ) ( _features[ i ][ 0 ] * xScale - 8.0f );
-		pts[ i ].y = ( int ) ( _features[ i ][ 1 ] * yScale - 8.0f );
+		pts[ i ].x = ( int ) ( _features[ i ][ 0 ] * xScale );
+		pts[ i ].y = ( int ) ( _features[ i ][ 1 ] * yScale );
 	}
 	//g->drawIcon( _features[ i ][ 0 ] * xScale - 8.0f, _features[ i ][ 1 ] * yScale -8.0f, cvt::GFX::ICON_CROSS );
 	g->drawIcons( pts, _features.size(), cvt::GFX::ICON_CROSS );

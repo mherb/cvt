@@ -63,10 +63,12 @@ class CameraTimeout : public TimeoutHandler
 			_timeSum += _processingTime.elapsedMilliSeconds();
 
 			_iter++;
-			if( ( _iter % 20 ) == 0 )
-				std::cout << "Avg. Feature Tracking time: " << _timeSum / _iter << "ms" << std::endl;
+			if( _iter == 100 ){
+				std::cout << "Avg. Feature Detection time: " << _timeSum / _iter << "ms" << std::endl;
+				_iter = 0; _timeSum = 0;
+			}
 
-			_view->setFeatures( trackedPoints );
+			_view->setFeatures( newFeatures );
 
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
