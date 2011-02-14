@@ -2,7 +2,7 @@ INCLUDE(MacroTestApplication)
 
 FIND_PACKAGE( OpenCV )
 
-IF( DEFINED ${OpenCV_LIBS} )
+IF( DEFINED OpenCV_LIBS )
 	SET( OTHER_LIBS
 		"${OpenCV_LIBS}"
 	)

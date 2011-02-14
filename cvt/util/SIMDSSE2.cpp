@@ -44,7 +44,7 @@ namespace cvt
 		if( value.native() == 0 )
 			return;
 
-		__m128 mul = _mm_set1_ps( ( float ) value );
+		const __m128 mul = _mm_set1_ps( ( float ) value );
 		__m128i in, out, in2, out2;
 		__m128 inf, inf2;
 
@@ -52,31 +52,43 @@ namespace cvt
 			while( i-- ) {
 				in = _mm_loadu_si128( ( __m128i* ) src );
 				out = _mm_loadu_si128( ( __m128i* ) dst );
-				in2 = _mm_loadu_si128( ( __m128i* ) ( src + 4 ) );
-				out2 = _mm_loadu_si128( ( __m128i* ) ( dst + 4 ) );
 				inf = _mm_mul_ps( _mm_cvtepi32_ps( in ), mul );
-				inf2 = _mm_mul_ps( _mm_cvtepi32_ps( in2 ), mul );
 				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
-				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
 				_mm_storeu_si128( ( __m128i* ) dst, out );
-				_mm_storeu_si128( ( __m128i* ) ( dst + 4 ), out2 );
-				src += 8;
-				dst += 8;
+
+				src += 4;
+				dst += 4;
+
+				in2 = _mm_loadu_si128( ( __m128i* ) ( src ) );
+				out2 = _mm_loadu_si128( ( __m128i* ) ( dst ) );
+				inf2 = _mm_mul_ps( _mm_cvtepi32_ps( in2 ), mul );
+				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
+				_mm_storeu_si128( ( __m128i* ) ( dst ), out2 );
+
+				src += 4;
+				dst += 4;
 			}
 		} else {
 			while( i-- ) {
 				in = _mm_load_si128( ( __m128i* ) src );
 				out = _mm_load_si128( ( __m128i* ) dst );
-				in2 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
-				out2 = _mm_load_si128( ( __m128i* ) ( dst + 4 ) );
-				inf = _mm_mul_ps( _mm_cvtepi32_ps( in ), mul );
-				inf2 = _mm_mul_ps( _mm_cvtepi32_ps( in2 ), mul );
+				inf = _mm_cvtepi32_ps( in );
+				inf = _mm_mul_ps( inf, mul );
 				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
-				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
 				_mm_store_si128( ( __m128i* ) dst, out );
-				_mm_store_si128( ( __m128i* ) ( dst + 4 ), out2 );
-				src += 8;
-				dst += 8;
+
+				src += 4;
+				dst += 4;
+
+				in2 = _mm_load_si128( ( __m128i* ) ( src ) );
+				out2 = _mm_load_si128( ( __m128i* ) ( dst ) );
+				inf2 = _mm_cvtepi32_ps( in2 );
+				inf2 = _mm_mul_ps( inf2 , mul );
+				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
+				_mm_store_si128( ( __m128i* ) ( dst ), out2 );
+
+				src += 4;
+				dst += 4;
 			}
 		}
 
