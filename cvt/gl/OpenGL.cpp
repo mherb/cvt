@@ -120,10 +120,11 @@ namespace cvt {
 
 	void (* GL::getProcAddress(const char* str ))()
 	{
-/*#ifdef APPLE
-#else*/
+#ifdef APPLE
+		return glXGetProcAddress( ( const GLubyte * ) str );
+#else
 		return glXGetProcAddressARB( ( const GLubyte * ) str );
-/*#endif*/
+#endif
 	}
 
 	void GL::info( std::ostream& out )

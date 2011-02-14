@@ -113,7 +113,7 @@ namespace cvt {
 			png_infop info_ptr = png_create_info_struct(png_ptr);
 			if (info_ptr == NULL){
 				fclose(fp);
-				png_destroy_write_struct(&png_ptr,  png_infopp_NULL);
+				png_destroy_write_struct(&png_ptr,  ( png_infopp )NULL);
 				throw CVTException("Could not create png info struct");
 			}
 

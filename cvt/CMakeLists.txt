@@ -370,6 +370,12 @@ IF(UNIX)
 			"-framework QuartzCore"
 			"-framework QTKit"
 		)
+		
+		INCLUDE_DIRECTORIES(
+		    BEFORE
+			/usr/X11/include
+		)	
+		
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
