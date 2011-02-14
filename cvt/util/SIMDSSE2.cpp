@@ -10,9 +10,6 @@ namespace cvt
 	{
 		size_t i = n >> 2;
 
-		if( value.native() == 0 )
-			return;
-
 		__m128 mul = _mm_set1_ps( ( float ) value );
 		__m128i in;
 		__m128 inf;
@@ -42,42 +39,52 @@ namespace cvt
 
 	void SIMDSSE2::MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
-		size_t i = n >> 2;
+		size_t i = n >> 3;
 
 		if( value.native() == 0 )
 			return;
 
 		__m128 mul = _mm_set1_ps( ( float ) value );
-		__m128i in, out;
-		__m128 inf;
+		__m128i in, out, in2, out2;
+		__m128 inf, inf2;
 
 		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
 			while( i-- ) {
 				in = _mm_loadu_si128( ( __m128i* ) src );
-				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
-				in = _mm_loadu_si128( ( __m128i* ) dst );
-				out = _mm_add_epi32( in, _mm_cvtps_epi32( inf )  );
+				out = _mm_loadu_si128( ( __m128i* ) dst );
+				in2 = _mm_loadu_si128( ( __m128i* ) ( src + 4 ) );
+				out2 = _mm_loadu_si128( ( __m128i* ) ( dst + 4 ) );
+				inf = _mm_mul_ps( _mm_cvtepi32_ps( in ), mul );
+				inf2 = _mm_mul_ps( _mm_cvtepi32_ps( in2 ), mul );
+				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
+				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
 				_mm_storeu_si128( ( __m128i* ) dst, out );
-				src += 4;
-				dst += 4;
+				_mm_storeu_si128( ( __m128i* ) ( dst + 4 ), out2 );
+				src += 8;
+				dst += 8;
 			}
 		} else {
 			while( i-- ) {
 				in = _mm_load_si128( ( __m128i* ) src );
-				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
-				in = _mm_load_si128( ( __m128i* ) dst );
-				out = _mm_add_epi32( in, _mm_cvtps_epi32( inf )  );
+				out = _mm_load_si128( ( __m128i* ) dst );
+				in2 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
+				out2 = _mm_load_si128( ( __m128i* ) ( dst + 4 ) );
+				inf = _mm_mul_ps( _mm_cvtepi32_ps( in ), mul );
+				inf2 = _mm_mul_ps( _mm_cvtepi32_ps( in2 ), mul );
+				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
+				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
 				_mm_store_si128( ( __m128i* ) dst, out );
-				src += 4;
-				dst += 4;
+				_mm_store_si128( ( __m128i* ) ( dst + 4 ), out2 );
+				src += 8;
+				dst += 8;
 			}
 		}
 
-		i = n & 0x03;
+		i = n & 0x07;
 		while( i-- )
 			*dst++ += *src++ * value;
 	}
-	
+
 	size_t SIMDSSE2::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
 		size_t i = n >> 4;	
@@ -110,6 +117,223 @@ namespace cvt
 		}
 		
 		return sad;
+	}
+
+	void SIMDSSE2::ConvolveClampSet1fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
+	{
+		const Fixed* wp;
+		const uint8_t* sp;
+		Fixed tmp;
+		size_t i, k, b1, b2;
+
+		if( wn == 1 ) {
+			MulAdd( dst, src, *weights, width );
+			return;
+		}
+
+		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+		/* border 1 */
+		i = b1;
+		while( i-- ) {
+			wp = weights;
+			sp = src;
+			tmp = *sp * *wp++;
+			k = i;
+			while( k-- )
+				tmp += *sp * *wp++;
+			k = wn - 1 - i;
+			while( k-- ) {
+				tmp += *sp++ * *wp++;
+			}
+			*dst++ = tmp;
+		}
+
+
+		/* center */
+		i = ( width - wn + 1 ) >> 4;
+		while( i-- ) {
+			__m128i f, z = _mm_setzero_si128(), s0 = z, s1 = z, s2 = z, s3 = z;
+			__m128i x0, x1, x2, x3;
+			k = wn;
+			sp = src;
+			wp = weights;
+
+			while( k-- )
+			{
+				f = _mm_cvtsi32_si128( (*wp).native() );
+				wp++;
+				f = _mm_shuffle_epi32( f, 0 );
+				f = _mm_packs_epi32( f, f );
+
+				x0 = _mm_loadu_si128( (const __m128i*) sp );
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+				x1 = _mm_mulhi_epi16( x0, f );
+				x3 = _mm_mulhi_epi16( x2, f );
+				x0 = _mm_mullo_epi16( x0, f );
+				x2 = _mm_mullo_epi16( x2, f );
+
+				s0 = _mm_add_epi32( s0, _mm_unpacklo_epi16( x0, x1 ) );
+				s1 = _mm_add_epi32( s1, _mm_unpackhi_epi16( x0, x1 ) );
+				s2 = _mm_add_epi32( s2, _mm_unpacklo_epi16( x2, x3 ) );
+				s3 = _mm_add_epi32( s3, _mm_unpackhi_epi16( x2, x3 ) );
+				sp++;
+			}
+			_mm_storeu_si128((__m128i*)( dst ), s0);
+			_mm_storeu_si128((__m128i*)( dst + 4 ), s1);
+			_mm_storeu_si128((__m128i*)( dst + 8 ), s2);
+			_mm_storeu_si128((__m128i*)( dst + 12 ), s3);
+			dst += 16;
+			src += 16;
+		}
+
+		i = ( width - wn + 1 ) & 0xf;
+		while( i-- ) {
+			k = wn;
+			sp = src;
+			wp = weights;
+			tmp = *sp++ * *wp++;
+			k--;
+			while( k-- )
+				tmp += *sp++ * *wp++;
+			*dst++ = tmp;
+			src++;
+		}
+
+		/* border 2 */
+		i = b2;
+		while( i-- ) {
+			wp = weights;
+			sp = src;
+			tmp = *sp++ * *wp++;
+			k = b1 + i;
+			while( k-- ) {
+				tmp += *sp++ * *wp++;
+			}
+			k = b2 - i;
+			sp--;
+			while( k-- )
+				tmp += *sp * *wp++;
+			*dst++ = tmp;
+			src++;
+		}
+	}
+
+	void SIMDSSE2::ConvolveClampAdd1fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
+	{
+		const Fixed* wp;
+		const uint8_t* sp;
+		Fixed tmp;
+		size_t i, k, b1, b2;
+
+		if( wn == 1 ) {
+			MulAdd( dst, src, *weights, width );
+			return;
+		}
+
+		b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
+		b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+
+		/* border 1 */
+		i = b1;
+		while( i-- ) {
+			wp = weights;
+			sp = src;
+			tmp = *sp * *wp++;
+			k = i;
+			while( k-- )
+				tmp += *sp * *wp++;
+			k = wn - 1 - i;
+			while( k-- ) {
+				tmp += *sp++ * *wp++;
+			}
+			*dst++ += tmp;
+		}
+
+
+		/* center */
+		i = ( width - wn + 1 ) >> 4;
+		while( i-- ) {
+			__m128i f, z = _mm_setzero_si128(), s0 = z, s1 = z, s2 = z, s3 = z;
+			__m128i x0, x1, x2, x3;
+			k = wn;
+			sp = src;
+			wp = weights;
+
+			while( k-- )
+			{
+				f = _mm_cvtsi32_si128( (*wp).native() );
+				wp++;
+				f = _mm_shuffle_epi32( f, 0 );
+				f = _mm_packs_epi32( f, f );
+
+				x0 = _mm_loadu_si128( (const __m128i*) sp );
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+				x1 = _mm_mulhi_epi16( x0, f );
+				x3 = _mm_mulhi_epi16( x2, f );
+				x0 = _mm_mullo_epi16( x0, f );
+				x2 = _mm_mullo_epi16( x2, f );
+
+				s0 = _mm_add_epi32( s0, _mm_unpacklo_epi16( x0, x1 ) );
+				s1 = _mm_add_epi32( s1, _mm_unpackhi_epi16( x0, x1 ) );
+				s2 = _mm_add_epi32( s2, _mm_unpacklo_epi16( x2, x3 ) );
+				s3 = _mm_add_epi32( s3, _mm_unpackhi_epi16( x2, x3 ) );
+				sp++;
+			}
+
+			x0 = _mm_loadu_si128( (__m128i*) dst );
+			s0 = _mm_add_epi32( s0, x0 );
+			_mm_storeu_si128((__m128i*)( dst ), s0);
+
+			x1 = _mm_loadu_si128( (__m128i*) ( dst + 4 ) );
+			s1 = _mm_add_epi32( s1, x1 );
+			_mm_storeu_si128((__m128i*)( dst + 4 ), s1);
+
+			x2 = _mm_loadu_si128( (__m128i*) ( dst + 8 ) );
+			s2 = _mm_add_epi32( s2, x2 );
+			_mm_storeu_si128((__m128i*)( dst + 8 ), s2);
+
+			x3 = _mm_loadu_si128( (__m128i*) ( dst + 12 ) );
+			s3 = _mm_add_epi32( s3, x3 );
+			_mm_storeu_si128((__m128i*)( dst + 12 ), s3);
+
+			dst += 16;
+			src += 16;
+		}
+
+		i = ( width - wn + 1 ) & 0xf;
+		while( i-- ) {
+			k = wn;
+			sp = src;
+			wp = weights;
+			tmp = *sp++ * *wp++;
+			k--;
+			while( k-- )
+				tmp += *sp++ * *wp++;
+			*dst++ += tmp;
+			src++;
+		}
+
+		/* border 2 */
+		i = b2;
+		while( i-- ) {
+			wp = weights;
+			sp = src;
+			tmp = *sp++ * *wp++;
+			k = b1 + i;
+			while( k-- ) {
+				tmp += *sp++ * *wp++;
+			}
+			k = b2 - i;
+			sp--;
+			while( k-- )
+				tmp += *sp * *wp++;
+			*dst++ += tmp;
+			src++;
+		}
 	}
 
 	void SIMDSSE2::ConvolveClampSet4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
@@ -171,21 +395,21 @@ namespace cvt
 			{
 				f = _mm_cvtsi32_si128( (*wp).native() );
 				wp++;
-				f = _mm_shuffle_epi32(f, 0);
-				f = _mm_packs_epi32(f, f);
+				f = _mm_shuffle_epi32( f, 0 );
+				f = _mm_packs_epi32( f, f );
 
 				x0 = _mm_loadu_si128( (const __m128i*) sp );
-				x2 = _mm_unpackhi_epi8(x0, z);
-				x0 = _mm_unpacklo_epi8(x0, z);
-				x1 = _mm_mulhi_epi16(x0, f);
-				x3 = _mm_mulhi_epi16(x2, f);
-				x0 = _mm_mullo_epi16(x0, f);
-				x2 = _mm_mullo_epi16(x2, f);
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+				x1 = _mm_mulhi_epi16( x0, f );
+				x3 = _mm_mulhi_epi16( x2, f );
+				x0 = _mm_mullo_epi16( x0, f );
+				x2 = _mm_mullo_epi16( x2, f );
 
-				s0 = _mm_add_epi32(s0, _mm_unpacklo_epi16(x0, x1));
-				s1 = _mm_add_epi32(s1, _mm_unpackhi_epi16(x0, x1));
-				s2 = _mm_add_epi32(s2, _mm_unpacklo_epi16(x2, x3));
-				s3 = _mm_add_epi32(s3, _mm_unpackhi_epi16(x2, x3));
+				s0 = _mm_add_epi32( s0, _mm_unpacklo_epi16( x0, x1 ) );
+				s1 = _mm_add_epi32( s1, _mm_unpackhi_epi16( x0, x1 ) );
+				s2 = _mm_add_epi32( s2, _mm_unpacklo_epi16( x2, x3 ) );
+				s3 = _mm_add_epi32( s3, _mm_unpackhi_epi16( x2, x3 ) );
 				sp += 4;
 			}
 

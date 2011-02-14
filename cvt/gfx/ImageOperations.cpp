@@ -818,7 +818,9 @@ namespace cvt {
 		checkFormatAndSize( idst, __PRETTY_FUNCTION__, __LINE__ );
 
 		widthchannels = _mem->_width * _mem->_format.channels;
-		buf = new Fixed[ _mem->_width * _mem->_format.channels ];
+
+		if( posix_memalign( ( void** ) &buf, 16, sizeof( Fixed ) * widthchannels ) )
+			throw CVTException("Out of memory");
 
 		osrc = src = map( &sstride );
 		odst = dst = idst.map( &dstride );
@@ -899,7 +901,7 @@ namespace cvt {
 
 		unmap( osrc );
 		idst.unmap( odst );
-		delete[] buf;
+		free( buf );
 		delete[] weights;
 	}
 
@@ -962,7 +964,7 @@ namespace cvt {
 			( simd->*convfunc )( buf[ i ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
 			src += sstride;
 		}
-		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * widthchannels ) )
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) + 1000 ) )
 			throw CVTException("Out of memory");
 
 
@@ -1071,7 +1073,9 @@ namespace cvt {
 		checkSize( idst, __PRETTY_FUNCTION__, __LINE__, _mem->_width, _mem->_height );
 
 		widthchannels = _mem->_width * _mem->_format.channels;
-		buf = new Fixed[ _mem->_width * _mem->_format.channels ];
+		if( posix_memalign( ( void** ) &buf, 16, sizeof( Fixed ) * widthchannels ) )
+			throw CVTException("Out of memory");
+
 
 		osrc = src = map( &sstride );
 		odst = dst = idst.map( &dstride );
