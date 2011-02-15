@@ -207,6 +207,7 @@ namespace cvt {
 	
 	QTKitCameraInterface::~QTKitCameraInterface()
 	{
+        
 		if( _qtDevice )
 			[_qtDevice release];
 		if( _camDelegate )
@@ -235,14 +236,13 @@ namespace cvt {
 	}
 	
 	void QTKitCameraInterface::startCapture()
-	{
-		std::cout << "Starting session" << std::endl;
-		[_session startRunning];
+	{   
+        [_session startRunning];         
 	}
 	
 	void QTKitCameraInterface::stopCapture()
 	{
-		[_session stopRunning];
+        [_session stopRunning];
 	}
 	
 	
@@ -257,13 +257,16 @@ namespace cvt {
 	
 	QTKitCamera::QTKitCamera( size_t camIndex, const CameraMode & mode):
 		_device( NULL ),
-		_frame( mode.width, mode.height, mode.format )
+		_frame( mode.width, mode.height, mode.format ),
+        _capturing( false )
 	{
 		_device = new QTKitCameraInterface( camIndex, mode.width, mode.height, mode.fps, mode.format );
 	}
 	
 	QTKitCamera::~QTKitCamera()
 	{
+        if( _capturing )
+            stopCapture();
 		delete _device;
 	}
 	
@@ -274,12 +277,18 @@ namespace cvt {
 	
 	void QTKitCamera::startCapture()
 	{	
-		_device->startCapture();
+        if( !_capturing ){
+            _device->startCapture();
+            _capturing = true;
+        }
 	}
 	
 	void QTKitCamera::stopCapture()
 	{
-		_device->stopCapture();
+        if( _capturing ){
+            _device->stopCapture();
+            _capturing = false;
+        }
 	}
 	
 	size_t QTKitCamera::count()

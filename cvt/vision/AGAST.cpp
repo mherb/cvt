@@ -6,8 +6,30 @@
 namespace cvt
 {
 
-	AGAST::AGAST( ASTType type ) : _type( type ), _threshold( 25 ), _lastStride( 0 )
+	AGAST::AGAST( ASTType type ) : 
+        _type( type ), _extract( 0 ), _score( 0 ), _threshold( 25 ), _lastStride( 0 ), _suppress( true )       
 	{
+        switch ( type ) {
+            case OAST_9_16:
+                _extract = &AGAST::oast9_16;
+                _score = &AGAST::score9_16;
+                break;
+            case AGAST_5_8:
+                _extract = &AGAST::agast5_8;
+                _score = &AGAST::score58;
+                break;
+            case AGAST_7_12D:
+                _extract = &AGAST::agast7_12d;
+                _score = &AGAST::score7_12d;
+                break;
+            case AGAST_7_12S:
+                _extract = &AGAST::agast7_12s;
+                _score = &AGAST::score7_12s;
+                break;                
+            default:
+                CVTException( "Unkown AGAST Type in initialization!" );
+                break;
+        }
 	}
 
 	AGAST::~AGAST()
@@ -15,65 +37,21 @@ namespace cvt
 	}
 
 	void AGAST::extract( const Image & image, std::vector<Feature2D> & features )
-	{
-		std::vector<Feature2D> temp;
-		switch( _type ){
-			case OAST_9_16:
-				{
-					size_t stride;
-					const uint8_t * im = image.map( &stride );
-					oast9_16( im, stride, image.width(), image.height(), temp );
-
-					int * scores = score9_16( im, stride, temp );
-					image.unmap( im );
-
-					nonMaximumSuppression( temp, scores, features );
-					delete[] scores;
-				}
-				break;
-			case AGAST_5_8:
-				{
-					size_t stride;
-					const uint8_t * im = image.map( &stride );
-					agast5_8( im, stride, image.width(), image.height(), temp );
-
-					int * scores = score58( im, stride, temp );
-					image.unmap( im );
-
-					nonMaximumSuppression( temp, scores, features );
-					delete[] scores;
-				}
-				break;
-			case AGAST_7_12D:
-				{
-					size_t stride;
-					const uint8_t * im = image.map( &stride );
-					agast7_12d( im, stride, image.width(), image.height(), temp );
-
-					int * scores = score7_12d( im, stride, temp );
-					image.unmap( im );
-
-					nonMaximumSuppression( temp, scores, features );
-					delete[] scores;
-				}
-				break;
-			case AGAST_7_12S:
-				{
-					size_t stride;
-					const uint8_t * im = image.map( &stride );
-					agast7_12s( im, stride, image.width(), image.height(), temp );
-
-					int * scores = score7_12s( im, stride, temp );
-					image.unmap( im );
-
-					nonMaximumSuppression( temp, scores, features );
-					delete[] scores;
-				}
-				break;
-
-			default:
-				throw CVTException( "ASTType not implemented" );
-		}
+	{        
+        size_t stride;
+        const uint8_t * im = image.map( &stride );
+     
+        if( _suppress ){
+            std::vector<Feature2D> temp;
+            ( this->*_extract )( im, stride, image.width(), image.height(), temp );
+            int * scores = ( this->*_score )( im, stride, temp );        
+            nonMaximumSuppression( temp, scores, features );
+            delete[] scores;
+        } else {
+            ( this->*_extract )( im, stride, image.width(), image.height(), features );            
+        }
+        
+        image.unmap( im );        
 	}
 
 

@@ -22,7 +22,7 @@ namespace cvt {
 	}
 
 	Camera::~Camera()
-	{
+	{        
 	}
 
 	void Camera::updateInfo()

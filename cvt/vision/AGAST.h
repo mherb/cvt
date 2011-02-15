@@ -16,16 +16,22 @@ namespace cvt {
 	class AGAST : public FeatureExtractor<int32_t>
 	{
 		public:
+            typedef void (AGAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
+		typedef int* (AGAST::*ScoreFunc)( const uint8_t* p, size_t stride, std::vector<Feature2D> & corner );
 			AGAST( ASTType type = AGAST_5_8 );
 			~AGAST();
 
 			void extract( const Image & image, std::vector<Feature2D> & features );
 			void extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves );
+            void setNonMaxSuppress( bool val ){ _suppress = val; }
 
 		private:
 			ASTType		_type;
+            ExtractFunc	_extract;
+            ScoreFunc	_score;
 			int			_threshold;
 			size_t		_lastStride;
+            bool        _suppress;
 			int16_t		_offset0;
 			int16_t		_offset1;
 			int16_t		_offset2;

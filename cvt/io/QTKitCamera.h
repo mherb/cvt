@@ -28,8 +28,9 @@ namespace cvt {
 			static void cameraInfo( size_t index, CameraInfo & info );
 		
 		private:
-			QTKitCameraInterface * _device;
-			Image _frame;
+			QTKitCameraInterface *  _device;
+			Image                   _frame;
+            bool                    _capturing;
 	};
 	
 	inline size_t QTKitCamera::width() const
