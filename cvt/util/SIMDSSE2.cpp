@@ -5,6 +5,12 @@
 
 namespace cvt
 {
+	static inline void prefetcht0( const void * p )
+	{
+		__asm__ volatile(   "prefetcht0 (%0)\n\t"
+						 : : "r" (p)
+						);
+	}
 
 	void SIMDSSE2::Mul( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
@@ -70,23 +76,22 @@ namespace cvt
 			}
 		} else {
 			while( i-- ) {
+
 				in = _mm_load_si128( ( __m128i* ) ( src ) );
 				in2 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
 
-				_mm_prefetch( ( __m128i* ) ( src + 8 ), _MM_HINT_T0 );
+//				_mm_prefetch( ( __m128i* ) ( src + 8 ), _MM_HINT_T0 );
 
 				out = _mm_load_si128( ( __m128i* ) ( dst ) );
-				out2 = _mm_load_si128( ( __m128i* ) ( dst + 4 ) );
-
 				inf = _mm_cvtepi32_ps( in );
 				inf = _mm_mul_ps( inf, mul );
 				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
+				_mm_store_si128( ( __m128i* ) ( dst ), out );
 
+				out2 = _mm_load_si128( ( __m128i* ) ( dst + 4 ) );
 				inf2 = _mm_cvtepi32_ps( in2 );
 				inf2 = _mm_mul_ps( inf2 , mul );
 				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
-
-				_mm_store_si128( ( __m128i* ) ( dst ), out );
 				_mm_store_si128( ( __m128i* ) ( dst + 4 ), out2 );
 
 				src += 8;
@@ -399,11 +404,13 @@ namespace cvt
 		/* center */
 		i = ( width - wn + 1 ) >> 2;
 		while( i-- ) {
-			__m128i f, z = _mm_setzero_si128(), s0 = z, s1 = z, s2 = z, s3 = z;
+			__m128i f, z, s0, s1, s2, s3;
 			__m128i x0, x1, x2, x3;
 			k = wn;
 			sp = src;
 			wp = weights;
+
+			z = s0 = s1 = s2 = s3 = _mm_setzero_si128();
 
 			while( k-- )
 			{
