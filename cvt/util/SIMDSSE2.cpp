@@ -76,7 +76,27 @@ namespace cvt
 			}
 		} else {
 			while( i-- ) {
-
+#if 1
+				asm( "movdqa (%0), %%xmm1;\n\t"
+					 "movdqa 16(%0), %%xmm2;\n\t"
+					 "prefetcht0 32(%0);\n\t"
+					 "cvtdq2ps %%xmm1, %%xmm1;\n\t"
+					 "mulps %2, %%xmm1;\n\t"
+					 "cvtps2dq %%xmm1, %%xmm1;\n\t"
+					 "paddd  (%1), %%xmm1;\n\t"
+					 "movdqa %%xmm1, (%1);\n\t"
+					 "\n\t"
+					 "cvtdq2ps %%xmm2, %%xmm2;\n\t"
+					 "mulps %2, %%xmm2;\n\t"
+					 "cvtps2dq %%xmm2, %%xmm2;\n\t"
+					 "paddd  16(%1), %%xmm2;\n\t"
+					 "movdqa %%xmm2, 16(%1);\n\t"
+					 "\n\t"
+					: /* no output */
+					: "r"(src),"r"(dst), "x"(mul)
+					: "xmm1","xmm2","xmm3","xmm4"
+					);
+#else
 				in = _mm_load_si128( ( __m128i* ) ( src ) );
 				in2 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
 
@@ -93,7 +113,7 @@ namespace cvt
 				inf2 = _mm_mul_ps( inf2 , mul );
 				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
 				_mm_store_si128( ( __m128i* ) ( dst + 4 ), out2 );
-
+#endif
 				src += 8;
 				dst += 8;
 			}
