@@ -20,11 +20,11 @@ namespace cvt {
 			VideoReader( const std::string & fileName, bool autoRewind = true );
 			~VideoReader();
 
-			size_t width() const;
-			size_t height() const;
-			const IFormat & format() const;
-			const Image & frame() const;
-			void nextFrame();
+			size_t  width() const;
+			size_t  height() const;
+			const   IFormat & format() const;
+			const   Image & frame() const;
+			void    nextFrame();
 
 		private:
 			AVFormatContext *	_formatContext;

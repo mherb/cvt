@@ -1,4 +1,5 @@
 #include <cvt/io/Camera.h>
+#include <cvt/io/VideoReader.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
@@ -24,18 +25,16 @@ using namespace cvt;
 class CameraTimeout : public TimeoutHandler
 {
 	public:
-		CameraTimeout( Camera * cam, Moveable* mov, FeatureView * view ) :
+		CameraTimeout( VideoInput * cam, Moveable* mov, FeatureView * view ) :
 			TimeoutHandler(),
 			_cam( cam ),
 			_moveable( mov ),
 			_view( view ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
-			_grayLast( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
 			_featureTracker()
 		{
-			_cam->startCapture();
 			_timer.reset();
 			_processingTime.reset();
 			_iter = 0;
@@ -43,8 +42,7 @@ class CameraTimeout : public TimeoutHandler
 		}
 
 		~CameraTimeout()
-		{
-			_cam->stopCapture();
+		{		
 		}
 
 		void onTimeout()
@@ -55,11 +53,9 @@ class CameraTimeout : public TimeoutHandler
 
 			_view->setImage( _gray );
 
-			std::vector<Feature2D> trackedPoints;
 			std::vector<Feature2D> newFeatures;
-			std::vector<size_t> matchedIndices;
 			_processingTime.reset();
-			_featureTracker.run( _gray, _grayLast, _currentFeatures, trackedPoints, matchedIndices, newFeatures );
+			_featureTracker.run( _gray, newFeatures );
 			_timeSum += _processingTime.elapsedMilliSeconds();
 
 			_iter++;
@@ -68,7 +64,7 @@ class CameraTimeout : public TimeoutHandler
 				_iter = 0; _timeSum = 0;
 			}
 
-			_view->setFeatures( newFeatures );
+			_view->setFeatures( newFeatures, _gray.width(), _gray.height() );
 
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
@@ -78,47 +74,42 @@ class CameraTimeout : public TimeoutHandler
 				_frames = 0;
 				_timer.reset();
 			}
-
-			_currentFeatures.clear();
-			_currentFeatures.resize( trackedPoints.size() + newFeatures.size() );
-			std::copy( trackedPoints.begin(), trackedPoints.end(), _currentFeatures.begin() );
-			std::copy( newFeatures.begin(), newFeatures.end(), _currentFeatures.begin() + trackedPoints.size() );
-
-			_grayLast = _gray;
 		}
 
 	private:
-		Camera *				_cam;
+		VideoInput *			_cam;
 		Moveable*				_moveable;
 		FeatureView *			_view;
+    
 		Image					_image;
 		Image					_gray;
-		Image					_grayLast;
+    
 		Time					_timer;
 		Time					_processingTime;
+    
 		size_t					_iter;
 		double					_timeSum;
 		float					_frames;
-		std::vector<Feature2D>	_currentFeatures;
+    
 		FeatureTracker			_featureTracker;
 };
 
-int main( )
+Camera * initCamera()
 {
-	Camera::updateInfo();
+    Camera::updateInfo();
 	size_t numCams = Camera::count();
-
+    
 	std::cout << "Overall number of Cameras: " << numCams << std::endl;
 	if( numCams == 0 ){
 		std::cout << "Please connect a camera!" << std::endl;
 		return 0;
 	}
-
+    
 	for( size_t i = 0; i < numCams; i++ ){
 		const CameraInfo & info = Camera::info( i );
 		std::cout << "Camera " << i << ": " << info << std::endl;
 	}
-
+    
 	size_t selection = numCams;
 	std::cout << "Select camera: ";
 	std::cin >> selection;
@@ -126,6 +117,22 @@ int main( )
 		std::cout << "Index out of bounds -> select camera in Range:";
 		std::cin >> selection;
 	}
+    
+    Camera * cam = 0;
+    cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
+    cam->startCapture();
+    
+    return cam;
+}
+
+int main( int argc, char* argv[] )
+{
+    VideoInput * input = 0;
+	if( argc == 1 ){
+        input = initCamera();
+    } else {
+        input = new VideoReader( argv[ 1 ], true );
+    }
 
 	Window w( "Camera Test" );
 	w.setSize( 800, 600 );
@@ -138,30 +145,26 @@ int main( )
     WidgetLayout wl;
     wl.setAnchoredRight( 10, 50 );
     wl.setAnchoredBottom( 10, 20 );
-    w.addWidget( &button, wl );
+    w.addWidget( &button, wl );    
 
-	Camera * cam = 0;
-
-	try {
-		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
+	try {		
 		FeatureView camView;
 		Moveable m( &camView );
 		m.setTitle( "Camera" );
 		m.setSize( 320, 240 );
 		w.addWidget( &m );
 
-		CameraTimeout camTimeOut( cam, &m, &camView );
-		uint32_t timerId = Application::registerTimer( 25, &camTimeOut );
+		CameraTimeout camTimeOut( input, &m, &camView );
+		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
-
-
-	if(cam)
-		delete cam;
+    
+    if( input )
+		delete input;
 
 	return 0;
 }

@@ -3,12 +3,70 @@
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
+#include <cvt/gui/Application.h>
+#include <cvt/gui/Window.h>
+#include <cvt/gui/BasicTimer.h>
+#include <cvt/util/Delegate.h>
+
 using namespace cvt;
+
+class VideoPlayer : public Window
+{
+public:
+	VideoPlayer( const std::string& videoFile ) : 
+        Window( "VideoPlayer" ), _video( videoFile, true ), _timer( 10 ), _frames( 0 )
+	{
+        // register a timer to retrieve the next video frame
+        _captureDelegate = new Delegate<void ( BasicTimer* )>( this, &VideoPlayer::capture );
+        _timer.timeout.add( _captureDelegate );
+        _timer.start();
+        
+        _video.nextFrame();
+            
+        this->setSize( 800, 600 );
+        this->show();
+        _time.reset();
+    }
+    
+    ~VideoPlayer()
+    {
+        _timer.stop();
+    }
+    
+    void capture( BasicTimer* )
+    { 
+        _video.nextFrame(); 
+        _frames++;
+        if( _time.elapsedSeconds() > 3.0f ){
+            char buf[ 100 ];
+            sprintf( buf, "VideoPlayer FPS: %0.1f", _frames / _time.elapsedSeconds() );            
+            _frames = 0;
+            _time.reset();           
+            this->setTitle( buf );
+        }
+        update();        
+    }
+        
+	void paintEvent( PaintEvent*, GFX* gfx )
+	{
+		int w, h;
+		size( w, h );
+		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx->fillRect( 0, 0, w, h );        
+		gfx->drawImage( 0, 0, w, h, _video.frame() );
+	}
+    
+private:    
+    VideoReader _video;
+    BasicTimer  _timer;
+    Delegate< void ( BasicTimer * ) >* _captureDelegate;
+    size_t      _frames;
+    Time        _time;
+};
 
 int main( int argc, char** argv )
 {
-	size_t frames = 0;
-	Time timer;
+	
 	
 	if( argc < 2 ){
 		std::cout << "Usage: " << argv[ 0 ] << " <filename>" << std::endl;
@@ -18,22 +76,8 @@ int main( int argc, char** argv )
 	std::string xxx( argv[ 1 ] );
 
 	try {
-		VideoReader video( xxx );
-		Image frame( video.width(), video.height(), IFormat::BGRA_UINT8 );
-
-		timer.reset();
-		while( 1 ) {
-//		for(size_t i = 0; i < 300; i++){
-			video.nextFrame();
-			video.frame().convert( frame );
-
-			frames++;
-			if( timer.elapsedSeconds() > 5.0f ) {
-				std::cout << "FPS: " << ( double ) frames / timer.elapsedSeconds() << std::endl;
-				frames = 0;
-				timer.reset();
-			}
-		}
+		VideoPlayer video( xxx );
+        Application::run();
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}

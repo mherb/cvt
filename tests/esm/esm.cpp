@@ -13,7 +13,6 @@
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/BasicTimer.h>
-
 #include <cvt/util/Delegate.h>
 
 using namespace cvt;

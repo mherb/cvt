@@ -11,7 +11,8 @@ namespace cvt
 		_threshold( 30 ),
 		_minScore( 1 ),
 		_extract( 0 ),
-		_score( 0 )
+		_score( 0 ),
+        _suppress( true )
 	{
 		switch( size ){
 			case SEGMENT_9:
@@ -47,19 +48,22 @@ namespace cvt
 		if( image.format() != IFormat::GRAY_UINT8 )
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
 
-		const uint8_t* im = image.map( &stride );
+		const uint8_t* im = image.map( &stride );		
 
-		std::vector<Feature2D> allCorners;
-
-		// detect candidates
-		(this->*_extract)( im, stride, image.width(), image.height(), allCorners );
-
-		// calc the scores
-		int * cornerScores = this->score( im, stride, allCorners );
-		image.unmap( im );
-
-		// non maximal suppression
-		this->nonmaxSuppression( allCorners, cornerScores, features );
+        if( _suppress ){
+            std::vector<Feature2D> allCorners;
+            // detect candidates
+            (this->*_extract)( im, stride, image.width(), image.height(), allCorners );
+            
+            // calc the scores
+            int * cornerScores = this->score( im, stride, allCorners );		
+            // non maximal suppression
+            this->nonmaxSuppression( allCorners, cornerScores, features );
+        } else { 
+            (this->*_extract)( im, stride, image.width(), image.height(), features );
+        }
+        
+        image.unmap( im );
 	}
 
 

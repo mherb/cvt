@@ -11,15 +11,16 @@ class FeatureView : public cvt::ImageView
 		FeatureView();
 		~FeatureView();
 
-		void setFeatures( std::vector<cvt::Feature2D> & features );
+		void setFeatures( std::vector<cvt::Feature2D> & features, size_t origW, size_t origH );
 
 	private:
-		std::vector<cvt::Feature2D> _features;
+        cvt::Vector2i*    _features;
+        size_t            _numFeatures;
 	protected:
 		void paintEvent( cvt::PaintEvent* ev, cvt::GFX* g );
 };
 
-inline FeatureView::FeatureView() : cvt::ImageView(), _features( 0 )
+inline FeatureView::FeatureView() : cvt::ImageView(), _features( 0 ), _numFeatures( 0 )
 {
 }
 
@@ -29,31 +30,32 @@ void FeatureView::paintEvent( cvt::PaintEvent* ev, cvt::GFX* g )
 
 	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 1.0f ) );
 
-	int w, h;
-	size( w, h );
-	cvt::Vector2i* pts = new cvt::Vector2i[ _features.size() ];
-	float xScale = ( float ) w / 640.0f;
-	float yScale = ( float ) h / 480.0f;
-	for( size_t i = 0; i < _features.size(); i++ ){
-		pts[ i ].x = ( int ) ( _features[ i ][ 0 ] * xScale );
-		pts[ i ].y = ( int ) ( _features[ i ][ 1 ] * yScale );
-	}
-	//g->drawIcon( _features[ i ][ 0 ] * xScale - 8.0f, _features[ i ][ 1 ] * yScale -8.0f, cvt::GFX::ICON_CROSS );
-	g->drawIcons( pts, _features.size(), cvt::GFX::ICON_CROSS );
-	delete[] pts;
+	g->drawIcons( _features, _numFeatures, cvt::GFX::ICON_CROSS );
 }
 
 inline FeatureView::~FeatureView()
 {
+    if( _features )
+        delete _features;
 }
 
-inline void FeatureView::setFeatures( std::vector<cvt::Feature2D> & features )
+inline void FeatureView::setFeatures( std::vector<cvt::Feature2D> & features, size_t origW, size_t origH )
 {
-	_features.clear();
-	_features.resize( features.size() );
+	if( _numFeatures != features.size() ){
+        delete[] _features;
+        _numFeatures = features.size();
+        _features = new cvt::Vector2i[ _numFeatures ];
+    }
+    
+    int w, h;
+	size( w, h );
+    
+    float xScale = ( float ) w / origW;
+	float yScale = ( float ) h / origH;
+    
 	for( size_t i = 0; i < features.size(); i++ ){
-		_features[ i ][ 0 ] = features[ i ][ 0 ];
-		_features[ i ][ 1 ] = features[ i ][ 1 ];
+		_features[ i ].x = xScale * features[ i ][ 0 ];
+		_features[ i ].y = yScale * features[ i ][ 1 ];
 	}
 }
 
