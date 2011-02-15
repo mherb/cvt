@@ -957,14 +957,19 @@ namespace cvt {
 
 		widthchannels = _mem->_width * _mem->_format.channels;
 		buf = new Fixed*[ kheight ];
+
 		// allocate and fill buffer
+		size_t bstride = Math::pad16( sizeof( Fixed ) * widthchannels );
+		if( posix_memalign( ( void** ) &buf[ 0 ], 16, bstride * kheight ) )
+			throw CVTException("Out of memory");
+
 		for( i = 0; i < kheight; i++ ) {
-			if( posix_memalign( ( void** ) &buf[ i ], 16, sizeof( Fixed ) * widthchannels ) )
-				throw CVTException("Out of memory");
+			if( i != 0 )
+				buf[ i ] = ( Fixed* ) ( ( uint8_t* )buf[ i - 1 ] + bstride );
 			( simd->*convfunc )( buf[ i ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
 			src += sstride;
 		}
-		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) + 1000 ) )
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) ) )
 			throw CVTException("Out of memory");
 
 
@@ -1029,8 +1034,7 @@ namespace cvt {
 		unmap( osrc );
 		idst.unmap( odst );
 		free( accumBuf );
-		for( size_t i = 0; i < kheight; i++ )
-			free( buf[ i ] );
+		free( buf[ 0 ] );
 		delete[] buf;
 		delete[] vweights;
 		delete[] hweights;
