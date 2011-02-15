@@ -70,25 +70,27 @@ namespace cvt
 			}
 		} else {
 			while( i-- ) {
-				in = _mm_load_si128( ( __m128i* ) src );
-				out = _mm_load_si128( ( __m128i* ) dst );
+				in = _mm_load_si128( ( __m128i* ) ( src ) );
+				in2 = _mm_load_si128( ( __m128i* ) ( src + 4 ) );
+
+				_mm_prefetch( ( __m128i* ) ( src + 8 ), _MM_HINT_T0 );
+
+				out = _mm_load_si128( ( __m128i* ) ( dst ) );
+				out2 = _mm_load_si128( ( __m128i* ) ( dst + 4 ) );
+
 				inf = _mm_cvtepi32_ps( in );
 				inf = _mm_mul_ps( inf, mul );
 				out = _mm_add_epi32( out, _mm_cvtps_epi32( inf )  );
-				_mm_store_si128( ( __m128i* ) dst, out );
 
-				src += 4;
-				dst += 4;
-
-				in2 = _mm_load_si128( ( __m128i* ) ( src ) );
-				out2 = _mm_load_si128( ( __m128i* ) ( dst ) );
 				inf2 = _mm_cvtepi32_ps( in2 );
 				inf2 = _mm_mul_ps( inf2 , mul );
 				out2 = _mm_add_epi32( out2, _mm_cvtps_epi32( inf2 )  );
-				_mm_store_si128( ( __m128i* ) ( dst ), out2 );
 
-				src += 4;
-				dst += 4;
+				_mm_store_si128( ( __m128i* ) ( dst ), out );
+				_mm_store_si128( ( __m128i* ) ( dst + 4 ), out2 );
+
+				src += 8;
+				dst += 8;
 			}
 		}
 
@@ -429,6 +431,7 @@ namespace cvt
 			_mm_store_si128((__m128i*)( dst + 4 ), s1);
 			_mm_store_si128((__m128i*)( dst + 8 ), s2);
 			_mm_store_si128((__m128i*)( dst + 12 ), s3);
+
 			dst += 16;
 			src += 16;
 		}
