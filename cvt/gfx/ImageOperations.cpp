@@ -914,7 +914,8 @@ namespace cvt {
 		const uint8_t* src;
 		const uint8_t* osrc;
 		Fixed** buf;
-		Fixed*	accumBuf;
+		Fixed* bufmem;
+		Fixed* accumBuf;
 		size_t curbuf;
 		uint8_t* dst;
 		uint8_t* odst;
@@ -960,9 +961,10 @@ namespace cvt {
 
 		// allocate and fill buffer
 		size_t bstride = Math::pad16( sizeof( Fixed ) * widthchannels );
-		if( posix_memalign( ( void** ) &buf[ 0 ], 16, bstride * kheight ) )
+		if( posix_memalign( ( void** ) &bufmem, 16, bstride * kheight ) )
 			throw CVTException("Out of memory");
 
+		buf[ 0 ] = bufmem;
 		for( i = 0; i < kheight; i++ ) {
 			if( i != 0 )
 				buf[ i ] = ( Fixed* ) ( ( uint8_t* )buf[ i - 1 ] + bstride );
@@ -995,18 +997,23 @@ namespace cvt {
 		}
 
 		/* center */
-		curbuf = 0;
 		i = _mem->_height - kheight + 1;
 		while( i-- ) {
-			pweights = vweights;
+
+			simd->ConvolveClampVert_fx_to_u8( dst, ( const Fixed** ) buf, vweights, kheight, widthchannels );
+/*			pweights = vweights;
 			simd->Mul( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
 			for( k = 1; k < kheight; k++ ) {
 				simd->MulAdd( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
 			}
-			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
+			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );*/
 
 			if( i != 0 ) {
-				( simd->*convfunc )( buf[ curbuf ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
+				Fixed* tmp = buf[ 0 ];
+				for( size_t k = 0; k < kheight - 1; k++ )
+					buf[ k ] = buf[ k + 1 ];
+				buf[ kheight - 1 ] = tmp;
+				( simd->*convfunc )( tmp, ( uint8_t* ) src, _mem->_width, hweights, kwidth );
 				curbuf = ( curbuf + 1 ) % kheight;
 			}
 
@@ -1015,6 +1022,7 @@ namespace cvt {
 		}
 
 		/* lower border */
+		curbuf = 0;
 		i = b2;
 		while( i-- ) {
 			pweights = vweights;
@@ -1034,7 +1042,7 @@ namespace cvt {
 		unmap( osrc );
 		idst.unmap( odst );
 		free( accumBuf );
-		free( buf[ 0 ] );
+		free( bufmem );
 		delete[] buf;
 		delete[] vweights;
 		delete[] hweights;

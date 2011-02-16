@@ -646,6 +646,87 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::ConvolveClampVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
+	{
+		float w[ numw ];
+		size_t x;
+		__m128 s0, s1, s2, s3, mul;
+		__m128i x0, x1, x2, x3, rnd;
+
+		for( x = 0; x < numw; x++ )
+			w[ x ] = ( float ) weights[ x ];
+
+		rnd = _mm_set1_epi32( 0x8000 );
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			mul = _mm_load_ss( w );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x ) );
+			x1 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 4 ) );
+			x2 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 8 ) );
+			x3 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 12 ) );
+			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
+			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
+			s2 = _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul );
+			s3 = _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul );
+
+			for( size_t k = 1; k < numw; k++ ) {
+				mul = _mm_load_ss( ( w + k ) );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x ) );
+				x1 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 4 ) );
+				x2 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 8 ) );
+				x3 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 12 ) );
+				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul ) );
+			}
+			x0 = _mm_srai_epi32( _mm_add_epi32( _mm_cvtps_epi32( s0 ), rnd ), 16 );
+			x1 = _mm_srai_epi32( _mm_add_epi32( _mm_cvtps_epi32( s1 ), rnd ), 16 );
+			x2 = _mm_srai_epi32( _mm_add_epi32( _mm_cvtps_epi32( s2 ), rnd ), 16 );
+			x3 = _mm_srai_epi32( _mm_add_epi32( _mm_cvtps_epi32( s3 ), rnd ), 16 );
+
+			x0 = _mm_packs_epi32( x0, x1 );
+			x1 = _mm_packs_epi32( x2, x3 );
+
+			x0 = _mm_packus_epi16( x0, x1 );
+			_mm_store_si128( ( __m128i* ) dst, x0 );
+			dst += 16;
+		}
+
+		Fixed tmp[ 4 ];
+		for( ; x <= width - 4; x += 4 ) {
+			tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+			tmp[ 1 ] = bufs[ 0 ][ x + 1 ] * *weights;
+			tmp[ 2 ] = bufs[ 0 ][ x + 2 ] * *weights;
+			tmp[ 3 ] = bufs[ 0 ][ x + 3 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+				tmp[ 1 ] += bufs[ k ][ x + 1 ] * weights[ k ];
+				tmp[ 2 ] += bufs[ k ][ x + 2 ] * weights[ k ];
+				tmp[ 3 ] += bufs[ k ][ x + 3 ] * weights[ k ];
+			}
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 0 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 1 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 2 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 3 ].round(), 0x0, 0xff );
+		}
+
+		for( ; x < width; x++ ) {
+			tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 0 ].round(), 0x0, 0xff );
+		}
+
+	}
+
 	void SIMDSSE2::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
 	{
 		size_t i = n >> 4;
