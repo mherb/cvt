@@ -127,6 +127,32 @@ BEGIN_CVTTEST( simd )
 			std::cout << simd->name() << " Mul "  << t  << " ms" << std::endl;
 			delete simd;
 		}
+            
+        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+            SIMD* simd = SIMD::get( ( SIMDType ) st );
+            t = 0;
+            for( int iter = 0; iter < 100; iter++ ) {
+                tmr.reset();
+                simd->MulAdd( fdst, fsrc1, 200.0f, TESTSIZE );
+                t += tmr.elapsedMilliSeconds();
+            }
+            t /= 100.0;
+            std::cout << simd->name() << " MulAdd "  << t  << " ms" << std::endl;
+            delete simd;
+        }
+            
+        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+            SIMD* simd = SIMD::get( ( SIMDType ) st );
+            t = 0;
+            for( int iter = 0; iter < 100; iter++ ) {
+                tmr.reset();
+                simd->MulSub( fdst, fsrc1, 200.0f, TESTSIZE );
+                t += tmr.elapsedMilliSeconds();
+            }
+            t /= 100.0;
+            std::cout << simd->name() << " MulSub "  << t  << " ms" << std::endl;
+            delete simd;
+        }
 
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
