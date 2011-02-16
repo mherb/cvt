@@ -245,56 +245,59 @@ namespace cvt
 		if( index > camCount ){
 			throw CVTException( "Index out of bounds" );
 		}
-		// get frame information
-		HIDS handle = ( index + 1 ) | IS_USE_DEVICE_ID;
 
-		if( is_InitCamera( &handle, 0 ) == IS_CANT_OPEN_DEVICE )
-			throw CVTException( "Cannot initialize camera" );
+		// get all cameras
+		PUEYE_CAMERA_LIST camList = 0;
+        camList = ( PUEYE_CAMERA_LIST )new char[ sizeof( DWORD ) + camCount * sizeof( UEYE_CAMERA_INFO ) ];
+        camList->dwCount = camCount;
 
-		CAMINFO cinfo;
-		if( is_GetCameraInfo ( handle, &cinfo ) == IS_NO_SUCCESS ){
-			std::cout << "PROBLEM getting info" << std::endl;
+        // Get CameraList and store it ...
+		if( is_GetCameraList( camList ) == IS_SUCCESS ){
+			UEYE_CAMERA_INFO & cinfo = camList->uci[ index ];
+			info.setName( cinfo.Model );
+			info.setIndex( cinfo.dwDeviceID );
+			info.setType( CAMERATYPE_UEYE );
+			HIDS handle = ( cinfo.dwDeviceID );
+			handle |= IS_USE_DEVICE_ID;
+			delete[] camList;
+
+			if( is_InitCamera( &handle, 0 ) == IS_CANT_OPEN_DEVICE )
+				throw CVTException( "Cannot initialize camera" );
+
+			SENSORINFO sensorInfo;
+			memset( &sensorInfo, 0, sizeof( SENSORINFO ) );
+			if( is_GetSensorInfo( handle, &sensorInfo ) == IS_NO_SUCCESS )
+				throw CVTException( "Could not get image information" );
+
+			INT pixClkMin = 0, pixClkMax = 0;
+			if( is_GetPixelClockRange( handle, &pixClkMin, &pixClkMax ) == IS_NO_SUCCESS ){
+				std::cout << "Could not get PixelClockRange" << std::endl;
+			}
+			if( is_SetPixelClock( handle, pixClkMax ) == IS_NO_SUCCESS ){
+				std::cout << "Could not set PixelClock" << std::endl;
+			}
+
+			double min = 0, max = 0, interval = 0;
+			if( is_GetFrameTimeRange( handle, &min, &max, &interval ) == IS_NO_SUCCESS ){
+				std::cout << "Could not get TimeRange" << std::endl;
+			}
+
+			size_t width = (size_t)sensorInfo.nMaxWidth;
+			size_t height = (size_t)sensorInfo.nMaxHeight;
+			size_t fps = (size_t)( 1.0 / min );
+			if( sensorInfo.nColorMode == IS_COLORMODE_BAYER )
+				info.addMode( CameraMode( width, height, fps, IFormat::BAYER_RGGB_UINT8 ) );
+			else if( sensorInfo.nColorMode == IS_COLORMODE_MONOCHROME )
+				info.addMode( CameraMode( width, height, fps, IFormat::GRAY_UINT8 ) );
+			else
+				throw CVTException( "Invalid color mode" );
+
+			if( is_ExitCamera( handle ) == IS_CANT_CLOSE_DEVICE )
+				throw CVTException( "Could not exit camera" );
+		} else {
+			delete[] camList;
+			throw CVTException( "Could not get camera list" );
 		}
-
-		if( cinfo.Type == IS_CAMERA_TYPE_UEYE_USB_LE )
-			info.setName( "UEye USB LE" );
-		else {
-			info.setName( "UEye USB" );
-		}
-		info.setIndex( index + 1 );
-		info.setType( CAMERATYPE_UEYE );
-
-
-		SENSORINFO sensorInfo;
-		memset( &sensorInfo, 0, sizeof( SENSORINFO ) );
-		if( is_GetSensorInfo( handle, &sensorInfo ) == IS_NO_SUCCESS )
-			throw CVTException( "Could not get image information" );
-
-		INT pixClkMin = 0, pixClkMax = 0;
-		if( is_GetPixelClockRange( handle, &pixClkMin, &pixClkMax ) == IS_NO_SUCCESS ){
-			std::cout << "Could not get PixelClockRange" << std::endl;
-		}
-		if( is_SetPixelClock( handle, pixClkMax ) == IS_NO_SUCCESS ){
-			std::cout << "Could not set PixelClock" << std::endl;
-		}
-
-		double min = 0, max = 0, interval = 0;
-		if( is_GetFrameTimeRange( handle, &min, &max, &interval ) == IS_NO_SUCCESS ){
-			std::cout << "Could not get TimeRange" << std::endl;
-		}
-
-		size_t width = (size_t)sensorInfo.nMaxWidth;
-		size_t height = (size_t)sensorInfo.nMaxHeight;
-		size_t fps = (size_t)( 1.0 / min );
-		if( sensorInfo.nColorMode == IS_COLORMODE_BAYER )
-			info.addMode( CameraMode( width, height, fps, IFormat::BAYER_RGGB_UINT8 ) );
-		else if( sensorInfo.nColorMode == IS_COLORMODE_MONOCHROME )
-			info.addMode( CameraMode( width, height, fps, IFormat::GRAY_UINT8 ) );
-		else
-			throw CVTException( "Invalid color mode" );
-
-		if( is_ExitCamera( handle ) == IS_CANT_CLOSE_DEVICE )
-			throw CVTException( "Could not exit camera" );
 	}
 
     int	UEyeUsbCamera::bufNumForAddr( const uint8_t * buffAddr ) const

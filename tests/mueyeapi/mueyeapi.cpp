@@ -27,7 +27,8 @@ size_t cameraCount()
 					"\n\tdevId\t" << camList->uci[ i ].dwDeviceID <<
 					"\n\tsensorId\t" << camList->uci[ i ].dwSensorID <<
 					"\n\tinUse?\t" << camList->uci[ i ].dwInUse <<
-					"\n\tSerial\t" << camList->uci[ i ].SerNo << std::endl;
+					"\n\tSerial\t" << camList->uci[ i ].SerNo << 
+					"\n\tModel\t" << camList->uci[ i ].Model << std::endl;
 			}
         }
 	}
