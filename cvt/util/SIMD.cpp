@@ -3091,6 +3091,69 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::ConvolveClampVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
+	{
+		Fixed tmp[ 8 ];
+		size_t x;
+
+		for( x = 0; x <= width - 8; x += 8 ) {
+			tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+			tmp[ 1 ] = bufs[ 0 ][ x + 1 ] * *weights;
+			tmp[ 2 ] = bufs[ 0 ][ x + 2 ] * *weights;
+			tmp[ 3 ] = bufs[ 0 ][ x + 3 ] * *weights;
+			tmp[ 4 ] = bufs[ 0 ][ x + 4 ] * *weights;
+			tmp[ 5 ] = bufs[ 0 ][ x + 5 ] * *weights;
+			tmp[ 6 ] = bufs[ 0 ][ x + 6 ] * *weights;
+			tmp[ 7 ] = bufs[ 0 ][ x + 7 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+				tmp[ 1 ] += bufs[ k ][ x + 1 ] * weights[ k ];
+				tmp[ 2 ] += bufs[ k ][ x + 2 ] * weights[ k ];
+				tmp[ 3 ] += bufs[ k ][ x + 3 ] * weights[ k ];
+				tmp[ 4 ] += bufs[ k ][ x + 4 ] * weights[ k ];
+				tmp[ 5 ] += bufs[ k ][ x + 5 ] * weights[ k ];
+				tmp[ 6 ] += bufs[ k ][ x + 6 ] * weights[ k ];
+				tmp[ 7 ] += bufs[ k ][ x + 7 ] * weights[ k ];
+			}
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 0 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 1 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 2 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 3 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 4 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 5 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 6 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 7 ].round(), 0x0, 0xff );
+		}
+
+		for( ; x <= width - 4; x += 4 ) {
+			tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+			tmp[ 1 ] = bufs[ 0 ][ x + 1 ] * *weights;
+			tmp[ 2 ] = bufs[ 0 ][ x + 2 ] * *weights;
+			tmp[ 3 ] = bufs[ 0 ][ x + 3 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+				tmp[ 1 ] += bufs[ k ][ x + 1 ] * weights[ k ];
+				tmp[ 2 ] += bufs[ k ][ x + 2 ] * weights[ k ];
+				tmp[ 3 ] += bufs[ k ][ x + 3 ] * weights[ k ];
+			}
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 0 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 1 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 2 ].round(), 0x0, 0xff );
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 3 ].round(), 0x0, 0xff );
+		}
+
+		for( ; x < width; x++ ) {
+			tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+			*dst++ = ( uint8_t ) Math::clamp( tmp[ 0 ].round(), 0x0, 0xff );
+		}
+	}
+
 
 	void SIMD::ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t w, IConvolveAdaptivef* conva ) const
 	{
