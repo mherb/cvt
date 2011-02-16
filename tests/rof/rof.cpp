@@ -25,10 +25,15 @@ int main()
 		img.convert( tmp );
 
 		cvt::ROFDenoise rof;
-		rof.apply( out, tmp, 0.05f, 10 );
+		rof.apply( out, tmp, 0.05f, 5 );
 
 		cvt::ImageIO::savePNG(out, "out.png");
-		
+
+		cvt::Image x( tmp );
+		x.sub( out );
+		x.mul( 1.5f );
+		out.add( x );
+		cvt::ImageIO::savePNG( out, "out2.png");
 		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
