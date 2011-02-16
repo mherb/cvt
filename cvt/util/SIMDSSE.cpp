@@ -139,276 +139,357 @@ namespace cvt {
 		   );
 	}*/
 
-#if defined(__x86_64__)
-#define OPFAA(d,s1,s2,n,aluop) asm(					\
-			"xorq %%rsi, %%rsi;\n"					\
-			"movq %3, %%rdi;\n"						\
-			"andq $(~0x0f), %%rdi;\n"				\
-			"jz 5f;\n"								\
-			"4:\n"									\
-			"movaps  (%1,%%rsi,4),%%xmm0;\n"		\
-			"movaps  (%2,%%rsi,4),%%xmm1;\n"		\
-			#aluop " %%xmm1, %%xmm0;\n"				\
-			"movntps %%xmm0,(%0,%%rsi,4);\n"		\
-			"movaps  16(%1,%%rsi,4),%%xmm2;\n"		\
-			"movaps  16(%2,%%rsi,4),%%xmm3;\n"		\
-			#aluop " %%xmm3, %%xmm2;\n"				\
-			"movntps %%xmm2, 16(%0,%%rsi,4);\n"		\
-			"movaps  32(%1,%%rsi,4),%%xmm4;\n"		\
-			"movaps  32(%2,%%rsi,4),%%xmm5;\n"		\
-			#aluop " %%xmm5, %%xmm4;\n"             \
-			"movntps %%xmm4, 32(%0,%%rsi,4);\n"		\
-			"movaps  48(%1,%%rsi,4),%%xmm6;\n"		\
-			"movaps  48(%2,%%rsi,4),%%xmm7;\n"		\
-			#aluop " %%xmm7, %%xmm6;\n"             \
-			"movntps %%xmm6, 48(%0,%%rsi,4);\n"		\
-			"addq $0x10, %%rsi;\n"                  \
-			"cmpq %%rdi, %%rsi;\n"                  \
-			"jl 4b;\n"                              \
-			"5:\n"									\
-			"testq $0xf, %3;\n"						\
-			"jz 0f;\n"                              \
-			"\n"                                    \
-			"1:\n"                                  \
-			"movss (%1,%%rsi,4), %%xmm0\n"			\
-			"movss (%2,%%rsi,4), %%xmm1\n"			\
-			#aluop " %%xmm1, %%xmm0;\n"				\
-			"movss %%xmm0,(%0,%%rsi,4);\n"			\
-			"addq $1, %%rsi;\n"                     \
-			"cmpq %3, %%rsi;\n"						\
-			"jl 1b;\n"                              \
-			"0:\n"                                  \
-			:                                       \
-			: "r"(d),"r"(s1),"r"(s2),"r"(n)   \
-			: "rsi","rdi","xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7" \
-		   );
-
-
-#define OPFAC1(d,s1,v,n,aluop) asm(					\
-			"xorq %%rsi, %%rsi;\n"					\
-			"movss %2,%%xmm0;\n"					\
-			"shufps $0, %%xmm0, %%xmm0;\n"			\
-			"movq %3, %%rdi;\n"						\
-			"andq $(~0x0f), %%rdi;\n"				\
-			"jz 5f;\n"								\
-			"4:\n"									\
-			"movaps  (%1,%%rsi,4),%%xmm1;\n"		\
-			#aluop " %%xmm0, %%xmm1;\n"				\
-			"movntps %%xmm1,(%0,%%rsi,4);\n"		\
-			"movaps  16(%1,%%rsi,4),%%xmm2;\n"		\
-			#aluop " %%xmm0, %%xmm2;\n"				\
-			"movntps %%xmm2, 16(%0,%%rsi,4);\n"		\
-			"movaps  32(%1,%%rsi,4),%%xmm3;\n"		\
-			#aluop " %%xmm0, %%xmm3;\n"             \
-			"movntps %%xmm3, 32(%0,%%rsi,4);\n"		\
-			"movaps  48(%1,%%rsi,4),%%xmm4;\n"		\
-			#aluop " %%xmm0, %%xmm4;\n"             \
-			"movntps %%xmm4, 48(%0,%%rsi,4);\n"		\
-			"addq $0x10, %%rsi;\n"                  \
-			"cmpq %%rdi, %%rsi;\n"                  \
-			"jl 4b;\n"                              \
-			"5:\n"									\
-			"testq $0xf, %3;\n"						\
-			"jz 0f;\n"                              \
-			"\n"                                    \
-			"1:\n"                                  \
-			"movss (%1,%%rsi,4), %%xmm1\n"			\
-			#aluop " %%xmm0, %%xmm1;\n"				\
-			"movss %%xmm1,(%0,%%rsi,4);\n"			\
-			"addq $1, %%rsi;\n"                     \
-			"cmpq %3, %%rsi;\n"						\
-			"jl 1b;\n"                              \
-			"0:\n"                                  \
-			:                                       \
-			: "r"(d),"r"(s1),"m"(v),"r"(n)			\
-			: "rsi","rdi","xmm0","xmm1","xmm2","xmm3","xmm4" \
-		   );
-
-#define OPF2AC1(d,s1,v,n,aluop,aluop2) asm(			\
-			"xorq %%rsi, %%rsi;\n"					\
-			"movss %2,%%xmm0;\n"					\
-			"shufps $0, %%xmm0, %%xmm0;\n"			\
-			"movq %3, %%rdi;\n"						\
-			"andq $(~0x0f), %%rdi;\n"				\
-			"jz 5f;\n"								\
-			"4:\n"									\
-			"movaps  (%0,%%rsi,4),%%xmm1;\n"		\
-			"movaps  (%1,%%rsi,4),%%xmm2;\n"		\
-			#aluop " %%xmm0, %%xmm2;\n"				\
-			#aluop2 " %%xmm2, %%xmm1;\n"			\
-			"movntps %%xmm1,(%0,%%rsi,4);\n"		\
-			"movaps  16(%0,%%rsi,4),%%xmm3;\n"		\
-			"movaps  16(%1,%%rsi,4),%%xmm4;\n"		\
-			#aluop " %%xmm0, %%xmm4;\n"				\
-			#aluop2 " %%xmm4, %%xmm3;\n"			\
-			"movntps %%xmm3, 16(%0,%%rsi,4);\n"		\
-			"movaps  32(%0,%%rsi,4),%%xmm5;\n"		\
-			"movaps  32(%1,%%rsi,4),%%xmm6;\n"		\
-			#aluop " %%xmm0, %%xmm6;\n"				\
-			#aluop2 " %%xmm6, %%xmm5;\n"            \
-			"movntps %%xmm5, 32(%0,%%rsi,4);\n"		\
-			"movaps  48(%0,%%rsi,4),%%xmm7;\n"		\
-			"movaps  48(%1,%%rsi,4),%%xmm1;\n"		\
-			#aluop " %%xmm0, %%xmm1;\n"				\
-			#aluop2 " %%xmm1, %%xmm7;\n"            \
-			"movntps %%xmm7, 48(%0,%%rsi,4);\n"		\
-			"addq $0x10, %%rsi;\n"                  \
-			"cmpq %%rdi, %%rsi;\n"                  \
-			"jl 4b;\n"                              \
-			"5:\n"									\
-			"testq $0xf, %3;\n"						\
-			"jz 0f;\n"                              \
-			"\n"                                    \
-			"1:\n"                                  \
-			"movss (%0,%%rsi,4), %%xmm1\n"			\
-			"movss (%1,%%rsi,4), %%xmm2\n"			\
-			#aluop " %%xmm0, %%xmm2;\n"				\
-			#aluop2 " %%xmm2, %%xmm1;\n"			\
-			"movss %%xmm1,(%0,%%rsi,4);\n"			\
-			"addq $1, %%rsi;\n"                     \
-			"cmpq %3, %%rsi;\n"						\
-			"jl 1b;\n"                              \
-			"0:\n"                                  \
-			:                                       \
-			: "r"(d),"r"(s1),"m"(v),"r"(n)   \
-			: "rsi","rdi","xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7" \
-		   );
-
-#else
-#define OPFAA(d,s1,s2,n,aluop) asm(					\
-			"xorq %%esi, %%esi;\n"					\
-			"movq %3, %%edi;\n"						\
-			"andq $(~0x0f), %%edi;\n"				\
-			"jz 5f;\n"								\
-			"4:\n"									\
-			"movaps  (%1,%%esi,4),%%xmm0;\n"		\
-			"movaps  (%2,%%esi,4),%%xmm1;\n"		\
-			#aluop " %%xmm1, %%xmm0;\n"				\
-			"movntps %%xmm0,(%0,%%esi,4);\n"		\
-			"movaps  16(%1,%%esi,4),%%xmm2;\n"		\
-			"movaps  16(%2,%%esi,4),%%xmm3;\n"		\
-			#aluop " %%xmm3, %%xmm2;\n"				\
-			"movntps %%xmm2, 16(%0,%%esi,4);\n"		\
-			"movaps  32(%1,%%esi,4),%%xmm4;\n"		\
-			"movaps  32(%2,%%esi,4),%%xmm5;\n"		\
-			#aluop " %%xmm5, %%xmm4;\n"             \
-			"movntps %%xmm4, 32(%0,%%esi,4);\n"		\
-			"movaps  48(%1,%%esi,4),%%xmm6;\n"		\
-			"movaps  48(%2,%%esi,4),%%xmm7;\n"		\
-			#aluop " %%xmm7, %%xmm6;\n"             \
-			"movntps %%xmm6, 48(%0,%%esi,4);\n"		\
-			"addq $0x10, %%esi;\n"                  \
-			"cmpq %%edi, %%esi;\n"                  \
-			"jl 4b;\n"                              \
-			"5:\n"									\
-			"testq $0xf, %3;\n"						\
-			"jz 0f;\n"                              \
-			"\n"                                    \
-			"1:\n"                                  \
-			"movss (%1,%%esi,4), %%xmm0\n"			\
-			"movss (%2,%%esi,4), %%xmm1\n"			\
-			#aluop " %%xmm1, %%xmm0;\n"				\
-			"movss %%xmm0,(%0,%%esi,4);\n"			\
-			"addq $1, %%esi;\n"                     \
-			"cmpq %3, %%esi;\n"						\
-			"jl 1b;\n"                              \
-			"0:\n"                                  \
-			:                                       \
-			: "r"(d),"r"(s1),"r"(s2),"r"(n)   \
-			: "rsi","edi","xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7" \
-		   );
-
-
-#define OPFAC1(d,s1,v,n,aluop) asm(					\
-			"xorq %%esi, %%esi;\n"					\
-			"movss %2,%%xmm0;\n"					\
-			"shufps $0, %%xmm0, %%xmm0;\n"			\
-			"movq %3, %%edi;\n"						\
-			"andq $(~0x0f), %%edi;\n"				\
-			"jz 5f;\n"								\
-			"4:\n"									\
-			"movaps  (%1,%%esi,4),%%xmm1;\n"		\
-			#aluop " %%xmm0, %%xmm1;\n"				\
-			"movntps %%xmm1,(%0,%%esi,4);\n"		\
-			"movaps  16(%1,%%esi,4),%%xmm2;\n"		\
-			#aluop " %%xmm0, %%xmm2;\n"				\
-			"movntps %%xmm2, 16(%0,%%esi,4);\n"		\
-			"movaps  32(%1,%%esi,4),%%xmm3;\n"		\
-			#aluop " %%xmm0, %%xmm3;\n"             \
-			"movntps %%xmm3, 32(%0,%%esi,4);\n"		\
-			"movaps  48(%1,%%esi,4),%%xmm4;\n"		\
-			#aluop " %%xmm0, %%xmm4;\n"             \
-			"movntps %%xmm4, 48(%0,%%esi,4);\n"		\
-			"addq $0x10, %%esi;\n"                  \
-			"cmpq %%edi, %%esi;\n"                  \
-			"jl 4b;\n"                              \
-			"5:\n"									\
-			"testq $0xf, %3;\n"						\
-			"jz 0f;\n"                              \
-			"\n"                                    \
-			"1:\n"                                  \
-			"movss (%1,%%esi,4), %%xmm1\n"			\
-			#aluop " %%xmm0, %%xmm1;\n"				\
-			"movss %%xmm1,(%0,%%esi,4);\n"			\
-			"addq $1, %%esi;\n"                     \
-			"cmpq %3, %%esi;\n"						\
-			"jl 1b;\n"                              \
-			"0:\n"                                  \
-			:                                       \
-			: "r"(d),"r"(s1),"m"(v),"r"(n)			\
-			: "esi","edi","xmm0","xmm1","xmm2","xmm3","xmm4" \
-		   );
-#endif
 
 	void SIMDSSE::Add( float* dst, float const* src1, float const* src2, const size_t n ) const
 	{
-		OPFAA( dst, src1, src2, n, addps )
+		size_t i = n >> 2;
+        __m128 d, s1, s2;
+        
+        if( ( ( size_t )src1 | ( size_t )src2 | ( size_t )dst ) & 0xf ){
+            while( i-- ) {
+                s1 = _mm_loadu_ps( src1 );
+                s2 = _mm_loadu_ps( src2 );            
+                d = _mm_add_ps( s1, s2 );
+                _mm_storeu_ps( dst, d );            
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;
+            }
+        } else {
+            while( i-- ) {
+                s1 = _mm_load_ps( src1 );
+                s2 = _mm_load_ps( src2 );            
+                d = _mm_add_ps( s1, s2 );         
+                _mm_stream_ps( dst, d );
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;                
+            }
+        }
+        
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src1++ + *src2++;
 	}
-
 
 	void SIMDSSE::Sub( float* dst, float const* src1, float const* src2, const size_t n ) const
 	{
-		OPFAA( dst, src1, src2, n, subps )
+		size_t i = n >> 2;
+        __m128 d, s1, s2;
+        
+        if( ( ( size_t )src1 | ( size_t )src2 | ( size_t )dst ) & 0xf ){
+            while( i-- ) {
+                s1 = _mm_loadu_ps( src1 );
+                s2 = _mm_loadu_ps( src2 );            
+                d = _mm_sub_ps( s1, s2 );
+                _mm_storeu_ps( dst, d );            
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;
+            }
+        } else {
+            while( i-- ) {
+                s1 = _mm_load_ps( src1 );
+                s2 = _mm_load_ps( src2 );            
+                d = _mm_sub_ps( s1, s2 );         
+                _mm_stream_ps( dst, d );
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;                
+            }
+        }
+        
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src1++ - *src2++;
 	}
 
 	void SIMDSSE::Mul( float* dst, float const* src1, float const* src2, const size_t n ) const
 	{
-		OPFAA( dst, src1, src2, n, mulps )
+		size_t i = n >> 2;
+        __m128 d, s1, s2;
+        
+        if( ( ( size_t )src1 | ( size_t )src2 | ( size_t )dst ) & 0xf ){
+            while( i-- ) {
+                s1 = _mm_loadu_ps( src1 );
+                s2 = _mm_loadu_ps( src2 );            
+                d = _mm_mul_ps( s1, s2 );
+                _mm_storeu_ps( dst, d );            
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;
+            }
+        } else {
+            while( i-- ) {
+                s1 = _mm_load_ps( src1 );
+                s2 = _mm_load_ps( src2 );            
+                d = _mm_mul_ps( s1, s2 );         
+                _mm_stream_ps( dst, d );
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;                
+            }
+        }
+        
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src1++ * *src2++;
 	}
 
 	void SIMDSSE::Div( float* dst, float const* src1, float const* src2, const size_t n ) const
 	{
-		OPFAA( dst, src1, src2, n, divps )
+        size_t i = n >> 2;
+        __m128 d, s1, s2;
+        
+        if( ( ( size_t )src1 | ( size_t )src2 | ( size_t )dst ) & 0xf ){
+            while( i-- ) {
+                s1 = _mm_loadu_ps( src1 );
+                s2 = _mm_loadu_ps( src2 );            
+                d = _mm_div_ps( s1, s2 );
+                _mm_storeu_ps( dst, d );            
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;
+            }
+        } else {
+            while( i-- ) {
+                s1 = _mm_load_ps( src1 );
+                s2 = _mm_load_ps( src2 );            
+                d = _mm_div_ps( s1, s2 );         
+                _mm_stream_ps( dst, d );
+                
+                dst += 4;
+                src1 += 4;
+                src2 += 4;                
+            }
+        }
+        
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src1++ / *src2++;
 	}
 
 	void SIMDSSE::Add( float* dst, float const* src1, const float value, const size_t n ) const
-	{
-		OPFAC1( dst, src1, value, n, addps )
+	{		
+        size_t i = n >> 2;
+        const __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                s = _mm_loadu_ps( src1 );                
+                d = _mm_add_ps( s, v );                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                s = _mm_load_ps( src1 );
+                d = _mm_add_ps( s, v );
+                _mm_stream_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;  
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst = *src1 + value;
+            dst++; src1++;
+        }
 	}
 
 	void SIMDSSE::Sub( float* dst, float const* src1, const float value, const size_t n ) const
 	{
-		OPFAC1( dst, src1, value, n, subps )
+        size_t i = n >> 2;
+        const __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                s = _mm_loadu_ps( src1 );                
+                d = _mm_sub_ps( s, v );                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                s = _mm_load_ps( src1 );
+                d = _mm_sub_ps( s, v );
+                _mm_stream_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;  
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst = *src1 - value;
+            dst++; src1++;
+        }
 	}
 
 	void SIMDSSE::Mul( float* dst, float const* src1, const float value, const size_t n ) const
 	{
-		OPFAC1( dst, src1, value, n, mulps )
+		size_t i = n >> 2;
+        const __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                s = _mm_loadu_ps( src1 );                
+                d = _mm_mul_ps( s, v );                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                s = _mm_load_ps( src1 );
+                d = _mm_mul_ps( s, v );
+                _mm_stream_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;  
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst = *src1 * value;
+            dst++; src1++;
+        }
 	}
 
 	void SIMDSSE::Div( float* dst, float const* src1, const float value, const size_t n ) const
 	{
-		OPFAC1( dst, src1, value, n, divps )
+		size_t i = n >> 2;
+        const __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                s = _mm_loadu_ps( src1 );                
+                d = _mm_div_ps( s, v );                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                s = _mm_load_ps( src1 );
+                d = _mm_div_ps( s, v );
+                _mm_stream_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;  
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst = *src1 / value;
+            dst++; src1++;
+        }
 	}
 
 	void SIMDSSE::MulAdd( float* dst, float const* src1, const float value, const size_t n ) const
-	{
-		OPF2AC1( dst, src1, value, n, mulps, addps )
+	{ 
+        if( value == 0.0f )
+            return;
+        
+        size_t i = n >> 2;
+        __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                d = _mm_loadu_ps( dst );
+                s = _mm_loadu_ps( src1 );
+                s = _mm_mul_ps( s, v );
+                d = _mm_add_ps( d, s );
+                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                d = _mm_load_ps( dst );
+                s = _mm_load_ps( src1 );
+                s = _mm_mul_ps( s, v );
+                d = _mm_add_ps( d, s );
+                
+                _mm_store_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst += *src1 * value;
+            dst++; src1++;
+        }
 	}
 
 	void SIMDSSE::MulSub( float* dst, float const* src1, const float value, const size_t n ) const
-	{
-		OPF2AC1( dst, src1, value, n, mulps, subps )
+	{		
+        if( value == 0.0f )
+            return;
+        
+        size_t i = n >> 2;
+        __m128 v = _mm_set1_ps( value );
+        __m128 d, s;
+        
+        if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){
+            while( i-- ){
+                d = _mm_loadu_ps( dst );
+                s = _mm_loadu_ps( src1 );
+                s = _mm_mul_ps( s, v );
+                d = _mm_sub_ps( d, s );
+                
+                _mm_storeu_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        } else {
+            while( i-- ){
+                d = _mm_load_ps( dst );
+                s = _mm_load_ps( src1 );
+                s = _mm_mul_ps( s, v );
+                d = _mm_sub_ps( d, s );
+                
+                _mm_store_ps( dst, d );
+                
+                dst  += 4;
+                src1 += 4;                
+            }
+        }
+        
+        i = n & 0x03;
+        while( i-- ){
+            *dst -= *src1 * value;
+            dst++; src1++;
+        }
 	}
 
 

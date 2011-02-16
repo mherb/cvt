@@ -12,7 +12,10 @@
 namespace cvt {
 
 	FeatureTracker::FeatureTracker() :
-		_featureDetector( 0 )
+		_featureDetector( 0 ),
+        _lastBrighter( 0 ),
+        _lastDarker( 0 ),
+        _numLast( 0 )
 	{
 		//_featureDetector = new AGAST( OAST_9_16 );
         //( ( AGAST* )_featureDetector )->setNonMaxSuppress( false );
@@ -32,8 +35,13 @@ namespace cvt {
 	void FeatureTracker::run( const Image & current,							  
 							  std::vector<Feature2D> & newFeatures )
 	{
-		_featureDetector->extract( current, newFeatures );
+        // get the current features
+		_featureDetector->extract( current, newFeatures );        
 		//_featureDetector->extractMultiScale( current, newFeatures, 2 );
+        
+        if( _numLast ){
+            // try to find the best matching features in the set!
+        }
 	}
 	
 }
