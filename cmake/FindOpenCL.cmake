@@ -45,11 +45,12 @@ ELSE (WIN32)
 			~/NVIDIA_GPU_Computing_SDK/OpenCL/common/inc/ 
 			/usr/local/nvgpu/OpenCL/common/inc/ 
 			/usr/local/ati-stream-sdk/include/
+			$ENV{ATISTREAMSDKROOT}/include
 		)
 	
 		FIND_LIBRARY(OPENCL_LIBRARIES 
 			OpenCL 
-			ENV LD_LIBRARY_PATH
+			$ENV{LD_LIBRARY_PATH}
 			/usr/local/ati-stream-sdk/lib/x86_64
 			/usr/local/ati-stream-sdk/lib/x86
 		)
