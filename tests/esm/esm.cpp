@@ -173,8 +173,8 @@ class EsmWindow : public Window
 			_time.reset();
 			_iters = 0;
 			
-			_termCrit.setCostThreshold( 0.00001 );
-			_termCrit.setMaxIterations( 40 );
+			_termCrit.setCostThreshold( 0.1f );
+			_termCrit.setMaxIterations( 30 );
 		}
 		
 		~EsmWindow()
@@ -199,7 +199,7 @@ class EsmWindow : public Window
 								
 				Eigen::Matrix<double, 3, 4> pt = _esm.pose().transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
-				if( _gn.costs() < 25.0f )
+				if( _gn.costs() < 100.0f )
 					_calib.addHomography( _esm.pose().transformation() );
 			}
 			_iters++;

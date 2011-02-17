@@ -13,6 +13,7 @@ namespace cvt {
 			void reset();
 			void addHomography( const Eigen::Matrix<double,3,3>& matrix );
 			bool calibration( Eigen::Matrix<double,3,3>& calib  );
+			size_t size() const;
 
 		private:
 			HCalibration( const HCalibration& );
@@ -29,7 +30,13 @@ namespace cvt {
 
 	inline void HCalibration::reset()
 	{
+		_n = 0;
 		_V.setZero();
+	}
+
+	inline size_t HCalibration::size() const
+	{
+		return _n;
 	}
 
 	inline void HCalibration::addHomography( const Eigen::Matrix<double,3,3>& h )
