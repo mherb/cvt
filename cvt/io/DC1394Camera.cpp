@@ -95,11 +95,11 @@ namespace cvt
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
 		
-		enableWhiteBalanceAuto( false );
-		enableShutterAuto( false );
-		enableGainAuto( false );
-		enableIrisAuto( false );
-		setShutter( 300 );
+//		enableWhiteBalanceAuto( false );
+//		enableShutterAuto( false );
+//		enableGainAuto( false );
+//		enableIrisAuto( false );
+//		setShutter( 300 );
 
 		_capturing = true;
 	}

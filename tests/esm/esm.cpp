@@ -7,6 +7,7 @@
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Exception.h>
 #include <cvt/vision/ESM.h>
+#include <cvt/vision/HCalibration.h>
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
@@ -137,7 +138,7 @@ class EsmWindow : public Window
 			_camMov( &_camView ),
 			_camImage( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH ),
-			_costFunc( 5 ),/* huber */ 
+			_costFunc( ),/* huber */ 
 			_selectionReady( false )
 		{
 			this->setVisible( true );
@@ -198,15 +199,22 @@ class EsmWindow : public Window
 								
 				Eigen::Matrix<double, 3, 4> pt = _esm.pose().transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
+				if( _gn.costs() < 25.0f )
+					_calib.addHomography( _esm.pose().transformation() );
 			}
 			_iters++;
 			
-			if( _time.elapsedSeconds() > 2 ){
+			if( _time.elapsedSeconds() > 5 ){
 				char buf[ 100 ];
 				sprintf( buf, "Camera Image fps: %0.1f", _iters / _time.elapsedSeconds() );
 				_camMov.setTitle( buf );
 				_time.reset();
 				_iters = 0;
+				{
+					Eigen::Matrix3d K;
+					_calib.calibration( K );
+					std::cout << K << std::endl;
+				}
 			}
 		}
 
@@ -260,6 +268,8 @@ class EsmWindow : public Window
 			// set the homography
 			_esm.updateInput( &_imgFloatGray );
 			_esm.setPose( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
+
+			_calib.reset();
 			
 			_selectionReady = true;
 		}
@@ -291,8 +301,10 @@ class EsmWindow : public Window
 		LevenbergMarquard<double>			_gn;
 	
 		// costfunction to use
-		//SquaredDistance<double, double> _costFunc;
-		RobustHuber<double, double> _costFunc;
+		SquaredDistance<double, double> _costFunc;
+		//RobustHuber<double, double> _costFunc;
+
+		HCalibration _calib;
 
 		bool			_selectionReady;
 		Time			_time;
