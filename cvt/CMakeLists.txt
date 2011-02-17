@@ -237,6 +237,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Thread.h
 	util/Util.h
 	util/Flags.h
+	vision/HCalibration.h
 	vision/AGAST.h
 	vision/CamModel.h
 	vision/DLT.h
