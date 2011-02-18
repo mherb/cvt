@@ -113,6 +113,7 @@ SET(${MODULE_NAME}_HEADERS
 	geom/KDTree.h
 	geom/Model.h
 	geom/Rect.h
+	geom/Line2D.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
