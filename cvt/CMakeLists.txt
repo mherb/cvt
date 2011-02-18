@@ -197,6 +197,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/FileSystem.h
 	io/FloFile.h
 	io/ImageIO.h
+	io/ImageSequence.h
 	io/IOHandler.h
 	io/IOSelect.h
 	io/Resources.h
@@ -317,6 +318,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageIO.cpp
+	io/ImageSequence.cpp
 	io/IOSelect.cpp
 	io/Resources.cpp
 	io/VideoReader.cpp
