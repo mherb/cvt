@@ -22,6 +22,8 @@ namespace cvt {
         
 		_featureDetector = new FAST( SEGMENT_9 );
         ( ( FAST* )_featureDetector )->setNonMaxSuppress( true );
+        ( ( FAST* )_featureDetector )->setThreshold( 25 );
+        ( ( FAST* )_featureDetector )->setMinScore( 25 );
         
         RNG rng( time( NULL ) );
 	}
