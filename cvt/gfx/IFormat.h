@@ -78,6 +78,7 @@ namespace cvt
 		static const IFormat & uint8Equivalent( const IFormat & format );
 		static const IFormat & int16Equivalent( const IFormat & format );
 		static const IFormat & floatEquivalent( const IFormat & format );
+        static const IFormat & formatForId( IFormatID formatID );
 
 		private:
 			IFormat( size_t c, size_t bpc, size_t bpp, IFormatID formatID, IFormatType type );
@@ -183,6 +184,53 @@ namespace cvt
 				break;
 		}
 	}
+    
+    inline const IFormat & IFormat::formatForId( IFormatID formatID )
+    {
+        switch ( formatID ) {
+			case IFORMAT_GRAY_UINT8:
+                return IFormat::GRAY_UINT8;
+			case IFORMAT_GRAY_UINT16:
+                return IFormat::GRAY_UINT16;
+			case IFORMAT_GRAY_INT16:
+                return IFormat::GRAY_INT16;
+			case IFORMAT_GRAY_FLOAT:
+				return IFormat::GRAY_FLOAT;
+			case IFORMAT_GRAYALPHA_UINT8:
+                return IFormat::GRAYALPHA_UINT8;
+			case IFORMAT_GRAYALPHA_UINT16:
+                return IFormat::GRAYALPHA_UINT16;
+			case IFORMAT_GRAYALPHA_INT16:
+                return IFormat::GRAYALPHA_INT16;
+			case IFORMAT_GRAYALPHA_FLOAT:
+				return IFormat::GRAYALPHA_FLOAT;
+			case IFORMAT_RGBA_UINT8:
+                return IFormat::RGBA_UINT8;
+			case IFORMAT_RGBA_UINT16:
+                return IFormat::RGBA_UINT16;
+			case IFORMAT_RGBA_INT16:
+                return IFormat::RGBA_INT16;
+			case IFORMAT_RGBA_FLOAT:
+				return IFormat::RGBA_FLOAT;
+			case IFORMAT_BGRA_UINT8:
+                return IFormat::BGRA_UINT8;
+			case IFORMAT_BGRA_UINT16:
+                return IFormat::BGRA_UINT16;
+			case IFORMAT_BGRA_INT16:
+                return IFormat::BGRA_INT16;
+			case IFORMAT_BGRA_FLOAT:
+				return IFormat::BGRA_FLOAT;
+            case IFORMAT_UYVY_UINT8:
+                return IFormat::UYVY_UINT8;
+            case IFORMAT_YUYV_UINT8:
+                return IFormat::YUYV_UINT8;
+            case IFORMAT_BAYER_RGGB_UINT8:
+                return IFormat::BAYER_RGGB_UINT8;
+			default:
+				throw CVTException( "UNKOWN INPUT FORMAT: " );
+				break;
+		}
+    }
 
 	std::ostream& operator<<(std::ostream &out, const IFormat &f);
 

@@ -11,6 +11,8 @@
 
 #include <string>
 
+using namespace cvt;
+
 int main()
 {
 	std::string dataFolder(DATA_FOLDER);
@@ -26,7 +28,6 @@ int main()
 		img.convert( imgF );
 
 		cvt::ImageIO::savePNG( imgF, "float.png" );
-		return 0;
 		
 		cvt::Image resized;
 		
@@ -40,7 +41,6 @@ int main()
 		std::cout << "SAD: " << img.sad( img2 ) / cvt::Math::sqr( 512.0f )  << std::endl;
 		
 		cvt::ImageIO::savePNG( img2, "rescaled.png" );
-		return 0;
 		
 		cvt::Image imgGray(img.width(), 
 						   img.height(),
@@ -53,8 +53,10 @@ int main()
 		std::cout << "Loaded image: " << imgGray << std::endl;
 		
 		// save the gray image
+        cvt::ImageIO::saveRAW( imgGray, "gray.cvtraw" );
+        cvt::ImageIO::loadRAW( imgGray, "gray.cvtraw" );
+        
 		cvt::ImageIO::savePNG(imgGray, "out_gray.png");
-		
 		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;

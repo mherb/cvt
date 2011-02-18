@@ -1,6 +1,9 @@
 #include "io/ImageIO.h"
 #include "util/Exception.h"
 
+#include <iostream>
+#include <fstream>
+
 #include <png.h>
 
 namespace cvt {
@@ -196,6 +199,69 @@ namespace cvt {
 			/* Close the file */
 			fclose(fp);    
 		}
+        
+        void saveRAW( const Image & img, const std::string & path )
+        {
+            std::fstream file( path.c_str(), 
+                               std::fstream::out | 
+                               std::fstream::binary | 
+                               std::fstream::trunc );
+            
+            // header: width, height, stride, IFormatID
+            size_t stride;
+            const char *p; 
+            p = img.map<char>( &stride );
+            
+            size_t formatId = ( size_t )img.format().formatID;
+            size_t width = img.width();
+            size_t height = img.height();
+            
+            file.write( ( char* )&width, sizeof( size_t ) );
+            file.write( ( char* )&height, sizeof( size_t ) );
+            file.write( ( char* )&stride, sizeof( size_t ) );
+            file.write( ( char* )&formatId, sizeof( size_t ) );            
+            file.write( p, img.height() * stride );
+            
+            img.unmap( p );
+            
+            file.close();
+        }
+        
+        void loadRAW( Image & img, const std::string & path )
+        {
+            std::fstream file( path.c_str(), 
+                               std::fstream::in | 
+                               std::fstream::binary );
+            
+            // header: width, height, stride, IFormat
+            size_t savedStride, width, height, formatId;
+            
+            file.read( ( char* )&width, sizeof( size_t ) );
+            file.read( ( char* )&height, sizeof( size_t ) );
+            file.read( ( char* )&savedStride, sizeof( size_t ) );
+            file.read( ( char* )&formatId, sizeof( size_t ) );            
+            
+            img.reallocate( width, height, IFormat::formatForId( ( IFormatID ) formatId ) );
+
+            char *p, *punmap; 
+            size_t stride;
+            p = punmap = img.map<char>( &stride );
+            
+            if( savedStride == stride ){
+                file.read( p, height * stride );
+            } else {
+                size_t offset = savedStride - width;
+                while( height-- ){
+                    file.read( p, width * img.bpp() );
+                    file.seekg( offset, std::ios::end );
+                    p += stride;
+                }
+            } 
+            
+            img.unmap( punmap );
+            
+            file.close();
+        }
 	}
 }
 

@@ -50,7 +50,7 @@ ELSE (WIN32)
 	
 		FIND_LIBRARY(OPENCL_LIBRARIES 
 			OpenCL 
-			$ENV{LD_LIBRARY_PATH}
+			ENV LD_LIBRARY_PATH
 			/usr/local/ati-stream-sdk/lib/x86_64
 			/usr/local/ati-stream-sdk/lib/x86
 		)
