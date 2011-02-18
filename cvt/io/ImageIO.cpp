@@ -10,7 +10,7 @@ namespace cvt {
 	namespace ImageIO {
 
 		/* FIXME ... */
-		void loadPNG( Image& img, std::string path )
+		void loadPNG( Image& img, const std::string & path )
 		{
 			size_t rdlen;
 			FILE *fp = fopen( path.c_str(), "rb");
@@ -98,7 +98,7 @@ namespace cvt {
 			png_destroy_info_struct( png_ptr, (png_infopp) &info_ptr);
 		}
 
-		void savePNG( const Image& img, std::string path )
+		void savePNG( const Image& img, const std::string & path )
 		{	    
 			FILE *fp;	            
 			fp = fopen(path.c_str(), "wb");

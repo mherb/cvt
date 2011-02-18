@@ -1,5 +1,6 @@
 #include <cvt/io/Camera.h>
 #include <cvt/io/VideoReader.h>
+#include <cvt/io/ImageSequence.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
@@ -131,7 +132,10 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
         input = initCamera();
     } else {
-        input = new VideoReader( argv[ 1 ], true );
+        //input = new VideoReader( argv[ 1 ], true );        
+        std::string ext( "cvtraw" );
+        input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
+        
     }
 
 	Window w( "Camera Test" );
