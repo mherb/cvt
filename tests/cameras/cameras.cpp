@@ -1,4 +1,5 @@
 #include <cvt/io/Camera.h>
+#include <cvt/io/ImageIO.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
@@ -11,7 +12,54 @@
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/gui/TimeoutHandler.h>
 
+#include <cvt/util/Thread.h>
+#include <cvt/util/TQueue.h>
+
+#include <sstream>
+#include <iomanip>
+
 using namespace cvt;
+
+//#define WRITE_PNGS
+
+
+class ImageWriter : public Thread<void>
+{
+	public:
+		ImageWriter( const std::string & baseName, TQueue<Image*> * inqueue ) : _baseName( baseName), _queue( inqueue )
+		{
+		}
+
+		~ImageWriter()
+		{
+		}
+
+		void execute(void*)
+		{
+			std::stringstream ss;
+			size_t i = 0;
+			while( true ){
+				Image * im = _queue->waitNext();
+
+				if( im == 0 )
+					break;
+
+				i++;
+				ss.clear();
+				ss.str( "" );
+				ss << _baseName << "_" << std::setfill( '0' ) << std::setw( 5 ) << i << ".cvtraw";
+
+				ImageIO::saveRAW( *im, ss.str() );
+
+				delete im;
+			}
+		}
+
+	private:
+		std::string		_baseName;
+		TQueue<Image*>*	_queue;
+
+};
 
 class CameraTimeout : public TimeoutHandler
 {
@@ -26,11 +74,21 @@ class CameraTimeout : public TimeoutHandler
 		{
 			_cam->startCapture();
 			_timer.reset();
+
+#ifdef WRITE_PNGS
+			_writer = new ImageWriter( "image", &_queue );
+			_writer->run( NULL );
+#endif
 		}
 
 		~CameraTimeout()
 		{
 			_cam->stopCapture();
+#ifdef WRITE_PNGS
+			_queue.enqueue( 0 );
+			_writer->join();
+			delete _writer;
+#endif
 		}
 
 		void onTimeout()
@@ -38,6 +96,11 @@ class CameraTimeout : public TimeoutHandler
 			Time camt;
 			camt.reset();
 			_cam->nextFrame();
+
+#ifdef WRITE_PNGS
+			Image * toSave = new Image( _cam->frame() );
+			_queue.enqueue( toSave );
+#endif
 			_view->setImage( _cam->frame() );
 			if( camt.elapsedMicroSeconds() > 3000.0 )
 				std::cout << camt.elapsedMicroSeconds() << std::endl;
@@ -58,6 +121,11 @@ class CameraTimeout : public TimeoutHandler
 		Image		_image;
 		Time		_timer;
 		float		_frames;
+
+#ifdef WRITE_PNGS
+		ImageWriter*	_writer;
+		TQueue<Image*>	_queue;
+#endif
 };
 
 int main( )
