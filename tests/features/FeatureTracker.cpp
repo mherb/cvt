@@ -17,13 +17,15 @@ namespace cvt {
         _lastDarker( 0 ),
         _numLast( 0 )
 	{
-		//_featureDetector = new AGAST( OAST_9_16 );
-        //( ( AGAST* )_featureDetector )->setNonMaxSuppress( false );
+		_featureDetector = new AGAST( OAST_9_16 );
+        ( ( AGAST* )_featureDetector )->setNonMaxSuppress( false );
+        ( ( AGAST* )_featureDetector )->setThreshold( 25 );
+        //( ( AGAST* )_featureDetector )->setMinScore( 25 );
         
-		_featureDetector = new FAST( SEGMENT_9 );
-        ( ( FAST* )_featureDetector )->setNonMaxSuppress( true );
-        ( ( FAST* )_featureDetector )->setThreshold( 25 );
-        ( ( FAST* )_featureDetector )->setMinScore( 25 );
+		//_featureDetector = new FAST( SEGMENT_9 );
+        //( ( FAST* )_featureDetector )->setNonMaxSuppress( true );
+        //( ( FAST* )_featureDetector )->setThreshold( 25 );
+        //( ( FAST* )_featureDetector )->setMinScore( 25 );
         
         RNG rng( time( NULL ) );
 	}
