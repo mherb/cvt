@@ -18,8 +18,8 @@ namespace cvt {
         _numLast( 0 )
 	{
 		_featureDetector = new AGAST( OAST_9_16 );
-        ( ( AGAST* )_featureDetector )->setNonMaxSuppress( false );
-        ( ( AGAST* )_featureDetector )->setThreshold( 25 );
+        ( ( AGAST* )_featureDetector )->setNonMaxSuppress( true );
+        ( ( AGAST* )_featureDetector )->setThreshold( 40 );
         //( ( AGAST* )_featureDetector )->setMinScore( 25 );
         
 		//_featureDetector = new FAST( SEGMENT_9 );
