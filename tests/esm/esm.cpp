@@ -138,7 +138,7 @@ class EsmWindow : public Window
 			_camMov( &_camView ),
 			_camImage( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH ),
-			_costFunc( ),/* huber */ 
+			_costFunc( ),
 			_selectionReady( false )
 		{
 			this->setVisible( true );

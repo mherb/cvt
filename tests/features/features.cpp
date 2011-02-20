@@ -23,36 +23,96 @@
 
 using namespace cvt;
 
-class CameraTimeout : public TimeoutHandler
+class CameraApp : public Window
 {
 	public:
-		CameraTimeout( VideoInput * cam, Moveable* mov, FeatureView * view ) :
-			TimeoutHandler(),
-			_cam( cam ),
-			_moveable( mov ),
-			_view( view ),
+		CameraApp( VideoInput * cam ) : 
+            Window( "Camera Application" ),
+			_cam( cam ),		
+            _paused( false ),
+            _captureNext( true ),
+            _quitButton( 0 ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
-			_featureTracker()
+			_featureTracker(),
+            _loopTimer( 5 )
 		{
+            initGuiElements();
+            
 			_timer.reset();
 			_processingTime.reset();
 			_iter = 0;
 			_timeSum = 0;
+            
+            _loopDelegate = new Delegate<void ( BasicTimer* )>( this, &CameraApp::runloop );
+            _loopTimer.timeout.add( _loopDelegate );
+            _loopTimer.start();
 		}
+    
+        void initGuiElements()
+        {
+            setSize( 800, 600 );
+            
+            _featureView = new FeatureView();
+            
+            _moveable = new Moveable( _featureView );
+            _moveable->setSize( 320, 240 );
+            addWidget( _moveable );
+            
+            _quitButton = new Button( "Quit" );
+            _quit = new Delegate<void ()>( &Application::exit );           
+            _quitButton->clicked.add( _quit );
+            
+            _pauseButton = new Button( "Pause" );
+            _pauseDelegate = new Delegate<void ()>( this, &CameraApp::pauseClicked );
+            _pauseButton->clicked.add( _pauseDelegate );
 
-		~CameraTimeout()
+            _nextButton = new Button( "Next Frame" );
+            _nextDelegate = new Delegate<void ()>( this, &CameraApp::nextClicked );
+            _nextButton->clicked.add( _nextDelegate );            
+            
+            WidgetLayout wl;
+            wl.setAnchoredRight( 10, 70 );
+            wl.setAnchoredBottom( 10, 20 );
+            addWidget( _quitButton, wl );
+            wl.setAnchoredBottom( 40, 20 );
+            addWidget( _nextButton, wl );
+            wl.setAnchoredBottom( 70, 20 );
+            addWidget( _pauseButton, wl );
+            
+            setVisible( true );
+        }
+
+		~CameraApp()
 		{		
+            _loopTimer.timeout.remove( _loopDelegate );
+            delete _loopDelegate;
+            
+            _quitButton->clicked.remove( _quit );
+            delete _quit;
+            delete _quitButton;            
 		}
+    
+        void pauseClicked()
+        {
+            _paused ^= 1;            
+            _captureNext = false;
+        }
+    
+        void nextClicked()
+        {
+            _captureNext = true;
+        }
 
-		void onTimeout()
+		void runloop( BasicTimer* )
 		{
-			_cam->nextFrame();
-
+            if( !_paused || _captureNext ){
+                _cam->nextFrame();
+                _captureNext ^= 1;
+            }
 			_cam->frame().convert( _gray );
-
-			_view->setImage( _gray );
+			_featureView->setImage( _gray );
 
 			std::vector<Feature2D> newFeatures;
 			_processingTime.reset();
@@ -65,7 +125,7 @@ class CameraTimeout : public TimeoutHandler
 				_iter = 0; _timeSum = 0;
 			}
 
-			_view->setFeatures( newFeatures, _gray.width(), _gray.height() );
+			_featureView->setFeatures( newFeatures, _gray.width(), _gray.height() );
 
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
@@ -78,9 +138,15 @@ class CameraTimeout : public TimeoutHandler
 		}
 
 	private:
-		VideoInput *			_cam;
-		Moveable*				_moveable;
-		FeatureView *			_view;
+		VideoInput *			_cam;		
+        bool                    _paused;
+        bool                    _captureNext;
+    
+		FeatureView *			_featureView;
+        Moveable*				_moveable;
+        Button*                 _quitButton;
+        Button*                 _pauseButton;
+        Button*                 _nextButton;
     
 		Image					_image;
 		Image					_gray;
@@ -90,9 +156,18 @@ class CameraTimeout : public TimeoutHandler
     
 		size_t					_iter;
 		double					_timeSum;
-		float					_frames;
+		float					_frames;    
+		FeatureTracker          _featureTracker;
     
-		FeatureTracker			_featureTracker;
+        BasicTimer                         _loopTimer;
+    
+        // delegates
+        Delegate<void ( BasicTimer* ) >*   _loopDelegate;
+        Delegate<void () >*                _quit;
+        Delegate<void () >*                _pauseDelegate;
+        Delegate<void () >*                _nextDelegate;
+    
+        
 };
 
 Camera * initCamera()
@@ -138,31 +213,9 @@ int main( int argc, char* argv[] )
         
     }
 
-	Window w( "Camera Test" );
-	w.setSize( 800, 600 );
-	w.setVisible( true );
-	w.setMinimumSize( 320, 240 );
-
-	Button button( "Quit" );
-	Delegate<void ()> dquit( &Application::exit );
-	button.clicked.add( &dquit );
-    WidgetLayout wl;
-    wl.setAnchoredRight( 10, 50 );
-    wl.setAnchoredBottom( 10, 20 );
-    w.addWidget( &button, wl );    
-
-	try {		
-		FeatureView camView;
-		Moveable m( &camView );
-		m.setTitle( "Camera" );
-		m.setSize( 320, 240 );
-		w.addWidget( &m );
-
-		CameraTimeout camTimeOut( input, &m, &camView );
-		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
+	try {
+		CameraApp camTimeOut( input );
 		Application::run();
-		Application::unregisterTimer( timerId );
-
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
