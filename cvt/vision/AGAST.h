@@ -24,6 +24,7 @@ namespace cvt {
 			void extract( const Image & image, std::vector<Feature2D> & features );
 			void extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves );
             void setNonMaxSuppress( bool val ){ _suppress = val; }
+            void setThreshold( int val ){ _threshold = val; }
 
 		private:
 			ASTType		_type;

@@ -239,8 +239,8 @@ SET(${MODULE_NAME}_HEADERS
 	util/Thread.h
 	util/Util.h
 	util/Flags.h
-	vision/HCalibration.h
 	vision/AGAST.h
+	vision/Brief.h
 	vision/CamModel.h
 	vision/DLT.h
 	vision/ESM.h
@@ -249,6 +249,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Ferns.h
 	vision/internal/Fern.h
 	vision/Flow.h
+	vision/HCalibration.h
 	vision/MeasurementModel.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
@@ -345,6 +346,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/agast/agast7_12s.cpp
 	vision/agast/agast7_12d.cpp
 	vision/agast/oast9_16.cpp
+	vision/Brief.cpp
 	vision/DLT.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp
