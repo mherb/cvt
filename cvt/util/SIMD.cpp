@@ -4036,4 +4036,31 @@ namespace cvt {
 			tmpVal = l0; l0 = l1; l1 = l2; l2 = l3; l3 = tmpPtr;
 		}
 	}
+    
+    size_t SIMD::hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const
+    {
+        size_t d = 0;
+        uint64_t xored;
+        
+        while( n-- ){
+            
+            xored = *src1 ^ *src2;
+            
+            // count the bits set in xored:
+            // 64 1-bit numbers 
+            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u ); 
+            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
+            xored += xored >> 32; 
+            xored += xored >> 16;
+            xored += xored >>  8; 
+            //  1 8-bit number 
+            d+= ( xored & 0xFF ); 
+            
+            src1++;
+            src2++;
+        }
+        
+        return d;
+    }
 }
