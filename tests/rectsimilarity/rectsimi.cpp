@@ -32,8 +32,7 @@ static size_t getdeltas( const Vector2f& pt1, const Vector2f& pt2,
 			if( ( *pts ).x >= min.x && ( *pts ).x <= max.x &&
 			   ( *pts ).y >= min.y && ( *pts ).y <= max.y ) {
 				( *samplepts ) = pt1 + ( ( float )( i + 1 ) / ( float ) ( spts + 1 ) ) * n;
-				( *normal ).x = o[ 0 ];
-				( *normal ).y = o[ 1 ];
+				( *normal ) = l.normal();
 				*dist = l.distance( *pts );
 				pts++;
 				samplepts++;
@@ -127,12 +126,12 @@ int main()
 				b += dist[ i ] * tmp;
 				A += tmp * tmp.transpose();
 			};
-			x = A.inverse() * b;
-			//A.lu().solve(b, &x);
-			float angle = x( 0 ); //Math::deg2Rad( x( 1 ) );
-			float s = 1 - x( 1 );
-			float tx = -x( 3 );
-			float ty = x( 2 );
+			//x = A.inverse() * b;
+			A.lu().solve(b, &x);
+			float angle = - x( 1 ); //Math::deg2Rad( x( 1 ) );
+			float s = 1 - x( 0 );
+			float tx = -x( 2 );
+			float ty = -x( 3 );
 			Matrix2f rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
 			Matrix3f TT;
 			TT[ 0 ][ 0 ] = s * rot[ 0 ][ 0 ];
@@ -151,7 +150,7 @@ int main()
 //			std::cout << "Angle:\n" << angle << std::endl;
 			std::cout << TT << std::endl;
 
-			TT.inverseSelf();
+//			TT.inverseSelf();
 
 			npts[ 0 ] = TT * npts[ 0 ];
 			npts[ 1 ] = TT * npts[ 1 ];

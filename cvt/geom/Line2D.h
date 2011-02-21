@@ -17,6 +17,7 @@ namespace cvt {
 			void setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt );
 
 			T operator[]( int index ) const;
+			Vector2<T> normal() const;
 			bool intersect( const Line2D<T>& line, Vector2<T>& pt ) const;
 			T distance( const Vector2<T>& pt ) const;
 
@@ -62,6 +63,12 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline Vector2<T> Line2D<T>::normal() const
+	{
+		return Vector2<T>( _line[ 0 ], _line[ 1 ] );
+	}
+
+	template<typename T>
 	inline void Line2D<T>::set( const Vector2<T>& p1, const Vector2<T>& p2 )
 	{
 		_line.set( p1.x, p1.y, 1 );
@@ -84,8 +91,8 @@ namespace cvt {
 	template<typename T>
 	inline void Line2D<T>::setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt )
 	{
-		_line[ 0 ] =   line._line[ 1 ];
-		_line[ 1 ] = - line._line[ 0 ];
+		_line[ 0 ] = - line._line[ 1 ];
+		_line[ 1 ] =   line._line[ 0 ];
 		_line[ 2 ] = - ( _line[ 0 ] * pt.x + _line[ 1 ] * pt.y );
 	}
 
