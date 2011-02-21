@@ -204,6 +204,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/VideoInput.h
 	io/VideoReader.h
 	io/PlyModel.h
+	io/Postscript.h
+	io/GFXEnginePS.h
 	math/CostFunction.h
 	math/Fixed.h
 	math/GaussNewton.h
