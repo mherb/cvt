@@ -14,6 +14,7 @@ namespace cvt {
 
 			void set( const Vector2<T>& p1, const Vector2<T>& p2 );
 			void set( T x1, T y1, T x2, T y2 );
+			void setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt );
 
 			bool intersect( const Line2D<T>& line, Vector2<T>& pt ) const;
 			T distance( const Vector2<T>& pt ) const;
@@ -74,6 +75,13 @@ namespace cvt {
 		_line /= tmp2.length();
 	}
 
+	template<typename T>
+	inline void Line2D<T>::setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt )
+	{
+		_line[ 0 ] = line._line[ 1 ];
+		_line[ 1 ] = - line._line[ 0 ];
+		_line[ 2 ] = - ( _line[ 0 ] * pt.x + _line[ 1 ] * pt.y );
+	}
 
 	template<typename T>
 	bool Line2D<T>::intersect( const Line2D<T>& line, Vector2<T>& pt ) const

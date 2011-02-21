@@ -48,6 +48,7 @@ namespace cvt {
 			float lineWidth();
 
 			void drawLine( int x1, int y1, int x2, int y2 );
+			void drawLine( const Vector2f& pt1, const Vector2f& pt2 );
 			void drawLines( const Vector2f* pts, size_t n );
 
 			void fillRect( const Recti& rect );

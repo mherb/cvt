@@ -25,7 +25,7 @@ namespace cvt {
 			end();
 	}
 
-	GFX::GFX( Drawable* drawable )
+	GFX::GFX( Drawable* drawable ) : _active( false )
 	{
 		setDefault();
 		_engine = drawable->gfxEngine();
@@ -72,6 +72,15 @@ namespace cvt {
 		Vector2f pts[ 2 ];
 		pts[ 0 ].set( ( float ) x1, ( float ) y1 );
 		pts[ 1 ].set( ( float ) x2, ( float ) y2 );
+		_engine->drawLines( pts, 2, _linewidth, _color );
+	}
+
+
+	void GFX::drawLine( const Vector2f& pt1, const Vector2f& pt2 )
+	{
+		Vector2f pts[ 2 ];
+		pts[ 0 ] = pt1;
+		pts[ 1 ] = pt2;
 		_engine->drawLines( pts, 2, _linewidth, _color );
 	}
 
