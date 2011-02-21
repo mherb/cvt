@@ -16,6 +16,7 @@ namespace cvt {
 			void set( T x1, T y1, T x2, T y2 );
 			void setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt );
 
+			T operator[]( int index ) const;
 			bool intersect( const Line2D<T>& line, Vector2<T>& pt ) const;
 			T distance( const Vector2<T>& pt ) const;
 
@@ -54,6 +55,11 @@ namespace cvt {
 	{
 	}
 
+	template<typename T>
+	inline T Line2D<T>::operator[]( int index ) const
+	{
+	    return _line[ index ];
+	}
 
 	template<typename T>
 	inline void Line2D<T>::set( const Vector2<T>& p1, const Vector2<T>& p2 )
@@ -78,7 +84,7 @@ namespace cvt {
 	template<typename T>
 	inline void Line2D<T>::setOrthogonal( const Line2D<T>& line, const Vector2<T>& pt )
 	{
-		_line[ 0 ] = line._line[ 1 ];
+		_line[ 0 ] =   line._line[ 1 ];
 		_line[ 1 ] = - line._line[ 0 ];
 		_line[ 2 ] = - ( _line[ 0 ] * pt.x + _line[ 1 ] * pt.y );
 	}
@@ -119,6 +125,16 @@ namespace cvt {
 	{
 		Vector3<T> tmp( pt.x, pt.y, 1 );
 		return _line * tmp;
+	}
+
+
+	template<typename T>
+	inline std::ostream& operator<<( std::ostream& out, const Line2D<T>& l )
+	{
+		out << l._line[ 0 ] << std::endl;
+		out << l._line[ 1 ] << std::endl;
+		out << l._line[ 2 ];
+		return out;
 	}
 
 	typedef Line2D<float> Line2Df;
