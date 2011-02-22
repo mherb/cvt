@@ -12,6 +12,8 @@ namespace cvt {
 			int spriteSize() const;
 			const GLTexture& texture() const;
 			int size() const;
+			int ascent() const;
+			int descent() const;
 			int offsetX() const;
 			int offsetY() const;
 			Recti stringBounds( const char* str, size_t n = 0 ) const;
@@ -55,7 +57,7 @@ namespace cvt {
 		return _ascent;
 	}
 
-	inline int GLTexFont::offsetY() const
+	inline int GLTexFont::descent() const
 	{
 		return _descent;
 	}
