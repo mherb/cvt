@@ -53,9 +53,6 @@ namespace cvt {
 		if( _vbo.size() < sizeof( int ) * 3 * len )
 			_vbo.alloc( GL_DYNAMIC_DRAW, sizeof( int ) * 3 * len );
 
-		x += glfont.spriteSize() / 2 - glfont.offsetX();
-		y += glfont.spriteSize() / 2 - glfont.offsetY();
-
 		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
 		for( int i = 0; i < len; i++ ) {
 			buf[ i * 3 + 0 ] = x;

@@ -23,6 +23,7 @@ namespace cvt {
 
 			int32_t _width, _height;
 			int32_t _fontsize;
+			int32_t _ascent, _descent;
 			int32_t _spritesize;
 			int32_t _offx, _offy;
 			struct GlyphMetric {
@@ -49,6 +50,16 @@ namespace cvt {
 		return _fontsize;
 	}
 
+	inline int GLTexFont::ascent() const
+	{
+		return _ascent;
+	}
+
+	inline int GLTexFont::offsetY() const
+	{
+		return _descent;
+	}
+
 	inline int GLTexFont::offsetX() const
 	{
 		return _offx;
@@ -59,30 +70,34 @@ namespace cvt {
 		return _offy;
 	}
 
+
+
 	inline Recti GLTexFont::stringBounds( const char* _str, size_t n ) const
 	{
 		uint8_t* str = ( uint8_t* ) _str;
 		Recti rect;
-		int x;
+		int x, h;
+
+		h = ascent() + descent();
 
 		if( str ) {
 			if( n && *str ) {
-				rect.set( _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+				rect.set( _metric[ *str ].bearingX, 0, _metric[ *str ].width, h );
 				x = _metric[ *str ].bearingX + _metric[ *str ].advance;
 				str++;
 				n--;
 				while( *str && n-- ) {
-					rect.join( x + _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+					rect.join( x + _metric[ *str ].bearingX, 0, _metric[ *str ].width, h );
 					x += _metric[ *str ].advance;
 					str++;
 				}
 			} else {
 				if( *str ) {
-					rect.set( _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+					rect.set( _metric[ *str ].bearingX, 0, _metric[ *str ].width, h );
 					x = _metric[ *str ].bearingX + _metric[ *str ].advance;
 					str++;
 					while( *str ) {
-						rect.join( x + _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+						rect.join( x + _metric[ *str ].bearingX, 0, _metric[ *str ].width, h );
 						x += _metric[ *str ].advance;
 						str++;
 					}

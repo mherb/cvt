@@ -20,6 +20,10 @@ namespace cvt {
 			throw CVTException( "Unable to read GL-font!" );
 		if( fread( &_fontsize, sizeof( int32_t ), 1, f ) != 1 )
 			throw CVTException( "Unable to read GL-font!" );
+		if( fread( &_ascent, sizeof( int32_t ), 1, f ) != 1 )
+			throw CVTException( "Unable to read GL-font!" );
+		if( fread( &_descent, sizeof( int32_t ), 1, f ) != 1 )
+			throw CVTException( "Unable to read GL-font!" );
 		if( fread( &_spritesize, sizeof( int32_t ), 1, f ) != 1 )
 			throw CVTException( "Unable to read GL-font!" );
 		if( fread( &_offx, sizeof( int32_t ), 1, f ) != 1 )

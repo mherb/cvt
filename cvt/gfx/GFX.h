@@ -8,6 +8,7 @@
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Drawable.h>
 #include <cvt/gfx/Font.h>
+#include <cvt/gfx/Alignment.h>
 
 namespace cvt {
 	class GFXEngine;
@@ -60,6 +61,7 @@ namespace cvt {
 
 			const Font& font( ) const;
 			void drawText( int x, int y, const char* text );
+			void drawText( const Recti& rect, Alignment alignment, const char* text );
 
 			void drawImage( int x, int y, const Image& img );
 			void drawImage( int x, int y, int width, int height, const Image& img );

@@ -103,7 +103,7 @@ namespace cvt {
 				drawtextp.bind();
 				drawtextp.setProjection( proj );
 				drawtextp.setColor( c );
-				drawtextp.drawText( x, y, text, _glfont );
+				drawtextp.drawText( x + _glfont.offsetX(), y + _glfont.offsetY(), text, _glfont );
 				drawtextp.unbind();
 			}
 

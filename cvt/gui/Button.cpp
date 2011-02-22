@@ -19,7 +19,8 @@ namespace cvt {
 		g->color().set( 0.8f, 0.8f, 0.8f, 1.0f );
 		//int tw = g->textWidth( _label.c_str() );
 		//g->drawText( ( ( float ) w - ( float ) tw ) * 0.5f , ( ( float ) h + 11.0f ) * 0.5f, _label.c_str() );
-		g->drawText( 5, 16, _label.c_str() );
+		Recti bounds( 0, 0, w, h );
+		g->drawText( bounds, ALIGN_CENTER | ALIGN_VCENTER, _label.c_str() );
 	}
 
 	void Button::mouseReleaseEvent( MouseReleaseEvent* event )
