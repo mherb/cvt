@@ -38,6 +38,6 @@ int main()
 		calib.addHomography( H );
 	}
 	calib.calibration( H );
-	std::cout << K << std::endl;
-	std::cout << H << std::endl;
+	std::cout << "K:\n" << K << std::endl;
+	std::cout << "output:\n" << H << std::endl;
 }
