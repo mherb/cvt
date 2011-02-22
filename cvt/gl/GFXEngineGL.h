@@ -37,7 +37,7 @@ namespace cvt {
 			void drawIcon( int x, int y, GFX::Icon i, const Color& c );
 			void drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c );
 			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c );
-
+			const Font& font() const;
 
 			void setViewport( const Recti& viewport );
 			const Recti& viewport() const;
@@ -74,6 +74,11 @@ namespace cvt {
 	inline const Recti& GFXEngineGL::childrect() const
 	{
 		return _childrect;
+	}
+
+	inline const Font& GFXEngineGL::font() const
+	{
+		return _glfont;
 	}
 
 }

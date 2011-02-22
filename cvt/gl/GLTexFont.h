@@ -62,9 +62,34 @@ namespace cvt {
 	inline Recti GLTexFont::stringBounds( const char* _str, size_t n ) const
 	{
 		uint8_t* str = ( uint8_t* ) _str;
-		Recti ret;
+		Recti rect;
+		int x;
 
-		return ret;
+		if( str ) {
+			if( n && *str ) {
+				rect.set( _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+				x = _metric[ *str ].bearingX + _metric[ *str ].advance;
+				str++;
+				n--;
+				while( *str && n-- ) {
+					rect.join( x + _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+					x += _metric[ *str ].advance;
+					str++;
+				}
+			} else {
+				if( *str ) {
+					rect.set( _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+					x = _metric[ *str ].bearingX + _metric[ *str ].advance;
+					str++;
+					while( *str ) {
+						rect.join( x + _metric[ *str ].bearingX, -_metric[ *str ].bearingY, _metric[ *str ].width, _metric[ *str ].height );
+						x += _metric[ *str ].advance;
+						str++;
+					}
+				}
+			}
+		}
+		return rect;
 	}
 
 

@@ -31,6 +31,8 @@ namespace cvt {
 				bool intersects( T x, T y, T w, T h ) const;
 				void intersect( const Rect<T>& r2 );
 				void intersect( T x, T y, T w, T h );
+				void join( const Rect<T>& r2 );
+				void join( T x, T y, T w, T h );
 				bool isEmpty() const;
 				bool operator==( const Rect<T>& r2 ) const;
 
@@ -188,6 +190,32 @@ namespace cvt {
 			yend = Math::min( y + height, y2 + h2 );
 			x = Math::max( x, x2 );
 			y = Math::max( y, y2 );
+			width = xend - x;
+			height = yend - y;
+		}
+
+	template<typename T>
+		inline void Rect<T>::join( const Rect<T>& r2 )
+		{
+			T xend, yend;
+
+			xend = Math::max( x + width, r2.x + r2.width );
+			yend = Math::max( y + height, r2.y + r2.height );
+			x = Math::min( x, r2.x );
+			y = Math::min( y, r2.y );
+			width = xend - x;
+			height = yend - y;
+		}
+
+	template<typename T>
+		inline void Rect<T>::join( T x2, T y2, T w2, T h2 )
+		{
+			T xend, yend;
+
+			xend = Math::max( x + width, x2 + w2 );
+			yend = Math::max( y + height, y2 + h2 );
+			x = Math::min( x, x2 );
+			y = Math::min( y, y2 );
 			width = xend - x;
 			height = yend - y;
 		}
