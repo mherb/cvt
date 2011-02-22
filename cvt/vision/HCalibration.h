@@ -4,6 +4,7 @@
 #include <cvt/math/Math.h>
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/Cholesky>
 
 namespace cvt {
 	class HCalibration {
@@ -85,6 +86,18 @@ namespace cvt {
 
 		Eigen::SVD<Eigen::Matrix<double,6,6> > svd( _V );
 		Eigen::Matrix<double,6,1> b = svd.matrixV().col( 5 );
+
+/*		Eigen::Matrix3d A;
+		A( 0, 0 ) = b( 0 );
+		A( 0, 1 ) = A( 1, 0 ) = b( 1 );
+		A( 1, 1 ) = b( 2 );
+		A( 0, 2 ) = A( 2, 0 ) = b( 3 );
+		A( 1, 2 ) = A( 2, 1 ) = b( 4 );
+		A( 2, 2 ) = b( 5 );
+
+		Eigen::LLT<Eigen::Matrix3d > llt( A );
+		Eigen::Matrix3d L = llt.matrixL().inverse().transpose();
+		calib = L / L( 2, 2 ); */
 
 		double lambda;
 		calib.setZero();
