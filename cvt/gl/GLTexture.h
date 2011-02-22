@@ -11,7 +11,9 @@ namespace cvt {
 			void bind() const;
 			void unbind() const;
 			GLenum target() const;
-			void size( GLsizei& width, GLsizei& height );
+			void size( GLsizei& width, GLsizei& height ) const;
+			size_t width() const;
+			size_t height() const;
 			void alloc( GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* data = NULL, size_t stride = 0 );
 //			void alloc( const Image& img, bool copy = false );
 			void setData( GLint	xoffset, GLint yoffset,	GLsizei	width, GLsizei height, GLenum format, GLenum type, const GLvoid* data, size_t stride = 0 );
@@ -30,11 +32,22 @@ namespace cvt {
 	}
 
 
-	inline void GLTexture::size( GLsizei& width, GLsizei& height )
+	inline void GLTexture::size( GLsizei& width, GLsizei& height ) const
 	{
 		width = _width;
 		height = _height;
 	}
+
+	inline size_t GLTexture::width() const
+	{
+		return _width;
+	}
+
+	inline size_t GLTexture::height() const
+	{
+		return _height;
+	}
+
 }
 
 #endif
