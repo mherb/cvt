@@ -80,7 +80,7 @@ namespace cvt {
 		Recti rect;
 		int x, h;
 
-		h = ascent() + descent();
+		h = ascent() - descent();
 
 		if( str ) {
 			if( n && *str ) {
