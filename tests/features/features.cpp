@@ -73,7 +73,7 @@ class CameraApp : public Window
             _nextButton->clicked.add( _nextDelegate );            
             
             WidgetLayout wl;
-            wl.setAnchoredRight( 10, 70 );
+            wl.setAnchoredRight( 10, 100 );
             wl.setAnchoredBottom( 10, 20 );
             addWidget( _quitButton, wl );
             wl.setAnchoredBottom( 40, 20 );

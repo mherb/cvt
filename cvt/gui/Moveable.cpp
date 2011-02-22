@@ -39,8 +39,11 @@ namespace cvt {
 		gfx->color().set( 0.2f, 0.2f, 0.2f, 0.8f );
 		gfx->fillRoundRect( 0, 0, w, h, 10.0f );
 
+
 		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->drawText( 8, 15, _title.c_str() );
+		Recti rtitle( 10, 2, w - 20, 18 );
+		gfx->drawText( rtitle, ALIGN_LEFT | ALIGN_VCENTER, _title.c_str() );
+
 
 		Recti r = rect();
 		paintChildren( gfx, r );

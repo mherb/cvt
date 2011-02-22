@@ -137,11 +137,11 @@ namespace cvt {
 			x = rect.x + bbox.x;
 
 		if( alignment & ALIGN_VCENTER )
-			y = rect.y + bbox.y + ( rect.height - bbox.height ) / 2;
+			y = rect.y + ( rect.height - bbox.height ) / 2;
 		else if( alignment & ALIGN_BOTTOM )
-			y = rect.y + bbox.y + ( rect.height - bbox.height );
+			y = rect.y + ( rect.height - bbox.height );
 		else //if( alignment & ALIGN_TOP )
-			y = rect.y + bbox.y;
+			y = rect.y;
 
 		y += _engine->font().ascent();
 		drawText( x, y, text );
