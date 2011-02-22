@@ -143,7 +143,7 @@ namespace cvt {
 		else //if( alignment & ALIGN_TOP )
 			y = rect.y + bbox.y;
 
-		y -= _engine->font().ascent();
+		y += _engine->font().ascent();
 		drawText( x, y, text );
 	}
 
