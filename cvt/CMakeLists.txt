@@ -133,6 +133,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/GFX.h
 	gfx/IKernel.h
 	gfx/ColorspaceXYZ.h
+	gfx/Font.h
 	gl/OpenGL.h
 	gl/GLFormat.h
 	gl/GLContext.h
@@ -141,8 +142,9 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLBuffer.h
 	gl/GLTexture.h
 	gl/GLVertexArray.h
-	gl/GLModel.cpp
-	gl/GFXEngineGL.cpp
+	gl/GLModel.h
+	gl/GFXEngineGL.h
+	gl/GLTexFont.h
 	gl/progs/GLBasicProg.h
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
@@ -294,6 +296,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLVertexArray.cpp
 	gl/OpenGL.cpp
 	gl/GFXEngineGL.cpp
+	gl/GLTexFont.cpp
 	gl/progs/GLBasicProg.cpp
 	gl/progs/GLFillRoundRectProg.cpp
 	gl/progs/GLDrawTextProg.cpp

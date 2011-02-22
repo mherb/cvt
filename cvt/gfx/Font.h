@@ -8,7 +8,8 @@ namespace cvt {
 		public:
 			virtual ~Font() {};
 			virtual int size() const = 0;
-			virtual Recti stringBounds( const char* str, size_t n = 0 ) = 0;
+			virtual Recti stringBounds( const char* str, size_t n = 0 ) const = 0;
+			virtual int advance( size_t glyph ) const = 0;
 	};
 }
 

@@ -1,9 +1,14 @@
 #include <cvt/gl/GFXEngineGL.h>
+#include <cvt/io/Resources.h>
+
 #include <iostream>
 
 namespace cvt {
 			GFXEngineGL::GFXEngineGL( GLContext* ctx ) : _ctx( ctx )
 			{
+				Resources res;
+				std::string path = res.find("default.glfont");
+				_glfont.load( path.c_str() );
 			}
 
 			GFXEngineGL::~GFXEngineGL()
@@ -98,7 +103,7 @@ namespace cvt {
 				drawtextp.bind();
 				drawtextp.setProjection( proj );
 				drawtextp.setColor( c );
-				drawtextp.drawText( x, y, text );
+				drawtextp.drawText( x, y, text, _glfont );
 				drawtextp.unbind();
 			}
 

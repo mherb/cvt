@@ -8,6 +8,7 @@
 #include <cvt/gl/GLTexture.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/geom/Rect.h>
+#include <cvt/gl/GLTexFont.h>
 
 namespace cvt {
 	class GLDrawTextProg : private GLProgram
@@ -20,13 +21,11 @@ namespace cvt {
 			using GLProgram::unbind;
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
-			void drawText( int x, int y, const char* txt );
-			int  textWidth( const char* txt );
+			void drawText( int x, int y, const char* txt, const GLTexFont& glfont );
 
 		private:
 			GLVertexArray _vao;
 			GLBuffer _vbo;
-			GLTexture _tex;
 			GLint _mvploc;
 			GLint _texloc;
 			GLint _scaleloc;
