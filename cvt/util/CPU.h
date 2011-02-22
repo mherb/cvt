@@ -1,5 +1,5 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef CVT_CPU_H
+#define CVT_CPU_H
 #include <iostream>
 #include <stdint.h>
 #include <cvt/util/Flags.h>

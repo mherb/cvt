@@ -121,6 +121,32 @@ namespace cvt {
 		_engine->drawText( x, y, text, _color );
 	}
 
+
+	void GFX::drawText( const Recti& rect, Alignment alignment, const char* text )
+	{
+		Recti bbox;
+		int x , y;
+
+		bbox = _engine->font().stringBounds( text );
+
+		if( alignment & ALIGN_CENTER )
+			x = rect.x + bbox.x + ( rect.width - bbox.width ) / 2;
+		else if( alignment & ALIGN_RIGHT )
+			x = rect.x + bbox.x + ( rect.width - bbox.width );
+		else //if( alignment & ALIGN_LEFT )
+			x = rect.x + bbox.x;
+
+		if( alignment & ALIGN_VCENTER )
+			y = rect.y + bbox.y + ( rect.height - bbox.height ) / 2;
+		else if( alignment & ALIGN_BOTTOM )
+			y = rect.y + bbox.y + ( rect.height - bbox.height );
+		else //if( alignment & ALIGN_TOP )
+			y = rect.y + bbox.y;
+
+		y -= _engine->font().ascent();
+		drawText( x, y, text );
+	}
+
 	void GFX::drawImage( int x, int y, const Image& img )
 	{
 		_engine->drawImage( x, y, img, _color.alpha() );

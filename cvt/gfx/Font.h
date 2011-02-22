@@ -10,6 +10,8 @@ namespace cvt {
 			virtual int size() const = 0;
 			virtual Recti stringBounds( const char* str, size_t n = 0 ) const = 0;
 			virtual int advance( size_t glyph ) const = 0;
+			virtual int ascent() const = 0;
+			virtual int descent() const = 0;
 	};
 }
 
