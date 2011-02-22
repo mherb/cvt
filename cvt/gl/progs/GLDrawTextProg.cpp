@@ -5,8 +5,6 @@
 #include <cvt/gl/shader/150/text_150_vert.h>
 #include <cvt/gl/shader/150/text_150_frag.h>
 
-#include <cvt/gui/internal/glfont.h>
-
 namespace cvt {
 	GLDrawTextProg::GLDrawTextProg() : _vbo( GL_ARRAY_BUFFER )
 	{
