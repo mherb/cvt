@@ -191,6 +191,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Widget.h
 	gui/WidgetContainer.h
 	gui/WidgetLayout.h
+	gui/Alignment.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h

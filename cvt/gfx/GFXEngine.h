@@ -6,6 +6,7 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/Path.h>
 #include <cvt/gfx/GFX.h>
+#include <cvt/gfx/Font.h>
 
 namespace cvt {
 
@@ -31,7 +32,7 @@ namespace cvt {
 			virtual void drawIcon( int x, int y, GFX::Icon i, const Color& c ) = 0;
 			virtual void drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c ) = 0;
 			virtual void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c ) = 0;
-
+			virtual const Font& font() const = 0;
 
 			/* optional - only used by the Widget in paintChild */
 			virtual void setChildrect( const Recti& childrect ) = 0;

@@ -7,6 +7,7 @@
 #include <cvt/gl/GLModel.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Drawable.h>
+#include <cvt/gfx/Font.h>
 
 namespace cvt {
 	class GFXEngine;
@@ -57,7 +58,7 @@ namespace cvt {
 			void fillRoundRect( const Recti& rect, float radius );
 			void fillRoundRect( int x, int y, int width, int height, float radius );
 
-			int  textWidth( const char* text );
+			const Font& font( ) const;
 			void drawText( int x, int y, const char* text );
 
 			void drawImage( int x, int y, const Image& img );
@@ -98,8 +99,6 @@ namespace cvt {
 	{
 		return _linewidth;
 	}
-
-
 
 }
 

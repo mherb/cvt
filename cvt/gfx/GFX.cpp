@@ -111,10 +111,9 @@ namespace cvt {
 		_engine->fillRoundRect( rect, radius, _color );
 	}
 
-	// FIXME: remove and add Font class
-	int  GFX::textWidth( const char* text )
+	const Font& GFX::font( ) const
 	{
-		return 0;
+		return _engine->font();
 	}
 
 	void GFX::drawText( int x, int y, const char* text )
