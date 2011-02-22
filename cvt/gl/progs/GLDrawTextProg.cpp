@@ -21,14 +21,12 @@ namespace cvt {
 		}
 
 		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLint ) * 8 );
+
+		bind();
 		_mvploc = uniformLocation( "MVP" );
 		_texloc = uniformLocation( "TexFont" );
 		_scaleloc = uniformLocation( "Scale" );
-
-		_tex.alloc( GL_RED, _glfont.width, _glfont.height, GL_RED, GL_UNSIGNED_BYTE, _glfont.texdata );
-		bind();
 		glUniform1i( _texloc, 0 );
-		glUniform1f( _scaleloc, _glfont.ptsize / ( float ) ( _glfont.width ) );
 		unbind();
 	}
 
@@ -48,17 +46,7 @@ namespace cvt {
 	}
 
 
-	int GLDrawTextProg::textWidth( const char* text )
-	{
-		int len = ( int ) strlen( text );
-		int width = 0;
-		for( int i = 0; i < len; i++ ) {
-			width += _glfont.advance[ ( uint8_t ) text[ i ] ];
-		}
-		return width;
-	}
-
-	void GLDrawTextProg::drawText( int x, int y, const char* text )
+	void GLDrawTextProg::drawText( int x, int y, const char* text, const GLTexFont& glfont )
 	{
 		GLint* buf;
 
@@ -67,23 +55,24 @@ namespace cvt {
 		if( _vbo.size() < sizeof( int ) * 3 * len )
 			_vbo.alloc( GL_DYNAMIC_DRAW, sizeof( int ) * 3 * len );
 
-		x += _glfont.offx;
-		y += _glfont.offy;
+		x += glfont.spriteSize() / 2 - glfont.offsetX();
+		y += glfont.spriteSize() / 2 - glfont.offsetY();
 
 		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
 		for( int i = 0; i < len; i++ ) {
 			buf[ i * 3 + 0 ] = x;
 			buf[ i * 3 + 1 ] = y;
 			buf[ i * 3 + 2 ] = text[ i ];
-			x += _glfont.advance[ ( uint8_t ) text[ i ] ];
+			x += glfont.advance( text[ i ] );
 		}
 		_vbo.unmap();
 
+		glUniform1f( _scaleloc, ( float ) glfont.spriteSize() / ( float ) ( glfont.texture().width() ) );
 		_vao.setVertexData( _vbo, 3, GL_INT );
-		_tex.bind();
-		glPointSize( _glfont.ptsize );
+		glfont.texture().bind();
+		glPointSize( glfont.spriteSize() );
 		_vao.draw( GL_POINTS, 0, len );
-		_tex.unbind();
+		glfont.texture().unbind();
 	}
 
 }

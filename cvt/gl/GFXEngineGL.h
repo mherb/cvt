@@ -57,6 +57,7 @@ namespace cvt {
 			GLDrawImageProg drawimgp;
 			GLDrawIconProg drawiconp;
 			GLDrawModelProg modelp;
+			GLTexFont _glfont;
 	};
 
 	inline void GFXEngineGL::setViewport( const Recti& viewport )
