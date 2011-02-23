@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cvt/math/Math.h>
+#include <cvt/math/Vector.h>
 
 namespace cvt {
 
@@ -25,6 +26,7 @@ namespace cvt {
 				void getPosition( T& x, T& y ) const;
 				void getSize( T& w, T& h ) const;
 				bool contains( const T px, const T py ) const;
+				bool contains( const Vector2<T> pt ) const;
 				bool contains( T x, T y, T width, T height ) const;
 				bool contains( const Rect<T>& r2 ) const;
 				bool intersects( const Rect<T>& r2 ) const;
@@ -133,6 +135,16 @@ namespace cvt {
 		{
 			if( px >= x && px <= x + width &&
 			   py >= y && py <= y + height )
+				return true;
+			return false;
+		}
+
+
+	template<typename T>
+		inline bool Rect<T>::contains( const Vector2<T> pt ) const
+		{
+			if( pt.x >= x && pt.x <= x + width &&
+			   pt.y >= y && pt.y <= y + height )
 				return true;
 			return false;
 		}
