@@ -14,8 +14,8 @@ namespace cvt {
 	{
 		int w, h;
 		g->color().set( 0.8f, 0.8f, 0.8f, 1.0f );
-		int tw = g->textWidth( _label.c_str() );
-		g->drawText( ( ( float ) w - ( float ) tw ) * 0.5f , ( ( float ) h + 11.0f ) * 0.5f, _label.c_str() );
+		size( w, h );
+		g->drawText( 0, 0, w, h, _label.c_str() );
 	}
 
 }
