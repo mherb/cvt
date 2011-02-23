@@ -2,6 +2,7 @@
 #define CVT_GFXENGINEPS_H
 
 #include <cvt/gfx/GFXEngine.h>
+#include <cvt/gfx/DummyFont.h>
 #include <string>
 
 namespace cvt {
@@ -27,6 +28,7 @@ namespace cvt {
 			void drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c ) {};
 			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c ) {};
 
+			const Font& font() const { return _dfont; };
 			/* optional - only used by the Widget in paintChild */
 			void setChildrect( const Recti& childrect ) { _crect = childrect; };
 			const Recti& childrect() const { return _crect;};
@@ -38,6 +40,7 @@ namespace cvt {
 			size_t _width, _height;
 			FILE* _fd;
 			Recti _crect;
+			DummyFont _dfont;
 	};
 
 	inline GFXEnginePS::GFXEnginePS( const std::string& path, size_t width, size_t height ) : _filename( path ), _width( width ), _height( height ), _fd( 0 )

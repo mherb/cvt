@@ -130,6 +130,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ImageAllocatorGL.h
 	gfx/Drawable.h
 	gfx/GFXEngine.h
+	gfx/GFXEngineImage.h
 	gfx/GFX.h
 	gfx/IKernel.h
 	gfx/ColorspaceXYZ.h
@@ -270,6 +271,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLException.cpp
 	cl/CLKernel.cpp
 	gfx/GFX.cpp
+	gfx/GFXEngineImage.cpp
 	gfx/IConvert.cpp
 	gfx/IFormat.cpp
 	gfx/Image.cpp
