@@ -62,6 +62,7 @@ namespace cvt {
 			const Font& font( ) const;
 			void drawText( int x, int y, const char* text );
 			void drawText( const Recti& rect, Alignment alignment, const char* text );
+			void drawText( int x, int y, int width, int height, Alignment alignment, const char* text );
 
 			void drawImage( int x, int y, const Image& img );
 			void drawImage( int x, int y, int width, int height, const Image& img );
@@ -102,6 +103,10 @@ namespace cvt {
 		return _linewidth;
 	}
 
+	inline void GFX::drawText( int x, int y, int width, int height, Alignment alignment, const char* text )
+	{
+		drawText( Recti( x, y, width, height ), alignment, text );
+	}
 }
 
 #endif
