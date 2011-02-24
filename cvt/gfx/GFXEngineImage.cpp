@@ -190,7 +190,48 @@ namespace cvt {
     e2 = 2 * err; \
     if( e2 >= dy ) { err += dy; dst += incx; } \
     if( e2 <= dx ) { err += dx; dst += incy; } \
-  } \
+  }
+
+#define BRESENHAM_SET2( type, val1, val2 ) \
+  int dx =  Math::abs( pt2.x - pt1.x ); \
+  int dy = -Math::abs( pt2.y - pt1.y ); \
+  ssize_t incx = pt1.x < pt2.x ? bpp : -bpp; \
+  ssize_t incy = pt1.y < pt2.y ? _stride : -_stride; \
+  uint8_t* dst = _ptr + pt1.x * bpp + pt1.y * _stride; \
+  uint8_t* end = _ptr + pt2.x * bpp + pt2.y * _stride; \
+  int err = dx + dy; \
+  int e2; \
+  \
+  while( true ) { \
+	*( ( ( type* ) dst ) + 0 ) = val1; \
+	*( ( ( type* ) dst ) + 1 ) = val2; \
+    if( dst == end ) break; \
+    e2 = 2 * err; \
+    if( e2 >= dy ) { err += dy; dst += incx; } \
+    if( e2 <= dx ) { err += dx; dst += incy; } \
+  }
+
+#define BRESENHAM_SET4( type, val1, val2, val3, val4 ) \
+  int dx =  Math::abs( pt2.x - pt1.x ); \
+  int dy = -Math::abs( pt2.y - pt1.y ); \
+  ssize_t incx = pt1.x < pt2.x ? bpp : -bpp; \
+  ssize_t incy = pt1.y < pt2.y ? _stride : -_stride; \
+  uint8_t* dst = _ptr + pt1.x * bpp + pt1.y * _stride; \
+  uint8_t* end = _ptr + pt2.x * bpp + pt2.y * _stride; \
+  int err = dx + dy; \
+  int e2; \
+  \
+  while( true ) { \
+	*( ( ( type* ) dst ) + 0 ) = val1; \
+	*( ( ( type* ) dst ) + 1 ) = val2; \
+	*( ( ( type* ) dst ) + 2 ) = val3; \
+	*( ( ( type* ) dst ) + 3 ) = val4; \
+    if( dst == end ) break; \
+    e2 = 2 * err; \
+    if( e2 >= dy ) { err += dy; dst += incx; } \
+    if( e2 <= dx ) { err += dx; dst += incy; } \
+  }
+
 
 	void GFXEngineImage::drawLine( const Vector2i& pt1, const Vector2i& pt2, float width, const Color& c )
 	{
@@ -236,7 +277,8 @@ namespace cvt {
 			case IFORMAT_GRAYALPHA_FLOAT:
 				{
 					float v[ 2 ] = { c.gray(), c.alpha() };
-					throw CVTException("Unimplemented");
+
+					BRESENHAM_SET2( float, v[ 0 ], v[ 1 ] )
 				}
 				break;
 			case IFORMAT_RGBA_UINT8:
@@ -259,7 +301,7 @@ namespace cvt {
 				{
 					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
 
-					throw CVTException("Unimplemented");
+					BRESENHAM_SET4( float, v[ 0 ], v[ 1 ], v[ 2 ], v[ 3 ] )
 				}
 				break;
 			case IFORMAT_BGRA_UINT8:
@@ -282,12 +324,8 @@ namespace cvt {
 				{
 					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
 
-					throw CVTException("Unimplemented");
+					BRESENHAM_SET4( float, v[ 0 ], v[ 1 ], v[ 2 ], v[ 3 ] )
 				}
-				break;
-
-			case IFORMAT_BAYER_RGGB_UINT8:
-				throw CVTException("Unimplemented");
 				break;
 			default:
 				throw CVTException("Unimplemented");

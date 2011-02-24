@@ -192,7 +192,7 @@ namespace cvt {
 			/* SQRT */
 			b = true;
 			for( size_t i = 0; i <= 10000; i++ ) {
-				 f = Math::rand( 0, Math::MAXF );
+				 f = Math::rand( 0.0f, Math::MAXF );
 				 bool b2 = ( Math::abs( Math::sqrt( f ) - ::sqrtf( f ) ) / ::sqrtf( f ) < 0.001f );
 				 if( !b2 ) {
 					std::cerr << "Math::sqrt failed for " << f << " Math::sqrt = " << Math::sqrt( f ) << " sqrtf = " << ::sqrtf( f ) << std::endl;

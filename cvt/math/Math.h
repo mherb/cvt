@@ -220,7 +220,7 @@ namespace cvt {
 			return ( ssize_t ) ::random();
 		}
 
-		static inline size_t rand( size_t min, size_t max )
+		static inline int rand( int min, int max )
 		{
 			return min + ( ( max - min ) * ( ( float ) ::random() / ( ( size_t ) RAND_MAX + 1 )  ) );
 		}
