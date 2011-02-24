@@ -13,7 +13,8 @@
 
 using namespace cvt;
 
-#define SAMPLEPTS 76
+#define SAMPLEPTS 62
+#define LINEPTS 66
 
 class FaceShapeWin : public Window
 {
@@ -43,16 +44,20 @@ class FaceShapeWin : public Window
 
 		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		gfx->drawLines( &_pts[ 0 ], _pts.size() );
-/*		for( int i = 0; i < SAMPLEPTS; i++ ) {
+		for( int i = 0; i < SAMPLEPTS; i++ ) {
 			int x, y;
 			char buf[ 200 ];
 			x = _current( i * 2 );
 			y = _current( i * 2 + 1 );
 			sprintf( buf, "%d", i );
 			gfx->drawText( x, y, buf );
-		}*/
+		}
 
-//		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
+		gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		gfx->drawIcon( 250, 250, GFX::ICON_CROSS );
+
+		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
 		paintChildren( gfx, Recti( 0, 0, w, h ) );
 	};
 
@@ -60,7 +65,7 @@ class FaceShapeWin : public Window
 	{
 	   _current = 100.0 * ( _mean + _pc * _weights );
 	   _current.cwise() += 250.0f;
-	   int map[ SAMPLEPTS ][ 2 ] = {
+	   int map[ LINEPTS ][ 2 ] = {
 		   { 0,1 },
 		   { 1,2 },
 		   { 2,3 },
@@ -92,23 +97,23 @@ class FaceShapeWin : public Window
 		   { 28,29},
 		   { 29,30},
 		   { 30,27},
-		   { 31,31},
+		   { 31,32},
 		   { 32,33},
 		   { 33,34},
-		   { 34,35},
-		   { 35,32},
-		   { 36,36},
+		   { 34,31},
+		   { 35,36},
+		   { 36,37},
 		   { 37,38},
 		   { 38,39},
 		   { 39,40},
 		   { 40,41},
 		   { 41,42},
 		   { 42,43},
-		   { 43,44},
+		   { 43,43},
 		   { 44,45},
-		   { 45,45},
-		   { 46,46},
-		   { 47,47},
+		   { 45,46},
+		   { 46,47},
+		   { 47,48},
 		   { 48,49},
 		   { 49,50},
 		   { 50,51},
@@ -116,22 +121,18 @@ class FaceShapeWin : public Window
 		   { 52,53},
 		   { 53,54},
 		   { 54,55},
-		   { 55,56},
+		   { 55,44},
+		   { 44,56},
 		   { 56,57},
 		   { 57,58},
-		   { 58,59},
-		   { 59,48},
-		   { 48,60},
+		   { 58,50},
+		   { 50,59},
+		   { 59,60},
 		   { 60,61},
-		   { 61,62},
-		   { 62,54},
-		   { 54,63},
-		   { 63,64},
-		   { 64,65},
-		   { 65,48},
+		   { 61,44}
 	   };
 		_pts.clear();
-		for( int i = 0; i < SAMPLEPTS; i++ ) {
+		for( int i = 0; i < LINEPTS; i++ ) {
 			int a = map[ i ][ 0 ];
 			int b = map[ i ][ 1 ];
 			if( a == b )
@@ -151,7 +152,7 @@ class FaceShapeWin : public Window
 
 int main( int argc, char** argv )
 {
-	if( argc != 2 ) {
+	if( argc < 2 ) {
 		std::cerr << "usage: " << argv[ 0 ] << " csv-file" << std::endl;
 		return 1;
 	}
@@ -161,7 +162,7 @@ int main( int argc, char** argv )
 	std::ifstream file;
 	file.open( argv[ 1 ] );
 	while( !file.eof() ) {
-		size_t n = SAMPLEPTS;
+		size_t n = SAMPLEPTS + 14;
 		Vector2f pt;
 		char buf[ 200 ];
 		PointSet2f pts;
@@ -171,12 +172,17 @@ int main( int argc, char** argv )
 		file.getline( buf, 200, ',' );
 		file.getline( buf, 200, ',' );
 
+		size_t x = 0;
 		while( n-- ) {
 			file.getline( buf, 200, ',' );
 			pt.x = atof( buf );
 			file.getline( buf, 200, ',' );
 			pt.y = atof( buf );
-			pts.add( pt );
+			if( x != 31 && x != 36 && x != 66 && x != 67 && x != 46 && x != 47
+			   && x != 72 && x != 73 && x != 74 && x != 75
+			   && x != 68 && x != 69 && x != 70 && x != 71 )
+			 pts.add( pt );
+			x++;
 			if( pt.x == 0.0f || pt.y == 0.0f ) {
 				discard = true;
 				break;
@@ -194,8 +200,10 @@ int main( int argc, char** argv )
 
 	/* align stuff */
 
-#define INITMEAN 50
+	int INITMEAN = atoi( argv[ 2 ] );
+//#define INITMEAN 200
 	PointSet2f meanshape( allpts[ INITMEAN ] );
+	meanshape.normalize();
 
 	for( size_t i = 0; i < allpts.size(); i++ ) {
 		if( i == INITMEAN )
@@ -265,11 +273,11 @@ int main( int argc, char** argv )
 	SLIDERN( 7 )
 	SLIDERN( 8 )
 	SLIDERN( 9 )
-/*	SLIDERN( 10 )
+	SLIDERN( 10 )
 	SLIDERN( 11 )
 	SLIDERN( 12 )
 	SLIDERN( 13 )
-	SLIDERN( 14 )*/
+	SLIDERN( 14 )
 
 	Application::run();
 }
