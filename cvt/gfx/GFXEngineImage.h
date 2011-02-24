@@ -11,7 +11,7 @@ namespace cvt {
 			GFXEngineImage( Image& img );
 			void begin();
 			void end();
-			void drawLines( const Vector2f* pts, size_t n, float width, const Color& c ) {};
+			void drawLines( const Vector2f* pts, size_t n, float width, const Color& c );
 			void fillRect( const Recti& rect, const Color& c );
 			void drawRect( const Recti& rect, float width, const Color& c ) {};
 			void fillRoundRect( const Recti& rect, float r, const Color& c ) {};
@@ -34,6 +34,8 @@ namespace cvt {
 			const Recti& childrect() const { return _crect;};
 
 		private:
+			void drawLine( const Vector2i& pt1, const Vector2i& pt2, float width, const Color& c );
+
 			Image& _img;
 			Recti _crect;
 			DummyFont _dfont;

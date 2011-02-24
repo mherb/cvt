@@ -16,6 +16,8 @@ int main()
 		g.fillRect( 0, 0, 640, 480 );
 		g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 		g.fillRect( 100, 100, 200, 200 );
+		g.color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		g.drawLine( 100, 100, 299, 199 );
 	}
 	ImageIO::savePNG( out, "gfximg.png" );
 }
