@@ -94,8 +94,6 @@ namespace cvt {
 		if( pt1.x == pt2.x && pt1.y == pt2.y )
 			return false;
 
-		std::cout << pt1 << " " << pt2 << std::endl;
-
 		return true;
 	}
 }
