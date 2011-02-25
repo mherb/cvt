@@ -54,7 +54,7 @@ class FaceShapeWin : public Window
 		}
 
 		gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
-		gfx->drawIcon( 250, 250, GFX::ICON_CROSS );
+		gfx->drawIcon( 250 - 8, 250 - 8, GFX::ICON_CROSS );
 
 		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
@@ -215,7 +215,7 @@ int main( int argc, char** argv )
 	meanshape.normalize();
 
 	std::cout << "Initial mean" << std::endl;
-	size_t iter = 200;
+	size_t iter = 50;
 	while( iter-- ) {
 		PointSet2f newmean;
 		newmean.resize( SAMPLEPTS );
@@ -231,12 +231,36 @@ int main( int argc, char** argv )
 		meanshape = newmean;
 	}
 
-	for( size_t i = 0; i < allpts.size(); i++ ) {
+/*	for( size_t i = 0; i < allpts.size(); i++ ) {
 			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
 			allpts[ i ].transform( sim );
-//			std::cout << files[ i ] << " " << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
+			std::cout << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
+	}*/
+	for( std::vector<PointSet2f>::iterator it = allpts.begin(); it != allpts.end(); ++it ) {
+		Matrix3f sim = it->alignSimilarity( meanshape );
+		it->transform( sim );
+//		std::cout << it->maxSquaredDistance( meanshape ) << std::endl;
+		if( it->maxSquaredDistance( meanshape ) > 0.45f )
+			allpts.erase( it );
 	}
 
+	iter = 100;
+	while( iter-- ) {
+		PointSet2f newmean;
+		newmean.resize( SAMPLEPTS );
+		for( size_t k = 0; k < newmean.size(); k++ )
+			newmean[ k ].set( 0.0f, 0.0f );
+
+		for( size_t i = 0; i < allpts.size(); i++ ) {
+			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
+			for( size_t k = 0; k < newmean.size(); k++ )
+				newmean[ k ] += sim * allpts[ i ][ k ];
+		}
+		newmean.normalize();
+		meanshape = newmean;
+	}
+
+	std::cout << "Kept: " << allpts.size() << " shapes" << std::endl;
 	std::cout << "Aligned shapes" << std::endl;
 
 	PCAf pca( SAMPLEPTS * 2 );
@@ -248,6 +272,32 @@ int main( int argc, char** argv )
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> pc( SAMPLEPTS * 2, SAMPLEPTS * 2 );
 	pca.mean( mean );
 	pca.principleComponents( pc );
+
+#define OUTPUTDATA 1
+#ifdef OUTPUTDATA
+#define MAXPC 15
+	FILE* f = fopen("face.data","wb");
+	fprintf( f, "PTS %d", SAMPLEPTS );
+	fprintf( f, "\nMEANX ");
+	for( size_t i = 0; i < SAMPLEPTS; i++ )
+		fprintf( f, "%.8f ", mean( i * 2 ) );
+	fprintf( f, "\nMEANY ");
+	for( size_t i = 0; i < SAMPLEPTS; i++ )
+		fprintf( f, "%.8f ", mean( i * 2 + 1 ) );
+
+	for( size_t c = 0; c < MAXPC; c++ ) {
+		fprintf( f, "\nPCX%d ", c );
+		for( size_t i = 0; i < SAMPLEPTS; i++ ) {
+			fprintf( f, "%.8f ", pc( i * 2, c ) );
+		}
+		fprintf( f, "\nPCY%d ", c );
+		for( size_t i = 0; i < SAMPLEPTS; i++ ) {
+			fprintf( f, "%.8f ", pc( i * 2 + 1, c ) );
+		}
+
+	}
+	fclose( f );
+#endif
 
 	FaceShapeWin win( mean, pc );
 	win.setSize( 640, 480 );
