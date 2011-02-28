@@ -16,56 +16,7 @@ using namespace cvt;
 #define SAMPLEPTS 62
 #define LINEPTS 66
 
-class FaceShapeWin : public Window
-{
-	public:
-	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc ) : Window( "FaceShape" ), _current( SAMPLEPTS * 2 ), _weights( SAMPLEPTS * 2 ), _mean( mean ), _pc( pc )
-	{
-		_weights.setZero();
-		recalc();
-	}
-
-	template<int n>
-	void setWeight( float val )
-	{
-		_weights( n * 2 ) = val;
-		_weights( n * 2 + 1 ) = val;
-		recalc();
-		update();
-	}
-
-	void paintEvent( PaintEvent* event, GFX* gfx )
-	{
-		int w, h;
-		size( w, h );
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->fillRect( 0, 0, w, h );
-
-
-		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawLines( &_pts[ 0 ], _pts.size() );
-		for( int i = 0; i < SAMPLEPTS; i++ ) {
-			int x, y;
-			char buf[ 200 ];
-			x = _current( i * 2 );
-			y = _current( i * 2 + 1 );
-			sprintf( buf, "%d", i );
-			gfx->drawText( x, y, buf );
-		}
-
-		gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
-		gfx->drawIcon( 250 - 8, 250 - 8, GFX::ICON_CROSS );
-
-		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
-		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
-		paintChildren( gfx, Recti( 0, 0, w, h ) );
-	};
-
-	void recalc()
-	{
-	   _current = 100.0 * ( _mean + _pc * _weights );
-	   _current.cwise() += 250.0f;
-	   int map[ LINEPTS ][ 2 ] = {
+int map[ LINEPTS ][ 2 ] = {
 		   { 0,1 },
 		   { 1,2 },
 		   { 2,3 },
@@ -131,7 +82,58 @@ class FaceShapeWin : public Window
 		   { 60,61},
 		   { 61,44}
 	   };
-		_pts.clear();
+
+
+class FaceShapeWin : public Window
+{
+	public:
+	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc ) : Window( "FaceShape" ), _current( SAMPLEPTS * 2 ), _weights( SAMPLEPTS * 2 ), _mean( mean ), _pc( pc )
+	{
+		_weights.setZero();
+		recalc();
+	}
+
+	template<int n>
+	void setWeight( float val )
+	{
+		_weights( n * 2 ) = val;
+		_weights( n * 2 + 1 ) = val;
+		recalc();
+		update();
+	}
+
+	void paintEvent( PaintEvent* event, GFX* gfx )
+	{
+		int w, h;
+		size( w, h );
+		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx->fillRect( 0, 0, w, h );
+
+
+		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		gfx->drawLines( &_pts[ 0 ], _pts.size() );
+		for( int i = 0; i < SAMPLEPTS; i++ ) {
+			int x, y;
+			char buf[ 200 ];
+			x = _current( i * 2 );
+			y = _current( i * 2 + 1 );
+			sprintf( buf, "%d", i );
+			gfx->drawText( x, y, buf );
+		}
+
+		gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		gfx->drawIcon( 250 - 8, 250 - 8, GFX::ICON_CROSS );
+
+		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
+		paintChildren( gfx, Recti( 0, 0, w, h ) );
+	};
+
+	void recalc()
+	{
+	   _current = 100.0 * ( _mean + _pc * _weights );
+	   _current.cwise() += 250.0f;
+	 		_pts.clear();
 		for( int i = 0; i < LINEPTS; i++ ) {
 			int a = map[ i ][ 0 ];
 			int b = map[ i ][ 1 ];
@@ -277,24 +279,31 @@ int main( int argc, char** argv )
 #ifdef OUTPUTDATA
 #define MAXPC 15
 	FILE* f = fopen("face.data","wb");
-	fprintf( f, "PTS %d", SAMPLEPTS );
-	fprintf( f, "\nMEANX ");
-	for( size_t i = 0; i < SAMPLEPTS; i++ )
-		fprintf( f, "%.8f ", mean( i * 2 ) );
-	fprintf( f, "\nMEANY ");
-	for( size_t i = 0; i < SAMPLEPTS; i++ )
-		fprintf( f, "%.8f ", mean( i * 2 + 1 ) );
+	uint32_t tmp = SAMPLEPTS;
+	fwrite( &tmp, sizeof( uint32_t ), 1, f );
+	tmp = MAXPC;
+	fwrite( &tmp, sizeof( uint32_t ), 1, f );
+	for( size_t i = 0; i < SAMPLEPTS * 2; i++ )
+		fwrite( &mean( i ), sizeof( float ), 1, f );
 
 	for( size_t c = 0; c < MAXPC; c++ ) {
-		fprintf( f, "\nPCX%d ", c );
-		for( size_t i = 0; i < SAMPLEPTS; i++ ) {
-			fprintf( f, "%.8f ", pc( i * 2, c ) );
-		}
-		fprintf( f, "\nPCY%d ", c );
-		for( size_t i = 0; i < SAMPLEPTS; i++ ) {
-			fprintf( f, "%.8f ", pc( i * 2 + 1, c ) );
-		}
+		for( size_t i = 0; i < SAMPLEPTS * 2; i++ )
+			fwrite( &pc( i, c ), sizeof( float ), 1, f );
+	}
 
+	tmp = 0;
+	for( size_t i = 0; i < LINEPTS; i++ ) {
+		if( map[ i ][ 0 ] != map[ i ][ 1 ] )
+			tmp++;
+	}
+	fwrite( &tmp, sizeof( uint32_t ), 1, f );
+	for( size_t i = 0; i < LINEPTS; i++ ) {
+		if( map[ i ][ 0 ] != map[ i ][ 1 ] ) {
+			tmp = map[ i ][ 0 ];
+			fwrite( &tmp, sizeof( uint32_t ), 1, f );
+			tmp = map[ i ][ 1 ];
+			fwrite( &tmp, sizeof( uint32_t ), 1, f );
+		}
 	}
 	fclose( f );
 #endif
