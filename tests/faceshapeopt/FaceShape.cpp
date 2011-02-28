@@ -84,14 +84,14 @@ namespace cvt {
 	}
 
 
-	void updateCurrent()
+	void FaceShape::updateCurrent()
 	{
 		Vector2f pt;
-		_pts = _mean + _pc * p;
+		_pts = _mean + _pc * _p;
 		for( size_t i = 0; i < _ptsize; i++ ) {
 			pt.x = _pts[ i * 2 ];
 			pt.y = _pts[ i * 2 + 1 ];
-			pt = transform * pt;
+			pt = _transform * pt;
 			_pts[ i * 2 ] = pt.x;
 			_pts[ i * 2 + 1 ] = pt.y;
 		}
