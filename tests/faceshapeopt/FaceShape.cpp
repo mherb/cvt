@@ -110,6 +110,19 @@ namespace cvt {
 	}
 
 
+	int FaceShape::sampleNormal( uint8_t* data, size_t stride, size_t w, size_t h, size_t lineindex, float alpha, size_t maxdist )
+	{
+		Vector2f pts[ 2 ], d, p;
+		size_t i1 = _lines[ lineindex * 2 ];
+		size_t i2 = _lines[ lineindex * 2 + 1 ];
+		pt[ 0 ].x = _pts[ i1 * 2 ];
+		pt[ 0 ].y = _pts[ i1 * 2 + 1 ];
+		pt[ 1 ].x = _pts[ i2 * 2 ];
+		pt[ 1 ].y = _pts[ i2 * 2 + 1 ];
+		d = pt[ 1 ] - pt[ 0 ];
+		p = pt[ 0 ] + alpha * d;
+	}
+
 	void FaceShape::updateCurrent()
 	{
 		Vector2f pt;
