@@ -14,6 +14,7 @@ namespace cvt {
 			void load( const char* path );
 			void drawMean( GFX* g, const Matrix3f& transform );
 			void drawCurrent( GFX* g );
+			void draw( GFX* g, const Matrix3f& transform, const Eigen::VectorXf& p );
 			Eigen::VectorXf& weights();
 			Eigen::VectorXf& points();
 

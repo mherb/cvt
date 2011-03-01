@@ -49,6 +49,32 @@ namespace cvt {
 		}
 	}
 
+	void FaceShape::draw( GFX* g, const Matrix3f& transform, const Eigen::VectorXf& p )
+	{
+		Eigen::VectorXf pts( _ptsize * 2 );
+		Vector2f pt[ 2 ];
+
+		pts = _mean + _pc * p;
+		for( size_t i = 0; i < _ptsize; i++ ) {
+			Vector2f p;
+			p.x = pts[ i * 2 ];
+			p.y = pts[ i * 2 + 1 ];
+			p = transform * p;
+			pts[ i * 2 ] = p.x;
+			pts[ i * 2 + 1 ] = p.y;
+		}
+
+		g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		for( size_t i = 0; i < _lsize; i++ ) {
+			size_t i1 = _lines[ i * 2 ];
+			size_t i2 = _lines[ i * 2 + 1 ];
+			pt[ 0 ].x = pts[ i1 * 2 ];
+			pt[ 0 ].y = pts[ i1 * 2 + 1 ];
+			pt[ 1 ].x = pts[ i2 * 2 ];
+			pt[ 1 ].y = pts[ i2 * 2 + 1 ];
+			g->drawLines( pt, 1 );
+		}
+	}
 
 	void FaceShape::load( const char* path )
 	{
