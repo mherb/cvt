@@ -8,41 +8,41 @@ namespace cvt
 			return;
 		_lastStride = stride;
 
-		_offset0=(-3);
-		_offset1=(-2)+(-1)*_lastStride;
-		_offset2=(-1)+(-2)*_lastStride;
-		_offset3=(0)+(-3)*_lastStride;
-		_offset4=(1)+(-2)*_lastStride;
-		_offset5=(2)+(-1)*_lastStride;
-		_offset6=(3)+(0)*_lastStride;
-		_offset7=(2)+(1)*_lastStride;
-		_offset8=(1)+(2)*_lastStride;
-		_offset9=(0)+(3)*_lastStride;
-		_offset10=(-1)+(2)*_lastStride;
-		_offset11=(-2)+(1)*_lastStride;
+		_offset0 = -3 ;
+		_offset1 = -2 -    _lastStride;
+		_offset2 = -1 - 2 * _lastStride;
+		_offset3 =    - 3 * _lastStride;
+		_offset4 =  1 - 2 * _lastStride;
+		_offset5 =  2 - 1 * _lastStride;
+		_offset6 =  3;
+		_offset7 =  2 +     _lastStride;
+		_offset8 =  1 + 2 * _lastStride;
+		_offset9 =      3 * _lastStride;
+		_offset10= -1 + 2 * _lastStride;
+		_offset11= -2 + 1 * _lastStride;
 	}
 
 	void AGAST::agast7_12d( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2D> & corners )
 	{
 		register int y;
 		register int x;
-		register int xsizeB=xsize - 4;
+		register int xsizeB=xsize - 3;
 		register int ysizeB=ysize - 3;
-		int	nExpectedCorners=512;
-		int total=0;
+		int	nExpectedCorners = 512;
+		int total = 0;
 
-		corners.resize( nExpectedCorners );
+		corners.reserve( nExpectedCorners );
 		init7_12d_pattern( stride );
 
-		for(y=3; y < ysizeB; y++)
+		for(y = 3; y < ysizeB; y++ )
 		{
-			x=2;
+			x=3;
 			while(1)
 			{
 homogeneous:
 				{
 					x++;
-					if(x>xsizeB)
+					if( x > xsizeB )
 						break;
 					register const uint8_t* const p = im + y*_lastStride + x;
 					register const int cb = *p + _threshold;
@@ -3628,8 +3628,9 @@ int* AGAST::score7_12d( const uint8_t* i, size_t stride, std::vector<Feature2D> 
 	int* scores = new int[ corners.size() ];
 	init7_12d_pattern( stride );
 
-    for(size_t n = 0; n < corners.size(); n++)
-        scores[n] = score_agast7_12d( i + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ]);
+    for(size_t n = 0; n < corners.size(); n++){
+        scores[n] = score_agast7_12d( i + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ] );        
+    }
 
 	return scores;
 }

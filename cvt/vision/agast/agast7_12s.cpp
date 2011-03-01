@@ -26,17 +26,17 @@ namespace cvt
 	{
 		register int y;
 		register int x;
-		register int xsizeB=xsize - 3; //2, +1 due to faster test x>xsizeB
+		register int xsizeB=xsize - 2; //2, +1 due to faster test x>xsizeB
 		register int ysizeB=ysize - 2;
 		int	nExpectedCorners=512;
 		int total=0;
 
-		corners.resize( nExpectedCorners );
+		corners.reserve( nExpectedCorners );
 		init7_12s_pattern( stride );
 
 		for(y=2; y < ysizeB; y++)
 		{
-			x=1;
+			x=2;
 			while(1)
 			{
 homogeneous:

@@ -218,8 +218,31 @@ BEGIN_CVTTEST( simd )
 			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
 			delete simd;
 		}
+        
+            uint8_t * usrc0 = new uint8_t[ TESTSIZE ];
+            for( int x = 0; x < TESTSIZE; x++ )
+                usrc0[ x ] = Math::max( x, 255 );
+        
+            for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+                SIMD* simd = SIMD::get( ( SIMDType ) st );
+                t = 0;
+                for( int iter = 0; iter < 100; iter++ ) {
+                    tmr.reset();
+                    simd->prefixSum1( fdst, 0, usrc0, 0, TESTSIZE, 1 );
+                    t += tmr.elapsedMilliSeconds();
+                }
+                t /= 100.0;
+                std::cout << simd->name() << " prefixSum1 Const "  << t  << " ms" << std::endl;
+                
+                for( int x = 0; x < 100; x++ )
+                    std::cout << fdst[ x ] << " ";
+                std::cout << std::endl;
+                
+                delete simd;
+            }
+        
 		
-		uint8_t * usrc0 = new uint8_t[ TESTSIZE ];
+		
 		uint8_t * udst = new uint8_t[ TESTSIZE ];
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
@@ -239,7 +262,7 @@ BEGIN_CVTTEST( simd )
 		delete[] fdst;
 		delete[] fsrc1;
 		delete[] fsrc2;
-#undef TESTSIZE
+#undef TESTSIZE       
 
 		return true;
 	END_CVTTEST

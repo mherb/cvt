@@ -12,11 +12,13 @@ namespace cvt
 		_minScore( 1 ),
 		_extract( 0 ),
 		_score( 0 ),
-        _suppress( true )
+        _suppress( true ),
+        _lastStride( 0 )
 	{
 		switch( size ){
 			case SEGMENT_9:
-				_extract = &FAST::detect9;
+				//_extract = &FAST::detect9simd;
+                _extract = &FAST::detect9;
 				_score = &FAST::score9;
 				break;
 			case SEGMENT_10:
@@ -35,6 +37,8 @@ namespace cvt
 				throw CVTException( "NO MATCHING EXTRACT FUNC" );
 				break;
 		}
+
+
 	}
 
 	FAST::~FAST()
@@ -94,7 +98,7 @@ namespace cvt
 
 		int32_t scale = 1;
 		for( size_t i = 0; i < pyramid.size(); i++ ){
-			scale >>= 1;
+			scale <<= 1;
 
 			this->extract( pyramid[ i ], features );
 			while( previousScaleEnd < features.size() ){
@@ -104,20 +108,25 @@ namespace cvt
 		}
 	}
 
-	void FAST::make_offsets(int pixel[], size_t row_stride)
+	void FAST::make_offsets( size_t row_stride )
 	{
+        
+        if( _lastStride == row_stride )
+            return;
+        
+        _lastStride = row_stride;
 		pixel[0] = 0 + row_stride * 3;
 		pixel[1] = 1 + row_stride * 3;
 		pixel[2] = 2 + row_stride * 2;
 		pixel[3] = 3 + row_stride * 1;
 		pixel[4] = 3;
-		pixel[5] = 3 + row_stride * -1;
-		pixel[6] = 2 + row_stride * -2;
-		pixel[7] = 1 + row_stride * -3;
-		pixel[8] = 0 + row_stride * -3;
-		pixel[9] = -1 + row_stride * -3;
-		pixel[10] = -2 + row_stride * -2;
-		pixel[11] = -3 + row_stride * -1;
+		pixel[5] = 3 - row_stride * 1;
+		pixel[6] = 2 - row_stride * 2;
+		pixel[7] = 1 - row_stride * 3;
+		pixel[8] =   - row_stride * 3;
+		pixel[9] = -1 - row_stride * 3;
+		pixel[10] = -2 - row_stride * 2;
+		pixel[11] = -3 - row_stride * 1;
 		pixel[12] = -3;
 		pixel[13] = -3 + row_stride;
 		pixel[14] = -2 + row_stride * 2;
@@ -224,11 +233,8 @@ cont:
 	{
 		int* scores = new int[ corners.size() ];
 
-		int pixel[ 16 ];
-		make_offsets(pixel, stride);
-
 		for( size_t n = 0; n < corners.size(); n++ )
-			scores[ n ] = (this->*_score)( img + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ], pixel );
+			scores[ n ] = (this->*_score)( img + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ] );
 
 		return scores;
 	}

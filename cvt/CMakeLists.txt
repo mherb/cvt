@@ -254,6 +254,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/FeatureExtractor.h
 	vision/Ferns.h
 	vision/internal/Fern.h
+	vision/IntegralImage.h
 	vision/Flow.h
 	vision/HCalibration.h
 	vision/MeasurementModel.h
@@ -358,11 +359,13 @@ SET(${MODULE_NAME}_SOURCES
 	vision/DLT.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp
+	vision/fast/fast9simd.cpp
 	vision/fast/fast10.cpp
 	vision/fast/fast11.cpp
 	vision/fast/fast12.cpp
 	vision/Ferns.cpp
 	vision/Flow.cpp
+	vision/IntegralImage.cpp
 	vision/PatchGenerator.cpp
 )
 
@@ -456,5 +459,6 @@ target_link_libraries (cvttest ${MODULE_NAME})
 #special flags for some files
 set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
 set_source_files_properties(util/SIMDSSE2.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
+set_source_files_properties(vision/fast/fast9simd.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
 

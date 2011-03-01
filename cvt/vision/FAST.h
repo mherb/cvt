@@ -15,7 +15,7 @@ namespace cvt
 	class FAST : public FeatureExtractor<int32_t>
 	{
 		typedef void    (FAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-		typedef int     (FAST::*ScoreFunc)( const uint8_t* p, const int pixel[] );
+		typedef int     (FAST::*ScoreFunc)( const uint8_t* p );
 
 		public:
 			FAST( FASTSize size = SEGMENT_9 );
@@ -36,20 +36,28 @@ namespace cvt
 			ExtractFunc	_extract;
 			ScoreFunc	_score;        
             bool        _suppress;
+            size_t      _lastStride;
+            int         pixel[ 16 ]; // offsets to the ring pixel
 
 			int* score( const uint8_t* img, size_t stride, std::vector<Feature2D> & corners );
 
 			void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-			int score9( const uint8_t* p, const int pixel[] );
+        
+            void detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
+        
+			int score9( const uint8_t* p );
 			void detect10( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-			int score10( const uint8_t* p, const int pixel[] );
+			int score10( const uint8_t* p );
 			void detect11( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-			int score11( const uint8_t* p, const int pixel[] );
+			int score11( const uint8_t* p );
 			void detect12( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-			int score12( const uint8_t* p, const int pixel[] );
+			int score12( const uint8_t* p );
 
-			void make_offsets(int pixel[], size_t row_stride);
+			void make_offsets( size_t row_stride );
 			void nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed );
+        
+            bool isDarkerCorner9( const uint8_t * p, const int barrier );
+            bool isBrighterCorner9( const uint8_t * p, const int barrier );
 	};
 
 	inline void FAST::setThreshold( uint8_t threshold )

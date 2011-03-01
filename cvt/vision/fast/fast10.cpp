@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	int FAST::score10( const uint8_t* p, const int pixel[] )
+	int FAST::score10( const uint8_t* p )
 	{
 		int bmin = _threshold;
 		int bmax = 255;
@@ -15,9 +15,9 @@ namespace cvt {
 			int c_b= *p - b;
 
 
-			if( p[pixel[0]] > cb)
-				if( p[pixel[1]] > cb)
-					if( p[pixel[2]] > cb)
+			if( p[ pixel[0] ] > cb)
+				if( p[ pixel[1] ] > cb)
+					if( p[ pixel[2] ] > cb)
 						if( p[pixel[3]] > cb)
 							if( p[pixel[4]] > cb)
 								if( p[pixel[5]] > cb)
@@ -2319,7 +2319,7 @@ end_if:
 		size_t x, y;
 
 		corners.reserve( rsize );
-		make_offsets(pixel, stride);
+		make_offsets( stride );
 
 		for(y=3; y < ysize - 3; y++)
 			for(x=3; x < xsize - 3; x++)
