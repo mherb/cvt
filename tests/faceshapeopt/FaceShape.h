@@ -17,9 +17,11 @@ namespace cvt {
 			void draw( GFX* g, const Matrix3f& transform, const Eigen::VectorXf& p );
 			Eigen::VectorXf& weights();
 			Eigen::VectorXf& points();
+			Matrix3f& transform();
 
 		private:
 			void updateCurrent();
+			int sampleNormal( uint8_t* data, size_t stride, size_t w, size_t h, size_t lineindex, float alpha, size_t maxdist );
 
 			size_t _ptsize;
 			size_t _pcsize;
@@ -43,6 +45,10 @@ namespace cvt {
 		return _pts;
 	}
 
+	inline Matrix3f& FaceShape::transform()
+	{
+		return _transform;
+	}
 }
 
 #endif
