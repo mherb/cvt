@@ -2,6 +2,8 @@
 #define CVT_FEATURE_TRACKER_H
 
 #include <cvt/vision/FeatureExtractor.h>
+#include "SegmentRing.h"
+
 
 namespace cvt
 {
@@ -28,13 +30,11 @@ namespace cvt
             std::vector<Feature2D>  _lastBrighter;
             std::vector<Feature2D>  _lastDarker;
             size_t                  _numLast;
+            int                     _threshold;
         
-            std::vector<Feature2D>  _currentBrighter;
-            std::vector<Feature2D>  _currentDarker;
-        
-            void partitionFeatures( const std::vector<Feature2D> & features, 
-                                    std::vector<Feature2D> & b,
-                                    std::vector<Feature2D> & d );
+            std::vector<SegmentRing> _lastRings;
+            
+    
 	};
 }
 

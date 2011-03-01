@@ -6,6 +6,8 @@
 #include <cvt/util/Time.h>
 #include <cvt/io/Resources.h>
 
+#include <cvt/vision/IntegralImage.h>
+
 #include <opencv/cv.h>
 #include <opencv/cv.hpp>
 #include <opencv/highgui.h>
@@ -13,6 +15,27 @@
 #define NUMSAMPLES ( 100 )
 
 using namespace cvt;
+
+void testIntegralImage()
+{
+    Resources resources;
+	Image lena( resources.find( "lena_g.png" ) );
+    
+    IntegralImage ii( lena );
+    Time t; t.reset();
+    for( size_t i = 0; i < NUMSAMPLES; i++ ){
+        ii.update( lena );
+    }
+    std::cout << "CVT IntegralImage: " << t.elapsedMilliSeconds() / NUMSAMPLES << std::endl;
+    
+    cv::Mat ocvLena = cv::imread( resources.find( "lena_g.png" ), 0 );
+    cv::Mat intImage( ocvLena.rows, ocvLena.cols, CV_32FC1 );
+    
+    t.reset();
+    for( size_t i = 0; i < NUMSAMPLES; i++)
+        cv::integral( ocvLena, intImage, CV_32FC1 );    
+    std::cout << "OCV IntegralImage: " << t.elapsedMilliSeconds() / NUMSAMPLES << std::endl;
+}
 
 void testConvolutionCVT()
 {
@@ -182,6 +205,9 @@ void testImageProcessing()
 	std::cout << "**************** OCV ****************" << std::endl;
 	testConvolutionOCV();
 	testConvolutionGRAYOCV();
+    
+    std::cout << "IntegralImage" << std::endl;
+    testIntegralImage();
 }
 
 #endif

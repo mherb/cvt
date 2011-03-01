@@ -1401,5 +1401,140 @@ namespace cvt
 			*dst32++ = out;
 		}
 	}
+    
+    void SIMDSSE2::prefixSum1( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
+    {
+        // first row
+        __m128i x;
+        __m128i xl16, xh16, zero;
+        __m128  xf, y;
+        
+        zero = _mm_setzero_si128();
+        y = _mm_setzero_ps();
+        
+        size_t n = width >> 4;
+        
+        float * dst = _dst;
+        const uint8_t * src = _src;
+        
+        while( n-- ){
+            x = _mm_loadu_si128( ( __m128i* )src );
+            
+            // cast to 2x8 uint16:
+            xl16 = _mm_unpacklo_epi8( x, zero );
+            xh16 = _mm_unpackhi_epi8( x, zero );
+            
+            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
+            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
+            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
+            
+            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
+            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
+            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
+            xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );            
+            
+            // process lower 8: 
+            xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
+            xf = _mm_add_ps( xf, y );            
+            _mm_store_ps( dst, xf );
+            
+            xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
+            xf = _mm_add_ps( xf, y );
+            _mm_store_ps( dst + 4, xf );
+            
+            xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
+            xf = _mm_add_ps( xf, y );            
+            _mm_store_ps( dst + 8, xf );
+            
+            xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
+            xf = _mm_add_ps( xf, y );
+            _mm_store_ps( dst + 12, xf );
+            
+            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+            
+            src += 16; 
+            dst += 16;
+        }
+        n = width & 0xf;
+        float yl;
+        _mm_store_ss( &yl, y );
+        while( n-- ){
+            *dst++ = yl + *src++;
+        }
+        
+        float * prevRow = _dst;
+        _src += srcStride;
+        _dst += dstStride;
+        
+        __m128 prev;
+        
+        while( height-- ){
+            n = width >> 4;
+            
+            src = _src;
+            dst = _dst;
+            y = _mm_setzero_ps();
+            
+            while( n-- ){
+                // next 16 values
+                x = _mm_loadu_si128( ( __m128i* )src );
+                
+                // cast to 2x8 uint16:
+                xl16 = _mm_unpacklo_epi8( x, zero );
+                xh16 = _mm_unpackhi_epi8( x, zero );
+                
+                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
+                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
+                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
+                
+                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
+                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
+                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
+                xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );            
+                
+                // process lower 8: 
+                prev = _mm_loadu_ps( prevRow );
+                xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
+                xf = _mm_add_ps( xf, y );
+                xf = _mm_add_ps( xf, prev );
+                _mm_store_ps( dst, xf );
+                
+                prev = _mm_loadu_ps( prevRow + 4 );
+                xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
+                xf = _mm_add_ps( xf, y );
+                xf = _mm_add_ps( xf, prev );
+                _mm_store_ps( dst + 4, xf );
+                
+                prev = _mm_loadu_ps( prevRow + 8 );
+                xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
+                xf = _mm_add_ps( xf, y );   
+                xf = _mm_add_ps( xf, prev );
+                _mm_store_ps( dst + 8, xf );
+                
+                prev = _mm_loadu_ps( prevRow + 12 );
+                xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
+                xf = _mm_add_ps( xf, y );
+                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+                xf = _mm_add_ps( xf, prev );
+                _mm_store_ps( dst + 12, xf );
+                
+                src += 16; 
+                dst += 16;
+                prevRow += 16;
+            }
+            
+            n = width & 0xf;
+            _mm_store_ss( &yl, y );
+            while( n-- ){
+                yl += *src++;
+                *dst++ = yl + *prevRow++;
+            }
+            
+            prevRow = _dst;
+            _dst += dstStride;
+            _src += srcStride;
+        }
+        
+    }
 
 }

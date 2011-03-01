@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-	int FAST::score11( const uint8_t* p, const int pixel[] )
+	int FAST::score11( const uint8_t* p )
 	{
 		int bmin = _threshold;
 		int bmax = 255;
@@ -1941,7 +1941,7 @@ end_if:
 		size_t x, y;
 
 		corners.reserve( rsize );
-		make_offsets(pixel, stride);
+		make_offsets( stride );
 
 		for(y=3; y < ysize - 3; y++)
 			for(x=3; x < xsize - 3; x++)

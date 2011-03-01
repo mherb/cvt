@@ -82,7 +82,7 @@ namespace cvt
 
 		int32_t scale = 1;
 		for( size_t i = 0; i < pyramid.size(); i++ ){
-			scale >>= 1;
+			scale <<= 1;
 
 			this->extract( pyramid[ i ], features );
 			while( previousScaleEnd < features.size() ){

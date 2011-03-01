@@ -39,7 +39,7 @@ namespace cvt {
 			virtual void Sub( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void Div( float* dst, float const* src, const float value, const size_t n ) const;
-
+        
 			virtual void Add( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Sub( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void Mul( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
@@ -52,6 +52,7 @@ namespace cvt {
 			virtual void MulSub( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
 
 			/* memory blocks */
+            /* floating point numbers */
 			virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
@@ -62,8 +63,7 @@ namespace cvt {
 			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
 			virtual void Mul( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const;
 			virtual void MulAdd( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
-
-
+                    
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
 			virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
@@ -143,6 +143,9 @@ namespace cvt {
 			virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
         
             virtual size_t hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const;
+        
+            // prefix sum for 1 channel images
+            virtual void prefixSum1( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
 
 
 			virtual std::string name() const;
