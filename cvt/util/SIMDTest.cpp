@@ -233,11 +233,7 @@ BEGIN_CVTTEST( simd )
                 }
                 t /= 100.0;
                 std::cout << simd->name() << " prefixSum1 Const "  << t  << " ms" << std::endl;
-                
-                for( int x = 0; x < 20; x++ )
-                    std::cout << fdst[ x ] << " ";
-                std::cout << std::endl;
-                
+                                
                 
                 delete simd;
             }
