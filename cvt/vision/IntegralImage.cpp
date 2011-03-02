@@ -6,47 +6,21 @@
 
 namespace cvt
 {
-	IntegralImage::IntegralImage( const Image & input, IAllocatorType memType )
-	{
-		this->reallocate( input.width(), input.height(), IFormat::floatEquivalent( input.format() ), memType );
-		this->update( input );
-	}
-
-	IntegralImage::IntegralImage( const IntegralImage & input, IAllocatorType memType ) : Image( input, memType )
-	{
-	}
-
-	// calculate the parralel prefix sum if the input and store it in this
-	void IntegralImage::update( const Image & input )
-	{
-        size_t inStride;
-        size_t dstStride;
-        
-        float * out = map<float>( &dstStride );
-        
-        SIMD * simd = SIMD::instance();
-                
-        IFormatID fId = input.format().formatID;        
-        switch ( fId ) {
-            case IFORMAT_GRAY_UINT8:
-            {
-                const uint8_t * in = input.map( &inStride );
-                simd->prefixSum1( out, dstStride, in, inStride, width(), height() );
-                input.unmap( in );
-            }
-            break;
-                
-            default:
-                this->unmap( out );
-                throw CVTException( "IntegralImage not implemented for type: " + fId );
-        }
-        this->unmap( out );
+	IntegralImage::IntegralImage( const Image & img ) : _sqrSum( 0 )
+	{	
+        img.integralImage( _sum );
 	}
     
+    IntegralImage::~IntegralImage()
+    {
+        if( _sqrSum )
+            delete _sqrSum;
+    }
+	   
     float IntegralImage::area( const Recti & r ) const
     {
         size_t stride;
-        const float * p = this->map<float>( &stride );
+        const float * p = _sum.map<float>( &stride );
         
         float sum = 0;
         int xOffset, yOffset;
@@ -71,7 +45,7 @@ namespace cvt
         xOffset += r.width;
         sum += p[ yOffset * stride + xOffset ];        
         
-        this->unmap( p );
+        _sum.unmap( p );
         
         return sum;
     }
@@ -90,15 +64,64 @@ namespace cvt
         return sum;
     }
     
+    static void _dump( const Image & img, const Image & integral )
+    {
+        size_t s0, s1;
+        const uint8_t * p0 = img.map( &s0 );
+        const float * p1 = integral.map<float>( &s1 );
+        
+        std::cout << "Input: " << std::endl;
+        for( size_t i = 0; i < img.height(); i++ ){
+            for( size_t k = 0; k < img.width(); k++ ){            
+                std::cout << ( int )p0[ i * s0 + k ] << " ";
+            }
+            std::cout << std::endl;
+        }
+        
+        std::cout << "\nResult: " << std::endl;
+        for( size_t i = 0; i < img.height(); i++ ){
+            for( size_t k = 0; k < img.width(); k++ ){            
+                std::cout << p1[ i * s1 + k ] << " ";
+            }
+            std::cout << std::endl;
+        }
+        
+        img.unmap( p0 );
+        integral.unmap( p1 );
+    }
+    
+    static void _genImage( Image & img )
+    {
+        size_t s0;
+        uint8_t * p0 = img.map( &s0 );
+        uint8_t * p = p0;
+        
+        uint8_t v = 0;
+        for( size_t i = 0; i < img.height(); i++ ){
+            for( size_t k = 0; k < img.width(); k++ ){            
+                p0[ k ] = v++;
+            }
+            p0+=s0;
+        }
+        img.unmap( p );
+    }
+    
     BEGIN_CVTTEST( integralImage )
     
-    Resources res;
-    Image img( res.find( "lena_g.png" ) );
+    Image img( 30, 40, IFormat::GRAY_UINT8 );
+    _genImage( img );
        
     IntegralImage ii( img );
-       
     
-    Recti rect( 10, 20, 23, 45 );    
+    _dump( img, ii.sumImage() );
+    
+    std::cout << "\nSQUARED SUM\n" << std::endl;
+    Image iSum, iSSum;
+    img.integralImage( iSum );
+    img.squaredIntegralImage( iSSum );
+    _dump( img, iSSum );
+        
+    Recti rect( 10, 20, 10, 15 );    
     float iiArea;
     iiArea = ii.area( rect );
 

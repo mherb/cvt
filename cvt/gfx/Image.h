@@ -92,6 +92,9 @@ namespace cvt {
 			Color operator() (float x, float y) const;*/
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
+        
+            void integralImage( Image & dst ) const;
+            void squaredIntegralImage( Image & dst ) const;
 
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;

@@ -21,20 +21,22 @@ void testIntegralImage()
     Resources resources;
 	Image lena( resources.find( "lena_g.png" ) );
     
-    IntegralImage ii( lena );
+    Image ii, iiSqr;    
     Time t; t.reset();
     for( size_t i = 0; i < NUMSAMPLES; i++ ){
-        ii.update( lena );
+        lena.integralImage( ii );
+        lena.squaredIntegralImage( iiSqr );
     }
-    std::cout << "CVT IntegralImage: " << t.elapsedMilliSeconds() / NUMSAMPLES << std::endl;
+    std::cout << "CVT IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs"<< std::endl;
     
     cv::Mat ocvLena = cv::imread( resources.find( "lena_g.png" ), 0 );
     cv::Mat intImage( ocvLena.rows, ocvLena.cols, CV_32FC1 );
+    cv::Mat intSqrImage( ocvLena.rows, ocvLena.cols, CV_64FC1 );
     
     t.reset();
     for( size_t i = 0; i < NUMSAMPLES; i++)
-        cv::integral( ocvLena, intImage, CV_32FC1 );    
-    std::cout << "OCV IntegralImage: " << t.elapsedMilliSeconds() / NUMSAMPLES << std::endl;
+        cv::integral( ocvLena, intImage, intSqrImage );    
+    std::cout << "OCV IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs" << std::endl;
 }
 
 void testConvolutionCVT()

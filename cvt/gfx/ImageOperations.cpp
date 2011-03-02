@@ -1433,4 +1433,60 @@ namespace cvt {
 		} else
 			throw CVTException("Unimplemented");
 	}
+        
+    void Image::integralImage( Image & dst ) const
+    {
+        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), IALLOCATOR_MEM );
+                     
+        size_t inStride;
+        size_t dstStride;
+        
+        float * out = dst.map<float>( &dstStride );        
+        SIMD * simd = SIMD::instance();
+        
+        IFormatID fId = this->format().formatID;
+        
+        switch ( fId ) {
+            case IFORMAT_GRAY_UINT8:
+            {
+                const uint8_t * in = this->map<uint8_t>( &inStride );
+                simd->prefixSum1_u8_to_f( out, dstStride, in, inStride, width(), height() );
+                this->unmap( in );
+            }
+            break;
+                
+            default:
+                this->unmap( out );
+                throw CVTException( "IntegralImage not implemented for type: " + fId );
+        }
+        this->unmap( out );
+    }
+    
+    void Image::squaredIntegralImage( Image & dst ) const
+    {
+        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), IALLOCATOR_MEM );
+        
+        size_t inStride;
+        size_t dstStride;
+        
+        float * out = dst.map<float>( &dstStride );        
+        SIMD * simd = SIMD::instance();
+        
+        IFormatID fId = this->format().formatID;
+        
+        switch ( fId ) {
+            case IFORMAT_GRAY_UINT8:
+            {
+                const uint8_t * in = this->map<uint8_t>( &inStride );
+                simd->prefixSumSqr1_u8_to_f( out, dstStride, in, inStride, width(), height() );
+                this->unmap( in );
+            }
+                break;
+                
+            default:
+                this->unmap( out );
+                throw CVTException( "IntegralImage not implemented for type: " + fId );
+        }
+        this->unmap( out );
+    }    
 }

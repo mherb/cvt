@@ -5,14 +5,20 @@
 
 namespace cvt
 {
-	class IntegralImage : public Image
+	class IntegralImage
 	{
 		public:
-            IntegralImage( const Image & in, IAllocatorType memType = IALLOCATOR_MEM );
-			IntegralImage( const IntegralImage & in, IAllocatorType memType = IALLOCATOR_MEM );
+            IntegralImage( const Image & img );
+            ~IntegralImage();
 
-			void update( const Image & input );
-            float area( const Recti & r ) const;
+            float   area( const Recti & r ) const;
+        
+            Image & sumImage() { return _sum; };
+            Image & sqrSumImage() { return *_sqrSum; };
+        
+        private:
+            Image   _sum;
+            Image*  _sqrSum;
 
 	};
 }
