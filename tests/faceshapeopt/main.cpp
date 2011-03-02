@@ -28,7 +28,7 @@ int main( int argc, char** argv )
 	t[ 0 ][ 2 ] = 140;
 	t[ 1 ][ 2 ] = 160;
 
-	Image output( 300, 300, IFormat::BGRA_UINT8 );
+	Image output( 300, 300, IFormat::GRAY_UINT8 );
 	GFXEngineImage ge( output );
 	GFX g( &ge );
 	g.color().set( 0, 0, 0, 255 );
@@ -36,8 +36,28 @@ int main( int argc, char** argv )
 	Eigen::VectorXf p = fshape.weights();
 	for( int i = 0; i < p.rows(); i++ )
 		p[ i ] = Math::rand( -0.5, 0.5f );
+
+	g.color().set( 255, 255, 255, 255 );
 	fshape.draw( &g, t, p );
 	fshape.transform() = t;
+
+//	g.color().set( 0.2f, 0.2f, 0.2f, 1.0f );
+//	fshape.drawCurrent( &g );
+
+	std::cout << std::endl;
+	std::cout << fshape.weights() << std::endl;
+	std::cout << std::endl;
+
+	fshape.optimize( output, 20 );
+
+	std::cout << p << std::endl;
+	std::cout << std::endl;
+	std::cout << fshape.weights() << std::endl;
+	std::cout << std::endl;
+	std::cout << fshape.transform() << std::endl;
+
+	g.color().set( 128, 128, 128, 255 );
+	fshape.drawCurrent( &g );
 
 	ImageIO::savePNG( output, "meanimage.png" );
 }

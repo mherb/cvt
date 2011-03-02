@@ -18,7 +18,6 @@ namespace cvt {
 		Vector2f pts[ 2 ];
 		size_t i1, i2;
 
-		g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		for( size_t i = 0; i < _lsize; i++ ) {
 			i1 = _lines[ i * 2 ];
 			i2 = _lines[ i * 2 + 1 ];
@@ -37,7 +36,8 @@ namespace cvt {
 		Vector2f pts[ 2 ];
 		size_t i1, i2;
 
-		g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		updateCurrent();
+
 		for( size_t i = 0; i < _lsize; i++ ) {
 			i1 = _lines[ i * 2 ];
 			i2 = _lines[ i * 2 + 1 ];
@@ -110,17 +110,142 @@ namespace cvt {
 	}
 
 
-	int FaceShape::sampleNormal( uint8_t* data, size_t stride, size_t w, size_t h, size_t lineindex, float alpha, size_t maxdist )
+	bool FaceShape::sampleNormal( const uint8_t* ptr, uint8_t th, int _x, int _y, int x1, int y1, int x2, int y2, int n, size_t w, size_t h, size_t bpp, size_t stride, float& dist )
 	{
-		Vector2f pts[ 2 ], d, p;
-		size_t i1 = _lines[ lineindex * 2 ];
-		size_t i2 = _lines[ lineindex * 2 + 1 ];
-		pts[ 0 ].x = _pts[ i1 * 2 ];
-		pts[ 0 ].y = _pts[ i1 * 2 + 1 ];
-		pts[ 1 ].x = _pts[ i2 * 2 ];
-		pts[ 1 ].y = _pts[ i2 * 2 + 1 ];
-		d = pts[ 1 ] - pts[ 0 ];
-		p = pts[ 0 ] + alpha * d;
+		int dy = - Math::abs( x2 - x1 );
+		int dx =   Math::abs( y2 - y1 );
+		ssize_t incx, incy;
+		int sx, sy;
+		int x, y;
+		int err = dx + dy;
+		int e2;
+
+		if( y2 < y1 ) {
+			incx = -bpp;
+			sx   = -1;
+		} else {
+			incx = bpp;
+			sx   = 1;
+		}
+
+		if( x2 < x1 ) {
+			incy = stride;
+			sy   = 1;
+		} else {
+			incy = -stride;
+			sy   = -1;
+		}
+		x = y = 0;
+
+		const uint8_t* dst1 = ptr + _x * bpp + _y * stride;
+		const uint8_t* dst2 = dst1;
+
+		while( n-- ) {
+			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
+				if( *dst1 >= th ) {
+					dist = Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					return true;
+				}
+			}
+			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
+				if( *dst1 >= th ) {
+					dist = -Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					return true;
+				}
+			}
+			e2 = 2 * err;
+			if( e2 >= dy ) { err += dy; dst1 += incx; dst2 -= incx; x += sx; }
+			if( e2 <= dx ) { err += dx; dst1 += incy; dst2 -= incy; y += sy; }
+		}
+		return false;
+	}
+
+
+	void FaceShape::optimize( const Image& img, size_t iter )
+	{
+		Matrix3f tnew;
+		Vector2f pts[ 2 ], n, p;
+		Eigen::VectorXf tmp( 4 + _pcsize );
+		Eigen::MatrixXf A;
+		Eigen::VectorXf b;
+		const uint8_t* ptr;
+		size_t stride, bpp;
+		float ftmp;
+		size_t i1, i2;
+
+		A = Eigen::MatrixXf::Zero( 4 + _pcsize, 4 + _pcsize );
+		b = Eigen::VectorXf::Zero( 4 + _pcsize );
+
+		bpp = img.bpp();
+		ptr = img.map<uint8_t>( &stride );
+
+#define MAXDIST 20
+
+
+		while( iter-- ) {
+			updateCurrent();
+			for( size_t i = 0; i < _lsize; i++ ) {
+				i1 = _lines[ i * 2 ];
+				i2 = _lines[ i * 2 + 1 ];
+
+				pts[ 0 ].x = _pts[ i1 * 2 ];
+				pts[ 0 ].y = _pts[ i1 * 2 + 1 ];
+				pts[ 1 ].x = _pts[ i2 * 2 ];
+				pts[ 1 ].y = _pts[ i2 * 2 + 1 ];
+//				p = 0.5f ( pts[ 0 ] + pts[ 1 ] );
+				Vector2f n = pts[ 1 ] - pts[ 0 ];
+				n.normalize();
+				ftmp = n.x;
+				n.x = -n.y;
+				n.y = ftmp;
+
+				tmp( 0 ) = n * pts[ 0 ];
+				tmp( 1 ) = - n.x * pts[ 0 ].y + n.y * pts[ 0 ].x;
+				tmp( 2 ) = pts[ 0 ].x;
+				tmp( 3 ) = pts[ 0 ].y;
+				for( size_t k = 0; k < _pcsize; k++ ) {
+					tmp( 4 + k ) = n.x * _pc( i1 * 2, k ) + n.y * _pc( i1 * 2 + 1, k  );
+				}
+				if( sampleNormal( ptr, 0xff >> 1, pts[ 0 ].x, pts[ 0 ].y, pts[ 0 ].x, pts[ 0 ].y, pts[ 1 ].x, pts[ 1 ].y, MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
+					A += tmp * tmp.transpose();
+					b += tmp * ftmp;
+//					std::cout << ftmp << std::endl;
+				}
+
+				tmp( 0 ) = n * pts[ 1 ];
+				tmp( 1 ) = - n.x * pts[ 1 ].y + n.y * pts[ 1 ].x;
+				tmp( 2 ) = pts[ 1 ].x;
+				tmp( 3 ) = pts[ 1 ].y;
+				for( size_t k = 0; k < _pcsize; k++ ) {
+					tmp( 4 + k ) = n.x * _pc( i2 * 2, k ) + n.y * _pc( i2 * 2 + 1, k  );
+				}
+				if( sampleNormal( ptr, 0xff >> 1, pts[ 1 ].x, pts[ 1 ].y, pts[ 0 ].x, pts[ 0 ].y, pts[ 1 ].x, pts[ 1 ].y, MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
+					A += tmp * tmp.transpose();
+					b += tmp * ftmp;
+//					std::cout << ftmp << std::endl;
+				}
+			}
+
+			A.lu().solve( b, &tmp );
+			float angle = tmp( 1 ); //Math::deg2Rad( x( 1 ) );
+			float s = 1 + tmp( 0 );
+			float tx = tmp( 2 );
+			float ty = tmp( 3 );
+			Matrix2f rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
+			Matrix3f TT;
+			TT[ 0 ][ 0 ] = s * rot[ 0 ][ 0 ];
+			TT[ 0 ][ 1 ] = s * rot[ 0 ][ 1 ];
+			TT[ 0 ][ 2 ] = tx;
+			TT[ 1 ][ 0 ] = s * rot[ 1 ][ 0 ];
+			TT[ 1 ][ 1 ] = s * rot[ 1 ][ 1 ];
+			TT[ 1 ][ 2 ] = ty;
+			TT[ 2 ][ 0 ] = 0.0f;
+			TT[ 2 ][ 1 ] = 0.0f;
+			TT[ 2 ][ 2 ] = 1.0f;
+//			_transform = TT * _transform;
+			_p = -tmp.block( 4, 0, _pcsize, 1 );
+		}
+		img.unmap( ptr );
 	}
 
 	void FaceShape::updateCurrent()
