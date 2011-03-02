@@ -18,11 +18,11 @@ namespace cvt {
 			Eigen::VectorXf& weights();
 			Eigen::VectorXf& points();
 			Matrix3f& transform();
-			void optimize( const Image& i, size_t iter );
+			void optimize( Image& i, size_t iter );
 
 		private:
 			void updateCurrent();
-			static bool sampleNormal( const uint8_t* ptr, uint8_t th, int _x, int _y, int x1, int y1, int x2, int y2, int n, size_t w, size_t h, size_t bpp, size_t stride, float& dist );
+			static bool sampleNormal( uint8_t* ptr, uint8_t th, int _x, int _y, int x1, int y1, int x2, int y2, int n, size_t w, size_t h, size_t bpp, size_t stride, float& dist );
 
 			size_t _ptsize;
 			size_t _pcsize;
