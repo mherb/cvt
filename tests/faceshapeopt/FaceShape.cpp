@@ -115,12 +115,12 @@ namespace cvt {
 		Vector2f pts[ 2 ], d, p;
 		size_t i1 = _lines[ lineindex * 2 ];
 		size_t i2 = _lines[ lineindex * 2 + 1 ];
-		pt[ 0 ].x = _pts[ i1 * 2 ];
-		pt[ 0 ].y = _pts[ i1 * 2 + 1 ];
-		pt[ 1 ].x = _pts[ i2 * 2 ];
-		pt[ 1 ].y = _pts[ i2 * 2 + 1 ];
-		d = pt[ 1 ] - pt[ 0 ];
-		p = pt[ 0 ] + alpha * d;
+		pts[ 0 ].x = _pts[ i1 * 2 ];
+		pts[ 0 ].y = _pts[ i1 * 2 + 1 ];
+		pts[ 1 ].x = _pts[ i2 * 2 ];
+		pts[ 1 ].y = _pts[ i2 * 2 + 1 ];
+		d = pts[ 1 ] - pts[ 0 ];
+		p = pts[ 0 ] + alpha * d;
 	}
 
 	void FaceShape::updateCurrent()
