@@ -6,48 +6,29 @@
 
 namespace cvt
 {
-	IntegralImage::IntegralImage( const Image & img ) : _sqrSum( 0 )
+	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _sum( 0 ), _sqrSum( 0 )
 	{	
-        img.integralImage( _sum );
+        if( flags & SUMMED_AREA ){
+            _sum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.integralImage( *_sum );
+        }
+        if( flags & SQUARED_SUMMED_AREA ){
+            _sqrSum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.squaredIntegralImage( *_sqrSum );
+        }
 	}
     
     IntegralImage::~IntegralImage()
     {
+        if( _sum )
+            delete _sum;
         if( _sqrSum )
             delete _sqrSum;
     }
 	   
     float IntegralImage::area( const Recti & r ) const
     {
-        size_t stride;
-        const float * p = _sum.map<float>( &stride );
-        
-        float sum = 0;
-        int xOffset, yOffset;
-        
-        yOffset = r.y - 1;        
-        if( yOffset >= 0 ){
-            xOffset = r.x - 1;
-            
-            if( xOffset >= 0 ) // +a
-                sum += p[ yOffset * stride + xOffset ];
-            
-            xOffset += r.width;
-            if( xOffset >= 0 ) // -b
-                sum -= p[ yOffset * stride + xOffset ];
-        }
-        
-        yOffset = yOffset + r.height;
-        xOffset = r.x - 1;
-        if( r.x >= 0 ) // -c
-            sum -= p[ yOffset * stride + xOffset ];
-        
-        xOffset += r.width;
-        sum += p[ yOffset * stride + xOffset ];        
-        
-        _sum.unmap( p );
-        
-        return sum;
+        return IntegralImage::area( *_sum, r );
     }
     
     static float areaTest( const Image & img, const Recti & r )
@@ -55,8 +36,8 @@ namespace cvt
         size_t stride;
         const uint8_t * p = img.map( &stride );
         float sum = 0;
-        for( int y = 0; y < r.height; y++ ){
-            for( int x = 0; x < r.width; x++ ){
+        for( int y = 0; y < r.height && y < ( int )img.height(); y++ ){
+            for( int x = 0; x < r.width && x < ( int )img.width(); x++ ){
                 sum += p[ ( r.y + y ) * stride + r.x + x ];
             }
         }
@@ -113,20 +94,16 @@ namespace cvt
        
     IntegralImage ii( img );
     
-    _dump( img, ii.sumImage() );
-    
-    std::cout << "\nSQUARED SUM\n" << std::endl;
+    //_dump( img, ii.sumImage() );  
     Image iSum, iSSum;
     img.integralImage( iSum );
     img.squaredIntegralImage( iSSum );
-    _dump( img, iSSum );
+    //_dump( img, iSSum );
         
     Recti rect( 10, 20, 10, 15 );    
     float iiArea;
     iiArea = ii.area( rect );
-
-    
-        
+  
     float iArea;
     iArea = areaTest( img, rect );
         
