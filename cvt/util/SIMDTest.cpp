@@ -228,15 +228,16 @@ BEGIN_CVTTEST( simd )
                 t = 0;
                 for( int iter = 0; iter < 100; iter++ ) {
                     tmr.reset();
-                    simd->prefixSum1( fdst, 0, usrc0, 0, TESTSIZE, 1 );
+                    simd->prefixSum1_u8_to_f( fdst, 0, usrc0, 0, TESTSIZE, 1 );
                     t += tmr.elapsedMilliSeconds();
                 }
                 t /= 100.0;
                 std::cout << simd->name() << " prefixSum1 Const "  << t  << " ms" << std::endl;
                 
-                for( int x = 0; x < 100; x++ )
+                for( int x = 0; x < 20; x++ )
                     std::cout << fdst[ x ] << " ";
                 std::cout << std::endl;
+                
                 
                 delete simd;
             }

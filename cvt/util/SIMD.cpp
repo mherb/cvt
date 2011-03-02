@@ -4063,7 +4063,7 @@ namespace cvt {
         return d;
     }
     
-    void SIMD::prefixSum1( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
+    void SIMD::prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
         dst[ 0 ] = src[ 0 ];
@@ -4081,12 +4081,38 @@ namespace cvt {
             currRow = 0;
             for( size_t i = 0; i < width; i++ ){
                 currRow += src[ i ];
-                //dst[ i ] = dst[ i - 1 ] + src[ i ] + prevRow[ i ] - prevRow[ i - 1 ]; 
                 dst[ i ] = currRow + prevRow[ i ]; 
             }
             prevRow = dst;
             dst += dstStride;
             src += srcStride;
+        }
+    }
+    
+    void SIMD::prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const
+    {
+        dst[ 0 ] = Math::sqr( ( float )src[ 0 ] );
+        for( size_t i = 1; i < width; i++ ){
+            dst[ i ] = dst[ i - 1 ] + Math::sqr( ( float )src[ i ] );
+        }
+        height--;
+        
+        float * prevRow = dst;
+        
+        dst += dStride;
+        src  += srcStride;
+        
+        float currRow;
+        while( height-- ){            
+            currRow = 0;
+            for( size_t i = 0; i < width; i++ ){
+                currRow += Math::sqr( ( float )src[ i ] );
+                dst[ i ] = currRow + prevRow[ i ];                
+            }
+            
+            prevRow = dst;
+            dst += dStride;
+            src  += srcStride;
         }
     }
     

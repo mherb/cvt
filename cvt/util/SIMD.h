@@ -145,7 +145,10 @@ namespace cvt {
             virtual size_t hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const;
         
             // prefix sum for 1 channel images
-            virtual void prefixSum1( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+            virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+            
+            // prefix sum and square sum 
+            virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
 
 
 			virtual std::string name() const;
