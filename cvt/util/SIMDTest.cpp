@@ -238,8 +238,6 @@ BEGIN_CVTTEST( simd )
                 delete simd;
             }
         
-		
-		
 		uint8_t * udst = new uint8_t[ TESTSIZE ];
 		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );

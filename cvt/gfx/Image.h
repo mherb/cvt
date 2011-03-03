@@ -66,6 +66,9 @@ namespace cvt {
 
 			float ssd( const Image& i ) const;
 			float sad( const Image& i ) const;
+        
+            /* ncc of this with i at pos in this */
+            float ncc( const Image& i, const Vector2i & pos ) const;
 
 			void add( const Color& c );
 			void sub( const Color& c );

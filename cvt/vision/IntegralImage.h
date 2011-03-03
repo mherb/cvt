@@ -20,16 +20,27 @@ namespace cvt
             ~IntegralImage();
 
             float   area( const Recti & r ) const;
+            float   sqrArea( const Recti & r ) const;
         
-            static inline float area( const Image & img, const Recti & r );
+            /**
+             * normalized cross correlation:
+             * calculates the normalized cross correlation of the Rectangle rOther from other
+             * with pos in this image
+             */
+            float   ncc( const IntegralImage & other, const Recti & rOther, const Vector2i & pos ) const;
         
-            Image & sumImage() { return *_sum; };
-            Image & sqrSumImage() { return *_sqrSum; };  
+            Image & sumImage() const { return *_sum; };
+            Image & sqrSumImage() const { return *_sqrSum; };  
+            IntegralImageFlags flags() const { return _flags; };        
+            const Image & image() const { return _img; };
         
+            static inline float area( const Image & img, const Recti & r ); 
         
         private:
-            Image*  _sum;
-            Image*  _sqrSum;
+            const Image &       _img;
+            Image*              _sum;
+            Image*              _sqrSum;
+            IntegralImageFlags  _flags;
 
 	};
     
@@ -38,31 +49,30 @@ namespace cvt
         size_t stride;
         const float * p = img.map<float>( &stride );
         
-        float sum = 0;
         int xOffset, yOffset;
         
-        yOffset = r.y - 1;        
+        yOffset = r.y - 1;
+        xOffset = r.x - 1;
+        
+        float sum = p[ ( yOffset + r.height ) * stride + xOffset + r.width ];        
+        
         if( yOffset >= 0 ){
-            xOffset = r.x - 1;
-            
-            if( xOffset >= 0 ) // +a
+            if( xOffset >= 0 ){ // +a
                 sum += p[ yOffset * stride + xOffset ];
+                sum -= p[ ( yOffset + r.height ) * stride + xOffset ];
+            }
             
-            xOffset += r.width;
-            if( xOffset >= 0 ) // -b
-                sum -= p[ yOffset * stride + xOffset ];
+            xOffset = Math::min( xOffset + r.width, ( int )img.width() - 1 );            
+            sum -= p[ yOffset * stride + xOffset ];
+        } else {
+            yOffset = yOffset + r.height;
+            if( xOffset >= 0 ){ // -c
+                sum -= p[ yOffset * stride + xOffset ];            
+            }
         }
         
-        yOffset = yOffset + r.height;
-        xOffset = r.x - 1;
-        if( r.x >= 0 ) // -c
-            sum -= p[ yOffset * stride + xOffset ];
-        
-        xOffset += r.width;
-        sum += p[ yOffset * stride + xOffset ];        
-        
         img.unmap( p );
-		return sum;
+        return sum;
     }
 }
 
