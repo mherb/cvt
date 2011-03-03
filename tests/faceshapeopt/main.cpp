@@ -39,6 +39,10 @@ int main( int argc, char** argv )
 
 	g.color().set( 255, 255, 255, 255 );
 	fshape.draw( &g, t, p );
+//	t[ 0 ][ 0 ] += Math::rand( -2.0f, 2.0f );
+//	t[ 1 ][ 1 ] = t[ 0 ][ 0 ];
+//	t[ 0 ][ 2 ] += Math::rand( -5.0f, 5.0f );
+//	t[ 1 ][ 2 ] += Math::rand( -5.0f, 5.0f );
 	fshape.transform() = t;
 
 //	g.color().set( 0.2f, 0.2f, 0.2f, 1.0f );
@@ -48,7 +52,7 @@ int main( int argc, char** argv )
 	std::cout << fshape.weights() << std::endl;
 	std::cout << std::endl;
 
-	fshape.optimize( output, 2 );
+	fshape.optimize( output, 50 );
 
 	std::cout << p << std::endl;
 	std::cout << std::endl;

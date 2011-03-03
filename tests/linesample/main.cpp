@@ -25,10 +25,10 @@ static bool sampleNormal( uint8_t* ptr, uint8_t th, int _x, int _y, int x1, int 
 
 	if( x2 < x1 ) {
 		incy = stride;
-		sx   = 1;
+		sy   = 1;
 	} else {
 		incy = -stride;
-		sx   = -1;
+		sy   = -1;
 	}
 	x = y = 0;
 
@@ -37,16 +37,18 @@ static bool sampleNormal( uint8_t* ptr, uint8_t th, int _x, int _y, int x1, int 
 
 	while( n-- ) {
 		if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
-			if( *dst1 >= th ) {
+/*			if( *dst1 >= th ) {
 				dist = Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 				return true;
-			}
+			}*/
+			*dst1 = th + 0x20;
 		}
 		if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
-			if( *dst1 >= th ) {
+/*			if( *dst2 >= th ) {
 				dist = -Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 				return true;
-			}
+			} */
+			*dst2 = th - 0x20;
 		}
 		e2 = 2 * err;
 		if( e2 >= dy ) { err += dy; dst1 += incx; dst2 -= incx; x += sx; }
@@ -75,6 +77,11 @@ int main()
 		g.fillRect( 0, 0, 640, 480 );
 		g.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		g.drawLine( x1, y1, x2, y2 );
+		g.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		g.fillRect( x1 - 2, y1 - 2, 4, 4 );
+		g.color().set( 0.4f, 0.4f, 0.4f, 1.0f );
+		g.fillRect( x2 - 2, y2 - 2, 4, 4 );
+
 	}
 
 	{
@@ -82,7 +89,7 @@ int main()
 		size_t stride, bpp;
 		int n;
 
-		n = 10;
+		n = 20;
 		bpp = out.bpp();
 		ptr = out.map<uint8_t>( &stride );
 		float val;
