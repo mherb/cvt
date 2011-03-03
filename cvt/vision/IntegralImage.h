@@ -62,6 +62,7 @@ namespace cvt
         sum += p[ yOffset * stride + xOffset ];        
         
         img.unmap( p );
+		return sum;
     }
 }
 
