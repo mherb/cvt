@@ -184,7 +184,7 @@ namespace cvt {
 		bpp = img.bpp();
 		ptr = img.map<uint8_t>( &stride );
 
-#define MAXDIST 10
+#define MAXDIST 20
 
 		while( iter-- ) {
 			updateCurrent();
@@ -203,7 +203,7 @@ namespace cvt {
 				n.y = ftmp;
 
 				Matrix2f Ttmp( _transform );
-				for( float alpha = 0.0f; alpha <= 1.0f; alpha += 0.025f ) {
+				for( float alpha = 0.0f; alpha <= 1.0f; alpha += 0.1f ) {
 					p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 					tmp( 0 ) = n * p;
 					tmp( 1 ) = - n.x * p.y + n.y * p.x;
@@ -224,12 +224,11 @@ namespace cvt {
 
 			}
 
-//			std::cout << "A:\n" << A << std::endl;
-//			std::cout << "b:\n" << b << std::endl;
+			tmp = Eigen::VectorXf::Zero( 4 + OPTPC );
+			tmp.block( 4, 0, OPTPC, 1 ) = _p.block( 0, 0, OPTPC, 1 );
+			A += 1.0f * tmp * tmp.transpose();
 			tmp = Eigen::VectorXf::Zero( tmp.rows() );
-//			tmp = A.inverse() * b;
 			A.lu().solve( b, &tmp );
-//			std::cout << tmp << std::endl;
 			float angle = tmp( 1 ); //Math::deg2Rad( x( 1 ) );
 			float s = 1 + tmp( 0 );
 			float tx = tmp( 2 );
