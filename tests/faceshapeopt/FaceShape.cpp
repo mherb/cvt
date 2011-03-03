@@ -203,7 +203,7 @@ namespace cvt {
 				n.y = ftmp;
 
 				Matrix2f Ttmp( _transform );
-				for( float alpha = 0.0f; alpha <= 1.0f; alpha += 0.05f ) {
+				for( float alpha = 0.0f; alpha <= 1.0f; alpha += 0.025f ) {
 					p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 					tmp( 0 ) = n * p;
 					tmp( 1 ) = - n.x * p.y + n.y * p.x;
