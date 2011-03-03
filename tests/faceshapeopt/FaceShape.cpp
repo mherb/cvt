@@ -143,13 +143,13 @@ namespace cvt {
 		while( n-- ) {
 			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
 				if( *dst1 > th ) {
-					dist = - Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					dist = Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 					return true;
 				}
 			}
 			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
 				if( *dst2 > th ) {
-					dist = Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					dist = - Math::sqrt( ( float ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 					return true;
 				}
 			}
@@ -164,8 +164,8 @@ namespace cvt {
 	void FaceShape::optimize( Image& img, size_t iter )
 	{
 		Matrix3f tnew;
-		Vector2f pts[ 2 ], n, p;
-		Eigen::VectorXf tmp( 4 + _pcsize );
+		Vector2f pts[ 2 ], n, p, ptmp;
+		Eigen::VectorXf tmp;
 		Eigen::MatrixXf A;
 		Eigen::VectorXf b;
 		uint8_t* ptr;
@@ -173,14 +173,18 @@ namespace cvt {
 		float ftmp;
 		size_t i1, i2;
 
-		A = Eigen::MatrixXf::Zero( 4 + _pcsize, 4 + _pcsize );
-		b = Eigen::VectorXf::Zero( 4 + _pcsize );
+#define OPTPC _pcsize
+		A = Eigen::MatrixXf::Zero( 4 + OPTPC, 4 + OPTPC );
+		b = Eigen::VectorXf::Zero( 4 + OPTPC );
+		tmp = Eigen::VectorXf::Zero( 4 + OPTPC );
+//		A = Eigen::MatrixXf::Zero( 4 , 4  );
+//		b = Eigen::VectorXf::Zero( 4  );
+//		tmp = Eigen::VectorXf::Zero( 4  );
 
 		bpp = img.bpp();
 		ptr = img.map<uint8_t>( &stride );
 
 #define MAXDIST 10
-
 
 		while( iter-- ) {
 			updateCurrent();
@@ -192,60 +196,40 @@ namespace cvt {
 				pts[ 0 ].y = _pts[ i1 * 2 + 1 ];
 				pts[ 1 ].x = _pts[ i2 * 2 ];
 				pts[ 1 ].y = _pts[ i2 * 2 + 1 ];
-				p = 0.5f * ( pts[ 0 ] + pts[ 1 ] );
 				Vector2f n = pts[ 1 ] - pts[ 0 ];
 				n.normalize();
-				ftmp = n.x;
-				n.x = -n.y;
+				ftmp = -n.x;
+				n.x = n.y;
 				n.y = ftmp;
 
-				tmp( 0 ) = n * pts[ 0 ];
-				tmp( 1 ) = - n.x * pts[ 0 ].y + n.y * pts[ 0 ].x;
-				tmp( 2 ) = pts[ 0 ].x;
-				tmp( 3 ) = pts[ 0 ].y;
-				for( size_t k = 0; k < _pcsize; k++ ) {
-					tmp( 4 + k ) = n.x * _pc( i1 * 2, k ) + n.y * _pc( i1 * 2 + 1, k  );
-				}
-				if( sampleNormal( ptr, 0xff >> 1, pts[ 0 ].x, pts[ 0 ].y, pts[ 0 ].x, pts[ 0 ].y, pts[ 1 ].x, pts[ 1 ].y, MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
-					A += tmp * tmp.transpose();
-					b += tmp * ftmp;
-//					std::cout << ftmp << std::endl;
+				Matrix2f Ttmp( _transform );
+				for( float alpha = 0.0f; alpha <= 1.0f; alpha += 0.05f ) {
+					p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
+					tmp( 0 ) = n * p;
+					tmp( 1 ) = - n.x * p.y + n.y * p.x;
+					tmp( 2 ) = p.x;
+					tmp( 3 ) = p.y;
+					for( size_t k = 0; k < OPTPC; k++ ) {
+						ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
+						ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
+						ptmp = Ttmp * ptmp;
+						tmp( 4 + k ) = n * ptmp;
+					}
+					if( sampleNormal( ptr, 0xff >> 1, Math::round( p.x ), Math::round( p.y ),
+									 Math::round( pts[ 0 ].x ), Math::round( pts[ 0 ].y ), Math::round( pts[ 1 ].x ), Math::round( pts[ 1 ].y ), MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
+						A += tmp * tmp.transpose();
+						b += tmp * ftmp;
+					}
 				}
 
-/*				tmp( 0 ) = n * p;
-				tmp( 1 ) = - n.x * p.y + n.y * p.x;
-				tmp( 2 ) = p.x;
-				tmp( 3 ) = p.y;
-				for( size_t k = 0; k < _pcsize; k++ ) {
-					tmp( 4 + k ) = n.x * ( 0.5f * ( _pc( i1 * 2, k ) + _pc( i2 * 2, k ) ) )
-								+  n.y * ( 0.5f * ( _pc( i1 * 2 + 1, k ) + _pc( i2 * 2 + 1, k ) ) );
-				}
-				if( sampleNormal( ptr, 0xff >> 1, p.x, p.y, pts[ 0 ].x, pts[ 0 ].y, pts[ 1 ].x, pts[ 1 ].y, MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
-					A += tmp * tmp.transpose();
-					b += tmp * ftmp;
-//					std::cout << ftmp << std::endl;
-				}*/
-
-				tmp( 0 ) = n * pts[ 1 ];
-				tmp( 1 ) = - n.x * pts[ 1 ].y + n.y * pts[ 1 ].x;
-				tmp( 2 ) = pts[ 1 ].x;
-				tmp( 3 ) = pts[ 1 ].y;
-				for( size_t k = 0; k < _pcsize; k++ ) {
-					tmp( 4 + k ) = n.x * _pc( i2 * 2, k ) + n.y * _pc( i2 * 2 + 1, k  );
-				}
-				if( sampleNormal( ptr, 0xff >> 1, pts[ 1 ].x, pts[ 1 ].y, pts[ 0 ].x, pts[ 0 ].y, pts[ 1 ].x, pts[ 1 ].y, MAXDIST, img.width(), img.height(), bpp, stride, ftmp ) ) {
-					A += tmp * tmp.transpose();
-					b += tmp * ftmp;
-//					std::cout << ftmp << std::endl;
-				}
 			}
 
-			std::cout << "A:\n" << A << std::endl;
-			std::cout << "b:\n" << b << std::endl;
+//			std::cout << "A:\n" << A << std::endl;
+//			std::cout << "b:\n" << b << std::endl;
 			tmp = Eigen::VectorXf::Zero( tmp.rows() );
 //			tmp = A.inverse() * b;
 			A.lu().solve( b, &tmp );
-			std::cout << tmp << std::endl;
+//			std::cout << tmp << std::endl;
 			float angle = tmp( 1 ); //Math::deg2Rad( x( 1 ) );
 			float s = 1 + tmp( 0 );
 			float tx = tmp( 2 );
@@ -261,10 +245,9 @@ namespace cvt {
 			TT[ 2 ][ 0 ] = 0.0f;
 			TT[ 2 ][ 1 ] = 0.0f;
 			TT[ 2 ][ 2 ] = 1.0f;
-//			_transform = TT * _transform;
-//			std::cout << "\n" <<  _p << std::endl;
-			_p += tmp.block( 4, 0, _pcsize, 1 );
-//			std::cout << "\n" << _p << std::endl;
+
+			_transform = TT * _transform;
+			_p.block( 0, 0, OPTPC, 1 ) += tmp.block( 4, 0, OPTPC, 1 );
 		}
 		img.unmap( ptr );
 	}
