@@ -1401,7 +1401,7 @@ namespace cvt
 			*dst32++ = out;
 		}
 	}
-    
+
     void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
@@ -1538,6 +1538,7 @@ namespace cvt
         }        
     }
     
+    
     void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
@@ -1573,18 +1574,18 @@ namespace cvt
             xh32 = _mm_unpackhi_epi16( xl16, zero );
    
             // process lower 4 floats
-            xf = _mm_cvtepi32_ps( xl32 );                        
-            xf = _mm_add_ps( xf, y );// add current row sum
+            xf = _mm_cvtepi32_ps( xl32 ); // convert to float            
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, y );// add current row sum
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );            
             _mm_store_ps( dst, xf );            
             
             // process upper 4 floats
             xf = _mm_cvtepi32_ps( xh32 );            
-            xf = _mm_add_ps( xf, y );// add current row sum
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, y );// add current row sum
             _mm_store_ps( dst + 4, xf );            
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
             
@@ -1594,17 +1595,17 @@ namespace cvt
             
             // process lower 4 floats
             xf = _mm_cvtepi32_ps( xl32 );            
-            xf = _mm_add_ps( xf, y );// add current row sum
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, y );// add current row sum
             _mm_store_ps( dst + 8, xf );            
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
             
             // process upper 4 floats
             xf = _mm_cvtepi32_ps( xh32 );            
-            xf = _mm_add_ps( xf, y );// add current row sum
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, y );// add current row sum
             _mm_store_ps( dst + 12, xf );            
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );            
             
@@ -1654,20 +1655,20 @@ namespace cvt
                 xh32 = _mm_unpackhi_epi16( xl16, zero );
                 
                 // process lower 4 floats
-                xf = _mm_cvtepi32_ps( xl32 );                                  
-                xf = _mm_add_ps( xf, y );// add current row sum
+                xf = _mm_cvtepi32_ps( xl32 );                                                  
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow );
                 xf = _mm_add_ps( xf, prev ); // add previous row
                 _mm_store_ps( dst, xf );            
                 
                 // process upper 4 floats
-                xf = _mm_cvtepi32_ps( xh32 );
-                xf = _mm_add_ps( xf, y );// add current row sum
+                xf = _mm_cvtepi32_ps( xh32 );                
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 4 );
                 xf = _mm_add_ps( xf, prev ); // add previous row
@@ -1679,9 +1680,9 @@ namespace cvt
                 
                 // process lower 4 floats
                 xf = _mm_cvtepi32_ps( xl32 );  
-                xf = _mm_add_ps( xf, y );// add current row sum
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 8 );
                 xf = _mm_add_ps( xf, prev ); // add previous row
@@ -1689,9 +1690,9 @@ namespace cvt
                 
                 // process upper 4 floats
                 xf = _mm_cvtepi32_ps( xh32 );   
-                xf = _mm_add_ps( xf, y );// add current row sum
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 12 );
                 xf = _mm_add_ps( xf, prev ); // add previous row

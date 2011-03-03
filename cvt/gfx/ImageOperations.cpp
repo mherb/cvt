@@ -647,7 +647,49 @@ namespace cvt {
 		}
 		
 		return sad ;
-	}	
+	}
+	
+    float Image::ncc( const Image& patch, const Vector2i & pos ) const
+    {
+        size_t istride, pstride;
+        IFormatID fId = this->format().formatID;
+
+        switch ( fId ) {
+            case IFORMAT_GRAY_UINT8:
+            {
+                const uint8_t * ip = this->map( &istride );
+                const uint8_t * pp = patch.map( &pstride );
+                const uint8_t * iPtr = ip + pos.y * istride + pos.x;
+                const uint8_t * pPtr = pp;
+                
+                float mulSum = 0;
+                float iSum = 0;
+                float iSqrSum = 0;
+                float pSum = 0;
+                float pSqrSum = 0;
+                
+                for( size_t y = 0; y < patch.height(); y++ ){
+                    for( size_t x = 0; x < patch.width(); x++ ){
+                        mulSum += ( float )( ( int16_t )iPtr[ x ] * ( int16_t )pPtr[ x ] );
+                        iSum += iPtr[ x ];
+                        iSqrSum += Math::sqr( ( float )iPtr[ x ] );
+                        pSum += pPtr[ x ];
+                        pSqrSum += Math::sqr( ( float )pPtr[ x ] );
+                    }                
+                    iPtr += istride;
+                    pPtr += pstride;
+                }
+                
+            }                
+            break;                                
+            default:
+                throw CVTException( "Ncc not implemented for image type");
+        }
+
+
+        
+            
+    }
 
 	void Image::convolve( Image& idst, const IKernel& kernel ) const
 	{
