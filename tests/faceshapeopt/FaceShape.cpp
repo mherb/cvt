@@ -224,9 +224,9 @@ namespace cvt {
 
 			}
 
-			tmp = Eigen::VectorXf::Zero( 4 + OPTPC );
-			tmp.block( 4, 0, OPTPC, 1 ) = _p.block( 0, 0, OPTPC, 1 );
-			A += 1.0f * tmp * tmp.transpose();
+			tmp = Eigen::VectorXf::Ones( 4 + OPTPC );
+//			tmp.block( 4, 0, OPTPC, 1 ) = _p.block( 0, 0, OPTPC, 1 );
+			A += 10.0f * tmp * tmp.transpose();
 			tmp = Eigen::VectorXf::Zero( tmp.rows() );
 			A.lu().solve( b, &tmp );
 			float angle = tmp( 1 ); //Math::deg2Rad( x( 1 ) );
