@@ -727,6 +727,57 @@ namespace cvt
 
 	}
 
+	void SIMDSSE2::ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		__m128 s0, s1, s2, s3, mul;
+		__m128 x0, x1, x2, x3;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			mul = _mm_load_ss( weights );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_load_ps( bufs[ 0 ] + x );
+			x1 = _mm_load_ps( bufs[ 0 ] + x + 4 );
+			x2 = _mm_load_ps( bufs[ 0 ] + x + 8 );
+			x3 = _mm_load_ps( bufs[ 0 ] + x + 12 );
+			s0 = _mm_mul_ps( x0, mul );
+			s1 = _mm_mul_ps( x1, mul );
+			s2 = _mm_mul_ps( x2, mul );
+			s3 = _mm_mul_ps( x3, mul );
+
+			for( size_t k = 1; k < numw; k++ ) {
+				mul = _mm_load_ss( ( weights + k ) );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_load_ps( bufs[ k ] + x  );
+				x1 = _mm_load_ps( bufs[ k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ k ] + x + 12 );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
+			}
+			_mm_store_ps( dst + 0 , s0 );
+			_mm_store_ps( dst + 4 , s1 );
+			_mm_store_ps( dst + 8 , s2 );
+			_mm_store_ps( dst + 12 , s3 );
+			dst += 16;
+		}
+
+		float tmp;
+		for( ; x < width; x++ ) {
+			tmp = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+			*dst++ = tmp;
+		}
+	}
+
 	void SIMDSSE2::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
 	{
 		size_t i = n >> 4;

@@ -51,7 +51,7 @@ int main( int argc, char** argv )
 	std::cout << p << std::endl;
 	std::cout << std::endl;
 
-	fshape.optimize( output, 10 );
+	fshape.optimize( output, 30 );
 
 	std::cout << fshape.weights() << std::endl;
 	std::cout << std::endl;

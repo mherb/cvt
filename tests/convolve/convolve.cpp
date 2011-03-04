@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 		cvt::Image img;
 		cvt::Image out;
 		cvt::ImageIO::loadPNG(img, inputFile);
-		
+
 		out.reallocate( img );
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 		cvt::ImageIO::savePNG(out, "convolve2.png");
 
 		cvt::ImageIO::loadPNG(img, inputFileg);
-		
+
 		out.reallocate( img );
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 
@@ -49,6 +49,13 @@ int main(int argc, char* argv[])
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		img.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
 		cvt::ImageIO::savePNG(out, "convolveg2.png");
+
+		cvt::Image imgf( img.width(), img.height(), cvt::IFormat::GRAY_FLOAT );
+		img.convert( imgf );
+		out.reallocate( imgf );
+		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
+		imgf.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
+		cvt::ImageIO::savePNG(out, "convolveg2-float.png");
 
 	
 		
