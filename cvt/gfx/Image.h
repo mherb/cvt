@@ -66,9 +66,6 @@ namespace cvt {
 
 			float ssd( const Image& i ) const;
 			float sad( const Image& i ) const;
-        
-            /* ncc of this with i at pos in this */
-            float ncc( const Image& i, const Vector2i & pos ) const;
 
 			void add( const Color& c );
 			void sub( const Color& c );
@@ -103,6 +100,7 @@ namespace cvt {
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
 			void convolveSeperableU8( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
+			void convolveSeperableFloat( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
 			void convolveU8_to_S16( Image& idst, const IKernel& kernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 			void scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;

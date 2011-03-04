@@ -184,7 +184,7 @@ namespace cvt {
 		bpp = img.bpp();
 		ptr = img.map<uint8_t>( &stride );
 
-#define MAXDIST 20
+#define MAXDIST 10
 
 		while( iter-- ) {
 			updateCurrent();
@@ -225,8 +225,10 @@ namespace cvt {
 			}
 
 			tmp = Eigen::VectorXf::Ones( 4 + OPTPC );
+//			for( int i = 5; i < tmp.rows(); i++ )
+//				tmp[ i ] = Math::sqr( i - 4 );
 //			tmp.block( 4, 0, OPTPC, 1 ) = _p.block( 0, 0, OPTPC, 1 );
-			A += 10.0f * tmp * tmp.transpose();
+//			A += 1e1f * tmp * tmp.transpose();
 			tmp = Eigen::VectorXf::Zero( tmp.rows() );
 			A.lu().solve( b, &tmp );
 			float angle = tmp( 1 ); //Math::deg2Rad( x( 1 ) );

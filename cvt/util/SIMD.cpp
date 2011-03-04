@@ -3154,6 +3154,22 @@ namespace cvt {
 	}
 
 
+	void SIMD::ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		float tmp;
+
+		for( x = 0 ; x < width; x++ ) {
+			tmp = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+			*dst++ = tmp;
+		}
+	}
+
+
 	void SIMD::ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t w, IConvolveAdaptivef* conva ) const
 	{
 		IConvolveAdaptiveSize* sw;
