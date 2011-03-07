@@ -14,8 +14,6 @@ Image
 GUI
 ===
 - Add startAnimation( FPS ), stopAnimation to Widget
-- Add basic widgets ( Label/Slider)
-- Make bounds of text calculateable in GFX
 - Extend GFX
 - Add KeyEvents
 - Add Plot widget for data
@@ -40,16 +38,9 @@ General
 
 Philipp:
 ========
-- PCA class in math
-
-- fix SSE use intrinsics instead of asm
-
-- Integral image computation resp. filter
-
 - Guided filter implementation
 
 - ActiveShape
-	o GFXGL::drawLines
 	o Image::sampleLine
 	o Edge-based optimization for model -> to get Similarity and basis components
 	o Track faces and expressions
@@ -57,8 +48,6 @@ Philipp:
 	o use ActiveShape to build/calc PCA of face
 	o face recognition using PCA of faces
 	o Intensity based optimization for model -> to get Similarity and basis components
-
-- add Spline2<>
 
 - add Polygon
 
