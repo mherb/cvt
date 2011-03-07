@@ -1,63 +1,54 @@
-#include "FaceShape.h"
-#include <cvt/gfx/Image.h>
-#include <cvt/math/Math.h>
-#include <cvt/gfx/GFX.h>
-#include <cvt/gfx/GFXEngineImage.h>
+#include <cvt/vision/FaceShape.h>
 #include <cvt/io/ImageIO.h>
-
-#include <iostream>
+#include <cvt/gfx/GFXEngineImage.h>
+#include <cvt/math/GaussNewton.h>
+#include <cvt/io/ImageSequence.h>
 
 using namespace cvt;
 
-int main( int argc, char** argv )
+int main()
 {
-	if( argc != 2 ) {
-		std::cout << argv[ 0 ] << " shapefile" << std::endl;
-		return 1;
-	}
+	Image imgu, imgf;
+	int bla;
 
-	srand( time( NULL ) );
+	ImageSequence seq( "./imgseq/image_", "cvtraw", 30, 1016, 5 );
 
-	FaceShape fshape;
-	fshape.load( argv[ 1 ] );
+//	ImageIO::loadPNG( img, "/home/heise/Pictures/myface2.png" );
 
-	Matrix3f t;
-	t.identity();
-	t[ 0 ][ 0 ] = 100;
-	t[ 1 ][ 1 ] = 100;
-	t[ 0 ][ 2 ] = 300;
-	t[ 1 ][ 2 ] = 300;
+	imgu.reallocate( seq.width(), seq.height(), IFormat::BGRA_UINT8 );
+	imgf.reallocate( seq.width(), seq.height(), IFormat::GRAY_FLOAT );
 
-	Image output( 600, 600, IFormat::GRAY_UINT8 );
-	GFXEngineImage ge( output );
-	GFX g( &ge );
-	g.color().set( 0, 0, 0, 255 );
-	g.fillRect( 0, 0, 300, 300 );
-	Eigen::VectorXf p = fshape.weights();
-	for( int i = 0; i < p.rows(); i++ )
-		p[ i ] = Math::rand( -0.5, 0.5f );
 
-	g.color().set( 255, 255, 255, 255 );
-	fshape.draw( &g, t, p );
-	t[ 0 ][ 0 ] += Math::rand( -2.0f, 2.0f );
-	t[ 1 ][ 1 ] = t[ 0 ][ 0 ];
-	t[ 0 ][ 2 ] += Math::rand( -5.0f, 5.0f );
-	t[ 1 ][ 2 ] += Math::rand( -5.0f, 5.0f );
-	fshape.transform() = t;
+	FaceShape<float> fs;
+	fs.setTransform( 35, 0, 265, 185 );
 
-//	g.color().set( 0.2f, 0.2f, 0.2f, 1.0f );
-//	fshape.drawCurrent( &g );
+	do {
+		seq.nextFrame();
+		seq.frame().convert( imgu );
+		imgu.convert( imgf );
 
-	std::cout << p << std::endl;
-	std::cout << std::endl;
+		fs.updateInput( &imgf );
 
-	fshape.optimize( output, 30 );
+		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
+		termCrit.setCostThreshold( 0.1f );
+		termCrit.setMaxIterations( 200 );
+		GaussNewton<float>	gn;
+		SquaredDistance<float, float> costFunc;
 
-	std::cout << fshape.weights() << std::endl;
-	std::cout << std::endl;
+		gn.optimize( fs, costFunc, termCrit );
+		std::cout << gn.iterations() << std::endl;
+		std::cout << gn.costs() << std::endl;
+		/*  std::cout << fs.transform() << std::endl;
+		  std::cout << fs.weights() << std::endl;*/
 
-	g.color().set( 128, 128, 128, 255 );
-	fshape.drawCurrent( &g );
+		{
+			GFXEngineImage ge( imgu );
+			GFX g( &ge );
+			g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+			fs.drawCurrent( &g );
+			ImageIO::savePNG( imgu, "faceshapeopt.png" );
+		}
+		bla = getchar();
+	} while( 1 );
 
-	ImageIO::savePNG( output, "meanimage.png" );
 }

@@ -10,6 +10,8 @@
 #ifndef CVT_MEASUREMENTMODEL_H
 #define CVT_MEASUREMENTMODEL_H
 
+#include <cvt/math/CostFunction.h>
+
 namespace cvt
 {	
 	/**

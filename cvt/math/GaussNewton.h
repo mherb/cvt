@@ -50,7 +50,7 @@ namespace cvt {
 				break;
 			
 			// solve the system
-			delta.setZero();
+			delta = ParamType::Zero( A.cols() );
 			A.llt().solve( b, &delta );
 			
 			// apply delta parameters:			

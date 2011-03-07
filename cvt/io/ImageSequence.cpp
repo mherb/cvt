@@ -29,7 +29,6 @@ namespace cvt {
            << std::setw( fieldWidth ) << std::setfill( _fillChar ) << _index 
            << "." << _extension;
         
-        std::cout << ss.str() << std::endl;
         _loadFunc( _current, ss.str() );
     }
     
