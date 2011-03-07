@@ -30,10 +30,10 @@ int main()
 		fs.updateInput( &imgf );
 
 		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
-		termCrit.setCostThreshold( 0.1f );
-		termCrit.setMaxIterations( 200 );
+		termCrit.setCostThreshold( 0.5f );
+		termCrit.setMaxIterations( 30 );
 		GaussNewton<float>	gn;
-		SquaredDistance<float, float> costFunc;
+		RobustHuber<float, float> costFunc( 20 );
 
 		gn.optimize( fs, costFunc, termCrit );
 		std::cout << gn.iterations() << std::endl;
@@ -48,7 +48,8 @@ int main()
 			fs.drawCurrent( &g );
 			ImageIO::savePNG( imgu, "faceshapeopt.png" );
 		}
-		bla = getchar();
+		usleep( 500 );
+//		bla = getchar();
 	} while( 1 );
 
 }

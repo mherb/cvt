@@ -56,7 +56,7 @@ namespace cvt {
 	};
 
 	template<typename T>
-	inline FaceShape<T>::FaceShape() : _currI( NULL), _kdx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ), _kdy( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
+	inline FaceShape<T>::FaceShape() : _currI( NULL), _kdx( IKernel::HAAR_HORIZONTAL_3 ), _kdy( IKernel::HAAR_VERTICAL_3 ),
 									  _ptsize( 0 ), _pcsize( 0 ), _lsize( 0 ), _lines( 0 ), _costs( 0 )
 	{
 		_transform.identity();
@@ -147,8 +147,8 @@ namespace cvt {
 	{
 		_dx.reallocate( *_currI );
 		_dy.reallocate( *_currI );
-		_currI->convolve( _dx, _kdx );
-		_currI->convolve( _dy, _kdy);
+		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
+		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
 /*		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
@@ -181,7 +181,7 @@ namespace cvt {
 		TT[ 2 ][ 2 ] = 1.0f;
 
 		_transform = TT * _transform;
-		_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
+		_p.block( 0, 0, _pcsize, 1 ) = delta.block( 4, 0, _pcsize, 1 );
 		updateCurrent();
 	}
 
@@ -210,10 +210,10 @@ namespace cvt {
 		dyptr = _dy.map<uint8_t>( &dystride );
 
 
-#define MAXDIST 20
-#define INCR	0.1f
-#define COSMAX	0.25f
-#define THRESHOLD 0.25f
+#define MAXDIST 35
+#define INCR	0.01f
+#define COSMAX	0.45f
+#define THRESHOLD 0.01f
 
 		_costs = 0;
 
@@ -232,8 +232,8 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 3.0f / dp.length();
-			incr = Math::clamp( incr, 0.005f, 0.25f );
+			float incr = 4.0f / dp.length();
+			incr = Math::clamp( incr, 0.01f, 0.25f );
 			Matrix2<T> Ttmp( _transform );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
@@ -265,9 +265,10 @@ namespace cvt {
 
 /*		A /= ( T ) lines;
 		b /= ( T ) lines;
+		tmp.block( 4, 0, _pcsize, 1 ) = _p;
 		tmp.setOnes( 4 + _pcsize );
 		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
-		A += 5.0f * tmp * tmp.transpose();*/
+		A += 1.0f * tmp * tmp.transpose();*/
 
 		_dx.unmap( dxptr );
 		_dy.unmap( dyptr );
@@ -321,12 +322,13 @@ namespace cvt {
 		uint8_t* dyptr2 = dyptr1;
 
 		size_t n = MAXDIST;
+		float mag;
 		while( n-- ) {
 			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
 				grad.x = *( ( float* ) dxptr1 );
 				grad.y = *( ( float* ) dyptr1 );
-				grad.normalize();
-				if( grad.length() >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+				mag = grad.normalize();
+				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
 					dist = Math::sqrt( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 					return true;
 				}
@@ -334,8 +336,8 @@ namespace cvt {
 			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
 				grad.x = *( ( float* ) dxptr2 );
 				grad.y = *( ( float* ) dyptr2 );
-				grad.normalize();
-				if( grad.length() >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+				mag = grad.normalize();
+				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
 					dist = - Math::sqrt( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
 					return true;
 				}
