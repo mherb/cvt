@@ -149,15 +149,15 @@ namespace cvt {
 		_dy.reallocate( *_currI );
 		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
 		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
-/*		Image blax( _dx );
+		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
 		blay.mul( _dy );
 		blax.add( blay );
-		blax.mul( 20.0f );
+		blax.mul( 100.0f );
 		ImageIO::savePNG( blax, "DXDY.png" );
 		ImageIO::savePNG( _dx, "DX.png" );
-		ImageIO::savePNG( _dy, "DY.png" );*/
+		ImageIO::savePNG( _dy, "DY.png" );
 	}
 
 
@@ -181,7 +181,7 @@ namespace cvt {
 		TT[ 2 ][ 2 ] = 1.0f;
 
 		_transform = TT * _transform;
-		_p.block( 0, 0, _pcsize, 1 ) = delta.block( 4, 0, _pcsize, 1 );
+		_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
 		updateCurrent();
 	}
 
@@ -210,9 +210,9 @@ namespace cvt {
 		dyptr = _dy.map<uint8_t>( &dystride );
 
 
-#define MAXDIST 35
+#define MAXDIST 20
 #define INCR	0.01f
-#define COSMAX	0.45f
+#define COSMAX	0.5f
 #define THRESHOLD 0.01f
 
 		_costs = 0;
