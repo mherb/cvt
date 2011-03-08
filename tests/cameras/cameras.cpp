@@ -20,7 +20,7 @@
 
 using namespace cvt;
 
-//#define WRITE_PNGS
+#define WRITE_PNGS
 
 
 class ImageWriter : public Thread<void>

@@ -20,7 +20,7 @@ int main()
 
 
 	FaceShape<float> fs;
-	fs.setTransform( 35, 0, 265, 185 );
+	fs.setTransform( 55, 0, 295, 260 );
 
 	do {
 		seq.nextFrame();
@@ -31,9 +31,9 @@ int main()
 
 		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
 		termCrit.setCostThreshold( 0.5f );
-		termCrit.setMaxIterations( 30 );
+		termCrit.setMaxIterations( 100 );
 		GaussNewton<float>	gn;
-		RobustHuber<float, float> costFunc( 20 );
+		SquaredDistance<float, float> costFunc;
 
 		gn.optimize( fs, costFunc, termCrit );
 		std::cout << gn.iterations() << std::endl;
@@ -48,8 +48,8 @@ int main()
 			fs.drawCurrent( &g );
 			ImageIO::savePNG( imgu, "faceshapeopt.png" );
 		}
-		usleep( 500 );
-//		bla = getchar();
+//		usleep( 500 );
+		bla = getchar();
 	} while( 1 );
 
 }
