@@ -1,17 +1,18 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
+#include <cvt/util/Stack.h>
 
 using namespace cvt;
 
-void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
+void canny( Image& out, const Image& in, float low = 0.05f, float high = 0.10f )
 {
 	Image dx( in.width(), in.height(), IFormat::GRAY_FLOAT );
 	Image dy( in.width(), in.height(), IFormat::GRAY_FLOAT );
 	Image dir( in.width(), in.height(), IFormat::GRAYALPHA_UINT8 );
 
-	in.convolve( dx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL, IKernel::GAUSS_VERTICAL_5 );
-	in.convolve( dy, IKernel::GAUSS_HORIZONTAL_5, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
+	in.convolve( dx, IKernel::HAAR_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_5 );
+	in.convolve( dy, IKernel::GAUSS_HORIZONTAL_5, IKernel::HAAR_VERTICAL_3 );
 
 	out.reallocate( in.width(), in.height(), IFormat::GRAY_FLOAT );
 
@@ -19,8 +20,8 @@ void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
 #define VERTICAL	1
 #define DIAGUP		2
 #define DIAGDOWN	3
-#define NOEDGE 0
-#define PEDGE 1
+#define NOEDGE 1
+#define PEDGE 0
 #define EDGE 2
 
 	uint8_t* pdx;
@@ -70,13 +71,19 @@ void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
 		cdir += stridedir;
 	}
 
+
+	Stack<uint8_t*> stack( 1024 );
 	h = out.height() - 2;
+	memset( pdir, NOEDGE, 2 * dir.width() );
+	memset( pdir + ( dir.height() - 1 ) * stridedir, NOEDGE, 2 * dir.width() );
 	cdst = pdst + stridedst;
 	cdir = pdir + stridedir;
 	while( h-- ) {
 		size_t w = out.width() - 2;
 		float* fdst =  ( ( float* ) cdst ) + 1;
 		uint8_t* udir = cdir + 2;
+		*( cdir + 1 ) = NOEDGE;
+		*( cdir + 2 * ( dir.width() - 1 ) + 1 ) = NOEDGE;
 		while( w-- ) {
 			if( *udir == HORIZONTAL ) {
 				if( *(fdst - 1 ) > *fdst ||
@@ -95,12 +102,37 @@ void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
 				   *( ( float* )( ( uint8_t* ) ( fdst + 1 ) + stridedst  ) ) > *fdst )
 					*( udir + 1 ) = NOEDGE;
 			}
+			if( *( udir + 1 ) == EDGE )
+				stack.push( udir + 1 );
 			fdst++;
 			udir += 2;
 		}
 		cdst += stridedst;
 		cdir += stridedir;
 	}
+
+	while( !stack.isEmpty() ) {
+		uint8_t* m;
+		m = stack.pop();
+		*m = EDGE;
+		if( !m[ - 2 ] )
+			stack.push( m - 2 );
+		if( !m[ + 2 ] )
+			stack.push( m + 2 );
+		if( !m[ - stridedir ] )
+			stack.push( m - stridedir );
+		if( !m[ - 2 - stridedir ] )
+			stack.push( m - 2 - stridedir );
+		if( !m[ + 2 - stridedir ] )
+			stack.push( m + 2 - stridedir );
+		if( !m[ + stridedir ] )
+			stack.push( m + stridedir );
+		if( !m[ - 2 + stridedir ] )
+			stack.push( m - 2 + stridedir );
+		if( !m[ + 2 + stridedir ] )
+			stack.push( m + 2 + stridedir );
+	}
+
 
 	h = out.height();
 	cdst = pdst + stridedst;
@@ -111,9 +143,10 @@ void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
 		uint8_t* udir = cdir;
 		while( w-- ) {
 			udir++;
-			if( *udir++ == NOEDGE )
+			if( *udir++ != EDGE )
 				*fdst = 0;
-			*fdst *= 20.0f;
+			else
+				*fdst = 1.0f;
 			fdst++;
 		}
 		cdst += stridedst;
@@ -131,7 +164,7 @@ int main()
 	Image img, out;
 
 	Resources r;
-	ImageIO::loadPNG( img, /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
+	ImageIO::loadPNG( img, r.find( "lena.png" )/* "/home/heise/Pictures/myface2.png"*/ );
 	Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	img.convert( imgf );
 
