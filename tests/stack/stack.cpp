@@ -10,6 +10,7 @@ int main()
 		s.push( i );
 
 	std::cout << "Size: " << s.size() << std::endl;
+	std::cout << "Empty: " << s.isEmpty() << std::endl;
 
 	while( !s.isEmpty() )
 		std::cout << s.pop() << std::endl;
