@@ -58,6 +58,53 @@ namespace cvt {
         _blurred.unmap( p );        
     }
     
+    
+    void Brief::descriptorForPatch( BriefDescriptor & d, const IntegralImage & image, const Vector2i & pos )
+    {
+        size_t iStride;
+        
+        const float * ii = image.sumImage().map<float>( &iStride );
+        size_t offset = -( _patchSize >> 1 ) - ( _patchSize >> 1 ) * iStride;
+        
+        const float * p = ii + pos.y * iStride + pos.x + offset;
+        const float * p0 = p;
+        const float * p1 = p;
+        
+        uint8_t * t0 = _tests;
+        uint8_t * t1 = _tests + 2;
+        
+        size_t i = 256;
+        uint8_t descPart = 0;
+        uint8_t descIter = 0;
+        
+                
+        uint64_t signature = 0;
+        while ( i-- ) {
+            p0 = p + t0[ 1 ] * iStride + t0[ 0 ];
+            p1 = p + t1[ 1 ] * iStride + t1[ 0 ];
+            
+            /*std::cout << "FEATURE: " << pos.x << ", " << pos.y << std::endl; 
+            std::cout << "TO: " << ( int )t0[ 0 ] << ", " << ( int )t0[ 1 ] << std::endl; 
+            std::cout << "T1: " << ( int )t1[ 0 ] << ", " << ( int )t1[ 1 ] << std::endl;
+            std::cout << iStride << std::endl;*/
+            if( IntegralImage::area( p0, 1, 1, iStride ) > IntegralImage::area( p1, 1, 1, iStride ) )
+                signature |= 1;
+            signature <<= 1;
+            t0 += 4;
+            t1 += 4;
+            
+            descIter++;
+            if( descIter == 64 ){
+                descIter = 0;
+                d.set( signature, descPart );
+                descPart++;
+                signature = 0;
+            }
+        }
+        
+        image.sumImage().unmap( ii );
+    }
+    
     void Brief::createTests()
     {
         RNG rng( time( NULL ) );

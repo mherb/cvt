@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <cvt/vision/IntegralImage.h>
 #include <cvt/gfx/Image.h>
 
 namespace cvt {
@@ -36,7 +37,11 @@ namespace cvt {
         Brief( size_t patchSize );
         ~Brief();
         
+        /* perform normal tests within given patch */
         void    descriptorForPatch( BriefDescriptor & d, const Image & patch );
+        
+        /* use integral image for testing and test: area( t1 ) > area ( t2 ) */
+        void    descriptorForPatch( BriefDescriptor & d, const IntegralImage & image, const Vector2i & pos );
                 
     private:
         void createTests();

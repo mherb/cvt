@@ -36,6 +36,8 @@ namespace cvt
         
             static inline float area( const Image & img, const Recti & r ); 
         
+            static inline float area( const float * p, size_t w, size_t h, size_t stride );
+        
         private:
             const Image &       _img;
             Image*              _sum;
@@ -73,6 +75,11 @@ namespace cvt
         
         img.unmap( p );
         return sum;
+    }
+    
+    inline float IntegralImage::area( const float * p, size_t w, size_t h, size_t stride )
+    { 
+        return *( p + stride * h + w ) - p[ w - stride ] - p[ stride * h - 1 ] + p[ -1 - stride ];
     }
 }
 

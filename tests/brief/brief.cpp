@@ -14,6 +14,7 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 #include <string>
+#include <vector>
 
 using namespace cvt;
 
@@ -32,7 +33,7 @@ void findMatches( std::vector< std::vector<size_t> > & putativeMatches,
     }
 }
 
-void removeBorderCorners( size_t patchSize, size_t width, size_t height, std::vector<Feature2D> & f )
+size_t removeBorderCorners( size_t patchSize, size_t width, size_t height, std::vector<Feature2D> & f )
 {
     std::vector<Feature2D>::iterator r, w;
     const std::vector<Feature2D>::const_iterator end = f.end();
@@ -42,17 +43,23 @@ void removeBorderCorners( size_t patchSize, size_t width, size_t height, std::ve
     int bw = width - b0;
     int bh = height - b0;
     
+    std::cout << "BORDER REMOVING: \n\tMin Width & height: " << b0 << "\n\tMaxWidth: " << bw << "\n\tMaxHeight: " << bh << std::endl; 
+    
+    size_t numGood = 0;    
     while( r != end ){
         if( r->x > b0 && r->y > b0 &&
             r->x < bw && r->y < bh ) {
             // correct pixel
+            std::cout << "Good Feature: " << r->x << ", " << r->y << std::endl;
             if( r != w ){
                 *w = *r;
             }
             w++;
+            numGood++;
         }
         r++;
-    }
+    }    
+    return numGood;
 }
 
 int main()
@@ -95,12 +102,16 @@ int main()
 		agast.extract( img, features0 );
         
         // remove border pixels
-        removeBorderCorners( patchSize, img.width(), img.height(), features0 );
+        size_t numGood;
+        numGood = removeBorderCorners( patchSize, img.width(), img.height(), features0 );
         
 		// compute descriptors for the features:
 		std::vector<BriefDescriptor> descriptors0;
-		descriptors0.resize( features0.size() );
-		for( size_t i = 0; i < features0.size(); i++ ){
+		descriptors0.resize( numGood );
+		
+        // normal descriptor computation
+        /*
+        for( size_t i = 0; i < numGood; i++ ){
             patch.copyRect( 0, 0, img, 
                             features0[ i ].x, 
                             features0[ i ].y, 
@@ -108,28 +119,37 @@ int main()
                             patch.height() );
             
             brief.descriptorForPatch( descriptors0[ i ], patch );
+		}*/
+        
+        IntegralImage intImage( img );
+        for( size_t i = 0; i < numGood; i++ ){
+            brief.descriptorForPatch( descriptors0[ i ], intImage, features0[ i ] );
 		}
 
 		// detect features in warped image
         std::vector<Feature2D> features1;
 		agast.extract( warped, features1 );
         // remove border pixels
-        removeBorderCorners( patchSize, img.width(), img.height(), features1 );
+        numGood = removeBorderCorners( patchSize, img.width(), img.height(), features1 );
         
         Time timer;
         timer.reset();
         
 		// compute descriptors for the features:
 		std::vector<BriefDescriptor> descriptors1;
-		descriptors1.resize( features1.size() );
-		for( size_t i = 0; i < features1.size(); i++ ){
+		descriptors1.resize( numGood );
+        
+        IntegralImage intImage1( warped );
+		for( size_t i = 0; i < numGood; i++ ){
+            /*
             patch.copyRect( 0, 0, warped, 
                            features1[ i ].x, 
                            features1[ i ].y, 
                            patch.width(),
-                           patch.height() );
+                           patch.height() );            
+            brief.descriptorForPatch( descriptors1[ i ], patch );*/
             
-            brief.descriptorForPatch( descriptors1[ i ], patch );
+            brief.descriptorForPatch( descriptors1[ i ], intImage1, features1[ i ] );
 		}
         
         double t0 = timer.elapsedMilliSeconds();
@@ -139,7 +159,7 @@ int main()
         // putativeMatches[ a ][ i ] -> are are the features0 indices, i the possible good matches in the other vector
         std::vector< std::vector<size_t> > putativeMatches;
         putativeMatches.resize( descriptors0.size() );
-        findMatches( putativeMatches, descriptors0, descriptors1, 10 );
+        findMatches( putativeMatches, descriptors0, descriptors1, 40 );
         
         double t1 = timer.elapsedMilliSeconds();
         std::cout << "Descriptor Matching: " << t1 - t0 << "ms" << std::endl;
