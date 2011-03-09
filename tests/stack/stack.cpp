@@ -6,7 +6,7 @@ int main()
 {
 	Stack<int> s( 5 );
 
-	for( int i = 0; i < 20; i++ )
+	for( int i = 0; i < 25; i++ )
 		s.push( i );
 
 	std::cout << "Size: " << s.size() << std::endl;
