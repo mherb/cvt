@@ -4,16 +4,24 @@
 
 using namespace cvt;
 
-void canny( Image& out, const Image& in )
+void canny( Image& out, const Image& in, float low = 0.001f, float high = 0.5f )
 {
 	Image dx( in.width(), in.height(), IFormat::GRAY_FLOAT );
 	Image dy( in.width(), in.height(), IFormat::GRAY_FLOAT );
-	Image dir( in.width(), in.height(), IFormat::GRAY_UINT8 );
+	Image dir( in.width(), in.height(), IFormat::GRAYALPHA_UINT8 );
 
 	in.convolve( dx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL, IKernel::GAUSS_VERTICAL_5 );
 	in.convolve( dy, IKernel::GAUSS_HORIZONTAL_5, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
 
 	out.reallocate( in.width(), in.height(), IFormat::GRAY_FLOAT );
+
+#define HORIZONTAL	0
+#define VERTICAL	1
+#define DIAGUP		2
+#define DIAGDOWN	3
+#define NOEDGE 0
+#define PEDGE 1
+#define EDGE 2
 
 	uint8_t* pdx;
 	uint8_t* pdy;
@@ -39,13 +47,19 @@ void canny( Image& out, const Image& in )
 		while( w-- ) {
 			*fdst = Math::sqrt( Math::sqr( *fdx ) + Math::sqr( *fdy ) );
 			float m = Math::abs( *fdy ) / Math::abs( *fdx );
-			if( m >= 4.5107f ) {
-				*udir++ = 1;
+			if( m >= 2.4142f ) {
+				*udir++ = VERTICAL;
 			} else if( m >= 0.41421f ) {
-				*udir++ = *fdx * *fdy > 0 ? 2 : 3;
+				*udir++ = *fdx * *fdy > 0 ? DIAGUP : DIAGDOWN;
 			} else {
-				*udir++ = 0;
+				*udir++ = HORIZONTAL;
 			}
+			if( *fdst >= high )
+				*udir++ = EDGE;
+			else if( *fdst >= low )
+				*udir++ = PEDGE;
+			else
+				*udir++ = NOEDGE;
 			fdst++;
 			fdx++;
 			fdy++;
@@ -62,29 +76,45 @@ void canny( Image& out, const Image& in )
 	while( h-- ) {
 		size_t w = out.width() - 2;
 		float* fdst =  ( ( float* ) cdst ) + 1;
-		uint8_t* udir = cdir + 1;
+		uint8_t* udir = cdir + 2;
 		while( w-- ) {
-			if( *udir == 0 ) {
-				if( *(fdst - 1 ) >= *fdst ||
-				   *( fdst + 1 ) >= *fdst )
-					*fdst = 0;
-			} else if( *udir == 1 ) {
-				if( *( ( float* )( ( uint8_t* ) fdst - stridedst  ) ) >= *fdst ||
-				   *( ( float* )( ( uint8_t* ) fdst + stridedst  ) ) >= *fdst )
-					*fdst = 0;
-			} else if( *udir == 3 ) {
-				if( *( ( float* )( ( uint8_t* ) ( fdst + 1 ) - stridedst  ) ) >= *fdst ||
-				   *( ( float* )( ( uint8_t* ) ( fdst - 1 ) + stridedst  ) ) >= *fdst )
-					*fdst = 0;
-
-			} else if( *udir == 2 ) {
-				if( *( ( float* )( ( uint8_t* ) ( fdst - 1 ) - stridedst  ) ) >= *fdst ||
-				   *( ( float* )( ( uint8_t* ) ( fdst + 1 ) + stridedst  ) ) >= *fdst )
-					*fdst = 0;
+			if( *udir == HORIZONTAL ) {
+				if( *(fdst - 1 ) > *fdst ||
+				   *( fdst + 1 ) > *fdst )
+					*( udir + 1 ) = NOEDGE;
+			} else if( *udir == VERTICAL ) {
+				if( *( ( float* )( ( uint8_t* ) fdst - stridedst  ) ) > *fdst ||
+				   *( ( float* )( ( uint8_t* ) fdst + stridedst  ) ) > *fdst )
+					*( udir + 1 ) = NOEDGE;
+			} else if( *udir == DIAGDOWN ) {
+				if( *( ( float* )( ( uint8_t* ) ( fdst + 1 ) - stridedst  ) ) > *fdst ||
+				   *( ( float* )( ( uint8_t* ) ( fdst - 1 ) + stridedst  ) ) > *fdst )
+					*( udir + 1 ) = NOEDGE;
+			} else if( *udir == DIAGUP ) {
+				if( *( ( float* )( ( uint8_t* ) ( fdst - 1 ) - stridedst  ) ) > *fdst ||
+				   *( ( float* )( ( uint8_t* ) ( fdst + 1 ) + stridedst  ) ) > *fdst )
+					*( udir + 1 ) = NOEDGE;
 			}
+			fdst++;
+			udir += 2;
+		}
+		cdst += stridedst;
+		cdir += stridedir;
+	}
+
+	h = out.height();
+	cdst = pdst + stridedst;
+	cdir = pdir + stridedir;
+	while( h-- ) {
+		size_t w = out.width();
+		float* fdst =  ( ( float* ) cdst );
+		uint8_t* udir = cdir;
+		while( w-- ) {
+			udir++;
+			if( *udir++ == NOEDGE )
+				*fdst = 0;
 			*fdst *= 20.0f;
 			fdst++;
-			udir++;
 		}
 		cdst += stridedst;
 		cdir += stridedir;
@@ -101,7 +131,7 @@ int main()
 	Image img, out;
 
 	Resources r;
-	ImageIO::loadPNG( img, r.find( "boss.png" ) );
+	ImageIO::loadPNG( img, /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
 	Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	img.convert( imgf );
 

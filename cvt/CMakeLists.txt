@@ -245,6 +245,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Thread.h
 	util/Util.h
 	util/Flags.h
+	util/Stack.h
 	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h
