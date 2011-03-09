@@ -14,4 +14,6 @@ int main()
 
 	while( !s.isEmpty() )
 		std::cout << s.pop() << std::endl;
+
+	std::cout << "Empty: " << s.isEmpty() << std::endl;
 }
