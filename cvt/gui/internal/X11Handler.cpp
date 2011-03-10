@@ -74,6 +74,7 @@ namespace cvt {
 					win = (*_windows)[ xevent.xexpose.window ];
 
 					// Compress resize/motions before sending expose events
+#if 1
 					if( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) ) {
 						::Window wp;
 						int oldx = win->_rect.x;
@@ -99,7 +100,7 @@ namespace cvt {
 							win->resizeEvent( & re );
 						}
 					}
-
+#endif
 					// Compress expose
 					// FIXME: fix the rect information
 					while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, Expose, &xevent ) )
