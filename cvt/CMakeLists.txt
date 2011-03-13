@@ -246,6 +246,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Util.h
 	util/Flags.h
 	util/Stack.h
+	util/String.h
 	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h
@@ -351,6 +352,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDSSE41.cpp
 	util/SIMDTest.cpp
 	util/Time.cpp
+	util/String.cpp
 	vision/AGAST.cpp
 	vision/agast/agast5_8.cpp
 	vision/agast/agast7_12s.cpp
