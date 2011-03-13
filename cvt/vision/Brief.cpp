@@ -64,7 +64,7 @@ namespace cvt {
         size_t iStride;
         
         const float * ii = image.sumImage().map<float>( &iStride );
-        size_t offset = -( _patchSize >> 1 ) - ( _patchSize >> 1 ) * iStride;
+        size_t offset = -( _patchSize >> 1 ) - ( _patchSize >> 1 ) * iStride; // offset from patch center to upper right corner
         
         const float * p = ii + pos.y * iStride + pos.x + offset;
         const float * p0 = p;
@@ -76,9 +76,9 @@ namespace cvt {
         size_t i = 256;
         uint8_t descPart = 0;
         uint8_t descIter = 0;
-        
                 
         uint64_t signature = 0;
+        size_t subWindowSize = 1;
         while ( i-- ) {
             p0 = p + t0[ 1 ] * iStride + t0[ 0 ];
             p1 = p + t1[ 1 ] * iStride + t1[ 0 ];
@@ -87,9 +87,10 @@ namespace cvt {
             std::cout << "TO: " << ( int )t0[ 0 ] << ", " << ( int )t0[ 1 ] << std::endl; 
             std::cout << "T1: " << ( int )t1[ 0 ] << ", " << ( int )t1[ 1 ] << std::endl;
             std::cout << iStride << std::endl;*/
-            if( IntegralImage::area( p0, 1, 1, iStride ) > IntegralImage::area( p1, 1, 1, iStride ) )
+            if( IntegralImage::area( p0, subWindowSize, subWindowSize, iStride ) > IntegralImage::area( p1, subWindowSize, subWindowSize, iStride ) )
                 signature |= 1;
             signature <<= 1;
+            
             t0 += 4;
             t1 += 4;
             

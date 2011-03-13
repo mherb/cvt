@@ -187,12 +187,16 @@ Camera * initCamera()
 	}
     
 	size_t selection = numCams;
-	std::cout << "Select camera: ";
-	std::cin >> selection;
-	while ( selection >= numCams ){
-		std::cout << "Index out of bounds -> select camera in Range:";
-		std::cin >> selection;
-	}
+    if( numCams == 1 ){
+        selection = 0;
+    } else {
+        std::cout << "Select camera: ";
+        std::cin >> selection;
+        while ( selection >= numCams ){
+            std::cout << "Index out of bounds -> select camera in Range:";
+            std::cin >> selection;
+        }
+    }
     
     Camera * cam = 0;
     cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );

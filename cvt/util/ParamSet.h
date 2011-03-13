@@ -37,6 +37,9 @@ namespace cvt
 		
 			template <class T>
 			const std::string & selectionString( size_t handle );
+        
+            size_t  size() const { return _numParameters; }
+        
 
 		private:
 			uint8_t *	_parameterMem;

@@ -134,7 +134,7 @@ namespace cvt {
 
 	void String::truncate( size_t newlen )
 	{
-		if( newlen >= str._len )
+		if( newlen >= _len )
 			return;
 		_len = newlen;
 		_str[ _len ] = 0;
