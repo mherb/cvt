@@ -22,6 +22,7 @@ namespace cvt {
 			char operator[]( int i ) const;
 
 			String substring( int start, int len = - 1 ) const;
+			void truncate( size_t newlen );
 //			void split( char marker, String& out1, String& out2 ) const;
 //			String operator+( const String& str ) const;
 /*			String operator+( unsigned int i ) const;
@@ -131,6 +132,13 @@ namespace cvt {
 		return String( *this, start, len );
 	}
 
+	void String::truncate( size_t newlen )
+	{
+		if( newlen >= str._len )
+			return;
+		_len = newlen;
+		_str[ _len ] = 0;
+	}
 
 	inline String& String::operator+=( const String& str )
 	{
