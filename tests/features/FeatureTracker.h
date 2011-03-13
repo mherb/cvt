@@ -2,8 +2,8 @@
 #define CVT_FEATURE_TRACKER_H
 
 #include <cvt/vision/FeatureExtractor.h>
+#include <cvt/util/ParamSet.h>
 #include "SegmentRing.h"
-
 
 namespace cvt
 {
@@ -21,6 +21,7 @@ namespace cvt
 			 */
 			void run( const Image & current,
 					  std::vector<Feature2D> & newFeatures );
+
 
 		private:
 			FeatureExtractor<int32_t> * _featureDetector;        
