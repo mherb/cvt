@@ -356,6 +356,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDTest.cpp
 	util/Time.cpp
 	util/String.cpp
+	util/PluginManager.cpp
 	util/PluginFile.cpp
 	vision/AGAST.cpp
 	vision/agast/agast5_8.cpp

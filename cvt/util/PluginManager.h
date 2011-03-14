@@ -7,7 +7,7 @@
 namespace cvt {
 	class PluginManager {
 		public:
-			PluginManager& instance();
+			static PluginManager& instance();
 			void registerPlugin( Plugin* plugin );
 			void loadPlugin( const std::string& path );
 			void loadDefault();
@@ -17,12 +17,6 @@ namespace cvt {
 			PluginManager( const PluginManager& );
 			~PluginManager();
 	};
-
-	inline PluginManager& PluginManager::instance()
-	{
-		static PluginManager instance;
-		return instance;
-	}
 
 	inline PluginManager::PluginManager()
 	{

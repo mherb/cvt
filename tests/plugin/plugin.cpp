@@ -9,7 +9,7 @@ int main()
 
 	try {
 		PluginFile p( file.c_str() );
-		p.init( NULL );
+		p.load();
 	} catch( Exception e ) {
 		std::cout << e.what() << std::endl;
 	}

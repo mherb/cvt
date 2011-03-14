@@ -38,10 +38,10 @@ namespace cvt {
 		}
 	}
 
-	void PluginFile::init( PluginManager* manager )
+	void PluginFile::load()
 	{
 		if( !_pinfo || !_handle )
 			return;
-		_pinfo->init( manager );
+		_pinfo->init( &PluginManager::instance() );
 	}
 }
