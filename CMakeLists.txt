@@ -11,6 +11,7 @@ INCLUDE(CompilerFlags)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(cvt)
+ADD_SUBDIRECTORY(plugins)
 ADD_SUBDIRECTORY(tests)
 
 add_executable(glcltoheader util/glcltoheader.cpp)
