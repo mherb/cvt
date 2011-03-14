@@ -247,6 +247,9 @@ SET(${MODULE_NAME}_HEADERS
 	util/Flags.h
 	util/Stack.h
 	util/String.h
+	util/Plugin.h
+	util/PluginManager.h
+	util/PluginFile.h
 	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h
@@ -353,6 +356,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDTest.cpp
 	util/Time.cpp
 	util/String.cpp
+	util/PluginFile.cpp
 	vision/AGAST.cpp
 	vision/agast/agast5_8.cpp
 	vision/agast/agast7_12s.cpp

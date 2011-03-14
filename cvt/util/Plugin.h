@@ -1,13 +1,16 @@
 #ifndef CVT_PLUGIN_H
 #define CVT_PLUGIN_H
 
+#include <stdint.h>
+#include <string>
+
 namespace cvt {
 	class PluginManager;
 
 	struct PluginInfo {
 		uint32_t magic;
-		uint32_t minor;
 		uint32_t major;
+		uint32_t minor;
 		void (*init)( PluginManager* manager );
 	};
 
@@ -37,7 +40,7 @@ namespace cvt {
 	{
 	}
 
-	inline std::string& Plugin::pluginName() const
+	inline const std::string& Plugin::pluginName() const
 	{
 		return _name;
 	}

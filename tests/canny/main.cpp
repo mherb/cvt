@@ -183,7 +183,7 @@ static inline void _canny_lastline( float* fdst, uint8_t* dir, size_t stridedst,
 
 }
 
-void canny( Image& out, const Image& in, float low = 0.03f, float high = 0.05f )
+void canny( Image& out, const Image& in, float low = 0.02f, float high = 0.025f )
 {
 	Image dx( in.width(), in.height(), IFormat::GRAY_FLOAT );
 	Image dy( in.width(), in.height(), IFormat::GRAY_FLOAT );
@@ -396,7 +396,7 @@ int main()
 	Image img, out;
 
 	Resources r;
-	ImageIO::loadPNG( img, r.find( "lena.png" )/* "/home/heise/Pictures/myface2.png"*/ );
+	ImageIO::loadPNG( img, /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
 	Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	img.convert( imgf );
 

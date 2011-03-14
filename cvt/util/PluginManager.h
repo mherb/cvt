@@ -2,6 +2,7 @@
 #define CVT_PLUGINMANAGER_H
 
 #include <cvt/util/Plugin.h>
+#include <vector>
 
 namespace cvt {
 	class PluginManager {
@@ -9,9 +10,10 @@ namespace cvt {
 			PluginManager& instance();
 			void registerPlugin( Plugin* plugin );
 			void loadPlugin( const std::string& path );
+			void loadDefault();
 
 		private:
-			PluginManager()
+			PluginManager();
 			PluginManager( const PluginManager& );
 			~PluginManager();
 	};
@@ -38,6 +40,9 @@ namespace cvt {
 	{
 	}
 
+	inline void PluginManager::loadDefault()
+	{
+	}
 }
 
 #endif
