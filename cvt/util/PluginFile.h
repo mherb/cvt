@@ -10,7 +10,7 @@ namespace cvt {
 		public:
 			PluginFile( const char* path );
 			~PluginFile();
-			void init( PluginManager* manager );
+			void load();
 		private:
 			void check();
 			PluginFile( const PluginFile& );
