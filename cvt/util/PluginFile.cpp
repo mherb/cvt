@@ -10,7 +10,6 @@ namespace cvt {
 	PluginFile::PluginFile( const char* path ) : _handle( NULL )
 	{
 		if( !( _handle = dlopen( path, RTLD_LAZY | RTLD_LOCAL ) ) ) {
-			std::cout << path << std::endl;
 			throw CVTException( "Unable to load plugin!" );
 		}
 		check();
