@@ -17,32 +17,26 @@ namespace cvt {
 	enum PluginType {
 		PLUGIN_IMAGE_LOADER,
 		PLUGIN_IMAGE_SAVER,
-		PLUGIN_IFILTER
+		PLUGIN_IFILTER,
 	};
 
 	class Plugin {
 		public:
-			Plugin( const std::string& name, PluginType type );
-			~Plugin();
-			const std::string& pluginName() const;
+			Plugin( PluginType type );
+			virtual ~Plugin();
+			virtual const std::string& name() const = 0;
 			PluginType pluginType() const;
 
 		private:
-			std::string _name;
 			PluginType  _type;
 	};
 
-	inline Plugin::Plugin( const std::string& name, PluginType type ) : _name( name ), _type( type )
+	inline Plugin::Plugin( PluginType type ) : _type( type )
 	{
 	}
 
 	inline Plugin::~Plugin()
 	{
-	}
-
-	inline const std::string& Plugin::pluginName() const
-	{
-		return _name;
 	}
 
 	inline PluginType Plugin::pluginType() const
