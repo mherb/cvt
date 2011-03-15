@@ -6,7 +6,11 @@ using namespace cvt;
 
 int main()
 {
+#ifndef APPLE
 	String file( "./bin/plugins/Dummy.so" );
+#else
+	String file( "./bin/plugins/Dummy.dylib" );
+#endif
 
 	PluginManager::instance().loadDefault();
 	try {
