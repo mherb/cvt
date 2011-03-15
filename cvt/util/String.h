@@ -132,7 +132,7 @@ namespace cvt {
 		return String( *this, start, len );
 	}
 
-	void String::truncate( size_t newlen )
+	inline void String::truncate( size_t newlen )
 	{
 		if( newlen >= _len )
 			return;
