@@ -5,6 +5,7 @@
 #include <cvt/util/PluginFile.h>
 #include <cvt/gfx/IFilter.h>
 #include <vector>
+#include <map>
 
 namespace cvt {
 	class PluginManager {
@@ -15,6 +16,7 @@ namespace cvt {
 			void loadDefault();
 
 			const IFilter* getIFilter( size_t i ) const;
+			const IFilter* getIFilter( const std::string& name ) const;
 			size_t getIFilterSize() const;
 
 		private:
@@ -24,6 +26,7 @@ namespace cvt {
 
 			std::vector<PluginFile*> _plugins;
 			std::vector<IFilter*> _ifilters;
+			std::map< const std::string, IFilter*> _ifiltermap;
 	};
 
 	inline PluginManager::PluginManager()
@@ -39,6 +42,7 @@ namespace cvt {
 		for( std::vector<PluginFile*>::iterator it = _plugins.begin(), end = _plugins.end(); it != end; ++it  )
 			delete *it;
 		_plugins.clear();
+		_ifiltermap.clear();
 	}
 
 	inline void PluginManager::registerPlugin( Plugin* plugin )
@@ -47,7 +51,10 @@ namespace cvt {
 			return;
 		switch( plugin->pluginType() ) {
 			case PLUGIN_IFILTER:
-				_ifilters.push_back( ( IFilter* ) plugin );
+				{
+					_ifilters.push_back( ( IFilter* ) plugin );
+					_ifiltermap[ plugin->name() ] = ( IFilter* ) plugin;
+				}
 				break;
 			default:
 				break;
@@ -65,6 +72,15 @@ namespace cvt {
 	inline const IFilter* PluginManager::getIFilter( size_t n ) const
 	{
 		return _ifilters[ n ];
+	}
+
+	inline const IFilter* PluginManager::getIFilter( const std::string& name ) const
+	{
+		std::map< const std::string, IFilter*>::const_iterator it;
+		if( ( it = _ifiltermap.find( name ) ) != _ifiltermap.end() ) {
+			return it->second;
+		}
+		return NULL;
 	}
 
 	inline size_t PluginManager::getIFilterSize() const

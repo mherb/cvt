@@ -20,7 +20,7 @@ int main()
 
 
 	FaceShape<float> fs;
-	fs.setTransform( 55, 0, 295, 260 );
+	fs.setTransform( 35, 0, 267, 205 );
 
 	do {
 		seq.nextFrame();
@@ -30,8 +30,8 @@ int main()
 		fs.updateInput( &imgf );
 
 		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
-		termCrit.setCostThreshold( 0.5f );
-		termCrit.setMaxIterations( 100 );
+		termCrit.setCostThreshold( 0.1f );
+		termCrit.setMaxIterations( 50 );
 		GaussNewton<float>	gn;
 		SquaredDistance<float, float> costFunc;
 
