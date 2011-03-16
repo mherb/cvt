@@ -54,6 +54,7 @@ namespace cvt
 			const bool rangeAndDefaultSet;
 		
 			virtual void setDefaultValue( void * ) const = 0;
+			virtual const std::string typeString() const = 0;
 		
 		protected:
 			ParamInfo( ParamType t, const std::string & n, size_t c, 
@@ -62,6 +63,13 @@ namespace cvt
 				input( input ), rangeAndDefaultSet( rangeType )
 			{}
 	};
+
+
+	inline std::ostream& operator<<( std::ostream& out, const ParamInfo& filter )
+	{
+		out << "Name: " << filter.name << " Type: " << filter.typeString() << ( filter.input ?" ( in )":" ( out )" );
+		return out;
+	}
 	
 	template<class T> class ParamInfoTyped;
 
@@ -79,6 +87,7 @@ namespace cvt
 			TYPE defaultValue() const { return defValue; }\
 			virtual void setDefaultValue( void * ptr ) const { *( ( TYPE* )ptr ) = defValue; }\
 			TYPE min; TYPE max; TYPE defValue;\
+			const std::string typeString() const { return #TYPE; } \
 	};
 	
 	#include <cvt/util/internal/ParamTypes.def>
@@ -99,6 +108,8 @@ namespace cvt
 		Selection min; 
 		Selection max; 
 		Selection defValue;
+
+		const std::string typeString() const { return "Selection"; }
 		
 		const std::string & description( const Selection & sel ){
 			if( sel < min || sel > max )

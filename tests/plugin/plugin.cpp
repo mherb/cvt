@@ -19,5 +19,10 @@ int main()
 	} catch( Exception e ) {
 		std::cout << e.what() << std::endl;
 	}
+
+	size_t n = PluginManager::instance().getIFilterSize();
+	for( size_t i = 0; i < n; i++ )
+		std::cout << *( PluginManager::instance().getIFilter( i ) ) << std::endl;
+
 	return 0;
 }

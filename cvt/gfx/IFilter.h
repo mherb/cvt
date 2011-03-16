@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <iostream>
 #include <cvt/util/Flags.h>
 #include <cvt/util/ParamSet.h>
 #include <cvt/util/Plugin.h>
@@ -17,6 +18,8 @@ namespace cvt {
 	CVT_ENUM_TO_FLAGS( IFilterTypeFlags, IFilterType )
 
 	class IFilter : public Plugin {
+		friend std::ostream& operator<<( std::ostream& out, const IFilter& filter );
+
 		public:
 			virtual ParamSet* parameterSet() const { return new ParamSet( _pinfo, _pinfosize ); };
 			virtual void apply( const ParamSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
@@ -37,6 +40,14 @@ namespace cvt {
 			size_t _pinfosize;
 	};
 
+	inline std::ostream& operator<<( std::ostream& out, const IFilter& filter )
+	{
+		out << "Filter: " << filter.name() << std::endl;
+		out << "Parameters: " << std::endl;
+		for( size_t i = 0; i < filter._pinfosize; i++ )
+			std::cout << "\t" << *( filter._pinfo[ i ] ) << std::endl;
+		return out;
+	}
 }
 
 #endif
