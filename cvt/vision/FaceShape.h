@@ -149,7 +149,7 @@ namespace cvt {
 		_dy.reallocate( *_currI );
 		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
 		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
-		Image blax( _dx );
+/*		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
 		blay.mul( _dy );
@@ -157,7 +157,7 @@ namespace cvt {
 		blax.mul( 100.0f );
 		ImageIO::savePNG( blax, "DXDY.png" );
 		ImageIO::savePNG( _dx, "DX.png" );
-		ImageIO::savePNG( _dy, "DY.png" );
+		ImageIO::savePNG( _dy, "DY.png" );*/
 	}
 
 
@@ -210,9 +210,9 @@ namespace cvt {
 		dyptr = _dy.map<uint8_t>( &dystride );
 
 
-#define MAXDIST 10
+#define MAXDIST 35
 #define INCR	0.01f
-#define COSMAX	0.4f
+#define COSMAX	0.5f
 #define THRESHOLD 0.001f
 
 		_costs = 0;
@@ -232,7 +232,7 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 5.0f / dp.length();
+			float incr = 3.0f / dp.length();
 			incr = Math::clamp( incr, 0.01f, 0.20f );
 			Matrix2<T> Ttmp( _transform );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
@@ -265,16 +265,17 @@ namespace cvt {
 
 /*		A /= ( T ) lines;
 		b /= ( T ) lines;*/
-/*		tmp.block( 4, 0, _pcsize, 1 ) = _p;
-		tmp.setOnes( 4 + _pcsize );
-		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;*/
+		tmp.block( 4, 0, _pcsize, 1 ) = _p;
+//		tmp.setOnes( 4 + _pcsize );
+		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
 		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> reg = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize + 4, _pcsize + 4 );
 		reg.setIdentity();
 		reg( 0 , 0 ) = 0;
 		reg( 1 , 1 ) = 0;
 		reg( 2 , 2 ) = 0;
 		reg( 3 , 3 ) = 0;
-		A += 1.0f * tmp * tmp.transpose();
+		A += 25.0f * reg;
+		b -= 25.0f * tmp;
 
 		_dx.unmap( dxptr );
 		_dy.unmap( dyptr );

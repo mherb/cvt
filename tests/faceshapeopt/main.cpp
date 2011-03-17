@@ -30,7 +30,7 @@ int main()
 		fs.updateInput( &imgf );
 
 		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
-		termCrit.setCostThreshold( 0.1f );
+		termCrit.setCostThreshold( 0.4f );
 		termCrit.setMaxIterations( 50 );
 		GaussNewton<float>	gn;
 		SquaredDistance<float, float> costFunc;
