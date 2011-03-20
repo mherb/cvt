@@ -27,6 +27,7 @@ namespace cvt {
 			void splitHalf( Spline2<T>& out1, Spline2<T>& out2 ) const;
 
 			size_t inflectionPoints( T (&t)[ 2 ] ) const;
+			T flattenFirst( T tolerance ) const;
 			T flatten( T tolerance ) const;
 			T flattenOffset( T offset, T tolerance ) const;
 
@@ -199,12 +200,74 @@ namespace cvt {
 	size_t Spline2<T>::inflectionPoints( T (&t)[ 2 ] ) const
 	{
 		Vector2<T> a, b, c;
+		size_t n;
 
 		a = _pts[ 3 ] - _pts[ 0 ] + 3 * ( _pts[ 1 ] - _pts[ 2 ] );
 		b = _pts[ 0 ] + _pts[ 2 ] - 2 * _pts[ 1 ];
 		c = _pts[ 1 ] - _pts[ 0 ];
 
-		return Math::solveQuadratic( a.y * b.x - a.x * b.y, a.y * c.x - a.x * c.y, b.y * c.x - b.x * c.y, t );
+		n = Math::solveQuadratic( a.y * b.x - a.x * b.y, a.y * c.x - a.x * c.y, b.y * c.x - b.x * c.y, t );
+		if( n == 1 && ( t[ 0 ] < 0 || t[ 0 ] > 1 ) ) {
+			n = 0;
+		} else if( n == 2 ) {
+			if( t[ 0 ] < 0 || t[ 0 ] > 1 ) {
+				if( t[ 1 ] < 0  || t[ 1 ] > 1 ) {
+					n = 0;
+				} else {
+					t[ 0 ] = t[ 1 ];
+					n = 1;
+				}
+			} else if( t[ 1 ] < 0 || t[ 1 ] > 1 ) {
+				n = 1;
+			} else if( t[ 0 ] > t[ 1 ] ) {
+				T tmp = t[ 0 ];
+				t[ 0 ] = t[ 1 ];
+				t[ 1 ] = tmp;
+			}
+		}
+		return n;
+	}
+
+/*
+    Based on paper, "Fast, precise flattening of cubic Bezier path and offset curves"
+    from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
+ */
+	template<>
+	float Spline2<float>::flattenFirst( float tolerance ) const
+	{
+		float t;
+		float s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
+			   ( _pts[ 3 ].y - _pts[ 0 ].y ) * ( _pts[ 1 ].x - _pts[ 0 ].x );
+		float d1 = _pts[ 1 ].x - _pts[ 0 ].x;
+		float d2 = _pts[ 1 ].y - _pts[ 0 ].y;
+
+		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 );
+
+		if( s3 < 0 ) s3 = -s3;
+		t = powf( tolerance / s3, 0.333333f );
+		if( t < 0 ) t = -t;
+
+		if( t > 1 ) t = 1;
+		return t;
+	}
+
+	template<>
+	double Spline2<double>::flattenFirst( double tolerance ) const
+	{
+		double t;
+		double s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
+			   ( _pts[ 3 ].y - _pts[ 0 ].y ) * ( _pts[ 1 ].x - _pts[ 0 ].x );
+		double d1 = _pts[ 1 ].x - _pts[ 0 ].x;
+		double d2 = _pts[ 1 ].y - _pts[ 0 ].y;
+
+		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 );
+
+		if( s3 < 0 ) s3 = -s3;
+		t = pow( tolerance / s3, 0.333333 );
+		if( t < 0 ) t = -t;
+
+		if( t > 1 ) t = 1;
+		return t;
 	}
 
 
@@ -226,7 +289,7 @@ namespace cvt {
 
 		t = 2 * Math::sqrt( tolerance / ( 3 * s2 ) );
 
-		if( t > ( T ) 1 ) t = 1;
+		//if( t > ( T ) 1 ) t = 1;
 		return t;
 	}
 
@@ -262,7 +325,7 @@ namespace cvt {
 			e = ( T ) 1 + ( offset * s2 ) / ( 3 * r1 );
 
 		t = 2 * Math::sqrt( tolerance / ( 3 * s2abs * e ) );
-		if( t > ( T ) 1 ) t = 1;
+		//if( t > ( T ) 1 ) t = 1;
 		return t;
 	}
 
