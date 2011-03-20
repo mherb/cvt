@@ -11,6 +11,73 @@ class SplineUI : public Window
 	{
 	}
 
+#if 1
+	void drawSpline( GFX* g, const Spline2f& spl )
+	{
+//#define TEPS 0.01f
+#define TOLERANCE 0.5f
+
+		size_t n;
+		float t[ 2 ], alpha;
+		n = spl.inflectionPoints( t );
+		Spline2f a, b, c;
+
+			std::vector<Vector2f> lines;
+			if( n )
+				spl.split( a, b, t[ 0 ] );
+			else
+				a = spl;
+
+/*			lines.push_back( a[ 0 ] );
+			alpha =  a.flattenFirst( TOLERANCE );
+			a.remove( alpha );
+			lines.push_back( a[ 0 ] );*/
+
+			while( 1 ) {
+				lines.push_back( a[ 0 ] );
+				alpha =  a.flatten( TOLERANCE );
+				if( alpha < 1 ) {
+					a.remove( alpha );
+					lines.push_back( a[ 0 ] );
+				} else {
+					lines.push_back( a[ 3 ] );
+					break;
+				}
+			}
+
+			if( n == 1 ) {
+				lines.push_back( b[ 0 ] );
+				alpha =  b.flattenFirst( TOLERANCE );
+				b.remove( alpha );
+				lines.push_back( b[ 0 ] );
+				while( 1 ) {
+					lines.push_back( b[ 0 ] );
+					alpha =  b.flatten( TOLERANCE );
+					if( alpha < 1 ) {
+						b.remove( alpha );
+						lines.push_back( b[ 0 ] );
+					} else {
+						lines.push_back( b[ 3 ] );
+						break;
+					}
+				}
+			}
+
+			g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
+			g->drawLines( &lines[ 0 ], lines.size() );
+
+
+/*			g->fillRect( a[ 3 ].x - 4, a[ 3 ].y - 4,  8, 8 );
+			if( n == 2 ) {
+				Vector2f pt;
+				b.samplePoint( pt, ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
+				g->fillRect( pt.x - 4, pt.y - 4,  8, 8 );
+			}*/
+
+
+	}
+#endif
+
 	void paintEvent( PaintEvent* e, GFX* g )
 	{
 		Window::paintEvent( e, g );
@@ -43,23 +110,22 @@ class SplineUI : public Window
 				g->fillRoundRect( pt.x - 2, pt.y - 2,  4, 4, 2.0f );
 			}
 
-/*			if( n == 2 && t[ 0 ] > t[ 1 ] ) {
-				float tmp = t[ 0 ];
-				t[ 0 ] = t[ 1 ];
-				t[ 1 ] = tmp;
+			g->color().set( 0.0f, 0.0f, 1.0f, 0.25f );
+
+			Spline2f a, b;
+			if( n ) {
+				_spline.split( a, b, t[ 0 ] );
+				g->fillRect( a[ 3 ].x - 4, a[ 3 ].y - 4,  8, 8 );
 			}
-			g->color().set( 0.0f, 0.0f, 1.0f, 0.2f );
-				Spline2f a, b;
-				if( n != 0 && t[ 0 ] > 0.0f && t[ 0 ] < 1.0f ) {
-					_spline.split( a, b, t[ 0 ] );
-					g->fillRect( a[ 3 ].x - 4, a[ 3 ].y - 4,  8, 8 );
-					if( n == 2 && t[ 1 ] > 0.0f && t[ 1 ] < 1.0f ) {
-						Vector2f pt;
-						b.samplePoint( pt, ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
-						g->fillRect( pt.x - 4, pt.y - 4,  8, 8 );
-					}
-				}*/
+			if( n == 2 ) {
+				Vector2f pt;
+				b.samplePoint( pt, ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
+				g->fillRect( pt.x - 4, pt.y - 4,  8, 8 );
+			}
+
 		}
+		drawSpline( g, _spline );
+
 	}
 
 	void mousePressEvent( MousePressEvent* event )
