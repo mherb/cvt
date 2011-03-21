@@ -21,6 +21,7 @@ namespace cvt {
 
 			void mean( Eigen::Matrix<T, Eigen::Dynamic, 1>& m ) const;
 			void principleComponents(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p) const;
+			void principleComponents( Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues ) const;
 
 		private:
 			PCA();
@@ -94,6 +95,23 @@ namespace cvt {
 
 		p = _x * invn - m * m.transpose();
 		Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
+		std::cout << svd.singularValues() << std::endl;
+		p = svd.matrixU();
+	}
+
+	template<typename T>
+	void PCA<T>::principleComponents( Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues ) const
+	{
+		if( ( size_t ) p.rows() != _dimension || ( size_t ) p.cols() != _dimension || !_n )
+			return;
+
+		T invn = 1 / ( T ) _n;
+		Eigen::Matrix<T, Eigen::Dynamic, 1> m( _dimension );
+		mean( m );
+
+		p = _x * invn - m * m.transpose();
+		Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
+		svalues = svd.singularValues();
 		p = svd.matrixU();
 	}
 

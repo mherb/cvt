@@ -10,6 +10,8 @@
 #include <cvt/gfx/GFX.h>
 #include <stdio.h>
 
+#define GTLINEINPUT 1
+
 namespace cvt {
 	template<typename T>
 	class FaceShape : public MeasurementModel< T,
@@ -25,6 +27,7 @@ namespace cvt {
 			void	updateInput( const Image * img ){ _currI = img; updateInputData(); };
 			void	setTransform( T scale, T angle, T tx, T ty );
 			void	drawCurrent( GFX* g ) const;
+			void    draw( GFX* g, Matrix3<T>& transform, Eigen::Matrix<T, Eigen::Dynamic, 1 >& p ) const;
 
 			void	apply( const Eigen::Matrix<T, Eigen::Dynamic, 1> & delta );
 			T		buildLSSystem( Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & A, Eigen::Matrix<T, Eigen::Dynamic, 1> & b, const CostFunction<T, T> & costFunc );
@@ -32,17 +35,20 @@ namespace cvt {
 
 			Matrix3<T> transform() const { return _transform; };
 			Eigen::Matrix<T, Eigen::Dynamic, 1> weights() const { return _p; };
+			void resetWeights() { _p.setZero(); }
 
 		private:
 			void updateInputData();
 			void updateCurrent();
 			void loadFaceShape( const char* path );
 			bool sampleNormal( uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int _dx, int _dy, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist );
+			bool sampleNormalCanny( const uint8_t* cptr, uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int _dx, int _dy, size_t cstride, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist );
 
 			const Image* _currI;
 			IKernel _kdx, _kdy;
 			Image _dx;
 			Image _dy;
+			Image _canny;
 			size_t _ptsize;
 			size_t _pcsize;
 			size_t _lsize;
@@ -145,10 +151,12 @@ namespace cvt {
 	template<typename T>
 	inline void FaceShape<T>::updateInputData()
 	{
+#ifndef GTLINEINPUT
 		_dx.reallocate( *_currI );
 		_dy.reallocate( *_currI );
 		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
 		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
+#endif
 /*		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
@@ -182,6 +190,7 @@ namespace cvt {
 
 		_transform = TT * _transform;
 		_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
+//		_p.block( _pcsize - 5 , 0, 5, 1 ).setZero();
 		updateCurrent();
 	}
 
@@ -194,7 +203,8 @@ namespace cvt {
 		Eigen::Matrix<T, Eigen::Dynamic, 1> tmp;
 		uint8_t* dxptr;
 		uint8_t* dyptr;
-		size_t dxstride, dystride, dxbpp, dybpp;
+		const uint8_t* cptr;
+		size_t dxstride, dystride, cstride;
 		T ftmp;
 		size_t i1, i2;
 		T weight;
@@ -204,16 +214,17 @@ namespace cvt {
 		b = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 + _pcsize );
 		tmp = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 + _pcsize );
 
-		dxbpp = _dx.bpp();
+#ifndef GTLINEINPUT
 		dxptr = _dx.map<uint8_t>( &dxstride );
-		dybpp = _dx.bpp();
 		dyptr = _dy.map<uint8_t>( &dystride );
+#else
+		cptr = _currI->map<uint8_t>( & cstride );
+#endif
 
-
-#define MAXDIST 35
+#define MAXDIST 25
 #define INCR	0.01f
 #define COSMAX	0.5f
-#define THRESHOLD 0.001f
+#define THRESHOLD 0.01f
 
 		_costs = 0;
 
@@ -232,8 +243,8 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 3.0f / dp.length();
-			incr = Math::clamp( incr, 0.01f, 0.20f );
+			float incr = 10.0f / dp.length();
+			incr = Math::clamp( incr, 0.1f, 0.25f );
 			Matrix2<T> Ttmp( _transform );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
@@ -247,8 +258,13 @@ namespace cvt {
 					ptmp = Ttmp * ptmp;
 					tmp( 4 + k ) = n * ptmp;
 				}
+#ifndef GTLINEINPUT
 				if( sampleNormal( dxptr, dyptr, Math::round( p.x ), Math::round( p.y ),
 								 Math::round( pts[ 1 ].x - pts[ 0 ].x ), Math::round( pts[ 1 ].y - pts[ 0 ].y ), dxstride, dystride, n, ftmp ) ) {
+#else
+				if( sampleNormalCanny( cptr, NULL, NULL, Math::round( p.x ), Math::round( p.y ),
+								 Math::round( pts[ 1 ].x - pts[ 0 ].x ), Math::round( pts[ 1 ].y - pts[ 0 ].y ), cstride, dxstride, dystride, n, ftmp ) ) {
+#endif
 					_costs += costFunc.cost( ftmp, weight );
 					lines++;
 
@@ -263,8 +279,8 @@ namespace cvt {
 			}
 		}
 
-/*		A /= ( T ) lines;
-		b /= ( T ) lines;*/
+		A /= ( T ) lines;
+		b /= ( T ) lines;
 		tmp.block( 4, 0, _pcsize, 1 ) = _p;
 //		tmp.setOnes( 4 + _pcsize );
 		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
@@ -274,11 +290,17 @@ namespace cvt {
 		reg( 1 , 1 ) = 0;
 		reg( 2 , 2 ) = 0;
 		reg( 3 , 3 ) = 0;
-		A += 25.0f * reg;
-		b -= 25.0f * tmp;
+		A.diagonal() += tmp;
+		A += 5.0f * reg;
+//		b.cwise() -= 2.0f * _p.sum() / lines;
+//		b -= 1.0f * A.transpose() *  tmp;
 
+#ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
 		_dy.unmap( dyptr );
+#else
+		_currI->unmap( cptr );
+#endif
 		return _costs / ( T ) lines;
 	}
 
@@ -367,6 +389,94 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline bool FaceShape<T>::sampleNormalCanny( const uint8_t* cptr, uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int deltax, int deltay, size_t cstride, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist )
+	{
+		int dy = - deltax;
+		int dx =   deltay;
+		ssize_t incx, incy;
+		int sx, sy;
+		int x, y;
+		size_t bpp, dxbpp, dybpp;
+		size_t w, h;
+		int err = dx + dy;
+		int e2;
+		Vector2<T> grad;
+
+		w = _currI->width();
+		h = _currI->height();
+		bpp = _canny.bpp();
+#ifndef GTLINEINPUT
+		dxbpp = _dx.bpp();
+		dybpp = _dy.bpp();
+#endif
+
+		if( deltay < 0 ) {
+			incx = -bpp;
+			sx   = -1;
+		} else {
+			incx = bpp;
+			sx   = 1;
+		}
+
+		if( deltax < 0 ) {
+			incy = cstride;
+			sy   = 1;
+		} else {
+			incy = -cstride;
+			sy   = -1;
+		}
+		x = y = 0;
+
+		const uint8_t* cptr1 = cptr + _x * bpp + _y * cstride;
+		const uint8_t* cptr2 = cptr + _x * bpp + _y * cstride;
+
+		size_t n = MAXDIST;
+		float mag;
+		while( n-- ) {
+			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
+				if( *( ( const float* ) cptr1 ) > 0 ) {
+#ifndef GTLINEINPUT
+					grad.x = *( ( float* ) ( dxptr + ( _x + x ) * dxbpp + ( _y + y ) * dxstride ) );
+					grad.y = *( ( float* ) ( dyptr + ( _x + x ) * dybpp + ( _y + y ) * dystride ) );
+					if( Math::abs( norm * grad ) >= COSMAX ) {
+#else
+					{
+#endif
+						dist = Math::sqrt( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+						return true;
+					}
+				}
+			}
+			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
+				if( *( ( const float* ) cptr2 ) > 0 ) {
+#ifndef GTLINEINPUT
+				grad.x = *( ( float* ) ( dxptr + ( _x - x ) * dxbpp + ( _y - y ) * dxstride ) );
+				grad.y = *( ( float* ) ( dyptr + ( _x - x ) * dybpp + ( _y - y ) * dystride ) );
+				if( Math::abs( norm * grad ) >= COSMAX ) {
+#else
+					{
+#endif
+						dist = - Math::sqrt( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+						return true;
+					}
+				}
+			}
+			e2 = 2 * err;
+			if( e2 >= dy ) {
+				err += dy;
+				cptr1 += incx; cptr2 -= incx;
+				x += sx;
+			}
+			if( e2 <= dx ) {
+				err += dx;
+				cptr1 += incy; cptr2 -= incy;
+				y += sy;
+			}
+		}
+		return false;
+	}
+
+	template<typename T>
 	inline void FaceShape<T>::drawCurrent( GFX* g ) const
 	{
 		Vector2f pts[ 2 ];
@@ -380,6 +490,34 @@ namespace cvt {
 			pts[ 1 ].x = _pts[ i2 * 2 ];
 			pts[ 1 ].y = _pts[ i2 * 2 + 1 ];
 			g->drawLines( pts, 1 );
+		}
+	}
+
+	template<typename T>
+	inline void FaceShape<T>::draw( GFX* g, Matrix3<T>& transform, Eigen::Matrix<T, Eigen::Dynamic, 1 >& p ) const
+	{
+		Vector2f lpts[ 2 ];
+		Vector2<T> pt, pt2;
+		size_t i1, i2;
+		Eigen::Matrix<T, Eigen::Dynamic, 1 > pts;
+
+		pts = _mean + _pc * p;
+		for( size_t i = 0; i < _ptsize; i++ ) {
+			pt.x = pts[ i * 2 ];
+			pt.y = pts[ i * 2 + 1 ];
+			pt = transform * pt;
+			pts[ i * 2 ] = pt.x;
+			pts[ i * 2 + 1 ] = pt.y;
+		}
+
+		for( size_t i = 0; i < _lsize; i++ ) {
+			i1 = _lines[ i * 2 ];
+			i2 = _lines[ i * 2 + 1 ];
+			lpts[ 0 ].x = pts[ i1 * 2 ];
+			lpts[ 0 ].y = pts[ i1 * 2 + 1 ];
+			lpts[ 1 ].x = pts[ i2 * 2 ];
+			lpts[ 1 ].y = pts[ i2 * 2 + 1 ];
+			g->drawLines( lpts, 1 );
 		}
 	}
 }
