@@ -15,7 +15,7 @@ class SplineUI : public Window
 	void drawSpline( GFX* g, const Spline2f& spl )
 	{
 //#define TEPS 0.01f
-#define TOLERANCE 0.5f
+#define TOLERANCE 0.25f
 
 		size_t n;
 		float t[ 2 ], alpha;
@@ -28,10 +28,11 @@ class SplineUI : public Window
 			else
 				a = spl;
 
-/*			lines.push_back( a[ 0 ] );
+			lines.push_back( a[ 0 ] );
 			alpha =  a.flattenFirst( TOLERANCE );
+			alpha =  Math::min( a.flatten( TOLERANCE ), alpha );
 			a.remove( alpha );
-			lines.push_back( a[ 0 ] );*/
+			lines.push_back( a[ 0 ] );
 
 			while( 1 ) {
 				lines.push_back( a[ 0 ] );
@@ -45,7 +46,11 @@ class SplineUI : public Window
 				}
 			}
 
-			if( n == 1 ) {
+			if( n ) {
+				if( n == 2 ) {
+					a = b;
+					a.split( b, c,  ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
+				}
 				lines.push_back( b[ 0 ] );
 				alpha =  b.flattenFirst( TOLERANCE );
 				b.remove( alpha );
@@ -59,6 +64,23 @@ class SplineUI : public Window
 					} else {
 						lines.push_back( b[ 3 ] );
 						break;
+					}
+				}
+				if( n == 2 ) {
+					lines.push_back( c[ 0 ] );
+					alpha =  c.flattenFirst( TOLERANCE );
+					c.remove( alpha );
+					lines.push_back( c[ 0 ] );
+					while( 1 ) {
+						lines.push_back( c[ 0 ] );
+						alpha =  c.flatten( TOLERANCE );
+						if( alpha < 1 ) {
+							c.remove( alpha );
+							lines.push_back( c[ 0 ] );
+						} else {
+							lines.push_back( c[ 3 ] );
+							break;
+						}
 					}
 				}
 			}
@@ -82,12 +104,12 @@ class SplineUI : public Window
 	{
 		Window::paintEvent( e, g );
 
-		g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+	/*	g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
 		for( float t = 0.0f; t < 1.0f; t += 0.01f ) {
 			Vector2f pt;
 			_spline.samplePoint( pt, t );
 			g->fillRoundRect( pt.x - 1, pt.y - 1,  2, 2, 1.0f );
-		}
+		}*/
 
 		g->color().set( 1.0f, 0.0f, 0.0f, 0.5f );
 		g->drawLine( _spline[ 0 ].x, _spline[ 0 ].y, _spline[ 1 ].x, _spline[ 1 ].y );
