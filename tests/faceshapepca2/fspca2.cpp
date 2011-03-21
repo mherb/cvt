@@ -202,7 +202,7 @@ int main( int argc, char** argv )
 
 	/* align stuff */
 
-	int INITMEAN = atoi( argv[ 2 ] );
+	int INITMEAN = 106; //optimal value for muct database of the first 200 //atoi( argv[ 2 ] );
 //#define INITMEAN 200
 	PointSet2f meanshape( allpts[ INITMEAN ] );
 	meanshape.normalize();
@@ -272,8 +272,15 @@ int main( int argc, char** argv )
 
 	Eigen::Matrix<float, Eigen::Dynamic, 1> mean( SAMPLEPTS * 2 );
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> pc( SAMPLEPTS * 2, SAMPLEPTS * 2 );
+	Eigen::Matrix<float, Eigen::Dynamic, 1> svalues( SAMPLEPTS * 2 );
 	pca.mean( mean );
-	pca.principleComponents( pc );
+	pca.principleComponents( pc, svalues );
+
+	std::cout << svalues << std::endl;
+
+//	std::cout << std::endl << mean( 7 * 2 ) << " " << mean( 7 * 2 + 1 ) << std::endl;
+//	std::cout << mean( 39 * 2 ) << " " << mean( 39 * 2 + 1 ) << std::endl;
+//	std::cout << "ROTDIFF: " << INITMEAN << " " << Math::abs( mean( 7 * 2 ) - mean( 39 * 2  ) ) << std::endl;
 
 #define OUTPUTDATA 1
 #ifdef OUTPUTDATA
