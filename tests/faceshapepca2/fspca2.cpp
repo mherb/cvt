@@ -276,7 +276,7 @@ int main( int argc, char** argv )
 	pca.mean( mean );
 	pca.principleComponents( pc, svalues );
 
-	std::cout << svalues << std::endl;
+//	std::cout << svalues << std::endl;
 
 //	std::cout << std::endl << mean( 7 * 2 ) << " " << mean( 7 * 2 + 1 ) << std::endl;
 //	std::cout << mean( 39 * 2 ) << " " << mean( 39 * 2 + 1 ) << std::endl;
@@ -292,6 +292,9 @@ int main( int argc, char** argv )
 	fwrite( &tmp, sizeof( uint32_t ), 1, f );
 	for( size_t i = 0; i < SAMPLEPTS * 2; i++ )
 		fwrite( &mean( i ), sizeof( float ), 1, f );
+
+	for( size_t i = 0; i < MAXPC; i++ )
+		fwrite( &svalues( i ), sizeof( float ), 1, f );
 
 	for( size_t c = 0; c < MAXPC; c++ ) {
 		for( size_t i = 0; i < SAMPLEPTS * 2; i++ )
