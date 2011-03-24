@@ -57,6 +57,7 @@ namespace cvt {
 			Matrix3<T> _transform;
 			Eigen::Matrix<T, Eigen::Dynamic, 1 > _p;
 			Eigen::Matrix<T, Eigen::Dynamic, 1 > _mean;
+			Eigen::Matrix<T, Eigen::Dynamic, 1 > _regcovar;
 			Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic > _pc;
 			Eigen::Matrix<T, Eigen::Dynamic, 1 > _pts;
 	};
@@ -92,6 +93,7 @@ namespace cvt {
 		_pcsize = tmp;
 
 		_mean = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _ptsize * 2 );
+		_regcovar = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _pcsize );
 		_pc = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _ptsize * 2, _pcsize );
 		_p = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _pcsize );
 		_pts = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _ptsize * 2 );
@@ -100,6 +102,11 @@ namespace cvt {
 		for( size_t i = 0; i < _ptsize * 2; i++ ) {
 			fread( &ftmp, sizeof( float ), 1, f );
 			_mean( i ) = ftmp;
+		}
+
+		for( size_t i = 0; i < _pcsize; i++ ) {
+			fread( &ftmp, sizeof( float ), 1, f );
+			_regcovar( i ) = 1.0f / ( ftmp * ftmp );
 		}
 
 		for( size_t c = 0; c < _pcsize; c++ ) {
@@ -221,9 +228,9 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 15
+#define MAXDIST 25
 #define INCR	0.01f
-#define COSMAX	0.5f
+#define COSMAX	0.6f
 #define THRESHOLD 0.01f
 
 		_costs = 0;
@@ -281,20 +288,20 @@ namespace cvt {
 
 //		A /= ( T ) lines;
 //		b /= ( T ) lines;
-		tmp.block( 4, 0, _pcsize, 1 ) = _p;
-//		tmp.setOnes( 4 + _pcsize );
+		tmp.block( 4, 0, _pcsize, 1 ) = _regcovar;
 		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
-		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> reg = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize + 4, _pcsize + 4 );
-		reg.setIdentity();
-		reg( 0 , 0 ) = 0;
-		reg( 1 , 1 ) = 0;
-		reg( 2 , 2 ) = 0;
-		reg( 3 , 3 ) = 0;
-		A.diagonal() *= 50.0f;
+//		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> reg = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize + 4, _pcsize + 4 );
+//		reg.setIdentity();
+//		reg( 0 , 0 ) = 0;
+//		reg( 1 , 1 ) = 0;
+//		reg( 2 , 2 ) = 0;
+//		reg( 3 , 3 ) = 0;
+		A.diagonal() += 5.0f * tmp;
 //		A += 20000.0f * reg;
 //		b.cwise() -= 2.0f * _p.sum() / lines;
 //		b -= 1.0f * A.transpose() *  tmp;
-		b -= 50.0f * tmp;
+		tmp.block( 4, 0, _pcsize, 1 ).cwise() *= _p;
+		b -= 5.0f * tmp;
 
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
