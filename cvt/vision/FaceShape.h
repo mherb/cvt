@@ -10,7 +10,7 @@
 #include <cvt/gfx/GFX.h>
 #include <stdio.h>
 
-#define GTLINEINPUT 1
+//#define GTLINEINPUT 1
 
 namespace cvt {
 	template<typename T>
@@ -221,7 +221,7 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 25
+#define MAXDIST 15
 #define INCR	0.01f
 #define COSMAX	0.5f
 #define THRESHOLD 0.01f
@@ -279,8 +279,8 @@ namespace cvt {
 			}
 		}
 
-		A /= ( T ) lines;
-		b /= ( T ) lines;
+//		A /= ( T ) lines;
+//		b /= ( T ) lines;
 		tmp.block( 4, 0, _pcsize, 1 ) = _p;
 //		tmp.setOnes( 4 + _pcsize );
 		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
@@ -290,10 +290,11 @@ namespace cvt {
 		reg( 1 , 1 ) = 0;
 		reg( 2 , 2 ) = 0;
 		reg( 3 , 3 ) = 0;
-		A.diagonal() += tmp;
-		A += 5.0f * reg;
+		A.diagonal() *= 50.0f;
+//		A += 20000.0f * reg;
 //		b.cwise() -= 2.0f * _p.sum() / lines;
 //		b -= 1.0f * A.transpose() *  tmp;
+		b -= 50.0f * tmp;
 
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );

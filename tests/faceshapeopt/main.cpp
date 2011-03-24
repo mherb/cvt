@@ -7,7 +7,7 @@
 
 using namespace cvt;
 
-#define GTLINEINPUT 1
+//#define GTLINEINPUT 1
 
 int main()
 {
@@ -24,7 +24,11 @@ int main()
 //	srand( time( NULL ) );
 
 	FaceShape<float> fs;
+#ifndef GTLINEINPUT
+	fs.setTransform( 35, 0, 265, 205 );
+#else
 	fs.setTransform( 50, 0, 310, 195 );
+#endif
 
 	do {
 #ifndef GTLINEINPUT
@@ -74,11 +78,19 @@ int main()
 		  std::cout << std::endl << fs.weights() << std::endl;
 
 		{
+#ifndef GTLINEINPUT
+			GFXEngineImage ge( imgu );
+#else
 			GFXEngineImage ge( input );
+#endif
 			GFX g( &ge );
-			g.color().set( 0.5f, 0.5f, 0.5f, 1.0f );
+			g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 			fs.drawCurrent( &g );
+#ifndef GTLINEINPUT
+			ImageIO::savePNG( imgu, "faceshapeopt.png" );
+#else
 			ImageIO::savePNG( input, "faceshapeopt.png" );
+#endif
 		}
 //		usleep( 500 );
 		bla = getchar();
