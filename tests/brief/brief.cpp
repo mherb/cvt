@@ -43,14 +43,13 @@ size_t removeBorderCorners( size_t patchSize, size_t width, size_t height, std::
     int bw = width - b0;
     int bh = height - b0;
     
-    std::cout << "BORDER REMOVING: \n\tMin Width & height: " << b0 << "\n\tMaxWidth: " << bw << "\n\tMaxHeight: " << bh << std::endl; 
+    //std::cout << "BORDER REMOVING: \n\tMin Width & height: " << b0 << "\n\tMaxWidth: " << bw << "\n\tMaxHeight: " << bh << std::endl; 
     
     size_t numGood = 0;    
     while( r != end ){
         if( r->x > b0 && r->y > b0 &&
             r->x < bw && r->y < bh ) {
             // correct pixel
-            std::cout << "Good Feature: " << r->x << ", " << r->y << std::endl;
             if( r != w ){
                 *w = *r;
             }
@@ -95,7 +94,7 @@ int main()
 
 		AGAST agast( OAST_9_16 );
 		agast.setNonMaxSuppress( true );
-		agast.setThreshold( 60 );
+		agast.setThreshold( 40 );
 
 		// detect features in input:
 		std::vector<Feature2D> features0;
