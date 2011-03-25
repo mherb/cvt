@@ -386,19 +386,20 @@ namespace cvt
 
 			Eigen::Matrix<_T,dim,1> s;
 			s.setOnes();
-			mdet = mat.determinant();
 
 			Eigen::SVD<Eigen::Matrix<_T,dim,dim> > svd( mat );
-			if( mdet / svd.singularValues().asDiagonal().determinant() < 0 )
-				s( dim - 1 ) = -1;
+			if( Math::abs( svd.singularValues()[ dim - 1 ] ) <= Math::EPSILONF  ) {
+				if( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
+					s( dim - 1 ) = -1;
+			} else {
+				mdet = mat.determinant();
+				if( mdet < 0 )
+					s( dim - 1 ) = -1;
+			}
+
 
 			mat = svd.matrixU() * s.asDiagonal() * svd.matrixV().transpose();
-
-			if( mdet < 0 )
-				s( dim - 1 ) = -1;
-			else
-				s( dim - 1 ) = 1;
-			mat *= ( svd.singularValues().asDiagonal() * s.asDiagonal() ).trace() / s2;
+			mat *= svd.singularValues().dot( s ) / s2;
 
 			for( int i = 0; i < dim; i++)
 				for( int k = 0; k < dim; k++)

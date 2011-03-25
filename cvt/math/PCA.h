@@ -95,7 +95,6 @@ namespace cvt {
 
 		p = _x * invn - m * m.transpose();
 		Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
-		std::cout << svd.singularValues() << std::endl;
 		p = svd.matrixU();
 	}
 
