@@ -163,8 +163,7 @@ namespace cvt {
 		_dy.reallocate( *_currI );
 		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
 		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
-#endif
-/*		Image blax( _dx );
+		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
 		blay.mul( _dy );
@@ -172,7 +171,8 @@ namespace cvt {
 		blax.mul( 100.0f );
 		ImageIO::savePNG( blax, "DXDY.png" );
 		ImageIO::savePNG( _dx, "DX.png" );
-		ImageIO::savePNG( _dy, "DY.png" );*/
+		ImageIO::savePNG( _dy, "DY.png" );
+#endif
 	}
 
 
@@ -228,10 +228,10 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 25
+#define MAXDIST 5
 #define INCR	0.01f
-#define COSMAX	0.6f
-#define THRESHOLD 0.01f
+#define COSMAX	0.5f
+#define THRESHOLD 0.001f
 
 		_costs = 0;
 
@@ -250,9 +250,8 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 10.0f / dp.length();
+			float incr = 4.0f / dp.length();
 			incr = Math::clamp( incr, 0.1f, 0.25f );
-			Matrix2<T> Ttmp( _transform );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 				tmp( 0 ) = n * p;
@@ -262,7 +261,7 @@ namespace cvt {
 				for( size_t k = 0; k < _pcsize; k++ ) {
 					ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
 					ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
-					ptmp = Ttmp * ptmp;
+					ptmp = _transform * ptmp;
 					tmp( 4 + k ) = n * ptmp;
 				}
 #ifndef GTLINEINPUT
@@ -289,19 +288,19 @@ namespace cvt {
 //		A /= ( T ) lines;
 //		b /= ( T ) lines;
 		tmp.block( 4, 0, _pcsize, 1 ) = _regcovar;
-		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0;
+		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.01f;
 //		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> reg = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize + 4, _pcsize + 4 );
 //		reg.setIdentity();
 //		reg( 0 , 0 ) = 0;
 //		reg( 1 , 1 ) = 0;
 //		reg( 2 , 2 ) = 0;
 //		reg( 3 , 3 ) = 0;
-		A.diagonal() += 5.0f * tmp;
+		A.diagonal() += 10.0f * tmp;
 //		A += 20000.0f * reg;
 //		b.cwise() -= 2.0f * _p.sum() / lines;
 //		b -= 1.0f * A.transpose() *  tmp;
 		tmp.block( 4, 0, _pcsize, 1 ).cwise() *= _p;
-		b -= 5.0f * tmp;
+		b -= 10.0f * tmp;
 
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
@@ -373,6 +372,7 @@ namespace cvt {
 			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
 				grad.x = *( ( float* ) dxptr2 );
 				grad.y = *( ( float* ) dyptr2 );
+
 				mag = grad.normalize();
 				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
 					dist = - Math::sqrt( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
@@ -442,7 +442,7 @@ namespace cvt {
 		float mag;
 		while( n-- ) {
 			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
-				if( *( ( const float* ) cptr1 ) > 0 ) {
+				if( *( ( const float* ) cptr1 ) > 0.5f ) {
 #ifndef GTLINEINPUT
 					grad.x = *( ( float* ) ( dxptr + ( _x + x ) * dxbpp + ( _y + y ) * dxstride ) );
 					grad.y = *( ( float* ) ( dyptr + ( _x + x ) * dybpp + ( _y + y ) * dystride ) );
@@ -456,7 +456,7 @@ namespace cvt {
 				}
 			}
 			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
-				if( *( ( const float* ) cptr2 ) > 0 ) {
+				if( *( ( const float* ) cptr2 ) > 0.5f ) {
 #ifndef GTLINEINPUT
 				grad.x = *( ( float* ) ( dxptr + ( _x - x ) * dxbpp + ( _y - y ) * dxstride ) );
 				grad.y = *( ( float* ) ( dyptr + ( _x - x ) * dybpp + ( _y - y ) * dystride ) );

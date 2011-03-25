@@ -49,9 +49,9 @@ int main()
 			Eigen::Matrix<float, Eigen::Dynamic, 1> w = fs.weights();
 			w.setZero();
 			for( int i = 0; i < 5; i++ )
-				w[ i ] = Math::rand( -0.5f, 0.5f );
+				w[ i ] = Math::rand( -0.25f, 0.25f );
 
-			std::cout << std::endl << w << std::endl;
+//			std::cout << std::endl << w << std::endl;
 			Matrix3f t;
 			t.identity();
 			t[ 0 ][ 0 ] = 50.0f;
@@ -66,16 +66,16 @@ int main()
 #endif
 
 		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
-		termCrit.setCostThreshold( 0.4f );
-		termCrit.setMaxIterations( 25 );
+		termCrit.setCostThreshold( 0.1f );
+		termCrit.setMaxIterations( 250 );
 		GaussNewton<float>	gn;
 		SquaredDistance<float, float> costFunc;
 
 		gn.optimize( fs, costFunc, termCrit );
 		std::cout << gn.iterations() << std::endl;
 		std::cout << gn.costs() << std::endl;
-		/*  std::cout << fs.transform() << std::endl;*/
-		  std::cout << std::endl << fs.weights() << std::endl;
+//		  std::cout << fs.transform() << std::endl;
+//		  std::cout << std::endl << fs.weights() << std::endl;
 
 		{
 #ifndef GTLINEINPUT

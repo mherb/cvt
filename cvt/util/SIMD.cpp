@@ -1171,6 +1171,21 @@ namespace cvt {
 			*dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
 	}
 
+
+	void SIMD::Conv_GRAYf_to_GRAYu8( uint8_t* dst, const float* src, const size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ = F_TO_SRGB_U8( *src++ );
+			*dst++ = F_TO_SRGB_U8( *src++ );
+			*dst++ = F_TO_SRGB_U8( *src++ );
+			*dst++ = F_TO_SRGB_U8( *src++ );
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = F_TO_SRGB_U8( *src++ );
+	}
+
 	void SIMD::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -1346,6 +1361,34 @@ namespace cvt {
 			v = 0.2126f * SRGB_U8_TO_F( tmp & 0xff );
 			v += 0.7152f * SRGB_U8_TO_F( ( tmp >> 8 ) & 0xff );
 			v += 0.0722f * SRGB_U8_TO_F( ( tmp >> 16 ) & 0xff );
+			*dst++ = v;
+		}
+	}
+
+	void SIMD::Conv_BGRAf_to_GRAYf( float* dst, const float* src, const size_t n ) const
+	{
+		size_t i = n;
+		float v;
+
+		while( i-- ) {
+			v = 0.0722f * *src++;
+			v += 0.7152f * *src++;
+			v += 0.2126f * *src++;
+			src++;
+			*dst++ = v;
+		}
+	}
+
+	void SIMD::Conv_RGBAf_to_GRAYf( float* dst, const float* src, const size_t n ) const
+	{
+		size_t i = n;
+		float v;
+
+		while( i-- ) {
+			v = 0.2126f * *src++;
+			v += 0.7152f * *src++;
+			v += 0.0722f * *src++;
+			src++;
 			*dst++ = v;
 		}
 	}

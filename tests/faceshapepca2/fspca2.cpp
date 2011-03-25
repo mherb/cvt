@@ -133,7 +133,7 @@ class FaceShapeWin : public Window
 	{
 	   _current = 100.0 * ( _mean + _pc * _weights );
 	   _current.cwise() += 250.0f;
-	 		_pts.clear();
+	 	_pts.clear();
 		for( int i = 0; i < LINEPTS; i++ ) {
 			int a = map[ i ][ 0 ];
 			int b = map[ i ][ 1 ];
@@ -151,6 +151,49 @@ class FaceShapeWin : public Window
 		Eigen::VectorXf _mean;
 		Eigen::MatrixXf _pc;
 };
+
+void mirrorFace( PointSet2f& face )
+{
+	Vector2f tmp;
+#define SWAP( a, b ) do { tmp = face[ a ]; face[ a ] = face[ b ]; face[ b ] = tmp; } while( 0 )
+	SWAP( 0, 14 );
+	SWAP( 1, 13 );
+	SWAP( 2, 12 );
+	SWAP( 3, 11 );
+	SWAP( 4, 10 );
+	SWAP( 5, 9 );
+	SWAP( 6, 8 );
+
+	SWAP( 35, 43 );
+	SWAP( 36, 42 );
+	SWAP( 37, 41 );
+	SWAP( 38, 40 );
+
+	SWAP( 44, 50 );
+	SWAP( 45, 49 );
+	SWAP( 46, 48 );
+	SWAP( 61, 59 );
+	SWAP( 56, 58 );
+	SWAP( 54, 52 );
+	SWAP( 55, 51 );
+
+	SWAP( 21, 15 );
+	SWAP( 22, 16 );
+	SWAP( 23, 17 );
+	SWAP( 24, 18 );
+	SWAP( 25, 19 );
+	SWAP( 26, 20 );
+
+	SWAP( 27, 31 );
+	SWAP( 28, 32 );
+	SWAP( 29, 33 );
+	SWAP( 30, 34 );
+
+	Matrix3f swapsign;
+	swapsign.identity();
+	swapsign[ 0 ][ 0 ] = -1;
+	face.transform( swapsign );
+}
 
 int main( int argc, char** argv )
 {
@@ -198,6 +241,13 @@ int main( int argc, char** argv )
 	}
 	file.close();
 
+
+	size_t npts = allpts.size();
+	for( size_t i = 0; i < npts; i++ ) {
+		PointSet2f mirrored( allpts[ i ] );
+		mirrorFace( mirrored );
+		allpts.push_back( mirrored );
+	}
 	std::cout << "Read " << allpts.size() << " entries" << std::endl;
 
 	/* align stuff */
@@ -217,7 +267,7 @@ int main( int argc, char** argv )
 	meanshape.normalize();
 
 	std::cout << "Initial mean" << std::endl;
-	size_t iter = 50;
+	size_t iter = 100;
 	while( iter-- ) {
 		PointSet2f newmean;
 		newmean.resize( SAMPLEPTS );
@@ -233,16 +283,16 @@ int main( int argc, char** argv )
 		meanshape = newmean;
 	}
 
-/*	for( size_t i = 0; i < allpts.size(); i++ ) {
+	for( size_t i = 0; i < allpts.size(); i++ ) {
 			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
 			allpts[ i ].transform( sim );
-			std::cout << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
-	}*/
+//			std::cout << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
+	}
 	for( std::vector<PointSet2f>::iterator it = allpts.begin(); it != allpts.end(); ++it ) {
 		Matrix3f sim = it->alignSimilarity( meanshape );
 		it->transform( sim );
 //		std::cout << it->maxSquaredDistance( meanshape ) << std::endl;
-		if( it->maxSquaredDistance( meanshape ) > 0.45f )
+		if( it->maxSquaredDistance( meanshape ) > 1.0f )
 			allpts.erase( it );
 	}
 
