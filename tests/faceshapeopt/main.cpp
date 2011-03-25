@@ -23,7 +23,7 @@ int main()
 
 //	srand( time( NULL ) );
 
-	FaceShape<float> fs;
+	FaceShape<double> fs;
 #ifndef GTLINEINPUT
 	fs.setTransform( 35, 0, 265, 205 );
 #else
@@ -54,8 +54,10 @@ int main()
 //			std::cout << std::endl << w << std::endl;
 			Matrix3f t;
 			t.identity();
-			t[ 0 ][ 0 ] = 50.0f;
-			t[ 1 ][ 1 ] = 50.0f;
+			t[ 0 ][ 0 ] = 50.0f + Math::rand( -1.0f, 1.0f );
+			t[ 1 ][ 1 ] = 50.0f + Math::rand( -1.0f, 1.0f );
+			t[ 0 ][ 1 ] = Math::rand( -2.5f, 2.5f );
+			t[ 1 ][ 0 ] = -t[ 0 ][ 1 ];
 			t[ 0 ][ 2 ] = 300.0f;
 			t[ 1 ][ 2 ] = 200.0f;
 			fs.draw( &g, t, w );
@@ -65,11 +67,11 @@ int main()
 		fs.updateInput( &input );
 #endif
 
-		TerminationCriteria<float>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
+		TerminationCriteria<double>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
 		termCrit.setCostThreshold( 0.1f );
-		termCrit.setMaxIterations( 250 );
-		GaussNewton<float>	gn;
-		SquaredDistance<float, float> costFunc;
+		termCrit.setMaxIterations( 25 );
+		GaussNewton<double>	gn;
+		SquaredDistance<double, double> costFunc;
 
 		gn.optimize( fs, costFunc, termCrit );
 		std::cout << gn.iterations() << std::endl;
