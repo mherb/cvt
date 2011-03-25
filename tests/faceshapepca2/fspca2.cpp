@@ -334,7 +334,7 @@ int main( int argc, char** argv )
 
 #define OUTPUTDATA 1
 #ifdef OUTPUTDATA
-#define MAXPC 15
+#define MAXPC 10
 	FILE* f = fopen("face.data","wb");
 	uint32_t tmp = SAMPLEPTS;
 	fwrite( &tmp, sizeof( uint32_t ), 1, f );

@@ -228,7 +228,7 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 5
+#define MAXDIST 25
 #define INCR	0.01f
 #define COSMAX	0.5f
 #define THRESHOLD 0.001f
@@ -250,14 +250,14 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 4.0f / dp.length();
+			float incr = 10.0f / dp.length();
 			incr = Math::clamp( incr, 0.1f, 0.25f );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 				tmp( 0 ) = n * p;
 				tmp( 1 ) = - n.x * p.y + n.y * p.x;
-				tmp( 2 ) = p.x;
-				tmp( 3 ) = p.y;
+				tmp( 2 ) = n.x * p.x;
+				tmp( 3 ) = n.y * p.y;
 				for( size_t k = 0; k < _pcsize; k++ ) {
 					ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
 					ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
@@ -285,22 +285,11 @@ namespace cvt {
 			}
 		}
 
-//		A /= ( T ) lines;
-//		b /= ( T ) lines;
 		tmp.block( 4, 0, _pcsize, 1 ) = _regcovar;
-		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.01f;
-//		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> reg = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize + 4, _pcsize + 4 );
-//		reg.setIdentity();
-//		reg( 0 , 0 ) = 0;
-//		reg( 1 , 1 ) = 0;
-//		reg( 2 , 2 ) = 0;
-//		reg( 3 , 3 ) = 0;
-		A.diagonal() += 10.0f * tmp;
-//		A += 20000.0f * reg;
-//		b.cwise() -= 2.0f * _p.sum() / lines;
-//		b -= 1.0f * A.transpose() *  tmp;
+		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
+		A.diagonal() += 1.0f * tmp;
 		tmp.block( 4, 0, _pcsize, 1 ).cwise() *= _p;
-		b -= 10.0f * tmp;
+		b -= 1.0f * tmp;
 
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
