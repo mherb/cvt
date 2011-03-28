@@ -163,7 +163,7 @@ namespace cvt {
 		_dy.reallocate( *_currI );
 		_currI->convolve( _dx, _kdx, IKernel::GAUSS_VERTICAL_3 );
 		_currI->convolve( _dy, IKernel::GAUSS_HORIZONTAL_3, _kdy);
-		Image blax( _dx );
+/*		Image blax( _dx );
 		blax.mul( _dx );
 		Image blay( _dy );
 		blay.mul( _dy );
@@ -171,7 +171,7 @@ namespace cvt {
 		blax.mul( 100.0f );
 		ImageIO::savePNG( blax, "DXDY.png" );
 		ImageIO::savePNG( _dx, "DX.png" );
-		ImageIO::savePNG( _dy, "DY.png" );
+		ImageIO::savePNG( _dy, "DY.png" );*/
 #endif
 	}
 
@@ -179,25 +179,29 @@ namespace cvt {
 	template<typename T>
 	inline void	FaceShape<T>::apply( const Eigen::Matrix<T, Eigen::Dynamic, 1> & delta )
 	{
-		T angle = delta( 1 );
-		T s = 1 + delta( 0 );
+		static bool flip = true;
+		T s1 = 1 + delta( 0 );
+		T s2 = delta( 1 );
 		T tx = delta( 2 );
 		T ty = delta( 3 );
-		Matrix2<T> rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
+//		Matrix2<T> rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
 		Matrix3<T> TT;
-		TT[ 0 ][ 0 ] = s * rot[ 0 ][ 0 ];
-		TT[ 0 ][ 1 ] = s * rot[ 0 ][ 1 ];
+		TT[ 0 ][ 0 ] = s1;
+		TT[ 0 ][ 1 ] = -s2;
 		TT[ 0 ][ 2 ] = tx;
-		TT[ 1 ][ 0 ] = s * rot[ 1 ][ 0 ];
-		TT[ 1 ][ 1 ] = s * rot[ 1 ][ 1 ];
+		TT[ 1 ][ 0 ] = s2;
+		TT[ 1 ][ 1 ] = s1;
 		TT[ 1 ][ 2 ] = ty;
 		TT[ 2 ][ 0 ] = 0.0f;
 		TT[ 2 ][ 1 ] = 0.0f;
 		TT[ 2 ][ 2 ] = 1.0f;
 
-		_transform = TT * _transform;
-		_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
+		if( flip )
+			_transform = TT * _transform;
+		else
+			_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
 //		_p.block( _pcsize - 5 , 0, 5, 1 ).setZero();
+		flip = !flip;
 		updateCurrent();
 	}
 
@@ -228,10 +232,10 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 25
+#define MAXDIST 30
 #define INCR	0.01f
-#define COSMAX	0.5f
-#define THRESHOLD 0.001f
+#define COSMAX	0.45f
+#define THRESHOLD 0.01f
 
 		_costs = 0;
 
@@ -250,19 +254,19 @@ namespace cvt {
 			n.x = n.y;
 			n.y = ftmp;
 
-			float incr = 10.0f / dp.length();
-			incr = Math::clamp( incr, 0.1f, 0.25f );
+			Matrix2<T> TTmp( _transform );
+			float incr = 5.0f / dp.length();
+			incr = Math::clamp( incr, 0.05f, 0.25f );
 			for( T alpha = 0; alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 				tmp( 0 ) = n * p;
 				tmp( 1 ) = - n.x * p.y + n.y * p.x;
-				tmp( 2 ) = n.x * p.x;
-				tmp( 3 ) = n.y * p.y;
+				tmp( 2 ) = n.x;
+				tmp( 3 ) = n.y;
 				for( size_t k = 0; k < _pcsize; k++ ) {
 					ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
 					ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
-					ptmp = _transform * ptmp;
-					tmp( 4 + k ) = n * ptmp;
+					tmp( 4 + k ) = n * ( TTmp * ptmp );
 				}
 #ifndef GTLINEINPUT
 				if( sampleNormal( dxptr, dyptr, Math::round( p.x ), Math::round( p.y ),
@@ -287,9 +291,9 @@ namespace cvt {
 
 		tmp.block( 4, 0, _pcsize, 1 ) = _regcovar;
 		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
-		A.diagonal() += 1.0f * tmp;
+		A.diagonal() += 5.0f * tmp;
 		tmp.block( 4, 0, _pcsize, 1 ).cwise() *= _p;
-		b -= 1.0f * tmp;
+		b -= 5.0f * tmp;
 
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
