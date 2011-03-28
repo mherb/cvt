@@ -46,13 +46,15 @@ int main()
 			g.color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 			g.fillRect( 0, 0, 640, 480 );
 			g.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-			Eigen::Matrix<float, Eigen::Dynamic, 1> w = fs.weights();
+			Eigen::Matrix<double, Eigen::Dynamic, 1> w = fs.weights();
 			w.setZero();
 			for( int i = 0; i < 5; i++ )
 				w[ i ] = Math::rand( -0.25f, 0.25f );
 
+			fs.setTransform( 50, 0, 310, 195 );
+
 //			std::cout << std::endl << w << std::endl;
-			Matrix3f t;
+			Matrix3<double> t;
 			t.identity();
 			t[ 0 ][ 0 ] = 50.0f + Math::rand( -1.0f, 1.0f );
 			t[ 1 ][ 1 ] = 50.0f + Math::rand( -1.0f, 1.0f );
@@ -68,10 +70,10 @@ int main()
 #endif
 
 		TerminationCriteria<double>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
-		termCrit.setCostThreshold( 0.1f );
-		termCrit.setMaxIterations( 25 );
+		termCrit.setCostThreshold( 1.0f );
+		termCrit.setMaxIterations( 250 );
 		GaussNewton<double>	gn;
-		SquaredDistance<double, double> costFunc;
+		RobustHuber<double, double> costFunc( 5 );
 
 		gn.optimize( fs, costFunc, termCrit );
 		std::cout << gn.iterations() << std::endl;
@@ -95,7 +97,7 @@ int main()
 #endif
 		}
 //		usleep( 500 );
-		bla = getchar();
+//		bla = getchar();
 	} while( 1 );
 
 }
