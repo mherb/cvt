@@ -71,7 +71,7 @@ int main()
 
 		TerminationCriteria<double>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
 		termCrit.setCostThreshold( 1.0f );
-		termCrit.setMaxIterations( 250 );
+		termCrit.setMaxIterations( 50 );
 		GaussNewton<double>	gn;
 		RobustHuber<double, double> costFunc( 5 );
 
@@ -91,7 +91,13 @@ int main()
 			g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 			fs.drawCurrent( &g );
 #ifndef GTLINEINPUT
-			ImageIO::savePNG( imgu, "faceshapeopt.png" );
+			static int x = 0;
+			char buf[ 255 ];
+			sprintf( buf, "out/faceshapeopt%05d.png", x++ );
+			if( x == 1200 )
+				return 0;
+//			ImageIO::savePNG( imgu, "faceshapeopt.png" );
+			ImageIO::savePNG( imgu, buf );
 #else
 			ImageIO::savePNG( input, "faceshapeopt.png" );
 #endif
