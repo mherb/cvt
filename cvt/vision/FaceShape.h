@@ -106,7 +106,7 @@ namespace cvt {
 
 		for( size_t i = 0; i < _pcsize; i++ ) {
 			fread( &ftmp, sizeof( float ), 1, f );
-			_regcovar( i ) = 1.0f / ( ftmp * ftmp );
+			_regcovar( i ) = 1.0f / ( ftmp );
 		}
 
 		for( size_t c = 0; c < _pcsize; c++ ) {
@@ -179,7 +179,6 @@ namespace cvt {
 	template<typename T>
 	inline void	FaceShape<T>::apply( const Eigen::Matrix<T, Eigen::Dynamic, 1> & delta )
 	{
-		static bool flip = true;
 		T s1 = 1 + delta( 0 );
 		T s2 = delta( 1 );
 		T tx = delta( 2 );
@@ -196,12 +195,11 @@ namespace cvt {
 		TT[ 2 ][ 1 ] = 0.0f;
 		TT[ 2 ][ 2 ] = 1.0f;
 
-		if( flip )
+		if( delta.rows() == 4 )
 			_transform = TT * _transform;
 		else
-			_p.block( 0, 0, _pcsize, 1 ) += delta.block( 4, 0, _pcsize, 1 );
+			_p += delta;
 //		_p.block( _pcsize - 5 , 0, 5, 1 ).setZero();
-		flip = !flip;
 		updateCurrent();
 	}
 
@@ -209,6 +207,7 @@ namespace cvt {
 	template<typename T>
 	inline T FaceShape<T>::buildLSSystem( Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & A, Eigen::Matrix<T, Eigen::Dynamic, 1> & b, const CostFunction<T, T> & costFunc )
 	{
+		static bool flip = true;
 		Matrix3<T> tnew;
 		Vector2<T> pts[ 2 ], n, p, ptmp;
 		Eigen::Matrix<T, Eigen::Dynamic, 1> tmp;
@@ -221,9 +220,19 @@ namespace cvt {
 		T weight;
 		size_t lines = 0;
 
-		A = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( 4 + _pcsize, 4 + _pcsize );
+	/*	A = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( 4 + _pcsize, 4 + _pcsize );
 		b = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 + _pcsize );
-		tmp = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 + _pcsize );
+		tmp = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 + _pcsize );*/
+
+		if( flip ) {
+			A = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( 4, 4 );
+			b = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 );
+			tmp = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( 4 );
+		} else {
+			A = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _pcsize, _pcsize );
+			b = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _pcsize );
+			tmp = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero( _pcsize );
+		}
 
 #ifndef GTLINEINPUT
 		dxptr = _dx.map<uint8_t>( &dxstride );
@@ -232,9 +241,9 @@ namespace cvt {
 		cptr = _currI->map<uint8_t>( & cstride );
 #endif
 
-#define MAXDIST 30
+#define MAXDIST 15
 #define INCR	0.01f
-#define COSMAX	0.45f
+#define COSMAX	0.5f
 #define THRESHOLD 0.01f
 
 		_costs = 0;
@@ -256,17 +265,20 @@ namespace cvt {
 
 			Matrix2<T> TTmp( _transform );
 			float incr = 5.0f / dp.length();
-			incr = Math::clamp( incr, 0.05f, 0.25f );
-			for( T alpha = 0; alpha <= 1; alpha += incr ) {
+			incr = Math::clamp( incr, 0.025f, 0.25f );
+			for( T alpha = Math::rand( 0.0f, incr ); alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
-				tmp( 0 ) = n * p;
-				tmp( 1 ) = - n.x * p.y + n.y * p.x;
-				tmp( 2 ) = n.x;
-				tmp( 3 ) = n.y;
-				for( size_t k = 0; k < _pcsize; k++ ) {
-					ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
-					ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
-					tmp( 4 + k ) = n * ( TTmp * ptmp );
+				if( flip ) {
+					tmp( 0 ) = n * p;
+					tmp( 1 ) = - n.x * p.y + n.y * p.x;
+					tmp( 2 ) = n.x;
+					tmp( 3 ) = n.y;
+				} else {
+					for( size_t k = 0; k < _pcsize; k++ ) {
+						ptmp.x = Math::mix( _pc( i1 * 2, k ), _pc( i2 * 2, k ), alpha );
+						ptmp.y = Math::mix( _pc( i1 * 2 + 1, k ), _pc( i2 * 2 + 1, k ), alpha );
+						tmp( k ) = n * ( TTmp * ptmp );
+					}
 				}
 #ifndef GTLINEINPUT
 				if( sampleNormal( dxptr, dyptr, Math::round( p.x ), Math::round( p.y ),
@@ -278,7 +290,7 @@ namespace cvt {
 					_costs += costFunc.cost( ftmp, weight );
 					lines++;
 
-					if( costFunc.isRobust ){
+					if( costFunc.isRobust && !flip ){
 						A += tmp * weight * tmp.transpose();
 						b += tmp * ftmp * weight;
 					} else {
@@ -289,12 +301,18 @@ namespace cvt {
 			}
 		}
 
-		tmp.block( 4, 0, _pcsize, 1 ) = _regcovar;
-		tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
-		A.diagonal() += 5.0f * tmp;
-		tmp.block( 4, 0, _pcsize, 1 ).cwise() *= _p;
-		b -= 5.0f * tmp;
+			if( !flip ) {
+				tmp = _regcovar;
+//				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
+				A.diagonal() += 50.0f * tmp;
+				tmp.cwise() *= _p;
+				b -= 50.0f * tmp;
+			} else {
+//				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 1.0f;
+//				A.diagonal() += tmp;
+			}
 
+		flip = !flip;
 #ifndef GTLINEINPUT
 		_dx.unmap( dxptr );
 		_dy.unmap( dyptr );
