@@ -440,7 +440,7 @@ namespace cvt {
 		Image iflow( *ret );
 		{
 			Image tmp( 640, 480, IFormat::BGRA_UINT8 );
-			tmp.copyRect( 0, 0, iflow, 0, 0, 640, 480 );
+			tmp.copyRect( 0, 0, iflow, Recti( 0, 0, 640, 480 ) );
 			ImageIO::savePNG( tmp, "out.png" );
 		}
 		//		cvShowImage( name, iflow.iplimage() );

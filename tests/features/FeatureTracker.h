@@ -17,25 +17,24 @@ namespace cvt
 			 *	try to rematch lastPoints with the actual image
 			 *	current:		the actual frame
              *  newFeatures     the newly detected features
-			 *	
+			 *
 			 */
 			void run( const Image & current,
 					  std::vector<Feature2D> & newFeatures );
 
 
 		private:
-			FeatureExtractor<int32_t> * _featureDetector;        
+			FeatureExtractor<int32_t> * _featureDetector;
             Image                       _lastImage;
-        
+
             /* features in last Image */
             std::vector<Feature2D>  _lastBrighter;
             std::vector<Feature2D>  _lastDarker;
             size_t                  _numLast;
             int                     _threshold;
         
-            std::vector<SegmentRing> _lastRings;
             
-    
+
 	};
 }
 
