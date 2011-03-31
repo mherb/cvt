@@ -42,7 +42,7 @@ namespace cvt
 		
 		for( size_t i = 0; i < _numParameters; i++ ){
 			p = _pInfos[ i ];
-			if( p->rangeAndDefaultSet )
+			if( p->hasDefault )
 				p->setDefaultValue( _parameterMem + p->offset );
 		}
 	}
@@ -71,9 +71,13 @@ namespace cvt
 		for( size_t i = 0; i < pSet._numParameters; i++ ){
 			p = pSet._pInfos[ i ];
 			out << "Name: " << p->name << " Type: " << _PTYPENAMES[ p->type ] << " numElements: " << p->count;
-			if( p->rangeAndDefaultSet ){
-				out << " Range and Default available"; 
+			if( p->hasRange ){
+				out << " Range available"; 
 			}
+			if( p->hasDefault ){
+				out << " Default value available"; 
+			}
+
 			out << std::endl;
 		}
 		return out;

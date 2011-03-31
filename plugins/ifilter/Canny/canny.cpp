@@ -4,15 +4,17 @@
 
 namespace cvt {
 	static ParamInfoTyped<Image*> _pinput( "Input" );
+	static ParamInfoTyped<bool>   _physt( "Hysteresis-Threshold", false, true, true, true );
 	static ParamInfoTyped<float>  _plow( "Threshold low", 0.0f, 1.0f, 0.01f );
 	static ParamInfoTyped<float>  _phigh( "Threshold high", 0.0f, 1.0f, 0.05f );
-	static ParamInfoTyped<Image*> _poutput( "Output", false );
-	static ParamInfoTyped<Image*> _psobelx( "Gradient X", false );
-	static ParamInfoTyped<Image*> _psobely( "Gradient Y", false );
+	static ParamInfoTyped<Image*> _poutput( "Output", NULL, false );
+	static ParamInfoTyped<Image*> _psobelx( "Gradient X", NULL, false );
+	static ParamInfoTyped<Image*> _psobely( "Gradient Y", NULL, false );
 
 	static ParamInfo* _canny_params[] =
 	{
 		&_pinput,
+		&_physt,
 		&_plow,
 		&_phigh,
 		&_poutput,
@@ -31,7 +33,7 @@ namespace cvt {
 			Canny( const Canny& );
 	};
 
-	Canny::Canny() : IFilter( "Canny", _canny_params, 6, IFILTER_CPU )
+	Canny::Canny() : IFilter( "Canny", _canny_params, 7, IFILTER_CPU )
 	{
 	}
 

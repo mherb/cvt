@@ -1,3 +1,4 @@
+X( bool,		PTYPE_BOOL )
 X( uint8_t, 	PTYPE_UINT8 )
 X( int8_t,  	PTYPE_INT8  )
 X( uint16_t, 	PTYPE_UINT16 )

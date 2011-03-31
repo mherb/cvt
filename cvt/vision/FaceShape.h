@@ -106,7 +106,7 @@ namespace cvt {
 
 		for( size_t i = 0; i < _pcsize; i++ ) {
 			fread( &ftmp, sizeof( float ), 1, f );
-			_regcovar( i ) = 1.0f / ( ftmp );
+			_regcovar( i ) = 1.0f / ( ftmp * ftmp );
 		}
 
 		for( size_t c = 0; c < _pcsize; c++ ) {
@@ -184,6 +184,11 @@ namespace cvt {
 		T tx = delta( 2 );
 		T ty = delta( 3 );
 //		Matrix2<T> rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
+//		TT[ 0 ][ 0 ] = s1 * rot[ 0 ][ 0 ];
+//		TT[ 0 ][ 1 ] = s1 * rot[ 0 ][ 1 ];
+//		TT[ 0 ][ 2 ] = tx;
+//		TT[ 1 ][ 0 ] = s1 * rot[ 1 ][ 0 ];
+//		TT[ 1 ][ 1 ] = s1 * rot[ 1 ][ 1 ];
 		Matrix3<T> TT;
 		TT[ 0 ][ 0 ] = s1;
 		TT[ 0 ][ 1 ] = -s2;
@@ -265,7 +270,7 @@ namespace cvt {
 
 			Matrix2<T> TTmp( _transform );
 			float incr = 5.0f / dp.length();
-			incr = Math::clamp( incr, 0.025f, 0.25f );
+			incr = Math::clamp( incr, 0.01f, 0.25f );
 			for( T alpha = Math::rand( 0.0f, incr ); alpha <= 1; alpha += incr ) {
 				p = Math::mix( pts[ 0 ], pts[ 1 ], alpha );
 				if( flip ) {
@@ -290,7 +295,7 @@ namespace cvt {
 					_costs += costFunc.cost( ftmp, weight );
 					lines++;
 
-					if( costFunc.isRobust && !flip ){
+					if( costFunc.isRobust ){
 						A += tmp * weight * tmp.transpose();
 						b += tmp * ftmp * weight;
 					} else {
@@ -304,12 +309,13 @@ namespace cvt {
 			if( !flip ) {
 				tmp = _regcovar;
 //				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
-				A.diagonal() += 50.0f * tmp;
+				A.diagonal() += 1.0f * tmp;
 				tmp.cwise() *= _p;
-				b -= 50.0f * tmp;
+				b -= 1.0f * tmp;
 			} else {
-//				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 1.0f;
-//				A.diagonal() += tmp;
+				tmp( 0 ) = tmp( 1 ) = 10.0f;
+			 	tmp( 2 ) = tmp( 3 ) = 0.0f;
+				A.diagonal() += tmp;
 			}
 
 		flip = !flip;

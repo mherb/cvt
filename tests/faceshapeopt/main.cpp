@@ -69,9 +69,9 @@ int main()
 		fs.updateInput( &input );
 #endif
 
-		TerminationCriteria<double>	termCrit( TERM_MAX_ITER | TERM_COSTS_THRESH );
+		TerminationCriteria<double>	termCrit( TERM_MAX_ITER );
 		termCrit.setCostThreshold( 1.0f );
-		termCrit.setMaxIterations( 50 );
+		termCrit.setMaxIterations( 100 );
 		GaussNewton<double>	gn;
 		RobustHuber<double, double> costFunc( 5 );
 
@@ -94,7 +94,7 @@ int main()
 			static int x = 0;
 			char buf[ 255 ];
 			sprintf( buf, "out/faceshapeopt%05d.png", x++ );
-			if( x == 1200 )
+			if( x == 1000 )
 				return 0;
 //			ImageIO::savePNG( imgu, "faceshapeopt.png" );
 			ImageIO::savePNG( imgu, buf );

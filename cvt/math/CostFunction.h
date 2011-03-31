@@ -74,13 +74,28 @@ namespace cvt {
 			} else {
 				weight = _k / norm;
 				return _k * ( norm - 0.5 * _k );
-			}				
+			}
 		}
 		
 	private:
 		T _k;
 	};
 	
+
+	template< typename T >
+	class L1 : public CostFunction<T, T>
+	{
+	public:		
+		L1() : CostFunction<T, T>( true ) {}
+		~L1(){}
+		
+		inline T cost( const T & r, T & weight ) const 
+		{
+			weight = ( T ) 1 / ( Math::abs( r ) + 1e-5 );
+			return Math::abs( r );
+		}
+		
+	};
 }
 
 #endif

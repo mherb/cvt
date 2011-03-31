@@ -50,24 +50,25 @@ namespace cvt
 			/* offset in parameter set */
 			size_t		offset;
 		
-			const bool input;
-			const bool rangeAndDefaultSet;
+			const bool isInput;
+			const bool hasDefault;
+			const bool hasRange;
 		
 			virtual void setDefaultValue( void * ) const = 0;
 			virtual const std::string typeString() const = 0;
 		
 		protected:
 			ParamInfo( ParamType t, const std::string & n, size_t c, 
-					   size_t o, bool input, bool rangeType = false ) :
+					   size_t o, bool input, bool _hasDefault = false, bool _hasRange = false ) :
 				type( t ), name( n ), count( c ), offset( o ), 
-				input( input ), rangeAndDefaultSet( rangeType )
+				isInput( input ), hasDefault( _hasDefault ), hasRange( _hasRange )
 			{}
 	};
 
 
 	inline std::ostream& operator<<( std::ostream& out, const ParamInfo& filter )
 	{
-		out << "Name: " << filter.name << " Type: " << filter.typeString() << ( filter.input ?" ( in )":" ( out )" );
+		out << "Name: " << filter.name << " Type: " << filter.typeString() << ( filter.isInput ?" ( in )":" ( out )" );
 		return out;
 	}
 	
@@ -79,14 +80,22 @@ namespace cvt
 		public:\
 			ParamInfoTyped( const std::string & n, bool input = true, size_t c = 1, size_t o = 0 ) :\
 			ParamInfo( PTYPE, n, c, o, input ) {}\
-			ParamInfoTyped( const std::string & n, TYPE min, TYPE max, TYPE defaultValue, bool input = true, size_t c = 1, size_t o = 0 ) :\
-			ParamInfo( PTYPE, n, c, o, input, true ), min( min ), max( max ), defValue( defaultValue ) {}\
+			/* min / max / default */ \
+			ParamInfoTyped( const std::string & n, TYPE min, TYPE max, TYPE _defaultValue, bool input = true, size_t c = 1, size_t o = 0 ) :\
+			ParamInfo( PTYPE, n, c, o, input, true, true ), min( min ), max( max ), defaultVal( _defaultValue ) {}\
+			/* default */ \
+			ParamInfoTyped( const std::string & n, TYPE _defaultValue, bool input = true, size_t c = 1, size_t o = 0 ) :\
+			ParamInfo( PTYPE, n, c, o, input, true, false ), defaultVal( _defaultValue ) {}\
+			/* min / max */ \
+			ParamInfoTyped( const std::string & n, TYPE min, TYPE max, bool input = true, size_t c = 1, size_t o = 0 ) :\
+			ParamInfo( PTYPE, n, c, o, input, false, true ), min( min ), max( max ) {}\
 			virtual ~ParamInfoTyped() {}\
 			TYPE minValue() const { return min; }\
 			TYPE maxValue() const { return max; }\
-			TYPE defaultValue() const { return defValue; }\
-			virtual void setDefaultValue( void * ptr ) const { *( ( TYPE* )ptr ) = defValue; }\
-			TYPE min; TYPE max; TYPE defValue;\
+			TYPE defaultValue() const { return defaultVal; }\
+			virtual void setDefaultValue( void * ptr ) const { *( ( TYPE* )ptr ) = defaultVal; }\
+			\
+			TYPE min; TYPE max; TYPE defaultVal;\
 			const std::string typeString() const { return #TYPE; } \
 	};
 	
