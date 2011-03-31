@@ -8,7 +8,7 @@
 namespace cvt
 {
 	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _img( img), _sum( 0 ), _sqrSum( 0 ), _flags( flags )
-	{	
+	{
         if( flags & SUMMED_AREA ){
             _sum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
             img.integralImage( *_sum );
@@ -18,7 +18,7 @@ namespace cvt
             img.squaredIntegralImage( *_sqrSum );
         }
 	}
-    
+
     IntegralImage::~IntegralImage()
     {
         if( _sum )
@@ -26,49 +26,49 @@ namespace cvt
         if( _sqrSum )
             delete _sqrSum;
     }
-	   
+
     float IntegralImage::area( const Recti & r ) const
     {
         if( !_flags & SUMMED_AREA )
             throw CVTException( "Summed Area Table is not computed -> cannot calculate area" );
-        
+
         return IntegralImage::area( *_sum, r );
     }
-    
+
     float IntegralImage::sqrArea( const Recti & r ) const
     {
         if( !_flags & SQUARED_SUMMED_AREA )
             throw CVTException( "Squared Summed Area Table is not computed -> cannot calculate area" );
-        
+
         return IntegralImage::area( *_sqrSum, r );
     }
-    
+
     float IntegralImage::ncc( const IntegralImage & other, const Recti & rOther, const Vector2i & pos ) const
     {
         if( !_flags & SUMMED_AREA || !_flags & SQUARED_SUMMED_AREA ||
             !other.flags() & SUMMED_AREA ||!other.flags() & SQUARED_SUMMED_AREA ){
             throw CVTException( "NCC needs SUMMED_AREA and SQUARED_SUMMED_AREA" );
         }
-        
+
         // corresponding rect in img:
         Recti iRect( pos.x, pos.y, rOther.width, rOther.height );
-                
+
         float sumI = IntegralImage::area( *_sum, iRect );
         float ssumI = IntegralImage::area( *_sqrSum, iRect );
-        
+
         float sumO = IntegralImage::area( other.sumImage(), rOther );
         float ssumO = IntegralImage::area( other.sqrSumImage(), rOther );
         float size = rOther.width * rOther.height;
-        
-        float meanP = sumO / size;
-        float sigmaPSigmaI = Math::invSqrt( ( ssumO - Math::sqr( sumO ) / size ) * ( ssumI - Math::sqr( sumI ) / size ) );
 
-                       
+        float meanP = sumO / size;
+        float meanI = sumI / size;
+        float sigmaPSigmaI = Math::invSqrt( ( ssumO/size - Math::sqr( meanP ) ) * ( ssumI / size - Math::sqr( meanI ) ) );
+
         // calc SUM( I_i * P_i ) 
         size_t istride, pstride;
         const uint8_t* i = _img.map( &istride );
         const uint8_t* p = other.image().map( &pstride );
-     
+
         const uint8_t* iPtr = i + iRect.y * istride + iRect.x;
         const uint8_t* pPtr = p + rOther.y * pstride + rOther.x;        
         float mulSum = 0;
@@ -81,12 +81,49 @@ namespace cvt
         }
         _img.unmap( i );
         other.image().unmap( p );
-                
-        return ( mulSum - meanP * sumI ) * sigmaPSigmaI;
+
+        return ( mulSum - meanP * sumI ) * sigmaPSigmaI / ( size - 1.0f);
     }    
     
+    float IntegralImage::ncc( const Patch & patch, const Vector2i & pos ) const
+    {
+        if( !_flags & SUMMED_AREA || !_flags & SQUARED_SUMMED_AREA ){
+            throw CVTException( "NCC needs SUMMED_AREA and SQUARED_SUMMED_AREA" );
+        }
+        
+        // corresponding rect in this img:
+        Recti iRect( pos.x, pos.y, patch.width(), patch.height() );
+        
+        float sumI = IntegralImage::area( *_sum, iRect );
+        float ssumI = IntegralImage::area( *_sqrSum, iRect );
+        
+        float size = iRect.width * iRect.height;
+        
+        float sigmaPSigmaI = Math::invSqrt( patch.variance() * ( ssumI / size - Math::sqr( sumI / size ) ) );
+        
+        // calc SUM( I_i * P_i ) 
+        size_t istride, pstride;
+        const uint8_t* i = _img.map( &istride );
+        const uint8_t* p = patch.data().map( &pstride );
+        
+        const uint8_t* iPtr = i + iRect.y * istride + iRect.x;
+        const uint8_t* pPtr = p;        
+        float mulSum = 0;
+        for( int y = 0; y < iRect.height; y++ ){
+            for( int x = 0; x < iRect.width; x++ ){
+                mulSum += ( ( float )iPtr[ x ] * ( float )pPtr[ x ] );
+            } 
+            iPtr += istride;
+            pPtr += pstride;
+        }
+        _img.unmap( i );
+        patch.data().unmap( p );
+        
+        return ( mulSum - patch.mean() * sumI ) * sigmaPSigmaI / ( size - 1.0f );
+    }
+
     /*********************************************************/
-    
+
     static float areaTest( const Image & img, const Recti & r )
     {
         size_t stride;

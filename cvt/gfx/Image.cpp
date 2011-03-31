@@ -91,17 +91,17 @@ namespace cvt {
 		_mem->copy( img._mem );
 	}
 
-	void Image::copyRect( int x, int y, const Image& img, int sx, int sy, int swidth, int sheight )
+	void Image::copyRect( int x, int y, const Image& img, const Recti & rect )
 	{
 		checkFormat( img, __PRETTY_FUNCTION__, __LINE__, _mem->_format );
 		int tx, ty;
 
-		tx = -x + sx;
-		ty = -y + sy;
+		tx = -x + rect.x;
+		ty = -y + rect.y;
 		Recti rdst( 0, 0, ( int ) _mem->_width, ( int ) _mem->_height );
 		rdst.translate( tx, ty );
 		Recti rsrc( 0, 0, ( int ) img._mem->_width, ( int ) img._mem->_height );
-		rsrc.intersect( sx, sy, swidth, sheight );
+		rsrc.intersect( rect );
 		rsrc.intersect( rdst );
 		if( rsrc.isEmpty() )
 			return;

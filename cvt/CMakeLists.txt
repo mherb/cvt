@@ -263,6 +263,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Flow.h
 	vision/HCalibration.h
 	vision/MeasurementModel.h
+	vision/Patch.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
 	${GLSL_SHADER}
@@ -375,6 +376,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
 	vision/PatchGenerator.cpp
+	vision/Patch.cpp
 )
 
 

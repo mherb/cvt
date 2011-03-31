@@ -47,7 +47,7 @@ namespace cvt {
 			void reallocate( const Image& i, IAllocatorType memtype = IALLOCATOR_MEM );
 
 			void copy( const Image& i );
-			void copyRect( int x, int y, const Image& i, int sx, int sy, int swidth, int sheight );
+			void copyRect( int x, int y, const Image& i, const Recti & roi );
 
 			Image* clone() const;
 			void convert( Image& dst, const IFormat & format ) const;
