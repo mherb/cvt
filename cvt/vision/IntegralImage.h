@@ -3,6 +3,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Flags.h>
+#include <cvt/vision/Patch.h>
 
 namespace cvt
 {
@@ -28,6 +29,12 @@ namespace cvt
              * with pos in this image
              */
             float   ncc( const IntegralImage & other, const Recti & rOther, const Vector2i & pos ) const;
+        
+            /**
+             * compute normalized cross correlation of the patch with 
+             * this image at position pos
+             */
+            float   ncc( const Patch & patch, const Vector2i & pos ) const;
         
             Image & sumImage() const { return *_sum; };
             Image & sqrSumImage() const { return *_sqrSum; };  

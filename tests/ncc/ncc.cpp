@@ -3,6 +3,7 @@
 
 #include <cvt/vision/IntegralImage.h>
 #include <cvt/io/Resources.h>
+#include <cvt/util/Time.h>
 
 
 using namespace cvt;
@@ -63,25 +64,67 @@ int main( void )
 	Resources resources;
 
 	Image img( resources.find( "lena_g.png" ) );
-    //Image img( 20, 20, IFormat::GRAY_UINT8 );
-    genImage( img );
     
+    //Image img( 20, 20, IFormat::GRAY_UINT8 );
+    //genImage( img );
     //dumpImage<uint8_t>( img );
 
 	IntegralImage intImage( img, ( SUMMED_AREA | SQUARED_SUMMED_AREA ) );
     
-    //std::cout << "\nIntegral Image" << std::endl;
-    //dumpImage<float>( intImage.sumImage() );
+    // std::cout << "\nIntegral Image" << std::endl;
+    // dumpImage<float>( intImage.sumImage() );
     
-	Recti r0( 40, 50, 80, 90 );    
+	Recti r0( 40, 50, 20, 20 );
 	Vector2i p( r0.x, r0.y );
     
 	float ncc;     
-    for( size_t i = 0; i < 1; i++ ){
-        ncc = intImage.ncc( intImage, r0, p );
-        std::cout << "NCC: " << ncc << std::endl;        
-        p.x++;
+    float maxNcc = 0;
+    int maxX = -5, maxY = -5;
+    Time timer; timer.reset();
+    
+    while( timer.elapsedMilliSeconds() < 1000 ){
     }
+    
+    timer.reset();
+    int searchRange = 8;
+    
+    p.y = r0.y - searchRange;
+    for( int y = -searchRange ; y < searchRange; y++ ){
+        p.x = r0.x - searchRange;
+        for( int x = -searchRange ; x < searchRange; x++ ){
+            ncc = intImage.ncc( intImage, r0, p );
+            //std::cout << "NCC at " << x << ", " << y << " : " << ncc << std::endl;
+            if( ncc > maxNcc ){
+                maxNcc = ncc;
+                maxX = x;
+                maxY = y;
+            }
+            p.x++;
+        }
+        p.y++;
+    }
+    std::cout << "Elapsed Time: " << timer.elapsedMilliSeconds() << "ms" << std::endl;
+    std::cout << "\nMAX POS : " << maxX << ", " << maxY << std::endl;
+    
+    Patch patch( img, r0, NORMALIZE );
+    timer.reset();
+    p.y = r0.y - searchRange;
+    for( int y = -searchRange ; y < searchRange; y++ ){
+        p.x = r0.x - searchRange;
+        for( int x = -searchRange ; x < searchRange; x++ ){
+            ncc = intImage.ncc( patch, p );
+            //std::cout << "NCC at " << x << ", " << y << " : " << ncc << std::endl;
+            if( ncc > maxNcc ){
+                maxNcc = ncc;
+                maxX = x;
+                maxY = y;
+            }
+            p.x++;
+        }
+        p.y++;
+    }
+    std::cout << "Elapsed Time: " << timer.elapsedMilliSeconds() << "ms" << std::endl;
+    std::cout << "\nMAX POS : " << maxX << ", " << maxY << std::endl;
 
 	return 0;
 }
