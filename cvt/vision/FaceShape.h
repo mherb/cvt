@@ -26,6 +26,7 @@ namespace cvt {
 			~FaceShape();
 			void	updateInput( const Image * img ){ _currI = img; updateInputData(); };
 			void	setTransform( T scale, T angle, T tx, T ty );
+			void	setTransform( const Matrix3<T> t );
 			void	drawCurrent( GFX* g ) const;
 			void    draw( GFX* g, Matrix3<T>& transform, Eigen::Matrix<T, Eigen::Dynamic, 1 >& p ) const;
 
@@ -140,6 +141,13 @@ namespace cvt {
 		_transform[ 2 ][ 2 ] = 1.0f;
 		updateCurrent();
 	}
+	template<typename T>
+	inline void FaceShape<T>::setTransform( const Matrix3<T> t )
+	{
+		_transform = t;
+		updateCurrent();
+	}
+
 
 	template<typename T>
 	inline void FaceShape<T>::updateCurrent()
@@ -180,16 +188,17 @@ namespace cvt {
 	inline void	FaceShape<T>::apply( const Eigen::Matrix<T, Eigen::Dynamic, 1> & delta )
 	{
 		T s1 = 1 + delta( 0 );
+//		T angle = delta( 1 );
 		T s2 = delta( 1 );
 		T tx = delta( 2 );
 		T ty = delta( 3 );
+		Matrix3<T> TT;
 //		Matrix2<T> rot( Math::cos( angle ), -Math::sin( angle ), Math::sin( angle ), Math::cos( angle ) );
 //		TT[ 0 ][ 0 ] = s1 * rot[ 0 ][ 0 ];
 //		TT[ 0 ][ 1 ] = s1 * rot[ 0 ][ 1 ];
 //		TT[ 0 ][ 2 ] = tx;
 //		TT[ 1 ][ 0 ] = s1 * rot[ 1 ][ 0 ];
 //		TT[ 1 ][ 1 ] = s1 * rot[ 1 ][ 1 ];
-		Matrix3<T> TT;
 		TT[ 0 ][ 0 ] = s1;
 		TT[ 0 ][ 1 ] = -s2;
 		TT[ 0 ][ 2 ] = tx;
@@ -247,8 +256,8 @@ namespace cvt {
 #endif
 
 #define MAXDIST 15
-#define INCR	0.01f
-#define COSMAX	0.5f
+#define INCR	0.1f
+#define COSMAX	0.6f
 #define THRESHOLD 0.01f
 
 		_costs = 0;
@@ -309,13 +318,13 @@ namespace cvt {
 			if( !flip ) {
 				tmp = _regcovar;
 //				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
-				A.diagonal() += 1.0f * tmp;
+				A.diagonal() += 5.0f * tmp;
 				tmp.cwise() *= _p;
-				b -= 1.0f * tmp;
+				b -= 5.0f * tmp;
 			} else {
-				tmp( 0 ) = tmp( 1 ) = 10.0f;
+/*				tmp( 0 ) = tmp( 1 ) = 0.0f;
 			 	tmp( 2 ) = tmp( 3 ) = 0.0f;
-				A.diagonal() += tmp;
+				A.diagonal() += tmp;*/
 			}
 
 		flip = !flip;

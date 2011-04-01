@@ -7,7 +7,18 @@
 
 using namespace cvt;
 
-//#define GTLINEINPUT 1
+void drawCurrent( const Image& _img, const FaceShape<double>& fs )
+{
+	Image img( _img.width(), _img.height(), IFormat::RGBA_FLOAT );
+	_img.convert( img );
+	GFXEngineImage ge( img );
+	GFX g( &ge );
+	g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+	fs.drawCurrent( &g );
+	ImageIO::savePNG( img, "current.png" );
+	int	bla = getchar();
+}
+
 
 int main()
 {
@@ -30,13 +41,66 @@ int main()
 	fs.setTransform( 50, 0, 310, 195 );
 #endif
 
+	TerminationCriteria<double>	termCrit( TERM_MAX_ITER );
+	termCrit.setCostThreshold( 0.01f );
+	termCrit.setMaxIterations( 5 );
+	GaussNewton<double>	gn;
+	RobustHuber<double, double> costFunc( 5.0 );
+
+	Matrix3<double> matdown;
+	Matrix3<double> matup;
+
+#define UPFACTOR ( 1.25 )
+#define DOWNFACTOR 0.8
+
+	matdown.identity();
+	matdown[ 0 ][ 0 ] = DOWNFACTOR;
+	matdown[ 1 ][ 1 ] = DOWNFACTOR;
+	matdown[ 2 ][ 2 ] = 1.0;
+
+	matup.identity();
+	matup[ 0 ][ 0 ] = UPFACTOR;
+	matup[ 1 ][ 1 ] = UPFACTOR;
+	matup[ 2 ][ 2 ] = 1.0;
+
+
 	do {
 #ifndef GTLINEINPUT
 		seq.nextFrame();
 		seq.frame().convert( imgu );
 		imgu.convert( imgf );
 
-		fs.updateInput( &imgf );
+//		fs.updateInput( &imgf );
+		{
+			Image tmp;
+			IScaleFilterBilinear scaler;
+
+			imgf.scale( tmp, imgf.width() * DOWNFACTOR * DOWNFACTOR, imgf.height() * DOWNFACTOR * DOWNFACTOR, scaler );
+			fs.setTransform( matdown * matdown * fs.transform()  );
+			fs.updateInput( &tmp );
+			gn.optimize( fs, costFunc, termCrit );
+//			drawCurrent( tmp, fs );
+		std::cout << gn.iterations() << std::endl;
+		std::cout << gn.costs() << std::endl;
+
+
+			imgf.scale( tmp, imgf.width() * DOWNFACTOR, imgf.height() * DOWNFACTOR, scaler );
+			fs.setTransform( matup * fs.transform()  );
+			fs.updateInput( &tmp );
+			gn.optimize( fs, costFunc, termCrit );
+//			drawCurrent( tmp, fs );
+		std::cout << gn.iterations() << std::endl;
+		std::cout << gn.costs() << std::endl;
+
+
+			fs.setTransform( matup * fs.transform() );
+			fs.updateInput( &imgf );
+			gn.optimize( fs, costFunc, termCrit );
+//			drawCurrent( imgf, fs );
+		std::cout << gn.iterations() << std::endl;
+		std::cout << gn.costs() << std::endl;
+
+		}
 #else
 		fs.resetWeights();
 		Image input( 640, 480, IFormat::GRAY_FLOAT );
@@ -67,19 +131,8 @@ int main()
 
 		ImageIO::savePNG( input, "gt.png" );
 		fs.updateInput( &input );
-#endif
-
-		TerminationCriteria<double>	termCrit( TERM_MAX_ITER );
-		termCrit.setCostThreshold( 1.0f );
-		termCrit.setMaxIterations( 100 );
-		GaussNewton<double>	gn;
-		RobustHuber<double, double> costFunc( 5 );
-
 		gn.optimize( fs, costFunc, termCrit );
-		std::cout << gn.iterations() << std::endl;
-		std::cout << gn.costs() << std::endl;
-//		  std::cout << fs.transform() << std::endl;
-//		  std::cout << std::endl << fs.weights() << std::endl;
+#endif
 
 		{
 #ifndef GTLINEINPUT
