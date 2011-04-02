@@ -63,12 +63,12 @@ namespace cvt
 		
 		// Type T is ensured here!
 		ParamInfoTyped<T>* pInfoT =  ( ParamInfoTyped<T>* )pInfo;
-		if( pInfo->rangeAndDefaultSet ){
+		if( pInfo->hasRange ){
 			if( value < pInfoT->minValue() ){
 				value = pInfoT->minValue();
 			} else if( value > pInfoT->maxValue() ) {
 				value = pInfoT->maxValue();
-			}			
+			}
 		}
 
 		*( T* )( _parameterMem + pInfo->offset + localIndex * sizeof( T ) ) = value;
