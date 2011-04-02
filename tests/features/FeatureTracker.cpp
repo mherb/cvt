@@ -13,9 +13,9 @@
 namespace cvt {
 	FeatureTracker::FeatureTracker() :
 		_featureDetector( 0 ),
+        _currentIntegralImg( 0 ),
 		_threshold( 30 ),
-        _searchRadius( 5 ),
-        _currentIntegralImg( 0 )
+        _searchRadius( 5 )
 	{
 		_featureDetector = new AGAST( OAST_9_16 );
 		//_featureDetector = new AGAST( AGAST_7_12S );
