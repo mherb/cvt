@@ -1252,6 +1252,20 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::Conv_GRAYf_to_XXXAf( float* dst, const float* src, const size_t n ) const
+	{
+		size_t i = n;
+		float tmp;
+
+		while( i-- ){
+			tmp = *src++;
+			*dst++ = tmp;
+			*dst++ = tmp;
+			*dst++ = tmp;
+			*dst++ = 1.0f;
+		}
+	}
+
 	void SIMD::Conv_XXXAf_to_XXXAu8( uint8_t* _dst, float const* src, const size_t n ) const
 	{
 		size_t i = n;

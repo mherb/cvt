@@ -96,8 +96,8 @@ class FaceShapeWin : public Window
 	template<int n>
 	void setWeight( float val )
 	{
-		_weights( n * 2 ) = val;
-		_weights( n * 2 + 1 ) = val;
+		_weights( n ) = val;
+//		_weights( n * 2 + 1 ) = val;
 		recalc();
 		update();
 	}
@@ -375,8 +375,8 @@ int main( int argc, char** argv )
 	WidgetLayout wlslider;
 	Slider<float> slider[ 15 ];
 #define SLIDERN( num ) \
-		slider[ num ].setMinimum( -1.0f ); \
-		slider[ num ].setMaximum( 1.0f ); \
+		slider[ num ].setMinimum( -2.0f ); \
+		slider[ num ].setMaximum( 2.0f ); \
 		wlslider.setAnchoredRight( 10, 200 ); \
 		wlslider.setAnchoredTop( num * 20 + 8 , 12 ); \
 		win.addWidget( &slider[ num ], wlslider ); \
