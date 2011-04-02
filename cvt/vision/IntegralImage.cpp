@@ -7,16 +7,9 @@
 
 namespace cvt
 {
-	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _img( img), _sum( 0 ), _sqrSum( 0 ), _flags( flags )
+	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _sum( 0 ), _sqrSum( 0 ), _flags( flags )
 	{
-        if( flags & SUMMED_AREA ){
-            _sum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
-            img.integralImage( *_sum );
-        }
-        if( flags & SQUARED_SUMMED_AREA ){
-            _sqrSum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
-            img.squaredIntegralImage( *_sqrSum );
-        }
+        update( img );
 	}
 
     IntegralImage::~IntegralImage()
@@ -25,6 +18,18 @@ namespace cvt
             delete _sum;
         if( _sqrSum )
             delete _sqrSum;
+    }
+    
+    void IntegralImage::update( const Image & img )
+    {
+        if( _flags & SUMMED_AREA ){
+            _sum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.integralImage( *_sum );
+        }
+        if( _flags & SQUARED_SUMMED_AREA ){
+            _sqrSum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.squaredIntegralImage( *_sqrSum );
+        }
     }
 
     float IntegralImage::area( const Recti & r ) const
@@ -43,10 +48,14 @@ namespace cvt
         return IntegralImage::area( *_sqrSum, r );
     }
 
-    float IntegralImage::ncc( const IntegralImage & other, const Recti & rOther, const Vector2i & pos ) const
+    float IntegralImage::ncc( const Image & img, 
+                              const Image & otherI, 
+                              const IntegralImage & otherII, 
+                              const Recti & rOther, 
+                              const Vector2i & pos ) const
     {
         if( !_flags & SUMMED_AREA || !_flags & SQUARED_SUMMED_AREA ||
-            !other.flags() & SUMMED_AREA ||!other.flags() & SQUARED_SUMMED_AREA ){
+            !otherII.flags() & SUMMED_AREA ||!otherII.flags() & SQUARED_SUMMED_AREA ){
             throw CVTException( "NCC needs SUMMED_AREA and SQUARED_SUMMED_AREA" );
         }
 
@@ -56,8 +65,8 @@ namespace cvt
         float sumI = IntegralImage::area( *_sum, iRect );
         float ssumI = IntegralImage::area( *_sqrSum, iRect );
 
-        float sumO = IntegralImage::area( other.sumImage(), rOther );
-        float ssumO = IntegralImage::area( other.sqrSumImage(), rOther );
+        float sumO = IntegralImage::area( otherII.sumImage(), rOther );
+        float ssumO = IntegralImage::area( otherII.sqrSumImage(), rOther );
         float size = rOther.width * rOther.height;
 
         float meanP = sumO / size;
@@ -66,8 +75,8 @@ namespace cvt
 
         // calc SUM( I_i * P_i ) 
         size_t istride, pstride;
-        const uint8_t* i = _img.map( &istride );
-        const uint8_t* p = other.image().map( &pstride );
+        const uint8_t* i = img.map( &istride );
+        const uint8_t* p = otherI.map( &pstride );
 
         const uint8_t* iPtr = i + iRect.y * istride + iRect.x;
         const uint8_t* pPtr = p + rOther.y * pstride + rOther.x;        
@@ -79,13 +88,13 @@ namespace cvt
             iPtr += istride;
             pPtr += pstride;
         }
-        _img.unmap( i );
-        other.image().unmap( p );
+        img.unmap( i );
+        otherI.unmap( p );
 
         return ( mulSum - meanP * sumI ) * sigmaPSigmaI / ( size - 1.0f);
     }    
     
-    float IntegralImage::ncc( const Patch & patch, const Vector2i & pos ) const
+    float IntegralImage::ncc( const Image & img, const Patch & patch, const Vector2i & pos ) const
     {
         if( !_flags & SUMMED_AREA || !_flags & SQUARED_SUMMED_AREA ){
             throw CVTException( "NCC needs SUMMED_AREA and SQUARED_SUMMED_AREA" );
@@ -103,7 +112,7 @@ namespace cvt
         
         // calc SUM( I_i * P_i ) 
         size_t istride, pstride;
-        const uint8_t* i = _img.map( &istride );
+        const uint8_t* i = img.map( &istride );
         const uint8_t* p = patch.data().map( &pstride );
         
         const uint8_t* iPtr = i + iRect.y * istride + iRect.x;
@@ -116,7 +125,7 @@ namespace cvt
             iPtr += istride;
             pPtr += pstride;
         }
-        _img.unmap( i );
+        img.unmap( i );
         patch.data().unmap( p );
         
         return ( mulSum - patch.mean() * sumI ) * sigmaPSigmaI / ( size - 1.0f );

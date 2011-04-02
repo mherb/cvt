@@ -3,6 +3,8 @@
 
 #include <cvt/vision/FeatureExtractor.h>
 #include <cvt/util/ParamSet.h>
+#include <cvt/vision/Patch.h>
+#include <cvt/vision/IntegralImage.h>
 #include "SegmentRing.h"
 
 namespace cvt
@@ -26,14 +28,15 @@ namespace cvt
 		private:
 			FeatureExtractor<int32_t> * _featureDetector;
             Image                       _lastImage;
+            IntegralImage *             _currentIntegralImg;
 
-            /* features in last Image */
-            std::vector<Feature2D>  _lastBrighter;
-            std::vector<Feature2D>  _lastDarker;
-            size_t                  _numLast;
+            /* features in last Image represented by their patches */
+            std::vector<Patch*>          _lastPatches;
+
             int                     _threshold;
-        
+            int                  _searchRadius;
             
+            float matchFeatureNCC( const Image & current, const Patch & patch, const Feature2D & startPos, Feature2D & out );
 
 	};
 }

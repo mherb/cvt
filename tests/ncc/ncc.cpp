@@ -80,11 +80,7 @@ int main( void )
 	float ncc;     
     float maxNcc = 0;
     int maxX = -5, maxY = -5;
-    Time timer; timer.reset();
-    
-    while( timer.elapsedMilliSeconds() < 1000 ){
-    }
-    
+    Time timer;
     timer.reset();
     int searchRange = 8;
     
@@ -92,7 +88,7 @@ int main( void )
     for( int y = -searchRange ; y < searchRange; y++ ){
         p.x = r0.x - searchRange;
         for( int x = -searchRange ; x < searchRange; x++ ){
-            ncc = intImage.ncc( intImage, r0, p );
+            ncc = intImage.ncc( img, img, intImage, r0, p );
             //std::cout << "NCC at " << x << ", " << y << " : " << ncc << std::endl;
             if( ncc > maxNcc ){
                 maxNcc = ncc;
@@ -112,7 +108,7 @@ int main( void )
     for( int y = -searchRange ; y < searchRange; y++ ){
         p.x = r0.x - searchRange;
         for( int x = -searchRange ; x < searchRange; x++ ){
-            ncc = intImage.ncc( patch, p );
+            ncc = intImage.ncc( img, patch, p );
             //std::cout << "NCC at " << x << ", " << y << " : " << ncc << std::endl;
             if( ncc > maxNcc ){
                 maxNcc = ncc;

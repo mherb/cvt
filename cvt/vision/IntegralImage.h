@@ -19,7 +19,8 @@ namespace cvt
 		public:
             IntegralImage( const Image & img, IntegralImageFlags flags = SUMMED_AREA );
             ~IntegralImage();
-
+            
+            void    update( const Image & img );
             float   area( const Recti & r ) const;
             float   sqrArea( const Recti & r ) const;
         
@@ -28,25 +29,27 @@ namespace cvt
              * calculates the normalized cross correlation of the Rectangle rOther from other
              * with pos in this image
              */
-            float   ncc( const IntegralImage & other, const Recti & rOther, const Vector2i & pos ) const;
+            float   ncc( const Image & img, 
+                         const Image & otherI, 
+                         const IntegralImage & otherII, 
+                         const Recti & rOther, 
+                         const Vector2i & pos ) const;
         
             /**
              * compute normalized cross correlation of the patch with 
              * this image at position pos
              */
-            float   ncc( const Patch & patch, const Vector2i & pos ) const;
+            float   ncc( const Image & img, const Patch & patch, const Vector2i & pos ) const;
         
             Image & sumImage() const { return *_sum; };
             Image & sqrSumImage() const { return *_sqrSum; };  
-            IntegralImageFlags flags() const { return _flags; };        
-            const Image & image() const { return _img; };
+            IntegralImageFlags flags() const { return _flags; };
         
             static inline float area( const Image & img, const Recti & r ); 
         
             static inline float area( const float * p, size_t w, size_t h, size_t stride );
         
         private:
-            const Image &       _img;
             Image*              _sum;
             Image*              _sqrSum;
             IntegralImageFlags  _flags;

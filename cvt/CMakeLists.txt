@@ -457,14 +457,15 @@ set_target_properties(${MODULE_NAME}
 
 CVTTESTS(cvt util/cvttestsproto.h)
 
-#link_directories (${CMAKE_BINARY_DIR}/lib/) 
+#link_directories (${CMAKE_BINARY_DIR}/lib/)
+IF( ${CMAKE_BUILD_TYPE} MATCHES "debug" )
+	add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
-add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
-
-IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
-	SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
+	IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
+		SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
+	ENDIF()
+	target_link_libraries (cvttest ${MODULE_NAME}) 
 ENDIF()
-target_link_libraries (cvttest ${MODULE_NAME}) 
 
 #special flags for some files
 set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
