@@ -13,7 +13,7 @@ namespace cvt
 		_extract( 0 ),
 		_score( 0 ),
         _suppress( true ),
-        _lastStride( 0 )
+        _lastStride( 640 )
 	{
 		switch( size ){
 			case SEGMENT_9:
@@ -37,8 +37,8 @@ namespace cvt
 				throw CVTException( "NO MATCHING EXTRACT FUNC" );
 				break;
 		}
-
-
+        
+        initPixelOffsets();
 	}
 
 	FAST::~FAST()
@@ -115,23 +115,28 @@ namespace cvt
             return;
         
         _lastStride = row_stride;
-		pixel[0] = 0 + row_stride * 3;
-		pixel[1] = 1 + row_stride * 3;
-		pixel[2] = 2 + row_stride * 2;
-		pixel[3] = 3 + row_stride * 1;
-		pixel[4] = 3;
-		pixel[5] = 3 - row_stride * 1;
-		pixel[6] = 2 - row_stride * 2;
-		pixel[7] = 1 - row_stride * 3;
-		pixel[8] =   - row_stride * 3;
-		pixel[9] = -1 - row_stride * 3;
-		pixel[10] = -2 - row_stride * 2;
-		pixel[11] = -3 - row_stride * 1;
-		pixel[12] = -3;
-		pixel[13] = -3 + row_stride;
-		pixel[14] = -2 + row_stride * 2;
-		pixel[15] = -1 + row_stride * 3;
+        initPixelOffsets();
 	}
+    
+    void FAST::initPixelOffsets()
+    {
+        pixel[0]  =  0 + _lastStride * 3;
+		pixel[1]  =  1 + _lastStride * 3;
+		pixel[2]  =  2 + _lastStride * 2;
+		pixel[3]  =  3 + _lastStride * 1;
+		pixel[4]  =  3;
+		pixel[5]  =  3 - _lastStride * 1;
+		pixel[6]  =  2 - _lastStride * 2;
+		pixel[7]  =  1 - _lastStride * 3;
+		pixel[8]  =    - _lastStride * 3;
+		pixel[9]  = -1 - _lastStride * 3;
+		pixel[10] = -2 - _lastStride * 2;
+		pixel[11] = -3 - _lastStride * 1;
+		pixel[12] = -3;
+		pixel[13] = -3 + _lastStride;
+		pixel[14] = -2 + _lastStride * 2;
+		pixel[15] = -1 + _lastStride * 3;
+    }
 
 	void FAST::nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed )
 	{

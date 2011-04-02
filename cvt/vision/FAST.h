@@ -54,6 +54,7 @@ namespace cvt
 			int score12( const uint8_t* p );
 
 			void make_offsets( size_t row_stride );
+            void initPixelOffsets();
 			void nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed );
         
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
