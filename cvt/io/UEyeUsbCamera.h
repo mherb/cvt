@@ -49,7 +49,7 @@ class UEyeUsbCamera : public Camera
             INT			_height;		// height of image
             INT			_stride;		// stride of imagte
 
-			static const size_t	_numImageBuffers = 4;
+			static const size_t	_numImageBuffers = 1;
 			uint8_t*			_buffers[ _numImageBuffers ];
 			INT					_bufferIds[ _numImageBuffers ];
 
