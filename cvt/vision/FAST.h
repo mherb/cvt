@@ -37,7 +37,7 @@ namespace cvt
 			ScoreFunc	_score;        
             bool        _suppress;
             size_t      _lastStride;
-            int         pixel[ 16 ]; // offsets to the ring pixel
+            int         _pixel[ 16 ]; // offsets to the ring pixel
 
 			int* score( const uint8_t* img, size_t stride, std::vector<Feature2D> & corners );
 

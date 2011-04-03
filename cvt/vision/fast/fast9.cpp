@@ -4,437 +4,437 @@ namespace cvt {
 
     bool FAST::isDarkerCorner9( const uint8_t * p, const int barrier )
 	{
-		if( !( p[ pixel[ 15 ] ] < barrier ) ) {     // ???????????????-
-            if( !(p[ pixel[ 8 ] ] < barrier ) ) {   // ????????-??????-
+		if( !( p[ _pixel[ 15 ] ] < barrier ) ) {     // ???????????????-
+            if( !(p[ _pixel[ 8 ] ] < barrier ) ) {   // ????????-??????-
 				return false;
 			}                                       // ????????@??????-
-            if( !(p[ pixel[ 7 ] ] < barrier ) ) {   // ???????-@??????-
+            if( !(p[ _pixel[ 7 ] ] < barrier ) ) {   // ???????-@??????-
 				return false;
 			}										// ???????@@??????-
-            if( !(p[ pixel[ 6 ] ] < barrier ) ) {   // ??????-@@??????-
+            if( !(p[ _pixel[ 6 ] ] < barrier ) ) {   // ??????-@@??????-
 				return false;
 			}                                           // ??????@@@??????-
-            if( !(p[ pixel[ 3 ] ] < barrier ) ) {		// ??????@@@??????-
-                if( !(p[ pixel[ 10 ] ] < barrier ) ){  // ?????-@@@?????--
+            if( !(p[ _pixel[ 3 ] ] < barrier ) ) {		// ??????@@@??????-
+                if( !(p[ _pixel[ 10 ] ] < barrier ) ){  // ?????-@@@?????--
 					return false;
 				}                               // ?????-@@@?????@- :p13
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) {   // ?????-@@@????-@-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) {   // ?????-@@@????-@-
 					return false;
 				}                               // ?????-@@@????@@-
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) {  // ?????-@@@-???@@-
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) {  // ?????-@@@-???@@-
 					return false;
 				}                               // ?????-@@@@???@@-
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ?????-@@@@-??@@-
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ?????-@@@@-??@@-
 					return false;
 				} // ?????-@@@@@??@@-
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ?????-@@@@@-?@@-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ?????-@@@@@-?@@-
 					return false;
 				} // ?????-@@@@@@?@@-
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // ?????-@@@@@@-@@-
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // ?????-@@@@@@-@@-
 					return false;
 				} // ?????-@@@@@@@@@-
 				return true;
 			} // ?????@@@@??????-
-            if( !(p[ pixel[ 4 ] ] < barrier ) ) { // ????-@@@@??????-
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ????-@@@@????-?-
+            if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // ????-@@@@??????-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ????-@@@@????-?-
 					return false;
 				} // ????-@@@@????@?-
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ????-@@@@-???@?-
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ????-@@@@-???@?-
 					return false;
 				} // ????-@@@@@???@?-
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ????-@@@@@-??@?-
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ????-@@@@@-??@?-
 					return false;
 				} // ????-@@@@@@??@?-
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ????-@@@@@@-?@?-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ????-@@@@@@-?@?-
 					return false;
 				} // ????-@@@@@@@?@?-
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // ????-@@@@@@@-@?-
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // ????-@@@@@@@-@?-
 					return false;
 				} // ????-@@@@@@@@@?-
 				return true;
 			} // ????@@@@@??????-
-            if( !(p[ pixel[ 5 ] ] < barrier ) ) { // ???-@@@@@??????-
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ???-@@@@@-?????-
+            if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // ???-@@@@@??????-
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ???-@@@@@-?????-
 					return false;
 				} // ???-@@@@@@?????-
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ???-@@@@@@-????-
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ???-@@@@@@-????-
 					return false;
 				} // ???-@@@@@@@????-
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ???-@@@@@@@-???-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ???-@@@@@@@-???-
 					return false;
 				} // ???-@@@@@@@@???-
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // ???-@@@@@@@@-??-
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // ???-@@@@@@@@-??-
 					return false;
 				} // ???-@@@@@@@@@??-
 				return true;
 			} // ???@@@@@@??????-
-            if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ???@@@@@@-?????-
-                if( !(p[ pixel[ 8 ] ] < barrier ) ) { // -??@@@@@@-?????-
+            if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ???@@@@@@-?????-
+                if( !(p[ _pixel[ 8 ] ] < barrier ) ) { // -??@@@@@@-?????-
 					return false;
 				} // @??@@@@@@-?????-
-                if( !(p[ pixel[ 7 ] ] < barrier ) ) { // @-?@@@@@@-?????-
+                if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // @-?@@@@@@-?????-
 					return false;
 				} // @@?@@@@@@-?????-
-                if( !(p[ pixel[ 6 ] ] < barrier ) ) { // @@-@@@@@@-?????-
+                if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // @@-@@@@@@-?????-
 					return false;
 				} // @@@@@@@@@-?????-
 				return true;
 			} // ???@@@@@@@?????-
-            if( !(p[ pixel[ 6 ] ] < barrier ) ) { // ??-@@@@@@@?????-
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ??-@@@@@@@-????-
+            if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // ??-@@@@@@@?????-
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ??-@@@@@@@-????-
 					return false;
 				} // ??-@@@@@@@@????-
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ??-@@@@@@@@-???-
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ??-@@@@@@@@-???-
 					return false;
 				} // ??-@@@@@@@@@???-
 				return true;
 			} // ??@@@@@@@@?????-
-            if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ??@@@@@@@@-????-
-                if( !(p[ pixel[ 7 ] ] < barrier ) ) { // ?-@@@@@@@@-????-
+            if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ??@@@@@@@@-????-
+                if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // ?-@@@@@@@@-????-
 					return false;
 				} // ?@@@@@@@@@-????-
 				return true;
 			} // ??@@@@@@@@@????-
 			return true;
 		} // ???????????????@
-        if( !(p[ pixel[ 10 ] ] < barrier ) ) { // ??????????????-@
-            if( !(p[ pixel[ 3 ] ] < barrier ) ) { // ?????-????????-@
+        if( !(p[ _pixel[ 10 ] ] < barrier ) ) { // ??????????????-@
+            if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // ?????-????????-@
 				return false;
 			} // ?????@????????-@
-            if( !(p[ pixel[ 1 ]] < barrier ) ) { // ?????@?-??????-@
+            if( !(p[ _pixel[ 1 ]] < barrier ) ) { // ?????@?-??????-@
 				return false;
 			} // ?????@?@??????-@
-            if( !(p[ pixel[ 2 ] ] < barrier ) ) { // ?????@-@??????-@
+            if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // ?????@-@??????-@
 				return false;
 			} // ?????@@@??????-@
-            if( !(p[ pixel[ 4 ] ] < barrier ) ) { // ????-@@@??????-@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ????-@@@?????--@
+            if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // ????-@@@??????-@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ????-@@@?????--@
 					return false;
 				} // ????-@@@?????@-@
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // ????-@@@????-@-@
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // ????-@@@????-@-@
 					return false;
 				} // ????-@@@????@@-@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // ????-@@@-???@@-@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // ????-@@@-???@@-@
 					return false;
 				} // ????-@@@@???@@-@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ????-@@@@-??@@-@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ????-@@@@-??@@-@
 					return false;
 				} // ????-@@@@@??@@-@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ????-@@@@@-?@@-@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ????-@@@@@-?@@-@
 					return false;
 				} // ????-@@@@@@?@@-@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ????-@@@@@@-@@-@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ????-@@@@@@-@@-@
 					return false;
 				} // ????-@@@@@@@@@-@
 				return true;
 			} // ????@@@@??????-@
-            if( !(p[ pixel[ 5 ] ] < barrier ) ) { // ???-@@@@??????-@
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // ???-@@@@????-?-@
+            if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // ???-@@@@??????-@
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // ???-@@@@????-?-@
 					return false;
 				} // ???-@@@@????@?-@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // ???-@@@@-???@?-@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // ???-@@@@-???@?-@
 					return false;
 				} // ???-@@@@@???@?-@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ???-@@@@@-??@?-@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ???-@@@@@-??@?-@
 					return false;
 				} // ???-@@@@@@??@?-@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ???-@@@@@@-?@?-@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ???-@@@@@@-?@?-@
 					return false;
 				} // ???-@@@@@@@?@?-@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ???-@@@@@@@-@?-@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ???-@@@@@@@-@?-@
 					return false;
 				} // ???-@@@@@@@@@?-@
 				return true;
 			} // ???@@@@@??????-@
-            if( !(p[ pixel[ 6 ] ] < barrier ) ) { // ??-@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // ??-@@@@@-?????-@
+            if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // ??-@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // ??-@@@@@-?????-@
 					return false;
 				} // ??-@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ??-@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ??-@@@@@@-????-@
 					return false;
 				} // ??-@@@@@@@????-@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ??-@@@@@@@-???-@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ??-@@@@@@@-???-@
 					return false;
 				} // ??-@@@@@@@@???-@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // ??-@@@@@@@@-??-@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // ??-@@@@@@@@-??-@
 					return false;
 				} // ??-@@@@@@@@@??-@
 				return true;
 			} // ??@@@@@@??????-@
-            if( !(p[ pixel[ 7 ] ] < barrier ) ) { // ?-@@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // ?-@@@@@@-?????-@
+            if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // ?-@@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // ?-@@@@@@-?????-@
 					return false;
 				} // ?-@@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // ?-@@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // ?-@@@@@@@-????-@
 					return false;
 				} // ?-@@@@@@@@????-@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // ?-@@@@@@@@-???-@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // ?-@@@@@@@@-???-@
 					return false;
 				} // ?-@@@@@@@@@???-@
 				return true;
 			} // ?@@@@@@@??????-@
-            if( !(p[ pixel[ 8 ] ] < barrier ) ) { // -@@@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // -@@@@@@@-?????-@
+            if( !(p[ _pixel[ 8 ] ] < barrier ) ) { // -@@@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // -@@@@@@@-?????-@
 					return false;
 				} // -@@@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // -@@@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // -@@@@@@@@-????-@
 					return false;
 				} // -@@@@@@@@@????-@
 				return true;
 			} // @@@@@@@@??????-@
 			return true;
 		} // ??????????????@@
-        if( !(p[ pixel[ 8 ] ] < barrier ) ) { // -?????????????@@
-            if( !(p[ pixel[ 1 ]] < barrier ) ) { // -??????-??????@@
+        if( !(p[ _pixel[ 8 ] ] < barrier ) ) { // -?????????????@@
+            if( !(p[ _pixel[ 1 ]] < barrier ) ) { // -??????-??????@@
 				return false;
 			} // -??????@??????@@
-            if( !(p[ pixel[ 15 ] ] < barrier ) ) { // -??????@?-????@@
+            if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // -??????@?-????@@
 				return false;
 			} // -??????@?@????@@
-            if( !(p[ pixel[ 0 ]] < barrier ) ) { // -??????@-@????@@
+            if( !(p[ _pixel[ 0 ]] < barrier ) ) { // -??????@-@????@@
 				return false;
 			} // -??????@@@????@@
-            if( !(p[ pixel[ 14 ] ] < barrier ) ) { // -??????@@@-???@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // -?????-@@@-???@@
+            if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // -??????@@@-???@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // -?????-@@@-???@@
 					return false;
 				} // -?????@@@@-???@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // -????-@@@@-???@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // -????-@@@@-???@@
 					return false;
 				} // -????@@@@@-???@@
-                if( !(p[ pixel[ 7 ] ] < barrier ) ) { // --???@@@@@-???@@
+                if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // --???@@@@@-???@@
 					return false;
 				} // -@???@@@@@-???@@
-                if( !(p[ pixel[ 6 ] ] < barrier ) ) { // -@-??@@@@@-???@@
+                if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // -@-??@@@@@-???@@
 					return false;
 				} // -@@??@@@@@-???@@
-                if( !(p[ pixel[ 5 ] ] < barrier ) ) { // -@@-?@@@@@-???@@
+                if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // -@@-?@@@@@-???@@
 					return false;
 				} // -@@@?@@@@@-???@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // -@@@-@@@@@-???@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // -@@@-@@@@@-???@@
 					return false;
 				} // -@@@@@@@@@-???@@
 				return true;
 			} // -??????@@@@???@@
-            if( !(p[ pixel[ 11 ] ] < barrier ) ) { // -??????@@@@-??@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // -?????-@@@@-??@@
+            if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // -??????@@@@-??@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // -?????-@@@@-??@@
 					return false;
 				} // -?????@@@@@-??@@
-                if( !(p[ pixel[ 6 ] ] < barrier ) ) { // -?-???@@@@@-??@@
+                if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // -?-???@@@@@-??@@
 					return false;
 				} // -?@???@@@@@-??@@
-                if( !(p[ pixel[ 5 ] ] < barrier ) ) { // -?@-??@@@@@-??@@
+                if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // -?@-??@@@@@-??@@
 					return false;
 				} // -?@@??@@@@@-??@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // -?@@-?@@@@@-??@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // -?@@-?@@@@@-??@@
 					return false;
 				} // -?@@@?@@@@@-??@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // -?@@@-@@@@@-??@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // -?@@@-@@@@@-??@@
 					return false;
 				} // -?@@@@@@@@@-??@@
 				return true;
 			} // -??????@@@@@??@@
-            if( !(p[ pixel[ 12 ] ] < barrier ) ) { // -??????@@@@@-?@@
-                if( !(p[ pixel[ 5 ] ] < barrier ) ) { // -??-???@@@@@-?@@
+            if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // -??????@@@@@-?@@
+                if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // -??-???@@@@@-?@@
 					return false;
 				} // -??@???@@@@@-?@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // -??@-??@@@@@-?@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // -??@-??@@@@@-?@@
 					return false;
 				} // -??@@??@@@@@-?@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // -??@@-?@@@@@-?@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // -??@@-?@@@@@-?@@
 					return false;
 				} // -??@@@?@@@@@-?@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // -??@@@-@@@@@-?@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // -??@@@-@@@@@-?@@
 					return false;
 				} // -??@@@@@@@@@-?@@
 				return true;
 			} // -??????@@@@@@?@@
-            if( !(p[ pixel[ 11 ] ] < barrier ) ) { // -??????@@@@@@-@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // -???-??@@@@@@-@@
+            if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // -??????@@@@@@-@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // -???-??@@@@@@-@@
 					return false;
 				} // -???@??@@@@@@-@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // -???@-?@@@@@@-@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // -???@-?@@@@@@-@@
 					return false;
 				} // -???@@?@@@@@@-@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // -???@@-@@@@@@-@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // -???@@-@@@@@@-@@
 					return false;
 				} // -???@@@@@@@@@-@@
 				return true;
 			} // -??????@@@@@@@@@
 			return true;
 		} // @?????????????@@
-        if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @????????????-@@
-            if( !(p[ pixel[ 2 ] ] < barrier ) ) { // @?????-??????-@@
+        if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @????????????-@@
+            if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // @?????-??????-@@
 				return false;
 			} // @?????@??????-@@
-            if( !(p[ pixel[ 3 ] ] < barrier ) ) { // @????-@??????-@@
+            if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // @????-@??????-@@
 				return false;
 			} // @????@@??????-@@
-            if( !(p[ pixel[ 4 ] ] < barrier ) ) { // @???-@@??????-@@
+            if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // @???-@@??????-@@
 				return false;
 			} // @???@@@??????-@@
-            if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @??-@@@??????-@@
-                if( !(p[ pixel[ 12 ] ] < barrier ) ) { // @??-@@@?????--@@
+            if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @??-@@@??????-@@
+                if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // @??-@@@?????--@@
 					return false;
 				} // @??-@@@?????@-@@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @??-@@@????-@-@@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @??-@@@????-@-@@
 					return false;
 				} // @??-@@@????@@-@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @??-@@@-???@@-@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @??-@@@-???@@-@@
 					return false;
 				} // @??-@@@@???@@-@@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // @??-@@@@-??@@-@@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // @??-@@@@-??@@-@@
 					return false;
 				} // @??-@@@@@??@@-@@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @??-@@@@@-?@@-@@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @??-@@@@@-?@@-@@
 					return false;
 				} // @??-@@@@@@?@@-@@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @??-@@@@@@-@@-@@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @??-@@@@@@-@@-@@
 					return false;
 				} // @??-@@@@@@@@@-@@
 				return true;
 			} // @??@@@@??????-@@
-            if( !(p[ pixel[ 6 ] ] < barrier ) ) { // @?-@@@@??????-@@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @?-@@@@????-?-@@
+            if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // @?-@@@@??????-@@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @?-@@@@????-?-@@
 					return false;
 				} // @?-@@@@????@?-@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @?-@@@@-???@?-@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @?-@@@@-???@?-@@
 					return false;
 				} // @?-@@@@@???@?-@@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // @?-@@@@@-??@?-@@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // @?-@@@@@-??@?-@@
 					return false;
 				} // @?-@@@@@@??@?-@@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @?-@@@@@@-?@?-@@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @?-@@@@@@-?@?-@@
 					return false;
 				} // @?-@@@@@@@?@?-@@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @?-@@@@@@@-@?-@@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @?-@@@@@@@-@?-@@
 					return false;
 				} // @?-@@@@@@@@@?-@@
 				return true;
 			} // @?@@@@@??????-@@
-            if( !(p[ pixel[ 7 ] ] < barrier ) ) { // @-@@@@@??????-@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @-@@@@@-?????-@@
+            if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // @-@@@@@??????-@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @-@@@@@-?????-@@
 					return false;
 				} // @-@@@@@@?????-@@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // @-@@@@@@-????-@@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // @-@@@@@@-????-@@
 					return false;
 				} // @-@@@@@@@????-@@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @-@@@@@@@-???-@@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @-@@@@@@@-???-@@
 					return false;
 				} // @-@@@@@@@@???-@@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @-@@@@@@@@-??-@@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @-@@@@@@@@-??-@@
 					return false;
 				} // @-@@@@@@@@@??-@@
 				return true;
 			} // @@@@@@@??????-@@
 			return true;
 		} // @????????????@@@
-        if( !(p[ pixel[ 7 ] ] < barrier ) ) { // @-???????????@@@
-            if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @-????????-??@@@
+        if( !(p[ _pixel[ 7 ] ] < barrier ) ) { // @-???????????@@@
+            if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @-????????-??@@@
 				return false;
 			} // @-????????@??@@@
-            if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @-???????-@??@@@
+            if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @-???????-@??@@@
 				return false;
 			} // @-???????@@??@@@
-            if( !(p[ pixel[ 0 ]] < barrier ) ) { // @-??????-@@??@@@
+            if( !(p[ _pixel[ 0 ]] < barrier ) ) { // @-??????-@@??@@@
 				return false;
 			} // @-??????@@@??@@@
-            if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @-??????@@@-?@@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @-?????-@@@-?@@@
+            if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @-??????@@@-?@@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @-?????-@@@-?@@@
 					return false;
 				} // @-?????@@@@-?@@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // @-????-@@@@-?@@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // @-????-@@@@-?@@@
 					return false;
 				} // @-????@@@@@-?@@@
-                if( !(p[ pixel[ 6 ] ] < barrier ) ) { // @--???@@@@@-?@@@
+                if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // @--???@@@@@-?@@@
 					return false;
 				} // @-@???@@@@@-?@@@
-                if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @-@-??@@@@@-?@@@
+                if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @-@-??@@@@@-?@@@
 					return false;
 				} // @-@@??@@@@@-?@@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // @-@@-?@@@@@-?@@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // @-@@-?@@@@@-?@@@
 					return false;
 				} // @-@@@?@@@@@-?@@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // @-@@@-@@@@@-?@@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // @-@@@-@@@@@-?@@@
 					return false;
 				} // @-@@@@@@@@@-?@@@
 				return true;
 			} // @-??????@@@@?@@@
-            if( !(p[ pixel[ 12 ] ] < barrier ) ) { // @-??????@@@@-@@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @-?????-@@@@-@@@
+            if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // @-??????@@@@-@@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @-?????-@@@@-@@@
 					return false;
 				} // @-?????@@@@@-@@@
-                if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @-?-???@@@@@-@@@
+                if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @-?-???@@@@@-@@@
 					return false;
 				} // @-?@???@@@@@-@@@
-                if( !(p[ pixel[ 4 ] ] < barrier ) ) { // @-?@-??@@@@@-@@@
+                if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // @-?@-??@@@@@-@@@
 					return false;
 				} // @-?@@??@@@@@-@@@
-                if( !(p[ pixel[ 3 ] ] < barrier ) ) { // @-?@@-?@@@@@-@@@
+                if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // @-?@@-?@@@@@-@@@
 					return false;
 				} // @-?@@@?@@@@@-@@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // @-?@@@-@@@@@-@@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // @-?@@@-@@@@@-@@@
 					return false;
 				} // @-?@@@@@@@@@-@@@
 				return true;
 			} // @-??????@@@@@@@@
 			return true;
 		} // @@???????????@@@
-        if( !(p[ pixel[ 12 ] ] < barrier ) ) { // @@??????????-@@@
-            if( !(p[ pixel[ 3 ] ] < barrier ) ) { // @@???-??????-@@@
+        if( !(p[ _pixel[ 12 ] ] < barrier ) ) { // @@??????????-@@@
+            if( !(p[ _pixel[ 3 ] ] < barrier ) ) { // @@???-??????-@@@
 				return false;
 			} // @@???@??????-@@@
-            if( !(p[ pixel[ 4 ] ] < barrier ) ) { // @@??-@??????-@@@
+            if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // @@??-@??????-@@@
 				return false;
 			} // @@??@@??????-@@@
-            if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @@?-@@??????-@@@
+            if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @@?-@@??????-@@@
 				return false;
 			} // @@?@@@??????-@@@
-            if( !(p[ pixel[ 6 ] ] < barrier ) ) { // @@-@@@??????-@@@
-                if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @@-@@@?????--@@@
+            if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // @@-@@@??????-@@@
+                if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @@-@@@?????--@@@
 					return false;
 				} // @@-@@@?????@-@@@
-                if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @@-@@@????-@-@@@
+                if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @@-@@@????-@-@@@
 					return false;
 				} // @@-@@@????@@-@@@
-                if( !(p[ pixel[ 2 ] ] < barrier ) ) { // @@-@@@-???@@-@@@
+                if( !(p[ _pixel[ 2 ] ] < barrier ) ) { // @@-@@@-???@@-@@@
 					return false;
 				} // @@-@@@@???@@-@@@
-                if( !(p[ pixel[ 1 ]] < barrier ) ) { // @@-@@@@-??@@-@@@
+                if( !(p[ _pixel[ 1 ]] < barrier ) ) { // @@-@@@@-??@@-@@@
 					return false;
 				} // @@-@@@@@??@@-@@@
-                if( !(p[ pixel[ 0 ]] < barrier ) ) { // @@-@@@@@-?@@-@@@
+                if( !(p[ _pixel[ 0 ]] < barrier ) ) { // @@-@@@@@-?@@-@@@
 					return false;
 				} // @@-@@@@@@?@@-@@@
-                if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @@-@@@@@@-@@-@@@
+                if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @@-@@@@@@-@@-@@@
 					return false;
 				} // @@-@@@@@@@@@-@@@
 				return true;
 			} // @@@@@@??????-@@@
 			return true;
 		} // @@??????????@@@@
-        if( !(p[ pixel[ 6 ] ] < barrier ) ) { // @@-?????????@@@@
-            if( !(p[ pixel[ 15 ] ] < barrier ) ) { // @@-??????-??@@@@
+        if( !(p[ _pixel[ 6 ] ] < barrier ) ) { // @@-?????????@@@@
+            if( !(p[ _pixel[ 15 ] ] < barrier ) ) { // @@-??????-??@@@@
 				return false;
 			} // @@-??????@??@@@@
-            if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @@-??????@-?@@@@
+            if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @@-??????@-?@@@@
 				return false;
 			} // @@-??????@@?@@@@
-            if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @@-??????@@-@@@@
+            if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @@-??????@@-@@@@
 				return false;
 			} // @@-??????@@@@@@@
 			return true;
 		} // @@@?????????@@@@
-        if( !(p[ pixel[ 11 ] ] < barrier ) ) { // @@@????????-@@@@
-            if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @@@-???????-@@@@
+        if( !(p[ _pixel[ 11 ] ] < barrier ) ) { // @@@????????-@@@@
+            if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @@@-???????-@@@@
 				return false;
 			} // @@@@???????-@@@@
-            if( !(p[ pixel[ 4 ] ] < barrier ) ) { // @@@@-??????-@@@@
+            if( !(p[ _pixel[ 4 ] ] < barrier ) ) { // @@@@-??????-@@@@
 				return false;
 			} // @@@@@??????-@@@@
 			return true;
 		} // @@@????????@@@@@
-        if( !(p[ pixel[ 5 ] ] < barrier ) ) { // @@@-???????@@@@@
-            if( !(p[ pixel[ 14 ] ] < barrier ) ) { // @@@-??????-@@@@@
+        if( !(p[ _pixel[ 5 ] ] < barrier ) ) { // @@@-???????@@@@@
+            if( !(p[ _pixel[ 14 ] ] < barrier ) ) { // @@@-??????-@@@@@
 				return false;
 			} // @@@-??????@@@@@@
 			return true;
@@ -445,437 +445,437 @@ namespace cvt {
 	 */
     bool FAST::isBrighterCorner9( const uint8_t * p, const int barrier )
 	{
-		if( !( p[ pixel[ 9 ] ] > barrier ) ) {	// ???????????????-
-            if( !(p[ pixel[ 0 ]] > barrier ) ) {		// ???????-???????-
+		if( !( p[ _pixel[ 9 ] ] > barrier ) ) {	// ???????????????-
+            if( !(p[ _pixel[ 0 ]] > barrier ) ) {		// ???????-???????-
 				return false;
 			}								// ????????@??????-
-            if( !(p[ pixel[ 1 ]] > barrier ) ) {		// ???????-@??????-
+            if( !(p[ _pixel[ 1 ]] > barrier ) ) {		// ???????-@??????-
 				return false;
 			}								// ???????@@??????-
-            if( !(p[ pixel[ 2 ] ] > barrier ) ) {		// ??????-@@??????-
+            if( !(p[ _pixel[ 2 ] ] > barrier ) ) {		// ??????-@@??????-
 				return false;
 			}								// ??????@@@??????-
-            if( !(p[ pixel[ 3 ] ] > barrier ) ) {		// ?????-@@@??????-
-                if( !(p[ pixel[ 10 ] ] > barrier ) ){ // ?????-@@@?????--
+            if( !(p[ _pixel[ 3 ] ] > barrier ) ) {		// ?????-@@@??????-
+                if( !(p[ _pixel[ 10 ] ] > barrier ) ){ // ?????-@@@?????--
 					return false;
 				} // ?????-@@@?????@-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ?????-@@@????-@-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ?????-@@@????-@-
 					return false;
 				} // ?????-@@@????@@-
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ?????-@@@-???@@-
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ?????-@@@-???@@-
 					return false;
 				} // ?????-@@@@???@@-
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ?????-@@@@-??@@-
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ?????-@@@@-??@@-
 					return false;
 				} // ?????-@@@@@??@@-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ?????-@@@@@-?@@-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ?????-@@@@@-?@@-
 					return false;
 				} // ?????-@@@@@@?@@-
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // ?????-@@@@@@-@@-
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // ?????-@@@@@@-@@-
 					return false;
 				} // ?????-@@@@@@@@@-
 				return true;
 			} // ?????@@@@??????-
-            if( !(p[ pixel[ 4 ] ] > barrier ) ) { // ????-@@@@??????-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ????-@@@@????-?-
+            if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // ????-@@@@??????-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ????-@@@@????-?-
 					return false;
 				} // ????-@@@@????@?-
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ????-@@@@-???@?-
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ????-@@@@-???@?-
 					return false;
 				} // ????-@@@@@???@?-
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ????-@@@@@-??@?-
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ????-@@@@@-??@?-
 					return false;
 				} // ????-@@@@@@??@?-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ????-@@@@@@-?@?-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ????-@@@@@@-?@?-
 					return false;
 				} // ????-@@@@@@@?@?-
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // ????-@@@@@@@-@?-
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // ????-@@@@@@@-@?-
 					return false;
 				} // ????-@@@@@@@@@?-
 				return true;
 			} // ????@@@@@??????-
-            if( !(p[ pixel[ 5 ] ] > barrier ) ) { // ???-@@@@@??????-
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ???-@@@@@-?????-
+            if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // ???-@@@@@??????-
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ???-@@@@@-?????-
 					return false;
 				} // ???-@@@@@@?????-
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ???-@@@@@@-????-
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ???-@@@@@@-????-
 					return false;
 				} // ???-@@@@@@@????-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ???-@@@@@@@-???-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ???-@@@@@@@-???-
 					return false;
 				} // ???-@@@@@@@@???-
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // ???-@@@@@@@@-??-
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // ???-@@@@@@@@-??-
 					return false;
 				} // ???-@@@@@@@@@??-
 				return true;
 			} // ???@@@@@@??????-
-            if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ???@@@@@@-?????-
-                if( !(p[ pixel[ 8 ] ] > barrier ) ) { // -??@@@@@@-?????-
+            if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ???@@@@@@-?????-
+                if( !(p[ _pixel[ 8 ] ] > barrier ) ) { // -??@@@@@@-?????-
 					return false;
 				} // @??@@@@@@-?????-
-                if( !(p[ pixel[ 7 ] ] > barrier ) ) { // @-?@@@@@@-?????-
+                if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // @-?@@@@@@-?????-
 					return false;
 				} // @@?@@@@@@-?????-
-                if( !(p[ pixel[ 6 ] ] > barrier ) ) { // @@-@@@@@@-?????-
+                if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // @@-@@@@@@-?????-
 					return false;
 				} // @@@@@@@@@-?????-
 				return true;
 			} // ???@@@@@@@?????-
-            if( !(p[ pixel[ 6 ] ] > barrier ) ) { // ??-@@@@@@@?????-
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ??-@@@@@@@-????-
+            if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // ??-@@@@@@@?????-
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ??-@@@@@@@-????-
 					return false;
 				} // ??-@@@@@@@@????-
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ??-@@@@@@@@-???-
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ??-@@@@@@@@-???-
 					return false;
 				} // ??-@@@@@@@@@???-
 				return true;
 			} // ??@@@@@@@@?????-
-            if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ??@@@@@@@@-????-
-                if( !(p[ pixel[ 7 ] ] > barrier ) ) { // ?-@@@@@@@@-????-
+            if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ??@@@@@@@@-????-
+                if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // ?-@@@@@@@@-????-
 					return false;
 				} // ?@@@@@@@@@-????-
 				return true;
 			} // ??@@@@@@@@@????-
 			return true;
 		} // ???????????????@
-        if( !(p[ pixel[ 10 ] ] > barrier ) ) { // ??????????????-@
-            if( !(p[ pixel[ 3 ] ] > barrier ) ) { // ?????-????????-@
+        if( !(p[ _pixel[ 10 ] ] > barrier ) ) { // ??????????????-@
+            if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // ?????-????????-@
 				return false;
 			} // ?????@????????-@
-            if( !(p[ pixel[ 1 ]] > barrier ) ) { // ?????@?-??????-@
+            if( !(p[ _pixel[ 1 ]] > barrier ) ) { // ?????@?-??????-@
 				return false;
 			} // ?????@?@??????-@
-            if( !(p[ pixel[ 2 ] ] > barrier ) ) { // ?????@-@??????-@
+            if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // ?????@-@??????-@
 				return false;
 			} // ?????@@@??????-@
-            if( !(p[ pixel[ 4 ] ] > barrier ) ) { // ????-@@@??????-@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ????-@@@?????--@
+            if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // ????-@@@??????-@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ????-@@@?????--@
 					return false;
 				} // ????-@@@?????@-@
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // ????-@@@????-@-@
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // ????-@@@????-@-@
 					return false;
 				} // ????-@@@????@@-@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // ????-@@@-???@@-@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // ????-@@@-???@@-@
 					return false;
 				} // ????-@@@@???@@-@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ????-@@@@-??@@-@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ????-@@@@-??@@-@
 					return false;
 				} // ????-@@@@@??@@-@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ????-@@@@@-?@@-@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ????-@@@@@-?@@-@
 					return false;
 				} // ????-@@@@@@?@@-@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ????-@@@@@@-@@-@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ????-@@@@@@-@@-@
 					return false;
 				} // ????-@@@@@@@@@-@
 				return true;
 			} // ????@@@@??????-@
-            if( !(p[ pixel[ 5 ] ] > barrier ) ) { // ???-@@@@??????-@
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // ???-@@@@????-?-@
+            if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // ???-@@@@??????-@
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // ???-@@@@????-?-@
 					return false;
 				} // ???-@@@@????@?-@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // ???-@@@@-???@?-@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // ???-@@@@-???@?-@
 					return false;
 				} // ???-@@@@@???@?-@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ???-@@@@@-??@?-@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ???-@@@@@-??@?-@
 					return false;
 				} // ???-@@@@@@??@?-@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ???-@@@@@@-?@?-@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ???-@@@@@@-?@?-@
 					return false;
 				} // ???-@@@@@@@?@?-@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ???-@@@@@@@-@?-@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ???-@@@@@@@-@?-@
 					return false;
 				} // ???-@@@@@@@@@?-@
 				return true;
 			} // ???@@@@@??????-@
-            if( !(p[ pixel[ 6 ] ] > barrier ) ) { // ??-@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // ??-@@@@@-?????-@
+            if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // ??-@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // ??-@@@@@-?????-@
 					return false;
 				} // ??-@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ??-@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ??-@@@@@@-????-@
 					return false;
 				} // ??-@@@@@@@????-@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ??-@@@@@@@-???-@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ??-@@@@@@@-???-@
 					return false;
 				} // ??-@@@@@@@@???-@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // ??-@@@@@@@@-??-@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // ??-@@@@@@@@-??-@
 					return false;
 				} // ??-@@@@@@@@@??-@
 				return true;
 			} // ??@@@@@@??????-@
-            if( !(p[ pixel[ 7 ] ] > barrier ) ) { // ?-@@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // ?-@@@@@@-?????-@
+            if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // ?-@@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // ?-@@@@@@-?????-@
 					return false;
 				} // ?-@@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // ?-@@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // ?-@@@@@@@-????-@
 					return false;
 				} // ?-@@@@@@@@????-@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // ?-@@@@@@@@-???-@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // ?-@@@@@@@@-???-@
 					return false;
 				} // ?-@@@@@@@@@???-@
 				return true;
 			} // ?@@@@@@@??????-@
-            if( !(p[ pixel[ 8 ] ] > barrier ) ) { // -@@@@@@@??????-@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // -@@@@@@@-?????-@
+            if( !(p[ _pixel[ 8 ] ] > barrier ) ) { // -@@@@@@@??????-@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // -@@@@@@@-?????-@
 					return false;
 				} // -@@@@@@@@?????-@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // -@@@@@@@@-????-@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // -@@@@@@@@-????-@
 					return false;
 				} // -@@@@@@@@@????-@
 				return true;
 			} // @@@@@@@@??????-@
 			return true;
 		} // ??????????????@@
-        if( !(p[ pixel[ 8 ] ] > barrier ) ) { // -?????????????@@
-            if( !(p[ pixel[ 1 ]] > barrier ) ) { // -??????-??????@@
+        if( !(p[ _pixel[ 8 ] ] > barrier ) ) { // -?????????????@@
+            if( !(p[ _pixel[ 1 ]] > barrier ) ) { // -??????-??????@@
 				return false;
 			} // -??????@??????@@
-            if( !(p[ pixel[ 15 ] ] > barrier ) ) { // -??????@?-????@@
+            if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // -??????@?-????@@
 				return false;
 			} // -??????@?@????@@
-            if( !(p[ pixel[ 0 ]] > barrier ) ) { // -??????@-@????@@
+            if( !(p[ _pixel[ 0 ]] > barrier ) ) { // -??????@-@????@@
 				return false;
 			} // -??????@@@????@@
-            if( !(p[ pixel[ 14 ] ] > barrier ) ) { // -??????@@@-???@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // -?????-@@@-???@@
+            if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // -??????@@@-???@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // -?????-@@@-???@@
 					return false;
 				} // -?????@@@@-???@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // -????-@@@@-???@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // -????-@@@@-???@@
 					return false;
 				} // -????@@@@@-???@@
-                if( !(p[ pixel[ 7 ] ] > barrier ) ) { // --???@@@@@-???@@
+                if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // --???@@@@@-???@@
 					return false;
 				} // -@???@@@@@-???@@
-                if( !(p[ pixel[ 6 ] ] > barrier ) ) { // -@-??@@@@@-???@@
+                if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // -@-??@@@@@-???@@
 					return false;
 				} // -@@??@@@@@-???@@
-                if( !(p[ pixel[ 5 ] ] > barrier ) ) { // -@@-?@@@@@-???@@
+                if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // -@@-?@@@@@-???@@
 					return false;
 				} // -@@@?@@@@@-???@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // -@@@-@@@@@-???@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // -@@@-@@@@@-???@@
 					return false;
 				} // -@@@@@@@@@-???@@
 				return true;
 			} // -??????@@@@???@@
-            if( !(p[ pixel[ 11 ] ] > barrier ) ) { // -??????@@@@-??@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // -?????-@@@@-??@@
+            if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // -??????@@@@-??@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // -?????-@@@@-??@@
 					return false;
 				} // -?????@@@@@-??@@
-                if( !(p[ pixel[ 6 ] ] > barrier ) ) { // -?-???@@@@@-??@@
+                if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // -?-???@@@@@-??@@
 					return false;
 				} // -?@???@@@@@-??@@
-                if( !(p[ pixel[ 5 ] ] > barrier ) ) { // -?@-??@@@@@-??@@
+                if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // -?@-??@@@@@-??@@
 					return false;
 				} // -?@@??@@@@@-??@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // -?@@-?@@@@@-??@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // -?@@-?@@@@@-??@@
 					return false;
 				} // -?@@@?@@@@@-??@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // -?@@@-@@@@@-??@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // -?@@@-@@@@@-??@@
 					return false;
 				} // -?@@@@@@@@@-??@@
 				return true;
 			} // -??????@@@@@??@@
-            if( !(p[ pixel[ 12 ] ] > barrier ) ) { // -??????@@@@@-?@@
-                if( !(p[ pixel[ 5 ] ] > barrier ) ) { // -??-???@@@@@-?@@
+            if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // -??????@@@@@-?@@
+                if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // -??-???@@@@@-?@@
 					return false;
 				} // -??@???@@@@@-?@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // -??@-??@@@@@-?@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // -??@-??@@@@@-?@@
 					return false;
 				} // -??@@??@@@@@-?@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // -??@@-?@@@@@-?@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // -??@@-?@@@@@-?@@
 					return false;
 				} // -??@@@?@@@@@-?@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // -??@@@-@@@@@-?@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // -??@@@-@@@@@-?@@
 					return false;
 				} // -??@@@@@@@@@-?@@
 				return true;
 			} // -??????@@@@@@?@@
-            if( !(p[ pixel[ 11 ] ] > barrier ) ) { // -??????@@@@@@-@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // -???-??@@@@@@-@@
+            if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // -??????@@@@@@-@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // -???-??@@@@@@-@@
 					return false;
 				} // -???@??@@@@@@-@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // -???@-?@@@@@@-@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // -???@-?@@@@@@-@@
 					return false;
 				} // -???@@?@@@@@@-@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // -???@@-@@@@@@-@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // -???@@-@@@@@@-@@
 					return false;
 				} // -???@@@@@@@@@-@@
 				return true;
 			} // -??????@@@@@@@@@
 			return true;
 		} // @?????????????@@
-        if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @????????????-@@
-            if( !(p[ pixel[ 2 ] ] > barrier ) ) { // @?????-??????-@@
+        if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @????????????-@@
+            if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // @?????-??????-@@
 				return false;
 			} // @?????@??????-@@
-            if( !(p[ pixel[ 3 ] ] > barrier ) ) { // @????-@??????-@@
+            if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // @????-@??????-@@
 				return false;
 			} // @????@@??????-@@
-            if( !(p[ pixel[ 4 ] ] > barrier ) ) { // @???-@@??????-@@
+            if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // @???-@@??????-@@
 				return false;
 			} // @???@@@??????-@@
-            if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @??-@@@??????-@@
-                if( !(p[ pixel[ 12 ] ] > barrier ) ) { // @??-@@@?????--@@
+            if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @??-@@@??????-@@
+                if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // @??-@@@?????--@@
 					return false;
 				} // @??-@@@?????@-@@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @??-@@@????-@-@@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @??-@@@????-@-@@
 					return false;
 				} // @??-@@@????@@-@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @??-@@@-???@@-@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @??-@@@-???@@-@@
 					return false;
 				} // @??-@@@@???@@-@@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // @??-@@@@-??@@-@@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // @??-@@@@-??@@-@@
 					return false;
 				} // @??-@@@@@??@@-@@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @??-@@@@@-?@@-@@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @??-@@@@@-?@@-@@
 					return false;
 				} // @??-@@@@@@?@@-@@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @??-@@@@@@-@@-@@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @??-@@@@@@-@@-@@
 					return false;
 				} // @??-@@@@@@@@@-@@
 				return true;
 			} // @??@@@@??????-@@
-            if( !(p[ pixel[ 6 ] ] > barrier ) ) { // @?-@@@@??????-@@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @?-@@@@????-?-@@
+            if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // @?-@@@@??????-@@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @?-@@@@????-?-@@
 					return false;
 				} // @?-@@@@????@?-@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @?-@@@@-???@?-@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @?-@@@@-???@?-@@
 					return false;
 				} // @?-@@@@@???@?-@@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // @?-@@@@@-??@?-@@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // @?-@@@@@-??@?-@@
 					return false;
 				} // @?-@@@@@@??@?-@@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @?-@@@@@@-?@?-@@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @?-@@@@@@-?@?-@@
 					return false;
 				} // @?-@@@@@@@?@?-@@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @?-@@@@@@@-@?-@@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @?-@@@@@@@-@?-@@
 					return false;
 				} // @?-@@@@@@@@@?-@@
 				return true;
 			} // @?@@@@@??????-@@
-            if( !(p[ pixel[ 7 ] ] > barrier ) ) { // @-@@@@@??????-@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @-@@@@@-?????-@@
+            if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // @-@@@@@??????-@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @-@@@@@-?????-@@
 					return false;
 				} // @-@@@@@@?????-@@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // @-@@@@@@-????-@@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // @-@@@@@@-????-@@
 					return false;
 				} // @-@@@@@@@????-@@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @-@@@@@@@-???-@@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @-@@@@@@@-???-@@
 					return false;
 				} // @-@@@@@@@@???-@@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @-@@@@@@@@-??-@@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @-@@@@@@@@-??-@@
 					return false;
 				} // @-@@@@@@@@@??-@@
 				return true;
 			} // @@@@@@@??????-@@
 			return true;
 		} // @????????????@@@
-        if( !(p[ pixel[ 7 ] ] > barrier ) ) { // @-???????????@@@
-            if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @-????????-??@@@
+        if( !(p[ _pixel[ 7 ] ] > barrier ) ) { // @-???????????@@@
+            if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @-????????-??@@@
 				return false;
 			} // @-????????@??@@@
-            if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @-???????-@??@@@
+            if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @-???????-@??@@@
 				return false;
 			} // @-???????@@??@@@
-            if( !(p[ pixel[ 0 ]] > barrier ) ) { // @-??????-@@??@@@
+            if( !(p[ _pixel[ 0 ]] > barrier ) ) { // @-??????-@@??@@@
 				return false;
 			} // @-??????@@@??@@@
-            if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @-??????@@@-?@@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @-?????-@@@-?@@@
+            if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @-??????@@@-?@@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @-?????-@@@-?@@@
 					return false;
 				} // @-?????@@@@-?@@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // @-????-@@@@-?@@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // @-????-@@@@-?@@@
 					return false;
 				} // @-????@@@@@-?@@@
-                if( !(p[ pixel[ 6 ] ] > barrier ) ) { // @--???@@@@@-?@@@
+                if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // @--???@@@@@-?@@@
 					return false;
 				} // @-@???@@@@@-?@@@
-                if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @-@-??@@@@@-?@@@
+                if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @-@-??@@@@@-?@@@
 					return false;
 				} // @-@@??@@@@@-?@@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // @-@@-?@@@@@-?@@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // @-@@-?@@@@@-?@@@
 					return false;
 				} // @-@@@?@@@@@-?@@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // @-@@@-@@@@@-?@@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // @-@@@-@@@@@-?@@@
 					return false;
 				} // @-@@@@@@@@@-?@@@
 				return true;
 			} // @-??????@@@@?@@@
-            if( !(p[ pixel[ 12 ] ] > barrier ) ) { // @-??????@@@@-@@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @-?????-@@@@-@@@
+            if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // @-??????@@@@-@@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @-?????-@@@@-@@@
 					return false;
 				} // @-?????@@@@@-@@@
-                if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @-?-???@@@@@-@@@
+                if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @-?-???@@@@@-@@@
 					return false;
 				} // @-?@???@@@@@-@@@
-                if( !(p[ pixel[ 4 ] ] > barrier ) ) { // @-?@-??@@@@@-@@@
+                if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // @-?@-??@@@@@-@@@
 					return false;
 				} // @-?@@??@@@@@-@@@
-                if( !(p[ pixel[ 3 ] ] > barrier ) ) { // @-?@@-?@@@@@-@@@
+                if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // @-?@@-?@@@@@-@@@
 					return false;
 				} // @-?@@@?@@@@@-@@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // @-?@@@-@@@@@-@@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // @-?@@@-@@@@@-@@@
 					return false;
 				} // @-?@@@@@@@@@-@@@
 				return true;
 			} // @-??????@@@@@@@@
 			return true;
 		} // @@???????????@@@
-        if( !(p[ pixel[ 12 ] ] > barrier ) ) { // @@??????????-@@@
-            if( !(p[ pixel[ 3 ] ] > barrier ) ) { // @@???-??????-@@@
+        if( !(p[ _pixel[ 12 ] ] > barrier ) ) { // @@??????????-@@@
+            if( !(p[ _pixel[ 3 ] ] > barrier ) ) { // @@???-??????-@@@
 				return false;
 			} // @@???@??????-@@@
-            if( !(p[ pixel[ 4 ] ] > barrier ) ) { // @@??-@??????-@@@
+            if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // @@??-@??????-@@@
 				return false;
 			} // @@??@@??????-@@@
-            if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @@?-@@??????-@@@
+            if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @@?-@@??????-@@@
 				return false;
 			} // @@?@@@??????-@@@
-            if( !(p[ pixel[ 6 ] ] > barrier ) ) { // @@-@@@??????-@@@
-                if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @@-@@@?????--@@@
+            if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // @@-@@@??????-@@@
+                if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @@-@@@?????--@@@
 					return false;
 				} // @@-@@@?????@-@@@
-                if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @@-@@@????-@-@@@
+                if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @@-@@@????-@-@@@
 					return false;
 				} // @@-@@@????@@-@@@
-                if( !(p[ pixel[ 2 ] ] > barrier ) ) { // @@-@@@-???@@-@@@
+                if( !(p[ _pixel[ 2 ] ] > barrier ) ) { // @@-@@@-???@@-@@@
 					return false;
 				} // @@-@@@@???@@-@@@
-                if( !(p[ pixel[ 1 ]] > barrier ) ) { // @@-@@@@-??@@-@@@
+                if( !(p[ _pixel[ 1 ]] > barrier ) ) { // @@-@@@@-??@@-@@@
 					return false;
 				} // @@-@@@@@??@@-@@@
-                if( !(p[ pixel[ 0 ]] > barrier ) ) { // @@-@@@@@-?@@-@@@
+                if( !(p[ _pixel[ 0 ]] > barrier ) ) { // @@-@@@@@-?@@-@@@
 					return false;
 				} // @@-@@@@@@?@@-@@@
-                if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @@-@@@@@@-@@-@@@
+                if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @@-@@@@@@-@@-@@@
 					return false;
 				} // @@-@@@@@@@@@-@@@
 				return true;
 			} // @@@@@@??????-@@@
 			return true;
 		} // @@??????????@@@@
-        if( !(p[ pixel[ 6 ] ] > barrier ) ) { // @@-?????????@@@@
-            if( !(p[ pixel[ 15 ] ] > barrier ) ) { // @@-??????-??@@@@
+        if( !(p[ _pixel[ 6 ] ] > barrier ) ) { // @@-?????????@@@@
+            if( !(p[ _pixel[ 15 ] ] > barrier ) ) { // @@-??????-??@@@@
 				return false;
 			} // @@-??????@??@@@@
-            if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @@-??????@-?@@@@
+            if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @@-??????@-?@@@@
 				return false;
 			} // @@-??????@@?@@@@
-            if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @@-??????@@-@@@@
+            if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @@-??????@@-@@@@
 				return false;
 			} // @@-??????@@@@@@@
 			return true;
 		} // @@@?????????@@@@
-        if( !(p[ pixel[ 11 ] ] > barrier ) ) { // @@@????????-@@@@
-            if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @@@-???????-@@@@
+        if( !(p[ _pixel[ 11 ] ] > barrier ) ) { // @@@????????-@@@@
+            if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @@@-???????-@@@@
 				return false;
 			} // @@@@???????-@@@@
-            if( !(p[ pixel[ 4 ] ] > barrier ) ) { // @@@@-??????-@@@@
+            if( !(p[ _pixel[ 4 ] ] > barrier ) ) { // @@@@-??????-@@@@
 				return false;
 			} // @@@@@??????-@@@@
 			return true;
 		} // @@@????????@@@@@
-        if( !(p[ pixel[ 5 ] ] > barrier ) ) { // @@@-???????@@@@@
-            if( !(p[ pixel[ 14 ] ] > barrier ) ) { // @@@-??????-@@@@@
+        if( !(p[ _pixel[ 5 ] ] > barrier ) ) { // @@@-???????@@@@@
+            if( !(p[ _pixel[ 14 ] ] > barrier ) ) { // @@@-??????-@@@@@
 				return false;
 			} // @@@-??????@@@@@@
 			return true;
@@ -928,35 +928,35 @@ namespace cvt {
 			int c_b= *p - b;
 
 
-			if( p[pixel[0]] > cb)
-				if( p[pixel[1]] > cb)
-					if( p[pixel[2]] > cb)
-						if( p[pixel[3]] > cb)
-							if( p[pixel[4]] > cb)
-								if( p[pixel[5]] > cb)
-									if( p[pixel[6]] > cb)
-										if( p[pixel[7]] > cb)
-											if( p[pixel[8]] > cb)
+			if( p[_pixel[0]] > cb)
+				if( p[_pixel[1]] > cb)
+					if( p[_pixel[2]] > cb)
+						if( p[_pixel[3]] > cb)
+							if( p[_pixel[4]] > cb)
+								if( p[_pixel[5]] > cb)
+									if( p[_pixel[6]] > cb)
+										if( p[_pixel[7]] > cb)
+											if( p[_pixel[8]] > cb)
 												goto is_a_corner;
 											else
-												if( p[pixel[15]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
-										else if( p[pixel[7]] < c_b)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+										else if( p[_pixel[7]] < c_b)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
-											else if( p[pixel[14]] < c_b)
-												if( p[pixel[8]] < c_b)
-													if( p[pixel[9]] < c_b)
-														if( p[pixel[10]] < c_b)
-															if( p[pixel[11]] < c_b)
-																if( p[pixel[12]] < c_b)
-																	if( p[pixel[13]] < c_b)
-																		if( p[pixel[15]] < c_b)
+											else if( p[_pixel[14]] < c_b)
+												if( p[_pixel[8]] < c_b)
+													if( p[_pixel[9]] < c_b)
+														if( p[_pixel[10]] < c_b)
+															if( p[_pixel[11]] < c_b)
+																if( p[_pixel[12]] < c_b)
+																	if( p[_pixel[13]] < c_b)
+																		if( p[_pixel[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -975,28 +975,28 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 										else
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-									else if( p[pixel[6]] < c_b)
-										if( p[pixel[15]] > cb)
-											if( p[pixel[13]] > cb)
-												if( p[pixel[14]] > cb)
+									else if( p[_pixel[6]] < c_b)
+										if( p[_pixel[15]] > cb)
+											if( p[_pixel[13]] > cb)
+												if( p[_pixel[14]] > cb)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
-											else if( p[pixel[13]] < c_b)
-												if( p[pixel[7]] < c_b)
-													if( p[pixel[8]] < c_b)
-														if( p[pixel[9]] < c_b)
-															if( p[pixel[10]] < c_b)
-																if( p[pixel[11]] < c_b)
-																	if( p[pixel[12]] < c_b)
-																		if( p[pixel[14]] < c_b)
+											else if( p[_pixel[13]] < c_b)
+												if( p[_pixel[7]] < c_b)
+													if( p[_pixel[8]] < c_b)
+														if( p[_pixel[9]] < c_b)
+															if( p[_pixel[10]] < c_b)
+																if( p[_pixel[11]] < c_b)
+																	if( p[_pixel[12]] < c_b)
+																		if( p[_pixel[14]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1015,14 +1015,14 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 										else
-											if( p[pixel[7]] < c_b)
-												if( p[pixel[8]] < c_b)
-													if( p[pixel[9]] < c_b)
-														if( p[pixel[10]] < c_b)
-															if( p[pixel[11]] < c_b)
-																if( p[pixel[12]] < c_b)
-																	if( p[pixel[13]] < c_b)
-																		if( p[pixel[14]] < c_b)
+											if( p[_pixel[7]] < c_b)
+												if( p[_pixel[8]] < c_b)
+													if( p[_pixel[9]] < c_b)
+														if( p[_pixel[10]] < c_b)
+															if( p[_pixel[11]] < c_b)
+																if( p[_pixel[12]] < c_b)
+																	if( p[_pixel[13]] < c_b)
+																		if( p[_pixel[14]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1041,23 +1041,23 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-										else if( p[pixel[13]] < c_b)
-											if( p[pixel[7]] < c_b)
-												if( p[pixel[8]] < c_b)
-													if( p[pixel[9]] < c_b)
-														if( p[pixel[10]] < c_b)
-															if( p[pixel[11]] < c_b)
-																if( p[pixel[12]] < c_b)
-																	if( p[pixel[14]] < c_b)
-																		if( p[pixel[15]] < c_b)
+										else if( p[_pixel[13]] < c_b)
+											if( p[_pixel[7]] < c_b)
+												if( p[_pixel[8]] < c_b)
+													if( p[_pixel[9]] < c_b)
+														if( p[_pixel[10]] < c_b)
+															if( p[_pixel[11]] < c_b)
+																if( p[_pixel[12]] < c_b)
+																	if( p[_pixel[14]] < c_b)
+																		if( p[_pixel[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1077,19 +1077,19 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-								else if( p[pixel[5]] < c_b)
-									if( p[pixel[14]] > cb)
-										if( p[pixel[12]] > cb)
-											if( p[pixel[13]] > cb)
-												if( p[pixel[15]] > cb)
+								else if( p[_pixel[5]] < c_b)
+									if( p[_pixel[14]] > cb)
+										if( p[_pixel[12]] > cb)
+											if( p[_pixel[13]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
-																		if( p[pixel[11]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
+																		if( p[_pixel[11]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1105,14 +1105,14 @@ namespace cvt {
 														goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-										else if( p[pixel[12]] < c_b)
-											if( p[pixel[6]] < c_b)
-												if( p[pixel[7]] < c_b)
-													if( p[pixel[8]] < c_b)
-														if( p[pixel[9]] < c_b)
-															if( p[pixel[10]] < c_b)
-																if( p[pixel[11]] < c_b)
-																	if( p[pixel[13]] < c_b)
+										else if( p[_pixel[12]] < c_b)
+											if( p[_pixel[6]] < c_b)
+												if( p[_pixel[7]] < c_b)
+													if( p[_pixel[8]] < c_b)
+														if( p[_pixel[9]] < c_b)
+															if( p[_pixel[10]] < c_b)
+																if( p[_pixel[11]] < c_b)
+																	if( p[_pixel[13]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1130,18 +1130,18 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[14]] < c_b)
-										if( p[pixel[7]] < c_b)
-											if( p[pixel[8]] < c_b)
-												if( p[pixel[9]] < c_b)
-													if( p[pixel[10]] < c_b)
-														if( p[pixel[11]] < c_b)
-															if( p[pixel[12]] < c_b)
-																if( p[pixel[13]] < c_b)
-																	if( p[pixel[6]] < c_b)
+									else if( p[_pixel[14]] < c_b)
+										if( p[_pixel[7]] < c_b)
+											if( p[_pixel[8]] < c_b)
+												if( p[_pixel[9]] < c_b)
+													if( p[_pixel[10]] < c_b)
+														if( p[_pixel[11]] < c_b)
+															if( p[_pixel[12]] < c_b)
+																if( p[_pixel[13]] < c_b)
+																	if( p[_pixel[6]] < c_b)
 																		goto is_a_corner;
 																	else
-																		if( p[pixel[15]] < c_b)
+																		if( p[_pixel[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1160,14 +1160,14 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 									else
-										if( p[pixel[6]] < c_b)
-											if( p[pixel[7]] < c_b)
-												if( p[pixel[8]] < c_b)
-													if( p[pixel[9]] < c_b)
-														if( p[pixel[10]] < c_b)
-															if( p[pixel[11]] < c_b)
-																if( p[pixel[12]] < c_b)
-																	if( p[pixel[13]] < c_b)
+										if( p[_pixel[6]] < c_b)
+											if( p[_pixel[7]] < c_b)
+												if( p[_pixel[8]] < c_b)
+													if( p[_pixel[9]] < c_b)
+														if( p[_pixel[10]] < c_b)
+															if( p[_pixel[11]] < c_b)
+																if( p[_pixel[12]] < c_b)
+																	if( p[_pixel[13]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1186,18 +1186,18 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
-																		if( p[pixel[11]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
+																		if( p[_pixel[11]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1215,18 +1215,18 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[12]] < c_b)
-										if( p[pixel[7]] < c_b)
-											if( p[pixel[8]] < c_b)
-												if( p[pixel[9]] < c_b)
-													if( p[pixel[10]] < c_b)
-														if( p[pixel[11]] < c_b)
-															if( p[pixel[13]] < c_b)
-																if( p[pixel[14]] < c_b)
-																	if( p[pixel[6]] < c_b)
+									else if( p[_pixel[12]] < c_b)
+										if( p[_pixel[7]] < c_b)
+											if( p[_pixel[8]] < c_b)
+												if( p[_pixel[9]] < c_b)
+													if( p[_pixel[10]] < c_b)
+														if( p[_pixel[11]] < c_b)
+															if( p[_pixel[13]] < c_b)
+																if( p[_pixel[14]] < c_b)
+																	if( p[_pixel[6]] < c_b)
 																		goto is_a_corner;
 																	else
-																		if( p[pixel[15]] < c_b)
+																		if( p[_pixel[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1246,19 +1246,19 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-							else if( p[pixel[4]] < c_b)
-								if( p[pixel[13]] > cb)
-									if( p[pixel[11]] > cb)
-										if( p[pixel[12]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+							else if( p[_pixel[4]] < c_b)
+								if( p[_pixel[13]] > cb)
+									if( p[_pixel[11]] > cb)
+										if( p[_pixel[12]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1271,12 +1271,12 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1292,14 +1292,14 @@ namespace cvt {
 													goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[11]] < c_b)
-										if( p[pixel[5]] < c_b)
-											if( p[pixel[6]] < c_b)
-												if( p[pixel[7]] < c_b)
-													if( p[pixel[8]] < c_b)
-														if( p[pixel[9]] < c_b)
-															if( p[pixel[10]] < c_b)
-																if( p[pixel[12]] < c_b)
+									else if( p[_pixel[11]] < c_b)
+										if( p[_pixel[5]] < c_b)
+											if( p[_pixel[6]] < c_b)
+												if( p[_pixel[7]] < c_b)
+													if( p[_pixel[8]] < c_b)
+														if( p[_pixel[9]] < c_b)
+															if( p[_pixel[10]] < c_b)
+																if( p[_pixel[12]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1317,24 +1317,24 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[pixel[13]] < c_b)
-									if( p[pixel[7]] < c_b)
-										if( p[pixel[8]] < c_b)
-											if( p[pixel[9]] < c_b)
-												if( p[pixel[10]] < c_b)
-													if( p[pixel[11]] < c_b)
-														if( p[pixel[12]] < c_b)
-															if( p[pixel[6]] < c_b)
-																if( p[pixel[5]] < c_b)
+								else if( p[_pixel[13]] < c_b)
+									if( p[_pixel[7]] < c_b)
+										if( p[_pixel[8]] < c_b)
+											if( p[_pixel[9]] < c_b)
+												if( p[_pixel[10]] < c_b)
+													if( p[_pixel[11]] < c_b)
+														if( p[_pixel[12]] < c_b)
+															if( p[_pixel[6]] < c_b)
+																if( p[_pixel[5]] < c_b)
 																	goto is_a_corner;
 																else
-																	if( p[pixel[14]] < c_b)
+																	if( p[_pixel[14]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[pixel[14]] < c_b)
-																	if( p[pixel[15]] < c_b)
+																if( p[_pixel[14]] < c_b)
+																	if( p[_pixel[15]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1353,14 +1353,14 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 								else
-									if( p[pixel[5]] < c_b)
-										if( p[pixel[6]] < c_b)
-											if( p[pixel[7]] < c_b)
-												if( p[pixel[8]] < c_b)
-													if( p[pixel[9]] < c_b)
-														if( p[pixel[10]] < c_b)
-															if( p[pixel[11]] < c_b)
-																if( p[pixel[12]] < c_b)
+									if( p[_pixel[5]] < c_b)
+										if( p[_pixel[6]] < c_b)
+											if( p[_pixel[7]] < c_b)
+												if( p[_pixel[8]] < c_b)
+													if( p[_pixel[9]] < c_b)
+														if( p[_pixel[10]] < c_b)
+															if( p[_pixel[11]] < c_b)
+																if( p[_pixel[12]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1379,18 +1379,18 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1403,12 +1403,12 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
-																	if( p[pixel[10]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
+																	if( p[_pixel[10]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1426,24 +1426,24 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[pixel[11]] < c_b)
-									if( p[pixel[7]] < c_b)
-										if( p[pixel[8]] < c_b)
-											if( p[pixel[9]] < c_b)
-												if( p[pixel[10]] < c_b)
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
-															if( p[pixel[6]] < c_b)
-																if( p[pixel[5]] < c_b)
+								else if( p[_pixel[11]] < c_b)
+									if( p[_pixel[7]] < c_b)
+										if( p[_pixel[8]] < c_b)
+											if( p[_pixel[9]] < c_b)
+												if( p[_pixel[10]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
+															if( p[_pixel[6]] < c_b)
+																if( p[_pixel[5]] < c_b)
 																	goto is_a_corner;
 																else
-																	if( p[pixel[14]] < c_b)
+																	if( p[_pixel[14]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[pixel[14]] < c_b)
-																	if( p[pixel[15]] < c_b)
+																if( p[_pixel[14]] < c_b)
+																	if( p[_pixel[15]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1463,19 +1463,19 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-						else if( p[pixel[3]] < c_b)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+						else if( p[_pixel[3]] < c_b)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1486,11 +1486,11 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1503,12 +1503,12 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1526,27 +1526,27 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[pixel[10]] < c_b)
-								if( p[pixel[7]] < c_b)
-									if( p[pixel[8]] < c_b)
-										if( p[pixel[9]] < c_b)
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[6]] < c_b)
-													if( p[pixel[5]] < c_b)
-														if( p[pixel[4]] < c_b)
+							else if( p[_pixel[10]] < c_b)
+								if( p[_pixel[7]] < c_b)
+									if( p[_pixel[8]] < c_b)
+										if( p[_pixel[9]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[6]] < c_b)
+													if( p[_pixel[5]] < c_b)
+														if( p[_pixel[4]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[pixel[12]] < c_b)
-																if( p[pixel[13]] < c_b)
+															if( p[_pixel[12]] < c_b)
+																if( p[_pixel[13]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[12]] < c_b)
-															if( p[pixel[13]] < c_b)
-																if( p[pixel[14]] < c_b)
+														if( p[_pixel[12]] < c_b)
+															if( p[_pixel[13]] < c_b)
+																if( p[_pixel[14]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1555,10 +1555,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
-															if( p[pixel[14]] < c_b)
-																if( p[pixel[15]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
+															if( p[_pixel[14]] < c_b)
+																if( p[_pixel[15]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1579,18 +1579,18 @@ namespace cvt {
 							else
 								goto is_not_a_corner;
 						else
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1601,11 +1601,11 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1618,12 +1618,12 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
-																if( p[pixel[9]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
+																if( p[_pixel[9]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1641,33 +1641,33 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[pixel[10]] < c_b)
-								if( p[pixel[7]] < c_b)
-									if( p[pixel[8]] < c_b)
-										if( p[pixel[9]] < c_b)
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[5]] < c_b)
-															if( p[pixel[4]] < c_b)
+							else if( p[_pixel[10]] < c_b)
+								if( p[_pixel[7]] < c_b)
+									if( p[_pixel[8]] < c_b)
+										if( p[_pixel[9]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[5]] < c_b)
+															if( p[_pixel[4]] < c_b)
 																goto is_a_corner;
 															else
-																if( p[pixel[13]] < c_b)
+																if( p[_pixel[13]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[pixel[13]] < c_b)
-																if( p[pixel[14]] < c_b)
+															if( p[_pixel[13]] < c_b)
+																if( p[_pixel[14]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[13]] < c_b)
-															if( p[pixel[14]] < c_b)
-																if( p[pixel[15]] < c_b)
+														if( p[_pixel[13]] < c_b)
+															if( p[_pixel[14]] < c_b)
+																if( p[_pixel[15]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1687,19 +1687,19 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-					else if( p[pixel[2]] < c_b)
-						if( p[pixel[9]] > cb)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+					else if( p[_pixel[2]] < c_b)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1708,10 +1708,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1722,11 +1722,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1739,12 +1739,12 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1762,27 +1762,27 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[pixel[9]] < c_b)
-							if( p[pixel[7]] < c_b)
-								if( p[pixel[8]] < c_b)
-									if( p[pixel[10]] < c_b)
-										if( p[pixel[6]] < c_b)
-											if( p[pixel[5]] < c_b)
-												if( p[pixel[4]] < c_b)
-													if( p[pixel[3]] < c_b)
+						else if( p[_pixel[9]] < c_b)
+							if( p[_pixel[7]] < c_b)
+								if( p[_pixel[8]] < c_b)
+									if( p[_pixel[10]] < c_b)
+										if( p[_pixel[6]] < c_b)
+											if( p[_pixel[5]] < c_b)
+												if( p[_pixel[4]] < c_b)
+													if( p[_pixel[3]] < c_b)
 														goto is_a_corner;
 													else
-														if( p[pixel[11]] < c_b)
-															if( p[pixel[12]] < c_b)
+														if( p[_pixel[11]] < c_b)
+															if( p[_pixel[12]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[11]] < c_b)
-														if( p[pixel[12]] < c_b)
-															if( p[pixel[13]] < c_b)
+													if( p[_pixel[11]] < c_b)
+														if( p[_pixel[12]] < c_b)
+															if( p[_pixel[13]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1791,10 +1791,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[11]] < c_b)
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
-															if( p[pixel[14]] < c_b)
+												if( p[_pixel[11]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
+															if( p[_pixel[14]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1805,11 +1805,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[13]] < c_b)
-														if( p[pixel[14]] < c_b)
-															if( p[pixel[15]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[13]] < c_b)
+														if( p[_pixel[14]] < c_b)
+															if( p[_pixel[15]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1830,18 +1830,18 @@ namespace cvt {
 						else
 							goto is_not_a_corner;
 					else
-						if( p[pixel[9]] > cb)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1850,10 +1850,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1864,11 +1864,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1881,12 +1881,12 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
-															if( p[pixel[8]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
+															if( p[_pixel[8]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1904,33 +1904,33 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[pixel[9]] < c_b)
-							if( p[pixel[7]] < c_b)
-								if( p[pixel[8]] < c_b)
-									if( p[pixel[10]] < c_b)
-										if( p[pixel[11]] < c_b)
-											if( p[pixel[6]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[4]] < c_b)
-														if( p[pixel[3]] < c_b)
+						else if( p[_pixel[9]] < c_b)
+							if( p[_pixel[7]] < c_b)
+								if( p[_pixel[8]] < c_b)
+									if( p[_pixel[10]] < c_b)
+										if( p[_pixel[11]] < c_b)
+											if( p[_pixel[6]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[4]] < c_b)
+														if( p[_pixel[3]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[pixel[12]] < c_b)
+															if( p[_pixel[12]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[12]] < c_b)
-															if( p[pixel[13]] < c_b)
+														if( p[_pixel[12]] < c_b)
+															if( p[_pixel[13]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
-															if( p[pixel[14]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
+															if( p[_pixel[14]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1939,10 +1939,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[13]] < c_b)
-														if( p[pixel[14]] < c_b)
-															if( p[pixel[15]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[13]] < c_b)
+														if( p[_pixel[14]] < c_b)
+															if( p[_pixel[15]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1962,28 +1962,28 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-				else if( p[pixel[1]] < c_b)
-					if( p[pixel[8]] > cb)
-						if( p[pixel[9]] > cb)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+				else if( p[_pixel[1]] < c_b)
+					if( p[_pixel[8]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1992,10 +1992,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2006,11 +2006,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2023,12 +2023,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[2]] > cb)
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+									if( p[_pixel[2]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2046,27 +2046,27 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[pixel[8]] < c_b)
-						if( p[pixel[7]] < c_b)
-							if( p[pixel[9]] < c_b)
-								if( p[pixel[6]] < c_b)
-									if( p[pixel[5]] < c_b)
-										if( p[pixel[4]] < c_b)
-											if( p[pixel[3]] < c_b)
-												if( p[pixel[2]] < c_b)
+					else if( p[_pixel[8]] < c_b)
+						if( p[_pixel[7]] < c_b)
+							if( p[_pixel[9]] < c_b)
+								if( p[_pixel[6]] < c_b)
+									if( p[_pixel[5]] < c_b)
+										if( p[_pixel[4]] < c_b)
+											if( p[_pixel[3]] < c_b)
+												if( p[_pixel[2]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[10]] < c_b)
-														if( p[pixel[11]] < c_b)
+													if( p[_pixel[10]] < c_b)
+														if( p[_pixel[11]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[10]] < c_b)
-													if( p[pixel[11]] < c_b)
-														if( p[pixel[12]] < c_b)
+												if( p[_pixel[10]] < c_b)
+													if( p[_pixel[11]] < c_b)
+														if( p[_pixel[12]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2075,10 +2075,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[10]] < c_b)
-												if( p[pixel[11]] < c_b)
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
+											if( p[_pixel[10]] < c_b)
+												if( p[_pixel[11]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2089,11 +2089,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[10]] < c_b)
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[13]] < c_b)
-														if( p[pixel[14]] < c_b)
+										if( p[_pixel[10]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[13]] < c_b)
+														if( p[_pixel[14]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2106,12 +2106,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[10]] < c_b)
-										if( p[pixel[11]] < c_b)
-											if( p[pixel[12]] < c_b)
-												if( p[pixel[13]] < c_b)
-													if( p[pixel[14]] < c_b)
-														if( p[pixel[15]] < c_b)
+									if( p[_pixel[10]] < c_b)
+										if( p[_pixel[11]] < c_b)
+											if( p[_pixel[12]] < c_b)
+												if( p[_pixel[13]] < c_b)
+													if( p[_pixel[14]] < c_b)
+														if( p[_pixel[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2132,27 +2132,27 @@ namespace cvt {
 					else
 						goto is_not_a_corner;
 				else
-					if( p[pixel[8]] > cb)
-						if( p[pixel[9]] > cb)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[11]] > cb)
-									if( p[pixel[12]] > cb)
-										if( p[pixel[13]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[15]] > cb)
+					if( p[_pixel[8]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[15]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2161,10 +2161,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2175,11 +2175,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2192,12 +2192,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[2]] > cb)
-										if( p[pixel[3]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[7]] > cb)
+									if( p[_pixel[2]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[7]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2215,33 +2215,33 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[pixel[8]] < c_b)
-						if( p[pixel[7]] < c_b)
-							if( p[pixel[9]] < c_b)
-								if( p[pixel[10]] < c_b)
-									if( p[pixel[6]] < c_b)
-										if( p[pixel[5]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[3]] < c_b)
-													if( p[pixel[2]] < c_b)
+					else if( p[_pixel[8]] < c_b)
+						if( p[_pixel[7]] < c_b)
+							if( p[_pixel[9]] < c_b)
+								if( p[_pixel[10]] < c_b)
+									if( p[_pixel[6]] < c_b)
+										if( p[_pixel[5]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[3]] < c_b)
+													if( p[_pixel[2]] < c_b)
 														goto is_a_corner;
 													else
-														if( p[pixel[11]] < c_b)
+														if( p[_pixel[11]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[11]] < c_b)
-														if( p[pixel[12]] < c_b)
+													if( p[_pixel[11]] < c_b)
+														if( p[_pixel[12]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[11]] < c_b)
-													if( p[pixel[12]] < c_b)
-														if( p[pixel[13]] < c_b)
+												if( p[_pixel[11]] < c_b)
+													if( p[_pixel[12]] < c_b)
+														if( p[_pixel[13]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2250,10 +2250,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[13]] < c_b)
-														if( p[pixel[14]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[13]] < c_b)
+														if( p[_pixel[14]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2264,11 +2264,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[11]] < c_b)
-											if( p[pixel[12]] < c_b)
-												if( p[pixel[13]] < c_b)
-													if( p[pixel[14]] < c_b)
-														if( p[pixel[15]] < c_b)
+										if( p[_pixel[11]] < c_b)
+											if( p[_pixel[12]] < c_b)
+												if( p[_pixel[13]] < c_b)
+													if( p[_pixel[14]] < c_b)
+														if( p[_pixel[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2288,29 +2288,29 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-			else if( p[pixel[0]] < c_b)
-				if( p[pixel[1]] > cb)
-					if( p[pixel[8]] > cb)
-						if( p[pixel[7]] > cb)
-							if( p[pixel[9]] > cb)
-								if( p[pixel[6]] > cb)
-									if( p[pixel[5]] > cb)
-										if( p[pixel[4]] > cb)
-											if( p[pixel[3]] > cb)
-												if( p[pixel[2]] > cb)
+			else if( p[_pixel[0]] < c_b)
+				if( p[_pixel[1]] > cb)
+					if( p[_pixel[8]] > cb)
+						if( p[_pixel[7]] > cb)
+							if( p[_pixel[9]] > cb)
+								if( p[_pixel[6]] > cb)
+									if( p[_pixel[5]] > cb)
+										if( p[_pixel[4]] > cb)
+											if( p[_pixel[3]] > cb)
+												if( p[_pixel[2]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[10]] > cb)
-														if( p[pixel[11]] > cb)
+													if( p[_pixel[10]] > cb)
+														if( p[_pixel[11]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[10]] > cb)
-													if( p[pixel[11]] > cb)
-														if( p[pixel[12]] > cb)
+												if( p[_pixel[10]] > cb)
+													if( p[_pixel[11]] > cb)
+														if( p[_pixel[12]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2319,10 +2319,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[10]] > cb)
-												if( p[pixel[11]] > cb)
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
+											if( p[_pixel[10]] > cb)
+												if( p[_pixel[11]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2333,11 +2333,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[10]] > cb)
-											if( p[pixel[11]] > cb)
-												if( p[pixel[12]] > cb)
-													if( p[pixel[13]] > cb)
-														if( p[pixel[14]] > cb)
+										if( p[_pixel[10]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[13]] > cb)
+														if( p[_pixel[14]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2350,12 +2350,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[10]] > cb)
-										if( p[pixel[11]] > cb)
-											if( p[pixel[12]] > cb)
-												if( p[pixel[13]] > cb)
-													if( p[pixel[14]] > cb)
-														if( p[pixel[15]] > cb)
+									if( p[_pixel[10]] > cb)
+										if( p[_pixel[11]] > cb)
+											if( p[_pixel[12]] > cb)
+												if( p[_pixel[13]] > cb)
+													if( p[_pixel[14]] > cb)
+														if( p[_pixel[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2373,27 +2373,27 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[pixel[8]] < c_b)
-						if( p[pixel[9]] < c_b)
-							if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+					else if( p[_pixel[8]] < c_b)
+						if( p[_pixel[9]] < c_b)
+							if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2402,10 +2402,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2416,11 +2416,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2433,12 +2433,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[2]] < c_b)
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+									if( p[_pixel[2]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -2458,29 +2458,29 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-				else if( p[pixel[1]] < c_b)
-					if( p[pixel[2]] > cb)
-						if( p[pixel[9]] > cb)
-							if( p[pixel[7]] > cb)
-								if( p[pixel[8]] > cb)
-									if( p[pixel[10]] > cb)
-										if( p[pixel[6]] > cb)
-											if( p[pixel[5]] > cb)
-												if( p[pixel[4]] > cb)
-													if( p[pixel[3]] > cb)
+				else if( p[_pixel[1]] < c_b)
+					if( p[_pixel[2]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[7]] > cb)
+								if( p[_pixel[8]] > cb)
+									if( p[_pixel[10]] > cb)
+										if( p[_pixel[6]] > cb)
+											if( p[_pixel[5]] > cb)
+												if( p[_pixel[4]] > cb)
+													if( p[_pixel[3]] > cb)
 														goto is_a_corner;
 													else
-														if( p[pixel[11]] > cb)
-															if( p[pixel[12]] > cb)
+														if( p[_pixel[11]] > cb)
+															if( p[_pixel[12]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[11]] > cb)
-														if( p[pixel[12]] > cb)
-															if( p[pixel[13]] > cb)
+													if( p[_pixel[11]] > cb)
+														if( p[_pixel[12]] > cb)
+															if( p[_pixel[13]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2489,10 +2489,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[11]] > cb)
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
-															if( p[pixel[14]] > cb)
+												if( p[_pixel[11]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
+															if( p[_pixel[14]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2503,11 +2503,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[11]] > cb)
-												if( p[pixel[12]] > cb)
-													if( p[pixel[13]] > cb)
-														if( p[pixel[14]] > cb)
-															if( p[pixel[15]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[13]] > cb)
+														if( p[_pixel[14]] > cb)
+															if( p[_pixel[15]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2525,18 +2525,18 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[pixel[9]] < c_b)
-							if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+						else if( p[_pixel[9]] < c_b)
+							if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2545,10 +2545,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2559,11 +2559,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2576,12 +2576,12 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -2601,29 +2601,29 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[pixel[2]] < c_b)
-						if( p[pixel[3]] > cb)
-							if( p[pixel[10]] > cb)
-								if( p[pixel[7]] > cb)
-									if( p[pixel[8]] > cb)
-										if( p[pixel[9]] > cb)
-											if( p[pixel[11]] > cb)
-												if( p[pixel[6]] > cb)
-													if( p[pixel[5]] > cb)
-														if( p[pixel[4]] > cb)
+					else if( p[_pixel[2]] < c_b)
+						if( p[_pixel[3]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[7]] > cb)
+									if( p[_pixel[8]] > cb)
+										if( p[_pixel[9]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[6]] > cb)
+													if( p[_pixel[5]] > cb)
+														if( p[_pixel[4]] > cb)
 															goto is_a_corner;
 														else
-															if( p[pixel[12]] > cb)
-																if( p[pixel[13]] > cb)
+															if( p[_pixel[12]] > cb)
+																if( p[_pixel[13]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[12]] > cb)
-															if( p[pixel[13]] > cb)
-																if( p[pixel[14]] > cb)
+														if( p[_pixel[12]] > cb)
+															if( p[_pixel[13]] > cb)
+																if( p[_pixel[14]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2632,10 +2632,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
-															if( p[pixel[14]] > cb)
-																if( p[pixel[15]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
+															if( p[_pixel[14]] > cb)
+																if( p[_pixel[15]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2653,18 +2653,18 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+							else if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2675,11 +2675,11 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2692,12 +2692,12 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2717,26 +2717,26 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[pixel[3]] < c_b)
-							if( p[pixel[4]] > cb)
-								if( p[pixel[13]] > cb)
-									if( p[pixel[7]] > cb)
-										if( p[pixel[8]] > cb)
-											if( p[pixel[9]] > cb)
-												if( p[pixel[10]] > cb)
-													if( p[pixel[11]] > cb)
-														if( p[pixel[12]] > cb)
-															if( p[pixel[6]] > cb)
-																if( p[pixel[5]] > cb)
+						else if( p[_pixel[3]] < c_b)
+							if( p[_pixel[4]] > cb)
+								if( p[_pixel[13]] > cb)
+									if( p[_pixel[7]] > cb)
+										if( p[_pixel[8]] > cb)
+											if( p[_pixel[9]] > cb)
+												if( p[_pixel[10]] > cb)
+													if( p[_pixel[11]] > cb)
+														if( p[_pixel[12]] > cb)
+															if( p[_pixel[6]] > cb)
+																if( p[_pixel[5]] > cb)
 																	goto is_a_corner;
 																else
-																	if( p[pixel[14]] > cb)
+																	if( p[_pixel[14]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[pixel[14]] > cb)
-																	if( p[pixel[15]] > cb)
+																if( p[_pixel[14]] > cb)
+																	if( p[_pixel[15]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -2754,15 +2754,15 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[pixel[13]] < c_b)
-									if( p[pixel[11]] > cb)
-										if( p[pixel[5]] > cb)
-											if( p[pixel[6]] > cb)
-												if( p[pixel[7]] > cb)
-													if( p[pixel[8]] > cb)
-														if( p[pixel[9]] > cb)
-															if( p[pixel[10]] > cb)
-																if( p[pixel[12]] > cb)
+								else if( p[_pixel[13]] < c_b)
+									if( p[_pixel[11]] > cb)
+										if( p[_pixel[5]] > cb)
+											if( p[_pixel[6]] > cb)
+												if( p[_pixel[7]] > cb)
+													if( p[_pixel[8]] > cb)
+														if( p[_pixel[9]] > cb)
+															if( p[_pixel[10]] > cb)
+																if( p[_pixel[12]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2778,17 +2778,17 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[11]] < c_b)
-										if( p[pixel[12]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+									else if( p[_pixel[11]] < c_b)
+										if( p[_pixel[12]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -2801,12 +2801,12 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -2825,14 +2825,14 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 								else
-									if( p[pixel[5]] > cb)
-										if( p[pixel[6]] > cb)
-											if( p[pixel[7]] > cb)
-												if( p[pixel[8]] > cb)
-													if( p[pixel[9]] > cb)
-														if( p[pixel[10]] > cb)
-															if( p[pixel[11]] > cb)
-																if( p[pixel[12]] > cb)
+									if( p[_pixel[5]] > cb)
+										if( p[_pixel[6]] > cb)
+											if( p[_pixel[7]] > cb)
+												if( p[_pixel[8]] > cb)
+													if( p[_pixel[9]] > cb)
+														if( p[_pixel[10]] > cb)
+															if( p[_pixel[11]] > cb)
+																if( p[_pixel[12]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -2850,20 +2850,20 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-							else if( p[pixel[4]] < c_b)
-								if( p[pixel[5]] > cb)
-									if( p[pixel[14]] > cb)
-										if( p[pixel[7]] > cb)
-											if( p[pixel[8]] > cb)
-												if( p[pixel[9]] > cb)
-													if( p[pixel[10]] > cb)
-														if( p[pixel[11]] > cb)
-															if( p[pixel[12]] > cb)
-																if( p[pixel[13]] > cb)
-																	if( p[pixel[6]] > cb)
+							else if( p[_pixel[4]] < c_b)
+								if( p[_pixel[5]] > cb)
+									if( p[_pixel[14]] > cb)
+										if( p[_pixel[7]] > cb)
+											if( p[_pixel[8]] > cb)
+												if( p[_pixel[9]] > cb)
+													if( p[_pixel[10]] > cb)
+														if( p[_pixel[11]] > cb)
+															if( p[_pixel[12]] > cb)
+																if( p[_pixel[13]] > cb)
+																	if( p[_pixel[6]] > cb)
 																		goto is_a_corner;
 																	else
-																		if( p[pixel[15]] > cb)
+																		if( p[_pixel[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -2881,15 +2881,15 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[14]] < c_b)
-										if( p[pixel[12]] > cb)
-											if( p[pixel[6]] > cb)
-												if( p[pixel[7]] > cb)
-													if( p[pixel[8]] > cb)
-														if( p[pixel[9]] > cb)
-															if( p[pixel[10]] > cb)
-																if( p[pixel[11]] > cb)
-																	if( p[pixel[13]] > cb)
+									else if( p[_pixel[14]] < c_b)
+										if( p[_pixel[12]] > cb)
+											if( p[_pixel[6]] > cb)
+												if( p[_pixel[7]] > cb)
+													if( p[_pixel[8]] > cb)
+														if( p[_pixel[9]] > cb)
+															if( p[_pixel[10]] > cb)
+																if( p[_pixel[11]] > cb)
+																	if( p[_pixel[13]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -2905,17 +2905,17 @@ namespace cvt {
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-										else if( p[pixel[12]] < c_b)
-											if( p[pixel[13]] < c_b)
-												if( p[pixel[15]] < c_b)
+										else if( p[_pixel[12]] < c_b)
+											if( p[_pixel[13]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
-																		if( p[pixel[11]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
+																		if( p[_pixel[11]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -2934,14 +2934,14 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 									else
-										if( p[pixel[6]] > cb)
-											if( p[pixel[7]] > cb)
-												if( p[pixel[8]] > cb)
-													if( p[pixel[9]] > cb)
-														if( p[pixel[10]] > cb)
-															if( p[pixel[11]] > cb)
-																if( p[pixel[12]] > cb)
-																	if( p[pixel[13]] > cb)
+										if( p[_pixel[6]] > cb)
+											if( p[_pixel[7]] > cb)
+												if( p[_pixel[8]] > cb)
+													if( p[_pixel[9]] > cb)
+														if( p[_pixel[10]] > cb)
+															if( p[_pixel[11]] > cb)
+																if( p[_pixel[12]] > cb)
+																	if( p[_pixel[13]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -2959,17 +2959,17 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-								else if( p[pixel[5]] < c_b)
-									if( p[pixel[6]] > cb)
-										if( p[pixel[15]] < c_b)
-											if( p[pixel[13]] > cb)
-												if( p[pixel[7]] > cb)
-													if( p[pixel[8]] > cb)
-														if( p[pixel[9]] > cb)
-															if( p[pixel[10]] > cb)
-																if( p[pixel[11]] > cb)
-																	if( p[pixel[12]] > cb)
-																		if( p[pixel[14]] > cb)
+								else if( p[_pixel[5]] < c_b)
+									if( p[_pixel[6]] > cb)
+										if( p[_pixel[15]] < c_b)
+											if( p[_pixel[13]] > cb)
+												if( p[_pixel[7]] > cb)
+													if( p[_pixel[8]] > cb)
+														if( p[_pixel[9]] > cb)
+															if( p[_pixel[10]] > cb)
+																if( p[_pixel[11]] > cb)
+																	if( p[_pixel[12]] > cb)
+																		if( p[_pixel[14]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -2985,22 +2985,22 @@ namespace cvt {
 														goto is_not_a_corner;
 												else
 													goto is_not_a_corner;
-											else if( p[pixel[13]] < c_b)
-												if( p[pixel[14]] < c_b)
+											else if( p[_pixel[13]] < c_b)
+												if( p[_pixel[14]] < c_b)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
 										else
-											if( p[pixel[7]] > cb)
-												if( p[pixel[8]] > cb)
-													if( p[pixel[9]] > cb)
-														if( p[pixel[10]] > cb)
-															if( p[pixel[11]] > cb)
-																if( p[pixel[12]] > cb)
-																	if( p[pixel[13]] > cb)
-																		if( p[pixel[14]] > cb)
+											if( p[_pixel[7]] > cb)
+												if( p[_pixel[8]] > cb)
+													if( p[_pixel[9]] > cb)
+														if( p[_pixel[10]] > cb)
+															if( p[_pixel[11]] > cb)
+																if( p[_pixel[12]] > cb)
+																	if( p[_pixel[13]] > cb)
+																		if( p[_pixel[14]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -3018,16 +3018,16 @@ namespace cvt {
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-									else if( p[pixel[6]] < c_b)
-										if( p[pixel[7]] > cb)
-											if( p[pixel[14]] > cb)
-												if( p[pixel[8]] > cb)
-													if( p[pixel[9]] > cb)
-														if( p[pixel[10]] > cb)
-															if( p[pixel[11]] > cb)
-																if( p[pixel[12]] > cb)
-																	if( p[pixel[13]] > cb)
-																		if( p[pixel[15]] > cb)
+									else if( p[_pixel[6]] < c_b)
+										if( p[_pixel[7]] > cb)
+											if( p[_pixel[14]] > cb)
+												if( p[_pixel[8]] > cb)
+													if( p[_pixel[9]] > cb)
+														if( p[_pixel[10]] > cb)
+															if( p[_pixel[11]] > cb)
+																if( p[_pixel[12]] > cb)
+																	if( p[_pixel[13]] > cb)
+																		if( p[_pixel[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -3043,39 +3043,39 @@ namespace cvt {
 														goto is_not_a_corner;
 												else
 													goto is_not_a_corner;
-											else if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+											else if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-										else if( p[pixel[7]] < c_b)
-											if( p[pixel[8]] < c_b)
+										else if( p[_pixel[7]] < c_b)
+											if( p[_pixel[8]] < c_b)
 												goto is_a_corner;
 											else
-												if( p[pixel[15]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[13]] > cb)
-											if( p[pixel[7]] > cb)
-												if( p[pixel[8]] > cb)
-													if( p[pixel[9]] > cb)
-														if( p[pixel[10]] > cb)
-															if( p[pixel[11]] > cb)
-																if( p[pixel[12]] > cb)
-																	if( p[pixel[14]] > cb)
-																		if( p[pixel[15]] > cb)
+										if( p[_pixel[13]] > cb)
+											if( p[_pixel[7]] > cb)
+												if( p[_pixel[8]] > cb)
+													if( p[_pixel[9]] > cb)
+														if( p[_pixel[10]] > cb)
+															if( p[_pixel[11]] > cb)
+																if( p[_pixel[12]] > cb)
+																	if( p[_pixel[14]] > cb)
+																		if( p[_pixel[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -3093,9 +3093,9 @@ namespace cvt {
 													goto is_not_a_corner;
 											else
 												goto is_not_a_corner;
-										else if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+										else if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
 													goto is_not_a_corner;
@@ -3104,18 +3104,18 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[12]] > cb)
-										if( p[pixel[7]] > cb)
-											if( p[pixel[8]] > cb)
-												if( p[pixel[9]] > cb)
-													if( p[pixel[10]] > cb)
-														if( p[pixel[11]] > cb)
-															if( p[pixel[13]] > cb)
-																if( p[pixel[14]] > cb)
-																	if( p[pixel[6]] > cb)
+									if( p[_pixel[12]] > cb)
+										if( p[_pixel[7]] > cb)
+											if( p[_pixel[8]] > cb)
+												if( p[_pixel[9]] > cb)
+													if( p[_pixel[10]] > cb)
+														if( p[_pixel[11]] > cb)
+															if( p[_pixel[13]] > cb)
+																if( p[_pixel[14]] > cb)
+																	if( p[_pixel[6]] > cb)
 																		goto is_a_corner;
 																	else
-																		if( p[pixel[15]] > cb)
+																		if( p[_pixel[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -3133,18 +3133,18 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+									else if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
-																		if( p[pixel[11]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
+																		if( p[_pixel[11]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -3165,24 +3165,24 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[pixel[11]] > cb)
-									if( p[pixel[7]] > cb)
-										if( p[pixel[8]] > cb)
-											if( p[pixel[9]] > cb)
-												if( p[pixel[10]] > cb)
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
-															if( p[pixel[6]] > cb)
-																if( p[pixel[5]] > cb)
+								if( p[_pixel[11]] > cb)
+									if( p[_pixel[7]] > cb)
+										if( p[_pixel[8]] > cb)
+											if( p[_pixel[9]] > cb)
+												if( p[_pixel[10]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
+															if( p[_pixel[6]] > cb)
+																if( p[_pixel[5]] > cb)
 																	goto is_a_corner;
 																else
-																	if( p[pixel[14]] > cb)
+																	if( p[_pixel[14]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[pixel[14]] > cb)
-																	if( p[pixel[15]] > cb)
+																if( p[_pixel[14]] > cb)
+																	if( p[_pixel[15]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -3200,18 +3200,18 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+								else if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -3224,12 +3224,12 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
-																	if( p[pixel[10]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
+																	if( p[_pixel[10]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -3250,33 +3250,33 @@ namespace cvt {
 								else
 									goto is_not_a_corner;
 						else
-							if( p[pixel[10]] > cb)
-								if( p[pixel[7]] > cb)
-									if( p[pixel[8]] > cb)
-										if( p[pixel[9]] > cb)
-											if( p[pixel[11]] > cb)
-												if( p[pixel[12]] > cb)
-													if( p[pixel[6]] > cb)
-														if( p[pixel[5]] > cb)
-															if( p[pixel[4]] > cb)
+							if( p[_pixel[10]] > cb)
+								if( p[_pixel[7]] > cb)
+									if( p[_pixel[8]] > cb)
+										if( p[_pixel[9]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[6]] > cb)
+														if( p[_pixel[5]] > cb)
+															if( p[_pixel[4]] > cb)
 																goto is_a_corner;
 															else
-																if( p[pixel[13]] > cb)
+																if( p[_pixel[13]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[pixel[13]] > cb)
-																if( p[pixel[14]] > cb)
+															if( p[_pixel[13]] > cb)
+																if( p[_pixel[14]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[13]] > cb)
-															if( p[pixel[14]] > cb)
-																if( p[pixel[15]] > cb)
+														if( p[_pixel[13]] > cb)
+															if( p[_pixel[14]] > cb)
+																if( p[_pixel[15]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -3294,18 +3294,18 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+							else if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -3316,11 +3316,11 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -3333,12 +3333,12 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
-																if( p[pixel[9]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
+																if( p[_pixel[9]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -3359,33 +3359,33 @@ namespace cvt {
 							else
 								goto is_not_a_corner;
 					else
-						if( p[pixel[9]] > cb)
-							if( p[pixel[7]] > cb)
-								if( p[pixel[8]] > cb)
-									if( p[pixel[10]] > cb)
-										if( p[pixel[11]] > cb)
-											if( p[pixel[6]] > cb)
-												if( p[pixel[5]] > cb)
-													if( p[pixel[4]] > cb)
-														if( p[pixel[3]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[7]] > cb)
+								if( p[_pixel[8]] > cb)
+									if( p[_pixel[10]] > cb)
+										if( p[_pixel[11]] > cb)
+											if( p[_pixel[6]] > cb)
+												if( p[_pixel[5]] > cb)
+													if( p[_pixel[4]] > cb)
+														if( p[_pixel[3]] > cb)
 															goto is_a_corner;
 														else
-															if( p[pixel[12]] > cb)
+															if( p[_pixel[12]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[pixel[12]] > cb)
-															if( p[pixel[13]] > cb)
+														if( p[_pixel[12]] > cb)
+															if( p[_pixel[13]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
-															if( p[pixel[14]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
+															if( p[_pixel[14]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3394,10 +3394,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[12]] > cb)
-													if( p[pixel[13]] > cb)
-														if( p[pixel[14]] > cb)
-															if( p[pixel[15]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[13]] > cb)
+														if( p[_pixel[14]] > cb)
+															if( p[_pixel[15]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3415,18 +3415,18 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[pixel[9]] < c_b)
-							if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+						else if( p[_pixel[9]] < c_b)
+							if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3435,10 +3435,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3449,11 +3449,11 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3466,12 +3466,12 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
-															if( p[pixel[8]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
+															if( p[_pixel[8]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -3492,33 +3492,33 @@ namespace cvt {
 						else
 							goto is_not_a_corner;
 				else
-					if( p[pixel[8]] > cb)
-						if( p[pixel[7]] > cb)
-							if( p[pixel[9]] > cb)
-								if( p[pixel[10]] > cb)
-									if( p[pixel[6]] > cb)
-										if( p[pixel[5]] > cb)
-											if( p[pixel[4]] > cb)
-												if( p[pixel[3]] > cb)
-													if( p[pixel[2]] > cb)
+					if( p[_pixel[8]] > cb)
+						if( p[_pixel[7]] > cb)
+							if( p[_pixel[9]] > cb)
+								if( p[_pixel[10]] > cb)
+									if( p[_pixel[6]] > cb)
+										if( p[_pixel[5]] > cb)
+											if( p[_pixel[4]] > cb)
+												if( p[_pixel[3]] > cb)
+													if( p[_pixel[2]] > cb)
 														goto is_a_corner;
 													else
-														if( p[pixel[11]] > cb)
+														if( p[_pixel[11]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[pixel[11]] > cb)
-														if( p[pixel[12]] > cb)
+													if( p[_pixel[11]] > cb)
+														if( p[_pixel[12]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[11]] > cb)
-													if( p[pixel[12]] > cb)
-														if( p[pixel[13]] > cb)
+												if( p[_pixel[11]] > cb)
+													if( p[_pixel[12]] > cb)
+														if( p[_pixel[13]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3527,10 +3527,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[11]] > cb)
-												if( p[pixel[12]] > cb)
-													if( p[pixel[13]] > cb)
-														if( p[pixel[14]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[13]] > cb)
+														if( p[_pixel[14]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3541,11 +3541,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[11]] > cb)
-											if( p[pixel[12]] > cb)
-												if( p[pixel[13]] > cb)
-													if( p[pixel[14]] > cb)
-														if( p[pixel[15]] > cb)
+										if( p[_pixel[11]] > cb)
+											if( p[_pixel[12]] > cb)
+												if( p[_pixel[13]] > cb)
+													if( p[_pixel[14]] > cb)
+														if( p[_pixel[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3563,27 +3563,27 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[pixel[8]] < c_b)
-						if( p[pixel[9]] < c_b)
-							if( p[pixel[10]] < c_b)
-								if( p[pixel[11]] < c_b)
-									if( p[pixel[12]] < c_b)
-										if( p[pixel[13]] < c_b)
-											if( p[pixel[14]] < c_b)
-												if( p[pixel[15]] < c_b)
+					else if( p[_pixel[8]] < c_b)
+						if( p[_pixel[9]] < c_b)
+							if( p[_pixel[10]] < c_b)
+								if( p[_pixel[11]] < c_b)
+									if( p[_pixel[12]] < c_b)
+										if( p[_pixel[13]] < c_b)
+											if( p[_pixel[14]] < c_b)
+												if( p[_pixel[15]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3592,10 +3592,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3606,11 +3606,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3623,12 +3623,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[2]] < c_b)
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[4]] < c_b)
-												if( p[pixel[5]] < c_b)
-													if( p[pixel[6]] < c_b)
-														if( p[pixel[7]] < c_b)
+									if( p[_pixel[2]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[4]] < c_b)
+												if( p[_pixel[5]] < c_b)
+													if( p[_pixel[6]] < c_b)
+														if( p[_pixel[7]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -3649,33 +3649,33 @@ namespace cvt {
 					else
 						goto is_not_a_corner;
 			else
-				if( p[pixel[7]] > cb)
-					if( p[pixel[8]] > cb)
-						if( p[pixel[9]] > cb)
-							if( p[pixel[6]] > cb)
-								if( p[pixel[5]] > cb)
-									if( p[pixel[4]] > cb)
-										if( p[pixel[3]] > cb)
-											if( p[pixel[2]] > cb)
-												if( p[pixel[1]] > cb)
+				if( p[_pixel[7]] > cb)
+					if( p[_pixel[8]] > cb)
+						if( p[_pixel[9]] > cb)
+							if( p[_pixel[6]] > cb)
+								if( p[_pixel[5]] > cb)
+									if( p[_pixel[4]] > cb)
+										if( p[_pixel[3]] > cb)
+											if( p[_pixel[2]] > cb)
+												if( p[_pixel[1]] > cb)
 													goto is_a_corner;
 												else
-													if( p[pixel[10]] > cb)
+													if( p[_pixel[10]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[10]] > cb)
-													if( p[pixel[11]] > cb)
+												if( p[_pixel[10]] > cb)
+													if( p[_pixel[11]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[10]] > cb)
-												if( p[pixel[11]] > cb)
-													if( p[pixel[12]] > cb)
+											if( p[_pixel[10]] > cb)
+												if( p[_pixel[11]] > cb)
+													if( p[_pixel[12]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3684,10 +3684,10 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[10]] > cb)
-											if( p[pixel[11]] > cb)
-												if( p[pixel[12]] > cb)
-													if( p[pixel[13]] > cb)
+										if( p[_pixel[10]] > cb)
+											if( p[_pixel[11]] > cb)
+												if( p[_pixel[12]] > cb)
+													if( p[_pixel[13]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3698,11 +3698,11 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[10]] > cb)
-										if( p[pixel[11]] > cb)
-											if( p[pixel[12]] > cb)
-												if( p[pixel[13]] > cb)
-													if( p[pixel[14]] > cb)
+									if( p[_pixel[10]] > cb)
+										if( p[_pixel[11]] > cb)
+											if( p[_pixel[12]] > cb)
+												if( p[_pixel[13]] > cb)
+													if( p[_pixel[14]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3715,12 +3715,12 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[pixel[10]] > cb)
-									if( p[pixel[11]] > cb)
-										if( p[pixel[12]] > cb)
-											if( p[pixel[13]] > cb)
-												if( p[pixel[14]] > cb)
-													if( p[pixel[15]] > cb)
+								if( p[_pixel[10]] > cb)
+									if( p[_pixel[11]] > cb)
+										if( p[_pixel[12]] > cb)
+											if( p[_pixel[13]] > cb)
+												if( p[_pixel[14]] > cb)
+													if( p[_pixel[15]] > cb)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3738,33 +3738,33 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-				else if( p[pixel[7]] < c_b)
-					if( p[pixel[8]] < c_b)
-						if( p[pixel[9]] < c_b)
-							if( p[pixel[6]] < c_b)
-								if( p[pixel[5]] < c_b)
-									if( p[pixel[4]] < c_b)
-										if( p[pixel[3]] < c_b)
-											if( p[pixel[2]] < c_b)
-												if( p[pixel[1]] < c_b)
+				else if( p[_pixel[7]] < c_b)
+					if( p[_pixel[8]] < c_b)
+						if( p[_pixel[9]] < c_b)
+							if( p[_pixel[6]] < c_b)
+								if( p[_pixel[5]] < c_b)
+									if( p[_pixel[4]] < c_b)
+										if( p[_pixel[3]] < c_b)
+											if( p[_pixel[2]] < c_b)
+												if( p[_pixel[1]] < c_b)
 													goto is_a_corner;
 												else
-													if( p[pixel[10]] < c_b)
+													if( p[_pixel[10]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[pixel[10]] < c_b)
-													if( p[pixel[11]] < c_b)
+												if( p[_pixel[10]] < c_b)
+													if( p[_pixel[11]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
 												else
 													goto is_not_a_corner;
 										else
-											if( p[pixel[10]] < c_b)
-												if( p[pixel[11]] < c_b)
-													if( p[pixel[12]] < c_b)
+											if( p[_pixel[10]] < c_b)
+												if( p[_pixel[11]] < c_b)
+													if( p[_pixel[12]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3773,10 +3773,10 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[pixel[10]] < c_b)
-											if( p[pixel[11]] < c_b)
-												if( p[pixel[12]] < c_b)
-													if( p[pixel[13]] < c_b)
+										if( p[_pixel[10]] < c_b)
+											if( p[_pixel[11]] < c_b)
+												if( p[_pixel[12]] < c_b)
+													if( p[_pixel[13]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3787,11 +3787,11 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[pixel[10]] < c_b)
-										if( p[pixel[11]] < c_b)
-											if( p[pixel[12]] < c_b)
-												if( p[pixel[13]] < c_b)
-													if( p[pixel[14]] < c_b)
+									if( p[_pixel[10]] < c_b)
+										if( p[_pixel[11]] < c_b)
+											if( p[_pixel[12]] < c_b)
+												if( p[_pixel[13]] < c_b)
+													if( p[_pixel[14]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;
@@ -3804,12 +3804,12 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[pixel[10]] < c_b)
-									if( p[pixel[11]] < c_b)
-										if( p[pixel[12]] < c_b)
-											if( p[pixel[13]] < c_b)
-												if( p[pixel[14]] < c_b)
-													if( p[pixel[15]] < c_b)
+								if( p[_pixel[10]] < c_b)
+									if( p[_pixel[11]] < c_b)
+										if( p[_pixel[12]] < c_b)
+											if( p[_pixel[13]] < c_b)
+												if( p[_pixel[14]] < c_b)
+													if( p[_pixel[15]] < c_b)
 														goto is_a_corner;
 													else
 														goto is_not_a_corner;

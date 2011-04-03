@@ -37,7 +37,7 @@ namespace cvt
 				throw CVTException( "NO MATCHING EXTRACT FUNC" );
 				break;
 		}
-        
+
         initPixelOffsets();
 	}
 
@@ -120,22 +120,22 @@ namespace cvt
     
     void FAST::initPixelOffsets()
     {
-        pixel[0]  =  0 + _lastStride * 3;
-		pixel[1]  =  1 + _lastStride * 3;
-		pixel[2]  =  2 + _lastStride * 2;
-		pixel[3]  =  3 + _lastStride * 1;
-		pixel[4]  =  3;
-		pixel[5]  =  3 - _lastStride * 1;
-		pixel[6]  =  2 - _lastStride * 2;
-		pixel[7]  =  1 - _lastStride * 3;
-		pixel[8]  =    - _lastStride * 3;
-		pixel[9]  = -1 - _lastStride * 3;
-		pixel[10] = -2 - _lastStride * 2;
-		pixel[11] = -3 - _lastStride * 1;
-		pixel[12] = -3;
-		pixel[13] = -3 + _lastStride;
-		pixel[14] = -2 + _lastStride * 2;
-		pixel[15] = -1 + _lastStride * 3;
+        _pixel[0]  =  0 + _lastStride * 3;
+		_pixel[1]  =  1 + _lastStride * 3;
+		_pixel[2]  =  2 + _lastStride * 2;
+		_pixel[3]  =  3 + _lastStride * 1;
+		_pixel[4]  =  3;
+		_pixel[5]  =  3 - _lastStride * 1;
+		_pixel[6]  =  2 - _lastStride * 2;
+		_pixel[7]  =  1 - _lastStride * 3;
+		_pixel[8]  =    - _lastStride * 3;
+		_pixel[9]  = -1 - _lastStride * 3;
+		_pixel[10] = -2 - _lastStride * 2;
+		_pixel[11] = -3 - _lastStride * 1;
+		_pixel[12] = -3;
+		_pixel[13] = -3 + _lastStride;
+		_pixel[14] = -2 + _lastStride * 2;
+		_pixel[15] = -1 + _lastStride * 3;
     }
 
 	void FAST::nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed )
