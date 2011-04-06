@@ -43,6 +43,8 @@ namespace cvt {
 			void updateCurrent();
 			void loadFaceShape( const char* path );
 			bool sampleNormal( uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int _dx, int _dy, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist );
+			bool sampleNormal2( uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int _dx, int _dy, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist );
+
 			bool sampleNormalCanny( const uint8_t* cptr, uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int _dx, int _dy, size_t cstride, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist );
 
 			const Image* _currI;
@@ -107,7 +109,7 @@ namespace cvt {
 
 		for( size_t i = 0; i < _pcsize; i++ ) {
 			fread( &ftmp, sizeof( float ), 1, f );
-			_regcovar( i ) = 1.0f / ( ftmp * ftmp );
+			_regcovar( i ) = 1.0f / ( ftmp * ftmp + 1e-8 );
 		}
 
 		for( size_t c = 0; c < _pcsize; c++ ) {
@@ -257,7 +259,7 @@ namespace cvt {
 
 #define MAXDIST 15
 #define INCR	0.1f
-#define COSMAX	0.6f
+#define COSMAX	0.60f
 #define THRESHOLD 0.01f
 
 		_costs = 0;
@@ -295,7 +297,7 @@ namespace cvt {
 					}
 				}
 #ifndef GTLINEINPUT
-				if( sampleNormal( dxptr, dyptr, Math::round( p.x ), Math::round( p.y ),
+				if( sampleNormal2( dxptr, dyptr, Math::round( p.x ), Math::round( p.y ),
 								 Math::round( pts[ 1 ].x - pts[ 0 ].x ), Math::round( pts[ 1 ].y - pts[ 0 ].y ), dxstride, dystride, n, ftmp ) ) {
 #else
 				if( sampleNormalCanny( cptr, NULL, NULL, Math::round( p.x ), Math::round( p.y ),
@@ -318,9 +320,9 @@ namespace cvt {
 			if( !flip ) {
 				tmp = _regcovar;
 //				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
-				A.diagonal() += 5.0f * tmp;
+				A.diagonal() += 4.0f * tmp;
 				tmp.cwise() *= _p;
-				b -= 5.0f * tmp;
+				b -= 4.0f * tmp;
 			} else {
 /*				tmp( 0 ) = tmp( 1 ) = 0.0f;
 			 	tmp( 2 ) = tmp( 3 ) = 0.0f;
@@ -418,6 +420,102 @@ namespace cvt {
 				dyptr1 += dyincy; dyptr2 -= dyincy;
 				y += sy;
 			}
+		}
+		return false;
+	}
+
+	template<typename T>
+	inline bool FaceShape<T>::sampleNormal2( uint8_t* dxptr, uint8_t* dyptr, int _x, int _y, int deltax, int deltay, size_t dxstride, size_t dystride, Vector2<T>& norm, T& dist )
+	{
+		int dy = - deltax;
+		int dx =   deltay;
+		ssize_t dxincx, dxincy, dyincx, dyincy;
+		int sx, sy;
+		int x, y;
+		size_t dxbpp, dybpp;
+		size_t w, h;
+		int err = dx + dy;
+		int e2;
+		Vector2<T> grad;
+		T best = 1e10;
+		T bdist;
+
+		w = _dx.width();
+		h = _dx.height();
+		dxbpp = _dx.bpp();
+		dybpp = _dy.bpp();
+
+		if( deltay < 0 ) {
+			dxincx = -dxbpp;
+			dyincx = -dybpp;
+			sx   = -1;
+		} else {
+			dxincx = dxbpp;
+			dyincx = dybpp;
+			sx   = 1;
+		}
+
+		if( deltax < 0 ) {
+			dxincy = dxstride;
+			dyincy = dystride;
+			sy   = 1;
+		} else {
+			dxincy = -dxstride;
+			dyincy = -dystride;
+			sy   = -1;
+		}
+		x = y = 0;
+
+		uint8_t* dxptr1 = dxptr + _x * dxbpp + _y * dxstride;
+		uint8_t* dxptr2 = dxptr1;
+		uint8_t* dyptr1 = dyptr + _x * dybpp + _y * dystride;
+		uint8_t* dyptr2 = dyptr1;
+
+		size_t n = MAXDIST;
+		float mag;
+		while( n-- ) {
+			if( ( ( size_t ) ( _x + x ) ) < w && ( ( size_t ) ( _y + y ) ) < h ) {
+				grad.x = *( ( float* ) dxptr1 );
+				grad.y = *( ( float* ) dyptr1 );
+				mag = grad.normalize();
+				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+					T d = ( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					if( d / ( Math::abs( norm * grad ) * mag ) < best ) {
+						best = d / ( Math::abs( norm * grad ) * mag );
+						bdist = ( d );
+					}
+				}
+			}
+			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
+				grad.x = *( ( float* ) dxptr2 );
+				grad.y = *( ( float* ) dyptr2 );
+
+				mag = grad.normalize();
+				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+					T d = ( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
+					if( d / ( Math::abs( norm * grad ) * mag ) < best ) {
+						best = d / ( Math::abs( norm * grad ) * mag );
+						bdist = - ( d );
+					}
+				}
+			}
+			e2 = 2 * err;
+			if( e2 >= dy ) {
+				err += dy;
+				dxptr1 += dxincx; dxptr2 -= dxincx;
+				dyptr1 += dyincx; dyptr2 -= dyincx;
+				x += sx;
+			}
+			if( e2 <= dx ) {
+				err += dx;
+				dxptr1 += dxincy; dxptr2 -= dxincy;
+				dyptr1 += dyincy; dyptr2 -= dyincy;
+				y += sy;
+			}
+		}
+		if( best <= 1e8 ) {
+			dist = bdist;
+			return true;
 		}
 		return false;
 	}
