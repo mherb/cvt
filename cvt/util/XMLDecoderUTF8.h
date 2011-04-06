@@ -94,7 +94,7 @@ namespace cvt {
 			   ( *_stream >= 'A' && *_stream <= 'Z' ) ||
 			   ( *_stream >= 'a' && *_stream <= 'z' ) )
 			n++;
-		else if( *_stream & 0x80 ) {
+		else if( *_stream >= 0x80 ) {
 			
 		}
 

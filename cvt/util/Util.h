@@ -10,6 +10,7 @@ namespace cvt {
 			static inline uint16_t bswap16( uint16_t x );
 			static inline uint32_t bswap32( uint32_t x );
 			static inline uint64_t bswap64( uint64_t x );
+//			static inline uint32_t UTF8toUTF32( const char* data );
 	};
 
 	inline uint16_t Util::bswap16( uint16_t x )
@@ -26,6 +27,40 @@ namespace cvt {
 	{
 		return ( ( uint64_t ) bswap32( x & 0xffffffff ) ) << 32 | ( uint64_t ) bswap32( x >> 32 );
 	}
+
+/*	inline uint32_t Util::UTF8toUTF32( const char* data, char** endptr )
+	{
+		static const uint8_t _UTF8_LENGTH[256] = {
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+			3,3,3,3,3,3,3,3,4,4,4,4,5,5,0,0
+		};
+		if( *data < 0x80 )
+			return *data;
+
+		uint8_t len = _UTF8_LENGTH[ *data ];
+		uint32_t ret = *data++ & ( 0x3F >> len );
+		while( len-- ) {
+			if( *data & 0xC0 != 0x80 )
+				break;
+			ret = ( ( ret << 6 ) + ( *data++ & 0x3F ) );
+		}
+		if( endptr )
+			endptr = ( data - 1 )
+	}*/
 }
 
 #endif
