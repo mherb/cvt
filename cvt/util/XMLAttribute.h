@@ -1,29 +1,27 @@
 #ifndef CVT_XMLATTRIBUTE_H
 #define CVT_XMLATTRIBUTE_H
 
+#include <cvt/util/XMLNode.h>
+
 namespace cvt {
-	class XMLAttribute {
+	class XMLAttribute : public XMLNode {
 		public:
 			XMLAttribute( const String& name, const String& value );
 			XMLAttribute( const XMLAttribute& other );
 			XMLAttribute& operator=( const XMLAttribute& other );
 			~XMLAttribute();
 
-			const String& name() const;
-			void setName( const String& name );
-			const String& value() const;
-			void setValue( const String& value );
-
-		private:
-			String _name;
-			String _value;
 	};
 
-	inline XMLAttribute::XMLAttribute( const String& name, const String& value ) : _name( name ), _value( value )
+	inline XMLAttribute::XMLAttribute( const String& name, const String& value ) : XMLNode( XML_NODE_ATTRIBUTE, name, value )
 	{
 	}
 
-	inline XMLAttribute::XMLAttribute( const XMLAttribute& other ) : _name( other._name ), _value( other._value )
+	inline XMLAttribute::XMLAttribute( const XMLAttribute& other ) : XMLNode( XML_NODE_ATTRIBUTE, other._name, other._value )
+	{
+	}
+
+	inline XMLAttribute::~XMLAttribute()
 	{
 	}
 
@@ -32,26 +30,6 @@ namespace cvt {
 		_name = other._name;
 		_value = other._value;
 		return *this;
-	}
-
-	inline const String& XMLAttribute::name() const
-	{
-		return _name;
-	}
-
-	inline void XMLAttribute::setName( const String& name )
-	{
-		_name = name;
-	}
-
-	inline const String& XMLAttribute::value() const
-	{
-		return _value;
-	}
-
-	inline void XMLAttribute::setValue( const String& value )
-	{
-		_value = value;
 	}
 }
 

@@ -43,15 +43,15 @@ int main()
 
 	TerminationCriteria<double>	termCrit( TERM_MAX_ITER );
 	termCrit.setCostThreshold( 0.01f );
-	termCrit.setMaxIterations( 5 );
+	termCrit.setMaxIterations( 25 );
 	GaussNewton<double>	gn;
-	RobustHuber<double, double> costFunc( 5.0 );
+	RobustHuber<double, double> costFunc( 2.5 );
 
 	Matrix3<double> matdown;
 	Matrix3<double> matup;
 
-#define UPFACTOR ( 1.25 )
 #define DOWNFACTOR 0.8
+#define UPFACTOR ( 1.0 / ( DOWNFACTOR ) )
 
 	matdown.identity();
 	matdown[ 0 ][ 0 ] = DOWNFACTOR;
