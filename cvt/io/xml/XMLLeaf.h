@@ -15,6 +15,7 @@ namespace cvt {
 
 			virtual size_t childSize() const;
 			virtual XMLNode* child( size_t index );
+			virtual const XMLNode* child( size_t index ) const;
 			virtual void addChild( XMLNode* node );
 			virtual XMLNode* childByName( const String& name );
 		private:
@@ -30,6 +31,12 @@ namespace cvt {
 	{
 		return NULL;
 	}
+
+	inline const XMLNode* XMLLeaf::child( size_t ) const
+	{
+		return NULL;
+	}
+
 
 	inline void XMLLeaf::addChild( XMLNode* )
 	{
