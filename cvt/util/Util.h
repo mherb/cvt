@@ -2,6 +2,7 @@
 #define CVT_UTIL_H
 
 #include <stdint.h>
+#include <cvt/util/Exception.h>
 
 namespace cvt {
 
@@ -10,7 +11,7 @@ namespace cvt {
 			static inline uint16_t bswap16( uint16_t x );
 			static inline uint32_t bswap32( uint32_t x );
 			static inline uint64_t bswap64( uint64_t x );
-//			static inline uint32_t UTF8toUTF32( const char* data );
+			static inline uint32_t UTF8toUTF32( const char* data, char** endptr );
 	};
 
 	inline uint16_t Util::bswap16( uint16_t x )
@@ -28,7 +29,7 @@ namespace cvt {
 		return ( ( uint64_t ) bswap32( x & 0xffffffff ) ) << 32 | ( uint64_t ) bswap32( x >> 32 );
 	}
 
-/*	inline uint32_t Util::UTF8toUTF32( const char* data, char** endptr )
+	inline uint32_t Util::UTF8toUTF32( const char* _data, char** _endptr )
 	{
 		static const uint8_t _UTF8_LENGTH[256] = {
 			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -48,19 +49,26 @@ namespace cvt {
 			2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 			3,3,3,3,3,3,3,3,4,4,4,4,5,5,0,0
 		};
-		if( *data < 0x80 )
+		uint8_t* data = ( uint8_t* ) _data;
+
+		if( *( ( uint8_t* ) data ) < 0x80 )
 			return *data;
 
 		uint8_t len = _UTF8_LENGTH[ *data ];
-		uint32_t ret = *data++ & ( 0x3F >> len );
+
+		if( len > 4 )
+			throw CVTException("Invalid UTF-8 sequence");
+
+		uint32_t ret = ( *data++ ) & ( 0x3F >> len );
 		while( len-- ) {
-			if( *data & 0xC0 != 0x80 )
-				break;
+			if( ( *data & 0xC0 ) != 0x80 )
+				throw CVTException("Invalid UTF-8 sequence");
 			ret = ( ( ret << 6 ) + ( *data++ & 0x3F ) );
 		}
-		if( endptr )
-			endptr = ( data - 1 )
-	}*/
+		if( _endptr )
+			*_endptr = ( char* ) ( data );
+		return ret;
+	}
 }
 
 #endif

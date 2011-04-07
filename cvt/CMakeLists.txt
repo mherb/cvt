@@ -266,6 +266,16 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Patch.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
+	io/xml/XMLAttribute.h
+	io/xml/XMLCData.h
+	io/xml/XMLComment.h
+	io/xml/XMLDecoder.h
+	io/xml/XMLDecoderUTF8.h
+	io/xml/XMLDocument.h
+	io/xml/XMLElement.h
+	io/xml/XMLLeaf.h
+	io/xml/XMLNode.h
+	io/xml/XMLText.h
 	${GLSL_SHADER}
 	${CL_KERNELS}
 )
@@ -377,6 +387,8 @@ SET(${MODULE_NAME}_SOURCES
 	vision/IntegralImage.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
+	io/xml/XMLDecoder.cpp
+	io/xml/XMLDecoderUTF8.cpp
 )
 
 

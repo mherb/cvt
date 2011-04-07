@@ -73,7 +73,7 @@ int main()
 //		fs.updateInput( &imgf );
 		{
 			Image tmp;
-			IScaleFilterBilinear scaler;
+			IScaleFilterGauss scaler;
 
 			imgf.scale( tmp, imgf.width() * DOWNFACTOR * DOWNFACTOR, imgf.height() * DOWNFACTOR * DOWNFACTOR, scaler );
 			fs.setTransform( matdown * matdown * fs.transform()  );

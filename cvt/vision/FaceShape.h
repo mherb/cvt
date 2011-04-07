@@ -437,7 +437,7 @@ namespace cvt {
 		int err = dx + dy;
 		int e2;
 		Vector2<T> grad;
-		T best = 1e10;
+		T best = 0;
 		T bdist;
 
 		w = _dx.width();
@@ -478,26 +478,32 @@ namespace cvt {
 				grad.x = *( ( float* ) dxptr1 );
 				grad.y = *( ( float* ) dyptr1 );
 				mag = grad.normalize();
-				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+//				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
 					T d = ( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
-					if( d / ( Math::abs( norm * grad ) * mag ) < best ) {
-						best = d / ( Math::abs( norm * grad ) * mag );
+					T p = Math::exp( - d / 250 )
+						  * ( 1.0 / ( 1.0 + exp( - ( Math::abs( norm * grad ) - 0.65 ) * 15.0 ) ) )
+					      * ( 1.0 / ( 1.0 + exp( -( mag - 0.01 ) * 20.0 ) ) );
+					if( p > best ) {
+						best = p;
 						bdist = ( d );
 					}
-				}
+//				}
 			}
 			if( ( ( size_t ) ( _x - x ) ) < w && ( ( size_t ) ( _y - y ) ) < h ) {
 				grad.x = *( ( float* ) dxptr2 );
 				grad.y = *( ( float* ) dyptr2 );
 
 				mag = grad.normalize();
-				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
+//				if( mag >= THRESHOLD && Math::abs( norm * grad ) >= COSMAX ) {
 					T d = ( ( T ) ( Math::sqr( x ) + Math::sqr( y ) ) );
-					if( d / ( Math::abs( norm * grad ) * mag ) < best ) {
-						best = d / ( Math::abs( norm * grad ) * mag );
-						bdist = - ( d );
+					T p = Math::exp( - d / 250 )
+						  * ( 1.0 / ( 1.0 + exp( - ( Math::abs( norm * grad ) - 0.65 ) * 15.0 ) ) )
+					      * ( 1.0 / ( 1.0 + exp( - ( mag - 0.01 ) * 20.0 ) ) );
+					if( p > best ) {
+						best = p;
+						bdist = -( d );
 					}
-				}
+//				}
 			}
 			e2 = 2 * err;
 			if( e2 >= dy ) {
@@ -513,7 +519,7 @@ namespace cvt {
 				y += sy;
 			}
 		}
-		if( best <= 1e8 ) {
+		if( best >= 0.05 ) {
 			dist = bdist;
 			return true;
 		}

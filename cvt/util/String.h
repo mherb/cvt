@@ -23,6 +23,7 @@ namespace cvt {
 
 			String substring( int start, int len = - 1 ) const;
 			void truncate( size_t newlen );
+			void assign( const char* str, size_t len );
 //			void split( char marker, String& out1, String& out2 ) const;
 //			String operator+( const String& str ) const;
 /*			String operator+( unsigned int i ) const;
@@ -125,6 +126,15 @@ namespace cvt {
 	inline const char* String::c_str() const
 	{
 		return _str;
+	}
+
+	inline void String::assign( const char* str, size_t len )
+	{
+		_len = len;
+		if( _len >= _blen )
+			_grow( Math::pad16( _len + 1 ) );
+		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
+		_str[ _len ] = 0;
 	}
 
 	inline String String::substring( int start, int len ) const
