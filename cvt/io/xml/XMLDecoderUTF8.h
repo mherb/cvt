@@ -101,7 +101,7 @@ namespace cvt {
 	{
 		size_t n = 0;
 		const uint8_t* ptr;
-		uint8_t* end;
+		uint8_t* end = NULL;
 		uint32_t u32;
 
 		/* FIXME: this is vulnerable to buffer overrun in case of malformed or malicious UTF8 sequences
@@ -191,7 +191,7 @@ namespace cvt {
 		} else if( match('\'') ) {
 			advance( 1 );
 			ptr = _stream;
-			while( *ptr != '"' && *ptr != '<' && *ptr != 0 ) {
+			while( *ptr != '\'' && *ptr != '<' && *ptr != 0 ) {
 				n++;
 				ptr++;
 			}

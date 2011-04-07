@@ -29,21 +29,46 @@ namespace cvt {
 		String name, value ;
 
 		if( !parseName( name ) )
-			throw CVTException("Malformed attribute");
+			throw CVTException("Malformed attribute name");
 		skipWhitespace();
 		if( ! match( '=') )
-			throw CVTException("Malformed attribute - expected '=' ");
+			throw CVTException("Malformed attribute - expected '='");
 		advance( 1 );
 		skipWhitespace();
 		if( !parseAttributeValue( value ) )
 			throw CVTException("Malformed attribute value");
 		skipWhitespace();
-		std::cout << name << " = " << value << std::endl;
 		return new XMLAttribute( name, value );
 	}
 
 	XMLNode* XMLDecoderUTF8::parseNode()
 	{
-		return NULL;
+		String name;
+
+		if( !_rlen || match( ( uint8_t ) 0 ) )
+			return NULL;
+
+		skipWhitespace();
+		if( !match('<') )
+			throw CVTException("Malformed element - expected \"<\"");
+		advance( 1 );
+		if(!parseName( name))
+			throw CVTException("Malformed element name");
+
+		XMLElement* element = new XMLElement( name );
+		while( _rlen ) {
+			skipWhitespace();
+			if( match( "/>" ) ) {
+				advance( 2 );
+				return element;
+			} else if( match( '>' ) )	{
+				advance( 1 );
+				break;
+			} else {
+				element->addChild( parseAttribute() );
+			}
+		}
+		/* FIXME */
+		return element;
 	}
 }

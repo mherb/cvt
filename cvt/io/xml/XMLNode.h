@@ -3,6 +3,7 @@
 
 #include <cvt/util/String.h>
 #include <cvt/util/CVTAssert.h>
+#include <iostream>
 
 namespace cvt {
 	enum XMLNodeType {
@@ -17,6 +18,7 @@ namespace cvt {
 
 	class XMLNode {
 		friend class XMLElement;
+		friend std::ostream& operator<<( std::ostream &out, const XMLNode& str );
 
 		public:
 			virtual ~XMLNode();
@@ -33,12 +35,15 @@ namespace cvt {
 
 			virtual size_t childSize() const = 0;
 			virtual XMLNode* child( size_t index ) = 0;
+			virtual const XMLNode* child( size_t index ) const = 0;
 			virtual void addChild( XMLNode* node ) = 0;
 			virtual XMLNode* childByName( const String& name ) = 0;
 
 		protected:
 			XMLNode( XMLNodeType type, const String& name = "", const String value = "" ) : _name( name ), _value( value ), _type( type ), _parent( NULL )
 			{}
+
+			void print( std::ostream &out, size_t d ) const;
 
 			String				 _name;
 			String				 _value;
@@ -79,6 +84,24 @@ namespace cvt {
 		_value = value;
 	}
 
+	inline void XMLNode::print( std::ostream &out, size_t d = 0 ) const
+	{
+		for( size_t i = 0; i < d; i++ )
+			out << "\t";
+		out << "Name: " << _name << " Value:" << _value << std::endl;
+		for( size_t i = 0; i < d; i++ )
+			out << "\t";
+		out << "Children:\n";
+		for( size_t i = 0, end = childSize(); i < end; i++ ) {
+			child( i )->print( out, d + 1 );
+		}
+	}
+
+	inline std::ostream& operator<<( std::ostream &out, const XMLNode& xn )
+	{
+		xn.print( out, 0 );
+		return out;
+	}
 
 }
 

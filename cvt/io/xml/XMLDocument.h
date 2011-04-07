@@ -49,6 +49,12 @@ namespace cvt {
 	{
 		_nodes.push_back( node );
 	}
+
+
+	inline XMLNode* XMLDocument::node( size_t index )
+	{
+		return _nodes[ index ];
+	}
 }
 
 #endif

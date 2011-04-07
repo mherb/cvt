@@ -14,6 +14,7 @@ namespace cvt {
 
 			size_t childSize() const;
 			XMLNode* child( size_t index );
+			const XMLNode* child( size_t index ) const;
 			void addChild( XMLNode* node );
 			XMLNode* childByName( const String& name );
 
@@ -43,6 +44,13 @@ namespace cvt {
 		CVT_ASSERT( index < _children.size(), "Out of bounds!" );
 		return _children[ index ];
 	}
+
+	inline const XMLNode* XMLElement::child( size_t index ) const
+	{
+		CVT_ASSERT( index < _children.size(), "Out of bounds!" );
+		return _children[ index ];
+	}
+
 
 	inline void XMLElement::addChild( XMLNode* node )
 	{
