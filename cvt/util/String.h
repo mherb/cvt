@@ -131,8 +131,11 @@ namespace cvt {
 	inline void String::assign( const char* str, size_t len )
 	{
 		_len = len;
-		if( _len >= _blen )
-			_grow( Math::pad16( _len + 1 ) );
+		if( _len >= _blen ) {
+			delete[] _str;
+			_blen = Math::pad16( _len + 1 );
+			_str = new char[ _blen ];
+		}
 		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
 		_str[ _len ] = 0;
 	}
