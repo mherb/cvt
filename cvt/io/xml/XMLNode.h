@@ -88,12 +88,14 @@ namespace cvt {
 	{
 		for( size_t i = 0; i < d; i++ )
 			out << "\t";
-		out << "Name: " << _name << " Value:" << _value << std::endl;
-		for( size_t i = 0; i < d; i++ )
-			out << "\t";
-		out << "Children:\n";
-		for( size_t i = 0, end = childSize(); i < end; i++ ) {
-			child( i )->print( out, d + 1 );
+		out << "Name: " << _name << " Value: " << _value << std::endl;
+		if( childSize() ) {
+			for( size_t i = 0; i < d; i++ )
+				out << "\t";
+			out << "Children:\n";
+			for( size_t i = 0, end = childSize(); i < end; i++ ) {
+				child( i )->print( out, d + 1 );
+			}
 		}
 	}
 
