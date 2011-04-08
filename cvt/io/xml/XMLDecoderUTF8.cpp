@@ -66,6 +66,8 @@ namespace cvt {
 	{
 		String name;
 		advance(1);
+		/* spec says no whitespaces allowd - whatever */
+		skipWhitespace();
 		if(!parseName( name))
 			throw CVTException("Malformed element name");
 
