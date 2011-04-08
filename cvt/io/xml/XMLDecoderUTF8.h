@@ -218,6 +218,10 @@ namespace cvt {
 
 		ptr = _stream;
 		while( *ptr != '<' && *ptr != 0 ) {
+			if( *ptr == '[' ) {
+				if( match("[[>"))
+					throw CVTException( "CDATA-section-close delimiter not allowed in text" );
+			}
 			n++;
 			ptr++;
 		}
