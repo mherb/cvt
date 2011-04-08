@@ -43,18 +43,33 @@ namespace cvt {
 
 	XMLNode* XMLDecoderUTF8::parseNode()
 	{
-		String name;
 
 		if( !_rlen || match( ( uint8_t ) 0 ) )
 			return NULL;
 
 		skipWhitespace();
+		if( match("<?") )
+			return parsePI();
+		if( match("<!--") )
+			return parseComment();
+		if( match("<") )
+			return parseElement();
+		else
+			throw CVTException("Invalid XML data");
+
 		if( !match('<') )
 			throw CVTException("Malformed element - expected \"<\"");
 		advance( 1 );
+	}
+
+	XMLNode* XMLDecoderUTF8::parseElement()
+	{
+		String name;
+		advance(1);
 		if(!parseName( name))
 			throw CVTException("Malformed element name");
 
+		/* START Tag */
 		XMLElement* element = new XMLElement( name );
 		while( _rlen ) {
 			skipWhitespace();
@@ -68,7 +83,54 @@ namespace cvt {
 				element->addChild( parseAttribute() );
 			}
 		}
-		/* FIXME */
+
+		/* Content */
+		 skipWhitespace();
+		 while( !match("</") ) {
+			if( match("<?") )
+				element->addChild( parsePI() );
+			else if( match("<!--") )
+				element->addChild( parseComment() );
+			else if( match("<") )
+				element->addChild( parseElement() );
+			else if( match("<![CDATA[") )
+				element->addChild( parseCData() );
+			else
+				element->addChild( parseText() );
+			skipWhitespace();
+		}
+
+		/* END Tag */
+		advance( 2 );
+		/* spec says no whitespaces allowd - whatever */
+		skipWhitespace();
+		String ename;
+		if( ! parseName( ename ) )
+			throw CVTException("Malformed element name");
+		if( name != ename )
+			throw CVTException("Names in start- and end-tag differ");
+		skipWhitespace();
+		if( !match('>') )
+			throw CVTException("Missing '>'");
+		advance( 1 );
 		return element;
+	}
+
+	XMLNode* XMLDecoderUTF8::parsePI()
+	{
+		/* FIXME */
+		return NULL;
+	}
+
+	XMLNode* XMLDecoderUTF8::parseCData()
+	{
+		/* FIXME */
+		return NULL;
+	}
+
+	XMLNode* XMLDecoderUTF8::parseComment()
+	{
+		/* FIXME */
+		return NULL;
 	}
 }

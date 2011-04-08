@@ -4,6 +4,7 @@
 #include <cvt/io/xml/XMLDecoder.h>
 #include <cvt/util/String.h>
 #include <cvt/util/Util.h>
+#include <cvt/io/xml/XMLText.h>
 #include <iostream>
 
 namespace cvt {
@@ -26,6 +27,8 @@ namespace cvt {
 			XMLNode* parseComment();
 			XMLNode* parseText();
 			XMLNode* parseCData();
+			XMLNode* parsePI();
+			XMLNode* parseElement();
 
 			bool match( const char* str );
 			bool match( uint8_t val );
@@ -205,6 +208,24 @@ namespace cvt {
 		} else
 			return false;
 		return true;
+	}
+
+	inline XMLNode* XMLDecoderUTF8::parseText()
+	{
+		String text;
+		size_t n = 0;
+		const uint8_t* ptr;
+
+		ptr = _stream;
+		while( *ptr != '<' && *ptr != 0 ) {
+			n++;
+			ptr++;
+		}
+		if( *ptr == 0 )
+			throw CVTException( "Premature end of file" );
+		text.assign( ( const char* )  _stream, n );
+		advance( n );
+		return new XMLText( text );
 	}
 }
 
