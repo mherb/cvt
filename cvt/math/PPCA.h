@@ -212,6 +212,12 @@ namespace cvt {
 				_svalues[ k ] = svd.singularValues().block( 0, 0, _subdimension, 1 );
 				/* get the eigenvectors in the subspace */
 				_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
+				Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> tmp = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _subdimension, _subdimension );
+				tmp.diagonal() = _svalues[ k ];
+				tmp.diagonal().cwise() -= _sigmas2[ k ];
+				tmp.diagonal() = tmp.diagonal().cwise().sqrt();
+				_pc[ k ] *= tmp;
+
 
 				/* calculate the complete covariance matrix in the subspace and the weights for normalization */
 				C[ k ] = _pc[ k ] * _pc[ k ].transpose();
@@ -279,6 +285,11 @@ namespace cvt {
 					_svalues[ k ] = svd.singularValues().block( 0, 0, _subdimension, 1 );
 					/* get the eigenvectors in the subspace */
 					_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
+					Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> tmp = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _subdimension, _subdimension );
+					tmp.diagonal() = _svalues[ k ];
+					tmp.diagonal().cwise() -= _sigmas2[ k ];
+					tmp.diagonal() = tmp.diagonal().cwise().sqrt();
+					_pc[ k ] *= tmp;
 
 					/* calculate the complete covariance matrix in the subspace and the weights for normalization */
 					C[ k ] = _pc[ k ] * _pc[ k ].transpose();
