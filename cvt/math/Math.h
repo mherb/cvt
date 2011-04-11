@@ -215,6 +215,17 @@ namespace cvt {
 			return ::atan2( y, x );
 		}
 
+		static inline double pow( double x, double y )
+		{
+			return ::pow( x, y );
+		}
+
+		static inline float pow( float x, float y )
+		{
+			return ::powf( x, y );
+		}
+
+
 		static inline ssize_t rand()
 		{
 			return ( ssize_t ) ::random();
