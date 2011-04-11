@@ -21,7 +21,7 @@ namespace cvt {
 				void setRandomMeans();
 				void setMean( size_t index, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value );
 
-				void calculate();
+				void calculate( size_t iterations );
 
 				void mean( size_t i, Eigen::Matrix<T, Eigen::Dynamic, 1>& m ) const;
 				void principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p ) const;
@@ -37,7 +37,6 @@ namespace cvt {
 				Eigen::Matrix<T, Eigen::Dynamic, 1>* _means;
 				T* _weights;
 				T* _sigmas2;
-				Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>* _covariances;
 				Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>* _pc;
 				Eigen::Matrix<T, Eigen::Dynamic, 1>* _svalues;
 		};
@@ -50,7 +49,6 @@ namespace cvt {
 		_means = new Eigen::Matrix<T, Eigen::Dynamic,1>[ _mixcomponents ];
 		_weights = new T[ _mixcomponents ];
 		_sigmas2 = new T[ _mixcomponents ];
-		_covariances = new Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>[ _mixcomponents ];
 		_pc = new Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>[ _mixcomponents ];
 		_svalues = new Eigen::Matrix<T, Eigen::Dynamic,1>[ _mixcomponents ];
 	}
@@ -61,7 +59,6 @@ namespace cvt {
 			delete[] _means;
 			delete[] _weights;
 			delete[] _sigmas2;
-			delete[] _covariances;
 			delete[] _pc;
 			delete[] _svalues;
 		}
@@ -104,18 +101,18 @@ namespace cvt {
 		inline void PPCA<T>::setRandomMeans()
 		{
 			for( size_t i = 0; i < _mixcomponents; i++ ) {
-				_means[ i ] = _samples[ Math::rand( 0, _samples.size() ) ];
+				_means[ i ] = _samples[ Math::rand( 0, _samples.size() - 1 ) ];
 			}
 		}
 
 	template<typename T>
-		inline void PPCA::setMean( size_t index, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value )
+		inline void PPCA<T>::setMean( size_t i, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value )
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
 			if( value.rows() != _dimension )
 				throw CVTException( "Mean value dimension invalid" );
-			_means[ index ] = value;
+			_means[ i ] = value;
 		}
 
 	template<typename T>
@@ -154,16 +151,147 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::calculate()
+		inline void PPCA<T>::calculate( size_t iterations )
 		{
+			T weights[ _mixcomponents ];
+			T pnormalize[ _mixcomponents ];
+			Eigen::Matrix<T, Eigen::Dynamic,1> newmeans[ _mixcomponents ];
+			Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> newcovar[ _mixcomponents ];
+			Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> C[ _mixcomponents ];
 
-			/* ... lots of stuff ... */
+			/* reset the prior weights for the mixture components */
+			/* reset the new means */
+			/* reset the covariances */
+			for( size_t i = 0; i < _mixcomponents; i++ ) {
+				_weights[ i ] = 0;
+				newmeans[ i ] =	Eigen::Matrix<T, Eigen::Dynamic,1>::Zero( _dimension );
+				newcovar[ i ] =	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _dimension, _dimension );
+			}
 
-			/* update noise */
-			for( int i = 0; i < _mixcomponents; i++ )
-				_sigma2[ i ] = _svalues[ i ].block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
+			/* 1. calculate the weights for each sample
+			   2. add the weighted sample to the new means
+			   3. add the weighted sample to the new covar matrices
+			 */
 
-			/* ... other stuff ... */
+			for( size_t i = 0, end = _samples.size(); i < end;i++ ) {
+				T wsum = 0;
+				/* step 1 */
+				for( size_t k = 0; k < _mixcomponents; k++ ) {
+					/* here we use the euclidean distance */
+					Eigen::Matrix<T, Eigen::Dynamic,1> d = _samples[ i ] - _means[ k ];
+					weights[ k ] = Math::sqrt( d.dot( d ) );
+					wsum += weights[ k ];
+				}
+				for( size_t k = 0; k < _mixcomponents; k++ ) {
+					/* step 2 */
+					weights[ k ] /= wsum;
+					_weights[ k ] += weights[ k ];
+					newmeans[ k ] += weights[ k ] * _samples[ i ];
+					/* step 3 - without the new mean */
+					newcovar[ k ] += weights[ k ] * _samples[ i ] * _samples[ i ].transpose();
+				}
+
+			}
+
+			for( size_t k = 0; k < _mixcomponents; k++ ) {
+				/* normalize new means and covariances */
+				newmeans[ k ] /= _weights[ k ];
+				newcovar[ k ] /= _weights[ k ];
+
+				/* substract new mean from the covariance - part of step 3 */
+				newcovar[ k ] -= newmeans[ k ] * newmeans[ k ].transpose();
+
+				/* normalize weights */
+				_weights[ k ] /= _samples.size();
+
+				/* decompose each covariance matrix to get the eigenvectors and -values ...	 */
+				Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
+				/* update the noise using the singular values outside the subspace */
+				_sigmas2[ k ] = svd.singularValues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
+				/* get the singular values in the subspace */
+				_svalues[ k ] = svd.singularValues().block( 0, 0, _subdimension, 1 );
+				/* get the eigenvectors in the subspace */
+				_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
+
+				/* calculate the complete covariance matrix in the subspace and the weights for normalization */
+				C[ k ] = _pc[ k ] * _pc[ k ].transpose();
+				C[ k ].diagonal().cwise() += _sigmas2[ k ];
+
+				pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( T ) 2.0 * ( T ) Math::PI, _dimension * ( T ) 0.5  ) * Math::sqrt( C[ k ].determinant() ) );
+				C[ k ] = C[ k ].inverse();
+
+					std::cout << k << " : " << _weights[ k ] << std::endl;
+					std::cout << k << " : " << pnormalize[ k ] << std::endl;
+			}
+
+
+			while( iterations-- ) {
+
+				/* reset the prior weights for the mixture components */
+				/* reset the new means */
+				/* reset the covariances */
+				for( size_t i = 0; i < _mixcomponents; i++ ) {
+					_weights[ i ] = 0;
+					newmeans[ i ] =	Eigen::Matrix<T, Eigen::Dynamic,1>::Zero( _dimension );
+					newcovar[ i ] =	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero( _dimension, _dimension );
+				}
+
+				/* 1. calculate the weights for each sample using the complete gaussian
+				   2. add the weighted sample to the new means
+				   3. add the weighted sample to the new covar matrices
+				 */
+
+				for( size_t i = 0, end = _samples.size(); i < end;i++ ) {
+					T wsum = 0;
+					/* step 1 */
+					for( size_t k = 0; k < _mixcomponents; k++ ) {
+						/* here we use gaussian probability */
+						Eigen::Matrix<T, Eigen::Dynamic,1> d = _samples[ i ] - _means[ k ];
+						weights[ k ] = pnormalize[ k ] * Math::exp( -( ( T ) 0.5 ) * d.dot( C[ k ] * d ) );
+						wsum += weights[ k ];
+					}
+
+					for( size_t k = 0; k < _mixcomponents; k++ ) {
+						/* step 2 */
+						weights[ k ] /= wsum;
+						_weights[ k ] += weights[ k ];
+						newmeans[ k ] += weights[ k ] * _samples[ i ];
+						/* step 3 - without the new mean */
+						newcovar[ k ] += weights[ k ] * _samples[ i ] * _samples[ i ].transpose();
+					}
+
+				}
+
+				for( size_t k = 0; k < _mixcomponents; k++ ) {
+					/* normalize new means and covariances */
+					newmeans[ k ] /= _weights[ k ];
+					newcovar[ k ] /= _weights[ k ];
+
+					/* substract new mean from the covariance - part of step 3 */
+					newcovar[ k ] -= newmeans[ k ] * newmeans[ k ].transpose();
+
+					/* normalize weights */
+					_weights[ k ] /= _samples.size();
+					std::cout << k << " : " << _weights[ k ] << std::endl;
+
+					/* decompose each covariance matrix to get the eigenvectors and -values ...	 */
+					Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
+					/* update the noise using the singular values outside the subspace */
+					_sigmas2[ k ] = svd.singularValues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
+					/* get the singular values in the subspace */
+					_svalues[ k ] = svd.singularValues().block( 0, 0, _subdimension, 1 );
+					/* get the eigenvectors in the subspace */
+					_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
+
+					/* calculate the complete covariance matrix in the subspace and the weights for normalization */
+					C[ k ] = _pc[ k ] * _pc[ k ].transpose();
+					C[ k ].diagonal().cwise() += _sigmas2[ k ];
+					pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( ( T ) 2.0 ) * Math::PI * _sigmas2[ k ], ( T )_dimension / ( T ) 2.0 ) * Math::sqrt( C[ k ].determinant() ) );
+					C[ k ] = C[ k ].inverse();
+				}
+
+				std::cout << "\n\n" << std::endl;
+			}
 		}
 }
 
