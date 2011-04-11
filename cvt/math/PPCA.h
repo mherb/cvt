@@ -219,9 +219,6 @@ namespace cvt {
 
 				pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( T ) 2.0 * ( T ) Math::PI, _dimension * ( T ) 0.5  ) * Math::sqrt( C[ k ].determinant() ) );
 				C[ k ] = C[ k ].inverse();
-
-					std::cout << k << " : " << _weights[ k ] << std::endl;
-					std::cout << k << " : " << pnormalize[ k ] << std::endl;
 			}
 
 
@@ -286,7 +283,7 @@ namespace cvt {
 					/* calculate the complete covariance matrix in the subspace and the weights for normalization */
 					C[ k ] = _pc[ k ] * _pc[ k ].transpose();
 					C[ k ].diagonal().cwise() += _sigmas2[ k ];
-					pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( ( T ) 2.0 ) * Math::PI * _sigmas2[ k ], ( T )_dimension / ( T ) 2.0 ) * Math::sqrt( C[ k ].determinant() ) );
+					pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( T ) 2.0 * ( T ) Math::PI, _dimension * ( T ) 0.5  ) * Math::sqrt( C[ k ].determinant() ) );
 					C[ k ] = C[ k ].inverse();
 				}
 
