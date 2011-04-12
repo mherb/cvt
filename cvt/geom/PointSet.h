@@ -27,6 +27,7 @@ namespace cvt
 				PointSet();
 				~PointSet();
 				PointSet( const PointSet<dim,_T>& ptset );
+				PointSet( const _T* data, size_t npts );
 				void add( const PTTYPE& pt );
 				void clear();
 				PTTYPE& operator[]( int i );
@@ -45,6 +46,7 @@ namespace cvt
 				_T	 maxSquaredDistance( const PointSet<dim, _T>& ptset ) const;
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
+				const _T* ptr() const;
 
 			private:
 				std::vector<PTTYPE>	_pts;
@@ -64,6 +66,13 @@ namespace cvt
 		inline PointSet<dim,_T>::PointSet( const PointSet<dim,_T>& ptset ) : _pts( ptset._pts )
 	{
 	}
+
+	template<int dim, typename _T>
+		inline PointSet<dim,_T>::PointSet( const _T* data, size_t npts )
+		{
+			resize( npts );
+			SIMD::instance()->Memcpy( ( uint8_t* ) &_pts[ 0 ], ( uint8_t* ) data, npts * sizeof( _T ) * dim );
+		}
 
 	template<int dim, typename _T>
 		inline void PointSet<dim,_T>::clear()
@@ -262,8 +271,8 @@ namespace cvt
 			/* scale */
 			s = ( Math::sqrt( ( _T ) 2 ) * ( _T ) size() ) / s;
 			scale( s );
-			mat.identity();
 
+			mat.identity();
 			for( int i = 0; i < mat.dimension() - 1; i++ ) {
 				mat[ i ][ i ] = s;
 				mat[ i ][ mat.dimension() - 1 ] = -m[ i ] * s;
@@ -304,6 +313,12 @@ namespace cvt
 		inline void PointSet<dim,_T>::resize( size_t n )
 		{
 			return _pts.resize( n );
+		}
+
+	template<int dim, typename _T>
+		inline const _T* PointSet<dim,_T>::ptr() const
+		{
+			return ( _T* ) &_pts[ 0 ];
 		}
 
 	template<int dim, typename _T>

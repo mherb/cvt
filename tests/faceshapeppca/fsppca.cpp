@@ -5,11 +5,11 @@
 #include <cvt/io/FileSystem.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/math/PPCA.h>
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/Slider.h>
 #include <Eigen/Array>
+#include "FaceShapePPCA.h"
 
 using namespace cvt;
 
@@ -87,7 +87,7 @@ int map[ LINEPTS ][ 2 ] = {
 class FaceShapeWin : public Window
 {
 	public:
-	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc ) : Window( "FaceShape" ), _current( SAMPLEPTS * 2 ), _weights( 10 ), _mean( mean ), _pc( pc )
+	FaceShapeWin( Eigen::VectorXf& mean, Eigen::MatrixXf& pc, int weights ) : Window( "FaceShape" ), _current( SAMPLEPTS * 2 ), _weights( weights ), _mean( mean ), _pc( pc )
 	{
 		_weights.setZero();
 		recalc();
@@ -243,93 +243,37 @@ int main( int argc, char** argv )
 	file.close();
 
 
-	size_t npts = allpts.size();
+/*	size_t npts = allpts.size();
 	for( size_t i = 0; i < npts; i++ ) {
 		PointSet2f mirrored( allpts[ i ] );
 		mirrorFace( mirrored );
 		allpts.push_back( mirrored );
-	}
+	}*/
 	std::cout << "Read " << allpts.size() << " entries" << std::endl;
 
-	/* align stuff */
-
-	int INITMEAN = 106; //optimal value for muct database of the first 200 //atoi( argv[ 2 ] );
-//#define INITMEAN 200
-	PointSet2f meanshape( allpts[ INITMEAN ] );
-	meanshape.normalize();
-
-	for( size_t i = 0; i < allpts.size(); i++ ) {
-		if( i == INITMEAN )
-			continue;
-		Matrix3f sim = allpts[ i ].alignSimilarity( allpts[ INITMEAN ] );
-		for( size_t k = 0; k < meanshape.size(); k++ )
-			meanshape[ k ] += sim * allpts[ i ][ k ];
-	}
-	meanshape.normalize();
-
-	std::cout << "Initial mean" << std::endl;
-	size_t iter = 100;
-	while( iter-- ) {
-		PointSet2f newmean;
-		newmean.resize( SAMPLEPTS );
-		for( size_t k = 0; k < newmean.size(); k++ )
-			newmean[ k ].set( 0.0f, 0.0f );
-
-		for( size_t i = 0; i < allpts.size(); i++ ) {
-			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
-			for( size_t k = 0; k < newmean.size(); k++ )
-				newmean[ k ] += sim * allpts[ i ][ k ];
-		}
-		newmean.normalize();
-		meanshape = newmean;
-	}
-
-	for( size_t i = 0; i < allpts.size(); i++ ) {
-			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
-			allpts[ i ].transform( sim );
-//			std::cout << i << " : " << allpts[ i ].ssd( meanshape ) << std::endl;
-	}
-	for( std::vector<PointSet2f>::iterator it = allpts.begin(); it != allpts.end(); ++it ) {
-		Matrix3f sim = it->alignSimilarity( meanshape );
-		it->transform( sim );
-//		std::cout << it->maxSquaredDistance( meanshape ) << std::endl;
-		if( it->maxSquaredDistance( meanshape ) > 1.0f )
-			allpts.erase( it );
-	}
-
-	iter = 100;
-	while( iter-- ) {
-		PointSet2f newmean;
-		newmean.resize( SAMPLEPTS );
-		for( size_t k = 0; k < newmean.size(); k++ )
-			newmean[ k ].set( 0.0f, 0.0f );
-
-		for( size_t i = 0; i < allpts.size(); i++ ) {
-			Matrix3f sim = allpts[ i ].alignSimilarity( meanshape );
-			for( size_t k = 0; k < newmean.size(); k++ )
-				newmean[ k ] += sim * allpts[ i ][ k ];
-		}
-		newmean.normalize();
-		meanshape = newmean;
-	}
-
-	std::cout << "Kept: " << allpts.size() << " shapes" << std::endl;
-	std::cout << "Aligned shapes" << std::endl;
-
-	PPCA<double> ppca( SAMPLEPTS * 2, 10, 3 );
+	FaceShapePPCA<double> ppca( SAMPLEPTS * 2, 5, 3 );
 	for( size_t i = 0; i < allpts.size(); i++ ) {
 		Eigen::Map< Eigen::Matrix<float, Eigen::Dynamic, 1> > smpl(  ( float* ) &allpts[ i ][ 0 ], SAMPLEPTS * 2 );
 		ppca.addSample( smpl.cast<double>() );
 	}
 
 	ppca.setRandomMeans();
-	ppca.calculate( 10 );
+	ppca.calculate( 30 );
 
 	Eigen::Matrix<double, Eigen::Dynamic, 1> mean( SAMPLEPTS * 2 );
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> pc( SAMPLEPTS * 2, 10 );
+	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> pc( SAMPLEPTS * 2, 5 );
 
-	ppca.mean( 1, mean );
-	ppca.principleComponents( 1, pc );
+	size_t index = 0;
+	double max = ppca.weight( 0 );
+	for( size_t i = 1; i < 3; i++ ) {
+		if( ppca.weight( i ) > max ) {
+			index = i;
+			max = ppca.weight( i );
+		}
+	}
+
+	ppca.mean( index, mean );
+	ppca.principleComponents( index, pc );
 
 //	Eigen::Matrix<float, Eigen::Dynamic, 1> svalues( SAMPLEPTS * 2 );
 
@@ -382,7 +326,7 @@ int main( int argc, char** argv )
 	Eigen::Matrix<float, Eigen::Dynamic, 1> fmean = mean.cast<float>();
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> fpc = pc.cast<float>();
 
-	FaceShapeWin win( fmean, fpc );
+	FaceShapeWin win( fmean, fpc, 5 );
 	win.setSize( 640, 480 );
 	win.show();
 
@@ -401,12 +345,12 @@ int main( int argc, char** argv )
 	SLIDERN( 2 )
 	SLIDERN( 3 )
 	SLIDERN( 4 )
-	SLIDERN( 5 )
+/*	SLIDERN( 5 )
 	SLIDERN( 6 )
 	SLIDERN( 7 )
 	SLIDERN( 8 )
 	SLIDERN( 9 )
-/*	SLIDERN( 10 )
+	SLIDERN( 10 )
 	SLIDERN( 11 )
 	SLIDERN( 12 )
 	SLIDERN( 13 )
