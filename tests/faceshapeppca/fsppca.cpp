@@ -281,7 +281,7 @@ int main( int argc, char** argv )
 			meanshape = newmean;
 		}
 
-	FaceShapePPCA<double> ppca( SAMPLEPTS * 2, 6, 4 );
+	FaceShapePPCA<double> ppca( SAMPLEPTS * 2, 6, 3 );
 	for( size_t i = 0; i < allpts.size(); i++ ) {
 //		allpts[ i ].normalize();
 		Eigen::Map< Eigen::Matrix<float, Eigen::Dynamic, 1> > smpl(  ( float* ) &allpts[ i ][ 0 ], SAMPLEPTS * 2 );
@@ -289,19 +289,19 @@ int main( int argc, char** argv )
 	}
 
 	ppca.setRandomMeans();
-	{
+	/*{
 		Eigen::Map< Eigen::Matrix<float, Eigen::Dynamic, 1> > mean(  ( float* ) &meanshape[ 0 ], SAMPLEPTS * 2 );
 		ppca.setMean( 0, mean.cast<double>() );
-	}
-	ppca.calculate( 100 );
+	}*/
+	ppca.calculate( 200 );
 
 	Eigen::Matrix<double, Eigen::Dynamic, 1> mean( SAMPLEPTS * 2 );
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> pc( SAMPLEPTS * 2, 6 );
 
 	size_t index = 0;
 	double max = ppca.weight( 0 );
-	for( size_t i = 1; i < 4; i++ ) {
-		if( ppca.weight( i ) > max ) {
+	for( size_t i = 1; i < 3; i++ ) {
+		if( ppca.weight( i ) < max ) {
 			index = i;
 			max = ppca.weight( i );
 		}
