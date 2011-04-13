@@ -250,8 +250,6 @@ namespace cvt {
 				}
 
 				for( size_t k = 0; k < _mixcomponents; k++ ) {
-					/* substract the mean from the covariance - part of step 3 */
-					newcovar[ k ] -= _means[ k ] * _means[ k ].transpose();
 
 					/* normalize new means and covariances */
 					newmeans[ k ] /= _weights[ k ];
@@ -259,26 +257,29 @@ namespace cvt {
 
 					/* set new means */
 					_means[ k ] = newmeans[ k ];
-					postprocessMean( _means[ k ] );
+
+					/* substract the mean from the covariance - part of step 3 */
+					newcovar[ k ] -= _means[ k ] * _means[ k ].transpose();
+
+					if( iterations )
+						postprocessMean( _means[ k ] );
 
 					/* normalize weights */
 					_weights[ k ] /= _samples.size();
 					std::cout << k << " : " << _weights[ k ] << std::endl;
 
 					/* decompose each covariance matrix to get the eigenvectors and -values ...	 */
-//					Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
-					Eigen::SelfAdjointEigenSolver<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > eval( newcovar[ k ] );
+					Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
 
-					std::cout << eval.eigenvalues() << std::endl << std::endl;
 					/* update the noise using the singular values outside the subspace */
-					_sigmas2[ k ] = eval.eigenvalues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
+					_sigmas2[ k ] = svd.singularValues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
 					/* get the singular values in the subspace */
-					_evalues[ k ] = eval.eigenvalues().block( 0, 0, _subdimension, 1 );
+					_evalues[ k ] = svd.singularValues().block( 0, 0, _subdimension, 1 );
 					/* get the eigenvectors in the subspace */
-					_pc[ k ] = eval.eigenvectors().block( 0, 0, _dimension, _subdimension );
+					_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
 					Eigen::Matrix<T, Eigen::Dynamic, 1> tmp =  _evalues[ k ];
 					tmp.cwise() -= _sigmas2[ k ];
-//					tmp = tmp.cwise().sqrt();
+					tmp = tmp.cwise().sqrt();
 					_pc[ k ] *= tmp.asDiagonal();
 
 					/* calculate the complete covariance matrix in the subspace and the weights for normalization */
