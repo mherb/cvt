@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<face>
+	<outline>
+		<point x="" y="" n="1"/>
+		<point x="" y="" n="2"/>
+		<point x="" y="" n="3"/>
+		<point x="" y="" n="4"/>
+		<point x="" y="" n="5"/>
+		<point x="" y="" n="6"/>
+		<point x="" y="" n="7"/>
+		<point x="" y="" n="8"/>
+		<point x="" y="" n="9"/>
+		<point x="" y="" n="10"/>
+		<point x="" y="" n="11"/>
+		<point x="" y="" n="12"/>
+		<point x="" y="" n="13"/>
+		<point x="" y="" n="14"/>
+		<point x="" y="" n="15"/>
+		<point x="" y="" n="16"/>
+		<point x="" y="" n="17"/>
+	</outline>
+	<mouth>
+		<outer>
+			<point x="" y="" n="1"/>
+			<point x="" y="" n="2"/>
+			<point x="" y="" n="3"/>
+			<point x="" y="" n="4"/>
+			<point x="" y="" n="5"/>
+			<point x="" y="" n="6"/>
+			<point x="" y="" n="7"/>
+			<point x="" y="" n="8"/>
+			<point x="" y="" n="9"/>
+			<point x="" y="" n="10"/>
+			<point x="" y="" n="11"/>
+			<point x="" y="" n="12"/>
+		</outer>
+		<inner>
+			<point x="" y="" n="1"/>
+			<point x="" y="" n="2"/>
+			<point x="" y="" n="3"/>
+			<point x="" y="" n="4"/>
+			<point x="" y="" n="5"/>
+			<point x="" y="" n="6"/>
+			<point x="" y="" n="7"/>
+			<point x="" y="" n="8"/>
+		</inner>
+	</mouth>
+	<lefteye>
+		<point x="" y="" n="1"/>
+		<point x="" y="" n="2"/>
+		<point x="" y="" n="3"/>
+		<point x="" y="" n="4"/>
+		<point x="" y="" n="5"/>
+		<point x="" y="" n="6"/>
+		<point x="" y="" n="7"/>
+		<point x="" y="" n="8"/>
+		<point x="" y="" n="9"/>
+		<point x="" y="" n="10"/>
+		<point x="" y="" n="11"/>
+		<point x="" y="" n="12"/>
+		<point x="" y="" n="13"/>
+		<point x="" y="" n="14"/>
+		<point x="" y="" n="15"/>
+		<point x="" y="" n="16"/>
+	</lefteye>
+	<righteye>
+		<point x="" y="" n="1"/>
+		<point x="" y="" n="2"/>
+		<point x="" y="" n="3"/>
+		<point x="" y="" n="4"/>
+		<point x="" y="" n="5"/>
+		<point x="" y="" n="6"/>
+		<point x="" y="" n="7"/>
+		<point x="" y="" n="8"/>
+		<point x="" y="" n="9"/>
+		<point x="" y="" n="10"/>
+		<point x="" y="" n="11"/>
+		<point x="" y="" n="12"/>
+		<point x="" y="" n="13"/>
+		<point x="" y="" n="14"/>
+		<point x="" y="" n="15"/>
+		<point x="" y="" n="16"/>
+	</righteye>
+	<nose>
+		<point x="" y="" n="1"/>
+		<point x="" y="" n="2"/>
+		<point x="" y="" n="3"/>
+		<point x="" y="" n="4"/>
+		<point x="" y="" n="5"/>
+		<point x="" y="" n="6"/>
+		<point x="" y="" n="7"/>
+		<point x="" y="" n="8"/>
+		<point x="" y="" n="9"/>
+		<point x="" y="" n="10"/>
+		<point x="" y="" n="11"/>
+		<point x="" y="" n="12"/>
+	</nose>
+</face>
