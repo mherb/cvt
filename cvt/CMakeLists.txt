@@ -250,6 +250,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Plugin.h
 	util/PluginManager.h
 	util/PluginFile.h
+	util/Data.h
 	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h
