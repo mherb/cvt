@@ -43,19 +43,22 @@ namespace cvt {
 
 	XMLNode* XMLDecoderUTF8::parseNode()
 	{
+		skipWhitespace();
 
 		if( !_rlen || match( ( uint8_t ) 0 ) )
 			return NULL;
 
-		skipWhitespace();
 		if( match("<?") )
 			return parsePI();
 		if( match("<!--") )
 			return parseComment();
 		if( match("<") )
 			return parseElement();
-		else
+		else {
+			std::cout << "'" << *_stream << "'" << std::endl;
+			std::cout << "'" << *( _stream + 1 ) << "'" << std::endl;
 			throw CVTException("Invalid XML data");
+		}
 
 		if( !match('<') )
 			throw CVTException("Malformed element - expected \"<\"");
