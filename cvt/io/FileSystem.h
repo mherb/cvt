@@ -17,7 +17,7 @@ namespace cvt {
 			static void   ls( const std::string & path, std::vector<std::string> & entries );
 			static void   filesWithExtension( const std::string & path, std::vector<std::string>& result, const std::string & ext = "" );
 			static size_t size( const std::string& path );
-			static bool	  load( Data& d, const std::string& path );
+			static bool	  load( Data& d, const std::string& path, bool zerotermination = false );
 			static bool	  save( const std::string& path, const Data& d );
 	};
 

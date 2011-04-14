@@ -2,6 +2,7 @@
 #define CVT_STRING_H
 
 #include <iostream>
+#include <stdlib.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
 
@@ -42,6 +43,10 @@ namespace cvt {
 			bool operator!=( const String& str ) const;
 			bool hasPrefix( const String& str ) const;
 			bool hasSuffix( const String& str ) const;
+
+			long int toInteger() const;
+			float	 toFloat() const;
+			double	 toDouble() const;
 
 			const char* c_str() const;
 		private:
@@ -217,6 +222,21 @@ namespace cvt {
 		while( len && *ptr1++ == *ptr2++ )
 			len--;
 		return len?false:true;
+	}
+
+	inline long int String::toInteger() const
+	{
+		return strtol( _str, NULL, 0 );
+	}
+
+	inline float String::toFloat() const
+	{
+		return strtof( _str, NULL );
+	}
+
+	inline double String::toDouble() const
+	{
+		return strtod( _str, NULL );
 	}
 
 	inline size_t String::_cstrlen( const char* str ) const

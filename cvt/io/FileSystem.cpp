@@ -107,19 +107,21 @@ namespace cvt {
 		return 0;
 	}
 
-	bool FileSystem::load( Data& d, const std::string& path )
+	bool FileSystem::load( Data& d, const std::string& path, bool zerotermination )
 	{
 		size_t len;
 		if( ( len = size( path ) ) ) {
 			int fd;
 			if( ( fd = open( path.c_str(), O_RDONLY, 0 ) ) < 0 )
 				return false;
-			d.allocate( len );
+			d.allocate( len + ( zerotermination? 1 : 0 ) );
 			if( read( fd, d.ptr(), len ) != ( ssize_t ) len ) {
 				close( fd );
 				return false;
 			}
 			close( fd );
+			if( zerotermination )
+				d.ptr()[ len ] = '\0';
 			return true;
 		}
 		return false;
