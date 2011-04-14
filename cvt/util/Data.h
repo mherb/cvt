@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <cvt/util/SIMD.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 	class Data {
@@ -17,6 +18,7 @@ namespace cvt {
 			uint8_t* ptr();
 
 			void allocate( size_t size );
+			void reallocate( size_t size );
 
 		private:
 			uint8_t* _data;
@@ -76,6 +78,17 @@ namespace cvt {
 			_data = NULL;
 	}
 
+	inline void Data::reallocate( size_t size )
+	{
+		uint8_t* newdata = new uint8_t[ size ];
+
+		if( _data ) {
+			SIMD::instance()->Memcpy( newdata, _data, Math::min( _size, size ) );
+			delete[] _data;
+		}
+		_data = newdata;
+		_size = size;
+	}
 }
 
 #endif
