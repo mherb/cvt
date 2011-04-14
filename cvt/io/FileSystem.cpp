@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <stdio.h>
 
@@ -96,6 +98,45 @@ namespace cvt {
 		}
 	}
 
+	size_t FileSystem::size( const std::string& path )
+	{
+		struct stat buf;
+		if( !stat( path.c_str(), &buf ) ) {
+			return buf.st_size;
+		}
+		return 0;
+	}
+
+	bool FileSystem::load( Data& d, const std::string& path )
+	{
+		size_t len;
+		if( ( len = size( path ) ) ) {
+			int fd;
+			if( ( fd = open( path.c_str(), O_RDONLY, 0 ) ) < 0 )
+				return false;
+			d.allocate( len );
+			if( read( fd, d.ptr(), len ) != ( ssize_t ) len ) {
+				close( fd );
+				return false;
+			}
+			close( fd );
+			return true;
+		}
+		return false;
+	}
+
+	bool FileSystem::save( const std::string& path, const Data& d )
+	{
+		int fd;
+		if( ( fd = open( path.c_str(), O_CREAT | O_WRONLY| O_TRUNC , 0 ) ) < 0 )
+			return false;
+		if( write( fd, d.ptr(), d.size() ) != ( ssize_t ) d.size() ) {
+			close( fd );
+			return false;
+		}
+		close( fd );
+		return true;
+	}
 
 
 	BEGIN_CVTTEST( filesystem )
