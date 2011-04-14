@@ -60,13 +60,13 @@ class FaceUI : public Window
 			float dy = ( _pts[ i ].y + 0.5f ) * _dh;
 			g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
 		}
-/*		Matrix3f t;
+		Matrix3f t;
 		t.identity();
 		t[ 0 ][ 0 ] = _dw;
 		t[ 1 ][ 1 ] = _dh;
 		t[ 0 ][ 2 ] = _dw * 0.5f;
 		t[ 1 ][ 2 ] = _dh * 0.5f;
-		_pts.draw( g, t );*/
+		_pts.draw( g, t );
 	}
 
 	void mousePressEvent( MousePressEvent* event )

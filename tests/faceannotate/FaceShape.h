@@ -10,11 +10,12 @@ namespace cvt {
 	class FaceShape : public PointSet2f
 	{
 		public:
-		FaceShape();
-		~FaceShape();
-		void draw( GFX* g ) const;
-		void draw( GFX* g, const Matrix3f& t ) const;
-		void deserializeXML( XMLNode* node );
+			FaceShape();
+			~FaceShape();
+			void draw( GFX* g, const Matrix3f& t ) const;
+			void deserializeXML( XMLNode* node );
+		private:
+			void drawLines( GFX* g, const PointSet2f& pts, int start, int size, bool loop = false ) const;
 	};
 
 	inline FaceShape::FaceShape()
@@ -26,40 +27,32 @@ namespace cvt {
 	{
 	}
 
-	inline void FaceShape::draw( GFX* g ) const
-	{
-		/* outline */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 0 ], 15 );
-		/* mouth outer */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 15 ], 12 );
-		/* mouth inner */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 27 ], 8 );
-		/* left eye */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 35 ], 8 );
-		/* right eye */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 43 ], 8 );
-		/* nose */
-		g->drawLines( ( Vector2f* ) & ( *this )[ 51 ], 14 );
-	}
-
 	inline void FaceShape::draw( GFX* g, const Matrix3f& t ) const
 	{
 		PointSet2f pts( *this );
 		pts.transform( t );
 		/* outline */
-		g->drawLines( ( Vector2f* ) & pts[ 0 ], 15 );
+		drawLines( g, pts , 0, 15 );
 		/* mouth outer */
-		g->drawLines( ( Vector2f* ) & pts[ 15 ], 12 );
+		drawLines( g, pts , 15, 12, true );
 		/* mouth inner */
-		g->drawLines( ( Vector2f* ) & pts[ 27 ], 8 );
+		drawLines( g, pts , 27, 8, true );
 		/* left eye */
-		g->drawLines( ( Vector2f* ) & pts[ 35 ], 8 );
+		drawLines( g, pts , 35, 8, true );
 		/* right eye */
-		g->drawLines( ( Vector2f* ) & pts[ 43 ], 8 );
+		drawLines( g, pts , 43, 8, true );
 		/* nose */
-		g->drawLines( ( Vector2f* ) & pts[ 51 ], 14 );
+		drawLines( g, pts , 51, 14 );
 	}
 
+	inline void FaceShape::drawLines( GFX* g, const PointSet2f& pts, int start, int size, bool loop ) const
+	{
+		for( int i = start, end = start + size - 1 ; i < end; i++ ) {
+			g->drawLine( pts[ i ], pts[ i + 1 ] );
+		}
+		if( loop )
+			g->drawLine( pts[ start + size - 1 ], pts[ start ] );
+	}
 
 	inline void FaceShape::deserializeXML( XMLNode* node )
 	{
