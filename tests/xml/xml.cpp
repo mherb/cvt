@@ -16,9 +16,7 @@ int main()
 		std::cout << *doc.node( i ) << std::endl;
 
 	Data d;
-	FileSystem::load( d, "../data/facedefault.xml");
-	d.reallocate( d.size() + 1 );
-	d.ptr()[ d.size() - 1 ] = '\0';
+	FileSystem::load( d, "../data/facedefault.xml", true);
 
 	doc.load( ( const char* ) d.ptr(), d.size() );
 	for( size_t i = 0; i < doc.nodeSize(); i++ )

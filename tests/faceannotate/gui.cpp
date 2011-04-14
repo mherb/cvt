@@ -3,9 +3,11 @@
 #include <cvt/math/Spline2.h>
 #include <cvt/util/String.h>
 #include <cvt/io/ImageIO.h>
+#include <cvt/io/xml/XMLDocument.h>
 #include <cvt/gfx/IConvert.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/math/Vector.h>
+#include "FaceShape.h"
 
 #include <iostream>
 #include <vector>
@@ -15,16 +17,21 @@ using namespace cvt;
 class FaceUI : public Window
 {
 	public:
-	FaceUI( const String& str ) : Window("Face Annotator"), _selection( - 1 )
+	FaceUI( const String& imgstr, const String& xmlstr  ) : Window("Face Annotator"), _selection( - 1 )
 	{
 		Image img;
-		ImageIO::loadPNG( img, str.c_str() );
+		ImageIO::loadPNG( img, imgstr.c_str() );
 		_glimage.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 		try {
 			IConvert::convert( _glimage, img );
 		} catch( Exception e ) {
 			std::cerr << "Conversion error: " << e.what() << std::endl;
 		}
+
+		XMLDocument doc;
+		doc.load( xmlstr );
+		_pts.deserializeXML( doc.nodeByName( "face" ) );
+
 		update();
 	}
 
@@ -53,15 +60,18 @@ class FaceUI : public Window
 			float dy = ( _pts[ i ].y + 0.5f ) * _dh;
 			g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
 		}
+/*		Matrix3f t;
+		t.identity();
+		t[ 0 ][ 0 ] = _dw;
+		t[ 1 ][ 1 ] = _dh;
+		t[ 0 ][ 2 ] = _dw * 0.5f;
+		t[ 1 ][ 2 ] = _dh * 0.5f;
+		_pts.draw( g, t );*/
 	}
 
 	void mousePressEvent( MousePressEvent* event )
 	{
 		Rectf r( 0, 0, _dw, _dh );
-
-		float x = ( ( event->x / _dw ) - 0.5f );
-		float y = ( ( event->y / _dh ) - 0.5f );
-
 
 		for( int i =0, end = _pts.size(); i < end; i++ ) {
 			float dx = ( _pts[ i ].x + 0.5f ) * _dw;
@@ -75,12 +85,6 @@ class FaceUI : public Window
 			}
 		}
 		_selection = -1;
-		if( r.contains( event->x, event->y ) ) {
-			std::cout << "x=\"" << x << "\" "
-					  << "y=\"" << y << "\" " << std::endl;
-			_pts.push_back( Point2f( x, y ) );
-			update();
-		}
 	}
 
 	void mouseMoveEvent( MouseMoveEvent* event )
@@ -107,14 +111,14 @@ class FaceUI : public Window
 	private:
 		Image _glimage;
 		float _dw, _dh;
-		std::vector<Point2f> _pts;
+		FaceShape _pts;
 		int _selection;
 		float _lx, _ly;
 };
 
 int main( int argc, char** argv )
 {
-	FaceUI ui( argv[ 1 ] );
+	FaceUI ui( argv[ 1 ], argv[ 2 ] );
 	ui.setSize( 640, 480 );
 	ui.show();
 	Application::run();
