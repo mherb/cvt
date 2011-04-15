@@ -157,12 +157,12 @@ namespace cvt {
 
 		static inline void sincos( float rad, float& sin, float& cos )
 		{
-			sincosf( rad, &sin, &cos );
+			::sincosf( rad, &sin, &cos );
 		}
 
 		static inline void sincos( double rad, double& sin, double& cos )
 		{
-			sincos( rad, &sin, &cos );
+			::sincos( rad, &sin, &cos );
 		}
 
 		static inline float round( float x )
