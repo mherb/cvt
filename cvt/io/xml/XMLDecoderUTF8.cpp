@@ -2,6 +2,7 @@
 #include <cvt/util/Exception.h>
 #include <cvt/io/xml/XMLElement.h>
 #include <cvt/io/xml/XMLAttribute.h>
+#include <cvt/io/xml/XMLComment.h>
 
 namespace cvt {
 
@@ -135,7 +136,28 @@ namespace cvt {
 
 	XMLNode* XMLDecoderUTF8::parseComment()
 	{
-		/* FIXME */
-		return NULL;
+		size_t n = 0;
+		size_t len;
+		const uint8_t* ptr;
+		String comment;
+
+		/* discard "<!--" */
+		advance(4);
+
+		ptr = _stream;
+		len = _rlen;
+		while( *ptr != 0 && len ) {
+			if( *ptr == '-' ) {
+				if( match( ( const char* ) ptr, "-->") ) {
+					comment.assign( ( const char* )  _stream, n );
+					advance( n + 3 );
+					return new XMLComment( comment );
+				}
+			}
+			len--;
+			n++;
+			ptr++;
+		}
+		throw CVTException("Invalid comment");
 	}
 }

@@ -31,6 +31,7 @@ namespace cvt {
 			XMLNode* parseElement();
 
 			bool match( const char* str );
+			bool match( const char* ptr, const char* str );
 			bool match( uint8_t val );
 			void advance( size_t n );
 
@@ -80,6 +81,18 @@ namespace cvt {
 		size_t len = _rlen;
 
 		while( *ptr == *str && len && *str ) {
+			len--;
+			str++;
+			ptr++;
+		}
+		return *str == '\0';
+	}
+
+	inline bool XMLDecoderUTF8::match( const char* ptr, const char* str )
+	{
+		size_t len = _rlen;
+
+		while( *ptr == *str && len && *str && *ptr ) {
 			len--;
 			str++;
 			ptr++;
@@ -219,7 +232,7 @@ namespace cvt {
 		ptr = _stream;
 		while( *ptr != '<' && *ptr != 0 ) {
 			if( *ptr == '[' ) {
-				if( match("[[>"))
+				if( match( ( const char* ) ptr, "[[>") )
 					throw CVTException( "CDATA-section-close delimiter not allowed in text" );
 			}
 			n++;
