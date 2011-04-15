@@ -36,6 +36,16 @@ namespace cvt {
 		std::cout << "Suffix: " << str.hasSuffix( "Welt" ) << std::endl;
 		std::cout << "Suffix: " << substr.hasSuffix( "blub" ) << std::endl;
 
+		str.sprintf("%d ", 10 );
+		std::cout << str << std::endl;
+		std::cout << str.length() << std::endl;
+
+		str += 15.5;
+
+		str.sprintfConcat(" %d %s", 20, "Hallo Welt" );
+		std::cout << str << std::endl;
+		std::cout << str.length() << std::endl;
+
 		return true;
 	END_CVTTEST
 

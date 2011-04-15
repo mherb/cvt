@@ -2,9 +2,12 @@
 #define CVT_STRING_H
 
 #include <iostream>
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
+#include <cvt/util/Exception.h>
 
 namespace cvt {
 	class String {
@@ -25,6 +28,8 @@ namespace cvt {
 			String substring( int start, int len = - 1 ) const;
 			void truncate( size_t newlen );
 			void assign( const char* str, size_t len );
+			void sprintf( const char* format, ... );
+			void sprintfConcat( const char* format, ... );
 //			void split( char marker, String& out1, String& out2 ) const;
 //			String operator+( const String& str ) const;
 /*			String operator+( unsigned int i ) const;
@@ -33,11 +38,11 @@ namespace cvt {
 			String operator+( float i ) const;
 			String operator+( double i ) const;*/
 			String& operator+=( const String& str );
-/*			String& operator=+( unsigned int i );
-			String& operator=+( int i );
-			String& operator=+( size_t i );
-			String& operator=+( float i );
-			String& operator=+( double i );*/
+			String& operator+=( unsigned int i );
+			String& operator+=( int i );
+			String& operator+=( size_t i );
+			String& operator+=( float i );
+			String& operator+=( double i );
 
 			bool operator==( const String& str ) const;
 			bool operator!=( const String& str ) const;
@@ -167,6 +172,37 @@ namespace cvt {
 		return *this;
 	}
 
+	inline String& String::operator+=( unsigned int i )
+	{
+		sprintfConcat( "%u", i );
+		return *this;
+	}
+
+	inline String& String::operator+=( int i )
+	{
+		sprintfConcat( "%d", i );
+		return *this;
+	}
+
+	inline String& String::operator+=( size_t i )
+	{
+		sprintfConcat( "%z", i );
+		return *this;
+	}
+
+	inline String& String::operator+=( float f )
+	{
+		sprintfConcat( "%f", f );
+		return *this;
+	}
+
+	inline String& String::operator+=( double d )
+	{
+		sprintfConcat( "%f", d );
+		return *this;
+	}
+
+
 	inline bool String::operator==( const String& str ) const
 	{
 		if( _len != str._len )
@@ -237,6 +273,60 @@ namespace cvt {
 	inline double String::toDouble() const
 	{
 		return strtod( _str, NULL );
+	}
+
+	inline void String::sprintf( const char* format, ... )
+	{
+		size_t n;
+		va_list args;
+
+		va_start( args, format );
+		n = vsnprintf( _str, _blen - 1, format, args );
+		va_end( args );
+		if( n < _blen ) {
+			_len = n;
+			return;
+		}
+
+		/* try again with more space and delete old buffer */
+		delete[] _str;
+		_str = NULL;
+		_grow( Math::pad16( n + 1 ) );
+
+		va_start( args, format );
+		n = vsnprintf( _str, _blen - 1, format, args );
+		va_end( args );
+		if( n < _blen ) {
+			_len = n;
+			return;
+		}
+		throw CVTException("Error in String::sprintf");
+	}
+
+	inline void String::sprintfConcat( const char* format, ... )
+	{
+		size_t n;
+		va_list args;
+
+		va_start( args, format );
+		n = vsnprintf( _str + _len, _blen - _len - 1, format, args );
+		va_end( args );
+		if( n < _blen - _len ) {
+			_len += n;
+			return;
+		}
+
+		/* try again with more space and keep old buffer contents*/
+		_grow( Math::pad16( _blen + n + 1 ) );
+
+		va_start( args, format );
+		n = vsnprintf( _str + _len, _blen - _len - 1, format, args );
+		va_end( args );
+		if( n < _blen - _len ) {
+			_len += n;
+			return;
+		}
+		throw CVTException("Error in String::sprintfConcat");
 	}
 
 	inline size_t String::_cstrlen( const char* str ) const
