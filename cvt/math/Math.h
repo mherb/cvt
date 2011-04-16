@@ -154,7 +154,7 @@ namespace cvt {
 		{
 			return ::asin( x );
 		}
-
+/*
 		static inline void sincos( float rad, float& sin, float& cos )
 		{
 			::sincosf( rad, &sin, &cos );
@@ -164,7 +164,7 @@ namespace cvt {
 		{
 			::sincos( rad, &sin, &cos );
 		}
-
+*/
 		static inline float round( float x )
 		{
 			return ::roundf( x );
