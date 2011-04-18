@@ -11,6 +11,7 @@ namespace cvt {
 			XMLAttribute& operator=( const XMLAttribute& other );
 			~XMLAttribute();
 
+			void xmlString( String& str ) const;
 	};
 
 	inline XMLAttribute::XMLAttribute( const String& name, const String& value ) : XMLLeaf( XML_NODE_ATTRIBUTE, name, value )
@@ -30,6 +31,15 @@ namespace cvt {
 		_name = other._name;
 		_value = other._value;
 		return *this;
+	}
+
+	void XMLAttribute::xmlString( String& str ) const
+	{
+		str = " ";
+		str += _name;
+		str += "=\"";
+		str += _value;
+		str += "\"";
 	}
 }
 

@@ -18,6 +18,8 @@ namespace cvt {
 			virtual const XMLNode* child( size_t index ) const;
 			virtual void addChild( XMLNode* node );
 			virtual XMLNode* childByName( const String& name );
+			virtual void xmlString( String& str ) const = 0;
+
 		private:
 			XMLLeaf( const XMLLeaf& );
 	};

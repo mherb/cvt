@@ -11,6 +11,8 @@ namespace cvt {
 			XMLText& operator=( const XMLText& other );
 			~XMLText();
 
+			void xmlString( String& str ) const;
+
 	};
 
 	inline XMLText::XMLText( const String& value ) : XMLLeaf( XML_NODE_TEXT, "", value )
@@ -30,6 +32,11 @@ namespace cvt {
 		_name = "";
 		_value = other._value;
 		return *this;
+	}
+
+	inline void XMLText::xmlString( String& str ) const
+	{
+		str = _value;
 	}
 }
 

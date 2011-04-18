@@ -17,6 +17,7 @@ namespace cvt {
 			const XMLNode* child( size_t index ) const;
 			void addChild( XMLNode* node );
 			XMLNode* childByName( const String& name );
+			void xmlString( String& str ) const;
 
 		private:
 			std::vector<XMLNode*> _children;
@@ -67,6 +68,37 @@ namespace cvt {
 				return _children[ i ];
 		}
 		return NULL;
+	}
+
+
+	inline void XMLElement::xmlString( String& str ) const
+	{
+		String strchild;
+		bool nochild = true;
+
+		str = "<";
+		str += _name;
+		for( int i = 0, end = _children.size(); i < end; i++ ) {
+			if( _children[ i ]->type() == XML_NODE_ATTRIBUTE ) {
+				_children[ i ]->xmlString( strchild );
+				str += strchild;
+			} else
+				nochild = false;
+		}
+		if( nochild ) {
+			str +="/>\n";
+			return;
+		}
+		str += ">\n";
+		for( int i = 0, end = _children.size(); i < end; i++ ) {
+			if( _children[ i ]->type() == XML_NODE_ATTRIBUTE )
+				continue;
+			_children[ i ]->xmlString( strchild );
+			str += strchild;
+		}
+		str += "</";
+		str += _name;
+		str += ">\n";
 	}
 }
 

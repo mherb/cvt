@@ -11,6 +11,7 @@ namespace cvt {
 			XMLCData& operator=( const XMLCData& other );
 			~XMLCData();
 
+			void xmlString( String& str ) const;
 	};
 
 	inline XMLCData::XMLCData( const String& value ) : XMLNode( XML_NODE_CDATA, "", value )
@@ -30,6 +31,13 @@ namespace cvt {
 		_name = "";
 		_value = other._value;
 		return *this;
+	}
+
+	void XMLAttribute::xmlString( String& str ) const
+	{
+		str = "<![CDATA[";
+		str += _value;
+		str += "]]>";
 	}
 }
 
