@@ -33,11 +33,14 @@ namespace cvt {
 
 			XMLNode* parent() const;
 
+			XMLNodeType type() const;
+
 			virtual size_t childSize() const = 0;
 			virtual XMLNode* child( size_t index ) = 0;
 			virtual const XMLNode* child( size_t index ) const = 0;
 			virtual void addChild( XMLNode* node ) = 0;
 			virtual XMLNode* childByName( const String& name ) = 0;
+			virtual void xmlString( String& str ) const = 0;
 
 		protected:
 			XMLNode( XMLNodeType type, const String& name = "", const String value = "" ) : _name( name ), _value( value ), _type( type ), _parent( NULL )
@@ -82,6 +85,11 @@ namespace cvt {
 	inline void XMLNode::setValue( const String& value )
 	{
 		_value = value;
+	}
+
+	inline XMLNodeType XMLNode::type() const
+	{
+		return _type;
 	}
 
 	inline void XMLNode::print( std::ostream &out, size_t d = 0 ) const

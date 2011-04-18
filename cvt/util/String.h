@@ -37,6 +37,9 @@ namespace cvt {
 			String operator+( size_t i ) const;
 			String operator+( float i ) const;
 			String operator+( double i ) const;*/
+			String& operator=( const String& str );
+			String& operator=( const char* str );
+
 			String& operator+=( const String& str );
 			String& operator+=( unsigned int i );
 			String& operator+=( int i );
@@ -164,11 +167,31 @@ namespace cvt {
 		_str[ _len ] = 0;
 	}
 
+	inline String& String::operator=( const String& str )
+	{
+		if( str._len >= _blen )
+			_grow( Math::pad16( str._len + 1 ) );
+		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, str._len + 1 );
+		_len = str._len;
+		return *this;
+	}
+
+
+	inline String& String::operator=( const char* str )
+	{
+		size_t nlen = _cstrlen( str );
+		if( nlen >= _blen )
+			_grow( Math::pad16( nlen + 1 ) );
+		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, nlen + 1 );
+		_len = nlen;
+		return *this;
+	}
+
 	inline String& String::operator+=( const String& str )
 	{
 		if( _len + str._len >= _blen )
 			_grow( Math::pad16( _len + str._len + 1 ) );
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str + _len, ( uint8_t* ) str._str, str._len + 1 );
+		SIMD::instance()->Memcpy( ( uint8_t* ) ( _str + _len ), ( uint8_t* ) str._str, str._len + 1 );
 		_len += str._len;
 		return *this;
 	}
@@ -337,10 +360,10 @@ namespace cvt {
 
 	inline size_t String::_cstrlen( const char* str ) const
 	{
-		size_t ret = 0;
-		while( *str++ )
-			ret++;
-		return ret;
+		const char* ptr;
+		for( ptr = str; *ptr; ++ptr )
+			;
+		return ( ptr - str );
 	}
 
 	inline void String::_grow( size_t newsize )

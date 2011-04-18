@@ -11,6 +11,7 @@ namespace cvt {
 			XMLComment& operator=( const XMLComment& other );
 			~XMLComment();
 
+			void xmlString( String& str ) const;
 	};
 
 	inline XMLComment::XMLComment( const String& value ) : XMLLeaf( XML_NODE_COMMENT, "", value )
@@ -30,6 +31,14 @@ namespace cvt {
 		_name = other._name;
 		_value = other._value;
 		return *this;
+	}
+
+
+	void XMLComment::xmlString( String& str ) const
+	{
+		str = "<!--";
+		str += _value;
+		str += "-->\n";
 	}
 }
 
