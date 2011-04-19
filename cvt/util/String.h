@@ -210,7 +210,7 @@ namespace cvt {
 
 	inline String& String::operator+=( size_t i )
 	{
-		sprintfConcat( "%z", i );
+		sprintfConcat( "%zd", i );
 		return *this;
 	}
 

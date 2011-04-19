@@ -210,7 +210,7 @@ namespace cvt {
 			ptnode->addChild( new XMLAttribute( "x" , str ) );
 			str.sprintf( "%f", pt.y );
 			ptnode->addChild( new XMLAttribute( "y" , str ) );
-			str.sprintf( "%z", i + 1 );
+			str.sprintf( "%zd", i + 1 );
 			ptnode->addChild( new XMLAttribute( "n" , str ) );
 			node->addChild( ptnode );
 		}
