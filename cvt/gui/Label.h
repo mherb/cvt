@@ -3,16 +3,17 @@
 
 #include <cvt/gui/Widget.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/String.h>
 #include <cvt/gfx/Alignment.h>
 
 namespace cvt {
 	class Label : public Widget
 	{
 		public:
-			Label( const std::string& label, Alignment align = ALIGN_LEFT | ALIGN_VCENTER );
+			Label( const String& label, Alignment align = ALIGN_LEFT | ALIGN_VCENTER );
 			~Label();
-			const std::string& label() const;
-			void setLabel( const std::string label );
+			const String& label() const;
+			void setLabel( const String& label );
 			Alignment labelAlignment() const;
 			void setLabelAlignment( Alignment a );
 
@@ -20,17 +21,17 @@ namespace cvt {
 			void paintEvent( PaintEvent* e, GFX* g );
 			Label( const Label& b );
 
-			std::string _label;
+			String _label;
 			Alignment _aligment;
 
 	};
 
-	inline const std::string& Label::label() const
+	inline const String& Label::label() const
 	{
 		return _label;
 	}
 
-	inline void Label::setLabel( const std::string label )
+	inline void Label::setLabel( const String& label )
 	{
 		_label = label;
 		update();
