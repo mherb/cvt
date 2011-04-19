@@ -3,11 +3,13 @@
 
 #include <cvt/gui/Widget.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 	class ToggleButton : public Widget
 	{
 		public:
+			ToggleButton( const String& label, bool state = false, GFX::Icon off = GFX::ICON_RECT, GFX::Icon on = GFX::ICON_RECTCROSS );
 			ToggleButton( bool state = false, GFX::Icon off = GFX::ICON_RECT, GFX::Icon on = GFX::ICON_RECTCROSS );
 			~ToggleButton();
 			bool state() const;
@@ -20,6 +22,7 @@ namespace cvt {
 
 			ToggleButton( const ToggleButton& b );
 
+			String _label;
 			bool _state;
 			GFX::Icon _iconon;
 			GFX::Icon _iconoff;

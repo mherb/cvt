@@ -193,6 +193,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Widget.h
 	gui/WidgetContainer.h
 	gui/WidgetLayout.h
+	gui/Label.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h
@@ -338,6 +339,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Widget.cpp
 	gui/WidgetContainer.cpp
 	gui/Window.cpp
+	gui/Label.cpp
 	io/CameraInfo.cpp
 	io/CameraModeSet.cpp
 	io/Camera.cpp

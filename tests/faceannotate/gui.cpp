@@ -7,6 +7,8 @@
 #include <cvt/gfx/IConvert.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/math/Vector.h>
+#include <cvt/math/Math.h>
+#include <cvt/gui/ToggleButton.h>
 #include "FaceShape.h"
 
 #include <iostream>
@@ -17,7 +19,7 @@ using namespace cvt;
 class FaceUI : public Window
 {
 	public:
-	FaceUI( const String& imgstr, const String& xmlstr  ) : Window("Face Annotator"), _selection( - 1 )
+	FaceUI( const String& imgstr, const String& xmlstr  ) : Window("Face Annotator"), _selection( - 1 ), _toggle( String("Transform") )
 	{
 		Image img;
 		ImageIO::loadPNG( img, imgstr.c_str() );
@@ -31,6 +33,11 @@ class FaceUI : public Window
 		XMLDocument doc;
 		doc.load( xmlstr );
 		_pts.deserialize( doc.nodeByName( "face" ) );
+
+		WidgetLayout wl;
+		wl.setAnchoredRight( 10, 100 );
+		wl.setAnchoredBottom( 10, 20 );
+		addWidget( &_toggle, wl );
 
 		update();
 	}
@@ -82,6 +89,8 @@ class FaceUI : public Window
 	void mousePressEvent( MousePressEvent* event )
 	{
 		Rectf r( 0, 0, _dw, _dh );
+		_lx = event->x;
+		_ly = event->y;
 
 		for( int i =0, end = _pts.size(); i < end; i++ ) {
 			float dx = ( _pts[ i ].x + 0.5f ) * _dw;
@@ -89,23 +98,32 @@ class FaceUI : public Window
 			Rectf r( dx - 4, dy - 4, 8, 8 );
 			if( r.contains( event->x, event->y ) ) {
 				_selection = i;
-				_lx = event->x;
-				_ly = event->y;
 				return;
 			}
 		}
 		_selection = -1;
+		WidgetContainer::mousePressEvent( event );
 	}
 
 	void mouseMoveEvent( MouseMoveEvent* event )
 	{
+		float dx = ( event->x - _lx ) / _dw;
+		float dy = ( event->y - _ly ) / _dh;
+		_lx = event->x;
+		_ly = event->y;
+
 		if( _selection >= 0 ) {
-			float dx = ( event->x - _lx ) / _dw;
-			float dy = ( event->y - _ly ) / _dh;
 			_pts[ _selection ] += Point2f( dx, dy );
-			_lx = event->x;
-			_ly = event->y;
 			update();
+		} else {
+			WidgetContainer::mouseMoveEvent( event );
+		    if( _toggle.state() ) {
+				if( event->buttonMask() & 1 )
+					_pts.translate( Point2f( -dx, -dy ) );
+				else if ( event->buttonMask() & 2 )
+					_pts.scale( 1.0f + dx );
+				update();
+			}
 		}
 	}
 
@@ -115,7 +133,8 @@ class FaceUI : public Window
 //			std::cout << "x=\"" << _pts[ _selection ].x << "\" "
 //				<< "y=\"" << _pts[ _selection ].y << "\" " << std::endl;
 			_selection = -1;
-		}
+		} else
+			WidgetContainer::mouseReleaseEvent( e );
 	}
 
 	private:
@@ -124,6 +143,7 @@ class FaceUI : public Window
 		FaceShape _pts;
 		int _selection;
 		float _lx, _ly;
+		ToggleButton _toggle;
 };
 
 int main( int argc, char** argv )
