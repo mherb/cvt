@@ -21,8 +21,8 @@ int main()
 	doc.load( ( const char* ) d.ptr(), d.size() );
 	for( size_t i = 0; i < doc.nodeSize(); i++ )
 		std::cout << *doc.node( i ) << std::endl;
-	XMLNode* n = doc.nodeByName("face");
+/*	XMLNode* n = doc.nodeByName("face");
 	String s;
 	n->xmlString( s );
-	std::cout << s << std::endl;
+	std::cout << s << std::endl;*/
 }

@@ -5,8 +5,10 @@ namespace cvt {
 	class XMLNode;
 
 	class XMLSerializable {
-		virtual void	 deserialize( XMLNode* node ) = 0;
-		virtual XMLNode* serialize( ) = 0;
+		public:
+			virtual ~XMLSerializable() {};
+			virtual void	 deserialize( XMLNode* node ) = 0;
+			virtual XMLNode* serialize( ) const = 0;
 	};
 }
 
