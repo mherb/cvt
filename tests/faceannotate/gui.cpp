@@ -30,7 +30,7 @@ class FaceUI : public Window
 
 		XMLDocument doc;
 		doc.load( xmlstr );
-		_pts.deserializeXML( doc.nodeByName( "face" ) );
+		_pts.deserialize( doc.nodeByName( "face" ) );
 
 		update();
 	}
