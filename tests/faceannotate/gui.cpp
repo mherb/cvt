@@ -35,6 +35,16 @@ class FaceUI : public Window
 		update();
 	}
 
+	~FaceUI()
+	{
+		XMLNode* out = _pts.serialize();
+		String str;
+		out->xmlString( str );
+		std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+		std::cout << str << std::endl;
+		delete out;
+	}
+
 	void paintEvent( PaintEvent* e, GFX* g )
 	{
 		Window::paintEvent( e, g );
@@ -102,8 +112,8 @@ class FaceUI : public Window
 	void mouseReleaseEvent( MouseReleaseEvent* e )
 	{
 		if( _selection >= 0 ) {
-			std::cout << "x=\"" << _pts[ _selection ].x << "\" "
-				<< "y=\"" << _pts[ _selection ].y << "\" " << std::endl;
+//			std::cout << "x=\"" << _pts[ _selection ].x << "\" "
+//				<< "y=\"" << _pts[ _selection ].y << "\" " << std::endl;
 			_selection = -1;
 		}
 	}
