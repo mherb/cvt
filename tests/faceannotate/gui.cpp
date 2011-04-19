@@ -120,8 +120,10 @@ class FaceUI : public Window
 		    if( _toggle.state() ) {
 				if( event->buttonMask() & 1 )
 					_pts.translate( Point2f( -dx, -dy ) );
-				else if ( event->buttonMask() & 2 )
-					_pts.scale( 1.0f + dx );
+				else if ( event->buttonMask() & 2 ) {
+					Matrix2f t( 1.0f + dx, 0.0f, 0.0f, 1.0f + dy );
+					_pts.transform( t );
+				}
 				update();
 			}
 		}
