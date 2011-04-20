@@ -19,7 +19,7 @@ namespace cvt
         if( _sqrSum )
             delete _sqrSum;
     }
-    
+
     void IntegralImage::update( const Image & img )
     {
         if( _flags & SUMMED_AREA ){

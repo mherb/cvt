@@ -6,6 +6,7 @@
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Slider.h>
 #include <cvt/gui/WidgetLayout.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Button.h>
@@ -61,7 +62,7 @@ class CameraApp : public Window
             addWidget( _moveable );
 
             _quitButton = new Button( "Quit" );
-            _quit = new Delegate<void ()>( &Application::exit );           
+            _quit = new Delegate<void ()>( &Application::exit );
             _quitButton->clicked.add( _quit );
 
             _pauseButton = new Button( "Pause" );
@@ -70,7 +71,7 @@ class CameraApp : public Window
 
             _nextButton = new Button( "Next Frame" );
             _nextDelegate = new Delegate<void ()>( this, &CameraApp::nextClicked );
-            _nextButton->clicked.add( _nextDelegate );            
+            _nextButton->clicked.add( _nextDelegate );
 
             WidgetLayout wl;
             wl.setAnchoredRight( 10, 100 );
@@ -81,22 +82,40 @@ class CameraApp : public Window
             wl.setAnchoredBottom( 70, 20 );
             addWidget( _pauseButton, wl );
 
+			_nccThreshold = new Slider<float>( 0.0f, 1.0f, 0.8f );
+			_nccSliderChanged = new Delegate<void ( float )>( &_featureTracker, &FeatureTracker::setNccThreshold );
+			_nccThreshold->valueChanged.add( _nccSliderChanged );
+
+			_cornerThreshold = new Slider<int>( 10, 100, 20 );
+			_cornerSliderChanged = new Delegate<void ( int )>( &_featureTracker, &FeatureTracker::setCornerThreshold );
+			_cornerThreshold->valueChanged.add( _cornerSliderChanged );
+
+			//wl.setAnchoredRight( 70, 100 );
+			wl.setAnchoredBottom( 100, 20 );
+			addWidget( _nccThreshold, wl );
+			wl.setAnchoredBottom( 130, 20 );
+			addWidget( _cornerThreshold, wl );
+
             setVisible( true );
         }
 
 		~CameraApp()
-		{		
+		{
             _loopTimer.timeout.remove( _loopDelegate );
             delete _loopDelegate;
 
             _quitButton->clicked.remove( _quit );
             delete _quit;
-            delete _quitButton;            
+            delete _quitButton;
+			delete _nccThreshold;
+			delete _cornerThreshold;
+			delete _cornerSliderChanged;
+			delete _nccSliderChanged;
 		}
 
         void pauseClicked()
         {
-            _paused ^= 1;            
+            _paused ^= 1;
             _captureNext = false;
         }
 
@@ -138,7 +157,7 @@ class CameraApp : public Window
 		}
 
 	private:
-		VideoInput *			_cam;		
+		VideoInput *			_cam;
         bool                    _paused;
         bool                    _captureNext;
 
@@ -156,7 +175,7 @@ class CameraApp : public Window
 
 		size_t					_iter;
 		double					_timeSum;
-		float					_frames;    
+		float					_frames;
 		FeatureTracker          _featureTracker;
 
         BasicTimer                         _loopTimer;
@@ -167,6 +186,11 @@ class CameraApp : public Window
         Delegate<void () >*                _pauseDelegate;
         Delegate<void () >*                _nextDelegate;
 
+		Slider<float> *	_nccThreshold;
+		Slider<int>	  *	_cornerThreshold;
+
+		Delegate<void (float)> *	_nccSliderChanged;
+		Delegate<void (int)> *		_cornerSliderChanged;
 
 };
 
@@ -211,10 +235,8 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
         input = initCamera();
     } else {
-        //input = new VideoReader( argv[ 1 ], true );
         std::string ext( "cvtraw" );
         input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
-
     }
 
 	try {
