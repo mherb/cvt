@@ -46,13 +46,13 @@ inline void FeatureView::setFeatures( std::vector<cvt::Feature2D> & features, si
         _numFeatures = features.size();
         _features = new cvt::Vector2i[ _numFeatures ];
     }
-    
+
     int w, h;
 	size( w, h );
-    
+
     float xScale = ( float ) w / origW;
 	float yScale = ( float ) h / origH;
-    
+
 	for( size_t i = 0; i < features.size(); i++ ){
 		_features[ i ].x = xScale * features[ i ][ 0 ];
 		_features[ i ].y = yScale * features[ i ][ 1 ];

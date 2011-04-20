@@ -24,6 +24,8 @@ namespace cvt
 			void run( const Image & current,
 					  std::vector<Feature2D> & newFeatures );
 
+			void setNccThreshold( float ncc ){ _nccThreshold = ncc; };
+			void setCornerThreshold( int thresh );
 
 		private:
 			FeatureExtractor<int32_t> * _featureDetector;
@@ -32,12 +34,13 @@ namespace cvt
 
             /* features in last Image represented by their patches */
             std::vector<Patch*>          _lastPatches;
+            std::vector<Feature2D>       _lastFeatures;
 
-            int                     _threshold;
-            int                  _searchRadius;
-            
+            int                 _threshold;
+			float				_nccThreshold;
+            int                 _searchRadius;
+
             float matchFeatureNCC( const Image & current, const Patch & patch, const Feature2D & startPos, Feature2D & out );
-
 	};
 }
 
