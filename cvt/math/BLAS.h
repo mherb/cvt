@@ -28,7 +28,7 @@ namespace cvt {
 
 		virtual float   snrm2(const int N, const float *X, const int incX);
 		virtual float   sasum(const int N, const float *X, const int incX);
-		virtual size_t  isamax(const int N, const float  *X, const int incX);
+		virtual int		isamax(const int N, const float  *X, const int incX);
 
 		/* LEVEL 2 */
 
