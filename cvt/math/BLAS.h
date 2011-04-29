@@ -99,33 +99,33 @@ namespace cvt {
 		/* LEVEL 3 */
 
 		/* single precision, float*/
-		virtual void sgemm( const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
-							const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
+		virtual void sgemm( const BLAS_ORDER Order, const BLAS_TRANSPOSE TransA,
+							const BLAS_TRANSPOSE TransB, const int M, const int N,
 							const int K, const float alpha, const float *A,
 							const int lda, const float *B, const int ldb,
 							const float beta, float *C, const int ldc);
-		virtual void ssymm( const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
-							const enum CBLAS_UPLO Uplo, const int M, const int N,
+		virtual void ssymm( const BLAS_ORDER Order, const BLAS_SIDE Side,
+							const BLAS_UPLO Uplo, const int M, const int N,
 							const float alpha, const float *A, const int lda,
 							const float *B, const int ldb, const float beta,
 							float *C, const int ldc);
-		virtual void ssyrk( const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
-							const enum CBLAS_TRANSPOSE Trans, const int N, const int K,
+		virtual void ssyrk( const BLAS_ORDER Order, const BLAS_UPLO Uplo,
+							const BLAS_TRANSPOSE Trans, const int N, const int K,
 							const float alpha, const float *A, const int lda,
 							const float beta, float *C, const int ldc);
-		virtual void ssyr2k( const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
-							const enum CBLAS_TRANSPOSE Trans, const int N, const int K,
+		virtual void ssyr2k( const BLAS_ORDER Order, const BLAS_UPLO Uplo,
+							const BLAS_TRANSPOSE Trans, const int N, const int K,
 							const float alpha, const float *A, const int lda,
 							const float *B, const int ldb, const float beta,
 							float *C, const int ldc);
-		virtual void strmm( const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
-							const enum CBLAS_UPLO Uplo, const enum CBLAS_TRANSPOSE TransA,
-							const enum CBLAS_DIAG Diag, const int M, const int N,
+		virtual void strmm( const BLAS_ORDER Order, const BLAS_SIDE Side,
+							const BLAS_UPLO Uplo, const BLAS_TRANSPOSE TransA,
+							const BLAS_DIAG Diag, const int M, const int N,
 							const float alpha, const float *A, const int lda,
 							float *B, const int ldb);
-		virtual void strsm( const enum CBLAS_ORDER Order, const enum CBLAS_SIDE Side,
-							const enum CBLAS_UPLO Uplo, const enum CBLAS_TRANSPOSE TransA,
-							const enum CBLAS_DIAG Diag, const int M, const int N,
+		virtual void strsm( const BLAS_ORDER Order, const BLAS_SIDE Side,
+							const BLAS_UPLO Uplo, const BLAS_TRANSPOSE TransA,
+							const BLAS_DIAG Diag, const int M, const int N,
 							const float alpha, const float *A, const int lda,
 							float *B, const int ldb);
 }
