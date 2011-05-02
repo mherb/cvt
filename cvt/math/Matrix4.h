@@ -523,19 +523,19 @@ namespace cvt {
 
 
 	template<typename T>
-	int	Matrix4<T>::dimension( void ) const
+	inline int	Matrix4<T>::dimension( void ) const
 	{
 		return 4;
 	}
 
     template<typename T>
-	const T* Matrix4<T>::ptr( void ) const
+	inline const T* Matrix4<T>::ptr( void ) const
 	{
 	    return mat[ 0 ].ptr();
 	}
 
     template<typename T>
-	T* Matrix4<T>::ptr( void )
+	inline T* Matrix4<T>::ptr( void )
 	{
 	    return mat[ 0 ].ptr();
 	}
