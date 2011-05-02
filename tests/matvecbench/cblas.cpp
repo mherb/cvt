@@ -1,7 +1,7 @@
 #include "main.h"
 #include <stdlib.h>
 extern "C" {
-#include "/opt/local/include/cblas.h"
+#include <cblas.h>
 }
 
 static float* vec( size_t N )
@@ -25,6 +25,9 @@ void cblas_bench( const char* output )
 		size_t iter = Math::max( ( size_t ) ( MAXSIZE / i ), ( size_t ) MINLOOP );
 		float* a = vec( i );
 		float* b = vec( i );
+
+		memset( a, 0, sizeof( float ) * i );
+		memset( b, 0, sizeof( float ) * i );
 
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {

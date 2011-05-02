@@ -24,6 +24,9 @@ void rawc_bench( const char* output )
 		float* a = vec( i );
 		float* b = vec( i );
 
+		memset( a, 0, sizeof( float ) * i );
+		memset( b, 0, sizeof( float ) * i );
+
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {
 			for( size_t x = 0; x < i; x++ )

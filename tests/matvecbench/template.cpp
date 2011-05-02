@@ -16,6 +16,9 @@ void template_bench( const char* output )
 		Vector<float> a( i );
 		Vector<float> b( i );
 
+		memset( &a[ 0 ], 0, sizeof( float ) * i );
+		memset( &b[ 0 ], 0, sizeof( float ) * i );
+
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {
 			a = a + ALPHAF * b;
