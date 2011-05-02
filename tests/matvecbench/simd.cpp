@@ -24,6 +24,9 @@ void simd_bench( const char* output )
 		float* a = vec( i );
 		float* b = vec( i );
 
+		memset( a, 0, sizeof( float ) * i );
+		memset( b, 0, sizeof( float ) * i );
+
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {
 			SIMD::instance()->MulAdd( a, b, ALPHAF, i );

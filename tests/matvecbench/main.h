@@ -3,9 +3,10 @@
 
 #include <cvt/math/Math.h>
 #include <cvt/util/Time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-
-#define MAXSIZE ( 50000 )
+#define MAXSIZE ( 20000 )
 #define MINSIZE ( 4 )
 
 #define MINLOOP 100

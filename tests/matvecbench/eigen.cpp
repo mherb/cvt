@@ -15,6 +15,9 @@ void eigen_bench( const char* output )
 		a.resize( i );
 		b.resize( i );
 
+		a.setZero();
+		b.setZero();
+
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {
 			a += b * ALPHAF;
