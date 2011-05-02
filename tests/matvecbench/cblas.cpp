@@ -1,8 +1,13 @@
 #include "main.h"
 #include <stdlib.h>
 extern "C" {
+#ifdef APPLE
+#include "/opt/local/include/cblas.h"
+#else
 #include <cblas.h>
+#endif
 }
+
 
 static float* vec( size_t N )
 {
