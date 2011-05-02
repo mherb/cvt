@@ -8,10 +8,10 @@ namespace cvt {
 void SIMDSSE::name( float* dst, const float* src1, const float* src2, const size_t n ) const \
 {                                                                                            \
 		size_t i = n >> 2;                                                                   \
-		size_t i2 = i & 0x0f;																 \
+		size_t i2 = i & 0x07;																 \
         __m128 d, s1, s2;                                                                    \
 																						     \
-		i >>= 4;                                                                             \
+		i >>= 3;                                                                             \
         if( ( ( size_t )src1 | ( size_t )src2 | ( size_t )dst ) & 0xf ){                     \
 			while( i-- ) {                                                                   \
                 s1 = _mm_loadu_ps( src1 );                                                   \
@@ -187,11 +187,11 @@ SSE_AAOP1_FLOAT( Div, _mm_div_ps, / )
 void SIMDSSE::name( float* dst, const float* src1, const float value, const size_t n ) const \
 {                                                                                            \
 		size_t i = n >> 2;                                                                   \
-		size_t i2 = i & 0x0f;																 \
+		size_t i2 = i & 0x07;																 \
         __m128 d, s1;														                 \
 		const __m128 v = _mm_set1_ps( value );												 \
 																						     \
-		i >>= 4;                                                                             \
+		i >>= 3;                                                                             \
         if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ) {				                     \
 			while( i-- ) {                                                                   \
 				s1 = _mm_loadu_ps( src1 );                                                   \
@@ -332,10 +332,11 @@ SSE_ACOP1_FLOAT( Div, _mm_div_ps, / )
             return;                                                                               \
                                                                                                   \
         size_t i = n >> 2;                                                                        \
-		size_t i2 = i & 0xf;                                                                      \
+		size_t i2 = i & 0x7;                                                                      \
         __m128 v = _mm_set1_ps( value );                                                          \
         __m128 d, s;                                                                              \
                                                                                                   \
+		i = i >> 3;																				  \
         if( ( ( size_t )src1 | ( size_t )dst ) & 0xf ){                                           \
 			while( i-- ){                                                                         \
 				d = _mm_loadu_ps( dst );                                                          \
@@ -425,7 +426,6 @@ SSE_ACOP1_FLOAT( Div, _mm_div_ps, / )
                 src1 += 4;                                                                        \
             }                                                                                     \
         } else {                                                                                  \
-			i = i >> 4;                                                                           \
             while( i-- ){                                                                         \
                 d = _mm_load_ps( dst );                                                           \
                 s = _mm_load_ps( src1 );                                                          \
@@ -518,7 +518,7 @@ SSE_ACOP1_FLOAT( Div, _mm_div_ps, / )
                                                                                                   \
         i = n & 0x03;                                                                             \
         while( i-- ){                                                                             \
-            *dst = *dst cop2 *src1 cop1 value;                                                   \
+            *dst = *dst cop2 *src1 cop1 value;                                                    \
             dst++; src1++;                                                                        \
         }                                                                                         \
 	}                                                                                             \
