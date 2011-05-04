@@ -114,6 +114,7 @@ SET(${MODULE_NAME}_HEADERS
 	geom/Model.h
 	geom/Rect.h
 	geom/Line2D.h
+	geom/Polygon.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h

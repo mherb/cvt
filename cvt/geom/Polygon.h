@@ -1,0 +1,246 @@
+#ifndef CVT_POLYGON2D_H
+#define CVT_POLYGON2D_H
+
+#include <cvt/math/Math.h>
+#include <cvt/math/Vector.h>
+#include <cvt/gfx/Path.h>
+#include <cvt/math/Spline2.h>
+#include <vector>
+
+namespace cvt {
+
+	template<typename T>
+	class Polygon {
+		public:
+			Polygon() {}
+			~Polygon() {}
+			//FIXME: add copy constructor and assignemnt operator
+
+			const Vector2<T>& operator[]( int index ) const;
+			Vector2<T>& operator[]( int index );
+			size_t size() const;
+			void addPoint( const Vector2<T>& pt );
+			void reset();
+			T area() const;
+			Vector2<T> centroid() const;
+
+		private:
+			std::vector< Vector2<T> > _pts;
+	};
+
+	template<typename T>
+	class PolygonSet {
+		public:
+			PolygonSet() {};
+			~PolygonSet() {};
+			PolygonSet( const Path<T>& path, T tolerance = ( ( T ) 1 / ( T ) 2 ) );
+
+			const Polygon<T> operator[]( int index ) const;
+			Polygon<T>& operator[]( int index );
+			size_t size() const;
+			void addPolygon( const Polygon<T>& poly );
+		private:
+			std::vector< Polygon<T> > _polys;
+	};
+
+	template<typename T>
+	inline size_t Polygon<T>::size() const
+	{
+		return _pts.size();
+	}
+
+	template<typename T>
+	inline const Vector2<T>& Polygon<T>::operator[]( int i ) const
+	{
+		return _pts[ i ];
+	}
+
+
+	template<typename T>
+	inline Vector2<T>& Polygon<T>::operator[]( int i )
+	{
+		return _pts[ i ];
+	}
+
+	template<typename T>
+	inline void Polygon<T>::addPoint( const Vector2<T>& pt )
+	{
+		_pts.push_back( pt );
+	}
+
+	template<typename T>
+	inline void Polygon<T>::reset()
+	{
+		_pts.clear();
+	}
+
+	template<typename T>
+	inline T Polygon<T>::area() const
+	{
+		size_t n = size() - 1;
+		T area = 0;
+
+		const Vector2<T>* pt = &_pts[ 0 ];
+		while( n-- ) {
+			area += pt->x * ( pt + 1 )->y - pt->y * ( pt + 1 )->x;
+			pt++;
+		}
+		area += pt->x * _pts[ 0 ].y - pt->y * _pts[ 0 ].x;
+		return area / 2;
+	}
+
+	template<typename T>
+	inline Vector2<T> Polygon<T>::centroid() const
+	{
+		size_t n = size() - 1;
+		Vector2<T> c( 0, 0 );
+		T det;
+		T area2 = 0;
+
+		const Vector2<T>* pt = &_pts[ 0 ];
+		while( n-- ) {
+			det = pt->x * ( pt + 1 )->y - pt->y * ( pt + 1 )->x;
+			area2 += det;
+			c.x += ( pt->x + ( pt + 1 )->x ) * det;
+			c.y += ( pt->y + ( pt + 1 )->y ) * det;
+			pt++;
+		}
+		det = pt->x * _pts[ 0 ].y - pt->y * _pts[ 0 ].x;
+		c.x += ( pt->x + _pts[ 0 ].x ) * det;
+		c.y += ( pt->y + _pts[ 0 ].y ) * det;
+
+		c /= 3 * area2;
+		return c;
+	}
+
+	template<typename T>
+	inline const Polygon<T> PolygonSet<T>::operator[]( int index ) const
+	{
+		return _polys[ index ];
+	}
+
+	template<typename T>
+	inline Polygon<T>& PolygonSet<T>::operator[]( int index )
+	{
+		return _polys[ index ];
+	}
+
+	template<typename T>
+	inline size_t PolygonSet<T>::size() const
+	{
+		return _polys.size();
+	}
+
+	template<typename T>
+	inline void PolygonSet<T>::addPolygon( const Polygon<T>& poly )
+	{
+		_polys.push_back( poly );
+	}
+
+	template<typename T>
+	inline PolygonSet<T>::PolygonSet( const Path<T>& path, T tolerance )
+	{
+		Vector2<T> current; //	needed for relative move, line, curve and the general curve
+		typedef typename Path<T>::PathNode PathNode;
+		Polygon<T> poly;
+
+		for( int i = 0, end = path.size(); i < end; ++i ) {
+			const PathNode& node = path[ i ];
+			switch( node.type ) {
+				case Path<T>::PATHNODE_LINE:
+						poly.addPoint( node.pt[ 0 ] );
+						current = node.pt[ 0 ];
+						break;
+				case Path<T>::PATHNODE_MOVE:
+						if( poly.size() > 2 ) {
+							addPolygon( poly );
+							poly.reset();
+						}
+						poly.addPoint( node.pt[ 0 ] );
+						current = node.pt[ 0 ];
+						break;
+				case Path<T>::PATHNODE_CLOSE:
+						if( poly.size() > 2 ) {
+							addPolygon( poly );
+							poly.reset();
+						}
+						current = poly[ 0 ];
+						break;
+				case Path<T>::PATHNODE_CURVE:
+						if( poly.size() ) {
+							/* flatten the spline */
+							Spline2<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
+							Spline2<T> a, b, c;
+							size_t n;
+							T t[ 2 ], alpha;
+
+							n = spline.inflectionPoints( t );
+							if( n )
+								spline.split( a, b, t[ 0 ] );
+							else
+								a = spline;
+
+							poly.addPoint( a[ 0 ] );
+							alpha = a.flattenFirst( tolerance );
+							alpha = Math::min( a.flatten( tolerance ), alpha );
+							a.remove( alpha );
+							poly.addPoint( a[ 0 ] );
+							while( 1 ) {
+								alpha =  a.flatten( tolerance );
+								if( alpha < 1 ) {
+									a.remove( alpha );
+									poly.addPoint( a[ 0 ] );
+								} else {
+									poly.addPoint( a[ 3 ] );
+									break;
+								}
+							}
+
+							if( n ) {
+								if( n == 2 ) {
+									a = b;
+									a.split( b, c,  ( t[ 1 ] - t[ 0 ] ) / ( 1.0f - t[ 0 ] ) );
+								}
+								poly.addPoint( b[ 0 ] );
+								alpha =  b.flattenFirst( tolerance );
+								b.remove( alpha );
+								poly.addPoint( b[ 0 ] );
+								while( 1 ) {
+									alpha =  b.flatten( tolerance );
+									if( alpha < 1 ) {
+										b.remove( alpha );
+										poly.addPoint( b[ 0 ] );
+									} else {
+										poly.addPoint( b[ 3 ] );
+										break;
+									}
+								}
+
+								if( n == 2 ) {
+									poly.addPoint( c[ 0 ] );
+									alpha =  c.flattenFirst( tolerance );
+									c.remove( alpha );
+									poly.addPoint( c[ 0 ] );
+									while( 1 ) {
+										alpha =  c.flatten( tolerance );
+										if( alpha < 1 ) {
+											c.remove( alpha );
+											poly.addPoint( c[ 0 ] );
+										} else {
+											poly.addPoint( c[ 3 ] );
+											break;
+										}
+									}
+								}
+							}
+						} else {
+							poly.addPoint( node.pt[ 2 ] );
+						}
+						current = node.pt[ 2 ];
+						break;
+			}
+		}
+	}
+}
+
+#endif
