@@ -28,6 +28,9 @@ namespace cvt {
 			std::vector< Vector2<T> > _pts;
 	};
 
+	typedef Polygon<float> Polygonf;
+	typedef Polygon<double> Polygond;
+
 	template<typename T>
 	class PolygonSet {
 		public:
@@ -42,6 +45,9 @@ namespace cvt {
 		private:
 			std::vector< Polygon<T> > _polys;
 	};
+
+	typedef PolygonSet<float> PolygonSetf;
+	typedef PolygonSet<double> PolygonSetd;
 
 	template<typename T>
 	inline size_t Polygon<T>::size() const

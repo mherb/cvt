@@ -1,4 +1,5 @@
 #include <cvt/gl/progs/GLFillPathProg.h>
+#include <cvt/geom/Polygon.h>
 #include <cvt/util/SIMD.h>
 
 #include <cvt/gl/shader/120/basic_120_vert.h>
@@ -41,6 +42,11 @@ namespace cvt {
 
 	void GLFillPathProg::fillPath( const Pathf& path, GFX::PolygonFillRule frule )
 	{
+		PolygonSetf polyset( path );
+
+
+		if( !polyset.size() )
+			return; /* nothing to draw*/
 
 		glEnable( GL_STENCIL_TEST );
 		if( frule == GFX::WINDING_EVEN_ODD ) {
