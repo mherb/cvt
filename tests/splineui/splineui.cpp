@@ -15,7 +15,7 @@ class SplineUI : public Window
 	void drawSpline( GFX* g, const Spline2f& spl )
 	{
 //#define TEPS 0.01f
-#define TOLERANCE 0.25f
+#define TOLERANCE 0.5f
 
 		size_t n;
 		float t[ 2 ], alpha;

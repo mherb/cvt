@@ -2,14 +2,25 @@
 #define CVT_PATH_H
 
 #include <cvt/math/Vector.h>
-#include <list>
+#include <vector>
 
 namespace cvt {
 	template<typename T>
 	class Path
 	{
-		friend class Polygon;
 		public:
+			enum PathNodeType { PATHNODE_MOVE, PATHNODE_LINE, PATHNODE_CURVE, PATHNODE_CLOSE };
+			struct PathNode {
+				PathNode( PathNodeType t ) : type( t ) {};
+				PathNode( PathNodeType t, const Vector2<T>& pt1 ) : type( t ) { pt[ 0 ] = pt1; };
+				PathNode( PathNodeType t, const Vector2<T>& pt1, const Vector2<T>& pt2, const Vector2<T>& pt3 ) : type( t )
+				{ pt[ 0 ] = pt1; pt[ 1 ] = pt2; pt[ 2 ] = pt3; };
+
+				PathNodeType type;
+				Vector2<T> pt[ 3 ];
+			};
+
+
 			Path();
 			Path( const Path<T>& p );
 
@@ -21,18 +32,10 @@ namespace cvt {
 			void curveTo( const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt );
 			void close();
 
+			size_t size() const;
+			const PathNode& operator[]( int i ) const { return _nodes[ i ]; };
 		private:
-			enum PathNodeType { PATHNODE_MOVE, PATHNODE_LINE, PATHNODE_CURVE, PATHNODE_CLOSE };
-			struct PathNode {
-				PathNode( PathNodeType t ) : type( t ) {};
-				PathNode( PathNodeType t, const Vector2<T>& pt ) : type( t ) { pt[ 0 ] = pt; };
-				PathNode( PathNodeType t, const Vector2<T>& pt1, const Vector2<T>& pt2, const Vector2<T>& pt3 ) : type( t )
-				{ pt[ 0 ] = pt1; pt[ 1 ] = pt2; pt[ 2 ] = pt3; };
-
-				PathNodeType type;
-				Vector2<T> pt[ 3 ];
-			};
-			std::list<PathNode> _nodes;
+			std::vector< PathNode > _nodes;
 	};
 
 	template<typename T>
@@ -87,7 +90,14 @@ namespace cvt {
 		_nodes.push_back( PathNode( PATHNODE_CLOSE ) );
 	}
 
+	template<typename T>
+	inline size_t Path<T>::size() const
+	{
+		return _nodes.size();
+	}
+
 	typedef Path<float> Pathf;
+	typedef Path<double> Pathd;
 }
 
 #endif
