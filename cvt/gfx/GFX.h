@@ -9,6 +9,7 @@
 #include <cvt/gfx/Drawable.h>
 #include <cvt/gfx/Font.h>
 #include <cvt/gfx/Alignment.h>
+#include <cvt/gfx/Path.h>
 
 namespace cvt {
 	class GFXEngine;
@@ -58,6 +59,8 @@ namespace cvt {
 
 			void fillRoundRect( const Recti& rect, float radius );
 			void fillRoundRect( int x, int y, int width, int height, float radius );
+
+			void fillPath( const Pathf& path, GFX::PolygonFillRule rule = GFX::WINDING_EVEN_ODD );
 
 			const Font& font( ) const;
 			void drawText( int x, int y, const char* text );

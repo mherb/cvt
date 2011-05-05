@@ -43,41 +43,109 @@ namespace cvt {
 	void GLFillPathProg::fillPath( const Pathf& path, GFX::PolygonFillRule frule )
 	{
 		PolygonSetf polyset( path );
-
+		GLBuffer buf;
 
 		if( !polyset.size() )
 			return; /* nothing to draw*/
 
 		glEnable( GL_STENCIL_TEST );
 		if( frule == GFX::WINDING_EVEN_ODD ) {
-			glColorMask (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-			glStencilMask (0x01);
-			glStencilOp (GL_KEEP, GL_KEEP, GL_INVERT);
+			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			glStencilMask( 0x01 );
+			glStencilOp( GL_KEEP, GL_KEEP, GL_INVERT );
 			glStencilFunc (GL_ALWAYS, 0, ~0);
 
 			// draw triangle fan
+			for( int i = 0, end = polyset.size(); i < end; i++ ) {
+				const Polygonf& poly = polyset[ i ];
+				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * poly.size(), &poly[ 0 ] );
+			   _vao.setVertexData( buf, 2, GL_FLOAT );
+			   _vao.draw( GL_TRIANGLE_FAN, 0, poly.size() );
+			}
 
 			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-			glStencilFunc (GL_LEQUAL, 0x01, 0x01);
-			glStencilOp (GL_ZERO, GL_ZERO, GL_ZERO);
-			// draw quad
+			glStencilFunc(GL_EQUAL, 0x01, 0x01);
+			glStencilMask( ~0 );
+			glStencilOp( GL_ZERO, GL_ZERO, GL_ZERO );
+
+			// draw quads
+			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 6 * 2 * polyset.size() );
+			GLfloat* pbuf;
+			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
+			for( int i = 0, end = polyset.size(); i < end; i++ ) {
+				const Polygonf& poly = polyset[ i ];
+				Rectf rect;
+				rect = poly.bbox();
+
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y;
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y + rect.height;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y + rect.height;
+
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y + rect.height;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y;
+
+			}
+			buf.unmap();
+			_vao.setVertexData( buf, 2, GL_FLOAT );
+			_vao.draw( GL_TRIANGLES, 0, polyset.size() * 6 );
+
 
 		} else if( frule == GFX::WINDING_NONZERO ) {
-			glColorMask (GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			glStencilMask( ~0 );
 			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
 			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-			glStencilFunc(GL_ALWAYS, 0, ~0);
+			glStencilFunc( GL_ALWAYS, 0, ~0 );
 
 			// draw triangle fan
-			glColorMask (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			for( int i = 0, end = polyset.size(); i < end; i++ ) {
+				const Polygonf& poly = polyset[ i ];
+				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * poly.size(), &poly[ 0 ] );
+			   _vao.setVertexData( buf, 2, GL_FLOAT );
+			   _vao.draw( GL_TRIANGLE_FAN, 0, poly.size() );
+			}
 
-			glStencilFunc (GL_NOTEQUAL, 0x0, ~0x0);
-			glStencilOp (GL_ZERO, GL_ZERO, GL_ZERO);
+			glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+			glStencilFunc( GL_NOTEQUAL, 0, ~0 );
+			glStencilMask( ~0 );
+			glStencilOp( GL_ZERO, GL_ZERO, GL_ZERO );
 
-			// draw quad
+			// draw quads
+			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 6 * 2 * polyset.size() );
+			GLfloat* pbuf;
+			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
+			for( int i = 0, end = polyset.size(); i < end; i++ ) {
+				const Polygonf& poly = polyset[ i ];
+				Rectf rect;
+				rect = poly.bbox();
+
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y;
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y + rect.height;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y + rect.height;
+
+				*pbuf++ = rect.x;
+				*pbuf++ = rect.y;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y + rect.height;
+				*pbuf++ = rect.x + rect.width;
+				*pbuf++ = rect.y;
+
+			}
+			buf.unmap();
+			_vao.setVertexData( buf, 2, GL_FLOAT );
+			_vao.draw( GL_TRIANGLES, 0, polyset.size() * 6 );
 		}
 		glDisable( GL_STENCIL_TEST );
 	}
-
 
 }

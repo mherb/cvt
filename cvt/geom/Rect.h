@@ -35,6 +35,8 @@ namespace cvt {
 				void intersect( T x, T y, T w, T h );
 				void join( const Rect<T>& r2 );
 				void join( T x, T y, T w, T h );
+				void join( const Vector2<T>& pt );
+				void join( T x, T y );
 				bool isEmpty() const;
 				bool operator==( const Rect<T>& r2 ) const;
 
@@ -231,6 +233,33 @@ namespace cvt {
 			width = xend - x;
 			height = yend - y;
 		}
+
+	template<typename T>
+	inline void Rect<T>::join( const Vector2<T>& pt )
+	{
+		T xend, yend;
+
+		xend = Math::max( x + width, pt.x );
+		yend = Math::max( y + height, pt.y );
+		x = Math::min( x, pt.x );
+		y = Math::min( y, pt.y );
+		width = xend - x;
+		height = yend - y;
+	}
+
+	template<typename T>
+	inline void Rect<T>::join( T px, T py )
+	{
+		T xend, yend;
+
+		xend = Math::max( x + width, px );
+		yend = Math::max( y + height, py );
+		x = Math::min( x, px );
+		y = Math::min( y, py );
+		width = xend - x;
+		height = yend - y;
+	}
+
 
 	template<typename T>
 		inline bool Rect<T>::isEmpty() const
