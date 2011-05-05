@@ -245,10 +245,10 @@ namespace cvt {
 		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001f );
 
 		if( s3 < 0 ) s3 = -s3;
-		t = powf( tolerance / s3, 0.333333f );
+		t = Math::pow( tolerance / ( s3 + 10.0f ), 0.333333f );
 //		if( t < 0 ) t = -t;
 		// FIXME
-		if( t > 0.1f ) t = 0.1f;
+//		if( t > 0.1f ) t = 0.1f;
 		return t;
 	}
 
@@ -265,7 +265,7 @@ namespace cvt {
 		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001 );
 
 		if( s3 < 0 ) s3 = -s3;
-		t = pow( tolerance / s3, 0.333333 );
+		t = Math::pow( tolerance / s3, 0.333333 );
 //		if( t < 0 ) t = -t;
 		// FIXME
 		if( t > 0.1 ) t = 0.1;
@@ -290,7 +290,7 @@ namespace cvt {
 		s2 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001f );
 		if( s2 < 0 ) s2 = -s2;
 
-		t = 2 * Math::sqrt( tolerance / ( ( T ) 3 * s2 ) );
+		t = Math::sqrt( tolerance / ( ( T ) 3 * s2 ) );
 
 		return t;
 	}
