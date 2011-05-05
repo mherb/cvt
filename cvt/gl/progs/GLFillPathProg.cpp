@@ -68,40 +68,30 @@ namespace cvt {
 			glStencilMask( ~0 );
 			glStencilOp( GL_ZERO, GL_ZERO, GL_ZERO );
 
-			// draw quads
-			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 6 * 2 * polyset.size() );
+			// draw quad
+			Rectf rect = polyset[ 0 ].bbox();
+			for( int i = 1, end = polyset.size(); i < end; i++ ) {
+				rect.join( polyset[ i ].bbox() );
+			}
+			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4 );
 			GLfloat* pbuf;
 			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
-			for( int i = 0, end = polyset.size(); i < end; i++ ) {
-				const Polygonf& poly = polyset[ i ];
-				Rectf rect;
-				rect = poly.bbox();
-
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y;
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y + rect.height;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y + rect.height;
-
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y + rect.height;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y;
-
-			}
+			*pbuf++ = rect.x;
+			*pbuf++ = rect.y + rect.height;
+			*pbuf++ = rect.x;
+			*pbuf++ = rect.y;
+			*pbuf++ = rect.x + rect.width;
+			*pbuf++ = rect.y + rect.height;
+			*pbuf++ = rect.x + rect.width;
+			*pbuf++ = rect.y;
 			buf.unmap();
 			_vao.setVertexData( buf, 2, GL_FLOAT );
-			_vao.draw( GL_TRIANGLES, 0, polyset.size() * 6 );
-
-
+			_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 		} else if( frule == GFX::WINDING_NONZERO ) {
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			glStencilMask( ~0 );
-			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+			glStencilOpSeparate( GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP );
+			glStencilOpSeparate( GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP );
 			glStencilFunc( GL_ALWAYS, 0, ~0 );
 
 			// draw triangle fan
@@ -117,33 +107,25 @@ namespace cvt {
 			glStencilMask( ~0 );
 			glStencilOp( GL_ZERO, GL_ZERO, GL_ZERO );
 
-			// draw quads
-			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 6 * 2 * polyset.size() );
+			// draw quad
+			Rectf rect = polyset[ 0 ].bbox();
+			for( int i = 1, end = polyset.size(); i < end; i++ ) {
+				rect.join( polyset[ i ].bbox() );
+			}
+			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4 );
 			GLfloat* pbuf;
 			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
-			for( int i = 0, end = polyset.size(); i < end; i++ ) {
-				const Polygonf& poly = polyset[ i ];
-				Rectf rect;
-				rect = poly.bbox();
-
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y;
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y + rect.height;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y + rect.height;
-
-				*pbuf++ = rect.x;
-				*pbuf++ = rect.y;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y + rect.height;
-				*pbuf++ = rect.x + rect.width;
-				*pbuf++ = rect.y;
-
-			}
+			*pbuf++ = rect.x;
+			*pbuf++ = rect.y + rect.height;
+			*pbuf++ = rect.x;
+			*pbuf++ = rect.y;
+			*pbuf++ = rect.x + rect.width;
+			*pbuf++ = rect.y + rect.height;
+			*pbuf++ = rect.x + rect.width;
+			*pbuf++ = rect.y;
 			buf.unmap();
 			_vao.setVertexData( buf, 2, GL_FLOAT );
-			_vao.draw( GL_TRIANGLES, 0, polyset.size() * 6 );
+			_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 		}
 		glDisable( GL_STENCIL_TEST );
 	}
