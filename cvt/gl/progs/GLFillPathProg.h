@@ -20,8 +20,8 @@ namespace cvt {
 			using GLProgram::unbind;
 			void setProjection( const Matrix4f& projection );
 			void setColor( const Color& color );
-			void fillPath( const Pathf& path, GFX::PolygonFillRule rule ) const;
-			void fillPath( const Pathd& path, GFX::PolygonFillRule rule ) const;
+			void fillPath( const Pathf& path, GFX::PolygonFillRule rule );
+			void fillPath( const Pathd& path, GFX::PolygonFillRule rule );
 
 		private:
 			GLVertexArray _vao;

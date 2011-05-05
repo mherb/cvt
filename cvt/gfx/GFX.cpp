@@ -111,6 +111,11 @@ namespace cvt {
 		_engine->fillRoundRect( rect, radius, _color );
 	}
 
+	void GFX::fillPath( const Pathf& path, GFX::PolygonFillRule rule )
+	{
+		_engine->fillPath( path, _color, rule );
+	}
+
 	const Font& GFX::font( ) const
 	{
 		return _engine->font();

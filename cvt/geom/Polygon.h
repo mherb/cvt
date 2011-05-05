@@ -5,6 +5,7 @@
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Path.h>
 #include <cvt/math/Spline2.h>
+#include <cvt/geom/Rect.h>
 #include <vector>
 
 namespace cvt {
@@ -21,6 +22,7 @@ namespace cvt {
 			size_t size() const;
 			void addPoint( const Vector2<T>& pt );
 			void reset();
+			Rect<T> bbox() const;
 			T area() const;
 			Vector2<T> centroid() const;
 
@@ -78,6 +80,23 @@ namespace cvt {
 	inline void Polygon<T>::reset()
 	{
 		_pts.clear();
+	}
+
+	template<typename T>
+	inline Rect<T> Polygon<T>::bbox() const
+	{
+		size_t n = size() - 1;
+		Rect<T> rect;
+
+		const Vector2<T>* pt = &_pts[ 0 ];
+		rect.set( pt->x, pt->y, 0, 0 );
+		pt++;
+		while( n-- ) {
+			rect.join( *pt );
+			pt++;
+		}
+
+		return rect;
 	}
 
 	template<typename T>
@@ -146,7 +165,7 @@ namespace cvt {
 	template<typename T>
 	inline PolygonSet<T>::PolygonSet( const Path<T>& path, T tolerance )
 	{
-		Vector2<T> current; //	needed for relative move, line, curve and the general curve
+		Vector2<T> current( 0, 0 ); //	needed for relative move, line, curve and the general curve
 		typedef typename Path<T>::PathNode PathNode;
 		Polygon<T> poly;
 
@@ -160,16 +179,16 @@ namespace cvt {
 				case Path<T>::PATHNODE_MOVE:
 						if( poly.size() > 2 ) {
 							addPolygon( poly );
-							poly.reset();
 						}
+						poly.reset();
 						poly.addPoint( node.pt[ 0 ] );
 						current = node.pt[ 0 ];
 						break;
 				case Path<T>::PATHNODE_CLOSE:
 						if( poly.size() > 2 ) {
 							addPolygon( poly );
-							poly.reset();
 						}
+						poly.reset();
 						current = poly[ 0 ];
 						break;
 				case Path<T>::PATHNODE_CURVE:

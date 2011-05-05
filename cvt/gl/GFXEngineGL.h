@@ -11,6 +11,7 @@
 #include <cvt/gl/progs/GLDrawImageProg.h>
 #include <cvt/gl/progs/GLDrawIconProg.h>
 #include <cvt/gl/progs/GLDrawModelProg.h>
+#include <cvt/gl/progs/GLFillPathProg.h>
 
 namespace cvt {
 
@@ -57,6 +58,7 @@ namespace cvt {
 			GLDrawImageProg drawimgp;
 			GLDrawIconProg drawiconp;
 			GLDrawModelProg modelp;
+			GLFillPathProg fillpathp;
 			GLTexFont _glfont;
 	};
 

@@ -154,6 +154,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLDrawImageProg.h
 	gl/progs/GLDrawIconProg.h
 	gl/progs/GLDrawModelProg.h
+	gl/progs/GLFillPathProg.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
 	gl/shader/120/basicrr_120_frag.h
@@ -326,6 +327,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/progs/GLDrawImageProg.cpp
 	gl/progs/GLDrawIconProg.cpp
 	gl/progs/GLDrawModelProg.cpp
+	gl/progs/GLFillPathProg.cpp
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp

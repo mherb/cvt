@@ -27,8 +27,8 @@ namespace cvt {
 					glEnable( GL_MULTISAMPLE );
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glViewport( 0, 0, _viewport.width, _viewport.height );
-				glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 				setChildrect( _viewport );
+				glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 			}
 
 			void GFXEngineGL::end()
@@ -94,7 +94,15 @@ namespace cvt {
 			{}
 
 			void GFXEngineGL::fillPath( const Pathf& path, const Color& c, GFX::PolygonFillRule rule )
-			{}
+			{
+				Matrix4f proj;
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
+				fillpathp.bind();
+				fillpathp.setProjection( proj );
+				fillpathp.setColor( c );
+				fillpathp.fillPath( path, rule );
+				fillpathp.unbind();
+			}
 
 			void GFXEngineGL::drawText( int x, int y, const char* text, const Color& c )
 			{

@@ -34,4 +34,6 @@ int main()
 	for( int i = 0, end = poly.size(); i < end; ++i ) {
 		std::cout << poly[ i ] << std::endl;
 	}
+
+	std::cout << poly.bbox() << std::endl;
 }

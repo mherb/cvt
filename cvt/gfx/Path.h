@@ -63,7 +63,7 @@ namespace cvt {
 	template<typename T>
 	inline void Path<T>::lineTo( T x, T y )
 	{
-		_nodes.push_back( PathNode( PATHNODE_MOVE, Vector2<T>( x, y ) ) );
+		_nodes.push_back( PathNode( PATHNODE_LINE, Vector2<T>( x, y ) ) );
 	}
 
 	template<typename T>
