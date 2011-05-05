@@ -92,8 +92,7 @@ namespace cvt {
 		rect.set( pt->x, pt->y, 0, 0 );
 		pt++;
 		while( n-- ) {
-			rect.join( *pt );
-			pt++;
+			rect.join( *pt++ );
 		}
 
 		return rect;
@@ -169,7 +168,7 @@ namespace cvt {
 		typedef typename Path<T>::PathNode PathNode;
 		Polygon<T> poly;
 
-		for( int i = 0, end = path.size(); i < end; ++i ) {
+		for( int i = 0, end = path.size(); i < end; i++ ) {
 			const PathNode& node = path[ i ];
 			switch( node.type ) {
 				case Path<T>::PATHNODE_LINE:
@@ -187,9 +186,10 @@ namespace cvt {
 				case Path<T>::PATHNODE_CLOSE:
 						if( poly.size() > 2 ) {
 							addPolygon( poly );
-						}
+							current = poly[ 0 ];
+						} else
+							current.set( 0, 0 );
 						poly.reset();
-						current = poly[ 0 ];
 						break;
 				case Path<T>::PATHNODE_CURVE:
 						if( poly.size() ) {

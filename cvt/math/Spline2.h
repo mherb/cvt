@@ -241,13 +241,14 @@ namespace cvt {
 		float d1 = _pts[ 1 ].x - _pts[ 0 ].x;
 		float d2 = _pts[ 1 ].y - _pts[ 0 ].y;
 
-		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 );
+		// FIXME: check for zero length
+		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001f );
 
 		if( s3 < 0 ) s3 = -s3;
 		t = powf( tolerance / s3, 0.333333f );
-		if( t < 0 ) t = -t;
-
-		if( t > 1 ) t = 1;
+//		if( t < 0 ) t = -t;
+		// FIXME
+		if( t > 0.1f ) t = 0.1f;
 		return t;
 	}
 
@@ -260,13 +261,14 @@ namespace cvt {
 		double d1 = _pts[ 1 ].x - _pts[ 0 ].x;
 		double d2 = _pts[ 1 ].y - _pts[ 0 ].y;
 
-		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 );
+		// FIXME: check for zero length
+		s3 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001 );
 
 		if( s3 < 0 ) s3 = -s3;
 		t = pow( tolerance / s3, 0.333333 );
-		if( t < 0 ) t = -t;
-
-		if( t > 1 ) t = 1;
+//		if( t < 0 ) t = -t;
+		// FIXME
+		if( t > 0.1 ) t = 0.1;
 		return t;
 	}
 
@@ -284,12 +286,12 @@ namespace cvt {
 		T d1 = _pts[ 1 ].x - _pts[ 0 ].x;
 		T d2 = _pts[ 1 ].y - _pts[ 0 ].y;
 
-		s2 *= Math::invSqrt( d1 * d1 + d2 * d2 );
+		// FIXME: check for zero length
+		s2 *= Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001f );
 		if( s2 < 0 ) s2 = -s2;
 
-		t = 2 * Math::sqrt( tolerance / ( 3 * s2 ) );
+		t = 2 * Math::sqrt( tolerance / ( ( T ) 3 * s2 ) );
 
-		//if( t > ( T ) 1 ) t = 1;
 		return t;
 	}
 
@@ -309,7 +311,8 @@ namespace cvt {
 		T d2 = _pts[ 1 ].y - _pts[ 0 ].y;
 		T s2abs, d, e;
 
-		d = Math::invSqrt( d1 * d1 + d2 * d2 );
+		// FIXME: check for zero length
+		d = Math::invSqrt( d1 * d1 + d2 * d2 + 0.00001f );
 		s2 *= d;
 		if( s2 < 0 )
 			s2abs = -s2;
