@@ -50,6 +50,10 @@ namespace cvt {
 		bool				isSymmetric( ) const;
 		bool				isDiagonal( ) const;
 
+		void				rotationX( T rad );
+		void				rotationY( T rad );
+		void				rotationZ( T rad );
+
 		T					trace( void ) const;
 		T					determinant( void ) const;
 		Matrix3<T>			transpose( void ) const;
@@ -332,6 +336,63 @@ namespace cvt {
 	    mat[ 2 ].x = 0.0;
 	    mat[ 2 ].y = 0.0;
 	    mat[ 2 ].z = 1.0;
+	}
+
+	template<typename T>
+	inline void Matrix3<T>::rotationX( T rad )
+	{
+		T s = Math::sin( rad );
+		T c = Math::cos( rad );
+
+		mat[ 0 ].x = 1.0;
+		mat[ 0 ].y = 0.0;
+		mat[ 0 ].z = 0.0;
+
+		mat[ 1 ].x = 0.0;
+		mat[ 1 ].y = c;
+		mat[ 1 ].z = -s;
+
+		mat[ 2 ].x = 0.0;
+		mat[ 2 ].y = s;
+		mat[ 2 ].z = c;
+	}
+
+	template<typename T>
+	inline void Matrix3<T>::rotationY( T rad )
+	{
+		T s = Math::sin( rad );
+		T c = Math::cos( rad );
+
+		mat[ 0 ].x = c;
+		mat[ 0 ].y = 0.0;
+		mat[ 0 ].z = s;
+
+		mat[ 1 ].x = 0.0;
+		mat[ 1 ].y = 1.0;
+		mat[ 1 ].z = 0.0;
+
+		mat[ 2 ].x = -s;
+		mat[ 2 ].y = 0.0;
+		mat[ 2 ].z = c;
+	}
+
+	template<typename T>
+	inline void Matrix3<T>::rotationZ( T rad )
+	{
+		T s = Math::sin( rad );
+		T c = Math::cos( rad );
+
+		mat[ 0 ].x = c;
+		mat[ 0 ].y = -s;
+		mat[ 0 ].z = 0.0;
+
+		mat[ 1 ].x = s;
+		mat[ 1 ].y = c;
+		mat[ 1 ].z = 0.0;
+
+		mat[ 2 ].x = 0.0;
+		mat[ 2 ].y = 0.0;
+		mat[ 2 ].z = 1.0;
 	}
 
 	template<>
