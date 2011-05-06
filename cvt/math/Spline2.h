@@ -3,8 +3,11 @@
 
 #include <cvt/math/Vector.h>
 #include <cvt/math/Math.h>
+#include <cvt/geom/Polygon.h>
 
 namespace cvt {
+	template<typename T> class Polygon;
+
 	template<typename T>
 	class Spline2 {
 		public:
@@ -12,6 +15,8 @@ namespace cvt {
 			Spline2( const Spline2<T>& spl );
 			Spline2( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
 			Spline2( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
+
+			Spline2<T>& operator=( const Spline2<T>& spl );
 
 			void set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
 			void set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
@@ -21,6 +26,8 @@ namespace cvt {
 
 			void samplePoint( Vector2<T>& pt, T t );
 			void sampleDerivative( Vector2<T>& pt, T t );
+
+			void addToPolygon( Polygon<T>& poly, T tolerance = ( T ) 1 / ( T ) 2 );
 
 			void remove( T t );
 			void split( Spline2<T>& out1, Spline2<T>& out2, T t ) const;
@@ -70,6 +77,16 @@ namespace cvt {
 		_pts[ 1 ] = d1;
 		_pts[ 2 ] = d2;
 		_pts[ 3 ] = p2;
+	}
+
+	template<typename T>
+	inline Spline2<T>& Spline2<T>::operator=( const Spline2<T>& spl )
+	{
+		_pts[ 0 ] = spl._pts[ 0 ];
+		_pts[ 1 ] = spl._pts[ 1 ];
+		_pts[ 2 ] = spl._pts[ 2 ];
+		_pts[ 3 ] = spl._pts[ 3 ];
+		return *this;
 	}
 
 	template<typename T>
@@ -332,6 +349,36 @@ namespace cvt {
 		return t;
 	}
 
+	template<typename T>
+	inline void Spline2<T>::addToPolygon( Polygon<T>& poly, T tolerance )
+	{
+		Spline2<T> stack[ 32 ];
+		Spline2<T>* spl = stack;
+		stack[ 0 ] = *this;
+
+		poly.addPoint( _pts[ 0 ] );
+
+		while( spl >= stack ) {
+			Vector2<T> delta = ( *spl )[ 3 ] - ( *spl )[ 0 ];
+			T len = Math::abs( delta[ 0 ] ) + Math::abs( delta[ 0 ] );
+			T dist;
+			if (len > ( T ) 1) {
+				dist = Math::abs( delta[ 0 ] * ( ( *spl )[ 1 ].y - ( *spl )[ 2 ].y ) - delta[ 1 ] * ( ( *spl )[ 1 ].x - ( *spl )[ 2 ].x ) )
+					 + Math::abs( delta[ 0 ] * ( ( *spl )[ 1 ].y - ( *spl )[ 3 ].y ) - delta[ 1 ] * ( ( *spl )[ 1 ].x - ( *spl )[ 3 ].x ) );
+			} else {
+				dist = Math::abs( ( *spl )[ 1 ].x - ( *spl )[ 2 ].x ) + Math::abs( ( *spl )[ 1 ].y - ( *spl )[ 2 ].y )
+					 + Math::abs( ( *spl )[ 1 ].x - ( *spl )[ 3 ].x ) + Math::abs( ( *spl )[ 1 ].y - ( *spl )[ 3 ].y );
+				len = 1;
+			}
+			if ( dist < tolerance * len || spl == stack + 31) {
+				poly.addPoint( ( *spl )[ 3 ] );
+				spl--;
+			} else {
+				spl->splitHalf( *( spl + 1 ), *spl );
+				spl++;
+			}
+		}
+	}
 
 	typedef Spline2<float> Spline2f;
 }

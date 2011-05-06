@@ -44,7 +44,7 @@ class View : public Window
 		t1.identity();
 		t1[ 0 ][ 2 ] = 400.0f;
 		t1[ 1 ][ 2 ] = 400.0f;
-		t2.rotationZ( Math::deg2Rad( 1.0f ) );
+		t2.rotationZ( Math::deg2Rad( 3.0f ) );
 		t1 = t1 * t2;
 		t2.identity();
 		t2[ 0 ][ 2 ] = -400.0f;
