@@ -360,17 +360,17 @@ namespace cvt {
 
 		while( spl >= stack ) {
 			Vector2<T> delta = ( *spl )[ 3 ] - ( *spl )[ 0 ];
-			T len = Math::abs( delta[ 0 ] ) + Math::abs( delta[ 0 ] );
+			T len = Math::abs( delta[ 0 ] ) + Math::abs( delta[ 1 ] );
 			T dist;
 			if (len > ( T ) 1) {
-				dist = Math::abs( delta[ 0 ] * ( ( *spl )[ 1 ].y - ( *spl )[ 2 ].y ) - delta[ 1 ] * ( ( *spl )[ 1 ].x - ( *spl )[ 2 ].x ) )
-					 + Math::abs( delta[ 0 ] * ( ( *spl )[ 1 ].y - ( *spl )[ 3 ].y ) - delta[ 1 ] * ( ( *spl )[ 1 ].x - ( *spl )[ 3 ].x ) );
+				dist = Math::abs( delta[ 0 ] * ( ( *spl )[ 0 ].y - ( *spl )[ 1 ].y ) - delta[ 1 ] * ( ( *spl )[ 0 ].x - ( *spl )[ 1 ].x ) )
+					 + Math::abs( delta[ 0 ] * ( ( *spl )[ 0 ].y - ( *spl )[ 2 ].y ) - delta[ 1 ] * ( ( *spl )[ 0 ].x - ( *spl )[ 2 ].x ) );
 			} else {
-				dist = Math::abs( ( *spl )[ 1 ].x - ( *spl )[ 2 ].x ) + Math::abs( ( *spl )[ 1 ].y - ( *spl )[ 2 ].y )
-					 + Math::abs( ( *spl )[ 1 ].x - ( *spl )[ 3 ].x ) + Math::abs( ( *spl )[ 1 ].y - ( *spl )[ 3 ].y );
+				dist = Math::abs( ( *spl )[ 0 ].x - ( *spl )[ 1 ].x ) + Math::abs( ( *spl )[ 0 ].y - ( *spl )[ 1 ].y )
+					 + Math::abs( ( *spl )[ 0 ].x - ( *spl )[ 2 ].x ) + Math::abs( ( *spl )[ 0 ].y - ( *spl )[ 2 ].y );
 				len = 1;
 			}
-			if ( dist < tolerance * len || spl == stack + 31) {
+			if ( dist < tolerance * len || spl == stack + 31 ) {
 				poly.addPoint( ( *spl )[ 3 ] );
 				spl--;
 			} else {
