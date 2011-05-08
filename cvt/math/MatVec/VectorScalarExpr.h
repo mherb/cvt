@@ -5,8 +5,6 @@
 #include <cvt/math/MatVec/CWiseOp.h>
 #include <stdlib.h>
 
-#include <iostream>
-
 namespace cvt {
 
 	/*
@@ -24,10 +22,10 @@ namespace cvt {
 
 			size_t size() const { return _vec.size(); }
 
-			ELEMENT_TYPE value( size_t i ) const { return VECOP::apply( _scalar, _vec.value( i ) ); }
+			ELEMENT_TYPE eval( size_t i ) const { return VECOP::eval( _scalar, _vec.eval( i ) ); }
 
 			const ELEMENT_TYPE  _scalar;
-			const VEC&			 _vec;
+			const VEC&			_vec;
 
 	};
 
