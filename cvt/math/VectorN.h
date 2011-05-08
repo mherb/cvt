@@ -1,11 +1,13 @@
 #ifndef CVT_VECTOR_H
 #define CVT_VECTOR_H
 
-#include <cvt/math/MatVec/VectorExpr.h>
-#include <cvt/math/MatVec/VectorScalarExpr.h>
 #include <cvt/util/SIMD.h>
 #include <cvt/util/Exception.h>
 #include <stdlib.h>
+
+#include <cvt/math/MatVec/VectorExpr.h>
+#include <cvt/math/MatVec/VectorScalarExpr.h>
+#include <cvt/math/MatVec/VectorVectorExpr.h>
 
 namespace cvt {
 	template<typename T>
@@ -29,7 +31,7 @@ namespace cvt {
 				const T operator[]( size_t i ) const;
 				T& operator[]( size_t i );
 
-				T	value( size_t i ) const { return _data[ i ]; }
+				T	eval( size_t i ) const { return _data[ i ]; }
 
 				Vector<T>& fill( T value );
 
@@ -76,8 +78,10 @@ namespace cvt {
 	inline Vector<T>& Vector<T>::operator=( const VectorExpr<DERIVED>& other )
 	{
 		const DERIVED& r = other.derived();
+		if( r.size() != _size )
+			throw CVTException( "Can't assign vector expressions with different size!" );
 		for( size_t i = 0, end = r.size(); i < end; ++i )
-			_data[ i ] = r.value( i );
+			_data[ i ] = r.eval( i );
 		return *this;
 	}
 
@@ -102,9 +106,24 @@ namespace cvt {
 	template<typename T>
 	inline Vector<T>& Vector<T>::fill( T value )
 	{
+		for( size_t i = 0; i < _size; i++ )
+			_data[ i ] = value;
+		return *this;
+	}
+
+	template<>
+	inline Vector<float>& Vector<float>::fill( float value )
+	{
 		SIMD::instance()->SetValue1f( _data, value, _size );
 		return *this;
 	}
+
+/*	template<>
+	inline Vector<double>& Vector<double>::fill( double value )
+	{
+		SIMD::instance()->SetValue1d( _data, value, _size );
+		return *this;
+	}*/
 
 	template<typename T>
 	inline void Vector<T>::reset()
