@@ -44,6 +44,7 @@ namespace cvt {
 	{
 		PolygonSetf polyset( path );
 		GLBuffer buf;
+		float rectdata[ 8 ];
 
 		if( !polyset.size() )
 			return; /* nothing to draw*/
@@ -58,7 +59,11 @@ namespace cvt {
 			// draw triangle fan
 			for( int i = 0, end = polyset.size(); i < end; i++ ) {
 				const Polygonf& poly = polyset[ i ];
-				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * poly.size(), &poly[ 0 ] );
+				size_t size = sizeof( GL_FLOAT ) * 2 * poly.size();
+				if( buf.size() < size )
+					buf.alloc( GL_STREAM_DRAW, size, &poly[ 0 ] );
+				else
+					buf.setData( size, &poly[ 0 ] );
 			   _vao.setVertexData( buf, 2, GL_FLOAT );
 			   _vao.draw( GL_TRIANGLE_FAN, 0, poly.size() );
 			}
@@ -73,18 +78,18 @@ namespace cvt {
 			for( int i = 1, end = polyset.size(); i < end; i++ ) {
 				rect.join( polyset[ i ].bbox() );
 			}
-			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4 );
-			GLfloat* pbuf;
-			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
-			*pbuf++ = rect.x;
-			*pbuf++ = rect.y + rect.height;
-			*pbuf++ = rect.x;
-			*pbuf++ = rect.y;
-			*pbuf++ = rect.x + rect.width;
-			*pbuf++ = rect.y + rect.height;
-			*pbuf++ = rect.x + rect.width;
-			*pbuf++ = rect.y;
-			buf.unmap();
+			rectdata[ 0 ] = rect.x;
+			rectdata[ 1 ] = rect.y + rect.height;
+			rectdata[ 2 ] = rect.x;
+			rectdata[ 3 ] = rect.y;
+			rectdata[ 4 ] = rect.x + rect.width;
+			rectdata[ 5 ] = rect.y + rect.height;
+			rectdata[ 6 ] = rect.x + rect.width;
+			rectdata[ 7 ] = rect.y;
+			if( buf.size() < sizeof( GL_FLOAT ) * 8 )
+				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4, rectdata );
+			else
+				buf.setData( sizeof( GL_FLOAT ) * 8, rectdata );
 			_vao.setVertexData( buf, 2, GL_FLOAT );
 			_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 		} else if( frule == GFX::WINDING_NONZERO ) {
@@ -97,7 +102,11 @@ namespace cvt {
 			// draw triangle fan
 			for( int i = 0, end = polyset.size(); i < end; i++ ) {
 				const Polygonf& poly = polyset[ i ];
-				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * poly.size(), &poly[ 0 ] );
+				size_t size = sizeof( GL_FLOAT ) * 2 * poly.size();
+				if( buf.size() < size )
+					buf.alloc( GL_STREAM_DRAW, size, &poly[ 0 ] );
+				else
+					buf.setData( size, &poly[ 0 ] );
 			   _vao.setVertexData( buf, 2, GL_FLOAT );
 			   _vao.draw( GL_TRIANGLE_FAN, 0, poly.size() );
 			}
@@ -112,18 +121,18 @@ namespace cvt {
 			for( int i = 1, end = polyset.size(); i < end; i++ ) {
 				rect.join( polyset[ i ].bbox() );
 			}
-			buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4 );
-			GLfloat* pbuf;
-			pbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
-			*pbuf++ = rect.x;
-			*pbuf++ = rect.y + rect.height;
-			*pbuf++ = rect.x;
-			*pbuf++ = rect.y;
-			*pbuf++ = rect.x + rect.width;
-			*pbuf++ = rect.y + rect.height;
-			*pbuf++ = rect.x + rect.width;
-			*pbuf++ = rect.y;
-			buf.unmap();
+			rectdata[ 0 ] = rect.x;
+			rectdata[ 1 ] = rect.y + rect.height;
+			rectdata[ 2 ] = rect.x;
+			rectdata[ 3 ] = rect.y;
+			rectdata[ 4 ] = rect.x + rect.width;
+			rectdata[ 5 ] = rect.y + rect.height;
+			rectdata[ 6 ] = rect.x + rect.width;
+			rectdata[ 7 ] = rect.y;
+			if( buf.size() < sizeof( GL_FLOAT ) * 8 )
+				buf.alloc( GL_STREAM_DRAW, sizeof( GL_FLOAT ) * 2 * 4, rectdata );
+			else
+				buf.setData( sizeof( GL_FLOAT ) * 8, rectdata );
 			_vao.setVertexData( buf, 2, GL_FLOAT );
 			_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 		}
