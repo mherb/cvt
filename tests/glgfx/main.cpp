@@ -97,7 +97,7 @@ int main( int argc, char** argv )
 {
 	View ui;
 	Delegate<void ( BasicTimer* )> d( &ui, &View::timeout );
-	BasicTimer timer( 0 );
+	BasicTimer timer( 33 );
 	timer.timeout.add( &d );
 	timer.start();
 
