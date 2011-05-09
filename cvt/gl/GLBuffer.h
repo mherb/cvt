@@ -13,6 +13,7 @@ namespace cvt {
 			void unbind() const;
 			size_t size() const;
 			GLenum target() const;
+			void setData( size_t size, const void* data, size_t offset = 0 );
 
 			void* map( GLenum access = GL_READ_WRITE ) const;
 			void unmap() const;

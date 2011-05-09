@@ -1,4 +1,5 @@
 #include <cvt/gl/GLBuffer.h>
+#include <cvt/util/SIMD.h>
 
 namespace cvt {
 	
@@ -31,6 +32,16 @@ namespace cvt {
 		glBindBuffer( _target, _buffer );
 		_size = size;
 		glBufferData( _target, ( GLsizeiptr ) size, data, usage );
+		glBindBuffer( _target, 0 );
+	}
+
+
+	void GLBuffer::setData( size_t size, const void* data, size_t offset )
+	{
+		glBindBuffer( _target, _buffer );
+		if( ( offset + size ) > _size )
+			throw CVTException( "Provided size exceeds buffer size!" );
+		glBufferSubData( _target, offset, size, data );
 		glBindBuffer( _target, 0 );
 	}
 
