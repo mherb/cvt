@@ -250,7 +250,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<>
-	float Spline2<float>::flattenFirst( float tolerance ) const
+	inline float Spline2<float>::flattenFirst( float tolerance ) const
 	{
 		float t;
 		float s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -270,7 +270,7 @@ namespace cvt {
 	}
 
 	template<>
-	double Spline2<double>::flattenFirst( double tolerance ) const
+	inline double Spline2<double>::flattenFirst( double tolerance ) const
 	{
 		double t;
 		double s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -295,7 +295,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<typename T>
-	T Spline2<T>::flatten( T tolerance ) const
+	inline T Spline2<T>::flatten( T tolerance ) const
 	{
 		T t;
 		T s2 = ( _pts[ 2 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -317,7 +317,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<typename T>
-	T Spline2<T>::flattenOffset( T offset, T tolerance ) const
+	inline T Spline2<T>::flattenOffset( T offset, T tolerance ) const
 	{
 		T t;
 		T s2 = ( _pts[ 2 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -

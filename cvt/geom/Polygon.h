@@ -80,7 +80,8 @@ namespace cvt {
 	template<typename T>
 	inline void Polygon<T>::reset()
 	{
-		_pts.clear();
+		if( _pts.size() )
+			_pts.clear();
 	}
 
 	template<typename T>
@@ -186,6 +187,7 @@ namespace cvt {
 						break;
 				case Path<T>::PATHNODE_CLOSE:
 						if( poly.size() > 2 ) {
+							poly.addPoint( poly[ 0 ] );
 							addPolygon( poly );
 							current = poly[ 0 ];
 						} else

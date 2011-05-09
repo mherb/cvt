@@ -65,12 +65,13 @@ class View : public Window
 		g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
 		g->fillPath( _path, GFX::WINDING_EVEN_ODD );
 #else
+		g->setLineWidth( 0.0f );
 		g->color().set( 0.95f, 0.5f, 0.0f, 1.0f );
-		g->fillPath( p1 );
+		g->strokePath( p1 );
 		g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-		g->fillPath( p3 );
+		g->strokePath( p3 );
 		g->color().set( 1.0f, 0.95f, 0.9f, 1.0f );
-		g->fillPath( p2 );
+		g->strokePath( p2 );
 
 		frames++;
 

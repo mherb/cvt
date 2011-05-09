@@ -1,7 +1,7 @@
 #include <cvt/gl/GFXEngineGL.h>
 #include <cvt/io/Resources.h>
+#include <cvt/geom/Polygon.h>
 
-#include <iostream>
 
 namespace cvt {
 			GFXEngineGL::GFXEngineGL( GLContext* ctx ) : _ctx( ctx )
@@ -91,7 +91,22 @@ namespace cvt {
 			{}
 
 			void GFXEngineGL::strokePath( const Pathf& path, float width, const Color& c, GFX::StrokeStyle style )
-			{}
+			{
+				if( width <= 0.0f ) {
+					Matrix4f proj;
+					GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y );
+					basicp.bind();
+					basicp.setProjection( proj );
+					basicp.setColor( c );
+					PolygonSetf polyset( path );
+					// draw lines
+					for( int i = 0, end = polyset.size(); i < end; i++ ) {
+						const Polygonf& poly = polyset[ i ];
+						basicp.drawLines( &poly[ 0 ], poly.size(), 1.0f, GL_LINE_STRIP );
+					}
+					basicp.unbind();
+				}
+			}
 
 			void GFXEngineGL::fillPath( const Pathf& path, const Color& c, GFX::PolygonFillRule rule )
 			{

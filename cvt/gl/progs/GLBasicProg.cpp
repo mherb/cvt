@@ -42,35 +42,29 @@ namespace cvt {
 
 	void GLBasicProg::fillRect( int x, int y, int w, int h )
 	{
-		GLint* buf;
-		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
-		*buf++ = x;
-		*buf++ = y + h;
-		*buf++ = x;
-		*buf++ = y;
-		*buf++ = x + w;
-		*buf++ = y + h;
-		*buf++ = x + w;
-		*buf++ = y;
-		_vbo.unmap();
+		GLint buf[ 8 ];
+		buf[ 0 ] = x;
+		buf[ 1 ] = y + h;
+		buf[ 2 ] = x;
+		buf[ 3 ] = y;
+		buf[ 4 ] = x + w;
+		buf[ 5 ] = y + h;
+		buf[ 6 ] = x + w;
+		buf[ 7 ] = y;
+		_vbo.setData( sizeof( GLint ) * 8, buf );
 		_vao.setVertexData( _vbo, 2, GL_INT );
 		_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
 	}
 
-	void GLBasicProg::drawLines( const Vector2f* pts, size_t n, float width )
+	void GLBasicProg::drawLines( const Vector2f* pts, size_t n, float width, GLenum mode )
 	{
 		GLBuffer buf( GL_ARRAY_BUFFER );
-		SIMD* simd = SIMD::instance();
-		GLfloat* mbuf;
 
-		buf.alloc( GL_STREAM_DRAW, sizeof( GLfloat ) * 2 * n );
-		mbuf = ( GLfloat* ) buf.map( GL_WRITE_ONLY );
-		simd->Memcpy( ( uint8_t* ) mbuf, ( const uint8_t* ) pts, sizeof( GLfloat ) * 2 * n );
-		buf.unmap();
+		buf.alloc( GL_STREAM_DRAW, sizeof( GLfloat ) * 2 * n, pts );
 
 		glLineWidth( width );
 		_vao.setVertexData( buf, 2, GL_FLOAT );
-		_vao.draw( GL_LINES, 0, n );
+		_vao.draw( mode, 0, n );
 	}
 
 }
