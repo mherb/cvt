@@ -116,6 +116,11 @@ namespace cvt {
 		_engine->fillPath( path, _color, rule );
 	}
 
+	void GFX::strokePath( const Pathf& path )
+	{
+		_engine->strokePath( path, _linewidth, _color, GFX::STROKE_MITER );
+	}
+
 	const Font& GFX::font( ) const
 	{
 		return _engine->font();

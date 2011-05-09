@@ -61,6 +61,7 @@ namespace cvt {
 			void fillRoundRect( int x, int y, int width, int height, float radius );
 
 			void fillPath( const Pathf& path, GFX::PolygonFillRule rule = GFX::WINDING_NONZERO );
+			void strokePath( const Pathf& path );
 
 			const Font& font( ) const;
 			void drawText( int x, int y, const char* text );

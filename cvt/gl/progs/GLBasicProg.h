@@ -21,7 +21,7 @@ namespace cvt {
 			void setColor( const Color& color );
 			void fillRect( int x, int y, int w, int h );
 			void fillRect( const Recti& rect );
-			void drawLines( const Vector2f* pts, size_t n, float width );
+			void drawLines( const Vector2f* pts, size_t n, float width, GLenum mode = GL_LINES );
 
 		private:
 			GLVertexArray _vao;
