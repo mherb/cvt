@@ -21,8 +21,8 @@ namespace cvt {
 					int nx = 0, ny = 0;
 				    unsigned int nw, nh, b, d;
 
-				//	while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
-				//		;
+					while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
+						;
 
 					XGetGeometry( _dpy, xevent.xconfigure.window, &wp, &nx, &ny, &nw, &nh, &b, &d );
 					XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ) , 0, 0, &nx, &ny, &wp);
@@ -84,8 +84,8 @@ namespace cvt {
 						int nx = 0, ny = 0;
 						unsigned int nw, nh, b, d;
 
-					//	while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
-					//		;
+						while( XCheckTypedWindowEvent( _dpy, xevent.xconfigure.window, ConfigureNotify, &xevent ) )
+							;
 
 						XGetGeometry( _dpy, xevent.xconfigure.window, &wp, &nx, &ny, &nw, &nh, &b, &d );
 						XTranslateCoordinates( _dpy, xevent.xconfigure.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &nx, &ny, &wp);
