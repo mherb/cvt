@@ -1,5 +1,5 @@
-#ifndef CVT_SPLINE2_H
-#define CVT_SPLINE2_H
+#ifndef CVT_BEZIER_H
+#define CVT_BEZIER_H
 
 #include <cvt/math/Vector.h>
 #include <cvt/math/Math.h>
@@ -9,14 +9,14 @@ namespace cvt {
 	template<typename T> class Polygon;
 
 	template<typename T>
-	class Spline2 {
+	class Bezier {
 		public:
-			Spline2();
-			Spline2( const Spline2<T>& spl );
-			Spline2( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
-			Spline2( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
+			Bezier();
+			Bezier( const Bezier<T>& spl );
+			Bezier( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
+			Bezier( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
 
-			Spline2<T>& operator=( const Spline2<T>& spl );
+			Bezier<T>& operator=( const Bezier<T>& spl );
 
 			void set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  );
 			void set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& pt2 );
@@ -30,8 +30,8 @@ namespace cvt {
 			void addToPolygon( Polygon<T>& poly, T tolerance = ( T ) 1 / ( T ) 2 );
 
 			void remove( T t );
-			void split( Spline2<T>& out1, Spline2<T>& out2, T t ) const;
-			void splitHalf( Spline2<T>& out1, Spline2<T>& out2 ) const;
+			void split( Bezier<T>& out1, Bezier<T>& out2, T t ) const;
+			void splitHalf( Bezier<T>& out1, Bezier<T>& out2 ) const;
 
 			size_t inflectionPoints( T (&t)[ 2 ] ) const;
 			T flattenFirst( T tolerance ) const;
@@ -44,12 +44,12 @@ namespace cvt {
 	};
 
 	template<typename T>
-	inline Spline2<T>::Spline2()
+	inline Bezier<T>::Bezier()
 	{
 	}
 
 	template<typename T>
-	inline Spline2<T>::Spline2( const Spline2<T>& spl )
+	inline Bezier<T>::Bezier( const Bezier<T>& spl )
 	{
 		_pts[ 0 ] = spl._pts[ 0 ];
 		_pts[ 1 ] = spl._pts[ 1 ];
@@ -58,7 +58,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	Spline2<T>::Spline2( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  )
+	Bezier<T>::Bezier( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  )
 	{
 		_pts[ 0 ].x = x1;
 		_pts[ 0 ].y = y1;
@@ -71,7 +71,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	Spline2<T>::Spline2( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& p2 )
+	Bezier<T>::Bezier( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& p2 )
 	{
 		_pts[ 0 ] = p1;
 		_pts[ 1 ] = d1;
@@ -80,7 +80,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Spline2<T>& Spline2<T>::operator=( const Spline2<T>& spl )
+	inline Bezier<T>& Bezier<T>::operator=( const Bezier<T>& spl )
 	{
 		_pts[ 0 ] = spl._pts[ 0 ];
 		_pts[ 1 ] = spl._pts[ 1 ];
@@ -90,7 +90,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  )
+	void Bezier<T>::set( T x1, T y1, T dx1, T dy1, T dx2, T dy2, T x2, T y2  )
 	{
 		_pts[ 0 ].x = x1;
 		_pts[ 0 ].y = y1;
@@ -103,7 +103,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& p2 )
+	void Bezier<T>::set( const Vector2<T>& p1, const Vector2<T>& d1, const Vector2<T>& d2, const Vector2<T>& p2 )
 	{
 		_pts[ 0 ] = p1;
 		_pts[ 1 ] = d1;
@@ -112,19 +112,19 @@ namespace cvt {
 	}
 
 	template<typename T>
-	const Vector2<T>& Spline2<T>::operator[]( int x ) const
+	const Vector2<T>& Bezier<T>::operator[]( int x ) const
 	{
 		return _pts[ x ];
 	}
 
 	template<typename T>
-	Vector2<T>& Spline2<T>::operator[]( int x )
+	Vector2<T>& Bezier<T>::operator[]( int x )
 	{
 		return _pts[ x ];
 	}
 
 	template<typename T>
-	void Spline2<T>::samplePoint( Vector2<T>& pt, T t )
+	void Bezier<T>::samplePoint( Vector2<T>& pt, T t )
 	{
 		/* t (t (t (-p0+3 p1-3 p2+p3)+3 p0-6 p1+3 p2)-3 p0+3 p1)+p0 */
 		Vector2<T> tmp;
@@ -146,7 +146,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::sampleDerivative( Vector2<T>& pt, T t )
+	void Bezier<T>::sampleDerivative( Vector2<T>& pt, T t )
 	{
 		/* 3 (t (t (-p0+3 p1-3 p2+p3)+2 (p0-2 p1+p2))-p0+p1) */
 		Vector2<T> tmp;
@@ -166,7 +166,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::remove( T t )
+	void Bezier<T>::remove( T t )
 	{
 		Vector2<T> dummy[ 5 ];
 
@@ -181,7 +181,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::split( Spline2<T>& out1, Spline2<T>& out2, T t ) const
+	void Bezier<T>::split( Bezier<T>& out1, Bezier<T>& out2, T t ) const
 	{
 		Vector2<T> dummy;
 
@@ -197,7 +197,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	void Spline2<T>::splitHalf( Spline2<T>& out1, Spline2<T>& out2 ) const
+	void Bezier<T>::splitHalf( Bezier<T>& out1, Bezier<T>& out2 ) const
 	{
 		Vector2<T> dummy;
 		T half = ( T ) 1 / ( T ) 2;
@@ -214,7 +214,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	size_t Spline2<T>::inflectionPoints( T (&t)[ 2 ] ) const
+	size_t Bezier<T>::inflectionPoints( T (&t)[ 2 ] ) const
 	{
 		Vector2<T> a, b, c;
 		size_t n;
@@ -250,7 +250,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<>
-	inline float Spline2<float>::flattenFirst( float tolerance ) const
+	inline float Bezier<float>::flattenFirst( float tolerance ) const
 	{
 		float t;
 		float s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -270,7 +270,7 @@ namespace cvt {
 	}
 
 	template<>
-	inline double Spline2<double>::flattenFirst( double tolerance ) const
+	inline double Bezier<double>::flattenFirst( double tolerance ) const
 	{
 		double t;
 		double s3 = ( _pts[ 3 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -295,7 +295,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<typename T>
-	inline T Spline2<T>::flatten( T tolerance ) const
+	inline T Bezier<T>::flatten( T tolerance ) const
 	{
 		T t;
 		T s2 = ( _pts[ 2 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -317,7 +317,7 @@ namespace cvt {
     from Thomas F. Hain, Athar L. Ahmad, Sri Venkat R. Racherla, David D. Langan
  */
 	template<typename T>
-	inline T Spline2<T>::flattenOffset( T offset, T tolerance ) const
+	inline T Bezier<T>::flattenOffset( T offset, T tolerance ) const
 	{
 		T t;
 		T s2 = ( _pts[ 2 ].x - _pts[ 0 ].x ) * ( _pts[ 1 ].y - _pts[ 0 ].y ) -
@@ -350,10 +350,10 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Spline2<T>::addToPolygon( Polygon<T>& poly, T tolerance )
+	inline void Bezier<T>::addToPolygon( Polygon<T>& poly, T tolerance )
 	{
-		Spline2<T> stack[ 32 ];
-		Spline2<T>* spl = stack;
+		Bezier<T> stack[ 32 ];
+		Bezier<T>* spl = stack;
 		stack[ 0 ] = *this;
 
 		poly.addPoint( _pts[ 0 ] );
@@ -380,7 +380,7 @@ namespace cvt {
 		}
 	}
 
-	typedef Spline2<float> Spline2f;
+	typedef Bezier<float> Bezierf;
 }
 
 #endif

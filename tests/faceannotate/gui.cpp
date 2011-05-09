@@ -1,6 +1,5 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
-#include <cvt/math/Spline2.h>
 #include <cvt/util/String.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/io/xml/XMLDocument.h>

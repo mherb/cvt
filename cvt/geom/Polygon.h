@@ -4,12 +4,12 @@
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Path.h>
-#include <cvt/math/Spline2.h>
+#include <cvt/geom/Bezier.h>
 #include <cvt/geom/Rect.h>
 #include <vector>
 
 namespace cvt {
-	template<typename T> class Spline2;
+	template<typename T> class Bezier;
 
 	template<typename T>
 	class Polygon {
@@ -196,12 +196,12 @@ namespace cvt {
 						break;
 				case Path<T>::PATHNODE_CURVE:
 						if( poly.size() ) {
-							Spline2<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
+							Bezier<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
 							spline.addToPolygon( poly, tolerance );
 #if 0
 							/* flatten the spline */
-							Spline2<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
-							Spline2<T> a, b, c;
+							Bezier<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
+							Bezier<T> a, b, c;
 							size_t n;
 							T t[ 2 ], alpha;
 

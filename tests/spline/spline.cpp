@@ -1,11 +1,11 @@
-#include <cvt/math/Spline2.h>
+#include <cvt/geom/Bezier.h>
 
 using namespace cvt;
 
 int main()
 {
- Spline2f spl( 0.0f, 0.0f, 50.0f, 20.0f, -10.0f, 20.0f, 40.0f, 0.0f );
- Spline2f spl1, spl2;
+ Bezierf spl( 0.0f, 0.0f, 50.0f, 20.0f, -10.0f, 20.0f, 40.0f, 0.0f );
+ Bezierf spl1, spl2;
  Vector2f pt, norm;
  float t;
 
