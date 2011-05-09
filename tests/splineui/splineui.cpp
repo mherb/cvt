@@ -1,6 +1,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
-#include <cvt/math/Spline2.h>
+#include <cvt/geom/Bezier.h>
 
 using namespace cvt;
 
@@ -12,7 +12,7 @@ class SplineUI : public Window
 	}
 
 #if 1
-	void drawSpline( GFX* g, const Spline2f& spl )
+	void drawSpline( GFX* g, const Bezierf& spl )
 	{
 //#define TEPS 0.01f
 #define TOLERANCE 0.5f
@@ -20,7 +20,7 @@ class SplineUI : public Window
 		size_t n;
 		float t[ 2 ], alpha;
 		n = spl.inflectionPoints( t );
-		Spline2f a, b, c;
+		Bezierf a, b, c;
 
 			std::vector<Vector2f> lines;
 			if( n )
@@ -134,7 +134,7 @@ class SplineUI : public Window
 
 			g->color().set( 0.0f, 0.0f, 1.0f, 0.25f );
 
-			Spline2f a, b;
+			Bezierf a, b;
 			if( n ) {
 				_spline.split( a, b, t[ 0 ] );
 				g->fillRect( a[ 3 ].x - 4, a[ 3 ].y - 4,  8, 8 );
@@ -194,7 +194,7 @@ class SplineUI : public Window
 
 	private:
 		int _selection;
-		Spline2f _spline;
+		Bezierf _spline;
 };
 
 int main()
