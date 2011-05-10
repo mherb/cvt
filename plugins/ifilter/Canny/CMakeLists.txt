@@ -1,2 +1,2 @@
 INCLUDE(MacroPlugin)
-MACRO_PLUGIN( "Canny" "" )
+MACRO_PLUGIN( "Canny" "" "" )
