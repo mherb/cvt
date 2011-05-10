@@ -1,2 +1,2 @@
 INCLUDE(MacroPlugin)
-MACRO_PLUGIN( "Dummy" "" )
+MACRO_PLUGIN( "Dummy" "" "" )
