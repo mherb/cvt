@@ -151,6 +151,7 @@ namespace cvt {
 	    Recti crect = gfx->childrect( );
 		/* get child rectangle */
 		Recti rchild = w->rect();
+		rchild.intersect( crect );
 
 		/* set new childrect */
 		gfx->setChildrect( rchild );

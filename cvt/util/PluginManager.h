@@ -15,8 +15,8 @@ namespace cvt {
 			void loadPlugin( const std::string& path );
 			void loadDefault();
 
-			const IFilter* getIFilter( size_t i ) const;
-			const IFilter* getIFilter( const std::string& name ) const;
+			IFilter* getIFilter( size_t i ) const;
+			IFilter* getIFilter( const std::string& name ) const;
 			size_t getIFilterSize() const;
 
 		private:
@@ -69,12 +69,12 @@ namespace cvt {
 	}
 
 
-	inline const IFilter* PluginManager::getIFilter( size_t n ) const
+	inline IFilter* PluginManager::getIFilter( size_t n ) const
 	{
 		return _ifilters[ n ];
 	}
 
-	inline const IFilter* PluginManager::getIFilter( const std::string& name ) const
+	inline IFilter* PluginManager::getIFilter( const std::string& name ) const
 	{
 		std::map< const std::string, IFilter*>::const_iterator it;
 		if( ( it = _ifiltermap.find( name ) ) != _ifiltermap.end() ) {
