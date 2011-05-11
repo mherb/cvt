@@ -163,7 +163,7 @@ int main( )
 
 	Button button( "Quit" );
 	Delegate<void ()> dquit( &Application::exit );
-	button.clicked.add( &dquit );
+	button.clicked.add( dquit );
     WidgetLayout wl;
     wl.setAnchoredRight( 10, 50 );
     wl.setAnchoredBottom( 10, 20 );

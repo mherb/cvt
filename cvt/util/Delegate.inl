@@ -15,6 +15,8 @@ class DelegateImpl<T0 ( TYPELIST )>
 		virtual ~DelegateImpl() {}
 		virtual T0 invoke( TYPELIST ) const = 0;
 		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const = 0;
+		virtual bool operator==( const DelegateImpl& dimp ) const = 0;
+		virtual bool operator!=( const DelegateImpl& dimp ) const { return !( *this == dimp );}
 };
 
 /* Delegate implementation for pointer to member */
@@ -34,6 +36,14 @@ class DelegateMember<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 		virtual DelegateImpl<T0 ( TYPELIST )>* clone() const
 		{
 			return new DelegateMember<T, T0 ( TYPELIST )>( _obj, _mptr );
+		}
+
+		virtual bool operator==( const DelegateImpl<T0 ( TYPELIST )>& dimp ) const
+		{
+			const DelegateMember<T, T0 ( TYPELIST )>* other = dynamic_cast<const DelegateMember<T, T0 ( TYPELIST )>*>( &dimp );
+			if( !other )
+				return false;
+			return ( _obj == other->_obj && _mptr == other->_mptr );
 		}
 
 	private:
@@ -60,6 +70,14 @@ class DelegateMemberConst<T, T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIS
 			return new DelegateMemberConst<T, T0 ( TYPELIST )>( _obj, _mptr );
 		}
 
+		virtual bool operator==( const DelegateImpl<T0 ( TYPELIST )>& dimp ) const
+		{
+			const DelegateMemberConst<T, T0 ( TYPELIST )>* other = dynamic_cast<const DelegateMemberConst<T, T0 ( TYPELIST )>*>( &dimp );
+			if( !other )
+				return false;
+			return ( _obj == other->_obj && _mptr == other->_mptr );
+		}
+
 	private:
 		T* _obj;
 		MemberPtr _mptr;
@@ -84,6 +102,13 @@ class DelegateFunction<T0 ( TYPELIST )> : public DelegateImpl<T0 ( TYPELIST )>
 			return new DelegateFunction<T0 ( TYPELIST )>( _fptr );
 		}
 
+		virtual bool operator==( const DelegateImpl<T0 ( TYPELIST )>& dimp ) const
+		{
+			const DelegateFunction<T0 ( TYPELIST )>* other = dynamic_cast<const DelegateFunction<T0 ( TYPELIST )>*>( &dimp );
+			if( !other )
+				return false;
+			return _fptr == other->_fptr;
+		}
 	private:
 		FuncPtr _fptr;
 };
@@ -120,9 +145,19 @@ class Delegate<T0 ( TYPELIST )>
 			delete _impl;
 		}
 
-		inline T0 operator()( TYPEARGLIST ) const
+		T0 operator()( TYPEARGLIST ) const
 		{
 			return _impl->invoke( ARGLIST );
+		}
+
+		bool operator==( const Delegate& other ) const
+		{
+			return *_impl ==  *( other._impl );
+		}
+
+		bool operator!=( const Delegate& other ) const
+		{
+			return *_impl !=  *( other._impl );
 		}
 
 	private:

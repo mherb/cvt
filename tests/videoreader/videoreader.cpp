@@ -17,8 +17,8 @@ public:
         Window( "VideoPlayer" ), _video( videoFile, true ), _timer( 10 ), _frames( 0 )
 	{
         // register a timer to retrieve the next video frame
-        _captureDelegate = new Delegate<void ( BasicTimer* )>( this, &VideoPlayer::capture );
-        _timer.timeout.add( _captureDelegate );
+        Delegate<void ( BasicTimer* )> capturedelegate( this, &VideoPlayer::capture );
+        _timer.timeout.add( capturedelegate );
         _timer.start();
         
         _video.nextFrame();

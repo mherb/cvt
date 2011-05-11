@@ -46,8 +46,8 @@ class CameraApp : public Window
 			_iter = 0;
 			_timeSum = 0;
 
-            _loopDelegate = new Delegate<void ( BasicTimer* )>( this, &CameraApp::runloop );
-            _loopTimer.timeout.add( _loopDelegate );
+            Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
+            _loopTimer.timeout.add( loopDelegate );
             _loopTimer.start();
 		}
 
@@ -62,16 +62,16 @@ class CameraApp : public Window
             addWidget( _moveable );
 
             _quitButton = new Button( "Quit" );
-            _quit = new Delegate<void ()>( &Application::exit );
-            _quitButton->clicked.add( _quit );
+            Delegate<void ()> quit( &Application::exit );
+            _quitButton->clicked.add( quit );
 
             _pauseButton = new Button( "Pause" );
-            _pauseDelegate = new Delegate<void ()>( this, &CameraApp::pauseClicked );
-            _pauseButton->clicked.add( _pauseDelegate );
+            Delegate<void ()> pause( this, &CameraApp::pauseClicked );
+            _pauseButton->clicked.add( pause );
 
             _nextButton = new Button( "Next Frame" );
-            _nextDelegate = new Delegate<void ()>( this, &CameraApp::nextClicked );
-            _nextButton->clicked.add( _nextDelegate );
+            Delegate<void ()> next( this, &CameraApp::nextClicked );
+            _nextButton->clicked.add( next );
 
             WidgetLayout wl;
             wl.setAnchoredRight( 10, 100 );
@@ -83,12 +83,12 @@ class CameraApp : public Window
             addWidget( _pauseButton, wl );
 
 			_nccThreshold = new Slider<float>( 0.0f, 1.0f, 0.8f );
-			_nccSliderChanged = new Delegate<void ( float )>( &_featureTracker, &FeatureTracker::setNccThreshold );
-			_nccThreshold->valueChanged.add( _nccSliderChanged );
+			Delegate<void ( float )> nccsliderchanged( &_featureTracker, &FeatureTracker::setNccThreshold );
+			_nccThreshold->valueChanged.add( nccsliderchanged );
 
 			_cornerThreshold = new Slider<int>( 10, 100, 20 );
-			_cornerSliderChanged = new Delegate<void ( int )>( &_featureTracker, &FeatureTracker::setCornerThreshold );
-			_cornerThreshold->valueChanged.add( _cornerSliderChanged );
+			Delegate<void ( int )> cornersliderchanged( &_featureTracker, &FeatureTracker::setCornerThreshold );
+			_cornerThreshold->valueChanged.add( cornersliderchanged );
 
 			//wl.setAnchoredRight( 70, 100 );
 			wl.setAnchoredBottom( 100, 20 );
@@ -101,16 +101,14 @@ class CameraApp : public Window
 
 		~CameraApp()
 		{
-            _loopTimer.timeout.remove( _loopDelegate );
-            delete _loopDelegate;
+            Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
+            _loopTimer.timeout.remove( loopDelegate );
 
-            _quitButton->clicked.remove( _quit );
-            delete _quit;
+		 	Delegate<void ()> quit( &Application::exit );
+            _quitButton->clicked.remove( quit );
             delete _quitButton;
 			delete _nccThreshold;
 			delete _cornerThreshold;
-			delete _cornerSliderChanged;
-			delete _nccSliderChanged;
 		}
 
         void pauseClicked()
@@ -179,12 +177,6 @@ class CameraApp : public Window
 		FeatureTracker          _featureTracker;
 
         BasicTimer                         _loopTimer;
-
-        // delegates
-        Delegate<void ( BasicTimer* ) >*   _loopDelegate;
-        Delegate<void () >*                _quit;
-        Delegate<void () >*                _pauseDelegate;
-        Delegate<void () >*                _nextDelegate;
 
 		Slider<float> *	_nccThreshold;
 		Slider<int>	  *	_cornerThreshold;
