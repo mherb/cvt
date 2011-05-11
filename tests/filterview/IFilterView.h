@@ -30,7 +30,8 @@ namespace cvt {
 		for( size_t i = 0; i < _pset->size(); i++ ) {
 			parameterToWidget( _pset->paramInfo( i ) );
 		}
-//		setMinimumSize( 100, _pwidgets.size() * 25 );
+		//FIXME: use label minsize resp. join of child minsize
+		setMinimumSize( 100, _pwidgets.size() * 25 );
 	}
 
 	inline IFilterView::~IFilterView()
@@ -43,6 +44,7 @@ namespace cvt {
 	inline void IFilterView::parameterToWidget( const ParamInfo* pinfo )
 	{
 		Label* label = new Label( pinfo->name.c_str(), pinfo->isInput?( ALIGN_LEFT | ALIGN_VCENTER ) : ( ALIGN_RIGHT | ALIGN_VCENTER ) );
+		label->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 		size_t num = _pwidgets.size();
 		_pwidgets.push_back( label );
 		WidgetLayout wl;
@@ -56,7 +58,7 @@ namespace cvt {
 		int w, h;
 
 		size( w, h );
-		gfx->color().set( 0.7f, 0.7f, 0.7f, 0.8f );
+		gfx->color().set( 0.6f, 0.6f, 0.6f, 0.8f );
 		gfx->fillRoundRect( 0, 0, w, h, 5.0f );
 
 		Recti r = rect();

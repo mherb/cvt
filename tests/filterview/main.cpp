@@ -11,7 +11,7 @@ using namespace cvt;
 
 int main()
 {
-	cvt::Window w( "Test" );
+	cvt::Window w( "IFilterView - Test" );
     w.setSize( 640, 480 );
     w.setVisible( true );
     w.setMinimumSize( 320, 240 );
