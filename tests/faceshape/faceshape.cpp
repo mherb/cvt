@@ -21,7 +21,7 @@ struct ASFEntry
 class FaceShapeWin : public Window
 {
 	public:
-	FaceShapeWin( const std::string& pngfile, const std::string& asffile ) : Window( asffile )
+	FaceShapeWin( const std::string& pngfile, const std::string& asffile ) : Window( asffile.c_str() )
 	{
 		/* read png stuff */
 		Image png;

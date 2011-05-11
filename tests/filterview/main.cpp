@@ -6,12 +6,13 @@
 #include <cvt/util/PluginManager.h>
 
 #include "IFilterView.h"
+#include "IFilterWindow.h"
 
 using namespace cvt;
 
 int main()
 {
-	cvt::Window w( "IFilterView - Test" );
+	IFilterWindow w( "IFilterView - Test" );
     w.setSize( 640, 480 );
     w.setVisible( true );
     w.setMinimumSize( 320, 240 );

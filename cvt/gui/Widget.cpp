@@ -6,28 +6,28 @@
 namespace cvt {
 	Widget::Widget( bool toplevel ) : _toplevel( toplevel )
 	{
-	    if( _toplevel )
-		impl = Application::instance()->registerWindow( this );
-	    else
-		impl = new WidgetImplDefault( this );
+		if( _toplevel )
+			impl = Application::instance()->registerWindow( this );
+		else
+			impl = new WidgetImplDefault( this );
 	}
 
 	Widget::~Widget( )
 	{
-	    if( _toplevel )
-		Application::instance()->unregisterWindow( impl );
-	    delete impl;
+		if( _toplevel )
+			Application::instance()->unregisterWindow( impl );
+		delete impl;
 	}
 
 	Widget* Widget::parent() const
 	{
-	    return impl->parent();
+		return impl->parent();
 	}
 
 	void Widget::setParent( Widget* w )
 	{
-	    if( !_toplevel )
-		impl->setParent( w );
+		if( !_toplevel )
+			impl->setParent( w );
 	}
 
 	void Widget::setSize( int width, int height )
@@ -70,50 +70,50 @@ namespace cvt {
 		return impl->isVisible();
 	}
 
-	void Widget::setTitle( const std::string& title )
+	void Widget::setTitle( const String& title )
 	{
 		impl->setTitle( title );
 	}
 
 	void Widget::setMinimumSize( int width, int height )
 	{
-	    impl->setMinimumSize( width, height );
+		impl->setMinimumSize( width, height );
 	}
 
 	void Widget::setMaximumSize( int width, int height )
 	{
-	    impl->setMaximumSize( width, height );
+		impl->setMaximumSize( width, height );
 	}
 
 	void Widget::minimumSize( int& w, int& h )
 	{
-	    impl->minimumSize( w, h );
+		impl->minimumSize( w, h );
 	}
 
 	void Widget::maximumSize( int& w, int& h )
 	{
-	    impl->maximumSize( w, h );
+		impl->maximumSize( w, h );
 	}
 
 	void Widget::update()
 	{
-	    impl->update();
+		impl->update();
 	}
 
 
 	void Widget::update( const Recti& rect )
 	{
-	    impl->update( rect );
+		impl->update( rect );
 	}
 
 	void Widget::raise()
 	{
-			impl->raise();
+		impl->raise();
 	}
 
 	void Widget::lower()
 	{
-			impl->lower();
+		impl->lower();
 	}
 
 	void Widget::mapGlobal( int&x, int& y )
@@ -148,7 +148,7 @@ namespace cvt {
 		// FIXME: is rect in local coords or in child coords
 
 		/* get current childrect */
-	    Recti crect = gfx->childrect( );
+		Recti crect = gfx->childrect( );
 		/* get child rectangle */
 		Recti rchild = w->rect();
 		rchild.intersect( crect );

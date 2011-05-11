@@ -178,7 +178,7 @@ namespace cvt {
 						current = node.pt[ 0 ];
 						break;
 				case Path<T>::PATHNODE_MOVE:
-						if( poly.size() > 2 ) {
+						if( poly.size() > 1 ) {
 							addPolygon( poly );
 						}
 						poly.reset();
@@ -186,7 +186,7 @@ namespace cvt {
 						current = node.pt[ 0 ];
 						break;
 				case Path<T>::PATHNODE_CLOSE:
-						if( poly.size() > 2 ) {
+						if( poly.size() > 1 ) {
 							poly.addPoint( poly[ 0 ] );
 							addPolygon( poly );
 							current = poly[ 0 ];
@@ -272,6 +272,10 @@ namespace cvt {
 						break;
 			}
 		}
+		if( poly.size() > 1 ) {
+			addPolygon( poly );
+		}
+
 	}
 }
 

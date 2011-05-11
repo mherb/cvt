@@ -4,6 +4,7 @@
 #include <cvt/geom/Rect.h>
 #include <cvt/gui/Widget.h>
 #include <cvt/gui/Window.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 	class WidgetImpl {
@@ -17,7 +18,7 @@ namespace cvt {
 			virtual const Recti&  rect() const = 0;
 			virtual void	    setVisible( bool visibility ) = 0;
 			virtual bool	    isVisible() const = 0;
-			virtual void	    setTitle( const std::string& ) {};
+			virtual void	    setTitle( const String& ) {};
 			virtual void		raise() = 0;
 			virtual void		lower() = 0;
 			virtual void	    update() = 0;

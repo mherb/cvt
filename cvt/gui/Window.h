@@ -3,13 +3,14 @@
 
 #include <cvt/gfx/Drawable.h>
 #include <cvt/gui/WidgetContainer.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 
 	class Window : public WidgetContainer, public Drawable
 	{
 		public:
-			Window( const std::string& title );
+			Window( const String& title );
 			virtual ~Window();
 
 			virtual void closeEvent( CloseEvent* event );

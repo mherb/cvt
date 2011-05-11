@@ -3,7 +3,7 @@
 
 
 namespace cvt {
-	WidgetContainer::WidgetContainer()
+	WidgetContainer::WidgetContainer() : Widget( false ), _activeWidget( NULL )
 	{
 
 	}
@@ -32,8 +32,13 @@ namespace cvt {
 			}
 
 			Recti r = w->rect();
-			if( r.contains( x, y ) )
-				return w;
+			if( r.contains( x, y ) ) {
+				Widget* cw ;
+				if( ( cw = w->childAt( x, y ) ) )
+					return cw;
+				else
+					return w;
+			}
 			++it;
 		}
 		return NULL;

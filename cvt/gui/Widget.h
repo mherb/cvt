@@ -4,6 +4,7 @@
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/GFX.h>
 #include <cvt/gui/Events.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 	class WidgetImpl;
@@ -33,7 +34,7 @@ namespace cvt {
 			void hide() { setVisible( false ); };
 			void raise();
 			void lower();
-			void setTitle( const std::string& title );
+			void setTitle( const String& title );
 			void setMinimumSize( int width, int height );
 			void setMaximumSize( int width, int height );
 			void minimumSize( int& w, int& h );
@@ -42,6 +43,7 @@ namespace cvt {
 			void update( const Recti& rect );
 			void mapGlobal( int&x, int& y );
 			void mapLocal( int& x, int& y );
+			virtual Widget* childAt( int , int ) { return NULL; };
 
 		protected:
 			virtual void resizeEvent( ResizeEvent* ) {};
