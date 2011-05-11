@@ -30,7 +30,8 @@ namespace cvt {
 					ICON_CIRCLEUP,
 					ICON_CIRCLEDOWN,
 					ICON_CORNER,
-					ICON_CROSS };
+					ICON_CROSS,
+					ICON_CIRCLEEMPTY };
 
 			GFX();
 			GFX( const GFX& g );

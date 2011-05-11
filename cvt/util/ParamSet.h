@@ -39,7 +39,8 @@ namespace cvt
 			const std::string & selectionString( size_t handle );
         
             size_t  size() const { return _numParameters; }
-        
+       
+		   	const ParamInfo* paramInfo( size_t i ) const;
 
 		private:
 			uint8_t *	_parameterMem;
@@ -106,6 +107,14 @@ namespace cvt
 		Selection current = this->arg<Selection>( handle );
 		
 		return ( ( ParamInfoTyped<Selection>* )p )->description( current );
+	}
+
+
+	inline const ParamInfo* ParamSet::paramInfo( size_t i ) const
+	{
+		if( i >= _numParameters )
+			throw CVTException( "Out of parameter bounds!" );
+		return _pInfos[ i ];
 	}
 }
 

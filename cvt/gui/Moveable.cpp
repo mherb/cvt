@@ -15,6 +15,11 @@ namespace cvt {
 			layout.setAnchoredLeftRight( 8, 8 );
 			layout.setAnchoredTopBottom( 20, 8 );
 			addWidget( _child, layout );
+			int mw, mh;
+			child->minimumSize( mw, mh );
+			setMinimumSize( mw + 16, mh + 28 );
+			child->maximumSize( mw, mh );
+			setMaximumSize( mw + 16, mh + 28 );
 		}
 		layout.setAnchoredRight( 2, 16 );
 		layout.setAnchoredTop( 2, 16 );
@@ -27,10 +32,11 @@ namespace cvt {
 
 	}
 
-	void Moveable::setTitle( const std::string& title )
+	void Moveable::setTitle( const String& title )
 	{
 		_title = title;
 	}
+
 	void Moveable::paintEvent( PaintEvent* , GFX* gfx )
 	{
 		int w, h;
@@ -69,10 +75,14 @@ namespace cvt {
 			if( _child )
 				_child->setVisible( false );
 			_oldheight = h;
+			setMinimumSize( 0, 0 );
 			setSize( w, 20 );
 		} else {
 			if( _child )
 				_child->setVisible( true );
+			int mw, mh;
+			_child->minimumSize( mw, mh );
+			setMinimumSize( mw + 16, mh + 28 );
 			setSize( w, _oldheight );
 		}
 		update();

@@ -44,7 +44,7 @@ namespace cvt {
 	};
 
 
-	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _widget( w ), _parent( NULL ), _rect( 0, 0, 1, 1), _visible( false ), _minSize( 1, 1 )
+	inline WidgetImplDefault::WidgetImplDefault( Widget* w ) : _widget( w ), _parent( NULL ), _rect( 0, 0, 1, 1), _visible( false ), _minSize( 0, 0 ), _maxSize( 32768, 32768 )
 	{
 	}
 
@@ -58,8 +58,8 @@ namespace cvt {
 		if( _rect.width == width && _rect.height == height )
 			return;
 
-		width  = Math::max( width, 0 );
-		height = Math::max( height, 0 );
+		width  = Math::min( Math::max( width, _minSize[ 0 ] ), _maxSize[ 0 ] );
+		height = Math::min( Math::max( height,_minSize[ 1 ] ), _maxSize[ 1 ] );
 		ResizeEvent re( width, height, _rect.width, _rect.height );
 		_rect.width  = width;
 		_rect.height = height;
