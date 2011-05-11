@@ -16,6 +16,8 @@ namespace cvt {
 			void setLabel( const String& label );
 			Alignment labelAlignment() const;
 			void setLabelAlignment( Alignment a );
+			const Color& color() const;
+			Color& color();
 
 		private:
 			void paintEvent( PaintEvent* e, GFX* g );
@@ -23,7 +25,7 @@ namespace cvt {
 
 			String _label;
 			Alignment _aligment;
-
+			Color _color;
 	};
 
 	inline const String& Label::label() const
@@ -46,6 +48,16 @@ namespace cvt {
 	{
 		_aligment = a;
 		update();
+	}
+
+	inline const Color& Label::color() const
+	{
+		return _color;
+	}
+
+	inline Color& Label::color()
+	{
+		return _color;
 	}
 
 }
