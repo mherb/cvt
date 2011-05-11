@@ -4,6 +4,7 @@
 #include <cvt/gui/WidgetLayout.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gfx/Image.h>
+#include <cvt/util/String.h>
 
 #include <iostream>
 
@@ -15,7 +16,7 @@
 
 using namespace cvt;
 
-int FilterApp::run( const std::string & title )
+int FilterApp::run( const String& title )
 {
 	try {
 		FilterApp app( title );
@@ -28,7 +29,7 @@ int FilterApp::run( const std::string & title )
 	return 0;
 }
 
-FilterApp::FilterApp( const std::string & name ) : 
+FilterApp::FilterApp( const String & name ) : 
 	cvt::TimeoutHandler(),
 	_appWindow( name ), 
 	_quitButton( "Quit" ),

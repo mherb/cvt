@@ -9,6 +9,7 @@
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gl/GFXEngineGL.h>
+#include <cvt/util/String.h>
 #include <deque>
 
 namespace cvt {
@@ -21,7 +22,7 @@ namespace cvt {
 		public:
 			WidgetImplWinGLX11( ::Display* dpy, const GLXContext* sharecontext, Widget* _window, std::deque<WidgetImplWinGLX11*>* updates );
 			~WidgetImplWinGLX11();
-			virtual void setTitle( const std::string& title );
+			virtual void setTitle( const String& title );
 			virtual void setRect( const Recti& rect );
 			virtual const Recti& rect( ) const { return _rect; };
 			virtual void size( int& width, int& height ) const;

@@ -12,15 +12,16 @@
 #include <cvt/util/ParamSet.h>
 #include <cvt/util/Time.h>
 #include <cvt/cl/CLContext.h>
+#include <cvt/util/String.h>
 
 class FilterApp : public cvt::TimeoutHandler
 {
 	public:		
 		void onTimeout();
-		static int run( const std::string & title );
+		static int run( const cvt::String & title );
 		
 	private:
-		FilterApp( const std::string & name );
+		FilterApp( const cvt::String & name );
 		~FilterApp();
 		void initFilter();
 		void initCamera();

@@ -59,6 +59,7 @@ namespace cvt {
 			// draw triangle fan
 			for( int i = 0, end = polyset.size(); i < end; i++ ) {
 				const Polygonf& poly = polyset[ i ];
+				if( poly.size() < 3 ) continue;
 				size_t size = sizeof( GL_FLOAT ) * 2 * poly.size();
 				if( buf.size() < size )
 					buf.alloc( GL_STREAM_DRAW, size, &poly[ 0 ] );
@@ -102,6 +103,7 @@ namespace cvt {
 			// draw triangle fan
 			for( int i = 0, end = polyset.size(); i < end; i++ ) {
 				const Polygonf& poly = polyset[ i ];
+				if( poly.size() < 3 ) continue;
 				size_t size = sizeof( GL_FLOAT ) * 2 * poly.size();
 				if( buf.size() < size )
 					buf.alloc( GL_STREAM_DRAW, size, &poly[ 0 ] );

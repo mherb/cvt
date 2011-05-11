@@ -62,16 +62,16 @@ namespace cvt {
 		::XMoveWindow( dpy, win, x, y );
 	}
 
-	void WidgetImplWinGLX11::setTitle( const std::string& title )
+	void WidgetImplWinGLX11::setTitle( const String& title )
 	{
-		char buffer[ 128 ];
+//		char buffer[ 128 ];
 
-		title.copy( buffer, 128 );
+//		title.copy( buffer, 128 );
 		::XTextProperty windowName;
-		windowName.value    = ( unsigned char* ) buffer;
+		windowName.value    = ( unsigned char* ) title.c_str();
 		windowName.encoding = XA_STRING;
 		windowName.format   = 8;
-		windowName.nitems   = Math::min( ( int ) title.length(), 128 );
+		windowName.nitems   = title.length();
 
 		::XSetWMName( dpy, win, &windowName );
 	}

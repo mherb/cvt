@@ -4,7 +4,7 @@
 #include <cstdio>
 
 namespace cvt {
-	Window::Window( const std::string& title ) : WidgetContainer( true )
+	Window::Window( const String& title ) : WidgetContainer( true )
 	{
 		setTitle( title );
 		return;
