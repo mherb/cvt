@@ -99,7 +99,7 @@ int main( int argc, char** argv )
 	View ui;
 	Delegate<void ( BasicTimer* )> d( &ui, &View::timeout );
 	BasicTimer timer( 33 );
-	timer.timeout.add( &d );
+	timer.timeout.add( d );
 	timer.start();
 
 	ui.setSize( 640, 480 );

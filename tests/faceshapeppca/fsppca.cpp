@@ -374,7 +374,7 @@ int main( int argc, char** argv )
 		wlslider.setAnchoredTop( num * 20 + 8 , 12 ); \
 		win.addWidget( &slider[ num ], wlslider ); \
 		Delegate<void (float)> sliderChange##num( &win, &FaceShapeWin::setWeight<num> ); \
-		slider[ num ].valueChanged.add( &sliderChange##num );
+		slider[ num ].valueChanged.add( sliderChange##num );
 	SLIDERN( 0 )
 	SLIDERN( 1 )
 	SLIDERN( 2 )

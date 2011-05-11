@@ -39,7 +39,7 @@ int main()
 
     Button button( "Quit" );
 	Delegate<void ()> dquit( &Application::exit );
-	button.clicked.add( &dquit );
+	button.clicked.add( dquit );
 
 	Slider<float> slider( 0, 1.0f, 1.0f );
     WidgetLayout wlslider;
@@ -57,7 +57,7 @@ int main()
 	m.setSize( 200, 200 );
 	w.addWidget( &m );
 	Delegate<void (float)> sliderChange( &view, &ImageView::setAlpha );
-	slider.valueChanged.add( &sliderChange );
+	slider.valueChanged.add( sliderChange );
 
 	view.setImage( img );
 
@@ -70,7 +70,7 @@ int main()
 
 	BasicTimer t( 0 );
 	Delegate<void (BasicTimer*)> d( timeout );
-	t.timeout.add( &d );
+	t.timeout.add( d );
 	t.start();
 
     Application::run();

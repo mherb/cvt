@@ -18,7 +18,7 @@ namespace cvt {
 		}
 		layout.setAnchoredRight( 2, 16 );
 		layout.setAnchoredTop( 2, 16 );
-		_togglebutton.toggled.add( &_onToggleDelegate );
+		_togglebutton.toggled.add( _onToggleDelegate );
 		addWidget( &_togglebutton, layout );
 	}
 

@@ -158,15 +158,15 @@ class EsmWindow : public Window
 			_camView.setImage( _cam->frame() );
 			
 			// timer to call the loop:
-			_runLoopDelegate = new  Delegate<void ( BasicTimer* )>( this, &EsmWindow::loop );
-			_bt.timeout.add( _runLoopDelegate );
+			Delegate<void ( BasicTimer* )> runLoopDelegate( this, &EsmWindow::loop );
+			_bt.timeout.add( runLoopDelegate );
 			_bt.start();
 			
-			_selectionDelegate = new Delegate< void () >( this, &EsmWindow::newTemplateSelection );
-			_camView.selectionComplete.add( _selectionDelegate );
+			 Delegate< void () > selectionDelegate( this, &EsmWindow::newTemplateSelection );
+			_camView.selectionComplete.add( selectionDelegate );
 			
-			_selectionDidStart = new Delegate< void () >( this, &EsmWindow::selectionStart );
-			_camView.selectionDidStart.add( _selectionDidStart );
+			Delegate< void () > selectionDidStart( this, &EsmWindow::selectionStart );
+			_camView.selectionDidStart.add( selectionDidStart );
 			
 			
 			_imgFloatGray.reallocate( _cam->width(), _cam->height(), IFormat::GRAY_FLOAT );			
@@ -179,11 +179,11 @@ class EsmWindow : public Window
 		
 		~EsmWindow()
 		{
-			_bt.timeout.remove( _runLoopDelegate );
-			delete _runLoopDelegate;
+			Delegate<void ( BasicTimer* )> runLoopDelegate( this, &EsmWindow::loop );
+			_bt.timeout.remove( runLoopDelegate );
 			
-			_camView.selectionComplete.remove( _selectionDelegate );
-			delete _selectionDelegate;			
+			 Delegate< void () > selectionDelegate( this, &EsmWindow::newTemplateSelection );
+			_camView.selectionComplete.remove( selectionDelegate );
 		}
 	
 		void loop( BasicTimer* )
@@ -290,10 +290,6 @@ class EsmWindow : public Window
 		Image							_imgFloatGray;
 		Image							_camImage;	
 		Eigen::Matrix<double, 3, 4>		_points;	
-	
-		Delegate<void ( BasicTimer* )>*	 _runLoopDelegate;
-		Delegate<void ()>*				 _selectionDelegate;
-		Delegate<void ()>*				 _selectionDidStart;
 	
 		ESM<double>					_esm;
 		TerminationCriteria<double>	_termCrit;

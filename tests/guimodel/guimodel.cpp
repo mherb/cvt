@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
 	Button button( "Quit" );
 	Delegate<void ()> dquit( &Application::exit );
-	button.clicked.add( &dquit );
+	button.clicked.add( dquit );
 
 	WidgetLayout wl;
 	wl.setAnchoredRight( 10, 50 );

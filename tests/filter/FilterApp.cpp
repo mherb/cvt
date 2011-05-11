@@ -46,7 +46,7 @@ FilterApp::FilterApp( const std::string & name ) :
 	_appWindow.setVisible( true );
 	_appWindow.setMinimumSize( 320, 240 );	
 	
-	_quitButton.clicked.add( &_quitDel );
+	_quitButton.clicked.add( _quitDel );
 
     cvt::WidgetLayout wl;
     wl.setAnchoredRight( 10, 50 );
