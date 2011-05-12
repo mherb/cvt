@@ -116,7 +116,7 @@ namespace cvt {
 		impl->lower();
 	}
 
-	void Widget::mapGlobal( int&x, int& y )
+	void Widget::mapGlobal( int&x, int& y ) const
 	{
 		int gx, gy;
 
@@ -128,7 +128,7 @@ namespace cvt {
 		y += gy;
 	}
 
-	void Widget::mapLocal( int& x, int& y )
+	void Widget::mapLocal( int& x, int& y ) const
 	{
 		int gx, gy;
 
@@ -151,7 +151,7 @@ namespace cvt {
 		Recti crect = gfx->childrect( );
 		/* get child rectangle */
 		Recti rchild = w->rect();
-		rchild.intersect( crect );
+//		rchild.intersect( crect );
 
 		/* set new childrect */
 		gfx->setChildrect( rchild );

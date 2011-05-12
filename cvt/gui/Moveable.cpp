@@ -97,9 +97,9 @@ namespace cvt {
 		raise();
 		event->position( _lx, _ly );
 		size( rcorner.x, rcorner.y );
-		rcorner.x -= 20;
-		rcorner.y -= 20;
-		rcorner.setSize( 16, 16 );
+		rcorner.x -= 18;
+		rcorner.y -= 18;
+		rcorner.setSize( 18, 18 );
 		if( rcorner.contains( _lx, _ly  ) && !_togglebutton.state() ) {
 			_activeMode = 2;
 		} else {
@@ -149,12 +149,13 @@ namespace cvt {
 
 	void Moveable::mouseReleaseEvent( MouseReleaseEvent* event )
 	{
-		if( _activeWidget ) {
+		if( _activeMode ) {
+			_activeMode = 0;
+		} else	if( _activeWidget ) {
 			mapGlobal( event->x, event->y );
 			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mouseReleaseEvent( event );
 			_activeWidget = NULL;
-		} else
-			_activeMode = 0;
+		}
 	}
 }
