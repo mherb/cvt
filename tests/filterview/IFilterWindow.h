@@ -16,11 +16,14 @@ namespace cvt {
 			virtual void mouseReleaseEvent( MouseReleaseEvent* );
 			virtual void paintEvent( PaintEvent* , GFX* );
 		private:
+			IFilterViewPlug* plugAt( int x, int y );
+
 			IFilterViewPlug* _cplug;
+			IFilterViewPlug* _cplugdst;
 			Vector2i		 _cdst;
 	};
 
-	inline IFilterWindow::IFilterWindow( const String& name ) : Window( name ), _cplug( NULL )
+	inline IFilterWindow::IFilterWindow( const String& name ) : Window( name ), _cplug( NULL ), _cplugdst( NULL )
 	{
 	}
 
@@ -28,19 +31,29 @@ namespace cvt {
 	{
 	}
 
-	inline void IFilterWindow::mousePressEvent( MousePressEvent* e )
+
+	inline IFilterViewPlug* IFilterWindow::plugAt( int x, int y )
 	{
 		Widget* child1 = this;
 		Widget*	child2 = NULL;
 		IFilterViewPlug* plug;
 
-		while( ( child2 = child1->childAt( e->x, e->y ) ) )
+		while( ( child2 = child1->childAt( x, y ) ) )
 			child1 = child2;
 
-		if( ( plug = dynamic_cast<IFilterViewPlug*>( child1 ) ) ) {
+		if( ( plug = dynamic_cast<IFilterViewPlug*>( child1 ) ) )
+			return plug;
+		return NULL;
+	}
+
+	inline void IFilterWindow::mousePressEvent( MousePressEvent* e )
+	{
+		IFilterViewPlug* plug;
+
+		if( ( plug = plugAt( e->x, e->y ) ) ) {
 			_cplug = plug;
 			_cdst.set( e->x, e->y );
-			_cplug->setConnected( true );
+			_cplug->setState( IFilterViewPlug::CONNECTED );
 		} else {
 			Window::mousePressEvent( e );
 		}
@@ -49,7 +62,19 @@ namespace cvt {
 	inline void IFilterWindow::mouseMoveEvent( MouseMoveEvent* e )
 	{
 		if( _cplug ) {
+			IFilterViewPlug* plug;
 			_cdst.set( e->x, e->y );
+			if( ( plug = plugAt( e->x, e->y ) ) ) {
+				if( _cplugdst && _cplugdst != plug )
+					_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+				if( plug != _cplug ) {
+					plug->setState( IFilterViewPlug::CONNECTABLE );
+					_cplugdst = plug;
+				}
+			} else if( _cplugdst ) {
+				_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+				_cplugdst = NULL;
+			}
 			update();
 		} else
 			Window::mouseMoveEvent( e );
@@ -58,8 +83,12 @@ namespace cvt {
 	inline void IFilterWindow::mouseReleaseEvent( MouseReleaseEvent* e )
 	{
 		if( _cplug ) {
-			_cplug->setConnected( false );
+			_cplug->setState( IFilterViewPlug::UNCONNECTED );
 			_cplug = NULL;
+			if( _cplugdst ) {
+				_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+				_cplugdst = NULL;
+			}
 			update();
 		} else
 			Window::mouseReleaseEvent( e );

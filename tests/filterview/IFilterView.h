@@ -16,6 +16,7 @@ namespace cvt {
 
 			const String& name() const { return _name; }
 			void paintEvent( PaintEvent* , GFX* gfx );
+
 		private:
 			void parameterToWidget( const ParamInfo* pinfo );
 
