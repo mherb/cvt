@@ -41,8 +41,8 @@ namespace cvt {
 			void maximumSize( int& w, int& h );
 			void update();
 			void update( const Recti& rect );
-			void mapGlobal( int&x, int& y );
-			void mapLocal( int& x, int& y );
+			void mapGlobal( int& x, int& y ) const;
+			void mapLocal( int& x, int& y ) const;
 			virtual Widget* childAt( int , int ) { return NULL; };
 
 		protected:

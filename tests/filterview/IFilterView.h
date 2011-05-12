@@ -6,6 +6,8 @@
 #include <cvt/gui/Label.h>
 #include <cvt/util/String.h>
 
+#include "IFilterViewPlug.h"
+
 namespace cvt {
 	class IFilterView : public WidgetContainer {
 		public:
@@ -31,7 +33,7 @@ namespace cvt {
 			parameterToWidget( _pset->paramInfo( i ) );
 		}
 		//FIXME: use label minsize resp. join of child minsize
-		setMinimumSize( 100, _pwidgets.size() * 25 );
+		setMinimumSize( 100, ( _pwidgets.size() / 2 ) * 20 );
 	}
 
 	inline IFilterView::~IFilterView()
@@ -45,12 +47,20 @@ namespace cvt {
 	{
 		Label* label = new Label( pinfo->name.c_str(), pinfo->isInput?( ALIGN_LEFT | ALIGN_VCENTER ) : ( ALIGN_RIGHT | ALIGN_VCENTER ) );
 		label->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-		size_t num = _pwidgets.size();
+		size_t num = _pwidgets.size() / 2;
 		_pwidgets.push_back( label );
 		WidgetLayout wl;
-		wl.setAnchoredLeftRight( 15, 15 );
-		wl.setAnchoredTop( num * 25, 25 );
+		wl.setAnchoredLeftRight( 20, 20 );
+		wl.setAnchoredTop( num * 20, 20 );
 		addWidget( label, wl );
+		IFilterViewPlug* plug = new IFilterViewPlug( pinfo->isInput );
+		_pwidgets.push_back( plug );
+		if( pinfo->isInput )
+			wl.setAnchoredLeft( 0, 20 );
+		else
+			wl.setAnchoredRight( 0, 20 );
+		wl.setAnchoredTop( num * 20, 20 );
+		addWidget( plug, wl );
 	}
 
 	inline void IFilterView::paintEvent( PaintEvent* , GFX* gfx )

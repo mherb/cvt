@@ -33,11 +33,7 @@ namespace cvt {
 
 			Recti r = w->rect();
 			if( r.contains( x, y ) ) {
-				Widget* cw ;
-				if( ( cw = w->childAt( x, y ) ) )
-					return cw;
-				else
-					return w;
+				return w;
 			}
 			++it;
 		}
@@ -160,10 +156,12 @@ namespace cvt {
 		mapGlobal( x, y );
 		_activeWidget = childAt( x, y );
 
-		if( _activeWidget ) {
+		if( _activeWidget && _activeWidget->isVisible() ) {
 			mapGlobal( event->x, event->y );
 			_activeWidget->mapLocal( event->x, event->y );
 			_activeWidget->mousePressEvent( event );
+		} else {
+			_activeWidget = NULL;
 		}
 
 	}
