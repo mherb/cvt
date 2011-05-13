@@ -52,8 +52,8 @@ namespace cvt {
 
 		if( ( plug = plugAt( e->x, e->y ) ) ) {
 			_cplug = plug;
-			_cdst.set( e->x, e->y );
-			_cplug->setState( IFilterViewPlug::CONNECTED );
+			_cdst = _cplug->center();
+			_cplug->setConnected( true );
 		} else {
 			Window::mousePressEvent( e );
 		}
@@ -66,13 +66,14 @@ namespace cvt {
 			_cdst.set( e->x, e->y );
 			if( ( plug = plugAt( e->x, e->y ) ) ) {
 				if( _cplugdst && _cplugdst != plug )
-					_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+					_cplugdst->setConnected( false );
 				if( plug != _cplug ) {
-					plug->setState( IFilterViewPlug::CONNECTABLE );
+					plug->setConnected( true );
 					_cplugdst = plug;
+					_cdst = _cplugdst->center();
 				}
 			} else if( _cplugdst ) {
-				_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+				_cplugdst->setConnected( false );
 				_cplugdst = NULL;
 			}
 			update();
@@ -83,10 +84,10 @@ namespace cvt {
 	inline void IFilterWindow::mouseReleaseEvent( MouseReleaseEvent* e )
 	{
 		if( _cplug ) {
-			_cplug->setState( IFilterViewPlug::UNCONNECTED );
+			_cplug->setConnected( false );
 			_cplug = NULL;
 			if( _cplugdst ) {
-				_cplugdst->setState( IFilterViewPlug::UNCONNECTED );
+				_cplugdst->setConnected( false );
 				_cplugdst = NULL;
 			}
 			update();
