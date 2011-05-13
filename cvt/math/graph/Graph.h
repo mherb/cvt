@@ -25,6 +25,7 @@ namespace cvt {
 
 			void dfs( GraphVisitor<TNODE,TEDGE>& visitor );
 			void bfs( GraphVisitor<TNODE,TEDGE>& visitor );
+//			void topologicalSort( GraphVisitor<TNODE,TEDGE>& visitor );
 
 		private:
 			std::vector< GraphNode<TNODE,TEDGE>* > _nodes;
@@ -121,6 +122,46 @@ namespace cvt {
 		}
 
 	}
+
+/*	template<typename TNODE,typename TEDGE>
+	inline void  Graph<TNODE,TEDGE>::topologicalSort( GraphVisitor<TNODE,TEDGE>& visitor )
+	{
+		Stack<GraphNode<TNODE,TEDGE>*> stack;
+		GraphNode<TNODE,TEDGE>* node;
+		GraphNode<TNODE,TEDGE>* ntmp;
+		GraphNode<TNODE,TEDGE>* ntmp2;
+		size_t n;
+
+		visitor.init();
+		node = _nodes[ 0 ];
+		n = _nodes.size();
+		while( n-- ) {
+			node->_visited = false;
+			visitor.initNode( node );
+			if( !node->inSize() )
+				stack.push( node );
+		}
+		while( !stack.isEmpty() ) {
+			node = stack.pop();
+			for( size_t i = 0, end = node->inSize(), ntmp2 = NULL; i < end; i++ ) {
+				ntmp = node->outEdge( i )->src();
+				if( ntmp->_visited  )
+					continue;
+				if( !ntmp2 )
+					ntmp2 = ntmp;
+				else {
+					ntmp2 = NULL;
+					break;
+				}
+			}
+			if( ntmp2 )
+				stack.push( ntmp );
+			if( !node->_visited ) {
+				node->_visited = true;
+				visitor.visitNode( node );
+			}
+		}
+	}*/
 }
 
 #endif
