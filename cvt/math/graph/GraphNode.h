@@ -34,7 +34,7 @@ namespace cvt {
 			TNODE _data;
 			std::vector< EDGETYPE* > _inEdges;
 			std::vector< EDGETYPE* > _outEdges;
-			bool _visited;
+			int _visited;
 	};
 
 	template<typename TNODE,typename TEDGE>
