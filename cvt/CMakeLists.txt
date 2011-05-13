@@ -233,6 +233,10 @@ SET(${MODULE_NAME}_HEADERS
 	math/Vector2.h
 	math/Vector3.h
 	math/Vector4.h
+	math/graph/Graph.h
+	math/graph/GraphNode.h
+	math/graph/GraphEdge.h
+	math/graph/GraphVisitor.h
 	util/CPU.h
 	util/CVTTest.h
 	util/Delegate.h

@@ -3,10 +3,13 @@
 
 namespace cvt {
 	template<typename,typename> class GraphNode;
+	template<typename,typename> class Graph;
 
 	/* Edge */
 	template<typename TNODE, typename TEDGE>
 		class GraphEdge {
+			template<typename,typename> friend class Graph;
+			template<typename,typename> friend class GraphNode;
 			public:
 				typedef GraphNode<TNODE,TEDGE> NODETYPE;
 

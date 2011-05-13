@@ -1,6 +1,15 @@
-#include "Graph.h"
+#include <cvt/math/graph/Graph.h>
+#include <iostream>
 
 using namespace cvt;
+
+class MyVistor : public GraphVisitor<int,int>
+{
+	void visitNode( GraphNode<int,int>* node )
+	{
+		std::cout << node->data() << std::endl;
+	}
+};
 
 int main()
 {
@@ -12,4 +21,6 @@ int main()
 	node1->addEdgeTo( node2, 0 );
 	node1->addEdgeTo( node3, 0 );
 	node3->addEdgeTo( node4, 0 );
+	MyVistor v;
+	g.dfs( v );
 }
