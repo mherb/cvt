@@ -1,13 +1,15 @@
 #ifndef CVT_GRAPHNODE_H
 #define CVT_GRAPHNODE_H
 
-#include "GraphEdge.h"
+#include <cvt/math/graph/GraphEdge.h>
 #include <vector>
 
 namespace cvt {
+	template<typename,typename> class Graph;
 
 	template<typename TNODE, typename TEDGE>
 	class GraphNode {
+		template<typename,typename> friend class Graph;
 		public:
 			typedef GraphEdge<TNODE,TEDGE> EDGETYPE;
 			typedef GraphNode<TNODE,TEDGE> NODETYPE;
@@ -21,17 +23,22 @@ namespace cvt {
 			size_t inSize() const;
 			size_t outSize() const;
 			size_t size() const;
+
 			EDGETYPE* addEdgeTo( NODETYPE* node, const TEDGE& edata );
 			EDGETYPE* addEdgeFrom( NODETYPE* node, const TEDGE& edata );
+
+			EDGETYPE* inEdge( size_t index );
+			EDGETYPE* outEdge( size_t index );
 
 		public:
 			TNODE _data;
 			std::vector< EDGETYPE* > _inEdges;
 			std::vector< EDGETYPE* > _outEdges;
+			bool _visited;
 	};
 
 	template<typename TNODE,typename TEDGE>
-	inline GraphNode<TNODE,TEDGE>::GraphNode( const TNODE& data ) : _data( data )
+	inline GraphNode<TNODE,TEDGE>::GraphNode( const TNODE& data ) : _data( data ), _visited( false )
 	{
 	}
 
@@ -91,6 +98,19 @@ namespace cvt {
 		_inEdges.push_back( edge );
 		src->_outEdges.push_back( edge );
 		return edge;
+	}
+
+	template<typename TNODE,typename TEDGE>
+	inline GraphEdge<TNODE,TEDGE>* GraphNode<TNODE,TEDGE>::inEdge( size_t index )
+	{
+		return _inEdges[ index ];
+	}
+
+
+	template<typename TNODE,typename TEDGE>
+	inline GraphEdge<TNODE,TEDGE>* GraphNode<TNODE,TEDGE>::outEdge( size_t index )
+	{
+		return _outEdges[ index ];
 	}
 
 }
