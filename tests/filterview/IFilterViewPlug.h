@@ -9,25 +9,22 @@ namespace cvt {
 
 	class IFilterViewPlug : public Widget {
 		public:
-			enum State { CONNECTED, UNCONNECTED, CONNECTABLE, UNCONNECTABLE };
-
 			IFilterViewPlug( bool input );
 			~IFilterViewPlug();
 
 			IFilterView* view() const;
-			State state() const;
-			void setState( State s );
+			bool isConnected() const;
+			void setConnected( bool b );
 			Vector2i center() const;
 			bool isInput() const;
 
 			void paintEvent( PaintEvent* , GFX* g );
-
 		private:
+			bool _isconnected;
 			bool _isinput;
-			State _state;
 	};
 
-	inline IFilterViewPlug::IFilterViewPlug( bool input ) : _isinput( input ), _state( UNCONNECTED )
+	inline IFilterViewPlug::IFilterViewPlug( bool input ) : _isconnected( false ), _isinput( input )
 	{
 	}
 
@@ -35,9 +32,9 @@ namespace cvt {
 	{
 	}
 
-	inline IFilterViewPlug::State IFilterViewPlug::state() const
+	inline bool IFilterViewPlug::isConnected() const
 	{
-		return _state;
+		return _isconnected;
 	}
 
 
@@ -46,9 +43,9 @@ namespace cvt {
 		return _isinput;
 	}
 
-	inline void IFilterViewPlug::setState( State s )
+	inline void IFilterViewPlug::setConnected( bool b )
 	{
-		_state = s;
+		_isconnected = b;
 		update();
 	}
 
@@ -71,17 +68,11 @@ namespace cvt {
 	{
 		int w, h;
 		size( w, h );
-		if( _state == CONNECTED ) {
+		if( _isconnected ) {
 			g->color().set( 0.8f, 0.9f, 0.1f, 1.0f );
 			g->drawIcon( w / 2 - 8, h / 2 - 8, GFX::ICON_CIRCLE );
-		} if( _state == CONNECTABLE ) {
-			g->color().set( 0.8f, 0.9f, 0.1f, 1.0f );
-			g->drawIcon( w / 2 - 8, h / 2 - 8, GFX::ICON_CIRCLEEMPTY );
-		} else if( _state == UNCONNECTED ){
+		} else {
 			g->color().set( 0.8f, 0.8f, 0.8f, 1.0f );
-			g->drawIcon( w / 2 - 8, h / 2 - 8, GFX::ICON_CIRCLEEMPTY );
-		} else if( _state == UNCONNECTABLE ) {
-			g->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
 			g->drawIcon( w / 2 - 8, h / 2 - 8, GFX::ICON_CIRCLEEMPTY );
 		}
 	}
