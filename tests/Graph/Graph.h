@@ -1,55 +1,10 @@
 #ifndef CVT_GRAPH_H
 #define CVT_GRAPH_H
 
+#include "GraphNode.h"
 #include <vector>
 
 namespace cvt {
-	template<typename,typename> class GraphNode;
-
-	/* Edge */
-	template<typename TNODE, typename TEDGE>
-	class GraphEdge {
-		public:
-			typedef GraphNode<TNODE,TEDGE> NODETYPE;
-
-			GraphEdge(  NODETYPE* src, NODETYPE* dst, TEDGE data );
-			~GraphEdge();
-
-			TEDGE& data();
-			const TEDGE& data() const;
-			NODETYPE* source() const;
-			NODETYPE* dest() const;
-
-		public:
-			TEDGE	  _data;
-			NODETYPE* _src;
-			NODETYPE* _dst;
-	};
-
-	/* Node */
-	template<typename TNODE, typename TEDGE>
-	class GraphNode {
-		public:
-			typedef GraphEdge<TNODE,TEDGE> EDGETYPE;
-			typedef GraphNode<TNODE,TEDGE> NODETYPE;
-
-			GraphNode( TNODE data );
-			~GraphNode();
-
-			TNODE& data();
-			const TNODE& data() const;
-
-			size_t inSize();
-			size_t outSize();
-			size_t size();
-			EDGETYPE* addEdgeTo( NODETYPE* node );
-			EDGETYPE* addEdgeFrom( NODETYPE* node );
-
-		public:
-			TNODE _data;
-			std::vector< EDGETYPE* > _inEdges;
-			std::vector< EDGETYPE* > _outEdges;
-	};
 
 	/* Graph */
 	template<typename TNODE, typename TEDGE>
@@ -61,13 +16,40 @@ namespace cvt {
 			Graph();
 			~Graph();
 
-			NODETYPE* addNode( TNODE data );
+			GraphNode<TNODE,TEDGE>* addNode( TNODE data );
 			size_t nodeSize() const;
-			size_t edgeSize() const;
+// FIXME:			size_t edgeSize() const;
 
 		private:
-			std::vector< NODETYPE* > _nodes;
+			std::vector< GraphNode<TNODE,TEDGE>* > _nodes;
 	};
+
+	template<typename TNODE,typename TEDGE>
+	inline Graph<TNODE,TEDGE>::Graph()
+	{
+	}
+
+	template<typename TNODE,typename TEDGE>
+	inline Graph<TNODE,TEDGE>::~Graph()
+	{
+		for( typename std::vector< GraphNode<TNODE,TEDGE>* >::const_iterator it = _nodes.begin(), end = _nodes.end(); it != end; ++it )
+			delete *it;
+		_nodes.clear();
+	}
+
+	template<typename TNODE,typename TEDGE>
+	inline GraphNode<TNODE,TEDGE>* Graph<TNODE,TEDGE>::addNode( TNODE data )
+	{
+		GraphNode<TNODE,TEDGE>* node = new GraphNode<TNODE,TEDGE>( data );
+		_nodes.push_back( node );
+		return node;
+	}
+
+	template<typename TNODE,typename TEDGE>
+	inline size_t Graph<TNODE,TEDGE>::nodeSize() const
+	{
+		return _nodes.size();
+	}
 }
 
 #endif
