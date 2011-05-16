@@ -12,6 +12,15 @@ namespace cvt {
 				virtual void initNode( GraphNode<TNODE,TEDGE>* ) {};
 				virtual void visitNode( GraphNode<TNODE,TEDGE>* ) {};
 		};
+
+	template<typename TNODE,typename TEDGE>
+		class GraphTSVisitor {
+			public:
+				virtual ~GraphTSVisitor() {};
+				virtual void init() {};
+				virtual void initNode( GraphNode<TNODE,TEDGE>* ) {};
+				virtual void visitNode( GraphNode<TNODE,TEDGE>*, GraphNode<TNODE,TEDGE>* ) {};
+		};
 }
 
 #endif

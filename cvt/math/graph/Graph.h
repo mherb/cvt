@@ -6,6 +6,7 @@
 #include <cvt/util/Stack.h>
 #include <vector>
 #include <queue>
+#include <utility>
 
 namespace cvt {
 
@@ -25,7 +26,7 @@ namespace cvt {
 
 			void dfs( GraphVisitor<TNODE,TEDGE>& visitor );
 			void bfs( GraphVisitor<TNODE,TEDGE>& visitor );
-//			void topologicalSort( GraphVisitor<TNODE,TEDGE>& visitor );
+			void topologicalSort( GraphTSVisitor<TNODE,TEDGE>& visitor );
 
 		private:
 			std::vector< GraphNode<TNODE,TEDGE>* > _nodes;
@@ -65,12 +66,10 @@ namespace cvt {
 		Stack<GraphNode<TNODE,TEDGE>*> stack;
 		GraphNode<TNODE,TEDGE>* node;
 		GraphNode<TNODE,TEDGE>* ntmp;
-		size_t n;
 
 		visitor.init();
-		node = _nodes[ 0 ];
-		n = _nodes.size();
-		while( n-- ) {
+		for( size_t i = 0, iend = _nodes.size(); i < iend; i++ ) {
+			node = _nodes[ i ];
 			node->_visited = false;
 			visitor.initNode( node );
 			if( !node->inSize() )
@@ -83,10 +82,8 @@ namespace cvt {
 				if( !ntmp->_visited )
 					stack.push( ntmp );
 			}
-			if( !node->_visited ) {
-				node->_visited = true;
-				visitor.visitNode( node );
-			}
+			node->_visited = true;
+			visitor.visitNode( node );
 		}
 	}
 
@@ -96,12 +93,10 @@ namespace cvt {
 		std::queue<GraphNode<TNODE,TEDGE>*> queue;
 		GraphNode<TNODE,TEDGE>* node;
 		GraphNode<TNODE,TEDGE>* ntmp;
-		size_t n;
 
 		visitor.init();
-		node = _nodes[ 0 ];
-		n = _nodes.size();
-		while( n-- ) {
+		for( size_t i = 0, iend = _nodes.size(); i < iend; i++ ) {
+			node = _nodes[ i ];
 			node->_visited = false;
 			visitor.initNode( node );
 			if( !node->inSize() )
@@ -115,53 +110,50 @@ namespace cvt {
 				if( !ntmp->_visited )
 					queue.push( ntmp );
 			}
-			if( !node->_visited ) {
-				node->_visited = true;
-				visitor.visitNode( node );
-			}
+			node->_visited = true;
+			visitor.visitNode( node );
 		}
 
 	}
 
-/*	template<typename TNODE,typename TEDGE>
-	inline void  Graph<TNODE,TEDGE>::topologicalSort( GraphVisitor<TNODE,TEDGE>& visitor )
+	template<typename TNODE,typename TEDGE>
+	inline void  Graph<TNODE,TEDGE>::topologicalSort( GraphTSVisitor<TNODE,TEDGE>& visitor )
 	{
-		Stack<GraphNode<TNODE,TEDGE>*> stack;
+		Stack< std::pair< GraphNode<TNODE,TEDGE>*, GraphNode<TNODE,TEDGE>* > > stack;
 		GraphNode<TNODE,TEDGE>* node;
 		GraphNode<TNODE,TEDGE>* ntmp;
-		GraphNode<TNODE,TEDGE>* ntmp2;
-		size_t n;
+		bool mark;
 
 		visitor.init();
-		node = _nodes[ 0 ];
-		n = _nodes.size();
-		while( n-- ) {
+		for( size_t i = 0, iend = _nodes.size(); i < iend; i++ ) {
+			node = _nodes[ i ];
 			node->_visited = false;
 			visitor.initNode( node );
 			if( !node->inSize() )
-				stack.push( node );
+				stack.push(  std::make_pair< GraphNode<TNODE,TEDGE>*, GraphNode<TNODE,TEDGE>* >( node,NULL ) );
 		}
 		while( !stack.isEmpty() ) {
-			node = stack.pop();
-			for( size_t i = 0, end = node->inSize(), ntmp2 = NULL; i < end; i++ ) {
-				ntmp = node->outEdge( i )->src();
+			std::pair<GraphNode<TNODE,TEDGE>*,GraphNode<TNODE,TEDGE>*> pair = stack.pop();
+			node = pair.first;
+			node->_visited = true;
+			visitor.visitNode( node, pair.second );
+
+			for( size_t i = 0, iend = node->outSize(); i < iend; i++ ) {
+				mark = true;
+				ntmp = node->outEdge( i )->dest();
 				if( ntmp->_visited  )
 					continue;
-				if( !ntmp2 )
-					ntmp2 = ntmp;
-				else {
-					ntmp2 = NULL;
-					break;
+				for( size_t k = 0, kend = ntmp->inSize(); k < kend; k++ ) {
+					if( ntmp->inEdge( k )->source() != node && !ntmp->inEdge( k )->source()->_visited ) {
+						mark = false;
+						break;
+					}
 				}
-			}
-			if( ntmp2 )
-				stack.push( ntmp );
-			if( !node->_visited ) {
-				node->_visited = true;
-				visitor.visitNode( node );
+				if( mark )
+					stack.push(  std::make_pair< GraphNode<TNODE,TEDGE>*, GraphNode<TNODE,TEDGE>* >( ntmp, node ) );
 			}
 		}
-	}*/
+	}
 }
 
 #endif
