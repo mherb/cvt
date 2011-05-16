@@ -85,6 +85,8 @@ namespace cvt {
 	template<typename TNODE,typename TEDGE>
 	inline GraphEdge<TNODE,TEDGE>* GraphNode<TNODE,TEDGE>::addEdgeTo( GraphNode<TNODE,TEDGE>* dst, const TEDGE& edata )
 	{
+		if( dst == this )
+			return NULL;
 		GraphEdge<TNODE,TEDGE>* edge = new GraphEdge<TNODE,TEDGE>( this, dst, edata );
 		_outEdges.push_back( edge );
 		dst->_inEdges.push_back( edge );
@@ -94,6 +96,8 @@ namespace cvt {
 	template<typename TNODE,typename TEDGE>
 	inline GraphEdge<TNODE,TEDGE>* GraphNode<TNODE,TEDGE>::addEdgeFrom( GraphNode<TNODE,TEDGE>* src, const TEDGE& edata )
 	{
+		if( src == this )
+			return NULL;
 		GraphEdge<TNODE,TEDGE>* edge = new GraphEdge<TNODE,TEDGE>( src, this, edata );
 		_inEdges.push_back( edge );
 		src->_outEdges.push_back( edge );
