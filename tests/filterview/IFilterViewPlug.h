@@ -9,7 +9,7 @@ namespace cvt {
 
 	class IFilterViewPlug : public Widget {
 		public:
-			IFilterViewPlug( bool input );
+			IFilterViewPlug( bool input, ParamType type, size_t handle );
 			~IFilterViewPlug();
 
 			IFilterView* view() const;
@@ -17,14 +17,17 @@ namespace cvt {
 			void setConnected( bool b );
 			Vector2i center() const;
 			bool isInput() const;
+			ParamType type() const;
 
 			void paintEvent( PaintEvent* , GFX* g );
 		private:
 			bool _isconnected;
 			bool _isinput;
+			ParamType _type;
+			size_t _handle;
 	};
 
-	inline IFilterViewPlug::IFilterViewPlug( bool input ) : _isconnected( false ), _isinput( input )
+	inline IFilterViewPlug::IFilterViewPlug( bool input, ParamType ptype, size_t handle ) : _isconnected( false ), _isinput( input ), _type( ptype ), _handle( handle )
 	{
 	}
 
@@ -41,6 +44,11 @@ namespace cvt {
 	inline bool IFilterViewPlug::isInput() const
 	{
 		return _isinput;
+	}
+
+	inline ParamType IFilterViewPlug::type() const
+	{
+		return _type;
 	}
 
 	inline void IFilterViewPlug::setConnected( bool b )

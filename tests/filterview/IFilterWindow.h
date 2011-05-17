@@ -2,9 +2,12 @@
 #define CVT_IFILTERWINDOW_H
 
 #include <cvt/gui/Window.h>
+#include <cvt/math/graph/Graph.h>
 #include "IFilterViewPlug.h"
 
 namespace cvt {
+	class IFilterViewPlug;
+
 	class IFilterWindow : public Window
 	{
 		public:
@@ -21,6 +24,7 @@ namespace cvt {
 			IFilterViewPlug* _cplug;
 			IFilterViewPlug* _cplugdst;
 			Vector2i		 _cdst;
+			Graph<IFilterViewPlug*,int> _graph;
 	};
 
 	inline IFilterWindow::IFilterWindow( const String& name ) : Window( name ), _cplug( NULL ), _cplugdst( NULL )
@@ -65,12 +69,19 @@ namespace cvt {
 			IFilterViewPlug* plug;
 			_cdst.set( e->x, e->y );
 			if( ( plug = plugAt( e->x, e->y ) ) ) {
+				/* if there is an old dst plug - set it unconnected */
 				if( _cplugdst && _cplugdst != plug )
 					_cplugdst->setConnected( false );
+				/* if source is not dest */
 				if( plug != _cplug ) {
-					plug->setConnected( true );
-					_cplugdst = plug;
-					_cdst = _cplugdst->center();
+					/* check for compatible plugs */
+					if( _cplug->type() == plug->type() && plug->isInput() != _cplug->isInput() ) {
+						plug->setConnected( true );
+						_cplugdst = plug;
+						_cdst = _cplugdst->center();
+					} else {
+						_cplugdst = NULL;
+					}
 				}
 			} else if( _cplugdst ) {
 				_cplugdst->setConnected( false );
