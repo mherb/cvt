@@ -98,6 +98,30 @@ class NodeUIVisitor : public GraphVisitor<NodeUI*,int>
 		int _n;
 };
 
+class NodeUITSVisitor : public GraphTSVisitor<NodeUI*,int>
+{
+	public:
+		NodeUITSVisitor() : _n( 0 ) {}
+		void init() { _n = 0; }
+
+		void initNode( GraphNode<NodeUI*,int>* n ) {
+			NodeUI* ui = n->data();
+			ui->level = 0;
+		}
+
+		void visitNode( GraphNode<NodeUI*,int>* n, GraphNode<NodeUI*,int>* parent ) {
+			NodeUI* ui = n->data();
+			ui->name = _n++;
+			if( parent )
+				ui->level = parent->data()->level + 1;
+			else
+				ui->level = 0;
+		}
+
+	private:
+		int _n;
+};
+
 class GraphUI : public Window
 {
 	public:
@@ -116,6 +140,8 @@ class GraphUI : public Window
 			wl.setAnchoredTop( 60, 20 );
 			addWidget( &_ts, wl );
 			wl.setAnchoredTop( 85, 20 );
+			Delegate<void ()> ts( this, &GraphUI::ts );
+			_ts.clicked.add( ts );
 			addWidget( &_addnode, wl );
 			Delegate<void ()> d( this, &GraphUI::addNode );
 			_addnode.clicked.add( d );
@@ -126,7 +152,9 @@ class GraphUI : public Window
 			int px, py;
 			n->position( px, py  );
 
-			Vector2f norm( px - cx, py - cy );
+			Vector2f norm( px + 25.0f - cx, py + 25.0f - cy );
+			if( norm.length() < 25.0f )
+				return;
 			norm.normalize();
 			g->drawLine( px + 25 - 25.0f * norm.x, py + 25 - 25.0f * norm.y, cx, cy );
 		}
@@ -156,7 +184,7 @@ class GraphUI : public Window
 			if( _csrc ) {
 				g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 				g->setLineWidth( 1.0f );
-				if( _cdst )
+				if( _cdst && _cdst != _csrc )
 					paintEdge( _csrc, _cdst, g );
 				else
 					paintEdge( _csrc, _cx, _cy, g );
@@ -230,6 +258,13 @@ class GraphUI : public Window
 		{
 			NodeUIVisitor v;
 			_graph.bfs( v );
+			update();
+		}
+
+		void ts()
+		{
+			NodeUITSVisitor v;
+			_graph.topologicalSort( v );
 			update();
 		}
 
