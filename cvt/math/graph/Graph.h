@@ -22,6 +22,7 @@ namespace cvt {
 
 			GraphNode<TNODE,TEDGE>* addNode( TNODE data );
 			size_t nodeSize() const;
+			GraphNode<TNODE,TEDGE>* node( size_t i );
 // FIXME:			size_t edgeSize() const;
 
 			void dfs( GraphVisitor<TNODE,TEDGE>& visitor );
@@ -59,6 +60,11 @@ namespace cvt {
 		return _nodes.size();
 	}
 
+	template<typename TNODE,typename TEDGE>
+	inline GraphNode<TNODE,TEDGE>* Graph<TNODE,TEDGE>::node( size_t i )
+	{
+		return _nodes[ i ];
+	}
 
 	template<typename TNODE,typename TEDGE>
 	inline void Graph<TNODE,TEDGE>::dfs( GraphVisitor<TNODE,TEDGE>& visitor )
@@ -82,8 +88,10 @@ namespace cvt {
 				if( !ntmp->_visited )
 					stack.push( ntmp );
 			}
-			node->_visited = true;
-			visitor.visitNode( node );
+			if( !node->_visited ) {
+				node->_visited = true;
+				visitor.visitNode( node );
+			}
 		}
 	}
 
@@ -110,8 +118,10 @@ namespace cvt {
 				if( !ntmp->_visited )
 					queue.push( ntmp );
 			}
-			node->_visited = true;
-			visitor.visitNode( node );
+			if( !node->_visited ) {
+				node->_visited = true;
+				visitor.visitNode( node );
+			}
 		}
 
 	}
