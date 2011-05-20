@@ -128,23 +128,28 @@ class GraphUI : public Window
 		GraphUI( const String& name ) : Window( name ), _dfs( "DFS" ), _bfs( "BFS" ), _ts( "TopSort" ), _addnode("Add node" ), _csrc( NULL ), _cdst( NULL )
 	    {
 			WidgetLayout wl;
+
 			wl.setAnchoredRight( 10, 150 );
 			wl.setAnchoredTop( 10, 20 );
 			addWidget( &_dfs, wl );
 			Delegate<void ()> ddfs( this, &GraphUI::dfs );
 			_dfs.clicked.add( ddfs );
+
 			wl.setAnchoredTop( 35, 20 );
 			addWidget( &_bfs, wl );
 			Delegate<void ()> bdfs( this, &GraphUI::bfs );
 			_bfs.clicked.add( bdfs );
+
 			wl.setAnchoredTop( 60, 20 );
 			addWidget( &_ts, wl );
-			wl.setAnchoredTop( 85, 20 );
 			Delegate<void ()> ts( this, &GraphUI::ts );
 			_ts.clicked.add( ts );
+
+			wl.setAnchoredTop( 85, 20 );
 			addWidget( &_addnode, wl );
 			Delegate<void ()> d( this, &GraphUI::addNode );
 			_addnode.clicked.add( d );
+
 		};
 
 		void paintEdge( NodeUI* n, int cx, int cy, GFX* g )
