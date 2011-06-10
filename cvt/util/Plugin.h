@@ -14,9 +14,18 @@ namespace cvt {
 		void (*init)( PluginManager* manager );
 	};
 
+#define CVT_PLUGIN_MAGIC 0x43565450
+#define CVT_PLUGIN_MAJOR 0
+#define CVT_PLUGIN_MINOR 1
+
+#define CVT_PLUGIN( initfunc ) \
+	extern "C" { \
+		cvt::PluginInfo _cvtplugin = { CVT_PLUGIN_MAGIC, CVT_PLUGIN_MAJOR , CVT_PLUGIN_MINOR, ( void ( * )( cvt::PluginManager* ) ) initfunc }; \
+	}
+
 	enum PluginType {
-		PLUGIN_IMAGE_LOADER,
-		PLUGIN_IMAGE_SAVER,
+		PLUGIN_ILOADER,
+		PLUGIN_ISAVER,
 		PLUGIN_IFILTER,
 	};
 

@@ -83,6 +83,8 @@ static void _init( cvt::PluginManager* pm )
 	pm->registerPlugin( _BCS );
 }
 
-extern "C" {
+
+CVT_PLUGIN( _init )
+/*extern "C" {
 	cvt::PluginInfo _cvtplugin = { 0x43565450, 0, 1, ( void ( * )( cvt::PluginManager* ) ) _init };
-}
+}*/
