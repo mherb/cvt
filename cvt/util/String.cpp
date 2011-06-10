@@ -46,6 +46,41 @@ namespace cvt {
 		std::cout << str << std::endl;
 		std::cout << str.length() << std::endl;
 
+		/* find/rfind testing */
+		str = "Hallo";
+		ssize_t idx = str.find( 'l' );
+		std::cout << "l at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.rfind( 'l' );
+		std::cout << "l at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.rfind( 'H' );
+		std::cout << "H at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.find( 'o' );
+		std::cout << "o at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.find( 'l', 3 );
+		std::cout << "l at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.rfind( 'l', 3 );
+		std::cout << "l at " << idx << " == " << str[ idx ] << std::endl;
+		idx = str.find( 'x' );
+		if( idx > 0 )
+			std::cout << "Error" << std::endl;
+		idx = str.rfind( 'x' );
+		if( idx > 0 )
+			std::cout << "Error" << std::endl;
+		idx = str.find( 'H', 10 );
+		if( idx > 0 )
+			std::cout << "Error" << std::endl;
+		idx = str.find( 'H', 2 );
+		if( idx > 0 )
+			std::cout << "Error" << std::endl;
+		idx = str.rfind( 'x', 2 );
+		if( idx > 0 )
+			std::cout << "Error" << std::endl;
+
+
+		String a = "a";
+		String b = "b";
+		std::cout << ( a < b ) << std::endl;
+
 		return true;
 	END_CVTTEST
 

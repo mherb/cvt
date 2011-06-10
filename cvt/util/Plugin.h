@@ -2,7 +2,7 @@
 #define CVT_PLUGIN_H
 
 #include <stdint.h>
-#include <string>
+#include <cvt/util/String.h>
 
 namespace cvt {
 	class PluginManager;
@@ -33,7 +33,7 @@ namespace cvt {
 		public:
 			Plugin( PluginType type );
 			virtual ~Plugin();
-			virtual const std::string& name() const = 0;
+			virtual const String& name() const = 0;
 			PluginType pluginType() const;
 
 		private:

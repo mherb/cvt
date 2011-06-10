@@ -28,9 +28,10 @@ namespace cvt {
 			_handle = NULL;
 			throw CVTException("Unable to load plugin !");
 		}
-		if( _pinfo->magic != 0x43565450 ||
-		    _pinfo->major != 0 ||
-		    _pinfo->minor != 1 || !_pinfo->init) {
+		if( _pinfo->magic != CVT_PLUGIN_MAGIC ||
+		    _pinfo->major != CVT_PLUGIN_MAJOR ||
+		    _pinfo->minor != CVT_PLUGIN_MINOR ||
+			!_pinfo->init) {
 			dlclose( _handle );
 			_handle = NULL;
 			_pinfo = NULL;

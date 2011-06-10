@@ -24,18 +24,18 @@ namespace cvt {
 			virtual ParamSet* parameterSet() const { return new ParamSet( _pinfo, _pinfosize ); };
 			virtual void apply( const ParamSet* attribs, IFilterType iftype = IFILTER_CPU ) const = 0;
 			uint32_t getIFilterType() const { return _iftype; };
-			const std::string& name() const { return _name; };
+			const String& name() const { return _name; };
 			virtual ~IFilter() {};
 
 		protected:
-			IFilter( std::string name, ParamInfo** pinfo, size_t pinfosize, IFilterType ifiltertype ) : Plugin( PLUGIN_IFILTER ), _iftype( ifiltertype ), _name( name ), _pinfo( pinfo ), _pinfosize( pinfosize ) {};
+			IFilter( const String& name, ParamInfo** pinfo, size_t pinfosize, IFilterType ifiltertype ) : Plugin( PLUGIN_IFILTER ), _iftype( ifiltertype ), _name( name ), _pinfo( pinfo ), _pinfosize( pinfosize ) {};
 
 		private:
 			IFilter( const IFilter& ifilter );
 			IFilter& operator=( const IFilter& ifilter );
 
 			IFilterType _iftype;
-			std::string _name;
+			String _name;
 			ParamInfo** _pinfo;
 			size_t _pinfosize;
 	};
