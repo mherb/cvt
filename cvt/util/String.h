@@ -49,9 +49,14 @@ namespace cvt {
 
 			bool operator==( const String& str ) const;
 			bool operator!=( const String& str ) const;
+			bool operator<( const String& str ) const;
+			bool operator>( const String& str ) const;
 			bool hasPrefix( const String& str ) const;
 			bool hasSuffix( const String& str ) const;
 			bool isEmpty() const;
+
+			ssize_t find( char c, ssize_t pos = 0 ) const;
+			ssize_t rfind( char c, ssize_t pos = -1 ) const;
 
 			long int toInteger() const;
 			float	 toFloat() const;
@@ -270,6 +275,42 @@ namespace cvt {
 		return len?false:true;
 	}
 
+	inline bool String::operator<( const String& str ) const
+	{
+		const char* ptr1 = _str;
+		const char* ptr2 = str._str;
+		size_t len = str._len;
+
+		while( len && *ptr1 == *ptr2 ) {
+			ptr1++;
+			ptr2++;
+			len--;
+		}
+		if( !len )
+			return false;
+		if( *ptr1 < *ptr2 )
+			return true;
+		return false;
+	}
+
+	inline bool String::operator>( const String& str ) const
+	{
+		const char* ptr1 = _str;
+		const char* ptr2 = str._str;
+		size_t len = str._len;
+
+		while( len && *ptr1 == *ptr2 ) {
+			ptr1++;
+			ptr2++;
+			len--;
+		}
+		if( !len )
+			return false;
+		if( *ptr1 > *ptr2 )
+			return true;
+		return false;
+	}
+
 	inline bool String::hasSuffix( const String& str ) const
 	{
 		if( str._len > _len )
@@ -288,6 +329,42 @@ namespace cvt {
 	{
 		return _len == 0;
 	}
+
+	inline ssize_t String::find( char c, ssize_t pos ) const
+	{
+		if( pos < 0 || pos >= ( ssize_t ) _len )
+			return -1;
+
+		ssize_t n = _len - pos;
+		char* ptr = _str + pos;
+		while( *ptr != c && n ) {
+			ptr++;
+			n--;
+		}
+		if( *ptr != c )
+			return -1;
+		return ptr - _str;
+	}
+
+	inline ssize_t String::rfind( char c, ssize_t pos ) const
+	{
+		if( pos >= ( ssize_t ) _len || pos == 0 )
+			return -1;
+
+		if( pos < 0 )
+			pos = _len - 1;
+
+		ssize_t n = pos;
+		char* ptr = _str + pos;
+		while( *ptr != c && n ) {
+			ptr--;
+			n--;
+		}
+		if( *ptr != c )
+			return -1;
+		return ptr - _str;
+	}
+
 
 	inline long int String::toInteger() const
 	{

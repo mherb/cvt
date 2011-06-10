@@ -4,6 +4,9 @@
 #include <cvt/util/Plugin.h>
 #include <cvt/util/PluginFile.h>
 #include <cvt/gfx/IFilter.h>
+#include <cvt/gfx/ILoader.h>
+#include <cvt/gfx/ISaver.h>
+#include <cvt/util/String.h>
 #include <vector>
 #include <map>
 
@@ -12,11 +15,11 @@ namespace cvt {
 		public:
 			static PluginManager& instance();
 			void registerPlugin( Plugin* plugin );
-			void loadPlugin( const std::string& path );
+			void loadPlugin( const String& path );
 			void loadDefault();
 
 			IFilter* getIFilter( size_t i ) const;
-			IFilter* getIFilter( const std::string& name ) const;
+			IFilter* getIFilter( const String& name ) const;
 			size_t getIFilterSize() const;
 
 		private:
@@ -26,7 +29,9 @@ namespace cvt {
 
 			std::vector<PluginFile*> _plugins;
 			std::vector<IFilter*> _ifilters;
-			std::map< const std::string, IFilter*> _ifiltermap;
+			std::vector<ILoader*> _iloaders;
+			std::vector<ISaver*> _isavers;
+			std::map< const String, IFilter*> _ifiltermap;
 	};
 
 	inline PluginManager::PluginManager()
@@ -38,6 +43,14 @@ namespace cvt {
 		for( std::vector<IFilter*>::iterator it = _ifilters.begin(), end = _ifilters.end(); it != end; ++it  )
 			delete *it;
 		_ifilters.clear();
+
+		for( std::vector<ILoader*>::iterator it = _iloaders.begin(), end = _iloaders.end(); it != end; ++it  )
+			delete *it;
+		_iloaders.clear();
+
+		for( std::vector<ISaver*>::iterator it = _isavers.begin(), end = _isavers.end(); it != end; ++it  )
+			delete *it;
+		_isavers.clear();
 
 		for( std::vector<PluginFile*>::iterator it = _plugins.begin(), end = _plugins.end(); it != end; ++it  )
 			delete *it;
@@ -56,12 +69,24 @@ namespace cvt {
 					_ifiltermap[ plugin->name() ] = ( IFilter* ) plugin;
 				}
 				break;
+			case PLUGIN_ILOADER:
+				{
+					std::cout << "Loaded ILoader " << plugin->name() << " Extension:" << ( ( ILoader* ) plugin )->extension( 0 ) << std::endl;
+					_iloaders.push_back( ( ILoader* ) plugin );
+				}
+				break;
+			case PLUGIN_ISAVER:
+				{
+					std::cout << "Loaded ISaver " << plugin->name() << " Extension:" << ( ( ISaver* ) plugin )->extension( 0 ) << std::endl;
+					_isavers.push_back( ( ISaver* ) plugin );
+				}
+				break;
 			default:
 				break;
 		}
 	}
 
-	inline void PluginManager::loadPlugin( const std::string& path )
+	inline void PluginManager::loadPlugin( const String& path )
 	{
 		PluginFile* p = new PluginFile( path.c_str() );
 		p->load();
@@ -74,9 +99,9 @@ namespace cvt {
 		return _ifilters[ n ];
 	}
 
-	inline IFilter* PluginManager::getIFilter( const std::string& name ) const
+	inline IFilter* PluginManager::getIFilter( const String& name ) const
 	{
-		std::map< const std::string, IFilter*>::const_iterator it;
+		std::map< const String, IFilter*>::const_iterator it;
 		if( ( it = _ifiltermap.find( name ) ) != _ifiltermap.end() ) {
 			return it->second;
 		}
