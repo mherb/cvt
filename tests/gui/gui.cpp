@@ -30,7 +30,8 @@ int main()
 {
     cvt::Resources resources;
 	Image img;
-	ImageIO::loadPNG( img, resources.find( "lena.png" ) );
+//	ImageIO::loadPNG( img, resources.find( "lena.png" ) );
+	img.load( resources.find("lena.png").c_str() );
 
 	cvt::Window w( "Test" );
     w.setSize( 640, 480 );
