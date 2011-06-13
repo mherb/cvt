@@ -5,7 +5,7 @@
 #include <fstream>
 
 namespace cvt {
-	String CVTRawLoader::_extension = "cvtraw";
+	String CVTRawLoader::_extension = ".cvtraw";
 	String CVTRawLoader::_name = "CVTRaw";
 
 	void CVTRawLoader::load( Image& img, const String& path )

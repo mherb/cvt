@@ -5,7 +5,7 @@
 #include <fstream>
 
 namespace cvt {
-	String CVTRawSaver::_extension = "cvtraw";
+	String CVTRawSaver::_extension = ".cvtraw";
 	String CVTRawSaver::_name = "CVTRaw";
 
 	void CVTRawSaver::save( const String& path, const Image& img )

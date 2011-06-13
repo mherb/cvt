@@ -11,8 +11,11 @@
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/ImageAllocator.h>
 #include <cvt/gfx/IKernel.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
+	class ISaver;
+	class ILoader;
 
 	class Image
 	{
@@ -53,6 +56,9 @@ namespace cvt {
 			void convert( Image& dst, const IFormat & format ) const;
 			void convert( Image& dst ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
+
+			void load( const String& path, ILoader* loader = NULL );
+			void save( const String& path, ISaver* loader = NULL );
 
 			void fill( const Color& c );
 

@@ -9,8 +9,12 @@ namespace cvt {
 
 	PluginManager& PluginManager::instance()
 	{
-		static PluginManager _instance;
-		return _instance;
+		static PluginManager* _instance = NULL;
+		if( !_instance ) {
+			_instance = new PluginManager();
+			_instance->loadDefault();
+		}
+		return *_instance;
 	}
 
 	void PluginManager::loadDefault()
@@ -21,6 +25,7 @@ namespace cvt {
 			try {
 				String path( PLUGIN_PATH );
 				path += it->c_str();
+				//std::cout << path << std::endl;
 				loadPlugin( path.c_str() );
 			} catch( Exception e ) {
 			}

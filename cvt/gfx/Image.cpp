@@ -6,6 +6,7 @@
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
 #include <cvt/util/Exception.h>
+#include <cvt/util/PluginManager.h>
 
 namespace cvt {
 
@@ -179,6 +180,26 @@ namespace cvt {
 	{
 		checkFormat(img, func, lineNum, _mem->_format );
 		checkSize(img, func, lineNum, _mem->_width, _mem->_height );
+	}
+
+	void Image::load( const String& path, ILoader* loader )
+	{
+		if( !loader ) {
+			loader = PluginManager::instance().getILoaderForFilename( path );
+			if( !loader )
+				throw CVTException( "No ILoader for file available" );
+		}
+		loader->load( *this, path );
+	}
+
+	void Image::save( const String& path, ISaver* saver )
+	{
+		if( !saver ) {
+			saver = PluginManager::instance().getISaverForFilename( path );
+			if( !saver )
+				throw CVTException( "No ISaver for file available" );
+		}
+		saver->save( path, *this );
 	}
 
 }
