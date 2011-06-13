@@ -6,19 +6,26 @@ using namespace cvt;
 
 int main()
 {
+	/*
 #ifndef APPLE
 	String file( "./bin/plugins/Dummy.so" );
 #else
 	String file( "./bin/plugins/Dummy.dylib" );
 #endif
 
-	PluginManager::instance().loadDefault();
 	try {
 		PluginFile p( file.c_str() );
 		p.load();
 	} catch( Exception e ) {
 		std::cout << e.what() << std::endl;
+	}*/
+
+
+	ILoader* x = PluginManager::instance().getILoaderForFilename( "bla.png" );
+	if( x ) {
+		std::cout << x->name() << std::endl;
 	}
+
 
 	size_t n = PluginManager::instance().getIFilterSize();
 	for( size_t i = 0; i < n; i++ )

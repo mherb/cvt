@@ -26,8 +26,6 @@ int main()
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
-	PluginManager::instance().loadDefault();
-
 	IFilterView view( PluginManager::instance().getIFilter("Canny") );
 	Moveable m( &view );
 	w.addWidget( &m );

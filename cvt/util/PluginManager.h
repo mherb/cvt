@@ -16,16 +16,19 @@ namespace cvt {
 			static PluginManager& instance();
 			void registerPlugin( Plugin* plugin );
 			void loadPlugin( const String& path );
-			void loadDefault();
 
 			IFilter* getIFilter( size_t i ) const;
 			IFilter* getIFilter( const String& name ) const;
 			size_t getIFilterSize() const;
 
+			ILoader* getILoaderForFilename( const String& name );
+			ISaver* getISaverForFilename( const String& name );
+
 		private:
 			PluginManager();
 			PluginManager( const PluginManager& );
 			~PluginManager();
+			void loadDefault();
 
 			std::vector<PluginFile*> _plugins;
 			std::vector<IFilter*> _ifilters;
@@ -111,6 +114,29 @@ namespace cvt {
 	inline size_t PluginManager::getIFilterSize() const
 	{
 		return _ifilters.size();
+	}
+
+	inline ILoader* PluginManager::getILoaderForFilename( const String& name )
+	{
+		for( std::vector<ILoader*>::iterator it = _iloaders.begin(), end = _iloaders.end(); it != end; ++it  )
+		{
+			for( size_t i = 0, end = ( *it )->sizeExtensions(); i < end; i++ ) {
+				if( name.hasSuffix( ( *it )->extension( i ) ) )
+					return *it;
+			}
+		}
+		return NULL;
+	}
+
+	inline ISaver* PluginManager::getISaverForFilename( const String& name )
+	{
+		for( std::vector<ISaver*>::iterator it = _isavers.begin(), end = _isavers.end(); it != end; ++it  ) {
+			for( size_t i = 0, end = ( *it )->sizeExtensions(); i < end; i++ ) {
+				if( name.hasSuffix( ( *it )->extension( i ) ) )
+					return *it;
+			}
+		}
+		return NULL;
 	}
 
 }
