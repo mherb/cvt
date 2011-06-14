@@ -74,13 +74,13 @@ namespace cvt {
 				break;
 			case PLUGIN_ILOADER:
 				{
-					std::cout << "Loaded ILoader " << plugin->name() << " Extension:" << ( ( ILoader* ) plugin )->extension( 0 ) << std::endl;
+					//std::cout << "Loaded ILoader " << plugin->name() << " Extension:" << ( ( ILoader* ) plugin )->extension( 0 ) << std::endl;
 					_iloaders.push_back( ( ILoader* ) plugin );
 				}
 				break;
 			case PLUGIN_ISAVER:
 				{
-					std::cout << "Loaded ISaver " << plugin->name() << " Extension:" << ( ( ISaver* ) plugin )->extension( 0 ) << std::endl;
+					//std::cout << "Loaded ISaver " << plugin->name() << " Extension:" << ( ( ISaver* ) plugin )->extension( 0 ) << std::endl;
 					_isavers.push_back( ( ISaver* ) plugin );
 				}
 				break;
