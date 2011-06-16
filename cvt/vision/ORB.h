@@ -25,7 +25,7 @@ namespace cvt {
 			void descriptor( ORBFeature& feature, IntegralImage& iimg );
 
 			std::vector<ORBFeature> _features;
-			static Vector2i _patterns[ 30 ][ 256 ][ 2 ];
+			static int _patterns[ 30 ][ 512 ][ 2 ];
 	};
 
 	inline size_t ORB::size() const

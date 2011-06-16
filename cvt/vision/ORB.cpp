@@ -1,10 +1,11 @@
 #include <cvt/vision/ORB.h>
 
+
 namespace cvt {
-    
+
 	ORB::ORB( const Image& img, size_t octaves, float scalefactor )
 	{
-		float scale = 1.0f;  
+		float scale = 1.0f;
         IScaleFilterBilinear scaleFilter;
         detect( img, scale );
 		for( size_t i = 1; i < octaves; i++ ) {
@@ -27,4 +28,5 @@ namespace cvt {
 	{
 	}
 
+#include "ORBPatterns.h"
 }
