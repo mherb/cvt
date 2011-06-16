@@ -8,13 +8,13 @@
 
 namespace cvt {
 
-	struct ORBFeature : Feature2Df {
+	struct ORBFeature : public Feature2Df {        
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
 
 	class ORB {
 		public:
-			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f );
+			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25 );
 
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
@@ -23,9 +23,19 @@ namespace cvt {
 			void detect( const Image& img, float scale );
 			void centroidAngle( ORBFeature& feature, IntegralImage& iimg  );
 			void descriptor( ORBFeature& feature, IntegralImage& iimg );
+        
+            void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale );
+            void makeOffsets( size_t stride );
+            bool isDarkerCorner9( const uint8_t * p, const int barrier );
+            bool isBrighterCorner9( const uint8_t * p, const int barrier );
 
 			std::vector<ORBFeature> _features;
 			static Vector2i _patterns[ 30 ][ 256 ][ 2 ];
+        
+            // for OFAST
+            uint8_t     _threshold;
+            size_t      _lastStride;
+            int         _pixel[ 16 ];
 	};
 
 	inline size_t ORB::size() const
