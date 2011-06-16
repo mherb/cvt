@@ -8,7 +8,12 @@
 
 namespace cvt {
 
-	struct ORBFeature : public Feature2Df {        
+	struct ORBFeature : public Feature2Df {  
+        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f ) : 
+            Feature2Df( x, y, angle, scale )
+        {
+        }
+        
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
 
@@ -30,12 +35,14 @@ namespace cvt {
             bool isBrighterCorner9( const uint8_t * p, const int barrier );
 
 			std::vector<ORBFeature> _features;
-			static Vector2i _patterns[ 30 ][ 256 ][ 2 ];
         
             // for OFAST
             uint8_t     _threshold;
             size_t      _lastStride;
-            int         _pixel[ 16 ];
+            int         _pixel[ 16 ];// for OFAST
+
+			static int       _patterns[ 30 ][ 512 ][ 2 ];
+            static const int _halfPatchSize = 15;
 	};
 
 	inline size_t ORB::size() const
