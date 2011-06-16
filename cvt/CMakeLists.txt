@@ -265,6 +265,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/DLT.h
 	vision/ESM.h
 	vision/FAST.h
+	vision/Feature2D.h
 	vision/FeatureExtractor.h
 	vision/Ferns.h
 	vision/internal/Fern.h
@@ -272,6 +273,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Flow.h
 	vision/HCalibration.h
 	vision/MeasurementModel.h
+	vision/ORB.h
 	vision/Patch.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
@@ -396,6 +398,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
+	vision/ORB.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
 	io/xml/XMLDecoder.cpp
