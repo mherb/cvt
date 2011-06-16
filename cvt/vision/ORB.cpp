@@ -14,7 +14,7 @@ namespace cvt {
 		for( size_t i = 1; i < octaves; i++ ) {
 			Image pyrimg;
 			scale *=  scalefactor;
-			img.scale( pyrimg, ( size_t )( img.width() * scalefactor ), ( size_t )( img.height() * scalefactor ), scaleFilter );
+			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			detect( pyrimg, scale );
 		}
 	}
@@ -31,11 +31,11 @@ namespace cvt {
         
         IntegralImage iimg( img );
 		const float* iimgptr = iimg.sumImage().map<float>( &stride );
-		size_t widthstep = stride / sizeof( float );
+
 
         while( featureIdx < _features.size() ){
-            centroidAngle( _features[ featureIdx ], iimgptr, widthstep );
-            descriptor( _features[ featureIdx ], iimgptr, widthstep );
+            centroidAngle( _features[ featureIdx ], iimgptr, stride );
+            descriptor( _features[ featureIdx ], iimgptr, stride );
             featureIdx++;
         }
 
@@ -62,6 +62,7 @@ namespace cvt {
 		feature.angle = Math::atan2( my, mx );
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
+        feature.angle = 0.0f;
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
