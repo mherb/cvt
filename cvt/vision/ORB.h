@@ -48,7 +48,10 @@ namespace cvt {
 
 			static int       _patterns[ 30 ][ 512 ][ 2 ];
 			static int		 _circularoffset[ 31 ];
-            static const int _halfPatchSize = 15;
+
+            // border where we do not detect features: 
+            // 17+2 17->maximum test coord within patch + 2 for the integral image access
+            static const int _border = 19;
 	};
 
 	inline size_t ORB::size() const
