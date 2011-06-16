@@ -46,19 +46,19 @@ namespace cvt {
     void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )    
     {
 		makeOffsets( stride );
-        size_t h = height - _halfPatchSize;
-        size_t w = width - _halfPatchSize;
+        size_t h = height - _border;
+        size_t w = width - _border;
         
-        im += ( _halfPatchSize * stride + _halfPatchSize );
+        im += ( _border * stride + _border );
         
         _features.reserve( 1024 );
         int upperBound;        
         int lowerBound;
 
-        for( size_t y = _halfPatchSize; y < h; y++ ){
+        for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
             
-            for( size_t x = _halfPatchSize; x < w; x++ ){
+            for( size_t x = _border; x < w; x++ ){
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
                 
