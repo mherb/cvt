@@ -8,6 +8,8 @@ namespace cvt {
 	{
 		float scale = 1.0f;
         IScaleFilterBilinear scaleFilter;
+
+        _features.reserve( 512 );
         detect( img, scale );
 		for( size_t i = 1; i < octaves; i++ ) {
 			Image pyrimg;
@@ -28,30 +30,67 @@ namespace cvt {
         img.unmap( ptr );
         
         IntegralImage iimg( img );
+		const float* iimgptr = iimg.sumImage().map<float>( &stride );
+		size_t widthstep = stride / sizeof( float );
+
         while( featureIdx < _features.size() ){
-            centroidAngle( _features[ featureIdx ], iimg );
-            descriptor( _features[ featureIdx ], iimg );
+            centroidAngle( _features[ featureIdx ], iimgptr, widthstep );
+            descriptor( _features[ featureIdx ], iimgptr, widthstep );
             featureIdx++;
         }
+
+		iimg.sumImage().unmap<float>( iimgptr );
 	}
 
-	void ORB::centroidAngle( ORBFeature& feature, IntegralImage& iimg )
+	void ORB::centroidAngle( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
+		float mx = 0;
+		float my = 0;
+
+		int cury = ( int ) feature.pt.y - 15;
+		int curx = ( int ) feature.pt.x;
+		for( int i = 0; i < 31; i++ ) {
+			mx +=( ( float ) i + 1.0f ) * IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep );
+		}
+
+		cury = ( int ) feature.pt.y;
+		curx = ( int ) feature.pt.x - 15;
+		for( int i = 0; i < 31; i++ ) {
+			my += ( ( float ) i + 1.0f ) * IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep );
+		}
+
+		feature.angle = Math::atan2( my, mx );
+		if( feature.angle < 0 )
+			feature.angle += Math::TWO_PI;
 	}
 
-	void ORB::descriptor( ORBFeature& feature, IntegralImage& iimg )
+	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
+		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
+
+#define ORBTEST( n ) IntegralImage::area( iimgptr, _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2,  _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
+					 IntegralImage::area( iimgptr, _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,  _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep )
+
+		for( int i = 0; i < 32; i++ ) {
+			feature.desc[ i ] = 0;
+			for( int k = 0; k < 8; k++ ) {
+				if( ORBTEST( i * 8 + k ) )
+					feature.desc[ i ] |= 1;
+				feature.desc[ i ] <<= 1;
+			}
+		}
 	}
-    
+
+
     void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )    
     {
 		makeOffsets( stride );
         size_t h = height - _halfPatchSize;
         size_t w = width - _halfPatchSize;
+		float invscale = 1.0f / scale;
         
         im += ( _halfPatchSize * stride + _halfPatchSize );
         
-        _features.reserve( 1024 );
         int upperBound;        
         int lowerBound;
 
@@ -62,12 +101,10 @@ namespace cvt {
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
                 
-                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ){
-                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
-                } else {
-                    if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
-                        _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
-                    }
+                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
+                    _features.push_back( ORBFeature( x * invscale, y * invscale, 0.0f, scale ) );
+                } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
+                    _features.push_back( ORBFeature( x * invscale, y * invscale, 0.0f, scale ) );
                 }
                 curr++;
             }
@@ -78,28 +115,22 @@ namespace cvt {
     
     void ORB::makeOffsets( size_t row_stride )
 	{
-        
-        if( _lastStride == row_stride )
-            return;
-        
-        _lastStride = row_stride;
-    
-        _pixel[0]  =  0 + _lastStride * 3;
-		_pixel[1]  =  1 + _lastStride * 3;
-		_pixel[2]  =  2 + _lastStride * 2;
-		_pixel[3]  =  3 + _lastStride * 1;
+        _pixel[0]  =  0 + row_stride * 3;
+		_pixel[1]  =  1 + row_stride * 3;
+		_pixel[2]  =  2 + row_stride * 2;
+		_pixel[3]  =  3 + row_stride * 1;
 		_pixel[4]  =  3;
-		_pixel[5]  =  3 - _lastStride * 1;
-		_pixel[6]  =  2 - _lastStride * 2;
-		_pixel[7]  =  1 - _lastStride * 3;
-		_pixel[8]  =    - _lastStride * 3;
-		_pixel[9]  = -1 - _lastStride * 3;
-		_pixel[10] = -2 - _lastStride * 2;
-		_pixel[11] = -3 - _lastStride * 1;
+		_pixel[5]  =  3 - row_stride * 1;
+		_pixel[6]  =  2 - row_stride * 2;
+		_pixel[7]  =  1 - row_stride * 3;
+		_pixel[8]  =    - row_stride * 3;
+		_pixel[9]  = -1 - row_stride * 3;
+		_pixel[10] = -2 - row_stride * 2;
+		_pixel[11] = -3 - row_stride * 1;
 		_pixel[12] = -3;
-		_pixel[13] = -3 + _lastStride;
-		_pixel[14] = -2 + _lastStride * 2;
-		_pixel[15] = -1 + _lastStride * 3;
+		_pixel[13] = -3 + row_stride;
+		_pixel[14] = -2 + row_stride * 2;
+		_pixel[15] = -1 + row_stride * 3;
     }
     
     bool ORB::isDarkerCorner9( const uint8_t * p, const int barrier )
@@ -983,5 +1014,7 @@ namespace cvt {
 		return true;
 	}
 
+	int ORB::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
+									   15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
 #include "ORBPatterns.h"
 }

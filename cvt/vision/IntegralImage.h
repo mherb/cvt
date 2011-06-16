@@ -48,6 +48,7 @@ namespace cvt
             static inline float area( const Image & img, const Recti & r ); 
         
             static inline float area( const float * p, size_t w, size_t h, size_t stride );
+            static inline float area( const float * ptr, size_t x, size_t y, size_t w, size_t h, size_t stride );
         
         private:
             Image*              _sum;
@@ -88,9 +89,16 @@ namespace cvt
     }
     
     inline float IntegralImage::area( const float * p, size_t w, size_t h, size_t stride )
-    { 
+    {
         return *( p + stride * h + w ) - p[ w - stride ] - p[ stride * h - 1 ] + p[ -1 - stride ];
     }
+
+    inline float IntegralImage::area( const float* ptr, size_t x, size_t y, size_t w, size_t h, size_t widthstep )
+    {
+		const float* p = ptr + y * widthstep + x;
+        return *( p + widthstep * h + w ) - p[ w - widthstep ] - p[ widthstep * h - 1 ] + p[ -1 - widthstep ];
+    }
+
 }
 
 #endif
