@@ -41,7 +41,7 @@ namespace cvt {
 			String& operator=( const char* str );
 
 			String& operator+=( const String& str );
-			String& operator+=( unsigned int i );
+//			String& operator+=( unsigned int i );
 			String& operator+=( int i );
 			String& operator+=( size_t i );
 			String& operator+=( float i );
@@ -201,11 +201,13 @@ namespace cvt {
 		return *this;
 	}
 
+/*
 	inline String& String::operator+=( unsigned int i )
 	{
 		sprintfConcat( "%u", i );
 		return *this;
 	}
+*/
 
 	inline String& String::operator+=( int i )
 	{
