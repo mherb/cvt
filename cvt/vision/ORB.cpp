@@ -1,11 +1,12 @@
 #include <cvt/vision/ORB.h>
 
+
 namespace cvt {
-    
+   
 	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold ) :
         _threshold( cornerThreshold )
 	{
-		float scale = 1.0f;  
+		float scale = 1.0f;
         IScaleFilterBilinear scaleFilter;
         detect( img, scale );
 		for( size_t i = 1; i < octaves; i++ ) {
@@ -18,7 +19,20 @@ namespace cvt {
 
 	void ORB::detect( const Image& img, float scale )
 	{
+        // detect the features for this level
+        size_t featureIdx = _features.size();
+
+        size_t stride;
+        const uint8_t * ptr = img.map( &stride );        
+        detect9( ptr, stride, img.width(), img.height(), scale );        
+        img.unmap( ptr );
         
+        IntegralImage iimg( img );
+        while( featureIdx < _features.size() ){
+            centroidAngle( _features[ featureIdx ], iimg );
+            descriptor( _features[ featureIdx ], iimg );
+            featureIdx++;
+        }
 	}
 
 	void ORB::centroidAngle( ORBFeature& feature, IntegralImage& iimg )
@@ -32,32 +46,27 @@ namespace cvt {
     void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )    
     {
 		makeOffsets( stride );
-        size_t h = height - 3;
-        size_t w = width - 3;
+        size_t h = height - _halfPatchSize;
+        size_t w = width - _halfPatchSize;
         
-        im += ( 3 * stride + 3 );
+        im += ( _halfPatchSize * stride + _halfPatchSize );
         
         _features.reserve( 1024 );
         int upperBound;        
         int lowerBound;
-        ORBFeature ofeat;
-        ofeat.scale = scale;
-        for( size_t y = 3; y < h; y++ ){
+
+        for( size_t y = _halfPatchSize; y < h; y++ ){
             const uint8_t * curr = im;
             
-            for( size_t x = 3; x < w; x++ ){
+            for( size_t x = _halfPatchSize; x < w; x++ ){
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
                 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ){
-                    ofeat.pt.x = x;
-                    ofeat.pt.y = y;                    
-                    _features.push_back( ofeat );
+                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else {
                     if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
-                        ofeat.pt.x = x;
-                        ofeat.pt.y = y;                    
-                        _features.push_back( ofeat );
+                        _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                     }
                 }
                 curr++;
@@ -974,4 +983,5 @@ namespace cvt {
 		return true;
 	}
 
+#include "ORBPatterns.h"
 }
