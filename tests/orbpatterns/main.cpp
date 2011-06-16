@@ -10,7 +10,7 @@ int main()
 {
 	float inc = Math::TWO_PI / 30.0f;
 	float rad = 0;
-	std::cout << "{\n";
+	std::cout << "Vector2i ORB::_patterns[ 30 ][ 256 ][ 2 ]\n{\n";
 	for( int i = 0; i < 30; i++, rad += inc ) {
 		Matrix3f rot;
 		rot.rotationZ( rad );
@@ -26,7 +26,7 @@ int main()
 			std::cout << "\t\t{ " <<  ( ( int ) p1.x )  << ", " << ( ( int ) p1.y ) <<" }, ";
 			std::cout << "{ " <<  ( ( int ) p2.x )  << ", " << ( ( int ) p2.y ) <<" },\n";
 		}
-		std::cout << "\t}\n";
+		std::cout << "\t},\n";
 	}
-	std::cout << "}\n";
+	std::cout << "};\n";
 }
