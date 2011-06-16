@@ -13,7 +13,8 @@ namespace cvt {
 		float scale;
 	};
 
-	inline Feature2D::Feature2D( T x, T y, float a, float s ) : pt( x, y ), angle( a ), scale( s )
+    template <typename T>
+	inline Feature2D<T>::Feature2D( T x, T y, float a, float s ) : pt( x, y ), angle( a ), scale( s )
 	{
 	}
 

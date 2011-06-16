@@ -20,7 +20,7 @@ namespace cvt {
 			const ORBFeature& operator[]( size_t index ) const;
 
 		private:
-			void detect( Image& img, float scale );
+			void detect( const Image& img, float scale );
 			void centroidAngle( ORBFeature& feature, IntegralImage& iimg  );
 			void descriptor( ORBFeature& feature, IntegralImage& iimg );
 
