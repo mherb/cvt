@@ -4,16 +4,22 @@
 #include <cvt/vision/Feature2D.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/IntegralImage.h>
+#include <cvt/util/SIMD.h>
 #include <vector>
 
 namespace cvt {
 
-	struct ORBFeature : public Feature2Df {  
+	struct ORBFeature : public Feature2Df {
         ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f ) : 
             Feature2Df( x, y, angle, scale )
         {
         }
-        
+
+		size_t distance( const ORBFeature& f ) const
+		{
+			return SIMD::instance()->hammingDistance( ( const uint64_t* ) desc, ( const uint64_t* ) f.desc, 4 );
+		}
+
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
 
@@ -26,22 +32,22 @@ namespace cvt {
 
 		private:
 			void detect( const Image& img, float scale );
-			void centroidAngle( ORBFeature& feature, IntegralImage& iimg  );
-			void descriptor( ORBFeature& feature, IntegralImage& iimg );
-        
+			void centroidAngle( ORBFeature& feature, const float* ptr, size_t widthstep );
+			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
+
             void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale );
             void makeOffsets( size_t stride );
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
             bool isBrighterCorner9( const uint8_t * p, const int barrier );
 
 			std::vector<ORBFeature> _features;
-        
+
             // for OFAST
-            uint8_t     _threshold;
-            size_t      _lastStride;
-            int         _pixel[ 16 ];// for OFAST
+            uint8_t			 _threshold;
+            int				 _pixel[ 16 ];// for OFAST
 
 			static int       _patterns[ 30 ][ 512 ][ 2 ];
+			static int		 _circularoffset[ 31 ];
             static const int _halfPatchSize = 15;
 	};
 
