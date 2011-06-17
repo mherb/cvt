@@ -6,6 +6,7 @@
 #include <cvt/vision/IntegralImage.h>
 #include <cvt/util/SIMD.h>
 #include <vector>
+#include <iostream>
 
 namespace cvt {
 
@@ -22,6 +23,17 @@ namespace cvt {
 
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
+
+
+	static inline std::ostream& operator<<( std::ostream& out, const ORBFeature& feature )
+	{
+		out << "( " << feature.pt.x << " , " << feature.pt.y << " ) Orientation: " << Math::rad2Deg( feature.angle );
+		out << "\nDescriptor: 0x";
+		for( int i = 0; i < 32; i++ )
+			out << std::hex << feature.desc[ i ];
+		out << std::endl;
+		return out;
+	}
 
 	class ORB {
 		public:
