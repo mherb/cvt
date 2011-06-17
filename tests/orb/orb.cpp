@@ -43,8 +43,8 @@ int main( int argc, char * argv[] )
 	correspondences.copyRect( 0, 0, out, imgRect );
 	correspondences.copyRect( img.width(), 0, out2, imgRect );
 
-	ORB orb1( img, 3, 0.7, 80 );
-	ORB orb2( img2, 3, 0.7, 80 );
+	ORB orb1( img, 3, 0.5, 40 );
+	ORB orb2( img2, 3, 0.5, 40 );
 
 	{
 		GFXEngineImage ge( correspondences );
@@ -59,7 +59,7 @@ int main( int argc, char * argv[] )
 		for( int i = 0; i < orb1.size(); i++ ) {
 			const ORBFeature & match = mindist( orb1[ i ], orb2, dist );
 
-			if( dist < 30 ){
+			if( dist < 10 ){
 				g.drawLine( orb1[ i ].pt.x, orb1[ i ].pt.y,
 						    match.pt.x + img.width(), match.pt.y );
 /*				if( Math::abs( orb1[ i ].pt.x - match.pt.x ) < 0.5f &&
