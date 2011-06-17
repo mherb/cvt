@@ -51,13 +51,13 @@ namespace cvt {
 		int cury = ( int ) feature.pt.y - 15;
 		int curx = ( int ) feature.pt.x;
 		for( int i = 0; i < 31; i++ ) {
-			mx +=( ( float ) i + 1.0f ) * IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep );
+			mx +=( ( float ) i - 15.0f ) * IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep );
 		}
 
 		cury = ( int ) feature.pt.y;
 		curx = ( int ) feature.pt.x - 15;
 		for( int i = 0; i < 31; i++ ) {
-			my += ( ( float ) i + 1.0f ) * IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep );
+			my += ( ( float ) i - 15.0f ) * IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep );
 		}
 
 		feature.angle = Math::atan2( my, mx );

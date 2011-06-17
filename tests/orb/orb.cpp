@@ -29,8 +29,8 @@ int main( int argc, char * argv[] )
 	Image img2;
 
 	img.load( res.find( "lena_g.png" ).c_str() );
-	img2.load( res.find( "lena_g_scale.png" ).c_str() );
-//	img2.load( res.find( "lena_g_rot.png" ).c_str() );
+//	img2.load( res.find( "lena_g_scale.png" ).c_str() );
+	img2.load( res.find( "lena_g_rot.png" ).c_str() );
 //	img2.load( res.find( "lena_g.png" ).c_str() );
 
 	Image out( img.width(), img.height(), IFormat::RGBA_UINT8 );
@@ -43,8 +43,8 @@ int main( int argc, char * argv[] )
 	correspondences.copyRect( 0, 0, out, imgRect );
 	correspondences.copyRect( img.width(), 0, out2, imgRect );
 
-	ORB orb1( img, 3, 0.5, 80 );
-	ORB orb2( img2, 3, 0.5, 80 );
+	ORB orb1( img, 3, 0.7, 80 );
+	ORB orb2( img2, 3, 0.7, 80 );
 
 	{
 		GFXEngineImage ge( correspondences );
