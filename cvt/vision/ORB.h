@@ -58,12 +58,12 @@ namespace cvt {
             uint8_t			 _threshold;
             int				 _pixel[ 16 ];// for OFAST
 
-			static int       _patterns[ 30 ][ 512 ][ 2 ];
-			static int		 _circularoffset[ 31 ];
+			static const int _patterns[ 30 ][ 512 ][ 2 ];
+			static const int _circularoffset[ 31 ];
 
             // border where we do not detect features: 
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
-            static const int _border = 19;
+            static const int _border = 20;
 	};
 
 	inline size_t ORB::size() const

@@ -7,16 +7,17 @@ namespace cvt {
         _threshold( cornerThreshold )
 	{
 		float scale = 1.0f;
-        IScaleFilterBilinear scaleFilter;
+		IScaleFilterBilinear scaleFilter;
 
-        _features.reserve( 512 );
-        detect( img, scale );
+		_features.reserve( 512 );
+		detect( img, scale );
 		for( size_t i = 1; i < octaves; i++ ) {
 			Image pyrimg;
 			scale *=  scalefactor;
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			detect( pyrimg, scale );
 		}
+
 	}
 
 	void ORB::detect( const Image& img, float scale )
@@ -82,6 +83,7 @@ namespace cvt {
 				feature.desc[ i ] <<= 1;
 			}
 		}
+		feature.pt /= feature.scale;
 	}
 
 
@@ -90,7 +92,6 @@ namespace cvt {
 		makeOffsets( stride );
         size_t h = height - _border;
         size_t w = width - _border;
-		float invscale = 1.0f / scale;
 
         im += ( _border * stride + _border );
         
@@ -105,9 +106,9 @@ namespace cvt {
                 upperBound = *curr + _threshold;
                 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
-                    _features.push_back( ORBFeature( x * invscale, y * invscale, 0.0f, scale ) );
+                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
-                    _features.push_back( ORBFeature( x * invscale, y * invscale, 0.0f, scale ) );
+                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 }
                 curr++;
             }
@@ -1017,7 +1018,7 @@ namespace cvt {
 		return true;
 	}
 
-	int ORB::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
-									   15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
+	const int ORB::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
+											 15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
 #include "ORBPatterns.h"
 }
