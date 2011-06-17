@@ -131,15 +131,15 @@ namespace cvt
         return ( mulSum - patch.mean() * sumI ) * sigmaPSigmaI / ( size - 1.0f );
     }
 
-    /*********************************************************/
+    /************************INTEGRAL IMAGE TESTS *********************************/
 
     static float areaTest( const Image & img, const Recti & r )
     {
         size_t stride;
         const uint8_t * p = img.map( &stride );
         float sum = 0;
-        for( int y = 0; y < r.height && y < ( int )img.height(); y++ ){
-            for( int x = 0; x < r.width && x < ( int )img.width(); x++ ){
+        for( int y = 0; y < r.height && r.y + y < ( int )img.height(); y++ ){
+            for( int x = 0; x < r.width && r.x + x < ( int )img.width(); x++ ){
                 sum += p[ ( r.y + y ) * stride + r.x + x ];
             }
         }
@@ -259,14 +259,36 @@ namespace cvt
     
     static bool _testRectSum( Image & img, Image & sum, Recti & rect )
     {
+        bool success = true;
         float iiArea;
         iiArea = IntegralImage::area( sum, rect );
         
         float iArea;
         iArea = areaTest( img, rect );
         
+        bool area1 = Math::abs( iArea - iiArea ) < Math::EPSILONF;
+        success &= area1;
+        CVTTEST_PRINT( "IntegralImage::area( Image, Rect )", area1 );
+        
+        size_t stride;
+        const float * ptr = sum.map<float>( &stride );
+        float a2 = IntegralImage::area( ( ptr + stride * rect.y + rect.x ), rect.width, rect.height, stride );
+
+        bool area2 = Math::abs( iArea - a2 ) < Math::EPSILONF;
+        CVTTEST_PRINT( "IntegralImage::area( float*, width, height, stride )", area2 );
+        if( !area2 ) std::cout << "GT: " << iArea << " Result: " << a2 << std::endl;
+        success &= area2;
+        
+        float a3 = IntegralImage::area( ptr, rect.x, rect.y, rect.width, rect.height, stride );
+        bool area3 = Math::abs( iArea - a3 ) < Math::EPSILONF;
+        CVTTEST_PRINT( "IntegralImage::area( float*, x, y, width, height, stride )", area3 );
+        if( !area3 ) std::cout << "GT: " << iArea << " Result: " << a3 << std::endl;
+        success &= area3;
+        
+        sum.unmap( ptr );
+        
         //std::cout << "Area Test -> Rect = " << rect << " " << iiArea << " ?== " << iArea << std::endl;        
-        return Math::abs( iArea - iiArea ) < Math::EPSILONF;
+        return success;
     }
     
     static bool _testSqrRectSum( Image & img, Image & sum, Recti & rect )
@@ -338,6 +360,8 @@ namespace cvt
     }
     CVTTEST_PRINT("::squaredArea( ... )", test );
     result &= test;
+        
+    
     
     return result;
     
