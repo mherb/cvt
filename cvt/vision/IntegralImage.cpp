@@ -257,7 +257,7 @@ namespace cvt
         return ret;
     }
     
-    static bool _testRectSum( Image & img, Image & sum, Recti & rect )
+    static bool _rectSum( Image & img, Image & sum, Recti & rect )
     {
         bool success = true;
         float iiArea;
@@ -291,7 +291,7 @@ namespace cvt
         return success;
     }
     
-    static bool _testSqrRectSum( Image & img, Image & sum, Recti & rect )
+    static bool _sqrRectSum( Image & img, Image & sum, Recti & rect )
     {
         float iiArea;
         iiArea = IntegralImage::area( sum, rect );
@@ -344,7 +344,7 @@ namespace cvt
         rect.y = y;
         for( int x = 0; x < 10; x++ ){
             rect.x = x;
-            test &= _testRectSum( img, ii.sumImage(), rect );
+            test &= _rectSum( img, ii.sumImage(), rect );
         }
     }    
     CVTTEST_PRINT("::area( ... )",  test );
@@ -355,7 +355,7 @@ namespace cvt
         rect.y = y;
         for( int x = 0; x < 10; x++ ){
             rect.x = x;
-            test &= _testSqrRectSum( img, ii.sqrSumImage(), rect );
+            test &= _sqrRectSum( img, ii.sqrSumImage(), rect );
         }
     }
     CVTTEST_PRINT("::squaredArea( ... )", test );
