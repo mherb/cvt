@@ -1,4 +1,4 @@
-int ORB::_patterns[ 30 ][ 512 ][ 2 ] =
+const int ORB::_patterns[ 30 ][ 512 ][ 2 ] =
 {
 	{
 		{ 8, -2 }, { 9, 5 },

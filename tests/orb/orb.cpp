@@ -29,8 +29,9 @@ int main( int argc, char * argv[] )
 	Image img2;
 
 	img.load( res.find( "lena_g.png" ).c_str() );
-	//img2.load( res.find( "lena_g_rot.png" ).c_str() );
-	img2.load( res.find( "lena_g.png" ).c_str() );
+	img2.load( res.find( "lena_g_scale.png" ).c_str() );
+//	img2.load( res.find( "lena_g_rot.png" ).c_str() );
+//	img2.load( res.find( "lena_g.png" ).c_str() );
 
 	Image out( img.width(), img.height(), IFormat::RGBA_UINT8 );
 	Image out2( img2.width(), img2.height(), IFormat::RGBA_UINT8 );
@@ -42,8 +43,8 @@ int main( int argc, char * argv[] )
 	correspondences.copyRect( 0, 0, out, imgRect );
 	correspondences.copyRect( img.width(), 0, out2, imgRect );
 
-	ORB orb1( img, 1, 0.5, 40 );
-	ORB orb2( img2, 1, 0.5, 40 );
+	ORB orb1( img, 3, 0.5, 80 );
+	ORB orb2( img2, 3, 0.5, 80 );
 
 	{
 		GFXEngineImage ge( correspondences );
@@ -52,15 +53,24 @@ int main( int argc, char * argv[] )
 
 
 		size_t dist;
+/*		size_t good = 0;
+		size_t all = 0;*/
+
 		for( int i = 0; i < orb1.size(); i++ ) {
 			const ORBFeature & match = mindist( orb1[ i ], orb2, dist );
 
-			if( dist < 5 ){
+			if( dist < 30 ){
 				g.drawLine( orb1[ i ].pt.x, orb1[ i ].pt.y,
 						    match.pt.x + img.width(), match.pt.y );
+/*				if( Math::abs( orb1[ i ].pt.x - match.pt.x ) < 0.5f &&
+					Math::abs( orb1[ i ].pt.y - match.pt.y ) < 0.5f  )
+					 good++;
+				all++;*/
 			}
 
 		}
+
+//		std::cout << ( ( float ) good / ( float ) all ) << std::endl;
 
 	}
 
