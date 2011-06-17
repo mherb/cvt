@@ -55,7 +55,7 @@ int main( int argc, char * argv[] )
 		for( int i = 0; i < orb1.size(); i++ ) {
 			const ORBFeature & match = mindist( orb1[ i ], orb2, dist );
 
-			if( dist < 45 ){
+			if( dist < 5 ){
 				g.drawLine( orb1[ i ].pt.x, orb1[ i ].pt.y,
 						    match.pt.x + img.width(), match.pt.y );
 			}
