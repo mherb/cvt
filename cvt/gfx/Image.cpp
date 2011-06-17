@@ -49,7 +49,7 @@ namespace cvt {
 			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
-		ImageIO::loadPNG( *this, fileName );
+		this->load( fileName.c_str() );
 	}
 
 	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype )
