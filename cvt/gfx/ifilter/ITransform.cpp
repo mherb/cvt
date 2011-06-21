@@ -7,8 +7,8 @@ namespace cvt {
 	static ParamInfoTyped<Matrix3f> _ptransform( "Transformation" );
 	static ParamInfoTyped<bool>		_pfillcolor( "FillOutside" );
 	static ParamInfoTyped<Color>	_pcolor( "FillColor" );
-	static ParamInfoTyped<size_t>	_pwidth( "Width", 0, true );
-	static ParamInfoTyped<size_t>	_pheight( "Height", 0, true );
+	static ParamInfoTyped<uint32_t>	_pwidth( "Width", 0, true, 1, 0 );
+	static ParamInfoTyped<uint32_t>	_pheight( "Height", 0, true, 1, 0 );
 	static ParamInfoTyped<Image*>	_poutput( "Output", NULL, false );
 
 	static ParamInfo* _itransform_params[] =
