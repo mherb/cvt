@@ -34,7 +34,7 @@ static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy
 	h( 2, 2 ) = 1.0f;
 	
 	ih = h.inverse();	
-	ih /= powf( ih.determinant(), 1.0f / 3.0f );
+//	ih /= powf( ih.determinant(), 1.0f / 3.0f );
 	
 	ih.transposeInPlace();	
 	return *( ( cvt::Matrix3f* )ih.data() );	
@@ -55,8 +55,8 @@ int main()
 		img.convert( imgf );
 
 		Homography hfilter;
-		//cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.001f, 0.0f );
-		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f );
+		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.00025f, 0.0f );
+//		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f );
 		std::cout << "H: \n" <<  H << std::endl;
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );

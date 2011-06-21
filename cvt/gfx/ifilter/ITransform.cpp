@@ -83,6 +83,7 @@ namespace cvt {
 		sw = ( ssize_t ) isrc.width();
 		sh = ( ssize_t ) isrc.height();
 
+				std::cout << transform << std::endl;
 		invtrans = transform.inverse();
 
 		std::cout << "OK1" << std::endl;
@@ -114,16 +115,21 @@ namespace cvt {
 				}
 //				Vector3<Fixed> fix( ( Fixed ) px1.x, ( Fixed ) px1.y, ( Fixed )1.0f );
 //				Vector3<Fixed> fixnormal( ( Fixed ) normal.x, ( Fixed ) normal.y, ( Fixed ) normal.z );
-				Vector3f fix(  pt1.x,  pt1.y, 1.0f );
+				Vector3f fix( pt1.x, pt1.y, 1.0f );
 				Vector3f fixnormal(  normal.x,  normal.y,  normal.z );
+				std::cout << fixnormal << std::endl;
 
-//				std::cout << "OK2" << std::endl;
-				for( size_t x = Math::floor( px1.x ), xend = Math::floor( px2.x ); x < xend; x++ )
+				std::cout << "OK2" << std::endl;
+				for( size_t x = Math::floor( px1.x ), xend = Math::floor( px2.x ); x <= xend; x++ )
 				{
+//					Vector2f p( x, y );
+//					p = transform * p;
 					float fx, fy;
+//					fx = p.x;
+//					fy = p.y;
 					fx = fix.x / fix.z;
 					fy = fix.y / fix.z;
-					pdst[ x ] = *( ( float* ) ( src + sstride * ( size_t ) Math::floor( fy ) + ( size_t ) Math::floor( fx ) ) );
+					pdst[ x ] = *( ( float* ) ( src + sstride * ( size_t ) Math::floor( fy ) + sizeof( float ) * ( size_t ) Math::floor( fx ) ) );
 //					*( pdst + x ) = *( ( float* ) ( src + sstride * fy.floor() + fx.floor() ) );
 					fix += fixnormal;
 				}
