@@ -119,10 +119,12 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
+	gfx/Color.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
 	gfx/ifilter/GaussIIR.h
 	gfx/ifilter/BrightnessContrast.h
+	gfx/ifilter/ITransform.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -302,6 +304,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/GFXEngineImage.cpp
 	gfx/IConvert.cpp
 	gfx/IFormat.cpp
+	gfx/Color.cpp
 	gfx/Image.cpp
 	gfx/ImageOperations.cpp
 	gfx/ImageTest.cpp
@@ -309,6 +312,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/Homography.cpp
 	gfx/ifilter/GaussIIR.cpp
 	gfx/ifilter/BrightnessContrast.cpp
+	gfx/ifilter/ITransform.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp

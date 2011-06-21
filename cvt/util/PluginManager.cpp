@@ -19,6 +19,9 @@ namespace cvt {
 
 	void PluginManager::loadDefault()
 	{
+		// Static default plugins
+
+		// Runtime loaded plugins
 		std::vector<std::string> entries;
 		FileSystem::ls( PLUGIN_PATH, entries );
 		for( std::vector<std::string>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
