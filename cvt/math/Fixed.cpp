@@ -243,6 +243,17 @@ namespace cvt
 		CVTTEST_PRINT( "operator/", b );
 		result &=b;
 
+		{
+			Fixed f0( 1234.5f );
+			Fixed f1( -13.5f );
+			Fixed f = f0 / f1;
+			float v = 1234.5f / -13.5f;
+//			std::cout << (float)f << " <-> " << v << std::endl;
+			b = ( Math::abs( (float)f == v ) < 0.00001f );
+			CVTTEST_PRINT( "operator/", b );
+			result &=b;
+		}
+
 		b = ( f == ( Fixed )v );
 		CVTTEST_PRINT( "operator==", b );
 		result &=b;

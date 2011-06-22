@@ -176,16 +176,16 @@ namespace cvt
 
 	inline Fixed Fixed::operator/( Fixed other ) const
 	{
-		int s = 1;
+//		int s = 1;
 
-		int32_t a = _val;
+//		int32_t a = _val;
 
-	    if( a < 0 ) { a = -a; s = -1; }
-	    if( other._val < 0 ) { other._val = -other._val; s = -s; }
+//	    if( a < 0 ) { a = -a; s = -1; }
+//	    if( other._val < 0 ) { other._val = -other._val; s = -s; }
 
-	    uint32_t q = ( ( ( (int64_t) a << 16 ) + ( other._val >> 1 ) ) / other._val );
+	    int32_t q = ( ( ( (int64_t) _val << 16 ) + ( other._val >> 1 ) ) / other._val );
 		Fixed ret;
-		ret._val = ( s < 0 ? -q : q );
+		ret._val = q;//( s < 0 ? -q : q );
 	    return ret;
 	}
 
