@@ -128,6 +128,8 @@ namespace cvt {
 			virtual void Conv_BGRAu8_to_GRAYu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const;
 			virtual void Conv_RGBAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
 			virtual void Conv_BGRAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
+            virtual void Conv_XXXf_to_XXXAf( float * dst, const float* src, size_t n ) const;
+            virtual void Conv_XXXu8_to_XXXAu8( uint8_t * dst, const uint8_t* src, size_t n ) const;
 
 
 			virtual void Conv_YUYVu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
