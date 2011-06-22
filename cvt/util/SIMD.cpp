@@ -4,6 +4,8 @@
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMDSSE.h>
 #include <cvt/util/SIMDSSE41.h>
+#include <cvt/util/SIMDSSE42.h>
+#include <cvt/util/SIMDAVX.h>
 #include <cvt/util/CPU.h>
 
 namespace cvt {
@@ -676,7 +678,11 @@ namespace cvt {
 		if( type == SIMD_BEST ) {
 			CPUFeatures cpuf;
 			cpuf = cpuFeatures();
-			if( cpuf & CPU_SSE4_1 ) {
+			if( cpuf & CPU_AVX ){
+				return new SIMDAVX();
+			} else if( cpuf & CPU_SSE4_2 ){
+				return new SIMDSSE42();
+			} else if( cpuf & CPU_SSE4_1 ) {
 				return new SIMDSSE41();
 			}  else if( cpuf & CPU_SSE2 ) {
 				return new SIMDSSE2();
@@ -692,6 +698,8 @@ namespace cvt {
 				case SIMD_SSE: return new SIMDSSE();
 				case SIMD_SSE2: return new SIMDSSE2();
 				case SIMD_SSE41: return new SIMDSSE41();
+                case SIMD_SSE42: return new SIMDSSE42();
+                case SIMD_AVX: return new SIMDAVX();
 			}
 		}
 	}

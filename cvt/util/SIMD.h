@@ -13,6 +13,8 @@ namespace cvt {
 		SIMD_SSE,
 		SIMD_SSE2,
 		SIMD_SSE41,
+		SIMD_SSE42,
+		SIMD_AVX,
 		SIMD_BEST
 	};
 
@@ -21,6 +23,7 @@ namespace cvt {
 		protected:
 			SIMD() {};
 			SIMD( const SIMD& ) {};
+        
 		public:
 			virtual ~SIMD() {};
 
