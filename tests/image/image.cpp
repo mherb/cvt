@@ -3,7 +3,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 
 #include <cvt/gfx/Color.h>
@@ -22,11 +21,11 @@ int main()
 	try {
 		// RGBA UBYTE IMAGE
 		cvt::Image img, img2;		
-		cvt::ImageIO::loadPNG(img, inputFile );
+		img.load( inputFile.c_str() );
 		cvt::Image imgF( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );		
 		img.convert( imgF );
 
-		cvt::ImageIO::savePNG( imgF, "float.png" );
+		imgF.save( "float.png" );
 		
 		cvt::Image resized;
 		
@@ -39,23 +38,23 @@ int main()
 		
 		std::cout << "SAD: " << img.sad( img2 ) / cvt::Math::sqr( 512.0f )  << std::endl;
 		
-		cvt::ImageIO::savePNG( img2, "rescaled.png" );
+		img2.save( "rescaled.png" );
 		
 		cvt::Image imgGray(img.width(), 
 						   img.height(),
 						   cvt::IFormat::GRAYALPHA_UINT8 );
 		
-		cvt::ImageIO::savePNG(img, "out.png");
+		img.save( "out.png");
 		
-		cvt::ImageIO::loadPNG(imgGray, inputGray);
+		imgGray.load( inputGray.c_str() );
 		
 		std::cout << "Loaded image: " << imgGray << std::endl;
 		
 		// save the gray image
-        cvt::ImageIO::saveRAW( imgGray, "gray.cvtraw" );
-        cvt::ImageIO::loadRAW( imgGray, "gray.cvtraw" );
+        imgGray.save( "gray.cvtraw" );
+        imgGray.load( "gray.cvtraw" );
         
-		cvt::ImageIO::savePNG(imgGray, "out_gray.png");
+		imgGray.save( "out_gray.png");
 		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;

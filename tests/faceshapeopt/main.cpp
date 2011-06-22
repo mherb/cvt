@@ -1,5 +1,4 @@
 #include <cvt/vision/FaceShape.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/math/GaussNewton.h>
 #include <cvt/io/ImageSequence.h>
@@ -15,7 +14,7 @@ void drawCurrent( const Image& _img, const FaceShape<double>& fs )
 	GFX g( &ge );
 	g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
 	fs.drawCurrent( &g );
-	ImageIO::savePNG( img, "current.png" );
+    img.save( "current.png" );
 	int	bla = getchar();
 }
 
@@ -26,8 +25,6 @@ int main()
 	int bla;
 
 	ImageSequence seq( "./imgseq/image_", "cvtraw", 30, 1016, 5 );
-
-//	ImageIO::loadPNG( img, "/home/heise/Pictures/myface2.png" );
 
 	imgu.reallocate( seq.width(), seq.height(), IFormat::BGRA_UINT8 );
 	imgf.reallocate( seq.width(), seq.height(), IFormat::GRAY_FLOAT );
@@ -149,10 +146,10 @@ int main()
 			sprintf( buf, "out/faceshapeopt%05d.png", x++ );
 			if( x == 1000 )
 				return 0;
-//			ImageIO::savePNG( imgu, "faceshapeopt.png" );
-			ImageIO::savePNG( imgu, buf );
+
+			imgu.save( buf );
 #else
-			ImageIO::savePNG( input, "faceshapeopt.png" );
+			input.save( "faceshapeopt.png" );
 #endif
 		}
 //		usleep( 500 );

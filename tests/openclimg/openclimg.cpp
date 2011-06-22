@@ -1,7 +1,6 @@
 #include <cvt/cl/CLContext.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/GaussIIR.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
 
@@ -27,7 +26,7 @@ int main( void )
 		cl.makeCurrent();
 
 		Image* tmp = new Image();
-		ImageIO::loadPNG( *tmp, resources.find( "lena.png" ) );
+		tmp->load( resources.find( "lena.png" ).c_str() );
 
 		Image x( *tmp, IALLOCATOR_CL );
 		delete tmp;
@@ -41,9 +40,9 @@ int main( void )
 		pSet->setArg<int>( order, 0 );
 
 		filter.apply( pSet, IFILTER_OPENCL );
-		ImageIO::savePNG( x2, "output-cl.png" );
+		x2.save( "output-cl.png" );
 		filter.apply( pSet, IFILTER_CPU );
-		ImageIO::savePNG( x2, "output-cpu.png" );
+        x2.save( "output-cpu.png" );
 
 	} catch( CLException e ) {
 		std::cout << e.what() << std::endl;

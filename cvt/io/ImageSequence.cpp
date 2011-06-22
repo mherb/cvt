@@ -13,23 +13,16 @@ namespace cvt {
         _loadFunc( 0 ), _baseName( base ), 
         _extension( ext ), _index( startIndex ), 
         _lastIndex( stopIndex ), _fieldWidth( fieldWidth ), _fillChar( fillChar )
-    {
-        if( _extension == "png" ){
-            _loadFunc = &ImageIO::loadPNG;
-        } else if( _extension == "cvtraw" ){
-            _loadFunc = &ImageIO::loadRAW;
-        } else {
-            throw CVTException( "Do not know how to load given extension!" );
-        }
-        
+    {       
         // load the first frame, such that subsequent calls to 
         // the image information functions work correctly!
+        
         std::stringstream ss;
         ss << _baseName 
            << std::setw( fieldWidth ) << std::setfill( _fillChar ) << _index 
            << "." << _extension;
         
-        _loadFunc( _current, ss.str() );
+        _current.load( ss.str().c_str() );
     }
     
     void ImageSequence::nextFrame()

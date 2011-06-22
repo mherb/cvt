@@ -6,7 +6,6 @@
 #include <cvt/math/Math.h>
 
 #include <cvt/util/RNG.h>
-#include <cvt/io/ImageIO.h>
 
 #include <set>
 
