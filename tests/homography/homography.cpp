@@ -5,6 +5,7 @@
 #include <cvt/gfx/ifilter/ITransform.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
+#include <cvt/util/Time.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
@@ -59,10 +60,15 @@ int main()
 		std::cout << "H: \n" <<  H << std::endl;
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
+		Time t;
+		t.reset();
 		hfilter.apply( out, imgf, H, black );
+		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		out.save( "outhomography.png" );
 
+		t.reset();
 		ITransform::apply( out2, imgf, H );
+		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		out2.save( "outhomography2.png" );
 
 	} catch( cvt::Exception e ) {
