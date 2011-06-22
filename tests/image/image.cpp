@@ -15,7 +15,6 @@ using namespace cvt;
 
 int main()
 {
-	std::string dataFolder(DATA_FOLDER);
 	cvt::Resources resources;
 	std::string inputFile = resources.find( "lena.png" );
 	std::string inputGray = resources.find( "lena_g.png" );

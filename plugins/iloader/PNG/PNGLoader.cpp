@@ -2,7 +2,12 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
 
-#include <png.h>
+#ifdef __APPLE__
+    #include <libpng14/png.h>
+#else 
+    #include <png.h>
+#endif
+
 
 
 namespace cvt {
