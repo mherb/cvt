@@ -1,6 +1,5 @@
 #include <cvt/gl/progs/GLDrawIconProg.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 
 
@@ -27,10 +26,10 @@ namespace cvt {
 		_texloc = uniformLocation( "TexFont" );
 		_scaleloc = uniformLocation( "Scale" );
 
-		Image icons;
+		
 		size_t stride;
 		cvt::Resources resources;
-		ImageIO::loadPNG( icons, resources.find( "Icons/Icons.png" ) );
+		Image icons( resources.find( "Icons/Icons.png" ) );
 
 		uint8_t* ptr = icons.map( &stride );
 		_tex.alloc( GL_RED, 128, 128, GL_RED, GL_UNSIGNED_BYTE, ptr );

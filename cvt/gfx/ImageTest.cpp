@@ -1,6 +1,5 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/util/CVTTest.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/SIMD.h>
 #include <cvt/util/Time.h>
@@ -131,11 +130,11 @@ namespace cvt {
 	BEGIN_CVTTEST( ImageSpeed )
 		/* Image conversion */
 
-		Image img;
+		
 		Resources res;
 		std::string imgpath = res.find( "bbc-hd.png");
 		std::string uyvypath = res.find( "bbc-hd.uyvy");
-		ImageIO::loadPNG( img, imgpath );
+		Image img( imgpath );
 		Image imgt;
 		Image imgyuyv( 1920, 1080, IFormat::UYVY_UINT8 );
 
@@ -157,7 +156,7 @@ namespace cvt {
 
 		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
 		imgyuyv.convert( imgt );
-		ImageIO::savePNG( imgt, "vid.png" );
+		imgt.save( "vid.png" );
 
 		CVTTEST_LOG("Image Convert Speed BASE");
 		SIMD::force( SIMD_BASE );

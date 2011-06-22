@@ -206,7 +206,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/DC1394Camera.h
 	io/FileSystem.h
 	io/FloFile.h
-	io/ImageIO.h
 	io/ImageSequence.h
 	io/IOHandler.h
 	io/IOSelect.h
@@ -360,7 +359,6 @@ SET(${MODULE_NAME}_SOURCES
 	io/DC1394Camera.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
-	io/ImageIO.cpp
 	io/ImageSequence.cpp
 	io/IOSelect.cpp
 	io/Resources.cpp

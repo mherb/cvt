@@ -1,7 +1,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/math/Vector.h>
 #include <vector>
 #include <iostream>
@@ -25,7 +24,7 @@ class FaceShapeWin : public Window
 	{
 		/* read png stuff */
 		Image png;
-		ImageIO::loadPNG( png, pngfile );
+		png.load( pngfile.c_str() );
 		_imgface.reallocate( png.width(), png.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 		png.convert( _imgface );
 

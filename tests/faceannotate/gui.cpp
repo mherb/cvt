@@ -1,7 +1,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/util/String.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/xml/XMLDocument.h>
 #include <cvt/gfx/IConvert.h>
 #include <cvt/geom/Rect.h>
@@ -21,7 +20,7 @@ class FaceUI : public Window
 	FaceUI( const String& imgstr, const String& xmlstr  ) : Window("Face Annotator"), _selection( - 1 ), _toggle( String("Transform") )
 	{
 		Image img;
-		ImageIO::loadPNG( img, imgstr.c_str() );
+		img.load( imgstr.c_str() );
 		_glimage.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 		try {
 			IConvert::convert( _glimage, img );

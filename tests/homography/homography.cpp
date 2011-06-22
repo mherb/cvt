@@ -3,7 +3,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/Homography.h>
 #include <cvt/gfx/ifilter/ITransform.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 #include <Eigen/Core>

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/FloFile.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/vision/Flow.h>
 
 
@@ -30,7 +29,7 @@ int main(int argc, char* argv[])
 //	}
 
 	if( argc == 3 ) {
-		ImageIO::savePNG( color, argv[ 2 ] );
+		color.save( argv[ 2 ] );
 	}
 
 	return 0;

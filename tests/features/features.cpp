@@ -14,8 +14,6 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include "FeatureView.h"
 
-#include <cvt/io/ImageIO.h>
-
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/AGAST.h>
 

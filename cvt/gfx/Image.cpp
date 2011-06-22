@@ -1,5 +1,4 @@
 #include <cvt/gfx/Image.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>

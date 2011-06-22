@@ -4,7 +4,6 @@
 #include <cvt/util/Exception.h>
 #include <cvt/util/Time.h>
 #include <cvt/io/Resources.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/vision/AGAST.h>
 #include <cvt/vision/Brief.h>
 #include <cvt/math/SL3.h>

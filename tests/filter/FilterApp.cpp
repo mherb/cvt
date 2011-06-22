@@ -10,7 +10,6 @@
 
 #include <cvt/gfx/ifilter/BrightnessContrast.h>
 #include <cvt/gfx/ifilter/GaussIIR.h>
-#include <cvt/io/ImageIO.h>
 
 //#define GAUSSIIR_CL
 

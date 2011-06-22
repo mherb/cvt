@@ -1,7 +1,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/GFX.h>
 #include <cvt/gfx/GFXEngineImage.h>
-#include <cvt/io/ImageIO.h>
 
 using namespace cvt;
 
@@ -24,5 +23,5 @@ int main()
 			g.drawLine( Math::rand( 0, 400 ), Math::rand( 0, 400 ), Math::rand( 0 , 400 ), Math::rand( 0, 400 ) );
 		}
 	}
-	ImageIO::savePNG( out, "gfximg.png" );
+	out.save( "gfximg.png" );
 }
