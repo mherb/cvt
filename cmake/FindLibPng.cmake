@@ -6,7 +6,7 @@ FIND_PATH( LIBPNG_INCLUDE_DIR png.h
 	      $ENV{HOME}/include/
 	      /usr/include/libpng/
 		  /usr/local/include/libpng
-		  /opt/local/include/libpng12
+		  /opt/local/include
 )
 
 FIND_LIBRARY(LIBPNG_LIBRARY
@@ -27,5 +27,5 @@ IF(LIBPNG_INCLUDE_DIR)
 ENDIF(LIBPNG_INCLUDE_DIR )
 
 MARK_AS_ADVANCED( LIBPNG_FOUND
-		  LIBPNG_LIBRARY
-		  LIBPNG_INCLUDE_DIR )
+				  LIBPNG_LIBRARY
+				  LIBPNG_INCLUDE_DIR )
