@@ -7,11 +7,11 @@ namespace cvt {
 
 	class SIMDSSE2 : public SIMDSSE {
 		friend class SIMD;
-		friend class SIMDSSE41;
 
-		private:
+		protected:
 			SIMDSSE2() {};
 
+        public:
 			using SIMDSSE::Mul;
 			virtual void Mul( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
 			using SIMDSSE::MulAdd;

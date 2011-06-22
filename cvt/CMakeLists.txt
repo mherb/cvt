@@ -251,6 +251,8 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE.h	
 	util/SIMDSSE2.h	
 	util/SIMDSSE41.h	
+	util/SIMDSSE42.h	
+	util/SIMDAVX.h	
 	util/Thread.h
 	util/Util.h
 	util/Flags.h
@@ -379,6 +381,8 @@ SET(${MODULE_NAME}_SOURCES
 	util/SIMDSSE.cpp
 	util/SIMDSSE2.cpp
 	util/SIMDSSE41.cpp
+	util/SIMDSSE42.cpp
+	util/SIMDAVX.cpp
 	util/SIMDTest.cpp
 	util/Time.cpp
 	util/String.cpp
@@ -500,4 +504,6 @@ set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -ms
 set_source_files_properties(util/SIMDSSE2.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 set_source_files_properties(vision/fast/fast9simd.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
+set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
 

@@ -256,7 +256,26 @@ BEGIN_CVTTEST( simd )
 			
 		delete[] fdst;
 		delete[] fsrc1;
-		delete[] fsrc2;
+		delete[] fsrc2;            
+            
+        uint64_t * ham0 = new uint64_t[ TESTSIZE ];
+        uint64_t * ham1 = new uint64_t[ TESTSIZE ];
+        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+            SIMD* simd = SIMD::get( ( SIMDType ) st );
+            t = 0;
+            tmr.reset();
+            int pcount;
+            for( int iter = 0; iter < 100; iter++ ) {				
+                pcount = simd->hammingDistance( ham0, ham1, TESTSIZE );
+            }
+            t += tmr.elapsedMilliSeconds();
+            t /= 100.0;
+            std::cout << simd->name() << " HAMMING DISTANCE "  << t  << " ms" << std::endl;
+            delete simd;
+        }
+        delete[] ham0;
+        delete[] ham1;
+        
 #undef TESTSIZE       
 
 		return true;
