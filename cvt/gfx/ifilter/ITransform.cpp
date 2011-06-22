@@ -88,6 +88,7 @@ namespace cvt {
 		invtt = invtrans.transpose();
 
 		Rectf r( 0, 0, sw, sh );
+		Vector3f nx = transform * Vector3f( 1.0f, 0.0f, 0.0f );
 
 		for( size_t y = 0; y < h; y++  ) {
 			Line2Df l( 0, y, w, y );
@@ -105,14 +106,13 @@ namespace cvt {
 					px2 = tmp;
 				}
 
-				Vector3f nx = transform * Vector3f( 1.0f, 0.0f, 0.0f );
-				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( Math::ceil( px1.x ), 0, w ), y, 1.0f );
-				for( size_t x = Math::clamp<size_t>( Math::ceil( px1.x ), 0, w ), xend = Math::clamp<size_t>( Math::floor( px2.x ), 0, w ); x < xend; x++ )
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x + 0.5f ), 0, w ), y, 1.0f );
+				for( size_t x = Math::clamp<size_t>(  px1.x + 0.5f, 0, w ), xend = Math::clamp<size_t>( ( px2.x + 0.5f ), 0, w ); x < xend; x++ )
 				{
 					float fx, fy;
 					fx = p.x / p.z;
 					fy = p.y / p.z;
-					pdst[ x ] = *( ( float* ) ( src + sstride * ( size_t ) Math::floor( fy ) + sizeof( float ) * ( size_t ) Math::floor( fx ) ) );
+					pdst[ x ] = *( ( float* ) ( src + sstride * ( size_t ) fy + sizeof( float ) * ( size_t ) fx ) );
 					p += nx;
 				}
 
