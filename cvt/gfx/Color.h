@@ -45,6 +45,12 @@ namespace cvt {
 
 			const float* data() const { return &_r; };
 
+			static const Color BLACK;
+			static const Color WHITE;
+			static const Color RED;
+			static const Color GREEN;
+			static const Color BLUE;
+
 		private:
 			/*union {
 				struct {

@@ -2,6 +2,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/Homography.h>
+#include <cvt/gfx/ifilter/ITransform.h>
 #include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
@@ -33,7 +34,7 @@ static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy
 	h( 2, 2 ) = 1.0f;
 	
 	ih = h.inverse();	
-	ih /= powf( ih.determinant(), 1.0f / 3.0f );
+//	ih /= powf( ih.determinant(), 1.0f / 3.0f );
 	
 	ih.transposeInPlace();	
 	return *( ( cvt::Matrix3f* )ih.data() );	
@@ -46,19 +47,25 @@ int main()
 
 	try {
 		Image img;
-		ImageIO::loadPNG(img, inputFile);
+		img.load( inputFile.c_str() );
 
-		Image imgf( img.width(), img.height(), IFormat::RGBA_FLOAT );
-		Image out( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
+		Image out( img.width(), img.height(), IFormat::GRAY_FLOAT );
+		Image out2( img.width(), img.height(), IFormat::GRAY_FLOAT );
 		img.convert( imgf );
 
 		Homography hfilter;
-		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.001f, 0.0f );
+		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.00025f, 0.0f );
+//		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f );
 		std::cout << "H: \n" <<  H << std::endl;
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 		hfilter.apply( out, imgf, H, black );
-		ImageIO::savePNG(out, "outhomography.png");
+		out.save( "outhomography.png" );
+
+		ITransform::apply( out2, imgf, H );
+		out2.save( "outhomography2.png" );
+
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;
