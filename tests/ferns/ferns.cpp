@@ -5,7 +5,6 @@
 #include <cvt/gfx/Image.h>
 
 #include <cvt/io/Resources.h>
-#include <cvt/io/ImageIO.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -55,7 +54,7 @@ void testPatchGen()
 	Resources res;
 	Image img;
 	std::string fileName = res.find( "lena.png" );
-	ImageIO::loadPNG( img, fileName );
+	img.load( fileName.c_str() );
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	img.convert( gray );
 
@@ -71,7 +70,7 @@ void testPatchGen()
 		gen.next( patch, gray, p );
 
 		sprintf( buf, "patch_%03zu.png", i );
-		ImageIO::savePNG( patch, buf );
+		patch.save( buf );
 	}
 }
 
@@ -107,7 +106,7 @@ void testFerns()
 	Resources res;
 	Image img;
 	std::string fileName = res.find( "lena.png" );
-	ImageIO::loadPNG( img, fileName );
+	img.load( fileName.c_str() );
 
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	Image grayf( img.width(), img.height(), IFormat::GRAY_FLOAT );
@@ -137,7 +136,7 @@ void testFerns()
 
 	hfilter.apply( warpedf, grayf, H, black );
 	warpedf.convert( warped );
-	ImageIO::savePNG( warped, "test.png" );
+	warped.save( "test.png" );
 
 	std::vector<Feature2D> features;
 	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_9 );

@@ -1,7 +1,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/GFX.h>
 #include <cvt/gfx/GFXEngineImage.h>
-#include <cvt/io/ImageIO.h>
 
 using namespace cvt;
 
@@ -97,5 +96,5 @@ int main()
 		out.unmap( ptr );
 	}
 
-	ImageIO::savePNG( out, "linesample.png" );
+	out.save( "linesample.png" );
 }

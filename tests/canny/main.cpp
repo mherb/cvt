@@ -1,5 +1,4 @@
 #include <cvt/gfx/Image.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Stack.h>
 #include <cvt/util/Time.h>
@@ -396,7 +395,7 @@ int main()
 	Image img, out;
 
 	Resources r;
-	ImageIO::loadPNG( img, /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
+	img.load( /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
 	Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	img.convert( imgf );
 
@@ -405,6 +404,6 @@ int main()
 	canny( out, imgf );
 	std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
-	ImageIO::savePNG( out, "canny.png" );
+	out.save( "canny.png" );
 
 }

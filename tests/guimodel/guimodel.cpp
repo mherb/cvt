@@ -6,7 +6,6 @@
 #include <cvt/gui/Button.h>
 #include <cvt/gui/View3D.h>
 #include <cvt/gui/BasicTimer.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/PlyModel.h>
 #include <cvt/geom/ArcBall.h>
 #include <cvt/util/Time.h>

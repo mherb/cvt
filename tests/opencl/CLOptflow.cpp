@@ -2,8 +2,6 @@
 #include <string>
 #include <iostream>
 
-#include <cvt/io/ImageIO.h>
-
 /* Kernel include */
 #include "calcp1.h"
 #include "calcp2.h"
@@ -441,7 +439,7 @@ namespace cvt {
 		{
 			Image tmp( 640, 480, IFormat::BGRA_UINT8 );
 			tmp.copyRect( 0, 0, iflow, Recti( 0, 0, 640, 480 ) );
-			ImageIO::savePNG( tmp, "out.png" );
+            tmp.save( "out.png" );
 		}
 		//		cvShowImage( name, iflow.iplimage() );
 		delete ret;

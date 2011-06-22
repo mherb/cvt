@@ -3,7 +3,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IKernel.h>
 #include <cvt/gfx/ifilter/ROFDenoise.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 
@@ -19,7 +18,7 @@ int main(int argc, char* argv[])
 		// RGBA UBYTE IMAGE
 		cvt::Image img;
 		cvt::Image out;
-		cvt::ImageIO::loadPNG(img, inputFile);
+        img.load( inputFile.c_str() );
 
 		out.reallocate( img );
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
@@ -29,13 +28,13 @@ int main(int argc, char* argv[])
 			for( int y = 0; y < 3; y++ )
 				kern( x, y ) = 1.0f / 9.0f;
 		img.convolve( out, kern );
-		cvt::ImageIO::savePNG(out, "convolve1.png");
+		out.save( "convolve1.png");
 
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		img.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
-		cvt::ImageIO::savePNG(out, "convolve2.png");
+		out.save( "convolve2.png");
 
-		cvt::ImageIO::loadPNG(img, inputFileg);
+		img.load( inputFileg.c_str() );
 
 		out.reallocate( img );
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
@@ -44,20 +43,18 @@ int main(int argc, char* argv[])
 			for( int y = 0; y < 3; y++ )
 				kern( x, y ) = 1.0f / 9.0f;
 		img.convolve( out, kern );
-		cvt::ImageIO::savePNG(out, "convolveg1.png");
+		out.save( "convolveg1.png");
 
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		img.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
-		cvt::ImageIO::savePNG(out, "convolveg2.png");
+		out.save( "convolveg2.png");
 
 		cvt::Image imgf( img.width(), img.height(), cvt::IFormat::GRAY_FLOAT );
 		img.convert( imgf );
 		out.reallocate( imgf );
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		imgf.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
-		cvt::ImageIO::savePNG(out, "convolveg2-float.png");
-
-	
+		out.save( "convolveg2-float.png");
 		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
