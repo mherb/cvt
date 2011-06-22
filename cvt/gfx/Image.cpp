@@ -8,6 +8,8 @@
 #include <cvt/util/Exception.h>
 #include <cvt/util/PluginManager.h>
 
+#include <fstream>
+
 namespace cvt {
 
 	Image::Image( size_t w, size_t h, const IFormat & format, IAllocatorType memtype )

@@ -20,7 +20,7 @@ namespace cvt {
 			std::string find( const std::string& resource );
 
 			/**
-			 * adds another location to search for resources.
+			 * add another location to search for resources.
 			 */
 			void addSearchLocation( const std::string& loc, bool prepend=true );
 
