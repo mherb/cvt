@@ -2,12 +2,14 @@
 #define CVT_CLIPPING_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/geom/Line2D.h>
 
 namespace cvt {
 	class Clipping {
 		public:
 			static bool clip( const Recti& rect, Vector2i& pt1, Vector2i& pt2 );
 			static bool clip( const Rectf& rect, Vector2f& pt1, Vector2f& pt2 );
+			static bool clip( const Rectf& rect, const Line2Df& line, Vector2f& pt1, Vector2f& pt2 );
 
 		private:
 			Clipping();
@@ -179,6 +181,105 @@ namespace cvt {
 		if( pt1.x == pt2.x && pt1.y == pt2.y )
 			return false;
 
+		return true;
+	}
+
+
+	inline bool Clipping::clip( const Rectf& rect, const Line2Df& line, Vector2f& pt1, Vector2f& pt2 )
+	{
+		/* Vaclav Skala -  A new approach to line and line segment clipping in homogeneous coordinates*/
+		int _table[ 16 ][ 2 ] = {
+			{ -1, - 1 },
+			{  0,   3 },
+			{  0,   1 },
+			{  1,   3 },
+			{  1,   2 },
+			{ -1, - 1 },
+			{  0,   2 },
+			{  2,   3 },
+			{  2,   3 },
+			{  0,   2 },
+			{ -1, - 1 },
+			{  1,   2 },
+			{  1,   3 },
+			{  0,   1 },
+			{  0,   3 },
+			{ -1, - 1 }
+		};
+		int mask = 0;
+
+		mask |= ( line.distance( rect.x, rect.y ) >= 0.0f );
+		mask <<= 1;
+		mask |= ( line.distance( rect.x + rect.width, rect.y ) >= 0.0f );
+		mask <<= 1;
+		mask |= ( line.distance( rect.x + rect.width, rect.y + rect.height ) >= 0.0f );
+		mask <<= 1;
+		mask |= ( line.distance( rect.x, rect.y + rect.height ) >= 0.0f );
+
+		if( mask == 0x0 || mask == 0xf )
+			return false;
+
+		int l0 = _table[ mask ][ 0 ];
+		int l1 = _table[ mask ][ 1 ];
+
+		switch( l0 ) {
+			case 0:
+				{
+					Line2Df line2( rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height );
+					line2.intersect( line, pt1 );
+					break;
+				}
+			case 1:
+				{
+					Line2Df line2( rect.x + rect.width, rect.y + rect.height, rect.x + rect.width, rect.y );
+					line2.intersect( line, pt1 );
+					break;
+				}
+			case 2:
+				{
+					Line2Df line2( rect.x + rect.width, rect.y, rect.x, rect.y );
+					line2.intersect( line, pt1 );
+					break;
+				}
+			case 3:
+				{
+					Line2Df line2( rect.x, rect.y + rect.height, rect.x, rect.y );
+					line2.intersect( line, pt1 );
+					break;
+				}
+			default:
+				break;
+		}
+
+
+		switch( l1 ) {
+			case 0:
+				{
+					Line2Df line2( rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height );
+					line2.intersect( line, pt2 );
+					break;
+				}
+			case 1:
+				{
+					Line2Df line2( rect.x + rect.width, rect.y + rect.height, rect.x + rect.width, rect.y );
+					line2.intersect( line, pt2 );
+					break;
+				}
+			case 2:
+				{
+					Line2Df line2( rect.x + rect.width, rect.y, rect.x, rect.y );
+					line2.intersect( line, pt2 );
+					break;
+				}
+			case 3:
+				{
+					Line2Df line2( rect.x, rect.y + rect.height, rect.x, rect.y );
+					line2.intersect( line, pt2 );
+					break;
+				}
+			default:
+				break;
+		}
 		return true;
 	}
 }

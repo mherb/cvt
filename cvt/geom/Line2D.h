@@ -11,6 +11,7 @@ namespace cvt {
 			Line2D( const Vector2<T>& p1, const Vector2<T>& p2 );
 			Line2D( T x1, T y1, T x2, T y2 );
 			Line2D( const Line2D<T>& line );
+			Line2D( const Vector3<T>& vec );
 
 			void set( const Vector2<T>& p1, const Vector2<T>& p2 );
 			void set( T x1, T y1, T x2, T y2 );
@@ -20,6 +21,8 @@ namespace cvt {
 			Vector2<T> normal() const;
 			bool intersect( const Line2D<T>& line, Vector2<T>& pt ) const;
 			T distance( const Vector2<T>& pt ) const;
+			T distance( T x, T y ) const;
+			Vector3<T>& vector();
 
 		public:
 			Vector3<T> _line;
@@ -57,6 +60,11 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline Line2D<T>::Line2D( const Vector3<T>& vec ) : _line( vec )
+	{
+	}
+
+	template<typename T>
 	inline T Line2D<T>::operator[]( int index ) const
 	{
 	    return _line[ index ];
@@ -66,6 +74,13 @@ namespace cvt {
 	inline Vector2<T> Line2D<T>::normal() const
 	{
 		return Vector2<T>( _line[ 0 ], _line[ 1 ] );
+	}
+
+
+	template<typename T>
+	inline Vector3<T>& Line2D<T>::vector()
+	{
+		return _line;
 	}
 
 	template<typename T>
@@ -97,7 +112,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	bool Line2D<T>::intersect( const Line2D<T>& line, Vector2<T>& pt ) const
+	inline bool Line2D<T>::intersect( const Line2D<T>& line, Vector2<T>& pt ) const
 	{
 		Vector3<T> tmp = _line.cross( line._line );
 		if( !tmp.z )
@@ -108,7 +123,7 @@ namespace cvt {
 
 
 	template<>
-	bool Line2D<float>::intersect( const Line2D<float>& line, Vector2<float>& pt ) const
+	inline bool Line2D<float>::intersect( const Line2D<float>& line, Vector2<float>& pt ) const
 	{
 		Vector3<float> tmp = _line.cross( line._line );
 		if( Math::abs( tmp.z ) < Math::EPSILONF )
@@ -118,7 +133,7 @@ namespace cvt {
 	}
 
 	template<>
-	bool Line2D<double>::intersect( const Line2D<double>& line, Vector2<double>& pt ) const
+	inline bool Line2D<double>::intersect( const Line2D<double>& line, Vector2<double>& pt ) const
 	{
 		Vector3<double> tmp = _line.cross( line._line );
 		if( Math::abs( tmp.z ) < Math::EPSILOND )
@@ -128,9 +143,16 @@ namespace cvt {
 	}
 
 	template<typename T>
-	T Line2D<T>::distance( const Vector2<T>& pt ) const
+	inline T Line2D<T>::distance( const Vector2<T>& pt ) const
 	{
 		Vector3<T> tmp( pt.x, pt.y, 1 );
+		return _line * tmp;
+	}
+
+	template<typename T>
+	inline T Line2D<T>::distance( T x, T y ) const
+	{
+		Vector3<T> tmp( x, y, 1 );
 		return _line * tmp;
 	}
 

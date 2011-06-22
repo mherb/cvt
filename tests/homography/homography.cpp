@@ -55,7 +55,7 @@ int main()
 		img.convert( imgf );
 
 		Homography hfilter;
-		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.00025f, 0.0f );
+		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.001f, 0.0f );
 //		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f );
 		std::cout << "H: \n" <<  H << std::endl;
 		
