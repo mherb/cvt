@@ -3,7 +3,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
 #include <cvt/geom/Rect.h>
-#include <cvt/io/ImageIO.h>
 
 #include <cvt/vision/Patch.h>
 
@@ -33,7 +32,7 @@ int main()
 	try {
 		// RGBA UBYTE IMAGE
 		cvt::Image imgGray;		
-		cvt::ImageIO::loadPNG( imgGray, inputFile );
+		imgGray.load( inputFile.c_str() );
 		
 		cvt::Image imgF( imgGray.width(), imgGray.height(), cvt::IFormat::floatEquivalent( imgGray.format() ) );
 		imgGray.convert( imgF );

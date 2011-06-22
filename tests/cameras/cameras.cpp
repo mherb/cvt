@@ -1,5 +1,4 @@
 #include <cvt/io/Camera.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
 
@@ -49,7 +48,7 @@ class ImageWriter : public Thread<void>
 				ss.str( "" );
 				ss << _baseName << "_" << std::setfill( '0' ) << std::setw( 5 ) << i << ".cvtraw";
 
-				ImageIO::saveRAW( *im, ss.str() );
+				im->save( ss.str().c_str() );
 
 				delete im;
 			}

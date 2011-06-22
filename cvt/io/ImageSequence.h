@@ -2,7 +2,6 @@
 #define CVT_IMAGESEQUENCE_H
 
 #include <cvt/io/VideoInput.h>
-#include <cvt/io/ImageIO.h>
 
 namespace cvt
 {

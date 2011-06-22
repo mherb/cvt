@@ -6,7 +6,6 @@
 #include <cvt/gui/Button.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/BasicTimer.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
 #include <cvt/gui/Slider.h>

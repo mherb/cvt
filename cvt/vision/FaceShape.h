@@ -6,7 +6,6 @@
 #include <cvt/math/Matrix.h>
 #include <cvt/math/CostFunction.h>
 #include <cvt/io/Resources.h>
-#include <cvt/io/ImageIO.h>
 #include <cvt/gfx/GFX.h>
 #include <stdio.h>
 

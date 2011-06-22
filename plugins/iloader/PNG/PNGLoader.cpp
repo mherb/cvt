@@ -8,8 +8,6 @@
     #include <png.h>
 #endif
 
-
-
 namespace cvt {
 	class PNGLoader : public ILoader
 	{
