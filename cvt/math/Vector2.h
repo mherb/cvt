@@ -296,7 +296,7 @@ namespace cvt {
 	template<typename T>
 	std::ostream& operator<<( std::ostream& out, const Vector2<T> &v )
 	{
-		out << " | " << std::setprecision( 5 ) << std::setw( 12 ) << v.x << " " << std::setw( 12 ) << v.y << " | ";
+		out << " | " << v.x << " " << v.y << " | ";
 		return out;
 	}
 
