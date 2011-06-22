@@ -72,8 +72,9 @@ namespace cvt {
 		size_t dstride;
 		size_t w, h;
 		size_t sw, sh;
-		Matrix3f invtrans;
+		Matrix3f invtrans, invtt;
 		float* pdst;
+		Vector2f pt1( 0, 0 ), pt2( 0, 0 );
 
 		dst = idst.map( &dstride );
 		dst2 = dst;
@@ -83,60 +84,37 @@ namespace cvt {
 		sw = ( ssize_t ) isrc.width();
 		sh = ( ssize_t ) isrc.height();
 
-				std::cout << transform << std::endl;
 		invtrans = transform.inverse();
-
-		std::cout << "OK1" << std::endl;
+		invtt = invtrans.transpose();
 
 		Rectf r( 0, 0, sw, sh );
 
 		for( size_t y = 0; y < h; y++  ) {
-			Vector2f pt1( 0, y ), pt2( w, y );
-			pt1 = transform * pt1;
-			pt2 = transform * pt2;
+			Line2Df l( 0, y, w, y );
+			Line2Df l2( invtt * l.vector() );
+
 			pdst = ( float* ) dst2;
-//			std::cout << pt1 << " " << pt2 << std::endl;
-			if( Clipping::clip( r, pt1, pt2 ) ) {
+			if( Clipping::clip( r, l2, pt1, pt2 ) ) {
 				Vector2f px1, px2;
 				px1 = invtrans * pt1;
 				px2 = invtrans * pt2;
 
-//				std::cout << px1 << " " << px2 << std::endl;
-				Vector3f normal = transform * Vector3f( 1.0f, 0.0f, 0.0f );
-				if( px2.x < px1.x ) {
-					Vector2f tmp;
-					tmp = px1;
+				if( px1.x > px2.x ) {
+					Vector2f tmp( px1 );
 					px1 = px2;
 					px2 = tmp;
-					normal *= -1.0f;
-					tmp = pt1;
-					pt1 = pt2;
-					pt2 = tmp;
 				}
-//				Vector3<Fixed> fix( ( Fixed ) px1.x, ( Fixed ) px1.y, ( Fixed )1.0f );
-//				Vector3<Fixed> fixnormal( ( Fixed ) normal.x, ( Fixed ) normal.y, ( Fixed ) normal.z );
-				Vector3f fix( pt1.x, pt1.y, 1.0f );
-				Vector3f fixnormal(  normal.x,  normal.y,  normal.z );
-				std::cout << fixnormal << std::endl;
 
-				std::cout << "OK2" << std::endl;
-				for( size_t x = Math::floor( px1.x ), xend = Math::floor( px2.x ); x <= xend; x++ )
+				Vector3f nx = transform * Vector3f( 1.0f, 0.0f, 0.0f );
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( Math::ceil( px1.x ), 0, w ), y, 1.0f );
+				for( size_t x = Math::clamp<size_t>( Math::ceil( px1.x ), 0, w ), xend = Math::clamp<size_t>( Math::floor( px2.x ), 0, w ); x < xend; x++ )
 				{
-//					Vector2f p( x, y );
-//					p = transform * p;
 					float fx, fy;
-//					fx = p.x;
-//					fy = p.y;
-					fx = fix.x / fix.z;
-					fy = fix.y / fix.z;
+					fx = p.x / p.z;
+					fy = p.y / p.z;
 					pdst[ x ] = *( ( float* ) ( src + sstride * ( size_t ) Math::floor( fy ) + sizeof( float ) * ( size_t ) Math::floor( fx ) ) );
-//					*( pdst + x ) = *( ( float* ) ( src + sstride * fy.floor() + fx.floor() ) );
-					fix += fixnormal;
+					p += nx;
 				}
-//				Fixed fx( px1.x );
-//				Fixed fy( px1.y );
-//				Fixed fz( 1.0f );
-//				Fixed fnx( f)
 
 			} else {
 				// fill if needed
