@@ -12,13 +12,13 @@ namespace cvt {
 			~ITransform();
 			void apply( const ParamSet* attribs, IFilterType iftype ) const;
 
-			static void apply( Image& dst, const Image& src, const Matrix3f& transform, bool fill = false, const Color& color = Color::WHITE );
+			static void apply( Image& dst, const Image& src, const Matrix3f& transform );
 
 		private:
-			static void applyFC1( Image& dst, const Image& src, const Matrix3f& transform, bool fill, const Color& color );
-			static void applyFC4( Image& dst, const Image& src, const Matrix3f& transform, bool fill, const Color& color );
-			static void applyU8C1( Image& dst, const Image& src, const Matrix3f& transform, bool fill, const Color& color );
-			static void applyU8C4( Image& dst, const Image& src, const Matrix3f& transform, bool fill, const Color& color );
+			static void applyFC1( Image& dst, const Image& src, const Matrix3f& transform );
+			static void applyFC4( Image& dst, const Image& src, const Matrix3f& transform );
+			static void applyU8C1( Image& dst, const Image& src, const Matrix3f& transform );
+			static void applyU8C4( Image& dst, const Image& src, const Matrix3f& transform );
 
 			ITransform( const ITransform& t );
 	};
