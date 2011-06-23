@@ -66,6 +66,8 @@ int main()
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		out.save( "outhomography.png" );
 
+		// otherwise denormalized float stuff kicks in
+		out2.fill( Color::BLACK );
 		t.reset();
 		ITransform::apply( out2, imgf, H );
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
