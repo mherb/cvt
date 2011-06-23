@@ -85,8 +85,25 @@ namespace cvt {
 
 		Rectf r( 0 - 1.0f, 0 - 1.0f, sw + 2, sh + 2);
 		Vector3f nx = transform * Vector3f( 1.0f, 0.0f, 0.0f );
+		size_t ystart = 0, yend = h;
+		Vector2f p = invtrans * Vector2f( 0.0f, 0.0f );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( sw, 0.0f );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( 0.0f, sh );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( sw, sh );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
 
-		for( size_t y = 0; y < h; y++  ) {
+		for( size_t y = ystart; y < yend; y++  ) {
 			Line2Df l( 0, y, w, y );
 			Line2Df l2( invtt * l.vector() );
 
