@@ -55,6 +55,57 @@ using namespace cvt;
 		CVTTEST_PRINT( ss.str(), !fail );															\
 	}
 
+static bool _hammingTest()
+{
+    bool result = true;
+    
+    uint64_t vecA[ 4 ], vecB[ 4 ];
+    srand( time( NULL ) );
+      
+    
+    for (int st = SIMD_BASE; st < SIMD_BEST; st++) {
+        
+        // initialize the arrays:
+        for( size_t i = 0; i < 4; i++ ){
+                vecA[ i ] = rand();
+                vecB[ i ] = vecA[ i ];
+        }
+        
+        SIMD* simd = SIMD::get((SIMDType) st);
+        
+        // first test should return 0:
+        uint64_t expectedResult = 0;
+        
+        int i = 0;
+        bool tRes = true;
+        do {
+            uint64_t bitdistance = simd->hammingDistance( vecA, vecB, 4 );
+            
+            tRes &= ( bitdistance == expectedResult );           
+            
+            if( tRes == false ){
+                std::cout << "Expected Result: " << expectedResult << ", Bit distance: " << bitdistance << std::endl;
+            }
+            
+            
+            // invert bits
+            if( i < 4 )
+                vecB[ i ] = ~vecB[ i ];
+            
+            i++;
+            expectedResult += 64;
+        } while( i < 5 );
+        result &= tRes;
+        CVTTEST_PRINT( "HammingDistance " + simd->name() + ": ", tRes );
+        
+        delete simd;
+    }
+    
+    
+    
+    return result;
+}
+
 BEGIN_CVTTEST( simd )
 		float* fdst;
 		float* fsrc1;
@@ -82,7 +133,9 @@ BEGIN_CVTTEST( simd )
 		delete[] fsrc1;
 		delete[] fsrc2;
 #undef TESTSIZE
-
+                
+                bool hammingResult = _hammingTest();
+                CVTTEST_PRINT( "HammingDistance", hammingResult );
 
 #define TESTSIZE ( 2048 * 2048 )
 		fdst = new float[ TESTSIZE ];

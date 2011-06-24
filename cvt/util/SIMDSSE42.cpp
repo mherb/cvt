@@ -11,8 +11,8 @@ namespace cvt
         
         uint64_t xored;
         while ( n ) {              
-            xored = *src1^*src2;
-            pcount += _mm_popcnt_u64( xored );
+            xored = *src1++^*src2++;
+            pcount += _mm_popcnt_u64( xored );            
             n--;
         }
         return pcount;
