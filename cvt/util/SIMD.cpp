@@ -1338,30 +1338,28 @@ namespace cvt {
 			*dst++ = U8_TO_F( tmp >> 24 );
 		}
 	}
-    
-    void SIMD::Conv_XXXu8_to_XXXAu8( uint8_t * dst, const uint8_t* src, size_t n ) const
-    {
-        size_t i = n;
-       
-		while( i-=3 ) {
-			*dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = 255;
-		}
-    }
-    
-    void SIMD::Conv_XXXf_to_XXXAf( float * dst, const float* src, size_t n ) const
-    {
-        size_t i = n;
         
-		while( i-=3 ) {
-			*dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = 255;
-		}
-    }
+        void SIMD::Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const {
+            size_t i = n;
+
+            while (i -= 3) {
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = 255;
+            }
+        }
+
+        void SIMD::Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const {
+            size_t i = n;
+
+            while (i -= 3) {
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = 255;
+            }
+        }
 
 	void SIMD::Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* _src, const size_t n ) const
 	{
@@ -4167,6 +4165,18 @@ namespace cvt {
         
         return d;
     }
+    
+    /*
+    {
+        size_t d = 0;
+        
+        while( n-- ){
+            d += __builtin_popcountll( *src1++ ^ *src2++ );
+        }
+        
+        return d;
+    }
+    */
     
     void SIMD::prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
     {
