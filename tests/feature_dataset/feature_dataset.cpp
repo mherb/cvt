@@ -19,9 +19,12 @@ using namespace cvt;
 int main()
 {
 	cvt::Resources resources;
-	//std::string graffiti = resources.find( "features_dataset/graf/img1.ppm" );
-	//std::string graffiti = resources.find( "ppmtest.ppm" );
-	std::string graffiti = resources.find( "ppmtestc.ppm" );
+    
+    String datasetFolder = resources.find( "features_dataset" );
+    std::cout << "Dataset Folder: " << datasetFolder << std::endl;
+	//String graffiti = resources.find( "features_dataset/graf/img1.ppm" );
+	//String graffiti = resources.find( "ppmtest.ppm" );
+	String graffiti = resources.find( "ppmtestc.ppm" );
 
 	cvt::Image graf;	
 	try {

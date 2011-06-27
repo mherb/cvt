@@ -8,36 +8,37 @@
 namespace cvt {
 	Resources::Resources()
 	{
-		searchFolders.push_back(std::string(DATA_FOLDER));
-		searchFolders.push_back(".");		
+		searchFolders.push_back( DATA_FOLDER );
+		searchFolders.push_back( "." );		
 	}
 	
 	Resources::~Resources()
 	{		
 	}
 	
-	std::string Resources::find( const std::string& resource )
+	String Resources::find( const String& resource )
 	{
-		std::stringstream ss;
-
-		std::list<std::string>::iterator it = searchFolders.begin();
-		std::list<std::string>::iterator end = searchFolders.end();
+		std::list<String>::iterator it  = searchFolders.begin();
+		std::list<String>::iterator end = searchFolders.end();
+        
+        String rappend( "/" );
+        rappend += resource;
+        
 		while (it != end) {		
-			ss << *it++ << "/" << resource;
-			
-			if( FileSystem::exists( ss.str() ) ){
-				return ss.str();
+            String s( *it++ );            
+            s += rappend;            
+            						
+			if( FileSystem::exists( s ) ){
+				return s;
 			}
-			
-			ss.clear();
-			ss.str("");
 		}
 		
-		ss << "Resource not found: " << resource;
-		throw CVTException(ss.str());
+		String s( "Resource not found: " );
+        s += resource;
+		throw CVTException( s.c_str() );
 	}
 	
-	void Resources::addSearchLocation( const std::string& loc, bool prepend )
+	void Resources::addSearchLocation( const String& loc, bool prepend )
 	{
 		if( prepend )
 			searchFolders.push_front( loc );

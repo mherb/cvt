@@ -1,7 +1,7 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 
-#include <string>
+#include <cvt/util/String.h>
 #include <vector>
 #include <cvt/util/Data.h>
 
@@ -10,15 +10,15 @@ namespace cvt {
 	class FileSystem
 	{
 		public:
-			static bool   exists( const std::string & path );
-			static void   rename( const std::string & from, const std::string & to );
-			static bool   isFile( std::string const & file );
-			static bool   isDirectory( std::string const & dir );
-			static void   ls( const std::string & path, std::vector<std::string> & entries );
-			static void   filesWithExtension( const std::string & path, std::vector<std::string>& result, const std::string & ext = "" );
-			static size_t size( const std::string& path );
-			static bool	  load( Data& d, const std::string& path, bool zerotermination = false );
-			static bool	  save( const std::string& path, const Data& d );
+			static bool   exists( const String & path );
+			static void   rename( const String & from, const String & to );
+			static bool   isFile( const String & file );
+			static bool   isDirectory( const String & dir );
+			static void   ls( const String & path, std::vector<String> & entries );
+			static void   filesWithExtension( const String & path, std::vector<String>& result, const String & ext = "" );
+			static size_t size( const String& path );
+			static bool	  load( Data& d, const String& path, bool zerotermination = false );
+			static bool	  save( const String& path, const Data& d );
 	};
 
 }

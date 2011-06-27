@@ -1,7 +1,7 @@
 #ifndef CVT_RESOURCES_H
 #define CVT_RESOURCES_H
 
-#include <string>
+#include <cvt/util/String.h>
 #include <list>
 
 namespace cvt {
@@ -17,15 +17,15 @@ namespace cvt {
 			Resources();
 			~Resources();
 
-			std::string find( const std::string& resource );
+			String find( const String & resource );
 
 			/**
 			 * add another location to search for resources.
 			 */
-			void addSearchLocation( const std::string& loc, bool prepend=true );
+			void addSearchLocation( const String& loc, bool prepend=true );
 
 		private:
-			std::list<std::string> searchFolders;
+			std::list<String> searchFolders;
 	};
 }
 #endif
