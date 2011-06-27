@@ -59,15 +59,16 @@ static bool _hammingTest()
 {
     bool result = true;
     
-    uint64_t vecA[ 4 ], vecB[ 4 ];
+    const size_t num = 256;
+    uint8_t vecA[ num ], vecB[ num ];
     srand( time( NULL ) );
       
     
     for (int st = SIMD_BASE; st < SIMD_BEST; st++) {
         
         // initialize the arrays:
-        for( size_t i = 0; i < 4; i++ ){
-                vecA[ i ] = rand();
+        for( size_t i = 0; i < num; i++ ){
+                vecA[ i ] = ( uint8_t )rand();
                 vecB[ i ] = vecA[ i ];
         }
         
@@ -76,10 +77,10 @@ static bool _hammingTest()
         // first test should return 0:
         uint64_t expectedResult = 0;
         
-        int i = 0;
+        size_t i = 0;
         bool tRes = true;
         do {
-            uint64_t bitdistance = simd->hammingDistance( vecA, vecB, 4 );
+            size_t bitdistance = simd->hammingDistance( vecA, vecB, num );
             
             tRes &= ( bitdistance == expectedResult );           
             
@@ -89,12 +90,13 @@ static bool _hammingTest()
             
             
             // invert bits
-            if( i < 4 )
+            if( i < num )
                 vecB[ i ] = ~vecB[ i ];
             
             i++;
-            expectedResult += 64;
-        } while( i < 5 );
+            expectedResult += 8;
+        } while( i < ( num + 1 ) );
+        
         result &= tRes;
         CVTTEST_PRINT( "HammingDistance " + simd->name() + ": ", tRes );
         
@@ -134,8 +136,8 @@ BEGIN_CVTTEST( simd )
 		delete[] fsrc2;
 #undef TESTSIZE
                 
-                bool hammingResult = _hammingTest();
-                CVTTEST_PRINT( "HammingDistance", hammingResult );
+        bool hammingResult = _hammingTest();
+        CVTTEST_PRINT( "HammingDistance", hammingResult );
 
 #define TESTSIZE ( 2048 * 2048 )
 		fdst = new float[ TESTSIZE ];
@@ -311,8 +313,8 @@ BEGIN_CVTTEST( simd )
 		delete[] fsrc1;
 		delete[] fsrc2;            
             
-        uint64_t * ham0 = new uint64_t[ TESTSIZE ];
-        uint64_t * ham1 = new uint64_t[ TESTSIZE ];
+        uint8_t * ham0 = new uint8_t[ TESTSIZE ];
+        uint8_t * ham1 = new uint8_t[ TESTSIZE ];
         for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
             SIMD* simd = SIMD::get( ( SIMDType ) st );
             t = 0;

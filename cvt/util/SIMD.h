@@ -55,7 +55,7 @@ namespace cvt {
 			virtual void MulSub( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
 
 			/* memory blocks */
-            /* floating point numbers */
+                        /* floating point numbers */
 			virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
@@ -131,8 +131,8 @@ namespace cvt {
 			virtual void Conv_BGRAu8_to_GRAYu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const;
 			virtual void Conv_RGBAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
 			virtual void Conv_BGRAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
-            virtual void Conv_XXXf_to_XXXAf( float * dst, const float* src, size_t n ) const;
-            virtual void Conv_XXXu8_to_XXXAu8( uint8_t * dst, const uint8_t* src, size_t n ) const;
+                        virtual void Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const;
+                        virtual void Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const;
 
 
 			virtual void Conv_YUYVu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
@@ -153,13 +153,13 @@ namespace cvt {
 			virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
         
-            virtual size_t hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const;
+                        virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
         
-            // prefix sum for 1 channel images
-            virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
-            
-            // prefix sum and square sum 
-            virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+                        // prefix sum for 1 channel images
+                        virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+
+                        // prefix sum and square sum 
+                        virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
 
 
 			virtual std::string name() const;

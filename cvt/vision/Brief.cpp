@@ -27,7 +27,7 @@ namespace cvt {
         _tmp.convolve( _blurred, IKernel::GAUSS_VERTICAL_7 );
         
         // perform the tests
-        uint64_t signature = 0;
+        uint8_t signature = 0;
         
         uint8_t * t0 = _tests;
         uint8_t * t1 = _tests + 2;
@@ -47,7 +47,7 @@ namespace cvt {
             t1 += 4;
             
             descIter++;
-            if( descIter == 64 ){
+            if( descIter == 8 ){
                 descIter = 0;
                 d.set( signature, descPart );
                 descPart++;
@@ -137,13 +137,10 @@ namespace cvt {
     BriefDescriptor d;
     b.descriptorForPatch( d, patch );
     
-    const uint64_t * desc = d.desc();
+    const uint8_t * desc = d.desc();
    
-    BriefDescriptor d2;
-    d2.set( desc[ 0 ], 0 );
-    d2.set( desc[ 1 ], 1 );
-    d2.set( desc[ 2 ], 2 );
-    d2.set( desc[ 3 ], 3 );
+    BriefDescriptor d2( d );    
+    
     
     bool ret = true;
     ret &= ( d2.distance( d ) == 0 );    

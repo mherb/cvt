@@ -5,28 +5,29 @@
 
 namespace cvt {
 
-	class SIMDSSE42 : public SIMDSSE41 {
-		friend class SIMD;
+    class SIMDSSE42 : public SIMDSSE41 {
+        friend class SIMD;
 
-		protected:
-			SIMDSSE42() {}
+    protected:
 
-		public:
-            virtual size_t hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const;
-        
-			virtual std::string name() const;
-			virtual SIMDType type() const;
-	};
+        SIMDSSE42() 
+        {
+        }
 
-	inline std::string SIMDSSE42::name() const
-	{
-		return "SIMD-SSE42";
-	}
+    public:
+        virtual size_t hammingDistance(const uint8_t* src1, const uint8_t* src2, size_t n) const;
 
-	inline SIMDType SIMDSSE42::type() const
-	{
-		return SIMD_SSE42;
-	}
+        virtual std::string name() const;
+        virtual SIMDType type() const;
+    };
+
+    inline std::string SIMDSSE42::name() const {
+        return "SIMD-SSE42";
+    }
+
+    inline SIMDType SIMDSSE42::type() const {
+        return SIMD_SSE42;
+    }
 }
 
 #endif

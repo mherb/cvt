@@ -14,11 +14,17 @@ namespace cvt {
     public:
         BriefDescriptor()
         {
-            _desc[ 0 ] = _desc[ 1 ] = _desc[ 2 ] = _desc[ 3 ] = 0;
+            memset( _desc, 0, 256 );            
         }
         
-        void set( uint64_t d, uint8_t i ){ _desc[ i ] = d; }
-        const uint64_t * desc() const { return _desc; }
+        BriefDescriptor( const BriefDescriptor & other )
+        {
+            SIMD * simd = SIMD::get();
+            simd->Memcpy( _desc, other.desc(), 256 );
+        }
+        
+        void set( uint8_t d, size_t i ){ _desc[ i ] = d; }
+        const uint8_t * desc() const { return _desc; }
         
         uint16_t distance( const BriefDescriptor & other ) const
         {           
@@ -28,7 +34,7 @@ namespace cvt {
         }
         
     private:
-        uint64_t    _desc[ 4 ];
+        uint8_t    _desc[ 256 ];
     };
 
     /* Implementation of Brief32 descriptor */    
