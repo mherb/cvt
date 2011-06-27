@@ -4139,14 +4139,19 @@ namespace cvt {
 		}
 	}
     
-    size_t SIMD::hammingDistance( const uint64_t* src1, const uint64_t* src2, size_t n ) const
+    size_t SIMD::hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const
     {
         size_t d = 0;
         uint64_t xored;
         
-        while( n-- ){
-            
-            xored = *src1 ^ *src2;
+        size_t n8 = n >> 3;
+        size_t r  = n - ( n8 << 3 );
+        
+        uint64_t* s1 = ( uint64_t* )src1;
+        uint64_t* s2 = ( uint64_t* )src2;
+        
+        while( n8-- ){
+            xored = *s1++ ^ *s2++;
             
             // count the bits set in xored:
             // 64 1-bit numbers 
@@ -4158,9 +4163,23 @@ namespace cvt {
             xored += xored >>  8; 
             //  1 8-bit number 
             d+= ( xored & 0xFF ); 
-            
-            src1++;
-            src2++;
+        }
+        
+        if( r ){
+            uint64_t a = 0, b = 0;
+
+            Memcpy( ( uint8_t* )( &a ), ( uint8_t* )s1, r );
+			Memcpy( ( uint8_t* )( &b ), ( uint8_t* )s2, r );
+
+            xored = ( a^b );
+            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u ); 
+            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
+            xored += xored >> 32; 
+            xored += xored >> 16;
+            xored += xored >>  8; 
+            //  1 8-bit number 
+            d+= ( xored & 0xFF );
         }
         
         return d;

@@ -18,7 +18,7 @@ namespace cvt {
 
 		size_t distance( const ORBFeature& f ) const
 		{
-			return SIMD::instance()->hammingDistance( ( const uint64_t* ) desc, ( const uint64_t* ) f.desc, 4 );
+			return SIMD::instance()->hammingDistance( desc, f.desc, 256 );
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
