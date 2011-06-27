@@ -11,7 +11,7 @@ using namespace cvt;
 		p2[ i ] = Math::rand( -1e3f, 1e3f );														\
 		p3[ i ] = Math::rand( -1e3f, 1e3f );														\
 	}																								\
-	for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {												\
+	for( int st = SIMD_BASE; st <= bestType; st++ ) {												\
 		std::stringstream ss;																		\
 		SIMD* simd = SIMD::get( ( SIMDType ) st );													\
 		bool fail = false;																			\
@@ -35,7 +35,7 @@ using namespace cvt;
 		p2[ i ] = Math::rand( -1e3f, 1e3f );														\
 		c = Math::rand( -1e3f, 1e3f );																\
 	}																								\
-	for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {												\
+	for( int st = SIMD_BASE; st <= bestType; st++ ) {												\
 		std::stringstream ss;																		\
 		SIMD* simd = SIMD::get( ( SIMDType ) st );													\
 		bool fail = false;																			\
@@ -63,8 +63,8 @@ static bool _hammingTest()
     uint8_t vecA[ num ], vecB[ num ];
     srand( time( NULL ) );
       
-    
-    for (int st = SIMD_BASE; st < SIMD_BEST; st++) {
+    SIMDType bestType = SIMD::bestSupportedType();
+    for (int st = SIMD_BASE; st <= bestType; st++) {
         
         // initialize the arrays:
         for( size_t i = 0; i < num; i++ ){
@@ -116,6 +116,8 @@ BEGIN_CVTTEST( simd )
 		Time tmr;
 		double t;
 
+        SIMDType bestType = SIMD::bestSupportedType();
+
 #define TESTSIZE ( 32 + 3 )
 		fdst = new float[ TESTSIZE ];
 		fsrc1 = new float[ TESTSIZE ];
@@ -144,7 +146,7 @@ BEGIN_CVTTEST( simd )
 		fsrc1 = new float[ TESTSIZE ];
 		fsrc2 = new float[ TESTSIZE ];
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -157,7 +159,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -170,7 +172,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -183,7 +185,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
             
-        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+        for( int st = SIMD_BASE; st <= bestType; st++ ) {
             SIMD* simd = SIMD::get( ( SIMDType ) st );
             t = 0;
             for( int iter = 0; iter < 100; iter++ ) {
@@ -196,7 +198,7 @@ BEGIN_CVTTEST( simd )
             delete simd;
         }
             
-        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+        for( int st = SIMD_BASE; st <= bestType; st++ ) {
             SIMD* simd = SIMD::get( ( SIMDType ) st );
             t = 0;
             for( int iter = 0; iter < 100; iter++ ) {
@@ -209,7 +211,7 @@ BEGIN_CVTTEST( simd )
             delete simd;
         }
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -222,7 +224,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -235,7 +237,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -248,7 +250,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -261,7 +263,7 @@ BEGIN_CVTTEST( simd )
 			delete simd;
 		}
 
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
@@ -278,7 +280,7 @@ BEGIN_CVTTEST( simd )
             for( int x = 0; x < TESTSIZE; x++ )
                 usrc0[ x ] = Math::max( x, 255 );
         
-            for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+            for( int st = SIMD_BASE; st <= bestType; st++ ) {
                 SIMD* simd = SIMD::get( ( SIMDType ) st );
                 t = 0;
                 for( int iter = 0; iter < 100; iter++ ) {
@@ -294,7 +296,7 @@ BEGIN_CVTTEST( simd )
             }
         
 		uint8_t * udst = new uint8_t[ TESTSIZE ];
-		for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
 			t = 0;
 			tmr.reset();
@@ -315,7 +317,7 @@ BEGIN_CVTTEST( simd )
             
         uint8_t * ham0 = new uint8_t[ TESTSIZE ];
         uint8_t * ham1 = new uint8_t[ TESTSIZE ];
-        for( int st = SIMD_BASE; st < SIMD_BEST; st++ ) {
+        for( int st = SIMD_BASE; st <= bestType; st++ ) {
             SIMD* simd = SIMD::get( ( SIMDType ) st );
             t = 0;
             tmr.reset();
