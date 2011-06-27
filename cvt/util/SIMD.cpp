@@ -3477,6 +3477,51 @@ namespace cvt {
 
 	}
 
+	void SIMD::warpLinePerspectiveBilinear4f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+		float px, py, pz;
+		size_t i = n;
+
+		px = point[ 0 ];
+		py = point[ 1 ];
+		pz = point[ 2 ];
+
+		while( i-- )
+		{
+			float fx, fy;
+
+			fx = px / pz;
+			fy = py / pz;
+
+			float alpha1 = fx + 1 - ( float ) ( int )( fx + 1 );
+			float alpha2 = fy + 1 - ( float ) ( int )( fy + 1 );
+#define VAL( fx, fy, offset ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 + offset ) ) ) : *dst
+			float v1, v2;
+			int lx = -1 + ( int )( fx + 1 );
+			int ly = -1 + ( int )( fy + 1 );
+			v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+
+			px += normal[ 0 ];
+			py += normal[ 1 ];
+			pz += normal[ 2 ];
+#undef VAL
+		}
+
+	}
+
+
 
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )

@@ -145,6 +145,9 @@ namespace cvt {
 
 			virtual void warpLinePerspectiveBilinear1f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,
 													    const float* point, const float* normal, const size_t n ) const;
+			virtual void warpLinePerspectiveBilinear4f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,
+													    const float* point, const float* normal, const size_t n ) const;
+
 
 			virtual void debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
