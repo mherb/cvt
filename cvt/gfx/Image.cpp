@@ -42,7 +42,7 @@ namespace cvt {
 		_mem->copy( img._mem );
 	}
 
-	Image::Image( const std::string & fileName, IAllocatorType memtype )
+	Image::Image( const String & fileName, IAllocatorType memtype )
 	{
 		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
@@ -187,8 +187,11 @@ namespace cvt {
 	{
 		if( !loader ) {
 			loader = PluginManager::instance().getILoaderForFilename( path );
-			if( !loader )
-				throw CVTException( "No ILoader for file available" );
+			if( !loader ){
+                String message( "No ILoader for file available: " );
+                message += path;
+				throw CVTException( message.c_str() );
+            }
 		}
 		loader->load( *this, path );
 	}

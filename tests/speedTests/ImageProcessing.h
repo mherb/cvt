@@ -29,7 +29,7 @@ void testIntegralImage()
     }
     std::cout << "CVT IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs"<< std::endl;
     
-    cv::Mat ocvLena = cv::imread( resources.find( "lena_g.png" ), 0 );
+    cv::Mat ocvLena = cv::imread( resources.find( "lena_g.png" ).c_str(), 0 );
     cv::Mat intImage( ocvLena.rows, ocvLena.cols, CV_32FC1 );
     cv::Mat intSqrImage( ocvLena.rows, ocvLena.cols, CV_64FC1 );
     
@@ -126,7 +126,7 @@ void testConvolutionGRAYCVT()
 void testConvolutionOCV()
 {
 	Resources resources;
-	cv::Mat img = cv::imread( resources.find( "lena.png" ) );
+	cv::Mat img = cv::imread( resources.find( "lena.png" ).c_str() );
 	cv::Mat out = img;
 	cv::Mat kernel;
 
@@ -164,7 +164,7 @@ void testConvolutionOCV()
 void testConvolutionGRAYOCV()
 {
 	Resources resources;
-	cv::Mat img = cv::imread( resources.find( "lena_g.png" ), 0 );
+	cv::Mat img = cv::imread( resources.find( "lena_g.png" ).c_str(), 0 );
 	cv::Mat out = img;
 	cv::Mat kernel;
 

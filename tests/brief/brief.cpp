@@ -63,7 +63,7 @@ size_t removeBorderCorners( size_t patchSize, size_t width, size_t height, std::
 int main()
 {
 	Resources resources;
-	std::string inputFile = resources.find( "lena_g.png" );
+	String inputFile = resources.find( "lena_g.png" );
 
 	try {
 		Image img( inputFile );

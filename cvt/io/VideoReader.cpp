@@ -13,7 +13,7 @@ extern "C" {
 
 namespace cvt {
 
-	VideoReader::VideoReader( const std::string & fileName, bool autoRewind ):
+	VideoReader::VideoReader( const String & fileName, bool autoRewind ):
 		_formatContext( 0 ),
 		_codecContext( 0 ),
 		_avStream( 0 ),
@@ -26,7 +26,9 @@ namespace cvt {
 		_autoRewind( autoRewind )
 	{
 		if( !FileSystem::exists( fileName ) ){
-			throw CVTException("File does not exist: " + fileName );
+            String message( "File does not exist: " );
+            message += fileName;
+			throw CVTException( message.c_str() );
 		}
 		av_register_all();
 

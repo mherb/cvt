@@ -1,7 +1,7 @@
 #ifndef CVT_VIDEO_READER
 #define CVT_VIDEO_READER
 
-#include <string>
+#include <cvt/util/String.h>
 #include <cvt/io/VideoInput.h>
 #include <cvt/gfx/Image.h>
 
@@ -17,7 +17,7 @@ namespace cvt {
 	class VideoReader : public VideoInput
 	{
 		public:
-			VideoReader( const std::string & fileName, bool autoRewind = true );
+			VideoReader( const String & fileName, bool autoRewind = true );
 			~VideoReader();
 
 			size_t  width() const;
