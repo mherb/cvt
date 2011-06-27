@@ -49,9 +49,9 @@ int main()
 		Image img;
 		img.load( inputFile.c_str() );
 
-		Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
-		Image out( img.width(), img.height(), IFormat::GRAY_FLOAT );
-		Image out2( img.width(), img.height(), IFormat::GRAY_FLOAT );
+		Image imgf( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image out( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image out2( img.width(), img.height(), IFormat::RGBA_FLOAT );
 		img.convert( imgf );
 
 		Homography hfilter;

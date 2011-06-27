@@ -37,6 +37,9 @@ namespace cvt {
 			/*shuffle*/
 			virtual void Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const;
 
+			virtual void warpLinePerspectiveBilinear4f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,
+													    const float* point, const float* normal, const size_t n ) const;
+
 			virtual std::string name() const;
 			virtual SIMDType type() const;
 	};
