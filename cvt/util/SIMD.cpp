@@ -670,7 +670,7 @@ namespace cvt {
 		if( idx >= ( 1 << 13 ) ) return 0xff;
 		return _table_f_srgb_ub[ idx ];
 	}
-
+    
 	SIMD* SIMD::_simd = 0;
 
 	SIMD* SIMD::get( SIMDType type )
@@ -703,7 +703,26 @@ namespace cvt {
 			}
 		}
 	}
-
+    
+    SIMDType SIMD::bestSupportedType()
+    {
+        CPUFeatures cpuf;
+        cpuf = cpuFeatures();
+		if( cpuf & CPU_AVX ){
+			return SIMD_AVX;
+        } else if( cpuf & CPU_SSE4_2 ){
+            return SIMD_SSE42;
+        } else if( cpuf & CPU_SSE4_1 ) {
+            return SIMD_SSE41;
+        }  else if( cpuf & CPU_SSE2 ) {
+            return SIMD_SSE2;
+        }else if( cpuf & CPU_SSE ) {
+            return SIMD_SSE;
+        } else {
+            return SIMD_BASE;
+		}
+    }
+    
 	void SIMD::force( SIMDType type )
 	{
 		if( _simd )
