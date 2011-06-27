@@ -53,7 +53,7 @@ void testPatchGen()
 
 	Resources res;
 	Image img;
-	std::string fileName = res.find( "lena.png" );
+    String fileName = res.find( "lena.png" );
 	img.load( fileName.c_str() );
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );
 	img.convert( gray );
@@ -105,7 +105,7 @@ void testFerns()
 {
 	Resources res;
 	Image img;
-	std::string fileName = res.find( "lena.png" );
+	String fileName = res.find( "lena.png" );
 	img.load( fileName.c_str() );
 
 	Image gray( img.width(), img.height(), IFormat::GRAY_UINT8 );

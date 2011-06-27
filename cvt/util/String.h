@@ -31,7 +31,7 @@ namespace cvt {
 			void sprintf( const char* format, ... );
 			void sprintfConcat( const char* format, ... );
 //			void split( char marker, String& out1, String& out2 ) const;
-//			String operator+( const String& str ) const;
+			String operator+( const String& str ) const;
 /*			String operator+( unsigned int i ) const;
 			String operator+( int i ) const;
 			String operator+( size_t i ) const;
@@ -41,7 +41,6 @@ namespace cvt {
 			String& operator=( const char* str );
 
 			String& operator+=( const String& str );
-//			String& operator+=( unsigned int i );
 			String& operator+=( int i );
 			String& operator+=( size_t i );
 			String& operator+=( float i );
@@ -191,6 +190,13 @@ namespace cvt {
 		_len = nlen;
 		return *this;
 	}
+    
+    inline String String::operator +(const String& str) const
+    {
+        String s( *this );
+        s += str;
+        return s;
+    }
 
 	inline String& String::operator+=( const String& str )
 	{
@@ -200,14 +206,6 @@ namespace cvt {
 		_len += str._len;
 		return *this;
 	}
-
-/*
-	inline String& String::operator+=( unsigned int i )
-	{
-		sprintfConcat( "%u", i );
-		return *this;
-	}
-*/
 
 	inline String& String::operator+=( int i )
 	{
@@ -408,6 +406,7 @@ namespace cvt {
 			_len = n;
 			return;
 		}
+        
 		throw CVTException("Error in String::sprintf");
 	}
 

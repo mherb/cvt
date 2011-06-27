@@ -132,8 +132,9 @@ namespace cvt {
 
 		
 		Resources res;
-		std::string imgpath = res.find( "bbc-hd.png");
-		std::string uyvypath = res.find( "bbc-hd.uyvy");
+		String imgpath = res.find( "bbc-hd.png");
+		String uyvypath = res.find( "bbc-hd.uyvy");
+        
 		Image img( imgpath );
 		Image imgt;
 		Image imgyuyv( 1920, 1080, IFormat::UYVY_UINT8 );

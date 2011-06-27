@@ -12,7 +12,7 @@
 
 namespace cvt {
 
-	bool FileSystem::exists( const std::string & path )
+	bool FileSystem::exists( const String & path )
 	{
 		struct stat attr;
 		if ( stat( path.c_str(), &attr ) == -1 )
@@ -21,13 +21,13 @@ namespace cvt {
 			return true;
 	}
 
-    void FileSystem::rename(const std::string & from, const std::string & to)
+    void FileSystem::rename( const String & from, const String & to )
     {
 		if ( ::rename( from.c_str(), to.c_str() ) < 0 )
 			throw CVTException("Could not rename file");
     }
 
-    bool FileSystem::isFile(std::string const & file)
+    bool FileSystem::isFile( const String & file )
     {
 		struct stat attr;
 		if( stat( file.c_str(), &attr ) == -1 )
@@ -35,7 +35,7 @@ namespace cvt {
 		return S_ISREG( attr.st_mode );
     }
 
-    bool FileSystem::isDirectory(std::string const & dir)
+    bool FileSystem::isDirectory( const String & dir )
     {
 		struct stat attr;
 		if( stat( dir.c_str(), &attr ) == -1 )
@@ -43,7 +43,7 @@ namespace cvt {
 		return S_ISDIR( attr.st_mode );
     }
 
-	void FileSystem::ls( const std::string & path, std::vector<std::string> & entries )
+	void FileSystem::ls( const String & path, std::vector<String> & entries )
 	{
 		entries.clear();
 		if( !exists( path ) )
@@ -56,41 +56,47 @@ namespace cvt {
 		struct dirent * entry = NULL;
 
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
-			std::string entryName( entry->d_name );
+			String entryName( entry->d_name );
 
-			if( entryName.compare( "." ) == 0 ||
-			    entryName.compare( ".." ) == 0 )
+			if( entryName == "." ||
+			    entryName == ".." )
 				continue;
 
 			entries.push_back( entryName );
 		}
 	}
 
-    void FileSystem::filesWithExtension( std::string const& _path, std::vector<std::string>& result, std::string const & ext )
+    void FileSystem::filesWithExtension( const String & _path, std::vector<String>& result, const String & ext )
 	{
-		std::string path = _path;
+		String path = _path;
 
 		if( path[ path.length()-1 ] != '/' )
 			path += '/';
 
 		if( !exists( path ) ){
-			throw CVTException( "Path not found: " + path );
+            String message( "Path not found: " );
+            message += path;
+			throw CVTException( "Path not found: " );
 		}
 
 		DIR * dirEntries = opendir( path.c_str() );
 		if( dirEntries == NULL ){
-			CVTException( "Directory not readable: " + path );
+            String message( "Directory not readable: " );
+            message += path;
+			CVTException( message.c_str() );
 		}
 
 		struct dirent * entry = NULL;
 
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
-			std::string entryName( path + entry->d_name );
+			String entryName( path );
+            entryName += entry->d_name;
 
 			if( isFile( entryName ) ) {
 				if( entryName.length() >= ext.length() ){
-					std::string entryExt = entryName.substr( entryName.length() - ext.length() );
-					if( entryExt.compare( ext ) == 0 ){
+                    // get the extension of the entry
+					String entryExt = entryName.substring( entryName.length() - ext.length(), ext.length() );
+					if( entryExt == ext ){
 						result.push_back( entryName );
 					}
 				}
@@ -98,7 +104,7 @@ namespace cvt {
 		}
 	}
 
-	size_t FileSystem::size( const std::string& path )
+	size_t FileSystem::size( const String& path )
 	{
 		struct stat buf;
 		if( !stat( path.c_str(), &buf ) ) {
@@ -107,7 +113,7 @@ namespace cvt {
 		return 0;
 	}
 
-	bool FileSystem::load( Data& d, const std::string& path, bool zerotermination )
+	bool FileSystem::load( Data& d, const String& path, bool zerotermination )
 	{
 		size_t len;
 		if( ( len = size( path ) ) ) {
@@ -127,7 +133,7 @@ namespace cvt {
 		return false;
 	}
 
-	bool FileSystem::save( const std::string& path, const Data& d )
+	bool FileSystem::save( const String& path, const Data& d )
 	{
 		int fd;
 		if( ( fd = open( path.c_str(), O_CREAT | O_WRONLY| O_TRUNC , 0 ) ) < 0 )
@@ -143,29 +149,33 @@ namespace cvt {
 
 	BEGIN_CVTTEST( filesystem )
 		bool result = true;
-		std::string dataFolder( DATA_FOLDER );
+		String dataFolder( DATA_FOLDER );
 		bool b = FileSystem::exists( "/usr/include" );
 		b &= FileSystem::exists( dataFolder );
 		b &= !FileSystem::exists( "bliblabluiamnothere" );
 		CVTTEST_PRINT( "exists: ", b );
 		result &= b;
 
+        
 		b = FileSystem::isDirectory( "/usr/include" );
-		b &= !FileSystem::isDirectory( dataFolder + "/lena.png" );
+        String f;
+        f = dataFolder; f += "/lena.png";
+		b &= !FileSystem::isDirectory( f );
 		CVTTEST_PRINT( "isDirectory: ", b );
 		result &= b;
 
-		b = !FileSystem::isFile( "/usr/include" );
-		b &= FileSystem::isFile( dataFolder + "/lena.png" );
+		b = !FileSystem::isFile( "/usr/include" );        
+		b &= FileSystem::isFile( f );
 		CVTTEST_PRINT( "isFile: ", b );
 		result &= b;
 
-		FileSystem::rename( dataFolder + "/lena.png", dataFolder + "/blubb.png" );
-		b = FileSystem::exists( dataFolder + "/blubb.png" );
-		b &= !FileSystem::exists( dataFolder + "/lena.png" );
-		FileSystem::rename( dataFolder + "/blubb.png", dataFolder + "/lena.png" );
-		b &= !FileSystem::exists( dataFolder + "/blubb.png" );
-		b &= FileSystem::exists( dataFolder + "/lena.png" );
+        String f2( dataFolder ); f2 += "/blubb.png";
+		FileSystem::rename( f, f2 );
+		b = FileSystem::exists( f2 );
+		b &= !FileSystem::exists( f );
+		FileSystem::rename( f2, f );
+		b &= !FileSystem::exists( f2 );
+		b &= FileSystem::exists( f );
 		CVTTEST_PRINT( "rename: ", b );
 		result &= b;
 

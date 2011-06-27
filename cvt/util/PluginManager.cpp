@@ -22,12 +22,12 @@ namespace cvt {
 		// Static default plugins
 
 		// Runtime loaded plugins
-		std::vector<std::string> entries;
+		std::vector<String> entries;
 		FileSystem::ls( PLUGIN_PATH, entries );
-		for( std::vector<std::string>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
+		for( std::vector<String>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
 			try {
 				String path( PLUGIN_PATH );
-				path += it->c_str();
+				path += *it;
 				//std::cout << path << std::endl;
 				loadPlugin( path.c_str() );
 			} catch( Exception e ) {
