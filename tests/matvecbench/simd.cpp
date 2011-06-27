@@ -29,7 +29,7 @@ void simd_bench( const char* output )
 
 		t.reset();
 		for( size_t n = 0; n < iter; n++ ) {
-			SIMD::instance()->MulAdd( a, b, ALPHAF, i );
+			SIMD::instance()->MulAddValue1f( a, b, ALPHAF, i );
 		}
 		fprintf( f, "%zd %f\n", i, ( ( float ) ( i * sizeof( float ) * iter ) ) / ( 1.048576 * t.elapsedMicroSeconds() ) );
 		free( a );

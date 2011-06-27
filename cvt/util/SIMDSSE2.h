@@ -13,9 +13,8 @@ namespace cvt {
 
         public:
 			using SIMDSSE::Mul;
-			virtual void Mul( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
-			using SIMDSSE::MulAdd;
-			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+			virtual void MulValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;			
+			virtual void MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
 			using SIMDSSE::SAD;
 			virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 

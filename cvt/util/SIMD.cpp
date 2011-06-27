@@ -852,7 +852,7 @@ namespace cvt {
 			*dst++ = *src1++ / *src2++;
 	}
 
-	void SIMD::Add( float* dst, float const* src, const float value, const size_t n ) const
+	void SIMD::AddValue1f( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -866,7 +866,7 @@ namespace cvt {
 			*dst++ = *src++ + value;
 	}
 
-	void SIMD::Sub( float* dst, float const* src, const float value, const size_t n ) const
+	void SIMD::SubValue1f( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -880,7 +880,7 @@ namespace cvt {
 			*dst++ = *src++ - value;
 	}
 
-	void SIMD::Mul( float* dst, float const* src, const float value, const size_t n ) const
+	void SIMD::MulValue1f( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -894,7 +894,7 @@ namespace cvt {
 			*dst++ = *src++ * value;
 	}
 
-	void SIMD::Div( float* dst, float const* src, const float value, const size_t n ) const
+	void SIMD::DivValue1f( float* dst, float const* src, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -908,7 +908,7 @@ namespace cvt {
 			*dst++ = *src++ / value;
 	}
 
-	void SIMD::Add( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::AddValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -925,7 +925,7 @@ namespace cvt {
 		}
 	}
 
-	void SIMD::Sub( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::SubValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -943,7 +943,7 @@ namespace cvt {
 	}
 
 
-	void SIMD::Mul( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::MulValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -961,7 +961,7 @@ namespace cvt {
 	}
 
 
-	void SIMD::Div( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::DivValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -978,7 +978,7 @@ namespace cvt {
 		}
 	}
 	
-	void SIMD::Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const
+	void SIMD::MulValue1fx( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -992,7 +992,7 @@ namespace cvt {
 			*dst++ = *src++ * value;
 	}
 
-	void SIMD::MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
+	void SIMD::MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 
@@ -1010,7 +1010,7 @@ namespace cvt {
 			*dst++ += *src++ * value;
 	}
 
-	void SIMD::Mul( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const
+	void SIMD::MulU8Value1fx( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -1024,7 +1024,7 @@ namespace cvt {
 			*dst++ = *src++ * value;
 	}
 
-	void SIMD::MulAdd( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const
+	void SIMD::MulAddU8Value1fx( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 
@@ -1122,7 +1122,7 @@ namespace cvt {
 		return sad;
 	}
 
-	void SIMD::MulAdd( float* dst, float const* src1, const float value, const size_t n ) const
+	void SIMD::MulAddValue1f( float* dst, float const* src1, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -1136,7 +1136,7 @@ namespace cvt {
 			*dst++ += *src1++ * value;
 	}
 
-	void SIMD::MulSub( float* dst, float const* src1, const float value, const size_t n ) const
+	void SIMD::MulSubValue1f( float* dst, float const* src1, const float value, const size_t n ) const
 	{
 		size_t i = n >> 2;
 		while( i-- ) {
@@ -1150,7 +1150,7 @@ namespace cvt {
 			*dst++ -= *src1++ * value;
 	}
 
-	void SIMD::MulAdd( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::MulAddValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -1167,7 +1167,7 @@ namespace cvt {
 		}
 	}
 
-	void SIMD::MulSub( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
+	void SIMD::MulSubValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{
 		size_t i = n >> 2;
 		size_t x = 0;
@@ -1795,7 +1795,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width );
+			MulValue1f( dst, src, *weights, width );
 			return;
 		}
 
@@ -1860,7 +1860,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width );
+			MulAddValue1f( dst, src, *weights, width );
 			return;
 		}
 
@@ -1943,7 +1943,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width * 2 );
+			MulValue1f( dst, src, *weights, width * 2 );
 			return;
 		}
 
@@ -2025,7 +2025,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width * 2 );
+			MulAddValue1f( dst, src, *weights, width * 2 );
 			return;
 		}
 
@@ -2155,7 +2155,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			this->Mul( dst, src, ( const float ) *weights, width * 4 );
+			this->MulValue1f( dst, src, ( const float ) *weights, width * 4 );
 			return;
 		}
 
@@ -2327,7 +2327,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width * 4 );
+			MulAddValue1f( dst, src, *weights, width * 4 );
 			return;
 		}
 
@@ -2500,7 +2500,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width );
+			MulU8Value1fx( dst, src, *weights, width );
 			return;
 		}
 
@@ -2565,7 +2565,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width );
+			MulAddU8Value1fx( dst, src, *weights, width );
 			return;
 		}
 
@@ -2648,7 +2648,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			Mul( dst, src, *weights, width * 2 );
+			MulU8Value1fx( dst, src, *weights, width * 2 );
 			return;
 		}
 
@@ -2730,7 +2730,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width * 2 );
+			MulAddU8Value1fx( dst, src, *weights, width * 2 );
 			return;
 		}
 
@@ -2860,7 +2860,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			this->Mul( dst, src, *weights, width * 4 );
+			this->MulU8Value1fx( dst, src, *weights, width * 4 );
 			return;
 		}
 
@@ -3032,7 +3032,7 @@ namespace cvt {
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width * 4 );
+			MulAddU8Value1fx( dst, src, *weights, width * 4 );
 			return;
 		}
 

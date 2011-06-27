@@ -319,10 +319,10 @@ void SIMDSSE::name( float* dst, const float* src1, const float value, const size
 			*dst++ = *src1++ cop value;	                                                     \
 }
 
-SSE_ACOP1_FLOAT( Add, _mm_add_ps, + )
-SSE_ACOP1_FLOAT( Sub, _mm_sub_ps, - )
-SSE_ACOP1_FLOAT( Mul, _mm_mul_ps, * )
-SSE_ACOP1_FLOAT( Div, _mm_div_ps, / )
+SSE_ACOP1_FLOAT( AddValue1f, _mm_add_ps, + )
+SSE_ACOP1_FLOAT( SubValue1f, _mm_sub_ps, - )
+SSE_ACOP1_FLOAT( MulValue1f, _mm_mul_ps, * )
+SSE_ACOP1_FLOAT( DivValue1f, _mm_div_ps, / )
 
 
 #define SSE_ACOP1_AOP2_FLOAT( name, sseop1, cop1, sseop2, cop2 ) \
@@ -523,8 +523,8 @@ SSE_ACOP1_FLOAT( Div, _mm_div_ps, / )
         }                                                                                         \
 	}                                                                                             \
 
-SSE_ACOP1_AOP2_FLOAT( MulAdd, _mm_mul_ps, *, _mm_add_ps, + )
-SSE_ACOP1_AOP2_FLOAT( MulSub, _mm_mul_ps, *, _mm_sub_ps, - )
+SSE_ACOP1_AOP2_FLOAT( MulAddValue1f, _mm_mul_ps, *, _mm_add_ps, + )
+SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 
 	void SIMDSSE::Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const
 	{

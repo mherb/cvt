@@ -128,10 +128,10 @@ BEGIN_CVTTEST( simd )
 		AATEST( Mul, fdst, fsrc1, fsrc2, TESTSIZE, * )
 		AATEST( Div, fdst, fsrc1, fsrc2, TESTSIZE, / )
 
-		AC1TEST( Add, fdst, fsrc1, val1, TESTSIZE, + )
-		AC1TEST( Sub, fdst, fsrc1, val1, TESTSIZE, - )
-		AC1TEST( Mul, fdst, fsrc1, val1, TESTSIZE, * )
-		AC1TEST( Div, fdst, fsrc1, val1, TESTSIZE, / )
+		AC1TEST( AddValue1f, fdst, fsrc1, val1, TESTSIZE, + )
+		AC1TEST( SubValue1f, fdst, fsrc1, val1, TESTSIZE, - )
+		AC1TEST( MulValue1f, fdst, fsrc1, val1, TESTSIZE, * )
+		AC1TEST( DivValue1f, fdst, fsrc1, val1, TESTSIZE, / )
 
 		delete[] fdst;
 		delete[] fsrc1;
@@ -190,7 +190,7 @@ BEGIN_CVTTEST( simd )
             t = 0;
             for( int iter = 0; iter < 100; iter++ ) {
                 tmr.reset();
-                simd->MulAdd( fdst, fsrc1, 200.0f, TESTSIZE );
+                simd->MulAddValue1f( fdst, fsrc1, 200.0f, TESTSIZE );
                 t += tmr.elapsedMilliSeconds();
             }
             t /= 100.0;
@@ -203,7 +203,7 @@ BEGIN_CVTTEST( simd )
             t = 0;
             for( int iter = 0; iter < 100; iter++ ) {
                 tmr.reset();
-                simd->MulSub( fdst, fsrc1, 200.0f, TESTSIZE );
+                simd->MulSubValue1f( fdst, fsrc1, 200.0f, TESTSIZE );
                 t += tmr.elapsedMilliSeconds();
             }
             t /= 100.0;
@@ -229,7 +229,7 @@ BEGIN_CVTTEST( simd )
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
-				simd->Add( fdst, fsrc1, 10.0f, TESTSIZE );
+				simd->AddValue1f( fdst, fsrc1, 10.0f, TESTSIZE );
 				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
@@ -242,7 +242,7 @@ BEGIN_CVTTEST( simd )
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
-				simd->Sub( fdst, fsrc1, 10.0f, TESTSIZE );
+				simd->SubValue1f( fdst, fsrc1, 10.0f, TESTSIZE );
 				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
@@ -255,7 +255,7 @@ BEGIN_CVTTEST( simd )
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
-				simd->Mul( fdst, fsrc1, 10.0f, TESTSIZE );
+				simd->MulValue1f( fdst, fsrc1, 10.0f, TESTSIZE );
 				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
@@ -268,7 +268,7 @@ BEGIN_CVTTEST( simd )
 			t = 0;
 			for( int iter = 0; iter < 100; iter++ ) {
 				tmr.reset();
-				simd->Div( fdst, fsrc1, 10.0f, TESTSIZE );
+				simd->DivValue1f( fdst, fsrc1, 10.0f, TESTSIZE );
 				t += tmr.elapsedMilliSeconds();
 			}
 			t /= 100.0;
