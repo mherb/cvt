@@ -71,6 +71,7 @@ namespace cvt {
 		Matrix3f invtrans, invtt;
 		float* pdst;
 		Vector2f pt1( 0, 0 ), pt2( 0, 0 );
+		SIMD* simd =SIMD::instance();
 
 		dst = idst.map( &dstride );
 		dst2 = dst;
@@ -120,23 +121,8 @@ namespace cvt {
 				}
 
 				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
-				for( size_t x = Math::clamp<size_t>(  px1.x, 0, w ), xend = Math::clamp<size_t>( ( px2.x + 1.0f ), 0, w ); x < xend; x++ )
-				{
-					float fx, fy;
-					fx = p.x / p.z;
-					fy = p.y / p.z;
-					float alpha1 = fx + 1 - ( float ) ( int )( fx + 1 );
-					float alpha2 = fy + 1 - ( float ) ( int )( fy + 1 );
-#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int )sw && ( fy ) >= 0 && ( fy ) < ( int ) sh ) ? *( ( float* ) ( src + sstride * ( fy ) + sizeof( float ) * ( fx ) ) ) : pdst[ x ]
-					float v1, v2;
-					int lx = -1 + ( int )( fx + 1 );
-					int ly = -1 + ( int )( fy + 1 );
-					v1 = Math::mix( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-					v2 = Math::mix( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-					pdst[ x ] = Math::mix( v1, v2, alpha2 );
-					p += nx;
-				}
-
+				simd->warpLinePerspectiveBilinear1f( ( float* ) ( pdst +  Math::clamp<size_t>( px1.x, 0, w ) ), ( const float* ) src, sstride, sw, sh,
+													  p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
 			}
 			dst2 += dstride;
 		}
