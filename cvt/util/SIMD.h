@@ -38,21 +38,21 @@ namespace cvt {
 			virtual void SetValue4f( float* dst, const float (&value)[ 4 ], const size_t n ) const;
 
 			/* memory block and constants */
-			virtual void Add( float* dst, float const* src, const float value, const size_t n ) const;
-			virtual void Sub( float* dst, float const* src, const float value, const size_t n ) const;
-			virtual void Mul( float* dst, float const* src, const float value, const size_t n ) const;
-			virtual void Div( float* dst, float const* src, const float value, const size_t n ) const;
+			virtual void AddValue1f( float* dst, float const* src, const float value, const size_t n ) const;
+			virtual void SubValue1f( float* dst, float const* src, const float value, const size_t n ) const;
+			virtual void MulValue1f( float* dst, float const* src, const float value, const size_t n ) const;
+			virtual void DivValue1f( float* dst, float const* src, const float value, const size_t n ) const;
         
-			virtual void Add( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
-			virtual void Sub( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
-			virtual void Mul( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
-			virtual void Div( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void AddValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void SubValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void MulValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void DivValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 
-			virtual void MulAdd( float* dst, float const* src1, const float value, const size_t n ) const;
-			virtual void MulSub( float* dst, float const* src1, const float value, const size_t n ) const;
+			virtual void MulAddValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
+			virtual void MulSubValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
 
-			virtual void MulAdd( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
-			virtual void MulSub( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void MulAddValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
+			virtual void MulSubValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
 
 			/* memory blocks */
                         /* floating point numbers */
@@ -62,10 +62,10 @@ namespace cvt {
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
 
 			/* Fixed point numbers */
-			virtual void Mul( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const;
-			virtual void MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
-			virtual void Mul( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const;
-			virtual void MulAdd( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
+			virtual void MulValue1fx( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const;
+			virtual void MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+			virtual void MulU8Value1fx( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const;
+			virtual void MulAddU8Value1fx( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
                     
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;

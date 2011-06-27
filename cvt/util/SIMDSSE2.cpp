@@ -5,7 +5,7 @@
 
 namespace cvt
 {
-	void SIMDSSE2::Mul( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
+	void SIMDSSE2::MulValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
 
@@ -36,7 +36,7 @@ namespace cvt
 			*dst++ += *src++ * value;
 	}
 
-	void SIMDSSE2::MulAdd( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
+	void SIMDSSE2::MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 3;
 
@@ -136,7 +136,7 @@ namespace cvt
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width );
+			MulAddU8Value1fx( dst, src, *weights, width );
 			return;
 		}
 
@@ -238,7 +238,7 @@ namespace cvt
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width );
+			MulAddU8Value1fx( dst, src, *weights, width );
 			return;
 		}
 
@@ -353,7 +353,7 @@ namespace cvt
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			this->Mul( dst, src, *weights, width * 4 );
+			MulU8Value1fx( dst, src, *weights, width * 4 );
 			return;
 		}
 
@@ -499,7 +499,7 @@ namespace cvt
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAdd( dst, src, *weights, width * 4 );
+			MulAddU8Value1fx( dst, src, *weights, width * 4 );
 			return;
 		}
 

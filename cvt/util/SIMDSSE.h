@@ -17,8 +17,7 @@ namespace cvt {
 			using SIMD::Sub;
 			using SIMD::Mul;
 			using SIMD::Div;
-			using SIMD::MulAdd;
-			using SIMD::MulSub;
+			
 
 			/* memory blocks */
 			virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
@@ -26,13 +25,13 @@ namespace cvt {
 			virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
 			virtual void Div( float* dst, float const* src1, float const* src2, const size_t n ) const;
 
-			virtual void Add( float* dst, float const* src1, const float v, const size_t n ) const;
-			virtual void Sub( float* dst, float const* src1, const float v, const size_t n ) const;
-			virtual void Mul( float* dst, float const* src1, const float v, const size_t n ) const;
-			virtual void Div( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void AddValue1f( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void SubValue1f( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void MulValue1f( float* dst, float const* src1, const float v, const size_t n ) const;
+			virtual void DivValue1f( float* dst, float const* src1, const float v, const size_t n ) const;
 
-			virtual void MulAdd( float* dst, float const* src1, const float value, const size_t n ) const;
-			virtual void MulSub( float* dst, float const* src1, const float value, const size_t n ) const;
+			virtual void MulAddValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
+			virtual void MulSubValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
 
 
 			/*shuffle*/

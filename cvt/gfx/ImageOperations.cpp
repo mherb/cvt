@@ -181,7 +181,7 @@ namespace cvt {
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
+						simd->AddValue1f( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -206,7 +206,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						simd->AddValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -221,7 +221,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->AddValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -236,7 +236,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Add( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->AddValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -259,7 +259,7 @@ namespace cvt {
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
+						simd->SubValue1f( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -283,7 +283,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						simd->SubValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -298,7 +298,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->SubValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -313,7 +313,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Sub( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->SubValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -340,7 +340,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 
 					while( h-- ) {
-						simd->Mul( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
+						simd->MulValue1f( ( float* ) dst, ( float* ) dst, alpha, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -364,7 +364,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Mul( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
+						simd->MulValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -379,7 +379,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->MulValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -394,7 +394,7 @@ namespace cvt {
 					size_t h = _mem->_height;
 					
 					while( h-- ) {
-						simd->Mul( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
+						simd->MulValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
@@ -524,7 +524,7 @@ namespace cvt {
 
 					size_t h = _mem->_height;
 					while( h-- ) {
-						simd->MulAdd( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_format.channels );
+						simd->MulAddValue1f( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_format.channels );
 						src += sstride;
 						dst += dstride;
 					}
@@ -1106,15 +1106,15 @@ namespace cvt {
 		i = b1;
 		while( i-- ) {
 			pweights = vweights;
-			simd->Mul( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+			simd->MulValue1fx( accumBuf, buf[ 0 ], *pweights++, widthchannels );
 			k = i;
 			while( k-- ) {
-				simd->MulAdd( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+				simd->MulAddValue1fx( accumBuf, buf[ 0 ], *pweights++, widthchannels );
 			}
 			k = kheight - ( i + 1 );
 			curbuf = 0;
 			while( k-- ) {
-				simd->MulAdd( accumBuf, buf[ curbuf++ ], *pweights++, widthchannels );
+				simd->MulAddValue1fx( accumBuf, buf[ curbuf++ ], *pweights++, widthchannels );
 			}
 			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
 			dst += dstride;
@@ -1143,13 +1143,13 @@ namespace cvt {
 		i = b2;
 		while( i-- ) {
 			pweights = vweights;
-			simd->Mul( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
+			simd->MulValue1fx( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
 			for( k = 1; k < b1 + i + 1; k++ ) {
-				simd->MulAdd( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
+				simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
 			}
 			k = b2 - i;
 			while( k-- ) {
-				simd->MulAdd( accumBuf, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
+				simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
 			}
 			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
 			curbuf = ( curbuf + 1 ) % kheight;
@@ -1239,15 +1239,15 @@ namespace cvt {
 		i = b1;
 		while( i-- ) {
 			pweights = vweights;
-			simd->Mul( ( float* ) dst, buf[ 0 ], *pweights++, widthchannels );
+			simd->MulValue1f( ( float* ) dst, buf[ 0 ], *pweights++, widthchannels );
 			k = i;
 			while( k-- ) {
-				simd->MulAdd( ( float* ) dst, buf[ 0 ], *pweights++, widthchannels );
+				simd->MulAddValue1f( ( float* ) dst, buf[ 0 ], *pweights++, widthchannels );
 			}
 			k = kheight - ( i + 1 );
 			curbuf = 0;
 			while( k-- ) {
-				simd->MulAdd(( float* ) dst, buf[ curbuf++ ], *pweights++, widthchannels );
+				simd->MulAddValue1f(( float* ) dst, buf[ curbuf++ ], *pweights++, widthchannels );
 			}
 			dst += dstride;
 		}
@@ -1275,13 +1275,13 @@ namespace cvt {
 		i = b2;
 		while( i-- ) {
 			pweights = vweights;
-			simd->Mul( ( float* ) dst, buf[ curbuf ], *pweights++, widthchannels );
+			simd->MulValue1f( ( float* ) dst, buf[ curbuf ], *pweights++, widthchannels );
 			for( k = 1; k < b1 + i + 1; k++ ) {
-				simd->MulAdd( ( float * ) dst, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
+				simd->MulAddValue1f( ( float * ) dst, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
 			}
 			k = b2 - i;
 			while( k-- ) {
-				simd->MulAdd( ( float * ) dst, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
+				simd->MulAddValue1f( ( float * ) dst, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
 			}
 			curbuf = ( curbuf + 1 ) % kheight;
 			dst += dstride;
@@ -1379,11 +1379,11 @@ namespace cvt {
 				l++;
 				pyw++;
 			}
-			simd->Mul( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
+			simd->MulValue1f( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
 			l++;
 			for( ; l < pysw->numw; l++ ) {
 				if( Math::abs( *pyw ) > Math::EPSILONF )
-					simd->MulAdd( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
+					simd->MulAddValue1f( ( float* ) dst, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
 				pyw++;
 			}
 			pysw++;
@@ -1472,11 +1472,11 @@ namespace cvt {
 				l++;
 				pyw++;
 			}
-			simd->Mul( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
+			simd->MulValue1fx( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw++, width * _mem->_format.channels );
 			l++;
 			for( ; l < pysw->numw; l++ ) {
 				if( *pyw != ( Fixed )0.0f )
-					simd->MulAdd( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
+					simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
 				pyw++;
 			}
 			
