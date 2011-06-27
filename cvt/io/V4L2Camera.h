@@ -83,7 +83,7 @@ namespace cvt {
 			void enqueueBuffers();
 			void extendedControl();
 			static void control( int fd, int field, int value );
-			static void listDevices( std::vector<std::string> & devices );
+			static void listDevices( std::vector<String> & devices );
 	};
 
 	inline size_t V4L2Camera::width() const
