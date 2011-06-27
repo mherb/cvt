@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <cstring>
+#include <string>
 
 namespace cvt {
 
@@ -19,7 +20,7 @@ namespace cvt {
 #endif
             }
         
-			Exception( std::string s ) throw() : msg( s ) {}
+			Exception( const char* s ) throw() : msg( s ) {}
 			~Exception() throw() {}
 			const char* what() const throw() { return msg.c_str(); }
 
@@ -42,7 +43,7 @@ namespace cvt {
 			}
 
 
-			Exception( std::string s, const char* file, size_t line, const char* func ) throw()
+			Exception( const std::string & s, const char* file, size_t line, const char* func ) throw()
 			{
 				std::stringstream str;
 				str << s;

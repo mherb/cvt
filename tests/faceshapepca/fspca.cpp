@@ -129,7 +129,7 @@ class FaceShapeWin : public Window
 		Eigen::MatrixXf _pc;
 };
 
-void readPoints( PointSet2f& pts, const std::string& path )
+void readPoints( PointSet2f& pts, const String& path )
 {
 	std::ifstream file;
 	file.open( path.c_str() );
@@ -154,7 +154,7 @@ int main( int argc, char** argv )
 		return 1;
 	}
 
-	std::vector<std::string> files;
+	std::vector<String> files;
 	FileSystem::filesWithExtension( argv[ 1 ], files, "asf" );
 
 	std::vector<PointSet2f> allpts;

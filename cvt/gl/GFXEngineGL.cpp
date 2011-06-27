@@ -7,7 +7,7 @@ namespace cvt {
 			GFXEngineGL::GFXEngineGL( GLContext* ctx ) : _ctx( ctx )
 			{
 				Resources res;
-				std::string path = res.find("default.glfont");
+				String path = res.find("default.glfont");
 				_glfont.load( path.c_str() );
 			}
 

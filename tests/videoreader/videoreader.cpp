@@ -13,7 +13,7 @@ using namespace cvt;
 class VideoPlayer : public Window
 {
 public:
-	VideoPlayer( const std::string& videoFile ) : 
+	VideoPlayer( const String& videoFile ) : 
         Window( "VideoPlayer" ), _video( videoFile, true ), _timer( 10 ), _frames( 0 )
 	{
         // register a timer to retrieve the next video frame
@@ -73,7 +73,7 @@ int main( int argc, char** argv )
 		return 0;
 	}
 	
-	std::string xxx( argv[ 1 ] );
+	String xxx( argv[ 1 ] );
 
 	try {
 		VideoPlayer video( xxx );

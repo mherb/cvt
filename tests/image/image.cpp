@@ -15,8 +15,8 @@ using namespace cvt;
 int main()
 {
 	cvt::Resources resources;
-	std::string inputFile = resources.find( "lena.png" );
-	std::string inputGray = resources.find( "lena_g.png" );
+	String inputFile = resources.find( "lena.png" );
+	String inputGray = resources.find( "lena_g.png" );
 	
 	try {
 		// RGBA UBYTE IMAGE
