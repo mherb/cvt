@@ -53,7 +53,7 @@ namespace cvt {
 
 	void V4L2Camera::open()
 	{
-		std::vector<std::string> devices;
+		std::vector<String> devices;
 		V4L2Camera::listDevices( devices );
 
 		if( _camIndex >= devices.size() ){
@@ -63,7 +63,10 @@ namespace cvt {
 		_fd = ::open( devices[ _camIndex ].c_str(), O_RDWR | O_NONBLOCK );
 
 		if( _fd == -1){
-			throw CVTException("Could not open device named \"" + devices[ _camIndex ] + "\"");
+			String str( "Could not open device named \"");
+		    str +=	devices[ _camIndex ];
+		    str	+ "\"";
+			throw CVTException( str.c_str() );
 		}
 
 		_opened = true;
@@ -444,22 +447,25 @@ namespace cvt {
 
 	size_t V4L2Camera::count()
 	{
-		std::vector<std::string> devs;
+		std::vector<String> devs;
 		listDevices( devs );
 		return devs.size();
 	}
 
 	void V4L2Camera::cameraInfo( size_t index, CameraInfo & info )
 	{
-		std::vector<std::string> deviceNames;
+		std::vector<String> deviceNames;
 		listDevices( deviceNames );
 
 		if( index >= deviceNames.size() )
 			throw CVTException( "No device with such index!" );
 
 		int fd = ::open( deviceNames[ index ].c_str(), O_RDWR | O_NONBLOCK );
-		if( fd < 0 )
-			throw CVTException( "Could not open device to get information: " + deviceNames[ index ] );
+		if( fd < 0 ) {
+			String str("Could not open device to get information: ");
+	        str += deviceNames[ index ];
+			throw CVTException( str.c_str() );
+		}
 
 		struct v4l2_capability caps;
 		if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
@@ -543,20 +549,18 @@ namespace cvt {
 	}
 
 	/* check for openable v4l devices in /sys/class/video4linux */
-	void V4L2Camera::listDevices( std::vector<std::string> & devices )
+	void V4L2Camera::listDevices( std::vector<String> & devices )
 	{
-		std::vector<std::string> possibleDevs;
+		std::vector<String> possibleDevs;
 		FileSystem::ls( "/sys/class/video4linux", possibleDevs );
 
 		struct v4l2_capability caps;
-		std::stringstream ss;
+		String ss;
 		for( size_t i = 0; i < possibleDevs.size(); i++ ){
-			ss.str("");
-			ss.clear();
+			ss = "/dev/";
+			ss += possibleDevs[ i ];
 
-			ss << "/dev/" << possibleDevs[ i ];
-
-			int fd = ::open( ss.str().c_str(), O_RDWR | O_NONBLOCK );
+			int fd = ::open( ss.c_str(), O_RDWR | O_NONBLOCK );
 			if( fd < 0 )
 				continue;
 
@@ -564,7 +568,7 @@ namespace cvt {
 				continue;
 
 			if( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
-				devices.push_back( ss.str() );
+				devices.push_back( ss );
 
 			::close( fd );
 		}
