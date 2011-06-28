@@ -138,7 +138,7 @@ int main()
 	std::vector<Matrix3f> homographies;
 
 	try {
-		loadTestData( dataSets[ 3 ], images, homographies );
+		loadTestData( dataSets[ 7 ], images, homographies );
 	} catch ( const Exception & e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;
@@ -146,7 +146,8 @@ int main()
 
 	size_t numScales = 3;
 	float  scaleFactor = 0.5f;
-	size_t featureThreshold = 40;
+	size_t featureThreshold = 35;
+	size_t maxDistance = 30;
 
 	Image gray;
 
@@ -157,7 +158,7 @@ int main()
 	ORB orb1( gray, numScales, scaleFactor, featureThreshold );
 
 	std::vector<FeatureMatch> matches;
-	matchFeatures( orb0, orb1, 50, matches );
+	matchFeatures( orb0, orb1, maxDistance, matches );
 	checkResult( orb0, orb1, matches, homographies[ 1 ] );
 
 	Window win( "Feature Detector and Descriptor Test" );

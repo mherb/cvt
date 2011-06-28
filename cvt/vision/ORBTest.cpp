@@ -24,7 +24,7 @@ namespace cvt {
 
         orb.centroidAngle( feature, ptr, stride );
 
-        std::cout << "Feature Angle: " << feature.angle << std::endl;
+        std::cout << "Feature Angle: " << Math::rad2Deg( feature.angle ) << std::endl;
 
         return false;
     }

@@ -720,7 +720,7 @@ namespace cvt {
 			}
 		}
 	}
-    
+
     SIMDType SIMD::bestSupportedType()
     {
         CPUFeatures cpuf;
@@ -739,7 +739,7 @@ namespace cvt {
             return SIMD_BASE;
 		}
     }
-    
+
 	void SIMD::force( SIMDType type )
 	{
 		if( _simd )
@@ -994,7 +994,7 @@ namespace cvt {
 			x &= 0x03;
 		}
 	}
-	
+
 	void SIMD::MulValue1fx( Fixed * dst, const Fixed * src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -1058,7 +1058,7 @@ namespace cvt {
 		while( i-- )
 			*dst++ += *src++ * value;
 	}
-    
+
 	float SIMD::SSD( float const* src1, float const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -1078,11 +1078,11 @@ namespace cvt {
 
 		return ssd;
 	}
-	
+
 	float SIMD::SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
-		
+
 		float ssd = 0.0f;
 		while( i-- ) {
 			ssd += Math::sqr( *src1++ - *src2++ );
@@ -1090,12 +1090,12 @@ namespace cvt {
 			ssd += Math::sqr( *src1++ - *src2++ );
 			ssd += Math::sqr( *src1++ - *src2++ );
 		}
-		
+
 		i = n & 0x03;
 		while( i-- ) {
 			ssd += Math::sqr( *src1++ - *src2++ );
 		}
-		
+
 		return ssd;
 	}
 
@@ -1105,7 +1105,7 @@ namespace cvt {
 
 		float sad = 0.0f;
 		while( i-- ) {
-			sad += Math::abs( *src1++ - *src2++ );			
+			sad += Math::abs( *src1++ - *src2++ );
 			sad += Math::abs( *src1++ - *src2++ );
 			sad += Math::abs( *src1++ - *src2++ );
 			sad += Math::abs( *src1++ - *src2++ );
@@ -1118,24 +1118,24 @@ namespace cvt {
 
 		return sad;
 	}
-	
+
 	size_t SIMD::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
 		size_t i = n >> 2;
-		
+
 		float sad = 0.0f;
 		while( i-- ) {
-			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );			
+			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 		}
-		
+
 		i = n & 0x03;
 		while( i-- ) {
 			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 		}
-		
+
 		return sad;
 	}
 
@@ -1374,7 +1374,7 @@ namespace cvt {
 			*dst++ = U8_TO_F( tmp >> 24 );
 		}
 	}
-        
+
         void SIMD::Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const {
             size_t i = n;
 
@@ -3377,20 +3377,20 @@ namespace cvt {
 			sw++;
 		}
 	}
-	
+
 	void SIMD::ConvolveAdaptive1Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
 	{
 		IConvolveAdaptiveSize* sw;
 		Fixed* weights;
 		uint32_t x;
-		
+
 		Fixed pixel;
 		Fixed* dst = _dst;
 		const uint8_t* src = _src;
-		
+
 		sw = conva->size;
 		weights = conva->weights;
-		
+
 		while( width-- ) {
 			pixel = 0.0f;
 			src += sw->incr;
@@ -3399,9 +3399,9 @@ namespace cvt {
 			}
 			*dst++ = pixel;
 			sw++;
-		}	
+		}
 	}
-	
+
 	void SIMD::ConvolveAdaptive2Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
 	{
 		IConvolveAdaptiveSize* sw;
@@ -3410,10 +3410,10 @@ namespace cvt {
 		Fixed pixel[ 2 ];
 		Fixed* dst = _dst;
 		const uint8_t* src = _src;
-		
+
 		sw = conva->size;
 		weights = conva->weights;
-		
+
 		while( width-- ) {
 			pixel[ 0 ] = 0.0f;
 			pixel[ 1 ] = 0.0f;
@@ -3427,7 +3427,7 @@ namespace cvt {
 			sw++;
 		}
 	}
-	
+
 	void SIMD::ConvolveAdaptive4Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const
 	{
 		IConvolveAdaptiveSize* sw;
@@ -3436,10 +3436,10 @@ namespace cvt {
 		Fixed pixel[ 4 ];
 		Fixed* dst = _dst;
 		const uint8_t* src = _src;
-		
+
 		sw = conva->size;
 		weights = conva->weights;
-		
+
 		while( width-- ) {
 			pixel[ 0 ] = 0.0f;
 			pixel[ 1 ] = 0.0f;
@@ -3636,7 +3636,7 @@ namespace cvt {
 			src += srcStride;
 		}
 
-		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
 	}
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
@@ -4135,7 +4135,7 @@ namespace cvt {
 		_IIR_INITIAL4( 1 )
 		_IIR_INITIAL4( 2 )
 		_IIR_INITIAL4( 3 )
-		
+
 		// forward pass
 		for( uint32_t i = 4; i < w; i++ ) {
 			x0 += channels;
@@ -4207,11 +4207,11 @@ namespace cvt {
 		y1[ 3 ] = Math::clamp( ( l1[ 3 ] + t1[ 3 ] ).round(), 0, 255 );
 		y2[ 3 ] = Math::clamp( ( l2[ 3 ] + t2[ 3 ] ).round(), 0, 255 );
 		y3[ 3 ] = Math::clamp( ( l3[ 3 ] + t3[ 3 ] ).round(), 0, 255 );
-		
+
 		w -= 4;
 
 		// backward pass
-		while( w-- ){			
+		while( w-- ){
 			// move input pointer back
 			x0 -=channels; x1-=channels; x2-=channels; x3-=channels;
 			y3 -= channels; // y3 is current output pixel!
@@ -4292,7 +4292,7 @@ namespace cvt {
 		y1 = y0 - dstride;
 		y2 = y1 - dstride;
 		y3 = y2 - dstride;
-		
+
 		uint8_t tmpu8[ 4 * channels ];
 		uint8_t *x0, *x1, *x2, *x3, *xtmp;
 		x3 = tmpu8; x2 = x3 + channels; x1 = x2 + channels; x0 = x1 + channels;
@@ -4303,26 +4303,26 @@ namespace cvt {
 
 		// backward border init:
 		x0[ 0 ] = y0[ 0 ]; x1[ 0 ] = y1[ 0 ]; x2[ 0 ] = y2[ 0 ]; x3[ 0 ] = y3[ 0 ];
-		_IIR_INITIAL4( 0 );		
+		_IIR_INITIAL4( 0 );
 		y0[ 0 ] = Math::clamp( ( l0[ 0 ] + t0[ 0 ] ).round(), 0, 255 );
 		y1[ 0 ] = Math::clamp( ( l1[ 0 ] + t1[ 0 ] ).round(), 0, 255 );
 		y2[ 0 ] = Math::clamp( ( l2[ 0 ] + t2[ 0 ] ).round(), 0, 255 );
 		y3[ 0 ] = Math::clamp( ( l3[ 0 ] + t3[ 0 ] ).round(), 0, 255 );
-		
+
 		x0[ 1 ] = y0[ 1 ]; x1[ 1 ] = y1[ 1 ]; x2[ 1 ] = y2[ 1 ]; x3[ 1 ] = y3[ 1 ];
-		_IIR_INITIAL4( 1 );		
+		_IIR_INITIAL4( 1 );
 		y0[ 1 ] = Math::clamp( ( l0[ 1 ] + t0[ 1 ] ).round(), 0, 255 );
 		y1[ 1 ] = Math::clamp( ( l1[ 1 ] + t1[ 1 ] ).round(), 0, 255 );
 		y2[ 1 ] = Math::clamp( ( l2[ 1 ] + t2[ 1 ] ).round(), 0, 255 );
 		y3[ 1 ] = Math::clamp( ( l3[ 1 ] + t3[ 1 ] ).round(), 0, 255 );
-		
+
 		x0[ 2 ] = y0[ 2 ]; x1[ 2 ] = y1[ 2 ]; x2[ 2 ] = y2[ 2 ]; x3[ 2 ] = y3[ 2 ];
-		_IIR_INITIAL4( 2 );		
+		_IIR_INITIAL4( 2 );
 		y0[ 2 ] = Math::clamp( ( l0[ 2 ] + t0[ 2 ] ).round(), 0, 255 );
 		y1[ 2 ] = Math::clamp( ( l1[ 2 ] + t1[ 2 ] ).round(), 0, 255 );
 		y2[ 2 ] = Math::clamp( ( l2[ 2 ] + t2[ 2 ] ).round(), 0, 255 );
 		y3[ 2 ] = Math::clamp( ( l3[ 2 ] + t3[ 2 ] ).round(), 0, 255 );
-		
+
 		x0[ 3 ] = y0[ 3 ]; x1[ 3 ] = y1[ 3 ]; x2[ 3 ] = y2[ 3 ]; x3[ 3 ] = y3[ 3 ];
 		_IIR_INITIAL4( 3 );
 		y0[ 3 ] = Math::clamp( ( l0[ 3 ] + t0[ 3 ] ).round(), 0, 255 );
@@ -4340,47 +4340,47 @@ namespace cvt {
 			t3 -= channels;
 
 			y3 -= dstride; // y3 is current output pixel!
-			
+
 			xtmp = x0; x0 = x1; x1 = x2; x2 = x3; x3 = xtmp;
-			x3[ 0 ] = y3[ 0 ]; x3[ 1 ] = y3[ 1 ]; x3[ 2 ] = y3[ 2 ]; x3[ 3 ] = y3[ 3 ];			
-			
+			x3[ 0 ] = y3[ 0 ]; x3[ 1 ] = y3[ 1 ]; x3[ 2 ] = y3[ 2 ]; x3[ 3 ] = y3[ 3 ];
+
 			_IIR_CURRENT_BWD( 0 )
 			_IIR_CURRENT_BWD( 1 )
 			_IIR_CURRENT_BWD( 2 )
-			_IIR_CURRENT_BWD( 3 )			
+			_IIR_CURRENT_BWD( 3 )
 
 			// swap pointers:
 			tmpPtr = tmpVal;
 			tmpVal = l0; l0 = l1; l1 = l2; l2 = l3; l3 = tmpPtr;
 		}
 	}
-    
+
     size_t SIMD::hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const
     {
         size_t d = 0;
         uint64_t xored;
-        
+
         size_t n8 = n >> 3;
         size_t r  = n - ( n8 << 3 );
-        
+
         uint64_t* s1 = ( uint64_t* )src1;
         uint64_t* s2 = ( uint64_t* )src2;
-        
+
         while( n8-- ){
             xored = *s1++ ^ *s2++;
-            
+
             // count the bits set in xored:
-            // 64 1-bit numbers 
+            // 64 1-bit numbers
             xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
-            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u ); 
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u );
             xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
-            xored += xored >> 32; 
+            xored += xored >> 32;
             xored += xored >> 16;
-            xored += xored >>  8; 
-            //  1 8-bit number 
-            d+= ( xored & 0xFF ); 
+            xored += xored >>  8;
+            //  1 8-bit number
+            d+= ( xored & 0xFF );
         }
-        
+
         if( r ){
             uint64_t a = 0, b = 0;
 
@@ -4389,56 +4389,56 @@ namespace cvt {
 
             xored = ( a^b );
             xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
-            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u ); 
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u );
             xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
-            xored += xored >> 32; 
+            xored += xored >> 32;
             xored += xored >> 16;
-            xored += xored >>  8; 
-            //  1 8-bit number 
+            xored += xored >>  8;
+            //  1 8-bit number
             d+= ( xored & 0xFF );
         }
-        
+
         return d;
     }
-    
+
     /*
     {
         size_t d = 0;
-        
+
         while( n-- ){
             d += __builtin_popcountll( *src1++ ^ *src2++ );
         }
-        
+
         return d;
     }
     */
-    
+
     void SIMD::prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
         dst[ 0 ] = src[ 0 ];
         for( size_t i = 1; i < width; i++ ){
-            dst[ i ] = dst[ i - 1 ] + src[ i ]; 
+            dst[ i ] = dst[ i - 1 ] + src[ i ];
         }
         height--;
 
         float * prevRow = dst;
         dst+=dstStride;
         src+=srcStride;
-        
+
         float currRow;
-        while( height-- ){            
+        while( height-- ){
             currRow = 0;
             for( size_t i = 0; i < width; i++ ){
                 currRow += src[ i ];
-                dst[ i ] = currRow + prevRow[ i ]; 
+                dst[ i ] = currRow + prevRow[ i ];
             }
             prevRow = dst;
             dst += dstStride;
             src += srcStride;
         }
     }
-    
+
     void SIMD::prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const
     {
         dst[ 0 ] = Math::sqr( ( float )src[ 0 ] );
@@ -4446,24 +4446,24 @@ namespace cvt {
             dst[ i ] = dst[ i - 1 ] + Math::sqr( ( float )src[ i ] );
         }
         height--;
-        
+
         float * prevRow = dst;
-        
+
         dst += dStride;
         src  += srcStride;
-        
+
         float currRow;
-        while( height-- ){            
+        while( height-- ){
             currRow = 0;
             for( size_t i = 0; i < width; i++ ){
                 currRow += Math::sqr( ( float )src[ i ] );
-                dst[ i ] = currRow + prevRow[ i ];                
+                dst[ i ] = currRow + prevRow[ i ];
             }
-            
+
             prevRow = dst;
             dst += dStride;
             src  += srcStride;
         }
     }
-    
+
 }
