@@ -549,4 +549,54 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 			}
 		}
 	}
+
+
+	void SIMDSSE::warpLinePerspectiveBilinear4f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+		float px, py, pz;
+		size_t i = n;
+		__m128 r, v1, v2, v3, v4, ax1, ax2, ay1, ay2, one;
+
+		one = _mm_set1_ps( 1.0f );
+
+		px = point[ 0 ];
+		py = point[ 1 ];
+		pz = point[ 2 ];
+
+		while( i-- )
+		{
+			float fx, fy;
+
+			fx = px / pz;
+			fy = py / pz;
+
+			ax1 = _mm_set1_ps( fx + 1 - ( float ) ( int )( fx + 1 ) );
+			ax2 = _mm_sub_ps( one, ax1 );
+			ay1 = _mm_set1_ps( fy + 1 - ( float ) ( int )( fy + 1 ) );
+			ay2 = _mm_sub_ps( one, ay1 );
+
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? _mm_loadu_ps( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 ) ) ) : _mm_loadu_ps( dst );
+
+			int lx = -1 + ( int )( fx + 1 );
+			int ly = -1 + ( int )( fy + 1 );
+
+			v3 = VAL( lx, ly );
+			v4 = VAL( lx + 1, ly );
+			v1 = _mm_add_ps( _mm_mul_ps( v3, ax2 ), _mm_mul_ps( v4, ax1 ) );
+			v3 = VAL( lx, ly + 1 );
+			v4 = VAL( lx + 1, ly + 1 );
+			v2 = _mm_add_ps( _mm_mul_ps( v3, ax2 ), _mm_mul_ps( v4, ax1 ) );
+			r = _mm_add_ps( _mm_mul_ps( v1, ay2 ), _mm_mul_ps( v2, ay1 ) );
+			_mm_storeu_ps( dst, r );
+			dst += 4;
+
+			px += normal[ 0 ];
+			py += normal[ 1 ];
+			pz += normal[ 2 ];
+#undef VAL
+		}
+
+	}
+
 }
