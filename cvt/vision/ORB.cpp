@@ -2,7 +2,7 @@
 
 
 namespace cvt {
-   
+
 	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold ) :
         _threshold( cornerThreshold )
 	{
@@ -26,10 +26,10 @@ namespace cvt {
         size_t featureIdx = _features.size();
 
         size_t stride;
-        const uint8_t * ptr = img.map( &stride );        
-        detect9( ptr, stride, img.width(), img.height(), scale );        
+        const uint8_t * ptr = img.map( &stride );
+        detect9( ptr, stride, img.width(), img.height(), scale );
         img.unmap( ptr );
-        
+
         IntegralImage iimg( img );
 		const float* iimgptr = iimg.sumImage().map<float>( &stride );
 
@@ -64,11 +64,6 @@ namespace cvt {
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
 		feature.angle = Math::TWO_PI - feature.angle;
-/*		if( feature.angle < 0 )
-			feature.angle += Math::TWO_PI;
-		if( feature.angle > Math::TWO_PI )
-			feature.angle -= Math::TWO_PI;*/
-
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
@@ -78,39 +73,38 @@ namespace cvt {
 		size_t y = ( size_t ) feature.pt.y;
 
 
-#define ORBTEST( n ) IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
-					 IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep )
+#define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
+					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep ) )
 
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				if( ORBTEST( i * 8 + k ) )
-					feature.desc[ i ] |= 1;
 				feature.desc[ i ] <<= 1;
+				feature.desc[ i ] |= ORBTEST( i * 8 + k );
 			}
 		}
 		feature.pt /= feature.scale;
 	}
 
 
-    void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )    
+    void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )
     {
 		makeOffsets( stride );
         size_t h = height - _border;
         size_t w = width - _border;
 
         im += ( _border * stride + _border );
-        
-        int upperBound;        
+
+        int upperBound;
         int lowerBound;
 
         for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
-            
+
             for( size_t x = _border; x < w; x++ ){
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
-                
+
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
                     _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
@@ -120,9 +114,9 @@ namespace cvt {
             }
             im += stride;
         }
-        
+
     }
-    
+
     void ORB::makeOffsets( size_t row_stride )
 	{
         _pixel[0]  =  0 + row_stride * 3;
@@ -142,7 +136,7 @@ namespace cvt {
 		_pixel[14] = -2 + row_stride * 2;
 		_pixel[15] = -1 + row_stride * 3;
     }
-    
+
     bool ORB::isDarkerCorner9( const uint8_t * p, const int barrier )
 	{
 		if( !( p[ _pixel[ 15 ] ] < barrier ) ) {     // ???????????????-

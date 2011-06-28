@@ -11,14 +11,14 @@
 namespace cvt {
 
 	struct ORBFeature : public Feature2Df {
-        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f ) : 
+        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f ) :
             Feature2Df( x, y, angle, scale )
         {
         }
 
 		size_t distance( const ORBFeature& f ) const
 		{
-			return SIMD::instance()->hammingDistance( desc, f.desc, 256 );
+			return SIMD::instance()->hammingDistance( desc, f.desc, 32 );
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
@@ -35,7 +35,9 @@ namespace cvt {
 		return out;
 	}
 
+
 	class ORB {
+		friend bool _centroidAngleTest();
 		public:
 			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25 );
 
@@ -44,7 +46,9 @@ namespace cvt {
 
 		private:
 			void detect( const Image& img, float scale );
+
 			void centroidAngle( ORBFeature& feature, const float* ptr, size_t widthstep );
+
 			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
 
             void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale );
@@ -61,7 +65,7 @@ namespace cvt {
 			static const int _patterns[ 30 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];
 
-            // border where we do not detect features: 
+            // border where we do not detect features:
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
             static const int _border = 20;
 	};

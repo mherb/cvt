@@ -47,7 +47,7 @@ namespace cvt {
     {
         skip( deliminators );
 
-        if ( hasNext( ) ) {
+        if ( hasNext() ) {
             // here we know that _pos points to a token
             uint8_t * start = _pos;
             nextDelim( deliminators );
