@@ -27,21 +27,21 @@ namespace cvt {
                 P5_GRAY_BINARY,
                 P6_RGB_BINARY
             };
-        
+
 			static String _name;
 			static String _extension[ 2 ];
-        
+
             size_t tokenizeLine( const uint8_t * data, size_t maxSize, std::vector<String> & tokens );
             size_t skipLine( const uint8_t *& data );
-            PGMType parseMagicNumber( const std::vector<String> & tokens );        
-            
+            PGMType parseMagicNumber( const std::vector<String> & tokens );
+
             void parseBinary( Image & img, const uint8_t * data );
             void parseASCII( Image & img, const uint8_t * data, size_t n );
 	};
 
 	String PPMLoader::_name = "PPM";
 	String PPMLoader::_extension[] = { ".ppm", ".PPM" };
-    
+
     size_t PPMLoader::tokenizeLine( const uint8_t* data, size_t numData, std::vector<String> & tokens )
     {
         // skip whitespace, \t and \n
@@ -50,14 +50,14 @@ namespace cvt {
 
         for( ;; ){
             // comments:
-            if( *data == '#' ) {               
+            if( *data == '#' ) {
                 bytesConsumed += skipLine( data );
                 return bytesConsumed;
             }
-              
-            // skip 
-            while( *data != ' '  && 
-                   *data != '\t' && 
+
+            // skip
+            while( *data != ' '  &&
+                   *data != '\t' &&
                    *data != '\r' &&
                    *data != '\n'){
                 data++;
@@ -65,9 +65,9 @@ namespace cvt {
 				if( bytesConsumed > numData )
 					throw CVTException( "PPM header corrupt!" );
             }
-            
+
             // token runs from start to data - 1
-            tokens.push_back( String( (const char*)start, (data - start) ) ); 
+            tokens.push_back( String( (const char*)start, (data - start) ) );
             if( *data == '\n' ){
                 data++;
                 bytesConsumed++;
@@ -79,10 +79,10 @@ namespace cvt {
 					throw CVTException( "PPM header corrupt!" );
             }
             start = data;
-        }        
+        }
         return bytesConsumed;
     }
-    
+
     size_t PPMLoader::skipLine( const uint8_t* & data )
     {
         size_t n = 0;
@@ -96,17 +96,20 @@ namespace cvt {
     }
 
 	void PPMLoader::load( Image& img, const String& path )
-	{        
+	{
 		int fp = open( path.c_str(), O_RDONLY );
-		if( fp < 0 )
-			throw CVTException( "Cannot open PNG image file" );
-        
+		if( fp < 0 ){
+			String message( "Cannot open PPM image file: " );
+			message += path;
+			throw CVTException( message.c_str() );
+		}
+
         struct stat fileStats;
         if( fstat( fp, &fileStats ) == -1 ){
-            throw CVTException( "Cannot open PNG image file -> Could not determine file stats" );
-        } 
+            throw CVTException( "Cannot open PPM image file -> Could not determine file stats" );
+        }
 		int size = fileStats.st_size;
-        
+
         uint8_t * data = ( uint8_t* )mmap( 0, size, PROT_READ, MAP_PRIVATE, fp, 0 );
 		uint8_t * ptrSave = data;
 		int sizeSave = size;
@@ -114,11 +117,11 @@ namespace cvt {
 		if( data == MAP_FAILED ){
 			throw CVTException( "Could not map file" );
 		}
-        
+
         std::vector<String> tokens;
-        
+
         size_t n;
-        
+
         // get next full line as tokens, skipping comments
         while( tokens.size() == 0 ){
             n = tokenizeLine( data, size, tokens );
@@ -127,7 +130,7 @@ namespace cvt {
 			if( size < 0 )
 				throw CVTException( "PPM Header corrupt!" );
         }
-        
+
         PGMType type;
         if( tokens.size() != 1 ){
             throw CVTException( "Expected Magic Number" );
@@ -138,7 +141,7 @@ namespace cvt {
             if( tokens[ 0 ] == "P6") type = P6_RGB_BINARY;
         }
         tokens.clear();
-        
+
         // get next full line as tokens, skipping comments
         while( tokens.size() == 0 ){
             n = tokenizeLine( data, size, tokens );
@@ -154,9 +157,9 @@ namespace cvt {
             throw CVTException("PPM File Error: expected width and height");
         } else {
             width = tokens[ 0 ].toInteger();
-            height = tokens[ 1 ].toInteger();            
+            height = tokens[ 1 ].toInteger();
         }
-        
+
         // get next full line as tokens, skipping comments
         tokens.clear();
         while( tokens.size() == 0 ){
@@ -172,8 +175,8 @@ namespace cvt {
             colorRange = tokens[ 0 ].toInteger();
         } else {
             throw CVTException("Expected CHANNEL depth");
-        }        
-        
+        }
+
         switch ( type ) {
             case P2_GRAY_ASCII:
                 if( colorRange > 255 )
@@ -194,7 +197,7 @@ namespace cvt {
                     img.reallocate( width, height, IFormat::GRAY_UINT16 );
                 else
                     img.reallocate( width, height, IFormat::GRAY_UINT8 );
-                parseBinary( img, data );                
+                parseBinary( img, data );
                 break;
             case P6_RGB_BINARY:
                 if( colorRange > 255 )
@@ -202,8 +205,8 @@ namespace cvt {
                 else
                     img.reallocate( width, height, IFormat::RGBA_UINT8 );
                 parseBinary( img, data );
-                break;                
-        }        
+                break;
+        }
 
 		// unmap
 		munmap( ptrSave, sizeSave );
@@ -211,15 +214,15 @@ namespace cvt {
 		// close file
 		close( fp );
 	}
-    
+
     void PPMLoader::parseBinary( Image & img, const uint8_t * data )
     {
         size_t stride;
         uint8_t * iptr = img.map( &stride );
         uint8_t * ptr = iptr;
-        
+
         size_t height = img.height();
-        
+
         size_t n;
         switch ( img.format().formatID ) {
             case IFORMAT_RGBA_UINT8:
@@ -236,19 +239,19 @@ namespace cvt {
                 throw CVTException( "Unsupported image format for PPM" );
                 break;
         }
-        
+
         SIMD* simd = SIMD::instance();
-        
+
         switch ( img.format().type ) {
             case IFORMAT_TYPE_FLOAT:
-                while ( height-- ) {            
+                while ( height-- ) {
                     simd->Conv_XXXf_to_XXXAf( ( float* )ptr, ( const float* )data, n );
                     ptr += stride;
                     data += n * sizeof( float );
                 }
                 break;
             case IFORMAT_TYPE_UINT8:
-                while ( height-- ) {            
+                while ( height-- ) {
                     simd->Conv_XXXu8_to_XXXAu8( ptr, data, n );
                     ptr += stride;
                     data += n;
@@ -257,10 +260,10 @@ namespace cvt {
             default:
                 throw CVTException( "FORMAT NOT SUPPORTED" );
                 break;
-        }        
+        }
         img.unmap( iptr );
     }
-    
+
     void PPMLoader::parseASCII( Image & img, const uint8_t * data, size_t n )
     {
         size_t stride;
@@ -323,7 +326,7 @@ namespace cvt {
             default:
                 throw CVTException( "Format not supported in ASCII" );
                 break;
-        }        
+        }
 
         img.unmap( iptr );
     }
