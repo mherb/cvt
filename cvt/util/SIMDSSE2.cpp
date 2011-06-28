@@ -9,7 +9,7 @@ namespace cvt
 	{
 		size_t i = n >> 2;
 
-		__m128 mul = _mm_set1_ps( ( float ) value );
+		__m128 mul = _mm_set1_ps( value.toFloat() );
 		__m128i in;
 		__m128 inf;
 
@@ -43,7 +43,7 @@ namespace cvt
 		if( value.native() == 0 )
 			return;
 
-		const __m128 mul = _mm_set1_ps( ( float ) value );
+		const __m128 mul = _mm_set1_ps( value.toFloat() );
 		__m128i in, out, in2, out2;
 		__m128 inf, inf2;
 
@@ -654,7 +654,7 @@ namespace cvt
 		__m128i x0, x1, x2, x3, rnd;
 
 		for( x = 0; x < numw; x++ )
-			w[ x ] = ( float ) weights[ x ];
+			w[ x ] = weights[ x ].toFloat();
 
 		rnd = _mm_set1_epi32( 0x8000 );
 

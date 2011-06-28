@@ -2767,56 +2767,57 @@ namespace cvt {
 			k = wn;
 			sp = src;
 			wp = weights;
-			w = *wp++;
+			w = ( *wp++ ).toFloat();
 			tmp[ 0 ] = *( sp + 0 ) * w;
 			tmp[ 1 ] = *( sp + 1 ) * w;
 			sp += 2;
 			k--;
 			switch( k & 7 ) {
 				case 0: while( k ) {
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 7:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 6:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 5:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 4:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 3:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
+							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 2:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
 							k--;
 							case 1:
-							w = *wp++;
+							w = ( *wp++ ).toFloat();
 							tmp[ 0 ] += *( sp + 0 ) * w;
 							tmp[ 1 ] += *( sp + 1 ) * w;
 							sp += 2;
@@ -3521,7 +3522,50 @@ namespace cvt {
 
 	}
 
+	void SIMD::warpLinePerspectiveBilinear1u8( uint8_t* dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+		float px, py, pz;
+		size_t i = n;
+		Fixed one( ( int16_t ) 1 );
 
+		px = point[ 0 ];
+		py = point[ 1 ];
+		pz = point[ 2 ];
+
+		while( i-- )
+		{
+			float fx, fy;
+
+			fx = px / pz;
+			fy = py / pz;
+
+			Fixed ax1( fx + 1 - ( float ) ( int )( fx + 1 ) );
+			Fixed ax2 = one - ax1;
+			Fixed ay1( fy + 1 - ( float ) ( int )( fy + 1 ) );
+			Fixed ay2 = one - ay1;
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : *dst
+			int lx = -1 + ( int )( fx + 1 );
+			int ly = -1 + ( int )( fy + 1 );
+
+			uint8_t v = VAL( lx, ly );
+			Fixed v1 = ax2 * v;
+			v = VAL( lx + 1, ly );
+			v1 += ax1 * v;
+			v = VAL( lx, ly + 1 );
+			Fixed v2 = ax2 * v;
+			v = VAL( lx + 1 , ly + 1 );
+			v2 += ax1 * v;
+
+			v1 = ay2 * v1 + ay1 * v2;
+			*dst++ = ( uint8_t ) Math::clamp( v1.round(), 0x0, 0xff );
+			px += normal[ 0 ];
+			py += normal[ 1 ];
+			pz += normal[ 2 ];
+#undef VAL
+		}
+
+	}
 
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )

@@ -196,50 +196,50 @@ namespace cvt
 		result &=b;
 
 		roundIt = 2.5f;
-		b &= ( (float)roundIt.abs() == 2.5f );
+		b &= ( roundIt.abs().toFloat() == 2.5f );
 		roundIt = -2.5f;
-		b &= ( (float)roundIt.abs() == 2.5f );
+		b &= ( roundIt.abs().toFloat() == 2.5f );
 		CVTTEST_PRINT( "abs()", b );
 		result &=b;
 
 		roundIt = 4.0f;
-		b &= ( (float)roundIt.sqrt() == 2.0f );
+		b &= ( roundIt.sqrt().toFloat() == 2.0f );
 		float fl = 45.87;
 		roundIt = fl;
-		b &= ( ( (float)roundIt.sqrt() - Math::sqrt( fl ) ) < 0.000001 );
+		b &= ( ( roundIt.sqrt().toFloat() - Math::sqrt( fl ) ) < 0.000001 );
 		CVTTEST_PRINT( "sqrt()", b );
 		result &=b;
 
-		b &= ( ( (float)roundIt.recip() - ( 1.0 / fl ) ) < 0.00001 );
+		b &= ( ( roundIt.recip().toFloat() - ( 1.0 / fl ) ) < 0.00001 );
 		CVTTEST_PRINT( "recip()", b );
 		result &=b;
 
 
 		f+=1.5f;
 		v+=1.5f;
-		b = ( (float)f == v );
+		b = ( f.toFloat() == v );
 		CVTTEST_PRINT( "operator+=()", b );
 		result &=b;
 
 		Fixed f2( 2.0f );
 		Fixed f3 = f + f2;
-		b = ( (float)f3 == ( v + 2.0f ) );
+		b = ( f3.toFloat() == ( v + 2.0f ) );
 		CVTTEST_PRINT( "operator+()", b );
 		result &=b;
 
 		Fixed fm = f - (Fixed)1.5f;
-		b = ( (float)fm == ( v - 1.5f ) );
+		b = ( fm.toFloat() == ( v - 1.5f ) );
 		CVTTEST_PRINT( "operator-()", b );
 		result &=b;
 
 		Fixed f4 = f3 * f;
-		b = ( (float)f4 == ( ( v + 2.0f ) * v ) );
+		b = ( f4.toFloat() == ( ( v + 2.0f ) * v ) );
 		CVTTEST_PRINT( "operator*", b );
 		result &=b;
 
 		f = f4 / f2;
 		v = ( ( v + 2.0f ) * v ) / 2.0f;
-		b = ( (float)f == v );
+		b = ( f.toFloat() == v );
 		CVTTEST_PRINT( "operator/", b );
 		result &=b;
 
@@ -249,7 +249,7 @@ namespace cvt
 			Fixed f = f0 / f1;
 			float v = 1234.5f / -13.5f;
 //			std::cout << (float)f << " <-> " << v << std::endl;
-			b = ( Math::abs( (float)f == v ) < 0.00001f );
+			b = ( Math::abs( f.toFloat() == v ) < 0.00001f );
 			CVTTEST_PRINT( "operator/", b );
 			result &=b;
 		}
@@ -263,25 +263,25 @@ namespace cvt
 		result &=b;
 
 		Fixed i( ( int16_t )5 );
-		b = ( (float)i == 5.0f );
+		b = ( i.toFloat() == 5.0f );
 		CVTTEST_PRINT( "Fixed( int16_t )", b );
 		result &=b;
 
 		float angle = Math::PI / 6.0f;
 		float sf = Math::sin( angle );
 		Fixed degree( angle * 180.0f / Math::PI );
-		b = ( Math::abs( (float)degree.sin() - sf ) < 0.001 );
+		b = ( Math::abs( degree.sin().toFloat() - sf ) < 0.001 );
 		CVTTEST_PRINT( "sin()", b );
 		result &=b;
 
 		float cf = Math::cos( angle );
-		b = ( Math::abs( (float)degree.cos() - cf ) < 0.001 );
+		b = ( Math::abs( degree.cos().toFloat() - cf ) < 0.001 );
 		CVTTEST_PRINT( "cos()", b );
 		result &=b;
 
 		Fixed cFixed, sFixed;
 		degree.sin_cos( &sFixed, &cFixed );
-		b = ( Math::abs( (float)cFixed - cf ) < 0.001 ) && ( Math::abs( (float)sFixed - sf ) < 0.001 );
+		b = ( Math::abs( cFixed.toFloat() - cf ) < 0.001 ) && ( Math::abs( sFixed.toFloat() - sf ) < 0.001 );
 		CVTTEST_PRINT( "sin_cos()", b );
 		result &=b;
 
@@ -293,10 +293,10 @@ namespace cvt
 		while ( u8 != 255 ) {
 			f = scale;
 			scaled = f * u8;
-			b &= ( (float)scaled == ( scale * (float)( u8 ) ) );
+			b &= ( scaled.toFloat() == ( scale * (float)( u8 ) ) );
 			f = -scale;
 			scaled = f * u8;
-			b &= ( (float)scaled == ( -scale * (float)( u8 ) ) );
+			b &= ( scaled.toFloat() == ( -scale * (float)( u8 ) ) );
 			u8++;
 		}
 		CVTTEST_PRINT( "operator*( uint8_t )", b );
@@ -308,7 +308,7 @@ namespace cvt
 		while( u8 != 255 ){
 			f = scale;
 			sum = f + u8;
-			b &= ( (float)sum == ( scale + ( uint32_t )u8 ) );
+			b &= ( sum.toFloat() == ( scale + ( uint32_t )u8 ) );
 			u8++;
 		}
 		CVTTEST_PRINT( "operator+( uint8_t )", b );
