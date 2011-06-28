@@ -69,6 +69,8 @@ namespace cvt {
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
 		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
+		if( index == 30 )
+			index = 0;
 		size_t x = ( size_t ) feature.pt.x;
 		size_t y = ( size_t ) feature.pt.y;
 
@@ -80,6 +82,7 @@ namespace cvt {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
 				feature.desc[ i ] <<= 1;
+				//std::cout << "x = " << x << " y = " << y << " index = " << index << " k = " << k << " i = " << i << std::endl;
 				feature.desc[ i ] |= ORBTEST( i * 8 + k );
 			}
 		}
