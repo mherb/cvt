@@ -3540,9 +3540,9 @@ namespace cvt {
 			fx = px / pz;
 			fy = py / pz;
 
-			Fixed ax1( fx + 1 - ( float ) ( int )( fx + 1 ) );
+			Fixed ax1 = fx + 1 - ( float ) ( int )( fx + 1 );
 			Fixed ax2 = one - ax1;
-			Fixed ay1( fy + 1 - ( float ) ( int )( fy + 1 ) );
+			Fixed ay1 = fy + 1 - ( float ) ( int )( fy + 1 );
 			Fixed ay2 = one - ay1;
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : *dst
 			int lx = -1 + ( int )( fx + 1 );
