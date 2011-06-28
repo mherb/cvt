@@ -202,8 +202,74 @@ namespace cvt {
 		isrc.unmap( src );
 	}
 
-	void ITransform::applyU8C1( Image& dst, const Image& src, const Matrix3f& transform )
+	void ITransform::applyU8C1( Image& idst, const Image& isrc, const Matrix3f& transform )
 	{
+		const uint8_t* src;
+		uint8_t* dst;
+		uint8_t* dst2;
+		size_t sstride;
+		size_t dstride;
+		size_t w, h;
+		size_t sw, sh;
+		Matrix3f invtrans, invtt;
+		Vector2f pt1( 0, 0 ), pt2( 0, 0 );
+
+		SIMD* simd =SIMD::instance();
+
+		dst = idst.map( &dstride );
+		dst2 = dst;
+		src = isrc.map( &sstride );
+		w = idst.width();
+		h = idst.height();
+		sw = ( ssize_t ) isrc.width();
+		sh = ( ssize_t ) isrc.height();
+
+		invtrans = transform.inverse();
+		invtt = invtrans.transpose();
+
+		Rectf r( 0 - 1.0f, 0 - 1.0f, sw + 2, sh + 2);
+		Vector3f nx = transform * Vector3f( 1.0f, 0.0f, 0.0f );
+		size_t ystart = 0, yend = h;
+		Vector2f p = invtrans * Vector2f( 0.0f, 0.0f );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( sw, 0.0f );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( 0.0f, sh );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+		p = invtrans * Vector2f( sw, sh );
+		p.y = Math::clamp<float>( p.y, 0, h );
+		ystart = Math::min( ystart, ( size_t ) p.y );
+		yend = Math::max( yend, ( size_t ) p.y );
+
+		for( size_t y = ystart; y < yend; y++  ) {
+			Line2Df l( 0, y, w, y );
+			Line2Df l2( invtt * l.vector() );
+
+			if( Clipping::clip( r, l2, pt1, pt2 ) ) {
+				Vector2f px1, px2;
+				px1 = invtrans * pt1;
+				px2 = invtrans * pt2;
+
+				if( px1.x > px2.x ) {
+					Vector2f tmp( px1 );
+					px1 = px2;
+					px2 = tmp;
+				}
+
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
+				simd->warpLinePerspectiveBilinear1u8(  ( dst2 +  Math::clamp<size_t>( px1.x, 0, w ) ), src, sstride, sw, sh,
+													p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
+			}
+			dst2 += dstride;
+		}
+		idst.unmap( dst );
+		isrc.unmap( src );
 	}
 
 	void ITransform::applyU8C4( Image& dst, const Image& src, const Matrix3f& transform )

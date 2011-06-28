@@ -28,7 +28,7 @@ namespace cvt
 			bool operator!=( const Fixed & other ) const;
 
 			/* to allow cast float f = (float)fixed; */
-			operator float() const;
+			//operator float() const;
 
 			Fixed operator+( Fixed other ) const;
 			Fixed operator-( Fixed other ) const;
@@ -108,10 +108,10 @@ namespace cvt
 		return ret;
 	}
 
-	inline Fixed::operator float() const
+/*	inline Fixed::operator float() const
 	{
 		return toFloat();
-	}
+	}*/
 
 	inline const Fixed & Fixed::operator=( const Fixed & other )
 	{
@@ -265,7 +265,7 @@ namespace cvt
 
 	inline std::ostream & operator<<( std::ostream & out, const Fixed& f )
 	{
-		out << (float)f << "_fxd";
+		out << f.toFloat() << "_fxd";
 		return out;
 	}
 
