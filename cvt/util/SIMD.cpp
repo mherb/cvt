@@ -670,7 +670,24 @@ namespace cvt {
 		if( idx >= ( 1 << 13 ) ) return 0xff;
 		return _table_f_srgb_ub[ idx ];
 	}
-    
+
+	static inline uint32_t _mix4U8( uint32_t src1, uint32_t src2, uint32_t alpha )
+	{
+		uint32_t __tmp, __tmp2;
+		__tmp = ( ( src2 >> 8) & 0xff00ff ) - ( ( src1 >> 8 ) & 0xff00ff );
+		__tmp *= alpha;
+//		__tmp += 0x800080;
+		__tmp += src1 & 0xff00ff00; \
+	    __tmp &= 0xff00ff00;
+		__tmp2 = ( src2 & 0xff00ff ) - ( src1 & 0xff00ff );
+		__tmp2 *= alpha;
+//		__tmp2 += 0x800080;
+		__tmp2 = __tmp2  >> 8;
+		__tmp2 += src1 & 0xff00ff;
+		__tmp2 &= 0xff00ff;
+		return __tmp + __tmp2;
+	}
+
 	SIMD* SIMD::_simd = 0;
 
 	SIMD* SIMD::get( SIMDType type )
@@ -3540,25 +3557,56 @@ namespace cvt {
 			fx = px / pz;
 			fy = py / pz;
 
-			Fixed ax1 = fx + 1 - ( float ) ( int )( fx + 1 );
-			Fixed ax2 = one - ax1;
-			Fixed ay1 = fy + 1 - ( float ) ( int )( fy + 1 );
-			Fixed ay2 = one - ay1;
-#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : *dst
+			float alpha1 = fx + 1 - ( float ) ( int )( fx + 1 );
+			float alpha2 = fy + 1 - ( float ) ( int )( fy + 1 );
+
+	#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : *dst
+
 			int lx = -1 + ( int )( fx + 1 );
 			int ly = -1 + ( int )( fy + 1 );
+			float v1 = Math::mix<float>( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
+			float v2 = Math::mix<float>( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+			*dst++ =  ( uint8_t ) Math::clamp<int>( Math::mix( v1, v2, alpha2 ), 0, 255 );
 
-			uint8_t v = VAL( lx, ly );
-			Fixed v1 = ax2 * v;
-			v = VAL( lx + 1, ly );
-			v1 += ax1 * v;
-			v = VAL( lx, ly + 1 );
-			Fixed v2 = ax2 * v;
-			v = VAL( lx + 1 , ly + 1 );
-			v2 += ax1 * v;
 
-			v1 = ay2 * v1 + ay1 * v2;
-			*dst++ = ( uint8_t ) Math::clamp( v1.round(), 0x0, 0xff );
+			px += normal[ 0 ];
+			py += normal[ 1 ];
+			pz += normal[ 2 ];
+#undef VAL
+		}
+
+	}
+
+	void SIMD::warpLinePerspectiveBilinear4u8( uint8_t* _dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+		float px, py, pz;
+		size_t i = n;
+		Fixed one( ( int16_t ) 1 );
+		uint32_t* dst = ( uint32_t* ) _dst;
+
+		px = point[ 0 ];
+		py = point[ 1 ];
+		pz = point[ 2 ];
+
+		while( i-- )
+		{
+			float fx, fy;
+
+			fx = px / pz;
+			fy = py / pz;
+
+			uint32_t alpha1 = ( uint32_t ) Math::clamp<int32_t>( ( fx + 1 - ( float ) ( int )( fx + 1 ) ) * 0x100, 0x0, 0x100 );
+			uint32_t alpha2 = ( uint32_t ) Math::clamp<int32_t>( ( fy + 1 - ( float ) ( int )( fy + 1 ) ) * 0x100, 0x0, 0x100 );
+
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint32_t* ) ( src + srcStride * ( fy ) + sizeof( uint32_t ) * ( fx ) ) ) : *dst
+
+			int lx = -1 + ( int )( fx + 1 );
+			int ly = -1 + ( int )( fy + 1 );
+			uint32_t v1 = _mix4U8( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
+			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+			*dst++ = _mix4U8( v1, v2, alpha2 );
+
 			px += normal[ 0 ];
 			py += normal[ 1 ];
 			pz += normal[ 2 ];

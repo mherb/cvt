@@ -49,9 +49,9 @@ int main()
 		Image img;
 		img.load( inputFile.c_str() );
 
-		Image imgf( img.width(), img.height(), IFormat::GRAY_UINT8 );
-		Image out( img.width(), img.height(), IFormat::GRAY_UINT8 );
-		Image out2( img.width(), img.height(), IFormat::GRAY_UINT8 );
+		Image imgf( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		Image out( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		Image out2( img.width(), img.height(), IFormat::RGBA_UINT8 );
 		img.convert( imgf );
 
 		Homography hfilter;
@@ -61,10 +61,10 @@ int main()
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 		Time t;
-//		t.reset();
-//		hfilter.apply( out, imgf, H, black );
-//		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
-//		out.save( "outhomography.png" );
+/*		t.reset();
+		hfilter.apply( out, imgf, H, black );
+		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
+		out.save( "outhomography.png" );*/
 
 		// otherwise denormalized float stuff kicks in
 		out2.fill( Color::BLACK );
