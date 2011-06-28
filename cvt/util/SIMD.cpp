@@ -3615,6 +3615,29 @@ namespace cvt {
 
 	}
 
+	float SIMD::harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const
+	{
+		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
+		float Ix = 0;
+		float Iy = 0;
+		float a = 0, b = 0, c = 0;
+
+		for( size_t y = 0, yend = 2 * ( w - 2 ) + 1; y < yend; y++ ) {
+			const uint8_t* psrc = src;
+			for( size_t x = 0, xend = 2 * ( h - 2 ) + 1; x < xend; x++ ) {
+				Ix = *( psrc + 1 ) - *( psrc - 1 );
+				Iy = *( psrc + srcStride ) - *( psrc - srcStride );
+
+				a += Ix * Ix;
+				b += Iy * Iy;
+				c += Ix * Iy;
+				psrc++;
+			}
+			src += srcStride;
+		}
+
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+	}
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
 #define BAYER_RGGB_R2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
