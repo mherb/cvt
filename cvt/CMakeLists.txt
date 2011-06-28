@@ -64,7 +64,7 @@ SET( GLSL_SHADER
 	gl/shader/150/basicrrtex_150.frag
 	gl/shader/150/basicrr_150.frag
 	gl/shader/150/basiclight_150.frag
-	gl/shader/150/basiclight_150.vert	
+	gl/shader/150/basiclight_150.vert
 )
 
 GLSLTOHEADER(gl/shader/120/basic_120.vert)
@@ -181,7 +181,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/150/basictex_150_frag.h
 	gl/shader/150/basicrrtex_150_frag.h
 	gl/shader/150/basiclight_150_frag.h
-	gl/shader/150/basiclight_150_vert.h	
+	gl/shader/150/basiclight_150_vert.h
 	gui/Application.h
 	gui/BasicTimer.h
 	gui/Button.h
@@ -219,7 +219,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Fixed.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
-	math/Math.h	
+	math/Math.h
 	math/Matrix.h
 	math/Matrix2.h
 	math/Matrix3.h
@@ -248,11 +248,11 @@ SET(${MODULE_NAME}_HEADERS
 	util/RNG.h
 	util/Signal.h
 	util/SIMD.h
-	util/SIMDSSE.h	
-	util/SIMDSSE2.h	
-	util/SIMDSSE41.h	
-	util/SIMDSSE42.h	
-	util/SIMDAVX.h	
+	util/SIMDSSE.h
+	util/SIMDSSE2.h
+	util/SIMDSSE41.h
+	util/SIMDSSE42.h
+	util/SIMDAVX.h
 	util/Thread.h
 	util/Util.h
 	util/Flags.h
@@ -271,6 +271,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/FAST.h
 	vision/Feature2D.h
 	vision/FeatureExtractor.h
+	vision/FeatureMatch.h
 	vision/Ferns.h
 	vision/internal/Fern.h
 	vision/IntegralImage.h
@@ -344,7 +345,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp
-	gui/Moveable.cpp	
+	gui/Moveable.cpp
 	gui/ImageView.cpp
 	gui/internal/ApplicationX11.cpp
 	gui/internal/TimerInfo.cpp
@@ -406,6 +407,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
 	vision/ORB.cpp
+	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
 	io/xml/XMLDecoder.cpp
@@ -418,24 +420,24 @@ IF(UNIX)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/QTKitCamera.h
 		)
-		
+
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/QTKitCamera.mm
 		)
-		
+
 		SET(${MODULE_NAME}_DEP_LIBRARIES
-			${${MODULE_NAME}_DEP_LIBRARIES}			
+			${${MODULE_NAME}_DEP_LIBRARIES}
 			"-framework Cocoa"
 			"-framework CoreFoundation"
 			"-framework QuartzCore"
 			"-framework QTKit"
 		)
-		
+
 		INCLUDE_DIRECTORIES(
 		    BEFORE
 			/usr/X11/include
-		)	
-		
+		)
+
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
@@ -446,7 +448,7 @@ IF(UNIX)
 	ENDIF(APPLE)
 ENDIF()
 
-# optional uEyeUsbCamera driver if available 
+# optional uEyeUsbCamera driver if available
 FIND_PACKAGE(uEyeUsbCamera)
 IF(UEYEUSB_FOUND)
 	SET(${MODULE_NAME}_HEADERS
@@ -459,19 +461,19 @@ IF(UEYEUSB_FOUND)
 	)
 	INCLUDE_DIRECTORIES(
 		BEFORE
-		${UEYEUSB_INCLUDE_DIR}		
+		${UEYEUSB_INCLUDE_DIR}
 	)
 	SET(${MODULE_NAME}_DEP_LIBRARIES
 		${${MODULE_NAME}_DEP_LIBRARIES}
-		${UEYEUSB_LIBRARY}		
-	)	
+		${UEYEUSB_LIBRARY}
+	)
 ENDIF(UEYEUSB_FOUND)
 
 # include directories
 INCLUDE_DIRECTORIES(
     BEFORE
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${Eigen2_INCLUDE_DIR}	
+	${Eigen2_INCLUDE_DIR}
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
 	${LIBDC1394_INCLUDE_DIR}
@@ -479,9 +481,9 @@ INCLUDE_DIRECTORIES(
 	${FFMPEG_INCLUDES}
 )
 
-MODULE_CONFIGURATION("${MODULE_NAME}" 
-					 "${${MODULE_NAME}_HEADERS}" 
-					 "${${MODULE_NAME}_SOURCES}" 
+MODULE_CONFIGURATION("${MODULE_NAME}"
+					 "${${MODULE_NAME}_HEADERS}"
+					 "${${MODULE_NAME}_SOURCES}"
 					 "${${MODULE_NAME}_DEP_LIBRARIES}")
 
 set_target_properties(${MODULE_NAME}
@@ -495,9 +497,9 @@ IF( ${CMAKE_BUILD_TYPE} MATCHES "debug" )
 	add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
 	IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
-		SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")	
+		SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")
 	ENDIF()
-	target_link_libraries (cvttest ${MODULE_NAME}) 
+	target_link_libraries (cvttest ${MODULE_NAME})
 ENDIF()
 
 #special flags for some files

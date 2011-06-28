@@ -16,8 +16,32 @@
 #include <string>
 
 #include <cvt/io/FileSystem.h>
+#include <cvt/vision/ORB.h>
+
+#include "cvt/vision/FeatureMatch.h"
 
 using namespace cvt;
+
+void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
+{
+	FeatureMatch match;
+	for( size_t i = 0; i < orb0.size(); i++ ){
+		match.idx0 = i;
+		match.idx1 = 0;
+		match.distance = maxDistance;
+		for( size_t k = 0; k < orb1.size(); k++ ){
+			size_t dist = orb0[ i ].distance( orb1[ k ] );
+
+			if( dist < match.distance ){
+				match.distance = dist;
+				match.idx1 = k;
+			}
+		}
+
+		if( match.distance < maxDistance )
+			matches.push_back( match );
+	}
+}
 
 void loadMatrix3( Matrix3f & m, const String & path )
 {
@@ -70,6 +94,34 @@ void loadTestData( const String & dataFolder, std::vector<Image> & images, std::
     }
 }
 
+void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H )
+{
+	// check reprojection error: dist( H * orb0 - orb1 )
+	std::vector<FeatureMatch>::const_iterator it = matches.begin();
+	std::vector<FeatureMatch>::const_iterator itEnd = matches.end();
+
+	size_t inlier = 0;
+
+	while( it != itEnd ){
+		Vector2f gt = H * orb0[ it->idx0 ].pt;
+
+		float error = ( orb1[ it->idx1 ].pt - gt ).length();
+
+		if( error < 10.0f )
+			inlier++;
+		else {
+			std::cout << "Outlier <" << it->idx0 << ", " << it->idx1 << ">\t" << it->distance << "\tReprojection Error: " << error << std::endl;
+			std::cout << "PT2: " << orb1[ it->idx1 ].pt << std::endl;
+			std::cout << "GT: " << gt << std::endl;
+		}
+
+		it++;
+	}
+	std::cout << "Inlier: " << inlier << " / " << matches.size() << std::endl;
+	std::cout << "Inlier Percentage: " << inlier * 100.0f / matches.size() << std::endl;
+
+}
+
 int main()
 {
     std::vector<String> dataSets;
@@ -86,12 +138,27 @@ int main()
 	std::vector<Matrix3f> homographies;
 
 	try {
-		loadTestData( dataSets[ 0 ], images, homographies );
+		loadTestData( dataSets[ 3 ], images, homographies );
 	} catch ( const Exception & e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}
 
+	size_t numScales = 3;
+	float  scaleFactor = 0.5f;
+	size_t featureThreshold = 40;
+
+	Image gray;
+
+	images[ 0 ].convert( gray, IFormat::GRAY_UINT8 );
+	ORB orb0( gray, numScales, scaleFactor, featureThreshold );
+
+	images[ 1 ].convert( gray, IFormat::GRAY_UINT8 );
+	ORB orb1( gray, numScales, scaleFactor, featureThreshold );
+
+	std::vector<FeatureMatch> matches;
+	matchFeatures( orb0, orb1, 50, matches );
+	checkResult( orb0, orb1, matches, homographies[ 1 ] );
 
 	Window win( "Feature Detector and Descriptor Test" );
 	win.setSize( 800, 600 );
@@ -101,7 +168,7 @@ int main()
 	ImageView imView;
 	imView.setImage( images[ 0 ] );
 	Moveable mov( &imView );
-	mov.setSize( images[ 0 ].width(), images[ 0 ].height() );
+	mov.setSize( images[ 0 ].width() / 2, images[ 0 ].height() / 2 );
 	win.addWidget( &mov );
 
 	Application::run();
