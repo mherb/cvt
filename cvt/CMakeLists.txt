@@ -262,6 +262,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/PluginManager.h
 	util/PluginFile.h
 	util/Data.h
+    util/DataIterator.h
 	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h

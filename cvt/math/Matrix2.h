@@ -10,7 +10,7 @@ namespace cvt {
     template<typename T>
 	class Matrix2 {
 	    public:
-							Matrix2<T>( void );
+						Matrix2<T>( void );
 		explicit			Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
 		explicit			Matrix2<T>( const T a, const T b, const T c, const T d );
 		explicit			Matrix2<T>( const T src[ 2 ][ 2 ] );
