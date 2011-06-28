@@ -98,6 +98,8 @@ namespace cvt {
         int upperBound;
         int lowerBound;
 
+		SIMD * simd = SIMD::instance();
+
         for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
 
@@ -106,8 +108,12 @@ namespace cvt {
                 upperBound = *curr + _threshold;
 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
-                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
+					if( harris > 1e2f )
+						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
+					if( harris > 1e2f )
                     _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 }
                 curr++;

@@ -16,7 +16,7 @@ namespace cvt {
 			PPMLoader() {}
 			void load( Image& dst, const String& file );
 			const String& extension( size_t n ) const { return _extension[ n ]; }
-			size_t sizeExtensions() const { return 2; }
+			size_t sizeExtensions() const { return 4; }
 			const String& name() const { return _name; }
 
 		private:
@@ -29,7 +29,7 @@ namespace cvt {
             };
 
 			static String _name;
-			static String _extension[ 2 ];
+			static String _extension[ 4 ];
 
             size_t tokenizeLine( const uint8_t * data, size_t maxSize, std::vector<String> & tokens );
             size_t skipLine( const uint8_t *& data );
@@ -40,7 +40,7 @@ namespace cvt {
 	};
 
 	String PPMLoader::_name = "PPM";
-	String PPMLoader::_extension[] = { ".ppm", ".PPM" };
+	String PPMLoader::_extension[] = { ".ppm", ".PPM", ".pgm", ".PGM" };
 
     size_t PPMLoader::tokenizeLine( const uint8_t* data, size_t numData, std::vector<String> & tokens )
     {
