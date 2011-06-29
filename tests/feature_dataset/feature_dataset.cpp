@@ -109,16 +109,15 @@ void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureM
 
 		if( error < 10.0f )
 			inlier++;
-		else {
+		/*else {
 			std::cout << "Outlier <" << it->idx0 << ", " << it->idx1 << ">\t" << it->distance << "\tReprojection Error: " << error << std::endl;
 			std::cout << "PT2: " << orb1[ it->idx1 ].pt << std::endl;
 			std::cout << "GT: " << gt << std::endl;
-		}
+		}*/
 
 		it++;
 	}
-	std::cout << "Inlier: " << inlier << " / " << matches.size() << std::endl;
-	std::cout << "Inlier Percentage: " << inlier * 100.0f / matches.size() << std::endl;
+	std::cout << "Inlier: " << inlier << " / " << matches.size()  << "\t" << inlier * 100.0f / matches.size() << "%" << std::endl;
 
 }
 
@@ -155,15 +154,19 @@ int main()
         images[ 0 ].convert( gray, IFormat::GRAY_UINT8 );
         ORB orb0( gray, numScales, scaleFactor, featureThreshold );
 
-        images[ 1 ].convert( gray, IFormat::GRAY_UINT8 );
-        ORB orb1( gray, numScales, scaleFactor, featureThreshold );
+		std::cout << "Set: " << dataSets[ i ] << std::endl;
 
-        std::vector<FeatureMatch> matches;
-        matchFeatures( orb0, orb1, maxDistance, matches );
+		for( size_t k = 1; k < images.size(); k++ ){
+            images[ k ].convert( gray, IFormat::GRAY_UINT8 );
+            ORB orb1( gray, numScales, scaleFactor, featureThreshold );
 
-		std::cout << "################\t" << dataSets[ i ] << "\t################" << std::endl;
-        checkResult( orb0, orb1, matches, homographies[ 1 ] );
-		std::cout << "########################################" << std::endl;
+            std::vector<FeatureMatch> matches;
+            matchFeatures( orb0, orb1, maxDistance, matches );
+
+			std::cout << "Image " << k << ":\t";
+            checkResult( orb0, orb1, matches, homographies[ k ] );
+		}
+		std::cout << std::endl;
     }
 
 	Window win( "Feature Detector and Descriptor Test" );
