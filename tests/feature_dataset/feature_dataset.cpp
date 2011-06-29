@@ -138,7 +138,7 @@ int main()
 	std::vector<Matrix3f> homographies;
 
 	try {
-		loadTestData( dataSets[ 2 ], images, homographies );
+		loadTestData( dataSets[ 4 ], images, homographies );
 	} catch ( const Exception & e ) {
 		std::cerr << e.what() << std::endl;
 		return 1;
