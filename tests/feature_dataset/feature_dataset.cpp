@@ -137,29 +137,34 @@ int main()
 	std::vector<Image> images;
 	std::vector<Matrix3f> homographies;
 
-	try {
-		loadTestData( dataSets[ 2 ], images, homographies );
-	} catch ( const Exception & e ) {
-		std::cerr << e.what() << std::endl;
-		return 1;
-	}
-
 	size_t numScales = 3;
 	float  scaleFactor = 0.5f;
 	size_t featureThreshold = 35;
 	size_t maxDistance = 30;
 
-	Image gray;
+    for ( size_t i = 0; i < dataSets.size( ); i++ ) {
+        try {
+            loadTestData( dataSets[ i ], images, homographies );
+        } catch ( const Exception & e ) {
+            std::cerr << e.what( ) << std::endl;
+            return 1;
+        }
 
-	images[ 0 ].convert( gray, IFormat::GRAY_UINT8 );
-	ORB orb0( gray, numScales, scaleFactor, featureThreshold );
+        Image gray;
 
-	images[ 1 ].convert( gray, IFormat::GRAY_UINT8 );
-	ORB orb1( gray, numScales, scaleFactor, featureThreshold );
+        images[ 0 ].convert( gray, IFormat::GRAY_UINT8 );
+        ORB orb0( gray, numScales, scaleFactor, featureThreshold );
 
-	std::vector<FeatureMatch> matches;
-	matchFeatures( orb0, orb1, maxDistance, matches );
-	checkResult( orb0, orb1, matches, homographies[ 1 ] );
+        images[ 1 ].convert( gray, IFormat::GRAY_UINT8 );
+        ORB orb1( gray, numScales, scaleFactor, featureThreshold );
+
+        std::vector<FeatureMatch> matches;
+        matchFeatures( orb0, orb1, maxDistance, matches );
+
+		std::cout << "################\t" << dataSets[ i ] << "\t################" << std::endl;
+        checkResult( orb0, orb1, matches, homographies[ 1 ] );
+		std::cout << "########################################" << std::endl;
+    }
 
 	Window win( "Feature Detector and Descriptor Test" );
 	win.setSize( 800, 600 );
