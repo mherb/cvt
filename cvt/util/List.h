@@ -63,6 +63,31 @@ namespace cvt {
 			Iterator begin() { return Iterator( _anchor._prev ); }
 			Iterator end() { return Iterator( &_anchor ); }
 
+			class ReverseIterator {
+				friend class List;
+				public:
+					ReverseIterator() : _it( NULL ) {}
+					ReverseIterator( const ReverseIterator& it ) : _it( it._it ) {}
+					ReverseIterator& operator=( const ReverseIterator& it ) { _it = it._it; return *this; }
+
+					bool operator==( const ReverseIterator& it ) { return _it == it._it; }
+					bool operator!=( const ReverseIterator& it ) { return _it != it._it; }
+
+					ReverseIterator& operator++() { _it = _it->_prev; return *this; }
+					ReverseIterator operator++( int ) { ReverseIterator ret( *this ); _it = _it->_prev; return ret; }
+					ReverseIterator& operator--() { _it = _it->_next; return *this; }
+					ReverseIterator operator--( int ) { ReverseIterator ret( *this ); _it = _it->_next; return ret; }
+
+					T& operator*() { return ( ( Node* ) _it )->_data; }
+
+				private:
+					ReverseIterator( NodeBase* it ) : _it( it ) {}
+					NodeBase* _it;
+			};
+
+			Iterator rbegin() { return Iterator( _anchor._next ); }
+			Iterator rend() { return Iterator( &_anchor ); }
+
 		private:
 			NodeBase  _anchor;
 			size_t	  _size;
