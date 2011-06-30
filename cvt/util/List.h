@@ -9,13 +9,20 @@ namespace cvt {
 	template<typename T>
 	class List {
 		private:
-			struct Node {
-				Node( const T& data, Node* next = NULL , Node* prev = NULL ) : _next( next ), _prev( prev ), _data( data ) {}
-				Node( const Node& it ) : _next( it._next ), _prev( it._prev ), _data( it._data ) {}
-				Node& operator=( const Node& it ) { if( &it != this ) { _next = it._next; _prev = it._prev, _data = it._data; } return *this; }
+			struct NodeBase {
+				NodeBase( NodeBase* next = NULL , NodeBase* prev = NULL ) : _next( next ), _prev( prev ) {}
+				NodeBase( const NodeBase& it ) : _next( it._next ), _prev( it._prev )  {}
+				NodeBase& operator=( const NodeBase& it ) { if( &it != this ) { _next = it._next; _prev = it._prev; } return *this; }
 
-				Node* _next;
-				Node* _prev;
+				NodeBase* _next;
+				NodeBase* _prev;
+			};
+
+			struct Node : public NodeBase {
+				Node( const T& data, NodeBase* next = NULL, NodeBase* prev = NULL ) : NodeBase( next, prev ), _data( data ) {}
+				Node( const Node& node ) : NodeBase( node._next, node._prev ), _data( node._data ) {}
+				Node& operator=( const Node& it ) { if( &it != this ) { NodeBase::_next = it._next; NodeBase::_prev = it._prev; _data = it._data; } return *this; }
+
 				T _data;
 			};
 
@@ -46,24 +53,23 @@ namespace cvt {
 					Iterator& operator--() { _it = _it->_prev; return *this; }
 					Iterator operator--( int ) { Iterator ret( *this ); _it = _it->_prev; return ret; }
 
-					T& operator*() { return _it->_data; }
+					T& operator*() { return ( ( Node* ) _it )->_data; }
 
 				private:
-					Iterator( Node* it ) : _it( it ) {}
-					Node* _it;
+					Iterator( NodeBase* it ) : _it( it ) {}
+					NodeBase* _it;
 			};
 
-			Iterator begin() { return Iterator( _head ); }
-			Iterator end() { return Iterator(); }
+			Iterator begin() { return Iterator( _anchor._prev ); }
+			Iterator end() { return Iterator( &_anchor ); }
 
 		private:
-			Node*	_head;
-			Node*	_tail;
-			size_t	_size;
+			NodeBase  _anchor;
+			size_t	  _size;
 	};
 
 	template<typename T>
-	inline List<T>::List() : _head( NULL ), _tail( NULL ), _size( 0 )
+	inline List<T>::List() : _anchor( &_anchor, &_anchor ), _size( 0 )
 	{
 	}
 
@@ -76,7 +82,7 @@ namespace cvt {
 	template<typename T>
 	inline List<T>::List( const List<T>& list )
 	{
-		Node* it = list._head;
+		Node* it = list._anchor._next;
 		while( it ) {
 			append( it->_data );
 			it = it->_next;
@@ -94,7 +100,7 @@ namespace cvt {
 	{
 		if( this != &list ) {
 			clear();
-			Node* it = list._head;
+			NodeBase* it = list._anchor->next;
 			while( it ) {
 				append( it->_data );
 				it = it->_next;
@@ -106,14 +112,14 @@ namespace cvt {
 	template<typename T>
 	inline void List<T>::append( const T& data )
 	{
-		if( !_head ) {
-			Node* node = new Node( data );
-			_head = node;
-			_tail = node;
+		if( _anchor._next == &_anchor ) {
+			Node* node = new Node( data, &_anchor, &_anchor );
+			_anchor._next = node;
+			_anchor._prev = node;
 		} else {
-			Node* node = new Node( data, NULL, _tail );
-			_tail->_next = node;
-			_tail = node;
+			Node* node = new Node( data, &_anchor, _anchor._next );
+			_anchor._next->_next = node;
+			_anchor._next = node;
 		}
 		_size++;
 	}
@@ -121,14 +127,14 @@ namespace cvt {
 	template<typename T>
 	inline void List<T>::prepend( const T& data )
 	{
-		if( !_head ) {
-			Node* node = new Node( data );
-			_head = node;
-			_tail = node;
+		if( _anchor._prev == &_anchor ) {
+			Node* node = new Node( data, &_anchor, &_anchor );
+			_anchor._next = node;
+			_anchor._prev = node;
 		} else {
-			Node* node = new Node( data, _head, NULL );
-			_head->_prev = node;
-			_head = node;
+			Node* node = new Node( data, _anchor._prev, &_anchor );
+			_anchor._prev->_prev = node;
+			_anchor._prev = node;
 		}
 		_size++;
 	}
@@ -136,14 +142,15 @@ namespace cvt {
 	template<typename T>
 	inline void List<T>::clear()
 	{
-		Node* it = _head;
-		while( it ) {
-			Node* c = it;
-			it = it->_next;
-			delete c;
+		Iterator it = begin();
+		Iterator iend = end();
+		while( it != iend ) {
+			Iterator cur = it;
+			it++;
+			delete ( Node* ) cur._it;
 		}
-		_head = NULL;
-		_tail = NULL;
+		_anchor._prev = &_anchor;
+		_anchor._next = &_anchor;
 		_size = 0;
 	}
 }
