@@ -37,6 +37,7 @@ namespace cvt {
 			void prepend( const T& data );
 			void clear();
 			size_t size() const;
+			bool isEmpty() const;
 
 			class Iterator {
 				friend class List;
@@ -121,6 +122,12 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline bool List<T>::isEmpty() const
+	{
+		return _size == 0;
+	}
+
+	template<typename T>
 	inline List<T>& List<T>::operator=( const List<T>& list )
 	{
 		if( this != &list ) {
@@ -167,6 +174,9 @@ namespace cvt {
 	template<typename T>
 	inline void List<T>::clear()
 	{
+		if( isEmpty() )
+			return;
+
 		Iterator it = begin();
 		Iterator iend = end();
 		while( it != iend ) {
