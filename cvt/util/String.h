@@ -191,7 +191,7 @@ namespace cvt {
 		return *this;
 	}
     
-    inline String String::operator +(const String& str) const
+    inline String String::operator+(const String& str) const
     {
         String s( *this );
         s += str;
@@ -389,7 +389,7 @@ namespace cvt {
 		va_start( args, format );
 		n = vsnprintf( _str, _blen - 1, format, args );
 		va_end( args );
-		if( n < _blen ) {
+		if( n < _blen - 1 ) {
 			_len = n;
 			return;
 		}
@@ -402,7 +402,7 @@ namespace cvt {
 		va_start( args, format );
 		n = vsnprintf( _str, _blen - 1, format, args );
 		va_end( args );
-		if( n < _blen ) {
+		if( n < _blen - 1 ) {
 			_len = n;
 			return;
 		}
@@ -418,7 +418,7 @@ namespace cvt {
 		va_start( args, format );
 		n = vsnprintf( _str + _len, _blen - _len - 1, format, args );
 		va_end( args );
-		if( n < _blen - _len ) {
+		if( n < _blen - _len - 1 ) {
 			_len += n;
 			return;
 		}
@@ -429,7 +429,7 @@ namespace cvt {
 		va_start( args, format );
 		n = vsnprintf( _str + _len, _blen - _len - 1, format, args );
 		va_end( args );
-		if( n < _blen - _len ) {
+		if( n < _blen - _len - 1 ) {
 			_len += n;
 			return;
 		}
