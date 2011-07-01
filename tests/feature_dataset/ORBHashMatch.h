@@ -5,6 +5,9 @@
 #include <cvt/util/List.h>
 
 namespace cvt {
+
+#define MAXIDX 16
+
 	class ORBHashMatch {
 		public:
 			ORBHashMatch( const ORB& orb );
@@ -14,7 +17,7 @@ namespace cvt {
 			void hashORBFeatures();
 
 			const ORB& _orb;
-			List<int> _htable[ 32 ][ 256 ];
+			List<int> _htable[ MAXIDX ][ 256 ];
 	};
 
 	inline ORBHashMatch::ORBHashMatch( const ORB& orb ) : _orb( orb )
@@ -26,15 +29,15 @@ namespace cvt {
 	{
 		for( size_t i = 0, end = _orb.size(); i < end; i++ ) {
 			const ORBFeature& feature = _orb[ i ];
-			for( size_t idx = 0; idx < 32; idx++ ) {
+			for( size_t idx = 0; idx < MAXIDX; idx++ ) {
 				_htable[ idx ][ feature.desc[ idx ] ].append( i );
 			}
 		}
-		for( size_t k = 0; k < 32; k++ ) {
+/*		for( size_t k = 0; k < MAXIDX; k++ ) {
 			for( size_t l = 0; l < 256; l++ ) {
 				std::cout << k << " " << l << " " << _htable[ k ][ l ].size() << std::endl;
 			}
-		}
+		}*/
 	}
 
 
@@ -45,7 +48,7 @@ namespace cvt {
 
 		/* Simple test without any descriptor bit twiddling */
 
-		for( size_t idx = 0; idx < 32; idx++ ) {
+		for( size_t idx = 0; idx < MAXIDX; idx++ ) {
 			int index = feature.desc[ idx ];
 			for( List<int>::Iterator it = _htable[ idx ][ index ].begin(), end = _htable[ idx ][ index ].end(); it != end; ++it ){
 				const ORBFeature& current = _orb[ *it ];

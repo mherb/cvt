@@ -161,7 +161,7 @@ int main()
 	size_t numScales = 3;
 	float  scaleFactor = 0.5f;
 	size_t featureThreshold = 35;
-	size_t maxDistance = 30;
+	size_t maxDistance = 40;
 
     for ( size_t i = 0; i < dataSets.size( ); i++ ) {
         try {
