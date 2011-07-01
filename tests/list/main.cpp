@@ -16,6 +16,12 @@ int main()
 	for( List<int>::Iterator it = l.begin(); it != l.end(); ++it )
 		std::cout << *it << std::endl;
 
+	l.remove( l.begin() );
+
+	for( List<int>::Iterator it = l.begin(); it != l.end(); ++it )
+		std::cout << *it << std::endl;
+
+
 	l.clear();
 
 	std::cout << "Size: " <<l.size() << std::endl;

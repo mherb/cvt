@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <iostream>
 
 namespace cvt {
 
@@ -61,8 +62,9 @@ namespace cvt {
 					NodeBase* _it;
 			};
 
-			Iterator begin() { return Iterator( _anchor._prev ); }
+			Iterator begin() { return Iterator( _anchor._next ); }
 			Iterator end() { return Iterator( &_anchor ); }
+			Iterator remove( Iterator it );
 
 			class ReverseIterator {
 				friend class List;
@@ -86,10 +88,13 @@ namespace cvt {
 					NodeBase* _it;
 			};
 
-			Iterator rbegin() { return Iterator( _anchor._next ); }
+			Iterator rbegin() { return Iterator( _anchor._prev ); }
 			Iterator rend() { return Iterator( &_anchor ); }
+			Iterator remove( ReverseIterator it );
 
 		private:
+			void unlinkNode( NodeBase* node );
+
 			NodeBase  _anchor;
 			size_t	  _size;
 	};
@@ -108,8 +113,9 @@ namespace cvt {
 	template<typename T>
 	inline List<T>::List( const List<T>& list )
 	{
+		clear();
 		Node* it = list._anchor._next;
-		while( it ) {
+		while( it != &list._anchor ) {
 			append( it->_data );
 			it = it->_next;
 		}
@@ -132,8 +138,8 @@ namespace cvt {
 	{
 		if( this != &list ) {
 			clear();
-			NodeBase* it = list._anchor->next;
-			while( it ) {
+			Node* it = list._anchor->_next;
+			while( it != &list._anchor ) {
 				append( it->_data );
 				it = it->_next;
 			}
@@ -146,12 +152,12 @@ namespace cvt {
 	{
 		if( _anchor._next == &_anchor ) {
 			Node* node = new Node( data, &_anchor, &_anchor );
-			_anchor._next = node;
 			_anchor._prev = node;
-		} else {
-			Node* node = new Node( data, &_anchor, _anchor._next );
-			_anchor._next->_next = node;
 			_anchor._next = node;
+		} else {
+			Node* node = new Node( data, &_anchor, _anchor._prev );
+			_anchor._prev->_next = node;
+			_anchor._prev = node;
 		}
 		_size++;
 	}
@@ -164,11 +170,31 @@ namespace cvt {
 			_anchor._next = node;
 			_anchor._prev = node;
 		} else {
-			Node* node = new Node( data, _anchor._prev, &_anchor );
-			_anchor._prev->_prev = node;
-			_anchor._prev = node;
+			Node* node = new Node( data, _anchor._next, &_anchor );
+			_anchor._next->_prev = node;
+			_anchor._next = node;
 		}
 		_size++;
+	}
+
+	template<typename T>
+	inline typename List<T>::Iterator List<T>::remove( Iterator it )
+	{
+		Iterator ret( it._it->_next );
+		unlinkNode( it._it );
+		_size--;
+		delete ( Node* ) it._it;
+		return ret;
+	}
+
+	template<typename T>
+	inline typename List<T>::Iterator List<T>::remove( ReverseIterator it )
+	{
+		Iterator ret( it._it->_prev );
+		unlinkNode( it._it );
+		_size--;
+		delete ( Node* ) it._it;
+		return ret;
 	}
 
 	template<typename T>
@@ -188,6 +214,14 @@ namespace cvt {
 		_anchor._next = &_anchor;
 		_size = 0;
 	}
+
+	template<typename T>
+	inline void List<T>::unlinkNode( NodeBase* node )
+	{
+		node->_prev->_next = node->_next;
+		node->_next->_prev = node->_prev;
+	}
+
 }
 
 #endif
