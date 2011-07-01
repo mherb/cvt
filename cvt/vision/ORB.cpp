@@ -63,13 +63,18 @@ namespace cvt {
 		feature.angle = Math::atan2( my, mx );
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI - feature.angle;
+		feature.angle = Math::TWO_PI * -0.75f - feature.angle;
+		while( feature.angle < 0 )
+			feature.angle += Math::TWO_PI;
+		while( feature.angle > Math::TWO_PI )
+			feature.angle -= Math::TWO_PI;
+
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
-		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
-		if( index == 30 )
+		size_t index = ( size_t ) ( feature.angle * 60.0f / Math::TWO_PI );
+		if( index >= 60 )
 			index = 0;
 		size_t x = ( size_t ) feature.pt.x;
 		size_t y = ( size_t ) feature.pt.y;

@@ -11,10 +11,13 @@ using namespace cvt;
 
 int main()
 {
-	float inc = Math::TWO_PI / 30.0f;
+
+#define SIZE 60
+
+	float inc = Math::TWO_PI / ( float ) SIZE;
 	float rad = 0;
-	std::cout << "Vector2i ORB::_patterns[ 30 ][ 256 ][ 2 ]\n{\n";
-	for( int i = 0; i < 30; i++, rad += inc ) {
+	std::cout << "const int ORB::_patterns[ " <<  SIZE << " ][ 512 ][ 2 ] = \n{\n";
+	for( int i = 0; i < SIZE; i++, rad += inc ) {
 		Image out( 512, 512, IFormat::RGBA_UINT8 );
 		GFXEngineImage ge( out );
 		GFX g( &ge );
