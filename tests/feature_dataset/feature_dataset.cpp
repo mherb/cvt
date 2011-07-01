@@ -12,6 +12,7 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/DataIterator.h>
+#include <cvt/util/Time.h>
 
 #include <string>
 
@@ -19,6 +20,8 @@
 #include <cvt/vision/ORB.h>
 
 #include "cvt/vision/FeatureMatch.h"
+
+#include "ORBHashMatch.h"
 
 using namespace cvt;
 
@@ -40,6 +43,25 @@ void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std:
 
 		if( match.distance < maxDistance )
 			matches.push_back( match );
+	}
+}
+
+void matchFeatures2( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
+{
+	FeatureMatch match;
+	ORBHashMatch hashmatch( orb1 );
+	int idx;
+	size_t dist;
+
+	for( size_t i = 0; i < orb0.size(); i++ ){
+		match.idx0 = i;
+		match.idx1 = 0;
+
+		if( ( idx = hashmatch.find( orb0[ i ], dist, maxDistance ) ) >= 0 ) {
+			match.idx1 = idx;
+			match.distance = dist;
+			matches.push_back( match );
+		}
 	}
 }
 
@@ -94,7 +116,7 @@ void loadTestData( const String & dataFolder, std::vector<Image> & images, std::
     }
 }
 
-void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H )
+void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H, float time = 0.0f )
 {
 	// check reprojection error: dist( H * orb0 - orb1 )
 	std::vector<FeatureMatch>::const_iterator it = matches.begin();
@@ -117,7 +139,7 @@ void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureM
 
 		it++;
 	}
-	std::cout << "Inlier: " << inlier << " / " << matches.size()  << "\t" << inlier * 100.0f / matches.size() << "%" << std::endl;
+	std::cout << "Inlier: " << inlier << " / " << matches.size()  << "\t" << inlier * 100.0f / matches.size() << "%" << "\tmatch-time " << time << " ms" << std::endl;
 
 }
 
@@ -161,10 +183,13 @@ int main()
             ORB orb1( gray, numScales, scaleFactor, featureThreshold );
 
             std::vector<FeatureMatch> matches;
+			Time t;
+			t.reset();
             matchFeatures( orb0, orb1, maxDistance, matches );
+			float ms = t.elapsedMilliSeconds();
 
 			std::cout << "Image " << k << ":\t";
-            checkResult( orb0, orb1, matches, homographies[ k ] );
+            checkResult( orb0, orb1, matches, homographies[ k ], ms );
 		}
 		std::cout << std::endl;
     }
