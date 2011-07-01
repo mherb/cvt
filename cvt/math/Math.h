@@ -256,9 +256,84 @@ namespace cvt {
 			return min + ( ( max - min ) * ( ( double ) ::random() / ( ( double ) RAND_MAX + 1.0 )  ) );
 		}
 
-		template<typename T> static inline T sgn( T x )
+		template<typename T>
+		static inline T sgn( T x )
 		{
 			return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
+		}
+
+		static inline float copysign( float dst, float src )
+		{
+			_flint32 _dst;
+			_flint32 _src;
+
+			_dst.f = dst;
+			_src.f = src;
+			_dst.i |= _src.i & ( 1 << 31 );
+			return _dst.f;
+		}
+
+		static inline double copysign( double dst, double src )
+		{
+			_flint64 _dst;
+			_flint64 _src;
+
+			_dst.d = dst;
+			_src.d = src;
+			_dst.i |= _src.i & ( ( uint64_t ) 1 << 63 );
+			return _dst.d;
+		}
+
+		static inline float givens( float& c, float& s, float a, float b )
+		{
+			float t, u;
+			if( b == 0 ) {
+				c = copysign( 1.0f, a );
+				s = 0;
+				return abs(a);
+			} else if( a == 0) {
+				c = 0;
+				s = copysign( 1.0f, b );
+				return abs(b);
+			} else if( abs( b ) > abs( a ) ) {
+				t = a / b;
+				u = copysign( sqrt( 1.0f + sqr( t ) ), b );
+				s = 1.0f / u;
+				c = s * t;
+				return b * u;
+			} else {
+				t = b / a;
+				u = copysign( sqrt( 1.0f + sqr( t ) ), a );
+				c = 1.0f / u;
+				s = c * t;
+				return a * u;
+			}
+		}
+
+		static inline double givens( double& c, double& s, double a, double b )
+		{
+			double t, u;
+			if( b == 0 ) {
+				c = copysign( 1.0, a );
+				s = 0;
+				return abs(a);
+			} else if( a == 0) {
+				c = 0;
+				s = copysign( 1.0, b );
+				return abs(b);
+			} else if( abs( b ) > abs( a ) ) {
+				t = a / b;
+				u = copysign( sqrt( 1.0 + sqr( t ) ), b );
+				s = 1.0 / u;
+				c = s * t;
+				return b * u;
+			} else {
+				t = b / a;
+				u = copysign( sqrt( 1.0 + sqr( t ) ), a );
+				c = 1.0 / u;
+				s = c * t;
+				return a * u;
+			}
 		}
 
 		/*
