@@ -178,7 +178,7 @@ namespace cvt {
 
 		BEGIN_CVTTEST( math )
 			float f;
-			double t1, t2;
+			double t1, t2, d;
 			bool b;
 			Time t;
 
@@ -233,12 +233,23 @@ namespace cvt {
 			CVTTEST_PRINT( "Math::abs performance", t1 - 0.5f < t2 );
 
 			/* ABS */
-			b = true;
 			for( size_t i = 0; i <= 20000; i++ ) {
 				 f = Math::rand( -1e5f, 1e5f );
 				 b &= ( Math::abs( f ) * ::fabsf( f ) > 0.0f );
 			}
 			CVTTEST_PRINT( "Math::abs", b );
+
+			/* Copysign */
+			f = copysign( 1.0f, -123.0f );
+			b &= ( f < 0 );
+			f = copysign( 1.0f, 123.0f );
+			b &= ( f > 0 );
+			d = copysign( 1.0, -123.0 );
+			b &= ( d < 0 );
+			d = copysign( 1.0, 123.0 );
+			b &= ( d > 0 );
+
+			CVTTEST_PRINT( "Math::copysign", b );
 
 			return true;
 		END_CVTTEST
