@@ -6,7 +6,7 @@
 
 namespace cvt {
 
-#define MAXIDX 16
+#define MAXIDX 32
 
 	class ORBHashMatch {
 		public:
