@@ -256,12 +256,6 @@ namespace cvt {
 			return min + ( ( max - min ) * ( ( double ) ::random() / ( ( double ) RAND_MAX + 1.0 )  ) );
 		}
 
-		template<typename T>
-		static inline T sgn( T x )
-		{
-			return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
-		}
-
 		static inline float copysign( float dst, float src )
 		{
 			_flint32 _dst;
@@ -282,6 +276,24 @@ namespace cvt {
 			_src.d = src;
 			_dst.i |= _src.i & ( ( uint64_t ) 1 << 63 );
 			return _dst.d;
+		}
+
+		template<typename T>
+		static inline T sgn( T x )
+		{
+			return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
+		}
+
+		template<>
+		inline float sgn<float>( float x )
+		{
+			return copysign( 1.0f, x );
+		}
+
+		template<>
+		inline double sgn<double>( double x )
+		{
+			return copysign( 1.0, x );
 		}
 
 		static inline float givens( float& c, float& s, float a, float b )
