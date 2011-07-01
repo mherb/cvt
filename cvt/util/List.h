@@ -40,6 +40,11 @@ namespace cvt {
 			size_t size() const;
 			bool isEmpty() const;
 
+			T& front();
+			T& back();
+			const T& front() const;
+			const T& back() const;
+
 			class Iterator {
 				friend class List;
 				public:
@@ -134,11 +139,36 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline T& List<T>::front()
+	{
+		return ( ( Node* ) _anchor._next )->_data;
+	}
+
+	template<typename T>
+	inline T& List<T>::back()
+	{
+		return ( ( Node* ) _anchor._prev )->_data;
+	}
+
+	template<typename T>
+	inline const T& List<T>::front() const
+	{
+		return ( ( Node* ) _anchor._next )->_data;
+	}
+
+	template<typename T>
+	inline const T& List<T>::back() const
+	{
+		return ( ( Node* ) _anchor._prev )->_data;
+	}
+
+
+	template<typename T>
 	inline List<T>& List<T>::operator=( const List<T>& list )
 	{
 		if( this != &list ) {
 			clear();
-			Node* it = list._anchor->_next;
+			Node* it = list._anchor._next;
 			while( it != &list._anchor ) {
 				append( it->_data );
 				it = it->_next;
