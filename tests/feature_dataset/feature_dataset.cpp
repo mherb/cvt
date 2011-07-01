@@ -110,7 +110,9 @@ void loadTestData( const String & dataFolder, std::vector<Image> & images, std::
         if( i != 0 ){
             // load the matrix
             String mPath( folder );
-            mPath += "/H1to"; mPath += i+1; mPath += "p";
+            mPath += "/H1to";
+			mPath += (int)( i+1 );
+			mPath += "p";
             loadMatrix3( homographies[ i ], mPath );
         }
     }
