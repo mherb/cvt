@@ -242,12 +242,21 @@ namespace cvt {
 			/* Copysign */
 			f = copysign( 1.0f, -123.0f );
 			b &= ( f < 0 );
+			f = copysign( -1.0f, -123.0f );
+			b &= ( f < 0 );
 			f = copysign( 1.0f, 123.0f );
+			b &= ( f > 0 );
+			f = copysign( -1.0f, 123.0f );
 			b &= ( f > 0 );
 			d = copysign( 1.0, -123.0 );
 			b &= ( d < 0 );
+			d = copysign( -1.0, -123.0 );
+			b &= ( d < 0 );
 			d = copysign( 1.0, 123.0 );
 			b &= ( d > 0 );
+			d = copysign( -1.0, 123.0 );
+			b &= ( d > 0 );
+
 
 			CVTTEST_PRINT( "Math::copysign", b );
 

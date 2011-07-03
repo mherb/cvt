@@ -263,7 +263,7 @@ namespace cvt {
 
 			_dst.f = dst;
 			_src.f = src;
-			_dst.i |= _src.i & ( 1 << 31 );
+			_dst.i = ( _dst.i & ~( 1 << 31 ) ) | ( _src.i & ( 1 << 31 ) );
 			return _dst.f;
 		}
 
@@ -274,7 +274,7 @@ namespace cvt {
 
 			_dst.d = dst;
 			_src.d = src;
-			_dst.i |= _src.i & ( ( uint64_t ) 1 << 63 );
+			_dst.i = ( _dst.i & ~( ( uint64_t ) 1 << 63 ) ) | ( _src.i & ( ( uint64_t ) 1 << 63 ) );
 			return _dst.d;
 		}
 
