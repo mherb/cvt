@@ -356,7 +356,7 @@ namespace cvt {
 				s = 0;
 			} else {
 				float b = ( x - z ) / ( 2.0f * y );
-				t = copysign( abs( b ) + sqrt( 1.0f + sqr( b ) ) , b );
+				t = copysign(1.0f / ( abs( b ) + sqrt( 1.0f + sqr( b ) ) ) , b );
 				u = sqrt( 1.0f + sqr( t ) );
 				c = 1.0f / u;
 				s = c * t;
