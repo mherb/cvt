@@ -348,6 +348,37 @@ namespace cvt {
 			}
 		}
 
+		static inline void jacobi( float& c, float& s, float x, float y, float z )
+		{
+			float t, u;
+			if( y == 0 ) {
+				c = copysign( 1.0f, x );
+				s = 0;
+			} else {
+				float b = ( x - z ) / ( 2.0f * y );
+				t = copysign( abs( b ) + sqrt( 1.0f + sqr( b ) ) , b );
+				u = sqrt( 1.0f + sqr( t ) );
+				c = 1.0f / u;
+				s = c * t;
+			}
+		}
+
+
+		static inline void jacobi( double& c, double& s, double x, double y, double z )
+		{
+			double t, u;
+			if( y == 0 ) {
+				c = copysign( 1.0, x );
+				s = 0;
+			} else {
+				double b = ( x - z ) / ( 2.0 * y );
+				t = copysign( abs( b ) + sqrt( 1.0 + sqr( b ) ) , b );
+				u = sqrt( 1.0 + sqr( t ) );
+				c = 1.0 / u;
+				s = c * t;
+			}
+		}
+
 		/*
 		   The famous fast inverse square root approximation found in the code
 		   of id-tech 3/4.
