@@ -355,8 +355,8 @@ namespace cvt {
 				c = copysign( 1.0f, x );
 				s = 0;
 			} else {
-				float b = ( x - z ) / ( 2.0f * y );
-				t = copysign(1.0f / ( abs( b ) + sqrt( 1.0f + sqr( b ) ) ) , b );
+				float tau = ( z - x ) / ( 2.0f * y );
+				t = copysign( 1.0f / ( abs( tau ) + sqrt( 1.0f + sqr( tau ) ) ) , tau );
 				u = sqrt( 1.0f + sqr( t ) );
 				c = 1.0f / u;
 				s = c * t;
@@ -371,8 +371,8 @@ namespace cvt {
 				c = copysign( 1.0, x );
 				s = 0;
 			} else {
-				double b = ( x - z ) / ( 2.0 * y );
-				t = copysign( abs( b ) + sqrt( 1.0 + sqr( b ) ) , b );
+				double tau = ( z - x ) / ( 2.0 * y );
+				t = copysign( 1.0 / ( abs( tau ) + sqrt( 1.0 + sqr( tau ) ) ) , tau );
 				u = sqrt( 1.0 + sqr( t ) );
 				c = 1.0 / u;
 				s = c * t;

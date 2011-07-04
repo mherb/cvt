@@ -3,6 +3,19 @@
 
 using namespace cvt;
 
+void jacobi_cs( float x, float y, float z )
+{
+	float tau = ( z - x ) / ( 2.0f * y );
+	float t;
+	if( tau >= 0 ) {
+		t = 1.0f / ( tau + Math::sqrt( 1 + Math::sqr( tau ) ) );
+	} else {
+		t = -1.0f / ( -tau + Math::sqrt( 1 + Math::sqr( tau ) ) );
+	}
+	std::cout << "c: " << ( 1.0f / Math::sqrt( 1.0f  + t * t ) ) 
+		      << " s: " << ( t / Math::sqrt( 1.0f  + t * t ) ) << std::endl;
+}
+
 void svd2( Matrix2f& mat )
 {
 	float c, s;
@@ -40,7 +53,9 @@ void svd2( Matrix2f& mat )
 
 	/* make 2 x 2 diagonal */
 			Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
+
 			std::cout << c << " " << s << std::endl;
+			jacobi_cs( mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
 			t[ 0 ] = mat[ i ][ i ] * c - mat[ i ][ k ] * s;
 			t[ 1 ] = mat[ i ][ i ] * s + mat[ i ][ k ] * c;
 			t[ 2 ] = mat[ k ][ i ] * c - mat[ k ][ k ] * s;
@@ -51,7 +66,12 @@ void svd2( Matrix2f& mat )
 			mat[ k ][ k ] = t[ 3 ];
 
 	std::cout << mat << std::endl;
+/*
+   jacobi^T 2x2 jacobi =
+   matrix([ -(c+b)*cos*sin+(a-d)*cos^2+d, (a-d)*cos*sin+(c+b)*cos^2-c],
+		  [  (a-d)*cos*sin+(c+b)*cos^2-b, (c+b)*cos*sin-(a-d)*cos^2+a] )
 
+ */
 				/* apply the jacobi rotation to V */
 			t[ 0 ] = v[ i ][ i ] * c + v[ k ][ i ] * s;
 			t[ 1 ] = v[ i ][ k ] * c + v[ k ][ k ] * s;
