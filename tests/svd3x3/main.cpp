@@ -16,154 +16,179 @@ void jacobi_cs( float x, float y, float z )
 		      << " s: " << ( t / Math::sqrt( 1.0f  + t * t ) ) << std::endl;
 }
 
+#define ROTAPPLYLEFT3( m, c, s, i, k ) \
+	do { \
+		float tmp1, tmp2; \
+		tmp1 = s * m[ k ][ i ] + m[ i ][ i ] * c; \
+		tmp2 = c * m[ k ][ i ] - m[ i ][ i ] * s; \
+		m[ i ][ i ] = tmp1; \
+		m[ k ][ i ] = tmp2; \
+		tmp1 = s * m[ k ][ k ] + m[ i ][ k ] * c; \
+		tmp2 = c * m[ k ][ k ] - m[ i ][ k ] * s; \
+		m[ i ][ k ] = tmp1; \
+		m[ k ][ k ] = tmp2; \
+		int h = 3 - i - k; \
+		tmp1 = s * m[ k ][ h ] + m[ i ][ h ] * c; \
+		tmp2 = c * m[ k ][ h ] - m[ i ][ h ] * s; \
+		m[ i ][ h ] = tmp1; \
+		m[ k ][ h ] = tmp2; \
+	} while( 0 )
+
+#define ROTAPPLYRIGHT3( m, c, s, i, k ) \
+	do { \
+		float tmp1, tmp2; \
+		tmp1 = c * m[ i ][ i ] - m[ i ][ k ] * s; \
+		tmp2 = s * m[ i ][ i ] + m[ i ][ k ] * c; \
+		m[ i ][ i ] = tmp1; \
+		m[ i ][ k ] = tmp2; \
+		tmp1 = c * m[ k ][ i ] - m[ k ][ k ] * s; \
+		tmp2 = s * m[ k ][ i ] + m[ k ][ k ] * c; \
+		m[ k ][ i ] = tmp1; \
+		m[ k ][ k ] = tmp2; \
+		int h = 3 - i - k; \
+		tmp1 = c * m[ h ][ i ] - m[ h ][ k ] * s; \
+		tmp2 = s * m[ h ][ i ] + m[ h ][ k ] * c; \
+		m[ h ][ i ] = tmp1; \
+		m[ h ][ k ] = tmp2; \
+	} while( 0 )
+
+#define JACOBIAPPLY3( m, c, s, i, k ) \
+	do { \
+		float tmp1, tmp2; \
+		tmp1 = c * c * m[ i ][ i ] + s * s * m[ k ][ k ] - 2.0f * s * c * m[ i ][ k ]; \
+		tmp2 = s * s * m[ i ][ i ] + c * c * m[ k ][ k ] + 2.0f * s * c * m[ i ][ k ]; \
+		m[ i ][ i ] = tmp1; \
+		m[ k ][ k ] = tmp2; \
+		m[ i ][ k ] = 0; \
+		m[ k ][ i ] = 0; \
+		int h = 3 - i - k; \
+		tmp1 = c * m[ i ][ h ] - s * m[ k ][ h ]; \
+		tmp2 = s * m[ i ][ h ] + c * m[ k ][ h ]; \
+		m[ i ][ h ] = tmp1; \
+		m[ k ][ h ] = tmp2; \
+		tmp1 = c * m[ h ][ i ] - s * m[ h ][ k ]; \
+		tmp2 = s * m[ h ][ i ] + c * m[ h ][ k ]; \
+		m[ h ][ i ] = tmp1; \
+		m[ h ][ k ] = tmp2; \
+	} while( 0 )
+
+#if 0
 void svd2( Matrix2f& mat )
 {
 	float c, s;
-	float t[ 4 ];
-	Matrix2f v;
+	Matrix2f u, v;
 	int i = 0, k = 1;
 
+	v.identity();
+	u.identity();
 	std::cout << mat << std::endl;
 
 	/* make 2 x 2 symmetric */
 	Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
-	t[ 0 ] = mat[ i ][ i ] * c - mat[ i ][ k ] * s;
-	t[ 1 ] = mat[ i ][ i ] * s + mat[ i ][ k ] * c;
-	t[ 2 ] = mat[ k ][ i ] * c - mat[ k ][ k ] * s;
-	t[ 3 ] = mat[ k ][ i ] * s + mat[ k ][ k ] * c;
-	mat[ i ][ i ] = t[ 0 ];
-	mat[ i ][ k ] = t[ 1 ];
-	mat[ k ][ i ] = t[ 2 ];
-	mat[ k ][ k ] = t[ 3 ];
+	ROTAPPLYRIGHT3( mat, c, s, i, k );
 
-	std::cout << mat << std::endl;
-
-	v.identity();
 	/* apply the givens rotation to v */
-	t[ 0 ] = v[ i ][ i ] * c + v[ k ][ i ] * s;
-	t[ 1 ] = v[ i ][ k ] * c + v[ k ][ k ] * s;
-	t[ 2 ] = - v[ i ][ i ] * s + v[ k ][ i ] * c;
-	t[ 3 ] = - v[ i ][ k ] * s + v[ k ][ k ] * c;
-	v[ i ][ i ] = t[ 0 ];
-	v[ i ][ k ] = t[ 1 ];
-	v[ k ][ i ] = t[ 2 ];
-	v[ k ][ k ] = t[ 3 ];
-
-	std::cout << v << std::endl;
+	ROTAPPLYLEFT3( v, c, -s, i, k );
 
 	/* make 2 x 2 diagonal */
-			Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
+	Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
+	JACOBIAPPLY3( mat, c, s, i, k );
 
-			std::cout << c << " " << s << std::endl;
-			jacobi_cs( mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
-			t[ 0 ] = mat[ i ][ i ] * c - mat[ i ][ k ] * s;
-			t[ 1 ] = mat[ i ][ i ] * s + mat[ i ][ k ] * c;
-			t[ 2 ] = mat[ k ][ i ] * c - mat[ k ][ k ] * s;
-			t[ 3 ] = mat[ k ][ i ] * s + mat[ k ][ k ] * c;
-			mat[ i ][ i ] = t[ 0 ];
-			mat[ i ][ k ] = t[ 1 ];
-			mat[ k ][ i ] = t[ 2 ];
-			mat[ k ][ k ] = t[ 3 ];
+	std::cout << mat << std::endl << std::endl;
+	/* apply the jacobi rotation to V */
+	ROTAPPLYLEFT3( v, c, -s, i, k );
+	/* apply the jacobi rotation to U */
+	ROTAPPLYRIGHT3( u, c, s, i, k );
 
-	std::cout << mat << std::endl;
-/*
-   jacobi^T 2x2 jacobi =
-   matrix([ -(c+b)*cos*sin+(a-d)*cos^2+d, (a-d)*cos*sin+(c+b)*cos^2-c],
-		  [  (a-d)*cos*sin+(c+b)*cos^2-b, (c+b)*cos*sin-(a-d)*cos^2+a] )
-
- */
-				/* apply the jacobi rotation to V */
-			t[ 0 ] = v[ i ][ i ] * c + v[ k ][ i ] * s;
-			t[ 1 ] = v[ i ][ k ] * c + v[ k ][ k ] * s;
-			t[ 2 ] = - v[ i ][ i ] * s + v[ k ][ i ] * c;
-			t[ 3 ] = - v[ i ][ k ] * s + v[ k ][ k ] * c;
-			v[ i ][ i ] = t[ 0 ];
-			v[ i ][ k ] = t[ 1 ];
-			v[ k ][ i ] = t[ 2 ];
-			v[ k ][ k ] = t[ 3 ];
-
-	std::cout << v << std::endl;
+	std::cout << ( u * mat * v ) << std::endl << std::endl;
 }
+#endif
 
 void svd( Matrix3f& mat, Matrix3f& u, Matrix3f& v )
 {
 	float c, s;
-	float t[ 4 ];
+	bool finished;
+
 	u.identity();
 	v.identity();
-	
+
+	/* diagonalize */
+	do {
+		finished = true;
+		for( int i = 0; i < 2; i++ ) {
+			for( int k = i + 1; k < 3; k++ ) {
+				if( Math::abs( mat[ i ][ k ] ) >= Math::EPSILONF || Math::abs( mat[ k ][ i ] ) >= Math::EPSILONF  ) {
+					finished = false;
+					/* make 2 x 2 symmetric */
+					Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
+					ROTAPPLYRIGHT3( mat, c, s, i, k );
+
+					/* apply the inverse givens rotation to v */
+					ROTAPPLYLEFT3( v, c, -s, i, k );
+
+					/* make 2 x 2 diagonal, apply jacobi */
+					Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
+					JACOBIAPPLY3( mat, c, s, i, k );
+
+					/* apply the inverse jacobi rotation to V */
+					ROTAPPLYLEFT3( v, c, -s, i, k );
+
+					/* apply the jacobi rotation to U */
+					ROTAPPLYRIGHT3( u, c, s, i, k );
+				}
+			}
+		}
+	} while( !finished );
+
+	/* make singular values positive */
 	for( int i = 0; i < 3; i++ ) {
-		for( int k = i + 1; k < 3; k++ ) {
-			/* make 2 x 2 symmetric */
-			Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
-			t[ 0 ] = mat[ i ][ i ] * c - mat[ i ][ k ] * s;
-			t[ 1 ] = mat[ i ][ i ] * s + mat[ i ][ k ] * c;
-			t[ 2 ] = mat[ k ][ i ] * c - mat[ k ][ k ] * s;
-			t[ 3 ] = mat[ k ][ i ] * s + mat[ k ][ k ] * c;
-			mat[ i ][ i ] = t[ 0 ];
-			mat[ i ][ k ] = t[ 1 ];
-			mat[ k ][ i ] = t[ 2 ];
-			mat[ k ][ k ] = t[ 3 ];
-
-			/* apply the givens rotation to v */
-			t[ 0 ] = v[ i ][ i ] * c + v[ k ][ i ] * s;
-			t[ 1 ] = v[ i ][ k ] * c + v[ k ][ k ] * s;
-			t[ 2 ] = - v[ i ][ i ] * s + v[ k ][ i ] * c;
-			t[ 3 ] = - v[ i ][ k ] * s + v[ k ][ k ] * c;
-			v[ i ][ i ] = t[ 0 ];
-			v[ i ][ k ] = t[ 1 ];
-			v[ k ][ i ] = t[ 2 ];
-			v[ k ][ k ] = t[ 3 ];
-
-			/* make 2 x 2 diagonal */
-			Math::jacobi( c, s, mat[ i ][ i ], mat[ i ][ k ], mat[ k ][ k ] );
-			t[ 0 ] = mat[ i ][ i ] * c - mat[ i ][ k ] * s;
-			t[ 1 ] = mat[ i ][ i ] * s + mat[ i ][ k ] * c;
-			t[ 2 ] = mat[ k ][ i ] * c - mat[ k ][ k ] * s;
-			t[ 3 ] = mat[ k ][ i ] * s + mat[ k ][ k ] * c;
-			mat[ i ][ i ] = t[ 0 ];
-			mat[ i ][ k ] = t[ 1 ];
-			mat[ k ][ i ] = t[ 2 ];
-			mat[ k ][ k ] = t[ 3 ];
-
-			/* apply the transposed jacobi rotation to U */
-			t[ 0 ] = u[ i ][ i ] * c + u[ k ][ i ] * s;
-			t[ 1 ] = u[ i ][ k ] * c + u[ k ][ k ] * s;
-			t[ 2 ] = - u[ i ][ i ] * s + u[ k ][ i ] * c;
-			t[ 3 ] = - u[ i ][ k ] * s + u[ k ][ k ] * c;
-			u[ i ][ i ] = t[ 0 ];
-			u[ i ][ k ] = t[ 1 ];
-			u[ k ][ i ] = t[ 2 ];
-			u[ k ][ k ] = t[ 3 ];
-
-			/* apply the jacobi rotation to V */
-			t[ 0 ] = v[ i ][ i ] * c + v[ k ][ i ] * s;
-			t[ 1 ] = v[ i ][ k ] * c + v[ k ][ k ] * s;
-			t[ 2 ] = - v[ i ][ i ] * s + v[ k ][ i ] * c;
-			t[ 3 ] = - v[ i ][ k ] * s + v[ k ][ k ] * c;
-			v[ i ][ i ] = t[ 0 ];
-			v[ i ][ k ] = t[ 1 ];
-			v[ k ][ i ] = t[ 2 ];
-			v[ k ][ k ] = t[ 3 ];
+		if( mat[ i ][ i ] < 0 ) {
+			mat[ i ][ i ] = Math::abs( mat[ i ][ i ] );
+			for( int k = 0; k < 3; k++ )
+				u[ k ][ i ] = -u[ k ][ i ];
 		}
 	}
 
+	/* sort singular values */
+	int imax;
+	imax = ( mat[ 0 ][ 0 ] > mat[ 1 ][ 1 ] ) ? 0 : 1;
+	if( mat[ imax ][ imax ] < mat[ 2 ][ 2 ] ) imax = 2;
+	/* bring largest singular value to position 0 */
+	if( imax != 0 ) {
+		float tmp;
+		for( int i = 0; i < 3; i++ ) {
+			tmp = u[ i ][ 0 ];
+			u[ i ][ 0 ] = u[ i ][ imax ];
+			u[ i ][ imax ] = tmp;
 
+			tmp = v[ 0 ][ i ];
+			v[ 0 ][ i ] = v[ imax ][ i ];
+			v[ imax ][ i ] = tmp;
+		}
+		tmp = mat[ 0 ][ 0 ];
+		mat[ 0 ][ 0 ] = mat[ imax ][ imax ];
+		mat[ imax ][ imax ] = tmp;
+	}
+	/* swap singular value 1 and 2 if necessary */
+	if( mat[ 1 ][ 1 ] < mat[ 2 ][ 2 ]) {
+		float tmp;
+		for( int i = 0; i < 3; i++ ) {
+			tmp = u[ i ][ 1 ];
+			u[ i ][ 1 ] = u[ i ][ 2 ];
+			u[ i ][ 2 ] = tmp;
+
+			tmp = v[ 1 ][ i ];
+			v[ 1 ][ i ] = v[ 2 ][ i ];
+			v[ 2 ][ i ] = tmp;
+		}
+		tmp = mat[ 1 ][ 1 ];
+		mat[ 1 ][ 1 ] = mat[ 2 ][ 2 ];
+		mat[ 2 ][ 2 ] = tmp;
+	}
 }
 
 int main()
 {
-	Matrix2f m2;
-	m2[ 0 ][ 0 ] = 4;
-	m2[ 0 ][ 1 ] = 3;
-	m2[ 1 ][ 0 ] = 2;
-	m2[ 1 ][ 1 ] = 1;
-
-	svd2( m2 );
-	return 0;
-
-
-
 	Matrix3f m, U, V;
 	m[ 0 ][ 0 ] = 0.19377f;
 	m[ 0 ][ 1 ] = 0.95348f;
@@ -175,11 +200,20 @@ int main()
 	m[ 2 ][ 1 ] = 0.91772f;
 	m[ 2 ][ 2 ] = 0.24861f;
 
+	std::cout << m << std::endl << std::endl;
+
+
 	svd( m, U, V );
 
-	std::cout << U << std::endl;
-	std::cout << m << std::endl;
-	std::cout << V << std::endl;
+	std::cout << U << std::endl << std::endl;
+	std::cout << m << std::endl << std::endl;
+	std::cout << V << std::endl << std::endl;
+
+	Matrix3f x = U;
+	x *= m;
+	x *= V;
+
+	std::cout << x << std::endl << std::endl;
 
 /*
 S =
