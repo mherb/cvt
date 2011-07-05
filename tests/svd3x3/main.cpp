@@ -143,7 +143,7 @@ void svd( Matrix3f& mat, Matrix3f& u, Matrix3f& v )
 	/* make singular values positive */
 	for( int i = 0; i < 3; i++ ) {
 		if( mat[ i ][ i ] < 0 ) {
-			mat[ i ][ i ] = Math::abs( mat[ i ][ i ] );
+			mat[ i ][ i ] = - mat[ i ][ i ];
 			for( int k = 0; k < 3; k++ )
 				u[ k ][ i ] = -u[ k ][ i ];
 		}
