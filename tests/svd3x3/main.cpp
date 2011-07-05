@@ -169,7 +169,7 @@ void svd( Matrix3f& mat, Matrix3f& u, Matrix3f& v )
 		mat[ 0 ][ 0 ] = mat[ imax ][ imax ];
 		mat[ imax ][ imax ] = tmp;
 	}
-	/* swap singular value 1 and 2 if necessary */
+	/* swap singular values 1 and 2 if necessary */
 	if( mat[ 1 ][ 1 ] < mat[ 2 ][ 2 ]) {
 		float tmp;
 		for( int i = 0; i < 3; i++ ) {
