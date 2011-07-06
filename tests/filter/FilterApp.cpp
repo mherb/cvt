@@ -122,7 +122,7 @@ void FilterApp::initCamera()
 
 	std::cout << _cam->frame() << std::endl;
 
-	_inCL.reallocate( _cam->frame(), IALLOCATOR_CL );
+	_inCL.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8, IALLOCATOR_CL );
 	_outCL.reallocate( _inCL, IALLOCATOR_CL );
 
 	_in.reallocate( _cam->width(), _cam->height(), IFormat::RGBA_UINT8 );
@@ -148,7 +148,7 @@ void FilterApp::initFilter()
 	_inputHandle = _params->paramHandle( "Input" );
 	size_t sigma = _params->paramHandle( "Sigma" );
 
-	_params->setArg<float>( sigma, 10.0f );
+	_params->setArg<float>( sigma, 4.0f );
 
 	std::cout << *_params << std::endl;
 }
