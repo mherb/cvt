@@ -65,7 +65,7 @@ namespace cvt {
 		feature.angle = Math::atan2( my, mx );
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI * -0.75f - feature.angle;
+		feature.angle = Math::TWO_PI * -0.75f  - feature.angle;
 		while( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
 		while( feature.angle > Math::TWO_PI )
@@ -89,7 +89,6 @@ namespace cvt {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
 				feature.desc[ i ] <<= 1;
-				//std::cout << "x = " << x << " y = " << y << " index = " << index << " k = " << k << " i = " << i << std::endl;
 				feature.desc[ i ] |= ORBTEST( i * 8 + k );
 			}
 		}
@@ -119,18 +118,17 @@ namespace cvt {
 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
-					if( harris > 1e2f )
+					if( harris > 1e9f )
 						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
-					if( harris > 1e2f )
-                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
+					if( harris > 1e9f )
+						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 }
                 curr++;
             }
             im += stride;
         }
-
     }
 
     void ORB::makeOffsets( size_t row_stride )

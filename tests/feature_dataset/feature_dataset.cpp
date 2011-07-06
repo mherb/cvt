@@ -118,7 +118,7 @@ void loadTestData( const String & dataFolder, std::vector<Image> & images, std::
     }
 }
 
-void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H, float time = 0.0f )
+void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H, float etime = 0.0f, float mtime = 0.0f )
 {
 	// check reprojection error: dist( H * orb0 - orb1 )
 	std::vector<FeatureMatch>::const_iterator it = matches.begin();
@@ -141,7 +141,7 @@ void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureM
 
 		it++;
 	}
-	std::cout << "Inlier: " << inlier << " / " << matches.size()  << "\t" << inlier * 100.0f / matches.size() << "%" << "\tmatch-time " << time << " ms" << std::endl;
+	std::cout << "Inlier: " << inlier << " / " << matches.size()  << "\t" << inlier * 100.0f / matches.size() << "%" << "\textract-time " << etime << " ms\tmatch-time " << mtime << " ms" << std::endl;
 
 }
 
@@ -162,7 +162,7 @@ int main()
 
 	size_t numScales = 4;
 	float  scaleFactor = 0.7f;
-	size_t featureThreshold = 35;
+	size_t featureThreshold = 20;
 	size_t maxDistance = 30;
 
     for ( size_t i = 0; i < dataSets.size( ); i++ ) {
@@ -182,16 +182,17 @@ int main()
 
 		for( size_t k = 1; k < images.size(); k++ ){
             images[ k ].convert( gray, IFormat::GRAY_UINT8 );
+			Time t;
             ORB orb1( gray, numScales, scaleFactor, featureThreshold );
+			float extractms = t.elapsedMilliSeconds();
 
             std::vector<FeatureMatch> matches;
-			Time t;
 			t.reset();
             matchFeatures( orb0, orb1, maxDistance, matches );
-			float ms = t.elapsedMilliSeconds();
+			float matchms = t.elapsedMilliSeconds();
 
 			std::cout << "Image " << k << ":\t";
-            checkResult( orb0, orb1, matches, homographies[ k ], ms );
+            checkResult( orb0, orb1, matches, homographies[ k ], extractms, matchms );
 		}
 		std::cout << std::endl;
     }
