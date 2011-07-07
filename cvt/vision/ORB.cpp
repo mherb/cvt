@@ -116,12 +116,12 @@ namespace cvt {
                 upperBound = *curr + _threshold;
 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
-					if( harris > 1e2f )
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.04 /* k from Pollefeys slides */ );
+					if( harris > 1e4f )
 						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.08 );
-					if( harris > 1e2f )
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.04 );
+					if( harris > 1e4f )
                     _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 }
                 curr++;
