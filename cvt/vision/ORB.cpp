@@ -50,20 +50,22 @@ namespace cvt {
 
 		int cury = ( int ) feature.pt.y - 15;
 		int curx = ( int ) feature.pt.x;
-		for( int i = 0; i < 31; i++ ) {
-			mx +=( ( float ) i - 15.0f ) * IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep );
+		for( int i = 0; i < 15; i++ ) {
+			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep )
+										   - IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
 		}
 
 		cury = ( int ) feature.pt.y;
 		curx = ( int ) feature.pt.x - 15;
-		for( int i = 0; i < 31; i++ ) {
-			my += ( ( float ) i - 15.0f ) * IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep );
+		for( int i = 0; i < 15; i++ ) {
+			my += ( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep )
+										    - IntegralImage::area( iimgptr, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep ) );
 		}
 
 		feature.angle = Math::atan2( my, mx );
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI * -0.75f - feature.angle;
+		feature.angle = Math::TWO_PI * -0.75f  - feature.angle;
 		while( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
 		while( feature.angle > Math::TWO_PI )
@@ -87,7 +89,6 @@ namespace cvt {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
 				feature.desc[ i ] <<= 1;
-				//std::cout << "x = " << x << " y = " << y << " index = " << index << " k = " << k << " i = " << i << std::endl;
 				feature.desc[ i ] |= ORBTEST( i * 8 + k );
 			}
 		}
@@ -108,6 +109,9 @@ namespace cvt {
 
 		SIMD * simd = SIMD::instance();
 
+		static const float harrisK = 0.04;
+		static const float harrisThreshold = 1e4f;
+
         for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
 
@@ -116,19 +120,18 @@ namespace cvt {
                 upperBound = *curr + _threshold;
 
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.04 /* k from Pollefeys slides */ );
-					if( harris > 1e4f )
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK /* k from Pollefeys slides */ );
+					if( harris > harrisThreshold )
 						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, 0.04 );
-					if( harris > 1e4f )
+					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK );
+					if( harris > harrisThreshold )
                     _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
                 }
                 curr++;
             }
             im += stride;
         }
-
     }
 
     void ORB::makeOffsets( size_t row_stride )
