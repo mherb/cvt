@@ -20,7 +20,7 @@ namespace cvt {
 		typedef int* (AGAST::*ScoreFunc)( const uint8_t* p, size_t stride, std::vector<Feature2D> & corner );
 			AGAST( ASTType type = AGAST_5_8 );
 			~AGAST();
-
+            
 			void extract( const Image & image, std::vector<Feature2D> & features );
 			void extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves );
             void setNonMaxSuppress( bool val ){ _suppress = val; }
