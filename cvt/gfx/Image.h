@@ -32,6 +32,8 @@ namespace cvt {
 			~Image();
 			size_t width() const;
 			size_t height() const;
+            Recti rect() const;
+
 			size_t channels() const;
 			// bits per channel
 			size_t bpc() const;
@@ -98,7 +100,7 @@ namespace cvt {
 			Color operator() (float x, float y) const;*/
 
 			void warpBilinear( Image& idst, const Image& warp ) const;
-        
+
             void integralImage( Image & dst ) const;
             void squaredIntegralImage( Image & dst ) const;
 
@@ -139,6 +141,11 @@ namespace cvt {
 	{
 		return _mem->_height;
 	}
+
+    inline Recti Image::rect() const
+    {
+        return Recti( 0, 0, this->width(), this->height() );
+    }
 
 	inline void Image::reallocate( const Image& i, IAllocatorType memtype )
 	{

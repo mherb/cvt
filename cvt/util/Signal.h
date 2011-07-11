@@ -16,8 +16,8 @@ namespace cvt {
 			public:
 				Signal() {};
 				~Signal() {};
-				void add( Delegate<void ( T )>& d ) { _delegates.push_back( d ); }
-				void remove( Delegate<void ( T )>& d ) { _delegates.remove( d ); };
+				void add( const Delegate<void ( T )>& d ) { _delegates.push_back( d ); }
+				void remove( const Delegate<void ( T )>& d ) { _delegates.remove( d ); };
 				void notify( T arg );
 				void notify( );
 
@@ -42,8 +42,8 @@ namespace cvt {
 			public:
 				Signal() {};
 				~Signal() {};
-				void add( Delegate<void ( )>& d ) { _delegates.push_back( d ); }
-				void remove( Delegate<void ( )>& d ) { _delegates.remove( d ); };
+				void add( const Delegate<void ( )>& d ) { _delegates.push_back( d ); }
+				void remove( const Delegate<void ( )>& d ) { _delegates.remove( d ); };
 				void notify( void );
 
 			private:
