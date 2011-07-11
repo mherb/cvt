@@ -120,8 +120,8 @@ namespace cvt {
 					px2 = tmp;
 				}
 
-				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
-				simd->warpLinePerspectiveBilinear1f( ( float* ) ( pdst +  Math::clamp<size_t>( px1.x, 0, w ) ), ( const float* ) src, sstride, sw, sh,
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<ssize_t>( ( px1.x ), 0, w ), y, 1.0f );
+				simd->warpLinePerspectiveBilinear1f( ( float* ) ( pdst +  Math::clamp<ssize_t>( px1.x, 0, w ) ), ( const float* ) src, sstride, sw, sh,
 													  p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
 			}
 			dst2 += dstride;
@@ -192,8 +192,8 @@ namespace cvt {
 					px2 = tmp;
 				}
 
-				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
-				simd->warpLinePerspectiveBilinear4f( ( float* ) ( pdst +  4 * Math::clamp<size_t>( px1.x, 0, w ) ), ( const float* ) src, sstride, sw, sh,
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<ssize_t>( ( px1.x ), 0, w ), y, 1.0f );
+				simd->warpLinePerspectiveBilinear4f( ( float* ) ( pdst +  4 * Math::clamp<ssize_t>( px1.x, 0, w ) ), ( const float* ) src, sstride, sw, sh,
 													p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
 			}
 			dst2 += dstride;
@@ -262,8 +262,8 @@ namespace cvt {
 					px2 = tmp;
 				}
 
-				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
-				simd->warpLinePerspectiveBilinear1u8(  ( dst2 +  Math::clamp<size_t>( px1.x, 0, w ) ), src, sstride, sw, sh,
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<ssize_t>( ( px1.x ), 0, w ), y, 1.0f );
+				simd->warpLinePerspectiveBilinear1u8(  ( dst2 +  Math::clamp<ssize_t>( px1.x, 0, w ) ), src, sstride, sw, sh,
 													p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
 			}
 			dst2 += dstride;
@@ -332,8 +332,8 @@ namespace cvt {
 					px2 = tmp;
 				}
 
-				Vector3f p = transform * Vector3f( ( float ) Math::clamp<size_t>( ( px1.x ), 0, w ), y, 1.0f );
-				simd->warpLinePerspectiveBilinear4u8( ( dst2 + sizeof( uint32_t ) * Math::clamp<size_t>( px1.x, 0, w ) ), src, sstride, sw, sh,
+				Vector3f p = transform * Vector3f( ( float ) Math::clamp<ssize_t>( ( px1.x ), 0, w ), y, 1.0f );
+				simd->warpLinePerspectiveBilinear4u8( ( dst2 + sizeof( uint32_t ) * Math::clamp<ssize_t>( px1.x, 0, w ) ), src, sstride, sw, sh,
 													p.ptr(), nx.ptr(), Math::clamp<ssize_t>(  px2.x + 1, 0, w ) - Math::clamp<ssize_t>( ( px1.x ), 0, w ) );
 			}
 			dst2 += dstride;
