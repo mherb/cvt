@@ -1,30 +1,44 @@
 #include <cvt/vision/ORB.h>
 #include <cvt/util/CVTTest.h>
 #include <cvt/io/Resources.h>
+#include <cvt/math/Matrix.h>
+
+#include <cvt/gfx/ifilter/ITransform.h>
+
+#include <cvt/gfx/ifilter/Homography.h>
 
 namespace cvt {
 
     bool _centroidAngleTest()
     {
         cvt::Resources r;
-        cvt::Image img( r.find( "lena_g.png" ) );
-        cvt::ORB orb( img, 1, 0.5f, 50 );
 
-        cvt::Image testImage( 640, 480, cvt::IFormat::GRAY_UINT8 );
+        for( size_t i = 0; i < 360; i+=5 ){
+            String fileIn( "bw" );
+            fileIn += i;
+            fileIn += ".png";
+            std::cout << "File : " << fileIn << std::endl;
+            cvt::Image _img( r.find( fileIn ) );
 
-        testImage.fill( cvt::Color( 1.0f, 1.0f, 1.0f, 1.0f ) );
+            cvt::Image img;
+            _img.convert( img, IFormat::GRAY_UINT8 );
+            cvt::ORB orb( img, 1, 0.5f, 50 );
 
-        cvt::Image ii;
-        testImage.integralImage( ii );
+            cvt::Image ii;
+            img.integralImage( ii );
 
         size_t stride;
         float * ptr = ii.map<float>( &stride );
 
-        cvt::ORBFeature feature( 320, 240 );
+        cvt::ORBFeature feature( img.width() / 2.0f, img.height() / 2.0f );
 
         orb.centroidAngle( feature, ptr, stride );
 
         std::cout << "Feature Angle: " << Math::rad2Deg( feature.angle ) << std::endl;
+
+        ii.unmap<float>( ptr );
+
+        }
 
         return false;
     }

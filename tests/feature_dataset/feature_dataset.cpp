@@ -160,10 +160,10 @@ int main()
 	std::vector<Image> images;
 	std::vector<Matrix3f> homographies;
 
-	size_t numScales = 2;
-	float  scaleFactor = 0.7f;
-	size_t featureThreshold = 30;
-	size_t maxDistance = 30;
+	size_t numScales = 3;
+	float  scaleFactor = 0.5f;
+	size_t featureThreshold = 40;
+	size_t maxDistance = 60;
 
     for ( size_t i = 0; i < dataSets.size( ); i++ ) {
         try {
