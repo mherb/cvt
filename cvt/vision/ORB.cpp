@@ -23,7 +23,7 @@ namespace cvt {
             _scaleFactors[ i ] = scale;
 			detect( pyrimg, i );
 		}
-        selectBestFeatures( 3000 );
+        selectBestFeatures( 1000 );
 
         extract( octaves );
 	}
@@ -144,6 +144,7 @@ namespace cvt {
 
 		static const float harrisK = 0.04f;
 		static const float harrisThreshold = 1e5f;
+		static const size_t harrisRadius = 4;
 
         for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
@@ -152,12 +153,12 @@ namespace cvt {
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
 
-                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK /* k from Pollefeys slides */ );
+                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ) {
+					float harris = simd->harrisResponse1u8( curr, stride, harrisRadius, harrisRadius, harrisK /* k from Pollefeys slides */ );
 					if( harris > harrisThreshold )
 						_features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
-					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK );
+					float harris = simd->harrisResponse1u8( curr, stride, harrisRadius, harrisRadius, harrisK );
 					if( harris > harrisThreshold )
                     _features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 }

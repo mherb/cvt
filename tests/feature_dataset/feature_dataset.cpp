@@ -128,7 +128,7 @@ class FeatureWindow : public Window
         _numScales( 3 ),
         _scaleFactor( 0.5f ),
         _fastThreshold( 40 ),
-        _maxDescDistance( 50 ),
+        _maxDescDistance( 40 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
         _orb0( 0 ), _orb1( 0 ),
