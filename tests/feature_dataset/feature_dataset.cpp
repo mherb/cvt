@@ -162,7 +162,7 @@ int main()
 
 	size_t numScales = 4;
 	float  scaleFactor = 0.7f;
-	size_t featureThreshold = 20;
+	size_t featureThreshold = 25;
 	size_t maxDistance = 30;
 
     for ( size_t i = 0; i < dataSets.size( ); i++ ) {
