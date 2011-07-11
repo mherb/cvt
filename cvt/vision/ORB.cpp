@@ -18,7 +18,7 @@ namespace cvt {
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			detect( pyrimg, scale );
 		}
-
+        selectBestFeatures( 1500 );
 	}
 
 	void ORB::detect( const Image& img, float scale )
@@ -33,7 +33,7 @@ namespace cvt {
 
         IntegralImage iimg( img );
 		const float* iimgptr = iimg.sumImage().map<float>( &stride );
-        
+
         while( featureIdx < _features.size() ){
             centroidAngle( _features[ featureIdx ], iimgptr, stride );
             descriptor( _features[ featureIdx ], iimgptr, stride );
@@ -104,7 +104,7 @@ namespace cvt {
 	void ORB::selectBestFeatures( size_t num )
 	{
 		std::sort( _features.begin(), _features.end(), compareOrbFeature );
-		
+
 		if( _features.size() > num )
 			_features.erase( _features.begin() + num, _features.end() );
 	}
@@ -145,8 +145,6 @@ namespace cvt {
             }
             im += stride;
         }
-
-		selectBestFeatures( 1500 );
     }
 
     void ORB::makeOffsets( size_t row_stride )
