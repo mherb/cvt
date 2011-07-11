@@ -67,7 +67,7 @@ namespace cvt {
             uint8_t			 _threshold;
             int				 _pixel[ 16 ];// for OFAST
 
-			static const int _patterns[ 60 ][ 512 ][ 2 ];
+			static const int _patterns[ 30 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];
 
             // border where we do not detect features:

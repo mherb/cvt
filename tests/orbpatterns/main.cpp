@@ -12,7 +12,7 @@ using namespace cvt;
 int main()
 {
 
-#define SIZE 60
+#define SIZE 30
 
 	float inc = Math::TWO_PI / ( float ) SIZE;
 	float rad = 0;
