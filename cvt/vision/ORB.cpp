@@ -18,7 +18,7 @@ namespace cvt {
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			detect( pyrimg, scale );
 		}
-        selectBestFeatures( 1500 );
+        selectBestFeatures( 2000 );
 	}
 
 	void ORB::detect( const Image& img, float scale )
@@ -64,14 +64,11 @@ namespace cvt {
 		}
 
 		feature.angle = Math::atan2( my, mx );
-		if( feature.angle < 0 )
-			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI * -0.75f  - feature.angle;
-		while( feature.angle < 0 )
-			feature.angle += Math::TWO_PI;
-		while( feature.angle > Math::TWO_PI )
-			feature.angle -= Math::TWO_PI;
 
+
+        if( feature.angle < 0 )
+			feature.angle += Math::TWO_PI;
+		feature.angle = Math::TWO_PI - feature.angle;
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
