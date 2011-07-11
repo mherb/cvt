@@ -47,14 +47,17 @@ namespace cvt {
 	void FeatureTracker::run( const Image & current,
 							  std::vector<Feature2D> & features )
 	{
+        /*
         if( _currentIntegralImg == 0 ){
             _currentIntegralImg = new IntegralImage( current, SUMMED_AREA | SQUARED_SUMMED_AREA );
         } else {
             _currentIntegralImg->update( current );
-        }
+        }*/
+
 
         features.clear();
 
+        /*
         std::vector<Feature2D>::iterator lastF = _lastFeatures.begin();
         std::vector<Feature2D>::iterator featureEnd = _lastFeatures.end();
         std::vector<Patch*>::iterator patchIt = _lastPatches.begin();
@@ -84,15 +87,15 @@ namespace cvt {
         _lastPatches.clear();
         _lastPatches.resize( features.size() );
         std::copy( trackedPatches.begin(), trackedPatches.end(), _lastPatches.begin() );
-
+*/
         // detect new features if too few are present now
         // features.clear();
         size_t numFeatures = features.size();
-        std::cout << "Tracked features: " << numFeatures << std::endl;
+  //      std::cout << "Tracked features: " << numFeatures << std::endl;
         if( numFeatures < 100 ){
             //_featureDetector->extract( current, features );
-            _featureDetector->extractMultiScale( current, features, 3 );
-
+            _featureDetector->extractMultiScale( current, features, 4 );
+/*
             Recti roi( 0, 0, 21, 21 );
             while( numFeatures < features.size() ) {
                 _lastFeatures.push_back( features[ numFeatures ] );
@@ -101,6 +104,7 @@ namespace cvt {
                 _lastPatches.push_back( new Patch( current, roi, NORMALIZE ) );
                 numFeatures++;
             }
+ */
         }
 
 	}
