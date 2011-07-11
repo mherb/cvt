@@ -11,8 +11,8 @@
 namespace cvt {
 
 	struct ORBFeature : public Feature2Df {
-        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f, float score = 0.0f ) :
-            Feature2Df( x, y, angle, scale ), score( score )
+        ORBFeature( float x, float y, float angle = 0.0f, size_t octave = 0, float score = 0.0f ) :
+            Feature2Df( x, y, angle, octave ), score( score )
         {
         }
 
@@ -22,7 +22,7 @@ namespace cvt {
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
-		
+
 		// the corner score (harris atm)
 		float   score;
 	};
@@ -43,18 +43,20 @@ namespace cvt {
 		friend bool _centroidAngleTest();
 		public:
 			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25 );
+            ~ORB();
 
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
 
 		private:
-			void detect( const Image& img, float scale );
+			void detect( const Image& img, size_t octave );
+            void extract( size_t octaves );
 
 			void centroidAngle( ORBFeature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
 
-            void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale );
+            void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
             void makeOffsets( size_t stride );
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
             bool isBrighterCorner9( const uint8_t * p, const int barrier );
@@ -62,6 +64,8 @@ namespace cvt {
 			void selectBestFeatures( size_t num );
 
 			std::vector<ORBFeature> _features;
+            IntegralImage*          _iimages;
+            float*                  _scaleFactors;
 
             // for OFAST
             uint8_t			 _threshold;

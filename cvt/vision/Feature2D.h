@@ -6,15 +6,15 @@
 namespace cvt {
 	template<typename T>
 	struct Feature2D {
-		Feature2D( T x, T y, float angle = 0.0f, float scale = 1.0f );
+		Feature2D( T x, T y, float angle = 0.0f, size_t octave = 0 );
 
 		Vector2<T> pt;
 		float angle;
-		float scale;
+		size_t octave;
 	};
 
     template <typename T>
-	inline Feature2D<T>::Feature2D( T x, T y, float a, float s ) : pt( x, y ), angle( a ), scale( s )
+	inline Feature2D<T>::Feature2D( T x, T y, float a, size_t o ) : pt( x, y ), angle( a ), octave( o )
 	{
 	}
 

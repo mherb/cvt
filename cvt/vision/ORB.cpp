@@ -10,38 +10,61 @@ namespace cvt {
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
 
-		_features.reserve( 512 );
-		detect( img, scale );
+        _scaleFactors = new float[ octaves ];
+        _iimages = new IntegralImage[ octaves ];
+
+        _features.reserve( 512 );
+        _scaleFactors[ 0 ] = scale;
+		detect( img, 0 );
 		for( size_t i = 1; i < octaves; i++ ) {
 			Image pyrimg;
 			scale *=  scalefactor;
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
-			detect( pyrimg, scale );
+            _scaleFactors[ i ] = scale;
+			detect( pyrimg, i );
 		}
-        selectBestFeatures( 2000 );
+        selectBestFeatures( 3000 );
+
+        extract( octaves );
 	}
 
-	void ORB::detect( const Image& img, float scale )
+    ORB::~ORB()
+    {
+        delete[] _scaleFactors;
+        delete[] _iimages;
+    }
+
+	void ORB::detect( const Image& img, size_t octave )
 	{
         // detect the features for this level
-        size_t featureIdx = _features.size();
-
         size_t stride;
         const uint8_t * ptr = img.map( &stride );
-        detect9( ptr, stride, img.width(), img.height(), scale );
+        detect9( ptr, stride, img.width(), img.height(), octave );
         img.unmap( ptr );
 
-        IntegralImage iimg( img );
-		const float* iimgptr = iimg.sumImage().map<float>( &stride );
+        _iimages[ octave ].update( img );
+	}
 
-        while( featureIdx < _features.size() ){
-            centroidAngle( _features[ featureIdx ], iimgptr, stride );
-            descriptor( _features[ featureIdx ], iimgptr, stride );
-            featureIdx++;
+    void ORB::extract( size_t octaves )
+    {
+        const float* iimgptr[ octaves ];
+        size_t strides[ octaves ];
+
+        for( size_t i = 0; i < octaves; i++ ){
+            iimgptr[ i ] = _iimages[ i ].sumImage().map<float>( &strides[ i ] );
         }
 
-		iimg.sumImage().unmap<float>( iimgptr );
-	}
+        for( size_t i = 0, iend = _features.size(); i < iend; i++ ){
+            size_t octave = _features[ i ].octave;
+            centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+            descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+        }
+
+
+        for( size_t i = 0; i < octaves; i++ ){
+            _iimages[ i ].sumImage().unmap<float>( iimgptr[ i ] );
+        }
+    }
 
 	void ORB::centroidAngle( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
@@ -90,7 +113,7 @@ namespace cvt {
 				feature.desc[ i ] |= ORBTEST( i * 8 + k );
 			}
 		}
-		feature.pt /= feature.scale;
+		feature.pt /= _scaleFactors[ feature.octave ];
 	}
 
 	static bool compareOrbFeature( const ORBFeature & a, const ORBFeature & b )
@@ -106,7 +129,7 @@ namespace cvt {
 			_features.erase( _features.begin() + num, _features.end() );
 	}
 
-    void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )
+    void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave )
     {
 		makeOffsets( stride );
         size_t h = height - _border;
@@ -120,7 +143,7 @@ namespace cvt {
 		SIMD * simd = SIMD::instance();
 
 		static const float harrisK = 0.04f;
-		static const float harrisThreshold = 1e4f;
+		static const float harrisThreshold = 1e5f;
 
         for( size_t y = _border; y < h; y++ ){
             const uint8_t * curr = im;
@@ -132,11 +155,11 @@ namespace cvt {
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK /* k from Pollefeys slides */ );
 					if( harris > harrisThreshold )
-						_features.push_back( ORBFeature( x, y, 0.0f, scale, harris ) );
+						_features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK );
 					if( harris > harrisThreshold )
-                    _features.push_back( ORBFeature( x, y, 0.0f, scale, harris ) );
+                    _features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 }
                 curr++;
             }
