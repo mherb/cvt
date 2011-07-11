@@ -11,8 +11,8 @@
 namespace cvt {
 
 	struct ORBFeature : public Feature2Df {
-        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f ) :
-            Feature2Df( x, y, angle, scale )
+        ORBFeature( float x, float y, float angle = 0.0f, float scale = 1.0f, float score = 0.0f ) :
+            Feature2Df( x, y, angle, scale ), score( score )
         {
         }
 
@@ -22,6 +22,9 @@ namespace cvt {
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
+		
+		// the corner score (harris atm)
+		float   score;
 	};
 
 
@@ -55,6 +58,8 @@ namespace cvt {
             void makeOffsets( size_t stride );
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
             bool isBrighterCorner9( const uint8_t * p, const int barrier );
+
+			void selectBestFeatures( size_t num );
 
 			std::vector<ORBFeature> _features;
 

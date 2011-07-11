@@ -1,5 +1,6 @@
 #include <cvt/vision/ORB.h>
 
+#include <algorithm>
 
 namespace cvt {
 
@@ -32,8 +33,7 @@ namespace cvt {
 
         IntegralImage iimg( img );
 		const float* iimgptr = iimg.sumImage().map<float>( &stride );
-
-
+        
         while( featureIdx < _features.size() ){
             centroidAngle( _features[ featureIdx ], iimgptr, stride );
             descriptor( _features[ featureIdx ], iimgptr, stride );
@@ -50,6 +50,7 @@ namespace cvt {
 
 		int cury = ( int ) feature.pt.y - 15;
 		int curx = ( int ) feature.pt.x;
+
 		for( int i = 0; i < 15; i++ ) {
 			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep )
 										   - IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
@@ -95,6 +96,18 @@ namespace cvt {
 		feature.pt /= feature.scale;
 	}
 
+	static bool compareOrbFeature( const ORBFeature & a, const ORBFeature & b )
+	{
+		return a.score > b.score;
+	}
+
+	void ORB::selectBestFeatures( size_t num )
+	{
+		std::sort( _features.begin(), _features.end(), compareOrbFeature );
+		
+		if( _features.size() > num )
+			_features.erase( _features.begin() + num, _features.end() );
+	}
 
     void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, float scale )
     {
@@ -109,7 +122,7 @@ namespace cvt {
 
 		SIMD * simd = SIMD::instance();
 
-		static const float harrisK = 0.04;
+		static const float harrisK = 0.04f;
 		static const float harrisThreshold = 1e4f;
 
         for( size_t y = _border; y < h; y++ ){
@@ -122,16 +135,18 @@ namespace cvt {
                 if( lowerBound && isDarkerCorner9( curr, lowerBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK /* k from Pollefeys slides */ );
 					if( harris > harrisThreshold )
-						_features.push_back( ORBFeature( x, y, 0.0f, scale ) );
+						_features.push_back( ORBFeature( x, y, 0.0f, scale, harris ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, 4, 4, harrisK );
 					if( harris > harrisThreshold )
-                    _features.push_back( ORBFeature( x, y, 0.0f, scale ) );
+                    _features.push_back( ORBFeature( x, y, 0.0f, scale, harris ) );
                 }
                 curr++;
             }
             im += stride;
         }
+
+		selectBestFeatures( 1500 );
     }
 
     void ORB::makeOffsets( size_t row_stride )
