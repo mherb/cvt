@@ -49,22 +49,22 @@ int main()
 		Image img;
 		img.load( inputFile.c_str() );
 
-		Image imgf( img.width(), img.height(), IFormat::RGBA_UINT8 );
-		Image out( img.width(), img.height(), IFormat::RGBA_UINT8 );
-		Image out2( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		Image imgf( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image out( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		Image out2( img.width(), img.height(), IFormat::RGBA_FLOAT );
 		img.convert( imgf );
 
 		Homography hfilter;
-		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.0001f, 0.0f );
-//		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f );
+//		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.0001f, 0.0f );
+		cvt::Matrix3f H = calc_homography( 23.0f, 0.0f, 1.5f, 0.8f, 10.0f, 10.0f, 0.0f, 0.0f );
 		std::cout << "H: \n" <<  H << std::endl;
 		
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 		Time t;
-/*		t.reset();
+		t.reset();
 		hfilter.apply( out, imgf, H, black );
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
-		out.save( "outhomography.png" );*/
+		out.save( "outhomography.png" );
 
 		// otherwise denormalized float stuff kicks in
 		out2.fill( Color::BLACK );
