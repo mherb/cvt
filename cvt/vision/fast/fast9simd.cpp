@@ -44,7 +44,7 @@ namespace cvt {
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
 
-                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ){
+                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
                     features.push_back( Feature2D( x, y ) );
                 } else {
                     if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
@@ -186,9 +186,9 @@ namespace cvt {
 					possibleCorners &= p0 | (p10_11) | (p5 & p6);
 				}
 				if (!possibleCorners) continue;
-                
+
                 // now evaluate:
-                possibleCorners |= ( possibleCorners >> 16 );                                
+                possibleCorners |= ( possibleCorners >> 16 );
                 if( possibleCorners & ( 1 << 0 ) )
                     features.push_back( Feature2D( x + 0, y ) );
                 if( possibleCorners & ( 1 << 1 ) )
@@ -221,7 +221,7 @@ namespace cvt {
                     features.push_back( Feature2D( x + 14, y ) );
                 if( possibleCorners & ( 1<< 15 ) )
                     features.push_back( Feature2D( x + 15, y ) );
-                
+
                 curr+=16;
 			}
 
@@ -230,20 +230,20 @@ namespace cvt {
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
 
-                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ){
+                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
                     features.push_back( Feature2D( x, y ) );
                 } else {
                     if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
                         features.push_back( Feature2D( x, y ) );
                     }
                 }
-                curr++;                
+                curr++;
             }
-            
+
             im += stride;
         }
     }
 
 #undef TEST_UPPER_LOWER_SIMD
-    
+
 }

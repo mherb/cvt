@@ -27,14 +27,14 @@ namespace cvt
 			uint8_t threshold();
 			void setMinScore( int32_t minscore );
 			int32_t minScore();
-        
+
             void setNonMaxSuppress( bool val ) { _suppress = val; }
 
 		private:
 			uint8_t		_threshold;
 			int32_t		_minScore;
 			ExtractFunc	_extract;
-			ScoreFunc	_score;        
+			ScoreFunc	_score;
             bool        _suppress;
             size_t      _lastStride;
             int         _pixel[ 16 ]; // offsets to the ring pixel
@@ -42,9 +42,9 @@ namespace cvt
 			int* score( const uint8_t* img, size_t stride, std::vector<Feature2D> & corners );
 
 			void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-        
+
             void detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
-        
+
 			int score9( const uint8_t* p );
 			void detect10( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features );
 			int score10( const uint8_t* p );
@@ -56,7 +56,7 @@ namespace cvt
 			void make_offsets( size_t row_stride );
             void initPixelOffsets();
 			void nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed );
-        
+
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
             bool isBrighterCorner9( const uint8_t * p, const int barrier );
 	};

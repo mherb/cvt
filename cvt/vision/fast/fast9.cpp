@@ -882,8 +882,8 @@ namespace cvt {
 		} // @@@@???????@@@@@
 		return true;
 	}
-	
-    void FAST::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features )    
+
+    void FAST::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features )
     {
 		make_offsets( stride );
         size_t h = height - 3;
@@ -893,15 +893,15 @@ namespace cvt {
 
         features.reserve( 1024 );
         int upperBound;
-        int lowerBound;        
+        int lowerBound;
         for( size_t y = 3; y < h; y++ ){
             const uint8_t * curr = im;
-            
+
             for( size_t x = 3; x < w; x++ ){
                 lowerBound = *curr - _threshold;
                 upperBound = *curr + _threshold;
-                
-                if( lowerBound && isDarkerCorner9( curr, lowerBound ) ){
+
+                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
                     features.push_back( Feature2D( x, y ) );
                 } else {
                     if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
@@ -912,9 +912,9 @@ namespace cvt {
             }
             im += stride;
         }
-        
+
     }
-    
+
 	/* score a single pixel */
 	int FAST::score9( const uint8_t* p ){
 		int bmin = _threshold;
