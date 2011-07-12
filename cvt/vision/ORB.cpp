@@ -74,7 +74,6 @@ namespace cvt {
 					prev_row = currRow;
 				}
             }
-            std::cout << std::endl;
 		}
 
         int idx, row, col;
