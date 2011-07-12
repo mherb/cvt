@@ -52,21 +52,21 @@ namespace cvt
 		if( image.format() != IFormat::GRAY_UINT8 )
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
 
-		const uint8_t* im = image.map( &stride );		
+		const uint8_t* im = image.map( &stride );
 
         if( _suppress ){
             std::vector<Feature2D> allCorners;
             // detect candidates
             (this->*_extract)( im, stride, image.width(), image.height(), allCorners );
-            
+
             // calc the scores
-            int * cornerScores = this->score( im, stride, allCorners );		
+            int * cornerScores = this->score( im, stride, allCorners );
             // non maximal suppression
             this->nonmaxSuppression( allCorners, cornerScores, features );
-        } else { 
+        } else {
             (this->*_extract)( im, stride, image.width(), image.height(), features );
         }
-        
+
         image.unmap( im );
 	}
 
@@ -79,7 +79,7 @@ namespace cvt
 		size_t height = image.height();
 
 		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
-		
+
 		pyramid.resize( octaves - 1 );
 
 		const Image * prevScale = &image;
@@ -90,7 +90,7 @@ namespace cvt
 
 			pyramid[ i ].reallocate( width, height, image.format() );
 			prevScale->scale( pyramid[ i  ], width, height, scaleFilter );
-			prevScale = &pyramid[ i ];			
+			prevScale = &pyramid[ i ];
 		}
 
 		this->extract( image, features );
@@ -110,14 +110,14 @@ namespace cvt
 
 	void FAST::make_offsets( size_t row_stride )
 	{
-        
+
         if( _lastStride == row_stride )
             return;
-        
+
         _lastStride = row_stride;
         initPixelOffsets();
 	}
-    
+
     void FAST::initPixelOffsets()
     {
         _pixel[0]  =  0 + _lastStride * 3;
