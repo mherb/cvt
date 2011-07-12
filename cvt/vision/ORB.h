@@ -49,14 +49,16 @@ namespace cvt {
 			const ORBFeature& operator[]( size_t index ) const;
 
 		private:
-			void detect( const Image& img, size_t octave );
+			void detect( std::vector<ORBFeature> & features, const Image& img, size_t octave );
             void extract( size_t octaves );
 
 			void centroidAngle( ORBFeature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
 
-            void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
+            void detect9( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
+            void nonmaxSuppression( const std::vector<ORBFeature> & features );
+
             void makeOffsets( size_t stride );
             bool isDarkerCorner9( const uint8_t * p, const int barrier );
             bool isBrighterCorner9( const uint8_t * p, const int barrier );

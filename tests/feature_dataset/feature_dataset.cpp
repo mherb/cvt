@@ -123,12 +123,12 @@ void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureM
 class FeatureWindow : public Window
 {
   public:
-    FeatureWindow() :
+    FeatureWindow( bool batch ) :
         Window( "Feature Data Tests" ),
         _numScales( 3 ),
         _scaleFactor( 0.5f ),
-        _fastThreshold( 40 ),
-        _maxDescDistance( 40 ),
+        _fastThreshold( 35 ),
+        _maxDescDistance( 50 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
         _orb0( 0 ), _orb1( 0 ),
@@ -152,6 +152,22 @@ class FeatureWindow : public Window
         loadDataSet();
         calcOrb( 0 );
         nextImage();
+
+        if( batch ){
+            runBatchMode();
+            exit( 0 );
+        }
+    }
+
+    void runBatchMode()
+    {
+        for( size_t i = 0; i < _dataSets.size(); i++ ){
+            if( i != 0 )
+                nextDataSet();
+            for( size_t k = 0; k < _images.size() - 2 ; k++ ){
+                nextImage();
+            }
+        }
     }
 
     void setupGui()
@@ -299,7 +315,6 @@ class FeatureWindow : public Window
 
         std::cout << "Image: " << _dataSets[ _currentDataSet ] << " 0 -> " << _currentImage << ":" << std::endl;
         checkResult( *_orb0, *_orb1, _matches, _homographies[ _currentImage ], _extractTime, _matchTime );
-        std::cout << std::endl;
 
         repaint();
     }
@@ -331,10 +346,18 @@ class FeatureWindow : public Window
     Button                  _nextImage;
 };
 
-int main()
+int main( int argc, char* argv[] )
 {
 
-	FeatureWindow win;
+    bool batch = false;
+    if( argc == 2 ){
+        String argument( argv[ 1 ] );
+
+        if( argument == "batch" )
+            batch = true;
+    }
+
+	FeatureWindow win( batch );
 	win.setSize( 800, 600 );
 	win.setVisible( true );
 	win.setMinimumSize( 320, 240 );
