@@ -1453,6 +1453,61 @@ namespace cvt
 		}
 	}
 
+	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
+	{
+		const uint8_t* src = ptr - 4 * stride - 4 + 1;
+		__m128i dx, dy, t1, t2, zero;
+		__m128i ix, iy, ixy;
+		float a, b, c;
+
+#define	__horizontal_sum(r, rw) do { \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(1, 0, 3, 2)); \
+	r = _mm_add_epi32(r, rw); \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(2, 3, 0, 1)); \
+	r = _mm_add_epi32(r, rw); \
+} while( 0 )
+
+		zero = _mm_setzero_si128();
+		ix = iy = ixy = _mm_setzero_si128();
+
+		for( int i = 0; i < 7; i++ ) {
+			t1 = _mm_loadl_epi64( ( __m128i* ) src );
+			t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
+			t1 = _mm_unpacklo_epi8( t1, zero );
+			t2 = _mm_unpacklo_epi8( t2, zero );
+			dy = _mm_sub_epi16( t2, t1 );
+			dy = _mm_slli_si128( dy, 2 );
+			src += stride;
+
+			t1 = _mm_madd_epi16( dy, dy );
+			iy = _mm_add_epi32( iy, t1 );
+
+			t1 = _mm_loadl_epi64( ( __m128i* ) ( src - 1 ) );
+			t2 = _mm_loadl_epi64( ( __m128i* ) ( src ) );
+			t1 = _mm_slli_si128( t1, 1 );
+			t1 = _mm_unpacklo_epi8( t1, zero );
+			t2 = _mm_unpacklo_epi8( t2, zero );
+			dx = _mm_sub_epi16( t2, t1 );
+			dx = _mm_srli_si128( dx, 2 ); // FIXME: use and
+			dx = _mm_slli_si128( dx, 2 );
+
+			t1 = _mm_madd_epi16( dx, dx );
+			ix = _mm_add_epi32( ix, t1 );
+
+			t1 = _mm_madd_epi16( dx, dy );
+			ixy = _mm_add_epi32( ixy, t1 );
+		}
+__horizontal_sum( ix, t1 );
+__horizontal_sum( iy, t1 );
+__horizontal_sum( ixy, t1 );
+
+a = ( float ) _mm_cvtsi128_si32( ix );
+b = ( float ) _mm_cvtsi128_si32( iy );
+c = ( float ) _mm_cvtsi128_si32( ixy );
+
+return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
+}
+
     void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row

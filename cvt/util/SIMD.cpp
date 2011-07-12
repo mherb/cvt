@@ -3622,9 +3622,9 @@ namespace cvt {
 		float Iy = 0;
 		float a = 0, b = 0, c = 0;
 
-		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y <= yend; y++ ) {
+		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y < yend; y++ ) {
 			const uint8_t* psrc = src;
-			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x <= xend; x++ ) {
+			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x < xend; x++ ) {
 				Ix = *( psrc + 1 ) - *( psrc - 1 );
 				Iy = *( psrc + srcStride ) - *( psrc - srcStride );
 

@@ -99,8 +99,8 @@ namespace cvt {
 		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
 		if( index >= 30 )
 			index = 0;
-		size_t x = ( size_t ) feature.pt.x;
-		size_t y = ( size_t ) feature.pt.y;
+		int x = ( int ) feature.pt.x;
+		int y = ( int ) feature.pt.y;
 
 
 #define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
@@ -109,8 +109,7 @@ namespace cvt {
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				feature.desc[ i ] <<= 1;
-				feature.desc[ i ] |= ORBTEST( i * 8 + k );
+				feature.desc[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
 			}
 		}
 		feature.pt /= _scaleFactors[ feature.octave ];
