@@ -15,15 +15,25 @@ namespace cvt {
 
         _features.reserve( 512 );
         _scaleFactors[ 0 ] = scale;
-		detect( img, 0 );
+
+        std::vector<ORBFeature> octaveFeatures;
+        octaveFeatures.reserve( 512 );
+		detect( octaveFeatures, img, 0 );
+
+        nonmaxSuppression( octaveFeatures );
+
 		for( size_t i = 1; i < octaves; i++ ) {
+            octaveFeatures.clear();
+            octaveFeatures.reserve( 512 );
+
 			Image pyrimg;
 			scale *=  scalefactor;
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
             _scaleFactors[ i ] = scale;
-			detect( pyrimg, i );
+			detect( octaveFeatures, pyrimg, i );
+            nonmaxSuppression( octaveFeatures );
 		}
-        selectBestFeatures( 1000 );
+        selectBestFeatures( 2000 );
 
         extract( octaves );
 	}
@@ -34,16 +44,115 @@ namespace cvt {
         delete[] _iimages;
     }
 
-	void ORB::detect( const Image& img, size_t octave )
+	void ORB::detect( std::vector<ORBFeature> & features, const Image& img, size_t octave )
 	{
         // detect the features for this level
         size_t stride;
         const uint8_t * ptr = img.map( &stride );
-        detect9( ptr, stride, img.width(), img.height(), octave );
+        detect9( features, ptr, stride, img.width(), img.height(), octave );
         img.unmap( ptr );
 
         _iimages[ octave ].update( img );
 	}
+
+    void ORB::nonmaxSuppression( const std::vector<ORBFeature> & features )
+    {
+        int numCorners = (int)features.size();
+        int endRow = (int)features.back().pt.y;
+
+
+		int firstFeatureIdxInRow[ endRow + 1 ];
+        memset( firstFeatureIdxInRow, -1, (endRow + 1) * sizeof(int) );
+
+        // initialize the indizes
+		{
+			int prev_row = -1;
+            for( int i = 0; i < numCorners; i++ ){
+                int currRow = ( int )features[ i ].pt.y;
+                if(  currRow != prev_row ) {
+                    firstFeatureIdxInRow[ currRow ] = i;
+					prev_row = currRow;
+				}
+            }
+            std::cout << std::endl;
+		}
+
+        int idx, row, col;
+        for( int i = 0; i < numCorners; i++ ) {
+			float score = features[ i ].score;
+            col = ( int )features[ i ].pt.x;
+            row = ( int )features[ i ].pt.y;
+
+            /* Check left */
+			if( i > 0 ){
+                idx = i-1;
+				if( ( int )features[ idx ].pt.x == ( col - 1 ) && (int)features[ idx ].pt.y == row ){
+                    if( score <= features[ idx ].score  ){
+                        // left has better or same score:
+                        continue;
+                    }
+                }
+            }
+
+            if( i < numCorners-1 ){
+                idx = i+1;
+				if( ( int )features[ idx ].pt.x == ( col + 1 ) && (int)features[ idx ].pt.y == row ){
+                    if( score < features[ idx ].score  ){
+                        // right has better score:
+                        continue;
+                    }
+                }
+            }
+
+            bool thereIsABetterPoint = false;
+			/* Check above (if there is a valid row above) */
+            int pointIdxAbove;
+			if( row > 0 && ( pointIdxAbove = firstFeatureIdxInRow[ row - 1 ] ) != -1 ){
+				/* Make sure that current point_above is one row above. */
+				while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
+                       (int)features[ pointIdxAbove ].pt.x < col - 1 )
+                    pointIdxAbove++;
+
+                while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
+                       (int)features[ pointIdxAbove ].pt.x < col + 1 ){
+                    // check the three pixels above
+                    if( score <= features[ pointIdxAbove ].score ){
+                        thereIsABetterPoint = true;
+                        break;
+                    }
+                    pointIdxAbove++;
+                }
+
+                if( thereIsABetterPoint )
+                    continue;
+			}
+
+            if( row < endRow ){
+				/* Make sure that current point_above is one row above. */
+                int pointIdx = firstFeatureIdxInRow[ row + 1 ];
+
+                if( pointIdx == -1 )
+                    continue;
+
+				while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col - 1 )
+                    pointIdx++;
+
+                while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col + 1 ){
+                    // check the three pixels above
+                    if( score < features[ pointIdx ].score ){
+                        thereIsABetterPoint = true;
+                        break;
+                    }
+                    pointIdx++;
+                }
+
+                if( thereIsABetterPoint )
+                    continue;
+			}
+
+			_features.push_back( features[ i ] );
+		}
+    }
 
     void ORB::extract( size_t octaves )
     {
@@ -129,7 +238,7 @@ namespace cvt {
 			_features.erase( _features.begin() + num, _features.end() );
 	}
 
-    void ORB::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave )
+    void ORB::detect9( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave )
     {
 		makeOffsets( stride );
         size_t h = height - _border;
@@ -156,11 +265,11 @@ namespace cvt {
                 if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, harrisRadius, harrisRadius, harrisK /* k from Pollefeys slides */ );
 					if( harris > harrisThreshold )
-						_features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
+						features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 } else if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ) {
 					float harris = simd->harrisResponse1u8( curr, stride, harrisRadius, harrisRadius, harrisK );
 					if( harris > harrisThreshold )
-                    _features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
+                        features.push_back( ORBFeature( x, y, 0.0f, octave, harris ) );
                 }
                 curr++;
             }
