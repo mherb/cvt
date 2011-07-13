@@ -25,7 +25,7 @@ namespace cvt {
         std::cout << std::endl;
     }
 
-    void FAST::detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features )
+    void FAST::detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features )
     {
         make_offsets( stride );
         const size_t tripleStride = 3 * stride;
@@ -48,7 +48,7 @@ namespace cvt {
                 upperBound = *ptr + _threshold;
                 if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
                      ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( Feature2D( x, y ) );
+                    features.push_back( Feature2Df( x, y ) );
                 }
                 ptr++;
             }
@@ -230,41 +230,41 @@ namespace cvt {
                 //if(possible & 0x0f) //Does this make it faster?
                 {
                     if ( possible & (1 << 0) )
-                        features.push_back( Feature2D( x + 0, y ) );
+                        features.push_back( Feature2Df( x + 0, y ) );
                     if ( possible & (1 << 1) )
-                        features.push_back( Feature2D( x + 1, y ) );
+                        features.push_back( Feature2Df( x + 1, y ) );
                     if ( possible & (1 << 2) )
-                        features.push_back( Feature2D( x + 2, y ) );
+                        features.push_back( Feature2Df( x + 2, y ) );
                     if ( possible & (1 << 3) )
-                        features.push_back( Feature2D( x + 3, y ) );
+                        features.push_back( Feature2Df( x + 3, y ) );
                     if ( possible & (1 << 4) )
-                        features.push_back( Feature2D( x + 4, y ) );
+                        features.push_back( Feature2Df( x + 4, y ) );
                     if ( possible & (1 << 5) )
-                        features.push_back( Feature2D( x + 5, y ) );
+                        features.push_back( Feature2Df( x + 5, y ) );
                     if ( possible & (1 << 6) )
-                        features.push_back( Feature2D( x + 6, y ) );
+                        features.push_back( Feature2Df( x + 6, y ) );
                     if ( possible & (1 << 7) )
-                        features.push_back( Feature2D( x + 7, y ) );
+                        features.push_back( Feature2Df( x + 7, y ) );
                 }
 
                 //if(possible & 0xf0) //Does this mak( ,  fast)r?
                 {
                     if ( possible & (1 << 8) )
-                        features.push_back( Feature2D( x + 8, y ) );
+                        features.push_back( Feature2Df( x + 8, y ) );
                     if ( possible & (1 << 9) )
-                        features.push_back( Feature2D( x + 9, y ) );
+                        features.push_back( Feature2Df( x + 9, y ) );
                     if ( possible & (1 << 10) )
-                        features.push_back( Feature2D( x + 10, y ) );
+                        features.push_back( Feature2Df( x + 10, y ) );
                     if ( possible & (1 << 11) )
-                        features.push_back( Feature2D( x + 11, y ) );
+                        features.push_back( Feature2Df( x + 11, y ) );
                     if ( possible & (1 << 12) )
-                        features.push_back( Feature2D( x + 12, y ) );
+                        features.push_back( Feature2Df( x + 12, y ) );
                     if ( possible & (1 << 13) )
-                        features.push_back( Feature2D( x + 13, y ) );
+                        features.push_back( Feature2Df( x + 13, y ) );
                     if ( possible & (1 << 14) )
-                        features.push_back( Feature2D( x + 14, y ) );
+                        features.push_back( Feature2Df( x + 14, y ) );
                     if ( possible & (1 << 15) )
-                        features.push_back( Feature2D( x + 15, y ) );
+                        features.push_back( Feature2Df( x + 15, y ) );
                 }
             }
 
@@ -273,7 +273,7 @@ namespace cvt {
                 upperBound = *ptr + _threshold;
                 if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
                      ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( Feature2D( x, y ) );
+                    features.push_back( Feature2Df( x, y ) );
                 }
                 ptr++;
             }

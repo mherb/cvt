@@ -11,27 +11,19 @@
 
 namespace cvt {
 	FeatureTracker::FeatureTracker() :
-		_featureDetector( 0 ),
+		_featureDetector( SEGMENT_9 ),
         _currentIntegralImg( 0 ),
 		_threshold( 35 ),
 		_nccThreshold( 0.8 ),
         _searchRadius( 5 )
 	{
-		//_featureDetector = new AGAST( OAST_9_16 );
-		//_featureDetector = new AGAST( AGAST_7_12S );
-		//( ( AGAST* )_featureDetector )->setNonMaxSuppress( true );
-		//( ( AGAST* )_featureDetector )->setThreshold( _threshold );
-
-		_featureDetector = new FAST( SEGMENT_9 );
-		( ( FAST* )_featureDetector )->setNonMaxSuppress( false );
-		( ( FAST* )_featureDetector )->setThreshold( _threshold );
-		( ( FAST* )_featureDetector )->setMinScore( 20 );
+        _featureDetector.setNonMaxSuppress( false );
+		_featureDetector.setThreshold( _threshold );
+		_featureDetector.setMinScore( 20 );
 	}
 
 	FeatureTracker::~FeatureTracker()
 	{
-		if( _featureDetector )
-			delete _featureDetector;
         if( _currentIntegralImg )
             delete _currentIntegralImg;
 	}
@@ -40,12 +32,12 @@ namespace cvt {
 	void FeatureTracker::setCornerThreshold( int thresh )
 	{
 		_threshold = thresh;
-		( ( FAST* )_featureDetector )->setThreshold( _threshold );
+        _featureDetector.setThreshold( _threshold );
 		std::cout << "New Corner Threshold: " << _threshold << std::endl;
 	}
 
 	void FeatureTracker::run( const Image & current,
-							  std::vector<Feature2D> & features )
+							  std::vector<Feature2Df> & features )
 	{
         /*
         if( _currentIntegralImg == 0 ){
@@ -58,13 +50,13 @@ namespace cvt {
         features.clear();
 
         /*
-        std::vector<Feature2D>::iterator lastF = _lastFeatures.begin();
-        std::vector<Feature2D>::iterator featureEnd = _lastFeatures.end();
+        std::vector<Feature2Df>::iterator lastF = _lastFeatures.begin();
+        std::vector<Feature2Df>::iterator featureEnd = _lastFeatures.end();
         std::vector<Patch*>::iterator patchIt = _lastPatches.begin();
 
         std::vector<Patch*> trackedPatches;
 
-        Feature2D tmp;
+        Feature2Df tmp;
 
         while( lastF != featureEnd ){
             double ncc = matchFeatureNCC( current, *( *patchIt ), *lastF, tmp );
@@ -93,7 +85,7 @@ namespace cvt {
         size_t numFeatures = features.size();
   //      std::cout << "Tracked features: " << numFeatures << std::endl;
         if( numFeatures < 100 ){
-            _featureDetector->extract( current, features );
+            _featureDetector.extract( current, features );
             //_featureDetector->extractMultiScale( current, features, 4 );
 /*
             Recti roi( 0, 0, 21, 21 );
@@ -109,21 +101,21 @@ namespace cvt {
 
 	}
 
-    float FeatureTracker::matchFeatureNCC( const Image & currentI, const Patch & patch, const Feature2D & startPos, Feature2D & out )
+    float FeatureTracker::matchFeatureNCC( const Image & currentI, const Patch & patch, const Vector2f & startPos, Vector2f & out )
     {
         float bncc = 0;
         float ncc;
 
         Vector2i current, best;
-		best = startPos;
-        current.y = Math::max( 0, startPos.y - _searchRadius );
+		best.x = startPos.x;
+        best.y = startPos.y;
 
-        int yBoundH = Math::min( startPos.y + _searchRadius + patch.height(),
-                                 currentI.height() - patch.height() );
-        int xBoundL = Math::max( startPos.x - _searchRadius, 0 );
+        current.y = Math::max<float>( 0, startPos.y - _searchRadius );
 
-        int xBoundH = Math::min( startPos.x + _searchRadius + patch.width(),
-                                 currentI.width() - patch.width() );
+        int yBoundH = Math::min<float>( startPos.y + _searchRadius + patch.height(), currentI.height() - patch.height() );
+        int xBoundL = Math::max<float>( startPos.x - _searchRadius, 0 );
+
+        int xBoundH = Math::min<float>( startPos.x + _searchRadius + patch.width(), currentI.width() - patch.width() );
 
         while( current.y < yBoundH ){
             current.x = xBoundL;
@@ -139,7 +131,9 @@ namespace cvt {
             current.y++;
         }
 
-        out = best;
+        out.x = best.x;
+        out.y = best.y;
+        
         return bncc;
     }
 }

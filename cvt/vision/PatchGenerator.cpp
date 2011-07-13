@@ -43,7 +43,7 @@ namespace cvt
 		_affine = R_theta * R_phi.transpose() * S * R_phi;
 	}
 	
-	void PatchGenerator::next( Image & outputPatch, const cvt::Image & inputImage, const Eigen::Vector2i & patchCenter )
+	void PatchGenerator::next( Image & outputPatch, const cvt::Image & inputImage, const Vector2f & patchCenter )
 	{
 		// generate new random affine Transform
 		randomizeAffine();

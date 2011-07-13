@@ -18,7 +18,7 @@ namespace cvt
 			~PatchGenerator();
 			
 			/* generate the next patch */
-			void next( Image & outputPatch, const cvt::Image & inputImage, const Eigen::Vector2i & patchCenter );			
+			void next( Image & outputPatch, const cvt::Image & inputImage, const Vector2f & patchCenter );			
 			
 		private:
 			uint32_t			_patchSize;

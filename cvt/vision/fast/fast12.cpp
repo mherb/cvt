@@ -1545,7 +1545,7 @@ end_if:
 		}
 	}
 
-	void FAST::detect12( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2D> & corners )
+	void FAST::detect12( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2Df> & corners )
 	{
 		int num_corners=0;
 		int rsize=512;
@@ -3079,9 +3079,7 @@ end_if:
 					corners.reserve( rsize );
 				}
 
-				corners.push_back( Feature2D() );
-				corners.back()[ 0 ] = x;
-				corners.back()[ 1 ] = y;
+				corners.push_back( Feature2Df( x, y ) );
 				num_corners++;
 
 			}

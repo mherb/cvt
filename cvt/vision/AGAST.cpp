@@ -6,8 +6,8 @@
 namespace cvt
 {
 
-	AGAST::AGAST( ASTType type ) : 
-        _type( type ), _extract( 0 ), _score( 0 ), _threshold( 25 ), _lastStride( 0 ), _suppress( true )       
+	AGAST::AGAST( ASTType type ) :
+        _type( type ), _extract( 0 ), _score( 0 ), _threshold( 25 ), _lastStride( 0 ), _suppress( true )
 	{
         switch ( type ) {
             case OAST_9_16:
@@ -25,7 +25,7 @@ namespace cvt
             case AGAST_7_12S:
                 _extract = &AGAST::agast7_12s;
                 _score = &AGAST::score7_12s;
-                break;                
+                break;
             default:
                 CVTException( "Unkown AGAST Type in initialization!" );
                 break;
@@ -36,26 +36,26 @@ namespace cvt
 	{
 	}
 
-	void AGAST::extract( const Image & image, std::vector<Feature2D> & features )
-	{        
+	void AGAST::extract( const Image & image, std::vector<Feature2Df> & features )
+	{
         size_t stride;
         const uint8_t * im = image.map( &stride );
-     
+
         if( _suppress ){
-            std::vector<Feature2D> temp;
+            std::vector<Feature2Df> temp;
             ( this->*_extract )( im, stride, image.width(), image.height(), temp );
-            int * scores = ( this->*_score )( im, stride, temp );        
+            int * scores = ( this->*_score )( im, stride, temp );
             nonMaximumSuppression( temp, scores, features );
             delete[] scores;
         } else {
-            ( this->*_extract )( im, stride, image.width(), image.height(), features );            
+            ( this->*_extract )( im, stride, image.width(), image.height(), features );
         }
-        
-        image.unmap( im );        
+
+        image.unmap( im );
 	}
 
 
-	void AGAST::extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves )
+	void AGAST::extractMultiScale( const Image & image, std::vector<Feature2Df> & features, size_t octaves )
 	{
 		// construct the scale space
 		std::vector<Image> pyramid;
@@ -86,20 +86,20 @@ namespace cvt
 
 			this->extract( pyramid[ i ], features );
 			while( previousScaleEnd < features.size() ){
-				features[ previousScaleEnd ]*=scale;
+				features[ previousScaleEnd ].pt *= scale;
 				previousScaleEnd++;
 			}
 		}
 	}
 
-	void AGAST::nonMaximumSuppression(const std::vector<Feature2D> & corners_all, const int* scores, std::vector<Feature2D> & nms )
+	void AGAST::nonMaximumSuppression(const std::vector<Feature2Df> & corners_all, const int* scores, std::vector<Feature2Df> & nms )
 	{
 		size_t numCorners_all = corners_all.size();
 		int nmsFlags[ numCorners_all ]; //-1 max, else index to max
 		int lastRow=0, next_lastRow=0;
 
-		std::vector<Feature2D>::const_iterator currentCorner = corners_all.begin();
-		std::vector<Feature2D>::const_iterator cornersEnd = corners_all.end();
+		std::vector<Feature2Df>::const_iterator currentCorner = corners_all.begin();
+		std::vector<Feature2Df>::const_iterator cornersEnd = corners_all.end();
 
 		size_t lastRowCorner_ind=0, next_lastRowCorner_ind=0;
 		int *nmsFlags_p=nmsFlags;
@@ -115,27 +115,29 @@ namespace cvt
 		for( size_t currCorner_ind=0; currCorner_ind < numCorners_all; currCorner_ind++ )
 		{
 			//check above
-			if( lastRow + 1 < (*currentCorner)[ 1 ])
+			if( lastRow + 1 < currentCorner->pt.y )
 			{
 				lastRow=next_lastRow;
 				lastRowCorner_ind=next_lastRowCorner_ind;
 			}
-			if(next_lastRow!=(*currentCorner)[ 1 ])
+			if( next_lastRow != currentCorner->pt.y )
 			{
-				next_lastRow=(*currentCorner)[ 1 ];
+				next_lastRow=currentCorner->pt.y;
 				next_lastRowCorner_ind=currCorner_ind;
 			}
-			if(lastRow+1==(*currentCorner)[ 1 ])
+			if( lastRow+1==currentCorner->pt.y )
 			{
 				//find the corner above the current one
-				while((corners_all[lastRowCorner_ind][ 0 ] < (*currentCorner)[ 0 ]) && (corners_all[lastRowCorner_ind][ 1 ] == lastRow))
+				while( ( corners_all[lastRowCorner_ind].pt.x < currentCorner->pt.x ) &&
+                       ( corners_all[lastRowCorner_ind].pt.y == lastRow ) )
 					lastRowCorner_ind++;
 
-				if( (corners_all[lastRowCorner_ind][ 0 ] == (*currentCorner)[ 0 ] ) && (lastRowCorner_ind != currCorner_ind ) )
+				if( ( corners_all[ lastRowCorner_ind ].pt.x == currentCorner->pt.x ) &&
+                    ( lastRowCorner_ind != currCorner_ind ) )
 				{
 					int t=lastRowCorner_ind;
-					while(nmsFlags[t]!=-1) //find the maximum in this block
-						t=nmsFlags[t];
+					while( nmsFlags[ t ] != -1 ) //find the maximum in this block
+						t = nmsFlags[ t ];
 
 					if( scores[currCorner_ind] < scores[t] )
 					{
@@ -147,13 +149,15 @@ namespace cvt
 			}
 
 			//check left
-			size_t t=currCorner_ind-1;
-			if( (currCorner_ind!=0) && (corners_all[t][ 1 ] == (*currentCorner)[ 1 ]) && (corners_all[t][ 0 ]+1 == (*currentCorner)[ 0 ]) )
+			size_t t = currCorner_ind - 1;
+			if( ( currCorner_ind != 0 ) &&
+                ( corners_all[ t ].pt.y == currentCorner->pt.y ) &&
+                ( corners_all[ t ].pt.x + 1 == currentCorner->pt.x ) )
 			{
-				int currCornerMaxAbove_ind=nmsFlags[currCorner_ind];
+				int currCornerMaxAbove_ind = nmsFlags[ currCorner_ind ];
 
-				while(nmsFlags[t]!=-1) //find the maximum in that area
-					t=nmsFlags[t];
+				while( nmsFlags[ t ]!=-1) //find the maximum in that area
+					t=nmsFlags[ t ];
 
 				if( currCornerMaxAbove_ind==-1 ) //no maximum above
 				{
@@ -190,9 +194,7 @@ namespace cvt
 		for( size_t currCorner_ind = 0; currCorner_ind < numCorners_all; currCorner_ind++ )
 		{
 			if( *nmsFlags_p++ == -1 ){
-				nms.push_back( Feature2D() );
-				nms.back()[ 0 ] = corners_all[ currCorner_ind ][ 0 ];
-				nms.back()[ 1 ] = corners_all[ currCorner_ind ][ 1 ];
+				nms.push_back( Feature2Df( corners_all[ currCorner_ind ] ) );
 			}
 		}
 	}

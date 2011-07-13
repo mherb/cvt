@@ -12,6 +12,7 @@
 #include <cvt/gui/Button.h>
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/gui/TimeoutHandler.h>
+
 #include "FeatureView.h"
 
 #include <cvt/vision/FAST.h>
@@ -129,7 +130,7 @@ class CameraApp : public Window
 			_cam->frame().convert( _gray );
 			_featureView->setImage( _gray );
 
-			std::vector<Feature2D> newFeatures;
+			std::vector<Feature2Df> newFeatures;
 			_processingTime.reset();
 			_featureTracker.run( _gray, newFeatures );
 			_timeSum += _processingTime.elapsedMilliSeconds();

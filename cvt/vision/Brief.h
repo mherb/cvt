@@ -19,7 +19,7 @@ namespace cvt {
 
         BriefDescriptor( const BriefDescriptor & other )
         {
-            SIMD * simd = SIMD::get();
+            SIMD * simd = SIMD::instance();
             simd->Memcpy( _desc, other.desc(), 32 );
         }
 
@@ -29,7 +29,7 @@ namespace cvt {
         uint16_t distance( const BriefDescriptor & other ) const
         {
             // get the simd and calc the hamming distance!
-            SIMD * simd = SIMD::get();
+            SIMD * simd = SIMD::instance();
             return ( uint16_t )simd->hammingDistance( _desc, other.desc(), 4 );
         }
 
@@ -47,7 +47,7 @@ namespace cvt {
         void    descriptorForPatch( BriefDescriptor & d, const Image & patch );
 
         /* use integral image for testing and test: area( t1 ) > area ( t2 ) */
-        void    descriptorForPatch( BriefDescriptor & d, const IntegralImage & image, const Vector2i & pos );
+        void    descriptorForPatch( BriefDescriptor & d, const IntegralImage & image, const Vector2f & pos );
 
     private:
         void createTests();

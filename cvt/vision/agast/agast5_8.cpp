@@ -23,7 +23,7 @@ namespace cvt {
 						  size_t stride,
 						  size_t xsize,
 						  size_t ysize,
-						  std::vector<Feature2D> & corners )
+						  std::vector<Feature2Df> & corners )
 	{
 		register int y;
 		register int x;
@@ -91,597 +91,597 @@ homogeneous:
 										else
 											if(p[_offset1] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-								else 
-									if(p[_offset5] < c_b) 
-										if(p[_offset3] < c_b) 
-											if(p[_offset7] < c_b) 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+								else
+									if(p[_offset5] < c_b)
+										if(p[_offset3] < c_b)
+											if(p[_offset7] < c_b)
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-						else 
-							if(p[_offset5] > cb) 
-								if(p[_offset7] > cb) 
-									if(p[_offset6] > cb) 
-										if(p[_offset1] > cb) 
+						else
+							if(p[_offset5] > cb)
+								if(p[_offset7] > cb)
+									if(p[_offset6] > cb)
+										if(p[_offset1] > cb)
 											goto success_homogeneous;
-										else 
-											if(p[_offset4] > cb) 
+										else
+											if(p[_offset4] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-								else 
+								else
 									goto homogeneous;
-							else 
-								if(p[_offset5] < c_b) 
-									if(p[_offset3] < c_b) 
-										if(p[_offset2] < c_b) 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+							else
+								if(p[_offset5] < c_b)
+									if(p[_offset3] < c_b)
+										if(p[_offset2] < c_b)
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto homogeneous;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto homogeneous;
-												else 
+												else
 													goto homogeneous;
-										else 
-											if(p[_offset7] < c_b) 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+										else
+											if(p[_offset7] < c_b)
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-								else 
+								else
 									goto homogeneous;
-					else if(p[_offset0] < c_b) 
-						if(p[_offset2] < c_b) 
-							if(p[_offset7] > cb) 
-								if(p[_offset3] < c_b) 
-									if(p[_offset5] < c_b) 
-										if(p[_offset1] < c_b) 
-											if(p[_offset4] < c_b) 
+					else if(p[_offset0] < c_b)
+						if(p[_offset2] < c_b)
+							if(p[_offset7] > cb)
+								if(p[_offset3] < c_b)
+									if(p[_offset5] < c_b)
+										if(p[_offset1] < c_b)
+											if(p[_offset4] < c_b)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
-											if(p[_offset4] < c_b) 
-												if(p[_offset6] < c_b) 
+										else
+											if(p[_offset4] < c_b)
+												if(p[_offset6] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto homogeneous;
-									else 
-										if(p[_offset1] < c_b) 
-											if(p[_offset4] < c_b) 
+									else
+										if(p[_offset1] < c_b)
+											if(p[_offset4] < c_b)
 												goto success_structured;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
-									if(p[_offset5] > cb) 
-										if(p[_offset3] > cb) 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+								else
+									if(p[_offset5] > cb)
+										if(p[_offset3] > cb)
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-							else 
-								if(p[_offset7] < c_b) 
-									if(p[_offset3] < c_b) 
-										if(p[_offset5] < c_b) 
-											if(p[_offset1] < c_b) 
+							else
+								if(p[_offset7] < c_b)
+									if(p[_offset3] < c_b)
+										if(p[_offset5] < c_b)
+											if(p[_offset1] < c_b)
 												goto success_structured;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-												else 
+												else
 													goto homogeneous;
-										else 
-											if(p[_offset1] < c_b) 
+										else
+											if(p[_offset1] < c_b)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
-										if(p[_offset6] < c_b) 
-											if(p[_offset5] < c_b) 
-												if(p[_offset1] < c_b) 
+									else
+										if(p[_offset6] < c_b)
+											if(p[_offset5] < c_b)
+												if(p[_offset1] < c_b)
 													goto success_structured;
-												else 
-													if(p[_offset4] < c_b) 
+												else
+													if(p[_offset4] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto homogeneous;
-											else 
-												if(p[_offset1] < c_b) 
+											else
+												if(p[_offset1] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
-									if(p[_offset3] < c_b) 
-										if(p[_offset5] < c_b) 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+								else
+									if(p[_offset3] < c_b)
+										if(p[_offset5] < c_b)
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto homogeneous;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto homogeneous;
-												else 
+												else
 													goto homogeneous;
-										else 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+										else
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-						else 
-							if(p[_offset5] > cb) 
-								if(p[_offset3] > cb) 
-									if(p[_offset2] > cb) 
-										if(p[_offset1] > cb) 
-											if(p[_offset4] > cb) 
+						else
+							if(p[_offset5] > cb)
+								if(p[_offset3] > cb)
+									if(p[_offset2] > cb)
+										if(p[_offset1] > cb)
+											if(p[_offset4] > cb)
 												goto success_structured;
-											else 
+											else
 												goto homogeneous;
-										else 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+										else
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
-										if(p[_offset7] > cb) 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+									else
+										if(p[_offset7] > cb)
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
+								else
 									goto homogeneous;
-							else 
-								if(p[_offset5] < c_b) 
-									if(p[_offset7] < c_b) 
-										if(p[_offset6] < c_b) 
-											if(p[_offset1] < c_b) 
+							else
+								if(p[_offset5] < c_b)
+									if(p[_offset7] < c_b)
+										if(p[_offset6] < c_b)
+											if(p[_offset1] < c_b)
 												goto success_homogeneous;
-											else 
-												if(p[_offset4] < c_b) 
+											else
+												if(p[_offset4] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-								else 
+								else
 									goto homogeneous;
-					else 
-						if(p[_offset3] > cb) 
-							if(p[_offset5] > cb) 
-								if(p[_offset2] > cb) 
-									if(p[_offset1] > cb) 
-										if(p[_offset4] > cb) 
+					else
+						if(p[_offset3] > cb)
+							if(p[_offset5] > cb)
+								if(p[_offset2] > cb)
+									if(p[_offset1] > cb)
+										if(p[_offset4] > cb)
 											goto success_homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
-										if(p[_offset4] > cb) 
-											if(p[_offset6] > cb) 
+									else
+										if(p[_offset4] > cb)
+											if(p[_offset6] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
-									if(p[_offset7] > cb) 
-										if(p[_offset4] > cb) 
-											if(p[_offset6] > cb) 
+								else
+									if(p[_offset7] > cb)
+										if(p[_offset4] > cb)
+											if(p[_offset6] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-							else 
+							else
 								goto homogeneous;
-						else 
-							if(p[_offset3] < c_b) 
-								if(p[_offset5] < c_b) 
-									if(p[_offset2] < c_b) 
-										if(p[_offset1] < c_b) 
-											if(p[_offset4] < c_b) 
+						else
+							if(p[_offset3] < c_b)
+								if(p[_offset5] < c_b)
+									if(p[_offset2] < c_b)
+										if(p[_offset1] < c_b)
+											if(p[_offset4] < c_b)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
-											if(p[_offset4] < c_b) 
-												if(p[_offset6] < c_b) 
+										else
+											if(p[_offset4] < c_b)
+												if(p[_offset6] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
-										if(p[_offset7] < c_b) 
-											if(p[_offset4] < c_b) 
-												if(p[_offset6] < c_b) 
+									else
+										if(p[_offset7] < c_b)
+											if(p[_offset4] < c_b)
+												if(p[_offset6] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
+								else
 									goto homogeneous;
-							else 
+							else
 								goto homogeneous;
 				}
 structured:
 				{
 					x++;
 					if(x>xsizeB)
-						break;	
+						break;
 					register const unsigned char* const p = im + y * _lastStride + x;
 					register const int cb = *p + _threshold;
 					register const int c_b = *p - _threshold;
-					if(p[_offset0] > cb) 
-						if(p[_offset2] > cb) 
-							if(p[_offset3] > cb) 
-								if(p[_offset5] > cb) 
-									if(p[_offset7] > cb) 
-										if(p[_offset1] > cb) 
+					if(p[_offset0] > cb)
+						if(p[_offset2] > cb)
+							if(p[_offset3] > cb)
+								if(p[_offset5] > cb)
+									if(p[_offset7] > cb)
+										if(p[_offset1] > cb)
 											goto success_structured;
-										else 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+										else
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto structured;
-									else 
-										if(p[_offset1] > cb) 
-											if(p[_offset4] > cb) 
+									else
+										if(p[_offset1] > cb)
+											if(p[_offset4] > cb)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+										else
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto structured;
-								else 
-									if(p[_offset7] > cb) 
-										if(p[_offset1] > cb) 
+								else
+									if(p[_offset7] > cb)
+										if(p[_offset1] > cb)
 											goto success_structured;
-										else 
+										else
 											goto structured;
-									else 
-										if(p[_offset1] > cb) 
-											if(p[_offset4] > cb) 
+									else
+										if(p[_offset1] > cb)
+											if(p[_offset4] > cb)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
+										else
 											goto structured;
-							else 
-								if(p[_offset7] > cb) 
-									if(p[_offset6] > cb) 
-										if(p[_offset5] > cb) 
-											if(p[_offset1] > cb) 
+							else
+								if(p[_offset7] > cb)
+									if(p[_offset6] > cb)
+										if(p[_offset5] > cb)
+											if(p[_offset1] > cb)
 												goto success_structured;
-											else 
-												if(p[_offset4] > cb) 
+											else
+												if(p[_offset4] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-										else 
-											if(p[_offset1] > cb) 
+										else
+											if(p[_offset1] > cb)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-									else 
+									else
 										goto structured;
-								else 
-									if(p[_offset5] < c_b) 
-										if(p[_offset3] < c_b) 
-											if(p[_offset7] < c_b) 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+								else
+									if(p[_offset5] < c_b)
+										if(p[_offset3] < c_b)
+											if(p[_offset7] < c_b)
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto structured;
-						else 
-							if(p[_offset5] > cb) 
-								if(p[_offset7] > cb) 
-									if(p[_offset6] > cb) 
-										if(p[_offset1] > cb) 
+						else
+							if(p[_offset5] > cb)
+								if(p[_offset7] > cb)
+									if(p[_offset6] > cb)
+										if(p[_offset1] > cb)
 											goto success_structured;
-										else 
-											if(p[_offset4] > cb) 
+										else
+											if(p[_offset4] > cb)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-									else 
+									else
 										goto structured;
-								else 
+								else
 									goto structured;
-							else 
-								if(p[_offset5] < c_b) 
-									if(p[_offset3] < c_b) 
-										if(p[_offset2] < c_b) 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+							else
+								if(p[_offset5] < c_b)
+									if(p[_offset3] < c_b)
+										if(p[_offset2] < c_b)
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-												else 
+												else
 													goto structured;
-										else 
-											if(p[_offset7] < c_b) 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+										else
+											if(p[_offset7] < c_b)
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_homogeneous;
-													else 
+													else
 														goto homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto structured;
-								else 
+								else
 									goto homogeneous;
-					else if(p[_offset0] < c_b) 
-						if(p[_offset2] < c_b) 
-							if(p[_offset7] > cb) 
-								if(p[_offset3] < c_b) 
-									if(p[_offset5] < c_b) 
-										if(p[_offset1] < c_b) 
-											if(p[_offset4] < c_b) 
+					else if(p[_offset0] < c_b)
+						if(p[_offset2] < c_b)
+							if(p[_offset7] > cb)
+								if(p[_offset3] < c_b)
+									if(p[_offset5] < c_b)
+										if(p[_offset1] < c_b)
+											if(p[_offset4] < c_b)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
-											if(p[_offset4] < c_b) 
-												if(p[_offset6] < c_b) 
+										else
+											if(p[_offset4] < c_b)
+												if(p[_offset6] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto structured;
-									else 
-										if(p[_offset1] < c_b) 
-											if(p[_offset4] < c_b) 
+									else
+										if(p[_offset1] < c_b)
+											if(p[_offset4] < c_b)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
+										else
 											goto structured;
-								else 
-									if(p[_offset5] > cb) 
-										if(p[_offset3] > cb) 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+								else
+									if(p[_offset5] > cb)
+										if(p[_offset3] > cb)
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto structured;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto structured;
-							else 
-								if(p[_offset7] < c_b) 
-									if(p[_offset3] < c_b) 
-										if(p[_offset5] < c_b) 
-											if(p[_offset1] < c_b) 
+							else
+								if(p[_offset7] < c_b)
+									if(p[_offset3] < c_b)
+										if(p[_offset5] < c_b)
+											if(p[_offset1] < c_b)
 												goto success_structured;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-												else 
+												else
 													goto structured;
-										else 
-											if(p[_offset1] < c_b) 
+										else
+											if(p[_offset1] < c_b)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-									else 
-										if(p[_offset6] < c_b) 
-											if(p[_offset5] < c_b) 
-												if(p[_offset1] < c_b) 
+									else
+										if(p[_offset6] < c_b)
+											if(p[_offset5] < c_b)
+												if(p[_offset1] < c_b)
 													goto success_structured;
-												else 
-													if(p[_offset4] < c_b) 
+												else
+													if(p[_offset4] < c_b)
 														goto success_structured;
-													else 
+													else
 														goto structured;
-											else 
-												if(p[_offset1] < c_b) 
+											else
+												if(p[_offset1] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-										else 
+										else
 											goto structured;
-								else 
-									if(p[_offset3] < c_b) 
-										if(p[_offset5] < c_b) 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+								else
+									if(p[_offset3] < c_b)
+										if(p[_offset5] < c_b)
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
-												if(p[_offset4] < c_b) 
-													if(p[_offset6] < c_b) 
+											else
+												if(p[_offset4] < c_b)
+													if(p[_offset6] < c_b)
 														goto success_homogeneous;
-													else 
+													else
 														goto homogeneous;
-												else 
+												else
 													goto homogeneous;
-										else 
-											if(p[_offset1] < c_b) 
-												if(p[_offset4] < c_b) 
+										else
+											if(p[_offset1] < c_b)
+												if(p[_offset4] < c_b)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-						else 
-							if(p[_offset5] > cb) 
-								if(p[_offset3] > cb) 
-									if(p[_offset2] > cb) 
-										if(p[_offset1] > cb) 
-											if(p[_offset4] > cb) 
+						else
+							if(p[_offset5] > cb)
+								if(p[_offset3] > cb)
+									if(p[_offset2] > cb)
+										if(p[_offset1] > cb)
+											if(p[_offset4] > cb)
 												goto success_structured;
-											else 
+											else
 												goto structured;
-										else 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+										else
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-											else 
+											else
 												goto structured;
-									else 
-										if(p[_offset7] > cb) 
-											if(p[_offset4] > cb) 
-												if(p[_offset6] > cb) 
+									else
+										if(p[_offset7] > cb)
+											if(p[_offset4] > cb)
+												if(p[_offset6] > cb)
 													goto success_homogeneous;
-												else 
+												else
 													goto homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
+								else
 									goto structured;
-							else 
-								if(p[_offset5] < c_b) 
-									if(p[_offset7] < c_b) 
-										if(p[_offset6] < c_b) 
-											if(p[_offset1] < c_b) 
+							else
+								if(p[_offset5] < c_b)
+									if(p[_offset7] < c_b)
+										if(p[_offset6] < c_b)
+											if(p[_offset1] < c_b)
 												goto success_structured;
-											else 
-												if(p[_offset4] < c_b) 
+											else
+												if(p[_offset4] < c_b)
 													goto success_structured;
-												else 
+												else
 													goto structured;
-										else 
+										else
 											goto structured;
-									else 
+									else
 										goto structured;
-								else 
+								else
 									goto homogeneous;
-					else 
-						if(p[_offset3] > cb) 
-							if(p[_offset5] > cb) 
-								if(p[_offset2] > cb) 
-									if(p[_offset1] > cb) 
-										if(p[_offset4] > cb) 
+					else
+						if(p[_offset3] > cb)
+							if(p[_offset5] > cb)
+								if(p[_offset2] > cb)
+									if(p[_offset1] > cb)
+										if(p[_offset4] > cb)
 											goto success_homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
-										if(p[_offset4] > cb) 
-											if(p[_offset6] > cb) 
+									else
+										if(p[_offset4] > cb)
+											if(p[_offset6] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-								else 
-									if(p[_offset7] > cb) 
-										if(p[_offset4] > cb) 
-											if(p[_offset6] > cb) 
+								else
+									if(p[_offset7] > cb)
+										if(p[_offset4] > cb)
+											if(p[_offset6] > cb)
 												goto success_homogeneous;
-											else 
+											else
 												goto homogeneous;
-										else 
+										else
 											goto homogeneous;
-									else 
+									else
 										goto homogeneous;
-							else 
+							else
 								goto homogeneous;
 						else
 							if(p[_offset3] < c_b)
@@ -722,9 +722,7 @@ success_homogeneous:
 					corners.reserve( nExpectedCorners );
 				}
 
-				corners.push_back( Feature2D() );
-				corners.back()[ 0 ] = x;
-				corners.back()[ 1 ] = y;
+				corners.push_back( Feature2Df( x, y ) );
 				total++;
 				goto homogeneous;
 success_structured:
@@ -733,9 +731,7 @@ success_structured:
 					corners.reserve( nExpectedCorners );
 				}
 
-				corners.push_back( Feature2D() );
-				corners.back()[ 0 ] = x;
-				corners.back()[ 1 ] = y;
+				corners.push_back( Feature2Df( x, y ) );
 				total++;
 
 				goto structured;
@@ -1094,14 +1090,14 @@ end:
 		}
 	}
 
-	int* AGAST::score58( const uint8_t * i, size_t stride, std::vector<Feature2D> & corners )
+	int* AGAST::score58( const uint8_t * i, size_t stride, std::vector<Feature2Df> & corners )
 	{
 		int* scores = new int[ corners.size() ];
 
 		init5_8_pattern( stride );
 
 		for(size_t n = 0; n < corners.size(); n++)
-			scores[n] = score_agast5_8( i + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ]);
+			scores[ n ] = score_agast5_8( i + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x );
 
 		return scores;
 	}
