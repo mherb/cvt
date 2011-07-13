@@ -242,6 +242,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/CVTTest.h
 	util/Delegate.h
 	util/Exception.h
+	util/Inserter.h
 	util/ParamInfo.h
 	util/ParamSet.h
 	util/Range.h
