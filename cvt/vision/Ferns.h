@@ -3,8 +3,8 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/PatchGenerator.h>
-#include <cvt/vision/FeatureExtractor.h>
 #include <cvt/vision/internal/Fern.h>
+#include <cvt/vision/FAST.h>
 
 #include <Eigen/Core>
 #include <vector>
@@ -41,8 +41,8 @@ namespace cvt
 			uint32_t	_trainingSamples;
 			
 			std::vector<Fern>				_ferns;						
-			FeatureExtractor<int32_t>*		_featureDetector;			
-			std::vector<Eigen::Vector2i>	_modelFeatures;	
+			FAST*                           _featureDetector;			
+			std::vector<Feature2Df>	_modelFeatures;	
 
 			void trainClass( size_t idx, PatchGenerator & patchGen, const Image & img );
 	};

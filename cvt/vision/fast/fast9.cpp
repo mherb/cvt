@@ -883,7 +883,7 @@ namespace cvt {
 		return true;
 	}
 
-    void FAST::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features )
+    void FAST::detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features )
     {
 		make_offsets( stride );
         size_t h = height - 3;
@@ -902,10 +902,10 @@ namespace cvt {
                 upperBound = *curr + _threshold;
 
                 if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
-                    features.push_back( Feature2D( x, y ) );
+                    features.push_back( Feature2Df( x, y ) );
                 } else {
                     if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
-                        features.push_back( Feature2D( x, y ) );
+                        features.push_back( Feature2Df( x, y ) );
                     }
                 }
                 curr++;

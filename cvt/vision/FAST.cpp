@@ -45,7 +45,7 @@ namespace cvt
 	{
 	}
 
-	void FAST::extract( const Image & image, std::vector<Feature2D> & features )
+	void FAST::extract( const Image & image, std::vector<Feature2Df> & features )
 	{
 		size_t stride;
 
@@ -55,7 +55,7 @@ namespace cvt
 		const uint8_t* im = image.map( &stride );
 
         if( _suppress ){
-            std::vector<Feature2D> allCorners;
+            std::vector<Feature2Df> allCorners;
             // detect candidates
             (this->*_extract)( im, stride, image.width(), image.height(), allCorners );
 
@@ -71,7 +71,7 @@ namespace cvt
 	}
 
 
-	void FAST::extractMultiScale( const Image & image, std::vector<Feature2D> & features, size_t octaves )
+	void FAST::extractMultiScale( const Image & image, std::vector<Feature2Df> & features, size_t octaves )
 	{
 		// construct the scale space
 		std::vector<Image> pyramid;
@@ -102,7 +102,7 @@ namespace cvt
 
 			this->extract( pyramid[ i ], features );
 			while( previousScaleEnd < features.size() ){
-				features[ previousScaleEnd ]*=scale;
+				features[ previousScaleEnd ].pt *= scale;
 				previousScaleEnd++;
 			}
 		}
@@ -138,7 +138,7 @@ namespace cvt
 		_pixel[15] = -1 + _lastStride * 3;
     }
 
-	void FAST::nonmaxSuppression( const std::vector<Feature2D> & corners, const int* scores, std::vector<Feature2D> & suppressed )
+	void FAST::nonmaxSuppression( const std::vector<Feature2Df> & corners, const int* scores, std::vector<Feature2Df> & suppressed )
 	{
 
 		/* Point above points (roughly) to the pixel above the one of interest, if there
@@ -155,7 +155,7 @@ namespace cvt
 		   (the corners are output in raster scan order). A beginning of -1 signifies
 		   that there are no corners on that row. */
 		int32_t last_row;
-		last_row = corners[ numCorners - 1 ][ 1 ];
+		last_row = corners[ numCorners - 1 ].pt.y;
 		int* rowStart;
 		rowStart = ( int* )malloc( ( last_row + 1 ) * sizeof( int ) );
 
@@ -166,9 +166,9 @@ namespace cvt
 		{
 			int prev_row = -1;
 			for( size_t i = 0; i < numCorners; i++ ){
-				if( (int)corners[ i ][ 1 ] != prev_row ) {
-					rowStart[ corners[ i ][ 1 ] ] = i;
-					prev_row = corners[ i ][ 1 ];
+				if( (int)corners[ i ].pt.y != prev_row ) {
+					rowStart[ (int)corners[ i ].pt.y ] = i;
+					prev_row = corners[ i ].pt.y;
 				}
 			}
 		}
@@ -177,48 +177,48 @@ namespace cvt
 			int score = scores[ i ];
 			if( score < _minScore )
 				continue;
-			const Feature2D & pos = corners[ i ];
+			const Vector2f & pos = corners[ i ].pt;
 
 			/* Check left */
 			if( i > 0 )
-				if( corners[ i - 1 ][ 0 ] == pos[ 0 ] - 1 && corners[ i - 1 ][ 1 ] == pos[ 1 ] && Compare( scores[ i - 1 ], score ) )
+				if( corners[ i - 1 ].pt.x == pos[ 0 ] - 1 && corners[ i - 1 ].pt.y == pos[ 1 ] && Compare( scores[ i - 1 ], score ) )
 					continue;
 
 			/* Check right */
 			if( i < ( numCorners - 1 ) )
-				if( corners[ i + 1 ][ 0 ] == pos[ 0 ] + 1 && corners[ i + 1 ][ 1 ] == pos[ 1 ] && Compare( scores[ i + 1 ], score ) )
+				if( corners[ i + 1 ].pt.x == pos[ 0 ] + 1 && corners[ i + 1 ].pt.y == pos[ 1 ] && Compare( scores[ i + 1 ], score ) )
 					continue;
 
 			/* Check above (if there is a valid row above) */
-			if( pos[ 1 ] != 0 && rowStart[ pos[ 1 ] - 1 ] != -1 ){
+			if( pos[ 1 ] != 0 && rowStart[ (int)pos[ 1 ] - 1 ] != -1 ){
 				/* Make sure that current point_above is one row above. */
-				if( corners[ point_above ][ 1 ] < pos[ 1 ] - 1 )
-					point_above = rowStart[ pos[ 1 ] - 1 ];
+				if( corners[ point_above ].pt.y < pos[ 1 ] - 1 )
+					point_above = rowStart[ (int)pos[ 1 ] - 1 ];
 
 				/* Make point_above point to the first of the pixels above the current point, if it exists. */
-				for(; corners[ point_above ][ 1 ] < pos[ 1 ] && corners[ point_above ][ 0 ] < pos[ 0 ] - 1; point_above++ )
+				for(; corners[ point_above ].pt.y < pos[ 1 ] && corners[ point_above ].pt.x < pos[ 0 ] - 1; point_above++ )
 				{}
 
 
-				for( size_t j = point_above; corners[ j ][ 1 ] < pos[ 1 ] && corners[ j ][ 0 ] <= pos[ 0 ] + 1; j++ ){
-					int x = corners[ j ][ 0 ];
-					if( ( x == pos[ 0 ] - 1 || x ==pos[ 0 ] || x == pos[ 0 ] + 1 ) && Compare( scores[ j ], score ) )
+				for( size_t j = point_above; corners[ j ].pt.y < pos[ 1 ] && corners[ j ].pt.x <= pos[ 0 ] + 1; j++ ){
+					int x = corners[ j ].pt.x;
+					if( ( x == pos[ 0 ] - 1 || x == pos[ 0 ] || x == pos[ 0 ] + 1 ) && Compare( scores[ j ], score ) )
 						goto cont;
 				}
 
 			}
 
 			/* Check below (if there is anything below) */
-			if( pos[ 1 ] != last_row && rowStart[ pos[ 1 ] + 1 ] != -1 && point_below < (int)numCorners ) /*Nothing below*/ {
-				if( corners[ point_below ][ 1 ] < pos[ 1 ] + 1 )
-					point_below = rowStart[ pos[ 1 ]+1 ];
+			if( pos[ 1 ] != last_row && rowStart[ (int)pos[ 1 ] + 1 ] != -1 && point_below < (int)numCorners ) /*Nothing below*/ {
+				if( corners[ point_below ].pt.y < pos[ 1 ] + 1 )
+					point_below = rowStart[ (int)pos[ 1 ]+1 ];
 
 				/* Make point below point to one of the pixels below the current point, if it exists. */
-				for(; point_below < (int)numCorners && corners[ point_below ][ 1 ] == pos[ 1 ] + 1 && corners[ point_below ][ 0 ] < pos[ 0 ] - 1; point_below++ )
+				for(; point_below < (int)numCorners && corners[ point_below ].pt.y == pos[ 1 ] + 1 && corners[ point_below ].pt.x < pos[ 0 ] - 1; point_below++ )
 				{}
 
-				for( size_t j=point_below; j < numCorners && corners[ j ][ 1 ] == pos[ 1 ] + 1 && corners[ j ][ 0 ] <= pos[ 0 ] + 1; j++ ) {
-					int x = corners[ j ][ 0 ];
+				for( size_t j=point_below; j < numCorners && corners[ j ].pt.y == pos[ 1 ] + 1 && corners[ j ].pt.x <= pos[ 0 ] + 1; j++ ) {
+					int x = corners[ j ].pt.x;
 					if( ( x == pos[ 0 ] - 1 || x == pos[ 0 ] || x == pos[ 0 ] + 1 ) && Compare( scores[ j ], score ) )
 						goto cont;
 				}
@@ -234,12 +234,12 @@ cont:
 	}
 
 	/* calc the scores for all the corners */
-	int* FAST::score(const uint8_t* img, size_t stride, std::vector<Feature2D> & corners )
+	int* FAST::score(const uint8_t* img, size_t stride, std::vector<Feature2Df> & corners )
 	{
 		int* scores = new int[ corners.size() ];
 
 		for( size_t n = 0; n < corners.size(); n++ )
-			scores[ n ] = (this->*_score)( img + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ] );
+			scores[ n ] = (this->*_score)( img + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x );
 
 		return scores;
 	}

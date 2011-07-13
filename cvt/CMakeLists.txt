@@ -271,7 +271,6 @@ SET(${MODULE_NAME}_HEADERS
 	vision/ESM.h
 	vision/FAST.h
 	vision/Feature2D.h
-	vision/FeatureExtractor.h
 	vision/FeatureMatch.h
 	vision/Ferns.h
 	vision/internal/Fern.h

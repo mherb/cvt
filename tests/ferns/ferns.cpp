@@ -62,7 +62,7 @@ void testPatchGen()
 
 	uint32_t numPatches = 3;
 	char buf[ 255 ];
-	Eigen::Vector2i p;
+	Vector2f p;
 	p[ 0 ] = gray.width() / 2;
 	p[ 1 ] = gray.height() / 2;
 
@@ -78,7 +78,7 @@ static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy
 {
 	Eigen::Matrix3f h, ih;
 	Eigen::Transform<float,2> affine;
-	
+
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( phi ) );
 	affine = Eigen::Scaling2f( sx, sy ) * affine;
 	affine = Eigen::Rotation2D<float>( Math::deg2Rad( -phi ) ) * affine;
@@ -93,8 +93,8 @@ static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy
 	h( 2, 0 ) = v1;
 	h( 2, 1 ) = v2;
 	h( 2, 2 ) = 1.0f;
-	
-	ih = h.inverse();	
+
+	ih = h.inverse();
 	ih /= powf( ih.determinant(), 1.0f / 3.0f );
 	ih.transposeInPlace(); // hack: Eigen by default stores column major order
 
@@ -138,10 +138,10 @@ void testFerns()
 	warpedf.convert( warped );
 	warped.save( "test.png" );
 
-	std::vector<Feature2D> features;
-	FeatureExtractor<int32_t> * fe = new FAST( SEGMENT_9 );
-	static_cast<FAST*>(fe)->setMinScore( 50 );
-	static_cast<FAST*>(fe)->setThreshold( 30 );
+	std::vector<Feature2Df> features;
+    FAST * fe = new FAST( SEGMENT_9 );
+    fe->setMinScore( 50 );
+	fe->setThreshold( 30 );
 
 	fe->extractMultiScale( warped, features, 3 );
 	//fe->extractMultiScale( gray, features, 3 );
@@ -151,8 +151,8 @@ void testFerns()
 
 	Eigen::Vector2i tmp;
 	for( size_t i = 0; i < features.size(); i++ ){
-		tmp[ 0 ] = features[ i ][ 0 ];
-		tmp[ 1 ] = features[ i ][ 1 ];
+		tmp[ 0 ] = features[ i ].pt.x;
+		tmp[ 1 ] = features[ i ].pt.y;
 		featurePoints.push_back( tmp );
 	}
 

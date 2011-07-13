@@ -2,8 +2,8 @@
 #define CVT_FEATURE_VIEW_H
 
 #include <cvt/gui/ImageView.h>
-#include <cvt/vision/FeatureExtractor.h>
 #include <cvt/math/Vector.h>
+#include <cvt/vision/Feature2D.h>
 
 class FeatureView : public cvt::ImageView
 {
@@ -11,7 +11,7 @@ class FeatureView : public cvt::ImageView
 		FeatureView();
 		~FeatureView();
 
-		void setFeatures( std::vector<cvt::Feature2D> & features, size_t origW, size_t origH );
+		void setFeatures( std::vector<cvt::Feature2Df> & features, size_t origW, size_t origH );
 
 	private:
         cvt::Vector2i*    _features;
@@ -39,7 +39,7 @@ inline FeatureView::~FeatureView()
         delete _features;
 }
 
-inline void FeatureView::setFeatures( std::vector<cvt::Feature2D> & features, size_t origW, size_t origH )
+inline void FeatureView::setFeatures( std::vector<cvt::Feature2Df> & features, size_t origW, size_t origH )
 {
 	if( _numFeatures != features.size() ){
         delete[] _features;
@@ -54,8 +54,8 @@ inline void FeatureView::setFeatures( std::vector<cvt::Feature2D> & features, si
 	float yScale = ( float ) h / origH;
 
 	for( size_t i = 0; i < features.size(); i++ ){
-		_features[ i ].x = xScale * features[ i ][ 0 ];
-		_features[ i ].y = yScale * features[ i ][ 1 ];
+		_features[ i ].x = xScale * features[ i ].pt.x;
+		_features[ i ].y = yScale * features[ i ].pt.y;
 	}
 }
 

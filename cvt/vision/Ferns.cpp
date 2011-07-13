@@ -57,17 +57,17 @@ namespace cvt
 		strTok.str( line );
 		strTok >> numFeatures;
 		
-		Eigen::Vector2i p;
+        int x, y;
 		std::string lineVal;
 		for( size_t i = 0; i < numFeatures; i++ ){
 			getline( file, line );
 		
 			strTok.clear();
 			strTok.str( line );
-			strTok >> p[ 0 ];
-			strTok >> p[ 1 ];			
+			strTok >> x;
+			strTok >> y;
 			
-			_modelFeatures.push_back( p );			
+			_modelFeatures.push_back( Feature2Df( x, y ) );			
 		}
 		
 		uint32_t numProbs;
@@ -137,7 +137,7 @@ namespace cvt
 		}	
 		
 		// detect features in the "model"-image	
-		std::vector<Feature2D> features;
+		std::vector<Feature2Df> features;
 		_featureDetector->extractMultiScale( img, features, 3 );
 		
 		int32_t patchHalfSize = _patchSize >> 1;
@@ -145,12 +145,11 @@ namespace cvt
 		/* train the class */
 		PatchGenerator patchGen( Rangef( 0.0f, Math::TWO_PI ), Rangef( 0.6f, 1.5f ), _patchSize, 3.0 /* noise */ );
 		
-		Eigen::Vector2i pCenter;
 		int x, y;
 		for( size_t i = 0; i < features.size(); i++ ){
 			std::cout << "FEATURE " << i+1 << " / " << features.size() << std::endl;
-			x = features[ i ][ 0 ];
-			y = features[ i ][ 1 ];
+			x = features[ i ].pt.x;
+			y = features[ i ].pt.y;
 			
 			if( ( x - patchHalfSize ) < 0 ||
 			 	( x + patchHalfSize ) >= ( int32_t )img.width() ||
@@ -158,10 +157,7 @@ namespace cvt
 				( y + patchHalfSize ) >= ( int32_t )img.height() )
 				continue;
 			
-			pCenter[ 0 ] = features[ i ][ 0 ];
-			pCenter[ 1 ] = features[ i ][ 1 ];
-						
-			_modelFeatures.push_back( pCenter );
+			_modelFeatures.push_back( features[ i ] );
 			
 			this->trainClass( _modelFeatures.size() - 1, patchGen, img );			
 		}
@@ -226,7 +222,7 @@ namespace cvt
 		for( size_t i = 0; i < bestProbsForPoint.size(); i++ ){
 			std::cout << "Prob: " << bestProbsForPoint[ i ] << std::endl;
 			if( bestProbsForPoint[ i ] > 0.96 ){				
-				matchedModel.push_back( _modelFeatures[ i ].cast<double>() );
+				matchedModel.push_back( Eigen::Vector2d( _modelFeatures[ i ].pt.x, _modelFeatures[ i ].pt.y ) );
 				matchedFeatures.push_back( features[ featureIndicesForPoint[ i ] ].cast<double>() );				
 			}
 		}
@@ -272,8 +268,8 @@ namespace cvt
 				bestIdx = i;
 		}
 		
-		bestClass[ 0 ] = _modelFeatures[ bestIdx ][ 0 ];
-		bestClass[ 1 ] = _modelFeatures[ bestIdx ][ 1 ];
+		bestClass[ 0 ] = _modelFeatures[ bestIdx ].pt.x;
+		bestClass[ 1 ] = _modelFeatures[ bestIdx ].pt.y;
 		
 		return exp( classProbs[ bestIdx ] ) / probSum;						
 	}
@@ -291,7 +287,7 @@ namespace cvt
 		
 		out << _modelFeatures.size() << std::endl;		
 		for( size_t i = 0; i < _modelFeatures.size(); i++ ){
-			out << _modelFeatures[ i ].x() << " " << _modelFeatures[ i ].y() << std::endl;
+			out << _modelFeatures[ i ].pt.x << " " << _modelFeatures[ i ].pt.y << std::endl;
 		}
 		
 		for( size_t i = 0; i < _ferns.size(); i++ ){
@@ -309,7 +305,7 @@ namespace cvt
 		
 		for( size_t i = 0; i < _trainingSamples; i++ ) {
 			// generate a new patch
-			patchGen.next( patch, img, _modelFeatures[ idx ] );			
+			patchGen.next( patch, img, _modelFeatures[ idx ].pt );			
 			
 			p = patch.map( &pStride );
 			

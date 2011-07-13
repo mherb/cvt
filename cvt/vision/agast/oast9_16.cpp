@@ -2,7 +2,7 @@
 
 namespace cvt
 {
-	void AGAST::oast9_16( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2D> & corners )
+	void AGAST::oast9_16( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2Df> & corners )
 	{
 		register int y;
 		register int x;
@@ -2060,9 +2060,7 @@ namespace cvt
 					corners.reserve( nExpectedCorners );
 				}
 
-				corners.push_back( Feature2D() );
-				corners.back()[ 0 ] = x;
-				corners.back()[ 1 ] = y;
+				corners.push_back( Feature2Df( x, y ) );
 				total++;
 			}
 		}
@@ -4124,14 +4122,14 @@ end:
 	}
 
 
-	int* AGAST::score9_16( const uint8_t * i, size_t stride, std::vector<Feature2D> & corners )
+	int* AGAST::score9_16( const uint8_t * i, size_t stride, std::vector<Feature2Df> & corners )
 	{
 		int* scores = new int[ corners.size() ];
 
 		init9_16_pattern( stride );
 
 		for(size_t n = 0; n < corners.size(); n++)
-			scores[n] = score_oast9_16( i + corners[ n ][ 1 ] * stride + corners[ n ][ 0 ]);
+			scores[n] = score_oast9_16( i + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x );
 
 		return scores;
 	}
