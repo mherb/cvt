@@ -1,9 +1,10 @@
-#include <cvt/vision/FAST.h>
+#include <cvt/vision/ORB.h>
+
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
-namespace cvt {
-
+namespace cvt
+{
     #define CHECK_BARRIER(lo, hi, other, flags)		\
     {                                               \
         __m128i diff = _mm_subs_epu8(lo, other);	\
@@ -14,35 +15,38 @@ namespace cvt {
         flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
     }
 
-    void FAST::detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features )
+    void ORB::detect9simd( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave )
     {
-        make_offsets( stride );
+        makeOffsets( stride );
         const size_t tripleStride = 3 * stride;
 
         // The compiler refuses to reserve a register for this
         const __m128i barriers = _mm_set1_epi8( _threshold  );
 
         // xend is the beginning of the last pixels in the row that need to be processed in the normal way
-        size_t xend = width - 3 - ( width - 3 ) % 16;
+        size_t xend = width - _border - ( width - _border ) % 16;
 
-        im += tripleStride;
+        // aligned start:
+        size_t aligned_start = ( (int)( _border / 16 ) + 1 ) << 4;
+
+        im += ( _border * stride );
         const uint8_t * ptr;
 
         int upperBound, lowerBound;
 
-        for ( size_t y = 3; y < height - 3; y++ ) {
-            ptr = im + 3;
-            for ( size_t x = 3; x < 16; x++ ){
+        for ( size_t y = _border; y < height - _border; y++ ) {
+            ptr = im + _border;
+            for ( size_t x = _border; x < aligned_start; x++ ){
                 lowerBound = *ptr - _threshold;
                 upperBound = *ptr + _threshold;
                 if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
                      ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( Feature2Df( x, y ) );
+                    features.push_back( ORBFeature( x, y, 0.0f, octave ) );
                 }
                 ptr++;
             }
 
-            for ( size_t x = 16; x < xend; x += 16, ptr += 16 ) {
+            for ( size_t x = aligned_start; x < xend; x += 16, ptr += 16 ) {
                 __m128i lo, hi;
                 {
                     const __m128i here = _mm_load_si128( (const __m128i*)ptr );
@@ -219,50 +223,50 @@ namespace cvt {
                 //if(possible & 0x0f) //Does this make it faster?
                 {
                     if ( possible & (1 << 0) )
-                        features.push_back( Feature2Df( x + 0, y ) );
+                        features.push_back( ORBFeature( x + 0, y, 0.0f, octave ) );
                     if ( possible & (1 << 1) )
-                        features.push_back( Feature2Df( x + 1, y ) );
+                        features.push_back( ORBFeature( x + 1, y, 0.0f, octave ) );
                     if ( possible & (1 << 2) )
-                        features.push_back( Feature2Df( x + 2, y ) );
+                        features.push_back( ORBFeature( x + 2, y, 0.0f, octave ) );
                     if ( possible & (1 << 3) )
-                        features.push_back( Feature2Df( x + 3, y ) );
+                        features.push_back( ORBFeature( x + 3, y, 0.0f, octave ) );
                     if ( possible & (1 << 4) )
-                        features.push_back( Feature2Df( x + 4, y ) );
+                        features.push_back( ORBFeature( x + 4, y, 0.0f, octave ) );
                     if ( possible & (1 << 5) )
-                        features.push_back( Feature2Df( x + 5, y ) );
+                        features.push_back( ORBFeature( x + 5, y, 0.0f, octave ) );
                     if ( possible & (1 << 6) )
-                        features.push_back( Feature2Df( x + 6, y ) );
+                        features.push_back( ORBFeature( x + 6, y, 0.0f, octave ) );
                     if ( possible & (1 << 7) )
-                        features.push_back( Feature2Df( x + 7, y ) );
+                        features.push_back( ORBFeature( x + 7, y, 0.0f, octave ) );
                 }
 
                 //if(possible & 0xf0) //Does this mak( ,  fast)r?
                 {
                     if ( possible & (1 << 8) )
-                        features.push_back( Feature2Df( x + 8, y ) );
+                        features.push_back( ORBFeature( x + 8, y, 0.0f, octave ) );
                     if ( possible & (1 << 9) )
-                        features.push_back( Feature2Df( x + 9, y ) );
+                        features.push_back( ORBFeature( x + 9, y, 0.0f, octave ) );
                     if ( possible & (1 << 10) )
-                        features.push_back( Feature2Df( x + 10, y ) );
+                        features.push_back( ORBFeature( x + 10, y, 0.0f, octave ) );
                     if ( possible & (1 << 11) )
-                        features.push_back( Feature2Df( x + 11, y ) );
+                        features.push_back( ORBFeature( x + 11, y, 0.0f, octave ) );
                     if ( possible & (1 << 12) )
-                        features.push_back( Feature2Df( x + 12, y ) );
+                        features.push_back( ORBFeature( x + 12, y, 0.0f, octave ) );
                     if ( possible & (1 << 13) )
-                        features.push_back( Feature2Df( x + 13, y ) );
+                        features.push_back( ORBFeature( x + 13, y, 0.0f, octave ) );
                     if ( possible & (1 << 14) )
-                        features.push_back( Feature2Df( x + 14, y ) );
+                        features.push_back( ORBFeature( x + 14, y, 0.0f, octave ) );
                     if ( possible & (1 << 15) )
-                        features.push_back( Feature2Df( x + 15, y ) );
+                        features.push_back( ORBFeature( x + 15, y, 0.0f, octave ) );
                 }
             }
 
-            for ( size_t x = xend; x < width - 3; x++ ){
+            for ( size_t x = xend; x < width - _border; x++ ){
                 lowerBound = *ptr - _threshold;
                 upperBound = *ptr + _threshold;
                 if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
                      ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( Feature2Df( x, y ) );
+                    features.push_back( ORBFeature( x, y, 0.0f, octave ) );
                 }
                 ptr++;
             }
