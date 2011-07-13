@@ -1,6 +1,7 @@
 #ifndef CVT_FAST_H
 #define CVT_FAST_H
 
+
 #include <cvt/vision/Feature2D.h>
 #include <cvt/gfx/Image.h>
 
@@ -19,7 +20,8 @@ namespace cvt
 
 	class FAST
 	{
-		typedef void    (FAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
+		typedef void (FAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
+
 		typedef int     (FAST::*ScoreFunc)( const uint8_t* p );
 
 		public:

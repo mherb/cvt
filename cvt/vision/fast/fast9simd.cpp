@@ -62,7 +62,7 @@ namespace cvt {
                     hi = _mm_adds_epu8( barriers, here );
                 }
 
-                unsigned int ans_0, ans_8, possible;
+                uint16_t ans_0, ans_8, possible;
                 {
                     __m128i top = _mm_load_si128( ( const __m128i* )( ptr - tripleStride ) );
                     __m128i bottom = _mm_load_si128( ( const __m128i* )( ptr + tripleStride ) );
@@ -77,7 +77,7 @@ namespace cvt {
                     }
                 }
 
-                unsigned int ans_15, ans_1;
+                uint16_t ans_15, ans_1;
                 {
                     __m128i a = _mm_loadu_si128( ( const __m128i* )( ptr - 1 - tripleStride ) );
                     __m128i c = _mm_insert_epi16( _mm_srli_si128( a, 2 ), *( const uint16_t* ) (ptr + 15 - tripleStride), 7 );
@@ -90,7 +90,7 @@ namespace cvt {
                         continue;
                 }
 
-                unsigned int ans_9, ans_7;
+                uint16_t ans_9, ans_7;
                 {
                     __m128i d = _mm_loadu_si128( ( const __m128i* )( ptr - 1 + tripleStride ) );
                     __m128i f = _mm_insert_epi16( _mm_srli_si128( d, 2 ), *( const uint16_t* )( ptr + 15 + tripleStride ), 7 );
@@ -103,7 +103,7 @@ namespace cvt {
                         continue;
                 }
 
-                unsigned int ans_12, ans_4;
+                uint16_t ans_12, ans_4;
                 {
                     __m128i left = _mm_loadu_si128( ( const __m128i* )( ptr - 3 ) );
                     __m128i right = _mm_loadu_si128( ( const __m128i* )( ptr + 3 ) );
@@ -116,7 +116,7 @@ namespace cvt {
                         continue;
                 }
 
-                unsigned int ans_14, ans_6;
+                uint16_t ans_14, ans_6;
                 {
                     __m128i ul = _mm_loadu_si128( ( const __m128i* ) ( ptr - 2 - 2 * stride ) );
                     __m128i lr = _mm_loadu_si128( ( const __m128i* ) ( ptr + 2 + 2 * stride ) );
@@ -137,7 +137,7 @@ namespace cvt {
                         continue;
                 }
 
-                unsigned int ans_10, ans_2;
+                uint16_t ans_10, ans_2;
                 {
                     __m128i ll = _mm_loadu_si128( ( const __m128i* ) (ptr - 2 + 2 * stride) );
                     __m128i ur = _mm_loadu_si128( ( const __m128i* ) (ptr + 2 - 2 * stride) );
@@ -160,23 +160,23 @@ namespace cvt {
                         continue;
                 }
 
-                unsigned int ans_13, ans_5;
+                uint16_t ans_13, ans_5;
                 {
                     __m128i g = _mm_loadu_si128( ( const __m128i* ) (ptr - 3 - stride ) );
                     __m128i l = _mm_loadu_si128( ( const __m128i* ) (ptr + 3 + stride ) );
                     CHECK_BARRIER( lo, hi, g, ans_13 );
                     CHECK_BARRIER( lo, hi, l, ans_5 );
-                    const unsigned int ans_15_0 = ans_15 & ans_0;
-                    const unsigned int ans_7_8 = ans_7 & ans_8;
+                    const uint16_t ans_15_0 = ans_15 & ans_0;
+                    const uint16_t ans_7_8 = ans_7 & ans_8;
                     {
-                        const unsigned int ans_12_13 = ans_12 & ans_13;
+                        const uint16_t ans_12_13 = ans_12 & ans_13;
                         possible &= ans_5 | (ans_12_13 & ans_14 & ((ans_15_0) | ans_10));
                         possible &= ans_7 | (ans_1 & ans_2) | (ans_12_13);
                         possible &= ans_2 | (ans_12_13) | (ans_7_8);
                     }
                     {
-                        const unsigned int ans_4_5 = ans_4 & ans_5;
-                        const unsigned int ans_9_10 = ans_9 & ans_10;
+                        const uint16_t ans_4_5 = ans_4 & ans_5;
+                        const uint16_t ans_9_10 = ans_9 & ans_10;
                         possible &= ans_13 | (ans_4_5 & ans_6 & ((ans_7_8) | ans_2));
                         possible &= ans_15 | (ans_4_5) | (ans_9_10);
                         possible &= ans_10 | (ans_4_5) | (ans_15_0);
@@ -191,31 +191,31 @@ namespace cvt {
                 }
 
 
-                unsigned int ans_11, ans_3;
+                uint16_t ans_11, ans_3;
                 {
                     __m128i ii = _mm_loadu_si128( ( const __m128i* )( ptr - 3 + stride ) );
                     __m128i jj = _mm_loadu_si128( ( const __m128i* )( ptr + 3 - stride ) );
                     CHECK_BARRIER( lo, hi, ii, ans_11 );
                     CHECK_BARRIER( lo, hi, jj, ans_3 );
                     {
-                        const int ans_2_3 = ans_2 & ans_3;
+                        const uint16_t ans_2_3 = ans_2 & ans_3;
                         possible &= ans_11 | (ans_2_3 & ans_4 & ((ans_0 & ans_1) | (ans_5 & ans_6)));
                         possible &= ans_13 | (ans_7 & ans_8) | (ans_2_3);
                         possible &= ans_8 | (ans_2_3) | (ans_13 & ans_14);
                     }
                     {
-                        const int ans_11_12 = ans_11 & ans_12;
+                        const uint16_t ans_11_12 = ans_11 & ans_12;
                         possible &= ans_3 | (ans_10 & ans_11_12 & ((ans_8 & ans_9) | (ans_13 & ans_14)));
                         possible &= ans_1 | (ans_11_12) | (ans_6 & ans_7);
                         possible &= ans_6 | (ans_0 & ans_1) | (ans_11_12);
                     }
                     {
-                        const int ans_3_4 = ans_3 & ans_4;
+                        const uint16_t ans_3_4 = ans_3 & ans_4;
                         possible &= ans_9 | (ans_3_4) | (ans_14 & ans_15);
                         possible &= ans_14 | (ans_8 & ans_9) | (ans_3_4);
                     }
                     {
-                        const int ans_10_11 = ans_10 & ans_11;
+                        const uint16_t ans_10_11 = ans_10 & ans_11;
                         possible &= ans_5 | (ans_15 & ans_0) | (ans_10_11);
                         possible &= ans_0 | (ans_10_11) | (ans_5 & ans_6);
                     }
@@ -225,7 +225,7 @@ namespace cvt {
 
                 }
 
-                possible |= (possible >> 16);
+                //possible |= (possible >> 16);
 
                 //if(possible & 0x0f) //Does this make it faster?
                 {
