@@ -53,11 +53,11 @@ namespace cvt {
                 ptr++;
             }
 
-            for ( size_t x = 16; x < xend; x += 16 ) {
-                std::cout << "x: " << x << " y: " << y << " xend: " << xend << std::endl;
+            for ( size_t x = 16; x < xend; x += 16, ptr += 16 ) {
                 __m128i lo, hi;
                 {
                     const __m128i here = _mm_load_si128( (const __m128i*)ptr );
+
                     lo = _mm_subs_epu8( here, barriers );
                     hi = _mm_adds_epu8( barriers, here );
                 }
@@ -71,11 +71,6 @@ namespace cvt {
                     CHECK_BARRIER( lo, hi, bottom, ans_8 );
 
                     possible = ans_0 | ans_8;
-
-                    std::cout << " 1 \nans0 ans8:";
-                    printBitMask( ans_0 );
-                    printBitMask( ans_8 );
-                    printBitMask( possible );
 
                     if ( !possible ){
                         continue;
@@ -91,10 +86,6 @@ namespace cvt {
                     // 8 or (15 and 1 )
                     possible &= ans_8 | (ans_15 & ans_1);
 
-                    std::cout << " 2 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
-
                     if ( !possible )
                         continue;
                 }
@@ -108,10 +99,6 @@ namespace cvt {
                     possible &= ans_9 | ( ans_0 & ans_1 );
                     possible &= ans_7 | ( ans_15 & ans_0 );
 
-                    std::cout << " 3 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
-
                     if ( !possible )
                         continue;
                 }
@@ -124,10 +111,6 @@ namespace cvt {
                     CHECK_BARRIER( lo, hi, right, ans_4 );
                     possible &= ans_12 | ( ans_4 & ( ans_1 | ans_7 ) );
                     possible &= ans_4 | ( ans_12 & ( ans_9 | ans_15 ) );
-
-                    std::cout << " 4 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
 
                     if ( !possible )
                         continue;
@@ -149,10 +132,6 @@ namespace cvt {
                         possible &= ans_6 | (ans_14_15 & (ans_12 | (ans_0 & ans_1)));
                         possible &= ans_9 | (ans_14_15) | ans_4;
                     }
-
-                    std::cout << " 5 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
 
                     if ( !possible )
                         continue;
@@ -176,10 +155,6 @@ namespace cvt {
                     }
                     possible &= ans_8 | ans_14 | ans_2;
                     possible &= ans_0 | ans_10 | ans_6;
-
-                    std::cout << " 6 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
 
                     if ( !possible )
                         continue;
@@ -210,10 +185,6 @@ namespace cvt {
 
                     possible &= ans_8 | (ans_13 & ans_14) | ans_2;
                     possible &= ans_0 | (ans_5 & ans_6) | ans_10;
-
-                    std::cout << " 7 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
 
                     if ( !possible )
                         continue;
@@ -249,17 +220,12 @@ namespace cvt {
                         possible &= ans_0 | (ans_10_11) | (ans_5 & ans_6);
                     }
 
-                    std::cout << " 8 ";
-                    printBitMask( possible );
-                    std::cout << std::endl;
-
                     if ( !possible )
                         continue;
 
                 }
 
                 possible |= (possible >> 16);
-                std::cout << " GOOD IN " << x << ", y " << y << std::endl;
 
                 //if(possible & 0x0f) //Does this make it faster?
                 {
@@ -300,7 +266,6 @@ namespace cvt {
                     if ( possible & (1 << 15) )
                         features.push_back( Feature2D( x + 15, y ) );
                 }
-                ptr += 16;
             }
 
             for ( size_t x = xend; x < width - 3; x++ ){

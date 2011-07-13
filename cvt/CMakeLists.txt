@@ -247,6 +247,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Range.h
 	util/RNG.h
 	util/Signal.h
+	util/SIMDDebug.h
 	util/SIMD.h
 	util/SIMDSSE.h
 	util/SIMDSSE2.h
