@@ -17,8 +17,8 @@ namespace cvt
 	{
 		switch( size ){
 			case SEGMENT_9:
-				//_extract = &FAST::detect9simd;
-                _extract = &FAST::detect9;
+				_extract = &FAST::detect9simd;
+                //_extract = &FAST::detect9;
 				_score = &FAST::score9;
 				break;
 			case SEGMENT_10:
