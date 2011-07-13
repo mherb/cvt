@@ -23,7 +23,7 @@ namespace cvt {
 		//( ( AGAST* )_featureDetector )->setThreshold( _threshold );
 
 		_featureDetector = new FAST( SEGMENT_9 );
-		( ( FAST* )_featureDetector )->setNonMaxSuppress( true );
+		( ( FAST* )_featureDetector )->setNonMaxSuppress( false );
 		( ( FAST* )_featureDetector )->setThreshold( _threshold );
 		( ( FAST* )_featureDetector )->setMinScore( 20 );
 	}
@@ -93,8 +93,8 @@ namespace cvt {
         size_t numFeatures = features.size();
   //      std::cout << "Tracked features: " << numFeatures << std::endl;
         if( numFeatures < 100 ){
-            //_featureDetector->extract( current, features );
-            _featureDetector->extractMultiScale( current, features, 4 );
+            _featureDetector->extract( current, features );
+            //_featureDetector->extractMultiScale( current, features, 4 );
 /*
             Recti roi( 0, 0, 21, 21 );
             while( numFeatures < features.size() ) {

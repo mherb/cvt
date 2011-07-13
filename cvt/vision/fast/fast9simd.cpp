@@ -4,246 +4,315 @@
 
 namespace cvt {
 
-#define TEST_UPPER_LOWER_SIMD( val, result )                \
-    brighter = _mm_subs_epu8( val, lower );                 \
-    darker   = _mm_subs_epu8( upper, val );                 \
-    brighter = _mm_cmpeq_epi8( brighter, zeros );           \
-    darker   = _mm_cmpeq_epi8( darker, zeros );				\
-    result   = ~( _mm_movemask_epi8( brighter ) | ( _mm_movemask_epi8( darker ) << 16 ) );
+    #define CHECK_BARRIER(lo, hi, other, flags)		\
+    {                                               \
+        __m128i diff = _mm_subs_epu8(lo, other);	\
+        __m128i diff2 = _mm_subs_epu8(other, hi);	\
+        __m128i z = _mm_setzero_si128();			\
+        diff = _mm_cmpeq_epi8(diff, z);				\
+        diff2 = _mm_cmpeq_epi8(diff2, z);			\
+        flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
+    }
+
+    void printBitMask( unsigned int mask )
+    {
+        for( size_t i = 0; i < 8*sizeof( int ); i++ ){
+            if( mask & (1 << i) )
+                std::cout << "1";
+            else
+                std::cout << "0";
+        }
+        std::cout << std::endl;
+    }
 
     void FAST::detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2D> & features )
     {
-        size_t h = height - 3;
-        size_t w = width - 3;
+        make_offsets( stride );
+        const size_t tripleStride = 3 * stride;
 
-        features.reserve( 1024 );
-        int upperBound;
-        int lowerBound;
+        // The compiler refuses to reserve a register for this
+        const __m128i barriers = _mm_set1_epi8( _threshold  );
 
-        size_t tripleStride = stride * 3;
-        im += tripleStride + 3; // first testable pixel
+        // xend is the beginning of the last pixels in the row that need to be processed in the normal way
+        size_t xend = width - 3 - ( width - 3 ) % 16;
 
-        // number of nonaligned pixel at the start of the row
-        size_t numAligned = ( ( w - 16 ) >> 4 );
-        size_t alignEnd =  16 + ( numAligned << 4 );
+        im += tripleStride;
+        const uint8_t * ptr;
 
-        const __m128i thresholds = _mm_set1_epi8( ( uint8_t )_threshold );
-        const __m128i zeros = _mm_setzero_si128();
-        __m128i upper, lower, v0, v1, brighter, darker;
+        int upperBound, lowerBound;
 
-        // intermediate result bit masks
-        uint32_t p0, p1, p2, p3, p4, p5, p6, p7;
-        uint32_t p8, p9, p10, p11, p12, p13, p14, p15;
-
-        uint32_t possibleCorners;
-
-        for( size_t y = 3; y < h; y++ ){
-            const uint8_t * curr = im;
-
-            for( size_t x = 3; x < 16; x++ ){
-                lowerBound = *curr - _threshold;
-                upperBound = *curr + _threshold;
-
-                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
+        for ( size_t y = 3; y < height - 3; y++ ) {
+            ptr = im + 3;
+            for ( size_t x = 3; x < 16; x++ ){
+                lowerBound = *ptr - _threshold;
+                upperBound = *ptr + _threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
+                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
                     features.push_back( Feature2D( x, y ) );
-                } else {
-                    if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
-                        features.push_back( Feature2D( x, y ) );
-                    }
                 }
-                curr++;
+                ptr++;
             }
 
-            // now we can use aligned simd stuff
-            for( size_t x = 16; x < alignEnd; x+=16 ){
-				// load the next 16 values:
-				{
-					const __m128i vals = _mm_load_si128( (const __m128i *)curr );
-					lower = _mm_subs_epu8( vals, thresholds );
-					upper = _mm_adds_epu8( vals, thresholds );
-				}
+            for ( size_t x = 16; x < xend; x += 16 ) {
+                std::cout << "x: " << x << " y: " << y << " xend: " << xend << std::endl;
+                __m128i lo, hi;
+                {
+                    const __m128i here = _mm_load_si128( (const __m128i*)ptr );
+                    lo = _mm_subs_epu8( here, barriers );
+                    hi = _mm_adds_epu8( barriers, here );
+                }
 
-				// p0 | p8 ?
-				v0 = _mm_load_si128( ( const __m128i* )( curr - tripleStride ) );
-				v1 = _mm_load_si128( ( const __m128i* )( curr + tripleStride ) );
+                unsigned int ans_0, ans_8, possible;
+                {
+                    __m128i top = _mm_load_si128( ( const __m128i* )( ptr - tripleStride ) );
+                    __m128i bottom = _mm_load_si128( ( const __m128i* )( ptr + tripleStride ) );
 
-				// calc test results for pixel 0 and 8
-				// pixel 0: p < lower -> p - lower < 0
-				TEST_UPPER_LOWER_SIMD( v0, p0 );
-				TEST_UPPER_LOWER_SIMD( v1, p8 );
-				possibleCorners = ( p0 | p8 );
-				if( !possibleCorners ) continue;
+                    CHECK_BARRIER( lo, hi, top, ans_0 );
+                    CHECK_BARRIER( lo, hi, bottom, ans_8 );
 
-				v0 = _mm_loadu_si128( ( const __m128i* )( curr - 1 - tripleStride ) );
-				v1 = _mm_insert_epi16( _mm_srli_si128( v0, 2 ), *( const unsigned short* )( curr + 15 - stride ), 7 );
-				TEST_UPPER_LOWER_SIMD(v0, p15);
-				TEST_UPPER_LOWER_SIMD(v1, p1);
-				possibleCorners &= p8 | ( p15 & p1 );
-				if ( ! possibleCorners ) continue;
+                    possible = ans_0 | ans_8;
 
-				v0 = _mm_loadu_si128( (const __m128i* )( curr-1+tripleStride));
-				v1 = _mm_insert_epi16( _mm_srli_si128( v0, 2 ), *( const unsigned short* )( curr+15+tripleStride), 7);
-				TEST_UPPER_LOWER_SIMD(v0, p9);
-				TEST_UPPER_LOWER_SIMD(v1, p7);
-				possibleCorners &= p9 | (p0 & p1);
-				possibleCorners &= p7 | (p15 & p0);
-				if (!possibleCorners)
-					continue;
+                    std::cout << " 1 \nans0 ans8:";
+                    printBitMask( ans_0 );
+                    printBitMask( ans_8 );
+                    printBitMask( possible );
 
-				v0 = _mm_loadu_si128((const __m128i*)( curr - 3 ) );
-				v1 = _mm_loadu_si128((const __m128i*)( curr + 3 ) );
-				TEST_UPPER_LOWER_SIMD( v0, p12 );
-				TEST_UPPER_LOWER_SIMD( v1, p4 );
-				possibleCorners &= p12 | (p4 & (p1 | p7));
-				possibleCorners &= p4 | (p12 & (p9 | p15));
-				if (!possibleCorners) continue;
-
-				v0 = _mm_loadu_si128( ( const __m128i* )( curr-2-2*stride ) );
-				v1 = _mm_loadu_si128( ( const __m128i* )( curr+2+2*stride ) );
-				TEST_UPPER_LOWER_SIMD( v0, p14 );
-				TEST_UPPER_LOWER_SIMD( v1, p6 );
-				{
-					const unsigned int p6_7 = p6 & p7;
-					possibleCorners &= p14 | (p6_7 & (p4 | (p8 & p9)));
-					possibleCorners &= p1 | (p6_7) | p12;
-				}
-				{
-					const unsigned int p14_15 = p14 & p15;
-					possibleCorners &= p6 | (p14_15 & (p12 | (p0 & p1)));
-					possibleCorners &= p9 | (p14_15) | p4;
-				}
-				if (!possibleCorners) continue;
-
-				v0 = _mm_loadu_si128( ( const __m128i* )( curr-2+2*stride ) );
-				v1 = _mm_loadu_si128( ( const __m128i* )( curr+2-2*stride ) );
-
-				TEST_UPPER_LOWER_SIMD( v0, p10 );
-				TEST_UPPER_LOWER_SIMD( v1, p2 );
-				{
-					const unsigned int p1_2 = p1 & p2;
-					possibleCorners &= p10 | (p1_2 & ((p0 & p15) | p4));
-					possibleCorners &= p12 | (p1_2) | (p6 & p7);
-				}
-				{
-					const unsigned int p9_10 = p9 & p10;
-					possibleCorners &= p2 | (p9_10 & ((p7 & p8) | p12));
-					possibleCorners &= p4 | (p9_10) | (p14 & p15);
-				}
-				possibleCorners &= p8 | p14 | p2;
-				possibleCorners &= p0 | p10 | p6;
-				if (!possibleCorners) continue;
-
-				v0 = _mm_loadu_si128( ( const __m128i* )( curr-3-stride ) );
-				v1 = _mm_loadu_si128( ( const __m128i* )( curr+3+stride ) );
-				TEST_UPPER_LOWER_SIMD( v0, p13 );
-				TEST_UPPER_LOWER_SIMD( v1, p5 );
-
-				const unsigned int p15_0 = p15 & p0;
-				const unsigned int p7_8 = p7 & p8;
-				{
-					const unsigned int p12_13 = p12 & p13;
-					possibleCorners &= p5 | (p12_13 & p14 & ((p15_0) | p10));
-					possibleCorners &= p7 | (p1 & p2) | (p12_13);
-					possibleCorners &= p2 | (p12_13) | (p7_8);
-				}
-				{
-					const unsigned int p4_5 = p4 & p5;
-					const unsigned int p9_10 = p9 & p10;
-					possibleCorners &= p13 | (p4_5 & p6 & ((p7_8) | p2));
-					possibleCorners &= p15 | (p4_5) | (p9_10);
-					possibleCorners &= p10 | (p4_5) | (p15_0);
-					possibleCorners &= p15 | (p9_10) | (p4_5);
-				}
-
-				possibleCorners &= p8 | (p13 & p14) | p2;
-				possibleCorners &= p0 | (p5 & p6) | p10;
-				if (!possibleCorners) continue;
-
-				v0 = _mm_loadu_si128( ( const __m128i* )( curr-3+stride ) );
-				v1 = _mm_loadu_si128( ( const __m128i* )( curr+3-stride ) );
-				TEST_UPPER_LOWER_SIMD( v0, p11 );
-				TEST_UPPER_LOWER_SIMD( v1, p3 );
-				{
-					const unsigned int p2_3 = p2 & p3;
-					possibleCorners &= p11 | (p2_3 & p4 & ((p0 & p1) | (p5 & p6)));
-					possibleCorners &= p13 | (p7 & p8) | (p2_3);
-					possibleCorners &= p8 | (p2_3) | (p13 & p14);
-				}
-				{
-					const unsigned int p11_12 = p11 & p12;
-					possibleCorners &= p3 | (p10 & p11_12 & ((p8 & p9) | (p13 & p14)));
-					possibleCorners &= p1 | (p11_12) | (p6 & p7);
-					possibleCorners &= p6 | (p0 & p1) | (p11_12);
-				}
-				{
-					const unsigned int p3_4 = p3 & p4;
-					possibleCorners &= p9 | (p3_4) | (p14 & p15);
-					possibleCorners &= p14 | (p8 & p9) | (p3_4);
-				}
-				{
-					const unsigned int p10_11 = p10 & p11;
-					possibleCorners &= p5 | (p15 & p0) | (p10_11);
-					possibleCorners &= p0 | (p10_11) | (p5 & p6);
-				}
-				if (!possibleCorners) continue;
-
-                // now evaluate:
-                possibleCorners |= ( possibleCorners >> 16 );
-                if( possibleCorners & ( 1 << 0 ) )
-                    features.push_back( Feature2D( x + 0, y ) );
-                if( possibleCorners & ( 1 << 1 ) )
-                    features.push_back( Feature2D( x + 1, y ) );
-                if( possibleCorners & ( 1 << 2 ) )
-                    features.push_back( Feature2D( x + 2, y ) );
-                if( possibleCorners & ( 1 << 3 ) )
-                    features.push_back( Feature2D( x + 3, y ) );
-                if( possibleCorners & ( 1 << 4 ) )
-                    features.push_back( Feature2D( x + 4, y ) );
-                if( possibleCorners & ( 1 << 5 ) )
-                    features.push_back( Feature2D( x + 5, y ) );
-                if( possibleCorners & ( 1<< 6 ) )
-                    features.push_back( Feature2D( x + 6, y ) );
-                if( possibleCorners & ( 1<< 7 ) )
-                    features.push_back( Feature2D( x + 7, y ) );
-                if( possibleCorners & ( 1<< 8 ) )
-                    features.push_back( Feature2D( x + 8, y ) );
-                if( possibleCorners & ( 1<< 9 ) )
-                    features.push_back( Feature2D( x + 9, y ) );
-                if( possibleCorners & ( 1<< 10 ) )
-                    features.push_back( Feature2D( x + 10, y ) );
-                if( possibleCorners & ( 1<< 11 ) )
-                    features.push_back( Feature2D( x + 11, y ) );
-                if( possibleCorners & ( 1<< 12 ) )
-                    features.push_back( Feature2D( x + 12, y ) );
-                if( possibleCorners & ( 1<< 13 ) )
-                    features.push_back( Feature2D( x + 13, y ) );
-                if( possibleCorners & ( 1<< 14 ) )
-                    features.push_back( Feature2D( x + 14, y ) );
-                if( possibleCorners & ( 1<< 15 ) )
-                    features.push_back( Feature2D( x + 15, y ) );
-
-                curr+=16;
-			}
-
-            // now do the rest
-            for( size_t x = alignEnd; x < w; x++ ){
-                lowerBound = *curr - _threshold;
-                upperBound = *curr + _threshold;
-
-                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound ) ){
-                    features.push_back( Feature2D( x, y ) );
-                } else {
-                    if( upperBound < 255 && isBrighterCorner9( curr, upperBound ) ){
-                        features.push_back( Feature2D( x, y ) );
+                    if ( !possible ){
+                        continue;
                     }
                 }
-                curr++;
+
+                unsigned int ans_15, ans_1;
+                {
+                    __m128i a = _mm_loadu_si128( ( const __m128i* )( ptr - 1 - tripleStride ) );
+                    __m128i c = _mm_insert_epi16( _mm_srli_si128( a, 2 ), *( const uint16_t* ) (ptr + 15 - tripleStride), 7 );
+                    CHECK_BARRIER( lo, hi, a, ans_15 );
+                    CHECK_BARRIER( lo, hi, c, ans_1 );
+                    // 8 or (15 and 1 )
+                    possible &= ans_8 | (ans_15 & ans_1);
+
+                    std::cout << " 2 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+                unsigned int ans_9, ans_7;
+                {
+                    __m128i d = _mm_loadu_si128( ( const __m128i* )( ptr - 1 + tripleStride ) );
+                    __m128i f = _mm_insert_epi16( _mm_srli_si128( d, 2 ), *( const uint16_t* )( ptr + 15 + tripleStride ), 7 );
+                    CHECK_BARRIER( lo, hi, d, ans_9 );
+                    CHECK_BARRIER( lo, hi, f, ans_7 );
+                    possible &= ans_9 | ( ans_0 & ans_1 );
+                    possible &= ans_7 | ( ans_15 & ans_0 );
+
+                    std::cout << " 3 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+                unsigned int ans_12, ans_4;
+                {
+                    __m128i left = _mm_loadu_si128( ( const __m128i* )( ptr - 3 ) );
+                    __m128i right = _mm_loadu_si128( ( const __m128i* )( ptr + 3 ) );
+                    CHECK_BARRIER( lo, hi, left, ans_12 );
+                    CHECK_BARRIER( lo, hi, right, ans_4 );
+                    possible &= ans_12 | ( ans_4 & ( ans_1 | ans_7 ) );
+                    possible &= ans_4 | ( ans_12 & ( ans_9 | ans_15 ) );
+
+                    std::cout << " 4 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+                unsigned int ans_14, ans_6;
+                {
+                    __m128i ul = _mm_loadu_si128( ( const __m128i* ) ( ptr - 2 - 2 * stride ) );
+                    __m128i lr = _mm_loadu_si128( ( const __m128i* ) ( ptr + 2 + 2 * stride ) );
+                    CHECK_BARRIER( lo, hi, ul, ans_14 );
+                    CHECK_BARRIER( lo, hi, lr, ans_6 );
+                    {
+                        const unsigned int ans_6_7 = ans_6 & ans_7;
+                        possible &= ans_14 | (ans_6_7 & (ans_4 | (ans_8 & ans_9)));
+                        possible &= ans_1 | (ans_6_7) | ans_12;
+                    }
+                    {
+                        const unsigned int ans_14_15 = ans_14 & ans_15;
+                        possible &= ans_6 | (ans_14_15 & (ans_12 | (ans_0 & ans_1)));
+                        possible &= ans_9 | (ans_14_15) | ans_4;
+                    }
+
+                    std::cout << " 5 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+                unsigned int ans_10, ans_2;
+                {
+                    __m128i ll = _mm_loadu_si128( ( const __m128i* ) (ptr - 2 + 2 * stride) );
+                    __m128i ur = _mm_loadu_si128( ( const __m128i* ) (ptr + 2 - 2 * stride) );
+                    CHECK_BARRIER( lo, hi, ll, ans_10 );
+                    CHECK_BARRIER( lo, hi, ur, ans_2 );
+                    {
+                        const unsigned int ans_1_2 = ans_1 & ans_2;
+                        possible &= ans_10 | (ans_1_2 & ((ans_0 & ans_15) | ans_4));
+                        possible &= ans_12 | (ans_1_2) | (ans_6 & ans_7);
+                    }
+                    {
+                        const unsigned int ans_9_10 = ans_9 & ans_10;
+                        possible &= ans_2 | (ans_9_10 & ((ans_7 & ans_8) | ans_12));
+                        possible &= ans_4 | (ans_9_10) | (ans_14 & ans_15);
+                    }
+                    possible &= ans_8 | ans_14 | ans_2;
+                    possible &= ans_0 | ans_10 | ans_6;
+
+                    std::cout << " 6 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+                unsigned int ans_13, ans_5;
+                {
+                    __m128i g = _mm_loadu_si128( ( const __m128i* ) (ptr - 3 - stride ) );
+                    __m128i l = _mm_loadu_si128( ( const __m128i* ) (ptr + 3 + stride ) );
+                    CHECK_BARRIER( lo, hi, g, ans_13 );
+                    CHECK_BARRIER( lo, hi, l, ans_5 );
+                    const unsigned int ans_15_0 = ans_15 & ans_0;
+                    const unsigned int ans_7_8 = ans_7 & ans_8;
+                    {
+                        const unsigned int ans_12_13 = ans_12 & ans_13;
+                        possible &= ans_5 | (ans_12_13 & ans_14 & ((ans_15_0) | ans_10));
+                        possible &= ans_7 | (ans_1 & ans_2) | (ans_12_13);
+                        possible &= ans_2 | (ans_12_13) | (ans_7_8);
+                    }
+                    {
+                        const unsigned int ans_4_5 = ans_4 & ans_5;
+                        const unsigned int ans_9_10 = ans_9 & ans_10;
+                        possible &= ans_13 | (ans_4_5 & ans_6 & ((ans_7_8) | ans_2));
+                        possible &= ans_15 | (ans_4_5) | (ans_9_10);
+                        possible &= ans_10 | (ans_4_5) | (ans_15_0);
+                        possible &= ans_15 | (ans_9_10) | (ans_4_5);
+                    }
+
+                    possible &= ans_8 | (ans_13 & ans_14) | ans_2;
+                    possible &= ans_0 | (ans_5 & ans_6) | ans_10;
+
+                    std::cout << " 7 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+                }
+
+
+                unsigned int ans_11, ans_3;
+                {
+                    __m128i ii = _mm_loadu_si128( ( const __m128i* )( ptr - 3 + stride ) );
+                    __m128i jj = _mm_loadu_si128( ( const __m128i* )( ptr + 3 - stride ) );
+                    CHECK_BARRIER( lo, hi, ii, ans_11 );
+                    CHECK_BARRIER( lo, hi, jj, ans_3 );
+                    {
+                        const int ans_2_3 = ans_2 & ans_3;
+                        possible &= ans_11 | (ans_2_3 & ans_4 & ((ans_0 & ans_1) | (ans_5 & ans_6)));
+                        possible &= ans_13 | (ans_7 & ans_8) | (ans_2_3);
+                        possible &= ans_8 | (ans_2_3) | (ans_13 & ans_14);
+                    }
+                    {
+                        const int ans_11_12 = ans_11 & ans_12;
+                        possible &= ans_3 | (ans_10 & ans_11_12 & ((ans_8 & ans_9) | (ans_13 & ans_14)));
+                        possible &= ans_1 | (ans_11_12) | (ans_6 & ans_7);
+                        possible &= ans_6 | (ans_0 & ans_1) | (ans_11_12);
+                    }
+                    {
+                        const int ans_3_4 = ans_3 & ans_4;
+                        possible &= ans_9 | (ans_3_4) | (ans_14 & ans_15);
+                        possible &= ans_14 | (ans_8 & ans_9) | (ans_3_4);
+                    }
+                    {
+                        const int ans_10_11 = ans_10 & ans_11;
+                        possible &= ans_5 | (ans_15 & ans_0) | (ans_10_11);
+                        possible &= ans_0 | (ans_10_11) | (ans_5 & ans_6);
+                    }
+
+                    std::cout << " 8 ";
+                    printBitMask( possible );
+                    std::cout << std::endl;
+
+                    if ( !possible )
+                        continue;
+
+                }
+
+                possible |= (possible >> 16);
+                std::cout << " GOOD IN " << x << ", y " << y << std::endl;
+
+                //if(possible & 0x0f) //Does this make it faster?
+                {
+                    if ( possible & (1 << 0) )
+                        features.push_back( Feature2D( x + 0, y ) );
+                    if ( possible & (1 << 1) )
+                        features.push_back( Feature2D( x + 1, y ) );
+                    if ( possible & (1 << 2) )
+                        features.push_back( Feature2D( x + 2, y ) );
+                    if ( possible & (1 << 3) )
+                        features.push_back( Feature2D( x + 3, y ) );
+                    if ( possible & (1 << 4) )
+                        features.push_back( Feature2D( x + 4, y ) );
+                    if ( possible & (1 << 5) )
+                        features.push_back( Feature2D( x + 5, y ) );
+                    if ( possible & (1 << 6) )
+                        features.push_back( Feature2D( x + 6, y ) );
+                    if ( possible & (1 << 7) )
+                        features.push_back( Feature2D( x + 7, y ) );
+                }
+
+                //if(possible & 0xf0) //Does this mak( ,  fast)r?
+                {
+                    if ( possible & (1 << 8) )
+                        features.push_back( Feature2D( x + 8, y ) );
+                    if ( possible & (1 << 9) )
+                        features.push_back( Feature2D( x + 9, y ) );
+                    if ( possible & (1 << 10) )
+                        features.push_back( Feature2D( x + 10, y ) );
+                    if ( possible & (1 << 11) )
+                        features.push_back( Feature2D( x + 11, y ) );
+                    if ( possible & (1 << 12) )
+                        features.push_back( Feature2D( x + 12, y ) );
+                    if ( possible & (1 << 13) )
+                        features.push_back( Feature2D( x + 13, y ) );
+                    if ( possible & (1 << 14) )
+                        features.push_back( Feature2D( x + 14, y ) );
+                    if ( possible & (1 << 15) )
+                        features.push_back( Feature2D( x + 15, y ) );
+                }
+                ptr += 16;
             }
 
+            for ( size_t x = xend; x < width - 3; x++ ){
+                lowerBound = *ptr - _threshold;
+                upperBound = *ptr + _threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
+                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
+                    features.push_back( Feature2D( x, y ) );
+                }
+                ptr++;
+            }
             im += stride;
         }
     }
-
-#undef TEST_UPPER_LOWER_SIMD
-
 }
