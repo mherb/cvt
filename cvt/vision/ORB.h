@@ -57,6 +57,8 @@ namespace cvt {
 			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
 
             void detect9( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
+            void detect9simd( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
+
             void nonmaxSuppression( const std::vector<ORBFeature> & features );
 
             void makeOffsets( size_t stride );

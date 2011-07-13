@@ -49,7 +49,8 @@ namespace cvt {
         // detect the features for this level
         size_t stride;
         const uint8_t * ptr = img.map( &stride );
-        detect9( features, ptr, stride, img.width(), img.height(), octave );
+        //detect9( features, ptr, stride, img.width(), img.height(), octave );
+        detect9simd( features, ptr, stride, img.width(), img.height(), octave );
         img.unmap( ptr );
 
         _iimages[ octave ].update( img );
