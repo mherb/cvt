@@ -17,8 +17,20 @@ int main()
 	cvt::Resources resources;
 	String inputFile = resources.find( "lena.png" );
 	String inputGray = resources.find( "lena_g.png" );
+	String inputSTest = resources.find( "scaletest.png" );
 	
 	try {
+		{
+			cvt::Image stst;
+			stst.load( inputSTest );
+			cvt::Image stst2( stst.width(), stst.height(), cvt::IFormat::floatEquivalent( stst.format() ) );
+			stst.convert( stst2 );
+			cvt::IScaleFilterBilinear filter;
+			cvt::Image out;
+			stst2.scale( out, stst.width() / 2, stst.height( ) / 2, filter );
+			out.save( "scaleoutput.png" );
+		}
+
 		// RGBA UBYTE IMAGE
 		cvt::Image img, img2;		
 		img.load( inputFile.c_str() );
