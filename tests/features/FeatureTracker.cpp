@@ -11,15 +11,14 @@
 
 namespace cvt {
 	FeatureTracker::FeatureTracker() :
-		_featureDetector( SEGMENT_9 ),
+		_featureDetector( SEGMENT_12 ),
         _currentIntegralImg( 0 ),
 		_threshold( 35 ),
 		_nccThreshold( 0.8 ),
         _searchRadius( 5 )
 	{
-        _featureDetector.setNonMaxSuppress( false );
+        _featureDetector.setNonMaxSuppress( true );
 		_featureDetector.setThreshold( _threshold );
-		_featureDetector.setMinScore( 20 );
 	}
 
 	FeatureTracker::~FeatureTracker()

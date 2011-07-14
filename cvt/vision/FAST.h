@@ -2,6 +2,8 @@
 #define CVT_FAST_H
 
 #include <cvt/vision/Feature2D.h>
+#include <cvt/util/CPU.h>
+#include <cvt/util/Exception.h>
 #include <cvt/gfx/Image.h>
 
 #include <vector>
@@ -19,49 +21,58 @@ namespace cvt
 
 	class FAST
 	{
-		typedef void (*ExtractFunc)( const Image & im, uint8_t threshold, std::vector<Feature2Df> & features, size_t border );
-		typedef int  (*ScoreFunc)( const uint8_t* p, const int * offsets, uint8_t threshold );
-
 		public:
 			FAST( FASTSize size = SEGMENT_9 );
 			~FAST();
 
-			void extract( const Image & image, std::vector<Feature2Df> & features );
+            template<class PointContainer>
+			void extract( const Image & image, PointContainer & features );
 
 			void setThreshold( uint8_t threshold );
 			uint8_t threshold();
-			void setMinScore( int32_t minscore );
-			int32_t minScore();
 
             void setNonMaxSuppress( bool val ) { _suppress = val; }
 
-            static void nonmaxSuppression( const std::vector<Feature2Df> & corners, const int* scores, std::vector<Feature2Df> & suppressed );
+            static void nonmaxSuppression( std::vector<Feature2Df> & suppressed, const std::vector<Feature2Df> & features );
+        
+            /*
+             *  template PointContainer     Functor which has operator()( float x, float y )
+             */
+            template <class PointContainer>
+            static void detect9( const Image & img, uint8_t threshold, PointContainer & features, size_t border = 3 );            
+            static void score9( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold );
+        
+            static void detect10( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+            static void score10( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold );
+        
+            static void detect11( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+            static void score11( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold );
+        
+            static void detect12( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+            static void score12( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold );
 
 		private:
 			uint8_t		_threshold;
-			int32_t		_minScore;
-			ExtractFunc	_extract;
-			ScoreFunc	_score;
             bool        _suppress;
-
-			int* score( const uint8_t* img, size_t stride, std::vector<Feature2Df> & corners );
-			
-            static void detect9( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
-            static void detect9simd( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
-            static int score9( const uint8_t* p, const int * offsets, uint8_t threshold );
+            FASTSize    _fastSize;
+        
+            template<class PointContainer> void doExtract( const Image & img, PointContainer & features );
+           
             static bool isDarkerCorner9( const uint8_t * p, const int barrier, const int * offsets );
-            static bool isBrighterCorner9( const uint8_t * p, const int barrier, const int * offsets );
-        
-			static void detect10( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
-			static int score10( const uint8_t* p, const int * offsets, uint8_t threshold );
-        
-			static void detect11( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
-			static int score11( const uint8_t* p, const int * offsets, uint8_t threshold );
-        
-			static void detect12( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
-			static int score12( const uint8_t* p, const int * offsets, uint8_t threshold );
-
+            static bool isBrighterCorner9( const uint8_t * p, const int barrier, const int * offsets );            
             static void make_offsets( int * offsets, size_t row_stride );
+            
+        
+            static int  score9Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
+            static int score10Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
+            static int score11Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
+            static int score12Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
+        
+            template<class PointContainer>
+            static void detect9cpu( const Image & img, uint8_t threshold, PointContainer & features, size_t border = 3 );
+        
+            template<class PointContainer>
+            static void detect9simd( const Image & img, uint8_t threshold, PointContainer & features, size_t border = 3 );
 	};
 
 	inline void FAST::setThreshold( uint8_t threshold )
@@ -73,17 +84,7 @@ namespace cvt
 	{
 		return _threshold;
 	}
-
-	inline void FAST::setMinScore( int32_t minscore )
-	{
-		_minScore = minscore;
-	}
-
-	inline int32_t FAST::minScore()
-	{
-		return _minScore;
-	}    
-    
+   
 	inline void FAST::make_offsets( int * offsets, size_t row_stride )
 	{
         offsets[0]  =  0 + row_stride * 3;
@@ -103,6 +104,9 @@ namespace cvt
 		offsets[14] = -2 + row_stride * 2;
 		offsets[15] = -1 + row_stride * 3;
     }
+    
+    #include <cvt/vision/fast/FAST.inl>
+    
 }
 
 #endif

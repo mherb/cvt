@@ -1,8 +1,22 @@
 #include <cvt/vision/FAST.h>
 
 namespace cvt {
+    
+    /* calc the scores for all the corners */
+	void FAST::score11( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold )
+	{
+        size_t stride;
+        const uint8_t * p = img.map( &stride );
+        
+        int offsets[ 16 ];
+        make_offsets( offsets, stride );        
+        
+		for( size_t n = 0; n < corners.size(); n++ )
+			corners[ n ].score = score11Pixel( p + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x, offsets, threshold );
+        img.unmap( p );
+	}
 
-	int FAST::score11( const uint8_t* p, const int * offsets, uint8_t threshold )
+	int FAST::score11Pixel( const uint8_t* p, const int * offsets, uint8_t threshold )
 	{
 		int bmin = threshold;
 		int bmax = 255;
