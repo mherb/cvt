@@ -16,7 +16,6 @@
 #include "FeatureView.h"
 
 #include <cvt/vision/FAST.h>
-#include <cvt/vision/AGAST.h>
 
 #include "FeatureTracker.h"
 #include <algorithm>

@@ -142,8 +142,8 @@ void testFerns()
     FAST * fe = new FAST( SEGMENT_9 );
 	fe->setThreshold( 30 );
 
-	fe->extract( warped, features );
-	//fe->extractMultiScale( gray, features, 3 );
+    VectorFeature2DInserter<float> inserter( features );
+	fe->extract( warped, inserter );
 
 	std::vector<Eigen::Vector2d> reference, imageFeatures;
 	std::vector<Eigen::Vector2i> featurePoints;

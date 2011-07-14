@@ -265,7 +265,6 @@ SET(${MODULE_NAME}_HEADERS
 	util/PluginFile.h
 	util/Data.h
     util/DataIterator.h
-	vision/AGAST.h
 	vision/Brief.h
 	vision/CamModel.h
 	vision/DLT.h
@@ -392,16 +391,10 @@ SET(${MODULE_NAME}_SOURCES
 	util/String.cpp
 	util/PluginManager.cpp
 	util/PluginFile.cpp
-	vision/AGAST.cpp
-	vision/agast/agast5_8.cpp
-	vision/agast/agast7_12s.cpp
-	vision/agast/agast7_12d.cpp
-	vision/agast/oast9_16.cpp
 	vision/Brief.cpp
 	vision/DLT.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp
-	vision/fast/fast9simd.cpp
 	vision/fast/fast10.cpp
 	vision/fast/fast11.cpp
 	vision/fast/fast12.cpp
