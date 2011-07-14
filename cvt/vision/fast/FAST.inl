@@ -459,5 +459,5 @@ flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
         }
         img.unmap( iptr );
         
-        #undef CHECK_BARRIER;
+        #undef CHECK_BARRIER
     }
