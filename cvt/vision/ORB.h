@@ -45,9 +45,6 @@ namespace cvt {
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
 
-			// in order to use ORB as Container for the FAST feature detector
-			void operator()( float x, float y );
-
 		private:
 			void detect( const Image& img, size_t octave );
             void extract( size_t octaves );
@@ -62,8 +59,6 @@ namespace cvt {
 
 			typedef std::vector<ORBFeature> ContainerType;
 			ContainerType	_features;
-			ContainerType	_octaveFeatures;
-			ContainerType&	_targetContainer;
             IntegralImage*	_iimages;
             float*			_scaleFactors;
 			size_t			_currentOctave;
@@ -78,11 +73,6 @@ namespace cvt {
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
             static const int _border = 20;
 	};
-
-	inline void ORB::operator()( float x, float y )
-	{
-		_targetContainer.push_back( ORBFeature( x, y, 0.0f, _currentOctave ) );
-	}
 
 	inline size_t ORB::size() const
 	{
