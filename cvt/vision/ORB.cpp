@@ -51,6 +51,13 @@ namespace cvt {
         const uint8_t * ptr = img.map( &stride );
         //detect9( features, ptr, stride, img.width(), img.height(), octave );
         detect9simd( features, ptr, stride, img.width(), img.height(), octave );
+
+        SIMD * simd = SIMD::instance();
+
+        for( size_t i = 0; i < features.size(); i++ ){
+            features[ i ].score = simd->harrisResponse1u8( ptr + (int)features[ i ].pt.y * stride + (int)features[ i ].pt.x , stride, 4, 4, 0.04f );
+        }
+
         img.unmap( ptr );
 
         _iimages[ octave ].update( img );

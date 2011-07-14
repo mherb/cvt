@@ -1,7 +1,6 @@
 #ifndef CVT_FAST_H
 #define CVT_FAST_H
 
-
 #include <cvt/vision/Feature2D.h>
 #include <cvt/gfx/Image.h>
 
@@ -20,16 +19,15 @@ namespace cvt
 
 	class FAST
 	{
-		typedef void (FAST::*ExtractFunc)( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-
-		typedef int     (FAST::*ScoreFunc)( const uint8_t* p );
+		typedef void (*ExtractFunc)( const Image & im, uint8_t threshold, std::vector<Feature2Df> & features, size_t border );
+		typedef int  (*ScoreFunc)( const uint8_t* p, const int * offsets, uint8_t threshold );
 
 		public:
 			FAST( FASTSize size = SEGMENT_9 );
 			~FAST();
 
 			void extract( const Image & image, std::vector<Feature2Df> & features );
-			void extractMultiScale( const Image & image, std::vector<Feature2Df> & features, size_t octaves );
+
 			void setThreshold( uint8_t threshold );
 			uint8_t threshold();
 			void setMinScore( int32_t minscore );
@@ -37,35 +35,33 @@ namespace cvt
 
             void setNonMaxSuppress( bool val ) { _suppress = val; }
 
+            static void nonmaxSuppression( const std::vector<Feature2Df> & corners, const int* scores, std::vector<Feature2Df> & suppressed );
+
 		private:
 			uint8_t		_threshold;
 			int32_t		_minScore;
 			ExtractFunc	_extract;
 			ScoreFunc	_score;
             bool        _suppress;
-            size_t      _lastStride;
-            int         _pixel[ 16 ]; // offsets to the ring pixel
 
 			int* score( const uint8_t* img, size_t stride, std::vector<Feature2Df> & corners );
+			
+            static void detect9( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+            static void detect9simd( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+            static int score9( const uint8_t* p, const int * offsets, uint8_t threshold );
+            static bool isDarkerCorner9( const uint8_t * p, const int barrier, const int * offsets );
+            static bool isBrighterCorner9( const uint8_t * p, const int barrier, const int * offsets );
+        
+			static void detect10( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+			static int score10( const uint8_t* p, const int * offsets, uint8_t threshold );
+        
+			static void detect11( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+			static int score11( const uint8_t* p, const int * offsets, uint8_t threshold );
+        
+			static void detect12( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border = 3 );
+			static int score12( const uint8_t* p, const int * offsets, uint8_t threshold );
 
-			void detect9( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-
-            void detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-
-			int score9( const uint8_t* p );
-			void detect10( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-			int score10( const uint8_t* p );
-			void detect11( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-			int score11( const uint8_t* p );
-			void detect12( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features );
-			int score12( const uint8_t* p );
-
-			void make_offsets( size_t row_stride );
-            void initPixelOffsets();
-			void nonmaxSuppression( const std::vector<Feature2Df> & corners, const int* scores, std::vector<Feature2Df> & suppressed );
-
-            bool isDarkerCorner9( const uint8_t * p, const int barrier );
-            bool isBrighterCorner9( const uint8_t * p, const int barrier );
+            static void make_offsets( int * offsets, size_t row_stride );
 	};
 
 	inline void FAST::setThreshold( uint8_t threshold )
@@ -86,7 +82,27 @@ namespace cvt
 	inline int32_t FAST::minScore()
 	{
 		return _minScore;
-	}
+	}    
+    
+	inline void FAST::make_offsets( int * offsets, size_t row_stride )
+	{
+        offsets[0]  =  0 + row_stride * 3;
+		offsets[1]  =  1 + row_stride * 3;
+		offsets[2]  =  2 + row_stride * 2;
+		offsets[3]  =  3 + row_stride * 1;
+		offsets[4]  =  3;
+		offsets[5]  =  3 - row_stride * 1;
+		offsets[6]  =  2 - row_stride * 2;
+		offsets[7]  =  1 - row_stride * 3;
+		offsets[8]  =    - row_stride * 3;
+		offsets[9]  = -1 - row_stride * 3;
+		offsets[10] = -2 - row_stride * 2;
+		offsets[11] = -3 - row_stride * 1;
+		offsets[12] = -3;
+		offsets[13] = -3 + row_stride;
+		offsets[14] = -2 + row_stride * 2;
+		offsets[15] = -1 + row_stride * 3;
+    }
 }
 
 #endif

@@ -12,12 +12,11 @@ namespace cvt
 		_minScore( 1 ),
 		_extract( 0 ),
 		_score( 0 ),
-        _suppress( true ),
-        _lastStride( 640 )
+        _suppress( true )
 	{
 		switch( size ){
 			case SEGMENT_9:
-				_extract = &FAST::detect9simd;
+				_extract = &detect9simd;
                 //_extract = &FAST::detect9;
 				_score = &FAST::score9;
 				break;
@@ -37,8 +36,6 @@ namespace cvt
 				throw CVTException( "NO MATCHING EXTRACT FUNC" );
 				break;
 		}
-
-        initPixelOffsets();
 	}
 
 	FAST::~FAST()
@@ -57,86 +54,18 @@ namespace cvt
         if( _suppress ){
             std::vector<Feature2Df> allCorners;
             // detect candidates
-            (this->*_extract)( im, stride, image.width(), image.height(), allCorners );
+            _extract( image, _threshold, allCorners, 3 );
 
             // calc the scores
             int * cornerScores = this->score( im, stride, allCorners );
             // non maximal suppression
             this->nonmaxSuppression( allCorners, cornerScores, features );
         } else {
-            (this->*_extract)( im, stride, image.width(), image.height(), features );
+            _extract( image, _threshold, features, 3 );
         }
 
         image.unmap( im );
 	}
-
-
-	void FAST::extractMultiScale( const Image & image, std::vector<Feature2Df> & features, size_t octaves )
-	{
-		// construct the scale space
-		std::vector<Image> pyramid;
-		size_t width = image.width();
-		size_t height = image.height();
-
-		IScaleFilterGauss scaleFilter( 2.0f, 0.0f );
-
-		pyramid.resize( octaves - 1 );
-
-		const Image * prevScale = &image;
-
-		for( size_t i = 0; i < pyramid.size(); i++ ){
-			width >>= 1;
-			height >>= 1;
-
-			pyramid[ i ].reallocate( width, height, image.format() );
-			prevScale->scale( pyramid[ i  ], width, height, scaleFilter );
-			prevScale = &pyramid[ i ];
-		}
-
-		this->extract( image, features );
-		size_t previousScaleEnd = features.size();
-
-		int32_t scale = 1;
-		for( size_t i = 0; i < pyramid.size(); i++ ){
-			scale <<= 1;
-
-			this->extract( pyramid[ i ], features );
-			while( previousScaleEnd < features.size() ){
-				features[ previousScaleEnd ].pt *= scale;
-				previousScaleEnd++;
-			}
-		}
-	}
-
-	void FAST::make_offsets( size_t row_stride )
-	{
-
-        if( _lastStride == row_stride )
-            return;
-
-        _lastStride = row_stride;
-        initPixelOffsets();
-	}
-
-    void FAST::initPixelOffsets()
-    {
-        _pixel[0]  =  0 + _lastStride * 3;
-		_pixel[1]  =  1 + _lastStride * 3;
-		_pixel[2]  =  2 + _lastStride * 2;
-		_pixel[3]  =  3 + _lastStride * 1;
-		_pixel[4]  =  3;
-		_pixel[5]  =  3 - _lastStride * 1;
-		_pixel[6]  =  2 - _lastStride * 2;
-		_pixel[7]  =  1 - _lastStride * 3;
-		_pixel[8]  =    - _lastStride * 3;
-		_pixel[9]  = -1 - _lastStride * 3;
-		_pixel[10] = -2 - _lastStride * 2;
-		_pixel[11] = -3 - _lastStride * 1;
-		_pixel[12] = -3;
-		_pixel[13] = -3 + _lastStride;
-		_pixel[14] = -2 + _lastStride * 2;
-		_pixel[15] = -1 + _lastStride * 3;
-    }
 
 	void FAST::nonmaxSuppression( const std::vector<Feature2Df> & corners, const int* scores, std::vector<Feature2Df> & suppressed )
 	{
@@ -175,8 +104,7 @@ namespace cvt
 
 		for( size_t i = 0; i < numCorners; i++ ) {
 			int score = scores[ i ];
-			if( score < _minScore )
-				continue;
+
 			const Vector2f & pos = corners[ i ].pt;
 
 			/* Check left */
@@ -236,10 +164,12 @@ cont:
 	/* calc the scores for all the corners */
 	int* FAST::score(const uint8_t* img, size_t stride, std::vector<Feature2Df> & corners )
 	{
+        int offsets[ 16 ];
+        make_offsets( offsets, stride );
 		int* scores = new int[ corners.size() ];
 
 		for( size_t n = 0; n < corners.size(); n++ )
-			scores[ n ] = (this->*_score)( img + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x );
+			scores[ n ] = _score( img + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x, offsets, _threshold );
 
 		return scores;
 	}

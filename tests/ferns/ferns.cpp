@@ -143,7 +143,7 @@ void testFerns()
     fe->setMinScore( 50 );
 	fe->setThreshold( 30 );
 
-	fe->extractMultiScale( warped, features, 3 );
+	fe->extract( warped, features );
 	//fe->extractMultiScale( gray, features, 3 );
 
 	std::vector<Eigen::Vector2d> reference, imageFeatures;
