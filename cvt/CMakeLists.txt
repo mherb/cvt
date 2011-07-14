@@ -402,7 +402,6 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
 	vision/ORB.cpp
-	vision/internal/orbsimd.cpp
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp

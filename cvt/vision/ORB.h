@@ -45,32 +45,31 @@ namespace cvt {
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
 
+			// in order to use ORB as Container for the FAST feature detector
+			void operator()( float x, float y );
+
 		private:
-			void detect( std::vector<ORBFeature> & features, const Image& img, size_t octave );
+			void detect( const Image& img, size_t octave );
             void extract( size_t octaves );
 
 			void centroidAngle( ORBFeature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORBFeature& feature, const float* ptr, size_t widthstep );
 
-            void detect9( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
-            void detect9simd( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave );
-
             void nonmaxSuppression( const std::vector<ORBFeature> & features );
-
-            void makeOffsets( size_t stride );
-            bool isDarkerCorner9( const uint8_t * p, const int barrier );
-            bool isBrighterCorner9( const uint8_t * p, const int barrier );
 
 			void selectBestFeatures( size_t num );
 
-			std::vector<ORBFeature> _features;
-            IntegralImage*          _iimages;
-            float*                  _scaleFactors;
+			typedef std::vector<ORBFeature> ContainerType;
+			ContainerType	_features;
+			ContainerType	_octaveFeatures;
+			ContainerType&	_targetContainer;
+            IntegralImage*	_iimages;
+            float*			_scaleFactors;
+			size_t			_currentOctave;
 
             // for OFAST
             uint8_t			 _threshold;
-            int				 _pixel[ 16 ];// for OFAST
 
 			static const int _patterns[ 30 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];
@@ -79,6 +78,11 @@ namespace cvt {
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
             static const int _border = 20;
 	};
+
+	inline void ORB::operator()( float x, float y )
+	{
+		_targetContainer.push_back( ORBFeature( x, y, 0.0f, _currentOctave ) );
+	}
 
 	inline size_t ORB::size() const
 	{
