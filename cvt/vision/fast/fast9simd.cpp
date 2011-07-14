@@ -14,35 +14,45 @@ namespace cvt {
         flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
     }
 
-    void FAST::detect9simd( const uint8_t* im, size_t stride, size_t width, size_t height, std::vector<Feature2Df> & features )
+    void FAST::detect9simd( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border )
     {
-        make_offsets( stride );
+        size_t stride;
+        const uint8_t * iptr = img.map( &stride );
+        
+        int offsets[ 16 ];
+        make_offsets( offsets, stride );
+        
         const size_t tripleStride = 3 * stride;
 
         // The compiler refuses to reserve a register for this
-        const __m128i barriers = _mm_set1_epi8( _threshold  );
+        const __m128i barriers = _mm_set1_epi8( threshold  );
 
         // xend is the beginning of the last pixels in the row that need to be processed in the normal way
-        size_t xend = width - 3 - ( width - 3 ) % 16;
+        size_t width = img.width();
+        size_t height = img.height();
+        size_t xend = width - border - ( width - border ) % 16;
+        size_t aligned_start = ( (int)( border / 16 ) + 1 ) << 4;
 
-        im += tripleStride;
+
+        const uint8_t* im = iptr;
+        im += ( border * stride );
         const uint8_t * ptr;
 
         int upperBound, lowerBound;
 
-        for ( size_t y = 3; y < height - 3; y++ ) {
-            ptr = im + 3;
-            for ( size_t x = 3; x < 16; x++ ){
-                lowerBound = *ptr - _threshold;
-                upperBound = *ptr + _threshold;
-                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
-                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
+        for ( size_t y = border; y < height - border; y++ ) {
+            ptr = im + border;
+            for ( size_t x = border; x < aligned_start; x++ ){
+                lowerBound = *ptr - threshold;
+                upperBound = *ptr + threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound, offsets ) ) ||
+                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound, offsets ) ) ){
                     features.push_back( Feature2Df( x, y ) );
                 }
                 ptr++;
             }
 
-            for ( size_t x = 16; x < xend; x += 16, ptr += 16 ) {
+            for ( size_t x = aligned_start; x < xend; x += 16, ptr += 16 ) {
                 __m128i lo, hi;
                 {
                     const __m128i here = _mm_load_si128( (const __m128i*)ptr );
@@ -257,17 +267,18 @@ namespace cvt {
                 }
             }
 
-            for ( size_t x = xend; x < width - 3; x++ ){
-                lowerBound = *ptr - _threshold;
-                upperBound = *ptr + _threshold;
-                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
-                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
+            for ( size_t x = xend; x < width - border; x++ ){
+                lowerBound = *ptr - threshold;
+                upperBound = *ptr + threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound, offsets ) ) ||
+                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound, offsets ) ) ){
                     features.push_back( Feature2Df( x, y ) );
                 }
                 ptr++;
             }
             im += stride;
         }
+        img.unmap( iptr );
     }
     #undef CHECK_BARRIER;
 }

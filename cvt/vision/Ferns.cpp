@@ -138,7 +138,7 @@ namespace cvt
 		
 		// detect features in the "model"-image	
 		std::vector<Feature2Df> features;
-		_featureDetector->extractMultiScale( img, features, 3 );
+		_featureDetector->extract( img, features ); 
 		
 		int32_t patchHalfSize = _patchSize >> 1;
 		

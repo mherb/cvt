@@ -2,9 +2,9 @@
 
 namespace cvt {
 
-	int FAST::score11( const uint8_t* p )
+	int FAST::score11( const uint8_t* p, const int * offsets, uint8_t threshold )
 	{
-		int bmin = _threshold;
+		int bmin = threshold;
 		int bmax = 255;
 		int b = (bmax + bmin)/2;
 
@@ -15,35 +15,35 @@ namespace cvt {
 			int c_b= *p - b;
 
 
-			if( p[_pixel[0]] > cb)
-				if( p[_pixel[1]] > cb)
-					if( p[_pixel[2]] > cb)
-						if( p[_pixel[3]] > cb)
-							if( p[_pixel[4]] > cb)
-								if( p[_pixel[5]] > cb)
-									if( p[_pixel[6]] > cb)
-										if( p[_pixel[7]] > cb)
-											if( p[_pixel[8]] > cb)
-												if( p[_pixel[9]] > cb)
-													if( p[_pixel[10]] > cb)
+			if( p[offsets[0]] > cb)
+				if( p[offsets[1]] > cb)
+					if( p[offsets[2]] > cb)
+						if( p[offsets[3]] > cb)
+							if( p[offsets[4]] > cb)
+								if( p[offsets[5]] > cb)
+									if( p[offsets[6]] > cb)
+										if( p[offsets[7]] > cb)
+											if( p[offsets[8]] > cb)
+												if( p[offsets[9]] > cb)
+													if( p[offsets[10]] > cb)
 														goto is_a_corner;
 													else
-														if( p[_pixel[15]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -52,10 +52,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -66,11 +66,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -82,13 +82,13 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-								else if( p[_pixel[5]] < c_b)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+								else if( p[offsets[5]] < c_b)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -100,16 +100,16 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[_pixel[10]] < c_b)
-										if( p[_pixel[6]] < c_b)
-											if( p[_pixel[7]] < c_b)
-												if( p[_pixel[8]] < c_b)
-													if( p[_pixel[9]] < c_b)
-														if( p[_pixel[11]] < c_b)
-															if( p[_pixel[12]] < c_b)
-																if( p[_pixel[13]] < c_b)
-																	if( p[_pixel[14]] < c_b)
-																		if( p[_pixel[15]] < c_b)
+									else if( p[offsets[10]] < c_b)
+										if( p[offsets[6]] < c_b)
+											if( p[offsets[7]] < c_b)
+												if( p[offsets[8]] < c_b)
+													if( p[offsets[9]] < c_b)
+														if( p[offsets[11]] < c_b)
+															if( p[offsets[12]] < c_b)
+																if( p[offsets[13]] < c_b)
+																	if( p[offsets[14]] < c_b)
+																		if( p[offsets[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -132,12 +132,12 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 								else
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -151,14 +151,14 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-							else if( p[_pixel[4]] < c_b)
-								if( p[_pixel[15]] > cb)
-									if( p[_pixel[9]] > cb)
-										if( p[_pixel[10]] > cb)
-											if( p[_pixel[11]] > cb)
-												if( p[_pixel[12]] > cb)
-													if( p[_pixel[13]] > cb)
-														if( p[_pixel[14]] > cb)
+							else if( p[offsets[4]] < c_b)
+								if( p[offsets[15]] > cb)
+									if( p[offsets[9]] > cb)
+										if( p[offsets[10]] > cb)
+											if( p[offsets[11]] > cb)
+												if( p[offsets[12]] > cb)
+													if( p[offsets[13]] > cb)
+														if( p[offsets[14]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -170,16 +170,16 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[_pixel[9]] < c_b)
-										if( p[_pixel[5]] < c_b)
-											if( p[_pixel[6]] < c_b)
-												if( p[_pixel[7]] < c_b)
-													if( p[_pixel[8]] < c_b)
-														if( p[_pixel[10]] < c_b)
-															if( p[_pixel[11]] < c_b)
-																if( p[_pixel[12]] < c_b)
-																	if( p[_pixel[13]] < c_b)
-																		if( p[_pixel[14]] < c_b)
+									else if( p[offsets[9]] < c_b)
+										if( p[offsets[5]] < c_b)
+											if( p[offsets[6]] < c_b)
+												if( p[offsets[7]] < c_b)
+													if( p[offsets[8]] < c_b)
+														if( p[offsets[10]] < c_b)
+															if( p[offsets[11]] < c_b)
+																if( p[offsets[12]] < c_b)
+																	if( p[offsets[13]] < c_b)
+																		if( p[offsets[14]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -202,16 +202,16 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 								else
-									if( p[_pixel[5]] < c_b)
-										if( p[_pixel[6]] < c_b)
-											if( p[_pixel[7]] < c_b)
-												if( p[_pixel[8]] < c_b)
-													if( p[_pixel[9]] < c_b)
-														if( p[_pixel[10]] < c_b)
-															if( p[_pixel[11]] < c_b)
-																if( p[_pixel[12]] < c_b)
-																	if( p[_pixel[13]] < c_b)
-																		if( p[_pixel[14]] < c_b)
+									if( p[offsets[5]] < c_b)
+										if( p[offsets[6]] < c_b)
+											if( p[offsets[7]] < c_b)
+												if( p[offsets[8]] < c_b)
+													if( p[offsets[9]] < c_b)
+														if( p[offsets[10]] < c_b)
+															if( p[offsets[11]] < c_b)
+																if( p[offsets[12]] < c_b)
+																	if( p[offsets[13]] < c_b)
+																		if( p[offsets[14]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -234,13 +234,13 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -254,17 +254,17 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[_pixel[9]] < c_b)
-									if( p[_pixel[5]] < c_b)
-										if( p[_pixel[6]] < c_b)
-											if( p[_pixel[7]] < c_b)
-												if( p[_pixel[8]] < c_b)
-													if( p[_pixel[10]] < c_b)
-														if( p[_pixel[11]] < c_b)
-															if( p[_pixel[12]] < c_b)
-																if( p[_pixel[13]] < c_b)
-																	if( p[_pixel[14]] < c_b)
-																		if( p[_pixel[15]] < c_b)
+								else if( p[offsets[9]] < c_b)
+									if( p[offsets[5]] < c_b)
+										if( p[offsets[6]] < c_b)
+											if( p[offsets[7]] < c_b)
+												if( p[offsets[8]] < c_b)
+													if( p[offsets[10]] < c_b)
+														if( p[offsets[11]] < c_b)
+															if( p[offsets[12]] < c_b)
+																if( p[offsets[13]] < c_b)
+																	if( p[offsets[14]] < c_b)
+																		if( p[offsets[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -288,21 +288,21 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-						else if( p[_pixel[3]] < c_b)
-							if( p[_pixel[14]] > cb)
-								if( p[_pixel[8]] > cb)
-									if( p[_pixel[9]] > cb)
-										if( p[_pixel[10]] > cb)
-											if( p[_pixel[11]] > cb)
-												if( p[_pixel[12]] > cb)
-													if( p[_pixel[13]] > cb)
-														if( p[_pixel[15]] > cb)
+						else if( p[offsets[3]] < c_b)
+							if( p[offsets[14]] > cb)
+								if( p[offsets[8]] > cb)
+									if( p[offsets[9]] > cb)
+										if( p[offsets[10]] > cb)
+											if( p[offsets[11]] > cb)
+												if( p[offsets[12]] > cb)
+													if( p[offsets[13]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
-																		if( p[_pixel[7]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
+																		if( p[offsets[7]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -322,16 +322,16 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[_pixel[8]] < c_b)
-									if( p[_pixel[4]] < c_b)
-										if( p[_pixel[5]] < c_b)
-											if( p[_pixel[6]] < c_b)
-												if( p[_pixel[7]] < c_b)
-													if( p[_pixel[9]] < c_b)
-														if( p[_pixel[10]] < c_b)
-															if( p[_pixel[11]] < c_b)
-																if( p[_pixel[12]] < c_b)
-																	if( p[_pixel[13]] < c_b)
+								else if( p[offsets[8]] < c_b)
+									if( p[offsets[4]] < c_b)
+										if( p[offsets[5]] < c_b)
+											if( p[offsets[6]] < c_b)
+												if( p[offsets[7]] < c_b)
+													if( p[offsets[9]] < c_b)
+														if( p[offsets[10]] < c_b)
+															if( p[offsets[11]] < c_b)
+																if( p[offsets[12]] < c_b)
+																	if( p[offsets[13]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -353,20 +353,20 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[_pixel[14]] < c_b)
-								if( p[_pixel[5]] < c_b)
-									if( p[_pixel[6]] < c_b)
-										if( p[_pixel[7]] < c_b)
-											if( p[_pixel[8]] < c_b)
-												if( p[_pixel[9]] < c_b)
-													if( p[_pixel[10]] < c_b)
-														if( p[_pixel[11]] < c_b)
-															if( p[_pixel[12]] < c_b)
-																if( p[_pixel[13]] < c_b)
-																	if( p[_pixel[4]] < c_b)
+							else if( p[offsets[14]] < c_b)
+								if( p[offsets[5]] < c_b)
+									if( p[offsets[6]] < c_b)
+										if( p[offsets[7]] < c_b)
+											if( p[offsets[8]] < c_b)
+												if( p[offsets[9]] < c_b)
+													if( p[offsets[10]] < c_b)
+														if( p[offsets[11]] < c_b)
+															if( p[offsets[12]] < c_b)
+																if( p[offsets[13]] < c_b)
+																	if( p[offsets[4]] < c_b)
 																		goto is_a_corner;
 																	else
-																		if( p[_pixel[15]] < c_b)
+																		if( p[offsets[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -389,16 +389,16 @@ namespace cvt {
 								else
 									goto is_not_a_corner;
 							else
-								if( p[_pixel[4]] < c_b)
-									if( p[_pixel[5]] < c_b)
-										if( p[_pixel[6]] < c_b)
-											if( p[_pixel[7]] < c_b)
-												if( p[_pixel[8]] < c_b)
-													if( p[_pixel[9]] < c_b)
-														if( p[_pixel[10]] < c_b)
-															if( p[_pixel[11]] < c_b)
-																if( p[_pixel[12]] < c_b)
-																	if( p[_pixel[13]] < c_b)
+								if( p[offsets[4]] < c_b)
+									if( p[offsets[5]] < c_b)
+										if( p[offsets[6]] < c_b)
+											if( p[offsets[7]] < c_b)
+												if( p[offsets[8]] < c_b)
+													if( p[offsets[9]] < c_b)
+														if( p[offsets[10]] < c_b)
+															if( p[offsets[11]] < c_b)
+																if( p[offsets[12]] < c_b)
+																	if( p[offsets[13]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -421,20 +421,20 @@ namespace cvt {
 								else
 									goto is_not_a_corner;
 						else
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
-																		if( p[_pixel[7]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
+																		if( p[offsets[7]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -456,20 +456,20 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[_pixel[8]] < c_b)
-								if( p[_pixel[5]] < c_b)
-									if( p[_pixel[6]] < c_b)
-										if( p[_pixel[7]] < c_b)
-											if( p[_pixel[9]] < c_b)
-												if( p[_pixel[10]] < c_b)
-													if( p[_pixel[11]] < c_b)
-														if( p[_pixel[12]] < c_b)
-															if( p[_pixel[13]] < c_b)
-																if( p[_pixel[14]] < c_b)
-																	if( p[_pixel[4]] < c_b)
+							else if( p[offsets[8]] < c_b)
+								if( p[offsets[5]] < c_b)
+									if( p[offsets[6]] < c_b)
+										if( p[offsets[7]] < c_b)
+											if( p[offsets[9]] < c_b)
+												if( p[offsets[10]] < c_b)
+													if( p[offsets[11]] < c_b)
+														if( p[offsets[12]] < c_b)
+															if( p[offsets[13]] < c_b)
+																if( p[offsets[14]] < c_b)
+																	if( p[offsets[4]] < c_b)
 																		goto is_a_corner;
 																	else
-																		if( p[_pixel[15]] < c_b)
+																		if( p[offsets[15]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -493,21 +493,21 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-					else if( p[_pixel[2]] < c_b)
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+					else if( p[offsets[2]] < c_b)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -516,10 +516,10 @@ namespace cvt {
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -541,29 +541,29 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[_pixel[7]] < c_b)
-							if( p[_pixel[5]] < c_b)
-								if( p[_pixel[6]] < c_b)
-									if( p[_pixel[8]] < c_b)
-										if( p[_pixel[9]] < c_b)
-											if( p[_pixel[10]] < c_b)
-												if( p[_pixel[11]] < c_b)
-													if( p[_pixel[12]] < c_b)
-														if( p[_pixel[4]] < c_b)
-															if( p[_pixel[3]] < c_b)
+						else if( p[offsets[7]] < c_b)
+							if( p[offsets[5]] < c_b)
+								if( p[offsets[6]] < c_b)
+									if( p[offsets[8]] < c_b)
+										if( p[offsets[9]] < c_b)
+											if( p[offsets[10]] < c_b)
+												if( p[offsets[11]] < c_b)
+													if( p[offsets[12]] < c_b)
+														if( p[offsets[4]] < c_b)
+															if( p[offsets[3]] < c_b)
 																goto is_a_corner;
 															else
-																if( p[_pixel[13]] < c_b)
-																	if( p[_pixel[14]] < c_b)
+																if( p[offsets[13]] < c_b)
+																	if( p[offsets[14]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[_pixel[13]] < c_b)
-																if( p[_pixel[14]] < c_b)
-																	if( p[_pixel[15]] < c_b)
+															if( p[offsets[13]] < c_b)
+																if( p[offsets[14]] < c_b)
+																	if( p[offsets[15]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -588,20 +588,20 @@ namespace cvt {
 						else
 							goto is_not_a_corner;
 					else
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -610,10 +610,10 @@ namespace cvt {
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
-																	if( p[_pixel[6]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
+																	if( p[offsets[6]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -635,26 +635,26 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[_pixel[7]] < c_b)
-							if( p[_pixel[5]] < c_b)
-								if( p[_pixel[6]] < c_b)
-									if( p[_pixel[8]] < c_b)
-										if( p[_pixel[9]] < c_b)
-											if( p[_pixel[10]] < c_b)
-												if( p[_pixel[11]] < c_b)
-													if( p[_pixel[12]] < c_b)
-														if( p[_pixel[13]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[3]] < c_b)
+						else if( p[offsets[7]] < c_b)
+							if( p[offsets[5]] < c_b)
+								if( p[offsets[6]] < c_b)
+									if( p[offsets[8]] < c_b)
+										if( p[offsets[9]] < c_b)
+											if( p[offsets[10]] < c_b)
+												if( p[offsets[11]] < c_b)
+													if( p[offsets[12]] < c_b)
+														if( p[offsets[13]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[3]] < c_b)
 																	goto is_a_corner;
 																else
-																	if( p[_pixel[14]] < c_b)
+																	if( p[offsets[14]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[_pixel[14]] < c_b)
-																	if( p[_pixel[15]] < c_b)
+																if( p[offsets[14]] < c_b)
+																	if( p[offsets[15]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -678,30 +678,30 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-				else if( p[_pixel[1]] < c_b)
-					if( p[_pixel[6]] > cb)
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+				else if( p[offsets[1]] < c_b)
+					if( p[offsets[6]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -710,10 +710,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[2]] > cb)
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+													if( p[offsets[2]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -735,29 +735,29 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[_pixel[6]] < c_b)
-						if( p[_pixel[5]] < c_b)
-							if( p[_pixel[7]] < c_b)
-								if( p[_pixel[8]] < c_b)
-									if( p[_pixel[9]] < c_b)
-										if( p[_pixel[10]] < c_b)
-											if( p[_pixel[11]] < c_b)
-												if( p[_pixel[4]] < c_b)
-													if( p[_pixel[3]] < c_b)
-														if( p[_pixel[2]] < c_b)
+					else if( p[offsets[6]] < c_b)
+						if( p[offsets[5]] < c_b)
+							if( p[offsets[7]] < c_b)
+								if( p[offsets[8]] < c_b)
+									if( p[offsets[9]] < c_b)
+										if( p[offsets[10]] < c_b)
+											if( p[offsets[11]] < c_b)
+												if( p[offsets[4]] < c_b)
+													if( p[offsets[3]] < c_b)
+														if( p[offsets[2]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[12]] < c_b)
-																if( p[_pixel[13]] < c_b)
+															if( p[offsets[12]] < c_b)
+																if( p[offsets[13]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[12]] < c_b)
-															if( p[_pixel[13]] < c_b)
-																if( p[_pixel[14]] < c_b)
+														if( p[offsets[12]] < c_b)
+															if( p[offsets[13]] < c_b)
+																if( p[offsets[14]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -766,10 +766,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[12]] < c_b)
-														if( p[_pixel[13]] < c_b)
-															if( p[_pixel[14]] < c_b)
-																if( p[_pixel[15]] < c_b)
+													if( p[offsets[12]] < c_b)
+														if( p[offsets[13]] < c_b)
+															if( p[offsets[14]] < c_b)
+																if( p[offsets[15]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -794,29 +794,29 @@ namespace cvt {
 					else
 						goto is_not_a_corner;
 				else
-					if( p[_pixel[6]] > cb)
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[12]] > cb)
-												if( p[_pixel[13]] > cb)
-													if( p[_pixel[14]] > cb)
-														if( p[_pixel[15]] > cb)
+					if( p[offsets[6]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[12]] > cb)
+												if( p[offsets[13]] > cb)
+													if( p[offsets[14]] > cb)
+														if( p[offsets[15]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -825,10 +825,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[2]] > cb)
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[5]] > cb)
+													if( p[offsets[2]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[5]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -850,35 +850,35 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[_pixel[6]] < c_b)
-						if( p[_pixel[5]] < c_b)
-							if( p[_pixel[7]] < c_b)
-								if( p[_pixel[8]] < c_b)
-									if( p[_pixel[9]] < c_b)
-										if( p[_pixel[10]] < c_b)
-											if( p[_pixel[11]] < c_b)
-												if( p[_pixel[12]] < c_b)
-													if( p[_pixel[4]] < c_b)
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[2]] < c_b)
+					else if( p[offsets[6]] < c_b)
+						if( p[offsets[5]] < c_b)
+							if( p[offsets[7]] < c_b)
+								if( p[offsets[8]] < c_b)
+									if( p[offsets[9]] < c_b)
+										if( p[offsets[10]] < c_b)
+											if( p[offsets[11]] < c_b)
+												if( p[offsets[12]] < c_b)
+													if( p[offsets[4]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[2]] < c_b)
 																goto is_a_corner;
 															else
-																if( p[_pixel[13]] < c_b)
+																if( p[offsets[13]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[_pixel[13]] < c_b)
-																if( p[_pixel[14]] < c_b)
+															if( p[offsets[13]] < c_b)
+																if( p[offsets[14]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[13]] < c_b)
-															if( p[_pixel[14]] < c_b)
-																if( p[_pixel[15]] < c_b)
+														if( p[offsets[13]] < c_b)
+															if( p[offsets[14]] < c_b)
+																if( p[offsets[15]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -902,31 +902,31 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-			else if( p[_pixel[0]] < c_b)
-				if( p[_pixel[1]] > cb)
-					if( p[_pixel[6]] > cb)
-						if( p[_pixel[5]] > cb)
-							if( p[_pixel[7]] > cb)
-								if( p[_pixel[8]] > cb)
-									if( p[_pixel[9]] > cb)
-										if( p[_pixel[10]] > cb)
-											if( p[_pixel[11]] > cb)
-												if( p[_pixel[4]] > cb)
-													if( p[_pixel[3]] > cb)
-														if( p[_pixel[2]] > cb)
+			else if( p[offsets[0]] < c_b)
+				if( p[offsets[1]] > cb)
+					if( p[offsets[6]] > cb)
+						if( p[offsets[5]] > cb)
+							if( p[offsets[7]] > cb)
+								if( p[offsets[8]] > cb)
+									if( p[offsets[9]] > cb)
+										if( p[offsets[10]] > cb)
+											if( p[offsets[11]] > cb)
+												if( p[offsets[4]] > cb)
+													if( p[offsets[3]] > cb)
+														if( p[offsets[2]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[12]] > cb)
-																if( p[_pixel[13]] > cb)
+															if( p[offsets[12]] > cb)
+																if( p[offsets[13]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[12]] > cb)
-															if( p[_pixel[13]] > cb)
-																if( p[_pixel[14]] > cb)
+														if( p[offsets[12]] > cb)
+															if( p[offsets[13]] > cb)
+																if( p[offsets[14]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -935,10 +935,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[12]] > cb)
-														if( p[_pixel[13]] > cb)
-															if( p[_pixel[14]] > cb)
-																if( p[_pixel[15]] > cb)
+													if( p[offsets[12]] > cb)
+														if( p[offsets[13]] > cb)
+															if( p[offsets[14]] > cb)
+																if( p[offsets[15]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -960,29 +960,29 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[_pixel[6]] < c_b)
-						if( p[_pixel[7]] < c_b)
-							if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+					else if( p[offsets[6]] < c_b)
+						if( p[offsets[7]] < c_b)
+							if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -991,10 +991,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[2]] < c_b)
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+													if( p[offsets[2]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1018,31 +1018,31 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-				else if( p[_pixel[1]] < c_b)
-					if( p[_pixel[2]] > cb)
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[5]] > cb)
-								if( p[_pixel[6]] > cb)
-									if( p[_pixel[8]] > cb)
-										if( p[_pixel[9]] > cb)
-											if( p[_pixel[10]] > cb)
-												if( p[_pixel[11]] > cb)
-													if( p[_pixel[12]] > cb)
-														if( p[_pixel[4]] > cb)
-															if( p[_pixel[3]] > cb)
+				else if( p[offsets[1]] < c_b)
+					if( p[offsets[2]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[5]] > cb)
+								if( p[offsets[6]] > cb)
+									if( p[offsets[8]] > cb)
+										if( p[offsets[9]] > cb)
+											if( p[offsets[10]] > cb)
+												if( p[offsets[11]] > cb)
+													if( p[offsets[12]] > cb)
+														if( p[offsets[4]] > cb)
+															if( p[offsets[3]] > cb)
 																goto is_a_corner;
 															else
-																if( p[_pixel[13]] > cb)
-																	if( p[_pixel[14]] > cb)
+																if( p[offsets[13]] > cb)
+																	if( p[offsets[14]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[_pixel[13]] > cb)
-																if( p[_pixel[14]] > cb)
-																	if( p[_pixel[15]] > cb)
+															if( p[offsets[13]] > cb)
+																if( p[offsets[14]] > cb)
+																	if( p[offsets[15]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1064,20 +1064,20 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[_pixel[7]] < c_b)
-							if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+						else if( p[offsets[7]] < c_b)
+							if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1086,10 +1086,10 @@ namespace cvt {
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1113,22 +1113,22 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[_pixel[2]] < c_b)
-						if( p[_pixel[3]] > cb)
-							if( p[_pixel[14]] > cb)
-								if( p[_pixel[5]] > cb)
-									if( p[_pixel[6]] > cb)
-										if( p[_pixel[7]] > cb)
-											if( p[_pixel[8]] > cb)
-												if( p[_pixel[9]] > cb)
-													if( p[_pixel[10]] > cb)
-														if( p[_pixel[11]] > cb)
-															if( p[_pixel[12]] > cb)
-																if( p[_pixel[13]] > cb)
-																	if( p[_pixel[4]] > cb)
+					else if( p[offsets[2]] < c_b)
+						if( p[offsets[3]] > cb)
+							if( p[offsets[14]] > cb)
+								if( p[offsets[5]] > cb)
+									if( p[offsets[6]] > cb)
+										if( p[offsets[7]] > cb)
+											if( p[offsets[8]] > cb)
+												if( p[offsets[9]] > cb)
+													if( p[offsets[10]] > cb)
+														if( p[offsets[11]] > cb)
+															if( p[offsets[12]] > cb)
+																if( p[offsets[13]] > cb)
+																	if( p[offsets[4]] > cb)
 																		goto is_a_corner;
 																	else
-																		if( p[_pixel[15]] > cb)
+																		if( p[offsets[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1150,17 +1150,17 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[_pixel[14]] < c_b)
-								if( p[_pixel[8]] > cb)
-									if( p[_pixel[4]] > cb)
-										if( p[_pixel[5]] > cb)
-											if( p[_pixel[6]] > cb)
-												if( p[_pixel[7]] > cb)
-													if( p[_pixel[9]] > cb)
-														if( p[_pixel[10]] > cb)
-															if( p[_pixel[11]] > cb)
-																if( p[_pixel[12]] > cb)
-																	if( p[_pixel[13]] > cb)
+							else if( p[offsets[14]] < c_b)
+								if( p[offsets[8]] > cb)
+									if( p[offsets[4]] > cb)
+										if( p[offsets[5]] > cb)
+											if( p[offsets[6]] > cb)
+												if( p[offsets[7]] > cb)
+													if( p[offsets[9]] > cb)
+														if( p[offsets[10]] > cb)
+															if( p[offsets[11]] > cb)
+																if( p[offsets[12]] > cb)
+																	if( p[offsets[13]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1180,19 +1180,19 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[_pixel[8]] < c_b)
-									if( p[_pixel[9]] < c_b)
-										if( p[_pixel[10]] < c_b)
-											if( p[_pixel[11]] < c_b)
-												if( p[_pixel[12]] < c_b)
-													if( p[_pixel[13]] < c_b)
-														if( p[_pixel[15]] < c_b)
+								else if( p[offsets[8]] < c_b)
+									if( p[offsets[9]] < c_b)
+										if( p[offsets[10]] < c_b)
+											if( p[offsets[11]] < c_b)
+												if( p[offsets[12]] < c_b)
+													if( p[offsets[13]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
-																		if( p[_pixel[7]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
+																		if( p[offsets[7]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1215,16 +1215,16 @@ namespace cvt {
 								else
 									goto is_not_a_corner;
 							else
-								if( p[_pixel[4]] > cb)
-									if( p[_pixel[5]] > cb)
-										if( p[_pixel[6]] > cb)
-											if( p[_pixel[7]] > cb)
-												if( p[_pixel[8]] > cb)
-													if( p[_pixel[9]] > cb)
-														if( p[_pixel[10]] > cb)
-															if( p[_pixel[11]] > cb)
-																if( p[_pixel[12]] > cb)
-																	if( p[_pixel[13]] > cb)
+								if( p[offsets[4]] > cb)
+									if( p[offsets[5]] > cb)
+										if( p[offsets[6]] > cb)
+											if( p[offsets[7]] > cb)
+												if( p[offsets[8]] > cb)
+													if( p[offsets[9]] > cb)
+														if( p[offsets[10]] > cb)
+															if( p[offsets[11]] > cb)
+																if( p[offsets[12]] > cb)
+																	if( p[offsets[13]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1246,19 +1246,19 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-						else if( p[_pixel[3]] < c_b)
-							if( p[_pixel[4]] > cb)
-								if( p[_pixel[15]] < c_b)
-									if( p[_pixel[9]] > cb)
-										if( p[_pixel[5]] > cb)
-											if( p[_pixel[6]] > cb)
-												if( p[_pixel[7]] > cb)
-													if( p[_pixel[8]] > cb)
-														if( p[_pixel[10]] > cb)
-															if( p[_pixel[11]] > cb)
-																if( p[_pixel[12]] > cb)
-																	if( p[_pixel[13]] > cb)
-																		if( p[_pixel[14]] > cb)
+						else if( p[offsets[3]] < c_b)
+							if( p[offsets[4]] > cb)
+								if( p[offsets[15]] < c_b)
+									if( p[offsets[9]] > cb)
+										if( p[offsets[5]] > cb)
+											if( p[offsets[6]] > cb)
+												if( p[offsets[7]] > cb)
+													if( p[offsets[8]] > cb)
+														if( p[offsets[10]] > cb)
+															if( p[offsets[11]] > cb)
+																if( p[offsets[12]] > cb)
+																	if( p[offsets[13]] > cb)
+																		if( p[offsets[14]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1278,12 +1278,12 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[_pixel[9]] < c_b)
-										if( p[_pixel[10]] < c_b)
-											if( p[_pixel[11]] < c_b)
-												if( p[_pixel[12]] < c_b)
-													if( p[_pixel[13]] < c_b)
-														if( p[_pixel[14]] < c_b)
+									else if( p[offsets[9]] < c_b)
+										if( p[offsets[10]] < c_b)
+											if( p[offsets[11]] < c_b)
+												if( p[offsets[12]] < c_b)
+													if( p[offsets[13]] < c_b)
+														if( p[offsets[14]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1298,16 +1298,16 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 								else
-									if( p[_pixel[5]] > cb)
-										if( p[_pixel[6]] > cb)
-											if( p[_pixel[7]] > cb)
-												if( p[_pixel[8]] > cb)
-													if( p[_pixel[9]] > cb)
-														if( p[_pixel[10]] > cb)
-															if( p[_pixel[11]] > cb)
-																if( p[_pixel[12]] > cb)
-																	if( p[_pixel[13]] > cb)
-																		if( p[_pixel[14]] > cb)
+									if( p[offsets[5]] > cb)
+										if( p[offsets[6]] > cb)
+											if( p[offsets[7]] > cb)
+												if( p[offsets[8]] > cb)
+													if( p[offsets[9]] > cb)
+														if( p[offsets[10]] > cb)
+															if( p[offsets[11]] > cb)
+																if( p[offsets[12]] > cb)
+																	if( p[offsets[13]] > cb)
+																		if( p[offsets[14]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1329,18 +1329,18 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-							else if( p[_pixel[4]] < c_b)
-								if( p[_pixel[5]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[6]] > cb)
-											if( p[_pixel[7]] > cb)
-												if( p[_pixel[8]] > cb)
-													if( p[_pixel[9]] > cb)
-														if( p[_pixel[11]] > cb)
-															if( p[_pixel[12]] > cb)
-																if( p[_pixel[13]] > cb)
-																	if( p[_pixel[14]] > cb)
-																		if( p[_pixel[15]] > cb)
+							else if( p[offsets[4]] < c_b)
+								if( p[offsets[5]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[6]] > cb)
+											if( p[offsets[7]] > cb)
+												if( p[offsets[8]] > cb)
+													if( p[offsets[9]] > cb)
+														if( p[offsets[11]] > cb)
+															if( p[offsets[12]] > cb)
+																if( p[offsets[13]] > cb)
+																	if( p[offsets[14]] > cb)
+																		if( p[offsets[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1360,12 +1360,12 @@ namespace cvt {
 												goto is_not_a_corner;
 										else
 											goto is_not_a_corner;
-									else if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+									else if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1379,30 +1379,30 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[_pixel[5]] < c_b)
-									if( p[_pixel[6]] < c_b)
-										if( p[_pixel[7]] < c_b)
-											if( p[_pixel[8]] < c_b)
-												if( p[_pixel[9]] < c_b)
-													if( p[_pixel[10]] < c_b)
+								else if( p[offsets[5]] < c_b)
+									if( p[offsets[6]] < c_b)
+										if( p[offsets[7]] < c_b)
+											if( p[offsets[8]] < c_b)
+												if( p[offsets[9]] < c_b)
+													if( p[offsets[10]] < c_b)
 														goto is_a_corner;
 													else
-														if( p[_pixel[15]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
 													else
 														goto is_not_a_corner;
 											else
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1411,10 +1411,10 @@ namespace cvt {
 												else
 													goto is_not_a_corner;
 										else
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1425,11 +1425,11 @@ namespace cvt {
 											else
 												goto is_not_a_corner;
 									else
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1442,12 +1442,12 @@ namespace cvt {
 										else
 											goto is_not_a_corner;
 								else
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1462,17 +1462,17 @@ namespace cvt {
 									else
 										goto is_not_a_corner;
 							else
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[5]] > cb)
-										if( p[_pixel[6]] > cb)
-											if( p[_pixel[7]] > cb)
-												if( p[_pixel[8]] > cb)
-													if( p[_pixel[10]] > cb)
-														if( p[_pixel[11]] > cb)
-															if( p[_pixel[12]] > cb)
-																if( p[_pixel[13]] > cb)
-																	if( p[_pixel[14]] > cb)
-																		if( p[_pixel[15]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[5]] > cb)
+										if( p[offsets[6]] > cb)
+											if( p[offsets[7]] > cb)
+												if( p[offsets[8]] > cb)
+													if( p[offsets[10]] > cb)
+														if( p[offsets[11]] > cb)
+															if( p[offsets[12]] > cb)
+																if( p[offsets[13]] > cb)
+																	if( p[offsets[14]] > cb)
+																		if( p[offsets[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1494,13 +1494,13 @@ namespace cvt {
 											goto is_not_a_corner;
 									else
 										goto is_not_a_corner;
-								else if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+								else if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
 															goto is_not_a_corner;
@@ -1517,20 +1517,20 @@ namespace cvt {
 								else
 									goto is_not_a_corner;
 						else
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[5]] > cb)
-									if( p[_pixel[6]] > cb)
-										if( p[_pixel[7]] > cb)
-											if( p[_pixel[9]] > cb)
-												if( p[_pixel[10]] > cb)
-													if( p[_pixel[11]] > cb)
-														if( p[_pixel[12]] > cb)
-															if( p[_pixel[13]] > cb)
-																if( p[_pixel[14]] > cb)
-																	if( p[_pixel[4]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[5]] > cb)
+									if( p[offsets[6]] > cb)
+										if( p[offsets[7]] > cb)
+											if( p[offsets[9]] > cb)
+												if( p[offsets[10]] > cb)
+													if( p[offsets[11]] > cb)
+														if( p[offsets[12]] > cb)
+															if( p[offsets[13]] > cb)
+																if( p[offsets[14]] > cb)
+																	if( p[offsets[4]] > cb)
 																		goto is_a_corner;
 																	else
-																		if( p[_pixel[15]] > cb)
+																		if( p[offsets[15]] > cb)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1552,20 +1552,20 @@ namespace cvt {
 										goto is_not_a_corner;
 								else
 									goto is_not_a_corner;
-							else if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+							else if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
-																		if( p[_pixel[7]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
+																		if( p[offsets[7]] < c_b)
 																			goto is_a_corner;
 																		else
 																			goto is_not_a_corner;
@@ -1590,26 +1590,26 @@ namespace cvt {
 							else
 								goto is_not_a_corner;
 					else
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[5]] > cb)
-								if( p[_pixel[6]] > cb)
-									if( p[_pixel[8]] > cb)
-										if( p[_pixel[9]] > cb)
-											if( p[_pixel[10]] > cb)
-												if( p[_pixel[11]] > cb)
-													if( p[_pixel[12]] > cb)
-														if( p[_pixel[13]] > cb)
-															if( p[_pixel[4]] > cb)
-																if( p[_pixel[3]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[5]] > cb)
+								if( p[offsets[6]] > cb)
+									if( p[offsets[8]] > cb)
+										if( p[offsets[9]] > cb)
+											if( p[offsets[10]] > cb)
+												if( p[offsets[11]] > cb)
+													if( p[offsets[12]] > cb)
+														if( p[offsets[13]] > cb)
+															if( p[offsets[4]] > cb)
+																if( p[offsets[3]] > cb)
 																	goto is_a_corner;
 																else
-																	if( p[_pixel[14]] > cb)
+																	if( p[offsets[14]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
 															else
-																if( p[_pixel[14]] > cb)
-																	if( p[_pixel[15]] > cb)
+																if( p[offsets[14]] > cb)
+																	if( p[offsets[15]] > cb)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1631,20 +1631,20 @@ namespace cvt {
 									goto is_not_a_corner;
 							else
 								goto is_not_a_corner;
-						else if( p[_pixel[7]] < c_b)
-							if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+						else if( p[offsets[7]] < c_b)
+							if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1653,10 +1653,10 @@ namespace cvt {
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
-																	if( p[_pixel[6]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
+																	if( p[offsets[6]] < c_b)
 																		goto is_a_corner;
 																	else
 																		goto is_not_a_corner;
@@ -1681,35 +1681,35 @@ namespace cvt {
 						else
 							goto is_not_a_corner;
 				else
-					if( p[_pixel[6]] > cb)
-						if( p[_pixel[5]] > cb)
-							if( p[_pixel[7]] > cb)
-								if( p[_pixel[8]] > cb)
-									if( p[_pixel[9]] > cb)
-										if( p[_pixel[10]] > cb)
-											if( p[_pixel[11]] > cb)
-												if( p[_pixel[12]] > cb)
-													if( p[_pixel[4]] > cb)
-														if( p[_pixel[3]] > cb)
-															if( p[_pixel[2]] > cb)
+					if( p[offsets[6]] > cb)
+						if( p[offsets[5]] > cb)
+							if( p[offsets[7]] > cb)
+								if( p[offsets[8]] > cb)
+									if( p[offsets[9]] > cb)
+										if( p[offsets[10]] > cb)
+											if( p[offsets[11]] > cb)
+												if( p[offsets[12]] > cb)
+													if( p[offsets[4]] > cb)
+														if( p[offsets[3]] > cb)
+															if( p[offsets[2]] > cb)
 																goto is_a_corner;
 															else
-																if( p[_pixel[13]] > cb)
+																if( p[offsets[13]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 														else
-															if( p[_pixel[13]] > cb)
-																if( p[_pixel[14]] > cb)
+															if( p[offsets[13]] > cb)
+																if( p[offsets[14]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[13]] > cb)
-															if( p[_pixel[14]] > cb)
-																if( p[_pixel[15]] > cb)
+														if( p[offsets[13]] > cb)
+															if( p[offsets[14]] > cb)
+																if( p[offsets[15]] > cb)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1731,29 +1731,29 @@ namespace cvt {
 								goto is_not_a_corner;
 						else
 							goto is_not_a_corner;
-					else if( p[_pixel[6]] < c_b)
-						if( p[_pixel[7]] < c_b)
-							if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[12]] < c_b)
-												if( p[_pixel[13]] < c_b)
-													if( p[_pixel[14]] < c_b)
-														if( p[_pixel[15]] < c_b)
+					else if( p[offsets[6]] < c_b)
+						if( p[offsets[7]] < c_b)
+							if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[12]] < c_b)
+												if( p[offsets[13]] < c_b)
+													if( p[offsets[14]] < c_b)
+														if( p[offsets[15]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1762,10 +1762,10 @@ namespace cvt {
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[2]] < c_b)
-														if( p[_pixel[3]] < c_b)
-															if( p[_pixel[4]] < c_b)
-																if( p[_pixel[5]] < c_b)
+													if( p[offsets[2]] < c_b)
+														if( p[offsets[3]] < c_b)
+															if( p[offsets[4]] < c_b)
+																if( p[offsets[5]] < c_b)
 																	goto is_a_corner;
 																else
 																	goto is_not_a_corner;
@@ -1790,35 +1790,35 @@ namespace cvt {
 					else
 						goto is_not_a_corner;
 			else
-				if( p[_pixel[5]] > cb)
-					if( p[_pixel[6]] > cb)
-						if( p[_pixel[7]] > cb)
-							if( p[_pixel[8]] > cb)
-								if( p[_pixel[9]] > cb)
-									if( p[_pixel[10]] > cb)
-										if( p[_pixel[11]] > cb)
-											if( p[_pixel[4]] > cb)
-												if( p[_pixel[3]] > cb)
-													if( p[_pixel[2]] > cb)
-														if( p[_pixel[1]] > cb)
+				if( p[offsets[5]] > cb)
+					if( p[offsets[6]] > cb)
+						if( p[offsets[7]] > cb)
+							if( p[offsets[8]] > cb)
+								if( p[offsets[9]] > cb)
+									if( p[offsets[10]] > cb)
+										if( p[offsets[11]] > cb)
+											if( p[offsets[4]] > cb)
+												if( p[offsets[3]] > cb)
+													if( p[offsets[2]] > cb)
+														if( p[offsets[1]] > cb)
 															goto is_a_corner;
 														else
-															if( p[_pixel[12]] > cb)
+															if( p[offsets[12]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[12]] > cb)
-															if( p[_pixel[13]] > cb)
+														if( p[offsets[12]] > cb)
+															if( p[offsets[13]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[12]] > cb)
-														if( p[_pixel[13]] > cb)
-															if( p[_pixel[14]] > cb)
+													if( p[offsets[12]] > cb)
+														if( p[offsets[13]] > cb)
+															if( p[offsets[14]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1827,10 +1827,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[_pixel[12]] > cb)
-													if( p[_pixel[13]] > cb)
-														if( p[_pixel[14]] > cb)
-															if( p[_pixel[15]] > cb)
+												if( p[offsets[12]] > cb)
+													if( p[offsets[13]] > cb)
+														if( p[offsets[14]] > cb)
+															if( p[offsets[15]] > cb)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1852,35 +1852,35 @@ namespace cvt {
 							goto is_not_a_corner;
 					else
 						goto is_not_a_corner;
-				else if( p[_pixel[5]] < c_b)
-					if( p[_pixel[6]] < c_b)
-						if( p[_pixel[7]] < c_b)
-							if( p[_pixel[8]] < c_b)
-								if( p[_pixel[9]] < c_b)
-									if( p[_pixel[10]] < c_b)
-										if( p[_pixel[11]] < c_b)
-											if( p[_pixel[4]] < c_b)
-												if( p[_pixel[3]] < c_b)
-													if( p[_pixel[2]] < c_b)
-														if( p[_pixel[1]] < c_b)
+				else if( p[offsets[5]] < c_b)
+					if( p[offsets[6]] < c_b)
+						if( p[offsets[7]] < c_b)
+							if( p[offsets[8]] < c_b)
+								if( p[offsets[9]] < c_b)
+									if( p[offsets[10]] < c_b)
+										if( p[offsets[11]] < c_b)
+											if( p[offsets[4]] < c_b)
+												if( p[offsets[3]] < c_b)
+													if( p[offsets[2]] < c_b)
+														if( p[offsets[1]] < c_b)
 															goto is_a_corner;
 														else
-															if( p[_pixel[12]] < c_b)
+															if( p[offsets[12]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 													else
-														if( p[_pixel[12]] < c_b)
-															if( p[_pixel[13]] < c_b)
+														if( p[offsets[12]] < c_b)
+															if( p[offsets[13]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
 														else
 															goto is_not_a_corner;
 												else
-													if( p[_pixel[12]] < c_b)
-														if( p[_pixel[13]] < c_b)
-															if( p[_pixel[14]] < c_b)
+													if( p[offsets[12]] < c_b)
+														if( p[offsets[13]] < c_b)
+															if( p[offsets[14]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1889,10 +1889,10 @@ namespace cvt {
 													else
 														goto is_not_a_corner;
 											else
-												if( p[_pixel[12]] < c_b)
-													if( p[_pixel[13]] < c_b)
-														if( p[_pixel[14]] < c_b)
-															if( p[_pixel[15]] < c_b)
+												if( p[offsets[12]] < c_b)
+													if( p[offsets[13]] < c_b)
+														if( p[offsets[14]] < c_b)
+															if( p[offsets[15]] < c_b)
 																goto is_a_corner;
 															else
 																goto is_not_a_corner;
@@ -1933,51 +1933,58 @@ end_if:
 		}
 	}
 
-	void FAST::detect11( const uint8_t* im, size_t stride, size_t xsize, size_t ysize, std::vector<Feature2Df> & corners )
+	void FAST::detect11( const Image & img, uint8_t threshold, std::vector<Feature2Df> & corners, size_t border )
 	{
+        size_t stride;
+        const uint8_t * im = img.map( &stride );
+        
 		int num_corners=0;
 		int rsize=512;
 		size_t x, y;
+        size_t xsize = img.width() - border;
+        size_t ysize = img.height() - border;
 
 		corners.reserve( rsize );
-		make_offsets( stride );
+        
+        int offsets[ 16 ];
+		make_offsets( offsets, stride );
 
-		for(y=3; y < ysize - 3; y++)
-			for(x=3; x < xsize - 3; x++)
+		for( y=border; y < ysize; y++ )
+			for( x=border; x < xsize; x++ )
 			{
 				const uint8_t* p = im + y*stride + x;
 
-				int cb = *p + _threshold;
-				int c_b= *p - _threshold;
-				if(p[_pixel[0]] > cb)
-					if(p[_pixel[1]] > cb)
-						if(p[_pixel[2]] > cb)
-							if(p[_pixel[3]] > cb)
-								if(p[_pixel[4]] > cb)
-									if(p[_pixel[5]] > cb)
-										if(p[_pixel[6]] > cb)
-											if(p[_pixel[7]] > cb)
-												if(p[_pixel[8]] > cb)
-													if(p[_pixel[9]] > cb)
-														if(p[_pixel[10]] > cb)
+				int cb = *p + threshold;
+				int c_b= *p - threshold;
+				if(p[offsets[0]] > cb)
+					if(p[offsets[1]] > cb)
+						if(p[offsets[2]] > cb)
+							if(p[offsets[3]] > cb)
+								if(p[offsets[4]] > cb)
+									if(p[offsets[5]] > cb)
+										if(p[offsets[6]] > cb)
+											if(p[offsets[7]] > cb)
+												if(p[offsets[8]] > cb)
+													if(p[offsets[9]] > cb)
+														if(p[offsets[10]] > cb)
 														{}
 														else
-															if(p[_pixel[15]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
 													else
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
 														else
 															continue;
 												else
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -1986,10 +1993,10 @@ end_if:
 													else
 														continue;
 											else
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -2000,11 +2007,11 @@ end_if:
 												else
 													continue;
 										else
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -2016,13 +2023,13 @@ end_if:
 													continue;
 											else
 												continue;
-									else if(p[_pixel[5]] < c_b)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+									else if(p[offsets[5]] < c_b)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -2034,16 +2041,16 @@ end_if:
 													continue;
 											else
 												continue;
-										else if(p[_pixel[10]] < c_b)
-											if(p[_pixel[6]] < c_b)
-												if(p[_pixel[7]] < c_b)
-													if(p[_pixel[8]] < c_b)
-														if(p[_pixel[9]] < c_b)
-															if(p[_pixel[11]] < c_b)
-																if(p[_pixel[12]] < c_b)
-																	if(p[_pixel[13]] < c_b)
-																		if(p[_pixel[14]] < c_b)
-																			if(p[_pixel[15]] < c_b)
+										else if(p[offsets[10]] < c_b)
+											if(p[offsets[6]] < c_b)
+												if(p[offsets[7]] < c_b)
+													if(p[offsets[8]] < c_b)
+														if(p[offsets[9]] < c_b)
+															if(p[offsets[11]] < c_b)
+																if(p[offsets[12]] < c_b)
+																	if(p[offsets[13]] < c_b)
+																		if(p[offsets[14]] < c_b)
+																			if(p[offsets[15]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2066,12 +2073,12 @@ end_if:
 										else
 											continue;
 									else
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -2085,14 +2092,14 @@ end_if:
 												continue;
 										else
 											continue;
-								else if(p[_pixel[4]] < c_b)
-									if(p[_pixel[15]] > cb)
-										if(p[_pixel[9]] > cb)
-											if(p[_pixel[10]] > cb)
-												if(p[_pixel[11]] > cb)
-													if(p[_pixel[12]] > cb)
-														if(p[_pixel[13]] > cb)
-															if(p[_pixel[14]] > cb)
+								else if(p[offsets[4]] < c_b)
+									if(p[offsets[15]] > cb)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[10]] > cb)
+												if(p[offsets[11]] > cb)
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
 															{}
 															else
 																continue;
@@ -2104,16 +2111,16 @@ end_if:
 													continue;
 											else
 												continue;
-										else if(p[_pixel[9]] < c_b)
-											if(p[_pixel[5]] < c_b)
-												if(p[_pixel[6]] < c_b)
-													if(p[_pixel[7]] < c_b)
-														if(p[_pixel[8]] < c_b)
-															if(p[_pixel[10]] < c_b)
-																if(p[_pixel[11]] < c_b)
-																	if(p[_pixel[12]] < c_b)
-																		if(p[_pixel[13]] < c_b)
-																			if(p[_pixel[14]] < c_b)
+										else if(p[offsets[9]] < c_b)
+											if(p[offsets[5]] < c_b)
+												if(p[offsets[6]] < c_b)
+													if(p[offsets[7]] < c_b)
+														if(p[offsets[8]] < c_b)
+															if(p[offsets[10]] < c_b)
+																if(p[offsets[11]] < c_b)
+																	if(p[offsets[12]] < c_b)
+																		if(p[offsets[13]] < c_b)
+																			if(p[offsets[14]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2136,16 +2143,16 @@ end_if:
 										else
 											continue;
 									else
-										if(p[_pixel[5]] < c_b)
-											if(p[_pixel[6]] < c_b)
-												if(p[_pixel[7]] < c_b)
-													if(p[_pixel[8]] < c_b)
-														if(p[_pixel[9]] < c_b)
-															if(p[_pixel[10]] < c_b)
-																if(p[_pixel[11]] < c_b)
-																	if(p[_pixel[12]] < c_b)
-																		if(p[_pixel[13]] < c_b)
-																			if(p[_pixel[14]] < c_b)
+										if(p[offsets[5]] < c_b)
+											if(p[offsets[6]] < c_b)
+												if(p[offsets[7]] < c_b)
+													if(p[offsets[8]] < c_b)
+														if(p[offsets[9]] < c_b)
+															if(p[offsets[10]] < c_b)
+																if(p[offsets[11]] < c_b)
+																	if(p[offsets[12]] < c_b)
+																		if(p[offsets[13]] < c_b)
+																			if(p[offsets[14]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2168,13 +2175,13 @@ end_if:
 										else
 											continue;
 								else
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
 																continue;
@@ -2188,17 +2195,17 @@ end_if:
 												continue;
 										else
 											continue;
-									else if(p[_pixel[9]] < c_b)
-										if(p[_pixel[5]] < c_b)
-											if(p[_pixel[6]] < c_b)
-												if(p[_pixel[7]] < c_b)
-													if(p[_pixel[8]] < c_b)
-														if(p[_pixel[10]] < c_b)
-															if(p[_pixel[11]] < c_b)
-																if(p[_pixel[12]] < c_b)
-																	if(p[_pixel[13]] < c_b)
-																		if(p[_pixel[14]] < c_b)
-																			if(p[_pixel[15]] < c_b)
+									else if(p[offsets[9]] < c_b)
+										if(p[offsets[5]] < c_b)
+											if(p[offsets[6]] < c_b)
+												if(p[offsets[7]] < c_b)
+													if(p[offsets[8]] < c_b)
+														if(p[offsets[10]] < c_b)
+															if(p[offsets[11]] < c_b)
+																if(p[offsets[12]] < c_b)
+																	if(p[offsets[13]] < c_b)
+																		if(p[offsets[14]] < c_b)
+																			if(p[offsets[15]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2222,21 +2229,21 @@ end_if:
 											continue;
 									else
 										continue;
-							else if(p[_pixel[3]] < c_b)
-								if(p[_pixel[14]] > cb)
-									if(p[_pixel[8]] > cb)
-										if(p[_pixel[9]] > cb)
-											if(p[_pixel[10]] > cb)
-												if(p[_pixel[11]] > cb)
-													if(p[_pixel[12]] > cb)
-														if(p[_pixel[13]] > cb)
-															if(p[_pixel[15]] > cb)
+							else if(p[offsets[3]] < c_b)
+								if(p[offsets[14]] > cb)
+									if(p[offsets[8]] > cb)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[10]] > cb)
+												if(p[offsets[11]] > cb)
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
-																			if(p[_pixel[7]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
+																			if(p[offsets[7]] > cb)
 																			{}
 																			else
 																				continue;
@@ -2256,16 +2263,16 @@ end_if:
 												continue;
 										else
 											continue;
-									else if(p[_pixel[8]] < c_b)
-										if(p[_pixel[4]] < c_b)
-											if(p[_pixel[5]] < c_b)
-												if(p[_pixel[6]] < c_b)
-													if(p[_pixel[7]] < c_b)
-														if(p[_pixel[9]] < c_b)
-															if(p[_pixel[10]] < c_b)
-																if(p[_pixel[11]] < c_b)
-																	if(p[_pixel[12]] < c_b)
-																		if(p[_pixel[13]] < c_b)
+									else if(p[offsets[8]] < c_b)
+										if(p[offsets[4]] < c_b)
+											if(p[offsets[5]] < c_b)
+												if(p[offsets[6]] < c_b)
+													if(p[offsets[7]] < c_b)
+														if(p[offsets[9]] < c_b)
+															if(p[offsets[10]] < c_b)
+																if(p[offsets[11]] < c_b)
+																	if(p[offsets[12]] < c_b)
+																		if(p[offsets[13]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -2287,20 +2294,20 @@ end_if:
 											continue;
 									else
 										continue;
-								else if(p[_pixel[14]] < c_b)
-									if(p[_pixel[5]] < c_b)
-										if(p[_pixel[6]] < c_b)
-											if(p[_pixel[7]] < c_b)
-												if(p[_pixel[8]] < c_b)
-													if(p[_pixel[9]] < c_b)
-														if(p[_pixel[10]] < c_b)
-															if(p[_pixel[11]] < c_b)
-																if(p[_pixel[12]] < c_b)
-																	if(p[_pixel[13]] < c_b)
-																		if(p[_pixel[4]] < c_b)
+								else if(p[offsets[14]] < c_b)
+									if(p[offsets[5]] < c_b)
+										if(p[offsets[6]] < c_b)
+											if(p[offsets[7]] < c_b)
+												if(p[offsets[8]] < c_b)
+													if(p[offsets[9]] < c_b)
+														if(p[offsets[10]] < c_b)
+															if(p[offsets[11]] < c_b)
+																if(p[offsets[12]] < c_b)
+																	if(p[offsets[13]] < c_b)
+																		if(p[offsets[4]] < c_b)
 																		{}
 																		else
-																			if(p[_pixel[15]] < c_b)
+																			if(p[offsets[15]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2323,16 +2330,16 @@ end_if:
 									else
 										continue;
 								else
-									if(p[_pixel[4]] < c_b)
-										if(p[_pixel[5]] < c_b)
-											if(p[_pixel[6]] < c_b)
-												if(p[_pixel[7]] < c_b)
-													if(p[_pixel[8]] < c_b)
-														if(p[_pixel[9]] < c_b)
-															if(p[_pixel[10]] < c_b)
-																if(p[_pixel[11]] < c_b)
-																	if(p[_pixel[12]] < c_b)
-																		if(p[_pixel[13]] < c_b)
+									if(p[offsets[4]] < c_b)
+										if(p[offsets[5]] < c_b)
+											if(p[offsets[6]] < c_b)
+												if(p[offsets[7]] < c_b)
+													if(p[offsets[8]] < c_b)
+														if(p[offsets[9]] < c_b)
+															if(p[offsets[10]] < c_b)
+																if(p[offsets[11]] < c_b)
+																	if(p[offsets[12]] < c_b)
+																		if(p[offsets[13]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -2355,20 +2362,20 @@ end_if:
 									else
 										continue;
 							else
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
-																			if(p[_pixel[7]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
+																			if(p[offsets[7]] > cb)
 																			{}
 																			else
 																				continue;
@@ -2390,20 +2397,20 @@ end_if:
 											continue;
 									else
 										continue;
-								else if(p[_pixel[8]] < c_b)
-									if(p[_pixel[5]] < c_b)
-										if(p[_pixel[6]] < c_b)
-											if(p[_pixel[7]] < c_b)
-												if(p[_pixel[9]] < c_b)
-													if(p[_pixel[10]] < c_b)
-														if(p[_pixel[11]] < c_b)
-															if(p[_pixel[12]] < c_b)
-																if(p[_pixel[13]] < c_b)
-																	if(p[_pixel[14]] < c_b)
-																		if(p[_pixel[4]] < c_b)
+								else if(p[offsets[8]] < c_b)
+									if(p[offsets[5]] < c_b)
+										if(p[offsets[6]] < c_b)
+											if(p[offsets[7]] < c_b)
+												if(p[offsets[9]] < c_b)
+													if(p[offsets[10]] < c_b)
+														if(p[offsets[11]] < c_b)
+															if(p[offsets[12]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
+																		if(p[offsets[4]] < c_b)
 																		{}
 																		else
-																			if(p[_pixel[15]] < c_b)
+																			if(p[offsets[15]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -2427,21 +2434,21 @@ end_if:
 										continue;
 								else
 									continue;
-						else if(p[_pixel[2]] < c_b)
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+						else if(p[offsets[2]] < c_b)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
 																		{}
 																		else
 																			continue;
@@ -2450,10 +2457,10 @@ end_if:
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
 																		{}
 																		else
 																			continue;
@@ -2475,29 +2482,29 @@ end_if:
 										continue;
 								else
 									continue;
-							else if(p[_pixel[7]] < c_b)
-								if(p[_pixel[5]] < c_b)
-									if(p[_pixel[6]] < c_b)
-										if(p[_pixel[8]] < c_b)
-											if(p[_pixel[9]] < c_b)
-												if(p[_pixel[10]] < c_b)
-													if(p[_pixel[11]] < c_b)
-														if(p[_pixel[12]] < c_b)
-															if(p[_pixel[4]] < c_b)
-																if(p[_pixel[3]] < c_b)
+							else if(p[offsets[7]] < c_b)
+								if(p[offsets[5]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[8]] < c_b)
+											if(p[offsets[9]] < c_b)
+												if(p[offsets[10]] < c_b)
+													if(p[offsets[11]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[4]] < c_b)
+																if(p[offsets[3]] < c_b)
 																{}
 																else
-																	if(p[_pixel[13]] < c_b)
-																		if(p[_pixel[14]] < c_b)
+																	if(p[offsets[13]] < c_b)
+																		if(p[offsets[14]] < c_b)
 																		{}
 																		else
 																			continue;
 																	else
 																		continue;
 															else
-																if(p[_pixel[13]] < c_b)
-																	if(p[_pixel[14]] < c_b)
-																		if(p[_pixel[15]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
+																		if(p[offsets[15]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -2522,20 +2529,20 @@ end_if:
 							else
 								continue;
 						else
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
 																		{}
 																		else
 																			continue;
@@ -2544,10 +2551,10 @@ end_if:
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
-																		if(p[_pixel[6]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
+																		if(p[offsets[6]] > cb)
 																		{}
 																		else
 																			continue;
@@ -2569,26 +2576,26 @@ end_if:
 										continue;
 								else
 									continue;
-							else if(p[_pixel[7]] < c_b)
-								if(p[_pixel[5]] < c_b)
-									if(p[_pixel[6]] < c_b)
-										if(p[_pixel[8]] < c_b)
-											if(p[_pixel[9]] < c_b)
-												if(p[_pixel[10]] < c_b)
-													if(p[_pixel[11]] < c_b)
-														if(p[_pixel[12]] < c_b)
-															if(p[_pixel[13]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[3]] < c_b)
+							else if(p[offsets[7]] < c_b)
+								if(p[offsets[5]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[8]] < c_b)
+											if(p[offsets[9]] < c_b)
+												if(p[offsets[10]] < c_b)
+													if(p[offsets[11]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[3]] < c_b)
 																	{}
 																	else
-																		if(p[_pixel[14]] < c_b)
+																		if(p[offsets[14]] < c_b)
 																		{}
 																		else
 																			continue;
 																else
-																	if(p[_pixel[14]] < c_b)
-																		if(p[_pixel[15]] < c_b)
+																	if(p[offsets[14]] < c_b)
+																		if(p[offsets[15]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -2612,30 +2619,30 @@ end_if:
 									continue;
 							else
 								continue;
-					else if(p[_pixel[1]] < c_b)
-						if(p[_pixel[6]] > cb)
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+					else if(p[offsets[1]] < c_b)
+						if(p[offsets[6]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2644,10 +2651,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[2]] > cb)
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+														if(p[offsets[2]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2669,29 +2676,29 @@ end_if:
 									continue;
 							else
 								continue;
-						else if(p[_pixel[6]] < c_b)
-							if(p[_pixel[5]] < c_b)
-								if(p[_pixel[7]] < c_b)
-									if(p[_pixel[8]] < c_b)
-										if(p[_pixel[9]] < c_b)
-											if(p[_pixel[10]] < c_b)
-												if(p[_pixel[11]] < c_b)
-													if(p[_pixel[4]] < c_b)
-														if(p[_pixel[3]] < c_b)
-															if(p[_pixel[2]] < c_b)
+						else if(p[offsets[6]] < c_b)
+							if(p[offsets[5]] < c_b)
+								if(p[offsets[7]] < c_b)
+									if(p[offsets[8]] < c_b)
+										if(p[offsets[9]] < c_b)
+											if(p[offsets[10]] < c_b)
+												if(p[offsets[11]] < c_b)
+													if(p[offsets[4]] < c_b)
+														if(p[offsets[3]] < c_b)
+															if(p[offsets[2]] < c_b)
 															{}
 															else
-																if(p[_pixel[12]] < c_b)
-																	if(p[_pixel[13]] < c_b)
+																if(p[offsets[12]] < c_b)
+																	if(p[offsets[13]] < c_b)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[12]] < c_b)
-																if(p[_pixel[13]] < c_b)
-																	if(p[_pixel[14]] < c_b)
+															if(p[offsets[12]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -2700,10 +2707,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[12]] < c_b)
-															if(p[_pixel[13]] < c_b)
-																if(p[_pixel[14]] < c_b)
-																	if(p[_pixel[15]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
+																	if(p[offsets[15]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -2728,29 +2735,29 @@ end_if:
 						else
 							continue;
 					else
-						if(p[_pixel[6]] > cb)
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[12]] > cb)
-													if(p[_pixel[13]] > cb)
-														if(p[_pixel[14]] > cb)
-															if(p[_pixel[15]] > cb)
+						if(p[offsets[6]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
 															{}
 															else
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2759,10 +2766,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[2]] > cb)
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[5]] > cb)
+														if(p[offsets[2]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[5]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2784,35 +2791,35 @@ end_if:
 									continue;
 							else
 								continue;
-						else if(p[_pixel[6]] < c_b)
-							if(p[_pixel[5]] < c_b)
-								if(p[_pixel[7]] < c_b)
-									if(p[_pixel[8]] < c_b)
-										if(p[_pixel[9]] < c_b)
-											if(p[_pixel[10]] < c_b)
-												if(p[_pixel[11]] < c_b)
-													if(p[_pixel[12]] < c_b)
-														if(p[_pixel[4]] < c_b)
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[2]] < c_b)
+						else if(p[offsets[6]] < c_b)
+							if(p[offsets[5]] < c_b)
+								if(p[offsets[7]] < c_b)
+									if(p[offsets[8]] < c_b)
+										if(p[offsets[9]] < c_b)
+											if(p[offsets[10]] < c_b)
+												if(p[offsets[11]] < c_b)
+													if(p[offsets[12]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[2]] < c_b)
 																{}
 																else
-																	if(p[_pixel[13]] < c_b)
+																	if(p[offsets[13]] < c_b)
 																	{}
 																	else
 																		continue;
 															else
-																if(p[_pixel[13]] < c_b)
-																	if(p[_pixel[14]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[13]] < c_b)
-																if(p[_pixel[14]] < c_b)
-																	if(p[_pixel[15]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
+																	if(p[offsets[15]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -2836,31 +2843,31 @@ end_if:
 								continue;
 						else
 							continue;
-				else if(p[_pixel[0]] < c_b)
-					if(p[_pixel[1]] > cb)
-						if(p[_pixel[6]] > cb)
-							if(p[_pixel[5]] > cb)
-								if(p[_pixel[7]] > cb)
-									if(p[_pixel[8]] > cb)
-										if(p[_pixel[9]] > cb)
-											if(p[_pixel[10]] > cb)
-												if(p[_pixel[11]] > cb)
-													if(p[_pixel[4]] > cb)
-														if(p[_pixel[3]] > cb)
-															if(p[_pixel[2]] > cb)
+				else if(p[offsets[0]] < c_b)
+					if(p[offsets[1]] > cb)
+						if(p[offsets[6]] > cb)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[7]] > cb)
+									if(p[offsets[8]] > cb)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[10]] > cb)
+												if(p[offsets[11]] > cb)
+													if(p[offsets[4]] > cb)
+														if(p[offsets[3]] > cb)
+															if(p[offsets[2]] > cb)
 															{}
 															else
-																if(p[_pixel[12]] > cb)
-																	if(p[_pixel[13]] > cb)
+																if(p[offsets[12]] > cb)
+																	if(p[offsets[13]] > cb)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[12]] > cb)
-																if(p[_pixel[13]] > cb)
-																	if(p[_pixel[14]] > cb)
+															if(p[offsets[12]] > cb)
+																if(p[offsets[13]] > cb)
+																	if(p[offsets[14]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2869,10 +2876,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[12]] > cb)
-															if(p[_pixel[13]] > cb)
-																if(p[_pixel[14]] > cb)
-																	if(p[_pixel[15]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[14]] > cb)
+																	if(p[offsets[15]] > cb)
 																	{}
 																	else
 																		continue;
@@ -2894,29 +2901,29 @@ end_if:
 									continue;
 							else
 								continue;
-						else if(p[_pixel[6]] < c_b)
-							if(p[_pixel[7]] < c_b)
-								if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+						else if(p[offsets[6]] < c_b)
+							if(p[offsets[7]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -2925,10 +2932,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[2]] < c_b)
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+														if(p[offsets[2]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -2952,31 +2959,31 @@ end_if:
 								continue;
 						else
 							continue;
-					else if(p[_pixel[1]] < c_b)
-						if(p[_pixel[2]] > cb)
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[5]] > cb)
-									if(p[_pixel[6]] > cb)
-										if(p[_pixel[8]] > cb)
-											if(p[_pixel[9]] > cb)
-												if(p[_pixel[10]] > cb)
-													if(p[_pixel[11]] > cb)
-														if(p[_pixel[12]] > cb)
-															if(p[_pixel[4]] > cb)
-																if(p[_pixel[3]] > cb)
+					else if(p[offsets[1]] < c_b)
+						if(p[offsets[2]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[5]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[8]] > cb)
+											if(p[offsets[9]] > cb)
+												if(p[offsets[10]] > cb)
+													if(p[offsets[11]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[4]] > cb)
+																if(p[offsets[3]] > cb)
 																{}
 																else
-																	if(p[_pixel[13]] > cb)
-																		if(p[_pixel[14]] > cb)
+																	if(p[offsets[13]] > cb)
+																		if(p[offsets[14]] > cb)
 																		{}
 																		else
 																			continue;
 																	else
 																		continue;
 															else
-																if(p[_pixel[13]] > cb)
-																	if(p[_pixel[14]] > cb)
-																		if(p[_pixel[15]] > cb)
+																if(p[offsets[13]] > cb)
+																	if(p[offsets[14]] > cb)
+																		if(p[offsets[15]] > cb)
 																		{}
 																		else
 																			continue;
@@ -2998,20 +3005,20 @@ end_if:
 										continue;
 								else
 									continue;
-							else if(p[_pixel[7]] < c_b)
-								if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+							else if(p[offsets[7]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -3020,10 +3027,10 @@ end_if:
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -3047,22 +3054,22 @@ end_if:
 									continue;
 							else
 								continue;
-						else if(p[_pixel[2]] < c_b)
-							if(p[_pixel[3]] > cb)
-								if(p[_pixel[14]] > cb)
-									if(p[_pixel[5]] > cb)
-										if(p[_pixel[6]] > cb)
-											if(p[_pixel[7]] > cb)
-												if(p[_pixel[8]] > cb)
-													if(p[_pixel[9]] > cb)
-														if(p[_pixel[10]] > cb)
-															if(p[_pixel[11]] > cb)
-																if(p[_pixel[12]] > cb)
-																	if(p[_pixel[13]] > cb)
-																		if(p[_pixel[4]] > cb)
+						else if(p[offsets[2]] < c_b)
+							if(p[offsets[3]] > cb)
+								if(p[offsets[14]] > cb)
+									if(p[offsets[5]] > cb)
+										if(p[offsets[6]] > cb)
+											if(p[offsets[7]] > cb)
+												if(p[offsets[8]] > cb)
+													if(p[offsets[9]] > cb)
+														if(p[offsets[10]] > cb)
+															if(p[offsets[11]] > cb)
+																if(p[offsets[12]] > cb)
+																	if(p[offsets[13]] > cb)
+																		if(p[offsets[4]] > cb)
 																		{}
 																		else
-																			if(p[_pixel[15]] > cb)
+																			if(p[offsets[15]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3084,17 +3091,17 @@ end_if:
 											continue;
 									else
 										continue;
-								else if(p[_pixel[14]] < c_b)
-									if(p[_pixel[8]] > cb)
-										if(p[_pixel[4]] > cb)
-											if(p[_pixel[5]] > cb)
-												if(p[_pixel[6]] > cb)
-													if(p[_pixel[7]] > cb)
-														if(p[_pixel[9]] > cb)
-															if(p[_pixel[10]] > cb)
-																if(p[_pixel[11]] > cb)
-																	if(p[_pixel[12]] > cb)
-																		if(p[_pixel[13]] > cb)
+								else if(p[offsets[14]] < c_b)
+									if(p[offsets[8]] > cb)
+										if(p[offsets[4]] > cb)
+											if(p[offsets[5]] > cb)
+												if(p[offsets[6]] > cb)
+													if(p[offsets[7]] > cb)
+														if(p[offsets[9]] > cb)
+															if(p[offsets[10]] > cb)
+																if(p[offsets[11]] > cb)
+																	if(p[offsets[12]] > cb)
+																		if(p[offsets[13]] > cb)
 																		{}
 																		else
 																			continue;
@@ -3114,19 +3121,19 @@ end_if:
 												continue;
 										else
 											continue;
-									else if(p[_pixel[8]] < c_b)
-										if(p[_pixel[9]] < c_b)
-											if(p[_pixel[10]] < c_b)
-												if(p[_pixel[11]] < c_b)
-													if(p[_pixel[12]] < c_b)
-														if(p[_pixel[13]] < c_b)
-															if(p[_pixel[15]] < c_b)
+									else if(p[offsets[8]] < c_b)
+										if(p[offsets[9]] < c_b)
+											if(p[offsets[10]] < c_b)
+												if(p[offsets[11]] < c_b)
+													if(p[offsets[12]] < c_b)
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
-																			if(p[_pixel[7]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
+																			if(p[offsets[7]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -3149,16 +3156,16 @@ end_if:
 									else
 										continue;
 								else
-									if(p[_pixel[4]] > cb)
-										if(p[_pixel[5]] > cb)
-											if(p[_pixel[6]] > cb)
-												if(p[_pixel[7]] > cb)
-													if(p[_pixel[8]] > cb)
-														if(p[_pixel[9]] > cb)
-															if(p[_pixel[10]] > cb)
-																if(p[_pixel[11]] > cb)
-																	if(p[_pixel[12]] > cb)
-																		if(p[_pixel[13]] > cb)
+									if(p[offsets[4]] > cb)
+										if(p[offsets[5]] > cb)
+											if(p[offsets[6]] > cb)
+												if(p[offsets[7]] > cb)
+													if(p[offsets[8]] > cb)
+														if(p[offsets[9]] > cb)
+															if(p[offsets[10]] > cb)
+																if(p[offsets[11]] > cb)
+																	if(p[offsets[12]] > cb)
+																		if(p[offsets[13]] > cb)
 																		{}
 																		else
 																			continue;
@@ -3180,19 +3187,19 @@ end_if:
 											continue;
 									else
 										continue;
-							else if(p[_pixel[3]] < c_b)
-								if(p[_pixel[4]] > cb)
-									if(p[_pixel[15]] < c_b)
-										if(p[_pixel[9]] > cb)
-											if(p[_pixel[5]] > cb)
-												if(p[_pixel[6]] > cb)
-													if(p[_pixel[7]] > cb)
-														if(p[_pixel[8]] > cb)
-															if(p[_pixel[10]] > cb)
-																if(p[_pixel[11]] > cb)
-																	if(p[_pixel[12]] > cb)
-																		if(p[_pixel[13]] > cb)
-																			if(p[_pixel[14]] > cb)
+							else if(p[offsets[3]] < c_b)
+								if(p[offsets[4]] > cb)
+									if(p[offsets[15]] < c_b)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[5]] > cb)
+												if(p[offsets[6]] > cb)
+													if(p[offsets[7]] > cb)
+														if(p[offsets[8]] > cb)
+															if(p[offsets[10]] > cb)
+																if(p[offsets[11]] > cb)
+																	if(p[offsets[12]] > cb)
+																		if(p[offsets[13]] > cb)
+																			if(p[offsets[14]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3212,12 +3219,12 @@ end_if:
 													continue;
 											else
 												continue;
-										else if(p[_pixel[9]] < c_b)
-											if(p[_pixel[10]] < c_b)
-												if(p[_pixel[11]] < c_b)
-													if(p[_pixel[12]] < c_b)
-														if(p[_pixel[13]] < c_b)
-															if(p[_pixel[14]] < c_b)
+										else if(p[offsets[9]] < c_b)
+											if(p[offsets[10]] < c_b)
+												if(p[offsets[11]] < c_b)
+													if(p[offsets[12]] < c_b)
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[14]] < c_b)
 															{}
 															else
 																continue;
@@ -3232,16 +3239,16 @@ end_if:
 										else
 											continue;
 									else
-										if(p[_pixel[5]] > cb)
-											if(p[_pixel[6]] > cb)
-												if(p[_pixel[7]] > cb)
-													if(p[_pixel[8]] > cb)
-														if(p[_pixel[9]] > cb)
-															if(p[_pixel[10]] > cb)
-																if(p[_pixel[11]] > cb)
-																	if(p[_pixel[12]] > cb)
-																		if(p[_pixel[13]] > cb)
-																			if(p[_pixel[14]] > cb)
+										if(p[offsets[5]] > cb)
+											if(p[offsets[6]] > cb)
+												if(p[offsets[7]] > cb)
+													if(p[offsets[8]] > cb)
+														if(p[offsets[9]] > cb)
+															if(p[offsets[10]] > cb)
+																if(p[offsets[11]] > cb)
+																	if(p[offsets[12]] > cb)
+																		if(p[offsets[13]] > cb)
+																			if(p[offsets[14]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3263,18 +3270,18 @@ end_if:
 												continue;
 										else
 											continue;
-								else if(p[_pixel[4]] < c_b)
-									if(p[_pixel[5]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[6]] > cb)
-												if(p[_pixel[7]] > cb)
-													if(p[_pixel[8]] > cb)
-														if(p[_pixel[9]] > cb)
-															if(p[_pixel[11]] > cb)
-																if(p[_pixel[12]] > cb)
-																	if(p[_pixel[13]] > cb)
-																		if(p[_pixel[14]] > cb)
-																			if(p[_pixel[15]] > cb)
+								else if(p[offsets[4]] < c_b)
+									if(p[offsets[5]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[6]] > cb)
+												if(p[offsets[7]] > cb)
+													if(p[offsets[8]] > cb)
+														if(p[offsets[9]] > cb)
+															if(p[offsets[11]] > cb)
+																if(p[offsets[12]] > cb)
+																	if(p[offsets[13]] > cb)
+																		if(p[offsets[14]] > cb)
+																			if(p[offsets[15]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3294,12 +3301,12 @@ end_if:
 													continue;
 											else
 												continue;
-										else if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+										else if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3313,30 +3320,30 @@ end_if:
 												continue;
 										else
 											continue;
-									else if(p[_pixel[5]] < c_b)
-										if(p[_pixel[6]] < c_b)
-											if(p[_pixel[7]] < c_b)
-												if(p[_pixel[8]] < c_b)
-													if(p[_pixel[9]] < c_b)
-														if(p[_pixel[10]] < c_b)
+									else if(p[offsets[5]] < c_b)
+										if(p[offsets[6]] < c_b)
+											if(p[offsets[7]] < c_b)
+												if(p[offsets[8]] < c_b)
+													if(p[offsets[9]] < c_b)
+														if(p[offsets[10]] < c_b)
 														{}
 														else
-															if(p[_pixel[15]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
 													else
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
 														else
 															continue;
 												else
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3345,10 +3352,10 @@ end_if:
 													else
 														continue;
 											else
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3359,11 +3366,11 @@ end_if:
 												else
 													continue;
 										else
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3376,12 +3383,12 @@ end_if:
 											else
 												continue;
 									else
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3396,17 +3403,17 @@ end_if:
 										else
 											continue;
 								else
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[5]] > cb)
-											if(p[_pixel[6]] > cb)
-												if(p[_pixel[7]] > cb)
-													if(p[_pixel[8]] > cb)
-														if(p[_pixel[10]] > cb)
-															if(p[_pixel[11]] > cb)
-																if(p[_pixel[12]] > cb)
-																	if(p[_pixel[13]] > cb)
-																		if(p[_pixel[14]] > cb)
-																			if(p[_pixel[15]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[5]] > cb)
+											if(p[offsets[6]] > cb)
+												if(p[offsets[7]] > cb)
+													if(p[offsets[8]] > cb)
+														if(p[offsets[10]] > cb)
+															if(p[offsets[11]] > cb)
+																if(p[offsets[12]] > cb)
+																	if(p[offsets[13]] > cb)
+																		if(p[offsets[14]] > cb)
+																			if(p[offsets[15]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3428,13 +3435,13 @@ end_if:
 												continue;
 										else
 											continue;
-									else if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+									else if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
 																continue;
@@ -3451,20 +3458,20 @@ end_if:
 									else
 										continue;
 							else
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[5]] > cb)
-										if(p[_pixel[6]] > cb)
-											if(p[_pixel[7]] > cb)
-												if(p[_pixel[9]] > cb)
-													if(p[_pixel[10]] > cb)
-														if(p[_pixel[11]] > cb)
-															if(p[_pixel[12]] > cb)
-																if(p[_pixel[13]] > cb)
-																	if(p[_pixel[14]] > cb)
-																		if(p[_pixel[4]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[5]] > cb)
+										if(p[offsets[6]] > cb)
+											if(p[offsets[7]] > cb)
+												if(p[offsets[9]] > cb)
+													if(p[offsets[10]] > cb)
+														if(p[offsets[11]] > cb)
+															if(p[offsets[12]] > cb)
+																if(p[offsets[13]] > cb)
+																	if(p[offsets[14]] > cb)
+																		if(p[offsets[4]] > cb)
 																		{}
 																		else
-																			if(p[_pixel[15]] > cb)
+																			if(p[offsets[15]] > cb)
 																			{}
 																			else
 																				continue;
@@ -3486,20 +3493,20 @@ end_if:
 											continue;
 									else
 										continue;
-								else if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+								else if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
-																			if(p[_pixel[7]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
+																			if(p[offsets[7]] < c_b)
 																			{}
 																			else
 																				continue;
@@ -3524,26 +3531,26 @@ end_if:
 								else
 									continue;
 						else
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[5]] > cb)
-									if(p[_pixel[6]] > cb)
-										if(p[_pixel[8]] > cb)
-											if(p[_pixel[9]] > cb)
-												if(p[_pixel[10]] > cb)
-													if(p[_pixel[11]] > cb)
-														if(p[_pixel[12]] > cb)
-															if(p[_pixel[13]] > cb)
-																if(p[_pixel[4]] > cb)
-																	if(p[_pixel[3]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[5]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[8]] > cb)
+											if(p[offsets[9]] > cb)
+												if(p[offsets[10]] > cb)
+													if(p[offsets[11]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[4]] > cb)
+																	if(p[offsets[3]] > cb)
 																	{}
 																	else
-																		if(p[_pixel[14]] > cb)
+																		if(p[offsets[14]] > cb)
 																		{}
 																		else
 																			continue;
 																else
-																	if(p[_pixel[14]] > cb)
-																		if(p[_pixel[15]] > cb)
+																	if(p[offsets[14]] > cb)
+																		if(p[offsets[15]] > cb)
 																		{}
 																		else
 																			continue;
@@ -3565,20 +3572,20 @@ end_if:
 										continue;
 								else
 									continue;
-							else if(p[_pixel[7]] < c_b)
-								if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+							else if(p[offsets[7]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -3587,10 +3594,10 @@ end_if:
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
-																		if(p[_pixel[6]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
+																		if(p[offsets[6]] < c_b)
 																		{}
 																		else
 																			continue;
@@ -3615,35 +3622,35 @@ end_if:
 							else
 								continue;
 					else
-						if(p[_pixel[6]] > cb)
-							if(p[_pixel[5]] > cb)
-								if(p[_pixel[7]] > cb)
-									if(p[_pixel[8]] > cb)
-										if(p[_pixel[9]] > cb)
-											if(p[_pixel[10]] > cb)
-												if(p[_pixel[11]] > cb)
-													if(p[_pixel[12]] > cb)
-														if(p[_pixel[4]] > cb)
-															if(p[_pixel[3]] > cb)
-																if(p[_pixel[2]] > cb)
+						if(p[offsets[6]] > cb)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[7]] > cb)
+									if(p[offsets[8]] > cb)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[10]] > cb)
+												if(p[offsets[11]] > cb)
+													if(p[offsets[12]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[3]] > cb)
+																if(p[offsets[2]] > cb)
 																{}
 																else
-																	if(p[_pixel[13]] > cb)
+																	if(p[offsets[13]] > cb)
 																	{}
 																	else
 																		continue;
 															else
-																if(p[_pixel[13]] > cb)
-																	if(p[_pixel[14]] > cb)
+																if(p[offsets[13]] > cb)
+																	if(p[offsets[14]] > cb)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[13]] > cb)
-																if(p[_pixel[14]] > cb)
-																	if(p[_pixel[15]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[14]] > cb)
+																	if(p[offsets[15]] > cb)
 																	{}
 																	else
 																		continue;
@@ -3665,29 +3672,29 @@ end_if:
 									continue;
 							else
 								continue;
-						else if(p[_pixel[6]] < c_b)
-							if(p[_pixel[7]] < c_b)
-								if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[12]] < c_b)
-													if(p[_pixel[13]] < c_b)
-														if(p[_pixel[14]] < c_b)
-															if(p[_pixel[15]] < c_b)
+						else if(p[offsets[6]] < c_b)
+							if(p[offsets[7]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
 															{}
 															else
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
 																else
 																	continue;
 														else
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -3696,10 +3703,10 @@ end_if:
 															else
 																continue;
 													else
-														if(p[_pixel[2]] < c_b)
-															if(p[_pixel[3]] < c_b)
-																if(p[_pixel[4]] < c_b)
-																	if(p[_pixel[5]] < c_b)
+														if(p[offsets[2]] < c_b)
+															if(p[offsets[3]] < c_b)
+																if(p[offsets[4]] < c_b)
+																	if(p[offsets[5]] < c_b)
 																	{}
 																	else
 																		continue;
@@ -3724,35 +3731,35 @@ end_if:
 						else
 							continue;
 				else
-					if(p[_pixel[5]] > cb)
-						if(p[_pixel[6]] > cb)
-							if(p[_pixel[7]] > cb)
-								if(p[_pixel[8]] > cb)
-									if(p[_pixel[9]] > cb)
-										if(p[_pixel[10]] > cb)
-											if(p[_pixel[11]] > cb)
-												if(p[_pixel[4]] > cb)
-													if(p[_pixel[3]] > cb)
-														if(p[_pixel[2]] > cb)
-															if(p[_pixel[1]] > cb)
+					if(p[offsets[5]] > cb)
+						if(p[offsets[6]] > cb)
+							if(p[offsets[7]] > cb)
+								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[4]] > cb)
+													if(p[offsets[3]] > cb)
+														if(p[offsets[2]] > cb)
+															if(p[offsets[1]] > cb)
 															{}
 															else
-																if(p[_pixel[12]] > cb)
+																if(p[offsets[12]] > cb)
 																{}
 																else
 																	continue;
 														else
-															if(p[_pixel[12]] > cb)
-																if(p[_pixel[13]] > cb)
+															if(p[offsets[12]] > cb)
+																if(p[offsets[13]] > cb)
 																{}
 																else
 																	continue;
 															else
 																continue;
 													else
-														if(p[_pixel[12]] > cb)
-															if(p[_pixel[13]] > cb)
-																if(p[_pixel[14]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[14]] > cb)
 																{}
 																else
 																	continue;
@@ -3761,10 +3768,10 @@ end_if:
 														else
 															continue;
 												else
-													if(p[_pixel[12]] > cb)
-														if(p[_pixel[13]] > cb)
-															if(p[_pixel[14]] > cb)
-																if(p[_pixel[15]] > cb)
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
+																if(p[offsets[15]] > cb)
 																{}
 																else
 																	continue;
@@ -3786,35 +3793,35 @@ end_if:
 								continue;
 						else
 							continue;
-					else if(p[_pixel[5]] < c_b)
-						if(p[_pixel[6]] < c_b)
-							if(p[_pixel[7]] < c_b)
-								if(p[_pixel[8]] < c_b)
-									if(p[_pixel[9]] < c_b)
-										if(p[_pixel[10]] < c_b)
-											if(p[_pixel[11]] < c_b)
-												if(p[_pixel[4]] < c_b)
-													if(p[_pixel[3]] < c_b)
-														if(p[_pixel[2]] < c_b)
-															if(p[_pixel[1]] < c_b)
+					else if(p[offsets[5]] < c_b)
+						if(p[offsets[6]] < c_b)
+							if(p[offsets[7]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
+											if(p[offsets[11]] < c_b)
+												if(p[offsets[4]] < c_b)
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[2]] < c_b)
+															if(p[offsets[1]] < c_b)
 															{}
 															else
-																if(p[_pixel[12]] < c_b)
+																if(p[offsets[12]] < c_b)
 																{}
 																else
 																	continue;
 														else
-															if(p[_pixel[12]] < c_b)
-																if(p[_pixel[13]] < c_b)
+															if(p[offsets[12]] < c_b)
+																if(p[offsets[13]] < c_b)
 																{}
 																else
 																	continue;
 															else
 																continue;
 													else
-														if(p[_pixel[12]] < c_b)
-															if(p[_pixel[13]] < c_b)
-																if(p[_pixel[14]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
 																{}
 																else
 																	continue;
@@ -3823,10 +3830,10 @@ end_if:
 														else
 															continue;
 												else
-													if(p[_pixel[12]] < c_b)
-														if(p[_pixel[13]] < c_b)
-															if(p[_pixel[14]] < c_b)
-																if(p[_pixel[15]] < c_b)
+													if(p[offsets[12]] < c_b)
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[14]] < c_b)
+																if(p[offsets[15]] < c_b)
 																{}
 																else
 																	continue;
@@ -3858,5 +3865,6 @@ end_if:
 				corners.push_back( Feature2Df( x, y ) );
 				num_corners++;
 			}
+        img.unmap( im );
 	}
 }
