@@ -20,8 +20,7 @@ namespace cvt
 		_testsPerFern = _nTests / _numFerns;
 		
 		_featureDetector = new FAST( SEGMENT_9 );
-		static_cast<FAST*>(_featureDetector)->setMinScore( 60 );
-		static_cast<FAST*>(_featureDetector)->setThreshold( 40 );
+		_featureDetector->setThreshold( 40 );
 	}
 	
 	Ferns::Ferns( const std::string & fileName ) : _featureDetector( 0 )

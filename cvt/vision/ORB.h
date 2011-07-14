@@ -12,7 +12,7 @@ namespace cvt {
 
 	struct ORBFeature : public Feature2Df {
         ORBFeature( float x, float y, float angle = 0.0f, size_t octave = 0, float score = 0.0f ) :
-            Feature2Df( x, y, angle, octave ), score( score )
+            Feature2Df( x, y, angle, octave, score )
         {
         }
 
@@ -22,9 +22,6 @@ namespace cvt {
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
-
-		// the corner score (harris atm)
-		float   score;
 	};
 
 

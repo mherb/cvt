@@ -882,50 +882,24 @@ namespace cvt {
 		} // @@@@???????@@@@@
 		return true;
 	}
-
-    void FAST::detect9( const Image & img, uint8_t threshold, std::vector<Feature2Df> & features, size_t border )
-    {
+    
+    /* calc the scores for all the corners */
+	void FAST::score9( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold )
+	{
         size_t stride;
-        
-        const uint8_t * ptr = img.map<uint8_t>( &stride );
+        const uint8_t * p = img.map( &stride );
         
         int offsets[ 16 ];
-		make_offsets( offsets, stride );
+        make_offsets( offsets, stride );        
+		        
+		for( size_t n = 0; n < corners.size(); n++ )
+			corners[ n ].score = score9Pixel( p + (int)corners[ n ].pt.y * stride + (int)corners[ n ].pt.x, offsets, threshold );
+        img.unmap( p );
+	}
 
-        size_t h = img.height() - border;
-        size_t w = img.width() - border;
-
-        const uint8_t * im = ptr;
-        im += ( border * stride + border );
-
-        features.reserve( 1024 );
-
-        int upperBound;
-        int lowerBound;
-        for( size_t y = border; y < h; y++ ){
-            const uint8_t * curr = im;
-
-            for( size_t x = border; x < w; x++ ){
-                lowerBound = *curr - threshold;
-                upperBound = *curr + threshold;
-
-                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound, offsets ) ){
-                    features.push_back( Feature2Df( x, y ) );
-                } else {
-                    if( upperBound < 255 && isBrighterCorner9( curr, upperBound, offsets ) ){
-                        features.push_back( Feature2Df( x, y ) );
-                    }
-                }
-                curr++;
-            }
-            im += stride;
-        }
-        
-        img.unmap( ptr );
-    }
 
 	/* score a single pixel */
-	int FAST::score9( const uint8_t* p, const int * offsets, uint8_t threshold ){
+	int FAST::score9Pixel( const uint8_t* p, const int * offsets, uint8_t threshold ){
 		int bmin = threshold;
 		int bmax = 255;
 		int b = (bmax + bmin)/2;

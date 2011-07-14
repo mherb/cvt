@@ -140,7 +140,6 @@ void testFerns()
 
 	std::vector<Feature2Df> features;
     FAST * fe = new FAST( SEGMENT_9 );
-    fe->setMinScore( 50 );
 	fe->setThreshold( 30 );
 
 	fe->extract( warped, features );
