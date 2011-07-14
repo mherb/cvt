@@ -42,7 +42,7 @@ namespace cvt {
 			_scaleFactors[ _currentOctave ] = scale;
 			detect( pyrimg, _currentOctave );
 		}
-		selectBestFeatures( 2000 );
+		selectBestFeatures( 1000 );
 		extract( octaves );
 	}
 
