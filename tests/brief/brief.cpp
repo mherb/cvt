@@ -4,7 +4,7 @@
 #include <cvt/util/Exception.h>
 #include <cvt/util/Time.h>
 #include <cvt/io/Resources.h>
-#include <cvt/vision/AGAST.h>
+#include <cvt/vision/FAST.h>
 #include <cvt/vision/Brief.h>
 #include <cvt/math/SL3.h>
 #include <cvt/gfx/ifilter/Homography.h>
@@ -93,13 +93,13 @@ int main()
         hFilter.apply( warpedF, imgF, mat, color );
         warpedF.convert( warped );
 
-		AGAST agast( OAST_9_16 );
-		agast.setNonMaxSuppress( true );
-		agast.setThreshold( 40 );
+		FAST fast( SEGMENT_9 );
+		fast.setThreshold( 40 );
 
 		// detect features in input:
 		std::vector<Feature2Df> features0;
-		agast.extract( img, features0 );
+        VectorFeature2DInserter<float> inserter( features0 );
+		fast.extract( img, inserter );
 
         // remove border pixels
         size_t numGood;
@@ -128,7 +128,8 @@ int main()
 
 		// detect features in warped image
         std::vector<Feature2Df> features1;
-		agast.extract( warped, features1 );
+        VectorFeature2DInserter<float> inserter1( features1 );
+		fast.extract( warped, inserter1 );
         // remove border pixels
         numGood = removeBorderCorners( patchSize, img.width(), img.height(), features1 );
 

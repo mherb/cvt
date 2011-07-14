@@ -1,75 +1,260 @@
-#include <cvt/vision/ORB.h>
 
-#include <xmmintrin.h>
-#include <emmintrin.h>
-
-namespace cvt
-{
-    #define CHECK_BARRIER(lo, hi, other, flags)		\
-    {                                               \
-        __m128i diff = _mm_subs_epu8(lo, other);	\
-        __m128i diff2 = _mm_subs_epu8(other, hi);	\
-        __m128i z = _mm_setzero_si128();			\
-        diff = _mm_cmpeq_epi8(diff, z);				\
-        diff2 = _mm_cmpeq_epi8(diff2, z);			\
-        flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
+    template<class PointContainer> 
+    inline void FAST::doExtract( const Image & img, PointContainer & features )
+    {
+        switch ( _fastSize ) {
+            case SEGMENT_9:
+                detect9( img, _threshold, features, 3 );
+                break;
+            case SEGMENT_10:
+                detect10( img, _threshold, features, 3 );
+                break;
+            case SEGMENT_11:
+                detect11( img, _threshold, features, 3 );
+                break;
+            case SEGMENT_12:
+                detect12( img, _threshold, features, 3 );
+                break;                
+            default:
+                throw CVTException( "Unkown FAST size" );
+                break;
+        }
     }
 
-    void ORB::detect9simd( std::vector<ORBFeature> & features, const uint8_t* im, size_t stride, size_t width, size_t height, size_t octave )
+    template<class PointContainer> 
+    inline void FAST::extract( const Image & img, PointContainer & features )
     {
-        makeOffsets( stride );
+        if( img.format() != IFormat::GRAY_UINT8 )
+			throw CVTException( "Input Image format must be GRAY_UINT8" );
+        
+        if( _suppress ){
+          /*  std::vector<Feature2Df> allCorners;
+            // detect candidates
+            doExtract( img, _threshold, allCorners, 3 );
+        
+            switch ( _fastSize ) {
+                case SEGMENT_9:
+                    score9( img, allCorners, _threshold );
+                    break;
+                case SEGMENT_10:
+                    score10( img, allCorners, _threshold );
+                    break;
+                case SEGMENT_11:
+                    score11( img, allCorners, _threshold );
+                    break;
+                case SEGMENT_12:
+                    score12( img, allCorners, _threshold );
+                    break;                
+                default:
+                    throw CVTException( "Unkown FAST size" );
+                    break;
+            }
+            
+            // non maximal suppression
+            this->nonmaxSuppression( features, allCorners );*/
+        } else {
+            doExtract<PointContainer>( img, features );
+        }
+
+    }
+
+    template <class PointContainer>
+    inline void FAST::detect9( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+    {
+        // check the cpu flags to determine the right version
+        CPUFeatures cpu = cpuFeatures();
+        if( cpu & CPU_SSE2 ){
+            detect9simd( img, threshold, features, border );
+        } else {
+            detect9cpu( img, threshold, features, border );
+        }        
+    }
+    
+    template <class PointContainer>
+    inline void FAST::detect9cpu( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+    {
+        size_t stride;
+        
+        const uint8_t * ptr = img.map<uint8_t>( &stride );
+        
+        int offsets[ 16 ];
+		make_offsets( offsets, stride );
+        
+        size_t h = img.height() - border;
+        size_t w = img.width() - border;
+        
+        const uint8_t * im = ptr;
+        im += ( border * stride + border );
+        
+        int upperBound;
+        int lowerBound;
+        for( size_t y = border; y < h; y++ ){
+            const uint8_t * curr = im;
+            
+            for( size_t x = border; x < w; x++ ){
+                lowerBound = *curr - threshold;
+                upperBound = *curr + threshold;
+                
+                if( lowerBound > 0 && isDarkerCorner9( curr, lowerBound, offsets ) ){
+                    features( x, y );
+                } else {
+                    if( upperBound < 255 && isBrighterCorner9( curr, upperBound, offsets ) ){
+                        features( x, y );
+                    }
+                }
+                curr++;
+            }
+            im += stride;
+        }
+        
+        img.unmap( ptr );
+    }
+
+	template <class PointContainer>
+	inline void FAST::detect10( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner10( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
+
+	template <class PointContainer>
+	inline void FAST::detect11( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner11( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
+
+	template <class PointContainer>
+	inline void FAST::detect12( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner12( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
+
+    template <class PointContainer>
+    inline void FAST::detect9simd( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+    {
+#define CHECK_BARRIER(lo, hi, other, flags)		\
+{                                               \
+__m128i diff = _mm_subs_epu8(lo, other);	\
+__m128i diff2 = _mm_subs_epu8(other, hi);	\
+__m128i z = _mm_setzero_si128();			\
+diff = _mm_cmpeq_epi8(diff, z);				\
+diff2 = _mm_cmpeq_epi8(diff2, z);			\
+flags = ~(_mm_movemask_epi8(diff) | (_mm_movemask_epi8(diff2) << 16)); \
+}
+        
+        size_t stride;
+        const uint8_t * iptr = img.map( &stride );
+        
+        int offsets[ 16 ];
+        make_offsets( offsets, stride );
+        
         const size_t tripleStride = 3 * stride;
-
+        
         // The compiler refuses to reserve a register for this
-        const __m128i barriers = _mm_set1_epi8( _threshold  );
-
+        const __m128i barriers = _mm_set1_epi8( threshold  );
+        
         // xend is the beginning of the last pixels in the row that need to be processed in the normal way
-        size_t xend = width - _border - ( width - _border ) % 16;
-
-        // aligned start:
-        size_t aligned_start = ( (int)( _border / 16 ) + 1 ) << 4;
-
-        im += ( _border * stride );
+        size_t width = img.width();
+        size_t height = img.height();
+        size_t xend = width - border - ( width - border ) % 16;
+        size_t aligned_start = ( (int)( border / 16 ) + 1 ) << 4;
+        
+        
+        const uint8_t* im = iptr;
+        im += ( border * stride );
         const uint8_t * ptr;
-
+        
         int upperBound, lowerBound;
-
-        for ( size_t y = _border; y < height - _border; y++ ) {
-            ptr = im + _border;
-            for ( size_t x = _border; x < aligned_start; x++ ){
-                lowerBound = *ptr - _threshold;
-                upperBound = *ptr + _threshold;
-                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
-                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( ORBFeature( x, y, 0.0f, octave ) );
+        
+        for ( size_t y = border; y < height - border; y++ ) {
+            ptr = im + border;
+            for ( size_t x = border; x < aligned_start; x++ ){
+                lowerBound = *ptr - threshold;
+                upperBound = *ptr + threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound, offsets ) ) ||
+                    ( upperBound < 255 && isBrighterCorner9( ptr, upperBound, offsets ) ) ){
+                    features( x, y );
                 }
                 ptr++;
             }
-
+            
             for ( size_t x = aligned_start; x < xend; x += 16, ptr += 16 ) {
                 __m128i lo, hi;
                 {
                     const __m128i here = _mm_load_si128( (const __m128i*)ptr );
-
+                    
                     lo = _mm_subs_epu8( here, barriers );
                     hi = _mm_adds_epu8( barriers, here );
                 }
-
+                
                 uint16_t ans_0, ans_8, possible;
                 {
                     __m128i top = _mm_load_si128( ( const __m128i* )( ptr - tripleStride ) );
                     __m128i bottom = _mm_load_si128( ( const __m128i* )( ptr + tripleStride ) );
-
+                    
                     CHECK_BARRIER( lo, hi, top, ans_0 );
                     CHECK_BARRIER( lo, hi, bottom, ans_8 );
-
+                    
                     possible = ans_0 | ans_8;
-
+                    
                     if ( !possible ){
                         continue;
                     }
                 }
-
+                
                 uint16_t ans_15, ans_1;
                 {
                     __m128i a = _mm_loadu_si128( ( const __m128i* )( ptr - 1 - tripleStride ) );
@@ -78,11 +263,11 @@ namespace cvt
                     CHECK_BARRIER( lo, hi, c, ans_1 );
                     // 8 or (15 and 1 )
                     possible &= ans_8 | (ans_15 & ans_1);
-
+                    
                     if ( !possible )
                         continue;
                 }
-
+                
                 uint16_t ans_9, ans_7;
                 {
                     __m128i d = _mm_loadu_si128( ( const __m128i* )( ptr - 1 + tripleStride ) );
@@ -91,11 +276,11 @@ namespace cvt
                     CHECK_BARRIER( lo, hi, f, ans_7 );
                     possible &= ans_9 | ( ans_0 & ans_1 );
                     possible &= ans_7 | ( ans_15 & ans_0 );
-
+                    
                     if ( !possible )
                         continue;
                 }
-
+                
                 uint16_t ans_12, ans_4;
                 {
                     __m128i left = _mm_loadu_si128( ( const __m128i* )( ptr - 3 ) );
@@ -104,11 +289,11 @@ namespace cvt
                     CHECK_BARRIER( lo, hi, right, ans_4 );
                     possible &= ans_12 | ( ans_4 & ( ans_1 | ans_7 ) );
                     possible &= ans_4 | ( ans_12 & ( ans_9 | ans_15 ) );
-
+                    
                     if ( !possible )
                         continue;
                 }
-
+                
                 uint16_t ans_14, ans_6;
                 {
                     __m128i ul = _mm_loadu_si128( ( const __m128i* ) ( ptr - 2 - 2 * stride ) );
@@ -125,11 +310,11 @@ namespace cvt
                         possible &= ans_6 | (ans_14_15 & (ans_12 | (ans_0 & ans_1)));
                         possible &= ans_9 | (ans_14_15) | ans_4;
                     }
-
+                    
                     if ( !possible )
                         continue;
                 }
-
+                
                 uint16_t ans_10, ans_2;
                 {
                     __m128i ll = _mm_loadu_si128( ( const __m128i* ) (ptr - 2 + 2 * stride) );
@@ -148,11 +333,11 @@ namespace cvt
                     }
                     possible &= ans_8 | ans_14 | ans_2;
                     possible &= ans_0 | ans_10 | ans_6;
-
+                    
                     if ( !possible )
                         continue;
                 }
-
+                
                 uint16_t ans_13, ans_5;
                 {
                     __m128i g = _mm_loadu_si128( ( const __m128i* ) (ptr - 3 - stride ) );
@@ -175,15 +360,15 @@ namespace cvt
                         possible &= ans_10 | (ans_4_5) | (ans_15_0);
                         possible &= ans_15 | (ans_9_10) | (ans_4_5);
                     }
-
+                    
                     possible &= ans_8 | (ans_13 & ans_14) | ans_2;
                     possible &= ans_0 | (ans_5 & ans_6) | ans_10;
-
+                    
                     if ( !possible )
                         continue;
                 }
-
-
+                
+                
                 uint16_t ans_11, ans_3;
                 {
                     __m128i ii = _mm_loadu_si128( ( const __m128i* )( ptr - 3 + stride ) );
@@ -212,66 +397,67 @@ namespace cvt
                         possible &= ans_5 | (ans_15 & ans_0) | (ans_10_11);
                         possible &= ans_0 | (ans_10_11) | (ans_5 & ans_6);
                     }
-
+                    
                     if ( !possible )
                         continue;
-
+                    
                 }
-
+                
                 //possible |= (possible >> 16);
-
+                
                 //if(possible & 0x0f) //Does this make it faster?
                 {
                     if ( possible & (1 << 0) )
-                        features.push_back( ORBFeature( x + 0, y, 0.0f, octave ) );
+                        features( x + 0, y );
                     if ( possible & (1 << 1) )
-                        features.push_back( ORBFeature( x + 1, y, 0.0f, octave ) );
+                        features( x + 1, y );
                     if ( possible & (1 << 2) )
-                        features.push_back( ORBFeature( x + 2, y, 0.0f, octave ) );
+                        features( x + 2, y );
                     if ( possible & (1 << 3) )
-                        features.push_back( ORBFeature( x + 3, y, 0.0f, octave ) );
+                        features( x + 3, y );
                     if ( possible & (1 << 4) )
-                        features.push_back( ORBFeature( x + 4, y, 0.0f, octave ) );
+                        features( x + 4, y );
                     if ( possible & (1 << 5) )
-                        features.push_back( ORBFeature( x + 5, y, 0.0f, octave ) );
+                        features( x + 5, y );
                     if ( possible & (1 << 6) )
-                        features.push_back( ORBFeature( x + 6, y, 0.0f, octave ) );
+                        features( x + 6, y );
                     if ( possible & (1 << 7) )
-                        features.push_back( ORBFeature( x + 7, y, 0.0f, octave ) );
+                        features( x + 7, y );
                 }
-
+                
                 //if(possible & 0xf0) //Does this mak( ,  fast)r?
                 {
                     if ( possible & (1 << 8) )
-                        features.push_back( ORBFeature( x + 8, y, 0.0f, octave ) );
+                        features( x + 8, y );
                     if ( possible & (1 << 9) )
-                        features.push_back( ORBFeature( x + 9, y, 0.0f, octave ) );
+                        features( x + 9, y );
                     if ( possible & (1 << 10) )
-                        features.push_back( ORBFeature( x + 10, y, 0.0f, octave ) );
+                        features( x + 10, y );
                     if ( possible & (1 << 11) )
-                        features.push_back( ORBFeature( x + 11, y, 0.0f, octave ) );
+                        features( x + 11, y );
                     if ( possible & (1 << 12) )
-                        features.push_back( ORBFeature( x + 12, y, 0.0f, octave ) );
+                        features( x + 12, y );
                     if ( possible & (1 << 13) )
-                        features.push_back( ORBFeature( x + 13, y, 0.0f, octave ) );
+                        features( x + 13, y );
                     if ( possible & (1 << 14) )
-                        features.push_back( ORBFeature( x + 14, y, 0.0f, octave ) );
+                        features( x + 14, y );
                     if ( possible & (1 << 15) )
-                        features.push_back( ORBFeature( x + 15, y, 0.0f, octave ) );
+                        features( x + 15, y );
                 }
             }
-
-            for ( size_t x = xend; x < width - _border; x++ ){
-                lowerBound = *ptr - _threshold;
-                upperBound = *ptr + _threshold;
-                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound ) ) ||
-                     ( upperBound < 255 && isBrighterCorner9( ptr, upperBound ) ) ){
-                    features.push_back( ORBFeature( x, y, 0.0f, octave ) );
+            
+            for ( size_t x = xend; x < width - border; x++ ){
+                lowerBound = *ptr - threshold;
+                upperBound = *ptr + threshold;
+                if ( ( lowerBound > 0 && isDarkerCorner9( ptr, lowerBound, offsets ) ) ||
+                    ( upperBound < 255 && isBrighterCorner9( ptr, upperBound, offsets ) ) ){
+                    features( x, y );
                 }
                 ptr++;
             }
             im += stride;
         }
+        img.unmap( iptr );
+        
+        #undef CHECK_BARRIER;
     }
-    #undef CHECK_BARRIER;
-}
