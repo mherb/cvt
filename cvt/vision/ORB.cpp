@@ -5,190 +5,199 @@
 #include <algorithm>
 
 namespace cvt {
+	struct FeatureInserter {
+		FeatureInserter( std::vector<ORBFeature>& container, int octave ) : _container( container ), _octave( octave )
+		{
+		}
+
+		inline void operator()( float x, float y )
+		{
+			_container.push_back( ORBFeature( x, y, 0.0f, _octave ) );
+		}
+
+		std::vector<ORBFeature>& _container;
+		int _octave;
+	};
 
 	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold ) :
-		_targetContainer( _octaveFeatures ),
 		_currentOctave( 0 ),
-        _threshold( cornerThreshold )
+		_threshold( cornerThreshold )
 	{
+
+
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
 
-        _scaleFactors = new float[ octaves ];
-        _iimages = new IntegralImage[ octaves ];
+		_scaleFactors = new float[ octaves ];
+		_iimages = new IntegralImage[ octaves ];
 
-        _features.reserve( 512 );
-        _scaleFactors[ 0 ] = scale;
+		_features.reserve( 512 );
+		_scaleFactors[ 0 ] = scale;
 
-        _octaveFeatures.reserve( 512 );
 		detect( img, 0 );
-        nonmaxSuppression( _octaveFeatures );
-
 		for( _currentOctave = 1; _currentOctave < octaves; _currentOctave++ ) {
-            _octaveFeatures.clear();
-            _octaveFeatures.reserve( 512 );
-
 			Image pyrimg;
 			scale *=  scalefactor;
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
-            _scaleFactors[ _currentOctave ] = scale;
-
+			_scaleFactors[ _currentOctave ] = scale;
 			detect( pyrimg, _currentOctave );
-
-            nonmaxSuppression( _octaveFeatures );
 		}
-        selectBestFeatures( 2000 );
-
-        extract( octaves );
+		selectBestFeatures( 2000 );
+		extract( octaves );
 	}
 
-    ORB::~ORB()
-    {
-        delete[] _scaleFactors;
-        delete[] _iimages;
-    }
+	ORB::~ORB()
+	{
+		delete[] _scaleFactors;
+		delete[] _iimages;
+	}
 
 	void ORB::detect( const Image& img, size_t octave )
 	{
-        // detect the features for this level
-		FAST::detect9( img, _threshold, *this, _border );
-        
+
+		// detect the features for this level
+		std::vector<ORBFeature> octaveFeatures;
+		FeatureInserter ftins( octaveFeatures, octave );
+		FAST::detect9( img, _threshold, ftins, _border );
+
+
 		size_t stride;
-        const uint8_t * ptr = img.map( &stride );
+		const uint8_t * ptr = img.map( &stride );
 
-        SIMD * simd = SIMD::instance();
+		SIMD * simd = SIMD::instance();
 
-		ContainerType::iterator it = _targetContainer.begin();
-		ContainerType::iterator itEnd = _targetContainer.end();
+		ContainerType::iterator it = octaveFeatures.begin();
+		ContainerType::iterator itEnd = octaveFeatures.end();
 
-		while( it != itEnd ){ 
-            it->score = simd->harrisResponse1u8( ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
-			it++;
-        }
+		while( it != itEnd ){
+			it->score = simd->harrisResponse1u8( ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
+			++it;
+		}
 
-        img.unmap( ptr );
+		img.unmap( ptr );
 
-        _iimages[ octave ].update( img );
+		_iimages[ octave ].update( img );
+		if( !octaveFeatures.empty() )
+			nonmaxSuppression( octaveFeatures );
 	}
 
-    void ORB::nonmaxSuppression( const std::vector<ORBFeature> & features )
-    {
-        int numCorners = (int)features.size();
-        int endRow = (int)features.back().pt.y;
+	void ORB::nonmaxSuppression( const std::vector<ORBFeature> & features )
+	{
+		int numCorners = (int)features.size();
+		int endRow = (int)features.back().pt.y;
 
 
 		int firstFeatureIdxInRow[ endRow + 1 ];
-        memset( firstFeatureIdxInRow, -1, (endRow + 1) * sizeof(int) );
+		memset( firstFeatureIdxInRow, -1, (endRow + 1) * sizeof(int) );
 
-        // initialize the indizes
+		// initialize the indizes
 		{
 			int prev_row = -1;
-            for( int i = 0; i < numCorners; i++ ){
-                int currRow = ( int )features[ i ].pt.y;
-                if(  currRow != prev_row ) {
-                    firstFeatureIdxInRow[ currRow ] = i;
+			for( int i = 0; i < numCorners; i++ ){
+				int currRow = ( int )features[ i ].pt.y;
+				if(  currRow != prev_row ) {
+					firstFeatureIdxInRow[ currRow ] = i;
 					prev_row = currRow;
 				}
-            }
+			}
 		}
 
-        int idx, row, col;
-        for( int i = 0; i < numCorners; i++ ) {
+		int idx, row, col;
+		for( int i = 0; i < numCorners; i++ ) {
 			float score = features[ i ].score;
-            col = ( int )features[ i ].pt.x;
-            row = ( int )features[ i ].pt.y;
+			col = ( int )features[ i ].pt.x;
+			row = ( int )features[ i ].pt.y;
 
-            /* Check left */
+			/* Check left */
 			if( i > 0 ){
-                idx = i-1;
+				idx = i-1;
 				if( ( int )features[ idx ].pt.x == ( col - 1 ) && (int)features[ idx ].pt.y == row ){
-                    if( score <= features[ idx ].score  ){
-                        // left has better or same score:
-                        continue;
-                    }
-                }
-            }
+					if( score <= features[ idx ].score  ){
+						// left has better or same score:
+						continue;
+					}
+				}
+			}
 
-            if( i < numCorners-1 ){
-                idx = i+1;
+			if( i < numCorners-1 ){
+				idx = i+1;
 				if( ( int )features[ idx ].pt.x == ( col + 1 ) && (int)features[ idx ].pt.y == row ){
-                    if( score < features[ idx ].score  ){
-                        // right has better score:
-                        continue;
-                    }
-                }
-            }
+					if( score < features[ idx ].score  ){
+						// right has better score:
+						continue;
+					}
+				}
+			}
 
-            bool thereIsABetterPoint = false;
+			bool thereIsABetterPoint = false;
 			/* Check above (if there is a valid row above) */
-            int pointIdxAbove;
+			int pointIdxAbove;
 			if( row > 0 && ( pointIdxAbove = firstFeatureIdxInRow[ row - 1 ] ) != -1 ){
 				/* Make sure that current point_above is one row above. */
 				while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
-                       (int)features[ pointIdxAbove ].pt.x < col - 1 )
-                    pointIdxAbove++;
+					  (int)features[ pointIdxAbove ].pt.x < col - 1 )
+					pointIdxAbove++;
 
-                while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
-                       (int)features[ pointIdxAbove ].pt.x < col + 1 ){
-                    // check the three pixels above
-                    if( score <= features[ pointIdxAbove ].score ){
-                        thereIsABetterPoint = true;
-                        break;
-                    }
-                    pointIdxAbove++;
-                }
+				while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
+					  (int)features[ pointIdxAbove ].pt.x < col + 1 ){
+					// check the three pixels above
+					if( score <= features[ pointIdxAbove ].score ){
+						thereIsABetterPoint = true;
+						break;
+					}
+					pointIdxAbove++;
+				}
 
-                if( thereIsABetterPoint )
-                    continue;
+				if( thereIsABetterPoint )
+					continue;
 			}
 
-            if( row < endRow ){
+			if( row < endRow ){
 				/* Make sure that current point_above is one row above. */
-                int pointIdx = firstFeatureIdxInRow[ row + 1 ];
+				int pointIdx = firstFeatureIdxInRow[ row + 1 ];
 
-                if( pointIdx == -1 )
-                    continue;
+				if( pointIdx == -1 )
+					continue;
 
 				while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col - 1 )
-                    pointIdx++;
+					pointIdx++;
 
-                while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col + 1 ){
-                    // check the three pixels above
-                    if( score < features[ pointIdx ].score ){
-                        thereIsABetterPoint = true;
-                        break;
-                    }
-                    pointIdx++;
-                }
+				while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col + 1 ){
+					// check the three pixels above
+					if( score < features[ pointIdx ].score ){
+						thereIsABetterPoint = true;
+						break;
+					}
+					pointIdx++;
+				}
 
-                if( thereIsABetterPoint )
-                    continue;
+				if( thereIsABetterPoint )
+					continue;
 			}
 
 			_features.push_back( features[ i ] );
 		}
-    }
+	}
 
-    void ORB::extract( size_t octaves )
-    {
-        const float* iimgptr[ octaves ];
-        size_t strides[ octaves ];
+	void ORB::extract( size_t octaves )
+	{
+		const float* iimgptr[ octaves ];
+		size_t strides[ octaves ];
 
-        for( size_t i = 0; i < octaves; i++ ){
-            iimgptr[ i ] = _iimages[ i ].sumImage().map<float>( &strides[ i ] );
-        }
+		for( size_t i = 0; i < octaves; i++ ){
+			iimgptr[ i ] = _iimages[ i ].sumImage().map<float>( &strides[ i ] );
+		}
 
-        for( size_t i = 0, iend = _features.size(); i < iend; i++ ){
-            size_t octave = _features[ i ].octave;
-            centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
-            descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
-        }
+		for( size_t i = 0, iend = _features.size(); i < iend; i++ ){
+			size_t octave = _features[ i ].octave;
+			centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+		}
 
-
-        for( size_t i = 0; i < octaves; i++ ){
-            _iimages[ i ].sumImage().unmap<float>( iimgptr[ i ] );
-        }
-    }
+		for( size_t i = 0; i < octaves; i++ ){
+			_iimages[ i ].sumImage().unmap<float>( iimgptr[ i ] );
+		}
+	}
 
 	void ORB::centroidAngle( ORBFeature& feature, const float* iimgptr, size_t widthstep )
 	{
@@ -200,20 +209,20 @@ namespace cvt {
 
 		for( int i = 0; i < 15; i++ ) {
 			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep )
-										   - IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
+											- IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
 		}
 
 		cury = ( int ) feature.pt.y;
 		curx = ( int ) feature.pt.x - 15;
 		for( int i = 0; i < 15; i++ ) {
 			my += ( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep )
-										    - IntegralImage::area( iimgptr, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep ) );
+											 - IntegralImage::area( iimgptr, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep ) );
 		}
 
 		feature.angle = Math::atan2( my, mx );
 
 
-        if( feature.angle < 0 )
+		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
 		feature.angle = Math::TWO_PI - feature.angle;
 	}
@@ -228,7 +237,7 @@ namespace cvt {
 
 
 #define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
-					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep ) )
+					  IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep ) )
 
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
@@ -254,6 +263,6 @@ namespace cvt {
 
 
 	const int ORB::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
-											 15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
+		15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
 #include "ORBPatterns.h"
 }
