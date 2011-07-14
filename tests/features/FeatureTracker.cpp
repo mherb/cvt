@@ -1,7 +1,6 @@
 #include "FeatureTracker.h"
 
 #include <cvt/geom/KDTree.h>
-#include <cvt/vision/AGAST.h>
 #include <cvt/vision/FAST.h>
 #include <cvt/math/Math.h>
 
@@ -11,13 +10,13 @@
 
 namespace cvt {
 	FeatureTracker::FeatureTracker() :
-		_featureDetector( SEGMENT_12 ),
+		_featureDetector( SEGMENT_9 ),
         _currentIntegralImg( 0 ),
 		_threshold( 35 ),
 		_nccThreshold( 0.8 ),
         _searchRadius( 5 )
 	{
-        _featureDetector.setNonMaxSuppress( true );
+        _featureDetector.setNonMaxSuppress( false );
 		_featureDetector.setThreshold( _threshold );
 	}
 
@@ -84,7 +83,8 @@ namespace cvt {
         size_t numFeatures = features.size();
   //      std::cout << "Tracked features: " << numFeatures << std::endl;
         if( numFeatures < 100 ){
-            _featureDetector.extract( current, features );
+            VectorFeature2DInserter<float> inserter( features );
+            _featureDetector.extract( current, inserter );
 /*
             Recti roi( 0, 0, 21, 21 );
             while( numFeatures < features.size() ) {

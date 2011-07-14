@@ -2,6 +2,7 @@
 #define CVT_FEATURE2D_H
 
 #include <cvt/math/Vector.h>
+#include <vector>
 
 namespace cvt {
 	template<typename T>
@@ -21,6 +22,25 @@ namespace cvt {
 
 	typedef Feature2D<int> Feature2Di;
 	typedef Feature2D<float> Feature2Df;
+
+    template<typename T>
+    struct VectorFeature2DInserter
+    {
+        VectorFeature2DInserter( std::vector<Feature2D<T> >  & vec ) : _vec( vec )
+        {
+        }
+
+        void operator()( T x, T y )
+        {
+            _vec.push_back( Feature2D<T>( x, y ) );
+        }
+
+    private:
+        std::vector<Feature2D<T> >  & _vec;
+
+        VectorFeature2DInserter( const std::vector<Feature2D<T> > & );
+    };
+
 }
 
 #endif

@@ -4,16 +4,16 @@
     {
         switch ( _fastSize ) {
             case SEGMENT_9:
-                detect9( img, _threshold, features );
+                detect9( img, _threshold, features, 3 );
                 break;
             case SEGMENT_10:
-                detect10( img, _threshold, features );
+                detect10( img, _threshold, features, 3 );
                 break;
             case SEGMENT_11:
-                detect11( img, _threshold, features );
+                detect11( img, _threshold, features, 3 );
                 break;
             case SEGMENT_12:
-                detect12( img, _threshold, features );
+                detect12( img, _threshold, features, 3 );
                 break;                
             default:
                 throw CVTException( "Unkown FAST size" );
@@ -28,7 +28,7 @@
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
         
         if( _suppress ){
-            std::vector<Feature2Df> allCorners;
+          /*  std::vector<Feature2Df> allCorners;
             // detect candidates
             doExtract( img, _threshold, allCorners, 3 );
         
@@ -51,9 +51,9 @@
             }
             
             // non maximal suppression
-            this->nonmaxSuppression( features, allCorners );
+            this->nonmaxSuppression( features, allCorners );*/
         } else {
-            doExtract( img, _threshold, features, 3 );
+            doExtract<PointContainer>( img, features );
         }
 
     }
@@ -109,6 +109,78 @@
         
         img.unmap( ptr );
     }
+
+	template <class PointContainer>
+	inline void FAST::detect10( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner10( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
+
+	template <class PointContainer>
+	inline void FAST::detect11( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner11( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
+
+	template <class PointContainer>
+	inline void FAST::detect12( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+	{
+		size_t stride;
+		const uint8_t * im = img.map( &stride );
+
+		size_t x, y;
+		size_t xsize = img.width() - border;
+		size_t ysize = img.height() - border;
+
+		int offsets[ 16 ];
+		make_offsets( offsets, stride );
+
+		for( y=border; y < ysize; y++ ){
+			for( x=border; x < xsize; x++ ){
+				const uint8_t* p = im + y*stride + x;
+
+				if( isCorner12( p, offsets, threshold ) )
+					corners( x, y );
+			}
+		}
+		img.unmap( im );
+	}
 
     template <class PointContainer>
     inline void FAST::detect9simd( const Image & img, uint8_t threshold, PointContainer & features, size_t border )

@@ -1947,471 +1947,319 @@ end_if:
 		}
 	}
 
-	void FAST::detect11( const Image & img, uint8_t threshold, std::vector<Feature2Df> & corners, size_t border )
+	bool FAST::isCorner11( const uint8_t * p, const int * offsets, uint8_t threshold )
 	{
-        size_t stride;
-        const uint8_t * im = img.map( &stride );
-        
-		int num_corners=0;
-		int rsize=512;
-		size_t x, y;
-        size_t xsize = img.width() - border;
-        size_t ysize = img.height() - border;
-
-		corners.reserve( rsize );
-        
-        int offsets[ 16 ];
-		make_offsets( offsets, stride );
-
-		for( y=border; y < ysize; y++ )
-			for( x=border; x < xsize; x++ )
-			{
-				const uint8_t* p = im + y*stride + x;
-
-				int cb = *p + threshold;
-				int c_b= *p - threshold;
-				if(p[offsets[0]] > cb)
-					if(p[offsets[1]] > cb)
-						if(p[offsets[2]] > cb)
-							if(p[offsets[3]] > cb)
-								if(p[offsets[4]] > cb)
-									if(p[offsets[5]] > cb)
-										if(p[offsets[6]] > cb)
-											if(p[offsets[7]] > cb)
-												if(p[offsets[8]] > cb)
-													if(p[offsets[9]] > cb)
-														if(p[offsets[10]] > cb)
-														{}
-														else
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-													else
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+		int cb = *p + threshold;
+		int c_b= *p - threshold;
+		if(p[offsets[0]] > cb)
+			if(p[offsets[1]] > cb)
+				if(p[offsets[2]] > cb)
+					if(p[offsets[3]] > cb)
+						if(p[offsets[4]] > cb)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[6]] > cb)
+									if(p[offsets[7]] > cb)
+										if(p[offsets[8]] > cb)
+											if(p[offsets[9]] > cb)
+												if(p[offsets[10]] > cb)
+												{}
 												else
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 											else
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 										else
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
-									else if(p[offsets[5]] < c_b)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else if(p[offsets[10]] < c_b)
-											if(p[offsets[6]] < c_b)
-												if(p[offsets[7]] < c_b)
-													if(p[offsets[8]] < c_b)
-														if(p[offsets[9]] < c_b)
-															if(p[offsets[11]] < c_b)
-																if(p[offsets[12]] < c_b)
-																	if(p[offsets[13]] < c_b)
-																		if(p[offsets[14]] < c_b)
-																			if(p[offsets[15]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
+												return false;
 									else
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
-								else if(p[offsets[4]] < c_b)
-									if(p[offsets[15]] > cb)
-										if(p[offsets[9]] > cb)
-											if(p[offsets[10]] > cb)
-												if(p[offsets[11]] > cb)
-													if(p[offsets[12]] > cb)
-														if(p[offsets[13]] > cb)
-															if(p[offsets[14]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else if(p[offsets[9]] < c_b)
-											if(p[offsets[5]] < c_b)
-												if(p[offsets[6]] < c_b)
-													if(p[offsets[7]] < c_b)
-														if(p[offsets[8]] < c_b)
-															if(p[offsets[10]] < c_b)
-																if(p[offsets[11]] < c_b)
-																	if(p[offsets[12]] < c_b)
-																		if(p[offsets[13]] < c_b)
-																			if(p[offsets[14]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										if(p[offsets[5]] < c_b)
-											if(p[offsets[6]] < c_b)
-												if(p[offsets[7]] < c_b)
-													if(p[offsets[8]] < c_b)
-														if(p[offsets[9]] < c_b)
-															if(p[offsets[10]] < c_b)
-																if(p[offsets[11]] < c_b)
-																	if(p[offsets[12]] < c_b)
-																		if(p[offsets[13]] < c_b)
-																			if(p[offsets[14]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
+											return false;
 								else
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																continue;
-														else
-															continue;
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
-									else if(p[offsets[9]] < c_b)
-										if(p[offsets[5]] < c_b)
-											if(p[offsets[6]] < c_b)
-												if(p[offsets[7]] < c_b)
-													if(p[offsets[8]] < c_b)
-														if(p[offsets[10]] < c_b)
-															if(p[offsets[11]] < c_b)
-																if(p[offsets[12]] < c_b)
-																	if(p[offsets[13]] < c_b)
-																		if(p[offsets[14]] < c_b)
-																			if(p[offsets[15]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
+											return false;
 									else
-										continue;
-							else if(p[offsets[3]] < c_b)
-								if(p[offsets[14]] > cb)
-									if(p[offsets[8]] > cb)
-										if(p[offsets[9]] > cb)
-											if(p[offsets[10]] > cb)
-												if(p[offsets[11]] > cb)
-													if(p[offsets[12]] > cb)
-														if(p[offsets[13]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																			if(p[offsets[7]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															continue;
+										return false;
+							else if(p[offsets[5]] < c_b)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
-									else if(p[offsets[8]] < c_b)
-										if(p[offsets[4]] < c_b)
-											if(p[offsets[5]] < c_b)
-												if(p[offsets[6]] < c_b)
-													if(p[offsets[7]] < c_b)
-														if(p[offsets[9]] < c_b)
-															if(p[offsets[10]] < c_b)
-																if(p[offsets[11]] < c_b)
-																	if(p[offsets[12]] < c_b)
-																		if(p[offsets[13]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
+											return false;
 									else
-										continue;
-								else if(p[offsets[14]] < c_b)
+										return false;
+								else if(p[offsets[10]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[7]] < c_b)
+											if(p[offsets[8]] < c_b)
+												if(p[offsets[9]] < c_b)
+													if(p[offsets[11]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
+																	if(p[offsets[15]] < c_b)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+						else if(p[offsets[4]] < c_b)
+							if(p[offsets[15]] > cb)
+								if(p[offsets[9]] > cb)
+									if(p[offsets[10]] > cb)
+										if(p[offsets[11]] > cb)
+											if(p[offsets[12]] > cb)
+												if(p[offsets[13]] > cb)
+													if(p[offsets[14]] > cb)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else if(p[offsets[9]] < c_b)
 									if(p[offsets[5]] < c_b)
 										if(p[offsets[6]] < c_b)
 											if(p[offsets[7]] < c_b)
 												if(p[offsets[8]] < c_b)
-													if(p[offsets[9]] < c_b)
-														if(p[offsets[10]] < c_b)
-															if(p[offsets[11]] < c_b)
-																if(p[offsets[12]] < c_b)
-																	if(p[offsets[13]] < c_b)
-																		if(p[offsets[4]] < c_b)
-																		{}
-																		else
-																			if(p[offsets[15]] < c_b)
-																			{}
-																			else
-																				continue;
+													if(p[offsets[10]] < c_b)
+														if(p[offsets[11]] < c_b)
+															if(p[offsets[12]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
+																	{}
 																	else
-																		continue;
+																		return false;
 																else
-																	continue;
+																	return false;
 															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									if(p[offsets[4]] < c_b)
-										if(p[offsets[5]] < c_b)
-											if(p[offsets[6]] < c_b)
-												if(p[offsets[7]] < c_b)
-													if(p[offsets[8]] < c_b)
-														if(p[offsets[9]] < c_b)
-															if(p[offsets[10]] < c_b)
-																if(p[offsets[11]] < c_b)
-																	if(p[offsets[12]] < c_b)
-																		if(p[offsets[13]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
+									return false;
 							else
-								if(p[offsets[8]] > cb)
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																			if(p[offsets[7]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
+								if(p[offsets[5]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[7]] < c_b)
+											if(p[offsets[8]] < c_b)
+												if(p[offsets[9]] < c_b)
+													if(p[offsets[10]] < c_b)
+														if(p[offsets[11]] < c_b)
+															if(p[offsets[12]] < c_b)
+																if(p[offsets[13]] < c_b)
+																	if(p[offsets[14]] < c_b)
+																	{}
 																	else
-																		continue;
+																		return false;
 																else
-																	continue;
+																	return false;
+															else
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
-								else if(p[offsets[8]] < c_b)
+										return false;
+								else
+									return false;
+						else
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else if(p[offsets[9]] < c_b)
+								if(p[offsets[5]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[7]] < c_b)
+											if(p[offsets[8]] < c_b)
+												if(p[offsets[10]] < c_b)
+													if(p[offsets[11]] < c_b)
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
+																	if(p[offsets[15]] < c_b)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+					else if(p[offsets[3]] < c_b)
+						if(p[offsets[14]] > cb)
+							if(p[offsets[8]] > cb)
+								if(p[offsets[9]] > cb)
+									if(p[offsets[10]] > cb)
+										if(p[offsets[11]] > cb)
+											if(p[offsets[12]] > cb)
+												if(p[offsets[13]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																	if(p[offsets[7]] > cb)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else if(p[offsets[8]] < c_b)
+								if(p[offsets[4]] < c_b)
 									if(p[offsets[5]] < c_b)
 										if(p[offsets[6]] < c_b)
 											if(p[offsets[7]] < c_b)
@@ -2420,179 +2268,31 @@ end_if:
 														if(p[offsets[11]] < c_b)
 															if(p[offsets[12]] < c_b)
 																if(p[offsets[13]] < c_b)
-																	if(p[offsets[14]] < c_b)
-																		if(p[offsets[4]] < c_b)
-																		{}
-																		else
-																			if(p[offsets[15]] < c_b)
-																			{}
-																			else
-																				continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-						else if(p[offsets[2]] < c_b)
-							if(p[offsets[7]] > cb)
-								if(p[offsets[8]] > cb)
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else if(p[offsets[7]] < c_b)
-								if(p[offsets[5]] < c_b)
-									if(p[offsets[6]] < c_b)
-										if(p[offsets[8]] < c_b)
-											if(p[offsets[9]] < c_b)
-												if(p[offsets[10]] < c_b)
-													if(p[offsets[11]] < c_b)
-														if(p[offsets[12]] < c_b)
-															if(p[offsets[4]] < c_b)
-																if(p[offsets[3]] < c_b)
 																{}
 																else
-																	if(p[offsets[13]] < c_b)
-																		if(p[offsets[14]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
+																	return false;
 															else
-																if(p[offsets[13]] < c_b)
-																	if(p[offsets[14]] < c_b)
-																		if(p[offsets[15]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
-						else
-							if(p[offsets[7]] > cb)
-								if(p[offsets[8]] > cb)
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																		if(p[offsets[6]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else if(p[offsets[7]] < c_b)
-								if(p[offsets[5]] < c_b)
-									if(p[offsets[6]] < c_b)
+								return false;
+						else if(p[offsets[14]] < c_b)
+							if(p[offsets[5]] < c_b)
+								if(p[offsets[6]] < c_b)
+									if(p[offsets[7]] < c_b)
 										if(p[offsets[8]] < c_b)
 											if(p[offsets[9]] < c_b)
 												if(p[offsets[10]] < c_b)
@@ -2600,879 +2300,795 @@ end_if:
 														if(p[offsets[12]] < c_b)
 															if(p[offsets[13]] < c_b)
 																if(p[offsets[4]] < c_b)
-																	if(p[offsets[3]] < c_b)
+																{}
+																else
+																	if(p[offsets[15]] < c_b)
 																	{}
 																	else
-																		if(p[offsets[14]] < c_b)
-																		{}
-																		else
-																			continue;
-																else
-																	if(p[offsets[14]] < c_b)
-																		if(p[offsets[15]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
+																		return false;
 															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
-					else if(p[offsets[1]] < c_b)
-						if(p[offsets[6]] > cb)
-							if(p[offsets[7]] > cb)
-								if(p[offsets[8]] > cb)
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														if(p[offsets[2]] > cb)
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else if(p[offsets[6]] < c_b)
-							if(p[offsets[5]] < c_b)
-								if(p[offsets[7]] < c_b)
-									if(p[offsets[8]] < c_b)
-										if(p[offsets[9]] < c_b)
-											if(p[offsets[10]] < c_b)
-												if(p[offsets[11]] < c_b)
-													if(p[offsets[4]] < c_b)
-														if(p[offsets[3]] < c_b)
-															if(p[offsets[2]] < c_b)
-															{}
-															else
-																if(p[offsets[12]] < c_b)
-																	if(p[offsets[13]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
+								return false;
+						else
+							if(p[offsets[4]] < c_b)
+								if(p[offsets[5]] < c_b)
+									if(p[offsets[6]] < c_b)
+										if(p[offsets[7]] < c_b)
+											if(p[offsets[8]] < c_b)
+												if(p[offsets[9]] < c_b)
+													if(p[offsets[10]] < c_b)
+														if(p[offsets[11]] < c_b)
 															if(p[offsets[12]] < c_b)
 																if(p[offsets[13]] < c_b)
-																	if(p[offsets[14]] < c_b)
-																	{}
-																	else
-																		continue;
+																{}
 																else
-																	continue;
+																	return false;
 															else
-																continue;
-													else
-														if(p[offsets[12]] < c_b)
-															if(p[offsets[13]] < c_b)
-																if(p[offsets[14]] < c_b)
-																	if(p[offsets[15]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
+													else
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
-						else
-							continue;
+								return false;
 					else
-						if(p[offsets[6]] > cb)
-							if(p[offsets[7]] > cb)
-								if(p[offsets[8]] > cb)
-									if(p[offsets[9]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[11]] > cb)
-												if(p[offsets[12]] > cb)
-													if(p[offsets[13]] > cb)
-														if(p[offsets[14]] > cb)
-															if(p[offsets[15]] > cb)
-															{}
-															else
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														if(p[offsets[2]] > cb)
-															if(p[offsets[3]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[5]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																	if(p[offsets[7]] > cb)
 																	{}
 																	else
-																		continue;
+																		return false;
 																else
-																	continue;
+																	return false;
 															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
-						else if(p[offsets[6]] < c_b)
+								return false;
+						else if(p[offsets[8]] < c_b)
 							if(p[offsets[5]] < c_b)
-								if(p[offsets[7]] < c_b)
-									if(p[offsets[8]] < c_b)
+								if(p[offsets[6]] < c_b)
+									if(p[offsets[7]] < c_b)
 										if(p[offsets[9]] < c_b)
-											if(p[offsets[10]] < c_b)
-												if(p[offsets[11]] < c_b)
-													if(p[offsets[12]] < c_b)
-														if(p[offsets[4]] < c_b)
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[2]] < c_b)
-																{}
-																else
-																	if(p[offsets[13]] < c_b)
-																	{}
-																	else
-																		continue;
-															else
-																if(p[offsets[13]] < c_b)
-																	if(p[offsets[14]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[13]] < c_b)
-																if(p[offsets[14]] < c_b)
-																	if(p[offsets[15]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else
-							continue;
-				else if(p[offsets[0]] < c_b)
-					if(p[offsets[1]] > cb)
-						if(p[offsets[6]] > cb)
-							if(p[offsets[5]] > cb)
-								if(p[offsets[7]] > cb)
-									if(p[offsets[8]] > cb)
-										if(p[offsets[9]] > cb)
-											if(p[offsets[10]] > cb)
-												if(p[offsets[11]] > cb)
-													if(p[offsets[4]] > cb)
-														if(p[offsets[3]] > cb)
-															if(p[offsets[2]] > cb)
-															{}
-															else
-																if(p[offsets[12]] > cb)
-																	if(p[offsets[13]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[12]] > cb)
-																if(p[offsets[13]] > cb)
-																	if(p[offsets[14]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														if(p[offsets[12]] > cb)
-															if(p[offsets[13]] > cb)
-																if(p[offsets[14]] > cb)
-																	if(p[offsets[15]] > cb)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else if(p[offsets[6]] < c_b)
-							if(p[offsets[7]] < c_b)
-								if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														if(p[offsets[2]] < c_b)
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else
-							continue;
-					else if(p[offsets[1]] < c_b)
-						if(p[offsets[2]] > cb)
-							if(p[offsets[7]] > cb)
-								if(p[offsets[5]] > cb)
-									if(p[offsets[6]] > cb)
-										if(p[offsets[8]] > cb)
-											if(p[offsets[9]] > cb)
-												if(p[offsets[10]] > cb)
-													if(p[offsets[11]] > cb)
-														if(p[offsets[12]] > cb)
-															if(p[offsets[4]] > cb)
-																if(p[offsets[3]] > cb)
-																{}
-																else
-																	if(p[offsets[13]] > cb)
-																		if(p[offsets[14]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-															else
-																if(p[offsets[13]] > cb)
-																	if(p[offsets[14]] > cb)
-																		if(p[offsets[15]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else if(p[offsets[7]] < c_b)
-								if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else if(p[offsets[2]] < c_b)
-							if(p[offsets[3]] > cb)
-								if(p[offsets[14]] > cb)
-									if(p[offsets[5]] > cb)
-										if(p[offsets[6]] > cb)
-											if(p[offsets[7]] > cb)
-												if(p[offsets[8]] > cb)
-													if(p[offsets[9]] > cb)
-														if(p[offsets[10]] > cb)
-															if(p[offsets[11]] > cb)
-																if(p[offsets[12]] > cb)
-																	if(p[offsets[13]] > cb)
-																		if(p[offsets[4]] > cb)
-																		{}
-																		else
-																			if(p[offsets[15]] > cb)
-																			{}
-																			else
-																				continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else if(p[offsets[14]] < c_b)
-									if(p[offsets[8]] > cb)
-										if(p[offsets[4]] > cb)
-											if(p[offsets[5]] > cb)
-												if(p[offsets[6]] > cb)
-													if(p[offsets[7]] > cb)
-														if(p[offsets[9]] > cb)
-															if(p[offsets[10]] > cb)
-																if(p[offsets[11]] > cb)
-																	if(p[offsets[12]] > cb)
-																		if(p[offsets[13]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else if(p[offsets[8]] < c_b)
-										if(p[offsets[9]] < c_b)
-											if(p[offsets[10]] < c_b)
-												if(p[offsets[11]] < c_b)
-													if(p[offsets[12]] < c_b)
-														if(p[offsets[13]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																			if(p[offsets[7]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									if(p[offsets[4]] > cb)
-										if(p[offsets[5]] > cb)
-											if(p[offsets[6]] > cb)
-												if(p[offsets[7]] > cb)
-													if(p[offsets[8]] > cb)
-														if(p[offsets[9]] > cb)
-															if(p[offsets[10]] > cb)
-																if(p[offsets[11]] > cb)
-																	if(p[offsets[12]] > cb)
-																		if(p[offsets[13]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-							else if(p[offsets[3]] < c_b)
-								if(p[offsets[4]] > cb)
-									if(p[offsets[15]] < c_b)
-										if(p[offsets[9]] > cb)
-											if(p[offsets[5]] > cb)
-												if(p[offsets[6]] > cb)
-													if(p[offsets[7]] > cb)
-														if(p[offsets[8]] > cb)
-															if(p[offsets[10]] > cb)
-																if(p[offsets[11]] > cb)
-																	if(p[offsets[12]] > cb)
-																		if(p[offsets[13]] > cb)
-																			if(p[offsets[14]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else if(p[offsets[9]] < c_b)
 											if(p[offsets[10]] < c_b)
 												if(p[offsets[11]] < c_b)
 													if(p[offsets[12]] < c_b)
 														if(p[offsets[13]] < c_b)
 															if(p[offsets[14]] < c_b)
-															{}
+																if(p[offsets[4]] < c_b)
+																{}
+																else
+																	if(p[offsets[15]] < c_b)
+																	{}
+																	else
+																		return false;
 															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										if(p[offsets[5]] > cb)
-											if(p[offsets[6]] > cb)
-												if(p[offsets[7]] > cb)
-													if(p[offsets[8]] > cb)
-														if(p[offsets[9]] > cb)
-															if(p[offsets[10]] > cb)
-																if(p[offsets[11]] > cb)
-																	if(p[offsets[12]] > cb)
-																		if(p[offsets[13]] > cb)
-																			if(p[offsets[14]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+				else if(p[offsets[2]] < c_b)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
 													else
-														continue;
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
 												else
-													continue;
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
-								else if(p[offsets[4]] < c_b)
-									if(p[offsets[5]] > cb)
-										if(p[offsets[10]] > cb)
-											if(p[offsets[6]] > cb)
-												if(p[offsets[7]] > cb)
-													if(p[offsets[8]] > cb)
-														if(p[offsets[9]] > cb)
-															if(p[offsets[11]] > cb)
-																if(p[offsets[12]] > cb)
-																	if(p[offsets[13]] > cb)
-																		if(p[offsets[14]] > cb)
-																			if(p[offsets[15]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else if(p[offsets[10]] < c_b)
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else if(p[offsets[7]] < c_b)
+						if(p[offsets[5]] < c_b)
+							if(p[offsets[6]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
+										if(p[offsets[10]] < c_b)
 											if(p[offsets[11]] < c_b)
 												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else if(p[offsets[5]] < c_b)
-										if(p[offsets[6]] < c_b)
-											if(p[offsets[7]] < c_b)
-												if(p[offsets[8]] < c_b)
-													if(p[offsets[9]] < c_b)
-														if(p[offsets[10]] < c_b)
+													if(p[offsets[4]] < c_b)
+														if(p[offsets[3]] < c_b)
 														{}
 														else
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-													else
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-												else
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-											else
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-										else
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-									else
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-								else
-									if(p[offsets[9]] > cb)
-										if(p[offsets[5]] > cb)
-											if(p[offsets[6]] > cb)
-												if(p[offsets[7]] > cb)
-													if(p[offsets[8]] > cb)
-														if(p[offsets[10]] > cb)
-															if(p[offsets[11]] > cb)
-																if(p[offsets[12]] > cb)
-																	if(p[offsets[13]] > cb)
-																		if(p[offsets[14]] > cb)
-																			if(p[offsets[15]] > cb)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
+															if(p[offsets[13]] < c_b)
+																if(p[offsets[14]] < c_b)
+																{}
 																else
-																	continue;
+																	return false;
 															else
-																continue;
-														else
-															continue;
+																return false;
 													else
-														continue;
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[14]] < c_b)
+																if(p[offsets[15]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
-									else if(p[offsets[9]] < c_b)
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					if(p[offsets[7]] > cb)
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+																if(p[offsets[6]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else if(p[offsets[7]] < c_b)
+						if(p[offsets[5]] < c_b)
+							if(p[offsets[6]] < c_b)
+								if(p[offsets[8]] < c_b)
+									if(p[offsets[9]] < c_b)
 										if(p[offsets[10]] < c_b)
 											if(p[offsets[11]] < c_b)
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[3]] < c_b)
+															{}
+															else
+																if(p[offsets[14]] < c_b)
+																{}
+																else
+																	return false;
+														else
+															if(p[offsets[14]] < c_b)
+																if(p[offsets[15]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+			else if(p[offsets[1]] < c_b)
+				if(p[offsets[6]] > cb)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[2]] > cb)
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else if(p[offsets[6]] < c_b)
+					if(p[offsets[5]] < c_b)
+						if(p[offsets[7]] < c_b)
+							if(p[offsets[8]] < c_b)
+								if(p[offsets[9]] < c_b)
+									if(p[offsets[10]] < c_b)
+										if(p[offsets[11]] < c_b)
+											if(p[offsets[4]] < c_b)
+												if(p[offsets[3]] < c_b)
+													if(p[offsets[2]] < c_b)
+													{}
+													else
+														if(p[offsets[12]] < c_b)
+															if(p[offsets[13]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[12]] < c_b)
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[14]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
 												if(p[offsets[12]] < c_b)
 													if(p[offsets[13]] < c_b)
 														if(p[offsets[14]] < c_b)
 															if(p[offsets[15]] < c_b)
 															{}
 															else
-																continue;
+																return false;
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 												else
-													continue;
-											else
-												continue;
+													return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
+								else
+									return false;
 							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					return false;
+			else
+				if(p[offsets[6]] > cb)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[12]] > cb)
+											if(p[offsets[13]] > cb)
+												if(p[offsets[14]] > cb)
+													if(p[offsets[15]] > cb)
+													{}
+													else
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[2]] > cb)
+													if(p[offsets[3]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[5]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else if(p[offsets[6]] < c_b)
+					if(p[offsets[5]] < c_b)
+						if(p[offsets[7]] < c_b)
+							if(p[offsets[8]] < c_b)
+								if(p[offsets[9]] < c_b)
+									if(p[offsets[10]] < c_b)
+										if(p[offsets[11]] < c_b)
+											if(p[offsets[12]] < c_b)
+												if(p[offsets[4]] < c_b)
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[2]] < c_b)
+														{}
+														else
+															if(p[offsets[13]] < c_b)
+															{}
+															else
+																return false;
+													else
+														if(p[offsets[13]] < c_b)
+															if(p[offsets[14]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+															if(p[offsets[15]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					return false;
+		else if(p[offsets[0]] < c_b)
+			if(p[offsets[1]] > cb)
+				if(p[offsets[6]] > cb)
+					if(p[offsets[5]] > cb)
+						if(p[offsets[7]] > cb)
+							if(p[offsets[8]] > cb)
+								if(p[offsets[9]] > cb)
+									if(p[offsets[10]] > cb)
+										if(p[offsets[11]] > cb)
+											if(p[offsets[4]] > cb)
+												if(p[offsets[3]] > cb)
+													if(p[offsets[2]] > cb)
+													{}
+													else
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else if(p[offsets[6]] < c_b)
+					if(p[offsets[7]] < c_b)
+						if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[2]] < c_b)
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					return false;
+			else if(p[offsets[1]] < c_b)
+				if(p[offsets[2]] > cb)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[5]] > cb)
+							if(p[offsets[6]] > cb)
 								if(p[offsets[8]] > cb)
+									if(p[offsets[9]] > cb)
+										if(p[offsets[10]] > cb)
+											if(p[offsets[11]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[4]] > cb)
+														if(p[offsets[3]] > cb)
+														{}
+														else
+															if(p[offsets[13]] > cb)
+																if(p[offsets[14]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+													else
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
+																if(p[offsets[15]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else if(p[offsets[7]] < c_b)
+						if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else if(p[offsets[2]] < c_b)
+					if(p[offsets[3]] > cb)
+						if(p[offsets[14]] > cb)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[6]] > cb)
+									if(p[offsets[7]] > cb)
+										if(p[offsets[8]] > cb)
+											if(p[offsets[9]] > cb)
+												if(p[offsets[10]] > cb)
+													if(p[offsets[11]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[4]] > cb)
+																{}
+																else
+																	if(p[offsets[15]] > cb)
+																	{}
+																	else
+																		return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else if(p[offsets[14]] < c_b)
+							if(p[offsets[8]] > cb)
+								if(p[offsets[4]] > cb)
 									if(p[offsets[5]] > cb)
 										if(p[offsets[6]] > cb)
 											if(p[offsets[7]] > cb)
@@ -3481,404 +3097,761 @@ end_if:
 														if(p[offsets[11]] > cb)
 															if(p[offsets[12]] > cb)
 																if(p[offsets[13]] > cb)
-																	if(p[offsets[14]] > cb)
-																		if(p[offsets[4]] > cb)
-																		{}
-																		else
-																			if(p[offsets[15]] > cb)
-																			{}
-																			else
-																				continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																			if(p[offsets[7]] < c_b)
-																			{}
-																			else
-																				continue;
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-						else
-							if(p[offsets[7]] > cb)
-								if(p[offsets[5]] > cb)
-									if(p[offsets[6]] > cb)
-										if(p[offsets[8]] > cb)
-											if(p[offsets[9]] > cb)
-												if(p[offsets[10]] > cb)
-													if(p[offsets[11]] > cb)
-														if(p[offsets[12]] > cb)
-															if(p[offsets[13]] > cb)
-																if(p[offsets[4]] > cb)
-																	if(p[offsets[3]] > cb)
-																	{}
-																	else
-																		if(p[offsets[14]] > cb)
-																		{}
-																		else
-																			continue;
-																else
-																	if(p[offsets[14]] > cb)
-																		if(p[offsets[15]] > cb)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-															else
-																continue;
-														else
-															continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else if(p[offsets[7]] < c_b)
-								if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-														else
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																		if(p[offsets[6]] < c_b)
-																		{}
-																		else
-																			continue;
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-					else
-						if(p[offsets[6]] > cb)
-							if(p[offsets[5]] > cb)
-								if(p[offsets[7]] > cb)
-									if(p[offsets[8]] > cb)
-										if(p[offsets[9]] > cb)
-											if(p[offsets[10]] > cb)
-												if(p[offsets[11]] > cb)
-													if(p[offsets[12]] > cb)
-														if(p[offsets[4]] > cb)
-															if(p[offsets[3]] > cb)
-																if(p[offsets[2]] > cb)
 																{}
 																else
-																	if(p[offsets[13]] > cb)
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else if(p[offsets[8]] < c_b)
+								if(p[offsets[9]] < c_b)
+									if(p[offsets[10]] < c_b)
+										if(p[offsets[11]] < c_b)
+											if(p[offsets[12]] < c_b)
+												if(p[offsets[13]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																	if(p[offsets[7]] < c_b)
 																	{}
 																	else
-																		continue;
+																		return false;
+																else
+																	return false;
 															else
+																return false;
+														else
+															return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							if(p[offsets[4]] > cb)
+								if(p[offsets[5]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[7]] > cb)
+											if(p[offsets[8]] > cb)
+												if(p[offsets[9]] > cb)
+													if(p[offsets[10]] > cb)
+														if(p[offsets[11]] > cb)
+															if(p[offsets[12]] > cb)
+																if(p[offsets[13]] > cb)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+					else if(p[offsets[3]] < c_b)
+						if(p[offsets[4]] > cb)
+							if(p[offsets[15]] < c_b)
+								if(p[offsets[9]] > cb)
+									if(p[offsets[5]] > cb)
+										if(p[offsets[6]] > cb)
+											if(p[offsets[7]] > cb)
+												if(p[offsets[8]] > cb)
+													if(p[offsets[10]] > cb)
+														if(p[offsets[11]] > cb)
+															if(p[offsets[12]] > cb)
 																if(p[offsets[13]] > cb)
 																	if(p[offsets[14]] > cb)
 																	{}
 																	else
-																		continue;
+																		return false;
 																else
-																	continue;
+																	return false;
+															else
+																return false;
 														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else if(p[offsets[9]] < c_b)
+									if(p[offsets[10]] < c_b)
+										if(p[offsets[11]] < c_b)
+											if(p[offsets[12]] < c_b)
+												if(p[offsets[13]] < c_b)
+													if(p[offsets[14]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								if(p[offsets[5]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[7]] > cb)
+											if(p[offsets[8]] > cb)
+												if(p[offsets[9]] > cb)
+													if(p[offsets[10]] > cb)
+														if(p[offsets[11]] > cb)
+															if(p[offsets[12]] > cb)
+																if(p[offsets[13]] > cb)
+																	if(p[offsets[14]] > cb)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+						else if(p[offsets[4]] < c_b)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[7]] > cb)
+											if(p[offsets[8]] > cb)
+												if(p[offsets[9]] > cb)
+													if(p[offsets[11]] > cb)
+														if(p[offsets[12]] > cb)
 															if(p[offsets[13]] > cb)
 																if(p[offsets[14]] > cb)
 																	if(p[offsets[15]] > cb)
 																	{}
 																	else
-																		continue;
+																		return false;
 																else
-																	continue;
+																	return false;
 															else
-																continue;
-													else
-														continue;
-												else
-													continue;
-											else
-												continue;
-										else
-											continue;
-									else
-										continue;
-								else
-									continue;
-							else
-								continue;
-						else if(p[offsets[6]] < c_b)
-							if(p[offsets[7]] < c_b)
-								if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[12]] < c_b)
-													if(p[offsets[13]] < c_b)
-														if(p[offsets[14]] < c_b)
-															if(p[offsets[15]] < c_b)
-															{}
-															else
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
+																return false;
 														else
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
+															return false;
 													else
-														if(p[offsets[2]] < c_b)
-															if(p[offsets[3]] < c_b)
-																if(p[offsets[4]] < c_b)
-																	if(p[offsets[5]] < c_b)
-																	{}
-																	else
-																		continue;
-																else
-																	continue;
-															else
-																continue;
-														else
-															continue;
+														return false;
 												else
-													continue;
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
+								else if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
 								else
-									continue;
+									return false;
+							else if(p[offsets[5]] < c_b)
+								if(p[offsets[6]] < c_b)
+									if(p[offsets[7]] < c_b)
+										if(p[offsets[8]] < c_b)
+											if(p[offsets[9]] < c_b)
+												if(p[offsets[10]] < c_b)
+												{}
+												else
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+											else
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+										else
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+									else
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+								else
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
 							else
-								continue;
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
 						else
-							continue;
+							if(p[offsets[9]] > cb)
+								if(p[offsets[5]] > cb)
+									if(p[offsets[6]] > cb)
+										if(p[offsets[7]] > cb)
+											if(p[offsets[8]] > cb)
+												if(p[offsets[10]] > cb)
+													if(p[offsets[11]] > cb)
+														if(p[offsets[12]] > cb)
+															if(p[offsets[13]] > cb)
+																if(p[offsets[14]] > cb)
+																	if(p[offsets[15]] > cb)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+					else
+						if(p[offsets[8]] > cb)
+							if(p[offsets[5]] > cb)
+								if(p[offsets[6]] > cb)
+									if(p[offsets[7]] > cb)
+										if(p[offsets[9]] > cb)
+											if(p[offsets[10]] > cb)
+												if(p[offsets[11]] > cb)
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
+																if(p[offsets[4]] > cb)
+																{}
+																else
+																	if(p[offsets[15]] > cb)
+																	{}
+																	else
+																		return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																	if(p[offsets[7]] < c_b)
+																	{}
+																	else
+																		return false;
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
+													return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
 				else
-					if(p[offsets[5]] > cb)
-						if(p[offsets[6]] > cb)
-							if(p[offsets[7]] > cb)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[5]] > cb)
+							if(p[offsets[6]] > cb)
 								if(p[offsets[8]] > cb)
 									if(p[offsets[9]] > cb)
 										if(p[offsets[10]] > cb)
 											if(p[offsets[11]] > cb)
-												if(p[offsets[4]] > cb)
-													if(p[offsets[3]] > cb)
-														if(p[offsets[2]] > cb)
-															if(p[offsets[1]] > cb)
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[4]] > cb)
+															if(p[offsets[3]] > cb)
 															{}
 															else
-																if(p[offsets[12]] > cb)
-																{}
-																else
-																	continue;
-														else
-															if(p[offsets[12]] > cb)
-																if(p[offsets[13]] > cb)
-																{}
-																else
-																	continue;
-															else
-																continue;
-													else
-														if(p[offsets[12]] > cb)
-															if(p[offsets[13]] > cb)
 																if(p[offsets[14]] > cb)
 																{}
 																else
-																	continue;
-															else
-																continue;
+																	return false;
 														else
-															continue;
-												else
-													if(p[offsets[12]] > cb)
-														if(p[offsets[13]] > cb)
 															if(p[offsets[14]] > cb)
 																if(p[offsets[15]] > cb)
 																{}
 																else
-																	continue;
+																	return false;
 															else
-																continue;
-														else
-															continue;
+																return false;
 													else
-														continue;
+														return false;
+												else
+													return false;
 											else
-												continue;
+												return false;
 										else
-											continue;
+											return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
+								return false;
 						else
-							continue;
-					else if(p[offsets[5]] < c_b)
-						if(p[offsets[6]] < c_b)
-							if(p[offsets[7]] < c_b)
-								if(p[offsets[8]] < c_b)
-									if(p[offsets[9]] < c_b)
-										if(p[offsets[10]] < c_b)
-											if(p[offsets[11]] < c_b)
-												if(p[offsets[4]] < c_b)
+							return false;
+					else if(p[offsets[7]] < c_b)
+						if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+												else
 													if(p[offsets[3]] < c_b)
-														if(p[offsets[2]] < c_b)
-															if(p[offsets[1]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+																if(p[offsets[6]] < c_b)
+																{}
+																else
+																	return false;
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+			else
+				if(p[offsets[6]] > cb)
+					if(p[offsets[5]] > cb)
+						if(p[offsets[7]] > cb)
+							if(p[offsets[8]] > cb)
+								if(p[offsets[9]] > cb)
+									if(p[offsets[10]] > cb)
+										if(p[offsets[11]] > cb)
+											if(p[offsets[12]] > cb)
+												if(p[offsets[4]] > cb)
+													if(p[offsets[3]] > cb)
+														if(p[offsets[2]] > cb)
+														{}
+														else
+															if(p[offsets[13]] > cb)
 															{}
 															else
-																if(p[offsets[12]] < c_b)
-																{}
-																else
-																	continue;
-														else
-															if(p[offsets[12]] < c_b)
-																if(p[offsets[13]] < c_b)
-																{}
-																else
-																	continue;
+																return false;
+													else
+														if(p[offsets[13]] > cb)
+															if(p[offsets[14]] > cb)
+															{}
 															else
-																continue;
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+															if(p[offsets[15]] > cb)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else if(p[offsets[6]] < c_b)
+					if(p[offsets[7]] < c_b)
+						if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[12]] < c_b)
+											if(p[offsets[13]] < c_b)
+												if(p[offsets[14]] < c_b)
+													if(p[offsets[15]] < c_b)
+													{}
+													else
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+												else
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[2]] < c_b)
+													if(p[offsets[3]] < c_b)
+														if(p[offsets[4]] < c_b)
+															if(p[offsets[5]] < c_b)
+															{}
+															else
+																return false;
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					return false;
+		else
+			if(p[offsets[5]] > cb)
+				if(p[offsets[6]] > cb)
+					if(p[offsets[7]] > cb)
+						if(p[offsets[8]] > cb)
+							if(p[offsets[9]] > cb)
+								if(p[offsets[10]] > cb)
+									if(p[offsets[11]] > cb)
+										if(p[offsets[4]] > cb)
+											if(p[offsets[3]] > cb)
+												if(p[offsets[2]] > cb)
+													if(p[offsets[1]] > cb)
+													{}
+													else
+														if(p[offsets[12]] > cb)
+														{}
+														else
+															return false;
+												else
+													if(p[offsets[12]] > cb)
+														if(p[offsets[13]] > cb)
+														{}
+														else
+															return false;
+													else
+														return false;
+											else
+												if(p[offsets[12]] > cb)
+													if(p[offsets[13]] > cb)
+														if(p[offsets[14]] > cb)
+														{}
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+										else
+											if(p[offsets[12]] > cb)
+												if(p[offsets[13]] > cb)
+													if(p[offsets[14]] > cb)
+														if(p[offsets[15]] > cb)
+														{}
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
+									else
+										return false;
+								else
+									return false;
+							else
+								return false;
+						else
+							return false;
+					else
+						return false;
+				else
+					return false;
+			else if(p[offsets[5]] < c_b)
+				if(p[offsets[6]] < c_b)
+					if(p[offsets[7]] < c_b)
+						if(p[offsets[8]] < c_b)
+							if(p[offsets[9]] < c_b)
+								if(p[offsets[10]] < c_b)
+									if(p[offsets[11]] < c_b)
+										if(p[offsets[4]] < c_b)
+											if(p[offsets[3]] < c_b)
+												if(p[offsets[2]] < c_b)
+													if(p[offsets[1]] < c_b)
+													{}
 													else
 														if(p[offsets[12]] < c_b)
-															if(p[offsets[13]] < c_b)
-																if(p[offsets[14]] < c_b)
-																{}
-																else
-																	continue;
-															else
-																continue;
+														{}
 														else
-															continue;
+															return false;
 												else
 													if(p[offsets[12]] < c_b)
 														if(p[offsets[13]] < c_b)
-															if(p[offsets[14]] < c_b)
-																if(p[offsets[15]] < c_b)
-																{}
-																else
-																	continue;
-															else
-																continue;
+														{}
 														else
-															continue;
+															return false;
 													else
-														continue;
+														return false;
 											else
-												continue;
+												if(p[offsets[12]] < c_b)
+													if(p[offsets[13]] < c_b)
+														if(p[offsets[14]] < c_b)
+														{}
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
 										else
-											continue;
+											if(p[offsets[12]] < c_b)
+												if(p[offsets[13]] < c_b)
+													if(p[offsets[14]] < c_b)
+														if(p[offsets[15]] < c_b)
+														{}
+														else
+															return false;
+													else
+														return false;
+												else
+													return false;
+											else
+												return false;
 									else
-										continue;
+										return false;
 								else
-									continue;
+									return false;
 							else
-								continue;
+								return false;
 						else
-							continue;
+							return false;
 					else
-						continue;
-				if( num_corners == rsize ) {
-					rsize = rsize << 1;
-					corners.reserve( rsize );
-				}
-
-				corners.push_back( Feature2Df( x, y ) );
-				num_corners++;
-			}
-        img.unmap( im );
+						return false;
+				else
+					return false;
+			else
+				return false;
+		return true;
 	}
 }
