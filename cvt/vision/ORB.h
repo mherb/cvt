@@ -28,6 +28,7 @@ namespace cvt {
 	static inline std::ostream& operator<<( std::ostream& out, const ORBFeature& feature )
 	{
 		out << "( " << feature.pt.x << " , " << feature.pt.y << " ) Orientation: " << Math::rad2Deg( feature.angle );
+        out << " Score: " << feature.score;
 		out << "\nDescriptor: 0x";
 		for( int i = 0; i < 32; i++ )
 			out << std::hex << feature.desc[ i ];
@@ -39,7 +40,7 @@ namespace cvt {
 	class ORB {
 		friend bool _centroidAngleTest();
 		public:
-			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25 );
+			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25, bool nms = true );
             ~ORB();
 
 			size_t size() const;
@@ -59,12 +60,14 @@ namespace cvt {
 
 			typedef std::vector<ORBFeature> ContainerType;
 			ContainerType	_features;
+
             IntegralImage*	_iimages;
             float*			_scaleFactors;
 			size_t			_currentOctave;
 
             // for OFAST
             uint8_t			 _threshold;
+            bool             _nms;
 
 			static const int _patterns[ 30 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];

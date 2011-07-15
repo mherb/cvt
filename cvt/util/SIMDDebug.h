@@ -22,7 +22,7 @@ namespace cvt {
         int32_t  i32[ 4 ];
     } SIMD128;
 
-    void SIMD_print_f( __m128 _x )
+    static inline void SIMD_print_f( __m128 _x )
     {
 		SIMD128 x;
 		x.m128 = _x;
@@ -30,7 +30,7 @@ namespace cvt {
         printf( "%f %f %f %f\n", x.f[ 0 ], x.f[ 1 ], x.f[ 2 ], x.f[ 3 ] );
     }
 
-    void SIMD_print_u32hex( __m128i _x )
+    static inline void SIMD_print_u32hex( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -38,7 +38,7 @@ namespace cvt {
         printf( "0x%0X 0x%0X 0x%0X 0x%0X\n", x.u32[ 0 ], x.u32[ 1 ], x.u32[ 2 ], x.u32[ 3 ] );
     }
 
-    void SIMD_print_u32( __m128i _x )
+    static inline void SIMD_print_u32( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -46,7 +46,7 @@ namespace cvt {
         printf( "%u %u %u %u\n", x.u32[ 0 ], x.u32[ 1 ], x.u32[ 2 ], x.u32[ 3 ] );
     }
 
-    void SIMD_print_i32( __m128i _x )
+    static inline void SIMD_print_i32( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -54,7 +54,7 @@ namespace cvt {
         printf( "%d %d %d %d\n", x.i32[ 0 ], x.i32[ 1 ], x.i32[ 2 ], x.i32[ 3 ] );
     }
 
-    void SIMD_print_u16hex( __m128i _x )
+    static inline void SIMD_print_u16hex( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -63,7 +63,7 @@ namespace cvt {
                 x.u16[ 4 ], x.u16[ 5 ], x.u16[ 6 ], x.u16[ 7 ] );
     }
 
-    void SIMD_print_u16( __m128i _x )
+    static inline void SIMD_print_u16( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -72,7 +72,7 @@ namespace cvt {
                 x.u16[ 4 ], x.u16[ 5 ], x.u16[ 6 ], x.u16[ 7 ] );
     }
 
-    void SIMD_print_i16( __m128i _x )
+    static inline void SIMD_print_i16( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -81,7 +81,7 @@ namespace cvt {
                 x.i16[ 4 ], x.i16[ 5 ], x.i16[ 6 ], x.i16[ 7 ] );
     }
 
-    void SIMD_print_u8hex( __m128i _x )
+    static inline void SIMD_print_u8hex( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -93,7 +93,7 @@ namespace cvt {
                 x.u8[ 12 ], x.u8[ 13 ], x.u8[ 14 ], x.u8[ 15 ] );
     }
 
-    void SIMD_print_u8( __m128i _x )
+    static inline void SIMD_print_u8( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;
@@ -105,7 +105,7 @@ namespace cvt {
                 x.u8[ 12 ], x.u8[ 13 ], x.u8[ 14 ], x.u8[ 15 ] );
     }
 
-    void SIMD_print_i8( __m128i _x )
+    static inline void SIMD_print_i8( __m128i _x )
     {
 		SIMD128 x;
 		x.m128i = _x;

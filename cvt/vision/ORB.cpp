@@ -19,9 +19,10 @@ namespace cvt {
 		int _octave;
 	};
 
-	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold ) :
+	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold, bool nms ) :
 		_currentOctave( 0 ),
-		_threshold( cornerThreshold )
+		_threshold( cornerThreshold ),
+        _nms( nms )
 	{
 
 
@@ -77,8 +78,12 @@ namespace cvt {
 		img.unmap( ptr );
 
 		_iimages[ octave ].update( img );
-		if( !octaveFeatures.empty() )
-			nonmaxSuppression( octaveFeatures );
+		if( !octaveFeatures.empty() ){
+            if( _nms )
+                nonmaxSuppression( octaveFeatures );
+            else
+                _features.insert( _features.end(), octaveFeatures.begin(), octaveFeatures.end() );
+        }
 	}
 
 	void ORB::nonmaxSuppression( const std::vector<ORBFeature> & features )

@@ -6,6 +6,8 @@
 #include <cvt/util/Exception.h>
 #include <cvt/gfx/Image.h>
 
+#include <cvt/util/SIMDDebug.h>
+
 #include <vector>
 
 namespace cvt
@@ -62,8 +64,6 @@ namespace cvt
             template<class PointContainer>
             void doExtract( const Image & img, PointContainer & features );
 
-            static bool isDarkerCorner9( const uint8_t * p, const int barrier, const int * offsets );
-            static bool isBrighterCorner9( const uint8_t * p, const int barrier, const int * offsets );
             static void make_offsets( int * offsets, size_t row_stride );
 
             static int  score9Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
@@ -71,6 +71,7 @@ namespace cvt
             static int score11Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
             static int score12Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
 
+            static bool isCorner9( const uint8_t * p, const int * offsets, uint8_t threshold );
             static bool isCorner10( const uint8_t * p, const int * offsets, uint8_t threshold );
             static bool isCorner11( const uint8_t * p, const int * offsets, uint8_t threshold );
             static bool isCorner12( const uint8_t * p, const int * offsets, uint8_t threshold );

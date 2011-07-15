@@ -125,7 +125,7 @@ class FeatureWindow : public Window
   public:
     FeatureWindow( bool batch ) :
         Window( "Feature Data Tests" ),
-        _numScales( 3 ),
+        _numScales( 1 ),
         _scaleFactor( 0.5f ),
         _fastThreshold( 35 ),
         _maxDescDistance( 50 ),
@@ -151,6 +151,7 @@ class FeatureWindow : public Window
         // init the orbs
         loadDataSet();
         calcOrb( 0 );
+
         nextImage();
 
         if( batch ){
@@ -310,7 +311,7 @@ class FeatureWindow : public Window
         t.reset();
         _matches.clear();
 
-        matchFeatures2( *_orb0, *_orb1, _maxDescDistance, _matches );
+        matchFeatures( *_orb0, *_orb1, _maxDescDistance, _matches );
         _matchTime = t.elapsedMilliSeconds();
 
         std::cout << "Image: " << _dataSets[ _currentDataSet ] << " 0 -> " << _currentImage << ":" << std::endl;
