@@ -4,9 +4,12 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IKernel.h>
 #include <cvt/util/Time.h>
+#include <cvt/util/String.h>
 #include <cvt/io/Resources.h>
 
 #include <cvt/vision/IntegralImage.h>
+#include <cvt/vision/FAST.h>
+#include <cvt/vision/Feature2D.h>
 
 #include <opencv/cv.h>
 #include <opencv/cv.hpp>
@@ -20,22 +23,22 @@ void testIntegralImage()
 {
     Resources resources;
 	Image lena( resources.find( "lena_g.png" ) );
-    
-    Image ii, iiSqr;    
+
+    Image ii, iiSqr;
     Time t; t.reset();
     for( size_t i = 0; i < NUMSAMPLES; i++ ){
         lena.integralImage( ii );
         lena.squaredIntegralImage( iiSqr );
     }
     std::cout << "CVT IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs"<< std::endl;
-    
+
     cv::Mat ocvLena = cv::imread( resources.find( "lena_g.png" ).c_str(), 0 );
     cv::Mat intImage( ocvLena.rows, ocvLena.cols, CV_32FC1 );
     cv::Mat intSqrImage( ocvLena.rows, ocvLena.cols, CV_64FC1 );
-    
+
     t.reset();
     for( size_t i = 0; i < NUMSAMPLES; i++)
-        cv::integral( ocvLena, intImage, intSqrImage );    
+        cv::integral( ocvLena, intImage, intSqrImage );
     std::cout << "OCV IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs" << std::endl;
 }
 
@@ -199,17 +202,48 @@ void testConvolutionGRAYOCV()
 
 }
 
+void testFAST9()
+{
+    Resources r;
+
+    String file = r.find( "features_dataset/bark/img1.png" );
+
+
+    cv::vector<cv::KeyPoint> kp;
+    cv::Mat img = cv::imread( file.c_str(), 0 );
+    cv::FAST( img, kp, 35, false );
+
+    std::cout << "OCV" << std::endl;
+    for( size_t i = 0; i < kp.size(); i++ )
+        std::cout << kp[ i ].pt.x << " " << kp[ i ].pt.y << std::endl;
+
+
+    std::cout << std::endl << "CVT:" << std::endl;
+    std::vector<Feature2Df> ft;
+    VectorFeature2DInserter<float> inserter( ft );
+    Image cvtImg( file );
+    FAST::detect9( cvtImg, 35, inserter );
+
+    for( size_t i = 0; i < ft.size(); i++ )
+        std::cout << ft[ i ].pt.x << " " << ft[ i ].pt.y << std::endl;
+
+}
+
 void testImageProcessing()
 {
+    std::cout << "FAST Corners" << std::endl;
+    testFAST9();
+
 	std::cout << "**************** CVT ****************" << std::endl;
 	testConvolutionCVT();
 	testConvolutionGRAYCVT();
 	std::cout << "**************** OCV ****************" << std::endl;
 	testConvolutionOCV();
 	testConvolutionGRAYOCV();
-    
+
     std::cout << "IntegralImage" << std::endl;
     testIntegralImage();
 }
+
 
 #endif
