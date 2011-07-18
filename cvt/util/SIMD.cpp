@@ -3669,8 +3669,13 @@ namespace cvt {
 		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y < yend; y++ ) {
 			const uint8_t* psrc = src;
 			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x < xend; x++ ) {
-				Ix = *( psrc + 1 ) - *( psrc - 1 );
-				Iy = *( psrc + srcStride ) - *( psrc - srcStride );
+				Ix = 2.0f * ( ( float )*( psrc + 1 ) - ( float )*( psrc - 1 ) );
+				Ix += ( ( float )*( psrc + 1 + srcStride ) - ( float )*( psrc - 1 + srcStride ) );
+				Ix += ( ( float )*( psrc + 1 - srcStride ) - ( float )*( psrc - 1 - srcStride ) );
+
+				Iy = 2.0f * ( ( float )*( psrc + srcStride ) - ( float )*( psrc - srcStride ) );
+				Iy += ( ( float )*( psrc + srcStride + 1 ) - ( float )*( psrc - srcStride + 1 ) );
+				Iy += ( ( float )*( psrc + srcStride - 1 ) - ( float )*( psrc - srcStride - 1 ) );
 
 				a += Ix * Ix;
 				b += Iy * Iy;
@@ -3680,7 +3685,7 @@ namespace cvt {
 			src += srcStride;
 		}
 
-		return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )

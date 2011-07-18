@@ -1542,6 +1542,7 @@ namespace cvt
 		}
 	}
 
+	/*
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
 		const uint8_t* src = ptr - 4 * stride - 4 + 1;
@@ -1598,6 +1599,7 @@ namespace cvt
 
 		return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
 	}
+*/
 
     void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {

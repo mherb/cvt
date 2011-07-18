@@ -248,20 +248,23 @@ void testORB()
 
     float scaleFactor = 1.4;
     size_t nLevels = 1;
-    uint8_t cornerThresh = 31;
+    uint8_t cornerThresh = 20;
 
     cv::ORB::CommonParams orbParams( scaleFactor, nLevels, cornerThresh );
     cv::ORB ocvORB( 1000, orbParams );
 
     cv::Mat mask, descriptors;
-    ocvORB( img, mask, kp, descriptors );
 
+    Time t;
+    ocvORB( img, mask, kp, descriptors );
     std::sort( kp.begin(), kp.end(), compareKP );
+    std::cout << "OpenCV Time: " << t.elapsedMilliSeconds() << std::endl;
 
     std::ofstream out;
     out.open( "opencv_orb.txt" );
 
     std::cout << "OCV" << std::endl;
+
     for( size_t i = 0; i < kp.size(); i++ ){
         out << "( " << kp[ i ].pt.x << " , " << kp[ i ].pt.y << " ) Orientation: " << kp[ i ].angle;
         out << " Score: " << kp[ i ].response;
@@ -271,10 +274,15 @@ void testORB()
 		out << std::endl;
         out << std::endl;
     }
+
     out.close();
 
     Image cvtImg( file );
-    ORB orb( cvtImg, nLevels, 1.0 / scaleFactor, cornerThresh, false );
+
+    t.reset();
+
+    ORB orb( cvtImg, nLevels, 1.0 / scaleFactor, cornerThresh, true );
+    std::cout << "CVT Time: " << t.elapsedMilliSeconds() << std::endl;
 
     out.open( "cvt_orb.txt" );
     for( size_t i = 0; i < orb.size(); i++ )
