@@ -9,11 +9,14 @@
 
 #include <cvt/vision/IntegralImage.h>
 #include <cvt/vision/FAST.h>
+#include <cvt/vision/ORB.h>
 #include <cvt/vision/Feature2D.h>
 
 #include <opencv/cv.h>
 #include <opencv/cv.hpp>
 #include <opencv/highgui.h>
+
+#include <iomanip>
 
 #define NUMSAMPLES ( 100 )
 
@@ -229,8 +232,63 @@ void testFAST9()
 
 }
 
+bool compareKP( const cv::KeyPoint & kp0, const cv::KeyPoint & kp1 )
+{
+    return kp0.response > kp1.response;
+}
+
+void testORB()
+{
+    Resources r;
+
+    String file = r.find( "features_dataset/bark/img1.png" );
+
+    cv::vector<cv::KeyPoint> kp;
+    cv::Mat img = cv::imread( file.c_str(), 0 );
+
+    float scaleFactor = 1.4;
+    size_t nLevels = 1;
+    uint8_t cornerThresh = 31;
+
+    cv::ORB::CommonParams orbParams( scaleFactor, nLevels, cornerThresh );
+    cv::ORB ocvORB( 1000, orbParams );
+
+    cv::Mat mask, descriptors;
+    ocvORB( img, mask, kp, descriptors );
+
+    std::sort( kp.begin(), kp.end(), compareKP );
+
+    std::ofstream out;
+    out.open( "opencv_orb.txt" );
+
+    std::cout << "OCV" << std::endl;
+    for( size_t i = 0; i < kp.size(); i++ ){
+        out << "( " << kp[ i ].pt.x << " , " << kp[ i ].pt.y << " ) Orientation: " << kp[ i ].angle;
+        out << " Score: " << kp[ i ].response;
+		out << "\nDescriptor: 0x";
+		for( int c = 0; c < 32; c++ )
+			out << std::hex << std::setfill( '0' ) << (int)descriptors.at<uint8_t>( i, c );
+		out << std::endl;
+        out << std::endl;
+    }
+    out.close();
+
+    Image cvtImg( file );
+    ORB orb( cvtImg, nLevels, 1.0 / scaleFactor, cornerThresh, false );
+
+    out.open( "cvt_orb.txt" );
+    for( size_t i = 0; i < orb.size(); i++ )
+        out << orb[ i ] << std::endl;
+    out.close();
+}
+
 void testImageProcessing()
 {
+    std::cout << "ORB" << std::endl;
+    testORB();
+
+    return;
+
     std::cout << "FAST Corners" << std::endl;
     testFAST9();
 
