@@ -26,6 +26,8 @@
 
 #include "ORBHashMatch.h"
 
+#include <opencv2/opencv.hpp>
+
 using namespace cvt;
 
 void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
@@ -125,9 +127,9 @@ class FeatureWindow : public Window
   public:
     FeatureWindow( bool batch ) :
         Window( "Feature Data Tests" ),
-        _numScales( 1 ),
-        _scaleFactor( 0.5f ),
-        _fastThreshold( 35 ),
+        _numScales( 3 ),
+        _scaleFactor( 0.8f ),
+        _fastThreshold( 20 ),
         _maxDescDistance( 50 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
@@ -158,6 +160,79 @@ class FeatureWindow : public Window
             runBatchMode();
             exit( 0 );
         }
+    }
+
+        void cvt2Ocv( const Image & im, cv::Mat & mat )
+        {
+            Image img;
+            im.convert( img, IFormat::GRAY_UINT8 );
+
+            size_t stride;
+            const uint8_t * ptr = img.map( &stride );
+
+            mat.create( img.height(), img.width(), CV_8UC1 );
+
+            SIMD * simd = SIMD::instance();
+
+            for( size_t y = 0; y < img.height(); y++ ){
+                simd->Memcpy( mat.ptr( y ), ptr + y * stride, img.width() );
+            }
+
+            img.unmap( ptr );
+        }
+
+    void testOpenCV()
+    {
+        cv::ORB::CommonParams orbParams( 1.0f / _scaleFactor, _numScales );
+        cv::ORB ocvORB( 1000, orbParams );
+
+        std::vector<cv::KeyPoint> kp0, kp1;
+
+        cv::Mat cvImg;
+
+        cv::Mat mask, desc0, desc1;
+
+        cvt2Ocv( _images[ 0 ], cvImg );
+        ocvORB( cvImg, mask, kp0, desc0 );
+
+        cvt2Ocv( _images[ _currentImage ], cvImg );
+
+        ocvORB( cvImg, mask, kp1, desc1 );
+        matchOCV( kp0, kp1, desc0, desc1 );
+    }
+
+    void matchOCV( const std::vector<cv::KeyPoint> & kp0,
+                   const std::vector<cv::KeyPoint> & kp1,
+                   const cv::Mat & desc0,
+                   const cv::Mat & desc1 )
+    {
+        cv::BruteForceMatcher<cv::Hamming> matcher;
+        std::vector<cv::DMatch> matches;
+
+        matcher.match( desc1, desc0, matches );
+
+        size_t numMatches = 0;
+        size_t inlier = 0;
+        for( size_t i = 0; i < matches.size(); i++ ){
+            if( matches[ i ].distance < _maxDescDistance ){
+                numMatches++;
+
+                // test if inlier
+                const cv::KeyPoint & kp = kp0[ matches[ i ].trainIdx ];
+                Vector2f pt( kp.pt.x, kp.pt.y );
+
+                const cv::KeyPoint & kpQ = kp1[ matches[ i ].queryIdx ];
+                Vector2f ptQ( kpQ.pt.x, kpQ.pt.y );
+
+                Vector2f ptPrime = _homographies[ _currentImage ] * pt;
+
+                if( (ptQ - ptPrime).length() < 10 ){
+                    inlier++;
+                }
+            }
+        }
+
+        std::cout << "Inlier: " << inlier << " / " << numMatches << "\t" << std::setprecision( 5 ) << 100.0f * (float)inlier / (float)numMatches << "%\t num Overall matches: " << matches.size() << std::endl << std::endl;
     }
 
     void runBatchMode()
@@ -200,6 +275,7 @@ class FeatureWindow : public Window
         out.copyRect( 0, 0, _images[ 0 ], _images[ 0 ].rect() );
         out.copyRect( _images[ 0 ].width(), 0, _images[ _currentImage ], _images[ _currentImage ].rect() );
 
+        return;
         // draw the features
         {
             GFXEngineImage ge( out );
@@ -318,6 +394,9 @@ class FeatureWindow : public Window
         checkResult( *_orb0, *_orb1, _matches, _homographies[ _currentImage ], _extractTime, _matchTime );
 
         repaint();
+
+        std::cout << "OPENCV:\n";
+        testOpenCV();
     }
 
   private:

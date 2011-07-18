@@ -28,6 +28,7 @@ namespace cvt {
 
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
+        //IScaleFilterGauss scaleFilter;
 
 		_scaleFactors = new float[ octaves ];
 		_iimages = new IntegralImage[ octaves ];
@@ -229,7 +230,10 @@ namespace cvt {
 
 		if( feature.angle < 0 )
 			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI - feature.angle;
+		feature.angle = Math::TWO_PI - feature.angle + Math::HALF_PI;
+
+        while( feature.angle > Math::TWO_PI )
+            feature.angle -= Math::TWO_PI;
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
@@ -241,8 +245,8 @@ namespace cvt {
 		int y = ( int ) feature.pt.y;
 
 
-#define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] -2, 5, 5, widthstep ) < \
-					  IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] -2, 5, 5, widthstep ) )
+#define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 ][ 1 ] - 2, 5, 5, widthstep ) < \
+					  IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2, y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5, widthstep ) )
 
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
