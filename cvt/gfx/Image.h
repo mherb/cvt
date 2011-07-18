@@ -104,6 +104,8 @@ namespace cvt {
             void integralImage( Image & dst ) const;
             void squaredIntegralImage( Image & dst ) const;
 
+			void pyrdown( Image& dst ) const;
+
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
@@ -116,6 +118,8 @@ namespace cvt {
 			void checkFormat( const Image & img, const char* func, size_t lineNum, const IFormat & format ) const;
 			void checkSize( const Image & img, const char* func, size_t lineNum, size_t w, size_t h ) const;
 			void checkFormatAndSize( const Image & img, const char* func, size_t lineNum ) const;
+
+			void pyrdown1U8( Image& dst ) const;
 
 			ImageAllocator* _mem;
 	};

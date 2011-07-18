@@ -1561,7 +1561,7 @@ namespace cvt {
         
     void Image::integralImage( Image & dst ) const
     {
-        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), IALLOCATOR_MEM );
+        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), _mem->type() );
                      
         size_t inStride;
         size_t dstStride;
@@ -1589,7 +1589,7 @@ namespace cvt {
     
     void Image::squaredIntegralImage( Image & dst ) const
     {
-        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), IALLOCATOR_MEM );
+        dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), _mem->type() );
         
         size_t inStride;
         size_t dstStride;
@@ -1610,8 +1610,92 @@ namespace cvt {
                 
             default:
                 this->unmap( out );
-                throw CVTException( "IntegralImage not implemented for type: " + fId );
+                throw CVTException( "Squared integralImage not implemented for type: " + fId );
         }
         this->unmap( out );
-    }    
+    }
+
+
+	void Image::pyrdown( Image& dst ) const
+	{
+        dst.reallocate( width() / 2, height() / 2, format(), _mem->type() );
+
+		IFormatID fId = this->format().formatID;
+		switch( fId ) {
+			case IFORMAT_GRAY_UINT8: return pyrdown1U8( dst );
+			default: throw CVTException( "Pyrdown not implemented for type: " + fId );
+		}
+	}
+
+	void Image::pyrdown1U8( Image& out ) const
+	{
+		size_t bstride = Math::pad16( out.width() );
+		uint16_t* buf;
+		size_t sstride, dstride;
+		const uint8_t* src = map( &sstride );
+		uint8_t* dst = out.map( &dstride );
+		const uint8_t* psrc = src;
+		uint8_t* pdst = dst;
+		uint16_t* rows[ 5 ];
+
+		SIMD* simd = SIMD::instance();
+
+		if( posix_memalign( ( void** ) &buf, 16, sizeof( uint16_t ) * bstride * 5 ) )
+			throw CVTException("Out of memory");
+
+		simd->pyrdownHalfHorizontal_1u8_to_1u16( buf, psrc, width() );
+		psrc += sstride;
+		simd->pyrdownHalfHorizontal_1u8_to_1u16( buf + bstride, psrc, width() );
+		psrc += sstride;
+		simd->pyrdownHalfHorizontal_1u8_to_1u16( buf + 2 * bstride, psrc, width() );
+		psrc += sstride;
+		simd->pyrdownHalfHorizontal_1u8_to_1u16( buf + 3 * bstride, psrc, width() );
+		psrc += sstride;
+
+		rows[ 0 ] = buf;
+		rows[ 1 ] = buf;
+		rows[ 2 ] = buf + bstride;
+		rows[ 3 ] = buf + 2 * bstride;
+		rows[ 4 ] = buf + 3 * bstride;
+
+		simd->pyrdownHalfVertical_1u16_to_1u8( pdst, rows, out.width() );
+		pdst += dstride;
+
+		rows[ 0 ] = buf + 4 * bstride;
+		size_t h = out.height() - 2;
+		while( h-- ) {
+			uint16_t* tmp1 = rows[ 0 ];
+			simd->pyrdownHalfHorizontal_1u8_to_1u16( tmp1, psrc, width() );
+			psrc += sstride;
+			uint16_t* tmp2 = rows[ 1 ];
+			simd->pyrdownHalfHorizontal_1u8_to_1u16( tmp2, psrc, width() );
+			psrc += sstride;
+
+			rows[ 0 ] = rows[ 2 ];
+			rows[ 1 ] = rows[ 3 ];
+			rows[ 2 ] = rows[ 4 ];
+			rows[ 3 ] = tmp1;
+			rows[ 4 ] = tmp2;
+
+			simd->pyrdownHalfVertical_1u16_to_1u8( pdst, rows, out.width() );
+			pdst += dstride;
+		}
+
+		uint16_t* tmp1 = rows[ 0 ];
+		if( height() & 1 )
+			simd->pyrdownHalfHorizontal_1u8_to_1u16( tmp1, psrc, width() );
+		else
+			tmp1 = rows[ 4 ];
+
+		rows[ 0 ] = rows[ 2 ];
+		rows[ 1 ] = rows[ 3 ];
+		rows[ 2 ] = rows[ 4 ];
+		rows[ 3 ] = tmp1;
+		rows[ 4 ] = tmp1;
+		simd->pyrdownHalfVertical_1u16_to_1u8( pdst, rows, out.width() );
+
+		unmap( src );
+		out.unmap( dst );
+		free( buf );
+	}
 }
