@@ -1453,6 +1453,95 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const
+	{
+		const __m128i mask = _mm_set1_epi16( 0xff00 );
+		__m128i odd, even, even6, res;
+
+		*dst++ =  ( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src + 1 ) ) << 1 ) +
+			( ( ( uint16_t ) *( src ) + ( uint16_t ) *( src + 2 ) ) << 2 ) +
+			( ( ( uint16_t ) *( src + 3 ) ) << 1 );
+
+		const uint8_t* end = src + n - 16;
+		while( src < end ) {
+			odd = _mm_loadu_si128( ( __m128i* ) src );
+			even = _mm_srli_si128( _mm_and_si128( mask, odd ), 1 );
+			odd = _mm_andnot_si128( mask, odd );
+
+			odd = _mm_slli_epi16( odd, 2 );
+			even6 = _mm_add_epi16( _mm_slli_epi16( even, 2 ),  _mm_slli_epi16( even, 1 ) );
+
+			res = _mm_srli_si128( _mm_add_epi16( odd, even ), 2 );
+			res = _mm_add_epi16( res, _mm_add_epi16( odd, even6 ) );
+			res = _mm_add_epi16( res, _mm_slli_si128( even, 2 ) );
+			res = _mm_srli_si128( res, 2 );
+
+			_mm_storeu_si128( ( __m128i* ) dst, res );
+
+			dst += 6;
+			src += 12;
+		}
+
+		size_t n2 = ( ( n >> 1 ) - 2 ) % 6;
+		src += 3;
+		while( n2-- ) {
+			*dst++ = ( ( ( ( uint16_t ) *src ) << 2 ) + ( ( ( uint16_t ) *src ) << 1 ) +
+					  ( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src - 1 ) ) << 2 ) +
+					  ( uint16_t ) *( src + 2 ) + ( uint16_t ) *( src - 2 ) );
+			src += 2;
+		}
+
+		if( n & 1 ) {
+			*dst++ = ( ( ( uint16_t ) *src ) << 2 ) + ( ( ( uint16_t ) *src ) << 1 ) + ( ( ( uint16_t ) *( src - 2 ) ) << 1 ) +
+				( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src - 1 ) ) << 2 );
+		} else {
+			*dst++ = ( ( ( uint16_t ) *src ) << 2 ) +
+				( ( ( uint16_t ) *src ) << 1 ) +
+				( ( ( ( ( uint16_t ) *( src - 1 ) ) << 2 ) +
+				   ( uint16_t ) *( src - 2 ) ) << 1 );
+		}
+	}
+
+	void SIMDSSE2::pyrdownHalfVertical_1u16_to_1u8( uint8_t* dst, uint16_t* rows[ 5 ], size_t n ) const
+	{
+		uint16_t tmp;
+		uint16_t* src1 = rows[ 0 ];
+		uint16_t* src2 = rows[ 1 ];
+		uint16_t* src3 = rows[ 2 ];
+		uint16_t* src4 = rows[ 3 ];
+		uint16_t* src5 = rows[ 4 ];
+		__m128i r, t, zero;
+
+		zero = _mm_setzero_si128();
+		size_t n2 = n >> 3;
+		while( n2-- ) {
+			r = _mm_loadu_si128( ( __m128i* ) src1 );
+			r = _mm_add_epi16( r, _mm_loadu_si128( ( __m128i* ) src5 ) );
+			t = _mm_loadu_si128( ( __m128i* ) src2 );
+			t = _mm_add_epi16( t, _mm_loadu_si128( ( __m128i* ) src4 ) );
+			r = _mm_add_epi16( r, _mm_slli_epi16( t, 2 ) );
+			t = _mm_loadu_si128( ( __m128i* ) src3 );
+			t = _mm_add_epi16( _mm_slli_epi16( t, 2 ), _mm_slli_epi16( t, 1 ) );
+			r = _mm_add_epi16( r, t );
+			r = _mm_srli_epi16( r, 8 );
+			r = _mm_packus_epi16( r, zero );
+			_mm_storel_epi64( ( __m128i* ) dst, r );
+
+			src1 += 8;
+			src2 += 8;
+			src3 += 8;
+			src4 += 8;
+			src5 += 8;
+			dst  += 8;
+		}
+
+		n &= 0x7;
+		while( n-- ) {
+			tmp = *src1++ + *src5++ + ( ( *src2++ + *src4++ ) << 2 ) + 6 * *src3++;
+			*dst++ = ( uint8_t ) ( tmp >> 8 );
+		}
+	}
+
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
 		const uint8_t* src = ptr - 4 * stride - 4 + 1;
@@ -1497,16 +1586,18 @@ namespace cvt
 			t1 = _mm_madd_epi16( dx, dy );
 			ixy = _mm_add_epi32( ixy, t1 );
 		}
-__horizontal_sum( ix, t1 );
-__horizontal_sum( iy, t1 );
-__horizontal_sum( ixy, t1 );
+		__horizontal_sum( ix, t1 );
+		__horizontal_sum( iy, t1 );
+		__horizontal_sum( ixy, t1 );
 
-a = ( float ) _mm_cvtsi128_si32( ix );
-b = ( float ) _mm_cvtsi128_si32( iy );
-c = ( float ) _mm_cvtsi128_si32( ixy );
+#undef __horizontal_sum
 
-return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
-}
+		a = ( float ) _mm_cvtsi128_si32( ix );
+		b = ( float ) _mm_cvtsi128_si32( iy );
+		c = ( float ) _mm_cvtsi128_si32( ixy );
+
+		return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
+	}
 
     void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {

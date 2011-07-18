@@ -3460,6 +3460,50 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const
+	{
+		*dst++ =  ( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src + 1 ) ) << 1 ) +
+			( ( ( uint16_t ) *( src ) + ( uint16_t ) *( src + 2 ) ) << 2 ) +
+			( ( ( uint16_t ) *( src + 3 ) ) << 1 );
+
+		src += 3;
+		if( n >= 6 ) {
+			size_t n2 = ( n >> 1 ) - 2;
+
+			while( n2-- ) {
+				*dst++ = ( ( ( ( uint16_t ) *src ) << 2 ) + ( ( ( uint16_t ) *src ) << 1 ) +
+						  ( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src - 1 ) ) << 2 ) +
+						  ( uint16_t ) *( src + 2 ) + ( uint16_t ) *( src - 2 ) );
+				src += 2;
+			}
+		}
+
+		if( n & 1 ) {
+			*dst++ = ( ( ( uint16_t ) *src ) << 2 ) + ( ( ( uint16_t ) *src ) << 1 ) + ( ( ( uint16_t ) *( src - 2 ) ) << 1 ) +
+				( ( ( uint16_t ) *( src + 1 ) ) << 2 ) + ( ( ( uint16_t ) *( src - 1 ) ) << 2 );
+		} else {
+			*dst++ = ( ( ( uint16_t ) *src ) << 2 ) +
+				( ( ( uint16_t ) *src ) << 1 ) +
+				( ( ( ( ( uint16_t ) *( src - 1 ) ) << 2 ) +
+				   ( uint16_t ) *( src - 2 ) ) << 1 );
+
+		}
+	}
+
+	void SIMD::pyrdownHalfVertical_1u16_to_1u8( uint8_t* dst, uint16_t* rows[ 5 ], size_t n ) const
+	{
+		uint16_t tmp;
+		uint16_t* src1 = rows[ 0 ];
+		uint16_t* src2 = rows[ 1 ];
+		uint16_t* src3 = rows[ 2 ];
+		uint16_t* src4 = rows[ 3 ];
+		uint16_t* src5 = rows[ 4 ];
+
+		while( n-- ) {
+			tmp = *src1++ + *src5++ + ( ( *src2++ + *src4++ ) << 2 ) + 6 * *src3++;
+			*dst++ = ( uint8_t ) ( tmp >> 8 );
+		}
+	}
 
 	void SIMD::warpLinePerspectiveBilinear1f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
 	{
