@@ -7,6 +7,7 @@
 #include <cvt/util/SIMD.h>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 namespace cvt {
 
@@ -31,7 +32,7 @@ namespace cvt {
         out << " Score: " << feature.score;
 		out << "\nDescriptor: 0x";
 		for( int i = 0; i < 32; i++ )
-			out << std::hex << feature.desc[ i ];
+			out << std::hex << std::setfill( '0' ) << std::setw( 2 ) << (int)feature.desc[ i ];
 		out << std::endl;
 		return out;
 	}
