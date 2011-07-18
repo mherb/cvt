@@ -143,6 +143,12 @@ namespace cvt {
 			virtual void Conv_YUV420u8_to_RGBAu8( uint8_t* dst, const uint8_t* srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const;
 			virtual void Conv_YUV420u8_to_BGRAu8( uint8_t* dst, const uint8_t* srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const;
 
+
+			/* convolve with horizontal gaussian [ 1 4 6 4 1 ] and store the odd results in u16 - even results are discarded/not calculated */
+			virtual void pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const;
+			/* convolve with vertical gaussian [ 1 4 6 4 1 ] and store the odd rows in u8 dst by >> 8 */
+			virtual void pyrdownHalfVertical_1u16_to_1u8( uint8_t* dst, uint16_t* rows[ 5 ], size_t n ) const;
+
 			virtual void warpLinePerspectiveBilinear1f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,
 													    const float* point, const float* normal, const size_t n ) const;
 			virtual void warpLinePerspectiveBilinear4f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,

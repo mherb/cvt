@@ -84,7 +84,7 @@ void pyrdownHalfHorizontal1u8_to_u16_SSE2( uint16_t* dst, const uint8_t* src, si
 	}
 }
 
-void pyrdownHalfVerticalu16_to_u8( uint8_t* dst, uint16_t** rows, size_t n )
+void pyrdownHalfVerticalu16_to_u8( uint8_t* dst, uint16_t* rows[ 5 ], size_t n )
 {
 	uint16_t tmp;
 	uint16_t* src1 = rows[ 0 ];
@@ -99,7 +99,7 @@ void pyrdownHalfVerticalu16_to_u8( uint8_t* dst, uint16_t** rows, size_t n )
 	}
 }
 
-void pyrdownHalfVerticalu16_to_u8_SSE2( uint8_t* dst, uint16_t** rows, size_t n )
+void pyrdownHalfVerticalu16_to_u8_SSE2( uint8_t* dst, uint16_t* rows[ 5], size_t n )
 {
 	uint16_t tmp;
 	uint16_t* src1 = rows[ 0 ];
