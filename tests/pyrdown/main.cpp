@@ -254,6 +254,17 @@ int main()
 
 	halfHoriz();
 //	halfHoriz2();
+	{
+		Resources res;
+		String file = res.find( "lena_g.png" );
+		Image i;
+		i.load( file );
+		Image out;
+		i.pyrdown( out );
+		out.save( "pyrfunX.png" );
+	}
+
+	return 0;
 
 #define SIZE 6
 	uint8_t src[ SIZE ];
