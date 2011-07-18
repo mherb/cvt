@@ -31,8 +31,8 @@ int main()
 		std::cout << "\t{\n";
 		for( int k = 0; k < 256; k++ ) {
 			Vector2f p1, p2;
-			p1.set( orbpattern[ k * 4 + 0] + 0.5f,  orbpattern[ k * 4 + 1] + 0.5f );
-			p2.set( orbpattern[ k * 4 + 2] + 0.5f,  orbpattern[ k * 4 + 3] + 0.5f );
+			p1.set( orbpattern[ k * 4 + 0] + 0.0f,  orbpattern[ k * 4 + 1] + 0.0f );
+			p2.set( orbpattern[ k * 4 + 2] + 0.0f,  orbpattern[ k * 4 + 3] + 0.0f );
 
 			p1 = rot * p1;
 			p2 = rot * p2;
@@ -66,8 +66,8 @@ int main()
 			if( Math::abs( ( int )p2.y ) > 13 )
 				std::cout << "ERROR " << p2.y << std::endl;*/
 
-			std::cout << "\t\t{ " <<  ( ( int ) p1.x )  << ", " << ( ( int ) p1.y ) <<" }, ";
-			std::cout << "{ " <<  ( ( int ) p2.x )  << ", " << ( ( int ) p2.y ) <<" },\n";
+			std::cout << "\t\t{ " <<  ( ( int ) Math::round( p1.x ) )  << ", " << ( ( int ) Math::round( p1.y ) ) <<" }, ";
+			std::cout << "{ " <<  ( ( int ) Math::round( p2.x ) )  << ", " << ( ( int ) Math::round( p2.y ) ) <<" },\n";
 		}
 		String file;
 		file.sprintf("pattern-%02d.png", i );
