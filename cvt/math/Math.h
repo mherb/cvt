@@ -205,6 +205,16 @@ namespace cvt {
 			return ::exp( x );
 		}
 
+        static inline float log( float x )
+        {
+            return ::logf( x );
+        }
+
+        static inline double log( double x )
+        {
+            return ::log( x );
+        }
+
 		static inline float tan( float x )
 		{
 			return ::tanf( x );
@@ -433,7 +443,7 @@ namespace cvt {
 					infNorm = rowSum;
 			}
 
-			int j = max( 0, 1 + int( log( infNorm ) / log( 2 ) ) );
+			int j = max( 0, 1 + int( log( infNorm ) / log( 2.0 ) ) );
 
 			// tmpA = A * 2^j
 			Matrix tmpA = A / ( 1 << j ) ;

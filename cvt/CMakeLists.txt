@@ -226,6 +226,9 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix4.h
 	math/Optimization.h
 	math/Quaternion.h
+	math/sac/SampleConsensusModel.h
+	math/sac/RANSAC.h
+	math/sac/Line2DSAC.h
 	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
