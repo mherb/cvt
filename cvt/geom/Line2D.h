@@ -62,6 +62,8 @@ namespace cvt {
 	template<typename T>
 	inline Line2D<T>::Line2D( const Vector3<T>& vec ) : _line( vec )
 	{
+        Vector2<T> tmp2( _line.x, _line.y );
+		_line /= tmp2.length();
 	}
 
 	template<typename T>
