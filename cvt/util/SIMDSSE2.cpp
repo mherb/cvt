@@ -1542,11 +1542,11 @@ namespace cvt
 		}
 	}
 
-	/*
+	
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
-		const uint8_t* src = ptr - 4 * stride - 4 + 1;
-		__m128i dx, dy, t1, t2, zero;
+		const uint8_t* src = ptr - 4 * stride - 4;
+		__m128i dx[ 3 ], dxc, dy, dyc, t1, t2, zero, mask;
 		__m128i ix, iy, ixy;
 		float a, b, c;
 
@@ -1556,35 +1556,62 @@ namespace cvt
 	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(2, 3, 0, 1)); \
 	r = _mm_add_epi32(r, rw); \
 } while( 0 )
-
+		
 		zero = _mm_setzero_si128();
+		mask = _mm_insert_epi16( zero, 0xFFFF, 0 );
 		ix = iy = ixy = _mm_setzero_si128();
 
+		t1 = _mm_loadl_epi64( ( __m128i* ) ( src ) );
+		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 1 ) );
+		t1 = _mm_slli_si128( t1, 1 );
+		t1 = _mm_unpacklo_epi8( t1, zero );
+		t2 = _mm_unpacklo_epi8( t2, zero );
+		dx[ 0 ] = _mm_sub_epi16( t2, t1 );
+
+
+		t1 = _mm_loadl_epi64( ( __m128i* ) ( src + stride ) );
+		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + stride + 1 ) );
+		t1 = _mm_slli_si128( t1, 1 );
+		t1 = _mm_unpacklo_epi8( t1, zero );
+		t2 = _mm_unpacklo_epi8( t2, zero );
+		dx[ 1 ] = _mm_sub_epi16( t2, t1 );
+
 		for( int i = 0; i < 7; i++ ) {
+			t1 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
+			t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride + 1 ) );
+			t1 = _mm_slli_si128( t1, 1 );
+			t1 = _mm_unpacklo_epi8( t1, zero );
+			t2 = _mm_unpacklo_epi8( t2, zero );
+			dx[ 2 ] = _mm_sub_epi16( t2, t1 );
+			dxc = _mm_add_epi16( dx[ 0 ], _mm_slli_epi16( dx[ 1 ], 1 ) );
+			dxc = _mm_add_epi16( dxc, dx[ 2 ] );
+			dxc = _mm_andnot_si128( mask, dxc );
+
+			dx[ 0 ] = dx[ 1 ];
+			dx[ 1 ] = dx[ 2 ];
+
+			t1 = _mm_madd_epi16( dxc, dxc );
+			ix = _mm_add_epi32( ix, t1 );
+
 			t1 = _mm_loadl_epi64( ( __m128i* ) src );
 			t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
 			t1 = _mm_unpacklo_epi8( t1, zero );
 			t2 = _mm_unpacklo_epi8( t2, zero );
 			dy = _mm_sub_epi16( t2, t1 );
-			dy = _mm_slli_si128( dy, 2 );
+			
+			dyc = _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) );
+			dyc = _mm_add_epi16( dyc, _mm_slli_epi16( dy, 1 ) );
+
+			int16_t evil = ( int16_t ) *( src + 2 * stride + 8 ) - ( int16_t ) *( src + 8 );
+			dyc = _mm_add_epi16( dyc, _mm_insert_epi16( zero, evil, 7 ) );
+			dy  = _mm_andnot_si128( mask, dyc );
+
 			src += stride;
 
 			t1 = _mm_madd_epi16( dy, dy );
 			iy = _mm_add_epi32( iy, t1 );
 
-			t1 = _mm_loadl_epi64( ( __m128i* ) ( src - 1 ) );
-			t2 = _mm_loadl_epi64( ( __m128i* ) ( src ) );
-			t1 = _mm_slli_si128( t1, 1 );
-			t1 = _mm_unpacklo_epi8( t1, zero );
-			t2 = _mm_unpacklo_epi8( t2, zero );
-			dx = _mm_sub_epi16( t2, t1 );
-			dx = _mm_srli_si128( dx, 2 ); // FIXME: use and
-			dx = _mm_slli_si128( dx, 2 );
-
-			t1 = _mm_madd_epi16( dx, dx );
-			ix = _mm_add_epi32( ix, t1 );
-
-			t1 = _mm_madd_epi16( dx, dy );
+			t1 = _mm_madd_epi16( dxc, dy );
 			ixy = _mm_add_epi32( ixy, t1 );
 		}
 		__horizontal_sum( ix, t1 );
@@ -1597,9 +1624,9 @@ namespace cvt
 		b = ( float ) _mm_cvtsi128_si32( iy );
 		c = ( float ) _mm_cvtsi128_si32( ixy );
 
-		return ( a * b - 2.0f * c * c ) - ( k * Math::sqr(a + b) );
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
-*/
+
 
     void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {
