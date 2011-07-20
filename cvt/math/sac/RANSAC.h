@@ -41,7 +41,7 @@ namespace cvt
     template<class Model>
     inline typename RANSAC<Model>::ResultType RANSAC<Model>::estimate()
     {
-        size_t n = SIZE_T_MAX;
+        size_t n = ( size_t  ) -1;
         size_t samples = 0;
 
         ResultType result;
