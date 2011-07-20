@@ -13,11 +13,13 @@ namespace cvt {
     {
         cvt::Resources r;
 
+        bool result = true;
+
         for( size_t i = 0; i < 360; i+=5 ){
             String fileIn( "bw" );
             fileIn += i;
             fileIn += ".png";
-            std::cout << "File : " << fileIn << std::endl;
+            //std::cout << "File : " << fileIn << std::endl;
             cvt::Image _img( r.find( fileIn ) );
 
             cvt::Image img;
@@ -27,20 +29,20 @@ namespace cvt {
             cvt::Image ii;
             img.integralImage( ii );
 
-        size_t stride;
-        float * ptr = ii.map<float>( &stride );
+            size_t stride;
+            float * ptr = ii.map<float>( &stride );
 
-        cvt::ORBFeature feature( img.width() / 2.0f, img.height() / 2.0f );
+            cvt::ORBFeature feature( img.width() / 2.0f, img.height() / 2.0f );
 
-        orb.centroidAngle( feature, ptr, stride );
+            orb.centroidAngle( feature, ptr, stride );
 
-        std::cout << "Feature Angle: " << Math::rad2Deg( feature.angle ) << std::endl;
+            //std::cout << "Feature Angle: " << Math::rad2Deg( feature.angle ) << std::endl;
 
-        ii.unmap<float>( ptr );
+            ii.unmap<float>( ptr );
 
         }
 
-        return false;
+        return true;
     }
 }
 

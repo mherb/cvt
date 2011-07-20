@@ -42,6 +42,24 @@ void generateRandomFeatures( std::vector<Feature2Df> & pts, size_t num )
     }
 }
 
+void addOutlierMatches( std::vector<Feature2Df> & features,
+                        std::vector<FeatureMatch> & matches, size_t num )
+{
+    features.clear();
+    generateRandomFeatures( features, 1000 );
+    FeatureMatch m;
+    while( num-- ){
+        // select two indices:
+        size_t idx0 = Math::rand( 0, features.size() - 1 );
+        size_t idx1 = Math::rand( 0, features.size() - 1 );
+
+        m.feature0 = &features[ idx0 ];
+        m.feature1 = &features[ idx1 ];
+
+        matches.push_back( m );
+    }
+}
+
 void transformPoints( std::vector<Feature2Df> & transformed, const std::vector<Feature2Df> & pts, const Matrix3f & H )
 {
     transformed.reserve( pts.size() );
@@ -79,10 +97,14 @@ void testHomography()
     std::vector<FeatureMatch> matches;
 
     Matrix3f H;
-    
+
+    H.setHomography( Math::deg2Rad( 10.0f ), Math::deg2Rad( 5.0f ), 1.05f, 0.99f, 10.0f, -20.0f, 0.000001f, 0.000001f );
 
     generateRandomFeatures( points0, 1000 );
     transformPoints( points1, points0, H );
+
+    std::vector<Feature2Df> outliers;
+    addOutlierMatches( outliers, matches, 200 );
 
     FeatureMatch m;
     for( size_t i = 0; i < points0.size(); i++ ){
@@ -97,6 +119,10 @@ void testHomography()
     RANSAC<HomographySAC> ransac( sacModel, maxDist, outlierProb );
 
     Matrix3f Hest = ransac.estimate();
+
+    std::cout << "Homography: " << std::endl;
+    std::cout << "GT:\n" << H << std::endl;
+    std::cout << "Estimated:\n" << Hest << std::endl;
 }
 
 int main()
@@ -104,6 +130,7 @@ int main()
     srandom( time( NULL ) );
 
     testLineEstimation();
+    testHomography();
 
 
     return 0;
