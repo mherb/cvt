@@ -58,7 +58,7 @@ namespace cvt
 
     inline Line2DSAC::ResultType Line2DSAC::refine( const std::vector<size_t> & inliers  ) const
     {
-        Eigen::Matrix3f cov( Eigen::Matrix3f::Zero() );
+        Eigen::Matrix3d cov( Eigen::Matrix3d::Zero() );
 
         for( size_t i = 0; i < inliers.size(); i++ ){
             const Vector2f & p = _points[ inliers[ i ] ];
@@ -74,9 +74,9 @@ namespace cvt
         cov( 2, 1 ) = cov( 1, 2 );
         cov( 2, 2 ) = inliers.size();
 
-        Eigen::Vector3f l = cov.svd().matrixU().col( 2 );
+        Eigen::Vector3d l = cov.svd().matrixU().col( 2 );
 
-        return Line2Df( Vector3f( l[ 0 ], l[ 1 ], l[ 2 ] ) );
+        return Line2Df( Vector3f( (float)l[ 0 ], (float)l[ 1 ], (float)l[ 2 ] ) );
     }
 
     void Line2DSAC::inliers( std::vector<size_t> & inlierIndices,
