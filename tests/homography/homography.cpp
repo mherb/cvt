@@ -13,37 +13,10 @@
 
 using namespace cvt;
 
-static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy, float tx, float ty, float v1, float v2 )
-{
-	Eigen::Matrix3f h, ih;
-	Eigen::Transform<float,2> affine;
-	
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( phi ) );
-	affine = Eigen::Scaling2f( sx, sy ) * affine;
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( -phi ) ) * affine;
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( theta ) ) * affine;
-	
-	h( 0, 0 ) = affine( 0, 0 );
-	h( 0, 1 ) = affine( 0, 1 );
-	h( 1, 0 ) = affine( 1, 0 );
-	h( 1, 1 ) = affine( 1, 1 );
-	h( 0, 2 ) = tx;
-	h( 1, 2 ) = ty;
-	h( 2, 0 ) = v1;
-	h( 2, 1 ) = v2;
-	h( 2, 2 ) = 1.0f;
-	
-	ih = h.inverse();	
-//	ih /= powf( ih.determinant(), 1.0f / 3.0f );
-	
-	ih.transposeInPlace();	
-	return *( ( cvt::Matrix3f* )ih.data() );	
-}
-
 int main()
 {
-	std::string dataFolder(DATA_FOLDER);
-	std::string inputFile(dataFolder + "/lena.png");
+	std::string dataFolder( DATA_FOLDER );
+	std::string inputFile( dataFolder + "/lena.png" );
 
 	try {
 		Image img;
@@ -55,10 +28,14 @@ int main()
 		img.convert( imgf );
 
 		Homography hfilter;
-//		cvt::Matrix3f H = calc_homography( 0.0f, 0.0f, 0.5f, 0.5f, 100.0f, 100.0f, 0.0001f, 0.0f );
-		cvt::Matrix3f H = calc_homography( 23.0f, 0.0f, 1.5f, 0.8f, 10.0f, 10.0f, 0.0f, 0.0f );
-		std::cout << "H: \n" <<  H << std::endl;
-		
+
+        cvt::Matrix3f H;
+		H.setHomography( Math::deg2Rad( 23.0f ), 0.0f, 1.5f, 0.8f, 10.0f, 10.0f, 0.0f, 0.0f );
+		if( !H.inverseSelf() ){
+            std::cerr << "Could not invert" << std::endl;
+            return 0;
+        }
+
 		Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 		Time t;
 		t.reset();

@@ -17,7 +17,7 @@ void similarity()
 
 	Matrix4f m, ms;
 
-	m.identity();
+	m.setIdentity();
 
 //	std::cout << m << std::endl;
 	m[ 0 ][ 3 ] = 3.0f;
@@ -52,7 +52,7 @@ void perspective()
 
 	Matrix3f m, ms;
 
-	m.identity();
+	m.setIdentity();
 
 	Quaternionf qrot;
 	qrot.setRotation( 0.0f, 0.0f, 1.0f, Math::rand( -1.0f, 1.0f ) );

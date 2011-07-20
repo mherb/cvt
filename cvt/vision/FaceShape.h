@@ -68,7 +68,7 @@ namespace cvt {
 	inline FaceShape<T>::FaceShape() : _currI( NULL), _kdx( IKernel::HAAR_HORIZONTAL_3 ), _kdy( IKernel::HAAR_VERTICAL_3 ),
 									  _ptsize( 0 ), _pcsize( 0 ), _lsize( 0 ), _lines( 0 ), _costs( 0 )
 	{
-		_transform.identity();
+		_transform.setIdentity();
 
 		std::string dataFolder(DATA_FOLDER);
 		std::string inputFile(dataFolder + "/face.data");

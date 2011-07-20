@@ -50,12 +50,12 @@ int main()
 #define DOWNFACTOR 0.8
 #define UPFACTOR ( 1.0 / ( DOWNFACTOR ) )
 
-	matdown.identity();
+	matdown.setIdentity();
 	matdown[ 0 ][ 0 ] = DOWNFACTOR;
 	matdown[ 1 ][ 1 ] = DOWNFACTOR;
 	matdown[ 2 ][ 2 ] = 1.0;
 
-	matup.identity();
+	matup.setIdentity();
 	matup[ 0 ][ 0 ] = UPFACTOR;
 	matup[ 1 ][ 1 ] = UPFACTOR;
 	matup[ 2 ][ 2 ] = 1.0;

@@ -12,7 +12,7 @@ void jacobi_cs( float x, float y, float z )
 	} else {
 		t = -1.0f / ( -tau + Math::sqrt( 1 + Math::sqr( tau ) ) );
 	}
-	std::cout << "c: " << ( 1.0f / Math::sqrt( 1.0f  + t * t ) ) 
+	std::cout << "c: " << ( 1.0f / Math::sqrt( 1.0f  + t * t ) )
 		      << " s: " << ( t / Math::sqrt( 1.0f  + t * t ) ) << std::endl;
 }
 
@@ -109,8 +109,8 @@ void svd( Matrix3f& mat, Matrix3f& u, Matrix3f& v )
 	float c, s;
 	bool finished;
 
-	u.identity();
-	v.identity();
+	u.setIdentity();
+	v.setIdentity();
 
 	/* diagonalize */
 	do {

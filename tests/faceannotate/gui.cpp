@@ -76,7 +76,7 @@ class FaceUI : public Window
 			g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
 		}
 		Matrix3f t;
-		t.identity();
+		t.setIdentity();
 		t[ 0 ][ 0 ] = _dw;
 		t[ 1 ][ 1 ] = _dh;
 		t[ 0 ][ 2 ] = _dw * 0.5f;

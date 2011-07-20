@@ -223,7 +223,7 @@ namespace cvt {
 		Matrix2f mat, m2;
 		bool b = true;
 
-		mat.identity();
+		mat.setIdentity();
 		mat *= 2.0f;
 		m2 = mat.inverse();
 		mat *= m2;
@@ -238,7 +238,7 @@ namespace cvt {
 		Matrix3f mat, m2;
 		bool b = true;
 
-		mat.identity();
+		mat.setIdentity();
 		mat *= 2.0f;
 		m2 = mat.inverse();
 		mat *= m2;
@@ -247,7 +247,7 @@ namespace cvt {
 		CVTTEST_PRINT( "inverse()", b );
 
 
-		mat.identity();
+		mat.setIdentity();
 		mat *= 2.0f;
 		mat.inverseSelf();
 		b = b && mat == Matrix3f(  0.5f, 0.0f,  0.0f,
@@ -296,7 +296,7 @@ namespace cvt {
 		Matrix4f mat, m2;
 		bool b = true;
 
-		mat.identity();
+		mat.setIdentity();
 		mat *= 2.0f;
 		m2 = mat.inverse();
 		mat *= m2;
@@ -305,7 +305,7 @@ namespace cvt {
 		CVTTEST_PRINT( "inverse()", b );
 
 
-		mat.identity();
+		mat.setIdentity();
 		mat *= 2.0f;
 		mat.inverseSelf();
 		b = b && mat == Matrix4f( 0.5f, 0.0f,  0.0f, 0.0f,

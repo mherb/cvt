@@ -24,7 +24,7 @@ class View : public Window
 #else
 #include "butterfly.h"
 		Matrix3f t;
-		t.identity();
+		t.setIdentity();
 		t[ 0 ][ 0 ] = 2.0f;
 		t[ 1 ][ 1 ] = 2.0f;
 		p1.transform( t );
@@ -41,12 +41,12 @@ class View : public Window
 	void timeout( BasicTimer* )
 	{
 		Matrix3f t1, t2;
-		t1.identity();
+		t1.setIdentity();
 		t1[ 0 ][ 2 ] = 400.0f;
 		t1[ 1 ][ 2 ] = 400.0f;
-		t2.rotationZ( Math::deg2Rad( 1.0f ) );
+		t2.setRotationZ( Math::deg2Rad( 1.0f ) );
 		t1 = t1 * t2;
-		t2.identity();
+		t2.setIdentity();
 		t2[ 0 ][ 2 ] = -400.0f;
 		t2[ 1 ][ 2 ] = -400.0f;
 		t1 = t1 * t2;
@@ -75,7 +75,7 @@ class View : public Window
 
 		frames++;
 
-		if( _t.elapsedSeconds() > 5.0f ) 
+		if( _t.elapsedSeconds() > 5.0f )
 		{
 			std::cout << "FPS: " << frames / _t.elapsedSeconds() << std::endl;
 			frames = 0;

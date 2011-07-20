@@ -138,7 +138,7 @@ namespace cvt {
 
 	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
 	{
-		mat.zero();
+		mat.setZero();
 		mat[ 0 ][ 0 ] = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ] = - ( right + left ) / ( right - left );
 
@@ -153,7 +153,7 @@ namespace cvt {
 
 	void GL::orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near, float far )
 	{
-		mat.zero();
+		mat.setZero();
 		mat[ 0 ][ 0 ]  = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ]  = - ( right + left ) / ( right - left );
 		mat[ 0 ][ 3 ] += transx * mat[ 0 ][ 0 ];
@@ -170,7 +170,7 @@ namespace cvt {
 
 	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
 	{
-		mat.zero();
+		mat.setZero();
 		mat[ 0 ][ 0 ] = ( 2.0f * near ) / ( right - left );
 		mat[ 0 ][ 2 ] = ( right + left ) / ( right - left );
 		mat[ 1 ][ 1 ] = 2.0f * near / ( top - bottom );
@@ -188,7 +188,7 @@ namespace cvt {
 		float bottom = -range;
 		float top = range;
 
-		mat.zero();
+		mat.setZero();
 		mat[0][0] = ( 2.0f * near ) / ( right - left );
 		mat[1][1] = ( 2.0f * near ) / ( top - bottom );
 		mat[2][2] = - ( far + near ) / ( far - near );
@@ -198,7 +198,7 @@ namespace cvt {
 
 	void GL::subviewport( Matrix4f& mat, int x, int y, int w, int h, int viewportwidth, int viewportheight )
 	{
-		mat.identity();
+		mat.setIdentity();
 		mat[ 0 ][ 0 ] = ( float ) w / ( float ) viewportwidth;
 		mat[ 0 ][ 2 ] = ( 2.0f * ( float ) x + ( float ) w - ( float ) viewportwidth ) / ( float ) viewportwidth;
 		mat[ 1 ][ 1 ] = ( float ) h / ( float ) viewportheight;
