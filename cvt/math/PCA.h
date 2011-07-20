@@ -66,7 +66,7 @@ namespace cvt {
 	template<typename T>
 	inline void PCA<T>::addSample( const T* data )
 	{
-		Eigen::Map< Eigen::Matrix<T, Eigen::Dynamic, 1> > sample( data, _dimension );
+		Eigen::Map< Eigen::Matrix<T, Eigen::Dynamic, 1> > sample( ( T* )data, _dimension );
 		_mean += sample;
 		_x	  += sample * sample.transpose();
 		_n++;
@@ -94,7 +94,7 @@ namespace cvt {
 		mean( m );
 
 		p = _x * invn - m * m.transpose();
-		Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
+		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
 		p = svd.matrixU();
 	}
 
@@ -109,7 +109,7 @@ namespace cvt {
 		mean( m );
 
 		p = _x * invn - m * m.transpose();
-		Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
+		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p );
 		svalues = svd.singularValues();
 		p = svd.matrixU();
 	}

@@ -54,7 +54,7 @@ namespace cvt {
 			
 			// solve the system
 			delta.setZero();
-			( A + lamda ).llt().solve( b, &delta );
+			delta = ( A + lamda ).llt().solve( b );
 			
 			// apply delta parameters:			
 			model.apply( delta );

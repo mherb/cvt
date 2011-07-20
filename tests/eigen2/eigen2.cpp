@@ -3,9 +3,7 @@
 
 #include <cvt/math/Math.h>
 
-#include <Eigen/Core>
-#include <Eigen/Array>
-#include <Eigen/SVD>
+#include <Eigen/Dense>
 
 using namespace Eigen;
 

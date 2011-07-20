@@ -6,12 +6,12 @@
 #	or (if none is passed) the name of the folder
 #
 #	Dependencies we search for and link against:
-#	- Eigen2
+#	- Eigen3
 #	- OpenCL
 
 MACRO ( MACRO_TEST_APPLICATION ADDITIONAL_LIBS )
 
-FIND_PACKAGE( Eigen2 REQUIRED )
+FIND_PACKAGE( Eigen3 REQUIRED )
 FIND_PACKAGE( OpenCL REQUIRED )
 FIND_PACKAGE( OpenGL REQUIRED )
 IF( APPLE )
@@ -51,7 +51,7 @@ INCLUDE_DIRECTORIES(
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_SOURCE_DIR}/cvt"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
-	"${Eigen2_INCLUDE_DIR}"
+	"${EIGEN3_INCLUDE_DIR}"
 	"${OPENCL_INCLUDE_DIR}"
 	"${OPENCL_INCLUDE_DIR}"	
 )

@@ -9,7 +9,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/Slider.h>
-#include <Eigen/Array>
 
 using namespace cvt;
 
@@ -132,7 +131,7 @@ class FaceShapeWin : public Window
 	void recalc()
 	{
 	   _current = 100.0 * ( _mean + _pc * _weights );
-	   _current.cwise() += 250.0f;
+	   _current.array() += 250.0f;
 	 	_pts.clear();
 		for( int i = 0; i < LINEPTS; i++ ) {
 			int a = map[ i ][ 0 ];
