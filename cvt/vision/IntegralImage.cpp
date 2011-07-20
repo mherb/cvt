@@ -291,7 +291,6 @@ namespace cvt
 
         sum.unmap( ptr );
 
-        //std::cout << "Area Test -> Rect = " << rect << " " << iiArea << " ?== " << iArea << std::endl;
         return success;
     }
 
@@ -333,20 +332,20 @@ namespace cvt
     result &= test;
 
     test = _compare( gtSqrSum, ii.sqrSumImage() );
-        if( !test ){
-            std::cout << "GT: \n";
-            _dumpImage<float>( gtSqrSum );
-            std::cout << "\nIntImage: \n";
-            _dumpImage<float>( ii.sqrSumImage() );
-        }
+    if( !test ){
+        std::cout << "GT: \n";
+        _dumpImage<float>( gtSqrSum );
+        std::cout << "\nIntImage: \n";
+        _dumpImage<float>( ii.sqrSumImage() );
+    }
     CVTTEST_PRINT("::sqrSummedImage( ... )",  test );
     result &= test;
 
     Recti rect( 0, 0, 4, 4 );
     test = true;
-    for( int y = 0; y < 10; y++ ){
+    for( int y = 1; y < 10; y++ ){
         rect.y = y;
-        for( int x = 0; x < 10; x++ ){
+        for( int x = 1; x < 15; x++ ){
             rect.x = x;
             test &= _rectSum( img, ii.sumImage(), rect );
         }
