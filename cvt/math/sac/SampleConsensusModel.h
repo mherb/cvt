@@ -12,10 +12,20 @@
 
 namespace cvt
 {
-    template <class Derived, class ResultType, typename DistanceType>
+    /**
+     * SampleConsensusModelTraits:
+     * -> typedefs on ResultType and DistanceType
+     */
+    template<class T>
+    struct SACModelTraits;
+
+    template <typename Derived>
     class SampleConsensusModel
     {
       public:
+        typedef typename SACModelTraits<Derived>::ResultType    ResultType;
+        typedef typename SACModelTraits<Derived>::DistanceType  DistanceType;
+
         size_t size() const
         {
             return ( ( Derived *)this )->size();

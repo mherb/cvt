@@ -16,11 +16,19 @@ namespace cvt
 {
     class Line2DSAC;
 
-    class Line2DSAC : public SampleConsensusModel<Line2DSAC, Line2Df, float>
+    template<>
+    struct SACModelTraits<Line2DSAC>
     {
+        typedef Line2Df    ResultType;
+        typedef float      DistanceType;
+    };
+
+    class Line2DSAC : public SampleConsensusModel<Line2DSAC>
+{
       public:
-        typedef Line2Df ResultType;
-        typedef float   DistanceType;
+        typedef SACModelTraits<Line2DSAC>::ResultType       ResultType;
+        typedef SACModelTraits<Line2DSAC>::DistanceType     DistanceType;
+
 
         Line2DSAC( const std::vector<Vector2f>& pts ) : _points( pts )
         {
@@ -81,6 +89,8 @@ namespace cvt
                 inlierIndices.push_back( i );
         }
     }
+
+
 
 }
 
