@@ -20,7 +20,7 @@ namespace cvt
         typedef typename Model::ResultType   ResultType;
         typedef typename Model::DistanceType DistanceType;
 
-        RANSAC( SampleConsensusModel<Model, ResultType, DistanceType> & model,
+        RANSAC( SampleConsensusModel<Model> & model,
                 float maxDistance,
                 float outlierProb = 0.05f ) :
             _model( model ), _maxDistance( maxDistance ), _outlierProb( outlierProb )
@@ -30,7 +30,7 @@ namespace cvt
         ResultType estimate();
 
       private:
-        SampleConsensusModel<Model, ResultType, DistanceType>&  _model;
+        SampleConsensusModel<Model>&  _model;
 
         float                         _maxDistance;
         float                         _outlierProb;
