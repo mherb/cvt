@@ -8,7 +8,7 @@ namespace cvt {
 	{
 		public:
 			DummyFont() {};
-			DummyFont( const DummyFont& ) {};
+            DummyFont( const DummyFont& ){};
 			int size() const { return 0; };
 			Recti stringBounds( const char*, size_t = 0 ) const { return Recti(); };
 			int advance( size_t ) const { return 0;}

@@ -269,7 +269,7 @@ namespace cvt {
 					std::cout << k << " : " << _weights[ k ] << std::endl;
 
 					/* decompose each covariance matrix to get the eigenvectors and -values ...	 */
-					Eigen::SVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
+					Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
 
 					/* update the noise using the singular values outside the subspace */
 					_sigmas2[ k ] = svd.singularValues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );
@@ -278,13 +278,13 @@ namespace cvt {
 					/* get the eigenvectors in the subspace */
 					_pc[ k ] = svd.matrixU().block( 0, 0, _dimension, _subdimension );
 					Eigen::Matrix<T, Eigen::Dynamic, 1> tmp =  _evalues[ k ];
-					tmp.cwise() -= _sigmas2[ k ];
-					tmp = tmp.cwise().sqrt();
+					tmp.array() -= _sigmas2[ k ];
+					tmp = tmp.array().sqrt();
 					_pc[ k ] *= tmp.asDiagonal();
 
 					/* calculate the complete covariance matrix in the subspace and the weights for normalization */
 					C[ k ] = _pc[ k ] * _pc[ k ].transpose();
-					C[ k ].diagonal().cwise() += _sigmas2[ k ];
+					C[ k ].diagonal().array() += _sigmas2[ k ];
 
 					pnormalize[ k ] = _weights[ k ] / ( Math::pow( ( T ) 2.0 * ( T ) Math::PI, _dimension * ( T ) 0.5  ) * Math::sqrt( C[ k ].determinant() ) );
 					C[ k ] = C[ k ].inverse();

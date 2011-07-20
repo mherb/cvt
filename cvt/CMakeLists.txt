@@ -110,16 +110,17 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
 	geom/ArcBall.h
-	geom/KDTree.h
-	geom/Model.h
-	geom/Rect.h
-	geom/Line2D.h
-	geom/Polygon.h
 	geom/Bezier.h
+	geom/KDTree.h
+	geom/Line2D.h
+	geom/Model.h
+	geom/Polygon.h
+	geom/PointSet.h
+	geom/Rect.h
+	gfx/Color.h
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
-	gfx/Color.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
 	gfx/ifilter/GaussIIR.h

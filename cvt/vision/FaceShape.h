@@ -320,7 +320,7 @@ namespace cvt {
 				tmp = _regcovar;
 //				tmp( 0 ) = tmp( 1 ) = tmp( 2 ) = tmp( 3 ) = 0.0f;
 				A.diagonal() += 4.0f * tmp;
-				tmp.cwise() *= _p;
+				tmp.array() *= _p.array();
 				b -= 4.0f * tmp;
 			} else {
 /*				tmp( 0 ) = tmp( 1 ) = 0.0f;

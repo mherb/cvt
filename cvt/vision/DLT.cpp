@@ -73,7 +73,7 @@ namespace cvt
 			A( 2 * i + 1, 8 ) = -reference( 2, i ) * transformed( 0, i );		
 		}
 
-		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A );//(Eigen::ComputeThinU | ComputeThinV );
+		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
 		x = svd.matrixV().col( A.cols() - 1 );
 
 		H( 0, 0 ) = x[ 0 ];	H( 0, 1 ) = x[ 1 ]; H( 0, 2 ) = x[ 2 ];
@@ -117,7 +117,7 @@ namespace cvt
 			b[ 2 * i + 1 ]	=  transformed[ i ][ 0 ];
 		}
 
-		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A );//(Eigen::ComputeThinU | ComputeThinV );
+		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
 		x = svd.solve( b );
 
 		H( 0, 0 ) = x[ 0 ];	H( 0, 1 ) = x[ 1 ]; H( 0, 2 ) = x[ 2 ];

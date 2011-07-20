@@ -21,7 +21,7 @@ namespace cvt {
 		PointSet<2,T> s( value.data(), value.rows() / 2  );
 		PointSet<2,T> m( mean.data(), mean.rows() / 2  );
 		s.transform( s.alignSimilarity( m ) );
-		const Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> > aligned( s.ptr(), mean.rows() );
+		const Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> > aligned( ( T* )s.ptr(), mean.rows() );
 		output = aligned;
 	}
 
@@ -30,7 +30,7 @@ namespace cvt {
 	{
 		PointSet<2,T> m( mean.data(), mean.rows() / 2  );
 		m.normalize();
-		const Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> > normalized( m.ptr(), mean.rows() );
+		const Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> > normalized( ( T* )m.ptr(), mean.rows() );
 		mean = normalized;
 	}
 
