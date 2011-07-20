@@ -127,7 +127,7 @@ int main()
 				A += tmp * tmp.transpose();
 			};
 			//x = A.inverse() * b;
-			A.lu().solve(b, &x);
+			x = A.lu().solve( b );
 			float angle = - x( 1 ); //Math::deg2Rad( x( 1 ) );
 			float s = 1 - x( 0 );
 			float tx = -x( 2 );

@@ -5,8 +5,13 @@
 	#define GL_GLEXT_PROTOTYPES
 #endif
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef APPLE
+    #include <OpenGL/OpenGL.h>
+    #include <OpenGL/gl.h>
+#else
+    #include <GL/gl.h>
+    #include <GL/glext.h>
+#endif
 
 #include <cvt/math/Matrix.h>
 

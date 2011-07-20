@@ -402,7 +402,7 @@ namespace cvt
 			Eigen::Matrix<_T,dim,1> s;
 			s.setOnes();
 
-			Eigen::JacobiSVD<Eigen::Matrix<_T,dim,dim> > svd( mat );
+			Eigen::JacobiSVD<Eigen::Matrix<_T,dim,dim> > svd( mat, Eigen::ComputeThinU | Eigen::ComputeThinV );
 			if( Math::abs( svd.singularValues()[ dim - 1 ] ) <= Math::EPSILONF  ) {
 				if( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
 					s( dim - 1 ) = -1;
@@ -476,7 +476,7 @@ namespace cvt
 				b[ 2 * i + 1 ]	  =  n2[ i ][ 0 ];
 			}
 
-			Eigen::JacobiSVD<Eigen::MatrixXf> svd( A );
+			Eigen::JacobiSVD<Eigen::MatrixXf> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
 			x = svd.solve( b );
 
 			ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];
@@ -532,7 +532,7 @@ namespace cvt
 				b[ 2 * i + 1 ]	  =  n2[ i ][ 0 ];
 			}
 
-			Eigen::JacobiSVD<Eigen::MatrixXd> svd( A );
+			Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
 			x = svd.solve( b );
 
 			ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];

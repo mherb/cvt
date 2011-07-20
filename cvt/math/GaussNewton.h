@@ -51,7 +51,7 @@ namespace cvt {
 			
 			// solve the system
 			delta = ParamType::Zero( A.cols() );
-			A.llt().solve( b, &delta );
+			delta = A.llt().solve( b );
 			
 			// apply delta parameters:			
 			model.apply( delta );	

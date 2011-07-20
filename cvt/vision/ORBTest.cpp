@@ -42,7 +42,7 @@ namespace cvt {
 
         }
 
-        return true;
+        return result;
     }
 }
 

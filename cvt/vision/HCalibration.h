@@ -84,7 +84,7 @@ namespace cvt {
 		if( _n < 3 )
 			return false;
 
-		Eigen::JacobiSVD<Eigen::Matrix<double,6,6> > svd( _V );
+		Eigen::JacobiSVD<Eigen::Matrix<double,6,6> > svd( _V , Eigen::ComputeFullU | Eigen::ComputeFullV );
 		Eigen::Matrix<double,6,1> b = svd.matrixV().col( 5 );
 
 /*		Eigen::Matrix3d A;
