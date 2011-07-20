@@ -5,8 +5,8 @@
  * Created on July 19, 2011, 1:34 PM
  */
 
-#ifndef RANSAC_H
-#define	RANSAC_H
+#ifndef CVT_RANSAC_H
+#define	CVT_RANSAC_H
 
 #include <cvt/math/Math.h>
 #include <cvt/math/sac/SampleConsensusModel.h>

@@ -10,7 +10,7 @@ namespace cvt {
     template<typename T>
 	class Matrix2 {
 	    public:
-						Matrix2<T>( void );
+                            Matrix2<T>( void );
 		explicit			Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
 		explicit			Matrix2<T>( const T a, const T b, const T c, const T d );
 		explicit			Matrix2<T>( const T src[ 2 ][ 2 ] );
@@ -36,8 +36,8 @@ namespace cvt {
 		bool				operator==( const Matrix2<T> &m ) const;
 		bool				operator!=( const Matrix2<T> &m ) const;
 
-		void				zero( void );
-		void				identity( void );
+		void				setZero( void );
+		void				setIdentity( void );
 		bool				isIdentity( ) const;
 		bool				isSymmetric( ) const;
 		bool				isDiagonal( ) const;
@@ -236,28 +236,19 @@ namespace cvt {
 
 
 	template<typename T>
-	inline void Matrix2<T>::zero()
+	inline void Matrix2<T>::setZero()
 	{
 	    mat[ 0 ].zero();
 	    mat[ 1 ].zero();
 	}
 
-	template<>
-	inline void Matrix2<float>::identity()
+	template<typename T>
+	inline void Matrix2<T>::setIdentity()
 	{
-	    mat[ 0 ].x = 1.0f;
-	    mat[ 0 ].y = 0.0f;
-	    mat[ 1 ].x = 0.0f;
-	    mat[ 1 ].y = 1.0f;
-	}
-
-	template<>
-	inline void Matrix2<double>::identity()
-	{
-	    mat[ 0 ].x = 1.0;
-	    mat[ 0 ].y = 0.0;
-	    mat[ 1 ].x = 0.0;
-	    mat[ 1 ].y = 1.0;
+	    mat[ 0 ].x = 1;
+	    mat[ 0 ].y = 0;
+	    mat[ 1 ].x = 0;
+	    mat[ 1 ].y = 1;
 	}
 
 	template<>

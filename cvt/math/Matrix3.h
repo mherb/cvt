@@ -44,15 +44,17 @@ namespace cvt {
 		bool				operator==( const Matrix3<T> &m ) const;
 		bool				operator!=( const Matrix3<T> &m ) const;
 
-		void				zero( void );
-		void				identity( void );
+		void				setZero( void );
+		void				setIdentity( void );
 		bool				isIdentity( ) const;
 		bool				isSymmetric( ) const;
 		bool				isDiagonal( ) const;
 
-		void				rotationX( T rad );
-		void				rotationY( T rad );
-		void				rotationZ( T rad );
+		void				setRotationX( T rad );
+		void				setRotationY( T rad );
+		void				setRotationZ( T rad );
+        void                setAffine( T theta, T phi, T sx, T sy, T tx, T ty );
+        void                setHomography( T theta, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -299,47 +301,31 @@ namespace cvt {
 
 
 	template<typename T>
-	inline void Matrix3<T>::zero()
+	inline void Matrix3<T>::setZero()
 	{
 	    mat[ 0 ].zero();
 	    mat[ 1 ].zero();
 		mat[ 2 ].zero();
 	}
 
-	template<>
-	inline void Matrix3<float>::identity()
+	template<typename T>
+	inline void Matrix3<T>::setIdentity()
 	{
-	    mat[ 0 ].x = 1.0f;
-	    mat[ 0 ].y = 0.0f;
-		mat[ 0 ].z = 0.0f;
+		mat[ 0 ].x = 1;
+	    mat[ 0 ].y = 0;
+		mat[ 0 ].z = 0;
 
-	    mat[ 1 ].x = 0.0f;
-	    mat[ 1 ].y = 1.0f;
-	    mat[ 1 ].z = 0.0f;
+	    mat[ 1 ].x = 0;
+	    mat[ 1 ].y = 1;
+	    mat[ 1 ].z = 0;
 
-	    mat[ 2 ].x = 0.0f;
-	    mat[ 2 ].y = 0.0f;
-	    mat[ 2 ].z = 1.0f;
-	}
-
-	template<>
-	inline void Matrix3<double>::identity()
-	{
-		mat[ 0 ].x = 1.0;
-	    mat[ 0 ].y = 0.0;
-		mat[ 0 ].z = 0.0;
-
-	    mat[ 1 ].x = 0.0;
-	    mat[ 1 ].y = 1.0;
-	    mat[ 1 ].z = 0.0;
-
-	    mat[ 2 ].x = 0.0;
-	    mat[ 2 ].y = 0.0;
-	    mat[ 2 ].z = 1.0;
+	    mat[ 2 ].x = 0;
+	    mat[ 2 ].y = 0;
+	    mat[ 2 ].z = 1;
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::rotationX( T rad )
+	inline void Matrix3<T>::setRotationX( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
@@ -358,7 +344,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::rotationY( T rad )
+	inline void Matrix3<T>::setRotationY( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
@@ -377,7 +363,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::rotationZ( T rad )
+	inline void Matrix3<T>::setRotationZ( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
@@ -394,6 +380,42 @@ namespace cvt {
 		mat[ 2 ].y = 0.0;
 		mat[ 2 ].z = 1.0;
 	}
+
+    template<typename T>
+    inline void Matrix3<T>::setAffine( T theta, T phi, T sx, T sy, T tx, T ty )
+    {
+        Matrix3<T> tmp, tmpInv, s;
+        tmp.setRotationZ( phi );
+
+		tmpInv = tmp.transpose();
+
+		// scale
+		s.setZero();
+		s[ 0 ][ 0 ] = sx;
+		s[ 1 ][ 1 ] = sy;
+        s[ 2 ][ 2 ] =  1;
+
+		tmp = s * tmp;
+
+		// rotate back
+		tmp = tmpInv * tmp;
+
+		// rotate by theta
+		setRotationZ( theta );
+
+		*this *= tmp;
+
+		mat[ 0 ][ 2 ] = tx;
+		mat[ 1 ][ 2 ] = ty;
+	}
+
+    template<typename T>
+    inline void Matrix3<T>::setHomography( T theta, T phi, T sx, T sy, T tx, T ty, T v0, T v1 )
+    {
+        setAffine( theta, phi, sx, sy, tx, ty );
+        mat[ 2 ].x = v0;
+        mat[ 2 ].y = v1;
+    }
 
 	template<>
 	inline bool Matrix3<double>::isIdentity() const

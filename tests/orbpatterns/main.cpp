@@ -27,7 +27,7 @@ int main()
 
 
 		Matrix3f rot;
-		rot.rotationZ( rad );
+		rot.setRotationZ( rad );
 		std::cout << "\t{\n";
 		for( int k = 0; k < 256; k++ ) {
 			Vector2f p1, p2;

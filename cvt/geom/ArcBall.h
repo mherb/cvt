@@ -64,7 +64,7 @@ namespace cvt {
 			Quaternionf q( c[ 0 ], c[ 1 ], c[ 2 ], v1 * v2 );
 			mat = q.toMatrix4();
 		} else {
-			mat.identity();
+			mat.setIdentity();
 		}
 	}
 }

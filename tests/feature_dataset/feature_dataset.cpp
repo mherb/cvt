@@ -32,39 +32,38 @@ using namespace cvt;
 
 void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
 {
-	FeatureMatch match;
+    FeatureMatch m;
 	for( size_t i = 0; i < orb0.size(); i++ ){
-		match.idx0 = i;
-		match.idx1 = 0;
-		match.distance = maxDistance;
+		m.feature0 = &orb0[ i ];
+		m.distance = maxDistance;
 		for( size_t k = 0; k < orb1.size(); k++ ){
 			size_t dist = orb0[ i ].distance( orb1[ k ] );
 
-			if( dist < match.distance ){
-				match.distance = dist;
-				match.idx1 = k;
+			if( dist < m.distance ){
+				m.distance = dist;
+                m.feature1 = &orb1[ k ];
 			}
 		}
 
-		if( match.distance < maxDistance )
-			matches.push_back( match );
+		if( m.distance < maxDistance ){
+			matches.push_back( m );
+        }
 	}
 }
 
 void matchFeatures2( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
 {
-	FeatureMatch match;
 	ORBHashMatch hashmatch( orb1 );
 	int idx;
 	size_t dist;
 
-	for( size_t i = 0; i < orb0.size(); i++ ){
-		match.idx0 = i;
-		match.idx1 = 0;
+    FeatureMatch match;
 
+	for( size_t i = 0; i < orb0.size(); i++ ){
 		if( ( idx = hashmatch.find( orb0[ i ], dist, maxDistance ) ) >= 0 ) {
-			match.idx1 = idx;
-			match.distance = dist;
+            match.feature0 = &orb0[ i ];
+            match.feature1 = &orb1[ idx ];
+            match.distance = dist;
 			matches.push_back( match );
 		}
 	}
@@ -94,7 +93,7 @@ void loadMatrix3( Matrix3f & m, const String & path )
 	}
 }
 
-void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureMatch> & matches, const Matrix3f & H, float etime = 0.0f, float mtime = 0.0f )
+void checkResult( const std::vector<FeatureMatch> & matches, const Matrix3f & H, float etime = 0.0f, float mtime = 0.0f )
 {
 	// check reprojection error: dist( H * orb0 - orb1 )
 	std::vector<FeatureMatch>::const_iterator it = matches.begin();
@@ -103,9 +102,9 @@ void checkResult( const ORB & orb0, const ORB & orb1, const std::vector<FeatureM
 	size_t inlier = 0;
 
 	while( it != itEnd ){
-		Vector2f gt = H * orb0[ it->idx0 ].pt;
+		Vector2f gt = H * it->feature0->pt;
 
-		float error = ( orb1[ it->idx1 ].pt - gt ).length();
+		float error = ( it->feature1->pt - gt ).length();
 
 		if( error < 10.0f )
 			inlier++;
@@ -292,13 +291,11 @@ class FeatureWindow : public Window
             // draw lines between the matching features
             g.color() = Color::RED;
             for( size_t i = 0; i < _matches.size(); i++ ){
-                Vector2f pt = (*_orb1)[ _matches[ i ].idx1 ].pt;
+                Vector2f pt = _matches[ i ].feature1->pt;
                 pt.x += _images[ 0 ].width();
-                g.drawLine( (*_orb0)[ _matches[ i ].idx0 ].pt, pt );
+                g.drawLine( _matches[ i ].feature0->pt, pt );
             }
 		}
-
-
 
         // set the image:
         _imageView.setImage( out );
@@ -317,7 +314,7 @@ class FeatureWindow : public Window
         _homographies.resize( 6 );
 
         // first one is identity
-        _homographies[ 0 ].identity();
+        _homographies[ 0 ].setIdentity();
         for ( size_t i = 0; i < 6; i++ ) {
             // load image i:
             String iPath( folder );
@@ -391,7 +388,7 @@ class FeatureWindow : public Window
         _matchTime = t.elapsedMilliSeconds();
 
         std::cout << "Image: " << _dataSets[ _currentDataSet ] << " 0 -> " << _currentImage << ":" << std::endl;
-        checkResult( *_orb0, *_orb1, _matches, _homographies[ _currentImage ], _extractTime, _matchTime );
+        checkResult( _matches, _homographies[ _currentImage ], _extractTime, _matchTime );
 
         repaint();
 

@@ -190,7 +190,7 @@ void mirrorFace( PointSet2f& face )
 	SWAP( 30, 34 );
 
 	Matrix3f swapsign;
-	swapsign.identity();
+	swapsign.setIdentity();
 	swapsign[ 0 ][ 0 ] = -1;
 	face.transform( swapsign );
 }

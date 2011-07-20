@@ -272,7 +272,7 @@ namespace cvt
 			s = ( Math::sqrt( ( _T ) 2 ) * ( _T ) size() ) / s;
 			scale( s );
 
-			mat.identity();
+			mat.setIdentity();
 			for( int i = 0; i < mat.dimension() - 1; i++ ) {
 				mat[ i ][ i ] = s;
 				mat[ i ][ mat.dimension() - 1 ] = -m[ i ] * s;
@@ -376,7 +376,7 @@ namespace cvt
 			mean1 = mean();
 			mean2 = ptset.mean();
 
-			m.identity();
+			m.setIdentity();
 			mat.setZero();
 
 			size_t n = size();
@@ -430,7 +430,7 @@ namespace cvt
 	template<int dim, typename _T>
 		inline Matrix3<_T> PointSet<dim,_T>::alignPerspective( const PointSet<dim,_T>& ) const
 	{
-		return Matrix3<_T>().zero();
+		return Matrix3<_T>().setZero();
 	}
 
 	template<>

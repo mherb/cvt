@@ -37,7 +37,7 @@ namespace cvt {
 	{
 		int w, h;
 
-		_rotation.identity();
+		_rotation.setIdentity();
 		_trans = -2.0f;
 		size( w, h );
 		_arcball.setViewportSize( w, h );
@@ -59,7 +59,7 @@ namespace cvt {
 		g->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
 
 		Matrix4f trans;
-		trans.identity();
+		trans.setIdentity();
 		trans[ 2 ][ 3 ] = _trans;
 		trans *= _rotation;
 		g->drawModel( *_mdl, trans );
