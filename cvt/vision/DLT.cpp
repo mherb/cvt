@@ -1,8 +1,6 @@
 #include <cvt/vision/DLT.h>
 
-#include <Eigen/SVD>
-#include <Eigen/LU>
-#include <Eigen/Array>
+#include <Eigen/Dense>
 
 namespace cvt
 {
@@ -75,8 +73,8 @@ namespace cvt
 			A( 2 * i + 1, 8 ) = -reference( 2, i ) * transformed( 0, i );		
 		}
 
-		Eigen::SVD<Eigen::MatrixXd> svd = A.svd();	
-		x = svd.matrixV().col( svd.matrixV().cols() - 1 );
+		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A );//(Eigen::ComputeThinU | ComputeThinV );
+		x = svd.matrixV().col( A.cols() - 1 );
 
 		H( 0, 0 ) = x[ 0 ];	H( 0, 1 ) = x[ 1 ]; H( 0, 2 ) = x[ 2 ];
 		H( 1, 0 ) = x[ 3 ];	H( 1, 1 ) = x[ 4 ]; H( 1, 2 ) = x[ 5 ];
@@ -119,7 +117,8 @@ namespace cvt
 			b[ 2 * i + 1 ]	=  transformed[ i ][ 0 ];
 		}
 
-		A.svd().solve( b, &x );
+		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A );//(Eigen::ComputeThinU | ComputeThinV );
+		x = svd.solve( b );
 
 		H( 0, 0 ) = x[ 0 ];	H( 0, 1 ) = x[ 1 ]; H( 0, 2 ) = x[ 2 ];
 		H( 1, 0 ) = x[ 3 ];	H( 1, 1 ) = x[ 4 ]; H( 1, 2 ) = x[ 5 ];

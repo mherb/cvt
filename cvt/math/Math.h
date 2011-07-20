@@ -8,6 +8,8 @@
 #include <iostream>
 
 #include <cvt/util/Exception.h>
+
+#include <Eigen/Core>
 #include <Eigen/LU>
 
 namespace cvt {
@@ -469,7 +471,7 @@ namespace cvt {
 				s *= -1;
 			}
 
-			D.computeInverse( &result );
+			result = D.inverse();
 			result *= N;
 
 			for( int k = 0; k < j; ++k )

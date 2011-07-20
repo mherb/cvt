@@ -5,7 +5,11 @@
 #include <set>
 
 #include <Eigen/Core>
+
+#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET 1 
 #include <Eigen/Sparse>
+#include <unsupported/Eigen/SparseExtra>
+#include <Eigen/Cholesky>
 
 #include "SBAData.h"
 
@@ -115,4 +119,4 @@ namespace cvt {
 	};
 }
 
-#endif 
+#endif

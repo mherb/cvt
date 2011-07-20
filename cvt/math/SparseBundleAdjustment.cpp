@@ -3,7 +3,6 @@
 #include <Eigen/LU>
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
-#include <Eigen/Sparse>
 
 #include <cvt/math/Math.h>
 
@@ -169,7 +168,7 @@ namespace cvt {
 			// calc augmented V_i and inverse
 			V_aug[ i ] = V[ i ]; 
 			V_aug[ i ].diagonal() *= ( 1.0 + lambda );
-			V_aug[ i ].computeInverse( &V_aug_inv[ i ] );
+			V_aug_inv[ i ] = V_aug[ i ].inverse();
 			
 			for( size_t j = 0; j < W[ i ].size(); j++ ){
 				if( W[ i ][ j ] ){

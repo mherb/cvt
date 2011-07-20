@@ -9,7 +9,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gui/Slider.h>
-#include <Eigen/Array>
 
 using namespace cvt;
 
@@ -51,7 +50,7 @@ class FaceShapeWin : public Window
 	{
 		Eigen::VectorXf current( SAMPLEPTS * 2 );
 	   current = 100.0 * ( _mean + _pc * _weights );
-	   current.cwise() += 200.0f;
+	   current.array() += 200.0f;
 		int map[ SAMPLEPTS ][ 2 ] = {{ 0 	,1 },
 		{ 1 	,2 },
 		{ 2 	,3 },

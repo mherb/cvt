@@ -24,55 +24,57 @@ namespace cvt {
 		typedef Eigen::Matrix<T, 2, 8> ScreenJacType;
 		typedef Eigen::Matrix<T, 8, 1> ParameterVectorType;
 		typedef Eigen::Matrix<T, 3, 1> PointType;
-		
+
 		public:
 			SL3();
 			~SL3(){};
-		
+
 			/* set: angles in radians! */
 			void set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
-					
+
 			/* apply delta parameters */
 			void apply( const ParameterVectorType & delta );
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
-			
+
 			/* sp = proj( transform( p ) ) */
 			void project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const;
-			
+
 			/* sp = proj( transform( p ) ), J = d proj( transform( p ) ) / d params */
 			void project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const;
-		
+
 			/* p is already transformed with the current T in this case, but not yet projected! */
 			void jacobianAroundT( JacMatType & J, const PointType & p ) const;
-		
+
 			/* sp is a screen point (transformed with current) */
 			void screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const;
-		
+
 			/* get back the currently stored transformation matrix */
 			const MatrixType & transformation() const { return _current; }
-								
+
 		private:
 			MatrixType		_current;
-	};	
-	
+	};
+
 	template < typename T >
 	inline SL3<T>::SL3() : _current( MatrixType::Identity() )
 	{
 	}
-	
+
 	template < typename T>
 	inline void SL3<T>::set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 )
-	{		
-		Eigen::Transform<T, 2> affine;
-		
+	{
+		Eigen::Transform<T, 2, Eigen::Affine> affine;
+		Eigen::Transform<T, 2, Eigen::Affine> scale;
+		scale.matrix()( 0, 0 ) = sx;
+		scale.matrix()( 1, 1 ) = sy;
 		affine = Eigen::Rotation2D<T>( phi );
-		affine = Eigen::Scaling<T, 2>( sx, sy ) * affine;
+		affine = scale * affine;
 		affine = Eigen::Rotation2D<T>( -phi ) * affine;
 		affine = Eigen::Rotation2D<T>( alpha ) * affine;
-		
+
 		_current( 0, 0 ) = affine( 0, 0 ); _current( 0, 1 ) = affine( 0, 1 ); _current( 0, 2 ) = tx;
 		_current( 1, 0 ) = affine( 1, 0 ); _current( 1, 1 ) = affine( 1, 1 ); _current( 1, 2 ) = ty;
 		_current( 2, 0 ) = v0; _current( 2, 1 ) = v1; _current( 2, 2 ) = 1.0f;

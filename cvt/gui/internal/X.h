@@ -5,4 +5,14 @@
 #include <X11/Xatom.h>
 #include <GL/glx.h>
 
+namespace X11
+{
+	enum Constants
+	{
+		X11_SUCCESS = Success
+	};
+
+#undef Success
+}
+
 #endif

@@ -74,33 +74,6 @@ void testPatchGen()
 	}
 }
 
-static cvt::Matrix3f calc_homography( float theta, float phi, float sx, float sy, float tx, float ty, float v1, float v2 )
-{
-	Eigen::Matrix3f h, ih;
-	Eigen::Transform<float,2> affine;
-
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( phi ) );
-	affine = Eigen::Scaling2f( sx, sy ) * affine;
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( -phi ) ) * affine;
-	affine = Eigen::Rotation2D<float>( Math::deg2Rad( theta ) ) * affine;
-
-	h( 0, 0 ) = affine( 0, 0 );
-	h( 0, 1 ) = affine( 0, 1 );
-	h( 1, 0 ) = affine( 1, 0 );
-	h( 1, 1 ) = affine( 1, 1 );
-	h( 0, 2 ) = tx;
-	h( 1, 2 ) = ty;
-	h( 2, 0 ) = v1;
-	h( 2, 1 ) = v2;
-	h( 2, 2 ) = 1.0f;
-
-	ih = h.inverse();
-	ih /= powf( ih.determinant(), 1.0f / 3.0f );
-	ih.transposeInPlace(); // hack: Eigen by default stores column major order
-
-	return *( ( cvt::Matrix3f* )ih.data() );
-}
-
 void testFerns()
 {
 	Resources res;
@@ -130,7 +103,8 @@ void testFerns()
 	Image warped( img.width(), img.height(), IFormat::GRAY_UINT8 );
 
 	Homography hfilter;
-	cvt::Matrix3f H = calc_homography( 25.0f, 0.0f, 1.3f, 1.3f, 100.0f, 100.0f, 0.0f, 0.0f );
+	cvt::Matrix3f H;
+	H.setHomography( Math::deg2Rad( 25.0f ), 0.0f, 1.3f, 1.3f, 100.0f, 100.0f, 0.0f, 0.0f );
 	H *= 1.0f / H[ 2 ][ 2 ];
 	Color black( 0.0f, 0.0f, 0.0f, 1.0f );
 

@@ -4,6 +4,8 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <iostream>
+
 namespace cvt {
 	
 	class CameraModel 
