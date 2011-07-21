@@ -91,7 +91,6 @@ namespace cvt
 		while( indices.size() < _model.minSampleSize() ){
 			idx = Math::rand( 0, _model.size() - 1 );
 
-
             bool insert = true;
             for( size_t i = 0; i < indices.size(); i++ ){
                 if( idx == indices[ i ] ){
@@ -100,8 +99,9 @@ namespace cvt
                 }
             }
 
-            if( insert )
+            if( insert ){
                 indices.push_back( idx );
+			}
 		}
 	}
 }

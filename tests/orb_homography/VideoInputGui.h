@@ -43,6 +43,8 @@ class VideoInputGui : public Window, TimeoutHandler
             _timerId = Application::registerTimer( 20, this );
             _timer.reset();
 			_processingTime.reset();
+
+			_templateView.setImage( reference );
 		}
 
         ~VideoInputGui()
@@ -57,6 +59,9 @@ class VideoInputGui : public Window, TimeoutHandler
 
             _moveable.setSize( 320, 240 );
             addWidget( &_moveable );
+            
+			_templateMov.setSize( 320, 240 );
+            addWidget( &_templateMov );
 
             _quitButton.clicked.add( Delegate<void ()>( &Application::exit ) );
 
@@ -67,7 +72,7 @@ class VideoInputGui : public Window, TimeoutHandler
             wl.setAnchoredBottom( 40, 20 );
 
             _moveable.setTitle( "ORB Estimate" );
-            _templateView.setTitle( "Template Image" );
+            _templateMov.setTitle( "Template Image" );
 
             setVisible( true );
         }

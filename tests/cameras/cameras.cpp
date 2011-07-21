@@ -69,7 +69,9 @@ class CameraTimeout : public TimeoutHandler
 			_moveable( mov ),
 			_view( imageView ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
-			_frames( 0.0f )
+			_frames( 0.0f ),
+			_dump( false ),
+			_dumpIter( 0 )
 		{
 			_cam->startCapture();
 			_timer.reset();
@@ -111,7 +113,22 @@ class CameraTimeout : public TimeoutHandler
 				_frames = 0;
 				_timer.reset();
 			}
+
+			if( _dump ){
+				_dumpIter++;
+
+				String name;
+				name.sprintf( "camera_image_%03d.png", _dumpIter );
+			
+				Image img( _cam->frame() );
+
+				img.save( name );
+
+				_dump = false;
+			}
 		}
+
+		void setDump(){ _dump = true; }
 
 	private:
 		Camera *	_cam;
@@ -120,6 +137,9 @@ class CameraTimeout : public TimeoutHandler
 		Image		_image;
 		Time		_timer;
 		float		_frames;
+
+		bool		_dump;
+		size_t		_dumpIter;
 
 #ifdef WRITE_PNGS
 		ImageWriter*	_writer;
@@ -168,6 +188,8 @@ int main( )
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
+
+
 	Camera * cam = 0;
 
 	try {
@@ -179,6 +201,14 @@ int main( )
 		w.addWidget( &m );
 
 		CameraTimeout camTimeOut( cam, &m, &camView );
+
+
+		Button dumpButton( "Save" );
+		Delegate<void ()> dump( &camTimeOut, &CameraTimeout::setDump );
+		dumpButton.clicked.add( dump );
+		wl.setAnchoredBottom( 40, 20 );
+		w.addWidget( &dumpButton, wl );
+
 		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
