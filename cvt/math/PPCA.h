@@ -269,7 +269,7 @@ namespace cvt {
 					std::cout << k << " : " << _weights[ k ] << std::endl;
 
 					/* decompose each covariance matrix to get the eigenvectors and -values ...	 */
-					Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ] );
+					Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( newcovar[ k ], Eigen::ComputeFullU | Eigen::ComputeFullV );
 
 					/* update the noise using the singular values outside the subspace */
 					_sigmas2[ k ] = svd.singularValues().block( _subdimension, 0, _dimension - _subdimension , 1 ).sum() / ( T ) ( _dimension - _subdimension );

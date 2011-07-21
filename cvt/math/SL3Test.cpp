@@ -10,6 +10,7 @@
 
 #include <cvt/math/SL3.h>
 #include <cvt/math/Math.h>
+#include <cvt/math/Matrix.h>
 #include <cvt/util/CVTTest.h>
 
 #include <Eigen/Core>
@@ -56,6 +57,7 @@ namespace cvt {
 		bool b, ret = true;
 		jDiff = jAnalytic - jNumeric;
 		b = ( jDiff.array().abs().sum() / 24.0 ) < 0.00001;
+
 		CVTTEST_PRINT( "Pose Jacobian", b );
 		if( !b ){
 			std::cout << "Analytic:\n" << jAnalytic << std::endl;
@@ -78,6 +80,33 @@ namespace cvt {
 		return ret;
 	}
 
+    static bool testMatrices( const Eigen::Matrix3d & m1, const Matrix3d & m2 )
+    {
+        for ( size_t i = 0; i < 3; i++ ) {
+            for ( size_t k = 0; k < 3; k++ ) {
+                if ( Math::abs( m1( i, k ) - m2[ i ][ k ] ) > 0.00001 ) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    static bool testSet()
+    {
+        bool result = true;
+
+        SL3<double> pose;
+        Matrix3d H;
+
+        pose.set( 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0 );
+        H.setHomography( 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0 );
+
+        result &= testMatrices( pose.transformation(), H );
+
+        return result;
+    }
+
 BEGIN_CVTTEST( SL3 )
 	bool ret = true;
 
@@ -87,6 +116,11 @@ BEGIN_CVTTEST( SL3 )
 
 	CVTTEST_PRINT( "Initialization", b );
 	ret &= b;
+
+    b = testSet();
+    CVTTEST_PRINT( "SL3::set( ... )", b );
+	ret &= b;
+
 	ret &= testJacobian();
 
 	return ret;
