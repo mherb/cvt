@@ -152,6 +152,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLModel.h
 	gl/GFXEngineGL.h
 	gl/GLTexFont.h
+	gl/GLTeapot.h
 	gl/progs/GLBasicProg.h
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
@@ -340,6 +341,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/OpenGL.cpp
 	gl/GFXEngineGL.cpp
 	gl/GLTexFont.cpp
+	gl/GLTeapot.cpp
 	gl/progs/GLBasicProg.cpp
 	gl/progs/GLFillRoundRectProg.cpp
 	gl/progs/GLDrawTextProg.cpp
