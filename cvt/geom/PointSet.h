@@ -402,7 +402,7 @@ namespace cvt
 			Eigen::Matrix<_T,dim,1> s;
 			s.setOnes();
 
-			Eigen::JacobiSVD<Eigen::Matrix<_T,dim,dim> > svd( mat, Eigen::ComputeThinU | Eigen::ComputeThinV );
+			Eigen::JacobiSVD<Eigen::Matrix<_T,dim,dim> > svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );
 			if( Math::abs( svd.singularValues()[ dim - 1 ] ) <= Math::EPSILONF  ) {
 				if( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
 					s( dim - 1 ) = -1;
