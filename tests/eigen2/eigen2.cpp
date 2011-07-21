@@ -102,8 +102,8 @@ int main(void)
 
 	int ret = EXIT_SUCCESS;
 
-//	ret |= matrixTests();
-//	ret |= arithmetic();
+	ret |= matrixTests();
+	//ret |= arithmetic();
 	ret |= expTest();
 
 	return ret;
