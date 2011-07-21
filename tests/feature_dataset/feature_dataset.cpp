@@ -274,7 +274,6 @@ class FeatureWindow : public Window
         out.copyRect( 0, 0, _images[ 0 ], _images[ 0 ].rect() );
         out.copyRect( _images[ 0 ].width(), 0, _images[ _currentImage ], _images[ _currentImage ].rect() );
 
-        return;
         // draw the features
         {
             GFXEngineImage ge( out );
