@@ -6,12 +6,12 @@
 #endif
 
 #ifdef APPLE
-    #include <OpenGL/OpenGL.h>
     #include <OpenGL/gl.h>
+    //#include <OpenGL/gl_ext.h>
 #else
     #include <GL/gl.h>
-    #include <GL/glext.h>
 #endif
+#include <GL/glext.h>
 
 #include <cvt/math/Matrix.h>
 

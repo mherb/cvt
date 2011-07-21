@@ -395,7 +395,7 @@ int main()
 	Image img, out;
 
 	Resources r;
-	img.load( /*r.find( "boss.png" )*/ "/home/heise/Pictures/myface2.png" );
+	img.load( r.find( "boss.png" ) /*"/home/heise/Pictures/myface2.png"*/ );
 	Image imgf( img.width(), img.height(), IFormat::GRAY_FLOAT );
 	img.convert( imgf );
 
