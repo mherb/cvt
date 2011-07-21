@@ -89,19 +89,19 @@ namespace cvt {
 
 	void GLProgram::bindAttribLocation( const char *name, unsigned int location )
 	{
-	    glBindAttribLocation( program, ( GLuint ) location, name );
+		glBindAttribLocation( program, ( GLuint ) location, name );
 	}
 
 
 	unsigned int GLProgram::getAttribLocation( const char* name ) const
 	{
-	    return glGetAttribLocation( program, name );
+		return glGetAttribLocation( program, name );
 	}
 
 	/*void GLProgram::bindFragDataLocation( const char *name, size_t location )
-	{
-		glBindFragDataLocation( program, ( GLuint ) location, name );
-	}*/
+	  {
+	  glBindFragDataLocation( program, ( GLuint ) location, name );
+	  }*/
 
 	GLint GLProgram::uniformLocation( const char* name ) const
 	{
@@ -125,16 +125,34 @@ namespace cvt {
 		GLint loc = glGetUniformLocation( program, name);
 		glUniform2f( loc, f1, f2 );
 	}
-	
+
 	void GLProgram::setArg( const char* name, const Color & c )
 	{
 		GLint loc = glGetUniformLocation( program, name);
 		glUniform4fv( loc, 1, ( GLfloat* )c.data() );
 	}
-	
-	void GLProgram::setArg( const char* name, const cvt::Matrix4f & m )
+
+	void GLProgram::setArg( const char* name, const Vector3f & c )
 	{
 		GLint loc = glGetUniformLocation( program, name);
-		glUniform4fv( loc, 1, ( GLfloat* )m.ptr() );
+		glUniform3fv( loc, 1, ( GLfloat* )c.ptr() );
+	}
+
+	void GLProgram::setArg( const char* name, const Vector4f & c )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniform4fv( loc, 1, ( GLfloat* )c.ptr() );
+	}
+
+	void GLProgram::setArg( const char* name, const Matrix3f & m )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniformMatrix3fv( loc, 1, true , ( const GLfloat* ) m.ptr() );
+	}
+
+	void GLProgram::setArg( const char* name, const Matrix4f & m )
+	{
+		GLint loc = glGetUniformLocation( program, name);
+		glUniformMatrix4fv( loc, 1, true, ( const GLfloat* ) m.ptr() );
 	}
 }
