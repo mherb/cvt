@@ -21,25 +21,25 @@ namespace cvt
         typedef typename Model::DistanceType DistanceType;
 
         RANSAC( SampleConsensusModel<Model> & model,
-                float maxDistance,
+                DistanceType maxDistance,
                 float outlierProb = 0.05f ) :
             _model( model ), _maxDistance( maxDistance ), _outlierProb( outlierProb )
         {
         }
 
-        ResultType estimate();
+        ResultType estimate( size_t maxIter = 0 );
 
       private:
         SampleConsensusModel<Model>&  _model;
 
-        float                         _maxDistance;
+        DistanceType                  _maxDistance;
         float                         _outlierProb;
 
         void randomSamples( std::vector<size_t> & indices );
     };
 
     template<class Model>
-    inline typename RANSAC<Model>::ResultType RANSAC<Model>::estimate()
+    inline typename RANSAC<Model>::ResultType RANSAC<Model>::estimate( size_t maxIter )
     {
         size_t n = ( size_t )-1;
         size_t samples = 0;
@@ -51,6 +51,9 @@ namespace cvt
 
         std::vector<size_t> bestIndices;
         size_t numBest = 0;
+
+        if( maxIter )
+            n = maxIter;
 
         while( n > samples ){
             randomSamples( indices );
@@ -64,7 +67,10 @@ namespace cvt
                 bestIndices = indices;
 
                 float epsilon = 1.0f - ( float )inliers.size() / ( float )_model.size();
-                n = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, ( float )_model.minSampleSize() ) );
+                size_t newn = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, ( float )_model.minSampleSize() ) );
+
+                if( maxIter && newn < maxIter )
+                    n = newn;
             }
 
             samples++;

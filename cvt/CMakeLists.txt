@@ -260,6 +260,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE42.h
 	util/SIMDAVX.h
 	util/Thread.h
+	util/Time.h
 	util/Util.h
 	util/Flags.h
 	util/Stack.h
