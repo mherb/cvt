@@ -28,6 +28,9 @@ namespace cvt {
 			void setArg( const char* name, float f );
 			void setArg( const char* name, float f1, float f2 );
 			void setArg( const char* name, const Color & c );
+			void setArg( const char* name, const Vector3f & c );
+			void setArg( const char* name, const Vector4f & c );
+			void setArg( const char* name, const Matrix3f & m );
 			void setArg( const char* name, const Matrix4f & m );
 
 		private:
