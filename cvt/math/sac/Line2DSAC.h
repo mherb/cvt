@@ -84,7 +84,6 @@ namespace cvt
                              const Line2DSAC::ResultType & estimate,
                              const Line2DSAC::DistanceType maxDistance ) const
     {
-        inlierIndices.clear();
         for( size_t i = 0; i < _points.size(); i++ ){
             if( Math::abs( estimate.distance( _points[ i ] ) ) < maxDistance )
                 inlierIndices.push_back( i );
