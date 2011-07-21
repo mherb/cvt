@@ -94,7 +94,7 @@ namespace cvt {
 		mean( m );
 
 		p = _x * invn - m * m.transpose();
-		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p, Eigen::ComputeThinU | Eigen::ComputeThinV );
+		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p, Eigen::ComputeFullU | Eigen::ComputeFullV );
 		p = svd.matrixU();
 	}
 
@@ -109,7 +109,7 @@ namespace cvt {
 		mean( m );
 
 		p = _x * invn - m * m.transpose();
-		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p, Eigen::ComputeThinU | Eigen::ComputeThinV );
+		Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > svd( p, Eigen::ComputeFullU | Eigen::ComputeFullV );
 		svalues = svd.singularValues();
 		p = svd.matrixU();
 	}
