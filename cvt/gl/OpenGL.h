@@ -7,10 +7,10 @@
 
 #ifdef APPLE
     #include <OpenGL/gl.h>
-    //#include <OpenGL/gl_ext.h>
 #else
     #include <GL/gl.h>
 #endif
+
 #include <GL/glext.h>
 
 #include <cvt/math/Matrix.h>

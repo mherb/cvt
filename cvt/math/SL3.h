@@ -66,115 +66,115 @@ namespace cvt {
 	template < typename T>
 	inline void SL3<T>::set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 )
 	{
-		Eigen::Transform<T, 2, Eigen::Affine> affine;
-		Eigen::Transform<T, 2, Eigen::Affine> scale;
-		scale.matrix()( 0, 0 ) = sx;
-		scale.matrix()( 1, 1 ) = sy;
-		affine = Eigen::Rotation2D<T>( phi );
-		affine = scale * affine;
-		affine = Eigen::Rotation2D<T>( -phi ) * affine;
-		affine = Eigen::Rotation2D<T>( alpha ) * affine;
+        Eigen::Transform<T, 2, Eigen::Affine> transform;
+        Eigen::Matrix<T, 2, 1> s( sx, sy );
+
+        transform.setIdentity();
+
+        transform.rotate( alpha ).rotate( -phi ).scale( s ).rotate( phi );
+
+        const Eigen::Matrix<T, 3, 3> & affine = transform.matrix();
 
 		_current( 0, 0 ) = affine( 0, 0 ); _current( 0, 1 ) = affine( 0, 1 ); _current( 0, 2 ) = tx;
 		_current( 1, 0 ) = affine( 1, 0 ); _current( 1, 1 ) = affine( 1, 1 ); _current( 1, 2 ) = ty;
 		_current( 2, 0 ) = v0; _current( 2, 1 ) = v1; _current( 2, 2 ) = 1.0f;
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::apply( const ParameterVectorType & delta )
 	{
 		MatrixType m;
-		
+
 		m( 0, 0 ) = delta[ 4 ];
 		m( 0, 1 ) = delta[ 2 ];
 		m( 0, 2 ) = delta[ 0 ];
-		
+
 		m( 1, 0 ) = delta[ 3 ];
 		m( 1, 1 ) = -delta[ 4 ] - delta[5];
 		m( 1, 2 ) = delta[ 1 ];
-		
-		m( 2, 0 ) = delta[ 6 ];		
+
+		m( 2, 0 ) = delta[ 6 ];
 		m( 2, 1 ) = delta[ 7 ];
-		m( 2, 2 ) = delta[ 5 ];	
-		
+		m( 2, 2 ) = delta[ 5 ];
+
 		/* m = exp( m ) */
 		cvt::Math::exponential( m, m );
-		
+
 		/* update the current transformation */
-		//_current = m * _current;		
+		//_current = m * _current;
 		_current *= m;
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
 	{
 		J( 0, 0 ) = p[ 2 ];
 		J( 1, 0 ) =    0  ;
 		J( 2, 0 ) =    0  ;
-		
+
 		J( 0, 1 ) =	   0  ;
 		J( 1, 1 ) = p[ 2 ];
 		J( 2, 1 ) =    0  ;
-		
+
 		J( 0, 2 ) =	p[ 1 ];
 		J( 1, 2 ) =    0  ;
 		J( 2, 2 ) =    0  ;
-		
+
 		J( 0, 3 ) =	   0  ;
 		J( 1, 3 ) = p[ 0 ];
 		J( 2, 3 ) =    0  ;
-		
+
 		J( 0, 4 ) =	 p[ 0 ];
 		J( 1, 4 ) = -p[ 1 ];
 		J( 2, 4 ) =     0  ;
-		
+
 		J( 0, 5 ) =	    0  ;
 		J( 1, 5 ) = -p[ 1 ];
 		J( 2, 5 ) =  p[ 2 ];
-		
+
 		J( 0, 6 ) =	   0  ;
 		J( 1, 6 ) =    0  ;
 		J( 2, 6 ) = p[ 0 ];
-		
+
 		J( 0, 7 ) =	   0  ;
 		J( 1, 7 ) =    0  ;
 		J( 2, 7 ) = p[ 1 ];
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::jacobian( JacMatType & J, const PointType & p ) const
 	{
 		PointType pp = _current * p;
 		jacobianAroundT( J, pp );
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const
 	{
 		PointType pp = _current * p;
-		
+
 		sp[ 0 ] = pp[ 0 ] / pp[ 2 ];
 		sp[ 1 ] = pp[ 1 ] / pp[ 2 ];
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const
 	{
 		project( sp, p );
 		screenJacobian( J, sp );
 	}
-	
+
 	template < typename T >
 	inline void SL3<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const
 	{
 		J( 0, 0 ) = 1; J( 0, 1 ) = 0; J( 0, 2 ) = sp[ 1 ]; J( 0, 3 ) = 0; J( 0, 4 ) = sp[ 0 ]; J( 0, 5 ) = -sp[ 0 ]; J( 0, 6 ) = -sp[ 0 ] * sp[ 0 ];J( 0, 7 ) = -sp[ 0 ] * sp[ 1 ];
-		
+
 		J( 1, 0 ) = 0;
 		J( 1, 1 ) = 1;
 		J( 1, 2 ) = 0;

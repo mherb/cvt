@@ -41,7 +41,7 @@ namespace cvt
     template<class Model>
     inline typename RANSAC<Model>::ResultType RANSAC<Model>::estimate()
     {
-        size_t n = ( size_t  ) -1;
+        size_t n = ( size_t )-1;
         size_t samples = 0;
 
         ResultType result;
@@ -56,15 +56,17 @@ namespace cvt
             randomSamples( indices );
             result = _model.estimate( indices );
 
+            inliers.clear();
             _model.inliers( inliers, result, _maxDistance );
 
             if( inliers.size() > numBest ){
                 numBest = inliers.size();
                 bestIndices = indices;
+
+                float epsilon = 1.0f - ( float )inliers.size() / ( float )_model.size();
+                n = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, ( float )_model.minSampleSize() ) );
             }
 
-            float epsilon = 1.0f - ( float )inliers.size() / ( float )_model.size();
-            n = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, (float)_model.minSampleSize() ) );
             samples++;
         }
 
