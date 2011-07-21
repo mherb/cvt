@@ -330,15 +330,15 @@ namespace cvt {
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
 
-		mat[ 0 ].x = 1.0;
-		mat[ 0 ].y = 0.0;
-		mat[ 0 ].z = 0.0;
+		mat[ 0 ].x = 1;
+		mat[ 0 ].y = 0;
+		mat[ 0 ].z = 0;
 
-		mat[ 1 ].x = 0.0;
+		mat[ 1 ].x = 0;
 		mat[ 1 ].y = c;
 		mat[ 1 ].z = -s;
 
-		mat[ 2 ].x = 0.0;
+		mat[ 2 ].x = 0;
 		mat[ 2 ].y = s;
 		mat[ 2 ].z = c;
 	}
@@ -350,15 +350,15 @@ namespace cvt {
 		T c = Math::cos( rad );
 
 		mat[ 0 ].x = c;
-		mat[ 0 ].y = 0.0;
+		mat[ 0 ].y = 0;
 		mat[ 0 ].z = s;
 
-		mat[ 1 ].x = 0.0;
-		mat[ 1 ].y = 1.0;
-		mat[ 1 ].z = 0.0;
+		mat[ 1 ].x = 0;
+		mat[ 1 ].y = 1;
+		mat[ 1 ].z = 0;
 
 		mat[ 2 ].x = -s;
-		mat[ 2 ].y = 0.0;
+		mat[ 2 ].y = 0;
 		mat[ 2 ].z = c;
 	}
 
@@ -370,15 +370,15 @@ namespace cvt {
 
 		mat[ 0 ].x = c;
 		mat[ 0 ].y = -s;
-		mat[ 0 ].z = 0.0;
+		mat[ 0 ].z = 0;
 
 		mat[ 1 ].x = s;
 		mat[ 1 ].y = c;
-		mat[ 1 ].z = 0.0;
+		mat[ 1 ].z = 0;
 
-		mat[ 2 ].x = 0.0;
-		mat[ 2 ].y = 0.0;
-		mat[ 2 ].z = 1.0;
+		mat[ 2 ].x = 0;
+		mat[ 2 ].y = 0;
+		mat[ 2 ].z = 1;
 	}
 
     template<typename T>
