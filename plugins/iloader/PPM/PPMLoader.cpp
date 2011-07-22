@@ -1,6 +1,8 @@
 #include <cvt/util/PluginManager.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
+#include <cvt/io/FileSystem.h>
+#include <cvt/util/DataIterator.h>
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -28,194 +30,125 @@ namespace cvt {
                 P6_RGB_BINARY
             };
 
+            struct PGMHeader
+            {
+                PGMType type;
+                int     width;
+                int     height;
+                int     colorDepth;
+            };
+
 			static String _name;
 			static String _extension[ 4 ];
 
-            size_t tokenizeLine( const uint8_t * data, size_t maxSize, std::vector<String> & tokens );
-            size_t skipLine( const uint8_t *& data );
-            PGMType parseMagicNumber( const std::vector<String> & tokens );
+            void parseHeader( PGMHeader & header, DataIterator & dataIter );
 
-            void parseBinary( Image & img, const uint8_t * data );
-            void parseASCII( Image & img, const uint8_t * data, size_t n );
+            void nextDataLine( std::vector<String> & tokens, DataIterator & iter );
+
+            void parseBinary( Image & img, DataIterator & data );
+            void parseASCII( Image & img, DataIterator & data );
+
 	};
 
 	String PPMLoader::_name = "PPM";
 	String PPMLoader::_extension[] = { ".ppm", ".PPM", ".pgm", ".PGM" };
 
-    size_t PPMLoader::tokenizeLine( const uint8_t* data, size_t numData, std::vector<String> & tokens )
+     void PPMLoader::nextDataLine( std::vector<String> & tokens, DataIterator & iter )
     {
-        // skip whitespace, \t and \n
-        const uint8_t * start = data;
-        size_t bytesConsumed = 0;
-
-        for( ;; ){
-            // comments:
-            if( *data == '#' ) {
-                bytesConsumed += skipLine( data );
-                return bytesConsumed;
-            }
-
-            // skip
-            while( *data != ' '  &&
-                   *data != '\t' &&
-                   *data != '\r' &&
-                   *data != '\n'){
-                data++;
-                bytesConsumed++;
-				if( bytesConsumed > numData )
-					throw CVTException( "PPM header corrupt!" );
-            }
-
-            // token runs from start to data - 1
-            tokens.push_back( String( (const char*)start, (data - start) ) );
-            if( *data == '\n' ){
-                data++;
-                bytesConsumed++;
-                return bytesConsumed;
-            } else {
-                data++;
-                bytesConsumed++;
-				if( bytesConsumed > numData )
-					throw CVTException( "PPM header corrupt!" );
-            }
-            start = data;
+        while( iter.hasNext() ){
+            iter.tokenizeNextLine( tokens, " \t" );
+            if( tokens.size() && tokens[ 0 ][ 0 ] != '#' )
+                return;
+            tokens.clear();
         }
-        return bytesConsumed;
     }
 
-    size_t PPMLoader::skipLine( const uint8_t* & data )
+    void PPMLoader::parseHeader( PGMHeader & header, DataIterator & dataIter )
     {
-        size_t n = 0;
-        while ( *data != '\n' ) {
-            data++;
-            n++;
+        std::vector<String> tokens;
+
+        nextDataLine( tokens, dataIter );
+        if( tokens.size() == 0 )
+            throw CVTException( "PPM Header corrupt" );
+
+        // first is the type:
+        if ( tokens[ 0 ] == "P2" )
+            header.type = P2_GRAY_ASCII;
+        else if ( tokens[ 0 ] == "P3" )
+            header.type = P3_RGB_ASCII;
+        else if ( tokens[ 0 ] == "P5" )
+            header.type = P5_GRAY_BINARY;
+        else if ( tokens[ 0 ] == "P6" )
+            header.type = P6_RGB_BINARY;
+        else {
+            String msg( "Unknown PGM Type: " );
+            msg += tokens[ 0 ];
+            throw CVTException( msg.c_str() );
         }
-        data++;
-		n++;
-		return n;
+
+        tokens.clear();
+        nextDataLine( tokens, dataIter );
+
+        // width height
+        if( tokens.size() < 2 )
+            throw CVTException( "PPM Header corrupt: Expected  <width> <height>" );
+
+        header.width = tokens[ 0 ].toInteger();
+        header.height = tokens[ 1 ].toInteger();
+
+        tokens.clear();
+        nextDataLine( tokens, dataIter );
+
+        // width height
+        if( tokens.size() < 1 )
+            throw CVTException( "PPM Header corrupt: Expected  <ColorDepth>" );
+        header.colorDepth = tokens[ 0 ].toInteger();
+
     }
 
 	void PPMLoader::load( Image& img, const String& path )
 	{
-		int fp = open( path.c_str(), O_RDONLY );
-		if( fp < 0 ){
-			String message( "Cannot open PPM image file: " );
-			message += path;
-			throw CVTException( message.c_str() );
-		}
+        Data data;
 
-        struct stat fileStats;
-        if( fstat( fp, &fileStats ) == -1 ){
-            throw CVTException( "Cannot open PPM image file -> Could not determine file stats" );
-        }
-		int size = fileStats.st_size;
+        FileSystem::load( data, path );
 
-        uint8_t * data = ( uint8_t* )mmap( 0, size, PROT_READ, MAP_PRIVATE, fp, 0 );
-		uint8_t * ptrSave = data;
-		int sizeSave = size;
+        DataIterator dataIter( data );
+        PGMHeader header;
+        parseHeader( header, dataIter );
 
-		if( data == MAP_FAILED ){
-			throw CVTException( "Could not map file" );
-		}
-
-        std::vector<String> tokens;
-
-        size_t n;
-
-        // get next full line as tokens, skipping comments
-        while( tokens.size() == 0 ){
-            n = tokenizeLine( data, size, tokens );
-            data+=n;
-            size-=n;
-			if( size < 0 )
-				throw CVTException( "PPM Header corrupt!" );
-        }
-
-        PGMType type;
-        if( tokens.size() != 1 ){
-            throw CVTException( "Expected Magic Number" );
-        } else {
-            if( tokens[ 0 ] == "P2") type = P2_GRAY_ASCII;
-            if( tokens[ 0 ] == "P3") type = P3_RGB_ASCII;
-            if( tokens[ 0 ] == "P5") type = P5_GRAY_BINARY;
-            if( tokens[ 0 ] == "P6") type = P6_RGB_BINARY;
-        }
-        tokens.clear();
-
-        // get next full line as tokens, skipping comments
-        while( tokens.size() == 0 ){
-            n = tokenizeLine( data, size, tokens );
-            data+=n;
-            size-=n;
-			if( size < 0 )
-				throw CVTException( "PPM Header corrupt!" );
-        }
-
-        // parse width and height
-        size_t width, height;
-        if( tokens.size() != 2 ){
-            throw CVTException("PPM File Error: expected width and height");
-        } else {
-            width = tokens[ 0 ].toInteger();
-            height = tokens[ 1 ].toInteger();
-        }
-
-        // get next full line as tokens, skipping comments
-        tokens.clear();
-        while( tokens.size() == 0 ){
-            n = tokenizeLine( data, size, tokens );
-            data+=n;
-            size-=n;
-			if( size < 0 )
-				throw CVTException( "PPM Header corrupt!" );
-        }
-
-        size_t colorRange;
-        if( tokens.size() == 1 ){
-            colorRange = tokens[ 0 ].toInteger();
-        } else {
-            throw CVTException("Expected CHANNEL depth");
-        }
-
-        switch ( type ) {
+        switch ( header.type ) {
             case P2_GRAY_ASCII:
-                if( colorRange > 255 )
-                    img.reallocate( width, height, IFormat::GRAY_UINT16 );
+                if( header.colorDepth > 255 )
+                    img.reallocate( header.width, header.height, IFormat::GRAY_UINT16 );
                 else
-                    img.reallocate( width, height, IFormat::GRAY_UINT8 );
-                parseASCII( img, data, size );
+                    img.reallocate( header.width, header.height, IFormat::GRAY_UINT8 );
+                parseASCII( img, dataIter );
                 break;
             case P3_RGB_ASCII:
-                if( colorRange > 255 )
-                    img.reallocate( width, height, IFormat::RGBA_UINT16 );
+                if( header.colorDepth > 255 )
+                    img.reallocate( header.width, header.height, IFormat::RGBA_UINT16 );
                 else
-                    img.reallocate( width, height, IFormat::RGBA_UINT8 );
-                parseASCII( img, data, size );
+                    img.reallocate( header.width, header.height, IFormat::RGBA_UINT8 );
+                parseASCII( img, dataIter );
                 break;
             case P5_GRAY_BINARY:
-                if( colorRange > 255 )
-                    img.reallocate( width, height, IFormat::GRAY_UINT16 );
+                if( header.colorDepth > 255 )
+                    img.reallocate( header.width, header.height, IFormat::GRAY_UINT16 );
                 else
-                    img.reallocate( width, height, IFormat::GRAY_UINT8 );
-                parseBinary( img, data );
+                    img.reallocate( header.width, header.height, IFormat::GRAY_UINT8 );
+                parseBinary( img, dataIter );
                 break;
             case P6_RGB_BINARY:
-                if( colorRange > 255 )
-                    img.reallocate( width, height, IFormat::RGBA_UINT16 );
+                if( header.colorDepth > 255 )
+                    img.reallocate( header.width, header.height, IFormat::RGBA_UINT16 );
                 else
-                    img.reallocate( width, height, IFormat::RGBA_UINT8 );
-                parseBinary( img, data );
+                    img.reallocate( header.width, header.height, IFormat::RGBA_UINT8 );
+                parseBinary( img, dataIter );
                 break;
         }
-
-		// unmap
-		munmap( ptrSave, sizeSave );
-
-		// close file
-		close( fp );
 	}
 
-    void PPMLoader::parseBinary( Image & img, const uint8_t * data )
+    void PPMLoader::parseBinary( Image & img, DataIterator & data )
     {
         size_t stride;
         uint8_t * iptr = img.map( &stride );
@@ -242,19 +175,26 @@ namespace cvt {
 
         SIMD* simd = SIMD::instance();
 
+        const uint8_t * src = data.pos();
+
         switch ( img.format().type ) {
             case IFORMAT_TYPE_FLOAT:
+                if( data.remainingBytes() < ( n * height * sizeof( float ) ) )
+                    throw CVTException( "NOT ENOUGH DATA REMAINING" );
                 while ( height-- ) {
-                    simd->Conv_XXXf_to_XXXAf( ( float* )ptr, ( const float* )data, n );
+                    simd->Conv_XXXf_to_XXXAf( ( float* )ptr, ( const float* )src, n );
                     ptr += stride;
-                    data += n * sizeof( float );
+                    src += n * sizeof( float );
                 }
                 break;
             case IFORMAT_TYPE_UINT8:
+                if( data.remainingBytes() < ( n * height ) )
+                    throw CVTException( "NOT ENOUGH DATA REMAINING" );
+
                 while ( height-- ) {
-                    simd->Conv_XXXu8_to_XXXAu8( ptr, data, n );
+                    simd->Conv_XXXu8_to_XXXAu8( ptr, src, n );
                     ptr += stride;
-                    data += n;
+                    src += n;
                 }
                 break;
             default:
@@ -264,7 +204,7 @@ namespace cvt {
         img.unmap( iptr );
     }
 
-    void PPMLoader::parseASCII( Image & img, const uint8_t * data, size_t n )
+    void PPMLoader::parseASCII( Image & img, DataIterator & data )
     {
         size_t stride;
         uint8_t * iptr = img.map( &stride );
@@ -272,52 +212,17 @@ namespace cvt {
 
 		size_t h = img.height();
 
-		int remainingData = n;
-
-		uint8_t * end;
         switch ( img.format().type ) {
             case IFORMAT_TYPE_UINT8:
                 while ( h-- ){
 					for( size_t w = 0; w < img.width(); w++ ){
 						if( img.channels() == 4 ){
 							for( int i = 0; i < 3; i++ ){
-								long v = strtol( (const char*)data, (char**)&end, 10 );
-								remainingData -= ( end - data );
-								if( remainingData < 0 ){
-									throw CVTException( "Corrupt PPM File" );
-								}
-								while( *end == '\n'||
-									   *end == ' ' ||
-								       *end == '\r'||
-								       *end == '\t' ){
-									end++;
-									remainingData--;
-									if( remainingData < 0 ){
-										throw CVTException( "Corrupt PPM File" );
-									}
-								}
-								ptr[ w * 4 + i ] = ( uint8_t )v;
-								data = end;
+								ptr[ w * 4 + i ] = ( uint8_t )data.nextLong();
 							}
 							ptr[ w * 4 + 3 ] = 255;
 						} else {
-							long v = strtol( (const char*)data, (char**)&end, 10 );
-							remainingData -= ( end - data );
-							if( remainingData < 0 ){
-								throw CVTException( "Corrupt PPM File" );
-							}
-							while( *end == '\n' ||
-								   *end == '\r'||
-							       *end == ' '  ||
-							       *end == '\t' ){
-								end++;
-								remainingData--;
-								if( remainingData < 0 ){
-									throw CVTException( "Corrupt PPM File" );
-								}
-							}
-							ptr[ w ] = ( uint8_t )v;
-							data = end;
+							ptr[ w ] = ( uint8_t )data.nextLong();
 						}
 					}
                     ptr += stride;

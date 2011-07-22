@@ -1378,22 +1378,24 @@ namespace cvt {
         void SIMD::Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const {
             size_t i = n;
 
-            while (i -= 3) {
+            while ( i ) {
                 *dst++ = *src++;
                 *dst++ = *src++;
                 *dst++ = *src++;
                 *dst++ = 255;
+                i-=3;
             }
         }
 
         void SIMD::Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const {
             size_t i = n;
 
-            while (i -= 3) {
+            while ( i ) {
                 *dst++ = *src++;
                 *dst++ = *src++;
                 *dst++ = *src++;
                 *dst++ = 255;
+                i-=3;
             }
         }
 
