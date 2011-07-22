@@ -40,7 +40,6 @@ namespace cvt {
 		}*/
 	}
 
-
 	inline int ORBHashMatch::find( const ORBFeature& feature, size_t& dist, size_t maxDistance )
 	{
 		int ret = -1;
