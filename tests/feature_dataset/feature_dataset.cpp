@@ -25,6 +25,7 @@
 #include <cvt/vision/FeatureMatch.h>
 
 #include "ORBHashMatch.h"
+#include "LSH.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -54,6 +55,24 @@ void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std:
 void matchFeatures2( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
 {
 	ORBHashMatch hashmatch( orb1 );
+	int idx;
+	size_t dist;
+
+    FeatureMatch match;
+
+	for( size_t i = 0; i < orb0.size(); i++ ){
+		if( ( idx = hashmatch.find( orb0[ i ], dist, maxDistance ) ) >= 0 ) {
+            match.feature0 = &orb0[ i ];
+            match.feature1 = &orb1[ idx ];
+            match.distance = dist;
+			matches.push_back( match );
+		}
+	}
+}
+
+void matchFeaturesLSH( const ORB & orb0, const ORB & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
+{
+	LSH<11> hashmatch( orb1 );
 	int idx;
 	size_t dist;
 
@@ -383,7 +402,7 @@ class FeatureWindow : public Window
         t.reset();
         _matches.clear();
 
-        matchFeatures2( *_orb0, *_orb1, _maxDescDistance, _matches );
+        matchFeaturesLSH( *_orb0, *_orb1, _maxDescDistance, _matches );
         _matchTime = t.elapsedMilliSeconds();
 
         std::cout << "Image: " << _dataSets[ _currentDataSet ] << " 0 -> " << _currentImage << ":" << std::endl;
