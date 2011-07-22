@@ -23,6 +23,7 @@
 #include <cvt/vision/FeatureMatch.h>
 
 #include "ORBTemplateTracker.h"
+#include "ImageViewHomography.h"
 
 namespace cvt
 {
@@ -39,6 +40,9 @@ class VideoInputGui : public Window, TimeoutHandler
             _orbTracker( reference )
 		{
             initGuiElements();
+
+			_refWidth = reference.width();
+			_refHeight = reference.height();
 
             _timerId = Application::registerTimer( 20, this );
             _timer.reset();
@@ -84,19 +88,32 @@ class VideoInputGui : public Window, TimeoutHandler
             Image gray;
 			_cam->frame().convert( gray, IFormat::GRAY_UINT8 );
 
+			_imView.setImage( gray );
+
             Matrix3f h;
             if( _orbTracker.estimate( h, gray ) ){
                 std::cout << h << std::endl;
+				Vector2f pt0 = h * Vector2f( 0.0f, 0.0f );
+				pt0.x /= _cam->width();
+				pt0.y /= _cam->height();
+				Vector2f pt1 = h * Vector2f( _refWidth, 0.0f );
+				pt1.x /= _cam->width();
+				pt1.y /= _cam->height();
+				Vector2f pt2 = h * Vector2f( _refWidth, _refHeight );
+				pt2.x /= _cam->width();
+				pt2.y /= _cam->height();
+				Vector2f pt3 = h * Vector2f( 0.0f, _refHeight );
+				pt3.x /= _cam->width();
+				pt3.y /= _cam->height();
+				_imView.setPoints( pt0, pt1, pt2, pt3 );
             }
-
-			_imView.setImage( gray );
 
 			_processingTime.reset();
         }
 
 	private:
 		VideoInput*  _cam;
-        ImageView    _imView;
+        ImageViewHomography   _imView;
         Moveable	 _moveable;
         ImageView    _templateView;
         Moveable	 _templateMov;
@@ -106,6 +123,8 @@ class VideoInputGui : public Window, TimeoutHandler
 		Time		_processingTime;
 
         ORBTemplateTracker  _orbTracker;
+		float		_refWidth;
+		float		_refHeight;
 
         uint32_t    _timerId;
 
