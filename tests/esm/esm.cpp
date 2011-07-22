@@ -85,7 +85,6 @@ public:
 		gfx->drawLine( w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ], w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ] );
 		gfx->drawLine( w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ], w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ] );
 		gfx->drawLine( w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ], w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ] );
-		update();
 	}
 	
 	void selectedRect( Rectf & r )
@@ -102,6 +101,7 @@ public:
 			pts[ i ][ 0 ] = ( float ) ( pt( 0, i ) / pt( 2, i ) ) / width;
 			pts[ i ][ 1 ] = ( float ) ( pt( 1, i ) / pt( 2, i ) ) / height;
 		}
+		update();
 	}
 	
 	// normalized dimensions!
