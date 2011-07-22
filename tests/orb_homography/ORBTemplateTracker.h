@@ -16,11 +16,11 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves=3, float scaleFactor = 0.6f, uint8_t cornerThreshold=25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves=3, float scaleFactor = 0.5f, uint8_t cornerThreshold = 20 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
-            _maxDistance( 70.0f ),
+            _maxDistance( 60.0f ),
             _referenceORB( reference, _octaves, _scaleFactor, _cornerThreshold )
         {
         }
@@ -35,9 +35,9 @@ namespace cvt
 
 			if( matches.size() > 10 ){
 				HomographySAC model( matches );
-				RANSAC<HomographySAC> ransac( model, 5.0f /*maxreproj.*/, 0.3f /*outlierprob*/ );
+				RANSAC<HomographySAC> ransac( model, 10.0f /*maxreproj.*/, 0.5f /*outlierprob*/ );
 
-				homography = ransac.estimate( 100 );
+				homography = ransac.estimate( 5000 );
 
 				return true;
 			} else {
