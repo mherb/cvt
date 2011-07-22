@@ -16,19 +16,25 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves=3, float scaleFactor = 0.5f, uint8_t cornerThreshold = 20 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.5f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
-            _maxDistance( 60.0f ),
-            _referenceORB( reference, _octaves, _scaleFactor, _cornerThreshold )
+            _maxDistance( 40.0f ),
+            _referenceORB( reference, _octaves, _scaleFactor, _cornerThreshold, 0 )
         {
         }
 
 
-        bool estimate( Matrix3f & homography, const Image & img )
+        bool estimate( Matrix3f & homography, const Image & _img )
         {
-            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold );
+			Image img;
+			_img.scale( img, _img.width() * 2, _img.height() * 2, IScaleFilterBilinear() );
+
+
+			
+
+            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 0 );
 
             std::vector<FeatureMatch> matches;
             findMatches( matches, currOrb );
@@ -37,7 +43,7 @@ namespace cvt
 				HomographySAC model( matches );
 				RANSAC<HomographySAC> ransac( model, 10.0f /*maxreproj.*/, 0.5f /*outlierprob*/ );
 
-				homography = ransac.estimate( 5000 );
+				homography = ransac.estimate( 10000 );
 
 				return true;
 			} else {

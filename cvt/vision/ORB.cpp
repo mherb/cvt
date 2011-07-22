@@ -19,9 +19,10 @@ namespace cvt {
 		int _octave;
 	};
 
-	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold, bool nms ) :
+	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold, size_t numFeatures , bool nms ) :
 		_currentOctave( 0 ),
 		_threshold( cornerThreshold ),
+		_numFeatures( numFeatures ),
         _nms( nms )
 	{
 
@@ -44,7 +45,8 @@ namespace cvt {
 			_scaleFactors[ _currentOctave ] = scale;
 			detect( pyrimg, _currentOctave );
 		}
-		selectBestFeatures( 1000 );
+		if( _numFeatures )
+			selectBestFeatures( _numFeatures );
 		extract( octaves );
 	}
 
