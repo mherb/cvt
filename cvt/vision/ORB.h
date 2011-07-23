@@ -41,7 +41,7 @@ namespace cvt {
 	class ORB {
 		friend bool _centroidAngleTest();
 		public:
-			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25, bool nms = true );
+			ORB( const Image& img, size_t octavs = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25, size_t numFeatures = 1000, bool nms = true );
             ~ORB();
 
 			size_t size() const;
@@ -68,6 +68,7 @@ namespace cvt {
 
             // for OFAST
             uint8_t			 _threshold;
+			size_t			 _numFeatures;
             bool             _nms;
 
 			static const int _patterns[ 30 ][ 512 ][ 2 ];
