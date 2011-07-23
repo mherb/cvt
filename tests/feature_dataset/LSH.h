@@ -150,6 +150,19 @@ namespace cvt {
             }
         }
 
+		for( size_t i = 0; i < NumBits; i++ ) {
+			size_t index = idx ^ ( 1 << i );
+			/* toggle one bit at each position and probe */
+			for ( std::list<int>::iterator it = _htable[ index ].begin( ), end = _htable[ index ].end( ); it != end; ++it ) {
+				const ORBFeature& current = _orb[ *it ];
+				size_t d = feature.distance( current );
+				if ( d < retdist ) {
+					retdist = d;
+					ret = *it;
+				}
+			}
+		}
+
         dist = retdist;
         return ret;
     }
