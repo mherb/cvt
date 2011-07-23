@@ -94,17 +94,17 @@ class VideoInputGui : public Window, TimeoutHandler
             if( _orbTracker.estimate( h, gray ) ){
                 std::cout << h << std::endl;
 				Vector2f pt0 = h * Vector2f( 0.0f, 0.0f );
-				pt0.x /= _cam->width();
-				pt0.y /= _cam->height();
+				pt0.x /= _cam->width() * 2;
+				pt0.y /= _cam->height() * 2;
 				Vector2f pt1 = h * Vector2f( _refWidth, 0.0f );
-				pt1.x /= _cam->width();
-				pt1.y /= _cam->height();
+				pt1.x /= _cam->width() * 2;
+				pt1.y /= _cam->height() * 2;
 				Vector2f pt2 = h * Vector2f( _refWidth, _refHeight );
-				pt2.x /= _cam->width();
-				pt2.y /= _cam->height();
+				pt2.x /= _cam->width() * 2;
+				pt2.y /= _cam->height() * 2;
 				Vector2f pt3 = h * Vector2f( 0.0f, _refHeight );
-				pt3.x /= _cam->width();
-				pt3.y /= _cam->height();
+				pt3.x /= _cam->width() * 2;
+				pt3.y /= _cam->height() * 2;
 				_imView.setPoints( pt0, pt1, pt2, pt3 );
             }
 
