@@ -46,7 +46,7 @@ namespace cvt {
 
         size_t _bitPos[ NumBits ];
 
-        List<int> _htable[ ( 1 << NumBits ) - 1 ];
+        List<int> _htable[ ( 1 << NumBits ) ];
     };
 
     template<size_t NumBits>
