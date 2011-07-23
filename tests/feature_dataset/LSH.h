@@ -46,7 +46,7 @@ namespace cvt {
 
         size_t _bitPos[ NumBits ];
 
-        std::list<int> _htable[ ( 1 << NumBits ) - 1 ];
+        std::list<int> _htable[ ( 1 << NumBits ) ];
     };
 
     template<size_t NumBits>
@@ -114,14 +114,15 @@ namespace cvt {
     {
         for ( size_t i = 0, end = _orb.size( ); i < end; i++ ) {
             const ORBFeature& feature = _orb[ i ];
-            _htable[ hash( feature ) ].push_back( i );
+			size_t idx = hash( feature );
+            _htable[ idx ].push_back( i );
         }
 
         /*
         for( size_t i = 0; i < ( 1 << NumBits ) - 1; i++ ){
             std::cout << _htable[ i ].size() << std::endl;
         }
-         * /
+         */
 
 
         /*		for( size_t k = 0; k < MAXIDX; k++ ) {
