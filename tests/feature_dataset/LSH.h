@@ -114,14 +114,15 @@ namespace cvt {
     {
         for ( size_t i = 0, end = _orb.size( ); i < end; i++ ) {
             const ORBFeature& feature = _orb[ i ];
-            _htable[ hash( feature ) ].push_back( i );
+			size_t idx = hash( feature );
+            _htable[ idx ].push_back( i );
         }
 
         /*
         for( size_t i = 0; i < ( 1 << NumBits ) - 1; i++ ){
             std::cout << _htable[ i ].size() << std::endl;
         }
-         * /
+         */
 
 
         /*		for( size_t k = 0; k < MAXIDX; k++ ) {
@@ -148,6 +149,19 @@ namespace cvt {
                 ret = *it;
             }
         }
+
+		/* toggle one bit at each position and probe */
+		for( size_t i = 0; i < NumBits; i++ ) {
+			size_t index = idx ^ ( 1 << i );
+			for ( std::list<int>::iterator it = _htable[ index ].begin( ), end = _htable[ index ].end( ); it != end; ++it ) {
+				const ORBFeature& current = _orb[ *it ];
+				size_t d = feature.distance( current );
+				if ( d < retdist ) {
+					retdist = d;
+					ret = *it;
+				}
+			}
+		}
 
         dist = retdist;
         return ret;
