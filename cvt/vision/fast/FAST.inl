@@ -28,9 +28,12 @@ inline void FAST::extract( const Image & img, PointContainer & features )
 		throw CVTException( "Input Image format must be GRAY_UINT8" );
 
 	if( _suppress ){
-		/*  std::vector<Feature2Df> allCorners;
+        throw CVTException( "FAST NMS not working ATM" );
+        /*
+		std::vector<Feature2Df> allCorners;
+
 		// detect candidates
-		doExtract( img, _threshold, allCorners, 3 );
+		doExtract( img, _threshold, inserter, 3 );
 
 		switch ( _fastSize ) {
 		case SEGMENT_9:
