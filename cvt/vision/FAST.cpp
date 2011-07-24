@@ -8,7 +8,7 @@ namespace cvt
 
 	FAST::FAST( FASTSize size ) :
 		_threshold( 30 ),
-        _suppress( true ),
+        _suppress( false ),
         _fastSize( size )
 	{
 	}
@@ -20,11 +20,11 @@ namespace cvt
     void FAST::nonmaxSuppression( std::vector<Feature2Df> & suppressed, const std::vector<Feature2Df> & features )
     {
         int numCorners = (int)features.size();
-        int endRow = (int)features.back().pt.y;        
-        
+        int endRow = (int)features.back().pt.y;
+
 		int firstFeatureIdxInRow[ endRow + 1 ];
         memset( firstFeatureIdxInRow, -1, (endRow + 1) * sizeof(int) );
-        
+
         // initialize the indizes
 		{
 			int prev_row = -1;
@@ -36,13 +36,13 @@ namespace cvt
 				}
             }
 		}
-        
+
         int idx, row, col;
         for( int i = 0; i < numCorners; i++ ) {
 			float score = features[ i ].score;
             col = ( int )features[ i ].pt.x;
             row = ( int )features[ i ].pt.y;
-            
+
             /* Check left */
 			if( i > 0 ){
                 idx = i-1;
@@ -53,7 +53,7 @@ namespace cvt
                     }
                 }
             }
-            
+
             if( i < numCorners-1 ){
                 idx = i+1;
 				if( ( int )features[ idx ].pt.x == ( col + 1 ) && (int)features[ idx ].pt.y == row ){
@@ -63,7 +63,7 @@ namespace cvt
                     }
                 }
             }
-            
+
             bool thereIsABetterPoint = false;
 			/* Check above (if there is a valid row above) */
             int pointIdxAbove;
@@ -72,7 +72,7 @@ namespace cvt
 				while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
                       (int)features[ pointIdxAbove ].pt.x < col - 1 )
                     pointIdxAbove++;
-                
+
                 while( (int)features[ pointIdxAbove ].pt.y == row - 1 &&
                       (int)features[ pointIdxAbove ].pt.x < col + 1 ){
                     // check the three pixels above
@@ -82,21 +82,21 @@ namespace cvt
                     }
                     pointIdxAbove++;
                 }
-                
+
                 if( thereIsABetterPoint )
                     continue;
 			}
-            
+
             if( row < endRow ){
 				/* Make sure that current point_above is one row above. */
                 int pointIdx = firstFeatureIdxInRow[ row + 1 ];
-                
+
                 if( pointIdx == -1 )
                     continue;
-                
+
 				while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col - 1 )
                     pointIdx++;
-                
+
                 while( pointIdx < numCorners && (int)features[ pointIdx ].pt.x < col + 1 ){
                     // check the three pixels above
                     if( score < features[ pointIdx ].score ){
@@ -105,11 +105,11 @@ namespace cvt
                     }
                     pointIdx++;
                 }
-                
+
                 if( thereIsABetterPoint )
                     continue;
 			}
-            
+
 			suppressed.push_back( features[ i ] );
 		}
     }
