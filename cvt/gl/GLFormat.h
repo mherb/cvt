@@ -4,6 +4,7 @@
 #include <iostream>
 
 namespace cvt {
+	class GLXContext;
 
 	class GLFormat {
 		friend class GLXContext;
