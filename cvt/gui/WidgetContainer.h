@@ -7,6 +7,7 @@
 #include <utility>
 
 namespace cvt {
+	class Window;
 
 	class WidgetContainer : public Widget
 	{

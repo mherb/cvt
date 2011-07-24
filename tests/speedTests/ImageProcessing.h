@@ -12,9 +12,7 @@
 #include <cvt/vision/ORB.h>
 #include <cvt/vision/Feature2D.h>
 
-#include <opencv/cv.h>
-#include <opencv/cv.hpp>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 
 #include <iomanip>
 
