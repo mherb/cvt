@@ -47,13 +47,11 @@ namespace cvt
             Matrix3f Rx, Ry;
             Vector2f pp;
 
-            Line2Df l;
-
             Image warped( reference.width(), reference.height(), reference.format() );
 
-            for( float rotX = -20.0f; rotX <= 20.0f; rotX+= 5.0f ){
+            for( float rotX = -20.0f; rotX <= 20.0f; rotX+= 1.0f ){
                 Rx.setRotationX( Math::deg2Rad( rotX ) );
-                for( float rotY = -20.0f; rotY <= 20.0f; rotY += 5.0f ){
+                for( float rotY = -20.0f; rotY <= 20.0f; rotY += 1.0f ){
                     Ry.setRotationY( Math::deg2Rad( rotY ) );
                     H = K * Rx * Ry * Kinv;
 
@@ -69,7 +67,7 @@ namespace cvt
                     warped.save( "bla.png" );
                     getchar();
 
-                    ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 150 );
+                    ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 50 );
 
                     for( size_t f = 0; f < orb.size(); f++ ){
                         pp = Hinv * orb[ f ].pt;
