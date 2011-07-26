@@ -15,9 +15,7 @@
 
 namespace cvt {
 
-    #define MAXIDX 16
-
-    template <size_t NumBits = 11>
+    template <size_t NumBits = 8, size_t NumTables = 4>
     class LSH {
       public:
         LSH( const ORB& orb );
@@ -40,28 +38,28 @@ namespace cvt {
 
         void entropy();
 
-        size_t hash( const ORBFeature & ft ) const;
+        size_t hash( const ORBFeature & ft, size_t table ) const;
 
         const ORB& _orb;
 
-        size_t _bitPos[ NumBits ];
+        size_t _bitPos[ NumTables ][ NumBits ];
 
-        std::list<int> _htable[ ( 1 << NumBits ) ];
+        std::list<int> _htable[ NumTables ][ ( 1 << NumBits ) ];
     };
 
-    template<size_t NumBits>
-    int LSH<NumBits>::HistPos::halfOrbSize;
+    template<size_t NumBits, size_t NumTables>
+    int LSH<NumBits, NumTables>::HistPos::halfOrbSize;
 
-    template <size_t NumBits>
-    inline LSH<NumBits>::LSH( const ORB& orb ) : _orb( orb )
+    template <size_t NumBits, size_t NumTables>
+    inline LSH<NumBits, NumTables>::LSH( const ORB& orb ) : _orb( orb )
     {
         entropy();
         hashORBFeatures();
     }
 
     #define GETBIT( ft, n ) ( ( ft.desc[ n >> 3 ] >> ( n & 0x07 ) ) & 1 )
-    template <size_t NumBits>
-    inline void LSH<NumBits>::entropy()
+    template <size_t NumBits, size_t NumTables>
+    inline void LSH<NumBits, NumTables>::entropy()
     {
         std::vector<HistPos> hist( 256 );
 
@@ -84,8 +82,10 @@ namespace cvt {
         std::sort( hist.begin(), hist.end() );
 
         // save the NumBits best bit positions for hash generation
-        for( size_t i = 0; i < NumBits; i++ ){
-            _bitPos[ i ] = hist[ i ].pos;
+        for ( size_t n = 0; n < NumTables; n++ ) {
+            for ( size_t i = 0; i < NumBits; i++ ) {
+                _bitPos[ n ][ i ] = hist[ n * NumBits + i ].pos;
+            }
         }
 
         /*
@@ -96,26 +96,29 @@ namespace cvt {
          */
     }
 
-    template <size_t NumBits>
-    inline size_t LSH<NumBits>::hash( const ORBFeature & ft ) const
+    template <size_t NumBits, size_t NumTables>
+    inline size_t LSH<NumBits, NumTables>::hash( const ORBFeature & ft, size_t table ) const
     {
         size_t ret = 0;
 
         for( size_t i = 0; i < NumBits; i++ ){
-            ret |= GETBIT( ft, _bitPos[ i ] ) << i;
+            ret |= GETBIT( ft, _bitPos[ table ][ i ] ) << i;
         }
 
         return ret;
     }
 
 
-    template <size_t NumBits>
-    inline void LSH<NumBits>::hashORBFeatures()
+    template <size_t NumBits, size_t NumTables>
+    inline void LSH<NumBits, NumTables>::hashORBFeatures()
     {
         for ( size_t i = 0, end = _orb.size( ); i < end; i++ ) {
             const ORBFeature& feature = _orb[ i ];
-			size_t idx = hash( feature );
-            _htable[ idx ].push_back( i );
+
+            for( size_t n = 0; n < NumTables; n++ ){
+                size_t idx = hash( feature, n );
+                _htable[ n ][ idx ].push_back( i );
+            }
         }
 
         /*
@@ -132,36 +135,38 @@ namespace cvt {
                 }*/
     }
 
-    template <size_t NumBits>
-    inline int LSH<NumBits>::find( const ORBFeature& feature, size_t& dist, size_t maxDistance )
+    template <size_t NumBits, size_t NumTables>
+    inline int LSH<NumBits, NumTables>::find( const ORBFeature& feature, size_t& dist, size_t maxDistance )
     {
         int ret = -1;
         size_t retdist = maxDistance;
 
-        /* Simple test without any descriptor bit twiddling */
-        size_t idx = hash( feature );
+        for ( size_t n = 0; n < NumTables; n++ ) {
+            /* Simple test without any descriptor bit twiddling */
+            size_t idx = hash( feature, n );
 
-        for ( std::list<int>::iterator it = _htable[ idx ].begin( ), end = _htable[ idx ].end( ); it != end; ++it ) {
-            const ORBFeature& current = _orb[ *it ];
-            size_t d = feature.distance( current );
-            if ( d < retdist ) {
-                retdist = d;
-                ret = *it;
+            for ( std::list<int>::iterator it = _htable[ n ][ idx ].begin( ), end = _htable[ n ][ idx ].end( ); it != end; ++it ) {
+                const ORBFeature& current = _orb[ *it ];
+                size_t d = feature.distance( current );
+                if ( d < retdist ) {
+                    retdist = d;
+                    ret = *it;
+                }
+            }
+
+            /* toggle one bit at each position and probe */
+            for ( size_t i = 0; i < NumBits; i++ ) {
+                size_t index = idx ^ ( 1 << i );
+                for ( std::list<int>::iterator it = _htable[ n ][ index ].begin( ), end = _htable[ n ][ index ].end( ); it != end; ++it ) {
+                    const ORBFeature& current = _orb[ *it ];
+                    size_t d = feature.distance( current );
+                    if ( d < retdist ) {
+                        retdist = d;
+                        ret = *it;
+                    }
+                }
             }
         }
-
-		/* toggle one bit at each position and probe */
-		for( size_t i = 0; i < NumBits; i++ ) {
-			size_t index = idx ^ ( 1 << i );
-			for ( std::list<int>::iterator it = _htable[ index ].begin( ), end = _htable[ index ].end( ); it != end; ++it ) {
-				const ORBFeature& current = _orb[ *it ];
-				size_t d = feature.distance( current );
-				if ( d < retdist ) {
-					retdist = d;
-					ret = *it;
-				}
-			}
-		}
 
         dist = retdist;
         return ret;
