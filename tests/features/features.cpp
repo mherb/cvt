@@ -26,59 +26,59 @@ class CameraApp : public Window
 {
 	public:
 		CameraApp( VideoInput * cam ) :
-            Window( "Camera Application" ),
+			Window( "Camera Application" ),
 			_cam( cam ),
-            _paused( false ),
-            _captureNext( true ),
-            _quitButton( 0 ),
+			_paused( false ),
+			_captureNext( true ),
+			_quitButton( 0 ),
 			_image( cam->width(), cam->height(), IFormat::BGRA_UINT8 ),
 			_gray( cam->width(), cam->height(), IFormat::GRAY_UINT8 ),
 			_frames( 0.0f ),
 			_featureTracker(),
-            _loopTimer( 5 )
+			_loopTimer( 5 )
 		{
-            initGuiElements();
+			initGuiElements();
 
 			_timer.reset();
 			_processingTime.reset();
 			_iter = 0;
 			_timeSum = 0;
 
-            Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
-            _loopTimer.timeout.add( loopDelegate );
-            _loopTimer.start();
+			Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
+			_loopTimer.timeout.add( loopDelegate );
+			_loopTimer.start();
 		}
 
-        void initGuiElements()
-        {
-            setSize( 800, 600 );
+		void initGuiElements()
+		{
+			setSize( 800, 600 );
 
-            _featureView = new FeatureView();
+			_featureView = new FeatureView();
 
-            _moveable = new Moveable( _featureView );
-            _moveable->setSize( 320, 240 );
-            addWidget( _moveable );
+			_moveable = new Moveable( _featureView );
+			_moveable->setSize( 320, 240 );
+			addWidget( _moveable );
 
-            _quitButton = new Button( "Quit" );
-            Delegate<void ()> quit( &Application::exit );
-            _quitButton->clicked.add( quit );
+			_quitButton = new Button( "Quit" );
+			Delegate<void ()> quit( &Application::exit );
+			_quitButton->clicked.add( quit );
 
-            _pauseButton = new Button( "Pause" );
-            Delegate<void ()> pause( this, &CameraApp::pauseClicked );
-            _pauseButton->clicked.add( pause );
+			_pauseButton = new Button( "Pause" );
+			Delegate<void ()> pause( this, &CameraApp::pauseClicked );
+			_pauseButton->clicked.add( pause );
 
-            _nextButton = new Button( "Next Frame" );
-            Delegate<void ()> next( this, &CameraApp::nextClicked );
-            _nextButton->clicked.add( next );
+			_nextButton = new Button( "Next Frame" );
+			Delegate<void ()> next( this, &CameraApp::nextClicked );
+			_nextButton->clicked.add( next );
 
-            WidgetLayout wl;
-            wl.setAnchoredRight( 10, 100 );
-            wl.setAnchoredBottom( 10, 20 );
-            addWidget( _quitButton, wl );
-            wl.setAnchoredBottom( 40, 20 );
-            addWidget( _nextButton, wl );
-            wl.setAnchoredBottom( 70, 20 );
-            addWidget( _pauseButton, wl );
+			WidgetLayout wl;
+			wl.setAnchoredRight( 10, 100 );
+			wl.setAnchoredBottom( 10, 20 );
+			addWidget( _quitButton, wl );
+			wl.setAnchoredBottom( 40, 20 );
+			addWidget( _nextButton, wl );
+			wl.setAnchoredBottom( 70, 20 );
+			addWidget( _pauseButton, wl );
 
 			_nccThreshold = new Slider<float>( 0.0f, 1.0f, 0.8f );
 			Delegate<void ( float )> nccsliderchanged( &_featureTracker, &FeatureTracker::setNccThreshold );
@@ -94,38 +94,38 @@ class CameraApp : public Window
 			wl.setAnchoredBottom( 130, 20 );
 			addWidget( _cornerThreshold, wl );
 
-            setVisible( true );
-        }
+			setVisible( true );
+		}
 
 		~CameraApp()
 		{
-            Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
-            _loopTimer.timeout.remove( loopDelegate );
+			Delegate<void ( BasicTimer* )> loopDelegate( this, &CameraApp::runloop );
+			_loopTimer.timeout.remove( loopDelegate );
 
-		 	Delegate<void ()> quit( &Application::exit );
-            _quitButton->clicked.remove( quit );
-            delete _quitButton;
+			Delegate<void ()> quit( &Application::exit );
+			_quitButton->clicked.remove( quit );
+			delete _quitButton;
 			delete _nccThreshold;
 			delete _cornerThreshold;
 		}
 
-        void pauseClicked()
-        {
-            _paused ^= 1;
-            _captureNext = false;
-        }
+		void pauseClicked()
+		{
+			_paused ^= 1;
+			_captureNext = false;
+		}
 
-        void nextClicked()
-        {
-            _captureNext = true;
-        }
+		void nextClicked()
+		{
+			_captureNext = true;
+		}
 
 		void runloop( BasicTimer* )
 		{
-            if( !_paused || _captureNext ){
-                _cam->nextFrame();
-                _captureNext ^= 1;
-            }
+			if( !_paused || _captureNext ){
+				_cam->nextFrame();
+				_captureNext ^= 1;
+			}
 			_cam->frame().convert( _gray );
 			_featureView->setImage( _gray );
 
@@ -154,14 +154,14 @@ class CameraApp : public Window
 
 	private:
 		VideoInput *			_cam;
-        bool                    _paused;
-        bool                    _captureNext;
+		bool                    _paused;
+		bool                    _captureNext;
 
 		FeatureView *			_featureView;
-        Moveable*				_moveable;
-        Button*                 _quitButton;
-        Button*                 _pauseButton;
-        Button*                 _nextButton;
+		Moveable*				_moveable;
+		Button*                 _quitButton;
+		Button*                 _pauseButton;
+		Button*                 _nextButton;
 
 		Image					_image;
 		Image					_gray;
@@ -174,13 +174,13 @@ class CameraApp : public Window
 		float					_frames;
 		FeatureTracker          _featureTracker;
 
-        BasicTimer                         _loopTimer;
+		BasicTimer              _loopTimer;
 
-		Slider<float> *	_nccThreshold;
-		Slider<int>	  *	_cornerThreshold;
+		Slider<float>*			_nccThreshold;
+		Slider<int>*			_cornerThreshold;
 
-		Delegate<void (float)> *	_nccSliderChanged;
-		Delegate<void (int)> *		_cornerSliderChanged;
+		Delegate<void (float)>*	_nccSliderChanged;
+		Delegate<void (int)>*	_cornerSliderChanged;
 
 };
 
