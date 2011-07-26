@@ -63,7 +63,7 @@ namespace cvt {
     template <size_t NumBits>
     inline void LSH<NumBits>::entropy()
     {
-        std::vector<HistPos> hist( 256 );
+        std::vector<HistPos> hist;
 
         HistPos::halfOrbSize = _orb.size();
 
