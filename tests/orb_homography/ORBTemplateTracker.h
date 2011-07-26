@@ -18,18 +18,21 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.5f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
             _maxDistance( 40.0f ),
             _lsh( &_tempFeatures )
         {
+            /*
             ORB orb( reference, _octaves, _scaleFactor, _cornerThreshold, 200 );
 
             for ( size_t f = 0; f < orb.size( ); f++ ) {
                 _tempFeatures.push_back( orb[ f ] );
             }
+             */
+                
             generateReferenceWarps( reference, 15.0f, 25.0f, 75.0f );
             _lsh.updateFeatures( &_tempFeatures );
         }
@@ -49,25 +52,21 @@ namespace cvt
 
             Image warped( reference.width(), reference.height(), reference.format() );
 
-            for( float rotX = -20.0f; rotX <= 20.0f; rotX+= 1.0f ){
+            for( float rotX = -20.0f; rotX <= 20.0f; rotX+= 10.0f ){
                 Rx.setRotationX( Math::deg2Rad( rotX ) );
-                for( float rotY = -20.0f; rotY <= 20.0f; rotY += 1.0f ){
+                for( float rotY = -20.0f; rotY <= 20.0f; rotY += 10.0f ){
                     Ry.setRotationY( Math::deg2Rad( rotY ) );
                     H = K * Rx * Ry * Kinv;
-
-                    H.setIdentity();
-                    H[ 2 ].set( 1, 0, 10000 );
-
                     Hinv = H.inverse();
 
                     warped.fill( Color::WHITE );
 
                     ITransform::apply( warped, reference, Hinv );
 
-                    warped.save( "bla.png" );
-                    getchar();
+                    //warped.save( "bla.png" );
+                    //getchar();
 
-                    ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 50 );
+                    ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 200 );
 
                     for( size_t f = 0; f < orb.size(); f++ ){
                         pp = Hinv * orb[ f ].pt;
@@ -84,7 +83,7 @@ namespace cvt
 			Image img;
 			_img.scale( img, _img.width() * 2, _img.height() * 2, IScaleFilterBilinear() );
 
-            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 1500 );
+            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 2000 );
 
             std::vector<FeatureMatch> matches;
             findMatches( matches, currOrb );
