@@ -364,8 +364,6 @@ namespace cvt
     CVTTEST_PRINT("::squaredArea( ... )", test );
     result &= test;
 
-
-
     return result;
 
     END_CVTTEST
