@@ -284,6 +284,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/IntegralImage.h
 	vision/Flow.h
 	vision/HCalibration.h
+	vision/LSH.h
 	vision/MeasurementModel.h
 	vision/ORB.h
 	vision/Patch.h
