@@ -45,12 +45,12 @@ namespace cvt {
 		height = _height;
 	}
 
-	inline size_t GLTexture::width() const
+	inline GLsizei GLTexture::width() const
 	{
 		return _width;
 	}
 
-	inline size_t GLTexture::height() const
+	inline GLsizei GLTexture::height() const
 	{
 		return _height;
 	}
