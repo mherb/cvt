@@ -147,22 +147,8 @@ namespace cvt {
     template<typename T>
 	inline Vector3<T> Vector3<T>::operator/( const T c ) const
 	{
-	    T inv = ( ( T ) 1.0 ) / c;
+	    T inv = ( ( T ) 1 ) / c;
 	    return Vector3<T>( x * inv, y * inv, z * inv );
-	}
-
-    template<>
-	inline Vector3<float> Vector3<float>::operator/( const float c ) const
-	{
-	    float inv = 1.0f / c;
-	    return Vector3<float>( x * inv, y * inv, z * inv );
-	}
-
-    template<>
-	inline Vector3<double> Vector3<double>::operator/( const double c ) const
-	{
-	    double inv = 1.0 / c;
-	    return Vector3<double>( x * inv, y * inv, z * inv );
 	}
 
     template<typename T>

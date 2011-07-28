@@ -23,6 +23,7 @@ namespace cvt {
 			T distance( const Vector2<T>& pt ) const;
 			T distance( T x, T y ) const;
 			Vector3<T>& vector();
+			const Vector3<T>& vector() const;
 
 		public:
 			Vector3<T> _line;
@@ -81,6 +82,12 @@ namespace cvt {
 
 	template<typename T>
 	inline Vector3<T>& Line2D<T>::vector()
+	{
+		return _line;
+	}
+
+	template<typename T>
+	inline const Vector3<T>& Line2D<T>::vector() const
 	{
 		return _line;
 	}

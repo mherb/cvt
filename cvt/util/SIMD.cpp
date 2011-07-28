@@ -3507,7 +3507,7 @@ namespace cvt {
 		}
 	}
 
-	void SIMD::warpLinePerspectiveBilinear1f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	void SIMD::warpLinePerspectiveBilinear1f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* direction, const size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		float px, py, pz;
@@ -3533,15 +3533,15 @@ namespace cvt {
 			v1 = Math::mix( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
 			v2 = Math::mix( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
 			*dst++ = Math::mix( v1, v2, alpha2 );
-			px += normal[ 0 ];
-			py += normal[ 1 ];
-			pz += normal[ 2 ];
+			px += direction[ 0 ];
+			py += direction[ 1 ];
+			pz += direction[ 2 ];
 #undef VAL
 		}
 
 	}
 
-	void SIMD::warpLinePerspectiveBilinear4f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	void SIMD::warpLinePerspectiveBilinear4f( float* dst, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* direction, const size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		float px, py, pz;
@@ -3577,15 +3577,15 @@ namespace cvt {
 			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
 			*dst++ = Math::mix( v1, v2, alpha2 );
 
-			px += normal[ 0 ];
-			py += normal[ 1 ];
-			pz += normal[ 2 ];
+			px += direction[ 0 ];
+			py += direction[ 1 ];
+			pz += direction[ 2 ];
 #undef VAL
 		}
 
 	}
 
-	void SIMD::warpLinePerspectiveBilinear1u8( uint8_t* dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	void SIMD::warpLinePerspectiveBilinear1u8( uint8_t* dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* direction, const size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		float px, py, pz;
@@ -3615,15 +3615,15 @@ namespace cvt {
 			*dst++ =  ( uint8_t ) Math::clamp<int>( Math::mix( v1, v2, alpha2 ), 0, 255 );
 
 
-			px += normal[ 0 ];
-			py += normal[ 1 ];
-			pz += normal[ 2 ];
+			px += direction[ 0 ];
+			py += direction[ 1 ];
+			pz += direction[ 2 ];
 #undef VAL
 		}
 
 	}
 
-	void SIMD::warpLinePerspectiveBilinear4u8( uint8_t* _dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* normal, const size_t n ) const
+	void SIMD::warpLinePerspectiveBilinear4u8( uint8_t* _dst, const uint8_t* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* point, const float* direction, const size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		float px, py, pz;
@@ -3653,9 +3653,9 @@ namespace cvt {
 			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
 			*dst++ = _mix4U8( v1, v2, alpha2 );
 
-			px += normal[ 0 ];
-			py += normal[ 1 ];
-			pz += normal[ 2 ];
+			px += direction[ 0 ];
+			py += direction[ 1 ];
+			pz += direction[ 2 ];
 #undef VAL
 		}
 
