@@ -15,10 +15,10 @@ namespace cvt {
 			static void apply( Image& dst, const Image& src, const Matrix3f& transform );
 
 		private:
-			static void applyFC1( Image& dst, const Image& src, const Matrix3f& transform );
-			static void applyFC4( Image& dst, const Image& src, const Matrix3f& transform );
-			static void applyU8C1( Image& dst, const Image& src, const Matrix3f& transform );
-			static void applyU8C4( Image& dst, const Image& src, const Matrix3f& transform );
+			static void applyFC1( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv );
+			static void applyFC4( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv );
+			static void applyU8C1( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv );
+			static void applyU8C4( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv );
 
 			ITransform( const ITransform& t );
 	};

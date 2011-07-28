@@ -206,7 +206,7 @@ namespace cvt {
 			{  0,   3 },
 			{ -1, - 1 }
 		};
-		int mask = 0;
+		unsigned int mask = 0;
 
 		mask |= ( line.distance( rect.x, rect.y ) >= 0.0f );
 		mask <<= 1;
@@ -225,25 +225,25 @@ namespace cvt {
 		switch( l0 ) {
 			case 0:
 				{
-					Line2Df line2( rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height );
+					Line2Df line2( Vector3f( 0, 1, -( rect.y + rect.height ) ) );
 					line2.intersect( line, pt1 );
 					break;
 				}
 			case 1:
 				{
-					Line2Df line2( rect.x + rect.width, rect.y + rect.height, rect.x + rect.width, rect.y );
+					Line2Df line2( Vector3f( 1, 0, -( rect.x + rect.width ) ) );
 					line2.intersect( line, pt1 );
 					break;
 				}
 			case 2:
 				{
-					Line2Df line2( rect.x + rect.width, rect.y, rect.x, rect.y );
+					Line2Df line2( Vector3f( 0, 1, -rect.y ) );
 					line2.intersect( line, pt1 );
 					break;
 				}
 			case 3:
 				{
-					Line2Df line2( rect.x, rect.y + rect.height, rect.x, rect.y );
+					Line2Df line2( Vector3f( 1, 0, -( rect.x ) ) );
 					line2.intersect( line, pt1 );
 					break;
 				}
@@ -255,25 +255,25 @@ namespace cvt {
 		switch( l1 ) {
 			case 0:
 				{
-					Line2Df line2( rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height );
+					Line2Df line2( Vector3f( 0, 1, -( rect.y + rect.height ) ) );
 					line2.intersect( line, pt2 );
 					break;
 				}
 			case 1:
 				{
-					Line2Df line2( rect.x + rect.width, rect.y + rect.height, rect.x + rect.width, rect.y );
+					Line2Df line2( Vector3f( 1, 0, -( rect.x + rect.width ) ) );
 					line2.intersect( line, pt2 );
 					break;
 				}
 			case 2:
 				{
-					Line2Df line2( rect.x + rect.width, rect.y, rect.x, rect.y );
+					Line2Df line2( Vector3f( 0, 1, -rect.y ) );
 					line2.intersect( line, pt2 );
 					break;
 				}
 			case 3:
 				{
-					Line2Df line2( rect.x, rect.y + rect.height, rect.x, rect.y );
+					Line2Df line2( Vector3f( 1, 0, -( rect.x ) ) );
 					line2.intersect( line, pt2 );
 					break;
 				}

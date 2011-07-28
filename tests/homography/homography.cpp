@@ -101,57 +101,38 @@ int main()
 		for( float angle = 0; angle < 360; angle += 5.0f ) {
 			cvt::Matrix3f H, S, T;
 			T.setIdentity();
-			T[ 0 ][ 2 ] = -img.width() / 2.0f;
-			T[ 1 ][ 2 ] = -img.height() / 2.0f;
-
-			//S.setIdentity();
-			//S[ 0 ][ 0 ] = 0.5f;
-			//S[ 1 ][ 1 ] = 0.5f;
+			T[ 0 ][ 2 ] = -( img.width() - 1.0f ) / 2.0f;
+			T[ 1 ][ 2 ] = -( img.height() - 1.0f ) / 2.0f;
 
 			RotY2( H, angle, 1024.0f, 1024.0f, 1024.0f );
 			H = T.inverse() * H * T;
 
 			//std::cout << H << std::endl;
 
-			//		H.setRotationY( Math::deg2Rad( 30.0f ) );
-			//		Matrix3f K( 1.0f, 0.0f, img.width() / 2.0f,
-			//				       0.0f, 1.0f, img.height() / 2.0f,
-			//					   0.0f, 0.0f, 1.0f );
-			//		Matrix3f Kinv( 1.0f, 0.0f, -img.width() / 2.0f,
-			//				       0.0f, 1.0f, -img.height() / 2.0f,
-			//					   0.0f, 0.0f, -100.0f );
-			//
-			//		H = K * H * Kinv;
-
-			//std::cout << H << std::endl;
-
-			String path;
-			path.sprintf("outhomographyrot%03d.png", ( int ) angle );
-	
-			std::cout << path << std::endl;
-
 			//		H.setHomography( Math::deg2Rad( 23.0f ), 0.0f, 1.5f, 0.8f, 10.0f, 10.0f, 0.0f, 0.0f );
-			if( !H.inverseSelf() ){
+			/*if( !H.inverseSelf() ){
 				std::cerr << "Could not invert" << std::endl;
 				continue;
-			}
+			}*/
 
-
-			Color black( 0.0f, 0.0f, 0.0f, 1.0f );
+			String path;
 			Time t;
-	//	t.reset();
-	//	hfilter.apply( out, imgf, H, black );
-	//	std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
-		//out.save( "outhomography.png" );
-	//		out.save( path );
+#if 0
+			path.sprintf("outhomographyrotOTHER%03d.png", ( int ) angle );
+			Color black( 0.0f, 0.0f, 0.0f, 1.0f );
+			t.reset();
+			hfilter.apply( out, imgf, H.inverse(), black );
+			std::cout << "OLD " << t.elapsedMilliSeconds() << " ms" << std::endl;
+			//out.save( path );
+#endif
 
+			path.sprintf("outhomographyrot%03d.png", ( int ) angle );
 			// otherwise denormalized float stuff kicks in
 			out2.fill( Color::BLACK );
-			//t.reset();
+			t.reset();
 			ITransform::apply( out2, imgf, H );
-			//std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
-			out2.save( path );
-		//	out2.save( "outhomography2.png" );
+			std::cout << "NEW " << t.elapsedMilliSeconds() << " ms" << std::endl;
+			//out2.save( path );
 		}
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;
