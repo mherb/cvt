@@ -37,6 +37,7 @@ class VideoInputGui : public Window, TimeoutHandler
             _moveable( &_imView ),
             _templateMov( &_templateView ),
             _quitButton( "Quit" ),
+			_iterations( 0 ),
             _orbTracker( reference )
 		{
             initGuiElements();
@@ -44,7 +45,7 @@ class VideoInputGui : public Window, TimeoutHandler
 			_refWidth = reference.width();
 			_refHeight = reference.height();
 
-            _timerId = Application::registerTimer( 20, this );
+            _timerId = Application::registerTimer( 10, this );
             _timer.reset();
 			_processingTime.reset();
 
@@ -63,7 +64,7 @@ class VideoInputGui : public Window, TimeoutHandler
 
             _moveable.setSize( 320, 240 );
             addWidget( &_moveable );
-            
+
 			_templateMov.setSize( 320, 240 );
             addWidget( &_templateMov );
 
@@ -108,7 +109,16 @@ class VideoInputGui : public Window, TimeoutHandler
 				_imView.setPoints( pt0, pt1, pt2, pt3 );
             }
 
-			_processingTime.reset();
+			_iterations++;
+
+			if( _iterations == 30 ){
+				float fps = (float)_iterations / _processingTime.elapsedSeconds();
+				_iterations = 0;
+				_processingTime.reset();
+				String title;
+				title.sprintf( "FPS: %0.1f", fps );
+				_moveable.setTitle( title );
+			}
         }
 
 	private:
@@ -121,6 +131,7 @@ class VideoInputGui : public Window, TimeoutHandler
 
 		Time		_timer;
 		Time		_processingTime;
+		size_t		_iterations;
 
         ORBTemplateTracker  _orbTracker;
 		float		_refWidth;
