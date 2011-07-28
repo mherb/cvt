@@ -18,63 +18,128 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.5f, uint8_t cornerThreshold = 25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
             _maxDistance( 40.0f ),
             _lsh( &_tempFeatures )
         {
-            /*
-            ORB orb( reference, _octaves, _scaleFactor, _cornerThreshold, 200 );
+
+            ORB orb( reference, _octaves, _scaleFactor, _cornerThreshold, 1000 );
 
             for ( size_t f = 0; f < orb.size( ); f++ ) {
                 _tempFeatures.push_back( orb[ f ] );
             }
-             */
-                
-            generateReferenceWarps( reference, 15.0f, 25.0f, 75.0f );
+
+
+            generateReferenceWarps( reference );
             _lsh.updateFeatures( &_tempFeatures );
         }
 
-
-        void generateReferenceWarps( const Image & reference, float templateWidth, float templateHeight, float depth )
+        void genRotY( Matrix3f& mat, float angle, float fx, float fy, float d )
         {
-            Matrix3f H, Hinv;
+            float rad = Math::deg2Rad( angle );
+            float c = Math::cos( rad );
+            float s = Math::sin( rad );
 
-            Matrix3f K( 100, 0.0f, reference.width() / 2.0f,
-                        0.0f, 100, reference.height() / 2.0f,
-                        0.0f, 0.0f, 1.0f );
-            Matrix3f Kinv = K.inverse();
+            mat[0][0] = c * fx;
+            mat[0][1] = 0.0f;
+            mat[0][2] = 0;
+            mat[1][0] = 0.0f;
+            mat[1][1] = fy;
+            mat[1][2] = 0.0f;
+            mat[2][0] = -s;
+            mat[2][1] = 0.0f;
+            mat[2][2] = d;
+        }
 
-            Matrix3f Rx, Ry;
+        void genRotX( Matrix3f& mat, float angle, float fx, float fy, float d )
+        {
+            float rad = Math::deg2Rad( angle );
+            float c = Math::cos( rad );
+            float s = Math::sin( rad );
+
+            mat[0][0] = fx;
+            mat[0][1] = 0.0f;
+            mat[0][2] = 0;
+            mat[1][0] = 0.0f;
+            mat[1][1] = c * fy;
+            mat[1][2] = 0.0f;
+            mat[2][0] = 0.0f;
+            mat[2][1] = s;
+            mat[2][2] = d;
+        }
+
+
+        void generateReferenceWarps( const Image & reference )
+        {
+            Matrix3f H, Hinv, T, Tinv;
+
+            T.setIdentity();
+            T[ 0 ][ 2 ] = reference.width() / 2.0f;
+            T[ 1 ][ 2 ] = reference.height() / 2.0f;
+            Tinv.setIdentity();
+            Tinv[ 0 ][ 2 ] = -T[ 0 ][ 2 ];
+            Tinv[ 1 ][ 2 ] = -T[ 1 ][ 2 ];
+
+
+            Matrix3f R;
             Vector2f pp;
 
             Image warped( reference.width(), reference.height(), reference.format() );
 
-            for( float rotX = -20.0f; rotX <= 20.0f; rotX+= 10.0f ){
-                Rx.setRotationX( Math::deg2Rad( rotX ) );
-                for( float rotY = -20.0f; rotY <= 20.0f; rotY += 10.0f ){
-                    Ry.setRotationY( Math::deg2Rad( rotY ) );
-                    H = K * Rx * Ry * Kinv;
-                    Hinv = H.inverse();
 
-                    warped.fill( Color::WHITE );
+            for ( float rot = -40.0f; rot <= 40.0f; rot += 10.0f ) {
 
-                    ITransform::apply( warped, reference, Hinv );
+                if( rot == 0.0f )
+                    continue;
 
-                    //warped.save( "bla.png" );
-                    //getchar();
+                genRotY( R, rot, 1024.0f, 1024.0f, 1024.0f );
+                H = T * R * Tinv;
+                Hinv = H.inverse();
 
-                    ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 200 );
+                warped.fill( Color::WHITE );
+                ITransform::apply( warped, reference, Hinv );
 
-                    for( size_t f = 0; f < orb.size(); f++ ){
-                        pp = Hinv * orb[ f ].pt;
-                        _tempFeatures.push_back( orb[ f ] );
-                        _tempFeatures.back().pt = pp;
-                    }
+                ORB orby( warped, _octaves, _scaleFactor, _cornerThreshold, 1000 );
+
+                for ( size_t f = 0; f < orby.size( ); f++ ) {
+                    pp = Hinv * orby[ f ].pt;
+                    _tempFeatures.push_back( orby[ f ] );
+                    _tempFeatures.back( ).pt = pp;
+                }
+
+                genRotX( R, rot, 1024.0f, 1024.0f, 1024.0f );
+                H = T * R * Tinv;
+                Hinv = H.inverse();
+
+                warped.fill( Color::WHITE );
+                ITransform::apply( warped, reference, Hinv );
+
+                ORB orbx( warped, _octaves, _scaleFactor, _cornerThreshold, 1000 );
+
+                for ( size_t f = 0; f < orbx.size( ); f++ ) {
+                    pp = Hinv * orbx[ f ].pt;
+                    _tempFeatures.push_back( orbx[ f ] );
+                    _tempFeatures.back( ).pt = pp;
                 }
             }
+
+        }
+
+        // test if the estimated homography makes sense!
+        bool checkHomography( const Matrix3f & homography )
+        {
+            float det = homography[ 0 ][ 0 ] * homography[ 1 ][ 1 ] - homography[ 1 ][ 0 ] * homography[ 0 ][ 1 ];
+            if( det < 0 )
+                return false;
+
+            Vector2f v( homography[ 2 ][ 0 ], homography[ 2 ][ 1 ] );
+            if( v.length() > 0.003f )
+                return false;
+
+            return true;
         }
 
 
@@ -85,6 +150,8 @@ namespace cvt
 
             ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 2000 );
 
+			//adaptCornerThreshold( currOrb.size() );
+
             std::vector<FeatureMatch> matches;
             findMatches( matches, currOrb );
 
@@ -94,11 +161,22 @@ namespace cvt
 
 				homography = ransac.estimate( 7000 );
 
-				return true;
+				return checkHomography( homography );
 			} else {
 				return false;
 			}
         }
+
+		void adaptCornerThreshold( size_t numFeatures )
+		{
+			if( numFeatures < 1000 && _cornerThreshold > 20 ){
+				_cornerThreshold--;
+				std::cout << "New Threshold: " << (int)_cornerThreshold << std::endl;
+			} else if ( numFeatures > 1100 && _cornerThreshold < 80 ){
+				_cornerThreshold++;
+				std::cout << "New Threshold: " << (int)_cornerThreshold << std::endl;
+			}
+		}
 
 
         void findMatches( std::vector<FeatureMatch> & matches, const ORB & other )
@@ -136,7 +214,7 @@ namespace cvt
 
         std::vector<ORBFeature> _tempFeatures;
 
-        LSH<8, 2>   _lsh;
+        LSH<10, 2>   _lsh;
 
     };
 }
