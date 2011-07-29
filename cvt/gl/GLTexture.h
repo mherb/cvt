@@ -2,6 +2,7 @@
 #define CVTGLTEXTURE_H
 
 #include <cvt/gl/OpenGL.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 	class GLFBO;
@@ -22,6 +23,7 @@ namespace cvt {
 //			void alloc( const Image& img, bool copy = false );
 			void setData( GLint	xoffset, GLint yoffset,	GLsizei	width, GLsizei height, GLenum format, GLenum type, const GLvoid* data, size_t stride = 0 );
 //			void setData( const GLBuffer& buffer, GLint	xoffset, GLint yoffset,	GLsizei	width, GLsizei height, GLenum format, GLenum type, const GLvoid* data, size_t stride = 0 );
+			void toImage( Image& img, IFormatType itype = IFORMAT_TYPE_UINT8  ) const;
 
 		private:
 			GLTexture( const GLTexture& );
