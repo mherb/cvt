@@ -4422,9 +4422,9 @@ namespace cvt {
 
             // count the bits set in xored:
             // 64 1-bit numbers
-            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
-            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u );
-            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
+            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAll ) >> 1 ) + ( xored & 0x5555555555555555ll );
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCll ) >> 2 ) + ( xored & 0x3333333333333333ll );
+            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0ll ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fll );
             xored += xored >> 32;
             xored += xored >> 16;
             xored += xored >>  8;
@@ -4439,9 +4439,9 @@ namespace cvt {
 			Memcpy( ( uint8_t* )( &b ), ( uint8_t* )s2, r );
 
             xored = ( a^b );
-            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAu ) >> 1 ) + ( xored & 0x5555555555555555u );
-            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCu ) >> 2 ) + ( xored & 0x3333333333333333u );
-            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0u ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fu );
+            xored = ( ( xored & 0xAAAAAAAAAAAAAAAAll ) >> 1 ) + ( xored & 0x5555555555555555ll );
+            xored = ( ( xored & 0xCCCCCCCCCCCCCCCCll ) >> 2 ) + ( xored & 0x3333333333333333ll );
+            xored = ( ( xored & 0xF0F0F0F0F0F0F0F0ll ) >> 4 ) + ( xored & 0x0F0F0F0F0F0F0F0Fll );
             xored += xored >> 32;
             xored += xored >> 16;
             xored += xored >>  8;

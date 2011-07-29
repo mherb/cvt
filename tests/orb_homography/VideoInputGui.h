@@ -93,7 +93,7 @@ class VideoInputGui : public Window, TimeoutHandler
 
             Matrix3f h;
             if( _orbTracker.estimate( h, gray ) ){
-                std::cout << h << std::endl;
+                //std::cout << h << std::endl;
 				Vector2f pt0 = h * Vector2f( 0.0f, 0.0f );
 				pt0.x /= _cam->width() * 2;
 				pt0.y /= _cam->height() * 2;
