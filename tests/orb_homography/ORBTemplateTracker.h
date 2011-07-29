@@ -100,7 +100,7 @@ namespace cvt
             Image warped( reference.width(), reference.height(), reference.format() );
 
 
-            for ( float rot = -60.0f; rot <= 60.0f; rot += 10.0f ) {
+            for ( float rot = -60.0f; rot <= 60.0f; rot += 5.0f ) {
 
                 if( rot == 0.0f )
                     continue;

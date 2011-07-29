@@ -3,10 +3,6 @@
 #include <cvt/io/Resources.h>
 #include <cvt/math/Matrix.h>
 
-#include <cvt/gfx/ifilter/ITransform.h>
-
-#include <cvt/gfx/ifilter/Homography.h>
-
 namespace cvt {
 
     bool _centroidAngleTest()
