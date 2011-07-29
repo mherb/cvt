@@ -53,8 +53,11 @@ namespace cvt {
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
 		void				setRotationZ( T rad );
-        void                setAffine( T theta, T phi, T sx, T sy, T tx, T ty );
-        void                setHomography( T theta, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
+		void				setRotation( const Vector3<T>& axis, T rad );
+
+		void				setAffine( T theta, T phi, T sx, T sy, T tx, T ty );
+		void				setHomography( T theta, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
+		void				setProjectedRotation( T radx, T rady, T radz, T fx = 1024, T fy = 1024, T d = 1024 );
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -381,6 +384,50 @@ namespace cvt {
 		mat[ 2 ].z = 1;
 	}
 
+
+	template<typename T>
+	inline void	Matrix3<T>::setRotation( const Vector3<T>& _axis, T rad )
+	{
+		Vector3<T> axis( _axis );
+		axis.normalize();
+		T x, y, z, c, s;
+		T wx, wy, wz;
+		T xx, yy, yz;
+		T xy, xz, zz;
+		T x2, y2, z2;
+
+		c = Math::cos( rad * ( T ) 0.5 );
+		s = Math::sin( rad * ( T ) 0.5 );
+
+		x2 = x + x;
+		y2 = y + y;
+		z2 = z + z;
+
+		xx = x * x2;
+		xy = x * y2;
+		xz = x * z2;
+
+		yy = y * y2;
+		yz = y * z2;
+		zz = z * z2;
+
+		wx = c * x2;
+		wy = c * y2;
+		wz = c * z2;
+
+		mat[ 0 ][ 0 ] = ( T ) 1 - ( yy + zz );
+		mat[ 0 ][ 1 ] = xy + wz;
+		mat[ 0 ][ 2 ] = xz - wy;
+
+		mat[ 1 ][ 0 ] = xy - wz;
+		mat[ 1 ][ 1 ] = ( T ) 1 - ( xx + zz );
+		mat[ 1 ][ 2 ] = yz + wx;
+
+		mat[ 2 ][ 0 ] = xz + wy;
+		mat[ 2 ][ 1 ] = yz - wx;
+		mat[ 2 ][ 2 ] = ( T ) 1 - ( xx + yy );
+	}
+
     template<typename T>
     inline void Matrix3<T>::setAffine( T theta, T phi, T sx, T sy, T tx, T ty )
     {
@@ -416,6 +463,32 @@ namespace cvt {
         mat[ 2 ].x = v0;
         mat[ 2 ].y = v1;
     }
+
+    template<typename T>
+	inline void	Matrix3<T>::setProjectedRotation( T radx, T rady, T radz, T fx, T fy, T d )
+	{
+		T sx, cx, sy, cy, sz, cz;
+
+		sx = Math::sin( radx );
+		cx = Math::cos( radx );
+		sy = Math::sin( rady );
+		cy = Math::cos( rady );
+		sz = Math::sin( radz );
+		cz = Math::cos( radz );
+
+		mat[ 0 ][ 0 ] =  cy * cz * fx;
+		mat[ 0 ][ 1 ] = -cy * fx * sz;
+		mat[ 0 ][ 2 ] =  0;
+
+		mat[ 1 ][ 0 ] =  fy * ( cx * sz + cz * sx * sy );
+		mat[ 1 ][ 1 ] =  fy * ( cx * cz - sx * sy * sz );
+		mat[ 1 ][ 2 ] =  0;
+
+		mat[ 1 ][ 0 ] =  sx * sz - cx * cz * sy;
+		mat[ 1 ][ 1 ] =  cx * sy * sz + cz * sx;
+		mat[ 1 ][ 2 ] =  d;
+	}
+
 
 	template<>
 	inline bool Matrix3<double>::isIdentity() const
