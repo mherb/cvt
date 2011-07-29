@@ -181,6 +181,25 @@ namespace cvt
         img.unmap( p );
     }
 
+	static void _genColorImage( Image & img )
+	{
+		size_t s0;
+		uint8_t * p0 = img.map( &s0 );
+		uint8_t * p = p0;
+
+		uint8_t v = 1;
+		for( size_t i = 0; i < img.height(); i++ ){
+			for( size_t k = 0; k < img.width(); k++ ){
+				p0[ k * 4 ]		= v;
+				p0[ k * 4 + 1 ] = v;
+				p0[ k * 4 + 2 ] = v;
+				p0[ k * 4 + 3 ] = v++;
+			}
+			p0+=s0;
+		}
+		img.unmap( p );
+	}
+
     template <typename T>
     static void _dumpImage( Image & img )
     {
@@ -191,7 +210,8 @@ namespace cvt
         size_t h = img.height();
         while( h-- ){
             for( size_t x = 0; x < img.width(); x++ ){
-                std::cout << ( int )p[ x ] << "  ";
+				for( size_t c = 0; c < img.channels(); c++ )
+					std::cout << std::setw( 3 ) << ( int )p[ img.channels() * x + c ] << "  ";
             }
             std::cout << std::endl;
             p +=stride;
@@ -309,7 +329,10 @@ namespace cvt
     BEGIN_CVTTEST( integralImage )
 
     Image img( 20, 20, IFormat::GRAY_UINT8 );
+    Image imgC( 10, 10, IFormat::RGBA_UINT8 );
+
     _genImage( img );
+	_genColorImage( imgC );
 
     IntegralImage ii( img, ( SUMMED_AREA | SQUARED_SUMMED_AREA ) );
 
@@ -340,6 +363,12 @@ namespace cvt
     }
     CVTTEST_PRINT("::sqrSummedImage( ... )",  test );
     result &= test;
+
+	CVTTEST_PRINT( "::integralImage( COLOR ) ", true );
+	Image iic;
+	imgC.integralImage( iic );
+	
+	//_dumpImage<float>( iic );
 
     Recti rect( 0, 0, 4, 4 );
     test = true;
