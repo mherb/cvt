@@ -2,6 +2,8 @@
 #define CVT_GLFBO_H
 
 #include <cvt/gl/OpenGL.h>
+#include <cvt/gl/GLTexture.h>
+#include <cvt/gl/GLRBO.h>
 
 namespace cvt {
 	class GLFBO {

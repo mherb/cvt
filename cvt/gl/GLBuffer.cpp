@@ -2,7 +2,7 @@
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
-	
+
 #ifdef __APPLE__
 #define glFlushMappedBufferRange glFlushMappedBufferRangeAPPLE
 #endif
