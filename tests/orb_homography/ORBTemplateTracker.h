@@ -18,7 +18,7 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.5f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
@@ -26,14 +26,24 @@ namespace cvt
             _lsh( &_tempFeatures )
         {
 
-            ORB orb( reference, _octaves, _scaleFactor, _cornerThreshold, 1000 );
+            ORB orb( reference, _octaves, _scaleFactor, _cornerThreshold, 5000 );
 
             for ( size_t f = 0; f < orb.size( ); f++ ) {
-                _tempFeatures.push_back( orb[ f ] );
+				bool add = true;
+				for( size_t i = 0; i < orb.size(); i++ ) {
+					if( f == i ) continue;
+					if( orb[ f ].distance( orb[ i ] ) < _maxDistance && ( orb[ f ].pt - orb[ i ].pt).length() > 1.0f ) {
+						add = false;
+						break;
+					}
+				}
+				if( add )
+					_tempFeatures.push_back( orb[ f ] );
             }
 
 
             generateReferenceWarps( reference );
+			std::cout << _tempFeatures.size() << " features retained" << std::endl;
             _lsh.updateFeatures( &_tempFeatures );
         }
 
@@ -90,7 +100,7 @@ namespace cvt
             Image warped( reference.width(), reference.height(), reference.format() );
 
 
-            for ( float rot = -40.0f; rot <= 40.0f; rot += 10.0f ) {
+            for ( float rot = -60.0f; rot <= 60.0f; rot += 10.0f ) {
 
                 if( rot == 0.0f )
                     continue;
@@ -102,13 +112,23 @@ namespace cvt
                 warped.fill( Color::WHITE );
                 ITransform::apply( warped, reference, Hinv );
 
-                ORB orby( warped, _octaves, _scaleFactor, _cornerThreshold, 1000 );
+                ORB orby( warped, _octaves, _scaleFactor, _cornerThreshold, 5000 );
 
-                for ( size_t f = 0; f < orby.size( ); f++ ) {
-                    pp = Hinv * orby[ f ].pt;
-                    _tempFeatures.push_back( orby[ f ] );
-                    _tempFeatures.back( ).pt = pp;
-                }
+				for ( size_t f = 0; f < orby.size( ); f++ ) {
+					bool add = true;
+					for( size_t i = 0; i < orby.size(); i++ ) {
+						if( f == i ) continue;
+						if( orby[ f ].distance( orby[ i ] ) < _maxDistance  && ( orby[ f ].pt - orby[ i ].pt).length() > 1.0f) {
+							add = false;
+							break;
+						}
+					}
+					if( add ) {
+						pp = Hinv * orby[ f ].pt;
+						_tempFeatures.push_back( orby[ f ] );
+						_tempFeatures.back( ).pt = pp;
+					}
+				}
 
                 genRotX( R, rot, 1024.0f, 1024.0f, 1024.0f );
                 H = T * R * Tinv;
@@ -117,13 +137,23 @@ namespace cvt
                 warped.fill( Color::WHITE );
                 ITransform::apply( warped, reference, Hinv );
 
-                ORB orbx( warped, _octaves, _scaleFactor, _cornerThreshold, 1000 );
+                ORB orbx( warped, _octaves, _scaleFactor, _cornerThreshold, 5000 );
 
-                for ( size_t f = 0; f < orbx.size( ); f++ ) {
-                    pp = Hinv * orbx[ f ].pt;
-                    _tempFeatures.push_back( orbx[ f ] );
-                    _tempFeatures.back( ).pt = pp;
-                }
+				for ( size_t f = 0; f < orbx.size( ); f++ ) {
+					bool add = true;
+					for( size_t i = 0; i < orbx.size(); i++ ) {
+						if( f == i ) continue;
+						if( orbx[ f ].distance( orbx[ i ] ) < _maxDistance && ( orbx[ f ].pt - orbx[ i ].pt).length() > 1.0f) {
+							add = false;
+							break;
+						}
+					}
+					if( add ) {
+						pp = Hinv * orbx[ f ].pt;
+						_tempFeatures.push_back( orbx[ f ] );
+						_tempFeatures.back( ).pt = pp;
+					}
+				}
             }
 
         }
@@ -148,7 +178,7 @@ namespace cvt
 			Image img;
 			_img.scale( img, _img.width() * 2, _img.height() * 2, IScaleFilterBilinear() );
 
-            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 2000 );
+            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 3000 );
 
 			//adaptCornerThreshold( currOrb.size() );
 
