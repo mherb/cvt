@@ -11,10 +11,27 @@ namespace cvt {
 	unsigned int GL::_glslminor = 0;
 	std::vector<std::string*> GL::_extensions;
 
+	// VertexArray
 	void ( *GL::glBindVertexArray )( GLuint array ) = NULL;
 	void ( *GL::glDeleteVertexArrays )( GLsizei n, const GLuint *arrays ) = NULL;
 	void ( *GL::glGenVertexArrays )( GLsizei n, GLuint *arrays) = NULL;
 	GLboolean ( *GL::glIsVertexArray )( GLuint array) = NULL;
+
+	// FrameBuffer
+	void ( *GL::glBindRenderbuffer )( GLenum target, GLuint renderbuffer) = NULL;
+	void ( *GL::glDeleteRenderbuffers )( GLsizei n, const GLuint *renderbuffers) = NULL;
+	void ( *GL::glGenRenderbuffers )( GLsizei n, GLuint *renderbuffers) = NULL;
+	void ( *GL::glRenderbufferStorage )( GLenum target, GLenum internalformat, GLsizei width, GLsizei height) = NULL;
+	
+	void ( *GL::glBindFramebuffer )( GLenum target, GLuint framebuffer ) = NULL;
+	void ( *GL::glDeleteFramebuffers )( GLsizei n, const GLuint *framebuffers ) = NULL;
+	void ( *GL::glGenFramebuffers )( GLsizei n, GLuint *framebuffers ) = NULL;
+	
+	void ( *GL::glFramebufferTexture1D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level ) = NULL;
+	void ( *GL::glFramebufferTexture2D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level ) = NULL;
+	void ( *GL::glFramebufferTexture3D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset ) = NULL;
+	
+	void ( *GL::glFramebufferRenderbuffer )( GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) = NULL;
 
 
 	void GL::parseExtensions( const char* str )
@@ -103,6 +120,26 @@ namespace cvt {
 
 		if( !existsExtension( "GL_ARB_texture_non_power_of_two" ) ) {
 			std::cerr << "GL texture non power of two extension missing" << std::endl;
+			std::exit( EXIT_FAILURE );
+		}
+
+		if( existsExtension( "GL_EXT_framebuffer_object" ) || existsExtension( "GL_ARB_framebuffer_object" ) ) {
+			glBindRenderbuffer = ( void (*)( GLenum target, GLuint renderbuffer) ) getProcAddress( "glBindRenderbuffer" );
+			glDeleteRenderbuffers = ( void (*)( GLsizei n, const GLuint *renderbuffers) ) getProcAddress( "glDeleteRenderbuffers" );
+			glGenRenderbuffers = ( void (*)( GLsizei n, GLuint *renderbuffers) ) getProcAddress( "glGenRenderbuffers" );
+			glRenderbufferStorage = ( void (*)( GLenum target, GLenum internalformat, GLsizei width, GLsizei height) ) getProcAddress( "glRenderbufferStorage" );
+
+			glBindFramebuffer = ( void (*)( GLenum target, GLuint framebuffer ) ) getProcAddress( "glBindFramebuffer" );
+			glDeleteFramebuffers = ( void (*)( GLsizei n, const GLuint *framebuffers ) ) getProcAddress( "glDeleteFramebuffers" );
+			glGenFramebuffers = ( void (*)( GLsizei n, GLuint *framebuffers ) ) getProcAddress( "glGenFramebuffers" );
+
+			glFramebufferTexture1D = ( void (*)( GLenum target,  GLenum attachment,  GLenum textarget, GLuint texture, GLint level ) ) getProcAddress( "glFramebufferTexture1D" );
+			glFramebufferTexture2D = ( void (*)( GLenum target,  GLenum attachment,  GLenum textarget, GLuint texture, GLint level ) ) getProcAddress( "glFramebufferTexture2D" );
+			glFramebufferTexture3D = ( void (*)( GLenum target,  GLenum attachment,  GLenum textarget, GLuint texture, GLint level, GLint zoffset ) ) getProcAddress( "glFramebufferTexture3D" );
+
+			glFramebufferRenderbuffer = ( void (*)( GLenum target,  GLenum attachment,  GLenum renderbuffertarget, GLuint renderbuffer) ) getProcAddress( "glFramebufferRenderbuffer" );
+		} else {
+			std::cerr << "GL framebuffer extension missing" << std::endl;
 			std::exit( EXIT_FAILURE );
 		}
 
