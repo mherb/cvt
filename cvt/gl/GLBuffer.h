@@ -18,9 +18,7 @@ namespace cvt {
 			void* map( GLenum access = GL_READ_WRITE ) const;
 			void unmap() const;
 			/*
-			void* map( size_t offset, size_t length, GLbitfield	access ) const;
 			void sync( size_t offset, size_t length ) const;
-			void unmap() const;
 			 */
 
 		private:
