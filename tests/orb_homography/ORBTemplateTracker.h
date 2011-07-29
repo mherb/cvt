@@ -18,11 +18,11 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.5f, uint8_t cornerThreshold = 25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
-            _maxDistance( 40.0f ),
+            _maxDistance( 50.0f ),
             _lsh( &_tempFeatures )
         {
 
@@ -32,7 +32,7 @@ namespace cvt
 				bool add = true;
 				for( size_t i = 0; i < orb.size(); i++ ) {
 					if( f == i ) continue;
-					if( orb[ f ].distance( orb[ i ] ) < _maxDistance && ( orb[ f ].pt - orb[ i ].pt).length() > 1.0f ) {
+					if( orb[ f ].distance( orb[ i ] ) < _maxDistance && ( orb[ f ].pt - orb[ i ].pt).length() > 2.0f ) {
 						add = false;
 						break;
 					}
@@ -87,8 +87,8 @@ namespace cvt
             Matrix3f H, Hinv, T, Tinv;
 
             T.setIdentity();
-            T[ 0 ][ 2 ] = reference.width() / 2.0f;
-            T[ 1 ][ 2 ] = reference.height() / 2.0f;
+            T[ 0 ][ 2 ] = ( reference.width() - 1 ) / 2.0f;
+            T[ 1 ][ 2 ] = ( reference.height() - 1 ) / 2.0f;
             Tinv.setIdentity();
             Tinv[ 0 ][ 2 ] = -T[ 0 ][ 2 ];
             Tinv[ 1 ][ 2 ] = -T[ 1 ][ 2 ];
@@ -118,11 +118,22 @@ namespace cvt
 					bool add = true;
 					for( size_t i = 0; i < orby.size(); i++ ) {
 						if( f == i ) continue;
-						if( orby[ f ].distance( orby[ i ] ) < _maxDistance  && ( orby[ f ].pt - orby[ i ].pt).length() > 1.0f) {
+						if( orby[ f ].distance( orby[ i ] ) <= _maxDistance  && ( orby[ f ].pt - orby[ i ].pt).length() > 2.0f) {
 							add = false;
 							break;
 						}
 					}
+					if( add ) {
+						for( size_t i = 0; i < _tempFeatures.size(); i++ ) {
+							if( f == i ) continue;
+							if( orby[ f ].distance( _tempFeatures[ i ] ) <= _maxDistance  && ( Hinv * orby[ f ].pt - _tempFeatures[ i ].pt).length() > 2.0f) {
+								add = false;
+								break;
+							}
+						}
+					}
+
+
 					if( add ) {
 						pp = Hinv * orby[ f ].pt;
 						_tempFeatures.push_back( orby[ f ] );
@@ -143,11 +154,22 @@ namespace cvt
 					bool add = true;
 					for( size_t i = 0; i < orbx.size(); i++ ) {
 						if( f == i ) continue;
-						if( orbx[ f ].distance( orbx[ i ] ) < _maxDistance && ( orbx[ f ].pt - orbx[ i ].pt).length() > 1.0f) {
+						if( orbx[ f ].distance( orbx[ i ] ) <= _maxDistance && ( orbx[ f ].pt - orbx[ i ].pt).length() > 2.0f) {
 							add = false;
 							break;
 						}
 					}
+
+					if( add ) {
+						for( size_t i = 0; i < _tempFeatures.size(); i++ ) {
+							if( f == i ) continue;
+							if( orbx[ f ].distance( _tempFeatures[ i ] ) <= _maxDistance  && ( Hinv * orbx[ f ].pt - _tempFeatures[ i ].pt).length() > 2.0f) {
+								add = false;
+								break;
+							}
+						}
+					}
+
 					if( add ) {
 						pp = Hinv * orbx[ f ].pt;
 						_tempFeatures.push_back( orbx[ f ] );
