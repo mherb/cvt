@@ -32,10 +32,28 @@ namespace cvt {
 			static void ( *getProcAddress( const char* str ) ) ();
 			static void info( std::ostream& out );
 
+			// VertexArray
 			static void ( *glBindVertexArray )( GLuint array );
 			static void ( *glDeleteVertexArrays )( GLsizei n, const GLuint *arrays );
 			static void ( *glGenVertexArrays )( GLsizei n, GLuint *arrays);
 			static GLboolean ( *glIsVertexArray )( GLuint array);
+
+			// FramebufferObject
+			static void ( *glBindRenderbuffer )( GLenum target, GLuint renderbuffer);
+			static void ( *glDeleteRenderbuffers )( GLsizei n, const GLuint *renderbuffers);
+			static void ( *glGenRenderbuffers )( GLsizei n, GLuint *renderbuffers);
+			static void ( *glRenderbufferStorage )( GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+
+			static void ( *glBindFramebuffer )( GLenum target, GLuint framebuffer );
+			static void ( *glDeleteFramebuffers )( GLsizei n, const GLuint *framebuffers );
+			static void ( *glGenFramebuffers )( GLsizei n, GLuint *framebuffers );
+
+			static void ( *glFramebufferTexture1D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level );
+			static void ( *glFramebufferTexture2D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level );
+			static void ( *glFramebufferTexture3D )( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset );
+
+			static void ( *glFramebufferRenderbuffer )( GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+
 
 			static void ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near = -1.0f, float far = 1.0f );
 			static void orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near = -1.0f, float far = 1.0f );

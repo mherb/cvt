@@ -33,12 +33,12 @@ namespace cvt {
 
 	inline GLFBO::GLFBO( GLsizei width, GLsizei height ) : _fbo( 0 ), _width( width ), _height( height )
 	{
-		glGenFramebuffers( 1, &_fbo );
+		GL::glGenFramebuffers( 1, &_fbo );
 	}
 
 	inline GLFBO::~GLFBO()
 	{
-		glDeleteFramebuffers( 1, &_fbo );
+		GL::glDeleteFramebuffers( 1, &_fbo );
 	}
 
 	inline GLsizei GLFBO::width() const
@@ -60,27 +60,27 @@ namespace cvt {
 	inline void GLFBO::attach( GLenum target, GLRBO& rbo )
 	{
 		// attach the renderbuffer object
-		glFramebufferRenderbuffer( GL_FRAMEBUFFER, target, GL_RENDERBUFFER, rbo._rbo );
+		GL::glFramebufferRenderbuffer( GL_FRAMEBUFFER, target, GL_RENDERBUFFER, rbo._rbo );
 	}
 
 
 	inline void GLFBO::attach( GLenum target, GLTexture& tex, GLint level )
 	{
 		// attach texture object
-		glFramebufferTexture2D( GL_FRAMEBUFFER, target, tex.target(), tex._tex, level );
+		GL::glFramebufferTexture2D( GL_FRAMEBUFFER, target, tex.target(), tex._tex, level );
 	}
 
 	inline void GLFBO::bind()
 	{
 		// save current viewport
 		glGetIntegerv( GL_VIEWPORT, _viewport );
-		glBindFramebuffer( GL_FRAMEBUFFER, _fbo );
+		GL::glBindFramebuffer( GL_FRAMEBUFFER, _fbo );
 		glViewport( 0, 0, _width, _height );
 	}
 
 	inline void GLFBO::unbind()
 	{
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		GL::glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		// restore old viewport
 		glViewport( _viewport[ 0 ], _viewport[ 1 ], _viewport[ 2 ], _viewport[ 3 ] );
 	}
