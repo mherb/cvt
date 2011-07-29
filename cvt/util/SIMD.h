@@ -23,7 +23,7 @@ namespace cvt {
 		protected:
 			SIMD() {};
 			SIMD( const SIMD& ) {};
-        
+
 		public:
 			virtual ~SIMD() {};
 
@@ -42,7 +42,7 @@ namespace cvt {
 			virtual void SubValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void MulValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void DivValue1f( float* dst, float const* src, const float value, const size_t n ) const;
-        
+
 			virtual void AddValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void SubValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void MulValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
@@ -66,7 +66,7 @@ namespace cvt {
 			virtual void MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
 			virtual void MulU8Value1fx( Fixed * dst, const uint8_t* src, Fixed value, size_t n ) const;
 			virtual void MulAddU8Value1fx( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
-                    
+
 			/* memory block reductions */
 			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
 			virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
@@ -170,13 +170,14 @@ namespace cvt {
 
 			virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
-        
+
             virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
-        
+
             // prefix sum for 1 channel images
             virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
-        
-            // prefix sum and square sum 
+            virtual void prefixSum1_xxxxu8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+
+            // prefix sum and square sum
             virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
 
 
