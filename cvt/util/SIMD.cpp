@@ -4490,6 +4490,47 @@ namespace cvt {
         }
     }
 
+    void SIMD::prefixSum1_xxxxu8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
+    {
+        // first row
+        dst[ 0 ] = src[ 0 ];
+        dst[ 1 ] = src[ 1 ];
+        dst[ 2 ] = src[ 2 ];
+        dst[ 3 ] = src[ 3 ];
+
+		// first row
+        for( size_t i = 4; i < ( width << 2 ); i+=4 ){
+            dst[ i ]	 = dst[ i - 4 ] + src[ i ];
+            dst[ i + 1 ] = dst[ i - 3 ] + src[ i + 1 ];
+            dst[ i + 2 ] = dst[ i - 2 ] + src[ i + 2 ];
+            dst[ i + 3 ] = dst[ i - 1 ] + src[ i + 3 ];
+        }
+        height--;
+
+        float * prevRow = dst;
+        dst+=dstStride;
+        src+=srcStride;
+
+        float currRow[ 4 ];
+        while( height-- ){
+            currRow[ 0 ] = currRow[ 1 ] = currRow[ 2 ] = currRow[ 3 ] = 0;
+            for( size_t i = 0; i < ( width << 2 ); i+=4 ){
+                currRow[ 0 ] += src[ i ];
+                currRow[ 1 ] += src[ i + 1 ];
+                currRow[ 2 ] += src[ i + 2 ];
+                currRow[ 3 ] += src[ i + 3 ];
+
+                dst[ i ]	 = currRow[ 0 ]	+ prevRow[ i ];
+                dst[ i + 1 ] = currRow[ 1 ] + prevRow[ i + 1 ];
+                dst[ i + 2 ] = currRow[ 2 ] + prevRow[ i + 2 ];
+                dst[ i + 3 ] = currRow[ 3 ] + prevRow[ i + 3 ];
+            }
+            prevRow = dst;
+            dst += dstStride;
+            src += srcStride;
+        }
+    }
+
     void SIMD::prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const
     {
         dst[ 0 ] = Math::sqr( ( float )src[ 0 ] );

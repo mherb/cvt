@@ -11,20 +11,20 @@ namespace cvt {
 	{
 		IConvert::convert( dst, *this );
 	}
-	
+
 	void Image::convert( Image & dst, const IFormat & dstFormat ) const
 	{
 		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
 		IConvert::convert( dst, *this );
 	}
-	
+
 	void Image::fill( const Color& c )
 	{
 		size_t h, stride;
 		uint8_t* dst;
 		uint8_t* dbase;
 		SIMD* simd = SIMD::instance();
-		
+
 		switch ( _mem->_format.formatID ) {
 			case IFORMAT_GRAY_UINT8:
 				{
@@ -37,7 +37,7 @@ namespace cvt {
 					}
 					unmap( dbase );
 				}
-				break;				
+				break;
 			case IFORMAT_GRAY_UINT16:
 				throw CVTException("Unimplemented");
 				break;
@@ -47,7 +47,7 @@ namespace cvt {
 			case IFORMAT_GRAY_FLOAT:
 				{
 					float v = c.gray();
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -57,7 +57,7 @@ namespace cvt {
 					unmap( dbase );
 				}
 				break;
-			
+
 			case IFORMAT_GRAYALPHA_UINT8:
 				{
 					uint16_t v = ( uint16_t ) ( ( ( uint16_t ) ( 255.0f * c.alpha() ) ) << 8 );
@@ -80,7 +80,7 @@ namespace cvt {
 			case IFORMAT_GRAYALPHA_FLOAT:
 				{
 					float v[ 2 ] = { c.gray(), c.alpha() };
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -96,7 +96,7 @@ namespace cvt {
 					v |= ( ( uint32_t ) ( 255.0f * c.blue() ) ) << 16;
 					v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
 					v |= ( ( uint32_t ) ( 255.0f * c.red() ) );
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -115,7 +115,7 @@ namespace cvt {
 			case IFORMAT_RGBA_FLOAT:
 				{
 					float v[ 4 ] = { c.red(), c.green(), c.blue(), c.alpha() };
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -131,7 +131,7 @@ namespace cvt {
 					v |= ( ( uint32_t ) ( 255.0f * c.red() ) ) << 16;
 					v |= ( ( uint32_t ) ( 255.0f * c.green() ) ) << 8;
 					v |= ( ( uint32_t ) ( 255.0f * c.blue() ) );
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -139,7 +139,7 @@ namespace cvt {
 						dst += stride;
 					}
 					unmap( dbase );
-				}	
+				}
 				break;
 			case IFORMAT_BGRA_UINT16:
 				throw CVTException("Unimplemented");
@@ -148,9 +148,9 @@ namespace cvt {
 				throw CVTException("Unimplemented");
 				break;
 			case IFORMAT_BGRA_FLOAT:
-				{						
+				{
 					float v[ 4 ] = { c.blue(), c.green(), c.red(), c.alpha() };
-					
+
 					h = _mem->_height;
 					dbase = dst = map( &stride );
 					while( h-- ) {
@@ -160,13 +160,13 @@ namespace cvt {
 					unmap( dbase );
 				}
 				break;
-				
+
 			case IFORMAT_BAYER_RGGB_UINT8:
 				throw CVTException("Unimplemented");
 				break;
 			default:
 				throw CVTException("Unimplemented");
-				break;				
+				break;
 		}
 	}
 
@@ -204,7 +204,7 @@ namespace cvt {
 					uint8_t* dst = map( & stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->AddValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
@@ -219,7 +219,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->AddValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
@@ -234,14 +234,14 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->AddValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
 				}
-				break;				
+				break;
 			default:
 				throw CVTException("Unimplemented");
 
@@ -281,7 +281,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->SubValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
@@ -296,7 +296,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->SubValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
@@ -311,7 +311,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->SubValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
@@ -319,8 +319,8 @@ namespace cvt {
 					unmap( dbase );
 				}
 				break;
-				
-				
+
+
 			default:
 				throw CVTException("Unimplemented");
 
@@ -330,7 +330,7 @@ namespace cvt {
 	void Image::mul( float alpha )
 	{
 		SIMD* simd = SIMD::instance();
-		
+
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -362,7 +362,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->MulValue1f( ( float* ) dst, ( float* ) dst, c.gray(), _mem->_width );
 						dst += stride;
@@ -377,7 +377,7 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->MulValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
@@ -392,14 +392,14 @@ namespace cvt {
 					uint8_t* dst = map( &stride );
 					uint8_t* dbase = dst;
 					size_t h = _mem->_height;
-					
+
 					while( h-- ) {
 						simd->MulValue4f( ( float* ) dst, ( float* ) dst, v, _mem->_width * _mem->_format.channels );
 						dst += stride;
 					}
 					unmap( dbase );
 				}
-				break;				
+				break;
 			default:
 				throw CVTException("Unimplemented");
 
@@ -408,7 +408,7 @@ namespace cvt {
 
 	void Image::add( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || 
+		if( _mem->_width != i._mem->_width ||
 		    _mem->_height != i._mem->_height ||
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
@@ -441,7 +441,7 @@ namespace cvt {
 
 	void Image::sub( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || 
+		if( _mem->_width != i._mem->_width ||
 		    _mem->_height != i._mem->_height ||
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
@@ -474,7 +474,7 @@ namespace cvt {
 
 	void Image::mul( const Image& i )
 	{
-		if( _mem->_width != i._mem->_width || 
+		if( _mem->_width != i._mem->_width ||
 		    _mem->_height != i._mem->_height ||
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
@@ -537,18 +537,18 @@ namespace cvt {
 
 		}
 	}
-	
+
 	float Image::ssd( const Image& i ) const
 	{
 		if( _mem->_width != i._mem->_width ||
 		    _mem->_height != i._mem->_height ||
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
-		
+
 		SIMD* simd = SIMD::instance();
-		
+
 		float ssd = 0.0f;
-		
+
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 			{
@@ -557,7 +557,7 @@ namespace cvt {
 				const uint8_t* baseA = srcA;
 				const uint8_t* srcB = map( &bstride );
 				const uint8_t* baseB = srcB;
-											
+
 				size_t h = _mem->_height;
 				while( h-- ) {
 					ssd += simd->SSD( ( float* ) srcA, ( float* )srcB, _mem->_width * _mem->_format.channels );
@@ -569,13 +569,13 @@ namespace cvt {
 			}
 				break;
 			case IFORMAT_TYPE_UINT8:
-			{				
+			{
 				size_t astride, bstride;
 				const uint8_t* srcA = i.map( &astride );
 				const uint8_t* baseA = srcA;
 				const uint8_t* srcB = map( &bstride );
 				const uint8_t* baseB = srcB;
-				
+
 				size_t h = _mem->_height;
 				while( h-- ) {
 					ssd += simd->SSD( srcA, srcB, _mem->_width * _mem->_format.channels );
@@ -588,22 +588,22 @@ namespace cvt {
 				break;
 			default:
 				throw CVTException("Unimplemented");
-				
+
 		}
 		return ssd;
 	}
-	
+
 	float Image::sad( const Image& i ) const
 	{
-		if( _mem->_width != i._mem->_width || 
+		if( _mem->_width != i._mem->_width ||
 		    _mem->_height != i._mem->_height ||
 		    _mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
-		
+
 		SIMD* simd = SIMD::instance();
-		
+
 		float sad = 0.0f;
-		
+
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
@@ -630,7 +630,7 @@ namespace cvt {
 				const uint8_t* baseA = srcA;
 				const uint8_t* srcB = map( &bstride );
 				const uint8_t* baseB = srcB;
-				
+
 				size_t h = _mem->_height;
 				while( h-- ) {
 					sad += simd->SAD( srcA, srcB, _mem->_width * _mem->_format.channels );
@@ -643,12 +643,12 @@ namespace cvt {
 				break;
 			default:
 				throw CVTException("Unimplemented");
-				
+
 		}
-		
+
 		return sad ;
 	}
-	
+
 	void Image::convolve( Image& idst, const IKernel& kernel ) const
 	{
 		if( _mem->_format.type == IFORMAT_TYPE_FLOAT && idst._mem->_format.type == IFORMAT_TYPE_FLOAT )
@@ -1295,7 +1295,7 @@ namespace cvt {
 		delete[] hweights;
 	}
 
-	
+
 
 	void Image::scale( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
@@ -1401,15 +1401,15 @@ namespace cvt {
 		delete[] scalery.size;
 		delete[] scalery.weights;
 	}
-	
+
 	void Image::scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const
 	{
 		IConvolveAdaptiveFixed scalerx;
 		IConvolveAdaptiveFixed scalery;
-		
+
 		IConvolveAdaptiveSize* pysw;
 		Fixed* pyw;
-		
+
 		const uint8_t* src;
 		const uint8_t* osrc;
 		const uint8_t* send;
@@ -1423,8 +1423,8 @@ namespace cvt {
 		size_t bufsize;
 		size_t curbuf;
 		void (SIMD::*scalex_func)( Fixed* _dst, uint8_t const* _src, const size_t width, IConvolveAdaptiveFixed* conva ) const;
-		SIMD* simd = SIMD::instance();		
-		
+		SIMD* simd = SIMD::instance();
+
 		if( _mem->_format.channels == 1 ) {
 			scalex_func = &SIMD::ConvolveAdaptive1Fixed;
 		} else if( _mem->_format.channels == 2 ) {
@@ -1432,16 +1432,16 @@ namespace cvt {
 		} else {
 			scalex_func = &SIMD::ConvolveAdaptive4Fixed;
 		}
-		
+
 		idst.reallocate( width, height, this->format() );
-		
+
 		osrc = src = map( &sstride );
 		odst = dst = idst.map( &dstride );
 		send = src + sstride * _mem->_height;
-		
+
 		bufsize = filter.getAdaptiveConvolutionWeights( height, _mem->_height, scalery, true );
 		filter.getAdaptiveConvolutionWeights( width, _mem->_width, scalerx, false );
-		
+
 		buf = new Fixed*[ bufsize ];
 		// allocate and fill buffer
 		for( i = 0; i < bufsize; i++ ) {
@@ -1451,10 +1451,10 @@ namespace cvt {
 			src += sstride;
 		}
 		curbuf = 0;
-		
+
 		pysw = scalery.size;
 		pyw = scalery.weights;
-		
+
 		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * width * _mem->_format.channels ) )
 			throw CVTException("Out of memory");
 
@@ -1466,7 +1466,7 @@ namespace cvt {
 				}
 				curbuf = ( curbuf + pysw->incr ) % bufsize;
 			}
-			
+
 			l = 0;
 			while( *pyw == ( Fixed )0.0f ) {
 				l++;
@@ -1479,18 +1479,18 @@ namespace cvt {
 					simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + l ) % bufsize ], *pyw, width * _mem->_format.channels );
 				pyw++;
 			}
-			
+
 			for( size_t w = 0;  w < width * _mem->_format.channels; w++ ){
 				dst[ w ] = Math::clamp( accumBuf[ w ].round(), 0, 255 );
 			}
-			
+
 			pysw++;
 			dst += dstride;
 		}
-		
+
 		idst.unmap( odst );
 		unmap( osrc );
-		
+
 		free( accumBuf );
 		for( i = 0; i < bufsize; i++ )
 			free( buf[ i ] );
@@ -1506,7 +1506,7 @@ namespace cvt {
 		size_t m, n, k, K;
 		size_t sstride, dstride, wstride;
 
-		if( _mem->_format.type == IFORMAT_TYPE_FLOAT && 
+		if( _mem->_format.type == IFORMAT_TYPE_FLOAT &&
 			warp._mem->_format == IFormat::GRAYALPHA_FLOAT ) {
 			const uint8_t* src;
 			const uint8_t* osrc;
@@ -1558,19 +1558,19 @@ namespace cvt {
 		} else
 			throw CVTException("Unimplemented");
 	}
-        
+
     void Image::integralImage( Image & dst ) const
     {
         dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), _mem->type() );
-                     
+
         size_t inStride;
         size_t dstStride;
-        
-        float * out = dst.map<float>( &dstStride );        
+
+        float * out = dst.map<float>( &dstStride );
         SIMD * simd = SIMD::instance();
-        
+
         IFormatID fId = this->format().formatID;
-        
+
         switch ( fId ) {
             case IFORMAT_GRAY_UINT8:
             {
@@ -1579,26 +1579,35 @@ namespace cvt {
                 this->unmap( in );
             }
             break;
-                
+            case IFORMAT_BGRA_UINT8:
+            case IFORMAT_RGBA_UINT8:
+            {
+                const uint8_t * in = this->map<uint8_t > ( &inStride );
+                simd->prefixSum1_xxxxu8_to_f( out, dstStride, in, inStride, width( ), height( ) );
+                this->unmap( in );
+            }
+                break;
+
+
             default:
                 this->unmap( out );
                 throw CVTException( "IntegralImage not implemented for type: " + fId );
         }
         this->unmap( out );
     }
-    
+
     void Image::squaredIntegralImage( Image & dst ) const
     {
         dst.reallocate( this->width(), this->height(), IFormat::floatEquivalent( this->format() ), _mem->type() );
-        
+
         size_t inStride;
         size_t dstStride;
-        
-        float * out = dst.map<float>( &dstStride );        
+
+        float * out = dst.map<float>( &dstStride );
         SIMD * simd = SIMD::instance();
-        
+
         IFormatID fId = this->format().formatID;
-        
+
         switch ( fId ) {
             case IFORMAT_GRAY_UINT8:
             {
@@ -1606,8 +1615,8 @@ namespace cvt {
                 simd->prefixSumSqr1_u8_to_f( out, dstStride, in, inStride, width(), height() );
                 this->unmap( in );
             }
-                break;
-                
+            break;
+
             default:
                 this->unmap( out );
                 throw CVTException( "Squared integralImage not implemented for type: " + fId );
