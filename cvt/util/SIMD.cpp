@@ -3,6 +3,9 @@
 #include <cvt/util/SIMD.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMDSSE.h>
+#include <cvt/util/SIMDSSE2.h>
+#include <cvt/util/SIMDSSE3.h>
+#include <cvt/util/SIMDSSSE3.h>
 #include <cvt/util/SIMDSSE41.h>
 #include <cvt/util/SIMDSSE42.h>
 #include <cvt/util/SIMDAVX.h>
@@ -701,7 +704,11 @@ namespace cvt {
 				return new SIMDSSE42();
 			} else if( cpuf & CPU_SSE4_1 ) {
 				return new SIMDSSE41();
-			}  else if( cpuf & CPU_SSE2 ) {
+			} else if( cpuf & CPU_SSSE3 ) {
+				return new SIMDSSSE3();
+			} else if( cpuf & CPU_SSE3 ) {
+				return new SIMDSSE3();
+			}else if( cpuf & CPU_SSE2 ) {
 				return new SIMDSSE2();
 			}else if( cpuf & CPU_SSE ) {
 				return new SIMDSSE();
@@ -714,6 +721,8 @@ namespace cvt {
 				case SIMD_BASE: return new SIMD();
 				case SIMD_SSE: return new SIMDSSE();
 				case SIMD_SSE2: return new SIMDSSE2();
+				case SIMD_SSE3: return new SIMDSSE3();
+				case SIMD_SSSE3: return new SIMDSSSE3();
 				case SIMD_SSE41: return new SIMDSSE41();
                 case SIMD_SSE42: return new SIMDSSE42();
                 case SIMD_AVX: return new SIMDAVX();
@@ -731,9 +740,13 @@ namespace cvt {
             return SIMD_SSE42;
         } else if( cpuf & CPU_SSE4_1 ) {
             return SIMD_SSE41;
-        }  else if( cpuf & CPU_SSE2 ) {
+        } else if( cpuf & CPU_SSSE3 ) {
+            return SIMD_SSSE3;
+        } else if( cpuf & CPU_SSE3 ) {
+            return SIMD_SSE3;
+        } else if( cpuf & CPU_SSE2 ) {
             return SIMD_SSE2;
-        }else if( cpuf & CPU_SSE ) {
+        } else if( cpuf & CPU_SSE ) {
             return SIMD_SSE;
         } else {
             return SIMD_BASE;
