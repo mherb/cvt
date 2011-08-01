@@ -21,7 +21,7 @@ namespace cvt {
 																		  1, 2, 2, 3,
 																		  2, 3, 3, 4 };
 
-		__m128i s1, s2, xored, highNibbles, lowNibbles, zero, sum1, sum2, sum;
+		__m128i s1, s2, xored, highNibbles, lowNibbles, zero, sum1, sum2, sum, sumUp1, sumUp2;
 
 		const __m128i mask = _mm_set1_epi8( 0x0f );
 		const __m128i lut  = _mm_loadu_si128( ( __m128i* )LUT );
@@ -31,8 +31,8 @@ namespace cvt {
 		size_t n16 = n >> 4;
 		size_t r   = n & 0xff;
 			
-        sum1 = zero;
-        sum2 = zero;
+        sum1 = sumUp1 = zero;
+        sum2 = sumUp2 = zero;
 
         // calculate the number of 31 blocks we need to process
         // n = 16 * 31 * x + r -> x / 496 + 1
@@ -62,16 +62,14 @@ namespace cvt {
             
 			// each 31 loops, accumulate the result into bitcount to
             // avoid overflow
-            sum = _mm_sad_epu8( sum1, zero );
-            sum = _mm_add_epi64( sum, _mm_sad_epu8( sum2, zero ) );
-
-            
-			sum = _mm_add_epi64( _mm_srli_si128( sum, 8 ), sum );
-
-            bitcount += ( ( uint64_t* )( &sum ) )[ 0 ];
-			sum1 = zero;
-			sum2 = zero;
+            sumUp1 = _mm_add_epi64( sumUp1, _mm_sad_epu8( sum1, zero ) );
+            sumUp2 = _mm_add_epi64( sumUp2, _mm_sad_epu8( sum2, zero ) );
         }
+
+		sum = _mm_add_epi64( sumUp1, sumUp2 );
+		sum = _mm_add_epi64( _mm_srli_si128( sum, 8 ), sum );
+
+        bitcount += ( ( uint64_t* )( &sum ) )[ 0 ];
 
 
         if( r ){
