@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <cvt/util/Exception.h>
 #include <fstream>
+#include <cvt/gl/OpenGL.h>
 
 namespace cvt
 {
@@ -75,10 +76,13 @@ namespace cvt
 		static const IFormat YUYV_UINT8;
 		static const IFormat UYVY_UINT8;
 
-		static const IFormat & uint8Equivalent( const IFormat & format );
-		static const IFormat & int16Equivalent( const IFormat & format );
-		static const IFormat & floatEquivalent( const IFormat & format );
-        static const IFormat & formatForId( IFormatID formatID );
+		static const IFormat& uint8Equivalent( const IFormat & format );
+		static const IFormat& int16Equivalent( const IFormat & format );
+		static const IFormat& floatEquivalent( const IFormat & format );
+        static const IFormat& formatForId( IFormatID formatID );
+		static const IFormat& glEquivalent( GLenum format, GLenum type );
+
+		void toGLFormatType( GLenum& format, GLenum& type ) const;
 
 		private:
 			IFormat( size_t c, size_t bpc, size_t bpp, IFormatID formatID, IFormatType type );
@@ -184,8 +188,96 @@ namespace cvt
 				break;
 		}
 	}
-    
-    inline const IFormat & IFormat::formatForId( IFormatID formatID )
+
+
+	inline void IFormat::toGLFormatType( GLenum& glformat, GLenum& gltype ) const
+	{
+		switch ( formatID ) {
+			case IFORMAT_GRAY_UINT8:		glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAY_UINT16:		glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAY_INT16:		glformat = GL_RED; gltype = GL_SHORT; break;
+			case IFORMAT_GRAY_FLOAT:		glformat = GL_RED; gltype = GL_FLOAT; break;
+
+			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RG; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RG; gltype = GL_SHORT; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RG; gltype = GL_FLOAT; break;
+
+			case IFORMAT_RGBA_UINT8:		glformat = GL_RGBA; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_RGBA_UINT16:		glformat = GL_RGBA; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_RGBA_INT16:		glformat = GL_RGBA; gltype = GL_SHORT; break;
+			case IFORMAT_RGBA_FLOAT:		glformat = GL_RGBA; gltype = GL_FLOAT; break;
+
+			case IFORMAT_BGRA_UINT8:		glformat = GL_BGRA; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_BGRA_UINT16:		glformat = GL_BGRA; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
+			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
+
+			case IFORMAT_BAYER_RGGB_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+
+			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			default:
+											throw CVTException( "No equivalent GL format found" );
+											break;
+		}
+	}
+
+	inline const IFormat& IFormat::glEquivalent( GLenum format, GLenum type )
+	{
+		switch( format )
+		{
+			case GL_RED:
+				switch( type ) {
+					case GL_UNSIGNED_BYTE: return IFormat::GRAY_UINT8;
+					case GL_UNSIGNED_SHORT: return IFormat::GRAY_UINT16;
+					case GL_SHORT: return IFormat::GRAY_INT16;
+					case GL_FLOAT: return IFormat::GRAY_FLOAT;
+					default:
+						throw CVTException("GL type unsupported");
+						break;
+				}
+				break;
+			case GL_RG:
+				switch( type ) {
+					case GL_UNSIGNED_BYTE: return IFormat::GRAYALPHA_UINT8;
+					case GL_UNSIGNED_SHORT: return IFormat::GRAYALPHA_UINT16;
+					case GL_SHORT: return IFormat::GRAYALPHA_INT16;
+					case GL_FLOAT: return IFormat::GRAYALPHA_FLOAT;
+					default:
+						throw CVTException("GL type unsupported");
+						break;
+				}
+				break;
+			case GL_RGBA:
+				switch( type ) {
+					case GL_UNSIGNED_BYTE: return IFormat::RGBA_UINT8;
+					case GL_UNSIGNED_SHORT: return IFormat::RGBA_UINT16;
+					case GL_SHORT: return IFormat::RGBA_INT16;
+					case GL_FLOAT: return IFormat::RGBA_FLOAT;
+					default:
+						throw CVTException("GL type unsupported");
+						break;
+				}
+				break;
+			case GL_BGRA:
+				switch( type ) {
+					case GL_UNSIGNED_BYTE: return IFormat::BGRA_UINT8;
+					case GL_UNSIGNED_SHORT: return IFormat::BGRA_UINT16;
+					case GL_SHORT: return IFormat::BGRA_INT16;
+					case GL_FLOAT: return IFormat::BGRA_FLOAT;
+					default:
+						throw CVTException("GL type unsupported");
+						break;
+				}
+				break;
+			default:
+				throw CVTException( "GL format unsupported" );
+				break;
+		}
+	}
+
+    inline const IFormat& IFormat::formatForId( IFormatID formatID )
     {
         switch ( formatID ) {
 			case IFORMAT_GRAY_UINT8:
