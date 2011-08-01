@@ -22,7 +22,7 @@ namespace cvt
 				dst += 4;
 			}
 		} else {
-			while( i-- ) {
+			while( i-- ){
 				in = _mm_load_si128( ( __m128i* ) src );
 				inf = _mm_mul_ps( mul, _mm_cvtepi32_ps( in ) );
 				_mm_store_si128( ( __m128i* ) dst, _mm_cvtps_epi32( inf ) );
@@ -96,35 +96,35 @@ namespace cvt
 
 	size_t SIMDSSE2::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
-		size_t i = n >> 4;	
+		size_t i = n >> 4;
 		size_t sad = 0;
-				
+
 		__m128i simdA, simdB, simdC;
 		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
 			while( i-- ) {
 				simdA = _mm_loadu_si128( ( __m128i* )src1 );
-				simdB = _mm_loadu_si128( ( __m128i* )src2 );			
+				simdB = _mm_loadu_si128( ( __m128i* )src2 );
 				simdC = _mm_sad_epu8( simdA, simdB );
 				sad += _mm_extract_epi16( simdC, 0 );
-				sad += _mm_extract_epi16( simdC, 4 );				
+				sad += _mm_extract_epi16( simdC, 4 );
 				src1 += 16; src2 += 16;
 			}
 		} else {
 			while( i-- ) {
 				simdA = _mm_load_si128( ( __m128i* )src1 );
-				simdB = _mm_load_si128( ( __m128i* )src2 );			
+				simdB = _mm_load_si128( ( __m128i* )src2 );
 				simdC = _mm_sad_epu8( simdA, simdB );
 				sad += _mm_extract_epi16( simdC, 0 );
-				sad += _mm_extract_epi16( simdC, 4 );				
+				sad += _mm_extract_epi16( simdC, 4 );
 				src1 += 16; src2 += 16;
 			}
 		}
-		
+
 		i = n & 0x03;
 		while( i-- ) {
 			sad += Math::abs( ( int16_t )*src1++ - ( int16_t )*src2++ );
 		}
-		
+
 		return sad;
 	}
 
@@ -1542,7 +1542,7 @@ namespace cvt
 		}
 	}
 
-	
+
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
 		const uint8_t* src = ptr - 4 * stride - 4;
@@ -1556,7 +1556,7 @@ namespace cvt
 	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(2, 3, 0, 1)); \
 	r = _mm_add_epi32(r, rw); \
 } while( 0 )
-		
+
 		zero = _mm_setzero_si128();
 		mask = _mm_insert_epi16( zero, 0xFFFF, 0 );
 		ix = iy = ixy = _mm_setzero_si128();
@@ -1598,7 +1598,7 @@ namespace cvt
 			t1 = _mm_unpacklo_epi8( t1, zero );
 			t2 = _mm_unpacklo_epi8( t2, zero );
 			dy = _mm_sub_epi16( t2, t1 );
-			
+
 			dyc = _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) );
 			dyc = _mm_add_epi16( dyc, _mm_slli_epi16( dy, 1 ) );
 
@@ -1634,51 +1634,51 @@ namespace cvt
         __m128i x;
         __m128i xl16, xh16, zero;
         __m128  xf, y;
-        
+
         zero = _mm_setzero_si128();
         y = _mm_setzero_ps();
-        
+
         size_t n = width >> 4;
-        
+
         float * dst = _dst;
         const uint8_t * src = _src;
-        
+
         while( n-- ){
             x = _mm_loadu_si128( ( __m128i* )src );
-            
+
             // cast to 2x8 uint16:
             xl16 = _mm_unpacklo_epi8( x, zero );
             xh16 = _mm_unpackhi_epi8( x, zero );
-            
+
             xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
             xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
             xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
-            
+
             xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
             xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
             xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
-            xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );            
-            
-            // process lower 8: 
+            xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
+
+            // process lower 8:
             xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
-            xf = _mm_add_ps( xf, y );            
+            xf = _mm_add_ps( xf, y );
             _mm_store_ps( dst, xf );
-            
+
             xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
             xf = _mm_add_ps( xf, y );
             _mm_store_ps( dst + 4, xf );
-            
+
             xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
-            xf = _mm_add_ps( xf, y );            
+            xf = _mm_add_ps( xf, y );
             _mm_store_ps( dst + 8, xf );
-            
+
             xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
             xf = _mm_add_ps( xf, y );
             _mm_store_ps( dst + 12, xf );
-            
+
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-            
-            src += 16; 
+
+            src += 16;
             dst += 16;
         }
         n = width & 0xf;
@@ -1689,156 +1689,156 @@ namespace cvt
             *dst++ = yl;
         }
         height--;
-        
+
         float * prevRow = _dst;
         _src += srcStride;
         _dst += dstStride;
-        
+
         __m128 prev;
-        
+
         while( height-- ){
             n = width >> 4;
-            
+
             src = _src;
             dst = _dst;
             y = _mm_setzero_ps();
-            
+
             while( n-- ){
                 // next 16 values
                 x = _mm_loadu_si128( ( __m128i* )src );
-                
+
                 // cast to 2x8 uint16:
                 xl16 = _mm_unpacklo_epi8( x, zero );
                 xh16 = _mm_unpackhi_epi8( x, zero );
-                
+
                 xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
                 xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
                 xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
-                
+
                 xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
                 xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
                 xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
-                xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );            
-                
-                // process lower 8: 
+                xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
+
+                // process lower 8:
                 prev = _mm_load_ps( prevRow );
                 xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
                 xf = _mm_add_ps( xf, y );
                 xf = _mm_add_ps( xf, prev );
                 _mm_store_ps( dst, xf );
-                
+
                 prev = _mm_load_ps( prevRow + 4 );
                 xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
                 xf = _mm_add_ps( xf, y );
                 xf = _mm_add_ps( xf, prev );
                 _mm_store_ps( dst + 4, xf );
-                
+
                 prev = _mm_load_ps( prevRow + 8 );
                 xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
-                xf = _mm_add_ps( xf, y );   
+                xf = _mm_add_ps( xf, y );
                 xf = _mm_add_ps( xf, prev );
                 _mm_store_ps( dst + 8, xf );
-                
+
                 prev = _mm_load_ps( prevRow + 12 );
                 xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
                 xf = _mm_add_ps( xf, y );
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 xf = _mm_add_ps( xf, prev );
                 _mm_store_ps( dst + 12, xf );
-                
-                src += 16; 
+
+                src += 16;
                 dst += 16;
                 prevRow += 16;
             }
-            
+
             n = width & 0xf;
             _mm_store_ss( &yl, y );
             while( n-- ){
                 yl += *src++;
                 *dst++ = yl + *prevRow++;
             }
-            
+
             prevRow = _dst;
             _dst += dstStride;
             _src += srcStride;
-        }        
+        }
     }
-    
-    
+
+
     void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
         __m128i x;
-        __m128i xl16, xh16, zero, xl32, xh32;        
+        __m128i xl16, xh16, zero, xl32, xh32;
         __m128  xf, y;
-    
-        
+
+
         zero = _mm_setzero_si128();
         y = _mm_setzero_ps();
-        
+
         size_t n = width >> 4;
-        
+
         float * dst = _dst;
         const uint8_t * src = _src;
-        
+
         while( n-- ){
             // load next 16 bytes
             x = _mm_loadu_si128( ( __m128i* )src );
-            
+
             // cast to 2x8 uint16:
             xl16 = _mm_unpacklo_epi8( x, zero );
             xh16 = _mm_unpackhi_epi8( x, zero );
-            
+
             // calc the squares of the values:
             xl16 = _mm_mullo_epi16( xl16, xl16 );
             xh16 = _mm_mullo_epi16( xh16, xh16 );
-            
+
             // now convert each into 2x4 float for save computations
-            
+
             // the lower 8 of the overall 16
             xl32 = _mm_unpacklo_epi16( xl16, zero );
             xh32 = _mm_unpackhi_epi16( xl16, zero );
-   
+
             // process lower 4 floats
-            xf = _mm_cvtepi32_ps( xl32 ); // convert to float            
+            xf = _mm_cvtepi32_ps( xl32 ); // convert to float
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
             xf = _mm_add_ps( xf, y );// add current row sum
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );            
-            _mm_store_ps( dst, xf );            
-            
-            // process upper 4 floats
-            xf = _mm_cvtepi32_ps( xh32 );            
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
-            xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 4, xf );            
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-            
+            _mm_store_ps( dst, xf );
+
+            // process upper 4 floats
+            xf = _mm_cvtepi32_ps( xh32 );
+            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+            xf = _mm_add_ps( xf, y );// add current row sum
+            _mm_store_ps( dst + 4, xf );
+            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
             // the lower 8 of the overall 16
             xl32 = _mm_unpacklo_epi16( xh16, zero );
             xh32 = _mm_unpackhi_epi16( xh16, zero );
-            
+
             // process lower 4 floats
-            xf = _mm_cvtepi32_ps( xl32 );            
+            xf = _mm_cvtepi32_ps( xl32 );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
             xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 8, xf );            
+            _mm_store_ps( dst + 8, xf );
             y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-            
+
             // process upper 4 floats
-            xf = _mm_cvtepi32_ps( xh32 );            
+            xf = _mm_cvtepi32_ps( xh32 );
             xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
             xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 12, xf );            
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );            
-            
-            src += 16; 
+            _mm_store_ps( dst + 12, xf );
+            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+            src += 16;
             dst += 16;
         }
-        
+
         n = width & 0xf;
         float yl;
         _mm_store_ss( &yl, y );
@@ -1846,100 +1846,100 @@ namespace cvt
             yl += Math::sqr( ( float )*src++ );
             *dst++ = yl;
         }
-        
+
         height--;
-        
+
         float * prevRow = _dst;
         _src += srcStride;
         _dst += dStride;
-        
+
         __m128 prev;
-        
+
         while( height-- ){
             n = width >> 4;
-            
+
             src = _src;
             dst = _dst;
             y = _mm_setzero_ps();
-            
+
             while( n-- ){
                 // load next 16 bytes
                 x = _mm_loadu_si128( ( __m128i* )src );
-                
+
                 // cast to 2x8 uint16:
                 xl16 = _mm_unpacklo_epi8( x, zero );
                 xh16 = _mm_unpackhi_epi8( x, zero );
-                
+
                 // calc the squares of the values:
                 xl16 = _mm_mullo_epi16( xl16, xl16 );
                 xh16 = _mm_mullo_epi16( xh16, xh16 );
-                
+
                 // now convert each into 2x4 float for save computations
-                
+
                 // the lower 8 of the overall 16
                 xl32 = _mm_unpacklo_epi16( xl16, zero );
                 xh32 = _mm_unpackhi_epi16( xl16, zero );
-                
+
                 // process lower 4 floats
-                xf = _mm_cvtepi32_ps( xl32 );                                                  
+                xf = _mm_cvtepi32_ps( xl32 );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
                 xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow );
                 xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst, xf );            
-                
+                _mm_store_ps( dst, xf );
+
                 // process upper 4 floats
-                xf = _mm_cvtepi32_ps( xh32 );                
+                xf = _mm_cvtepi32_ps( xh32 );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
                 xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 4 );
                 xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst + 4, xf );            
-                
+                _mm_store_ps( dst + 4, xf );
+
                 // the lower 8 of the overall 16
                 xl32 = _mm_unpacklo_epi16( xh16, zero );
                 xh32 = _mm_unpackhi_epi16( xh16, zero );
-                
+
                 // process lower 4 floats
-                xf = _mm_cvtepi32_ps( xl32 );  
+                xf = _mm_cvtepi32_ps( xl32 );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
                 xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 8 );
                 xf = _mm_add_ps( xf, prev ); // add previous row
                 _mm_store_ps( dst + 8, xf );
-                
+
                 // process upper 4 floats
-                xf = _mm_cvtepi32_ps( xh32 );   
+                xf = _mm_cvtepi32_ps( xh32 );
                 xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );            
+                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
                 xf = _mm_add_ps( xf, y );// add current row sum
                 y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
                 prev = _mm_load_ps( prevRow + 12 );
                 xf = _mm_add_ps( xf, prev ); // add previous row
                 _mm_store_ps( dst + 12, xf );
-                
-                src += 16; 
-                dst += 16;    
+
+                src += 16;
+                dst += 16;
                 prevRow += 16;
             }
-            
+
             n = width & 0xf;
             _mm_store_ss( &yl, y );
             while( n-- ){
                 yl += Math::sqr( ( float )*src++ );
                 *dst++ = yl + *prevRow++;
             }
-            
+
             prevRow = _dst;
             _dst += dStride;
             _src += srcStride;
         }
     }
-    
+
 }

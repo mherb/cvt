@@ -12,6 +12,8 @@ namespace cvt {
 		SIMD_BASE = 0,
 		SIMD_SSE,
 		SIMD_SSE2,
+        SIMD_SSE3,
+        SIMD_SSSE3,
 		SIMD_SSE41,
 		SIMD_SSE42,
 		SIMD_AVX,

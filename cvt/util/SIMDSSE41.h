@@ -1,11 +1,11 @@
 #ifndef SIMDSSE41_H
 #define SIMDSSE41_H
 
-#include <cvt/util/SIMDSSE2.h>
+#include <cvt/util/SIMDSSSE3.h>
 
 namespace cvt {
 
-	class SIMDSSE41 : public SIMDSSE2 {
+	class SIMDSSE41 : public SIMDSSSE3 {
 		friend class SIMD;
 
 		protected:
