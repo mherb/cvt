@@ -59,43 +59,52 @@ static bool _hammingTest()
 {
     bool result = true;
     
-    const size_t num = 256;
+    const size_t num = 15684;
     uint8_t vecA[ num ], vecB[ num ];
     srand( time( NULL ) );
+    
+    // initialize the arrays:
+    for( size_t i = 0; i < num; i++ ){
+        vecA[ i ] = ( uint8_t )rand();        
+    }
+    
       
     SIMDType bestType = SIMD::bestSupportedType();
-    for (int st = SIMD_BASE; st <= bestType; st++) {
-        
-        // initialize the arrays:
-        for( size_t i = 0; i < num; i++ ){
-                vecA[ i ] = ( uint8_t )rand();
-                vecB[ i ] = vecA[ i ];
-        }
+    for (int st = SIMD_BASE; st <= bestType; st++) {        
         
         SIMD* simd = SIMD::get((SIMDType) st);
+
+        for( size_t i = 0; i < num; i++ ){
+            vecB[ i ] = vecA[ i ];
+        }
+        
         
         // first test should return 0:
         uint64_t expectedResult = 0;
         
-        size_t i = 0;
         bool tRes = true;
-        do {
-            size_t bitdistance = simd->hammingDistance( vecA, vecB, num );
+        
+        size_t bitdistance = simd->hammingDistance( vecA, vecB, num );            
+        tRes &= ( bitdistance == expectedResult );
+        
+        if( tRes == false ){
+            std::cout << "Expected Result: " << expectedResult << ", Bit distance: " << bitdistance << std::endl;
+        }
+        
+        for( size_t i = 0; i < num * 8; i++ ){
+            // invert the bit bits
+            size_t bucket = i >> 3;
+            size_t mask = 1 << ( i & 0x7 );
+            vecB[ bucket ] ^= mask;
+            expectedResult += 1;
             
+            size_t bitdistance = simd->hammingDistance( vecA, vecB, num );            
             tRes &= ( bitdistance == expectedResult );           
             
             if( tRes == false ){
                 std::cout << "Expected Result: " << expectedResult << ", Bit distance: " << bitdistance << std::endl;
             }
-            
-            
-            // invert bits
-            if( i < num )
-                vecB[ i ] = ~vecB[ i ];
-            
-            i++;
-            expectedResult += 8;
-        } while( i < ( num + 1 ) );
+        }
         
         result &= tRes;
         CVTTEST_PRINT( "HammingDistance " + simd->name() + ": ", tRes );
@@ -317,17 +326,28 @@ BEGIN_CVTTEST( simd )
             
         uint8_t * ham0 = new uint8_t[ TESTSIZE ];
         uint8_t * ham1 = new uint8_t[ TESTSIZE ];
+        size_t ref = 0;
         for( int st = SIMD_BASE; st <= bestType; st++ ) {
             SIMD* simd = SIMD::get( ( SIMDType ) st );
             t = 0;
             tmr.reset();
-            int pcount;
+            size_t pcount;
             for( int iter = 0; iter < 100; iter++ ) {				
                 pcount = simd->hammingDistance( ham0, ham1, TESTSIZE );
             }
             t += tmr.elapsedMilliSeconds();
             t /= 100.0;
             std::cout << simd->name() << " HAMMING DISTANCE "  << t  << " ms" << std::endl;
+            
+            if( st == SIMD_BASE ) {
+                ref = pcount;
+            } else {
+                if( pcount != ref ){
+                    std::cout << simd->name() << " pcount = " << pcount << ", reference = " << ref << std::endl;
+                }
+            }
+
+            
             delete simd;
         }
         delete[] ham0;
