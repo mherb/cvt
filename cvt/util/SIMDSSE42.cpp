@@ -5,7 +5,8 @@
 
 namespace cvt
 {
-    size_t SIMDSSE42::hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const
+    /*
+	size_t SIMDSSE42::hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const
     {
         size_t pcount = 0;
 
@@ -28,6 +29,6 @@ namespace cvt
         }
 
         return pcount;
-    }
+    }*/
 
 }

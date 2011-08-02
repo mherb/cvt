@@ -12,7 +12,7 @@ namespace cvt {
 			SIMDSSE42()	{}
 
 		public:
-			virtual size_t hammingDistance(const uint8_t* src1, const uint8_t* src2, size_t n) const;
+//			virtual size_t hammingDistance(const uint8_t* src1, const uint8_t* src2, size_t n) const;
 
 			virtual std::string name() const;
 			virtual SIMDType type() const;

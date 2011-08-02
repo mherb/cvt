@@ -5,7 +5,7 @@
  * Created on August 1, 2011, 8:48 AM
  */
 
-#include "SIMDSSSE3.h"
+#include <cvt/util/SIMDSSSE3.h>
 
 #include <tmmintrin.h>
 #include <xmmintrin.h>
@@ -25,23 +25,24 @@ namespace cvt {
 
 		const __m128i mask = _mm_set1_epi8( 0x0f );
 		const __m128i lut  = _mm_loadu_si128( ( __m128i* )LUT );
-        zero = _mm_set1_epi8( 0 );
+        zero = _mm_setzero_si128();
 
 
 		size_t n16 = n >> 4;
-		size_t r   = n & 0xff;
+		size_t r   = n & 0xf;
 			
         sum1 = sumUp1 = zero;
         sum2 = sumUp2 = zero;
 
         // calculate the number of 31 blocks we need to process
         // n = 16 * 31 * x + r -> x / 496 + 1
-        size_t numBlocks = n / ( 16 * 31 ) + 1;
+        size_t numBlocks = n / ( 16 * 63 ) + 1;
+             
 
 		size_t num;
         while( numBlocks-- ){
-			num = 31;
-            while( n16-- && num-- ){
+			num = 63;
+            while( n16 && num ){
                 s1 = _mm_loadu_si128( ( __m128i* )src1 );
                 s2 = _mm_loadu_si128( ( __m128i* )src2 );
 
@@ -58,20 +59,29 @@ namespace cvt {
 
                 src1 += 16;
                 src2 += 16;
+                n16--;
+                num--;
             }
             
 			// each 31 loops, accumulate the result into bitcount to
             // avoid overflow
             sumUp1 = _mm_add_epi64( sumUp1, _mm_sad_epu8( sum1, zero ) );
             sumUp2 = _mm_add_epi64( sumUp2, _mm_sad_epu8( sum2, zero ) );
+            
+            /*
+            sum = _mm_sad_epu8( sum1, zero );
+            sum = _mm_add_epi64( sum, _mm_sad_epu8( sum2, zero ) );            
+            sum = _mm_add_epi64( _mm_srli_si128( sum, 8 ), sum );
+            bitcount += ( ( uint64_t* )( &sum ) )[ 0 ];
+            */
+            sum1 = sum2 = zero;
         }
-
+        
 		sum = _mm_add_epi64( sumUp1, sumUp2 );
 		sum = _mm_add_epi64( _mm_srli_si128( sum, 8 ), sum );
 
         bitcount += ( ( uint64_t* )( &sum ) )[ 0 ];
-
-
+        
         if( r ){
             uint64_t a = 0, b = 0;
             uint64_t xored;

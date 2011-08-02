@@ -120,7 +120,8 @@ class CameraTimeout : public TimeoutHandler
 				String name;
 				name.sprintf( "camera_image_%03d.png", _dumpIter );
 			
-				Image img( _cam->frame() );
+				Image img;
+				_cam->frame().convert( img, IFormat::RGBA_UINT8 );
 
 				img.save( name );
 
