@@ -17,7 +17,7 @@ MACRO(GLSLTOHEADER _filename)
                 "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
 		"${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}_${_ext}.h"
 		"${_basename}_${_ext}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" glcltoheader 
     )
 ENDMACRO(GLSLTOHEADER)
 
@@ -38,7 +38,7 @@ MACRO(CLTOHEADER _filename)
                 "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
 		"${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}.h"
 		"${_basename}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" glcltoheader
     )
 ENDMACRO(CLTOHEADER)
 

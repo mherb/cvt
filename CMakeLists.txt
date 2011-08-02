@@ -10,11 +10,13 @@ INCLUDE(CompilerFlags)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
+# tool to generate header files out of shader or cl sources
+add_executable(glcltoheader util/glcltoheader.cpp)
+
 ADD_SUBDIRECTORY(cvt)
 ADD_SUBDIRECTORY(plugins)
 ADD_SUBDIRECTORY(tests)
 
-add_executable(glcltoheader util/glcltoheader.cpp)
 IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
 	SET_TARGET_PROPERTIES(glcltoheader PROPERTIES PREFIX "../")	
 ENDIF()
