@@ -40,7 +40,7 @@ namespace cvt {
 
 		// find first video stream:
 		for( unsigned int i = 0; i < _formatContext->nb_streams; i++ ){
-			if( _formatContext->streams[ i ]->codec->codec_type == CODEC_TYPE_VIDEO ){
+			if( _formatContext->streams[ i ]->codec->codec_type == AVMEDIA_TYPE_VIDEO ){
 				_streamIndex = i;
 				_avStream = _formatContext->streams[ i ];
 				break;
@@ -117,7 +117,7 @@ namespace cvt {
 			// Is this a packet from the video stream?
 			if( packet.stream_index == _streamIndex ) {
 				// Decode video frame
-				avcodec_decode_video( _codecContext, _avFrame, &frameFinished, packet.data, packet.size );
+				avcodec_decode_video2( _codecContext, _avFrame, &frameFinished, &packet );
 
 				// Did we get a video frame?
 				if(frameFinished) {
