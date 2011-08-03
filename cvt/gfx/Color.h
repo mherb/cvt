@@ -50,6 +50,7 @@ namespace cvt {
 			static const Color RED;
 			static const Color GREEN;
 			static const Color BLUE;
+            static const Color YELLOW;
 
 		private:
 			/*union {
@@ -88,7 +89,7 @@ namespace cvt {
 		_b = Math::clamp( ( float ) b / 255.0f, 0.0f, 1.0f );
 		_a = Math::clamp( ( float ) a / 255.0f, 0.0f, 1.0f );
 	}
-	
+
 	inline Color::Color( int gray, int alpha )
 	{
 		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
@@ -96,7 +97,7 @@ namespace cvt {
 		_b = _r;
 		_a = Math::clamp( ( float ) alpha / 255.0f, 0.0f, 1.0f );
 	}
-	
+
 	inline Color::Color( int gray )
 	{
 		_r = Math::clamp( ( float ) gray / 255.0f, 0.0f, 1.0f );
@@ -174,10 +175,10 @@ namespace cvt {
 		r._g = _g + c._g;
 		r._b = _b + c._b;
 		r._a = _a + c._a;
-		
+
 		return r;
 	}
-	
+
 	inline Color Color::operator-( const Color & c ) const
 	{
 		Color r;
@@ -185,10 +186,10 @@ namespace cvt {
 		r._g = _g - c._g;
 		r._b = _b - c._b;
 		r._a = _a - c._a;
-	
+
 		return r;
 	}
-	
+
 	inline Color Color::operator*( float s ) const
 	{
 		Color r;
