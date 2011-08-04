@@ -868,7 +868,7 @@ namespace cvt
     }
 
     template<>
-    Matrix3<double> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K1, const Matrix3<float> & K2 ) const
+    Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K1, const Matrix3<float> & K2 ) const
     {
         if( this->size() < 8 )
             throw CVTException( "essential Matrix computation needs at least 8 points" );
