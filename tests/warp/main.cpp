@@ -15,7 +15,7 @@ int main()
 
 	warp.reallocate( in.width(), in.height(), IFormat::GRAYALPHA_FLOAT );
 
-	IWarp::warpFishEye( warp, 3.0f, in.width() * 0.5f, in.height() * 0.5f );
+	IWarp::warpUndistort( warp, 0.05f, -0.13f, in.width() * 0.5f, in.height() * 0.5f, 700.0f, 700.0f );
 	IWarp::apply( out, in, warp );
 
 	out.save( "warped.png" );
