@@ -3674,7 +3674,7 @@ namespace cvt {
 
 	}
 
-	void SIMD::warpBilinear1f( float* dst, float* coords, const float* _src, size_t srcStride, size_t n )
+	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n )
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		size_t i = n;
@@ -3701,7 +3701,7 @@ namespace cvt {
 	}
 
 
-	void SIMD::warpBilinear4f( float* dst, float* coords, const float* _src, size_t srcStride, size_t n )
+	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n )
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
 		size_t i = n;
@@ -3736,7 +3736,7 @@ namespace cvt {
 
 	}
 
-	void SIMD::warpBilinear1u8( uint8_t* dst, float* coords, const uint8_t* src, size_t srcStride, size_t n )
+	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n )
 	{
 		size_t i = n;
 
@@ -3763,7 +3763,7 @@ namespace cvt {
 	}
 
 
-	void SIMD::warpBilinear4u8( uint8_t* _dst, float* coords, const uint8_t* src, size_t srcStride, size_t n )
+	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n )
 	{
 		size_t i = n;
 		uint32_t* dst = ( uint32_t* ) _dst;
