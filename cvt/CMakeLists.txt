@@ -336,6 +336,7 @@ SET(${MODULE_NAME}_SOURCES
 	geom/KDTree.cpp
 	geom/Model.cpp
 	geom/Rect.cpp
+	geom/PointSetTest.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLModel.cpp

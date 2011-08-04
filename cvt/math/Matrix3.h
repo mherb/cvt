@@ -53,11 +53,13 @@ namespace cvt {
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
 		void				setRotationZ( T rad );
+        void                setRotationXYZ( T angleX, T angleY, T angleZ );
 		void				setRotation( const Vector3<T>& axis, T rad );
 
 		void				setAffine( T theta, T phi, T sx, T sy, T tx, T ty );
 		void				setHomography( T theta, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
 		void				setProjectedRotation( T radx, T rady, T radz, T fx = 1024, T fy = 1024, T d = 1024 );
+		void				setSkewSymmetric( const Vector3<T>& t );
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -384,6 +386,30 @@ namespace cvt {
 		mat[ 2 ].z = 1;
 	}
 
+    template<typename T>
+    inline void Matrix3<T>::setRotationXYZ( T angleX, T angleY, T angleZ )
+    {
+        T cx = Math::cos( angleX );
+        T cy = Math::cos( angleY );
+        T cz = Math::cos( angleZ );
+
+        T sx = Math::sin( angleX );
+        T sy = Math::sin( angleY );
+        T sz = Math::sin( angleZ );
+
+        mat[ 0 ][ 0 ] =  cy * cz;
+        mat[ 0 ][ 1 ] = -cy * sz;
+        mat[ 0 ][ 2 ] =       sy;
+
+        mat[ 1 ][ 0 ] = cx * sz + cz * sx * sy;
+        mat[ 1 ][ 1 ] = cx * cz - sx * sy * sz;
+        mat[ 1 ][ 2 ] =               -cy * sx;
+
+        mat[ 2 ][ 0 ] =       sx * sz - cx * cz * sy;
+        mat[ 2 ][ 1 ] =  cx * sy * sz +      cz * sx;
+        mat[ 2 ][ 2 ] =                      cx * cy;
+    }
+
 
 	template<typename T>
 	inline void	Matrix3<T>::setRotation( const Vector3<T>& _axis, T rad )
@@ -395,6 +421,8 @@ namespace cvt {
 		T xx, yy, yz;
 		T xy, xz, zz;
 		T x2, y2, z2;
+
+        x = axis.x; y = axis.y; z = axis.z;
 
 		c = Math::cos( rad * ( T ) 0.5 );
 		s = Math::sin( rad * ( T ) 0.5 );
@@ -489,6 +517,13 @@ namespace cvt {
 		mat[ 1 ][ 2 ] =  d;
 	}
 
+	template<typename T>
+	inline void Matrix3<T>::setSkewSymmetric( const Vector3<T>& t )
+	{
+		mat[ 0 ][ 0 ] =    0;	mat[ 0 ][ 1 ] = -t.z;	mat[ 0 ][ 2 ] =  t.y;
+		mat[ 1 ][ 0 ] =  t.z;	mat[ 1 ][ 1 ] =    0;   mat[ 1 ][ 2 ] = -t.x;
+		mat[ 2 ][ 0 ] = -t.y;	mat[ 2 ][ 1 ] =  t.x;	mat[ 2 ][ 2 ] =    0;
+	}
 
 	template<>
 	inline bool Matrix3<double>::isIdentity() const
