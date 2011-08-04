@@ -46,6 +46,17 @@ namespace cvt
 				_T	 maxSquaredDistance( const PointSet<dim, _T>& ptset ) const;
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
+
+                /**
+                 * Computes the essential matrix between two views from the same camera
+                 * @param other the second point set
+                 * @param K     intrinsic calibration matrix
+                 * @return      3x3 essential Matrix from this to other
+                 */
+                Matrix3<_T> essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K ) const;
+
+                //Matrix3<_T> essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const;
+
 				const _T* ptr() const;
 
 			private:
@@ -113,7 +124,7 @@ namespace cvt
 			return mean;
 		}
 
-	template<int dim, typename _T>
+    template<int dim, typename _T>
 		inline	typename PointSet<dim,_T>::PTTYPE PointSet<dim,_T>::variance() const
 		{
 			const PTTYPE* pt = &_pts[ 0 ];
@@ -427,13 +438,13 @@ namespace cvt
 			return m;
 		}
 
-	template<int dim, typename _T>
-		inline Matrix3<_T> PointSet<dim,_T>::alignPerspective( const PointSet<dim,_T>& ) const
-	{
-		return Matrix3<_T>().setZero();
-	}
+        template<int dim, typename _T>
+        inline Matrix3<_T> PointSet<dim,_T>::alignPerspective( const PointSet<dim,_T>& ) const
+        {
+            return Matrix3<_T>().setZero();
+        }
 
-	template<>
+        template<>
 		inline Matrix3<float> PointSet<2,float>::alignPerspective( const PointSet<2,float>& ptset ) const
 		{
 			if( size() != ptset.size() )
@@ -544,6 +555,71 @@ namespace cvt
 			ret *= 1.0 / ret[ 2 ][ 2 ];
 			return ret;
 		}
+
+    template<int dim, typename _T>
+    Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K ) const
+    {
+        Matrix3<_T> E;
+        E.setZero();
+        return E;
+    }
+
+    template<>
+    Matrix3<double> PointSet<2, double>::essentialMatrix( const PointSet<2, double>& other, const Matrix3<double> & K ) const
+    {
+        if( this->size() < 8 )
+            throw CVTException( "essential Matrix computation needs at least 8 points" );
+        if( this->size() != other.size() )
+            throw CVTException( "point sets have different size!" );
+
+        Matrix3d E;
+        Matrix3d Kinv = K;
+        if( !Kinv.inverseSelf() ){
+            throw CVTException( "Could not invert Intrinsic Matrix!" );
+        }
+
+        // create copies of the point set
+        PointSet2d set0( *this ), set1( other );
+
+        // transform the pointsets with Kinv:
+        set0.transform( Kinv );
+        set1.transform( Kinv );
+
+
+        Matrix3d sim0, sim1;
+        set0.normalize( sim0 );
+        set1.normalize( sim1 );
+
+        // each point corresp is one point
+        Eigen::Matrix<double, Eigen::Dynamic, 9> A( size(), 9 );
+
+        for( size_t i = 0; i < size(); i++ ){
+            const Vector2d & p0 = set0[ i ];
+            const Vector2d & p1 = set1[ i ];
+            A( i, 0 ) = p0.x * p1.x;
+            A( i, 1 ) = p0.y * p1.x;
+            A( i, 2 ) = p1.x;
+            A( i, 3 ) = p0.x * p1.y;
+            A( i, 4 ) = p0.y * p1.y;
+            A( i, 5 ) = p1.y;
+            A( i, 6 ) = p0.x;
+            A( i, 7 ) = p0.y;
+            A( i, 8 ) = 1;
+        }
+
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+        const Eigen::Matrix<double, 9, 1> & eVec = svd.matrixV().col( 8 );
+
+        E[ 0 ][ 0 ] = eVec[ 0 ]; E[ 0 ][ 1 ] = eVec[ 1 ]; E[ 0 ][ 2 ] = eVec[ 2 ];
+        E[ 1 ][ 0 ] = eVec[ 3 ]; E[ 1 ][ 1 ] = eVec[ 4 ]; E[ 1 ][ 2 ] = eVec[ 5 ];
+        E[ 2 ][ 0 ] = eVec[ 6 ]; E[ 2 ][ 1 ] = eVec[ 7 ]; E[ 2 ][ 2 ] = eVec[ 8 ];
+
+
+        Matrix3d Et = sim1.transpose() * E * sim0;
+
+        return Et;
+    }
 
 
 	template<int dim, typename _T>

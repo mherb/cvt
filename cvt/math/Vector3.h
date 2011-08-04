@@ -2,12 +2,15 @@
 
 namespace cvt {
 
+	template<typename T> class Vector4;
+
     template<typename T>
 	class Vector3 {
 	    public:
 					Vector3();
 					Vector3( T x, T y, T z );
 					Vector3( const Vector3<T>& vec );
+					Vector3( const Vector4<T>& vec );
 
 		void		set( T x, T y, T z );
 		void		zero( void );
@@ -68,6 +71,16 @@ namespace cvt {
 	    x = v.x;
 	    y = v.y;
 	    z = v.z;
+	}
+
+
+    template<typename T>
+	inline Vector3<T>::Vector3( const Vector4<T>& v )
+	{
+		T invw = 1.0 / v.w;
+	    x = invw * v.x;
+	    y = invw * v.y;
+	    z = invw * v.z;
 	}
 
     template<typename T>
@@ -321,13 +334,14 @@ namespace cvt {
 	    y = Math::mix( v1.y, v2.y, alpha );
 	    z = Math::mix( v1.z, v2.z, alpha );
 	}
-
+	
 	template<typename T>
 	static inline std::ostream& operator<<( std::ostream& out, const Vector3<T> &v )
 	{
 		out << " | " << std::setprecision( 5 ) << std::setw( 12 ) << v.x << " " << std::setw( 12 ) << v.y << " " << std::setw( 12 ) << v.z << " | ";
 		return out;
 	}
+
 
 }
 

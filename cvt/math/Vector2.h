@@ -2,12 +2,15 @@
 
 namespace cvt {
 
+	template<typename T> class Vector3;
+
     template<typename T>
 	class Vector2 {
 	    public:
 					Vector2();
 					Vector2( const T x, const T y );
 					Vector2( const Vector2<T>& vec2 );
+					Vector2( const Vector3<T>& vec3 );
 
 		void		set( T x, T y );
 		void		zero( void );
@@ -64,6 +67,14 @@ namespace cvt {
 	{
 	    x = v.x;
 	    y = v.y;
+	}
+    
+	template<typename T>
+	inline Vector2<T>::Vector2( const Vector3<T>& v )
+	{
+		T invz = 1.0 / v.z;
+	    x = invz * v.x;
+	    y = invz * v.y;
 	}
 
     template<typename T>

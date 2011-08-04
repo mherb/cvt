@@ -52,7 +52,9 @@ namespace cvt {
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
 		void				setRotationZ( T rad );
+        void                setRotationXYZ( T angleX, T angleY, T angleZ );
 		void				setRotation( const Vector3<T>& axis, T rad );
+		void				setTranslation( T x, T y, T z );
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -431,6 +433,39 @@ namespace cvt {
 		mat[ 3 ].w = 1;
 	}
 
+    template<typename T>
+    inline void Matrix4<T>::setRotationXYZ( T angleX, T angleY, T angleZ )
+    {
+        T cx = Math::cos( angleX );
+        T cy = Math::cos( angleY );
+        T cz = Math::cos( angleZ );
+
+        T sx = Math::sin( angleX );
+        T sy = Math::sin( angleY );
+        T sz = Math::sin( angleZ );
+
+        mat[ 0 ][ 0 ] =  cy * cz;
+        mat[ 0 ][ 1 ] = -cy * sz;
+        mat[ 0 ][ 2 ] =       sy;
+        mat[ 0 ][ 3 ] =        0;
+
+
+        mat[ 1 ][ 0 ] = cx * sz + cz * sx * sy;
+        mat[ 1 ][ 1 ] = cx * cz - sx * sy * sz;
+        mat[ 1 ][ 2 ] =               -cy * sx;
+        mat[ 1 ][ 3 ] =                      0;
+
+        mat[ 2 ][ 0 ] =       sx * sz - cx * cz * sy;
+        mat[ 2 ][ 1 ] =  cx * sy * sz +      cz * sx;
+        mat[ 2 ][ 2 ] =                      cx * cy;
+        mat[ 2 ][ 3 ] =                            0;
+
+        mat[ 3 ][ 0 ] = 0;
+		mat[ 3 ][ 1 ] = 0;
+		mat[ 3 ][ 2 ] = 0;
+		mat[ 3 ][ 3 ] = 1;
+    }
+
 	template<typename T>
 	inline void	Matrix4<T>::setRotation( const Vector3<T>& _axis, T rad )
 	{
@@ -441,6 +476,8 @@ namespace cvt {
 		T xx, yy, yz;
 		T xy, xz, zz;
 		T x2, y2, z2;
+
+        x = axis.x; y = axis.y; z = axis.z;
 
 		c = Math::cos( rad * ( T ) 0.5 );
 		s = Math::sin( rad * ( T ) 0.5 );
@@ -480,6 +517,14 @@ namespace cvt {
 		mat[ 3 ][ 1 ] = 0;
 		mat[ 3 ][ 2 ] = 0;
 		mat[ 3 ][ 3 ] = 1;
+	}
+
+	template<typename T>
+	inline void Matrix4<T>::setTranslation( T x, T y, T z )
+	{
+		mat[ 0 ][ 3 ] = x;
+		mat[ 1 ][ 3 ] = y;
+		mat[ 2 ][ 3 ] = z;
 	}
 
 
