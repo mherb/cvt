@@ -25,15 +25,26 @@ namespace cvt
 	{
 		Vector3<T> p;
 		Vector3<T> pp;
+        Vector2<T> p2;
 
 
 		for( size_t i = 0; i < pts.size(); i++ ){
 			p = K * pts[ i ];
-			p0.add( Vector2<T>( p ) );
+
+            p2 = Vector2<T>( p );
+            p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
+            p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
+
+			p0.add( p2 );
+
 
 			pp = transform * pts[ i ];
 			p = K * pp;
-			p1.add( Vector2<T>( p ) );
+
+            p2 = Vector2<T>( p );
+            p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
+            p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
+			p1.add( p2 );
 		}
 	}
 
@@ -66,8 +77,6 @@ BEGIN_CVTTEST( PointSet )
 
 	T.setRotationXYZ( Math::deg2Rad( 20.0 ), Math::deg2Rad( 10.0 ), Math::deg2Rad( 30.0 ) );
 	T.setTranslation( t.x, t.y, t.z );
-
-    std::cout << "T: \n" << T << std::endl;
 
 	Matrix3d K( 500.0,   0.0, 320.0,
 			      0.0, 505.0, 240.0,
