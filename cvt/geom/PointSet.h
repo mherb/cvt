@@ -572,7 +572,6 @@ namespace cvt
         if( this->size() != other.size() )
             throw CVTException( "point sets have different size!" );
 
-        Matrix3d E;
         Matrix3d Kinv = K;
         if( !Kinv.inverseSelf() ){
             throw CVTException( "Could not invert Intrinsic Matrix!" );
@@ -591,32 +590,164 @@ namespace cvt
         set1.normalize( sim1 );
 
         // each point corresp is one point
-        Eigen::Matrix<double, Eigen::Dynamic, 9> A( size(), 9 );
+        Eigen::Matrix<double, 9, 9> A( Eigen::Matrix<double, 9, 9>::Zero() );
+        Eigen::Matrix<double, 9, 1> tmp;
 
         for( size_t i = 0; i < size(); i++ ){
             const Vector2d & p0 = set0[ i ];
             const Vector2d & p1 = set1[ i ];
-            A( i, 0 ) = p0.x * p1.x;
-            A( i, 1 ) = p0.y * p1.x;
-            A( i, 2 ) = p1.x;
-            A( i, 3 ) = p0.x * p1.y;
-            A( i, 4 ) = p0.y * p1.y;
-            A( i, 5 ) = p1.y;
-            A( i, 6 ) = p0.x;
-            A( i, 7 ) = p0.y;
-            A( i, 8 ) = 1;
+            tmp[ 0 ] = p0.x * p1.x;
+            tmp[ 1 ] = p0.y * p1.x;
+            tmp[ 2 ] = p1.x;
+            tmp[ 3 ] = p0.x * p1.y;
+            tmp[ 4 ] = p0.y * p1.y;
+            tmp[ 5 ] = p1.y;
+            tmp[ 6 ] = p0.x;
+            tmp[ 7 ] = p0.y;
+            tmp[ 8 ] = 1;
+
+            for( size_t r = 0; r < 9; r++ ){
+                for( size_t c = r; c < 9; c++ ){
+                    A( r, c ) += tmp[ r ] * tmp[ c ];
+                }
+            }
         }
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
+        for( size_t r = 1; r < 9; r++ ){
+            for( size_t c = 0; c < r; c++ ){
+                A( r, c ) = A( c, r );
+            }
+        }
+
+        Eigen::JacobiSVD<Eigen::Matrix<double, 9, 9> > svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
 
         const Eigen::Matrix<double, 9, 1> & eVec = svd.matrixV().col( 8 );
 
-        E[ 0 ][ 0 ] = eVec[ 0 ]; E[ 0 ][ 1 ] = eVec[ 1 ]; E[ 0 ][ 2 ] = eVec[ 2 ];
-        E[ 1 ][ 0 ] = eVec[ 3 ]; E[ 1 ][ 1 ] = eVec[ 4 ]; E[ 1 ][ 2 ] = eVec[ 5 ];
-        E[ 2 ][ 0 ] = eVec[ 6 ]; E[ 2 ][ 1 ] = eVec[ 7 ]; E[ 2 ][ 2 ] = eVec[ 8 ];
+        Eigen::Matrix<double, 3, 3> eTmp;
+        eTmp( 0, 0 ) = eVec[ 0 ];
+        eTmp( 0, 1 ) = eVec[ 1 ];
+        eTmp( 0, 2 ) = eVec[ 2 ];
+        eTmp( 1, 0 ) = eVec[ 3 ];
+        eTmp( 1, 1 ) = eVec[ 4 ];
+        eTmp( 1, 2 ) = eVec[ 5 ];
+        eTmp( 2, 0 ) = eVec[ 6 ];
+        eTmp( 2, 1 ) = eVec[ 7 ];
+        eTmp( 2, 2 ) = eVec[ 8 ];
 
+        // enforce singularity constraint:
+        Eigen::JacobiSVD<Eigen::Matrix<double, 3, 3> > esvd( eTmp, Eigen::ComputeFullU | Eigen::ComputeFullV );
+        Eigen::Vector3d singVals = esvd.singularValues();
+        singVals[ 2 ] = 0;
+        eTmp = esvd.matrixU() * singVals.asDiagonal() * esvd.matrixV().transpose();
+
+        Matrix3d E;
+        E[ 0 ][ 0 ] = eTmp( 0, 0 );
+        E[ 0 ][ 1 ] = eTmp( 0, 1 );
+        E[ 0 ][ 2 ] = eTmp( 0, 2 );
+
+        E[ 1 ][ 0 ] = eTmp( 1, 0 );
+        E[ 1 ][ 1 ] = eTmp( 1, 1 );
+        E[ 1 ][ 2 ] = eTmp( 1, 2 );
+
+        E[ 2 ][ 0 ] = eTmp( 2, 0 );
+        E[ 2 ][ 1 ] = eTmp( 2, 1 );
+        E[ 2 ][ 2 ] = eTmp( 2, 2 );
 
         Matrix3d Et = sim1.transpose() * E * sim0;
+
+        return Et;
+    }
+
+    template<>
+    Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K ) const
+    {
+        if( this->size() < 8 )
+            throw CVTException( "essential Matrix computation needs at least 8 points" );
+        if( this->size() != other.size() )
+            throw CVTException( "point sets have different size!" );
+
+        Matrix3f Kinv = K;
+        if( !Kinv.inverseSelf() ){
+            throw CVTException( "Could not invert Intrinsic Matrix!" );
+        }
+
+        // create copies of the point set
+        PointSet2f set0( *this ), set1( other );
+
+        // transform the pointsets with Kinv:
+        set0.transform( Kinv );
+        set1.transform( Kinv );
+
+
+        Matrix3f sim0, sim1;
+        set0.normalize( sim0 );
+        set1.normalize( sim1 );
+
+        // each point corresp is one point
+        Eigen::Matrix<float, 9, 9> A( Eigen::Matrix<float, 9, 9>::Zero() );
+        Eigen::Matrix<float, 9, 1> tmp;
+
+        for( size_t i = 0; i < size(); i++ ){
+            const Vector2f & p0 = set0[ i ];
+            const Vector2f & p1 = set1[ i ];
+            tmp[ 0 ] = p0.x * p1.x;
+            tmp[ 1 ] = p0.y * p1.x;
+            tmp[ 2 ] = p1.x;
+            tmp[ 3 ] = p0.x * p1.y;
+            tmp[ 4 ] = p0.y * p1.y;
+            tmp[ 5 ] = p1.y;
+            tmp[ 6 ] = p0.x;
+            tmp[ 7 ] = p0.y;
+            tmp[ 8 ] = 1;
+
+            for( size_t r = 0; r < 9; r++ ){
+                for( size_t c = r; c < 9; c++ ){
+                    A( r, c ) += tmp[ r ] * tmp[ c ];
+                }
+            }
+        }
+
+        for( size_t r = 1; r < 9; r++ ){
+            for( size_t c = 0; c < r; c++ ){
+                A( r, c ) = A( c, r );
+            }
+        }
+
+        Eigen::JacobiSVD<Eigen::Matrix<float, 9, 9> > svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+        const Eigen::Matrix<float, 9, 1> & eVec = svd.matrixV().col( 8 );
+
+        Eigen::Matrix<float, 3, 3> eTmp;
+        eTmp( 0, 0 ) = eVec[ 0 ];
+        eTmp( 0, 1 ) = eVec[ 1 ];
+        eTmp( 0, 2 ) = eVec[ 2 ];
+        eTmp( 1, 0 ) = eVec[ 3 ];
+        eTmp( 1, 1 ) = eVec[ 4 ];
+        eTmp( 1, 2 ) = eVec[ 5 ];
+        eTmp( 2, 0 ) = eVec[ 6 ];
+        eTmp( 2, 1 ) = eVec[ 7 ];
+        eTmp( 2, 2 ) = eVec[ 8 ];
+
+        // enforce singularity constraint:
+        Eigen::JacobiSVD<Eigen::Matrix<float, 3, 3> > esvd( eTmp, Eigen::ComputeFullU | Eigen::ComputeFullV );
+        Eigen::Vector3f singVals = esvd.singularValues();
+        singVals[ 2 ] = 0;
+        eTmp = esvd.matrixU() * singVals.asDiagonal() * esvd.matrixV().transpose();
+
+        Matrix3f E;
+        E[ 0 ][ 0 ] = eTmp( 0, 0 );
+        E[ 0 ][ 1 ] = eTmp( 0, 1 );
+        E[ 0 ][ 2 ] = eTmp( 0, 2 );
+
+        E[ 1 ][ 0 ] = eTmp( 1, 0 );
+        E[ 1 ][ 1 ] = eTmp( 1, 1 );
+        E[ 1 ][ 2 ] = eTmp( 1, 2 );
+
+        E[ 2 ][ 0 ] = eTmp( 2, 0 );
+        E[ 2 ][ 1 ] = eTmp( 2, 1 );
+        E[ 2 ][ 2 ] = eTmp( 2, 2 );
+
+        Matrix3f Et = sim1.transpose() * E * sim0;
 
         return Et;
     }
