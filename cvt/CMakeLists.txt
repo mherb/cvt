@@ -126,6 +126,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/GaussIIR.h
 	gfx/ifilter/BrightnessContrast.h
 	gfx/ifilter/ITransform.h
+	gfx/ifilter/IWarp.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -326,6 +327,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/GaussIIR.cpp
 	gfx/ifilter/BrightnessContrast.cpp
 	gfx/ifilter/ITransform.cpp
+	gfx/ifilter/IWarp.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp

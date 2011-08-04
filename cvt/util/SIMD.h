@@ -161,10 +161,10 @@ namespace cvt {
 														 const float* point, const float* normal, const size_t n ) const;
 
 
-			virtual void warpBilinear1f( float* dst, float* coords, const float* src, size_t srcStride, size_t n );
-			virtual void warpBilinear4f( float* dst, float* coords, const float* src, size_t srcStride, size_t n );
-			virtual void warpBilinear1u8( uint8_t* dst, float* coords, const uint8_t* src, size_t srcStride, size_t n );
-			virtual void warpBilinear4u8( uint8_t* dst, float* coords, const uint8_t* src, size_t srcStride, size_t n );
+			virtual void warpBilinear1f( float* dst, const float* coords, const float* src, size_t srcStride, size_t n );
+			virtual void warpBilinear4f( float* dst, const float* coords, const float* src, size_t srcStride, size_t n );
+			virtual void warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n );
+			virtual void warpBilinear4u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n );
 
 
 			virtual float harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const;
