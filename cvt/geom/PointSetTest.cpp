@@ -59,6 +59,47 @@ namespace cvt
         return true;
     }
 
+    template <typename T>
+    bool essentialTest()
+    {
+        PointSet<2, T> p0, p1;
+        std::vector<Vector3<T> > pts;
+
+        Matrix4<T> trans;
+        trans.setIdentity();
+
+        Vector3<T> t( 10.0, 30.0, 50.0 );
+
+        trans.setRotationXYZ( Math::deg2Rad<T>( 20 ), Math::deg2Rad<T>( 10 ), Math::deg2Rad<T>( 30 ) );
+        trans.setTranslation( t.x, t.y, t.z );
+
+        Matrix3<T> K( 500.0,   0.0, 320.0,
+                      0.0,   505.0, 240.0,
+                      0.0,     0.0,   1.0 );
+
+        generate3dPoints( pts, 8 );
+        fillPointSets( p0, p1, K, trans, pts );
+
+        Matrix3<T> E;
+
+        E = p0.essentialMatrix( p1, K );
+        E *= 1.0 / E[ 2 ][ 2 ];
+
+        // essential matrix = [t]_x R
+        Matrix3<T> skew, Etrue;
+        skew.setSkewSymmetric( t );
+
+        Etrue = skew * trans.toMatrix3();
+        Etrue *= 1.0 / Etrue[ 2 ][ 2 ];
+
+        bool b = compareMatrices( Etrue, E, (T)0.00001 );
+        if( !b ){
+            std::cout << "True:\n" << Etrue << std::endl;
+            std::cout << "Estimated:\n" << E << std::endl;
+        }
+        return b;
+    }
+
 }
 
 BEGIN_CVTTEST( PointSet )
@@ -67,44 +108,14 @@ BEGIN_CVTTEST( PointSet )
 
 	using namespace cvt;
 
-	PointSet2d p0, p1;
-	std::vector<Vector3d> pts;
+    bool b;
 
-	Matrix4d T;
-	T.setIdentity();
+    b = essentialTest<double>();
+    CVTTEST_PRINT( "essentialMatrix<double>(): ", b );
+	result &= b;
 
-	Vector3d t( 10.0, 30.0, 50.0 );
-
-	T.setRotationXYZ( Math::deg2Rad( 20.0 ), Math::deg2Rad( 10.0 ), Math::deg2Rad( 30.0 ) );
-	T.setTranslation( t.x, t.y, t.z );
-
-	Matrix3d K( 500.0,   0.0, 320.0,
-			      0.0, 505.0, 240.0,
-				  0.0,   0.0,   1.0 );
-
-	generate3dPoints( pts, 8 );
-	fillPointSets( p0, p1, K, T, pts );
-
-	Matrix3d E;
-
-	E = p0.essentialMatrix( p1, K );
-	E *= 1.0 / E[ 2 ][ 2 ];
-
-	// essential matrix = [t]_x R
-	Matrix3d skew, Etrue;
-	skew.setSkewSymmetric( t );
-
-	Etrue = skew * T.toMatrix3();
-	Etrue *= 1.0 / Etrue[ 2 ][ 2 ];
-
-	bool b = compareMatrices( Etrue, E, 0.00001 );
-	CVTTEST_PRINT( "Pointset::essentialMatrix( ptset2, K ): ", b );
-
-	if( !b ){
-		std::cout << "True:\n" << Etrue << std::endl;
-		std::cout << "Estimated:\n" << E << std::endl;
-	}
-
+    b = essentialTest<float>();
+    CVTTEST_PRINT( "essentialMatrix<float>(): ", b );
 	result &= b;
 
 	return result;

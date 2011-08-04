@@ -60,14 +60,16 @@ namespace cvt {
 		size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
 		size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
 
-		static inline float deg2Rad( float a )
+        template <typename T>
+		static inline T deg2Rad( T a )
 		{
-			return a * PI / 180.0f;
+			return a * PI / ( T )180;
 		}
 
-		static inline float rad2Deg( float a )
+        template <typename T>
+		static inline T rad2Deg( T a )
 		{
-			return a * 180.0f / PI;
+			return a * ( T )180 / PI;
 		}
 
 		static inline float sqrt( float f )
