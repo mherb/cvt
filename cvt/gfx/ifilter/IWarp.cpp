@@ -1,5 +1,5 @@
 #include <cvt/gfx/ifilter/IWarp.h>
-#include <cvt/gfx/Clipping.h>
+#include <cvt/math/Vector.h>
 
 namespace cvt {
 
@@ -54,11 +54,94 @@ namespace cvt {
 		uint8_t* dst;
 		float* pdst;
 		size_t stride;
+		size_t w, h;
 
 		dst = idst.map( &stride );
+		w = idst.width();
+		h = idst.height();
 
+		Vector2f c( cx, cy );
+		for( size_t y = 0; y < h; y++ ) {
+			pdst = ( float* ) ( dst + y * stride );
+			for( size_t x = 0; x < w; x++ ) {
+				Vector2f p( x, y );
+				p -= c;
+				float r = p.length();
+				r = Math::min( r, radius );
+				float angle = Math::atan2( p.y, p.x );
+				*pdst++ = Math::clamp<float>( r * Math::cos( angle ) + c.x, 0, w - 1 );
+				*pdst++ = Math::clamp<float>( r * Math::sin( angle ) + c.y, 0, h - 1 );
+			}
+		}
 		idst.unmap( dst );
+	}
 
+	void IWarp::warpFishEye( Image& idst, float strength, float cx, float cy )
+	{
+		if( idst.format() != IFormat::GRAYALPHA_FLOAT )
+			throw CVTException( "Unsupported warp image type" );
+
+		uint8_t* dst;
+		float* pdst;
+		size_t stride;
+		size_t w, h;
+
+		dst = idst.map( &stride );
+		w = idst.width();
+		h = idst.height();
+
+		float R = Vector2f( Math::max( cx, w - 1 - cx ), Math::max( cy, h - 1 - cy ) ).length();
+
+		Vector2f c( cx, cy );
+		for( size_t y = 0; y < h; y++ ) {
+			pdst = ( float* ) ( dst + y * stride );
+			for( size_t x = 0; x < w; x++ ) {
+				Vector2f p( x, y );
+				p -= c;
+				float r = p.length();
+				r = R * Math::pow( r / R, strength * 0.5f );
+				float angle = Math::atan2( p.y, p.x );
+				*pdst++ = Math::clamp<float>( r * Math::cos( angle ) + c.x, 0, w - 1 );
+				*pdst++ = Math::clamp<float>( r * Math::sin( angle ) + c.y, 0, h - 1 );
+			}
+		}
+		idst.unmap( dst );
+	}
+
+	void IWarp::warpUndistort( Image& idst, float k1, float k2, float cx, float cy, float fx, float fy, float k3, float p1, float p2 )
+	{
+		if( idst.format() != IFormat::GRAYALPHA_FLOAT )
+			throw CVTException( "Unsupported warp image type" );
+
+		uint8_t* dst;
+		float* pdst;
+		size_t stride;
+		size_t w, h;
+		float invfx = 1.0f / fx;
+		float invfy = 1.0f / fy;
+
+		dst = idst.map( &stride );
+		w = idst.width();
+		h = idst.height();
+
+		Vector2f c( cx, cy );
+		for( size_t y = 0; y < h; y++ ) {
+			pdst = ( float* ) ( dst + y * stride );
+			for( size_t x = 0; x < w; x++ ) {
+				Vector2f p( x, y );
+				p -= c;
+				p.x *= invfx;
+				p.y *= invfy;
+				float r2 = p.lengthSqr();
+				float r4 = Math::sqr( r2 );
+				float r6 = r2 * r4;
+				float poly = ( 1.0f + k1 * r2 + k2 * r4 + k3 * r6 );
+				float xy2 = 2.0f * p.x * p.y;
+				*pdst++ = Math::clamp<float>( fx * ( p.x * poly + xy2 * p1 + p2 * ( r2 + 2.0f * p.x ) ) + c.x, 0, w - 1 );
+				*pdst++ = Math::clamp<float>( fy * ( p.y * poly + xy2 * p2 + p1 * ( r2 + 2.0f * p.y ) ) + c.y, 0, h - 1 );
+			}
+		}
+		idst.unmap( dst );
 	}
 
 	void IWarp::applyFC1( Image& idst, const Image& isrc, const Image& iwarp )
