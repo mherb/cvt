@@ -80,7 +80,9 @@ namespace cvt {
 		sum = _mm_add_epi64( sumUp1, sumUp2 );
 		sum = _mm_add_epi64( _mm_srli_si128( sum, 8 ), sum );
 
-        bitcount += ( ( uint64_t* )( &sum ) )[ 0 ];
+		uint64_t tmp;
+		_mm_storel_epi64( ( __m128i* ) &tmp, sum );
+        bitcount += tmp;
         
         if( r ){
             uint64_t a = 0, b = 0;
