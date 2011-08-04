@@ -15,6 +15,8 @@ namespace cvt {
 			static void apply( Image& dst, const Image& src, const Image& warp );
 
 			static void warpTunnel( Image& dst, float radius, float cx, float cy );
+			static void warpFishEye( Image& idst, float strength, float cx, float cy );
+			static void warpUndistort( Image& idst, float k1, float k2, float cx, float cy, float fx, float fy, float k3 = 0, float p1 = 0, float p2 = 0 );
 
 		private:
 			static void applyFC1( Image& dst, const Image& src, const Image& warp );
