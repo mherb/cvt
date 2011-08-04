@@ -114,7 +114,9 @@ namespace cvt
 
         trackFeatures( orb, lostFeatures, unMatched );
 
-        _gui.updateImage( _cam->frame(), _tracked, lostFeatures, unMatched );
+		Image curr;
+		_cam->frame().convert( curr, IFormat::RGBA_UINT8 );
+        _gui.updateImage( curr, _tracked, lostFeatures, unMatched );
 
         // if number of tracked features drops below thresh,
         // add the unmachted from this frame
