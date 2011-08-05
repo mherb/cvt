@@ -18,7 +18,7 @@ namespace cvt
     class ORBTemplateTracker
     {
       public:
-        ORBTemplateTracker( const Image & reference, size_t octaves = 4, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
+        ORBTemplateTracker( const Image & reference, size_t octaves = 5, float scaleFactor = 0.7f, uint8_t cornerThreshold = 25 ) :
             _octaves( octaves ),
             _scaleFactor( scaleFactor ),
             _cornerThreshold( cornerThreshold ),
@@ -77,14 +77,14 @@ namespace cvt
 					warped.fill( Color::WHITE );
 					ITransform::apply( warped, reference, H );
 
-					ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 5000 );
+					ORB orb( warped, _octaves, _scaleFactor, _cornerThreshold, 4000 );
 
 					for ( size_t f = 0; f < orb.size( ); f++ ) {
 						pp = Hinv * orb[ f ].pt;
 						bool add = true;
 						/* only add features not already in the set */
 						for( size_t i = 0; i < features.size(); i++ ) {
-							if( orb[ f ].distance( features[ i ] ) < _maxDistance && ( features[ i ].pt - pp ).length() < 1.0f ) {
+							if( orb[ f ].distance( features[ i ] ) < _maxDistance / 2 && ( features[ i ].pt - pp ).length() < 1.0f ) {
 								add = false;
 								break;
 							}
@@ -118,7 +118,7 @@ namespace cvt
 			Image img;
 			_img.scale( img, _img.width() * 2, _img.height() * 2, IScaleFilterBilinear() );
 
-            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 3000 );
+            ORB currOrb( img, _octaves, _scaleFactor, _cornerThreshold, 4000 );
 
 			//adaptCornerThreshold( currOrb.size() );
 
@@ -184,7 +184,7 @@ namespace cvt
 
         std::vector<ORBFeature> _tempFeatures;
 
-        LSH<10, 2>   _lsh;
+        LSH<12, 2>   _lsh;
 
     };
 }
