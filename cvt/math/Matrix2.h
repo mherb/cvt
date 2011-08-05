@@ -49,7 +49,7 @@ namespace cvt {
 		Matrix2<T>			inverse( void ) const;
 		bool				inverseSelf( void );
 
-		Matrix3<T>			toMatrix3( void );
+		Matrix3<T>			toMatrix3( void ) const;
 
 		int					dimension( void ) const;
 		const T*			ptr( void ) const;
@@ -316,7 +316,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Matrix3<T> Matrix2<T>::toMatrix3()
+	inline Matrix3<T> Matrix2<T>::toMatrix3() const
 	{
 		return Matrix3<T>( *this );
 	}
