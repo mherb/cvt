@@ -3677,9 +3677,8 @@ namespace cvt {
 	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n )
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
-		size_t i = n;
 
-		while( i-- )
+		while( n-- )
 		{
 			float fx, fy;
 
@@ -3704,9 +3703,8 @@ namespace cvt {
 	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n )
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
-		size_t i = n;
 
-		while( i-- )
+		while( n-- )
 		{
 			float fx, fy;
 
@@ -3738,9 +3736,7 @@ namespace cvt {
 
 	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n )
 	{
-		size_t i = n;
-
-		while( i-- )
+		while( n-- )
 		{
 			float fx, fy;
 
@@ -3765,10 +3761,9 @@ namespace cvt {
 
 	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n )
 	{
-		size_t i = n;
 		uint32_t* dst = ( uint32_t* ) _dst;
 
-		while( i-- )
+		while( n-- )
 		{
 			float fx, fy;
 
@@ -3789,6 +3784,116 @@ namespace cvt {
 		}
 
 	}
+
+	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, float fillcolor, size_t n )
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+
+		while( n-- )
+		{
+			float fx, fy;
+
+			fx = *coords++;
+			fy = *coords++;
+
+			float alpha1 = fx - ( float ) ( int )( fx );
+			float alpha2 = fy - ( float ) ( int )( fy );
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( fx ) ) ) : fillcolor
+			float v1, v2;
+			int lx = ( int )fx;
+			int ly = ( int )fy;
+			v1 = Math::mix( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+#undef VAL
+		}
+
+	}
+
+	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* fillcolor, size_t n )
+	{
+		const uint8_t* src = ( const uint8_t* ) _src;
+
+		while( n-- )
+		{
+			float fx, fy;
+
+			fx = *coords++;
+			fy = *coords++;
+
+			float alpha1 = fx - ( float ) ( int )( fx );
+			float alpha2 = fy - ( float ) ( int )( fy );
+#define VAL( fx, fy, offset ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 + offset ) ) ) : fillcolor[ offset ]
+			float v1, v2;
+			int lx = ( int )fx;
+			int ly = ( int )fy;
+			v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+			v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
+			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
+			*dst++ = Math::mix( v1, v2, alpha2 );
+#undef VAL
+		}
+
+	}
+
+	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint8_t fill, size_t n )
+	{
+		while( n-- )
+		{
+			float fx, fy;
+
+			fx = *coords++;
+			fy = *coords++;
+
+			float alpha1 = fx - ( float ) ( int )( fx );
+			float alpha2 = fy - ( float ) ( int )( fy );
+
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : fill
+
+			int lx = ( int )fx;
+			int ly = ( int )fy;
+			float v1 = Math::mix<float>( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
+			float v2 = Math::mix<float>( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+			*dst++ =  ( uint8_t ) Math::clamp<int>( Math::mix( v1, v2, alpha2 ), 0, 255 );
+#undef VAL
+		}
+
+	}
+
+	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint32_t fill, size_t n )
+	{
+		uint32_t* dst = ( uint32_t* ) _dst;
+
+		while( n-- )
+		{
+			float fx, fy;
+
+			fx = *coords++;
+			fy = *coords++;
+
+			uint32_t alpha1 = ( uint32_t ) Math::clamp<int32_t>( ( fx - ( float ) ( int )fx ) * 0x100, 0x0, 0x100 );
+			uint32_t alpha2 = ( uint32_t ) Math::clamp<int32_t>( ( fy - ( float ) ( int )fy ) * 0x100, 0x0, 0x100 );
+
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint32_t* ) ( src + srcStride * ( fy ) + sizeof( uint32_t ) * ( fx ) ) ) : fill
+
+			int lx = ( int )fx;
+			int ly = ( int )fy;
+			uint32_t v1 = _mix4U8( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
+			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+			*dst++ = _mix4U8( v1, v2, alpha2 );
+#undef VAL
+		}
+
+	}
+
 
 
 	float SIMD::harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const

@@ -108,7 +108,7 @@ namespace cvt {
 		idst.unmap( dst );
 	}
 
-	void IWarp::warpUndistort( Image& idst, float k1, float k2, float cx, float cy, float fx, float fy, float k3, float p1, float p2 )
+	void IWarp::warpUndistort( Image& idst, float k1, float k2, float cx, float cy, float fx, float fy, size_t srcWidth, size_t srcHeight, float k3, float p1, float p2 )
 	{
 		if( idst.format() != IFormat::GRAYALPHA_FLOAT )
 			throw CVTException( "Unsupported warp image type" );
@@ -124,12 +124,13 @@ namespace cvt {
 		w = idst.width();
 		h = idst.height();
 
-		Vector2f c( cx, cy );
+		Vector2f c1( cx +  ( ( float ) w - ( float ) srcWidth ) / 2.0f, cy + ( ( float ) h - ( float ) srcHeight ) / 2.0f );
+		Vector2f c2( cx, cy );
 		for( size_t y = 0; y < h; y++ ) {
 			pdst = ( float* ) ( dst + y * stride );
 			for( size_t x = 0; x < w; x++ ) {
 				Vector2f p( x, y );
-				p -= c;
+				p -= c1;
 				p.x *= invfx;
 				p.y *= invfy;
 				float r2 = p.lengthSqr();
@@ -137,8 +138,8 @@ namespace cvt {
 				float r6 = r2 * r4;
 				float poly = ( 1.0f + k1 * r2 + k2 * r4 + k3 * r6 );
 				float xy2 = 2.0f * p.x * p.y;
-				*pdst++ = Math::clamp<float>( fx * ( p.x * poly + xy2 * p1 + p2 * ( r2 + 2.0f * p.x ) ) + c.x, 0, w - 1 );
-				*pdst++ = Math::clamp<float>( fy * ( p.y * poly + xy2 * p2 + p1 * ( r2 + 2.0f * p.y ) ) + c.y, 0, h - 1 );
+				*pdst++ = fx * ( p.x * poly + xy2 * p1 + p2 * ( r2 + 2.0f * p.x ) ) + c2.x;
+				*pdst++ = fy * ( p.y * poly + xy2 * p2 + p1 * ( r2 + 2.0f * p.y ) ) + c2.y;
 			}
 		}
 		idst.unmap( dst );
@@ -151,7 +152,7 @@ namespace cvt {
 		const uint8_t* wrp;
 		uint8_t* pdst;
 		const uint8_t* pwrp;
-		size_t sstride, dstride, wstride, w, h;
+		size_t sstride, dstride, wstride, w, h, sw, sh;
 
 		pdst = dst = idst.map( &dstride );
 		pwrp = wrp = iwarp.map( &wstride );
@@ -159,10 +160,12 @@ namespace cvt {
 
 		SIMD* simd = SIMD::instance();
 
+		sw = isrc.width();
+		sh = isrc.height();
 		w = iwarp.width();
 		h = iwarp.height();
 		while( h-- ) {
-			simd->warpBilinear1f( ( float* ) pdst, ( const float* ) pwrp, ( const float* ) src, sstride, w );
+			simd->warpBilinear1f( ( float* ) pdst, ( const float* ) pwrp, ( const float* ) src, sstride, sw, sh, 0.0f, w );
 			pdst += dstride;
 			pwrp += wstride;
 		}
@@ -179,7 +182,8 @@ namespace cvt {
 		const uint8_t* wrp;
 		uint8_t* pdst;
 		const uint8_t* pwrp;
-		size_t sstride, dstride, wstride, w, h;
+		size_t sstride, dstride, wstride, w, h, sw, sh;
+		float black[ ] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		pdst = dst = idst.map( &dstride );
 		pwrp = wrp = iwarp.map( &wstride );
@@ -187,10 +191,12 @@ namespace cvt {
 
 		SIMD* simd = SIMD::instance();
 
+		sw = isrc.width();
+		sh = isrc.height();
 		w = iwarp.width();
 		h = iwarp.height();
 		while( h-- ) {
-			simd->warpBilinear4f( ( float* ) pdst, ( const float* ) pwrp, ( const float* ) src, sstride, w );
+			simd->warpBilinear4f( ( float* ) pdst, ( const float* ) pwrp, ( const float* ) src, sstride, sw, sh, black, w );
 			pdst += dstride;
 			pwrp += wstride;
 		}
@@ -207,7 +213,7 @@ namespace cvt {
 		const uint8_t* wrp;
 		uint8_t* pdst;
 		const uint8_t* pwrp;
-		size_t sstride, dstride, wstride, w, h;
+		size_t sstride, dstride, wstride, w, h, sw, sh;
 
 		pdst = dst = idst.map( &dstride );
 		pwrp = wrp = iwarp.map( &wstride );
@@ -215,10 +221,12 @@ namespace cvt {
 
 		SIMD* simd = SIMD::instance();
 
+		sw = isrc.width();
+		sh = isrc.height();
 		w = iwarp.width();
 		h = iwarp.height();
 		while( h-- ) {
-			simd->warpBilinear1u8( pdst, ( const float* ) pwrp, src, sstride, w );
+			simd->warpBilinear1u8( pdst, ( const float* ) pwrp, src, sstride, sw, sh, 0, w );
 			pdst += dstride;
 			pwrp += wstride;
 		}
@@ -235,7 +243,8 @@ namespace cvt {
 		const uint8_t* wrp;
 		uint8_t* pdst;
 		const uint8_t* pwrp;
-		size_t sstride, dstride, wstride, w, h;
+		size_t sstride, dstride, wstride, w, h, sw, sh;
+		uint32_t black = 0xff000000;
 
 		pdst = dst = idst.map( &dstride );
 		pwrp = wrp = iwarp.map( &wstride );
@@ -243,10 +252,12 @@ namespace cvt {
 
 		SIMD* simd = SIMD::instance();
 
+		sw = isrc.width();
+		sh = isrc.height();
 		w = iwarp.width();
 		h = iwarp.height();
 		while( h-- ) {
-			simd->warpBilinear4u8( pdst, ( const float* ) pwrp, src, sstride, w );
+			simd->warpBilinear4u8( pdst, ( const float* ) pwrp, src, sstride, sw, sh, black, w );
 			pdst += dstride;
 			pwrp += wstride;
 		}
