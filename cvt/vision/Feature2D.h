@@ -7,7 +7,7 @@
 namespace cvt {
 	template<typename T>
 	struct Feature2D {
-		Feature2D( T x, T y, float angle = 0.0f, size_t octave = 0, float score = 0.0f );
+		Feature2D( T x = 0, T y = 0, float angle = 0.0f, size_t octave = 0, float score = 0.0f );
 
 		Vector2<T> pt;
 		float angle;
