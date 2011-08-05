@@ -67,11 +67,18 @@ namespace cvt
                 bestIndices = indices;
 
                 float epsilon = 1.0f - ( float )inliers.size() / ( float )_model.size();
+
                 size_t newn = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, ( float )_model.minSampleSize() ) );
 
-                if( maxIter && newn < maxIter )
+                if( maxIter > 0 ){
+					if( newn < maxIter ){
+						n = newn;
+					}
+				} else {
                     n = newn;
+				}
             }
+
 
             samples++;
         }
