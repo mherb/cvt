@@ -508,13 +508,13 @@ namespace cvt {
 		mat[ 0 ][ 1 ] = -cy * fx * sz;
 		mat[ 0 ][ 2 ] =  0;
 
-		mat[ 1 ][ 0 ] =  fy * ( cx * sz + cz * sx * sy );
+		mat[ 1 ][ 0 ] =  fx * ( cx * sz + cz * sx * sy );
 		mat[ 1 ][ 1 ] =  fy * ( cx * cz - sx * sy * sz );
 		mat[ 1 ][ 2 ] =  0;
 
-		mat[ 1 ][ 0 ] =  sx * sz - cx * cz * sy;
-		mat[ 1 ][ 1 ] =  cx * sy * sz + cz * sx;
-		mat[ 1 ][ 2 ] =  d;
+		mat[ 2 ][ 0 ] =  sx * sz - cx * cz * sy;
+		mat[ 2 ][ 1 ] =  cx * sy * sz + cz * sx;
+		mat[ 2 ][ 2 ] =  d;
 	}
 
 	template<typename T>
