@@ -232,6 +232,8 @@ SET(${MODULE_NAME}_HEADERS
 	math/sac/SampleConsensusModel.h
 	math/sac/RANSAC.h
 	math/sac/Line2DSAC.h
+	math/sac/HomographySAC.h
+	math/sac/EssentialSAC.h
 	math/SBAData.h
 	math/SE3.h
 	math/SL3.h

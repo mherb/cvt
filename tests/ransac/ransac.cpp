@@ -8,6 +8,7 @@
 #include <cvt/math/sac/RANSAC.h>
 #include <cvt/math/sac/Line2DSAC.h>
 #include <cvt/math/sac/HomographySAC.h>
+#include <cvt/math/sac/EssentialSAC.h>
 
 #include <cvt/math/Matrix.h>
 #include <cvt/math/Vector.h>
@@ -92,6 +93,7 @@ void testLineEstimation()
 
 void testHomography()
 {
+	std::cout << "HOMOGRAPHY TEST" << std::endl;
     std::vector<Feature2Df> points0;
     std::vector<Feature2Df> points1;
     std::vector<FeatureMatch> matches;
@@ -114,8 +116,8 @@ void testHomography()
     }
 
     HomographySAC sacModel( matches );
-    float maxDist = 2.0f;
-    float outlierProb = 0.2f;
+    float maxDist = 4.0f;
+    float outlierProb = 0.16f;
     RANSAC<HomographySAC> ransac( sacModel, maxDist, outlierProb );
 
     Matrix3f Hest = ransac.estimate();
@@ -125,13 +127,122 @@ void testHomography()
     std::cout << "Estimated:\n" << Hest << std::endl;
 }
 
+
+template <typename T>
+static inline void generate3dPoints( std::vector<Vector3<T> > & pts, size_t n )
+{
+	Vector3<T> p;
+	srandom( time( NULL ) );
+	while( n-- ){
+		p.x = Math::rand( ( T )-1000, ( T )1000 );
+		p.y = Math::rand( ( T )-1000, ( T )1000 );
+		p.z = Math::rand( ( T )-1000, ( T )1000 );
+		pts.push_back( p );
+	}
+}
+
+static inline void computeEssentialFeatures( std::vector<FeatureMatch>	 & matches,
+											 std::vector<Feature2Df>     & points0,
+											 std::vector<Feature2Df>     & points1,
+											 const std::vector<Vector3f> & points3d,
+										     const Matrix3f				 & K,
+											 const Matrix4f				 & t01,
+											 size_t numOutliers )
+{
+	Vector2f p, pp;
+	Vector3f kt;
+
+	Vector3f t( t01[ 0 ][ 3 ], t01[ 1 ][ 3 ], t01[ 2 ][ 3 ] );
+	kt = K * t;
+
+	FeatureMatch m;
+
+	Feature2Df ft;
+
+	points0.reserve( points3d.size() + numOutliers ); 
+	points1.reserve( points3d.size() + numOutliers ); 
+
+	for( size_t i = 0; i < points3d.size(); i++ ){
+		ft.pt = Vector2f( K * points3d[ i ] );
+		points0.push_back( ft );
+
+		ft.pt = Vector2f( K * t01.toMatrix3() * points3d[ i ] + kt );
+		points1.push_back( ft );
+
+		m.feature0 = &points0.back();
+		m.feature1 = &points1.back();
+	    m.distance = 100;
+		matches.push_back( m );	
+	}
+
+	while( numOutliers-- ){
+		ft.pt.x = Math::rand( 0.0f, 640.0f );
+		ft.pt.y = Math::rand( 0.0f, 480.0f );
+		points0.push_back( ft );
+		ft.pt.x = Math::rand( 0.0f, 640.0f );
+		ft.pt.y = Math::rand( 0.0f, 480.0f );
+		points1.push_back( ft );
+
+		m.feature0 = &points0.back();
+		m.feature1 = &points1.back();
+	    m.distance = 100;
+		matches.push_back( m );	
+	}
+}
+
+void testEssential()
+{
+	std::cout << "ESSENTIAL TEST" << std::endl;
+    std::vector<Feature2Df>		points0;
+    std::vector<Feature2Df>		points1;
+    std::vector<FeatureMatch>	matches;
+	std::vector<Vector3f>		points3d;
+
+	Matrix4<float> trans;
+	trans.setIdentity();
+
+	Vector3<float> t( 10.0f, 30.0f, 50.0f );
+	trans.setRotationXYZ( Math::deg2Rad<float>( 20 ), Math::deg2Rad<float>( 10 ), Math::deg2Rad<float>( 30 ) );
+	trans.setTranslation( t.x, t.y, t.z );
+
+	Matrix3<float> K( 500.0,   0.0, 320.0,
+					  0.0,   505.0, 240.0,
+				  	  0.0,     0.0,   1.0 );
+
+	size_t numfeature = 300;
+	size_t outliers = 30;
+	generate3dPoints( points3d, numfeature );
+
+	computeEssentialFeatures( matches, points0, points1, points3d, K, trans, outliers );
+
+    EssentialSAC sacModel( matches, K );
+
+    float maxDist = 0.5f;
+    float outlierProb = (float)( outliers ) / ( float )( outliers + numfeature );
+    RANSAC<EssentialSAC> ransac( sacModel, maxDist, outlierProb );
+
+    Matrix3f essential = ransac.estimate();
+	essential *= 1.0f / essential[ 2 ][ 2 ];
+
+	// essential matrix = [t]_x R
+	Matrix3<float> skew, Etrue;
+	skew.setSkewSymmetric( t );
+	Etrue = skew * trans.toMatrix3();
+	Etrue *= 1.0 / Etrue[ 2 ][ 2 ];
+
+    std::cout << "Essential: " << std::endl;
+    std::cout << "GT:\n" << Etrue << std::endl;
+    std::cout << "Estimated:\n" << essential << std::endl;
+
+}
+
 int main()
 {
     srandom( time( NULL ) );
 
-    testLineEstimation();
+//    testLineEstimation();
     testHomography();
-
+    testEssential();
 
     return 0;
 }
