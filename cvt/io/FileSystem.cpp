@@ -64,6 +64,7 @@ namespace cvt {
 
 			entries.push_back( entryName );
 		}
+		closedir( dirEntries );
 	}
 
     void FileSystem::filesWithExtension( const String & _path, std::vector<String>& result, const String & ext )
@@ -102,6 +103,7 @@ namespace cvt {
 				}
 			}
 		}
+		closedir( dirEntries );
 	}
 
 	size_t FileSystem::size( const String& path )

@@ -78,11 +78,12 @@ namespace cvt {
 			setMinimumSize( 0, 0 );
 			setSize( w, 20 );
 		} else {
-			if( _child )
+			if( _child ) {
+				int mw, mh;
 				_child->setVisible( true );
-			int mw, mh;
-			_child->minimumSize( mw, mh );
-			setMinimumSize( mw + 16, mh + 28 );
+				_child->minimumSize( mw, mh );
+				setMinimumSize( mw + 16, mh + 28 );
+			}
 			setSize( w, _oldheight );
 		}
 		update();

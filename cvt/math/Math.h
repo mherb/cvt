@@ -364,11 +364,11 @@ namespace cvt {
 
 		static inline void jacobi( float& c, float& s, float x, float y, float z )
 		{
-			float t, u;
 			if( y == 0 ) {
 				c = copysign( 1.0f, x );
 				s = 0;
 			} else {
+				float t, u;
 				float tau = ( z - x ) / ( 2.0f * y );
 				t = copysign( 1.0f / ( abs( tau ) + sqrt( 1.0f + sqr( tau ) ) ) , tau );
 				u = sqrt( 1.0f + sqr( t ) );
@@ -380,11 +380,11 @@ namespace cvt {
 
 		static inline void jacobi( double& c, double& s, double x, double y, double z )
 		{
-			double t, u;
 			if( y == 0 ) {
 				c = copysign( 1.0, x );
 				s = 0;
 			} else {
+				double t, u;
 				double tau = ( z - x ) / ( 2.0 * y );
 				t = copysign( 1.0 / ( abs( tau ) + sqrt( 1.0 + sqr( tau ) ) ) , tau );
 				u = sqrt( 1.0 + sqr( t ) );

@@ -37,8 +37,10 @@ namespace cvt {
 		}
 
 		uint8_t* image = new uint8_t[ _width * _height ];
-		if( fread( image, sizeof( uint8_t ), _width * _height, f ) != ( size_t ) _width * _height )
+		if( fread( image, sizeof( uint8_t ), _width * _height, f ) != ( size_t ) _width * _height ) {
+			delete[] image;
 			throw CVTException( "Unable to read GL-font!" );
+		}
 		_tex.alloc( GL_RED, _width, _height, GL_RED, GL_UNSIGNED_BYTE, image );
 		delete[] image;
 
