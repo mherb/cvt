@@ -67,8 +67,8 @@ namespace cvt {
         size_t offset = -( _patchSize >> 1 ) - ( _patchSize >> 1 ) * iStride; // offset from patch center to upper right corner
 
         const float * p = ii + (int)pos.y * iStride + (int)pos.x + offset;
-        const float * p0 = p;
-        const float * p1 = p;
+        const float * p0;
+        const float * p1;
 
         uint8_t * t0 = _tests;
         uint8_t * t1 = _tests + 2;

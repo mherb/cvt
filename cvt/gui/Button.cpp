@@ -10,7 +10,7 @@ namespace cvt {
 
 	}
 
-	void Button::paintEvent( PaintEvent* event, GFX* g )
+	void Button::paintEvent( PaintEvent* , GFX* g )
 	{
 		int w, h;
 		g->color().set( 0.2f, 0.2f, 0.2f, 1.0f );
