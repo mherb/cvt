@@ -1085,8 +1085,12 @@ namespace cvt {
 
 		// allocate and fill buffer
 		size_t bstride = Math::pad16( sizeof( Fixed ) * widthchannels );
-		if( posix_memalign( ( void** ) &bufmem, 16, bstride * kheight ) )
+		if( posix_memalign( ( void** ) &bufmem, 16, bstride * kheight ) ) {
+			delete[] hweights;
+			delete[] vweights;
+			delete[] buf;
 			throw CVTException("Out of memory");
+		}
 
 		buf[ 0 ] = bufmem;
 		for( i = 0; i < kheight; i++ ) {
@@ -1095,8 +1099,13 @@ namespace cvt {
 			( simd->*convfunc )( buf[ i ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
 			src += sstride;
 		}
-		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) ) )
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) ) ) {
+			delete[] hweights;
+			delete[] vweights;
+			delete[] buf;
+			free( bufmem );
 			throw CVTException("Out of memory");
+		}
 
 
 		b1 = ( kheight - ( 1 - ( kheight & 1 ) ) ) / 2;

@@ -16,7 +16,7 @@ namespace cvt {
 			public:
 				Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
 				Rect( const Rect<T>& r2 );
-				const Rect<T>& operator=( const Rect<T>& r2 );
+				Rect<T>& operator=( const Rect<T>& r2 );
 				void copy( const Rect<T>& r2 );
 				void set( T x, T y, T width, T height );
 				void setPosition( T x, T y );
@@ -26,7 +26,7 @@ namespace cvt {
 				void getPosition( T& x, T& y ) const;
 				void getSize( T& w, T& h ) const;
 				bool contains( const T px, const T py ) const;
-				bool contains( const Vector2<T> pt ) const;
+				bool contains( const Vector2<T>& pt ) const;
 				bool contains( T x, T y, T width, T height ) const;
 				bool contains( const Rect<T>& r2 ) const;
 				bool intersects( const Rect<T>& r2 ) const;
@@ -64,7 +64,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-	inline const Rect<T>& Rect<T>::operator=( const Rect<T>& r2 )
+	inline Rect<T>& Rect<T>::operator=( const Rect<T>& r2 )
 	{
 		x = r2.x;
 		y = r2.y;
@@ -143,7 +143,7 @@ namespace cvt {
 
 
 	template<typename T>
-		inline bool Rect<T>::contains( const Vector2<T> pt ) const
+		inline bool Rect<T>::contains( const Vector2<T>& pt ) const
 		{
 			if( pt.x >= x && pt.x <= x + width &&
 			   pt.y >= y && pt.y <= y + height )

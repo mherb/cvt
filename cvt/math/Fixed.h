@@ -22,7 +22,7 @@ namespace cvt
 			Fixed	sqrt() const;
 			Fixed	recip() const;
 
-			const Fixed & operator=( const Fixed & other );
+			Fixed& operator=( const Fixed & other );
 
 			bool operator==( const Fixed & other ) const;
 			bool operator!=( const Fixed & other ) const;
@@ -113,7 +113,7 @@ namespace cvt
 		return toFloat();
 	}*/
 
-	inline const Fixed & Fixed::operator=( const Fixed & other )
+	inline Fixed & Fixed::operator=( const Fixed & other )
 	{
 		_val = other._val;
 		return *this;

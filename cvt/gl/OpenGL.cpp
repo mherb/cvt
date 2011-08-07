@@ -147,7 +147,7 @@ namespace cvt {
 
 	bool GL::existsExtension( const std::string& extname )
 	{
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); it++ ) {
+		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it ) {
 			if( !extname.compare( **it ) ) {
 				return true;
 			}
@@ -169,7 +169,7 @@ namespace cvt {
 		out << "GL-Version: " << _glmajor << "." << _glminor << std::endl;
 		out << "GLSL-Version: " << _glslmajor << "." << _glslminor << std::endl;
 		out << "GL Extensions: " << std::endl;
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); it++ )
+		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it )
 			out << "\t" << **it << std::endl;
 	}
 
