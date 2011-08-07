@@ -14,7 +14,7 @@ namespace cvt {
 
 	}
 
-	void ToggleButton::paintEvent( PaintEvent* event, GFX* g )
+	void ToggleButton::paintEvent( PaintEvent* , GFX* g )
 	{
 		int w, h;
 		size( w, h );

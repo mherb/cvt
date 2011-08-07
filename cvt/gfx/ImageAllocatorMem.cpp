@@ -26,7 +26,7 @@ namespace cvt {
 		_format = format;
 
 		if( stride == 0 ){
-			stride = _width * _format.bpp;
+			_stride = _width * _format.bpp;
 		} else {
 			_stride = stride;
 		}
@@ -87,7 +87,7 @@ namespace cvt {
 	void ImageAllocatorMem::release()
 	{
 		if( _refcnt ) {
-			*_refcnt--;
+			*_refcnt -= 1;
 			if( *_refcnt <= 0 ) {
 				if( _mem )
 					delete[] _mem;
@@ -99,7 +99,7 @@ namespace cvt {
 	void ImageAllocatorMem::retain()
 	{
 		if( _refcnt ) {
-			*_refcnt++;
+			*_refcnt += 1;
 		}
 	}
 

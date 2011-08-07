@@ -1703,7 +1703,6 @@ namespace cvt {
 
 			y = ( ( ( int ) ( ( y4 >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
 			out = 0xff000000;
-			out = 0xff000000;
 			out |= Math::clamp( y + r, 0, 255 );
 			out |= Math::clamp( y - g, 0, 255 ) << 8;
 			out |= Math::clamp( y + b, 0, 255 ) << 16;

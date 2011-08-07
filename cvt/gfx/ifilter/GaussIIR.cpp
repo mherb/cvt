@@ -477,28 +477,30 @@ namespace cvt {
 		const uint8_t* x = in;
 		uint8_t* y = out;
 
-		Fixed tmpLine[ channels * w ];		
+		Fixed* tmpLine = new Fixed[ channels * w ];		
 
 		// horizontal pass
 		for( uint32_t k = 0; k < h; k++ ){
-			(simd->*fwdHoriz)( tmpLine, x, w, n, d, b1 );
-			(simd->*bwdHoriz)( y, tmpLine, x, w, m, d, b2 );
+			( simd->*fwdHoriz )( tmpLine, x, w, n, d, b1 );
+			( simd->*bwdHoriz )( y, tmpLine, x, w, m, d, b2 );
 
 			x += sstride;
 			y += dstride;
 		}
+        delete[] tmpLine;
 
 		// vertical pass:
 		// buffer for 4 lines:
-		Fixed column[ channels * h ];
+		Fixed* column = new Fixed[ channels * h ];
 		x = in;
 		y = out;
 		for( uint32_t k = 0; k < w; k++ ){
-			simd->IIR4FwdVertical4Fx( column, y, dstride, h, n, d, b1 );
-			simd->IIR4BwdVertical4Fx( y, dstride, column, h, m, d, b2 );
+			( simd->*fwdVert )( column, y, dstride, h, n, d, b1 );
+			( simd->*bwdVert )( y, dstride, column, h, m, d, b2 );
 			x += channels;
 			y += channels;
 		}
+        delete[] column;
 
 
 		src.unmap( in );

@@ -24,6 +24,7 @@ namespace cvt {
 			if( suffix == extension( i ) )
 				return true;
 		}
+        return false;
 	}
 }
 

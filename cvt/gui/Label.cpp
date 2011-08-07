@@ -10,7 +10,7 @@ namespace cvt {
 
 	}
 
-	void Label::paintEvent( PaintEvent* event, GFX* g )
+	void Label::paintEvent( PaintEvent* , GFX* g )
 	{
 		int w, h;
 		g->color() = _color;

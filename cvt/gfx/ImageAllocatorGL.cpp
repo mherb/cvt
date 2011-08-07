@@ -20,7 +20,7 @@ namespace cvt {
 
 	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat & format )
 	{
-		GLenum glformat, gltype, internalformat;
+		GLenum glformat, gltype/*, internalformat*/;
 
 		if( _width == width && _height == height && _format == format )
 			return;
@@ -45,7 +45,7 @@ namespace cvt {
 		else*/
 //		    internalformat = GL_RGBA;
 		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
 
 	void ImageAllocatorGL::copy( const ImageAllocator* x, const Recti* r = NULL )
