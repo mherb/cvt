@@ -190,7 +190,7 @@ namespace cvt {
 		_len = nlen;
 		return *this;
 	}
-    
+
     inline String String::operator+(const String& str) const
     {
         String s( *this );
@@ -406,7 +406,7 @@ namespace cvt {
 			_len = n;
 			return;
 		}
-        
+
 		throw CVTException("Error in String::sprintf");
 	}
 

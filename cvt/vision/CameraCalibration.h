@@ -41,6 +41,8 @@ namespace cvt
         void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
 
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
+        const Vector3f & radialDistortion()     const { return _radial; }
+        const Vector2f & tangentialDistortion() const { return _tangential; }
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
         bool hasIntrinsics() const { return ( _flags & INTRINSICS ); }
@@ -108,7 +110,40 @@ namespace cvt
     {
         if( node->name() != "CameraCalibration" )
             throw CVTException( "this is not a camera calibration node" );
-        // TODO
+        XMLNode * n;
+        n = node->childByName( "Extrinsics" );
+        if( n != NULL ){
+            Matrix4f mat = Matrix4f::fromString( n->child( 0 )->value() );
+            setExtrinsics( mat );
+        }
+
+        n = node->childByName( "Intrinsics" );
+        if( n != NULL ){
+            Matrix3f intr = Matrix3f::fromString( n->child( 0 )->value() );
+            setIntrinsics( intr );
+        }
+
+        n = node->childByName( "Distortion" );
+        if( n != NULL ){
+            XMLNode * child;
+            Vector3f radial;
+            Vector2f tangential;
+            for( size_t i = 0; i < n->childSize(); i++ ){
+                child = n->child( i );
+
+                if( child->name() == "Radial"){
+                    radial = Vector3f::fromString( child->child( 0 )->value() );
+                } else if( child->name() == "Tangential" ){
+                    tangential = Vector2f::fromString( child->child( 0 )->value() );
+                } else {
+                    String message( "Unkown child type: " );
+                    message += child->name();
+                    throw CVTException( message.c_str() );
+                }
+            }
+
+            setDistortion( radial, tangential );
+        }
     }
 
     inline void CameraCalibration::setExtrinsics( const Matrix4f & extr )
