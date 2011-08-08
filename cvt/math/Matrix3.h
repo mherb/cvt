@@ -76,6 +76,7 @@ namespace cvt {
 		T*					ptr( void );
 
         String              toString( void ) const;
+        static Matrix3<T>   fromString( const String & s );
 
 		friend std::ostream& operator<< <>( std::ostream& out, const Matrix3<T>& m );
 
