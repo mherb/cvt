@@ -120,7 +120,7 @@ namespace cvt {
 		size_t len;
 		if( ( len = size( path ) ) ) {
 			int fd;
-			if( ( fd = open( path.c_str(), O_RDONLY, 0 ) ) < 0 )
+			if( ( fd = open( path.c_str(), O_RDONLY ) ) < 0 )
 				return false;
 			d.allocate( len + ( zerotermination? 1 : 0 ) );
 			if( read( fd, d.ptr(), len ) != ( ssize_t ) len ) {
@@ -138,7 +138,7 @@ namespace cvt {
 	bool FileSystem::save( const String& path, const Data& d )
 	{
 		int fd;
-		if( ( fd = open( path.c_str(), O_CREAT | O_WRONLY| O_TRUNC , 0 ) ) < 0 )
+		if( ( fd = open( path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP ) ) < 0 )
 			return false;
 		if( write( fd, d.ptr(), d.size() ) != ( ssize_t ) d.size() ) {
 			close( fd );
@@ -158,7 +158,7 @@ namespace cvt {
 		CVTTEST_PRINT( "exists: ", b );
 		result &= b;
 
-        
+
 		b = FileSystem::isDirectory( "/usr/include" );
         String f;
         f = dataFolder; f += "/lena.png";
@@ -166,7 +166,7 @@ namespace cvt {
 		CVTTEST_PRINT( "isDirectory: ", b );
 		result &= b;
 
-		b = !FileSystem::isFile( "/usr/include" );        
+		b = !FileSystem::isFile( "/usr/include" );
 		b &= FileSystem::isFile( f );
 		CVTTEST_PRINT( "isFile: ", b );
 		result &= b;

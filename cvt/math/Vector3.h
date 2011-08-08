@@ -13,7 +13,7 @@ namespace cvt {
 					Vector3( const Vector4<T>& vec );
 
 		void		set( T x, T y, T z );
-		void		zero( void );
+		void		setZero( void );
 
 		T			operator[]( int index ) const;
 		T&			operator[]( int index );
@@ -48,6 +48,8 @@ namespace cvt {
 		T*			ptr( void );
 
 		void		mix( const Vector3<T> &v1, const Vector3<T> &v2, float alpha );
+
+        String      toString( void ) const;
 
 		T x, y, z;
 	};
@@ -92,7 +94,7 @@ namespace cvt {
 	}
 
     template<typename T>
-	inline void Vector3<T>::zero( )
+	inline void Vector3<T>::setZero( )
 	{
 	    x = 0;
 	    y = 0;
@@ -334,7 +336,19 @@ namespace cvt {
 	    y = Math::mix( v1.y, v2.y, alpha );
 	    z = Math::mix( v1.z, v2.z, alpha );
 	}
-	
+
+    template<typename T>
+	String Vector3<T>::toString( void ) const
+	{
+        String s;
+
+        s += x; s+= " ";
+        s += y; s+= " ";
+        s += z; s+= " ";
+
+	    return s;
+	}
+
 	template<typename T>
 	static inline std::ostream& operator<<( std::ostream& out, const Vector3<T> &v )
 	{

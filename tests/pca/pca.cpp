@@ -17,7 +17,7 @@ int main()
 	for( int i = 0; i < 100; i++ )
 	{
 		Vector2f s;
-		s.zero();
+		s.setZero();
 		s = Math::rand( -3.0f, 3.0f ) * v1 + Math::rand( -1.0f, 1.0f ) * v2;
 		pca.addSample( s.ptr() );
 	}

@@ -9,7 +9,7 @@ namespace cvt {
 	class Data {
 		public:
 			Data( size_t size = 0 );
-			Data( uint8_t* ptr, size_t size );
+			Data( const uint8_t* ptr, size_t size );
 			Data( const Data& data );
 			Data& operator=( const Data& data );
 
@@ -30,7 +30,7 @@ namespace cvt {
 		allocate( size );
 	}
 
-	inline Data::Data( uint8_t* ptr, size_t size ) : _data( NULL )
+	inline Data::Data( const uint8_t* ptr, size_t size ) : _data( NULL )
 	{
 		allocate( size );
 		SIMD::instance()->Memcpy( _data, ptr, size );

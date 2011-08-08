@@ -219,6 +219,7 @@ SET(${MODULE_NAME}_HEADERS
 	io/Postscript.h
 	io/GFXEnginePS.h
 	math/CostFunction.h
+	math/Complex.h
 	math/Fixed.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
@@ -278,6 +279,7 @@ SET(${MODULE_NAME}_HEADERS
     util/DataIterator.h
 	vision/Brief.h
 	vision/CamModel.h
+	vision/CameraCalibration.h
 	vision/DLT.h
 	vision/ESM.h
 	vision/FAST.h
@@ -298,10 +300,12 @@ SET(${MODULE_NAME}_HEADERS
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
+	io/xml/XMLDecl.h
 	io/xml/XMLDecoder.h
 	io/xml/XMLDecoderUTF8.h
 	io/xml/XMLDocument.h
 	io/xml/XMLElement.h
+	io/xml/XMLEncoding.h
 	io/xml/XMLLeaf.h
 	io/xml/XMLNode.h
 	io/xml/XMLText.h
@@ -409,6 +413,7 @@ SET(${MODULE_NAME}_SOURCES
 	util/PluginManager.cpp
 	util/PluginFile.cpp
 	vision/Brief.cpp
+	vision/CameraCalibrationTest.cpp
 	vision/DLT.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp

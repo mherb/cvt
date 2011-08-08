@@ -18,6 +18,8 @@ namespace cvt {
 
         DataIterator( Data & d );
 
+        DataIterator( const String & s );
+
         bool hasNext( );
 
         bool nextToken( String & token, const String & deliminators );
@@ -34,9 +36,8 @@ namespace cvt {
         long nextLong( int base = 0 );
 
       private:
-        Data &		_data;
-        uint8_t*	_pos;
-        uint8_t*	_end;
+        const uint8_t*	_pos;
+        const uint8_t*	_end;
 
         void skip( const String & delim );
         void nextDelim( const String & delim );
@@ -45,9 +46,14 @@ namespace cvt {
     } ;
 
     inline DataIterator::DataIterator( Data& d ) :
-    	_data( d ), _pos( d.ptr( ) ), _end( _pos + d.size( ) )
+    	_pos( d.ptr() ), _end( _pos + d.size() )
 	{
 	}
+
+    inline DataIterator::DataIterator( const String & s ) :
+        _pos( ( const uint8_t* )s.c_str() ), _end( _pos + s.length() )
+    {
+    }
 
     inline bool DataIterator::hasNext( )
     {
@@ -60,10 +66,10 @@ namespace cvt {
 
         if ( hasNext() ) {
             // here we know that _pos points to a token
-            uint8_t * start = _pos;
+            const uint8_t * start = _pos;
             nextDelim( deliminators );
 
-            token.assign( ( char* )start, _pos - start );
+            token.assign( ( const char* )start, _pos - start );
             return true;
 
         } else {
@@ -77,7 +83,7 @@ namespace cvt {
     {
         if( !hasNext() )
             return false;
-        uint8_t * start = _pos;
+        const uint8_t * start = _pos;
 
         while( *_pos != '\n' ){
             if( !hasNext() )
