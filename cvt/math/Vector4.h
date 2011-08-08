@@ -43,6 +43,8 @@ namespace cvt {
 		T*			ptr( void );
 
         String      toString( void ) const;
+        
+        static Vector4<T> fromString( const String & s );
 
 		void		mix( const Vector4<T> &v1, const Vector4<T> &v2, float alpha );
 

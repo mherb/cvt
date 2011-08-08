@@ -1,7 +1,163 @@
 #include <cvt/math/Vector.h>
 #include <cvt/util/CVTTest.h>
 
+#include <cvt/util/DataIterator.h>
+
 namespace cvt {
+
+    template<>
+    Vector2<int> Vector2<int>::fromString( const String& s )
+    {
+        Vector2<int> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 2; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toInteger();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector2<float> Vector2<float>::fromString( const String& s )
+    {
+        Vector2<float> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 2; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toFloat();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector2<double> Vector2<double>::fromString( const String& s )
+    {
+        Vector2<double> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 2; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toDouble();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector3<int> Vector3<int>::fromString( const String& s )
+    {
+        Vector3<int> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 3; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toInteger();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector3<float> Vector3<float>::fromString( const String& s )
+    {
+        Vector3<float> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 3; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toFloat();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector3<double> Vector3<double>::fromString( const String& s )
+    {
+        Vector3<double> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 3; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toDouble();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector4<int> Vector4<int>::fromString( const String& s )
+    {
+        Vector4<int> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 4; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toInteger();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector4<float> Vector4<float>::fromString( const String& s )
+    {
+        Vector4<float> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 4; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toFloat();
+        }
+
+        return m;
+    }
+
+    template<>
+    Vector4<double> Vector4<double>::fromString( const String& s )
+    {
+        Vector4<double> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 4; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.toDouble();
+        }
+
+        return m;
+    }
+
 
 	BEGIN_CVTTEST(Vector2)
 		Vector2f vec;
@@ -47,6 +203,11 @@ namespace cvt {
 
 		b = b && Math::abs( vec.length() - Math::sqrt( vec * vec ) ) < Math::EPSILONF;
 		CVTTEST_PRINT( "length", b );
+
+        String s = vec.toString();
+        Vector2f vString = Vector2f::fromString( s );
+        b = b && ( vString == vec );
+        CVTTEST_PRINT( "fromString", b );
 
 		return b;
 	END_CVTTEST
@@ -98,6 +259,11 @@ namespace cvt {
 
 		b = b && Math::abs( vec.length() - Math::sqrt( vec * vec ) ) < Math::EPSILONF;
 		CVTTEST_PRINT( "length", b );
+
+        String s = vec.toString();
+        Vector3f vString = Vector3f::fromString( s );
+        b = b && ( vString == vec );
+        CVTTEST_PRINT( "fromString", b );
 
 		return b;
 	END_CVTTEST
@@ -151,6 +317,11 @@ namespace cvt {
 
 		b = b && Math::abs( vec.length() - Math::sqrt( vec * vec ) ) < Math::EPSILONF;
 		CVTTEST_PRINT( "length", b );
+
+        String s = vec.toString();
+        Vector4f vString = Vector4f::fromString( s );
+        b = b && ( vString == vec );
+        CVTTEST_PRINT( "fromString", b );
 
 		return b;
 	END_CVTTEST

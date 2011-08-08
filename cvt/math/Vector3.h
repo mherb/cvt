@@ -50,6 +50,7 @@ namespace cvt {
 		void		mix( const Vector3<T> &v1, const Vector3<T> &v2, float alpha );
 
         String      toString( void ) const;
+        static Vector3<T> fromString( const String & s );
 
 		T x, y, z;
 	};
