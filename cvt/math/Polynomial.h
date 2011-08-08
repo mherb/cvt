@@ -205,11 +205,16 @@ namespace cvt {
 	inline Polynomial<T> Polynomial<T>::operator/( T s ) const
 	{
 		Polynomial<T> ret( _degree );
-		T inv = ( T ) 1 / s;
-		for( size_t i = 0; i <= _degree; i++ ) {
-			ret._coeff[ i ] = inv * _coeff[ i ];
-			if( ret._coeff[ i ] != 0 )
-				ret._degree = i;
+		if( s == 0 ) {
+			ret._coeff[ 0 ] = 0;
+			ret._degree = 0;
+		} else {
+			T inv = ( T ) 1 / s;
+			for( size_t i = 0; i <= _degree; i++ ) {
+				ret._coeff[ i ] = inv * _coeff[ i ];
+				if( ret._coeff[ i ] != 0 )
+					ret._degree = i;
+			}
 		}
 		return ret;
 	}
@@ -274,11 +279,16 @@ namespace cvt {
 	template<typename T>
 	inline Polynomial<T>& Polynomial<T>::operator/=( T s )
 	{
-		T inv = ( T ) 1 / s;
-		for( size_t i = 0; i <= _degree; i++ ) {
-			_coeff[ i ] *= inv;
-			if( _coeff[ i ] != 0 )
-				_degree = i;
+		if( s == 0 ) {
+			_coeff[ 0 ] = 0;
+			_degree = 0;
+		} else {
+			T inv = ( T ) 1 / s;
+			for( size_t i = 0; i <= _degree; i++ ) {
+				_coeff[ i ] *= inv;
+				if( _coeff[ i ] != 0 )
+					_degree = i;
+			}
 		}
 		return *this;
 	}
