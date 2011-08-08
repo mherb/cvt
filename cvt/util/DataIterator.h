@@ -10,6 +10,7 @@
 
 #include <cvt/util/Data.h>
 #include <cvt/util/String.h>
+#include <vector>
 
 namespace cvt {
 
