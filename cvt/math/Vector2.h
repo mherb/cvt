@@ -49,6 +49,8 @@ namespace cvt {
 
         String      toString( void ) const;
 
+        static Vector2<T> fromString( const String & s );
+
 		T x, y;
 	};
 
