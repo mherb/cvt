@@ -133,7 +133,7 @@ namespace cvt {
 		const Vector3f* pt = &_vertices[ 0 ];
 		Vector3f mean;
 
-		mean.zero();
+		mean.setZero();
 		while( n-- )
 			mean += *pt++;
 		inv = 1.0f / ( float ) _vertices.size();

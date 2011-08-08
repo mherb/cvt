@@ -7,6 +7,7 @@
 
 namespace cvt {
 	enum XMLNodeType {
+        XML_NODE_DECL,
 		XML_NODE_ELEMENT,
 		XML_NODE_TEXT,
 		XML_NODE_CDATA,

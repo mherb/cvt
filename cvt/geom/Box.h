@@ -176,8 +176,8 @@ namespace cvt {
 		inline void Box<T>::intersect( const Box<T>& b2 )
 		{
 			if( !intersects( b2 ) ) {
-				p1.zero();
-				p2.zero();
+				p1.setZero();
+				p2.setZero();
 				return;
 			}
 			p1.x = Math::max( p1.x, b2.p1.x );

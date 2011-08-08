@@ -8,7 +8,7 @@ namespace cvt {
 		Vector2f zero( 0.0f, 0.0f );
 		bool b = true;
 
-		vec.zero();
+		vec.setZero();
 		b = b && vec == zero;
 		CVTTEST_PRINT( "zero()", b );
 
@@ -24,12 +24,12 @@ namespace cvt {
 		b = b && Math::abs( vec[ 0 ] - 10.0f ) < Math::EPSILONF && Math::abs( vec[ 1 ] - 20.0f ) < Math::EPSILONF;
 		CVTTEST_PRINT( "const operator[]", b );
 
-		vec.zero();
+		vec.setZero();
 		vec += 1.0f;
 		b = b && vec == Vector2f( 1.0f, 1.0f );
 		CVTTEST_PRINT( "operator+=", b );
 
-		vec.zero();
+		vec.setZero();
 		vec -= 1.0f;
 		b = b && vec == Vector2f( -1.0f, -1.0f );
 		CVTTEST_PRINT( "operator-=", b );
@@ -56,7 +56,7 @@ namespace cvt {
 		Vector3f zero( 0.0f, 0.0f, 0.0f );
 		bool b = true;
 
-		vec.zero();
+		vec.setZero();
 		b = b && vec == zero;
 		CVTTEST_PRINT( "zero()", b );
 
@@ -75,12 +75,12 @@ namespace cvt {
 			  && Math::abs( vec[ 2 ] - 30.0f ) < Math::EPSILONF;
 		CVTTEST_PRINT( "const operator[]", b );
 
-		vec.zero();
+		vec.setZero();
 		vec += 1.0f;
 		b = b && vec == Vector3f( 1.0f, 1.0f, 1.0f );
 		CVTTEST_PRINT( "operator+=", b );
 
-		vec.zero();
+		vec.setZero();
 		vec -= 1.0f;
 		b = b && vec == Vector3f( -1.0f, -1.0f, -1.0f );
 		CVTTEST_PRINT( "operator-=", b );
@@ -107,7 +107,7 @@ namespace cvt {
 		Vector4f zero( 0.0f, 0.0f, 0.0f, 0.0f );
 		bool b = true;
 
-		vec.zero();
+		vec.setZero();
 		b = b && vec == zero;
 		CVTTEST_PRINT( "zero()", b );
 
@@ -128,12 +128,12 @@ namespace cvt {
 			  && Math::abs( vec[ 3 ] - 40.0f ) < Math::EPSILONF;
 		CVTTEST_PRINT( "const operator[]", b );
 
-		vec.zero();
+		vec.setZero();
 		vec += 1.0f;
 		b = b && vec == Vector4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		CVTTEST_PRINT( "operator+=", b );
 
-		vec.zero();
+		vec.setZero();
 		vec -= 1.0f;
 		b = b && vec == Vector4f( -1.0f, -1.0f, -1.0f, -1.0f );
 		CVTTEST_PRINT( "operator-=", b );

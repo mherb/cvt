@@ -123,7 +123,7 @@ namespace cvt
 			PTTYPE mean;
 			size_t n = _pts.size();
 
-			mean.zero();
+			mean.setZero();
 			while( n-- )
 				mean += *pt++;
 
@@ -139,7 +139,7 @@ namespace cvt
 			PTTYPE mu = mean();
 			PTTYPE var;
 
-			var.zero();
+			var.setZero();
 			while( n-- )
 				var += ( *pt++ - mu ).lengthSqr();
 

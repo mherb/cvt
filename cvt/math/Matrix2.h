@@ -55,6 +55,7 @@ namespace cvt {
 		const T*			ptr( void ) const;
 		T*					ptr( void );
 
+        String              toString( void ) const;
 
 		friend std::ostream& operator<< <>( std::ostream& out, const Matrix2<T>& m );
 
@@ -238,8 +239,8 @@ namespace cvt {
 	template<typename T>
 	inline void Matrix2<T>::setZero()
 	{
-	    mat[ 0 ].zero();
-	    mat[ 1 ].zero();
+	    mat[ 0 ].setZero();
+	    mat[ 1 ].setZero();
 	}
 
 	template<typename T>
@@ -349,6 +350,19 @@ namespace cvt {
 	    return mat[ 0 ].ptr();
 	}
 
+    template<typename T>
+	String Matrix2<T>::toString( void ) const
+	{
+        String s;
+        for( int i = 0; i < dimension(); i++ ) {
+            for( int k = 0; k < dimension(); k++ ) {
+                s += mat[ i ][ k ];
+                s += " ";
+            }
+            s+= "\n";
+        }
+        return s;
+	}
 
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m )

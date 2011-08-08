@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cvt/math/Math.h>
+#include <cvt/util/String.h>
 
 #include <cvt/math/Vector2.h>
 #include <cvt/math/Vector3.h>
