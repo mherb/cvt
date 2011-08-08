@@ -1,6 +1,8 @@
 #ifndef CVT_COMPLEX_H
 #define CVT_COMPLEX_H
 
+#include <cvt/math/Math.h>
+
 namespace cvt {
 	template<typename T>
 		class Complex {
