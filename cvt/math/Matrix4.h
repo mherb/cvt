@@ -70,6 +70,7 @@ namespace cvt {
 		T*					ptr( void );
 
         String              toString( void ) const;
+        static Matrix4<T>   fromString( const String & s );
 
 
 		friend std::ostream& operator<< <>( std::ostream& out, const Matrix4<T>& m );

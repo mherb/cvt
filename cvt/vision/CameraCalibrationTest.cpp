@@ -55,6 +55,15 @@ XMLNode * node = doc.nodeByName( "CameraCalibration" );
 CameraCalibration cc2;
 cc2.deserialize( node );
 
+b  = ( cc.intrinsics() == cc2.intrinsics() );
+b &= ( cc.extrinsics() == cc2.extrinsics() );
+
+//b &= ( cc.radialDistortion() == cc2.radialDistortion() );
+//b &= ( cc.tangentialDistortion() == cc2.tangentialDistortion() );
+
+CVTTEST_PRINT( "serialize/deserialize", b );
+
+
 
 return result;
 
