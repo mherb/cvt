@@ -2,6 +2,7 @@
 #define CVT_COMPLEX_H
 
 #include <cvt/math/Math.h>
+#include <iostream>
 
 namespace cvt {
 	template<typename T>
@@ -59,14 +60,19 @@ namespace cvt {
 		}
 
 		template<typename T>
-		inline Complex<T>::set( T r, T i )
+		inline Complex<T>::Complex(const Complex<T>& cx ) : re( cx.re ), im( cx.im )
+		{
+		}
+
+		template<typename T>
+		inline void Complex<T>::set( T r, T i )
 		{
 			re = r;
 			im = i;
 		}
 
 		template<typename T>
-		inline Complex<T>::setZero()
+		inline void Complex<T>::setZero()
 		{
 			re = 0;
 			im = 0;
@@ -99,11 +105,11 @@ namespace cvt {
 			if ( Math::abs( cx.re ) >= Math::abs( cx.im ) ) {
 				s = cx.im / cx.re;
 				t = ( T ) 1 / ( cx.re + s * cx.im );
-				return Complex<T>( ( r + s * i ) * t, ( i - s * r ) * t );
+				return Complex<T>( ( re + s * im ) * t, ( im - s * re ) * t );
 			} else {
 				s = cx.re / cx.im;
 				t = ( T ) 1 / ( s * cx.re + cx.im );
-				return Complex<T>( ( r * s + i ) * t, ( i * s - r ) * t );
+				return Complex<T>( ( re * s + im ) * t, ( im * s - re ) * t );
 			}
 		}
 
@@ -124,6 +130,7 @@ namespace cvt {
 		inline Complex<T>& Complex<T>::operator*=( const Complex<T>& cx )
 		{
 			*this = Complex<T>( re * cx.re - im * cx.im, im * cx.re + re * cx.im );
+			return *this;
 		}
 
 		template<typename T>
@@ -133,11 +140,11 @@ namespace cvt {
 			if ( Math::abs( cx.re ) >= Math::abs( cx.im ) ) {
 				s = cx.im / cx.re;
 				t = ( T ) 1 / ( cx.re + s * cx.im );
-				*this = Complex<T>( ( r + s * i ) * t, ( i - s * r ) * t );
+				*this = Complex<T>( ( re + s * im ) * t, ( im - s * re ) * t );
 			} else {
 				s = cx.re / cx.im;
 				t = ( T ) 1 / ( s * cx.re + cx.im );
-				*this = Complex<T>( ( r * s + i ) * t, ( i * s - r ) * t );
+				*this = Complex<T>( ( re * s + im ) * t, ( im * s - re ) * t );
 			}
 			return *this;
 		}
@@ -146,7 +153,7 @@ namespace cvt {
 		inline Complex<T>& Complex<T>::operator+=( const Complex<T>& cx )
 		{
 			re += cx.re;
-			im += cx.img;
+			im += cx.im;
 			return *this;
 		}
 
@@ -154,7 +161,7 @@ namespace cvt {
 		inline Complex<T>& Complex<T>::operator-=( const Complex<T>& cx )
 		{
 			re -= cx.re;
-			im -= cx.img;
+			im -= cx.im;
 			return *this;
 		}
 
@@ -217,7 +224,7 @@ namespace cvt {
 		template<typename T>
 		inline Complex<T> operator*( T s, const Complex<T>& cx )
 		{
-			return Complex<T>( re * s , im * s );
+			return Complex<T>( cx.re * s , cx.im * s );
 		}
 
 		template<typename T>
@@ -238,13 +245,13 @@ namespace cvt {
 		template<typename T>
 		inline Complex<T> operator+( T s, const Complex<T>& cx )
 		{
-			return Complex<T>( re + s , im );
+			return Complex<T>( cx.re + s , cx.im );
 		}
 
 		template<typename T>
 		inline Complex<T> operator-( T s, const Complex<T>& cx )
 		{
-			return Complex<T>( s - re, - im );
+			return Complex<T>( s - cx.re, - cx.im );
 		}
 
 
@@ -275,6 +282,13 @@ namespace cvt {
 		bool Complex<T>::operator!=( const Complex<T>& cx ) const
         {
 			return ( re != cx.re || im != cx.im );
+		}
+
+		template<typename T>
+		static inline std::ostream& operator<<( std::ostream& out, const Complex<T>& cx )
+		{
+			out << cx.re << ", " << cx.im;
+			return out;
 		}
 
 		typedef Complex<float> Complexf;

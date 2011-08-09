@@ -388,6 +388,7 @@ SET(${MODULE_NAME}_SOURCES
 	io/Resources.cpp
 	io/VideoReader.cpp
 	io/PlyModel.cpp
+	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
 	math/Math.cpp
