@@ -394,6 +394,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
+	math/Polynomial.cpp
 	math/SE3Test.cpp
 	math/SL3Test.cpp
 	math/SparseBundleAdjustment.cpp
