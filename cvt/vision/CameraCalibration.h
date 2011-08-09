@@ -31,30 +31,32 @@ namespace cvt
     {
       public:
         CameraCalibration();
+        CameraCalibration( const CameraCalibration & other );
 
-        const Matrix3f & intrinsics() const { return _intrinsics; }
-        const Matrix4f & extrinsics() const { return _extrinsics; }
-
-        void setExtrinsics( const Matrix4f & extr );
-
-        void setIntrinsics( const Matrix3f & intr );
-        void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
-
-        void setDistortion( const Vector3f & radial, const Vector2f & tangential );
+        const Matrix3f & intrinsics()           const { return _intrinsics; }
+        const Matrix4f & extrinsics()           const { return _extrinsics; }
         const Vector3f & radialDistortion()     const { return _radial; }
         const Vector2f & tangentialDistortion() const { return _tangential; }
+        const Matrix4f & projectionMatrix()     const { return _projection; }
+        const CameraCalibrationFlags & flags()  const { return _flags; }
+
+        void setExtrinsics( const Matrix4f & extr );
+        void setIntrinsics( const Matrix3f & intr );
+        void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
+        void setDistortion( const Vector3f & radial, const Vector2f & tangential );
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
         bool hasIntrinsics() const { return ( _flags & INTRINSICS ); }
         bool hasDistortion() const { return ( _flags & DISTORTION ); }
 
-        // serialization interface
+        // de-/serialization interface
         void	 deserialize( XMLNode* node );
-        XMLNode* serialize( ) const;
+        XMLNode* serialize() const;
 
       private:
         Matrix3f                _intrinsics;
         Matrix4f                _extrinsics;
+        Matrix4f                _projection;
 
         // Distortion parameters
         Vector3f                _radial;
@@ -62,14 +64,27 @@ namespace cvt
 
         CameraCalibrationFlags  _flags;
 
+        void updateProjectionMatrix();
+
     };
 
     inline CameraCalibration::CameraCalibration()
     {
         _intrinsics.setIdentity();
         _extrinsics.setIdentity();
+        _projection.setIdentity();
         _radial.setZero();
         _tangential.setZero();
+    }
+
+    inline CameraCalibration::CameraCalibration( const CameraCalibration & other ) :
+        _intrinsics( other._intrinsics ),
+        _extrinsics( other._extrinsics ),
+        _projection( other._projection ),
+        _radial( other._radial ),
+        _tangential( other._tangential ),
+        _flags( other._flags )
+    {
     }
 
     inline XMLNode* CameraCalibration::serialize() const
@@ -150,12 +165,14 @@ namespace cvt
     {
         _flags |= EXTRINSICS;
         _extrinsics = extr;
+        updateProjectionMatrix();
     }
 
     inline void CameraCalibration::setIntrinsics( const Matrix3f & intr )
     {
         _flags |= INTRINSICS;
         _intrinsics = intr;
+        updateProjectionMatrix();
     }
 
     inline void CameraCalibration::setIntrinsics( float fx, float fy, float cx, float cy, float alpha )
@@ -164,8 +181,13 @@ namespace cvt
         _intrinsics[ 0 ][ 0 ] = fx;
         _intrinsics[ 0 ][ 1 ] = alpha;
         _intrinsics[ 0 ][ 2 ] = cx;
+        _intrinsics[ 1 ][ 0 ] = 0.0f;
         _intrinsics[ 1 ][ 1 ] = fy;
         _intrinsics[ 1 ][ 2 ] = cy;
+        _intrinsics[ 2 ][ 0 ] = 0.0f;
+        _intrinsics[ 2 ][ 1 ] = 0.0f;
+        _intrinsics[ 2 ][ 2 ] = 1.0f;
+        updateProjectionMatrix();
     }
 
 
@@ -174,6 +196,22 @@ namespace cvt
         _flags |= DISTORTION;
         _radial = radial;
         _tangential = tangential;
+    }
+
+    inline void CameraCalibration::updateProjectionMatrix()
+    {
+        // if intrinsics are set, this will copy it to projection,
+        // if not, it will be I_4x4!
+        for( size_t i = 0; i < 3; i++ )
+            for( size_t k = 0; k < 3; k++ )
+                _projection[ i ][ k ] = _intrinsics[ i ][ k ];
+        _projection[ 0 ][ 3 ] = _projection[ 1 ][ 3 ] = _projection[ 2 ][ 3 ] = 0.0f;
+        _projection[ 3 ][ 0 ] = _projection[ 3 ][ 1 ] = _projection[ 3 ][ 2 ] = 0.0f;
+        _projection[ 3 ][ 3 ] = 1.0f;
+
+
+        if( hasExtrinsics() )
+            _projection *= _extrinsics;
     }
 }
 
