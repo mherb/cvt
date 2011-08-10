@@ -352,11 +352,7 @@ namespace cvt {
 	String Vector4<T>::toString( void ) const
 	{
         String s;
-
-        s += x; s+= " ";
-        s += y; s+= " ";
-        s += z; s+= " ";
-        s += w;
+		s.sprintf( "%0.10f %0.10f %0.10f %0.10f", x, y, z, w );
 
 	    return s;
 	}

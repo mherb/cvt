@@ -307,9 +307,7 @@ namespace cvt {
 	String Vector2<T>::toString( void ) const
 	{
         String s;
-
-        s += x; s+= " ";
-        s += y; s+= " ";
+		s.sprintf( "%0.10f %0.10f", x, y );
 
 	    return s;
 	}

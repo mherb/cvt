@@ -719,13 +719,14 @@ namespace cvt {
 	String Matrix4<T>::toString( void ) const
 	{
         String s;
-        for( int i = 0; i < dimension(); i++ ) {
-            for( int k = 0; k < dimension(); k++ ) {
-                s += mat[ i ][ k ];
-                s += " ";
-            }
-            s+= "\n";
-        }
+		s.sprintf( "%0.10f %0.10f %0.10f %0.10f\n"
+				   "%0.10f %0.10f %0.10f %0.10f\n"
+				   "%0.10f %0.10f %0.10f %0.10f\n"
+				   "%0.10f %0.10f %0.10f %0.10f",
+				   mat[ 0 ][ 0 ], mat[ 0 ][ 1 ], mat[ 0 ][ 2 ], mat[ 0 ][ 3 ],
+				   mat[ 1 ][ 0 ], mat[ 1 ][ 1 ], mat[ 1 ][ 2 ], mat[ 1 ][ 3 ],
+				   mat[ 2 ][ 0 ], mat[ 2 ][ 1 ], mat[ 2 ][ 2 ], mat[ 2 ][ 3 ],
+				   mat[ 3 ][ 0 ], mat[ 3 ][ 1 ], mat[ 3 ][ 2 ], mat[ 3 ][ 3 ] );
         return s;
 	}
 
