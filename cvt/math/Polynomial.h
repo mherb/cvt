@@ -2,10 +2,14 @@
 #define CVT_POLYNOMIAL_H
 
 #include <cvt/math/Math.h>
+#include <iostream>
 
 namespace cvt {
 	template<typename T>
 	class Polynomial {
+		template<typename T2> friend std::ostream& operator<<( std::ostream& out, const Polynomial<T2>& p );
+		template<typename T2> friend Polynomial<T2> operator*( T2, const Polynomial<T2>& p );
+
 		public:
 			Polynomial( size_t degree );
 			Polynomial( T a, T b );
@@ -36,6 +40,9 @@ namespace cvt {
 			T			   eval( T x ) const;
 			T			   operator()( T x ) const;
 
+			bool		   operator==( const Polynomial<T>& p ) const;
+			bool		   operator!=( const Polynomial<T>& p ) const;
+
 			Polynomial<T>  derivative() const;
 			Polynomial<T>  antiDerivative() const;
 
@@ -54,6 +61,14 @@ namespace cvt {
 	inline Polynomial<T>::Polynomial( size_t degree ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( degree );
+	}
+
+	template<typename T>
+	inline Polynomial<T>::Polynomial( const Polynomial<T>& p ) : _size( 0 ), _coeff( NULL )
+	{
+		resize( p._degree );
+		for( size_t i = 0; i <= _degree; i++ )
+			_coeff[ i ] = p._coeff[ i ];
 	}
 
 	template<typename T>
@@ -177,10 +192,11 @@ namespace cvt {
 			for( i = 0; i <= _degree; i++ )
 				ret._coeff[ i ] = _coeff[ i ] - p._coeff[ i ];
 			for( ; i <= p._degree; i++ )
-				ret._coeff[ i ] = p._coeff[ i ];
+				ret._coeff[ i ] = - p._coeff[ i ];
 			return ret;
 		} else {
 			Polynomial<T> ret( _degree );
+			ret._degree = 0;
 			for( size_t i = 0; i <= _degree; i++ ) {
 				ret._coeff[ i ] = _coeff[ i ] - p._coeff[ i ];
 				if( ret._coeff[ i ] != 0 )
@@ -200,6 +216,12 @@ namespace cvt {
 				ret._degree = i;
 		}
 		return ret;
+	}
+
+	template<typename T>
+	inline Polynomial<T> operator*( T s, const Polynomial<T>& px )
+	{
+		return px * s;
 	}
 
 	template<typename T>
@@ -311,21 +333,36 @@ namespace cvt {
 	inline T Polynomial<T>::eval( T x ) const
 	{
 		T y = 0;
-		for( size_t i = 0; i < _degree; i++ )
+		for( size_t i = _degree; i > 0; i-- )
 			y = ( y + _coeff[ i ] ) * x;
-		y += _coeff[ _degree ];
+		y += _coeff[ 0 ];
 		return y;
 	}
 
 	template<typename T>
 	inline T Polynomial<T>::operator()( T x ) const
 	{
-		T y = 0;
-		for( size_t i = 0; i < _degree; i++ )
-			y = ( y + _coeff[ i ] ) * x;
-		y += _coeff[ _degree ];
-		return y;
+		return eval( x );
 	}
+
+	template<typename T>
+	inline bool Polynomial<T>::operator==( const Polynomial<T>& p ) const
+	{
+		if( _degree != p._degree ) return false;
+		for( size_t i = 0; i <= _degree; i++ ) {
+			if( _coeff[ i ] != p._coeff[ i ] )
+				return false;
+		}
+		return true;
+	}
+
+
+	template<typename T>
+	inline bool Polynomial<T>::operator!=( const Polynomial<T>& p ) const
+	{
+		return !( ( *this ) == p );
+	}
+
 
 	template<typename T>
 	inline Polynomial<T> Polynomial<T>::derivative() const
@@ -375,6 +412,14 @@ namespace cvt {
 			_coeff = ncoeff;
 		}
 		_degree = degree;
+	}
+
+	template<typename T>
+	static inline std::ostream& operator<<( std::ostream& out, const Polynomial<T>& p )
+	{
+		for( ssize_t i = p._degree; i >= 0; i-- )
+			out << p._coeff[ i ] << " ";
+		return out;
 	}
 
 	typedef Polynomial<float> Polynomialf;
