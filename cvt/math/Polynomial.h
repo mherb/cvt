@@ -6,6 +6,7 @@
 namespace cvt {
 	template<typename T>
 	class Polynomial {
+		public:
 			Polynomial( size_t degree );
 			Polynomial( T a, T b );
 			Polynomial( T a, T b, T c );
@@ -50,13 +51,13 @@ namespace cvt {
 	};
 
 	template<typename T>
-	inline Polynomial<T>::Polynomial( size_t degree )
+	inline Polynomial<T>::Polynomial( size_t degree ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( degree );
 	}
 
 	template<typename T>
-	inline Polynomial<T>::Polynomial( T a, T b )
+	inline Polynomial<T>::Polynomial( T a, T b ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( 1 );
 		_coeff[ 1 ] = a;
@@ -64,7 +65,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Polynomial<T>::Polynomial( T a, T b, T c )
+	inline Polynomial<T>::Polynomial( T a, T b, T c ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( 2 );
 		_coeff[ 2 ] = a;
@@ -73,7 +74,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Polynomial<T>::Polynomial( T a, T b, T c, T d )
+	inline Polynomial<T>::Polynomial( T a, T b, T c, T d ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( 3 );
 		_coeff[ 3 ] = a;
@@ -83,7 +84,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Polynomial<T>::Polynomial( T a, T b, T c, T d, T e )
+	inline Polynomial<T>::Polynomial( T a, T b, T c, T d, T e ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( 4 );
 		_coeff[ 4 ] = a;
@@ -101,7 +102,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline Polynomial<T>& operator=( const Polynomial<T>& p )
+	inline Polynomial<T>& Polynomial<T>::operator=( const Polynomial<T>& p )
 	{
 		if( this == &p ) return *this;
 
@@ -153,7 +154,7 @@ namespace cvt {
 			return ret;
 		} else {
 			Polynomial<T> ret( _degree );
-			for( i = 0; i <= _degree; i++ )
+			for( size_t i = 0; i <= _degree; i++ )
 				ret._coeff[ i ] = _coeff[ i ] + p._coeff[ i ];
 			return ret;
 		}
@@ -180,7 +181,7 @@ namespace cvt {
 			return ret;
 		} else {
 			Polynomial<T> ret( _degree );
-			for( i = 0; i <= _degree; i++ ) {
+			for( size_t i = 0; i <= _degree; i++ ) {
 				ret._coeff[ i ] = _coeff[ i ] - p._coeff[ i ];
 				if( ret._coeff[ i ] != 0 )
 					ret._degree = i;
@@ -301,7 +302,7 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline size_t Polynomial<T>::degree()
+	inline size_t Polynomial<T>::degree() const
 	{
 		return _degree;
 	}
@@ -375,6 +376,9 @@ namespace cvt {
 		}
 		_degree = degree;
 	}
+
+	typedef Polynomial<float> Polynomialf;
+	typedef Polynomial<double> Polynomiald;
 }
 
 #endif
