@@ -12,7 +12,7 @@ namespace cvt {
 				Complex( T re, T im = 0 );
 				Complex( const Complex<T>& cx );
 
-				void set( T re, T im );
+				void set( T re, T im = 0 );
 				void setZero();
 
 				Complex<T>& operator=( const Complex<T>& cx );
@@ -270,12 +270,12 @@ namespace cvt {
 			if( r == 0 )
 				return i;
 			else if( i == 0 )
-				return i;
+				return r;
 			else if( r > i ) {
-				T t = im / re;
+				T t = i / r;
 				return r * Math::sqrt( ( T ) 1 + Math::sqr( t ) );
 			} else {
-				T t = re / im;
+				T t = r / i;
 				return i * Math::sqrt( ( T ) 1 + Math::sqr( t ) );
 			}
 		}

@@ -27,5 +27,19 @@ BEGIN_CVTTEST( Polynomial )
 	b &= tmp == tmp2;
 	CVTTEST_PRINT( "setZero()", b );
 
+	Complexf roots[ 4 ];
+	Polynomialf poly( 1.0f, -10.0f, 35.0f, -50.0f, 24.0f );
+	poly.roots( roots );
+	for( size_t i = 0; i < 4; i++ )
+		std::cout << roots[ i ] << std::endl;
+
+{
+	Complexd roots[ 4 ];
+	Polynomiald poly( 1.0, -10.0, 35.0, -50.0, 24.0 );
+	poly.roots( roots );
+	for( size_t i = 0; i < 4; i++ )
+		std::cout << roots[ i ] << std::endl;
+}
+
 	return b;
 END_CVTTEST
