@@ -41,6 +41,7 @@ namespace cvt {
 		bool				isIdentity( ) const;
 		bool				isSymmetric( ) const;
 		bool				isDiagonal( ) const;
+        bool                isEqual( const Matrix2<T> & other, T epsilon ) const;
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -288,6 +289,18 @@ namespace cvt {
 	{
 		return Math::abs( mat[ 0 ].y ) < Math::EPSILOND && Math::abs( mat[ 1 ].x ) < Math::EPSILOND;
 	}
+
+    template<typename T>
+    inline bool Matrix2<T>::isEqual( const Matrix2<T>& other, T epsilon ) const
+    {
+        for( size_t i = 0; i < 2; i++ ){
+            for( size_t k = 0; k < 2; k++ ){
+                if( Math::abs( mat[ i ][ k ] - other[ i ][ k ] ) > epsilon )
+                    return false;
+            }
+        }
+        return true;
+    }
 
 	template<typename T>
 	inline T Matrix2<T>::trace() const
