@@ -389,11 +389,13 @@ SET(${MODULE_NAME}_SOURCES
 	io/Resources.cpp
 	io/VideoReader.cpp
 	io/PlyModel.cpp
+	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
+	math/Polynomial.cpp
 	math/SE3Test.cpp
 	math/SL3Test.cpp
 	math/SparseBundleAdjustment.cpp
