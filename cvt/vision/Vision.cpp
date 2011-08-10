@@ -71,10 +71,9 @@ namespace cvt {
             Matrix3<T> E = tSkew * R;
             E *= 1.0 / E[ 2 ][ 2 ];
 
-            Matrix3<T> R0, R1;
-            Vector3<T> t0, t1;
+            Matrix3<T> R0, R1, RR;
+            Vector3<T> t0, t1, tt;
             Vision::decomposeEssential( R0, R1, t0, t1, E );
-
 
             bool b = true;
 
@@ -178,10 +177,10 @@ BEGIN_CVTTEST( Vision )
     testResult &= b;
 
     b = _triangulate<float>();
-    CVTTEST_PRINT( "canonical<float>()\t", b );
+    CVTTEST_PRINT( "triangulate<float>()\t", b );
     testResult &= b;
     b = _triangulate<double>();
-    CVTTEST_PRINT( "canonical<double>()\t", b );
+    CVTTEST_PRINT( "triangulate<double>()\t", b );
     testResult &= b;
 
     return testResult;

@@ -96,6 +96,7 @@ namespace cvt
                 R1[ i ][ k ] = S( i, k );
     }
 
+
     template <typename T>
     inline void Vision::triangulate( Vector4<T> & point3d,
                                      const Matrix4<T>& proj0,
