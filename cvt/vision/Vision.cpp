@@ -3,6 +3,7 @@
 #include <cvt/util/CVTTest.h>
 #include <cvt/math/Matrix.h>
 
+
 namespace cvt {
 
     template <typename T>
@@ -21,19 +22,25 @@ namespace cvt {
     template <typename T>
     static bool _compareVectors( const Vector3<T> & a, const Vector3<T> & b, T epsilon )
     {
+        if( Math::abs( a[ 0 ] - b[ 0 ] ) > epsilon )
+            return false;
+        if( Math::abs( a[ 1 ] - b[ 1 ] ) > epsilon )
+            return false;
+        if( Math::abs( a[ 2 ] - b[ 2 ] ) > epsilon )
+            return false;
+        return true;
+    }
+
+    template <typename T>
+    static bool _compareVectorsNormalized( const Vector3<T> & a, const Vector3<T> & b, T epsilon )
+    {
         Vector3<T> a0 = a;
         a0.normalize();
 
         Vector3<T> b0 = b;
         b0.normalize();
 
-        if( Math::abs( a0[ 0 ] - b0[ 0 ] ) > epsilon )
-            return false;
-        if( Math::abs( a0[ 1 ] - b0[ 1 ] ) > epsilon )
-            return false;
-        if( Math::abs( a0[ 2 ] - b0[ 2 ] ) > epsilon )
-            return false;
-        return true;
+        return _compareVectors( a0, b0, epsilon );
     }
 
     template <typename T>
@@ -79,7 +86,7 @@ namespace cvt {
                 std::cout << "Decomposed R1: \n"            << R1 << std::endl;
             }
 
-            b = _compareVectors( t, t0, (T)0.0001 ) || _compareVectors( t, t1, (T)0.0001 );
+            b = _compareVectorsNormalized( t, t0, (T)0.0001 ) || _compareVectorsNormalized( t, t1, (T)0.0001 );
             result &= b;
 
             if( !b ){
@@ -92,20 +99,90 @@ namespace cvt {
         return result;
     }
 
+    template <typename T>
+    static bool _triangulate()
+    {
+        bool ret = true;
+
+        Matrix3<T> K( 230.0,   0.0, 320.0,
+                        0.0, 235.0, 240.0,
+                        0.0,   0.0,   1.0 );
+
+
+        for( size_t i = 0; i < 100; i++ ){
+            Matrix4<T> T01;
+            T01.setRotationXYZ( Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
+                                Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
+                                Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ));
+            T01.setTranslation( Math::rand( ( T )-100, ( T )100 ),
+                                Math::rand( ( T )-100, ( T )100 ),
+                                Math::rand( ( T )-100, ( T )100 ) );
+            T01[ 3 ][ 3 ] = ( T )1;
+
+
+            Vector4<T> truePoint( Math::rand( ( T )-1000, ( T )1000 ),
+                                  Math::rand( ( T )-1000, ( T )1000 ),
+                                  Math::rand( ( T )100, ( T )1000 ),
+                                  ( T )1 );
+
+            Matrix3<T> R = T01.toMatrix3();
+            Matrix4<T> P0( K ), P1( K*R );
+            Vector3<T> t( T01[ 0 ][ 3 ], T01[ 1 ][ 3 ], T01[ 2 ][ 3 ] );
+
+            t = K * t;
+            P1[ 0][  3 ] = t[ 0 ];
+            P1[ 1][  3 ] = t[ 1 ];
+            P1[ 2][  3 ] = t[ 2 ];
+            P0[ 3 ][ 3 ] = ( T )1;
+            P1[ 3 ][ 3 ] = ( T )1;
+
+
+            Vector4<T> tmp;
+            Vector2<T> proj0, proj1;
+
+            tmp = P0 * truePoint;
+            proj0[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
+            proj0[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
+            tmp = P1 * truePoint;
+            proj1[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
+            proj1[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
+
+            Vision::triangulate( tmp, P0, P1, proj0, proj1 );
+
+            // normalize
+            tmp *= ( T )1 / tmp[ 3 ];
+
+            bool b = ( ( tmp - truePoint ).length() < 0.5 );
+            ret &= b;
+
+            if( !b ){
+                std::cout << "Ground Truth point:\t\t" << truePoint << std::endl;
+                std::cout << "Estimated \t\t: " << tmp << std::endl;
+            }
+        }
+
+        return ret;
+    }
+
 BEGIN_CVTTEST( Vision )
     bool testResult = true;
     bool b;
 
 
     b = _essentialTest<float>();
-    CVTTEST_PRINT( "float: decomposeEssential()\t", b );
+    CVTTEST_PRINT( "decomposeEssential<float>()\t", b );
     testResult &= b;
 
     b = _essentialTest<double>();
-    CVTTEST_PRINT( "double: decomposeEssential()\t", b );
+    CVTTEST_PRINT( "decomposeEssential<double>()\t", b );
     testResult &= b;
 
-
+    b = _triangulate<float>();
+    CVTTEST_PRINT( "canonical<float>()\t", b );
+    testResult &= b;
+    b = _triangulate<double>();
+    CVTTEST_PRINT( "canonical<double>()\t", b );
+    testResult &= b;
 
     return testResult;
 END_CVTTEST
