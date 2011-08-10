@@ -368,13 +368,10 @@ namespace cvt {
 	String Matrix2<T>::toString( void ) const
 	{
         String s;
-        for( int i = 0; i < dimension(); i++ ) {
-            for( int k = 0; k < dimension(); k++ ) {
-                s += mat[ i ][ k ];
-                s += " ";
-            }
-            s+= "\n";
-        }
+        s.sprintf( "%0.10f %0.10f\n"
+                   "%0.10f %0.10f",
+                   mat[ 0 ][ 0 ], mat[ 0 ][ 1 ],
+                   mat[ 1 ][ 0 ], mat[ 1 ][ 1 ]);
         return s;
 	}
 
