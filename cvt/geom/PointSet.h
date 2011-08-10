@@ -673,23 +673,10 @@ namespace cvt
         if( this->size() != other.size() )
             throw CVTException( "point sets have different size!" );
 
-        Matrix3f Kinv;
-		float fxfy = K[ 0 ][ 0 ] * K[ 1 ][ 1 ];
-		Kinv[ 0 ][ 0 ] =  1.0f / K[ 0 ][ 0 ];
-		Kinv[ 0 ][ 1 ] = -K[ 0 ][ 1 ] / fxfy;
-		Kinv[ 0 ][ 2 ] =  K[ 0 ][ 1 ] * K[ 1 ][ 2 ] / fxfy  - K[ 0 ][ 2 ] / K[ 0 ][ 0 ];
-		Kinv[ 1 ][ 0 ] =  0.0f; 
-		Kinv[ 1 ][ 1 ] =  1.0f / K[ 1 ][ 1 ];
-		Kinv[ 1 ][ 2 ] =  -K[ 1 ][ 2 ] / K[ 1 ][ 1 ];
-		Kinv[ 2 ][ 0 ] =  0.0f; 
-		Kinv[ 2 ][ 1 ] =  0.0f; 
-		Kinv[ 2 ][ 2 ] =  1.0f; 
-
-        /*
 		Matrix3f Kinv = K;
         if( !Kinv.inverseSelf() ){
             throw CVTException( "Could not invert Intrinsic Matrix!" );
-        }*/
+        }
 
         // create copies of the point set
         PointSet2f set0( *this ), set1( other );
