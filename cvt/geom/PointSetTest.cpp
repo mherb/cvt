@@ -32,8 +32,8 @@ namespace cvt
 			p = K * pts[ i ];
 
             p2 = Vector2<T>( p );
-            p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
-            p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
+            //p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
+            //p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
 
 			p0.add( p2 );
 
@@ -42,25 +42,14 @@ namespace cvt
 			p = K * pp;
 
             p2 = Vector2<T>( p );
-            p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
-            p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
+			//p2.x += Math::rand( ( T )-0.1, ( T )0.1 );
+            //p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
 			p1.add( p2 );
 		}
 	}
 
     template <typename T>
-    static bool compareMatrices( const Matrix3<T> & m1, const Matrix3<T> & m2, T epsilon )
-    {
-        for( size_t i = 0; i < 3; i++ )
-            for( size_t k = 0; k < 3; k++ )
-                if( Math::abs( m1[ i ][ k ] - m2[ i ][ k ] ) > epsilon )
-                    return false;
-
-        return true;
-    }
-
-    template <typename T>
-    bool essentialTest()
+    bool essentialTest( T epsilon )
     {
         PointSet<2, T> p0, p1;
         std::vector<Vector3<T> > pts;
@@ -70,14 +59,14 @@ namespace cvt
 
         Vector3<T> t( 10.0, 30.0, 50.0 );
 
-        trans.setRotationXYZ( Math::deg2Rad<T>( 20 ), Math::deg2Rad<T>( 10 ), Math::deg2Rad<T>( 30 ) );
+        trans.setRotationXYZ( Math::deg2Rad<T>( 10 ), Math::deg2Rad<T>( 60 ), Math::deg2Rad<T>( 5 ) );
         trans.setTranslation( t.x, t.y, t.z );
 
         Matrix3<T> K( 500.0,   0.0, 320.0,
                       0.0,   505.0, 240.0,
                       0.0,     0.0,   1.0 );
 
-        generate3dPoints( pts, 8 );
+        generate3dPoints( pts, 100 );
         fillPointSets( p0, p1, K, trans, pts );
 
         Matrix3<T> E;
@@ -92,7 +81,7 @@ namespace cvt
         Etrue = skew * trans.toMatrix3();
         Etrue *= 1.0 / Etrue[ 2 ][ 2 ];
 
-        bool b = compareMatrices( Etrue, E, (T)0.00001 );
+        bool b = Etrue.isEqual( E, epsilon );
         if( !b ){
             std::cout << "True:\n" << Etrue << std::endl;
             std::cout << "Estimated:\n" << E << std::endl;
@@ -110,11 +99,11 @@ BEGIN_CVTTEST( PointSet )
 
     bool b;
 
-    b = essentialTest<double>();
+    b = essentialTest<double>( 0.01 );
     CVTTEST_PRINT( "essentialMatrix<double>(): ", b );
 	result &= b;
 
-    b = essentialTest<float>();
+    b = essentialTest<float>( 0.1f );
     CVTTEST_PRINT( "essentialMatrix<float>(): ", b );
 	result &= b;
 
