@@ -39,11 +39,13 @@ namespace cvt {
 
 		int			dimension( void ) const;
 
+        bool        isEqual( const Vector4<T> & other, T epsilon ) const;
+
 		const T*	ptr( void ) const;
 		T*			ptr( void );
 
         String      toString( void ) const;
-        
+
         static Vector4<T> fromString( const String & s );
 
 		void		mix( const Vector4<T> &v1, const Vector4<T> &v2, float alpha );
@@ -315,6 +317,15 @@ namespace cvt {
 	{
 	    return 4;
 	}
+
+    template <typename T>
+    bool Vector4<T>::isEqual( const Vector4<T>& other, T epsilon ) const
+    {
+        return ( Math::abs( x - other.x ) < epsilon ) &&
+               ( Math::abs( y - other.y ) < epsilon ) &&
+               ( Math::abs( z - other.z ) < epsilon ) &&
+               ( Math::abs( w - other.w ) < epsilon );
+    }
 
     template<typename T>
 	const T* Vector4<T>::ptr( void ) const

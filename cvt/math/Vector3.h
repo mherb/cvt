@@ -44,6 +44,8 @@ namespace cvt {
 
 		int			dimension( void ) const;
 
+        bool        isEqual( const Vector3<T> & other, T epsilon ) const;
+
 		const T*	ptr( void ) const;
 		T*			ptr( void );
 
@@ -317,6 +319,14 @@ namespace cvt {
 	{
 	    return 3;
 	}
+
+    template <typename T>
+    bool Vector3<T>::isEqual( const Vector3<T>& other, T epsilon ) const
+    {
+        return ( Math::abs( x - other.x ) < epsilon ) &&
+               ( Math::abs( y - other.y ) < epsilon ) &&
+               ( Math::abs( z - other.z ) < epsilon );
+    }
 
     template<typename T>
 	const T* Vector3<T>::ptr( void ) const
