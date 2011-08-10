@@ -18,6 +18,18 @@ namespace cvt
     class Vision
     {
       public:
+
+        /**
+         * @brief Decomposition of Essential Matrix into R and t
+         * As described in Multiple View Geometry p.258ff
+         *
+         * @param R0        first possible Rotation Matrix
+         * @param R1        second possible Rotation Matrix
+         * @param t0        first possible translation
+         * @param t1        second possible translation
+         * @param essential input essential matrix
+         *
+         */
         template <typename T>
         static void decomposeEssential( Matrix3<T> & R0,
                                         Matrix3<T> & R1,
@@ -26,22 +38,14 @@ namespace cvt
                                         const Matrix3<T>& essential );
 
         template <typename T>
-        static void computeDepths( Vector2<T> & lamdas,
-                                   const Matrix3<T> & R,
-                                   const Vector3<T> & t );
+        static void triangulate( Vector4<T> & point3d,
+                                 const Matrix4<T>& P0,
+                                 const Matrix4<T>& P1,
+                                 const Vector2<T>& p0,
+                                 const Vector2<T>& p1 );
     };
 
-    /**
-     * @brief Decomposition of Essential Matrix into R and t
-     * As described in Multiple View Geometry p.258ff
-     *
-     * @param R0        first possible Rotation Matrix
-     * @param R1        second possible Rotation Matrix
-     * @param t0        first possible translation
-     * @param t1        second possible translation
-     * @param essential input essential matrix
-     *
-     */
+
     template <typename T>
     inline void Vision::decomposeEssential( Matrix3<T> & R0,
                                             Matrix3<T> & R1,
@@ -93,41 +97,41 @@ namespace cvt
     }
 
     template <typename T>
-    inline void Vision::computeDepths( Vector2<T> & lamdas,
-                                       const Matrix3<T> & R,
-                                       const Vector3<T> & t )
+    inline void Vision::triangulate( Vector4<T> & point3d,
+                                     const Matrix4<T>& proj0,
+                                     const Matrix4<T>& proj1,
+                                     const Vector2<T>& p0,
+                                     const Vector2<T>& p1 )
     {
-        Vector3<T> p, pp;
-        p[ 0 ] = 0;
-        p[ 1 ] = 0;
-        p[ 2 ] = 1;
+        Eigen::Matrix<T, 4, 4> A;
 
-        pp = R * p;
+        A( 0, 0 ) = p0.x * proj0[ 2 ][ 0 ] - proj0[ 0 ][ 0 ];
+        A( 0, 1 ) = p0.x * proj0[ 2 ][ 1 ] - proj0[ 0 ][ 1 ];
+        A( 0, 2 ) = p0.x * proj0[ 2 ][ 2 ] - proj0[ 0 ][ 2 ];
+        A( 0, 3 ) = p0.x * proj0[ 2 ][ 3 ] - proj0[ 0 ][ 3 ];
 
-        // lamda0 * p = t + lamda1 * ( R*p )
-        // lamda0 * p - lamda1 * pp = t
-        //
-        // px   -ppx    lamda0   tx
-        // py   -ppy  * lamda1 = ty
-        //  1   -ppx             tz
+        A( 1, 0 ) = p0.y * proj0[ 2 ][ 0 ] - proj0[ 1 ][ 0 ];
+        A( 1, 1 ) = p0.y * proj0[ 2 ][ 1 ] - proj0[ 1 ][ 1 ];
+        A( 1, 2 ) = p0.y * proj0[ 2 ][ 2 ] - proj0[ 1 ][ 2 ];
+        A( 1, 3 ) = p0.y * proj0[ 2 ][ 3 ] - proj0[ 1 ][ 3 ];
 
-        Matrix2<T> A;
-        Vector2<T> tt;
-        A.setZero();
+        A( 2, 0 ) = p1.x * proj1[ 2 ][ 0 ] - proj1[ 0 ][ 0 ];
+        A( 2, 1 ) = p1.x * proj1[ 2 ][ 1 ] - proj1[ 0 ][ 1 ];
+        A( 2, 2 ) = p1.x * proj1[ 2 ][ 2 ] - proj1[ 0 ][ 2 ];
+        A( 2, 3 ) = p1.x * proj1[ 2 ][ 3 ] - proj1[ 0 ][ 3 ];
 
-        A[ 0 ][ 0 ] = p * p;
-        A[ 0 ][ 1 ] = -p * pp;
-        A[ 1 ][ 0 ] = A[ 0 ][ 1 ];
-        A[ 1 ][ 1 ] = pp * pp;
+        A( 3, 0 ) = p1.y * proj1[ 2 ][ 0 ] - proj1[ 1 ][ 0 ];
+        A( 3, 1 ) = p1.y * proj1[ 2 ][ 1 ] - proj1[ 1 ][ 1 ];
+        A( 3, 2 ) = p1.y * proj1[ 2 ][ 2 ] - proj1[ 1 ][ 2 ];
+        A( 3, 3 ) = p1.y * proj1[ 2 ][ 3 ] - proj1[ 1 ][ 3 ];
 
-        tt[ 0 ] = p * t;
-        tt[ 1 ] = -pp * t;
+        Eigen::JacobiSVD<Eigen::Matrix<T, 4, 4> > svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
 
-        if( !A.inverseSelf() ){
-            throw CVTException( "Could not invert Matrix" );
-        }
-
-        lamdas = A * tt;
+        const Eigen::Matrix<T, 4, 1> & v = svd.matrixV().col( 3 );
+        point3d[ 0 ] = v[ 0 ];
+        point3d[ 1 ] = v[ 1 ];
+        point3d[ 2 ] = v[ 2 ];
+        point3d[ 3 ] = v[ 3 ];
     }
 
 

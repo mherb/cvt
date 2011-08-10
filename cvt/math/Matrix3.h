@@ -49,6 +49,7 @@ namespace cvt {
 		bool				isIdentity( ) const;
 		bool				isSymmetric( ) const;
 		bool				isDiagonal( ) const;
+        bool                isEqual( const Matrix3<T> & other, T epsilon ) const;
 
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
@@ -581,6 +582,18 @@ namespace cvt {
 			&& Math::abs( mat[ 2 ][ 0 ] ) < Math::EPSILOND
 			&& Math::abs( mat[ 2 ][ 1 ] ) < Math::EPSILOND;
 	}
+
+    template<typename T>
+    inline bool Matrix3<T>::isEqual( const Matrix3<T>& other, T epsilon ) const
+    {
+        for( size_t i = 0; i < 3; i++ ){
+            for( size_t k = 0; k < 3; k++ ){
+                if( Math::abs( mat[ i ][ k ] - other[ i ][ k ] ) > epsilon )
+                    return false;
+            }
+        }
+        return true;
+    }
 
 	template<typename T>
 	inline T Matrix3<T>::trace() const
