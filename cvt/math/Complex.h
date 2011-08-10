@@ -43,6 +43,7 @@ namespace cvt {
 				bool operator!=( const Complex<T>& cx ) const;
 
 				T		   abs( void ) const;
+				Complex<T> sqrt( void ) const;
 				Complex<T> conj( void ) const;
 
 				T re;
@@ -264,12 +265,43 @@ namespace cvt {
 		template<typename T>
 		inline T Complex<T>::abs( void ) const
 		{
-			if( im == 0 )
-				return re;
-			else if( re == 0 )
-				return im;
+			T r = Math::abs( re );
+			T i = Math::abs( im );
+			if( r == 0 )
+				return i;
+			else if( i == 0 )
+				return i;
+			else if( r > i ) {
+				T t = im / re;
+				return r * Math::sqrt( ( T ) 1 + Math::sqr( t ) );
+			} else {
+				T t = re / im;
+				return i * Math::sqrt( ( T ) 1 + Math::sqr( t ) );
+			}
+		}
+
+		template<typename T>
+		inline Complex<T> Complex<T>::sqrt( void ) const
+		{
+			if( re == 0 && im == 0 )
+				return Complex<T>( 0, 0 );
+
+			T r = Math::abs( re );
+			T i = Math::abs( im );
+			T w;
+			if( r >= i ) {
+				w = i / r;
+				w = Math::sqrt( r ) * Math::sqrt( ( ( T )0.5 ) * ( ( T ) 1 + Math::sqrt( ( T ) 1 + Math::sqr( w ) ) ) );
+			} else {
+				w = r / i;
+				w = Math::sqrt( i ) * Math::sqrt( ( ( T )0.5 ) * ( ( T ) w + Math::sqrt( ( T ) 1 + Math::sqr( w ) ) ) );
+			}
+			if( w == 0 )
+				return Complex<T>( 0, 0 );
+			else if( re >= 0)
+				return Complex<T>( w, ( ( T )0.5 ) * im / w );
 			else
-				return Math::sqrt( Math::sqr( re) + Math::sqr( im ) );
+				return Complex<T>( ( ( T ) 0.5 ) * i / w, ( im >= 0 ) ? w : -w );
 		}
 
 		template<typename T>
