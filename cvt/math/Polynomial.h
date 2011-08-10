@@ -2,6 +2,7 @@
 #define CVT_POLYNOMIAL_H
 
 #include <cvt/math/Math.h>
+#include <cvt/math/Complex.h>
 #include <iostream>
 
 namespace cvt {
@@ -45,12 +46,14 @@ namespace cvt {
 
 			Polynomial<T>  derivative() const;
 			Polynomial<T>  antiDerivative() const;
+			void		   roots( Complex<T>* roots ) const;
 
 			const T*	   ptr() const;
 			T*			   ptr();
 
 		private:
 			void resize( size_t degree, bool keep = false );
+			void laguerre( Complex<T>& root, const Complex<T>* coeff, size_t m ) const;
 
 			size_t  _degree;
 			size_t  _size;
@@ -394,6 +397,89 @@ namespace cvt {
 	inline T* Polynomial<T>::ptr()
 	{
 		return _coeff;
+	}
+
+	template<typename T>
+	inline void Polynomial<T>::roots( Complex<T>* roots ) const
+	{
+		Complex<T> coeff[ _degree ];
+		Complex<T> root, x, tmp;
+
+		for( size_t i = 0; i <= _degree; i++ )
+			coeff[ i ].set( _coeff[ i ] );
+
+		for( size_t i = _degree; i >= 1; i-- ) {
+			root.setZero();
+			laguerre( root, coeff, i );
+			if( Math::abs( root.im ) <= 2e-7 * Math::abs( root.re ) )
+				root.im = 0;
+			roots[ i - 1 ] = root;
+			x = coeff[ i ];
+			for( ssize_t k = i - 1; k >= 0; k-- ) {
+				tmp = coeff[ k ];
+				coeff[ k ] = x;
+				x *= root;
+				x += tmp;
+			}
+		}
+
+/*		for( size_t i = 0; i <= _degree; i++ )
+			coeff[ i ].set( _coeff[ i ] );
+		for( size_t i = 0; i < _degree; i++ )
+			laguerre( roots[ i ], coeff, _degree );*/
+	}
+
+	template<typename T>
+	inline void Polynomial<T>::laguerre( Complex<T>& root, const Complex<T>* coeff, size_t m ) const
+	{
+		static const T frac[ ] = { 0.0, 0.5, 0.25, 0.75, 0.13, 0.38, 0.62, 0.88, 1.0f };
+		Complex<T> x, dx, ddx, g, g2, gps, gms, dir, troot;
+		T err, absroot, absgps, absgms;
+		const T* fracp = frac;
+
+#define MAXITER 100
+#define EPS	10e-7
+		for( size_t iter = 1; iter < MAXITER; iter++ ) {
+			x = coeff[ m ];
+			dx.setZero();
+			ddx.setZero();
+
+			err = x.abs();
+			absroot = root.abs();
+			for( ssize_t i = m - 1; i >= 0; i-- ) {
+				ddx *= root;
+				ddx += dx;
+				dx  *= root;
+				dx  += x;
+				x	*= root;
+				x   += coeff[ i ];
+				err  = x.abs() + absroot * err;
+			}
+			err *= EPS;
+			if( x.abs() <= err ) return;
+			g  = dx / x;
+			g2 = g * g;
+			dir  = ( ( T ) ( m - 1 ) ) * ( ( ( T ) m ) * ( g2 - ( ( T ) 2 ) * ( ddx / x ) ) - g2 ).sqrt();
+			gps = g + dir;
+			gms = g + dir;
+			absgps = gps.abs();
+			absgms = gms.abs();
+			if( absgps < absgms )
+				gps = gms;
+			dir = Math::max( absgps, absgms ) > 0 ? ( ( T ) m ) / gps :
+													( absroot + 1 ) * Complex<T>( Math::cos( ( T ) iter ), Math::sin( ( T ) iter ) );
+			troot = root - dir;
+			if( troot == root ) return;
+			if( iter & 0x03 ) {
+				root = troot;
+			} else {
+				if( fracp != frac + 8 )
+					fracp++;
+				root -= *fracp * dir;
+			}
+		}
+#undef MAXITER
+#undef EPS
 	}
 
 	template<typename T>
