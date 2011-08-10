@@ -297,6 +297,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/Patch.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
+	vision/Vision.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -427,6 +428,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
+	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
 	io/xml/XMLDecoderUTF8.cpp
 )
