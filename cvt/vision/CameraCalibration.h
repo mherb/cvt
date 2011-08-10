@@ -68,7 +68,8 @@ namespace cvt
 
     };
 
-    inline CameraCalibration::CameraCalibration()
+    inline CameraCalibration::CameraCalibration() :
+		XMLSerializable()
     {
         _intrinsics.setIdentity();
         _extrinsics.setIdentity();
@@ -78,6 +79,7 @@ namespace cvt
     }
 
     inline CameraCalibration::CameraCalibration( const CameraCalibration & other ) :
+		XMLSerializable(),
         _intrinsics( other._intrinsics ),
         _extrinsics( other._extrinsics ),
         _projection( other._projection ),

@@ -507,7 +507,7 @@ namespace cvt
 			return ret;
 		}
 
-	template<>
+		template<>
 		inline Matrix3<double> PointSet<2,double>::alignPerspective( const PointSet<2,double>& ptset ) const
 		{
 			if( size() != ptset.size() )
@@ -582,7 +582,7 @@ namespace cvt
         Matrix3d Kinv = K;
         if( !Kinv.inverseSelf() ){
             throw CVTException( "Could not invert Intrinsic Matrix!" );
-        }
+		}
 
         // create copies of the point set
         PointSet2d set0( *this ), set1( other );
@@ -673,7 +673,7 @@ namespace cvt
         if( this->size() != other.size() )
             throw CVTException( "point sets have different size!" );
 
-        Matrix3f Kinv = K;
+		Matrix3f Kinv = K;
         if( !Kinv.inverseSelf() ){
             throw CVTException( "Could not invert Intrinsic Matrix!" );
         }

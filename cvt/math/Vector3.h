@@ -352,10 +352,7 @@ namespace cvt {
 	String Vector3<T>::toString( void ) const
 	{
         String s;
-
-        s += x; s+= " ";
-        s += y; s+= " ";
-        s += z; s+= " ";
+		s.sprintf( "%0.10f %0.10f %0.10f", x, y, z );
 
 	    return s;
 	}
