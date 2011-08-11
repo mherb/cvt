@@ -423,10 +423,10 @@ namespace cvt {
 			}
 		}
 
-/*		for( size_t i = 0; i <= _degree; i++ )
+		for( size_t i = 0; i <= _degree; i++ )
 			coeff[ i ].set( _coeff[ i ] );
 		for( size_t i = 0; i < _degree; i++ )
-			laguerre( roots[ i ], coeff, _degree );*/
+			laguerre( roots[ i ], coeff, _degree );
 	}
 
 	template<typename T>
@@ -438,7 +438,7 @@ namespace cvt {
 		const T* fracp = frac;
 
 #define MAXITER 100
-#define EPS	10e-7
+#define EPS	1e-8
 		for( size_t iter = 1; iter < MAXITER; iter++ ) {
 			x = coeff[ m ];
 			dx.setZero();
@@ -461,7 +461,7 @@ namespace cvt {
 			g2 = g * g;
 			dir  = ( ( T ) ( m - 1 ) ) * ( ( ( T ) m ) * ( g2 - ( ( T ) 2 ) * ( ddx / x ) ) - g2 ).sqrt();
 			gps = g + dir;
-			gms = g + dir;
+			gms = g - dir;
 			absgps = gps.abs();
 			absgms = gms.abs();
 			if( absgps < absgms )
