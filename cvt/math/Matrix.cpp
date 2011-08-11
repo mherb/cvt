@@ -468,8 +468,6 @@ namespace cvt {
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
 	{
-
-
 		T c, s;
 		bool finished;
 
