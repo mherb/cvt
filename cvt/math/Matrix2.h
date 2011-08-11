@@ -43,6 +43,8 @@ namespace cvt {
 		bool				isDiagonal( ) const;
         bool                isEqual( const Matrix2<T> & other, T epsilon ) const;
 
+		void				setDiagonal( const Vector2<T>& diag );
+
 		T					trace( void ) const;
 		T					determinant( void ) const;
 		Matrix2<T>			transpose( void ) const;
@@ -301,6 +303,16 @@ namespace cvt {
         }
         return true;
     }
+
+	template<typename T>
+	inline void Matrix2<T>::setDiagonal( const Vector2<T>& diag )
+	{
+		mat[ 0 ].x = diag.x;
+		mat[ 0 ].y = 0;
+
+		mat[ 1 ].x = 0;
+		mat[ 1 ].y = diag.y;
+	}
 
 	template<typename T>
 	inline T Matrix2<T>::trace() const

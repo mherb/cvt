@@ -50,6 +50,7 @@ namespace cvt {
 		bool				isDiagonal( ) const;
         bool                isEqual( const Matrix4<T> & other, T epsilon ) const;
 
+		void				setDiagonal( const Vector4<T>& diag );
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
 		void				setRotationZ( T rad );
@@ -355,6 +356,31 @@ namespace cvt {
 	    mat[ 3 ].z = 0;
 		mat[ 3 ].w = 1;
 	}
+
+	template<typename T>
+	inline void Matrix4<T>::setDiagonal( const Vector4<T>& diag )
+	{
+		mat[ 0 ].x = diag.x;
+		mat[ 0 ].y = 0;
+		mat[ 0 ].z = 0;
+		mat[ 0 ].w = 0;
+
+		mat[ 1 ].x = 0;
+		mat[ 1 ].y = diag.y;
+		mat[ 1 ].z = 0;
+		mat[ 1 ].w = 0;
+
+		mat[ 2 ].x = 0;
+		mat[ 2 ].y = 0;
+		mat[ 2 ].z = diag.z;
+		mat[ 2 ].w = 0;
+
+		mat[ 3 ].x = 0;
+		mat[ 3 ].y = 0;
+		mat[ 3 ].z = 0;
+		mat[ 3 ].w = diag.w;
+	}
+
 
 	template<typename T>
 	inline void Matrix4<T>::setRotationX( T rad )
