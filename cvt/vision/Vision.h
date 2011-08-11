@@ -30,23 +30,28 @@ namespace cvt
          * @param essential input essential matrix
          *
          */
-        template <typename T>
+        template<typename T>
         static void decomposeEssential( Matrix3<T> & R0,
                                         Matrix3<T> & R1,
                                         Vector3<T> & t0,
                                         Vector3<T> & t1,
                                         const Matrix3<T>& essential );
 
-        template <typename T>
+        template<typename T>
         static void triangulate( Vector4<T> & point3d,
                                  const Matrix4<T>& P0,
                                  const Matrix4<T>& P1,
                                  const Vector2<T>& p0,
                                  const Vector2<T>& p1 );
+
+	/*	template<typename T>
+		static void correctCorrespondences( Vector3<T>& p0,
+										    Vector3<T>& p1,
+										    const Matrix3<T>& essential );*/
     };
 
 
-    template <typename T>
+    template<typename T>
     inline void Vision::decomposeEssential( Matrix3<T> & R0,
                                             Matrix3<T> & R1,
                                             Vector3<T> & t0,
@@ -97,7 +102,7 @@ namespace cvt
     }
 
 
-    template <typename T>
+    template<typename T>
     inline void Vision::triangulate( Vector4<T> & point3d,
                                      const Matrix4<T>& proj0,
                                      const Matrix4<T>& proj1,
@@ -134,6 +139,53 @@ namespace cvt
         point3d[ 2 ] = v[ 2 ];
         point3d[ 3 ] = v[ 3 ];
     }
+
+#if 0
+	template<typename T>
+	inline void Vision::correctCorrespondences( Vector3<T>& p0,
+										        Vector3<T>& p1,
+												const Matrix3<T>& essential )
+	{
+		Matrix3<T> T0, T1, R0, R1;
+		Matrix3<T> E;
+		Matrix3<T> U, D, V;
+		Vector3<T> e0, e1;
+
+		T0.setIdentity()
+		T0[ 0 ][ 2 ] = p0.x;
+		T0[ 1 ][ 2 ] = p0.y;
+		T1.setIdentity();
+		T1[ 0 ][ 2 ] = p1.x;
+		T1[ 1 ][ 2 ] = p1.y;
+
+		E = T1.transpose() * essential * T0;
+
+		E.svd( U, D, V );
+
+		e0.set( U[ 0 ][ 2 ],  U[ 1 ][ 2 ], U[ 2 ][ 2 ] );
+		e0 /= Math::sqr( e0.x ) + Math::sqr( e0.y );
+
+		e1 = V[ 2 ];
+		e1 /= Math::sqr( e1.x ) + Math::sqr( e1.y );
+
+		R0.setIdentity();
+		R0[ 0 ][ 0 ] =  e0.x;
+		R0[ 0 ][ 1 ] =  e0.y;
+		R0[ 1 ][ 0 ] = -e0.y;
+		R0[ 1 ][ 1 ] =  e0.x;
+
+		R1.setIdentity();
+		R1[ 0 ][ 0 ] =  e1.x;
+		R1[ 0 ][ 1 ] =  e1.y;
+		R1[ 1 ][ 0 ] = -e1.y;
+		R1[ 1 ][ 1 ] =  e1.x;
+
+		E = R1 * E * R0.transpose();
+
+
+	}
+#endif
+
 
 
 }
