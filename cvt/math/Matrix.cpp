@@ -450,18 +450,20 @@ namespace cvt {
 		m[ h ][ k ] = tmp2; \
 	} while( 0 )
 
-		template<typename T>
-			struct EPSILON {
-				static const T eps;
-			};
-		template<>
-			struct EPSILON<float> {
-				static const float eps = FLT_EPSILON;
-			};
-		template<>
-			struct EPSILON<double> {
-				static const double eps = DBL_EPSILON;
-			};
+	template<typename T>
+		struct EPSILON {
+			static const T eps;
+		};
+
+	template<>
+		struct EPSILON<float> {
+			static const float eps = FLT_EPSILON;
+		};
+
+	template<>
+		struct EPSILON<double> {
+			static const double eps = DBL_EPSILON;
+		};
 
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
