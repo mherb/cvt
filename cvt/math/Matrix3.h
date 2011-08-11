@@ -51,6 +51,7 @@ namespace cvt {
 		bool				isDiagonal( ) const;
         bool                isEqual( const Matrix3<T> & other, T epsilon ) const;
 
+		void				setDiagonal( const Vector3<T>& diag );
 		void				setRotationX( T rad );
 		void				setRotationY( T rad );
 		void				setRotationZ( T rad );
@@ -68,6 +69,7 @@ namespace cvt {
 		Matrix3<T>&			transposeSelf( void );
 		Matrix3<T>			inverse( void ) const;
 		bool				inverseSelf( void );
+		void				svd( Matrix3<T>& u, Matrix3<T>& d,  Matrix3<T>& v ) const;
 
 		Matrix4<T>			toMatrix4( void ) const;
 		Matrix2<T>			toMatrix2( void ) const;
@@ -330,6 +332,22 @@ namespace cvt {
 	    mat[ 2 ].x = 0;
 	    mat[ 2 ].y = 0;
 	    mat[ 2 ].z = 1;
+	}
+
+	template<typename T>
+	inline void Matrix3<T>::setDiagonal( const Vector3<T>& diag )
+	{
+		mat[ 0 ].x = diag.x;
+		mat[ 0 ].y = 0;
+		mat[ 0 ].z = 0;
+
+		mat[ 1 ].x = 0;
+		mat[ 1 ].y = diag.y;
+		mat[ 1 ].z = 0;
+
+		mat[ 2 ].x = 0;
+		mat[ 2 ].y = 0;
+		mat[ 2 ].z = diag.z;
 	}
 
 	template<typename T>
