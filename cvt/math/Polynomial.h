@@ -28,11 +28,13 @@ namespace cvt {
 
 			Polynomial<T>  operator+( const Polynomial<T>& p ) const;
 			Polynomial<T>  operator-( const Polynomial<T>& p ) const;
+			Polynomial<T>  operator*( const Polynomial<T>& p ) const;
 			Polynomial<T>  operator*( T s ) const;
 			Polynomial<T>  operator/( T s ) const;
 
 			Polynomial<T>& operator+=( const Polynomial<T>& p );
 			Polynomial<T>& operator-=( const Polynomial<T>& p );
+			Polynomial<T>& operator*=( const Polynomial<T>& p );
 			Polynomial<T>& operator*=( T s );
 			Polynomial<T>& operator/=( T s );
 
@@ -210,6 +212,23 @@ namespace cvt {
 	}
 
 	template<typename T>
+	inline Polynomial<T>  Polynomial<T>::operator*( const Polynomial<T>& p ) const
+	{
+		Polynomial<T> ret( _degree + p._degree );
+
+		ret.setZero();
+		for( size_t i = 0; i <= _degree; i++ ) {
+			for( size_t k = 0; k <= p._degree; k++ ) {
+				ret._coeff[ i + k ] += _coeff[ i ] * p._coeff[ k ];
+			}
+		}
+		ret._degree = ( _degree + p._degree );
+
+		return ret;
+	}
+
+
+	template<typename T>
 	inline Polynomial<T> Polynomial<T>::operator*( T s ) const
 	{
 		Polynomial<T> ret( _degree );
@@ -290,6 +309,24 @@ namespace cvt {
 			return *this;
 		}
 	}
+
+	template<typename T>
+	inline Polynomial<T>&  Polynomial<T>::operator*=( const Polynomial<T>& p )
+	{
+		Polynomial<T> ret( _degree + p._degree );
+
+		ret.setZero();
+		for( size_t i = 0; i <= _degree; i++ ) {
+			for( size_t k = 0; k <= p._degree; k++ ) {
+				ret._coeff[ i + k ] += _coeff[ i ] * p._coeff[ k ];
+			}
+		}
+		ret._degree = ( _degree + p._degree );
+
+		*this = ret;
+		return *this;
+	}
+
 
 	template<typename T>
 	inline Polynomial<T>& Polynomial<T>::operator*=( T s )
