@@ -1,7 +1,8 @@
-#include "gfx/Image.h"
-#include "math/Math.h"
-#include "util/SIMD.h"
-#include "util/Exception.h"
+#include <cvt/gfx/Image.h>
+#include <cvt/math/Math.h>
+#include <cvt/util/SIMD.h>
+#include <cvt/util/Exception.h>
+#include <cvt/util/ScopedBuffer.h>
 
 #include <cvt/gfx/IConvert.h>
 
@@ -1658,8 +1659,10 @@ namespace cvt {
 
 		SIMD* simd = SIMD::instance();
 
-		if( posix_memalign( ( void** ) &buf, 16, sizeof( uint16_t ) * bstride * 5 ) )
-			throw CVTException("Out of memory");
+		ScopedBuffer<uint16_t, true> scopebuf( bstride * 5 );
+		buf = scopebuf.ptr();
+//		if( posix_memalign( ( void** ) &buf, 16, sizeof( uint16_t ) * bstride * 5 ) )
+//			throw CVTException("Out of memory");
 
 		simd->pyrdownHalfHorizontal_1u8_to_1u16( buf, psrc, width() );
 		psrc += sstride;
@@ -1714,6 +1717,5 @@ namespace cvt {
 
 		unmap( src );
 		out.unmap( dst );
-		free( buf );
 	}
 }

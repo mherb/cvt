@@ -32,6 +32,11 @@ BEGIN_CVTTEST( Polynomial )
 	poly.roots( roots );
 	for( size_t i = 0; i < 4; i++ )
 		std::cout << roots[ i ] << std::endl;
+ {
+	Polynomialf bla( 1 );
+	bla = poly * poly;
+	std::cout << bla << std::endl;
+ }
 
 {
 	Complexd roots[ 4 ];
