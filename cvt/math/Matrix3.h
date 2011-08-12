@@ -44,6 +44,9 @@ namespace cvt {
 		bool				operator==( const Matrix3<T> &m ) const;
 		bool				operator!=( const Matrix3<T> &m ) const;
 
+		Vector3<T>			row( size_t r ) const;
+		Vector3<T>			col( size_t c ) const;
+
 		void				setZero( void );
 		void				setIdentity( void );
 		bool				isIdentity( ) const;
@@ -309,6 +312,17 @@ namespace cvt {
 		return mat[ 0 ] != m[ 0 ] || mat[ 1 ] != m[ 1 ] || mat[ 2 ] != m[ 2 ];
 	}
 
+	template<typename T>
+	inline Vector3<T> Matrix3<T>::row( size_t r ) const
+	{
+		return Vector3<T>( mat[ r ][ 0 ], mat[ r ][ 1 ], mat[ r ][ 2 ] );
+	}
+
+	template<typename T>
+	inline Vector3<T> Matrix3<T>::col( size_t c ) const
+	{
+		return Vector3<T>( mat[ 0 ][ c ], mat[ 1 ][ c ], mat[ 2 ][ c ] );
+	}
 
 	template<typename T>
 	inline void Matrix3<T>::setZero()
