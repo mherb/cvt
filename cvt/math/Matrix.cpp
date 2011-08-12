@@ -486,15 +486,15 @@ namespace cvt {
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
 						ROTAPPLYRIGHT3( mat, c, s, i, k );
 
-						/* apply the inverse givens rotation to v */
-						ROTAPPLYLEFT3( v, c, -s, i, k );
+						/* apply the givens rotation to V^T */
+						ROTAPPLYRIGHT3( v, c, s, i, k );
 
 						/* make 2 x 2 diagonal, apply jacobi */
 						Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
 						JACOBIAPPLY3( mat, c, s, i, k );
 
-						/* apply the inverse jacobi rotation to V */
-						ROTAPPLYLEFT3( v, c, -s, i, k );
+						/* apply the jacobi rotation to V^T */
+						ROTAPPLYRIGHT3( v, c, s, i, k );
 
 						/* apply the jacobi rotation to U */
 						ROTAPPLYRIGHT3( u, c, s, i, k );
@@ -524,9 +524,9 @@ namespace cvt {
 				u[ i ][ 0 ] = u[ i ][ imax ];
 				u[ i ][ imax ] = tmp;
 
-				tmp = v[ 0 ][ i ];
-				v[ 0 ][ i ] = v[ imax ][ i ];
-				v[ imax ][ i ] = tmp;
+				tmp = v[ i ][ 0 ];
+				v[ i ][ 0 ] = v[ i ][ imax ];
+				v[ i ][ imax ] = tmp;
 			}
 			tmp = mat[ 0 ][ 0 ];
 			mat[ 0 ][ 0 ] = mat[ imax ][ imax ];
@@ -540,9 +540,9 @@ namespace cvt {
 				u[ i ][ 1 ] = u[ i ][ 2 ];
 				u[ i ][ 2 ] = tmp;
 
-				tmp = v[ 1 ][ i ];
-				v[ 1 ][ i ] = v[ 2 ][ i ];
-				v[ 2 ][ i ] = tmp;
+				tmp = v[ i ][ 1 ];
+				v[ i ][ 1 ] = v[ i ][ 2 ];
+				v[ i ][ 2 ] = tmp;
 			}
 			tmp = mat[ 1 ][ 1 ];
 			mat[ 1 ][ 1 ] = mat[ 2 ][ 2 ];
@@ -659,7 +659,7 @@ namespace cvt {
 			m.svd( u, d, v );
 			std::cout << "U:\n" << u << std::endl;
 			std::cout << "D:\n" << d << std::endl;
-			std::cout << "V:\n" << v << std::endl;
+			std::cout << "V^T:\n" << v << std::endl;
 		}
 
 		return true;
