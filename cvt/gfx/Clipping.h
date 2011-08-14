@@ -113,8 +113,8 @@ namespace cvt {
 		if( rect.contains( pt1 ) && rect.contains( pt2 ) )
 			return true;
 
-		xend = rect.x + rect.width - 1;
-		yend = rect.y + rect.height - 1;
+		xend = rect.x + rect.width;
+		yend = rect.y + rect.height;
 
 		/* both points outside and on the same side of one rect line */
 		if( ( pt1.x < rect.x && pt2.x < rect.x ) ||
