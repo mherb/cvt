@@ -29,8 +29,8 @@ namespace cvt {
 		if( rect.contains( pt1 ) && rect.contains( pt2 ) )
 			return true;
 
-		xend = rect.x + rect.width;
-		yend = rect.y + rect.height;
+		xend = rect.x + rect.width - 1;
+		yend = rect.y + rect.height - 1;
 
 		/* both points outside and on the same side of one rect line */
 		if( ( pt1.x < rect.x && pt2.x < rect.x ) ||
@@ -113,12 +113,12 @@ namespace cvt {
 		if( rect.contains( pt1 ) && rect.contains( pt2 ) )
 			return true;
 
-		xend = rect.x + rect.width;
-		yend = rect.y + rect.height;
+		xend = rect.x + rect.width - 1;
+		yend = rect.y + rect.height - 1;
 
 		/* both points outside and on the same side of one rect line */
 		if( ( pt1.x < rect.x && pt2.x < rect.x ) ||
-			( pt1.x > xend && pt2.x > xend ) ||
+			( pt1.x >= xend && pt2.x >= xend ) ||
 			( pt1.y < rect.y && pt2.y < rect.y ) ||
 			( pt1.y > yend && pt2.y > yend ) )
 			return false;
