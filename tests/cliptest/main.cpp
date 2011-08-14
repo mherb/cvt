@@ -21,7 +21,7 @@ class ClipUI : public Window
 
 		if( _selection == 1 ) {
 			g->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
-			g->setLineWidth( 2.0f );
+			g->setLineWidth( 1.0f );
 			g->drawLine( _out[ 0 ].x, _out[ 0 ].y , _out[ 1 ].x, _out[ 1 ].y );
 		}
 

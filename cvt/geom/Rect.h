@@ -135,8 +135,8 @@ namespace cvt {
 	template<typename T>
 		inline bool Rect<T>::contains( const T px, const T py ) const
 		{
-			if( px >= x && px <= x + width &&
-			   py >= y && py <= y + height )
+			if( px >= x && px < x + width &&
+			   py >= y && py < y + height )
 				return true;
 			return false;
 		}
@@ -145,8 +145,8 @@ namespace cvt {
 	template<typename T>
 		inline bool Rect<T>::contains( const Vector2<T>& pt ) const
 		{
-			if( pt.x >= x && pt.x <= x + width &&
-			   pt.y >= y && pt.y <= y + height )
+			if( pt.x >= x && pt.x < x + width &&
+			   pt.y >= y && pt.y < y + height )
 				return true;
 			return false;
 		}
@@ -160,11 +160,8 @@ namespace cvt {
 	template<typename T>
 		inline bool Rect<T>::contains( T x2, T y2, T w2, T h2 ) const
 		{
-			if( !contains( x2 + w2, y2 + h2 ) )
-				return false;
-			if( !contains( x2, y2 ) )
-				return false;
-			return true;
+			return ( x2 >= x && x2 + w2 <= x + width &&
+					 y2 >= y && y2 + h2 <= y + height );
 		}
 
 	template<typename T>
@@ -177,11 +174,8 @@ namespace cvt {
 	template<typename T>
 		inline bool Rect<T>::intersects( T x2, T y2, T w2, T h2 ) const
 		{
-			if( x2 + w2 < x || x2 > x + width )
-				return false;
-			if( y2 + h2 < y || y2 > y + height )
-				return false;
-			return true;
+			return !( x2 >= x + width || x2 + w2 <= x ||
+					  y2 >= y + height || y2 + h2 <= y );
 		}
 
 	template<typename T>
