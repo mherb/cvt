@@ -450,6 +450,59 @@ namespace cvt {
 		m[ h ][ k ] = tmp2; \
 	} while( 0 )
 
+#define ROTAPPLYRIGHT4( m, c, s, i, k ) \
+	do { \
+		T tmp1, tmp2; \
+		tmp1 = c * m[ 0 ][ i ] - m[ 0 ][ k ] * s; \
+		tmp2 = s * m[ 0 ][ i ] + m[ 0 ][ k ] * c; \
+		m[ 0 ][ i ] = tmp1; \
+		m[ 0 ][ k ] = tmp2; \
+		tmp1 = c * m[ 1 ][ i ] - m[ 1 ][ k ] * s; \
+		tmp2 = s * m[ 1 ][ i ] + m[ 1 ][ k ] * c; \
+		m[ 1 ][ i ] = tmp1; \
+		m[ 1 ][ k ] = tmp2; \
+		tmp1 = c * m[ 2 ][ i ] - m[ 2 ][ k ] * s; \
+		tmp2 = s * m[ 2 ][ i ] + m[ 2 ][ k ] * c; \
+		m[ 2 ][ i ] = tmp1; \
+		m[ 2 ][ k ] = tmp2; \
+		tmp1 = c * m[ 3 ][ i ] - m[ 3 ][ k ] * s; \
+		tmp2 = s * m[ 3 ][ i ] + m[ 3 ][ k ] * c; \
+		m[ 3 ][ i ] = tmp1; \
+		m[ 3 ][ k ] = tmp2; \
+	} while( 0 )
+
+#define JACOBIAPPLY4( m, c, s, i, k ) \
+	do { \
+		static int _other[ 4 ][ 4] = { {-1,2,1,1}, {2,-1,0,0}, {1,0,-1,0}, {1,0,0,-1} }; \
+		T tmp1, tmp2; \
+		tmp1 = c * c * m[ i ][ i ] + s * s * m[ k ][ k ] - 2.0f * s * c * m[ i ][ k ]; \
+		tmp2 = s * s * m[ i ][ i ] + c * c * m[ k ][ k ] + 2.0f * s * c * m[ i ][ k ]; \
+		m[ i ][ i ] = tmp1; \
+		m[ k ][ k ] = tmp2; \
+		m[ i ][ k ] = 0; \
+		m[ k ][ i ] = 0; \
+		int h = _other[ i ][ k ]; \
+		tmp1 = c * m[ i ][ h ] - s * m[ k ][ h ]; \
+		tmp2 = s * m[ i ][ h ] + c * m[ k ][ h ]; \
+		m[ i ][ h ] = tmp1; \
+		m[ k ][ h ] = tmp2; \
+		tmp1 = c * m[ h ][ i ] - s * m[ h ][ k ]; \
+		tmp2 = s * m[ h ][ i ] + c * m[ h ][ k ]; \
+		m[ h ][ i ] = tmp1; \
+		m[ h ][ k ] = tmp2; \
+		h = 6 - i - k - h; \
+		tmp1 = c * m[ i ][ h ] - s * m[ k ][ h ]; \
+		tmp2 = s * m[ i ][ h ] + c * m[ k ][ h ]; \
+		m[ i ][ h ] = tmp1; \
+		m[ k ][ h ] = tmp2; \
+		tmp1 = c * m[ h ][ i ] - s * m[ h ][ k ]; \
+		tmp2 = s * m[ h ][ i ] + c * m[ h ][ k ]; \
+		m[ h ][ i ] = tmp1; \
+		m[ h ][ k ] = tmp2; \
+	} while( 0 )
+
+
+
 	template<typename T>
 		struct EPSILON {
 			static const T eps;
@@ -553,6 +606,117 @@ namespace cvt {
 	template void Matrix3f::svd( Matrix3f&, Matrix3f&, Matrix3f& ) const;
 	template void Matrix3d::svd( Matrix3d&, Matrix3d&, Matrix3d& ) const;
 
+
+	template<typename T>
+	void Matrix4<T>::svd( Matrix4<T>& u, Matrix4<T>& mat,  Matrix4<T>& v ) const
+	{
+		T c, s;
+		bool finished;
+
+		mat = *this;
+		u.setIdentity();
+		v.setIdentity();
+
+		/* diagonalize */
+		do {
+			finished = true;
+			for( int i = 0; i < 3; i++ ) {
+				for( int k = i + 1; k < 4; k++ ) {
+					if( Math::abs( mat[ i ][ k ] ) >= EPSILON<T>::eps || Math::abs( mat[ k ][ i ] ) >= EPSILON<T>::eps  ) {
+						finished = false;
+						/* make 2 x 2 symmetric */
+						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
+						ROTAPPLYRIGHT4( mat, c, s, i, k );
+
+						/* apply the givens rotation to V^T */
+						ROTAPPLYRIGHT4( v, c, s, i, k );
+
+						/* make 2 x 2 diagonal, apply jacobi */
+						Math::jacobi( c, s, mat[ i ][ i ], mat[ k ][ i ], mat[ k ][ k ] );
+						JACOBIAPPLY4( mat, c, s, i, k );
+
+						/* apply the jacobi rotation to V^T */
+						ROTAPPLYRIGHT4( v, c, s, i, k );
+
+						/* apply the jacobi rotation to U */
+						ROTAPPLYRIGHT4( u, c, s, i, k );
+					}
+				}
+			}
+		} while( !finished );
+
+		/* make singular values positive */
+		for( int i = 0; i < 4; i++ ) {
+			if( mat[ i ][ i ] < 0 ) {
+				mat[ i ][ i ] = - mat[ i ][ i ];
+				for( int k = 0; k < 4; k++ )
+					u[ k ][ i ] = -u[ k ][ i ];
+			}
+		}
+
+		/* sort singular values */
+		int imax;
+		imax = ( mat[ 0 ][ 0 ] > mat[ 1 ][ 1 ] ) ? 0 : 1;
+		if( mat[ imax ][ imax ] < mat[ 2 ][ 2 ] ) imax = 2;
+		if( mat[ imax ][ imax ] < mat[ 3 ][ 3 ] ) imax = 3;
+
+		/* bring largest singular value to position 0 */
+		if( imax != 0 ) {
+			T tmp;
+			for( int i = 0; i < 4; i++ ) {
+				tmp = u[ i ][ 0 ];
+				u[ i ][ 0 ] = u[ i ][ imax ];
+				u[ i ][ imax ] = tmp;
+
+				tmp = v[ i ][ 0 ];
+				v[ i ][ 0 ] = v[ i ][ imax ];
+				v[ i ][ imax ] = tmp;
+			}
+			tmp = mat[ 0 ][ 0 ];
+			mat[ 0 ][ 0 ] = mat[ imax ][ imax ];
+			mat[ imax ][ imax ] = tmp;
+		}
+
+		imax = ( mat[ 1 ][ 1 ] > mat[ 2 ][ 2 ] ) ? 1 : 2;
+		if( mat[ imax ][ imax ] < mat[ 3 ][ 3 ] ) imax = 3;
+		/* bring second largest singular value to position 1 */
+		if( imax != 1 ) {
+			T tmp;
+			for( int i = 0; i < 4; i++ ) {
+				tmp = u[ i ][ 1 ];
+				u[ i ][ 1 ] = u[ i ][ imax ];
+				u[ i ][ imax ] = tmp;
+
+				tmp = v[ i ][ 1 ];
+				v[ i ][ 1 ] = v[ i ][ imax ];
+				v[ i ][ imax ] = tmp;
+			}
+			tmp = mat[ 1 ][ 1 ];
+			mat[ 1 ][ 1 ] = mat[ imax ][ imax ];
+			mat[ imax ][ imax ] = tmp;
+		}
+		/* swap singular values 2 and 3 if necessary */
+		if( mat[ 2 ][ 2 ] < mat[ 3 ][ 3 ]) {
+			T tmp;
+			for( int i = 0; i < 4; i++ ) {
+				tmp = u[ i ][ 2 ];
+				u[ i ][ 2 ] = u[ i ][ 3 ];
+				u[ i ][ 3 ] = tmp;
+
+				tmp = v[ i ][ 2 ];
+				v[ i ][ 2 ] = v[ i ][ 3 ];
+				v[ i ][ 3 ] = tmp;
+			}
+			tmp = mat[ 2 ][ 2 ];
+			mat[ 2 ][ 2 ] = mat[ 3 ][ 3 ];
+			mat[ 3 ][ 3 ] = tmp;
+		}
+	}
+
+	template void Matrix4f::svd( Matrix4f&, Matrix4f&, Matrix4f& ) const;
+	template void Matrix4d::svd( Matrix4d&, Matrix4d&, Matrix4d& ) const;
+
+
 	BEGIN_CVTTEST(Matrix2)
 		Matrix2f mat, m2;
 		bool b = true;
@@ -645,21 +809,30 @@ namespace cvt {
 		{
 			srand( time( NULL ) );
 
+			Eigen::Matrix3f et;
 			Eigen::Matrix3f mat = Eigen::Matrix3f::Random();
 			Eigen::JacobiSVD<Eigen::Matrix3f> svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );
-			std::cout << "U:\n" <<  svd.matrixU() << std::endl;
-			std::cout << "D:\n" <<  svd.singularValues() << std::endl;
-			std::cout << "V:\n" <<  svd.matrixV() << std::endl;
 
-			Matrix3f m, u, d, v;
+			/* Eigen SVD */
+			et = svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+
+			/* Copy mat to CVT matrix */
+			Matrix3f m, u, d, v, t, t2;
 			for( int y = 0; y < 3; y++ )
 				for( int x = 0; x < 3; x++ )
 					m[ y ][ x ] = mat( y, x );
 
+			/* CVT SVD */
 			m.svd( u, d, v );
-			std::cout << "U:\n" << u << std::endl;
-			std::cout << "D:\n" << d << std::endl;
-			std::cout << "V^T:\n" << v << std::endl;
+			t = u*d*v.transpose();
+
+
+			for( int y = 0; y < 3; y++ )
+				for( int x = 0; x < 3; x++ )
+					t2[ y ][ x ] = et( y, x );
+
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
 		}
 
 		return true;
@@ -738,6 +911,35 @@ namespace cvt {
         Matrix4f m2p = Matrix4f::fromString( s );
         b = ( m2p == mat );
         CVTTEST_PRINT( "fromString()", b );
+
+{
+			srand( time( NULL ) );
+
+			Eigen::Matrix4f et;
+			Eigen::Matrix4f mat = Eigen::Matrix4f::Random();
+			Eigen::JacobiSVD<Eigen::Matrix4f> svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+			/* Eigen SVD */
+			et = svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+
+			/* Copy mat to CVT matrix */
+			Matrix4f m, u, d, v, t, t2;
+			for( int y = 0; y < 4; y++ )
+				for( int x = 0; x < 4; x++ )
+					m[ y ][ x ] = mat( y, x );
+
+			/* CVT SVD */
+			m.svd( u, d, v );
+			t = u*d*v.transpose();
+
+
+			for( int y = 0; y < 4; y++ )
+				for( int x = 0; x < 4; x++ )
+					t2[ y ][ x ] = et( y, x );
+
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
+		}
 
 		return true;
 	END_CVTTEST
