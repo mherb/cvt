@@ -11,6 +11,47 @@
 #include <xmmintrin.h>
 
 namespace cvt {
+	void SIMDSSSE3::Conv_XYZAu8_to_ZYXAu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const
+	{
+		uint32_t* src = ( uint32_t* ) _src;
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t tmp1, tmp2;
+		__m128i x;
+		__m128i mask = _mm_set_epi8( 0xf, 0xc, 0xd, 0xe,
+									 0xb, 0x8, 0x9, 0xa,
+									 0x7, 0x4, 0x5, 0x6,
+									 0x3, 0x0, 0x1, 0x2 );
+
+		size_t i = n >> 2;
+
+		if( ( ( size_t ) dst | ( size_t ) src ) & 0xF ) {
+			while( i-- ) {
+				x = _mm_loadu_si128( ( __m128i* )src );
+				x = _mm_shuffle_epi8( x, mask );
+				_mm_storeu_si128( ( __m128i* ) dst, x );
+				src += 4;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				x = _mm_load_si128( ( __m128i* ) src );
+				x = _mm_shuffle_epi8( x, mask );
+				_mm_stream_si128( ( __m128i* ) dst, x );
+				src += 4;
+				dst += 4;
+			}
+		}
+
+		i = n & 0x3;
+		while( i-- ) {
+			tmp1 = *src++;
+			tmp2 = ( tmp1 & 0xff00ff00 );
+			tmp2 += ( tmp1 & 0xff0000 ) >> 16;
+			tmp2 += ( tmp1 & 0xff ) << 16;
+			*dst++ = tmp2;
+		}
+	}
+
 
     size_t SIMDSSSE3::hammingDistance(const uint8_t* src1, const uint8_t* src2, size_t n) const
 	{

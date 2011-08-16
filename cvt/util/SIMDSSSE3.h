@@ -20,6 +20,7 @@ namespace cvt {
         SIMDSSSE3() {}
 
       public:
+		virtual void Conv_XYZAu8_to_ZYXAu8( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 		virtual size_t hammingDistance(const uint8_t* src1, const uint8_t* src2, size_t n) const;
 
         virtual std::string name() const;

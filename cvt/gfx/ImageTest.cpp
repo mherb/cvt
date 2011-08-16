@@ -207,6 +207,24 @@ namespace cvt {
 		_image_conversion_speed( imgt );
 		_image_conversionyuyv_speed( imgyuyv );
 
+		CVTTEST_LOG("Image Convert Speed SSSE3");
+		SIMD::force( SIMD_SSSE3 );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8 );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		imgt.reallocate( img.width(), img.height(), IFormat::BGRA_FLOAT );
+		img.convert( imgt );
+		_image_conversion_speed( imgt );
+		_image_conversionyuyv_speed( imgyuyv );
+
+
+
 		CVTTEST_LOG("Image Convert Speed SSE41");
 		SIMD::force( SIMD_SSE41 );
 		imgt.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8 );
