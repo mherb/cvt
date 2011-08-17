@@ -3804,9 +3804,8 @@ namespace cvt {
 
 		while( n-- )
 		{
-			int fx = ( int ) ( *( coords + 0 ) * 0x10000 );
-			int fy = ( int ) ( *( coords + 1 ) * 0x10000 );
-			coords += 2;
+			int fx = ( int ) ( *coords++ * 0x10000 );
+			int fy = ( int ) ( *coords++ * 0x10000 );
 
 			int lx =  fx >> 16;
 			int ly =  fy >> 16;
