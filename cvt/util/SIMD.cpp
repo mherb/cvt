@@ -3751,13 +3751,14 @@ namespace cvt {
 			fx = *coords++;
 			fy = *coords++;
 
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
+			int lx = _floor( fx );
+			int ly = _floor( fy );
+
+			float alpha1 = fx - ( float ) lx;
+			float alpha2 = fy - ( float ) ly;
 
 #define VAL( fx, fy ) *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) )
 
-			int lx = ( int )fx;
-			int ly = ( int )fy;
 			float v1 = Math::mix<float>( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
 			float v2 = Math::mix<float>( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
 			*dst++ =  ( uint8_t ) Math::clamp<int>( Math::mix( v1, v2, alpha2 ), 0, 255 );
@@ -3881,8 +3882,8 @@ namespace cvt {
 
 		while( n-- )
 		{
-			int fx = ( *( coords + 0 ) ) * ( 1 << 16 );
-			int fy = ( *( coords + 1 ) ) * ( 1 << 16 );
+			int fx = ( int ) ( *( coords + 0 ) * 0x10000 );
+			int fy = ( int ) ( *( coords + 1 ) * 0x10000 );
 			coords += 2;
 
 			int lx =  fx >> 16;
