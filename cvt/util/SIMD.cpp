@@ -3863,8 +3863,8 @@ namespace cvt {
 
 	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint8_t fill, size_t n ) const
 	{
-		int endx = ( ( int ) srcWidth );
-		int endy = ( ( int ) srcHeight );
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 
 		while( n-- )
 		{
@@ -3875,12 +3875,24 @@ namespace cvt {
 			int lx =  fx >> 16;
 			int ly =  fy >> 16;
 
-			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				int32_t ax = fx & 0xffff;
+				int32_t ay = fy & 0xffff;
+
+				uint8_t* ptr = ( uint8_t* ) ( src + srcStride * ly + sizeof( uint8_t ) * lx );
+				int32_t a = *ptr;
+				int32_t b = *( ptr + 1 );
+				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				ptr += srcStride;
+				a = *ptr;
+				b = *( ptr + 1 );
+				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
 
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : fill
-
 				int32_t a = VAL( lx, ly );
 				int32_t b = VAL( lx + 1, ly );
 				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
@@ -3888,10 +3900,10 @@ namespace cvt {
 				b = VAL( lx + 1, ly + 1 );
 				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
 				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
+#undef VAL
 			} else
 				*dst++ = fill;
 
-#undef VAL
 		}
 
 	}
