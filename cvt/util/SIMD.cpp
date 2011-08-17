@@ -3682,122 +3682,11 @@ namespace cvt {
 
 	}
 
-	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n ) const
-	{
-		const uint8_t* src = ( const uint8_t* ) _src;
-
-		while( n-- )
-		{
-			float fx, fy;
-
-			fx = *coords++;
-			fy = *coords++;
-
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
-#define VAL( fx, fy ) *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( fx ) ) )
-			float v1, v2;
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			v1 = Math::mix( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-#undef VAL
-		}
-
-	}
-
-
-	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t n ) const
-	{
-		const uint8_t* src = ( const uint8_t* ) _src;
-
-		while( n-- )
-		{
-			float fx, fy;
-
-			fx = *coords++;
-			fy = *coords++;
-
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
-#define VAL( fx, fy, offset ) *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 + offset ) ) )
-			float v1, v2;
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-#undef VAL
-		}
-
-	}
-
-	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n ) const
-	{
-		while( n-- )
-		{
-			float fx, fy;
-
-			fx = *coords++;
-			fy = *coords++;
-
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
-
-#define VAL( fx, fy ) *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) )
-
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			float v1 = Math::mix<float>( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-			float v2 = Math::mix<float>( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-			*dst++ =  ( uint8_t ) Math::clamp<int>( Math::mix( v1, v2, alpha2 ), 0, 255 );
-#undef VAL
-		}
-
-	}
-
-
-	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t n ) const
-	{
-		uint32_t* dst = ( uint32_t* ) _dst;
-
-		while( n-- )
-		{
-			float fx, fy;
-
-			fx = *coords++;
-			fy = *coords++;
-
-			uint32_t alpha1 = ( uint32_t ) Math::clamp<int32_t>( ( fx - ( float ) ( int )fx ) * 0x100, 0x0, 0x100 );
-			uint32_t alpha2 = ( uint32_t ) Math::clamp<int32_t>( ( fy - ( float ) ( int )fy ) * 0x100, 0x0, 0x100 );
-
-#define VAL( fx, fy ) *( ( uint32_t* ) ( src + srcStride * ( fy ) + sizeof( uint32_t ) * ( fx ) ) )
-
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			uint32_t v1 = _mix4U8( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-			*dst++ = _mix4U8( v1, v2, alpha2 );
-#undef VAL
-		}
-
-	}
-
 	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, float fillcolor, size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
-		int endx = ( ( int ) srcWidth );
-		int endy = ( ( int ) srcHeight );
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 
 		while( n-- )
 		{
@@ -3808,7 +3697,20 @@ namespace cvt {
 			int lx = _floor( fx );
 			int ly = _floor( fy );
 
-			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
+				float v1, v2, a, b;
+				float* ptr = ( float* ) ( src + srcStride * ly + sizeof( float ) * lx );
+				a = *ptr;
+				b = *( ptr + 1 );
+				v1 = Math::mix( a, b, alpha1 );
+				ptr = ( float* ) ( ( ( uint8_t* ) ptr ) + srcStride );
+				a = *ptr;
+				b = *( ptr + 1 );
+				v2 = Math::mix( a, b, alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				float alpha1 = fx - ( float ) lx;
 				float alpha2 = fy - ( float ) ly;
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( fx ) ) ) : fillcolor
@@ -3830,6 +3732,9 @@ namespace cvt {
 	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* fillcolor, size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
+
 
 		while( n-- )
 		{
@@ -3838,49 +3743,91 @@ namespace cvt {
 			fx = *coords++;
 			fy = *coords++;
 
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
+			int lx = _floor( fx );
+			int ly = _floor( fy );
+
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
+				float v1, v2;
+				float* ptr1 = ( float* ) ( src + srcStride * ( ly ) + sizeof( float ) * lx * 4 );
+				float* ptr2 = ( float* ) ( src + srcStride * ( ly + 1 ) + sizeof( float ) * lx * 4 );
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
 #define VAL( fx, fy, offset ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 + offset ) ) ) : fillcolor[ offset ]
-			float v1, v2;
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
+				float v1, v2;
+				v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
 #undef VAL
+			} else {
+				*dst++ = fillcolor[ 0 ];
+				*dst++ = fillcolor[ 1 ];
+				*dst++ = fillcolor[ 2 ];
+				*dst++ = fillcolor[ 3 ];
+			}
+
 		}
 
 	}
 
 	void SIMD::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint8_t fill, size_t n ) const
 	{
-		int endx = ( ( int ) srcWidth );
-		int endy = ( ( int ) srcHeight );
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 
 		while( n-- )
 		{
-			int fx = ( *( coords + 0 ) ) * ( 1 << 16 );
-			int fy = ( *( coords + 1 ) ) * ( 1 << 16 );
-			coords += 2;
+			int fx = ( int ) ( *coords++ * 0x10000 );
+			int fy = ( int ) ( *coords++ * 0x10000 );
 
 			int lx =  fx >> 16;
 			int ly =  fy >> 16;
 
-			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				int32_t ax = fx & 0xffff;
+				int32_t ay = fy & 0xffff;
+
+				uint8_t* ptr = ( uint8_t* ) ( src + srcStride * ly + sizeof( uint8_t ) * lx );
+				int32_t a = *ptr;
+				int32_t b = *( ptr + 1 );
+				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				ptr += srcStride;
+				a = *ptr;
+				b = *( ptr + 1 );
+				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
 
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : fill
-
 				int32_t a = VAL( lx, ly );
 				int32_t b = VAL( lx + 1, ly );
 				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
@@ -3888,36 +3835,59 @@ namespace cvt {
 				b = VAL( lx + 1, ly + 1 );
 				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
 				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
+#undef VAL
 			} else
 				*dst++ = fill;
 
-#undef VAL
 		}
 
 	}
 
 	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint32_t fill, size_t n ) const
 	{
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 
 		while( n-- )
 		{
-			float fx, fy;
+			int fx = ( int )( *( coords + 0 ) * ( 1 << 8 ) );
+			int fy = ( int )( *( coords + 1 ) * ( 1 << 8 ) );
+			coords += 2;
 
-			fx = *coords++;
-			fy = *coords++;
+			int lx =  fx >> 8;
+			int ly =  fy >> 8;
 
-			uint32_t alpha1 = ( uint32_t ) Math::clamp<int32_t>( ( fx - ( float ) ( int )fx ) * 0x100, 0x0, 0x100 );
-			uint32_t alpha2 = ( uint32_t ) Math::clamp<int32_t>( ( fy - ( float ) ( int )fy ) * 0x100, 0x0, 0x100 );
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				uint32_t alpha1 = fx & 0xff;
+				uint32_t alpha2 = fy & 0xff;
+
+				uint32_t* ptr = ( uint32_t* ) ( src + srcStride * ( ly ) + sizeof( uint32_t ) * lx );
+				uint32_t a, b;
+				a = *ptr;
+				b = *( ptr + 1 );
+				uint32_t v1 = _mix4U8( a, b, alpha1 );
+				ptr = ( uint32_t* ) ( ( ( uint8_t* ) ptr ) + srcStride );
+				a = *ptr;
+				b = *( ptr + 1 );
+				uint32_t v2 = _mix4U8( a, b, alpha1 );
+				*dst++ = _mix4U8( v1, v2, alpha2 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
+				uint32_t alpha1 = fx & 0xff;
+				uint32_t alpha2 = fy & 0xff;
 
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint32_t* ) ( src + srcStride * ( fy ) + sizeof( uint32_t ) * ( fx ) ) ) : fill
-
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			uint32_t v1 = _mix4U8( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-			*dst++ = _mix4U8( v1, v2, alpha2 );
+				uint32_t a, b;
+				a = VAL( lx, ly );
+				b = VAL( lx + 1, ly );
+				uint32_t v1 = _mix4U8( a, b, alpha1 );
+				a = VAL( lx, ly + 1 );
+				b = VAL( lx + 1, ly + 1 );
+				uint32_t v2 = _mix4U8( a, b, alpha1 );
+				*dst++ = _mix4U8( v1, v2, alpha2 );
 #undef VAL
+			} else
+				*dst++ = fill;
 		}
 
 	}
