@@ -691,6 +691,15 @@ namespace cvt {
 		return __tmp + __tmp2;
 	}
 
+	static inline int32_t _floor( float v )
+	{
+		Math::_flint32 fl;
+		int32_t ret = ( int32_t ) v;
+		fl.f = v;
+		ret -= fl.i >> 31;
+		return ret;
+	}
+
 	SIMD* SIMD::_simd = 0;
 
 	SIMD* SIMD::get( SIMDType type )
@@ -3796,16 +3805,20 @@ namespace cvt {
 
 			fx = *coords++;
 			fy = *coords++;
-			int lx = ( int ) ( fx );
-			int ly = ( int ) ( fy );
+			int lx = _floor( fx );
+			int ly = _floor( fy );
 
 			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
-				float alpha1 = fx + 2 - ( float ) ( int )( fx + 2 );
-				float alpha2 = fy + 2 - ( float ) ( int )( fy + 2 );
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( fx ) ) ) : fillcolor
-				float v1, v2;
-				v1 = Math::mix( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-				v2 = Math::mix( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
+				float v1, v2, a, b;
+				a = VAL( lx, ly );
+				b = VAL( lx + 1, ly );
+				v1 = Math::mix( a, b, alpha1 );
+				a = VAL( lx, ly + 1 );
+				b = VAL( lx + 1, ly + 1 );
+				v2 = Math::mix( a, b, alpha1 );
 				*dst++ = Math::mix( v1, v2, alpha2 );
 #undef VAL
 			} else

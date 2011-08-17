@@ -11,7 +11,7 @@ int main()
 	Image in, out, warp, tmp;
 
 	tmp.load( r.find("distort.png") );
-	in.reallocate( tmp.width(), tmp.height(), IFormat::GRAY_FLOAT );
+	in.reallocate( tmp.width(), tmp.height(), IFormat::GRAY_UINT8 );
 	tmp.convert( in );
 
 	warp.reallocate( in.width() + 250, in.height() + 250, IFormat::GRAYALPHA_FLOAT );
