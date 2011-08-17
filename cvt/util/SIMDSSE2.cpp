@@ -5,6 +5,17 @@
 
 namespace cvt
 {
+	/*static inline int32_t _mm_floor( __m128 xmm )
+	{
+		int32_t ret;
+		__asm__("cvttss2si %1, %0;\n\t"
+				""
+				: "=r"(ret)
+				: "x"(xmm),"r"
+			   );
+		return ret;
+	}*/
+
 	void SIMDSSE2::MulValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
 		size_t i = n >> 2;
@@ -1542,6 +1553,42 @@ namespace cvt
 		}
 	}
 
+#if 0
+	void SIMDSSE2::warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint8_t fill, size_t n ) const
+	{
+		int endx = ( ( int ) srcWidth );
+		int endy = ( ( int ) srcHeight );
+
+		while( n-- )
+		{
+			int fx = ( *( coords + 0 ) ) * ( 1 << 16 );
+			int fy = ( *( coords + 1 ) ) * ( 1 << 16 );
+			coords += 2;
+
+			int lx =  fx >> 16; //_mm_extract_epi16( fyxi, 1 );
+			int ly =  fy >> 16; // _mm_extract_epi16( fyxi, 3 );
+
+			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
+				int32_t ax =  fx & 0xffff;
+				int32_t ay =  fy & 0xffff;
+
+#define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint8_t* ) ( src + srcStride * ( fy ) + sizeof( uint8_t ) * ( fx ) ) ) : fill
+
+				int32_t a = VAL( lx, ly );
+				int32_t b = VAL( lx + 1, ly );
+				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				a = VAL( lx, ly + 1 );
+				b = VAL( lx + 1, ly + 1 );
+				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
+			} else
+				*dst++ = fill;
+
+#undef VAL
+		}
+
+	}
+#endif
 
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
