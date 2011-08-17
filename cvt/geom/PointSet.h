@@ -44,6 +44,7 @@ namespace cvt
 				void normalize( );
 				_T	 ssd( const PointSet<dim, _T>& ptset ) const;
 				_T	 maxSquaredDistance( const PointSet<dim, _T>& ptset ) const;
+				MATTYPE alignRigid( const PointSet<dim,_T>& ptset ) const;
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
 
@@ -376,6 +377,70 @@ namespace cvt
 		}
 		return ret;
 	}
+
+	template <int dim, typename _T>
+	inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignRigid( const PointSet<dim,_T>& ptset ) const
+	{
+		if( size() != ptset.size() )
+			throw CVTException( "PointSets differ in size!" );
+		if( size() <= dim )
+			throw CVTException( "PointSets to small!" );
+
+		Eigen::Matrix<_T,dim,dim> mat;
+		MATTYPE m;
+		PTTYPE mean1, mean2;
+		_T mdet;
+
+		mean1 = mean();
+		mean2 = ptset.mean();
+
+		m.setIdentity();
+		mat.setZero();
+
+		size_t n = size();
+		const PTTYPE* pt1 = &(*this)[ 0 ];
+		const PTTYPE* pt2 = &ptset[ 0 ];
+		PTTYPE c1, c2;
+		while( n-- ) {
+			c1 = *pt1 - mean1;
+			c2 = *pt2 - mean2;
+
+			for( int i = 0; i < dim; i++)
+				for( int k = 0; k < dim; k++)
+					mat( i, k ) += c2[ i ] * c1[ k ];
+
+			pt1++;
+			pt2++;
+		}
+
+		mat /= ( _T ) size();
+
+		Eigen::Matrix<_T,dim,1> s;
+		s.setOnes();
+
+		Eigen::JacobiSVD<Eigen::Matrix<_T,dim,dim> > svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );		
+		if( Math::abs( svd.singularValues()[ dim - 1 ] ) <= Math::EPSILONF  ) { // TODO: why?
+			if( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
+				s( dim - 1 ) = -1;
+		} else {
+			mdet = mat.determinant();
+			if( mdet < 0 )
+				s( dim - 1 ) = -1;
+		}
+
+		mat = svd.matrixU() * s.asDiagonal() * svd.matrixV().transpose();
+
+		for( int i = 0; i < dim; i++)
+			for( int k = 0; k < dim; k++)
+				m[ i ][ k ] = mat( i, k );
+
+		PTTYPE t = mean2 - m * mean1;
+		for( int i = 0; i < dim; i++)
+			m[ i ][ dim ] = t[ i ];
+
+		return m;
+	}
+
 
 	template<int dim, typename _T>
 		inline typename PointSet<dim,_T>::MATTYPE PointSet<dim,_T>::alignSimilarity( const PointSet<dim,_T>& ptset ) const

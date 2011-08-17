@@ -19,6 +19,19 @@ namespace cvt
 			pts.push_back( p );
 		}
 	}
+	
+	template <typename T>
+	static void generate3dPointSet( PointSet<3, T> & set, size_t n )
+	{
+		Vector3<T> p;
+		srandom( time( NULL ) );
+		while( n-- ){
+			p.x = Math::rand( ( T )-1000, ( T )1000 );
+			p.y = Math::rand( ( T )-1000, ( T )1000 );
+			p.z = Math::rand( ( T )-1000, ( T )1000 );
+			set.add( p );
+		}
+	}
 
     template <typename T>
 	static void fillPointSets( PointSet<2, T> & p0, PointSet<2, T> & p1, const Matrix3<T> & K, const Matrix4<T> & transform, std::vector<Vector3<T> > & pts )
@@ -46,6 +59,43 @@ namespace cvt
             //p2.y += Math::rand( ( T )-0.1, ( T )0.1 );
 			p1.add( p2 );
 		}
+	}
+
+	template <typename T>
+	static bool alignRigidTest()
+	{
+		bool ret = true;
+
+		PointSet<3, T> set0, set1;
+
+		generate3dPointSet( set0, 40 );
+
+		srandom( time( NULL ) );
+
+		for( size_t i = 0; i < 100; i++ ){
+			set1 = set0;
+			Matrix4<T> transformation;
+			transformation.setRotationXYZ( Math::deg2Rad( Math::rand( (T)-40, (T)40 ) ), 
+										   Math::deg2Rad( Math::rand( (T)-40, (T)40 ) ), 
+										   Math::deg2Rad( Math::rand( (T)-40, (T)40 ) ) );
+
+			transformation.setTranslation( Math::rand( (T)-100, (T)100 ),
+										   Math::rand( (T)-100, (T)100 ),
+										   Math::rand( (T)-100, (T)100 ) );
+			set1.transform( transformation );
+
+			Matrix4<T> estimated;
+			estimated = set0.alignRigid( set1 );
+
+			bool b =  estimated.isEqual( transformation, (T)0.001 );
+			ret &= b;
+			if( !b ){
+				std::cout << "GT:\n" << transformation << std::endl;
+				std::cout << "Estimated:\n" << estimated << std::endl;
+			}
+		}
+
+		return ret;
 	}
 
     template <typename T>
@@ -98,6 +148,13 @@ BEGIN_CVTTEST( PointSet )
 	using namespace cvt;
 
     bool b;
+    
+	b = alignRigidTest<float>();
+    CVTTEST_PRINT( "alignRigid<float>(): ", b );
+	result &= b;
+	b = alignRigidTest<double>();
+    CVTTEST_PRINT( "alignRigid<double>(): ", b );
+	result &= b;
 
     b = essentialTest<double>( 0.01 );
     CVTTEST_PRINT( "essentialMatrix<double>(): ", b );
