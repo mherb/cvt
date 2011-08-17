@@ -4,9 +4,10 @@
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLTexture.h>
 #include <cvt/gl/GLRBO.h>
+#include <cvt/gfx/Drawable.h>
 
 namespace cvt {
-	class GLFBO {
+	class GLFBO : public Drawable {
 		public:
 			GLFBO( GLsizei width, GLsizei height );
 			~GLFBO();
@@ -20,6 +21,8 @@ namespace cvt {
 
 			void attach( GLenum target, GLRBO& rbo );
 			void attach( GLenum target, GLTexture& tex, GLint level = 0 );
+
+			GFXEngine* gfxEngine();
 
 		private:
 			GLFBO( const GLFBO& );
@@ -84,6 +87,7 @@ namespace cvt {
 		// restore old viewport
 		glViewport( _viewport[ 0 ], _viewport[ 1 ], _viewport[ 2 ], _viewport[ 3 ] );
 	}
+
 
 }
 #endif

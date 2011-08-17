@@ -143,6 +143,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/Font.h
 	gfx/Alignment.h
 	gl/OpenGL.h
+	gl/GLFBO.h
 	gl/GLFormat.h
 	gl/GLContext.h
 	gl/GLException.h
@@ -152,6 +153,8 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLVertexArray.h
 	gl/GLModel.h
 	gl/GFXEngineGL.h
+	gl/GFXEngineGLFBO.h
+	gl/GLRBO.h
 	gl/GLTexFont.h
 	gl/GLTeapot.h
 	gl/progs/GLBasicProg.h
@@ -348,6 +351,7 @@ SET(${MODULE_NAME}_SOURCES
 	geom/PointSetTest.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
+	gl/GLFBO.cpp
 	gl/GLModel.cpp
 	gl/GLProgram.cpp
 	gl/GLTexture.cpp
