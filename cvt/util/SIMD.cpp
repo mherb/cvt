@@ -3923,26 +3923,49 @@ namespace cvt {
 
 	void SIMD::warpBilinear4u8( uint8_t* _dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint32_t fill, size_t n ) const
 	{
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 		uint32_t* dst = ( uint32_t* ) _dst;
 
 		while( n-- )
 		{
-			float fx, fy;
+			int fx = ( int )( *( coords + 0 ) * ( 1 << 8 ) );
+			int fy = ( int )( *( coords + 1 ) * ( 1 << 8 ) );
+			coords += 2;
 
-			fx = *coords++;
-			fy = *coords++;
+			int lx =  fx >> 8;
+			int ly =  fy >> 8;
 
-			uint32_t alpha1 = ( uint32_t ) Math::clamp<int32_t>( ( fx - ( float ) ( int )fx ) * 0x100, 0x0, 0x100 );
-			uint32_t alpha2 = ( uint32_t ) Math::clamp<int32_t>( ( fy - ( float ) ( int )fy ) * 0x100, 0x0, 0x100 );
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				uint32_t alpha1 = fx & 0xff;
+				uint32_t alpha2 = fy & 0xff;
+
+				uint32_t* ptr = ( uint32_t* ) ( src + srcStride * ( ly ) + sizeof( uint32_t ) * lx );
+				uint32_t a, b;
+				a = *ptr;
+				b = *( ptr + 1 );
+				uint32_t v1 = _mix4U8( a, b, alpha1 );
+				ptr = ( uint32_t* ) ( ( ( uint8_t* ) ptr ) + srcStride );
+				a = *ptr;
+				b = *( ptr + 1 );
+				uint32_t v2 = _mix4U8( a, b, alpha1 );
+				*dst++ = _mix4U8( v1, v2, alpha2 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
+				uint32_t alpha1 = fx & 0xff;
+				uint32_t alpha2 = fy & 0xff;
 
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( uint32_t* ) ( src + srcStride * ( fy ) + sizeof( uint32_t ) * ( fx ) ) ) : fill
-
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			uint32_t v1 = _mix4U8( VAL( lx, ly ), VAL( 1 + lx, ly  ), alpha1 );
-			uint32_t v2 = _mix4U8( VAL( lx, 1 + ly ), VAL( 1 + lx, 1 + ly  ), alpha1 );
-			*dst++ = _mix4U8( v1, v2, alpha2 );
+				uint32_t a, b;
+				a = VAL( lx, ly );
+				b = VAL( lx + 1, ly );
+				uint32_t v1 = _mix4U8( a, b, alpha1 );
+				a = VAL( lx, ly + 1 );
+				b = VAL( lx + 1, ly + 1 );
+				uint32_t v2 = _mix4U8( a, b, alpha1 );
+				*dst++ = _mix4U8( v1, v2, alpha2 );
 #undef VAL
+			} else
+				*dst++ = fill;
 		}
 
 	}
