@@ -831,8 +831,8 @@ namespace cvt {
 				for( int x = 0; x < 3; x++ )
 					t2[ y ][ x ] = et( y, x );
 
-			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
-		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
 		}
 
 		return true;
@@ -937,8 +937,8 @@ namespace cvt {
 				for( int x = 0; x < 4; x++ )
 					t2[ y ][ x ] = et( y, x );
 
-			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
-		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
 		}
 
 		return true;
