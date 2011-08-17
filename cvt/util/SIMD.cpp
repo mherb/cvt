@@ -3732,6 +3732,9 @@ namespace cvt {
 	void SIMD::warpBilinear4f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, const float* fillcolor, size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
+
 
 		while( n-- )
 		{
@@ -3740,25 +3743,56 @@ namespace cvt {
 			fx = *coords++;
 			fy = *coords++;
 
-			float alpha1 = fx - ( float ) ( int )( fx );
-			float alpha2 = fy - ( float ) ( int )( fy );
+			int lx = _floor( fx );
+			int ly = _floor( fy );
+
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
+				float v1, v2;
+				float* ptr1 = ( float* ) ( src + srcStride * ( ly ) + sizeof( float ) * lx * 4 );
+				float* ptr2 = ( float* ) ( src + srcStride * ( ly + 1 ) + sizeof( float ) * lx * 4 );
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+				v1 = Math::mix( *ptr1, *( ptr1 + 4 ), alpha1 );
+				v2 = Math::mix( *ptr2, *( ptr2 + 4 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				ptr1++; ptr2++;
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
 #define VAL( fx, fy, offset ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( ( fx ) * 4 + offset ) ) ) : fillcolor[ offset ]
-			float v1, v2;
-			int lx = ( int )fx;
-			int ly = ( int )fy;
-			v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
-			v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
-			v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
-			*dst++ = Math::mix( v1, v2, alpha2 );
+				float v1, v2;
+				v1 = Math::mix( VAL( lx, ly, 0 ), VAL( 1 + lx, ly, 0 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 0 ), VAL( 1 + lx, 1 + ly, 0 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 1 ), VAL( 1 + lx, ly, 1 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 1 ), VAL( 1 + lx, 1 + ly, 1 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 2 ), VAL( 1 + lx, ly, 2 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 2 ), VAL( 1 + lx, 1 + ly, 2 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+				v1 = Math::mix( VAL( lx, ly, 3 ), VAL( 1 + lx, ly, 3 ), alpha1 );
+				v2 = Math::mix( VAL( lx, 1 + ly, 3 ), VAL( 1 + lx, 1 + ly, 3 ), alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
 #undef VAL
+			} else {
+				*dst++ = fillcolor[ 0 ];
+				*dst++ = fillcolor[ 1 ];
+				*dst++ = fillcolor[ 2 ];
+				*dst++ = fillcolor[ 3 ];
+			}
+
 		}
 
 	}
