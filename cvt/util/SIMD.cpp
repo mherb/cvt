@@ -3796,8 +3796,8 @@ namespace cvt {
 	void SIMD::warpBilinear1f( float* dst, const float* coords, const float* _src, size_t srcStride, size_t srcWidth, size_t srcHeight, float fillcolor, size_t n ) const
 	{
 		const uint8_t* src = ( const uint8_t* ) _src;
-		int endx = ( ( int ) srcWidth );
-		int endy = ( ( int ) srcHeight );
+		int endx = ( ( int ) srcWidth ) - 1;
+		int endy = ( ( int ) srcHeight ) - 1;
 
 		while( n-- )
 		{
@@ -3808,7 +3808,20 @@ namespace cvt {
 			int lx = _floor( fx );
 			int ly = _floor( fy );
 
-			if( lx >= -1 && lx < endx && ly >= -1 && ly < endy ) {
+			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+				float alpha1 = fx - ( float ) lx;
+				float alpha2 = fy - ( float ) ly;
+				float v1, v2, a, b;
+				float* ptr = ( float* ) ( src + srcStride * ly + sizeof( float ) * lx );
+				a = *ptr;
+				b = *( ptr + 1 );
+				v1 = Math::mix( a, b, alpha1 );
+				ptr = ( float* ) ( ( ( uint8_t* ) ptr ) + srcStride );
+				a = *ptr;
+				b = *( ptr + 1 );
+				v2 = Math::mix( a, b, alpha1 );
+				*dst++ = Math::mix( v1, v2, alpha2 );
+			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				float alpha1 = fx - ( float ) lx;
 				float alpha2 = fy - ( float ) ly;
 #define VAL( fx, fy ) ( ( fx ) >= 0 && ( fx ) < ( int ) srcWidth && ( fy ) >= 0 && ( fy ) < ( int ) srcHeight ) ? *( ( float* ) ( src + srcStride * ( fy ) + sizeof( float ) * ( fx ) ) ) : fillcolor
