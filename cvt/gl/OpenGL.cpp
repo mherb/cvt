@@ -173,9 +173,15 @@ namespace cvt {
 			out << "\t" << **it << std::endl;
 	}
 
-	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
+
 		mat[ 0 ][ 0 ] = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ] = - ( right + left ) / ( right - left );
 
@@ -188,8 +194,13 @@ namespace cvt {
 		mat[ 3 ][ 3 ] = 1.0f;
 	}
 
-	void GL::orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near, float far )
+	void GL::orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
 		mat[ 0 ][ 0 ]  = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ]  = - ( right + left ) / ( right - left );
@@ -205,8 +216,13 @@ namespace cvt {
 		mat[ 3 ][ 3 ]  = 1.0f;
 	}
 
-	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
 		mat[ 0 ][ 0 ] = ( 2.0f * near ) / ( right - left );
 		mat[ 0 ][ 2 ] = ( right + left ) / ( right - left );
@@ -217,13 +233,19 @@ namespace cvt {
 		mat[ 3 ][ 2 ] = - 1.0f;
 	}
 
-	void GL::perspective( Matrix4f& mat, float fovy, float aspect, float near, float far )
+	void GL::perspective( Matrix4f& mat, float fovy, float aspect, float near, float far, bool fliph )
 	{
 		float range = Math::tan( Math::deg2Rad( fovy / 2.0f ) ) * near;
 		float left = -range * aspect;
 		float right = range * aspect;
 		float bottom = -range;
 		float top = range;
+
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 
 		mat.setZero();
 		mat[0][0] = ( 2.0f * near ) / ( right - left );

@@ -45,12 +45,13 @@ namespace cvt {
 			void setChildrect( const Recti& childrect );
 			const Recti& childrect() const;
 
-		private:
+		protected:
 			GFXEngineGL( const GFXEngineGL& );
 
 			GLContext* _ctx;
 			Recti _viewport;
 			Recti _childrect;
+			bool _fliph;
 
 			GLBasicProg basicp;
 			GLFillRoundRectProg fillrrectp;
