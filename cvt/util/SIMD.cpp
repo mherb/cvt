@@ -3810,7 +3810,7 @@ namespace cvt {
 			int lx =  fx >> 16;
 			int ly =  fy >> 16;
 
-			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+			if( ( size_t ) lx < ( size_t ) endx && ( size_t ) ly < ( size_t ) endy ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
 				int32_t iax = 0x10000 - ax;
