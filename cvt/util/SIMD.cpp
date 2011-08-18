@@ -3813,8 +3813,6 @@ namespace cvt {
 			if( ( size_t ) lx < ( size_t ) endx && ( size_t ) ly < ( size_t ) endy ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
-				int32_t iax = 0x10000 - ax;
-				int32_t iay = 0x10000 - ay;
 
 				uint8_t* ptr = ( uint8_t* ) ( src + srcStride * ly + sizeof( uint8_t ) * lx );
 				int32_t g0, g1, g2, g3;
@@ -3823,7 +3821,10 @@ namespace cvt {
 				ptr += srcStride;
 				g2 = *ptr;
 				g3 = *( ptr + 1 );
-				*dst++ = ( ( ( g0 * iax + g1 * ax ) >> 16 ) * iay + ( ( g2 * iax + g3 * ax ) >> 16 ) * ay ) >> 16;
+
+				int32_t v1 =  g0 + ( ( ( g1 - g0 ) * ax ) >> 16 );
+				int32_t v2 =  g2 + ( ( ( g3 - g2 ) * ax ) >> 16 );
+				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
 			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
