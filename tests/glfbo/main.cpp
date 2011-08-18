@@ -6,6 +6,7 @@
 #include <cvt/gl/GLFBO.h>
 #include <cvt/gl/GLTexture.h>
 #include <cvt/gfx/GFX.h>
+#include <cvt/gl/GLTeapot.h>
 
 using namespace cvt;
 
@@ -26,9 +27,16 @@ int main()
 	{
 		GFX g( &fbo );
 		fbo.attach( GL_COLOR_ATTACHMENT0, tex );
+
+//		GLRBO rbo( GL_DEPTH_COMPONENT, 640, 480 );
+
 		g.setColor( Color::BLACK );
 		g.fillRect( 0, 0, fbo.width(), fbo.height() );
 		g.drawImage( 50, 50, 200, 200, bla );
+
+		GLTeapot teapot;
+		teapot.setColor( Color::GREEN );
+		teapot.draw();
 	}
 
 /*	fbo.bind();
