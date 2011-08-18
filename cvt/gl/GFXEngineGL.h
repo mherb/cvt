@@ -40,6 +40,8 @@ namespace cvt {
 			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c );
 			const Font& font() const;
 
+			void drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far, const Color& c );
+
 			void setViewport( const Recti& viewport );
 			const Recti& viewport() const;
 			void setChildrect( const Recti& childrect );
