@@ -5,6 +5,8 @@
 #include <Eigen/SVD>
 
 #include <iostream>
+#include <limits>
+#include <float.h>
 
 #include <cvt/util/DataIterator.h>
 
@@ -502,38 +504,24 @@ namespace cvt {
 	} while( 0 )
 
 
-
-	template<typename T>
-		struct EPSILON {
-			static const T eps;
-		};
-
-	template<>
-		struct EPSILON<float> {
-			static const float eps = FLT_EPSILON;
-		};
-
-	template<>
-		struct EPSILON<double> {
-			static const double eps = DBL_EPSILON;
-		};
-
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
 	{
 		T c, s;
 		bool finished;
+		T eps = std::numeric_limits<T>::epsilon();
 
 		mat = *this;
 		u.setIdentity();
 		v.setIdentity();
+
 
 		/* diagonalize */
 		do {
 			finished = true;
 			for( int i = 0; i < 2; i++ ) {
 				for( int k = i + 1; k < 3; k++ ) {
-					if( Math::abs( mat[ i ][ k ] ) >= EPSILON<T>::eps || Math::abs( mat[ k ][ i ] ) >= EPSILON<T>::eps  ) {
+					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
@@ -612,6 +600,7 @@ namespace cvt {
 	{
 		T c, s;
 		bool finished;
+		T eps = std::numeric_limits<T>::epsilon();
 
 		mat = *this;
 		u.setIdentity();
@@ -622,7 +611,7 @@ namespace cvt {
 			finished = true;
 			for( int i = 0; i < 3; i++ ) {
 				for( int k = i + 1; k < 4; k++ ) {
-					if( Math::abs( mat[ i ][ k ] ) >= EPSILON<T>::eps || Math::abs( mat[ k ][ i ] ) >= EPSILON<T>::eps  ) {
+					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
