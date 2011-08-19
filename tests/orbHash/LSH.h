@@ -111,25 +111,24 @@ namespace cvt {
 
     template <size_t NumBits>
     inline void LSH<NumBits>::hashORBFeatures()
-    {
-        for ( size_t i = 0, end = _orb.size( ); i < end; i++ ) {
-            const ORBFeature& feature = _orb[ i ];
-            _htable[ hash( feature ) ].append( i );
-        }
+	{
+		for ( size_t i = 0, end = _orb.size( ); i < end; i++ ) {
+			const ORBFeature& feature = _orb[ i ];
+			_htable[ hash( feature ) ].append( i );
+		}
 
-        /*
-        for( size_t i = 0; i < ( 1 << NumBits ) - 1; i++ ){
-            std::cout << _htable[ i ].size() << std::endl;
-        }
-         * /
+		/*
+		   for( size_t i = 0; i < ( 1 << NumBits ) - 1; i++ ){
+		   std::cout << _htable[ i ].size() << std::endl;
+		   }
 
 
-        /*		for( size_t k = 0; k < MAXIDX; k++ ) {
-                    for( size_t l = 0; l < 256; l++ ) {
-                        std::cout << k << " " << l << " " << _htable[ k ][ l ].size() << std::endl;
-                    }
-                }*/
-    }
+		   for( size_t k = 0; k < MAXIDX; k++ ) {
+		   for( size_t l = 0; l < 256; l++ ) {
+		   std::cout << k << " " << l << " " << _htable[ k ][ l ].size() << std::endl;
+		   }
+		   }*/
+	}
 
     template <size_t NumBits>
     inline int LSH<NumBits>::find( const ORBFeature& feature, size_t& dist, size_t maxDistance )
