@@ -187,12 +187,6 @@ namespace cvt {
 			warp( u, v, px, py, pyr[ level ][ pyridx2 ], pyr[ level ][ pyridx ], NUMWARP, level );
 		}
 
-		//		showColorCode( "Flow", u, pyr[ 0 ][ pyridx2 ] );
-		/*		{
-				Image tmp( 320, 240, CVT_GRAY, IType::FLOAT );
-				pyr[ 1 ][ pyridx ]->readData( tmp.data(), tmp.stride() );
-				cvShowImage( "Input", tmp.iplimage() );
-				}*/
 		Image* ret = colorcode(  u, pyr[ 0 ][ pyridx ] );
 		delete px;
 		delete py;
@@ -441,7 +435,6 @@ namespace cvt {
 			tmp.copyRect( 0, 0, iflow, Recti( 0, 0, 640, 480 ) );
             tmp.save( "out.png" );
 		}
-		//		cvShowImage( name, iflow.iplimage() );
 		delete ret;
 	}
 }
