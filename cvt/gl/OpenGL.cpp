@@ -261,6 +261,6 @@ namespace cvt {
 		mat[ 0 ][ 0 ] = ( float ) w / ( float ) viewportwidth;
 		mat[ 0 ][ 2 ] = ( 2.0f * ( float ) x + ( float ) w - ( float ) viewportwidth ) / ( float ) viewportwidth;
 		mat[ 1 ][ 1 ] = ( float ) h / ( float ) viewportheight;
-		mat[ 1 ][ 2 ] = ( 2.0f * ( float ) -y - ( float ) h + ( float ) viewportheight ) / ( float ) viewportheight;
+		mat[ 1 ][ 2 ] = ( -2.0f * ( float ) y - ( float ) h + ( float ) viewportheight ) / ( float ) viewportheight;
 	}
 }
