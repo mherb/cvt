@@ -36,47 +36,72 @@ namespace cvt {
 		GL::init();
 
 		// OpenCL init, try to share resources with GL
-		bool clinit = false;
-		std::vector<CLPlatform> clplatforms;
-		CLPlatform::get( clplatforms );
-		if( clplatforms.size() ) {
+		if( !CL::defaultContext() ) {
+			bool clinit = false;
+			std::vector<CLPlatform> clplatforms;
+			CLPlatform::get( clplatforms );
+			if( clplatforms.size() ) {
 #if defined( cl_khr_gl_sharing )
-			_clsupport = true;
+				_clsupport = true;
 
-			/* try to find platform/device with cl_khr_gl_sharing */
-			for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
-				//std::cout << clplatforms[ i ] << std::endl;
-				std::vector<CLDevice> devs;
-				clplatforms[ i ].devices( devs );
-				for( size_t k = 0; k < devs.size() && !clinit; k++ ) {
-					//std::cout << devs[ k ] << std::endl;
-					std::vector<String> exts;
-					devs[ i ].extensions( exts );
-					for( size_t l = 0; l < exts.size(); l++) {
-						//std::cout << exts[ l ] << std::endl;
-						if( exts[ l ] == "cl_khr_gl_sharing" ) {
-							cl_context_properties props[  ] = {
-								CL_CONTEXT_PLATFORM, ( cl_context_properties )( cl_platform_id ) clplatforms[ i ],
-								CL_GL_CONTEXT_KHR, ( cl_context_properties ) _defaultctx->_glxctx,
-								CL_GLX_DISPLAY_KHR, ( cl_context_properties ) dpy,
-								NULL
-							};
+				/* try to find platform/device with cl_khr_gl_sharing */
+				for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
+					//std::cout << clplatforms[ i ] << std::endl;
+					std::vector<CLDevice> devs;
+					clplatforms[ i ].devices( devs );
+					for( size_t k = 0; k < devs.size() && !clinit; k++ ) {
+						//std::cout << devs[ k ] << std::endl;
+						std::vector<String> exts;
+						devs[ i ].extensions( exts );
+						for( size_t l = 0; l < exts.size(); l++) {
+							//std::cout << exts[ l ] << std::endl;
+							if( exts[ l ] == "cl_khr_gl_sharing" ) {
+								cl_context_properties props[  ] = {
+									CL_CONTEXT_PLATFORM, ( cl_context_properties )( cl_platform_id ) clplatforms[ i ],
+									CL_GL_CONTEXT_KHR, ( cl_context_properties ) _defaultctx->_glxctx,
+									CL_GLX_DISPLAY_KHR, ( cl_context_properties ) dpy,
+									NULL
+								};
 
-							std::cout << "FOUND GL SHARING" << std::endl;
-							if( CL::init( ( cl_device_id ) devs[ k ], props ) ) {
-								CL::_glsharing = true;
-								clinit = true;
+								//std::cout << "FOUND GL SHARING" << std::endl;
+								if( CL::init( ( cl_device_id ) devs[ k ], props ) ) {
+									CL::_glsharing = true;
+									clinit = true;
+								}
+								break;
 							}
-							break;
 						}
 					}
 				}
-			}
 #endif
-			if( !clinit )
-				std::cout << "CL init failed" << std::endl;
+				if( !clinit ) {
+					// Search for GPU
+					for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
+						std::vector<CLDevice> devs;
+						clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_GPU );
+						if( devs.size() ) {
+							CL::setDefaultDevice( devs[ 0 ] );
+							clinit = true;
+						}
+					}
+
+					// Search for CPU
+					for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
+						std::vector<CLDevice> devs;
+						clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_CPU );
+						if( devs.size() ) {
+							CL::setDefaultDevice( devs[ 0 ] );
+							clinit = true;
+						}
+
+					}
+					if( !clinit )
+						_clsupport = false;
+				}
+			} else
+				_clsupport = false;
 		} else
-			_clsupport = false;
+			_clsupport = true;
 
 		_defaultctx->resetCurrent();
 	}
@@ -84,6 +109,7 @@ namespace cvt {
 	ApplicationX11::~ApplicationX11()
 	{
 		delete _defaultctx;
+		CL::deinit();
 		XDestroyWindow( dpy, _dummywin );
 		::XCloseDisplay( dpy );
 	}
