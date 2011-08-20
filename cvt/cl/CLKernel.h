@@ -18,7 +18,7 @@ namespace cvt {
 		public:
 			CLKernel( cl_kernel k = NULL );
 			CLKernel( const CLProgram& prog, const char* name );
-			CLKernel( const CLProgram& prog, const std::string& name );
+			CLKernel( const CLProgram& prog, const String& name );
 
 			void setArg( cl_uint index, CLBuffer& arg );
 			void setArg( cl_uint index, CLImage2D& arg );
@@ -44,7 +44,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline CLKernel::CLKernel( const CLProgram& prog, const std::string& name )
+	inline CLKernel::CLKernel( const CLProgram& prog, const String& name )
 	{
 		cl_int err;
 		_object = ::clCreateKernel( prog, name.c_str(), &err );
