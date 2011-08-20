@@ -3,8 +3,10 @@
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/opencl.h>
+#include <OpenCL/cl_gl.h>
 #else
 #include <CL/opencl.h>
+#include <CL/cl_gl.h>
 #endif
 
 namespace cvt {
@@ -21,7 +23,7 @@ namespace cvt {
 			static CLDevice* defaultDevice() { return _device; }
 			static bool	defaultGLsharing() { return _glsharing; }
 		private:
-			static void init( cl_device_id id, cl_context_properties* props );
+			static bool init( cl_device_id id, cl_context_properties* props );
 
 			// default context, device and queue
 			static bool			   _glsharing;
