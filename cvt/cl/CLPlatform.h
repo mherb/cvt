@@ -2,8 +2,8 @@
 #define CVT_PLATFORM_H
 
 #include <vector>
-#include <CLUtil.h>
-#include <CLDevice.h>
+#include <cvt/cl/CLUtil.h>
+#include <cvt/cl/CLDevice.h>
 
 namespace cvt {
 	class CLPlatform

@@ -1,5 +1,5 @@
-#include <CLBuffer.h>
-#include <CLContext.h>
+#include <cvt/cl/CLBuffer.h>
+#include <cvt/cl/CLContext.h>
 
 namespace cvt
 {
