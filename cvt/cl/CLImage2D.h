@@ -1,10 +1,10 @@
 #ifndef CVT_CLIAMGE2D_H
 #define CVT_CLIAMGE2D_H
 
-#include <CLObject.h>
-#include <CLUtil.h>
-#include <CLException.h>
-#include <CLImageFormat.h>
+#include <cvt/cl/CLObject.h>
+#include <cvt/cl/CLUtil.h>
+#include <cvt/cl/CLException.h>
+#include <cvt/cl/CLImageFormat.h>
 
 namespace cvt {
 	class CLContext;

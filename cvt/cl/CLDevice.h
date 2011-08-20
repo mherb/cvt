@@ -1,8 +1,8 @@
 #ifndef CVT_CLDEVICE_H
 #define CVT_CLDEVICE_H
 
-#include <CLException.h>
-#include <CLUtil.h>
+#include <cvt/cl/CLException.h>
+#include <cvt/cl/CLUtil.h>
 
 namespace cvt {
 	class CLPlatform;

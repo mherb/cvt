@@ -1,5 +1,5 @@
-#include <CLContext.h>
-#include <CLImage2D.h>
+#include <cvt/cl/CLContext.h>
+#include <cvt/cl/CLImage2D.h>
 
 namespace cvt {
 	CLImage2D::CLImage2D( const CLContext& context, size_t width, size_t height, const CLImageFormat& format,

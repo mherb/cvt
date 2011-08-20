@@ -22,6 +22,11 @@ namespace cvt {
 			static uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return instance()->_registerTimer( interval, t ); }
 			static void unregisterTimer( uint32_t id ) { instance()->_unregisterTimer( id ); }
 
+			static bool hasGLSupport() { return instance()->_hasGLSupport(); }
+			static bool hasCLSupport() { return instance()->_hasCLSupport(); }
+
+		//	static void setDefaultCLDevice( const CLDevice& device ) {}
+
 		protected:
 			Application() {};
 			Application( const Application& );
@@ -36,11 +41,16 @@ namespace cvt {
 			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) = 0;
 			virtual void _unregisterTimer( uint32_t id ) = 0;
 
+			virtual bool _hasGLSupport() = 0;
+			virtual bool _hasCLSupport() = 0;
+
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
 
 			static Application* instance();
 			static Application* _app;
+
+		//	static cl_device_id = 0;
 	};
 }
 

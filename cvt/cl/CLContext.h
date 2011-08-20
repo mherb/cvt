@@ -1,77 +1,34 @@
-#ifndef OPENCL_H
-#define OPENCL_H
-#include <iostream>
-#include <map>
+#ifndef CVT_CLCONTEXT_H
+#define CVT_CLCONTEXT_H
 
-#include <cvt/cl/cl.hpp>
-#include <cvt/cl/CLException.h>
+#include <cvt/cl/CLPlatform.h>
+#include <cvt/cl/CLObject.h>
+#include <cvt/cl/CLCommandQueue.h>
+#include <cvt/cl/CLImageFormat.h>
 
 namespace cvt {
-		class CLContext
-		{
-			public:
-				CLContext( void );
-				~CLContext();
+	class CLContext : public CLObject<cl_context> {
+		public:
+			CLContext( cl_context ctx = NULL );
+			CLContext( const CLContext& ctx );
+			CLContext( const CLPlatform& platform, const std::vector<CLDevice>& devices, bool cerrlog = false );
+			CLContext( const CLPlatform& platform, const CLDevice& device, bool cerrlog = false );
+			CLContext( const CLPlatform& platform, cl_device_type type, bool cerrlog = false );
 
-				const ::cl::Context& getCLContext( )
-				{
-					return context;
-				};
+			void devices( std::vector<CLDevice>& devices ) const;
 
-				const ::cl::CommandQueue& getCLQueue( )
-				{
-					return queue;
-				};
+//			CLCommandQueue defaultCommandQueue() const;
+			CLDevice defaultDevice() const;
 
-				const ::cl::Device& getCLDevice( )
-				{
-					return device;
-				};
+			void supportedImage2DFormats( std::vector<CLImageFormat>& formats ) const;
 
-				size_t getComputingUnits( )
-				{
-					return cunits;
-				};
+		private:
+			void initDefault();
+			static void cerrlog( const char* errinfo, const void* pinfo, size_t pinfosize, void* );
 
-				size_t getMaxWorkGroupSize( )
-				{
-					return maxworkgroupsize;
-				};
-
-				size_t getMaxWorkDimension( size_t d )
-				{
-					if( maxworkdim.size( ) < d ) return 0;return maxworkdim[ d ];
-				};
-
-				void makeCurrent()
-				{
-					_current = this;
-				}
-
-				static CLContext* getCurrent()
-				{
-					return _current;
-				}
-
-				void infoImageFormats( std::ostream& out );
-				static void info( std::ostream& out );
-
-
-			private:
-				CLContext( const CLContext& );
-
-				static const char* getImageFormatChannelOrderString( ::cl::ImageFormat format );
-				static const char* getImageFormatChannelTypeString( ::cl::ImageFormat format );
-
-				::cl::Platform platform;
-				::cl::Device device;
-				::cl::Context context;
-				::cl::CommandQueue queue;
-				cl_uint cunits;
-				size_t maxworkgroupsize;
-				std::vector<size_t> maxworkdim;
-				static CLContext* _current;
-		};
+//			CLCommandQueue _queue;
+	};
 
 }
+
 #endif

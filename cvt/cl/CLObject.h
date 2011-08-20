@@ -1,7 +1,7 @@
 #ifndef CVT_CLOBJECT_H
 #define CVT_CLOBJECT_H
 
-#include <CL/opencl.h>
+#include <cvt/cl/OpenCL.h>
 
 namespace cvt {
 	template<typename T>

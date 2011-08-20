@@ -33,6 +33,9 @@ namespace cvt {
 			virtual WidgetImpl* _registerWindow( Widget* w );
 			virtual void _unregisterWindow( WidgetImpl* w );
 
+			virtual bool _hasGLSupport() { return true; }
+			virtual bool _hasCLSupport() { return _clsupport; }
+
 			::Display* dpy;
 			GLXContext* _defaultctx;
 			::Atom xatom_wmdelete;
@@ -42,6 +45,7 @@ namespace cvt {
 			std::deque< WidgetImplWinGLX11*> updates;
 			IOSelect _ioselect;
 			TimerInfoList _timers;
+			bool _clsupport;
 	};
 }
 

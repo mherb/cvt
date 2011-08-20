@@ -1,6 +1,6 @@
-#include <CLCommandQueue.h>
-#include <CLContext.h>
-#include <CLDevice.h>
+#include <cvt/cl/CLCommandQueue.h>
+#include <cvt/cl/CLContext.h>
+#include <cvt/cl/CLDevice.h>
 
 namespace cvt {
 	CLCommandQueue::CLCommandQueue( cl_command_queue q ) : CLObject<cl_command_queue>( q )

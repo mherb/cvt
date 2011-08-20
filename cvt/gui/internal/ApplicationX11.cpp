@@ -25,12 +25,15 @@ namespace cvt {
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
 		unsigned long mask = CWBackPixmap | CWBorderPixel | CWColormap;
 
+		// OpenGL init
 		_dummywin = ::XCreateWindow( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), 0, 0, 1, 1,
 							  0, visinfo->depth, InputOutput, visinfo->visual, mask, &attr );
 
 		_defaultctx->setDrawable( _dummywin );
 		_defaultctx->makeCurrent();
 		GL::init();
+
+		// OpenCL init, try to share resources with GL
 
 		_defaultctx->resetCurrent();
 	}
