@@ -36,9 +36,11 @@ namespace cvt {
 		GL::init();
 
 		// OpenCL init, try to share resources with GL
+		bool clinit = false;
 		std::vector<CLPlatform> clplatforms;
 		CLPlatform::get( clplatforms );
 		if( clplatforms.size() ) {
+#if defined( cl_khr_gl_sharing )
 			_clsupport = true;
 
 			/* try to find platform/device with cl_khr_gl_sharing */
@@ -47,16 +49,35 @@ namespace cvt {
 				std::vector<CLDevice> devs;
 				clplatforms[ i ].devices( devs );
 				for( size_t k = 0; k < devs.size(); k++ ) {
-					//std::cout << devs[ i ] << std::endl;
+					//std::cout << devs[ k ] << std::endl;
 					std::vector<String> exts;
 					devs[ i ].extensions( exts );
 					for( size_t l = 0; l < exts.size(); l++) {
-						std::cout << exts[ l ] << std::endl;
-						if( exts[ l ] == "cl_khr_gl_sharing" )
+						//std::cout << exts[ l ] << std::endl;
+						if( exts[ l ] == "cl_khr_gl_sharing" ) {
+							cl_context_properties props[  ] = {
+								CL_CONTEXT_PLATFORM,
+								( cl_context_properties ) clplatforms[ i ],
+								CL_GLX_DISPLAY_KHR, ( cl_context_properties ) dpy,
+								NULL
+							};
+
 							std::cout << "FOUND GL SHARING" << std::endl;
+							if( CL::init( ( cl_device_id ) devs[ k ], props ) ) {
+								clinit = true;
+								break;
+							}
+						}
 					}
+					if( clinit )
+						break;
 				}
+				if( clinit )
+					break;
 			}
+#endif
+			if( !clinit )
+				std::cout << "CL init failed" << std::endl;
 		} else
 			_clsupport = false;
 
