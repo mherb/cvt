@@ -98,7 +98,7 @@ namespace cvt {
 
 	inline std::ostream& operator<<( std::ostream& out, const CLKernel& kern )
 	{
-		std::string name;
+		String name;
 		kern.functionName( name );
 		out << "Kernel:\n\tName: " << name;
 		out << "\n\tArgs: " << kern.numArgs();
