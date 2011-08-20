@@ -20,7 +20,10 @@ namespace cvt {
 		}
 
 		_ctx = new CLContext( ctx );
+		// release ctx since it is retained by _ctx
+		::clReleaseContext( ctx );
 		_device = new CLDevice( id );
+		std::cout << _ctx->refCount() << std::endl;
 		return true;
 	}
 }

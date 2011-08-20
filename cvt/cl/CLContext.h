@@ -21,6 +21,8 @@ namespace cvt {
 //			CLCommandQueue defaultCommandQueue() const;
 			CLDevice defaultDevice() const;
 
+			CLUTIL_GETINFOTYPE( refCount, CL_CONTEXT_REFERENCE_COUNT, cl_uint, _object, ::clGetContextInfo )
+
 			void supportedImage2DFormats( std::vector<CLImageFormat>& formats ) const;
 
 		private:

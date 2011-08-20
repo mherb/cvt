@@ -25,8 +25,6 @@ namespace cvt {
 			static bool hasGLSupport() { return instance()->_hasGLSupport(); }
 			static bool hasCLSupport() { return instance()->_hasCLSupport(); }
 
-		//	static void setDefaultCLDevice( const CLDevice& device ) {}
-
 		protected:
 			Application() {};
 			Application( const Application& );
@@ -49,8 +47,6 @@ namespace cvt {
 
 			static Application* instance();
 			static Application* _app;
-
-		//	static cl_device_id = 0;
 	};
 }
 
