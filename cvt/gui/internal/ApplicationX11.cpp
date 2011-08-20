@@ -57,8 +57,8 @@ namespace cvt {
 						if( exts[ l ] == "cl_khr_gl_sharing" ) {
 							cl_context_properties props[  ] = {
 								CL_CONTEXT_PLATFORM,
-								( cl_context_properties ) clplatforms[ i ],
-								CL_GLX_DISPLAY_KHR, ( cl_context_properties ) dpy,
+								( cl_platform_id ) clplatforms[ i ],
+								CL_GLX_DISPLAY_KHR, dpy,
 								NULL
 							};
 
