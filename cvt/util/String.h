@@ -22,8 +22,10 @@ namespace cvt {
 			~String();
 
 			size_t length() const;
+			void resize( size_t newsize );
 
-			char operator[]( int i ) const;
+			const char& operator[]( int i ) const;
+			char& operator[]( int i );
 
 			String substring( int start, int len = - 1 ) const;
 			void truncate( size_t newlen );
@@ -136,10 +138,22 @@ namespace cvt {
 		return _len;
 	}
 
-	inline char String::operator[]( int i ) const
+	inline void String::resize( size_t newsize )
+	{
+		if( newsize >= _blen )
+			_grow( Math::pad16( newsize + 1 ) );
+	}
+
+	inline const char& String::operator[]( int i ) const
 	{
 		return *( _str + i );
 	}
+
+	inline char& String::operator[]( int i )
+	{
+		return *( _str + i );
+	}
+
 
 	inline const char* String::c_str() const
 	{

@@ -70,7 +70,7 @@ namespace cvt {
 
 	inline std::ostream& operator<<( std::ostream& out, const CLPlatform& clplat )
 	{
-		std::string str;
+		String str;
 		clplat.vendor( str );
 		out << "CLPlatform\n\tVendor: " << str;
 		clplat.name( str );

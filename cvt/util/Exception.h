@@ -60,7 +60,7 @@ namespace cvt {
 #endif
 			}
 
-		private:
+		protected:
 			std::string msg;
 	};
 

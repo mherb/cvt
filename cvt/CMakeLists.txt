@@ -115,6 +115,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLLocalSpace.h
 	cl/CLNDRange.h
 	cl/CLObject.h
+	cl/CLObject.inl
 	cl/CLPlatform.h
 	cl/CLProgram.h
 	cl/CLUtil.h
@@ -334,6 +335,7 @@ SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
 SOURCE_GROUP( CL FILES ${CL_KERNELS} )
 
 SET(${MODULE_NAME}_SOURCES
+	cl/OpenCL.cpp
 	cl/CLBuffer.cpp
 	cl/CLCommandQueue.cpp
 	cl/CLContext.cpp

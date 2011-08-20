@@ -1,4 +1,4 @@
-#include <CLImageFormat.h>
+#include <cvt/cl/CLImageFormat.h>
 
 namespace cvt {
 		const char* CLImageFormat::orderToString( cl_channel_order order )

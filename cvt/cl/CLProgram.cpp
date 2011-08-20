@@ -1,5 +1,5 @@
-#include <CLProgram.h>
-#include <CLContext.h>
+#include <cvt/cl/CLProgram.h>
+#include <cvt/cl/CLContext.h>
 
 namespace cvt {
 

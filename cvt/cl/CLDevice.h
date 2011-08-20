@@ -3,12 +3,15 @@
 
 #include <cvt/cl/CLException.h>
 #include <cvt/cl/CLUtil.h>
+#include <cvt/util/String.h>
+#include <vector>
 
 namespace cvt {
 	class CLPlatform;
 
 	class CLDevice
 	{
+		friend std::ostream& operator<<( std::ostream& out, const CLDevice& cldev );
 		public:
 			CLDevice( cl_device_id id = NULL );
 			~CLDevice();
@@ -18,7 +21,6 @@ namespace cvt {
 			CLUTIL_GETINFOSTRING( driverVersion, CL_DRIVER_VERSION, _id, ::clGetDeviceInfo  )
 			CLUTIL_GETINFOSTRING( profile, CL_DEVICE_PROFILE, _id, ::clGetDeviceInfo  )
 			CLUTIL_GETINFOSTRING( version, CL_DEVICE_VERSION, _id, ::clGetDeviceInfo  )
-			CLUTIL_GETINFOSTRING( extensions, CL_DEVICE_EXTENSIONS, _id, ::clGetDeviceInfo  )
 
 			CLUTIL_GETINFOTYPE( deviceType, CL_DEVICE_TYPE, cl_device_type, _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOTYPE( vendorID, CL_DEVICE_VENDOR_ID, cl_uint, _id, ::clGetDeviceInfo );
@@ -79,11 +81,15 @@ namespace cvt {
 
 
 			CLPlatform platform() const;
+			void extensions( std::vector<String>& extensions );
 
 			operator cl_device_id () const { return _id; }
 
 		private:
-			CLUTIL_GETINFOTYPE( devicePlatform, CL_DEVICE_PLATFORM, cl_platform_id, _id, ::clGetDeviceInfo );
+			static void parseExtensions( std::vector<String>& extensions, const char* str );
+
+			CLUTIL_GETINFOTYPE( _devicePlatform, CL_DEVICE_PLATFORM, cl_platform_id, _id, ::clGetDeviceInfo );
+			CLUTIL_GETINFOSTRING( _extensions, CL_DEVICE_EXTENSIONS, _id, ::clGetDeviceInfo  )
 
 			cl_device_id _id;
 	};
@@ -98,7 +104,7 @@ namespace cvt {
 
 	inline std::ostream& operator<<( std::ostream& out, const CLDevice& cldev )
 	{
-		std::string str;
+		String str;
 		cldev.vendor( str );
 		out << "CLDevice\n\tVendor: " << str;
 		cldev.name( str );
@@ -109,7 +115,7 @@ namespace cvt {
 		out << "\n\tDevice-Version: " << str;
 		cldev.driverVersion( str );
 		out << "\n\tDriver-Version: " << str;
-		cldev.extensions( str );
+		cldev._extensions( str );
 		out << "\n\tExtensions: " << str;
 
 		cl_bool imagesupport;
