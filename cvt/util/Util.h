@@ -2,6 +2,8 @@
 #define CVT_UTIL_H
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <cvt/util/String.h>
 #include <cvt/util/Exception.h>
 
 namespace cvt {
@@ -12,6 +14,7 @@ namespace cvt {
 			static inline uint32_t bswap32( uint32_t x );
 			static inline uint64_t bswap64( uint64_t x );
 			static inline uint32_t UTF8toUTF32( const char* data, char** endptr );
+			static inline bool	   getEnv( String& value, const String& name );
 	};
 
 	inline uint16_t Util::bswap16( uint16_t x )
@@ -68,6 +71,17 @@ namespace cvt {
 		if( _endptr )
 			*_endptr = ( char* ) ( data );
 		return ret;
+	}
+
+
+	inline bool Util::getEnv( String& value, const String& name )
+	{
+		char* val;
+		if( ( val = getenv( name.c_str()) ) ) {
+			value = val;
+			return true;
+		}
+		return false;
 	}
 }
 
