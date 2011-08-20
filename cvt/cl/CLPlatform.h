@@ -59,6 +59,10 @@ namespace cvt {
 		cl_device_id* ids;
 
 		err = ::clGetDeviceIDs( _id, type, 0, NULL, &num );
+		if( err == CL_DEVICE_NOT_FOUND ) {
+			devices.clear();
+			return;
+		}
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 		ids = ( cl_device_id* ) alloca( sizeof( cl_device_id ) * num );
