@@ -64,6 +64,7 @@ namespace cvt {
 
 							std::cout << "FOUND GL SHARING" << std::endl;
 							if( CL::init( ( cl_device_id ) devs[ k ], props ) ) {
+								std::cout << devs[ k ] << std::endl;
 								clinit = true;
 								break;
 							}
