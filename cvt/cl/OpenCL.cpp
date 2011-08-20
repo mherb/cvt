@@ -14,8 +14,10 @@ namespace cvt {
 		cl_int err;
 
 		cl_context ctx = ::clCreateContext( props, 1,  ( cl_device_id* ) &id, NULL, NULL, &err );
-		if( err )
+		if( err ) {
+			std::cout << CLException::CLErrorToString( err ) << std::endl;
 			return false;
+		}
 
 		_ctx = new CLContext( ctx );
 		_device = new CLDevice( id );

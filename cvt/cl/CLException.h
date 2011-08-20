@@ -17,6 +17,7 @@ namespace cvt {
 
 				const char* getLog( ) const throw( ) { return log.c_str( ); };
 
+				static const char* CLErrorToString( cl_int error );
 			private:
 				std::string log;
 		};

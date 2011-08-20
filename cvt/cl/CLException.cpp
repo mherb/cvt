@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-		static const char* _clerrorToString( cl_int error )
+		const char* CLException::CLErrorToString( cl_int error )
 		{
 			switch( error ) {
 				case CL_SUCCESS:                            return "Success!";
@@ -55,9 +55,9 @@ namespace cvt {
 			}
 		}
 
-		CLException::CLException( cl_int error ) throw( ) : Exception( _clerrorToString( error ) ), log( "" ) {};
-		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : Exception( _clerrorToString( error ) ), log( logmessage ) {};
-		CLException::CLException( std::string location, cl_int error ) throw( ) : Exception( _clerrorToString( error ) ), log( "" )
+		CLException::CLException( cl_int error ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( "" ) {};
+		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( logmessage ) {};
+		CLException::CLException( std::string location, cl_int error ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( "" )
 		{
 			msg = location + " : " + msg;
 		};
