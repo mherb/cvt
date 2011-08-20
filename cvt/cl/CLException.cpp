@@ -51,6 +51,9 @@ namespace cvt {
 				case CL_INVALID_GL_OBJECT:                  return "Invalid OpenGL object";
 				case CL_INVALID_BUFFER_SIZE:                return "Invalid buffer size";
 				case CL_INVALID_MIP_LEVEL:                  return "Invalid mip-map level";
+#if defined( cl_khr_gl_sharing )
+				case CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR: return "Invalid OpenGL context or share group object handle";
+#endif
 				default:									return "Unknown";
 			}
 		}
