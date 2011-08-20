@@ -44,11 +44,11 @@ namespace cvt {
 			_clsupport = true;
 
 			/* try to find platform/device with cl_khr_gl_sharing */
-			for( size_t i = 0; i < clplatforms.size(); i++ ) {
+			for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
 				//std::cout << clplatforms[ i ] << std::endl;
 				std::vector<CLDevice> devs;
 				clplatforms[ i ].devices( devs );
-				for( size_t k = 0; k < devs.size(); k++ ) {
+				for( size_t k = 0; k < devs.size() && !clinit; k++ ) {
 					//std::cout << devs[ k ] << std::endl;
 					std::vector<String> exts;
 					devs[ i ].extensions( exts );
@@ -64,17 +64,13 @@ namespace cvt {
 
 							std::cout << "FOUND GL SHARING" << std::endl;
 							if( CL::init( ( cl_device_id ) devs[ k ], props ) ) {
-								std::cout << devs[ k ] << std::endl;
+								CL::_glsharing = true;
 								clinit = true;
-								break;
 							}
+							break;
 						}
 					}
-					if( clinit )
-						break;
 				}
-				if( clinit )
-					break;
 			}
 #endif
 			if( !clinit )
