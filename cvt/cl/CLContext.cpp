@@ -80,7 +80,7 @@ namespace cvt {
 			_queue = NULL;*/
 	}
 
-	void CLContext::cerrlog( const char* errinfo, const void* pinfo, size_t pinfosize, void* )
+	void CLContext::cerrlog( const char* errinfo, const void* , size_t , void* )
 	{
 		std::cerr << errinfo << std::endl;
 	}
