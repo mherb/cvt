@@ -1,13 +1,13 @@
 #ifndef CVT_CLCOMMANDQUEUE_H
 #define CVT_CLCOMMANDQUEUE_H
 
-#include <CLObject.h>
-#include <CLUtil.h>
-#include <CLException.h>
-#include <CLBuffer.h>
-#include <CLEvent.h>
-#include <CLKernel.h>
-#include <CLNDRange.h>
+#include <cvt/cl/CLObject.h>
+#include <cvt/cl/CLUtil.h>
+#include <cvt/cl/CLException.h>
+#include <cvt/cl/CLBuffer.h>
+#include <cvt/cl/CLEvent.h>
+#include <cvt/cl/CLKernel.h>
+#include <cvt/cl/CLNDRange.h>
 #include <vector>
 
 namespace cvt {

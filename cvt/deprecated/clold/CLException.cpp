@@ -55,9 +55,9 @@ namespace cvt {
 			}
 		}
 
-		CLException::CLException( cl_int error ) throw( ) : Exception( _clerrorToString( error ) ), log( "" ) {};
-		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : Exception( _clerrorToString( error ) ), log( logmessage ) {};
-		CLException::CLException( std::string location, cl_int error ) throw( ) : Exception( _clerrorToString( error ) ), log( "" )
+		CLException::CLException( cl_int error ) throw( ) : msg( _clerrorToString( error ) ), log( "" ) {};
+		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : msg( _clerrorToString( error ) ), log( logmessage ) {};
+		CLException::CLException( std::string location, cl_int error ) throw( ) : msg( _clerrorToString( error ) ), log( "" )
 		{
 			msg = location + " : " + msg;
 		};

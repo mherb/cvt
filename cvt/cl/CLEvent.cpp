@@ -1,5 +1,5 @@
-#include <CLEvent.h>
-#include <CLCommandQueue.h>
+#include <cvt/cl/CLEvent.h>
+#include <cvt/cl/CLCommandQueue.h>
 
 namespace cvt {
 

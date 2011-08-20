@@ -2,10 +2,11 @@
 #define CVT_CLUTIL_H
 
 #include <alloca.h>
-#include <CLException.h>
+#include <cvt/cl/CLException.h>
+#include <cvt/util/String.h>
 
 #define CLUTIL_GETINFOSTRING( name, info, clobj, clobjinfofunc ) \
-	void name( std::string& string ) const\
+	void name( String& string ) const\
 {	\
 	cl_int err; \
 	size_t size; \

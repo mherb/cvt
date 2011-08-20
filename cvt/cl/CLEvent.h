@@ -1,8 +1,8 @@
 #ifndef CVT_CLEVENT_H
 #define CVT_CLEVENT_H
 
-#include <CLObject.h>
-#include <CLUtil.h>
+#include <cvt/cl/CLObject.h>
+#include <cvt/cl/CLUtil.h>
 
 namespace cvt {
 	class CLCommandQueue;

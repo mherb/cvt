@@ -4,6 +4,8 @@
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 
+#include <cvt/cl/CLPlatform.h>
+
 namespace cvt {
 	ApplicationX11::ApplicationX11()
 	{
@@ -34,6 +36,29 @@ namespace cvt {
 		GL::init();
 
 		// OpenCL init, try to share resources with GL
+		std::vector<CLPlatform> clplatforms;
+		CLPlatform::get( clplatforms );
+		if( clplatforms.size() ) {
+			_clsupport = true;
+
+			/* try to find platform/device with cl_khr_gl_sharing */
+			for( size_t i = 0; i < clplatforms.size(); i++ ) {
+				//std::cout << clplatforms[ i ] << std::endl;
+				std::vector<CLDevice> devs;
+				clplatforms[ i ].devices( devs );
+				for( size_t k = 0; k < devs.size(); k++ ) {
+					//std::cout << devs[ i ] << std::endl;
+					std::vector<String> exts;
+					devs[ i ].extensions( exts );
+					for( size_t l = 0; l < exts.size(); l++) {
+						std::cout << exts[ l ] << std::endl;
+						if( exts[ l ] == "cl_khr_gl_sharing" )
+							std::cout << "FOUND GL SHARING" << std::endl;
+					}
+				}
+			}
+		} else
+			_clsupport = false;
 
 		_defaultctx->resetCurrent();
 	}

@@ -1,10 +1,10 @@
 #ifndef CVT_CLPROGRAM_H
 #define CVT_CLPROGRAM_H
 
-#include <CLObject.h>
-#include <CLUtil.h>
-#include <CLException.h>
-#include <CLDevice.h>
+#include <cvt/cl/CLObject.h>
+#include <cvt/cl/CLUtil.h>
+#include <cvt/cl/CLException.h>
+#include <cvt/cl/CLDevice.h>
 #include <vector>
 
 namespace cvt {
