@@ -5,8 +5,11 @@
 #include <cvt/gl/GLContext.h>
 
 namespace cvt {
+	class ApplicationX11;
+
 	class GLXContext : public GLContext
 	{
+		friend class ApplicationX11;
 		public:
 			GLXContext( ::Display* dpy, const GLFormat& format, const GLXContext* share = NULL );
 			~GLXContext();

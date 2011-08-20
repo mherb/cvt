@@ -58,6 +58,7 @@ namespace cvt {
 							cl_context_properties props[  ] = {
 								CL_CONTEXT_PLATFORM,
 								( cl_platform_id ) clplatforms[ i ],
+								CL_GL_CONTEXT_KHR, (cl_context_properties) _defaultctx->_glxctx;
 								CL_GLX_DISPLAY_KHR, dpy,
 								NULL
 							};
