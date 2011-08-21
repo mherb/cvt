@@ -4,6 +4,7 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/event/Event.h>
 #include <cvt/gl/OpenGL.h>
+#include <cvt/gui/internal/OSX/CGLContext.h>
 #include <map>
 #include <deque>
 
@@ -18,8 +19,8 @@ namespace cvt {
 			virtual void runApp();
 			virtual void exitApp();
 
-			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t );
-			virtual void _unregisterTimer( uint32_t id );
+			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) {};
+			virtual void _unregisterTimer( uint32_t id ) {};
 
 
 		private:
@@ -29,8 +30,9 @@ namespace cvt {
 			virtual void _unregisterWindow( WidgetImpl* w );
 
 			virtual bool _hasGLSupport() { return true; }
-			virtual bool _hasCLSupport() { return _clsupport; }
+			virtual bool _hasCLSupport() { return false; /*_clsupport;*/ }
 
+			CGLContext* _defaultctx;
 			bool _clsupport;
 			OSXData* _osx;
 	};

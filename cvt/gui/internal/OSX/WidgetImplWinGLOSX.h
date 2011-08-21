@@ -42,14 +42,16 @@ namespace cvt {
 			virtual Widget* parent( ) const { return NULL; };
 			virtual GFXEngine* gfxEngine();
 
-		private:
 			void paintEvent( PaintEvent* event );
 			void resizeEvent( ResizeEvent* event );
 			void moveEvent( MoveEvent* event );
 			void showEvent( ShowEvent* event );
 			void hideEvent( HideEvent* event );
+			void mousePressEvent( MousePressEvent* event ) { _widget->mousePressEvent( event ); }
+			void mousePressEvent( MouseReleaseEvent* event ) { _widget->mouseReleaseEvent( event ); }
+			void mouseMoveEvent( MouseMoveEvent* event ) { _widget->mouseMoveEvent( event ); }
 
-
+		private:
 			Widget*		    _widget;
 			bool			_visible;
 			Recti			_rect;

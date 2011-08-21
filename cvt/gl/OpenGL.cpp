@@ -4,6 +4,10 @@
 
 #include <cstdlib>
 
+#ifdef APPLE
+#include <mach-o/dyld.h>
+#endif
+
 namespace cvt {
 	unsigned int GL::_glmajor = 0;
 	unsigned int GL::_glminor = 0;
@@ -134,12 +138,23 @@ namespace cvt {
 		return false;
 	}
 
-	void (* GL::getProcAddress(const char* str ))()
+	void (* GL::getProcAddress(const char* name ))()
 	{
 #ifdef APPLE
-		return glXGetProcAddress( ( const GLubyte * ) str );
+
+		NSSymbol symbol;
+		char *symbolName;
+		symbolName = ( char* ) malloc( strlen( name ) + 2 );
+		strcpy(symbolName + 1, name);
+		symbolName[0] = '_';
+		symbol = NULL;
+		if (NSIsSymbolNameDefined (symbolName))
+			symbol = NSLookupAndBindSymbol (symbolName);
+		free (symbolName); // 5
+		return symbol ? ( void (*)() ) NSAddressOfSymbol( symbol ) : NULL;
+		//return glXGetProcAddress( ( const GLubyte * ) str );
 #else
-		return glXGetProcAddressARB( ( const GLubyte * ) str );
+		return glXGetProcAddressARB( ( const GLubyte * ) name );
 #endif
 	}
 

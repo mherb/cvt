@@ -1,4 +1,5 @@
 #include <cvt/gui/internal/OSX/WidgetImplWinGLOSX.h>
+#include <cvt/gui/internal/OSX/OSXGLView.h>
 #include <Cocoa/Cocoa.h>
 
 namespace cvt {
@@ -7,15 +8,30 @@ namespace cvt {
 		NSOpenGLView* _view;
 	};
 
-	WidgetImplWinGLOSX::WidgetImplWinGLOSX( const CGLContext* shrctx, Widget* window )
+	WidgetImplWinGLOSX::WidgetImplWinGLOSX( const CGLContext* shrctx, Widget* window ) : _widget( window ), _visible( false ), _rect( 0, 0, 1, 1 )
 	{
+		GLFormat format;
+		_ctx = new CGLContext( format, shrctx );
+		NSRect frame = NSMakeRect( _rect.x, _rect.y, _rect.width, _rect.height );
+		_osx = new OSXDataImplWin;
+		_osx->_win = [ [ NSWindow alloc ] initWithContentRect:frame
+					     styleMask:NSTitledWindowMask | NSMiniaturizableWindowMask | NSClosableWindowMask | NSResizableWindowMask 
+						 backing:NSBackingStoreBuffered
+						 defer:NO ];
+		_osx->_view = [[ OSXGLView alloc ] initWithFrame: frame CGLContextObj: ( _ctx->_cglctx ) WidgetImpl: ( WidgetImplWinGLOSX* )this ];
+		[ _osx->_win setContentView: _osx->_view ];
+		_ctx->makeCurrent();
+		_gfxgl = new GFXEngineGL( _ctx );
 	}
 
 	WidgetImplWinGLOSX::~WidgetImplWinGLOSX()
 	{
+		[ _osx->_win release ];
+		[ _osx->_view release ];
 		setVisible( false );
 		delete _gfxgl;
 		delete _ctx;
+		delete _osx;
 	}
 
 	void WidgetImplWinGLOSX::size( int& width, int& height ) const
@@ -30,9 +46,9 @@ namespace cvt {
 			return;
 
 		// FIXME: Do we get events or set the stuff ourselves ?
-		_rect.width = width;
-		_rect.height = height;
-		[ _osx->_win setFrame: NSMakeRect( _rect.x, _rect.y, _rect.width, _rect.height ) display: true ];
+		//_rect.width = width;
+		//_rect.height = height;
+		[ _osx->_win setFrame: NSMakeRect( _rect.x, _rect.y, width, height ) display: true ];
 	}
 
 	void WidgetImplWinGLOSX::position( int& x, int& y ) const
@@ -47,8 +63,8 @@ namespace cvt {
 			return;
 
 		// FIXME: Do we get events or set the stuff ourselves ?
-		_rect.x = x;
-		_rect.y = y;
+		//_rect.x = x;
+		//_rect.y = y;
 		[ _osx->_win setFrameTopLeftPoint: NSMakePoint( x, y ) ];
 	}
 
@@ -62,7 +78,7 @@ namespace cvt {
 		if( _rect == r )
 			return;
 		// FIXME: Do we get events or set the stuff ourselves ?
-		_rect = r;
+		//_rect = r;
 		[ _osx->_win setFrame: NSMakeRect( r.x, r.y, r.width, r.height ) display: true ];
 	}
 
@@ -74,9 +90,9 @@ namespace cvt {
 		_visible = visibility;
 
 		if( _visible )
-			[ _osx->_win orderOut: nil ];
-		else
 			[ _osx->_win makeKeyAndOrderFront: nil ];
+		else
+			[ _osx->_win orderOut: nil ];
 	}
 
 	void WidgetImplWinGLOSX::update()
@@ -108,7 +124,8 @@ namespace cvt {
 
 	void WidgetImplWinGLOSX::setMaximumSize( int w, int h )
 	{
-		[ _osx->_win setMaxSize: NSMakeSize( _minSize.x, _minSize.y ) ];
+	    _maxSize.set( Math::max( w, 0 ), Math::max( h, 0 ) );
+		[ _osx->_win setMaxSize: NSMakeSize( _maxSize.x, _maxSize.y ) ];
 	}
 
 	void WidgetImplWinGLOSX::minimumSize( int& w, int& h )
