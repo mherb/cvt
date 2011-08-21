@@ -16,7 +16,7 @@ namespace cvt {
 		friend class GLContext;
 
 		public:
-			static void run() { instance()->runApp(); };
+			static void run() { ::atexit( Application::atexit ); instance()->runApp(); };
 			static void exit() { instance()->exitApp(); };
 
 			static uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return instance()->_registerTimer( interval, t ); }
@@ -44,6 +44,8 @@ namespace cvt {
 
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
+
+			static void atexit() { delete _app; }
 
 			static Application* instance();
 			static Application* _app;
