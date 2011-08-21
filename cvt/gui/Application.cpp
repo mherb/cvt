@@ -3,7 +3,7 @@
 #define _APPX11_
 
 #ifdef _APPX11_
-#include <cvt/gui/internal/ApplicationX11.h>
+#include <cvt/gui/internal/X11/ApplicationX11.h>
 #endif
 
 namespace cvt {

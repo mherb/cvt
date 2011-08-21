@@ -1,7 +1,7 @@
 #ifndef CVT_GLXCONTEXT_H
 #define CVT_GLXCONTEXT_H
 
-#include <cvt/gui/internal/X.h>
+#include <cvt/gui/internal/X11/X.h>
 #include <cvt/gl/GLContext.h>
 
 namespace cvt {
