@@ -9,7 +9,7 @@ namespace cvt {
 	unsigned int GL::_glminor = 0;
 	unsigned int GL::_glslmajor = 0;
 	unsigned int GL::_glslminor = 0;
-	std::vector<std::string*> GL::_extensions;
+	std::vector<String> GL::_extensions;
 
 	// VertexArray
 	void ( *GL::glBindVertexArray )( GLuint array ) = NULL;
@@ -33,27 +33,6 @@ namespace cvt {
 	
 	void ( *GL::glFramebufferRenderbuffer )( GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) = NULL;
 
-
-	void GL::parseExtensions( const char* str )
-	{
-		const char* sptr = str;
-		const char* eptr;
-		std::string* ext;
-
-		do {
-			while( *sptr && *sptr == ' ' )
-				sptr++;
-			eptr = sptr;
-			while( *eptr && *eptr != ' ' )
-				eptr++;
-			if( sptr != eptr ) {
-				ext = new std::string( sptr, eptr - sptr );
-				_extensions.push_back( ext );
-				sptr = eptr;
-			}
-		} while( *eptr );
-
-	}
 
 	void GL::parseVersion( const char* str, unsigned int* major, unsigned int* minor )
 	{
@@ -100,8 +79,8 @@ namespace cvt {
 		}
 
 		/* extensions check */
-		str = glGetString( GL_EXTENSIONS );
-		parseExtensions( ( const char* ) str );
+		String cvtstr = ( const char* ) glGetString( GL_EXTENSIONS );
+		cvtstr.tokenize( _extensions, ' ' );
 
 		if( existsExtension( "GL_ARB_vertex_array_object" ) ) {
 			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArrays" );
@@ -145,10 +124,10 @@ namespace cvt {
 
 	}
 
-	bool GL::existsExtension( const std::string& extname )
+	bool GL::existsExtension( const String& extname )
 	{
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it ) {
-			if( !extname.compare( **it ) ) {
+		for( std::vector<String>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it ) {
+			if( extname == *it ) {
 				return true;
 			}
 		}
@@ -169,8 +148,8 @@ namespace cvt {
 		out << "GL-Version: " << _glmajor << "." << _glminor << std::endl;
 		out << "GLSL-Version: " << _glslmajor << "." << _glslminor << std::endl;
 		out << "GL Extensions: " << std::endl;
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it )
-			out << "\t" << **it << std::endl;
+		for( std::vector<String>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it )
+			out << "\t" << *it << std::endl;
 	}
 
 	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far, bool fliph )

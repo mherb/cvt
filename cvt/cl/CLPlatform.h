@@ -8,6 +8,7 @@
 namespace cvt {
 	class CLPlatform
 	{
+		friend std::ostream& operator<<( std::ostream& out, const CLPlatform& clplat );
 		public:
 			CLPlatform( cl_platform_id id = NULL );
 			~CLPlatform();
@@ -17,14 +18,16 @@ namespace cvt {
 			CLUTIL_GETINFOSTRING( name, CL_PLATFORM_NAME, _id, ::clGetPlatformInfo );
 			CLUTIL_GETINFOSTRING( vendor, CL_PLATFORM_VENDOR, _id, ::clGetPlatformInfo );
 			CLUTIL_GETINFOSTRING( profile, CL_PLATFORM_PROFILE, _id, ::clGetPlatformInfo );
-			CLUTIL_GETINFOSTRING( extensions, CL_PLATFORM_EXTENSIONS, _id, ::clGetPlatformInfo );
 
 			void devices( std::vector<CLDevice>& devices, cl_device_type type = CL_DEVICE_TYPE_ALL ) const;
+			void extensions( std::vector<String>& extensions ) const;
 
 			operator cl_platform_id () const { return _id; }
 			operator cl_context_properties () const { return ( cl_context_properties )_id; }
 
 		private:
+			CLUTIL_GETINFOSTRING( _extensions, CL_PLATFORM_EXTENSIONS, _id, ::clGetPlatformInfo );
+
 			cl_platform_id _id;
 	};
 
@@ -72,6 +75,13 @@ namespace cvt {
 		devices.assign( ids, ids + num );
 	}
 
+	inline void CLPlatform::extensions( std::vector<String>& extensions ) const
+	{
+		String ext;
+		_extensions( ext );
+		ext.tokenize( extensions, ' ' );
+	}
+
 	inline std::ostream& operator<<( std::ostream& out, const CLPlatform& clplat )
 	{
 		String str;
@@ -81,7 +91,7 @@ namespace cvt {
 		out << "\n\tName: " << str;
 		clplat.profile( str );
 		out << "\n\tProfile: " << str;
-		clplat.extensions( str );
+		clplat._extensions( str );
 		out << "\n\tExtensions: " << str;
 		return out;
 	}

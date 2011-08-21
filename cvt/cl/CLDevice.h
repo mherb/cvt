@@ -81,13 +81,11 @@ namespace cvt {
 
 
 			CLPlatform platform() const;
-			void extensions( std::vector<String>& extensions );
+			void extensions( std::vector<String>& extensions ) const;
 
 			operator cl_device_id () const { return _id; }
 
 		private:
-			static void parseExtensions( std::vector<String>& extensions, const char* str );
-
 			CLUTIL_GETINFOTYPE( _devicePlatform, CL_DEVICE_PLATFORM, cl_platform_id, _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOSTRING( _extensions, CL_DEVICE_EXTENSIONS, _id, ::clGetDeviceInfo  )
 
