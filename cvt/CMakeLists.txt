@@ -465,10 +465,14 @@ IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/QTKitCamera.h
+			gui/internal/OSX/ApplicationOSX.h
+			gui/internal/OSX/WidgetImplWinGLOSX.h
 		)
 
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/QTKitCamera.mm
+			gui/internal/OSX/ApplicationOSX.mm
+			gui/internal/OSX/WidgetImplWinGLOSX.mm
 		)
 
 		SET(${MODULE_NAME}_DEP_LIBRARIES

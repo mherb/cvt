@@ -12,6 +12,7 @@ namespace cvt {
 
 	class Widget {
 		friend class WidgetImplWinGLX11;
+		friend class WidgetImplWinGLOSX;
 		friend class WidgetImplDefault;
 		friend class WidgetContainer;
 		friend class Moveable;
