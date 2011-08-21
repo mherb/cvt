@@ -2,6 +2,7 @@
 #define CVT_STRING_H
 
 #include <iostream>
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -59,6 +60,7 @@ namespace cvt {
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
 
+			void	 tokenize( std::vector<String>& tokens, char delimiter ) const;
 			long int toInteger() const;
 			float	 toFloat() const;
 			double	 toDouble() const;
@@ -379,6 +381,23 @@ namespace cvt {
 		return ptr - _str;
 	}
 
+	inline void	String::tokenize( std::vector<String>& tokens, char delimiter ) const
+	{
+		const char* sptr = _str;
+		const char* eptr;
+
+		do {
+			while( *sptr && *sptr == delimiter )
+				sptr++;
+			eptr = sptr;
+			while( *eptr && *eptr != delimiter )
+				eptr++;
+			if( sptr != eptr ) {
+				tokens.push_back( String( sptr, eptr - sptr ) );
+				sptr = eptr;
+			}
+		} while( *eptr );
+	}
 
 	inline long int String::toInteger() const
 	{
