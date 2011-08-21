@@ -7,6 +7,7 @@
 
 #ifdef APPLE
     #include <OpenGL/gl.h>
+    #include <OpenGL/OpenGL.h>
 #else
     #include <GL/gl.h>
 #endif
@@ -23,6 +24,7 @@
 namespace cvt {
 	class GL {
 		friend class ApplicationX11;
+		friend class ApplicationOSX;
 
 		public:
 			static void GLVersion( unsigned int* major, unsigned int* minor );

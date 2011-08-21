@@ -1,4 +1,5 @@
 #include <cvt/gui/internal/OSX/ApplicationOSX.h>
+#include <cvt/gui/internal/OSX/WidgetImplWinGLOSX.h>
 #include <Cocoa/Cocoa.h>
 
 namespace cvt {
@@ -28,6 +29,28 @@ namespace cvt {
 		id quitMenuItem = [[[NSMenuItem alloc] initWithTitle: @"Quit" action:@selector(terminate:) keyEquivalent:@"q"] autorelease ];
 		[appMenu addItem:quitMenuItem];
 		[appMenuItem setSubmenu:appMenu];
+
+		/* create default gl context */
+		GLFormat format;
+		_defaultctx = new CGLContext( format );
+		_defaultctx->makeCurrent();
+		GL::init();
+	}
+
+	WidgetImpl* ApplicationOSX::_registerWindow( Widget* w )
+	{
+		WidgetImpl* ret;
+		if( w->isToplevel() ) {
+			WidgetImplWinGLOSX* impl = new WidgetImplWinGLOSX( _defaultctx, w );
+			ret = impl;
+		} else {
+			ret = NULL;
+		}
+		return ret;
+	}
+
+	void ApplicationOSX::_unregisterWindow( WidgetImpl* impl )
+	{
 	}
 
 	ApplicationOSX::~ApplicationOSX()
@@ -43,6 +66,6 @@ namespace cvt {
 
 	void ApplicationOSX::exitApp()
 	{
-		[ NSApp stop: nil ];
+		[ NSApp terminate: nil ];
 	}
 }

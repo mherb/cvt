@@ -1,6 +1,7 @@
 #ifndef CVT_GLCONTEXT_H
 #define CVT_GLCONTEXT_H
 
+#include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLFormat.h>
 
 namespace cvt {
