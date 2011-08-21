@@ -1,6 +1,6 @@
-#include <cvt/gui/internal/ApplicationX11.h>
-#include <cvt/gui/internal/WidgetImplWinGLX11.h>
-#include <cvt/gui/internal/X11Handler.h>
+#include <cvt/gui/internal/X11/ApplicationX11.h>
+#include <cvt/gui/internal/X11/WidgetImplWinGLX11.h>
+#include <cvt/gui/internal/X11/X11Handler.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gui/Window.h>
 

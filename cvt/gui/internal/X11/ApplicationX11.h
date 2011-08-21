@@ -2,9 +2,9 @@
 #define CVT_APPLICATIONX11_H
 
 #include <cvt/gui/Application.h>
-#include <cvt/gui/internal/X.h>
-#include <cvt/gui/internal/WidgetImplWinGLX11.h>
-#include <cvt/gui/internal/GLXContext.h>
+#include <cvt/gui/internal/X11/X.h>
+#include <cvt/gui/internal/X11/WidgetImplWinGLX11.h>
+#include <cvt/gui/internal/X11/GLXContext.h>
 #include <cvt/gui/event/Event.h>
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/internal/TimerInfoList.h>

@@ -210,7 +210,7 @@ SET(${MODULE_NAME}_HEADERS
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h
-	gui/internal/GLXContext.h
+	gui/internal/X11/GLXContext.h
 	gui/Moveable.h
 	gui/ToggleButton.h
 	gui/View3D.h
@@ -393,11 +393,11 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Button.cpp
 	gui/Moveable.cpp
 	gui/ImageView.cpp
-	gui/internal/ApplicationX11.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
-	gui/internal/WidgetImplWinGLX11.cpp
-	gui/internal/X11Handler.cpp
+	gui/internal/X11/ApplicationX11.cpp
+	gui/internal/X11/WidgetImplWinGLX11.cpp
+	gui/internal/X11/X11Handler.cpp
 	gui/ToggleButton.cpp
 	gui/Widget.cpp
 	gui/WidgetContainer.cpp

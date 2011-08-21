@@ -2,8 +2,8 @@
 #define CVT_WIDGETIMPLWINGLX11_H
 
 #include <cvt/gui/internal/WidgetImpl.h>
-#include <cvt/gui/internal/X.h>
-#include <cvt/gui/internal/GLXContext.h>
+#include <cvt/gui/internal/X11/X.h>
+#include <cvt/gui/internal/X11/GLXContext.h>
 #include <cvt/gui/Window.h>
 #include <cvt/gfx/GFX.h>
 #include <cvt/math/Math.h>
