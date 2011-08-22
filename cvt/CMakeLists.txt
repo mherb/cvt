@@ -467,13 +467,19 @@ IF(UNIX)
 			gui/internal/OSX/ApplicationOSX.h
 			gui/internal/OSX/WidgetImplWinGLOSX.h
 			gui/internal/OSX/OSXGLView.h
+			gui/internal/OSX/OSXTimerHandler.h
+			gui/internal/OSX/TimerInfoListOSX.h
+			gui/internal/OSX/TimerInfoOSX.h
 		)
 
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/QTKitCamera.mm
-		gui/internal/OSX/ApplicationOSX.mm
-		gui/internal/OSX/WidgetImplWinGLOSX.mm
-		gui/internal/OSX/OSXGLView.mm
+			gui/internal/OSX/ApplicationOSX.mm
+			gui/internal/OSX/WidgetImplWinGLOSX.mm
+			gui/internal/OSX/OSXGLView.mm
+			gui/internal/OSX/TimerInfoListOSX.cpp
+			gui/internal/OSX/OSXTimerHandler.mm
+			gui/internal/OSX/TimerInfoOSX.mm
 		)
 
 		SET(${MODULE_NAME}_DEP_LIBRARIES
