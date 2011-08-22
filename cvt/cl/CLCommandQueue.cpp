@@ -21,12 +21,12 @@ namespace cvt {
 
 	CLContext CLCommandQueue::context() const
 	{
-		return CLContext( queueContext() );
+		return CLContext( _context() );
 	}
 
 	CLDevice CLCommandQueue::device() const
 	{
-		return CLDevice( queueDevice() );
+		return CLDevice( _device() );
 	}
 
 }

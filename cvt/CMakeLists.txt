@@ -16,20 +16,21 @@ FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
 FIND_PACKAGE(ffmpeg REQUIRED)
 
-FIND_PACKAGE(OpenGL REQUIRED)
 IF( APPLE )
-	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
-	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
-	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
-	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
 # FIXME for OSX
-	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
-	LINK_DIRECTORIES(/usr/X11/lib)
+#	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
+#	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
+#	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
+#	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
+#	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
+#	LINK_DIRECTORIES(/usr/X11/lib)
+ELSE( APPLE )
+	FIND_PACKAGE(OpenGL REQUIRED)
+	FIND_PACKAGE(X11 REQUIRED)
 ENDIF( APPLE )
 
 FIND_PACKAGE(OpenCL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
-FIND_PACKAGE(X11 REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -211,7 +212,6 @@ SET(${MODULE_NAME}_HEADERS
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h
-	gui/internal/X11/GLXContext.h
 	gui/Moveable.h
 	gui/ToggleButton.h
 	gui/View3D.h
@@ -396,10 +396,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/ImageView.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
-# FIXME put these dependent on X11/OSX
-	gui/internal/X11/ApplicationX11.cpp
-	gui/internal/X11/WidgetImplWinGLX11.cpp
-	gui/internal/X11/X11Handler.cpp
+
 	gui/ToggleButton.cpp
 	gui/Widget.cpp
 	gui/WidgetContainer.cpp
@@ -467,18 +464,16 @@ IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/QTKitCamera.h
-# FIXME for OSX
-#			gui/internal/OSX/ApplicationOSX.h
-#			gui/internal/OSX/WidgetImplWinGLOSX.h
-#			gui/internal/OSX/OSXGLView.h
+			gui/internal/OSX/ApplicationOSX.h
+			gui/internal/OSX/WidgetImplWinGLOSX.h
+			gui/internal/OSX/OSXGLView.h
 		)
 
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/QTKitCamera.mm
-# FIXME for OSX
-#		gui/internal/OSX/ApplicationOSX.mm
-#		gui/internal/OSX/WidgetImplWinGLOSX.mm
-#		gui/internal/OSX/OSXGLView.mm
+		gui/internal/OSX/ApplicationOSX.mm
+		gui/internal/OSX/WidgetImplWinGLOSX.mm
+		gui/internal/OSX/OSXGLView.mm
 		)
 
 		SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -487,8 +482,7 @@ IF(UNIX)
 			"-framework CoreFoundation"
 			"-framework QuartzCore"
 			"-framework QTKit"
-# FIXME for OSX
-#"-framework OpenGL"
+			"-framework OpenGL"
 		)
 
 		INCLUDE_DIRECTORIES(
@@ -499,9 +493,16 @@ IF(UNIX)
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
+			gui/internal/X11/GLXContext.h
+			gui/internal/X11/ApplicationX11.h
+			gui/internal/X11/WidgetImplWinGLX11.h
+			gui/internal/X11/X11Handler.h
 		)
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/V4L2Camera.cpp
+			gui/internal/X11/ApplicationX11.cpp
+			gui/internal/X11/WidgetImplWinGLX11.cpp
+			gui/internal/X11/X11Handler.cpp
 		)
 	ENDIF(APPLE)
 ENDIF()

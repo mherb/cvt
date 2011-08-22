@@ -11,9 +11,8 @@ namespace cvt {
 {
 	NSOpenGLContext*		 _glcontext;
 	cvt::WidgetImplWinGLOSX* _widgetimpl;
-	int						 _height;
 }
 - (id) initWithFrame: (NSRect) frameRect CGLContextObj: ( void* ) ctx WidgetImpl: ( cvt::WidgetImplWinGLOSX* ) wimpl;
+- ( void ) moveEvent: (NSNotification*)notification;
 @end
-
 #endif

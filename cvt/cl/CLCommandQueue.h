@@ -25,19 +25,26 @@ namespace cvt {
 			CLDevice device() const;
 			CLUTIL_GETINFOTYPE( properties, CL_QUEUE_PROPERTIES, cl_command_queue_properties, _object, ::clGetCommandQueueInfo )
 
-			void enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true,
-								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true,
-									 const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0,
+			void  enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true,
+								     const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void  enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true,
+									  const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void  enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0,
+								     const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void* enqueueMapBuffer( CLBuffer& buf, cl_map_flags mapflags, size_t size, size_t offset = 0, bool block = true,
 								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
-			void enqueueReadImage( const CLImage2D& img, void* dst, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
-								   bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-		    void enqueueWriteImage( CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
+			void  enqueueReadImage( const CLImage2D& img, void* dst, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
 								    bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void enqueueCopyImage( CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty, size_t srcx, size_t srcy, size_t width, size_t height,
+		    void  enqueueWriteImage( CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
+								    bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void  enqueueCopyImage( CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty, size_t srcx, size_t srcy, size_t width, size_t height,
+								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void* enqueueMapImage( CLImage2D& img, cl_map_flags mapflags, size_t x, size_t y, size_t width, size_t height, size_t* stride,
 								   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+
+			void enqueueUnmap( CLMemory& mem, void* ptr,
+							   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 			void waitEvents( const std::vector<CLEvent>& waitevents );
 			void waitEvent( const CLEvent& event );
@@ -48,8 +55,8 @@ namespace cvt {
 									   const CLNDRange& offset = CLNDRange(), const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 		private:
-			CLUTIL_GETINFOTYPE( queueContext, CL_QUEUE_CONTEXT, cl_context, _object, ::clGetCommandQueueInfo );
-			CLUTIL_GETINFOTYPE( queueDevice, CL_QUEUE_DEVICE, cl_device_id, _object, ::clGetCommandQueueInfo );
+			CLUTIL_GETINFOTYPE( _context, CL_QUEUE_CONTEXT, cl_context, _object, ::clGetCommandQueueInfo );
+			CLUTIL_GETINFOTYPE( _device, CL_QUEUE_DEVICE, cl_device_id, _object, ::clGetCommandQueueInfo );
 	};
 
 	inline void CLCommandQueue::enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset, bool block,
@@ -111,10 +118,13 @@ namespace cvt {
 		::clFinish( _object );
 	}
 
-	inline void CLCommandQueue::enqueueNDRangeKernel( const CLKernel& kernel, const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset, const std::vector<CLEvent>* waitevents , CLEvent* event )
+	inline void CLCommandQueue::enqueueNDRangeKernel( const CLKernel& kernel, const CLNDRange& global, const CLNDRange& local,
+													  const CLNDRange& offset, const std::vector<CLEvent>* waitevents , CLEvent* event )
 	{
 		cl_int err;
-		err = ::clEnqueueNDRangeKernel( _object, kernel, global.dimension(), offset.dimension()?offset.range():NULL, global.range(), local.dimension()?local.range():NULL, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		err = ::clEnqueueNDRangeKernel( _object, kernel, global.dimension(), offset.dimension()?offset.range():NULL, global.range(),
+									    local.dimension()?local.range():NULL,
+										waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
