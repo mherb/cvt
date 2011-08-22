@@ -25,42 +25,59 @@ namespace cvt {
 			CLDevice device() const;
 			CLUTIL_GETINFOTYPE( properties, CL_QUEUE_PROPERTIES, cl_command_queue_properties, _object, ::clGetCommandQueueInfo )
 
-			void enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true,
+								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true,
+									 const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0,
+								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+
+			void enqueueReadImage( const CLImage2D& img, void* dst, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
+								   bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+		    void enqueueWriteImage( CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
+								    bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void enqueueCopyImage( CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty, size_t srcx, size_t srcy, size_t width, size_t height,
+								   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 			void waitEvents( const std::vector<CLEvent>& waitevents );
 			void waitEvent( const CLEvent& event );
 			void flush();
 			void finish();
 
-			void enqueueNDRangeKernel( const CLKernel& kernel, const CLNDRange& global, const CLNDRange& local = CLNDRange(), const CLNDRange& offset = CLNDRange(), const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void enqueueNDRangeKernel( const CLKernel& kernel, const CLNDRange& global, const CLNDRange& local = CLNDRange(),
+									   const CLNDRange& offset = CLNDRange(), const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 		private:
 			CLUTIL_GETINFOTYPE( queueContext, CL_QUEUE_CONTEXT, cl_context, _object, ::clGetCommandQueueInfo );
 			CLUTIL_GETINFOTYPE( queueDevice, CL_QUEUE_DEVICE, cl_device_id, _object, ::clGetCommandQueueInfo );
 	};
 
-	inline void CLCommandQueue::enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset, bool block, const std::vector<CLEvent>* waitevents, CLEvent* event )
+	inline void CLCommandQueue::enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset, bool block,
+												   const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
 		cl_int err;
-		err = ::clEnqueueReadBuffer( _object, buf, block, offset, size, dst, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		err = ::clEnqueueReadBuffer( _object, buf, block, offset, size, dst,
+									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
 
-	inline void CLCommandQueue::enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset, bool block, const std::vector<CLEvent>* waitevents, CLEvent* event )
+	inline void CLCommandQueue::enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset, bool block,
+												    const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
 		cl_int err;
-		err = ::clEnqueueWriteBuffer( _object, buf, block, offset, size, src, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		err = ::clEnqueueWriteBuffer( _object, buf, block, offset, size, src,
+									  waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
 
-	inline void CLCommandQueue::enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset, size_t srcoffset, const std::vector<CLEvent>* waitevents, CLEvent* event )
+	inline void CLCommandQueue::enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset, size_t srcoffset,
+												   const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
 		cl_int err;
-		err = ::clEnqueueCopyBuffer( _object, src, dst, srcoffset, dstoffset, size, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		err = ::clEnqueueCopyBuffer( _object, src, dst, srcoffset, dstoffset, size,
+									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
@@ -83,7 +100,6 @@ namespace cvt {
 			throw CLException( err );
 
 	}
-
 
 	inline void CLCommandQueue::flush()
 	{

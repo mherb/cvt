@@ -18,18 +18,16 @@ namespace cvt {
 
 			void devices( std::vector<CLDevice>& devices ) const;
 
-//			CLCommandQueue defaultCommandQueue() const;
-			CLDevice defaultDevice() const;
-
 			CLUTIL_GETINFOTYPE( refCount, CL_CONTEXT_REFERENCE_COUNT, cl_uint, _object, ::clGetContextInfo )
+			// Missing:
+			// - CL_CONTEXT_NUM_DEVICES number of devs in context
+			// - CL_CONTEX_DEVICES the devices in the context
 
 			void supportedImage2DFormats( std::vector<CLImageFormat>& formats ) const;
 
-		private:
-			void initDefault();
-			static void cerrlog( const char* errinfo, const void* pinfo, size_t pinfosize, void* );
 
-//			CLCommandQueue _queue;
+		private:
+			static void cerrlog( const char* errinfo, const void* pinfo, size_t pinfosize, void* );
 	};
 
 }
