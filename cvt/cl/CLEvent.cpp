@@ -1,16 +1,18 @@
 #include <cvt/cl/CLEvent.h>
 #include <cvt/cl/CLCommandQueue.h>
+#include <cvt/cl/CLContext.h>
 
 namespace cvt {
 
 	CLCommandQueue CLEvent::queue() const
 	{
-		return CLCommandQueue( eventCommandQueue() );
+		return CLCommandQueue( _queue() );
 	}
 
-/*	CLEvent::CLContext context() const
+	/* OpenCL 1.1
+	CLContext CLEvent::context() const
 	{
-		return CLContext( eventContext() );
+		return CLContext( _context() );
 	}*/
 
 }

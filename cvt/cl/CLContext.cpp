@@ -4,12 +4,12 @@
 #include <iostream>
 
 namespace cvt {
+
 	CLContext::CLContext( cl_context ctx ) : CLObject<cl_context>( ctx )
 	{
-		initDefault();
 	}
 
-	CLContext::CLContext( const CLContext& ctx ) : CLObject<cl_context>( ctx._object )/*, _queue( ctx._queue )*/
+	CLContext::CLContext( const CLContext& ctx ) : CLObject<cl_context>( ctx._object )
 	{
 	}
 
@@ -32,7 +32,6 @@ namespace cvt {
 			_object = ::clCreateContext( props, devices.size(), ( cl_device_id* ) &devices[ 0 ], NULL, NULL, &err );
 		if( err )
 			throw CLException( err );
-		initDefault();
 	}
 
 	CLContext::CLContext( const CLPlatform& platform, const CLDevice& device, bool cerrlog )
@@ -49,7 +48,6 @@ namespace cvt {
 			_object = ::clCreateContext( props, 1,  ( cl_device_id* ) &device, NULL, NULL, &err );
 		if( err )
 			throw CLException( err );
-		initDefault();
 	}
 
 	CLContext::CLContext( const CLPlatform& platform, cl_device_type type, bool cerrlog )
@@ -67,17 +65,6 @@ namespace cvt {
 
 		if( err )
 			throw CLException( err );
-		initDefault();
-	}
-
-	void CLContext::initDefault()
-	{
-/*		std::vector<CLDevice> devs;
-		devices( devs );
-		if( _object != NULL )
-			_queue = CLCommandQueue( *this, devs[ 0 ] );
-		else
-			_queue = NULL;*/
 	}
 
 	void CLContext::cerrlog( const char* errinfo, const void* , size_t , void* )
@@ -114,20 +101,6 @@ namespace cvt {
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 		formats.assign( fmts, fmts + size );
-	}
-
-
-/*	CLCommandQueue CLContext::defaultCommandQueue() const
-	{
-		return _queue;
-	}
-*/
-
-	CLDevice CLContext::defaultDevice() const
-	{
-		std::vector<CLDevice> dev;
-		devices( dev );
-		return dev[ 0 ];
 	}
 
 }
