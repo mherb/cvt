@@ -9,7 +9,6 @@
 	if ((self = [super initWithFrame:frame]) != nil)
 	{
 		_widgetimpl = wimpl;
-		_height = frame.size.height;
 		[self setAutoresizingMask: NSViewHeightSizable | NSViewWidthSizable ];
 		[self allocateGState];
 		_glcontext = [ [ NSOpenGLContext alloc ] initWithCGLContextObj: ctx ];
@@ -28,6 +27,11 @@
     return YES;
 }
 
+- (BOOL)isFlipped
+{
+	return YES;
+}
+
 - (void)lockFocus
 {
     [super lockFocus];
@@ -41,11 +45,19 @@
 	[super resizeWithOldSuperviewSize: oldFrameSize];
 
 	NSRect rself = [self bounds];
-	//NSLog(@"frameRect = %@", NSStringFromRect( rself ));
-	_height = rself.size.height;
 	cvt::ResizeEvent re( rself.size.width, rself.size.height, oldFrameSize.width, oldFrameSize.height );
 	_widgetimpl->resizeEvent( &re );
 	[_glcontext update];
+}
+
+- ( void ) moveEvent: (NSNotification*)notification
+{
+	int ox, oy;
+	// FIXME: inverted ...
+	_widgetimpl->position( ox, oy );
+	NSRect rself = [ [ notification object ] frame];
+	cvt::MoveEvent me( rself.origin.x, rself.origin.y, ox, oy );
+	_widgetimpl->moveEvent( &me );
 }
 
 - ( void ) drawRect:(NSRect) r
@@ -58,21 +70,21 @@
 - (void)mouseDown:(NSEvent *)e
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
-	cvt::MousePressEvent pe( pt.x, _height - pt.y, [ e buttonNumber ] + 1 );
+	cvt::MousePressEvent pe( pt.x, pt.y, [ e buttonNumber ] + 1 );
 	_widgetimpl->mousePressEvent( &pe );
 }
 
 - (void)mouseUp:(NSEvent *)e
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
-	cvt::MouseReleaseEvent re( pt.x, _height - pt.y, [ e buttonNumber ] + 1 );
+	cvt::MouseReleaseEvent re( pt.x, pt.y, [ e buttonNumber ] + 1 );
 	_widgetimpl->mousePressEvent( &re );
 }
 
 - (void)mouseDragged:(NSEvent *)e
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
-	cvt::MouseMoveEvent me( pt.x, _height - pt.y, [ e buttonNumber ] + 1 );
+	cvt::MouseMoveEvent me( pt.x, pt.y, [ e buttonNumber ] + 1 );
 	_widgetimpl->mouseMoveEvent( &me );
 }
 

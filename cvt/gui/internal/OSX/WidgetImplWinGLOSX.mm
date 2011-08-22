@@ -20,6 +20,9 @@ namespace cvt {
 						 defer:NO ];
 		_osx->_view = [[ OSXGLView alloc ] initWithFrame: frame CGLContextObj: ( _ctx->_cglctx ) WidgetImpl: ( WidgetImplWinGLOSX* )this ];
 		[ _osx->_win setContentView: _osx->_view ];
+
+		[ [ NSNotificationCenter defaultCenter] addObserver: _osx->_view selector:@selector(moveEvent:) name:NSWindowDidMoveNotification object:nil ];
+
 		_ctx->makeCurrent();
 		_gfxgl = new GFXEngineGL( _ctx );
 	}
