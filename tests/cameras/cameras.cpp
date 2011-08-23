@@ -210,7 +210,7 @@ int main( )
 		wl.setAnchoredBottom( 40, 20 );
 		w.addWidget( &dumpButton, wl );
 
-		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 30, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 

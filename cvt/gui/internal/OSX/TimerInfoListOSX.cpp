@@ -12,15 +12,10 @@ namespace cvt {
 		}
 
 
-		void TimerInfoListOSX::insertTimer( std::list<TimerInfoOSX*>* list, TimerInfoOSX* t )
-		{
-			_timers.push_back( t );
-		}
-
 		uint32_t TimerInfoListOSX::registerTimer( size_t intervalms, TimeoutHandler* th )
 		{
 			TimerInfoOSX* ti = new TimerInfoOSX( intervalms, th );
-			insertTimer( &_timers, ti );
+			_timers.push_back( ti );
 			return ti->id();
 		}
 
