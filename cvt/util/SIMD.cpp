@@ -4793,4 +4793,9 @@ namespace cvt {
         }
     }
 
+	void SIMD::cleanup()
+	{
+		if( _simd )
+			delete _simd;
+	}
 }

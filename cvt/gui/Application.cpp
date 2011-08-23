@@ -1,4 +1,7 @@
 #include <cvt/gui/Application.h>
+#include <cvt/util/PluginManager.h>
+#include <cvt/cl/OpenCL.h>
+#include <cvt/util/SIMD.h>
 
 #ifdef APPLE
 #include <cvt/gui/internal/OSX/ApplicationOSX.h>
@@ -24,4 +27,11 @@ namespace cvt {
 		return _app;
 	}
 
+	void Application::atexit()
+	{
+		PluginManager::cleanup();
+		CL::cleanup();
+		SIMD::cleanup();
+		delete _app;
+	}
 }

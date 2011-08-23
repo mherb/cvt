@@ -10,12 +10,14 @@
 #endif
 
 namespace cvt {
+	class Application;
 	class ApplicationX11;
 	class CLContext;
 	class CLCommandQueue;
 	class CLDevice;
 
 	class CL {
+		friend class Application;
 		friend class ApplicationX11;
 		public:
 			static CLContext* defaultContext() { return _ctx; }
@@ -25,7 +27,7 @@ namespace cvt {
 			static bool setDefaultDevice( const CLDevice& dev );
 		private:
 			static bool init( cl_device_id id, cl_context_properties* props );
-			static void deinit();
+			static void cleanup();
 
 			// default context, device and queue
 			static bool			   _glsharing;
