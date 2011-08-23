@@ -9,7 +9,8 @@
 namespace cvt {
 	ApplicationX11::ApplicationX11()
 	{
-		XInitThreads();
+		// Leaks memory ...
+		//XInitThreads();
 
 		dpy = ::XOpenDisplay( NULL );
 		if( !dpy )
@@ -109,7 +110,6 @@ namespace cvt {
 	ApplicationX11::~ApplicationX11()
 	{
 		delete _defaultctx;
-		CL::deinit();
 		XDestroyWindow( dpy, _dummywin );
 		::XCloseDisplay( dpy );
 	}

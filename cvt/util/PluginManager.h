@@ -11,7 +11,10 @@
 #include <map>
 
 namespace cvt {
+	class Application;
+
 	class PluginManager {
+		friend class Application;
 		public:
 			static PluginManager& instance();
 			void registerPlugin( Plugin* plugin );
@@ -29,12 +32,15 @@ namespace cvt {
 			PluginManager( const PluginManager& );
 			~PluginManager();
 			void loadDefault();
+			static void cleanup();
 
 			std::vector<PluginFile*> _plugins;
 			std::vector<IFilter*> _ifilters;
 			std::vector<ILoader*> _iloaders;
 			std::vector<ISaver*> _isavers;
 			std::map< const String, IFilter*> _ifiltermap;
+
+			static PluginManager* _instance;
 	};
 
 	inline PluginManager::PluginManager()

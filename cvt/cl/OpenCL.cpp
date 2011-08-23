@@ -40,7 +40,7 @@ namespace cvt {
 		return true;
 	}
 
-	void CL::deinit()
+	void CL::cleanup()
 	{
 		if( CL::_ctx )
 			delete CL::_ctx;
@@ -48,5 +48,6 @@ namespace cvt {
 			delete CL::_device;
 		if( CL::_queue )
 			delete CL::_queue;
+		clUnloadCompiler();
 	}
 }

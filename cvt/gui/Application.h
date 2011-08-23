@@ -45,7 +45,7 @@ namespace cvt {
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;
 
-			static void atexit() { delete _app; }
+			static void atexit();
 
 			static Application* instance();
 			static Application* _app;

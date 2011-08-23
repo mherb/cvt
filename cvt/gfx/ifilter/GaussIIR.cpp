@@ -125,11 +125,16 @@ namespace cvt {
 		}
 	}
 
+	static ParamInfoTyped<Image*> pin( "Input", true /* inputParam */ );
+	static ParamInfoTyped<Image*> put( "Output", false );
+	static ParamInfoTyped<float> psigma( "Sigma", true );
+	static ParamInfoTyped<int> porder( "Order", 0 /* min */, 2 /* max */, 0 /* default */, true );
+
 	static ParamInfo* _params[ 4 ] = {
-		new ParamInfoTyped<Image*>( "Input", true /* inputParam */ ),
-		new ParamInfoTyped<Image*>( "Output", false ),
-		new ParamInfoTyped<float>( "Sigma", true ),
-		new ParamInfoTyped<int>( "Order", 0 /* min */, 2 /* max */, 0 /* default */, true )
+		&pin,
+		&pout,
+		&psigma,
+		&porder
 	};
 
 	GaussIIR::GaussIIR() : IFilter( "GaussIIR", _params, 4, IFILTER_OPENCL ), _kernelIIR( 0 ), _kernelIIR2( 0 )
