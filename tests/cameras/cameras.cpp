@@ -94,8 +94,8 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
-			Time camt;
-			camt.reset();
+			//Time camt;
+			//camt.reset();
 			_cam->nextFrame();
 
 #ifdef WRITE_PNGS
@@ -103,8 +103,8 @@ class CameraTimeout : public TimeoutHandler
 			_queue.enqueue( toSave );
 #endif
 			_view->setImage( _cam->frame() );
-			if( camt.elapsedMicroSeconds() > 3000.0 )
-				std::cout << camt.elapsedMicroSeconds() << std::endl;
+			//if( camt.elapsedMicroSeconds() > 3000.0 )
+			//	std::cout << camt.elapsedMicroSeconds() << std::endl;
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
 				char buf[ 200 ];
