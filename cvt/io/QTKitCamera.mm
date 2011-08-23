@@ -42,28 +42,28 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
 	[super dealloc];
 }
 
-- (void)captureOutput:( QTCaptureOutput * )		captureOutput 
-  didOutputVideoFrame:( CVImageBufferRef  )		videoFrame 
-	 withSampleBuffer:( QTSampleBuffer * )		sampleBuffer 
-	   fromConnection:( QTCaptureConnection * ) connection
+- (void)captureOutput:( QTCaptureOutput * ) __attribute__((unused))	captureOutput
+  didOutputVideoFrame:( CVImageBufferRef  )		videoFrame
+	 withSampleBuffer:( QTSampleBuffer * ) __attribute__((unused)) sampleBuffer
+	   fromConnection:( QTCaptureConnection * ) __attribute__((unused)) connection
 {
 	CVImageBufferRef imageBufferToRelease;
-	
+
     CVBufferRetain(videoFrame);
-	
+
     @synchronized (self) {
         imageBufferToRelease = currentFrame;
         currentFrame = videoFrame;
 		isNew = true;
     }
-	
+
     CVBufferRelease(imageBufferToRelease);
 }
 
-- (void)captureOutput:(QTCaptureOutput *)captureOutput 
-didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer 
-	   fromConnection:(QTCaptureConnection *)connection 
-{	
+- (void)captureOutput:(QTCaptureOutput *) __attribute__((unused)) captureOutput
+didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *) __attribute__((unused)) sampleBuffer
+	   fromConnection:(QTCaptureConnection *) __attribute__((unused)) connection
+{
 }
 
 
@@ -147,7 +147,7 @@ namespace cvt {
 	QTKitCameraInterface::QTKitCameraInterface( size_t camIndex,
 											    size_t width, 
 											    size_t height, 
-											    size_t fps, 
+											    size_t , 
 											    const IFormat & format ):
 		_pool( 0 ),
 		_qtDevice( 0 ),

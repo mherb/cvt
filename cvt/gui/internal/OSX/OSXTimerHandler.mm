@@ -10,7 +10,7 @@
     return self;
 }
 
--( void ) timeout: ( id ) sender
+-( void ) timeout: ( id ) __attribute__((unused)) sender
 {
 	_handler->onTimeout();
 }

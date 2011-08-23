@@ -100,7 +100,7 @@ namespace cvt {
 
 	void WidgetImplWinGLOSX::update()
 	{
-		[ _osx->_view display ];
+		[ _osx->_view setNeedsDisplay: YES ];
 	}
 
 	void WidgetImplWinGLOSX::update( const Recti& )

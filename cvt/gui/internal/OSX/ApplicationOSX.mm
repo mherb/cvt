@@ -49,7 +49,7 @@ namespace cvt {
 		return ret;
 	}
 
-	void ApplicationOSX::_unregisterWindow( WidgetImpl* impl )
+	void ApplicationOSX::_unregisterWindow( WidgetImpl* )
 	{
 	}
 
