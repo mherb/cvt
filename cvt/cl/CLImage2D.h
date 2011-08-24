@@ -13,18 +13,18 @@ namespace cvt {
 	{
 		public:
 			/**
-			  Create CLImage with CLContext context
+			  Create CLImage2D object with CLContext
 			 */
 			CLImage2D( const CLContext& context, size_t width, size_t height, const CLImageFormat& format,
 					   cl_mem_flags flags = CL_MEM_READ_WRITE, size_t stride = 0, void* host_ptr = NULL );
 
 			/**
-			  Use default context to create image
+			  Use default context to create CLImage2D object
 			*/
 			CLImage2D( size_t width, size_t height, const CLImageFormat& format, cl_mem_flags = CL_MEM_READ_WRITE );
 
 			/**
-			  Use default context to create CLImage from Image
+			  Use default context to create CLImage2D from Image
 			*/
 			CLImage2D( const Image& img );
 
