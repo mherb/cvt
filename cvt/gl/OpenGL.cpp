@@ -5,7 +5,8 @@
 #include <cstdlib>
 
 #ifdef APPLE
-#include <mach-o/dyld.h>
+//#include <mach-o/dyld.h>
+#include <dlfcn.h>
 #endif
 
 namespace cvt {
@@ -141,18 +142,7 @@ namespace cvt {
 	void (* GL::getProcAddress(const char* name ))()
 	{
 #ifdef APPLE
-
-		NSSymbol symbol;
-		char *symbolName;
-		symbolName = ( char* ) malloc( strlen( name ) + 2 );
-		strcpy(symbolName + 1, name);
-		symbolName[0] = '_';
-		symbol = NULL;
-		if (NSIsSymbolNameDefined (symbolName))
-			symbol = NSLookupAndBindSymbol (symbolName);
-		free (symbolName); // 5
-		return symbol ? ( void (*)() ) NSAddressOfSymbol( symbol ) : NULL;
-		//return glXGetProcAddress( ( const GLubyte * ) str );
+		return ( void (*)() ) dlsym( RTLD_DEFAULT, name );
 #else
 		return glXGetProcAddressARB( ( const GLubyte * ) name );
 #endif
