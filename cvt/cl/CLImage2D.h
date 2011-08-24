@@ -11,6 +11,9 @@
 namespace cvt {
 	class CLContext;
 
+	/**
+	  \ingroup CL
+	 */
 	class CLImage2D : public CLMemory
 	{
 		public:

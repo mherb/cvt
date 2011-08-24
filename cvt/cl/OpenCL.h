@@ -16,6 +16,10 @@ namespace cvt {
 	class CLCommandQueue;
 	class CLDevice;
 
+	/**
+	  \ingroup CL
+	  \defgroup CL OpenCL
+	 */
 	class CL {
 		friend class Application;
 		friend class ApplicationX11;

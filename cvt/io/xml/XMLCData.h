@@ -4,6 +4,10 @@
 #include <cvt/io/xml/XMLNode.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
 	class XMLCData : public XMLNode {
 		public:
 			XMLCData( const String& value );

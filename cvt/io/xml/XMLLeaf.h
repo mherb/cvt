@@ -4,6 +4,10 @@
 #include <cvt/io/xml/XMLNode.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
 	class XMLLeaf : public XMLNode
 	{
 		public:

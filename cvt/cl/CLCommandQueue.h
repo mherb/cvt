@@ -14,6 +14,10 @@ namespace cvt {
 	class CLContext;
 	class CLDevice;
 
+	/**
+	  \ingroup CL
+	 */
+
 	class CLCommandQueue : public CLObject<cl_command_queue>
 	{
 		public:
@@ -64,7 +68,7 @@ namespace cvt {
 	};
 
 	/**
-		Transfer CLBuffer object data to host memory
+		Transfer CLBuffer object data to host memory.
 	  */
 	inline void CLCommandQueue::enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset, bool block,
 												   const std::vector<CLEvent>* waitevents, CLEvent* event )
@@ -77,7 +81,7 @@ namespace cvt {
 	}
 
 	/**
-		Transfer host memory data to CLBuffer object
+		Transfer host memory data to CLBuffer object.
 	  */
 	inline void CLCommandQueue::enqueueWriteBuffer( const CLBuffer& buf, const void* src, size_t size, size_t offset, bool block,
 												    const std::vector<CLEvent>* waitevents, CLEvent* event )
@@ -90,7 +94,7 @@ namespace cvt {
 	}
 
 	/**
-		Copy data between CLBuffer objects
+		Copy data between CLBuffer objects.
 	  */
 	inline void CLCommandQueue::enqueueCopyBuffer( const CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset, size_t srcoffset,
 												   const std::vector<CLEvent>* waitevents, CLEvent* event )

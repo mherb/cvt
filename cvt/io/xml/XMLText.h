@@ -4,6 +4,10 @@
 #include <cvt/io/xml/XMLLeaf.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
 	class XMLText : public XMLLeaf {
 		public:
 			XMLText( const String& value );
