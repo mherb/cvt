@@ -5,6 +5,9 @@
 
 namespace cvt
 {
+	/**
+	  \ingroup Math
+	*/
 	/* fixed point format class (16x16) */
 	class Fixed {
 		public:

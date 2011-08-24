@@ -5,22 +5,28 @@
 #include <list>
 
 namespace cvt {
-
+	/**
+	  \class cvt::Resources io/Resources.h
+	  \brief Easy search for paths of resource files.
+			 The default search order is: DataFolder, current directory.
+	 */
 	class Resources
 	{
 		public:
-			/**
-			 * @class cvt/io/Resources.h
-			 * @brief easy search for paths of resource files
-			 * @description the default search order is: DataFolder, Current Directory
-			 */
 			Resources();
 			~Resources();
 
+			/**
+			  Find absolute path to a resource.
+			  \param resource the name of the resource.
+			  \return the absolute path to the resource.
+			 */
 			String find( const String & resource );
 
 			/**
-			 * add another location to search for resources.
+			  Add another location to search for resources.
+				\param loc location to be added
+				\param prepend put location in front of all search-locations.
 			 */
 			void addSearchLocation( const String& loc, bool prepend=true );
 

@@ -6,6 +6,10 @@
 #include <iostream>
 
 namespace cvt {
+
+	/**
+	  \ingroup Math
+	*/
 	template<typename T>
 	class Polynomial {
 		template<typename T2> friend std::ostream& operator<<( std::ostream& out, const Polynomial<T2>& p );

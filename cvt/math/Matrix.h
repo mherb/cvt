@@ -13,6 +13,9 @@
 #include <cvt/math/Matrix4.h>
 
 namespace cvt {
+	/**
+	  \ingroup Math
+	*/
 	typedef Matrix2<float> Matrix2f;
 	typedef Matrix2<double> Matrix2d;
 

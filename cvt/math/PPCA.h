@@ -10,6 +10,10 @@
 #include <Eigen/QR>
 
 namespace cvt {
+
+	/**
+	  \ingroup Math
+	*/
 	template<typename T>
 		class PPCA {
 			public:

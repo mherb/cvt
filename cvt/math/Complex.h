@@ -5,6 +5,10 @@
 #include <iostream>
 
 namespace cvt {
+
+	/**
+	  \ingroup Math
+	*/
 	template<typename T>
 		class Complex {
 			public:
