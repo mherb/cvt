@@ -27,23 +27,23 @@ namespace cvt {
 
 			void  enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true,
 								     const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void  enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true,
+			void  enqueueWriteBuffer( const CLBuffer& buf, const void* src, size_t size, size_t offset = 0, bool block = true,
 									  const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void  enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0,
+			void  enqueueCopyBuffer( const CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset = 0, size_t srcoffset = 0,
 								     const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void* enqueueMapBuffer( CLBuffer& buf, cl_map_flags mapflags, size_t size, size_t offset = 0, bool block = true,
+			void* enqueueMapBuffer( const CLBuffer& buf, cl_map_flags mapflags, size_t size, size_t offset = 0, bool block = true,
 								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 			void  enqueueReadImage( const CLImage2D& img, void* dst, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
 								    bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-		    void  enqueueWriteImage( CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
+		    void  enqueueWriteImage( const CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride = 0,
 								    bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void  enqueueCopyImage( CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty, size_t srcx, size_t srcy, size_t width, size_t height,
+			void  enqueueCopyImage( const CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty, size_t srcx, size_t srcy, size_t width, size_t height,
 								    const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
-			void* enqueueMapImage( CLImage2D& img, cl_map_flags mapflags, size_t x, size_t y, size_t width, size_t height, size_t* stride,
-								   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+			void* enqueueMapImage( const CLImage2D& img, cl_map_flags mapflags, size_t x, size_t y, size_t width, size_t height, size_t* stride,
+								   bool block = true, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
-			void enqueueUnmap( CLMemory& mem, void* ptr,
+			void enqueueUnmap( const CLMemory& mem, const void* ptr,
 							   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
 			void waitEvents( const std::vector<CLEvent>& waitevents );
@@ -59,6 +59,9 @@ namespace cvt {
 			CLUTIL_GETINFOTYPE( _device, CL_QUEUE_DEVICE, cl_device_id, _object, ::clGetCommandQueueInfo );
 	};
 
+	/**
+		Transfer CLBuffer object data to host memory
+	  */
 	inline void CLCommandQueue::enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset, bool block,
 												   const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
@@ -69,7 +72,10 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLCommandQueue::enqueueWriteBuffer( CLBuffer& buf, const void* src, size_t size, size_t offset, bool block,
+	/**
+		Transfer host memory data to CLBuffer object
+	  */
+	inline void CLCommandQueue::enqueueWriteBuffer( const CLBuffer& buf, const void* src, size_t size, size_t offset, bool block,
 												    const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
 		cl_int err;
@@ -79,7 +85,10 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLCommandQueue::enqueueCopyBuffer( CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset, size_t srcoffset,
+	/**
+		Copy data between CLBuffer objects
+	  */
+	inline void CLCommandQueue::enqueueCopyBuffer( const CLBuffer& dst, const CLBuffer& src, size_t size, size_t dstoffset, size_t srcoffset,
 												   const std::vector<CLEvent>* waitevents, CLEvent* event )
 	{
 		cl_int err;
@@ -89,7 +98,106 @@ namespace cvt {
 			throw CLException( err );
 	}
 
+	/**
+		Map CLBuffer object memory in host memory address-space.
+	 */
+	inline void* CLCommandQueue::enqueueMapBuffer( const CLBuffer& buf, cl_map_flags mapflags, size_t size, size_t offset, bool block,
+												   const std::vector<CLEvent>* waitevents, CLEvent* event )
+	{
+		void* ptr;
+		cl_int err;
+		ptr = ::clEnqueueMapBuffer( _object, buf, block, mapflags, offset, size,
+								    waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event, &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+		return ptr;
+	}
 
+	/**
+	  Copy data of CLImage2D object to host memory.
+	  */
+	inline void  CLCommandQueue::enqueueReadImage( const CLImage2D& img, void* dst, size_t x, size_t y, size_t width, size_t height, size_t stride,
+												   bool block, const std::vector<CLEvent>* waitevents, CLEvent* event)
+	{
+		cl_int err;
+		size_t origin[ 3 ] = { x, y, 0 };
+		size_t region[ 3 ] = { width, height, 1 };
+
+		err = ::clEnqueueReadImage( _object, img, block, origin, region, stride, 0, dst,
+								   waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	/**
+	  Copy data from host memory to CLImage2D object.
+	 */
+	inline void  CLCommandQueue::enqueueWriteImage( const CLImage2D& img, const void* src, size_t x, size_t y, size_t width, size_t height, size_t stride,
+												    bool block, const std::vector<CLEvent>* waitevents, CLEvent* event)
+	{
+		cl_int err;
+		size_t origin[ 3 ] = { x, y, 0 };
+		size_t region[ 3 ] = { width, height, 1 };
+
+		err = ::clEnqueueWriteImage( _object, img, block, origin, region, stride, 0, src,
+									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	/**
+		Copy data between two CLImage2D objects.
+	  */
+	inline void  CLCommandQueue::enqueueCopyImage( const CLImage2D& dst, const CLImage2D& src, size_t dstx, size_t dsty,
+												   size_t srcx, size_t srcy, size_t width, size_t height,
+												   const std::vector<CLEvent>* waitevents, CLEvent* event)
+	{
+		cl_int err;
+		size_t srcorigin[ 3 ] = { srcx, srcy, 0 };
+		size_t dstorigin[ 3 ] = { dstx, dsty, 0 };
+		size_t region[ 3 ] = { width, height, 1 };
+
+		err = ::clEnqueueCopyImage( _object, src, dst, srcorigin, dstorigin, region,
+									waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	/**
+		Map CLImage2D object memory in host memory address-space.
+	*/
+	inline void* CLCommandQueue::enqueueMapImage( const CLImage2D& img, cl_map_flags mapflags, size_t x, size_t y, size_t width, size_t height, size_t* stride,
+												  bool block, const std::vector<CLEvent>* waitevents, CLEvent* event)
+	{
+		cl_int err;
+		void* ptr;
+		size_t origin[ 3 ] = { x, y, 0 };
+		size_t region[ 3 ] = { width, height, 1 };
+
+		ptr = ::clEnqueueMapImage( _object, img, block, mapflags, origin, region, stride, NULL,
+								   waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event, &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+		return ptr;
+	}
+
+	/**
+	  Unmap previously mapped CL memory object.
+	  */
+	inline void CLCommandQueue::enqueueUnmap( const CLMemory& mem, const void* ptr,
+											 const std::vector<CLEvent>* waitevents, CLEvent* event )
+	{
+		cl_int err;
+		err = ::clEnqueueUnmapMemObject( _object, mem, ( void* ) ptr,
+										waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+
+	/**
+	  Wait for events in waitevents to be executed.
+	 */
 	inline void CLCommandQueue::waitEvents( const std::vector<CLEvent>& waitevents )
 	{
 		cl_int err;
@@ -99,6 +207,9 @@ namespace cvt {
 
 	}
 
+	/**
+		Wait for a single event to be executed.
+	  */
 	inline void CLCommandQueue::waitEvent( const CLEvent& event )
 	{
 		cl_int err;
@@ -108,16 +219,25 @@ namespace cvt {
 
 	}
 
+	/**
+	  Flush the CL command-queue.
+	  */
 	inline void CLCommandQueue::flush()
 	{
 		::clFlush( _object );
 	}
 
+	/**
+		Wait until all previouly enqued commands have been completed.
+	  */
 	inline void CLCommandQueue::finish()
 	{
 		::clFinish( _object );
 	}
 
+	/**
+		Enqueue kernel for execution.
+	 */
 	inline void CLCommandQueue::enqueueNDRangeKernel( const CLKernel& kernel, const CLNDRange& global, const CLNDRange& local,
 													  const CLNDRange& offset, const std::vector<CLEvent>* waitevents , CLEvent* event )
 	{
