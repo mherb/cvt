@@ -224,7 +224,7 @@ namespace cvt {
 	
 	void QTKitCameraInterface::nextFrame( cvt::Image & img )
 	{		
-		double sleepTime = 0.01; 
+		double sleepTime = 0.001; // 1 ms
 		NSDate *loopUntil = [NSDate dateWithTimeIntervalSinceNow:sleepTime];
 		
 		while( ![ _camDelegate isNewFrame ] && 
