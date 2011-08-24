@@ -7,6 +7,9 @@
 namespace cvt {
 	class GLFBO;
 
+	/**
+	  \ingroup GL
+	*/
 	class GLTexture {
 		friend class GLFBO;
 

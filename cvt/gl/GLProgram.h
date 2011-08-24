@@ -13,6 +13,9 @@ namespace cvt {
 #define GLSL_NORMAL_IDX   2
 #define GLSL_TEXCOORD_IDX 3
 
+	/**
+	  \ingroup GL
+	*/
 	class GLProgram {
 		public:
 			GLProgram();

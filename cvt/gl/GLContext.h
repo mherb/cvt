@@ -6,6 +6,9 @@
 
 namespace cvt {
 
+	/**
+	  \ingroup GL
+	*/
 	class GLContext {
 		public:
 			virtual ~GLContext();

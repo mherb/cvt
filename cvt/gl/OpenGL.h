@@ -22,6 +22,11 @@
 
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	  \defgroup GL OpenGL
+	*/
 	class GL {
 		friend class ApplicationX11;
 		friend class ApplicationOSX;

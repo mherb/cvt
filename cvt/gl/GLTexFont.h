@@ -5,6 +5,10 @@
 #include <cvt/gl/GLTexture.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	*/
 	class GLTexFont : public Font {
 		public:
 			GLTexFont();
