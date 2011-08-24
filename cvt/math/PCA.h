@@ -6,6 +6,9 @@
 
 namespace cvt {
 
+	/**
+	  \ingroup Math
+	*/
 	template<typename T>
 	class PCA
 	{
