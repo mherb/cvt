@@ -23,6 +23,10 @@ namespace cvt {
 
 			CLContext context() const;
 			CLDevice device() const;
+
+			/**
+			  Returns the properties used when constructing the command-queue.
+			 */
 			CLUTIL_GETINFOTYPE( properties, CL_QUEUE_PROPERTIES, cl_command_queue_properties, _object, ::clGetCommandQueueInfo )
 
 			void  enqueueReadBuffer( const CLBuffer& buf, void* dst, size_t size, size_t offset = 0, bool block = true,

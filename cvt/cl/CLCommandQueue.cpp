@@ -19,11 +19,17 @@ namespace cvt {
 			throw CLException( err );
 	}
 
+	/**
+	  The context associated with the command-queue.
+	 */
 	CLContext CLCommandQueue::context() const
 	{
 		return CLContext( _context() );
 	}
 
+	/**
+	  The device associated with the command-queue.
+	 */
 	CLDevice CLCommandQueue::device() const
 	{
 		return CLDevice( _device() );
