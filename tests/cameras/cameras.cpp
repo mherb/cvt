@@ -94,6 +94,9 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
+			static Time t;
+			std::cout << t.elapsedMilliSeconds() << std::endl;
+			t.reset();
 			//Time camt;
 			//camt.reset();
 			_cam->nextFrame();
