@@ -12,7 +12,7 @@ namespace cvt {
 
 	/**
 	  \ingroup XML
-	  \defgroup XML XML parsing/writing
+	  \defgroup XML XML
 	*/
 	class XMLDocument {
 		public:
