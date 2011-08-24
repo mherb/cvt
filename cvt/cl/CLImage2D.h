@@ -6,6 +6,8 @@
 #include <cvt/cl/CLException.h>
 #include <cvt/cl/CLImageFormat.h>
 
+#include <cvt/gfx/Image.h>
+
 namespace cvt {
 	class CLContext;
 
