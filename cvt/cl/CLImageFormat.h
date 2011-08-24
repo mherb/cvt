@@ -13,6 +13,8 @@ namespace cvt {
 			CLImageFormat( cl_channel_order order, cl_channel_type type );
 			CLImageFormat( const CLImageFormat& format );
 
+			operator cl_image_format () const { return _format; }
+
 			static const char* orderToString( cl_channel_order order );
 			static const char* typeToString( cl_channel_type type  );
 		private:

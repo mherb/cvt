@@ -14,21 +14,14 @@ namespace cvt {
 	class CLImage2D : public CLMemory
 	{
 		public:
-			/**
-			  Create CLImage2D object with CLContext
-			 */
 			CLImage2D( const CLContext& context, size_t width, size_t height, const CLImageFormat& format,
-					   cl_mem_flags flags = CL_MEM_READ_WRITE, size_t stride = 0, void* host_ptr = NULL );
-
-			/**
-			  Use default context to create CLImage2D object
-			*/
-			CLImage2D( size_t width, size_t height, const CLImageFormat& format, cl_mem_flags = CL_MEM_READ_WRITE );
-
-			/**
-			  Use default context to create CLImage2D from Image
-			*/
+					  cl_mem_flags flags = CL_MEM_READ_WRITE, size_t stride = 0, void* host_ptr = NULL );
+			CLImage2D( size_t width, size_t height, const CLImageFormat& format, cl_mem_flags flags = CL_MEM_READ_WRITE );
 			CLImage2D( const Image& img );
+
+			void*		map( size_t* stride );
+			const void* map( size_t* stride ) const;
+			void		unmap( const void* ptr ) const;
 
 			// Missing
 			// - CL_IMAGE_ROW_PITCH  gives stride in bytes
@@ -38,7 +31,12 @@ namespace cvt {
 			// - CL_IMAGE_ELEMENT_SIZE bpp
 		private:
 			CLImage2D( const CLImage2D& img );
+
+			size_t _width;
+			size_t _height;
+			CLImageFormat _format;
 	};
+
 
 }
 
