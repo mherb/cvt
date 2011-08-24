@@ -2,6 +2,9 @@
 #define CVT_CLNDRANGE_H
 
 namespace cvt {
+	/**
+	  \ingroup CL
+	 */
 	class CLNDRange
 	{
 		public:

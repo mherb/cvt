@@ -5,6 +5,9 @@
 #include <iostream>
 
 namespace cvt {
+	/**
+	  \ingroup CL
+	 */
 	class CLImageFormat
 	{
 		friend std::ostream& operator<<( std::ostream& out, const CLImageFormat& format );

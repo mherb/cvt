@@ -18,6 +18,10 @@ namespace cvt {
 
 	/**
 	  Use default context to create CLImage2D object
+	  \param width the width of the image
+	  \param height the height of the image
+	  \param format the CLImageFormat to be used for the image
+	  \param format additional OpenCL memory flags to be used for creating the image
 	 */
 	CLImage2D::CLImage2D( size_t width, size_t height, const CLImageFormat& format, cl_mem_flags flags )
 		: _width( width ), _height( height ), _format( format )
@@ -38,16 +42,30 @@ namespace cvt {
 		//TODO
 	}*/
 
+	/**
+	  Map the CLImage2D object memory in the host address-space for reading/writing using the default command-queue.
+	  \param stride the stride of the mapped image.
+	  \return pointer to the mapped memory.
+	  */
 	void* CLImage2D::map( size_t* stride )
 	{
 		 return CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ | CL_MAP_WRITE, 0, 0, _width, _height, stride );
 	}
 
+	/**
+	  Map the CLImage2D object memory in the host address-space for reading using the default command-queue.
+	  \param stride the stride of the mapped image.
+	  \return pointer to the mapped memory.
+	  */
 	const void* CLImage2D::map( size_t* stride ) const
 	{
 		 return ( const void* ) CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ, 0, 0, _width, _height, stride );
 	}
 
+	/**
+	  Unmap the previously mapped CLImage2D object memory using the default command-queue.
+	  \param ptr the previously mapped data-pointer.
+	  */
 	void CLImage2D::unmap( const void* ptr ) const
 	{
 		CL::defaultQueue()->enqueueUnmap( *( ( CLMemory* )this ), ptr );

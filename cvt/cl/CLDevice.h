@@ -9,6 +9,9 @@
 namespace cvt {
 	class CLPlatform;
 
+	/**
+	  \ingroup CL
+	 */
 	class CLDevice
 	{
 		friend std::ostream& operator<<( std::ostream& out, const CLDevice& cldev );

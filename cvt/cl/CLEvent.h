@@ -9,6 +9,9 @@ namespace cvt {
 	class CLCommandQueue;
 	class CLContext;
 
+	/**
+	  \ingroup CL
+	 */
 	class CLEvent : public CLObject<cl_event>
 	{
 		public:

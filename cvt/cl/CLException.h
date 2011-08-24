@@ -4,7 +4,9 @@
 #include <cvt/util/Exception.h>
 
 namespace cvt {
-
+		/**
+		  \ingroup CL
+		  */
 		class CLException : public Exception
 		{
 			public:

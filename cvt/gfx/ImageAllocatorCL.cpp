@@ -136,42 +136,4 @@ namespace cvt {
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
-
-	::cl::ImageFormat ImageAllocatorCL::getCLFormat( const IFormat & format )
-	{
-		cl_channel_order clorder;
-		cl_channel_type  cltype;
-
-		switch ( format.formatID ) {
-			case IFORMAT_GRAY_UINT8:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_GRAY_UINT16:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT16; break;
-			case IFORMAT_GRAY_INT16:		clorder = CL_INTENSITY; cltype = CL_SNORM_INT16; break;
-			case IFORMAT_GRAY_FLOAT:		clorder = CL_INTENSITY;	cltype = CL_FLOAT; break;
-
-			case IFORMAT_GRAYALPHA_UINT8:	clorder = CL_RA; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_GRAYALPHA_UINT16:	clorder = CL_RA; cltype = CL_UNORM_INT16; break;
-			case IFORMAT_GRAYALPHA_INT16:	clorder = CL_RA; cltype = CL_SNORM_INT16; break;
-			case IFORMAT_GRAYALPHA_FLOAT:	clorder = CL_RA; cltype = CL_FLOAT; break;
-
-			case IFORMAT_RGBA_UINT8:		clorder = CL_RGBA; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_RGBA_UINT16:		clorder = CL_RGBA; cltype = CL_UNORM_INT16; break;
-			case IFORMAT_RGBA_INT16:		clorder = CL_RGBA; cltype = CL_SNORM_INT16; break;
-			case IFORMAT_RGBA_FLOAT:		clorder = CL_RGBA; cltype = CL_FLOAT; break;
-
-			case IFORMAT_BGRA_UINT8:		clorder = CL_BGRA; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_BGRA_UINT16:		clorder = CL_BGRA; cltype = CL_UNORM_INT16; break;
-			case IFORMAT_BGRA_INT16:		clorder = CL_BGRA; cltype = CL_SNORM_INT16; break;
-			case IFORMAT_BGRA_FLOAT:		clorder = CL_BGRA; cltype = CL_FLOAT; break;
-
-			case IFORMAT_BAYER_RGGB_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
-
-			case IFORMAT_YUYV_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_UYVY_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
-			default:
-				throw CVTException( "No equivalent CL format found" );
-				break;
-		}
-
-		return cl::ImageFormat( clorder, cltype );
-	}
 }
