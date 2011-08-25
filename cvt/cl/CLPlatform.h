@@ -20,6 +20,7 @@ namespace cvt {
 			CLUTIL_GETINFOSTRING( profile, CL_PLATFORM_PROFILE, _id, ::clGetPlatformInfo );
 
 			void devices( std::vector<CLDevice>& devices, cl_device_type type = CL_DEVICE_TYPE_ALL ) const;
+			CLDevice defaultDevice() const;
 			void extensions( std::vector<String>& extensions ) const;
 
 			operator cl_platform_id () const { return _id; }
@@ -73,6 +74,17 @@ namespace cvt {
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 		devices.assign( ids, ids + num );
+	}
+
+	inline CLDevice CLPlatform::defaultDevice() const
+	{
+		cl_int err;
+		cl_device_id id;
+
+		err = ::clGetDeviceIDs( _id, CL_DEVICE_TYPE_DEFAULT, 1, &id, NULL );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+		return CLDevice( id );
 	}
 
 	inline void CLPlatform::extensions( std::vector<String>& extensions ) const
