@@ -8,6 +8,7 @@
 #include <cvt/cl/CLProgram.h>
 #include <cvt/cl/CLBuffer.h>
 #include <cvt/cl/CLImage2D.h>
+#include <cvt/cl/CLNDRange.h>
 #include <string>
 #include <iostream>
 
@@ -25,6 +26,10 @@ namespace cvt {
 			template<typename T>
 			void setArg( cl_uint index, T arg );
 			void setArg( cl_uint index, size_t size, void* arg );
+
+			CLNDRange bestLocalRange1d( const CLNDRange& global ) const;
+			CLNDRange bestLocalRange2d( const CLNDRange& global ) const;
+			void run( const CLNDRange& global, const CLNDRange& local ) const;
 
 
 			CLUTIL_GETINFOSTRING( functionName, CL_KERNEL_FUNCTION_NAME, _object, ::clGetKernelInfo  )

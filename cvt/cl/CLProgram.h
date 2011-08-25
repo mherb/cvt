@@ -16,12 +16,13 @@ namespace cvt {
 			CLProgram( cl_program = NULL );
 			CLProgram( const CLProgram& p );
 			CLProgram( const CLContext& context, const char* prog );
-			CLProgram( const CLContext& context, const std::string& prog );
+			CLProgram( const CLContext& context, const String& prog );
 			bool build( const CLDevice& dev, const char* options = NULL );
 			bool build( const std::vector<CLDevice>& devices, const char* options = NULL );
 
 			CLUTIL_GETINFOSTRING( source, CL_PROGRAM_SOURCE, _object, ::clGetProgramInfo )
 			void buildLog( const CLDevice& dev, std::string& log );
+
 	};
 
 	inline CLProgram::CLProgram( cl_program p ) : CLObject<cl_program>( p )
