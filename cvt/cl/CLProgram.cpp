@@ -11,7 +11,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	CLProgram::CLProgram( const CLContext& context, const std::string& prog )
+	CLProgram::CLProgram( const CLContext& context, const String& prog )
 	{
 		cl_int err;
 		const char* str = prog.c_str();
