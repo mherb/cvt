@@ -369,7 +369,6 @@ int main( int argc, char** argv )
 
 	FaceShapeWin win( mean, pc );
 	win.setSize( 640, 480 );
-	win.show();
 
 	WidgetLayout wlslider;
 	Slider<float> slider[ 15 ];
@@ -396,6 +395,8 @@ int main( int argc, char** argv )
 	SLIDERN( 12 )
 	SLIDERN( 13 )
 	SLIDERN( 14 )
+
+	win.show();
 
 	Application::run();
 }
