@@ -115,4 +115,29 @@ namespace cvt {
 	}
 
 
+	void GLDrawImageProg::drawImage( int x, int y, int width, int height, const GLTexture& tex )
+	{
+		GLint w, h;
+
+		w = Math::max( width, 1 );
+		h = Math::max( height, 1 );
+
+		GLint* buf;
+		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
+		*buf++ = x;
+		*buf++ = y + h;
+		*buf++ = x;
+		*buf++ = y;
+		*buf++ = x + w;
+		*buf++ = y + h;
+		*buf++ = x + w;
+		*buf++ = y;
+		_vbo.unmap();
+
+
+		_vao.setVertexData( _vbo, 2, GL_INT );
+		tex.bind();
+		_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
+		tex.unbind();
+	}
 }
