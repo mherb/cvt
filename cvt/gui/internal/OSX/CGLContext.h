@@ -27,9 +27,9 @@ namespace cvt {
 
 		CGLPixelFormatAttribute attribs[ 20 ] = {
 	//		kCGLPFAColorSize, ( CGLPixelFormatAttribute )  Math::max( _format.redSize(), Math::max( _format.greenSize(), _format.blueSize() ) ),
-	//		kCGLPFAAlphaSize,	 ( CGLPixelFormatAttribute ) _format.alphaSize(),
-	//		kCGLPFADepthSize,	 ( CGLPixelFormatAttribute ) _format.depthSize(),
-	//		kCGLPFAStencilSize,  ( CGLPixelFormatAttribute ) _format.stencilSize(),
+			kCGLPFAAlphaSize,	 ( CGLPixelFormatAttribute ) _format.alphaSize(),
+			kCGLPFADepthSize,	 ( CGLPixelFormatAttribute ) _format.depthSize(),
+			kCGLPFAStencilSize,  ( CGLPixelFormatAttribute ) _format.stencilSize(),
 			kCGLPFADoubleBuffer,
 			( CGLPixelFormatAttribute ) 0
 		};
