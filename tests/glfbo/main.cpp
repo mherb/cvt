@@ -23,12 +23,11 @@ int main()
 	GLTexture tex;
 	tex.alloc( GL_RGBA, 640, 480, GL_RGBA, GL_UNSIGNED_BYTE );
 	GLTexture texdepth;
-	texdepth.alloc( GL_DEPTH_COMPONENT16, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
+	texdepth.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
 	texdepth.bind();
-
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
+	//glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
 	texdepth.unbind();
 
 	GLDrawModelProg glprog;
@@ -40,7 +39,7 @@ int main()
 	{
 		GFX g( &fbo );
 		fbo.attach( GL_COLOR_ATTACHMENT0, tex );
-		GLRBO rbo( GL_DEPTH_COMPONENT, 640, 480 );
+		//GLRBO rbo( GL_DEPTH_COMPONENT, 640, 480 );
 		fbo.attach( GL_DEPTH_ATTACHMENT, texdepth );
 
 		g.setColor( Color::BLACK );
@@ -52,8 +51,8 @@ int main()
 		glprog.bind();
 		Matrix4f mdl,proj;
 		mdl.setIdentity();
-		mdl[ 2 ][ 3 ] = -20.0f;
-		GL::perspective( proj, 60.0f, 0.75f, 0.01f, 100.0f, true );
+		mdl[ 2 ][ 3 ] = -10.0f;
+		GL::perspective( proj, 60.0f, 0.75f, 5.0f, 15.0f, true );
 		glprog.setLightPosition( Vector3f( 0, 0, -1 ) );
 		glprog.setProjection( proj, mdl );
 
@@ -65,6 +64,7 @@ int main()
 		glDisable( GL_DEPTH_TEST );
 	}
 
+#if 0
 	{
 		GFX g( &fbo );
 
@@ -83,7 +83,7 @@ int main()
 		iprog.unbind();
 
 	}
-
+#endif
 /*	fbo.bind();
 
 	fbo.attach( GL_COLOR_ATTACHMENT0, tex );
@@ -95,11 +95,11 @@ int main()
 	// save image
 */
 	Image out;
-	tex.toImage( out );
-	out.save( "glfbo.png" );
+//	tex.toImage( out );
+//	out.save( "glfbo.png" );
 
-//	texdepth.toImage( out );
-//	out.save( "glfbodepth.png" );
+	texdepth.toImage( out );
+	out.save( "glfbodepth.png" );
 
 	return 0;
 }
