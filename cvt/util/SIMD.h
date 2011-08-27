@@ -20,8 +20,11 @@ namespace cvt {
 		SIMD_BEST
 	};
 
+	class Application;
+
     class SIMD
 	{
+		friend class Application;
 		protected:
 			SIMD() {};
 			SIMD( const SIMD& ) {};
@@ -196,6 +199,8 @@ namespace cvt {
             static SIMDType bestSupportedType();
 
 		private:
+			static void cleanup();
+
 			static SIMD* _simd;
 	};
 

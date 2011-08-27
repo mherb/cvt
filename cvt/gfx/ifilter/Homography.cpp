@@ -5,12 +5,16 @@
 #include <iostream>
 
 namespace cvt {
+	static ParamInfoTyped<Image*> pin( "Input", true );
+	static ParamInfoTyped<Image*> pout( "Output", false );
+	static ParamInfoTyped<Matrix3f> phomo( "H", true );
+	static ParamInfoTyped<Vector4f> pcolor( "Color", true );
 
 	static ParamInfo* _params[ 4 ] = {
-		new ParamInfoTyped<Image*>( "Input", true ),
-		new ParamInfoTyped<Image*>( "Output", false ),
-		new ParamInfoTyped<Matrix3f>( "H", true ),
-		new ParamInfoTyped<Vector4f>( "Color", true )
+		&pin,
+		&pout,
+		&phomo,
+		&pcolor
 	};
 
 	Homography::Homography() : IFilter( "Homography", _params, 4, IFILTER_CPU )

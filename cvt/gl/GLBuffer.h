@@ -4,6 +4,10 @@
 #include <cvt/gl/OpenGL.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	*/
 	class GLBuffer {
 		public:
 			GLBuffer( GLenum target = GL_ARRAY_BUFFER );

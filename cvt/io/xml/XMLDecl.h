@@ -13,6 +13,10 @@
 
 namespace cvt
 {
+
+	/**
+	  \ingroup XML
+	*/
     class XMLDecl : public XMLLeaf
     {
       public:

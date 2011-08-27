@@ -7,6 +7,7 @@
 
 #ifdef APPLE
     #include <OpenGL/gl.h>
+    #include <OpenGL/OpenGL.h>
 #else
     #include <GL/gl.h>
 #endif
@@ -21,14 +22,20 @@
 
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	  \defgroup GL OpenGL
+	*/
 	class GL {
 		friend class ApplicationX11;
+		friend class ApplicationOSX;
 
 		public:
 			static void GLVersion( unsigned int* major, unsigned int* minor );
 			static void GLSLVersion( unsigned int* major, unsigned int* minor );
 			static bool isGLSLVersionSupported( unsigned int major, unsigned int minor );
-			static bool existsExtension( const std::string& extname );
+			static bool existsExtension( const String& extname );
 			static void ( *getProcAddress( const char* str ) ) ();
 			static void info( std::ostream& out );
 
@@ -66,11 +73,10 @@ namespace cvt {
 			GL();
 			~GL();
 			static void parseVersion( const char* str, unsigned int* major, unsigned int* minor );
-			static void parseExtensions( const char* str );
 
 			static unsigned int _glmajor, _glminor;
 			static unsigned int _glslmajor, _glslminor;
-			static std::vector<std::string*> _extensions;
+			static std::vector<String> _extensions;
 	};
 
 	inline bool GL::isGLSLVersionSupported( unsigned int major, unsigned int minor )

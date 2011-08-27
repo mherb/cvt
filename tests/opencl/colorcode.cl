@@ -1,5 +1,5 @@
 #define MAXFLOW 5.0f
-#define OVERLAY 1
+#define OVERLAY 0
 
 __kernel void FlowColorCode( __write_only image2d_t out, __read_only image2d_t gradient,  __read_only image2d_t img  )
 {

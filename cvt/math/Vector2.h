@@ -4,6 +4,9 @@ namespace cvt {
 
 	template<typename T> class Vector3;
 
+	/**
+	  \ingroup Math
+	*/
     template<typename T>
 	class Vector2 {
 	    public:

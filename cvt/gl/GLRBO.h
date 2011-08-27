@@ -6,6 +6,9 @@
 namespace cvt {
 	class GLFBO;
 
+	/**
+	  \ingroup GL
+	*/
 	class GLRBO {
 		friend class GLFBO;
 

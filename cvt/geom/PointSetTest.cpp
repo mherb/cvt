@@ -99,7 +99,7 @@ namespace cvt
 	}
 
     template <typename T>
-    bool essentialTest( T epsilon )
+    static bool _essentialTest( T epsilon )
     {
         PointSet<2, T> p0, p1;
         std::vector<Vector3<T> > pts;
@@ -156,11 +156,11 @@ BEGIN_CVTTEST( PointSet )
     CVTTEST_PRINT( "alignRigid<double>(): ", b );
 	result &= b;
 
-    b = essentialTest<double>( 0.01 );
+    b = _essentialTest<double>( 0.01 );
     CVTTEST_PRINT( "essentialMatrix<double>(): ", b );
 	result &= b;
 
-    b = essentialTest<float>( 0.1f );
+    b = _essentialTest<float>( 0.1f );
     CVTTEST_PRINT( "essentialMatrix<float>(): ", b );
 	result &= b;
 
