@@ -285,6 +285,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/CameraCalibration.h
 	vision/DLT.h
 	vision/ESM.h
+	vision/EPnP.h
 	vision/FAST.h
 	vision/fast/FAST.inl
 	vision/Feature2D.h
@@ -422,6 +423,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Brief.cpp
 	vision/CameraCalibrationTest.cpp
 	vision/DLT.cpp
+	vision/EPnP.cpp
 	vision/FAST.cpp
 	vision/fast/fast9.cpp
 	vision/fast/fast10.cpp
