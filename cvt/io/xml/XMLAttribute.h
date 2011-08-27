@@ -4,6 +4,9 @@
 #include <cvt/io/xml/XMLLeaf.h>
 
 namespace cvt {
+	/**
+	  \ingroup XML
+	*/
 	class XMLAttribute : public XMLLeaf {
 		public:
 			XMLAttribute( const String& name, const String& value );

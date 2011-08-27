@@ -3810,18 +3810,20 @@ namespace cvt {
 			int lx =  fx >> 16;
 			int ly =  fy >> 16;
 
-			if( lx >= 0 && lx < endx && ly >= 0 && ly < endy ) {
+			if( ( size_t ) lx < ( size_t ) endx && ( size_t ) ly < ( size_t ) endy ) {
 				int32_t ax = fx & 0xffff;
 				int32_t ay = fy & 0xffff;
 
 				uint8_t* ptr = ( uint8_t* ) ( src + srcStride * ly + sizeof( uint8_t ) * lx );
-				int32_t a = *ptr;
-				int32_t b = *( ptr + 1 );
-				int32_t v1 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				int32_t g0, g1, g2, g3;
+				g0 = *ptr;
+				g1 = *( ptr + 1 );
 				ptr += srcStride;
-				a = *ptr;
-				b = *( ptr + 1 );
-				int32_t v2 =  a + ( ( ( b - a ) * ax ) >> 16 );
+				g2 = *ptr;
+				g3 = *( ptr + 1 );
+
+				int32_t v1 =  g0 + ( ( ( g1 - g0 ) * ax ) >> 16 );
+				int32_t v2 =  g2 + ( ( ( g3 - g2 ) * ax ) >> 16 );
 				*dst++ =  v1 + ( ( ( v2 - v1 ) * ay ) >> 16 );
 			} else if( lx >= -1 && lx < ( int ) srcWidth && ly >= -1 && ly < ( int ) srcHeight ) {
 				int32_t ax = fx & 0xffff;
@@ -4791,4 +4793,9 @@ namespace cvt {
         }
     }
 
+	void SIMD::cleanup()
+	{
+		if( _simd )
+			delete _simd;
+	}
 }

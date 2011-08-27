@@ -2,7 +2,7 @@
 
 namespace cvt {
 
-		static const char* _clerrorToString( cl_int error )
+		const char* CLException::CLErrorToString( cl_int error )
 		{
 			switch( error ) {
 				case CL_SUCCESS:                            return "Success!";
@@ -51,13 +51,16 @@ namespace cvt {
 				case CL_INVALID_GL_OBJECT:                  return "Invalid OpenGL object";
 				case CL_INVALID_BUFFER_SIZE:                return "Invalid buffer size";
 				case CL_INVALID_MIP_LEVEL:                  return "Invalid mip-map level";
+#if defined( cl_khr_gl_sharing )
+				case CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR: return "Invalid OpenGL context or share group object handle";
+#endif
 				default:									return "Unknown";
 			}
 		}
 
-		CLException::CLException( cl_int error ) throw( ) : msg( _clerrorToString( error ) ), log( "" ) {};
-		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : msg( _clerrorToString( error ) ), log( logmessage ) {};
-		CLException::CLException( std::string location, cl_int error ) throw( ) : msg( _clerrorToString( error ) ), log( "" )
+		CLException::CLException( cl_int error ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( "" ) {};
+		CLException::CLException( cl_int error, std::string logmessage ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( logmessage ) {};
+		CLException::CLException( std::string location, cl_int error ) throw( ) : Exception( CLException::CLErrorToString( error ) ), log( "" )
 		{
 			msg = location + " : " + msg;
 		};

@@ -6,6 +6,9 @@
 namespace cvt {
 	class GLXContext;
 
+	/**
+	  \ingroup GL
+	*/
 	class GLFormat {
 		friend class GLXContext;
 

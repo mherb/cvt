@@ -11,24 +11,37 @@ SET(MODULE_NAME "cvt")
 
 PROJECT(${MODULE_NAME} CXX C)
 
+FIND_PACKAGE(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../doc/Doxyfile.in
+${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(doc
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)
+
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
 FIND_PACKAGE(ffmpeg REQUIRED)
 
-FIND_PACKAGE(OpenGL REQUIRED)
 IF( APPLE )
-	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
-	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
-	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
-	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
-	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
-	LINK_DIRECTORIES(/usr/X11/lib)
+# FIXME for OSX
+#	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
+#	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
+#	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
+#	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
+#	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
+#	LINK_DIRECTORIES(/usr/X11/lib)
+ELSE( APPLE )
+	FIND_PACKAGE(OpenGL REQUIRED)
+	FIND_PACKAGE(X11 REQUIRED)
 ENDIF( APPLE )
 
 FIND_PACKAGE(OpenCL REQUIRED)
 FIND_PACKAGE(DC1394 REQUIRED)
-FIND_PACKAGE(X11 REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -103,12 +116,26 @@ CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
 
 SET(${MODULE_NAME}_HEADERS
+	cl/CLBuffer.h
+	cl/CLCommandQueue.h
 	cl/CLContext.h
+	cl/CLDevice.h
+	cl/CLEvent.h
 	cl/CLException.h
+	cl/CLImage2D.h
+	cl/CLImageFormat.h
 	cl/CLKernel.h
-	cl/kernel/gaussiir.h
-	cl/kernel/gaussiir2.h
-	cl/kernel/BC.h
+	cl/CLLocalSpace.h
+	cl/CLNDRange.h
+	cl/CLObject.h
+	cl/CLObject.inl
+	cl/CLPlatform.h
+	cl/CLProgram.h
+	cl/CLUtil.h
+	cl/OpenCL.h
+#	cl/kernel/gaussiir.h
+#	cl/kernel/gaussiir2.h
+#	cl/kernel/BC.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -123,8 +150,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IConvert.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
-	gfx/ifilter/GaussIIR.h
-	gfx/ifilter/BrightnessContrast.h
+#	gfx/ifilter/GaussIIR.h
+#	gfx/ifilter/BrightnessContrast.h
 	gfx/ifilter/ITransform.h
 	gfx/ifilter/IWarp.h
 #	gfx/ifilter/Sobel.h
@@ -132,7 +159,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IScaleFilter.h
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
-	gfx/ImageAllocatorCL.h
+#	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
 	gfx/Drawable.h
 	gfx/GFXEngine.h
@@ -196,7 +223,6 @@ SET(${MODULE_NAME}_HEADERS
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h
-	gui/internal/GLXContext.h
 	gui/Moveable.h
 	gui/ToggleButton.h
 	gui/View3D.h
@@ -322,9 +348,16 @@ SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
 SOURCE_GROUP( CL FILES ${CL_KERNELS} )
 
 SET(${MODULE_NAME}_SOURCES
+	cl/OpenCL.cpp
+	cl/CLBuffer.cpp
+	cl/CLCommandQueue.cpp
 	cl/CLContext.cpp
+	cl/CLDevice.cpp
+	cl/CLEvent.cpp
 	cl/CLException.cpp
-	cl/CLKernel.cpp
+	cl/CLImage2D.cpp
+	cl/CLImageFormat.cpp
+	cl/CLProgram.cpp
 	gfx/GFX.cpp
 	gfx/GFXEngineImage.cpp
 	gfx/IConvert.cpp
@@ -335,12 +368,12 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageTest.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp
-	gfx/ifilter/GaussIIR.cpp
-	gfx/ifilter/BrightnessContrast.cpp
+#	gfx/ifilter/GaussIIR.cpp
+#	gfx/ifilter/BrightnessContrast.cpp
 	gfx/ifilter/ITransform.cpp
 	gfx/ifilter/IWarp.cpp
 #	gfx/ifilter/Sobel.cpp
-	gfx/ImageAllocatorCL.cpp
+#	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
 	gfx/ImageAllocatorMem.cpp
 	gfx/IScaleFilter.cpp
@@ -373,11 +406,9 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Button.cpp
 	gui/Moveable.cpp
 	gui/ImageView.cpp
-	gui/internal/ApplicationX11.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
-	gui/internal/WidgetImplWinGLX11.cpp
-	gui/internal/X11Handler.cpp
+
 	gui/ToggleButton.cpp
 	gui/Widget.cpp
 	gui/WidgetContainer.cpp
@@ -446,10 +477,22 @@ IF(UNIX)
 	IF(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/QTKitCamera.h
+			gui/internal/OSX/ApplicationOSX.h
+			gui/internal/OSX/WidgetImplWinGLOSX.h
+			gui/internal/OSX/OSXGLView.h
+			gui/internal/OSX/OSXTimerHandler.h
+			gui/internal/OSX/TimerInfoListOSX.h
+			gui/internal/OSX/TimerInfoOSX.h
 		)
 
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/QTKitCamera.mm
+			gui/internal/OSX/ApplicationOSX.mm
+			gui/internal/OSX/WidgetImplWinGLOSX.mm
+			gui/internal/OSX/OSXGLView.mm
+			gui/internal/OSX/TimerInfoListOSX.cpp
+			gui/internal/OSX/OSXTimerHandler.mm
+			gui/internal/OSX/TimerInfoOSX.mm
 		)
 
 		SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -458,6 +501,7 @@ IF(UNIX)
 			"-framework CoreFoundation"
 			"-framework QuartzCore"
 			"-framework QTKit"
+			"-framework OpenGL"
 		)
 
 		INCLUDE_DIRECTORIES(
@@ -468,9 +512,16 @@ IF(UNIX)
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
+			gui/internal/X11/GLXContext.h
+			gui/internal/X11/ApplicationX11.h
+			gui/internal/X11/WidgetImplWinGLX11.h
+			gui/internal/X11/X11Handler.h
 		)
 		SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
 			io/V4L2Camera.cpp
+			gui/internal/X11/ApplicationX11.cpp
+			gui/internal/X11/WidgetImplWinGLX11.cpp
+			gui/internal/X11/X11Handler.cpp
 		)
 	ENDIF(APPLE)
 ENDIF()

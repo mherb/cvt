@@ -1,12 +1,15 @@
 #ifndef CVT_GLXCONTEXT_H
 #define CVT_GLXCONTEXT_H
 
-#include <cvt/gui/internal/X.h>
+#include <cvt/gui/internal/X11/X.h>
 #include <cvt/gl/GLContext.h>
 
 namespace cvt {
+	class ApplicationX11;
+
 	class GLXContext : public GLContext
 	{
+		friend class ApplicationX11;
 		public:
 			GLXContext( ::Display* dpy, const GLFormat& format, const GLXContext* share = NULL );
 			~GLXContext();

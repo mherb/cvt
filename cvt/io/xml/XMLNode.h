@@ -6,6 +6,11 @@
 #include <iostream>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
+
 	enum XMLNodeType {
         XML_NODE_DECL,
 		XML_NODE_ELEMENT,

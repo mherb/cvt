@@ -7,6 +7,10 @@
 #include <cvt/gfx/Drawable.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	*/
 	class GLFBO : public Drawable {
 		public:
 			GLFBO( GLsizei width, GLsizei height );

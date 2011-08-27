@@ -5,6 +5,7 @@
 #include <cvt/util/Exception.h>
 #include <fstream>
 #include <cvt/gl/OpenGL.h>
+#include <cvt/cl/CLImageFormat.h>
 
 namespace cvt
 {
@@ -83,6 +84,7 @@ namespace cvt
 		static const IFormat& glEquivalent( GLenum format, GLenum type );
 
 		void toGLFormatType( GLenum& format, GLenum& type ) const;
+		void toCLImageFormat( CLImageFormat& format ) const;
 
 		private:
 			IFormat( size_t c, size_t bpc, size_t bpp, IFormatID formatID, IFormatType type );
@@ -221,6 +223,43 @@ namespace cvt
 											throw CVTException( "No equivalent GL format found" );
 											break;
 		}
+	}
+
+	inline void IFormat::toCLImageFormat( CLImageFormat& format ) const
+	{
+		cl_channel_order clorder;
+		cl_channel_type  cltype;
+
+		switch ( formatID ) {
+			case IFORMAT_GRAY_UINT8:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_GRAY_UINT16:		clorder = CL_INTENSITY; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_GRAY_INT16:		clorder = CL_INTENSITY; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_GRAY_FLOAT:		clorder = CL_INTENSITY;	cltype = CL_FLOAT; break;
+
+			case IFORMAT_GRAYALPHA_UINT8:	clorder = CL_RA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_GRAYALPHA_UINT16:	clorder = CL_RA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_INT16:	clorder = CL_RA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	clorder = CL_RA; cltype = CL_FLOAT; break;
+
+			case IFORMAT_RGBA_UINT8:		clorder = CL_RGBA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_RGBA_UINT16:		clorder = CL_RGBA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_RGBA_INT16:		clorder = CL_RGBA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_RGBA_FLOAT:		clorder = CL_RGBA; cltype = CL_FLOAT; break;
+
+			case IFORMAT_BGRA_UINT8:		clorder = CL_BGRA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_BGRA_UINT16:		clorder = CL_BGRA; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_BGRA_INT16:		clorder = CL_BGRA; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_BGRA_FLOAT:		clorder = CL_BGRA; cltype = CL_FLOAT; break;
+
+			case IFORMAT_BAYER_RGGB_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
+
+			case IFORMAT_YUYV_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_UYVY_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
+			default:
+				throw CVTException( "No equivalent CL format found" );
+				break;
+		}
+		format = CLImageFormat( clorder, cltype );
 	}
 
 	inline const IFormat& IFormat::glEquivalent( GLenum format, GLenum type )

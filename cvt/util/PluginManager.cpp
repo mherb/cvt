@@ -6,10 +6,10 @@
 #include <vector>
 
 namespace cvt {
+	PluginManager* PluginManager::_instance = NULL;
 
 	PluginManager& PluginManager::instance()
 	{
-		static PluginManager* _instance = NULL;
 		if( !_instance ) {
 			_instance = new PluginManager();
 			_instance->loadDefault();
@@ -33,5 +33,11 @@ namespace cvt {
 			} catch( Exception e ) {
 			}
 		}
+	}
+
+	void PluginManager::cleanup()
+	{
+		if( _instance )
+			delete _instance;
 	}
 }

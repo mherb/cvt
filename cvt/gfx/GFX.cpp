@@ -186,7 +186,7 @@ namespace cvt {
 
 	void GFX::drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far  )
 	{
-
+		_engine->drawModel( mdl, modelview, near, far, _color );
 	}
 
 	void GFX::setChildrect( const Recti& r )

@@ -9,6 +9,9 @@
 
 namespace cvt {
 
+	/**
+	  \ingroup GL
+	*/
 	class GLVertexArray {
 		public:
 			GLVertexArray();

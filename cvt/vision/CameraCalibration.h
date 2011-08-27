@@ -40,9 +40,15 @@ namespace cvt
         const Matrix4f & projectionMatrix()     const { return _projection; }
         const CameraCalibrationFlags & flags()  const { return _flags; }
 
+        /**
+         * set the extrinsics of the camera
+         * @param extr Transformation from Camera to World!
+         */
         void setExtrinsics( const Matrix4f & extr );
+
         void setIntrinsics( const Matrix3f & intr );
         void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
+
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
