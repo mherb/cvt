@@ -26,9 +26,9 @@ namespace cvt {
 			void drawImage( int x, int y, int width, int height, const GLTexture& tex );
 
 		private:
+			Matrix4f	_proj;
 			GLVertexArray _vao;
 			GLBuffer _vbo;
-			GLBuffer _tvbo;
 			GLint _mvploc;
 			GLint _texloc;
 	};
