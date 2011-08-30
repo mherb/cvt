@@ -66,6 +66,8 @@ SET( GLSL_SHADER
 	gl/shader/120/basicrr_120.frag
 	gl/shader/120/basiclight_120.frag
 	gl/shader/120/basiclight_120.vert
+	gl/shader/120/texmls_120.frag
+	gl/shader/120/texmls_120.vert
 	gl/shader/150/basic_150.vert
 	gl/shader/150/basic_150.frag
 	gl/shader/150/text_150.vert
@@ -78,6 +80,8 @@ SET( GLSL_SHADER
 	gl/shader/150/basicrr_150.frag
 	gl/shader/150/basiclight_150.frag
 	gl/shader/150/basiclight_150.vert
+	gl/shader/150/texmls_150.frag
+	gl/shader/150/texmls_150.vert
 )
 
 GLSLTOHEADER(gl/shader/120/basic_120.vert)
@@ -92,6 +96,8 @@ GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
 GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
 GLSLTOHEADER(gl/shader/120/basiclight_120.frag)
 GLSLTOHEADER(gl/shader/120/basiclight_120.vert)
+GLSLTOHEADER(gl/shader/120/texmls_120.frag)
+GLSLTOHEADER(gl/shader/120/texmls_120.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.vert)
 GLSLTOHEADER(gl/shader/150/basic_150.frag)
 GLSLTOHEADER(gl/shader/150/text_150.vert)
@@ -104,6 +110,8 @@ GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
 GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
 GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
+GLSLTOHEADER(gl/shader/150/texmls_150.frag)
+GLSLTOHEADER(gl/shader/150/texmls_150.vert)
 
 SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
@@ -191,6 +199,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLDrawIconProg.h
 	gl/progs/GLDrawModelProg.h
 	gl/progs/GLFillPathProg.h
+	gl/progs/GLTexMLSProg.h
 	gl/shader/120/basic_120_vert.h
 	gl/shader/120/basic_120_frag.h
 	gl/shader/120/basicrr_120_frag.h
@@ -215,6 +224,10 @@ SET(${MODULE_NAME}_HEADERS
 	gl/shader/150/basicrrtex_150_frag.h
 	gl/shader/150/basiclight_150_frag.h
 	gl/shader/150/basiclight_150_vert.h
+	gl/shader/120/texmls_120_frag.h
+	gl/shader/120/texmls_120_vert.h
+	gl/shader/150/texmls_150_frag.h
+	gl/shader/150/texmls_150_vert.h
 	gui/Application.h
 	gui/BasicTimer.h
 	gui/Button.h
@@ -400,6 +413,7 @@ SET(${MODULE_NAME}_SOURCES
 	gl/progs/GLDrawIconProg.cpp
 	gl/progs/GLDrawModelProg.cpp
 	gl/progs/GLFillPathProg.cpp
+	gl/progs/GLTexMLSProg.cpp
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp
