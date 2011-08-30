@@ -113,8 +113,9 @@ void main()
 		dp = texture2D( DPTex, vec2( ( float( i ) + 0.5 ) * 1.0 / DPTexSize, 0.5 ) );
 		//dp = data[ i ];
 		float dist2 = dot( dp.xy - in_Vertex.xy, dp.xy - in_Vertex.xy );
-		//dist2 = max( dist2, 1e-3 );
-		w = 1.0 / ( 1.0 + pow( dist2 * 100.0, 1.0 ) );
+		dist2 = max( dist2, 1e-8 );
+		w = pow( dist2, -1.5 );
+		//w = 1.0 / ( 1.0 + pow( dist2 * 100.0, 1.0 ) );
 		//w = exp( -dist2 * 15.0 );
 		wsum = wsum + w;
 		cp = cp + dp.xy * w;
@@ -128,5 +129,5 @@ void main()
 	covar = covar - outerProduct( cp, cq );
 
 	T = solverigid( covar );
-	vtx_TexCoord =  T * ( in_Vertex.xy - cp ) + cq;
+	vtx_TexCoord =  transpose( T ) * ( in_Vertex.xy - cp ) + cq;
 }

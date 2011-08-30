@@ -16,7 +16,7 @@ using namespace cvt;
 class GLMLS : public Window
 {
 	public:
-	GLMLS( const String& imgstr ) : Window("GLMLS")
+	GLMLS( const String& imgstr ) : Window("GLMLS"), _selection( -1 )
 	{
 		Image img;
 
@@ -32,14 +32,17 @@ class GLMLS : public Window
 		_prog.setAlpha( 1.0 );
 		_prog.unbind();
 
-		Vector4f vec[ 5 ];
-		vec[ 0 ].set( 0, 0, 0, 0 );
-		vec[ 1 ].set( 0, 1, 0, 1 );
-		vec[ 2 ].set( 1, 0, 1, 0 );
-		vec[ 3 ].set( 1, 1, 1, 1 );
-		vec[ 4 ].set( 0.5, 0.5, 0.6, 0.6 );
-		_prog.setDisplacements( &vec[ 0 ], 5 );
+		_displacements.push_back( Vector4f( 0.1, 0.1, 0.1, 0.1 ));
+		_displacements.push_back( Vector4f( 0.1, 0.9, 0.1, 0.9 ));
+		_displacements.push_back( Vector4f( 0.9, 0.1, 0.9, 0.1 ));
+		_displacements.push_back( Vector4f( 0.9, 0.9, 0.9, 0.9 ));
+		_displacements.push_back( Vector4f( 0.5, 0.5, 0.6, 0.6 ));
+		updateDisplacements();
+	}
 
+	void updateDisplacements()
+	{
+		_prog.setDisplacements( &_displacements[ 0 ], _displacements.size() );
 		update();
 	}
 
@@ -54,6 +57,8 @@ class GLMLS : public Window
 		int w, h;
 		float aspect;
 		size( w, h );
+
+		/* Draw image */
 
 		aspect = ( ( float ) _glimage.width() / ( float ) _glimage.height() );
 
@@ -71,25 +76,72 @@ class GLMLS : public Window
 		_prog.setProjection( proj );
 		_prog.drawImage( 0, 0, _dw, _dh, _glimage );
 		_prog.unbind();
+
+		/* Draw displacements */
+		g->color() = Color::BLUE;
+		g->color().setAlpha( 0.5f );
+		for( size_t i = 0; i < _displacements.size(); i++) {
+			Vector4f dp = _displacements[ i ];
+			g->drawIcon( dp.x * _dw - 8, dp.y * _dh - 8, GFX::ICON_CIRCLE );
+		}
+		g->color() = Color::YELLOW;
+		g->color().setAlpha( 0.5f );
+		for( size_t i = 0; i < _displacements.size(); i++) {
+			Vector4f dp = _displacements[ i ];
+			g->drawIcon( dp.z * _dw - 8, dp.w * _dh - 8, GFX::ICON_CIRCLE );
+		}
+
 	}
 
 	void mousePressEvent( MousePressEvent* event )
 	{
+		Vector2f pt( event->x, event->y );
+		for( size_t i = 0; i < _displacements.size(); i++) {
+			Vector4f dp = _displacements[ i ];
+			Vector2f pt1( dp.x * _dw, dp.y * _dh );
+			Vector2f pt2( dp.z * _dw, dp.w * _dh );
+
+			if( ( pt1 - pt ).length() < 5.0f ) {
+				_selection = i;
+				_orig = true;
+				return;
+			}
+
+			if( ( pt2 - pt ).length() < 5.0f ) {
+				_selection = i;
+				_orig = false;
+				return;
+			}
+		}
+		_selection = -1;
 	}
 
 	void mouseMoveEvent( MouseMoveEvent* event )
 	{
+		if( _selection >= 0 ) {
+			if( _orig ) {
+				_displacements[ _selection ].x = ( float ) event->x / ( float ) _dw;
+				_displacements[ _selection ].y = ( float ) event->y / ( float ) _dh;
+			} else {
+				_displacements[ _selection ].z = ( float ) event->x / ( float ) _dw;
+				_displacements[ _selection ].w = ( float ) event->y / ( float ) _dh;
+			}
+			updateDisplacements();
+		}
 	}
 
-	void mouseReleaseEvent( MouseReleaseEvent* e )
+	void mouseReleaseEvent( MouseReleaseEvent* event )
 	{
+		_selection = -1;
 	}
 
 	private:
 		Image _glimage;
 		int _selection;
+		bool _orig;
 		GLTexMLSProg _prog;
 		int _dw, _dh;
+		std::vector<Vector4f> _displacements;
 };
 
 int main( int argc, char** argv )
