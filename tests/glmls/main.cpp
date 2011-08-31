@@ -36,7 +36,7 @@ class GLMLS : public Window
 		_displacements.push_back( Vector4f( 0.1, 0.9, 0.1, 0.9 ));
 		_displacements.push_back( Vector4f( 0.9, 0.1, 0.9, 0.1 ));
 		_displacements.push_back( Vector4f( 0.9, 0.9, 0.9, 0.9 ));
-		_displacements.push_back( Vector4f( 0.5, 0.5, 0.6, 0.6 ));
+	//	_displacements.push_back( Vector4f( 0.5, 0.5, 0.6, 0.6 ));
 		updateDisplacements();
 	}
 
@@ -113,7 +113,11 @@ class GLMLS : public Window
 				return;
 			}
 		}
+		float nx = ( float ) event->x / ( float ) _dw;
+		float ny = ( float ) event->y / ( float ) _dh;
+		_displacements.push_back( Vector4f( nx, ny, nx, ny ) );
 		_selection = -1;
+		updateDisplacements();
 	}
 
 	void mouseMoveEvent( MouseMoveEvent* event )

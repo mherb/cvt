@@ -87,8 +87,43 @@ mat2 solverigid( in mat2 mat )
 	diag = mat * vt;
 	jacobi( c, s, diag[ 0 ][ 0 ], diag[ 0 ][ 1 ], diag[ 1 ][ 1 ] );
 	u = mat2( c, s, -s, c );
+	diag = mat2( c, -s, s, c ) * diag * u;
 	vt = vt * u;
-	return u * transpose( vt ); 
+/*	if( diag[ 0 ][ 0 ] < 0.0) {
+		diag[ 0 ][ 0 ] = -diag[ 0 ][ 0 ];
+		vt[ 0 ] = -vt[ 0 ];
+	}
+	if( diag[ 1 ][ 1 ] < 0.0) {
+		diag[ 1 ][ 1 ] = -diag[ 1 ][ 1 ];
+		vt[ 1 ] = -vt[ 1 ];
+	}*/
+#if 0	
+	/* make singular values positive */
+		for( int i = 0; i < 2; i++ ) {
+			if( diag[ i ][ i ] < 0 ) {
+				diag[ i ][ i ] = - diag[ i ][ i ];
+				for( int k = 0; k < 2; k++ )
+					u[ k ][ i ] = -u[ k ][ i ];
+			}
+		}
+#endif
+
+	/*if( diag[ 0 ][ 0 ] < diag[ 1 ][ 1 ] ) {
+		float tmp;
+		for( int i = 0; i < 2; i++ ) {
+			tmp = u[ i ][ 0 ];
+			u[ i ][ 0 ] = u[ i ][ 1 ];
+			u[ i ][ 1 ] = tmp;
+
+			tmp = vt[ i ][ 0 ];
+			vt[ i ][ 0 ] = vt[ i ][ 1 ];
+			vt[ i ][ 1 ] = tmp;
+		}
+	}*/
+	mat2 scale = mat2( 1.0 );
+	if( det( mat ) < 0 )
+		scale[ 1 ][ 1 ] = -1.0;
+	return u * scale * transpose( vt );
 }
 
 void main()
@@ -109,11 +144,11 @@ void main()
 	vtx_Color = in_Color;
 	gl_Position = MVP * vec4( in_Vertex, 1.0 ); 
 
-	for( int i = 0; i < 5; i++ ) {
+	for( int i = 0; i < DPTexSize; i++ ) {
 		dp = texture2D( DPTex, vec2( ( float( i ) + 0.5 ) * 1.0 / DPTexSize, 0.5 ) );
 		//dp = data[ i ];
 		float dist2 = dot( dp.xy - in_Vertex.xy, dp.xy - in_Vertex.xy );
-		dist2 = max( dist2, 1e-8 );
+		dist2 = max( dist2, 1e-6 );
 		w = pow( dist2, -1.5 );
 		//w = 1.0 / ( 1.0 + pow( dist2 * 100.0, 1.0 ) );
 		//w = exp( -dist2 * 15.0 );
