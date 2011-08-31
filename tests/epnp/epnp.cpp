@@ -5,6 +5,7 @@
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
+#include <cvt/util/Time.h>
 
 
 using namespace cvt;
@@ -34,6 +35,7 @@ void transformPoints( PointSet<2, T> & result, const Matrix4<T> & transform, con
 template <typename T>
 void genPoints( PointSet<3, T> & ptset, size_t n )
 {
+
 	srandom( time( NULL ) );
 	Vector3<T> p;
 	while( n-- ){
@@ -44,7 +46,7 @@ void genPoints( PointSet<3, T> & ptset, size_t n )
 		ptset.add( p );
 	}
 
-	/*
+/*	
     ptset.add( Vector3<T>( (T)100, (T)200, (T)300 ) );
     ptset.add( Vector3<T>( (T)-100, (T)200, (T)400 ) );
     ptset.add( Vector3<T>( (T)130, (T)220, (T)400 ) );
@@ -55,7 +57,7 @@ void genPoints( PointSet<3, T> & ptset, size_t n )
     ptset.add( Vector3<T>( (T)-61, (T)-20, (T)600 ) );
     ptset.add( Vector3<T>( (T)80, (T)-50, (T)70 ) );
     ptset.add( Vector3<T>( (T)10, (T)-168, (T)60 ) );
-	*/
+*/	
 }
 
 int main( void )
@@ -80,13 +82,16 @@ int main( void )
 			K44[ i ][ k ] = K[ i ][ k ];
 	K44[ 3 ][ 3 ] = 1;
 
-	genPoints( ptset, 20 );
+	genPoints( ptset, 7 );
 	transformPoints( ptset2d, transform, K44, ptset, 5.0 );
 
+	Time t;
 	EPnP<double> epnp( ptset );
 
 	Matrix4<double> estimated;
 	epnp.solve( estimated, ptset2d, K );
+
+	std::cout << "EPnP time: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
 	std::cout << "TRUE:\n" << transform << std::endl;
 	std::cout << "Estimated:\n" << estimated << std::endl;
