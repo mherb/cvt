@@ -82,7 +82,7 @@ int main( void )
 			K44[ i ][ k ] = K[ i ][ k ];
 	K44[ 3 ][ 3 ] = 1;
 
-	genPoints( ptset, 7 );
+	genPoints( ptset, 100 );
 	transformPoints( ptset2d, transform, K44, ptset, 5.0 );
 
 	Time t;
