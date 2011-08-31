@@ -59,7 +59,7 @@ namespace cvt {
 	template<typename T>
 	inline void PCA<T>::addSample( const Eigen::Matrix<T, Eigen::Dynamic, 1>& sample )
 	{
-		if( sample.rows() != _dimension )
+		if( ( size_t )sample.rows() != _dimension )
 			return;
 		_mean += sample;
 		_x	  += sample * sample.transpose();
