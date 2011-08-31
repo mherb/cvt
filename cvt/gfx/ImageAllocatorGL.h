@@ -6,6 +6,7 @@
 namespace cvt {
 	class ImageAllocatorGL : public ImageAllocator {
 		friend class GLDrawImageProg;
+		friend class GLTexMLSProg;
 		public:
 			ImageAllocatorGL();
 			~ImageAllocatorGL();
