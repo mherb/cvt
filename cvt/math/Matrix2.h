@@ -57,6 +57,7 @@ namespace cvt {
 		Matrix2<T>&			transposeSelf( void );
 		Matrix2<T>			inverse( void ) const;
 		bool				inverseSelf( void );
+		void				svd( Matrix2<T>&, Matrix2<T>&, Matrix2<T>& ) const;
 
 		Matrix3<T>			toMatrix3( void ) const;
 

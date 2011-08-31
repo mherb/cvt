@@ -503,6 +503,70 @@ namespace cvt {
 		m[ h ][ k ] = tmp2; \
 	} while( 0 )
 
+	template<typename T>
+	void Matrix2<T>::svd( Matrix2<T>& u, Matrix2<T>& mat,  Matrix2<T>& v ) const
+	{
+		T c, s;
+
+		mat = *this;
+		u.setIdentity();
+		v.setIdentity();
+
+
+		/* diagonalize */
+
+		/* make 2 x 2 symmetric */
+		Math::givens( c, s, mat[ 0 ][ 0 ] + mat[ 1 ][ 1 ], mat[ 1 ][ 0 ] - mat[ 0 ][ 1 ] );
+		mat *= Matrix2<T>( c, s, -s, c );
+
+		/* apply the givens rotation to V^T */
+		v *= Matrix2<T>( c, s, -s, c );
+
+		/* make 2 x 2 diagonal, apply jacobi */
+		Math::jacobi( c, s, mat[ 0 ][ 0 ], mat[ 1 ][ 0 ], mat[ 1 ][ 1 ] );
+
+		Matrix2<T> jl( c, -s, s, c );
+		Matrix2<T> jr( c,  s, -s, c );
+		mat = jl * mat * jr;
+
+		/* apply the jacobi rotation to V^T */
+		v *= Matrix2<T>( c, s, -s, c );
+
+		/* apply the jacobi rotation to U */
+		u *= Matrix2<T>( c, s, -s, c );
+
+		/* make singular values positive */
+		for( int i = 0; i < 2; i++ ) {
+			if( mat[ i ][ i ] < 0 ) {
+				mat[ i ][ i ] = - mat[ i ][ i ];
+				for( int k = 0; k < 2; k++ )
+					u[ k ][ i ] = -u[ k ][ i ];
+			}
+		}
+
+		/* sort singular values */
+		int imax;
+		imax = ( mat[ 0 ][ 0 ] > mat[ 1 ][ 1 ] ) ? 0 : 1;
+		/* bring largest singular value to position 0 */
+		if( imax != 0 ) {
+			T tmp;
+			for( int i = 0; i < 2; i++ ) {
+				tmp = u[ i ][ 0 ];
+				u[ i ][ 0 ] = u[ i ][ imax ];
+				u[ i ][ imax ] = tmp;
+
+				tmp = v[ i ][ 0 ];
+				v[ i ][ 0 ] = v[ i ][ imax ];
+				v[ i ][ imax ] = tmp;
+			}
+			tmp = mat[ 0 ][ 0 ];
+			mat[ 0 ][ 0 ] = mat[ imax ][ imax ];
+			mat[ imax ][ imax ] = tmp;
+		}
+	}
+
+	template void Matrix2f::svd( Matrix2f&, Matrix2f&, Matrix2f& ) const;
+	template void Matrix2d::svd( Matrix2d&, Matrix2d&, Matrix2d& ) const;
 
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
@@ -722,6 +786,34 @@ namespace cvt {
         Matrix2f m2p = Matrix2f::fromString( s );
         b = ( m2p == m2 );
         CVTTEST_PRINT( "fromString()", b );
+
+		{
+			srand( time( NULL ) );
+
+			Eigen::Matrix2f et;
+			Eigen::Matrix2f mat = Eigen::Matrix2f::Random();
+			Eigen::JacobiSVD<Eigen::Matrix2f> svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+			/* Eigen SVD */
+			et = svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+
+			/* Copy mat to CVT matrix */
+			Matrix2f m, u, d, v, t, t2;
+			for( int y = 0; y < 2; y++ )
+				for( int x = 0; x < 2; x++ )
+					m[ y ][ x ] = mat( y, x );
+
+			/* CVT SVD */
+			m.svd( u, d, v );
+			t = u*d*v.transpose();
+
+			for( int y = 0; y < 2; y++ )
+				for( int x = 0; x < 2; x++ )
+					t2[ y ][ x ] = et( y, x );
+
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
+		}
 
 		return true;
 	END_CVTTEST
