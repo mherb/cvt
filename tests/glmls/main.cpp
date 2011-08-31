@@ -1,5 +1,6 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/ToggleButton.h>
 #include <cvt/util/String.h>
 #include <cvt/io/xml/XMLDocument.h>
 #include <cvt/gfx/IConvert.h>
@@ -16,7 +17,7 @@ using namespace cvt;
 class GLMLS : public Window
 {
 	public:
-	GLMLS( const String& imgstr ) : Window("GLMLS"), _selection( -1 )
+	GLMLS( const String& imgstr ) : Window("GLMLS"), _selection( -1 ), _toggle( String("Show displacements"), true )
 	{
 		Image img;
 
@@ -27,6 +28,11 @@ class GLMLS : public Window
 		} catch( Exception e ) {
 			std::cerr << "Conversion error: " << e.what() << std::endl;
 		}
+
+		WidgetLayout wl;
+		wl.setAnchoredRight( 10, 200 );
+		wl.setAnchoredTop( 10, 20 );
+		addWidget( &_toggle, wl );
 
 		_prog.bind();
 		_prog.setAlpha( 1.0 );
@@ -78,17 +84,19 @@ class GLMLS : public Window
 		_prog.unbind();
 
 		/* Draw displacements */
-		g->color() = Color::BLUE;
-		g->color().setAlpha( 0.5f );
-		for( size_t i = 0; i < _displacements.size(); i++) {
-			Vector4f dp = _displacements[ i ];
-			g->drawIcon( dp.x * _dw - 8, dp.y * _dh - 8, GFX::ICON_CIRCLE );
-		}
-		g->color() = Color::YELLOW;
-		g->color().setAlpha( 0.5f );
-		for( size_t i = 0; i < _displacements.size(); i++) {
-			Vector4f dp = _displacements[ i ];
-			g->drawIcon( dp.z * _dw - 8, dp.w * _dh - 8, GFX::ICON_CIRCLE );
+		if( _toggle.state() ) {
+			g->color() = Color::BLUE;
+			g->color().setAlpha( 0.5f );
+			for( size_t i = 0; i < _displacements.size(); i++) {
+				Vector4f dp = _displacements[ i ];
+				g->drawIcon( dp.x * _dw - 8, dp.y * _dh - 8, GFX::ICON_CIRCLE );
+			}
+			g->color() = Color::YELLOW;
+			g->color().setAlpha( 0.5f );
+			for( size_t i = 0; i < _displacements.size(); i++) {
+				Vector4f dp = _displacements[ i ];
+				g->drawIcon( dp.z * _dw - 8, dp.w * _dh - 8, GFX::ICON_CIRCLE );
+			}
 		}
 
 	}
@@ -96,28 +104,33 @@ class GLMLS : public Window
 	void mousePressEvent( MousePressEvent* event )
 	{
 		Vector2f pt( event->x, event->y );
-		for( size_t i = 0; i < _displacements.size(); i++) {
-			Vector4f dp = _displacements[ i ];
-			Vector2f pt1( dp.x * _dw, dp.y * _dh );
-			Vector2f pt2( dp.z * _dw, dp.w * _dh );
+		Recti r( 0, 0, _dw, _dh );
+		if( r.contains( event->x, event->y ) ) {
+			for( size_t i = 0; i < _displacements.size(); i++) {
+				Vector4f dp = _displacements[ i ];
+				Vector2f pt1( dp.x * _dw, dp.y * _dh );
+				Vector2f pt2( dp.z * _dw, dp.w * _dh );
 
-			if( ( pt1 - pt ).length() < 5.0f ) {
-				_selection = i;
-				_orig = true;
-				return;
-			}
+				if( ( pt1 - pt ).length() < 5.0f ) {
+					_selection = i;
+					_orig = true;
+					return;
+				}
 
-			if( ( pt2 - pt ).length() < 5.0f ) {
-				_selection = i;
-				_orig = false;
-				return;
+				if( ( pt2 - pt ).length() < 5.0f ) {
+					_selection = i;
+					_orig = false;
+					return;
+				}
 			}
+			float nx = ( float ) event->x / ( float ) _dw;
+			float ny = ( float ) event->y / ( float ) _dh;
+			_displacements.push_back( Vector4f( nx, ny, nx, ny ) );
+			_selection = -1;
+			updateDisplacements();
+		} else {
+			WidgetContainer::mousePressEvent( event );
 		}
-		float nx = ( float ) event->x / ( float ) _dw;
-		float ny = ( float ) event->y / ( float ) _dh;
-		_displacements.push_back( Vector4f( nx, ny, nx, ny ) );
-		_selection = -1;
-		updateDisplacements();
 	}
 
 	void mouseMoveEvent( MouseMoveEvent* event )
@@ -137,6 +150,7 @@ class GLMLS : public Window
 	void mouseReleaseEvent( MouseReleaseEvent* event )
 	{
 		_selection = -1;
+		WidgetContainer::mouseReleaseEvent( event );
 	}
 
 	private:
@@ -145,6 +159,7 @@ class GLMLS : public Window
 		bool _orig;
 		GLTexMLSProg _prog;
 		int _dw, _dh;
+		ToggleButton _toggle;
 		std::vector<Vector4f> _displacements;
 };
 
