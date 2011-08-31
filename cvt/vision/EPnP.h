@@ -36,18 +36,17 @@ namespace cvt {
 
 			void computeControlPointsDelta( Eigen::Matrix<T, 6, 1> & cpDelta ) const;
 
-			T	 computeBeta1( const Eigen::Matrix<T, 12, 1> & v, const Eigen::Matrix<T, 6, 1> & deltaC ) const;
-
-			void computeBetas2( Vector2<T> & betas, 
-							    const Eigen::Matrix<T, 12, 1> & v0,
-							    const Eigen::Matrix<T, 12, 1> & v1,
-								const Eigen::Matrix<T,  6, 1> & cpDistanceSqr ) const;
-
-			void computeBetas3( Vector3<T> & betas,
-							    const Eigen::Matrix<T, 12, 1> & v0,
-							    const Eigen::Matrix<T, 12, 1> & v1,
-							    const Eigen::Matrix<T, 12, 1> & v2,
-								const Eigen::Matrix<T,  6, 1> & cpDistanceSqr ) const;
+			void solveBetaN2( Eigen::Matrix<T, 4,  1> & betas, 
+							  const Eigen::Matrix<T, 6, 10> & C,
+				 		      const Eigen::Matrix<T, 6,  1> & dSqr ) const;
+			
+			void solveBetaN3( Eigen::Matrix<T, 4,  1> & betas,
+				    		  const Eigen::Matrix<T, 6, 10> & C,
+				 		      const Eigen::Matrix<T, 6,  1> & dSqr ) const;
+			
+			void solveBetaN4( Eigen::Matrix<T, 4,  1> & betas, 
+				 			  const Eigen::Matrix<T, 6, 10> & C,
+				 		      const Eigen::Matrix<T, 6,  1> & dSqr ) const;
 			
 			void computePose( Matrix4<T> & transform, 
 							  const Eigen::Matrix<T, 12, 1> & estimatedCoords, 
@@ -58,8 +57,13 @@ namespace cvt {
 								   const PointSet<3, T> & p3d,
 								   const PointSet<2, T> & p2d ) const;
 
+			void fillConstraintMatrix( Eigen::Matrix<T, 6, 10> & C,
+                                       const Eigen::Matrix<T, 12, 1> & v0,
+	                                   const Eigen::Matrix<T, 12, 1> & v1,
+                                       const Eigen::Matrix<T, 12, 1> & v2,
+                                       const Eigen::Matrix<T, 12, 1> & v3 ) const;
 	};
-
 }
+
 
 #endif
