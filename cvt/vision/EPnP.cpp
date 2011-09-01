@@ -5,9 +5,6 @@ namespace cvt
 	typedef EPnP<float>  EPnPf;
 	typedef EPnP<double> EPnPd;
 
-	template EPnP<float>::EPnP( const PointSet<3, float>& );
-	template EPnP<double>::EPnP( const PointSet<3, double>& );
-
 	template <typename T>
 	inline EPnP<T>::EPnP( const PointSet<3, T> & pointSet ) : _points3D( pointSet )
 	{
@@ -16,8 +13,6 @@ namespace cvt
 		computeBarycentricCoords( pointSet );
 	}
 
-	template void EPnP<float>::solve( Matrix4<float>&, const PointSet<2, float>&, const Matrix3<float>& ) const;
-	template void EPnP<double>::solve( Matrix4<double>&, const PointSet<2, double>&, const Matrix3<double>& ) const;
 	template <typename T>
 	inline void EPnP<T>::solve( Matrix4<T> & transform, const PointSet<2, T> & pointSet, const Matrix3<T> & K ) const
 	{
@@ -51,7 +46,7 @@ namespace cvt
 		Eigen::Matrix<T, 6, 10> constraintMat;
 		fillConstraintMatrix( constraintMat, v0, v1, v2, v3 );
 		cpDistSqr = controlPointDistances.array() * controlPointDistances.array();
-		
+
 		Eigen::Matrix<T, 12, 1> combinedV;
 		Eigen::Matrix<T, 4, 1> betas;
 
@@ -83,12 +78,10 @@ namespace cvt
 			if( err[ 2 ] < err[ 0 ] )
 				i = 2;
 		}
-		
+
 		transform = Tout[ i ];
 	}
 
-	template void EPnP<float>::computeControlPoints( const PointSet<3, float>& );
-	template void EPnP<double>::computeControlPoints( const PointSet<3, double>& );
 	template <typename T>
 	inline void EPnP<T>::computeControlPoints( const PointSet<3, T> & ptSet )
 	{
@@ -115,13 +108,13 @@ namespace cvt
 		_controlPoints.add( Vector3<T>( ( T )0, ( T )0, ( T )0 ) );
 		_controlPoints.add( Vector3<T>( ( T )0, ( T )0, ( T )0 ) );
 		_controlPoints.add( Vector3<T>( ( T )0, ( T )0, ( T )0 ) );
-	
+
 		T scale0 = Math::sqrt( sVals[ 0 ] );
-				
+
 		_controlPoints[ 1 ].x = scale0 * comp( 0, 0 ) + p[ 0 ];
 		_controlPoints[ 1 ].y = scale0 * comp( 1, 0 ) + p[ 1 ];
 		_controlPoints[ 1 ].z = scale0 * comp( 2, 0 ) + p[ 2 ];
-		
+
 		T scale1 = Math::sqrt( sVals[ 1 ] );
 		_controlPoints[ 2 ].x = scale1 * comp( 0, 1 ) + p[ 0 ];
 		_controlPoints[ 2 ].y = scale1 * comp( 1, 1 ) + p[ 1 ];
@@ -136,7 +129,7 @@ namespace cvt
 		_pcInv[ 1 ][ 0 ] = comp( 0, 1 ) / scale1; _pcInv[ 1 ][ 1 ] = comp( 1, 1 ) / scale1;	_pcInv[ 1 ][ 2 ] = comp( 2, 1 ) / scale1;
 		_pcInv[ 2 ][ 0 ] = comp( 0, 2 ) / scale2; _pcInv[ 2 ][ 1 ] = comp( 1, 2 ) / scale2;	_pcInv[ 2 ][ 2 ] = comp( 2, 2 ) / scale2;
 	}
-	
+
 	template <typename T>
 	inline void EPnP<T>::computeBarycentricCoords( const PointSet<3, T> & ptSet )
 	{
@@ -157,13 +150,13 @@ namespace cvt
 		// build the matrix:
 		A.setZero();
 
-		Eigen::Matrix<T, 12, 1> l0, l1;		
+		Eigen::Matrix<T, 12, 1> l0, l1;
 		for( size_t i = 0; i < points2D.size(); i++ ){
 			for( size_t k = 0; k < 4; k++ ){
 				l0[ k * 3 ]		= _barycentricCoords[ i ][ k ] * K[ 0 ][ 0 ];
 				l0[ k * 3 + 1 ] = _barycentricCoords[ i ][ k ] * K[ 0 ][ 1 ];
 				l0[ k * 3 + 2 ] = _barycentricCoords[ i ][ k ] * ( K[ 0 ][ 2 ] - points2D[ i ].x );
-				l1[ k * 3 ]		= ( T )0; 
+				l1[ k * 3 ]		= ( T )0;
 				l1[ k * 3 + 1 ] = _barycentricCoords[ i ][ k ] * K[ 1 ][ 1 ];
 				l1[ k * 3 + 2 ] = _barycentricCoords[ i ][ k ] * ( K[ 1 ][ 2 ] - points2D[ i ].y );
 			}
@@ -375,8 +368,8 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::computePose( Matrix4<T> & transform, 
-									  const Eigen::Matrix<T, 12, 1> & estimatedCoords, 
+	inline void EPnP<T>::computePose( Matrix4<T> & transform,
+									  const Eigen::Matrix<T, 12, 1> & estimatedCoords,
 									  const PointSet<3, T> & controlPoints ) const
 	{
 		PointSet<3, T> estimated;
@@ -391,8 +384,8 @@ namespace cvt
 	template <typename T>
 	inline T EPnP<T>::reprojectionError( const Matrix4<T> & transform,
 										 const Matrix4<T> & K44,
-	  									 const PointSet<3, T> & p3d,
-	  									 const PointSet<2, T> & p2d ) const
+										 const PointSet<3, T> & p3d,
+										 const PointSet<2, T> & p2d ) const
 	{
 		T error = ( T )0;
 		Matrix4<T> P = K44 * transform;
@@ -401,13 +394,13 @@ namespace cvt
 
 		for( size_t i = 0, n = p3d.size(); i < n; i++ ){
 			tmp = P * p3d[ i ];
-			proj[ 0 ] = tmp[ 0 ] / tmp[ 2 ]; 
+			proj[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
 			proj[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
 
 			error += ( proj	- p2d[ i ] ).lengthSqr();
 		}
 
-		return error;		
+		return error;
 	}
 
 }
