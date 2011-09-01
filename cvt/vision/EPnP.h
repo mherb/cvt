@@ -63,6 +63,9 @@ namespace cvt {
                                        const Eigen::Matrix<T, 12, 1> & v2,
                                        const Eigen::Matrix<T, 12, 1> & v3 ) const;
 	};
+
+	typedef EPnP<float>  EPnPf;
+	typedef EPnP<double> EPnPd;
 }
 
 

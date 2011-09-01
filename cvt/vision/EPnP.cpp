@@ -2,11 +2,8 @@
 
 namespace cvt
 {
-	typedef EPnP<float>  EPnPf;
-	typedef EPnP<double> EPnPd;
-
 	template <typename T>
-	inline EPnP<T>::EPnP( const PointSet<3, T> & pointSet ) : _points3D( pointSet )
+	EPnP<T>::EPnP( const PointSet<3, T> & pointSet ) : _points3D( pointSet )
 	{
 		// controlpoints
 		computeControlPoints( pointSet );
@@ -14,7 +11,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::solve( Matrix4<T> & transform, const PointSet<2, T> & pointSet, const Matrix3<T> & K ) const
+	void EPnP<T>::solve( Matrix4<T> & transform, const PointSet<2, T> & pointSet, const Matrix3<T> & K ) const
 	{
 		Eigen::Matrix<T, 12, 12> A;
 
@@ -83,7 +80,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::computeControlPoints( const PointSet<3, T> & ptSet )
+	void EPnP<T>::computeControlPoints( const PointSet<3, T> & ptSet )
 	{
 		// the centroid
 		PCA<T> pca( 3 );
@@ -131,7 +128,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::computeBarycentricCoords( const PointSet<3, T> & ptSet )
+	void EPnP<T>::computeBarycentricCoords( const PointSet<3, T> & ptSet )
 	{
 		_barycentricCoords.clear();
 		_barycentricCoords.reserve( ptSet.size() );
@@ -145,7 +142,7 @@ namespace cvt
 	}
 
 	template<typename T>
-	inline void EPnP<T>::buildSystem( Eigen::Matrix<T, 12, 12> & A, const PointSet<2, T> & points2D, const Matrix3<T> & K ) const
+	void EPnP<T>::buildSystem( Eigen::Matrix<T, 12, 12> & A, const PointSet<2, T> & points2D, const Matrix3<T> & K ) const
 	{
 		// build the matrix:
 		A.setZero();
@@ -169,7 +166,7 @@ namespace cvt
 
 	// N=2: we need to select comb. between 00, 01 and 11
 	template <typename T>
-	inline void EPnP<T>::solveBetaN2( Eigen::Matrix<T, 4,  1> & betas,
+	void EPnP<T>::solveBetaN2( Eigen::Matrix<T, 4,  1> & betas,
 									  const Eigen::Matrix<T, 6, 10> & C,
 								      const Eigen::Matrix<T, 6,  1> & dSqr ) const
 	{
@@ -199,7 +196,7 @@ namespace cvt
 
 	// N=3: we need to select comb. between 00, 01, 02, 11, 12 
 	template <typename T>
-	inline void EPnP<T>::solveBetaN3( Eigen::Matrix<T, 4,  1> & betas, 
+	void EPnP<T>::solveBetaN3( Eigen::Matrix<T, 4,  1> & betas, 
 									  const Eigen::Matrix<T, 6, 10> & C,
 								      const Eigen::Matrix<T, 6,  1> & dSqr ) const
 	{
@@ -227,7 +224,7 @@ namespace cvt
 
 	// N=4: we need to select comb. between 00, 01, 02, 03 
 	template <typename T>
-	inline void EPnP<T>::solveBetaN4( Eigen::Matrix<T, 4,  1> & betas, 
+	void EPnP<T>::solveBetaN4( Eigen::Matrix<T, 4,  1> & betas, 
 									  const Eigen::Matrix<T, 6, 10> & C,
 								      const Eigen::Matrix<T, 6,  1> & dSqr ) const
 	{
@@ -250,7 +247,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::fillConstraintMatrix( Eigen::Matrix<T, 6, 10> & C, 
+	void EPnP<T>::fillConstraintMatrix( Eigen::Matrix<T, 6, 10> & C, 
 											   const Eigen::Matrix<T, 12, 1> & v0, 
 											   const Eigen::Matrix<T, 12, 1> & v1, 
 											   const Eigen::Matrix<T, 12, 1> & v2, 
@@ -357,7 +354,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::computeControlPointsDelta( Eigen::Matrix<T, 6, 1> & cpDelta ) const
+	void EPnP<T>::computeControlPointsDelta( Eigen::Matrix<T, 6, 1> & cpDelta ) const
 	{
 		cpDelta[ 0 ] = ( _controlPoints[ 0 ] - _controlPoints[ 1 ] ).length();
 		cpDelta[ 1 ] = ( _controlPoints[ 0 ] - _controlPoints[ 2 ] ).length();
@@ -368,7 +365,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline void EPnP<T>::computePose( Matrix4<T> & transform,
+	void EPnP<T>::computePose( Matrix4<T> & transform,
 									  const Eigen::Matrix<T, 12, 1> & estimatedCoords,
 									  const PointSet<3, T> & controlPoints ) const
 	{
@@ -382,7 +379,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	inline T EPnP<T>::reprojectionError( const Matrix4<T> & transform,
+	T EPnP<T>::reprojectionError( const Matrix4<T> & transform,
 										 const Matrix4<T> & K44,
 										 const PointSet<3, T> & p3d,
 										 const PointSet<2, T> & p2d ) const
@@ -403,4 +400,6 @@ namespace cvt
 		return error;
 	}
 
+	template class EPnP<float>;
+	template class EPnP<double>;
 }
