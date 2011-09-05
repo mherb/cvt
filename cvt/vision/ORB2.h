@@ -23,6 +23,7 @@ namespace cvt {
 		}
 
 		uint8_t desc[ 32 ]; // 256 bit vector
+		bool	brighter;   // center pixel is brighter than the ring  
 	};
 
 
@@ -45,7 +46,12 @@ namespace cvt {
             ~ORB2();
 
 			size_t size() const;
+			size_t numBrighter() const;
+			size_t numDarker() const;
 			const ORB2Feature& operator[]( size_t index ) const;
+
+			const ORB2Feature& brighterFeature( size_t index ) const;
+			const ORB2Feature& darkerFeature( size_t index ) const;
 
 		private:
 			void detect( const Image& img, size_t octave );
@@ -59,8 +65,18 @@ namespace cvt {
 
 			void selectBestFeatures( size_t num );
 
-			typedef std::vector<ORB2Feature> ContainerType;
-			ContainerType	_features;
+			void genTestChannel();
+
+			/**
+			 * Test if the feautre pointed to by ptr is brighter or darker
+			 */
+			bool isBrighterFeature( const uint8_t * ptr, size_t stride ) const;
+
+			typedef std::vector<ORB2Feature>  ContainerType;
+			typedef std::vector<ORB2Feature*> ContainerPtrType;
+			ContainerType		_features;
+			ContainerPtrType	_brighterFeatures;
+			ContainerPtrType	_darkerFeatures;
 
             IntegralImage*	_iimages;
             float*			_scaleFactors;
@@ -84,9 +100,29 @@ namespace cvt {
 		return _features.size();
 	}
 
+	inline size_t ORB2::numBrighter() const 
+	{
+		return _brighterFeatures.size();
+	}
+
+	inline size_t ORB2::numDarker() const 
+	{
+		return _darkerFeatures.size();
+	}
+
 	inline const ORB2Feature& ORB2::operator[]( size_t index ) const
 	{
 		return _features[ index ];
+	}
+
+	inline const ORB2Feature& ORB2::brighterFeature( size_t index ) const
+	{
+		return *_brighterFeatures[ index ];
+	}
+	
+	inline const ORB2Feature& ORB2::darkerFeature( size_t index ) const
+	{
+		return *_darkerFeatures[ index ];
 	}
 }
 

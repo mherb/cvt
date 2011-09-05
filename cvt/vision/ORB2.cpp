@@ -25,8 +25,6 @@ namespace cvt {
 		_numFeatures( numFeatures ),
         _nms( nms )
 	{
-
-
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
@@ -47,6 +45,7 @@ namespace cvt {
 		}
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
+		
 		extract( octaves );
 	}
 
@@ -74,7 +73,9 @@ namespace cvt {
 		ContainerType::iterator itEnd = octaveFeatures.end();
 
 		while( it != itEnd ){
-			it->score = simd->harrisResponse1u8( ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
+			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
+			it->score = simd->harrisResponse1u8( p , stride, 4, 4, 0.04f );
+			it->brighter = isBrighterFeature( p, stride );
 			++it;
 		}
 
@@ -200,6 +201,12 @@ namespace cvt {
 			size_t octave = _features[ i ].octave;
 			centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+
+			if( _features[ i ].brighter ){
+				_brighterFeatures.push_back( &_features[ i ] );
+			} else {
+				_darkerFeatures.push_back( &_features[ i ] );
+			}
 		}
 
 		for( size_t i = 0; i < octaves; i++ ){
@@ -270,6 +277,62 @@ namespace cvt {
 
 		if( _features.size() > num )
 			_features.erase( _features.begin() + num, _features.end() );
+	}
+
+	bool ORB2::isBrighterFeature( const uint8_t * ptr, size_t stride ) const 
+	{
+		size_t numB = 0; 
+		size_t numD = 0;
+
+		int highT = *ptr + _threshold;
+		int lowT  = *ptr - _threshold;
+
+		const uint8_t * p = ptr - 3 * stride - 1;
+
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numB += ( p[ 1 ] > highT ) ? 1 : 0;
+		numB += ( p[ 2 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numD += ( p[ 1 ] < lowT )  ? 1 : 0;
+		numD += ( p[ 2 ] < lowT )  ? 1 : 0;
+
+		p = ptr - 2 * stride - 2;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numB += ( p[ 4 ] > highT ) ? 1 : 0;
+		numD += ( p[ 4 ] < lowT )  ? 1 : 0;
+
+		p = ptr - stride - 3;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numB += ( p[ 6 ] > highT ) ? 1 : 0;
+		numD += ( p[ 6 ] < lowT )  ? 1 : 0;
+		p += stride;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numB += ( p[ 6 ] > highT ) ? 1 : 0;
+		numD += ( p[ 6 ] < lowT )  ? 1 : 0;
+		p += stride;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numB += ( p[ 6 ] > highT ) ? 1 : 0;
+		numD += ( p[ 6 ] < lowT )  ? 1 : 0;
+
+		p = p + stride + 1;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numB += ( p[ 4 ] > highT ) ? 1 : 0;
+		numD += ( p[ 4 ] < lowT )  ? 1 : 0;
+		
+		p = p + stride + 1;
+		numB += ( p[ 0 ] > highT ) ? 1 : 0;
+		numB += ( p[ 1 ] > highT ) ? 1 : 0;
+		numB += ( p[ 2 ] > highT ) ? 1 : 0;
+		numD += ( p[ 0 ] < lowT )  ? 1 : 0;
+		numD += ( p[ 1 ] < lowT )  ? 1 : 0;
+		numD += ( p[ 2 ] < lowT )  ? 1 : 0;
+
+		return numB > numD;
 	}
 
 	const int ORB2::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
