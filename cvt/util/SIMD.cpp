@@ -3895,7 +3895,6 @@ namespace cvt {
 	}
 
 
-
 	float SIMD::harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const
 	{
 		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
@@ -3922,6 +3921,36 @@ namespace cvt {
 			src += srcStride;
 		}
 
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+	}
+
+
+	float SIMD::harrisResponse1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const
+	{
+		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
+		float Ix = 0;
+		float Iy = 0;
+		float a = 0, b = 0, c = 0;
+
+		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y < yend; y++ ) {
+			const uint8_t* psrc = src;
+			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x < xend; x++ ) {
+				Ix = 2.0f * ( ( float )*( psrc + 1 ) - ( float )*( psrc - 1 ) );
+				Ix += ( ( float )*( psrc + 1 + srcStride ) - ( float )*( psrc - 1 + srcStride ) );
+				Ix += ( ( float )*( psrc + 1 - srcStride ) - ( float )*( psrc - 1 - srcStride ) );
+
+				Iy = 2.0f * ( ( float )*( psrc + srcStride ) - ( float )*( psrc - srcStride ) );
+				Iy += ( ( float )*( psrc + srcStride + 1 ) - ( float )*( psrc - srcStride + 1 ) );
+				Iy += ( ( float )*( psrc + srcStride - 1 ) - ( float )*( psrc - srcStride - 1 ) );
+
+				a += Ix * Ix;
+				b += Iy * Iy;
+				c += Ix * Iy;
+				psrc++;
+			}
+			src += srcStride;
+		}
+		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
