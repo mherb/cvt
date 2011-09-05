@@ -337,6 +337,9 @@ SET(${MODULE_NAME}_HEADERS
 	vision/LSH.h
 	vision/MeasurementModel.h
 	vision/ORB.h
+	vision/ORBPatterns.h
+	vision/ORB2.h
+	vision/ORB2Patterns.h
 	vision/Patch.h
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
@@ -478,6 +481,8 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
 	vision/ORB.cpp
+	vision/ORB2.cpp
+	vision/ORB2Test.cpp
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
@@ -585,7 +590,7 @@ set_target_properties(${MODULE_NAME}
 CVTTESTS(cvt util/cvttestsproto.h)
 
 #link_directories (${CMAKE_BINARY_DIR}/lib/)
-IF( ${CMAKE_BUILD_TYPE} MATCHES "debug" )
+IF( ${CMAKE_BUILD_TYPE} MATCHES "DEBUG" )
 	add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
 	IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
