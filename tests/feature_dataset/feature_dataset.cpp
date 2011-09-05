@@ -21,6 +21,7 @@
 
 #include <cvt/io/FileSystem.h>
 #include <cvt/vision/ORB.h>
+#include <cvt/vision/ORB2.h>
 
 #include <cvt/vision/FeatureMatch.h>
 
@@ -28,6 +29,8 @@
 #include "LSH.h"
 
 #include <opencv2/opencv.hpp>
+
+#define TEST_ORB2
 
 using namespace cvt;
 
@@ -43,6 +46,49 @@ void matchFeatures( const ORB & orb0, const ORB & orb1, size_t maxDistance, std:
 			if( dist < m.distance ){
 				m.distance = dist;
                 m.feature1 = &orb1[ k ];
+			}
+		}
+
+		if( m.distance < maxDistance ){
+			matches.push_back( m );
+        }
+	}
+}
+
+void matchFeatures( const ORB2 & orb0, const ORB2 & orb1, size_t maxDistance, std::vector<FeatureMatch> & matches )
+{
+    FeatureMatch m;
+
+	// brighter features
+	for( size_t i = 0; i < orb0.numBrighter(); i++ ){
+		const ORB2Feature & f = orb0.brighterFeature( i );
+		m.feature0 = &orb0.brighterFeature( i );
+		m.distance = maxDistance;
+		for( size_t k = 0; k < orb1.numBrighter(); k++ ){
+			size_t dist = f.distance( orb1.brighterFeature( k ) );
+
+			if( dist < m.distance ){
+				m.distance = dist;
+                m.feature1 = &orb1.brighterFeature( k );
+			}
+		}
+
+		if( m.distance < maxDistance ){
+			matches.push_back( m );
+        }
+	}
+
+	// darker features
+	for( size_t i = 0; i < orb0.numDarker(); i++ ){
+		const ORB2Feature & f = orb0.darkerFeature( i );
+		m.feature0 = &orb0.darkerFeature( i );
+		m.distance = maxDistance;
+		for( size_t k = 0; k < orb1.numDarker(); k++ ){
+			size_t dist = f.distance( orb1.darkerFeature( k ) );
+
+			if( dist < m.distance ){
+				m.distance = dist;
+                m.feature1 = &orb1.darkerFeature( k );
 			}
 		}
 
@@ -381,11 +427,20 @@ class FeatureWindow : public Window
         if( index == 0 ){
             if( _orb0 )
                 delete _orb0;
+#ifdef TEST_ORB2
+            _orb0 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold );
+#else 
             _orb0 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold );
+#endif
         } else {
             if( _orb1 )
                 delete _orb1;
+
+#ifdef TEST_ORB2
+            _orb1 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold );
+#else 
             _orb1 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold );
+#endif
         }
     }
 
@@ -402,8 +457,8 @@ class FeatureWindow : public Window
         t.reset();
         _matches.clear();
 
-        matchFeaturesLSH( *_orb0, *_orb1, _maxDescDistance, _matches );
-        //matchFeatures( *_orb0, *_orb1, _maxDescDistance, _matches );
+        //matchFeaturesLSH( *_orb0, *_orb1, _maxDescDistance, _matches );
+        matchFeatures( *_orb0, *_orb1, _maxDescDistance, _matches );
         //matchFeatures2( *_orb0, *_orb1, _maxDescDistance, _matches );
         _matchTime = t.elapsedMilliSeconds();
 
@@ -428,9 +483,13 @@ class FeatureWindow : public Window
 
     size_t                  _currentDataSet;
     size_t                  _currentImage;
-
+#ifdef TEST_ORB2
+    ORB2*                   _orb0;
+    ORB2*                   _orb1;
+#else
     ORB*                    _orb0;
     ORB*                    _orb1;
+#endif
     float                   _extractTime;
     float                   _matchTime;
 
