@@ -22,6 +22,8 @@ namespace cvt {
 			return SIMD::instance()->hammingDistance( desc, f.desc, 32 );
 		}
 
+		float svdangle;
+		float angle2;
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
 
