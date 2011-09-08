@@ -10,7 +10,7 @@ namespace cvt {
 	class Feature2DROC {
 		public:
 			Feature2DROC( const std::vector<FeatureMatch>& matches, const Matrix3f& gthomography, float threshold = 5.0f );
-			//void toTXTFile( const String& path ) const;
+			void toFile( const String& path ) const;
 
 		private:
 			void findMatchesAndMaxDistance( const std::vector<FeatureMatch>& matches );
@@ -77,6 +77,16 @@ namespace cvt {
 			Vector2f rocpt( ( float ) tp / ( float ) actualCorrect, ( float ) fp / ( float ) actualError );
 			_rocpts.push_back( rocpt );
 		}
+	}
+
+	inline void Feature2DROC::toFile( const String& path ) const
+	{
+		FILE* f = fopen( path.c_str(), "w" );
+		if( !f )
+			return;
+		for( size_t i = 0; i < _rocpts.size(); i++ )
+			fprintf( f, "%.10f %.10f\n", _rocpts[ i ].y, _rocpts[ i ].x );
+		fclose( f );
 	}
 }
 
