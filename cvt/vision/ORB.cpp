@@ -74,7 +74,22 @@ namespace cvt {
 		ContainerType::iterator itEnd = octaveFeatures.end();
 
 		while( it != itEnd ){
-			it->score = simd->harrisResponse1u8( ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
+			float xx, xy, yy;
+			it->score = simd->harrisResponse1u8( xx, xy, yy, ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
+			float c,s;
+			//Math::jacobi( c, s, xx, xy, yy );
+			Matrix2f cov( xx, xy, xy, yy );
+			Matrix2f u, d, vt;
+			cov.svd( u, d, vt );
+			vt = u * vt;
+			it->svdangle = Math::atan2( -vt[ 1 ][ 0 ], vt[ 0 ][ 0 ] );
+			if( it->svdangle < 0 )
+				it->svdangle += Math::TWO_PI;
+			it->svdangle = Math::TWO_PI - it->svdangle + Math::HALF_PI;
+     while( it->svdangle > Math::TWO_PI )
+            it->svdangle -= Math::TWO_PI;
+
+			it->angle2 = Math::atan2( yy, xx );
 			++it;
 		}
 
@@ -236,6 +251,10 @@ namespace cvt {
 
         while( feature.angle > Math::TWO_PI )
             feature.angle -= Math::TWO_PI;
+
+		feature.angle = feature.svdangle;
+
+		//std::cout << Math::rad2Deg( feature.angle ) << " vs " << Math::rad2Deg( feature.svdangle ) << " vs " << Math::rad2Deg( feature.angle2 ) << std::endl;
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )
