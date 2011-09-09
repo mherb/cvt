@@ -3954,6 +3954,53 @@ namespace cvt {
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
+	float SIMD::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
+	{
+		const size_t w = 5;
+		const size_t h = 5;
+		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
+		float Ix = 0;
+		float Iy = 0;
+		float a = 0, b = 0, c = 0, mux = 0, muy = 0;
+		const float wght[ 9 ] = { 0.0048150f, 0.0287160f, 0.1028185f, 0.2210241f, 0.2852523f,
+								  0.2210241f, 0.1028185f, 0.0287160f, 0.0048150f };
+  //const float wght[ 15 ] = { 1.051456848177645 ,  2.750314141726729  , 6.204808810195241 , 12.073404753960824,
+//							 20.262189409987922,  29.329066172467822 , 36.615532475539077,  39.426454775889447,
+//							 36.615532475539077,  29.329066172467822 , 20.262189409987922,  12.073404753960824,
+//							 6.204808810195241 ,  2.750314141726729  , 1.051456848177645 };
+
+		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y < yend; y++ ) {
+			const uint8_t* psrc = src;
+			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x < xend; x++ ) {
+				Ix = 2.0f * ( ( float )*( psrc + 1 ) - ( float )*( psrc - 1 ) );
+				Ix += ( ( float )*( psrc + 1 + srcStride ) - ( float )*( psrc - 1 + srcStride ) );
+				Ix += ( ( float )*( psrc + 1 - srcStride ) - ( float )*( psrc - 1 - srcStride ) );
+
+				Iy = 2.0f * ( ( float )*( psrc + srcStride ) - ( float )*( psrc - srcStride ) );
+				Iy += ( ( float )*( psrc + srcStride + 1 ) - ( float )*( psrc - srcStride + 1 ) );
+				Iy += ( ( float )*( psrc + srcStride - 1 ) - ( float )*( psrc - srcStride - 1 ) );
+
+				float w = wght[ x ] * wght[ y ];
+				//float xr = ( float ) x - 5.0f;
+				//float yr = ( float ) y - 5.0f;
+				//if( Math::sqrt( xr * xr + yr * yr ) <= 15.0f ) {
+					a += Ix * Ix * w;
+					b += Iy * Iy * w;
+					c += Ix * Iy * w;
+					mux += Ix * w;
+					muy += Iy * w;
+				//}
+				psrc++;
+			}
+			src += srcStride;
+		}
+		a -= mux * mux;
+		b -= muy * muy;
+		c -= mux * muy;
+		xx = a; yy = b; xy = c;
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+	}
+
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
 #define BAYER_RGGB_R2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
 #define BAYER_RGGB_EVEN_G1( x ) ( ( x ) & 0xff )

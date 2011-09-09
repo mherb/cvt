@@ -75,21 +75,25 @@ namespace cvt {
 
 		while( it != itEnd ){
 			float xx, xy, yy;
-			it->score = simd->harrisResponse1u8( xx, xy, yy, ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 4, 4, 0.04f );
+			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, ptr + (int)it->pt.y * stride + (int)it->pt.x , stride, 0.04f );
 			float c,s;
-			//Math::jacobi( c, s, xx, xy, yy );
+			Math::jacobi( c, s, xx, xy, yy );
 			Matrix2f cov( xx, xy, xy, yy );
 			Matrix2f u, d, vt;
 			cov.svd( u, d, vt );
-			vt = u * vt;
-			it->svdangle = Math::atan2( -vt[ 1 ][ 0 ], vt[ 0 ][ 0 ] );
+			//std::cout << u << "\n<->\n" << vt << std::endl;
+			//std::cout << c << " " << s << std::endl;
+			it->svdangle = ::atan2( vt[ 1 ][ 0 ], vt[ 0 ][ 0 ] );
+
+			//std::cout << Math::atan2( -vt[ 1 ][ 0 ], vt[ 0 ][ 0 ] ) << " <-> " << atan2( s, c ) << std::endl;
+			//it->svdangle = Math::atan2( s, c );
+			//it->svdangle = Math::atan2( 2*c*s, c*c-s*s );
+			//it->svdangle = Math::atan2( yy, xx );
 			if( it->svdangle < 0 )
 				it->svdangle += Math::TWO_PI;
-			it->svdangle = Math::TWO_PI - it->svdangle + Math::HALF_PI;
-     while( it->svdangle > Math::TWO_PI )
-            it->svdangle -= Math::TWO_PI;
-
-			it->angle2 = Math::atan2( yy, xx );
+			//it->svdangle = Math::TWO_PI - it->svdangle + Math::HALF_PI;
+			//while( it->svdangle > Math::TWO_PI )
+		//		it->svdangle -= Math::TWO_PI;
 			++it;
 		}
 
@@ -252,9 +256,9 @@ namespace cvt {
         while( feature.angle > Math::TWO_PI )
             feature.angle -= Math::TWO_PI;
 
+		std::cout << Math::rad2Deg( feature.angle ) << " " << Math::rad2Deg( feature.svdangle ) << std::endl;
 		feature.angle = feature.svdangle;
 
-		//std::cout << Math::rad2Deg( feature.angle ) << " vs " << Math::rad2Deg( feature.svdangle ) << " vs " << Math::rad2Deg( feature.angle2 ) << std::endl;
 	}
 
 	void ORB::descriptor( ORBFeature& feature, const float* iimgptr, size_t widthstep )

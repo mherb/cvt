@@ -23,7 +23,6 @@ namespace cvt {
 		}
 
 		float svdangle;
-		float angle2;
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
 
