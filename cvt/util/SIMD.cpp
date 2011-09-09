@@ -3956,8 +3956,8 @@ namespace cvt {
 
 	float SIMD::harrisResponseCircular1u8( float & xx, float & xy, float & yy, float& mx, float& my, const uint8_t* _src, size_t srcStride, const float k ) const
 	{
-		const size_t w = 5;
-		const size_t h = 5;
+		const size_t w = 16;
+		const size_t h = 16;
 		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
 		float Ix = 0;
 		float Iy = 0;
@@ -3981,25 +3981,26 @@ namespace cvt {
 				Iy += ( ( float )*( psrc + srcStride + 1 ) - ( float )*( psrc - srcStride + 1 ) );
 				Iy += ( ( float )*( psrc + srcStride - 1 ) - ( float )*( psrc - srcStride - 1 ) );
 
-				float w = wght[ x ] * wght[ y ];
-				//float xr = ( float ) x - 5.0f;
-				//float yr = ( float ) y - 5.0f;
-				//if( Math::sqrt( xr * xr + yr * yr ) <= 15.0f ) {
+				float w = 1.0f;//wght[ x ] * wght[ y ];
+				float xr = ( float ) x - 15.0f;
+				float yr = ( float ) y - 15.0f;
+				if( Math::sqrt( xr * xr + yr * yr ) <= 15.0f ) {
 					a += Ix * Ix * w;
 					b += Iy * Iy * w;
 					c += Ix * Iy * w;
 					mx += Ix * w;
 					my += Iy * w;
-				//}
+				}
 				psrc++;
 			}
 			src += srcStride;
 		}
-		//a -= mux * mux;
-		//b -= muy * muy;
-		//c -= mux * muy;
+		a -= mx * mx;
+		b -= my * my;
+		c -= mx * my;
 		xx = a; yy = b; xy = c;
-		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		//return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		return ( a * b - c * c ) / ( a + b );
 	}
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
