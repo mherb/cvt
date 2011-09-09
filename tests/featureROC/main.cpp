@@ -104,6 +104,7 @@ class FeatureROC
         _numScales( 4 ),
         _scaleFactor( 0.75f ),
         _fastThreshold( 30 ),
+		_maxFeatures( 1000 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
         _orb0( 0 ), _orb1( 0 )
@@ -195,18 +196,18 @@ class FeatureROC
             if( _orb0 )
                 delete _orb0;
 #ifdef TEST_ORB2
-            _orb0 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold );
+            _orb0 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold, _maxFeatures );
 #else 
-            _orb0 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold );
+            _orb0 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold, _maxFeatures );
 #endif
         } else {
             if( _orb1 )
                 delete _orb1;
 
 #ifdef TEST_ORB2
-            _orb1 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold );
+            _orb1 = new ORB2( gray, _numScales, _scaleFactor, _fastThreshold, _maxFeatures );
 #else 
-            _orb1 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold );
+            _orb1 = new ORB( gray, _numScales, _scaleFactor, _fastThreshold, _maxFeatures );
 #endif
         }
     }
@@ -237,6 +238,7 @@ class FeatureROC
     size_t                  _numScales;
     float                   _scaleFactor;
     size_t                  _fastThreshold;
+	size_t					_maxFeatures;
 
     size_t                  _currentDataSet;
     size_t                  _currentImage;
