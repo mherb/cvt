@@ -3954,14 +3954,14 @@ namespace cvt {
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
-	float SIMD::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
+	float SIMD::harrisResponseCircular1u8( float & xx, float & xy, float & yy, float& mx, float& my, const uint8_t* _src, size_t srcStride, const float k ) const
 	{
 		const size_t w = 5;
 		const size_t h = 5;
 		const uint8_t* src = _src - ( h - 1 ) * srcStride - ( w - 1 );
 		float Ix = 0;
 		float Iy = 0;
-		float a = 0, b = 0, c = 0, mux = 0, muy = 0;
+		float a = 0, b = 0, c = 0;
 		const float wght[ 9 ] = { 0.0048150f, 0.0287160f, 0.1028185f, 0.2210241f, 0.2852523f,
 								  0.2210241f, 0.1028185f, 0.0287160f, 0.0048150f };
   //const float wght[ 15 ] = { 1.051456848177645 ,  2.750314141726729  , 6.204808810195241 , 12.073404753960824,
@@ -3969,6 +3969,7 @@ namespace cvt {
 //							 36.615532475539077,  29.329066172467822 , 20.262189409987922,  12.073404753960824,
 //							 6.204808810195241 ,  2.750314141726729  , 1.051456848177645 };
 
+		mx = my = 0;
 		for( size_t y = 0, yend = 2 * ( w - 1 ) + 1; y < yend; y++ ) {
 			const uint8_t* psrc = src;
 			for( size_t x = 0, xend = 2 * ( h - 1 ) + 1; x < xend; x++ ) {
@@ -3987,16 +3988,16 @@ namespace cvt {
 					a += Ix * Ix * w;
 					b += Iy * Iy * w;
 					c += Ix * Iy * w;
-					mux += Ix * w;
-					muy += Iy * w;
+					mx += Ix * w;
+					my += Iy * w;
 				//}
 				psrc++;
 			}
 			src += srcStride;
 		}
-		a -= mux * mux;
-		b -= muy * muy;
-		c -= mux * muy;
+		//a -= mux * mux;
+		//b -= muy * muy;
+		//c -= mux * muy;
 		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}

@@ -60,6 +60,7 @@ namespace cvt {
 			void centroidAngle( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
+			void multiChannelDescriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
             void nonmaxSuppression( const std::vector<ORB2Feature> & features );
 
