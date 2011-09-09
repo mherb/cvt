@@ -57,12 +57,10 @@ namespace cvt {
 
 	void ORB2::detect( const Image& img, size_t octave )
 	{
-
 		// detect the features for this level
 		std::vector<ORB2Feature> octaveFeatures;
 		FeatureInserter ftins( octaveFeatures, octave );
 		FAST::detect9( img, _threshold, ftins, _border );
-
 
 		size_t stride;
 		const uint8_t * ptr = img.map( &stride );
@@ -75,6 +73,8 @@ namespace cvt {
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
 			it->score = simd->harrisResponse1u8( p , stride, 4, 4, 0.04f );
+            
+            // find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
 			++it;
 		}

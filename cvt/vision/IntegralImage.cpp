@@ -326,7 +326,7 @@ namespace cvt
         return Math::abs( iArea - iiArea ) < Math::EPSILONF;
     }
 
-    BEGIN_CVTTEST( integralImage )
+    BEGIN_CVTTEST( IntegralImage )
 
     Image img( 20, 20, IFormat::GRAY_UINT8 );
     Image imgC( 10, 10, IFormat::RGBA_UINT8 );
