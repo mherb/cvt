@@ -15,6 +15,7 @@ namespace cvt {
         ORBFeature( float x, float y, float angle = 0.0f, size_t octave = 0, float score = 0.0f ) :
             Feature2Df( x, y, angle, octave, score )
         {
+			desc[ 0 ] = 0;
         }
 
 		size_t distance( const ORBFeature& f ) const
