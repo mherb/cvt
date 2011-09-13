@@ -139,6 +139,7 @@ int main( int argc, char* argv[] )
 {
     if( argc != 4 ){
 		std::cout << "Usage: " << argv[ 0 ] << " <img0> <img1> <H0to1>" << std::endl;
+		return 0;
     }
 
 	String file0( argv[ 1 ] );
