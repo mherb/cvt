@@ -75,6 +75,7 @@ namespace cvt {
 
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
+			std::cout << it->pt.x << " " << it->pt.y << std::endl;
 			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
 			it->angle = Math::atan2( my, mx );
 			if( it->angle < 0 )
@@ -89,9 +90,6 @@ namespace cvt {
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
 			it->sx =  ( d[ 0 ][ 0 ] / n );
 			it->sy =  ( d[ 1 ][ 1 ] / n );
-			
-			it->sx =  1.0f;
-			it->sy =  1.0f;
 
 			// find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
@@ -275,10 +273,10 @@ namespace cvt {
 		int y = ( int ) feature.pt.y;
 
 
-#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + (int)( feature.sx * _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
-													  y + (int)( feature.sy * _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
-					    IntegralImage::area( iimgptr, x + (int)( feature.sx * _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
-													  y + (int)( feature.sy * _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
+#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + ( _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
+													  y + ( _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
+					    IntegralImage::area( iimgptr, x + ( _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
+													  y + ( _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
 
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;

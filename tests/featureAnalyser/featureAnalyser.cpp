@@ -8,8 +8,9 @@
 #include <cvt/vision/ORB.h>
 #include <cvt/vision/ORB2.h>
 #include <cvt/vision/FeatureMatch.h>
+#include <cvt/gfx/GFXEngineImage.h>
 
-//#define TEST_ORB2
+#define TEST_ORB2
 
 using namespace cvt;
 
@@ -100,6 +101,34 @@ void loadMatrix3( Matrix3f & m, const String & path )
 	}
 }
 
+void drawEllipse( GFX* g, float cx, float cy, float a, float b, float rotrad = 0 )
+{
+	float c, s;
+#define STEPS 20
+	float step = Math::TWO_PI / ( float ) STEPS;
+	float t = 0;
+
+	c = Math::cos( rotrad );
+	s = Math::cos( rotrad );
+
+	std::vector<Point2f> pts;
+
+	for( size_t i = 0; i < STEPS; i++ ) {
+		Point2f pt1( cx + a * Math::cos( t ) * c - b * Math::sin( t ) * s,
+					 cy + a * Math::cos( t ) * s + b * Math::sin( t ) * c );
+		t += step;
+		Point2f pt2( cx + a * Math::cos( t ) * c - b * Math::sin( t ) * s,
+					 cy + a * Math::cos( t ) * s + b * Math::sin( t ) * c );
+		pts.push_back( pt1 );
+		pts.push_back( pt2 );
+	}
+
+	g->drawLines( &pts[ 0 ], pts.size() / 2 );
+
+#undef STEPS
+}
+
+
 void extractPatches( Image & p, 
 					 size_t x, 
 					 size_t y, 
@@ -108,7 +137,8 @@ void extractPatches( Image & p,
 					 const Image & g0, 
 					 const Image & g1, 
 					 const FeatureMatch & m, 
-					 const Matrix3f & H )
+					 const Matrix3f & H,
+					 GFX* g )
 {
 	Recti r;
 	Vector2f pos;
@@ -125,7 +155,11 @@ void extractPatches( Image & p,
 	r.x = ( int )m.feature1->pt.x - offset; 
 	r.y = ( int )m.feature1->pt.y - offset;
 	x += patchSize + 2 * spacing;
-    p.copyRect( x, y, g1, r );	
+    p.copyRect( x, y, g1, r );
+
+	drawEllipse( g, m.feature1->pt.x, m.feature1->pt.y, 
+				( ( ORB2Feature* ) m.feature1 )->sx * patchSize,  ( ( ORB2Feature* ) m.feature1 )->sy * patchSize,
+				 m.feature1->angle );
 
 	// the true position 
 	pos = H * m.feature0->pt;
@@ -190,18 +224,24 @@ int main( int argc, char* argv[] )
 	size_t currX = spacing;
 	size_t currY = spacing;
 	size_t num = 0;
-	
-	for( size_t y = 0; y < ny; y++ ){
-		currX = spacing;
-		for( size_t x = 0; x < nx; x++ ){
-			extractPatches( big, currX, currY, patchSize, spacing, g0, g1, matches[ num ], H );
-			num++;
-			if( num == matches.size() )
-				break;
-			currX += featureSpaceX;
-			
+
+	{
+		GFXEngineImage gfximg( big );
+		GFX g( &gfximg );
+		g.color() = Color::RED;
+		g.setLineWidth( 1.0f );
+		for( size_t y = 0; y < ny; y++ ){
+			currX = spacing;
+			for( size_t x = 0; x < nx; x++ ){
+				extractPatches( big, currX, currY, patchSize, spacing, g0, g1, matches[ num ], H, &g );
+				num++;
+				if( num == matches.size() )
+					break;
+				currX += featureSpaceX;
+
+			}
+			currY += featureSpaceY;
 		}
-		currY += featureSpaceY;
 	}
 
 	big.save( "feature_analysis.png" );	

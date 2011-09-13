@@ -14,8 +14,8 @@ namespace cvt {
 	struct ORB2Feature : public Feature2Df {
         ORB2Feature( float x, float y, float angle = 0.0f, size_t octave = 0, float score = 0.0f ) :
             Feature2Df( x, y, angle, octave, score ),
-		    sx( 1.0f ),	
-		    sy( 1.0f ),	
+		    sx( 1.0f ),
+		    sy( 1.0f ),
 			brighter( false )
         {
         }
@@ -25,7 +25,7 @@ namespace cvt {
 			return SIMD::instance()->hammingDistance( desc, f.desc, 32 );
 		}
 
-	    float   sx, sy;	
+	    float   sx, sy;
 		bool	brighter;   // center pixel is brighter than the ring
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
@@ -64,7 +64,7 @@ namespace cvt {
 			void centroidAngle( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
-			void multiChannelDescriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
+			//void multiChannelDescriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
             void nonmaxSuppression( const std::vector<ORB2Feature> & features );
 
