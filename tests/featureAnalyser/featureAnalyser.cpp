@@ -157,8 +157,8 @@ void extractPatches( Image & p,
 	x += patchSize + 2 * spacing;
     p.copyRect( x, y, g1, r );
 
-	drawEllipse( g, m.feature1->pt.x, m.feature1->pt.y, 
-				( ( ORB2Feature* ) m.feature1 )->sx * patchSize,  ( ( ORB2Feature* ) m.feature1 )->sy * patchSize,
+	drawEllipse( g, x + offset, y + offset, 
+				( ( ORB2Feature* ) m.feature1 )->sx * offset,  ( ( ORB2Feature* ) m.feature1 )->sy * offset,
 				 m.feature1->angle );
 
 	// the true position 
@@ -228,7 +228,7 @@ int main( int argc, char* argv[] )
 	{
 		GFXEngineImage gfximg( big );
 		GFX g( &gfximg );
-		g.color() = Color::RED;
+		g.color() = Color::WHITE;
 		g.setLineWidth( 1.0f );
 		for( size_t y = 0; y < ny; y++ ){
 			currX = spacing;
