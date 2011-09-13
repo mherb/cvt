@@ -109,7 +109,7 @@ void drawEllipse( GFX* g, float cx, float cy, float a, float b, float rotrad = 0
 	float t = 0;
 
 	c = Math::cos( rotrad );
-	s = Math::cos( rotrad );
+	s = Math::sin( rotrad );
 
 	std::vector<Point2f> pts;
 
@@ -158,7 +158,7 @@ void extractPatches( Image & p,
     p.copyRect( x, y, g1, r );
 
 	drawEllipse( g, x + offset, y + offset, 
-				( ( ORB2Feature* ) m.feature1 )->sx * offset,  ( ( ORB2Feature* ) m.feature1 )->sy * offset,
+				( ( ORB2Feature* ) m.feature1 )->sx * ( offset + 1 ),  ( ( ORB2Feature* ) m.feature1 )->sy * ( offset + 1 ),
 				 m.feature1->angle );
 
 	// the true position 

@@ -95,7 +95,7 @@ namespace cvt {
 
             // border where we do not detect features:
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
-            static const int _border = 22;
+            static const int _border = 42;
 			
 	};
 
