@@ -14,7 +14,7 @@
 
 #include <cvt/vision/FeatureMatch.h>
 
-//#define TEST_ORB2
+#define TEST_ORB2
 
 using namespace cvt;
 
