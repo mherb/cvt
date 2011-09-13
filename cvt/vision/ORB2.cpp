@@ -5,8 +5,8 @@
 #include <algorithm>
 
 namespace cvt {
-	struct FeatureInserter {
-		FeatureInserter( std::vector<ORB2Feature>& container, int octave ) : _container( container ), _octave( octave )
+	struct ORB2FeatureInserter {
+		ORB2FeatureInserter( std::vector<ORB2Feature>& container, int octave ) : _container( container ), _octave( octave )
 		{
 		}
 
@@ -59,7 +59,7 @@ namespace cvt {
 	{
 		// detect the features for this level
 		std::vector<ORB2Feature> octaveFeatures;
-		FeatureInserter ftins( octaveFeatures, octave );
+		ORB2FeatureInserter ftins( octaveFeatures, octave );
 		FAST::detect9( img, _threshold, ftins, _border );
 
 		size_t stride;
@@ -75,8 +75,9 @@ namespace cvt {
 
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
-			std::cout << it->pt.x << " " << it->pt.y << std::endl;
+
 			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
+
 			it->angle = Math::atan2( my, mx );
 			if( it->angle < 0 )
 				it->angle += Math::TWO_PI;
@@ -219,7 +220,7 @@ namespace cvt {
 			//centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
-			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
+//			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
 
 			if( _features[ i ].brighter ){
 				_brighterFeatures.push_back( &_features[ i ] );
