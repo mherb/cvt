@@ -151,6 +151,10 @@ void extractPatches( Image & p,
 	r.y = ( int )m.feature0->pt.y - offset;
     p.copyRect( x, y, g0, r );	
 
+	drawEllipse( g, x + offset, y + offset, 
+				( ( ORB2Feature* ) m.feature0 )->sx * offset / 2,  ( ( ORB2Feature* ) m.feature0 )->sy * offset / 2,
+				 m.feature0->angle );
+
 	// extract patch from image 1:
 	r.x = ( int )m.feature1->pt.x - offset; 
 	r.y = ( int )m.feature1->pt.y - offset;
@@ -158,7 +162,7 @@ void extractPatches( Image & p,
     p.copyRect( x, y, g1, r );
 
 	drawEllipse( g, x + offset, y + offset, 
-				( ( ORB2Feature* ) m.feature1 )->sx * ( offset + 1 ),  ( ( ORB2Feature* ) m.feature1 )->sy * ( offset + 1 ),
+				( ( ORB2Feature* ) m.feature1 )->sx * offset / 2,  ( ( ORB2Feature* ) m.feature1 )->sy * offset / 2,
 				 m.feature1->angle );
 
 	// the true position 
@@ -207,7 +211,7 @@ int main( int argc, char* argv[] )
 #endif
 
 	std::vector<FeatureMatch> matches;	
-	matchFeatures( orb0, orb1, 100, matches );
+	matchFeatures( orb0, orb1, 50, matches );
 
 	size_t patchSize = 31;
 	size_t spacing = 2;
