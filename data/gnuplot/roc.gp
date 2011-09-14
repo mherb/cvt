@@ -42,14 +42,14 @@ plot 'treesROC1to2.txt' with lines, 'trees_ocv_ROC1to2.txt' with lines,\
 	 'treesROC1to5.txt' with lines, 'trees_ocv_ROC1to5.txt' with lines,\
 	 'treesROC1to6.txt' with lines, 'trees_ocv_ROC1to6.txt' with lines
 
-set term aqua 5 
+set term aqua 6 
 plot 'ubcROC1to2.txt' with lines, 'ubc_ocv_ROC1to2.txt' with lines,\
 	 'ubcROC1to3.txt' with lines, 'ubc_ocv_ROC1to3.txt' with lines,\
 	 'ubcROC1to4.txt' with lines, 'ubc_ocv_ROC1to4.txt' with lines,\
 	 'ubcROC1to5.txt' with lines, 'ubc_ocv_ROC1to5.txt' with lines,\
 	 'ubcROC1to6.txt' with lines, 'ubc_ocv_ROC1to6.txt' with lines
 
-set term aqua 5 
+set term aqua 7 
 plot 'wallROC1to2.txt' with lines, 'wall_ocv_ROC1to2.txt' with lines,\
 	 'wallROC1to3.txt' with lines, 'wall_ocv_ROC1to3.txt' with lines,\
 	 'wallROC1to4.txt' with lines, 'wall_ocv_ROC1to4.txt' with lines,\
