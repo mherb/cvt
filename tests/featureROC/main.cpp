@@ -69,6 +69,7 @@ void matchFeatures( const ORB2 & orb0, const ORB2 & orb1, std::vector<FeatureMat
 				m.feature1 = &orb1.darkerFeature( k );
 			}
 		}
+		matches.push_back( m );
 	}
 }
 

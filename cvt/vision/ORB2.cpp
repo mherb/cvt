@@ -28,6 +28,8 @@ namespace cvt {
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
+        //IScaleFilterCubic scaleFilter;
+        //IScaleFilterLanczos scaleFilter( 0.25f );
 
 		_scaleFactors = new float[ octaves ];
 		_iimages = new IntegralImage[ octaves ];
@@ -78,9 +80,10 @@ namespace cvt {
 
 			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
 
-			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
+			it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
 			it->angle2 = Math::atan2( my, mx );
+
 
 		//	it->angle2 = Math::deg2Rad( 85.0f ) - it->angle2;
 			if( it->angle2 < 0 )
@@ -92,13 +95,17 @@ namespace cvt {
 
 			cov = Matrix2f( xx, xy, xy, yy );
 			cov.svd( u, d, vt );
+
+			//std::cout << Math::rad2Deg( it->angle2 ) << std::endl;
+			//std::cout << Math::rad2Deg( atan2( vt[ 0 ][ 1 ], vt[ 0 ][ 0 ]) ) << std::endl;
+
 			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
 			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
-	//		it->sx =  ( d[ 0 ][ 0 ] / n );
-	//		it->sy =  ( d[ 1 ][ 1 ] / n );
-			it->sx = Math::min( 1.0f / ( d[ 0 ][ 0 ] / n ), 3.0f);
-			it->sy = Math::min( 1.0f / ( d[ 1 ][ 1 ] / n ), 3.0f);
+			it->sx = ( d[ 0 ][ 0 ] / n );
+			it->sy = ( d[ 1 ][ 1 ] / n );
+			//it->sx = Math::min( 1.0f / ( d[ 0 ][ 0 ] / n ), 3.0f);
+			//it->sy = Math::min( 1.0f / ( d[ 1 ][ 1 ] / n ), 3.0f);
 
 			// find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
@@ -227,11 +234,13 @@ namespace cvt {
 			size_t octave = _features[ i ].octave;
 			centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
+			//std::cout << Math::rad2Deg( _features[ i ].angle ) << " <-> " << Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
+
+			//std::cout << Math::rad2Deg( _features[ i ].angle )  - Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 			_features[ i ].angle = _features[ i ].angle2;
 
 			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
-			//std::cout << Math::rad2Deg( _features[ i ].angle ) << " <-> " << Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 //			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
 
 			if( _features[ i ].brighter ){
@@ -284,17 +293,35 @@ namespace cvt {
 			index = 0;
 		int x = ( int ) feature.pt.x;
 		int y = ( int ) feature.pt.y;
+		Point2f orbpt1, orbpt2, pt;
+		Matrix2f rot( Math::cos( feature.angle ), -Math::sin( feature.angle ),
+				      Math::sin( feature.angle ),  Math::cos( feature.angle ) );
 
+#define ORB2PTS( n ) do { \
+						pt.x = feature.sx * _patterns[ 0 ][ ( n ) * 2 ][ 0 ];	\
+						pt.y = feature.sy * _patterns[ 0 ][ ( n ) * 2 ][ 1 ];	 \
+						orbpt1 = rot * pt;										  \
+						pt.x = feature.sx * _patterns[ 0 ][ ( n ) * 2 + 1 ][ 0 ]; \
+						pt.y = feature.sy * _patterns[ 0 ][ ( n ) * 2 + 1 ][ 1 ]; \
+						orbpt2 = rot * pt; \
+					 } while( 0 )
 
+#define ORB2TEST	  ( IntegralImage::area( iimgptr, x + Math::round( orbpt1.x ) - 2,\
+													  y + Math::round( orbpt1.y )- 2, 5, 5, widthstep ) < \
+					    IntegralImage::area( iimgptr, x + Math::round( orbpt2.x ) - 2,\
+													  y + Math::round( orbpt2.y ) - 2, 5, 5, widthstep ) )
+
+/*
 #define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
 													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
 					    IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
 													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
-
+*/
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				feature.desc[ i ] |= ( ORB2TEST( i * 8 + k ) ) << k;
+				ORB2PTS( i * 8 + k );
+				feature.desc[ i ] |= ( ORB2TEST ) << k;
 			}
 		}
 		feature.pt /= _scaleFactors[ feature.octave ];
