@@ -4009,11 +4009,11 @@ namespace cvt {
 		a -= mx * mx;
 		b -= my * my;
 		c -= mx * my;
-		a /= n;
-		b /= n;
-		c /= n;
-		mx /= n;
-		my /= n;
+	//	a /= n;
+	//	b /= n;
+	//	c /= n;
+	//	mx /= n;
+	//	my /= n;
 		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 		//return ( a * b - c * c ) / ( a + b );
