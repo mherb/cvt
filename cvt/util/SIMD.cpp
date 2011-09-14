@@ -3991,17 +3991,17 @@ namespace cvt {
 				Iy += ( ( float )*( psrc + srcStride + 1 ) - ( float )*( psrc - srcStride + 1 ) );
 				Iy += ( ( float )*( psrc + srcStride - 1 ) - ( float )*( psrc - srcStride - 1 ) );
 
-				float w = 1.0f;//wght[ x ] * wght[ y ];
-				float xr = ( float ) x - 15.0f;
-				float yr = ( float ) y - 15.0f;
-				if( Math::sqrt( xr * xr + yr * yr ) <= 15.0f ) {
+				float w = wght[ x ] * wght[ y ];
+				//float xr = ( float ) x - 15.0f;
+				//float yr = ( float ) y - 15.0f;
+				//if( Math::sqrt( xr * xr + yr * yr ) <= 15.0f ) {
 					a += Ix * Ix * w;
 					b += Iy * Iy * w;
 					c += Ix * Iy * w;
 					mx += Ix * w;
 					my += Iy * w;
 					n++;
-				}
+				//}
 				psrc++;
 			}
 			src += srcStride;
@@ -4015,8 +4015,8 @@ namespace cvt {
 	//	mx /= n;
 	//	my /= n;
 		xx = a; yy = b; xy = c;
-		//return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
-		return ( a * b - c * c ) / ( a + b );
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		//return ( a * b - c * c ) / ( a + b );
 	}
 
 #define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )

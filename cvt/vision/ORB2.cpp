@@ -102,10 +102,10 @@ namespace cvt {
 			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
 			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
-			//it->sx = ( d[ 0 ][ 0 ] / n );
-			//it->sy = ( d[ 1 ][ 1 ] / n );
-			it->sx = Math::min( 1.0f / ( d[ 0 ][ 0 ] / n ), 3.0f);
-			it->sy = Math::min( 1.0f / ( d[ 1 ][ 1 ] / n ), 3.0f);
+			it->sx = 1.0f + Math::max( d[ 0 ][ 0 ] / n, 0.1f );
+			it->sy = 1.0f + Math::max( d[ 1 ][ 1 ] / n, 0.1f );
+			//it->sx = Math::min( n / d[ 0 ][ 0 ], 4.0f);
+			//it->sy = Math::min( n / d[ 1 ][ 1 ], 4.0f);
 
 			// find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
