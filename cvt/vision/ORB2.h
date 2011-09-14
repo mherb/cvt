@@ -25,6 +25,7 @@ namespace cvt {
 			return SIMD::instance()->hammingDistance( desc, f.desc, 32 );
 		}
 
+		float   angle2;
 	    float   sx, sy;
 		bool	brighter;   // center pixel is brighter than the ring
 		uint8_t desc[ 32 ]; // 256 bit vector
@@ -95,7 +96,7 @@ namespace cvt {
 
             // border where we do not detect features:
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
-            static const int _border = 42;
+            static const int _border = 66;
 			
 	};
 

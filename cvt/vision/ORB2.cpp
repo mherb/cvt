@@ -78,19 +78,27 @@ namespace cvt {
 
 			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
 
-			it->angle = Math::atan2( my, mx );
-			if( it->angle < 0 )
-				it->angle += Math::TWO_PI;
-			//it->angle = Math::TWO_PI - it->angle + Math::HALF_PI;
+			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
-			while( it->angle > Math::TWO_PI )
-				it->angle -= Math::TWO_PI;
+			it->angle2 = Math::atan2( my, mx );
+
+		//	it->angle2 = Math::deg2Rad( 85.0f ) - it->angle2;
+			if( it->angle2 < 0 )
+				it->angle2 += Math::TWO_PI;
+		//	it->angle2 = Math::TWO_PI - it->angle2 - Math::HALF_PI;
+
+			while( it->angle2 > Math::TWO_PI )
+				it->angle2 -= Math::TWO_PI;
 
 			cov = Matrix2f( xx, xy, xy, yy );
 			cov.svd( u, d, vt );
+			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
+			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
-			it->sx =  ( d[ 0 ][ 0 ] / n );
-			it->sy =  ( d[ 1 ][ 1 ] / n );
+	//		it->sx =  ( d[ 0 ][ 0 ] / n );
+	//		it->sy =  ( d[ 1 ][ 1 ] / n );
+			it->sx = Math::min( 1.0f / ( d[ 0 ][ 0 ] / n ), 3.0f);
+			it->sy = Math::min( 1.0f / ( d[ 1 ][ 1 ] / n ), 3.0f);
 
 			// find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
@@ -217,9 +225,13 @@ namespace cvt {
 
 		for( size_t i = 0, iend = _features.size(); i < iend; i++ ){
 			size_t octave = _features[ i ].octave;
-			//centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+
+			_features[ i ].angle = _features[ i ].angle2;
+
 			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
+			//std::cout << Math::rad2Deg( _features[ i ].angle ) << " <-> " << Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 //			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
 
 			if( _features[ i ].brighter ){
@@ -274,10 +286,10 @@ namespace cvt {
 		int y = ( int ) feature.pt.y;
 
 
-#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + ( feature.sx * _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
-													  y + ( feature.sy * _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
-					    IntegralImage::area( iimgptr, x + ( feature.sx * _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
-													  y + ( feature.sy * _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
+#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
+													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
+					    IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
+													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
 
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
