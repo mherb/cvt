@@ -42,7 +42,7 @@ namespace cvt {
 			Vector2f gt = _gthomo * it->feature0->pt;
 
 			float dist = ( it->feature1->pt - gt ).length();
-			if( dist < _maxdistance )
+			if( dist < _gtthres )
 				_match.push_back( 1 );
 			else
 				_match.push_back( 0 );
