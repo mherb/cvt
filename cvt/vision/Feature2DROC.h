@@ -10,6 +10,7 @@ namespace cvt {
 	class Feature2DROC {
 		public:
 			Feature2DROC( const std::vector<FeatureMatch>& matches, const Matrix3f& gthomography, float threshold = 5.0f );
+			float AUC() const;
 			void toFile( const String& path ) const;
 
 		private:
@@ -87,6 +88,17 @@ namespace cvt {
 		for( size_t i = 0; i < _rocpts.size(); i++ )
 			fprintf( f, "%.10f %.10f\n", _rocpts[ i ].y, _rocpts[ i ].x );
 		fclose( f );
+	}
+
+	inline float Feature2DROC::AUC() const
+	{
+		float auc=0;
+		Point2f diff;
+		for( size_t i = 1; i < _rocpts.size(); i++ ) {
+			diff = _rocpts[ i ] - _rocpts[ i - 1 ];
+			auc = auc + diff.y * _rocpts[ i - 1 ].x + diff.x * diff.y / 2.0f;
+		}
+		return auc;
 	}
 }
 
