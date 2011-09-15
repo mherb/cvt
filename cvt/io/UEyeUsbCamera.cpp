@@ -16,6 +16,7 @@ namespace cvt
 		this->setAutoShutter( false );
 		this->setAutoSensorShutter( false );
 		this->setExposureTime( 12 );
+		this->setIdentifier();
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
@@ -26,6 +27,18 @@ namespace cvt
 			is_ExitImageQueue( _camHandle );
 			is_ExitCamera( _camHandle );
 		}
+	}
+
+	const String & UEyeUsbCamera::identifier() const
+	{
+		return _identifier;
+	}
+
+	void UEyeUsbCamera::setIdentifier() 
+	{
+		CAMINFO camInfo;
+		is_GetCameraInfo( _camHandle, &camInfo );
+		_identifier = String( camInfo.SerNo );
 	}
 
 	void UEyeUsbCamera::setAutoGain( bool value )
