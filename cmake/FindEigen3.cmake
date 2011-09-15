@@ -7,9 +7,11 @@ FIND_PATH( EIGEN3_INCLUDE_DIR Eigen/Core
 		/opt/local/include/eigen3
 	 )
 
-SET( EIGEN3_FOUND "NO" )
-IF(EIGEN3_INCLUDE_DIR)
-    SET( EIGEN3_FOUND "YES" )
-ENDIF(EIGEN3_INCLUDE_DIR)
+INCLUDE( FindPackageHandleStandardArgs )
+# handle the QUIETLY and REQUIRED arguments and set LIBXML2_FOUND to TRUE
+# if all listed variables are TRUE
+find_package_handle_standard_args( EIGEN3  DEFAULT_MSG
+								   EIGEN3_INCLUDE_DIR )
+
 
 MARK_AS_ADVANCED(EIGEN3_INCLUDE_DIR)

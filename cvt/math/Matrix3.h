@@ -10,6 +10,9 @@ namespace cvt {
 	template<typename T>
 	std::ostream& operator<<( std::ostream& out, const Matrix3<T>& m );
 
+	/**
+	  \ingroup Math
+	*/
     template<typename T>
 	class Matrix3 {
 	    public:

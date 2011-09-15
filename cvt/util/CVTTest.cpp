@@ -36,6 +36,11 @@ int main( int argc, char** argv )
 		}
 		std::cout << nsuccess << " PASSED and " << i - nsuccess << " FAILED of " << i << " TESTS" << std::endl;
 
+	} else if( argc == 2 && strcmp( argv[1], "list" ) == 0 ) {
+		while( _tests[i].func != NULL ) {
+			std::cout << _tests[ i ].name << std::endl;
+			i++;
+		}
 	} else {
         if( argc == 2 ) {
             size_t len;

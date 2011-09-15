@@ -14,6 +14,10 @@
 
 namespace cvt {
 
+	/**
+	  \ingroup Math
+	  \defgroup Math Math
+	*/
 	namespace Math {
 
 		typedef union {

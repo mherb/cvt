@@ -36,7 +36,7 @@ namespace cvt {
 
         const Feature2Df* 	feature0;
         const Feature2Df* 	feature1;
-        float	distance;
+        float				distance;
     } ;
 
 }

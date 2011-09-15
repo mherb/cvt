@@ -7,6 +7,9 @@ namespace cvt {
 	template<typename T>
 	std::ostream& operator<<( std::ostream& out, const Matrix2<T>& m );
 
+	/**
+	  \ingroup Math
+	*/
     template<typename T>
 	class Matrix2 {
 	    public:
@@ -54,6 +57,7 @@ namespace cvt {
 		Matrix2<T>&			transposeSelf( void );
 		Matrix2<T>			inverse( void ) const;
 		bool				inverseSelf( void );
+		void				svd( Matrix2<T>&, Matrix2<T>&, Matrix2<T>& ) const;
 
 		Matrix3<T>			toMatrix3( void ) const;
 

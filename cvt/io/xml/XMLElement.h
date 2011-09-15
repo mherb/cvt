@@ -6,6 +6,10 @@
 #include <vector>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
 	class XMLElement : public XMLNode
 	{
 		public:

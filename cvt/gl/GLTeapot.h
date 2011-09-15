@@ -5,6 +5,10 @@
 #include <cvt/gfx/Color.h>
 
 namespace cvt {
+
+	/**
+	  \ingroup GL
+	*/
 	class GLTeapot {
 		public:
 			GLTeapot();

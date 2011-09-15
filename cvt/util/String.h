@@ -2,6 +2,7 @@
 #define CVT_STRING_H
 
 #include <iostream>
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -17,13 +18,16 @@ namespace cvt {
 			String();
 			String( const char* str );
 			String( const String& str );
+			// FIXME: contructors are ambigous ...
 			explicit String( const char* str, size_t size );
 			explicit String( const String& str, int start, int len = -1 );
 			~String();
 
 			size_t length() const;
+			void resize( size_t newsize );
 
-			char operator[]( int i ) const;
+			const char& operator[]( int i ) const;
+			char& operator[]( int i );
 
 			String substring( int start, int len = - 1 ) const;
 			void truncate( size_t newlen );
@@ -57,6 +61,7 @@ namespace cvt {
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
 
+			void	 tokenize( std::vector<String>& tokens, char delimiter ) const;
 			long int toInteger() const;
 			float	 toFloat() const;
 			double	 toDouble() const;
@@ -136,10 +141,22 @@ namespace cvt {
 		return _len;
 	}
 
-	inline char String::operator[]( int i ) const
+	inline void String::resize( size_t newsize )
+	{
+		if( newsize >= _blen )
+			_grow( Math::pad16( newsize + 1 ) );
+	}
+
+	inline const char& String::operator[]( int i ) const
 	{
 		return *( _str + i );
 	}
+
+	inline char& String::operator[]( int i )
+	{
+		return *( _str + i );
+	}
+
 
 	inline const char* String::c_str() const
 	{
@@ -365,6 +382,23 @@ namespace cvt {
 		return ptr - _str;
 	}
 
+	inline void	String::tokenize( std::vector<String>& tokens, char delimiter ) const
+	{
+		const char* sptr = _str;
+		const char* eptr;
+
+		do {
+			while( *sptr && *sptr == delimiter )
+				sptr++;
+			eptr = sptr;
+			while( *eptr && *eptr != delimiter )
+				eptr++;
+			if( sptr != eptr ) {
+				tokens.push_back( String( sptr, eptr - sptr ) );
+				sptr = eptr;
+			}
+		} while( *eptr );
+	}
 
 	inline long int String::toInteger() const
 	{

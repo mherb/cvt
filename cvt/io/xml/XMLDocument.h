@@ -10,6 +10,10 @@
 
 namespace cvt {
 
+	/**
+	  \ingroup XML
+	  \defgroup XML XML
+	*/
 	class XMLDocument {
 		public:
 			XMLDocument( XMLEncodingType encoding = XMLENCODING_UTF8 );

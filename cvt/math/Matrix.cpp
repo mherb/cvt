@@ -6,6 +6,10 @@
 
 #include <iostream>
 #include <limits>
+<<<<<<< HEAD
+=======
+#include <float.h>
+>>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 
 #include <cvt/util/DataIterator.h>
 
@@ -502,24 +506,91 @@ namespace cvt {
 		m[ h ][ k ] = tmp2; \
 	} while( 0 )
 
+	template<typename T>
+	void Matrix2<T>::svd( Matrix2<T>& u, Matrix2<T>& mat,  Matrix2<T>& v ) const
+	{
+		T c, s;
 
+		mat = *this;
 
+<<<<<<< HEAD
+=======
+		/* diagonalize */
+
+		/* make 2 x 2 symmetric */
+		Math::givens( c, s, mat[ 0 ][ 0 ] + mat[ 1 ][ 1 ], mat[ 1 ][ 0 ] - mat[ 0 ][ 1 ] );
+		mat *= Matrix2<T>( c, s, -s, c );
+
+		/* apply the givens rotation to V^T */
+		v = Matrix2<T>( c, s, -s, c );
+
+		/* make 2 x 2 diagonal, apply jacobi */
+		Math::jacobi( c, s, mat[ 0 ][ 0 ], mat[ 1 ][ 0 ], mat[ 1 ][ 1 ] );
+
+		Matrix2<T> jl( c, -s, s, c );
+		Matrix2<T> jr( c,  s, -s, c );
+		mat = jl * mat * jr;
+
+		/* apply the jacobi rotation to V^T */
+		v *= Matrix2<T>( c, s, -s, c );
+
+		/* apply the jacobi rotation to U */
+		u = Matrix2<T>( c, s, -s, c );
+
+		/* make singular values positive */
+		for( int i = 0; i < 2; i++ ) {
+			if( mat[ i ][ i ] < 0 ) {
+				mat[ i ][ i ] = - mat[ i ][ i ];
+				for( int k = 0; k < 2; k++ )
+					u[ k ][ i ] = -u[ k ][ i ];
+			}
+		}
+
+		/* sort singular values */
+		/* bring largest singular value to position 0 */
+		if( mat[ 0 ][ 0 ] < mat[ 1 ][ 1 ] ) {
+			T tmp;
+			for( int i = 0; i < 2; i++ ) {
+				tmp = u[ i ][ 0 ];
+				u[ i ][ 0 ] = u[ i ][ 1 ];
+				u[ i ][ 1 ] = tmp;
+
+				tmp = v[ i ][ 0 ];
+				v[ i ][ 0 ] = v[ i ][ 1 ];
+				v[ i ][ 1 ] = tmp;
+			}
+			tmp = mat[ 0 ][ 0 ];
+			mat[ 0 ][ 0 ] = mat[ 1 ][ 1 ];
+			mat[ 1 ][ 1 ] = tmp;
+		}
+	}
+
+	template void Matrix2f::svd( Matrix2f&, Matrix2f&, Matrix2f& ) const;
+	template void Matrix2d::svd( Matrix2d&, Matrix2d&, Matrix2d& ) const;
+
+>>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
 	{
 		T c, s;
 		bool finished;
+		T eps = std::numeric_limits<T>::epsilon();
 
 		mat = *this;
 		u.setIdentity();
 		v.setIdentity();
+
 
 		/* diagonalize */
 		do {
 			finished = true;
 			for( int i = 0; i < 2; i++ ) {
 				for( int k = i + 1; k < 3; k++ ) {
+<<<<<<< HEAD
 					if( Math::abs( mat[ i ][ k ] ) >= std::numeric_limits<T>::epsilon() || Math::abs( mat[ k ][ i ] ) >= std::numeric_limits<T>::epsilon() ) {
+=======
+					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
+>>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
@@ -598,6 +669,7 @@ namespace cvt {
 	{
 		T c, s;
 		bool finished;
+		T eps = std::numeric_limits<T>::epsilon();
 
 		mat = *this;
 		u.setIdentity();
@@ -608,7 +680,11 @@ namespace cvt {
 			finished = true;
 			for( int i = 0; i < 3; i++ ) {
 				for( int k = i + 1; k < 4; k++ ) {
+<<<<<<< HEAD
 					if( Math::abs( mat[ i ][ k ] ) >= std::numeric_limits<T>::epsilon() || Math::abs( mat[ k ][ i ] ) >= std::numeric_limits<T>::epsilon()  ) {
+=======
+					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
+>>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
@@ -720,6 +796,45 @@ namespace cvt {
         b = ( m2p == m2 );
         CVTTEST_PRINT( "fromString()", b );
 
+		{
+			srand( time( NULL ) );
+
+			Eigen::Matrix2f et;
+			Eigen::Matrix2f mat = Eigen::Matrix2f::Random();
+			Eigen::JacobiSVD<Eigen::Matrix2f> svd( mat, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+			/* Eigen SVD */
+			et = svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+
+			std::cout << "U:\n" << svd.matrixU() << std::endl << std::endl;
+			std::cout << "D:\n" << svd.singularValues() << std::endl << std::endl;
+			std::cout << "V:\n" << svd.matrixV() << std::endl << std::endl;
+
+			/* Copy mat to CVT matrix */
+			Matrix2f m, u, d, v, t, t2;
+			for( int y = 0; y < 2; y++ )
+				for( int x = 0; x < 2; x++ )
+					m[ y ][ x ] = mat( y, x );
+
+			/* CVT SVD */
+			m.svd( u, d, v );
+			t = u*d*v.transpose();
+
+			std::cout << "U:\n" << u << std::endl << std::endl;
+			std::cout << "D:\n" << d << std::endl << std::endl;
+			std::cout << "V:\n" << v << std::endl << std::endl;
+
+			for( int y = 0; y < 2; y++ )
+				for( int x = 0; x < 2; x++ )
+					t2[ y ][ x ] = et( y, x );
+
+			std::cout << t2 << std::endl;
+			std::cout << t << std::endl;
+
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
+		}
+
 		return true;
 	END_CVTTEST
 
@@ -817,8 +932,8 @@ namespace cvt {
 				for( int x = 0; x < 3; x++ )
 					t2[ y ][ x ] = et( y, x );
 
-			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
-		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
 		}
 
 		return true;
@@ -923,8 +1038,8 @@ namespace cvt {
 				for( int x = 0; x < 4; x++ )
 					t2[ y ][ x ] = et( y, x );
 
-			CVTTEST_PRINT( "SVD", t.isEqual( t2, 10.0f * Math::EPSILONF ) );
-		    CVTTEST_PRINT( "SVD", t.isEqual( m, 10.0 * Math::EPSILONF ) );
+			CVTTEST_PRINT( "SVD", t.isEqual( t2, 100.0f * Math::EPSILONF ) );
+		    CVTTEST_PRINT( "SVD", t.isEqual( m, 100.0 * Math::EPSILONF ) );
 		}
 
 		return true;

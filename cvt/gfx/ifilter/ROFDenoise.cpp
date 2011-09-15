@@ -5,12 +5,16 @@
 #include <iostream>
 
 namespace cvt {
+	static ParamInfoTyped<Image*> pin( "Input", true );
+	static ParamInfoTyped<Image*> pout( "Output", false );
+	static ParamInfoTyped<int> pit( "Iterations", true);
+	static ParamInfoTyped<float> plambda( "Lambda", true );
 
 	static ParamInfo * _params[ 4 ] = {
-		new ParamInfoTyped<Image*>( "Input", true ),
-		new ParamInfoTyped<Image*>( "Output", false ),
-		new ParamInfoTyped<int>( "Iterations", true),
-		new ParamInfoTyped<float>( "Lambda", true )
+		&pin,
+		&pout,
+		&pit,
+		&plambda
 	};
 
 	ROFDenoise::ROFDenoise() : IFilter( "ROFDenoise", _params, 4, IFILTER_CPU )
@@ -145,9 +149,9 @@ namespace cvt {
 				*pdst1++ = tmp1 * norm;
 				*pdst2++ = tmp2 * norm;
 
-//				norm = 1.0f / Math::max( 1.0f,  Math::abs( tmp1 ) + Math::abs( tmp2 ) );
-//				*pdst1++ = tmp1 / Math::max( 1.0f, Math::abs( tmp1 ) );
-//				*pdst2++ = tmp2 / Math::max( 1.0f, Math::abs( tmp2 ) );
+				//				norm = 1.0f / Math::max( 1.0f,  Math::abs( tmp1 ) + Math::abs( tmp2 ) );
+				//				*pdst1++ = tmp1 / Math::max( 1.0f, Math::abs( tmp1 ) );
+				//				*pdst2++ = tmp2 / Math::max( 1.0f, Math::abs( tmp2 ) );
 			}
 
 			dst1 += stridedst1;
@@ -212,9 +216,9 @@ namespace cvt {
 		IKernel kerndx( IKernel::HAAR_HORIZONTAL_3 );
 		IKernel kerndy( IKernel::HAAR_VERTICAL_3 );
 		IKernel kerndxrev( IKernel::HAAR_HORIZONTAL_3 );
-//		kerndxrev.scale( -1.0f );
+		//		kerndxrev.scale( -1.0f );
 		IKernel kerndyrev( IKernel::HAAR_VERTICAL_3 );
-//		kerndyrev.scale( -1.0f );
+		//		kerndyrev.scale( -1.0f );
 #endif
 
 #define TAU 0.249f
@@ -229,13 +233,13 @@ namespace cvt {
 		while( iter-- ) {
 			dst.convolve( dx, kerndx );
 			dst.convolve( dy, kerndy );
-//			dst.ddx( dx );
-//			dst.ddy( dy );
+			//			dst.ddx( dx );
+			//			dst.ddy( dy );
 			multadd2_th( px, py, dx, dy, TAU / lambda );
 			px.convolve( dx, kerndxrev );
 			py.convolve( dy, kerndyrev );
-//			px.ddx( dx, false );
-//			py.ddy( dy, false );
+			//			px.ddx( dx, false );
+			//			py.ddy( dy, false );
 
 			multadd3( dst, src, dx, dy, lambda );
 		}
@@ -250,7 +254,7 @@ namespace cvt {
 		Image* src;
 		float lambda;
 		uint64_t iter;
-		
+
 		src = set->arg<Image*>( 0 );
 		dst = set->arg<Image*>( 1 );
 		iter = set->arg<int>( 2 );
