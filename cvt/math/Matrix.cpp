@@ -6,10 +6,6 @@
 
 #include <iostream>
 #include <limits>
-<<<<<<< HEAD
-=======
-#include <float.h>
->>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 
 #include <cvt/util/DataIterator.h>
 
@@ -513,8 +509,6 @@ namespace cvt {
 
 		mat = *this;
 
-<<<<<<< HEAD
-=======
 		/* diagonalize */
 
 		/* make 2 x 2 symmetric */
@@ -586,11 +580,7 @@ namespace cvt {
 			finished = true;
 			for( int i = 0; i < 2; i++ ) {
 				for( int k = i + 1; k < 3; k++ ) {
-<<<<<<< HEAD
-					if( Math::abs( mat[ i ][ k ] ) >= std::numeric_limits<T>::epsilon() || Math::abs( mat[ k ][ i ] ) >= std::numeric_limits<T>::epsilon() ) {
-=======
 					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
->>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
@@ -680,11 +670,7 @@ namespace cvt {
 			finished = true;
 			for( int i = 0; i < 3; i++ ) {
 				for( int k = i + 1; k < 4; k++ ) {
-<<<<<<< HEAD
-					if( Math::abs( mat[ i ][ k ] ) >= std::numeric_limits<T>::epsilon() || Math::abs( mat[ k ][ i ] ) >= std::numeric_limits<T>::epsilon()  ) {
-=======
 					if( Math::abs( mat[ i ][ k ] ) >= eps || Math::abs( mat[ k ][ i ] ) >= eps  ) {
->>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 						finished = false;
 						/* make 2 x 2 symmetric */
 						Math::givens( c, s, mat[ i ][ i ] + mat[ k ][ k ], mat[ k ][ i ] - mat[ i ][ k ] );
