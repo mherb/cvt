@@ -628,16 +628,16 @@ namespace cvt
 			return ret;
 		}
 
-    template<int dim, typename _T>
-    Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K ) const
-    {
-        Matrix3<_T> E;
-        E.setZero();
-        return E;
-    }
+		template<int dim, typename _T>
+    	inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>&, const Matrix3<_T> & ) const
+    	{
+    	    Matrix3<_T> E;
+    	    E.setZero();
+    	    return E;
+    	}
 
     template<>
-    Matrix3<double> PointSet<2, double>::essentialMatrix( const PointSet<2, double>& other, const Matrix3<double> & K ) const
+    inline Matrix3<double> PointSet<2, double>::essentialMatrix( const PointSet<2, double>& other, const Matrix3<double> & K ) const
     {
         if( this->size() < 8 )
             throw CVTException( "essential Matrix computation needs at least 8 points" );
@@ -731,7 +731,7 @@ namespace cvt
     }
 
     template<>
-    Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K ) const
+    inline Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K ) const
     {
         if( this->size() < 8 )
             throw CVTException( "essential Matrix computation needs at least 8 points" );
@@ -825,7 +825,7 @@ namespace cvt
     }
 
     template<int dim, typename _T>
-    Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const
+    inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const
     {
         Matrix3<_T> E;
         E.setZero();
@@ -833,7 +833,7 @@ namespace cvt
     }
 
     template<>
-    Matrix3<double> PointSet<2, double>::essentialMatrix( const PointSet<2, double>& other, const Matrix3<double> & K1, const Matrix3<double> & K2 ) const
+    inline Matrix3<double> PointSet<2, double>::essentialMatrix( const PointSet<2, double>& other, const Matrix3<double> & K1, const Matrix3<double> & K2 ) const
     {
         if( this->size() < 8 )
             throw CVTException( "essential Matrix computation needs at least 8 points" );
@@ -933,7 +933,7 @@ namespace cvt
     }
 
     template<>
-    Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K1, const Matrix3<float> & K2 ) const
+    inline Matrix3<float> PointSet<2, float>::essentialMatrix( const PointSet<2, float>& other, const Matrix3<float> & K1, const Matrix3<float> & K2 ) const
     {
         if( this->size() < 8 )
             throw CVTException( "essential Matrix computation needs at least 8 points" );

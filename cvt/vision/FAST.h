@@ -19,8 +19,6 @@ namespace cvt
 		SEGMENT_12
 	};
 
-    class ORB;
-
 	class FAST
 	{
 		public:

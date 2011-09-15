@@ -1,4 +1,4 @@
-#include <cvt/gui/internal/WidgetImplWinGLX11.h>
+#include <cvt/gui/internal/X11/WidgetImplWinGLX11.h>
 
 namespace cvt {
 

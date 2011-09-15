@@ -8,6 +8,10 @@
 
 namespace cvt
 {
+
+	/**
+	  \ingroup GL
+	*/
 	class GLModel
 	{
 		public:

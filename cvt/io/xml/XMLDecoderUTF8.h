@@ -8,6 +8,10 @@
 #include <iostream>
 
 namespace cvt {
+
+	/**
+	  \ingroup XML
+	*/
 	class XMLDecoderUTF8 : public XMLDecoder
 	{
 		public:

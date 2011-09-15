@@ -20,8 +20,11 @@ namespace cvt {
 		SIMD_BEST
 	};
 
+	class Application;
+
     class SIMD
 	{
+		friend class Application;
 		protected:
 			SIMD() {};
 			SIMD( const SIMD& ) {};
@@ -167,6 +170,8 @@ namespace cvt {
 			virtual void warpBilinear4u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint32_t fill, size_t n ) const;
 
 			virtual float harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const;
+			virtual float harrisResponse1u8( float & xx, float & xy, float& yy, const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const;
+			virtual float harrisResponseCircular1u8( float & xx, float & xy, float & yy, float& mx, float& my, const uint8_t* _src, size_t srcStride, const float k ) const;
 
 			virtual void debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
@@ -196,6 +201,8 @@ namespace cvt {
             static SIMDType bestSupportedType();
 
 		private:
+			static void cleanup();
+
 			static SIMD* _simd;
 	};
 

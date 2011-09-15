@@ -8,7 +8,7 @@
 #include <cvt/gl/shader/150/basictex_150_frag.h>
 
 namespace cvt {
-	GLDrawImageProg::GLDrawImageProg() : _vbo( GL_ARRAY_BUFFER ), _tvbo( GL_ARRAY_BUFFER )
+	GLDrawImageProg::GLDrawImageProg() : _vbo( GL_ARRAY_BUFFER )
 	{
 		try {
 			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
@@ -20,16 +20,16 @@ namespace cvt {
 			std::cout << e.what() << e.log() << std::endl;
 		}
 
-		_vbo.alloc( GL_DYNAMIC_DRAW, sizeof( GLint ) * 8 );
-		_tvbo.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 8 );
+		_vbo.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 8 );
 
-		GLfloat* tv = ( GLfloat* ) _tvbo.map( GL_WRITE_ONLY );
+		GLfloat* tv = ( GLfloat* ) _vbo.map( GL_WRITE_ONLY );
 		*tv++ = 0.0f; *tv++ = 1.0f;
 		*tv++ = 0.0f; *tv++ = 0.0f;
 		*tv++ = 1.0f; *tv++ = 1.0f;
 		*tv++ = 1.0f; *tv++ = 0.0f;
-		_tvbo.unmap();
-		_vao.setTexCoordData( _tvbo, 2, GL_FLOAT );
+		_vbo.unmap();
+		_vao.setTexCoordData( _vbo, 2, GL_FLOAT );
+		_vao.setVertexData( _vbo, 2, GL_FLOAT );
 
 		bind();
 		_mvploc = uniformLocation( "MVP" );
@@ -45,7 +45,7 @@ namespace cvt {
 
 	void GLDrawImageProg::setProjection( const Matrix4f& projection )
 	{
-		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) projection.ptr() );
+		_proj = projection;
 	}
 
 	void GLDrawImageProg::setAlpha( float alpha )
@@ -56,63 +56,62 @@ namespace cvt {
 
 	void GLDrawImageProg::drawImage( int x, int y, const Image& img )
 	{
-		GLint w, h;
+		float w, h;
 
 		if( img.memType() != IALLOCATOR_GL )
 			return;
 
-		w = ( GLint ) img.width();
-		h = ( GLint ) img.height();
+		w = ( float ) img.width();
+		h = ( float ) img.height();
 
-		GLint* buf;
-		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
-		*buf++ = x;
-		*buf++ = y + h;
-		*buf++ = x;
-		*buf++ = y;
-		*buf++ = x + w;
-		*buf++ = y + h;
-		*buf++ = x + w;
-		*buf++ = y;
-		_vbo.unmap();
+		Matrix4f proj = _proj;
+		Matrix4f mdl( w, 0, 0, x,
+					 0, h, 0, y,
+					 0, 0, 1, 0,
+					 0, 0, 0, 1 );
+		proj *= mdl;
+		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) proj.ptr() );
 
-
-		_vao.setVertexData( _vbo, 2, GL_INT );
 		glBindTexture( GL_TEXTURE_2D, ( ( ImageAllocatorGL* ) img._mem  )->_tex2d );
 		_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
-
 		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 
-	void GLDrawImageProg::drawImage( int x, int y, int width, int height, const Image& img )
+	void GLDrawImageProg::drawImage( int x, int y, int w, int h, const Image& img )
 	{
-		GLint w, h;
-
 		if( img.memType() != IALLOCATOR_GL )
 			return;
+
+		Matrix4f proj = _proj;
+		Matrix4f mdl( ( float ) w, 0, 0, ( float ) x,
+				      0, ( float )h, 0, ( float )y,
+					  0, 0, 1, 0,
+					  0, 0, 0, 1 );
+		proj *= mdl;
+		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) proj.ptr() );
+
+		glBindTexture( GL_TEXTURE_2D, ( ( ImageAllocatorGL* ) img._mem  )->_tex2d );
+		_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
+		glBindTexture( GL_TEXTURE_2D, 0 );
+	}
+
+
+	void GLDrawImageProg::drawImage( int x, int y, int width, int height, const GLTexture& tex )
+	{
+		GLint w, h;
 
 		w = Math::max( width, 1 );
 		h = Math::max( height, 1 );
 
-		GLint* buf;
-		buf = ( GLint* ) _vbo.map( GL_WRITE_ONLY );
-		*buf++ = x;
-		*buf++ = y + h;
-		*buf++ = x;
-		*buf++ = y;
-		*buf++ = x + w;
-		*buf++ = y + h;
-		*buf++ = x + w;
-		*buf++ = y;
-		_vbo.unmap();
-
-
-		_vao.setVertexData( _vbo, 2, GL_INT );
-		glBindTexture( GL_TEXTURE_2D, ( ( ImageAllocatorGL* ) img._mem  )->_tex2d );
+		Matrix4f proj = _proj;
+		Matrix4f mdl( ( float ) w, 0, 0, ( float ) x,
+					 0, ( float )h, 0, ( float )y,
+					 0, 0, 1, 0,
+					 0, 0, 0, 1 );
+		proj *= mdl;
+		glUniformMatrix4fv( _mvploc, 1, true , ( const GLfloat* ) proj.ptr() );
+		tex.bind();
 		_vao.draw( GL_TRIANGLE_STRIP, 0, 4 );
-
-		glBindTexture( GL_TEXTURE_2D, 0 );
+		tex.unbind();
 	}
-
-
 }

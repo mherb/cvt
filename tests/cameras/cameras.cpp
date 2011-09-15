@@ -94,8 +94,11 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
-			Time camt;
-			camt.reset();
+			static Time t;
+			std::cout << t.elapsedMilliSeconds() << std::endl;
+			t.reset();
+			//Time camt;
+			//camt.reset();
 			_cam->nextFrame();
 
 #ifdef WRITE_PNGS
@@ -103,8 +106,8 @@ class CameraTimeout : public TimeoutHandler
 			_queue.enqueue( toSave );
 #endif
 			_view->setImage( _cam->frame() );
-			if( camt.elapsedMicroSeconds() > 3000.0 )
-				std::cout << camt.elapsedMicroSeconds() << std::endl;
+			//if( camt.elapsedMicroSeconds() > 3000.0 )
+			//	std::cout << camt.elapsedMicroSeconds() << std::endl;
 			_frames++;
 			if( _timer.elapsedSeconds() > 5.0f ) {
 				char buf[ 200 ];
@@ -210,7 +213,7 @@ int main( )
 		wl.setAnchoredBottom( 40, 20 );
 		w.addWidget( &dumpButton, wl );
 
-		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 30, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 

@@ -67,10 +67,10 @@ int main()
 	w.addWidget( &m2 );
 	view2.setImage( img );
 
-	BasicTimer t( 0 );
-	Delegate<void (BasicTimer*)> d( timeout );
-	t.timeout.add( d );
-	t.start();
+//	BasicTimer t( 0 );
+//	Delegate<void (BasicTimer*)> d( timeout );
+//	t.timeout.add( d );
+//	t.start();
 
     Application::run();
     return 0;

@@ -7,6 +7,9 @@ namespace cvt {
 	class XMLNode;
 	class XMLDocument;
 
+	/**
+	  \ingroup XML
+	*/
 	class XMLDecoder {
 		friend class XMLDocument;
 

@@ -4,12 +4,17 @@
 
 #include <cstdlib>
 
+#ifdef APPLE
+//#include <mach-o/dyld.h>
+#include <dlfcn.h>
+#endif
+
 namespace cvt {
 	unsigned int GL::_glmajor = 0;
 	unsigned int GL::_glminor = 0;
 	unsigned int GL::_glslmajor = 0;
 	unsigned int GL::_glslminor = 0;
-	std::vector<std::string*> GL::_extensions;
+	std::vector<String> GL::_extensions;
 
 	// VertexArray
 	void ( *GL::glBindVertexArray )( GLuint array ) = NULL;
@@ -33,27 +38,6 @@ namespace cvt {
 	
 	void ( *GL::glFramebufferRenderbuffer )( GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) = NULL;
 
-
-	void GL::parseExtensions( const char* str )
-	{
-		const char* sptr = str;
-		const char* eptr;
-		std::string* ext;
-
-		do {
-			while( *sptr && *sptr == ' ' )
-				sptr++;
-			eptr = sptr;
-			while( *eptr && *eptr != ' ' )
-				eptr++;
-			if( sptr != eptr ) {
-				ext = new std::string( sptr, eptr - sptr );
-				_extensions.push_back( ext );
-				sptr = eptr;
-			}
-		} while( *eptr );
-
-	}
 
 	void GL::parseVersion( const char* str, unsigned int* major, unsigned int* minor )
 	{
@@ -100,8 +84,8 @@ namespace cvt {
 		}
 
 		/* extensions check */
-		str = glGetString( GL_EXTENSIONS );
-		parseExtensions( ( const char* ) str );
+		String cvtstr = ( const char* ) glGetString( GL_EXTENSIONS );
+		cvtstr.tokenize( _extensions, ' ' );
 
 		if( existsExtension( "GL_ARB_vertex_array_object" ) ) {
 			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArrays" );
@@ -145,22 +129,22 @@ namespace cvt {
 
 	}
 
-	bool GL::existsExtension( const std::string& extname )
+	bool GL::existsExtension( const String& extname )
 	{
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it ) {
-			if( !extname.compare( **it ) ) {
+		for( std::vector<String>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it ) {
+			if( extname == *it ) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	void (* GL::getProcAddress(const char* str ))()
+	void (* GL::getProcAddress(const char* name ))()
 	{
 #ifdef APPLE
-		return glXGetProcAddress( ( const GLubyte * ) str );
+		return ( void (*)() ) dlsym( RTLD_DEFAULT, name );
 #else
-		return glXGetProcAddressARB( ( const GLubyte * ) str );
+		return glXGetProcAddressARB( ( const GLubyte * ) name );
 #endif
 	}
 
@@ -169,13 +153,19 @@ namespace cvt {
 		out << "GL-Version: " << _glmajor << "." << _glminor << std::endl;
 		out << "GLSL-Version: " << _glslmajor << "." << _glslminor << std::endl;
 		out << "GL Extensions: " << std::endl;
-		for( std::vector<std::string*>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it )
-			out << "\t" << **it << std::endl;
+		for( std::vector<String>::const_iterator it = _extensions.begin(); it != _extensions.end(); ++it )
+			out << "\t" << *it << std::endl;
 	}
 
-	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	void GL::ortho( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
+
 		mat[ 0 ][ 0 ] = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ] = - ( right + left ) / ( right - left );
 
@@ -188,8 +178,13 @@ namespace cvt {
 		mat[ 3 ][ 3 ] = 1.0f;
 	}
 
-	void GL::orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near, float far )
+	void GL::orthoTranslation( Matrix4f& mat, float left, float right, float top, float bottom, float transx, float transy, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
 		mat[ 0 ][ 0 ]  = 2.0f / ( right - left );
 		mat[ 0 ][ 3 ]  = - ( right + left ) / ( right - left );
@@ -205,8 +200,13 @@ namespace cvt {
 		mat[ 3 ][ 3 ]  = 1.0f;
 	}
 
-	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far )
+	void GL::frustum( Matrix4f& mat, float left, float right, float top, float bottom, float near, float far, bool fliph )
 	{
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 		mat.setZero();
 		mat[ 0 ][ 0 ] = ( 2.0f * near ) / ( right - left );
 		mat[ 0 ][ 2 ] = ( right + left ) / ( right - left );
@@ -217,13 +217,19 @@ namespace cvt {
 		mat[ 3 ][ 2 ] = - 1.0f;
 	}
 
-	void GL::perspective( Matrix4f& mat, float fovy, float aspect, float near, float far )
+	void GL::perspective( Matrix4f& mat, float fovy, float aspect, float near, float far, bool fliph )
 	{
 		float range = Math::tan( Math::deg2Rad( fovy / 2.0f ) ) * near;
 		float left = -range * aspect;
 		float right = range * aspect;
 		float bottom = -range;
 		float top = range;
+
+		if( fliph ) {
+			float tmp = top;
+			top = bottom;
+			bottom = tmp;
+		}
 
 		mat.setZero();
 		mat[0][0] = ( 2.0f * near ) / ( right - left );
@@ -239,6 +245,6 @@ namespace cvt {
 		mat[ 0 ][ 0 ] = ( float ) w / ( float ) viewportwidth;
 		mat[ 0 ][ 2 ] = ( 2.0f * ( float ) x + ( float ) w - ( float ) viewportwidth ) / ( float ) viewportwidth;
 		mat[ 1 ][ 1 ] = ( float ) h / ( float ) viewportheight;
-		mat[ 1 ][ 2 ] = ( 2.0f * ( float ) -y - ( float ) h + ( float ) viewportheight ) / ( float ) viewportheight;
+		mat[ 1 ][ 2 ] = ( -2.0f * ( float ) y - ( float ) h + ( float ) viewportheight ) / ( float ) viewportheight;
 	}
 }

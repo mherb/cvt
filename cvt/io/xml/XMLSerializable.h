@@ -4,6 +4,9 @@
 namespace cvt {
 	class XMLNode;
 
+	/**
+	  \ingroup XML
+	*/
 	class XMLSerializable {
 		public:
 			virtual ~XMLSerializable() {};

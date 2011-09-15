@@ -34,6 +34,8 @@ namespace cvt {
 			virtual void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c ) = 0;
 			virtual const Font& font() const = 0;
 
+			virtual void drawModel( GLModel& , const Matrix4f& , float , float, const Color& ) {};
+
 			/* optional - only used by the Widget in paintChild */
 			virtual void setChildrect( const Recti& childrect ) = 0;
 			virtual const Recti& childrect() const = 0;

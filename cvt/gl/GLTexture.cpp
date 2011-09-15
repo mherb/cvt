@@ -50,14 +50,15 @@ namespace cvt {
 		void GLTexture::toImage( Image& img, IFormatType itype ) const
 		{
 			GLBuffer pbo( GL_PIXEL_PACK_BUFFER );
-			pbo.alloc( GL_STREAM_READ, IFormat::RGBA_UINT8.bpp * _width * _height  );
+			pbo.alloc( GL_STREAM_READ, IFormat::GRAY_FLOAT.bpp * _width * _height  );
 			pbo.bind();
 			bind();
-			glGetTexImage( _target, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+			//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+			glGetTexImage( _target, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
 			unbind();
 			pbo.unbind();
 
-			img.reallocate( _width, _height, IFormat::RGBA_UINT8 );
+			img.reallocate( _width, _height, IFormat::GRAY_FLOAT );
 
 			uint8_t* src = ( uint8_t* ) pbo.map( GL_READ_ONLY );
 			size_t dstride, sstride;
@@ -66,7 +67,7 @@ namespace cvt {
 			SIMD* simd = SIMD::instance();
 
 			size_t n = _height;
-			sstride = IFormat::RGBA_UINT8.bpp * _width;
+			sstride = IFormat::GRAY_FLOAT.bpp * _width;
 			while( n-- ) {
 				simd->Memcpy( pdst, src, sstride );
 				src += sstride;
