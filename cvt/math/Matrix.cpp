@@ -562,7 +562,6 @@ namespace cvt {
 	template void Matrix2f::svd( Matrix2f&, Matrix2f&, Matrix2f& ) const;
 	template void Matrix2d::svd( Matrix2d&, Matrix2d&, Matrix2d& ) const;
 
->>>>>>> 8dc208c3550a2c94116bf5c60881eac1bb6c4423
 	template<typename T>
 	void Matrix3<T>::svd( Matrix3<T>& u, Matrix3<T>& mat,  Matrix3<T>& v ) const
 	{
