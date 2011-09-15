@@ -224,6 +224,7 @@ class FeatureROC
         _matches.clear();
         matchFeatures( *_orb0, *_orb1, _matches );
 		Feature2DROC roc( _matches, _homographies[ _currentImage ] );
+		std::cout << _dataSets[ _currentDataSet ] << " 1 to " << _currentImage + 1 << " AUC : " << roc.AUC() << std::endl;
 		String path = _dataSets[ _currentDataSet ];
 		path += "ROC1to";
 		path += _currentImage + 1;

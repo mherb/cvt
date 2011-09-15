@@ -211,7 +211,7 @@ int main( int argc, char* argv[] )
 #endif
 
 	std::vector<FeatureMatch> matches;	
-	matchFeatures( orb0, orb1, 50, matches );
+	matchFeatures( orb0, orb1, 100, matches );
 
 	size_t patchSize = 31;
 	size_t spacing = 2;
