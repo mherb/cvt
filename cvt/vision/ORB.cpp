@@ -20,13 +20,13 @@ namespace cvt {
 	};
 
 	ORB::ORB( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold, size_t numFeatures , bool nms ) :
+		_octaves( octaves ),
+		_scaleFactor( scalefactor ),
 		_currentOctave( 0 ),
 		_threshold( cornerThreshold ),
 		_numFeatures( numFeatures ),
         _nms( nms )
 	{
-
-
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
@@ -37,17 +37,44 @@ namespace cvt {
 		_features.reserve( 512 );
 		_scaleFactors[ 0 ] = scale;
 
+		update( img );
+
+	}
+			
+	ORB::ORB( size_t octaves, float scalefactor, uint8_t cornerThreshold, size_t numFeatures , bool nms ) :
+		_octaves( octaves ),
+		_scaleFactor( scalefactor ),
+		_currentOctave( 0 ),
+		_threshold( cornerThreshold ),
+		_numFeatures( numFeatures ),
+        _nms( nms )
+	{
+		_scaleFactors = new float[ octaves ];
+		_iimages = new IntegralImage[ octaves ];
+
+		_features.reserve( 512 );
+		_scaleFactors[ 0 ] = 1.0f;
+	}
+
+	void ORB::update( const Image & img )
+	{
+		_features.clear();
+		float scale = 1.0f;
+		IScaleFilterBilinear scaleFilter;
+        //IScaleFilterGauss scaleFilter;
+
+		// clear all old
 		detect( img, 0 );
-		for( _currentOctave = 1; _currentOctave < octaves; _currentOctave++ ) {
+		for( _currentOctave = 1; _currentOctave < _octaves; _currentOctave++ ) {
 			Image pyrimg;
-			scale *=  scalefactor;
+			scale *=  _scaleFactor;
 			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			_scaleFactors[ _currentOctave ] = scale;
 			detect( pyrimg, _currentOctave );
 		}
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
-		extract( octaves );
+		extract( _octaves );
 	}
 
 	ORB::~ORB()
