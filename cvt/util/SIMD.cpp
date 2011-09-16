@@ -4000,20 +4000,20 @@ namespace cvt {
 					c += Ix * Iy * w;
 					mx += Ix * w;
 					my += Iy * w;
-					n++;
+					n += w;
 				//}
 				psrc++;
 			}
 			src += srcStride;
 		}
-	//	a -= mx * mx;
-	//	b -= my * my;
-	//	c -= mx * my;
-	//	a /= n;
-	//	b /= n;
-	//	c /= n;
-	//	mx /= n;
-	//	my /= n;
+		a -= mx * mx;
+		b -= my * my;
+		c -= mx * my;
+		a /= n;
+		b /= n;
+		c /= n;
+		mx /= n;
+		my /= n;
 		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 		//return ( a * b - c * c ) / ( a + b );

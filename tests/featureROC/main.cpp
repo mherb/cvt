@@ -103,7 +103,7 @@ class FeatureROC
   public:
     FeatureROC() :
         _numScales( 4 ),
-        _scaleFactor( 0.75f ),
+        _scaleFactor( 0.8f ),
         _fastThreshold( 30 ),
 		_maxFeatures( 1000 ),
         _currentDataSet( 0 ),

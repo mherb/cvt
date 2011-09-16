@@ -20,12 +20,13 @@ namespace cvt {
 	};
 
 	ORB2::ORB2( const Image& img, size_t octaves, float scalefactor, uint8_t cornerThreshold, size_t numFeatures , bool nms ) :
+		_scaleFactor( scalefactor ),
 		_currentOctave( 0 ),
 		_threshold( cornerThreshold ),
 		_numFeatures( numFeatures ),
         _nms( nms )
 	{
-		float scale = 1.0f;
+		float scale = 1.0;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
         //IScaleFilterCubic scaleFilter;
@@ -38,6 +39,7 @@ namespace cvt {
 		_scaleFactors[ 0 ] = scale;
 
 		detect( img, 0 );
+
 		for( _currentOctave = 1; _currentOctave < octaves; _currentOctave++ ) {
 			Image pyrimg;
 			scale *=  scalefactor;
@@ -45,9 +47,34 @@ namespace cvt {
 			_scaleFactors[ _currentOctave ] = scale;
 			detect( pyrimg, _currentOctave );
 		}
+
+#if 0
+		if( _numFeatures ) {
+			ContainerType::iterator it = _features.begin();
+			ContainerType::iterator itEnd = _features.end();
+			while( it != itEnd ){
+				ContainerType::iterator it2 = _features.begin();
+				ContainerType::iterator itEnd2 = _features.end();
+				Point2f pt1 = it->pt / _scaleFactors[ it->octave ];
+				while( it2 != itEnd2 ) {
+					if( it == it2 ) {
+						++it2;
+						continue;
+					}
+					Point2f pt2 = it2->pt / _scaleFactors[ it2->octave ];
+					if( ( pt2 - pt1 ).length() < 1.5f ) {
+						std::cout << it->octave << " Score: " << it->score << " vs " << it2->octave << " Score: " << it2->score << std::endl;
+					}
+					++it2;
+				}
+				++it;
+			}
+
+		}
+#endif
+
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
-		
 		extract( octaves );
 	}
 
@@ -78,7 +105,7 @@ namespace cvt {
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
 
-			it->score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
+			it->score = /*Math::pow( _scaleFactor, ( float ) octave ) */ simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
 
 			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
@@ -96,16 +123,25 @@ namespace cvt {
 			cov = Matrix2f( xx, xy, xy, yy );
 			cov.svd( u, d, vt );
 
+			//std::cout << xx / yy << std::endl;
+
 			//std::cout << Math::rad2Deg( it->angle2 ) << std::endl;
 			//std::cout << Math::rad2Deg( atan2( vt[ 0 ][ 1 ], vt[ 0 ][ 0 ]) ) << std::endl;
 
 			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
 			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
+
+			//std::cout << d[ 0 ][ 0 ] << " " << d[ 1 ][ 1 ] << std::endl;
+			//std::cout << ( d[ 0 ][ 0 ] + d[ 1 ][ 1 ] ) / 256.0f << std::endl;
+			//std::cout << d[ 0 ][ 0 ] / ( 31 * 31 ) << " " << d[ 1 ][ 1 ] / ( 31 * 31 ) << std::endl;
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
-			it->sx = 1.0f + Math::max( d[ 0 ][ 0 ] / n, 0.1f );
-			it->sy = 1.0f + Math::max( d[ 1 ][ 1 ] / n, 0.1f );
+			//n = Math::max( d[ 0 ][ 0 ] , d[ 1 ][ 1 ]  );
+			it->sx = 2.0f * Math::max( d[ 0 ][ 0 ] / n , 0.01f );
+			it->sy = 2.0f * Math::max( d[ 1 ][ 1 ] / n , 0.01f );
 			//it->sx = Math::min( n / d[ 0 ][ 0 ], 4.0f);
 			//it->sy = Math::min( n / d[ 1 ][ 1 ], 4.0f);
+
+			//std::cout << it->sx << " " << it->sy << std::endl;
 
 			// find out the type of the feature:
 			it->brighter = isBrighterFeature( p, stride );
@@ -324,6 +360,7 @@ namespace cvt {
 				feature.desc[ i ] |= ( ORB2TEST ) << k;
 			}
 		}
+		feature.scale = _scaleFactors[ feature.octave ];
 		feature.pt /= _scaleFactors[ feature.octave ];
 	}
 
