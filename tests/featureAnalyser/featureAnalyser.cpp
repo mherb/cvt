@@ -145,15 +145,18 @@ void extractPatches( Image & p,
 	r.width = patchSize;
 	r.height = patchSize;
 	int offset = patchSize >> 1;
+	const float radius = offset;
 
 	// extract patch from image 0:
 	r.x = ( int )m.feature0->pt.x - offset; 
 	r.y = ( int )m.feature0->pt.y - offset;
     p.copyRect( x, y, g0, r );	
 
-	drawEllipse( g, x + offset, y + offset, 
-				( ( ORB2Feature* ) m.feature0 )->sx * offset / 2,  ( ( ORB2Feature* ) m.feature0 )->sy * offset / 2,
-				 m.feature0->angle );
+
+
+/*	drawEllipse( g, x + offset, y + offset, 
+				( ( ORB2Feature* ) m.feature0 )->sx * radius,  ( ( ORB2Feature* ) m.feature0 )->sy * radius,
+				 m.feature0->angle );*/
 
 	// extract patch from image 1:
 	r.x = ( int )m.feature1->pt.x - offset; 
@@ -161,9 +164,33 @@ void extractPatches( Image & p,
 	x += patchSize + 2 * spacing;
     p.copyRect( x, y, g1, r );
 
-	drawEllipse( g, x + offset, y + offset, 
-				( ( ORB2Feature* ) m.feature1 )->sx * offset / 2,  ( ( ORB2Feature* ) m.feature1 )->sy * offset / 2,
-				 m.feature1->angle );
+#if 0
+	if( ( m.feature1->pt - H * m.feature0->pt ).length() < 2.0f ) {
+		/*Matrix2f rot( Math::cos( ( ( ORB2Feature* ) m.feature1 )->angle - ( ( ORB2Feature* ) m.feature0 )->angle ),
+					 -Math::sin( ( ( ORB2Feature* ) m.feature1 )->angle - ( ( ORB2Feature* ) m.feature0 )->angle ),
+				      Math::sin( ( ( ORB2Feature* ) m.feature1 )->angle - ( ( ORB2Feature* ) m.feature0 )->angle ),
+					  Math::cos( ( ( ORB2Feature* ) m.feature1 )->angle - ( ( ORB2Feature* ) m.feature0 )->angle ) );
+*/
+		Matrix2f rot( Math::cos( ( ( ORB2Feature* ) m.feature1 )->angle ),
+					 -Math::sin( ( ( ORB2Feature* ) m.feature1 )->angle ),
+				      Math::sin( ( ( ORB2Feature* ) m.feature1 )->angle ),
+					  Math::cos( ( ( ORB2Feature* ) m.feature1 )->angle ) );
+		Matrix2f t = rot * Matrix2f( ( ( ORB2Feature* ) m.feature1 )->sx / ( ( ORB2Feature* ) m.feature1 )->scale, 0,
+									  0 , ( ( ORB2Feature* ) m.feature1 )->sy / ( ( ORB2Feature* ) m.feature1 )->scale );
+		Matrix2f rotorig( Math::cos( ( ( ORB2Feature* ) m.feature0 )->angle ),
+					 -Math::sin( ( ( ORB2Feature* ) m.feature0 )->angle ),
+				      Math::sin( ( ( ORB2Feature* ) m.feature0 )->angle ),
+					  Math::cos( ( ( ORB2Feature* ) m.feature0 )->angle ) );
+		Matrix2f torig = rotorig * Matrix2f( ( ( ORB2Feature* ) m.feature0 )->sx, 0, 0 , ( ( ORB2Feature* ) m.feature0 )->sy );
+		Matrix2f treal( H );
+	//	std::cout << t - treal * torig << "\n" << std::endl;
+		std::cout << t * ( treal * torig ).inverse() << "\n" << ( ( ORB2Feature* ) m.feature1 )->scale << std::endl;
+	}
+#endif
+
+/*	drawEllipse( g, x + offset, y + offset, 
+				( ( ORB2Feature* ) m.feature1 )->sx * radius,  ( ( ORB2Feature* ) m.feature1 )->sy * radius,
+				 m.feature1->angle );*/
 
 	// the true position 
 	pos = H * m.feature0->pt;
@@ -193,8 +220,8 @@ int main( int argc, char* argv[] )
 
 
 	// ORB parameters:
-	size_t	octaves = 3;
-	float	scaleFactor = 0.7f;
+	size_t	octaves = 4;
+	float	scaleFactor = 0.8;
 	uint8_t cornerThreshold = 23;
 	size_t	maxFeatures = 1000;
 	bool    nonmaxSuppress = true;
