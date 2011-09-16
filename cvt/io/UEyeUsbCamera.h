@@ -2,6 +2,7 @@
 #define TOOLS_MUEYEUSBCAMERA_H
 
 #include <cvt/io/Camera.h>
+#include <cvt/util/String.h>
 #include <ueye.h>
 
 namespace cvt
@@ -13,16 +14,17 @@ class UEyeUsbCamera : public Camera
             UEyeUsbCamera( size_t camIndex, const CameraMode& mode );
             virtual ~UEyeUsbCamera();
 
-            void startCapture();
-            void stopCapture();
-			void nextFrame();
-            const Image & frame() const;
+            void			startCapture();
+            void			stopCapture();
+			void			nextFrame();
+            const Image&	frame() const;
 
-            static size_t count();
-			static void cameraInfo( size_t index, CameraInfo & info );
-			size_t width() const;
-			size_t height() const;
-			const IFormat & format() const;
+            static size_t	count();
+			static void		cameraInfo( size_t index, CameraInfo & info );
+			size_t			width() const;
+			size_t			height() const;
+			const IFormat&	format() const;
+			const String&	identifier() const;
         private:
             bool	initCam();
             void	open( const CameraMode & mode );
@@ -40,6 +42,7 @@ class UEyeUsbCamera : public Camera
             void	setVerticalMirror( bool value );
             void	setFramerate( double fps );
             int		bufNumForAddr( const uint8_t * buffAddr ) const;
+			void	setIdentifier();
 
             int _camIndex;
 
@@ -53,7 +56,8 @@ class UEyeUsbCamera : public Camera
 			uint8_t*			_buffers[ _numImageBuffers ];
 			INT					_bufferIds[ _numImageBuffers ];
 
-			Image _frame;
+			Image	_frame;
+			String	_identifier;
     };
 
 	inline const Image & UEyeUsbCamera::frame() const

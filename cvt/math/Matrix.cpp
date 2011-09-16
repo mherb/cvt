@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <limits>
-#include <float.h>
 
 #include <cvt/util/DataIterator.h>
 

@@ -43,7 +43,10 @@ namespace cvt {
 		friend bool _centroidAngleTest();
 		public:
 			ORB( const Image& img, size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25, size_t numFeatures = 1000, bool nms = true );
+			ORB( size_t octaves = 3, float scalefactor = 0.5f, uint8_t cornerThreshold = 25, size_t numFeatures = 1000, bool nms = true );
             ~ORB();
+
+			void update( const Image & img );
 
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
@@ -64,6 +67,8 @@ namespace cvt {
 			ContainerType	_features;
 
             IntegralImage*	_iimages;
+			size_t			_octaves;
+            float			_scaleFactor;
             float*			_scaleFactors;
 			size_t			_currentOctave;
 
