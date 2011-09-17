@@ -268,14 +268,16 @@ namespace cvt {
 
 		for( size_t i = 0, iend = _features.size(); i < iend; i++ ){
 			size_t octave = _features[ i ].octave;
-			//centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			centroidAngle( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
 			//std::cout << Math::rad2Deg( _features[ i ].angle ) << " <-> " << Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 
 			//std::cout << Math::rad2Deg( _features[ i ].angle )  - Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
-			_features[ i ].angle = _features[ i ].angle2;
+			//_features[ i ].angle = _features[ i ].angle2;
 
-			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			//descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			descriptorCircular( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+
 
 //			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
 
@@ -364,6 +366,37 @@ namespace cvt {
 		feature.pt /= _scaleFactors[ feature.octave ];
 	}
 
+	void ORB2::descriptorCircular( ORB2Feature& feature, const float* iimgptr, size_t widthstep )
+	{
+		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
+		if( index >= 30 )
+			index = 0;
+		int x = ( int ) feature.pt.x;
+		int y = ( int ) feature.pt.y;
+
+		Point2f orbpt1, orbpt2, pt;
+		Matrix2f rot( Math::cos( feature.angle ), -Math::sin( feature.angle ),
+				      Math::sin( feature.angle ),  Math::cos( feature.angle ) );
+
+		static float areas[ 64 ];
+
+		int r;
+		for( size_t i = 0; i < 64; i++ ){
+			r = ( int )_patternPositions[ index ][ i ][ 2 ];
+			areas[ i ] = IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patternPositions[ index ][ i ][ 0 ] ) - r,
+													   y + Math::round( feature.sy * _patternPositions[ index ][ i ][ 1 ] ) - r, 2*r+1, 2*r+1, widthstep ); 
+		}
+
+		for( int i = 0; i < 32; i++ ) {
+			feature.desc[ i ] = 0;
+			for( int k = 0; k < 8; k++ ) {
+				feature.desc[ i ] |= ( areas[ _testIndices[ ( i * 8 + k ) * 2 ] ] < areas[ _testIndices[ ( i * 8 + k ) * 2 + 1 ] ] ) << k;
+			}
+		}
+		feature.scale = _scaleFactors[ feature.octave ];
+		feature.pt /= _scaleFactors[ feature.octave ];
+	}
+
 	static bool compareOrbFeature( const ORB2Feature & a, const ORB2Feature & b )
 	{
 		return a.score > b.score;
@@ -436,4 +469,5 @@ namespace cvt {
 	const int ORB2::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,
 		15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10,  9,  8,  6,  3 };
 #include "ORB2Patterns.h"
+#include "ORB2CircularPattern.h"
 }
