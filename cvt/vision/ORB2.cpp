@@ -55,6 +55,8 @@ namespace cvt {
 			while( it != itEnd ){
 				ContainerType::iterator it2 = _features.begin();
 				ContainerType::iterator itEnd2 = _features.end();
+				if( it->octave != 0 )
+					break;
 				Point2f pt1 = it->pt / _scaleFactors[ it->octave ];
 				while( it2 != itEnd2 ) {
 					if( it == it2 ) {
@@ -105,7 +107,7 @@ namespace cvt {
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
 
-			it->score = /*Math::pow( _scaleFactor, ( float ) octave ) */ simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
+			it->score = Math::pow( _scaleFactor, -( float ) octave ) * simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
 
 			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
@@ -136,8 +138,8 @@ namespace cvt {
 			//std::cout << d[ 0 ][ 0 ] / ( 31 * 31 ) << " " << d[ 1 ][ 1 ] / ( 31 * 31 ) << std::endl;
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
 			//n = Math::max( d[ 0 ][ 0 ] , d[ 1 ][ 1 ]  );
-			it->sx = 2.0f * Math::max( d[ 0 ][ 0 ] / n , 0.01f );
-			it->sy = 2.0f * Math::max( d[ 1 ][ 1 ] / n , 0.01f );
+			it->sx = 1.5f * Math::max( d[ 0 ][ 0 ] / n , 0.01f );
+			it->sy = 1.5f * Math::max( d[ 1 ][ 1 ] / n , 0.01f );
 			//it->sx = Math::min( n / d[ 0 ][ 0 ], 4.0f);
 			//it->sy = Math::min( n / d[ 1 ][ 1 ], 4.0f);
 
