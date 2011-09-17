@@ -67,6 +67,8 @@ namespace cvt {
 			void centroidAngle( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
 			void descriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
+			void descriptorCircular( ORB2Feature& feature, const float* ptr, size_t widthstep );
+
 			//void multiChannelDescriptor( ORB2Feature& feature, const float* ptr, size_t widthstep );
 
             void nonmaxSuppression( const std::vector<ORB2Feature> & features );
@@ -96,6 +98,9 @@ namespace cvt {
 
 			static const int _patterns[ 30 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];
+
+			static const float  _patternPositions[ 30 ][ 64 ][ 3 ];
+			static const size_t _testIndices[ 512 ];
 
             // border where we do not detect features:
             // 17+2 17->maximum test coord within patch + 2 for the integral image access
