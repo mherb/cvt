@@ -3,6 +3,7 @@
 
 #include <cvt/io/Camera.h>
 #include <cvt/gfx/Image.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 
@@ -20,15 +21,17 @@ namespace cvt {
 			void nextFrame();
 			const Image & frame() const;
 			void startCapture();
-			void stopCapture();	
+			void stopCapture();
 		
 			const IFormat & format() const;
+            const String &  identifier() const;
 		
 			static size_t count();		
 			static void cameraInfo( size_t index, CameraInfo & info );
 		
 		private:
 			QTKitCameraInterface *  _device;
+            String                  _identifier;
 			Image                   _frame;
             bool                    _capturing;
 	};
@@ -52,6 +55,11 @@ namespace cvt {
 	{
 		return _frame.format();
 	}
+    
+    inline const String & QTKitCamera::identifier() const 
+    {
+        return _identifier;
+    }
 	
 }
 
