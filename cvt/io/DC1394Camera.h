@@ -24,6 +24,7 @@ namespace cvt
 			size_t width() const { return _width;}
 			size_t height() const { return _height;}
 			const IFormat & format() const { return _frame.format();}
+            const String& identifier() const { return _identifier;};
 
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
@@ -47,19 +48,20 @@ namespace cvt
 		
 			dc1394video_mode_t dcMode( const CameraMode & mode );
 			
-			int _dmaBufNum;
-			size_t _camIndex;
-			Image _frame;
-			size_t _width;
-			size_t _height;
-			size_t _fps;
+			int     _dmaBufNum;
+			size_t  _camIndex;
+			Image   _frame;
+			size_t  _width;
+			size_t  _height;
+			size_t  _fps;
 
-			bool _capturing;
-			dc1394_t* _dcHandle;
-			dc1394camera_t* _camera;
-			dc1394speed_t _speed;
-			dc1394video_mode_t _mode;
-			dc1394framerate_t _framerate;
+			bool                _capturing;
+			dc1394_t*           _dcHandle;
+			dc1394camera_t*     _camera;
+			dc1394speed_t       _speed;
+			dc1394video_mode_t  _mode;
+			dc1394framerate_t   _framerate;
+            String              _identifier;
 	};
 
 }
