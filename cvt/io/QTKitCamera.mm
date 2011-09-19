@@ -162,7 +162,7 @@ namespace cvt {
 					
 		QTCaptureDevice * dev = [ availableDevices objectAtIndex:camIndex ];
 		
-		std::cout << "Device name: " << [[dev localizedDisplayName] UTF8String] << std::endl;
+		//std::cout << "Device name: " << [[dev localizedDisplayName] UTF8String] << std::endl;
 		
 		NSError * error;
 		BOOL success = [dev open:&error];
@@ -268,8 +268,7 @@ namespace cvt {
         _capturing( false )
 	{
 		_device = new QTKitCameraInterface( camIndex, mode.width, mode.height, mode.fps, mode.format );
-        _identifier = _device->identifier();
-        std::cout << "ID: " << _identifier << std::endl;
+        _identifier = _device->identifier();        
 	}
 	
 	QTKitCamera::~QTKitCamera()
