@@ -134,41 +134,48 @@ class FeatureROC
 			for( size_t k = 0; k < _images.size() - 2 ; k++ ){
 				nextImage();
 			}
+
+			// average roc
+			_avgROC.calcRocPoints();
+			std::cout << _dataSets[ _currentDataSet ] << " avg, AUC : " << _avgROC.AUC() << std::endl;
+			String path = _dataSets[ _currentDataSet ];
+			path += "AVG_ROC.txt";
+			_avgROC.toFile( path );
+			_avgROC.clear();
 		}
 	}
 
     void loadDataSet()
     {
-        try {
-        cvt::Resources resources;
-        String folder = resources.find( "features_dataset" );
-        folder += "/";
-        folder += _dataSets[ _currentDataSet ];
+		try {
+			cvt::Resources resources;
+			String folder = resources.find( "features_dataset" );
+			folder += "/";
+			folder += _dataSets[ _currentDataSet ];
 
-        _images.resize( 6 );
-        _homographies.resize( 6 );
+			_images.resize( 6 );
+			_homographies.resize( 5 );
 
-        // first one is identity
-        _homographies[ 0 ].setIdentity();
-        for ( size_t i = 0; i < 6; i++ ) {
-            // load image i:
-            String iPath( folder );
-            iPath += "/img";
-            iPath += ( i + 1 );
-            iPath += ".ppm";
-            _images[ i ].load( iPath );
+			// first one is identity
+			for ( size_t i = 0; i < 6; i++ ) {
+				// load image i:
+				String iPath( folder );
+				iPath += "/img";
+				iPath += ( i + 1 );
+				iPath += ".ppm";
+				_images[ i ].load( iPath );
 
-            if ( i != 0 ) {
-                // load the matrix
-                String mPath( folder );
-                mPath += "/H1to";
-                mPath += ( int ) ( i + 1 );
-                mPath += "p";
-                loadMatrix3( _homographies[ i ], mPath );
-            }
-        }
+				if ( i != 0 ) {
+					// load the matrix
+					String mPath( folder );
+					mPath += "/H1to";
+					mPath += ( int ) ( i + 1 );
+					mPath += "p";
+					loadMatrix3( _homographies[ i-1 ], mPath );
+				}
+			}
 
-        } catch( const Exception & e ){
+		} catch( const Exception & e ){
             std::cerr << e.what() << std::endl;
         }
     }
@@ -223,7 +230,8 @@ class FeatureROC
 
         _matches.clear();
         matchFeatures( *_orb0, *_orb1, _matches );
-		Feature2DROC roc( _matches, _homographies[ _currentImage ] );
+		Feature2DROC roc( _matches, _homographies[ _currentImage-1 ] );
+		_avgROC.addData( _matches, _homographies[ _currentImage -1 ] );
 		std::cout << _dataSets[ _currentDataSet ] << " 1 to " << _currentImage + 1 << " AUC : " << roc.AUC() << std::endl;
 		String path = _dataSets[ _currentDataSet ];
 		path += "ROC1to";
@@ -251,7 +259,9 @@ class FeatureROC
     ORB*                    _orb0;
     ORB*                    _orb1;
 #endif
-    std::vector<FeatureMatch> _matches;
+	std::vector<FeatureMatch> _matches;
+
+	Feature2DROC			_avgROC;
 };
 
 int main( int argc, char* argv[] )
