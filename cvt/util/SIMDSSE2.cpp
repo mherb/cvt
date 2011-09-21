@@ -3,6 +3,8 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
+#include <cvt/util/SIMDDebug.h>
+
 namespace cvt
 {
 	/*static inline int32_t _mm_floor( __m128 xmm )
@@ -1721,6 +1723,108 @@ namespace cvt
 		
 		xx = a; yy = b; xy = c;
 
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+	}
+
+	float SIMDSSE2::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
+	{
+		const uint8_t* src = _src - 7 * srcStride - 7;
+		__m128i dx2[ 2 ][ 2 ], t1, t2, t3, t4, dx, dy, zero;
+		__m128i ix, iy, ixy;
+		int n = 13;
+		float a, b, c;
+
+#define	__horizontal_sum(r, rw) do { \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(1, 0, 3, 2)); \
+	r = _mm_add_epi32(r, rw); \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(2, 3, 0, 1)); \
+	r = _mm_add_epi32(r, rw); \
+} while( 0 )
+
+		ix = iy = ixy = zero = _mm_setzero_si128();
+
+		t1 = _mm_loadu_si128( ( __m128i* ) src );
+		t2 = _mm_unpacklo_epi8( t1, zero );
+		t3 = _mm_unpacklo_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 0 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 4 );
+		t2 = _mm_unpackhi_epi8( t1, zero );
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 0 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+		src += srcStride;
+
+		t1 = _mm_loadu_si128( ( __m128i* ) src );
+		t2 = _mm_unpacklo_epi8( t1, zero );
+		t3 = _mm_unpacklo_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 1 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 4 );
+		t2 = _mm_unpackhi_epi8( t1, zero );
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 1 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+		src += srcStride;
+
+		SIMD_print_i16( dx2[ 0 ][ 0 ] );
+		SIMD_print_i16( dx2[ 1 ][ 0 ] );
+
+		while( n-- ) {
+			/* load current line */
+			t1 = _mm_loadu_si128( ( __m128i* ) src );
+			t2 = _mm_unpacklo_epi8( t1, zero );
+			t3 = _mm_unpacklo_epi8( _mm_slli_si128( t1, 2 ), zero );
+			dx = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 4 );
+
+			/* first 8 sobel values in x direction */
+			dx = _mm_add_epi16( dx, _mm_add_epi16( dx2[ 0 ][ 0 ], _mm_slli_epi16( dx2[ 1 ][ 0 ], 1 ) ) );
+
+			/* load current line - 2 * srcStride */
+			t4 = _mm_loadu_si128( ( __m128i* ) ( src - 2 * srcStride ) );
+			t3 = _mm_unpacklo_epi8( t4, zero ); // unpack low values
+			dy = _mm_sub_epi16( t3, t2 ); // substract values of current line
+
+			/* load high values of current line */
+			t2 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 1 ), zero );
+			/* load hight values of current line - 2 * srcStride */
+			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t4, 1 ), zero );
+			/* upper unsmoothed y gradient current line */
+			t4 = _mm_sub_epi16( t3, t2 );
+
+			/* calculate first 8 sobel values in y direction */
+			dy = _mm_add_epi16( _mm_slli_epi16( dy, 1 ), _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) ) );
+			dy = _mm_srli_si128( _mm_add_epi16( dy, _mm_slli_si128( _mm_srli_si128( t4, 2 ), 14 ) ), 2 );
+			SIMD_print_i16( dy );
+
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+
+			/* upper unsmoothed x gradient current line */
+			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+			dx = _mm_sub_epi16( t3, t2 );
+
+			/* caclculate second 8 sobel values in x direction */
+			dx = _mm_add_epi16( dx, _mm_add_epi16( dx2[ 0 ][ 1 ], _mm_slli_epi16( dx2[ 1 ][ 1 ], 1 ) ) );
+			dx = _mm_srli_si128( dx, 2 );
+
+			dy = _mm_add_epi16( _mm_slli_epi16( t4, 1 ), _mm_add_epi16( _mm_slli_si128( t4, 2 ), _mm_srli_si128( t4, 2 ) ) );
+			dy = _mm_srli_si128( _mm_slli_si128( dy, 2 ), 4 );
+
+			SIMD_print_i16( dy );
+
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+
+			src += srcStride;
+		}
+		__horizontal_sum( ix, t1 );
+		__horizontal_sum( iy, t1 );
+		__horizontal_sum( ixy, t1 );
+
+#undef __horizontal_sum
+
+		a = ( float ) _mm_cvtsi128_si32( ix );
+		b = ( float ) _mm_cvtsi128_si32( iy );
+		c = ( float ) _mm_cvtsi128_si32( ixy );
+
+		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
