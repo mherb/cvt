@@ -101,26 +101,26 @@ namespace cvt {
 		ContainerType::iterator it = octaveFeatures.begin();
 		ContainerType::iterator itEnd = octaveFeatures.end();
 
-		float xx, xy, yy, mx, my, n;
+		float xx, xy, yy, n;
 		Matrix2f cov, u, d, vt;
 
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
 
-			it->score = Math::pow( _scaleFactor, -( float ) octave ) * simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
+			it->score = /* Math::pow( _scaleFactor, -1.0f * ( float ) octave ) */ simd->harrisResponseCircular1u8( xx, xy, yy, p , stride, 0.04f );
 
 			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
-			it->angle2 = Math::atan2( my, mx );
+			//it->angle2 = Math::atan2( my, mx );
 
 
 		//	it->angle2 = Math::deg2Rad( 85.0f ) - it->angle2;
-			if( it->angle2 < 0 )
-				it->angle2 += Math::TWO_PI;
+		//	if( it->angle2 < 0 )
+		//		it->angle2 += Math::TWO_PI;
 		//	it->angle2 = Math::TWO_PI - it->angle2 - Math::HALF_PI;
 
-			while( it->angle2 > Math::TWO_PI )
-				it->angle2 -= Math::TWO_PI;
+		//	while( it->angle2 > Math::TWO_PI )
+		//		it->angle2 -= Math::TWO_PI;
 
 			cov = Matrix2f( xx, xy, xy, yy );
 			cov.svd( u, d, vt );
@@ -130,18 +130,18 @@ namespace cvt {
 			//std::cout << Math::rad2Deg( it->angle2 ) << std::endl;
 			//std::cout << Math::rad2Deg( atan2( vt[ 0 ][ 1 ], vt[ 0 ][ 0 ]) ) << std::endl;
 
-			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
-			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
+			d[ 0 ][ 0 ] = ( Math::sqrt( d[ 0 ][ 0 ] ) );
+			d[ 1 ][ 1 ] = ( Math::sqrt( d[ 1 ][ 1 ] ) );
 
 			//std::cout << d[ 0 ][ 0 ] << " " << d[ 1 ][ 1 ] << std::endl;
 			//std::cout << ( d[ 0 ][ 0 ] + d[ 1 ][ 1 ] ) / 256.0f << std::endl;
 			//std::cout << d[ 0 ][ 0 ] / ( 31 * 31 ) << " " << d[ 1 ][ 1 ] / ( 31 * 31 ) << std::endl;
 			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
 			//n = Math::max( d[ 0 ][ 0 ] , d[ 1 ][ 1 ]  );
-			it->sx = 1.5f * Math::max( d[ 0 ][ 0 ] / n , 0.01f );
-			it->sy = 1.5f * Math::max( d[ 1 ][ 1 ] / n , 0.01f );
-			//it->sx = Math::min( n / d[ 0 ][ 0 ], 4.0f);
-			//it->sy = Math::min( n / d[ 1 ][ 1 ], 4.0f);
+			it->sx = 4.0f * Math::max( d[ 0 ][ 0 ] / n , 0.1f );
+			it->sy = 4.0f * Math::max( d[ 1 ][ 1 ] / n , 0.1f );
+			//it->sx = Math::min( 2.0f * n / d[ 0 ][ 0 ], 3.0f);
+			//it->sy = Math::min( 2.0f * n / d[ 1 ][ 1 ], 3.0f);
 
 			//std::cout << it->sx << " " << it->sy << std::endl;
 
@@ -277,8 +277,8 @@ namespace cvt {
 			//std::cout << Math::rad2Deg( _features[ i ].angle )  - Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 			//_features[ i ].angle = _features[ i ].angle2;
 
-			//descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
-			descriptorCircular( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			//descriptorCircular( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
 
 //			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
