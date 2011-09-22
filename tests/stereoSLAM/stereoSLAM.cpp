@@ -27,6 +27,7 @@ void loadCameraCalib( CameraCalibration& camCalib, const String& file )
 							   */
 }
 
+
 int main( int argc, char* argv[] )
 {
 	
@@ -64,8 +65,6 @@ int main( int argc, char* argv[] )
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i1.width(), i1.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i1.convert( tmp, IFormat::RGBA_UINT8 );
 	IWarp::apply( id1, tmp, warp );
-
-	// now we have two undistorted images
 
 	return 0;
 }
