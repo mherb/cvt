@@ -32,8 +32,8 @@ int main( int argc, char* argv[] )
 	
 	Resources r;
 
-	String calib0 = r.find( "calib/ueye_stereo_4002738788.xml" );
-	String calib1 = r.find( "calib/ueye_stereo_4002738790.xml" );
+	String calib0 = r.find( "calib/ueye_stereo_4002738790.xml" );
+	String calib1 = r.find( "calib/ueye_stereo_4002738788.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
 	loadCameraCalib( camCalib0, calib0 );
