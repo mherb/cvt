@@ -2,6 +2,8 @@
 #define CVT_STEREO_SLAM_H
 
 #include <cvt/vision/CameraCalibration.h>
+#include <cvt/gfx/ifilter/IWarp.h>
+#include "ORBStereoMatching.h"
 
 namespace cvt
 {
@@ -11,7 +13,7 @@ namespace cvt
 		public:
 			StereoSLAM( const CameraCalibration& c0,
 						size_t w0, size_t h0,
-						const CameraCalibration& c1
+						const CameraCalibration& c1,
 						size_t w1, size_t h1 );
 
 			// new round with two new images, maybe also hand in a pose prediction?
@@ -32,18 +34,21 @@ namespace cvt
 			uint8_t				_orbCornerThreshold;
 			size_t				_orbMaxFeatures;
 			bool				_orbNonMaxSuppression;
+
+			float				_matcherMaxLineDistance;	
+			float				_matcherMaxDescriptorDist;	
 			
 			// FeatureTracker ... 
 
 			void triangulate( std::vector<Vector3f>& points, const std::vector<FeatureMatch>& matches ) const;
 	};
 
-	inline StereoSLAM( const CameraCalibration& c0,
-					   size_t w0, size_t h0, 
-					   const CameraCalibration& c1,
-					   size_t w1, size_t h1 ):
+	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
+								   size_t w0, size_t h0, 
+								   const CameraCalibration& c1,
+								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_stereoMatcher( _camCalib0, _camCalib1 ),
+		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 25 ),
@@ -72,7 +77,7 @@ namespace cvt
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
-		Img tmp, gray0;
+		Image tmp, gray0;
 		
 		// get grayscale image
 		img0.convert( tmp, IFormat::GRAY_UINT8 );
@@ -124,12 +129,14 @@ namespace cvt
 	{
 		points.resize( matches.size() );
 
+		Vector4f tmp;
 		for( size_t i = 0; i < matches.size(); i++ ){
-			Vision::triangulate( points[ i ],
+			Vision::triangulate( tmp,
 								_camCalib0.projectionMatrix(),
 								_camCalib1.projectionMatrix(),
 								matches[ i ].feature0->pt,
 								matches[ i ].feature1->pt );
+			points[ i ] = tmp;
 		}
 	}
 }
