@@ -4,13 +4,13 @@
 
 namespace cvt {
     
-    ImageSequence::ImageSequence( const std::string & base,
-                                  const std::string & ext,
+    ImageSequence::ImageSequence( const String & base,
+                                  const String & ext,
                                   size_t startIndex, 
                                   size_t stopIndex, 
                                   size_t fieldWidth,
                                   char fillChar ) : 
-        _loadFunc( 0 ), _baseName( base ), 
+        _baseName( base ), 
         _extension( ext ), _index( startIndex ), 
         _lastIndex( stopIndex ), _fieldWidth( fieldWidth ), _fillChar( fillChar )
     {       
@@ -33,7 +33,7 @@ namespace cvt {
             << std::setw( _fieldWidth ) << std::setfill( _fillChar ) << _index 
             << "." << _extension;
         
-        _loadFunc( _current, ss.str() );
+        _current.load( ss.str().c_str() );
         
         if( _index < _lastIndex )
             _index++;

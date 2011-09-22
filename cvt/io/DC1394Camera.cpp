@@ -31,6 +31,9 @@ namespace cvt
 			throw CVTException( "Could not open camera" );
 		
 		dcSettings( mode );
+        
+        _identifier.sprintf( "%llu" ,_camera->guid );
+        std::cout << "Identifier: " << _identifier << std::endl;
 	}
 
 	DC1394Camera::~DC1394Camera( )

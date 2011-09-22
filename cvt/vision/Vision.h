@@ -44,6 +44,21 @@ namespace cvt
                                  const Vector2<T>& p0,
                                  const Vector2<T>& p1 );
 
+		/**
+		 *	@brief	Construct fundamental matrix (cam 0 to cam1) out of calibration data
+		 *	@param	f	output fundamental matrix
+		 *	@param	K0	intrinsics of camera 0
+		 *	@param	T0	extrinsics of camera 0 (cam2World)
+		 *	@param	K1	intrinsics of camera 1
+		 *	@param	T1	extrinsics of camera 1 (cam2World)
+		 */
+		template<typename T>
+		static void composeFundamental( Matrix3<T>& f, 
+									    const Matrix3<T>& K0, 
+										const Matrix4<T>& T0,
+										const Matrix3<T>& K1, 
+										const Matrix4<T>& T1 );
+
 	/*	template<typename T>
 		static void correctCorrespondences( Vector3<T>& p0,
 										    Vector3<T>& p1,
@@ -186,6 +201,19 @@ namespace cvt
 	}
 #endif
 
+		template<typename T>
+		inline void Vision::composeFundamental( Matrix3<T>& f, 
+												const Matrix3<T>& K0, 
+												const Matrix4<T>& T0,
+												const Matrix3<T>& K1, 
+												const Matrix4<T>& T1 )
+		{
+			Matrix4<T> t0t1 = T0 * T1.inverse();
+			Matrix3<T> R = t0t1.toMatrix3();
+			Matrix3<T> tSkew;
+			tSkew.setSkewSymmetric( Vector3<T>( t0t1[ 0 ][ 3 ], t0t1[ 1 ][ 3 ], t0t1[ 2 ][ 3 ] ) );
+			f = K1.inverse().transpose() * tSkew * R * K0.inverse();	
+		}
 
 
 }

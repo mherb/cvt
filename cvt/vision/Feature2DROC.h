@@ -10,50 +10,75 @@ namespace cvt {
 	class Feature2DROC {
 		public:
 			Feature2DROC( const std::vector<FeatureMatch>& matches, const Matrix3f& gthomography, float threshold = 5.0f );
+
+			/* compute averave roc of several input matches */
+			Feature2DROC( float threshold = 5.0f );
+
+			void addData( const std::vector<FeatureMatch> & matches, const Matrix3f& homography );
+
 			float AUC() const;
 			void toFile( const String& path ) const;
+			void clear();
+			
+			void calcRocPoints(); 
 
 		private:
-			void findMatchesAndMaxDistance( const std::vector<FeatureMatch>& matches );
-			void calcRocPoints( const std::vector<FeatureMatch>& matches );
 
-			Matrix3f			 _gthomo; // Ground-truth homography
 			float				 _gtthres; // Max distance for match || H * x - x' || < _gtthres -> match
 			float				 _maxdistance; // max distance
-			std::vector<bool>	 _match; // bool indicates if index i is an match according to _gthomo
 			std::vector<Point2f> _rocpts;
+
+			std::vector<bool>	 _isMatch;
+			std::vector<float>	 _distances;
 	};
 
 
 	inline Feature2DROC::Feature2DROC( const std::vector<FeatureMatch>& matches, const Matrix3f& gth, float threshold ) :
-		_gthomo( gth ),
 		_gtthres( threshold ),
 		_maxdistance( 0 )
 	{
-		findMatchesAndMaxDistance( matches );
-		calcRocPoints( matches );
+		addData( matches, gth );
+		calcRocPoints();
 	}
 
-	inline void Feature2DROC::findMatchesAndMaxDistance( const std::vector<FeatureMatch>& matches )
+
+	inline Feature2DROC::Feature2DROC( float threshold ):
+		_gtthres( threshold ),
+		_maxdistance( 0 )
+	{
+	}
+
+	inline void Feature2DROC::addData( const std::vector<FeatureMatch> & matches, const Matrix3f& homography )
 	{
 		std::vector<FeatureMatch>::const_iterator it = matches.begin();
 		std::vector<FeatureMatch>::const_iterator itEnd = matches.end();
 
 		while( it != itEnd ){
-			Vector2f gt = _gthomo * it->feature0->pt;
+			Vector2f gt = homography * it->feature0->pt;
 
 			float dist = ( it->feature1->pt - gt ).length();
 			if( dist < _gtthres )
-				_match.push_back( 1 );
+				_isMatch.push_back( true );
 			else
-				_match.push_back( 0 );
+				_isMatch.push_back( false );
+
+			_distances.push_back( it->distance );
+
 			if( it->distance > _maxdistance )
 				_maxdistance = it->distance;
 			it++;
 		}
 	}
 
-	inline void Feature2DROC::calcRocPoints( const std::vector<FeatureMatch>& matches )
+	inline void Feature2DROC::clear()
+	{
+		_maxdistance = 0;
+		_rocpts.clear();
+		_isMatch.clear();
+		_distances.clear();
+	}
+
+	inline void Feature2DROC::calcRocPoints()
 	{
 		float threshold;
 		for( size_t i = 0; i < 102; i++ ) {
@@ -64,14 +89,14 @@ namespace cvt {
 			size_t fp = 0;
 			size_t actualError = 0;
 
-			for( size_t k = 0; k < matches.size(); k++ ) {
-				if( _match[ k ] ) {
+			for( size_t k = 0; k < _distances.size(); k++ ) {
+				if( _isMatch[ k ] ) {
 					actualCorrect++;
-					if( matches[ k ].distance < threshold )
+					if( _distances[ k ] < threshold )
 						tp++;
 				} else {
 					actualError++;
-					if( matches[ k ].distance < threshold )
+					if( _distances[ k ] < threshold )
 						fp++;
 				}
 			}

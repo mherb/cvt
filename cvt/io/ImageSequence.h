@@ -2,14 +2,15 @@
 #define CVT_IMAGESEQUENCE_H
 
 #include <cvt/io/VideoInput.h>
+#include <cvt/util/String.h>
 
 namespace cvt
 {
     class ImageSequence : public VideoInput
     {
         public:
-            ImageSequence( const std::string & base, 
-                           const std::string & ext,
+            ImageSequence( const String & base, 
+                           const String & ext,
                            size_t startIndex, 
                            size_t stopIndex, 
                            size_t fieldWidth,
@@ -25,11 +26,9 @@ namespace cvt
             
         
         private:
-            void ( *_loadFunc )( Image &, const std::string & );
-        
             Image       _current;   
-            std::string _baseName;
-            std::string _extension;            
+            String		_baseName;
+            String 		_extension;            
             size_t      _index;
             size_t      _lastIndex;
             size_t      _fieldWidth;
