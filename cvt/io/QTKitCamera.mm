@@ -133,8 +133,10 @@ namespace cvt {
 			void nextFrame( cvt::Image & img );
 			void startCapture();
 			void stopCapture();
+            String identifier() const;
 
 			static size_t count();
+
 		
 		private:	
 			NSAutoreleasePool * _pool;
@@ -160,7 +162,7 @@ namespace cvt {
 					
 		QTCaptureDevice * dev = [ availableDevices objectAtIndex:camIndex ];
 		
-		std::cout << "Device name: " << [[dev localizedDisplayName] UTF8String] << std::endl;
+		//std::cout << "Device name: " << [[dev localizedDisplayName] UTF8String] << std::endl;
 		
 		NSError * error;
 		BOOL success = [dev open:&error];
@@ -245,6 +247,11 @@ namespace cvt {
         [_session stopRunning];
 	}
 	
+    String QTKitCameraInterface::identifier() const
+    {
+        String ret( [[[_qtDevice device] uniqueID ] UTF8String] );
+        return ret;
+    }
 	
 	size_t QTKitCameraInterface::count()
 	{			
@@ -261,6 +268,7 @@ namespace cvt {
         _capturing( false )
 	{
 		_device = new QTKitCameraInterface( camIndex, mode.width, mode.height, mode.fps, mode.format );
+        _identifier = _device->identifier();        
 	}
 	
 	QTKitCamera::~QTKitCamera()
