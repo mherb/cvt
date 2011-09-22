@@ -2,6 +2,7 @@
 #include <cvt/io/VideoReader.h>
 #include <cvt/io/ImageSequence.h>
 #include <cvt/util/Time.h>
+#include <cvt/util/String.h>
 #include <cvt/util/Exception.h>
 
 #include <cvt/gui/Application.h>
@@ -225,7 +226,7 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
         input = initCamera();
     } else {
-        std::string ext( "cvtraw" );
+        String ext( "cvtraw" );
         input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
     }
 
