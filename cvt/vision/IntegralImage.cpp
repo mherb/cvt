@@ -292,21 +292,26 @@ namespace cvt
 
         bool area1 = Math::abs( iArea - iiArea ) < Math::EPSILONF;
         success &= area1;
-        CVTTEST_PRINT( "IntegralImage::area( Image, Rect )", area1 );
+		if( !area1 )
+			CVTTEST_PRINT( "IntegralImage::area( Image, Rect )", area1 );
 
         size_t stride;
         const float * ptr = sum.map<float>( &stride );
         float a2 = IntegralImage::area( ( ptr + stride * rect.y + rect.x ), rect.width, rect.height, stride );
 
         bool area2 = Math::abs( iArea - a2 ) < Math::EPSILONF;
-        CVTTEST_PRINT( "IntegralImage::area( float*, width, height, stride )", area2 );
-        if( !area2 ) std::cout << "GT: " << iArea << " Result: " << a2 << std::endl;
+        if( !area2 ) {
+			std::cout << "GT: " << iArea << " Result: " << a2 << std::endl;
+			CVTTEST_PRINT( "IntegralImage::area( float*, width, height, stride )", area2 );
+		}
         success &= area2;
 
         float a3 = IntegralImage::area( ptr, rect.x, rect.y, rect.width, rect.height, stride );
         bool area3 = Math::abs( iArea - a3 ) < Math::EPSILONF;
-        CVTTEST_PRINT( "IntegralImage::area( float*, x, y, width, height, stride )", area3 );
-        if( !area3 ) std::cout << "GT: " << iArea << " Result: " << a3 << std::endl;
+        if( !area3 ) {
+			std::cout << "GT: " << iArea << " Result: " << a3 << std::endl;
+			CVTTEST_PRINT( "IntegralImage::area( float*, x, y, width, height, stride )", area3 );
+		}
         success &= area3;
 
         sum.unmap( ptr );
