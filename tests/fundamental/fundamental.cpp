@@ -146,22 +146,19 @@ int main( int argc, char* argv[] )
 	
 	Resources r;
 
-	String calib0 = r.find( "calib/ueye_stereo_4002738788.xml" );
-	String calib1 = r.find( "calib/ueye_stereo_4002738790.xml" );
+	String calib0 = r.find( "calib/ueye_stereo_4002738790.xml" );
+	String calib1 = r.find( "calib/ueye_stereo_4002738788.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
 	loadCameraCalib( camCalib0, calib0 );
 	loadCameraCalib( camCalib1, calib1 );
 
 	Matrix3f fundamental;
-	Matrix4f ext1 = camCalib1.extrinsics();
-	ext1.inverseSelf();
 	Vision::composeFundamental( fundamental, 
 							    camCalib0.intrinsics(),
 								camCalib0.extrinsics(),
 								camCalib1.intrinsics(),
-							//	camCalib1.extrinsics()
-								ext1
+								camCalib1.extrinsics()
 							  );
 
 	Image i0( r.find( "ueye_stereo_left.cvtraw" ) );
