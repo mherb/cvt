@@ -4,13 +4,11 @@
 #include "cvt/io/xml/XMLDocument.h"
 #include "cvt/io/ImageSequence.h"
 #include <cvt/vision/CameraCalibration.h>
-#include <cvt/vision/Vision.h>
-#include <cvt/vision/ORB.h>
-#include <cvt/vision/FeatureMatch.h>
 
-#include <cvt/util/Time.h>
+#include <cvt/gui/Application.h>
 
 #include "StereoSLAM.h"
+#include "StereoSLAMApp.h"
 
 using namespace cvt;
 
@@ -44,7 +42,6 @@ int main( int argc, char* argv[] )
 {
 	
 	Resources r;
-
 	String calib0 = r.find( "calib/ueye_stereo_4002738790.xml" );
 	String calib1 = r.find( "calib/ueye_stereo_4002738788.xml" );
 
@@ -55,27 +52,8 @@ int main( int argc, char* argv[] )
 	std::vector<VideoInput*> input;
 	initImageSequences( input );
 
-	Image i0( input[ 0 ]->width(), input[ 0 ]->height(), input[ 0 ]->format() );
-	Image i1( input[ 1 ]->width(), input[ 1 ]->height(), input[ 1 ]->format() );
-
-	StereoSLAM slam( camCalib0, input[ 0 ]->width(), input[ 0 ]->height(), 
-					 camCalib1, input[ 1 ]->width(), input[ 1 ]->height() );
-
-	Time t;
-	while( true ){
-		input[ 0 ]->nextFrame();
-		input[ 1 ]->nextFrame();
-
-		i0 = input[ 0 ]->frame();
-		i1 = input[ 1 ]->frame();
-
-		slam.newImages( i0, i1 );
-
-		std::cout << "Loop Time: " << t.elapsedMilliSeconds() << "ms" << std::endl; 
-	}
-
-	delete input[ 0 ];
-	delete input[ 1 ];
+	StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
+	Application::run();
 
 	return 0;
 }
