@@ -90,7 +90,7 @@ void testRotations( const Image & gray )
 
 
 	float xx, xy, yy, mx, my, angle;
-	float score = simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p + y * stride + x , stride, 0.04f );
+	float score = simd->harrisResponseCircular1u8( xx, xy, yy, p + y * stride + x , stride, 0.04f );
 
 	float c,s;
 	Math::jacobi( c, s, xx, xy, yy );
