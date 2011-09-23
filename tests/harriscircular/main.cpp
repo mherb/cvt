@@ -24,7 +24,7 @@ int main()
 	float harris = SIMD::get( SIMD_BASE )->harrisResponse1u8( xx, xy, yy, bla + 7 * 16 + 7, 16, 7, 7, 0.04f );
 	std::cout << "SIMD_BASE: " << harris << " XX:" << xx << " XY:" << xy << " YY:" <<  yy << std::endl;
 
-#if 0
+#if 1
 	for( int y = 0; y < 15; y++ ) {
 	//	std::cout << std::endl << "dx " << y;
 	//	for( int x = 1; x < 15; x++ ) {
