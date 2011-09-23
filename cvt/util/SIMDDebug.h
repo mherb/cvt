@@ -8,6 +8,8 @@
 #ifndef CVT_SIMDDEBUG_H
 #define	CVT_SIMDDEBUG_H
 
+#include <stdio.h>
+
 namespace cvt {
 
     typedef union {
