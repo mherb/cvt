@@ -1,4 +1,4 @@
-#include <gfx/Image.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 	class MITracker {
