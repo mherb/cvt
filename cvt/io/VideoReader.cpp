@@ -167,13 +167,22 @@ namespace cvt {
 		}
 		av_free_packet( &packet );
 
-		if( ret < 0 )
+		if( ret < 0 && _autoRewind )
 			this->rewind();
 	}
 
 	void VideoReader::rewind()
 	{
 		av_seek_frame( _formatContext, _streamIndex, 0, AVSEEK_FLAG_BACKWARD );
+	}
+
+	size_t VideoReader::numFrames() const
+	{
+		// TODO: nb_frames might not be set ...
+		if( _avStream->nb_frames == -1 ){
+			return 0;
+		}
+		return ( size_t )_avStream->nb_frames;
 	}
 }
 
