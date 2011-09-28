@@ -25,6 +25,7 @@ namespace cvt {
 			const   IFormat & format() const;
 			const   Image & frame() const;
 			void    nextFrame();
+			size_t	numFrames() const;
 
 		private:
 			AVFormatContext *	_formatContext;
