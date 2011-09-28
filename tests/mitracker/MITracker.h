@@ -1,5 +1,7 @@
 #include <cvt/gfx/Image.h>
 
+#include "PoseHomography.h"
+
 namespace cvt {
 	class MITracker {
 		public:
@@ -18,5 +20,6 @@ namespace cvt {
 			void	solveDeltaPose();
 
 			Image	_itemplate;
+			PoseHomography<double> _pose;
 	};
 }
