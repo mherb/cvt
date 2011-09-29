@@ -46,7 +46,9 @@ namespace cvt {
 			static const IKernel FIVEPOINT_DERIVATIVE_HORIZONTAL;
 			static const IKernel FIVEPOINT_DERIVATIVE_VERTICAL;
 
-			const static IKernel LAPLACE_33;
+			static const IKernel LAPLACE_33;
+			static const IKernel LAPLACE_XX;
+			static const IKernel LAPLACE_YY;
 
 		private:
 			IKernel( size_t w, size_t h, float* data );

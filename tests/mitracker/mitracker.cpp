@@ -47,8 +47,15 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
         input = initCamera();
     } else {
-        String ext( "cvtraw" );
-        input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
+		if( argc < 6 ){
+			std::cout << "Usage: " << argv[ 0 ] << "<base> <ext> <start> <stop> <nrwidth>" << std::endl;
+			return 0;
+		}
+        String ext( argv[ 2 ] );
+		int a = atoi( argv[ 3 ] );
+		int b = atoi( argv[ 4 ] );
+		int c = atoi( argv[ 5 ] );
+        input = new ImageSequence( argv[ 1 ], ext, a, b, c );
     }
 
 	try {

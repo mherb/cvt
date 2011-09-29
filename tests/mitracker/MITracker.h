@@ -29,9 +29,15 @@ namespace cvt {
 			Image	_itemplate;
 			Image	_templateGradX;
 			Image	_templateGradY;
+			Image	_templateGradXX;
+			Image	_templateGradYY;
+			Image	_templateGradXY;
 
 			Image	_currGradX;
 			Image	_currGradY;
+			Image	_currGradXX;
+			Image	_currGradYY;
+			Image	_currGradXY;
 
 			// backprojection of image to template space
 			Image	_warped;
@@ -53,20 +59,38 @@ namespace cvt {
 
 	inline void MITracker::updateInputGradients( const Image & img )
 	{
-		_currGradX.reallocate( img.width(), img.height(), img.format() );
-		_currGradY.reallocate( img.width(), img.height(), img.format() );
-		img.convolve( _currGradX, IKernel::HAAR_HORIZONTAL_3 );
-		img.convolve( _currGradY, IKernel::HAAR_VERTICAL_3 );
-
-		// TODO: second derivatives
+		Image tmpf;
+		img.convert( tmpf, IFormat::GRAY_FLOAT );
+		
+		_currGradX.reallocate( img.width(), img.height(), tmpf.format() );
+		_currGradY.reallocate( img.width(), img.height(), tmpf.format() );
+		_currGradXX.reallocate( img.width(), img.height(), tmpf.format() );
+		_currGradXY.reallocate( img.width(), img.height(), tmpf.format() );
+		_currGradYY.reallocate( img.width(), img.height(), tmpf.format() );
+		
+		tmpf.convolve( _currGradX, IKernel::HAAR_HORIZONTAL_3 );
+		tmpf.convolve( _currGradY, IKernel::HAAR_VERTICAL_3 );
+		tmpf.convolve( _currGradXX, IKernel::LAPLACE_XX );
+		tmpf.convolve( _currGradYY, IKernel::LAPLACE_YY );
+		tmpf.convolve( _currGradXY, IKernel::LAPLACE_33 );
 	}
 
 	inline void MITracker::updateTemplateGradients()
 	{
-		_templateGradX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
-		_templateGradY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
-		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
-		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
+		Image tmpf;
+		_itemplate.convert( tmpf, IFormat::GRAY_FLOAT );
+
+		_templateGradX.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+		_templateGradY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+		_templateGradXX.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+		_templateGradYY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+		_templateGradXY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+
+		tmpf.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
+		tmpf.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
+		tmpf.convolve( _templateGradXX, IKernel::LAPLACE_XX );
+		tmpf.convolve( _templateGradYY, IKernel::LAPLACE_YY );
+		tmpf.convolve( _templateGradXY, IKernel::LAPLACE_33 );
 	}
 
 	inline void MITracker::updateTemplate( const Image& img )
