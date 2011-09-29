@@ -7,7 +7,7 @@ namespace cvt {
 	class BSplineHist {
 		public:
 			BSplineHist( size_t bins ) {
-				_hist = new float[ bins + 2 ];
+				_hist = new float[ bins + 4 ];
 				_bins = bins;
 				//for( float x = -2.5f; x <= 2.5f; x+= 0.01f )
 				//	std::cout << x << " " << cbspline( x ) << std::endl;
@@ -42,7 +42,7 @@ namespace cvt {
 	inline void BSplineHist::update( const Image& img )
 	{
 		// Assume i is float gray
-		for( size_t i = 0; i < _bins + 2; i++ )
+		for( size_t i = 0; i < _bins + 4; i++ )
 			_hist[ i ] = 0.0f;
 
 		size_t stride;
@@ -77,15 +77,15 @@ namespace cvt {
 	inline void BSplineHist::normalize()
 	{
 		float sum = 0;
-		for( size_t i = 0; i < _bins + 2; i++ )
+		for( size_t i = 0; i < _bins + 4; i++ )
 			sum += _hist[ i ];
-		for( size_t i = 0; i < _bins + 2; i++ )
+		for( size_t i = 0; i < _bins + 4; i++ )
 			_hist[ i ] /= sum;
 	}
 
 	inline void BSplineHist::dump()
 	{
-		for( size_t i = 0; i < _bins + 2; i++ ) {
+		for( size_t i = 1; i < _bins + 3; i++ ) {
 			std::cout << i << " " << _hist[ i ] << std::endl;
 		}
 	}
