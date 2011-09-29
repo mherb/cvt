@@ -7,7 +7,6 @@
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Exception.h>
 #include <cvt/vision/ESM.h>
-#include <cvt/vision/HCalibration.h>
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
@@ -199,8 +198,6 @@ class EsmWindow : public Window
 								
 				Eigen::Matrix<double, 3, 4> pt = _esm.pose().transformation() * _points;
 				_camView.updatePoints( pt, _cam->width(), _cam->height() );
-				if( _gn.costs() < 100.0f )
-					_calib.addHomography( _esm.pose().transformation() );
 			}
 			_iters++;
 			
@@ -210,11 +207,6 @@ class EsmWindow : public Window
 				_camMov.setTitle( buf );
 				_time.reset();
 				_iters = 0;
-				{
-					Eigen::Matrix3d K;
-					_calib.calibration( K );
-					std::cout << K << std::endl;
-				}
 			}
 		}
 
@@ -269,8 +261,6 @@ class EsmWindow : public Window
 			_esm.updateInput( &_imgFloatGray );
 			_esm.setPose( 0, 0, 1, 1, roi.x, roi.y, 0, 0 );
 
-			_calib.reset();
-			
 			_selectionReady = true;
 		}
 	
@@ -299,8 +289,6 @@ class EsmWindow : public Window
 		// costfunction to use
 		SquaredDistance<double, double> _costFunc;
 		//RobustHuber<double, double> _costFunc;
-
-		HCalibration _calib;
 
 		bool			_selectionReady;
 		Time			_time;
