@@ -58,7 +58,7 @@ namespace cvt {
 			const float* p = ( const float * ) ptr;
 			size_t n = w;
 			while( n-- ) {
-				float fidx =  *p++ * ( float ) ( _bins - 1 ) + 1.0f;
+				float fidx =  *p++ * ( float ) ( _bins - 1 ) + 2.0f;
 				//std::cout << fidx << std::endl;
 				int idx = ( int ) fidx;
 				_hist[ idx ] += cbspline( fidx - ( float ) idx );
@@ -85,7 +85,7 @@ namespace cvt {
 
 	inline void BSplineHist::dump()
 	{
-		for( size_t i = 1; i < _bins + 3; i++ ) {
+		for( size_t i = 0; i < _bins + 4; i++ ) {
 			std::cout << i << " " << _hist[ i ] << std::endl;
 		}
 	}
