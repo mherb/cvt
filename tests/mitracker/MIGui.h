@@ -29,6 +29,8 @@ namespace cvt
 			void addSelectionDelegates( const Delegate<void( void )>& selStartD,
 									    const Delegate<void( const Rectf& )>& selEndD );
 
+			void setPoints( const std::vector<Vector2f> & pts );
+
 		private:
 			RectSelectImageView _inputView;
 
@@ -137,5 +139,11 @@ namespace cvt
 		s.sprintf( "FPS: %0.1f", fps );
 		_fpsLabel.setLabel( s );	
 	}
+
+	inline void MIGui::setPoints( const std::vector<Vector2f> & pts )
+	{
+		_inputView.updatePoints( pts );
+	}
+
 
 }

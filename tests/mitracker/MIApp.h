@@ -3,6 +3,7 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Time.h>
 
+
 #include "MITracker.h"
 #include "MIGui.h"
 
@@ -28,6 +29,8 @@ namespace cvt
 			size_t		_iter;
 			bool		_selectingTemplate;
 			Image		_currGray;
+
+			void calculateRectPoints( std::vector<Vector2f>& pts );
 	};
 
 	inline MIApp::MIApp( VideoInput* input ) :
@@ -35,7 +38,7 @@ namespace cvt
 		_iter( 0 ),
 		_selectingTemplate( true )
 	{
-		_timerId = Application::registerTimer( 5, this );
+		_timerId = Application::registerTimer( 15, this );
 
 		// add the delegates to the gui
 		Delegate<void (void)> selStart( this, &MIApp::selectionDidStart );
@@ -58,6 +61,12 @@ namespace cvt
 
 		if( !_selectingTemplate ){
 			_tracker.updateInput( _currGray );
+			_gui.setTemplateImage( _tracker.templateImage(), 
+								  _tracker.warped(), 
+								  _tracker.templateGradY() );
+			std::vector<Vector2f> pts;
+			calculateRectPoints( pts );
+			_gui.setPoints( pts );
 		}
 
 		if( _iter == 50 ){
@@ -89,10 +98,34 @@ namespace cvt
 
 		Image patch( _currGray, &roi );
 
-		_tracker.updateTemplate( patch );
+		Vector2f pos;
+		pos.x = roi.x; pos.y = roi.y;		
+		_tracker.updateTemplate( patch, pos );
 		_gui.setTemplateImage( patch, 
 							   _tracker.templateGradX(), 
 							   _tracker.templateGradY() );
 		_selectingTemplate = false;
+	}
+
+	inline void MIApp::calculateRectPoints( std::vector<Vector2f>& pts )
+	{
+		const Matrix3f& h = _tracker.pose();
+		const Image & temp = _tracker.templateImage();
+
+		Vector2f p;
+		pts.resize( 4 );
+		p.x = 0; p.y = 0;
+		pts[ 0 ] = h * p;
+		p.x = temp.width(); p.y = 0;
+		pts[ 1 ] = h * p;
+		p.x = temp.width(); p.y = temp.height();
+		pts[ 2 ] = h * p;
+		p.x = 0; p.y = temp.height();
+		pts[ 3 ] = h * p;
+
+		for( size_t i = 0; i < 4; i++ ){
+			pts[ i ].x /= (float)_currGray.width();
+			pts[ i ].y /= (float)_currGray.height();
+		}
 	}
 }
