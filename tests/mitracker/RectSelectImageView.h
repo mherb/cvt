@@ -15,7 +15,7 @@ namespace cvt {
 			void paintEvent( PaintEvent* e , GFX* gfx );
 			
 			// update the points that shall be drawn!
-			void updatePoints( std::vector<Vector2f> & pts, float width, float height );
+			void updatePoints( const std::vector<Vector2f> & pts );
 
 			Signal<const Rectf&>	selectionComplete;
 			Signal<void>			selectionDidStart;
@@ -60,11 +60,11 @@ namespace cvt {
 	}
 
 
-	inline void RectSelectImageView::updatePoints( std::vector<Vector2f> & pts, float width, float height )
+	inline void RectSelectImageView::updatePoints( const std::vector<Vector2f> & pts )
 	{
 		for( size_t i = 0; i < 4; i++ ){
-			_pts[ i ].x = pts[ i ].x / width;
-			_pts[ i ].y = pts[ i ].y / height;
+			_pts[ i ].x = pts[ i ].x;
+			_pts[ i ].y = pts[ i ].y;
 		}
 		update();
 	}

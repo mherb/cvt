@@ -1,5 +1,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IKernel.h>
+#include <cvt/gfx/ifilter/ITransform.h>
 
 #include "PoseHomography.h"
 
@@ -10,13 +11,19 @@ namespace cvt {
 			~MITracker();
 
 			void	updateInput( const Image& img );
-			void	updateTemplate( const Image& img );
+
+			/**
+			 *	@param	img	the current image (grayscale)
+			 *	@param	pos	the position of the template in the current image
+			 */
+			void	updateTemplate( const Image& img, const Vector2f& pos );
 
 			const Matrix3f& pose() const;
 
 			const Image&	templateImage() const { return _itemplate; }
 			const Image&	templateGradX() const { return _templateGradX; }
 			const Image&	templateGradY() const { return _templateGradY; }
+			const Image&	warped()		const { return _warped; }
 
 		private:
 			void	updateInputGradients( const Image& icurrent );
@@ -61,14 +68,12 @@ namespace cvt {
 
 	inline void MITracker::updateInputGradients( const Image & img )
 	{
+		const Matrix3f & h = _pose.pose();
+		Matrix3f hinv = h.inverse();
+		ITransform::apply( _warped, img, hinv );
+
 		Image tmpf;
-		img.convert( tmpf, IFormat::GRAY_FLOAT );
-		
-		_currGradX.reallocate( img.width(), img.height(), tmpf.format() );
-		_currGradY.reallocate( img.width(), img.height(), tmpf.format() );
-		_currGradXX.reallocate( img.width(), img.height(), tmpf.format() );
-		_currGradXY.reallocate( img.width(), img.height(), tmpf.format() );
-		_currGradYY.reallocate( img.width(), img.height(), tmpf.format() );
+		_warped.convert( tmpf, IFormat::GRAY_FLOAT );
 		
 		tmpf.convolve( _currGradX, IKernel::HAAR_HORIZONTAL_3 );
 		tmpf.convolve( _currGradY, IKernel::HAAR_VERTICAL_3 );
@@ -95,11 +100,20 @@ namespace cvt {
 		tmpf.convolve( _templateGradXY, IKernel::LAPLACE_33 );
 	}
 
-	inline void MITracker::updateTemplate( const Image& img )
+	inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
 	{
+		_pose.pose().setHomography( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
 		_itemplate.reallocate( img );
 		_itemplate = img;
 		updateTemplateGradients();
+
+		// reallocate the backwarped sizes
+		_warped.reallocate( _itemplate );
+		_currGradX.reallocate( _warped.width(), _warped.height(), IFormat::GRAY_FLOAT );
+		_currGradY.reallocate( _warped.width(), _warped.height(), IFormat::GRAY_FLOAT );
+		_currGradXX.reallocate( _warped.width(), _warped.height(), IFormat::GRAY_FLOAT );
+		_currGradXY.reallocate( _warped.width(), _warped.height(), IFormat::GRAY_FLOAT );
+		_currGradYY.reallocate( _warped.width(), _warped.height(), IFormat::GRAY_FLOAT );
 	}
 
 	inline const Matrix3f& MITracker::pose() const
