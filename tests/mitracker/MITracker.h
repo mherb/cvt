@@ -102,7 +102,7 @@ namespace cvt {
 		updateTemplateGradients();
 	}
 
-	inline Matrix3f& MITracker::pose() const
+	inline const Matrix3f& MITracker::pose() const
 	{
 		return _pose.pose();
 	}
