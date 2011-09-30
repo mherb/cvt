@@ -12,6 +12,8 @@ namespace cvt {
 			void	updateInput( const Image& img );
 			void	updateTemplate( const Image& img );
 
+			const Matrix3f& pose() const;
+
 			const Image&	templateImage() const { return _itemplate; }
 			const Image&	templateGradX() const { return _templateGradX; }
 			const Image&	templateGradY() const { return _templateGradY; }
@@ -41,7 +43,7 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseHomography<double> _pose;
+			PoseHomography<float> _pose;
 	};
 
 	inline MITracker::MITracker()
@@ -98,6 +100,11 @@ namespace cvt {
 		_itemplate.reallocate( img );
 		_itemplate = img;
 		updateTemplateGradients();
+	}
+
+	inline Matrix3f& MITracker::pose() const
+	{
+		return _pose.pose();
 	}
 
 }
