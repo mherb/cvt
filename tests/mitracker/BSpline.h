@@ -10,6 +10,7 @@ namespace cvt {
 		public:
 			static T eval( T t );
 			static T evalDerivative( T t );
+			static T evalSecondDerivative( T t );
 	};
 
 	template<typename T>
@@ -40,6 +41,24 @@ namespace cvt {
 		if( t < 0.0f )
 			return ( 3.0f + 6.0f * ( 1 + t ) - 9.0f * ( 1 + t ) * ( 1 + t ) ) / 6.0f;
 		return -( 3.0f + 6.0f * ( 1 - t ) - 9.0f * ( 1 - t ) * ( 1 - t ) ) / 6.0f;
+	}
+
+	template<typename T>
+	inline T BSpline<T>::evalSecondDerivative( T t  )
+	{
+		T z = Math::abs( t );
+		if( z > 2.0f ) return 0.0f;
+		if( t < -1.0f ) {
+			t = ( 2.0f + t );
+			return 6.0f * t / 6.0f;
+		}
+		if( t > 1.0f ) {
+			t = ( 2.0f - t );
+			return 6.0f * t / 6.0f;
+		}
+		if( t < 0.0f )
+			return ( 6.0f - 18.0f * ( 1 + t ) ) / 6.0f;
+		return ( 6.0f - 18.0f * ( 1 - t ) ) / 6.0f;
 	}
 
 	typedef BSpline<float> BSplinef;
