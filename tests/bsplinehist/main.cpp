@@ -17,7 +17,7 @@ int main( int argc, char** argv )
 	infloat.reallocate( input.width(), input.height(), IFormat::GRAY_FLOAT );
 	input.convert( infloat );
 
-	BSplineHist bhist( 64 );
+	BSplineHist bhist( 32 );
 	bhist.update( infloat );
 	bhist.dump();
 }

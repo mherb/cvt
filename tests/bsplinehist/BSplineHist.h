@@ -7,10 +7,9 @@ namespace cvt {
 	class BSplineHist {
 		public:
 			BSplineHist( size_t bins ) {
-				_hist = new float[ bins + 4 ];
+				// add dummy entry
+				_hist = new float[ bins + 3 ];
 				_bins = bins;
-				//for( float x = -2.5f; x <= 2.5f; x+= 0.01f )
-				//	std::cout << x << " " << cbspline( x ) << std::endl;
 			}
 
 			~BSplineHist() {
@@ -42,7 +41,7 @@ namespace cvt {
 	inline void BSplineHist::update( const Image& img )
 	{
 		// Assume i is float gray
-		for( size_t i = 0; i < _bins + 4; i++ )
+		for( size_t i = 0; i < _bins + 2; i++ )
 			_hist[ i ] = 0.0f;
 
 		size_t stride;
@@ -58,14 +57,13 @@ namespace cvt {
 			const float* p = ( const float * ) ptr;
 			size_t n = w;
 			while( n-- ) {
-				float fidx =  *p++ * ( float ) ( _bins - 1 ) + 2.0f;
+				float fidx =  *p++ * ( float ) ( _bins - 1 ) + 1.0f;
 				//std::cout << fidx << std::endl;
 				int idx = ( int ) fidx;
 				_hist[ idx ] += cbspline( fidx - ( float ) idx );
 				_hist[ idx + 1 ] += cbspline( fidx - ( float ) ( idx + 1 ) );
 				_hist[ idx - 1 ] += cbspline( fidx - ( float ) ( idx - 1 ) );
 				_hist[ idx + 2 ] += cbspline( fidx - ( float ) ( idx + 2 ) );
-				_hist[ idx - 2 ] += cbspline( fidx - ( float ) ( idx - 2 ) );
 			}
 			ptr += stride;
 		}
@@ -77,15 +75,15 @@ namespace cvt {
 	inline void BSplineHist::normalize()
 	{
 		float sum = 0;
-		for( size_t i = 0; i < _bins + 4; i++ )
+		for( size_t i = 0; i < _bins + 2; i++ )
 			sum += _hist[ i ];
-		for( size_t i = 0; i < _bins + 4; i++ )
+		for( size_t i = 0; i < _bins + 2; i++ )
 			_hist[ i ] /= sum;
 	}
 
 	inline void BSplineHist::dump()
 	{
-		for( size_t i = 0; i < _bins + 4; i++ ) {
+		for( size_t i = 0; i < _bins + 2; i++ ) {
 			std::cout << i << " " << _hist[ i ] << std::endl;
 		}
 	}
