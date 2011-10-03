@@ -173,7 +173,7 @@ namespace cvt {
 				imagePoseDeriv = grad * screenJac;
 
 				// first order mi part: TODO: evaluate first and second order splineDerivatives!
-				_jTemp[ iter ] = ( splineDeriv * imagePoseDeriv ).transpose();
+				_jTemp[ iter ] = -( splineDeriv * imagePoseDeriv ).transpose();
 
 				// second order image pose derivative
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
@@ -188,7 +188,7 @@ namespace cvt {
 		}
 
 		_templateGradX.unmap( g_x );
-		_templateGradX.unmap( g_y );
+		_templateGradY.unmap( g_y );
 		_templateGradXX.unmap( g_xx );
 		_templateGradYY.unmap( g_yy );
 		_templateGradXY.unmap( g_xy );
