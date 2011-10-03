@@ -43,8 +43,10 @@ namespace cvt
 		// add the delegates to the gui
 		Delegate<void (void)> selStart( this, &MIApp::selectionDidStart );
 		Delegate<void (const Rectf&)> selDone( this, &MIApp::selectionFinished );
+		Delegate<void (size_t)> maxIterChanged( &_tracker, &MITracker::setMaxIterations );
 
 		_gui.addSelectionDelegates( selStart, selDone );
+		_gui.observeMaxIterations( maxIterChanged );
 	}
 
 	inline MIApp::~MIApp()
