@@ -1,6 +1,7 @@
 #include <cvt/gui/Window.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Label.h>
+#include <cvt/gui/Slider.h>
 #include <cvt/util/Delegate.h>
 
 #include "RectSelectImageView.h"
@@ -22,6 +23,9 @@ namespace cvt
 
 			void setFPS( double fps );
 
+			void setMaxIter( size_t maxIter );
+			void observeMaxIterations( const Delegate<void (size_t)> & d );
+
 			void resizeEvent( ResizeEvent* e );
 
 
@@ -34,12 +38,13 @@ namespace cvt
 		private:
 			RectSelectImageView _inputView;
 
-			ImageView	_templateView;
-			ImageView	_templateGradX;
-			ImageView	_templateGradY;
-			float		_templateAspect;
-			float		_inputAspect;
-			Label		_fpsLabel;
+			ImageView		_templateView;
+			ImageView		_templateGradX;
+			ImageView		_templateGradY;
+			float			_templateAspect;
+			float			_inputAspect;
+			Label			_fpsLabel;
+			Slider<size_t>	_iterSlider;
 
 			void initGuiElements();
 
@@ -50,7 +55,8 @@ namespace cvt
 	inline MIGui::MIGui() : Window( "Mutual Information Template Tracking" ),
 		_templateAspect( 1.5f ),
 		_inputAspect( 1.5f ),
-		_fpsLabel( "" )
+		_fpsLabel( "" ),
+		_iterSlider( 1, 70, 1 )
 	{
 		initGuiElements();
 	}
@@ -74,6 +80,7 @@ namespace cvt
 		addWidget( &_templateGradY );
 		addWidget( &_inputView );
 		addWidget( &_fpsLabel );
+		addWidget( &_iterSlider );
 
 		setVisible( true );
 	}
@@ -111,13 +118,18 @@ namespace cvt
 		_templateGradY.setPosition( 0, currH );
 
 		_fpsLabel.setPosition( (size_t)w + 10, 10 );
-		_fpsLabel.setSize( width - w - 20, 20 );
-
+		size_t wHalf = ( width - w - 20 ) / 2;
+		_fpsLabel.setSize( wHalf, 20 );
 		const Recti& fpsRect = _fpsLabel.rect();
-		_inputView.setPosition( fpsRect.x, fpsRect.y + fpsRect.height + 10 );
-		float iW = fpsRect.width;
+		
+		_iterSlider.setPosition( fpsRect.x + wHalf, fpsRect.y );
+		_iterSlider.setSize( wHalf, 20 );
+
+		_inputView.setPosition( fpsRect.x, fpsRect.y + fpsRect.height + 20 );
+		float iW = fpsRect.width * 2;
 		float iH = iW / _inputAspect;
 		_inputView.setSize( iW, iH );
+
 	}
 
 	inline void MIGui::resizeEvent( ResizeEvent* e )
@@ -138,6 +150,16 @@ namespace cvt
 		String s;
 		s.sprintf( "FPS: %0.1f", fps );
 		_fpsLabel.setLabel( s );	
+	}
+
+	inline void MIGui::setMaxIter( size_t maxIter )
+	{
+		_iterSlider.setValue( maxIter );
+	}
+
+	inline void MIGui::observeMaxIterations( const Delegate<void (size_t)> & d )
+	{
+		_iterSlider.valueChanged.add( d );
 	}
 
 	inline void MIGui::setPoints( const std::vector<Vector2f> & pts )

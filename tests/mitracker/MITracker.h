@@ -69,7 +69,7 @@ namespace cvt {
 		_numBins( 10 ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
-		_maxIter( 10 )
+		_maxIter( 1 )
 	{
 	}
 
@@ -194,7 +194,7 @@ namespace cvt {
 				currJac *= numSamples;
 				currHess *= numSamples;
 
-				// TODO: evaluate the joint hist at (r, t)
+				// TODO: evaluate the joint hist at (r, t) & tempHist
 				float tmp = 1 + Math::log( jointHist / tempHist );
 
 				// sum the jacobians & the hessian
