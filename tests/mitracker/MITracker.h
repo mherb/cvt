@@ -2,6 +2,7 @@
 #include <cvt/gfx/IKernel.h>
 #include <cvt/gfx/ifilter/ITransform.h>
 #include <cvt/math/BSpline.h>
+#include <cvt/gfx/IHistogram.h>
 
 #include "PoseHomography.h"
 
@@ -34,17 +35,24 @@ namespace cvt {
 			void	updateDerivatives();
 
 			void	updateTemplateGradients();
-			void	updateTemplateHistograms();
 			void	offlineTemplateDerivatives();
 
 			void	solveDeltaPose();
 
+			// Histogram related
+			size_t	_numBins;
+
+			// Derivatives / Histograms
 			Image	_itemplate;
 			Image	_templateGradX;
 			Image	_templateGradY;
 			Image	_templateGradXX;
 			Image	_templateGradYY;
 			Image	_templateGradXY;
+			IHistogram _templateHist;
+
+			// Joint histogram
+			float*	_jhist;
 
 			// backprojection of image to template space
 			Image	_warped;
@@ -53,8 +61,6 @@ namespace cvt {
 			Eigen::Matrix<float, 8, 1>	_miJacobian;
 			Eigen::Matrix<float, 8, 8>	_miHessian;
 
-			// Histogram related
-			size_t	_numBins;
 
 			// for the template we can calculate offline data once:
 			Eigen::Matrix<float, 8, 1>*  _jTemp;
@@ -69,22 +75,27 @@ namespace cvt {
 		_numBins( 10 ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
-		_maxIter( 1 )
+		_maxIter( 1 ),
+		_templateHist( _numBins )
 	{
+		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
 	}
 
 	inline MITracker::~MITracker()
 	{
+		delete[] _jhist;
 		if( _jTemp )
 			delete[] _jTemp;
 		if( _hTemp )
 			delete[] _hTemp;
 	}
 
-	inline void MITracker::updateInput( const Image & img )
+	inline void MITracker::updateInput( const Image & _img )
 	{
 		size_t iter = 0;
 		Matrix3f hinv;
+		Image img;
+		_img.convert( img, IFormat::GRAY_FLOAT );
 
 		while( iter < _maxIter ){
 			// warp back according to current pose
@@ -126,17 +137,18 @@ namespace cvt {
 		tmpf.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
 		tmpf.convolve( _templateGradXX, IKernel::LAPLACE_XX );
 		tmpf.convolve( _templateGradYY, IKernel::LAPLACE_YY );
-		tmpf.convolve( _templateGradXY, IKernel::LAPLACE_33 );
+		tmpf.convolve( _templateGradXY, IKernel::HAAR_HORIZONTAL_3, IKernel::HAAR_VERTICAL_3 );
 	}
 
 	inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
 	{
 		Time t;
 		_pose.pose().setHomography( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
-		_itemplate.reallocate( img );
-		_itemplate = img;
+		img.convert( _itemplate, IFormat::GRAY_FLOAT );
 		updateTemplateGradients();
 		offlineTemplateDerivatives();
+
+		_templateHist.update( _itemplate );
 
 		// reallocate the backwarped sizes
 		_warped.reallocate( _itemplate );
@@ -151,7 +163,51 @@ namespace cvt {
 
 	inline void MITracker::updateInputHistograms()
 	{
-		// TODO: histogram of warped and joint histogram of warped and template
+		size_t stride;
+		size_t tstride;
+		const float* ptr = _warped.map<float>( &stride );
+		const float* tptr = _itemplate.map<float>( &tstride );
+		size_t w, h;
+		float sum = 0;
+
+		for( size_t i = 0; i < ( _numBins + 1 ) * ( _numBins + 1 ); i++ )
+			_jhist[ i ] = 0;
+
+		w = _itemplate.width();
+		h = _itemplate.height();
+
+		const float* pi = ptr;
+		const float* pit = tptr;
+
+		while( h-- ) {
+			size_t n = w;
+			const float* pval = pi;
+			const float* ptval = pit;
+			while( n-- ) {
+				float r, t;
+				t = *pval * ( _numBins - 3 ) + 1.0f;
+				r = *ptval * ( _numBins - 3 ) + 1.0f;
+				int tidx = ( int ) t;
+				int ridx = ( int ) r;
+				for( int m = -1; m <= 2; m++ ) {
+					for( int o = -1; o <= 2; o++ ) {
+						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) )
+							* BSplinef::eval( -r + ( float ) ( ridx + m ) );
+						_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] += val;
+						sum += val;
+					}
+				}
+			}
+			pi += stride;
+			pit += tstride;
+		}
+
+		_warped.unmap( ptr );
+		_itemplate.unmap( tptr );
+
+		sum = 1.0f / sum;
+		for( size_t i = 0; i < ( _numBins + 1 ) * ( _numBins + 1 ); i++ )
+			_jhist[ i ] *= sum;
 	}
 
 	inline void MITracker::updateDerivatives()
@@ -160,7 +216,7 @@ namespace cvt {
 		Eigen::Matrix<float, 8, 8> currHess;
 
 		size_t wStride;
-		const uint8_t* ptr = _warped.map( &wStride );
+		const float* ptr = _warped.map<float>( &wStride );
 
 		size_t height = _warped.height();
 		size_t width  = _warped.width();
@@ -225,7 +281,7 @@ namespace cvt {
 		size_t iStride;
 		size_t gxStride, gyStride;
 		size_t gxyStride, gxxStride, gyyStride;
-		const uint8_t * i_ptr = _itemplate.map<uint8_t>( &iStride );
+		const float * i_ptr = _itemplate.map<float>( &iStride );
 		const float * g_x = _templateGradX.map<float>( &gxStride );
 		const float * g_y = _templateGradY.map<float>( &gyStride );
 		const float * g_xx = _templateGradXX.map<float>( &gxxStride );
@@ -236,7 +292,7 @@ namespace cvt {
 		const float * gxx = gxx;
 		const float * gyy = gyy;
 		const float * gxy = gxy;
-		const uint8_t* iptr = i_ptr;
+		const float* iptr = i_ptr;
 
 		Eigen::Matrix<float, 1, 2> grad;
 		Eigen::Matrix<float, 2, 2> hess;
@@ -247,7 +303,7 @@ namespace cvt {
 		float splineDeriv2 = 1.0f;
 
 		size_t iter = 0;
-		float normFactor = ( float )_numBins / 255.0f;
+		float normFactor = ( float ) ( _numBins - 3 );
 		float pixVal;
 		for( size_t y = 0; y < _itemplate.height(); y++ ){
 			p.y = y;
@@ -270,7 +326,7 @@ namespace cvt {
 				// second order image pose derivative
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
 			
-				pixVal = normFactor * iptr[ x ];
+				pixVal = normFactor * iptr[ x ] + 1.0f;
 				for( size_t bin = 0; bin < _numBins; bin++ ){
 					// first order mi part: TODO: evaluate first and second order splineDerivatives!
 					splineDeriv = BSpline<float>::evalDerivative( (float)bin - pixVal ); 
