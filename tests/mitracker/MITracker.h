@@ -49,7 +49,7 @@ namespace cvt {
 			Image	_templateGradXX;
 			Image	_templateGradYY;
 			Image	_templateGradXY;
-			IHistogram _templateHist;
+			IHistogramf _templateHist;
 
 			// Joint histogram
 			float*	_jhist;
@@ -73,10 +73,10 @@ namespace cvt {
 
 	inline MITracker::MITracker() :
 		_numBins( 10 ),
+		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
-		_maxIter( 1 ),
-		_templateHist( _numBins )
+		_maxIter( 1 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
 	}
@@ -106,7 +106,14 @@ namespace cvt {
 			// calculate the online stuff:
 			updateInputHistograms();
 			updateDerivatives();
-			//solveDeltaPose();	
+
+			std::cout << "Jacobian:\n" << _miJacobian << std::endl;
+			std::cout << "Hessian:\n" << _miHessian << std::endl;
+
+			//_miHessian = - _miJacobian * _miJacobian.transpose();
+			//std::cout << "Hessian:\n" << _miHessian << std::endl;
+
+			solveDeltaPose();	
 
 			// TODO: check MI for early step out?
 			iter++;
@@ -238,12 +245,14 @@ namespace cvt {
 				int ridx = ( int ) r;
 				for( int m = -1; m <= 2; m++ ) {
 					for( int o = -1; o <= 2; o++ ) {
-						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ];
-						float ht = _templateHist( ridx + o );
-						float c = 1.0f + Math::log( jh / ( ht + 0.00001f ) );
+						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-5f;
+						float ht = _templateHist( ridx + o ) + 1e-5f;
+						float c = 1.0f + Math::log( jh / ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ];
 						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ];
+						c = 1.0f / jh - 1.0f / ht;
+						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose();
 					}
 				}
 			}
@@ -305,12 +314,12 @@ namespace cvt {
 			p.y = y;
 			for( size_t x = 0; x < _itemplate.width(); x++, iter++ ){
 				// first order image derivatives
-				grad[ 0 ] = gx[ x ];
-				grad[ 1 ] = gy[ x ];
+				grad[ 0 ] = -gx[ x ];
+				grad[ 1 ] = -gy[ x ];
 
 				// second order image derivatives
 				hess( 0, 0 ) = gxx[ x ];
-				hess( 0, 1 ) = hess( 1, 0) = gxy[ x ];
+				hess( 0, 1 ) = hess( 1, 0) = -gxy[ x ];
 				hess( 1, 1 ) = gyy[ x ];
 
 				p.x = x;
