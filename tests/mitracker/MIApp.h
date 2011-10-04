@@ -38,7 +38,7 @@ namespace cvt
 		_iter( 0 ),
 		_selectingTemplate( true )
 	{
-		_timerId = Application::registerTimer( 15, this );
+		_timerId = Application::registerTimer( 33, this );
 
 		// add the delegates to the gui
 		Delegate<void (void)> selStart( this, &MIApp::selectionDidStart );
