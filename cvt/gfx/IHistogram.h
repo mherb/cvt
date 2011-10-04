@@ -162,10 +162,10 @@ namespace cvt {
 			while( n-- ) {
 				float fidx =  *p++ * ( float ) ( _size - 3 ) + 1.0f;
 				int idx = ( int ) fidx;
-				_hist[ idx ] += BSpline<T>::eval( fidx - ( float ) idx );
-				_hist[ idx + 1 ] += BSpline<T>::eval( fidx - ( float ) ( idx + 1 ) );
-				_hist[ idx - 1 ] += BSpline<T>::eval( fidx - ( float ) ( idx - 1 ) );
-				_hist[ idx + 2 ] += BSpline<T>::eval( fidx - ( float ) ( idx + 2 ) );
+				_hist[ idx ] += BSpline<T>::eval( -fidx + ( float ) idx );
+				_hist[ idx + 1 ] += BSpline<T>::eval( - fidx + ( float ) ( idx + 1 ) );
+				_hist[ idx - 1 ] += BSpline<T>::eval( - fidx + ( float ) ( idx - 1 ) );
+				_hist[ idx + 2 ] += BSpline<T>::eval( - fidx + ( float ) ( idx + 2 ) );
 			}
 			ptr += stride;
 		}
@@ -191,10 +191,10 @@ namespace cvt {
 				for( size_t c = 0; c < 4; c++ ) {
 					float fidx =  *p++ * ( float ) ( _size - 3 ) + 1.0f;
 					int idx = ( int ) fidx;
-					_hist[ ( _size + 1 ) * c + idx ] += BSpline<T>::eval( fidx - ( float ) idx );
-					_hist[ ( _size + 1 ) * c + idx + 1 ] += BSpline<T>::eval( fidx - ( float ) ( idx + 1 ) );
-					_hist[ ( _size + 1 ) * c + idx - 1 ] += BSpline<T>::eval( fidx - ( float ) ( idx - 1 ) );
-					_hist[ ( _size + 1 ) * c + idx + 2 ] += BSpline<T>::eval( fidx - ( float ) ( idx + 2 ) );
+					_hist[ ( _size + 1 ) * c + idx ] += BSpline<T>::eval( - fidx - ( float ) idx );
+					_hist[ ( _size + 1 ) * c + idx + 1 ] += BSpline<T>::eval( - fidx + ( float ) ( idx + 1 ) );
+					_hist[ ( _size + 1 ) * c + idx - 1 ] += BSpline<T>::eval( - fidx + ( float ) ( idx - 1 ) );
+					_hist[ ( _size + 1 ) * c + idx + 2 ] += BSpline<T>::eval( - fidx + ( float ) ( idx + 2 ) );
 				}
 			}
 			ptr += stride;
