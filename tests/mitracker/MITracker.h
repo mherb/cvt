@@ -212,54 +212,50 @@ namespace cvt {
 
 	inline void MITracker::updateDerivatives()
 	{
-		Eigen::Matrix<float, 8, 1> currJac;
-		Eigen::Matrix<float, 8, 8> currHess;
-
-		size_t wStride;
-		const float* ptr = _warped.map<float>( &wStride );
-
-		size_t height = _warped.height();
-		size_t width  = _warped.width();
-
 		_miJacobian.setZero();
 		_miHessian.setZero();
 
-		float jointHist = 1.0f;
-		float tempHist = 1.0f;
+		size_t stride;
+		size_t tstride;
+		const float* ptr = _warped.map<float>( &stride );
+		const float* tptr = _itemplate.map<float>( &tstride );
+		size_t w, h;
 
-		float normFactor = ( float )_numBins / 255.0f;
-		float numSamples = width * height;
-		float splineVal;
-		for( size_t r = 0; r < _numBins; r++ ){
-			for( size_t t = 0; t < _numBins; t++ ){
-				const uint8_t* p = ptr;
-				currJac.setZero();
-				currHess.setZero();
+		w = _itemplate.width();
+		h = _itemplate.height();
 
-				size_t iter = 0;
-				for( size_t h = 0; h < height; h++ ){
-					for( size_t w = 0; w < width; w++, iter++ ){
-						splineVal = BSpline<float>::eval( t - p[ w ] * normFactor );
-						currJac += splineVal * _jTemp[ iter * _numBins + r ];	
-						currHess += splineVal * _hTemp[ iter * _numBins + r ];	
+		const float* pi = ptr;
+		const float* pit = tptr;
+
+		for( size_t y = 0; y < h; y++ ) {
+			const float* pval = pi;
+			const float* ptval = pit;
+			for( size_t x = 0; x < w; x++ ) {
+				float r, t;
+				t = *pval * ( _numBins - 3 ) + 1.0f;
+				r = *ptval * ( _numBins - 3 ) + 1.0f;
+				int tidx = ( int ) t;
+				int ridx = ( int ) r;
+				for( int m = -1; m <= 2; m++ ) {
+					for( int o = -1; o <= 2; o++ ) {
+						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ];
+						float ht = _templateHist( ridx + o );
+						float c = 1.0f + Math::log( jh / ( ht + 0.00001f ) );
+						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
+						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ];
+						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ];
 					}
-					p += wStride; 
 				}
-
-				// normalize by number of pixels
-				currJac *= numSamples;
-				currHess *= numSamples;
-
-				// TODO: evaluate the joint hist at (r, t) & tempHist
-				float tmp = 1 + Math::log( jointHist / tempHist );
-
-				// sum the jacobians & the hessian
-				_miJacobian += tmp * currJac;
-				_miHessian  += currJac * currJac.transpose() * ( 1.0f / jointHist - 1.0f / tempHist ) + tmp * currHess;
 			}
+			pi += stride;
+			pit += tstride;
 		}
+		float norm = w * h;
+		_miJacobian /= norm;
+		_miHessian /= norm;
 
 		_warped.unmap( ptr );
+		_itemplate.unmap( tptr );
 	}
 
 	inline void MITracker::offlineTemplateDerivatives()
