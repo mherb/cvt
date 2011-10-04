@@ -126,6 +126,7 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, 8, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
+		std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 	}
 
@@ -261,7 +262,7 @@ namespace cvt {
 		}
 		float norm = w * h;
 		_miJacobian /= norm;
-		_miHessian /= norm;
+		_miHessian /=  ( norm * norm );
 
 		_warped.unmap( ptr );
 		_itemplate.unmap( tptr );
@@ -314,12 +315,12 @@ namespace cvt {
 			p.y = y;
 			for( size_t x = 0; x < _itemplate.width(); x++, iter++ ){
 				// first order image derivatives
-				grad[ 0 ] = -gx[ x ];
-				grad[ 1 ] = -gy[ x ];
+				grad[ 0 ] = gx[ x ];
+				grad[ 1 ] = gy[ x ];
 
 				// second order image derivatives
 				hess( 0, 0 ) = gxx[ x ];
-				hess( 0, 1 ) = hess( 1, 0) = -gxy[ x ];
+				hess( 0, 1 ) = hess( 1, 0) = gxy[ x ];
 				hess( 1, 1 ) = gyy[ x ];
 
 				p.x = x;

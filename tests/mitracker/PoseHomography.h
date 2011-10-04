@@ -74,7 +74,6 @@ namespace cvt
 		T yyx = yy * p.x;
 
 		// this is in the thesis
-		/*
 		hx <<	0,	0,	0,	0,	0,	0,	 xx,	 xy,
 				0,	0,	0,	0,	0,	0,	  0,	  0, 
 				0,	0,	0,	0,	0,	0,	 xy,	 yy, 
@@ -92,10 +91,9 @@ namespace cvt
 				0,	0,	0,	0,	0,	 0,  p.x,   p.y, 
 			    0, xx,  0, xy,  0, p.x, -xxy,  -yyx,
 			    0, xy,  0, yy,  0, p.y, -yyx,  -yyy;
-		 */
 
 		// this is what I calculated
-		hx <<	0,	0,	0,	0,	0,	0,	-xx,	-xy,
+		/*hx <<	0,	0,	0,	0,	0,	0,	-xx,	-xy,
 				0,	0,	0,	0,	0,	0,	  0,	  0, 
 				0,	0,	0,	0,	0,	0,	-xy,	-yy, 
 				0,	0,	0,	0,	0,	0,	  0,	  0, 
@@ -111,7 +109,7 @@ namespace cvt
 				0,	0,	0,	0,	0,	 0,    0,	  0, 
 				0,	0,	0,	0,	0,	 0, -p.x,   -p.y, 
 			    0,-xx,  0,-xy,  0,-p.x,2*xxy,  2*yyx,
-			    0,-xy,  0,-yy,  0,-p.y,2*yyx,  2*yyy;
+			    0,-xy,  0,-yy,  0,-p.y,2*yyx,  2*yyy;*/
 	}
 
 	template <typename T>
