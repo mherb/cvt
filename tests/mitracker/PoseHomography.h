@@ -119,7 +119,7 @@ namespace cvt
 	{
 		Matrix3<T> dH;
 		fillDeltaMatrix( dH, delta );
-		_current *= dH;
+		_current *= dH;// * _current;
 	}
 
 	template <typename T>
