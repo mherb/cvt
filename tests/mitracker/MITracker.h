@@ -5,13 +5,8 @@
 #include <cvt/gfx/IHistogram.h>
 
 #include "PoseHomography.h"
-<<<<<<< HEAD
 #include "PoseTranslation.h"
 #define NUMPARAMS 2
-=======
-//#include "PoseTranslation.h"
-#define NUMPARAMS 8
->>>>>>> 3a477c9fdd4af5817b258211716d3939ce7ed5b4
 
 namespace cvt {
 	class MITracker {
@@ -46,7 +41,7 @@ namespace cvt {
 			void	updateTemplateGradients();
 			void	offlineTemplateDerivatives();
 
-			void	solveDeltaPose();
+			float	solveDeltaPose();
 
 			// Histogram related
 			size_t	_numBins;
@@ -65,13 +60,9 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-<<<<<<< HEAD
 			
 			//PoseHomography<float> _pose;
 			PoseTranslation<float> _pose;
-=======
-			PoseHomography<float> _pose;
->>>>>>> 3a477c9fdd4af5817b258211716d3939ce7ed5b4
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -129,7 +120,10 @@ namespace cvt {
 			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
 			//std::cout << "Hessian:\n" << _miHessian << std::endl;
 
-			solveDeltaPose();	
+			float epsilon = solveDeltaPose();
+
+			if( epsilon < 1e-4 )
+				return;	
 
 			// TODO: check MI for early step out?
 			iter++;
@@ -137,13 +131,15 @@ namespace cvt {
 
 	}
 
-	inline void MITracker::solveDeltaPose()
+	inline float MITracker::solveDeltaPose()
 	{
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = _miHessian.inverse() * _miJacobian;
 		std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
+
+		return delta.norm();
 	}
 
 	inline void MITracker::updateTemplateGradients()

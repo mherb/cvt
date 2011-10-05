@@ -71,7 +71,7 @@ namespace cvt
 			_gui.setPoints( pts );
 		}
 
-		if( _iter == 50 ){
+		if( _fpsTime.elapsedSeconds() > 2 ){
 			_gui.setFPS( _iter * 1000.0f / _fpsTime.elapsedMilliSeconds() );
 			_fpsTime.reset();
 			_iter = 0;
