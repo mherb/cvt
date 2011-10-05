@@ -5,8 +5,8 @@
 #include <cvt/gfx/IHistogram.h>
 
 #include "PoseHomography.h"
-//#include "PoseTranslation.h"
-#define NUMPARAMS 8
+#include "PoseTranslation.h"
+#define NUMPARAMS 2
 
 namespace cvt {
 	class MITracker {
@@ -60,7 +60,9 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseHomography<float> _pose;
+			
+			//PoseHomography<float> _pose;
+			PoseTranslation<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -267,6 +269,7 @@ namespace cvt {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
 						float ht = _templateHist( ridx + o ) + 1e-6f;
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
+
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
 						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
