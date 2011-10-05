@@ -192,9 +192,9 @@ class FeatureWindow : public Window
     FeatureWindow( bool batch ) :
         Window( "Feature Data Tests" ),
         _numScales( 3 ),
-        _scaleFactor( 0.8f ),
+        _scaleFactor( 0.7f ),
         _fastThreshold( 20 ),
-        _maxDescDistance( 50 ),
+        _maxDescDistance( 75 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
         _orb0( 0 ), _orb1( 0 ),

@@ -20,9 +20,10 @@ namespace cvt {
 
 	void ImageView::setImage( const Image& img )
 	{
-		_img.reallocate( img.width(), img.height(), IFormat::BGRA_UINT8, IALLOCATOR_GL );
+		_img.reallocate( img.width(), img.height(), img.format(), IALLOCATOR_GL );
 		try {
-			IConvert::convert( _img, img );
+			_img.copy( img );
+			//IConvert::convert( _img, img );
 		} catch( Exception e ) {
 			std::cerr << "Conversion error: " << e.what() << std::endl;
 		}

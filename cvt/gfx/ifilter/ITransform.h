@@ -12,6 +12,11 @@ namespace cvt {
 			~ITransform();
 			void apply( const ParamSet* attribs, IFilterType iftype ) const;
 
+			/**
+			 *	@param	dst			the destination image
+			 *	@param	src			the source image
+			 *	@param	transform	transformation from src to dst!
+			 */
 			static void apply( Image& dst, const Image& src, const Matrix3f& transform );
 
 		private:

@@ -14,6 +14,7 @@ namespace cvt {
 	static float _fivept_data[] = { -1.0f / 12.0f, 8.0f / 12.0f, 0.0f, -8.0f / 12.0f, 1.0f / 12.0f };
 
 	static float _laplace33_data[] = { -1.0f, -1.0f, -1.0f, -1.0f, 8.0f, -1.0f, -1.0f, -1.0f, -1.0f };
+	static float _laplaceXX_data[] = { -1.0f,  2.0f, -1.0f };
 
 	const IKernel IKernel::GAUSS_HORIZONTAL_3 = IKernel( 3, 1, _gauss3_data );
 	const IKernel IKernel::GAUSS_HORIZONTAL_5 = IKernel( 5, 1, _gauss5_data );
@@ -40,5 +41,7 @@ namespace cvt {
 	const IKernel IKernel::FIVEPOINT_DERIVATIVE_VERTICAL = IKernel( 1, 5, _fivept_data );
 
 	const IKernel IKernel::LAPLACE_33 = IKernel( 3, 3, _laplace33_data );
+	const IKernel IKernel::LAPLACE_XX = IKernel( 3, 1, _laplaceXX_data );
+	const IKernel IKernel::LAPLACE_YY = IKernel( 1, 3, _laplaceXX_data );
 
 }
