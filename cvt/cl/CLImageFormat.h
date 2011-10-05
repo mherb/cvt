@@ -1,7 +1,7 @@
 #ifndef CVT_CLIMAGEFORMAT_H
 #define CVT_CLIMAGEFORMAT_H
 
-#include <CL/opencl.h>
+#include <cvt/cl/OpenCL.h>
 #include <iostream>
 
 namespace cvt {

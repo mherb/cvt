@@ -50,6 +50,7 @@ namespace cvt {
         bool                isEqual( const Matrix2<T> & other, T epsilon ) const;
 
 		void				setDiagonal( const Vector2<T>& diag );
+		void				setRotationZ( T rad );
 
 		T					trace( void ) const;
 		T					determinant( void ) const;
@@ -321,6 +322,19 @@ namespace cvt {
         }
         return true;
     }
+
+	template<typename T>
+	inline void Matrix2<T>::setRotationZ( T rad )
+	{
+		T s = Math::sin( rad );
+		T c = Math::cos( rad );
+
+		mat[ 0 ].x = c;
+		mat[ 0 ].y = -s;
+
+		mat[ 1 ].x = s;
+		mat[ 1 ].y = c;
+	}
 
 	template<typename T>
 	inline void Matrix2<T>::setDiagonal( const Vector2<T>& diag )

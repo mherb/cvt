@@ -16,7 +16,6 @@ namespace cvt {
             Feature2Df( x, y, angle, octave, score ),
 		    sx( 1.0f ),
 		    sy( 1.0f ),
-			scale( 1.0f ),
 			brighter( false )
         {
         }
@@ -28,7 +27,6 @@ namespace cvt {
 
 		float   angle2;
 	    float   sx, sy;
-		float	scale;
 		bool	brighter;   // center pixel is brighter than the ring
 		uint8_t desc[ 32 ]; // 256 bit vector
 	};
@@ -96,7 +94,7 @@ namespace cvt {
 			size_t			 _numFeatures;
             bool             _nms;
 
-			static const int _patterns[ 30 ][ 512 ][ 2 ];
+			static const int _patterns[ 30 ][ 40 ][ 512 ][ 2 ];
 			static const int _circularoffset[ 31 ];
 
 			static const float  _patternPositions[ 30 ][ 64 ][ 3 ];

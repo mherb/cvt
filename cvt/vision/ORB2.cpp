@@ -101,26 +101,26 @@ namespace cvt {
 		ContainerType::iterator it = octaveFeatures.begin();
 		ContainerType::iterator itEnd = octaveFeatures.end();
 
-		float xx, xy, yy, mx, my, n;
+		float xx, xy, yy, n;
 		Matrix2f cov, u, d, vt;
 
 		while( it != itEnd ){
 			const uint8_t * p = ptr + ( int )it->pt.y * stride + ( int )it->pt.x;
 
-			it->score = Math::pow( _scaleFactor, -( float ) octave ) * simd->harrisResponseCircular1u8( xx, xy, yy, mx, my, p , stride, 0.04f );
+			it->score = /* Math::pow( _scaleFactor, -1.0f * ( float ) octave ) */ simd->harrisResponseCircular1u8( xx, xy, yy, p , stride, 0.04f );
 
 			//it->score = simd->harrisResponse1u8( p , stride, 8, 8, 0.04f );
 
-			it->angle2 = Math::atan2( my, mx );
+			//it->angle2 = Math::atan2( my, mx );
 
 
 		//	it->angle2 = Math::deg2Rad( 85.0f ) - it->angle2;
-			if( it->angle2 < 0 )
-				it->angle2 += Math::TWO_PI;
+		//	if( it->angle2 < 0 )
+		//		it->angle2 += Math::TWO_PI;
 		//	it->angle2 = Math::TWO_PI - it->angle2 - Math::HALF_PI;
 
-			while( it->angle2 > Math::TWO_PI )
-				it->angle2 -= Math::TWO_PI;
+		//	while( it->angle2 > Math::TWO_PI )
+		//		it->angle2 -= Math::TWO_PI;
 
 			cov = Matrix2f( xx, xy, xy, yy );
 			cov.svd( u, d, vt );
@@ -130,18 +130,18 @@ namespace cvt {
 			//std::cout << Math::rad2Deg( it->angle2 ) << std::endl;
 			//std::cout << Math::rad2Deg( atan2( vt[ 0 ][ 1 ], vt[ 0 ][ 0 ]) ) << std::endl;
 
-			d[ 0 ][ 0 ] = Math::sqrt( d[ 0 ][ 0 ] );
-			d[ 1 ][ 1 ] = Math::sqrt( d[ 1 ][ 1 ] );
+			d[ 0 ][ 0 ] = ( Math::sqrt( d[ 0 ][ 0 ] ) );
+			d[ 1 ][ 1 ] = ( Math::sqrt( d[ 1 ][ 1 ] ) );
 
 			//std::cout << d[ 0 ][ 0 ] << " " << d[ 1 ][ 1 ] << std::endl;
 			//std::cout << ( d[ 0 ][ 0 ] + d[ 1 ][ 1 ] ) / 256.0f << std::endl;
 			//std::cout << d[ 0 ][ 0 ] / ( 31 * 31 ) << " " << d[ 1 ][ 1 ] / ( 31 * 31 ) << std::endl;
-			n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
-			//n = Math::max( d[ 0 ][ 0 ] , d[ 1 ][ 1 ]  );
-			it->sx = 1.5f * Math::max( d[ 0 ][ 0 ] / n , 0.01f );
-			it->sy = 1.5f * Math::max( d[ 1 ][ 1 ] / n , 0.01f );
-			//it->sx = Math::min( n / d[ 0 ][ 0 ], 4.0f);
-			//it->sy = Math::min( n / d[ 1 ][ 1 ], 4.0f);
+			//n = Math::sqrt( Math::sqr( d[ 0 ][ 0 ] ) + Math::sqr( d[ 1 ][ 1 ] ) );
+			n = Math::max( d[ 0 ][ 0 ] , d[ 1 ][ 1 ]  );
+			it->sx = Math::max( d[ 0 ][ 0 ] / n , 0.1f );
+		//	it->sy = 2.0f * Math::max( d[ 1 ][ 1 ] / n , 0.1f );
+			//it->sx = Math::min( 2.0f * n / d[ 0 ][ 0 ], 3.0f);
+			//it->sy = Math::min( 2.0f * n / d[ 1 ][ 1 ], 3.0f);
 
 			//std::cout << it->sx << " " << it->sy << std::endl;
 
@@ -277,8 +277,8 @@ namespace cvt {
 			//std::cout << Math::rad2Deg( _features[ i ].angle )  - Math::rad2Deg( _features[ i ].angle2 ) << std::endl;
 			//_features[ i ].angle = _features[ i ].angle2;
 
-			//descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
-			descriptorCircular( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			descriptor( _features[ i ], iimgptr[ octave ], strides[ octave ] );
+			//descriptorCircular( _features[ i ], iimgptr[ octave ], strides[ octave ] );
 
 
 //			std::cout << "Feature scales: " << _features[ i ].sx << ", " << _features[ i ].sy << std::endl;
@@ -331,9 +331,12 @@ namespace cvt {
 		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
 		if( index >= 30 )
 			index = 0;
+		size_t index2 = feature.sy * 40.0f;
+		if( index2 >= 40 )
+			index2 = 39;
 		int x = ( int ) feature.pt.x;
 		int y = ( int ) feature.pt.y;
-		Point2f orbpt1, orbpt2, pt;
+/*		Point2f orbpt1, orbpt2, pt;
 		Matrix2f rot( Math::cos( feature.angle ), -Math::sin( feature.angle ),
 				      Math::sin( feature.angle ),  Math::cos( feature.angle ) );
 
@@ -346,25 +349,24 @@ namespace cvt {
 						orbpt2 = rot * pt; \
 					 } while( 0 )
 
-#define ORB2TEST	  ( IntegralImage::area( iimgptr, x + Math::round( orbpt1.x ) - 2,\
-													  y + Math::round( orbpt1.y )- 2, 5, 5, widthstep ) < \
-					    IntegralImage::area( iimgptr, x + Math::round( orbpt2.x ) - 2,\
-													  y + Math::round( orbpt2.y ) - 2, 5, 5, widthstep ) )
+#define ORB2TEST	  ( IntegralImage::area( iimgptr, x + ( orbpt1.x ) - 2,\
+													  y + ( orbpt1.y )- 2, 5, 5, widthstep ) < \
+					    IntegralImage::area( iimgptr, x + ( orbpt2.x ) - 2,\
+													  y + ( orbpt2.y ) - 2, 5, 5, widthstep ) )
+													  */
 
-/*
-#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 ][ 0 ] ) - 2,\
-													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
-					    IntegralImage::area( iimgptr, x + Math::round( feature.sx * _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
-													  y + Math::round( feature.sy * _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
-*/
+
+#define ORB2TEST( n ) ( IntegralImage::area( iimgptr, x + ( _patterns[ index ][ index2 ][ ( n ) * 2 ][ 0 ] ) - 2,\
+	  												  y + ( _patterns[ index ][ index2 ][ ( n ) * 2 ][ 1 ] )- 2, 5, 5, widthstep ) < \
+					    IntegralImage::area( iimgptr, x + ( _patterns[ index ][ index2 ][ ( n ) * 2 + 1 ][ 0 ] ) - 2,\
+													  y + ( _patterns[ index ][ index2 ][ ( n ) * 2 + 1 ][ 1 ] ) - 2, 5, 5, widthstep ) )
+
 		for( int i = 0; i < 32; i++ ) {
 			feature.desc[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				ORB2PTS( i * 8 + k );
-				feature.desc[ i ] |= ( ORB2TEST ) << k;
+				feature.desc[ i ] |=  ORB2TEST( i * 8 + k ) << k;
 			}
 		}
-		feature.scale = _scaleFactors[ feature.octave ];
 		feature.pt /= _scaleFactors[ feature.octave ];
 	}
 
@@ -395,7 +397,6 @@ namespace cvt {
 				feature.desc[ i ] |= ( areas[ _testIndices[ ( i * 8 + k ) * 2 ] ] < areas[ _testIndices[ ( i * 8 + k ) * 2 + 1 ] ] ) << k;
 			}
 		}
-		feature.scale = _scaleFactors[ feature.octave ];
 		feature.pt /= _scaleFactors[ feature.octave ];
 	}
 

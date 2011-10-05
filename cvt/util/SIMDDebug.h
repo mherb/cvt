@@ -8,6 +8,8 @@
 #ifndef CVT_SIMDDEBUG_H
 #define	CVT_SIMDDEBUG_H
 
+#include <stdio.h>
+
 namespace cvt {
 
     typedef union {
@@ -78,6 +80,15 @@ namespace cvt {
 		x.m128i = _x;
 
         printf( "%d %d %d %d %d %d %d %d\n", x.i16[ 0 ], x.i16[ 1 ], x.i16[ 2 ], x.i16[ 3 ],
+                x.i16[ 4 ], x.i16[ 5 ], x.i16[ 6 ], x.i16[ 7 ] );
+    }
+
+    static inline void SIMD_print_i16( const char* str, __m128i _x )
+    {
+		SIMD128 x;
+		x.m128i = _x;
+
+        printf( "%s %d %d %d %d %d %d %d %d\n", str, x.i16[ 0 ], x.i16[ 1 ], x.i16[ 2 ], x.i16[ 3 ],
                 x.i16[ 4 ], x.i16[ 5 ], x.i16[ 6 ], x.i16[ 7 ] );
     }
 

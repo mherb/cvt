@@ -3,6 +3,8 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
+#include <cvt/util/SIMDDebug.h>
+
 namespace cvt
 {
 	/*static inline int32_t _mm_floor( __m128 xmm )
@@ -1721,6 +1723,150 @@ namespace cvt
 		
 		xx = a; yy = b; xy = c;
 
+		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+	}
+
+	float SIMDSSE2::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
+	{
+		const uint16_t _gaussweights[ 26 ][ 8 ] __attribute__ ( ( aligned ( 16 ) ) ) = {
+			{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
+			{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
+			{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
+			{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
+			{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
+			{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
+			{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
+			{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
+			{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
+			{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
+			{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
+			{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
+			{ 0x02D8, 0x0B3F, 0x22A5, 0x531C, 0x9B45, 0xE1EA, 0xFFFF, 0x0 },
+			{ 0xE1EA, 0x9B45, 0x531C, 0x22A5, 0x0B3F, 0x02D8, 0x0, 0x0 },
+			{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
+			{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
+			{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
+			{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
+			{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
+			{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
+			{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
+			{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
+			{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
+			{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
+			{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
+			{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
+		};
+		const uint8_t* src = _src - 7 * srcStride - 7;
+		__m128i dx2[ 2 ][ 2 ], t1, t2, t3, t4, dx, dy, w;
+		const __m128i zero = _mm_setzero_si128();
+		__m128i ix, iy, ixy;
+		float a, b, c;
+
+#define	__horizontal_sum(r, rw) do { \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(1, 0, 3, 2)); \
+	r = _mm_add_epi32(r, rw); \
+	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(2, 3, 0, 1)); \
+	r = _mm_add_epi32(r, rw); \
+} while( 0 )
+
+		ix = iy = ixy = zero;
+
+		t1 = _mm_loadu_si128( ( __m128i* ) src );
+		t2 = _mm_unpacklo_epi8( _mm_srli_si128( t1, 2 ), zero );
+		t3 = _mm_unpacklo_epi8( t1, zero );
+		dx2[ 0 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
+		t2 = _mm_unpackhi_epi8( t1, zero );
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 0 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+		src += srcStride;
+
+		t1 = _mm_loadu_si128( ( __m128i* ) src );
+		t2 = _mm_unpacklo_epi8( _mm_srli_si128(t1, 2 ), zero );
+		t3 = _mm_unpacklo_epi8( t1, zero );
+		dx2[ 1 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
+		t2 = _mm_unpackhi_epi8( t1, zero );
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+		dx2[ 1 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+		src += srcStride;
+
+		for( int i = 0; i < 13; i++ ) {
+			/* load current line */
+			t1 = _mm_loadu_si128( ( __m128i* ) src );
+			t2 = _mm_unpacklo_epi8( _mm_srli_si128( t1, 2 ), zero );
+			t3 = _mm_unpacklo_epi8( t1, zero );
+			dx = _mm_sub_epi16( t3, t2 );
+
+			/* first 8 sobel values in x direction */
+			t3 = _mm_add_epi16( dx, _mm_add_epi16( dx2[ 0 ][ 0 ], _mm_slli_epi16( dx2[ 1 ][ 0 ], 1 ) ) );
+			dx2[ 0 ][ 0 ] = dx2[ 1 ][ 0 ];
+			dx2[ 1 ][ 0 ] = dx;
+			dx = _mm_insert_epi16( t3, 0, 7 );
+
+			/* load current line - 2 * srcStride */
+			t4 = _mm_loadu_si128( ( __m128i* ) ( src - 2 * srcStride ) );
+			t2 = _mm_unpacklo_epi8( t1, zero );
+			t3 = _mm_unpacklo_epi8( t4, zero ); // unpack low values
+			dy = _mm_sub_epi16( t3, t2 ); // substract values of current line
+
+			/* load high values of current line */
+			t2 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 1 ), zero );
+			/* load hight values of current line - 2 * srcStride */
+			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t4, 1 ), zero );
+			/* upper unsmoothed y gradient current line */
+			t4 = _mm_sub_epi16( t3, t2 );
+
+			/* calculate first 8 sobel values in y direction */
+			dy = _mm_add_epi16( _mm_slli_epi16( dy, 1 ), _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) ) );
+			dy = _mm_srli_si128( _mm_add_epi16( dy, _mm_slli_si128( _mm_srli_si128( t4, 2 ), 14 ) ), 2 );
+
+#ifdef GW
+			w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 ] );
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
+#else
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+#endif
+			/* upper unsmoothed x gradient current line */
+			t2 = _mm_unpackhi_epi8( t1, zero );
+			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+			t3 = _mm_sub_epi16( t3, t2 );
+
+			/* caclculate second 8 sobel values in x direction */
+			dx = _mm_add_epi16( t3, _mm_add_epi16( dx2[ 0 ][ 1 ], _mm_slli_epi16( dx2[ 1 ][ 1 ], 1 ) ) );
+			dx = _mm_srli_si128( dx, 2 );
+
+			dx2[ 0 ][ 1 ] = dx2[ 1 ][ 1 ];
+			dx2[ 1 ][ 1 ] = t3;
+			dx = _mm_insert_epi16( dx, 0, 6 );
+
+			dy = _mm_add_epi16( _mm_slli_epi16( t4, 1 ), _mm_add_epi16( _mm_slli_si128( t4, 2 ), _mm_srli_si128( t4, 2 ) ) );
+			dy = _mm_srli_si128( _mm_slli_si128( dy, 2 ), 4 );
+#ifdef GW
+			w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 + 1 ] );
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
+#else
+			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+#endif
+			src += srcStride;
+		}
+		__horizontal_sum( ix, t1 );
+		__horizontal_sum( iy, t1 );
+		__horizontal_sum( ixy, t1 );
+
+#undef __horizontal_sum
+
+		a = ( float ) _mm_cvtsi128_si32( ix );
+		b = ( float ) _mm_cvtsi128_si32( iy );
+		c = ( float ) _mm_cvtsi128_si32( ixy );
+
+		xx = a; yy = b; xy = c;
 		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
 	}
 
