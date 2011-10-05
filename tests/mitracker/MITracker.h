@@ -4,13 +4,15 @@
 #include <cvt/math/BSpline.h>
 #include <cvt/gfx/IHistogram.h>
 
-#include "PoseHomography.h"
-//#include "PoseTranslation.h"
-#define NUMPARAMS 8
+//#include "PoseHomography.h"
+#include "PoseTranslation.h"
+#define NUMPARAMS 2
 
 namespace cvt {
 	class MITracker {
 		public:
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 			MITracker();
 			~MITracker();
 
@@ -58,7 +60,8 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseHomography<float> _pose;
+			PoseTranslation<float> _pose;
+			//PoseHomography<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -265,7 +268,7 @@ namespace cvt {
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
-						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
+						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose() / Math::sqr( norm );
 					}
@@ -328,17 +331,20 @@ namespace cvt {
 				// first order image derivatives
 				grad[ 0 ] = gx[ x ];
 				grad[ 1 ] = gy[ x ];
+		//		std::cout << "G: " << gx[ x ] << ", " << gy[ x ] << std::endl; 
+		//		std::cout << "GRAD: " << grad[ 0 ] << ", " << grad[ 1 ] << std::endl; 
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
+				hess.setZero();
 				hess( 0, 0 ) = gxx[ x ];
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
 				hess( 1, 1 ) = gyy[ x ];
 
 
-				//std::cout << gxx[ x ] << " " << gxy[ x ] << " " << gyy[ x ] << std::endl;
-				//std::cout << hess << std::endl;
+				std::cout << gxx[ x ] << " " << gxy[ x ] << " " << gyy[ x ] << std::endl;
+				std::cout << hess << std::endl;
 
 				p.x = x;
 				_pose.screenJacobian( screenJac, p );
