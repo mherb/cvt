@@ -28,6 +28,9 @@ namespace cvt
 
 			/* construct the delta homography from the parameters and apply it to the current one */
 			void addDelta( const Eigen::Matrix<T, 2, 1>& delta );
+
+			void inverseCompositionalUpdate( const Eigen::Matrix<T, 2, 1>& delta );
+
 			void removeDelta( const Eigen::Matrix<T, 2, 1>& delta );
 
 		private:
@@ -47,7 +50,7 @@ namespace cvt
 
 	template <typename T>
 	inline void PoseTranslation<T>::screenJacobian( Eigen::Matrix<T, 2, 2>& j, 
-												    const Vector2<T>& p ) const
+												    const Vector2<T>& ) const
 	{
 		j.setIdentity();
 	}
@@ -55,7 +58,7 @@ namespace cvt
 	template <typename T>
 	inline void PoseTranslation<T>::screenHessian( Eigen::Matrix<T, 2, 2>& hx, 
 												  Eigen::Matrix<T, 2, 2>& hy,
-												  const Vector2<T>& p ) const
+												  const Vector2<T>& ) const
 	{
 		hx.setZero();
 		hy.setZero();
@@ -73,6 +76,12 @@ namespace cvt
 	{
 		_current[ 0 ][ 2 ] -= delta[ 0 ];
 		_current[ 1 ][ 2 ] -= delta[ 1 ];
+	}
+		
+	template <typename T>	
+	inline void PoseTranslation<T>::inverseCompositionalUpdate( const Eigen::Matrix<T, 2, 1>& delta )
+	{
+		removeDelta( delta );
 	}
 }
 

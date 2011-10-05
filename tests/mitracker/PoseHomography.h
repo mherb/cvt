@@ -30,6 +30,7 @@ namespace cvt
 			/* construct the delta homography from the parameters and apply it to the current one */
 			void addDelta( const Eigen::Matrix<T, 8, 1>& delta );
 			void removeDelta( const Eigen::Matrix<T, 8, 1>& delta );
+			void inverseCompositionalUpdate( const Eigen::Matrix<T, 8, 1>& delta );
 
 		private:
 			Matrix3<T>	_current;
@@ -119,7 +120,7 @@ namespace cvt
 	{
 		Matrix3<T> dH;
 		fillDeltaMatrix( dH, delta );
-		_current *= dH;// * _current;
+		_current = dH * _current;
 	}
 
 	template <typename T>
@@ -132,7 +133,7 @@ namespace cvt
 			throw CVTException( "Could not invert delta Matrix" );
 		}
 
-		_current *= dH;
+		_current = dH * _current;
 	}
 
 
@@ -148,6 +149,13 @@ namespace cvt
 		deltaH[ 2 ][ 0 ] = p[ 6 ];
 		deltaH[ 2 ][ 1 ] = p[ 7 ];
 		deltaH[ 2 ][ 2 ] = 1;
+	}
+
+
+	template <typename T>	
+	inline void PoseHomography<T>::inverseCompositionalUpdate( const Eigen::Matrix<T, 8, 1>& delta )
+	{
+		removeDelta( delta );
 	}
 
 }
