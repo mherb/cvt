@@ -1,5 +1,5 @@
-#ifndef CVT_POSE_HOMOGRAPHY
-#define CVT_POSE_HOMOGRAPHY
+#ifndef CVT_POSE_TRANSLATION_H
+#define CVT_POSE_TRANSLATION_H
 
 #include <Eigen/Core>
 
