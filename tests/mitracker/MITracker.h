@@ -82,7 +82,7 @@ namespace cvt {
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
-		_maxIter( 1 )
+		_maxIter( 10 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
 	}
@@ -154,9 +154,9 @@ namespace cvt {
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
 		//_templateGradY.convolve( _templateGradYY, IKernel::HAAR_VERTICAL_3 );
 		IKernel kxy1( IKernel::HAAR_HORIZONTAL_3 );
-		//kxy1.scale( 0.5f );
+		kxy1.scale( 0.5f );
 		IKernel kxy2( IKernel::HAAR_VERTICAL_3 );
-		//kxy2.scale( 0.5f );
+		kxy2.scale( 0.5f );
 		_itemplate.convolve( _templateGradXY, kxy1, kxy2 );
 
 		//_templateGradXX.save("grad_XX.png");
@@ -239,6 +239,8 @@ namespace cvt {
 
 	inline void MITracker::updateDerivatives()
 	{
+		Eigen::Matrix<float,1,NUMPARAMS> curJac;
+		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> curHess;
 		_miJacobian.setZero();
 		_miHessian.setZero();
 
@@ -264,19 +266,24 @@ namespace cvt {
 				r = *ptval++ * ( _numBins - 3 ) + 1.0f;
 				int tidx = ( int ) t;
 				int ridx = ( int ) r;
+				curJac.setZero();
+				curHess.setZero();
 				for( int m = -1; m <= 2; m++ ) {
 					for( int o = -1; o <= 2; o++ ) {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
 						float ht = _templateHist( ridx + o ) + 1e-6f;
-						float c = 1.0f + Math::log( jh ) - Math::log( ht );
-
-						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
-						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
-						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
+						float c = 1.0f + Math::log( jh / ht );
+						float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
+						c *= spl;
+						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ];// / norm;
+						_miHessian += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ];// / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
-						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose() / Math::sqr( norm );
+						c *= spl * spl;
+						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose();// / ( 2.0f * norm );
 					}
 				}
+				_miJacobian += curJac;
+				_miHessian += curHess;
 			}
 			pi += stride;
 			pit += tstride;
@@ -296,8 +303,8 @@ namespace cvt {
 		size_t numPixel = _itemplate.width() * _itemplate.height();
 
 		// we need numbins times pixel values
-		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ _numBins * numPixel ];
-		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ _numBins * numPixel ];
+		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ ( _numBins + 1 ) * numPixel ];
+		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ ( _numBins + 1 ) * numPixel ];
 
 		Eigen::Matrix<float, 2, NUMPARAMS> screenJac;
 		Vector2f p;
@@ -354,12 +361,12 @@ namespace cvt {
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
 			
 				pixVal = normFactor * iptr[ x ] + 1.0f;
-				for( size_t bin = 0; bin < _numBins; bin++ ){
+				for( size_t bin = 0; bin <= _numBins; bin++ ){
 					// first order mi part: TODO: evaluate first and second order splineDerivatives!
 					splineDeriv = BSpline<float>::evalDerivative( (float)bin - pixVal ); 
 					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)bin - pixVal );
-					_jTemp[ _numBins * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
-					_hTemp[ _numBins * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
+					_jTemp[ ( _numBins + 1 ) * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
+					_hTemp[ ( _numBins + 1 ) * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}
 			gx += gxStride;

@@ -86,7 +86,7 @@ namespace cvt {
 				delete[] _hist;
 			_hist = new T[ ( _size + 1 ) * _channels ];
 		}
-		for( size_t i = 0; i <= ( _size + 1 ) * _channels; i++ )
+		for( size_t i = 0; i < ( _size + 1 ) * _channels; i++ )
 			_hist[ i ] = 0;
 	}
 
@@ -138,7 +138,7 @@ namespace cvt {
 			T sum = 0;
 			for( size_t i = 0; i < _size; i++ )
 				sum += _hist[ c * ( _size + 1 ) + i ];
-			sum = 1 / sum;
+			sum = ( ( float ) 1 ) / sum;
 			for( size_t i = 0; i < _size; i++ )
 				_hist[ c * ( _size + 1 ) + i ] *= sum;
 		}
