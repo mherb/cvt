@@ -6,7 +6,7 @@
 
 #include "PoseHomography.h"
 #include "PoseTranslation.h"
-#define NUMPARAMS 2
+#define NUMPARAMS 8
 
 namespace cvt {
 	class MITracker {
@@ -62,7 +62,7 @@ namespace cvt {
 			Image	_warped;
 			
 			//PoseHomography<float> _pose;
-			PoseTranslation<float> _pose;
+			PoseHomography<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -260,7 +260,7 @@ namespace cvt {
 
 		const float* pi = ptr;
 		const float* pit = tptr;
-		const float norm = 1.0f;//w * h;
+		const float norm = 1.0f; //w * h;
 
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
@@ -284,7 +284,7 @@ namespace cvt {
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						c *= spl * spl;
-						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose() / Math::sqr( norm );
+						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose() / ( norm );
 					}
 				}
 				_miJacobian += curJac;
