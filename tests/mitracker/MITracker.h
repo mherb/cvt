@@ -4,9 +4,9 @@
 #include <cvt/math/BSpline.h>
 #include <cvt/gfx/IHistogram.h>
 
-//#include "PoseHomography.h"
-#include "PoseTranslation.h"
-#define NUMPARAMS 2
+#include "PoseHomography.h"
+//#include "PoseTranslation.h"
+#define NUMPARAMS 8
 
 namespace cvt {
 	class MITracker {
@@ -58,7 +58,7 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseTranslation<float> _pose;
+			PoseHomography<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -96,21 +96,25 @@ namespace cvt {
 	{
 		size_t iter = 0;
 		Matrix3f hinv;
-		Image img;
+		Image img, tmp;
 		_img.convert( img, IFormat::GRAY_FLOAT );
+		tmp.reallocate( _warped );
 
 		while( iter < _maxIter ){
 			// warp back according to current pose
 			const Matrix3f & h = _pose.pose();
 			hinv = h.inverse();
-			ITransform::apply( _warped, img, hinv );
+
+			tmp.fill( Color::WHITE );
+			ITransform::apply( tmp, img, hinv );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
 			updateDerivatives();
 
-			std::cout << "Jacobian:\n" << _miJacobian << std::endl;
-			std::cout << "Hessian:\n" << _miHessian << std::endl;
+			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
+			//std::cout << "Hessian:\n" << _miHessian << std::endl;
 
 			solveDeltaPose();	
 
@@ -125,33 +129,43 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
-		std::cout << "Delta:\n" << delta << std::endl;
+		//std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 	}
 
 	inline void MITracker::updateTemplateGradients()
 	{
-		Image tmpf;
-		_itemplate.convert( tmpf, IFormat::GRAY_FLOAT );
+		_templateGradX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
+		_templateGradY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
+		_templateGradXX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
+		_templateGradYY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
+		_templateGradXY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 
-		_templateGradX.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
-		_templateGradY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
-		_templateGradXX.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
-		_templateGradYY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
-		_templateGradXY.reallocate( _itemplate.width(), _itemplate.height(), tmpf.format() );
+		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
+		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
+		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_XX );
+		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_YY );
 
-		tmpf.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
-		tmpf.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
-		tmpf.convolve( _templateGradXX, IKernel::LAPLACE_XX );
-		tmpf.convolve( _templateGradYY, IKernel::LAPLACE_YY );
-		tmpf.convolve( _templateGradXY, IKernel::HAAR_HORIZONTAL_3, IKernel::HAAR_VERTICAL_3 );
+		//_templateGradXX.save("grad_XX.png");
+		//_templateGradYY.save("grad_YY.png");
+
+		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
+		//_templateGradY.convolve( _templateGradYY, IKernel::HAAR_VERTICAL_3 );
+		IKernel kxy1( IKernel::HAAR_HORIZONTAL_3 );
+		kxy1.scale( 0.5f );
+		IKernel kxy2( IKernel::HAAR_VERTICAL_3 );
+		kxy2.scale( 0.5f );
+		_itemplate.convolve( _templateGradXY, kxy1, kxy2 );
 	}
 
 	inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
 	{
 		Time t;
 		_pose.pose().setHomography( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
-		img.convert( _itemplate, IFormat::GRAY_FLOAT );
+		Image tmp;
+		img.convert( tmp, IFormat::GRAY_FLOAT );
+		_itemplate.reallocate( tmp );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 		updateTemplateGradients();
 		offlineTemplateDerivatives();
 
@@ -246,8 +260,8 @@ namespace cvt {
 				int ridx = ( int ) r;
 				for( int m = -1; m <= 2; m++ ) {
 					for( int o = -1; o <= 2; o++ ) {
-						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ];
-						float ht = _templateHist( ridx + o );
+						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-9f;
+						float ht = _templateHist( ridx + o ) + 1e-9f;
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
@@ -316,9 +330,15 @@ namespace cvt {
 				grad[ 1 ] = -gy[ x ];
 
 				// second order image derivatives
+				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
 				hess( 0, 0 ) = gxx[ x ];
-				hess( 0, 1 ) = hess( 1, 0) = gxy[ x ];
+				hess( 0, 1 ) = gxy[ x ];
+				hess( 1, 0 ) = gxy[ x ];
 				hess( 1, 1 ) = gyy[ x ];
+
+
+				//std::cout << gxx[ x ] << " " << gxy[ x ] << " " << gyy[ x ] << std::endl;
+				//std::cout << hess << std::endl;
 
 				p.x = x;
 				_pose.screenJacobian( screenJac, p );
@@ -327,6 +347,7 @@ namespace cvt {
 				imagePoseDeriv = grad * screenJac;
 				
 				// second order image pose derivative
+				//std::cout << screenJac.transpose() * screenJac << std::endl << std::endl;
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
 			
 				pixVal = normFactor * iptr[ x ] + 1.0f;
@@ -334,7 +355,7 @@ namespace cvt {
 					// first order mi part: TODO: evaluate first and second order splineDerivatives!
 					splineDeriv = BSpline<float>::evalDerivative( (float)bin - pixVal ); 
 					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)bin - pixVal );
-					_jTemp[ _numBins * iter + bin ] = -( splineDeriv * imagePoseDeriv ).transpose();
+					_jTemp[ _numBins * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
 					_hTemp[ _numBins * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}

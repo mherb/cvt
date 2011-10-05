@@ -15,7 +15,7 @@ void genSequence( const Image& img, const String& baseName )
 	String name;
 	for( size_t x = 0; x < img.width(); x++ ){		
 		dst.fill( Color::WHITE );
-		dst.copyRect( x, y, img, r );
+		dst.copyRect( x, y + 50.0f * Math::cos( ( ( float ) x / ( float ) img.width() ) * Math::TWO_PI ), img, r );
 
 		name.sprintf( "%s_%05d.png", baseName.c_str(), x );
 		dst.save( name );
