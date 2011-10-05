@@ -109,8 +109,8 @@ namespace cvt {
 			updateInputHistograms();
 			updateDerivatives();
 
-			std::cout << "Jacobian:\n" << _miJacobian << std::endl;
-			std::cout << "Hessian:\n" << _miHessian << std::endl;
+			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
+			//std::cout << "Hessian:\n" << _miHessian << std::endl;
 
 			solveDeltaPose();	
 
@@ -126,7 +126,7 @@ namespace cvt {
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
 		std::cout << "Delta:\n" << delta << std::endl;
-		_pose.addDelta( delta );
+		_pose.removeDelta( delta );
 	}
 
 	inline void MITracker::updateTemplateGradients()
@@ -251,7 +251,7 @@ namespace cvt {
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
-						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
+						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose() / Math::sqr( norm );
 					}
@@ -312,8 +312,8 @@ namespace cvt {
 			p.y = y;
 			for( size_t x = 0; x < _itemplate.width(); x++, iter++ ){
 				// first order image derivatives
-				grad[ 0 ] = -gx[ x ];
-				grad[ 1 ] = -gy[ x ];
+				grad[ 0 ] = gx[ x ];
+				grad[ 1 ] = gy[ x ];
 
 				// second order image derivatives
 				hess( 0, 0 ) = gxx[ x ];
