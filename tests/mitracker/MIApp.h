@@ -38,7 +38,7 @@ namespace cvt
 		_iter( 0 ),
 		_selectingTemplate( true )
 	{
-		_timerId = Application::registerTimer( 33, this );
+		_timerId = Application::registerTimer( 20, this );
 
 		// add the delegates to the gui
 		Delegate<void (void)> selStart( this, &MIApp::selectionDidStart );
@@ -47,6 +47,7 @@ namespace cvt
 
 		_gui.addSelectionDelegates( selStart, selDone );
 		_gui.observeMaxIterations( maxIterChanged );
+		_gui.setMaxIter( _tracker.maxIterations() );
 	}
 
 	inline MIApp::~MIApp()
