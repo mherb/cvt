@@ -4,9 +4,9 @@
 #include <cvt/math/BSpline.h>
 #include <cvt/gfx/IHistogram.h>
 
-//#include "PoseHomography.h"
-#include "PoseTranslation.h"
-#define NUMPARAMS 2
+#include "PoseHomography.h"
+//#include "PoseTranslation.h"
+#define NUMPARAMS 8
 
 namespace cvt {
 	class MITracker {
@@ -60,7 +60,7 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseTranslation<float> _pose;
+			PoseHomography<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -76,7 +76,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 10 ),
+		_numBins( 12 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
@@ -115,8 +115,8 @@ namespace cvt {
 			updateInputHistograms();
 			updateDerivatives();
 
-			std::cout << "Jacobian:\n" << _miJacobian << std::endl;
-			std::cout << "Hessian:\n" << _miHessian << std::endl;
+			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
+			//std::cout << "Hessian:\n" << _miHessian << std::endl;
 
 			solveDeltaPose();	
 
@@ -130,7 +130,7 @@ namespace cvt {
 	{
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
-		delta = -_miHessian.inverse() * _miJacobian;
+		delta = _miHessian.inverse() * _miJacobian;
 		std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 	}
@@ -253,7 +253,7 @@ namespace cvt {
 
 		const float* pi = ptr;
 		const float* pit = tptr;
-		const float norm = w * h;
+		const float norm = 1.0f;//w * h;
 
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
@@ -273,11 +273,11 @@ namespace cvt {
 						float c = 1.0f + Math::log( jh / ht );
 						float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						c *= spl;
-						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ];// / norm;
-						_miHessian += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ];// / ( norm );
+						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
+						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						c *= spl * spl;
-						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose();// / ( 2.0f * norm );
+						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose() / Math::sqr( norm );
 					}
 				}
 				_miJacobian += curJac;
@@ -338,8 +338,8 @@ namespace cvt {
 			p.y = y;
 			for( size_t x = 0; x < _itemplate.width(); x++, iter++ ){
 				// first order image derivatives
-				grad[ 0 ] = -gx[ x ];
-				grad[ 1 ] = -gy[ x ];
+				grad[ 0 ] = gx[ x ];
+				grad[ 1 ] = gy[ x ];
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
