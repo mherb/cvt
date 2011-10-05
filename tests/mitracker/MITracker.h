@@ -68,6 +68,7 @@ namespace cvt {
 
 			// for the template we can calculate offline data once:
 			Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
+			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _jTempOuter;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
 
 			// optimization related:
@@ -76,9 +77,10 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 12 ),
+		_numBins( 14 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
+		_jTempOuter( 0 ),
 		_hTemp( 0 ),
 		_maxIter( 1 )
 	{
@@ -90,6 +92,8 @@ namespace cvt {
 		delete[] _jhist;
 		if( _jTemp )
 			delete[] _jTemp;
+		if( _jTempOuter )
+			delete[] _jTempOuter;
 		if( _hTemp )
 			delete[] _hTemp;
 	}
@@ -215,9 +219,9 @@ namespace cvt {
 				int tidx = ( int ) t;
 				int ridx = ( int ) r;
 				for( int m = -1; m <= 2; m++ ) {
+					float splm = BSplinef::eval( -r + ( float ) ( ridx + m ) );
 					for( int o = -1; o <= 2; o++ ) {
-						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) )
-							* BSplinef::eval( -r + ( float ) ( ridx + m ) );
+						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) ) * splm;
 						_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] += val;
 						sum += val;
 					}
@@ -277,7 +281,7 @@ namespace cvt {
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						c *= spl * spl;
-						curHess += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ].transpose() / Math::sqr( norm );
+						curHess += c * _jTempOuter[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / Math::sqr( norm );
 					}
 				}
 				_miJacobian += curJac;
@@ -295,6 +299,8 @@ namespace cvt {
 	{
 		if( _jTemp )
 			delete[] _jTemp;
+		if( _jTempOuter )
+			delete[] _jTempOuter;
 		if( _hTemp )
 			delete[] _hTemp;
 		
@@ -302,6 +308,7 @@ namespace cvt {
 
 		// we need numbins times pixel values
 		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ ( _numBins + 1 ) * numPixel ];
+		_jTempOuter = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ ( _numBins + 1 ) * numPixel ];
 		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ ( _numBins + 1 ) * numPixel ];
 
 		Eigen::Matrix<float, 2, NUMPARAMS> screenJac;
@@ -364,6 +371,7 @@ namespace cvt {
 					splineDeriv = BSpline<float>::evalDerivative( (float)bin - pixVal ); 
 					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)bin - pixVal );
 					_jTemp[ ( _numBins + 1 ) * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
+					_jTempOuter[ ( _numBins + 1 ) * iter + bin ] = _jTemp[ ( _numBins + 1 ) * iter + bin ] * _jTemp[ ( _numBins + 1 ) * iter + bin ].transpose();
 					_hTemp[ ( _numBins + 1 ) * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}
