@@ -4,9 +4,9 @@
 #include <cvt/math/BSpline.h>
 #include <cvt/gfx/IHistogram.h>
 
-//#include "PoseHomography.h"
-#include "PoseTranslation.h"
-#define NUMPARAMS 2
+#include "PoseHomography.h"
+//#include "PoseTranslation.h"
+#define NUMPARAMS 8
 
 namespace cvt {
 	class MITracker {
@@ -58,7 +58,7 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseTranslation<float> _pose;
+			PoseHomography<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -107,14 +107,14 @@ namespace cvt {
 
 			tmp.fill( Color::WHITE );
 			ITransform::apply( tmp, img, hinv );
-			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
 			updateDerivatives();
 
-			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
-			//std::cout << "Hessian:\n" << _miHessian << std::endl;
+			std::cout << "Jacobian:\n" << _miJacobian << std::endl;
+			std::cout << "Hessian:\n" << _miHessian << std::endl;
 
 			solveDeltaPose();	
 
@@ -129,8 +129,8 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
-		//std::cout << "Delta:\n" << delta << std::endl;
-		_pose.removeDelta( delta );
+		std::cout << "Delta:\n" << delta << std::endl;
+		_pose.addDelta( delta );
 	}
 
 	inline void MITracker::updateTemplateGradients()
@@ -150,9 +150,9 @@ namespace cvt {
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
 		//_templateGradY.convolve( _templateGradYY, IKernel::HAAR_VERTICAL_3 );
 		IKernel kxy1( IKernel::HAAR_HORIZONTAL_3 );
-		kxy1.scale( 0.5f );
+		//kxy1.scale( 0.5f );
 		IKernel kxy2( IKernel::HAAR_VERTICAL_3 );
-		kxy2.scale( 0.5f );
+		//kxy2.scale( 0.5f );
 		_itemplate.convolve( _templateGradXY, kxy1, kxy2 );
 
 		//_templateGradXX.save("grad_XX.png");
@@ -167,7 +167,7 @@ namespace cvt {
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
 		_itemplate.reallocate( tmp );
-		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 		updateTemplateGradients();
 		offlineTemplateDerivatives();
 
@@ -262,12 +262,12 @@ namespace cvt {
 				int ridx = ( int ) r;
 				for( int m = -1; m <= 2; m++ ) {
 					for( int o = -1; o <= 2; o++ ) {
-						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-9f;
-						float ht = _templateHist( ridx + o ) + 1e-9f;
+						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
+						float ht = _templateHist( ridx + o ) + 1e-6f;
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
-						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
+						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose() / Math::sqr( norm );
 					}
@@ -328,15 +328,15 @@ namespace cvt {
 			p.y = y;
 			for( size_t x = 0; x < _itemplate.width(); x++, iter++ ){
 				// first order image derivatives
-				grad[ 0 ] = gx[ x ];
-				grad[ 1 ] = gy[ x ];
+				grad[ 0 ] = -gx[ x ];
+				grad[ 1 ] = -gy[ x ];
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
-				hess( 0, 0 ) = -gxx[ x ];
+				hess( 0, 0 ) = gxx[ x ];
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
-				hess( 1, 1 ) = -gyy[ x ];
+				hess( 1, 1 ) = gyy[ x ];
 
 				p.x = x;
 				_pose.screenJacobian( screenJac, p );
