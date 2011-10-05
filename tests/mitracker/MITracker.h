@@ -4,9 +4,9 @@
 #include <cvt/math/BSpline.h>
 #include <cvt/gfx/IHistogram.h>
 
-#include "PoseHomography.h"
-//#include "PoseTranslation.h"
-#define NUMPARAMS 8
+//#include "PoseHomography.h"
+#include "PoseTranslation.h"
+#define NUMPARAMS 2
 
 namespace cvt {
 	class MITracker {
@@ -58,7 +58,7 @@ namespace cvt {
 
 			// backprojection of image to template space
 			Image	_warped;
-			PoseHomography<float> _pose;
+			PoseTranslation<float> _pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -146,8 +146,6 @@ namespace cvt {
 		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_XX );
 		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_YY );
 
-		//_templateGradXX.save("grad_XX.png");
-		//_templateGradYY.save("grad_YY.png");
 
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
 		//_templateGradY.convolve( _templateGradYY, IKernel::HAAR_VERTICAL_3 );
@@ -156,6 +154,10 @@ namespace cvt {
 		IKernel kxy2( IKernel::HAAR_VERTICAL_3 );
 		kxy2.scale( 0.5f );
 		_itemplate.convolve( _templateGradXY, kxy1, kxy2 );
+
+		//_templateGradXX.save("grad_XX.png");
+		//_templateGradYY.save("grad_YY.png");
+		//_templateGradXY.save("grad_XY.png");
 	}
 
 	inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
@@ -265,7 +267,7 @@ namespace cvt {
 						float c = 1.0f + Math::log( jh ) - Math::log( ht );
 						c *= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						_miJacobian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / norm;
-						//_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
+						_miHessian += c * _hTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						_miHessian += c * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ] * _jTemp[ (  y * w + x ) * _numBins + ( ridx + m ) ].transpose() / Math::sqr( norm );
 					}
@@ -306,9 +308,9 @@ namespace cvt {
 		const float * g_xy = _templateGradXY.map<float>( &gxyStride );
 		const float * gx = g_x;
 		const float * gy = g_y;
-		const float * gxx = gxx;
-		const float * gyy = gyy;
-		const float * gxy = gxy;
+		const float * gxx = g_xx;
+		const float * gyy = g_yy;
+		const float * gxy = g_xy;
 		const float* iptr = i_ptr;
 
 		Eigen::Matrix<float, 1, 2> grad;
@@ -331,14 +333,10 @@ namespace cvt {
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
-				hess( 0, 0 ) = gxx[ x ];
+				hess( 0, 0 ) = -gxx[ x ];
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
-				hess( 1, 1 ) = gyy[ x ];
-
-
-				//std::cout << gxx[ x ] << " " << gxy[ x ] << " " << gyy[ x ] << std::endl;
-				//std::cout << hess << std::endl;
+				hess( 1, 1 ) = -gyy[ x ];
 
 				p.x = x;
 				_pose.screenJacobian( screenJac, p );
