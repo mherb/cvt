@@ -129,7 +129,6 @@ namespace cvt {
 			if( epsilon < 1e-4 )
 				return;	
 
-			// TODO: check MI for early step out?
 			iter++;
 		}
 
@@ -139,7 +138,7 @@ namespace cvt {
 	{
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
-		delta = _miHessian.inverse() * _miJacobian;
+		delta = -_miHessian.inverse() * _miJacobian;
 		std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 
@@ -264,7 +263,7 @@ namespace cvt {
 
 		const float* pi = ptr;
 		const float* pit = tptr;
-		const float norm = 1.0f; //w * h;
+		const float norm = w * h;
 
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
@@ -361,6 +360,9 @@ namespace cvt {
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
 				hess( 1, 1 ) = gyy[ x ];
+				
+				grad *= ( float )(_numBins - 3);
+				hess *= ( float )(_numBins - 3);
 
 				p.x = x;
 				_pose.screenJacobian( screenJac, p );

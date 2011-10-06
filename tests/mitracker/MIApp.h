@@ -64,9 +64,11 @@ namespace cvt
 
 		if( !_selectingTemplate ){
 			_tracker.updateInput( _currGray );
+			Image diff( _tracker.templateImage() );
+			diff.sub( _tracker.warped() );
 			_gui.setTemplateImage( _tracker.templateImage(), 
 								  _tracker.warped(), 
-								  _tracker.templateGradY() );
+								  diff );
 			std::vector<Vector2f> pts;
 			calculateRectPoints( pts );
 			_gui.setPoints( pts );
