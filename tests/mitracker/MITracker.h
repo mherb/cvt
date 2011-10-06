@@ -126,7 +126,7 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-4 )
+			if( epsilon < 1e-3 )
 				return;	
 
 			// TODO: check MI for early step out?
@@ -140,7 +140,7 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = _miHessian.inverse() * _miJacobian;
-		std::cout << "Delta:\n" << delta << std::endl;
+		//std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 
 		return delta.norm();
@@ -230,7 +230,6 @@ namespace cvt {
 					for( int o = -1; o <= 2; o++ ) {
 						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) ) * splm;
 						_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] += val;
-						sum += val;
 					}
 				}
 			}
@@ -241,7 +240,7 @@ namespace cvt {
 		_warped.unmap( ptr );
 		_itemplate.unmap( tptr );
 
-		sum = 1.0f / sum;
+		sum = 1.0f / ( w * h );
 		for( size_t i = 0; i < ( _numBins + 1 ) * ( _numBins + 1 ); i++ )
 			_jhist[ i ] *= sum;
 	}
