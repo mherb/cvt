@@ -136,7 +136,7 @@ namespace cvt
 		_iterSlider.setSize( wHalf, 20 );
 
 		_inputView.setPosition( fpsRect.x, fpsRect.y + fpsRect.height + 20 );
-		float iW = fpsRect.width * 2;
+		float iW =  width - w - 20;
 		float iH = iW / _inputAspect;
 		_inputView.setSize( iW, iH );
 
