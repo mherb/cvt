@@ -38,7 +38,7 @@ namespace cvt
 		_iter( 0 ),
 		_selectingTemplate( true )
 	{
-		_timerId = Application::registerTimer( 33, this );
+		_timerId = Application::registerTimer( 20, this );
 
 		// add the delegates to the gui
 		Delegate<void (void)> selStart( this, &MIApp::selectionDidStart );
@@ -47,6 +47,7 @@ namespace cvt
 
 		_gui.addSelectionDelegates( selStart, selDone );
 		_gui.observeMaxIterations( maxIterChanged );
+		_gui.setMaxIter( _tracker.maxIterations() );
 	}
 
 	inline MIApp::~MIApp()
@@ -63,9 +64,11 @@ namespace cvt
 
 		if( !_selectingTemplate ){
 			_tracker.updateInput( _currGray );
+			Image diff( _tracker.templateImage() );
+			diff.sub( _tracker.warped() );
 			_gui.setTemplateImage( _tracker.templateImage(), 
 								  _tracker.warped(), 
-								  _tracker.templateGradY() );
+								  diff );
 			std::vector<Vector2f> pts;
 			calculateRectPoints( pts );
 			_gui.setPoints( pts );
