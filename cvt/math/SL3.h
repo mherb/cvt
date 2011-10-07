@@ -22,6 +22,7 @@ namespace cvt {
 		typedef Eigen::Matrix<T, 3, 3> MatrixType;
 		typedef Eigen::Matrix<T, 3, 8> JacMatType;
 		typedef Eigen::Matrix<T, 2, 8> ScreenJacType;
+		typedef Eigen::Matrix<T, 8, 8> ScreenHessType;
 		typedef Eigen::Matrix<T, 8, 1> ParameterVectorType;
 		typedef Eigen::Matrix<T, 3, 1> PointType;
 
@@ -50,6 +51,10 @@ namespace cvt {
 
 			/* sp is a screen point (transformed with current) */
 			void screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const;
+
+			void screenHessian( ScreenHessType & wx, 
+								ScreenHessType & wy,
+							    const Eigen::Matrix<T, 2, 1> & sp ) const;
 
 			/* get back the currently stored transformation matrix */
 			const MatrixType & transformation() const { return _current; }
@@ -183,6 +188,43 @@ namespace cvt {
 		J( 1, 5 ) = -2 * sp[ 1 ];
 		J( 1, 6 ) = -sp[ 0 ] * sp[ 1 ];
 		J( 1, 7 ) = -sp[ 1 ] * sp[ 1 ];
+	}
+
+	template <typename T>
+	inline void SL3<T>::screenHessian( ScreenHessType & wx, 
+									   ScreenHessType & wy,
+									   const Eigen::Matrix<T, 2, 1> & sp ) const
+	{
+		T x = sp[ 0 ];
+		T y = sp[ 1 ];
+
+		T xx = x * x;
+		T xxx = xx * x;
+		T xxy = xx * y;
+		T xy = x * y;
+		T yy = y * y;
+		T yyy = yy * y;
+		T yyx = yy * x;
+
+		wx <<
+		0,0,0,0,1,-1,-2*x,-y
+		,0,0,1,0,0,0,0,-x
+		,0,0,0,0,y,-y,-2*xy,-yy
+		,0,0,x,0,0,0,0,-xx
+		,0,0,-y,0,x,-x,-2*xx,0
+		,0,0,-2*y,0,-x,x,2*xx,3*xy
+		,0,0,-xy,0,-xx,xx,2*xxx,2*xxy
+		,0,0,-yy,0,-xy,xy,2*xxy,2*yyx;
+
+		wy <<
+		0,0,0,1,0,0,-y,0
+		,0,0,0,0,-1,-2,-x,-2*y
+		,0,0,0,y,0,0,-yy,0
+		,0,0,0,0,-x,-2*x,-xx,-2*xy
+		,0,0,0,x,y,2*y,0,2*yy
+		,0,0,0,-x,2*y,4*y,3*xy,4*yy
+		,0,0,0,-xx,xy,2*xy,2*xxy,2*yyx
+		,0,0,0,-xy,yy,2*yy,2*yyx,2*yyy;
 	}
 }
 
