@@ -133,7 +133,7 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-4 )
+			if( epsilon < 1e-3 )
 				return;	
 
 			iter++;
@@ -249,7 +249,6 @@ namespace cvt {
 					for( int o = -1; o <= 2; o++ ) {
 						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) ) * splm;
 						_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] += val;
-						sum += val;
 					}
 				}
 			}
@@ -260,7 +259,7 @@ namespace cvt {
 		_warped.unmap( ptr );
 		_itemplate.unmap( tptr );
 
-		sum = 1.0f / sum;
+		sum = 1.0f / ( _itemplate.width() * _itemplate.height() );
 		for( size_t i = 0; i < ( _numBins + 1 ) * ( _numBins + 1 ); i++ )
 			_jhist[ i ] *= sum;
 	}

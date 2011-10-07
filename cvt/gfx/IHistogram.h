@@ -25,7 +25,7 @@ namespace cvt {
 
 		private:
 			void alloc( const Image& img );
-			void normalize();
+			void normalize( T sum );
 			void updateBSpline1f( const Image& i );
 			void updateBSpline1u8( const Image& i );
 			void updateBSpline4f( const Image& i );
@@ -128,17 +128,14 @@ namespace cvt {
 					break;
 				}
 		}
-		normalize();
+		normalize( i.width() * i.height() );
 	}
 
 	template<typename T>
-	inline void IHistogram<T>::normalize()
+	inline void IHistogram<T>::normalize( T sum )
 	{
+		sum = ( ( T ) 1 ) / sum;
 		for( size_t c = 0; c < _channels; c++ ) {
-			T sum = 0;
-			for( size_t i = 0; i < _size; i++ )
-				sum += _hist[ c * ( _size + 1 ) + i ];
-			sum = ( ( float ) 1 ) / sum;
 			for( size_t i = 0; i < _size; i++ )
 				_hist[ c * ( _size + 1 ) + i ] *= sum;
 		}
