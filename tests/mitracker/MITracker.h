@@ -148,7 +148,7 @@ namespace cvt {
 		delta = -_miHessian.inverse() * _miJacobian;
 		std::cout << "Delta:\n" << delta << std::endl;
 		//_pose.addDelta( delta );
-		_pose.apply( delta );
+		_pose.applyInverse( delta );
 
 		return delta.norm();
 	}

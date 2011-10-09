@@ -33,10 +33,30 @@ namespace cvt {
 			/* set: angles in radians! */
 			void set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
 
-			/* apply delta parameters */
+			/**
+			 *	\brief apply delta parameters 
+			 *	\param	delta	the delta to apply
+			 *	\desc	forward update of pose: T( delta ) * T( current )
+			 */
 			void apply( const ParameterVectorType & delta );
+
+			/**
+			 *	\brief	apply delta parameters in inverse compositional way 
+			 *	\param	delta	the delta to apply
+			 *	\desc	This is meant for usage in inverse compositional approaches,
+			 *			where the current pose represents the transformation from the
+			 *			model to the object, but the delta parameters have been estimated
+			 *			in the model coords:
+			 *			T(delta) * p_model = inv(T(current)) * p_current
+			 *			To update T(current), we need the following:
+			 *			p_model = inv( T( delta ) ) * inv(T( current ))
+			 *			so the update becomes T(current) = T(current) * T(delta)
+			 */
+			void applyInverse( const ParameterVectorType & delta );
+
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
+
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
 
@@ -106,7 +126,31 @@ namespace cvt {
 		cvt::Math::exponential( m, m );
 
 		/* update the current transformation */
-		//_current = m * _current;
+		_current = m * _current;
+		//_current *= m;
+	}
+
+	template <typename T>
+	inline void SL3<T>::applyInverse( const ParameterVectorType & delta )
+	{
+		MatrixType m;
+
+		m( 0, 0 ) = delta[ 4 ];
+		m( 0, 1 ) = delta[ 2 ];
+		m( 0, 2 ) = delta[ 0 ];
+
+		m( 1, 0 ) = delta[ 3 ];
+		m( 1, 1 ) = -delta[ 4 ] - delta[5];
+		m( 1, 2 ) = delta[ 1 ];
+
+		m( 2, 0 ) = delta[ 6 ];
+		m( 2, 1 ) = delta[ 7 ];
+		m( 2, 2 ) = delta[ 5 ];
+
+		/* m = exp( m ) */
+		cvt::Math::exponential( m, m );
+
+		/* update current in the inverse fashion */
 		_current *= m;
 	}
 
