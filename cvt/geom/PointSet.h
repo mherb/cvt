@@ -825,7 +825,7 @@ namespace cvt
     }
 
     template<int dim, typename _T>
-    inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const
+    inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>&, const Matrix3<_T> &, const Matrix3<_T> & ) const
     {
         Matrix3<_T> E;
         E.setZero();
