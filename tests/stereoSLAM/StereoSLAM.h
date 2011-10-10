@@ -3,7 +3,12 @@
 
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/gfx/ifilter/IWarp.h>
+#include <cvt/vision/Vision.h>
+#include <cvt/vision/ORB.h>
+#include <cvt/vision/FeatureMatch.h>
+#include <cvt/util/Signal.h>
 #include "ORBStereoMatching.h"
+#include "FeatureTracking.h"
 
 namespace cvt
 {
@@ -11,6 +16,13 @@ namespace cvt
 	class StereoSLAM
 	{
 		public:
+
+			struct ORBData
+			{
+				ORB* orb0;
+				ORB* orb1;
+			};
+
 			StereoSLAM( const CameraCalibration& c0,
 						size_t w0, size_t h0,
 						const CameraCalibration& c1,
@@ -19,8 +31,7 @@ namespace cvt
 			// new round with two new images, maybe also hand in a pose prediction?
 			void newImages( const Image& img0, const Image& img1 );
 
-			// Signal for new pose?
-			// Signal for new map features/Keyframe (3d)?
+			Signal<ORBData>	newORBData;	
 
 		private:
 			CameraCalibration	_camCalib0;
@@ -36,10 +47,13 @@ namespace cvt
 			bool				_orbNonMaxSuppression;
 
 			float				_matcherMaxLineDistance;	
-			float				_matcherMaxDescriptorDist;	
-			
-			// FeatureTracker ... 
+			float				_matcherMaxDescriptorDist;
 
+			// FeatureTracker ...
+			float				_trackingSearchRadius;
+		    FeatureTracking		_featureTracking;	
+
+			// triangulate from matches
 			void triangulate( std::vector<Vector3f>& points, const std::vector<FeatureMatch>& matches ) const;
 	};
 
@@ -49,11 +63,15 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_orbOctaves( 3 ), 
-		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 25 ),
-		_orbMaxFeatures( 600 ),
-		_orbNonMaxSuppression( true )
+		_orbOctaves( 4 ), 
+		_orbScaleFactor( 0.7f ),
+		_orbCornerThreshold( 20 ),
+		_orbMaxFeatures( 4000 ),
+		_orbNonMaxSuppression( true ),
+		_matcherMaxLineDistance( 30.0f ),
+		_matcherMaxDescriptorDist( 200 ),
+		_trackingSearchRadius( 25.0f ),
+		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -95,7 +113,7 @@ namespace cvt
 
 		// match the features with predicted measurements from map
 
-		bool _newKeyframeNeeded = false;
+		bool _newKeyframeNeeded = true;
 		if( _newKeyframeNeeded ){
 			// get grayscale image
 			img1.convert( tmp, IFormat::GRAY_UINT8 );
@@ -120,6 +138,12 @@ namespace cvt
 			std::vector<Vector3f> points3d;
 			triangulate( points3d, matches );
 
+			ORBData data;
+			data.orb0 = &orb0;
+			data.orb1 = &orb1;
+			newORBData.notify( data );
+
+			std::cout << "points3d: " << points3d.size() << std::endl;
 
 		}
 	}

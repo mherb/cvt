@@ -57,9 +57,11 @@ namespace cvt
 			match.feature0 = &orb0[ i ];
 
 			for( size_t k = 0; k < orb1.size(); k++ ){
-				if( l.distance( orb1[ k ].pt ) < _maxLineDist ){
+				float lDist = l.distance( orb1[ k ].pt );
+				if( Math::abs( l.distance( orb1[ k ].pt ) ) < _maxLineDist ){
 					// check descriptor distance
 					distance = f.distance( orb1[ k ] );
+					std::cout << "Line dist: " << lDist << " descDist: " << distance << std::endl;
 					if( distance < match.distance ){
 						match.feature1 = &orb1[ k ];
 						match.distance = distance;

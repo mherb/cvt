@@ -101,8 +101,8 @@ BEGIN_CVTTEST( SE3 )
 		( pose.transformation()( 1, 1 ) ==   1 ) &&
 		( pose.transformation()( 0, 0 ) ==   1 );
 
-	pose.set( Math::deg2Rad( 90 ), 0, 0, 0, 0, 0 );
-	b =  ( pose.transformation()( 0, 3 ) ==   0 );
+	pose.set( Math::deg2Rad( 90.0 ), 0, 0, 0, 0, 0 );
+	b &= ( pose.transformation()( 0, 3 ) ==   0 );
 	b &= ( pose.transformation()( 1, 3 ) ==   0 );
 	b &= ( pose.transformation()( 2, 3 ) ==   0 );
 	b &= ( pose.transformation()( 3, 3 ) ==   1 );

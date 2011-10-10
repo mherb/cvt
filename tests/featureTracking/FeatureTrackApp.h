@@ -98,8 +98,6 @@ namespace cvt
 		Application::unregisterTimer( _timerId );
 	}
 
-
-    // TODO: try to make this class a Thread?
 	inline void FeatureTrackApp::onTimeout()
 	{
 		// get the next frame
