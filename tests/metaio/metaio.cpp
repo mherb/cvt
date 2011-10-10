@@ -4,7 +4,7 @@
 #include <cvt/gui/Application.h>
 
 #include "MetaioData.h"
-#include "MetaioGUI.h"
+#include "MetaIOGUI.h"
 
 using namespace cvt;
 
