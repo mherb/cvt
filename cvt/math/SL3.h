@@ -21,6 +21,7 @@ namespace cvt {
 	{
 		typedef Eigen::Matrix<T, 3, 3> MatrixType;
 		typedef Eigen::Matrix<T, 3, 8> JacMatType;
+		typedef Eigen::Matrix<T, 24, 8> HessMatType;
 		typedef Eigen::Matrix<T, 2, 8> ScreenJacType;
 		typedef Eigen::Matrix<T, 8, 8> ScreenHessType;
 		typedef Eigen::Matrix<T, 8, 1> ParameterVectorType;
@@ -59,6 +60,9 @@ namespace cvt {
 
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
+
+			/* hessian of the pose */
+			void hessian( HessMatType & H, const PointType & p ) const;
 
 			/* sp = proj( transform( p ) ) */
 			void project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const;
@@ -234,6 +238,69 @@ namespace cvt {
 		J( 1, 7 ) = -sp[ 1 ] * sp[ 1 ];
 	}
 
+
+	template <typename T>
+	inline void SL3<T>::hessian( HessMatType & H, const PointType & p ) const
+	{
+		H.setZero();
+
+		// G_i * G_j
+		H( 0, 4 ) =  0.5 * p.z(); 
+		H( 0, 5 ) =  0.5 * p.z(); 
+		H( 0, 6 ) =  0.5 * p.x(); 
+		H( 0, 7 ) =  0.5 * p.y(); 
+		H( 1, 3 ) =  0.5 * p.z(); 
+		H( 2, 6 ) =  0.5 * p.z(); 
+
+		H( 3, 2 ) =  0.5 * p.z(); 
+		H( 4, 4 ) = -0.5 * p.z(); 
+		H( 4, 6 ) =  0.5 * p.x(); 
+		H( 4, 7 ) =  0.5 * p.y(); 
+		H( 5, 7 ) =  0.5 * p.z(); 
+		
+		H( 6, 1 ) =  0.5 * p.z(); 
+		H( 6, 3 ) =  0.5 * p.x(); 
+		H( 6, 5 ) = -0.5 * p.y(); 
+		H( 7, 3 ) =  0.5 * p.y(); 
+		H( 8, 6 ) =  0.5 * p.y(); 
+		
+		H( 9, 2 )  =  0.5 * p.x(); 
+		H( 10, 0 ) =  0.5 * p.z(); 
+		H( 10, 2 ) =  0.5 * p.y(); 
+		H( 10, 5 ) = -0.5 * p.x(); 
+		H( 11, 7 ) =  0.5 * p.x(); 
+		
+		H( 12, 0 ) =  0.5 * p.z(); 
+		H( 12, 4 ) =		p.x(); 
+		H( 13, 1 ) = -0.5 * p.z(); 
+		H( 13, 4 ) =		p.y(); 
+		H( 13, 5 ) =		p.y(); 
+		H( 14, 6 ) =  0.5 * p.x(); 
+		H( 14, 7 ) = -0.5 * p.y(); 
+		
+		H( 15, 0 ) =  0.5 * p.z();
+		H( 15, 2 ) = -0.5 * p.y();
+		H( 16, 3 ) = -0.5 * p.x();
+		H( 16, 4 ) =        p.y();
+		H( 16, 5 ) =        p.y();
+		H( 17, 5 ) =        p.z();
+		H( 17, 6 ) =  0.5 * p.x();
+		
+		H( 18, 0 ) =  0.5 * p.x();
+		H( 19, 1 ) =  0.5 * p.x();
+		H( 20, 0 ) =  0.5 * p.z();
+		H( 20, 2 ) =  0.5 * p.y();
+		H( 20, 4 ) =  0.5 * p.x();
+		H( 20, 5 ) =  0.5 * p.x();
+		
+		H( 21, 0 ) =  0.5 * p.y();
+		H( 22, 1 ) =  0.5 * p.y();
+		H( 23, 1 ) =  0.5 * p.z();
+		H( 23, 3 ) =  0.5 * p.x();
+		H( 23, 4 ) = -0.5 * p.y();
+		
+	}
+
 	template <typename T>
 	inline void SL3<T>::screenHessian( ScreenHessType & wx, 
 									   ScreenHessType & wy,
@@ -251,24 +318,25 @@ namespace cvt {
 		T yyx = yy * x;
 
 		wx <<
-		0,0,0,0,1,-1,-2*x,-y
-		,0,0,1,0,0,0,0,-x
-		,0,0,0,0,y,-y,-2*xy,-yy
-		,0,0,x,0,0,0,0,-xx
-		,0,0,-y,0,x,-x,-2*xx,0
-		,0,0,-2*y,0,-x,x,2*xx,3*xy
-		,0,0,-xy,0,-xx,xx,2*xxx,2*xxy
-		,0,0,-yy,0,-xy,xy,2*xxy,2*yyx;
+		0,0,0,0,0.5,-0.5,-x,-0.5*y
+		,0,0,0.5,0,0,0,0,-0.5*x
+		,0,0.5,0,0.5*x,0,-1.5*y,-1.5*xy,-yy
+		,0,0,0.5*x,0,0,0,0,-0.5*xx
+		,0.5, 0, 0, 0,x, -x, -1.5*xx,-0.5*xy
+		,-0.5,0,-1.5*y,0,-x,x,1.5*xx,2*xy
+		,-x,0,-1.5*xy,0,-1.5*xx,1.5*xx,2*xxx,2*xxy
+		,-0.5*y,-0.5*x,-yy,-0.5*xx,-0.5*xy,2*xy,2*xxy,2*yyx;
 
 		wy <<
-		0,0,0,1,0,0,-y,0
-		,0,0,0,0,-1,-2,-x,-2*y
-		,0,0,0,y,0,0,-yy,0
-		,0,0,0,0,-x,-2*x,-xx,-2*xy
-		,0,0,0,x,y,2*y,0,2*yy
-		,0,0,0,-x,2*y,4*y,3*xy,4*yy
-		,0,0,0,-xx,xy,2*xy,2*xxy,2*yyx
-		,0,0,0,-xy,yy,2*yy,2*yyx,2*yyy;
+			0, 0, 0,   0.5,   0,  0, -0.5* y, 0,
+			0, 0, 0,     0,-0.5, -1, -0.5* x,-y,
+			0, 0, 0, 0.5*y,   0,  0, -0.5*yy, 0,
+			0.5, 0, 0.5*y, 0, 0, -1.5*x, -xx, -1.5*xy,
+			0, -0.5, 0, 0, y, 2*y, 0.5*xy, 1.5*yy,
+			0, -1, 0, -1.5*x, 2*y, 4*y, 2.5*xy, 3*yy,
+			-0.5*y, -0.5*x, -0.5*yy, -xx, 0.5*xy, 2.5*xy, 2*xxy, 2*yyx,
+			0, -y, 0, -1.5*xy, 1.5*yy, 3*yy, 2*yyx, 2*yyy;
+
 	}
 }
 

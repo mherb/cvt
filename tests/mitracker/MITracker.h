@@ -133,7 +133,7 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-3 )
+			if( epsilon < 1e-5 )
 				return;	
 
 			iter++;
@@ -146,7 +146,7 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
-		std::cout << "Delta:\n" << delta << std::endl;
+		//std::cout << "Delta:\n" << delta << std::endl;
 		//_pose.addDelta( delta );
 		_pose.applyInverse( delta );
 
@@ -385,6 +385,7 @@ namespace cvt {
 
 				p[ 0 ] = x;
 				_pose.screenJacobian( screenJac, p );
+
 				_pose.screenHessian( wx, wy, p );
 
 				imagePoseDeriv = grad * screenJac;
