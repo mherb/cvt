@@ -133,7 +133,7 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-3 )
+			if( epsilon < 1e-5 )
 				return;	
 
 			iter++;
@@ -385,6 +385,7 @@ namespace cvt {
 
 				p[ 0 ] = x;
 				_pose.screenJacobian( screenJac, p );
+
 				_pose.screenHessian( wx, wy, p );
 
 				imagePoseDeriv = grad * screenJac;
