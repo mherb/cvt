@@ -36,6 +36,8 @@ namespace cvt
 			void setPoints( const std::vector<Vector2f> & pts );
 
 		private:
+			void setIterLabel( size_t );
+
 			RectSelectImageView _inputView;
 
 			ImageView		_templateView;
@@ -44,6 +46,7 @@ namespace cvt
 			float			_templateAspect;
 			float			_inputAspect;
 			Label			_fpsLabel;
+			Label			_iterLabel;
 			Slider<size_t>	_iterSlider;
 
 			void initGuiElements();
@@ -56,6 +59,7 @@ namespace cvt
 		_templateAspect( 1.5f ),
 		_inputAspect( 1.5f ),
 		_fpsLabel( "" ),
+		_iterLabel( "" ),
 		_iterSlider( 1, 70, 1 )
 	{
 		initGuiElements();
@@ -81,8 +85,11 @@ namespace cvt
 		addWidget( &_inputView );
 		addWidget( &_fpsLabel );
 		addWidget( &_iterSlider );
+		addWidget( &_iterLabel );
 
 		setVisible( true );
+
+		_iterSlider.valueChanged.add( Delegate<void (size_t)>( this, &MIGui::setIterLabel ) );
 	}
 			
 	inline void MIGui::setTemplateImage( const Image& img, 
@@ -119,14 +126,17 @@ namespace cvt
 
 		_fpsLabel.setPosition( (size_t)w + 10, 10 );
 		size_t wHalf = ( width - w - 20 ) / 2;
-		_fpsLabel.setSize( wHalf, 20 );
+		_fpsLabel.setSize( wHalf * 0.5, 20 );
 		const Recti& fpsRect = _fpsLabel.rect();
+
+		_iterLabel.setPosition( fpsRect.x +  wHalf * 0.5f, fpsRect.y );
+		_iterLabel.setSize( wHalf * 0.5f, 20 );
 		
 		_iterSlider.setPosition( fpsRect.x + wHalf, fpsRect.y );
 		_iterSlider.setSize( wHalf, 20 );
 
 		_inputView.setPosition( fpsRect.x, fpsRect.y + fpsRect.height + 20 );
-		float iW = fpsRect.width * 2;
+		float iW =  width - w - 20;
 		float iH = iW / _inputAspect;
 		_inputView.setSize( iW, iH );
 
@@ -150,6 +160,13 @@ namespace cvt
 		String s;
 		s.sprintf( "FPS: %0.1f", fps );
 		_fpsLabel.setLabel( s );	
+	}
+
+	inline void MIGui::setIterLabel( size_t maxIter )
+	{
+		String s;
+		s.sprintf( "Iter: %zd", maxIter );
+		_iterLabel.setLabel( s );	
 	}
 
 	inline void MIGui::setMaxIter( size_t maxIter )
