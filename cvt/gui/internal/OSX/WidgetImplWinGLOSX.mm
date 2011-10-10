@@ -18,7 +18,7 @@ namespace cvt {
 					     styleMask:NSTitledWindowMask | NSMiniaturizableWindowMask | NSClosableWindowMask | NSResizableWindowMask 
 						 backing:NSBackingStoreBuffered
 						 defer:NO ];
-		_osx->_view = [[ OSXGLView alloc ] initWithFrame: frame CGLContextObj: ( _ctx->_cglctx ) WidgetImpl: ( WidgetImplWinGLOSX* )this ];
+		_osx->_view = ( NSOpenGLView* )[[ OSXGLView alloc ] initWithFrame: frame CGLContextObj: ( _ctx->_cglctx ) WidgetImpl: ( WidgetImplWinGLOSX* )this ];
 		[ _osx->_win setContentView: _osx->_view ];
 
 		[ [ NSNotificationCenter defaultCenter] addObserver: _osx->_view selector:@selector(moveEvent:) name:NSWindowDidMoveNotification object:nil ];

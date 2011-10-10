@@ -34,13 +34,13 @@ namespace cvt {
 			( CGLPixelFormatAttribute ) 0
 		};
 
-/*		if( _format.samples() != 0 ) {
-			attribs[ 14 ] = kCGLPFASampleBuffers;
-			attribs[ 15 ] = ( CGLPixelFormatAttribute ) 1;
-			attribs[ 16 ] = kCGLPFASamples;
-			attribs[ 17 ] = ( CGLPixelFormatAttribute ) _format.samples();
-			attribs[ 18 ] = ( CGLPixelFormatAttribute ) 0;
-		}*/
+		if( _format.samples() != 0 ) {
+			attribs[ 7 ] = kCGLPFASampleBuffers;
+			attribs[ 8 ] = ( CGLPixelFormatAttribute ) 1;
+			attribs[ 9 ] = kCGLPFASamples;
+			attribs[ 10 ] = ( CGLPixelFormatAttribute ) _format.samples();
+			attribs[ 11 ] = ( CGLPixelFormatAttribute ) 0;
+		}
 
 		if( CGLChoosePixelFormat( attribs, &pixfmt, &npix ) )
 			throw CVTException( "Error: CGLContext creation failed - no Pixelformat found\n" );

@@ -94,7 +94,7 @@ namespace cvt {
 	template <typename T>
 	inline void ESM<T>::apply( const Eigen::Matrix<T, 8, 1> & delta )
 	{
-		_pose.apply( delta );
+		_pose.applyInverse( delta );
 		updateInputData();
 	}
 	
