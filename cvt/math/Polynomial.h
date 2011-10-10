@@ -443,7 +443,7 @@ namespace cvt {
 	template<typename T>
 	inline void Polynomial<T>::roots( Complex<T>* roots ) const
 	{
-		Complex<T> coeff[ _degree ];
+        Complex<T>* coeff = new Complex<T>[ _degree ];
 		Complex<T> root, x, tmp;
 
 		for( size_t i = 0; i <= _degree; i++ )
@@ -468,6 +468,8 @@ namespace cvt {
 			coeff[ i ].set( _coeff[ i ] );
 		for( size_t i = 0; i < _degree; i++ )
 			laguerre( roots[ i ], coeff, _degree );
+        
+        delete[] coeff;
 	}
 
 	template<typename T>
