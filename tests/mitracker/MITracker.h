@@ -85,7 +85,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 14 ),
+		_numBins( 64 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_jTempOuter( 0 ),
@@ -300,7 +300,7 @@ namespace cvt {
 					float ht = _templateHist( ridx + o ) + 1e-6f;
 					for( int m = -1; m <= 2; m++ ) {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
-						float c = 1.0f + Math::log( jh / ht );
+						float c = 1.0f + Math::fastLog( jh / ht );
 						c *= spl;
 						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
