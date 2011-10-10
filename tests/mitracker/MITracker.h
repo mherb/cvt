@@ -139,7 +139,7 @@ namespace cvt {
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
-		std::cout << "Delta:\n" << delta << std::endl;
+		//std::cout << "Delta:\n" << delta << std::endl;
 		_pose.addDelta( delta );
 
 		return delta.norm();
@@ -275,12 +275,13 @@ namespace cvt {
 				int ridx = ( int ) r;
 				curJac.setZero();
 				curHess.setZero();
-				for( int m = -1; m <= 2; m++ ) {
-					for( int o = -1; o <= 2; o++ ) {
+
+				for( int o = -1; o <= 2; o++ ) {
+					float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
+					float ht = _templateHist( ridx + o ) + 1e-6f;
+					for( int m = -1; m <= 2; m++ ) {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
-						float ht = _templateHist( ridx + o ) + 1e-6f;
 						float c = 1.0f + Math::log( jh / ht );
-						float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
 						c *= spl;
 						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
