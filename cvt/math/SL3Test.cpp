@@ -6,8 +6,6 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#include "SL3Test.h"
-
 #include <cvt/math/SL3.h>
 #include <cvt/math/Math.h>
 #include <cvt/math/Matrix.h>
@@ -33,6 +31,8 @@ namespace cvt {
 
 		pose.transform( p, point );
 		pose.project( sp, point );
+
+		
 
 		double h = 0.000000001;
 		for( size_t i = 0; i < 8; i++ ){
@@ -79,6 +79,91 @@ namespace cvt {
 
 		return ret;
 	}
+
+	static bool testHessian()
+	{
+        Eigen::Matrix<double, 8, 1> delta = Eigen::Matrix<double, 8, 1>::Zero();        
+		Eigen::Matrix<double, 24, 8> hN, hA;
+        
+		SL3<double> pose;
+		pose.set( Math::deg2Rad( 10 ), Math::deg2Rad( -25 ), 0.76, 0.89, 10, -10, 0.0001, 0.0002 );
+        
+		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> p, ff, fb, bf, bb, xxf, xxb, hess;
+		point[ 0 ] = 16; 
+		point[ 1 ] = 80; 
+		point[ 2 ] = 13;
+        
+		pose.transform( p, point );
+
+		double h = 0.001;
+		for( size_t i = 0; i < 8; i++ ){
+            for( size_t j = 0; j < 8; j++ ){
+				delta.setZero();
+				if( i == j ){
+					// +
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( xxf, point );
+					pose.apply( -delta );
+
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( xxb, point );
+					pose.apply( -delta );
+
+					hess = ( xxb - 2 * p + xxf ) / ( h*h );
+				} else {
+					delta[ i ] = h;
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( ff, point );
+					pose.apply( -delta );
+
+					delta[ i ] = h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( fb, point );
+					pose.apply( -delta );
+
+					delta[ i ] = -h;
+					delta[ j ] =  h;
+					pose.apply( delta );
+					pose.transform( bf, point );
+					pose.apply( -delta );
+					
+					delta[ i ] = -h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( bb, point );
+					pose.apply( -delta );
+
+					hess = ( ff - bf - fb + bb ) / ( 4 * h * h );
+				}
+
+                hN( 3 * i , j ) = hess[ 0 ];
+                hN( 3 * i + 1 , j ) = hess[ 1 ];
+                hN( 3 * i + 2 , j ) = hess[ 2 ];
+            }
+		}
+		
+		pose.hessian( hA, p );
+        
+		bool b, ret = true;
+        Eigen::Matrix<double, 24, 8> jDiff;
+        jDiff = hN - hA;
+		b = ( jDiff.array().abs().sum() / ( 24.0 * 8.0 ) ) < 0.00001;
+        
+		CVTTEST_PRINT( "Pose Hessian", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << hA << std::endl;
+			std::cout << "Numeric:\n" << hN << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+        
+		return ret;
+	}
     
     static bool testScreenHessian()
     {        
@@ -88,14 +173,15 @@ namespace cvt {
 		SL3<double> pose;
 		pose.set( Math::deg2Rad( 10 ), Math::deg2Rad( -25 ), 0.76, 0.89, 10, -10, 0.0001, 0.0002 );
         
-		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> point, ptrans;
 		Eigen::Matrix<double, 2, 1> sp, ff, fb, bf, bb, xxf, xxb, hess;
 		point[ 0 ] = 13; point[ 1 ] = 8; point[ 2 ] = 13;
         
         // project the point with current parameters
 		pose.project( sp, point );
-        
-		double h = 0.001;
+		pose.transform( ptrans, point );
+
+		double h = 0.0001;
 		for( size_t i = 0; i < 8; i++ ){
             for( size_t j = 0; j < 8; j++ ){
 
@@ -154,7 +240,7 @@ namespace cvt {
 		bool b, ret = true;
         Eigen::Matrix<double, 8, 8> jDiff;
         jDiff = shNumericX - shX;
-		b = ( jDiff.array().abs().sum() / 64.0 ) < 0.00001;
+		b = ( jDiff.array().abs().sum() / 64.0 ) < 0.001;
         
 		CVTTEST_PRINT( "Pose ScreenHessian X", b );
 		if( !b ){
@@ -165,7 +251,7 @@ namespace cvt {
 		ret &= b;
         
         jDiff = shNumericY - shY;
-		b = ( jDiff.array().abs().sum() / 64.0 ) < 0.00001;
+		b = ( jDiff.array().abs().sum() / 64.0 ) < 0.001;
         
 		CVTTEST_PRINT( "Pose ScreenHessian Y", b );
 		if( !b ){
@@ -220,6 +306,7 @@ BEGIN_CVTTEST( SL3 )
 	ret &= b;
 
 	ret &= testJacobian();
+    ret &= testHessian();
     ret &= testScreenHessian();
 
 	return ret;
