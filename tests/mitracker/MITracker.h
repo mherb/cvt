@@ -122,7 +122,7 @@ namespace cvt {
 
 			tmp.fill( Color::WHITE );
 			ITransform::apply( tmp, img, hinv );
-			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
@@ -162,8 +162,8 @@ namespace cvt {
 
 		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
 		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
-		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_XX );
-		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_YY );
+		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX );
+		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_3_YY );
 
 
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
@@ -187,7 +187,7 @@ namespace cvt {
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
 		_itemplate.reallocate( tmp );
-		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 		updateTemplateGradients();
 		offlineTemplateDerivatives();
 
@@ -301,6 +301,9 @@ namespace cvt {
 					for( int m = -1; m <= 2; m++ ) {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
 						float c = 1.0f + Math::fastLog( jh / ht );
+						/*float d = Math::abs( c - ( 1.0f + Math::log( jh / ht ) ) );
+						if( d > 1e-4f )
+						std::cout << d << std::endl;*/
 						c *= spl;
 						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
