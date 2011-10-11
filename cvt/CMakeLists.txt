@@ -167,7 +167,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IScaleFilter.h
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
-#	gfx/ImageAllocatorCL.h
+	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
 	gfx/Drawable.h
 	gfx/GFXEngine.h
@@ -389,7 +389,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/ITransform.cpp
 	gfx/ifilter/IWarp.cpp
 #	gfx/ifilter/Sobel.cpp
-#	gfx/ImageAllocatorCL.cpp
+	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
 	gfx/ImageAllocatorMem.cpp
 	gfx/IScaleFilter.cpp
