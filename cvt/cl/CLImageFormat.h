@@ -13,7 +13,7 @@ namespace cvt {
 		friend std::ostream& operator<<( std::ostream& out, const CLImageFormat& format );
 		public:
 			CLImageFormat( cl_image_format format );
-			CLImageFormat( cl_channel_order order, cl_channel_type type );
+			CLImageFormat( cl_channel_order order = CL_BGRA, cl_channel_type type = CL_UNORM_INT8 );
 			CLImageFormat( const CLImageFormat& format );
 
 			operator cl_image_format () const { return _format; }

@@ -1,6 +1,6 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ImageAllocatorMem.h>
-//#include <cvt/gfx/ImageAllocatorCL.h>
+#include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
@@ -13,9 +13,9 @@ namespace cvt {
 
 	Image::Image( size_t w, size_t h, const IFormat & format, IAllocatorType memtype )
 	{
-		/*if( memtype == IALLOCATOR_CL )
+		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
-		else*/ if( memtype == IALLOCATOR_GL )
+		else if( memtype == IALLOCATOR_GL )
 			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
@@ -33,9 +33,9 @@ namespace cvt {
 
 	Image::Image( const Image& img, IAllocatorType memtype )
 	{
-		/*if( memtype == IALLOCATOR_CL )
+		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
-		else*/ if( memtype == IALLOCATOR_GL )
+		else if( memtype == IALLOCATOR_GL )
 			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
@@ -44,9 +44,9 @@ namespace cvt {
 
 	Image::Image( const String & fileName, IAllocatorType memtype )
 	{
-		/*if( memtype == IALLOCATOR_CL )
+		if( memtype == IALLOCATOR_CL )
 			_mem = new ImageAllocatorCL();
-		else*/ if( memtype == IALLOCATOR_GL )
+		else if( memtype == IALLOCATOR_GL )
 			_mem = new ImageAllocatorGL();
 		else
 			_mem = new ImageAllocatorMem();
@@ -56,9 +56,9 @@ namespace cvt {
 	Image::Image( const Image& source, const Recti* roi, bool ref, IAllocatorType memtype )
 	{
 		if( !ref ){
-			/*if( memtype == IALLOCATOR_CL )
+			if( memtype == IALLOCATOR_CL )
 				_mem = new ImageAllocatorCL();
-			else*/ if( memtype == IALLOCATOR_GL )
+			else if( memtype == IALLOCATOR_GL )
 				_mem = new ImageAllocatorGL();
 			else
 				_mem = new ImageAllocatorMem();
@@ -74,9 +74,9 @@ namespace cvt {
 			return;
 		if( _mem->type() != memtype ) {
 			delete _mem;
-		/*	if( memtype == IALLOCATOR_CL )
+			if( memtype == IALLOCATOR_CL )
 				_mem = new ImageAllocatorCL();
-			else*/ if( memtype == IALLOCATOR_GL )
+			else if( memtype == IALLOCATOR_GL )
 				_mem = new ImageAllocatorGL();
 			else
 				_mem = new ImageAllocatorMem();
