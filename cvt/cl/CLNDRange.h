@@ -1,12 +1,15 @@
 #ifndef CVT_CLNDRANGE_H
 #define CVT_CLNDRANGE_H
 
+#include <iostream>
+
 namespace cvt {
 	/**
 	  \ingroup CL
 	 */
 	class CLNDRange
 	{
+		friend std::ostream& operator<<( std::ostream& out, const CLNDRange& ndrange );
 		public:
 			CLNDRange();
 			CLNDRange( size_t x );
@@ -74,6 +77,13 @@ namespace cvt {
 		_ndrange[ 0 ] = x._ndrange[ 0 ];
 		_ndrange[ 1 ] = x._ndrange[ 1 ];
 		_ndrange[ 2 ] = x._ndrange[ 2 ];
+	}
+
+
+	inline std::ostream& operator<<( std::ostream& out, const CLNDRange& r )
+	{
+		out << "CLNDRange: " << r._dimension << " ( " << r._ndrange[ 0 ] << " , " << r._ndrange[ 1 ] << " , " << r._ndrange[ 2 ] << " )\n";
+		return out;
 	}
 }
 

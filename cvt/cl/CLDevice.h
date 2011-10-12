@@ -3,6 +3,7 @@
 
 #include <cvt/cl/CLException.h>
 #include <cvt/cl/CLUtil.h>
+#include <cvt/cl/CLNDRange.h>
 #include <cvt/util/String.h>
 #include <vector>
 
@@ -30,7 +31,7 @@ namespace cvt {
 			CLUTIL_GETINFOTYPE( computeUnits, CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint, _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOTYPE( maxWorkItemDimensions, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, cl_uint, _id, ::clGetDeviceInfo );
 			//FIXME
-			//CLUTIL_GETINFOTYPE( maxWorkItemSizes, CL_DEVICE_MAX_WORK_ITEM_SIZES, size_t, _id, ::clGetDeviceInfo );
+			//CLUTIL_GETINFOTYPE( maxWorkItemSizes, CL_DEVICE_MAX_WORK_ITEM_SIZES, size_t[ 3 ], _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOTYPE( maxWorkGroupSize, CL_DEVICE_MAX_WORK_GROUP_SIZE, size_t, _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOTYPE( preferredVectorWidthChar, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, cl_uint, _id, ::clGetDeviceInfo );
 			CLUTIL_GETINFOTYPE( preferredVectorWidthShort, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, cl_uint, _id, ::clGetDeviceInfo );
@@ -82,6 +83,7 @@ namespace cvt {
 
 			CLUTIL_GETINFOTYPE( queueProperties, CL_DEVICE_QUEUE_PROPERTIES, cl_command_queue_properties, _id, ::clGetDeviceInfo );
 
+			CLNDRange maxWorkItemSizes() const;
 
 			CLPlatform platform() const;
 			void extensions( std::vector<String>& extensions ) const;
@@ -101,6 +103,16 @@ namespace cvt {
 
 	inline CLDevice::~CLDevice()
 	{
+	}
+
+	inline CLNDRange CLDevice::maxWorkItemSizes() const
+	{
+		cl_int err;
+		size_t sizes[ 3 ];
+		::clGetDeviceInfo( _id, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof( size_t ) * 3, sizes, NULL );
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+		return CLNDRange( sizes[ 0 ], sizes[ 1 ], sizes[ 2 ] );
 	}
 
 	inline std::ostream& operator<<( std::ostream& out, const CLDevice& cldev )
