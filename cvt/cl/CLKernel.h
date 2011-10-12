@@ -85,11 +85,19 @@ namespace cvt {
 		cl_int err;
 		size_t devmaxwg = CL::defaultDevice()->maxWorkGroupSize();
 		size_t kernmaxwg;
+		CLNDRange ranges;
+
+		ranges = CL::defaultDevice()->maxWorkItemSizes();
 
 		err = ::clGetKernelWorkGroupInfo( _object, *CL::defaultDevice(), CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernmaxwg, NULL );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
-		return Math::gcd<size_t>( *global.range(), Math::min( devmaxwg, kernmaxwg ) );
+
+		// FUCK - MacBook OpenCL is buggy - returns 1024 for max work item size, although it really is 1 ...
+		//std::cout << "DEVICE MAX WG: " << devmaxwg << std::endl;
+		//std::cout << "KERNEL MAX WG: " << kernmaxwg << std::endl;
+		//std::cout << "MAX WG SIZES: " << ranges << std::endl;
+		return Math::gcd<size_t>( *global.range(), Math::min( Math::min( devmaxwg, kernmaxwg ), *ranges.range() ) );
 	}
 
 	inline CLNDRange CLKernel::bestLocalRange2d( const CLNDRange& global ) const
