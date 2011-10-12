@@ -13,7 +13,7 @@
 #include <cvt/math/SL3.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/math/CostFunction.h>
-#include <cvt/gfx/ifilter/Homography.h>
+#include <cvt/gfx/ifilter/ITransform.h>
 
 namespace cvt {
 	template < typename T >
@@ -46,7 +46,7 @@ namespace cvt {
 		Image	_temp;		
 		Image	_warped;
 		
-		Homography		_hFilter;
+		//Homography		_hFilter;
 		cvt::Matrix3f	_warpMat;
 		
 		/* pointer to current input image */
@@ -251,7 +251,8 @@ namespace cvt {
 		_warpMat[ 2 ].x = ( float )hMat( 2, 0 ); _warpMat[ 2 ].y = ( float )hMat( 2, 1 ); _warpMat[ 2 ].z = ( float )hMat( 2, 2 );
 		
 		// get the pixels using the current warp
-		_hFilter.apply( _warped, *_currI, _warpMat, Color( 0.0f, 0.0f, 0.0f, 1.0f ) );	
+		_warped.fill( Color::WHITE );
+		ITransform::apply( _warped, *_currI, _warpMat.inverse() );	
 		
 		// update the gradients of the warped input
 		_warped.convolve( _warpedDx, _kdx );

@@ -172,8 +172,8 @@ class EsmWindow : public Window
 			_time.reset();
 			_iters = 0;
 			
-			_termCrit.setCostThreshold( 0.1f );
-			_termCrit.setMaxIterations( 30 );
+			_termCrit.setCostThreshold( 0.01f );
+			_termCrit.setMaxIterations( 50 );
 		}
 		
 		~EsmWindow()
