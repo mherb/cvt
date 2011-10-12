@@ -24,19 +24,20 @@ namespace cvt {
 			CLKernel( const CLProgram& prog, const String& name );
 			CLKernel( const String& source, const String& name );
 
-			void setArg( cl_uint index, CLBuffer& arg );
-			void setArg( cl_uint index, CLImage2D& arg );
-			void setArg( cl_uint index, Image& arg );
-			void setArg( cl_uint index, const CLBuffer& arg );
-			void setArg( cl_uint index, const CLImage2D& arg );
-			void setArg( cl_uint index, const Image& arg );
+			void setArg( cl_uint index, CLBuffer& arg ) const;
+			void setArg( cl_uint index, CLImage2D& arg ) const;
+			void setArg( cl_uint index, Image& arg ) const;
+			void setArg( cl_uint index, const CLBuffer& arg ) const;
+			void setArg( cl_uint index, const CLImage2D& arg ) const;
+			void setArg( cl_uint index, const Image& arg ) const;
 			template<typename T>
-			void setArg( cl_uint index, T arg );
-			void setArg( cl_uint index, size_t size, void* arg );
+			void setArg( cl_uint index, T arg ) const;
+			void setArg( cl_uint index, size_t size, void* arg ) const;
 
 			CLNDRange bestLocalRange1d( const CLNDRange& global ) const;
 			CLNDRange bestLocalRange2d( const CLNDRange& global ) const;
 			void run( const CLNDRange& global, const CLNDRange& local ) const;
+			void runWait( const CLNDRange& global, const CLNDRange& local ) const;
 
 
 			CLUTIL_GETINFOSTRING( functionName, CL_KERNEL_FUNCTION_NAME, _object, ::clGetKernelInfo  )
@@ -77,7 +78,7 @@ namespace cvt {
 		cl_int err;
 		_object = ::clCreateKernel( prog, name.c_str(), &err );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline CLNDRange CLKernel::bestLocalRange1d( const CLNDRange& global ) const
@@ -85,11 +86,19 @@ namespace cvt {
 		cl_int err;
 		size_t devmaxwg = CL::defaultDevice()->maxWorkGroupSize();
 		size_t kernmaxwg;
+		CLNDRange ranges;
+
+		ranges = CL::defaultDevice()->maxWorkItemSizes();
 
 		err = ::clGetKernelWorkGroupInfo( _object, *CL::defaultDevice(), CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernmaxwg, NULL );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
-		return Math::gcd<size_t>( *global.range(), Math::min( devmaxwg, kernmaxwg ) );
+			throw CLException( __PRETTY_FUNCTION__, err );
+
+		// FUCK - MacBook OpenCL is buggy - returns 1024 for max work item size, although it really is 1 ...
+		//std::cout << "DEVICE MAX WG: " << devmaxwg << std::endl;
+		//std::cout << "KERNEL MAX WG: " << kernmaxwg << std::endl;
+		//std::cout << "MAX WG SIZES: " << ranges << std::endl;
+		return Math::gcd<size_t>( *global.range(), Math::min( Math::min( devmaxwg, kernmaxwg ), *ranges.range() ) );
 	}
 
 	inline CLNDRange CLKernel::bestLocalRange2d( const CLNDRange& global ) const
@@ -97,7 +106,7 @@ namespace cvt {
 		return CLNDRange( 1, 1 );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, CLBuffer& buf )
+	inline void CLKernel::setArg( cl_uint index, CLBuffer& buf ) const
 	{
 		cl_int err;
 		cl_mem mem = ( cl_mem ) buf;
@@ -106,7 +115,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, const CLBuffer& buf )
+	inline void CLKernel::setArg( cl_uint index, const CLBuffer& buf ) const
 	{
 		cl_int err;
 		cl_mem mem = ( cl_mem ) buf;
@@ -115,7 +124,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, CLImage2D& img )
+	inline void CLKernel::setArg( cl_uint index, CLImage2D& img ) const
 	{
 		cl_int err;
 		cl_mem mem = ( cl_mem ) img;
@@ -125,7 +134,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, const CLImage2D& img )
+	inline void CLKernel::setArg( cl_uint index, const CLImage2D& img ) const
 	{
 		cl_int err;
 		cl_mem mem = ( cl_mem ) img;
@@ -135,7 +144,7 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, Image& img )
+	inline void CLKernel::setArg( cl_uint index, Image& img ) const
 	{
 		ImageAllocatorCL* memcl = dynamic_cast<ImageAllocatorCL*>( img._mem );
 		if( !memcl )
@@ -143,7 +152,7 @@ namespace cvt {
 		setArg( index, *memcl->_climage );
 	}
 
-	inline void CLKernel::setArg( cl_uint index, const Image& img )
+	inline void CLKernel::setArg( cl_uint index, const Image& img ) const
 	{
 		ImageAllocatorCL* memcl = dynamic_cast<ImageAllocatorCL*>( img._mem );
 		if( !memcl )
@@ -153,7 +162,7 @@ namespace cvt {
 
 
 	template<typename T>
-	inline void CLKernel::setArg( cl_uint index, T arg )
+	inline void CLKernel::setArg( cl_uint index, T arg ) const
 	{
 		cl_int err;
 		err = ::clSetKernelArg( _object, index, sizeof( arg ), &arg );
@@ -162,7 +171,7 @@ namespace cvt {
 	}
 
 	template<>
-	inline void CLKernel::setArg<CLLocalSpace>( cl_uint index, CLLocalSpace s )
+	inline void CLKernel::setArg<CLLocalSpace>( cl_uint index, CLLocalSpace s ) const
 	{
 		cl_int err;
 		err = ::clSetKernelArg( _object, index, s.size, NULL );
@@ -171,7 +180,7 @@ namespace cvt {
 	}
 
 
-	inline void CLKernel::setArg( cl_uint index, size_t size, void* arg )
+	inline void CLKernel::setArg( cl_uint index, size_t size, void* arg ) const
 	{
 		cl_int err;
 		err = ::clSetKernelArg( _object, index, size, arg );

@@ -68,7 +68,7 @@ FilterApp::FilterApp( const String & name ) :
 	_appWindow.addWidget( &_mCL );
 	_mCL.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 100 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
 	
 	initCamera();
 	initFilter();
@@ -132,22 +132,22 @@ void FilterApp::initCamera()
 void FilterApp::initFilter()
 {
 	// select the filter and set parameters
-	//_filter = new BrightnessContrast();
-	_filter = new GaussIIR();
+	_filter = new BrightnessContrast();
+	//_filter = new GaussIIR();
 
 	_params = _filter->parameterSet();
 
-	/*size_t bloc = _params->paramHandle( "Brightness" );
+	size_t bloc = _params->paramHandle( "Brightness" );
 	_params->setArg<float>( bloc, 0.1f );
 
 	size_t cloc = _params->paramHandle( "Contrast" );
-	_params->setArg<float>( cloc, 0.0f );*/
+	_params->setArg<float>( cloc, 0.0f );
 
 	_outputHandle = _params->paramHandle( "Output" );
 	_inputHandle = _params->paramHandle( "Input" );
-	size_t sigma = _params->paramHandle( "Sigma" );
 
-	_params->setArg<float>( sigma, 4.0f );
+	//size_t sigma = _params->paramHandle( "Sigma" );
+	//_params->setArg<float>( sigma, 4.0f );
 
 	std::cout << *_params << std::endl;
 }
@@ -164,7 +164,7 @@ void FilterApp::onTimeout()
 
 		_params->setArg<Image*>( _inputHandle, &_in );
 		_params->setArg<Image*>( _outputHandle, &_out );
-		_filter->apply( _params, IFILTER_CPU );
+//		_filter->apply( _params, IFILTER_CPU );
 		
 		_framesCPU++;
 		if( _timerCPU.elapsedSeconds() > 5.0f ) {
@@ -175,7 +175,7 @@ void FilterApp::onTimeout()
 			_timerCPU.reset();
 		}
 		
-		_outImageView.setImage( _out );
+//		_outImageView.setImage( _out );
 		
 		_params->setArg<Image*>( _inputHandle, &_inCL );
 		_params->setArg<Image*>( _outputHandle, &_outCL );
