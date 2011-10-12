@@ -15,6 +15,11 @@ namespace cvt
 			void addKeyframe( Keyframe* kf );
 			const Keyframe& keyframeWithId( size_t id ) const;
 
+			/* retrieve the nearby keyframes for a given one */
+			void selectNearbyKeyframes( std::vector<Keyframe*> & closeKeyframes,
+									    const Keyframe & activeKeyFrame, 
+										size_t radius ) const;
+
 		private:
 			std::vector<Keyframe*>	_keyframes;
 
