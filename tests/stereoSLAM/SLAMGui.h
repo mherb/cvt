@@ -3,6 +3,9 @@
 
 #include <cvt/gui/Window.h>
 #include <cvt/gui/ImageView.h>
+#include <cvt/gfx/GFXEngineImage.h>
+
+#include "StereoSLAM.h"
 
 namespace cvt
 {
@@ -13,13 +16,12 @@ namespace cvt
 			~SLAMGui();
 
 			void setCurrentImage( const Image& img );
-			void setSecondImage( const Image& img );
-
 			void resizeEvent( ResizeEvent* event );
+			void updateStereoView( const StereoSLAM::ORBData* orbData );
 
 		private:
 			ImageView	_image0;
-			ImageView	_image1;
+			ImageView	_stereoView;
 			float		_imageAspect;
 			
 			void setupGui();
@@ -37,14 +39,14 @@ namespace cvt
 
 	inline void SLAMGui::setupGui()
 	{
-		setSize( 800, 600 );
+		setSize( 1000, 600 );
 		
 		float w = _imageAspect * 300;
 		_image0.setSize( (int)w, 300 );
-		_image1.setSize( (int)w, 300 );
-		_image1.setPosition( 0, 300 );
+		_stereoView.setSize( (int)2*w, 300 );
+		_stereoView.setPosition( 0, 300 );
 		this->addWidget( &_image0 );
-		this->addWidget( &_image1 );
+		this->addWidget( &_stereoView );
 
 		setVisible( true );
 	}
@@ -54,8 +56,8 @@ namespace cvt
 		size_t h = event->height() / 2;
 		float w = _imageAspect * h;
 		_image0.setSize( (int)w, h );
-		_image1.setSize( (int)w, h );
-		_image1.setPosition( 0, h );
+		_stereoView.setSize( (int)2*w, h );
+		_stereoView.setPosition( 0, h );
 		Window::resizeEvent( event );
 	}
 
@@ -65,10 +67,32 @@ namespace cvt
 		_imageAspect = (float)img.width() / (float)img.height();
 	}
 
-
-	inline void SLAMGui::setSecondImage( const Image& img )
+	inline void SLAMGui::updateStereoView( const StereoSLAM::ORBData* orbData )
 	{
-		_image1.setImage( img );
+		Image tmp( 2*orbData->img0->width(), orbData->img0->height(), IFormat::GRAY_UINT8 );
+		Recti rect( 0, 0, orbData->img0->width(), orbData->img0->height() );
+		tmp.copyRect( 0, 0, *(orbData->img0), rect );
+		tmp.copyRect( orbData->img0->width(), 0, *(orbData->img1), rect );
+
+		Image color;
+		tmp.convert( color, IFormat::RGBA_UINT8 );
+
+		{
+			GFXEngineImage ge( color );
+			GFX g( &ge );
+			g.color() = Color::GREEN;
+			const ORB * orb = ( orbData->orb0 ); 
+			for( size_t i = 0; i < orb->size(); i++ ){
+				g.fillRect( (*orb)[ i ].pt.x - 1, (*orb)[ i ].pt.y - 1, 3, 3 );
+			}
+			
+			orb = orbData->orb1; 
+			for( size_t i = 0; i < orb->size(); i++ ){
+				g.fillRect( (*orb)[ i ].pt.x - 1 + orbData->img0->width(), (*orb)[ i ].pt.y - 1, 3, 3 );
+			}
+		}
+
+		_stereoView.setImage( color );
 	}
 }
 

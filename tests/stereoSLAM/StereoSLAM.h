@@ -20,7 +20,9 @@ namespace cvt
 			struct ORBData
 			{
 				ORB* orb0;
+				Image* img0;
 				ORB* orb1;
+				Image* img1;
 			};
 
 			StereoSLAM( const CameraCalibration& c0,
@@ -31,14 +33,23 @@ namespace cvt
 			// new round with two new images, maybe also hand in a pose prediction?
 			void newImages( const Image& img0, const Image& img1 );
 
-			Signal<ORBData>	newORBData;	
+			const Image& undistorted( size_t idx = 0 ) const 
+			{
+				if( idx )
+					return _undist1;
+				return _undist0;
+			}
+
+			Signal<const ORBData*>	newORBData;	
 
 		private:
 			CameraCalibration	_camCalib0;
 			CameraCalibration	_camCalib1;
-			ORBStereoMatching	_stereoMatcher;
 			Image				_undistortMap0;
 			Image				_undistortMap1;
+
+			Image				_undist0;
+			Image				_undist1;
 
 			size_t				_orbOctaves;
 			float				_orbScaleFactor;
@@ -48,6 +59,7 @@ namespace cvt
 
 			float				_matcherMaxLineDistance;	
 			float				_matcherMaxDescriptorDist;
+			ORBStereoMatching	_stereoMatcher;
 
 			// FeatureTracker ...
 			float				_trackingSearchRadius;
@@ -62,15 +74,15 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
+		_matcherMaxLineDistance( 10.0f ),
+		_matcherMaxDescriptorDist( 40 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
 		_orbOctaves( 4 ), 
-		_orbScaleFactor( 0.7f ),
-		_orbCornerThreshold( 20 ),
-		_orbMaxFeatures( 4000 ),
+		_orbScaleFactor( 0.6f ),
+		_orbCornerThreshold( 25 ),
+		_orbMaxFeatures( 3000 ),
 		_orbNonMaxSuppression( true ),
-		_matcherMaxLineDistance( 30.0f ),
-		_matcherMaxDescriptorDist( 200 ),
-		_trackingSearchRadius( 25.0f ),
+		_trackingSearchRadius( 30.0f ),
 		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius )
 	{
 		// create the undistortion maps
@@ -95,16 +107,11 @@ namespace cvt
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
-		Image tmp, gray0;
-		
-		// get grayscale image
-		img0.convert( tmp, IFormat::GRAY_UINT8 );
-
 		// undistort
-		IWarp::apply( gray0, tmp, _undistortMap0 );
+		IWarp::apply( _undist0, img0, _undistortMap0 );
 
 		// create the ORB
-		ORB orb0( gray0, 
+		ORB orb0( _undist0, 
 				  _orbOctaves, 
 				  _orbScaleFactor,
 				  _orbCornerThreshold,
@@ -112,18 +119,14 @@ namespace cvt
 				  _orbNonMaxSuppression );
 
 		// match the features with predicted measurements from map
+		// estimate the pose from 3d-2d measurements
 
 		bool _newKeyframeNeeded = true;
 		if( _newKeyframeNeeded ){
-			// get grayscale image
-			img1.convert( tmp, IFormat::GRAY_UINT8 );
-
-			// undistort
-			Image gray1;
-			IWarp::apply( gray1, tmp, _undistortMap1 );
+			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
-			ORB orb1( gray1, 
+			ORB orb1(_undist1, 
 					 _orbOctaves, 
 					 _orbScaleFactor,
 					 _orbCornerThreshold,
@@ -138,29 +141,34 @@ namespace cvt
 			std::vector<Vector3f> points3d;
 			triangulate( points3d, matches );
 
+			// add the new 3D points to the map!
+
 			ORBData data;
 			data.orb0 = &orb0;
+			data.img0 = &_undist0;
 			data.orb1 = &orb1;
-			newORBData.notify( data );
-
-			std::cout << "points3d: " << points3d.size() << std::endl;
-
+			data.img1 = &_undist1;
+			newORBData.notify( &data );
 		}
 	}
 
 
 	inline void StereoSLAM::triangulate( std::vector<Vector3f>& points, const std::vector<FeatureMatch>& matches ) const
 	{
-		points.resize( matches.size() );
+		points.reserve( matches.size() );
 
 		Vector4f tmp;
+		Vector3f p3;
 		for( size_t i = 0; i < matches.size(); i++ ){
 			Vision::triangulate( tmp,
 								_camCalib0.projectionMatrix(),
 								_camCalib1.projectionMatrix(),
 								matches[ i ].feature0->pt,
 								matches[ i ].feature1->pt );
-			points[ i ] = tmp;
+			p3 = tmp;
+
+			if( p3.z > 0.0f )
+				points.push_back( p3 );
 		}
 	}
 }
