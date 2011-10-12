@@ -109,7 +109,7 @@ namespace cvt {
 	{
 		cl_int err;
 		size_t sizes[ 3 ];
-		::clGetDeviceInfo( _id, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof( size_t ) * 3, sizes, NULL );
+		err = ::clGetDeviceInfo( _id, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof( size_t ) * 3, sizes, NULL );
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
 		return CLNDRange( sizes[ 0 ], sizes[ 1 ], sizes[ 2 ] );

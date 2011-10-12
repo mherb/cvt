@@ -10,11 +10,11 @@ namespace cvt {
 		public:
 					BrightnessContrast();
 					~BrightnessContrast();
-			void	applyOpenCL( Image& dst, const Image& src, float brightness, float contrast ) const;
 			void	apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
 
 		private:
-			mutable CLKernel*	_kernelBC;
+			void	applyOpenCL( Image& dst, const Image& src, float brightness, float contrast ) const;
+			CLKernel _kernelBC;
 	};
 }
 

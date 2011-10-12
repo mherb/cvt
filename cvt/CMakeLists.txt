@@ -143,7 +143,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/OpenCL.h
 #	cl/kernel/gaussiir.h
 #	cl/kernel/gaussiir2.h
-#	cl/kernel/BC.h
+	cl/kernel/BC.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -159,7 +159,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
 	gfx/ifilter/GaussIIR.h
-#	gfx/ifilter/BrightnessContrast.h
+	gfx/ifilter/BrightnessContrast.h
 	gfx/ifilter/ITransform.h
 	gfx/ifilter/IWarp.h
 #	gfx/ifilter/Sobel.h
@@ -386,7 +386,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp
 	gfx/ifilter/GaussIIR.cpp
-#	gfx/ifilter/BrightnessContrast.cpp
+	gfx/ifilter/BrightnessContrast.cpp
 	gfx/ifilter/ITransform.cpp
 	gfx/ifilter/IWarp.cpp
 #	gfx/ifilter/Sobel.cpp
