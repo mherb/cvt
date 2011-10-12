@@ -26,7 +26,7 @@ namespace cvt {
 
 		CLImageFormat clformat;
 		format.toCLImageFormat( clformat );
-		_climage = new CLImage2D( _width, _height, clformat, CL_MEM_READ_WRITE | CL_MEM_HOST_PTR  );
+		_climage = new CLImage2D( _width, _height, clformat, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR  );
 	}
 
 	void ImageAllocatorCL::copy( const ImageAllocator* x, const Recti* r = NULL )
@@ -63,7 +63,7 @@ namespace cvt {
 			// FIXME: try to reuse _climage if possible
 			if( _climage )
 				delete _climage;
-			_climage = new CLImage2D( *( clmem->_climage ), r, CL_MEM_READ_WRITE | CL_MEM_HOST_PTR  );
+			_climage = new CLImage2D( *( clmem->_climage ), r, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR  );
 		}
 	}
 

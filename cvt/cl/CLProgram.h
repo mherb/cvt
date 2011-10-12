@@ -21,7 +21,7 @@ namespace cvt {
 			bool build( const std::vector<CLDevice>& devices, const char* options = NULL );
 
 			CLUTIL_GETINFOSTRING( source, CL_PROGRAM_SOURCE, _object, ::clGetProgramInfo )
-			void buildLog( const CLDevice& dev, std::string& log );
+			void buildLog( const CLDevice& dev, String& log );
 
 	};
 
@@ -55,7 +55,7 @@ namespace cvt {
 		return true;
 	}
 
-	inline void CLProgram::buildLog( const CLDevice& dev, std::string& log )
+	inline void CLProgram::buildLog( const CLDevice& dev, String& log )
 	{
 		cl_int err;
 		size_t size;

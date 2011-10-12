@@ -69,6 +69,7 @@ namespace cvt {
 	  */
 	void* CLImage2D::map( size_t* stride )
 	{
+		//std::cout << "R/W map: " << mapCount() << std::endl;
 		 return CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ | CL_MAP_WRITE, 0, 0, _width, _height, stride );
 	}
 
@@ -79,6 +80,7 @@ namespace cvt {
 	  */
 	const void* CLImage2D::map( size_t* stride ) const
 	{
+		//std::cout << "R map: " << mapCount() << std::endl;
 		 return ( const void* ) CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ, 0, 0, _width, _height, stride );
 	}
 

@@ -1,4 +1,5 @@
-#include <cvt/cl/CLContext.h>
+#include <cvt/cl/OpenCL.h>
+#include <cvt/cl/CLPlatform.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/GaussIIR.h>
 #include <cvt/io/Resources.h>
@@ -11,7 +12,12 @@ using namespace cvt;
 
 int main( void )
 {
-	CLContext cl;
+	std::vector<CLPlatform> platforms;
+	CLPlatform::get( platforms );
+	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
+
+
+
 	Resources resources;
 	GaussIIR filter;
 
@@ -23,7 +29,6 @@ int main( void )
 	size_t order = pSet->paramHandle( "Order" );
 
 	try {
-		cl.makeCurrent();
 
 		Image* tmp = new Image();
 		tmp->load( resources.find( "lena.png" ).c_str() );
@@ -39,8 +44,10 @@ int main( void )
 		pSet->setArg( sigma, 2.5f );
 		pSet->setArg<int>( order, 0 );
 
+
 		filter.apply( pSet, IFILTER_OPENCL );
 		x2.save( "output-cl.png" );
+
 		filter.apply( pSet, IFILTER_CPU );
         x2.save( "output-cpu.png" );
 
