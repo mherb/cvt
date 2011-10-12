@@ -17,8 +17,8 @@ int main( int argc, char** argv )
 	infloat.reallocate( input.width(), input.height(), IFormat::GRAY_FLOAT );
 	input.convert( infloat );
 
-	IHistogramf bhist( 0x100 );
-	bhist.update( infloat, IHISTOGRAM_NOINTERP );
-	for( size_t i = 0; i < 0x100; i++)
+	IHistogramf bhist( 10 );
+	bhist.update( infloat );
+	for( size_t i = 0; i < 10; i++)
 		std::cout << i << " " << bhist( i ) << std::endl;
 }
