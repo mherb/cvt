@@ -9,6 +9,8 @@
 #include <cvt/cl/CLBuffer.h>
 #include <cvt/cl/CLImage2D.h>
 #include <cvt/cl/CLNDRange.h>
+#include <cvt/gfx/Image.h>
+#include <cvt/gfx/ImageAllocatorCL.h>
 #include <string>
 #include <iostream>
 
@@ -20,9 +22,14 @@ namespace cvt {
 			CLKernel( cl_kernel k = NULL );
 			CLKernel( const CLProgram& prog, const char* name );
 			CLKernel( const CLProgram& prog, const String& name );
+			CLKernel( const String& source, const String& name );
 
 			void setArg( cl_uint index, CLBuffer& arg );
 			void setArg( cl_uint index, CLImage2D& arg );
+			void setArg( cl_uint index, Image& arg );
+			void setArg( cl_uint index, const CLBuffer& arg );
+			void setArg( cl_uint index, const CLImage2D& arg );
+			void setArg( cl_uint index, const Image& arg );
 			template<typename T>
 			void setArg( cl_uint index, T arg );
 			void setArg( cl_uint index, size_t size, void* arg );
@@ -57,7 +64,49 @@ namespace cvt {
 			throw CLException( err );
 	}
 
+
+	inline CLKernel::CLKernel( const String& source, const String& name )
+	{
+		CLProgram prog( *CL::defaultContext(), source );
+		if( ! prog.build( *CL::defaultDevice() ) ) {
+			String log;
+			prog.buildLog( *CL::defaultDevice(), log );
+			throw CVTException( log.c_str() );
+		}
+
+		cl_int err;
+		_object = ::clCreateKernel( prog, name.c_str(), &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	inline CLNDRange CLKernel::bestLocalRange1d( const CLNDRange& global ) const
+	{
+		cl_int err;
+		size_t devmaxwg = CL::defaultDevice()->maxWorkGroupSize();
+		size_t kernmaxwg;
+
+		err = ::clGetKernelWorkGroupInfo( _object, *CL::defaultDevice(), CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernmaxwg, NULL );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+		return Math::gcd<size_t>( *global.range(), Math::min( devmaxwg, kernmaxwg ) );
+	}
+
+	inline CLNDRange CLKernel::bestLocalRange2d( const CLNDRange& global ) const
+	{
+		return CLNDRange( 1, 1 );
+	}
+
 	inline void CLKernel::setArg( cl_uint index, CLBuffer& buf )
+	{
+		cl_int err;
+		cl_mem mem = ( cl_mem ) buf;
+		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	inline void CLKernel::setArg( cl_uint index, const CLBuffer& buf )
 	{
 		cl_int err;
 		cl_mem mem = ( cl_mem ) buf;
@@ -71,9 +120,37 @@ namespace cvt {
 		cl_int err;
 		cl_mem mem = ( cl_mem ) img;
 		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
+
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
+
+	inline void CLKernel::setArg( cl_uint index, const CLImage2D& img )
+	{
+		cl_int err;
+		cl_mem mem = ( cl_mem ) img;
+		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
+
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	inline void CLKernel::setArg( cl_uint index, Image& img )
+	{
+		ImageAllocatorCL* memcl = dynamic_cast<ImageAllocatorCL*>( img._mem );
+		if( !memcl )
+			throw CVTException( "Image invalid for OpenCL" );
+		setArg( index, *memcl->_climage );
+	}
+
+	inline void CLKernel::setArg( cl_uint index, const Image& img )
+	{
+		ImageAllocatorCL* memcl = dynamic_cast<ImageAllocatorCL*>( img._mem );
+		if( !memcl )
+			throw CVTException( "Image invalid for OpenCL" );
+		setArg( index, *memcl->_climage );
+	}
+
 
 	template<typename T>
 	inline void CLKernel::setArg( cl_uint index, T arg )
@@ -92,6 +169,7 @@ namespace cvt {
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
+
 
 	inline void CLKernel::setArg( cl_uint index, size_t size, void* arg )
 	{

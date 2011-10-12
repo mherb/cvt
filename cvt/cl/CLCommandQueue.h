@@ -77,7 +77,7 @@ namespace cvt {
 		err = ::clEnqueueReadBuffer( _object, buf, block, offset, size, dst,
 									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -90,7 +90,7 @@ namespace cvt {
 		err = ::clEnqueueWriteBuffer( _object, buf, block, offset, size, src,
 									  waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -103,7 +103,7 @@ namespace cvt {
 		err = ::clEnqueueCopyBuffer( _object, src, dst, srcoffset, dstoffset, size,
 									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -117,7 +117,7 @@ namespace cvt {
 		ptr = ::clEnqueueMapBuffer( _object, buf, block, mapflags, offset, size,
 								    waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event, &err );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 		return ptr;
 	}
 
@@ -134,7 +134,7 @@ namespace cvt {
 		err = ::clEnqueueReadImage( _object, img, block, origin, region, stride, 0, dst,
 								   waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -150,7 +150,7 @@ namespace cvt {
 		err = ::clEnqueueWriteImage( _object, img, block, origin, region, stride, 0, src,
 									 waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -168,7 +168,7 @@ namespace cvt {
 		err = ::clEnqueueCopyImage( _object, src, dst, srcorigin, dstorigin, region,
 									waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -185,7 +185,7 @@ namespace cvt {
 		ptr = ::clEnqueueMapImage( _object, img, block, mapflags, origin, region, stride, NULL,
 								   waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event, &err );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 		return ptr;
 	}
 
@@ -199,7 +199,7 @@ namespace cvt {
 		err = ::clEnqueueUnmapMemObject( _object, mem, ( void* ) ptr,
 										waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 
@@ -211,7 +211,7 @@ namespace cvt {
 		cl_int err;
 		err = ::clEnqueueWaitForEvents( _object, waitevents.size(), ( const cl_event* ) &waitevents[0] );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 
 	}
 
@@ -223,8 +223,7 @@ namespace cvt {
 		cl_int err;
 		err = ::clEnqueueWaitForEvents( _object, 1, ( const cl_event* ) &event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
-
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	/**
@@ -254,7 +253,7 @@ namespace cvt {
 									    local.dimension()?local.range():NULL,
 										waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 }
 
