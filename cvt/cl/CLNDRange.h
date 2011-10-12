@@ -18,6 +18,21 @@ namespace cvt {
 			CLNDRange( const CLNDRange& x );
 
 			/**
+			  Return the value of the first dimension
+			  */
+			size_t x() const { return _ndrange[ 0 ]; };
+
+			/**
+			  Return the value of the second dimension
+			  */
+			size_t y() const { return _ndrange[ 1 ]; };
+
+			/**
+			  Return the value of the third dimension
+			  */
+			size_t z() const { return _ndrange[ 2 ]; };
+
+			/**
 			  Dimension of the CLNDRange object
 			 */
 			size_t dimension() const { return _dimension; }
