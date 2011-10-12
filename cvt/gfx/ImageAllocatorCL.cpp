@@ -3,7 +3,7 @@
 
 namespace cvt {
 
-	ImageAllocatorCL::ImageAllocatorCL() : ImageAllocator(), _cl( 0 ), _climage( 0 )
+	ImageAllocatorCL::ImageAllocatorCL() : ImageAllocator(), _climage( NULL )
 	{
 	}
 
@@ -15,8 +15,6 @@ namespace cvt {
 
 	void ImageAllocatorCL::alloc( size_t width, size_t height, const IFormat & format )
 	{
-		cl_int err;
-
 		if( _width == width && _height == height && _format == format && _climage )
 			return;
 
@@ -25,10 +23,10 @@ namespace cvt {
 		_width = width;
 		_height = height;
 		_format = format;
-		_cl = CLContext::getCurrent();
-		_climage = new cl::Image2D( _cl->getCLContext( ), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, getCLFormat( _format ), _width, _height, 0, NULL, &err );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
+
+		CLImageFormat clformat;
+		format.toCLImageFormat( clformat );
+		_climage = new CLImage2D( _width, _height, clformat, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR  );
 	}
 
 	void ImageAllocatorCL::copy( const ImageAllocator* x, const Recti* r = NULL )
@@ -62,78 +60,26 @@ namespace cvt {
 			unmap( odst );
 		} else {
 			const ImageAllocatorCL* clmem = ( ImageAllocatorCL* ) x;
-			cl_int err;
-			cl::size_t<3> src;
-			cl::size_t<3> dst;
-			cl::size_t<3> crect;
-			Recti rect( 0, 0, ( int ) x->_width, ( int ) x->_height );
-			if( r )
-				rect.intersect( *r );
-			alloc( rect.width, rect.height, x->_format );
-
-			dst[ 0 ] = 0;
-			dst[ 1 ] = 0;
-			dst[ 2 ] = 0;
-			src[ 0 ] = rect.x;
-			src[ 1 ] = rect.y;
-			src[ 2 ] = 0;
-			crect[ 0 ] = rect.width;
-			crect[ 1 ] = rect.height;
-			crect[ 2 ] = 1;
-
-			err = _cl->getCLQueue( ).enqueueCopyImage( *clmem->_climage, *_climage, src, dst, crect, NULL, NULL );
-			if( err != CL_SUCCESS )
-				throw CLException( __PRETTY_FUNCTION__, err );
+			// FIXME: try to reuse _climage if possible
+			if( _climage )
+				delete _climage;
+			_climage = new CLImage2D( *( clmem->_climage ), r, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR  );
 		}
 	}
 
 	uint8_t* ImageAllocatorCL::map( size_t* stride )
-	{		
-		uint8_t* ptr;
-		cl_int err;
-		cl::size_t<3> src;
-		cl::size_t<3> rect;
-
-		src[ 0 ] = 0;
-		src[ 1 ] = 0;
-		src[ 2 ] = 0;
-		rect[ 0 ] = _width;
-		rect[ 1 ] = _height;
-		rect[ 2 ] = 1;
-
-
-		ptr = ( uint8_t* )_cl->getCLQueue( ).enqueueMapImage( *_climage, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, src, rect, stride, NULL, NULL, NULL, &err );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
-		return ptr;
+	{
+		return ( uint8_t* ) _climage->map( stride );
 	}
 
 	const uint8_t* ImageAllocatorCL::map( size_t* stride ) const
-	{		
-		uint8_t* ptr;
-		cl_int err;
-		cl::size_t<3> src;
-		cl::size_t<3> rect;
-
-		src[ 0 ] = 0;
-		src[ 1 ] = 0;
-		src[ 2 ] = 0;
-		rect[ 0 ] = _width;
-		rect[ 1 ] = _height;
-		rect[ 2 ] = 1;
-
-		ptr = ( uint8_t* )_cl->getCLQueue( ).enqueueMapImage( *_climage, CL_TRUE, CL_MAP_READ, src, rect, stride, NULL, NULL, NULL, &err );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
-		return ptr;
+	{
+		return ( const uint8_t* ) _climage->map( stride );
 	}
 
 	void ImageAllocatorCL::unmap( const uint8_t* ptr ) const
-	{		
-		cl_int err;
-		err = _cl->getCLQueue( ).enqueueUnmapMemObject( *_climage, ( void* ) ptr, NULL, NULL );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
+	{
+		_climage->unmap( ( const void* ) ptr );
 	}
 
 }

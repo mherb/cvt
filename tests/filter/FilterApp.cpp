@@ -68,9 +68,8 @@ FilterApp::FilterApp( const String & name ) :
 	_appWindow.addWidget( &_mCL );
 	_mCL.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 100 /* as fast as possible*/, this );
 	
-	_cl.makeCurrent();
 	initCamera();
 	initFilter();
 }
@@ -165,7 +164,7 @@ void FilterApp::onTimeout()
 
 		_params->setArg<Image*>( _inputHandle, &_in );
 		_params->setArg<Image*>( _outputHandle, &_out );
-//		_filter->apply( _params, IFILTER_CPU );
+		_filter->apply( _params, IFILTER_CPU );
 		
 		_framesCPU++;
 		if( _timerCPU.elapsedSeconds() > 5.0f ) {

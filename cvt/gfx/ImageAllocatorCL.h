@@ -1,7 +1,7 @@
 #ifndef IMAGEALLOCATORCL_H
 #define IMAGEALLOCATORCL_H
 #include <cvt/gfx/ImageAllocator.h>
-#include <cvt/cl/CLContext.h>
+#include <cvt/cl/CLImage2D.h>
 
 namespace cvt {
 	class ImageAllocatorCL : public ImageAllocator {
@@ -19,11 +19,9 @@ namespace cvt {
 
 		private:
 			ImageAllocatorCL( const ImageAllocatorCL& );
-			static ::cl::ImageFormat getCLFormat( const IFormat & format );
 
 		private:
-			CLContext* _cl;
-			cl::Image2D* _climage;
+			CLImage2D* _climage;
 	};
 }
 

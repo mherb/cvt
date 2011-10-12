@@ -42,7 +42,6 @@ class FilterApp : public cvt::TimeoutHandler
 		uint32_t				_framesCL;
 		cvt::Time				_timerCPU, _timerCL;
 		
-		cvt::CLContext			_cl;
 		cvt::Image				_in, _inCL;
 		cvt::Image				_out, _outCL;
 		
