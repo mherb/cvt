@@ -398,6 +398,33 @@ namespace cvt {
 		}
 
 		/*
+			Inspired by Jose Fonsecas SSE variant
+		 */
+		static inline float fastLog2( float f )
+		{
+			_flint32 fl;
+			fl.f = f;
+			float e = ( float ) (  ( int32_t ) ( ( fl.i & 0x7F800000 ) >> 23 ) - 127 );
+			fl.i = ( fl.i & 0x7FFFFF ) | 0x3F800000;
+			float p = ( ( ( ( ( ( -3.4436006e-2f ) * fl.f + 3.1821337e-1f ) * fl.f + -1.2315303f ) * fl.f + 2.5988452f ) * fl.f + -3.3241990f ) * fl.f + 3.1157899f );
+			return p * ( fl.f - 1.0f ) + e;
+		}
+
+		/*
+			Same as fastLog2, just scale by 1 / log2( e )
+		 */
+		static inline float fastLog( float f )
+		{
+			_flint32 fl;
+			fl.f = f;
+			float e = ( float ) (  ( int32_t ) ( ( fl.i & 0x7F800000 ) >> 23 ) - 127 );
+			fl.i = ( fl.i & 0x7FFFFF ) | 0x3F800000;
+			float p = ( ( ( ( ( ( -3.4436006e-2f ) * fl.f + 3.1821337e-1f ) * fl.f + -1.2315303f ) * fl.f + 2.5988452f ) * fl.f + -3.3241990f ) * fl.f + 3.1157899f );
+			return ( p * ( fl.f - 1.0f ) + e ) * 0.6931471805599453f;
+		}
+
+
+		/*
 		   The famous fast inverse square root approximation found in the code
 		   of id-tech 3/4.
 		 */

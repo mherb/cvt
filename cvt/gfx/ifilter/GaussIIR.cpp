@@ -126,7 +126,7 @@ namespace cvt {
 	}
 
 	static ParamInfoTyped<Image*> pin( "Input", true /* inputParam */ );
-	static ParamInfoTyped<Image*> put( "Output", false );
+	static ParamInfoTyped<Image*> pout( "Output", false );
 	static ParamInfoTyped<float> psigma( "Sigma", true );
 	static ParamInfoTyped<int> porder( "Order", 0 /* min */, 2 /* max */, 0 /* default */, true );
 
@@ -188,21 +188,19 @@ namespace cvt {
 		// TODO: THIS IS A HACK -> we change members of a const object!
 		std::string log;
 		if( _kernelIIR == 0 ){
-			_kernelIIR = new CLKernel();
-			_kernelIIR->build("gaussiir", _gaussiir_source, strlen( _gaussiir_source ), log );
+			_kernelIIR = new CLKernel( _gaussiir_source, "gaussiir" );
 		}
 
 		if( _kernelIIR2 == 0 ){
-			_kernelIIR2 = new CLKernel();
-			_kernelIIR2->build("gaussiir2", _gaussiir2_source, strlen( _gaussiir2_source ), log );
+			_kernelIIR2 = new CLKernel( _gaussiir2_source, "gaussiir2" );
 		}
 
 		int w = src.width();
 		int h = src.height();
 
-		CLContext * cl = CLContext::getCurrent();
-		cl::Buffer buf( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( cl_float4 ) * w * h );
-		cl::Buffer buf2( cl->getCLContext(), CL_MEM_READ_WRITE, sizeof( cl_float4 ) * w * h );
+
+		CLBuffer buf( sizeof( cl_float4 ) * w * h );
+		CLBuffer buf2( sizeof( cl_float4 ) * w * h );
 
 		_kernelIIR->setArg( 0, buf );
 		_kernelIIR->setArg( 1, src );
@@ -211,8 +209,9 @@ namespace cvt {
 		_kernelIIR->setArg( 4, n );
 		_kernelIIR->setArg( 5, m );
 		_kernelIIR->setArg( 6, d );
+
 		//std::cout << "W GCD( " << w << ", " << _kernelIIR->workGroupSize() << " ) = " << Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) << std::endl;
-		_kernelIIR->run( cl::NDRange( h ), cl::NDRange( Math::gcd<size_t>( Math::pad16( h ), _kernelIIR->workGroupSize() ) ) );
+		_kernelIIR->run( CLNDRange( h ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( h ) ) ) );
 
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
@@ -223,8 +222,7 @@ namespace cvt {
 		_kernelIIR2->setArg( 6, m );
 		_kernelIIR2->setArg( 7, d );
 		//std::cout << "H GCD: " << Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) << std::endl;
-		_kernelIIR2->run( cl::NDRange( w ), cl::NDRange( Math::gcd<size_t>( Math::pad16( w ), _kernelIIR2->workGroupSize() ) ) );
-
+		_kernelIIR2->run( CLNDRange( w ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( w ) ) ) );
 	}
 
 	void GaussIIR::applyCPUf( Image& dst, const Image& src, const Vector4f & n, const Vector4f & m, const Vector4f & d ) const

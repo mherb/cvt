@@ -85,7 +85,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 14 ),
+		_numBins( 64 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_jTempOuter( 0 ),
@@ -122,7 +122,7 @@ namespace cvt {
 
 			tmp.fill( Color::WHITE );
 			ITransform::apply( tmp, img, hinv );
-			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
@@ -147,7 +147,6 @@ namespace cvt {
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta = -_miHessian.inverse() * _miJacobian;
 		//std::cout << "Delta:\n" << delta << std::endl;
-		//_pose.addDelta( delta );
 		_pose.applyInverse( delta );
 
 		return delta.norm();
@@ -163,8 +162,8 @@ namespace cvt {
 
 		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
 		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
-		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_XX );
-		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_YY );
+		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX );
+		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_3_YY );
 
 
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
@@ -188,7 +187,7 @@ namespace cvt {
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
 		_itemplate.reallocate( tmp );
-		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 		updateTemplateGradients();
 		offlineTemplateDerivatives();
 
@@ -295,12 +294,16 @@ namespace cvt {
 				int ridx = ( int ) r;
 				curJac.setZero();
 				curHess.setZero();
-				for( int m = -1; m <= 2; m++ ) {
-					for( int o = -1; o <= 2; o++ ) {
+
+				for( int o = -1; o <= 2; o++ ) {
+					float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
+					float ht = _templateHist( ridx + o ) + 1e-6f;
+					for( int m = -1; m <= 2; m++ ) {
 						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
-						float ht = _templateHist( ridx + o ) + 1e-6f;
-						float c = 1.0f + Math::log( jh / ht );
-						float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
+						float c = 1.0f + Math::fastLog( jh / ht );
+						/*float d = Math::abs( c - ( 1.0f + Math::log( jh / ht ) ) );
+						if( d > 1e-4f )
+						std::cout << d << std::endl;*/
 						c *= spl;
 						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
 						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );

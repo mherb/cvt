@@ -158,7 +158,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IConvert.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/Homography.h
-#	gfx/ifilter/GaussIIR.h
+	gfx/ifilter/GaussIIR.h
 #	gfx/ifilter/BrightnessContrast.h
 	gfx/ifilter/ITransform.h
 	gfx/ifilter/IWarp.h
@@ -167,7 +167,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IScaleFilter.h
 	gfx/ImageAllocator.h
 	gfx/ImageAllocatorMem.h
-#	gfx/ImageAllocatorCL.h
+	gfx/ImageAllocatorCL.h
 	gfx/ImageAllocatorGL.h
 	gfx/Drawable.h
 	gfx/GFXEngine.h
@@ -373,6 +373,7 @@ SET(${MODULE_NAME}_SOURCES
 	cl/CLException.cpp
 	cl/CLImage2D.cpp
 	cl/CLImageFormat.cpp
+	cl/CLKernel.cpp
 	cl/CLProgram.cpp
 	gfx/GFX.cpp
 	gfx/GFXEngineImage.cpp
@@ -384,12 +385,12 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageTest.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/Homography.cpp
-#	gfx/ifilter/GaussIIR.cpp
+	gfx/ifilter/GaussIIR.cpp
 #	gfx/ifilter/BrightnessContrast.cpp
 	gfx/ifilter/ITransform.cpp
 	gfx/ifilter/IWarp.cpp
 #	gfx/ifilter/Sobel.cpp
-#	gfx/ImageAllocatorCL.cpp
+	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
 	gfx/ImageAllocatorMem.cpp
 	gfx/IScaleFilter.cpp

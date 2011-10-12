@@ -27,11 +27,31 @@ namespace cvt {
 		: _width( width ), _height( height ), _format( format )
 	{
 		cl_int err;
-		_object = ::clCreateImage2D( *CL::defaultContext(), flags, ( cl_image_format* ) &format, width, height, 0, NULL, &err );
+		_object = ::clCreateImage2D( *CL::defaultContext(), flags, ( cl_image_format* ) &_format, _width, _height, 0, NULL, &err );
 		if( err != CL_SUCCESS )
 			throw CLException( err );
 	}
 
+
+	/**
+		Use default context to create CLImage2D object with data copied from img.
+		\param img the CLImage2D to be copied
+		\param r   optional roi from img
+	 */
+	CLImage2D::CLImage2D( const CLImage2D& img, const Recti* r, cl_mem_flags flags )
+		: CLMemory(), _width( img._width ), _height( img._height ), _format( img._format )
+	{
+		cl_int err;
+		_object = ::clCreateImage2D( *CL::defaultContext(), flags, ( cl_image_format* ) &_format, _width, _height, 0, NULL, &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+
+		Recti rect( 0, 0, ( int ) _width, ( int ) _height );
+		if( r )
+			rect.intersect( *r );
+
+		CL::defaultQueue()->enqueueCopyImage( *this, img, 0, 0, rect.x, rect.y, rect.width, rect.height, NULL, NULL );
+	}
 
 	/**
 	  Use default context to create CLImage2D from Image
@@ -49,6 +69,7 @@ namespace cvt {
 	  */
 	void* CLImage2D::map( size_t* stride )
 	{
+		//std::cout << "R/W map: " << mapCount() << std::endl;
 		 return CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ | CL_MAP_WRITE, 0, 0, _width, _height, stride );
 	}
 
@@ -59,6 +80,7 @@ namespace cvt {
 	  */
 	const void* CLImage2D::map( size_t* stride ) const
 	{
+		//std::cout << "R map: " << mapCount() << std::endl;
 		 return ( const void* ) CL::defaultQueue()->enqueueMapImage( *this, CL_MAP_READ, 0, 0, _width, _height, stride );
 	}
 

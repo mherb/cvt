@@ -25,7 +25,7 @@ namespace cvt {
 			_img.copy( img );
 			//IConvert::convert( _img, img );
 		} catch( Exception e ) {
-			std::cerr << "Conversion error: " << e.what() << std::endl;
+			std::cerr << "Copy error: " << e.what() << std::endl;
 		}
 		update();
 	}
