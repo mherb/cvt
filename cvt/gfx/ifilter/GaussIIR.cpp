@@ -211,7 +211,7 @@ namespace cvt {
 		_kernelIIR->setArg( 6, d );
 
 		//std::cout << "W GCD( " << w << ", " << _kernelIIR->workGroupSize() << " ) = " << Math::gcd<size_t>( h, _kernelIIR->workGroupSize() ) << std::endl;
-		_kernelIIR->run( CLNDRange( h ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( h ) ) ) );
+		_kernelIIR->run( CLNDRange( Math::pad16( h ) ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( h ) ) ) );
 
 		_kernelIIR2->setArg( 0, dst );
 		_kernelIIR2->setArg( 1, buf );
@@ -222,7 +222,7 @@ namespace cvt {
 		_kernelIIR2->setArg( 6, m );
 		_kernelIIR2->setArg( 7, d );
 		//std::cout << "H GCD: " << Math::gcd<size_t>( w, _kernelIIR2->workGroupSize() ) << std::endl;
-		_kernelIIR2->run( CLNDRange( w ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( w ) ) ) );
+		_kernelIIR2->run( CLNDRange( Math::pad16( w ) ), _kernelIIR->bestLocalRange1d( CLNDRange( Math::pad16( w ) ) ) );
 	}
 
 	void GaussIIR::applyCPUf( Image& dst, const Image& src, const Vector4f & n, const Vector4f & m, const Vector4f & d ) const
