@@ -21,6 +21,8 @@ namespace cvt {
 			CLUTIL_GETINFOTYPE( type, CL_EVENT_COMMAND_TYPE, cl_command_type, _object, ::clGetEventInfo )
 			CLUTIL_GETINFOTYPE( status, CL_EVENT_COMMAND_EXECUTION_STATUS, cl_int, _object, ::clGetEventInfo )
 
+			void wait() const;
+
 			CLCommandQueue queue() const;
 			CLContext context() const;
 
@@ -29,6 +31,14 @@ namespace cvt {
 			// OpenCL 1.1
 			// CLUTIL_GETINFOTYPE( _context, CL_EVENT_CONTEXT, cl_context, _object, ::clGetEventInfo )
 	};
+
+	inline void CLEvent::wait() const
+	{
+		cl_int err;
+		err = ::clWaitForEvents( 1, ( cl_event* ) this );
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+	}
 }
 
 #endif
