@@ -3,6 +3,7 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Time.h>
 
+#include "TemplateDetector.h"
 
 #include "MITracker.h"
 #include "MIGui.h"
@@ -21,14 +22,15 @@ namespace cvt
 			void selectionFinished( const Rectf& r ); 
 
 		private:
-			VideoInput*	_input;
-			MIGui		_gui;
-			MITracker	_tracker;
-			uint32_t	_timerId;
-			Time		_fpsTime;
-			size_t		_iter;
-			bool		_selectingTemplate;
-			Image		_currGray;
+			VideoInput*			_input;
+			MIGui				_gui;
+			MITracker			_tracker;
+			TemplateDetector	_detector;
+			uint32_t			_timerId;
+			Time				_fpsTime;
+			size_t				_iter;
+			bool				_selectingTemplate;
+			Image				_currGray;
 
 			void calculateRectPoints( std::vector<Vector2f>& pts );
 	};
