@@ -288,6 +288,7 @@ namespace cvt
 		T zz = 1.0/Math::sqr( p.z() );
 		T z = 1.0/p.z();
 		T xx = Math::sqr( p.x() );
+		T yy = Math::sqr( p.y() );
 
 		J( 0, 0 ) = -_intrinsics( 0, 0 ) * p.x() * p.y() * zz;
 		J( 0, 1 ) =  _intrinsics( 0, 0 ) * xx * zz + _intrinsics( 0, 0 );
@@ -296,12 +297,12 @@ namespace cvt
 		J( 0, 4 ) = 0.0; 
 		J( 0, 5 ) = -_intrinsics( 0, 0 ) * p.x() * zz;
 		
-		J( 1, 0 ) = -_intrinsics( 1, 1 ) * p.y() * zz - _intrinsics( 1, 1 );
-		J( 1, 1 ) =  _intrinsics( 1, 1 ) * p.x() * zz;
+		J( 1, 0 ) = -_intrinsics( 1, 1 ) * yy * zz - _intrinsics( 1, 1 );
+		J( 1, 1 ) =  _intrinsics( 1, 1 ) * p.x() * p.y() * zz;
 		J( 1, 2 ) =  _intrinsics( 1, 1 ) * p.x() * z;
 		J( 1, 3 ) =  0.0; 
 		J( 1, 4 ) =  _intrinsics( 1, 1 ) * z;
-		J( 1, 5 ) = -_intrinsics( 1, 1 ) * zz;
+		J( 1, 5 ) = -_intrinsics( 1, 1 ) * p.y() * zz;
 	}
 
 	template <typename T>		
