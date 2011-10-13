@@ -141,8 +141,8 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLProgram.h
 	cl/CLUtil.h
 	cl/OpenCL.h
-#	cl/kernel/gaussiir.h
-#	cl/kernel/gaussiir2.h
+	cl/kernel/gaussiir.h
+	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
 	geom/ArcBall.h
 	geom/Bezier.h
