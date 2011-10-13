@@ -23,12 +23,16 @@ namespace cvt
 	{
 		typedef Eigen::Matrix<T, 4, 4> MatrixType;
 		typedef Eigen::Matrix<T, 3, 6> JacMatType;
+		typedef Eigen::Matrix<T, 24, 6> HessMatType;
+		typedef Eigen::Matrix<T, 2, 6> ScreenJacType;
+		typedef Eigen::Matrix<T, 6, 6> ScreenHessType;
 		typedef Eigen::Matrix<T, 6, 1> ParameterVectorType;
 		typedef Eigen::Matrix<T, 3, 1> PointType;
 		typedef Eigen::Matrix<T, 4, 1> PointTypeHom;
 		
 		public:
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 			/** 
 			 *	angles in radians 
 			 */
@@ -44,6 +48,20 @@ namespace cvt
 			void transform( PointType & warped, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
+
+			void screenJacobian( ScreenJacType & J, const PointType & p ) const;
+
+			void hessian( HessMatType & h, const PointType & p ) const;
+
+			/**
+			 *	\brief	Screen Hessian
+			 *	\param	wx	second partial derivatives of the x component
+			 *	\param	wy	second partial derivatives of the y component
+			 *	\param	p	the 3d point in camera coordinates for which to evaluate the hessian
+			 */
+			void screenHessian( ScreenHessType & wx, 
+								ScreenHessType & wy,
+							    const PointType & p ) const;
 		
 			void project( Eigen::Matrix<T, 2, 1> & sp, 
 						  const CamModel<T> & cam, 
@@ -62,9 +80,12 @@ namespace cvt
 			{ 
 				return _current; 
 			}
+
+			void setIntrinsics( const Eigen::Matrix<T, 3, 3> & K ); 
 			
 		private:
-			MatrixType _current;
+			MatrixType				_current;
+			Eigen::Matrix<T, 3, 3>	_intrinsics;
 
 	};
 	
@@ -217,6 +238,178 @@ namespace cvt
 		projJ( 1, 2 ) = ( K( 1, 2 ) - sp[ 1 ] ) / pHom[ 2 ];
 		
 		screenJac = projJ * poseJ;
+	}
+
+	template <typename T>	
+	inline void SE3<T>::hessian( HessMatType & h, const PointType & p ) const
+	{
+		h.setZero();
+		h( 0, 1 ) = 0.5 * p.y();
+		h( 0, 2 ) = 0.5 * p.z();
+		h( 1, 0 ) = -p.y();
+		h( 1, 1 ) = 0.5 * p.x();
+		h( 1, 5 ) = -0.5;
+		h( 2, 0 ) = -p.z();
+		h( 2, 2 ) = 0.5 * p.x();
+		h( 2, 4 ) = 0.5;
+		
+		h( 4, 0 ) = 0.5 * p.y();
+		h( 4, 1 ) = -p.x();
+		h( 4, 5 ) = 0.5;
+		h( 5, 0 ) = 0.5 * p.x();
+		h( 5, 2 ) = 0.5 * p.z();
+		h( 6, 1 ) = -p.z();
+		h( 6, 2 ) = 0.5 * p.y();
+		h( 6, 3 ) = -0.5;
+		
+		h( 8, 0 ) = 0.5 * p.z();
+		h( 8, 2 ) = -p.x();
+		h( 8, 4 ) = -0.5;
+		h( 9, 1 ) = 0.5 * p.z();
+		h( 9, 2 ) = -p.y();
+		h( 9, 3 ) = 0.5;
+		h( 10, 0 ) = 0.5 * p.x();
+		h( 10, 1 ) = 0.5 * p.y();
+		
+		h( 13, 2 ) = 0.5;
+		h( 14, 1 ) = -0.5;
+		
+		h( 16, 2 ) = -0.5;
+		h( 18, 0 ) = 0.5;
+		
+		h( 20, 1 ) = 0.5;
+		h( 21, 0 ) = -0.5;
+	}
+
+
+	template <typename T>
+	inline void SE3<T>::screenJacobian( ScreenJacType & J, const PointType & p ) const
+	{
+		T zz = 1.0/Math::sqr( p.z() );
+		T z = 1.0/p.z();
+		T xx = Math::sqr( p.x() );
+
+		J( 0, 0 ) = -_intrinsics( 0, 0 ) * p.x() * p.y() * zz;
+		J( 0, 1 ) =  _intrinsics( 0, 0 ) * xx * zz + _intrinsics( 0, 0 );
+		J( 0, 2 ) = -_intrinsics( 0, 0 ) * p.y() * z;
+		J( 0, 3 ) =  _intrinsics( 0, 0 ) * z;
+		J( 0, 4 ) = 0.0; 
+		J( 0, 5 ) = -_intrinsics( 0, 0 ) * p.x() * zz;
+		
+		J( 1, 0 ) = -_intrinsics( 1, 1 ) * p.y() * zz - _intrinsics( 1, 1 );
+		J( 1, 1 ) =  _intrinsics( 1, 1 ) * p.x() * zz;
+		J( 1, 2 ) =  _intrinsics( 1, 1 ) * p.x() * z;
+		J( 1, 3 ) =  0.0; 
+		J( 1, 4 ) =  _intrinsics( 1, 1 ) * z;
+		J( 1, 5 ) = -_intrinsics( 1, 1 ) * zz;
+	}
+
+	template <typename T>		
+	inline void SE3<T>::screenHessian( ScreenHessType & wx, 
+									   ScreenHessType & wy,
+									   const PointType & p ) const
+	{
+		T x = p.x();
+		T y = p.y();
+		T xx = Math::sqr( x );
+		T xxy = xx * y;
+		T xy = x * y;
+		T yy = Math::sqr( y );
+		T iz = 1.0 / p.z(); 
+		T izz = 1.0 / Math::sqr( p.z() ); 
+		T izzz = 1.0 /( p.z() * Math::sqr( p.z() ) );
+		T fx = _intrinsics( 0, 0 );	
+		T fy = _intrinsics( 1, 1 );
+
+		wx( 0, 0 ) = fx*x*iz+2*fx*x*yy*izzz;
+		wx( 0, 1 ) = y*(-fx*iz-(2*fx*xx)*izzz)+(0.5*fx*y)*iz;
+		wx( 0, 2 ) = fx*yy*izz-(0.5*fx*xx)*izz+0.5*fx;
+		wx( 0, 3 ) = -fx*y*izz;
+		wx( 0, 4 ) = -0.5*fx*x*izz;
+		wx( 0, 5 ) = 2*fx*xy*izzz;
+
+		wx( 1, 0 ) = -0.5*fx*y*iz-2*fx*xxy*izzz;
+		wx( 1, 1 ) = fx*x*iz-x*(-fx*iz-(2*fx*xx)*izzz);
+		wx( 1, 2 ) = -1.5*fx*xy*izz;
+		wx( 1, 3 ) = 1.5*fx*x*izz;
+		wx( 1, 4 ) = 0;
+		wx( 1, 5 ) = -0.5*fx*iz-2*fx*xx*izzz;
+
+		wx( 2, 0 ) = fx*yy*izz-0.5*fx*xx*izz+0.5*fx;
+		wx( 2, 1 ) = -1.5*fx*xy*izz;
+		wx( 2, 2 ) = -fx*x*iz;
+		wx( 2, 3 ) = 0;
+		wx( 2, 4 ) = -0.5*fx*iz;
+		wx( 2, 5 ) = fx*y*izz;
+
+		wx( 3, 0 ) = -fx*y*izz;
+		wx( 3, 1 ) = 1.5*fx*x*izz;
+		wx( 3, 2 ) = 0;
+		wx( 3, 3 ) = 0;
+		wx( 3, 4 ) = 0;
+		wx( 3, 5 ) = -fx*izz;
+
+		wx( 4, 0 ) = -0.5*fx*x*izz;
+		wx( 4, 1 ) = 0;
+		wx( 4, 2 ) = -0.5*fx*iz;
+		wx( 4, 3 ) = 0;
+		wx( 4, 4 ) = 0;
+		wx( 4, 5 ) = 0;
+
+		wx( 5, 0 ) = 2*fx*xy*izzz;
+		wx( 5, 1 ) = -0.5*fx*iz-2*fx*xx*izzz;
+		wx( 5, 2 ) = fx*y*izz;
+		wx( 5, 3 ) = -fx*izz;
+		wx( 5, 4 ) = 0;
+		wx( 5, 5 ) = 2*fx*x*izzz;
+
+		wy( 0, 0 ) = y*(fy*iz+(2*fy*yy)*izzz)+fy*y*iz;
+		wy( 0, 1 ) = -0.5*fy*x*iz-2*fy*x*yy*izzz;
+		wy( 0, 2 ) = -1.5*fy*xy*izz;
+		wy( 0, 3 ) = 0;
+		wy( 0, 4 ) = -1.5*fy*y*izz;
+		wy( 0, 5 ) = 0.5*fy*iz+2*fy*yy*izzz;
+
+		wy( 1, 0 ) = 0.5*fy*x*iz-x*(fy*iz+(2*fy*yy)*izzz);
+		wy( 1, 1 ) = fy*y*iz+2*fy*xxy*izzz;
+		wy( 1, 2 ) = -0.5*fy*yy*izz+fy*xx*izz+0.5*fy;
+		wy( 1, 3 ) = 0.5*fy*y*izz;
+		wy( 1, 4 ) = fy*x*izz;
+		wy( 1, 5 ) = -2*fy*xy*izzz;
+
+		wy( 2, 0 ) = -1.5*fy*xy*izz;
+		wy( 2, 1 ) = -0.5*fy*yy*izz+fy*xx*izz+0.5*fy;
+		wy( 2, 2 ) = -fy*y*iz;
+		wy( 2, 3 ) = 0.5*fy*iz;
+		wy( 2, 4 ) = 0;
+		wy( 2, 5 ) = -fy*x*izz;
+
+		wy( 3, 0 ) = 0;
+		wy( 3, 1 ) = 0.5*fy*y*izz;
+		wy( 3, 2 ) = 0.5*fy*iz;
+		wy( 3, 3 ) = 0;
+		wy( 3, 4 ) = 0;
+		wy( 3, 5 ) = 0;
+
+		wy( 4, 0 ) = -1.5*fy*y*izz;
+		wy( 4, 1 ) = fy*x*izz;
+		wy( 4, 2 ) = 0;
+		wy( 4, 3 ) = 0;
+		wy( 4, 4 ) = 0;
+		wy( 4, 5 ) = -fy*izz;
+
+		wy( 5, 0 ) = 0.5*fy*iz+2*fy*yy*izzz;
+		wy( 5, 1 ) = -2*fy*xy*izzz;
+		wy( 5, 2 ) = -fy*x*izz;
+		wy( 5, 3 ) = 0;
+		wy( 5, 4 ) = -fy*izz;
+		wy( 5, 5 ) = 2*fy*y*izzz;
+	}
+
+	template <typename T>
+	inline void SE3<T>::setIntrinsics( const Eigen::Matrix<T, 3, 3> & K )
+	{
+		_intrinsics = K;
 	}
 }
 
