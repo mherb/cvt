@@ -17,16 +17,18 @@ namespace cvt
 			/* update with grayscale image */
 			void updateTemplate( const Image & img );
 
-			bool detect( Matrix3f& h, const Image& img, float maxDescDistance );
+			bool detect( Matrix3f& h, const Image& img );
 			bool checkHomography( const Matrix3f & h );
 
 		private:
-			ORB2*	_orbTemplate;
+			ORB*	_orbTemplate;
+			//ORB2*	_orbTemplate;
 			size_t	_octaves;
 			float	_scaleFactor;
 			uint8_t	_cornerThreshold;
 			size_t	_maxFeatures;
 			bool	_nms;
+			float	_maxFeatureDistance;
 			float	_ransacMaxReproj;
 			float	_ransacOutlierProb;
 	};
@@ -34,10 +36,11 @@ namespace cvt
 	inline TemplateDetector::TemplateDetector() :
 		_orbTemplate( 0 ),
 		_octaves( 3 ),
-		_scaleFactor( 0.5f ),
+		_scaleFactor( 0.7f ),
 		_cornerThreshold( 25 ),
 		_maxFeatures( 1000 ),
 		_nms( true ),
+		_maxFeatureDistance( 50.0f ),
 		_ransacMaxReproj( 5.0f ),
 		_ransacOutlierProb( 0.2f )
 	{
@@ -53,7 +56,8 @@ namespace cvt
 	{
 		if( _orbTemplate )
 			delete _orbTemplate;
-		_orbTemplate = new ORB2( img, 
+		_orbTemplate = new ORB( img, 
+		//_orbTemplate = new ORB2( img, 
 								 _octaves, 
 								 _scaleFactor, 
 								 _cornerThreshold, 
@@ -61,9 +65,10 @@ namespace cvt
 								 _nms );
 	}
 
-	inline bool TemplateDetector::detect( Matrix3f& h, const Image& img, float maxDistance )
+	inline bool TemplateDetector::detect( Matrix3f& h, const Image& img )
 	{
-		ORB2 orb( img, 
+		//ORB2 orb( img, 
+		ORB orb( img, 
 				 _octaves, 
 				 _scaleFactor, 
 				 _cornerThreshold, 
@@ -76,7 +81,7 @@ namespace cvt
 		FeatureMatcher::matchBruteForce( matches, 
 										*_orbTemplate, 
 										orb,
-										maxDistance );
+										_maxFeatureDistance );
 
 		if( matches.size() > 10 ){
 			HomographySAC model( matches );

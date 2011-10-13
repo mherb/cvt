@@ -22,6 +22,16 @@ namespace cvt
 			void selectionFinished( const Rectf& r ); 
 
 		private:
+
+			enum State
+			{
+				SELECTING = 0,
+				TRACKING,
+				DETECTING
+			};
+
+			State				_state;
+
 			VideoInput*			_input;
 			MIGui				_gui;
 			MITracker			_tracker;
@@ -29,16 +39,15 @@ namespace cvt
 			uint32_t			_timerId;
 			Time				_fpsTime;
 			size_t				_iter;
-			bool				_selectingTemplate;
 			Image				_currGray;
 
 			void calculateRectPoints( std::vector<Vector2f>& pts );
 	};
 
 	inline MIApp::MIApp( VideoInput* input ) :
+		_state( SELECTING ),
 		_input( input ),
-		_iter( 0 ),
-		_selectingTemplate( true )
+		_iter( 0 )
 	{
 		_timerId = Application::registerTimer( 20, this );
 
@@ -64,16 +73,41 @@ namespace cvt
 		_input->nextFrame();
 		_input->frame().convert( _currGray, IFormat::GRAY_UINT8 );
 
-		if( !_selectingTemplate ){
-			_tracker.updateInput( _currGray );
-			Image diff( _tracker.templateImage() );
-			diff.sub( _tracker.warped() );
-			_gui.setTemplateImage( _tracker.templateImage(), 
-								  _tracker.warped(), 
-								  diff );
-			std::vector<Vector2f> pts;
-			calculateRectPoints( pts );
-			_gui.setPoints( pts );
+		switch( _state ){
+			case SELECTING: 
+				break;
+			case TRACKING:
+				{	
+					_tracker.updateInput( _currGray );
+
+					if( !_detector.checkHomography( _tracker.pose() ) ){
+						_state = DETECTING;
+					}
+
+					Image diff( _tracker.templateImage() );
+					diff.sub( _tracker.warped() );
+					_gui.setTemplateImage( _tracker.templateImage(), 
+										  _tracker.warped(), 
+										  diff );
+					std::vector<Vector2f> pts;
+					calculateRectPoints( pts );
+					_gui.setPoints( pts );
+				}
+				break;
+			case DETECTING:
+				{
+					Matrix3f detectedHom;
+					if( _detector.detect( detectedHom, _currGray ) ){
+						_state = TRACKING;
+						_tracker.setPose( detectedHom );
+
+						std::vector<Vector2f> pts;
+						calculateRectPoints( pts );
+						_gui.setPoints( pts );
+					}
+				}
+			default:
+				break;
 		}
 
 		if( _fpsTime.elapsedSeconds() > 2 ){
@@ -89,7 +123,7 @@ namespace cvt
 
 	inline void MIApp::selectionDidStart()
 	{
-		_selectingTemplate = true;
+		_state = SELECTING;	
 	}
 
 
@@ -111,7 +145,8 @@ namespace cvt
 		_gui.setTemplateImage( patch, 
 							   _tracker.templateGradX(), 
 							   _tracker.templateGradY() );
-		_selectingTemplate = false;
+		_state = TRACKING;
+		_detector.updateTemplate( patch );
 	}
 
 	inline void MIApp::calculateRectPoints( std::vector<Vector2f>& pts )
