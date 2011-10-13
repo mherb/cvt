@@ -116,9 +116,7 @@ namespace cvt
 			_iter = 0;
 		}
 
-		_gui.setInputImage( _input->frame() );
-
-
+		_gui.setInputImage( _currGray );
 	}
 
 	inline void MIApp::selectionDidStart()
