@@ -33,7 +33,6 @@ namespace cvt {
 
 			/* set: angles in radians! */
 			void set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
-
 			/**
 			 *	\brief apply delta parameters 
 			 *	\param	delta	the delta to apply
@@ -82,6 +81,9 @@ namespace cvt {
 
 			/* get back the currently stored transformation matrix */
 			const MatrixType & transformation() const { return _current; }
+			MatrixType & transformation() { return _current; }
+
+			
 
 		private:
 			MatrixType		_current;

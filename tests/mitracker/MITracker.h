@@ -28,6 +28,7 @@ namespace cvt {
 			void	updateTemplate( const Image& img, const Vector2f& pos );
 
 			const Matrix3f& pose();
+			void setPose( const Matrix3f & hom );
 
 			const Image&	templateImage() const { return _itemplate; }
 			const Image&	templateGradX() const { return _templateGradX; }
@@ -420,6 +421,20 @@ namespace cvt {
 		_templateGradXX.unmap( g_xx );
 		_templateGradYY.unmap( g_yy );
 		_templateGradXY.unmap( g_xy );
+	}
+
+	inline void MITracker::setPose( const Matrix3f & hom )
+	{
+		Eigen::Matrix<float, 3, 3> & h = _pose.transformation();
+		h( 0, 0 ) = hom[ 0 ][ 0 ];
+		h( 0, 1 ) = hom[ 0 ][ 1 ];
+		h( 0, 2 ) = hom[ 0 ][ 2 ];
+		h( 1, 0 ) = hom[ 1 ][ 0 ];
+		h( 1, 1 ) = hom[ 1 ][ 1 ];
+		h( 1, 2 ) = hom[ 1 ][ 2 ];
+		h( 2, 0 ) = hom[ 2 ][ 0 ];
+		h( 2, 1 ) = hom[ 2 ][ 1 ];
+		h( 2, 2 ) = hom[ 2 ][ 2 ];
 	}
 
 }
