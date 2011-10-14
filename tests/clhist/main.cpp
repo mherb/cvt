@@ -26,23 +26,33 @@ int main( int argc, char** argv )
 
 #define LENGTH 10
 	CLKernel kern( _BHist_source, "bhist" );
-	CLBuffer buf( sizeof( float ) * LENGTH );
+	CLBuffer clhist( sizeof( cl_uint ) * ( LENGTH + 1 ) );
+	CLBuffer cljointhist( sizeof( cl_uint ) * ( LENGTH + 1 ) * ( LENGTH + 1 ) );
 
-	float* ptr = ( float* ) buf.map();
+	cl_uint* cluptr = ( cl_uint* ) clhist.map();
+	for( int i = 0; i < LENGTH + 1; i++ )
+		cluptr[ i ] = 0;
+	clhist.unmap( ( void* ) cluptr );
+
+	cluptr = ( cl_uint* ) cljointhist.map();
+	for( int i = 0; i < ( LENGTH + 1 ) * ( LENGTH + 1 ); i++ )
+		cluptr[ i ] = 0;
+	cljointhist.unmap( ( void* ) cluptr );
+
+
+	kern.setArg( 0, clhist );
+	kern.setArg( 1, cljointhist );
+	kern.setArg<cl_int>( 2, LENGTH );
+	kern.setArg( 3, climg );
+	kern.setArg( 4, climg );
+	kern.setArg( 5, CLLocalSpace( sizeof( float ) * ( LENGTH + 1 ) * 16 ) );
+	kern.setArg( 6, CLLocalSpace( sizeof( float ) * ( LENGTH + 1 ) * ( LENGTH + 1 ) * 16 ) );
+	kern.run( CLNDRange( climg.width() / 4, climg.height() / 4 ), CLNDRange( 4, 4 ) );
+
+	cluptr = ( cl_uint* ) clhist.map();
 	for( int i = 0; i < LENGTH; i++ )
-		ptr[ i ] = 0;
-	buf.unmap( ( void* ) ptr );
-
-	kern.setArg( 0, buf );
-	kern.setArg<int>( 1, LENGTH );
-	kern.setArg( 2, climg );
-	kern.setArg( 3, CLLocalSpace( LENGTH * sizeof( float ) ) );
-	kern.run( CLNDRange( climg.width(), climg.height() ), CLNDRange( 16, 16 ) );
-
-	ptr = ( float* ) buf.map();
-	for( int i = 0; i < LENGTH; i++ )
-		std::cout << i << " " << ptr[ i ] / ( float ) ( climg.width() * climg.height() ) << std::endl;
-	buf.unmap( ( void* ) ptr );
+		std::cout << i << " " << ( float ) cluptr[ i ] / ( float ) ( 0x100 * climg.width() * climg.height() ) << std::endl;
+	clhist.unmap( ( void* ) cluptr );
 }
 
 
