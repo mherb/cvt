@@ -246,7 +246,7 @@ namespace cvt {
 	{
 		H.setZero();
 
-		// G_i * G_j
+		// 0.5 * ( G_i * G_j + G_j * G_i )
 		H( 0, 4 ) =  0.5 * p.z(); 
 		H( 0, 5 ) =  0.5 * p.z(); 
 		H( 0, 6 ) =  0.5 * p.x(); 
