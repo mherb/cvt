@@ -83,6 +83,281 @@ namespace cvt {
 		return ret;
 	}
 
+	static bool testHessian()
+	{
+        Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();        
+		Eigen::Matrix<double, 24, 6> hN, hA;
+        
+		SE3<double> pose;
+		pose.set( Math::deg2Rad( 10.0 ), Math::deg2Rad( 40.0 ), Math::deg2Rad( -120.0 ), -100.0, 200.0, 300.0 );
+
+		Eigen::Matrix<double, 3, 3> K( Eigen::Matrix<double, 3, 3>::Zero() );
+		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
+		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
+		K( 2, 2 ) = 1.0;
+		pose.setIntrinsics( K );
+        
+		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> p, ff, fb, bf, bb, xxf, xxb, hess;
+		point[ 0 ] = 16; 
+		point[ 1 ] = 80; 
+		point[ 2 ] = 13;
+        
+		pose.transform( p, point );
+
+		double h = 0.0001;
+		for( size_t i = 0; i < 6; i++ ){
+            for( size_t j = 0; j < 6; j++ ){
+				delta.setZero();
+				if( i == j ){
+					// +
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( xxf, point );
+					pose.apply( -delta );
+
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( xxb, point );
+					pose.apply( -delta );
+
+					hess = ( xxb - 2 * p + xxf ) / ( h*h );
+				} else {
+					delta[ i ] = h;
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( ff, point );
+					pose.apply( -delta );
+
+					delta[ i ] = h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( fb, point );
+					pose.apply( -delta );
+
+					delta[ i ] = -h;
+					delta[ j ] =  h;
+					pose.apply( delta );
+					pose.transform( bf, point );
+					pose.apply( -delta );
+					
+					delta[ i ] = -h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( bb, point );
+					pose.apply( -delta );
+
+					hess = ( ff - bf - fb + bb ) / ( 4 * h * h );
+				}
+
+                hN( 4 * i , j ) = hess[ 0 ];
+                hN( 4 * i + 1 , j ) = hess[ 1 ];
+                hN( 4 * i + 2 , j ) = hess[ 2 ];
+                hN( 4 * i + 3 , j ) = 0.0;
+            }
+		}
+		
+		pose.hessian( hA, p );
+        
+		bool b, ret = true;
+        Eigen::Matrix<double, 24, 6> jDiff;
+        jDiff = hN - hA;
+		b = ( jDiff.array().abs().sum() / ( 24.0 * 6.0 ) ) < 0.00001;
+        
+		CVTTEST_PRINT( "Pose Hessian", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << hA << std::endl;
+			std::cout << "Numeric:\n" << hN << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+        
+		return ret;
+	}
+
+	static void projectWithCam( Eigen::Matrix<double, 2, 1> & sp,
+								const Eigen::Matrix<double, 3, 1> & p3d,
+								const Eigen::Matrix<double, 3, 3> & K )
+	{
+		sp[ 0 ] = K( 0, 0 ) * p3d.x() / p3d.z() + K( 0, 2 );
+		sp[ 1 ] = K( 1, 1 ) * p3d.y() / p3d.z() + K( 1, 2 );
+	}
+
+    static bool testScreenJacobian()
+	{        
+		Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();        
+		Eigen::Matrix<double, 2, 6> shNumeric, sh;
+
+		SE3<double> pose;
+		pose.set( Math::deg2Rad( 10.0 ), Math::deg2Rad( 40.0 ), Math::deg2Rad( -120.0 ), -100.0, 200.0, 300.0 );
+
+		Eigen::Matrix<double, 3, 3> K( Eigen::Matrix<double, 3, 3>::Zero() );
+		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
+		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
+		K( 2, 2 ) = 1.0;
+		pose.setIntrinsics( K );
+
+		Eigen::Matrix<double, 3, 1> point, ptrans;
+		Eigen::Matrix<double, 2, 1> sp, ff, bb, jac;
+		point[ 0 ] = 100; point[ 1 ] = 200; point[ 2 ] = 300;
+
+		// project the point with current parameters
+		pose.transform( ptrans, point );
+		projectWithCam( sp, ptrans, K );
+
+		double h = 0.001;
+		for( size_t i = 0; i < 6; i++ ){
+			delta[ i ] = h;
+			pose.apply( delta );
+			pose.transform( ptrans, point );
+			projectWithCam( ff, ptrans, K );
+			pose.apply( -delta );
+
+			delta[ i ] = -h;
+			pose.apply( delta );
+			pose.transform( ptrans, point );
+			projectWithCam( bb, ptrans, K );
+			pose.apply( -delta );
+
+			jac = ( ff - bb ) / ( 2 * h );
+			delta.setZero();
+
+			shNumeric( 0, i ) = jac[ 0 ];
+			shNumeric( 1, i ) = jac[ 1 ];
+
+		}
+
+		pose.transform( ptrans, point );
+		pose.screenJacobian( sh, ptrans );
+
+		bool b, ret = true;
+		Eigen::Matrix<double, 2, 6> jDiff;
+		jDiff = shNumeric - sh;
+		b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+
+		CVTTEST_PRINT( "Pose ScreenJacobian", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << sh << std::endl;
+			std::cout << "Numeric:\n" << shNumeric << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+
+		return ret;
+	}
+    static bool testScreenHessian()
+	{        
+		Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();        
+		Eigen::Matrix<double, 6, 6> shNumericX, shNumericY, shX, shY;
+
+
+		SE3<double> pose;
+		pose.set( Math::deg2Rad( 10.0 ), Math::deg2Rad( 40.0 ), Math::deg2Rad( -120.0 ), -100.0, 200.0, 300.0 );
+
+		Eigen::Matrix<double, 3, 3> K( Eigen::Matrix<double, 3, 3>::Zero() );
+		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
+		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
+		K( 2, 2 ) = 1.0;
+		pose.setIntrinsics( K );
+
+		Eigen::Matrix<double, 3, 1> point, ptrans;
+		Eigen::Matrix<double, 2, 1> sp, ff, fb, bf, bb, xxf, xxb, hess;
+		point[ 0 ] = 100; point[ 1 ] = 200; point[ 2 ] = 300;
+
+		// project the point with current parameters
+		pose.transform( ptrans, point );
+		projectWithCam( sp, ptrans, K );
+
+		double h = 0.001;
+		for( size_t i = 0; i < 6; i++ ){
+			for( size_t j = 0; j < 6; j++ ){
+
+				if( i == j ){
+					// +
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( xxf, ptrans, K );
+					delta[ j ] = -2 * h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( xxb, ptrans, K );
+
+					hess = ( xxb - 2 * sp + xxf ) / ( h*h );
+
+					// back to start
+					delta[ j ] = h;
+					pose.apply( delta );
+					delta[ j ] = 0;
+				} else {
+					delta[ i ] = h;
+					delta[ j ] = h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( ff, ptrans, K );
+					pose.apply( -delta );
+
+					delta[ i ] = h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( fb, ptrans, K );
+					pose.apply( -delta );
+
+					delta[ i ] = -h;
+					delta[ j ] =  h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( bf, ptrans, K );
+					pose.apply( -delta );
+
+					delta[ i ] = -h;
+					delta[ j ] = -h;
+					pose.apply( delta );
+					pose.transform( ptrans, point );
+					projectWithCam( bb, ptrans, K );
+					pose.apply( -delta );
+
+					hess = ( ff - bf - fb + bb ) / ( 4 * h * h );
+					delta.setZero();
+				}
+
+				shNumericX( i, j ) = hess[ 0 ];
+				shNumericY( i, j ) = hess[ 1 ];
+
+			}
+		}
+
+		pose.transform( ptrans, point );
+		pose.screenHessian( shX, shY, ptrans );
+
+		bool b, ret = true;
+		Eigen::Matrix<double, 6, 6> jDiff;
+		jDiff = shNumericX - shX;
+		b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+
+		CVTTEST_PRINT( "Pose ScreenHessian X", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << shX << std::endl;
+			std::cout << "Numeric:\n" << shNumericX << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+
+		jDiff = shNumericY - shY;
+		b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+
+		CVTTEST_PRINT( "Pose ScreenHessian Y", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << shY << std::endl;
+			std::cout << "Numeric:\n" << shNumericY << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+
+		return ret;
+	}
+
 BEGIN_CVTTEST( SE3 )
 	bool ret = true;
 
@@ -158,6 +433,9 @@ BEGIN_CVTTEST( SE3 )
 	ret &= b;
 
 	ret &= testJacobian();
+	ret &= testScreenJacobian();
+	ret &= testHessian();
+	ret &= testScreenHessian();
 
 	return ret;
 END_CVTTEST
