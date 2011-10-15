@@ -77,6 +77,7 @@ namespace cvt {
 			Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _jTempOuter;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
+			std::vector<size_t>	 _binValues;
 
 			// optimization related:
 			size_t	_maxIter;
@@ -272,56 +273,50 @@ namespace cvt {
 		_miHessian.setZero();
 
 		size_t stride;
-		size_t tstride;
 		const float* ptr = _warped.map<float>( &stride );
-		const float* tptr = _itemplate.map<float>( &tstride );
 		size_t w, h;
 
 		w = _itemplate.width();
 		h = _itemplate.height();
 
 		const float* pi = ptr;
-		const float* pit = tptr;
 		const float norm = w * h;
+
+		std::vector<size_t>::const_iterator rBin = _binValues.begin();
 
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
-			const float* ptval = pit;
-			for( size_t x = 0; x < w; x++ ) {
-				float r, t;
+			for( size_t x = 0; x < w; x++, rBin++ ) {
+				float t;
 				t = *pval++ * ( _numBins - 3 ) + 1.0f;
-				r = *ptval++ * ( _numBins - 3 ) + 1.0f;
 				int tidx = ( int ) t;
-				int ridx = ( int ) r;
 				curJac.setZero();
 				curHess.setZero();
 
 				for( int o = -1; o <= 2; o++ ) {
 					float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
-					float ht = _templateHist( ridx + o ) + 1e-6f;
+					float ht = _templateHist( *rBin + o ) + 1e-6f;
 					for( int m = -1; m <= 2; m++ ) {
-						float jh = _jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
+						float jh = _jhist[ ( *rBin + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
 						float c = 1.0f + Math::fastLog( jh / ht );
 						/*float d = Math::abs( c - ( 1.0f + Math::log( jh / ht ) ) );
 						if( d > 1e-4f )
 						std::cout << d << std::endl;*/
 						c *= spl;
-						curJac += c * _jTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / norm;
-						curHess += c * _hTemp[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / ( norm );
+						curJac += c * _jTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / norm;
+						curHess += c * _hTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / ( norm );
 						c = 1.0f / jh - 1.0f / ht;
 						c *= spl * spl;
-						curHess += c * _jTempOuter[ (  y * w + x ) * ( _numBins + 1 ) + ( ridx + m ) ] / Math::sqr( norm );
+						curHess += c * _jTempOuter[ (  y * w + x ) * 4 + ( m + 1 ) ] / Math::sqr( norm );
 					}
 				}
 				_miJacobian += curJac;
 				_miHessian += curHess;
 			}
 			pi += stride;
-			pit += tstride;
 		}
 
 		_warped.unmap( ptr );
-		_itemplate.unmap( tptr );
 	}
 
 	inline void MITracker::offlineTemplateDerivatives()
@@ -336,9 +331,11 @@ namespace cvt {
 		size_t numPixel = _itemplate.width() * _itemplate.height();
 
 		// we need numbins times pixel values
-		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ ( _numBins + 1 ) * numPixel ];
-		_jTempOuter = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ ( _numBins + 1 ) * numPixel ];
-		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ ( _numBins + 1 ) * numPixel ];
+		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ 4 * numPixel ];
+		_jTempOuter = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ 4 * numPixel ];
+		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ 4 * numPixel ];
+		_binValues.clear();
+		_binValues.reserve( numPixel );
 
 		Eigen::Matrix<float, 2, NUMPARAMS> screenJac;
 		Eigen::Vector2f p;
@@ -399,13 +396,14 @@ namespace cvt {
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
 			
 				pixVal = normFactor * iptr[ x ] + 1.0f;
-				for( size_t bin = 0; bin <= _numBins; bin++ ){
-					// first order mi part: TODO: evaluate first and second order splineDerivatives!
-					splineDeriv = BSpline<float>::evalDerivative( (float)bin - pixVal ); 
-					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)bin - pixVal );
-					_jTemp[ ( _numBins + 1 ) * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
-					_jTempOuter[ ( _numBins + 1 ) * iter + bin ] = _jTemp[ ( _numBins + 1 ) * iter + bin ] * _jTemp[ ( _numBins + 1 ) * iter + bin ].transpose();
-					_hTemp[ ( _numBins + 1 ) * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
+				size_t binIdx = (size_t)pixVal;
+				_binValues.push_back( binIdx );
+				for( int bin = 0; bin < 4; bin++ ){
+					splineDeriv = BSpline<float>::evalDerivative( (float)( binIdx + bin - 1 ) - pixVal ); 
+					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)( binIdx + bin - 1 ) - pixVal );
+					_jTemp[  4 * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
+					_jTempOuter[ 4 * iter + bin ] = _jTemp[ 4 * iter + bin ] * _jTemp[ 4 * iter + bin ].transpose();
+					_hTemp[ 4 * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}
 			gx += gxStride;
