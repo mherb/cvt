@@ -267,10 +267,21 @@ namespace cvt {
 
 	inline void MITracker::updateDerivatives()
 	{
-		Eigen::Matrix<float,1,NUMPARAMS> curJac;
-		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> curHess;
+	//	Eigen::Matrix<float,1,NUMPARAMS> curJac;
+	//	Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> curHess;
 		_miJacobian.setZero();
 		_miHessian.setZero();
+
+
+		Eigen::Matrix<float,1,NUMPARAMS> allJac[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
+		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> allHess[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
+
+		for( size_t y = 0; y < _numBins; y++ ) {
+			for( size_t x = 0; x < _numBins; x++ ) {
+				allJac[ y ][ x ].setZero();
+				allHess[ y ][ x ].setZero();
+			}
+		}
 
 		size_t stride;
 		const float* ptr = _warped.map<float>( &stride );
@@ -290,33 +301,47 @@ namespace cvt {
 				float t;
 				t = *pval++ * ( _numBins - 3 ) + 1.0f;
 				int tidx = ( int ) t;
-				curJac.setZero();
-				curHess.setZero();
+				//curJac.setZero();
+				//curHess.setZero();
 
 				for( int o = -1; o <= 2; o++ ) {
 					float spl= BSplinef::eval( -t + ( float ) ( tidx + o ) );
-					float ht = _templateHist( *rBin + o ) + 1e-6f;
+				//	float ht = _templateHist( *rBin + o ) + 1e-6f;
 					for( int m = -1; m <= 2; m++ ) {
-						float jh = _jhist[ ( *rBin + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
-						float c = 1.0f + Math::fastLog( jh / ht );
+				//		float jh = _jhist[ ( *rBin + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] + 1e-6f;
+				//		float c = 1.0f + Math::fastLog( jh / ht );
 						/*float d = Math::abs( c - ( 1.0f + Math::log( jh / ht ) ) );
 						if( d > 1e-4f )
 						std::cout << d << std::endl;*/
-						c *= spl;
-						curJac += c * _jTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / norm;
-						curHess += c * _hTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / ( norm );
-						c = 1.0f / jh - 1.0f / ht;
-						c *= spl * spl;
-						curHess += c * _jTempOuter[ (  y * w + x ) * 4 + ( m + 1 ) ] / Math::sqr( norm );
+				//		c *= spl;
+						allJac[ *rBin + m ][ tidx + o ] += spl  * _jTemp[ (  y * w + x ) * 4 + ( m + 1 ) ];
+						allHess[ *rBin + m ][ tidx + o ] += spl * _hTemp[ (  y * w + x ) * 4 + ( m + 1 ) ];
+				//		curJac += c * _jTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / norm;
+				//		curHess += c * _hTemp[ (  y * w + x ) * 4 + ( m + 1 ) ] / ( norm );
+				//		c = 1.0f / jh - 1.0f / ht;
+				//		c *= spl * spl;
+				//		curHess += c * _jTempOuter[ (  y * w + x ) * 4 + ( m + 1 ) ] / Math::sqr( norm );
 					}
 				}
-				_miJacobian += curJac;
-				_miHessian += curHess;
+				//_miJacobian += curJac;
+				//_miHessian += curHess;
 			}
 			pi += stride;
 		}
 
 		_warped.unmap( ptr );
+
+		for( size_t y = 0; y < _numBins; y++ ) {
+			float ht = _templateHist( y ) + 1e-6f;
+			for( size_t x = 0; x < _numBins; x++ ) {
+				float jh = _jhist[ y *  ( _numBins + 1 ) + x ] + 1e-6f;
+				float c = 1.0f + Math::fastLog( jh / ht );
+				_miJacobian += c * allJac[ y ][ x ] / norm;
+				_miHessian += c * allHess[ y ][ x ] / norm;
+				c = 1.0f / jh - 1.0f / ht;
+				_miHessian += c * allJac[ y ][ x ].transpose() * allJac[ y ][ x ] / Math::sqr( norm );
+			}
+		}
 	}
 
 	inline void MITracker::offlineTemplateDerivatives()
