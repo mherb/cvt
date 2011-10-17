@@ -76,7 +76,7 @@ namespace cvt {
 			// for the template we can calculate offline data once:
 			Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
-			std::vector<size_t>	 _binValues;
+			std::vector<int>	 _binValues;
 
 			// optimization related:
 			size_t	_maxIter;
@@ -86,7 +86,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 64 ),
+		_numBins( 12 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_hTemp( 0 ),
@@ -187,9 +187,8 @@ namespace cvt {
 		_itemplate.reallocate( tmp );
 		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 		updateTemplateGradients();
-		offlineTemplateDerivatives();
-
 		_templateHist.update( _itemplate );
+		offlineTemplateDerivatives();
 
 		// reallocate the backwarped sizes
 		_warped.reallocate( _itemplate );
@@ -265,9 +264,6 @@ namespace cvt {
 	{
 	//	Eigen::Matrix<float,1,NUMPARAMS> curJac;
 	//	Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> curHess;
-		_miJacobian.setZero();
-		_miHessian.setZero();
-
 
 		Eigen::Matrix<float,1,NUMPARAMS> allJac[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
 		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> allHess[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
@@ -289,7 +285,7 @@ namespace cvt {
 		const float* pi = ptr;
 		const float norm = w * h;
 
-		std::vector<size_t>::const_iterator rBin = _binValues.begin();
+		std::vector<int>::const_iterator rBin = _binValues.begin();
 
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
@@ -327,6 +323,9 @@ namespace cvt {
 
 		_warped.unmap( ptr );
 
+		_miJacobian.setZero();
+		_miHessian.setZero();
+
 		for( size_t y = 0; y < _numBins; y++ ) {
 			float ht = _templateHist( y ) + 1e-6f;
 			for( size_t x = 0; x < _numBins; x++ ) {
@@ -335,7 +334,7 @@ namespace cvt {
 				_miJacobian += c * allJac[ y ][ x ] / norm;
 				_miHessian += c * allHess[ y ][ x ] / norm;
 				c = 1.0f / jh - 1.0f / ht;
-				_miHessian += c * allJac[ y ][ x ].transpose() * allJac[ y ][ x ] / Math::sqr( norm );
+				_miHessian += c * allJac[ y ][ x ].transpose() * allJac[ y ][ x ] / ( Math::sqr( norm ) );
 			}
 		}
 	}
@@ -414,12 +413,12 @@ namespace cvt {
 				imagePoseDeriv2 = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy; 
 			
 				pixVal = normFactor * iptr[ x ] + 1.0f;
-				size_t binIdx = (size_t)pixVal;
+				int binIdx = ( int ) pixVal;
 				_binValues.push_back( binIdx );
 				for( int bin = 0; bin < 4; bin++ ){
 					splineDeriv = BSpline<float>::evalDerivative( (float)( binIdx + bin - 1 ) - pixVal ); 
 					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)( binIdx + bin - 1 ) - pixVal );
-					_jTemp[  4 * iter + bin ] = -splineDeriv * imagePoseDeriv.transpose();
+					_jTemp[ 4 * iter + bin ] = -splineDeriv * imagePoseDeriv.transpose();
 					_hTemp[ 4 * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}
