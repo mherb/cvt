@@ -75,7 +75,6 @@ namespace cvt {
 
 			// for the template we can calculate offline data once:
 			Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
-			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _jTempOuter;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
 			std::vector<size_t>	 _binValues;
 
@@ -90,7 +89,6 @@ namespace cvt {
 		_numBins( 64 ),
 		_templateHist( _numBins ),
 		_jTemp( 0 ),
-		_jTempOuter( 0 ),
 		_hTemp( 0 ),
 		_maxIter( 10 )
 	{
@@ -102,8 +100,6 @@ namespace cvt {
 		delete[] _jhist;
 		if( _jTemp )
 			delete[] _jTemp;
-		if( _jTempOuter )
-			delete[] _jTempOuter;
 		if( _hTemp )
 			delete[] _hTemp;
 	}
@@ -348,8 +344,6 @@ namespace cvt {
 	{
 		if( _jTemp )
 			delete[] _jTemp;
-		if( _jTempOuter )
-			delete[] _jTempOuter;
 		if( _hTemp )
 			delete[] _hTemp;
 		
@@ -357,7 +351,6 @@ namespace cvt {
 
 		// we need numbins times pixel values
 		_jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ 4 * numPixel ];
-		_jTempOuter = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ 4 * numPixel ];
 		_hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ 4 * numPixel ];
 		_binValues.clear();
 		_binValues.reserve( numPixel );
@@ -426,8 +419,7 @@ namespace cvt {
 				for( int bin = 0; bin < 4; bin++ ){
 					splineDeriv = BSpline<float>::evalDerivative( (float)( binIdx + bin - 1 ) - pixVal ); 
 					splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)( binIdx + bin - 1 ) - pixVal );
-					_jTemp[  4 * iter + bin ] = - splineDeriv * imagePoseDeriv.transpose();
-					_jTempOuter[ 4 * iter + bin ] = _jTemp[ 4 * iter + bin ] * _jTemp[ 4 * iter + bin ].transpose();
+					_jTemp[  4 * iter + bin ] = -splineDeriv * imagePoseDeriv.transpose();
 					_hTemp[ 4 * iter + bin ] = splineDeriv2 * imagePoseDeriv.transpose() * imagePoseDeriv - splineDeriv * imagePoseDeriv2;
 				}
 			}
