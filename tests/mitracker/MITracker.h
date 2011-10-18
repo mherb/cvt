@@ -262,10 +262,10 @@ namespace cvt {
 
 	inline void MITracker::updateDerivatives()
 	{
-	//	Eigen::Matrix<float,1,NUMPARAMS> curJac;
+	//	Eigen::Matrix<float,8,1> curJac;
 	//	Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> curHess;
 
-		Eigen::Matrix<float,1,NUMPARAMS> allJac[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
+		Eigen::Matrix<float,NUMPARAMS, 1> allJac[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
 		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> allHess[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
 
 		for( size_t y = 0; y < _numBins; y++ ) {
@@ -334,7 +334,7 @@ namespace cvt {
 				_miJacobian += c * allJac[ y ][ x ] / norm;
 				_miHessian += c * allHess[ y ][ x ] / norm;
 				c = 1.0f / jh - 1.0f / ht;
-				_miHessian += c * allJac[ y ][ x ].transpose() * allJac[ y ][ x ] / ( Math::sqr( norm ) );
+				_miHessian += c * allJac[ y ][ x ] * allJac[ y ][ x ].transpose() / ( Math::sqr( norm ) );
 			}
 		}
 	}
