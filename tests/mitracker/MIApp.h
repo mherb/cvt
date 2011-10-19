@@ -80,9 +80,9 @@ namespace cvt
 				{	
 					_tracker.updateInput( _currGray );
 
-					if( !_detector.checkHomography( _tracker.pose() ) ){
+					/*if( !_detector.checkHomography( _tracker.pose() ) ){
 						_state = DETECTING;
-					}
+					}*/
 
 					Image diff( _tracker.templateImage() );
 					diff.sub( _tracker.warped() );
