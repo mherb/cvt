@@ -46,6 +46,22 @@ namespace cvt {
 		}
 	}
 
+	void ITransform::apply( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv )
+	{
+		if( src.format() != dst.format() )
+			throw CVTException( "Image formats do not match!" );
+
+		switch( src.format().formatID ) {
+			case IFORMAT_GRAY_FLOAT: return applyFC1( dst, src, T, Tinv );
+			case IFORMAT_GRAY_UINT8: return applyU8C1( dst, src, T, Tinv );
+			case IFORMAT_RGBA_FLOAT:
+			case IFORMAT_BGRA_FLOAT: return applyFC4( dst, src, T, Tinv );
+			case IFORMAT_RGBA_UINT8:
+			case IFORMAT_BGRA_UINT8: return applyU8C4( dst, src, T, Tinv );
+			default: throw CVTException( "Unsupported image format!" );
+		}
+	}
+
 	void ITransform::apply( const ParamSet* attribs, IFilterType iftype ) const
 	{
 		if( !(getIFilterType() & iftype ) )
