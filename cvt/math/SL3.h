@@ -13,7 +13,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <cvt/math/Math.h>
-#include <vector>
 
 namespace cvt {
 	template <typename T>
