@@ -32,15 +32,15 @@ namespace cvt {
 		if( z > 2.0f ) return 0.0f;
 		if( t < -1.0f ) {
 			t = ( 2.0f + t );
-			return 3.0f * t * t / 6.0f;
+			return 0.5f * t * t;
 		}
 		if( t > 1.0f ) {
 			t = ( 2.0f - t );
-			return -3.0f * t * t / 6.0f;
+			return -0.5f * t * t;
 		}
 		if( t < 0.0f )
-			return ( 3.0f + 6.0f * ( 1 + t ) - 9.0f * ( 1 + t ) * ( 1 + t ) ) / 6.0f;
-		return -( 3.0f + 6.0f * ( 1 - t ) - 9.0f * ( 1 - t ) * ( 1 - t ) ) / 6.0f;
+			return -1.5f * t * t - 2.0f * t;
+		return 1.5f * t * t - 2.0f * t;
 	}
 
 	template<typename T>
@@ -48,17 +48,8 @@ namespace cvt {
 	{
 		T z = Math::abs( t );
 		if( z > 2.0f ) return 0.0f;
-		if( t < -1.0f ) {
-			t = ( 2.0f + t );
-			return 6.0f * t / 6.0f;
-		}
-		if( t > 1.0f ) {
-			t = ( 2.0f - t );
-			return 6.0f * t / 6.0f;
-		}
-		if( t < 0.0f )
-			return ( 6.0f - 18.0f * ( 1 + t ) ) / 6.0f;
-		return ( 6.0f - 18.0f * ( 1 - t ) ) / 6.0f;
+		if( z > 1.0f ) return -z + 2.0f;
+		return 3.0f * z - 2.0f;
 	}
 
 	typedef BSpline<float> BSplinef;
