@@ -45,7 +45,8 @@ int main( int argc, char* argv[] )
 {
     VideoInput * input = 0;
 	if( argc == 1 ){
-        input = initCamera();
+		input = NULL;
+//        input = initCamera();
     } else {
 		if( argc < 6 ){
 			std::cout << "Usage: " << argv[ 0 ] << "<base> <ext> <start> <stop> <nrwidth>" << std::endl;

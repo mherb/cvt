@@ -8,6 +8,8 @@
 #include "MITracker.h"
 #include "MIGui.h"
 
+#define DEBUGMI 1
+
 namespace cvt
 {
 	class MIApp : public TimeoutHandler
@@ -59,6 +61,23 @@ namespace cvt
 		_gui.addSelectionDelegates( selStart, selDone );
 		_gui.observeMaxIterations( maxIterChanged );
 		_gui.setMaxIter( _tracker.maxIterations() );
+#ifdef DEBUGMI
+		{
+			Image tmp;
+			tmp.load("../data/lena_g.png");
+			tmp.convert( _currGray, IFormat::GRAY_FLOAT );
+
+			_tracker.updateTemplate( _currGray, Vector2f( 0, 0 ) );
+			_state = TRACKING;
+			tmp.reallocate( 800, 800, IFormat::GRAY_FLOAT );
+			tmp.fill( Color::WHITE );
+			tmp.copyRect( ( 800 - 512 ) / 2, ( 800 - 512 ) / 2, _currGray, Recti( 0, 0, 512, 512 ) );
+			_currGray.reallocate( tmp );
+			_currGray = tmp;
+			_tracker.setMaxIterations( 1 );
+			_gui.setMaxIter( _tracker.maxIterations() );
+		}
+#endif
 	}
 
 	inline MIApp::~MIApp()
@@ -69,16 +88,43 @@ namespace cvt
 	inline void MIApp::onTimeout()
 	{
 		_iter++;
-
+#ifdef DEBUGMI
+		static float tx = -10.0f;
+		static float ty = -10.0f;
+#else
 		_input->nextFrame();
 		_input->frame().convert( _currGray, IFormat::GRAY_UINT8 );
+#endif
 
 		switch( _state ){
 			case SELECTING: 
 				break;
 			case TRACKING:
 				{	
+#ifdef DEBUGMI
+					Matrix3f hom;
+					hom.setHomography( 0.0f, 0.0f, 1.0f, 1.0f, 144.0f + tx , 144.0f + ty, 0.0f, 0.0f );
+					_tracker.setPose( hom );
+#endif
+
 					_tracker.updateInput( _currGray );
+
+#ifdef DEBUGMI
+					std::cout << tx << " " << ty
+							  << " " << _tracker.hessian()( 0, 0 )
+							  << " " << _tracker.hessian()( 0, 1 )
+							  << " " << _tracker.hessian()( 1, 0 )
+							  << " " << _tracker.hessian()( 1, 1 )
+							  << std::endl;
+					tx += 1.0f;
+					if( tx >= 10.1f ) {
+						std::cout << std::endl;
+						tx = -10.0f;
+						ty += 1.0f;
+						if( ty >= 10.1f )
+							exit( 1 );
+					}
+#endif
 
 					/*if( !_detector.checkHomography( _tracker.pose() ) ){
 						_state = DETECTING;
@@ -144,7 +190,7 @@ namespace cvt
 							   _tracker.templateGradX(), 
 							   _tracker.templateGradY() );
 		_state = TRACKING;
-		_detector.updateTemplate( patch );
+	//	_detector.updateTemplate( patch );
 	}
 
 	inline void MIApp::calculateRectPoints( std::vector<Vector2f>& pts )
