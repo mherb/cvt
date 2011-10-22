@@ -13,7 +13,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <cvt/math/Math.h>
-#include <vector>
 
 namespace cvt {
 	template <typename T>
@@ -156,6 +155,8 @@ namespace cvt {
 		/* m = exp( m ) */
 		cvt::Math::exponential( m, m );
 
+//		std::cout << m << std::endl;
+
 		/* update current in the inverse fashion */
 		_current *= m;
 	}
@@ -228,7 +229,14 @@ namespace cvt {
 	template < typename T >
 	inline void SL3<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const
 	{
-		J( 0, 0 ) = 1; J( 0, 1 ) = 0; J( 0, 2 ) = sp[ 1 ]; J( 0, 3 ) = 0; J( 0, 4 ) = sp[ 0 ]; J( 0, 5 ) = -sp[ 0 ]; J( 0, 6 ) = -sp[ 0 ] * sp[ 0 ];J( 0, 7 ) = -sp[ 0 ] * sp[ 1 ];
+		J( 0, 0 ) = 1; 
+		J( 0, 1 ) = 0; 
+		J( 0, 2 ) = sp[ 1 ]; 
+		J( 0, 3 ) = 0; 
+		J( 0, 4 ) = sp[ 0 ]; 
+		J( 0, 5 ) = -sp[ 0 ]; 
+		J( 0, 6 ) = -sp[ 0 ] * sp[ 0 ];
+		J( 0, 7 ) = -sp[ 0 ] * sp[ 1 ];
 
 		J( 1, 0 ) = 0;
 		J( 1, 1 ) = 1;
