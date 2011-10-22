@@ -9,7 +9,7 @@
 
 #include <cvt/math/SL3.h>
 
-#define NUMPARAMS 8
+#define NUMPARAMS 2
 
 namespace cvt {
 	class MITracker {
@@ -37,6 +37,11 @@ namespace cvt {
 
 			size_t	maxIterations()			const { return _maxIter; }
 			void	setMaxIterations( size_t m )  { _maxIter = m; }
+
+			float	MI();
+
+			Eigen::Matrix<float,NUMPARAMS,1> jacobian() { return _miJacobian; }
+			Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> hessian() { return _miHessian; }
 
 		private:
 			void	updateInputHistograms();
@@ -68,8 +73,8 @@ namespace cvt {
 			Image	_warped;
 			
 			//PoseHomography<float> _pose;
-			//PoseTranslation<float> _pose;
-			SL3<float>	_pose;
+			PoseTranslation<float> _pose;
+			//SL3<float>	_pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>	_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -94,7 +99,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 10 ),
+		_numBins( 32 ),
 		//_templateHist( _numBins ),
 		_jTemp( 0 ),
 		_jTempOuter( 0 ),
@@ -102,7 +107,7 @@ namespace cvt {
 		_tempSplineWeights( 0 ),
 		_tempSplineDerivWeights( 0 ),
 		_maxIter( 10 ),
-		_gradThresh( 0.2f ),
+		_gradThresh( 0.15f ),
 		_evaluated( 0 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -142,11 +147,13 @@ namespace cvt {
 			hinv = h.inverse();
 
 			tmp.fill( Color::WHITE );
-			ITransform::apply( _warped, img, hinv );
-			//tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+			ITransform::apply( tmp, img, hinv );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
+
+
 			updateDerivatives();
 
 			//std::cout << "Jacobian:\n" << _miJacobian << std::endl;
@@ -160,15 +167,18 @@ namespace cvt {
 			iter++;
 		}
 
+		//std::cout << MI() << std::endl;
 	}
 
 	inline float MITracker::solveDeltaPose()
 	{
 		// calc the update:
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
+		//std::cout << "GRADIENT\n" << _miJacobian << std::endl;
+		//std::cout << "HESSIAN\n" << _miHessian << std::endl;
 		delta = -_miHessian.inverse() * _miJacobian;
 		//std::cout << "Delta:\n" << delta << std::endl;
-		_pose.applyInverse( delta );
+		_pose.addDelta( delta );
 
 		return delta.norm();
 	}
@@ -185,6 +195,10 @@ namespace cvt {
 		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
 		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX );
 		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_3_YY );
+
+//		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX, IKernel::GAUSS_VERTICAL_3 );
+//		_itemplate.convolve( _templateGradYY, IKernel::GAUSS_HORIZONTAL_3, IKernel::LAPLACE_3_YY );
+
 
 
 		//_templateGradX.convolve( _templateGradXX, IKernel::HAAR_HORIZONTAL_3 );
@@ -203,12 +217,12 @@ namespace cvt {
 	inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
 	{
 		Time t;
-		//_pose.pose().setHomography( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
-		_pose.set( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
-		//Image tmp;
-		img.convert( _itemplate, IFormat::GRAY_FLOAT );
-		//_itemplate.reallocate( tmp );
-		//tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+		_pose.pose().setHomography( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
+		//_pose.set( 0.0f, 0.0f, 1.0f, 1.0f, pos.x, pos.y, 0.0f, 0.0f );
+		Image tmp;
+		img.convert( tmp, IFormat::GRAY_FLOAT );
+		_itemplate.reallocate( tmp );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
 		updateTemplateGradients();
 
 	//	_templateHist.update( _itemplate );
@@ -219,13 +233,13 @@ namespace cvt {
 		// reallocate the backwarped sizes
 		_warped.reallocate( _itemplate );
 
-		std::cout << "Template update took: " << t.elapsedMilliSeconds() << std::endl;
+		//std::cout << "Template update took: " << t.elapsedMilliSeconds() << std::endl;
 	}
 
 	inline const Matrix3f& MITracker::pose() 
 	{
-		//return _pose.pose();
-		const Eigen::Matrix<float, 3, 3> & h = _pose.transformation();
+		return _pose.pose();
+		/*const Eigen::Matrix<float, 3, 3> & h = _pose.transformation();
 		_currPose[ 0 ][ 0 ] = h( 0, 0 );
 		_currPose[ 0 ][ 1 ] = h( 0, 1 );
 		_currPose[ 0 ][ 2 ] = h( 0, 2 );
@@ -235,7 +249,34 @@ namespace cvt {
 		_currPose[ 2 ][ 0 ] = h( 2, 0 );
 		_currPose[ 2 ][ 1 ] = h( 2, 1 );
 		_currPose[ 2 ][ 2 ] = h( 2, 2 );
-		return _currPose;
+		return _currPose;*/
+	}
+
+	inline float MITracker::MI()
+	{
+		float mi = 0;
+		float _thist[ _numBins + 1 ];
+		float _whist[ _numBins + 1 ];
+
+		for( size_t x = 0; x < _numBins+1; x++ ) {
+			_thist[ x ] = 0;
+			_whist[ x ] = 0;
+		}
+		for( size_t y = 0; y < _numBins+1; y++ ) {
+			for( size_t x = 0; x < _numBins+1; x++ ) {
+				_thist[ y ] += _jhist[ y * ( _numBins + 1 ) + x ];
+				_whist[ x ] += _jhist[ y * ( _numBins + 1 ) + x ];
+			}
+		}
+
+		for( size_t y = 0; y < _numBins+1; y++ ) {
+			for( size_t x = 0; x < _numBins+1; x++ ) {
+				float jval = _jhist[ y * ( _numBins + 1 ) + x ];
+				mi += jval * Math::fastLog( ( jval + 1e-12f ) / ( _thist[ y ] * _whist[ x ] + 1e-12f ) );
+			}
+		}
+
+		return mi;
 	}
 
 	inline void MITracker::updateInputHistograms()
@@ -356,8 +397,8 @@ namespace cvt {
 		float c2[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
 		for( size_t y = 0; y < _numBins+1; y++ ) {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
-				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-6f;
-				float tval = _thist[ y ] + 1e-6f;
+				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-10f;
+				float tval = _thist[ y ] + 1e-12f;
 				c1[ y ][ x ] = 1.0f + Math::fastLog( jval / tval );
 				c2[ y ][ x ] = 1.0f / jval - 1.0f / tval;
 			}
@@ -377,6 +418,9 @@ namespace cvt {
 
 		_miJacobian.setZero();
 		_miHessian.setZero();
+		Eigen::Matrix<float,NUMPARAMS,NUMPARAMS> hessOuter;
+
+		hessOuter.setZero();
 
 		float sumJ, sumJJ, sumH;
 		
@@ -443,13 +487,15 @@ namespace cvt {
 					}
 				}
 				_miJacobian += _jTemp[ y * w + x ] * sumJ;
-				_miHessian  += ( _hTemp[ y * w + x ] * sumJ + sumH * _jTempOuter[ y * w + x ] ) / norm;
-				_miHessian  += ( sumJJ * _jTempOuter[ y * w + x ] ) / Math::sqr( norm ); 
+				_miHessian  += ( _hTemp[ y * w + x ] * sumJ + sumH * _jTempOuter[ y * w + x ] );
+				hessOuter  += sumJJ * _jTempOuter[ y * w + x ];
 			}
 			pi += stride;
 		}
 
 		_miJacobian /= norm;
+		_miHessian /= norm;
+		_miHessian += hessOuter / Math::sqr( norm );
 
 		_warped.unmap( ptr );
 
@@ -508,7 +554,7 @@ namespace cvt {
 		_binValues.reserve( numPixel );
 
 		Eigen::Matrix<float, 2, NUMPARAMS> screenJac;
-		Eigen::Vector2f p;
+		Vector2f p;
 
 		size_t iStride;
 		size_t gxStride, gyStride;
@@ -600,7 +646,8 @@ namespace cvt {
 
 	inline void MITracker::setPose( const Matrix3f & hom )
 	{
-		Eigen::Matrix<float, 3, 3> & h = _pose.transformation();
+		_pose.pose() = hom;
+		/*Eigen::Matrix<float, 3, 3> & h = _pose.transformation();
 		h( 0, 0 ) = hom[ 0 ][ 0 ];
 		h( 0, 1 ) = hom[ 0 ][ 1 ];
 		h( 0, 2 ) = hom[ 0 ][ 2 ];
@@ -609,7 +656,7 @@ namespace cvt {
 		h( 1, 2 ) = hom[ 1 ][ 2 ];
 		h( 2, 0 ) = hom[ 2 ][ 0 ];
 		h( 2, 1 ) = hom[ 2 ][ 1 ];
-		h( 2, 2 ) = hom[ 2 ][ 2 ];
+		h( 2, 2 ) = hom[ 2 ][ 2 ];*/
 	}
 
 }
