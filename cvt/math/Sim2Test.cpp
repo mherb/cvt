@@ -249,7 +249,7 @@ namespace cvt {
 		ret &= b;
         
         jDiff = shNumericY - shY;
-		b = ( jDiff.array().abs().sum() / 64.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / 16.0 ) < 0.001;
         
 		CVTTEST_PRINT( "Pose ScreenHessian Y", b );
 		if( !b ){

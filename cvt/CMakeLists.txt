@@ -281,6 +281,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/SE3.h
 	math/SL3.h
 	math/Sim2.h
+	math/GA2.h
 	math/SparseBundleAdjustment.h
 	math/Vector.h
 	math/Vector2.h
@@ -455,6 +456,7 @@ SET(${MODULE_NAME}_SOURCES
 	math/SE3Test.cpp
 	math/SL3Test.cpp
 	math/Sim2Test.cpp
+	math/GA2Test.cpp
 	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
 	util/ParamSet.cpp
