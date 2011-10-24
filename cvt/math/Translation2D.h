@@ -1,15 +1,15 @@
 /*
- *  Sim2.h
+ *  Translation2D.h
  *
- *	Similarity in 2D 
+ *	Translation in 2D 
  *
  *  Created by Sebastian Klose 
  *  Copyright 2011. All rights reserved.
  *
  */
 
-#ifndef CVT_SIM2_H
-#define CVT_SIM2_H
+#ifndef CVT_TRANSLATION2D_H
+#define CVT_TRANSLATION2D_H
 
 #include <Eigen/Core>
 #include <cvt/math/Math.h>
@@ -17,18 +17,16 @@
 
 namespace cvt {
 	/**
-	 *	\class Sim2	Similarity in 2D
+	 *	\class Translation2D	Translational motion in 2D
 	 *	parameters:
 	 *	p0:	tx
 	 *	p1:	ty
-	 *	p2:	alpha (rotation)
-	 *	p3:	scale (exp(scale))
 	 */
 	template <typename T>
-	class Sim2
+	class Translation2D
 	{
 		public:
-			static const size_t NPARAMS	= 4;
+			static const size_t NPARAMS	= 2;
 			typedef Eigen::Matrix<T, 3, 3> MatrixType;
 			typedef Eigen::Matrix<T, 3, NPARAMS> JacMatType;
 			typedef Eigen::Matrix<T, 3*NPARAMS, NPARAMS> HessMatType;
@@ -37,11 +35,10 @@ namespace cvt {
 			typedef Eigen::Matrix<T, NPARAMS, 1> ParameterVectorType;
 			typedef Eigen::Matrix<T, 3, 1> PointType;
 
-			Sim2();
-			~Sim2(){};
+			Translation2D();
+			~Translation2D(){};
 
-			/* set: angles in radians! */
-			void set( T scale, T alpha, T tx, T ty );
+			void set( T tx, T ty );
 			void set( const Matrix3<T> & mat );
 			
 			/**
@@ -99,20 +96,18 @@ namespace cvt {
 	};
 
 	template < typename T >
-	inline Sim2<T>::Sim2() : _current( MatrixType::Identity() )
+	inline Translation2D<T>::Translation2D() : _current( MatrixType::Identity() )
 	{
 	}
 
 	template < typename T>
-	inline void Sim2<T>::set( T scale, T alpha, T tx, T ty )
+	inline void Translation2D<T>::set( T tx, T ty )
 	{
-		T c = scale * Math::cos( alpha );
-		T s = scale * Math::sin( alpha );
-		_current( 0, 0 ) = c; 
-		_current( 0, 1 ) = -s;
+		_current( 0, 0 ) = 1; 
+		_current( 0, 1 ) = 0;
 		_current( 0, 2 ) = tx;
-		_current( 1, 0 ) = s; 
-		_current( 1, 1 ) = c;
+		_current( 1, 0 ) = 0; 
+		_current( 1, 1 ) = 1;
 	   	_current( 1, 2 ) = ty;
 		_current( 2, 0 ) = 0; 
 		_current( 2, 1 ) = 0; 
@@ -120,7 +115,7 @@ namespace cvt {
 	}
 
 	template <typename T>
-	inline void Sim2<T>::set( const Matrix3<T> & mat )
+	inline void Translation2D<T>::set( const Matrix3<T> & mat )
 	{
 		_current( 0, 0 ) = mat[ 0 ][ 0 ];
 		_current( 0, 1 ) = mat[ 0 ][ 1 ];
@@ -134,16 +129,16 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::apply( const ParameterVectorType & delta )
+	inline void Translation2D<T>::apply( const ParameterVectorType & delta )
 	{
 		MatrixType m;
 
-		m( 0, 0 ) =  delta[ 3 ];
-		m( 0, 1 ) = -delta[ 2 ];
+		m( 0, 0 ) =  0;
+		m( 0, 1 ) =  0;
 		m( 0, 2 ) =  delta[ 0 ];
 
-		m( 1, 0 ) =  delta[ 2 ];
-		m( 1, 1 ) =  delta[ 3 ];
+		m( 1, 0 ) =  0;
+		m( 1, 1 ) =  0;
 		m( 1, 2 ) =  delta[ 1 ];
 
 		m( 2, 0 ) = 0;
@@ -159,16 +154,16 @@ namespace cvt {
 	}
 
 	template <typename T>
-	inline void Sim2<T>::applyInverse( const ParameterVectorType & delta )
+	inline void Translation2D<T>::applyInverse( const ParameterVectorType & delta )
 	{
 		MatrixType m;
-
-		m( 0, 0 ) =  delta[ 3 ];
-		m( 0, 1 ) = -delta[ 2 ];
+		
+		m( 0, 0 ) =  0;
+		m( 0, 1 ) =  0;
 		m( 0, 2 ) =  delta[ 0 ];
 
-		m( 1, 0 ) =  delta[ 2 ];
-		m( 1, 1 ) =  delta[ 3 ];
+		m( 1, 0 ) =  0;
+		m( 1, 1 ) =  0;
 		m( 1, 2 ) =  delta[ 1 ];
 
 		m( 2, 0 ) = 0;
@@ -183,13 +178,13 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::transform( PointType & warped, const PointType & p ) const
+	inline void Translation2D<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
 	}
 
 	template < typename T >
-	inline void Sim2<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
+	inline void Translation2D<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
 	{
 		J( 0, 0 ) = p[ 2 ];
 		J( 1, 0 ) =    0  ;
@@ -198,25 +193,17 @@ namespace cvt {
 		J( 0, 1 ) =	   0  ;
 		J( 1, 1 ) = p[ 2 ];
 		J( 2, 1 ) =    0  ;
-
-		J( 0, 2 ) =	-p[ 1 ];
-		J( 1, 2 ) =  p[ 0 ];
-		J( 2, 2 ) =     0  ;
-
-		J( 0, 3 ) = p[ 0 ];
-		J( 1, 3 ) = p[ 1 ];
-		J( 2, 3 ) =    0  ;
 	}
 
 	template < typename T >
-	inline void Sim2<T>::jacobian( JacMatType & J, const PointType & p ) const
+	inline void Translation2D<T>::jacobian( JacMatType & J, const PointType & p ) const
 	{
 		PointType pp = _current * p;
 		jacobianAroundT( J, pp );
 	}
 
 	template < typename T >
-	inline void Sim2<T>::project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const
+	inline void Translation2D<T>::project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const
 	{
 		PointType pp = _current * p;
 
@@ -225,68 +212,36 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const
+	inline void Translation2D<T>::project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const
 	{
 		project( sp, p );
 		screenJacobian( J, sp );
 	}
 
 	template < typename T >
-	inline void Sim2<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const
+	inline void Translation2D<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & ) const
 	{
 		J( 0, 0 ) = 1; 
 		J( 0, 1 ) = 0; 
-		J( 0, 2 ) = -sp[ 1 ]; 
-		J( 0, 3 ) =  sp[ 0 ]; 
 
 		J( 1, 0 ) = 0;
 		J( 1, 1 ) = 1;
-		J( 1, 2 ) = sp[ 0 ];
-		J( 1, 3 ) = sp[ 1 ];
 	}
 
 
 	template <typename T>
-	inline void Sim2<T>::hessian( HessMatType & H, const PointType & p ) const
+	inline void Translation2D<T>::hessian( HessMatType & H, const PointType & p ) const
 	{
 		H.setZero();
-
-		// 0.5 * ( G_i * G_j + G_j * G_i )
-		H( 0, 3 ) =  0.5 * p.z(); 
-		H( 1, 2 ) =  0.5 * p.z(); 
-		H( 3, 2 ) = -0.5 * p.z(); 
-		H( 4, 3 ) =  0.5 * p.z(); 
-		H( 6, 1 ) = -0.5 * p.z(); 
-		H( 6, 2 ) =		  -p.x(); 
-		H( 6, 3 ) =		  -p.y(); 
-		H( 7, 0 ) =	 0.5 * p.z(); 
-		H( 7, 2 ) =		  -p.y(); 
-		H( 7, 3 ) =		   p.x(); 
-		H( 9, 0 ) =	 0.5 * p.z(); 
-		H( 9, 2 ) =		  -p.y(); 
-		H( 9, 3 ) =		   p.x(); 
-		H(10, 1 ) =	 0.5 * p.z(); 
-		H(10, 2 ) =		   p.x(); 
-		H(10, 3 ) =		   p.y(); 
 	}
 
 	template <typename T>
-	inline void Sim2<T>::screenHessian( ScreenHessType & wx, 
+	inline void Translation2D<T>::screenHessian( ScreenHessType & wx, 
 									   ScreenHessType & wy,
-									   const Eigen::Matrix<T, 2, 1> & sp ) const
+									   const Eigen::Matrix<T, 2, 1> & ) const
 	{
-		T x = sp[ 0 ];
-		T y = sp[ 1 ];
-
-		wx << 0,    0,    0, 0.5,
-			  0,    0, -0.5,   0,
-			  0, -0.5,   -x,  -y,
-			  0.5,  0,   -y,   x;
-
-		wy << 0,   0, 0.5,   0,
-			  0,   0,   0, 0.5,
-			0.5,   0,  -y,   x,
-			  0, 0.5,   x,   y;
+		wx = ScreenHessType::Zero();
+		wy = ScreenHessType::Zero();
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- *  Sim2.h
+ *  GA2.h
  *
  *	Similarity in 2D 
  *
@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef CVT_SIM2_H
-#define CVT_SIM2_H
+#ifndef CVT_GA2_H
+#define CVT_GA2_H
 
 #include <Eigen/Core>
 #include <cvt/math/Math.h>
@@ -17,18 +17,20 @@
 
 namespace cvt {
 	/**
-	 *	\class Sim2	Similarity in 2D
+	 *	\class GA2	General Affine in 2D
 	 *	parameters:
 	 *	p0:	tx
 	 *	p1:	ty
 	 *	p2:	alpha (rotation)
 	 *	p3:	scale (exp(scale))
+	 *	p4:	shear (exp(shear))
+	 *	p5:	shear at 45 degree 
 	 */
 	template <typename T>
-	class Sim2
+	class GA2
 	{
 		public:
-			static const size_t NPARAMS	= 4;
+			static const size_t NPARAMS	= 6;
 			typedef Eigen::Matrix<T, 3, 3> MatrixType;
 			typedef Eigen::Matrix<T, 3, NPARAMS> JacMatType;
 			typedef Eigen::Matrix<T, 3*NPARAMS, NPARAMS> HessMatType;
@@ -37,8 +39,8 @@ namespace cvt {
 			typedef Eigen::Matrix<T, NPARAMS, 1> ParameterVectorType;
 			typedef Eigen::Matrix<T, 3, 1> PointType;
 
-			Sim2();
-			~Sim2(){};
+			GA2();
+			~GA2(){};
 
 			/* set: angles in radians! */
 			void set( T scale, T alpha, T tx, T ty );
@@ -99,13 +101,14 @@ namespace cvt {
 	};
 
 	template < typename T >
-	inline Sim2<T>::Sim2() : _current( MatrixType::Identity() )
+	inline GA2<T>::GA2() : _current( MatrixType::Identity() )
 	{
 	}
 
 	template < typename T>
-	inline void Sim2<T>::set( T scale, T alpha, T tx, T ty )
+	inline void GA2<T>::set( T scale, T alpha, T tx, T ty )
 	{
+
 		T c = scale * Math::cos( alpha );
 		T s = scale * Math::sin( alpha );
 		_current( 0, 0 ) = c; 
@@ -120,7 +123,7 @@ namespace cvt {
 	}
 
 	template <typename T>
-	inline void Sim2<T>::set( const Matrix3<T> & mat )
+	inline void GA2<T>::set( const Matrix3<T> & mat )
 	{
 		_current( 0, 0 ) = mat[ 0 ][ 0 ];
 		_current( 0, 1 ) = mat[ 0 ][ 1 ];
@@ -134,16 +137,16 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::apply( const ParameterVectorType & delta )
+	inline void GA2<T>::apply( const ParameterVectorType & delta )
 	{
 		MatrixType m;
 
-		m( 0, 0 ) =  delta[ 3 ];
-		m( 0, 1 ) = -delta[ 2 ];
+		m( 0, 0 ) =  delta[ 3 ] + delta[ 4 ];
+		m( 0, 1 ) =  delta[ 5 ] - delta[ 2 ];
 		m( 0, 2 ) =  delta[ 0 ];
 
-		m( 1, 0 ) =  delta[ 2 ];
-		m( 1, 1 ) =  delta[ 3 ];
+		m( 1, 0 ) =  delta[ 2 ] + delta[ 5 ];
+		m( 1, 1 ) =  delta[ 3 ] - delta[ 4 ];
 		m( 1, 2 ) =  delta[ 1 ];
 
 		m( 2, 0 ) = 0;
@@ -159,16 +162,16 @@ namespace cvt {
 	}
 
 	template <typename T>
-	inline void Sim2<T>::applyInverse( const ParameterVectorType & delta )
+	inline void GA2<T>::applyInverse( const ParameterVectorType & delta )
 	{
 		MatrixType m;
-
-		m( 0, 0 ) =  delta[ 3 ];
-		m( 0, 1 ) = -delta[ 2 ];
+		
+		m( 0, 0 ) =  delta[ 3 ] + delta[ 4 ];
+		m( 0, 1 ) =  delta[ 5 ] - delta[ 2 ];
 		m( 0, 2 ) =  delta[ 0 ];
 
-		m( 1, 0 ) =  delta[ 2 ];
-		m( 1, 1 ) =  delta[ 3 ];
+		m( 1, 0 ) =  delta[ 2 ] + delta[ 5 ];
+		m( 1, 1 ) =  delta[ 3 ] - delta[ 4 ];
 		m( 1, 2 ) =  delta[ 1 ];
 
 		m( 2, 0 ) = 0;
@@ -183,13 +186,13 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::transform( PointType & warped, const PointType & p ) const
+	inline void GA2<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
 	}
 
 	template < typename T >
-	inline void Sim2<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
+	inline void GA2<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
 	{
 		J( 0, 0 ) = p[ 2 ];
 		J( 1, 0 ) =    0  ;
@@ -206,17 +209,25 @@ namespace cvt {
 		J( 0, 3 ) = p[ 0 ];
 		J( 1, 3 ) = p[ 1 ];
 		J( 2, 3 ) =    0  ;
+		
+		J( 0, 4 ) =  p[ 0 ];
+		J( 1, 4 ) = -p[ 1 ];
+		J( 2, 4 ) =     0  ;
+		
+		J( 0, 5 ) = p[ 1 ];
+		J( 1, 5 ) = p[ 0 ];
+		J( 2, 5 ) =    0  ;
 	}
 
 	template < typename T >
-	inline void Sim2<T>::jacobian( JacMatType & J, const PointType & p ) const
+	inline void GA2<T>::jacobian( JacMatType & J, const PointType & p ) const
 	{
 		PointType pp = _current * p;
 		jacobianAroundT( J, pp );
 	}
 
 	template < typename T >
-	inline void Sim2<T>::project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const
+	inline void GA2<T>::project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const
 	{
 		PointType pp = _current * p;
 
@@ -225,37 +236,49 @@ namespace cvt {
 	}
 
 	template < typename T >
-	inline void Sim2<T>::project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const
+	inline void GA2<T>::project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const
 	{
 		project( sp, p );
 		screenJacobian( J, sp );
 	}
 
 	template < typename T >
-	inline void Sim2<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const
+	inline void GA2<T>::screenJacobian( ScreenJacType & J, const Eigen::Matrix<T, 2, 1> & sp ) const
 	{
 		J( 0, 0 ) = 1; 
-		J( 0, 1 ) = 0; 
-		J( 0, 2 ) = -sp[ 1 ]; 
-		J( 0, 3 ) =  sp[ 0 ]; 
-
 		J( 1, 0 ) = 0;
+		
+		J( 0, 1 ) = 0; 
 		J( 1, 1 ) = 1;
-		J( 1, 2 ) = sp[ 0 ];
-		J( 1, 3 ) = sp[ 1 ];
+		
+		J( 0, 2 ) = -sp[ 1 ]; 
+		J( 1, 2 ) =  sp[ 0 ];
+		
+		J( 0, 3 ) =  sp[ 0 ]; 
+		J( 1, 3 ) =  sp[ 1 ];
+		
+		J( 0, 4 ) =  sp[ 0 ]; 
+		J( 1, 4 ) = -sp[ 1 ];
+		
+		J( 0, 5 ) =  sp[ 1 ]; 
+		J( 1, 5 ) =  sp[ 0 ];
 	}
 
 
 	template <typename T>
-	inline void Sim2<T>::hessian( HessMatType & H, const PointType & p ) const
+	inline void GA2<T>::hessian( HessMatType & H, const PointType & p ) const
 	{
 		H.setZero();
 
 		// 0.5 * ( G_i * G_j + G_j * G_i )
 		H( 0, 3 ) =  0.5 * p.z(); 
+		H( 0, 4 ) =  0.5 * p.z(); 
 		H( 1, 2 ) =  0.5 * p.z(); 
+		H( 1, 5 ) =  0.5 * p.z(); 
 		H( 3, 2 ) = -0.5 * p.z(); 
+		H( 3, 5 ) =  0.5 * p.z(); 
 		H( 4, 3 ) =  0.5 * p.z(); 
+		H( 4, 4 ) = -0.5 * p.z(); 
 		H( 6, 1 ) = -0.5 * p.z(); 
 		H( 6, 2 ) =		  -p.x(); 
 		H( 6, 3 ) =		  -p.y(); 
@@ -265,28 +288,48 @@ namespace cvt {
 		H( 9, 0 ) =	 0.5 * p.z(); 
 		H( 9, 2 ) =		  -p.y(); 
 		H( 9, 3 ) =		   p.x(); 
+		H( 9, 4 ) =		   p.x(); 
+		H( 9, 5 ) =		   p.y(); 
 		H(10, 1 ) =	 0.5 * p.z(); 
 		H(10, 2 ) =		   p.x(); 
 		H(10, 3 ) =		   p.y(); 
+		H(10, 4 ) =		  -p.y(); 
+		H(10, 5 ) =		   p.x();
+	    H(12, 0 ) =  0.5 * p.z();	
+	    H(12, 3 ) =		   p.x();	
+	    H(12, 4 ) =		   p.x();	
+	    H(13, 1 ) = -0.5 * p.z();	
+	    H(13, 3 ) =		  -p.y();	
+	    H(13, 4 ) =		   p.y();	
+	    H(15, 1 ) =  0.5 * p.z();	
+	    H(15, 3 ) =		   p.y();	
+	    H(15, 5 ) =		   p.x();	
+	    H(16, 0 ) =  0.5 * p.z();	
+	    H(16, 3 ) =		   p.x();	
+	    H(16, 5 ) =		   p.y();	
 	}
 
 	template <typename T>
-	inline void Sim2<T>::screenHessian( ScreenHessType & wx, 
+	inline void GA2<T>::screenHessian( ScreenHessType & wx, 
 									   ScreenHessType & wy,
 									   const Eigen::Matrix<T, 2, 1> & sp ) const
 	{
 		T x = sp[ 0 ];
 		T y = sp[ 1 ];
 
-		wx << 0,    0,    0, 0.5,
-			  0,    0, -0.5,   0,
-			  0, -0.5,   -x,  -y,
-			  0.5,  0,   -y,   x;
+		wx <<   0,    0,    0, 0.5, 0.5,   0,
+			    0,    0, -0.5,   0,   0, 0.5,
+			    0, -0.5,   -x,  -y,   0,   0,
+			  0.5,    0,   -y,   x,   x,   y,
+			  0.5,    0,    0,   x,   x,   0,
+			    0,  0.5,    0,   y,   0,   x;
 
-		wy << 0,   0, 0.5,   0,
-			  0,   0,   0, 0.5,
-			0.5,   0,  -y,   x,
-			  0, 0.5,   x,   y;
+		wy << 0,    0, 0.5,   0,    0, 0.5,
+			  0,    0,   0, 0.5, -0.5,   0,
+			0.5,    0,  -y,   x,    0,   0,
+			  0,  0.5,   x,   y,   -y,   x,
+			  0, -0.5,   0,  -y,    y,   0,
+			0.5,    0,   0,   x,    0,   y;
 	}
 }
 
