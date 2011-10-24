@@ -6,7 +6,7 @@
 //  Copyright 2011. All rights reserved.
 //
 
-#include <cvt/math/Sim2.h>
+#include <cvt/math/GA2.h>
 #include <cvt/math/Math.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/CVTTest.h>
@@ -17,11 +17,11 @@ namespace cvt {
     
 	static bool testJacobian()
 	{
-		Eigen::Matrix<double, 4, 1> delta = Eigen::Matrix<double, 4, 1>::Zero();
-		Eigen::Matrix<double, 3, 4> jNumeric, jAnalytic, jDiff;
-		Eigen::Matrix<double, 2, 4> sJN, sJA, sJDiff;
+		Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();
+		Eigen::Matrix<double, 3, 6> jNumeric, jAnalytic, jDiff;
+		Eigen::Matrix<double, 2, 6> sJN, sJA, sJDiff;
 
-		Sim2<double> pose;
+		GA2<double> pose;
 		pose.set( 0.2, Math::deg2Rad( 10 ), 10, -10 );
 
 		Eigen::Matrix<double, 3, 1> point;
@@ -33,7 +33,7 @@ namespace cvt {
 		pose.project( sp, point );
 
 		double h = 0.0000001;
-		for( size_t i = 0; i < 4; i++ ){
+		for( size_t i = 0; i < 6; i++ ){
 			delta[ i ] = h;
 
 			pose.apply( delta );
@@ -54,7 +54,7 @@ namespace cvt {
 
 		bool b, ret = true;
 		jDiff = jAnalytic - jNumeric;
-		b = ( jDiff.array().abs().sum() / 12.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / 18.0 ) < 0.001;
 
 		CVTTEST_PRINT( "Pose Jacobian", b );
 		if( !b ){
@@ -65,7 +65,7 @@ namespace cvt {
 		ret &= b;
 
 		sJDiff = sJA - sJN;
-		b = ( sJDiff.array().abs().sum() / 8.0 ) < 0.001;
+		b = ( sJDiff.array().abs().sum() / 12.0 ) < 0.001;
 		CVTTEST_PRINT( "Screen Jacobian", b );
 		if( !b ){
 			std::cout << "Analytic:\n" << sJA << std::endl;
@@ -80,10 +80,10 @@ namespace cvt {
 
 	static bool testHessian()
 	{
-        Eigen::Matrix<double, 4, 1> delta = Eigen::Matrix<double, 4, 1>::Zero();        
-		Eigen::Matrix<double, 12, 4> hN, hA;
+        Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();        
+		Eigen::Matrix<double, 18, 6> hN, hA;
         
-		Sim2<double> pose;
+		GA2<double> pose;
 		pose.set( 0.2, Math::deg2Rad( 10 ), 10, -10 );
         
 		Eigen::Matrix<double, 3, 1> point;
@@ -95,8 +95,8 @@ namespace cvt {
 		pose.transform( p, point );
 
 		double h = 0.001;
-		for( size_t i = 0; i < 4; i++ ){
-            for( size_t j = 0; j < 4; j++ ){
+		for( size_t i = 0; i < 6; i++ ){
+            for( size_t j = 0; j < 6; j++ ){
 				delta.setZero();
 				if( i == j ){
 					// +
@@ -148,9 +148,9 @@ namespace cvt {
 		pose.hessian( hA, p );
         
 		bool b, ret = true;
-        Eigen::Matrix<double, 12, 4> jDiff;
+        Eigen::Matrix<double, 18, 6> jDiff;
         jDiff = hN - hA;
-		b = ( jDiff.array().abs().sum() / ( 12.0 * 4.0 ) ) < 0.001;
+		b = ( jDiff.array().abs().sum() / ( 18.0 * 6.0 ) ) < 0.001;
         
 		CVTTEST_PRINT( "Pose Hessian", b );
 		if( !b ){
@@ -165,10 +165,10 @@ namespace cvt {
     
     static bool testScreenHessian()
     {        
-        Eigen::Matrix<double, 4, 1> delta = Eigen::Matrix<double, 4, 1>::Zero();        
-		Eigen::Matrix<double, 4, 4> shNumericX, shNumericY, shX, shY;
+        Eigen::Matrix<double, 6, 1> delta = Eigen::Matrix<double, 6, 1>::Zero();        
+		Eigen::Matrix<double, 6, 6> shNumericX, shNumericY, shX, shY;
         
-		Sim2<double> pose;
+		GA2<double> pose;
 		pose.set( 0.2, Math::deg2Rad( 10 ), 10, -10 );
         
 		Eigen::Matrix<double, 3, 1> point, ptrans;
@@ -180,8 +180,8 @@ namespace cvt {
 		pose.transform( ptrans, point );
 
 		double h = 0.0001;
-		for( size_t i = 0; i < 4; i++ ){
-            for( size_t j = 0; j < 4; j++ ){
+		for( size_t i = 0; i < 6; i++ ){
+            for( size_t j = 0; j < 6; j++ ){
 
 				if( i == j ){
 					// +
@@ -236,9 +236,9 @@ namespace cvt {
 		pose.screenHessian( shX, shY, sp );
         
 		bool b, ret = true;
-        Eigen::Matrix<double, 4, 4> jDiff;
+        Eigen::Matrix<double, 6, 6> jDiff;
         jDiff = shNumericX - shX;
-		b = ( jDiff.array().abs().sum() / 16.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
         
 		CVTTEST_PRINT( "Pose ScreenHessian X", b );
 		if( !b ){
@@ -249,7 +249,7 @@ namespace cvt {
 		ret &= b;
         
         jDiff = shNumericY - shY;
-		b = ( jDiff.array().abs().sum() / 16.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
         
 		CVTTEST_PRINT( "Pose ScreenHessian Y", b );
 		if( !b ){
@@ -262,10 +262,10 @@ namespace cvt {
         return ret;
     }
 
-BEGIN_CVTTEST( Sim2 )
+BEGIN_CVTTEST( GA2 )
 	bool ret = true;
 
-	Sim2<double> pose;
+	GA2<double> pose;
 	bool b = true;
 	b = ( pose.transformation() == Eigen::Matrix<double, 3, 3>::Identity() );
 
