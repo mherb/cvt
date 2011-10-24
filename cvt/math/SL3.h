@@ -13,25 +13,28 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <cvt/math/Math.h>
+#include <cvt/math/Matrix.h>
 
 namespace cvt {
 	template <typename T>
 	class SL3
 	{
-		typedef Eigen::Matrix<T, 3, 3> MatrixType;
-		typedef Eigen::Matrix<T, 3, 8> JacMatType;
-		typedef Eigen::Matrix<T, 24, 8> HessMatType;
-		typedef Eigen::Matrix<T, 2, 8> ScreenJacType;
-		typedef Eigen::Matrix<T, 8, 8> ScreenHessType;
-		typedef Eigen::Matrix<T, 8, 1> ParameterVectorType;
-		typedef Eigen::Matrix<T, 3, 1> PointType;
-
 		public:
+			static const size_t NPARAMS	= 8;
+			typedef Eigen::Matrix<T, 3, 3> MatrixType;
+			typedef Eigen::Matrix<T, 3, NPARAMS> JacMatType;
+			typedef Eigen::Matrix<T, 3*NPARAMS, NPARAMS> HessMatType;
+			typedef Eigen::Matrix<T, 2, NPARAMS> ScreenJacType;
+			typedef Eigen::Matrix<T, NPARAMS, NPARAMS> ScreenHessType;
+			typedef Eigen::Matrix<T, NPARAMS, 1> ParameterVectorType;
+			typedef Eigen::Matrix<T, 3, 1> PointType;
+
 			SL3();
 			~SL3(){};
 
 			/* set: angles in radians! */
 			void set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
+			void set( const Matrix3<T> & mat );
 			/**
 			 *	\brief apply delta parameters 
 			 *	\param	delta	the delta to apply
@@ -108,6 +111,20 @@ namespace cvt {
 		_current( 0, 0 ) = affine( 0, 0 ); _current( 0, 1 ) = affine( 0, 1 ); _current( 0, 2 ) = tx;
 		_current( 1, 0 ) = affine( 1, 0 ); _current( 1, 1 ) = affine( 1, 1 ); _current( 1, 2 ) = ty;
 		_current( 2, 0 ) = v0; _current( 2, 1 ) = v1; _current( 2, 2 ) = 1.0f;
+	}
+	
+	template <typename T>
+	inline void SL3<T>::set( const Matrix3<T> & mat )
+	{
+		_current( 0, 0 ) = mat[ 0 ][ 0 ];
+		_current( 0, 1 ) = mat[ 0 ][ 1 ];
+		_current( 0, 2 ) = mat[ 0 ][ 2 ];
+		_current( 1, 0 ) = mat[ 1 ][ 0 ];
+		_current( 1, 1 ) = mat[ 1 ][ 1 ];
+		_current( 1, 2 ) = mat[ 1 ][ 2 ];
+		_current( 2, 0 ) = mat[ 2 ][ 0 ];
+		_current( 2, 1 ) = mat[ 2 ][ 1 ];
+		_current( 2, 2 ) = mat[ 2 ][ 2 ];
 	}
 
 	template < typename T >

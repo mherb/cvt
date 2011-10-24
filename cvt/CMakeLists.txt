@@ -280,6 +280,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
+	math/Translation2D.h
 	math/Sim2.h
 	math/GA2.h
 	math/SparseBundleAdjustment.h

@@ -13,6 +13,7 @@
 
 #include <Eigen/Core>
 #include <cvt/math/Math.h>
+#include <cvt/math/Matrix.h>
 
 namespace cvt {
 	/**
@@ -28,20 +29,22 @@ namespace cvt {
 	template <typename T>
 	class GA2
 	{
-		typedef Eigen::Matrix<T, 3, 3> MatrixType;
-		typedef Eigen::Matrix<T, 3, 6> JacMatType;
-		typedef Eigen::Matrix<T, 18, 6> HessMatType;
-		typedef Eigen::Matrix<T, 2, 6> ScreenJacType;
-		typedef Eigen::Matrix<T, 6, 6> ScreenHessType;
-		typedef Eigen::Matrix<T, 6, 1> ParameterVectorType;
-		typedef Eigen::Matrix<T, 3, 1> PointType;
-
 		public:
+			static const size_t NPARAMS	= 6;
+			typedef Eigen::Matrix<T, 3, 3> MatrixType;
+			typedef Eigen::Matrix<T, 3, NPARAMS> JacMatType;
+			typedef Eigen::Matrix<T, 3*NPARAMS, NPARAMS> HessMatType;
+			typedef Eigen::Matrix<T, 2, NPARAMS> ScreenJacType;
+			typedef Eigen::Matrix<T, NPARAMS, NPARAMS> ScreenHessType;
+			typedef Eigen::Matrix<T, NPARAMS, 1> ParameterVectorType;
+			typedef Eigen::Matrix<T, 3, 1> PointType;
+
 			GA2();
 			~GA2(){};
 
 			/* set: angles in radians! */
 			void set( T scale, T alpha, T tx, T ty );
+			void set( const Matrix3<T> & mat );
 			
 			/**
 			 *	\brief apply delta parameters 
@@ -117,6 +120,20 @@ namespace cvt {
 		_current( 2, 0 ) = 0; 
 		_current( 2, 1 ) = 0; 
 		_current( 2, 2 ) = 1;
+	}
+
+	template <typename T>
+	inline void GA2<T>::set( const Matrix3<T> & mat )
+	{
+		_current( 0, 0 ) = mat[ 0 ][ 0 ];
+		_current( 0, 1 ) = mat[ 0 ][ 1 ];
+		_current( 0, 2 ) = mat[ 0 ][ 2 ];
+		_current( 1, 0 ) = mat[ 1 ][ 0 ];
+		_current( 1, 1 ) = mat[ 1 ][ 1 ];
+		_current( 1, 2 ) = mat[ 1 ][ 2 ];
+		_current( 2, 0 ) = mat[ 2 ][ 0 ];
+		_current( 2, 1 ) = mat[ 2 ][ 1 ];
+		_current( 2, 2 ) = mat[ 2 ][ 2 ];
 	}
 
 	template < typename T >
