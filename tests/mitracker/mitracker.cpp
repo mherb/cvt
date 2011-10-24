@@ -45,7 +45,7 @@ int main( int argc, char* argv[] )
 {
     VideoInput * input = 0;
 	if( argc == 1 ){
-		input = NULL;
+//		input = NULL;
         input = initCamera();
     } else {
 		if( argc < 6 ){

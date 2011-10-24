@@ -8,7 +8,7 @@
 #include "MITracker.h"
 #include "MIGui.h"
 
-#define DEBUGMI 1
+//#define DEBUGMI 1
 
 namespace cvt
 {

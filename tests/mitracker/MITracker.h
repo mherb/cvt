@@ -12,7 +12,7 @@
 #include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
-#define NUMPARAMS 2
+#define NUMPARAMS 4
 
 namespace cvt {
 	class MITracker {
@@ -81,8 +81,8 @@ namespace cvt {
 
 			//SL3<float>				_pose;
 			//GA2<float>			_pose;
-			//Sim2<float>			_pose;
-			Translation2D<float>	_pose;
+			Sim2<float>			_pose;
+			//Translation2D<float>	_pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>			_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -108,7 +108,7 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 32 ),
+		_numBins( 64 ),
 		_jTemp( 0 ),
 		_jTempOuter( 0 ),
 		_hTemp( 0 ),
@@ -155,7 +155,7 @@ namespace cvt {
 
 			tmp.fill( Color::WHITE );
 			ITransform::apply( tmp, img, hinv );
-			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
@@ -168,7 +168,7 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-5 )
+			if( epsilon < 1e-8 )
 				return;	
 
 			iter++;
@@ -234,7 +234,7 @@ namespace cvt {
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
 		_itemplate.reallocate( tmp );
-		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 		updateTemplateGradients();
 
 	//	_templateHist.update( _itemplate );
@@ -442,7 +442,7 @@ namespace cvt {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
 				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-12f;
 				float tval = _thist[ y ] + 1e-10f;
-				c1[ y ][ x ] = Math::fastLog( jval / tval );
+				c1[ y ][ x ] = Math::log( jval / tval );
 				c2[ y ][ x ] = 1.0f / jval;
 			}
 		}
@@ -501,16 +501,13 @@ namespace cvt {
 		}
 
 		_miJacobian /= norm;
-		//_miHessian /= norm;
+		_miHessian /= norm;
 		//_miHessian += hessOuter / Math::sqr( norm );
 
 		_warped.unmap( ptr );
 
 		//std::cout << "\nJAC1\n" << _miJacobian << std::endl;
 
-		//curJac.setZero();
-		//_miJacobian.setZero();
-		_miHessian.setZero();
 		for( size_t y = 0; y < _numBins+1; y++ ) {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
 				_miHessian += c2[ y ][ x ] * allJac[ y ][ x ] * allJac[ y ][ x ].transpose();
@@ -518,10 +515,6 @@ namespace cvt {
 		}
 		//_miHessian /= Math::sqr( _numEval );
 		_miHessian -= _hOfflineTemp;
-		/*
-		std::cout << "Jac2:\n" << curJac << std::endl;
-		std::cout << "Diff:\n" << curJac - _miJacobian	<< std::endl;
-		*/
 	}
 
 	inline void MITracker::offlineTemplateDerivatives()
@@ -602,12 +595,12 @@ namespace cvt {
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
-				hess( 0, 0 ) = gxx[ x ];
+				hess( 0, 0 ) = -gxx[ x ];
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
-				hess( 1, 1 ) = gyy[ x ];
+				hess( 1, 1 ) = -gyy[ x ];
 			
-				grad *= ( float )(_numBins - 3);
+				grad *= 0.5f * ( float )(_numBins - 3);
 				hess *= ( float )(_numBins - 3);
 
 				p[ 0 ] = x;
