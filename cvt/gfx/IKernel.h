@@ -8,6 +8,7 @@ namespace cvt {
 		public:
 			IKernel();
 			IKernel( const IKernel& kernel );
+			IKernel( size_t w, size_t h, float* data );
 			IKernel( size_t w, size_t h );
 			~IKernel();
 			IKernel& operator=(const IKernel& kernel );
@@ -55,7 +56,6 @@ namespace cvt {
 			static const IKernel LAPLACE_5_YY;
 
 		private:
-			IKernel( size_t w, size_t h, float* data );
 			size_t _width, _height;
 			float* _mem;
 			float* _data;
