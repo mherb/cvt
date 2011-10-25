@@ -90,7 +90,7 @@ namespace cvt
 		_iter++;
 #ifdef DEBUGMI
 		static float tx = -10.0f;
-		static float ty = 0.0f;
+		static float ty = -10.0f;
 #else
 		_input->nextFrame();
 		_input->frame().convert( _currGray, IFormat::GRAY_UINT8 );
@@ -113,17 +113,18 @@ namespace cvt
 					std::cout << tx << " " << ty
 							  << " " << _tracker.MI()
 							  << " " << _tracker.jacobian()( 0 )
+							  << " " << _tracker.jacobian()( 1 )
 							  << " " << _tracker.hessian()( 0, 0 )
-						//	  << " " << _tracker.hessian()( 0, 1 )
-						//	  << " " << _tracker.hessian()( 1, 0 )
-						//	  << " " << _tracker.hessian()( 1, 1 )
+							  << " " << _tracker.hessian()( 0, 1 )
+							  << " " << _tracker.hessian()( 1, 0 )
+							  << " " << _tracker.hessian()( 1, 1 )
 							  << std::endl;
-					tx += 0.01f;
-					if( tx >= 10.005f ) {
-						//std::cout << std::endl;
-						//tx = -10.0f;
-						//ty += 1.0f;
-						//if( ty >= 10.1f )
+					tx += 0.5f;
+					if( tx >= 10.025f ) {
+						std::cout << std::endl;
+						tx = -10.0f;
+						ty += 0.5f;
+						if( ty >= 10.025f )
 							exit( 1 );
 					}
 #endif

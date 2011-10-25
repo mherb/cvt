@@ -12,7 +12,7 @@
 #include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
-#define NUMPARAMS 4
+#define NUMPARAMS 2
 
 namespace cvt {
 	class MITracker {
@@ -81,8 +81,8 @@ namespace cvt {
 
 			//SL3<float>				_pose;
 			//GA2<float>			_pose;
-			Sim2<float>			_pose;
-			//Translation2D<float>	_pose;
+			//Sim2<float>			_pose;
+			Translation2D<float>	_pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>			_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -108,14 +108,14 @@ namespace cvt {
 	};
 
 	inline MITracker::MITracker() :
-		_numBins( 64 ),
+		_numBins( 16 ),
 		_jTemp( 0 ),
 		_jTempOuter( 0 ),
 		_hTemp( 0 ),
 		_tempSplineWeights( 0 ),
 		_tempSplineDerivWeights( 0 ),
 		_maxIter( 10 ),
-		_gradThresh( 0.02f ),
+		_gradThresh( 0.1f ),
 		_evaluated( 0 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -155,7 +155,7 @@ namespace cvt {
 
 			tmp.fill( Color::WHITE );
 			ITransform::apply( tmp, img, hinv );
-			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 
 			// calculate the online stuff:
 			updateInputHistograms();
@@ -168,8 +168,8 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-8 )
-				return;	
+			if( epsilon < 1e-4 )
+				return;
 
 			iter++;
 		}
@@ -186,7 +186,7 @@ namespace cvt {
 		delta = -_miHessian.inverse() * _miJacobian;
 		//std::cout << "Delta:\n" << delta << std::endl;
 		//_pose.addDelta( delta );
-		_pose.applyInverse( -delta );
+		_pose.applyInverse( delta );
 
 		return delta.norm();
 	}
@@ -201,8 +201,12 @@ namespace cvt {
 
 		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
 		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
-		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX );
-		_itemplate.convolve( _templateGradYY, IKernel::LAPLACE_3_YY );
+		IKernel lxx( IKernel::LAPLACE_3_XX );
+	//	lxx.scale( 0.5 );
+		_itemplate.convolve( _templateGradXX, lxx );
+		IKernel lyy( IKernel::LAPLACE_3_YY );
+	//	lyy.scale( 0.5 );
+		_itemplate.convolve( _templateGradYY, lyy );
 
 //		_itemplate.convolve( _templateGradXX, IKernel::LAPLACE_3_XX, IKernel::GAUSS_VERTICAL_3 );
 //		_itemplate.convolve( _templateGradYY, IKernel::GAUSS_HORIZONTAL_3, IKernel::LAPLACE_3_YY );
@@ -215,7 +219,15 @@ namespace cvt {
 		kxy1.scale( 0.5f );
 		IKernel kxy2( IKernel::HAAR_VERTICAL_3 );
 		kxy2.scale( 0.5f );
-		_itemplate.convolve( _templateGradXY, kxy1, kxy2 );
+		float kxydata[]={0.25f, 0.0f, -0.25,
+					     0.0f, 0.0f, 0.0f,
+						 -0.25f, 0.0f, 0.25f };
+		float kxydata2[]={ 0.0f, 1.0f, 0.0f,
+						   1.0f, -4.0f, 1.0f,
+							0.0f, 1.0f, 0.0f };
+		IKernel kxy( 3, 3, kxydata );
+		//kxy.scale( -0.25f );
+		_itemplate.convolve( _templateGradXY, kxy );
 
 		//_templateGradXX.save("grad_XX.png");
 		//_templateGradYY.save("grad_YY.png");
@@ -234,7 +246,7 @@ namespace cvt {
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
 		_itemplate.reallocate( tmp );
-		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 		updateTemplateGradients();
 
 	//	_templateHist.update( _itemplate );
@@ -316,7 +328,7 @@ namespace cvt {
 		for( size_t y = 0; y < _numBins+1; y++ ) {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
 				float jval = _jhist[ y * ( _numBins + 1 ) + x ];
-				mi += jval * Math::fastLog( ( jval + 1e-12f ) / ( _thist[ y ] * _whist[ x ] + 1e-12f ) );
+				mi += jval * Math::log( ( jval + 1e-10f ) / ( _thist[ y ] * _whist[ x ] + 1e-10f ) );
 			}
 		}
 
@@ -340,20 +352,21 @@ namespace cvt {
 
 		const float* pi = ptr;
 		const float* pit = tptr;
-		const bool* evalPtr = _evaluated;
+		//const bool* evalPtr = _evaluated;
+		const float norm = w * h;
 
 		while( h-- ) {
 			size_t n = w;
 			const float* pval = pi;
 			const float* ptval = pit;
 			while( n-- ) {
-				if( !*evalPtr ){
+				/*if( !*evalPtr ){
 					pval++;
 					ptval++;
 					evalPtr++;
 					continue;
 				}
-				evalPtr++;
+				evalPtr++;*/
 				float r, t;
 				t = *pval++ * ( float ) ( _numBins - 3 ) + 1.0f;
 				r = *ptval++ * ( float ) ( _numBins - 3 ) + 1.0f;
@@ -374,7 +387,7 @@ namespace cvt {
 		_warped.unmap( ptr );
 		_itemplate.unmap( tptr );
 
-		sum = 1.0f / _numEval;
+		sum = 1.0f / norm;
 		for( size_t i = 0; i < ( _numBins + 1 ) * ( _numBins + 1 ); i++ )
 			_jhist[ i ] *= sum;
 	}
@@ -393,18 +406,19 @@ namespace cvt {
 		h = _itemplate.height();
 
 		const float* pit = tptr;
-		bool* evalPtr = _evaluated;
+		//bool* evalPtr = _evaluated;
+		const float norm = w * h;
 
 		while( h-- ) {
 			size_t n = w;
 			const float* ptval = pit;
 			while( n-- ) {
-				if( !*evalPtr ){
+				/*if( !*evalPtr ){
 					ptval++;
 					evalPtr++;
 					continue;
 				}
-				evalPtr++;
+				evalPtr++;*/
 				float r;
 				r = *ptval++ * ( float ) ( _numBins - 3 ) + 1.0f;
 				int ridx = ( int ) r;
@@ -417,7 +431,7 @@ namespace cvt {
 		}
 		_itemplate.unmap( tptr );
 
-		sum = 1.0f / _numEval;
+		sum = 1.0f / norm;
 		for( size_t i = 0; i < ( _numBins + 1 ); i++ )
 			_thist[ i ] *= sum;
 	}
@@ -440,7 +454,7 @@ namespace cvt {
 		float c2[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
 		for( size_t y = 0; y < _numBins+1; y++ ) {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
-				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-12f;
+				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-10f;
 				float tval = _thist[ y ] + 1e-10f;
 				c1[ y ][ x ] = Math::log( jval / tval );
 				c2[ y ][ x ] = 1.0f / jval;
@@ -494,7 +508,7 @@ namespace cvt {
 					}
 				}
 				_miJacobian += _jTemp[ y * w + x ] * sumJ;
-				//_miHessian  += ( _hTemp[ y * w + x ] * sumJ + sumH * _jTempOuter[ y * w + x ] );
+				_miHessian  += _hTemp[ y * w + x ] * sumJ + sumH * _jTempOuter[ y * w + x ];
 				//hessOuter  += sumJJ * _jTempOuter[ y * w + x ];
 			}
 			pi += stride;
