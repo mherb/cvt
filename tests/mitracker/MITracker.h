@@ -1,3 +1,6 @@
+#ifndef MITRACKER_H
+#define MITRACKER_H
+
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IKernel.h>
 #include <cvt/gfx/ifilter/ITransform.h>
@@ -667,3 +670,5 @@ namespace cvt {
 	}
 
 }
+
+#endif

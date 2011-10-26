@@ -5,7 +5,9 @@
 
 #include "TemplateDetector.h"
 
-#include "MITracker.h"
+//#include "MITracker.h"
+#include "MITrackerApprox.h"
+
 #include "MIGui.h"
 
 //#define DEBUGMI 1
