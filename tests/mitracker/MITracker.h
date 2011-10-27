@@ -99,7 +99,6 @@ namespace cvt {
 			float*			     _tempSplineWeights;
 			float*			     _tempSplineDerivWeights;
 			std::vector<int>	 _binValues;
-			float				 _numEval;
 
 			// optimization related:
 			size_t	_maxIter;
@@ -292,7 +291,7 @@ namespace cvt {
 		for( size_t i = 0; i < _numBins + 1; i++ ){
 			_hOfflineTemp += ( 1.0f / ( _thist[ i ] + 1e-10f ) ) *  all[ i ] * all[ i ].transpose();
 		}
-		_hOfflineTemp /= Math::sqr( _numEval );
+		_hOfflineTemp /= Math::sqr( (float)( w * h ) );
 	}
 
 	inline const Matrix3f& MITracker::pose() 
@@ -472,7 +471,7 @@ namespace cvt {
 		h = _itemplate.height();
 
 		const float* pi = ptr;
-		const float norm = _numEval;//w * h;
+		const float norm = w * h;
 
 		std::vector<int>::const_iterator rBin = _binValues.begin();
 
@@ -507,7 +506,7 @@ namespace cvt {
 						sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * c1[ *rBin + o ][ tidx + m ];
 						//sumJJ +=  Math::sqr( spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] ) * c2[ *rBin + o ][ tidx + m ];
 						sumH +=  spl * _tempSplineDerivWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * c1[ *rBin + o ][ tidx + m ];
-						allJac[ *rBin + o ][ tidx + m ] += spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * _jTemp[ y * w + x ] / _numEval;
+						allJac[ *rBin + o ][ tidx + m ] += spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * _jTemp[ y * w + x ] / norm;
 					}
 				}
 				_miJacobian += _jTemp[ y * w + x ] * sumJ;
@@ -530,7 +529,7 @@ namespace cvt {
 				_miHessian += c2[ y ][ x ] * allJac[ y ][ x ] * allJac[ y ][ x ].transpose();
 			}
 		}
-		//_miHessian /= Math::sqr( _numEval );
+		//_miHessian /= Math::sqr( norm );
 		_miHessian -= _hOfflineTemp;
 	}
 
@@ -593,7 +592,6 @@ namespace cvt {
 		size_t iter = 0;
 		float normFactor = ( float ) ( _numBins - 3 );
 		float pixVal;
-		_numEval = 0.0f;
 
 		for( size_t y = 0; y < _itemplate.height(); y++ ){
 			p[ 1 ] = y;
@@ -607,7 +605,6 @@ namespace cvt {
 					_evaluated[ iter ] = false;
 				} else {
 					_evaluated[ iter ] = true;
-					_numEval += 1.0f;
 				}
 
 				// second order image derivatives
