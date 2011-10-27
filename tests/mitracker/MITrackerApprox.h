@@ -83,10 +83,10 @@ namespace cvt {
 			//PoseHomography<float> _pose;
 
 			SL3<float>				_pose;
-			//GA2<float>			_pose;
-			//Sim2<float>			_pose;
-			//Translation2D<float>	_pose;
-			//PoseTranslation<float> _pose;
+			//GA2<float>				_pose;
+			//Sim2<float>				_pose;
+			//Translation2D<float>		_pose;
+			//PoseTranslation<float>	_pose;
 
 			Eigen::Matrix<float, NUMPARAMS, 1>			_miJacobian;
 			Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>	_miHessian;
@@ -101,7 +101,6 @@ namespace cvt {
 			float*			     _tempSplineWeights;
 			float*			     _tempSplineDerivWeights;
 			std::vector<int>	 _binValues;
-			float				 _numEval;
 
 			// optimization related:
 			size_t	_maxIter;
@@ -120,7 +119,7 @@ namespace cvt {
 		_tempSplineWeights( 0 ),
 		_tempSplineDerivWeights( 0 ),
 		_maxIter( 10 ),
-		_gradThresh( 0.05f ),
+		_gradThresh( 0.1f ),
 		_evaluated( 0 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -269,7 +268,7 @@ namespace cvt {
 		for( size_t i = 0; i < _numBins + 1; i++ ){
 			_hOfflineTemp += ( 1.0f / ( _thist[ i ] + 1e-10f ) ) *  all[ i ] * all[ i ].transpose();
 		}
-		_hOfflineTemp /= Math::sqr( _numEval );
+		_hOfflineTemp /= Math::sqr( (float)(w * h) );
 	}
 
 	inline const Matrix3f& MITracker::pose() 
@@ -334,6 +333,8 @@ namespace cvt {
 		const float* pit = tptr;
 		const float norm = w * h;
 
+		float splm, val;
+
 		while( h-- ) {
 			size_t n = w;
 			const float* pval = pi;
@@ -345,11 +346,11 @@ namespace cvt {
 				int tidx = ( int ) t;
 				int ridx = ( int ) r;
 				for( int m = -1; m <= 2; m++ ) {
-					float splm = BSplinef::eval( -r + ( float ) ( ridx + m ) );
-					for( int o = -1; o <= 2; o++ ) {
-						float val = BSplinef::eval( -t + ( float ) ( tidx + o ) ) * splm;
-						_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + o ) ] += val;
-					}
+					splm = BSplinef::eval( -r + ( float ) ( ridx + m ) );
+					_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx - 1 ) ] += BSplinef::eval( -t + ( float ) ( tidx - 1 ) ) * splm;
+					_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + 0 ) ] += BSplinef::eval( -t + ( float ) ( tidx + 0 ) ) * splm;
+					_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + 1 ) ] += BSplinef::eval( -t + ( float ) ( tidx + 1 ) ) * splm;
+					_jhist[ ( ridx + m ) *  ( _numBins + 1 ) + ( tidx + 2 ) ] += BSplinef::eval( -t + ( float ) ( tidx + 2 ) ) * splm;
 				}
 			}
 			pi += stride;
@@ -433,7 +434,7 @@ namespace cvt {
 		h = _itemplate.height();
 
 		const float* pi = ptr;
-		const float norm = _numEval;
+		const float norm = w*h;
 
 		std::vector<int>::const_iterator rBin = _binValues.begin();
 
@@ -461,7 +462,7 @@ namespace cvt {
 					for( int o = -1; o <= 2; o++ ) {
 						sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * c1[ *rBin + o ][ tidx + m ];
 						sumH +=  spl * _tempSplineDerivWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * c1[ *rBin + o ][ tidx + m ];
-						allJac[ *rBin + o ][ tidx + m ] += spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * _jTemp[ y * w + x ] / _numEval;
+						allJac[ *rBin + o ][ tidx + m ] += spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * _jTemp[ y * w + x ] / norm;
 					}
 				}
 				_miHessian += _hTemp[ y * w + x ] * sumJ + sumH * _jTempOuter[ y * w + x ];
@@ -489,7 +490,8 @@ namespace cvt {
 			for( size_t x = 0; x < _numBins+1; x++ ) {
 				float jval = _jhist[ y * ( _numBins + 1 ) + x ] + 1e-10f;
 				float tval = _thist[ y ] + 1e-10f;
-				c1[ y ][ x ] = Math::log( jval / tval );
+				//c1[ y ][ x ] = Math::log( jval / tval );
+				c1[ y ][ x ] = Math::fastLog( jval / tval );
 			}
 		}
 
@@ -501,7 +503,7 @@ namespace cvt {
 		h = _itemplate.height();
 
 		const float* pi = ptr;
-		const float norm = _numEval;
+		const float norm = w*h;
 
 		std::vector<int>::const_iterator rBin = _binValues.begin();
 
@@ -523,9 +525,10 @@ namespace cvt {
 				sumJ = 0.0f;
 				for( int m = -1; m <= 2; m++ ) {
 					float spl = BSplinef::eval( -t + ( float ) ( tidx + m ) );
-					for( int o = -1; o <= 2; o++ ) {
-						sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + ( o + 1 ) ] * c1[ *rBin + o ][ tidx + m ];
-					}
+					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 0 ] * c1[ *rBin - 1 ][ tidx + m ];
+					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 1 ] * c1[ *rBin + 0 ][ tidx + m ];
+					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 2 ] * c1[ *rBin + 1 ][ tidx + m ];
+					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 3 ] * c1[ *rBin + 2 ][ tidx + m ];
 				}
 				_miJacobian += _jTemp[ y * w + x ] * sumJ;
 			}
@@ -596,7 +599,6 @@ namespace cvt {
 		size_t iter = 0;
 		float normFactor = ( float ) ( _numBins - 3 );
 		float pixVal;
-		_numEval = 0.0f;
 
 		for( size_t y = 0; y < _itemplate.height(); y++ ){
 			p[ 1 ] = y;
@@ -610,15 +612,14 @@ namespace cvt {
 					_evaluated[ iter ] = false;
 				} else {
 					_evaluated[ iter ] = true;
-					_numEval += 1.0f;
 				}
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
-				hess( 0, 0 ) = gxx[ x ];
-				hess( 0, 1 ) = -gxy[ x ];
-				hess( 1, 0 ) = -gxy[ x ];
-				hess( 1, 1 ) = gyy[ x ];
+				hess( 0, 0 ) = -gxx[ x ];
+				hess( 0, 1 ) = gxy[ x ];
+				hess( 1, 0 ) = gxy[ x ];
+				hess( 1, 1 ) = -gyy[ x ];
 			
 				grad *= 0.5f * ( float )(_numBins - 3);
 				hess *= ( float )(_numBins - 3);
