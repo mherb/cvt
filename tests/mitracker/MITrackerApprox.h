@@ -119,7 +119,7 @@ namespace cvt {
 		_tempSplineWeights( 0 ),
 		_tempSplineDerivWeights( 0 ),
 		_maxIter( 10 ),
-		_gradThresh( 0.1f ),
+		_gradThresh( 0.01f ),
 		_evaluated( 0 )
 	{
 		_jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -171,8 +171,8 @@ namespace cvt {
 
 			float epsilon = solveDeltaPose();
 
-			if( epsilon < 1e-6 )
-				return;
+//			if( epsilon < 1e-6 )
+//				return;
 
 			iter++;
 		}
@@ -509,7 +509,7 @@ namespace cvt {
 
 		_miJacobian.setZero();
 
-		float sumJ;
+		float sumJ, sumTmp;
 		for( size_t y = 0; y < h; y++ ) {
 			const float* pval = pi;
 			for( size_t x = 0; x < w; x++, rBin++ ) {
@@ -524,11 +524,13 @@ namespace cvt {
 
 				sumJ = 0.0f;
 				for( int m = -1; m <= 2; m++ ) {
+					sumTmp = 0.0f;
 					float spl = BSplinef::eval( -t + ( float ) ( tidx + m ) );
-					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 0 ] * c1[ *rBin - 1 ][ tidx + m ];
-					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 1 ] * c1[ *rBin + 0 ][ tidx + m ];
-					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 2 ] * c1[ *rBin + 1 ][ tidx + m ];
-					sumJ +=  spl * _tempSplineWeights[ ( y * w + x ) * 4 + 3 ] * c1[ *rBin + 2 ][ tidx + m ];
+					sumTmp += _tempSplineWeights[ ( y * w + x ) * 4 + 0 ] * c1[ *rBin - 1 ][ tidx + m ];
+					sumTmp += _tempSplineWeights[ ( y * w + x ) * 4 + 1 ] * c1[ *rBin + 0 ][ tidx + m ];
+					sumTmp += _tempSplineWeights[ ( y * w + x ) * 4 + 2 ] * c1[ *rBin + 1 ][ tidx + m ];
+					sumTmp += _tempSplineWeights[ ( y * w + x ) * 4 + 3 ] * c1[ *rBin + 2 ][ tidx + m ];
+					sumJ += spl * sumTmp;
 				}
 				_miJacobian += _jTemp[ y * w + x ] * sumJ;
 			}
