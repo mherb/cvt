@@ -6,9 +6,14 @@
 #include <cvt/vision/Vision.h>
 #include <cvt/vision/ORB.h>
 #include <cvt/vision/FeatureMatch.h>
+#include <cvt/math/SE3.h>
 #include <cvt/util/Signal.h>
+
 #include "ORBStereoMatching.h"
 #include "FeatureTracking.h"
+#include "Map.h"
+
+#include <set>
 
 namespace cvt
 {
@@ -43,30 +48,54 @@ namespace cvt
 			Signal<const ORBData*>	newORBData;	
 
 		private:
+			enum SLAMState
+			{
+				TRACKING = 0,
+				DEPTH_INIT
+			};
+
+			/* camera calibration data and undistortion maps */
 			CameraCalibration	_camCalib0;
 			CameraCalibration	_camCalib1;
 			Image				_undistortMap0;
 			Image				_undistortMap1;
 
+			/* undistorted images */
 			Image				_undist0;
 			Image				_undist1;
+			
+			/* descriptor matching parameters */
+			float				_matcherMaxLineDistance;	
+			float				_matcherMaxDescriptorDist;
+			ORBStereoMatching	_stereoMatcher;
 
+			/* orb parameters */
 			size_t				_orbOctaves;
 			float				_orbScaleFactor;
 			uint8_t				_orbCornerThreshold;
 			size_t				_orbMaxFeatures;
 			bool				_orbNonMaxSuppression;
 
-			float				_matcherMaxLineDistance;	
-			float				_matcherMaxDescriptorDist;
-			ORBStereoMatching	_stereoMatcher;
-
-			// FeatureTracker ...
+			// FeatureTracker (single view)
 			float				_trackingSearchRadius;
-		    FeatureTracking		_featureTracking;	
+		    FeatureTracking		_featureTracking;
 
-			// triangulate from matches
-			void triangulate( std::vector<Vector3f>& points, const std::vector<FeatureMatch>& matches ) const;
+			/* the current (camera) pose */
+			SE3<double>			_pose;
+
+			/* the active Keyframe (closest to _pose) */
+			Keyframe*			_activeKF;
+
+			SLAMState			_state;
+			Map					_map;	
+
+			// triangulate 3D points from 2D matches
+			size_t triangulate( std::vector<Eigen::Vector4d*>& points, const std::vector<FeatureMatch>& matches ) const;
+
+			// using the current camera pose, predict the visible features + descriptors
+			void predictVisibleFeatures( std::vector<MapFeature*> & features, 
+										 std::vector<Vector2f> & predictedPos,
+										 std::vector<ORBFeature*> & descriptor ) const;
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -83,7 +112,9 @@ namespace cvt
 		_orbMaxFeatures( 3000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 30.0f ),
-		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius )
+		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
+		_activeKF( 0 ),
+		_state( DEPTH_INIT )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -120,56 +151,164 @@ namespace cvt
 
 		// match the features with predicted measurements from map
 		// estimate the pose from 3d-2d measurements
+		switch( _state ){
+			case DEPTH_INIT:
+				{
+					IWarp::apply( _undist1, img1, _undistortMap1 );
 
-		bool _newKeyframeNeeded = true;
-		if( _newKeyframeNeeded ){
-			IWarp::apply( _undist1, img1, _undistortMap1 );
+					// create the ORB
+					ORB orb1(_undist1, 
+							 _orbOctaves, 
+							 _orbScaleFactor,
+							 _orbCornerThreshold,
+							 _orbMaxFeatures,
+							 _orbNonMaxSuppression );
 
-			// create the ORB
-			ORB orb1(_undist1, 
-					 _orbOctaves, 
-					 _orbScaleFactor,
-					 _orbCornerThreshold,
-					 _orbMaxFeatures,
-					 _orbNonMaxSuppression );
+					// find stereoMatches
+					std::vector<FeatureMatch> matches;
+					_stereoMatcher.matchEpipolar( matches, orb0, orb1 );
 
-			// find stereoMatches
-			std::vector<FeatureMatch> matches;
-			_stereoMatcher.matchEpipolar( matches, orb0, orb1 );
+					// triangulate the 3d points
+					std::vector<Eigen::Vector4d*> points3d;
+					size_t goodPoints = triangulate( points3d, matches );
 
-			// triangulate the 3d points
-			std::vector<Vector3f> points3d;
-			triangulate( points3d, matches );
+					// Create a new keyframe with image 0 as reference image
+					if( goodPoints > 0 ){
+						Keyframe * kf = new Keyframe( _undist0 );
+						size_t kId = kf->id();
+						for( size_t i = 0; i < points3d.size(); i++ ){
+							if( points3d[ i ] != NULL ){
+								MapFeature * mf = new MapFeature( *points3d[ i ] );
+								mf->addMeasurement( kId, orb0[ i ] );
+								kf->addFeature( mf );
+								delete points3d[ i ];
+							}
+						}
+						
+						// TODO: add the currently tracked MapFeatures to the Keyframe as well!
+						_map.addKeyframe( kf );	
+						_activeKF = _map.selectClosestKeyframe( _pose.transformation() );
+					}
+					
+					// change the state to tracking?!
+					// TODO: also when depth init is needed, we need to estimate our current pose
+					
+					// notify observers that there is new orb data
+					// e.g. gui or a localizer 
+					ORBData data;
+					data.orb0 = &orb0;
+					data.img0 = &_undist0;
+					data.orb1 = &orb1;
+					data.img1 = &_undist1;
+					newORBData.notify( &data );
+				}
+				break;
+			case TRACKING:
+				{
+					// predict visible features with map and current pose
+					std::vector<MapFeature*> mapFeatures;
+					std::vector<Vector2f> predictedPositions;
+					std::vector<ORBFeature*> descriptors;
+					predictVisibleFeatures( mapFeatures, predictedPositions, descriptors );
 
-			// add the new 3D points to the map!
-
-			ORBData data;
-			data.orb0 = &orb0;
-			data.img0 = &_undist0;
-			data.orb1 = &orb1;
-			data.img1 = &_undist1;
-			newORBData.notify( &data );
+					// find matches in current view (track features)
+					// estimate pose from 3d-2d correspondences
+				}
+				break;
+			default:
+				throw CVTException( "UNKNOWN STATE" );
 		}
 	}
 
-
-	inline void StereoSLAM::triangulate( std::vector<Vector3f>& points, const std::vector<FeatureMatch>& matches ) const
+	inline size_t StereoSLAM::triangulate( std::vector<Eigen::Vector4d*>& points, const std::vector<FeatureMatch>& matches ) const
 	{
 		points.reserve( matches.size() );
 
 		Vector4f tmp;
-		Vector3f p3;
+		size_t numGood = 0;
+
+		const Eigen::Matrix4d & camTrans = _pose.transformation();
+
 		for( size_t i = 0; i < matches.size(); i++ ){
 			Vision::triangulate( tmp,
 								_camCalib0.projectionMatrix(),
 								_camCalib1.projectionMatrix(),
 								matches[ i ].feature0->pt,
 								matches[ i ].feature1->pt );
-			p3 = tmp;
+			// normalize 4th coord;
+			tmp /= tmp.w;
 
-			if( p3.z > 0.0f )
-				points.push_back( p3 );
+			if( tmp.z > 0.0f ){
+				Eigen::Vector4d * np = new Eigen::Vector4d( tmp.x, tmp.y, tmp.z, tmp.w );
+
+				// transform to world coordinates
+				*np = camTrans * (*np);
+
+				points.push_back( np );
+				numGood++;
+			} else {
+				points.push_back( NULL );
+			}
 		}
+		return numGood;
+	}
+
+	inline void StereoSLAM::predictVisibleFeatures( std::vector<MapFeature*> & features, 
+													std::vector<Vector2f> & predictedPos,
+													std::vector<ORBFeature*> & descriptor ) const
+	{
+		const Eigen::Matrix4d & pose = _pose.transformation();
+		Eigen::Matrix4d poseInv = pose.inverse();
+
+		size_t w = _undist0.width(); 
+		size_t h = _undist0.height(); 
+		
+		// get keyframes of interest
+		std::vector<Keyframe*> keyframes;
+		double maxKeyframeDistance = 50.0;
+		_map.selectNearbyKeyframes( keyframes, pose, maxKeyframeDistance );
+
+		std::set<size_t> usedPoints;
+
+		Eigen::Vector4d pointInCam;
+		Vector4f pic, sp;
+		Vector2f pointInScreen;
+		for( size_t i = 0; i < keyframes.size(); i++ ){
+			Keyframe* kf = keyframes[ i ];
+			for( size_t p = 0; p < kf->numFeatures(); p++ ){
+				// project the feature onto the current camera
+				MapFeature* feature = kf->feature( p );
+				if( usedPoints.find( feature->id() ) == usedPoints.end() ){
+					pointInCam = poseInv * feature->worldData();
+					pointInCam /= pointInCam[ 3 ];
+					if( pointInCam[ 2 ] > 0.0 ){
+						pic[ 0 ] = ( float )pointInCam[ 0 ];
+						pic[ 1 ] = ( float )pointInCam[ 1 ];
+						pic[ 2 ] = ( float )pointInCam[ 2 ];
+						pic[ 3 ] = ( float )pointInCam[ 3 ];
+
+						// project it to the screen:
+						sp = _camCalib0.projectionMatrix() * pic;
+						pointInScreen.x = sp.x / sp.z; 
+						pointInScreen.y = sp.y / sp.z;
+
+						if( pointInScreen.x > 0 && 
+						    pointInScreen.x < w && 
+							pointInScreen.y > 0 && 
+							pointInScreen.y < h ){
+							
+							usedPoints.insert( feature->id() );
+							features.push_back( feature );
+							predictedPos.push_back( pointInScreen );
+							descriptor.push_back( feature->descriptor() );
+						}
+
+					}
+				}
+			}
+		}	
+
+
 	}
 }
 
