@@ -5,6 +5,7 @@
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/vision/ORB.h>
+#include <cvt/vision/EPnP.h>
 #include <cvt/vision/FeatureMatch.h>
 #include <cvt/math/SE3.h>
 #include <cvt/util/Signal.h>
@@ -48,12 +49,6 @@ namespace cvt
 			Signal<const ORBData*>	newORBData;	
 
 		private:
-			enum SLAMState
-			{
-				TRACKING = 0,
-				DEPTH_INIT
-			};
-
 			/* camera calibration data and undistortion maps */
 			CameraCalibration	_camCalib0;
 			CameraCalibration	_camCalib1;
@@ -86,8 +81,8 @@ namespace cvt
 			/* the active Keyframe (closest to _pose) */
 			Keyframe*			_activeKF;
 
-			SLAMState			_state;
 			Map					_map;	
+
 
 			// triangulate 3D points from 2D matches
 			size_t triangulate( std::vector<Eigen::Vector4d*>& points, const std::vector<FeatureMatch>& matches ) const;
@@ -103,18 +98,17 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 10.0f ),
-		_matcherMaxDescriptorDist( 40 ),
+		_matcherMaxLineDistance( 5.0f ),
+		_matcherMaxDescriptorDist( 80 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_orbOctaves( 4 ), 
-		_orbScaleFactor( 0.6f ),
-		_orbCornerThreshold( 25 ),
+		_orbOctaves( 3 ), 
+		_orbScaleFactor( 0.5f ),
+		_orbCornerThreshold( 20 ),
 		_orbMaxFeatures( 3000 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 30.0f ),
+		_trackingSearchRadius( 50.0f ),
 		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
-		_activeKF( 0 ),
-		_state( DEPTH_INIT )
+		_activeKF( 0 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -149,74 +143,104 @@ namespace cvt
 				  _orbMaxFeatures,
 				  _orbNonMaxSuppression );
 
-		// match the features with predicted measurements from map
-		// estimate the pose from 3d-2d measurements
-		switch( _state ){
-			case DEPTH_INIT:
-				{
-					IWarp::apply( _undist1, img1, _undistortMap1 );
+		// predict visible features with map and current pose
+		std::vector<MapFeature*> mapFeatures;
+		std::vector<Vector2f> predictedPositions;
+		std::vector<ORBFeature*> descriptors;
+		predictVisibleFeatures( mapFeatures, predictedPositions, descriptors );
 
-					// create the ORB
-					ORB orb1(_undist1, 
-							 _orbOctaves, 
-							 _orbScaleFactor,
-							 _orbCornerThreshold,
-							 _orbMaxFeatures,
-							 _orbNonMaxSuppression );
+		std::cout << "PREDICTED VISIBLE FEATURES: " << predictedPositions.size() << std::endl;
 
-					// find stereoMatches
-					std::vector<FeatureMatch> matches;
-					_stereoMatcher.matchEpipolar( matches, orb0, orb1 );
+		std::vector<FeatureMatch> matchedFeatures;
+		_featureTracking.trackFeatures( matchedFeatures, 
+									    descriptors,
+									    predictedPositions,
+									    orb0 );
+		PointSet2d p2d;
+		PointSet3d p3d;
+		Vector3d p3;
+		Vector2d p2;
 
-					// triangulate the 3d points
-					std::vector<Eigen::Vector4d*> points3d;
-					size_t goodPoints = triangulate( points3d, matches );
+		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
+			if( matchedFeatures[ i ].feature1 ){
+				// got a match so add it to the point sets
+				p3.x = mapFeatures[ i ]->worldData().x(); 
+				p3.y = mapFeatures[ i ]->worldData().y(); 
+				p3.z = mapFeatures[ i ]->worldData().z();
+				p3d.add( p3 );
+				p2.x = matchedFeatures[ i ].feature1->pt.x;
+				p2.y = matchedFeatures[ i ].feature1->pt.y;
+				p2d.add( p2 );
+			}
+		}
 
-					// Create a new keyframe with image 0 as reference image
-					if( goodPoints > 0 ){
-						Keyframe * kf = new Keyframe( _undist0 );
-						size_t kId = kf->id();
-						for( size_t i = 0; i < points3d.size(); i++ ){
-							if( points3d[ i ] != NULL ){
-								MapFeature * mf = new MapFeature( *points3d[ i ] );
-								mf->addMeasurement( kId, orb0[ i ] );
-								kf->addFeature( mf );
-								delete points3d[ i ];
-							}
-						}
-						
-						// TODO: add the currently tracked MapFeatures to the Keyframe as well!
-						_map.addKeyframe( kf );	
-						_activeKF = _map.selectClosestKeyframe( _pose.transformation() );
+		/* at least 10 corresp. */
+		if( p3d.size() > 9 ){
+			EPnPd epnp( p3d );
+
+			Matrix3d K;
+			const Matrix3f & kf = _camCalib0.intrinsics();
+			K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
+			K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
+			K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
+
+			Matrix4d m;
+			epnp.solve( m, p2d, K );
+		} else {
+			// TODO: How do we adress this? Create a submap and try to merge it ?!
+		}
+		std::cout << "Tracked Features: " << p3d.size() << std::endl;
+
+		if( p3d.size() < 50 ){
+			IWarp::apply( _undist1, img1, _undistortMap1 );
+
+			// create the ORB
+			ORB orb1(_undist1, 
+					 _orbOctaves, 
+					 _orbScaleFactor,
+					 _orbCornerThreshold,
+					 _orbMaxFeatures,
+					 _orbNonMaxSuppression );
+
+			// find stereoMatches
+			std::vector<FeatureMatch> matches;
+			_stereoMatcher.matchEpipolar( matches, orb0, orb1 );
+
+			// triangulate the 3d points
+			std::vector<Eigen::Vector4d*> points3d;
+			size_t goodPoints = triangulate( points3d, matches );
+
+			// Create a new keyframe with image 0 as reference image
+			if( goodPoints > 0 ){
+				Keyframe * kf = new Keyframe( _undist0 );
+				kf->setPose( _pose.transformation() );
+				size_t kId = kf->id();
+				for( size_t i = 0; i < points3d.size(); i++ ){
+					if( points3d[ i ] != NULL ){
+						MapFeature * mf = new MapFeature( *points3d[ i ] );
+						mf->addMeasurement( kId, orb0[ i ] );
+						kf->addFeature( mf );
+						delete points3d[ i ];
 					}
-					
-					// change the state to tracking?!
-					// TODO: also when depth init is needed, we need to estimate our current pose
-					
-					// notify observers that there is new orb data
-					// e.g. gui or a localizer 
-					ORBData data;
-					data.orb0 = &orb0;
-					data.img0 = &_undist0;
-					data.orb1 = &orb1;
-					data.img1 = &_undist1;
-					newORBData.notify( &data );
 				}
-				break;
-			case TRACKING:
-				{
-					// predict visible features with map and current pose
-					std::vector<MapFeature*> mapFeatures;
-					std::vector<Vector2f> predictedPositions;
-					std::vector<ORBFeature*> descriptors;
-					predictVisibleFeatures( mapFeatures, predictedPositions, descriptors );
 
-					// find matches in current view (track features)
-					// estimate pose from 3d-2d correspondences
-				}
-				break;
-			default:
-				throw CVTException( "UNKNOWN STATE" );
+				std::cout << "Adding Keyframe: " << goodPoints << " 3D Pts " << std::endl;
+
+				// TODO: add the currently tracked MapFeatures to the Keyframe as well!
+				_map.addKeyframe( kf );	
+				_activeKF = _map.selectClosestKeyframe( _pose.transformation() );
+			} else {
+				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
+			}
+
+			// notify observers that there is new orb data
+			// e.g. gui or a localizer 
+			ORBData data;
+			data.orb0 = &orb0;
+			data.img0 = &_undist0;
+			data.orb1 = &orb1;
+			data.img1 = &_undist1;
+			newORBData.notify( &data );
 		}
 	}
 
