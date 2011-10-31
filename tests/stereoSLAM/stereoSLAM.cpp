@@ -37,13 +37,12 @@ void initImageSequences( std::vector<VideoInput*> & imageSequence )
 	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
 }
 
-
 int main( int argc, char* argv[] )
 {
 	
 	Resources r;
-	String calib0 = r.find( "calib/ueye_stereo_4002738790.xml" );
-	String calib1 = r.find( "calib/ueye_stereo_4002738788.xml" );
+	String calib0 = r.find( "stereoSLAM/calib/ueye_stereo_4002738790.xml" );
+	String calib1 = r.find( "stereoSLAM/calib/ueye_stereo_4002738788.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
 	loadCameraCalib( camCalib0, calib0 );
