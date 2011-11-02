@@ -35,6 +35,10 @@ namespace cvt {
 			virtual const Font& font() const = 0;
 
 			virtual void drawModel( GLModel& , const Matrix4f& , float , float, const Color& ) {};
+						
+			virtual bool supportsGL() const { return false; }
+			virtual void beginGL() {}
+			virtual void endGL() {}
 
 			/* optional - only used by the Widget in paintChild */
 			virtual void setChildrect( const Recti& childrect ) = 0;

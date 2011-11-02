@@ -198,4 +198,20 @@ namespace cvt {
 	{
 		return _engine->childrect();
 	}
+
+
+	bool GFX::supportsGL() const
+	{
+		return _engine->supportsGL();
+	}
+	
+	void GFX::beginGL()
+	{
+		_engine->beginGL();
+	}
+	
+	void GFX::endGL()
+	{
+		_engine->endGL();
+	}
 }

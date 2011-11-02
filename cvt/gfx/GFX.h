@@ -78,6 +78,10 @@ namespace cvt {
 
 			void drawModel( GLModel& mdl, const Matrix4f& modelview, float near = 0.01f, float far = 100.0f );
 
+			bool supportsGL() const;
+			void beginGL();
+			void endGL();
+
 		private:
 			void setChildrect( const Recti& r );
 			const Recti& childrect() const;
