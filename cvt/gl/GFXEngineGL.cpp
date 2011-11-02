@@ -222,4 +222,13 @@ namespace cvt {
 				glDisable( GL_DEPTH_TEST );
 			}
 
+
+			void GFXEngineGL::beginGL()
+			{
+			}
+
+			void GFXEngineGL::endGL()
+			{
+			}
+
 }

@@ -41,6 +41,9 @@ namespace cvt {
 			const Font& font() const;
 
 			void drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far, const Color& c );
+			bool supportsGL() const { return true; }
+			void beginGL();
+			void endGL();
 
 			void setViewport( const Recti& viewport );
 			const Recti& viewport() const;
