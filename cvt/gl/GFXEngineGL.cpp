@@ -229,6 +229,22 @@ namespace cvt {
 
 			void GFXEngineGL::endGL()
 			{
+				Recti clip;
+				
+				glEnable( GL_BLEND );
+				glEnable( GL_TEXTURE_2D );
+				glEnable( GL_POINT_SPRITE );
+				glEnable( GL_SCISSOR_TEST );
+				glDisable( GL_DEPTH_TEST );
+				glEnable( GL_LINE_SMOOTH );
+				if( _ctx->format().samples() )
+					glEnable( GL_MULTISAMPLE );
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glViewport( 0, 0, _viewport.width, _viewport.height );
+				
+				clip = _viewport;
+				clip.intersect( _childrect );
+				glScissor( clip.x, _viewport.height - ( clip.y + clip.height ), clip.width, clip.height );
 			}
 
 }

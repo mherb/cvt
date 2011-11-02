@@ -231,19 +231,20 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Application.h
 	gui/BasicTimer.h
 	gui/Button.h
+	gui/GLView.h
 	gui/ImageView.h
-	gui/Slider.h
 	gui/internal/TimerInfo.h
 	gui/internal/TimerInfoList.h
 	gui/internal/WidgetImplDefault.h
+	gui/Label.h
 	gui/Moveable.h
+	gui/Slider.h
 	gui/ToggleButton.h
 	gui/View3D.h
 	gui/Window.h
 	gui/Widget.h
 	gui/WidgetContainer.h
 	gui/WidgetLayout.h
-	gui/Label.h
 	io/CameraInfo.h
 	io/CameraMode.h
 	io/CameraModeSet.h
