@@ -17,6 +17,7 @@ namespace cvt {
 	class GFX {
 		friend class Widget;
 		friend class WidgetImplWinGLX11;
+        friend class GLView;
 
 		public:
 		enum PolygonFillRule { WINDING_EVEN_ODD, WINDING_NONZERO };

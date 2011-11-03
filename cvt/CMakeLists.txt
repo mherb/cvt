@@ -427,11 +427,11 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp
+	gui/GLView.cpp
 	gui/Moveable.cpp
 	gui/ImageView.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
-
 	gui/ToggleButton.cpp
 	gui/Widget.cpp
 	gui/WidgetContainer.cpp
