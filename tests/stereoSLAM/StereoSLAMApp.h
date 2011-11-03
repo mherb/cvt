@@ -48,6 +48,9 @@ namespace cvt
 
 		Delegate<void ( const StereoSLAM::ORBData* )> d( &_gui, &SLAMGui::updateStereoView );
 		_slam.newORBData.add( d );
+
+		Delegate<void ( const Matrix4f& )> d1( &_gui, &SLAMGui::updateCameraPose );
+		_slam.newCameraPose.add( d1 );
 	}
 
 	inline StereoSLAMApp::~StereoSLAMApp()

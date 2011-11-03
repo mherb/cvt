@@ -2,10 +2,12 @@
 #define SLAM_GUI_H
 
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Moveable.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
 #include "StereoSLAM.h"
+#include "SLAMView.h"
 
 namespace cvt
 {
@@ -19,15 +21,21 @@ namespace cvt
 			void resizeEvent( ResizeEvent* event );
 			void updateStereoView( const StereoSLAM::ORBData* orbData );
 
+			void updateCameraPose( const Matrix4f & m );
+
 		private:
 			ImageView	_image0;
 			ImageView	_stereoView;
+			SLAMView	_slamView;
+			Moveable	_slamMov;
+
 			float		_imageAspect;
 			
 			void setupGui();
 	};
 
 	inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
+		_slamMov( &_slamView ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
@@ -45,8 +53,12 @@ namespace cvt
 		_image0.setSize( (int)w, 300 );
 		_stereoView.setSize( (int)2*w, 300 );
 		_stereoView.setPosition( 0, 300 );
+
+		_slamMov.setSize( 320, 240 );
+
 		this->addWidget( &_image0 );
 		this->addWidget( &_stereoView );
+		this->addWidget( &_slamMov );
 
 		setVisible( true );
 	}
@@ -93,6 +105,12 @@ namespace cvt
 		}
 
 		_stereoView.setImage( color );
+	}
+
+
+	void SLAMGui::updateCameraPose( const Matrix4f & m )
+	{
+		_slamView.setCamPose( m );
 	}
 }
 

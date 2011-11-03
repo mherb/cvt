@@ -3,6 +3,8 @@
 #include <cvt/io/Resources.h>
 #include "cvt/io/xml/XMLDocument.h"
 #include "cvt/io/ImageSequence.h"
+#include <cvt/io/UEyeUsbCamera.h>
+#include <cvt/io/Camera.h>
 #include <cvt/vision/CameraCalibration.h>
 
 #include <cvt/gui/Application.h>
@@ -37,10 +39,52 @@ void initImageSequences( std::vector<VideoInput*> & imageSequence )
 	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
 }
 
+void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const String& id1 )
+{
+    Camera::updateInfo();
+	size_t numCams = Camera::count();
+
+	if( numCams < 2 ){
+		std::cerr << "Not enough cameras connected" << std::endl;
+		exit( 1 );
+	}
+
+	UEyeUsbCamera * cam0 = 0;
+	UEyeUsbCamera * cam1 = 0;
+	for( size_t i = 0; i < numCams; i++ ){
+		const CameraInfo & info = Camera::info( i );
+		if( info.type() == CAMERATYPE_UEYE ){
+			UEyeUsbCamera * cam = ( UEyeUsbCamera* )Camera::get( i );
+			if( cam->identifier() == id0 ){
+				cam0 = cam;
+			} else if( cam->identifier() == id1 ){
+				cam1 = cam;
+			} else {
+				delete cam;
+			}
+		}
+	}
+
+	if( cam0 && cam1 ){
+		cam0->startCapture();
+		cam1->startCapture();
+		cameras.push_back( cam0 );
+		cameras.push_back( cam1 );
+	} else {
+		if( cam0 )
+			delete cam0;
+		if( cam1 )
+			delete cam1;
+		std::cerr << "Could not find cameras with id" << std::endl;
+		exit( 1 );
+	}
+}
+
 int main( int argc, char* argv[] )
 {
-	
 	Resources r;
+	String id0( "4002738790" );
+	String id1( "4002738788" );
 	String calib0 = r.find( "stereoSLAM/calib/ueye_stereo_4002738790.xml" );
 	String calib1 = r.find( "stereoSLAM/calib/ueye_stereo_4002738788.xml" );
 
@@ -49,7 +93,8 @@ int main( int argc, char* argv[] )
 	loadCameraCalib( camCalib1, calib1 );
 
 	std::vector<VideoInput*> input;
-	initImageSequences( input );
+	//initImageSequences( input );
+	initCameras( input, id0, id1 );
 
 	StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
 	Application::run();
