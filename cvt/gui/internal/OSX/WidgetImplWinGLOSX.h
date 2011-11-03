@@ -48,7 +48,7 @@ namespace cvt {
 			void showEvent( ShowEvent* event );
 			void hideEvent( HideEvent* event );
 			void mousePressEvent( MousePressEvent* event ) { _widget->mousePressEvent( event ); }
-			void mousePressEvent( MouseReleaseEvent* event ) { _widget->mouseReleaseEvent( event ); }
+			void mouseReleaseEvent( MouseReleaseEvent* event ) { _widget->mouseReleaseEvent( event ); }
 			void mouseMoveEvent( MouseMoveEvent* event ) { _widget->mouseMoveEvent( event ); }
 
 		private:

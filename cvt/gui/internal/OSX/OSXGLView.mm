@@ -78,7 +78,7 @@
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MouseReleaseEvent re( pt.x, pt.y, [ e buttonNumber ] + 1 );
-	_widgetimpl->mousePressEvent( &re );
+	_widgetimpl->mouseReleaseEvent( &re );
 }
 
 - (void)mouseDragged:(NSEvent *)e
@@ -88,9 +88,17 @@
 	_widgetimpl->mouseMoveEvent( &me );
 }
 
-/*- (void)scrollWheel:(NSEvent *)e
+- (void)scrollWheel:(NSEvent *)e
 {
-	//std::cout << [e deltaY] << std::endl;
-}*/
+	if( [ e deltaY ] == 0 )
+		return;
+	int button = ( [ e deltaY ] > 0 ) ? 4 : 5;
+	
+	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
+	cvt::MousePressEvent pe( pt.x, pt.y, button );
+	_widgetimpl->mousePressEvent( &pe );
+	cvt::MouseReleaseEvent re( pt.x, pt.y, button );
+	_widgetimpl->mouseReleaseEvent( &re );
+}
 
 @end
