@@ -48,6 +48,7 @@ namespace cvt
 
 			Signal<const ORBData*>		newORBData;	
 			Signal<const Keyframe&>		newKeyFrame;	
+			Signal<const Matrix4f&>		newCameraPose;	
 
 		private:
 			/* camera calibration data and undistortion maps */
@@ -99,15 +100,15 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 5.0f ),
-		_matcherMaxDescriptorDist( 80 ),
+		_matcherMaxLineDistance( 4.0f ),
+		_matcherMaxDescriptorDist( 60 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 20 ),
-		_orbMaxFeatures( 3000 ),
+		_orbMaxFeatures( 2000 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 50.0f ),
+		_trackingSearchRadius( 20.0f ),
 		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_activeKF( 0 )
 	{
@@ -186,7 +187,13 @@ namespace cvt
 			K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
 
 			Matrix4d m;
+			Matrix4f mf;
 			epnp.solve( m, p2d, K );
+
+			for( size_t i = 0; i < 4; i++ )
+				for( size_t k = 0; k < 4; k++ )
+					mf[ i ][ k ] = m[ i ][ k ];
+			newCameraPose.notify( mf );
 		} else {
 			// TODO: How do we adress this? Create a submap and try to merge it ?!
 		}
