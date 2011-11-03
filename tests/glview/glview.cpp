@@ -18,7 +18,15 @@ class MyGLView : public GLView
 			_far( 100.0f )
 		{
 			createGrid( 10 );
+			createAxes();
 			_rot.setIdentity();
+
+			_ogl2World.setIdentity();
+			_ogl2World.setRotationX( -Math::HALF_PI );
+
+			_cam.setIdentity();
+			_cam.setTranslation( 2.0f, 0.0f, 5.0f );
+			_cam = _ogl2World * _cam;
 		}
 
 	protected:
@@ -32,20 +40,27 @@ class MyGLView : public GLView
 			Matrix4f persp;	
 			GL::perspective( persp, 60.0f, asp, _near, _far );
 
-			Matrix4f view;
+			Matrix4f view, proj;
 			view.setIdentity();
 			view[ 2 ][ 3 ] = _trans;
+			view *= _rot;
 
-			persp = persp * view * _rot;
+			proj = persp * view;
 
 			_basicProg.bind();
 
-			_basicProg.setProjection( persp );
+			glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+			glClear( GL_COLOR_BUFFER_BIT );
+
+			_basicProg.setProjection( proj );
 
 			glLineWidth( 1.0f );
 			_grid.draw( GL_LINES, 0, _numLines );
 
-			_teapot.draw();
+			proj = persp * view * _cam; 
+			_basicProg.setProjection( proj );
+			//_teapot.draw();
+			_axes.draw( GL_LINES, 0, 6 );
 
 			_basicProg.unbind();
 		}
@@ -91,9 +106,9 @@ class MyGLView : public GLView
 			_arcball.setViewportSize( e->width(), e->height() );
 		}
 
-		void updateCameraPose( const Matrix4f & m )
+		void setCamPose( const Matrix4f & m )
 		{
-
+			_cam = _ogl2World * m;
 		}
 
 	private:
@@ -102,6 +117,10 @@ class MyGLView : public GLView
 		float		_trans;
 		float		_near;
 		float		_far;
+
+		// Current Camera pose
+		Matrix4f	_cam;
+		Matrix4f	_ogl2World;
 
 		ArcBall		_arcball;
 		Vector2i	_press;
@@ -113,6 +132,15 @@ class MyGLView : public GLView
 		GLVertexArray	_grid;
 		GLBuffer		_gridLines;
 		size_t			_numLines;
+
+		GLVertexArray	_axes;
+		GLBuffer		_axesBuf;
+		GLBuffer		_axesColBuf;
+
+		GLVertexArray	_points;
+		GLBuffer		_pointData;
+		size_t			_numPoints;
+		size_t			_maxPoints;
 
 		void createGrid( size_t halfRes )
 		{
@@ -142,6 +170,40 @@ class MyGLView : public GLView
 
 			_grid.setVertexData( _gridLines, 3, GL_FLOAT );
 			_grid.setColor( Color::WHITE );
+		}
+
+		void createAxes()
+		{
+			_axesBuf.alloc( GL_STATIC_DRAW, sizeof( GL_FLOAT ) * 3 * 6, NULL );
+			GLfloat * data = ( GLfloat* )_axesBuf.map();
+			data[ 0 ] = 0.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 0.0f;
+			data[ 3 ] = 1.0f; data[ 4 ] = 0.0f;	data[ 5 ] = 0.0f;
+			data[ 6 ] = 0.0f; data[ 7 ]  = 0.0f; data[ 8 ]  = 0.0f;
+			data[ 9 ] = 0.0f; data[ 10 ] = 1.0f; data[ 11 ] = 0.0f;
+			data[ 12 ] = 0.0f; data[ 13 ] = 0.0f; data[ 14 ] = 0.0f;
+			data[ 15 ] = 0.0f; data[ 16 ] = 0.0f; data[ 17 ] = 1.0f;
+			_axesBuf.unmap();
+			_axes.setVertexData( _axesBuf, 3, GL_FLOAT );
+
+			_axesColBuf.alloc( GL_STATIC_DRAW, sizeof( GL_FLOAT ) * 4 * 6, NULL );
+			data = ( GLfloat* )_axesColBuf.map();
+			data[ 0 ] = 1.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 0.0f; data[ 3 ] = 1.0f;
+			data += 4;
+			data[ 0 ] = 1.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 0.0f; data[ 3 ] = 1.0f;
+			data += 4;
+			
+			data[ 0 ] = 0.0f; data[ 1 ] = 1.0f;	data[ 2 ] = 0.0f; data[ 3 ] = 1.0f;
+			data += 4;
+			data[ 0 ] = 0.0f; data[ 1 ] = 1.0f;	data[ 2 ] = 0.0f; data[ 3 ] = 1.0f;
+			data += 4;
+			
+			data[ 0 ] = 0.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 1.0f; data[ 3 ] = 1.0f;
+			data += 4;
+			data[ 0 ] = 0.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 1.0f; data[ 3 ] = 1.0f;
+			_axesColBuf.unmap();
+
+			_axes.setVertexData( _axesBuf, 3, GL_FLOAT );
+			_axes.setColorData( _axesColBuf, 4, GL_FLOAT );
 		}
 
 };

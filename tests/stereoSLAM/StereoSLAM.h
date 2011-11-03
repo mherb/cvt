@@ -46,7 +46,8 @@ namespace cvt
 				return _undist0;
 			}
 
-			Signal<const ORBData*>	newORBData;	
+			Signal<const ORBData*>		newORBData;	
+			Signal<const Keyframe&>		newKeyFrame;	
 
 		private:
 			/* camera calibration data and undistortion maps */
@@ -224,10 +225,13 @@ namespace cvt
 					}
 				}
 
-				std::cout << "Adding Keyframe: " << goodPoints << " 3D Pts " << std::endl;
-
+				//	std::cout << "Adding Keyframe: " << goodPoints << " 3D Pts " << std::endl;
 				// TODO: add the currently tracked MapFeatures to the Keyframe as well!
-				_map.addKeyframe( kf );	
+				// in order to get the dependency between the frames
+
+				_map.addKeyframe( kf );
+				newKeyFrame.notify( *kf );
+
 				_activeKF = _map.selectClosestKeyframe( _pose.transformation() );
 			} else {
 				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
