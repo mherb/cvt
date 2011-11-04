@@ -32,8 +32,7 @@ namespace cvt
 		
 		dcSettings( mode );
         
-        _identifier.sprintf( "%llu" ,_camera->guid );
-        std::cout << "Identifier: " << _identifier << std::endl;
+        _identifier.sprintf( "%llu", _camera->guid );
 	}
 
 	DC1394Camera::~DC1394Camera( )

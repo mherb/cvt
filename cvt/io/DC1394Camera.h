@@ -24,7 +24,7 @@ namespace cvt
 			size_t width() const { return _width;}
 			size_t height() const { return _height;}
 			const IFormat & format() const { return _frame.format();}
-            const String& identifier() const { return _identifier;};
+            const String& identifier() const { return _identifier;}
 
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );

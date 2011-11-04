@@ -32,6 +32,9 @@ namespace cvt {
 			void setAutoWhiteBalance(bool b);
 			void setBacklightCompensation(bool b);
 
+			/* unique identifier */	
+			const String&	identifier() const { _identifier; }
+
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
 
@@ -74,6 +77,7 @@ namespace cvt {
 			bool	_backLightCompensation;
 			size_t	_absExposureVal;
 
+			String	_identifier;
 
 			// private helper funcs ...
 			void open();
