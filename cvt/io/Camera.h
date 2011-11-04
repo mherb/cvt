@@ -12,6 +12,10 @@ namespace cvt {
 	{
 		public:
 			virtual ~Camera();
+			virtual void startCapture() = 0;
+			virtual void stopCapture() = 0;
+			virtual const String& identifier() const = 0;
+
 			/* number of available cameras */
 			static size_t count();
 			static const CameraInfo & info( size_t index );
@@ -20,9 +24,6 @@ namespace cvt {
 			/* will create camera with index and closest possible parameters */
 			static Camera* get( size_t index, size_t width = 640, size_t height = 480,
 							    size_t fps = 60, const IFormat & format = IFormat::BGRA_UINT8 );
-
-			virtual void startCapture() = 0;
-			virtual void stopCapture() = 0;
 
 		private:
 			Camera( const Camera & other );
