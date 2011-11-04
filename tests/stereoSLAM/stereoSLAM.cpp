@@ -3,7 +3,6 @@
 #include <cvt/io/Resources.h>
 #include "cvt/io/xml/XMLDocument.h"
 #include "cvt/io/ImageSequence.h"
-#include <cvt/io/UEyeUsbCamera.h>
 #include <cvt/io/Camera.h>
 #include <cvt/vision/CameraCalibration.h>
 
@@ -49,19 +48,16 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 		exit( 1 );
 	}
 
-	UEyeUsbCamera * cam0 = 0;
-	UEyeUsbCamera * cam1 = 0;
+	Camera * cam0 = 0;
+	Camera * cam1 = 0;
 	for( size_t i = 0; i < numCams; i++ ){
-		const CameraInfo & info = Camera::info( i );
-		if( info.type() == CAMERATYPE_UEYE ){
-			UEyeUsbCamera * cam = ( UEyeUsbCamera* )Camera::get( i );
-			if( cam->identifier() == id0 ){
-				cam0 = cam;
-			} else if( cam->identifier() == id1 ){
-				cam1 = cam;
-			} else {
-				delete cam;
-			}
+		Camera * cam = Camera::get( i );
+		if( cam->identifier() == id0 ){
+			cam0 = cam;
+		} else if( cam->identifier() == id1 ){
+			cam1 = cam;
+		} else {
+			delete cam;
 		}
 	}
 
@@ -82,6 +78,13 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 
 int main( int argc, char* argv[] )
 {
+	bool useSeq = false;
+	if( argc > 1 ){
+		String option( argv[ 1 ] );
+		if( option == "SEQUENCE" )
+			useSeq = true;
+	}
+
 	Resources r;
 	String id0( "4002738790" );
 	String id1( "4002738788" );
@@ -93,8 +96,11 @@ int main( int argc, char* argv[] )
 	loadCameraCalib( camCalib1, calib1 );
 
 	std::vector<VideoInput*> input;
-	//initImageSequences( input );
-	initCameras( input, id0, id1 );
+
+	if( useSeq )
+		initImageSequences( input );
+	else
+		initCameras( input, id0, id1 );
 
 	StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
 	Application::run();
