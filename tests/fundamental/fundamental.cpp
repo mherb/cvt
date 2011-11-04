@@ -143,11 +143,10 @@ void loadCameraCalib( CameraCalibration& camCalib, const String& file )
 
 int main( int argc, char* argv[] )
 {
-	
 	Resources r;
 
-	String calib0 = r.find( "calib/ueye_stereo_4002738790.xml" );
-	String calib1 = r.find( "calib/ueye_stereo_4002738788.xml" );
+	String calib0 = r.find( "calib/ueye_stereo_4002738788.xml" );
+	String calib1 = r.find( "calib/ueye_stereo_4002738790.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
 	loadCameraCalib( camCalib0, calib0 );
@@ -158,11 +157,10 @@ int main( int argc, char* argv[] )
 							    camCalib0.intrinsics(),
 								camCalib0.extrinsics(),
 								camCalib1.intrinsics(),
-								camCalib1.extrinsics()
-							  );
+								camCalib1.extrinsics() );
 
-	Image i0( r.find( "ueye_stereo_left.cvtraw" ) );
-	Image i1( r.find( "ueye_stereo_right.cvtraw" ) );
+	Image i0( r.find( "ueye_stereo_left.png" ) );
+	Image i1( r.find( "ueye_stereo_right.png" ) );
 	Image id0, id1, tmp;
 
 	Image warp;

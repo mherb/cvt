@@ -43,6 +43,9 @@ namespace cvt {
 	{
 		this->open();
 		this->init();
+
+		_identifier( "v4l2_" );
+		_identifier += camIndex;
 	}
 
 	V4L2Camera::~V4L2Camera()
