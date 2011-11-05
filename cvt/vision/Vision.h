@@ -59,6 +59,18 @@ namespace cvt
 										const Matrix3<T>& K1, 
 										const Matrix4<T>& T1 );
 
+		/**
+		 *	@brief	correct point correspondences according to fundamental constraint
+		 *			using first order Sampson Approximation
+		 *	@param p0			Point correspondence 0
+		 *	@param p1			Point correspondence 1
+		 *	@param fundamental	Fundamental Matrix: p1'Fp0 = 0
+		 */
+		template<typename T>
+		static void correctCorrespondencesSampson( Vector2<T>& p0, 
+												   Vector2<T>& p1,
+												   const Matrix3<T>& fundamental );
+
 	/*	template<typename T>
 		static void correctCorrespondences( Vector3<T>& p0,
 										    Vector3<T>& p1,
@@ -154,6 +166,33 @@ namespace cvt
         point3d[ 2 ] = v[ 2 ];
         point3d[ 3 ] = v[ 3 ];
     }
+
+	template<typename T>
+	inline void Vision::correctCorrespondencesSampson( Vector2<T>& p0, 
+													   Vector2<T>& p1,
+													   const Matrix3<T>& fundamental )
+	{
+		Vector3<T> x0, x1;
+		x0.x = p0.x;
+		x0.y = p0.y;
+		x0.z = 1;
+		x1.x = p1.x;
+		x1.y = p1.y;
+		x1.z = 1;
+		
+		Vector3<T> Fx0 = fundamental * x0; 
+		Vector3<T> FTx1 = fundamental.transpose() * x1;
+
+		T factor = x1*Fx0 / 
+				   ( Math::sqr( Fx0[ 0 ] ) + 
+					 Math::sqr( Fx0[ 1 ] ) + 
+					 Math::sqr( FTx1[ 0 ] ) + 
+					 Math::sqr( FTx1[ 1 ] ) );
+		p0.x -= factor * FTx1[ 0 ];
+		p0.y -= factor * FTx1[ 1 ];
+		p1.x -= factor * Fx0[ 0 ];
+		p1.y -= factor * Fx0[ 1 ];
+	}
 
 #if 0
 	template<typename T>
