@@ -3,13 +3,16 @@
 
 #include <cvt/gui/Widget.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 	class Button : public Widget
 	{
 		public:
-			Button( const std::string& label );
+			Button( const String& label );
 			~Button();
+
+			void setLabel( const String & label ) { _label = label; }
 
 			Signal<void> clicked;
 
@@ -20,7 +23,7 @@ namespace cvt {
 
 			Button( const Button& b );
 
-			std::string _label;
+			String _label;
 	};
 }
 
