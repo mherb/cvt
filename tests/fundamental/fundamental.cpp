@@ -159,8 +159,8 @@ int main( int argc, char* argv[] )
 								camCalib1.intrinsics(),
 								camCalib1.extrinsics() );
 
-	Image i0( r.find( "calib_stereo/ueye_stereo_4002738788.cvtraw" ) );
-	Image i1( r.find( "calib_stereo/ueye_stereo_4002738790.cvtraw" ) );
+	Image i0( r.find( "calib_stereo/ueye_stereo_4002738788.png" ) );
+	Image i1( r.find( "calib_stereo/ueye_stereo_4002738790.png" ) );
 	Image id0, id1, tmp;
 
 	Image warp;
