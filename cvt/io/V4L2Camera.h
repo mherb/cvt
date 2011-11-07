@@ -32,8 +32,8 @@ namespace cvt {
 			void setAutoWhiteBalance(bool b);
 			void setBacklightCompensation(bool b);
 
-			/* unique identifier */	
-			const String&	identifier() const { _identifier; }
+			/* unique identifier */
+			const String& identifier() const { return _identifier; }
 
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
