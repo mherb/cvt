@@ -121,6 +121,7 @@ SET( CL_KERNELS
 	cl/kernel/fgp/fgp_calcn.cl
 	cl/kernel/fgp/fgp_calcu.cl
 	cl/kernel/fgp/fgp_clear.cl
+	cl/kernel/fgp/fgp_calcun.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -129,6 +130,7 @@ CLTOHEADER( cl/kernel/BC.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calce.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcn.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_calcun.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
 
 
@@ -156,6 +158,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/fgp/fgp_calce.h
 	cl/kernel/fgp/fgp_calcn.h
 	cl/kernel/fgp/fgp_calcu.h
+	cl/kernel/fgp/fgp_calcun.h
 	cl/kernel/fgp/fgp_clear.h
 	geom/ArcBall.h
 	geom/Bezier.h

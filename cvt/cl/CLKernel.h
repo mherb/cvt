@@ -103,7 +103,27 @@ namespace cvt {
 
 	inline CLNDRange CLKernel::bestLocalRange2d( const CLNDRange& global ) const
 	{
-		return CLNDRange( 1, 1 );
+		cl_int err;
+		size_t devmaxwg = CL::defaultDevice()->maxWorkGroupSize();
+		size_t kernmaxwg;
+		CLNDRange ranges;
+
+		ranges = CL::defaultDevice()->maxWorkItemSizes();
+
+		err = ::clGetKernelWorkGroupInfo( _object, *CL::defaultDevice(), CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernmaxwg, NULL );
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+
+		size_t wx = Math::gcd<size_t>( global[ 0 ], Math::min( Math::min( devmaxwg, kernmaxwg ), ranges[ 0 ] ) );
+		size_t wy = Math::gcd<size_t>( global[ 1 ], Math::min( Math::min( devmaxwg, kernmaxwg ), ranges[ 1 ] ) );
+
+		while( wx * wy > Math::min( devmaxwg, kernmaxwg ) ) {
+			if( wx > wy )
+				wx = wx >> 1;
+			else
+				wy = wy >> 1;
+		}
+		return CLNDRange( wx, wy );
 	}
 
 	inline void CLKernel::setArg( cl_uint index, CLBuffer& buf ) const

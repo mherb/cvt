@@ -10,6 +10,7 @@
 
 #include <cvt/gfx/ifilter/BrightnessContrast.h>
 #include <cvt/gfx/ifilter/GaussIIR.h>
+#include <cvt/gfx/ifilter/ROFFGPFilter.h>
 
 //#define GAUSSIIR_CL
 
@@ -68,7 +69,7 @@ FilterApp::FilterApp( const String & name ) :
 	_appWindow.addWidget( &_mCL );
 	_mCL.setPosition( 360, 140 );
 
-	_timerId = cvt::Application::registerTimer( 10 /* as fast as possible*/, this );
+	_timerId = cvt::Application::registerTimer( 1 /* as fast as possible*/, this );
 	
 	initCamera();
 	initFilter();
@@ -132,16 +133,17 @@ void FilterApp::initCamera()
 void FilterApp::initFilter()
 {
 	// select the filter and set parameters
-	_filter = new BrightnessContrast();
+	//_filter = new BrightnessContrast();
+	_filter = new ROFFGPFilter();
 	//_filter = new GaussIIR();
 
 	_params = _filter->parameterSet();
 
-	size_t bloc = _params->paramHandle( "Brightness" );
-	_params->setArg<float>( bloc, 0.1f );
-
-	size_t cloc = _params->paramHandle( "Contrast" );
-	_params->setArg<float>( cloc, 0.0f );
+//	size_t bloc = _params->paramHandle( "Brightness" );
+//	_params->setArg<float>( bloc, 0.1f );
+//
+//	size_t cloc = _params->paramHandle( "Contrast" );
+//	_params->setArg<float>( cloc, 0.0f );
 
 	_outputHandle = _params->paramHandle( "Output" );
 	_inputHandle = _params->paramHandle( "Input" );
