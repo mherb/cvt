@@ -1,7 +1,7 @@
 #include <cvt/gui/Button.h>
 
 namespace cvt {
-	Button::Button( const std::string& label ) : _label( label )
+	Button::Button( const String& label ) : _label( label )
 	{
 	}
 

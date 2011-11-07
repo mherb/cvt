@@ -22,6 +22,9 @@ namespace cvt
 
 			void onTimeout();
 
+			void toggleStepping();
+			void nextPressed() { _nextImage = true; };
+
 		private:
 			std::vector<VideoInput*> _cams;
 			StereoSLAM				 _slam;
@@ -34,6 +37,9 @@ namespace cvt
 
 			Time					_time;
 			size_t					_timeIter;
+
+			bool					_stepping;
+			bool					_nextImage;
 	};
 
 	inline StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,
@@ -42,7 +48,9 @@ namespace cvt
 		_cams( cams ),
 		_slam( c0, cams[ 0 ]->width(), cams[ 0 ]->height(), c1, cams[ 1 ]->width(), cams[ 1 ]->height() ),
 		_img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
-		_img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() )
+		_img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
+		_stepping( true ),
+		_nextImage( true )
 	{
 		_timerId = Application::registerTimer( 10, this );
 
@@ -51,6 +59,13 @@ namespace cvt
 
 		Delegate<void ( const Matrix4f& )> d1( &_gui, &SLAMGui::updateCameraPose );
 		_slam.newCameraPose.add( d1 );
+		
+		Delegate<void (void)> d2( this, &StereoSLAMApp::nextPressed );
+		_gui.addNextFrameButtonDelegate( d2 );
+		Delegate<void (void)> d3( this, &StereoSLAMApp::toggleStepping );
+		_gui.addSteppingButtonDelegate( d3 );
+
+		_gui.setStepping( _stepping );
 	}
 
 	inline StereoSLAMApp::~StereoSLAMApp()
@@ -63,22 +78,33 @@ namespace cvt
 
 	inline void StereoSLAMApp::onTimeout()
 	{
-		_cams[ 0 ]->nextFrame();
-		_cams[ 1 ]->nextFrame();
+		if( !_stepping || ( _stepping && _nextImage ) ){
+			_cams[ 0 ]->nextFrame();
+			_cams[ 1 ]->nextFrame();
+			_nextImage = false;
+		}
 
 		_cams[ 0 ]->frame().convert( _img0, IFormat::GRAY_UINT8 );
 		_cams[ 1 ]->frame().convert( _img1, IFormat::GRAY_UINT8 );
 		_slam.newImages( _img0, _img1 );
 		
 		_gui.setCurrentImage( _slam.undistorted( 0 ) );
-		_timeIter++;
 
-		if( _timeIter == 20 ){
-			std::cout << "FPS: " << 1000*_timeIter / _time.elapsedMilliSeconds() << std::endl;
+		_timeIter++;
+		if( _time.elapsedSeconds() > 3.0f ){
+			_gui.setFPS( 1000.0f * _timeIter / _time.elapsedMilliSeconds() );
 			_time.reset();
 			_timeIter = 0;
 		}
 	}
+
+
+	inline void StereoSLAMApp::toggleStepping() 
+	{ 
+		_stepping = !_stepping; 
+		_gui.setStepping( _stepping );
+	}
+
 }
 
 #endif
