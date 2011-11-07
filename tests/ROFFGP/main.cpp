@@ -13,8 +13,6 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
-	
-
 	std::vector<CLPlatform> platforms;
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
@@ -23,11 +21,12 @@ int main( int argc, char** argv )
 	Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
 	input.convert( climg );
 
-	Image output( input.width(), input.height(), input.format(), IALLOCATOR_CL );
+	Image output( input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
 	try {
+		climg.save("roffgporig.png");
 		ROFFGPFilter filter;
-		filter.apply( output, climg );
+		filter.apply( output, climg, 0.2f, 250 );
 		output.save( "roffgp.png" );
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;

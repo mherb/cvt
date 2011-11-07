@@ -33,22 +33,23 @@ namespace cvt {
 		float t = 1.0f, told;
 
 		dst.reallocate( src, IALLOCATOR_CL );
-		_imgn.reallocate( src, IALLOCATOR_CL );
-		_imge0.reallocate( src, IALLOCATOR_CL );
-		_imge1.reallocate( src, IALLOCATOR_CL );
+		_imgn.reallocate( src.width() * 2, src.height(), IFormat::floatEquivalent( src.format() ), IALLOCATOR_CL );
+		_imge0.reallocate( src.width() * 2, src.height(), IFormat::floatEquivalent( src.format() ), IALLOCATOR_CL );
+		_imge1.reallocate( src.width() * 2, src.height(), IFormat::floatEquivalent( src.format() ), IALLOCATOR_CL );
 
 		CLNDRange ndglobal( Math::pad16( dst.width() ), Math::pad16( dst.height() ) );
+		CLNDRange ndglobal2( Math::pad16( dst.width() * 2 ), Math::pad16( dst.height() ) );
 
 		CLNDRange ndlocalu( _clfgpcalcu.bestLocalRange2d( ndglobal ) );
 		CLNDRange ndlocale( _clfgpcalce.bestLocalRange2d( ndglobal ) );
-		CLNDRange ndlocaln( _clfgpcalcn.bestLocalRange2d( ndglobal ) );
-
+		CLNDRange ndlocaln( _clfgpcalcn.bestLocalRange2d( ndglobal2 ) );
+		CLNDRange ndlocalclear( _clfgpclear.bestLocalRange2d( ndglobal2 ) );
 
 		_clfgpclear.setArg( 0, _imgn );
-		_clfgpclear.run( ndglobal, _clfgpclear.bestLocalRange2d( ndglobal ) );
+		_clfgpclear.run( ndglobal2, ndlocalclear );
 
 		_clfgpclear.setArg( 0, _imge1 );
-		_clfgpclear.run( ndglobal, _clfgpclear.bestLocalRange2d( ndglobal ) );
+		_clfgpclear.run( ndglobal2, ndlocalclear );
 
 		while( iter-- ) {
 
@@ -60,6 +61,7 @@ namespace cvt {
 			_clfgpcalcu.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( ndlocalu.x() + 1 ) * ( ndlocalu.y() + 1 ) * 2 ) );
 			_clfgpcalcu.run( ndglobal, ndlocalu );
 
+			/* update e */
 			_clfgpcalce.setArg( 0, toggle?_imge1:_imge0 );
 			_clfgpcalce.setArg( 1, dst );
 			_clfgpcalce.setArg( 2, _imgn );
@@ -68,13 +70,14 @@ namespace cvt {
 			_clfgpcalce.run( ndglobal, ndlocale );
 
 			told = t;
-			t = 0.5f * ( 1.0f + sqrtf( 1.0f + 4.0f * told * told ) );
+			t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * told * told ) );
 
+			/* update n */
 			_clfgpcalcn.setArg( 0, _imgn );
 			_clfgpcalcn.setArg( 1, toggle?_imge1:_imge0 );
 			_clfgpcalcn.setArg( 2, toggle?_imge0:_imge1 );
-			_clfgpcalcn.setArg( 3, told / t );
-			_clfgpcalcn.run( ndglobal, ndlocaln );
+			_clfgpcalcn.setArg( 3, ( told - 1.0f ) / t );
+			_clfgpcalcn.run( ndglobal2, ndlocaln );
 			toggle = !toggle;
 		}
 

@@ -8,7 +8,7 @@ namespace cvt {
 	class ROFFGPFilter : public IFilter {
 		public:
 			ROFFGPFilter();
-			void apply( Image& dst, const Image& src, float lambda = 70.0f, size_t iter = 10 ) const;
+			void apply( Image& dst, const Image& src, float lambda = 0.05f, size_t iter = 10 ) const;
 			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
 
 		private:
