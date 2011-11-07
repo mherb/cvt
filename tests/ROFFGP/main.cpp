@@ -26,7 +26,7 @@ int main( int argc, char** argv )
 	try {
 		climg.save("roffgporig.png");
 		ROFFGPFilter filter;
-		filter.apply( output, climg, 0.2f, 250 );
+		filter.apply( output, climg, 0.05f, 10 );
 		output.save( "roffgp.png" );
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;

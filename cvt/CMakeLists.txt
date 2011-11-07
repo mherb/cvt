@@ -117,11 +117,20 @@ SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
 	cl/kernel/gaussiir2.cl
 	cl/kernel/BC.cl
+	cl/kernel/fgp/fgp_calce.cl
+	cl/kernel/fgp/fgp_calcn.cl
+	cl/kernel/fgp/fgp_calcu.cl
+	cl/kernel/fgp/fgp_clear.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_calce.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_calcn.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
+
 
 SET(${MODULE_NAME}_HEADERS
 	cl/CLBuffer.h
@@ -144,6 +153,10 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir.h
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
+	cl/kernel/fgp/fgp_calce.h
+	cl/kernel/fgp/fgp_calcn.h
+	cl/kernel/fgp/fgp_calcu.h
+	cl/kernel/fgp/fgp_clear.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -157,6 +170,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IFormat.h
 	gfx/IConvert.h
 	gfx/ifilter/ROFDenoise.h
+	gfx/ifilter/ROFFGPFilter.h
 	gfx/ifilter/Homography.h
 	gfx/ifilter/GaussIIR.h
 	gfx/ifilter/BrightnessContrast.h
@@ -389,6 +403,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ImageOperations.cpp
 	gfx/ImageTest.cpp
 	gfx/ifilter/ROFDenoise.cpp
+	gfx/ifilter/ROFFGPFilter.cpp
 	gfx/ifilter/Homography.cpp
 	gfx/ifilter/GaussIIR.cpp
 	gfx/ifilter/BrightnessContrast.cpp
