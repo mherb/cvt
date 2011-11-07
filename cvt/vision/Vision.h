@@ -188,10 +188,10 @@ namespace cvt
 					 Math::sqr( Fx0[ 1 ] ) + 
 					 Math::sqr( FTx1[ 0 ] ) + 
 					 Math::sqr( FTx1[ 1 ] ) );
-		p0.x -= factor * FTx1[ 0 ];
-		p0.y -= factor * FTx1[ 1 ];
-		p1.x -= factor * Fx0[ 0 ];
-		p1.y -= factor * Fx0[ 1 ];
+		p0[ 0 ] -= factor * FTx1[ 0 ];
+		p0[ 1 ] -= factor * FTx1[ 1 ];
+		p1[ 0 ] -= factor * Fx0[ 0 ];
+		p1[ 1 ] -= factor * Fx0[ 1 ];
 	}
 
 #if 0
@@ -247,10 +247,11 @@ namespace cvt
 												const Matrix3<T>& K1, 
 												const Matrix4<T>& T1 )
 		{
-			Matrix4<T> t0t1 = T0 * T1.inverse();
-			Matrix3<T> R = t0t1.toMatrix3();
+			/* from cam1 to cam0 */
+			Matrix4<T> t10 = T1 * T0.inverse();
+			Matrix3<T> R = t10.toMatrix3();
 			Matrix3<T> tSkew;
-			tSkew.setSkewSymmetric( Vector3<T>( t0t1[ 0 ][ 3 ], t0t1[ 1 ][ 3 ], t0t1[ 2 ][ 3 ] ) );
+			tSkew.setSkewSymmetric( Vector3<T>( t10[ 0 ][ 3 ], t10[ 1 ][ 3 ], t10[ 2 ][ 3 ] ) );
 			f = K1.inverse().transpose() * tSkew * R * K0.inverse();	
 		}
 

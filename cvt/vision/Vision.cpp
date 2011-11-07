@@ -112,46 +112,51 @@ namespace cvt {
 		Matrix3<T> fund;
 
         for( size_t i = 0; i < 100; i++ ){
-            Matrix4<T> T01;
-            T01.setRotationXYZ( Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
+            Matrix4<T> T1;
+            T1.setRotationXYZ( Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
                                 Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
                                 Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ));
-            T01.setTranslation( Math::rand( ( T )-100, ( T )100 ),
-                                Math::rand( ( T )-100, ( T )100 ),
-                                Math::rand( ( T )-100, ( T )100 ) );
-            T01[ 3 ][ 3 ] = ( T )1;
-
-			Vision::composeFundamental( fund, K, T0, K, T01 );
+            T1.setTranslation( Math::rand( ( T )-10, ( T )10 ),
+                                Math::rand( ( T )-10, ( T )10 ),
+                                Math::rand( ( T )-10, ( T )10 ) );
+            T1[ 3 ][ 3 ] = ( T )1;
 
 
-            Vector4<T> truePoint( Math::rand( ( T )-100, ( T )100 ),
-                                  Math::rand( ( T )-100, ( T )100 ),
-                                  Math::rand( ( T )-100, ( T )100 ),
+			Vision::composeFundamental( fund, K, T0, K, T1 );
+
+            Vector4<T> truePoint( Math::rand( ( T )-100, ( T )200 ),
+                                  Math::rand( ( T )-100, ( T )200 ),
+                                  Math::rand( ( T )-100, ( T )200 ),
                                   ( T )1 );
 
-            Matrix3<T> R = T01.toMatrix3();
+            Matrix3<T> R = T1.toMatrix3();
             Matrix4<T> P0( K ), P1( K*R );
-            Vector3<T> t( T01[ 0 ][ 3 ], T01[ 1 ][ 3 ], T01[ 2 ][ 3 ] );
+            Vector3<T> t( T1[ 0 ][ 3 ], T1[ 1 ][ 3 ], T1[ 2 ][ 3 ] );
 
             t = K * t;
             P1[ 0][  3 ] = t[ 0 ];
             P1[ 1][  3 ] = t[ 1 ];
             P1[ 2][  3 ] = t[ 2 ];
-            P0[ 3 ][ 3 ] = ( T )1;
             P1[ 3 ][ 3 ] = ( T )1;
+            P0[ 3 ][ 3 ] = ( T )1;
 
 
             Vector4<T> tmp;
             Vector2<T> proj0, proj1;
 
             tmp = P0 * truePoint;
-            proj0[ 0 ] = tmp[ 0 ] / tmp[ 2 ] + Math::rand( ( T )-1, ( T )1 );
-            proj0[ 1 ] = tmp[ 1 ] / tmp[ 2 ] + Math::rand( ( T )-1, ( T )1 );
+            proj0[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
+            proj0[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
             tmp = P1 * truePoint;
-            proj1[ 0 ] = tmp[ 0 ] / tmp[ 2 ] + Math::rand( ( T )-1, ( T )1 );
-            proj1[ 1 ] = tmp[ 1 ] / tmp[ 2 ] + Math::rand( ( T )-1, ( T )1 );
+            proj1[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
+            proj1[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
 
-//			Vision::correctCorrespondencesSampson( proj0, proj1, fund.transpose() );
+			proj0[ 0 ] += Math::rand( ( T )-1, ( T )1 );
+			proj0[ 1 ] += Math::rand( ( T )-1, ( T )1 );
+			proj1[ 0 ] += Math::rand( ( T )-1, ( T )1 );
+			proj1[ 1 ] += Math::rand( ( T )-1, ( T )1 );
+
+			Vision::correctCorrespondencesSampson( proj0, proj1, fund );
             Vision::triangulate( tmp, P0, P1, proj0, proj1 );
 
             // normalize
