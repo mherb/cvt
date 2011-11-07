@@ -6,8 +6,8 @@ __kernel void fgp_calce( __write_only image2d_t out, __read_only image2d_t u, __
     const int ly = get_local_id( 1 );
     const int lw = get_local_size( 0 );
     const int lh = get_local_size( 1 );
-	const int width = get_image_width( out );
-	const int height = get_image_height( out );
+	const int width = get_image_width( u );
+	const int height = get_image_height( u );
 	float4 nx, ny, dx, dy, val, norm;
 
     coord.x = get_global_id( 0 );

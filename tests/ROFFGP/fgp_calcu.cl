@@ -1,4 +1,4 @@
-__kernel void fgp_calcu( __write_only image2d_t out, __read_only image2d_t img, __read_only image2d_t n , const float lambda, __local float4* buf  )
+__kernel void fgp_calcu( __write_only image2d_t out, __read_only image2d_t img, __read_only image2d_t n, const float lambda, __local float4* buf  )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
     int2 coord, coord2;
