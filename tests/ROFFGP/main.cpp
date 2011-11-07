@@ -13,6 +13,7 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
+	
 
 	std::vector<CLPlatform> platforms;
 	CLPlatform::get( platforms );
@@ -24,10 +25,14 @@ int main( int argc, char** argv )
 
 	Image output( input.width(), input.height(), input.format(), IALLOCATOR_CL );
 
-	ROFFGPFilter filter;
-	filter.apply( output, climg );
+	try {
+		ROFFGPFilter filter;
+		filter.apply( output, climg );
+		output.save( "roffgp.png" );
+	} catch( CLException& e ) {
+		std::cout << e.what() << std::endl;
+	}
 
-	output.save( "roffgp.png" );
 
 	return 0;
 }
