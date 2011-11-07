@@ -1,4 +1,4 @@
-__kernel void CALCE( __write_only image2d_t out, __read_only image2d_t u, __read_only image2d_t n , const float ilambda, __local float4* buf  )
+__kernel void fgp_calce( __write_only image2d_t out, __read_only image2d_t u, __read_only image2d_t n , const float ilambda, __local float4* buf  )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
     int2 coord, coord2;
@@ -6,12 +6,15 @@ __kernel void CALCE( __write_only image2d_t out, __read_only image2d_t u, __read
     const int ly = get_local_id( 1 );
     const int lw = get_local_size( 0 );
     const int lh = get_local_size( 1 );
-	const int width = get_global_size( 0 );
-	const int height = get_global_size( 1 );
+	const int width = get_image_width( out );
+	const int height = get_image_height( out );
 	float4 nx, ny, dx, dy, val, norm;
 
     coord.x = get_global_id( 0 );
     coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
 
     val = read_imagef( u, sampler, coord );
 
