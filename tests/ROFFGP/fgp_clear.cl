@@ -7,7 +7,8 @@ __kernel void fgp_clear( __write_only image2d_t out )
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-	if( coord.x < w && coord.y < h ) {
-		write_imagef( out, coord, ( float4 ) 0.0f );
-	}
+	if( coord.x >= w || coord.y >= h )
+		return;
+
+	write_imagef( out, coord, ( float4 ) 0.0f );
 }

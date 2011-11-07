@@ -39,12 +39,12 @@ namespace cvt {
 		_autoFocus(true),
 		_autoWhiteBalance(true),
 		_backLightCompensation(false),
-		_absExposureVal(250)
+		_absExposureVal(250),
+		_identifier( "v4l2_" )
 	{
 		this->open();
 		this->init();
 
-		_identifier( "v4l2_" );
 		_identifier += camIndex;
 	}
 
