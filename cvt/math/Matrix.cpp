@@ -135,13 +135,13 @@ namespace cvt {
 		return true;
 	}
 
-	template<>
-	bool Matrix4<float>::inverseSelf()
+	template<typename T>
+	bool Matrix4<T>::inverseSelf()
 	{
-		float D, invD;
-		float det2_23_01, det2_23_02, det2_23_03,
+		T D, invD;
+		T det2_23_01, det2_23_02, det2_23_03,
 			  det2_23_12, det2_23_13, det2_23_23;
-		float det3_123_123, det3_123_023, det3_123_013, det3_123_012;
+		T det3_123_123, det3_123_023, det3_123_013, det3_123_012;
 
 		det2_23_01 = mat[ 2 ][ 0 ] * mat[ 3 ][ 1 ] - mat[ 3 ][ 0 ] * mat[ 2 ][ 1 ];
 		det2_23_02 = mat[ 2 ][ 0 ] * mat[ 3 ][ 2 ] - mat[ 3 ][ 0 ] * mat[ 2 ][ 2 ];
@@ -157,21 +157,21 @@ namespace cvt {
 
 		D = mat[ 0 ][ 0 ] * det3_123_123 - mat[ 0 ][ 1 ] * det3_123_023 + mat[ 0 ][ 2 ] * det3_123_013 - mat[ 0 ][ 3 ] * det3_123_012;
 
-		if ( Math::abs( D ) < Math::EPSILONF )
+		if ( Math::abs( D ) < std::numeric_limits<T>::epsilon() )
 			return false;
 
-		invD = 1.0f / D;
+		invD = ( T )1 / D;
 
-		float det3_023_123, det3_023_023, det3_023_013, det3_023_012;
+		T det3_023_123, det3_023_023, det3_023_013, det3_023_012;
 
 		det3_023_123  =  mat[ 0 ][ 1 ] * det2_23_23 - mat[ 0 ][ 2 ] * det2_23_13 + mat[ 0 ][ 3 ] * det2_23_12;
 		det3_023_023  =  mat[ 0 ][ 0 ] * det2_23_23 - mat[ 0 ][ 2 ] * det2_23_03 + mat[ 0 ][ 3 ] * det2_23_02;
 		det3_023_013  =  mat[ 0 ][ 0 ] * det2_23_13 - mat[ 0 ][ 1 ] * det2_23_03 + mat[ 0 ][ 3 ] * det2_23_01;
 		det3_023_012  =  mat[ 0 ][ 0 ] * det2_23_12 - mat[ 0 ][ 1 ] * det2_23_02 + mat[ 0 ][ 2 ] * det2_23_01;
 
-		float det2_13_01, det2_13_02, det2_13_03,
+		T det2_13_01, det2_13_02, det2_13_03,
 			  det2_13_12, det2_13_13, det2_13_23;
-		float det3_013_123, det3_013_023, det3_013_013, det3_013_012;
+		T det3_013_123, det3_013_023, det3_013_013, det3_013_012;
 
 		det2_13_01 = mat[ 1 ][ 0 ] * mat[ 3 ][ 1 ] - mat[ 3 ][ 0 ] * mat[ 1 ][ 1 ];
 		det2_13_02 = mat[ 1 ][ 0 ] * mat[ 3 ][ 2 ] - mat[ 3 ][ 0 ] * mat[ 1 ][ 2 ];
@@ -185,9 +185,9 @@ namespace cvt {
 		det3_013_013  =  mat[ 0 ][ 0 ] * det2_13_13 - mat[ 0 ][ 1 ] * det2_13_03 + mat[ 0 ][ 3 ] * det2_13_01;
 		det3_013_012  =  mat[ 0 ][ 0 ] * det2_13_12 - mat[ 0 ][ 1 ] * det2_13_02 + mat[ 0 ][ 2 ] * det2_13_01;
 
-		float det2_12_01, det2_12_02, det2_12_03,
+		T det2_12_01, det2_12_02, det2_12_03,
 			  det2_12_12, det2_12_13, det2_12_23;
-		float det3_012_123, det3_012_023, det3_012_013, det3_012_012;
+		T det3_012_123, det3_012_023, det3_012_013, det3_012_012;
 
 		det2_12_01 = mat[ 1 ][ 0 ] * mat[ 2 ][ 1 ] - mat[ 2 ][ 0 ] * mat[ 1 ][ 1 ];
 		det2_12_02 = mat[ 1 ][ 0 ] * mat[ 2 ][ 2 ] - mat[ 2 ][ 0 ] * mat[ 1 ][ 2 ];
@@ -223,6 +223,9 @@ namespace cvt {
 
 		return true;
 	}
+
+	template bool Matrix4<float>::inverseSelf();
+	template bool Matrix4<double>::inverseSelf();
 
     template<>
     Matrix2<float> Matrix2<float>::fromString( const String& s )

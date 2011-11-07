@@ -2,6 +2,8 @@
 #define SLAM_GUI_H
 
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Button.h>
+#include <cvt/gui/Label.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gfx/GFXEngineImage.h>
@@ -20,14 +22,22 @@ namespace cvt
 			void setCurrentImage( const Image& img );
 			void resizeEvent( ResizeEvent* event );
 			void updateStereoView( const StereoSLAM::ORBData* orbData );
-
 			void updateCameraPose( const Matrix4f & m );
+
+			void addNextFrameButtonDelegate( const Delegate<void (void)> & d );
+			void addSteppingButtonDelegate( const Delegate<void (void)> & d );
+
+			void setStepping( bool value );
+			void setFPS( float fps );
 
 		private:
 			ImageView	_image0;
 			ImageView	_stereoView;
 			SLAMView	_slamView;
 			Moveable	_slamMov;
+			Button		_stepping;
+			Button		_nextFrame;
+			Label		_fpsLabel;
 
 			float		_imageAspect;
 			
@@ -36,6 +46,9 @@ namespace cvt
 
 	inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
 		_slamMov( &_slamView ),
+		_stepping( "Step" ),
+		_nextFrame( "Next" ),
+		_fpsLabel( "FPS:" ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
@@ -56,9 +69,20 @@ namespace cvt
 
 		_slamMov.setSize( 320, 240 );
 
+		// buttons to the top right
+		WidgetLayout wl;
+		wl.setAnchoredRight( 10, 100 );
+		wl.setAnchoredTop( 10, 20 );
+		this->addWidget( &_stepping, wl );
+		wl.setAnchoredTop( 40, 20 );
+		this->addWidget( &_nextFrame, wl );
+		wl.setAnchoredTop( 70, 20 );
+		this->addWidget( &_fpsLabel, wl );
+
 		this->addWidget( &_image0 );
 		this->addWidget( &_stereoView );
 		this->addWidget( &_slamMov );
+		_slamMov.setTitle( "3D View" );
 
 		setVisible( true );
 	}
@@ -107,10 +131,35 @@ namespace cvt
 		_stereoView.setImage( color );
 	}
 
-
-	void SLAMGui::updateCameraPose( const Matrix4f & m )
+	inline void SLAMGui::updateCameraPose( const Matrix4f & m )
 	{
 		_slamView.setCamPose( m );
+	}
+
+	inline void SLAMGui::addNextFrameButtonDelegate( const Delegate<void (void)> & d )
+	{
+		_nextFrame.clicked.add( d ); 
+	}
+
+	inline void SLAMGui::addSteppingButtonDelegate( const Delegate<void (void)> & d )
+	{
+		_stepping.clicked.add( d ); 
+	}
+
+	inline void SLAMGui::setStepping( bool value )
+	{
+		if( value ){
+			_stepping.setLabel( "RUN" );
+		} else {
+			_stepping.setLabel( "STEP" );
+		}
+	}
+
+	inline void SLAMGui::setFPS( float fps )
+	{
+		String title;
+		title.sprintf( "FPS: %0.1f", fps );
+		_fpsLabel.setLabel( title );
 	}
 }
 
