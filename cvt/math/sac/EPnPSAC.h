@@ -38,7 +38,7 @@ namespace cvt
         {
             // what is a good number for EPnP?
 		    // In principle it should work with 4 	
-            return 10;
+            return 4;
         }
 
         ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
@@ -65,26 +65,16 @@ namespace cvt
     {
         PointSet3d p3d;
         PointSet2d p2d;
+
         for( size_t i = 0; i < sampleIndices.size(); i++ ){
             p3d.add( _points3d[ sampleIndices[ i ] ] );
             p2d.add( _points2d[ sampleIndices[ i ] ] );
         }
-
+		
 		EPnPd epnp( p3d );
 
 		Matrix4d trans;
-
 		epnp.solve( trans, p2d, _intrinsics );
-
-		for( size_t i = 0; i < 3; i++ ){
-			for( size_t k = 0; k < 4; k++ ){
-				if( std::isnan( trans[ i ][ k ] ) ){
-					std::cout << "NAN" << std::endl;
-					trans.setIdentity();
-					return trans;
-				}
-			}
-		}
 
         return trans; 
     }
@@ -105,18 +95,17 @@ namespace cvt
         Vector3d p3;
 
 		/* invert the pose */
-		Matrix3d Rt = estimate.toMatrix3();
+		Matrix3d R = _intrinsics * estimate.toMatrix3();
 		Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 2 ] );
-		Rt.transposeSelf();
-		t = -Rt*t;
-
 		// apply intrinsics
-		Rt = _intrinsics * Rt;
 		t = _intrinsics * t;
 
         for( size_t i = 0; i < _points3d.size(); i++ ){
             // calc p' = estimate * p
-            p3 = Rt * _points3d[ i ] + t;
+            p3 = R * _points3d[ i ] + t;
+
+			if( Math::abs( p3.z ) < 1e-6 )
+				continue;
 
 			p2.x = p3.x / p3.z;
 			p2.y = p3.y / p3.z;

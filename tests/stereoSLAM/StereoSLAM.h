@@ -8,6 +8,8 @@
 #include <cvt/vision/EPnP.h>
 #include <cvt/vision/FeatureMatch.h>
 #include <cvt/math/SE3.h>
+#include <cvt/math/sac/RANSAC.h>
+#include <cvt/math/sac/EPnPSAC.h>
 #include <cvt/util/Signal.h>
 
 #include "ORBStereoMatching.h"
@@ -86,8 +88,7 @@ namespace cvt
 			/* the active Keyframe (closest to _pose) */
 			Keyframe*			_activeKF;
 
-			Map					_map;	
-
+			Map					_map;
 
 			// triangulate 3D points from 2D matches
 			float triangulate( MapFeature* & feature, FeatureMatch & match, size_t keyframeId ) const;
@@ -96,6 +97,8 @@ namespace cvt
 			void predictVisibleFeatures( std::vector<MapFeature*> & features, 
 										 std::vector<Vector2f> & predictedPos,
 										 std::vector<ORBFeature*> & descriptor ) const;
+
+			void estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d );
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -103,14 +106,14 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 7.0f ),
-		_matcherMaxDescriptorDist( 60 ),
+		_matcherMaxLineDistance( 5.0f ),
+		_matcherMaxDescriptorDist( 70 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 8.0f ),
-		_orbOctaves( 3 ), 
+		_maxTriangReprojError( 5.0f ),
+		_orbOctaves( 4 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 15 ),
-		_orbMaxFeatures( 800 ),
+		_orbCornerThreshold( 20 ),
+		_orbMaxFeatures( 2000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
@@ -179,38 +182,15 @@ namespace cvt
 				p2d.add( p2 );
 			}
 		}
-		//std::cout << "Found correspondences: " << p3d.size() << std::endl;
 
 		/* at least 10 corresp. */
 		if( p3d.size() > 9 ){
-			EPnPd epnp( p3d );
-
-			Matrix3d K;
-			const Matrix3f & kf = _camCalib0.intrinsics();
-			K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
-			K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
-			K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
-
-			Matrix4d m;
-			Matrix4f mf;
-			epnp.solve( m, p2d, K );
-
-			Eigen::Matrix4d me;
-			me( 0, 0 ) = m[ 0 ][ 0 ]; me( 0, 1 ) = m[ 0 ][ 1 ]; me( 0, 2 ) = m[ 0 ][ 2 ]; me( 0, 3 ) = m[ 0 ][ 3 ];
-			me( 1, 0 ) = m[ 1 ][ 0 ]; me( 1, 1 ) = m[ 1 ][ 1 ]; me( 1, 2 ) = m[ 1 ][ 2 ]; me( 1, 3 ) = m[ 1 ][ 3 ];
-			me( 2, 0 ) = m[ 2 ][ 0 ]; me( 2, 1 ) = m[ 2 ][ 1 ]; me( 2, 2 ) = m[ 2 ][ 2 ]; me( 2, 3 ) = m[ 2 ][ 3 ];
-			me( 3, 0 ) = m[ 3 ][ 0 ]; me( 3, 1 ) = m[ 3 ][ 1 ]; me( 3, 2 ) = m[ 3 ][ 2 ]; me( 3, 3 ) = m[ 3 ][ 3 ];
-			_pose.set( me );
-
-			for( size_t i = 0; i < 4; i++ )
-				for( size_t k = 0; k < 4; k++ )
-					mf[ i ][ k ] = m[ i ][ k ];
-			newCameraPose.notify( mf );
+			estimateCameraPose( p3d, p2d );
 		} else {
 			// TODO: How do we adress this? Create a submap and try to merge it later?!
 		}
 
-		if( p3d.size() < 50 ){
+		if( p3d.size() < 60 ){
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
@@ -384,8 +364,45 @@ namespace cvt
 				}
 			}
 		}	
+	}
 
+	inline void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
+	{
+		Matrix3d K;
+		const Matrix3f & kf = _camCalib0.intrinsics();
+		K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
+		K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
+		K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
+	/*	
+		EPnPSAC sacModel( p3d, p2d, K );
+		double maxReprojectionError = 6.0;
+		double outlierProb = 0.1;
+		RANSAC<EPnPSAC> ransac( sacModel, maxReprojectionError, outlierProb );
 
+		size_t maxRansacIters = 200;
+		Matrix4d m;
+		m = ransac.estimate( maxRansacIters );
+	*/
+		
+
+		EPnPd epnp( p3d );
+		Matrix4d m;
+		epnp.solve( m, p2d, K );
+
+		m.inverseSelf();
+
+		Eigen::Matrix4d me;
+		me( 0, 0 ) = m[ 0 ][ 0 ]; me( 0, 1 ) = m[ 0 ][ 1 ]; me( 0, 2 ) = m[ 0 ][ 2 ]; me( 0, 3 ) = m[ 0 ][ 3 ];
+		me( 1, 0 ) = m[ 1 ][ 0 ]; me( 1, 1 ) = m[ 1 ][ 1 ]; me( 1, 2 ) = m[ 1 ][ 2 ]; me( 1, 3 ) = m[ 1 ][ 3 ];
+		me( 2, 0 ) = m[ 2 ][ 0 ]; me( 2, 1 ) = m[ 2 ][ 1 ]; me( 2, 2 ) = m[ 2 ][ 2 ]; me( 2, 3 ) = m[ 2 ][ 3 ];
+		me( 3, 0 ) = m[ 3 ][ 0 ]; me( 3, 1 ) = m[ 3 ][ 1 ]; me( 3, 2 ) = m[ 3 ][ 2 ]; me( 3, 3 ) = m[ 3 ][ 3 ];
+		_pose.set( me );
+
+		Matrix4f mf;
+		for( size_t i = 0; i < 4; i++ )
+			for( size_t k = 0; k < 4; k++ )
+				mf[ i ][ k ] = m[ i ][ k ];
+		newCameraPose.notify( mf );
 	}
 }
 

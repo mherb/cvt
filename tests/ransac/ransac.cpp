@@ -9,6 +9,7 @@
 #include <cvt/math/sac/Line2DSAC.h>
 #include <cvt/math/sac/HomographySAC.h>
 #include <cvt/math/sac/EssentialSAC.h>
+#include <cvt/math/sac/EPnPSAC.h>
 
 #include <cvt/math/Matrix.h>
 #include <cvt/math/Vector.h>
@@ -127,6 +128,71 @@ void testHomography()
     std::cout << "Estimated:\n" << Hest << std::endl;
 }
 
+void genPointSet3d( PointSet3d & pSet, size_t num )
+{
+	Vector3d p;
+	while( num-- ){
+		p.x = Math::rand( -1000.0, 1000.0 );
+		p.y = Math::rand( -1000.0, 1000.0 );
+		p.z = Math::rand( -1000.0, 1000.0 );
+		pSet.add( p );
+	}
+}
+
+void projectPointSet( PointSet2d & p2d, const PointSet3d & p3d, const Matrix4d & world2Cam, const Matrix3d & K )
+{
+	Matrix3d R = world2Cam.toMatrix3();
+	Vector3d t( world2Cam[ 0 ][ 3 ], world2Cam[ 1 ][ 3 ], world2Cam[ 2 ][ 3 ] );
+	R.transposeSelf();
+	R = K * R;
+	t = -R * t;
+
+	Vector3d p3;
+	Vector2d p2;
+	for( size_t i = 0; i < p3d.size(); i++ ){
+		p3 = R * p3d[ i ] + t;
+		p2.x = p3.x / p3.z;
+		p2.y = p3.y / p3.z;
+		p2d.add( p2 );
+	}
+}
+
+void testEPnP()
+{
+	std::cout << "EPnP TEST" << std::endl;
+    PointSet3d points3d
+    PointSet2d points2d;
+
+    Matrix4d transform;
+	transform.setRotationXYZ( Math::deg2Rad( Math::rand( -10.0, 10.0 ) ), 
+							  Math::deg2Rad( Math::rand( -10.0, 10.0 ) ),
+							  Math::deg2Rad( Math::rand( -10.0, 10.0 ) ) );
+	transform.setTranslation( Math::rand( -100.0, 100.0 ), 
+							  Math::rand( -100.0, 100.0 ),
+							  Math::rand( -100.0, 100.0 ) );
+
+	Matrix3d intrinsics;
+	intrinsics.setIdentity();
+	intrinsics[ 0 ][ 0 ] = 650.0;
+	intrinsics[ 0 ][ 2 ] = 320.1;
+	intrinsics[ 1 ][ 1 ] = 651.0;
+	intrinsics[ 1 ][ 2 ] = 240.4;
+
+	genPointSet3d( points3d, 100 );
+	projectPointSet( points2d, points3d, transform, intrinsics );
+
+    EPnPSAC sacModel( points3d, points2d, intrinsics );
+    float maxDist = 4.0f;
+    float outlierProb = 0.05f;
+    RANSAC<EPnPSAC> ransac( sacModel, maxDist, outlierProb );
+
+    Matrix4d est = ransac.estimate( 100 );
+
+    std::cout << "Transform: " << std::endl;
+    std::cout << "GT:\n" << transform.inverse() << std::endl;
+    std::cout << "Estimated:\n" << est << std::endl;
+}
+
 
 template <typename T>
 static inline void generate3dPoints( std::vector<Vector3<T> > & pts, size_t n )
@@ -241,8 +307,9 @@ int main()
     srandom( time( NULL ) );
 
 //    testLineEstimation();
-    testHomography();
-    testEssential();
+//    testHomography();
+//    testEssential();
+	testEPnP();
 
     return 0;
 }

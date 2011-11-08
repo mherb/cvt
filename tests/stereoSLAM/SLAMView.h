@@ -110,6 +110,7 @@ namespace cvt
 		// draw the points
 		if( _numPoints ){
 			glPointSize( 2.0f );
+			_points.setColor( Color::GREEN );
 			_points.draw( GL_POINTS, 0, _numPoints );
 		}
 		
