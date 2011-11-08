@@ -17,6 +17,8 @@ namespace cvt
 			// assuming orb features are undistorted!
 			void matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1 ) const;
 
+			const Matrix3f & fundamental() const { return _fundamental; }
+
 		private:
 			Matrix3f	_fundamental;
 			float		_maxLineDist;

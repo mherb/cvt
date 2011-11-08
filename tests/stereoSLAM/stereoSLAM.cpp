@@ -32,9 +32,9 @@ void initImageSequences( std::vector<VideoInput*> & imageSequence )
 {
 	Resources r;
 	String base = r.find( "stereoSLAM" );
-	String tmp = base + "/left_";
+	String tmp = base + "/right_";
 	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
-	tmp = base + "/right_";
+	tmp = base + "/left_";
 	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
 }
 

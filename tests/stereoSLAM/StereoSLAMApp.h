@@ -52,13 +52,16 @@ namespace cvt
 		_stepping( true ),
 		_nextImage( true )
 	{
-		_timerId = Application::registerTimer( 10, this );
+		_timerId = Application::registerTimer( 5, this );
 
 		Delegate<void ( const StereoSLAM::ORBData* )> d( &_gui, &SLAMGui::updateStereoView );
 		_slam.newORBData.add( d );
 
 		Delegate<void ( const Matrix4f& )> d1( &_gui, &SLAMGui::updateCameraPose );
 		_slam.newCameraPose.add( d1 );
+
+		Delegate<void ( const std::vector<Vector4f>& )> pointsDel( &_gui, &SLAMGui::addPoints );
+		_slam.newPoints.add( pointsDel );
 		
 		Delegate<void (void)> d2( this, &StereoSLAMApp::nextPressed );
 		_gui.addNextFrameButtonDelegate( d2 );

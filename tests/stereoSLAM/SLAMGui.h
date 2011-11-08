@@ -30,6 +30,8 @@ namespace cvt
 			void setStepping( bool value );
 			void setFPS( float fps );
 
+			void addPoints( const std::vector<Vector4f> & pts ) { _slamView.addPoints( pts ); }
+
 		private:
 			ImageView	_image0;
 			ImageView	_stereoView;
@@ -110,6 +112,8 @@ namespace cvt
 		tmp.copyRect( 0, 0, *(orbData->img0), rect );
 		tmp.copyRect( orbData->img0->width(), 0, *(orbData->img1), rect );
 
+		std::vector<FeatureMatch> * matches = orbData->matches;
+
 		Image color;
 		tmp.convert( color, IFormat::RGBA_UINT8 );
 
@@ -125,6 +129,15 @@ namespace cvt
 			orb = orbData->orb1; 
 			for( size_t i = 0; i < orb->size(); i++ ){
 				g.fillRect( (*orb)[ i ].pt.x - 1 + orbData->img0->width(), (*orb)[ i ].pt.y - 1, 3, 3 );
+			}
+
+			g.color() = Color::RED;
+			for( size_t i = 0; i < matches->size(); i++ ){
+				if( (*matches)[ i ].feature1 ){
+					Vector2f p2 = (*matches)[ i ].feature1->pt;
+					p2.x += orbData->img0->width();
+					g.drawLine( (*matches)[ i ].feature0->pt, p2 );
+				}
 			}
 		}
 
