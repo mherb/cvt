@@ -41,6 +41,8 @@ namespace cvt {
 			  */
 			const size_t* range() const { return _ndrange; }
 
+			size_t operator[]( int index ) const { return _ndrange[ index ]; }
+
 		private:
 			cl_uint _dimension;
 			size_t _ndrange[ 3 ];

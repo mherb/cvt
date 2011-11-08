@@ -18,6 +18,7 @@ namespace cvt {
 
 			CLKernel _clfgpclear;
 			CLKernel _clfgpcalcu;
+			CLKernel _clfgpcalcun;
 			CLKernel _clfgpcalce;
 			CLKernel _clfgpcalcn;
 	};
