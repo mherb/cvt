@@ -13,6 +13,7 @@ namespace cvt
 			SLAMView();
 			
 			void setCamPose( const Matrix4f & m ) { _cam = _ogl2World * m; }
+			void resetCameraView();
 			void addPoints( const std::vector<Vector4f> & points );
 
 		protected:
@@ -70,7 +71,7 @@ namespace cvt
 		_rot.setIdentity();
 
 		_ogl2World.setIdentity();
-		//_ogl2World.setRotationX( Math::PI );
+		_ogl2World.setRotationX( Math::PI );
 
 		_cam.setIdentity();
 		_cam = _ogl2World * _cam;
@@ -109,7 +110,7 @@ namespace cvt
 
 		// draw the points
 		if( _numPoints ){
-			glPointSize( 2.0f );
+			glPointSize( 4.0f );
 			_points.setColor( Color::GREEN );
 			_points.draw( GL_POINTS, 0, _numPoints );
 		}
@@ -127,9 +128,13 @@ namespace cvt
 
 	inline void SLAMView::mousePressEvent( MousePressEvent* e )
 	{
-		if( e->button() == 1 ) {
-			_press.x = e->x;
-			_press.y = e->y;
+		switch( e->button() ){
+			case 1:
+				_press.x = e->x;
+				_press.y = e->y;
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -248,6 +253,13 @@ namespace cvt
 		}
 		_numPoints = newSize;
 		_points.setColor( Color::GREEN );
+	}
+
+	inline void SLAMView::resetCameraView()
+	{
+		_rot = _cam;
+		_rot.setTranslation( 0.0f, 0.0f, 0.0f );
+		_trans = _cam[ 2 ][ 3 ] - 0.5f;
 	}
 }
 

@@ -16,6 +16,8 @@
 
 #include <cvt/vision/FeatureMatch.h>
 
+#include <cvt/util/Time.h>
+
 #include <vector>
 
 using namespace cvt;
@@ -149,10 +151,15 @@ void projectPointSet( PointSet2d & p2d, const PointSet3d & p3d, const Matrix4d &
 
 	Vector3d p3;
 	Vector2d p2;
+	
 	for( size_t i = 0; i < p3d.size(); i++ ){
 		p3 = R * p3d[ i ] + t;
 		p2.x = p3.x / p3.z;
 		p2.y = p3.y / p3.z;
+
+		p2.x += Math::rand( -2.0, 2.0 );
+		p2.y += Math::rand( -2.0, 2.0 );
+
 		p2d.add( p2 );
 	}
 }
@@ -160,7 +167,7 @@ void projectPointSet( PointSet2d & p2d, const PointSet3d & p3d, const Matrix4d &
 void testEPnP()
 {
 	std::cout << "EPnP TEST" << std::endl;
-    PointSet3d points3d
+    PointSet3d points3d;
     PointSet2d points2d;
 
     Matrix4d transform;
@@ -178,7 +185,7 @@ void testEPnP()
 	intrinsics[ 1 ][ 1 ] = 651.0;
 	intrinsics[ 1 ][ 2 ] = 240.4;
 
-	genPointSet3d( points3d, 100 );
+	genPointSet3d( points3d, 5000 );
 	projectPointSet( points2d, points3d, transform, intrinsics );
 
     EPnPSAC sacModel( points3d, points2d, intrinsics );
@@ -186,7 +193,9 @@ void testEPnP()
     float outlierProb = 0.05f;
     RANSAC<EPnPSAC> ransac( sacModel, maxDist, outlierProb );
 
-    Matrix4d est = ransac.estimate( 100 );
+	Time t;
+    Matrix4d est = ransac.estimate( 1000 );
+	std::cout << "RANSAC took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
     std::cout << "Transform: " << std::endl;
     std::cout << "GT:\n" << transform.inverse() << std::endl;

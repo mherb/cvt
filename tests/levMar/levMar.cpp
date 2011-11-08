@@ -8,7 +8,6 @@
 #include <cvt/util/RNG.h>
 #include <cvt/util/Time.h>
 
-#include <cvt/vision/CamModel.h>
 #include <cvt/vision/PointCorrespondences3d2d.h>
 
 using namespace cvt;
@@ -18,16 +17,17 @@ void generateData( PointCorrespondences3d2d<double> & data, size_t n, size_t num
 	RNG rng( time( NULL ) );
 	double sigma = 0.01;
 	
-	Eigen::Matrix<double, 3, 1> p3d;
+	Eigen::Matrix<double, 3, 1> p3d, p3dTrans;
 	Eigen::Matrix<double, 2, 1> p2d;
 	
 	while ( n-- ) {
 		p3d[ 0 ] = rng.uniform( -100.0, 100.0 );
 		p3d[ 1 ] = rng.uniform( -100.0, 100.0 );
-		p3d[ 2 ] = rng.uniform( -100.0, 100.0 );	
-		
-		data.pose().project( p2d, data.camModel(), p3d );
-				
+		p3d[ 2 ] = rng.uniform( -100.0, 100.0 );
+
+		data.pose().transform( p3dTrans, p3d );
+		Vision::project( p2d, data.camKR(), data.camKt(), p3dTrans );
+
 		// add some noise
 		p2d[ 0 ] += rng.gaussian( sigma ); 
 		p2d[ 1 ] += rng.gaussian( sigma );
@@ -41,7 +41,8 @@ void generateData( PointCorrespondences3d2d<double> & data, size_t n, size_t num
 		p3d[ 1 ] = rng.uniform( -100.0, 100.0 );
 		p3d[ 2 ] = rng.uniform( -100.0, 100.0 );	
 		
-		data.pose().project( p2d, data.camModel(), p3d );
+		data.pose().transform( p3dTrans, p3d );
+		Vision::project( p2d, data.camKR(), data.camKt(), p3dTrans );
 		
 		// add some noise
 		p2d[ 0 ] += 300;
@@ -62,8 +63,7 @@ int main()
 	K( 0, 0 ) = 600; K( 0, 2 ) = 399.5;
 	K( 1, 1 ) = 600; K( 1, 2 ) = 299.5;
 	
-	CamModel<double> cam( K, T );
-	PointCorrespondences3d2d<double> model( cam );
+	PointCorrespondences3d2d<double> model( K, T );
 	
 	Eigen::Matrix<double, 6, 1> poseVec;
 	poseVec[ 0 ] = Math::deg2Rad( 10.0 ); 

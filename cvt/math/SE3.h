@@ -14,8 +14,6 @@
 
 #include <vector>
 
-#include <cvt/vision/CamModel.h>
-
 namespace cvt
 {
 	template<typename T>
@@ -62,15 +60,6 @@ namespace cvt
 			void screenHessian( ScreenHessType & wx, 
 								ScreenHessType & wy,
 							    const PointType & p ) const;
-		
-			void project( Eigen::Matrix<T, 2, 1> & sp, 
-						  const CamModel<T> & cam, 
-						  const PointType & p3d ) const;
-		
-			void project( Eigen::Matrix<T, 2, 1> & sp,
-						  Eigen::Matrix<T, 2, 6> & screenJac,
-						  const CamModel<T> & cam,
-						  const PointType & p3d ) const;
 			
 			/* p has to be pretransformed with the current T in this case! */
 			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
@@ -93,16 +82,20 @@ namespace cvt
 	inline SE3<T>::SE3( T alpha, T beta, T gamma, T tx, T ty, T tz ) 
 	{	
 		this->set( alpha, beta, gamma, tx, ty, tz );
+		_intrinsics.setIdentity();
 	}
 	
 	template <typename T>
 	inline SE3<T>::SE3( const ParameterVectorType & p )
 	{
 		this->set( p[ 0 ], p[ 1 ], p[ 2 ], p[ 3 ], p[ 4 ], p[ 5 ] );
+		_intrinsics.setIdentity();
 	}
 	
 	template <typename T>
-	inline SE3<T>::SE3( const SE3<T> & other ) : _current( other._current )
+	inline SE3<T>::SE3( const SE3<T> & other ) : 
+		_current( other._current ),
+		_intrinsics( other.intrinsics() )
 	{
 	}
 	
@@ -196,7 +189,8 @@ namespace cvt
 	{		
 		warped = _current.template block<3, 3>( 0, 0 ) * p + _current.template block<3, 1>( 0, 3 );
 	}
-	
+
+/*	
 	template < typename T >
 	inline void SE3<T>::project( Eigen::Matrix<T, 2, 1> & sp, const CamModel<T> & cam, const PointType & p3d ) const
 	{
@@ -239,6 +233,7 @@ namespace cvt
 		
 		screenJac = projJ * poseJ;
 	}
+*/
 
 	template <typename T>	
 	inline void SE3<T>::hessian( HessMatType & h, const PointType & p ) const

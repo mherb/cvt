@@ -1,7 +1,7 @@
 #include <cvt/math/SE3.h>
 #include <cvt/math/Math.h>
-#include <cvt/vision/CamModel.h>
 #include <cvt/util/CVTTest.h>
+#include <cvt/vision/Vision.h>
 
 #include <Eigen/Core>
 
@@ -24,7 +24,7 @@ namespace cvt {
 		SE3<double> pose;
 		pose.set( parameter );
 
-		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> point, ppoint;
 		Eigen::Matrix<double, 3, 1> p, pp;
 		Eigen::Matrix<double, 2, 1> sp, spp;
 		point[ 0 ] = 13; point[ 1 ] = 8; point[ 2 ] = 12;;
@@ -34,10 +34,17 @@ namespace cvt {
 		Eigen::Matrix<double, 3, 3> K = Eigen::Matrix<double, 3, 3>::Identity();
 		K( 0, 0 ) = K( 1, 1 ) = 600;
 		K( 0, 2 ) = 320; K( 1, 2 ) = 240;
-		CamModel<double> cam( K );
-		pose.project( sp, cam, point );
+		
+		pose.setIntrinsics( K );
+		
+		ppoint = K * p;
+		sp[ 0 ] = ppoint[ 0 ] / ppoint[ 2 ];
+		sp[ 1 ] = ppoint[ 1 ] / ppoint[ 2 ];
 
-		double h = 0.000000001;
+		
+		pose.screenJacobian( sJA, p );
+
+		double h = 0.00000001;
 		for( size_t i = 0; i < 6; i++ ){
 			delta[ i ] = h;
 
@@ -46,7 +53,7 @@ namespace cvt {
 			pose.transform( pp, point );
 			jNumeric.col( i ) = ( pp - p ) / h;
 
-			pose.project( spp, cam, point );
+			Vision::project( spp, K, pp );
 			sJN.col( i ) = ( spp - sp ) / h;
 
 			delta[ i ] = 0;
@@ -54,7 +61,6 @@ namespace cvt {
 		}
 
 		pose.jacobian( jAnalytic, point );
-		pose.project( spp, sJA, cam, point );
 
 		bool b, ret = true;
 		jDiff = jAnalytic - jNumeric;

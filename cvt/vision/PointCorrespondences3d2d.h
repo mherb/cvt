@@ -11,7 +11,7 @@
 #define CVT_POINTCORRESPONDENCES_3D2D_H
 
 #include <cvt/vision/MeasurementModel.h>
-#include <cvt/vision/CamModel.h>
+#include <cvt/vision/Vision.h>
 #include <cvt/math/SE3.h>
 
 namespace cvt {
@@ -32,7 +32,7 @@ namespace cvt {
 			typedef typename Eigen::Matrix<T, 2, 1> MeasType;
 			
 		
-			PointCorrespondences3d2d( const CamModel<T> & cam );
+			PointCorrespondences3d2d( const Eigen::Matrix<T, 3, 3> & intr, const Eigen::Matrix<T, 4, 4> extr );
 			~PointCorrespondences3d2d();
 		
 			T		buildLSSystem( AType & A, bType & b, const CostFunction<T, MeasType> & costFunc );			
@@ -41,19 +41,31 @@ namespace cvt {
 		
 			void				add( const Eigen::Matrix<T, 3, 1> & p3d, const Eigen::Matrix<T, 2, 1> & p2d );
 			const SE3<T> &		pose() const { return _pose; }
-			const CamModel<T> &	camModel() const { return _cam; }
+			void	setPose( const Eigen::Matrix<T, 4, 4> & poseT ){ pose.set( poseT ); }
+
+			const Eigen::Matrix<T, 3, 3> & camKR() const { return _KR; }
+			const Eigen::Matrix<T, 3, 1> & camKt() const { return _Kt; }
 		
 		private:
 			SE3<T>		_pose;
-			CamModel<T>	_cam;
 			std::vector<Eigen::Matrix<T, 3, 1> >	_data;
 			std::vector<Eigen::Matrix<T, 2, 1> >	_meas;
+
+			Eigen::Matrix<T, 3, 3>					_KR;
+			Eigen::Matrix<T, 3, 1>					_Kt;
 	};
 	
 	template < typename T >  
-	inline PointCorrespondences3d2d<T>::PointCorrespondences3d2d( const CamModel<T> & cam ) : _cam( cam ) {}
+	inline PointCorrespondences3d2d<T>::PointCorrespondences3d2d( const Eigen::Matrix<T, 3, 3> & intr, const Eigen::Matrix<T, 4, 4> extr )
+   	{
+		_KR = intr * extr.block( 0, 0, 3, 3 );
+		_Kt = intr * extr.block( 0, 3, 3, 1 );
+		_pose.setIntrinsics( intr );
+	}
 	
-	template < typename T > inline PointCorrespondences3d2d<T>::~PointCorrespondences3d2d() {}
+	template < typename T > inline PointCorrespondences3d2d<T>::~PointCorrespondences3d2d()
+   	{
+	}
 
 	template < typename T >
 	inline T PointCorrespondences3d2d<T>::buildLSSystem( Eigen::Matrix<T, 6, 6> & A, 
@@ -69,9 +81,14 @@ namespace cvt {
 		Eigen::Matrix<T, 2, 2> weighting = Eigen::Matrix<T, 2, 2>::Identity();
         
         T weight;
+
+		Eigen::Matrix<T, 3, 1> transformedPoint;
 		
-		for( size_t i = 0; i < _data.size(); i++ ){							
-			_pose.project( w, J, _cam, _data[ i ] );
+		for( size_t i = 0; i < _data.size(); i++ ){
+			_pose.transform( transformedPoint, _data[ i ] );
+			_pose.screenJacobian( J, transformedPoint );
+			Vision::project( w, _KR, _Kt, transformedPoint );
+				
 			r = _meas[ i ] - w;		
 
 			costs += costFunc.cost( r, weight );
@@ -95,9 +112,11 @@ namespace cvt {
 		T costs = 0;
 		T weight;
 		Eigen::Matrix<T, 2, 1> p;
+		Eigen::Matrix<T, 3, 1> tp;
 
 		for( size_t i = 0; i < _data.size(); i++ ){
-			_pose.project( p, _cam, _data[ i ] );
+			_pose.transform( tp, _data[ i ] );
+			Vision::project( p, _KR, _Kt, tp );
 			costs += costFunc.cost( _meas[ i ] - p, weight );
 		}
 		
