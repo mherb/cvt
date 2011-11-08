@@ -342,7 +342,6 @@ SET(${MODULE_NAME}_HEADERS
 	util/Data.h
     util/DataIterator.h
 	vision/Brief.h
-	vision/CamModel.h
 	vision/CameraCalibration.h
 	vision/DLT.h
 	vision/ESM.h
