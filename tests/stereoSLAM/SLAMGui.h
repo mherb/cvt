@@ -40,6 +40,7 @@ namespace cvt
 			Button		_stepping;
 			Button		_nextFrame;
 			Label		_fpsLabel;
+			Button		_resetCamera;
 
 			float		_imageAspect;
 			
@@ -51,9 +52,13 @@ namespace cvt
 		_stepping( "Step" ),
 		_nextFrame( "Next" ),
 		_fpsLabel( "FPS:" ),
+		_resetCamera( "Set Cam" ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
+		
+		Delegate<void (void)> d( &_slamView, &SLAMView::resetCameraView );
+		_resetCamera.clicked.add( d );
 	}
 
 	inline SLAMGui::~SLAMGui()
@@ -80,6 +85,8 @@ namespace cvt
 		this->addWidget( &_nextFrame, wl );
 		wl.setAnchoredTop( 70, 20 );
 		this->addWidget( &_fpsLabel, wl );
+		wl.setAnchoredTop( 100, 20 );
+		this->addWidget( &_resetCamera, wl );
 
 		this->addWidget( &_image0 );
 		this->addWidget( &_stereoView );

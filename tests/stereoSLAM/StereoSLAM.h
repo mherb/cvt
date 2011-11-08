@@ -2,6 +2,7 @@
 #define CVT_STEREO_SLAM_H
 
 #include <cvt/vision/CameraCalibration.h>
+#include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/vision/ORB.h>
@@ -10,6 +11,7 @@
 #include <cvt/math/SE3.h>
 #include <cvt/math/sac/RANSAC.h>
 #include <cvt/math/sac/EPnPSAC.h>
+#include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
 
 #include "ORBStereoMatching.h"
@@ -377,7 +379,8 @@ namespace cvt
 		K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
 		K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
 		K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
-	/*	
+
+		/*	
 		EPnPSAC sacModel( p3d, p2d, K );
 		double maxReprojectionError = 6.0;
 		double outlierProb = 0.1;
@@ -386,26 +389,51 @@ namespace cvt
 		size_t maxRansacIters = 200;
 		Matrix4d m;
 		m = ransac.estimate( maxRansacIters );
-	*/
+		*/
 		
-
 		EPnPd epnp( p3d );
 		Matrix4d m;
 		epnp.solve( m, p2d, K );
 
-		m.inverseSelf();
-
+		Eigen::Matrix<double, 3, 3> Ke;
+		Eigen::Matrix<double, 4, 4> extrC;
 		Eigen::Matrix4d me;
-		me( 0, 0 ) = m[ 0 ][ 0 ]; me( 0, 1 ) = m[ 0 ][ 1 ]; me( 0, 2 ) = m[ 0 ][ 2 ]; me( 0, 3 ) = m[ 0 ][ 3 ];
-		me( 1, 0 ) = m[ 1 ][ 0 ]; me( 1, 1 ) = m[ 1 ][ 1 ]; me( 1, 2 ) = m[ 1 ][ 2 ]; me( 1, 3 ) = m[ 1 ][ 3 ];
-		me( 2, 0 ) = m[ 2 ][ 0 ]; me( 2, 1 ) = m[ 2 ][ 1 ]; me( 2, 2 ) = m[ 2 ][ 2 ]; me( 2, 3 ) = m[ 2 ][ 3 ];
-		me( 3, 0 ) = m[ 3 ][ 0 ]; me( 3, 1 ) = m[ 3 ][ 1 ]; me( 3, 2 ) = m[ 3 ][ 2 ]; me( 3, 3 ) = m[ 3 ][ 3 ];
+		for( size_t i = 0; i < 3; i++ )
+			for( size_t k = 0; k < 3; k++ )
+				Ke( i, k ) = K[ i ][ k ];
+		for( size_t i = 0; i < 4; i++ ){
+			for( size_t k = 0; k < 4; k++ ){
+				extrC( i, k ) = _camCalib0.extrinsics()[ i ][ k ];
+				me( i, k ) = m[ i ][ k ];
+			}
+		}
+
+		PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
+		Eigen::Matrix<double, 3, 1> p3;
+		Eigen::Matrix<double, 2, 1> p2;
+		for( size_t i = 0; i < p3d.size(); i++ ){
+			p3[ 0 ] = p3d[ i ].x;
+			p3[ 1 ] = p3d[ i ].y;
+			p3[ 2 ] = p3d[ i ].z;
+			p2[ 0 ] = p2d[ i ].x;
+			p2[ 1 ] = p2d[ i ].y;
+			pointCorresp.add( p3, p2 );
+		}
+		
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
+		LevenbergMarquard<double> lm;
+		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
+		termCriteria.setCostThreshold( 0.001 );
+		termCriteria.setMaxIterations( 10 );
+		lm.optimize( pointCorresp, costFunction, termCriteria );
+
+		me = pointCorresp.pose().transformation().inverse();
 		_pose.set( me );
 
 		Matrix4f mf;
 		for( size_t i = 0; i < 4; i++ )
 			for( size_t k = 0; k < 4; k++ )
-				mf[ i ][ k ] = m[ i ][ k ];
+				mf[ i ][ k ] = me( i, k );
 		newCameraPose.notify( mf );
 	}
 }

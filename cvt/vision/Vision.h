@@ -75,6 +75,19 @@ namespace cvt
 		static void correctCorrespondences( Vector3<T>& p0,
 										    Vector3<T>& p1,
 										    const Matrix3<T>& essential );*/
+
+		/**
+		 *	@brief	project 3d point to a screen point with intrinsic matrix
+		 *	@param	p2	resulting screenpoint
+		 *	@param	K	intrinsic matrix
+		 *	@param	p3	3d point given in camera coordinates
+		 */
+		template <class Mat3, class Vec3, class Vec2>
+		static void project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 );
+		
+		template <class Mat3, class Vec3, class Vec2>
+		static void project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 );
+
     };
 
 
@@ -255,6 +268,22 @@ namespace cvt
 			f = K1.inverse().transpose() * tSkew * R * K0.inverse();	
 		}
 
+
+		template <class Mat3, class Vec3, class Vec2>
+		inline void Vision::project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 )
+		{
+			Vec3 pp = K * p3;
+			p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
+			p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
+		}
+
+		template <class Mat3, class Vec3, class Vec2>
+		inline void Vision::project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 )
+		{
+			Vec3 pp = KR * p3 + Kt;
+			p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
+			p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
+		}
 
 }
 
