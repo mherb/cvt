@@ -157,7 +157,6 @@ namespace cvt
 		std::vector<Vector2f> predictedPositions;
 		std::vector<ORBFeature*> descriptors;
 		predictVisibleFeatures( mapFeatures, predictedPositions, descriptors );
-		//std::cout << "Predicted Visible MapFeatures: " << mapFeatures.size() << std::endl;
 
 		std::vector<FeatureMatch> matchedFeatures;
 		_featureTracking.trackFeatures( matchedFeatures, 
@@ -187,10 +186,15 @@ namespace cvt
 		if( p3d.size() > 9 ){
 			estimateCameraPose( p3d, p2d );
 		} else {
-			// TODO: How do we adress this? Create a submap and try to merge it later?!
+			std::cout << "TOO FEW FEATURES TO ESTIMATE POSE" << std::endl;
+			// TODO: How do we adress this? 
+			// - Create a submap and try to merge it later
+			// - relocalize against whole map?
 		}
 
-		if( p3d.size() < 60 ){
+//		std::cout << "Tracked features " << p3d.size() << std::endl;
+
+		if( p3d.size() < 200 ){
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
