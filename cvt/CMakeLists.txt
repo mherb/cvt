@@ -295,6 +295,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/sac/Line2DSAC.h
 	math/sac/HomographySAC.h
 	math/sac/EssentialSAC.h
+	math/sac/EPnPSAC.h
 	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
