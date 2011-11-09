@@ -40,6 +40,7 @@ namespace cvt
 
 			bool					_stepping;
 			bool					_nextImage;
+
 	};
 
 	inline StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,
@@ -67,8 +68,10 @@ namespace cvt
 		_gui.addNextFrameButtonDelegate( d2 );
 		Delegate<void (void)> d3( this, &StereoSLAMApp::toggleStepping );
 		_gui.addSteppingButtonDelegate( d3 );
-
 		_gui.setStepping( _stepping );
+		
+		Delegate<void (const PointSet2d&)> d4( &_gui, &SLAMGui::updateTrackedPoints );
+		_slam.trackedPoints.add( d4 );
 	}
 
 	inline StereoSLAMApp::~StereoSLAMApp()

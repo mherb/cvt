@@ -89,6 +89,11 @@ namespace cvt {
 		_engine->drawLines( pts, n, _linewidth, _color );
 	}
 
+	void GFX::drawRect( const Recti& rect )
+	{
+		_engine->drawRect( rect, _linewidth, _color );
+	}
+	
 	void GFX::fillRect( const Recti& rect )
 	{
 		_engine->fillRect( rect, _color );

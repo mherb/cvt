@@ -54,6 +54,7 @@ namespace cvt
 			Signal<const ORBData*>		newORBData;	
 			Signal<const Keyframe&>		newKeyFrame;	
 			Signal<const std::vector<Vector4f>&>		newPoints;	
+			Signal<const PointSet2d&>	trackedPoints;	
 			Signal<const Matrix4f&>		newCameraPose;	
 
 		private:
@@ -108,14 +109,14 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 5.0f ),
+		_matcherMaxLineDistance( 7.0f ),
 		_matcherMaxDescriptorDist( 70 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 5.0f ),
-		_orbOctaves( 4 ), 
+		_maxTriangReprojError( 7.0f ),
+		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 20 ),
-		_orbMaxFeatures( 2000 ),
+		_orbCornerThreshold( 15 ),
+		_orbMaxFeatures( 1500 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
@@ -171,6 +172,8 @@ namespace cvt
 		Vector3d p3;
 		Vector2d p2;
 
+		std::set<size_t> matchedIndices;
+
 		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
 			if( matchedFeatures[ i ].feature1 ){
 				// got a match so add it to the point sets
@@ -181,8 +184,10 @@ namespace cvt
 				p2.x = matchedFeatures[ i ].feature1->pt.x;
 				p2.y = matchedFeatures[ i ].feature1->pt.y;
 				p2d.add( p2 );
+				matchedIndices.insert( i );
 			}
 		}
+
 
 		/* at least 10 corresp. */
 		if( p3d.size() > 9 ){
@@ -194,9 +199,7 @@ namespace cvt
 			// - relocalize against whole map?
 		}
 
-//		std::cout << "Tracked features " << p3d.size() << std::endl;
-
-		if( p3d.size() < 200 ){
+		if( p3d.size() < 100 ){
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
@@ -209,7 +212,7 @@ namespace cvt
 
 			// find stereoMatches
 			std::vector<FeatureMatch> matches;
-			_stereoMatcher.matchEpipolar( matches, orb0, orb1 );
+			_stereoMatcher.matchEpipolar( matches, orb0, orb1, matchedIndices );
 
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
@@ -238,18 +241,23 @@ namespace cvt
 						}
 					}
 				}
-				newPoints.notify( pts4f );
 
-				// TODO: add the currently tracked MapFeatures to the Keyframe as well!
-				// in order to get the dependency between the frames
+				if( pts4f.size() > 5 ){
+					// TODO: add the currently tracked MapFeatures to the Keyframe as well!
+					// in order to get the dependency between the frames
+					// these are the matched indices, so for each matched index, we add a measurement to the mapfeature
+					// and the respective mapfeature to the new keyframe!
 
-				// TODO: make sure the keyframe has mapfeatures!
-				_map.addKeyframe( kf );
-				newKeyFrame.notify( *kf );
+					// TODO: make sure the keyframe has mapfeatures!
+					_map.addKeyframe( kf );
+					newKeyFrame.notify( *kf );
+					newPoints.notify( pts4f );
+				}
 
 				_activeKF = _map.selectClosestKeyframe( _pose.transformation() );
 			} else {
 				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
+				std::cout << "Error: no stereo matches found" << std::endl;
 			}
 
 			// notify observers that there is new orb data
@@ -262,6 +270,13 @@ namespace cvt
 			data.matches = &matches;
 			newORBData.notify( &data );
 		}
+
+		if( orb0.size() < 100 && _orbCornerThreshold > 10 )
+			_orbCornerThreshold--;
+		else if( orb0.size() > 600 && _orbCornerThreshold < 80 )
+			_orbCornerThreshold++;
+		
+		trackedPoints.notify( p2d );
 	}
 
 	inline float StereoSLAM::triangulate( MapFeature* & feature, FeatureMatch & match, size_t keyframeId ) const

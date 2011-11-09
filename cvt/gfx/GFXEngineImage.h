@@ -13,7 +13,7 @@ namespace cvt {
 			void end();
 			void drawLines( const Vector2f* pts, size_t n, float width, const Color& c );
 			void fillRect( const Recti& rect, const Color& c );
-			void drawRect( const Recti& rect, float width, const Color& c ) {};
+			void drawRect( const Recti& rect, float width, const Color& c );
 			void fillRoundRect( const Recti& rect, float r, const Color& c ) {};
 			void drawRoundRect( const Recti& rect, float width, float r, const Color& c ) {};
 			void drawEllipse( const Vector2f& center, float rx, float ry, float width, const Color& c ) {};

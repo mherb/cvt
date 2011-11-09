@@ -32,6 +32,8 @@ namespace cvt
 
 			void addPoints( const std::vector<Vector4f> & pts ) { _slamView.addPoints( pts ); }
 
+			void updateTrackedPoints( const PointSet2d & pset );
+
 		private:
 			ImageView	_image0;
 			ImageView	_stereoView;
@@ -43,6 +45,8 @@ namespace cvt
 			Button		_resetCamera;
 
 			float		_imageAspect;
+			
+			PointSet2d	_trackedPoints;
 			
 			void setupGui();
 	};
@@ -108,7 +112,25 @@ namespace cvt
 
 	inline void SLAMGui::setCurrentImage( const Image& img )
 	{
-		_image0.setImage( img );
+		Image color;
+		img.convert( color, IFormat::RGBA_UINT8 );
+
+		{
+			GFXEngineImage ge( color );
+			GFX g( &ge );
+			g.color() = Color::GREEN;
+
+			Recti r;
+			r.width = 31;
+			r.height = 31;
+			for( size_t i = 0; i < _trackedPoints.size(); i++ ){
+				r.x = ( int )_trackedPoints[ i ].x - 15;
+				r.y = ( int )_trackedPoints[ i ].y - 15;
+				g.drawRect( r );
+			}
+		}
+
+		_image0.setImage( color );
 		_imageAspect = (float)img.width() / (float)img.height();
 	}
 
@@ -180,6 +202,11 @@ namespace cvt
 		String title;
 		title.sprintf( "FPS: %0.1f", fps );
 		_fpsLabel.setLabel( title );
+	}
+
+	inline void SLAMGui::updateTrackedPoints( const PointSet2d & pset )
+	{
+		_trackedPoints = pset;
 	}
 }
 

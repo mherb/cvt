@@ -332,4 +332,21 @@ namespace cvt {
 				break;
 		}
 	}
+
+	void GFXEngineImage::drawRect( const Recti& rect, float width, const Color& c )
+	{
+		Vector2i p0, p1;
+		
+		p0.x = rect.x; p0.y = rect.y;
+		p1.x = p0.x + rect.width; p1.y = rect.y;
+		drawLine( p0, p1, width, c );
+		
+		p1.x = p0.x; p1.y = rect.y + rect.height;
+		drawLine( p0, p1, width, c );
+
+		p0.x = rect.x + rect.width; p0.y = rect.y + rect.height;
+		drawLine( p0, p1, width, c );
+		p1.x = p0.x; p1.y = rect.y;
+		drawLine( p0, p1, width, c );
+	}
 }
