@@ -4,6 +4,8 @@
 #include <cvt/vision/ORB.h>
 #include <cvt/geom/Line2D.h>
 
+#include <set>
+
 namespace cvt
 {
 	class ORBStereoMatching
@@ -15,7 +17,7 @@ namespace cvt
 							   const CameraCalibration & c1 );
 
 			// assuming orb features are undistorted!
-			void matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1 ) const;
+			void matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1, const std::set<size_t> & usedIndices ) const;
 
 			const Matrix3f & fundamental() const { return _fundamental; }
 
@@ -40,7 +42,7 @@ namespace cvt
 								   	c1.extrinsics() );
 	}
 
-	inline void ORBStereoMatching::matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1 ) const
+	inline void ORBStereoMatching::matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1, const std::set<size_t> & used ) const
 	{
 		// with a row lookup table, we could probably speed up the search
 		Vector3f line, point;
@@ -48,7 +50,12 @@ namespace cvt
 		point.z = 1.0f;
 		size_t distance;
 
+		std::set<size_t>::const_iterator usedEnd = used.end();
+
 		for( size_t i = 0; i < orb0.size(); i++ ){
+			if( used.find( i ) != usedEnd )
+				continue;
+
 			const ORBFeature & f = orb0[ i ];
 			point.x = f.pt.x;
 			point.y = f.pt.y;

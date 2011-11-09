@@ -58,6 +58,8 @@ namespace cvt {
 
 			void fillRect( const Recti& rect );
 			void fillRect( int x, int y, int width, int height );
+			
+			void drawRect( const Recti& rect );
 
 			void fillRoundRect( const Recti& rect, float radius );
 			void fillRoundRect( int x, int y, int width, int height, float radius );
