@@ -36,8 +36,8 @@ namespace cvt {
 
 			CLNDRange bestLocalRange1d( const CLNDRange& global ) const;
 			CLNDRange bestLocalRange2d( const CLNDRange& global ) const;
-			void run( const CLNDRange& global, const CLNDRange& local ) const;
-			void runWait( const CLNDRange& global, const CLNDRange& local ) const;
+			void run( const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset = CLNDRange() ) const;
+			void runWait( const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset = CLNDRange() ) const;
 
 
 			CLUTIL_GETINFOSTRING( functionName, CL_KERNEL_FUNCTION_NAME, _object, ::clGetKernelInfo  )
