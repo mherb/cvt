@@ -3,15 +3,15 @@
 
 namespace cvt {
 
-	void CLKernel::run( const CLNDRange& global, const CLNDRange& local ) const
+	void CLKernel::run( const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset ) const
 	{
-		CL::defaultQueue()->enqueueNDRangeKernel( *this, global, local );
+		CL::defaultQueue()->enqueueNDRangeKernel( *this, global, local, offset );
 	}
 
-	void CLKernel::runWait( const CLNDRange& global, const CLNDRange& local ) const
+	void CLKernel::runWait( const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset ) const
 	{
 		CLEvent e;
-		CL::defaultQueue()->enqueueNDRangeKernel( *this, global, local, CLNDRange(), NULL, &e );
+		CL::defaultQueue()->enqueueNDRangeKernel( *this, global, local, offset, NULL, &e );
 		e.wait();
 	}
 
