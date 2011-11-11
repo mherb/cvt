@@ -123,6 +123,7 @@ SET( CL_KERNELS
 	cl/kernel/fgp/fgp_clear.cl
 	cl/kernel/fgp/fgp_calcun.cl
 	cl/kernel/prefixsum/prefixsum_block.cl
+	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
@@ -137,6 +138,7 @@ CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcun.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
@@ -168,6 +170,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/fgp/fgp_calcun.h
 	cl/kernel/fgp/fgp_clear.h
 	cl/kernel/prefixsum/prefixsum_block.h
+	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h

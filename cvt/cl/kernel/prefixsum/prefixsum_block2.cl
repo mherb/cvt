@@ -7,19 +7,15 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 	const int lh = get_local_size( 1 );
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
-	int2 coord, block;
+	int2 coord;
 	float4 tmp;
-	local float4 s, s2;
+	local float4 s;
 
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-	if( !( coord.x < width && coord.y < height ) )
-		return;
-
 	if( lx == 0 && ly == 0 )
 		s = read_imagef( in, sampler, coord - ( int2 ) ( 1, 1 ) );
-
 	if( ly == 0 )
 		bufv[ lx ] = read_imagef( in, sampler, coord - ( int2 ) ( 0, 1 ) );
 
@@ -27,6 +23,9 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 		bufh[ ly ] = read_imagef( in, sampler, coord - ( int2 ) ( 1, 0 ) );
 
 	barrier( CLK_LOCAL_MEM_FENCE );
+
+	if( !( coord.x < width && coord.y < height ) )
+		return;
 
 	if( lx < lw - 1 && ly < lh - 1 ) {
 		tmp = read_imagef( in, sampler, coord );
@@ -42,8 +41,7 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 	if( lx == 0 && coord.x && ly < lh - 1 )
 			write_imagef( out, coord - ( int2 ) ( 1, 0 ), bufh[ ly ] + s );
 
-
-	/* just for last lines exactly at the border */
+	/* just for last lines exactly at the edge of the local size patch*/
 	if( coord.y == height - 1 && coord.x < width - 1 && lx < lw - 1 && ly == lh - 1 ) {
 		tmp = read_imagef( in, sampler, coord );
 		write_imagef( out, coord, tmp + bufh[ ly ] );
