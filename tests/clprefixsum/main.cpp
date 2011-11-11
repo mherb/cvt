@@ -3,9 +3,12 @@
 #include <cvt/cl/CLPlatform.h>
 #include <cvt/cl/CLKernel.h>
 
+#include <cvt/util/Time.h>
+
 #include <iomanip>
 
 #include <cvt/cl/kernel/prefixsum/prefixsum_block.h>
+#include <cvt/cl/kernel/prefixsum/prefixsum_pblock.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_vert.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_block2.h>
@@ -31,12 +34,12 @@ int main( int argc, char** argv )
 	Image output( input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
 	try {
-		CLKernel kern( _prefixsum_block_source, "prefixsum_block" );
+		Time t;
+		CLKernel kern( _prefixsum_pblock_source, "prefixsum_pblock" );
 		kern.setArg( 0, output );
 		kern.setArg( 1, climg );
 		kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
-		kern.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) >> 5 ), CLNDRange( 32, 1 ) );
-
+		kern.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
 		CLKernel kern2( _prefixsum_horiz_source, "prefixsum_horiz" );
 		kern2.setArg( 0, output );
@@ -56,6 +59,8 @@ int main( int argc, char** argv )
 		kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
 		kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
 		kern4.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+
+		std::cout << "Time: " << t.elapsedMilliSeconds() << std::endl;
 
 		output.save( "prefixsum.png" );
 
