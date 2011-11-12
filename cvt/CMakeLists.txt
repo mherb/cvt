@@ -327,9 +327,11 @@ SET(${MODULE_NAME}_HEADERS
 	math/graph/GraphVisitor.h
 	util/CPU.h
 	util/CVTTest.h
+	util/Condition.h
 	util/Delegate.h
 	util/Exception.h
 	util/Inserter.h
+	util/Mutex.h
 	util/ParamInfo.h
 	util/ParamSet.h
 	util/Range.h
@@ -344,6 +346,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE41.h
 	util/SIMDSSE42.h
 	util/SIMDAVX.h
+	util/TQueue.h
 	util/Thread.h
 	util/Time.h
 	util/Util.h
