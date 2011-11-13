@@ -11,7 +11,9 @@
 	#include <cvt/io/UEyeUsbCamera.h>
 #endif
 
+#ifdef DC1394_FOUND
 #include <cvt/io/DC1394Camera.h>
+#endif
 
 namespace cvt {
 
@@ -42,11 +44,13 @@ namespace cvt {
 		}
 #endif
 
+#ifdef DC1394_FOUND
 		// dc1394 cameras
 		for( size_t i = 0; i < DC1394Camera::count(); i++){
 			Camera::_camInfos.push_back( CameraInfo() );
 			DC1394Camera::cameraInfo( i, Camera::_camInfos.back() );
 		}
+#endif
 
 		// ueye cameras
 #ifdef UEYE_FOUND
@@ -79,7 +83,9 @@ namespace cvt {
 #endif
 				break;
 			case CAMERATYPE_DC1394:
+#ifdef DC1394_FOUND
 				cam = new DC1394Camera( camInfo.index(), mode );
+#endif
 				break;
 			case CAMERATYPE_V4L2:
 #ifdef LINUX
