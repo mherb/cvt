@@ -15,7 +15,7 @@ namespace cvt {
 			_glsharing = false;
 			_ctx = new CLContext( dev.platform(), dev );
 			_device = new CLDevice( dev );
-			_queue = new CLCommandQueue( *_ctx, *_device );
+			_queue = new CLCommandQueue( *_ctx, *_device /*, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE*/ );
 			return true;
 		}
 		return false;

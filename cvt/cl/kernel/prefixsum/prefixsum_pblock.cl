@@ -8,46 +8,38 @@ __kernel void prefixsum_pblock( __write_only image2d_t out,  __read_only image2d
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
 	int2 coord;
-	int lid1 = lw * ly + lx;
-	int lid2 = lid1 + mul24( lw, lh );
+	const int oddx = lx & 1;
+	const int oddy = ly & 1;
+	int lid = mul24( lw, ly ) + lx;
 
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-	buf[ lid2 ] = read_imagef( in, sampler, coord );
+	buf[ lid ] = read_imagef( in, sampler, coord );
 
 	barrier( CLK_LOCAL_MEM_FENCE );
 
+	// assume lw == lh
 	for( int offset = 1; offset < lw; offset <<= 1 )
 	{
-		int tmp = lid1;
-		lid1 = lid2;
-		lid2 = tmp;
-
-		if( lx >= offset) {
-			buf[ lid2 ] = buf[ lid1 ] + buf[ lid1 - offset ];
-		} else {
-			buf[ lid2 ] = buf[ lid1 ];
-		}
+		if( lx >= offset && oddx )
+			buf[ lid ] += buf[ lid - offset ];
+		barrier( CLK_LOCAL_MEM_FENCE );
+		if( ly >= offset && oddy )
+			buf[ lid ] += buf[ lid - mul24( lw, offset ) ];
 		barrier( CLK_LOCAL_MEM_FENCE );
 	}
 
-	for( int offset = 1; offset < lh; offset <<= 1 )
-	{
-		int tmp = lid1;
-		lid1 = lid2;
-		lid2 = tmp;
+	float4 tmp = buf[ lid ];
 
-		if( ly >= offset) {
-			buf[ lid2 ] = buf[ lid1 ] + buf[ lid1 - mul24( lw, offset ) ];
-		} else {
-			buf[ lid2 ] = buf[ lid1 ];
-		}
-
-		barrier( CLK_LOCAL_MEM_FENCE );
-	}
+	if( lx > 1 && !oddx )
+		tmp += buf[ lid - 1 ];
+	if( ly > 1 && !oddy )
+		tmp += buf[ lid - lw ];
+	if( lx > 1 && ly > 1 && !oddx && !oddy )
+		tmp += buf[ lid - lw - 1 ];
 
 	if( coord.x < width && coord.y < height )
-		write_imagef( out, coord, buf[ lid2 ] );
+		write_imagef( out, coord, tmp );
 }
 
