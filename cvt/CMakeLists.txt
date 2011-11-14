@@ -24,7 +24,6 @@ endif(DOXYGEN_FOUND)
 
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
-FIND_PACKAGE(DC1394 REQUIRED)
 FIND_PACKAGE(ffmpeg REQUIRED)
 
 IF( APPLE )
@@ -41,14 +40,12 @@ ELSE( APPLE )
 ENDIF( APPLE )
 
 FIND_PACKAGE(OpenCL REQUIRED)
-FIND_PACKAGE(DC1394 REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
 	${LIBPNG_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${OPENCL_LIBRARIES}
-	${LIBDC1394_LIBRARY}
 	${X11_X11_LIB}
 	${FFMPEG_LIBRARIES}
 )
@@ -280,7 +277,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/CameraMode.h
 	io/CameraModeSet.h
 	io/Camera.h
-	io/DC1394Camera.h
 	io/FileSystem.h
 	io/FloFile.h
 	io/ImageSequence.h
@@ -327,9 +323,11 @@ SET(${MODULE_NAME}_HEADERS
 	math/graph/GraphVisitor.h
 	util/CPU.h
 	util/CVTTest.h
+	util/Condition.h
 	util/Delegate.h
 	util/Exception.h
 	util/Inserter.h
+	util/Mutex.h
 	util/ParamInfo.h
 	util/ParamSet.h
 	util/Range.h
@@ -344,6 +342,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/SIMDSSE41.h
 	util/SIMDSSE42.h
 	util/SIMDAVX.h
+	util/TQueue.h
 	util/Thread.h
 	util/Time.h
 	util/Util.h
@@ -472,7 +471,6 @@ SET(${MODULE_NAME}_SOURCES
 	io/CameraInfo.cpp
 	io/CameraModeSet.cpp
 	io/Camera.cpp
-	io/DC1394Camera.cpp
 	io/FileSystem.cpp
 	io/FloFile.cpp
 	io/ImageSequence.cpp
@@ -606,6 +604,31 @@ IF(UEYEUSB_FOUND)
 	)
 ENDIF(UEYEUSB_FOUND)
 
+OPTION( USE_DC1394 "Use DC1394 library if available" TRUE )
+
+IF( ${USE_DC1394} )
+	FIND_PACKAGE(DC1394)
+	IF( ${LIBDC1394_FOUND} )
+		MESSAGE( "USING DC1394 Library" )
+		SET(${MODULE_NAME}_HEADERS
+			${${MODULE_NAME}_HEADERS}
+			io/DC1394Camera.h
+		)
+		SET(${MODULE_NAME}_SOURCES
+			${${MODULE_NAME}_SOURCES}
+			io/DC1394Camera.cpp
+		)
+		INCLUDE_DIRECTORIES(
+			BEFORE
+			${LIBDC1394_INCLUDE_DIR}
+		)
+		SET(${MODULE_NAME}_DEP_LIBRARIES
+			${${MODULE_NAME}_DEP_LIBRARIES}
+			${LIBDC1394_LIBRARY}
+		)
+	ENDIF(LIBDC1394_FOUND)
+ENDIF()
+
 # include directories
 INCLUDE_DIRECTORIES(
     BEFORE
@@ -613,7 +636,6 @@ INCLUDE_DIRECTORIES(
 	${EIGEN3_INCLUDE_DIR}
 	${LIBPNG_INCLUDE_DIR}
 	${OPENCL_INCLUDE_DIR}
-	${LIBDC1394_INCLUDE_DIR}
 	${X11_X11_INCLUDE_PATH}
 	${FFMPEG_INCLUDES}
 )
