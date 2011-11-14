@@ -38,7 +38,7 @@ int main( int argc, char** argv )
 		CLKernel kern( _prefixsum_pblock_source, "prefixsum_pblock" );
 		kern.setArg( 0, output );
 		kern.setArg( 1, climg );
-		kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 * 2 ) );
+		kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
 		kern.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
 		CLKernel kern2( _prefixsum_horiz_source, "prefixsum_horiz" );
@@ -69,8 +69,8 @@ int main( int argc, char** argv )
 		bla.integralImage( iicpu );
 		iicpu.mul( 1.0f / 255.0f );
 		std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( input.width() * input.height() ) << std::endl;
-		iicpu.sub( output );
-		iicpu.save( "bla.png" );
+		output.sub( iicpu );
+		output.save( "bla.png" );
 	//	climg.integralImage( iicpu );
 #if 0
 		{
