@@ -12,21 +12,22 @@
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_vert.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_block2.h>
+#include <cvt/cl/kernel/prefixsum/prefixsum_boxfilter.h>
 
 using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	/*	if( argc != 2 ) {
+	if( argc != 2 ) {
 		std::cout << "usage: " << argv[ 0 ] << " image" << std::endl;
 		return 0;
-		}*/
+	}
 
 	std::vector<CLPlatform> platforms;
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
-	//	Image input( argv[ 1 ] );
+	Image input( argv[ 1 ] );
 
 	try {
 
@@ -38,38 +39,44 @@ int main( int argc, char** argv )
 
 			CLKernel kern4( _prefixsum_block2_source, "prefixsum_block2" );
 
-		for( int size = 64; size <= 4096; size++ ) {
-			Image climg( size, size, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-			//	input.convert( climg );
-			climg.fill( Color::WHITE );
-			Image output( size, size, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+			CLKernel kern5( _prefixsum_boxfilter_source, "prefixsum_boxfilter" );
+
+//		for( int size = 64; size <= 4096; size++ ) {
+			Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
+			input.convert( climg );
+			//climg.fill( Color::WHITE );
+			Image output(input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
 			Time t;
 			kern.setArg( 0, output );
 			kern.setArg( 1, climg );
 			kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
-			kern.run( CLNDRange( Math::pad( size, 32 ), Math::pad( size, 32 ) ), CLNDRange( 32, 32 ) );
+			kern.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
 			kern2.setArg( 0, output );
 			kern2.setArg( 1, output );
 			kern2.setArg<int>( 2, 32 );
-			kern2.run( CLNDRange( Math::pad( size, 32 ) ), CLNDRange( 32 ) );
+			kern2.run( CLNDRange( Math::pad( input.width(), 32 ) ), CLNDRange( 32 ) );
 
 			kern3.setArg( 0, output );
 			kern3.setArg( 1, output );
 			kern3.setArg<int>( 2, 32 );
-			kern3.run( CLNDRange( Math::pad( size, 32 ) ), CLNDRange( 32 ) );
+			kern3.run( CLNDRange( Math::pad( input.height(), 32 ) ), CLNDRange( 32 ) );
 
 			kern4.setArg( 0, output );
 			kern4.setArg( 1, output );
 			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
 			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-			kern4.run( CLNDRange( Math::pad( size, 32 ), Math::pad( size, 32 ) ), CLNDRange( 32, 32 ) );
+			kern4.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
-			std::cout << size << " " << t.elapsedMilliSeconds() << std::endl;
+			kern5.setArg( 0, climg );
+			kern5.setArg( 1, output );
+			kern5.setArg( 2, 0 );
+			kern5.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
+			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
+			climg.save( "boxfilter.png" );
 #if 0
-//			output.save( "prefixsum.png" );
 
 			Image iicpu( size, size, IFormat::GRAY_FLOAT );
 			Image bla( size, size, IFormat::GRAY_UINT8 );
@@ -113,7 +120,7 @@ int main( int argc, char** argv )
 			}
 #endif
 
-		}
+//		}
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
 	}
