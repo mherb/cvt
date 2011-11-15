@@ -133,6 +133,7 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
+	cl/kernel/prefixsum/prefixsum_boxfilter.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -148,6 +149,7 @@ CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
 
 SET(${MODULE_NAME}_HEADERS
 	cl/CLBuffer.h
@@ -180,6 +182,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h
+	cl/kernel/prefixsum/prefixsum_boxfilter.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
