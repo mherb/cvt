@@ -69,13 +69,14 @@ int main( int argc, char** argv )
 			std::cout << size << " " << t.elapsedMilliSeconds() << std::endl;
 
 #if 0
-			output.save( "prefixsum.png" );
+//			output.save( "prefixsum.png" );
 
-			Image iicpu( input.width(), input.height(), IFormat::floatEquivalent( input.format() ) );
-			Image bla( input );
+			Image iicpu( size, size, IFormat::GRAY_FLOAT );
+			Image bla( size, size, IFormat::GRAY_UINT8 );
+			bla.fill( Color::WHITE );
 			bla.integralImage( iicpu );
 			iicpu.mul( 1.0f / 255.0f );
-			std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( input.width() * input.height() ) << std::endl;
+			std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( size * size ) << std::endl;
 			output.sub( iicpu );
 			output.save( "bla.png" );
 			//	climg.integralImage( iicpu );
