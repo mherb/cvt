@@ -16,6 +16,7 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 
 	if( lx == 0 && ly == 0 )
 		s = read_imagef( in, sampler, coord - ( int2 ) ( 1, 1 ) );
+
 	if( ly == 0 )
 		bufv[ lx ] = read_imagef( in, sampler, coord - ( int2 ) ( 0, 1 ) );
 
