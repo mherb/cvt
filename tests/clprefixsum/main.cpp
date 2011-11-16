@@ -56,34 +56,33 @@ int main( int argc, char** argv )
 			kern2.setArg( 0, output );
 			kern2.setArg( 1, output );
 			kern2.setArg<int>( 2, 32 );
-			kern2.run( CLNDRange( Math::pad( input.width(), 32 ) ), CLNDRange( 32 ) );
+			kern2.run( CLNDRange( Math::pad( input.height(), 32 ) ), CLNDRange( 32 ) );
 
 			kern3.setArg( 0, output );
 			kern3.setArg( 1, output );
 			kern3.setArg<int>( 2, 32 );
-			kern3.run( CLNDRange( Math::pad( input.height(), 32 ) ), CLNDRange( 32 ) );
+			kern3.run( CLNDRange( Math::pad( input.width(), 32 ) ), CLNDRange( 32 ) );
 
 			kern4.setArg( 0, output );
 			kern4.setArg( 1, output );
 			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
 			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-			kern4.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			kern4.runWait( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+
+			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
 
 			kern5.setArg( 0, climg );
 			kern5.setArg( 1, output );
-			kern5.setArg( 2, 0 );
+			kern5.setArg( 2, 3 );
 			kern5.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
 
-			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
 			climg.save( "boxfilter.png" );
 #if 0
 
-			Image iicpu( size, size, IFormat::GRAY_FLOAT );
-			Image bla( size, size, IFormat::GRAY_UINT8 );
-			bla.fill( Color::WHITE );
-			bla.integralImage( iicpu );
+			Image iicpu( input.width(), input.height(), IFormat::floatEquivalent( input.format() ) );
+			input.integralImage( iicpu );
 			iicpu.mul( 1.0f / 255.0f );
-			std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( size * size ) << std::endl;
+			std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( input.width() * input.height() ) << std::endl;
 			output.sub( iicpu );
 			output.save( "bla.png" );
 			//	climg.integralImage( iicpu );

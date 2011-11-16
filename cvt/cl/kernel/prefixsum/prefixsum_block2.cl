@@ -37,13 +37,15 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 	}
 
 	if( ly == 0 && coord.y && lx < lw - 1 )
-			write_imagef( out, coord - ( int2 ) ( 0, 1 ), bufv[ lx ] + s );
+		write_imagef( out, coord - ( int2 ) ( 0, 1 ), bufv[ lx ] + s );
 
 	if( lx == 0 && coord.x && ly < lh - 1 )
-			write_imagef( out, coord - ( int2 ) ( 1, 0 ), bufh[ ly ] + s );
+		write_imagef( out, coord - ( int2 ) ( 1, 0 ), bufh[ ly ] + s );
+
+
 
 	/* just for last lines exactly at the edge of the local size patch*/
-	if( coord.y == height - 1 && coord.x < width - 1 && lx < lw - 1 && ly == lh - 1 ) {
+	if( coord.y == height - 1 && coord.x < width && lx < lw - 1 && ly == lh - 1 ) {
 		tmp = read_imagef( in, sampler, coord );
 		write_imagef( out, coord, tmp + bufh[ ly ] );
 	}
