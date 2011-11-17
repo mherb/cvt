@@ -12,7 +12,8 @@ namespace cvt {
 		if( !( _handle = dlopen( path, RTLD_LAZY | RTLD_LOCAL ) ) ) {
 			std::string msg( "Unable to open plugin \"" );
 			msg += path;
-			msg += "\" !";
+			msg += "\" :";
+			msg += dlerror();
 			throw CVTException( msg );
 		}
 		check();

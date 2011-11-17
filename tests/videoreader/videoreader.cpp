@@ -1,4 +1,5 @@
 #include <cvt/io/VideoReader.h>
+#include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
@@ -14,14 +15,16 @@ class VideoPlayer : public Window
 {
 public:
 	VideoPlayer( const String& videoFile ) : 
-        Window( "VideoPlayer" ), _video( videoFile, true ), _timer( 10 ), _frames( 0 )
+        Window( "VideoPlayer" ), _video( 0 ), _timer( 10 ), _frames( 0 )
 	{
+		//_video = new VideoReader( videoFile, true );
+		_video = new RawVideoReader( videoFile, true );
         // register a timer to retrieve the next video frame
         Delegate<void ( BasicTimer* )> capturedelegate( this, &VideoPlayer::capture );
         _timer.timeout.add( capturedelegate );
         _timer.start();
         
-        _video.nextFrame();
+        _video->nextFrame();
             
         this->setSize( 800, 600 );
         this->show();
@@ -31,11 +34,12 @@ public:
     ~VideoPlayer()
     {
         _timer.stop();
+		delete _video;
     }
     
     void capture( BasicTimer* )
     { 
-        _video.nextFrame(); 
+        _video->nextFrame(); 
         _frames++;
         if( _time.elapsedSeconds() > 3.0f ){
             char buf[ 100 ];
@@ -53,11 +57,11 @@ public:
 		size( w, h );
 		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
 		gfx->fillRect( 0, 0, w, h );        
-		gfx->drawImage( 0, 0, w, h, _video.frame() );
+		gfx->drawImage( 0, 0, w, h, _video->frame() );
 	}
     
 private:    
-    VideoReader _video;
+    VideoInput*		_video;
     BasicTimer  _timer;
     Delegate< void ( BasicTimer * ) >* _captureDelegate;
     size_t      _frames;
