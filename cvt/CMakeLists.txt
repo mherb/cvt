@@ -128,8 +128,9 @@ SET( CL_KERNELS
 	cl/kernel/fgp/fgp_calcu.cl
 	cl/kernel/fgp/fgp_clear.cl
 	cl/kernel/fgp/fgp_calcun.cl
-	cl/kernel/prefixsum/prefixsum_block.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl
+	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
+	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
@@ -144,8 +145,9 @@ CLTOHEADER( cl/kernel/fgp/fgp_calcn.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcun.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_block.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
@@ -177,8 +179,9 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/fgp/fgp_calcu.h
 	cl/kernel/fgp/fgp_calcun.h
 	cl/kernel/fgp/fgp_clear.h
-	cl/kernel/prefixsum/prefixsum_block.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
+	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
+	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h
@@ -202,6 +205,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/BrightnessContrast.h
 	gfx/ifilter/ITransform.h
 	gfx/ifilter/IWarp.h
+	gfx/ifilter/IntegralFilter.h
+	gfx/ifilter/BoxFilter.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -437,6 +442,8 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/BrightnessContrast.cpp
 	gfx/ifilter/ITransform.cpp
 	gfx/ifilter/IWarp.cpp
+	gfx/ifilter/IntegralFilter.cpp
+	gfx/ifilter/BoxFilter.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
