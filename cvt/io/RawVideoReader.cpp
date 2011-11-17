@@ -71,17 +71,17 @@ namespace cvt
 
 	void RawVideoReader::readHeader()
 	{
-		_width = *( ( size_t* ) _ptr );
-		_ptr += sizeof( size_t );
-		_height = *( ( size_t* ) _ptr );
-		_ptr += sizeof( size_t );
-		_stride = *( ( size_t* ) _ptr );
-		_ptr += sizeof( size_t );
-		_format = IFormat::formatForId( (IFormatID ) *( ( size_t* ) _ptr ) );
-		_ptr += sizeof( size_t );
+		_width = *( ( uint32_t* ) _ptr );
+		_ptr += sizeof( uint32_t );
+		_height = *( ( uint32_t* ) _ptr );
+		_ptr += sizeof( uint32_t );
+		_stride = *( ( uint32_t* ) _ptr );
+		_ptr += sizeof( uint32_t );
+		_format = IFormat::formatForId( (IFormatID ) *( ( uint32_t* ) _ptr ) );
+		_ptr += sizeof( uint32_t );
 
-		size_t dataSize = _mappedSize - ( 4 * sizeof( size_t ) );
-		size_t frameSize = _stride * _height;
+		uint32_t dataSize = _mappedSize - ( 4 * sizeof( uint32_t ) );
+		uint32_t frameSize = _stride * _height;
 
 		_numFrames = dataSize / frameSize;
 		_currentFrame = 0;
