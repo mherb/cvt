@@ -12,10 +12,10 @@ namespace cvt
 	{
 		this->open( mode );
 		this->setPixelClock( 20 );
-		this->setFramerate( 43.0 );
+		this->setFramerate( 20.0 );
 		this->setAutoShutter( false );
 		this->setAutoSensorShutter( false );
-		this->setExposureTime( 18 );
+		this->setExposureTime( 15 );
 //		this->setAutoGain( true );
 		this->setIdentifier();
 	}
