@@ -292,6 +292,8 @@ SET(${MODULE_NAME}_HEADERS
 	io/IOHandler.h
 	io/IOSelect.h
 	io/Resources.h
+	io/RawVideoWriter.h
+	io/RawVideoReader.h
 	io/VideoInput.h
 	io/VideoReader.h
 	io/PlyModel.h
@@ -485,6 +487,8 @@ SET(${MODULE_NAME}_SOURCES
 	io/ImageSequence.cpp
 	io/IOSelect.cpp
 	io/Resources.cpp
+	io/RawVideoWriter.cpp
+	io/RawVideoReader.cpp
 	io/VideoReader.cpp
 	io/PlyModel.cpp
 	math/Complex.cpp
