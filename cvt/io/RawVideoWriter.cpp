@@ -127,7 +127,7 @@ namespace cvt
 				_mappedSize = 0;
 			}
 
-			_maxSize += ( 5 * _imgSize );
+			_maxSize += ( 10 * _imgSize );
 			resizeFile();
 		}
 
@@ -171,10 +171,10 @@ namespace cvt
 
 	void RawVideoWriter::writeHeader()
 	{
-		*( ( size_t* )_pos ) = _width; _pos += sizeof( size_t );
-		*( ( size_t* )_pos ) = _height; _pos += sizeof( size_t );
-		*( ( size_t* )_pos ) = _stride; _pos += sizeof( size_t );
-		*( ( size_t* )_pos ) = _formatID; _pos += sizeof( size_t );
+		*( ( uint32_t* )_pos ) = _width; _pos += sizeof( uint32_t );
+		*( ( uint32_t* )_pos ) = _height; _pos += sizeof( uint32_t );
+		*( ( uint32_t* )_pos ) = _stride; _pos += sizeof( uint32_t );
+		*( ( uint32_t* )_pos ) = _formatID; _pos += sizeof( uint32_t );
 	}
 
 	void RawVideoWriter::resizeFile()
