@@ -25,6 +25,8 @@ class UEyeUsbCamera : public Camera
 			size_t			height() const;
 			const IFormat&	format() const;
 			const String&	identifier() const;
+            
+			void	setFramerate( double fps );
         private:
             bool	initCam();
             void	open( const CameraMode & mode );
@@ -40,7 +42,6 @@ class UEyeUsbCamera : public Camera
             void	setPixelClock( unsigned int value );
             void	setHorizontalMirror( bool value );
             void	setVerticalMirror( bool value );
-            void	setFramerate( double fps );
             int		bufNumForAddr( const uint8_t * buffAddr ) const;
 			void	setIdentifier();
 
