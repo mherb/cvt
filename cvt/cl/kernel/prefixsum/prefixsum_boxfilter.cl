@@ -31,8 +31,6 @@ __kernel void prefixsum_boxfilter( __write_only image2d_t out,  __read_only imag
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-	if( coord.x >= width || coord.y >= height )
-		return;
 
 	mincoord.x = max( 0, coord.x - r ) - 1;
 	mincoord.y = max( 0, coord.y - r ) - 1;
@@ -41,7 +39,6 @@ __kernel void prefixsum_boxfilter( __write_only image2d_t out,  __read_only imag
 
 	size = ( maxcoord.x - mincoord.x ) * ( maxcoord.y - mincoord.y );
 
-
 	value  = read_imagef( in, sampler, mincoord );
 	value -= read_imagef( in, sampler, ( int2 )( mincoord.x, maxcoord.y ) );
 	value -= read_imagef( in, sampler, ( int2 )( maxcoord.x, mincoord.y ) );
@@ -49,6 +46,7 @@ __kernel void prefixsum_boxfilter( __write_only image2d_t out,  __read_only imag
 
 	value /= ( float4 ) size;
 
-	write_imagef( out, coord, value );
+	if( coord.x >= width || coord.y >= height )
+		write_imagef( out, coord, value );
 }
 

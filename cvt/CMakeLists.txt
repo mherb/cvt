@@ -135,6 +135,8 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
 	cl/kernel/prefixsum/prefixsum_boxfilter.cl
+	cl/kernel/guidedfilter/guidedfilter_calcab.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -152,6 +154,9 @@ CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
+
 
 SET(${MODULE_NAME}_HEADERS
 	cl/CLBuffer.h
@@ -186,6 +191,8 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h
 	cl/kernel/prefixsum/prefixsum_boxfilter.h
+	cl/kernel/guidedfilter/guidedfilter_calcab.h
+	cl/kernel/guidedfilter/guidedfilter_applyab.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -207,6 +214,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/IWarp.h
 	gfx/ifilter/IntegralFilter.h
 	gfx/ifilter/BoxFilter.h
+	gfx/ifilter/GuidedFilter.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -446,6 +454,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/IWarp.cpp
 	gfx/ifilter/IntegralFilter.cpp
 	gfx/ifilter/BoxFilter.cpp
+	gfx/ifilter/GuidedFilter.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp

@@ -1,4 +1,4 @@
-__kernel void prefixsum_pblock( __write_only image2d_t out,  __read_only image2d_t in1, __read_only image2d_t in2, __local float4* buf )
+__kernel void prefixsum_pblock_mul2( __write_only image2d_t out,  __read_only image2d_t in1, __read_only image2d_t in2, __local float4* buf )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int lx = get_local_id( 0 );
