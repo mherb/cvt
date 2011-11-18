@@ -21,11 +21,11 @@ namespace cvt {
 
 	void BoxFilter::apply( Image& dst, const Image& src, const int radius ) const
 	{
-		// FIXME: hardcoded work-group size
 		_clprefixsum_boxfilter.setArg( 0, dst );
 		_clprefixsum_boxfilter.setArg( 1, src );
 		_clprefixsum_boxfilter.setArg( 2, radius );
-		_clprefixsum_boxfilter.run( CLNDRange( Math::pad( src.width(), 32 ), Math::pad( src.height(), 32 ) ), CLNDRange( 32, 32 ) );
+		CLNDRange global( Math::pad32( src.width() ), Math::pad32( src.height() ) );
+		_clprefixsum_boxfilter.run( global, _clprefixsum_boxfilter.bestLocalRange2d( global ) );
 	}
 
 	void BoxFilter::apply( const ParamSet* set, IFilterType t ) const
