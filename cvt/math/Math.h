@@ -50,6 +50,7 @@ namespace cvt {
 		template<typename T> static inline T clamp( T v, T min, T max ) { return ( v < min ) ? min : ( v > max ) ? max : v; }
 
 		static inline size_t pad16( size_t v ) { return v & 0xf ?  ( ( v | 0xf ) + 1 ) : v; }
+		static inline size_t pad32( size_t v ) { return v & 0x1f ?  ( ( v | 0x1f ) + 1 ) : v; }
 
 		static inline size_t pad( size_t v, size_t multiple )
 		{
