@@ -93,6 +93,16 @@ namespace cvt {
 			return ::sqrtf( ( float )f );
 		}
 
+		static inline float cbrt( float f )
+		{
+			return ::cbrtf( f );
+		}
+
+		static inline double cbrt( double d )
+		{
+			return ::cbrt( d );
+		}
+
 		static inline float invSqrt( float f )
 		{
 			return 1.0f / ::sqrtf( f );
