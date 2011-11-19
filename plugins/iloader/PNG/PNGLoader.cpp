@@ -87,8 +87,8 @@ namespace cvt {
 				/* expand paletted colors into true RGB triplets */		    
 				png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 			case PNG_COLOR_TYPE_RGBA:
-				png_set_bgr(png_ptr);
-				img.reallocate( width, height, IFormat::BGRA_UINT8 );
+				//png_set_bgr(png_ptr);
+				img.reallocate( width, height, IFormat::RGBA_UINT8 );
 				break;
 			default:
 				std::cout << color_type << std::endl;
