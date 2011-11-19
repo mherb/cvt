@@ -7,7 +7,6 @@
 
 #include <iomanip>
 
-#include <cvt/cl/kernel/prefixsum/prefixsum_block.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_vert.h>
