@@ -46,7 +46,7 @@ __kernel void prefixsum_boxfilter( __write_only image2d_t out,  __read_only imag
 
 	value /= ( float4 ) size;
 
-	if( coord.x >= width || coord.y >= height )
+	if( coord.x < width && coord.y < height )
 		write_imagef( out, coord, value );
 }
 

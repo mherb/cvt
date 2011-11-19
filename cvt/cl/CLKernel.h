@@ -34,6 +34,7 @@ namespace cvt {
 			void setArg( cl_uint index, T arg ) const;
 			void setArg( cl_uint index, size_t size, void* arg ) const;
 
+			size_t maxWorkGroupSize() const;
 			CLNDRange bestLocalRange1d( const CLNDRange& global ) const;
 			CLNDRange bestLocalRange2d( const CLNDRange& global ) const;
 			void run( const CLNDRange& global, const CLNDRange& local, const CLNDRange& offset = CLNDRange() ) const;
@@ -79,6 +80,17 @@ namespace cvt {
 		_object = ::clCreateKernel( prog, name.c_str(), &err );
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
+	}
+
+	inline size_t CLKernel::maxWorkGroupSize() const
+	{
+		cl_int err;
+		size_t kernmaxwg;
+
+		err = ::clGetKernelWorkGroupInfo( _object, *CL::defaultDevice(), CL_KERNEL_WORK_GROUP_SIZE, sizeof( size_t ), &kernmaxwg, NULL );
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+		return kernmaxwg;
 	}
 
 	inline CLNDRange CLKernel::bestLocalRange1d( const CLNDRange& global ) const
@@ -214,6 +226,7 @@ namespace cvt {
 		kern.functionName( name );
 		out << "Kernel:\n\tName: " << name;
 		out << "\n\tArgs: " << kern.numArgs();
+		out << "\n\tmax. WG-Size: " << kern.maxWorkGroupSize();
 		return out;
 	}
 }

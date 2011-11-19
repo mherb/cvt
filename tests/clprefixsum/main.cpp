@@ -2,6 +2,7 @@
 #include <cvt/cl/OpenCL.h>
 #include <cvt/cl/CLPlatform.h>
 #include <cvt/cl/CLKernel.h>
+#include <cvt/cl/CLContext.h>
 
 #include <cvt/util/Time.h>
 
@@ -26,6 +27,13 @@ int main( int argc, char** argv )
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
+/*	std::cout << platforms[ 0 ] << std::endl;
+	std::cout << platforms[ 0 ].defaultDevice() << std::endl;
+	std::vector<CLImageFormat> fmts;
+	CL::defaultContext()->supportedImage2DFormats( fmts );
+	for( int i = 0; i < fmts.size(); i++ )
+		std::cout << fmts[ i ] << std::endl;
+*/
 	Image input( argv[ 1 ] );
 
 	try {
@@ -46,37 +54,39 @@ int main( int argc, char** argv )
 			//climg.fill( Color::WHITE );
 			Image output(input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
+
+#define CLSIZE 16
 			Time t;
 			kern.setArg( 0, output );
 			kern.setArg( 1, climg );
-			kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
-			kern.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			kern.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE * CLSIZE ) );
+			kern.run( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			kern2.setArg( 0, output );
 			kern2.setArg( 1, output );
-			kern2.setArg<int>( 2, 32 );
-			kern2.run( CLNDRange( Math::pad( input.height(), 32 ) ), CLNDRange( 32 ) );
+			kern2.setArg<int>( 2, CLSIZE );
+			kern2.run( CLNDRange( Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE ) );
 
 			kern3.setArg( 0, output );
 			kern3.setArg( 1, output );
-			kern3.setArg<int>( 2, 32 );
-			kern3.run( CLNDRange( Math::pad( input.width(), 32 ) ), CLNDRange( 32 ) );
+			kern3.setArg<int>( 2, CLSIZE );
+			kern3.run( CLNDRange( Math::pad( input.width(), CLSIZE ) ), CLNDRange( CLSIZE ) );
 
 			kern4.setArg( 0, output );
 			kern4.setArg( 1, output );
-			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-			kern4.runWait( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
+			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
+			kern4.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
 
 			kern5.setArg( 0, climg );
 			kern5.setArg( 1, output );
-			kern5.setArg( 2, 3 );
-			kern5.run( CLNDRange( Math::pad( input.width(), 32 ), Math::pad( input.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			kern5.setArg( 2, 8 );
+			kern5.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			climg.save( "boxfilter.png" );
-#if 0
+#if 1
 
 			Image iicpu( input.width(), input.height(), IFormat::floatEquivalent( input.format() ) );
 			input.integralImage( iicpu );
