@@ -18,6 +18,7 @@ namespace cvt {
 			CLKernel _clprefixsum_horiz;
 			CLKernel _clprefixsum_vert;
 			CLKernel _clprefixsum_block2;
+			size_t _blocksize;
 	};
 }
 

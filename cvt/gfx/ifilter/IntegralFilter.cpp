@@ -25,8 +25,13 @@ namespace cvt {
 		_clprefixsum_blockp_mul2( _prefixsum_pblock_mul2_source, "prefixsum_pblock_mul2" ),
 		_clprefixsum_horiz( _prefixsum_horiz_source, "prefixsum_horiz" ),
 		_clprefixsum_vert( _prefixsum_vert_source, "prefixsum_vert" ),
-		_clprefixsum_block2( _prefixsum_block2_source, "prefixsum_block2" )
+		_clprefixsum_block2( _prefixsum_block2_source, "prefixsum_block2" ),
+		_blocksize( 32 )
 	{
+		size_t maxwg = Math::max( _clprefixsum_blockp.maxWorkGroupSize(), _clprefixsum_block2.maxWorkGroupSize() );
+		while( _blocksize * _blocksize > maxwg  ) {
+			_blocksize >>= 1;
+		}
 	}
 
 	void IntegralFilter::apply( Image& dst, const Image& src, const Image* src2 ) const
@@ -37,31 +42,31 @@ namespace cvt {
 			_clprefixsum_blockp_mul2.setArg( 0, dst );
 			_clprefixsum_blockp_mul2.setArg( 1, src );
 			_clprefixsum_blockp_mul2.setArg( 2, *src2 );
-			_clprefixsum_blockp_mul2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
-			_clprefixsum_blockp_mul2.run( CLNDRange( Math::pad( src.width(), 32 ), Math::pad( src.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			_clprefixsum_blockp_mul2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
+			_clprefixsum_blockp_mul2.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 		} else {
 			_clprefixsum_blockp.setArg( 0, dst );
 			_clprefixsum_blockp.setArg( 1, src );
-			_clprefixsum_blockp.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 * 32 ) );
-			_clprefixsum_blockp.run( CLNDRange( Math::pad( src.width(), 32 ), Math::pad( src.height(), 32 ) ), CLNDRange( 32, 32 ) );
+			_clprefixsum_blockp.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
+			_clprefixsum_blockp.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 
 		}
 
 		_clprefixsum_horiz.setArg( 0, dst );
 		_clprefixsum_horiz.setArg( 1, dst );
-		_clprefixsum_horiz.setArg<int>( 2, 32 );
-		_clprefixsum_horiz.run( CLNDRange( Math::pad( dst.height(), 32 ) ), CLNDRange( 32 ) );
+		_clprefixsum_horiz.setArg<int>( 2, _blocksize );
+		_clprefixsum_horiz.run( CLNDRange( Math::pad( dst.height(), _blocksize ) ), CLNDRange( _blocksize ) );
 
 		_clprefixsum_vert.setArg( 0, dst );
 		_clprefixsum_vert.setArg( 1, dst );
-		_clprefixsum_vert.setArg<int>( 2, 32 );
-		_clprefixsum_vert.run( CLNDRange( Math::pad( dst.width(), 32 ) ), CLNDRange( 32 ) );
+		_clprefixsum_vert.setArg<int>( 2, _blocksize );
+		_clprefixsum_vert.run( CLNDRange( Math::pad( dst.width(), _blocksize ) ), CLNDRange( _blocksize ) );
 
 		_clprefixsum_block2.setArg( 0, dst );
 		_clprefixsum_block2.setArg( 1, dst );
-		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * 32 ) );
-		_clprefixsum_block2.run( CLNDRange( Math::pad( dst.width(), 32 ), Math::pad( dst.height(), 32 ) ), CLNDRange( 32, 32 ) );
+		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+		_clprefixsum_block2.run( CLNDRange( Math::pad( dst.width(), _blocksize ), Math::pad( dst.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 	}
 
 	void IntegralFilter::apply( const ParamSet* set, IFilterType t ) const
