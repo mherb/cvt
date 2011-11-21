@@ -318,7 +318,7 @@ namespace cvt {
 	template<typename T>
 	inline Vector3<T> Matrix3<T>::row( size_t r ) const
 	{
-		return Vector3<T>( mat[ r ][ 0 ], mat[ r ][ 1 ], mat[ r ][ 2 ] );
+		return mat[ r ];
 	}
 
 	template<typename T>

@@ -60,6 +60,15 @@ namespace cvt
 										const Matrix4<T>& T1 );
 
 		/**
+		  @brief Extract the epipoles of a fundamental matrix
+		  @param e0 epipole such that e0 * F^T = 0;
+		  @param e1 epipole such that F * e1 = 0;
+		  @param f  fundamental matrix
+		*/
+		template<typename T>
+		static void epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f );
+
+		/**
 		 *	@brief	correct point correspondences according to fundamental constraint
 		 *			using first order Sampson Approximation
 		 *	@param p0			Point correspondence 0
@@ -268,6 +277,14 @@ namespace cvt
 			f = K1.inverse().transpose() * tSkew * R * K0.inverse();	
 		}
 
+		template<typename T>
+		inline void Vision::epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f )
+		{
+			Matrix3<T> U, D, V;
+			f.svd( U, D, V );
+			e0 = U.col( 2 );
+			e1 = V.row( 2 );
+		}
 
 		template <class Mat3, class Vec3, class Vec2>
 		inline void Vision::project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 )
