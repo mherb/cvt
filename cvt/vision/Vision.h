@@ -68,6 +68,17 @@ namespace cvt
 		template<typename T>
 		static void epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f );
 
+		template<typename T>
+		static void stereoRectification( Matrix3<T>& K0new,
+										 Matrix4<T>& T0new,
+										 Matrix3<T>& K1new,
+										 Matrix4<T>& T1new,
+										 Matrix3<T>& Trect0,
+										 Matrix3<T>& Trect1,
+										 const Matrix3<T>& K0,
+										 const Matrix4<T>& T0,
+										 const Matrix3<T>& K1,
+										 const Matrix4<T>& T1 );
 		/**
 		 *	@brief	correct point correspondences according to fundamental constraint
 		 *			using first order Sampson Approximation
@@ -284,6 +295,54 @@ namespace cvt
 			f.svd( U, D, V );
 			e0 = U.col( 2 );
 			e1 = V.row( 2 );
+		}
+
+		template<typename T>
+		inline void Vision::stereoRectification( Matrix3<T>& K0new,
+												 Matrix4<T>& T0new,
+												 Matrix3<T>& K1new,
+												 Matrix4<T>& T1new,
+												 Matrix3<T>& Trect0,
+												 Matrix3<T>& Trect1,
+												 const Matrix3<T>& K0,
+												 const Matrix4<T>& T0,
+												 const Matrix3<T>& K1,
+												 const Matrix4<T>& T1 )
+		{
+			Vector3<T> c0, c1, v1, v2, v3;
+
+			c0 = -Matrix3<T>( T0 ).transpose() * Vector3<T>( T0[ 0 ][ 3 ], T0[ 1 ][ 3 ], T0[ 2 ][ 3 ] );
+			c1 = -Matrix3<T>( T1 ).transpose() * Vector3<T>( T1[ 0 ][ 3 ], T1[ 1 ][ 3 ], T1[ 2 ][ 3 ] );
+
+			v1 = c1 - c0;
+			v2 = Vector3<T>( T0[ 2 ][ 0 ], T0[ 2 ][ 1 ], T0[ 2 ][ 2 ] ).cross( v1 );
+			v3 = v1.cross( v2 );
+
+			Matrix3<T> R( v1 / v1.length(), v2 / v2.length(), v3 / v3.length() );
+
+			K0new = ( K0 + K1 ) * 0.5f;
+			K0new[ 0 ][ 1 ] = 0.0f; // no skew
+			K1new = K0new;
+
+//			Matrix3<T> K01new2 = K01new;
+//			K01new[ 0 ][ 2 ] = K0[ 0 ][ 2 ];
+//			K01new2[ 0 ][ 2 ] = K1[ 0 ][ 2 ];
+
+			T0new = R.toMatrix4();
+			T1new = R.toMatrix4();
+
+			Vector3<T> tmp = - R * c0;
+			T0new[ 0 ][ 3 ] = tmp[ 0 ];
+			T0new[ 1 ][ 3 ] = tmp[ 1 ];
+			T0new[ 2 ][ 3 ] = tmp[ 2 ];
+
+			tmp = - R * c1;
+			T1new[ 0 ][ 3 ] = tmp[ 0 ];
+			T1new[ 1 ][ 3 ] = tmp[ 1 ];
+			T1new[ 2 ][ 3 ] = tmp[ 2 ];
+
+			Trect0 = K0new * T0new.toMatrix3() * ( K0 * T0.toMatrix3() ).inverse();
+			Trect1 = K1new * T1new.toMatrix3() * ( K1 * T1.toMatrix3() ).inverse();
 		}
 
 		template <class Mat3, class Vec3, class Vec2>
