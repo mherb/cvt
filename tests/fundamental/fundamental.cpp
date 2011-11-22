@@ -177,9 +177,9 @@ int main( int argc, char* argv[] )
 	float cy = camCalib0.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i0.width(), i0.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i0.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( tmp1, tmp0, warp );
-	id0.reallocate( tmp1 ); // WTF - Why ?
-	ITransform::apply( id0, tmp1, T0rectify );
+	IWarp::apply( id0, tmp0, warp );
+//	id0.reallocate( tmp1 ); // WTF - Why ?
+//	ITransform::apply( id0, tmp1, T0rectify, 1024, 786 );
 
 	radial = camCalib1.radialDistortion();
 	tangential = camCalib1.tangentialDistortion();
@@ -189,15 +189,15 @@ int main( int argc, char* argv[] )
 	cy = camCalib1.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i1.width(), i1.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i1.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( tmp1, tmp0, warp );
-	id1.reallocate( tmp1 ); // WTF - Why ?
-	ITransform::apply( id1, tmp1, T1rectify );
+	IWarp::apply( id1, tmp0, warp );
+//	id1.reallocate( tmp1 ); // WTF - Why ?
+//	ITransform::apply( id1, tmp1, T1rectify, 1024, 786 );
 
 
-	camCalib0.setIntrinsics( K0 );
-	camCalib0.setExtrinsics( T0 );
-	camCalib1.setIntrinsics( K1 );
-	camCalib1.setExtrinsics( T1 );
+//	camCalib0.setIntrinsics( K0 );
+//	camCalib0.setExtrinsics( T0 );
+//	camCalib1.setIntrinsics( K1 );
+//	camCalib1.setExtrinsics( T1 );
 
 	Matrix3f fundamental;
 	Vision::composeFundamental( fundamental, 

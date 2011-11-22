@@ -70,8 +70,8 @@ namespace cvt {
 	void GFX::drawLine( int x1, int y1, int x2, int y2 )
 	{
 		Vector2f pts[ 2 ];
-		pts[ 0 ].set( ( float ) x1, ( float ) y1 );
-		pts[ 1 ].set( ( float ) x2, ( float ) y2 );
+		pts[ 0 ].set( ( float ) x1 + 0.5f, ( float ) y1 + 0.5f );
+		pts[ 1 ].set( ( float ) x2 + 0.5f, ( float ) y2 + 0.5f );
 		_engine->drawLines( pts, 2, _linewidth, _color );
 	}
 
