@@ -16,7 +16,7 @@ namespace cvt
 		_ptr( 0 )
 	{
 		// create the file (open, truncate to header size)
-		_fd = open( filename.c_str(), O_RDWR , 0 );
+		_fd = open( filename.c_str(), O_RDONLY , 0 );
 		if( _fd < 0 ){
 			char * err = strerror( errno );
 			String msg( "Could not open file: " );
@@ -79,12 +79,12 @@ namespace cvt
 		_ptr += sizeof( uint32_t );
 		_format = IFormat::formatForId( (IFormatID ) *( ( uint32_t* ) _ptr ) );
 		_ptr += sizeof( uint32_t );
-
+		
 		uint32_t dataSize = _mappedSize - ( 4 * sizeof( uint32_t ) );
 		uint32_t frameSize = _stride * _height;
 
 		_numFrames = dataSize / frameSize;
-		_currentFrame = 0;
+		_currentFrame = 1;
 
 		_frame.reallocate( _width, _height, _format );
 	}
@@ -111,9 +111,8 @@ namespace cvt
 					p += istride;
 				}
 			}
-
 			_frame.unmap( iptr );
-
+			_currentFrame++;
 		}
 	}
 }
