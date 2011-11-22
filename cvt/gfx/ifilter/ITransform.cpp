@@ -26,10 +26,13 @@ namespace cvt {
 	{
 	}
 
-	void ITransform::apply( Image& dst, const Image& src, const Matrix3f& T )
+	void ITransform::apply( Image& dst, const Image& src, const Matrix3f& T, size_t width, size_t height )
 	{
-		if( src.format() != dst.format() )
-			throw CVTException( "Image formats do not match!" );
+		if( !width )
+			width = src.width();
+		if( !height )
+			height = src.height();
+		dst.reallocate( width, height, src.format() );
 
 		Matrix3f Tinv( T );
 		if( !Tinv.inverseSelf() )
@@ -46,10 +49,13 @@ namespace cvt {
 		}
 	}
 
-	void ITransform::apply( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv )
+	void ITransform::apply( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv, size_t width, size_t height )
 	{
-		if( src.format() != dst.format() )
-			throw CVTException( "Image formats do not match!" );
+		if( !width )
+			width = src.width();
+		if( !height )
+			height = src.height();
+		dst.reallocate( width, height, src.format() );
 
 		switch( src.format().formatID ) {
 			case IFORMAT_GRAY_FLOAT: return applyFC1( dst, src, T, Tinv );

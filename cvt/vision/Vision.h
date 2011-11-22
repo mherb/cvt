@@ -68,6 +68,9 @@ namespace cvt
 		template<typename T>
 		static void epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f );
 
+		/*
+		  @brief  A. Fusiello, E. Trucco, and A. Verri. A compact algorithm for rectification of stereo pairs. Machine Vision and Applications, 12(1):16-22, 2000.
+		*/
 		template<typename T>
 		static void stereoRectification( Matrix3<T>& K0new,
 										 Matrix4<T>& T0new,
@@ -296,6 +299,7 @@ namespace cvt
 			e0 = U.col( 2 );
 			e1 = V.row( 2 );
 		}
+
 
 		template<typename T>
 		inline void Vision::stereoRectification( Matrix3<T>& K0new,

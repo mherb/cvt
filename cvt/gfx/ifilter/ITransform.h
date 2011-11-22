@@ -17,8 +17,8 @@ namespace cvt {
 			 *	@param	src			the source image
 			 *	@param	transform	transformation from src to dst!
 			 */
-			static void apply( Image& dst, const Image& src, const Matrix3f& transform );
-			static void apply( Image& dst, const Image& src, const Matrix3f& transform, const Matrix3f& itransform );
+			static void apply( Image& dst, const Image& src, const Matrix3f& transform, size_t width = 0, size_t height = 0 );
+			static void apply( Image& dst, const Image& src, const Matrix3f& transform, const Matrix3f& itransform, size_t width = 0, size_t height = 0 );
 
 		private:
 			static void applyFC1( Image& dst, const Image& src, const Matrix3f& T, const Matrix3f& Tinv );
