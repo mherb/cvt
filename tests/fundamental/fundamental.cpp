@@ -11,6 +11,7 @@
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gfx/ifilter/IWarp.h>
+#include <cvt/gfx/ifilter/ITransform.h>
 
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/geom/Line2D.h>
@@ -152,16 +153,19 @@ int main( int argc, char* argv[] )
 	loadCameraCalib( camCalib0, calib0 );
 	loadCameraCalib( camCalib1, calib1 );
 
-	Matrix3f fundamental;
-	Vision::composeFundamental( fundamental, 
-							    camCalib0.intrinsics(),
-								camCalib0.extrinsics(),
-								camCalib1.intrinsics(),
-								camCalib1.extrinsics() );
+	Matrix3f K0, K1, T0rectify, T1rectify;
+	Matrix4f T0, T1;
 
+	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
+/*
+	std::cout << K0.toMatrix4() * T0 << std::endl;
+	std::cout << K1.toMatrix4() * T1 << std::endl;
+	std::cout << T0rectify << std::endl;
+	std::cout << T1rectify << std::endl;
+*/
 	Image i0( r.find( "calib_stereo/ueye_stereo_4002738788.png" ) );
 	Image i1( r.find( "calib_stereo/ueye_stereo_4002738790.png" ) );
-	Image id0, id1, tmp;
+	Image id0, id1, tmp0, tmp1;
 
 	Image warp;
 	warp.reallocate( i0.width(), i0.height(), IFormat::GRAYALPHA_FLOAT );
@@ -172,8 +176,10 @@ int main( int argc, char* argv[] )
 	float cx = camCalib0.intrinsics()[ 0 ][ 2 ];
 	float cy = camCalib0.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i0.width(), i0.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-	i0.convert( tmp, IFormat::RGBA_UINT8 );
-	IWarp::apply( id0, tmp, warp );
+	i0.convert( tmp0, IFormat::RGBA_UINT8 );
+	IWarp::apply( tmp1, tmp0, warp );
+	id0.reallocate( tmp1 ); // WTF - Why ?
+	ITransform::apply( id0, tmp1, T0rectify );
 
 	radial = camCalib1.radialDistortion();
 	tangential = camCalib1.tangentialDistortion();
@@ -182,8 +188,30 @@ int main( int argc, char* argv[] )
 	cx = camCalib1.intrinsics()[ 0 ][ 2 ];
 	cy = camCalib1.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i1.width(), i1.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-	i1.convert( tmp, IFormat::RGBA_UINT8 );
-	IWarp::apply( id1, tmp, warp );
+	i1.convert( tmp0, IFormat::RGBA_UINT8 );
+	IWarp::apply( tmp1, tmp0, warp );
+	id1.reallocate( tmp1 ); // WTF - Why ?
+	ITransform::apply( id1, tmp1, T1rectify );
+
+
+	camCalib0.setIntrinsics( K0 );
+	camCalib0.setExtrinsics( T0 );
+	camCalib1.setIntrinsics( K1 );
+	camCalib1.setExtrinsics( T1 );
+
+	Matrix3f fundamental;
+	Vision::composeFundamental( fundamental, 
+							    camCalib0.intrinsics(),
+								camCalib0.extrinsics(),
+								camCalib1.intrinsics(),
+								camCalib1.extrinsics() );
+
+	/*{
+		Vector3f e0, e1;
+		Vision::epipolesFundamental( e0, e1, fundamental );
+		std::cout << fundamental.transpose() * e0 << std::endl;
+		std::cout << fundamental * e1 << std::endl;
+	}*/
 
 	MyWindow win( fundamental, id0, id1 );
 	win.setSize( 800, 600 );
