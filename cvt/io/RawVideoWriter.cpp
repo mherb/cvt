@@ -28,7 +28,7 @@ namespace cvt
 			throw CVTException( msg.c_str() );
 		}
 
-		_currSize = 4 * sizeof( size_t );
+		_currSize = 4 * sizeof( uint32_t );
 		_maxSize = _currSize;
 		resizeFile();
 
@@ -143,8 +143,8 @@ namespace cvt
 		} else {
 			ldiv_t palignment = ldiv( _currSize, _pageSize );
 			offset = _pageSize * palignment.quot;
-			mapSize = _maxSize - offset;
-			ptrOffset = _currSize - offset;
+			ptrOffset = palignment.rem;
+			mapSize = _maxSize - offset + ptrOffset;
 		}
 
 		_map = mmap( 0, mapSize, PROT_WRITE, MAP_SHARED, _fd, offset );

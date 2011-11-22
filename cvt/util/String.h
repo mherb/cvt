@@ -421,9 +421,9 @@ namespace cvt {
 		va_list args;
 
 		va_start( args, format );
-		n = vsnprintf( _str, _blen - 1, format, args );
+		n = vsnprintf( _str, _blen, format, args );
 		va_end( args );
-		if( n < _blen - 1 ) {
+		if( n < _blen ) {
 			_len = n;
 			return;
 		}
@@ -434,9 +434,9 @@ namespace cvt {
 		_grow( Math::pad16( n + 1 ) );
 
 		va_start( args, format );
-		n = vsnprintf( _str, _blen - 1, format, args );
+		n = vsnprintf( _str, _blen, format, args );
 		va_end( args );
-		if( n < _blen - 1 ) {
+		if( n < _blen ) {
 			_len = n;
 			return;
 		}
