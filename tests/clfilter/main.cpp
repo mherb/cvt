@@ -35,7 +35,7 @@ int main( int argc, char** argv )
 //		ifilter.apply( clintegral, cl );
 //		bfilter.apply( cl, clintegral, 20 );
 		Time t;
-		gfilter.apply( clout, cl, cl, 8, 0.01f );
+		gfilter.apply( clout, cl, cl, 16, 0.01f );
 		std::cout << "GuidedFilter: " << t.elapsedMilliSeconds() << std::endl;
 
 		clout.save( "cltest.png" );

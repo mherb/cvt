@@ -39,8 +39,8 @@ namespace cvt {
 			void			setYLabel( const String& xlabel );
 			const String&	yLabel() const;
 
-			void			addPlotData( const PlotData* pdata );
-			void			removePlotData( const PlotData* pdata );
+			void			addPlotData( PlotData* pdata );
+			void			removePlotData( PlotData* pdata );
 			size_t			plotDataSize() const;
 
 			void paintEvent( PaintEvent* pe, GFX* g);
@@ -54,7 +54,29 @@ namespace cvt {
 			String			_xticslabel, _yticslabel;
 			String			_xlabel, _ylabel;
 
-			std::list<const PlotData*> _pdata;
+
+			inline void onChange( PlotData* pdata );
+
+			struct PlotDataStyled{
+				PlotDataStyled( PlotData* pdata, const Rectf& rect ) : _pdata( pdata ) { update( rect ); }
+				void update( const Rectf& rect ) { 
+					_pdata->dataInRectWithStyle( _data, rect, _pdata->plotStyle() ); 
+				}
+
+				PlotData* _pdata;
+				std::vector<Point2f> _data;
+			};
+
+			struct PlotDataMatcher {
+				PlotDataMatcher( const PlotData* pdata ) : _pdata( pdata ) {}
+				bool operator()( const PlotDataStyled& pds ) { return pds._pdata == _pdata; }
+
+				const PlotData* _pdata;
+			};
+
+			void updateData( PlotDataStyled& pds );
+
+			std::list<PlotDataStyled> _pdata;
 	};
 
 	inline void PlotView::setXMargin( int value )
@@ -213,15 +235,26 @@ namespace cvt {
 		return _ylabel;
 	}
 
-	inline void PlotView::addPlotData( const PlotData* pdata )
+	inline void PlotView::onChange( PlotData* pdata )
 	{
-		_pdata.push_back( pdata );
+		for( std::list<PlotDataStyled>::iterator it = _pdata.begin(); it != _pdata.end(); ++it ) {
+			if( ( *it )._pdata == pdata )
+				( *it ).update( _view );
+		}
+	}
+
+	inline void PlotView::addPlotData( PlotData* pdata )
+	{
+		pdata->changed.add( Delegate<void ( PlotData* )>( this, &PlotView::onChange ) );
+		_pdata.push_back( PlotDataStyled( pdata, _view ) );
 		update();
 	}
 
-	inline void PlotView::removePlotData( const PlotData* pdata )
+	inline void PlotView::removePlotData( PlotData* pdata )
 	{
-		_pdata.remove( pdata );
+		PlotDataMatcher match( pdata );
+		pdata->changed.remove( Delegate<void ( PlotData* )>( this, &PlotView::onChange ) );
+		_pdata.remove_if( match );
 		update();
 	}
 

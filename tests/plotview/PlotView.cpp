@@ -68,6 +68,21 @@ namespace cvt {
 		}
 
 		// Draw data
+		for( std::list<PlotDataStyled>::iterator it = _pdata.begin(); it != _pdata.end(); ++it ) {
+			g->setColor( ( *it )._pdata->plotColor() );
+			switch(  ( *it )._pdata->plotStyle() ) {
+				case PLOT_STYLE_DOTS:
+					break;
+				case PLOT_STYLE_LINES:
+					g->setLineWidth( ( *it )._pdata->plotSize() );
+					size_t n = ( *it)._data.size() / 2;
+					for( size_t i = 0; i < n; i++ ) {
+					//	g->drawLine( ( ( *it )._data[ i << 1 ] - _view.x ) * sx, ( ( *it )._data[ ( i << 1 ) + 1 ] - _view.x ) * sx  )
+					}
+					//g->drawLines( &( ( *it )._data[ 0 ] ), ( *it)._data.size() / 2 );
+					break;
+			}
+		}
 
 
 	}
