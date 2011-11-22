@@ -3,6 +3,8 @@
 #include <cvt/gui/Window.h>
 #include "PlotView.h"
 
+#include "PlotDataSamples.h"
+
 using namespace cvt;
 
 class MyWindow : public Window
@@ -28,6 +30,11 @@ int main()
 	w.setSize( 800, 600 );
 	w.setVisible( true );
 	w.setMinimumSize( 320, 240 );
+
+	PlotDataSamples pds;
+	for( float x = -3.0f; x <= 3.0f; x += 0.25f )
+		pds.addSample( Point2f( x, x * x ) );
+	pview.addPlotData( &pds );
 
 	Application::run();
 	return 0;
