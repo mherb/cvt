@@ -103,13 +103,11 @@ namespace cvt {
 		lines.clear();
 		n--;
 		while( n-- ) {
-			if( rect.contains( *inpts ) || rect.contains( *( inpts + 1 ) ) ) {
-				pt1 = *inpts;
-				pt2 = *( inpts + 1 );
-				if( Clipping::clip( rect, pt1, pt2 ) ) {
-					lines.push_back( pt1 );
-					lines.push_back( pt2 );
-				}
+			pt1 = *inpts;
+			pt2 = *( inpts + 1 );
+			if( Clipping::clip( rect, pt1, pt2 ) ) {
+				lines.push_back( pt1 );
+				lines.push_back( pt2 );
 			}
 			inpts++;
 		}

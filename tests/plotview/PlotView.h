@@ -2,7 +2,7 @@
 #define CVT_PLOTVIEW_H
 
 #include <cvt/gui/Widget.h>
-#include <list>
+#include <cvt/util/List.h>
 
 #include "PlotData.h"
 
@@ -59,24 +59,19 @@ namespace cvt {
 
 			struct PlotDataStyled{
 				PlotDataStyled( PlotData* pdata, const Rectf& rect ) : _pdata( pdata ) { update( rect ); }
-				void update( const Rectf& rect ) { 
-					_pdata->dataInRectWithStyle( _data, rect, _pdata->plotStyle() ); 
+				void update( const Rectf& rect ) {
+					_pdata->dataInRectWithStyle( _data, rect, _pdata->plotStyle() );
 				}
+
+				bool operator==( const PlotData* pdata ) { return _pdata == pdata; }
 
 				PlotData* _pdata;
 				std::vector<Point2f> _data;
 			};
 
-			struct PlotDataMatcher {
-				PlotDataMatcher( const PlotData* pdata ) : _pdata( pdata ) {}
-				bool operator()( const PlotDataStyled& pds ) { return pds._pdata == _pdata; }
-
-				const PlotData* _pdata;
-			};
-
 			void updateData( PlotDataStyled& pds );
 
-			std::list<PlotDataStyled> _pdata;
+			List<PlotDataStyled> _pdata;
 	};
 
 	inline void PlotView::setXMargin( int value )
@@ -237,25 +232,27 @@ namespace cvt {
 
 	inline void PlotView::onChange( PlotData* pdata )
 	{
-		for( std::list<PlotDataStyled>::iterator it = _pdata.begin(); it != _pdata.end(); ++it ) {
-			if( ( *it )._pdata == pdata )
-				( *it ).update( _view );
+		List<PlotDataStyled>::Iterator it = _pdata.find( pdata );
+		if( it != _pdata.end() ) {
+			( *it ).update( _view );
 		}
 	}
 
 	inline void PlotView::addPlotData( PlotData* pdata )
 	{
 		pdata->changed.add( Delegate<void ( PlotData* )>( this, &PlotView::onChange ) );
-		_pdata.push_back( PlotDataStyled( pdata, _view ) );
+		_pdata.append( PlotDataStyled( pdata, _view ) );
 		update();
 	}
 
 	inline void PlotView::removePlotData( PlotData* pdata )
 	{
-		PlotDataMatcher match( pdata );
 		pdata->changed.remove( Delegate<void ( PlotData* )>( this, &PlotView::onChange ) );
-		_pdata.remove_if( match );
-		update();
+		List<PlotDataStyled>::Iterator it = _pdata.find( pdata );
+		if( it != _pdata.end() ) {
+			_pdata.remove( it );
+			update();
+		}
 	}
 
 	inline size_t PlotView::plotDataSize() const

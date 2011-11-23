@@ -13,6 +13,19 @@ int main()
 
 	std::cout << "Size: " <<l.size() << std::endl;
 
+	List<int>::Iterator it= l.find( 2 );
+	if( it != l.end() )
+		std::cout << "Found " << *it << std::endl;
+	else
+		std::cout << "Not found" << std::endl;
+
+	it= l.find( 4 );
+	if( it != l.end() )
+		std::cout << "Found " << *it << std::endl;
+	else
+		std::cout << "Not found" << std::endl;
+
+
 	for( List<int>::Iterator it = l.begin(); it != l.end(); ++it )
 		std::cout << *it << std::endl;
 
@@ -30,5 +43,6 @@ int main()
 	std::cout << "Size: " <<l.size() << std::endl;
 	for( List<int>::Iterator it = l.begin(), end = l.end(); it != end; ++it )
 		std::cout << *it << std::endl;
+
 
 }
