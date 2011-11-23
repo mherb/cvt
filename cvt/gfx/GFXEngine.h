@@ -34,8 +34,6 @@ namespace cvt {
 			virtual void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c ) = 0;
 			virtual const Font& font() const = 0;
 
-			virtual void drawModel( GLModel& , const Matrix4f& , float , float, const Color& ) {};
-						
 			virtual bool supportsGL() const { return false; }
 			virtual void beginGL() {}
 			virtual void endGL() {}
