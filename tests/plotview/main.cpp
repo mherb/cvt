@@ -34,6 +34,7 @@ int main()
 	PlotDataSamples pds;
 	for( float x = -3.0f; x <= 3.0f; x += 0.25f )
 		pds.addSample( Point2f( x, x * x ) );
+	pds.setPlotStyle( PLOT_STYLE_DOTS );
 	pview.addPlotData( &pds );
 
 	Application::run();

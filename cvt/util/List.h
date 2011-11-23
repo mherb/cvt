@@ -45,6 +45,7 @@ namespace cvt {
 			const T& front() const;
 			const T& back() const;
 
+
 			class Iterator {
 				friend class List;
 				public:
@@ -67,6 +68,8 @@ namespace cvt {
 					NodeBase* _it;
 			};
 
+			Iterator find( const T& data ) const;
+			template<typename T2> Iterator find( const T2& data ) const;
 			Iterator begin() { return Iterator( _anchor._next ); }
 			Iterator end() { return Iterator( &_anchor ); }
 			Iterator remove( Iterator it );
@@ -205,6 +208,32 @@ namespace cvt {
 			_anchor._next = node;
 		}
 		_size++;
+	}
+
+	template<typename T>
+	template<typename T2>
+	inline typename List<T>::Iterator List<T>::find( const T2& data ) const
+	{
+		Node* it = ( Node* ) _anchor._next;
+		while( it != &_anchor ) {
+			if( it->_data == data )
+				break;
+			it = ( Node* ) it->_next;
+		}
+		return Iterator( it );
+	}
+
+
+	template<typename T>
+	inline typename List<T>::Iterator List<T>::find( const T& data ) const
+	{
+		Node* it = ( Node* ) _anchor._next;
+		while( it != &_anchor ) {
+			if( it->_data == data )
+				break;
+			it = ( Node* ) it->_next;
+		}
+		return Iterator( it );
 	}
 
 	template<typename T>
