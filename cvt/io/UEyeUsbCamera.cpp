@@ -86,7 +86,10 @@ namespace cvt
 	void UEyeUsbCamera::setExposureTime( double value )
 	{
 		double pVal1 = value;
-		is_SetExposureTime( _camHandle, pVal1, &pVal1 );
+		is_Exposure( _camHandle, 
+					 IS_EXPOSURE_CMD_SET_EXPOSURE, 
+					 &pVal1,
+					 sizeof( double ) );
 	}
 
 	void UEyeUsbCamera::setPixelClock( unsigned int value )
@@ -153,7 +156,12 @@ namespace cvt
 
 		double newFPS;
 
-		is_SetAOI( _camHandle, IS_SET_IMAGE_AOI, &xPos, &yPos, &_width, &_height );
+		IS_RECT aoiRect;
+		aoiRect.s32X = 0;
+		aoiRect.s32Y = 0;
+		aoiRect.s32Width = _width;
+		aoiRect.s32Height = _height;
+		is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) );
 		is_GetImageMemPitch( _camHandle, &_stride );
 
 		_frame.reallocate( _width, _height, _frame.format() );
