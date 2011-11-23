@@ -33,7 +33,7 @@ namespace cvt {
 		g->setLineWidth( 1.0f );
 
 
-		if( w < 2 * _xmargin || h < 2 * _ymargin )
+		if( w <= 2 * _xmargin || h <= 2 * _ymargin )
 			return;
 
 		String tmp;
