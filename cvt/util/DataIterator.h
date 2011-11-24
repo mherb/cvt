@@ -28,6 +28,8 @@ namespace cvt {
         bool nextLine( String & line );
 
         void tokenizeNextLine( std::vector<String> & tokens, const String & deliminators );
+		
+		const DataIterator& operator+=( size_t n ); 
 
         const uint8_t * pos() const { return _pos; }
         const uint8_t * end() const { return _end; }
@@ -103,6 +105,13 @@ namespace cvt {
         _pos++;
         return true;
     }
+
+	inline const DataIterator& DataIterator::operator+=( size_t n )
+	{
+		size_t num = Math::max( n, remainingBytes() );
+		_pos += num;
+		return *this;
+	}
 
     inline void DataIterator::tokenizeNextLine( std::vector<String> & tokens, const String & deliminators )
     {

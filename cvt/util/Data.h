@@ -9,7 +9,9 @@ namespace cvt {
 	class Data {
 		public:
 			Data( size_t size = 0 );
+			~Data();
 			Data( const uint8_t* ptr, size_t size );
+			Data( uint8_t* ptr, size_t size, bool copyData );
 			Data( const Data& data );
 			Data& operator=( const Data& data );
 
@@ -23,25 +25,44 @@ namespace cvt {
 		private:
 			uint8_t* _data;
 			size_t	 _size;
+			bool     _dealloc;
 	};
 
-	inline Data::Data( size_t size ) : _data( NULL )
+	inline Data::Data( size_t size ) : _data( NULL ), _dealloc( false )
 	{
 		allocate( size );
 	}
+			
+	inline Data::~Data()
+	{
+		if( _dealloc && _data )
+		   delete[]	_data;	
+	}
 
-	inline Data::Data( const uint8_t* ptr, size_t size ) : _data( NULL )
+	inline Data::Data( const uint8_t* ptr, size_t size ) : _data( NULL ), _dealloc( false )
 	{
 		allocate( size );
 		SIMD::instance()->Memcpy( _data, ptr, size );
 	}
+	
+	inline Data::Data( uint8_t* ptr, size_t size, bool copyData ) : _data( NULL ), _dealloc( copyData )
+	{
+		if( copyData ){
+			allocate( size );
+			SIMD::instance()->Memcpy( _data, ptr, size );
+		} else {
+			_data = ptr;
+			_size = size;
+		}
+	}
 
-	inline Data::Data( const Data& data ) : _data( NULL )
+	inline Data::Data( const Data& data ) : _data( NULL ), _dealloc( false )
 	{
 		if( &data == this )
 			return;
 		allocate( data._size );
 		SIMD::instance()->Memcpy( _data, data._data , _size );
+		_dealloc = true;
 	}
 
 	inline Data& Data::operator=( const Data& data )
@@ -68,9 +89,10 @@ namespace cvt {
 
 	inline void Data::allocate( size_t size )
 	{
-		if( _data )
+		if( _data && _dealloc )
 			delete[] _data;
 		_size = size;
+		_dealloc = true;
 
 		if( size )
 			_data = new uint8_t[ _size ];
@@ -84,7 +106,8 @@ namespace cvt {
 
 		if( _data ) {
 			SIMD::instance()->Memcpy( newdata, _data, Math::min( _size, size ) );
-			delete[] _data;
+			if( _dealloc )
+				delete[] _data;
 		}
 		_data = newdata;
 		_size = size;
