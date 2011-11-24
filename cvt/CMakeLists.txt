@@ -291,6 +291,9 @@ SET(${MODULE_NAME}_HEADERS
 	gui/internal/WidgetImplDefault.h
 	gui/Label.h
 	gui/Moveable.h
+	gui/PlotView.h
+	gui/PlotData.h
+	gui/PlotDataSamples.h
 	gui/Slider.h
 	gui/ToggleButton.h
 	gui/Window.h
@@ -489,6 +492,7 @@ SET(${MODULE_NAME}_SOURCES
 	gui/Button.cpp
 	gui/GLView.cpp
 	gui/Moveable.cpp
+	gui/PlotView.cpp
 	gui/ImageView.cpp
 	gui/internal/TimerInfo.cpp
 	gui/internal/TimerInfoList.cpp
