@@ -4,10 +4,9 @@
 
 namespace cvt
 {
-	Socket::Socket( SocketType type, ProtocolFamily version, int fd ) : 
+	Socket::Socket( SocketType type, int fd ) : 
 		_sockfd( fd )
 		,_sockType( type )
-		,_ipVersion( version )
 	{
 	}
 	
@@ -20,8 +19,9 @@ namespace cvt
 	{
 		struct addrinfo info;
 		String service;
+		
 		service.sprintf( "%d", port );
-		Socket::fillAdressInfo( info, address, service, _sockType, _ipVersion );
+		Socket::fillAdressInfo( info, address, service, _sockType );
 
 		// create the socket from the filled information
 		_sockfd = socket( info.ai_family, info.ai_socktype, info.ai_protocol );
@@ -64,31 +64,13 @@ namespace cvt
 		} 
 	}
 
-	Socket* Socket::accept()
-	{
-		struct sockaddr otherHost;
-		socklen_t addrSize = sizeof( otherHost );
-		int fd = ::accept( _sockfd, &otherHost, &addrSize );
-
-		if( fd < 0 ){
-			String msg( "Accept: " );
-			msg += strerror( errno );
-			std::cout << msg << std::endl;
-			return 0;
-		} else {
-			// got a new connection
-			Socket * ret = new Socket( _sockType, _ipVersion, fd );
-			return ret;
-		}
-	}
-
 
 	void Socket::connect( const String & addr, uint16_t port )
 	{
 		struct addrinfo info;
 		String service;
 		service.sprintf( "%d", port );
-		Socket::fillAdressInfo( info, addr, service, _sockType, _ipVersion );
+		Socket::fillAdressInfo( info, addr, service, _sockType );
 
 		// create the socket from the filled information
 		if( _sockfd == -1 ){
@@ -177,18 +159,23 @@ namespace cvt
 	void Socket::fillAdressInfo( struct addrinfo & info, 
 								 const String & address, 
 								 const String & service, 
-								 SocketType type, 
-								 ProtocolFamily ipVersion )
+								 SocketType type )
 	{	
 		struct addrinfo hints;
 		memset( &hints, 0, sizeof( hints ) );
-		hints.ai_family		= ipVersion;
+		hints.ai_family		= IPV_UNSPEC;
 		hints.ai_socktype	= type;
 		hints.ai_flags		= AI_PASSIVE;	// fill in IP for me
 
 		struct addrinfo* results;
 		int status;
-		if ( ( status = getaddrinfo( address.c_str(), service.c_str(), &hints, &results ) ) != 0 ){
+		const char * addr = NULL;
+
+		if( address != "" ){
+			addr = address.c_str();
+		}
+
+		if ( ( status = getaddrinfo( addr, service.c_str(), &hints, &results ) ) != 0 ){
 			String msg;
 			msg.sprintf( "Error in getaddrinfo: %s", gai_strerror( status ) );
 			throw CVTException( msg.c_str() );

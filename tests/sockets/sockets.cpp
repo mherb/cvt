@@ -1,10 +1,13 @@
-#include "Socket.h"
 #include "Host.h"
 #include "AsyncTCPConnection.h"
 #include "AsyncTCPServer.h"
 #include <cvt/util/Data.h>
 #include <cvt/util/String.h>
 #include <cvt/io/IOSelect.h>
+
+#include "TCPServer.h"
+#include "TCPClient.h"
+#include "UDPClient.h"
 
 #include <string>
 
@@ -63,7 +66,7 @@ class ConnectionHandler
 void asyncTcpServer()
 {
 	ConnectionHandler connHandler;
-	AsyncTCPServer server( "localhost", 12345 );
+	AsyncTCPServer server( "0.0.0.0", 12346 );
 	connHandler.registerIOHandler( &server );
 
 	Delegate<void ( AsyncTCPConnection* )> d( &connHandler, &ConnectionHandler::newConnection );
@@ -74,18 +77,44 @@ void asyncTcpServer()
 	}
 }
 
+void asyncTCPClient()
+{
+	IOSelect	iohandler;	
+	AsyncTCPConnection tcpConn( "0.0.0.0", 12346 );
+	tcpConn.notifyWriteable( true );
+	
+	iohandler.registerIOHandler( &tcpConn );
+
+	while( true ){
+		std::string line;
+		std::getline( std::cin, line );
+
+		String buf( line.c_str() );
+		size_t toSend = buf.length();
+		const uint8_t * data = (const uint8_t*)buf.c_str();
+		while( toSend > 0 ){	
+			size_t sent = tcpConn.send( data, toSend );
+			data += sent;
+			toSend -= sent;
+			iohandler.handleIO( 10 );
+		}
+	}
+}
+
 void tcpClient()
 {
-	Socket client( Socket::TCP_SOCKET );
-	client.bind( "localhost", 12346 );
-	client.connect( "localhost", 12345 );
+	TCPClient client;
+	client.connect( "0.0.0.0", 12346 );
 
 	// client connected
 	std::cout << "Client connected to Server" << std::endl;
 
-	std::string line;
 	while( true ){
+		std::string line;
 		std::getline( std::cin, line );
+
+		std::cout << "Sending string: " << line << std::endl;
+
 		String buf( line.c_str() );
 		size_t toSend = buf.length();
 		const uint8_t * data = (const uint8_t*)buf.c_str();
@@ -99,15 +128,12 @@ void tcpClient()
 
 void tcpServer()
 {
-	Socket server( Socket::TCP_SOCKET );
-
-	// bind to address on port
-	server.bind( "localhost", 12345 );
+	TCPServer server( "0.0.0.0", 12346 );
 	server.listen();
 
 	std::cout << "Listening" << std::endl;
 
-	Socket * commSock = 0;
+	TCPClient * commSock = 0;
 	while( commSock == 0 ){
 		std::cout << "Awaiting accept success ... ";
 		commSock = server.accept();
@@ -119,6 +145,7 @@ void tcpServer()
 
 	while( true) {
 		// receive data
+		memset( buffer, 0, bufSize );
 		size_t num = commSock->receive( buffer, bufSize );
 
 		if( num > 0 ){
@@ -129,13 +156,9 @@ void tcpServer()
 
 void udpClient()
 {
-	Socket client( Socket::UDP_SOCKET );
-	client.bind( "192.168.0.37", 12346 );
+	UDPClient client;
 	
-	Host dest( "192.168.0.37", "12345" );
-
-	// client connected
-	std::cout << "Client connected to Server" << std::endl;
+	Host dest( "0.0.0.0", "12345" );
 
 	String message( "Hello Server" );
 	while( true ){
@@ -151,18 +174,16 @@ void udpClient()
 
 void udpServer()
 {
-	Socket server( Socket::UDP_SOCKET );
-
-	server.bind( "192.168.0.37", 12345 );
+	UDPClient server( "0.0.0.0", 12345 );
 
 	Host from;
-	std::cout << "UDP server created connection" << std::endl;
 
 	const size_t bufSize = 1024;
 	uint8_t buffer[ bufSize ];
 
 	while( true) {
 		// receive data
+		memset( buffer, 0, bufSize );
 		size_t num = server.receiveFrom( from, buffer, bufSize );
 
 		if( num > 0 ){
@@ -171,7 +192,6 @@ void udpServer()
 		}
 	}
 }
-
 
 int main( int argc, char* argv[] )
 {
@@ -187,12 +207,13 @@ int main( int argc, char* argv[] )
 	}
 
 	if( type == 0 ){
-//		tcpServer();
-//		udpServer();
-		asyncTcpServer();
+	//	tcpServer();
+		udpServer();
+	//	asyncTcpServer();
 	} else {
-		tcpClient();
-	//	udpClient();
+	//	tcpClient();
+	//	asyncTCPClient();
+		udpClient();
 	}
 
 	return 0;
