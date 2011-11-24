@@ -1,9 +1,8 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Window.h>
-#include "PlotView.h"
-
-#include "PlotDataSamples.h"
+#include <cvt/gui/PlotView.h>
+#include <cvt/gui/PlotDataSamples.h>
 
 using namespace cvt;
 
