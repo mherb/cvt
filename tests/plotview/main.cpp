@@ -1,9 +1,8 @@
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Window.h>
-#include "PlotView.h"
-
-#include "PlotDataSamples.h"
+#include <cvt/gui/PlotView.h>
+#include <cvt/gui/PlotDataSamples.h>
 
 using namespace cvt;
 
@@ -37,7 +36,7 @@ int main()
 	pds.setPlotStyle( PLOT_STYLE_DOTS );
 
 	PlotDataSamples pds2;
-	for( float x = -3.0f; x <= 3.0f; x += 0.05f )
+	for( float x = -6.0f; x <= 6.0f; x += 0.05f )
 		pds2.addSample( Point2f( x, 0.5f * x * x - 1.0f ) );
 	pds2.setPlotColor( Color::GREEN );
 	pds2.setPlotStyle( PLOT_STYLE_LINES );
