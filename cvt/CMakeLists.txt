@@ -293,7 +293,6 @@ SET(${MODULE_NAME}_HEADERS
 	gui/Moveable.h
 	gui/Slider.h
 	gui/ToggleButton.h
-	gui/View3D.h
 	gui/Window.h
 	gui/Widget.h
 	gui/WidgetContainer.h
