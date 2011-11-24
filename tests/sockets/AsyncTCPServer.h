@@ -15,28 +15,20 @@ namespace cvt
 
 			/* the server is only accepting new connections */
 			void onDataReadable();
-
-			void onDataWriteable()
-			{
-				std::cout << "Data Writeable" << std::endl;
-			}
-
+			void onDataWriteable(){}
 			void onException(){}
 
 			Signal<AsyncTCPConnection*>	newConnection;
 
 		private:
-			Socket	_socket;
-			int		_maxConnections;
+			TCPServer	_socket;
+			int			_maxConnections;
 	};
 
 	inline AsyncTCPServer::AsyncTCPServer( const String & address, uint16_t port, int maxConnections ) : IOHandler( -1 )
-		,_socket( Socket::TCP_SOCKET )
+		,_socket( address, port )
 		,_maxConnections( maxConnections )
 	{
-		// bind to the port
-		_socket.bind( address, port );
-
 		_fd = _socket.socketDescriptor();
 		notifyReadable( true );
 
@@ -46,8 +38,7 @@ namespace cvt
 	inline void AsyncTCPServer::onDataReadable()
 	{
 		// this should be an accept:
-		Socket* newSock = _socket.accept();
-		std::cout << "Accepted connection" << std::endl;
+		TCPClient* newSock = _socket.accept();
 		if( newSock ){
 			newConnection.notify( new AsyncTCPConnection( newSock ) );
 		}		
