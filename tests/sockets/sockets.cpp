@@ -1,14 +1,13 @@
-#include "Host.h"
-#include "AsyncTCPConnection.h"
-#include "AsyncTCPServer.h"
-#include "AsyncUDPClient.h"
+#include <cvt/io/Host.h>
+#include <cvt/io/AsyncTCPClient.h>
+#include <cvt/io/AsyncTCPServer.h>
+#include <cvt/io/AsyncUDPClient.h>
+#include <cvt/io/TCPServer.h>
+#include <cvt/io/TCPClient.h>
+#include <cvt/io/UDPClient.h>
+
 #include <cvt/util/Data.h>
 #include <cvt/util/String.h>
-#include <cvt/io/IOSelect.h>
-
-#include "TCPServer.h"
-#include "TCPClient.h"
-#include "UDPClient.h"
 
 #include <string>
 
@@ -35,7 +34,7 @@ class ServerHandling
 			if( _connections != 0 )
 				throw CVTException( "Already connected" );
 
-			_connections = new AsyncTCPConnection( _server.accept() );
+			_connections = new AsyncTCPClient( _server.accept() );
 
 			Delegate<void ()> readDel( this, &ServerHandling::socketCanRead );
 			_connections->canReceive.add( readDel );
@@ -59,7 +58,7 @@ class ServerHandling
 	private:
 		AsyncTCPServer			_server;
 		IOSelect				_ios;
-		AsyncTCPConnection*		_connections;
+		AsyncTCPClient*		_connections;
 		Data					_buffer;
 		size_t					_numInBuffer;
 };
@@ -99,8 +98,8 @@ class TCPClientHandler
 		}
 
 	private:
-		AsyncTCPConnection	_client;
-		IOSelect			_ios;
+		AsyncTCPClient	_client;
+		IOSelect		_ios;
 };
 
 void asyncTCPClient()
