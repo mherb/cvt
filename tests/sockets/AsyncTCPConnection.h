@@ -2,7 +2,6 @@
 #define ASYNC_TCP_CONNECTION_H
 
 #include "TCPServer.h"
-#include <sys/ioctl.h>
 
 #include <cvt/util/Signal.h>
 #include <cvt/io/IOHandler.h>

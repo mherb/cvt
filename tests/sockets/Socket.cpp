@@ -1,6 +1,7 @@
 #include "Socket.h"
 
 #include <stdio.h>
+#include <sys/ioctl.h>
 
 namespace cvt
 {
@@ -154,6 +155,19 @@ namespace cvt
 	{
 		if( _sockfd != -1 )
 			::close( _sockfd );
+	}
+
+	size_t	Socket::bytesAvailableForReading()
+	{
+		if( _sockfd == -1 )
+			return 0;
+
+		int n;
+		int ret = ioctl( _sockfd, FIONREAD, &n );
+
+		if( ret == -1 )
+			return 0;
+		return n;
 	}
 
 	void Socket::fillAdressInfo( struct addrinfo & info, 

@@ -2,7 +2,6 @@
 #define ASYNC_UDPCONNECTION_H
 
 #include "UDPClient.h"
-#include <sys/ioctl.h>
 #include <cvt/util/Signal.h>
 #include <cvt/io/IOHandler.h>
 
