@@ -4,10 +4,18 @@
 
 namespace cvt
 {
-	Host::Host( const cvt::String & addr, const cvt::String & service, ProtocolFamily pf ) :
+	Host::Host( const String & addr, const cvt::String & service, ProtocolFamily pf ) :
 		_addressLen( 0 )
 	{
 		lookup( addr, service, pf );
+	}
+
+	Host::Host( const String & address, uint16_t port, ProtocolFamily protFam ) :
+		_addressLen( 0 )
+	{
+		String service;
+		service.sprintf( "%d", port );
+		lookup( address, service, protFam );
 	}
 
 	Host::Host()

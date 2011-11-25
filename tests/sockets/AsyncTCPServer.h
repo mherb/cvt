@@ -18,7 +18,9 @@ namespace cvt
 			void onDataWriteable(){}
 			void onException(){}
 
-			Signal<AsyncTCPConnection*>	newConnection;
+			Signal<void>	canAccept;
+
+			TCPClient*  accept();
 
 		private:
 			TCPServer	_socket;
@@ -31,17 +33,18 @@ namespace cvt
 	{
 		_fd = _socket.socketDescriptor();
 		notifyReadable( true );
-
 		_socket.listen( _maxConnections );	
 	}
 
 	inline void AsyncTCPServer::onDataReadable()
 	{
-		// this should be an accept:
-		TCPClient* newSock = _socket.accept();
-		if( newSock ){
-			newConnection.notify( new AsyncTCPConnection( newSock ) );
-		}		
+		// notify observers, that server has pending Connection request!
+		canAccept.notify();
+	}
+
+	inline TCPClient* AsyncTCPServer::accept()
+	{
+		return _socket.accept();
 	}
 }
 
