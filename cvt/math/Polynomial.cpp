@@ -22,27 +22,24 @@ BEGIN_CVTTEST( Polynomial )
 	b &= tmp.degree() == 0;
 	CVTTEST_PRINT( "-", b );
 
-	Polynomialf tmp2( 2 );
+	Polynomialf tmp2;
 	tmp2.setZero();
 	b &= tmp == tmp2;
 	CVTTEST_PRINT( "setZero()", b );
 
-	Complexf roots[ 4 ];
+{
+	std::vector<Complexf> roots;
 	Polynomialf poly( 1.0f, -10.0f, 35.0f, -50.0f, 24.0f );
 	poly.roots( roots );
-	for( size_t i = 0; i < 4; i++ )
+	for( size_t i = 0; i < roots.size(); i++ )
 		std::cout << roots[ i ] << std::endl;
- {
-	Polynomialf bla( 1 );
-	bla = poly * poly;
-	std::cout << bla << std::endl;
- }
+}
 
 {
-	Complexd roots[ 4 ];
+	std::vector<Complexd> roots;
 	Polynomiald poly( 1.0, -10.0, 35.0, -50.0, 24.0 );
 	poly.roots( roots );
-	for( size_t i = 0; i < 4; i++ )
+	for( size_t i = 0; i < roots.size(); i++ )
 		std::cout << roots[ i ] << std::endl;
 }
 
