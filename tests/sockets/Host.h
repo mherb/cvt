@@ -18,6 +18,7 @@ namespace cvt
 		public:
 			friend class Socket;
 			Host( const String & address, const String & service, ProtocolFamily protFam = IPV_UNSPEC );
+			Host( const String & address, uint16_t port, ProtocolFamily protFam = IPV_UNSPEC );
 			Host();
 			~Host();
 

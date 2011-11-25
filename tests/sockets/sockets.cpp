@@ -1,6 +1,7 @@
 #include "Host.h"
 #include "AsyncTCPConnection.h"
 #include "AsyncTCPServer.h"
+#include "AsyncUDPClient.h"
 #include <cvt/util/Data.h>
 #include <cvt/util/String.h>
 #include <cvt/io/IOSelect.h>
@@ -15,89 +16,100 @@
 
 using namespace cvt;
 
-class ConnectionHandler
+class ServerHandling
 {
 	public:
-		ConnectionHandler()
+		ServerHandling( const String & serverAddr, uint16_t port ):
+			_server( serverAddr, port ),
+			_connections( 0 ),
+			_buffer( 1024 )
 		{
-		}
-		
-		~ConnectionHandler()
-		{
-			for( size_t i = 0; i < _connections.size(); i++ ){
-				delete _connections[ i ];
-			}
-		}
+			_ios.registerIOHandler( &_server );
 
-		int handleIO( int to )
-		{
-			return _ios.handleIO( to );
+			Delegate<void ()> acceptDel( this, &ServerHandling::newConnection );
+			_server.canAccept.add( acceptDel );
 		}
 
-		void newConnection( AsyncTCPConnection* conn )
+		void newConnection()
 		{
-			std::cout << "Got New Connection" << std::endl;
-			_connections.push_back( conn );
-			conn->notifyReadable( true );
-			//conn->notifyWriteable( true );
+			if( _connections != 0 )
+				throw CVTException( "Already connected" );
 
-			Delegate<void (const Data&)> d( this, &ConnectionHandler::dataReceived );
-			conn->dataReceived.add( d );
+			_connections = new AsyncTCPConnection( _server.accept() );
 
-			registerIOHandler( conn );
+			Delegate<void ()> readDel( this, &ServerHandling::socketCanRead );
+			_connections->canReceive.add( readDel );
+
+			_ios.registerIOHandler( _connections );
 		}
 
-		void registerIOHandler( IOHandler* handler )
+		void socketCanRead()
 		{
-			_ios.registerIOHandler( handler );
+			_numInBuffer = _connections->receive( _buffer.ptr(), _buffer.size() );
+
+			String msg( ( const char* )_buffer.ptr(), _numInBuffer );
+			std::cout << "Received: " << msg << std::endl;
 		}
 
-		void dataReceived( const Data& d )
+		void handleIO( int timeout )
 		{
-			String str( (const char*)d.ptr(), d.size() );
-			std::cout << "Received: " << str << std::endl;
+			_ios.handleIO( timeout );
 		}
 
 	private:
-		std::vector<AsyncTCPConnection*>	_connections;
-		IOSelect							_ios;
+		AsyncTCPServer			_server;
+		IOSelect				_ios;
+		AsyncTCPConnection*		_connections;
+		Data					_buffer;
+		size_t					_numInBuffer;
 };
 
 void asyncTcpServer()
 {
-	ConnectionHandler connHandler;
-	AsyncTCPServer server( "0.0.0.0", 12346 );
-	connHandler.registerIOHandler( &server );
-
-	Delegate<void ( AsyncTCPConnection* )> d( &connHandler, &ConnectionHandler::newConnection );
-	server.newConnection.add( d );
-
+	ServerHandling handler( "0.0.0.0", 12346 );
 	while( true ){
-		connHandler.handleIO( 1000 );
+		handler.handleIO( 1000 );
 	}
 }
 
+class TCPClientHandler
+{
+	public:
+		TCPClientHandler( const String & server, uint16_t port ) :
+			_client( server, port )
+		{
+			_ios.registerIOHandler( &_client );
+
+			Delegate<void ()> sendDel( this, &TCPClientHandler::socketCanSend );
+			_client.canSend.add( sendDel );
+		}
+
+		void socketCanSend()
+		{
+			String message( "GOTTA MESSAGE FOR YOUU" );
+			size_t n = _client.send( (const uint8_t*)message.c_str(), message.length() );
+			if( n != message.length() ){
+				std::cout << "Could not send whole message" << std::endl;
+			}
+		}
+
+		void handleIO( int timeout )
+		{
+			_ios.handleIO( timeout );
+		}
+
+	private:
+		AsyncTCPConnection	_client;
+		IOSelect			_ios;
+};
+
 void asyncTCPClient()
 {
-	IOSelect	iohandler;	
-	AsyncTCPConnection tcpConn( "0.0.0.0", 12346 );
-	tcpConn.notifyWriteable( true );
+	TCPClientHandler tcpConn( "0.0.0.0", 12346 );
 	
-	iohandler.registerIOHandler( &tcpConn );
-
 	while( true ){
-		std::string line;
-		std::getline( std::cin, line );
-
-		String buf( line.c_str() );
-		size_t toSend = buf.length();
-		const uint8_t * data = (const uint8_t*)buf.c_str();
-		while( toSend > 0 ){	
-			size_t sent = tcpConn.send( data, toSend );
-			data += sent;
-			toSend -= sent;
-			iohandler.handleIO( 10 );
-		}
+		tcpConn.handleIO( 1000 );
+		sleep( 1 );
 	}
 }
 
@@ -193,6 +205,86 @@ void udpServer()
 	}
 }
 
+
+class UDPHandler
+{
+	public:
+		UDPHandler( AsyncUDPClient* client ) :
+			_client( client ),
+			_host( "0.0.0.0", 12345 ),
+			_sendData( false )
+		{
+			_ios.registerIOHandler( _client );
+
+			Delegate<void ()> sendDel( this, &UDPHandler::socketCanSend );
+			Delegate<void ()> rcvDel( this, &UDPHandler::socketCanReceive );
+			_client->canSend.add( sendDel );
+			_client->canReceive.add( rcvDel );
+		}
+
+		void socketCanSend()
+		{
+			if( _sendData ){
+				String message( "GOTTA MESSAGE FOR YOUU" );
+				size_t n = _client->sendTo( _host, (const uint8_t*)message.c_str(), message.length() );
+				if( n != message.length() ){
+					std::cout << "Could not send whole message" << std::endl;
+				}
+			}
+		}
+
+		void socketCanReceive()
+		{
+			Data inData( 1024 );
+
+			size_t n = _client->receiveFrom( _host, inData.ptr(), inData.size() );
+			String msg( (const char*)inData.ptr(), n );
+			std::cout << "Received:" << msg << std::endl;
+		}
+
+		void setDestination( const Host & host )
+		{
+			_host = host;
+			_sendData = true;
+		}
+
+		void handleIO( int timeout )
+		{
+			_ios.handleIO( timeout );
+		}
+
+	private:
+		AsyncUDPClient*	_client;
+		IOSelect		_ios;
+		Host			_host;
+
+		bool			_sendData;
+};
+
+void asyncUDPServer()
+{
+	AsyncUDPClient client( "0.0.0.0", 12345 );
+	UDPHandler handler( &client );
+
+	while( true ){
+		handler.handleIO( 1000 );
+	}
+}
+
+void asyncUDPClient()
+{
+	AsyncUDPClient client;
+	UDPHandler handler( &client );
+
+	Host dest( "0.0.0.0", 12345 );
+	handler.setDestination( dest );
+
+	while( true ){
+		handler.handleIO( 1000 );
+		sleep( 1 );
+	}
+}
+
 int main( int argc, char* argv[] )
 {
 	if( argc < 2 ){
@@ -208,12 +300,14 @@ int main( int argc, char* argv[] )
 
 	if( type == 0 ){
 	//	tcpServer();
-		udpServer();
+	//	udpServer();
 	//	asyncTcpServer();
+		asyncUDPServer();
 	} else {
 	//	tcpClient();
+	//	udpClient();
 	//	asyncTCPClient();
-		udpClient();
+		asyncUDPClient();
 	}
 
 	return 0;

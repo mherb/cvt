@@ -5,7 +5,6 @@
 #include <sys/ioctl.h>
 
 #include <cvt/util/Signal.h>
-#include <cvt/util/Data.h>
 #include <cvt/io/IOHandler.h>
 
 namespace cvt
@@ -21,48 +20,30 @@ namespace cvt
 			void onDataWriteable();
 			void onException(){}
 
-			/* only notify observers when at leas s bytes have been read */
-			void setMinReadSize( size_t s ) { _minNotificationSize = s; }
-
 			size_t send( const uint8_t* buf, size_t maxLen );
+			size_t receive( uint8_t* buf, size_t maxLen );
 			
-			/* signal that new data has been read  */
-			Signal<const Data&>	dataReceived;
+			Signal<void>	canSend;
+			Signal<void>	canReceive;
 
 		private:
 			TCPClient*		_socket;
-
-			Data			_dataIn;
-			uint8_t*		_inPtr;
-			Data			_dataOut;
-			uint8_t*		_outPtr;
-			uint8_t*		_outPtrSend;
-
-			size_t			_minNotificationSize;
 	};
 
 	inline AsyncTCPConnection::AsyncTCPConnection( TCPClient* socket ) : IOHandler( socket->socketDescriptor() )
 		,_socket( socket )
-		,_dataIn( 4096 )
-		,_inPtr( _dataIn.ptr() )
-		,_dataOut( 4096 )
-		,_outPtr( _dataOut.ptr() )
-		,_outPtrSend( _dataOut.ptr() )
-		,_minNotificationSize( 1 )
 	{
+		notifyReadable( true );
+		notifyWriteable( true );
 	}
 
 	inline AsyncTCPConnection::AsyncTCPConnection( const String & address, uint16_t port ) : IOHandler( -1 )
 		,_socket( new TCPClient() )
-		,_dataIn( 4096 )
-		,_inPtr( _dataIn.ptr() )
-		,_dataOut( 4096 )
-		,_outPtr( _dataOut.ptr() )
-		,_outPtrSend( _dataOut.ptr() )
-		,_minNotificationSize( 1 )
 	{
 		_socket->connect( address, port );
 		_fd = _socket->socketDescriptor();
+		notifyReadable( true );
+		notifyWriteable( true );
 	}
 
 	inline AsyncTCPConnection::~AsyncTCPConnection()
@@ -74,53 +55,23 @@ namespace cvt
 
 	inline void AsyncTCPConnection::onDataReadable()
 	{
-		/*
-		int n;
-		ioctl( _fd, FIONREAD, &n );
-		std::cout << "DATA AVAILABLE: " << n << std::endl;
-		*/
-
-		size_t alreadyRead = _dataIn.ptr() - _inPtr;
-		size_t remainingInBytes = _dataIn.size() - alreadyRead;
-		size_t bytesRead = _socket->receive( _inPtr, remainingInBytes );
-		size_t all = bytesRead + alreadyRead;
-		if( all < _minNotificationSize ){
-			_inPtr += bytesRead;
-		} else {
-			// notify about data
-			// create Data referencing received data
-			Data received( _dataIn.ptr(), all, false );
-			dataReceived.notify( received );
-
-			// invalidate the dataIter
-			_inPtr = _dataIn.ptr();
-		}
+		canReceive.notify();
 	}
 
 	inline void AsyncTCPConnection::onDataWriteable()
 	{
-		size_t toSend = _outPtr - _outPtrSend;
-		size_t numSent = _socket->send( _outPtrSend, toSend );
-
-		if( toSend == numSent ){
-			_outPtr = _dataOut.ptr();
-			_outPtrSend = _outPtr;
-		} else {
-			_outPtrSend += numSent;
-		}
+		canSend.notify();
 	}
 
 
 	inline size_t AsyncTCPConnection::send( const uint8_t* buf, size_t maxLen )
 	{
-		size_t numInBuffer = _outPtr - _dataOut.ptr();
-		size_t remaining   = _dataOut.size() - numInBuffer;
-		size_t numWritten = Math::min( remaining, maxLen );
-		
-		memcpy( _outPtr, buf, numWritten );
-		_outPtr += numWritten;
+		return _socket->send( buf, maxLen );
+	}
 
-		return numWritten;		
+	inline size_t AsyncTCPConnection::receive( uint8_t* buf, size_t bufSize )
+	{
+		return _socket->receive( buf, bufSize );
 	}
 }
 
