@@ -157,6 +157,9 @@ int main( int argc, char* argv[] )
 	Matrix4f T0, T1;
 
 	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
+
+	
+
 /*
 	std::cout << K0.toMatrix4() * T0 << std::endl;
 	std::cout << K1.toMatrix4() * T1 << std::endl;
@@ -166,6 +169,12 @@ int main( int argc, char* argv[] )
 	Image i0( r.find( "calib_stereo/ueye_stereo_4002738788.png" ) );
 	Image i1( r.find( "calib_stereo/ueye_stereo_4002738790.png" ) );
 	Image id0, id1, tmp0, tmp1;
+	
+	{
+		Rectf i, min, max;
+		i.set( 0, 0, i0.width(), i0.height() );
+		camCalib0.calcUndistortRects( min, max, i );
+	}
 
 	Image warp;
 	warp.reallocate( i0.width(), i0.height(), IFormat::GRAYALPHA_FLOAT );

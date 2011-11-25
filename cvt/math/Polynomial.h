@@ -3,6 +3,7 @@
 
 #include <cvt/math/Math.h>
 #include <cvt/math/Complex.h>
+#include <vector>
 #include <iostream>
 
 namespace cvt {
@@ -16,7 +17,7 @@ namespace cvt {
 		template<typename T2> friend Polynomial<T2> operator*( T2, const Polynomial<T2>& p );
 
 		public:
-			Polynomial( size_t degree );
+			Polynomial( );
 			Polynomial( T a, T b );
 			Polynomial( T a, T b, T c );
 			Polynomial( T a, T b, T c, T d );
@@ -52,12 +53,13 @@ namespace cvt {
 
 			Polynomial<T>  derivative() const;
 			Polynomial<T>  antiDerivative() const;
-			void		   roots( Complex<T>* roots ) const;
+			void		   roots( std::vector<Complex<T> >& roots ) const;
 
 			const T*	   ptr() const;
 			T*			   ptr();
 
 		private:
+			Polynomial( size_t degree );
 			void resize( size_t degree, bool keep = false );
 			void laguerre( Complex<T>& root, const Complex<T>* coeff, size_t m ) const;
 
@@ -65,6 +67,12 @@ namespace cvt {
 			size_t  _size;
 			T*		_coeff;
 	};
+
+	template<typename T>
+	inline Polynomial<T>::Polynomial() : _size( 0 ), _coeff( NULL )
+	{
+		setZero();
+	}
 
 	template<typename T>
 	inline Polynomial<T>::Polynomial( size_t degree ) : _size( 0 ), _coeff( NULL )
@@ -76,7 +84,7 @@ namespace cvt {
 	inline Polynomial<T>::Polynomial( const Polynomial<T>& p ) : _size( 0 ), _coeff( NULL )
 	{
 		resize( p._degree );
-		for( size_t i = 0; i <= _degree; i++ )
+		for( size_t i = 0; i <= p._degree; i++ )
 			_coeff[ i ] = p._coeff[ i ];
 	}
 
@@ -178,8 +186,11 @@ namespace cvt {
 			return ret;
 		} else {
 			Polynomial<T> ret( _degree );
-			for( size_t i = 0; i <= _degree; i++ )
+			for( size_t i = 0; i <= _degree; i++ ) {
 				ret._coeff[ i ] = _coeff[ i ] + p._coeff[ i ];
+				if( ret._coeff[ i ] != 0 )
+					ret._degree = i;
+			}
 			return ret;
 		}
 	}
@@ -220,14 +231,13 @@ namespace cvt {
 	{
 		Polynomial<T> ret( _degree + p._degree );
 
-		ret.setZero();
+		for( size_t i = 0; i <= ret._degree; i++ )
+			ret._coeff[ i ] = 0;
 		for( size_t i = 0; i <= _degree; i++ ) {
 			for( size_t k = 0; k <= p._degree; k++ ) {
 				ret._coeff[ i + k ] += _coeff[ i ] * p._coeff[ k ];
 			}
 		}
-		ret._degree = ( _degree + p._degree );
-
 		return ret;
 	}
 
@@ -235,11 +245,11 @@ namespace cvt {
 	template<typename T>
 	inline Polynomial<T> Polynomial<T>::operator*( T s ) const
 	{
+		if( s == 0 )
+			return Polynomial<T>();
 		Polynomial<T> ret( _degree );
 		for( size_t i = 0; i <= _degree; i++ ) {
 			ret._coeff[ i ] = s * _coeff[ i ];
-			if( ret._coeff[ i ] != 0 )
-				ret._degree = i;
 		}
 		return ret;
 	}
@@ -277,16 +287,19 @@ namespace cvt {
 			return *this;
 		} else if( _degree < p._degree ) {
 			size_t i;
-
+			size_t olddegree = _degree;
 			resize( p._degree, true );
-			for( i = 0; i <= _degree; i++ )
+			for( i = 0; i <= olddegree; i++ )
 				_coeff[ i ] += p._coeff[ i ];
-			for( ; i <= p._degree; i++ )
+			for( ; i <= _degree; i++ )
 				_coeff[ i ] = p._coeff[ i ];
 			return *this;
 		} else {
-			for( size_t i = 0; i <= _degree; i++ )
+			for( size_t i = 0; i <= _degree; i++ ) {
 				_coeff[ i ] += p._coeff[ i ];
+				if( _coeff[ i ] != 0 )
+					_degree = i;
+			}
 			return *this;
 		}
 	}
@@ -300,16 +313,19 @@ namespace cvt {
 			return *this;
 		} else if( _degree < p._degree ) {
 			size_t i;
-
+			size_t olddegree = _degree;
 			resize( p._degree, true );
-			for( i = 0; i <= _degree; i++ )
+			for( i = 0; i <= olddegree; i++ )
 				_coeff[ i ] -= p._coeff[ i ];
 			for( ; i <= p._degree; i++ )
 				_coeff[ i ] = -p._coeff[ i ];
 			return *this;
 		} else {
-			for( size_t i = 0; i <= _degree; i++ )
+			for( size_t i = 0; i <= _degree; i++ ) {
 				_coeff[ i ] -= p._coeff[ i ];
+				if( _coeff[ i ] != 0 )
+					_degree = i;
+			}
 			return *this;
 		}
 	}
@@ -317,16 +333,7 @@ namespace cvt {
 	template<typename T>
 	inline Polynomial<T>&  Polynomial<T>::operator*=( const Polynomial<T>& p )
 	{
-		Polynomial<T> ret( _degree + p._degree );
-
-		ret.setZero();
-		for( size_t i = 0; i <= _degree; i++ ) {
-			for( size_t k = 0; k <= p._degree; k++ ) {
-				ret._coeff[ i + k ] += _coeff[ i ] * p._coeff[ k ];
-			}
-		}
-		ret._degree = ( _degree + p._degree );
-
+		Polynomial<T> ret( *this * p );
 		*this = ret;
 		return *this;
 	}
@@ -441,9 +448,12 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Polynomial<T>::roots( Complex<T>* roots ) const
+	inline void Polynomial<T>::roots( std::vector<Complex<T> >& roots ) const
 	{
-        Complex<T>* coeff = new Complex<T>[ _degree ];
+
+        Complex<T>* coeff = new Complex<T>[ _degree + 1 ];
+		roots.clear();
+		roots.assign( _degree, Complex<T>( 0 ) );
 		Complex<T> root, x, tmp;
 
 		for( size_t i = 0; i <= _degree; i++ )
@@ -546,7 +556,7 @@ namespace cvt {
 	template<typename T>
 	static inline std::ostream& operator<<( std::ostream& out, const Polynomial<T>& p )
 	{
-		for( ssize_t i = p._degree; i >= 0; i-- )
+		for( ssize_t i = ( ssize_t ) p._degree; i >= 0; i-- )
 			out << p._coeff[ i ] << " ";
 		return out;
 	}

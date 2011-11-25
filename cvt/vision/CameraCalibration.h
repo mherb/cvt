@@ -11,6 +11,8 @@
 #include <cvt/math/Matrix.h>
 #include <cvt/math/Vector.h>
 #include <cvt/util/Flags.h>
+#include <cvt/geom/Rect.h>
+#include <cvt/math/Polynomial.h>
 #include <cvt/io/xml/XMLElement.h>
 #include <cvt/io/xml/XMLText.h>
 #include <cvt/io/xml/XMLSerializable.h>
@@ -50,6 +52,8 @@ namespace cvt
         void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
 
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
+		Vector2f undistortPoint( const Vector2f& in ) const;
+		void calcUndistortRects( Rectf& minvalid, Rectf& max, const Rectf& input ) const;
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
         bool hasIntrinsics() const { return ( _flags & INTRINSICS ); }
@@ -151,6 +155,11 @@ namespace cvt
             XMLNode * child;
             Vector3f radial;
             Vector2f tangential;
+
+			/* to make the compiler happy */
+			radial.setZero();
+			tangential.setZero();
+
             for( size_t i = 0; i < n->childSize(); i++ ){
                 child = n->child( i );
 
@@ -205,6 +214,62 @@ namespace cvt
         _radial = radial;
         _tangential = tangential;
     }
+
+	inline Vector2f CameraCalibration::undistortPoint( const Vector2f& in ) const
+	{
+		Vector2f out;
+		Vector2f p = in;
+		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
+		p -= c;
+		p /= f;
+		float r2 = p.lengthSqr();
+		float r4 = Math::sqr( r2 );
+		float r6 = r2 * r4;
+		float poly = ( 1.0f + _radial[ 0 ] * r2 + _radial[ 1 ] * r4 + _radial[ 2 ] * r6 );
+		float xy2 = 2.0f * _tangential[ 0 ] * _tangential[ 1 ];
+		out.x = f.x * ( p.x * poly + xy2 * _tangential[ 0 ] + _tangential[ 1 ] * ( r2 + 2.0f * p.x ) ) + c.x;
+		out.y = f.y * ( p.y * poly + xy2 * _tangential[ 1 ] + _tangential[ 0 ] * ( r2 + 2.0f * p.y ) ) + c.y;
+		return out;
+	}
+
+	inline void CameraCalibration::calcUndistortRects( Rectf& minvalid, Rectf& max, const Rectf& input ) const
+	{
+		Vector2f corners[ 4 ];
+		Vector2f extremes[ 4 ];
+
+		corners[ 0 ] = undistortPoint( Vector2f( input.x, input.y ) );
+		corners[ 1 ] = undistortPoint( Vector2f( input.x + input.width, input.y ) );
+//		corners[ 2 ] = undistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
+//		corners[ 3 ] = undistortPoint( Vector2f( input.x, input.y + input.height ) );
+
+		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
+		c /= f;
+
+		float y = input.y / f.y;
+		Polynomialf rx2( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
+		Polynomialf rx4 = rx2 * rx2;
+		Polynomialf rx6 = rx4 * rx2;
+		Polynomialf polyk = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
+		polyk[ 0 ] += 1.0f;
+		Polynomialf px( 1.0f, -c.x );
+		Polynomialf all = f.x * ( px * polyk + Polynomialf( 2.0f * y * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * rx2 + _tangential[ 1 ] * 2.0f * px );
+		all[ 0 ] += _intrinsics[ 0 ][ 2 ];
+
+		std::cout << all.eval( input.x ) << " " << corners[ 0 ] << std::endl;
+		std::cout << all.eval( ( input.x + input.width ) / f.x ) << " " << corners[ 1 ] << std::endl;
+
+		Polynomialf deriv = all.derivative();
+		std::vector<Complexf> roots;
+		deriv.roots( roots );
+		for( int i = 0; i < roots.size(); i++ )
+			std::cout << roots[ i ] * f.x << std::endl;
+		std::cout << "Degree: " << deriv.degree() << std::endl;
+		std::cout << deriv << std::endl;
+
+
+	}
 
     inline void CameraCalibration::updateProjectionMatrix()
     {
