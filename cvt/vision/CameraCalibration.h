@@ -233,42 +233,152 @@ namespace cvt
 		return out;
 	}
 
-	inline void CameraCalibration::calcUndistortRects( Rectf& minvalid, Rectf& max, const Rectf& input ) const
+	inline void CameraCalibration::calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const
 	{
-		Vector2f corners[ 4 ];
-		Vector2f extremes[ 4 ];
+		Vector2f pt;
+		float y ,x;
+		float x1min, x2min, y1min, y2min;
+		float x1max, x2max, y1max, y2max;
 
-		corners[ 0 ] = undistortPoint( Vector2f( input.x, input.y ) );
-		corners[ 1 ] = undistortPoint( Vector2f( input.x + input.width, input.y ) );
-//		corners[ 2 ] = undistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
-//		corners[ 3 ] = undistortPoint( Vector2f( input.x, input.y + input.height ) );
+		x1min = x1max = input.x;
+		x2min = x2max = input.x + input.width;
+		y1min = y1max = input.y;
+		y2min = y2max = input.y + input.height;
+
+		pt = undistortPoint( Vector2f( input.x, input.y ) );
+		x1min = Math::max( x1min, pt.x );
+		y1min = Math::max( y1min, pt.y );
+		x1max = Math::min( x1max, pt.x );
+		y1max = Math::min( y1max, pt.y );
+
+		pt = undistortPoint( Vector2f( input.x + input.width, input.y ) );
+		x2min = Math::min( x2min, pt.x );
+		y1min = Math::max( y1min, pt.y );
+		x2max = Math::max( x2max, pt.x );
+		y1max = Math::min( y1max, pt.y );
+
+		pt = undistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
+		x2min = Math::min( x2min, pt.x );
+		y2min = Math::min( y2min, pt.y );
+		x2max = Math::max( x2max, pt.x );
+		y2max = Math::max( y2max, pt.y );
+
+		pt = undistortPoint( Vector2f( input.x, input.y + input.height ) );
+		x1min = Math::max( x1min, pt.x );
+		y2min = Math::min( y2min, pt.y );
+		x1max = Math::min( x1max, pt.x );
+		y2max = Math::max( y2max, pt.y );
+
+		return;
 
 		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+
+		std::cout << c << std::endl;
+
 		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
 		c /= f;
 
-		float y = input.y / f.y;
-		Polynomialf rx2( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
-		Polynomialf rx4 = rx2 * rx2;
-		Polynomialf rx6 = rx4 * rx2;
-		Polynomialf polyk = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
-		polyk[ 0 ] += 1.0f;
-		Polynomialf px( 1.0f, -c.x );
-		Polynomialf all = f.x * ( px * polyk + Polynomialf( 2.0f * y * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * rx2 + _tangential[ 1 ] * 2.0f * px );
-		all[ 0 ] += _intrinsics[ 0 ][ 2 ];
-
-		std::cout << all.eval( input.x ) << " " << corners[ 0 ] << std::endl;
-		std::cout << all.eval( ( input.x + input.width ) / f.x ) << " " << corners[ 1 ] << std::endl;
-
-		Polynomialf deriv = all.derivative();
 		std::vector<Complexf> roots;
+		Polynomialf deriv;
+		// get roots of x derivative-polynomial for y equal to input.y and input.y + input.height
+		Polynomialf rx2, rx4, rx6, polyrx, allx;
+
+		y = ( input.y ) / f.y;
+		rx2 = Polynomialf( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
+		rx4 = rx2 * rx2;
+		rx6 = rx4 * rx2;
+		polyrx = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
+		polyrx[ 0 ] += 1.0f;
+		allx = f.y * ( ( y - c.y ) * polyrx + Polynomialf( 2.0f * y * _tangential[ 1 ], 0.0f ) + _tangential[ 0 ] * rx2 /* + tangential[ 0 ] * 2.0f * ( y - c.y ) */ );
+		allx[ 0 ] += _intrinsics[ 1 ][ 2 ];
+		deriv = allx.derivative();
 		deriv.roots( roots );
-		for( int i = 0; i < roots.size(); i++ )
-			std::cout << roots[ i ] * f.x << std::endl;
-		std::cout << "Degree: " << deriv.degree() << std::endl;
-		std::cout << deriv << std::endl;
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+				pt.x = roots[ i ].re * f.x;
+				pt.y = input.y;
+				pt = undistortPoint( pt );
+				y1min = Math::max( y1min, pt.y );
+				y1max = Math::min( y1max, pt.y );
+				//std::cout << roots[ i ].re * f.x << std::endl;
+			}
+		}
+
+		y = ( input.y + input.height ) / f.y;
+		rx2 = Polynomialf( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
+		rx4 = rx2 * rx2;
+		rx6 = rx4 * rx2;
+		polyrx = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
+		polyrx[ 0 ] += 1.0f;
+		allx = f.y * ( ( y - c.y ) * polyrx + Polynomialf( 2.0f * y * _tangential[ 1 ], 0.0f ) + _tangential[ 0 ] * rx2 /* + tangential[ 0 ] * 2.0f * ( y - c.y ) */ );
+		allx[ 0 ] += _intrinsics[ 1 ][ 2 ];
+		deriv = allx.derivative();
+		deriv.roots( roots );
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+				pt.x = roots[ i ].re * f.x;
+				pt.y = input.y + input.height;
+				pt = undistortPoint( pt );
+				y2min = Math::min( y2min, pt.y );
+				y2max = Math::max( y2max, pt.y );
+				//std::cout << roots[ i ].re * f.x << std::endl;
+			}
+		}
 
 
+		// get roots of y derivative-polynomial for x input.x and input.x + input.width
+		Polynomialf ry2, ry4, ry6, polyry, ally;
+		x = ( input.x ) / f.x;
+		ry2 = Polynomialf( 1.0f, -2.0f * c.y, x * x - 2.0f * c.x * x + c.x * c.x + c.y * c.y );
+		ry4 = ry2 * ry2;
+		ry6 = ry4 * ry2;
+		polyry = _radial[ 0 ] * ry2 + _radial[ 1 ] * ry4 + _radial[ 2 ] * ry6;
+		polyry[ 0 ] += 1.0f;
+		ally = f.x * ( ( x - c.x ) * polyry + Polynomialf( 2.0f * x * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * ry2 /* + tangential[ 1 ] * 2.0f * ( x - c.x ) */ );
+		ally[ 0 ] += _intrinsics[ 0 ][ 2 ];
+		deriv = ally.derivative();
+		deriv.roots( roots );
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+				pt.x = input.x;
+				pt.y = roots[ i ].re * f.y;
+				pt = undistortPoint( pt );
+				x1min = Math::max( x1min, pt.x );
+				x1max = Math::min( x1max, pt.x );
+				//std::cout << roots[ i ].re * f.y << std::endl;
+			}
+		}
+
+		x = ( input.x + input.width ) / f.x;
+		ry2 = Polynomialf( 1.0f, -2.0f * c.y, x * x - 2.0f * c.x * x + c.x * c.x + c.y * c.y );
+		ry4 = ry2 * ry2;
+		ry6 = ry4 * ry2;
+		polyry = _radial[ 0 ] * ry2 + _radial[ 1 ] * ry4 + _radial[ 2 ] * ry6;
+		polyry[ 0 ] += 1.0f;
+		ally = f.x * ( ( x - c.x ) * polyry + Polynomialf( 2.0f * x * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * ry2 /* + tangential[ 1 ] * 2.0f * ( x - c.x ) */ );
+		ally[ 0 ] += _intrinsics[ 0 ][ 2 ];
+		deriv = ally.derivative();
+		deriv.roots( roots );
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+				pt.x = input.x + input.width;
+				pt.y = roots[ i ].re * f.y;
+				pt = undistortPoint( pt );
+				x2min = Math::min( x1min, pt.x );
+				x2max = Math::max( x1max, pt.x );
+				//std::cout << roots[ i ].re * f.y << std::endl;
+			}
+		}
+
+		min.x = x1min;
+		min.y = y1min;
+		min.width = x2min - x1min;
+		min.height = y2min - y1min;
+
+		max.x = x1max;
+		max.y = y1max;
+		max.width = x2max - x1max;
+		max.height = y2max - y1max;
 	}
 
     inline void CameraCalibration::updateProjectionMatrix()

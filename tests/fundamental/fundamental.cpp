@@ -177,16 +177,41 @@ int main( int argc, char* argv[] )
 	}
 
 	Image warp;
-	warp.reallocate( i0.width(), i0.height(), IFormat::GRAYALPHA_FLOAT );
 	Vector3f radial = camCalib0.radialDistortion();
 	Vector2f tangential = camCalib0.tangentialDistortion();
 	float fx = camCalib0.intrinsics()[ 0 ][ 0 ];
 	float fy = camCalib0.intrinsics()[ 1 ][ 1 ];
 	float cx = camCalib0.intrinsics()[ 0 ][ 2 ];
 	float cy = camCalib0.intrinsics()[ 1 ][ 2 ];
+	id0.reallocate( i0.width() + 500, i0.height() + 500 );
+	warp.reallocate( i0.width() + 500, i0.height() + 500, IFormat::GRAYALPHA_FLOAT );
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i0.width(), i0.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i0.convert( tmp0, IFormat::RGBA_UINT8 );
 	IWarp::apply( id0, tmp0, warp );
+	{
+		Rectf min, max, in( 0, 0, i0.width(), i0.height() );
+		Recti imin, imax;
+		camCalib0.calcUndistortRects( min, max, in );
+
+		imin.x = ( int ) Math::round( min.x ) + 250;
+		imin.y = ( int ) Math::round( min.y ) + 250;
+		imin.width = ( int ) Math::round( min.width );
+		imin.height = ( int ) Math::round( min.height );
+		imax.x = ( int ) Math::round( max.x ) + 250;
+		imax.y = ( int ) Math::round( max.y ) + 250;
+		imax.width = ( int ) Math::round( max.width );
+		imax.height = ( int ) Math::round( max.height );
+
+		{
+			GFXEngineImage ge( id0 );
+			GFX g( &ge );
+			g.color() = Color::GREEN;
+			g.drawRect( imin );
+			g.color() = Color::RED;
+			g.drawRect( imax );
+		}
+	}
+	id0.save( "undistort.png" );
 //	id0.reallocate( tmp1 ); // WTF - Why ?
 //	ITransform::apply( id0, tmp1, T0rectify, 1024, 786 );
 
