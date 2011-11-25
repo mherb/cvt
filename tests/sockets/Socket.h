@@ -25,6 +25,8 @@ namespace cvt
 			/* get the socket file descriptor (for select) */
 			int socketDescriptor() const { return _sockfd; };
 
+			size_t bytesAvailableForReading();
+
 		protected:
 			Socket( SocketType type, int fd = -1 );
 			virtual ~Socket();
