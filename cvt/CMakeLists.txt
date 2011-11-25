@@ -317,6 +317,14 @@ SET(${MODULE_NAME}_HEADERS
 	io/PlyModel.h
 	io/Postscript.h
 	io/GFXEnginePS.h
+	io/Host.h
+	io/Socket.h
+	io/TCPClient.h
+	io/TCPServer.h
+	io/UDPClient.h
+	io/AsyncTCPServer.h
+	io/AsyncTCPClient.h
+	io/AsyncUDPClient.h
 	math/CostFunction.h
 	math/Complex.h
 	math/Fixed.h
@@ -513,6 +521,11 @@ SET(${MODULE_NAME}_SOURCES
 	io/RawVideoReader.cpp
 	io/VideoReader.cpp
 	io/PlyModel.cpp
+	io/Host.cpp
+	io/Socket.cpp
+	io/TCPClient.cpp
+	io/TCPServer.cpp
+	io/UDPClient.cpp
 	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp

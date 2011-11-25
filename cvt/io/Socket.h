@@ -4,11 +4,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 
+#include <cvt/io/Host.h>
 #include <cvt/util/String.h>
 
-#include "Host.h"
 
 namespace cvt
 {

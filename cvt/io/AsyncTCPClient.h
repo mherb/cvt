@@ -1,19 +1,19 @@
-#ifndef ASYNC_TCP_CONNECTION_H
-#define ASYNC_TCP_CONNECTION_H
+#ifndef CVT_ASYNC_TCP_CLIENT_H
+#define CVT_ASYNC_TCP_CLIENT_H
 
-#include "TCPServer.h"
+#include <cvt/io/TCPServer.h>
 
 #include <cvt/util/Signal.h>
 #include <cvt/io/IOHandler.h>
 
 namespace cvt
 {
-	class AsyncTCPConnection : public IOHandler
+	class AsyncTCPClient : public IOHandler
 	{
 		public:
-			AsyncTCPConnection( TCPClient* socket );
-			AsyncTCPConnection( const String & address, uint16_t port );
-			~AsyncTCPConnection();
+			AsyncTCPClient( TCPClient* socket );
+			AsyncTCPClient( const String & address, uint16_t port );
+			~AsyncTCPClient();
 
 			void onDataReadable();
 			void onDataWriteable();
@@ -29,14 +29,14 @@ namespace cvt
 			TCPClient*		_socket;
 	};
 
-	inline AsyncTCPConnection::AsyncTCPConnection( TCPClient* socket ) : IOHandler( socket->socketDescriptor() )
+	inline AsyncTCPClient::AsyncTCPClient( TCPClient* socket ) : IOHandler( socket->socketDescriptor() )
 		,_socket( socket )
 	{
 		notifyReadable( true );
 		notifyWriteable( true );
 	}
 
-	inline AsyncTCPConnection::AsyncTCPConnection( const String & address, uint16_t port ) : IOHandler( -1 )
+	inline AsyncTCPClient::AsyncTCPClient( const String & address, uint16_t port ) : IOHandler( -1 )
 		,_socket( new TCPClient() )
 	{
 		_socket->connect( address, port );
@@ -45,30 +45,30 @@ namespace cvt
 		notifyWriteable( true );
 	}
 
-	inline AsyncTCPConnection::~AsyncTCPConnection()
+	inline AsyncTCPClient::~AsyncTCPClient()
 	{
 		if( _socket )
 			delete _socket;
 	}
 
 
-	inline void AsyncTCPConnection::onDataReadable()
+	inline void AsyncTCPClient::onDataReadable()
 	{
 		canReceive.notify();
 	}
 
-	inline void AsyncTCPConnection::onDataWriteable()
+	inline void AsyncTCPClient::onDataWriteable()
 	{
 		canSend.notify();
 	}
 
 
-	inline size_t AsyncTCPConnection::send( const uint8_t* buf, size_t maxLen )
+	inline size_t AsyncTCPClient::send( const uint8_t* buf, size_t maxLen )
 	{
 		return _socket->send( buf, maxLen );
 	}
 
-	inline size_t AsyncTCPConnection::receive( uint8_t* buf, size_t bufSize )
+	inline size_t AsyncTCPClient::receive( uint8_t* buf, size_t bufSize )
 	{
 		return _socket->receive( buf, bufSize );
 	}

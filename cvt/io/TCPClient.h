@@ -1,7 +1,7 @@
 #ifndef CVT_TCPSOCKET_H
 #define CVT_TCPSOCKET_H
 
-#include "Socket.h"
+#include <cvt/io/Socket.h>
 
 namespace cvt
 {

@@ -1,8 +1,8 @@
 #ifndef CVT_TCPSERVER_H
 #define CVT_TCPSERVER_H
 
-#include "Socket.h"
-#include "TCPClient.h"
+#include <cvt/io/Socket.h>
+#include <cvt/io/TCPClient.h>
 
 namespace cvt
 {
