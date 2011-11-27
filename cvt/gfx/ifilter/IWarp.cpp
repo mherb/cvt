@@ -138,8 +138,8 @@ namespace cvt {
 				float r6 = r2 * r4;
 				float poly = ( 1.0f + k1 * r2 + k2 * r4 + k3 * r6 );
 				float xy2 = 2.0f * p.x * p.y;
-				*pdst++ = fx * ( p.x * poly + xy2 * p1 + p2 * ( r2 + 2.0f * p.x ) ) + c2.x;
-				*pdst++ = fy * ( p.y * poly + xy2 * p2 + p1 * ( r2 + 2.0f * p.y ) ) + c2.y;
+				*pdst++ = fx * ( p.x * poly + xy2 * p1 + p2 * ( r2 + 2.0f * p.x * p.x ) ) + c2.x;
+				*pdst++ = fy * ( p.y * poly + xy2 * p2 + p1 * ( r2 + 2.0f * p.y * p.y ) ) + c2.y;
 			}
 		}
 		idst.unmap( dst );

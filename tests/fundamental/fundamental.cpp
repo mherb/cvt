@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
 	Matrix3f K0, K1, T0rectify, T1rectify;
 	Matrix4f T0, T1;
 
-	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
+//	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
 
 	
 
@@ -209,6 +209,32 @@ int main( int argc, char* argv[] )
 			g.drawRect( imin );
 			g.color() = Color::RED;
 			g.drawRect( imax );
+
+			g.color() = Color::BLUE;
+			for( float x = 0; x < i0.width() - 5.0f; x += 5.0f ) {
+				Vector2f pt1( x, 0.0f );
+				Vector2f pt2( x + 5.0f, 0.0f );
+				pt1 = camCalib0.undistortPoint( pt1 );
+				pt2 = camCalib0.undistortPoint( pt2 );
+				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
+				pt1.set( x, i0.height() );
+				pt2.set( x + 5.0f, i0.height() );
+				pt1 = camCalib0.undistortPoint( pt1 );
+				pt2 = camCalib0.undistortPoint( pt2 );
+				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
+			}
+			for( float y = 0; y < i0.height() - 5.0f; y += 5.0f ) {
+				Vector2f pt1( 0, y );
+				Vector2f pt2( 0, y + 5.0f );
+				pt1 = camCalib0.undistortPoint( pt1 );
+				pt2 = camCalib0.undistortPoint( pt2 );
+				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
+				pt1.set( i0.width(), y );
+				pt2.set( i0.width(), y + 5.0f );
+				pt1 = camCalib0.undistortPoint( pt1 );
+				pt2 = camCalib0.undistortPoint( pt2 );
+				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
+			}
 		}
 	}
 	id0.save( "undistort.png" );
