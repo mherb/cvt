@@ -14,7 +14,8 @@ namespace cvt {
 		class Rect
 		{
 			public:
-				Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 ) : x( rx ), y( ry ), width( rw ), height( rh ) {};
+				Rect( T rx = 0, T ry = 0, T rw = 0, T rh = 0 );
+				Rect( const Vector2<T>& p1, const Vector2<T>& p2 );
 				Rect( const Rect<T>& r2 );
 				Rect<T>& operator=( const Rect<T>& r2 );
 				void copy( const Rect<T>& r2 );
@@ -55,13 +56,27 @@ namespace cvt {
 	typedef Rect<int> Recti;
 
 	template<typename T>
-		Rect<T>::Rect( const Rect<T>& r2 )
-		{
-			x = r2.x;
-			y = r2.y;
-			width = r2.width;
-			height = r2.height;
-		}
+	inline Rect<T>::Rect( T rx, T ry, T rw, T rh ) : x( rx ), y( ry ), width( rw ), height( rh )
+	{
+	}
+
+	template<typename T>
+	inline Rect<T>::Rect( const Vector2<T>& p1, const Vector2<T>& p2 )
+	{
+		x = Math::min( p1.x, p2.x );
+		y = Math::min( p1.y, p2.y );
+		width  = Math::max( p1.x, p2.x ) - x;
+		height = Math::max( p1.y, p2.y ) - y;
+	}
+
+	template<typename T>
+	inline Rect<T>::Rect( const Rect<T>& r2 )
+	{
+		x = r2.x;
+		y = r2.y;
+		width = r2.width;
+		height = r2.height;
+	}
 
 	template<typename T>
 	inline Rect<T>& Rect<T>::operator=( const Rect<T>& r2 )

@@ -218,18 +218,20 @@ namespace cvt
 	inline Vector2f CameraCalibration::undistortPoint( const Vector2f& in ) const
 	{
 		Vector2f out;
-		Vector2f p = in;
+		Vector2f p;
 		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
 		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
-		p -= c;
+		Vector2f tangential =  _tangential;
+		Vector3f radial = _radial;
+		p = ( in - c );
 		p /= f;
 		float r2 = p.lengthSqr();
 		float r4 = Math::sqr( r2 );
 		float r6 = r2 * r4;
-		float poly = ( 1.0f + _radial[ 0 ] * r2 + _radial[ 1 ] * r4 + _radial[ 2 ] * r6 );
-		float xy2 = 2.0f * _tangential[ 0 ] * _tangential[ 1 ];
-		out.x = f.x * ( p.x * poly + xy2 * _tangential[ 0 ] + _tangential[ 1 ] * ( r2 + 2.0f * p.x ) ) + c.x;
-		out.y = f.y * ( p.y * poly + xy2 * _tangential[ 1 ] + _tangential[ 0 ] * ( r2 + 2.0f * p.y ) ) + c.y;
+		float poly = ( 1.0f + radial[ 0 ] * r2 + radial[ 1 ] * r4 + radial[ 2 ] * r6 );
+		float xy2 = 2.0f * p.x * p.y;
+		out.x = f.x * ( p.x * poly + xy2 * tangential[ 0 ] + tangential[ 1 ] * ( r2 + 2.0f * p.x * p.x ) ) + c.x;
+		out.y = f.y * ( p.y * poly + xy2 * tangential[ 1 ] + tangential[ 0 ] * ( r2 + 2.0f * p.y * p.y ) ) + c.y;
 		return out;
 	}
 
@@ -238,36 +240,33 @@ namespace cvt
 		Vector2f pt;
 		float y ,x;
 		float x1min, x2min, y1min, y2min;
-		float x1max, x2max, y1max, y2max;
 
-		x1min = x1max = input.x;
-		x2min = x2max = input.x + input.width;
-		y1min = y1max = input.y;
-		y2min = y2max = input.y + input.height;
+		max = input;
+
+		x1min = input.x;
+		x2min = input.x + input.width;
+		y1min = input.y;
+		y2min = input.y + input.height;
 
 		pt = undistortPoint( Vector2f( input.x, input.y ) );
+		max.join( pt );
 		x1min = Math::max( x1min, pt.x );
 		y1min = Math::max( y1min, pt.y );
-		x1max = Math::min( x1max, pt.x );
-		y1max = Math::min( y1max, pt.y );
 
 		pt = undistortPoint( Vector2f( input.x + input.width, input.y ) );
+		max.join( pt );
 		x2min = Math::min( x2min, pt.x );
 		y1min = Math::max( y1min, pt.y );
-		x2max = Math::max( x2max, pt.x );
-		y1max = Math::min( y1max, pt.y );
 
 		pt = undistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
+		max.join( pt );
 		x2min = Math::min( x2min, pt.x );
 		y2min = Math::min( y2min, pt.y );
-		x2max = Math::max( x2max, pt.x );
-		y2max = Math::max( y2max, pt.y );
 
 		pt = undistortPoint( Vector2f( input.x, input.y + input.height ) );
+		max.join( pt );
 		x1min = Math::max( x1min, pt.x );
 		y2min = Math::min( y2min, pt.y );
-		x1max = Math::min( x1max, pt.x );
-		y2max = Math::max( y2max, pt.y );
 
 		return;
 
@@ -297,9 +296,11 @@ namespace cvt
 			if( roots[ i ].im == 0.0f ) {
 				pt.x = roots[ i ].re * f.x;
 				pt.y = input.y;
-				pt = undistortPoint( pt );
-				y1min = Math::max( y1min, pt.y );
-				y1max = Math::min( y1max, pt.y );
+				if( input.contains( pt ) ) {
+					pt = undistortPoint( pt );
+					y1min = Math::max( y1min, pt.y );
+					max.join( pt );
+				}
 				//std::cout << roots[ i ].re * f.x << std::endl;
 			}
 		}
@@ -318,9 +319,11 @@ namespace cvt
 			if( roots[ i ].im == 0.0f ) {
 				pt.x = roots[ i ].re * f.x;
 				pt.y = input.y + input.height;
-				pt = undistortPoint( pt );
-				y2min = Math::min( y2min, pt.y );
-				y2max = Math::max( y2max, pt.y );
+				if( input.contains( pt ) ) {
+					pt = undistortPoint( pt );
+					y2min = Math::min( y2min, pt.y );
+					max.join( pt );
+				}
 				//std::cout << roots[ i ].re * f.x << std::endl;
 			}
 		}
@@ -342,9 +345,11 @@ namespace cvt
 			if( roots[ i ].im == 0.0f ) {
 				pt.x = input.x;
 				pt.y = roots[ i ].re * f.y;
-				pt = undistortPoint( pt );
-				x1min = Math::max( x1min, pt.x );
-				x1max = Math::min( x1max, pt.x );
+				if( input.contains( pt ) ) {
+					pt = undistortPoint( pt );
+					x1min = Math::max( x1min, pt.x );
+					max.join( pt );
+				}
 				//std::cout << roots[ i ].re * f.y << std::endl;
 			}
 		}
@@ -363,9 +368,11 @@ namespace cvt
 			if( roots[ i ].im == 0.0f ) {
 				pt.x = input.x + input.width;
 				pt.y = roots[ i ].re * f.y;
-				pt = undistortPoint( pt );
-				x2min = Math::min( x1min, pt.x );
-				x2max = Math::max( x1max, pt.x );
+				if( input.contains( pt ) ) {
+					pt = undistortPoint( pt );
+					x2min = Math::min( x1min, pt.x );
+					max.join( pt );
+				}
 				//std::cout << roots[ i ].re * f.y << std::endl;
 			}
 		}
@@ -374,11 +381,6 @@ namespace cvt
 		min.y = y1min;
 		min.width = x2min - x1min;
 		min.height = y2min - y1min;
-
-		max.x = x1max;
-		max.y = y1max;
-		max.width = x2max - x1max;
-		max.height = y2max - y1max;
 	}
 
     inline void CameraCalibration::updateProjectionMatrix()
