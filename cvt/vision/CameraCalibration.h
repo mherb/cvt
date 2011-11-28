@@ -53,6 +53,7 @@ namespace cvt
 
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
 		Vector2f undistortPoint( const Vector2f& in ) const;
+		Vector2f inverseUndistortPoint( const Vector2f& in ) const;
 		void calcUndistortRects( Rectf& minvalid, Rectf& max, const Rectf& input ) const;
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
@@ -233,6 +234,70 @@ namespace cvt
 		out.x = f.x * ( p.x * poly + xy2 * tangential[ 0 ] + tangential[ 1 ] * ( r2 + 2.0f * p.x * p.x ) ) + c.x;
 		out.y = f.y * ( p.y * poly + xy2 * tangential[ 1 ] + tangential[ 0 ] * ( r2 + 2.0f * p.y * p.y ) ) + c.y;
 		return out;
+	}
+
+	inline Vector2f CameraCalibration::inverseUndistortPoint( const Vector2f& in ) const
+	{
+		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
+		Vector2f p = ( in - c );
+		p /= f;
+		Vector2f lambda( 10e5f, 10e5f);
+
+		float r2 = p.lengthSqr();
+		float r4 = Math::sqr( r2 );
+		float r6 = r2 * r4;
+
+		Polynomialf radial( r6 * _radial[ 2 ], 0.0f, r4 * _radial[ 1 ], 0.0f, r2 * _radial[ 0 ], 0.0f, 1.0f, 0.0f  );
+
+		Polynomialf tangentialx( f.x * ( _tangential[ 0 ]* 2.0f * p.x * p.y + _tangential[ 1 ] * ( r2 + 2.0f * p.x * p.x ) ), 0.0f, 0.0f, 0.0f );
+		Polynomialf tangentialx2( ( _tangential[ 0 ]* 2.0f * p.y + _tangential[ 1 ] * ( ( p.y * p.y ) / p.x + 3.0f * p.x ) ), 0.0f, 0.0f );
+		Polynomialf all = radial + tangentialx2 - 1;
+
+		std::vector<Complexf> roots;
+		all.roots( roots );
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+//				std::cout << roots[ i ] << std::endl;
+				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.x - 1 ) )
+					lambda.x = roots[ i ].re;
+			}
+		}
+
+//		std::cout << " ---------------------- " << std::endl;
+
+		Polynomialf tangentialy( f.y * ( _tangential[ 1 ]* 2.0f * p.x * p.y + _tangential[ 0 ] * ( r2 + 2.0f * p.y * p.y ) ), 0.0f, 0.0f, 0.0f );
+		Polynomialf tangentialy2( ( _tangential[ 1 ]* 2.0f * p.x + _tangential[ 0 ] * ( ( p.x * p.x ) / p.y + 3.0f * p.y ) ), 0.0f, 0.0f );
+		all = radial + tangentialy2 - 1;
+		all.roots( roots );
+		for( int i = 0; i < roots.size(); i++ ) {
+			if( roots[ i ].im == 0.0f ) {
+//				std::cout << roots[ i ] << std::endl;
+				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.y - 1 ) )
+					lambda.y = roots[ i ].re;
+			}
+		}
+
+		p = in - c;
+		p.x *= lambda.x;
+		p.y *= lambda.y;
+		p += c;
+		p = undistortPoint( p );
+
+		std::cout << in << std::endl;
+		std::cout << p << std::endl;
+		std::cout << p - in << std::endl;
+		std::cout << lambda << std::endl;
+		std::cout << std::endl;
+
+//		std::cout << " ---------------------- " << std::endl;
+//		std::cout << lambda << std::endl;
+
+
+		p = in - c;
+		p.x *= lambda.x;
+		p.y *= lambda.y;
+		return p + c;
 	}
 
 	inline void CameraCalibration::calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const
