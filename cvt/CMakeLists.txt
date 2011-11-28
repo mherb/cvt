@@ -336,6 +336,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix3.h
 	math/Matrix4.h
 	math/Optimization.h
+	math/Polynomial.h
 	math/Quaternion.h
 	math/sac/SampleConsensusModel.h
 	math/sac/RANSAC.h
