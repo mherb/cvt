@@ -27,44 +27,56 @@ class UEyeUsbCamera : public Camera
 			const String&	identifier() const;
             
 			void	setFramerate( double fps );
+			void	setAutoGain( bool value );
+            void	setAutoWhiteBalance( bool value );
+			void	setWhiteBalanceOnce();
+			void	setLiveMode( bool val );
+
         private:
             bool	initCam();
             void	open( const CameraMode & mode );
 			void	initMemories( const CameraMode & mode );
 			void	freeMemories();
-			void	setAutoGain( bool value );
             void	setAutoShutter( bool value );
             void	setAutoSensorShutter( bool value );
-            void	setAutoWhiteBalance( bool value );
-			void	setWhiteBalanceOnce();
             void	setMaxAutoShutter( double value );
             void	setExposureTime( double value );
+			void	exposureRange( double& min, double& max );
             void	setPixelClock( unsigned int value );
             void	setHorizontalMirror( bool value );
             void	setVerticalMirror( bool value );
             int		bufNumForAddr( const uint8_t * buffAddr ) const;
 			void	setIdentifier();
 
-            int _camIndex;
+
+			void	enableFreerun();
+			void	disableFreerun();
+			void	enableTriggered();
+			void	enableEvents();
+			void	disableEvents();
+
+            int			_camIndex;
 
             // uEye variables
             HIDS		_camHandle;		// handle to camera
             INT			_width;			// width of image
             INT			_height;		// height of image
-            INT			_stride;		// stride of imagte
+            INT			_stride;		// stride of image
 
-			static const size_t	_numImageBuffers = 1;
+			static const size_t	_numImageBuffers = 10;
 			uint8_t*			_buffers[ _numImageBuffers ];
 			INT					_bufferIds[ _numImageBuffers ];
 
-			Image	_frame;
+			mutable Image	_frame;
 			String	_identifier;
+			
+			enum UEyeRunMode
+			{
+				UEYE_MODE_TRIGGERED,
+				UEYE_MODE_FREERUN
+			};
+			UEyeRunMode		_runMode;
     };
-
-	inline const Image & UEyeUsbCamera::frame() const
-	{
-		return _frame;
-	}
 
 	inline size_t UEyeUsbCamera::width() const
 	{
