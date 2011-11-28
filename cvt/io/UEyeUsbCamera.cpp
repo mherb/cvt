@@ -8,11 +8,12 @@ namespace cvt
 	UEyeUsbCamera::UEyeUsbCamera(  size_t camIndex, const CameraMode & mode ) :
 		_camIndex( camIndex ), _camHandle( 0 ),
 		_width( mode.width ), _height( mode.height ), _stride( _width ),
-		_frame( _width, _height, mode.format )
+		_frame( _width, _height, mode.format ),
+		_runMode( UEYE_MODE_FREERUN )
 	{
 		this->open( mode );
-		this->setPixelClock( 20 );
-		this->setFramerate( 20.0 );
+		this->setPixelClock( 27 );
+		this->setFramerate( 40.0 );
 		this->setAutoShutter( false );
 		this->setAutoSensorShutter( false );
 		this->setExposureTime( 15 );
@@ -85,11 +86,24 @@ namespace cvt
 
 	void UEyeUsbCamera::setExposureTime( double value )
 	{
-		double pVal1 = value;
-		is_Exposure( _camHandle, 
-					 IS_EXPOSURE_CMD_SET_EXPOSURE, 
-					 &pVal1,
-					 sizeof( double ) );
+		double val;
+		double min, max;
+		exposureRange( min, max );
+		
+		if( value < min )
+			val = min;
+		else if ( value > max )
+			val = max;
+		val = value;
+			
+		is_Exposure( _camHandle, IS_EXPOSURE_CMD_SET_EXPOSURE, &val, sizeof( double ) );
+	}
+
+	void UEyeUsbCamera::exposureRange( double & min, double & max )
+	{
+		min = max = 0.0;
+		is_Exposure( _camHandle, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE_MIN, &min, sizeof( double ) );
+		is_Exposure( _camHandle, IS_EXPOSURE_CMD_GET_EXPOSURE_RANGE_MAX, &max, sizeof( double ) );
 	}
 
 	void UEyeUsbCamera::setPixelClock( unsigned int value )
@@ -110,8 +124,11 @@ namespace cvt
 	void UEyeUsbCamera::setFramerate( double fps )
 	{
 		double newFps;
-		if( is_SetFrameRate( _camHandle, fps, &newFps ) == IS_NO_SUCCESS )
+		if( is_SetFrameRate( _camHandle, fps, &newFps ) == IS_NO_SUCCESS ) {
 			std::cout << "New framerate: " << newFps << std::endl;
+		} else {
+			setExposureTime( 15.0 );
+		}
 	}
 
 	bool UEyeUsbCamera::initCam()
@@ -154,8 +171,6 @@ namespace cvt
 		xPos = 0;
 		yPos = 0;;
 
-		double newFPS;
-
 		IS_RECT aoiRect;
 		aoiRect.s32X = 0;
 		aoiRect.s32Y = 0;
@@ -166,6 +181,7 @@ namespace cvt
 
 		_frame.reallocate( _width, _height, _frame.format() );
 
+		double newFPS;
 		if( is_SetFrameRate( _camHandle, mode.fps, &newFPS ) == IS_NO_SUCCESS ){
 			std::cout << "Could not set FrameRate" << std::endl;
 		}
@@ -197,56 +213,80 @@ namespace cvt
 
 	void UEyeUsbCamera::startCapture()
 	{
-		is_CaptureVideo ( _camHandle, IS_DONT_WAIT );
-
-		is_InitEvent( _camHandle, NULL, IS_SET_EVENT_FRAME );
-		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
-
-		this->setWhiteBalanceOnce();
+		bool val = ( _runMode == UEYE_MODE_FREERUN );
+		setLiveMode( val );
+		setWhiteBalanceOnce();
+		enableEvents();
 	}
 
 	void UEyeUsbCamera::stopCapture()
 	{
-		is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
-		is_ExitEvent( _camHandle, IS_SET_EVENT_FRAME );
+		if( _runMode == UEYE_MODE_FREERUN ){
+			disableFreerun();
+		}
 
-		if( is_StopLiveVideo( _camHandle, IS_WAIT ) == IS_NO_SUCCESS )
-			throw CVTException( "Could not stop capture process" );
+		disableEvents();
 	}
 
 	void UEyeUsbCamera::nextFrame()
 	{
-		uint8_t*	buffer;
+		uint8_t*	buffer = NULL;
 		INT	bufferId = 0;
 
-		INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 1000 );
+		// TODO: RECHECK THIS -> it seems odd
+		if( _runMode == UEYE_MODE_FREERUN ){
+			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_SEQ, 1000 );
+			switch( ret ){
+				case IS_SUCCESS:
+					{
+						// new frame available:
+						if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&buffer, NULL ) == IS_SUCCESS ){
+							//int bufSeqNum = bufNumForAddr( buffer );
+							is_LockSeqBuf( _camHandle, bufferId, ( char* )buffer );
 
-		switch( ret ){
-			case IS_SUCCESS:
-				{
-					// new frame available:
-					if( is_GetActSeqBuf( _camHandle, &bufferId, NULL, ( char** )&buffer ) == IS_SUCCESS ){
-						int bufSeqNum = bufNumForAddr( buffer );
-						is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )buffer );
+							size_t stride;
+							uint8_t * framePtr = _frame.map( &stride );
 
-						size_t stride;
-						uint8_t * framePtr = _frame.map( &stride );
+							if( _stride != ( int )stride )
+								std::cout << "STRIDE ERROR" << std::endl;
 
-						if( _stride != ( int )stride )
-							std::cout << "STRIDE ERROR" << std::endl;
+							is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
 
-						is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
+							_frame.unmap( framePtr );
 
-						_frame.unmap( framePtr );
-
-						if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)buffer ) == IS_NO_SUCCESS )
-							std::cout << "UNLOCK FAILED" << std::endl;
+							if( is_UnlockSeqBuf( _camHandle, bufferId, (char*)buffer ) == IS_NO_SUCCESS )
+								std::cout << "UNLOCK FAILED" << std::endl;
+						}
 					}
-				}
-				break;
-			case IS_TIMED_OUT:
-				std::cout << "Timeout in nextFrame()" << std::endl;
-				break;
+					break;
+				case IS_TIMED_OUT:
+					std::cout << "Timeout in nextFrame()" << std::endl;
+					break;
+			}
+		} else {
+			is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ]);
+			if( is_FreezeVideo( _camHandle, IS_DONT_WAIT ) == IS_NO_SUCCESS ){
+				std::cout << "ERROR IN IS_FREEZEVIDEO" << std::endl;
+			}
+		}
+	}
+
+	const Image & UEyeUsbCamera::frame() const
+	{
+		if( _runMode == UEYE_MODE_FREERUN ){
+			return _frame;
+		} else {
+			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 1000 );
+			if ( ret == IS_SUCCESS ) {
+				size_t stride;
+				uint8_t * framePtr = _frame.map( &stride );
+				is_CopyImageMem( _camHandle, (char*)_buffers[ 0 ], 0, (char*)framePtr );
+				_frame.unmap( framePtr );
+				return _frame;
+			} else {
+				std::cout << "timeout -> no new frame arrived" << std::endl;	
+				return _frame;
+			}	
 		}
 	}
 
@@ -332,4 +372,52 @@ namespace cvt
 		return -1;
 	}
 
+	void UEyeUsbCamera::setLiveMode( bool val )
+	{
+		// set trigger mode to software (for both modes this is ok)
+		is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_SOFTWARE );
+
+		if( val ) {
+			_runMode = UEYE_MODE_FREERUN;
+			enableFreerun();
+		} else {
+			if( _runMode == UEYE_MODE_FREERUN ){
+				disableFreerun();
+				enableTriggered();
+			}
+			_runMode = UEYE_MODE_TRIGGERED;
+		}
+	}
+
+	void UEyeUsbCamera::enableFreerun()
+	{
+		is_CaptureVideo( _camHandle, IS_DONT_WAIT );
+	}
+
+	void UEyeUsbCamera::disableFreerun()
+	{
+		if( is_StopLiveVideo( _camHandle, IS_WAIT ) == IS_NO_SUCCESS )
+			throw CVTException( "Could not stop capture process" );
+	}
+
+	void UEyeUsbCamera::enableTriggered()
+	{
+		/*
+		UINT nMode = IO_FLASH_MODE_TRIGGER_HI_ACTIVE;
+		is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, (void*)&nMode, sizeof(nMode) );
+		*/
+	}
+
+
+	void UEyeUsbCamera::enableEvents()
+	{
+		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
+		is_EnableEvent( _camHandle, IS_SET_EVENT_SEQ );
+	}
+
+	void UEyeUsbCamera::disableEvents()
+	{
+		is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
+		is_DisableEvent( _camHandle, IS_SET_EVENT_SEQ );
+	}
 }

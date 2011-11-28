@@ -99,6 +99,15 @@ namespace cvt
 		simd->Memcpy( _pos, imgData, _imgSize );
 		img.unmap( imgData );
 
+		uint8_t* ppos = (uint8_t*)( ( size_t )_pos &( ~( _pageSize - 1 ) ) );
+		size_t len = ( ( size_t )_pos + _imgSize - ( size_t )ppos ) & ( ~( _pageSize -1 ) );
+		if( msync( ppos, len, MS_ASYNC ) == -1 ){
+			char * err = strerror( errno );
+			String msg( "Could not msync: " );
+			msg += err;
+			throw CVTException( msg.c_str() );
+		}
+
 		_pos += _imgSize;
 		_currSize += _imgSize;
 	}
@@ -107,13 +116,6 @@ namespace cvt
 	{
 		if( _currSize == _maxSize ){
 			if( _map != 0 ){
-				
-				if( msync( _map, _mappedSize, MS_ASYNC ) == -1 ){
-					char * err = strerror( errno );
-					String msg( "Could not msync: " );
-					msg += err;
-					throw CVTException( msg.c_str() );
-				}
 
 				if( munmap( _map, _mappedSize ) != 0 ){
 					char * err = strerror( errno );
@@ -127,7 +129,7 @@ namespace cvt
 				_mappedSize = 0;
 			}
 
-			_maxSize += ( 10 * _imgSize );
+			_maxSize += ( 50 * _imgSize );
 			resizeFile();
 		}
 
