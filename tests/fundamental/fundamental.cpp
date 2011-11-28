@@ -171,9 +171,13 @@ int main( int argc, char* argv[] )
 	Image id0, id1, tmp0, tmp1;
 	
 	{
-		Rectf i, min, max;
-		i.set( 0, 0, i0.width(), i0.height() );
-		camCalib0.calcUndistortRects( min, max, i );
+//		Rectf i, min, max;
+//		i.set( 0, 0, i0.width(), i0.height() );
+//		camCalib0.calcUndistortRects( min, max, i );
+
+//		camCalib0.inverseUndistortPoint( Vector2f( 0.0f, 0.0f ) );
+//		camCalib0.setDistortion( camCalib0.radialDistortion(), Vector2f( 0.0f, 0.0f ) );
+
 	}
 
 	Image warp;
@@ -211,28 +215,28 @@ int main( int argc, char* argv[] )
 			g.drawRect( imax );
 
 			g.color() = Color::BLUE;
-			for( float x = 0; x < i0.width() - 5.0f; x += 5.0f ) {
+			for( float x = 0; x <= i0.width() - 5.0f; x += 5.0f ) {
 				Vector2f pt1( x, 0.0f );
 				Vector2f pt2( x + 5.0f, 0.0f );
-				pt1 = camCalib0.undistortPoint( pt1 );
-				pt2 = camCalib0.undistortPoint( pt2 );
+				pt1 = camCalib0.inverseUndistortPoint( pt1 );
+				pt2 = camCalib0.inverseUndistortPoint( pt2 );
 				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-				pt1.set( x, i0.height() );
-				pt2.set( x + 5.0f, i0.height() );
-				pt1 = camCalib0.undistortPoint( pt1 );
-				pt2 = camCalib0.undistortPoint( pt2 );
+				pt1.set( x, i0.height() - 1 );
+				pt2.set( x + 5.0f, i0.height() - 1 );
+				pt1 = camCalib0.inverseUndistortPoint( pt1 );
+				pt2 = camCalib0.inverseUndistortPoint( pt2 );
 				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
 			}
-			for( float y = 0; y < i0.height() - 5.0f; y += 5.0f ) {
+			for( float y = 0; y <= i0.height() - 5.0f; y += 5.0f ) {
 				Vector2f pt1( 0, y );
 				Vector2f pt2( 0, y + 5.0f );
-				pt1 = camCalib0.undistortPoint( pt1 );
-				pt2 = camCalib0.undistortPoint( pt2 );
+				pt1 = camCalib0.inverseUndistortPoint( pt1 );
+				pt2 = camCalib0.inverseUndistortPoint( pt2 );
 				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-				pt1.set( i0.width(), y );
-				pt2.set( i0.width(), y + 5.0f );
-				pt1 = camCalib0.undistortPoint( pt1 );
-				pt2 = camCalib0.undistortPoint( pt2 );
+				pt1.set( i0.width() - 1, y );
+				pt2.set( i0.width() - 1, y + 5.0f );
+				pt1 = camCalib0.inverseUndistortPoint( pt1 );
+				pt2 = camCalib0.inverseUndistortPoint( pt2 );
 				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
 			}
 		}

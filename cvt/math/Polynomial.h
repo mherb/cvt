@@ -24,6 +24,11 @@ namespace cvt {
 			Polynomial( T a, T b, T c );
 			Polynomial( T a, T b, T c, T d );
 			Polynomial( T a, T b, T c, T d, T e );
+			Polynomial( T a, T b, T c, T d, T e, T f );
+			Polynomial( T a, T b, T c, T d, T e, T f, T g );
+			Polynomial( T a, T b, T c, T d, T e, T f, T g, T h );
+
+
 			Polynomial( const Polynomial<T>& p );
 			~Polynomial();
 
@@ -128,6 +133,45 @@ namespace cvt {
 		_coeff[ 2 ] = c;
 		_coeff[ 1 ] = d;
 		_coeff[ 0 ] = e;
+	}
+
+	template<typename T>
+	inline Polynomial<T>::Polynomial( T a, T b, T c, T d, T e, T f ) : _size( 0 ), _coeff( NULL )
+	{
+		resize( 5 );
+		_coeff[ 5 ] = a;
+		_coeff[ 4 ] = b;
+		_coeff[ 3 ] = c;
+		_coeff[ 2 ] = d;
+		_coeff[ 1 ] = e;
+		_coeff[ 0 ] = f;
+	}
+
+	template<typename T>
+	inline Polynomial<T>::Polynomial( T a, T b, T c, T d, T e, T f, T g ) : _size( 0 ), _coeff( NULL )
+	{
+		resize( 6 );
+		_coeff[ 6 ] = a;
+		_coeff[ 5 ] = b;
+		_coeff[ 4 ] = c;
+		_coeff[ 3 ] = d;
+		_coeff[ 2 ] = e;
+		_coeff[ 1 ] = f;
+		_coeff[ 0 ] = g;
+	}
+
+	template<typename T>
+	inline Polynomial<T>::Polynomial( T a, T b, T c, T d, T e, T f, T g, T h ) : _size( 0 ), _coeff( NULL )
+	{
+		resize( 7 );
+		_coeff[ 7 ] = a;
+		_coeff[ 6 ] = b;
+		_coeff[ 5 ] = c;
+		_coeff[ 4 ] = d;
+		_coeff[ 3 ] = e;
+		_coeff[ 2 ] = f;
+		_coeff[ 1 ] = g;
+		_coeff[ 0 ] = h;
 	}
 
 	template<typename T>
