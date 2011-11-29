@@ -248,31 +248,24 @@ namespace cvt
 		float r4 = Math::sqr( r2 );
 		float r6 = r2 * r4;
 
-		Polynomialf radial( r6 * _radial[ 2 ], 0.0f, r4 * _radial[ 1 ], 0.0f, r2 * _radial[ 0 ], 0.0f, 1.0f, 0.0f  );
-
-		Polynomialf tangentialx( f.x * ( _tangential[ 0 ]* 2.0f * p.x * p.y + _tangential[ 1 ] * ( r2 + 2.0f * p.x * p.x ) ), 0.0f, 0.0f, 0.0f );
-		Polynomialf tangentialx2( ( _tangential[ 0 ]* 2.0f * p.y + _tangential[ 1 ] * ( ( p.y * p.y ) / p.x + 3.0f * p.x ) ), 0.0f, 0.0f );
-		Polynomialf all = radial + tangentialx2 - 1;
-
+		Polynomialf radial( r6 * _radial[ 2 ], 0.0f, r4 * _radial[ 1 ], 0.0f, r2 * _radial[ 0 ], 0.0f, 1.0f, -1.0f  );
 		std::vector<Complexf> roots;
+
+		Polynomialf tangentialx( ( _tangential[ 0 ] * 2.0f * p.y + _tangential[ 1 ] * ( ( p.y * p.y ) / p.x + 3.0f * p.x ) ), 0.0f, 0.0f );
+		Polynomialf all = radial + tangentialx;
 		all.roots( roots );
 		for( int i = 0; i < roots.size(); i++ ) {
 			if( roots[ i ].im == 0.0f ) {
-//				std::cout << roots[ i ] << std::endl;
 				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.x - 1 ) )
 					lambda.x = roots[ i ].re;
 			}
 		}
 
-//		std::cout << " ---------------------- " << std::endl;
-
-		Polynomialf tangentialy( f.y * ( _tangential[ 1 ]* 2.0f * p.x * p.y + _tangential[ 0 ] * ( r2 + 2.0f * p.y * p.y ) ), 0.0f, 0.0f, 0.0f );
-		Polynomialf tangentialy2( ( _tangential[ 1 ]* 2.0f * p.x + _tangential[ 0 ] * ( ( p.x * p.x ) / p.y + 3.0f * p.y ) ), 0.0f, 0.0f );
-		all = radial + tangentialy2 - 1;
+		Polynomialf tangentialy( ( _tangential[ 1 ] * 2.0f * p.x + _tangential[ 0 ] * ( ( p.x * p.x ) / p.y + 3.0f * p.y ) ), 0.0f, 0.0f );
+		all = radial + tangentialy;
 		all.roots( roots );
 		for( int i = 0; i < roots.size(); i++ ) {
 			if( roots[ i ].im == 0.0f ) {
-//				std::cout << roots[ i ] << std::endl;
 				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.y - 1 ) )
 					lambda.y = roots[ i ].re;
 			}
@@ -289,9 +282,6 @@ namespace cvt
 		std::cout << p - in << std::endl;
 		std::cout << lambda << std::endl;
 		std::cout << std::endl;
-
-//		std::cout << " ---------------------- " << std::endl;
-//		std::cout << lambda << std::endl;
 
 
 		p = in - c;
@@ -313,22 +303,22 @@ namespace cvt
 		y1min = input.y;
 		y2min = input.y + input.height;
 
-		pt = undistortPoint( Vector2f( input.x, input.y ) );
+		pt = inverseUndistortPoint( Vector2f( input.x, input.y ) );
 		max.join( pt );
 		x1min = Math::max( x1min, pt.x );
 		y1min = Math::max( y1min, pt.y );
 
-		pt = undistortPoint( Vector2f( input.x + input.width, input.y ) );
+		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y ) );
 		max.join( pt );
 		x2min = Math::min( x2min, pt.x );
 		y1min = Math::max( y1min, pt.y );
 
-		pt = undistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
+		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
 		max.join( pt );
 		x2min = Math::min( x2min, pt.x );
 		y2min = Math::min( y2min, pt.y );
 
-		pt = undistortPoint( Vector2f( input.x, input.y + input.height ) );
+		pt = inverseUndistortPoint( Vector2f( input.x, input.y + input.height ) );
 		max.join( pt );
 		x1min = Math::max( x1min, pt.x );
 		y2min = Math::min( y2min, pt.y );

@@ -65,6 +65,24 @@ namespace cvt {
 		size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
 		size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
 
+		template<typename T>
+		static inline T epsilon()
+		{
+			return 1;
+		}
+
+		template<>
+		inline float epsilon<float>()
+		{
+			return EPSILONF;
+		}
+
+		template<>
+		inline double epsilon<double>()
+		{
+			return EPSILOND;
+		}
+
         template <typename T>
 		static inline T deg2Rad( T a )
 		{

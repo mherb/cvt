@@ -5,23 +5,22 @@
 #include <Eigen/SVD>
 
 #include <iostream>
-#include <limits>
 
 #include <cvt/util/DataIterator.h>
 
 namespace cvt {
 
-	template<>
-	bool Matrix2<float>::inverseSelf()
+	template<typename T>
+	bool Matrix2<T>::inverseSelf()
 	{
-		float D, invD, tmp;
+		T D, invD, tmp;
 
 		D = mat[ 0 ][ 0 ] * mat[ 1 ][ 1 ] - mat[ 1 ][ 0 ] * mat[ 0 ][ 1 ];
 
-		if ( Math::abs( D ) < Math::EPSILONF )
+		if ( Math::abs( D ) < Math::epsilon<T>() )
 			return false;
 
-		invD = 1.0f / D;
+		invD = ( T ) 1 / D;
 
 		tmp = mat[ 0 ][ 0 ];
 		mat[ 0 ][ 0 ] =   mat[ 1 ][ 1 ] * invD;
@@ -32,32 +31,14 @@ namespace cvt {
 		return true;
 	}
 
-	template<>
-	bool Matrix2<double>::inverseSelf()
+	template bool Matrix2<float>::inverseSelf();
+	template bool Matrix2<double>::inverseSelf();
+
+	template<typename T>
+	bool Matrix3<T>::inverseSelf()
 	{
-		double D, invD, tmp;
-
-		D = mat[ 0 ][ 0 ] * mat[ 1 ][ 1 ] - mat[ 1 ][ 0 ] * mat[ 0 ][ 1 ];
-
-		if ( Math::abs( D ) < Math::EPSILOND )
-			return false;
-
-		invD = 1.0 / D;
-
-		tmp = mat[ 0 ][ 0 ];
-		mat[ 0 ][ 0 ] =   mat[ 1 ][ 1 ] * invD;
-		mat[ 0 ][ 1 ] = - mat[ 0 ][ 1 ] * invD;
-		mat[ 1 ][ 0 ] = - mat[ 1 ][ 0 ] * invD;
-		mat[ 1 ][ 1 ] =   tmp * invD;
-
-		return true;
-	}
-
-	template<>
-	bool Matrix3<float>::inverseSelf()
-	{
-		Matrix3<float> cofactor;
-		float D, invD;
+		Matrix3<T> cofactor;
+		T D, invD;
 
 		cofactor[ 0 ][ 0 ] = mat[ 1 ][ 1 ] * mat[ 2 ][ 2 ] - mat[ 2 ][ 1 ] * mat[ 1 ][ 2 ];
 		cofactor[ 1 ][ 0 ] = mat[ 2 ][ 0 ] * mat[ 1 ][ 2 ] - mat[ 1 ][ 0 ] * mat[ 2 ][ 2 ];
@@ -65,10 +46,10 @@ namespace cvt {
 
 		D = mat[ 0 ][ 0 ] * cofactor[ 0 ][ 0 ] + mat[ 0 ][ 1 ] * cofactor[ 1 ][ 0 ] + mat[ 0 ][ 2 ] * cofactor[ 2 ][ 0 ];
 
-		if ( Math::abs( D ) < Math::EPSILONF )
+		if ( Math::abs( D ) < Math::epsilon<T>() )
 			return false;
 
-		invD = 1.0f / D;
+		invD = ( ( T ) 1 ) / D;
 
 		cofactor[ 0 ][ 1 ] = mat[ 2 ][ 1 ] * mat[ 0 ][ 2 ] - mat[ 0 ][ 1 ] * mat[ 2 ][ 2 ];
 		cofactor[ 0 ][ 2 ] = mat[ 0 ][ 1 ] * mat[ 1 ][ 2 ] - mat[ 1 ][ 1 ] * mat[ 0 ][ 2 ];
@@ -94,46 +75,8 @@ namespace cvt {
 		return true;
 	}
 
-	template<>
-	bool Matrix3<double>::inverseSelf()
-	{
-		Matrix3<double> cofactor;
-		double D, invD;
-
-		cofactor[ 0 ][ 0 ] = mat[ 1 ][ 1 ] * mat[ 2 ][ 2 ] - mat[ 2 ][ 1 ] * mat[ 1 ][ 2 ];
-		cofactor[ 1 ][ 0 ] = mat[ 2 ][ 0 ] * mat[ 1 ][ 2 ] - mat[ 1 ][ 0 ] * mat[ 2 ][ 2 ];
-		cofactor[ 2 ][ 0 ] = mat[ 1 ][ 0 ] * mat[ 2 ][ 1 ] - mat[ 2 ][ 0 ] * mat[ 1 ][ 1 ];
-
-		D = mat[ 0 ][ 0 ] * cofactor[ 0 ][ 0 ] + mat[ 0 ][ 1 ] * cofactor[ 1 ][ 0 ] + mat[ 0 ][ 2 ] * cofactor[ 2 ][ 0 ];
-
-		if ( Math::abs( D ) < Math::EPSILOND )
-			return false;
-
-		invD = 1.0 / D;
-
-		cofactor[ 0 ][ 1 ] = mat[ 2 ][ 1 ] * mat[ 0 ][ 2 ] - mat[ 0 ][ 1 ] * mat[ 2 ][ 2 ];
-		cofactor[ 0 ][ 2 ] = mat[ 0 ][ 1 ] * mat[ 1 ][ 2 ] - mat[ 1 ][ 1 ] * mat[ 0 ][ 2 ];
-
-		cofactor[ 1 ][ 1 ] = mat[ 0 ][ 0 ] * mat[ 2 ][ 2 ] - mat[ 2 ][ 0 ] * mat[ 0 ][ 2 ];
-		cofactor[ 1 ][ 2 ] = mat[ 1 ][ 0 ] * mat[ 0 ][ 2 ] - mat[ 0 ][ 0 ] * mat[ 1 ][ 2 ];
-
-		cofactor[ 2 ][ 1 ] = mat[ 2 ][ 0 ] * mat[ 0 ][ 1 ] - mat[ 0 ][ 0 ] * mat[ 2 ][ 1 ];
-		cofactor[ 2 ][ 2 ] = mat[ 0 ][ 0 ] * mat[ 1 ][ 1 ] - mat[ 1 ][ 0 ] * mat[ 0 ][ 1 ];
-
-		mat[ 0 ][ 0 ] =  cofactor[ 0 ][ 0 ] * invD;
-		mat[ 0 ][ 1 ] =  cofactor[ 0 ][ 1 ] * invD;
-		mat[ 0 ][ 2 ] =  cofactor[ 0 ][ 2 ] * invD;
-
-		mat[ 1 ][ 0 ] =  cofactor[ 1 ][ 0 ] * invD;
-		mat[ 1 ][ 1 ] =  cofactor[ 1 ][ 1 ] * invD;
-		mat[ 1 ][ 2 ] =  cofactor[ 1 ][ 2 ] * invD;
-
-		mat[ 2 ][ 0 ] =  cofactor[ 2 ][ 0 ] * invD;
-		mat[ 2 ][ 1 ] =  cofactor[ 2 ][ 1 ] * invD;
-		mat[ 2 ][ 2 ] =  cofactor[ 2 ][ 2 ] * invD;
-
-		return true;
-	}
+	template bool Matrix3<float>::inverseSelf();
+	template bool Matrix3<double>::inverseSelf();
 
 	template<typename T>
 	bool Matrix4<T>::inverseSelf()
@@ -157,7 +100,7 @@ namespace cvt {
 
 		D = mat[ 0 ][ 0 ] * det3_123_123 - mat[ 0 ][ 1 ] * det3_123_023 + mat[ 0 ][ 2 ] * det3_123_013 - mat[ 0 ][ 3 ] * det3_123_012;
 
-		if ( Math::abs( D ) < std::numeric_limits<T>::epsilon() )
+		if ( Math::abs( D ) < Math::epsilon<T>() )
 			return false;
 
 		invD = ( T )1 / D;
@@ -570,7 +513,7 @@ namespace cvt {
 	{
 		T c, s;
 		bool finished;
-		T eps = std::numeric_limits<T>::epsilon();
+		T eps = Math::epsilon<T>();
 
 		mat = *this;
 		u.setIdentity();
@@ -661,7 +604,7 @@ namespace cvt {
 	{
 		T c, s;
 		bool finished;
-		T eps = std::numeric_limits<T>::epsilon();
+		T eps = Math::epsilon<T>();
 
 		mat = *this;
 		u.setIdentity();
