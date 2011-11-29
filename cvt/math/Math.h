@@ -17,7 +17,7 @@ namespace cvt {
 	/**
 	  \ingroup Math
 	  \defgroup Math Math
-	*/
+	 */
 	namespace Math {
 
 		typedef union {
@@ -66,34 +66,34 @@ namespace cvt {
 		size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
 
 		template<typename T>
-		static inline T epsilon()
-		{
-			return 1;
-		}
+			static inline T epsilon()
+			{
+				return 1;
+			}
 
 		template<>
-		inline float epsilon<float>()
-		{
-			return EPSILONF;
-		}
+			inline float epsilon<float>()
+			{
+				return EPSILONF;
+			}
 
 		template<>
-		inline double epsilon<double>()
-		{
-			return EPSILOND;
-		}
+			inline double epsilon<double>()
+			{
+				return EPSILOND;
+			}
 
-        template <typename T>
-		static inline T deg2Rad( T a )
-		{
-			return a * PI / ( T )180;
-		}
+		template <typename T>
+			static inline T deg2Rad( T a )
+			{
+				return a * PI / ( T )180;
+			}
 
-        template <typename T>
-		static inline T rad2Deg( T a )
-		{
-			return a * ( T )180 / PI;
-		}
+		template <typename T>
+			static inline T rad2Deg( T a )
+			{
+				return a * ( T )180 / PI;
+			}
 
 		static inline float sqrt( float f )
 		{
@@ -106,10 +106,10 @@ namespace cvt {
 		}
 
 		template <typename T>
-		static inline float sqrt( T f )
-		{
-			return ::sqrtf( ( float )f );
-		}
+			static inline float sqrt( T f )
+			{
+				return ::sqrtf( ( float )f );
+			}
 
 		static inline float cbrt( float f )
 		{
@@ -191,17 +191,17 @@ namespace cvt {
 		{
 			return ::asin( x );
 		}
-/*
-		static inline void sincos( float rad, float& sin, float& cos )
-		{
-			::sincosf( rad, &sin, &cos );
-		}
+		/*
+		   static inline void sincos( float rad, float& sin, float& cos )
+		   {
+		   ::sincosf( rad, &sin, &cos );
+		   }
 
-		static inline void sincos( double rad, double& sin, double& cos )
-		{
-			::sincos( rad, &sin, &cos );
-		}
-*/
+		   static inline void sincos( double rad, double& sin, double& cos )
+		   {
+		   ::sincos( rad, &sin, &cos );
+		   }
+		 */
 		static inline float round( float x )
 		{
 			return ::roundf( x );
@@ -242,15 +242,15 @@ namespace cvt {
 			return ::exp( x );
 		}
 
-        static inline float log( float x )
-        {
-            return ::logf( x );
-        }
+		static inline float log( float x )
+		{
+			return ::logf( x );
+		}
 
-        static inline double log( double x )
-        {
-            return ::log( x );
-        }
+		static inline double log( double x )
+		{
+			return ::log( x );
+		}
 
 		static inline float tan( float x )
 		{
@@ -326,22 +326,22 @@ namespace cvt {
 		}
 
 		template<typename T>
-		static inline T sgn( T x )
-		{
-			return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
-		}
+			static inline T sgn( T x )
+			{
+				return ( x > 0 ) ? 1 : ( ( x < 0 ) ? -1 : 0 );
+			}
 
 		template<>
-		inline float sgn<float>( float x )
-		{
-			return copysign( 1.0f, x );
-		}
+			inline float sgn<float>( float x )
+			{
+				return copysign( 1.0f, x );
+			}
 
 		template<>
-		inline double sgn<double>( double x )
-		{
-			return copysign( 1.0, x );
-		}
+			inline double sgn<double>( double x )
+			{
+				return copysign( 1.0, x );
+			}
 
 		static inline float givens( float& c, float& s, float a, float b )
 		{
@@ -427,7 +427,7 @@ namespace cvt {
 		}
 
 		/*
-			Inspired by Jose Fonsecas SSE variant
+		   Inspired by Jose Fonsecas SSE variant
 		 */
 		static inline float fastLog2( float f )
 		{
@@ -440,7 +440,7 @@ namespace cvt {
 		}
 
 		/*
-			Same as fastLog2, just scale by 1 / log2( e )
+		   Same as fastLog2, just scale by 1 / log2( e )
 		 */
 		static inline float fastLog( float f )
 		{
@@ -477,16 +477,16 @@ namespace cvt {
 		}
 
 		template<typename T>
-		static inline size_t gcd( T x, T y )
-		{
-			T remainder;
+			static inline size_t gcd( T x, T y )
+			{
+				T remainder;
 
-			while ( ( remainder = x % y ) != 0 ) {
-				x = y;
-				y = remainder;
+				while ( ( remainder = x % y ) != 0 ) {
+					x = y;
+					y = remainder;
+				}
+				return y;
 			}
-			return y;
-		}
 
 		/*
 		 * Algorithm from Goloub, v. Loan p.573f
@@ -494,52 +494,140 @@ namespace cvt {
 		 * 6 approximants give precision 3.39452e-16
 		 */
 		template<class Matrix>
-		static inline void exponential( const Matrix & A, Matrix & result, size_t padeApprox = 6 )
-		{
-			double infNorm = 0.0;
+			static inline void exponential( const Matrix & A, Matrix & result, size_t padeApprox = 6 )
+			{
+				double infNorm = 0.0;
 
-			for( int r = 0; r < A.rows(); r++ ){
-				double rowSum = 0.0;
-				for( int c = 0; c < A.cols(); c++ ){
-					rowSum += A( r, c );
+				for( int r = 0; r < A.rows(); r++ ){
+					double rowSum = 0.0;
+					for( int c = 0; c < A.cols(); c++ ){
+						rowSum += A( r, c );
+					}
+					if( rowSum > infNorm )
+						infNorm = rowSum;
 				}
-				if( rowSum > infNorm )
-					infNorm = rowSum;
+
+				int j = max( 0, 1 + int( log( infNorm ) / log( 2.0 ) ) );
+
+				// tmpA = A * 2^j
+				Matrix tmpA = A / ( 1 << j ) ;
+
+				Matrix D = Matrix::Identity();
+				Matrix N = Matrix::Identity();
+				Matrix X = Matrix::Identity();
+				Matrix cX;
+
+				double c = 1.0;
+				double s = -1.0;
+				size_t q = padeApprox;
+				size_t twoq = (padeApprox << 1);
+
+				for( size_t k = 1; k < padeApprox; ++k ){
+					c *= q / ( double )(twoq * k);
+					X = tmpA * X;
+					cX = X*c;
+					N += cX;
+					D += ( s*cX );
+					--q;
+					--twoq;
+					s *= -1;
+				}
+
+				result = D.inverse();
+				result *= N;
+
+				for( int k = 0; k < j; ++k )
+					result = result * result;
 			}
 
-			int j = max( 0, 1 + int( log( infNorm ) / log( 2.0 ) ) );
 
-			// tmpA = A * 2^j
-			Matrix tmpA = A / ( 1 << j ) ;
+		template<typename T, typename FUNC>
+			static inline T lineSearchMinGolden( T a, T b, FUNC f, size_t maxiter = 200, T eps = Math::epsilon<T>() )
+			{
+				T phi = ( ( T ) -1 + Math::sqrt( ( T ) 5 ) ) / ( T ) 2; // golden ratio 0.61 ...
+				T f1, f2, x0, x1, x2, x3;
 
-			Matrix D = Matrix::Identity();
-			Matrix N = Matrix::Identity();
-			Matrix X = Matrix::Identity();
-			Matrix cX;
+				x0 = a;
+				x3 = b;
 
-			double c = 1.0;
-			double s = -1.0;
-			size_t q = padeApprox;
-			size_t twoq = (padeApprox << 1);
+				x1 = Math::mix( b, a, phi );
+				x2 = Math::mix( a, b, phi );
 
-			for( size_t k = 1; k < padeApprox; ++k ){
-				c *= q / ( double )(twoq * k);
-				X = tmpA * X;
-				cX = X*c;
-				N += cX;
-				D += ( s*cX );
-				--q;
-				--twoq;
-				s *= -1;
+				f1 = f( x1 );
+				f2 = f( x2 );
+
+				for( size_t i = 0; i < maxiter; i++ ) {
+					if( f2 < f1 ) {
+						T n = Math::mix( x1, x3, phi );
+						x0 = x1;
+						x1 = x2;
+						x2 = n;
+						f1 = f2;
+						f2 = f( x2 );
+					} else {
+						T n = Math::mix( x2, x0, phi );
+						x3 = x2;
+						x2 = x1;
+						x1 = n;
+						f2 = f1;
+						f1 = f( x1 );
+					}
+					if( Math::abs( x3 - x0 ) <= eps * ( Math::abs( x1 ) + Math::abs( x2 ) ) )
+						break;
+				}
+
+				if (f1 < f2) {
+					return x1;
+				} else {
+					return x2;
+				}
 			}
 
-			result = D.inverse();
-			result *= N;
+		template<typename T, typename FUNC>
+			static inline T lineSearchMaxGolden( T a, T b, FUNC f, size_t maxiter = 200, T eps = Math::epsilon<T>() )
+			{
+				T phi = ( ( T ) -1 + Math::sqrt( ( T ) 5 ) ) / ( T ) 2; // golden ratio 0.61 ...
+				T f1, f2, x0, x1, x2, x3;
 
-			for( int k = 0; k < j; ++k )
-				result = result * result;
-		}
+				x0 = a;
+				x3 = b;
+
+				x1 = Math::mix( b, a, phi );
+				x2 = Math::mix( a, b, phi );
+
+				f1 = f( x1 );
+				f2 = f( x2 );
+
+				for( size_t i = 0; i < maxiter; i++ ) {
+					if( f2 > f1 ) {
+						T n = Math::mix( x1, x3, phi );
+						x0 = x1;
+						x1 = x2;
+						x2 = n;
+						f1 = f2;
+						f2 = f( x2 );
+					} else {
+						T n = Math::mix( x2, x0, phi );
+						x3 = x2;
+						x2 = x1;
+						x1 = n;
+						f2 = f1;
+						f1 = f( x1 );
+					}
+					if( Math::abs( x3 - x0 ) <= eps * ( Math::abs( x1 ) + Math::abs( x2 ) ) )
+						break;
+				}
+
+				if (f1 > f2) {
+					return x1;
+				} else {
+					return x2;
+				}
+			}
+
+
 	}
 }
+
 
 #endif

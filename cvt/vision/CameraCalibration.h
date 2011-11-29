@@ -254,7 +254,7 @@ namespace cvt
 		Polynomialf tangentialx( ( _tangential[ 0 ] * 2.0f * p.y + _tangential[ 1 ] * ( ( p.y * p.y ) / p.x + 3.0f * p.x ) ), 0.0f, 0.0f );
 		Polynomialf all = radial + tangentialx;
 		all.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
+		for( size_t i = 0; i < roots.size(); i++ ) {
 			if( roots[ i ].im == 0.0f ) {
 				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.x - 1 ) )
 					lambda.x = roots[ i ].re;
@@ -264,13 +264,14 @@ namespace cvt
 		Polynomialf tangentialy( ( _tangential[ 1 ] * 2.0f * p.x + _tangential[ 0 ] * ( ( p.x * p.x ) / p.y + 3.0f * p.y ) ), 0.0f, 0.0f );
 		all = radial + tangentialy;
 		all.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
+		for( size_t i = 0; i < roots.size(); i++ ) {
 			if( roots[ i ].im == 0.0f ) {
 				if( Math::abs( roots[ i ].re - 1 ) < Math::abs( lambda.y - 1 ) )
 					lambda.y = roots[ i ].re;
 			}
 		}
 
+#if 0 
 		p = in - c;
 		p.x *= lambda.x;
 		p.y *= lambda.y;
@@ -282,7 +283,7 @@ namespace cvt
 		std::cout << p - in << std::endl;
 		std::cout << lambda << std::endl;
 		std::cout << std::endl;
-
+#endif
 
 		p = in - c;
 		p.x *= lambda.x;
@@ -290,148 +291,92 @@ namespace cvt
 		return p + c;
 	}
 
+		struct FixedXinverseUndistort {
+			FixedXinverseUndistort( float x, const CameraCalibration* cam ) : _pt( x, 0 ), _cam( cam ) {}
+
+			float operator()( float y )
+			{
+				_pt.y = y;
+				Vector2f ret = _cam->inverseUndistortPoint( _pt );
+				return ret.x;
+			}
+
+			Vector2f _pt;
+			const CameraCalibration* _cam;
+		};
+
+		struct FixedYinverseUndistort {
+			FixedYinverseUndistort( float y, const CameraCalibration* cam ) : _pt( 0, y ), _cam( cam ) {}
+
+			float operator()( float x )
+			{
+				_pt.x = x;
+				Vector2f ret = _cam->inverseUndistortPoint( _pt );
+				return ret.y;
+			}
+
+			Vector2f _pt;
+			const CameraCalibration* _cam;
+		};
+
 	inline void CameraCalibration::calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const
 	{
 		Vector2f pt;
-		float y ,x;
 		float x1min, x2min, y1min, y2min;
 
 		max = input;
 
-		x1min = input.x;
-		x2min = input.x + input.width;
-		y1min = input.y;
-		y2min = input.y + input.height;
+
 
 		pt = inverseUndistortPoint( Vector2f( input.x, input.y ) );
 		max.join( pt );
-		x1min = Math::max( x1min, pt.x );
-		y1min = Math::max( y1min, pt.y );
+//		x1min = Math::max( x1min, pt.x );
+//		y1min = Math::max( y1min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y ) );
 		max.join( pt );
-		x2min = Math::min( x2min, pt.x );
-		y1min = Math::max( y1min, pt.y );
+//		x2min = Math::min( x2min, pt.x );
+//		y1min = Math::max( y1min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
 		max.join( pt );
-		x2min = Math::min( x2min, pt.x );
-		y2min = Math::min( y2min, pt.y );
+//		x2min = Math::min( x2min, pt.x );
+//		y2min = Math::min( y2min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x, input.y + input.height ) );
 		max.join( pt );
-		x1min = Math::max( x1min, pt.x );
-		y2min = Math::min( y2min, pt.y );
+//		x1min = Math::max( x1min, pt.x );
+//		y2min = Math::min( y2min, pt.y );
 
-		return;
+		x1min = max.x;
+		x2min = max.x + max.width;
+		y1min = max.y;
+		y2min = max.y + max.height;
 
-		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+#if 1
+//		if( _radial[ 0 ] < 0 ) { // barrel distortion
+			FixedXinverseUndistort left( input.x, this );
+			FixedXinverseUndistort right( input.x + input.width, this );
+			FixedYinverseUndistort top( input.y, this );
+			FixedYinverseUndistort bottom( input.y + input.height, this );
+			float tmp;
 
-		std::cout << c << std::endl;
-
-		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
-		c /= f;
-
-		std::vector<Complexf> roots;
-		Polynomialf deriv;
-		// get roots of x derivative-polynomial for y equal to input.y and input.y + input.height
-		Polynomialf rx2, rx4, rx6, polyrx, allx;
-
-		y = ( input.y ) / f.y;
-		rx2 = Polynomialf( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
-		rx4 = rx2 * rx2;
-		rx6 = rx4 * rx2;
-		polyrx = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
-		polyrx[ 0 ] += 1.0f;
-		allx = f.y * ( ( y - c.y ) * polyrx + Polynomialf( 2.0f * y * _tangential[ 1 ], 0.0f ) + _tangential[ 0 ] * rx2 /* + tangential[ 0 ] * 2.0f * ( y - c.y ) */ );
-		allx[ 0 ] += _intrinsics[ 1 ][ 2 ];
-		deriv = allx.derivative();
-		deriv.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
-			if( roots[ i ].im == 0.0f ) {
-				pt.x = roots[ i ].re * f.x;
-				pt.y = input.y;
-				if( input.contains( pt ) ) {
-					pt = undistortPoint( pt );
-					y1min = Math::max( y1min, pt.y );
-					max.join( pt );
-				}
-				//std::cout << roots[ i ].re * f.x << std::endl;
-			}
-		}
-
-		y = ( input.y + input.height ) / f.y;
-		rx2 = Polynomialf( 1.0f, -2.0f * c.x, y * y - 2.0f * c.y * y + c.y * c.y + c.x * c.x );
-		rx4 = rx2 * rx2;
-		rx6 = rx4 * rx2;
-		polyrx = _radial[ 0 ] * rx2 + _radial[ 1 ] * rx4 + _radial[ 2 ] * rx6;
-		polyrx[ 0 ] += 1.0f;
-		allx = f.y * ( ( y - c.y ) * polyrx + Polynomialf( 2.0f * y * _tangential[ 1 ], 0.0f ) + _tangential[ 0 ] * rx2 /* + tangential[ 0 ] * 2.0f * ( y - c.y ) */ );
-		allx[ 0 ] += _intrinsics[ 1 ][ 2 ];
-		deriv = allx.derivative();
-		deriv.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
-			if( roots[ i ].im == 0.0f ) {
-				pt.x = roots[ i ].re * f.x;
-				pt.y = input.y + input.height;
-				if( input.contains( pt ) ) {
-					pt = undistortPoint( pt );
-					y2min = Math::min( y2min, pt.y );
-					max.join( pt );
-				}
-				//std::cout << roots[ i ].re * f.x << std::endl;
-			}
-		}
-
-
-		// get roots of y derivative-polynomial for x input.x and input.x + input.width
-		Polynomialf ry2, ry4, ry6, polyry, ally;
-		x = ( input.x ) / f.x;
-		ry2 = Polynomialf( 1.0f, -2.0f * c.y, x * x - 2.0f * c.x * x + c.x * c.x + c.y * c.y );
-		ry4 = ry2 * ry2;
-		ry6 = ry4 * ry2;
-		polyry = _radial[ 0 ] * ry2 + _radial[ 1 ] * ry4 + _radial[ 2 ] * ry6;
-		polyry[ 0 ] += 1.0f;
-		ally = f.x * ( ( x - c.x ) * polyry + Polynomialf( 2.0f * x * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * ry2 /* + tangential[ 1 ] * 2.0f * ( x - c.x ) */ );
-		ally[ 0 ] += _intrinsics[ 0 ][ 2 ];
-		deriv = ally.derivative();
-		deriv.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
-			if( roots[ i ].im == 0.0f ) {
-				pt.x = input.x;
-				pt.y = roots[ i ].re * f.y;
-				if( input.contains( pt ) ) {
-					pt = undistortPoint( pt );
-					x1min = Math::max( x1min, pt.x );
-					max.join( pt );
-				}
-				//std::cout << roots[ i ].re * f.y << std::endl;
-			}
-		}
-
-		x = ( input.x + input.width ) / f.x;
-		ry2 = Polynomialf( 1.0f, -2.0f * c.y, x * x - 2.0f * c.x * x + c.x * c.x + c.y * c.y );
-		ry4 = ry2 * ry2;
-		ry6 = ry4 * ry2;
-		polyry = _radial[ 0 ] * ry2 + _radial[ 1 ] * ry4 + _radial[ 2 ] * ry6;
-		polyry[ 0 ] += 1.0f;
-		ally = f.x * ( ( x - c.x ) * polyry + Polynomialf( 2.0f * x * _tangential[ 0 ], 0.0f ) + _tangential[ 1 ] * ry2 /* + tangential[ 1 ] * 2.0f * ( x - c.x ) */ );
-		ally[ 0 ] += _intrinsics[ 0 ][ 2 ];
-		deriv = ally.derivative();
-		deriv.roots( roots );
-		for( int i = 0; i < roots.size(); i++ ) {
-			if( roots[ i ].im == 0.0f ) {
-				pt.x = input.x + input.width;
-				pt.y = roots[ i ].re * f.y;
-				if( input.contains( pt ) ) {
-					pt = undistortPoint( pt );
-					x2min = Math::min( x1min, pt.x );
-					max.join( pt );
-				}
-				//std::cout << roots[ i ].re * f.y << std::endl;
-			}
-		}
-
+			tmp = Math::lineSearchMaxGolden( input.y, input.y + input.height, left );
+			pt = inverseUndistortPoint( Vector2f( input.x, tmp ) );
+			x1min = Math::max( x1min, pt.x );
+			tmp = Math::lineSearchMinGolden( input.y, input.y + input.height, right );
+			pt = inverseUndistortPoint( Vector2f(input.x + input.width, tmp ) );
+			x2min = Math::min( x2min, pt.x );
+			tmp = Math::lineSearchMaxGolden( input.x, input.x + input.width, top );
+			pt = inverseUndistortPoint( Vector2f( tmp, input.y ) );
+			y1min = Math::max( y1min, pt.y );
+			tmp = Math::lineSearchMinGolden( input.x, input.x + input.width, bottom );
+			pt = inverseUndistortPoint( Vector2f( tmp, input.y + input.height ) );
+			y2min = Math::min( y2min, pt.y );
+//		} else {
+//		
+//		}
+#endif
 		min.x = x1min;
 		min.y = y1min;
 		min.width = x2min - x1min;
