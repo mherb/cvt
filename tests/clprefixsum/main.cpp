@@ -76,15 +76,14 @@ int main( int argc, char** argv )
 			kern4.setArg( 1, output );
 			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
 			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
-			kern4.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
-
-			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
+			kern4.run( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			kern5.setArg( 0, climg );
 			kern5.setArg( 1, output );
 			kern5.setArg( 2, 8 );
 			kern5.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
+			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
 			climg.save( "boxfilter.png" );
 #if 1
 
