@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
 	Matrix3f K0, K1, T0rectify, T1rectify;
 	Matrix4f T0, T1;
 
-//	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
+	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
 
 	
 
@@ -187,11 +187,13 @@ int main( int argc, char* argv[] )
 	float fy = camCalib0.intrinsics()[ 1 ][ 1 ];
 	float cx = camCalib0.intrinsics()[ 0 ][ 2 ];
 	float cy = camCalib0.intrinsics()[ 1 ][ 2 ];
-	id0.reallocate( i0.width() + 500, i0.height() + 500 );
-	warp.reallocate( i0.width() + 500, i0.height() + 500, IFormat::GRAYALPHA_FLOAT );
+
+	id0.reallocate( i0.width() , i0.height() );
+	warp.reallocate( i0.width(), i0.height() , IFormat::GRAYALPHA_FLOAT );
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i0.width(), i0.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i0.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( id0, tmp0, warp );
+	IWarp::apply( tmp1, tmp0, warp );
+#if 0
 	{
 		Rectf min, max, in( 0, 0, i0.width(), i0.height() );
 		Recti imin, imax;
@@ -241,9 +243,11 @@ int main( int argc, char* argv[] )
 			}
 		}
 	}
+
 	id0.save( "undistort.png" );
+#endif
 //	id0.reallocate( tmp1 ); // WTF - Why ?
-//	ITransform::apply( id0, tmp1, T0rectify, 1024, 786 );
+	ITransform::apply( id0, tmp1, T0rectify );
 
 	radial = camCalib1.radialDistortion();
 	tangential = camCalib1.tangentialDistortion();
@@ -253,15 +257,15 @@ int main( int argc, char* argv[] )
 	cy = camCalib1.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i1.width(), i1.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i1.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( id1, tmp0, warp );
+	IWarp::apply( tmp1, tmp0, warp );
 //	id1.reallocate( tmp1 ); // WTF - Why ?
-//	ITransform::apply( id1, tmp1, T1rectify, 1024, 786 );
+	ITransform::apply( id1, tmp1, T1rectify );
 
 
-//	camCalib0.setIntrinsics( K0 );
-//	camCalib0.setExtrinsics( T0 );
-//	camCalib1.setIntrinsics( K1 );
-//	camCalib1.setExtrinsics( T1 );
+	camCalib0.setIntrinsics( K0 );
+	camCalib0.setExtrinsics( T0 );
+	camCalib1.setIntrinsics( K1 );
+	camCalib1.setExtrinsics( T1 );
 
 	Matrix3f fundamental;
 	Vision::composeFundamental( fundamental, 
