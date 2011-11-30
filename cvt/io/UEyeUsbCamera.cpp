@@ -12,12 +12,12 @@ namespace cvt
 		_runMode( UEYE_MODE_FREERUN )
 	{
 		this->open( mode );
-		this->setPixelClock( 27 );
+		this->setPixelClock( 25 );
 		this->setFramerate( 40.0 );
+		this->setExposureTime( 25 );
 		this->setAutoShutter( false );
 		this->setAutoSensorShutter( false );
-		this->setExposureTime( 15 );
-//		this->setAutoGain( true );
+		this->setAutoGain( false );
 		this->setIdentifier();
 	}
 
@@ -196,12 +196,11 @@ namespace cvt
 	void UEyeUsbCamera::initMemories( const CameraMode & mode )
 	{
 		for( size_t i = 0; i < _numImageBuffers; i++ ){
+			_bufferIds[ 0 ] = 0;
+			_buffers[ i ] = NULL;
 			is_AllocImageMem( _camHandle, _width, _height, mode.format.bpp * 8, (char**)&_buffers[ i ], &_bufferIds[ i ] );
 			is_AddToSequence( _camHandle, (char*)_buffers[ i ], _bufferIds[ i ] );
 		}
-
-		if( is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] ) == IS_NO_SUCCESS )
-		   throw CVTException( "Could not set current memory buffer" );
 	}
 
 	void UEyeUsbCamera::freeMemories()
@@ -230,32 +229,30 @@ namespace cvt
 
 	void UEyeUsbCamera::nextFrame()
 	{
-		uint8_t*	buffer = NULL;
+		uint8_t* curBuffer  = NULL;
+		uint8_t* lastBuffer = NULL;
 		INT	bufferId = 0;
 
-		// TODO: RECHECK THIS -> it seems odd
 		if( _runMode == UEYE_MODE_FREERUN ){
-			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_SEQ, 1000 );
+			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 200 /* this is 5fps */ );
 			switch( ret ){
 				case IS_SUCCESS:
 					{
 						// new frame available:
-						if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&buffer, NULL ) == IS_SUCCESS ){
-							//int bufSeqNum = bufNumForAddr( buffer );
-							is_LockSeqBuf( _camHandle, bufferId, ( char* )buffer );
+						if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&curBuffer, ( char** )&lastBuffer ) == IS_SUCCESS ){
+							int bufSeqNum = bufNumForAddr( lastBuffer );
+							is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )lastBuffer );
 
 							size_t stride;
 							uint8_t * framePtr = _frame.map( &stride );
-
-							if( _stride != ( int )stride )
-								std::cout << "STRIDE ERROR" << std::endl;
-
-							is_CopyImageMem( _camHandle, (char*)buffer, bufferId, (char*)framePtr );
-
+							is_CopyImageMem( _camHandle, (char*)lastBuffer, bufSeqNum, (char*)framePtr );
+							
+							if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)lastBuffer ) == IS_NO_SUCCESS ){
+								std::cout << "UNLOCK FAILED" << std::endl;
+							}
+							
 							_frame.unmap( framePtr );
 
-							if( is_UnlockSeqBuf( _camHandle, bufferId, (char*)buffer ) == IS_NO_SUCCESS )
-								std::cout << "UNLOCK FAILED" << std::endl;
 						}
 					}
 					break;
@@ -365,8 +362,9 @@ namespace cvt
     int	UEyeUsbCamera::bufNumForAddr( const uint8_t * buffAddr ) const
 	{
 		for( size_t i = 0; i < _numImageBuffers; i++ ){
-			if( _buffers[ i ] == buffAddr )
-				return ( int ) i+1;
+			if( _buffers[ i ] == buffAddr ){
+				return _bufferIds[ i ];
+			}
 		}
 
 		return -1;
@@ -374,17 +372,16 @@ namespace cvt
 
 	void UEyeUsbCamera::setLiveMode( bool val )
 	{
-		// set trigger mode to software (for both modes this is ok)
-		is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_SOFTWARE );
-
 		if( val ) {
 			_runMode = UEYE_MODE_FREERUN;
+			is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_OFF );
 			enableFreerun();
 		} else {
 			if( _runMode == UEYE_MODE_FREERUN ){
 				disableFreerun();
 				enableTriggered();
 			}
+			is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_SOFTWARE );
 			_runMode = UEYE_MODE_TRIGGERED;
 		}
 	}
@@ -412,12 +409,10 @@ namespace cvt
 	void UEyeUsbCamera::enableEvents()
 	{
 		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
-		is_EnableEvent( _camHandle, IS_SET_EVENT_SEQ );
 	}
 
 	void UEyeUsbCamera::disableEvents()
 	{
 		is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
-		is_DisableEvent( _camHandle, IS_SET_EVENT_SEQ );
 	}
 }

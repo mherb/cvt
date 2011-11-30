@@ -8,6 +8,7 @@ namespace cvt
 	class Keyframe
 	{
 		public:
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 			/**
 			 *	@param img	the undistorted image
 			 */
