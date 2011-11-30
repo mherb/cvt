@@ -41,6 +41,8 @@ namespace cvt
         const Vector2f & tangentialDistortion() const { return _tangential; }
         const Matrix4f & projectionMatrix()     const { return _projection; }
         const CameraCalibrationFlags & flags()  const { return _flags; }
+		const Vector2f	 center() const { return Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] ); }
+		const Vector2f	 focalLength() const { return Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] ); }
 
         /**
          * set the extrinsics of the camera
@@ -54,7 +56,7 @@ namespace cvt
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
 		Vector2f undistortPoint( const Vector2f& in ) const;
 		Vector2f inverseUndistortPoint( const Vector2f& in ) const;
-		void calcUndistortRects( Rectf& minvalid, Rectf& max, const Rectf& input ) const;
+		void calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const;
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
         bool hasIntrinsics() const { return ( _flags & INTRINSICS ); }
@@ -326,34 +328,23 @@ namespace cvt
 
 		max = input;
 
-
-
 		pt = inverseUndistortPoint( Vector2f( input.x, input.y ) );
 		max.join( pt );
-//		x1min = Math::max( x1min, pt.x );
-//		y1min = Math::max( y1min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y ) );
 		max.join( pt );
-//		x2min = Math::min( x2min, pt.x );
-//		y1min = Math::max( y1min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x + input.width, input.y + input.height ) );
 		max.join( pt );
-//		x2min = Math::min( x2min, pt.x );
-//		y2min = Math::min( y2min, pt.y );
 
 		pt = inverseUndistortPoint( Vector2f( input.x, input.y + input.height ) );
 		max.join( pt );
-//		x1min = Math::max( x1min, pt.x );
-//		y2min = Math::min( y2min, pt.y );
 
 		x1min = max.x;
 		x2min = max.x + max.width;
 		y1min = max.y;
 		y2min = max.y + max.height;
 
-#if 1
 //		if( _radial[ 0 ] < 0 ) { // barrel distortion
 			FixedXinverseUndistort left( input.x, this );
 			FixedXinverseUndistort right( input.x + input.width, this );
@@ -376,7 +367,7 @@ namespace cvt
 //		} else {
 //		
 //		}
-#endif
+
 		min.x = x1min;
 		min.y = y1min;
 		min.width = x2min - x1min;
