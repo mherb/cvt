@@ -181,7 +181,6 @@ namespace cvt {
 			sy = scale;
 		}
 		scale = Math::mix( sx, sy, beta );
-//		std::cout << "sx: " << sx << " sy: " << sy << " scale: " << scale << std::endl;
 		tx = ( rect.width - ( float ) ( idst.width() - 1 ) * scale ) / 2.0f + rect.x;
 		ty = ( rect.height - ( float ) ( idst.height() - 1 ) * scale ) / 2.0f + rect.y;
 
@@ -194,7 +193,7 @@ namespace cvt {
 
 		Knew.setIdentity();
 		Knew[ 0 ][ 0 ] = f.x / scale;
-		Knew[ 1 ][ 1 ] = f.x / scale;
+		Knew[ 1 ][ 1 ] = f.y / scale;
 		Knew[ 0 ][ 2 ] = ( c.x - tx ) / scale;
 		Knew[ 1 ][ 2 ] = ( c.y - ty ) / scale;
 
