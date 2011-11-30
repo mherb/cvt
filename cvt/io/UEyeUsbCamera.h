@@ -1,5 +1,5 @@
-#ifndef TOOLS_MUEYEUSBCAMERA_H
-#define TOOLS_MUEYEUSBCAMERA_H
+#ifndef CVT_UEYEUSBCAMERA_H
+#define CVT_UEYEUSBCAMERA_H
 
 #include <cvt/io/Camera.h>
 #include <cvt/util/String.h>
@@ -30,6 +30,14 @@ class UEyeUsbCamera : public Camera
 			void	setAutoGain( bool value );
             void	setAutoWhiteBalance( bool value );
 			void	setWhiteBalanceOnce();
+            void	setAutoShutter( bool value );
+            void	setAutoSensorShutter( bool value );
+            void	setMaxAutoShutter( double value );
+            void	setExposureTime( double value );
+            void	setPixelClock( unsigned int value );
+            void	setHorizontalMirror( bool value );
+            void	setVerticalMirror( bool value );
+			
 			void	setLiveMode( bool val );
 
         private:
@@ -37,14 +45,7 @@ class UEyeUsbCamera : public Camera
             void	open( const CameraMode & mode );
 			void	initMemories( const CameraMode & mode );
 			void	freeMemories();
-            void	setAutoShutter( bool value );
-            void	setAutoSensorShutter( bool value );
-            void	setMaxAutoShutter( double value );
-            void	setExposureTime( double value );
 			void	exposureRange( double& min, double& max );
-            void	setPixelClock( unsigned int value );
-            void	setHorizontalMirror( bool value );
-            void	setVerticalMirror( bool value );
             int		bufNumForAddr( const uint8_t * buffAddr ) const;
 			void	setIdentifier();
 
