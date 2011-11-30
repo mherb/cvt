@@ -26,7 +26,7 @@ namespace cvt {
 		_clprefixsum_horiz( _prefixsum_horiz_source, "prefixsum_horiz" ),
 		_clprefixsum_vert( _prefixsum_vert_source, "prefixsum_vert" ),
 		_clprefixsum_block2( _prefixsum_block2_source, "prefixsum_block2" ),
-		_blocksize( 32 )
+		_blocksize( 16 )
 	{
 		size_t maxwg = Math::max( _clprefixsum_blockp.maxWorkGroupSize(), _clprefixsum_block2.maxWorkGroupSize() );
 		while( _blocksize * _blocksize > maxwg  ) {
@@ -39,11 +39,18 @@ namespace cvt {
 		// FIXME: hardcoded work-group size
 
 		if( src2 ) {
-			_clprefixsum_blockp_mul2.setArg( 0, dst );
-			_clprefixsum_blockp_mul2.setArg( 1, src );
-			_clprefixsum_blockp_mul2.setArg( 2, *src2 );
-			_clprefixsum_blockp_mul2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
-			_clprefixsum_blockp_mul2.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
+			if( &src == src2 ) {
+				_clprefixsum_blockp_sqr.setArg( 0, dst );
+				_clprefixsum_blockp_sqr.setArg( 1, src );
+				_clprefixsum_blockp_sqr.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
+				_clprefixsum_blockp_sqr.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
+			} else {
+				_clprefixsum_blockp_mul2.setArg( 0, dst );
+				_clprefixsum_blockp_mul2.setArg( 1, src );
+				_clprefixsum_blockp_mul2.setArg( 2, *src2 );
+				_clprefixsum_blockp_mul2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
+				_clprefixsum_blockp_mul2.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
+			}
 		} else {
 			_clprefixsum_blockp.setArg( 0, dst );
 			_clprefixsum_blockp.setArg( 1, src );
