@@ -21,6 +21,8 @@ namespace cvt
 			/* TODO: assumes first occurance is our descriptor! */
 			ORBFeature* descriptor() { return &_measurements[ 0 ]; }
 
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 		private:
 			/* id of the feature?! */
 			size_t		_id;
