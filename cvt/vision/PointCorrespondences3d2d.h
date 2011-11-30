@@ -13,6 +13,7 @@
 #include <cvt/vision/MeasurementModel.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/math/SE3.h>
+#include <Eigen/StdVector>
 
 namespace cvt {
 
@@ -30,7 +31,8 @@ namespace cvt {
 			typedef typename Eigen::Matrix<T, 6, 1> bType;
 			typedef typename Eigen::Matrix<T, 6, 1> ParamType;
 			typedef typename Eigen::Matrix<T, 2, 1> MeasType;
-			
+
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		
 			PointCorrespondences3d2d( const Eigen::Matrix<T, 3, 3> & intr, const Eigen::Matrix<T, 4, 4> extr );
 			~PointCorrespondences3d2d();
@@ -48,8 +50,8 @@ namespace cvt {
 		
 		private:
 			SE3<T>		_pose;
-			std::vector<Eigen::Matrix<T, 3, 1> >	_data;
-			std::vector<Eigen::Matrix<T, 2, 1> >	_meas;
+			std::vector<Eigen::Matrix<T, 3, 1>, Eigen::aligned_allocator<Eigen::Matrix<T, 3, 1> > >	_data;
+			std::vector<Eigen::Matrix<T, 2, 1>, Eigen::aligned_allocator<Eigen::Matrix<T, 2, 1> > >	_meas;
 
 			Eigen::Matrix<T, 3, 3>					_KR;
 			Eigen::Matrix<T, 3, 1>					_Kt;
