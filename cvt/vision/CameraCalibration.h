@@ -293,33 +293,33 @@ namespace cvt
 		return p + c;
 	}
 
-		struct FixedXinverseUndistort {
-			FixedXinverseUndistort( float x, const CameraCalibration* cam ) : _pt( x, 0 ), _cam( cam ) {}
+	struct FixedXinverseUndistort {
+		FixedXinverseUndistort( float x, const CameraCalibration* cam ) : _pt( x, 0 ), _cam( cam ) {}
 
-			float operator()( float y )
-			{
-				_pt.y = y;
-				Vector2f ret = _cam->inverseUndistortPoint( _pt );
-				return ret.x;
-			}
+		float operator()( float y )
+		{
+			_pt.y = y;
+			Vector2f ret = _cam->inverseUndistortPoint( _pt );
+			return ret.x;
+		}
 
-			Vector2f _pt;
-			const CameraCalibration* _cam;
-		};
+		Vector2f _pt;
+		const CameraCalibration* _cam;
+	};
 
-		struct FixedYinverseUndistort {
-			FixedYinverseUndistort( float y, const CameraCalibration* cam ) : _pt( 0, y ), _cam( cam ) {}
+	struct FixedYinverseUndistort {
+		FixedYinverseUndistort( float y, const CameraCalibration* cam ) : _pt( 0, y ), _cam( cam ) {}
 
-			float operator()( float x )
-			{
-				_pt.x = x;
-				Vector2f ret = _cam->inverseUndistortPoint( _pt );
-				return ret.y;
-			}
+		float operator()( float x )
+		{
+			_pt.x = x;
+			Vector2f ret = _cam->inverseUndistortPoint( _pt );
+			return ret.y;
+		}
 
-			Vector2f _pt;
-			const CameraCalibration* _cam;
-		};
+		Vector2f _pt;
+		const CameraCalibration* _cam;
+	};
 
 	inline void CameraCalibration::calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const
 	{
