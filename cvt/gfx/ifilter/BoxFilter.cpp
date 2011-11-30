@@ -24,7 +24,7 @@ namespace cvt {
 		_clprefixsum_boxfilter.setArg( 0, dst );
 		_clprefixsum_boxfilter.setArg( 1, src );
 		_clprefixsum_boxfilter.setArg( 2, radius );
-		CLNDRange global( Math::pad32( src.width() ), Math::pad32( src.height() ) );
+		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
 		_clprefixsum_boxfilter.run( global, _clprefixsum_boxfilter.bestLocalRange2d( global ) );
 	}
 

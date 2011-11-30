@@ -46,7 +46,7 @@ namespace cvt {
 		_intfilter.apply( iint, guide, &src );
 		_boxfilter.apply( imeanGS, iint, radius );
 
-		CLNDRange global( Math::pad32( src.width() ), Math::pad32( src.height() ) );
+		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
 
 		_clguidedfilter_calcab.setArg( 0, ia );
 		_clguidedfilter_calcab.setArg( 1, ib );
