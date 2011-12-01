@@ -23,10 +23,11 @@ namespace cvt {
 		uint32_t formatId = ( size_t )img.format().formatID;
 		uint32_t width = img.width();
 		uint32_t height = img.height();
+		uint32_t sStride = stride;
 
 		file.write( ( char* )&width, sizeof( uint32_t ) );
 		file.write( ( char* )&height, sizeof( uint32_t ) );
-		file.write( ( char* )&(uint32_t)stride, sizeof( uint32_t ) );
+		file.write( ( char* )&sStride, sizeof( uint32_t ) );
 		file.write( ( char* )&formatId, sizeof( uint32_t ) );
 		file.write( p, img.height() * stride );
 
