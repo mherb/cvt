@@ -18,9 +18,8 @@ namespace cvt {
 			String();
 			String( const char* str );
 			String( const String& str );
-			// FIXME: contructors are ambigous ...
 			explicit String( const char* str, size_t size );
-			explicit String( const String& str, int start, int len = -1 );
+			explicit String( const String& str, int start, int len );
 			~String();
 
 			size_t length() const;
