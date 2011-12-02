@@ -2185,4 +2185,59 @@ namespace cvt
         }
     }
 
+#if 0
+	void SIMDSSE2::debayer_EVEN_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
+	{
+		size_t n = width >> 2;
+        const __m128i zero = _mm_setzero_si128();
+		const __m128i maskODD = _mm_set1_epi16( 0xff00 );
+		const __m128i maskEVEN = _mm_set1_epi16( 0xff );
+		const __m128i rlum = _mm_set1_epi16( 0x36 );
+		const __m128i glum = _mm_set1_epi16( 0xB7 );
+		const __m128i blum = _mm_set1_epi16( 0x12 );
+		uint8_t* dst = ( uint8_t* ) _dst;
+
+		__m128i b1, b2, g1, g2, g3, r1, t, t2;
+
+		while( n-- ) {
+			t = _mm_loadu_si128( ( __m128i * ) src1 );
+			g1 = _mm_and_si128( t, maskEVEN );
+			b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+			t = _mm_loadu_si128( ( __m128i * ) src2 );
+			r1 = _mm_and_si128( t, maskEVEN );
+			g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+			t = _mm_loadu_si128( ( __m128i * ) src3 );
+			g3 = _mm_and_si128( t, maskEVEN );
+			b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+			b1 = _mm_add_epi16( b1, b2 );
+			g1 = _mm_add_epi16( g1, g3 );
+
+			t = _mm_mullo_epi16( g2, glum );
+			t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( b1, blum ), 1 ) );
+			t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( r1, _mm_slli_si128( r1, 2 ) ), rlum ), 1 ) );
+
+			t2 = _mm_mullo_epi16( r1, rlum );
+			t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) ), blum ), 2 ) );
+			t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) ), glum ), 2 ) );
+
+			t = _mm_and_si128( t, maskODD );
+			t2 = _mm_slli_si128( _mm_and_si128( t2, maskODD ), 1 );
+//			t2 = _mm_srli_epi16( t2, 8 );
+			_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+			dst += 16;
+			src1 += 4;
+			src2 += 4;
+			src3 += 4;
+		}
+	}
+
+/*	void SIMDSSE2::debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	{
+	
+	}*/
+#endif
 }
