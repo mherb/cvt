@@ -65,13 +65,19 @@ namespace cvt {
 
 		// clear all old
 		detect( img, 0 );
+
+		Image* pyrImages = new Image[ _octaves - 1 ];
+		Image* pyrimg = pyrImages;
+		const Image* last = &img;
 		for( _currentOctave = 1; _currentOctave < _octaves; _currentOctave++ ) {
-			Image pyrimg;
 			scale *=  _scaleFactor;
-			img.scale( pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
+			last->scale( *pyrimg, ( size_t )( img.width() * scale ), ( size_t )( img.height() * scale ), scaleFilter );
 			_scaleFactors[ _currentOctave ] = scale;
-			detect( pyrimg, _currentOctave );
+			detect( *pyrimg, _currentOctave );
+			last = pyrimg;
+			pyrimg++;
 		}
+		delete[] pyrImages;
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
 		extract( _octaves );
@@ -85,7 +91,6 @@ namespace cvt {
 
 	void ORB::detect( const Image& img, size_t octave )
 	{
-
 		// detect the features for this level
 		std::vector<ORBFeature> octaveFeatures;
 		FeatureInserter ftins( octaveFeatures, octave );
