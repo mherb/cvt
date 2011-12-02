@@ -41,6 +41,7 @@ namespace cvt {
 
 				Matrix3<T>			toMatrix3( void ) const;
 				Matrix4<T>			toMatrix4( void ) const;
+				Vector3<T>			toEuler( void ) const;
 				const T*			ptr( void ) const;
 				T*					ptr( void );
 
@@ -379,6 +380,23 @@ namespace cvt {
 			mat[ 3 ][ 3 ] = ( T ) 1;
 
 			return mat;
+		}
+
+	template<typename T>
+		inline Vector3<T> Quaternion<T>::toEuler() const
+		{
+			Vector3<T> result; // phi, theta, psi
+			T xxzz = x * x - z * z;
+			T wwyy = w * w - y * y;
+
+			result[ 0 ] = cvt::Math::atan2( 2.0f *( y * z + w * x ), wwyy - xxzz );
+
+			T tmp = (T)-2 * x * z - w * y;
+			tmp   = cvt::Math::max( (T)-1, cvt::Math::min( tmp, (T)1 ) );
+			result[ 1 ] = cvt::Math::asin( tmp );
+			result[ 2 ] = cvt::Math::atan2( (T)2 * ( x * y + w * z ), wwyy + xxzz );
+
+			return result;
 		}
 
 	template<typename T>
