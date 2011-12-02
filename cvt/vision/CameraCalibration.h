@@ -345,28 +345,39 @@ namespace cvt
 		y1min = max.y;
 		y2min = max.y + max.height;
 
-//		if( _radial[ 0 ] < 0 ) { // barrel distortion
-			FixedXinverseUndistort left( input.x, this );
-			FixedXinverseUndistort right( input.x + input.width, this );
-			FixedYinverseUndistort top( input.y, this );
-			FixedYinverseUndistort bottom( input.y + input.height, this );
-			float tmp;
+		FixedXinverseUndistort left( input.x, this );
+		FixedXinverseUndistort right( input.x + input.width, this );
+		FixedYinverseUndistort top( input.y, this );
+		FixedYinverseUndistort bottom( input.y + input.height, this );
+		float tmp;
 
-			tmp = Math::lineSearchMaxGolden( input.y, input.y + input.height, left );
+		if( _radial[ 0 ] < 0 ) { // barrel distortion
+			tmp = Math::lineSearchMaxGolden( input.y, input.y + input.height - 1, left );
 			pt = inverseUndistortPoint( Vector2f( input.x, tmp ) );
 			x1min = Math::max( x1min, pt.x );
-			tmp = Math::lineSearchMinGolden( input.y, input.y + input.height, right );
+			tmp = Math::lineSearchMinGolden( input.y, input.y + input.height - 1, right );
 			pt = inverseUndistortPoint( Vector2f(input.x + input.width, tmp ) );
 			x2min = Math::min( x2min, pt.x );
-			tmp = Math::lineSearchMaxGolden( input.x, input.x + input.width, top );
+			tmp = Math::lineSearchMaxGolden( input.x, input.x + input.width - 1, top );
 			pt = inverseUndistortPoint( Vector2f( tmp, input.y ) );
 			y1min = Math::max( y1min, pt.y );
-			tmp = Math::lineSearchMinGolden( input.x, input.x + input.width, bottom );
+			tmp = Math::lineSearchMinGolden( input.x, input.x + input.width - 1, bottom );
 			pt = inverseUndistortPoint( Vector2f( tmp, input.y + input.height ) );
 			y2min = Math::min( y2min, pt.y );
-//		} else {
-//		
-//		}
+		} else { // pincushion
+			tmp = Math::lineSearchMinGolden( input.y, input.y + input.height - 1, left );
+			pt = inverseUndistortPoint( Vector2f( input.x, tmp ) );
+			max.join( pt );
+			tmp = Math::lineSearchMaxGolden( input.y, input.y + input.height - 1, right );
+			pt = inverseUndistortPoint( Vector2f(input.x + input.width, tmp ) );
+			max.join( pt );
+			tmp = Math::lineSearchMinGolden( input.x, input.x + input.width - 1, top );
+			pt = inverseUndistortPoint( Vector2f( tmp, input.y ) );
+			max.join( pt );
+			tmp = Math::lineSearchMaxGolden( input.x, input.x + input.width - 1, bottom );
+			pt = inverseUndistortPoint( Vector2f( tmp, input.y + input.height ) );
+			max.join( pt );
+		}
 
 		min.x = x1min;
 		min.y = y1min;
