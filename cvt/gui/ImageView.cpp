@@ -20,10 +20,15 @@ namespace cvt {
 
 	void ImageView::setImage( const Image& img )
 	{
-		_img.reallocate( img.width(), img.height(), img.format(), IALLOCATOR_GL );
 		try {
-			_img.copy( img );
-			//IConvert::convert( _img, img );
+			if( img.format() == IFormat::BGRA_UINT8 || img.format() == IFormat::YUYV_UINT8 || img.format() == IFormat::UYVY_UINT8 ) {
+				_img.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
+				img.convert( _img );
+			} else {
+				_img.reallocate( img.width(), img.height(), img.format(), IALLOCATOR_GL );
+				_img.copy( img );
+
+			}
 		} catch( Exception e ) {
 			std::cerr << "Copy error: " << e.what() << std::endl;
 		}
