@@ -42,6 +42,8 @@ namespace cvt {
 
 	inline void PlotDataSamples::dataInRectWithStyle( std::vector<Point2f>& data, const Rectf& rect, PlotStyle style ) const
 	{
+		if( !_samples.size() )
+			return;
 		switch( style ) {
 			case PLOT_STYLE_LINES:
 				pointsInRectToLines( data, rect, &_samples[ 0 ], _samples.size() );

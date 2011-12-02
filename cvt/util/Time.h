@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdint.h>
 
 #ifdef APPLE
 	#include <mach/mach_time.h>
@@ -21,6 +22,7 @@ namespace cvt {
 	class Time {
 		public:
 			Time();
+			Time( uint32_t sec, uint32_t nsecs );
 			Time( const Time& t );
 			~Time();
 			void reset();
@@ -38,6 +40,7 @@ namespace cvt {
 		private:
 			double timespecToMS( const struct timespec& ts ) const;
 			double timespecToUS( const struct timespec& ts ) const;
+			double timespecToS( const struct timespec& ts ) const;
 			void updateTimespec( struct timespec& ts ) const;
 
 			struct timespec _ts;
@@ -62,6 +65,12 @@ namespace cvt {
 		_ts.tv_nsec = t._ts.tv_nsec;
 	}
 
+	inline Time::Time( uint32_t sec, uint32_t nsecs )
+	{
+		_ts.tv_sec = sec;
+		_ts.tv_nsec = nsecs;
+	}
+
 	inline Time::~Time() {}
 
 	inline void Time::reset()
@@ -81,6 +90,11 @@ namespace cvt {
 #endif
 	}
 
+	inline double Time::timespecToS( const struct timespec& ts ) const
+	{
+		return ( ( double ) ts.tv_sec ) + ( ( double ) ts.tv_nsec ) * 0.000000001;
+	}
+
 	inline double Time::timespecToMS( const struct timespec& ts ) const
 	{
 		return ( ( double ) ts.tv_sec ) * 1000.0 + ( ( double ) ts.tv_nsec ) * 0.000001;
@@ -95,7 +109,7 @@ namespace cvt {
 	{
 		struct timespec ts2;
 		updateTimespec( ts2 );
-		return ( double ) ts2.tv_sec - ( double ) _ts.tv_sec;
+		return timespecToS( ts2 ) - timespecToS( _ts );
 	}
 
 	inline double Time::elapsedMilliSeconds() const
