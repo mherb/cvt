@@ -120,7 +120,7 @@ int main()
 	in.load( "../data/lena.png" );
 	mosaic_image( bayer, in );
 
-	out.reallocate( in.width(), in.height(), IFormat::RGBA_UINT8 );
+	out.reallocate( in.width(), in.height(), IFormat::BGRA_UINT8 );
 	bayer.convert( out );
 
 	out.save( "debayer.png" );
