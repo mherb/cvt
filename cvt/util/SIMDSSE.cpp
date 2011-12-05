@@ -601,15 +601,11 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 
 	void SIMDSSE::Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const
 	{
-		size_t n2 = n >> 5;
+		size_t n2 = n >> 4;
 		__m128i tmp;
 
 		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
 			while( n2-- ) {
-				tmp = _mm_loadu_si128( ( __m128i* ) src );
-				_mm_storeu_si128( ( __m128i* ) dst, tmp );
-				src += 16;
-				dst += 16;
 				tmp = _mm_loadu_si128( ( __m128i* ) src );
 				_mm_storeu_si128( ( __m128i* ) dst, tmp );
 				src += 16;
@@ -621,13 +617,9 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 				_mm_stream_si128( ( __m128i* ) dst, tmp );
 				src += 16;
 				dst += 16;
-				tmp = _mm_load_si128( ( __m128i* ) src );
-				_mm_stream_si128( ( __m128i* ) dst, tmp );
-				src += 16;
-				dst += 16;
 			}
 		}
-		n2 = n & 0x1f;
+		n2 = n & 0xf;
 		while( n2-- )
 			*dst++ = *src++;
 	}
