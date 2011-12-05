@@ -2185,6 +2185,409 @@ void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_
 	}
 }
 
+void SIMDSSE2::debayer_EVEN_RGGBu8_RGBAu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
+{
+	size_t n = width >> 2;
+	const __m128i zero = _mm_setzero_si128();
+	const __m128i one = _mm_set1_epi8( 0xff );
+	const __m128i maskODD = _mm_set1_epi16( 0xff00 );
+	const __m128i maskEVEN = _mm_set1_epi16( 0xff );
+	uint8_t* dst = ( uint8_t* ) _dst;
+	uint16_t tmp16;
+	__m128i b1, g1, g2, g3, r1, r2, t, r, g, b;
+
+	if( n <= 2 ) {
+		return SIMD::debayer_ODD_RGGBu8_GRAYu8( _dst, src1, src2, src3, width );
+	}
+	n = n - 2;
+
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	g2 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	r2 = _mm_and_si128( t, maskEVEN );
+	g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	r1 = _mm_add_epi16( r1, r2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* green */
+	g = g2;
+	/* red */
+	r = _mm_srli_epi16( r1, 1 );
+	/* blue */
+	t = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 1  );
+	t = _mm_add_epi16( t, _mm_insert_epi16( zero, tmp16, 0 ) );
+	b = _mm_srli_epi16( t, 1 );
+
+	/* blue luminance */
+	b = _mm_or_si128( b, _mm_slli_si128( b1 , 1 ) );
+	/* green luminance */
+	g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+	g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+	g2 = _mm_add_epi16( g2, g1 );
+	g = _mm_or_si128( g, _mm_slli_si128( _mm_srli_epi16( g2, 2 ) , 1 ) );
+	/* red luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) + 16  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) + 16  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 2 ) , 1 ) );
+
+	/* unpack to get RGBA */
+	r1 = _mm_unpacklo_epi8( r, g );
+	g1 = _mm_unpacklo_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) dst, t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+	r1 = _mm_unpackhi_epi8( r, g );
+	g1 = _mm_unpackhi_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+	dst += 64;
+	src1 += 4;
+	src2 += 4;
+	src3 += 4;
+
+
+	while( n-- ) {
+		t = _mm_loadu_si128( ( __m128i * ) src1 );
+		r1 = _mm_and_si128( t, maskEVEN );
+		g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src2 );
+		g2 = _mm_and_si128( t, maskEVEN );
+		b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src3 );
+		r2 = _mm_and_si128( t, maskEVEN );
+		g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		r1 = _mm_add_epi16( r1, r2 );
+		g1 = _mm_add_epi16( g1, g3 );
+
+		/* green */
+		g = g2;
+		/* red */
+		r = _mm_srli_epi16( r1, 1 );
+		/* blue */
+		t = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+		t = _mm_add_epi16( t, _mm_insert_epi16( zero, tmp16, 0 ) );
+		b = _mm_srli_epi16( t, 1 );
+
+		/* blue luminance */
+		b = _mm_or_si128( b, _mm_slli_si128( b1 , 1 ) );
+		/* green luminance */
+		g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+		g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+		g2 = _mm_add_epi16( g2, g1 );
+		g = _mm_or_si128( g, _mm_slli_si128( _mm_srli_epi16( g2, 2 ) , 1 ) );
+		/* red luminance */
+		r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src1 ) + 16  );
+		tmp16 += *( ( ( uint8_t* ) src3 ) + 16  );
+		r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+		r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 2 ) , 1 ) );
+
+		/* unpack to get RGBA */
+		r1 = _mm_unpacklo_epi8( r, g );
+		g1 = _mm_unpacklo_epi8( b, one );
+
+		t = _mm_unpacklo_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) dst, t );
+		t = _mm_unpackhi_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+		r1 = _mm_unpackhi_epi8( r, g );
+		g1 = _mm_unpackhi_epi8( b, one );
+
+		t = _mm_unpacklo_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+		t = _mm_unpackhi_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+
+		dst += 64;
+		src1 += 4;
+		src2 += 4;
+		src3 += 4;
+	}
+
+	// FIXME: width assumed to be multiple of 16
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	g2 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	r2 = _mm_and_si128( t, maskEVEN );
+	g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	r1 = _mm_add_epi16( r1, r2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* green */
+	g = g2;
+	/* red */
+	r = _mm_srli_epi16( r1, 1 );
+	/* blue */
+	t = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+	t = _mm_add_epi16( t, _mm_insert_epi16( zero, tmp16, 0 ) );
+	b = _mm_srli_epi16( t, 1 );
+
+	/* blue luminance */
+	b = _mm_or_si128( b, _mm_slli_si128( b1 , 1 ) );
+	/* green luminance */
+	g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 14  );
+	g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+	g2 = _mm_add_epi16( g2, g1 );
+	g = _mm_or_si128( g, _mm_slli_si128( _mm_srli_epi16( g2, 2 ) , 1 ) );
+	/* red luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) + 14  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) + 14  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 2 ) , 1 ) );
+
+	/* unpack to get RGBA */
+	r1 = _mm_unpacklo_epi8( r, g );
+	g1 = _mm_unpacklo_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) dst, t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+	r1 = _mm_unpackhi_epi8( r, g );
+	g1 = _mm_unpackhi_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+}
+
+
+void SIMDSSE2::debayer_ODD_RGGBu8_RGBAu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
+{
+	size_t n = width >> 2;
+	const __m128i zero = _mm_setzero_si128();
+	const __m128i one = _mm_set1_epi8( 0xff );
+	const __m128i maskODD = _mm_set1_epi16( 0xff00 );
+	const __m128i maskEVEN = _mm_set1_epi16( 0xff );
+	uint8_t* dst = ( uint8_t* ) _dst;
+	uint16_t tmp16;
+	__m128i b1, b2, g1, g2, g3, r1, t, r, g, b;
+
+	if( n <= 2 ) {
+		return SIMD::debayer_ODD_RGGBu8_GRAYu8( _dst, src1, src2, src3, width );
+	}
+	n = n - 2;
+
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	g1 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	g3 = _mm_and_si128( t, maskEVEN );
+	b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	b1 = _mm_add_epi16( b1, b2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* red */
+	r = r1;
+	/* blue */
+	b = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) + 1  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) + 1  );
+	b = _mm_add_epi16( b, _mm_insert_epi16( zero, tmp16, 0 ) );
+	b = _mm_srli_epi16( b, 2 );
+	/* green luminance */
+	g = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 1  );
+	g = _mm_add_epi16( g, _mm_insert_epi16( zero, tmp16, 0 ) );
+	g = _mm_srli_epi16( g, 2 );
+
+
+	/* green */
+	g = _mm_or_si128( g, _mm_slli_si128( g2, 1 ) );
+	/* blue */
+	b = _mm_or_si128( b, _mm_slli_si128( _mm_srli_epi16( b1, 1 ) , 1 ) );
+	/* red */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 1 ) , 1 ) );
+
+	/* unpack to get RGBA */
+	r1 = _mm_unpacklo_epi8( r, g );
+	g1 = _mm_unpacklo_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) dst, t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+	r1 = _mm_unpackhi_epi8( r, g );
+	g1 = _mm_unpackhi_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+	dst += 64;
+	src1 += 4;
+	src2 += 4;
+	src3 += 4;
+
+
+	while( n-- ) {
+		t = _mm_loadu_si128( ( __m128i * ) src1 );
+		g1 = _mm_and_si128( t, maskEVEN );
+		b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src2 );
+		r1 = _mm_and_si128( t, maskEVEN );
+		g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src3 );
+		g3 = _mm_and_si128( t, maskEVEN );
+		b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		b1 = _mm_add_epi16( b1, b2 );
+		g1 = _mm_add_epi16( g1, g3 );
+
+		/* red */
+		r = r1;
+		/* blue */
+		b = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src1 ) - 1  );
+		tmp16 += *( ( ( uint8_t* ) src3 ) - 1  );
+		b = _mm_add_epi16( b, _mm_insert_epi16( zero, tmp16, 0 ) );
+		b = _mm_srli_epi16( b, 2 );
+		/* green luminance */
+		g = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+		g = _mm_add_epi16( g, _mm_insert_epi16( zero, tmp16, 0 ) );
+		g = _mm_srli_epi16( g, 2 );
+
+
+		/* green */
+		g = _mm_or_si128( g, _mm_slli_si128( g2, 1 ) );
+		/* blue */
+		b = _mm_or_si128( b, _mm_slli_si128( _mm_srli_epi16( b1, 1 ) , 1 ) );
+		/* red */
+		r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+		r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+		r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 1 ) , 1 ) );
+
+		/* unpack to get RGBA */
+		r1 = _mm_unpacklo_epi8( r, g );
+		g1 = _mm_unpacklo_epi8( b, one );
+
+		t = _mm_unpacklo_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) dst, t );
+		t = _mm_unpackhi_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+		r1 = _mm_unpackhi_epi8( r, g );
+		g1 = _mm_unpackhi_epi8( b, one );
+
+		t = _mm_unpacklo_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+		t = _mm_unpackhi_epi16( r1, g1 );
+		_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+
+		dst += 64;
+		src1 += 4;
+		src2 += 4;
+		src3 += 4;
+	}
+
+	// FIXME: width assumed to be multiple of 16
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	g1 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	g3 = _mm_and_si128( t, maskEVEN );
+	b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	b1 = _mm_add_epi16( b1, b2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* red */
+	r = r1;
+	/* blue */
+	b = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) - 1  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) - 1  );
+	b = _mm_add_epi16( b, _mm_insert_epi16( zero, tmp16, 0 ) );
+	b = _mm_srli_epi16( b, 2 );
+	/* green luminance */
+	g = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+	g = _mm_add_epi16( g, _mm_insert_epi16( zero, tmp16, 0 ) );
+	g = _mm_srli_epi16( g, 2 );
+
+
+	/* green */
+	g = _mm_or_si128( g, _mm_slli_si128( g2, 1 ) );
+	/* blue */
+	b = _mm_or_si128( b, _mm_slli_si128( _mm_srli_epi16( b1, 1 ) , 1 ) );
+	/* red */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 14  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	r = _mm_or_si128( r, _mm_slli_si128( _mm_srli_epi16( r1, 1 ) , 1 ) );
+
+	/* unpack to get RGBA */
+	r1 = _mm_unpacklo_epi8( r, g );
+	g1 = _mm_unpacklo_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) dst, t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 16 ), t );
+
+	r1 = _mm_unpackhi_epi8( r, g );
+	g1 = _mm_unpackhi_epi8( b, one );
+
+	t = _mm_unpacklo_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 32 ), t );
+	t = _mm_unpackhi_epi16( r1, g1 );
+	_mm_storeu_si128( ( __m128i* ) ( dst + 48 ), t );
+}
+
 void SIMDSSE2::debayer_ODD_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
 {
 	size_t n = width >> 2;
