@@ -8,15 +8,15 @@
 namespace cvt
 {
 	/*static inline int32_t _mm_floor( __m128 xmm )
-	{
-		int32_t ret;
-		__asm__("cvttss2si %1, %0;\n\t"
-				""
-				: "=r"(ret)
-				: "x"(xmm),"r"
-			   );
-		return ret;
-	}*/
+	  {
+	  int32_t ret;
+	  __asm__("cvttss2si %1, %0;\n\t"
+	  ""
+	  : "=r"(ret)
+	  : "x"(xmm),"r"
+	  );
+	  return ret;
+	  }*/
 
 	void SIMDSSE2::MulValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
 	{
@@ -1626,26 +1626,26 @@ namespace cvt
 			t1 = _mm_madd_epi16( dxc, dy );
 			ixy = _mm_add_epi32( ixy, t1 );
 		}
-		__horizontal_sum( ix, t1 );
-		__horizontal_sum( iy, t1 );
-		__horizontal_sum( ixy, t1 );
+__horizontal_sum( ix, t1 );
+__horizontal_sum( iy, t1 );
+__horizontal_sum( ixy, t1 );
 
 #undef __horizontal_sum
 
-		a = ( float ) _mm_cvtsi128_si32( ix );
-		b = ( float ) _mm_cvtsi128_si32( iy );
-		c = ( float ) _mm_cvtsi128_si32( ixy );
+a = ( float ) _mm_cvtsi128_si32( ix );
+b = ( float ) _mm_cvtsi128_si32( iy );
+c = ( float ) _mm_cvtsi128_si32( ixy );
 
-		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
-	}
+return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+}
 
 
-	float SIMDSSE2::harrisResponse1u8( float & xx, float & xy, float & yy, const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
-	{
-		const uint8_t* src = ptr - 4 * stride - 4;
-		__m128i dx[ 3 ], dxc, dy, dyc, t1, t2, zero, mask;
-		__m128i ix, iy, ixy;
-		float a, b, c;
+float SIMDSSE2::harrisResponse1u8( float & xx, float & xy, float & yy, const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
+{
+	const uint8_t* src = ptr - 4 * stride - 4;
+	__m128i dx[ 3 ], dxc, dy, dyc, t1, t2, zero, mask;
+	__m128i ix, iy, ixy;
+	float a, b, c;
 
 #define	__horizontal_sum(r, rw) do { \
 	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(1, 0, 3, 2)); \
@@ -1654,113 +1654,113 @@ namespace cvt
 	r = _mm_add_epi32(r, rw); \
 } while( 0 )
 
-		zero = _mm_setzero_si128();
-		mask = _mm_insert_epi16( zero, 0xFFFF, 0 );
-		ix = iy = ixy = _mm_setzero_si128();
+	zero = _mm_setzero_si128();
+	mask = _mm_insert_epi16( zero, 0xFFFF, 0 );
+	ix = iy = ixy = _mm_setzero_si128();
 
-		t1 = _mm_loadl_epi64( ( __m128i* ) ( src ) );
-		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 1 ) );
+	t1 = _mm_loadl_epi64( ( __m128i* ) ( src ) );
+	t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 1 ) );
+	t1 = _mm_slli_si128( t1, 1 );
+	t1 = _mm_unpacklo_epi8( t1, zero );
+	t2 = _mm_unpacklo_epi8( t2, zero );
+	dx[ 0 ] = _mm_sub_epi16( t2, t1 );
+
+
+	t1 = _mm_loadl_epi64( ( __m128i* ) ( src + stride ) );
+	t2 = _mm_loadl_epi64( ( __m128i* ) ( src + stride + 1 ) );
+	t1 = _mm_slli_si128( t1, 1 );
+	t1 = _mm_unpacklo_epi8( t1, zero );
+	t2 = _mm_unpacklo_epi8( t2, zero );
+	dx[ 1 ] = _mm_sub_epi16( t2, t1 );
+
+	for( int i = 0; i < 7; i++ ) {
+		t1 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
+		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride + 1 ) );
 		t1 = _mm_slli_si128( t1, 1 );
 		t1 = _mm_unpacklo_epi8( t1, zero );
 		t2 = _mm_unpacklo_epi8( t2, zero );
-		dx[ 0 ] = _mm_sub_epi16( t2, t1 );
+		dx[ 2 ] = _mm_sub_epi16( t2, t1 );
+		dxc = _mm_add_epi16( dx[ 0 ], _mm_slli_epi16( dx[ 1 ], 1 ) );
+		dxc = _mm_add_epi16( dxc, dx[ 2 ] );
+		dxc = _mm_andnot_si128( mask, dxc );
 
+		dx[ 0 ] = dx[ 1 ];
+		dx[ 1 ] = dx[ 2 ];
 
-		t1 = _mm_loadl_epi64( ( __m128i* ) ( src + stride ) );
-		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + stride + 1 ) );
-		t1 = _mm_slli_si128( t1, 1 );
+		t1 = _mm_madd_epi16( dxc, dxc );
+		ix = _mm_add_epi32( ix, t1 );
+
+		t1 = _mm_loadl_epi64( ( __m128i* ) src );
+		t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
 		t1 = _mm_unpacklo_epi8( t1, zero );
 		t2 = _mm_unpacklo_epi8( t2, zero );
-		dx[ 1 ] = _mm_sub_epi16( t2, t1 );
+		dy = _mm_sub_epi16( t2, t1 );
 
-		for( int i = 0; i < 7; i++ ) {
-			t1 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
-			t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride + 1 ) );
-			t1 = _mm_slli_si128( t1, 1 );
-			t1 = _mm_unpacklo_epi8( t1, zero );
-			t2 = _mm_unpacklo_epi8( t2, zero );
-			dx[ 2 ] = _mm_sub_epi16( t2, t1 );
-			dxc = _mm_add_epi16( dx[ 0 ], _mm_slli_epi16( dx[ 1 ], 1 ) );
-			dxc = _mm_add_epi16( dxc, dx[ 2 ] );
-			dxc = _mm_andnot_si128( mask, dxc );
+		dyc = _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) );
+		dyc = _mm_add_epi16( dyc, _mm_slli_epi16( dy, 1 ) );
 
-			dx[ 0 ] = dx[ 1 ];
-			dx[ 1 ] = dx[ 2 ];
+		int16_t evil = ( int16_t ) *( src + 2 * stride + 8 ) - ( int16_t ) *( src + 8 );
+		dyc = _mm_add_epi16( dyc, _mm_insert_epi16( zero, evil, 7 ) );
+		dy  = _mm_andnot_si128( mask, dyc );
 
-			t1 = _mm_madd_epi16( dxc, dxc );
-			ix = _mm_add_epi32( ix, t1 );
+		src += stride;
 
-			t1 = _mm_loadl_epi64( ( __m128i* ) src );
-			t2 = _mm_loadl_epi64( ( __m128i* ) ( src + 2 * stride ) );
-			t1 = _mm_unpacklo_epi8( t1, zero );
-			t2 = _mm_unpacklo_epi8( t2, zero );
-			dy = _mm_sub_epi16( t2, t1 );
+		t1 = _mm_madd_epi16( dy, dy );
+		iy = _mm_add_epi32( iy, t1 );
 
-			dyc = _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) );
-			dyc = _mm_add_epi16( dyc, _mm_slli_epi16( dy, 1 ) );
-
-			int16_t evil = ( int16_t ) *( src + 2 * stride + 8 ) - ( int16_t ) *( src + 8 );
-			dyc = _mm_add_epi16( dyc, _mm_insert_epi16( zero, evil, 7 ) );
-			dy  = _mm_andnot_si128( mask, dyc );
-
-			src += stride;
-
-			t1 = _mm_madd_epi16( dy, dy );
-			iy = _mm_add_epi32( iy, t1 );
-
-			t1 = _mm_madd_epi16( dxc, dy );
-			ixy = _mm_add_epi32( ixy, t1 );
-		}
-		__horizontal_sum( ix, t1 );
-		__horizontal_sum( iy, t1 );
-		__horizontal_sum( ixy, t1 );
+		t1 = _mm_madd_epi16( dxc, dy );
+		ixy = _mm_add_epi32( ixy, t1 );
+	}
+__horizontal_sum( ix, t1 );
+__horizontal_sum( iy, t1 );
+__horizontal_sum( ixy, t1 );
 
 #undef __horizontal_sum
 
-		a = ( float ) _mm_cvtsi128_si32( ix );
-		b = ( float ) _mm_cvtsi128_si32( iy );
-		c = ( float ) _mm_cvtsi128_si32( ixy );
-		
-		xx = a; yy = b; xy = c;
+a = ( float ) _mm_cvtsi128_si32( ix );
+b = ( float ) _mm_cvtsi128_si32( iy );
+c = ( float ) _mm_cvtsi128_si32( ixy );
 
-		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
-	}
+xx = a; yy = b; xy = c;
 
-	float SIMDSSE2::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
-	{
-		const uint16_t _gaussweights[ 26 ][ 8 ] __attribute__ ( ( aligned ( 16 ) ) ) = {
-			{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
-			{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
-			{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
-			{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
-			{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
-			{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
-			{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
-			{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
-			{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
-			{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
-			{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
-			{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
-			{ 0x02D8, 0x0B3F, 0x22A5, 0x531C, 0x9B45, 0xE1EA, 0xFFFF, 0x0 },
-			{ 0xE1EA, 0x9B45, 0x531C, 0x22A5, 0x0B3F, 0x02D8, 0x0, 0x0 },
-			{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
-			{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
-			{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
-			{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
-			{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
-			{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
-			{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
-			{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
-			{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
-			{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
-			{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
-			{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
-		};
-		const uint8_t* src = _src - 7 * srcStride - 7;
-		__m128i dx2[ 2 ][ 2 ], t1, t2, t3, t4, dx, dy, w;
-		const __m128i zero = _mm_setzero_si128();
-		__m128i ix, iy, ixy;
-		float a, b, c;
+return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+}
+
+float SIMDSSE2::harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const
+{
+	const uint16_t _gaussweights[ 26 ][ 8 ] __attribute__ ( ( aligned ( 16 ) ) ) = {
+		{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
+		{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
+		{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
+		{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
+		{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
+		{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
+		{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
+		{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
+		{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
+		{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
+		{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
+		{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
+		{ 0x02D8, 0x0B3F, 0x22A5, 0x531C, 0x9B45, 0xE1EA, 0xFFFF, 0x0 },
+		{ 0xE1EA, 0x9B45, 0x531C, 0x22A5, 0x0B3F, 0x02D8, 0x0, 0x0 },
+		{ 0x0282, 0x09ED, 0x1E93, 0x4958, 0x8906, 0xC75F, 0xE1EA, 0x0 },
+		{ 0xC75F, 0x8906, 0x4958, 0x1E93, 0x09ED, 0x0282, 0x0, 0x0 },
+		{ 0x01BA, 0x06D2, 0x1503, 0x3269, 0x5E2D, 0x8906, 0x9B45, 0x0 },
+		{ 0x8906, 0x5E2D, 0x3269, 0x1503, 0x06D2, 0x01BA, 0x0, 0x0 },
+		{ 0x00EC, 0x03A7, 0x0B3F, 0x1AFB, 0x3269, 0x4958, 0x531C, 0x0 },
+		{ 0x4958, 0x3269, 0x1AFB, 0x0B3F, 0x03A7, 0x00EC, 0x0, 0x0 },
+		{ 0x0063, 0x0186, 0x04B0, 0x0B3F, 0x1503, 0x1E93, 0x22A5, 0x0 },
+		{ 0x1E93, 0x1503, 0x0B3F, 0x04B0, 0x0186, 0x0063, 0x0, 0x0 },
+		{ 0x0020, 0x007F, 0x0186, 0x03A7, 0x06D2, 0x09ED, 0x0B3F, 0x0 },
+		{ 0x09ED, 0x06D2, 0x03A7, 0x0186, 0x007F, 0x0020, 0x0, 0x0 },
+		{ 0x0008, 0x0020, 0x0063, 0x00EC, 0x01BA, 0x0282, 0x02D8, 0x0 },
+		{ 0x0282, 0x01BA, 0x00EC, 0x0063, 0x0020, 0x0008, 0x0, 0x0 },
+	};
+	const uint8_t* src = _src - 7 * srcStride - 7;
+	__m128i dx2[ 2 ][ 2 ], t1, t2, t3, t4, dx, dy, w;
+	const __m128i zero = _mm_setzero_si128();
+	__m128i ix, iy, ixy;
+	float a, b, c;
 
 #define	__horizontal_sum(r, rw) do { \
 	rw = _mm_shuffle_epi32( r, _MM_SHUFFLE(1, 0, 3, 2)); \
@@ -1769,475 +1769,750 @@ namespace cvt
 	r = _mm_add_epi32(r, rw); \
 } while( 0 )
 
-		ix = iy = ixy = zero;
+	ix = iy = ixy = zero;
 
+	t1 = _mm_loadu_si128( ( __m128i* ) src );
+	t2 = _mm_unpacklo_epi8( _mm_srli_si128( t1, 2 ), zero );
+	t3 = _mm_unpacklo_epi8( t1, zero );
+	dx2[ 0 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
+	t2 = _mm_unpackhi_epi8( t1, zero );
+	t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+	dx2[ 0 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+	src += srcStride;
+
+	t1 = _mm_loadu_si128( ( __m128i* ) src );
+	t2 = _mm_unpacklo_epi8( _mm_srli_si128(t1, 2 ), zero );
+	t3 = _mm_unpacklo_epi8( t1, zero );
+	dx2[ 1 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
+	t2 = _mm_unpackhi_epi8( t1, zero );
+	t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+	dx2[ 1 ][ 1 ] = _mm_sub_epi16( t3, t2 );
+	src += srcStride;
+
+	for( int i = 0; i < 13; i++ ) {
+		/* load current line */
 		t1 = _mm_loadu_si128( ( __m128i* ) src );
 		t2 = _mm_unpacklo_epi8( _mm_srli_si128( t1, 2 ), zero );
 		t3 = _mm_unpacklo_epi8( t1, zero );
-		dx2[ 0 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
-		t2 = _mm_unpackhi_epi8( t1, zero );
-		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
-		dx2[ 0 ][ 1 ] = _mm_sub_epi16( t3, t2 );
-		src += srcStride;
+		dx = _mm_sub_epi16( t3, t2 );
 
-		t1 = _mm_loadu_si128( ( __m128i* ) src );
-		t2 = _mm_unpacklo_epi8( _mm_srli_si128(t1, 2 ), zero );
-		t3 = _mm_unpacklo_epi8( t1, zero );
-		dx2[ 1 ][ 0 ] = _mm_srli_si128( _mm_sub_epi16( t3, t2 ), 0 );
-		t2 = _mm_unpackhi_epi8( t1, zero );
-		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
-		dx2[ 1 ][ 1 ] = _mm_sub_epi16( t3, t2 );
-		src += srcStride;
+		/* first 8 sobel values in x direction */
+		t3 = _mm_add_epi16( dx, _mm_add_epi16( dx2[ 0 ][ 0 ], _mm_slli_epi16( dx2[ 1 ][ 0 ], 1 ) ) );
+		dx2[ 0 ][ 0 ] = dx2[ 1 ][ 0 ];
+		dx2[ 1 ][ 0 ] = dx;
+		dx = _mm_insert_epi16( t3, 0, 7 );
 
-		for( int i = 0; i < 13; i++ ) {
-			/* load current line */
-			t1 = _mm_loadu_si128( ( __m128i* ) src );
-			t2 = _mm_unpacklo_epi8( _mm_srli_si128( t1, 2 ), zero );
-			t3 = _mm_unpacklo_epi8( t1, zero );
-			dx = _mm_sub_epi16( t3, t2 );
+		/* load current line - 2 * srcStride */
+		t4 = _mm_loadu_si128( ( __m128i* ) ( src - 2 * srcStride ) );
+		t2 = _mm_unpacklo_epi8( t1, zero );
+		t3 = _mm_unpacklo_epi8( t4, zero ); // unpack low values
+		dy = _mm_sub_epi16( t3, t2 ); // substract values of current line
 
-			/* first 8 sobel values in x direction */
-			t3 = _mm_add_epi16( dx, _mm_add_epi16( dx2[ 0 ][ 0 ], _mm_slli_epi16( dx2[ 1 ][ 0 ], 1 ) ) );
-			dx2[ 0 ][ 0 ] = dx2[ 1 ][ 0 ];
-			dx2[ 1 ][ 0 ] = dx;
-			dx = _mm_insert_epi16( t3, 0, 7 );
+		/* load high values of current line */
+		t2 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 1 ), zero );
+		/* load hight values of current line - 2 * srcStride */
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t4, 1 ), zero );
+		/* upper unsmoothed y gradient current line */
+		t4 = _mm_sub_epi16( t3, t2 );
 
-			/* load current line - 2 * srcStride */
-			t4 = _mm_loadu_si128( ( __m128i* ) ( src - 2 * srcStride ) );
-			t2 = _mm_unpacklo_epi8( t1, zero );
-			t3 = _mm_unpacklo_epi8( t4, zero ); // unpack low values
-			dy = _mm_sub_epi16( t3, t2 ); // substract values of current line
-
-			/* load high values of current line */
-			t2 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 1 ), zero );
-			/* load hight values of current line - 2 * srcStride */
-			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t4, 1 ), zero );
-			/* upper unsmoothed y gradient current line */
-			t4 = _mm_sub_epi16( t3, t2 );
-
-			/* calculate first 8 sobel values in y direction */
-			dy = _mm_add_epi16( _mm_slli_epi16( dy, 1 ), _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) ) );
-			dy = _mm_srli_si128( _mm_add_epi16( dy, _mm_slli_si128( _mm_srli_si128( t4, 2 ), 14 ) ), 2 );
+		/* calculate first 8 sobel values in y direction */
+		dy = _mm_add_epi16( _mm_slli_epi16( dy, 1 ), _mm_add_epi16( _mm_slli_si128( dy, 2 ), _mm_srli_si128( dy, 2 ) ) );
+		dy = _mm_srli_si128( _mm_add_epi16( dy, _mm_slli_si128( _mm_srli_si128( t4, 2 ), 14 ) ), 2 );
 
 #ifdef GW
-			w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 ] );
-			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
-			ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
-			iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
+		w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 ] );
+		ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
+		ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
+		iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
 #else
-			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
-			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
-			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+		ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+		ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+		iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
 #endif
-			/* upper unsmoothed x gradient current line */
-			t2 = _mm_unpackhi_epi8( t1, zero );
-			t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
-			t3 = _mm_sub_epi16( t3, t2 );
+		/* upper unsmoothed x gradient current line */
+		t2 = _mm_unpackhi_epi8( t1, zero );
+		t3 = _mm_unpackhi_epi8( _mm_slli_si128( t1, 2 ), zero );
+		t3 = _mm_sub_epi16( t3, t2 );
 
-			/* caclculate second 8 sobel values in x direction */
-			dx = _mm_add_epi16( t3, _mm_add_epi16( dx2[ 0 ][ 1 ], _mm_slli_epi16( dx2[ 1 ][ 1 ], 1 ) ) );
-			dx = _mm_srli_si128( dx, 2 );
+		/* caclculate second 8 sobel values in x direction */
+		dx = _mm_add_epi16( t3, _mm_add_epi16( dx2[ 0 ][ 1 ], _mm_slli_epi16( dx2[ 1 ][ 1 ], 1 ) ) );
+		dx = _mm_srli_si128( dx, 2 );
 
-			dx2[ 0 ][ 1 ] = dx2[ 1 ][ 1 ];
-			dx2[ 1 ][ 1 ] = t3;
-			dx = _mm_insert_epi16( dx, 0, 6 );
+		dx2[ 0 ][ 1 ] = dx2[ 1 ][ 1 ];
+		dx2[ 1 ][ 1 ] = t3;
+		dx = _mm_insert_epi16( dx, 0, 6 );
 
-			dy = _mm_add_epi16( _mm_slli_epi16( t4, 1 ), _mm_add_epi16( _mm_slli_si128( t4, 2 ), _mm_srli_si128( t4, 2 ) ) );
-			dy = _mm_srli_si128( _mm_slli_si128( dy, 2 ), 4 );
+		dy = _mm_add_epi16( _mm_slli_epi16( t4, 1 ), _mm_add_epi16( _mm_slli_si128( t4, 2 ), _mm_srli_si128( t4, 2 ) ) );
+		dy = _mm_srli_si128( _mm_slli_si128( dy, 2 ), 4 );
 #ifdef GW
-			w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 + 1 ] );
-			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
-			ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
-			iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
+		w = _mm_load_si128( ( __m128i* ) _gaussweights[ i * 2 + 1 ] );
+		ixy = _mm_add_epi32( ixy, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dy ) );
+		ix = _mm_add_epi32( ix, _mm_madd_epi16( _mm_mulhi_epi16( dx, w ), dx ) );
+		iy = _mm_add_epi32( iy, _mm_madd_epi16( _mm_mulhi_epi16( dy, w ), dy ) );
 #else
-			ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
-			ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
-			iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
+		ixy = _mm_add_epi32( ixy, _mm_madd_epi16( dx, dy ) );
+		ix = _mm_add_epi32( ix, _mm_madd_epi16( dx, dx ) );
+		iy = _mm_add_epi32( iy, _mm_madd_epi16( dy, dy ) );
 #endif
-			src += srcStride;
-		}
-		__horizontal_sum( ix, t1 );
-		__horizontal_sum( iy, t1 );
-		__horizontal_sum( ixy, t1 );
+		src += srcStride;
+	}
+__horizontal_sum( ix, t1 );
+__horizontal_sum( iy, t1 );
+__horizontal_sum( ixy, t1 );
 
 #undef __horizontal_sum
 
-		a = ( float ) _mm_cvtsi128_si32( ix );
-		b = ( float ) _mm_cvtsi128_si32( iy );
-		c = ( float ) _mm_cvtsi128_si32( ixy );
+a = ( float ) _mm_cvtsi128_si32( ix );
+b = ( float ) _mm_cvtsi128_si32( iy );
+c = ( float ) _mm_cvtsi128_si32( ixy );
 
-		xx = a; yy = b; xy = c;
-		return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+xx = a; yy = b; xy = c;
+return ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+}
+
+
+void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
+{
+	// first row
+	__m128i x;
+	__m128i xl16, xh16, zero;
+	__m128  xf, y;
+
+	zero = _mm_setzero_si128();
+	y = _mm_setzero_ps();
+
+	size_t n = width >> 4;
+
+	float * dst = _dst;
+	const uint8_t * src = _src;
+
+	while( n-- ){
+		x = _mm_loadu_si128( ( __m128i* )src );
+
+		// cast to 2x8 uint16:
+		xl16 = _mm_unpacklo_epi8( x, zero );
+		xh16 = _mm_unpackhi_epi8( x, zero );
+
+		xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
+		xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
+		xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
+
+		xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
+		xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
+		xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
+		xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
+
+		// process lower 8:
+		xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
+		xf = _mm_add_ps( xf, y );
+		_mm_store_ps( dst, xf );
+
+		xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
+		xf = _mm_add_ps( xf, y );
+		_mm_store_ps( dst + 4, xf );
+
+		xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
+		xf = _mm_add_ps( xf, y );
+		_mm_store_ps( dst + 8, xf );
+
+		xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
+		xf = _mm_add_ps( xf, y );
+		_mm_store_ps( dst + 12, xf );
+
+		y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+		src += 16;
+		dst += 16;
 	}
-
-
-    void SIMDSSE2::prefixSum1_u8_to_f( float * _dst, size_t dstStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
-    {
-        // first row
-        __m128i x;
-        __m128i xl16, xh16, zero;
-        __m128  xf, y;
-
-        zero = _mm_setzero_si128();
-        y = _mm_setzero_ps();
-
-        size_t n = width >> 4;
-
-        float * dst = _dst;
-        const uint8_t * src = _src;
-
-        while( n-- ){
-            x = _mm_loadu_si128( ( __m128i* )src );
-
-            // cast to 2x8 uint16:
-            xl16 = _mm_unpacklo_epi8( x, zero );
-            xh16 = _mm_unpackhi_epi8( x, zero );
-
-            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
-            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
-            xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
-
-            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
-            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
-            xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
-            xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
-
-            // process lower 8:
-            xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
-            xf = _mm_add_ps( xf, y );
-            _mm_store_ps( dst, xf );
-
-            xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
-            xf = _mm_add_ps( xf, y );
-            _mm_store_ps( dst + 4, xf );
-
-            xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
-            xf = _mm_add_ps( xf, y );
-            _mm_store_ps( dst + 8, xf );
-
-            xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
-            xf = _mm_add_ps( xf, y );
-            _mm_store_ps( dst + 12, xf );
-
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-
-            src += 16;
-            dst += 16;
-        }
-        n = width & 0xf;
-        float yl;
-        _mm_store_ss( &yl, y );
-        while( n-- ){
-            yl += *src++;
-            *dst++ = yl;
-        }
-        height--;
-
-        float * prevRow = _dst;
-        _src += srcStride;
-        _dst += dstStride;
-
-        __m128 prev;
-
-        while( height-- ){
-            n = width >> 4;
-
-            src = _src;
-            dst = _dst;
-            y = _mm_setzero_ps();
-
-            while( n-- ){
-                // next 16 values
-                x = _mm_loadu_si128( ( __m128i* )src );
-
-                // cast to 2x8 uint16:
-                xl16 = _mm_unpacklo_epi8( x, zero );
-                xh16 = _mm_unpackhi_epi8( x, zero );
-
-                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
-                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
-                xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
-
-                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
-                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
-                xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
-                xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
-
-                // process lower 8:
-                prev = _mm_load_ps( prevRow );
-                xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
-                xf = _mm_add_ps( xf, y );
-                xf = _mm_add_ps( xf, prev );
-                _mm_store_ps( dst, xf );
-
-                prev = _mm_load_ps( prevRow + 4 );
-                xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
-                xf = _mm_add_ps( xf, y );
-                xf = _mm_add_ps( xf, prev );
-                _mm_store_ps( dst + 4, xf );
-
-                prev = _mm_load_ps( prevRow + 8 );
-                xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
-                xf = _mm_add_ps( xf, y );
-                xf = _mm_add_ps( xf, prev );
-                _mm_store_ps( dst + 8, xf );
-
-                prev = _mm_load_ps( prevRow + 12 );
-                xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
-                xf = _mm_add_ps( xf, y );
-                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-                xf = _mm_add_ps( xf, prev );
-                _mm_store_ps( dst + 12, xf );
-
-                src += 16;
-                dst += 16;
-                prevRow += 16;
-            }
-
-            n = width & 0xf;
-            _mm_store_ss( &yl, y );
-            while( n-- ){
-                yl += *src++;
-                *dst++ = yl + *prevRow++;
-            }
-
-            prevRow = _dst;
-            _dst += dstStride;
-            _src += srcStride;
-        }
-    }
-
-
-    void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
-    {
-        // first row
-        __m128i x;
-        __m128i xl16, xh16, zero, xl32, xh32;
-        __m128  xf, y;
-
-
-        zero = _mm_setzero_si128();
-        y = _mm_setzero_ps();
-
-        size_t n = width >> 4;
-
-        float * dst = _dst;
-        const uint8_t * src = _src;
-
-        while( n-- ){
-            // load next 16 bytes
-            x = _mm_loadu_si128( ( __m128i* )src );
-
-            // cast to 2x8 uint16:
-            xl16 = _mm_unpacklo_epi8( x, zero );
-            xh16 = _mm_unpackhi_epi8( x, zero );
-
-            // calc the squares of the values:
-            xl16 = _mm_mullo_epi16( xl16, xl16 );
-            xh16 = _mm_mullo_epi16( xh16, xh16 );
-
-            // now convert each into 2x4 float for save computations
-
-            // the lower 8 of the overall 16
-            xl32 = _mm_unpacklo_epi16( xl16, zero );
-            xh32 = _mm_unpackhi_epi16( xl16, zero );
-
-            // process lower 4 floats
-            xf = _mm_cvtepi32_ps( xl32 ); // convert to float
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-            xf = _mm_add_ps( xf, y );// add current row sum
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-            _mm_store_ps( dst, xf );
-
-            // process upper 4 floats
-            xf = _mm_cvtepi32_ps( xh32 );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-            xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 4, xf );
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-
-            // the lower 8 of the overall 16
-            xl32 = _mm_unpacklo_epi16( xh16, zero );
-            xh32 = _mm_unpackhi_epi16( xh16, zero );
-
-            // process lower 4 floats
-            xf = _mm_cvtepi32_ps( xl32 );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-            xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 8, xf );
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-
-            // process upper 4 floats
-            xf = _mm_cvtepi32_ps( xh32 );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-            xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-            xf = _mm_add_ps( xf, y );// add current row sum
-            _mm_store_ps( dst + 12, xf );
-            y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-
-            src += 16;
-            dst += 16;
-        }
-
-        n = width & 0xf;
-        float yl;
-        _mm_store_ss( &yl, y );
-        while( n-- ){
-            yl += Math::sqr( ( float )*src++ );
-            *dst++ = yl;
-        }
-
-        height--;
-
-        float * prevRow = _dst;
-        _src += srcStride;
-        _dst += dStride;
-
-        __m128 prev;
-
-        while( height-- ){
-            n = width >> 4;
-
-            src = _src;
-            dst = _dst;
-            y = _mm_setzero_ps();
-
-            while( n-- ){
-                // load next 16 bytes
-                x = _mm_loadu_si128( ( __m128i* )src );
-
-                // cast to 2x8 uint16:
-                xl16 = _mm_unpacklo_epi8( x, zero );
-                xh16 = _mm_unpackhi_epi8( x, zero );
-
-                // calc the squares of the values:
-                xl16 = _mm_mullo_epi16( xl16, xl16 );
-                xh16 = _mm_mullo_epi16( xh16, xh16 );
-
-                // now convert each into 2x4 float for save computations
-
-                // the lower 8 of the overall 16
-                xl32 = _mm_unpacklo_epi16( xl16, zero );
-                xh32 = _mm_unpackhi_epi16( xl16, zero );
-
-                // process lower 4 floats
-                xf = _mm_cvtepi32_ps( xl32 );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-                xf = _mm_add_ps( xf, y );// add current row sum
-                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-                prev = _mm_load_ps( prevRow );
-                xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst, xf );
-
-                // process upper 4 floats
-                xf = _mm_cvtepi32_ps( xh32 );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-                xf = _mm_add_ps( xf, y );// add current row sum
-                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-                prev = _mm_load_ps( prevRow + 4 );
-                xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst + 4, xf );
-
-                // the lower 8 of the overall 16
-                xl32 = _mm_unpacklo_epi16( xh16, zero );
-                xh32 = _mm_unpackhi_epi16( xh16, zero );
-
-                // process lower 4 floats
-                xf = _mm_cvtepi32_ps( xl32 );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-                xf = _mm_add_ps( xf, y );// add current row sum
-                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-                prev = _mm_load_ps( prevRow + 8 );
-                xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst + 8, xf );
-
-                // process upper 4 floats
-                xf = _mm_cvtepi32_ps( xh32 );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
-                xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
-                xf = _mm_add_ps( xf, y );// add current row sum
-                y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-                prev = _mm_load_ps( prevRow + 12 );
-                xf = _mm_add_ps( xf, prev ); // add previous row
-                _mm_store_ps( dst + 12, xf );
-
-                src += 16;
-                dst += 16;
-                prevRow += 16;
-            }
-
-            n = width & 0xf;
-            _mm_store_ss( &yl, y );
-            while( n-- ){
-                yl += Math::sqr( ( float )*src++ );
-                *dst++ = yl + *prevRow++;
-            }
-
-            prevRow = _dst;
-            _dst += dStride;
-            _src += srcStride;
-        }
-    }
-
-#if 0
-	void SIMDSSE2::debayer_EVEN_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
-	{
-		size_t n = width >> 2;
-        const __m128i zero = _mm_setzero_si128();
-		const __m128i maskODD = _mm_set1_epi16( 0xff00 );
-		const __m128i maskEVEN = _mm_set1_epi16( 0xff );
-		const __m128i rlum = _mm_set1_epi16( 0x36 );
-		const __m128i glum = _mm_set1_epi16( 0xB7 );
-		const __m128i blum = _mm_set1_epi16( 0x12 );
-		uint8_t* dst = ( uint8_t* ) _dst;
-
-		__m128i b1, b2, g1, g2, g3, r1, t, t2;
-
-		while( n-- ) {
-			t = _mm_loadu_si128( ( __m128i * ) src1 );
-			g1 = _mm_and_si128( t, maskEVEN );
-			b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
-
-			t = _mm_loadu_si128( ( __m128i * ) src2 );
-			r1 = _mm_and_si128( t, maskEVEN );
-			g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
-
-			t = _mm_loadu_si128( ( __m128i * ) src3 );
-			g3 = _mm_and_si128( t, maskEVEN );
-			b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
-
-			b1 = _mm_add_epi16( b1, b2 );
-			g1 = _mm_add_epi16( g1, g3 );
-
-			t = _mm_mullo_epi16( g2, glum );
-			t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( b1, blum ), 1 ) );
-			t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( r1, _mm_slli_si128( r1, 2 ) ), rlum ), 1 ) );
-
-			t2 = _mm_mullo_epi16( r1, rlum );
-			t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) ), blum ), 2 ) );
-			t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) ), glum ), 2 ) );
-
-			t = _mm_and_si128( t, maskODD );
-			t2 = _mm_slli_si128( _mm_and_si128( t2, maskODD ), 1 );
-//			t2 = _mm_srli_epi16( t2, 8 );
-			_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
-
+	n = width & 0xf;
+	float yl;
+	_mm_store_ss( &yl, y );
+	while( n-- ){
+		yl += *src++;
+		*dst++ = yl;
+	}
+	height--;
+
+	float * prevRow = _dst;
+	_src += srcStride;
+	_dst += dstStride;
+
+	__m128 prev;
+
+	while( height-- ){
+		n = width >> 4;
+
+		src = _src;
+		dst = _dst;
+		y = _mm_setzero_ps();
+
+		while( n-- ){
+			// next 16 values
+			x = _mm_loadu_si128( ( __m128i* )src );
+
+			// cast to 2x8 uint16:
+			xl16 = _mm_unpacklo_epi8( x, zero );
+			xh16 = _mm_unpackhi_epi8( x, zero );
+
+			xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 2 ) );
+			xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 4 ) );
+			xl16 = _mm_add_epi16( xl16, _mm_slli_si128( xl16, 8 ) );
+
+			xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 2 ) );
+			xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 4 ) );
+			xh16 = _mm_add_epi16( xh16, _mm_slli_si128( xh16, 8 ) );
+			xh16 = _mm_add_epi16( xh16, _mm_set1_epi16( _mm_extract_epi16( xl16, 7 ) ) );
+
+			// process lower 8:
+			prev = _mm_load_ps( prevRow );
+			xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xl16, zero ) );
+			xf = _mm_add_ps( xf, y );
+			xf = _mm_add_ps( xf, prev );
+			_mm_store_ps( dst, xf );
+
+			prev = _mm_load_ps( prevRow + 4 );
+			xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xl16, zero ) );
+			xf = _mm_add_ps( xf, y );
+			xf = _mm_add_ps( xf, prev );
+			_mm_store_ps( dst + 4, xf );
+
+			prev = _mm_load_ps( prevRow + 8 );
+			xf = _mm_cvtepi32_ps( _mm_unpacklo_epi16( xh16, zero ) );
+			xf = _mm_add_ps( xf, y );
+			xf = _mm_add_ps( xf, prev );
+			_mm_store_ps( dst + 8, xf );
+
+			prev = _mm_load_ps( prevRow + 12 );
+			xf = _mm_cvtepi32_ps( _mm_unpackhi_epi16( xh16, zero ) );
+			xf = _mm_add_ps( xf, y );
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			xf = _mm_add_ps( xf, prev );
+			_mm_store_ps( dst + 12, xf );
+
+			src += 16;
 			dst += 16;
-			src1 += 4;
-			src2 += 4;
-			src3 += 4;
+			prevRow += 16;
 		}
+
+		n = width & 0xf;
+		_mm_store_ss( &yl, y );
+		while( n-- ){
+			yl += *src++;
+			*dst++ = yl + *prevRow++;
+		}
+
+		prevRow = _dst;
+		_dst += dstStride;
+		_src += srcStride;
+	}
+}
+
+
+void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_t * _src, size_t srcStride, size_t width, size_t height ) const
+{
+	// first row
+	__m128i x;
+	__m128i xl16, xh16, zero, xl32, xh32;
+	__m128  xf, y;
+
+
+	zero = _mm_setzero_si128();
+	y = _mm_setzero_ps();
+
+	size_t n = width >> 4;
+
+	float * dst = _dst;
+	const uint8_t * src = _src;
+
+	while( n-- ){
+		// load next 16 bytes
+		x = _mm_loadu_si128( ( __m128i* )src );
+
+		// cast to 2x8 uint16:
+		xl16 = _mm_unpacklo_epi8( x, zero );
+		xh16 = _mm_unpackhi_epi8( x, zero );
+
+		// calc the squares of the values:
+		xl16 = _mm_mullo_epi16( xl16, xl16 );
+		xh16 = _mm_mullo_epi16( xh16, xh16 );
+
+		// now convert each into 2x4 float for save computations
+
+		// the lower 8 of the overall 16
+		xl32 = _mm_unpacklo_epi16( xl16, zero );
+		xh32 = _mm_unpackhi_epi16( xl16, zero );
+
+		// process lower 4 floats
+		xf = _mm_cvtepi32_ps( xl32 ); // convert to float
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+		xf = _mm_add_ps( xf, y );// add current row sum
+		y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+		_mm_store_ps( dst, xf );
+
+		// process upper 4 floats
+		xf = _mm_cvtepi32_ps( xh32 );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+		xf = _mm_add_ps( xf, y );// add current row sum
+		_mm_store_ps( dst + 4, xf );
+		y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+		// the lower 8 of the overall 16
+		xl32 = _mm_unpacklo_epi16( xh16, zero );
+		xh32 = _mm_unpackhi_epi16( xh16, zero );
+
+		// process lower 4 floats
+		xf = _mm_cvtepi32_ps( xl32 );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+		xf = _mm_add_ps( xf, y );// add current row sum
+		_mm_store_ps( dst + 8, xf );
+		y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+		// process upper 4 floats
+		xf = _mm_cvtepi32_ps( xh32 );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+		xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+		xf = _mm_add_ps( xf, y );// add current row sum
+		_mm_store_ps( dst + 12, xf );
+		y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+		src += 16;
+		dst += 16;
 	}
 
-/*	void SIMDSSE2::debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
-	{
-	
-	}*/
-#endif
+	n = width & 0xf;
+	float yl;
+	_mm_store_ss( &yl, y );
+	while( n-- ){
+		yl += Math::sqr( ( float )*src++ );
+		*dst++ = yl;
+	}
+
+	height--;
+
+	float * prevRow = _dst;
+	_src += srcStride;
+	_dst += dStride;
+
+	__m128 prev;
+
+	while( height-- ){
+		n = width >> 4;
+
+		src = _src;
+		dst = _dst;
+		y = _mm_setzero_ps();
+
+		while( n-- ){
+			// load next 16 bytes
+			x = _mm_loadu_si128( ( __m128i* )src );
+
+			// cast to 2x8 uint16:
+			xl16 = _mm_unpacklo_epi8( x, zero );
+			xh16 = _mm_unpackhi_epi8( x, zero );
+
+			// calc the squares of the values:
+			xl16 = _mm_mullo_epi16( xl16, xl16 );
+			xh16 = _mm_mullo_epi16( xh16, xh16 );
+
+			// now convert each into 2x4 float for save computations
+
+			// the lower 8 of the overall 16
+			xl32 = _mm_unpacklo_epi16( xl16, zero );
+			xh32 = _mm_unpackhi_epi16( xl16, zero );
+
+			// process lower 4 floats
+			xf = _mm_cvtepi32_ps( xl32 );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+			xf = _mm_add_ps( xf, y );// add current row sum
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			prev = _mm_load_ps( prevRow );
+			xf = _mm_add_ps( xf, prev ); // add previous row
+			_mm_store_ps( dst, xf );
+
+			// process upper 4 floats
+			xf = _mm_cvtepi32_ps( xh32 );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+			xf = _mm_add_ps( xf, y );// add current row sum
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			prev = _mm_load_ps( prevRow + 4 );
+			xf = _mm_add_ps( xf, prev ); // add previous row
+			_mm_store_ps( dst + 4, xf );
+
+			// the lower 8 of the overall 16
+			xl32 = _mm_unpacklo_epi16( xh16, zero );
+			xh32 = _mm_unpackhi_epi16( xh16, zero );
+
+			// process lower 4 floats
+			xf = _mm_cvtepi32_ps( xl32 );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+			xf = _mm_add_ps( xf, y );// add current row sum
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			prev = _mm_load_ps( prevRow + 8 );
+			xf = _mm_add_ps( xf, prev ); // add previous row
+			_mm_store_ps( dst + 8, xf );
+
+			// process upper 4 floats
+			xf = _mm_cvtepi32_ps( xh32 );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 )_mm_slli_si128( ( __m128i )xf, 8 ) );
+			xf = _mm_add_ps( xf, y );// add current row sum
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			prev = _mm_load_ps( prevRow + 12 );
+			xf = _mm_add_ps( xf, prev ); // add previous row
+			_mm_store_ps( dst + 12, xf );
+
+			src += 16;
+			dst += 16;
+			prevRow += 16;
+		}
+
+		n = width & 0xf;
+		_mm_store_ss( &yl, y );
+		while( n-- ){
+			yl += Math::sqr( ( float )*src++ );
+			*dst++ = yl + *prevRow++;
+		}
+
+		prevRow = _dst;
+		_dst += dStride;
+		_src += srcStride;
+	}
+}
+
+void SIMDSSE2::debayer_ODD_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
+{
+	size_t n = width >> 2;
+	const __m128i zero = _mm_setzero_si128();
+	const __m128i maskODD = _mm_set1_epi16( 0xff00 );
+	const __m128i maskEVEN = _mm_set1_epi16( 0xff );
+	const __m128i rlum = _mm_set1_epi16( 0x36 );
+	const __m128i glum = _mm_set1_epi16( 0xB7 );
+	const __m128i blum = _mm_set1_epi16( 0x12 );
+	uint8_t* dst = ( uint8_t* ) _dst;
+	uint16_t tmp16;
+	__m128i b1, b2, g1, g2, g3, r1, t, t2;
+
+	if( n <= 2 ) {
+		return SIMD::debayer_ODD_RGGBu8_GRAYu8( _dst, src1, src2, src3, width );
+	}
+	n = n - 2;
+
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	g1 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	g3 = _mm_and_si128( t, maskEVEN );
+	b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	b1 = _mm_add_epi16( b1, b2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* red luminance */
+	t = _mm_mullo_epi16( r1, rlum );
+	/* blue luminance */
+	t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 + 1 ) );
+	tmp16 += *( ( ( uint8_t* ) src3 + 1 ) );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2 , blum ), 2 ) );
+	/* green luminance */
+	t2 = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 1  );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_mullo_epi16( _mm_srli_epi16( t2 , 2 ), glum ) );
+
+
+	/* green luminance */
+	t2 = _mm_mullo_epi16( g2, glum );
+	/* blue luminance */
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( b1, blum ), 1 ) );
+	/* green luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+
+	t = _mm_srli_epi16( t, 8 );
+	t2 = _mm_and_si128( t2, maskODD );
+	_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+	dst += 16;
+	src1 += 4;
+	src2 += 4;
+	src3 += 4;
+
+
+	while( n-- ) {
+		t = _mm_loadu_si128( ( __m128i * ) src1 );
+		g1 = _mm_and_si128( t, maskEVEN );
+		b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src2 );
+		r1 = _mm_and_si128( t, maskEVEN );
+		g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src3 );
+		g3 = _mm_and_si128( t, maskEVEN );
+		b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		b1 = _mm_add_epi16( b1, b2 );
+		g1 = _mm_add_epi16( g1, g3 );
+
+		/* red luminance */
+		t = _mm_mullo_epi16( r1, rlum );
+		/* blue luminance */
+		t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src1 ) - 1  );
+		tmp16 += *( ( ( uint8_t* ) src3 ) - 1  );
+		t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+		t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2 , blum ), 2 ) );
+		/* green luminance */
+		t2 = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+		t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+		t = _mm_add_epi16( t, _mm_mullo_epi16( _mm_srli_epi16( t2 , 2 ), glum ) );
+
+
+		/* green luminance */
+		t2 = _mm_mullo_epi16( g2, glum );
+		/* blue luminance */
+		t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( b1, blum ), 1 ) );
+		/* green luminance */
+		r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+		r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+		t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+
+		t = _mm_srli_epi16( t, 8 );
+		t2 = _mm_and_si128( t2, maskODD );
+		_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+		dst += 16;
+		src1 += 4;
+		src2 += 4;
+		src3 += 4;
+	}
+
+	// FIXME: width assumed to be multiple of 16
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	g1 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	g3 = _mm_and_si128( t, maskEVEN );
+	b2 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	b1 = _mm_add_epi16( b1, b2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* red luminance */
+	t = _mm_mullo_epi16( r1, rlum );
+	/* blue luminance */
+	t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) - 1  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) - 1  );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2 , blum ), 2 ) );
+	/* green luminance */
+	t2 = _mm_add_epi16( g1, _mm_add_epi16( g2, _mm_slli_si128( g2, 2 ) ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_mullo_epi16( _mm_srli_epi16( t2 , 2 ), glum ) );
+
+
+	/* green luminance */
+	t2 = _mm_mullo_epi16( g2, glum );
+	/* blue luminance */
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( b1, blum ), 1 ) );
+	/* green luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 14  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+
+	t = _mm_srli_epi16( t, 8 );
+	t2 = _mm_and_si128( t2, maskODD );
+	_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+}
+
+void SIMDSSE2::debayer_EVEN_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
+{
+	size_t n = width >> 2;
+	const __m128i zero = _mm_setzero_si128();
+	const __m128i maskODD = _mm_set1_epi16( 0xff00 );
+	const __m128i maskEVEN = _mm_set1_epi16( 0xff );
+	const __m128i rlum = _mm_set1_epi16( 0x36 );
+	const __m128i glum = _mm_set1_epi16( 0xB7 );
+	const __m128i blum = _mm_set1_epi16( 0x12 );
+	uint8_t* dst = ( uint8_t* ) _dst;
+	uint16_t tmp16;
+	__m128i b1, g1, g2, g3, r1, r2, t, t2;
+
+	if( n <= 2 ) {
+		return SIMD::debayer_ODD_RGGBu8_GRAYu8( _dst, src1, src2, src3, width );
+	}
+	n = n - 2;
+
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	g2 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	r2 = _mm_and_si128( t, maskEVEN );
+	g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	r1 = _mm_add_epi16( r1, r2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* green luminance */
+	t = _mm_mullo_epi16( g2, glum );
+	/* red luminance */
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+	/* blue luminance */
+	t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 1  );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2, blum ), 1 ) );
+
+	/* blue luminance */
+	t2 = _mm_mullo_epi16( b1, blum );
+	/* green luminance */
+	g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+	g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+	g2 = _mm_add_epi16( g2, g1 );
+	t2 = _mm_add_epi16( t2,  _mm_mullo_epi16( _mm_srli_epi16( g2, 2 ), glum ) );
+	/* red luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) + 16  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) + 16  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1 , rlum ), 2 ) );
+
+	t = _mm_srli_epi16( t, 8 );
+	t2 = _mm_and_si128( t2, maskODD );
+	_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+	dst += 16;
+	src1 += 4;
+	src2 += 4;
+	src3 += 4;
+
+
+	while( n-- ) {
+		t = _mm_loadu_si128( ( __m128i * ) src1 );
+		r1 = _mm_and_si128( t, maskEVEN );
+		g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src2 );
+		g2 = _mm_and_si128( t, maskEVEN );
+		b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		t = _mm_loadu_si128( ( __m128i * ) src3 );
+		r2 = _mm_and_si128( t, maskEVEN );
+		g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+		r1 = _mm_add_epi16( r1, r2 );
+		g1 = _mm_add_epi16( g1, g3 );
+
+		/* green luminance */
+		t = _mm_mullo_epi16( g2, glum );
+		/* red luminance */
+		t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+		/* blue luminance */
+		t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+		t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+		t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2, blum ), 1 ) );
+
+		/* blue luminance */
+		t2 = _mm_mullo_epi16( b1, blum );
+		/* green luminance */
+		g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src2 ) + 16  );
+		g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+		g2 = _mm_add_epi16( g2, g1 );
+		t2 = _mm_add_epi16( t2,  _mm_mullo_epi16( _mm_srli_epi16( g2, 2 ), glum ) );
+		/* red luminance */
+		r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+		tmp16 = *( ( ( uint8_t* ) src1 ) + 16  );
+		tmp16 += *( ( ( uint8_t* ) src3 ) + 16  );
+		r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+		t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1 , rlum ), 2 ) );
+
+		t = _mm_srli_epi16( t, 8 );
+		t2 = _mm_and_si128( t2, maskODD );
+		_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+
+		dst += 16;
+		src1 += 4;
+		src2 += 4;
+		src3 += 4;
+	}
+
+	// FIXME: width assumed to be multiple of 16
+	t = _mm_loadu_si128( ( __m128i * ) src1 );
+	r1 = _mm_and_si128( t, maskEVEN );
+	g1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src2 );
+	g2 = _mm_and_si128( t, maskEVEN );
+	b1 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	t = _mm_loadu_si128( ( __m128i * ) src3 );
+	r2 = _mm_and_si128( t, maskEVEN );
+	g3 = _mm_srli_si128( _mm_and_si128( t, maskODD ), 1 );
+
+	r1 = _mm_add_epi16( r1, r2 );
+	g1 = _mm_add_epi16( g1, g3 );
+
+	/* green luminance */
+	t = _mm_mullo_epi16( g2, glum );
+	/* red luminance */
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( r1, rlum ), 1 ) );
+	/* blue luminance */
+	t2 = _mm_add_epi16( b1, _mm_slli_si128( b1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) - 1  );
+	t2 = _mm_add_epi16( t2, _mm_insert_epi16( zero, tmp16, 0 ) );
+	t = _mm_add_epi16( t, _mm_srli_epi16( _mm_mullo_epi16( t2, blum ), 1 ) );
+
+	/* blue luminance */
+	t2 = _mm_mullo_epi16( b1, blum );
+	/* green luminance */
+	g2 = _mm_add_epi16( g2, _mm_srli_si128( g2, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src2 ) + 14  );
+	g2 = _mm_add_epi16( g2, _mm_insert_epi16( zero, tmp16, 7 ) );
+	g2 = _mm_add_epi16( g2, g1 );
+	t2 = _mm_add_epi16( t2,  _mm_mullo_epi16( _mm_srli_epi16( g2, 2 ), glum ) );
+	/* red luminance */
+	r1 = _mm_add_epi16( r1, _mm_srli_si128( r1, 2 ) );
+	tmp16 = *( ( ( uint8_t* ) src1 ) + 14  );
+	tmp16 += *( ( ( uint8_t* ) src3 ) + 14  );
+	r1 = _mm_add_epi16( r1, _mm_insert_epi16( zero, tmp16, 7 ) );
+	t2 = _mm_add_epi16( t2, _mm_srli_epi16( _mm_mullo_epi16( r1 , rlum ), 2 ) );
+
+	t = _mm_srli_epi16( t, 8 );
+	t2 = _mm_and_si128( t2, maskODD );
+	_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
+}
 }
