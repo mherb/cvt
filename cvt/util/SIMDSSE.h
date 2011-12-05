@@ -17,7 +17,8 @@ namespace cvt {
 			using SIMD::Sub;
 			using SIMD::Mul;
 			using SIMD::Div;
-			
+
+			void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 
 			/* memory blocks */
 			virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
