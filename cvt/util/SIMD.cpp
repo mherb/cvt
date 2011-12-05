@@ -4033,7 +4033,7 @@ namespace cvt {
 #define BAYER_MIX2( x, y ) ( ( ( x ) + ( y ) ) >> 1 )
 #define BAYER_MIX4( x, y, z, w  ) ( ( ( x ) + ( y ) + ( z ) + ( w ) ) >> 2 )
 
-	void SIMD::debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v;
 		size_t i;
@@ -4109,7 +4109,7 @@ namespace cvt {
 		*dst++ = v;
 	}
 
-	void SIMD::debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v;
 		size_t i;
@@ -4185,7 +4185,7 @@ namespace cvt {
 		*dst++ = v;
 	}
 
-	void SIMD::debayer_EVEN_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_ODD_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v;
 		size_t i;
@@ -4261,7 +4261,7 @@ namespace cvt {
 		*dst++ = v;
 	}
 
-	void SIMD::debayer_ODD_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_EVEN_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v;
 		size_t i;
@@ -4342,7 +4342,7 @@ namespace cvt {
 #define G2LUM( x ) ( MULFIXED( x, 0xB7 ) )
 #define B2LUM( x ) ( MULFIXED( x, 0x12 ) )
 
-	void SIMD::debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v, t;
 		size_t i;
@@ -4409,7 +4409,7 @@ namespace cvt {
 		*dst++ = v;
 	}
 
-	void SIMD::debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
+	void SIMD::debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t n ) const
 	{
 		uint32_t v, t;
 		size_t i;
