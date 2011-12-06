@@ -1466,6 +1466,159 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::Conv_YUYVu8_to_GRAYu8( uint8_t* dst, const uint8_t* src, const size_t n ) const
+	{
+		const __m128i YSCALE = _mm_set1_epi16( 0x29fb );
+		const __m128i YOFFSET = _mm_set1_epi16( 16 );
+		const __m128i MASK = _mm_set1_epi16( 0xff );
+		const __m128i zero = _mm_setzero_si128();
+
+		__m128i yuyv;
+
+		int i = n >> 3;
+		while( i-- ) {
+			yuyv = _mm_loadu_si128( ( __m128i* ) src );
+			src += 16;
+			yuyv = _mm_and_si128( yuyv, MASK );
+			yuyv = _mm_sub_epi16( yuyv, YOFFSET );
+			yuyv = _mm_add_epi16( yuyv, _mm_mulhi_epi16( yuyv, YSCALE ) );
+
+			_mm_storel_epi64( ( __m128i* ) dst, _mm_packus_epi16( yuyv, zero ) );
+			dst += 8;
+		}
+
+
+		uint32_t* src32 = ( uint32_t* ) src;
+		i = ( n & 0x7 ) >> 1;
+		while( i-- ) {
+			uint32_t tmp;
+			int y0, y1;
+
+			tmp = *src32++;
+			y1 = ( ( ( int ) ( ( tmp >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y0 = ( ( ( int ) ( tmp & 0xff ) - 16 ) * 1192 ) >> 10;
+
+			*dst++ = Math::clamp( y0, 0, 0xff );
+			*dst++ = Math::clamp( y1, 0, 0xff );
+
+		}
+	}
+
+	void SIMDSSE2::Conv_UYVYu8_to_GRAYu8( uint8_t* dst, const uint8_t* src, const size_t n ) const
+	{
+		const __m128i YSCALE = _mm_set1_epi16( 0x29fb );
+		const __m128i YOFFSET = _mm_set1_epi16( 16 );
+		const __m128i zero = _mm_setzero_si128();
+
+		__m128i yuyv;
+
+		int i = n >> 3;
+		while( i-- ) {
+			yuyv = _mm_loadu_si128( ( __m128i* ) src );
+			src += 16;
+			yuyv = _mm_srli_epi16( yuyv, 8 );
+			yuyv = _mm_sub_epi16( yuyv, YOFFSET );
+			yuyv = _mm_add_epi16( yuyv, _mm_mulhi_epi16( yuyv, YSCALE ) );
+
+			_mm_storel_epi64( ( __m128i* ) dst, _mm_packus_epi16( yuyv, zero ) );
+			dst += 8;
+		}
+
+
+		uint32_t* src32 = ( uint32_t* ) src;
+		i = ( n & 0x7 ) >> 1;
+		while( i-- ) {
+			uint32_t tmp;
+			int y0, y1;
+
+			tmp = *src32++;
+			y0 = ( ( ( int ) ( ( tmp >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y1 = ( ( ( int ) ( tmp >> 24 ) - 16 ) * 1192 ) >> 10;
+
+			*dst++ = Math::clamp( y0, 0, 0xff );
+			*dst++ = Math::clamp( y1, 0, 0xff );
+
+		}
+	}
+
+	void SIMDSSE2::Conv_YUYVu8_to_GRAYALPHAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const
+	{
+		const __m128i YSCALE = _mm_set1_epi16( 0x29fb );
+		const __m128i YOFFSET = _mm_set1_epi16( 16 );
+		const __m128i MASK = _mm_set1_epi16( 0xff );
+		const __m128i zero = _mm_setzero_si128();
+		const __m128i one = _mm_set1_epi8( 0xff );
+
+		__m128i yuyv;
+
+		int i = n >> 3;
+		while( i-- ) {
+			yuyv = _mm_loadu_si128( ( __m128i* ) src );
+			src += 16;
+			yuyv = _mm_and_si128( yuyv, MASK );
+			yuyv = _mm_sub_epi16( yuyv, YOFFSET );
+			yuyv = _mm_add_epi16( yuyv, _mm_mulhi_epi16( yuyv, YSCALE ) );
+
+			yuyv = _mm_packus_epi16( yuyv, zero );
+			_mm_storeu_si128( ( __m128i* ) dst, _mm_unpacklo_epi8( yuyv, one ) );
+			dst += 16;
+		}
+
+
+		uint32_t* src32 = ( uint32_t* ) src;
+		i = ( n & 0x7 ) >> 1;
+		while( i-- ) {
+			uint32_t tmp;
+			int y0, y1;
+
+			tmp = *src32++;
+			y1 = ( ( ( int ) ( ( tmp >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y0 = ( ( ( int ) ( tmp & 0xff ) - 16 ) * 1192 ) >> 10;
+
+			*dst++ = Math::clamp( y0, 0, 0xff );
+			*dst++ = Math::clamp( y1, 0, 0xff );
+
+		}
+	}
+
+	void SIMDSSE2::Conv_UYVYu8_to_GRAYALPHAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const
+	{
+		const __m128i YSCALE = _mm_set1_epi16( 0x29fb );
+		const __m128i YOFFSET = _mm_set1_epi16( 16 );
+		const __m128i zero = _mm_setzero_si128();
+		const __m128i one = _mm_set1_epi8( 0xff );
+		__m128i yuyv;
+
+		int i = n >> 3;
+		while( i-- ) {
+			yuyv = _mm_loadu_si128( ( __m128i* ) src );
+			src += 16;
+			yuyv = _mm_srli_epi16( yuyv, 8 );
+			yuyv = _mm_sub_epi16( yuyv, YOFFSET );
+			yuyv = _mm_add_epi16( yuyv, _mm_mulhi_epi16( yuyv, YSCALE ) );
+			yuyv = _mm_packus_epi16( yuyv, zero );
+			_mm_storeu_si128( ( __m128i* ) dst, _mm_unpacklo_epi8( yuyv, one ) );
+			dst += 16;
+		}
+
+
+		uint32_t* src32 = ( uint32_t* ) src;
+		i = ( n & 0x7 ) >> 1;
+		while( i-- ) {
+			uint32_t tmp;
+			int y0, y1;
+
+			tmp = *src32++;
+			y0 = ( ( ( int ) ( ( tmp >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+			y1 = ( ( ( int ) ( tmp >> 24 ) - 16 ) * 1192 ) >> 10;
+
+			*dst++ = Math::clamp( y0, 0, 0xff );
+			*dst++ = Math::clamp( y1, 0, 0xff );
+
+		}
+	}
+
+
 	void SIMDSSE2::pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const
 	{
 		const __m128i mask = _mm_set1_epi16( 0xff00 );

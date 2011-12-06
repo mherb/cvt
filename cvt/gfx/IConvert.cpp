@@ -318,6 +318,65 @@ namespace cvt {
 
 		CONV( Conv_UYVYu8_to_BGRAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
 	}
+
+
+	static void Conv_UYVYu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::instance();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_UYVYu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_UYVYu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::instance();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_UYVYu8_to_GRAYALPHAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::instance();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_YUYVu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+	static void Conv_YUYVu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::instance();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_YUYVu8_to_GRAYALPHAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
+	}
+
+
 #undef CONV
 
 	void Conv_BAYER_RGGB_to_RGBAu8( Image & dstImage, const Image & sourceImage )
@@ -477,155 +536,6 @@ namespace cvt {
 		sourceImage.unmap( osrc );
 	}
 
-
-	static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
-	{
-		size_t l = dstImage.height();
-		size_t w = dstImage.width();
-		size_t c;
-		uint32_t *s;
-		uint8_t *d;
-		int tmp;
-
-		size_t stridesrc;
-		size_t stridedst;
-		const uint8_t * sOrig;
-	    uint8_t * dOrig;
-		const uint8_t * src = sourceImage.map( &stridesrc );
-		uint8_t * dst = dstImage.map( &stridedst );
-		sOrig = src;
-		dOrig = dst;
-
-		while( l-- ) {
-			s = ( uint32_t* ) src;
-			d = dst;
-			c = w >> 1;
-			while (c--) {
-				tmp = ( ( ( int ) ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				tmp = ( ( ( ( int ) ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-			}
-			src += stridesrc;
-			dst += stridedst;
-		}
-
-		sourceImage.unmap( sOrig );
-		dstImage.unmap( dOrig );
-	}
-
-	static void Conv_YUYVu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
-	{
-		size_t l = dstImage.height();
-		size_t w = dstImage.width();
-		size_t c;
-		uint32_t *s;
-		uint8_t *d;
-		int tmp;
-
-
-		size_t stridesrc;
-		size_t stridedst;
-		const uint8_t * sOrig;
-	    uint8_t * dOrig;
-		const uint8_t * src = sourceImage.map( &stridesrc );
-		uint8_t * dst = dstImage.map( &stridedst );
-		sOrig = src;
-		dOrig = dst;
-
-		while( l-- ) {
-			s = ( uint32_t* ) src;
-			d = dst;
-			c = w >> 1;
-			while (c--) {
-				tmp = ( ( ( int ) ( *s & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				*d++ = 255;
-				tmp = ( ( ( int ) ( ( ( *s++ ) >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				*d++ = 255;
-			}
-			src += stridesrc;
-			dst += stridedst;
-		}
-
-		sourceImage.unmap( sOrig );
-		dstImage.unmap( dOrig );
-	}
-
-	static void Conv_UYVYu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
-	{
-		size_t l = dstImage.height();
-		size_t w = dstImage.width();
-		size_t c;
-		uint32_t *s;
-		uint8_t *d;
-		int tmp;
-
-		size_t stridesrc;
-		size_t stridedst;
-		const uint8_t * sOrig;
-	    uint8_t * dOrig;
-		const uint8_t * src = sourceImage.map( &stridesrc );
-		uint8_t * dst = dstImage.map( &stridedst );
-		sOrig = src;
-		dOrig = dst;
-
-		while( l-- ) {
-			s = ( uint32_t* ) src;
-			d = dst;
-			c = w >> 1;
-			while (c--) {
-				tmp = ( ( ( int ) ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				tmp = ( ( ( int ) ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-			}
-			src += stridesrc;
-			dst += stridedst;
-		}
-
-		sourceImage.unmap( sOrig );
-		dstImage.unmap( dOrig );
-	}
-
-	static void Conv_UYVYu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
-	{
-		size_t l = dstImage.height();
-		size_t w = dstImage.width();
-		size_t c;
-		uint32_t *s;
-		uint8_t *d;
-		int tmp;
-
-		size_t stridesrc;
-		size_t stridedst;
-		const uint8_t * sOrig;
-	    uint8_t * dOrig;
-		const uint8_t * src = sourceImage.map( &stridesrc );
-		uint8_t * dst = dstImage.map( &stridedst );
-		sOrig = src;
-		dOrig = dst;
-
-		while( l-- ) {
-			s = ( uint32_t* ) src;
-			d = dst;
-			c = w >> 1;
-			while (c--) {
-				tmp = ( ( ( int ) ( ( ( *s ) >> 8 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				*d++ = 255;
-				tmp = ( ( ( int ) ( ( ( *s++ ) >> 24 ) & 0xff ) - 16 ) * 1192 ) >> 10;
-				*d++ = Math::clamp( tmp, 0, 255 );
-				*d++ = 255;
-			}
-			src += stridesrc;
-			dst += stridedst;
-		}
-
-		sourceImage.unmap( sOrig );
-		dstImage.unmap( dOrig );
-	}
 
 	IConvert::IConvert():
 		_convertFuncs( 0 )
