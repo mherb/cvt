@@ -54,7 +54,7 @@ namespace cvt
 			size_t			_numPoints;
 			size_t			_maxPoints;
 
-			void createGrid( size_t halfRes );
+			void createGrid( ssize_t halfRes );
 			void createAxes();
 	};
 
@@ -168,7 +168,7 @@ namespace cvt
 		_arcball.setViewportSize( e->width(), e->height() );
 	}
 
-	inline void SLAMView::createGrid( size_t halfRes )
+	inline void SLAMView::createGrid( ssize_t halfRes )
 	{
 		_gridLines.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * 2 * 2 * ( 2 * halfRes + 1 ), NULL );
 
