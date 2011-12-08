@@ -137,6 +137,9 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_boxfilter.cl
 	cl/kernel/guidedfilter/guidedfilter_calcab.cl
 	cl/kernel/guidedfilter/guidedfilter_applyab.cl
+	cl/kernel/pyr/pyrdown_binom3.cl
+	cl/kernel/pyr/pyrdown_binom5.cl
+	cl/kernel/pyr/pyrup.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -156,6 +159,9 @@ CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
+CLTOHEADER( cl/kernel/pyr/pyrup.cl )
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -193,6 +199,9 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/prefixsum/prefixsum_boxfilter.h
 	cl/kernel/guidedfilter/guidedfilter_calcab.h
 	cl/kernel/guidedfilter/guidedfilter_applyab.h
+	cl/kernel/pyr/pyrdown_binom3.h
+	cl/kernel/pyr/pyrdown_binom5.h
+	cl/kernel/pyr/pyrup.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
