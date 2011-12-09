@@ -1,6 +1,8 @@
 #ifndef FEATURE_TRACKING_H
 #define FEATURE_TRACKING_H
 
+#include <cvt/vision/MapFeature.h>
+
 namespace cvt
 {
 
@@ -17,7 +19,7 @@ namespace cvt
             void setMatchRadius( size_t v ) { _windowRadius = v; }
 
             void trackFeatures( std::vector<FeatureMatch> & matches, 
-							    const std::vector<ORBFeature*> & predicted,
+							    const std::vector<MapFeature*> & predictedFeature,
 								const std::vector<Vector2f> & predictedPositions,
 							    const ORB& orb ) const;
 
@@ -39,20 +41,20 @@ namespace cvt
 	}
 
     inline void FeatureTracking::trackFeatures( std::vector<FeatureMatch> & matches, 
-											    const std::vector<ORBFeature*> & predictedFeatures,
+											    const std::vector<MapFeature*> & predictedFeatures,
 											    const std::vector<Vector2f> & predictedPositions,
                                                 const ORB& orb ) const
     {
         // we want to find the best matching orb feature from current, that lies
         // within a certain distance from the "predicted" position
-        std::vector<ORBFeature*>::const_iterator current = predictedFeatures.begin();
+        std::vector<MapFeature*>::const_iterator current = predictedFeatures.begin();
         std::vector<Vector2f>::const_iterator  pred = predictedPositions.begin();
-        std::vector<ORBFeature*>::const_iterator tEnd = predictedFeatures.end();
+        std::vector<MapFeature*>::const_iterator tEnd = predictedFeatures.end();
 
         while( current != tEnd ){
 			FeatureMatch m;
-			m.feature0 = *current;
-            matchInWindow( m, *pred, **current, orb );
+			m.feature0 = &( (*current)->descriptor() );
+            matchInWindow( m, *pred, (*current)->descriptor(), orb );
 			matches.push_back( m );
 			++current;
 			++pred;
