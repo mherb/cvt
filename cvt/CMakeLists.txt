@@ -417,6 +417,9 @@ SET(${MODULE_NAME}_HEADERS
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
 	vision/Vision.h
+	vision/SlamMap.h
+	vision/Keyframe.h
+	vision/MapFeature.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -567,6 +570,8 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
+	vision/SlamMap.cpp
+	vision/Keyframe.cpp
 	vision/ORB.cpp
 	vision/ORB2.cpp
 	vision/ORB2Test.cpp
