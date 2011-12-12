@@ -1,5 +1,5 @@
-#ifndef FLOW_H
-#define FLOW_H
+#ifndef CVT_FLOW_H
+#define CVT_FLOW_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
