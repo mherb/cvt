@@ -11,16 +11,16 @@ __kernel void pyrdown_binom5( __write_only image2d_t out,  __read_only image2d_t
 	const int height = get_image_height( in );
 	const int dstwidth = get_image_width( out );
 	const int dstheight = get_image_height( out );
-	const int basex = get_group_id( 0 ) * lw;
-	const int basey = get_group_id( 1 ) * lh;
+	const int basex = get_group_id( 0 ) * lw - 2;
+	const int basey = get_group_id( 1 ) * lh - 2;
 	float incx = ( float ) width / ( float ) dstwidth;
 	float incy = ( float ) height / ( float ) dstheight;
 	float2 coord;
 
 	for( int y = ly; y < lh + 4; y += lh ) {
 		for( int x = lx; x < lw + 4; x += lw ) {
-			coord.x = ( basex + x + 0.5f - 2.0f ) * incx;
-			coord.y = ( basey + y + 0.5f - 2.0f ) * incy;
+			coord.x = ( basex + x + 0.5f ) * incx;
+			coord.y = ( basey + y + 0.5f ) * incy;
 			buf[ y * ( lw + 4 ) + x ] = read_imagef( in, sampler, coord );
 		}
 	}
