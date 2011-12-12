@@ -2,8 +2,7 @@
 
 namespace cvt
 {
-	Keyframe::Keyframe( const Image & img, const Eigen::Matrix4d& pose ) :
-		_img( img ),
+	Keyframe::Keyframe( const Eigen::Matrix4d& pose ) :
 		_pose( pose )
 	{
 	}
