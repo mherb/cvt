@@ -18,6 +18,7 @@
 #include <cvt/vision/Keyframe.h>
 
 #include "ORBStereoMatching.h"
+#include "DescriptorDatabase.h"
 #include "FeatureTracking.h"
 
 #include <set>
@@ -84,8 +85,10 @@ namespace cvt
 			bool				_orbNonMaxSuppression;
 
 			// FeatureTracker (single view)
+			DescriptorDatabase<ORBFeature>	_descriptorDatabase;
 			float				_trackingSearchRadius;
 		    FeatureTracking		_featureTracking;
+
 
 			/* the current (camera) pose */
 			SE3<double>			_pose;
@@ -116,7 +119,7 @@ namespace cvt
 		_orbMaxFeatures( 1500 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
-		_featureTracking( _matcherMaxDescriptorDist, _trackingSearchRadius ),
+		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_activeKF( -1 )
 	{
 		// create the undistortion maps
@@ -153,17 +156,17 @@ namespace cvt
 				  _orbNonMaxSuppression );
 
 		// predict visible features with map and current pose
-		std::vector<MapFeature*> mapFeatures;
+		std::vector<size_t>	  predictedIds;
 		std::vector<Vector2f> predictedPositions;
 		
-		_map.selectVisibleFeatures( mapFeatures, 
+		_map.selectVisibleFeatures( predictedIds, 
 									predictedPositions, 
 									_pose.transformation(), 
 									_camCalib0 );
 
 		std::vector<FeatureMatch> matchedFeatures;
 		_featureTracking.trackFeatures( matchedFeatures, 
-									    mapFeatures,
+									    predictedIds,
 									    predictedPositions,
 									    orb0 );
 
@@ -177,9 +180,10 @@ namespace cvt
 		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
 			if( matchedFeatures[ i ].feature1 ){
 				// got a match so add it to the point sets
-				p3.x = mapFeatures[ i ]->estimate().x(); 
-				p3.y = mapFeatures[ i ]->estimate().y(); 
-				p3.z = mapFeatures[ i ]->estimate().z();
+				const MapFeature & mapFeat = _map.featureForId( predictedIds[ i ] );
+				p3.x = mapFeat.estimate().x(); 
+				p3.y = mapFeat.estimate().y(); 
+				p3.z = mapFeat.estimate().z();
 				p3d.add( p3 );
 				p2.x = matchedFeatures[ i ].feature1->pt.x;
 				p2.y = matchedFeatures[ i ].feature1->pt.y;
@@ -210,7 +214,7 @@ namespace cvt
 					 _orbMaxFeatures,
 					 _orbNonMaxSuppression );
 
-			// find stereoMatches
+			// find stereoMatches & by avoiding already found matches
 			std::vector<FeatureMatch> matches;
 			_stereoMatcher.matchEpipolar( matches, orb0, orb1, matchedIndices );
 
@@ -221,15 +225,20 @@ namespace cvt
 				
 				//std::cout << "Tracked Features: " << p3d.size();
 				
-				size_t kId = _map.addKeyframe( _undist0, _pose.transformation() );
+				size_t kId = _map.addKeyframe( _pose.transformation() );
+				Eigen::Vector2d featPoint;
+				Eigen::Matrix4d featureCov = 0.2 * Eigen::Matrix4d::Identity();
 			
-				MapFeature mapFeat( Eigen::Vector4d::Zero(), Eigen::Matrix4d::Identity() * 0.2 );
+				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
 						float reprErr = triangulate( mapFeat, matches[ i ] );
 						
 						if( reprErr < _maxTriangReprojError ){
-							_map.addFeatureToKeyframe( mapFeat, *((ORBFeature*)matches[ i ].feature0), kId );
+							featPoint.x() = matches[ i ].feature0->pt.x;
+							featPoint.y() = matches[ i ].feature0->pt.y;
+							size_t newPointId = _map.addFeatureToKeyframe( mapFeat, featPoint, kId );
+							_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
 
 							const Eigen::Vector4d & wp = mapFeat.estimate();
 							currP.x = ( float ) ( wp.x() );

@@ -12,23 +12,35 @@ namespace cvt
 	{
 	}
 
-	size_t SlamMap::addKeyframe( const Image& img, const Eigen::Matrix4d& pose )
+	size_t SlamMap::addKeyframe( const Eigen::Matrix4d& pose )
 	{
 		size_t id = _keyframes.size();
-		_keyframes.push_back( Keyframe( img, pose ) );
+		_keyframes.push_back( Keyframe( pose ) );
 		return id;
 	}
 
-	void SlamMap::addFeatureToKeyframe( const MapFeature& world, 
-									    const ORBFeature& feature, 
-										size_t keyframeId )
+			
+	size_t SlamMap::addFeature( const MapFeature& world )
 	{
-		size_t pointId = _features.size();
 		_features.push_back( world );
-		_features.back().setDescriptor( feature );
+		return _features.size()-1;
+	}
 
-		// add the measurement to the keyframe
-		_keyframes[ keyframeId ].addFeature( feature.pt, pointId );
+	size_t SlamMap::addFeatureToKeyframe( const MapFeature& world, 
+									      const Eigen::Vector2d& feature, 
+										  size_t keyframeId )
+	{
+		size_t pointId = addFeature( world );
+		addMeasurement( pointId, keyframeId, feature );	
+
+		return pointId;
+	}
+			
+	void SlamMap::addMeasurement( size_t pointId, 
+								  size_t keyframeId,
+								  const  Eigen::Vector2d& meas )
+	{
+		_keyframes[ keyframeId ].addFeature( meas, pointId );
 	}
 
 
@@ -48,7 +60,7 @@ namespace cvt
 		return kf;
 	}
 		
-	void SlamMap::selectVisibleFeatures( std::vector<MapFeature*> & visibleFeatures,
+	void SlamMap::selectVisibleFeatures( std::vector<size_t> & visibleFeatureIds,
 										 std::vector<Vector2f> & projections,
 									     const Eigen::Matrix4d&	cameraPose,
 										 const CameraCalibration& camCalib ) 
@@ -96,11 +108,11 @@ namespace cvt
 							pointInScreen.y = sp.y / sp.z;
 
 							if( pointInScreen.x > 0 && 
-							   pointInScreen.x < c.x && 
-							   pointInScreen.y > 0 && 
-							   pointInScreen.y < c.y ){
+							    pointInScreen.x < c.x && 
+							    pointInScreen.y > 0 && 
+							    pointInScreen.y < c.y ){
 								usedPoints.insert( fId );
-								visibleFeatures.push_back( feature );
+								visibleFeatureIds.push_back( fId );
 								projections.push_back( pointInScreen );
 							}
 						}
