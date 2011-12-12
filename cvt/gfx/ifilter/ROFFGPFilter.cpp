@@ -3,7 +3,6 @@
 #include <cvt/cl/kernel/fgp/fgp_clear.h>
 #include <cvt/cl/kernel/fgp/fgp_calcu.h>
 #include <cvt/cl/kernel/fgp/fgp_calce.h>
-#include <cvt/cl/kernel/fgp/fgp_calcn.h>
 #include <cvt/cl/kernel/fgp/fgp_calcun.h>
 
 namespace cvt {
@@ -24,8 +23,7 @@ namespace cvt {
 		_clfgpclear( _fgp_clear_source, "fgp_clear" ),
 		_clfgpcalcu( _fgp_calcu_source, "fgp_calcu" ),
 		_clfgpcalcun( _fgp_calcun_source, "fgp_calcun" ),
-		_clfgpcalce( _fgp_calce_source, "fgp_calce" ),
-		_clfgpcalcn( _fgp_calcn_source, "fgp_calcn" )
+		_clfgpcalce( _fgp_calce_source, "fgp_calce" )
 	{
 	}
 
@@ -45,7 +43,6 @@ namespace cvt {
 		CLNDRange ndlocalu( _clfgpcalcu.bestLocalRange2d( ndglobal ) );
 		CLNDRange ndlocalun( _clfgpcalcu.bestLocalRange2d( ndglobal ) );
 		CLNDRange ndlocale( _clfgpcalce.bestLocalRange2d( ndglobal ) );
-		CLNDRange ndlocaln( _clfgpcalcn.bestLocalRange2d( ndglobal2 ) );
 		CLNDRange ndlocalclear( _clfgpclear.bestLocalRange2d( ndglobal2 ) );
 
 		_clfgpclear.setArg( 0, _imge0 );
@@ -54,13 +51,11 @@ namespace cvt {
 		_clfgpclear.setArg( 0, _imge1 );
 		_clfgpclear.run( ndglobal2, ndlocalclear );
 
-#define NEW
 
 		while( iter-- ) {
 			told = t;
 			t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * told * told ) );
 
-#ifdef NEW
 			/* update u and n */
 			_clfgpcalcun.setArg( 0, dst );
 			_clfgpcalcun.setArg( 1, _imgn );
@@ -71,16 +66,6 @@ namespace cvt {
 			_clfgpcalcun.setArg( 6, ( told - 1.0f ) / t );
 			_clfgpcalcun.setArg( 7, CLLocalSpace( sizeof( cl_float4 ) * ( ndlocalu.x() + 1 ) * ( ndlocalu.y() + 1 ) * 2 ) );
 			_clfgpcalcun.run( ndglobal, ndlocalu );
-#endif
-			/* update u */
-#ifndef NEW
-			_clfgpcalcu.setArg( 0, dst );
-			_clfgpcalcu.setArg( 1, src );
-			_clfgpcalcu.setArg( 2, _imgn );
-			_clfgpcalcu.setArg( 3, lambda );
-			_clfgpcalcu.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( ndlocalu.x() + 1 ) * ( ndlocalu.y() + 1 ) * 2 ) );
-			_clfgpcalcu.run( ndglobal, ndlocalu );
-#endif
 
 			/* update e */
 			_clfgpcalce.setArg( 0, toggle?_imge1:_imge0 );
@@ -90,14 +75,6 @@ namespace cvt {
 			_clfgpcalce.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( ndlocale.x() + 1 ) * ( ndlocale.y() + 1 ) ) );
 			_clfgpcalce.run( ndglobal, ndlocale );
 
-#ifndef NEW
-			/* update n */
-			_clfgpcalcn.setArg( 0, _imgn );
-			_clfgpcalcn.setArg( 1, toggle?_imge1:_imge0 );
-			_clfgpcalcn.setArg( 2, toggle?_imge0:_imge1 );
-			_clfgpcalcn.setArg( 3, ( told - 1.0f ) / t );
-			_clfgpcalcn.run( ndglobal2, ndlocaln );
-#endif
 			toggle = !toggle;
 		}
 
