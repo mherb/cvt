@@ -1,6 +1,6 @@
 #include <cvt/gfx/ifilter/ROFFGPFilter.h>
 
-#include <cvt/cl/kernel/fgp/fgp_clear.h>
+#include <cvt/cl/kernel/clear.h>
 #include <cvt/cl/kernel/fgp/fgp_calcu.h>
 #include <cvt/cl/kernel/fgp/fgp_calce.h>
 #include <cvt/cl/kernel/fgp/fgp_calcun.h>
@@ -20,7 +20,7 @@ namespace cvt {
 
 	ROFFGPFilter::ROFFGPFilter() :
 		IFilter( "ROFFGPFilter", _params, 4, IFILTER_OPENCL ),
-		_clfgpclear( _fgp_clear_source, "fgp_clear" ),
+		_clfgpclear( _clear_source, "clear" ),
 		_clfgpcalcu( _fgp_calcu_source, "fgp_calcu" ),
 		_clfgpcalcun( _fgp_calcun_source, "fgp_calcun" ),
 		_clfgpcalce( _fgp_calce_source, "fgp_calce" )

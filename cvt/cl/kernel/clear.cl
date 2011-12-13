@@ -1,4 +1,4 @@
-__kernel void fgp_clear( __write_only image2d_t out )
+__kernel void clear( __write_only image2d_t out )
 {
 	int w = get_image_width( out );
 	int h = get_image_height( out );

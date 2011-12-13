@@ -3,22 +3,31 @@
 
 #include <cvt/gfx/IFilter.h>
 #include <cvt/gfx/ifilter/ROFFGPFilter.h>
+#include <cvt/gfx/ifilter/GuidedFilter.h>
 #include <cvt/cl/CLKernel.h>
 
 namespace cvt {
 	class TVL1Flow : public IFilter {
 		public:
 			TVL1Flow( float scalefactor, size_t levels );
-			void apply( Image& flow, const Image& src ) const;
-//			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
+			~TVL1Flow();
+			void apply( Image& flow, const Image& src1, const Image& src2 );
+			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const {};
 
 		private:
+			void fillPyramidCL( const Image& img, size_t index );
+
+			bool		 _toggle;
 			float		 _scalefactor;
 			size_t		 _levels;
 			CLKernel	 _pyrup;
 			CLKernel	 _pyrdown;
 			CLKernel	 _flowthreshold;
+			CLKernel	 _clear;
+			CLKernel	 _median3;
+			float		 _lambda;
 			ROFFGPFilter _rof;
+			GuidedFilter _gf;
 			Image*		 _pyr[ 2 ];
 	};
 }

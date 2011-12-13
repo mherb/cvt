@@ -8,7 +8,7 @@ namespace cvt {
 	namespace Flow {
 		float AEE( const Image& flow, const Image& gt );
 		float AAE( const Image& flow, const Image& gt );
-		void colorCode( Image& dst, Image& flow );
+		void colorCode( Image& dst, Image& flow, float maxflow = 5.0f );
 	}
 }
 
