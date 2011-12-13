@@ -50,7 +50,7 @@ int main( int argc, char** argv )
 
 
 			Time t;
-//#define BLUR 1
+#define BLUR 1
 #ifdef BLUR
 			kern.setArg( 0, output );
 			kern.setArg( 1, climg );

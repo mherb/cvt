@@ -123,10 +123,11 @@ SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
 	cl/kernel/gaussiir2.cl
 	cl/kernel/BC.cl
+	cl/kernel/clear.cl
+	cl/kernel/median3.cl
 	cl/kernel/fgp/fgp_calce.cl
 	cl/kernel/fgp/fgp_calcn.cl
 	cl/kernel/fgp/fgp_calcu.cl
-	cl/kernel/fgp/fgp_clear.cl
 	cl/kernel/fgp/fgp_calcun.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
@@ -140,16 +141,20 @@ SET( CL_KERNELS
 	cl/kernel/pyr/pyrdown_binom3.cl
 	cl/kernel/pyr/pyrdown_binom5.cl
 	cl/kernel/pyr/pyrup.cl
+	cl/kernel/pyr/pyrupmul.cl
+	cl/kernel/pyr/pyrdown.cl
+	cl/kernel/tvl1flow/flowthreshold.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
+CLTOHEADER( cl/kernel/clear.cl )
+CLTOHEADER( cl/kernel/median3.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calce.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcn.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_calcun.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
@@ -162,6 +167,9 @@ CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
 CLTOHEADER( cl/kernel/pyr/pyrup.cl )
+CLTOHEADER( cl/kernel/pyr/pyrupmul.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
+CLTOHEADER( cl/kernel/tvl1flow/flowthreshold.cl )
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -185,11 +193,12 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir.h
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
+	cl/kernel/clear.h
+	cl/kernel/median3.h
 	cl/kernel/fgp/fgp_calce.h
 	cl/kernel/fgp/fgp_calcn.h
 	cl/kernel/fgp/fgp_calcu.h
 	cl/kernel/fgp/fgp_calcun.h
-	cl/kernel/fgp/fgp_clear.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
@@ -201,7 +210,10 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/guidedfilter/guidedfilter_applyab.h
 	cl/kernel/pyr/pyrdown_binom3.h
 	cl/kernel/pyr/pyrdown_binom5.h
+	cl/kernel/pyr/pyrdown.h
 	cl/kernel/pyr/pyrup.h
+	cl/kernel/pyr/pyrupmul.h
+	cl/kernel/tvl1flow/flowthreshold.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
