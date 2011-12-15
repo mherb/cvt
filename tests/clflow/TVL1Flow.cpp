@@ -24,11 +24,11 @@ namespace cvt {
 			_scalefactor( scalefactor ),
 			_levels( levels ),
 			_pyrup( _pyrupmul_source, "pyrup_mul" ),
-			_pyrdown( _pyrdown_binom3_source, "pyrdown_binom3" ),
+			_pyrdown( _pyrdown_source, "pyrdown" ),
 			_flowthreshold( _flowthreshold_source, "flow_threshold" ),
 			_clear( _clear_source, "clear" ),
 			_median3( _median3_source, "median3" ),
-			_lambda( 100.0f )
+			_lambda( 70.0f )
 		{
 			_pyr[ 0 ] = new Image[ levels ];
 			_pyr[ 1 ] = new Image[ levels ];
@@ -49,7 +49,7 @@ namespace cvt {
 			fillPyramidCL( src1, 0 );
 			fillPyramidCL( src2, 1 );
 
-#define THETA 8.0f
+#define THETA 0.20f
 #define PYRUPWGSIZE 16
 #define FLOWTHWGSIZE 16
 #define MED3WGSIZE 16
@@ -78,21 +78,23 @@ namespace cvt {
 					_median3.setArg( 1, *flowtmp );
 					_median3.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( MED3WGSIZE + 2 ) * ( MED3WGSIZE + 2 ) ) );
 					_median3.run( CLNDRange( Math::pad( flowtmp->width(), MED3WGSIZE ), Math::pad( flowtmp->height(), MED3WGSIZE ) ), CLNDRange( MED3WGSIZE, MED3WGSIZE ) );
-//					_gf.apply( *flow, *flowtmp, _pyr[ 0 ][ l ], 20, 0.001f );
+//					_gf.apply( *flowtmp, *flow, _pyr[ 0 ][ l ], 20, 0.01f );
+
+//					*flow = *flowtmp;
 				} else {
 					_clear.setArg( 0, *flow );
 					_clear.run( CLNDRange(Math::pad( flow->width(), 16 ), Math::pad( flow->height(), 16 ) ), CLNDRange( 16, 16 ));
 				}
 
-				for( int i = 0; i < 50; i++  ) {
+				for( int i = 0; i < 15; i++  ) {
 					_flowthreshold.setArg( 0, *flowtmp );
 					_flowthreshold.setArg( 1, *flow );
 					_flowthreshold.setArg( 2, _pyr[ 0 ][ l ] );
 					_flowthreshold.setArg( 3, _pyr[ 1 ][ l ] );
 					_flowthreshold.setArg( 4, _lambda * THETA );
-					_flowthreshold.setArg( 5, CLLocalSpace( sizeof( cl_float4 ) * ( FLOWTHWGSIZE + 2 ) * ( FLOWTHWGSIZE + 2 ) ) );
+					_flowthreshold.setArg( 5, 5 );
+					_flowthreshold.setArg( 6, CLLocalSpace( sizeof( cl_float4 ) * ( FLOWTHWGSIZE + 2 ) * ( FLOWTHWGSIZE + 2 ) ) );
 					_flowthreshold.run( CLNDRange( Math::pad( flow->width(), FLOWTHWGSIZE ), Math::pad( flow->height(), FLOWTHWGSIZE ) ), CLNDRange( FLOWTHWGSIZE, FLOWTHWGSIZE ) );
-
 					_median3.setArg( 0, *flow );
 					_median3.setArg( 1, *flowtmp );
 					_median3.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( MED3WGSIZE + 2 ) * ( MED3WGSIZE + 2 ) ) );
@@ -100,13 +102,14 @@ namespace cvt {
 					*flowtmp = *flow;
 					_rof.apply( *flow, *flowtmp, THETA, 10 );
 
+//					_gf.apply( *flowtmp, *flow, _pyr[ 0 ][ l ], 10, 0.0001f );
 //					*flow = *flowtmp;
-					{
+			/*		{
 						Image ccode( output.width(), output.height(), IFormat::BGRA_FLOAT );
 						Flow::colorCode( ccode, *flow, 2.0f );
 						String fname;
 						ccode.save( "curflow.png" );
-					}
+					}*/
 
 				}
 
@@ -116,11 +119,11 @@ namespace cvt {
 
 			_median3.setArg( 0, *flowtmp );
 			_median3.setArg( 1, *flow );
-					_median3.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( MED3WGSIZE + 2 ) * ( MED3WGSIZE + 2 ) ) );
-					_median3.run( CLNDRange( Math::pad( flowtmp->width(), MED3WGSIZE ), Math::pad( flowtmp->height(), MED3WGSIZE ) ), CLNDRange( MED3WGSIZE, MED3WGSIZE ) );
+			_median3.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( MED3WGSIZE + 2 ) * ( MED3WGSIZE + 2 ) ) );
+			_median3.run( CLNDRange( Math::pad( flowtmp->width(), MED3WGSIZE ), Math::pad( flowtmp->height(), MED3WGSIZE ) ), CLNDRange( MED3WGSIZE, MED3WGSIZE ) );
 
-			_gf.apply( *flow, *flowtmp, _pyr[ 0 ][ 0 ], 10, 0.00005f );
-//			*flow = *flowtmp;
+//			_gf.apply( *flow, *flowtmp, _pyr[ 0 ][ 0 ], 10, 0.01f );
+			*flow = *flowtmp;
 			if( flowtmp )
 				delete flowtmp;
 
@@ -141,8 +144,8 @@ namespace cvt {
 				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 				_pyrdown.setArg( 0, pyr[ l ] );
 				_pyrdown.setArg( 1, pyr[ l - 1 ] );
-				_pyrdown.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * ( PYRWGSIZE + 4 ) ) );
-				_pyrdown.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * PYRWGSIZE ) );
+//				_pyrdown.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * ( PYRWGSIZE + 4 ) ) );
+//				_pyrdown.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * PYRWGSIZE ) );
 				_pyrdown.run( CLNDRange( Math::pad( pyr[ l ].width(), PYRWGSIZE ), Math::pad( pyr[ l ].height(), PYRWGSIZE ) ), CLNDRange( PYRWGSIZE, PYRWGSIZE ) );
 			}
 		}

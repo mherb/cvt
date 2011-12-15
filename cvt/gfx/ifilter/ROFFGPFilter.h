@@ -8,19 +8,17 @@ namespace cvt {
 	class ROFFGPFilter : public IFilter {
 		public:
 			ROFFGPFilter();
-			void apply( Image& dst, const Image& src, float lambda = 0.05f, size_t iter = 10 ) const;
+			void apply( Image& dst, const Image& src, float lambda = 0.1f, size_t iter = 20 ) const;
 			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
 
 		private:
-			mutable Image _imgn;
 			mutable Image _imge0;
 			mutable Image _imge1;
+			mutable Image _imge2;
 
+			CLKernel _clfgp;
+			CLKernel _clfgpdata;
 			CLKernel _clfgpclear;
-			CLKernel _clfgpcalcu;
-			CLKernel _clfgpcalcun;
-			CLKernel _clfgpcalce;
-			CLKernel _clfgpcalcn;
 	};
 }
 
