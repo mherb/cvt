@@ -25,6 +25,9 @@ __kernel void median3( __write_only image2d_t out, __read_only image2d_t in, __l
 
 #define sort2(a, b)				temp = a; a = fmin(a, b); b = fmax(temp, b)
 #define sort3( a, b, c )		sort2( a, b );sort2( b, c );sort2( a, b )
+#define min3( a, b, c )			fmin( a, fmin( b, c ) )
+#define max3( a, b, c )			fmax( a, fmax( b, c ) )
+#define mid3( a, b, c )			fmax( a, fmin( b, c ) )
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), ( lw + 2 ) ) + ( x ) + 1 ]
 
 	v[ 0 ] = BUF( lx - 1, ly -1 );
@@ -42,11 +45,11 @@ __kernel void median3( __write_only image2d_t out, __read_only image2d_t in, __l
 	sort3( v[ 3 ], v[ 4 ], v[ 5 ] );
 	sort3( v[ 6 ], v[ 7 ], v[ 8 ] );
 
-//	sort3( v[ 0 ], v[ 3 ], v[ 6 ] );
-//	sort3( v[ 2 ], v[ 5 ], v[ 8 ] );
+	v[ 5 ] = min3( v[ 2 ], v[ 5 ], v[ 8 ] );
+	v[ 3 ] = max3( v[ 0 ], v[ 3 ], v[ 6 ] );
 
 	sort3( v[ 1 ], v[ 4 ], v[ 7 ] );
-	sort3( v[ 6 ], v[ 4 ], v[ 2 ] );
+	sort3( v[ 3 ], v[ 4 ], v[ 5 ] );
 
     write_imagef( out, ( int2 )( gx, gy ), v[ 4 ] );
 }
