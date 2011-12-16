@@ -33,7 +33,7 @@ namespace cvt {
 			_tvl1_dataadd( _tvl1_dataadd_source, "tvl1_dataadd" ),
 			_clear( _clear_source, "clear" ),
 			_median3( _median3_source, "median3" ),
-			_lambda( 70.0f )
+			_lambda( 35.0f )
 		{
 			_pyr[ 0 ] = new Image[ levels ];
 			_pyr[ 1 ] = new Image[ levels ];
@@ -100,7 +100,7 @@ namespace cvt {
 
 			Image p0( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 			Image p1( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
-			Image p2( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+			//Image p2( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 		//	_clear.setArg( 0, p1 );
 		//	_clear.run( CLNDRange(Math::pad( flow.width(), 16 ), Math::pad( flow.height(), 16 ) ), CLNDRange( 16, 16 ));
@@ -109,8 +109,7 @@ namespace cvt {
 
 			Image* us[ 2 ] = { &flowtmp, &flow };
 
-				Image* ps[ 3 ] = { &p0, &p1, &p2 };
-				float t = 1.0f, told = 1.0f;
+				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
 			for( int i = 0; i < 5; i++ ) {
 				if( median ) {
@@ -128,14 +127,15 @@ namespace cvt {
 				_tvl1_warp.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( WARPWGSIZE + 2 ) * ( WARPWGSIZE + 2 ) ) );
 				_tvl1_warp.run( CLNDRange(Math::pad( flow.width(), WARPWGSIZE ), Math::pad( flow.height(), WARPWGSIZE ) ), CLNDRange( WARPWGSIZE, WARPWGSIZE ) );
 
-			//	_clear.setArg( 0, p1 );
-			//	_clear.run( CLNDRange(Math::pad( flow.width(), 16 ), Math::pad( flow.height(), 16 ) ), CLNDRange( 16, 16 ));
-			//	_clear.setArg( 0, p2 );
-			//	_clear.run( CLNDRange(Math::pad( flow.width(), 16 ), Math::pad( flow.height(), 16 ) ), CLNDRange( 16, 16 ));
+				_clear.setArg( 0, *ps[ 1 ] );
+				_clear.run( CLNDRange(Math::pad( flow.width(), 16 ), Math::pad( flow.height(), 16 ) ), CLNDRange( 16, 16 ));
+				//_clear.setArg( 0, *ps[ 2 ] );
+				//_clear.run( CLNDRange(Math::pad( flow.width(), 16 ), Math::pad( flow.height(), 16 ) ), CLNDRange( 16, 16 ));
 
 
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
+				float t = 1.0f, told = 1.0f;
 				for( int k = 0; k < 10; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );
@@ -143,21 +143,20 @@ namespace cvt {
 					_tvl1.setArg( 3, flow0 );
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
-					_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 7, _lambda / ( k + 1 ) );
-					_tvl1.setArg( 8, THETA );
-					_tvl1.setArg( 9, ( told - 1.0f ) / t  );
-					_tvl1.setArg( 10, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
-					_tvl1.setArg( 11, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 1 ) * ( TVL1WGSIZE + 1 ) ) );
+				//	_tvl1.setArg( 6, *ps[ 2 ] );
+					_tvl1.setArg( 6, _lambda );
+					_tvl1.setArg( 7, THETA );
+				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );
+					_tvl1.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
+					_tvl1.setArg( 9, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 1 ) * ( TVL1WGSIZE + 1 ) ) );
 					_tvl1.run( CLNDRange(Math::pad( flow.width(), TVL1WGSIZE ), Math::pad( flow.height(), TVL1WGSIZE ) ), CLNDRange( TVL1WGSIZE, TVL1WGSIZE ) );
 
-					told = t;
-					t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * told * told ) );
+				//	told = t;
+				//	t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * told * told ) );
 
-					tmp = ps[ 2 ];
-					ps[ 2 ] = ps[ 1 ];
-					ps[ 1 ] = ps[ 0 ];
-					ps[ 0 ] = tmp;
+					tmp = ps[ 0 ];
+					ps[ 0 ] = ps[ 1 ];
+					ps[ 1 ] = tmp;
 
 					tmp = us[ 0 ];
 					us[ 0 ] = us[ 1 ];
@@ -178,7 +177,7 @@ namespace cvt {
 
 #define PYRWGSIZE 16
 
-			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
+			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_CL );
 			img.convert( pyr[ 0 ] );
 			for( size_t l = 1; l < _levels; l++ ) {
 				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
