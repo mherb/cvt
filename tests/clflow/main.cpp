@@ -31,7 +31,7 @@ int main( int argc, char** argv )
 	Image ccode;
 
 	try {
-		TVL1Flow flow( 0.5, 5 );
+		TVL1Flow flow( 0.5, 4 );
 
 		Time t;
 		flow.apply( output, input1, input2 );
