@@ -16,18 +16,21 @@ namespace cvt {
 
 		private:
 			void fillPyramidCL( const Image& img, size_t index );
+			void solveTVL1( Image& flow, const Image& src1, const Image& src2, bool median );
 
 			bool		 _toggle;
 			float		 _scalefactor;
 			size_t		 _levels;
 			CLKernel	 _pyrup;
 			CLKernel	 _pyrdown;
-			CLKernel	 _flowthreshold;
+			CLKernel	 _tvl1;
+			CLKernel	 _tvl1_warp;
+			CLKernel	 _tvl1_dataadd;
 			CLKernel	 _clear;
 			CLKernel	 _median3;
 			float		 _lambda;
-			ROFFGPFilter _rof;
-			GuidedFilter _gf;
+//			ROFFGPFilter _rof;
+//			GuidedFilter _gf;
 			Image*		 _pyr[ 2 ];
 	};
 }

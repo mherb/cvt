@@ -141,7 +141,9 @@ SET( CL_KERNELS
 	cl/kernel/pyr/pyrup.cl
 	cl/kernel/pyr/pyrupmul.cl
 	cl/kernel/pyr/pyrdown.cl
-	cl/kernel/tvl1flow/flowthreshold.cl
+	cl/kernel/tvl1flow/tvl1.cl
+	cl/kernel/tvl1flow/tvl1_dataadd.cl
+	cl/kernel/tvl1flow/tvl1_warp.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -165,7 +167,10 @@ CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
 CLTOHEADER( cl/kernel/pyr/pyrup.cl )
 CLTOHEADER( cl/kernel/pyr/pyrupmul.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
-CLTOHEADER( cl/kernel/tvl1flow/flowthreshold.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
+
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -207,7 +212,9 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/pyr/pyrdown.h
 	cl/kernel/pyr/pyrup.h
 	cl/kernel/pyr/pyrupmul.h
-	cl/kernel/tvl1flow/flowthreshold.h
+	cl/kernel/tvl1flow/tvl1.h
+	cl/kernel/tvl1flow/tvl1_warp.h
+	cl/kernel/tvl1flow/tvl1_dataadd.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
