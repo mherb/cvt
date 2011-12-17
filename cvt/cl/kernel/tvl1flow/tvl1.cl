@@ -49,6 +49,7 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 			dy = BUF( x, y ).yw - BUF( x, y - 1 ).yw;
 			// image + theta * div( p )
 			BUF2( x, y ).xy = u + theta * ( ( float2 ) ( dx.x + dy.x, dx.y + dy.y ) );
+			//BUF2( x, y ).xy = BUF2(x,y).xy*2-u;
 			BUF2( x, y ).w  = w.w;
 		}
 	}
@@ -63,8 +64,9 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	dy = BUF2( lx, ly + 1 ).xy - w.xy;
 
 	pout = BUF( lx, ly ) + ( 1.0f / ( 8.0f * theta ) ) * ( float4 ) ( dx.x, dy.x, dx.y, dy.y );
-	norm = fmax( ( float2 ) 1.0f, ( float2 ) ( length( pout.xy )/ w.w, length( pout.zw ) ) / w.w );
-	pout = pout / norm.xxyy;
+	//norm = fmax( ( float2 ) 1.0f, ( float2 ) ( length( pout.xy )/ w.w, length( pout.zw ) ) / w.w );
+	float n = fmax(  1.0f,  fast_length( pout ) / w.w );
+	pout = pout / ( float4 ) ( n );
 
 	write_imagef( eout, ( int2 ) ( gx, gy ), pout );
 	write_imagef( uout, ( int2 ) ( gx, gy ), ( float4 ) ( w.x, w.y, 0.0f, 0.0f ) );

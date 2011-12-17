@@ -33,7 +33,7 @@ namespace cvt {
 			_tvl1_dataadd( _tvl1_dataadd_source, "tvl1_dataadd" ),
 			_clear( _clear_source, "clear" ),
 			_median3( _median3_source, "median3" ),
-			_lambda( 35.0f )
+			_lambda( 300.0f )
 		{
 			_pyr[ 0 ] = new Image[ levels ];
 			_pyr[ 1 ] = new Image[ levels ];
@@ -136,7 +136,7 @@ namespace cvt {
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
 				float t = 1.0f, told = 1.0f;
-				for( int k = 0; k < 10; k++ ) {
+				for( int k = 0; k < 50; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );
 					_tvl1.setArg( 2, *us[ 1 ] );
@@ -144,7 +144,7 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 6, _lambda );
+					_tvl1.setArg( 6, _lambda / ( k * 0.6f + 1.0f ) );
 					_tvl1.setArg( 7, THETA );
 				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );
 					_tvl1.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
