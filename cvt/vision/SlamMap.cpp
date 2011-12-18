@@ -4,7 +4,8 @@
 
 namespace cvt
 {
-	SlamMap::SlamMap()
+	SlamMap::SlamMap() :
+		_numMeas( 0 )
 	{
 	}
 
@@ -40,7 +41,9 @@ namespace cvt
 								  size_t keyframeId,
 								  const  Eigen::Vector2d& meas )
 	{
+		_features[ pointId ].addPointTrack( keyframeId );
 		_keyframes[ keyframeId ].addFeature( meas, pointId );
+		_numMeas++;
 	}
 
 

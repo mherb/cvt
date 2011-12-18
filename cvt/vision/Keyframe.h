@@ -2,7 +2,9 @@
 #define CVT_KEYFRAME_H
 
 #include <Eigen/Core>
-#include <Eigen/StdVector>
+#include <map>
+
+#include <cvt/vision/MapMeasurement.h>
 
 namespace cvt
 {
@@ -10,35 +12,34 @@ namespace cvt
 	{
 		public:
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
+			typedef std::map<size_t, MapMeasurement>::const_iterator MeasurementIterator;
+
 			Keyframe( const Eigen::Matrix4d& pose );
 
-			void					addFeature( const Eigen::Vector2d & f, size_t id );
+			void					addFeature( const MapMeasurement & f, size_t id );
 
-			size_t					numMeasurements()				const { return _features.size(); }
-			const Eigen::Vector2d&	featureMeasurement( size_t n )	const { return _features[ n ]; }
-			size_t					featureId( size_t n )			const { return _feature3dIds[ n ]; }
+			size_t					numMeasurements()				const { return _featMeas.size(); }
+			const MapMeasurement&	measurementForId( size_t id  )	const { return _featMeas.find( id ).second; }
 
-			const Eigen::Matrix4d&	pose()							const { return _pose; }	
+			const Eigen::Matrix4d&	pose()						const { return _pose; }	
 			void					setPose( const Eigen::Matrix4d & pose ) { _pose = pose; }
 
 			// distance measure of this keyframe to a given transform
-			double					distance( const Eigen::Matrix4d & transform ) const;	
+			// double				distance( const Eigen::Matrix4d & transform ) const;
+			MeasurementIterator		measurementsBegin() const { return _featMeas.begin(); }
+			MeasurementIterator		measurementsEnd()   const { return _featMeas.end(); }
 
 		private:
-			Eigen::Matrix4d			_pose;
+			Eigen::Matrix4d						_pose;
 
-			/* ids of the 3d features belonging to 
-			   the measurements in this keyframe */
-			std::vector<size_t>				_feature3dIds;
-
-			/* the 2D features */
-			std::vector<Eigen::Vector2d>	_features;
+			// 2d meas of 3d feat with id
+			std::map<size_t, MapMeasurement>	_featMeas;
 	};
 
-	inline void Keyframe::addFeature( const Eigen::Vector2d & f, size_t id )
+	inline void Keyframe::addFeature( const MapMeasurement & f, size_t id )
 	{
-		_features.push_back( f );
-		_feature3dIds.push_back( id );
+		_features.insert( std::pair<size_t, MapMeasurement>( id, f ) );
 	}
 }
 

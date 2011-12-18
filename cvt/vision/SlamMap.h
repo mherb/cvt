@@ -32,14 +32,21 @@ namespace cvt
 										  const Eigen::Matrix4d	   & cameraPose,
 										  const CameraCalibration  & camCalib );
 
-			const MapFeature&	featureForId( size_t id ) const { return _features[ id ]; }
-			const Keyframe&		keyframeForId( size_t id ) const { return _keyframes[ id ]; }
+			const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
+			const Keyframe&			keyframeForId( size_t id ) const { return _keyframes[ id ];}
+			const Eigen::Matrix3d&  intrinsics() const { return _intrinsics; }
+
+			size_t numFeatures()	 const { return _features.size(); }
+			size_t numKeyframes()	 const { return _keyframes.size(); }
+			size_t numMeasurements() const { return _numMeas; }
+
+			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
 		private:
 			std::vector<Keyframe>	_keyframes;
 			std::vector<MapFeature>	_features;
-
-			// TODO: add a Keyframe-Graph here
+			Eigen::Matrix3d			_intrinsics;
+			size_t					_numMeas;
 	};
 }
 

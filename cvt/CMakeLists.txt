@@ -357,7 +357,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h
-	math/Optimization.h
+	math/TerminationCriteria.h
 	math/Polynomial.h
 	math/Quaternion.h
 	math/sac/SampleConsensusModel.h
