@@ -236,10 +236,10 @@ namespace cvt
 			case IFORMAT_GRAY_INT16:		clorder = CL_INTENSITY; cltype = CL_SNORM_INT16; break;
 			case IFORMAT_GRAY_FLOAT:		clorder = CL_INTENSITY;	cltype = CL_FLOAT; break;
 
-			case IFORMAT_GRAYALPHA_UINT8:	clorder = CL_RA; cltype = CL_UNORM_INT8; break;
-			case IFORMAT_GRAYALPHA_UINT16:	clorder = CL_RA; cltype = CL_UNORM_INT16; break;
-			case IFORMAT_GRAYALPHA_INT16:	clorder = CL_RA; cltype = CL_SNORM_INT16; break;
-			case IFORMAT_GRAYALPHA_FLOAT:	clorder = CL_RA; cltype = CL_FLOAT; break;
+			case IFORMAT_GRAYALPHA_UINT8:	clorder = CL_RG; cltype = CL_UNORM_INT8; break;
+			case IFORMAT_GRAYALPHA_UINT16:	clorder = CL_RG; cltype = CL_UNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_INT16:	clorder = CL_RG; cltype = CL_SNORM_INT16; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	clorder = CL_RG; cltype = CL_FLOAT; break;
 
 			case IFORMAT_RGBA_UINT8:		clorder = CL_RGBA; cltype = CL_UNORM_INT8; break;
 			case IFORMAT_RGBA_UINT16:		clorder = CL_RGBA; cltype = CL_UNORM_INT16; break;
