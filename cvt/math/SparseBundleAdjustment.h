@@ -5,117 +5,73 @@
 #include <set>
 
 #include <Eigen/Core>
-
-#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET 1 
 #include <Eigen/Sparse>
-#include <unsupported/Eigen/SparseExtra>
-#include <Eigen/Cholesky>
 
-#include "SBAData.h"
+#include <cvt/vision/SlamMap.h> 
+#include <cvt/math/SparseBlockMatrix.h>
+#include <cvt/math/JointMeasurements.h>
 
 namespace cvt {
 	class SparseBundleAdjustment
 	{
-	public:
-		SparseBundleAdjustment();
-		~SparseBundleAdjustment();
+		public:
+			SparseBundleAdjustment();
+			~SparseBundleAdjustment();
 
-		/*
-		 *	SBAData must be properly filled
-		 *	- screen point predictions must be valid
-		 *	- residuals computed
-		 */
-		double optimize( SBAData & data );
+			double optimize( SlamMap & data, const TerminationCriteria & criteria );
 
-		size_t iterations()
-		{
-			return numIterations;
-		}
+			size_t iterations() const { return _iterations; }
+			double epsilon()	const { return _costs; }
 
-		double epsilon()
-		{
-			return lastCosts;
-		}
+		private:
+			/* jacobians for each point */		
+			const size_t pointParamDim = 3;
+			const size_t camParamDim   = 6;
+			typedef Eigen::Matrix<double, 2, pointParamDim>				PointScreenJacType;
+			typedef Eigen::Matrix<double, 2, camParamDim>				CamScreenJacType;
+			typedef Eigen::Matrix<double, camParamDim, camParamDim>		CamJTJ;
+			typedef Eigen::Matrix<double, pointParamDim, pointParamDim>	PointJTJ;
+			typedef Eigen::Matrix<double, camParamDim, 1>				CamResidualType;
+			typedef Eigen::Matrix<double, pointParamDim, 1>				PointResidualType;
 
-		void setTerminationCriteria( double eps, size_t maxIter )
-		{
-			minEps = eps;
-			maxIterations = maxIter;
-		}
 
-	private:
-		/* Jacobians of predicted screen coordinate WRT point params
-		 */
-		void pointJacobians( const CameraModel & camera,
-							 const Eigen::Vector4d & pointParams,
-							 const Eigen::Vector3d & p3,
-							 Eigen::Matrix<double, 2, 3> & jacobians );
+			/* approx. Point Hessians */
+			std::vector<PointJTJ,		   Eigen::aligned_allocator>	_pointsJTJ;
 
-		double buildAndSolveSystem( SBAData & sbaData,
-								    Eigen::VectorXd & deltaCam,
-								    Eigen::VectorXd & deltaStruct );
+			/* inverse of the augmented approx Point Hessians */
+			std::vector<PointJTJ,		   Eigen::aligned_allocator>	_invAugPJTJ;
 
-		bool checkTermination( )
-		{
-			if( ( costDecr < 1e-12 ) ||
-			    ( numIterations >= maxIterations ) ||
-			    ( minEps > lastCosts ) )
-				return true;
-			return false;
-		}
+			std::vector<CamJTJ,			   Eigen::aligned_allocator>	_camsJTJ;
+			std::vector<Eigen::Vector2d,   Eigen::aligned_allocator>	_residuals;
+			std::vector<CamResidualType,   Eigen::aligned_allocator>	_camResiduals;
+			std::vector<PointResidualType, Eigen::aligned_allocator>	_pointResiduals;
+			
+			/* Sparse Upper Left of the approx. Hessian */
+			SparseBlockMatrix<camParamDim, pointParamDim>				_camPointJTJ;
 
-		/* computing the intermediate block matrices (Schur complementing ...) */
-		void computeIntermediateValues( SBAData & sbaData );
+			JointMeasurements											_jointMeasures;
 
-		void fillSparseMatrix( SBAData & sbaData );
-		void fillRCSMatrix( SBAData & sbaData );
+			Eigen::SparseMatrix<double, Eigen::ColMajor>				_sparseReduced;
+			Eigen::VectorXd												_reducedRHS;
 
-		void cleanUp();
+			// levenberg marquard damping
+			double _lambda;
+			size_t _iterations;
+			double _costs;
 
-		void resizeMatrices( SBAData & sbaData );
-		void clearMatrices();
-		void solveStructure( Eigen::VectorXd & deltaCam, Eigen::VectorXd & deltaStruct );
-		void calcAugmentations();
-		void fillAndSolveMatrix( SBAData & sbaData, Eigen::VectorXd & deltaCam, Eigen::VectorXd & deltaStruct );
-		double augmentAndSolveSystem( SBAData & sbaData,
-									  Eigen::VectorXd & deltaCam,
-									  Eigen::VectorXd & deltaStruct );
+			void buildReducedCameraSystem( const SlamMap & map );
+			void evaluateApproxHessians( const SlamMap & map );
+			void fillSparseMatrix( const SlamMap & map );
 
-		Eigen::Vector3d currProjection;
-		Eigen::Vector4d currPointParams;
+			// calculate the augmented inverse Hessians of the points:
+			void updateInverseAugmentedPointHessians();
 
-		const double jacDelta;
-		double lambda;
-		double lastCosts;
-		double costDecr;
-		size_t numIterations;
-		double minEps;
-		size_t maxIterations;
+			// set the cam sums to zero 
+			void clear();
 
-		/* as described in MVG */
-		std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > W;
-		std::vector<std::vector<Eigen::Matrix<double, 6, 3>* > > Y;
+			/* reserve appropriate space and create internal blocks once! */
+			void prepareSparseMatrix();
 
-		/* for each point V_i = J_P_i^T Cov_i^{-1} J_P_ */
-		std::vector<Eigen::Matrix<double, 3, 3> > V;
-		/* V_i^* */
-		std::vector<Eigen::Matrix<double, 3, 3> > V_aug;
-		/* (V_i^*)^{-1} */
-		std::vector<Eigen::Matrix<double, 3, 3> > V_aug_inv;
-
-		/* U_j: for each camera -> sum of jacobians of observed points, wrt current camera parameters */
-		std::vector<Eigen::Matrix<double, 6, 6> > U;
-		/* e_a_j */
-		std::vector<Eigen::Matrix<double, 6, 1> > residualSumForCamera;
-		/* e_b_i */
-		std::vector<Eigen::Vector3d> residualSumForPoint;
-
-		Eigen::SparseMatrix<double, Eigen::ColMajor> SRCS;
-		Eigen::SparseLDLT<Eigen::SparseMatrix<double, Eigen::ColMajor> > ldlt;
-
-		Eigen::VectorXd eCam;
-
-		typedef double (SparseBundleAdjustment::*UpdateFunc)( SBAData&, Eigen::VectorXd&, Eigen::VectorXd& );
 	};
 }
 
