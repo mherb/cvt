@@ -7,6 +7,7 @@
 #include <cvt/util/Time.h>
 
 #include <cvt/vision/Flow.h>
+#include <cvt/io/FloFile.h>
 
 #include "TVL1Flow.h"
 
@@ -15,7 +16,7 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	if( argc != 3 ) {
+	if( argc != 3 && argc != 4 ) {
 		std::cout << "usage: " << argv[ 0 ] << " image1 image2" << std::endl;
 		return 0;
 	}
@@ -31,7 +32,7 @@ int main( int argc, char** argv )
 	Image ccode;
 
 	try {
-		TVL1Flow flow( 0.5, 4 );
+		TVL1Flow flow( 0.8, 8 );
 
 		Time t;
 		flow.apply( output, input1, input2 );
@@ -41,6 +42,15 @@ int main( int argc, char** argv )
 		ccode.reallocate( output.width(), output.height(), IFormat::BGRA_FLOAT );
 		Flow::colorCode( ccode, output, 2.0f );
 		ccode.save( "flow.png" );
+
+		if( argc == 4 ) {
+			Image gt;
+			FloFile::FloReadFile( gt, argv[ 3 ] );
+			float aee = Flow::AEE( output, gt );
+			float aae = Flow::AAE( output, gt );
+			std::cout << "AEE: " << aee << std::endl;
+			std::cout << "AAE: " << aae << std::endl;
+		}
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
