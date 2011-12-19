@@ -30,7 +30,7 @@ namespace cvt {
 			CLKernel	 _median3;
 			float		 _lambda;
 //			ROFFGPFilter _rof;
-//			GuidedFilter _gf;
+			GuidedFilter _gf;
 			Image*		 _pyr[ 2 ];
 	};
 }
