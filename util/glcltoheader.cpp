@@ -39,6 +39,8 @@ int main( int argc, char** argv )
 			   break;
 		case '\"': output << "\\\"";
 			   break;
+		case '\\': output << "\\\\";
+			   break;
 		default: output << val;
 	    }
 	}
