@@ -262,6 +262,16 @@ namespace cvt {
 			return ::tan( x );
 		}
 
+		static inline float tanh( float x )
+		{
+			return ::tanhf( x );
+		}
+
+		static inline double tanh( double x )
+		{
+			return ::tanh( x );
+		}
+
 		static inline float atan2( float y, float x )
 		{
 			return ::atan2f( y, x );
