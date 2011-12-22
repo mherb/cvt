@@ -28,7 +28,7 @@ namespace cvt
 	}
 
 	size_t SlamMap::addFeatureToKeyframe( const MapFeature& world, 
-									      const Eigen::Vector2d& feature, 
+									      const MapMeasurement& feature, 
 										  size_t keyframeId )
 	{
 		size_t pointId = addFeature( world );
@@ -39,7 +39,7 @@ namespace cvt
 			
 	void SlamMap::addMeasurement( size_t pointId, 
 								  size_t keyframeId,
-								  const  Eigen::Vector2d& meas )
+								  const  MapMeasurement& meas )
 	{
 		_features[ pointId ].addPointTrack( keyframeId );
 		_keyframes[ keyframeId ].addFeature( meas, pointId );
@@ -92,12 +92,16 @@ namespace cvt
 			if( _keyframes[ i ].distance( cameraPose ) < maxDistance ){
 				// check if the points of this keyframe would project to this camera
 				const Keyframe& kf = _keyframes[ i ];
-				for( size_t p = 0; p < kf.numMeasurements(); p++ ){
-					// project the feature onto the current camera
-					size_t fId =  kf.featureId( p );
-					MapFeature* feature = &_features[ fId ];
+				
+				Keyframe::MeasurementIterator iter = kf.measurementsBegin();
+				const Keyframe::MeasurementIterator measEnd = kf.measurementsEnd();
+
+				while( iter != measEnd ){
+					size_t fId = iter->first;
+					const MapFeature& feature = _features[ fId ];
+
 					if( usedPoints.find( fId ) == usedPoints.end() ){
-						pointInCam = poseInv * feature->estimate();
+						pointInCam = poseInv * feature.estimate();
 						pointInCam /= pointInCam[ 3 ];
 						if( pointInCam[ 2 ] > 0.0 ){
 							pic[ 0 ] = ( float )pointInCam[ 0 ];
@@ -120,6 +124,7 @@ namespace cvt
 							}
 						}
 					}
+					++iter;
 				}
 			}	
 		}

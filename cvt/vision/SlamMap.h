@@ -5,6 +5,8 @@
 #include <cvt/vision/Keyframe.h>
 #include <cvt/vision/MapFeature.h>
 
+#include <Eigen/StdVector>
+
 namespace cvt
 {
 	class SlamMap
@@ -17,12 +19,12 @@ namespace cvt
 			size_t addFeature( const MapFeature& world );
 
 			size_t addFeatureToKeyframe( const MapFeature& world,
-									     const Eigen::Vector2d& feature,
+									     const MapMeasurement& feature,
 									     size_t keyframeId );
 
 			void addMeasurement( size_t pointId, 
 							     size_t keyframeId,
-								 const Eigen::Vector2d& meas );
+								 const MapMeasurement& meas );
 
 
 			size_t findClosestKeyframe( const Eigen::Matrix4d& worldT ) const;
@@ -33,7 +35,9 @@ namespace cvt
 										  const CameraCalibration  & camCalib );
 
 			const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
+			MapFeature&				featureForId( size_t id )		 { return _features[ id ];}
 			const Keyframe&			keyframeForId( size_t id ) const { return _keyframes[ id ];}
+			Keyframe&				keyframeForId( size_t id )		 { return _keyframes[ id ];}
 			const Eigen::Matrix3d&  intrinsics() const { return _intrinsics; }
 
 			size_t numFeatures()	 const { return _features.size(); }
@@ -43,8 +47,8 @@ namespace cvt
 			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
 		private:
-			std::vector<Keyframe>	_keyframes;
-			std::vector<MapFeature>	_features;
+			std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> >		_keyframes;
+			std::vector<MapFeature, Eigen::aligned_allocator<MapFeature> >	_features;
 			Eigen::Matrix3d			_intrinsics;
 			size_t					_numMeas;
 	};

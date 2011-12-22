@@ -226,18 +226,21 @@ namespace cvt
 				//std::cout << "Tracked Features: " << p3d.size();
 				
 				size_t kId = _map.addKeyframe( _pose.transformation() );
-				Eigen::Vector2d featPoint;
+				MapMeasurement meas;
+				
 				Eigen::Matrix4d featureCov = 0.2 * Eigen::Matrix4d::Identity();
 			
 				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
 						float reprErr = triangulate( mapFeat, matches[ i ] );
+
+						// TODO: covariance according to triangulation precision
 						
 						if( reprErr < _maxTriangReprojError ){
-							featPoint.x() = matches[ i ].feature0->pt.x;
-							featPoint.y() = matches[ i ].feature0->pt.y;
-							size_t newPointId = _map.addFeatureToKeyframe( mapFeat, featPoint, kId );
+							meas.point[ 0 ] = matches[ i ].feature0->pt.x;
+							meas.point[ 1 ] = matches[ i ].feature0->pt.y;
+							size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
 							_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
 
 							const Eigen::Vector4d & wp = mapFeat.estimate();

@@ -2,13 +2,14 @@
 
 namespace cvt
 {
-	Keyframe::Keyframe( const Eigen::Matrix4d& pose ) :
-		_pose( pose )
+	Keyframe::Keyframe( const Eigen::Matrix4d& pose ) 
 	{
+		_pose.set( pose );
 	}
 
 	double Keyframe::distance( const Eigen::Matrix4d & transform ) const
 	{
-		return ( transform.block<3, 1>( 0, 3 ) - _pose.block<3, 1>( 0, 3 ) ).squaredNorm();
+		const Eigen::Matrix4d & poseMat = _pose.transformation();
+		return ( transform.block<3, 1>( 0, 3 ) - poseMat.block<3, 1>( 0, 3 ) ).squaredNorm();
 	}
 }

@@ -350,6 +350,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/CostFunction.h
 	math/Complex.h
 	math/Fixed.h
+	math/JointMeasurements.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -555,6 +556,8 @@ SET(${MODULE_NAME}_SOURCES
 	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
+	math/JointMeasurements.cpp
+	math/JointMeasurementsTest.cpp
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp

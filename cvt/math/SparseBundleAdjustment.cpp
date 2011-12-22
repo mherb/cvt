@@ -1,25 +1,42 @@
 #include "SparseBundleAdjustment.h"
 
-#include <Eigen/LU>
-#include <Eigen/Cholesky>
-#include <Eigen/QR>
+#include <unsupported/Eigen/SparseExtra>
 
 #include <cvt/math/Math.h>
+#include <cvt/math/SE3.h>
+#include <cvt/vision/Vision.h>
 
 #include <cstring>
 
 namespace cvt {
 	
-	SparseBundleAdjustment::SparseBundleAdjustment()
+	SparseBundleAdjustment::SparseBundleAdjustment() :
+		_nPts( 0 ),
+		_nCams( 0 ),
+		_nMeas( 0 ),
+		_pointsJTJ( 0 ),
+		_invAugPJTJ( 0 ),
+		_camsJTJ( 0 ),
+		_camResiduals( 0 ),
+		_pointResiduals( 0 )
 	{		
 	}
 	
 	SparseBundleAdjustment::~SparseBundleAdjustment()
-	{		
+	{	
+		if( _pointsJTJ )
+			delete[] _pointsJTJ;	
+		if( _invAugPJTJ )
+			delete[] _invAugPJTJ;	
+		if( _camsJTJ )
+			delete[] _camsJTJ;	
+		if( _camResiduals )
+			delete[] _camResiduals;	
+		if( _pointResiduals )
+			delete[] _pointResiduals;	
 	}
 
-
-	double SparseBundleAdjustment::optimize( SlamMap & map )
+	void SparseBundleAdjustment::optimize( SlamMap & map, const TerminationCriteria<double> & criteria )
 	{
 		_iterations = 0;
 		_costs	    = 0.0;
@@ -27,111 +44,142 @@ namespace cvt {
 		// evaluate costs, resize the vectors
 		size_t numPoints = map.numFeatures();
 		size_t numCams	 = map.numKeyframes();
-		size_t numMeas	 = map.numMeasurements();
+		_nMeas    = map.numMeasurements();
 
-		_pointsJTJ.resize( numPoints );
-		_camsJTJ.resize( numCams );
-		_residuals.resize( numMeasurements );
-		_camResiduals.resize( numCams );
-		_pointResiduals.resize( numPoints );
+		// resize internal structures for jacobians etc.
+		resize( numCams, numPoints );
 
-		_camPointJTJ.resize( numCams, numPoints );
-
-		_sparseReduced.resize( camParamDim * numCams, camParamDim * numCams );
-		_reducedRHS.resize( camParamDim * numCams );
-
-		// build the reduced system
-		buildReducedCameraSystem( map );
-
-		// prepare the sparse matrix (storage allocation) <- need jointMeasures to be filled
-		prepareSparseMatrix( numCams );
-
-		while( true ){
+		Eigen::VectorXd	deltaCam( camParamDim * numCams );
+		Eigen::VectorXd	deltaPoint( pointParamDim * numPoints );
 		
-			// TODO: check if we're done
+		// TODO: modularize on the solver:
+		// SimplicialCholesky -> LDLt by default, can also set LLt
+		Eigen::SimplicialCholesky<Eigen::SparseMatrix<double, Eigen::ColMajor>, Eigen::Lower> solver;
+
+		double lastCosts = 0.0;
+		while( true ){
+			// build the reduced system: in first iteration, eval costs
+			buildReducedCameraSystem( map );
+			
+			if( _iterations == 0 ){
+				// solve symbolic
+				solver.analyzePattern( _sparseReduced );
+			}
+
+			solver.factorize( _sparseReduced );
+			deltaCam = solver.solve( _reducedRHS );
+
+			// apply camera delta:
+			updateCameras( deltaCam, map );
+
+			//	update the points and re-evaluate costs
+		    lastCosts = _costs;
+			solveStructure( deltaPoint, deltaCam, map );
+			
+			//std::cout << "LastCosts: " << lastCosts << ", CurrentCosts: " << _costs << ", lambda: " << _lambda << std::endl;
+
+			if( _costs < lastCosts ){
+				// step was good -> update lambda and do next step
+				_lambda /= 10.0;
+			} else {
+				deltaCam	*= -1.0;
+				deltaPoint  *= -1.0;
+				
+				// undo the step
+				undoStep( deltaCam, deltaPoint, map );
+
+				// update the lamda
+				_lambda *= 10.0;
+
+				// reset the step
+				_costs = lastCosts;
+			}
+
+			_iterations++;
+			if( criteria.finished( _costs, _iterations ) ){
+				break;
+			}
+
 		}
 	}
 
 	void SparseBundleAdjustment::buildReducedCameraSystem( const SlamMap & map )
 	{
-		size_t nPts  = map.numFeatures();
-		size_t nCams = map.numKeyframes();
-
 		evaluateApproxHessians( map );
 		updateInverseAugmentedPointHessians();
+
+		if( _iterations == 0 ){
+			// prepare the sparse matrix (storage allocation) <- need jointMeasures to be filled
+			prepareSparseMatrix( map.numKeyframes() );
+		}
+
+		fillSparseMatrix( map );
 	}
 
 	void SparseBundleAdjustment::evaluateApproxHessians( const SlamMap & map )
 	{
-		size_t nPts  = map.numFeatures();
-		size_t nCams = map.numKeyframes();
-
-		Eigen::Matrix<double, 2, 6> screenJacCam;
-		Eigen::Matrix<double, 2, 3> screenJacPoint;
+		CamScreenJacType	screenJacCam;
+		PointScreenJacType	screenJacPoint;
 		Eigen::Matrix<double, 6, 2> jCamTCovInv;
 		Eigen::Matrix<double, 3, 2> jPointTCovInv;
 		Eigen::Matrix<double, 3, 1> point3d, pCam;
+		Eigen::Matrix<double, 2, 1> residual;
 		Eigen::Matrix<double, 2, 1> reproj;
-		clearJacobianSums();
 
-		const Matrix3d & K = map.intrinsics();
+		const Eigen::Matrix3d & K = map.intrinsics();
+		
 		size_t currMeas = 0;
-
 		double avgDiag = 0.0;
+		bool firstIter = ( _iterations == 0 );
 
 		// for all 3D Points
-		for( size_t i = 0; i < nPts; i++ ){
+		clear();
+		for( size_t i = 0; i < _nPts; i++ ){
 			_pointsJTJ[ i ].setZero();
 			_pointResiduals[ i ].setZero();
 
 			// get the MapFeature: 
 			const MapFeature & feature = map.featureForId( i );
-			const Eigen::Matrix4d & ptmp = feature.estimate();
+			const Eigen::Vector4d & ptmp = feature.estimate();
 			point3d = ptmp.head<3>() / ptmp[ 3 ];
 
 
 			// for all point tracks (meas. in the cams) of this point
-			MapFeature::ConstPointTrackIterator camIterEnd  = feature.pointTrackEnd();
 			MapFeature::ConstPointTrackIterator camIterCurr = feature.pointTrackBegin();
+			const MapFeature::ConstPointTrackIterator camIterEnd  = feature.pointTrackEnd();
 			
-			/* update the joint meas structure: TODO -> only needed in first iteration! */
-			while( camIterCurr != camIterEnd ){
-				for( MapFeature::ConstPointTrackIterator camIter = ++camIterCurr;
-					camIter != camIterEnd;
-					++camIter ){
-					_jointMeasures.addMeasurementForEntity( *camIterCurr, *camIter, i );
+			/* update the joint meas structure: -> only needed in first iteration! */
+			if( firstIter ){
+				while( camIterCurr != camIterEnd ){
+					MapFeature::ConstPointTrackIterator camIter = camIterCurr;
+					camIter++;
+					while( camIter != camIterEnd ) {
+						_jointMeasures.addMeasurementForEntity( *camIterCurr, *camIter, i );
+						++camIter;
+					}
+					++camIterCurr;
 				}
 			}
 
 			for( MapFeature::ConstPointTrackIterator camIter = feature.pointTrackBegin();
 				 camIter != camIterEnd;
-				 camIter++, currMeas++; ){
+				 camIter++, currMeas++ ){
 				// get the keyframe:
 				const Keyframe & keyframe = map.keyframeForId( *camIter );
 
 				// screen jacobian for this 3D point in that camera
 				const Eigen::Matrix4d & trans = keyframe.pose().transformation();
-
-				pCam = trans.block<3, 3>( 0, 0 ) * point3d + trans.block<3, 1>( 0, 3 ); 
+				const Eigen::Matrix<double, 3, 3> & R = trans.block<3, 3>( 0, 0 );
+				pCam = R * point3d + trans.block<3, 1>( 0, 3 ); 
 
 				// screen jacobian for this camera
-				keyframe.pose().screenJacobian( screenJacCam, pCam );
+				keyframe.pose().screenJacobian( screenJacCam, pCam, K );
 
 				// point jacobian for this point in this cam:
-				double invZ = 1.0 / pCam.z();
-				double invZZ = 1.0 / Math::sqr( pCam.z() );
-				screenJacPoint( 0, 0 ) =  K( 0, 0 ) * invZ;
-				screenJacPoint( 0, 2 ) = -K( 0, 0 ) * invZZ * pCam[ 0 ];
-				screenJacPoint( 1, 1 ) =  K( 1, 1 ) * invZ;
-				screenJacPoint( 1, 2 ) = -K( 1, 1 ) * invZZ * pCam[ 1 ];
-				screenJacPoint *= trans.block<3, 3>( 0, 0 );
-
-				// the reprojection:
-				reproj[ 0 ] = K( 0, 0 ) * pCam[ 0 ] * invZ + K( 0, 2 ); 
-				reproj[ 1 ] = K( 1, 1 ) * pCam[ 1 ] * invZ + K( 1, 2 );
+				evalScreenJacWrtPoint( reproj, screenJacPoint, pCam, K, R );
 
 				const MapMeasurement & mm = keyframe.measurementForId( i );
-				_residuals[ currMeas ] = mm.point - reproj;
+				residual = mm.point - reproj;
 
 				// J^T * Cov^-1
 				jCamTCovInv = screenJacCam.transpose() * mm.information;
@@ -142,31 +190,39 @@ namespace cvt {
 				_camsJTJ[ *camIter ]	+= jCamTCovInv * screenJacCam;
 
 				// accumulate the residuals
-				_pointResiduals[ i ] += ( jPointTCovInv * _residuals[ currMeas ] );
-				_camResiduals[ i ]   += ( jCamTCovInv * _residuals[ currMeas ] );
+				_pointResiduals[ i ]		+= ( jPointTCovInv * residual );
+				_camResiduals[ *camIter ]   += ( jCamTCovInv   * residual );
+
+				_costs += residual.transpose() * mm.information * residual;
 
 				/* camPointJacobian */
-				_camPointJTJ.block( *camIter, i ) = jCamTCovInv * screenJacPoint;
+				_camPointJTJ.block( *camIter, i ) = ( jCamTCovInv * screenJacPoint );
 
 			}
 
 			// the pointjac JTJ & pointResidual sums for pt i are complete now
-			avgDiag += _pointsJTJ[ i ].array().diagonal().sum();
+			if( firstIter )
+				avgDiag += _pointsJTJ[ i ].diagonal().array().sum();
 
 		}
 
-		// the camJac & JTJ & pointResidual sums are complete now
-		for( size_t j = 0; j < numCams; j++ ){
-			avgDiag += _camsJTJ[ j ].array().diagonal().sum();
-		}
+		_costs /= _nMeas;
 
-		// initial lambda
-		_lambda = avgDiag / ( ( numCams + numPoints ) * 1000.0 );
+		// compute initial lambda on first iteration
+		if( firstIter ) {
+			// the camJac & JTJ & pointResidual sums are complete now
+			for( size_t j = 0; j < _nCams; j++ ){
+				avgDiag += _camsJTJ[ j ].diagonal().array().sum();
+			}
+
+			// initial lambda
+			_lambda = avgDiag / ( ( _nCams + _nPts ) * 1000.0 );
+		}
 	}
 
 	void SparseBundleAdjustment::clear()
 	{
-		for( size_t i = 0; i < _camsJTJ.size(); i++ ){
+		for( size_t i = 0; i < _nCams; i++ ){
 			_camsJTJ[ i ].setZero();
 			_camResiduals[ i ].setZero();
 		}
@@ -179,43 +235,56 @@ namespace cvt {
 
 		size_t c2;
 		for( size_t c = 0; c < numCams; c++ ){
-			JointMeasurements::MapIteratorType iStop  = _jointMeasures.secondEntityIteratorEnd( c );
-			JointMeasurements::MapIteratorType iBeg   = _jointMeasures.secondEntityIteratorBegin( c );
+			size_t currCamRow = c * camParamDim;
+			size_t currCamCol = currCamRow;
+			const JointMeasurements::ConstMapIterType iStop  = _jointMeasures.secondEntityIteratorEnd( c );
+			JointMeasurements::ConstMapIterType iBeg   = _jointMeasures.secondEntityIteratorBegin( c );
+
 			for( size_t innerCol =  0; innerCol < camParamDim; innerCol++ ){
-				_sparseReduced.coeffRef( c + 0, c + innerCol ) = 0;
-				_sparseReduced.coeffRef( c + 1, c + innerCol ) = 0;
-				_sparseReduced.coeffRef( c + 2, c + innerCol ) = 0;
-				_sparseReduced.coeffRef( c + 3, c + innerCol ) = 0;
-				_sparseReduced.coeffRef( c + 4, c + innerCol ) = 0;
-				_sparseReduced.coeffRef( c + 5, c + innerCol ) = 0;
-				JointMeasurements::MapIteratorType iStart = iBeg;
+				size_t col = currCamCol + innerCol;
+				_sparseReduced.startVec( col );
+
+				_sparseReduced.insertBack( currCamRow + 0, col ) = 0;
+				_sparseReduced.insertBack( currCamRow + 1, col ) = 0;
+				_sparseReduced.insertBack( currCamRow + 2, col ) = 0;
+				_sparseReduced.insertBack( currCamRow + 3, col ) = 0;
+				_sparseReduced.insertBack( currCamRow + 4, col ) = 0;
+				_sparseReduced.insertBack( currCamRow + 5, col ) = 0;
+
+				JointMeasurements::ConstMapIterType iStart = iBeg;
 				while( iStart != iStop ){
 					c2 = iStart->first;
-					_sparseReduced.coeffRef( c2 + 0, c + innerCol ) = 0;
-					_sparseReduced.coeffRef( c2 + 1, c + innerCol ) = 0;
-					_sparseReduced.coeffRef( c2 + 2, c + innerCol ) = 0;
-					_sparseReduced.coeffRef( c2 + 3, c + innerCol ) = 0;
-					_sparseReduced.coeffRef( c2 + 4, c + innerCol ) = 0;
-					_sparseReduced.coeffRef( c2 + 5, c + innerCol ) = 0;
+					size_t c2Row = c2 * camParamDim;
+					_sparseReduced.insertBack( c2Row + 0, col ) = 0;
+					_sparseReduced.insertBack( c2Row + 1, col ) = 0;
+					_sparseReduced.insertBack( c2Row + 2, col ) = 0;
+					_sparseReduced.insertBack( c2Row + 3, col ) = 0;
+					_sparseReduced.insertBack( c2Row + 4, col ) = 0;
+					_sparseReduced.insertBack( c2Row + 5, col ) = 0;
 					++iStart;
 				}
 			}
-
 		}
+		_sparseReduced.finalize();
 	}
 
 	void SparseBundleAdjustment::fillSparseMatrix( const SlamMap & map )
 	{
 		// according to the joint Point tracks, we can now fill our matrix:
 		CamJTJ tmpBlock;
+		Eigen::Matrix<double, camParamDim, pointParamDim> tmpEval;
+		CamResidualType tmpRes;
 
 		double lambdaAug = 1.0 + _lambda;
+		size_t numCams = map.numKeyframes();
 		for( size_t c = 0; c < numCams; c++ ){
 			// first create block for this cam:
 			tmpBlock = _camsJTJ[ c ];
+			tmpRes   = _camResiduals[ c ];
 
 			// augment 
-			tmpBlock.diagonal().array() *= lambdaAug;
+			// tmpBlock.diagonal().array() *= lambdaAug;
+			tmpBlock.diagonal().array() += lambdaAug;
 
 			// go over all point measures:
 			const Keyframe & k = map.keyframeForId( c );
@@ -224,31 +293,35 @@ namespace cvt {
 			while( measIter != measEnd ){
 				size_t pointId = measIter->first;
 				
-				const Eigen::Matrix<double, camParamDim, pointParamDim> & cp = _camPointJTJ.block( c, pointId ); 
-
-				tmpBlock += cp * _invAugPJTJ[ pointId ] * cp.transpose();
+				const Eigen::Matrix<double, camParamDim, pointParamDim> & cp = _camPointJTJ.block( c, pointId );
+				tmpEval = cp * _invAugPJTJ[ pointId ];
+				tmpBlock -= tmpEval * cp.transpose();
+				tmpRes   -= tmpEval * _pointResiduals[ pointId ];
 
 				++measIter;
 			}
 
 			// set the block in the sparse matrix:
-			_sparseReduced.block<camParamDim, camParamDim>( camParamDim * c, camParamDim * c ) = tmpBlock;
-			tmpBlock.setZero();
+			setBlockInReducedSparse( tmpBlock, c, c );
+			_reducedRHS.segment<camParamDim>( camParamDim * c ) = tmpRes;
 
-			JointMeasurements::MapIteratorType iter   = _jointMeasures.secondEntityIteratorBegin( c );
-			JointMeasurements::MapIteratorType iStop  = _jointMeasures.secondEntityIteratorEnd( c );
+			tmpBlock.setZero();
+			JointMeasurements::ConstMapIterType iter   = _jointMeasures.secondEntityIteratorBegin( c );
+			JointMeasurements::ConstMapIterType iStop  = _jointMeasures.secondEntityIteratorEnd( c );
 			while( iter != iStop ){
-				size_t c2 = iter.first; // id of second cam:
-				const std::set<size_t>::const_iterator pIdIter = iter.second.begin();
-				const std::set<size_t>::const_iterator pEnd    = iter.second.begin();
+				size_t c2 = iter->first; // id of second cam:
+
+				// iterate over the joint measurements of the two cameras
+				std::set<size_t>::const_iterator pIdIter = iter->second.begin();
+				std::set<size_t>::const_iterator pEnd    = iter->second.end();
 				while( pIdIter != pEnd ){
 					size_t pId = *pIdIter;
-					tmpBlock += _camPointJTJ.block( c, pId ) * _invAugPJTJ[ pId ] * _camPointJTJ.block( c2, pId ).transpose();
-					++pIdIter;
+					tmpBlock -= _camPointJTJ.block( c, pId ) * _invAugPJTJ[ pId ] * _camPointJTJ.block( c2, pId ).transpose();
+					pIdIter++;
 				}
 				++iter;
 				
-				_sparseReduced.block<camParamDim, camParamDim>( camParamDim * c, camParamDim * c2 ) = tmpBlock;
+				setBlockInReducedSparse( tmpBlock.transpose(), c2, c );
 			}
 		}
 	}
@@ -256,33 +329,160 @@ namespace cvt {
 
 	void SparseBundleAdjustment::updateInverseAugmentedPointHessians()
 	{
-		size_t numPts = _pointsJTJ.size();
-		_invAugPJTJ.resize( numPts );
-		double lamdaAug = 1.0 + _lambda;
+		double lambdaAug = 1.0 + _lambda;
 		PointJTJ inv;
-		for( size_t i = 0; i < numPts; i++ ){
+		for( size_t i = 0; i < _nPts; i++ ){
 			inv = _pointsJTJ[ i ];
 			// augment the diagonal:
-			inv.diagonal().array() *= lambdaAug;
-			_invAugPJTJ[ i ] = inv.inverse(); // TODO: we should exploit that its a symmetric matrix!
+			//inv.diagonal().array() *= lambdaAug;
+			inv.diagonal().array() += lambdaAug;
+			// TODO: howto exploit symmetry when inverting with Eigen?
+			_invAugPJTJ[ i ] = inv.inverse(); 
 		}
 	}
 	
 
-/*	
-	void SparseBundleAdjustment::solveStructure( Eigen::VectorXd & deltaCam, 
-												 Eigen::VectorXd & deltaStruct )
+	void SparseBundleAdjustment::setBlockInReducedSparse( const CamJTJ & m,
+														  size_t bRow,
+														  size_t bCol )
 	{
-		Eigen::Vector3d tmpDelta;		
-		for( unsigned int i = 0; i < V.size(); i++ ){
-			tmpDelta = residualSumForPoint[ i ];
-			
-			for(unsigned int j = 0; j < U.size(); j++){
-				if( W[ i ][ j ] )
-					tmpDelta -= W[ i ][ j ]->transpose() * deltaCam.block( j*6, 0, 6, 1 );
+		size_t r = camParamDim * bRow;
+		size_t c = camParamDim * bCol;
+
+		for( size_t i = 0; i < camParamDim; i++ )
+			for( size_t k = 0; k < camParamDim; k++ )
+				_sparseReduced.coeffRef( r+k, c+i ) = m( k, i );
+	}
+
+	void SparseBundleAdjustment::updateCameras( const Eigen::VectorXd& deltaCam, 
+											    SlamMap & map )
+	{
+		for( size_t i = 0; i < map.numKeyframes(); i++ ){
+			map.keyframeForId( i ).updatePose( deltaCam.segment<camParamDim>( camParamDim * i ) );
+		}
+	}
+	
+	void SparseBundleAdjustment::solveStructure( Eigen::VectorXd & deltaStruct, 
+												 const Eigen::VectorXd & deltaCam,
+											     SlamMap & map )
+	{
+		size_t nPts = map.numFeatures();
+		Eigen::Vector3d res;
+		Eigen::Vector3d tmp;
+		Eigen::Vector2d pp, r;
+
+		const Eigen::Matrix3d & K = map.intrinsics();
+
+		_costs = 0.0;
+		for( size_t i = 0; i < nPts; i++ ){
+			MapFeature& f = map.featureForId( i );
+			MapFeature::ConstPointTrackIterator camIter = f.pointTrackBegin();
+			const MapFeature::ConstPointTrackIterator itEnd = f.pointTrackEnd();
+
+			res = _pointResiduals[ i ];
+			while( camIter != itEnd ){
+				res -= _camPointJTJ.block( *camIter, i ).transpose() * deltaCam.segment<camParamDim>( *camIter * camParamDim );
+				++camIter;	
 			}
-			deltaStruct.block( i * 3, 0, 3, 1) = V_aug_inv[ i ] * tmpDelta;
-		}		
-	}	
-*/
+
+			tmp = _invAugPJTJ[ i ] * res;
+			deltaStruct.segment<pointParamDim>( pointParamDim * i ) = tmp;
+			
+			// apply the delta:
+			f.estimate().head<pointParamDim>() += tmp;
+
+			// evaluate the current costs again:
+			camIter = f.pointTrackBegin();
+			while( camIter != itEnd ){
+				const Keyframe & kf = map.keyframeForId( *camIter );
+				
+				Vision::project( pp, 
+								 K,	
+								 kf.pose().transformation(), 
+								 f.estimate() );
+
+				// get the measurement of point i in keyframe *camIter:
+				const MapMeasurement & meas = kf.measurementForId( i );
+				r = ( meas.point - pp );
+				_costs += ( r.transpose() * meas.information * r );
+				++camIter;
+			}
+		}
+		_costs /= _nMeas;
+	}
+
+	void SparseBundleAdjustment::undoStep( const Eigen::VectorXd & dCam,
+										   const Eigen::VectorXd & dPoint,
+										   SlamMap & map )
+	{
+		for( size_t i = 0; i < map.numKeyframes(); i++ ){
+			map.keyframeForId( i ).updatePose( dCam.segment<camParamDim>( camParamDim * i ) );
+		}
+
+		for( size_t i = 0; i < map.numFeatures(); i++ ){
+			map.featureForId( i ).estimate().head<pointParamDim>() += dPoint.segment<pointParamDim>( pointParamDim * i );
+		}
+	}
+
+	void SparseBundleAdjustment::resize( size_t numCams, size_t numPoints )
+	{
+		if( _nPts != numPoints ){
+			if( _pointsJTJ )
+				delete[] _pointsJTJ; 
+			_pointsJTJ = new PointJTJ[ numPoints ];
+			if( _invAugPJTJ )
+				delete[] _invAugPJTJ; 
+			_invAugPJTJ = new PointJTJ[ numPoints ];
+			if( _pointResiduals )
+				delete[] _pointResiduals; 
+			_pointResiduals = new PointResidualType[ numPoints ];
+
+			_camPointJTJ.resize( numCams, numPoints );
+
+			_nPts = numPoints;
+		}
+
+		if( _nCams != numCams ){
+			if( _camsJTJ )
+				delete[] _camsJTJ; 
+			_camsJTJ = new CamJTJ[ numCams ];
+			if( _camResiduals )
+				delete[] _camResiduals; 
+			_camResiduals = new CamResidualType[ numCams ];
+		
+			_jointMeasures.resize( numCams );
+			
+			_sparseReduced.resize( camParamDim * numCams, camParamDim * numCams );
+			_reducedRHS.resize( camParamDim * numCams );
+
+			if( _camPointJTJ.numBlockRows() != numCams )
+				_camPointJTJ.resize( numCams, numPoints );
+
+			_nCams = numCams;
+		}
+	}
+
+			
+	void SparseBundleAdjustment::evalScreenJacWrtPoint( Eigen::Matrix<double, 2, 1> & repr,
+														PointScreenJacType & jac,
+													    const Eigen::Matrix<double, 3, 1> & pInCam,
+													    const Eigen::Matrix<double, 3, 3> & K,
+														const Eigen::Matrix<double, 3, 3> & R ) const
+	{
+		Eigen::Matrix<double, 3, 1> pCam = K * pInCam;
+		double invZ = 1.0 / pCam[ 2 ];
+		double invZZ = 1.0 / Math::sqr( pCam[ 2 ] );
+
+		repr[ 0 ] = pCam[ 0 ] * invZ;
+		repr[ 1 ] = pCam[ 1 ] * invZ;
+
+		jac( 0, 0 ) = invZ;
+		jac( 0, 1 ) = 0.0;
+		jac( 0, 2 ) =-invZZ * pCam[ 0 ];
+		jac( 1, 0 ) = 0.0;
+		jac( 1, 1 ) = invZ;
+		jac( 1, 2 ) =-invZZ * pCam[ 1 ];
+		jac *= K * R;
+	}
+
 }
