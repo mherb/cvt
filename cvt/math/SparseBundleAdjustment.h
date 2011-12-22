@@ -1,7 +1,8 @@
 #ifndef CVT_SPARSE_BUNDLE_ADJUSTMENT
 #define CVT_SPARSE_BUNDLE_ADJUSTMENT
 
-#include <vector>
+#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
+#include <Eigen/StdVector>
 #include <set>
 
 #include <Eigen/Core>
@@ -10,6 +11,7 @@
 #include <cvt/vision/SlamMap.h> 
 #include <cvt/math/SparseBlockMatrix.h>
 #include <cvt/math/JointMeasurements.h>
+#include <cvt/math/TerminationCriteria.h>
 
 namespace cvt {
 	class SparseBundleAdjustment
@@ -18,15 +20,15 @@ namespace cvt {
 			SparseBundleAdjustment();
 			~SparseBundleAdjustment();
 
-			double optimize( SlamMap & data, const TerminationCriteria & criteria );
+			void optimize( SlamMap & data, const TerminationCriteria<double> & criteria );
 
 			size_t iterations() const { return _iterations; }
-			double epsilon()	const { return _costs; }
+			double costs()	const { return _costs; }
 
 		private:
 			/* jacobians for each point */		
-			const size_t pointParamDim = 3;
-			const size_t camParamDim   = 6;
+			static const size_t pointParamDim = 3;
+			static const size_t camParamDim   = 6;
 			typedef Eigen::Matrix<double, 2, pointParamDim>				PointScreenJacType;
 			typedef Eigen::Matrix<double, 2, camParamDim>				CamScreenJacType;
 			typedef Eigen::Matrix<double, camParamDim, camParamDim>		CamJTJ;
@@ -34,23 +36,25 @@ namespace cvt {
 			typedef Eigen::Matrix<double, camParamDim, 1>				CamResidualType;
 			typedef Eigen::Matrix<double, pointParamDim, 1>				PointResidualType;
 
+			
+			size_t _nPts;
+			size_t _nCams;
+			size_t _nMeas;
 
 			/* approx. Point Hessians */
-			std::vector<PointJTJ,		   Eigen::aligned_allocator>	_pointsJTJ;
+			PointJTJ*			_pointsJTJ;
 
 			/* inverse of the augmented approx Point Hessians */
-			std::vector<PointJTJ,		   Eigen::aligned_allocator>	_invAugPJTJ;
+			PointJTJ*			_invAugPJTJ;
 
-			std::vector<CamJTJ,			   Eigen::aligned_allocator>	_camsJTJ;
-			std::vector<Eigen::Vector2d,   Eigen::aligned_allocator>	_residuals;
-			std::vector<CamResidualType,   Eigen::aligned_allocator>	_camResiduals;
-			std::vector<PointResidualType, Eigen::aligned_allocator>	_pointResiduals;
+			CamJTJ*				_camsJTJ;
+			CamResidualType*	_camResiduals;
+			PointResidualType*	_pointResiduals;
 			
 			/* Sparse Upper Left of the approx. Hessian */
 			SparseBlockMatrix<camParamDim, pointParamDim>				_camPointJTJ;
-
 			JointMeasurements											_jointMeasures;
-
+			
 			Eigen::SparseMatrix<double, Eigen::ColMajor>				_sparseReduced;
 			Eigen::VectorXd												_reducedRHS;
 
@@ -70,7 +74,32 @@ namespace cvt {
 			void clear();
 
 			/* reserve appropriate space and create internal blocks once! */
-			void prepareSparseMatrix();
+			void prepareSparseMatrix( size_t numCams );
+
+			void setBlockInReducedSparse( const CamJTJ & m,
+										  size_t bRow,
+										  size_t bCol );
+
+			void updateCameras( const Eigen::VectorXd & deltaCam,
+							    SlamMap & map );
+
+
+			/* solve Structure and re-eval costs on the fly */ 
+			void solveStructure( Eigen::VectorXd & deltaStruct, 
+								 const Eigen::VectorXd & deltaCam,
+								 SlamMap & map );
+
+			void undoStep( const Eigen::VectorXd & dCam,
+						   const Eigen::VectorXd & dPoint,
+						   SlamMap & map );
+
+			void resize( size_t numCams, size_t numPoints );
+
+			void evalScreenJacWrtPoint( Eigen::Matrix<double, 2, 1> & reproj,
+										PointScreenJacType & jac,
+										const Eigen::Matrix<double, 3, 1> & pInCam,
+										const Eigen::Matrix<double, 3, 3> & K,
+										const Eigen::Matrix<double, 3, 3> & R ) const;
 
 	};
 }

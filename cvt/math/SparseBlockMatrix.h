@@ -7,7 +7,7 @@ namespace cvt
 	class SparseBlockMatrix
 	{
 		public:
-			typedef Eigen::Matrix<double, bRows, bCols> BlockMatType;
+			typedef typename Eigen::Matrix<double, bRows, bCols> BlockMatType;
 			
 			SparseBlockMatrix();
 			~SparseBlockMatrix();
@@ -19,11 +19,14 @@ namespace cvt
 
 			BlockMatType&	block( size_t row, size_t col );
 
+			size_t			numBlockRows() const { return _numRows; }
+			size_t			numBlockCols() const { return _numCols; }
+
 		private:
 			int*	_filled;
 			size_t	_numRows;
 			size_t	_numCols;
-			std::vector<BlockMatType, Eigen::aligned_allocator>	_blocks;
+			std::vector<BlockMatType>	_blocks;
 	};
 
 	template <size_t bRows, size_t bCols>
@@ -43,19 +46,20 @@ namespace cvt
 	}
 
 	template <size_t bRows, size_t bCols>
-	inline bool SparseBlockMatrix<bRows, bCols>::containsBlock() const
+	inline bool SparseBlockMatrix<bRows, bCols>::containsBlock( size_t row, size_t col ) const
 	{
 		return _filled[ row * _numCols + row  ] != -1;
 	}
 
 	template <size_t bRows, size_t bCols>
-	inline BlockMatType& SparseBlockMatrix<bRows, bCols>::block( size_t r, size_t c )
+	inline Eigen::Matrix<double, bRows, bCols>& SparseBlockMatrix<bRows, bCols>::block( size_t r, size_t c )
 	{
-		int* a = _filled[ row * _numCols + row  ];
+		int* a = _filled + ( r * _numCols + c );
 
 		if( *a == -1 ){
 			*a = _blocks.size();
-			_blocks.push_back( BlockMatType::Zero() );
+			_blocks.push_back( BlockMatType() );
+			_blocks.back().setZero();
 		}
 
 		return _blocks[ *a ];
@@ -67,15 +71,16 @@ namespace cvt
 		if( _numRows == rows && _numCols == cols ) {
 			_blocks.clear();
 			size_t n = _numRows * _numCols;
-			memset( filled, -1, sizeof( int ) * n );
+			memset( _filled, -1, sizeof( int ) * n );
 			return;
 		} else {
 			delete[] _filled;
 			_numRows = rows; 
 			_numCols = cols;
 			size_t n = _numRows * _numCols;
-			filled = new int[ n ];
-			memset( filled, -1, sizeof( int ) * n );
+			_filled = new int[ n ];
+			memset( _filled, -1, sizeof( int ) * n );
+			_blocks.clear();
 		}
 	}
 }

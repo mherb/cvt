@@ -9,6 +9,7 @@ namespace cvt
 	class MapFeature
 	{
 		public:
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 			typedef std::set<size_t>::const_iterator ConstPointTrackIterator;
 
