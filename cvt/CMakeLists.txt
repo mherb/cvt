@@ -367,7 +367,6 @@ SET(${MODULE_NAME}_HEADERS
 	math/sac/HomographySAC.h
 	math/sac/EssentialSAC.h
 	math/sac/EPnPSAC.h
-	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
 	math/Translation2D.h
