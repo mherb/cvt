@@ -373,7 +373,6 @@ SET(${MODULE_NAME}_HEADERS
 	math/Translation2D.h
 	math/Sim2.h
 	math/GA2.h
-	math/SparseBundleAdjustment.h
 	math/Vector.h
 	math/Vector2.h
 	math/Vector3.h
@@ -440,9 +439,11 @@ SET(${MODULE_NAME}_HEADERS
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
 	vision/Vision.h
-	vision/SlamMap.h
-	vision/Keyframe.h
-	vision/MapFeature.h
+	vision/SparseBundleAdjustment.h
+	vision/slam/SlamMap.h
+	vision/slam/Keyframe.h
+	vision/slam/MapFeature.h
+	vision/slam/MapMeasurement.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -566,7 +567,6 @@ SET(${MODULE_NAME}_SOURCES
 	math/SL3Test.cpp
 	math/Sim2Test.cpp
 	math/GA2Test.cpp
-	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
 	util/ParamSet.cpp
 	util/Range.cpp
@@ -595,14 +595,15 @@ SET(${MODULE_NAME}_SOURCES
 	vision/Ferns.cpp
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
-	vision/SlamMap.cpp
-	vision/Keyframe.cpp
 	vision/ORB.cpp
 	vision/ORB2.cpp
 	vision/ORB2Test.cpp
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
+	vision/SparseBundleAdjustment.cpp
+	vision/slam/Keyframe.cpp
+	vision/slam/SlamMap.cpp
 	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
 	io/xml/XMLDecoderUTF8.cpp

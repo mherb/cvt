@@ -2,8 +2,8 @@
 #define CVT_SLAMMAP_H
 
 #include <cvt/vision/CameraCalibration.h>
-#include <cvt/vision/Keyframe.h>
-#include <cvt/vision/MapFeature.h>
+#include <cvt/vision/slam/Keyframe.h>
+#include <cvt/vision/slam/MapFeature.h>
 
 #include <Eigen/StdVector>
 

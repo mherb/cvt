@@ -5,7 +5,7 @@
 #include <map>
 
 #include <cvt/math/SE3.h>
-#include <cvt/vision/MapMeasurement.h>
+#include <cvt/vision/slam/MapMeasurement.h>
 #include <cvt/util/String.h>
 
 namespace cvt

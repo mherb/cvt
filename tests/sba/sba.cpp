@@ -11,10 +11,9 @@
 #include <cvt/util/Data.h>
 #include <cvt/util/DataIterator.h>
 #include <cvt/io/FileSystem.h>
-#include <cvt/math/SparseBundleAdjustment.h>
-#include <cvt/math/SBAData.h>
+#include <cvt/vision/SparseBundleAdjustment.h>
 
-#include <cvt/vision/SlamMap.h>
+#include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/CameraCalibration.h>
 
 #include <Eigen/Core>

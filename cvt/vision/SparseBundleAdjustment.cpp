@@ -1,4 +1,4 @@
-#include "SparseBundleAdjustment.h"
+#include <cvt/vision/SparseBundleAdjustment.h>
 
 #include <unsupported/Eigen/SparseExtra>
 

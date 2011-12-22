@@ -14,8 +14,8 @@
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
 
-#include <cvt/vision/SlamMap.h>
-#include <cvt/vision/Keyframe.h>
+#include <cvt/vision/slam/SlamMap.h>
+#include <cvt/vision/slam/Keyframe.h>
 
 #include "ORBStereoMatching.h"
 #include "DescriptorDatabase.h"
