@@ -1,4 +1,4 @@
-#include <cvt/vision/SlamMap.h>
+#include <cvt/vision/slam/SlamMap.h>
 
 #include <set>
 

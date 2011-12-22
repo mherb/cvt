@@ -8,7 +8,7 @@
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
-#include <cvt/vision/SlamMap.h> 
+#include <cvt/vision/slam/SlamMap.h> 
 #include <cvt/math/SparseBlockMatrix.h>
 #include <cvt/math/JointMeasurements.h>
 #include <cvt/math/TerminationCriteria.h>

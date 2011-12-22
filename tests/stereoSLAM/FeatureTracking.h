@@ -1,7 +1,7 @@
 #ifndef FEATURE_TRACKING_H
 #define FEATURE_TRACKING_H
 
-#include <cvt/vision/MapFeature.h>
+#include <cvt/vision/slam/MapFeature.h>
 #include "DescriptorDatabase.h"
 
 namespace cvt

@@ -1,4 +1,4 @@
-#include <cvt/vision/Keyframe.h>
+#include <cvt/vision/slam/Keyframe.h>
 
 namespace cvt
 {
