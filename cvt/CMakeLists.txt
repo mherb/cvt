@@ -350,6 +350,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/CostFunction.h
 	math/Complex.h
 	math/Fixed.h
+	math/JointMeasurements.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -357,7 +358,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h
-	math/Optimization.h
+	math/TerminationCriteria.h
 	math/Polynomial.h
 	math/Quaternion.h
 	math/sac/SampleConsensusModel.h
@@ -366,13 +367,11 @@ SET(${MODULE_NAME}_HEADERS
 	math/sac/HomographySAC.h
 	math/sac/EssentialSAC.h
 	math/sac/EPnPSAC.h
-	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
 	math/Translation2D.h
 	math/Sim2.h
 	math/GA2.h
-	math/SparseBundleAdjustment.h
 	math/Vector.h
 	math/Vector2.h
 	math/Vector3.h
@@ -439,6 +438,11 @@ SET(${MODULE_NAME}_HEADERS
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
 	vision/Vision.h
+	vision/SparseBundleAdjustment.h
+	vision/slam/SlamMap.h
+	vision/slam/Keyframe.h
+	vision/slam/MapFeature.h
+	vision/slam/MapMeasurement.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -552,6 +556,8 @@ SET(${MODULE_NAME}_SOURCES
 	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
+	math/JointMeasurements.cpp
+	math/JointMeasurementsTest.cpp
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
@@ -560,7 +566,6 @@ SET(${MODULE_NAME}_SOURCES
 	math/SL3Test.cpp
 	math/Sim2Test.cpp
 	math/GA2Test.cpp
-	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
 	util/ParamSet.cpp
 	util/Range.cpp
@@ -595,6 +600,9 @@ SET(${MODULE_NAME}_SOURCES
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
+	vision/SparseBundleAdjustment.cpp
+	vision/slam/Keyframe.cpp
+	vision/slam/SlamMap.cpp
 	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
 	io/xml/XMLDecoderUTF8.cpp

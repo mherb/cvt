@@ -53,6 +53,7 @@ namespace cvt {
 			std::vector<Eigen::Matrix<T, 3, 1>, Eigen::aligned_allocator<Eigen::Matrix<T, 3, 1> > >	_data;
 			std::vector<Eigen::Matrix<T, 2, 1>, Eigen::aligned_allocator<Eigen::Matrix<T, 2, 1> > >	_meas;
 
+			Eigen::Matrix<T, 3, 3>					_K;
 			Eigen::Matrix<T, 3, 3>					_KR;
 			Eigen::Matrix<T, 3, 1>					_Kt;
 	};
@@ -60,9 +61,9 @@ namespace cvt {
 	template < typename T >  
 	inline PointCorrespondences3d2d<T>::PointCorrespondences3d2d( const Eigen::Matrix<T, 3, 3> & intr, const Eigen::Matrix<T, 4, 4> extr )
    	{
+		_K  = intr;
 		_KR = intr * extr.block( 0, 0, 3, 3 );
 		_Kt = intr * extr.block( 0, 3, 3, 1 );
-		_pose.setIntrinsics( intr );
 	}
 	
 	template < typename T > inline PointCorrespondences3d2d<T>::~PointCorrespondences3d2d()
@@ -88,7 +89,7 @@ namespace cvt {
 		
 		for( size_t i = 0; i < _data.size(); i++ ){
 			_pose.transform( transformedPoint, _data[ i ] );
-			_pose.screenJacobian( J, transformedPoint );
+			_pose.screenJacobian( J, transformedPoint, _K );
 			Vision::project( w, _KR, _Kt, transformedPoint );
 				
 			r = _meas[ i ] - w;		
