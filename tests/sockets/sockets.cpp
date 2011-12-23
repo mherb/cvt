@@ -185,7 +185,7 @@ void udpClient()
 
 void udpServer()
 {
-	UDPClient server( "0.0.0.0", 12345 );
+	UDPClient server( "192.168.0.36", 12345 );
 
 	Host from;
 

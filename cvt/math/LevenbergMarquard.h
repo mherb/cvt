@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 
-#include <cvt/math/Optimization.h>
+#include <cvt/math/TerminationCriteria.h>
 #include <cvt/math/CostFunction.h>
 #include <cvt/vision/MeasurementModel.h>
 

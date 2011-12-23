@@ -15,7 +15,7 @@ class VideoPlayer : public Window
 {
 public:
 	VideoPlayer( const String& videoFile ) : 
-        Window( "VideoPlayer" ), _video( 0 ), _timer( 10 ), _frames( 0 )
+        Window( "VideoPlayer" ), _video( 0 ), _timer( 66 ), _frames( 0 )
 	{
 		//_video = new VideoReader( videoFile, true );
 		_video = new RawVideoReader( videoFile, true );

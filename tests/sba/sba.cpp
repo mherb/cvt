@@ -2,560 +2,343 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <string>
 
 #include <cvt/io/Resources.h>
 
 #include <cvt/util/Exception.h>
 #include <cvt/util/Time.h>
-#include <cvt/math/SparseBundleAdjustment.h>
-#include <cvt/math/SBAData.h>
+#include <cvt/util/String.h>
+#include <cvt/util/Data.h>
+#include <cvt/util/DataIterator.h>
+#include <cvt/io/FileSystem.h>
+#include <cvt/vision/SparseBundleAdjustment.h>
+
+#include <cvt/vision/slam/SlamMap.h>
+#include <cvt/vision/CameraCalibration.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-// 0->simul 7->7cams 9->9cams, 54->54cams
-#define POINTSDATA ( 0 )
+using namespace cvt;
 
-// test app for sparse bundle adjustment, 
-// test input files from the sba-lib:
-struct Point3d 
-{	
-	Point3d( double x, double y, double z ):
-		P( x, y, z )
-	{		
-	}
-			
-	Eigen::Vector3d P;
-	std::vector<Eigen::Vector2d> observations;
-	std::vector<size_t> frameIds;
-};
 
-struct CameraTransform {
-	Eigen::Quaterniond orientation;
-	Eigen::Vector3d	 translation;
-};
-
-void parseCalibFile( const std::string & file, Eigen::Matrix3d & K )
+void testJointMeasures( const SlamMap & map )
 {
-	std::ifstream fileIn( file.c_str() );
-	std::istringstream lineBuffer;
 
-	double val;
-	size_t row = 0;
-	size_t col = 0;
+	JointMeasurements jm;
+	jm.resize( map.numKeyframes() );
 
-	std::string line;
-	while ( std::getline( fileIn, line ) ){
-		lineBuffer.clear();
-		lineBuffer.str( line );
-		col = 0;
-		while ( lineBuffer >> val ){
-			K( row, col++ ) = val;
-		}
-		row++;
-	}	
-	
-	fileIn.close();	
-}
+	for( size_t i = 0; i < map.numFeatures(); i++ ){
+		// get the MapFeature: 
+		const MapFeature & feature = map.featureForId( i );
 
-void parseCameraFile( const std::string & file, std::vector<CameraTransform> & cameras )
-{
-	std::ifstream fileIn( file.c_str() );
-	std::istringstream lineBuffer;
-	
-	double val;
-	
-	CameraTransform cam;
-	
-	std::string line;
-	while ( std::getline( fileIn, line ) ){
-		lineBuffer.clear();
-		lineBuffer.str( line );
-		
-		lineBuffer >> val; cam.orientation.w() = val;
-		lineBuffer >> val; cam.orientation.x() = val;
-		lineBuffer >> val; cam.orientation.y() = val;
-		lineBuffer >> val; cam.orientation.z() = val;
-		lineBuffer >> val; cam.translation.x() = val;
-		lineBuffer >> val; cam.translation.y() = val;
-		lineBuffer >> val; cam.translation.z() = val;
-		
-		cameras.push_back( cam );
-	}	
-	
-	fileIn.close();	
-}
+		// for all point tracks (meas. in the cams) of this point
+		MapFeature::ConstPointTrackIterator camIterCurr = feature.pointTrackBegin();
+		const MapFeature::ConstPointTrackIterator camIterEnd  = feature.pointTrackEnd();
 
-void parsePtsFile( const std::string & file, std::vector<Point3d> & points3d )
-{
-	std::ifstream fileIn( file.c_str() );
-	std::istringstream lineBuffer;
-	
-	double x, y, z;
-	size_t frameId;
-	
-	unsigned int numFrames;
-	unsigned int currentLine = 0;
-	
-	std::string line;
-	
-	// step over first line
-	std::getline( fileIn, line );
-	while ( std::getline( fileIn, line ) ){
-		currentLine++;
-
-		lineBuffer.clear();
-		lineBuffer.str( line );
-		
-		lineBuffer >> x; lineBuffer >> y; lineBuffer >> z;
-		points3d.push_back( Point3d( x, y, z ) );
-		
-		lineBuffer >> numFrames;		
-		while (numFrames--) {
-			lineBuffer >> frameId;
-			lineBuffer >> x; lineBuffer >> y;
-			
-			points3d.back().observations.push_back( Eigen::Vector2d( x, y ) );
-			points3d.back().frameIds.push_back( frameId );
-		}
-	}	
-	
-	fileIn.close();	
-}
-
-void loadGroundTruth( const std::string & cams, 
-					  const std::string & pts, 
-					  std::vector<Eigen::Matrix3d> & rotations, 
-					  std::vector<Eigen::Vector3d> & translations,
-					  std::vector<Eigen::Vector3d> & points )
-{
-	std::ifstream camFile( cams.c_str() );
-	std::istringstream lineBuffer;
-		
-	Eigen::Quaterniond q;
-		
-	std::string line;
-
-	// skip first line
-	std::getline( camFile, line );
-
-	while ( std::getline( camFile, line ) ){
-		lineBuffer.clear();
-		lineBuffer.str( line );
-		
-		lineBuffer >> q.w();
-		lineBuffer >> q.x();
-		lineBuffer >> q.y();
-		lineBuffer >> q.z();
-		rotations.push_back( q.toRotationMatrix() );
-		
-		translations.push_back( Eigen::Vector3d::Zero() );
-		lineBuffer >> translations.back()(0);
-		lineBuffer >> translations.back()(1);
-		lineBuffer >> translations.back()(2);
-	}	
-	camFile.close();	
-	
-	std::ifstream ptsFile( pts.c_str() );
-	std::getline( ptsFile, line );
-	
-	while ( std::getline( ptsFile, line ) ){
-		lineBuffer.clear();
-		lineBuffer.str( line );
-		
-		points.push_back( Eigen::Vector3d::Zero() );
-				
-		lineBuffer >> points.back()(0);
-		lineBuffer >> points.back()(1);
-		lineBuffer >> points.back()(2);
-	}	
-	ptsFile.close();	
-}
-
-void printLoadedData( Eigen::Matrix3d & K, 
-					  std::vector<CameraTransform> & cameras, 
-					  std::vector<Point3d> & points3d )
-{
-	std::cout << "Intrinsics:\n" << K << std::endl;
-	
-	for(unsigned int i = 0; i < cameras.size(); i++){
-		std::cout << "Camera " << i << std::endl;
-		std::cout << "\tOrientation: " 
-		<< cameras[ i ].orientation.w() << ", " 
-		<< cameras[ i ].orientation.x() << ", "
-		<< cameras[ i ].orientation.y() << ", "
-		<< cameras[ i ].orientation.z() << std::endl;
-		
-		std::cout << "\tTranslation" << cameras[ i ].translation( 0 ) << ", " 
-									 << cameras[ i ].translation( 1 ) << ", " 
-									 << cameras[ i ].translation( 2 ) << std::endl;
-	}
-	
-	std::cout << "Observations for 3D Points:" << std::endl;
-	for(unsigned int i = 0; i < points3d.size(); i++){
-		std::cout << "3D Point:" << points3d[ i ].P.x() << ", " << points3d[ i ].P.y() << ", " << points3d[ i ].P.z() << std::endl;
-		
-		for(unsigned int k = 0; k < points3d[ i ].observations.size(); k++){
-			std::cout << "\tId: " << points3d[ i ].frameIds[ k ];
-			std::cout << "\tp: " << points3d[ i ].observations[ k ].x() << ", " << points3d[ i ].observations[ k ].y() << std::endl;
-		}
-	}
-}
-
-void convertData(Eigen::Matrix3d & K, 
-				 std::vector<CameraTransform> & cameras, 
-				 std::vector<Point3d> & points3d,
-				 cvt::SBAData & sbaData)
-{
-	std::vector<cvt::KeyFrame*> keyFrames( cameras.size() );
-	
-	for( unsigned int i = 0; i < cameras.size(); i++ ){
-		keyFrames[ i ] = new cvt::KeyFrame( K, i );
-		cvt::CameraModel & cam =  keyFrames[ i ]->camera;
-		cam.set( cameras[ i ].orientation, cameras[ i ].translation );
-		cam.updateProjectionMatrix();
-		
-		sbaData.addKeyFrame( keyFrames[ i ] );
-	}
-	
-	for( unsigned int i = 0; i < points3d.size(); i++ ){
-		Eigen::Vector4d p;
-		p.block(0, 0, 3, 1) = points3d[ i ].P; 
-		p(3)=1.0;
-		size_t id;
-		
-		Eigen::Vector4d * point = sbaData.addPoint( p, id );
-		
-		size_t view;
-		
-		for( unsigned int v = 0; v < points3d[ i ].frameIds.size(); ++v ){
-			view = points3d[ i ].frameIds[ v ];
-			
-			keyFrames[ view ]->addMeasurement( point, id, points3d[ i ].observations[ v ] );
-			
-			sbaData.addFrameIdForPoint(id, view );	
-		}					
-	}	
-	sbaData.updateCosts();
-	
-//	std::cout << *(sbaData.frames()[0]->measurements[0].point3d->data) << std::endl;
-
-}
-
-void showResults( cvt::SBAData & sbaData )
-{	
-	// Cameras:
-	for( unsigned int i = 0; i < sbaData.frames().size(); i++ ){
-		std::cout << "Camera " << i << std::endl;		
-		Eigen::Quaterniond q( sbaData.frames()[ i ]->camera.R() );
-		const Eigen::Vector3d & t = sbaData.frames()[ i ]->camera.t();
-		std::cout << "\tRotation: [ " << q.w() << ", " << q.x() << ", " << q.y() << ", " << q.z() << "]" << std::endl;
-		std::cout << "\tTranslation: [ " << t.x() << ", " << t.y() << ", " << t.z() << "]" << std::endl;
-		std::cout << std::endl;
-	}
-	
-	sbaData.printPoints();
-}
-
-void genPts( const Eigen::Vector3d & min, const Eigen::Vector3d & max, size_t num, std::vector<Eigen::Vector3d> & pts )
-{
-	// random numbers
-	cv::RNG rng( time( NULL ) );
-	
-	Eigen::Vector3d curr;
-	for( size_t i = 0; i < num; i++ ){
-		curr( 0 ) = rng.uniform( min( 0 ), max( 0 ));
-		curr( 1 ) = rng.uniform( min( 1 ), max( 1 ));
-		curr( 2 ) = rng.uniform( min( 2 ), max( 2 ));
-		
-		pts.push_back( curr );
-	}
-}
-
-void genCams( const Eigen::Matrix<double, 6, 1> & min, const Eigen::Matrix<double, 6, 1> & max, size_t num, 
-			  std::vector<Eigen::Matrix3d> & R, std::vector<Eigen::Vector3d> & t )
-{	
-	cv::RNG rng( time( NULL ) );
-	
-	Eigen::Vector3d angles;
-	Eigen::Matrix3d rTmp;
-	Eigen::Vector3d trans;
-	for( size_t i = 0; i < num; i++ )
-	{
-		angles( 0 ) = rng.uniform( min( 0 ), max( 0 ) );
-		angles( 1 ) = rng.uniform( min( 1 ), max( 1 ) );
-		angles( 2 ) = rng.uniform( min( 2 ), max( 2 ) );
-		
-		// calc rotMat ...
-		rTmp = (Eigen::AngleAxisd( angles( 0 ), Eigen::Vector3d::UnitX() ) * 
-			   Eigen::AngleAxisd( angles( 1 ), Eigen::Vector3d::UnitY() ) * 
-			   Eigen::AngleAxisd( angles( 2 ), Eigen::Vector3d::UnitZ() )).toRotationMatrix();
-		
-		R.push_back( rTmp );		
-		
-		trans( 0 ) = rng.uniform( min( 3 ), max( 3 ));
-		trans( 1 ) = rng.uniform( min( 4 ), max( 4 ));
-		trans( 2 ) = rng.uniform( min( 5 ), max( 5 ));	
-		t.push_back( trans );
-	}
-}
-
-void simulateData( cvt::SBAData & sbaData,
-				   std::vector<Eigen::Matrix3d> & rot,
-				   std::vector<Eigen::Vector3d> & trans,
-				   std::vector<Eigen::Vector3d> & pts )
-{
-	
-	size_t numPoints = 200;
-	size_t numCams = 10;
-	
-	Eigen::Vector3d minP, maxP;
-	
-	minP( 0 ) = minP( 1 ) = minP( 2 ) = 0.0;
-	maxP( 0 ) = maxP( 1 ) = maxP( 2 ) = 100.0;	
-	genPts( minP, maxP, numPoints, pts );
-		
-	Eigen::Matrix<double, 6, 1> minC, maxC;
-	minC( 0 ) = minC( 1 ) = minC( 2 ) = -M_PI / 4.0;
-	maxC( 0 ) = maxC( 1 ) = maxC( 2 ) = M_PI / 4.0;	
-	minC( 3 ) = minC( 4 ) = minC( 5 ) = 100.0;
-	maxC( 3 ) = maxC( 4 ) = maxC( 5 ) = 110.0;
-	genCams( minC, maxC, numCams, rot, trans );
-	
-	Eigen::Matrix3d K( Eigen::Matrix3d::Identity() );
-	K( 0, 0 ) = 640.0;
-	K( 1, 1 ) = 638.0;
-	K( 0, 2 ) = 320.0;
-	K( 1, 2 ) = 240.0;
-	
-	// setup the keyframes:
-	cvt::KeyFrame * frame;
-	cv::RNG rng( time( NULL ) );
-	Eigen::Matrix3d dRot, R;
-	Eigen::Vector3d dt, t;
-	double alpha, beta, gamma;
-		
-	const double angleNoise = 3.0;
-	const double transNoise = 3.0;
-	
-	for( size_t c = 0; c < numCams; c++ ){
-		alpha = rng.uniform( -angleNoise * M_PI / 180.0, angleNoise * M_PI / 180.0 );
-		beta = rng.uniform( -angleNoise * M_PI / 180.0, angleNoise * M_PI / 180.0 );
-		gamma = rng.uniform( -angleNoise * M_PI / 180.0, angleNoise * M_PI / 180.0 );
-		
-		dRot = (Eigen::AngleAxisd( alpha, Eigen::Vector3d::UnitX() ) * 
-				Eigen::AngleAxisd( beta, Eigen::Vector3d::UnitY() ) * 
-				Eigen::AngleAxisd( gamma, Eigen::Vector3d::UnitZ() )).toRotationMatrix();
-		R = rot[ c ] * dRot;
-		
-		dt( 0 ) = rng.uniform( -transNoise, transNoise );
-		dt( 1 ) = rng.uniform( -transNoise, transNoise );
-		dt( 2 ) = rng.uniform( -transNoise, transNoise );
-		
-		t = trans[ c ] + dt;
-		
-		frame = new cvt::KeyFrame( K, c );
-		frame->camera.set( R, t );
-		frame->camera.updateProjectionMatrix();
-		
-		sbaData.addKeyFrame( frame );		
-	}
-	
-	// now add the points:
-	const double pNoise = 3.0;
-	Eigen::Vector4d p;
-	Eigen::Vector3d pCam;
-	Eigen::Vector2d imgP;
-	for( size_t i = 0; i < numPoints; i++ ){
-		p.block(0, 0, 3, 1) = pts[ i ];
-		
-		// add noise to gt 3d point as initialization
-		p( 0 ) = pts[ i ]( 0 ) + rng.uniform( -pNoise, pNoise );
-		p( 1 ) = pts[ i ]( 1 ) + rng.uniform( -pNoise, pNoise );
-		p( 2 ) = pts[ i ]( 2 ) + rng.uniform( -pNoise, pNoise );		
-		p( 3 ) = 1.0;
-		
-		size_t id;		
-		Eigen::Vector4d * point = sbaData.addPoint( p, id );
-		
-		for( size_t c = 0; c < numCams; c++ ){
-			pCam = ( rot[ c ] * pts[ i ]) + trans[ c ];
-			
-			if( pCam.z() > 2.0 ){				
-				pCam = K * pCam;
-				imgP.x() = pCam.x() / pCam.z();
-				imgP.y() = pCam.y() / pCam.z();				
-								
-				// point is visible in this view:
-				sbaData.frames()[ c ]->addMeasurement( point, id, imgP );						
-				sbaData.addFrameIdForPoint( id, c );
-					
-				//std::cout << "Point " << id << " visible in View " << c << std::endl;
-				//std::cout << "[ " << imgP.x() << ", " << imgP.y() << " ]" << std::endl;
+		while( camIterCurr != camIterEnd ){
+			MapFeature::ConstPointTrackIterator camIter = camIterCurr;
+			camIter++;
+			while( camIter != camIterEnd ) {
+				jm.addMeasurementForEntity( *camIterCurr, *camIter, i );
+				++camIter;
 			}
+			++camIterCurr;
 		}
 	}
-	sbaData.updateCosts();	
 }
 
-void compareResults( cvt::SBAData & sbaData, 
-					 std::vector<Eigen::Matrix3d> & rot,
-					 std::vector<Eigen::Vector3d> & trans,
-					 std::vector<Eigen::Vector3d> & pts )
+void parseIntrinsics( CameraCalibration & calib, const String & calibFile )
 {
-	// TODO: 
-	// compare the results against the result 
-	// from the sba package or GT data in simulation case
+	Data d;
+	FileSystem::load( d, calibFile );
+	DataIterator iter( d );
+
+	Matrix3f K;
+	String line;
+	std::vector<String> lineTokens;
+	for( size_t i = 0; i < 3; i++ ){
+		if( !iter.nextLine( line ) )
+			throw CVTException( "Could not parse Calibration File" );
 	
-	Eigen::Vector3d tmpVec;
-	Eigen::Matrix3d tmpMat;
-	
-	double RDiff = 0.0;
-	double TDiff = 0.0;
-	double n, gtn;
-	for( unsigned int i = 0; i < rot.size(); i++ ){
-		cvt::CameraModel & cam = sbaData.cameraWithId( i );
-		
-		// compare rotation matrices
-		tmpMat = ( cam.R() - rot[ i ] );
-		
-		/*
-		std::cout << "Cam " << i << " GT -> EST " << std::endl;
-		std::cout << cam.R()(0, 0) << " " << cam.R()(0, 1) << " " << cam.R()(0, 2) << "\t\t" << rot[i](0, 0) << " " << rot[i](0, 1) << " " << rot[i](0, 2) << std::endl;
-		std::cout << cam.R()(1, 0) << " " << cam.R()(1, 1) << " " << cam.R()(1, 2) << "\t\t" << rot[i](1, 0) << " " << rot[i](1, 1) << " " << rot[i](1, 2) << std::endl;
-		std::cout << cam.R()(2, 0) << " " << cam.R()(2, 1) << " " << cam.R()(2, 2) << "\t\t" << rot[i](2, 0) << " " << rot[i](2, 1) << " " << rot[i](2, 2) << std::endl;
-		std::cout << std::endl;
-		 */
-		
-		for( unsigned int r = 0; r < 3; r++ ){
-			for( unsigned int c = 0; c < 3; c++ ){
-				RDiff += (tmpMat( r, c ) * tmpMat( r, c ));
-			}			
-		}		
-		
-		// compare translations
-		tmpVec = ( cam.t() - trans[ i ] );
-		n = tmpVec.norm();		
-		
-		TDiff += n;
+		line.tokenize( lineTokens, ' ' );
+		if( lineTokens.size() < 3 )
+			throw CVTException( "Could not parse Calibration File" );
+
+		K[ i ][ 0 ] = lineTokens[ 0 ].toFloat();
+		K[ i ][ 1 ] = lineTokens[ 1 ].toFloat();
+		K[ i ][ 2 ] = lineTokens[ 2 ].toFloat();
+		lineTokens.clear();
 	}
 	
-	double pointDiff = 0.0;	
-	for( unsigned int i = 0; i < pts.size(); i++ ){
-		// calc point error (difference between the two points)
-		const Eigen::Vector4d & p4 = sbaData.pointWithId( i );
-		tmpVec(0) =  p4( 0 ) / p4( 3 ) - pts[i]( 0 ); 
-		tmpVec(1) =  p4( 1 ) / p4( 3 ) - pts[i]( 1 );
-		tmpVec(2) =  p4( 2 ) / p4( 3 ) - pts[i]( 2 );
-		pointDiff += tmpVec.norm();
-		
-		/*
-		std::cout << "Point ( GT -> EST ) " << i << std::endl;
-		std::cout << "\t" << pts[ i ]( 0 ) <<" -> " << p4( 0 ) << std::endl; 
-		std::cout << "\t" << pts[ i ]( 1 ) <<" -> " << p4( 1 ) << std::endl; 
-		std::cout << "\t" << pts[ i ]( 2 ) <<" -> " << p4( 2 ) << std::endl; 
-		std::cout << std::endl;
-		 */
+	calib.setIntrinsics( K );
+}
+
+void parseCamFile( SlamMap & map, const String & camFile )
+{
+	Data d;
+	FileSystem::load( d, camFile );
+	DataIterator iter( d );
+
+	Eigen::Quaterniond q;
+	Eigen::Vector3d	   t;
+	Eigen::Matrix4d	   pose( Eigen::Matrix4d::Identity() );
+
+	String line;
+	std::vector<String> lineTokens;
+	size_t lineNum = 0;
+	std::cout << "Adding keyframes: ";
+	size_t numKf = 0;	
+	while( iter.nextLine( line ) ){
+		lineNum++;
+
+		if( line[ 0 ] == '#' ){
+			// comment line
+			continue;
+		}
+
+		line.tokenize( lineTokens, ' ' );
+		if( lineTokens.size() < 7 ){
+			std::cerr << "Camera File Error in line " << lineNum << std::endl;
+			std::cerr << "Skipping line " << std::endl;
+			continue;
+		}
+
+		q.w() = lineTokens[ 0 ].toDouble();
+		q.x() = lineTokens[ 1 ].toDouble();
+		q.y() = lineTokens[ 2 ].toDouble();
+		q.z() = lineTokens[ 3 ].toDouble();
+		t.x() = lineTokens[ 4 ].toDouble();
+		t.y() = lineTokens[ 5 ].toDouble();
+		t.z() = lineTokens[ 6 ].toDouble();
+
+		pose.block<3, 3>( 0, 0 ) = q.toRotationMatrix();
+		pose.block<3, 1>( 0, 3 ) = t;
+		numKf = map.addKeyframe( pose );
+
+		lineTokens.clear();
 	}
-	std::cout << "Average Cam SSD: R -> " << RDiff / rot.size() << " t -> " << TDiff / trans.size() << std::endl;
-	std::cout << "Average P SSD: " << pointDiff / pts.size() << std::endl;
-	
+	std::cout << numKf+1 << std::endl;
 }
 
-void testMVGImplementation( Eigen::Matrix3d & K, 
-						    std::vector<CameraTransform> & cameras, 
-						    std::vector<Point3d> & points3d,
-						    std::vector<Eigen::Matrix3d> & rot,
-						    std::vector<Eigen::Vector3d> & trans,
-						    std::vector<Eigen::Vector3d> & pts )
+void parsePointFile( SlamMap & map, const String & file )
 {
-	cvt::SBAData sbaData;
-	cvt::SparseBundleAdjustment sba;
-	sba.setTerminationCriteria( 1e-12, 21 );
-	
-	convertData( K, cameras, points3d, sbaData );
-	
-	cvt::Time timer;
-	sba.optimize( sbaData );
-	
-	std::cout << "MVG BA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
-	std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.epsilon() << std::endl; 
-	std::cout << "Time/iteration: " << timer.elapsedSeconds() / sba.iterations() << std::endl;
-	
-	//std::cout << "Results" << std::endl;
-	//showResults( sbaData );	
-	compareResults( sbaData, rot, trans, pts );
+	Data d;
+	FileSystem::load( d, file );
+	DataIterator iter( d );
+
+	MapFeature point( Eigen::Vector4d( 0, 0, 0, 1 ), 
+					  Eigen::Matrix4d::Identity() );
+	int numMeas;
+	MapMeasurement meas;
+
+	String line;
+	std::vector<String> lineTokens;
+	size_t lineNum = 0;
+	std::cout << "Adding Points: ";
+	size_t numPts = 0;	
+	while( iter.nextLine( line ) ){
+		lineNum++;
+		if( line[ 0 ] == '#' ){
+			// comment line
+			continue;
+		}
+
+		line.tokenize( lineTokens, ' ' );
+		if( lineTokens.size() < 7 ){
+			std::cerr << "Point File Error in line " << lineNum << std::endl;
+			std::cerr << "Skipping line " << std::endl;
+			continue;
+		}
+		
+		size_t tokIter = 0;
+		point.estimate().x() = lineTokens[ tokIter++ ].toDouble();
+		point.estimate().y() = lineTokens[ tokIter++ ].toDouble();
+		point.estimate().z() = lineTokens[ tokIter++ ].toDouble();
+		numMeas	  = lineTokens[ tokIter++ ].toInteger();
+
+		numPts++;
+
+		if( lineTokens.size() != (size_t)( 4 + numMeas * 3 ) ){
+			String message( "Point file error in line: " );
+			message += lineNum;
+			throw CVTException( message.c_str() );
+		}
+		
+		// add this point to the map
+		size_t pointId = map.addFeature( point );
+		for( int i = 0; i < numMeas; i++ ){
+			size_t keyframeId = ( size_t )lineTokens[ tokIter++ ].toInteger();
+			meas.point[ 0 ] = lineTokens[ tokIter++ ].toDouble();
+			meas.point[ 1 ] = lineTokens[ tokIter++ ].toDouble();
+			map.addMeasurement( pointId, keyframeId, meas );
+		}
+
+		lineTokens.clear();
+	}
+	std::cout << numPts << std::endl;
 }
 
-void testSimulation()
+void parseGtPointFile( SlamMap & map, const String & file )
 {
-	cvt::SBAData sbaData;
-	std::vector<Eigen::Matrix3d> rot;
-	std::vector<Eigen::Vector3d> trans;
-	std::vector<Eigen::Vector3d> pts;
-	
-	simulateData( sbaData, rot, trans, pts );
-	
-	cvt::SparseBundleAdjustment sba;
-	sba.setTerminationCriteria( 1e-10, 40 );
+	Data d;
+	FileSystem::load( d, file );
+	DataIterator iter( d );
 
-	cvt::Time timer;
+	MapFeature point( Eigen::Vector4d( 0, 0, 0, 1 ), 
+					  Eigen::Matrix4d::Identity() );
+	MapMeasurement meas;
+
+	String line;
+	std::vector<String> lineTokens;
+	size_t lineNum = 0;
+	std::cout << "Adding GT Points: ";
+	size_t numPts = 0;	
+	while( iter.nextLine( line ) ){
+		lineNum++;
+		if( line[ 0 ] == '#' ){
+			// comment line
+			continue;
+		}
+
+		line.tokenize( lineTokens, ' ' );
+		if( lineTokens.size() < 3 ){
+			std::cerr << "Point File Error in line " << lineNum << std::endl;
+			std::cerr << "Skipping line " << std::endl;
+			continue;
+		}
+		
+		size_t tokIter = 0;
+		point.estimate().x() = lineTokens[ tokIter++ ].toDouble();
+		point.estimate().y() = lineTokens[ tokIter++ ].toDouble();
+		point.estimate().z() = lineTokens[ tokIter++ ].toDouble();
+
+		numPts++;
+
+		// add this point to the map
+		map.addFeature( point );
+		lineTokens.clear();
+	}
+	std::cout << numPts << std::endl;
+}
+
+void parseLourakisData( SlamMap & slamMap, 
+						SlamMap & gtMap,
+					    const String & calibFile, 
+						const String & camFile, 
+						const String & ptsFile,
+					    const String & gtCamFile,
+						const String & gtPtFile )
+{
+	CameraCalibration camCalib;
+	parseIntrinsics( camCalib, calibFile );
+
+	const Matrix3f  Kf = camCalib.intrinsics();
+	Eigen::Matrix3d K;
+	for( size_t r = 0; r < 3; r++ )
+		for( size_t c = 0; c < 3; c++ )
+			K( r, c ) = Kf[ r ][ c ];
+	slamMap.setIntrinsics( K );
+	gtMap.setIntrinsics( K );
+
+	parseCamFile( slamMap, camFile );
+	parsePointFile( slamMap, ptsFile );
+
+	parseCamFile( gtMap, gtCamFile );
+	parseGtPointFile( gtMap, gtPtFile );
+}
+
+void compareMaps( const SlamMap & groundTruth, const SlamMap & optimized )
+{
+
+	// go over all points and compare them
+	Eigen::Vector4d err;
+	double errLen, errSum;
+	errSum = 0.0;
+	for( size_t i = 0; i < groundTruth.numFeatures(); i++ ){
+		const Eigen::Vector4d & gt  = groundTruth.featureForId( i ).estimate();	
+		const Eigen::Vector4d & est = optimized.featureForId( i ).estimate();
+		err = gt - est;
+	//	std::cout << "Point " << i;
+	//    std::cout << ":\n\tGT -> [ " << gt[ 0 ] << ", " 
+	//							  << gt[ 1 ] << ", "
+	//							  << gt[ 2 ] << ", "
+	//							  << gt[ 3 ] << " ] ";
+	//    std::cout << "\n\tEST -> [ " << est[ 0 ] << ", " 
+	//							   << est[ 1 ] << ", "
+	//							   << est[ 2 ] << ", "
+	//							   << est[ 3 ] << " ] ";
+
+	//    std::cout << "\n\tError -> [ " << err[ 0 ] << ", " 
+	//							     << err[ 1 ] << ", "
+	//							     << err[ 2 ] << ", "
+	//							     << err[ 3 ] << " ] ";
+		errLen = err.norm();
+		errSum += errLen;
+	//	std::cout << "\n\tErrLen: " << errLen << std::endl;
+	}
+	std::cout << "Summed Point Error: " << errSum << std::endl;
 	
-	sba.optimize( sbaData );
-	
-	double elapsedSecs = timer.elapsedSeconds();
-	
-	std::cout << "MVG BA took: " << elapsedSecs*1000.0 << "ms" << std::endl;	
-	std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.epsilon() << std::endl; 
-	std::cout << "Time/iteration: " << elapsedSecs / sba.iterations() << std::endl;
-	
-	compareResults( sbaData, rot, trans, pts );
+	// go over all keyframes and compare the result
+	Eigen::Matrix4d errMat;
+	errSum = 0;
+	for( size_t i = 0; i < groundTruth.numKeyframes(); i++ ){
+		const Eigen::Matrix4d & gt = groundTruth.keyframeForId( i ).pose().transformation();
+		const Eigen::Matrix4d & est = optimized.keyframeForId( i ).pose().transformation();
+		errMat = gt - est;
+		errSum += errMat.array().square().sum();		
+	}
+	std::cout << "Summed Cam Error: " << errSum << std::endl;
+
 }
 
 int main(int argc, char* argv[])
 {
+	if( argc < 2 ){
+		std::cout << "Usage: " << argv[ 0 ] << " <7|9|54>" << std::endl;
+		return 0;
+	}
+
+	int n = atoi( argv[ 1 ] );
+
 	cvt::Resources resources;
-	
-	Eigen::Matrix3d K;
-	std::vector<CameraTransform> cameras;
-	std::vector<Point3d> points3d;
+	SlamMap map, gtMap;
 		
-	try {
+	try {		
+		String intrinsicsFile = resources.find("sba/calib.txt");
 		
-		std::string intrinsicsFile = resources.find("sba/calib.txt");
-		
-		/*
-		std::string camFile = resources.find("sba/7cams.txt");
-		std::string pointFile = resources.find("sba/7pts.txt");
-		std::string camGT = resources.find("sba/resultCams7.txt");
-		std::string pointGT = resources.find("sba/resultPts7.txt");
-		*/
+		//String camFile = resources.find("sba/7cams.txt");
+		//String pointFile = resources.find("sba/7pts.txt");
+		//String camGT = resources.find("sba/resultCams7.txt");
+		//String pointGT = resources.find("sba/resultPts7.txt");
 		
 		/*
-		std::string camFile = resources.find("sba/9cams.txt");
-		std::string pointFile = resources.find("sba/9pts.txt");
-		std::string camGT = resources.find("sba/resultCams9.txt");
-		std::string pointGT = resources.find("sba/resultPts9.txt");
+		String camFile = resources.find("sba/9cams.txt");
+		String pointFile = resources.find("sba/9pts.txt");
+		String camGT = resources.find("sba/resultCams9.txt");
+		String pointGT = resources.find("sba/resultPts9.txt");
 		*/
+		String camFile = resources.find("sba/54cams.txt");
+		String pointFile = resources.find("sba/54pts.txt");
+		String camGT = resources.find("sba/resultCams54.txt");
+		String pointGT = resources.find("sba/resultPts54.txt");		
+
+		parseLourakisData( map, gtMap, intrinsicsFile, camFile, pointFile, camGT, pointGT );
+
+		SparseBundleAdjustment sba;
+		TerminationCriteria<double> termcrit;
+		termcrit.setCostThreshold( 0.1 );
+		termcrit.setMaxIterations( 300 );
+
+
+		Time timer;
+		sba.optimize( map, termcrit );
+		std::cout << "SBA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
+		std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.costs() << std::endl; 
+		std::cout << "Time/iteration: " << timer.elapsedMilliSeconds() / sba.iterations() << "ms" << std::endl;
 		
-		std::string camFile = resources.find("sba/54cams.txt");
-		std::string pointFile = resources.find("sba/54pts.txt");
-		std::string camGT = resources.find("sba/resultCams54.txt");
-		std::string pointGT = resources.find("sba/resultPts54.txt");
-		
-		std::vector<Eigen::Matrix3d> gtRots;
-		std::vector<Eigen::Vector3d> gtTrans;
-		std::vector<Eigen::Vector3d> gtPts;
-		
-		
-		parseCalibFile( intrinsicsFile, K );		
-		parseCameraFile( camFile, cameras );
-		parsePtsFile( pointFile, points3d );		
-		loadGroundTruth( camGT, pointGT, gtRots, gtTrans, gtPts );		
-		testMVGImplementation( K, cameras, points3d, gtRots, gtTrans, gtPts );
-		
-		//testSimulation();
+		compareMaps( gtMap, map );
+
 	}
 	catch (const cvt::Exception & e) {
 		std::cout << e.what() << std::endl;
