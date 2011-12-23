@@ -25,8 +25,8 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 
 #define ALPHA 0.5f
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), bstride ) + ( x ) + 1 ]
-//#define CSELECT( val ) dot( val, ( float4 )( 0.3333f, 0.3333f, 0.3333f, 0.0f ) )
- #define CSELECT( val ) ( ( val ).x )
+#define CSELECT( val ) dot( val, ( float4 )( 0.3333f, 0.3333f, 0.3333f, 0.0f ) )
+//#define CSELECT( val ) ( ( val ).x )
 
 	if( gx >= width || gy >= height )
 		return;
@@ -40,9 +40,9 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 	dy2 = read_imagef( src2, samplerlin, coord + ( float2 )( 0.0f, 1.0f ) ) - read_imagef( src2, samplerlin, coord - ( float2 )( 0.0f, 1.0f ) );
 
 	value.x  = CSELECT( warped - BUF( lx, ly ) );
-	value.y  = CSELECT( mix( dx2, dx1, 0.1f ) );
-	value.z  = CSELECT( mix( dy2, dy1, 0.1f ) );
-	value.w  = max( 1e-4f, 1.0f * exp( -pow( CSELECT( sqrt( dx1 * dx1 + dy1 * dy1 ) ), ALPHA ) ) );
+	value.y  = CSELECT( mix( dx2, dx1, 0.5f ) );
+	value.z  = CSELECT( mix( dy2, dy1, 0.5f ) );
+	value.w  = max( 1e-4f, 1.0f * exp( -pow( fast_length( mix( dx2, dx1, 0.5f ) ) + fast_length( mix( dy2, dy1, 0.5f )), ALPHA ) ) );
 
 	write_imagef( out,( int2 )( gx, gy ), value );
 }

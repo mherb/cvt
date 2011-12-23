@@ -32,7 +32,7 @@ int main( int argc, char** argv )
 	Image ccode;
 
 	try {
-		TVL1Flow flow( 0.8, 8 );
+		TVL1Flow flow( 0.95, 40 );
 
 		Time t;
 		flow.apply( output, input1, input2 );
@@ -40,7 +40,7 @@ int main( int argc, char** argv )
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
 		ccode.reallocate( output.width(), output.height(), IFormat::BGRA_FLOAT );
-		Flow::colorCode( ccode, output, 2.0f );
+		Flow::colorCode( ccode, output, 3.0f );
 		ccode.save( "flow.png" );
 
 		if( argc == 4 ) {
