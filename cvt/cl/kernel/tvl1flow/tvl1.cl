@@ -64,10 +64,12 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	dy = BUF2( lx, ly + 1 ).xy - w.xy;
 
 	// HUBER
-#define EPS 0.01f
+#define EPS 0.04f
 	float4 delta = ( float4 ) ( dx.x, dy.x, dx.y, dy.y );
 	pout = BUF( lx, ly ) + ( 1.0f / ( 8.0f * theta ) ) * ( delta - EPS * BUF( lx, ly) );
 	//norm = fmax( ( float2 ) 1.0f, ( float2 ) ( length( pout.xy )/ w.w, length( pout.zw ) ) / w.w );
+//	float n = fmax(  1.0f,  fmax( fast_length( pout.xy ), fast_length( pout.zw ) ) / w.w );
+
 	float n = fmax(  1.0f,  fast_length( pout ) / w.w );
 	pout = pout / ( float4 ) ( n );
 

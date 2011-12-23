@@ -33,7 +33,7 @@ namespace cvt {
 			_tvl1_dataadd( _tvl1_dataadd_source, "tvl1_dataadd" ),
 			_clear( _clear_source, "clear" ),
 			_median3( _median3_source, "median3" ),
-			_lambda( 2000.0f )
+			_lambda( 70.0f )
 		{
 			_pyr[ 0 ] = new Image[ levels ];
 			_pyr[ 1 ] = new Image[ levels ];
@@ -54,7 +54,7 @@ namespace cvt {
 			fillPyramidCL( src1, 0 );
 			fillPyramidCL( src2, 1 );
 
-#define THETA 0.05f
+#define THETA 0.08f
 #define WARPWGSIZE 16
 #define PYRUPWGSIZE 16
 #define TVL1WGSIZE 16
@@ -80,10 +80,10 @@ namespace cvt {
 					_clear.run( CLNDRange(Math::pad( flow->width(), 16 ), Math::pad( flow->height(), 16 ) ), CLNDRange( 16, 16 ));
 				}
 
-				float tmp = _lambda;
-				_lambda = _lambda * Math::pow( _scalefactor, l );
+				//float tmp = _lambda;
+				//_lambda = _lambda * Math::pow( _scalefactor, l );
 				solveTVL1( *flow, _pyr[ 0 ][ l ], _pyr[ 1 ][ l ], true );
-				_lambda = tmp;
+				//_lambda = tmp;
 			}
 
 			if( flowold )
@@ -116,7 +116,7 @@ namespace cvt {
 
 				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
-			for( int i = 0; i < 5; i++ ) {
+			for( int i = 0; i < 20; i++ ) {
 				if( median ) {
 					_median3.setArg( 0, flow0 );
 					_median3.setArg( 1, *us[ 1 ] );
@@ -141,7 +141,7 @@ namespace cvt {
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
 				float t = 1.0f, told = 1.0f;
-#define ROFITER 200
+#define ROFITER 60
 				for( int k = 0; k < ROFITER; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );
@@ -150,7 +150,8 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 6.5f ) ) );
+					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 2.5f ) ) );
+//					_tvl1.setArg( 6, _lambda * ( ( Math::tanh( ( ( float ) ( -k ) + 0.5f * ( float ) ROFITER ) * 0.75f ) * 0.5f + 0.5f ) ) );
 					_tvl1.setArg( 7, THETA );
 				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );
 					_tvl1.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
@@ -164,14 +165,14 @@ namespace cvt {
 					ps[ 0 ] = ps[ 1 ];
 					ps[ 1 ] = tmp;
 
-					tmp = us[ 0 ];
+/*					tmp = us[ 0 ];
 					us[ 0 ] = us[ 1 ];
-					us[ 1 ] = tmp;
+					us[ 1 ] = tmp;*/
 
-/*					_median3.setArg( 0, *us[ 1 ] );
+					_median3.setArg( 0, *us[ 1 ] );
 					_median3.setArg( 1, *us[ 0 ] );
 					_median3.setArg( 2,  CLLocalSpace( sizeof( cl_float4 ) * ( MEDWGSIZE + 2 ) * ( MEDWGSIZE + 2 ) ) );
-					_median3.run( CLNDRange( Math::pad( flow.width(), MEDWGSIZE ), Math::pad( flow.height(), MEDWGSIZE ) ), CLNDRange( MEDWGSIZE, MEDWGSIZE ) );*/
+					_median3.run( CLNDRange( Math::pad( flow.width(), MEDWGSIZE ), Math::pad( flow.height(), MEDWGSIZE ) ), CLNDRange( MEDWGSIZE, MEDWGSIZE ) );
 
 
 
@@ -196,7 +197,7 @@ namespace cvt {
 
 #define PYRWGSIZE 16
 
-			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
+			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_CL );
 			img.convert( pyr[ 0 ] );
 			for( size_t l = 1; l < _levels; l++ ) {
 				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
