@@ -6,6 +6,7 @@
 #include <cvt/gfx/IFilter.h>
 #include <cvt/gfx/ILoader.h>
 #include <cvt/gfx/ISaver.h>
+#include <cvt/geom/scene/SceneLoader.h>
 #include <cvt/util/String.h>
 #include <vector>
 #include <map>
@@ -27,6 +28,8 @@ namespace cvt {
 			ILoader* getILoaderForFilename( const String& name );
 			ISaver* getISaverForFilename( const String& name );
 
+			SceneLoader* getSceneLoaderForFilename( const String& name );
+
 		private:
 			PluginManager();
 			PluginManager( const PluginManager& );
@@ -38,6 +41,7 @@ namespace cvt {
 			std::vector<IFilter*> _ifilters;
 			std::vector<ILoader*> _iloaders;
 			std::vector<ISaver*> _isavers;
+			std::vector<SceneLoader*> _sceneloaders;
 			std::map< const String, IFilter*> _ifiltermap;
 
 			static PluginManager* _instance;
@@ -61,9 +65,14 @@ namespace cvt {
 			delete *it;
 		_isavers.clear();
 
+		for( std::vector<SceneLoader*>::iterator it = _sceneloaders.begin(), end = _sceneloaders.end(); it != end; ++it  )
+			delete *it;
+		_sceneloaders.clear();
+
 		for( std::vector<PluginFile*>::iterator it = _plugins.begin(), end = _plugins.end(); it != end; ++it  )
 			delete *it;
 		_plugins.clear();
+
 		_ifiltermap.clear();
 	}
 
@@ -88,6 +97,11 @@ namespace cvt {
 				{
 					//std::cout << "Loaded ISaver " << plugin->name() << " Extension:" << ( ( ISaver* ) plugin )->extension( 0 ) << std::endl;
 					_isavers.push_back( ( ISaver* ) plugin );
+				}
+				break;
+			case PLUGIN_SCENELOADER:
+				{
+					_sceneloaders.push_back( ( SceneLoader* ) plugin );
 				}
 				break;
 			default:
@@ -137,6 +151,18 @@ namespace cvt {
 	inline ISaver* PluginManager::getISaverForFilename( const String& name )
 	{
 		for( std::vector<ISaver*>::iterator it = _isavers.begin(), end = _isavers.end(); it != end; ++it  ) {
+			for( size_t i = 0, end = ( *it )->sizeExtensions(); i < end; i++ ) {
+				if( name.hasSuffix( ( *it )->extension( i ) ) )
+					return *it;
+			}
+		}
+		return NULL;
+	}
+
+	inline SceneLoader* PluginManager::getSceneLoaderForFilename( const String& name )
+	{
+		for( std::vector<SceneLoader*>::iterator it = _sceneloaders.begin(), end = _sceneloaders.end(); it != end; ++it  )
+		{
 			for( size_t i = 0, end = ( *it )->sizeExtensions(); i < end; i++ ) {
 				if( name.hasSuffix( ( *it )->extension( i ) ) )
 					return *it;

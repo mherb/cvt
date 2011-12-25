@@ -220,9 +220,12 @@ SET(${MODULE_NAME}_HEADERS
 	geom/KDTree.h
 	geom/Line2D.h
 	geom/Model.h
+	geom/Mesh.h
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
+	geom/scene/Scene.h
+	geom/scene/SceneLoader.h
 	gfx/Color.h
 	gfx/Image.h
 	gfx/IFormat.h
@@ -336,7 +339,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/RawVideoReader.h
 	io/VideoInput.h
 	io/VideoReader.h
-	io/PlyModel.h
 	io/Postscript.h
 	io/GFXEnginePS.h
 	io/Host.h
@@ -503,6 +505,7 @@ SET(${MODULE_NAME}_SOURCES
 	geom/Model.cpp
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
+	geom/scene/Scene.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLFBO.cpp
@@ -547,7 +550,6 @@ SET(${MODULE_NAME}_SOURCES
 	io/RawVideoWriter.cpp
 	io/RawVideoReader.cpp
 	io/VideoReader.cpp
-	io/PlyModel.cpp
 	io/Host.cpp
 	io/Socket.cpp
 	io/TCPClient.cpp

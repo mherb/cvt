@@ -4,6 +4,9 @@
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/geom/Box.h>
+#include <cvt/util/String.h>
+
+#include <vector>
 
 namespace cvt {
 	enum MeshType {
@@ -13,10 +16,14 @@ namespace cvt {
 
 	class Mesh {
 		public:
-			Mesh( MeshType type = MESH_TRIANGLES );
+			Mesh( const String& name );
 			~Mesh();
 
+			const String&   name() const;
 			MeshType		type() const;
+
+			void			clear();
+			bool			isEmpty() const;
 
 			size_t			vertexSize() const;
 			size_t			normalSize() const;
@@ -27,9 +34,15 @@ namespace cvt {
 			const Vector3f& normal( size_t i ) const;
 			const Vector2f& texcoord( size_t i ) const;
 
+			void			setVertices( const Vector3f* data, size_t size );
+			void			setNormals( const Vector3f* data, size_t size );
+			void			setTexcoords( const Vector2f* data, size_t size );
+			void			setFaces( const unsigned int* data, size_t size, MeshType type );
+
 			Vector3f		centroid() const;
 			Boxf			boundingBox() const;
 
+			void			transform( const Matrix3f& mat );
 			void			transform( const Matrix4f& mat );
 			void			translate( const Vector3f& translation );
 			void			scale( float scale );
@@ -45,20 +58,15 @@ namespace cvt {
 
 
 		private:
-			std::vector<Vector3f> _vertices;
-			std::vector<Vector3f> _normals;
-			std::vector<Vector2f> _texcoords;
-
-			std::vector<size_t>   _vindices;
-			std::vector<size_t>   _nindices;
-			std::vector<size_t>   _tindices;
-
-			std::vector<size_t>   _adjacency;
-
-			MeshType			  _type;
+			String						_name;
+			std::vector<Vector3f>		_vertices;
+			std::vector<Vector3f>		_normals;
+			std::vector<Vector2f>		_texcoords;
+			std::vector<unsigned int>	_vindices;
+			MeshType					_type;
 	};
 
-	inline Mesh::Mesh( MeshType type ) : _type( type )
+	inline Mesh::Mesh( const String& name ) : _name( name ), _type( MESH_TRIANGLES )
 	{
 	}
 
@@ -66,9 +74,28 @@ namespace cvt {
 	{
 	}
 
+	inline const String& Mesh::name() const
+	{
+		return _name;
+	}
+
 	inline MeshType Mesh::type() const
 	{
 		return _type;
+	}
+
+	inline void Mesh::clear()
+	{
+		_vertices.clear();
+		_normals.clear();
+		_texcoords.clear();
+		_vindices.clear();
+		_type = MESH_TRIANGLES;
+	}
+
+	inline bool Mesh::isEmpty() const
+	{
+		return _vertices.empty() || _vindices.empty();
 	}
 
 	inline size_t Mesh::vertexSize() const
@@ -107,6 +134,27 @@ namespace cvt {
 		return _texcoords[ i ];
 	}
 
+	inline void Mesh::setVertices( const Vector3f* data, size_t size )
+	{
+		_vertices.assign( data, data + size );
+	}
+
+	inline void Mesh::setNormals( const Vector3f* data, size_t size )
+	{
+		_normals.assign( data, data + size );
+	}
+
+	inline void Mesh::setTexcoords( const Vector2f* data, size_t size )
+	{
+		_texcoords.assign( data, data + size );
+	}
+
+	inline void Mesh::setFaces( const unsigned int* data, size_t size, MeshType type )
+	{
+		_type = type;
+		_vindices.assign( data, data + size );
+	}
+
 	inline Vector3f Mesh::centroid( ) const
 	{
 		size_t n = _vertices.size();
@@ -121,12 +169,12 @@ namespace cvt {
 	}
 
 
-	inline Boxf Mesh::boundingBox();
+	inline Boxf Mesh::boundingBox() const
 	{
 		Vector3f min, max;
-		Boxf bbox
+		Boxf bbox;
 
-		if( !_vertices.size() )
+		if( !_vindices.size() )
 			return bbox;
 
 		min = max = _vertices[ 0 ];
@@ -195,6 +243,16 @@ namespace cvt {
 				pt++;
 			}
 		}
+	}
+
+	inline std::ostream& operator<<( std::ostream& out, const Mesh& mesh )
+	{
+		out << "Mesh:\n";
+		out << "\tVertices: " << mesh.vertexSize();
+		out << "\n\tNormals: " << mesh.normalSize();
+		out << "\n\tTexCoords: " << mesh.texcoordSize();
+		out << "\n\tFaces: " << mesh.faceSize() << "\n";
+		return out;
 	}
 
 }
