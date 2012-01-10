@@ -16,7 +16,7 @@ namespace cvt
 	size_t SlamMap::addKeyframe( const Eigen::Matrix4d& pose )
 	{
 		size_t id = _keyframes.size();
-		_keyframes.push_back( Keyframe( pose ) );
+		_keyframes.push_back( Keyframe( pose, id ) );
 		return id;
 	}
 
@@ -138,7 +138,7 @@ namespace cvt
 
 		// get intrinsics:
 		Matrix3d K;
-		K.fromString( node->childByName( "Intrinsics" )->value() );
+		K = Matrix3d::fromString( node->childByName( "Intrinsics" )->child( 0 )->value() );
 		EigenBridge::toEigen( _intrinsics, K );
 
 		XMLNode* keyframes = node->childByName( "Keyframes" );
@@ -146,15 +146,19 @@ namespace cvt
 			throw CVTException( "No Keyframes in MapFile!" );
 		}
 
-		_keyframes.resize( keyframes->childSize() );
+		size_t numKF = keyframes->childSize();
+		_keyframes.resize( numKF );
 		_numMeas = 0;
 		for( size_t i = 0; i < _keyframes.size(); i++ ){
 			XMLNode* kfNode = keyframes->child( i );
-			_keyframes[ i ].deserialize( kfNode );
-			_numMeas += _keyframes[ i ].numMeasurements();
+
+			// get the id: 			
+			size_t kfId = kfNode->childByName( "id" )->value().toInteger();
+
+			_keyframes[ kfId ].deserialize( kfNode );
+			_numMeas += _keyframes[ kfId ].numMeasurements();
 		}
 
-		
 		XMLNode* featureNodes = node->childByName( "MapFeatures" );
 		if( featureNodes == NULL ){
 			throw CVTException( "No Features in MapFile!" );
@@ -191,9 +195,8 @@ namespace cvt
 		// the mapfeatures
 		XMLElement* mapFeatureNodes = new XMLElement( "MapFeatures" );
 		for( size_t i = 0; i < _features.size(); i++ ){
-			keyframeNodes->addChild( _features[ i ].serialize() );
+			mapFeatureNodes->addChild( _features[ i ].serialize() );
 		}
-
 		mapNode->addChild( mapFeatureNodes );
 
 		return mapNode;

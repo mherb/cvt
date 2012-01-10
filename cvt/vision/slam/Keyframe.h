@@ -18,8 +18,11 @@ namespace cvt
 			typedef std::map<size_t, MapMeasurement, std::less<size_t>, Eigen::aligned_allocator<MapPairType> > MapType;
 			typedef MapType::const_iterator MeasurementIterator;
 
-			Keyframe( const Eigen::Matrix4d& pose );
+			Keyframe( const Eigen::Matrix4d& pose, size_t id );
 			Keyframe();
+
+			void	setId( size_t id )  { _id = id; }
+			size_t  id() const			{ return _id; }
 
 			void					addFeature( const MapMeasurement & f, size_t id );
 
@@ -40,6 +43,7 @@ namespace cvt
 			XMLNode* serialize() const;
 
 		private:
+			size_t		_id;
 			SE3<double>	_pose;
 
 			// 2d meas of 3d feat with id

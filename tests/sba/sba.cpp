@@ -49,6 +49,40 @@ void testJointMeasures( const SlamMap & map )
 	}
 }
 
+void dump( const SlamMap & map )
+{
+	for( size_t i = 0; i < map.numKeyframes(); i++ ){
+		const Keyframe & kf = map.keyframeForId( i );
+		std::cout << "Keyframe: id = " << kf.id();
+		std::cout << "\n\tPose: "; 
+		for(size_t n = 0; n < 4; n++ )
+			for(size_t k = 0; k < 4; k++ )
+				std::cout << kf.pose().transformation()( n, k );
+		std::cout << "\n\tMeas: ";
+		Keyframe::MeasurementIterator it = kf.measurementsBegin();
+		const Keyframe::MeasurementIterator itEnd = kf.measurementsEnd();
+		while( it != itEnd ){
+			std::cout << "<" << it->first << ", " << it->second.point << "> ";
+			++it;
+		}
+		std::cout << std::endl;
+	}
+
+	for( size_t i = 0; i < map.numFeatures(); i++ ){
+		const MapFeature & mf = map.featureForId( i );
+		std::cout << "Feature id = " << i;
+		std::cout << "\n\tEstimate:\t" << mf.estimate().x() << ", " << mf.estimate().y() << ", " << mf.estimate().z(); 
+		std::cout << "\n\tPointTrack:\t";
+		MapFeature::ConstPointTrackIterator it = mf.pointTrackBegin();
+		const MapFeature::ConstPointTrackIterator itEnd = mf.pointTrackEnd();
+		while( it != itEnd ){
+			std::cout << " " << *it; 
+			++it;
+		}
+		std::cout << std::endl;
+	}
+}
+
 void parseIntrinsics( CameraCalibration & calib, const String & calibFile )
 {
 	Data d;
@@ -300,14 +334,24 @@ void saveMapToXml( const SlamMap& map, const String& fileName )
 	doc.save( fileName );
 }
 
+void loadMapFromXml( SlamMap& map, const String& fileName )
+{
+	XMLDocument doc;
+	doc.load( fileName );
+
+	XMLNode* n = doc.nodeByName( "SlamMap" );
+	map.deserialize( n );	
+}
+
 int main(int argc, char* argv[])
 {
-	if( argc < 2 ){
-		std::cout << "Usage: " << argv[ 0 ] << " <7|9|54>" << std::endl;
+	if( argc < 3 ){
+		std::cout << "Usage: " << argv[ 0 ] << " <7|9|54> <maxiter>" << std::endl;
 		return 0;
 	}
 
 	int n = atoi( argv[ 1 ] );
+	int maxIter = atoi( argv[ 2 ] ); 
 
 	cvt::Resources resources;
 	SlamMap map, gtMap;
@@ -342,21 +386,20 @@ int main(int argc, char* argv[])
 		parseLourakisData( map, gtMap, intrinsicsFile, camFile, pointFile, camGT, pointGT );
 
 		saveMapToXml( map, "map.xml" );
-		return 0;
+		SlamMap m2;
+		loadMapFromXml( m2, "map.xml" );
 
 		SparseBundleAdjustment sba;
 		TerminationCriteria<double> termcrit;
 		termcrit.setCostThreshold( 0.1 );
-		termcrit.setMaxIterations( 100 );
-
+		termcrit.setMaxIterations( maxIter );
 
 		Time timer;
-		sba.optimize( map, termcrit );
+		sba.optimize( m2, termcrit );
 		std::cout << "SBA took: " << timer.elapsedMilliSeconds() << "ms" << std::endl;	
 		std::cout << "Iterations: " << sba.iterations() <<", Final epsilon: " << sba.costs() << std::endl; 
-		std::cout << "Time/iteration: " << timer.elapsedMilliSeconds() / sba.iterations() << "ms" << std::endl;
-		
-		compareMaps( gtMap, map );
+		std::cout << "Time/iteration: " << timer.elapsedMilliSeconds() / sba.iterations() << "ms" << std::endl;	
+		compareMaps( gtMap, m2 );
 
 	}
 	catch (const cvt::Exception & e) {
