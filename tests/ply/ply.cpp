@@ -1,5 +1,4 @@
-#include <cvt/geom/Model.h>
-#include <cvt/io/PlyModel.h>
+#include <cvt/geom/scene/Scene.h>
 
 #include <iostream>
 
@@ -12,10 +11,15 @@ int main( int argc, char** argv )
 		return 1;
 	}
 
-	Model mdl;
+	Scene s;
+	s.load( argv[ 1 ] );
+
+	std::cout << s << std::endl;
+
+/*	Model mdl;
 	PlyModel::load( mdl, argv[ 1 ] );
 	std::cout << mdl << std::endl;
 
 //	mdl.calcNormals();
-	PlyModel::save( "output.ply", mdl );
+	PlyModel::save( "output.ply", mdl ); */
 }

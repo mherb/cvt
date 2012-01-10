@@ -21,27 +21,27 @@ namespace cvt {
 			return true;
 	}
 
-    void FileSystem::rename( const String & from, const String & to )
-    {
+	void FileSystem::rename( const String & from, const String & to )
+	{
 		if ( ::rename( from.c_str(), to.c_str() ) < 0 )
 			throw CVTException("Could not rename file");
-    }
+	}
 
-    bool FileSystem::isFile( const String & file )
-    {
+	bool FileSystem::isFile( const String & file )
+	{
 		struct stat attr;
 		if( stat( file.c_str(), &attr ) == -1 )
 			CVTException( "Given path does not exist" );
 		return S_ISREG( attr.st_mode );
-    }
+	}
 
-    bool FileSystem::isDirectory( const String & dir )
-    {
+	bool FileSystem::isDirectory( const String & dir )
+	{
 		struct stat attr;
 		if( stat( dir.c_str(), &attr ) == -1 )
 			CVTException( "Given path does not exist" );
 		return S_ISDIR( attr.st_mode );
-    }
+	}
 
 	void FileSystem::ls( const String & path, std::vector<String> & entries )
 	{
@@ -59,7 +59,7 @@ namespace cvt {
 			String entryName( entry->d_name );
 
 			if( entryName == "." ||
-			    entryName == ".." )
+					entryName == ".." )
 				continue;
 
 			entries.push_back( entryName );
@@ -67,7 +67,7 @@ namespace cvt {
 		closedir( dirEntries );
 	}
 
-    void FileSystem::filesWithExtension( const String & _path, std::vector<String>& result, const String & ext )
+	void FileSystem::filesWithExtension( const String & _path, std::vector<String>& result, const String & ext )
 	{
 		String path = _path;
 
@@ -75,15 +75,15 @@ namespace cvt {
 			path += '/';
 
 		if( !exists( path ) ){
-            String message( "Path not found: " );
-            message += path;
+			String message( "Path not found: " );
+			message += path;
 			throw CVTException( "Path not found: " );
 		}
 
 		DIR * dirEntries = opendir( path.c_str() );
 		if( dirEntries == NULL ){
-            String message( "Directory not readable: " );
-            message += path;
+			String message( "Directory not readable: " );
+			message += path;
 			CVTException( message.c_str() );
 		}
 
@@ -91,11 +91,11 @@ namespace cvt {
 
 		while( ( entry = readdir( dirEntries ) ) != NULL ) {
 			String entryName( path );
-            entryName += entry->d_name;
+			entryName += entry->d_name;
 
 			if( isFile( entryName ) ) {
 				if( entryName.length() >= ext.length() ){
-                    // get the extension of the entry
+					// get the extension of the entry
 					String entryExt = entryName.substring( entryName.length() - ext.length(), ext.length() );
 					if( entryExt == ext ){
 						result.push_back( entryName );
@@ -151,36 +151,36 @@ namespace cvt {
 
 	BEGIN_CVTTEST( filesystem )
 		bool result = true;
-		String dataFolder( DATA_FOLDER );
-		bool b = FileSystem::exists( "/usr/include" );
-		b &= FileSystem::exists( dataFolder );
-		b &= !FileSystem::exists( "bliblabluiamnothere" );
-		CVTTEST_PRINT( "exists: ", b );
-		result &= b;
+	String dataFolder( DATA_FOLDER );
+	bool b = FileSystem::exists( "/usr/include" );
+	b &= FileSystem::exists( dataFolder );
+	b &= !FileSystem::exists( "bliblabluiamnothere" );
+	CVTTEST_PRINT( "exists: ", b );
+	result &= b;
 
 
-		b = FileSystem::isDirectory( "/usr/include" );
-        String f;
-        f = dataFolder; f += "/lena.png";
-		b &= !FileSystem::isDirectory( f );
-		CVTTEST_PRINT( "isDirectory: ", b );
-		result &= b;
+	b = FileSystem::isDirectory( "/usr/include" );
+	String f;
+	f = dataFolder; f += "/lena.png";
+	b &= !FileSystem::isDirectory( f );
+	CVTTEST_PRINT( "isDirectory: ", b );
+	result &= b;
 
-		b = !FileSystem::isFile( "/usr/include" );
-		b &= FileSystem::isFile( f );
-		CVTTEST_PRINT( "isFile: ", b );
-		result &= b;
+	b = !FileSystem::isFile( "/usr/include" );
+	b &= FileSystem::isFile( f );
+	CVTTEST_PRINT( "isFile: ", b );
+	result &= b;
 
-        String f2( dataFolder ); f2 += "/blubb.png";
-		FileSystem::rename( f, f2 );
-		b = FileSystem::exists( f2 );
-		b &= !FileSystem::exists( f );
-		FileSystem::rename( f2, f );
-		b &= !FileSystem::exists( f2 );
-		b &= FileSystem::exists( f );
-		CVTTEST_PRINT( "rename: ", b );
-		result &= b;
+	String f2( dataFolder ); f2 += "/blubb.png";
+	FileSystem::rename( f, f2 );
+	b = FileSystem::exists( f2 );
+	b &= !FileSystem::exists( f );
+	FileSystem::rename( f2, f );
+	b &= !FileSystem::exists( f2 );
+	b &= FileSystem::exists( f );
+	CVTTEST_PRINT( "rename: ", b );
+	result &= b;
 
-		return result;
+	return result;
 	END_CVTTEST
 }

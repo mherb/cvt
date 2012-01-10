@@ -1,6 +1,9 @@
 #ifndef FEATURE_TRACKING_H
 #define FEATURE_TRACKING_H
 
+#include <cvt/vision/slam/MapFeature.h>
+#include "DescriptorDatabase.h"
+
 namespace cvt
 {
 
@@ -10,25 +13,29 @@ namespace cvt
 	class FeatureTracking 
 	{
 		public:
-			FeatureTracking( size_t maxDescDistance, float windowRadius );
+			FeatureTracking( const DescriptorDatabase<ORBFeature> & database, size_t maxDescDistance, float windowRadius );
 			~FeatureTracking();
 
             void setMaxDescDist( size_t v ) { _maxDescDistance = v; }
             void setMatchRadius( size_t v ) { _windowRadius = v; }
 
             void trackFeatures( std::vector<FeatureMatch> & matches, 
-							    const std::vector<ORBFeature*> & predicted,
+							    const std::vector<size_t> & predictedFeatureIds,
 								const std::vector<Vector2f> & predictedPositions,
 							    const ORB& orb ) const;
 
 		private:
-            size_t      _maxDescDistance;
-            float       _windowRadius;
+			const DescriptorDatabase<ORBFeature>&	_descriptors;
+            size_t									_maxDescDistance;
+            float									_windowRadius;
             
-			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORBFeature& f, const ORB & orb ) const;
+			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb ) const;
 	};
 
-	inline FeatureTracking::FeatureTracking( size_t maxDD, float wR ) :
+	inline FeatureTracking::FeatureTracking( const DescriptorDatabase<ORBFeature> & ddb, 
+											 size_t maxDD, 
+											 float wR ) :
+		_descriptors( ddb ),
 		_maxDescDistance( maxDD ),
 		_windowRadius( wR )
 	{
@@ -38,35 +45,37 @@ namespace cvt
 	{
 	}
 
-    inline void FeatureTracking::trackFeatures( std::vector<FeatureMatch> & matches, 
-											    const std::vector<ORBFeature*> & predictedFeatures,
-											    const std::vector<Vector2f> & predictedPositions,
-                                                const ORB& orb ) const
+    inline void FeatureTracking::trackFeatures( std::vector<FeatureMatch>&	 matches, 
+												const std::vector<size_t>&	 predictedFeatureIds,
+											    const std::vector<Vector2f>& predictedPositions,
+                                                const ORB&					 orb ) const
     {
         // we want to find the best matching orb feature from current, that lies
         // within a certain distance from the "predicted" position
-        std::vector<ORBFeature*>::const_iterator current = predictedFeatures.begin();
+        std::vector<size_t>::const_iterator currentId = predictedFeatureIds.begin();
+        std::vector<size_t>::const_iterator tEnd = predictedFeatureIds.end();
         std::vector<Vector2f>::const_iterator  pred = predictedPositions.begin();
-        std::vector<ORBFeature*>::const_iterator tEnd = predictedFeatures.end();
 
-        while( current != tEnd ){
+        while( currentId != tEnd ){
 			FeatureMatch m;
-			m.feature0 = *current;
-            matchInWindow( m, *pred, **current, orb );
+			const ORBFeature & desc = _descriptors.descriptor( *currentId );
+			m.feature0 = &desc;
+            matchInWindow( m, *pred, orb );
 			matches.push_back( m );
-			++current;
+			++currentId;
 			++pred;
         }
     }
 
-    inline void FeatureTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORBFeature & f, const ORB & orb ) const
+    inline void FeatureTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb ) const
     {
+		const ORBFeature * f = (ORBFeature*)match.feature0;
         match.distance = _maxDescDistance;
         size_t currDist;
         for( size_t i = 0; i < orb.size(); i++ ){
             if( ( p - orb[ i ].pt ).length() < _windowRadius ){
                 // try to match
-                currDist = f.distance( orb[ i ] );
+                currDist = f->distance( orb[ i ] );
                 if( currDist < match.distance ){
 					match.feature1 = &orb[ i ];
                     match.distance = currDist;

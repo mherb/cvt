@@ -123,11 +123,10 @@ SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
 	cl/kernel/gaussiir2.cl
 	cl/kernel/BC.cl
-	cl/kernel/fgp/fgp_calce.cl
-	cl/kernel/fgp/fgp_calcn.cl
-	cl/kernel/fgp/fgp_calcu.cl
-	cl/kernel/fgp/fgp_clear.cl
-	cl/kernel/fgp/fgp_calcun.cl
+	cl/kernel/clear.cl
+	cl/kernel/median3.cl
+	cl/kernel/fgp/fgp.cl
+	cl/kernel/fgp/fgp_data.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
@@ -137,16 +136,23 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_boxfilter.cl
 	cl/kernel/guidedfilter/guidedfilter_calcab.cl
 	cl/kernel/guidedfilter/guidedfilter_applyab.cl
+	cl/kernel/pyr/pyrdown_binom3.cl
+	cl/kernel/pyr/pyrdown_binom5.cl
+	cl/kernel/pyr/pyrup.cl
+	cl/kernel/pyr/pyrupmul.cl
+	cl/kernel/pyr/pyrdown.cl
+	cl/kernel/tvl1flow/tvl1.cl
+	cl/kernel/tvl1flow/tvl1_dataadd.cl
+	cl/kernel/tvl1flow/tvl1_warp.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_calce.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_calcn.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_calcu.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_calcun.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_clear.cl )
+CLTOHEADER( cl/kernel/clear.cl )
+CLTOHEADER( cl/kernel/median3.cl )
+CLTOHEADER( cl/kernel/fgp/fgp.cl )
+CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
@@ -156,6 +162,15 @@ CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
+CLTOHEADER( cl/kernel/pyr/pyrup.cl )
+CLTOHEADER( cl/kernel/pyr/pyrupmul.cl )
+CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
+CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
+
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -179,11 +194,10 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir.h
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
-	cl/kernel/fgp/fgp_calce.h
-	cl/kernel/fgp/fgp_calcn.h
-	cl/kernel/fgp/fgp_calcu.h
-	cl/kernel/fgp/fgp_calcun.h
-	cl/kernel/fgp/fgp_clear.h
+	cl/kernel/clear.h
+	cl/kernel/median3.h
+	cl/kernel/fgp/fgp.h
+	cl/kernel/fgp/fgp_data.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
@@ -193,14 +207,25 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/prefixsum/prefixsum_boxfilter.h
 	cl/kernel/guidedfilter/guidedfilter_calcab.h
 	cl/kernel/guidedfilter/guidedfilter_applyab.h
+	cl/kernel/pyr/pyrdown_binom3.h
+	cl/kernel/pyr/pyrdown_binom5.h
+	cl/kernel/pyr/pyrdown.h
+	cl/kernel/pyr/pyrup.h
+	cl/kernel/pyr/pyrupmul.h
+	cl/kernel/tvl1flow/tvl1.h
+	cl/kernel/tvl1flow/tvl1_warp.h
+	cl/kernel/tvl1flow/tvl1_dataadd.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
 	geom/Line2D.h
 	geom/Model.h
+	geom/Mesh.h
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
+	geom/scene/Scene.h
+	geom/scene/SceneLoader.h
 	gfx/Color.h
 	gfx/Image.h
 	gfx/IFormat.h
@@ -314,7 +339,6 @@ SET(${MODULE_NAME}_HEADERS
 	io/RawVideoReader.h
 	io/VideoInput.h
 	io/VideoReader.h
-	io/PlyModel.h
 	io/Postscript.h
 	io/GFXEnginePS.h
 	io/Host.h
@@ -328,6 +352,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/CostFunction.h
 	math/Complex.h
 	math/Fixed.h
+	math/JointMeasurements.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
 	math/Math.h
@@ -335,7 +360,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/Matrix2.h
 	math/Matrix3.h
 	math/Matrix4.h
-	math/Optimization.h
+	math/TerminationCriteria.h
 	math/Polynomial.h
 	math/Quaternion.h
 	math/sac/SampleConsensusModel.h
@@ -344,13 +369,11 @@ SET(${MODULE_NAME}_HEADERS
 	math/sac/HomographySAC.h
 	math/sac/EssentialSAC.h
 	math/sac/EPnPSAC.h
-	math/SBAData.h
 	math/SE3.h
 	math/SL3.h
 	math/Translation2D.h
 	math/Sim2.h
 	math/GA2.h
-	math/SparseBundleAdjustment.h
 	math/Vector.h
 	math/Vector2.h
 	math/Vector3.h
@@ -417,6 +440,11 @@ SET(${MODULE_NAME}_HEADERS
 	vision/PatchGenerator.h
 	vision/PointCorrespondences3d2d.h
 	vision/Vision.h
+	vision/SparseBundleAdjustment.h
+	vision/slam/SlamMap.h
+	vision/slam/Keyframe.h
+	vision/slam/MapFeature.h
+	vision/slam/MapMeasurement.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -477,6 +505,7 @@ SET(${MODULE_NAME}_SOURCES
 	geom/Model.cpp
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
+	geom/scene/Scene.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLFBO.cpp
@@ -521,7 +550,6 @@ SET(${MODULE_NAME}_SOURCES
 	io/RawVideoWriter.cpp
 	io/RawVideoReader.cpp
 	io/VideoReader.cpp
-	io/PlyModel.cpp
 	io/Host.cpp
 	io/Socket.cpp
 	io/TCPClient.cpp
@@ -530,6 +558,8 @@ SET(${MODULE_NAME}_SOURCES
 	math/Complex.cpp
 	math/ESM.cpp
 	math/Fixed.cpp
+	math/JointMeasurements.cpp
+	math/JointMeasurementsTest.cpp
 	math/Math.cpp
 	math/Vector.cpp
 	math/Matrix.cpp
@@ -538,7 +568,6 @@ SET(${MODULE_NAME}_SOURCES
 	math/SL3Test.cpp
 	math/Sim2Test.cpp
 	math/GA2Test.cpp
-	math/SparseBundleAdjustment.cpp
 	util/ParamInfo.cpp
 	util/ParamSet.cpp
 	util/Range.cpp
@@ -573,6 +602,9 @@ SET(${MODULE_NAME}_SOURCES
 	vision/ORBTest.cpp
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
+	vision/SparseBundleAdjustment.cpp
+	vision/slam/Keyframe.cpp
+	vision/slam/SlamMap.cpp
 	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
 	io/xml/XMLDecoderUTF8.cpp

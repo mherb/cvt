@@ -47,7 +47,7 @@ namespace cvt
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
 
-			void screenJacobian( ScreenJacType & J, const PointType & p ) const;
+			void screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & m ) const;
 
 			void hessian( HessMatType & h, const PointType & p ) const;
 
@@ -59,7 +59,8 @@ namespace cvt
 			 */
 			void screenHessian( ScreenHessType & wx, 
 								ScreenHessType & wy,
-							    const PointType & p ) const;
+							    const PointType & p,
+							    const Eigen::Matrix<T, 3, 3> & m ) const;
 			
 			/* p has to be pretransformed with the current T in this case! */
 			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
@@ -74,7 +75,6 @@ namespace cvt
 			
 		private:
 			MatrixType				_current;
-			Eigen::Matrix<T, 3, 3>	_intrinsics;
 
 	};
 	
@@ -82,20 +82,17 @@ namespace cvt
 	inline SE3<T>::SE3( T alpha, T beta, T gamma, T tx, T ty, T tz ) 
 	{	
 		this->set( alpha, beta, gamma, tx, ty, tz );
-		_intrinsics.setIdentity();
 	}
 	
 	template <typename T>
 	inline SE3<T>::SE3( const ParameterVectorType & p )
 	{
 		this->set( p[ 0 ], p[ 1 ], p[ 2 ], p[ 3 ], p[ 4 ], p[ 5 ] );
-		_intrinsics.setIdentity();
 	}
 	
 	template <typename T>
 	inline SE3<T>::SE3( const SE3<T> & other ) : 
-		_current( other._current ),
-		_intrinsics( other.intrinsics() )
+		_current( other._current )
 	{
 	}
 	
@@ -278,32 +275,33 @@ namespace cvt
 
 
 	template <typename T>
-	inline void SE3<T>::screenJacobian( ScreenJacType & J, const PointType & p ) const
+	inline void SE3<T>::screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & intrinsics ) const
 	{
 		T zz = 1.0/Math::sqr( p.z() );
 		T z = 1.0/p.z();
 		T xx = Math::sqr( p.x() );
 		T yy = Math::sqr( p.y() );
 
-		J( 0, 0 ) = -_intrinsics( 0, 0 ) * p.x() * p.y() * zz;
-		J( 0, 1 ) =  _intrinsics( 0, 0 ) * xx * zz + _intrinsics( 0, 0 );
-		J( 0, 2 ) = -_intrinsics( 0, 0 ) * p.y() * z;
-		J( 0, 3 ) =  _intrinsics( 0, 0 ) * z;
+		J( 0, 0 ) = -intrinsics( 0, 0 ) * p.x() * p.y() * zz;
+		J( 0, 1 ) =  intrinsics( 0, 0 ) * xx * zz + intrinsics( 0, 0 );
+		J( 0, 2 ) = -intrinsics( 0, 0 ) * p.y() * z;
+		J( 0, 3 ) =  intrinsics( 0, 0 ) * z;
 		J( 0, 4 ) = 0.0; 
-		J( 0, 5 ) = -_intrinsics( 0, 0 ) * p.x() * zz;
+		J( 0, 5 ) = -intrinsics( 0, 0 ) * p.x() * zz;
 		
-		J( 1, 0 ) = -_intrinsics( 1, 1 ) * yy * zz - _intrinsics( 1, 1 );
-		J( 1, 1 ) =  _intrinsics( 1, 1 ) * p.x() * p.y() * zz;
-		J( 1, 2 ) =  _intrinsics( 1, 1 ) * p.x() * z;
+		J( 1, 0 ) = -intrinsics( 1, 1 ) * yy * zz - intrinsics( 1, 1 );
+		J( 1, 1 ) =  intrinsics( 1, 1 ) * p.x() * p.y() * zz;
+		J( 1, 2 ) =  intrinsics( 1, 1 ) * p.x() * z;
 		J( 1, 3 ) =  0.0; 
-		J( 1, 4 ) =  _intrinsics( 1, 1 ) * z;
-		J( 1, 5 ) = -_intrinsics( 1, 1 ) * p.y() * zz;
+		J( 1, 4 ) =  intrinsics( 1, 1 ) * z;
+		J( 1, 5 ) = -intrinsics( 1, 1 ) * p.y() * zz;
 	}
 
 	template <typename T>		
 	inline void SE3<T>::screenHessian( ScreenHessType & wx, 
 									   ScreenHessType & wy,
-									   const PointType & p ) const
+									   const PointType & p,
+									   const Eigen::Matrix<T, 3, 3>& intrinsics ) const
 	{
 		T x = p.x();
 		T y = p.y();
@@ -314,8 +312,8 @@ namespace cvt
 		T iz = 1.0 / p.z(); 
 		T izz = 1.0 / Math::sqr( p.z() ); 
 		T izzz = 1.0 /( p.z() * Math::sqr( p.z() ) );
-		T fx = _intrinsics( 0, 0 );	
-		T fy = _intrinsics( 1, 1 );
+		T fx = intrinsics( 0, 0 );	
+		T fy = intrinsics( 1, 1 );
 
 		wx( 0, 0 ) = fx*x*iz+2*fx*x*yy*izzz;
 		wx( 0, 1 ) = y*(-fx*iz-(2*fx*xx)*izzz)+(0.5*fx*y)*iz;
@@ -400,12 +398,6 @@ namespace cvt
 		wy( 5, 3 ) = 0;
 		wy( 5, 4 ) = -fy*izz;
 		wy( 5, 5 ) = 2*fy*y*izzz;
-	}
-
-	template <typename T>
-	inline void SE3<T>::setIntrinsics( const Eigen::Matrix<T, 3, 3> & K )
-	{
-		_intrinsics = K;
 	}
 }
 

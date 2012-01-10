@@ -27,6 +27,8 @@ namespace cvt {
 		PLUGIN_ILOADER,
 		PLUGIN_ISAVER,
 		PLUGIN_IFILTER,
+		PLUGIN_SCENELOADER,
+		PLUGIN_SCENESAVER
 	};
 
 	class Plugin {
