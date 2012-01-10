@@ -9,6 +9,8 @@
 #include <cvt/util/String.h>
 #include <cvt/io/xml/XMLSerializable.h>
 
+#include <cvt/gfx/Image.h>
+
 namespace cvt
 {
 	class Keyframe : public XMLSerializable
@@ -20,6 +22,7 @@ namespace cvt
 
 			Keyframe( const Eigen::Matrix4d& pose, size_t id );
 			Keyframe();
+			~Keyframe();
 
 			void	setId( size_t id )  { _id = id; }
 			size_t  id() const			{ return _id; }
@@ -33,6 +36,10 @@ namespace cvt
 			void					setPose( const Eigen::Matrix4d & pose ) { _pose.set( pose ); }
 			void					updatePose( const Eigen::Matrix<double, 6, 1> & deltaCam ) { _pose.apply( deltaCam ); }
 
+			void setImage( const Image & img );
+			bool hasImage() const;
+			const Image& image() const;
+
 			// distance measure of this keyframe to a given transform
 			double					distance( const Eigen::Matrix4d & transform ) const;
 
@@ -45,9 +52,10 @@ namespace cvt
 		private:
 			size_t		_id;
 			SE3<double>	_pose;
+			Image*		_img;
 
 			// 2d meas of 3d feat with id
-			MapType		_featMeas;
+			MapType			_featMeas;
 	};
 
 	inline void Keyframe::addFeature( const MapMeasurement & f, size_t id )
