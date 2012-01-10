@@ -29,14 +29,14 @@ namespace cvt {
 	{
 	}
 
-	XMLAttribute& XMLAttribute::operator=( const XMLAttribute& other )
+	inline XMLAttribute& XMLAttribute::operator=( const XMLAttribute& other )
 	{
 		_name = other._name;
 		_value = other._value;
 		return *this;
 	}
 
-	void XMLAttribute::xmlString( String& str ) const
+	inline void XMLAttribute::xmlString( String& str ) const
 	{
 		str = " ";
 		str += _name;

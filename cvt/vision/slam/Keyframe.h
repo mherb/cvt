@@ -7,17 +7,25 @@
 #include <cvt/math/SE3.h>
 #include <cvt/vision/slam/MapMeasurement.h>
 #include <cvt/util/String.h>
+#include <cvt/io/xml/XMLSerializable.h>
+
+#include <cvt/gfx/Image.h>
 
 namespace cvt
 {
-	class Keyframe
+	class Keyframe : public XMLSerializable
 	{
 		public:
 			typedef std::pair<size_t, MapMeasurement> MapPairType;
 			typedef std::map<size_t, MapMeasurement, std::less<size_t>, Eigen::aligned_allocator<MapPairType> > MapType;
 			typedef MapType::const_iterator MeasurementIterator;
 
-			Keyframe( const Eigen::Matrix4d& pose );
+			Keyframe( const Eigen::Matrix4d& pose, size_t id );
+			Keyframe();
+			~Keyframe();
+
+			void	setId( size_t id )  { _id = id; }
+			size_t  id() const			{ return _id; }
 
 			void					addFeature( const MapMeasurement & f, size_t id );
 
@@ -28,17 +36,26 @@ namespace cvt
 			void					setPose( const Eigen::Matrix4d & pose ) { _pose.set( pose ); }
 			void					updatePose( const Eigen::Matrix<double, 6, 1> & deltaCam ) { _pose.apply( deltaCam ); }
 
+			void setImage( const Image & img );
+			bool hasImage() const;
+			const Image& image() const;
+
 			// distance measure of this keyframe to a given transform
 			double					distance( const Eigen::Matrix4d & transform ) const;
 
 			MeasurementIterator		measurementsBegin() const { return _featMeas.begin(); }
 			MeasurementIterator		measurementsEnd()   const { return _featMeas.end(); }
+	
+			void deserialize( XMLNode* node );
+			XMLNode* serialize() const;
 
 		private:
+			size_t		_id;
 			SE3<double>	_pose;
+			Image*		_img;
 
 			// 2d meas of 3d feat with id
-			MapType		_featMeas;
+			MapType			_featMeas;
 	};
 
 	inline void Keyframe::addFeature( const MapMeasurement & f, size_t id )
