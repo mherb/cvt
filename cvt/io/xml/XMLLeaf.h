@@ -21,6 +21,8 @@ namespace cvt {
 			virtual XMLNode* child( size_t index );
 			virtual const XMLNode* child( size_t index ) const;
 			virtual void addChild( XMLNode* node );
+			virtual void removeChild( XMLNode* node );
+			virtual void removeChild( size_t index );
 			virtual XMLNode* childByName( const String& name );
 			virtual void xmlString( String& str ) const = 0;
 
@@ -45,6 +47,14 @@ namespace cvt {
 
 
 	inline void XMLLeaf::addChild( XMLNode* )
+	{
+	}
+			
+	inline void XMLLeaf::removeChild( XMLNode* )
+	{
+	}
+
+	inline void XMLLeaf::removeChild( size_t )
 	{
 	}
 

@@ -11,6 +11,7 @@
 #include <cvt/util/Data.h>
 #include <cvt/util/DataIterator.h>
 #include <cvt/io/FileSystem.h>
+#include <cvt/io/xml/XMLDocument.h>
 #include <cvt/vision/SparseBundleAdjustment.h>
 
 #include <cvt/vision/slam/SlamMap.h>
@@ -292,6 +293,13 @@ void compareMaps( const SlamMap & groundTruth, const SlamMap & optimized )
 
 }
 
+void saveMapToXml( const SlamMap& map, const String& fileName )
+{
+	XMLDocument doc;
+	doc.addNode( map.serialize() );
+	doc.save( fileName );
+}
+
 int main(int argc, char* argv[])
 {
 	if( argc < 2 ){
@@ -304,31 +312,42 @@ int main(int argc, char* argv[])
 	cvt::Resources resources;
 	SlamMap map, gtMap;
 		
-	try {		
+	try {
 		String intrinsicsFile = resources.find("sba/calib.txt");
-		
-		//String camFile = resources.find("sba/7cams.txt");
-		//String pointFile = resources.find("sba/7pts.txt");
-		//String camGT = resources.find("sba/resultCams7.txt");
-		//String pointGT = resources.find("sba/resultPts7.txt");
-		
-		/*
-		String camFile = resources.find("sba/9cams.txt");
-		String pointFile = resources.find("sba/9pts.txt");
-		String camGT = resources.find("sba/resultCams9.txt");
-		String pointGT = resources.find("sba/resultPts9.txt");
-		*/
-		String camFile = resources.find("sba/54cams.txt");
-		String pointFile = resources.find("sba/54pts.txt");
-		String camGT = resources.find("sba/resultCams54.txt");
-		String pointGT = resources.find("sba/resultPts54.txt");		
+		String camFile, pointFile, camGT, pointGT;	
+		switch( n ){
+			case 7:	
+				camFile = resources.find("sba/7cams.txt");
+				pointFile = resources.find("sba/7pts.txt");
+				camGT = resources.find("sba/resultCams7.txt");
+				pointGT = resources.find("sba/resultPts7.txt");
+				break;
+			case 9:
+				camFile = resources.find("sba/9cams.txt");
+				pointFile = resources.find("sba/9pts.txt");
+				camGT = resources.find("sba/resultCams9.txt");
+				pointGT = resources.find("sba/resultPts9.txt");
+				break;
+			case 54:
+				camFile = resources.find("sba/54cams.txt");
+				pointFile = resources.find("sba/54pts.txt");
+				camGT = resources.find("sba/resultCams54.txt");
+				pointGT = resources.find("sba/resultPts54.txt");
+				break;
+			default:
+				throw CVTException( "Wrong file specified: 7, 9 or 54" );
+				break;
+		}
 
 		parseLourakisData( map, gtMap, intrinsicsFile, camFile, pointFile, camGT, pointGT );
+
+		saveMapToXml( map, "map.xml" );
+		return 0;
 
 		SparseBundleAdjustment sba;
 		TerminationCriteria<double> termcrit;
 		termcrit.setCostThreshold( 0.1 );
-		termcrit.setMaxIterations( 300 );
+		termcrit.setMaxIterations( 100 );
 
 
 		Time timer;
