@@ -48,12 +48,12 @@ namespace cvt {
 		close( fd );
 
 		// header: width, height, stride, IFormat
-		size_t savedStride, width, height, formatId;
+		uint32_t savedStride, width, height, formatId;
 		
-		width		= *( ( size_t* )ptr ); ptr+= ( sizeof( size_t ) );
-		height		= *( ( size_t* )ptr ); ptr+= ( sizeof( size_t ) );
-		savedStride = *( ( size_t* )ptr ); ptr+= ( sizeof( size_t ) );
-		formatId	= *( ( size_t* )ptr ); ptr+= ( sizeof( size_t ) );
+		width		= *( ( uint32_t* )ptr ); ptr+= ( sizeof( uint32_t ) );
+		height		= *( ( uint32_t* )ptr ); ptr+= ( sizeof( uint32_t ) );
+		savedStride = *( ( uint32_t* )ptr ); ptr+= ( sizeof( uint32_t ) );
+		formatId	= *( ( uint32_t* )ptr ); ptr+= ( sizeof( uint32_t ) );
 
 		img.reallocate( width, height, IFormat::formatForId( ( IFormatID ) formatId ) );
 
