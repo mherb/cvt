@@ -1,5 +1,6 @@
 #include <cvt/vision/slam/Keyframe.h>
 
+#include <cvt/io/FileSystem.h>
 #include <cvt/io/xml/XMLNode.h>
 #include <cvt/io/xml/XMLElement.h>
 #include <cvt/io/xml/XMLAttribute.h>
@@ -7,14 +8,42 @@
 namespace cvt
 {
 	Keyframe::Keyframe( const Eigen::Matrix4d& pose, size_t id ) :
-		_id( id )
+		_id( id ),
+		_img( 0 )
 	{
 		_pose.set( pose );
 	}
 
-	Keyframe::Keyframe()
+	Keyframe::Keyframe() :
+		_id( 0 ),
+		_img( 0 )
 	{
 	} 
+			
+	Keyframe::~Keyframe()
+	{
+		if( _img )
+			delete _img;
+	}
+
+	void Keyframe::setImage( const Image& img )
+	{
+		if( !hasImage() ){
+			_img = new Image( img );
+		} else {
+			*_img = img;
+		}
+	}
+
+	const Image & Keyframe::image() const	
+	{
+		return *_img;
+	}
+
+	bool Keyframe::hasImage() const 
+	{
+		return ( _img != 0 );
+	}
 
 	double Keyframe::distance( const Eigen::Matrix4d & transform ) const
 	{
@@ -39,6 +68,14 @@ namespace cvt
 			Eigen::Matrix4d eM;
 			EigenBridge::toEigen( eM, m );
 			_pose.set( eM );
+		}
+
+		n = node->childByName( "Image" );
+		if( n ){
+			_img = new Image();
+			String fileName = n->childByName( "file" )->value();
+			std::cout << "Loading file: " << fileName << std::endl;
+			_img->load( fileName );
 		}
 
 		// the measurements:
@@ -71,6 +108,18 @@ namespace cvt
 		EigenBridge::toCVT( mat, _pose.transformation() );
 		element->addChild( new XMLText( mat.toString() ) );
 		node->addChild( element );
+
+		if( hasImage() ){
+			if( !FileSystem::exists( "keyframe_images" ) ){
+				FileSystem::mkdir( "keyframe_images" );
+			}
+			String filename;
+			filename.sprintf( "keyframe_images/keyframe_%06d.cvtraw", _id );
+			_img->save( filename );
+			element = new XMLElement( "Image" );
+			element->addChild( new XMLAttribute( "file", filename ) );
+			node->addChild( element );
+		}
 
 		// measurements:
 		XMLElement* meas = new XMLElement( "Measurements" );

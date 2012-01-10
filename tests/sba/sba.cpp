@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <cvt/io/Resources.h>
+#include <cvt/gfx/Image.h>
 
 #include <cvt/util/Exception.h>
 #include <cvt/util/Time.h>
