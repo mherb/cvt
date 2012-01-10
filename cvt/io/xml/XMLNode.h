@@ -45,6 +45,8 @@ namespace cvt {
 			virtual XMLNode* child( size_t index ) = 0;
 			virtual const XMLNode* child( size_t index ) const = 0;
 			virtual void addChild( XMLNode* node ) = 0;
+			virtual void removeChild( XMLNode* node ) = 0;
+			virtual void removeChild( size_t index ) = 0;
 			virtual XMLNode* childByName( const String& name ) = 0;
 			virtual void xmlString( String& str ) const = 0;
 

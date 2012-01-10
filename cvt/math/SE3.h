@@ -71,8 +71,6 @@ namespace cvt
 				return _current; 
 			}
 
-			void setIntrinsics( const Eigen::Matrix<T, 3, 3> & K ); 
-			
 		private:
 			MatrixType				_current;
 

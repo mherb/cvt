@@ -196,7 +196,7 @@ namespace cvt {
 		loader->load( *this, path );
 	}
 
-	void Image::save( const String& path, ISaver* saver )
+	void Image::save( const String& path, ISaver* saver ) const
 	{
 		if( !saver ) {
 			saver = PluginManager::instance().getISaverForFilename( path );

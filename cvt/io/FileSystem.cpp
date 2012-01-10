@@ -43,6 +43,15 @@ namespace cvt {
 		return S_ISDIR( attr.st_mode );
 	}
 
+	void FileSystem::mkdir( const String & name )
+	{
+		if( ::mkdir( name.c_str(), 0770 ) == -1 ){
+			String msg( "mkdir error: " );
+			msg += strerror( errno );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
 	void FileSystem::ls( const String & path, std::vector<String> & entries )
 	{
 		entries.clear();
