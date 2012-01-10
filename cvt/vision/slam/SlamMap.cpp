@@ -129,4 +129,73 @@ namespace cvt
 			}	
 		}
 	}
+
+	void SlamMap::deserialize( XMLNode* node )
+	{
+		if( node->name() != "SlamMap" ){
+			throw CVTException( "This is not a SlamMap node" );
+		}
+
+		// get intrinsics:
+		Matrix3d K;
+		K.fromString( node->childByName( "Intrinsics" )->value() );
+		EigenBridge::toEigen( _intrinsics, K );
+
+		XMLNode* keyframes = node->childByName( "Keyframes" );
+		if( keyframes == NULL ){
+			throw CVTException( "No Keyframes in MapFile!" );
+		}
+
+		_keyframes.resize( keyframes->childSize() );
+		_numMeas = 0;
+		for( size_t i = 0; i < _keyframes.size(); i++ ){
+			XMLNode* kfNode = keyframes->child( i );
+			_keyframes[ i ].deserialize( kfNode );
+			_numMeas += _keyframes[ i ].numMeasurements();
+		}
+
+		
+		XMLNode* featureNodes = node->childByName( "MapFeatures" );
+		if( featureNodes == NULL ){
+			throw CVTException( "No Features in MapFile!" );
+		}
+
+		_features.resize( featureNodes->childSize() );
+		for( size_t i = 0; i < _features.size(); i++ ){
+			XMLNode* fNode = featureNodes->child( i );
+			_features[ i ].deserialize( fNode );
+		}
+	}
+
+	XMLNode* SlamMap::serialize() const
+	{
+		XMLElement* mapNode = new XMLElement( "SlamMap");
+
+		// Intrinsics of the Keyframe images
+		{
+			Matrix3d K;
+			EigenBridge::toCVT( K, _intrinsics );
+			XMLElement* camIntrinsics = new XMLElement( "Intrinsics" );
+			camIntrinsics->addChild( new XMLText( K.toString() ) );
+			mapNode->addChild( camIntrinsics );
+		}
+		
+		// the keyframes: serialize each one
+		XMLElement* keyframeNodes = new XMLElement( "Keyframes" );
+		for( size_t i = 0; i < _keyframes.size(); i++ ){
+			keyframeNodes->addChild( _keyframes[ i ].serialize() );
+		}
+		mapNode->addChild( keyframeNodes );
+		
+
+		// the mapfeatures
+		XMLElement* mapFeatureNodes = new XMLElement( "MapFeatures" );
+		for( size_t i = 0; i < _features.size(); i++ ){
+			keyframeNodes->addChild( _features[ i ].serialize() );
+		}
+
+		mapNode->addChild( mapFeatureNodes );
+
+		return mapNode;
+	}
 }

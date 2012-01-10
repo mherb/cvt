@@ -23,6 +23,8 @@ namespace cvt {
 			XMLNode* childByName( const String& name );
 			void xmlString( String& str ) const;
 
+			virtual void removeChild( XMLNode* node );
+			virtual void removeChild( size_t index );
 		private:
 			std::vector<XMLNode*> _children;
 	};
@@ -56,13 +58,36 @@ namespace cvt {
 		return _children[ index ];
 	}
 
-
 	inline void XMLElement::addChild( XMLNode* node )
 	{
 		if( !node )
 			return;
 		node->_parent = this;
 		_children.push_back( node );
+	}
+
+	inline void XMLElement::removeChild( XMLNode* node )
+	{
+		std::vector<XMLNode*>::iterator it = _children.begin();
+		const std::vector<XMLNode*>::const_iterator itEnd = _children.end();
+
+		while( it != itEnd ){
+
+			if( *it == node ){
+				_children.erase( it );
+				delete node;
+				break;		
+			}
+			++it;
+		}
+	}
+	
+	inline void XMLElement::removeChild( size_t index )
+	{
+		if( index < _children.size() ){
+			delete _children[ index ];
+			_children.erase( _children.begin() + index );
+		}
 	}
 
 	inline XMLNode* XMLElement::childByName( const String& name )

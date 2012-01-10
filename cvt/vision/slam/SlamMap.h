@@ -4,12 +4,13 @@
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/slam/Keyframe.h>
 #include <cvt/vision/slam/MapFeature.h>
+#include <cvt/io/xml/XMLSerializable.h>
 
 #include <Eigen/StdVector>
 
 namespace cvt
 {
-	class SlamMap
+	class SlamMap : public XMLSerializable
 	{
 		public:
 			SlamMap();
@@ -45,6 +46,9 @@ namespace cvt
 			size_t numMeasurements() const { return _numMeas; }
 
 			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
+	
+			void deserialize( XMLNode* node );
+			XMLNode* serialize() const;
 
 		private:
 			std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> >		_keyframes;

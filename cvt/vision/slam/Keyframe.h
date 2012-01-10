@@ -7,10 +7,11 @@
 #include <cvt/math/SE3.h>
 #include <cvt/vision/slam/MapMeasurement.h>
 #include <cvt/util/String.h>
+#include <cvt/io/xml/XMLSerializable.h>
 
 namespace cvt
 {
-	class Keyframe
+	class Keyframe : public XMLSerializable
 	{
 		public:
 			typedef std::pair<size_t, MapMeasurement> MapPairType;
@@ -18,6 +19,7 @@ namespace cvt
 			typedef MapType::const_iterator MeasurementIterator;
 
 			Keyframe( const Eigen::Matrix4d& pose );
+			Keyframe();
 
 			void					addFeature( const MapMeasurement & f, size_t id );
 
@@ -33,6 +35,9 @@ namespace cvt
 
 			MeasurementIterator		measurementsBegin() const { return _featMeas.begin(); }
 			MeasurementIterator		measurementsEnd()   const { return _featMeas.end(); }
+	
+			void deserialize( XMLNode* node );
+			XMLNode* serialize() const;
 
 		private:
 			SE3<double>	_pose;
