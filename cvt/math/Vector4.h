@@ -324,10 +324,10 @@ namespace cvt {
     template <typename T>
     bool Vector4<T>::isEqual( const Vector4<T>& other, T epsilon ) const
     {
-        return ( Math::abs( x - other.x ) < epsilon ) &&
-               ( Math::abs( y - other.y ) < epsilon ) &&
-               ( Math::abs( z - other.z ) < epsilon ) &&
-               ( Math::abs( w - other.w ) < epsilon );
+        return ( Math::abs( x - other.x ) <= epsilon ) &&
+               ( Math::abs( y - other.y ) <= epsilon ) &&
+               ( Math::abs( z - other.z ) <= epsilon ) &&
+               ( Math::abs( w - other.w ) <= epsilon );
     }
 
     template<typename T>

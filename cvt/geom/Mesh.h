@@ -49,7 +49,7 @@ namespace cvt {
 
 			void			calculateNormals();
 			void			calculateAdjacency();
-			void			removeRedundancy( float vepsilon, float nepsilon, float tepsilon );
+			void			removeRedundancy( float vepsilon = 0.0f, float nepsilon = 0.0f, float tepsilon = 0.0f );
 			void			simplify( float vepsilon );
 			void			addNoise( float amount );
 			void			flipNormals( );
