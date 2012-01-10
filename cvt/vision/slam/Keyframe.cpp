@@ -6,7 +6,8 @@
 
 namespace cvt
 {
-	Keyframe::Keyframe( const Eigen::Matrix4d& pose ) 
+	Keyframe::Keyframe( const Eigen::Matrix4d& pose, size_t id ) :
+		_id( id )
 	{
 		_pose.set( pose );
 	}
@@ -25,8 +26,11 @@ namespace cvt
 	void Keyframe::deserialize( XMLNode* node )
 	{
 		// TODO: 
-		if( node->name() != "Keyframe" )
+		if( node->name() != "Keyframe" ){
 			throw CVTException( "this is not a Keyframe node" );
+		}
+
+		_id = node->childByName( "id" )->value().toInteger();
 
 		XMLNode * n;
 		n = node->childByName( "Pose" );
@@ -56,9 +60,11 @@ namespace cvt
 	XMLNode* Keyframe::serialize() const
 	{
 		XMLElement* node = new XMLElement( "Keyframe" );
+		String kfId; kfId.sprintf( "%d", _id );
+		XMLAttribute* attr = new XMLAttribute( "id", kfId );
+		node->addChild( attr );
 
 		XMLElement* element;
-
 		// the pose:
 		element = new XMLElement( "Pose" );
 		Matrix4d mat;

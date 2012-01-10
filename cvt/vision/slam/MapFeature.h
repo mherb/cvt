@@ -92,16 +92,16 @@ namespace cvt
 			throw CVTException( "This is not a MapFeature node!" );
 		}
 
-		Vector4d p = Vector4d::fromString( node->childByName( "Point3d" )->value() );
+		Vector4d p = Vector4d::fromString( node->childByName( "Point3d" )->child( 0 )->value() );
 		EigenBridge::toEigen( _point, p );
 		
-		Matrix4d cov = Matrix4d::fromString( node->childByName( "Covariance" )->value() );
+		Matrix4d cov = Matrix4d::fromString( node->childByName( "Covariance" )->child( 0 )->value() );
 		EigenBridge::toEigen( _covariance, cov );
 
 		XMLNode* n = node->childByName( "PointTrack" );
 		for( size_t i = 0; i < n->childSize(); i++ ){
 			XMLNode* kfNode = n->child( i );
-			_pointTrack.insert( kfNode->value().toInteger() );
+			_pointTrack.insert( kfNode->child( 0 )->value().toInteger() );
 		}
 	}
 
