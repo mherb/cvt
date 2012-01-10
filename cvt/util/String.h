@@ -53,9 +53,12 @@ namespace cvt {
 			bool operator!=( const String& str ) const;
 			bool operator<( const String& str ) const;
 			bool operator>( const String& str ) const;
+			bool operator<=( const String& str ) const;
+			bool operator>=( const String& str ) const;
 			bool hasPrefix( const String& str ) const;
 			bool hasSuffix( const String& str ) const;
 			bool isEmpty() const;
+			int	 compare( const String& str ) const;
 
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
@@ -293,38 +296,22 @@ namespace cvt {
 
 	inline bool String::operator<( const String& str ) const
 	{
-		const char* ptr1 = _str;
-		const char* ptr2 = str._str;
-		size_t len = str._len;
-
-		while( len && *ptr1 == *ptr2 ) {
-			ptr1++;
-			ptr2++;
-			len--;
-		}
-		if( !len )
-			return false;
-		if( *ptr1 < *ptr2 )
-			return true;
-		return false;
+		return compare( str) < 0;
 	}
 
 	inline bool String::operator>( const String& str ) const
 	{
-		const char* ptr1 = _str;
-		const char* ptr2 = str._str;
-		size_t len = str._len;
+		return compare( str ) > 0;
+	}
 
-		while( len && *ptr1 == *ptr2 ) {
-			ptr1++;
-			ptr2++;
-			len--;
-		}
-		if( !len )
-			return false;
-		if( *ptr1 > *ptr2 )
-			return true;
-		return false;
+	inline bool String::operator<=( const String& str ) const
+	{
+		return compare( str) <= 0;
+	}
+
+	inline bool String::operator>=( const String& str ) const
+	{
+		return compare( str ) >= 0;
 	}
 
 	inline bool String::hasSuffix( const String& str ) const
@@ -344,6 +331,22 @@ namespace cvt {
 	inline bool String::isEmpty() const
 	{
 		return _len == 0;
+	}
+
+
+	inline int	String::compare( const String& str ) const
+	{
+		const char* ptr1 = _str;
+		const char* ptr2 = str._str;
+		size_t len = Math::min( str._len, _len );
+
+		while( len && *ptr1 == *ptr2 ) {
+			ptr1++;
+			ptr2++;
+			len--;
+		}
+
+		return *ptr1 - *ptr2;
 	}
 
 	inline ssize_t String::find( char c, ssize_t pos ) const

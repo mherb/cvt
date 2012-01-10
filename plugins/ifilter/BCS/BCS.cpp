@@ -6,6 +6,7 @@
 #include "BCS.h"
 
 namespace cvt {
+
 	static ParamInfoTyped<Image*> _pinput( "Input" );
 	static ParamInfoTyped<float>  _pbrightness( "Brightness", -1.0f, 1.0f, 0.0f );
 	static ParamInfoTyped<float>  _pcontrast( "Contrast", -2.0f, 2.0f, 1.0f );
@@ -34,7 +35,7 @@ namespace cvt {
 
 	BCS::BCS() : IFilter( "BCS", _bcs_params, 5, IFILTER_OPENCL )
 	{
-		}
+	}
 
 	BCS::~BCS()
 	{
