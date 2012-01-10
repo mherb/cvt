@@ -26,9 +26,9 @@ namespace cvt {
 		glUseProgram( 0 );
 	}
 
-	void GLProgram::build( const char* vertsrc, const char* fragsrc )
+	void GLProgram::build( const char* vertsrc, const char* fragsrc, const char* geomsrc )
 	{
-		GLuint vs = 0, fs = 0;
+		GLuint vs = 0, fs = 0, gs = 0;
 		GLint status = GL_TRUE;
 		GLint loglen;
 		std::string logbuf;
@@ -69,12 +69,38 @@ namespace cvt {
 			throw GLException("Fragment-Shader compilation error\n", logbuf );
 		}
 
+		if( geomsrc ) {
+			gs = glCreateShader( GL_GEOMETRY_SHADER_EXT );
+			if( !gs ) {
+				glDeleteShader( vs );
+				throw GLException("Geometry-Shader creation failed!\n");
+			}
+
+			glShaderSource( gs, 1, &geomsrc, NULL );
+			glCompileShader( gs );
+			glGetShaderiv( gs, GL_COMPILE_STATUS, &status );
+			if( status == GL_FALSE ) {
+				glGetShaderiv( gs, GL_INFO_LOG_LENGTH, &loglen );
+				logbuf.resize( loglen );
+				glGetShaderInfoLog( gs, loglen, &loglen, &logbuf[ 0 ] );
+				glDeleteShader( fs );
+				glDeleteShader( vs );
+				glDeleteShader( gs );
+				throw GLException("Geometry-Shader compilation error\n", logbuf );
+			}
+		}
+
 		glAttachShader( program, fs );
 		glAttachShader( program, vs );
+
+		if( gs )
+			glAttachShader( program, gs );
 
 		/* shaders are now referenced by programm, delete them*/
 		glDeleteShader( vs );
 		glDeleteShader( fs );
+		if( gs )
+			glDeleteShader( gs );
 
 		glLinkProgram( program );
 		glGetProgramiv( program, GL_LINK_STATUS, &status );

@@ -41,8 +41,8 @@ namespace cvt
         const Vector2f & tangentialDistortion() const { return _tangential; }
         const Matrix4f & projectionMatrix()     const { return _projection; }
         const CameraCalibrationFlags & flags()  const { return _flags; }
-		const Vector2f	 center() const { return Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] ); }
-		const Vector2f	 focalLength() const { return Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] ); }
+		const Vector2f	 center()				const { return Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] ); }
+		const Vector2f	 focalLength()			const { return Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] ); }
 
         /**
          * set the extrinsics of the camera

@@ -14,8 +14,8 @@ using namespace cvt;
 class VideoPlayer : public Window
 {
 public:
-	VideoPlayer( const String& videoFile ) : 
-        Window( "VideoPlayer" ), _video( 0 ), _timer( 10 ), _frames( 0 )
+	VideoPlayer( const String& videoFile, size_t playSpeedMs ) : 
+        Window( "VideoPlayer" ), _video( 0 ), _timer(playSpeedMs ), _frames( 0 )
 	{
 		//_video = new VideoReader( videoFile, true );
 		_video = new RawVideoReader( videoFile, true );
@@ -70,17 +70,16 @@ private:
 
 int main( int argc, char** argv )
 {
-	
-	
-	if( argc < 2 ){
-		std::cout << "Usage: " << argv[ 0 ] << " <filename>" << std::endl;
+	if( argc < 3 ){
+		std::cout << "Usage: " << argv[ 0 ] << " <filename> <fps>" << std::endl;
 		return 0;
 	}
 	
 	String xxx( argv[ 1 ] );
+	int fps = atoi( argv[ 2 ] );
 
 	try {
-		VideoPlayer video( xxx );
+		VideoPlayer video( xxx, 1000/fps );
         Application::run();
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;

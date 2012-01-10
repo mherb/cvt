@@ -110,6 +110,12 @@ namespace cvt
 		
 		template <class Mat3, class Vec3, class Vec2>
 		static void project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 );
+		
+		template <class T>
+		static void project( Eigen::Matrix<T, 2, 1> & p2, 
+						     const Eigen::Matrix<T, 3, 3>& K, 
+							 const Eigen::Matrix<T, 4, 4>& trans, 
+							 const Eigen::Matrix<T, 4, 1>& p );
 
     };
 
@@ -363,6 +369,24 @@ namespace cvt
 			Vec3 pp = KR * p3 + Kt;
 			p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
 			p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
+		}
+
+		template <class T>
+		inline void Vision::project( Eigen::Matrix<T, 2, 1> & p2, 
+									 const Eigen::Matrix<T, 3, 3>& K, 
+									 const Eigen::Matrix<T, 4, 4>& trans, 
+									 const Eigen::Matrix<T, 4, 1>& p )
+		{
+			Eigen::Matrix<T, 4, 1> ptmp = trans * p;
+			
+			Eigen::Matrix<T, 3, 1> p3;
+			p3[ 0 ] = ptmp[ 0 ] / ptmp[ 3 ];
+			p3[ 1 ] = ptmp[ 1 ] / ptmp[ 3 ];
+			p3[ 2 ] = ptmp[ 2 ] / ptmp[ 3 ];
+			p3 = K * p3;
+			
+			p2[ 0 ] = p3[ 0 ] / p3[ 2 ];
+			p2[ 1 ] = p3[ 1 ] / p3[ 2 ];
 		}
 
 }

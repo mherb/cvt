@@ -35,14 +35,11 @@ namespace cvt {
 		K( 0, 0 ) = K( 1, 1 ) = 600;
 		K( 0, 2 ) = 320; K( 1, 2 ) = 240;
 		
-		pose.setIntrinsics( K );
-		
 		ppoint = K * p;
 		sp[ 0 ] = ppoint[ 0 ] / ppoint[ 2 ];
 		sp[ 1 ] = ppoint[ 1 ] / ppoint[ 2 ];
 
-		
-		pose.screenJacobian( sJA, p );
+		pose.screenJacobian( sJA, p, K );
 
 		double h = 0.00000001;
 		for( size_t i = 0; i < 6; i++ ){
@@ -101,7 +98,6 @@ namespace cvt {
 		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
 		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
 		K( 2, 2 ) = 1.0;
-		pose.setIntrinsics( K );
         
 		Eigen::Matrix<double, 3, 1> point;
 		Eigen::Matrix<double, 3, 1> p, ff, fb, bf, bb, xxf, xxb, hess;
@@ -201,7 +197,6 @@ namespace cvt {
 		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
 		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
 		K( 2, 2 ) = 1.0;
-		pose.setIntrinsics( K );
 
 		Eigen::Matrix<double, 3, 1> point, ptrans;
 		Eigen::Matrix<double, 2, 1> sp, ff, bb, jac;
@@ -234,7 +229,7 @@ namespace cvt {
 		}
 
 		pose.transform( ptrans, point );
-		pose.screenJacobian( sh, ptrans );
+		pose.screenJacobian( sh, ptrans, K );
 
 		bool b, ret = true;
 		Eigen::Matrix<double, 2, 6> jDiff;
@@ -264,7 +259,6 @@ namespace cvt {
 		K( 0, 0 ) = 650.0; K( 0, 2 ) = 320.0;
 		K( 1, 1 ) = 650.0; K( 1, 2 ) = 240.0;
 		K( 2, 2 ) = 1.0;
-		pose.setIntrinsics( K );
 
 		Eigen::Matrix<double, 3, 1> point, ptrans;
 		Eigen::Matrix<double, 2, 1> sp, ff, fb, bf, bb, xxf, xxb, hess;
@@ -335,7 +329,7 @@ namespace cvt {
 		}
 
 		pose.transform( ptrans, point );
-		pose.screenHessian( shX, shY, ptrans );
+		pose.screenHessian( shX, shY, ptrans, K );
 
 		bool b, ret = true;
 		Eigen::Matrix<double, 6, 6> jDiff;

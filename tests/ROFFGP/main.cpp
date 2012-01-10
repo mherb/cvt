@@ -1,8 +1,9 @@
-#include "ROFFGPFilter.h"
 
 #include <cvt/gfx/Image.h>
 #include <cvt/cl/OpenCL.h>
 #include <cvt/cl/CLPlatform.h>
+
+#include <cvt/gfx/ifilter/ROFFGPFilter.h>
 
 using namespace cvt;
 
@@ -13,21 +14,22 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
+	try {
 	std::vector<CLPlatform> platforms;
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
 	Image input( argv[ 1 ] );
 	Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
-	input.convert( climg );
+//	climg = input;
+//	input.convert( climg );
 
-	Image output( input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
+	Image output( input.width(), input.height(), input.format(), IALLOCATOR_CL );
 
-	try {
-		climg.save("roffgporig.png");
+//		climg.save("roffgporig.png");
 		ROFFGPFilter filter;
-		filter.apply( output, climg, 0.05f, 10 );
-		output.save( "roffgp.png" );
+		filter.apply( output, climg, 1.0f, 20 );
+//		output.save( "roffgp.png" );
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
 	}

@@ -20,7 +20,7 @@ namespace cvt {
 		public:
 			GLProgram();
 			~GLProgram();
-			void build( const char* vertsrc, const char* fragsrc );
+			void build( const char* vertsrc, const char* fragsrc, const char* geomsrc = NULL );
 			void bind();
 			void unbind();
 			void bindAttribLocation( const char *name, unsigned int location );

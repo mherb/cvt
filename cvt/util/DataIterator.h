@@ -1,6 +1,6 @@
 /*
  * File:   DataIterator.h
- * Author: Sebastian Klose
+ * Author: Sebastian Klose, Philipp Heise
  *
  * Created on June 27, 2011
  */
@@ -17,7 +17,7 @@ namespace cvt {
     class DataIterator {
       public:
 
-        DataIterator( Data & d );
+        DataIterator( const Data & d );
 
         DataIterator( const String & s );
 
@@ -28,8 +28,9 @@ namespace cvt {
         bool nextLine( String & line );
 
         void tokenizeNextLine( std::vector<String> & tokens, const String & deliminators );
-		
-		const DataIterator& operator+=( size_t n ); 
+
+		const DataIterator& operator+=( size_t n );
+		const DataIterator& operator-=( size_t n );
 
         const uint8_t * pos() const { return _pos; }
         const uint8_t * end() const { return _end; }
@@ -37,18 +38,21 @@ namespace cvt {
         size_t remainingBytes() const { return _end - _pos; }
 
         long nextLong( int base = 0 );
+        double nextDouble( );
+
+        void skip( const String& characters );
+		void skipInverse( const String& characters );
 
       private:
         const uint8_t*	_pos;
         const uint8_t*	_end;
 
-        void skip( const String & delim );
         void nextDelim( const String & delim );
 
         bool isDeliminator( uint8_t c, const String & delims );
     } ;
 
-    inline DataIterator::DataIterator( Data& d ) :
+    inline DataIterator::DataIterator( const Data& d ) :
     	_pos( d.ptr() ), _end( _pos + d.size() )
 	{
 	}
@@ -113,6 +117,13 @@ namespace cvt {
 		return *this;
 	}
 
+	inline const DataIterator& DataIterator::operator-=( size_t n )
+	{
+		// FIXME: also keep _start, like end
+		_pos -= n;
+		return *this;
+	}
+
     inline void DataIterator::tokenizeNextLine( std::vector<String> & tokens, const String & deliminators )
     {
         String line;
@@ -145,10 +156,28 @@ namespace cvt {
         uint8_t * end;
         long v = strtol( ( const char* )_pos, ( char** )&end, base );
 
+		//FIXME: this is _wrong_ check for _pos  == end -> conversion error, we are maybe not NULL terminated ...
         if( *end != '\0' )
             _pos = end;
         else
             _pos = _end;
+
+        return v;
+    }
+
+    inline double DataIterator::nextDouble( )
+    {
+        if( !hasNext() ){
+            throw CVTException( "No more data available" );
+        }
+
+        uint8_t * end;
+        double v = strtod( ( const char* )_pos, ( char** )&end );
+
+
+		//FIXME: check for _pos == end -> conversion error
+
+        _pos = end;
 
         return v;
     }
@@ -164,27 +193,31 @@ namespace cvt {
 
     inline void DataIterator::skip( const String & delim )
     {
-        while ( true ) {
+        while ( hasNext() ) {
             if ( isDeliminator( *_pos, delim ) )
                 _pos++;
             else
                 return;
+        }
+    }
 
-            if ( !hasNext( ) )
+    inline void DataIterator::skipInverse( const String & delim )
+    {
+        while ( hasNext() ) {
+            if ( !isDeliminator( *_pos, delim ) )
+                _pos++;
+            else
                 return;
         }
     }
 
     inline void DataIterator::nextDelim( const String & delim )
     {
-        while ( true ) {
+        while ( hasNext() ) {
             if ( isDeliminator( *_pos, delim )  ) {
                 return;
             }
             _pos++;
-
-            if ( !hasNext( ) )
-                return;
         }
     }
 

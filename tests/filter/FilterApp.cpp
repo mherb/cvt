@@ -148,8 +148,12 @@ void FilterApp::initFilter()
 	_outputHandle = _params->paramHandle( "Output" );
 	_inputHandle = _params->paramHandle( "Input" );
 
-	//size_t sigma = _params->paramHandle( "Sigma" );
-	//_params->setArg<float>( sigma, 4.0f );
+	size_t ph = _params->paramHandle( "Lambda" );
+	_params->setArg<float>( ph, 0.25f );
+
+	ph = _params->paramHandle( "Iterations" );
+	_params->setArg<int>( ph, 50 );
+
 
 	std::cout << *_params << std::endl;
 }
