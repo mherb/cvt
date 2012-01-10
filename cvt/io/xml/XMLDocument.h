@@ -43,7 +43,9 @@ namespace cvt {
 
 	inline XMLDocument::~XMLDocument()
 	{
-
+		for( size_t i = 0; i < _nodes.size(); i++ ){
+			delete _nodes[ i ];
+		}
 	}
 
 	inline void XMLDocument::load( const char* buffer, size_t len )

@@ -387,6 +387,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Condition.h
 	util/Delegate.h
 	util/Exception.h
+	util/EigenBridge.h
 	util/Inserter.h
 	util/Mutex.h
 	util/ParamInfo.h
