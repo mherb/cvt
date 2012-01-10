@@ -62,7 +62,7 @@ namespace cvt {
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 			void load( const String& path, ILoader* loader = NULL );
-			void save( const String& path, ISaver* loader = NULL );
+			void save( const String& path, ISaver* loader = NULL ) const;
 
 			void fill( const Color& c );
 
