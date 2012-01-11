@@ -20,6 +20,7 @@
 #include "ORBStereoMatching.h"
 #include "DescriptorDatabase.h"
 #include "FeatureTracking.h"
+#include "MapOptimizer.h"
 
 #include <set>
 
@@ -98,6 +99,8 @@ namespace cvt
 
 			SlamMap				_map;
 
+			MapOptimizer		_bundler;
+
 			// triangulate 3D points from 2D matches
 			float triangulate( MapFeature& feature, FeatureMatch & match ) const;
 
@@ -110,15 +113,15 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_matcherMaxLineDistance( 7.0f ),
-		_matcherMaxDescriptorDist( 70 ),
+		_matcherMaxDescriptorDist( 90 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 7.0f ),
+		_maxTriangReprojError( 20.0f ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 15 ),
 		_orbMaxFeatures( 1500 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 40.0f ),
+		_trackingSearchRadius( 50.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_activeKF( -1 )
 	{
@@ -214,21 +217,21 @@ namespace cvt
 					 _orbMaxFeatures,
 					 _orbNonMaxSuppression );
 
-			// find stereoMatches & by avoiding already found matches
+			// find stereoMatches by avoiding already found matches
 			std::vector<FeatureMatch> matches;
 			_stereoMatcher.matchEpipolar( matches, orb0, orb1, matchedIndices );
 
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
+				if( _bundler.isRunning() )
+					_bundler.join();
 				std::vector<Vector4f> pts4f;
 				Vector4f currP;
-				
-				//std::cout << "Tracked Features: " << p3d.size();
 				
 				size_t kId = _map.addKeyframe( _pose.transformation() );
 				MapMeasurement meas;
 				
-				Eigen::Matrix4d featureCov = 0.2 * Eigen::Matrix4d::Identity();
+				Eigen::Matrix4d featureCov = Eigen::Matrix4d::Identity();
 			
 				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
 				for( size_t i = 0; i < matches.size(); i++ ){
@@ -264,7 +267,11 @@ namespace cvt
 					// TODO: don't use this keyframe -> remove it from the map again?!
 				}
 
+				// new keyframe added -> run the sba thread				
+				//_bundler.run( &_map );
+
 				_activeKF = _map.findClosestKeyframe( _pose.transformation() );
+
 			} else {
 				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
 				std::cout << "Error: no stereo matches found" << std::endl;

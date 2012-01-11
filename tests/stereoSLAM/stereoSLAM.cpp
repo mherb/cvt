@@ -3,6 +3,7 @@
 #include <cvt/io/Resources.h>
 #include "cvt/io/xml/XMLDocument.h"
 #include "cvt/io/ImageSequence.h"
+#include "cvt/io/RawVideoReader.h"
 #include <cvt/io/Camera.h>
 #include <cvt/vision/CameraCalibration.h>
 
@@ -26,16 +27,6 @@ void loadCameraCalib( CameraCalibration& camCalib, const String& file )
 							   << camCalib0.radialDistortion() << "\n"
 							   << camCalib0.tangentialDistortion() << std::endl;
 							   */
-}
-
-void initImageSequences( std::vector<VideoInput*> & imageSequence ) 
-{
-	Resources r;
-	String base = r.find( "stereoSLAM" );
-	String tmp = base + "/right_";
-	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
-	tmp = base + "/left_";
-	imageSequence.push_back( new ImageSequence( tmp, "cvtraw", 1, 2153, 5 ) );
 }
 
 void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const String& id1 )
@@ -76,6 +67,25 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 	}
 }
 
+void loadSequenceFromFolder( std::vector<VideoInput*> & videos, 
+							 CameraCalibration& c0,
+							 CameraCalibration& c1,
+							 const String& id0, 
+							 const String& id1, 
+							 const String& folder )
+{
+	String file;
+	file.sprintf( "%sueye_%s.xml", folder.c_str(), id0.c_str() );
+	loadCameraCalib( c0, file );
+	file.sprintf( "%sueye_%s.xml", folder.c_str(), id1.c_str() );
+	loadCameraCalib( c1, file );
+	
+	file.sprintf( "%sueye_%s.rawvid", folder.c_str(), id0.c_str() );
+	videos.push_back( new RawVideoReader( file ) );
+	file.sprintf( "%sueye_%s.rawvid", folder.c_str(), id1.c_str() );
+	videos.push_back( new RawVideoReader( file ) );
+}
+
 int main( int argc, char* argv[] )
 {
 	bool useSeq = false;
@@ -88,19 +98,25 @@ int main( int argc, char* argv[] )
 	Resources r;
 	String id0( "4002738790" );
 	String id1( "4002738788" );
-	String calib0 = r.find( "stereoSLAM/calib/ueye_stereo_4002738790.xml" );
-	String calib1 = r.find( "stereoSLAM/calib/ueye_stereo_4002738788.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
-	loadCameraCalib( camCalib0, calib0 );
-	loadCameraCalib( camCalib1, calib1 );
-
 	std::vector<VideoInput*> input;
 
-	if( useSeq )
-		initImageSequences( input );
-	else
+	if( useSeq ){
+		String folder = r.find( "stereoSLAM/floor_2min_44fps" );
+		//String folder = r.find( "stereoSLAM/office_2min_42fps" );
+		folder += "/";
+		loadSequenceFromFolder( input, 
+							    camCalib0, camCalib1,
+								id0, id1,
+								folder );
+	} else {
 		initCameras( input, id0, id1 );
+		String calib0 = r.find( "stereoSLAM/calib/ueye_stereo_4002738790.xml" );
+		String calib1 = r.find( "stereoSLAM/calib/ueye_stereo_4002738788.xml" );
+		loadCameraCalib( camCalib0, calib0 );
+		loadCameraCalib( camCalib1, calib1 );
+	}
 
 	StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
 	Application::run();
