@@ -15,6 +15,9 @@ namespace cvt {
 			static inline uint64_t bswap64( uint64_t x );
 			static inline uint32_t UTF8toUTF32( const char* data, char** endptr );
 			static inline bool	   getEnv( String& value, const String& name );
+			static inline String   getDirectoryFromPath( const String& path );
+			static inline String   getBasenameFromPath( const String& path );
+
 	};
 
 	inline uint16_t Util::bswap16( uint16_t x )
@@ -83,6 +86,23 @@ namespace cvt {
 		}
 		return false;
 	}
+
+	inline String Util::getDirectoryFromPath( const String& path )
+	{
+		ssize_t pos = path.rfind( '/' );
+		if( pos < 0 )
+			return String( "./" );
+		return path.substring( 0, pos + 1 );
+	}
+
+	inline String Util::getBasenameFromPath( const String& path )
+	{
+		ssize_t pos = path.rfind( '/' );
+		if( pos < 0 )
+			return String( path );
+		return path.substring( pos + 1 );
+	}
+
 }
 
 #endif
