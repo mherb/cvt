@@ -503,6 +503,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/IKernel.cpp
 	gfx/ColorspaceXYZ.cpp
 	geom/KDTree.cpp
+	geom/Mesh.cpp
 	geom/Model.cpp
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
