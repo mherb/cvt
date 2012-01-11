@@ -23,6 +23,8 @@ namespace cvt
 			Keyframe( const Eigen::Matrix4d& pose, size_t id );
 			Keyframe();
 			~Keyframe();
+			
+			Keyframe( const Keyframe & other );
 
 			void	setId( size_t id )  { _id = id; }
 			size_t  id() const			{ return _id; }
