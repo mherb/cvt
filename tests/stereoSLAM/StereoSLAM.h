@@ -13,6 +13,8 @@
 #include <cvt/math/sac/EPnPSAC.h>
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/Time.h>
+#include <cvt/util/Time.h>
 
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
@@ -113,12 +115,12 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_matcherMaxLineDistance( 7.0f ),
-		_matcherMaxDescriptorDist( 90 ),
+		_matcherMaxDescriptorDist( 70 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 20.0f ),
-		_orbOctaves( 3 ), 
+		_maxTriangReprojError( 5.0f ),
+		_orbOctaves( 4 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 15 ),
+		_orbCornerThreshold( 30 ),
 		_orbMaxFeatures( 1500 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 50.0f ),
@@ -147,6 +149,7 @@ namespace cvt
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
+		Time processingTime;
 		// undistort
 		IWarp::apply( _undist0, img0, _undistortMap0 );
 
@@ -206,7 +209,8 @@ namespace cvt
 			// - relocalize against whole map?
 		}
 
-		if( p3d.size() < 100 ){
+		if( p3d.size() < 30 ){
+			std::cout << "Adding new keyframe: current features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
@@ -223,22 +227,42 @@ namespace cvt
 
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
+				
+				// wait for last map adjustment to finish
 				if( _bundler.isRunning() )
 					_bundler.join();
+
 				std::vector<Vector4f> pts4f;
 				Vector4f currP;
 				
+				// add a new keyframe to the map
 				size_t kId = _map.addKeyframe( _pose.transformation() );
+				Keyframe & keyframe = _map.keyframeForId( kId );
+				keyframe.setImage( _undist0 );
+
 				MapMeasurement meas;
+				meas.information *= ( 1.0 / _trackingSearchRadius );
 				
 				Eigen::Matrix4d featureCov = Eigen::Matrix4d::Identity();
-			
 				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
+
+				// add the currently tracked features to the keyframe!
+				std::set<size_t>::const_iterator tracked = matchedIndices.begin();
+				const std::set<size_t>::const_iterator trackedEnd = matchedIndices.end();
+				while( tracked != trackedEnd )
+				{
+					size_t pointId = predictedIds[ *tracked ];
+					meas.point[ 0 ] = matchedFeatures[ *tracked ].feature1->pt.x;
+					meas.point[ 0 ] = matchedFeatures[ *tracked ].feature1->pt.y;
+					_map.addMeasurement( pointId, kId, meas );
+					++tracked;
+				}
+
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
 						float reprErr = triangulate( mapFeat, matches[ i ] );
 
-						// TODO: covariance according to triangulation precision
+						// TODO: covariance according to the triangulation precision
 						
 						if( reprErr < _maxTriangReprojError ){
 							meas.point[ 0 ] = matches[ i ].feature0->pt.x;
@@ -257,18 +281,20 @@ namespace cvt
 				}
 
 				if( pts4f.size() > 5 ){
-					// TODO: add the currently tracked MapFeatures to the Keyframe as well!
-					// in order to get the dependency between the frames
-					// these are the matched indices, so for each matched index, we add a measurement to the mapfeature
-					// and the respective mapfeature to the new keyframe!
-
 					newPoints.notify( pts4f );
 				} else {
 					// TODO: don't use this keyframe -> remove it from the map again?!
 				}
 
-				// new keyframe added -> run the sba thread				
-				//_bundler.run( &_map );
+				// new keyframe added -> run the sba thread	
+				if( _map.numKeyframes() > 5 ){
+					//std::cout << "Optimizing map" << std::endl;	
+					//Time t;
+					//_bundler.run( &_map );
+					//_bundler.join();
+					//std::cout << "Took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
+					
+				}
 
 				_activeKF = _map.findClosestKeyframe( _pose.transformation() );
 
@@ -294,6 +320,8 @@ namespace cvt
 			_orbCornerThreshold++;
 		
 		trackedPoints.notify( p2d );
+
+		std::cout << "StereoSLAM processing Time: " << processingTime.elapsedMilliSeconds() << "ms" << std::endl;
 	}
 
 	inline float StereoSLAM::triangulate( MapFeature& feature, 
@@ -318,7 +346,7 @@ namespace cvt
 			
 		// normalize 4th coord;
 		tmp /= tmp.w;
-		if( tmp.z > 0.0f ){
+		if( tmp.z > 0.0f && tmp.z < 10 ){
 			float error = 0.0f;
 
 			repr = _camCalib0.projectionMatrix() * tmp;
@@ -342,7 +370,7 @@ namespace cvt
 				np[ 3 ] = tmp.w;
 
 				// transform to world coordinates
-				np = _pose.transformation() * np;
+				np = _pose.transformation().inverse() * np;
 			}
 			return error;
 		} 
@@ -369,24 +397,24 @@ namespace cvt
 		m = ransac.estimate( maxRansacIters );
 		*/
 		
-		EPnPd epnp( p3d );
-		Matrix4d m;
-		epnp.solve( m, p2d, K );
+		//Matrix4d m;
+	//	EPnPd epnp( p3d );
+	//	epnp.solve( m, p2d, K );
 
 		Eigen::Matrix<double, 3, 3> Ke;
 		Eigen::Matrix<double, 4, 4> extrC;
 		Eigen::Matrix4d me;
-		for( size_t i = 0; i < 3; i++ )
-			for( size_t k = 0; k < 3; k++ )
-				Ke( i, k ) = K[ i ][ k ];
-		for( size_t i = 0; i < 4; i++ ){
-			for( size_t k = 0; k < 4; k++ ){
-				extrC( i, k ) = _camCalib0.extrinsics()[ i ][ k ];
-				me( i, k ) = m[ i ][ k ];
-			}
-		}
+		EigenBridge::toEigen( Ke, K );
+		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
+		//EigenBridge::toEigen( me, m );
+		me = _pose.transformation();
+		
+		// now we have the pose of cam0 in me, we need to remove extrinsics to get pose of the rig
+		me = extrC.inverse() * me;
 
 		PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
+		pointCorresp.setPose( me );
+
 		Eigen::Matrix<double, 3, 1> p3;
 		Eigen::Matrix<double, 2, 1> p2;
 		for( size_t i = 0; i < p3d.size(); i++ ){
@@ -402,16 +430,15 @@ namespace cvt
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
 		termCriteria.setCostThreshold( 0.001 );
-		termCriteria.setMaxIterations( 10 );
+		termCriteria.setMaxIterations( 40 );
 		lm.optimize( pointCorresp, costFunction, termCriteria );
 
-		me = pointCorresp.pose().transformation().inverse();
+		//me = pointCorresp.pose().transformation().inverse();
+		me = pointCorresp.pose().transformation();
 		_pose.set( me );
 
 		Matrix4f mf;
-		for( size_t i = 0; i < 4; i++ )
-			for( size_t k = 0; k < 4; k++ )
-				mf[ i ][ k ] = me( i, k );
+		EigenBridge::toCVT( mf, me );
 		newCameraPose.notify( mf );
 	}
 }
