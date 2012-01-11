@@ -2,6 +2,7 @@
 
 #include <cvt/io/FileSystem.h>
 #include <cvt/util/DataIterator.h>
+#include <cvt/util/Util.h>
 
 namespace cvt {
 
@@ -48,6 +49,17 @@ namespace cvt {
 		unsigned int vtidx[ 4 ];
 		unsigned int vnidx[ 4 ];
 	};
+
+	static bool ObjLoadMaterial( Scene& scene, const String& mtllib )
+	{
+		Data data;
+		FileSystem::load( data, mtllib );
+		DataIterator d( data );
+
+		// FIXME: parse material stuff
+
+		return true;
+	}
 
 	static bool ObjFacesToMesh( SceneMesh& mesh, std::vector<ObjFace>& faces,
 						 const std::vector<Vector3f>& vertices,
@@ -296,6 +308,7 @@ namespace cvt {
 
 				d.nextToken( token, ws );
 				if( ! d.nextToken( token, ws ) ) {
+					scene.clear();
 					return;
 				}
 				cur = new SceneMesh( token );
@@ -304,9 +317,15 @@ namespace cvt {
 				d.skipInverse( "\n" );
 				d.skip( ws );
 			} else if( token == "mtllib" ) { // material library
-				// discard
-				d.skipInverse( "\n" );
-				d.skip( ws );
+				d.nextToken( token, ws );
+				if( ! d.nextToken( token, ws ) ) {
+					scene.clear();
+					return;
+				}
+				if( !ObjLoadMaterial( scene, Util::getDirectoryFromPath( filename ) + token ) ) {
+					scene.clear();
+					return;
+				}
 			} else if( token == "usemtl" ) { // reference material
 				// discard
 				d.skipInverse( "\n" );
