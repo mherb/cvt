@@ -57,6 +57,8 @@ namespace cvt
 				return _undist0;
 			}
 
+			const SlamMap & map() const { return _map; }
+
 			Signal<const ORBData*>		newORBData;	
 			Signal<const Keyframe&>		newKeyFrame;	
 			Signal<const std::vector<Vector4f>&>		newPoints;	
@@ -114,16 +116,16 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 7.0f ),
-		_matcherMaxDescriptorDist( 70 ),
+		_matcherMaxLineDistance( 2.0f ),
+		_matcherMaxDescriptorDist( 90 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 5.0f ),
-		_orbOctaves( 4 ), 
+		_maxTriangReprojError( 4.0f ),
+		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 30 ),
-		_orbMaxFeatures( 1500 ),
+		_orbCornerThreshold( 15 ),
+		_orbMaxFeatures( 1000 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 50.0f ),
+		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_activeKF( -1 )
 	{
@@ -145,11 +147,13 @@ namespace cvt
 		cx = c1.intrinsics()[ 0 ][ 2 ];
 		cy = c1.intrinsics()[ 1 ][ 2 ];
 		IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+		Eigen::Matrix3d K;
+		EigenBridge::toEigen( K, _camCalib0.intrinsics() );
+		_map.setIntrinsics( K );
 	}
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
-		Time processingTime;
 		// undistort
 		IWarp::apply( _undist0, img0, _undistortMap0 );
 
@@ -182,21 +186,31 @@ namespace cvt
 		Vector2d p2;
 
 		std::set<size_t> matchedIndices;
-
+		
+		size_t allTracked = 0;
+		size_t afterCheck = 0;
 		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
 			if( matchedFeatures[ i ].feature1 ){
+				allTracked++;
 				// got a match so add it to the point sets
 				const MapFeature & mapFeat = _map.featureForId( predictedIds[ i ] );
-				p3.x = mapFeat.estimate().x(); 
-				p3.y = mapFeat.estimate().y(); 
-				p3.z = mapFeat.estimate().z();
-				p3d.add( p3 );
-				p2.x = matchedFeatures[ i ].feature1->pt.x;
-				p2.y = matchedFeatures[ i ].feature1->pt.y;
-				p2d.add( p2 );
-				matchedIndices.insert( i );
+				size_t keyframeId = *( mapFeat.pointTrackBegin() );
+				if( _featureTracking.checkFeature( matchedFeatures[ i ], 
+												   _map.keyframeForId( keyframeId ).image(),
+												   _undist0 ) ) {
+					p3.x = mapFeat.estimate().x(); 
+					p3.y = mapFeat.estimate().y(); 
+					p3.z = mapFeat.estimate().z();
+					p3d.add( p3 );
+					p2.x = matchedFeatures[ i ].feature1->pt.x;
+					p2.y = matchedFeatures[ i ].feature1->pt.y;
+					p2d.add( p2 );
+					matchedIndices.insert( i );
+					afterCheck++;
+				}
 			}
 		}
+		//std::cout << 100.0f* ( float )afterCheck / ( float )allTracked << "\% survived pruning" << std::endl;
 
 
 		/* at least 10 corresp. */
@@ -260,49 +274,43 @@ namespace cvt
 
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
-						float reprErr = triangulate( mapFeat, matches[ i ] );
 
-						// TODO: covariance according to the triangulation precision
-						
-						if( reprErr < _maxTriangReprojError ){
-							meas.point[ 0 ] = matches[ i ].feature0->pt.x;
-							meas.point[ 1 ] = matches[ i ].feature0->pt.y;
-							size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
-							_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
+						if( _featureTracking.checkFeature( matches[ i ], _undist0, _undist1 ) ){
+							float reprErr = triangulate( mapFeat, matches[ i ] );
+							if( reprErr < _maxTriangReprojError ){
+								meas.point[ 0 ] = matches[ i ].feature0->pt.x;
+								meas.point[ 1 ] = matches[ i ].feature0->pt.y;
+								size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
+								_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
 
-							const Eigen::Vector4d & wp = mapFeat.estimate();
-							currP.x = ( float ) ( wp.x() );
-							currP.y = ( float ) ( wp.y() );
-							currP.z = ( float ) ( wp.z() );
-							currP.w = ( float ) ( wp.w() );
-							pts4f.push_back( currP );
+								const Eigen::Vector4d & wp = mapFeat.estimate();
+								currP.x = ( float ) ( wp.x() );
+								currP.y = ( float ) ( wp.y() );
+								currP.z = ( float ) ( wp.z() );
+								currP.w = ( float ) ( wp.w() );
+								pts4f.push_back( currP );
+							}
 						}
 					}
 				}
 
 				if( pts4f.size() > 5 ){
+					std::cout << "Added " << pts4f.size() << " 3D Points" << std::endl;
 					newPoints.notify( pts4f );
 				} else {
 					// TODO: don't use this keyframe -> remove it from the map again?!
 				}
 
 				// new keyframe added -> run the sba thread	
-				if( _map.numKeyframes() > 5 ){
+				if( _map.numKeyframes() > 1 ){
 					//std::cout << "Optimizing map" << std::endl;	
-					//Time t;
-					//_bundler.run( &_map );
-					//_bundler.join();
-					//std::cout << "Took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
+					Time t;
+					_bundler.run( &_map );
+					_bundler.join();
+					std::cout << "Map optimization took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 					
 				}
-
-				_activeKF = _map.findClosestKeyframe( _pose.transformation() );
-
-			} else {
-				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
-				std::cout << "Error: no stereo matches found" << std::endl;
-			}
-
+			} 
 			// notify observers that there is new orb data
 			// e.g. gui or a localizer 
 			ORBData data;
@@ -313,15 +321,18 @@ namespace cvt
 			data.matches = &matches;
 			newORBData.notify( &data );
 		}
+ 
+		int last = _activeKF;
+		_activeKF = _map.findClosestKeyframe( _pose.transformation() );
+		if( _activeKF != last )
+			std::cout << "Active KF: " << _activeKF << std::endl;
 
-		if( orb0.size() < 100 && _orbCornerThreshold > 10 )
-			_orbCornerThreshold--;
-		else if( orb0.size() > 600 && _orbCornerThreshold < 80 )
-			_orbCornerThreshold++;
+		if( orb0.size() < 100 && _orbCornerThreshold > 15 )
+			_orbCornerThreshold -=5;
+		else if( orb0.size() > _orbMaxFeatures && _orbCornerThreshold < 40 )
+			_orbCornerThreshold+=2;
 		
 		trackedPoints.notify( p2d );
-
-		std::cout << "StereoSLAM processing Time: " << processingTime.elapsedMilliSeconds() << "ms" << std::endl;
 	}
 
 	inline float StereoSLAM::triangulate( MapFeature& feature, 
@@ -397,7 +408,7 @@ namespace cvt
 		m = ransac.estimate( maxRansacIters );
 		*/
 		
-		//Matrix4d m;
+	//	Matrix4d m;
 	//	EPnPd epnp( p3d );
 	//	epnp.solve( m, p2d, K );
 
