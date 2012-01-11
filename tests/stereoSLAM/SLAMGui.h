@@ -34,6 +34,8 @@ namespace cvt
 
 			void updateTrackedPoints( const PointSet2d & pset );
 
+			void setSaveButtonDelegate( const Delegate<void (void)> & d );
+
 		private:
 			ImageView	_image0;
 			ImageView	_stereoView;
@@ -43,6 +45,7 @@ namespace cvt
 			Button		_nextFrame;
 			Label		_fpsLabel;
 			Button		_resetCamera;
+			Button		_saveMap;
 
 			float		_imageAspect;
 			
@@ -57,6 +60,7 @@ namespace cvt
 		_nextFrame( "Next" ),
 		_fpsLabel( "FPS:" ),
 		_resetCamera( "Set Cam" ),
+		_saveMap( "Save Map" ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
@@ -91,6 +95,8 @@ namespace cvt
 		this->addWidget( &_fpsLabel, wl );
 		wl.setAnchoredTop( 100, 20 );
 		this->addWidget( &_resetCamera, wl );
+		wl.setAnchoredTop( 130, 20 );
+		this->addWidget( &_saveMap, wl );
 
 		this->addWidget( &_image0 );
 		this->addWidget( &_stereoView );
@@ -207,6 +213,11 @@ namespace cvt
 	inline void SLAMGui::updateTrackedPoints( const PointSet2d & pset )
 	{
 		_trackedPoints = pset;
+	}
+			
+	inline void SLAMGui::setSaveButtonDelegate( const Delegate<void (void)> & d )
+	{
+		_saveMap.clicked.add( d );
 	}
 }
 

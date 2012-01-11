@@ -69,15 +69,6 @@ namespace cvt
 										 const CameraCalibration& camCalib ) 
 	{
 		double maxDistance = 9.0;
-		Eigen::Matrix4d poseInv;
-		{
-			Eigen::Matrix3d RInv = cameraPose.block<3, 3>( 0, 0 ).transpose();
-			Eigen::Vector3d tInv = -RInv * cameraPose.block<3, 1>( 0, 3 );
-			poseInv.block<3, 3>( 0, 0 ) = RInv;
-			poseInv.block<3, 1>( 0, 3 ) = tInv;
-			poseInv( 3, 0 ) = poseInv( 3, 1 ) = poseInv( 3, 2 ) = 0.0;
-			poseInv( 3, 3 ) = 1.0;
-		}
 
 		Eigen::Vector4d pointInCam;
 		Vector4f pic;
@@ -101,7 +92,7 @@ namespace cvt
 					const MapFeature& feature = _features[ fId ];
 
 					if( usedPoints.find( fId ) == usedPoints.end() ){
-						pointInCam = poseInv * feature.estimate();
+						pointInCam = cameraPose * feature.estimate();
 						pointInCam /= pointInCam[ 3 ];
 						if( pointInCam[ 2 ] > 0.0 ){
 							pic[ 0 ] = ( float )pointInCam[ 0 ];

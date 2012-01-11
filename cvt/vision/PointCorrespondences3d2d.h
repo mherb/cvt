@@ -43,7 +43,7 @@ namespace cvt {
 		
 			void				add( const Eigen::Matrix<T, 3, 1> & p3d, const Eigen::Matrix<T, 2, 1> & p2d );
 			const SE3<T> &		pose() const { return _pose; }
-			void	setPose( const Eigen::Matrix<T, 4, 4> & poseT ){ pose.set( poseT ); }
+			void	setPose( const Eigen::Matrix<T, 4, 4> & poseT ){ _pose.set( poseT ); }
 
 			const Eigen::Matrix<T, 3, 3> & camKR() const { return _KR; }
 			const Eigen::Matrix<T, 3, 1> & camKt() const { return _Kt; }
