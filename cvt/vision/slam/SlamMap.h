@@ -40,12 +40,12 @@ namespace cvt
 			const Keyframe&			keyframeForId( size_t id ) const { return _keyframes[ id ];}
 			Keyframe&				keyframeForId( size_t id )		 { return _keyframes[ id ];}
 			const Eigen::Matrix3d&  intrinsics() const { return _intrinsics; }
+			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
 			size_t numFeatures()	 const { return _features.size(); }
 			size_t numKeyframes()	 const { return _keyframes.size(); }
 			size_t numMeasurements() const { return _numMeas; }
 
-			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 	
 			void deserialize( XMLNode* node );
 			XMLNode* serialize() const;
