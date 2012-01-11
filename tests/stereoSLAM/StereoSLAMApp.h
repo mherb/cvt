@@ -25,6 +25,8 @@ namespace cvt
 			void toggleStepping();
 			void nextPressed() { _nextImage = true; };
 
+			void saveMap();
+
 		private:
 			std::vector<VideoInput*> _cams;
 			StereoSLAM				 _slam;
@@ -72,6 +74,9 @@ namespace cvt
 		
 		Delegate<void (const PointSet2d&)> d4( &_gui, &SLAMGui::updateTrackedPoints );
 		_slam.trackedPoints.add( d4 );
+		
+		Delegate<void (void)> d5( this, &StereoSLAMApp::saveMap );
+		_gui.setSaveButtonDelegate( d5 );
 	}
 
 	inline StereoSLAMApp::~StereoSLAMApp()
@@ -102,6 +107,14 @@ namespace cvt
 			_time.reset();
 			_timeIter = 0;
 		}
+	}
+
+	inline void StereoSLAMApp::saveMap()
+	{
+		std::cout << "Saving map" << std::endl;
+		XMLDocument doc;
+		doc.addNode( _slam.map().serialize() );
+		doc.save( "map.xml" );
 	}
 
 
