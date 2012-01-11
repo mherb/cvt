@@ -427,13 +427,13 @@ namespace cvt {
 
 		std::cout << vertices.size() << " " << faces.size() << std::endl;
 		if( vertices.size() && faces.size() ) {
-			Mesh* mesh = new Mesh( "PLY" );
+			SceneMesh* mesh = new SceneMesh( "PLY" );
 			mesh->setVertices( &vertices[ 0 ], vertices.size() );
 			// FIXME: correct mesh type - either tris or quads
-			mesh->setFaces( &faces[ 0 ], faces.size(), MESH_TRIANGLES );
+			mesh->setFaces( &faces[ 0 ], faces.size(), SCENEMESH_TRIANGLES );
 			if( normals.size() )
 				mesh->setNormals( &normals[ 0 ], normals.size() );
-			scene.addMesh( mesh );
+			scene.addGeometry( mesh );
 		}
 	}
 

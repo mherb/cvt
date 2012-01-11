@@ -1,7 +1,6 @@
 #ifndef CVT_GLMESH_H
 #define CVT_GLMESH_H
 
-
 namespace cvt {
 	class GLMesh {
 		public:
