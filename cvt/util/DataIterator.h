@@ -25,6 +25,8 @@ namespace cvt {
 
         bool nextToken( String & token, const String & deliminators );
 
+        bool peekNextToken( String & token, const String & deliminators );
+
         bool nextLine( String & line );
 
         void tokenizeNextLine( std::vector<String> & tokens, const String & deliminators );
@@ -42,6 +44,8 @@ namespace cvt {
 
         void skip( const String& characters );
 		void skipInverse( const String& characters );
+
+		void skip( size_t size );
 
       private:
         const uint8_t*	_pos;
@@ -71,20 +75,25 @@ namespace cvt {
     {
         skip( deliminators );
 
-        if ( hasNext() ) {
-            // here we know that _pos points to a token
-            const uint8_t * start = _pos;
-            nextDelim( deliminators );
+        if ( !hasNext() )
+			return false;
 
-            token.assign( ( const char* )start, _pos - start );
-            return true;
+		// here we know that _pos points to a token
+		const uint8_t * start = _pos;
+		nextDelim( deliminators );
 
-        } else {
-            return false;
-        }
-
-        return true;
+		token.assign( ( const char* )start, _pos - start );
+		return true;
     }
+
+    inline bool DataIterator::peekNextToken( String & token, const String & deliminators )
+	{
+		// FIXME
+		const uint8_t* cur = _pos;
+		bool ret = nextToken( token, deliminators );
+		_pos = cur;
+		return ret;
+	}
 
     inline bool DataIterator::nextLine( String & line )
     {
@@ -200,6 +209,13 @@ namespace cvt {
                 return;
         }
     }
+
+	inline void DataIterator::skip( size_t size )
+	{
+		_pos += size;
+		if( _pos > _end )
+			_pos = _end;
+	}
 
     inline void DataIterator::skipInverse( const String & delim )
     {
