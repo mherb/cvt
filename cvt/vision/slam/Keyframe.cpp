@@ -25,6 +25,17 @@ namespace cvt
 		if( _img )
 			delete _img;
 	}
+			
+	Keyframe::Keyframe( const Keyframe & other ) :
+		XMLSerializable(),
+		_id( other._id ),
+		_pose( other._pose ),
+		_img( 0 ),
+		_featMeas( other._featMeas )
+	{
+		if( other._img )
+			_img = new Image( *other._img );
+	}
 
 	void Keyframe::setImage( const Image& img )
 	{
