@@ -1,26 +1,22 @@
-#ifndef CVT_MESH_H
-#define CVT_MESH_H
+#ifndef CVT_SCENEMESH_H
+#define CVT_SCENEMESH_H
 
-#include <cvt/math/Vector.h>
-#include <cvt/math/Matrix.h>
-#include <cvt/geom/Box.h>
-#include <cvt/util/String.h>
+#include <cvt/geom/scene/SceneGeometry.h>
 
 #include <vector>
 
 namespace cvt {
-	enum MeshType {
-		MESH_TRIANGLES,
-		MESH_QUADS
+	enum SceneMeshType {
+		SCENEMESH_TRIANGLES,
+		SCENEMESH_QUADS
 	};
 
-	class Mesh {
-		public:
-			Mesh( const String& name );
-			~Mesh();
+	class SceneMesh : public SceneGeometry {
+	public:
+							SceneMesh( const String& name );
+							~SceneMesh();
 
-			const String&   name() const;
-			MeshType		type() const;
+			SceneMeshType	type() const;
 
 			void			clear();
 			bool			isEmpty() const;
@@ -37,7 +33,7 @@ namespace cvt {
 			void			setVertices( const Vector3f* data, size_t size );
 			void			setNormals( const Vector3f* data, size_t size );
 			void			setTexcoords( const Vector2f* data, size_t size );
-			void			setFaces( const unsigned int* data, size_t size, MeshType type );
+			void			setFaces( const unsigned int* data, size_t size, SceneMeshType type );
 
 			Vector3f		centroid() const;
 			Boxf			boundingBox() const;
@@ -63,99 +59,93 @@ namespace cvt {
 			std::vector<Vector3f>		_normals;
 			std::vector<Vector2f>		_texcoords;
 			std::vector<unsigned int>	_vindices;
-			MeshType					_type;
+			SceneMeshType					_type;
 	};
 
-	inline Mesh::Mesh( const String& name ) : _name( name ), _type( MESH_TRIANGLES )
+	inline SceneMesh::SceneMesh( const String& name ) : SceneGeometry( name, SCENEGEOMETRY_MESH ), _type( SCENEMESH_TRIANGLES )
 	{
 	}
 
-	inline Mesh::~Mesh()
+	inline SceneMesh::~SceneMesh()
 	{
 	}
-
-	inline const String& Mesh::name() const
-	{
-		return _name;
-	}
-
-	inline MeshType Mesh::type() const
+	inline SceneMeshType SceneMesh::type() const
 	{
 		return _type;
 	}
 
-	inline void Mesh::clear()
+	inline void SceneMesh::clear()
 	{
 		_vertices.clear();
 		_normals.clear();
 		_texcoords.clear();
 		_vindices.clear();
-		_type = MESH_TRIANGLES;
+		_type = SCENEMESH_TRIANGLES;
 	}
 
-	inline bool Mesh::isEmpty() const
+	inline bool SceneMesh::isEmpty() const
 	{
 		return _vertices.empty() || _vindices.empty();
 	}
 
-	inline size_t Mesh::vertexSize() const
+	inline size_t SceneMesh::vertexSize() const
 	{
 		return _vertices.size();
 	}
 
-	inline size_t Mesh::normalSize() const
+	inline size_t SceneMesh::normalSize() const
 	{
 		return _normals.size();
 	}
 
-	inline size_t Mesh::texcoordSize() const
+	inline size_t SceneMesh::texcoordSize() const
 	{
 		return _texcoords.size();
 	}
 
-	inline size_t Mesh::faceSize() const
+	inline size_t SceneMesh::faceSize() const
 	{
-		size_t nface = _type == MESH_TRIANGLES ? 3 : 4;
+		size_t nface = _type == SCENEMESH_TRIANGLES ? 3 : 4;
 		return _vindices.size() / nface;
 	}
 
-	inline const Vector3f& Mesh::vertex( size_t i ) const
+	inline const Vector3f& SceneMesh::vertex( size_t i ) const
 	{
 		return _vertices[ i ];
 	}
 
-	inline const Vector3f& Mesh::normal( size_t i ) const
+	inline const Vector3f& SceneMesh::normal( size_t i ) const
 	{
 		return _normals[ i ];
 	}
 
-	inline const Vector2f& Mesh::texcoord( size_t i ) const
+	inline const Vector2f& SceneMesh::texcoord( size_t i ) const
 	{
 		return _texcoords[ i ];
 	}
 
-	inline void Mesh::setVertices( const Vector3f* data, size_t size )
+	inline void SceneMesh::setVertices( const Vector3f* data, size_t size )
 	{
 		_vertices.assign( data, data + size );
 	}
 
-	inline void Mesh::setNormals( const Vector3f* data, size_t size )
+	inline void SceneMesh::setNormals( const Vector3f* data, size_t size )
 	{
 		_normals.assign( data, data + size );
 	}
 
-	inline void Mesh::setTexcoords( const Vector2f* data, size_t size )
+	inline void SceneMesh::setTexcoords( const Vector2f* data, size_t size )
 	{
 		_texcoords.assign( data, data + size );
 	}
 
-	inline void Mesh::setFaces( const unsigned int* data, size_t size, MeshType type )
+	inline void SceneMesh::setFaces( const unsigned int* data, size_t size, SceneMeshType type )
 	{
 		_type = type;
 		_vindices.assign( data, data + size );
 	}
 
-	inline Vector3f Mesh::centroid( ) const
+	inline Vector3f SceneMesh::centroid( ) const
 	{
 		size_t n = _vertices.size();
 		const Vector3f* pt = &_vertices[ 0 ];
@@ -169,7 +159,7 @@ namespace cvt {
 	}
 
 
-	inline Boxf Mesh::boundingBox() const
+	inline Boxf SceneMesh::boundingBox() const
 	{
 		Vector3f min, max;
 		Boxf bbox;
@@ -194,7 +184,7 @@ namespace cvt {
 		return bbox;
 	}
 
-	inline void Mesh::translate( const Vector3f& translation )
+	inline void SceneMesh::translate( const Vector3f& translation )
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
@@ -203,7 +193,7 @@ namespace cvt {
 			*pt++ += translation;
 	}
 
-	inline void Mesh::scale( float scale )
+	inline void SceneMesh::scale( float scale )
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
@@ -212,7 +202,7 @@ namespace cvt {
 			*pt++ *= scale;
 	}
 
-	inline void Mesh::transform( const Matrix3f& mat )
+	inline void SceneMesh::transform( const Matrix3f& mat )
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
@@ -223,7 +213,7 @@ namespace cvt {
 		}
 	}
 
-	inline void Mesh::transform( const Matrix4f& mat )
+	inline void SceneMesh::transform( const Matrix4f& mat )
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
@@ -245,7 +235,7 @@ namespace cvt {
 		}
 	}
 
-	inline std::ostream& operator<<( std::ostream& out, const Mesh& mesh )
+	inline std::ostream& operator<<( std::ostream& out, const SceneMesh& mesh )
 	{
 		out << "Mesh:\n";
 		out << "\tVertices: " << mesh.vertexSize();

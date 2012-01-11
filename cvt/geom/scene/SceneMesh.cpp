@@ -1,8 +1,8 @@
-#include <cvt/geom/Mesh.h>
+#include <cvt/geom/scene/SceneMesh.h>
 
 namespace cvt {
 
-	void Mesh::removeRedundancy( float vepsilon, float nepsilon, float tepsilon )
+	void SceneMesh::removeRedundancy( float vepsilon, float nepsilon, float tepsilon )
 	{
 		std::vector<Vector3f>		nvertices;
 		std::vector<Vector3f>		nnormals;
@@ -44,4 +44,25 @@ namespace cvt {
 		_texcoords = ntexcoords;
 		_vindices = nvindices;
 	}
+
+	void SceneMesh::quadsToTriangles()
+	{
+		const unsigned int table[] = { 0, 1, 2, 2, 3, 0 };
+
+		if( _type != SCENEMESH_QUADS || _vindices.size() % 4 != 0 )
+			return;
+
+		std::vector<unsigned int> nvindices;
+		size_t size = _vindices.size();
+		for( size_t n = 0; n < size; n += 4 ) {
+				// Convert quad to triangle
+				for( int i = 0; i < 6; i++ ) {
+					nvindices.push_back( _vindices[ n + table[ i ] ] );
+				}
+		}
+
+		_vindices = nvindices;
+		_type = SCENEMESH_TRIANGLES;
+	}
+
 }

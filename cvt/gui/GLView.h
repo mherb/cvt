@@ -8,7 +8,7 @@ namespace cvt
 	class GLView : public Widget
 	{
 		public:
-			GLView() : 
+			GLView() :
 				_viewport( rect() ),
 				_allowViewportChange( false )
 			{
@@ -36,6 +36,6 @@ namespace cvt
 			glViewport( r.x, _viewport.height - ( r.y + r.height ), r.width, r.height );
 		}
 	}
-} 
+}
 
 #endif

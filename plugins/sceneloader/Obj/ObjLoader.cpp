@@ -49,7 +49,7 @@ namespace cvt {
 		unsigned int vnidx[ 4 ];
 	};
 
-	static bool ObjFacesToMesh( Mesh& mesh, std::vector<ObjFace>& faces,
+	static bool ObjFacesToMesh( SceneMesh& mesh, std::vector<ObjFace>& faces,
 						 const std::vector<Vector3f>& vertices,
 						 const std::vector<Vector3f>& normals,
 						 const std::vector<Vector2f>& texcoords )
@@ -127,7 +127,7 @@ namespace cvt {
 			}
 		}
 		mesh.setVertices( &mvertices[ 0 ], mvertices.size() );
-		mesh.setFaces( &mfaces[ 0 ], mfaces.size(), MESH_TRIANGLES );
+		mesh.setFaces( &mfaces[ 0 ], mfaces.size(), SCENEMESH_TRIANGLES );
 		if( hasTex )
 			mesh.setTexcoords( &mtexcoords[ 0 ], mtexcoords.size() );
 		if( hasNormal )
@@ -277,7 +277,7 @@ namespace cvt {
 
 		Data data;
 		FileSystem::load( data, filename );
-		Mesh* cur = new Mesh( "_NONAME_" );
+		SceneMesh* cur = new SceneMesh( "_NONAME_" );
 		std::vector<Vector3f> vertices;
 		std::vector<Vector3f> normals;
 		std::vector<Vector2f> texcoords;
@@ -289,7 +289,7 @@ namespace cvt {
 				if( faces.size() ) {
 					ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
 					if( !cur->isEmpty() )
-						scene.addMesh( cur );
+						scene.addGeometry( cur );
 					faces.clear();
 				} else
 					delete cur;
@@ -298,7 +298,7 @@ namespace cvt {
 				if( ! d.nextToken( token, ws ) ) {
 					return;
 				}
-				cur = new Mesh( token );
+				cur = new SceneMesh( token );
 			} else if( token == "o" ) { // object
 				// discard
 				d.skipInverse( "\n" );
@@ -340,7 +340,7 @@ namespace cvt {
 		if( faces.size() ) {
 			ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
 			if( !cur->isEmpty() )
-				scene.addMesh( cur );
+				scene.addGeometry( cur );
 		} else
 			delete cur;
 

@@ -1,7 +1,7 @@
 #ifndef CVT_SCENE_H
 #define CVT_SCENE_H
 
-#include <cvt/geom/Mesh.h>
+#include <cvt/geom/scene/SceneMesh.h>
 
 namespace cvt {
 
@@ -12,16 +12,17 @@ namespace cvt {
 			Scene();
 			~Scene();
 
-			void	clear();
-			Mesh*	mesh( size_t index );
-			const Mesh*	mesh( size_t index ) const;
-			size_t	meshSize() const;
-			void	addMesh( Mesh* mesh );
+			void					clear();
 
-			void	load( const String& path, SceneLoader* loader = NULL );
+			SceneGeometry*			geometry( size_t index );
+			const SceneGeometry*	geometry( size_t index ) const;
+			size_t					geometrySize() const;
+			void					addGeometry( SceneGeometry* geometry );
+
+			void					load( const String& path, SceneLoader* loader = NULL );
 
 		private:
-			std::vector<Mesh*> _meshes;
+			std::vector<SceneGeometry*> _geometries;
 	};
 
 	inline Scene::Scene()
@@ -35,39 +36,39 @@ namespace cvt {
 
 	inline void Scene::clear()
 	{
-		for( std::vector<Mesh*>::iterator it = _meshes.begin(); it != _meshes.end(); ++it ) {
+		for( std::vector<SceneGeometry*>::iterator it = _geometries.begin(); it != _geometries.end(); ++it ) {
 			delete *it;
 		}
-		_meshes.clear();
+		_geometries.clear();
 	}
 
-	inline Mesh* Scene::mesh( size_t index )
+	inline SceneGeometry* Scene::geometry( size_t index )
 	{
-		return _meshes[ index ];
+		return _geometries[ index ];
 	}
 
-	inline const Mesh* Scene::mesh( size_t index ) const
+	inline const SceneGeometry* Scene::geometry( size_t index ) const
 	{
-		return _meshes[ index ];
+		return _geometries[ index ];
 	}
 
 
-	inline size_t Scene::meshSize() const
+	inline size_t Scene::geometrySize() const
 	{
-		return _meshes.size();
+		return _geometries.size();
 	}
 
-	inline void Scene::addMesh( Mesh* mesh )
+	inline void Scene::addGeometry( SceneGeometry* geometry )
 	{
-		_meshes.push_back( mesh );
+		_geometries.push_back( geometry );
 	}
 
 	inline std::ostream& operator<<( std::ostream& out, const Scene& s )
 	{
 		out << "Scene:";
-		out << "\n\tMeshes " << s.meshSize() << "\n";
-		for( size_t i = 0; i < s.meshSize(); i++ )
-			out << *s.mesh( i );
+		out << "\n\tGeometry: " << s.geometrySize() << "\n";
+		for( size_t i = 0; i < s.geometrySize(); i++ )
+			out << *s.geometry( i );
 		return out;
 	}
 }

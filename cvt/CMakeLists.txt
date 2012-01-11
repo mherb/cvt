@@ -220,12 +220,19 @@ SET(${MODULE_NAME}_HEADERS
 	geom/KDTree.h
 	geom/Line2D.h
 	geom/Model.h
-	geom/Mesh.h
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
+	geom/scene/SceneCamera.h
+	geom/scene/SceneGeometry.h
 	geom/scene/Scene.h
+	geom/scene/SceneLight.h
 	geom/scene/SceneLoader.h
+	geom/scene/SceneMaterial.h
+	geom/scene/SceneMesh.h
+	geom/scene/SceneNode.h
+	geom/scene/SceneSpatial.h
+	geom/scene/SceneTexture.h
 	gfx/Color.h
 	gfx/Image.h
 	gfx/IFormat.h
@@ -503,11 +510,12 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/IKernel.cpp
 	gfx/ColorspaceXYZ.cpp
 	geom/KDTree.cpp
-	geom/Mesh.cpp
 	geom/Model.cpp
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
 	geom/scene/Scene.cpp
+	geom/scene/SceneGeometry.cpp
+	geom/scene/SceneMesh.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLFBO.cpp
