@@ -103,8 +103,8 @@ int main( int argc, char* argv[] )
 	std::vector<VideoInput*> input;
 
 	if( useSeq ){
-		String folder = r.find( "stereoSLAM/floor_2min_44fps" );
-		//String folder = r.find( "stereoSLAM/office_2min_42fps" );
+		//String folder = r.find( "stereoSLAM/floor_2min_44fps" );
+		String folder = r.find( "stereoSLAM/office_2min_42fps" );
 		folder += "/";
 		loadSequenceFromFolder( input, 
 							    camCalib0, camCalib1,
