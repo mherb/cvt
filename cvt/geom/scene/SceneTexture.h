@@ -27,7 +27,13 @@ namespace cvt {
 
 	inline void SceneTexture::load( const String& path )
 	{
-		_image.load( path );
+		try {
+			_image.load( path );
+		} catch( Exception& e ) {
+			// mark missing texture with PINK
+			_image.reallocate( 16, 16, IFormat::RGBA_UINT8 );
+			_image.fill( Color::PINK );
+		}
 	}
 
 	inline const Image& SceneTexture::image()
