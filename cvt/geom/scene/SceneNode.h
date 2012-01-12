@@ -7,11 +7,11 @@ namespace cvt {
 	class SceneNode {
 		public:
 			SceneNode( const String& name );
-			~SceneNode();
+			virtual ~SceneNode();
 
 			const String& name() const;
 
-		private:
+		protected:
 			String _name;
 	};
 
@@ -21,6 +21,11 @@ namespace cvt {
 
 	inline SceneNode::~SceneNode()
 	{
+	}
+
+	inline const String& SceneNode::name() const
+	{
+		return _name;
 	}
 }
 

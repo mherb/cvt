@@ -20,7 +20,7 @@ namespace cvt {
 			Color( int gray, int alpha );
 			Color( const Color& c );
 
-			void set( float r, float g, float b, float a );
+			void set( float r, float g, float b, float a = 1.0f );
 			void set( float g, float a );
 			void set( int r, int g, int b, int a );
 
@@ -42,6 +42,9 @@ namespace cvt {
 			Color operator+( const Color & c ) const;
 			Color operator-( const Color & c ) const;
 			Color operator*( float s ) const;
+
+			bool operator==( const Color& c ) const;
+			bool operator!=( const Color& c ) const;
 
 			const float* data() const { return &_r; };
 
@@ -200,6 +203,22 @@ namespace cvt {
 		return r;
 	}
 
+
+	inline bool Color::operator==( const Color& c ) const
+	{
+		return _r == c._r && _g == c._g &&_b == c._b && _a == c._a;
+	}
+
+	inline bool Color::operator!=( const Color& c ) const
+	{
+		return !( _r == c._r && _g == c._g &&_b == c._b && _a == c._a );
+	}
+
+	inline std::ostream& operator<<( std::ostream& out, const Color& c )
+	{
+		out << "R: " << c.red() << " G: " << c.green() << " B: " << c.blue() << " A: " << c.alpha();
+		return out;
+	}
 }
 
 #endif

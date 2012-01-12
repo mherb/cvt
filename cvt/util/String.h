@@ -62,6 +62,7 @@ namespace cvt {
 
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
+			void	replace( char cold, char cnew );
 
 			void	 tokenize( std::vector<String>& tokens, char delimiter ) const;
 			long int toInteger() const;
@@ -382,6 +383,19 @@ namespace cvt {
 		if( *ptr != c )
 			return -1;
 		return ptr - _str;
+	}
+
+
+	inline void	String::replace( char cold, char cnew )
+	{
+		ssize_t n = _len;
+		char* ptr = _str;
+		while( n ) {
+			if( *ptr == cold )
+				*ptr = cnew;
+			ptr++;
+			n--;
+		}
 	}
 
 	inline void	String::tokenize( std::vector<String>& tokens, char delimiter ) const

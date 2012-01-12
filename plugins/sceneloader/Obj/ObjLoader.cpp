@@ -50,13 +50,141 @@ namespace cvt {
 		unsigned int vnidx[ 4 ];
 	};
 
-	static bool ObjLoadMaterial( Scene& scene, const String& mtllib )
+	static void ObjReadMaterialColor3( DataIterator& d, Color& c )
+	{
+		float r, g, b;
+		r = d.nextDouble();
+		g = d.nextDouble();
+		b = d.nextDouble();
+		c.set( r, g, b );
+	}
+
+	static bool ObjReadMaterial( DataIterator& d, Scene& scene, SceneMaterial& mat, const String& basepath )
+	{
+		String ws( " \r\n\t" );
+		String token;
+		Color color;
+
+		while( d.peekNextToken( token, ws ) ) {
+			if( token == "newmtl" ) {
+				return true;
+			} else if( token == "Ka" ) {
+				d.nextToken( token, ws );
+				ObjReadMaterialColor3( d, color );
+				mat.setAmbientColor( color );
+			} else if( token == "Kd" ) {
+				d.nextToken( token, ws );
+				ObjReadMaterialColor3( d, color );
+				mat.setDiffuseColor( color );
+			} else if( token == "Ks" ) {
+				d.nextToken( token, ws );
+				ObjReadMaterialColor3( d, color );
+				mat.setSpecularColor( color );
+			} else if( token == "Ke" ) {
+				d.nextToken( token, ws );
+				ObjReadMaterialColor3( d, color );
+				mat.setEmitColor( color );
+			} else if( token == "Tf" ) {
+				d.nextToken( token, ws );
+				ObjReadMaterialColor3( d, color );
+				mat.setTransmissonColor( color );
+			} else if( token == "Ns" ) {
+				d.nextToken( token, ws );
+				float v = d.nextDouble();
+				mat.setShininess( v );
+			} else if( token == "Ni" ) {
+				d.nextToken( token, ws );
+				float v = d.nextDouble();
+				mat.setRefraction( v );
+			} else if( token == "d" ) {
+				d.nextToken( token, ws );
+				float v = d.nextDouble();
+				mat.setTransparency( v );
+			} else if( token == "Tr" ) {
+				d.nextToken( token, ws );
+				float v = d.nextDouble();
+				mat.setTransparency( 1.0f - v );
+			} else if( token == "map_Ka" ) {
+				d.nextToken( token, ws );
+				if(! d.nextToken( token, ws ) ) {
+					return false;
+				}
+				mat.setAmbientMap( token );
+				SceneTexture* tex = new SceneTexture( token );
+				String path = basepath + token;
+				path.replace( '\\','/' );
+				tex->load( path );
+				scene.addTexture( tex );
+			} else if( token == "map_Kd" ) {
+				d.nextToken( token, ws );
+				if(! d.nextToken( token, ws ) ) {
+					return false;
+				}
+				mat.setDiffuseMap( token );
+				SceneTexture* tex = new SceneTexture( token );
+				String path = basepath + token;
+				path.replace( '\\','/' );
+				tex->load( path );
+				scene.addTexture( tex );
+			} else if( token == "map_d" ) {
+				d.nextToken( token, ws );
+				if(! d.nextToken( token, ws ) ) {
+					return false;
+				}
+				mat.setAlphaMap( token );
+				SceneTexture* tex = new SceneTexture( token );
+				String path = basepath + token;
+				path.replace( '\\','/' );
+				tex->load( path );
+				scene.addTexture( tex );
+			} else if( token == "map_bump" || token == "bump" ) {
+				d.nextToken( token, ws );
+				if(! d.nextToken( token, ws ) ) {
+					return false;
+				}
+				mat.setNormalMap( token );
+				SceneTexture* tex = new SceneTexture( token );
+				String path = basepath + token;
+				path.replace( '\\','/' );
+				tex->load( path );
+				scene.addTexture( tex );
+			}  else {
+				// discard line
+				d.skipInverse( "\n" );
+				d.skip( ws );
+			}
+		}
+		return true;
+	}
+
+	static bool ObjLoadMaterial( Scene& scene, const String& mtllib, const String& basepath )
 	{
 		Data data;
-		FileSystem::load( data, mtllib );
+		FileSystem::load( data, basepath + mtllib );
 		DataIterator d( data );
+		String ws( " \r\n\t" );
+		String token;
 
-		// FIXME: parse material stuff
+		while( d.peekNextToken( token, ws ) ) {
+			if( token == "newmtl" ) { // new material
+				d.nextToken( token, ws );
+				if( ! d.nextToken( token, ws ) ) {
+					return false;
+				}
+				//std::cout << "MATERIAL " << token << std::endl;
+				SceneMaterial* mat = new SceneMaterial( token );
+				if( !ObjReadMaterial( d, scene, *mat, basepath ) ) {
+					delete mat;
+					return false;
+				}
+				scene.addMaterial( mat );
+			} else {
+				// discard line
+				d.skipInverse( "\n" );
+				d.skip( ws );
+			}
+
+		}
 
 		return true;
 	}
@@ -318,14 +446,18 @@ namespace cvt {
 				d.skip( ws );
 			} else if( token == "mtllib" ) { // material library
 				d.nextToken( token, ws );
-				if( ! d.nextToken( token, ws ) ) {
+				if( !d.nextToken( token, ws ) ) {
 					scene.clear();
 					return;
 				}
-				if( !ObjLoadMaterial( scene, Util::getDirectoryFromPath( filename ) + token ) ) {
+				//FIXME: process all files
+				if( !ObjLoadMaterial( scene, token, Util::getDirectoryFromPath( filename ) ) ) {
 					scene.clear();
 					return;
 				}
+				d.skipInverse( "\n" );
+				d.skip( ws );
+
 			} else if( token == "usemtl" ) { // reference material
 				// discard
 				d.skipInverse( "\n" );
@@ -352,9 +484,9 @@ namespace cvt {
 			}
 		}
 
-		std::cout << "Vertices: " << vertices.size() << std::endl;
-		std::cout << "Normals: " << normals.size() << std::endl;
-		std::cout << "Texcoords: " << texcoords.size() << std::endl;
+		//std::cout << "Vertices: " << vertices.size() << std::endl;
+		//std::cout << "Normals: " << normals.size() << std::endl;
+		//std::cout << "Texcoords: " << texcoords.size() << std::endl;
 
 		if( faces.size() ) {
 			ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );

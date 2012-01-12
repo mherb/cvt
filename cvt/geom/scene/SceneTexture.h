@@ -2,6 +2,7 @@
 #define CVT_SCENETEXTURE_H
 
 #include <cvt/geom/scene/SceneNode.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 	class SceneTexture : public SceneNode {
