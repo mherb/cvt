@@ -14,9 +14,9 @@ namespace cvt {
 	class SceneMesh : public SceneGeometry {
 	public:
 							SceneMesh( const String& name );
-							~SceneMesh();
+			virtual			~SceneMesh();
 
-			SceneMeshType	type() const;
+			SceneMeshType	meshType() const;
 
 			void			clear();
 			bool			isEmpty() const;
@@ -54,24 +54,24 @@ namespace cvt {
 
 
 		private:
-			String						_name;
 			std::vector<Vector3f>		_vertices;
 			std::vector<Vector3f>		_normals;
 			std::vector<Vector2f>		_texcoords;
 			std::vector<unsigned int>	_vindices;
-			SceneMeshType					_type;
+			SceneMeshType				_meshtype;
 	};
 
-	inline SceneMesh::SceneMesh( const String& name ) : SceneGeometry( name, SCENEGEOMETRY_MESH ), _type( SCENEMESH_TRIANGLES )
+	inline SceneMesh::SceneMesh( const String& name ) : SceneGeometry( name, SCENEGEOMETRY_MESH ), _meshtype( SCENEMESH_TRIANGLES )
 	{
 	}
 
 	inline SceneMesh::~SceneMesh()
 	{
 	}
-	inline SceneMeshType SceneMesh::type() const
+
+	inline SceneMeshType SceneMesh::meshType() const
 	{
-		return _type;
+		return _meshtype;
 	}
 
 	inline void SceneMesh::clear()
@@ -80,7 +80,7 @@ namespace cvt {
 		_normals.clear();
 		_texcoords.clear();
 		_vindices.clear();
-		_type = SCENEMESH_TRIANGLES;
+		_meshtype = SCENEMESH_TRIANGLES;
 	}
 
 	inline bool SceneMesh::isEmpty() const
@@ -105,7 +105,7 @@ namespace cvt {
 
 	inline size_t SceneMesh::faceSize() const
 	{
-		size_t nface = _type == SCENEMESH_TRIANGLES ? 3 : 4;
+		size_t nface = _meshtype == SCENEMESH_TRIANGLES ? 3 : 4;
 		return _vindices.size() / nface;
 	}
 
@@ -139,9 +139,9 @@ namespace cvt {
 		_texcoords.assign( data, data + size );
 	}
 
-	inline void SceneMesh::setFaces( const unsigned int* data, size_t size, SceneMeshType type )
+	inline void SceneMesh::setFaces( const unsigned int* data, size_t size, SceneMeshType meshtype )
 	{
-		_type = type;
+		_meshtype = meshtype;
 		_vindices.assign( data, data + size );
 	}
 
@@ -237,7 +237,7 @@ namespace cvt {
 
 	inline std::ostream& operator<<( std::ostream& out, const SceneMesh& mesh )
 	{
-		out << "Mesh:\n";
+		out << "Mesh: " << mesh.name() << "\n";
 		out << "\tVertices: " << mesh.vertexSize();
 		out << "\n\tNormals: " << mesh.normalSize();
 		out << "\n\tTexCoords: " << mesh.texcoordSize();
