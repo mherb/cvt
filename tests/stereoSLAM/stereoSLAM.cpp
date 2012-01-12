@@ -112,8 +112,8 @@ int main( int argc, char* argv[] )
 								folder );
 	} else {
 		initCameras( input, id0, id1 );
-		String calib0 = r.find( "stereoSLAM/calib/ueye_stereo_4002738790.xml" );
-		String calib1 = r.find( "stereoSLAM/calib/ueye_stereo_4002738788.xml" );
+		String calib0 = r.find( "stereoSLAM/calib/ueye_4002738790.xml" );
+		String calib1 = r.find( "stereoSLAM/calib/ueye_4002738788.xml" );
 		loadCameraCalib( camCalib0, calib0 );
 		loadCameraCalib( camCalib1, calib1 );
 	}
