@@ -16,6 +16,8 @@ namespace cvt
 			SlamMap();
 			~SlamMap();
 
+			void clear();
+
 			size_t addKeyframe( const Eigen::Matrix4d& pose );
 			size_t addFeature( const MapFeature& world );
 

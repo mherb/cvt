@@ -58,10 +58,11 @@ namespace cvt
 			}
 
 			const SlamMap & map() const { return _map; }
+			void clear();
 
 			Signal<const ORBData*>		newORBData;	
 			Signal<const Keyframe&>		newKeyFrame;	
-			Signal<const std::vector<Vector4f>&>		newPoints;	
+			Signal<const SlamMap&>		mapChanged;	
 			Signal<const PointSet2d&>	trackedPoints;	
 			Signal<const Matrix4f&>		newCameraPose;	
 
@@ -116,14 +117,14 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 20.0f ),
+		_matcherMaxLineDistance( 5.0f ),
 		_matcherMaxDescriptorDist( 50 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 10.0f ),
-		_orbOctaves( 3 ), 
+		_maxTriangReprojError( 7.0f ),
+		_orbOctaves( 4 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 25 ),
-		_orbMaxFeatures( 1000 ),
+		_orbMaxFeatures( 2000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
@@ -211,7 +212,8 @@ namespace cvt
 			}
 		}
 		//std::cout << 100.0f* ( float )afterCheck / ( float )allTracked << "\% survived pruning" << std::endl;
-
+		
+		std::cout << "NumTrackedFeatures: " << p3d.size() << std::endl;
 
 		/* at least 10 corresp. */
 		if( p3d.size() > 9 ){
@@ -223,7 +225,7 @@ namespace cvt
 			// - relocalize against whole map?
 		}
 
-		if( p3d.size() < 30 ){
+		if( p3d.size() < 20 ){
 			std::cout << "Adding new keyframe: current features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
@@ -242,11 +244,6 @@ namespace cvt
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
 				
-				// wait for last map adjustment to finish
-				if( _bundler.isRunning() )
-					_bundler.join();
-
-				std::vector<Vector4f> pts4f;
 				Vector4f currP;
 				
 				// add a new keyframe to the map
@@ -288,23 +285,16 @@ namespace cvt
 								currP.y = ( float ) ( wp.y() );
 								currP.z = ( float ) ( wp.z() );
 								currP.w = ( float ) ( wp.w() );
-								pts4f.push_back( currP );
 							}
 						}
 					}
 				}
 
-				if( pts4f.size() > 5 ){
-					std::cout << "Added " << pts4f.size() << " 3D Points" << std::endl;
-					newPoints.notify( pts4f );
-				} else {
-					// TODO: don't use this keyframe -> remove it from the map again?!
-				}
-
 				// new keyframe added -> run the sba thread	
 				if( _map.numKeyframes() > 1 ){
-					std::cout << "Optimizing map" << std::endl;	
 					_bundler.run( &_map );
+					_bundler.join();
+					mapChanged.notify( _map );				
 				}
 			} 
 			// notify observers that there is new orb data
@@ -353,7 +343,7 @@ namespace cvt
 			
 		// normalize 4th coord;
 		tmp /= tmp.w;
-		if( tmp.z > 0.0f && tmp.z < 10 ){
+		if( tmp.z > 0.0f && tmp.z < 30 ){
 			float error = 0.0f;
 
 			repr = _camCalib0.projectionMatrix() * tmp;
@@ -451,6 +441,16 @@ namespace cvt
 		Matrix4f mf;
 		EigenBridge::toCVT( mf, me );
 		newCameraPose.notify( mf );
+	}
+
+	inline void StereoSLAM::clear()
+	{
+		if( _bundler.isRunning() )
+			_bundler.join();
+		_map.clear();
+		_descriptorDatabase.clear();
+		Eigen::Matrix4d I( Eigen::Matrix4d::Identity() );
+		_pose.set( I );
 	}
 }
 
