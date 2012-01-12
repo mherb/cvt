@@ -212,7 +212,7 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 		SIMD* simd = SIMD::instance();
 
 		while( height-- ) {
-			if( ( read = fread( buffer.ptr(), len, sizeof( uint8_t ), file ) ) != len )
+			if( ( read = fread( buffer.ptr(), sizeof( uint8_t ), len, file ) ) != len )
 				throw CVTException( "Corrupted TGA file!" );
 			simd->Conv_XXXu8_to_XXXAu8( pdst, buffer.ptr(), len );
 			pdst += sstride;
@@ -1259,6 +1259,8 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 		size_t read;
 		bool isversion2 = false;
 		FILE* file;
+
+		std::cout << path << std::endl;
 
 		if( ( file = fopen( path.c_str(), "r" ) ) == NULL )
 			throw CVTException( "Unable to open TGA file" );
