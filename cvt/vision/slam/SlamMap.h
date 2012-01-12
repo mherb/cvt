@@ -33,7 +33,8 @@ namespace cvt
 			void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatures,
 									      std::vector<Vector2f>	   & projections,
 										  const Eigen::Matrix4d	   & cameraPose,
-										  const CameraCalibration  & camCalib );
+										  const CameraCalibration  & camCalib,
+										  double maxDistance = 10.0	);
 
 			const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
 			MapFeature&				featureForId( size_t id )		 { return _features[ id ];}

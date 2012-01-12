@@ -109,7 +109,7 @@ namespace cvt
 
 		// average & normalize
 		sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
-
+		
 		if( sad > 0.7f )
 			return true;
 		return false;
