@@ -15,9 +15,9 @@ namespace cvt
 		this->setPixelClock( 25 );
 		this->setFramerate( 40.0 );
 		this->setExposureTime( 25 );
-		this->setAutoShutter( false );
-		this->setAutoSensorShutter( false );
-		this->setAutoGain( false );
+		this->setAutoShutter( true );
+		this->setAutoSensorShutter( true );
+//		this->setAutoGain( true );
 		this->setIdentifier();
 	}
 

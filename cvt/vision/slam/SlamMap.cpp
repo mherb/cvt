@@ -66,10 +66,9 @@ namespace cvt
 	void SlamMap::selectVisibleFeatures( std::vector<size_t> & visibleFeatureIds,
 										 std::vector<Vector2f> & projections,
 									     const Eigen::Matrix4d&	cameraPose,
-										 const CameraCalibration& camCalib ) 
+										 const CameraCalibration& camCalib,
+										 double maxDistance ) 
 	{
-		double maxDistance = 9.0;
-
 		Eigen::Vector4d pointInCam;
 		Vector4f pic;
 		Vector4f sp;
