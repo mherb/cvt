@@ -408,9 +408,9 @@ namespace cvt
 		m = ransac.estimate( maxRansacIters );
 		*/
 		
-	//	Matrix4d m;
-	//	EPnPd epnp( p3d );
-	//	epnp.solve( m, p2d, K );
+		Matrix4d m;
+		EPnPd epnp( p3d );
+		epnp.solve( m, p2d, K );
 
 		Eigen::Matrix<double, 3, 3> Ke;
 		Eigen::Matrix<double, 4, 4> extrC;
