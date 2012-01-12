@@ -52,6 +52,9 @@ namespace cvt
 
 		std::set<size_t>::const_iterator usedEnd = used.end();
 
+		// ids from orb1 that have been assigned to a feature of orb1
+		std::set<size_t> assigned;
+
 		for( size_t i = 0; i < orb0.size(); i++ ){
 			if( used.find( i ) != usedEnd )
 				continue;
@@ -64,21 +67,27 @@ namespace cvt
 
 			match.distance = _maxDescDist;
 			match.feature0 = &orb0[ i ];
-
+			
+			size_t currAssigned = 0;
+			const std::set<size_t>::const_iterator assignedEnd = assigned.end();
 			for( size_t k = 0; k < orb1.size(); k++ ){
-				float lDist = l.distance( orb1[ k ].pt );
-				if( Math::abs( lDist ) < _maxLineDist ){
-					// check descriptor distance
-					distance = f.distance( orb1[ k ] );
-					if( distance < match.distance ){
-						match.feature1 = &orb1[ k ];
-						match.distance = distance;
-					}
-				}	
+				if( assigned.find( k ) == assignedEnd ) {
+					float lDist = l.distance( orb1[ k ].pt );
+					if( Math::abs( lDist ) < _maxLineDist ){
+						// check descriptor distance
+						distance = f.distance( orb1[ k ] );
+						if( distance < match.distance ){
+							match.feature1 = &orb1[ k ];
+							match.distance = distance;
+							currAssigned = k;
+						}
+					}	
+				}
 			}
 
 			if( match.distance < _maxDescDist ){
 				matches.push_back( match );
+				assigned.insert( currAssigned );
 			}
 		}
 	}
