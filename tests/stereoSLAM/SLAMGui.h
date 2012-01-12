@@ -37,6 +37,7 @@ namespace cvt
 			
 			void mapChanged( const SlamMap & m );
 
+			void setStereoImage( const Image& stereo );
 
 		private:
 			ImageView	_image0;

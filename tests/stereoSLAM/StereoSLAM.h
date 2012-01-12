@@ -76,7 +76,7 @@ namespace cvt
 			/* undistorted images */
 			Image				_undist0;
 			Image				_undist1;
-			
+
 			/* descriptor matching parameters */
 			float				_matcherMaxLineDistance;	
 			float				_matcherMaxDescriptorDist;
@@ -105,11 +105,17 @@ namespace cvt
 			SlamMap				_map;
 
 			MapOptimizer		_bundler;
+			Image				_lastImage;
 
 			// triangulate 3D points from 2D matches
 			float triangulate( MapFeature& feature, FeatureMatch & match ) const;
 
 			void estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d );
+			void correspondencesFromMatchedFeatures( PointSet3d& p3d, 
+													 PointSet2d& p2d,
+													 std::set<size_t>& matchedIndices,
+													 const std::vector<size_t> & predictedIds, 
+													 const std::vector<FeatureMatch> & matches );
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -155,7 +161,7 @@ namespace cvt
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
-		// undistort
+		// undistort the first image
 		IWarp::apply( _undist0, img0, _undistortMap0 );
 
 		// create the ORB
@@ -169,7 +175,6 @@ namespace cvt
 		// predict visible features with map and current pose
 		std::vector<size_t>	  predictedIds;
 		std::vector<Vector2f> predictedPositions;
-		
 		_map.selectVisibleFeatures( predictedIds, 
 									predictedPositions, 
 									_pose.transformation(), 
@@ -183,46 +188,14 @@ namespace cvt
 
 		PointSet2d p2d;
 		PointSet3d p3d;
-		Vector3d p3;
-		Vector2d p2;
-
 		std::set<size_t> matchedIndices;
-		
-		size_t allTracked = 0;
-		size_t afterCheck = 0;
-		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
-			if( matchedFeatures[ i ].feature1 ){
-				allTracked++;
-				// got a match so add it to the point sets
-				const MapFeature & mapFeat = _map.featureForId( predictedIds[ i ] );
-				size_t keyframeId = *( mapFeat.pointTrackBegin() );
-				if( _featureTracking.checkFeature( matchedFeatures[ i ], 
-												   _map.keyframeForId( keyframeId ).image(),
-												   _undist0 ) ) {
-					p3.x = mapFeat.estimate().x(); 
-					p3.y = mapFeat.estimate().y(); 
-					p3.z = mapFeat.estimate().z();
-					p3d.add( p3 );
-					p2.x = matchedFeatures[ i ].feature1->pt.x;
-					p2.y = matchedFeatures[ i ].feature1->pt.y;
-					p2d.add( p2 );
-					matchedIndices.insert( i );
-					afterCheck++;
-				}
-			}
-		}
-		//std::cout << 100.0f* ( float )afterCheck / ( float )allTracked << "\% survived pruning" << std::endl;
-		
-		std::cout << "NumTrackedFeatures: " << p3d.size() << std::endl;
+		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
 
-		/* at least 10 corresp. */
+		/* at least 9 corresp. */
 		if( p3d.size() > 9 ){
 			estimateCameraPose( p3d, p2d );
 		} else {
 			std::cout << "TOO FEW FEATURES TO ESTIMATE POSE" << std::endl;
-			// TODO: How do we adress this? 
-			// - Create a submap and try to merge it later
-			// - relocalize against whole map?
 		}
 
 		if( p3d.size() < 20 ){
@@ -451,6 +424,36 @@ namespace cvt
 		_descriptorDatabase.clear();
 		Eigen::Matrix4d I( Eigen::Matrix4d::Identity() );
 		_pose.set( I );
+	}
+
+	inline void StereoSLAM::correspondencesFromMatchedFeatures( PointSet3d& p3d, 
+															    PointSet2d& p2d, 
+															    std::set<size_t>& matchedIndices,
+															    const std::vector<size_t>& predictedIds,
+															    const std::vector<FeatureMatch> & matches )
+	{
+		Vector3d p3;
+		Vector2d p2;
+
+		for( size_t i = 0; i < matches.size(); i++ ){
+			if( matches[ i ].feature1 ){
+				// got a match so add it to the point sets
+				const MapFeature & mapFeat = _map.featureForId( predictedIds[ i ] );
+				size_t keyframeId = *( mapFeat.pointTrackBegin() );
+				if( _featureTracking.checkFeature( matches[ i ], 
+												  _map.keyframeForId( keyframeId ).image(),
+												  _undist0 ) ) {
+					p3.x = mapFeat.estimate().x(); 
+					p3.y = mapFeat.estimate().y(); 
+					p3.z = mapFeat.estimate().z();
+					p3d.add( p3 );
+					p2.x = matches[ i ].feature1->pt.x;
+					p2.y = matches[ i ].feature1->pt.y;
+					p2d.add( p2 );
+					matchedIndices.insert( i );
+				}
+			}
+		}
 	}
 }
 
