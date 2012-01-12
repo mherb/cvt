@@ -13,6 +13,13 @@ namespace cvt
 	{
 	}
 
+	void SlamMap::clear()
+	{
+		_keyframes.clear();
+		_features.clear();
+		_numMeas = 0;
+	}
+
 	size_t SlamMap::addKeyframe( const Eigen::Matrix4d& pose )
 	{
 		size_t id = _keyframes.size();
