@@ -10,13 +10,13 @@ namespace cvt {
 		std::vector<unsigned int>	nvindices;
 
 		for( size_t idx = 0; idx < _vertices.size(); idx++ ) {
-			Vector3f v = _vertices[ idx ];
+			Vector3f v( _vertices[ idx ] );
 			bool added = false;
 
 			for( size_t i = 0; i < nvertices.size() && !added; i++ ) {
 				if( v.isEqual( nvertices[ i ], vepsilon ) ) {
 					if( normalSize() ) {
-						Vector3f n = _normals[ idx ];
+						Vector3f n( _normals[ idx ] );
 						if( !n.isEqual( nnormals[ i ], nepsilon ) )
 							continue;
 					}
@@ -49,7 +49,7 @@ namespace cvt {
 	{
 		const unsigned int table[] = { 0, 1, 2, 2, 3, 0 };
 
-		if( _type != SCENEMESH_QUADS || _vindices.size() % 4 != 0 )
+		if( _meshtype != SCENEMESH_QUADS || _vindices.size() % 4 != 0 )
 			return;
 
 		std::vector<unsigned int> nvindices;
@@ -62,7 +62,7 @@ namespace cvt {
 		}
 
 		_vindices = nvindices;
-		_type = SCENEMESH_TRIANGLES;
+		_meshtype = SCENEMESH_TRIANGLES;
 	}
 
 }
