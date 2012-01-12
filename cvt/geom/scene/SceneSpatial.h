@@ -7,11 +7,11 @@
 namespace cvt {
 	class SceneSpatial : public SceneNode {
 		public:
-		   SceneSpatial( const String& name );
-		   ~SceneSpatial();
+							SceneSpatial( const String& name );
+		   virtual			~SceneSpatial();
 
-		   const Matrix4f& transformation() const { return _transform; }
-		   void			   setTransformation( const Matrix4f& t ) { _transform = t; }
+		   const Matrix4f&	transformation() const { return _transform; }
+		   void				setTransformation( const Matrix4f& t ) { _transform = t; }
 
 		protected:
 		   Matrix4f _transform;
