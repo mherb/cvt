@@ -116,13 +116,13 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 2.0f ),
-		_matcherMaxDescriptorDist( 90 ),
+		_matcherMaxLineDistance( 20.0f ),
+		_matcherMaxDescriptorDist( 50 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 4.0f ),
+		_maxTriangReprojError( 10.0f ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 15 ),
+		_orbCornerThreshold( 25 ),
 		_orbMaxFeatures( 1000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
@@ -303,12 +303,8 @@ namespace cvt
 
 				// new keyframe added -> run the sba thread	
 				if( _map.numKeyframes() > 1 ){
-					//std::cout << "Optimizing map" << std::endl;	
-					Time t;
+					std::cout << "Optimizing map" << std::endl;	
 					_bundler.run( &_map );
-					_bundler.join();
-					std::cout << "Map optimization took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
-					
 				}
 			} 
 			// notify observers that there is new orb data
@@ -417,8 +413,12 @@ namespace cvt
 		Eigen::Matrix4d me;
 		EigenBridge::toEigen( Ke, K );
 		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
-		//EigenBridge::toEigen( me, m );
-		me = _pose.transformation();
+		EigenBridge::toEigen( me, m );
+		//me = _pose.transformation();
+		
+//		std::cout << "EPnP pose:\n" << me << std::endl;
+//		std::cout << "Last pose:\n" << _pose.transformation() << std::endl;
+		
 		
 		// now we have the pose of cam0 in me, we need to remove extrinsics to get pose of the rig
 		me = extrC.inverse() * me;
@@ -437,11 +437,11 @@ namespace cvt
 			pointCorresp.add( p3, p2 );
 		}
 		
-		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 5.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
 		termCriteria.setCostThreshold( 0.001 );
-		termCriteria.setMaxIterations( 40 );
+		termCriteria.setMaxIterations( 10 );
 		lm.optimize( pointCorresp, costFunction, termCriteria );
 
 		//me = pointCorresp.pose().transformation().inverse();
