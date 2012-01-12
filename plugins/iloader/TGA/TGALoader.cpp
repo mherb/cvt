@@ -163,8 +163,9 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 	uint8_t* dst;
 	uint8_t* pdst;
 	size_t stride;
-	size_t height;
-	ssize_t len, read, sstride;
+	size_t height, len;
+	ssize_t sstride;
+	size_t read;
 	size_t dataoffset;
 	IFormat format( IFormat::BGRA_UINT8 ); // Assume BGRA_UINT8
 	uint8_t alphabits = header->desc & TGA_ALPHABIT_MASK;
@@ -192,7 +193,7 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 		pdst = ( uint8_t* ) tga_origin( header, dst, &sstride );
 
 		while( height-- ) {
-			if( ( read = fread( pdst, sizeof( uint32_t ), header->width, file ) ) != len )
+			if( ( read = fread( pdst, sizeof( uint8_t ), len, file ) ) != len )
 				throw CVTException( "Corrupted TGA file!" );
 			// FIXME: set arbitrary alpha to 1
 /*			if( !alphabits )
@@ -256,7 +257,21 @@ static void tga_decode_gray( Image& img, FILE* file, TGAHeader* header, TGAExten
 		pdst = ( uint8_t* ) tga_origin( header, dst, &sstride );
 
 		while( height-- ) {
-			if( ( read = fread( pdst, len, 1, file ) ) != len )
+			if( ( read = fread( pdst, sizeof( uint8_t ), len, file ) ) != len )
+				throw CVTException( "Corrupted TGA file! " );
+			pdst += sstride;
+		}
+		img.unmap( dst );
+	} else if( header->depth == 16 && alphabits == 8 ) {
+		img.reallocate( header->width, header->height, IFormat::GRAYALPHA_UINT8 );
+		dst = img.map( &stride );
+		height = header->height;
+		len = header->width * 2 * sizeof( uint8_t );
+		sstride = stride;
+		pdst = ( uint8_t* ) tga_origin( header, dst, &sstride );
+
+		while( height-- ) {
+			if( ( read = fread( pdst, sizeof( uint8_t ), len, file ) ) != len )
 				throw CVTException( "Corrupted TGA file! " );
 			pdst += sstride;
 		}
@@ -1241,7 +1256,7 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 		TGAFooter footer;
 		TGAExtension extbuf;
 		TGAExtension* ext = NULL;
-		ssize_t read;
+		size_t read;
 		bool isversion2 = false;
 		FILE* file;
 
@@ -1250,10 +1265,10 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 
 
 		/*check for TARGA file*/
-		if( fseek( file , -26, SEEK_END ) < 0 )
+		if( fseek( file, -26L, SEEK_END ) < 0 )
 			throw CVTException( "Corrupted TGA file" );
 
-		if( ( read = fread( &footer, 26, sizeof( uint8_t), file ) ) != 26 )
+		if( ( read = fread( &footer, sizeof( uint8_t ), 26, file ) ) != 26 )
 			throw CVTException( "Corrupted TGA file" );
 
 		/* FIXME */
@@ -1265,7 +1280,7 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 		if( fseek( file, 0, SEEK_SET ) < 0 )
 			throw CVTException( "Corrupted TGA file" );
 
-		if( ( read = fread( &header, TGA_HEADER_SIZE, 1, file ) ) != TGA_HEADER_SIZE ) {
+		if( ( read = fread( &header, sizeof( uint8_t ), TGA_HEADER_SIZE, file ) ) != TGA_HEADER_SIZE ) {
 			throw CVTException( "Corrupted TGA file" );
 		}
 
