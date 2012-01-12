@@ -30,11 +30,13 @@ namespace cvt
 			void setStepping( bool value );
 			void setFPS( float fps );
 
-			void addPoints( const std::vector<Vector4f> & pts ) { _slamView.addPoints( pts ); }
-
 			void updateTrackedPoints( const PointSet2d & pset );
 
 			void setSaveButtonDelegate( const Delegate<void (void)> & d );
+			void addMapClearDelegate( const Delegate<void (void)> & d ){ _resetMap.clicked.add( d ); }
+			
+			void mapChanged( const SlamMap & m );
+
 
 		private:
 			ImageView	_image0;
@@ -46,6 +48,7 @@ namespace cvt
 			Label		_fpsLabel;
 			Button		_resetCamera;
 			Button		_saveMap;
+			Button		_resetMap;
 
 			float		_imageAspect;
 			
@@ -61,12 +64,16 @@ namespace cvt
 		_fpsLabel( "FPS:" ),
 		_resetCamera( "Set Cam" ),
 		_saveMap( "Save Map" ),
+		_resetMap( "Clear Map" ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
 		
 		Delegate<void (void)> d( &_slamView, &SLAMView::resetCameraView );
 		_resetCamera.clicked.add( d );
+		
+		Delegate<void (void)> resetMap( &_slamView, &SLAMView::clearMap );
+		addMapClearDelegate( resetMap );
 	}
 
 	inline SLAMGui::~SLAMGui()
@@ -97,6 +104,8 @@ namespace cvt
 		this->addWidget( &_resetCamera, wl );
 		wl.setAnchoredTop( 130, 20 );
 		this->addWidget( &_saveMap, wl );
+		wl.setAnchoredTop( 160, 20 );
+		this->addWidget( &_resetMap, wl );
 
 		this->addWidget( &_image0 );
 		this->addWidget( &_stereoView );
@@ -218,6 +227,11 @@ namespace cvt
 	inline void SLAMGui::setSaveButtonDelegate( const Delegate<void (void)> & d )
 	{
 		_saveMap.clicked.add( d );
+	}
+			
+	inline void SLAMGui::mapChanged( const SlamMap & m )
+	{
+		_slamView.mapChanged( m );
 	}
 }
 

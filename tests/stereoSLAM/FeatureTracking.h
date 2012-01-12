@@ -32,7 +32,7 @@ namespace cvt
             float									_windowRadius;
 			float									_maxSAD;
             
-			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb ) const;
+			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const;
 	};
 
 	inline FeatureTracking::FeatureTracking( const DescriptorDatabase<ORBFeature> & ddb, 
@@ -59,32 +59,44 @@ namespace cvt
         std::vector<size_t>::const_iterator tEnd = predictedFeatureIds.end();
         std::vector<Vector2f>::const_iterator  pred = predictedPositions.begin();
 
+		// keep track of already assigned indices to avoid double associations
+		std::set<size_t> used;
         while( currentId != tEnd ){
 			FeatureMatch m;
 			const ORBFeature & desc = _descriptors.descriptor( *currentId );
 			m.feature0 = &desc;
-            matchInWindow( m, *pred, orb );
+            matchInWindow( m, *pred, orb, used );
 			matches.push_back( m );
 			++currentId;
 			++pred;
         }
     }
 
-    inline void FeatureTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb ) const
+    inline void FeatureTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const
     {
 		const ORBFeature * f = (ORBFeature*)match.feature0;
         match.distance = _maxDescDistance;
         size_t currDist;
+		const std::set<size_t>::const_iterator usedEnd = used.end();
+		size_t matchedId = 0;
         for( size_t i = 0; i < orb.size(); i++ ){
-            if( ( p - orb[ i ].pt ).length() < _windowRadius ){
-                // try to match
-                currDist = f->distance( orb[ i ] );
-                if( currDist < match.distance ){
-					match.feature1 = &orb[ i ];
-                    match.distance = currDist;
-                }
-            }
+			if( used.find( i ) == usedEnd ){
+				if( ( p - orb[ i ].pt ).length() < _windowRadius ){
+					// try to match
+					currDist = f->distance( orb[ i ] );
+					if( currDist < match.distance ){
+						match.feature1 = &orb[ i ];
+						match.distance = currDist;
+						matchedId = i;
+					}
+				}
+			}
         }
+
+		// to ensure unique matches
+		if( match.distance < _maxDescDistance ){
+			used.insert( matchedId );
+		}
     }
 
 

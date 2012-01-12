@@ -13,6 +13,7 @@ namespace cvt {
 			GLBuffer( GLenum target = GL_ARRAY_BUFFER );
 			~GLBuffer();
 			void alloc( GLenum usage, size_t size, const void *data = NULL );
+			// void alloc( GLenum usage, size_t size, const GLBuffer & data );
 			void bind() const;
 			void unbind() const;
 			size_t size() const;
