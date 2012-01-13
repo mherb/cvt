@@ -140,11 +140,11 @@ namespace cvt
 		_orbCornerThreshold( 10 ),
 		_orbMaxFeatures( 2000 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 40.0f ),
+		_trackingSearchRadius( 50.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_minTrackedFeatures( 50 ),
 		_activeKF( -1 ),
-		_minKeyframeDistance( 0.2 )
+		_minKeyframeDistance( 0.1 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -202,8 +202,7 @@ namespace cvt
 		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
 		debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
 
-		/* at least 9 corresp. */
-		if( p3d.size() > 9 ){
+		if( p3d.size() > 6 ){
 			estimateCameraPose( p3d, p2d );
 		} 
 
@@ -362,33 +361,32 @@ namespace cvt
 		K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
 		K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
 		K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
-
-		/*	
+		Eigen::Matrix<double, 3, 3> Ke;
+		Eigen::Matrix<double, 4, 4> extrC;
+		EigenBridge::toEigen( Ke, K );
+		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
+		
+		Matrix4d m;
+		Eigen::Matrix4d me;
+	/*	
 		EPnPSAC sacModel( p3d, p2d, K );
-		double maxReprojectionError = 6.0;
+		double maxReprojectionError = 5.0;
 		double outlierProb = 0.1;
 		RANSAC<EPnPSAC> ransac( sacModel, maxReprojectionError, outlierProb );
 
 		size_t maxRansacIters = 200;
-		Matrix4d m;
 		m = ransac.estimate( maxRansacIters );
-		*/
-		
-		Matrix4d m;
+	*/
+	/*
 		EPnPd epnp( p3d );
 		epnp.solve( m, p2d, K );
-
-		Eigen::Matrix<double, 3, 3> Ke;
-		Eigen::Matrix<double, 4, 4> extrC;
-		Eigen::Matrix4d me;
-		EigenBridge::toEigen( Ke, K );
-		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
 		
 		// from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
 		EigenBridge::toEigen( me, m );
 		me = extrC.inverse() * me;
+	*/
 
-//		me = _pose.transformation();		
+		me = _pose.transformation();		
 
 		PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
 		pointCorresp.setPose( me );
