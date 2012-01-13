@@ -89,10 +89,13 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
 int main( int argc, char* argv[] )
 {
 	bool useSeq = false;
+	int seqNum = 0;
 	if( argc > 1 ){
 		String option( argv[ 1 ] );
 		if( option == "SEQUENCE" )
 			useSeq = true;
+		if( argc > 2 )
+			seqNum = atoi( argv[ 2 ] );
 	}
 
 	Resources r;
@@ -103,8 +106,17 @@ int main( int argc, char* argv[] )
 	std::vector<VideoInput*> input;
 
 	if( useSeq ){
-		//String folder = r.find( "stereoSLAM/floor_2min_44fps" );
-		String folder = r.find( "stereoSLAM/office_2min_42fps" );
+		String folder;
+		switch( seqNum ){
+			case 0:
+				folder = r.find( "stereoSLAM/floor_2min_44fps" );
+				break;
+			case 1:
+				folder = r.find( "stereoSLAM/office_2min_42fps" );
+				break;
+			default:
+				throw CVTException( "UKNOWN SEQUENCE NUMBER" );
+		}
 		folder += "/";
 		loadSequenceFromFolder( input, 
 							    camCalib0, camCalib1,

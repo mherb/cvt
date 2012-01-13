@@ -137,11 +137,13 @@ namespace cvt
 			g.color() = Color::GREEN;
 
 			Recti r;
-			r.width = 31;
-			r.height = 31;
+			size_t pSize = 17;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
 			for( size_t i = 0; i < _trackedPoints.size(); i++ ){
-				r.x = ( int )_trackedPoints[ i ].x - 15;
-				r.y = ( int )_trackedPoints[ i ].y - 15;
+				r.x = ( int )_trackedPoints[ i ].x - phSize;
+				r.y = ( int )_trackedPoints[ i ].y - phSize;
 				g.drawRect( r );
 			}
 		}
