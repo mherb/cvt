@@ -13,49 +13,60 @@ namespace cvt {
 
 	class SceneMesh : public SceneGeometry {
 	public:
-							SceneMesh( const String& name );
-			virtual			~SceneMesh();
+								SceneMesh( const String& name );
+			virtual				~SceneMesh();
 
-			SceneMeshType	meshType() const;
+			SceneMeshType		meshType() const;
 
-			void			clear();
-			bool			isEmpty() const;
+			void				clear();
+			bool				isEmpty() const;
 
-			size_t			vertexSize() const;
-			size_t			normalSize() const;
-			size_t			texcoordSize() const;
-			size_t			faceSize() const;
+			size_t				vertexSize() const;
+			size_t				normalSize() const;
+			size_t				tangentSize() const;
+			size_t				texcoordSize() const;
+			size_t				faceSize() const;
 
-			const Vector3f& vertex( size_t i ) const;
-			const Vector3f& normal( size_t i ) const;
-			const Vector2f& texcoord( size_t i ) const;
+			const Vector3f&		vertex( size_t i ) const;
+			const Vector3f&		normal( size_t i ) const;
+			const Vector3f&		tangent( size_t i ) const;
+			const Vector2f&		texcoord( size_t i ) const;
 
-			void			setVertices( const Vector3f* data, size_t size );
-			void			setNormals( const Vector3f* data, size_t size );
-			void			setTexcoords( const Vector2f* data, size_t size );
-			void			setFaces( const unsigned int* data, size_t size, SceneMeshType type );
+			void				setVertices( const Vector3f* data, size_t size );
+			void				setNormals( const Vector3f* data, size_t size );
+			void				setTangents( const Vector3f* data, size_t size );
+			void				setTexcoords( const Vector2f* data, size_t size );
+			void				setFaces( const unsigned int* data, size_t size, SceneMeshType type );
 
-			Vector3f		centroid() const;
-			Boxf			boundingBox() const;
+			const Vector3f*		vertices() const;
+			const Vector3f*		normals() const;
+			const Vector3f*		tangents() const;
+			const Vector2f*		texcoords() const;
+			const unsigned int* faces() const;
 
-			void			transform( const Matrix3f& mat );
-			void			transform( const Matrix4f& mat );
-			void			translate( const Vector3f& translation );
-			void			scale( float scale );
+			Vector3f			centroid() const;
+			Boxf				boundingBox() const;
 
-			void			calculateNormals();
-			void			calculateAdjacency();
-			void			removeRedundancy( float vepsilon = 0.0f, float nepsilon = 0.0f, float tepsilon = 0.0f );
-			void			simplify( float vepsilon );
-			void			addNoise( float amount );
-			void			flipNormals( );
-			void			quadsToTriangles();
-			void			subdivideCatmullClark();
+			void				transform( const Matrix3f& mat );
+			void				transform( const Matrix4f& mat );
+			void				translate( const Vector3f& translation );
+			void				scale( float scale );
+
+			void				calculateNormals( float angleweight = 0.0f, float areaweight = 0.0f );
+			void				calculateTangents();
+			void				calculateAdjacency();
+			void				removeRedundancy( float vepsilon = 0.0f, float nepsilon = 0.0f, float tepsilon = 0.0f );
+			void				simplify( float vepsilon );
+			void				addNoise( float amount );
+			void				flipNormals( );
+			void				quadsToTriangles();
+			void				subdivideCatmullClark();
 
 
 		private:
 			std::vector<Vector3f>		_vertices;
 			std::vector<Vector3f>		_normals;
+			std::vector<Vector3f>		_tangents;
 			std::vector<Vector2f>		_texcoords;
 			std::vector<unsigned int>	_vindices;
 			SceneMeshType				_meshtype;
@@ -98,6 +109,11 @@ namespace cvt {
 		return _normals.size();
 	}
 
+	inline size_t SceneMesh::tangentSize() const
+	{
+		return _tangents.size();
+	}
+
 	inline size_t SceneMesh::texcoordSize() const
 	{
 		return _texcoords.size();
@@ -119,6 +135,11 @@ namespace cvt {
 		return _normals[ i ];
 	}
 
+	inline const Vector3f& SceneMesh::tangent( size_t i ) const
+	{
+		return _tangents[ i ];
+	}
+
 	inline const Vector2f& SceneMesh::texcoord( size_t i ) const
 	{
 		return _texcoords[ i ];
@@ -134,6 +155,11 @@ namespace cvt {
 		_normals.assign( data, data + size );
 	}
 
+	inline void SceneMesh::setTangents( const Vector3f* data, size_t size )
+	{
+		_tangents.assign( data, data + size );
+	}
+
 	inline void SceneMesh::setTexcoords( const Vector2f* data, size_t size )
 	{
 		_texcoords.assign( data, data + size );
@@ -143,6 +169,31 @@ namespace cvt {
 	{
 		_meshtype = meshtype;
 		_vindices.assign( data, data + size );
+	}
+
+	inline const Vector3f* SceneMesh::vertices() const
+	{
+		return &_vertices[ 0 ];
+	}
+
+	inline const Vector3f* SceneMesh::normals() const
+	{
+		return &_normals[ 0 ];
+	}
+
+	inline const Vector3f* SceneMesh::tangents() const
+	{
+		return &_tangents[ 0 ];
+	}
+
+	inline const Vector2f* SceneMesh::texcoords() const
+	{
+		return &_texcoords[ 0 ];
+	}
+
+	inline const unsigned int* SceneMesh::faces() const
+	{
+		return &_vindices[ 0 ];
 	}
 
 	inline Vector3f SceneMesh::centroid( ) const
@@ -217,15 +268,24 @@ namespace cvt {
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
+		bool donormals = _normals.size();
+		Vector3f* nt = &_vertices[ 0 ];
+		// FIXME: also tangents
 
 		if( mat[ 3 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
 			/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
 			Matrix3f _mat( mat );
+			Matrix3f _nnmat = _mat.transpose();
+			_nnmat.inverseSelf();
 			Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
 			while( n-- ) {
 				*pt = _mat * *pt;
 				*pt += trans;
 				pt++;
+				if( donormals ) {
+					*nt = _nnmat * *nt;
+					nt++;
+				}
 			}
 		} else {
 			while( n-- ) {

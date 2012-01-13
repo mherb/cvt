@@ -215,12 +215,12 @@ namespace cvt {
 					unsigned int ti = table[ i ];
 					lidx = it->vidx[ ti ];
 					if( lidx && lidx <= vertices.size() ) {
-						mvertices.push_back( vertices[ lidx ] );
+						mvertices.push_back( vertices[ lidx - 1 ] );
 						// texcoords
 						if( hasTex ) {
 							lidx = it->vtidx[ ti ];
 							if( lidx && lidx <= texcoords.size() ) {
-								mtexcoords.push_back( texcoords[ lidx ] );
+								mtexcoords.push_back( texcoords[ lidx - 1 ] );
 							} else
 								return false;
 						}
@@ -228,7 +228,7 @@ namespace cvt {
 						if( hasNormal ) {
 							lidx = it->vnidx[ ti ];
 							if( lidx && lidx <= normals.size() ) {
-								mnormals.push_back( normals[ lidx ] );
+								mnormals.push_back( normals[ lidx - 1 ] );
 							} else
 								return false;
 						}
@@ -242,12 +242,12 @@ namespace cvt {
 					unsigned int lidx;
 					lidx = it->vidx[ i ];
 					if( lidx && lidx <= vertices.size() ) {
-						mvertices.push_back( vertices[ lidx ] );
+						mvertices.push_back( vertices[ lidx - 1 ] );
 						// texcoords
 						if( hasTex ) {
 							lidx = it->vtidx[ i ];
 							if( lidx && lidx <= texcoords.size() ) {
-								mtexcoords.push_back( texcoords[ lidx ] );
+								mtexcoords.push_back( texcoords[ lidx - 1 ] );
 							} else
 								return false;
 						}
@@ -255,7 +255,7 @@ namespace cvt {
 						if( hasNormal ) {
 							lidx = it->vnidx[ i ];
 							if( lidx && lidx <= normals.size() ) {
-								mnormals.push_back( normals[ lidx ] );
+								mnormals.push_back( normals[ lidx - 1 ] );
 							} else
 								return false;
 						}
@@ -274,6 +274,7 @@ namespace cvt {
 			mesh.setNormals( &mnormals[ 0 ], mnormals.size() );
 
 		mesh.removeRedundancy();
+//		mesh.calculateNormals( );
 
 		return true;
 	}

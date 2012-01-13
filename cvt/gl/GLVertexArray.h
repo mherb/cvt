@@ -29,10 +29,11 @@ namespace cvt {
 			void resetAttrib( GLuint index ) { _arrays &= ~( 1 << index ); };
 
 			void setColor( const Color& color );
-			void setAttribData( GLuint index, float v1 );
-			void setAttribData( GLuint index, float v1, float v2 );
-			void setAttribData( GLuint index, float v1, float v2, float v3 );
-			void setAttribData( GLuint index, float v1, float v2, float v3, float v4 );
+// FIXME: Remove, the single attrib stuff is not part of the VAO state
+//			void setAttribData( GLuint index, float v1 );
+//			void setAttribData( GLuint index, float v1, float v2 );
+//			void setAttribData( GLuint index, float v1, float v2, float v3 );
+//			void setAttribData( GLuint index, float v1, float v2, float v3, float v4 );
 
 			void draw( GLenum mode, GLint first, GLsizei count ) const;
 			void drawIndirect( const GLBuffer& elembuf, GLenum type, GLenum mode, GLsizei count ) const;
@@ -40,6 +41,7 @@ namespace cvt {
 		private:
 			GLuint _vao;
 			uint32_t _arrays;
+			Color  _color;
 	};
 
 	inline void GLVertexArray::setColorData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
