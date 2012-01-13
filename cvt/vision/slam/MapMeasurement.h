@@ -18,56 +18,72 @@ namespace cvt
 		public:
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-			MapMeasurement() :
-				point( 0, 0 ),
-				information( Eigen::Matrix2d::Identity() )
-			{
-			}
+			MapMeasurement();
+			MapMeasurement( const MapMeasurement& other );
 
+			XMLNode* serialize() const;
+			void deserialize( XMLNode* node );
+	
+			// the point
 			Eigen::Vector2d	point;
 
 			// information is inverse covariance
 			Eigen::Matrix2d	information;
-
-			XMLNode* serialize() const
-			{
-				XMLElement* mapMeas = new XMLElement( "PointMeasurement" );
-
-				XMLElement* n = new XMLElement( "Point2d" );
-				Vector2d p2d;
-				EigenBridge::toCVT( p2d, point );
-				n->addChild( new XMLText( p2d.toString() ) );
-				mapMeas->addChild( n );
-
-				n = new XMLElement( "Information" );
-				Matrix2d inf;
-				EigenBridge::toCVT( inf, information );
-				n->addChild( new XMLText( inf.toString() ) );
-
-				mapMeas->addChild( n );
-
-				return mapMeas;
-			}
-
-			void deserialize( XMLNode* node )
-			{
-				if( node->name() != "PointMeasurement" )
-					throw CVTException( "this is not a PointMeasurement node" );
-
-				XMLNode * n;
-				n = node->childByName( "Point2d" );
-				if( n != NULL ){
-					Vector2d v = Vector2d::fromString( n->child( 0 )->value() );
-					EigenBridge::toEigen( point, v );
-				}
-
-				n = node->childByName( "Information" );
-				if( n != NULL ){
-					Matrix2d m = Matrix2d::fromString( n->child( 0 )->value() );
-					EigenBridge::toEigen( information, m );
-				}
-			}
 	};
+
+
+	inline MapMeasurement::MapMeasurement() :
+		point( 0, 0 ),
+		information( Eigen::Matrix2d::Identity() )
+	{
+	}
+
+	inline MapMeasurement::MapMeasurement( const MapMeasurement& other ) :
+		XMLSerializable(),
+		point( other.point ),
+		information( other.information )
+	{
+	}
+
+
+	inline XMLNode* MapMeasurement::serialize() const
+	{
+		XMLElement* mapMeas = new XMLElement( "PointMeasurement" );
+
+		XMLElement* n = new XMLElement( "Point2d" );
+		Vector2d p2d;
+		EigenBridge::toCVT( p2d, point );
+		n->addChild( new XMLText( p2d.toString() ) );
+		mapMeas->addChild( n );
+
+		n = new XMLElement( "Information" );
+		Matrix2d inf;
+		EigenBridge::toCVT( inf, information );
+		n->addChild( new XMLText( inf.toString() ) );
+
+		mapMeas->addChild( n );
+
+		return mapMeas;
+	}
+
+	inline void MapMeasurement::deserialize( XMLNode* node )
+	{
+		if( node->name() != "PointMeasurement" )
+			throw CVTException( "this is not a PointMeasurement node" );
+
+		XMLNode * n;
+		n = node->childByName( "Point2d" );
+		if( n != NULL ){
+			Vector2d v = Vector2d::fromString( n->child( 0 )->value() );
+			EigenBridge::toEigen( point, v );
+		}
+
+		n = node->childByName( "Information" );
+		if( n != NULL ){
+			Matrix2d m = Matrix2d::fromString( n->child( 0 )->value() );
+			EigenBridge::toEigen( information, m );
+		}
+	}
 }
 
 #endif

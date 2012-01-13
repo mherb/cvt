@@ -23,6 +23,7 @@
 #include "DescriptorDatabase.h"
 #include "FeatureTracking.h"
 #include "MapOptimizer.h"
+#include "FeatureAnalyzer.h"
 
 #include <set>
 
@@ -116,6 +117,10 @@ namespace cvt
 													 std::set<size_t>& matchedIndices,
 													 const std::vector<size_t> & predictedIds, 
 													 const std::vector<FeatureMatch> & matches );
+
+			void debugPatchWorkImage( const std::set<size_t> & indices,
+								      const std::vector<size_t> & featureIds,
+								      const std::vector<FeatureMatch> & matches );
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -124,13 +129,13 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_matcherMaxLineDistance( 5.0f ),
-		_matcherMaxDescriptorDist( 50 ),
+		_matcherMaxDescriptorDist( 70 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 7.0f ),
-		_orbOctaves( 4 ), 
+		_maxTriangReprojError( 5.0f ),
+		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 25 ),
-		_orbMaxFeatures( 2000 ),
+		_orbMaxFeatures( 1000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
@@ -190,6 +195,7 @@ namespace cvt
 		PointSet3d p3d;
 		std::set<size_t> matchedIndices;
 		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
+		debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
 
 		/* at least 9 corresp. */
 		if( p3d.size() > 9 ){
@@ -203,12 +209,12 @@ namespace cvt
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			// create the ORB
-			ORB orb1(_undist1, 
-					 _orbOctaves, 
-					 _orbScaleFactor,
-					 _orbCornerThreshold,
-					 _orbMaxFeatures,
-					 _orbNonMaxSuppression );
+			ORB orb1( _undist1, 
+					  _orbOctaves, 
+					  _orbScaleFactor,
+					  _orbCornerThreshold,
+					  _orbMaxFeatures,
+					  _orbNonMaxSuppression );
 
 			// find stereoMatches by avoiding already found matches
 			std::vector<FeatureMatch> matches;
@@ -237,7 +243,7 @@ namespace cvt
 				{
 					size_t pointId = predictedIds[ *tracked ];
 					meas.point[ 0 ] = matchedFeatures[ *tracked ].feature1->pt.x;
-					meas.point[ 0 ] = matchedFeatures[ *tracked ].feature1->pt.y;
+					meas.point[ 1 ] = matchedFeatures[ *tracked ].feature1->pt.y;
 					_map.addMeasurement( pointId, kId, meas );
 					++tracked;
 				}
@@ -267,8 +273,8 @@ namespace cvt
 				if( _map.numKeyframes() > 1 ){
 					_bundler.run( &_map );
 					_bundler.join();
-					mapChanged.notify( _map );				
 				}
+				mapChanged.notify( _map );				
 			} 
 			// notify observers that there is new orb data
 			// e.g. gui or a localizer 
@@ -454,6 +460,44 @@ namespace cvt
 				}
 			}
 		}
+	}
+
+			
+	inline void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
+											     const std::vector<size_t> & featureIds,
+												 const std::vector<FeatureMatch> & matches )
+	{
+		std::set<size_t>::const_iterator idIter = indices.begin();
+		const std::set<size_t>::const_iterator idIterEnd = indices.end();
+
+		size_t patchSize = 31;
+		size_t patchHalf = patchSize >> 1;
+		FeatureAnalyzer patchWork( 20, patchSize, 10 );
+
+		Vector2f p0, p1;
+		while( idIter != idIterEnd ){
+			size_t featureId = featureIds[ *idIter ];
+			const MapFeature & mf = _map.featureForId( featureId );
+			const Keyframe & kf = _map.keyframeForId( *( mf.pointTrackBegin() ) );
+			const MapMeasurement & meas = kf.measurementForId( featureId );
+
+			p0.x = ( float )meas.point[ 0 ]; 
+			p0.y = ( float )meas.point[ 1 ];
+			if( p0.x < patchHalf || p0.y < patchHalf )
+				 std::cout << "Bad Point: " << p0  << " feature id: " << featureId << " kfId: " << kf.id() << std::endl;
+			p0.x -= patchHalf;
+			p0.y -= patchHalf;
+
+			p1 = matches[ *idIter ].feature1->pt;
+			p1.x -= patchHalf; 
+			p1.y -= patchHalf;
+
+			patchWork.addPatches( _undist0, p1, kf.image(), p0 );
+
+			++idIter;
+		}
+
+		patchWork.image().save( "patchwork.png" );
 	}
 }
 
