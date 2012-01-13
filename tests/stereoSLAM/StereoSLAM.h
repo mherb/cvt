@@ -95,13 +95,16 @@ namespace cvt
 			DescriptorDatabase<ORBFeature>	_descriptorDatabase;
 			float				_trackingSearchRadius;
 		    FeatureTracking		_featureTracking;
+			// minimum needed features before new keyframe is added
+			size_t				_minTrackedFeatures;
 
 
-			/* the current (camera) pose */
+			/* the current pose of the camera rig */
 			SE3<double>			_pose;
 
 			/* the active Keyframe Id (closest to _pose) */
 			int					_activeKF;
+			double				_minKeyframeDistance;
 
 			SlamMap				_map;
 
@@ -131,15 +134,17 @@ namespace cvt
 		_matcherMaxLineDistance( 5.0f ),
 		_matcherMaxDescriptorDist( 70 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 5.0f ),
+		_maxTriangReprojError( 7.0f ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 25 ),
-		_orbMaxFeatures( 1000 ),
+		_orbCornerThreshold( 10 ),
+		_orbMaxFeatures( 2000 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 40.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
-		_activeKF( -1 )
+		_minTrackedFeatures( 50 ),
+		_activeKF( -1 ),
+		_minKeyframeDistance( 0.2 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -200,11 +205,14 @@ namespace cvt
 		/* at least 9 corresp. */
 		if( p3d.size() > 9 ){
 			estimateCameraPose( p3d, p2d );
-		} else {
-			std::cout << "TOO FEW FEATURES TO ESTIMATE POSE" << std::endl;
+		} 
+
+		double kfDist = _minKeyframeDistance + 1;
+	    if( _activeKF != -1 ){
+			kfDist = _map.keyframeForId( _activeKF ).distance( _pose.transformation() );
 		}
 
-		if( p3d.size() < 20 ){
+		if( p3d.size() < _minTrackedFeatures && kfDist > _minKeyframeDistance ){
 			std::cout << "Adding new keyframe: current features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
@@ -222,9 +230,6 @@ namespace cvt
 
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
-				
-				Vector4f currP;
-				
 				// add a new keyframe to the map
 				size_t kId = _map.addKeyframe( _pose.transformation() );
 				Keyframe & keyframe = _map.keyframeForId( kId );
@@ -247,10 +252,10 @@ namespace cvt
 					_map.addMeasurement( pointId, kId, meas );
 					++tracked;
 				}
-
+				
+				size_t numNewPoints = 0;
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
-
 						if( _featureTracking.checkFeature( matches[ i ], _undist0, _undist1 ) ){
 							float reprErr = triangulate( mapFeat, matches[ i ] );
 							if( reprErr < _maxTriangReprojError ){
@@ -258,16 +263,12 @@ namespace cvt
 								meas.point[ 1 ] = matches[ i ].feature0->pt.y;
 								size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
 								_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
-
-								const Eigen::Vector4d & wp = mapFeat.estimate();
-								currP.x = ( float ) ( wp.x() );
-								currP.y = ( float ) ( wp.y() );
-								currP.z = ( float ) ( wp.z() );
-								currP.w = ( float ) ( wp.w() );
+								numNewPoints++;
 							}
 						}
 					}
 				}
+				std::cout << "Added " << numNewPoints << " new 3D Points" << std::endl;
 
 				// new keyframe added -> run the sba thread	
 				if( _map.numKeyframes() > 1 ){
@@ -382,15 +383,12 @@ namespace cvt
 		Eigen::Matrix4d me;
 		EigenBridge::toEigen( Ke, K );
 		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
+		
+		// from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
 		EigenBridge::toEigen( me, m );
-		//me = _pose.transformation();
-		
-//		std::cout << "EPnP pose:\n" << me << std::endl;
-//		std::cout << "Last pose:\n" << _pose.transformation() << std::endl;
-		
-		
-		// now we have the pose of cam0 in me, we need to remove extrinsics to get pose of the rig
 		me = extrC.inverse() * me;
+
+//		me = _pose.transformation();		
 
 		PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
 		pointCorresp.setPose( me );
@@ -430,6 +428,7 @@ namespace cvt
 		_descriptorDatabase.clear();
 		Eigen::Matrix4d I( Eigen::Matrix4d::Identity() );
 		_pose.set( I );
+		_activeKF = -1;
 	}
 
 	inline void StereoSLAM::correspondencesFromMatchedFeatures( PointSet3d& p3d, 
