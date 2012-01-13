@@ -26,7 +26,7 @@ namespace cvt {
 							continue;
 					}
 					added = true;
-					nvindices.push_back( idx );
+					nvindices.push_back( i );
 				}
 			}
 			if( !added ) {
@@ -63,6 +63,59 @@ namespace cvt {
 
 		_vindices = nvindices;
 		_meshtype = SCENEMESH_TRIANGLES;
+	}
+
+	void SceneMesh::calculateNormals( float angleweight, float areaweight )
+	{
+		_normals.clear();
+		_normals.resize( _vertices.size(), Vector3f( 0.0f, 0.0f, 0.0f ) );
+
+		if( _meshtype == SCENEMESH_TRIANGLES ) {
+			size_t size = _vindices.size();
+			for( size_t n = 0; n < size; n += 3 ) {
+				Vector3f v[ 3 ];
+				v[ 0 ] = _vertices[ _vindices[ n + 0 ] ];
+				v[ 1 ] = _vertices[ _vindices[ n + 1 ] ];
+				v[ 2 ] = _vertices[ _vindices[ n + 2 ] ];
+				Vector3f normal;
+				normal.cross( v[ 1 ] - v[ 0 ], v[ 2 ] - v[ 0 ] );
+				float area = 1.0f;//normal.normalize();
+				area = Math::sqrt( area ) * 0.5f;
+				for (int k = 0; k < 3; k++ ) {
+					Vector3f a = v[ ( k + 1 ) % 3 ] - v[ k ];
+					Vector3f b = v[ ( k + 2 ) % 3 ] - v[ k ];
+					float angle = 1.0f;// Math::acos( ( a * b ) / ( a.length() * b.length() ) );
+					_normals[ _vindices[ n + k ] ] += ( 1.0f +  angleweight * angle + areaweight * area ) * normal;
+				}
+			}
+		} else if( _meshtype == SCENEMESH_QUADS ) {
+			size_t size = _vindices.size();
+			for( size_t n = 0; n < size; n += 4 ) {
+				Vector3f v[ 4 ];
+				v[ 0 ] = _vertices[ _vindices[ n + 0 ] ];
+				v[ 1 ] = _vertices[ _vindices[ n + 1 ] ];
+				v[ 2 ] = _vertices[ _vindices[ n + 2 ] ];
+				v[ 3 ] = _vertices[ _vindices[ n + 3 ] ];
+				Vector3f normal;
+				normal.cross( v[ 1 ] - v[ 0 ], v[ 2 ] - v[ 0 ] );
+				float area = normal.normalize();
+				area = Math::sqrt( area );
+				area = 0.5f * ( area + ( v[ 1 ] - v[ 3 ] ).cross( v[ 2 ] - v[ 3 ] ).length() );
+				for (int k = 0; k < 4; k++ ) {
+					Vector3f a = v[ ( k - 1 ) % 4 ] - v[ k ];
+					Vector3f b = v[ ( k + 1 ) % 4 ] - v[ k ];
+					float angle = Math::acos( ( a * b ) / ( a.length() * b.length() ) );
+					_normals[ _vindices[ n + k ] ] += ( 1.0f +  angleweight * angle + areaweight * area ) * normal;
+				}
+			}
+		}
+		size_t size = _normals.size();
+		for( size_t n = 0; n < size; n++ )
+			_normals[ n ].normalize();
+	}
+
+	void SceneMesh::calculateTangents()
+	{
 	}
 
 }

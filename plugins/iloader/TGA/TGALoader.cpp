@@ -1260,8 +1260,6 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 		bool isversion2 = false;
 		FILE* file;
 
-		std::cout << path << std::endl;
-
 		if( ( file = fopen( path.c_str(), "r" ) ) == NULL )
 			throw CVTException( "Unable to open TGA file" );
 
