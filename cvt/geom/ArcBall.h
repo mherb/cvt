@@ -9,19 +9,21 @@ namespace cvt {
 	class ArcBall
 	{
 		public:
-			ArcBall( int width = 1, int height = 1 );
+			ArcBall( size_t width = 1, size_t height = 1, float radius = 1.0f );
 			~ArcBall();
-			void setViewportSize( int width, int height );
+			void setViewportSize( size_t width, size_t height );
 			void getRotation( Matrix4f& mat, int x1, int y1, int x2, int y2 );
 
 		private:
 			ArcBall( const ArcBall& );
 			void mapToSphere( Vector3f& vec, int x, int y );
 
-			int _width, _height;
+			size_t _width;
+			size_t _height;
+			float  _radius;
 	};
 
-	inline ArcBall::ArcBall( int width, int height ) : _width( width ), _height( height )
+	inline ArcBall::ArcBall( size_t width, size_t height, float radius ) : _width( width ), _height( height ), _radius( radius )
 	{
 	}
 
@@ -29,7 +31,7 @@ namespace cvt {
 	{
 	}
 
-	inline void ArcBall::setViewportSize( int width, int height )
+	inline void ArcBall::setViewportSize( size_t width, size_t height )
 	{
 		_width = width;
 		_height = height;
@@ -41,13 +43,10 @@ namespace cvt {
 		vec[ 1 ] = ( ( float ) _y / ( float ) _height ) - 0.5f;
 
 		float len = Math::sqr( vec[ 0 ] ) + Math::sqr( vec[ 1 ] );
-		if( len > 1.0f ) {
-			float inv = Math::invSqrt( len );
-			vec[ 0 ] *= inv;
-			vec[ 1 ] *= inv;
-			vec[ 2 ]  = 0.0f;
+		if( len < Math::sqr( _radius ) * 0.5f ) {
+			vec[ 2 ]  = Math::sqrt( Math::sqr( _radius ) - len );
 		} else {
-			vec[ 2 ] = Math::sqrt( 1.0f - len );
+			vec[ 2 ] = Math::sqr( _radius ) / ( 2.0f * Math::sqrt( len ) );
 		}
 	}
 
