@@ -9,7 +9,7 @@ namespace cvt {
 	class ArcBall
 	{
 		public:
-			ArcBall( size_t width = 1, size_t height = 1, float radius = 1.0f );
+			ArcBall( size_t width = 1, size_t height = 1, float radius = 0.5f );
 			~ArcBall();
 			void setViewportSize( size_t width, size_t height );
 			void getRotation( Matrix4f& mat, int x1, int y1, int x2, int y2 );
@@ -57,6 +57,8 @@ namespace cvt {
 		mapToSphere( v1, x1, y1 );
 		mapToSphere( v2, x2, y2 );
 
+		v1.normalize();
+		v2.normalize();
 		c.cross( v1, v2 );
 		float lsqrt = c.lengthSqr();
 		if( lsqrt > Math::EPSILONF ) {
