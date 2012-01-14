@@ -2,6 +2,7 @@
 #define CVT_SCOPEDBUFFER_H
 
 #include <cvt/math/Math.h>
+#include <cvt/util/Util.h>
 #include <stdint.h>
 
 namespace cvt {
@@ -51,8 +52,7 @@ namespace cvt {
 	{
 		size_t memsize = Math::pad( sizeof( T ) * _size, alignment );
 		_memptr = new uint8_t[ memsize ];
-		uint8_t* addr = ( ( size_t ) _memptr & alignment ) ? ( uint8_t* ) ( ( ( size_t ) _memptr | alignment ) + 1 ) : _memptr;
-		_buffer = ( T* ) addr;
+		_buffer = Util::alignPtr<T>( ( T* ) _memptr, alignment );
 		T* obj = _buffer;
 		while( _size-- ) {
 			obj = new( ( void* ) obj ) T();
@@ -77,8 +77,7 @@ namespace cvt {
 	{
 		size_t memsize = Math::pad( sizeof( T ) * _size, alignment );
 		_memptr = new uint8_t[ memsize ];
-		uint8_t* addr = ( ( size_t ) _memptr & alignment ) ? ( uint8_t* ) ( ( ( size_t ) _memptr | alignment ) + 1 ) : _memptr;
-		_buffer = ( T* ) addr;
+		_buffer = Util::alignPtr<T>( ( T* ) _memptr, alignment );
 	}
 
 	template<typename T>

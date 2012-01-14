@@ -17,6 +17,8 @@ namespace cvt {
 			static inline bool	   getEnv( String& value, const String& name );
 			static inline String   getDirectoryFromPath( const String& path );
 			static inline String   getBasenameFromPath( const String& path );
+			template< typename T>
+			static inline T*	   alignPtr( T* ptr, size_t alignment );
 
 	};
 
@@ -101,6 +103,14 @@ namespace cvt {
 		if( pos < 0 )
 			return String( path );
 		return path.substring( pos + 1 );
+	}
+
+
+	template<typename T>
+	inline T* Util::alignPtr( T* ptr, size_t alignment )
+	{
+		size_t rem = ( ( size_t ) ptr ) % alignment;
+		return ( T* ) ( ( ( uint8_t*) ptr ) + alignment - rem );
 	}
 
 }
