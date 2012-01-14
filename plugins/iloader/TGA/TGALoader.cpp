@@ -163,7 +163,7 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 	uint8_t* dst;
 	uint8_t* pdst;
 	size_t stride;
-	size_t height, len;
+	size_t height;
 	ssize_t sstride;
 	size_t read;
 	size_t dataoffset;
@@ -187,13 +187,12 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 		img.reallocate( header->width, header->height, format );
 		dst = img.map( &stride );
 		height = header->height;
-		len = header->width * sizeof( uint32_t );
 		sstride = stride;
 
 		pdst = ( uint8_t* ) tga_origin( header, dst, &sstride );
 
 		while( height-- ) {
-			if( ( read = fread( pdst, sizeof( uint8_t ), len, file ) ) != len )
+			if( ( read = fread( pdst, sizeof( uint32_t ), header->width, file ) ) != header->width )
 				throw CVTException( "Corrupted TGA file!" );
 			// FIXME: set arbitrary alpha to 1
 /*			if( !alphabits )
@@ -205,16 +204,16 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 		img.reallocate( header->width, header->height, IFormat::BGRA_UINT8 );
 		dst = img.map( &stride );
 		height = header->height;
-		len = header->width * sizeof( uint8_t ) * 3;
 		sstride = stride;
 		pdst = ( uint8_t* ) tga_origin( header, dst, &sstride );
-		ScopedBuffer<uint8_t> buffer( len );
+		//uint8_t* buffer = new uint8_t[ header->width * 3 ];
+		ScopedBuffer<uint8_t,true> buffer( header->width * 3 );
 		SIMD* simd = SIMD::instance();
 
 		while( height-- ) {
-			if( ( read = fread( buffer.ptr(), sizeof( uint8_t ), len, file ) ) != len )
+			if( ( read = fread( buffer.ptr(), sizeof( uint8_t ), header->width * 3, file ) ) != ( size_t ) header->width * 3 )
 				throw CVTException( "Corrupted TGA file!" );
-			simd->Conv_XXXu8_to_XXXAu8( pdst, buffer.ptr(), len );
+			simd->Conv_XXXu8_to_XXXAu8( pdst, buffer.ptr(), header->width * 3 );
 			pdst += sstride;
 		}
 		img.unmap( dst );
