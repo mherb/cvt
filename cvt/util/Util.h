@@ -110,6 +110,8 @@ namespace cvt {
 	inline T* Util::alignPtr( T* ptr, size_t alignment )
 	{
 		size_t rem = ( ( size_t ) ptr ) % alignment;
+		if( !rem )
+			return ptr;
 		return ( T* ) ( ( ( uint8_t*) ptr ) + alignment - rem );
 	}
 
