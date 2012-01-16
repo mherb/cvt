@@ -200,7 +200,7 @@ namespace cvt
 		PointSet3d p3d;
 		std::set<size_t> matchedIndices;
 		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
-		debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
+		//debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
 
 		if( p3d.size() > 6 ){
 			estimateCameraPose( p3d, p2d );
