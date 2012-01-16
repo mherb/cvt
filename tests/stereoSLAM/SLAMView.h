@@ -51,6 +51,11 @@ namespace cvt
 			GLBuffer		_axesBuf;
 			GLBuffer		_axesColBuf;
 
+			size_t			_numKeyframes;
+			size_t			_maxKeyframes;
+			GLVertexArray	_keyframes;
+			GLBuffer		_keyframesAxesBuffer;
+
 			GLVertexArray	_points;
 			GLBuffer		_pointBuf;
 			size_t			_numPoints;
@@ -58,6 +63,8 @@ namespace cvt
 
 			void createGrid( ssize_t halfRes );
 			void createAxes();
+			void createKeyframeBuffer();
+			void updateSingleKeyframe( GLfloat* ptr, const Keyframe & kf );
 			void resizePointBuffer( size_t newSize );
 	};
 }

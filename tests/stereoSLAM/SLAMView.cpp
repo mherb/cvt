@@ -1,4 +1,5 @@
 #include "SLAMView.h"
+#include <cvt/util/EigenBridge.h>
 
 namespace cvt
 {
@@ -6,11 +7,14 @@ namespace cvt
 		_trans( -10 ),
 		_near( 0.1f ),
 		_far( 100.0f ),
+		_numKeyframes( 0 ),
+		_maxKeyframes( 200 ),
 		_numPoints( 0 ),
 		_maxPoints( 0 )
 	{
 		createGrid( 10 );
 		createAxes();
+		createKeyframeBuffer();
 
 		_rot.setIdentity();
 		_cam.setIdentity();
@@ -60,9 +64,15 @@ namespace cvt
 		// draw the origin
 		_axes.draw( GL_LINES, 0, 6 );
 
+		// draw the keyframes		
+		_keyframes.setColor( Color::YELLOW );
+		_keyframes.draw( GL_LINES, 0, 6 * _numKeyframes );
+
 		proj = persp * view * _cam; 
 		_basicProg.setProjection( proj );
-		//_teapot.draw();
+
+	
+		// draw the current camera pose	
 		_axes.draw( GL_LINES, 0, 6 );
 
 		_basicProg.unbind();
@@ -151,7 +161,6 @@ namespace cvt
 		data[ 0 ] = 0.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 0.0f; data += 3;
 		data[ 0 ] = 0.0f; data[ 1 ] = 0.0f;	data[ 2 ] = 0.2f; 
 		_axesBuf.unmap();
-		_axes.setVertexData( _axesBuf, 3, GL_FLOAT );
 
 		_axesColBuf.alloc( GL_STATIC_DRAW, sizeof( GL_FLOAT ) * 4 * 6, NULL );
 		data = ( GLfloat* )_axesColBuf.map();
@@ -174,6 +183,12 @@ namespace cvt
 		_axes.setColorData( _axesColBuf, 4, GL_FLOAT );
 	}
 
+	void SLAMView::createKeyframeBuffer()
+	{
+		_keyframesAxesBuffer.alloc( GL_DYNAMIC_DRAW, sizeof( GL_FLOAT ) * 3 * 6 * _maxKeyframes, NULL );
+		_keyframes.setVertexData( _keyframesAxesBuffer, 3, GL_FLOAT );
+	}
+
 	void SLAMView::mapChanged( const SlamMap & map )
 	{
 		// update the keyframe poses
@@ -192,6 +207,16 @@ namespace cvt
 		_pointBuf.unmap();
 		_numPoints = numFeat;
 		_points.setColor( Color::GREEN );
+
+		// update the keyframes: 
+		_numKeyframes = map.numKeyframes();
+		data = ( GLfloat* )_keyframesAxesBuffer.map();
+		for( size_t i = 0; i < _numKeyframes; i++ ){
+			const Keyframe & kf = map.keyframeForId( i );
+			updateSingleKeyframe( data, kf );
+			data += 18; // 3 axis a 2 points a 3 coords
+		}
+		_keyframesAxesBuffer.unmap();
 	}
 
 	void SLAMView::resetCameraView()
@@ -199,6 +224,40 @@ namespace cvt
 		_rot = _cam;
 		_rot.setTranslation( 0.0f, 0.0f, 0.0f );
 		_trans = _cam[ 2 ][ 3 ] - 1.0f;
+	}
+
+	void SLAMView::updateSingleKeyframe( GLfloat* ptr, const Keyframe & kf )
+	{
+		Vector3f p;
+		Vector3f pp;
+		Matrix3f c2wR;
+		Vector3f c2wt;
+
+		{
+			const Eigen::Matrix4d & pose = kf.pose().transformation();
+			const Eigen::Matrix3d & R = pose.block<3, 3>( 0, 0 );
+			const Eigen::Vector3d & t = pose.block<3, 1>( 0, 3 );
+			EigenBridge::toCVT( c2wR, R );
+			EigenBridge::toCVT( c2wt, t );
+		}
+
+		c2wR.transposeSelf();		
+		c2wt = -c2wR * c2wt;
+
+		p.x = 0.1f; p.y = 0.0f; p.z = 0.0f;
+		pp = c2wR * p + c2wt;
+		ptr[ 0 ] = c2wt.x; ptr[ 1 ] = c2wt.y; ptr[ 2 ] = c2wt.z; ptr += 3;
+		ptr[ 0 ] = pp.x;   ptr[ 1 ] = pp.y;   ptr[ 2 ] = pp.z;   ptr += 3;
+
+		p.x = 0.0f; p.y = 0.1f; p.z = 0.0f;
+		pp = c2wR * p + c2wt;
+		ptr[ 0 ] = c2wt.x; ptr[ 1 ] = c2wt.y; ptr[ 2 ] = c2wt.z; ptr += 3;
+		ptr[ 0 ] = pp.x;   ptr[ 1 ] = pp.y;   ptr[ 2 ] = pp.z;   ptr += 3;
+
+		p.x = 0.0f; p.y = 0.0f; p.z = 0.1f;
+		pp = c2wR * p + c2wt;
+		ptr[ 0 ] = c2wt.x; ptr[ 1 ] = c2wt.y; ptr[ 2 ] = c2wt.z; ptr += 3;
+		ptr[ 0 ] = pp.x;   ptr[ 1 ] = pp.y;   ptr[ 2 ] = pp.z; 
 	}
 
 	void SLAMView::resizePointBuffer( size_t newSize ) 
