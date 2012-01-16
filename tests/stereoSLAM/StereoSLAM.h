@@ -4,6 +4,7 @@
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
+#include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/vision/ORB.h>
 #include <cvt/vision/EPnP.h>
@@ -33,16 +34,6 @@ namespace cvt
 	class StereoSLAM
 	{
 		public:
-
-			struct ORBData
-			{
-				ORB* orb0;
-				Image* img0;
-				ORB* orb1;
-				Image* img1;
-				std::vector<FeatureMatch>* matches;
-			};
-
 			StereoSLAM( const CameraCalibration& c0,
 						size_t w0, size_t h0,
 						const CameraCalibration& c1,
@@ -61,11 +52,10 @@ namespace cvt
 			const SlamMap & map() const { return _map; }
 			void clear();
 
-			Signal<const ORBData*>		newORBData;	
-			Signal<const Keyframe&>		newKeyFrame;	
+			Signal<const Image&>		newStereoView;	
 			Signal<const SlamMap&>		mapChanged;	
-			Signal<const PointSet2d&>	trackedPoints;	
 			Signal<const Matrix4f&>		newCameraPose;	
+			Signal<const Image&>		trackedPointsImage;	
 
 		private:
 			/* camera calibration data and undistortion maps */
@@ -127,6 +117,11 @@ namespace cvt
 								      const std::vector<FeatureMatch> & matches );
 
 			bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
+
+			void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
+			void createDebugImageStereo( Image & debugImage, 
+										 const std::vector<FeatureMatch> & matches,
+										 const std::vector<size_t> & indices ) const;
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -135,20 +130,20 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_matcherMaxLineDistance( 5.0f ),
-		_matcherMaxDescriptorDist( 70 ),
+		_matcherMaxDescriptorDist( 60 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 7.0f ),
+		_maxTriangReprojError( 5.0f ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 10 ),
-		_orbMaxFeatures( 2000 ),
+		_orbMaxFeatures( 3000 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 50.0f ),
+		_trackingSearchRadius( 30.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
-		_minTrackedFeatures( 50 ),
+		_minTrackedFeatures( 40 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.1 ),
-		_maxKeyframeDistance( 0.3 )
+		_maxKeyframeDistance( 0.4 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -204,7 +199,11 @@ namespace cvt
 		PointSet3d p3d;
 		std::set<size_t> matchedIndices;
 		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
+
+		Image debug;
 		//debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
+		createDebugImageMono( debug, p2d );
+		trackedPointsImage.notify( debug );
 
 		size_t numTrackedFeatures = p3d.size();
 		if( numTrackedFeatures > 6 ){
@@ -253,6 +252,7 @@ namespace cvt
 				}
 				
 				size_t numNewPoints = 0;
+				std::vector<size_t> matchedStereoIndices;
 				for( size_t i = 0; i < matches.size(); i++ ){
 					if( matches[ i ].feature1 ){
 						if( _featureTracking.checkFeature( matches[ i ], _undist0, _undist1 ) ){
@@ -263,11 +263,15 @@ namespace cvt
 								size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
 								_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
 								numNewPoints++;
+								matchedStereoIndices.push_back( i );
 							}
 						}
 					}
 				}
 				std::cout << "Added " << numNewPoints << " new 3D Points" << std::endl;
+				Image debug;
+				createDebugImageStereo( debug, matches, matchedStereoIndices );
+				newStereoView.notify( debug );
 
 				// new keyframe added -> run the sba thread	
 				if( _map.numKeyframes() > 1 ){
@@ -276,15 +280,7 @@ namespace cvt
 				}
 				mapChanged.notify( _map );				
 			} 
-			// notify observers that there is new orb data
-			// e.g. gui or a localizer 
-			ORBData data;
-			data.orb0 = &orb0;
-			data.img0 = &_undist0;
-			data.orb1 = &orb1;
-			data.img1 = &_undist1;
-			data.matches = &matches;
-			newORBData.notify( &data );
+
 		}
  
 		int last = _activeKF;
@@ -297,7 +293,6 @@ namespace cvt
 		else if( orb0.size() > _orbMaxFeatures && _orbCornerThreshold < 40 )
 			_orbCornerThreshold+=2;
 		
-		trackedPoints.notify( p2d );
 	}
 
 	inline float StereoSLAM::triangulate( MapFeature& feature, 
@@ -322,7 +317,7 @@ namespace cvt
 			
 		// normalize 4th coord;
 		tmp /= tmp.w;
-		if( tmp.z > 0.0f && tmp.z < 30 ){
+		if( tmp.z > 0.0f && tmp.z < 20 ){
 			float error = 0.0f;
 
 			repr = _camCalib0.projectionMatrix() * tmp;
@@ -368,15 +363,6 @@ namespace cvt
 		
 		Matrix4d m;
 		Eigen::Matrix4d me;
-	/*	
-		EPnPSAC sacModel( p3d, p2d, K );
-		double maxReprojectionError = 5.0;
-		double outlierProb = 0.1;
-		RANSAC<EPnPSAC> ransac( sacModel, maxReprojectionError, outlierProb );
-
-		size_t maxRansacIters = 200;
-		m = ransac.estimate( maxRansacIters );
-	*/
 	/*
 		EPnPd epnp( p3d );
 		epnp.solve( m, p2d, K );
@@ -513,6 +499,53 @@ namespace cvt
 			return true;
 
 		return false;
+	}
+
+	inline void StereoSLAM::createDebugImageMono( Image & debug, const PointSet2d & tracked ) const 
+	{
+		_undist0.convert( debug, IFormat::RGBA_UINT8 );
+
+		{
+			GFXEngineImage ge( debug );
+			GFX g( &ge );
+			g.color() = Color::GREEN;
+
+			Recti r;
+			size_t pSize = 17;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
+			for( size_t i = 0; i < tracked.size(); i++ ){
+				r.x = ( int )tracked[ i ].x - phSize;
+				r.y = ( int )tracked[ i ].y - phSize;
+				g.drawRect( r );
+			}
+		}
+	}
+	
+	inline void StereoSLAM::createDebugImageStereo( Image & debugImage, 
+													const std::vector<FeatureMatch> & matches,
+													const std::vector<size_t> & indices ) const
+	{
+		debugImage.reallocate( 2 * _undist0.width(), _undist0.height(), IFormat::RGBA_UINT8 );
+		Image tmp( debugImage.width(), debugImage.height(), IFormat::GRAY_UINT8 );
+		Recti rect( 0, 0, _undist0.width(), _undist0.height() );
+		tmp.copyRect( 0, 0, _undist0, rect );
+		tmp.copyRect( _undist0.width(), 0, _undist1, rect );
+
+		tmp.convert( debugImage, IFormat::RGBA_UINT8 );
+		{
+			GFXEngineImage ge( debugImage );
+			GFX g( &ge );
+			
+			g.color() = Color::RED;
+			for( size_t i = 0; i < indices.size(); i++ ){
+				const FeatureMatch & match = matches[ indices[ i ] ];
+					Vector2f p2 = match.feature1->pt;
+					p2.x += _undist0.width();
+					g.drawLine( match.feature0->pt, p2 );
+			}
+		}
 	}
 }
 

@@ -15,10 +15,10 @@ namespace cvt
 		_stepping( true ),
 		_nextImage( true )
 	{
-		_timerId = Application::registerTimer( 5, this );
+		_timerId = Application::registerTimer( 10, this );
 
-		Delegate<void ( const StereoSLAM::ORBData* )> d( &_gui, &SLAMGui::updateStereoView );
-		_slam.newORBData.add( d );
+		Delegate<void ( const Image& )> d( &_gui, &SLAMGui::updateStereoView );
+		_slam.newStereoView.add( d );
 
 		Delegate<void ( const Matrix4f& )> d1( &_gui, &SLAMGui::updateCameraPose );
 		_slam.newCameraPose.add( d1 );
@@ -32,8 +32,8 @@ namespace cvt
 		_gui.addSteppingButtonDelegate( d3 );
 		_gui.setStepping( _stepping );
 		
-		Delegate<void (const PointSet2d&)> d4( &_gui, &SLAMGui::updateTrackedPoints );
-		_slam.trackedPoints.add( d4 );
+		Delegate<void (const Image&)> d4( &_gui, &SLAMGui::setCurrentImage );
+		_slam.trackedPointsImage.add( d4 );
 		
 		Delegate<void (void)> d5( this, &StereoSLAMApp::saveMap );
 		_gui.setSaveButtonDelegate( d5 );
@@ -60,8 +60,6 @@ namespace cvt
 			_cams[ 0 ]->frame().convert( _img0, IFormat::GRAY_UINT8 );
 			_cams[ 1 ]->frame().convert( _img1, IFormat::GRAY_UINT8 );
 			_slam.newImages( _img0, _img1 );
-
-			_gui.setCurrentImage( _slam.undistorted( 0 ) );
 		}
 
 		_timeIter++;
