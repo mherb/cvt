@@ -136,14 +136,14 @@ namespace cvt
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
 		_orbCornerThreshold( 10 ),
-		_orbMaxFeatures( 3000 ),
+		_orbMaxFeatures( 600 ),
 		_orbNonMaxSuppression( true ),
 		_trackingSearchRadius( 30.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_minTrackedFeatures( 40 ),
 		_activeKF( -1 ),
-		_minKeyframeDistance( 0.1 ),
-		_maxKeyframeDistance( 0.4 )
+		_minKeyframeDistance( 0.2 ),
+		_maxKeyframeDistance( 0.5 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -174,26 +174,15 @@ namespace cvt
 		IWarp::apply( _undist0, img0, _undistortMap0 );
 
 		// create the ORB
-		ORB orb0( _undist0, 
-				  _orbOctaves, 
-				  _orbScaleFactor,
-				  _orbCornerThreshold,
-				  _orbMaxFeatures,
-				  _orbNonMaxSuppression );
+		ORB orb0( _undist0, _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression );
 
 		// predict visible features with map and current pose
 		std::vector<size_t>	  predictedIds;
 		std::vector<Vector2f> predictedPositions;
-		_map.selectVisibleFeatures( predictedIds, 
-									predictedPositions, 
-									_pose.transformation(), 
-									_camCalib0 );
+		_map.selectVisibleFeatures( predictedIds, predictedPositions, _pose.transformation(), _camCalib0 );
 
 		std::vector<FeatureMatch> matchedFeatures;
-		_featureTracking.trackFeatures( matchedFeatures, 
-									    predictedIds,
-									    predictedPositions,
-									    orb0 );
+		_featureTracking.trackFeatures( matchedFeatures, predictedIds, predictedPositions, orb0 );
 
 		PointSet2d p2d;
 		PointSet3d p3d;
@@ -228,13 +217,18 @@ namespace cvt
 
 			// Create a new keyframe with image 0 as reference image
 			if( matches.size() > 0 ){
+				if( _bundler.isRunning() ){
+					std::cout << "Waiting for last SBA to finish!" << std::endl;
+					_bundler.join();
+				}
+
 				// add a new keyframe to the map
 				size_t kId = _map.addKeyframe( _pose.transformation() );
 				Keyframe & keyframe = _map.keyframeForId( kId );
 				keyframe.setImage( _undist0 );
 
 				MapMeasurement meas;
-				meas.information *= ( 1.0 / _trackingSearchRadius );
+//				meas.information *= ( 1.0 / _trackingSearchRadius );
 				
 				Eigen::Matrix4d featureCov = Eigen::Matrix4d::Identity();
 				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
@@ -276,7 +270,7 @@ namespace cvt
 				// new keyframe added -> run the sba thread	
 				if( _map.numKeyframes() > 1 ){
 					_bundler.run( &_map );
-					_bundler.join();
+					//_bundler.join();
 				}
 				mapChanged.notify( _map );				
 			} 
