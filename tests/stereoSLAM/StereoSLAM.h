@@ -105,6 +105,7 @@ namespace cvt
 			/* the active Keyframe Id (closest to _pose) */
 			int					_activeKF;
 			double				_minKeyframeDistance;
+			double				_maxKeyframeDistance;
 
 			SlamMap				_map;
 
@@ -124,6 +125,8 @@ namespace cvt
 			void debugPatchWorkImage( const std::set<size_t> & indices,
 								      const std::vector<size_t> & featureIds,
 								      const std::vector<FeatureMatch> & matches );
+
+			bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
 	};
 
 	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
@@ -144,7 +147,8 @@ namespace cvt
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
 		_minTrackedFeatures( 50 ),
 		_activeKF( -1 ),
-		_minKeyframeDistance( 0.1 )
+		_minKeyframeDistance( 0.1 ),
+		_maxKeyframeDistance( 0.2 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -202,16 +206,12 @@ namespace cvt
 		correspondencesFromMatchedFeatures( p3d, p2d, matchedIndices, predictedIds, matchedFeatures );
 		debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
 
-		if( p3d.size() > 6 ){
+		size_t numTrackedFeatures = p3d.size();
+		if( numTrackedFeatures > 6 ){
 			estimateCameraPose( p3d, p2d );
 		} 
 
-		double kfDist = _minKeyframeDistance + 1;
-	    if( _activeKF != -1 ){
-			kfDist = _map.keyframeForId( _activeKF ).distance( _pose.transformation() );
-		}
-
-		if( p3d.size() < _minTrackedFeatures && kfDist > _minKeyframeDistance ){
+		if( newKeyframeNeeded( numTrackedFeatures ) ){
 			std::cout << "Adding new keyframe: current features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
@@ -495,6 +495,24 @@ namespace cvt
 		}
 
 		patchWork.image().save( "patchwork.png" );
+	}
+
+	inline bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
+	{
+		double kfDist = _minKeyframeDistance + 1.0;
+	    if( _activeKF != -1 ){
+			kfDist = _map.keyframeForId( _activeKF ).distance( _pose.transformation() );
+		}
+
+		// if distance is too far from active, always create a new one:
+		if( kfDist > _maxKeyframeDistance )
+			return true;
+
+		// if too few features and minimum distance from last keyframe create new
+		if( numTrackedFeatures < _minTrackedFeatures && kfDist > _minKeyframeDistance )
+			return true;
+
+		return false;
 	}
 }
 
