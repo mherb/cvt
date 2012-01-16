@@ -9,7 +9,7 @@ namespace cvt {
 	class ArcBall
 	{
 		public:
-			ArcBall( size_t width = 1, size_t height = 1, float radius = 0.5f );
+			ArcBall( size_t width = 1, size_t height = 1, float radius = 1.0f );
 			~ArcBall();
 			void setViewportSize( size_t width, size_t height );
 			void getRotation( Matrix4f& mat, int x1, int y1, int x2, int y2 );
