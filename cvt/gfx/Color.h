@@ -55,6 +55,7 @@ namespace cvt {
 			static const Color BLUE;
             static const Color YELLOW;
 			static const Color PINK;
+			static const Color GRAY;
 
 		private:
 			/*union {
