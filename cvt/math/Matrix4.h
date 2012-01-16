@@ -71,6 +71,7 @@ namespace cvt {
 		Matrix4<T>			inverse( void ) const;
 		bool				inverseSelf( void );
 		void				svd( Matrix4<T>& u, Matrix4<T>& d, Matrix4<T>& vt ) const;
+		Matrix4<T>			pseudoInverse() const;
 
 		Matrix3<T>			toMatrix3( void ) const;
 
@@ -731,6 +732,22 @@ namespace cvt {
 		inv = *this;
 		inv.inverseSelf();
 		return inv;
+	}
+
+
+	template<typename T>
+	inline Matrix4<T> Matrix4<T>::pseudoInverse() const
+	{
+		Matrix4<T> U, E, V;
+
+		svd( U, E, V );
+
+		for( int i = 0; i < 4; i++ ) {
+			if( Math::abs( E[ i ][ i ] ) > Math::epsilon<T>() )
+				E[ i ][ i ] = ( T ) 1 / E[ i ][ i ];
+		}
+
+		return V * E * U.transpose();
 	}
 
 	template<typename T>

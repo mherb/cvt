@@ -102,7 +102,10 @@ namespace cvt {
 				area = Math::sqrt( area );
 				area = 0.5f * ( area + ( v[ 1 ] - v[ 3 ] ).cross( v[ 2 ] - v[ 3 ] ).length() );
 				for (int k = 0; k < 4; k++ ) {
-					Vector3f a = v[ ( k - 1 ) % 4 ] - v[ k ];
+					int lower = ( k - 1 );
+					if( lower < 0 )
+						lower = 3;
+					Vector3f a = v[ lower ] - v[ k ];
 					Vector3f b = v[ ( k + 1 ) % 4 ] - v[ k ];
 					float angle = Math::acos( ( a * b ) / ( a.length() * b.length() ) );
 					_normals[ _vindices[ n + k ] ] += ( 1.0f +  angleweight * angle + areaweight * area ) * normal;

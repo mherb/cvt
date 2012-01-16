@@ -59,6 +59,7 @@ namespace cvt {
 		Matrix2<T>			inverse( void ) const;
 		bool				inverseSelf( void );
 		void				svd( Matrix2<T>&, Matrix2<T>&, Matrix2<T>& ) const;
+		Matrix2<T>			pseudoInverse() const;
 
 		Matrix3<T>			toMatrix3( void ) const;
 
@@ -372,6 +373,21 @@ namespace cvt {
 		mat[ 0 ].y = mat[ 1 ].x;
 		mat[ 1 ].x = tmp;
 		return *this;
+	}
+
+	template<typename T>
+	inline Matrix2<T> Matrix2<T>::pseudoInverse() const
+	{
+		Matrix2<T> U, E, V;
+
+		svd( U, E, V );
+
+		for( int i = 0; i < 2; i++ ) {
+			if( Math::abs( E[ i ][ i ] ) > Math::epsilon<T>() )
+				E[ i ][ i ] = ( T ) 1 / E[ i ][ i ];
+		}
+
+		return V * E * U.transpose();
 	}
 
 	template<typename T>
