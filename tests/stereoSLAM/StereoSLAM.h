@@ -148,7 +148,7 @@ namespace cvt
 		_minTrackedFeatures( 50 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.1 ),
-		_maxKeyframeDistance( 0.2 )
+		_maxKeyframeDistance( 0.3 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
