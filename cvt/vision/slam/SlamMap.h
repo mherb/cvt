@@ -36,7 +36,7 @@ namespace cvt
 									      std::vector<Vector2f>	   & projections,
 										  const Eigen::Matrix4d	   & cameraPose,
 										  const CameraCalibration  & camCalib,
-										  double maxDistance = 10.0	);
+										  double maxDistance = 3.0	);
 
 			const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
 			MapFeature&				featureForId( size_t id )		 { return _features[ id ];}
