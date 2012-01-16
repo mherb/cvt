@@ -8,4 +8,5 @@ namespace cvt {
 	const Color Color::BLUE( 0.0f, 0.0f, 1.0f, 1.0f );
     const Color Color::YELLOW( 1.0f, 1.0f, 0.0f, 1.0f );
     const Color Color::PINK( 1.0f, 0.0f, 1.0f, 1.0f );
+    const Color Color::GRAY( 0.6f, 0.6f, 0.6f, 1.0f );
 }

@@ -29,9 +29,9 @@ int main( int argc, char** argv )
 	w.setSize( 640, 480 );
 	SceneMesh* mesh = ( ( SceneMesh* ) s.geometry( index ) );
 	mesh->translate( -mesh->centroid() );
-	Matrix4f r;
-	r.setRotationY( Math::deg2Rad( 45.0f ) );
-	mesh->transform( r );
+//	Matrix4f r;
+//	r.setRotationY( Math::deg2Rad( 45.0f ) );
+//	mesh->transform( r );
 //	mesh->calculateNormals();
 	mesh->scale( 0.001f );
 	GLSceneView view( *( ( SceneMesh* ) s.geometry( index ) ) );
