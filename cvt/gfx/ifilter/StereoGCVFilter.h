@@ -16,9 +16,11 @@ namespace cvt {
 
 		private:
 			CLKernel		_cldepthcost;
+			CLKernel		_cldepthcostgrad;
 			CLKernel		_cldepthmin;
 			CLKernel		_clfill;
 			CLKernel		_clcdconv;
+			CLKernel		_clgradx;
 //			CLKernel		_cldepthrefine;
 			GuidedFilter	_gf;
 	};

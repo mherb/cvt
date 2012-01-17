@@ -1,5 +1,5 @@
-#define COSTMAX 5.0f
-#define COSTTHRESHOLD 0.5f
+#define COSTMAX 50.0f
+#define COSTTHRESHOLD 49.0f
 
 __kernel void stereogcv_costdepth( __write_only image2d_t costout, __read_only image2d_t img0, __read_only image2d_t img1, __read_only global float4* proj, float depth )
 {
@@ -18,8 +18,6 @@ __kernel void stereogcv_costdepth( __write_only image2d_t costout, __read_only i
 	if( coord.x >= width || coord.y >= height )
 		return;
 
-	I0 = read_imagef( img0, sampler, coord );
-
 	mat[ 0 ] = proj[ 0 ];
 	mat[ 1 ] = proj[ 1 ];
 	mat[ 2 ] = proj[ 2 ];
@@ -30,11 +28,12 @@ __kernel void stereogcv_costdepth( __write_only image2d_t costout, __read_only i
 	coord2.x = dot( vec, mat[ 0 ] ) / z;
 	coord2.y = dot( vec, mat[ 1 ] ) / z;
 
-	if( coord2.x < 0 || coord2.x > width || coord.y < 0 || coord2.y > height || fabs( z ) < 1e-6f  ) {
+	if( coord2.x < 0 || coord2.x >= width || coord2.y < 0 || coord2.y >= height || fabs( z ) < 1e-6f  ) {
 		Cout.x = COSTMAX;
 	} else {
-		I1 = read_imagef( img1, sampler, coord );
-		Cout.x = fmin( length( I1 - I0 ), COSTTHRESHOLD );
+		I0 = read_imagef( img0, sampler, coord );
+		I1 = read_imagef( img1, sampler, coord2 );
+		Cout.x = fmin( fast_length( I1 - I0 ), COSTTHRESHOLD );
 	}
 
 	write_imagef( costout, coord, Cout );

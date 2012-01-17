@@ -1,7 +1,7 @@
 
 __kernel void stereogcv_costmin( __write_only image2d_t costout, __read_only image2d_t newcost, __read_only image2d_t costin, float newdepth )
 {
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	int2 coord;
 	const int width = get_image_width( costout );
 	const int height = get_image_height( costout );

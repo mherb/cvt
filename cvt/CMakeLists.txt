@@ -125,6 +125,7 @@ SET( CL_KERNELS
 	cl/kernel/BC.cl
 	cl/kernel/clear.cl
 	cl/kernel/fill.cl
+	cl/kernel/gradx.cl
 	cl/kernel/median3.cl
 	cl/kernel/fgp/fgp.cl
 	cl/kernel/fgp/fgp_data.cl
@@ -146,6 +147,7 @@ SET( CL_KERNELS
 	cl/kernel/tvl1flow/tvl1_dataadd.cl
 	cl/kernel/tvl1flow/tvl1_warp.cl
 	cl/kernel/stereogcv/costdepth.cl
+	cl/kernel/stereogcv/costdepthgrad.cl
 	cl/kernel/stereogcv/costmin.cl
 	cl/kernel/stereogcv/costdepthconv.cl
 )
@@ -155,6 +157,7 @@ CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
 CLTOHEADER( cl/kernel/clear.cl )
 CLTOHEADER( cl/kernel/fill.cl )
+CLTOHEADER( cl/kernel/gradx.cl )
 CLTOHEADER( cl/kernel/median3.cl )
 CLTOHEADER( cl/kernel/fgp/fgp.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
@@ -176,6 +179,7 @@ CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
+CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
 CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
 
@@ -204,6 +208,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/clear.h
 	cl/kernel/fill.h
 	cl/kernel/median3.h
+	cl/kernel/gradx.h
 	cl/kernel/fgp/fgp.h
 	cl/kernel/fgp/fgp_data.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
@@ -224,6 +229,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/tvl1flow/tvl1_warp.h
 	cl/kernel/tvl1flow/tvl1_dataadd.h
 	cl/kernel/stereogcv/costdepth.h
+	cl/kernel/stereogcv/costdepthgrad.h
 	cl/kernel/stereogcv/costmin.h
 	cl/kernel/stereogcv/costdepthconv.h
 	geom/ArcBall.h
