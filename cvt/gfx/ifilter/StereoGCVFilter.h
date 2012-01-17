@@ -11,7 +11,7 @@ namespace cvt {
 					StereoGCVFilter();
 					~StereoGCVFilter();
 
-			void	apply( Image& dst, const Image& cam0, const Image& cam1, const Matrix4f& P0, const Matrix4f& P1, float dmin, float dmax, float dt = 1.0f ) const;
+			void	apply( Image& dst, const Image& cam0, const Image& cam1, const Matrix4f& T, float dmin, float dmax, float dt = 1.0f ) const;
 			void	apply( const ParamSet* attribs, IFilterType iftype ) const {}
 
 		private:
