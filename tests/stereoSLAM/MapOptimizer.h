@@ -25,7 +25,7 @@ namespace cvt
 		_isRunning( false )
 	{
 		_termCrit.setCostThreshold( 0.5 );
-		_termCrit.setMaxIterations( 8 );
+		_termCrit.setMaxIterations( 10 );
 	}
 
 	inline MapOptimizer::~MapOptimizer()

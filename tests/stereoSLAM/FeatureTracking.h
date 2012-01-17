@@ -59,6 +59,9 @@ namespace cvt
         std::vector<size_t>::const_iterator tEnd = predictedFeatureIds.end();
         std::vector<Vector2f>::const_iterator  pred = predictedPositions.begin();
 
+		float avgDist = 0.0f;
+		size_t numMatched = 0;
+
 		// keep track of already assigned indices to avoid double associations
 		std::set<size_t> used;
         while( currentId != tEnd ){
@@ -66,6 +69,10 @@ namespace cvt
 			const ORBFeature & desc = _descriptors.descriptor( *currentId );
 			m.feature0 = &desc;
             matchInWindow( m, *pred, orb, used );
+			if( m.feature1 ){
+				numMatched++;
+				avgDist += ( *pred - m.feature1->pt ).length();
+			}
 			matches.push_back( m );
 			++currentId;
 			++pred;
