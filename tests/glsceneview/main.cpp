@@ -32,8 +32,8 @@ int main( int argc, char** argv )
 //	Matrix4f r;
 //	r.setRotationY( Math::deg2Rad( 45.0f ) );
 //	mesh->transform( r );
-//	mesh->calculateNormals();
-	mesh->scale( 0.001f );
+	mesh->calculateNormals( 5.0f, 2.0f );
+//	mesh->scale( 0.001f );
 	GLSceneView view( *( ( SceneMesh* ) s.geometry( index ) ) );
 
 	WidgetLayout wl;

@@ -7,8 +7,8 @@ namespace cvt {
 	static ParamInfoTyped<Image*> pin( "Input", true );
 	static ParamInfoTyped<Image*> pinguide( "Guide", true );
 	static ParamInfoTyped<Image*> pout( "Output", false );
-	static ParamInfoTyped<int>	  pradius( "Radius", false );
-	static ParamInfoTyped<float>  pepsilon( "Epsilon", false );
+	static ParamInfoTyped<int>	  pradius( "Radius", true );
+	static ParamInfoTyped<float>  pepsilon( "Epsilon", true );
 
 	static ParamInfo * _params[ 5 ] = {
 		&pin,

@@ -11,7 +11,8 @@ namespace cvt {
 	{
 		public:
 			CLBuffer( const CLContext& context, size_t size, cl_mem_flags flags = CL_MEM_READ_WRITE, void* host_ptr = NULL );
-			CLBuffer( size_t size_t, cl_mem_flags = CL_MEM_READ_WRITE );
+			CLBuffer( size_t size, cl_mem_flags = CL_MEM_READ_WRITE );
+			CLBuffer( void* data, size_t size, cl_mem_flags = CL_MEM_READ_WRITE );
 
 			CLUTIL_GETINFOTYPE( memType, CL_MEM_TYPE, cl_mem_object_type, _object, ::clGetMemObjectInfo )
 			CLUTIL_GETINFOTYPE( memFlags, CL_MEM_FLAGS, cl_mem_flags, _object, ::clGetMemObjectInfo )
