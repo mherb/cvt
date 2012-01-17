@@ -1,9 +1,10 @@
 #ifndef CVT_ORB_H
 #define CVT_ORB_H
 
-#include <cvt/vision/Feature2D.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/IntegralImage.h>
+#include <cvt/vision/Feature2D.h>
+#include <cvt/vision/BinaryDescriptor.h>
 #include <cvt/util/SIMD.h>
 #include <vector>
 #include <iostream>
@@ -15,15 +16,14 @@ namespace cvt {
         ORBFeature( float x, float y, float angle = 0.0f, size_t octave = 0, float score = 0.0f ) :
             Feature2Df( x, y, angle, octave, score )
         {
-			desc[ 0 ] = 0;
         }
 
 		size_t distance( const ORBFeature& f ) const
 		{
-			return SIMD::instance()->hammingDistance( desc, f.desc, 32 );
+			return SIMD::instance()->hammingDistance( desc.data(), f.desc.data(), desc.size() );
 		}
 
-		uint8_t desc[ 32 ]; // 256 bit vector
+		BinaryDescriptor<32> desc; // 256 bit vector
 	};
 
 
@@ -33,7 +33,7 @@ namespace cvt {
         out << " Score: " << feature.score;
 		out << "\nDescriptor: 0x";
 		for( int i = 0; i < 32; i++ )
-			out << std::hex << std::setfill( '0' ) << std::setw( 2 ) << (int)feature.desc[ i ];
+			out << std::hex << std::setfill( '0' ) << std::setw( 2 ) << (int)feature.desc.data()[ i ];
 		out << std::endl;
 		return out;
 	}
@@ -47,7 +47,6 @@ namespace cvt {
             ~ORB();
 
 			void update( const Image & img );
-
 			size_t size() const;
 			const ORBFeature& operator[]( size_t index ) const;
 

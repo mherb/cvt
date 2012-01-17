@@ -423,6 +423,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/PluginFile.h
 	util/Data.h
     util/DataIterator.h
+	vision/BinaryDescriptor.h
 	vision/Brief.h
 	vision/CameraCalibration.h
 	vision/DLT.h
