@@ -283,11 +283,11 @@ namespace cvt {
 										             y + _patterns[ index ][ ( n ) * 2 ][ 1 ] - 2, 5, 5, widthstep ) < \
 					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,\
 										             y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5, widthstep ) )
-
+		uint8_t* d = feature.desc.data();
 		for( int i = 0; i < 32; i++ ) {
-			feature.desc[ i ] = 0;
+			d[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				feature.desc[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
+				d[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
 			}
 		}
 		feature.pt /= _scaleFactors[ feature.octave ];

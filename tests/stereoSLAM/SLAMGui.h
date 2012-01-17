@@ -20,6 +20,7 @@ namespace cvt
 			~SLAMGui();
 
 			void setCurrentImage( const Image& img );
+			void setNumTrackedFeatures( size_t n );
 			void resizeEvent( ResizeEvent* event );
 			void updateStereoView( const Image& img );
 			void updateCameraPose( const Matrix4f & m );
@@ -113,8 +114,9 @@ namespace cvt
 		this->addWidget( &_slamMov );
 		_slamMov.setTitle( "3D View" );
 
-		_currentMov.setTitle( "Currently Tracked" );
 		_stereoMov.setTitle( "Last KF" );
+
+		setNumTrackedFeatures( 0 );
 
 		setVisible( true );
 	}
@@ -128,6 +130,14 @@ namespace cvt
 	{
 		_currentImg.setImage( img );
 		_imageAspect = (float)img.width() / (float)img.height();
+	}
+
+
+	inline void SLAMGui::setNumTrackedFeatures( size_t n )
+	{
+		String s;
+		s.sprintf( "Currently Tracked: %d", n );
+		_currentMov.setTitle( s );
 	}
 
 	inline void SLAMGui::updateStereoView( const Image& img )

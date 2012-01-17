@@ -56,6 +56,7 @@ namespace cvt
 			Signal<const SlamMap&>		mapChanged;	
 			Signal<const Matrix4f&>		newCameraPose;	
 			Signal<const Image&>		trackedPointsImage;	
+			Signal<size_t>				numTrackedPoints;	
 
 		private:
 			/* camera calibration data and undistortion maps */
@@ -129,21 +130,21 @@ namespace cvt
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 5.0f ),
-		_matcherMaxDescriptorDist( 60 ),
+		_matcherMaxLineDistance( 4.0f ),
+		_matcherMaxDescriptorDist( 80 ),
 		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 5.0f ),
-		_orbOctaves( 3 ), 
+		_maxTriangReprojError( 3.0f ),
+		_orbOctaves( 4 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 10 ),
-		_orbMaxFeatures( 600 ),
+		_orbCornerThreshold( 12 ),
+		_orbMaxFeatures( 800 ),
 		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 30.0f ),
+		_trackingSearchRadius( 25.0f ),
 		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
-		_minTrackedFeatures( 40 ),
+		_minTrackedFeatures( 50 ),
 		_activeKF( -1 ),
-		_minKeyframeDistance( 0.2 ),
-		_maxKeyframeDistance( 0.5 )
+		_minKeyframeDistance( 0.05 ),
+		_maxKeyframeDistance( 1.0 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -193,6 +194,7 @@ namespace cvt
 		//debugPatchWorkImage( matchedIndices, predictedIds, matchedFeatures );
 		createDebugImageMono( debug, p2d );
 		trackedPointsImage.notify( debug );
+		numTrackedPoints.notify( p2d.size() );
 
 		size_t numTrackedFeatures = p3d.size();
 		if( numTrackedFeatures > 6 ){
@@ -355,16 +357,16 @@ namespace cvt
 		EigenBridge::toEigen( Ke, K );
 		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
 		
-		Matrix4d m;
 		Eigen::Matrix4d me;
-	/*
+		/*
+		Matrix4d m;
 		EPnPd epnp( p3d );
 		epnp.solve( m, p2d, K );
 		
 		// from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
 		EigenBridge::toEigen( me, m );
 		me = extrC.inverse() * me;
-	*/
+		*/
 
 		me = _pose.transformation();		
 
@@ -382,10 +384,10 @@ namespace cvt
 			pointCorresp.add( p3, p2 );
 		}
 		
-		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 5.0 );
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
-		termCriteria.setCostThreshold( 0.001 );
+		termCriteria.setCostThreshold( 0.01 );
 		termCriteria.setMaxIterations( 10 );
 		lm.optimize( pointCorresp, costFunction, termCriteria );
 
