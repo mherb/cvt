@@ -78,7 +78,7 @@ namespace cvt {
 		_clcdconv.setArg( 0, dst );
 		_clcdconv.setArg( 1, *c[ !index ] );
 		_clcdconv.setArg( 2, 1.0f / ( dmax - dmin ) );
-		_clcdconv.setArg( 3, -dmin i / ( dmax - min ));
+		_clcdconv.setArg( 3, -dmin / ( dmax - min ));
 		_clcdconv.run( global, CLNDRange( 16, 16 ) );
 
 
