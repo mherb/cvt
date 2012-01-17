@@ -108,7 +108,7 @@ int main( int argc, char* argv[] )
 			    0.0f, 1.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img0, img1, , 20.0f, 1.0f );
+	stereogcv.apply( disp, img0, img1, T, 20.0f, 1.0f );
 	disp.save( "disparity.png" );
 
 	return 0;
