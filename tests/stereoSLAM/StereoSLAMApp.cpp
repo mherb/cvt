@@ -34,6 +34,9 @@ namespace cvt
 		
 		Delegate<void (const Image&)> d4( &_gui, &SLAMGui::setCurrentImage );
 		_slam.trackedPointsImage.add( d4 );
+
+		Delegate<void (size_t)> dnpts( &_gui, &SLAMGui::setNumTrackedFeatures );
+		_slam.numTrackedPoints.add( dnpts );
 		
 		Delegate<void (void)> d5( this, &StereoSLAMApp::saveMap );
 		_gui.setSaveButtonDelegate( d5 );
