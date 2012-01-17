@@ -8,11 +8,11 @@ namespace cvt
 		_near( 0.1f ),
 		_far( 100.0f ),
 		_numKeyframes( 0 ),
-		_maxKeyframes( 200 ),
+		_maxKeyframes( 500 ),
 		_numPoints( 0 ),
 		_maxPoints( 0 )
 	{
-		createGrid( 10 );
+		createGrid( 20 );
 		createAxes();
 		createKeyframeBuffer();
 
@@ -221,7 +221,9 @@ namespace cvt
 
 	void SLAMView::resetCameraView()
 	{
-		_rot = _cam;
+		Matrix4f R;
+		R.setRotationXYZ( 0, Math::PI, Math::PI );
+		_rot = R * _cam;
 		_rot.setTranslation( 0.0f, 0.0f, 0.0f );
 		_trans = _cam[ 2 ][ 3 ] - 1.0f;
 	}
@@ -274,5 +276,6 @@ namespace cvt
 	{
 		_cam.setIdentity();
 		_numPoints = 0;
+		_numKeyframes = 0;
 	}
 }
