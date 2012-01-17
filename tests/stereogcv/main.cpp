@@ -31,12 +31,12 @@ void loadCameraCalib( CameraCalibration& camCalib, const String& file )
 
 int main( int argc, char* argv[] )
 {
-/*	Resources r;
 
 	std::vector<CLPlatform> platforms;
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
+/*	Resources r;
 
 	String calib0 = r.find( "calib_stereo/ueye_stereo_4002738788.xml" );
 	String calib1 = r.find( "calib_stereo/ueye_stereo_4002738790.xml" );
@@ -96,9 +96,11 @@ int main( int argc, char* argv[] )
 //	tmp1.save("undistort1.png");
 */
 	StereoGCVFilter stereogcv;
-    Image i0, i1;
-	i0.load( argv[ 0 ] );
-	i1.load( argv[ 1 ] );
+    Image i0, i1, tmp;
+	tmp.load( argv[ 1 ] );
+	tmp.convert( i0, IFormat::RGBA_UINT8 );
+	tmp.load( argv[ 2 ] );
+	tmp.convert( i1, IFormat::RGBA_UINT8 );
 
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
@@ -108,7 +110,7 @@ int main( int argc, char* argv[] )
 			    0.0f, 1.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img0, img1, T, 20.0f, 1.0f );
+	stereogcv.apply( disp, img0, img1, T, 0.0f, 60.0f, 0.5f );
 	disp.save( "disparity.png" );
 
 	return 0;
