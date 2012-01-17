@@ -35,8 +35,8 @@ namespace cvt {
 	{
 		// FIXME: use buffer to perform calculation instead of CLImage
 //		CLBuffer buf( sizeof( cl_float ) * cam0.width() * cam0.height() * zsize );
+//		size_t zsize = ( dmax - dmin ) / dt;
 
-		size_t zsize = ( dmax - dmin ) / dt;
 		Image cost( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image costgf( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image c0( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
@@ -45,7 +45,6 @@ namespace cvt {
 		int index = 0;
 		float fill[ 4 ] = { 5.0f, 0.0f, 0.0f, 0.0f };
 
-		Matrix4f p = P1 * P0.pseudoInverse();
 		CLBuffer clproj( ( void* ) T.ptr(), sizeof( float ) * 12 );
 
 		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
@@ -78,7 +77,7 @@ namespace cvt {
 		_clcdconv.setArg( 0, dst );
 		_clcdconv.setArg( 1, *c[ !index ] );
 		_clcdconv.setArg( 2, 1.0f / ( dmax - dmin ) );
-		_clcdconv.setArg( 3, -dmin / ( dmax - min ));
+		_clcdconv.setArg( 3, -dmin / ( dmax - dmin ));
 		_clcdconv.run( global, CLNDRange( 16, 16 ) );
 
 
