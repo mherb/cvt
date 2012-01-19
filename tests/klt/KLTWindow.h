@@ -27,14 +27,14 @@ namespace cvt {
 	{
 		public:
 			//typedef GA2<float>			PoseType;
-			typedef Sim2<float>			PoseType;
-			//typedef Translation2D<float>	PoseType;
+			//typedef Sim2<float>			PoseType;
+			typedef Translation2D<float>	PoseType;
 			typedef KLTPatch<16, PoseType>	KLTPType;
 
 			KLTWindow( VideoInput & video ) :
 				_window( "KLT" ),	
 				_video( video ),
-				_klt( 10 ),
+				_klt( 3 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -105,8 +105,8 @@ namespace cvt {
 		std::vector<size_t>	  trackedIndices;
 	
 		_kltTime.reset();	
-		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
-		//_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
+		//_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
+		_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
@@ -217,9 +217,10 @@ namespace cvt {
 		size_t h = _pyramid[ 0 ].height();
 
 		IScaleFilterBilinear filter;
+		float scale = 0.7f;
 		for( size_t i = 1; i < _pyramid.size(); i++ ){
-			w >>= 1;
-			h >>= 1;
+			w *= scale;
+			h *= scale;
 			_pyramid[ i - 1 ].scale( _pyramid[ i ], w, h, filter );
 		}
 	}
