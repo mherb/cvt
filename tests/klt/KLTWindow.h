@@ -14,6 +14,7 @@
 #include <cvt/util/EigenBridge.h>
 
 #include <cvt/math/Translation2D.h>
+#include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
 #include "KLTTracker.h"
@@ -26,13 +27,14 @@ namespace cvt {
 	{
 		public:
 			//typedef GA2<float>			PoseType;
-			typedef Translation2D<float>	PoseType;
+			typedef Sim2<float>			PoseType;
+			//typedef Translation2D<float>	PoseType;
 			typedef KLTPatch<16, PoseType>	KLTPType;
 
 			KLTWindow( VideoInput & video ) :
 				_window( "KLT" ),	
 				_video( video ),
-				_klt( 3 ),
+				_klt( 10 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -103,8 +105,8 @@ namespace cvt {
 		std::vector<size_t>	  trackedIndices;
 	
 		_kltTime.reset();	
-		//_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
-		_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
+		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
+		//_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
