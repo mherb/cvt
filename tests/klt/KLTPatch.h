@@ -2,15 +2,16 @@
 #define CVT_KLT_PATCH_H
 
 #include <cvt/math/Translation2D.h>
+#include <Eigen/Dense>
 
 namespace cvt
 {
-	template <size_t pSize>
+	template <size_t pSize, class PoseType>
 	class KLTPatch
 	{
 		public:
-			typedef Eigen::Matrix<float, 2, 2> HessType;
-			typedef Eigen::Matrix<float, 2, 1> JacType;
+			typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
+			typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>				   JacType;
 
 			KLTPatch();
 
@@ -24,7 +25,7 @@ namespace cvt
 			const JacType*   jacobians()	  const { return _jac; }
 
 
-			static void extractPatches( std::vector<KLTPatch<pSize> > & patches,
+			static void extractPatches( std::vector<KLTPatch<pSize, PoseType> > & patches,
 									    const std::vector<Vector2f> & positions, 
 										const Image & img );
 
@@ -35,13 +36,13 @@ namespace cvt
 			JacType		_jac[ pSize * pSize ];
 	};
 
-	template <size_t pSize>
-	inline KLTPatch<pSize>::KLTPatch()
+	template <size_t pSize, class PoseType>
+	inline KLTPatch<pSize, PoseType>::KLTPatch()
 	{
 	}
 
-	template <size_t pSize>
-	inline bool KLTPatch<pSize>::update( const uint8_t* ptr, size_t stride )
+	template <size_t pSize, class PoseType>
+	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* ptr, size_t stride )
 	{
 		const uint8_t* nextLine = ptr + stride;
 
@@ -52,8 +53,8 @@ namespace cvt
 
 		Eigen::Matrix<float, 2, 1> g;
 		HessType hess( HessType::Zero() );
-		Translation2D<float> pose;
-		Translation2D<float>::ScreenJacType sj;
+		PoseType pose;
+		typename PoseType::ScreenJacType sj;
 
 		size_t hsize = pSize >> 1;
 		Eigen::Vector2f point;
@@ -81,15 +82,17 @@ namespace cvt
 		}
 
 		bool invertable = true;
-		hess.computeInverseWithCheck( _inverseHessian, invertable );
+		_inverseHessian = hess.inverse();
+		if( ( _inverseHessian * hess - HessType::Identity() ).array().sum() / PoseType::NPARAMS > 1.01 )
+			invertable = false;
 
 		return invertable;
 	}
 
-	template <size_t pSize>
-	inline void KLTPatch<pSize>::extractPatches( std::vector<KLTPatch<pSize> > & patches,
-												 const std::vector<Vector2f> & positions, 
-												 const Image & img )
+	template <size_t pSize, class PoseType>
+	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType> > & patches,
+														   const std::vector<Vector2f> & positions, 
+														   const Image & img )
 	{
 		size_t s;
 		const uint8_t* ptr = img.map( &s );
@@ -113,7 +116,7 @@ namespace cvt
 			const uint8_t* p = ptr + y * s + x;
 
 			if( lastGood )
-				patches.push_back( KLTPatch<pSize>() );
+				patches.push_back( KLTPatch<pSize, PoseType>() );
 
 			patches.back().position() = positions[ i ];
 			lastGood = patches.back().update( p, s );
