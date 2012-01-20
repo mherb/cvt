@@ -22,7 +22,7 @@
 
 #include "ORBStereoMatching.h"
 #include "DescriptorDatabase.h"
-#include "FeatureTracking.h"
+#include "ORBTracking.h"
 #include "MapOptimizer.h"
 #include "FeatureAnalyzer.h"
 
@@ -85,7 +85,7 @@ namespace cvt
 			// FeatureTracker (single view)
 			DescriptorDatabase<ORBFeature>	_descriptorDatabase;
 			float				_trackingSearchRadius;
-		    FeatureTracking		_featureTracking;
+		    ORBTracking			_featureTracking;
 			// minimum needed features before new keyframe is added
 			size_t				_minTrackedFeatures;
 
