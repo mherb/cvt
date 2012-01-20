@@ -17,7 +17,7 @@
 #include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
-#include "KLTTracker.h"
+#include <cvt/vision/KLTTracker.h>
 
 #include <cvt/gfx/GFXEngineImage.h>
 

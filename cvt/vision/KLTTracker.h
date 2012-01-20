@@ -5,7 +5,7 @@
 #include <cvt/gfx/Image.h>
 #include <vector>
 
-#include "KLTPatch.h"
+#include <cvt/vision/KLTPatch.h>
 #include <cvt/math/Translation2D.h>
 #include <cvt/util/EigenBridge.h>
 
