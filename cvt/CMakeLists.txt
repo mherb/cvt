@@ -451,6 +451,8 @@ SET(${MODULE_NAME}_HEADERS
 	vision/IntegralImage.h
 	vision/Flow.h
 	vision/HCalibration.h
+	vision/KLTPatch.h
+	vision/KLTTracker.h
 	vision/LSH.h
 	vision/MeasurementModel.h
 	vision/ORB.h
