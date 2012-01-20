@@ -8,6 +8,7 @@
 
 #include "StereoSLAM.h"
 #include "SLAMGui.h"
+#include "FeatureTracking.h"
 
 namespace cvt
 {
@@ -30,6 +31,7 @@ namespace cvt
 
 		private:
 			std::vector<VideoInput*> _cams;
+			FeatureTracking*		 _featureTracking;
 			StereoSLAM				 _slam;
 			Image					 _img0, _img1;
 
