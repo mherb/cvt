@@ -25,7 +25,7 @@ namespace cvt
 			const JacType*   jacobians()	  const { return _jac; }
 
 
-			static void extractPatches( std::vector<KLTPatch<pSize, PoseType> > & patches,
+			static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
 									    const std::vector<Vector2f> & positions, 
 										const Image & img );
 
@@ -90,7 +90,7 @@ namespace cvt
 	}
 
 	template <size_t pSize, class PoseType>
-	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType> > & patches,
+	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
 														   const std::vector<Vector2f> & positions, 
 														   const Image & img )
 	{
@@ -116,14 +116,16 @@ namespace cvt
 			const uint8_t* p = ptr + y * s + x;
 
 			if( lastGood )
-				patches.push_back( KLTPatch<pSize, PoseType>() );
+				patches.push_back( new KLTPatch<pSize, PoseType>() );
 
-			patches.back().position() = positions[ i ];
-			lastGood = patches.back().update( p, s );
+			patches.back()->position() = positions[ i ];
+			lastGood = patches.back()->update( p, s );
 		}
 
-		if( !lastGood )
+		if( !lastGood ){
+			delete patches.back();
 			patches.pop_back();
+		}
 
 		img.unmap( ptr );
 	}
