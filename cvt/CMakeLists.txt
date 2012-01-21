@@ -126,18 +126,24 @@ SET( CL_KERNELS
 	cl/kernel/clear.cl
 	cl/kernel/fill.cl
 	cl/kernel/gradx.cl
+	cl/kernel/gradxy.cl
 	cl/kernel/median3.cl
 	cl/kernel/fgp/fgp.cl
 	cl/kernel/fgp/fgp_data.cl
+	cl/kernel/boxfilter/boxfilter_prefixsum.cl
+	cl/kernel/boxfilter/boxfilter.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
+	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
-	cl/kernel/prefixsum/prefixsum_boxfilter.cl
 	cl/kernel/guidedfilter/guidedfilter_calcab.cl
-	cl/kernel/guidedfilter/guidedfilter_applyab.cl
+	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl
 	cl/kernel/pyr/pyrdown_binom3.cl
 	cl/kernel/pyr/pyrdown_binom5.cl
 	cl/kernel/pyr/pyrup.cl
@@ -158,18 +164,24 @@ CLTOHEADER( cl/kernel/BC.cl )
 CLTOHEADER( cl/kernel/clear.cl )
 CLTOHEADER( cl/kernel/fill.cl )
 CLTOHEADER( cl/kernel/gradx.cl )
+CLTOHEADER( cl/kernel/gradxy.cl )
 CLTOHEADER( cl/kernel/median3.cl )
 CLTOHEADER( cl/kernel/fgp/fgp.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
+CLTOHEADER( cl/kernel/boxfilter/boxfilter_prefixsum.cl )
+CLTOHEADER( cl/kernel/boxfilter/boxfilter.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
 CLTOHEADER( cl/kernel/pyr/pyrup.cl )
@@ -209,17 +221,23 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/fill.h
 	cl/kernel/median3.h
 	cl/kernel/gradx.h
+	cl/kernel/gradxy.h
 	cl/kernel/fgp/fgp.h
 	cl/kernel/fgp/fgp_data.h
+	cl/kernel/boxfilter/boxfilter_prefixsum.h
+	cl/kernel/boxfilter/boxfilter.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
+	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h
-	cl/kernel/prefixsum/prefixsum_boxfilter.h
 	cl/kernel/guidedfilter/guidedfilter_calcab.h
-	cl/kernel/guidedfilter/guidedfilter_applyab.h
+	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_cc.h
 	cl/kernel/pyr/pyrdown_binom3.h
 	cl/kernel/pyr/pyrdown_binom5.h
 	cl/kernel/pyr/pyrdown.h

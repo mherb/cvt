@@ -8,11 +8,12 @@ namespace cvt {
 	class BoxFilter : public IFilter {
 		public:
 			BoxFilter();
-			void apply( Image& dst, const Image& src, const int r  ) const;
+			void apply( Image& dst, const Image& src, const int r, bool integral = true ) const;
 			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
 
 		private:
-			CLKernel _clprefixsum_boxfilter;
+			CLKernel _clboxfilter_prefixsum;
+			CLKernel _clboxfilter;
 	};
 }
 

@@ -19,7 +19,7 @@
 }*/
 
 
-__kernel void prefixsum_boxfilter( __write_only image2d_t out,  __read_only image2d_t in, const int r )
+__kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only image2d_t in, const int r )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int width = get_image_width( out );

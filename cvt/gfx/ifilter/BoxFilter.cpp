@@ -1,6 +1,7 @@
 #include <cvt/gfx/ifilter/BoxFilter.h>
 
-#include <cvt/cl/kernel/prefixsum/prefixsum_boxfilter.h>
+#include <cvt/cl/kernel/boxfilter/boxfilter_prefixsum.h>
+#include <cvt/cl/kernel/boxfilter/boxfilter.h>
 
 namespace cvt {
 	static ParamInfoTyped<Image*> pin( "Input", true );
@@ -15,17 +16,27 @@ namespace cvt {
 
 	BoxFilter::BoxFilter() :
 		IFilter( "BoxFilter", _params, 3, IFILTER_CPU | IFILTER_OPENCL ),
-		_clprefixsum_boxfilter( _prefixsum_boxfilter_source, "prefixsum_boxfilter" )
+		_clboxfilter_prefixsum( _boxfilter_prefixsum_source, "boxfilter_prefixsum" ),
+		_clboxfilter( _boxfilter_source, "boxfilter" )
 	{
 	}
 
-	void BoxFilter::apply( Image& dst, const Image& src, const int radius ) const
+	void BoxFilter::apply( Image& dst, const Image& src, const int radius, bool integral ) const
 	{
-		_clprefixsum_boxfilter.setArg( 0, dst );
-		_clprefixsum_boxfilter.setArg( 1, src );
-		_clprefixsum_boxfilter.setArg( 2, radius );
+		dst.reallocate( src.width(), src.height(), src.format(), IALLOCATOR_CL );
 		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
-		_clprefixsum_boxfilter.run( global, _clprefixsum_boxfilter.bestLocalRange2d( global ) );
+		if( integral ) {
+			_clboxfilter_prefixsum.setArg( 0, dst );
+			_clboxfilter_prefixsum.setArg( 1, src );
+			_clboxfilter_prefixsum.setArg( 2, radius );
+			_clboxfilter_prefixsum.run( global, CLNDRange( 16, 16 ) );
+		} else {
+			_clboxfilter.setArg( 0, dst );
+			_clboxfilter.setArg( 1, src );
+			_clboxfilter.setArg( 2, radius );
+			_clboxfilter.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( 16 + radius ) * ( 16 * radius ) ) );
+			_clboxfilter.run( global, CLNDRange( 16, 16 ) );
+		}
 	}
 
 	void BoxFilter::apply( const ParamSet* set, IFilterType t ) const

@@ -12,7 +12,7 @@ __kernel void stereogcv_costdepthconv( __write_only image2d_t out, __read_only i
 		return;
 
 	float4 value = read_imagef( cd, sampler, coord );
-	if( value.y >= 30.0f )
+	if( value.y >= 1.0f )
 		write_imagef( out, coord, ( float4 ) ( 0.0f ) );
 	else
 		write_imagef( out, coord, ( float4 ) ( value.y * scale + add ) );
