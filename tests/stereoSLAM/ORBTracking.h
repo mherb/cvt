@@ -25,8 +25,6 @@ namespace cvt
 								const SE3<double>&	pose,
                                 const Image&		img );
 
-			bool checkFeature( const FeatureMatch & match, const Image & i0, const Image & i1 ) const;
-
 			size_t triangulateNewFeatures( SlamMap& map, 
 										   const SE3<double>& pose, 
 										   const Image& first, 
@@ -66,9 +64,6 @@ namespace cvt
 													 const SlamMap & map, 
 													 const Image& img );
 
-			float triangulate( MapFeature& feature, 
-							   const FeatureMatch & match,
-							   const SE3<double> & currentPose ) const;
 	};
 
 	inline ORBTracking::ORBTracking( const CameraCalibration & c0, const CameraCalibration & c1 ) :
@@ -156,91 +151,6 @@ namespace cvt
 		}
     }
 
-
-	inline bool ORBTracking::checkFeature( const FeatureMatch & match, const Image & i0, const Image & i1 ) const
-	{
-		size_t s0, s1;
-		const uint8_t* ptr0 = i0.map( &s0 );
-		const uint8_t* ptr1 = i1.map( &s1 );
-
-		const uint8_t* p0 = ptr0 + ( (int)match.feature0->pt.y - 8 ) * s0 + ( (int)match.feature0->pt.x - 8 );
-		const uint8_t* p1 = ptr1 + ( (int)match.feature1->pt.y - 8 ) * s1 + ( (int)match.feature1->pt.x - 8 );
-
-		float sad = 0;
-		for( size_t i = 0; i < 16; i++ ){	
-			sad += SIMD::instance()->SAD( p0, p1, 16 );
-			p0 += s0;
-			p1 += s1;
-		}
-
-		i0.unmap( ptr0 );
-		i1.unmap( ptr1 );
-
-		// average & normalize
-		sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
-		
-		if( sad > 0.7f )
-			return true;
-		return false;
-	}
-
-
-	inline float ORBTracking::triangulate( MapFeature& feature, 
-										   const FeatureMatch & match,
-										   const SE3<double> & currentPose ) const
-	{
-		Vector4f tmp;
-		Vector4f repr;
-		Vector2f repr2, p0, p1;
-
-		p0 = match.feature0->pt;
-		p1 = match.feature1->pt;
-
-		Vision::correctCorrespondencesSampson( p0, 
-											   p1, 
-											  _stereoMatcher.fundamental() );
-
-		Vision::triangulate( tmp,
-							_camCalib0.projectionMatrix(),
-							_camCalib1.projectionMatrix(),
-							p0,
-							p1 );
-			
-		// normalize 4th coord;
-		tmp /= tmp.w;
-		if( tmp.z > 0.0f && tmp.z < 20 ){
-			float error = 0.0f;
-
-			repr = _camCalib0.projectionMatrix() * tmp;
-			repr2.x = repr.x / repr.z;
-			repr2.y = repr.y / repr.z;
-
-			error += ( match.feature0->pt - repr2 ).length();
-
-			repr = _camCalib1.projectionMatrix() * tmp;
-			repr2.x = repr.x / repr.z;
-			repr2.y = repr.y / repr.z;
-			error += ( match.feature1->pt - repr2 ).length();
-
-			error /= 2.0f;
-
-			if( error < _maxTriangReprojError ){
-				Eigen::Vector4d & np = feature.estimate();
-				np[ 0 ] = tmp.x;
-				np[ 1 ] = tmp.y;
-				np[ 2 ] = tmp.z;
-				np[ 3 ] = tmp.w;
-
-				// transform to world coordinates
-				// TODO: do the inversion only once outside this call give the right transformation in here!
-				np = currentPose.transformation().inverse() * np;
-			}
-			return error;
-		} 
-		
-		return _maxTriangReprojError;
-	}
-
 	inline size_t ORBTracking::triangulateNewFeatures( SlamMap& map,
 													   const SE3<double> & pose,
 													   const Image & firstView,
@@ -288,18 +198,33 @@ namespace cvt
 				++tracked;
 			}
 
-			std::vector<size_t> matchedStereoIndices;
+			Vector2f p0, p1;
+			Vector4f pNew;
+
+			Eigen::Matrix4d poseInv = pose.transformation().inverse();
 			for( size_t i = 0; i < stereoMatches.size(); i++ ){
-				if( stereoMatches[ i ].feature1 ){
-					if( checkFeature( stereoMatches[ i ], firstView, secondView ) ){
-						float reprErr = triangulate( mapFeat, stereoMatches[ i ], pose );
+				const FeatureMatch& match = stereoMatches[ i ];
+				if( match.feature1 ){
+					if( checkFeatureSAD( match.feature0->pt, match.feature1->pt, firstView, secondView ) ){
+						p0 = stereoMatches[ i ].feature0->pt;
+						p1 = stereoMatches[ i ].feature1->pt;
+						Vision::correctCorrespondencesSampson( p0, p1, _stereoMatcher.fundamental() );
+
+						float reprErr = triangulateSinglePoint( pNew, p0, p1, _camCalib0.projectionMatrix(), _camCalib1.projectionMatrix() );
 						if( reprErr < _maxTriangReprojError ){
-							meas.point[ 0 ] = stereoMatches[ i ].feature0->pt.x;
-							meas.point[ 1 ] = stereoMatches[ i ].feature0->pt.y;
+							meas.point[ 0 ] = p0.x;
+							meas.point[ 1 ] = p0.y;
+
+							Eigen::Vector4d & point = mapFeat.estimate();
+							point[ 0 ] = pNew[ 0 ];
+							point[ 1 ] = pNew[ 1 ];
+							point[ 2 ] = pNew[ 2 ];
+							point[ 3 ] = pNew[ 3 ];
+							point = poseInv * point;
+
 							size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
 							_descriptors.addDescriptor( *( ORBFeature* )stereoMatches[ i ].feature0, newPointId );
 							numNew++;
-							matchedStereoIndices.push_back( i );
 						}
 					}
 				}
@@ -322,15 +247,15 @@ namespace cvt
 				// got a match so add it to the point sets
 				const MapFeature & mapFeat = map.featureForId( _predictedIds[ i ] );
 				size_t keyframeId = *( mapFeat.pointTrackBegin() );
-				if( checkFeature( _trackedInFirst[ i ], 
-								  map.keyframeForId( keyframeId ).image(),
-								  img ) ) {
+				const FeatureMatch& match = _trackedInFirst[ i ];
+				if( checkFeatureSAD( match.feature0->pt, match.feature1->pt, 
+									 map.keyframeForId( keyframeId ).image(), img ) ) {
 					p3.x = mapFeat.estimate().x(); 
 					p3.y = mapFeat.estimate().y(); 
 					p3.z = mapFeat.estimate().z();
 					p3d.add( p3 );
-					p2.x = _trackedInFirst[ i ].feature1->pt.x;
-					p2.y = _trackedInFirst[ i ].feature1->pt.y;
+					p2.x = match.feature1->pt.x;
+					p2.y = match.feature1->pt.y;
 					p2d.add( p2 );
 					matchedIndices.insert( i );
 				}

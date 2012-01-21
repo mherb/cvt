@@ -41,7 +41,6 @@ namespace cvt {
 
 			void set( T tx, T ty );
 			void set( const Matrix3<T> & mat );
-			void set( const MatrixType & mat );
 			
 			/**
 			 *	\brief apply delta parameters 
