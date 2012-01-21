@@ -6,6 +6,7 @@
 #include <cvt/cl/CLKernel.h>
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/gfx/ifilter/StereoGCVFilter.h>
+#include <cvt/gfx/ifilter/BoxFilter.h>
 #include <cvt/io/Resources.h>
 #include <cvt/io/xml/XMLDocument.h>
 #include <cvt/vision/CameraCalibration.h>
@@ -102,15 +103,16 @@ int main( int argc, char* argv[] )
 	tmp.load( argv[ 2 ] );
 	tmp.convert( i1, IFormat::RGBA_UINT8 );
 
+
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
 
 	Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-	Matrix4f T( 1.0f, 0.0f, 1.0f, 0.0f,
+	Matrix4f T( 1.0f, 0.0f, 100.0f, 0.0f,
 			    0.0f, 1.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img0, img1, T, 0.0f, 60.0f, 0.5f );
+	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / 100.0f );
 	disp.save( "disparity.png" );
 
 	return 0;

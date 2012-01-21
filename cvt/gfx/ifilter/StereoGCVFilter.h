@@ -20,7 +20,7 @@ namespace cvt {
 			CLKernel		_cldepthmin;
 			CLKernel		_clfill;
 			CLKernel		_clcdconv;
-			CLKernel		_clgradx;
+			CLKernel		_clgrad;
 //			CLKernel		_cldepthrefine;
 			GuidedFilter	_gf;
 	};

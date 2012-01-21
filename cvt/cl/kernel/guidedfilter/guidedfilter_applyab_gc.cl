@@ -1,4 +1,4 @@
-__kernel void guidedfilter_applyab( __write_only image2d_t imgout,  __read_only image2d_t imgin, __read_only image2d_t imga, __read_only image2d_t imgb )
+__kernel void guidedfilter_applyab_gc( __write_only image2d_t imgout,  __read_only image2d_t imgin, __read_only image2d_t imga, __read_only image2d_t imgb )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int width = get_image_width( imgout );
@@ -14,6 +14,8 @@ __kernel void guidedfilter_applyab( __write_only image2d_t imgout,  __read_only 
 	b = read_imagef( imgb, sampler, coord );
 
 	out = a * in + b;
+	out = ( float4 ) dot( out, ( float4 ) ( 0.3333f, 0.3333f, 0.3333f, 0.0f ) );
+	out.w = 1.0f;
 
 	if( coord.x < width && coord.y < height )
 		write_imagef( imgout, coord, out );

@@ -1,5 +1,5 @@
-#define COSTMAX 50.0f
-#define COSTTHRESHOLD 49.0f
+#define COSTMAX 1.0f
+#define COSTTHRESHOLD 1.0f
 
 __kernel void stereogcv_costdepth( __write_only image2d_t costout, __read_only image2d_t img0, __read_only image2d_t img1, __read_only global float4* proj, float depth )
 {

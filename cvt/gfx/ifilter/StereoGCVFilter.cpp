@@ -30,7 +30,7 @@ namespace cvt {
 		_cldepthmin( _costmin_source, "stereogcv_costmin" ),
 		_clfill( _fill_source, "fill" ),
 		_clcdconv( _costdepthconv_source, "stereogcv_costdepthconv" ),
-		_clgradx( _gradx_source, "gradx" )
+		_clgrad( _gradx_source, "gradx" )
 	{
 	}
 
@@ -43,18 +43,20 @@ namespace cvt {
 
 		Image cost( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image costgf( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
-		Image c0( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
-		Image c1( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
+		Image c0( cam0.width(), cam0.height(), IFormat::GRAYALPHA_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
+		Image c1( cam0.width(), cam0.height(), IFormat::GRAYALPHA_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image g0( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image g1( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
-		Image guide( cam0.width(), cam0.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
-		cam0.convert( guide );
 
 		Image* c[ 2 ] = { &c0, &c1 };
 		int index = 0;
-		float fill[ 4 ] = { 50.0f, dmax, 0.0f, 0.0f };
+		float fill[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 		CLBuffer clproj( ( void* ) T.ptr(), sizeof( float ) * 12 );
+		Matrix4f Tinv( T );
+		Tinv[ 0 ][ 2 ] = -Tinv[ 0 ][ 2 ];
+		CLBuffer clprojinv( ( void* ) Tinv.ptr(), sizeof( float ) * 12 );
+
 
 		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
 
@@ -62,28 +64,28 @@ namespace cvt {
 		_clfill.setArg( 1, sizeof( cl_float ) * 4, fill );
 		_clfill.run( global, CLNDRange( 16, 16 ) );
 
-		_clgradx.setArg( 0, g0 );
-		_clgradx.setArg( 1, cam0 );
-		_clgradx.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 18 * 16 ) );
-		_clgradx.run( global, CLNDRange( 16, 16 ) );
+		_clgrad.setArg( 0, g0 );
+		_clgrad.setArg( 1, cam0 );
+		_clgrad.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 18 * 16 ) );
+		_clgrad.run( global, CLNDRange( 16, 16 ) );
 
-		_clgradx.setArg( 0, g1 );
-		_clgradx.setArg( 1, cam1 );
-		_clgradx.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 18 * 16 ) );
-		_clgradx.run( global, CLNDRange( 16, 16 ) );
+		_clgrad.setArg( 0, g1 );
+		_clgrad.setArg( 1, cam1 );
+		_clgrad.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * 18 * 16 ) );
+		_clgrad.run( global, CLNDRange( 16, 16 ) );
 
 
 		for( float d = dmin; d <= dmax; d += dt ) {
 			_cldepthcostgrad.setArg( 0, cost );
-			_cldepthcostgrad.setArg( 1, cam0 );
-			_cldepthcostgrad.setArg( 2, cam1 );
-			_cldepthcostgrad.setArg( 3, g0 );
-			_cldepthcostgrad.setArg( 4, g1 );
-			_cldepthcostgrad.setArg( 5, clproj );
+			_cldepthcostgrad.setArg( 1, cam1 );
+			_cldepthcostgrad.setArg( 2, cam0 );
+			_cldepthcostgrad.setArg( 3, g1 );
+			_cldepthcostgrad.setArg( 4, g0 );
+			_cldepthcostgrad.setArg( 5, clprojinv );
 			_cldepthcostgrad.setArg( 6, d );
 			_cldepthcostgrad.run( global, CLNDRange( 16, 16 ) );
 
-			_gf.apply( costgf, cost, guide, 5, 0.001f );
+			_gf.apply( costgf, cost, cam1, 9, 1e-4f, true );
 
 			_cldepthmin.setArg( 0, *c[ index ] );
 			_cldepthmin.setArg( 1, costgf );
