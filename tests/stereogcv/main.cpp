@@ -103,16 +103,20 @@ int main( int argc, char* argv[] )
 	tmp.load( argv[ 2 ] );
 	tmp.convert( i1, IFormat::RGBA_UINT8 );
 
+	float D = 100.0f;
+	if( argc >= 4 )
+		D = String( argv[ 3 ] ).toFloat();
+
 
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
 
 	Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-	Matrix4f T( 1.0f, 0.0f, 100.0f, 0.0f,
+	Matrix4f T( 1.0f, 0.0f, D, 0.0f,
 			    0.0f, 1.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / 100.0f );
+	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / D );
 	disp.save( "disparity.png" );
 
 	return 0;
