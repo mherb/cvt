@@ -52,9 +52,9 @@ namespace cvt
 	inline KLTTracking::KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_stereoMatcher( 3.0f/*maxLineDist*/, 30 /*maxDescdist*/, c0, c1 ),
+		_stereoMatcher( 5.0f/*maxLineDist*/, 50 /*maxDescdist*/, c0, c1 ),
 		_maxTriangReprojError( 2.0f ),
-		_klt( 5 )
+		_klt( 10 )
 	{
 	}
 
@@ -126,8 +126,8 @@ namespace cvt
 													   const Image& first, 
 													   const Image& second )
 	{
-		ORB orb0( first, 1, 1.0f, 30, 1000, true );
-		ORB orb1( second, 1, 1.0f, 30, 1000, true );
+		ORB orb0( first, 1, 0.5f, 20, 2000, true );
+		ORB orb1( second, 1, 0.5f, 20, 2000, true );
 
 
 		// find stereoMatches by avoiding already found matches
@@ -135,7 +135,7 @@ namespace cvt
 		for( size_t i = 0; i < orb0.size(); i++ ){
 			const Vector2f& po = orb0[ i ].pt;
 			for( size_t k = 0; k < _trackedPositions.size(); k++ ){
-				if( ( po - _trackedPositions[ k ] ).lengthSqr() < 25.0f ){
+				if( ( po - _trackedPositions[ k ] ).lengthSqr() < 300.0f ){
 					doNotUse.insert( i );
 					break;
 				}
@@ -197,14 +197,11 @@ namespace cvt
 
 							size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
 
-							std::cout << newPointId << std::endl;
-
 							// add new patch:
 							_patchForId.push_back( new PatchType() );
 
-							const Vector2f& pos = _trackedPositions[ i ];
-							_patchForId[ newPointId ]->position() = pos;
-							_patchForId[ newPointId ]->update( ptr + ( ( int )pos.y * stride - 8 ) + ( int )pos.x - 8, stride );
+							_patchForId[ newPointId ]->position() = p0;
+							_patchForId[ newPointId ]->update( ptr + ( ( int )p0.y * stride - 8 ) + ( int )p0.x - 8, stride );
 
 							numNew++;
 						}

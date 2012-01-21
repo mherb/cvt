@@ -178,7 +178,7 @@ namespace cvt
 			size_t kId = map.addKeyframe( pose.transformation() );
 
 			Keyframe & keyframe = map.keyframeForId( kId );
-			keyframe.setImage( secondView );
+			keyframe.setImage( firstView );
 
 			MapMeasurement meas;
 			// meas.information *= ( 1.0 / _trackingSearchRadius );

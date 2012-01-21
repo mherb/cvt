@@ -80,7 +80,7 @@ namespace cvt {
 			double						_kltTimeSum;
 			size_t						_kltIters;
 
-			std::vector<KLTPType>		_patches;
+			std::vector<KLTPType*>		_patches;
 			std::vector<PoseType>		_poses;
 			Time						_time;
 			double						_fps;
@@ -151,7 +151,7 @@ namespace cvt {
 			size_t idx;
 			for( size_t i = 0; i < indices.size(); i++ ){
 				idx = indices[ i ];
-				p0 = _patches[ idx ].position();
+				p0 = _patches[ idx ]->position();
 				p[ 0 ] = p0[ 0 ]; p[ 1 ] = p0[ 1 ];
 				
 				_poses[ idx ].transformInverse( pp, p );
@@ -170,7 +170,7 @@ namespace cvt {
 
 
 		for( size_t i = 0; i < _patches.size(); i++ ){
-			const Vector2f & p = _patches[ i ].position();
+			const Vector2f & p = _patches[ i ]->position();
 
 			std::vector<Vector2f>::iterator it = features.begin();
 			while( it != features.end() ){
@@ -192,23 +192,28 @@ namespace cvt {
 
 	inline void KLTWindow::removeLost( const std::vector<size_t> & trackedIndices )
 	{
-		size_t savePos = 0;
-
 		std::vector<size_t>::const_iterator idx = trackedIndices.begin();
 		const std::vector<size_t>::const_iterator idxEnd = trackedIndices.end();
 
+		size_t savePos = 0;
 		while( idx != idxEnd ){
 			if( savePos != *idx ){
+				// savepos is lost, swap it:
+				KLTPType* lost = _patches[ savePos ];
 				_patches[ savePos ] = _patches[ *idx ];
+				_patches[ *idx ] = lost;
+
 				_poses[ savePos ] = _poses[ *idx ];
 			}
 			savePos++;
 			idx++;
 		}
 
-		_patches.erase( _patches.begin() + trackedIndices.size(), _patches.end() );		
+		for( size_t i = savePos; i < _patches.size(); i++ ){
+			delete _patches[ i ];
+		}
+		_patches.erase( _patches.begin() + trackedIndices.size(), _patches.end() );
 		_poses.erase( _poses.begin() + trackedIndices.size(), _poses.end() );		
-		
 	}
 
 	inline void KLTWindow::createPyramid()

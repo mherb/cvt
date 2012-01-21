@@ -21,12 +21,12 @@ namespace cvt
 
 			void trackFeatures( std::vector<size_t> & trackedIndices,
 							    std::vector<PoseType> & poses,
-							    const std::vector<KLTPType>& patches,
+							    const std::vector<KLTPType*>& patches,
 							    const Image& current );
 
 			void trackMultiscale( std::vector<size_t> & trackedIndices,
 								  std::vector<PoseType> & poses,
-								  const std::vector<KLTPType>& patches,
+								  const std::vector<KLTPType*>& patches,
 								  const std::vector<Image>& pyramid );
 
 		private:
@@ -63,7 +63,7 @@ namespace cvt
 	template <class PoseType>
 	inline void KLTTracker<PoseType>::trackFeatures( std::vector<size_t> & trackedIndices,
 									std::vector<PoseType> & poses,
-									const std::vector<KLTPType>& patches,
+									const std::vector<KLTPType*>& patches,
 									const Image& current )
 	{
 		size_t currStride;
@@ -72,21 +72,20 @@ namespace cvt
 		size_t w = current.width();
 		size_t h = current.height();	
 
-		Vector2f p;
 		Eigen::Vector2f pp;
 		Eigen::Vector2f p2;
 		for( size_t i = 0; i < patches.size(); i++ ){
 			// track each single feature
 			PoseType & pose = poses[ i ];
-			p = patches[ i ].position();
+			const KLTPType& patch = *patches[ i ];
 
-			EigenBridge::toEigen( p2, p );
+			EigenBridge::toEigen( p2, patch.position() );
 		   	pose.transformInverse( pp, p2 );
 			if( !checkBounds( pp, w, h ) ){
 				continue;
 			}
 
-			if( trackSinglePatch( pose, patches[ i ].position(), patches[ i ], currImgPtr, currStride, w, h ) ){
+			if( trackSinglePatch( pose, patch.position(), patch, currImgPtr, currStride, w, h ) ){
 				trackedIndices.push_back( i );
 			}
 		}
@@ -160,7 +159,7 @@ namespace cvt
 	template <class PoseType>
 	inline void KLTTracker<PoseType>::trackMultiscale( std::vector<size_t> & trackedIndices,
 									  std::vector<PoseType> & poses,
-									  const std::vector<KLTPType>& patches,
+									  const std::vector<KLTPType*>& patches,
 									  const std::vector<Image>& pyramid )
 	{
 		int i = pyramid.size() - 1;
@@ -181,8 +180,8 @@ namespace cvt
 
 		Vector2f currPosition;
 		for( size_t p = 0; p < patches.size(); p++ ){
-			const KLTPType & patch = patches[ p ];
-			currPosition = allScale * patches[ p ].position();
+			const KLTPType & patch = *patches[ p ];
+			currPosition = allScale * patch.position();
 			PoseType & currPose = poses[ p ];
 			currPose.scale( allScale );
 
