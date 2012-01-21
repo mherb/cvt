@@ -74,7 +74,7 @@ namespace cvt
 										 std::vector<Vector2f> & projections,
 									     const Eigen::Matrix4d&	cameraPose,
 										 const CameraCalibration& camCalib,
-										 double maxDistance ) 
+										 double maxDistance ) const 
 	{
 		Eigen::Vector4d pointInCam;
 		Vector4f pic;

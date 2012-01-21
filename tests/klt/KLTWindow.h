@@ -11,8 +11,13 @@
 #include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
+#include <cvt/util/EigenBridge.h>
 
-#include "KLTTracker.h"
+#include <cvt/math/Translation2D.h>
+#include <cvt/math/Sim2.h>
+#include <cvt/math/GA2.h>
+
+#include <cvt/vision/KLTTracker.h>
 
 #include <cvt/gfx/GFXEngineImage.h>
 
@@ -21,13 +26,20 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
+			//typedef GA2<float>			PoseType;
+			//typedef Sim2<float>			PoseType;
+			typedef Translation2D<float>	PoseType;
+			typedef KLTPatch<16, PoseType>	KLTPType;
+
 			KLTWindow( VideoInput & video ) :
 				_window( "KLT" ),	
 				_video( video ),
-				_klt( 20, 32 )
+				_klt( 3 ),
+				_kltTimeSum( 0.0 ),
+				_kltIters( 0 )
 			{
 				_timerId = Application::registerTimer( 10, this );
-				_window.setSize( 320, 240 );
+				_window.setSize( 640, 480 );
 				WidgetLayout wl;
 				wl.setAnchoredTopBottom( 0, 0 );
 				wl.setAnchoredLeftRight( 0, 0 );
@@ -35,27 +47,15 @@ namespace cvt {
 				_window.setVisible( true );
 				_window.update();				
 
-				_video.frame().convert( _lastFrame, IFormat::GRAY_UINT8 );
-				
-				/*
-				Resources r;
-				_lena.load( r.find( "lena_g.png" ) );
-				_currR.x = _lena.width() / 2.0f - 50;
-				_currR.y = _lena.height() / 2.0f - 50;
-				_currR.width = _lena.width() / 2.0f;
-				_currR.height = _lena.height() / 2.0f;
-
-				_offX = 1;
-				_offY = 1;
-
-				_lastFrame.reallocate( _currR.width, _currR.height, IFormat::GRAY_UINT8 );
-				_lastFrame.copyRect( 0, 0, _lena, _currR );
-*/
+				_pyramid.resize( 3 );
+				_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
 			
-				VectorVector2Inserter<float> inserter( _lastFeatures );
-				FAST::detect9( _lastFrame, 40, inserter, 20 );
+				redetectFeatures( _pyramid[ 0 ] );
+				std::cout << "Numinitial: " << _patches.size() << std::endl;
 
-				_imView.setImage( _lastFrame );
+				_imView.setImage( _pyramid[ 0 ] );
+				_fps = 0.0;
+				_iter = 0;
 			}
 
 			~KLTWindow()
@@ -74,73 +74,159 @@ namespace cvt {
 			Window					_window;
 			ImageView				_imView;
 			VideoInput &			_video;
-			Image				    _lastFrame;
-			std::vector<Vector2f>	_lastFeatures;
 
-			KLTTracker	_klt;
-			Time		_time;
+			KLTTracker<PoseType>		_klt;
+			Time						_kltTime;
+			double						_kltTimeSum;
+			size_t						_kltIters;
 
-			void drawFeatures( Image & img, const std::vector<Vector2f> & positions, const Color & c );
+			std::vector<KLTPType*>		_patches;
+			std::vector<PoseType>		_poses;
+			Time						_time;
+			double						_fps;
+			size_t						_iter;
+			std::vector<Image>			_pyramid;
+
+			void drawFeatures( Image & img, const std::vector<size_t> & indices );
+
+			void redetectFeatures( const Image & img );
+
+			void removeLost( const std::vector<size_t> & trackedIndices );
+			
+			void createPyramid();
 
 	};
 
 	inline void KLTWindow::onTimeout()
 	{
-		Image frame;
-		_video.frame().convert( frame, IFormat::GRAY_UINT8 );
+		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
+		createPyramid();
 				
-		//frame.reallocate( _currR.width, _currR.height, IFormat::GRAY_UINT8 );
-		//frame.copyRect( 0, 0, _lena, _currR );
-
-		std::vector<Vector2f> trackedPositions;
 		std::vector<size_t>	  trackedIndices;
-		_klt.trackFeatures( trackedIndices, trackedPositions, frame, _lastFrame, _lastFeatures );
+	
+		_kltTime.reset();	
+		//_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
+		_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
-		Image debug;
-		frame.convert( debug, IFormat::RGBA_UINT8 );
-		drawFeatures( debug, _lastFeatures, Color::RED );
-		drawFeatures( debug, trackedPositions, Color::GREEN );
-		_imView.setImage( debug );
+		_kltTimeSum += _kltTime.elapsedMilliSeconds();
+		_kltIters++;
 
-		double fps = 1.0 / _time.elapsedSeconds();
-		_time.reset();
+
+		double t = _time.elapsedSeconds();
+		_iter++;
+		if( t > 3.0 ){
+			_fps = _iter / t;
+			_time.reset();
+			_iter = 0;
+		}
 
 		String title;
-		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f", _lastFeatures.size(), trackedPositions.size(), fps );
-		std::cout << title << std::endl;
+		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f, avgklt=%0.2fms", trackedIndices.size(), _patches.size(), _fps, _kltTimeSum/_kltIters );
 		_window.setTitle( title );
 
-		_lastFrame = frame;
-		_lastFeatures = trackedPositions;
+		removeLost( trackedIndices );
 
-		//_currR.x += _offX;
-		//_currR.y += _offY;
-		//if( ( _currR.x + _currR.width ) > (int)( _lena.width() - 50 ) || _currR.x < 50 )
-		//	_offX *= -1;
-		//if( ( _currR.y + _currR.height ) > (int)( _lena.height() - 50 ) || _currR.y < 50 )
-		//	_offY *= -1;
+		if( _patches.size() < 50 )
+			redetectFeatures( _pyramid[ 0 ] );
 
-
+		Image debug;
+		_pyramid[ 0 ].convert( debug, IFormat::RGBA_UINT8 );
+		drawFeatures( debug, trackedIndices );
+		_imView.setImage( debug );
+		
 		_video.nextFrame();
 	}
 	
-	inline void KLTWindow::drawFeatures( Image & img, const std::vector<Vector2f> & positions, const Color & c )
+	inline void KLTWindow::drawFeatures( Image & img, const std::vector<size_t> & indices )
 	{
 		{
 			GFXEngineImage ge( img );
 			GFX g( &ge );
-			g.color() = c;
+			g.color() = Color::GREEN;
 
-			Recti r;
-			size_t pSize = 31;
-			size_t phSize = pSize >> 1;
-			r.width = pSize;
-			r.height = pSize;
-			for( size_t i = 0; i < positions.size(); i++ ){
-				r.x = ( int )positions[ i ].x - phSize;
-				r.y = ( int )positions[ i ].y - phSize;
-				g.drawRect( r );
+			Vector2f p0, p1;
+			Eigen::Vector2f p;
+			Eigen::Vector2f pp;
+		
+			size_t idx;
+			for( size_t i = 0; i < indices.size(); i++ ){
+				idx = indices[ i ];
+				p0 = _patches[ idx ]->position();
+				p[ 0 ] = p0[ 0 ]; p[ 1 ] = p0[ 1 ];
+				
+				_poses[ idx ].transformInverse( pp, p );
+				EigenBridge::toCVT( p1, pp );
+
+				g.drawLine( p0, p1 );
 			}
+		}
+	}
+
+	inline void KLTWindow::redetectFeatures( const Image & img )
+	{
+		std::vector<Vector2f> features;	
+		VectorVector2Inserter<float> inserter( features );
+		FAST::detect9( img, 30, inserter, 20 );
+
+
+		for( size_t i = 0; i < _patches.size(); i++ ){
+			const Vector2f & p = _patches[ i ]->position();
+
+			std::vector<Vector2f>::iterator it = features.begin();
+			while( it != features.end() ){
+				if( ( p - *it ).lengthSqr() < 100.0f ){
+					it = features.erase( it );
+				} else {
+					it++;
+				}
+
+			}
+		}
+
+		size_t oldSize = _patches.size();
+		KLTPType::extractPatches( _patches, features, img );
+		for( size_t i = oldSize; i < _patches.size(); i++ ){
+			_poses.push_back( PoseType() );
+		}
+	}
+
+	inline void KLTWindow::removeLost( const std::vector<size_t> & trackedIndices )
+	{
+		std::vector<size_t>::const_iterator idx = trackedIndices.begin();
+		const std::vector<size_t>::const_iterator idxEnd = trackedIndices.end();
+
+		size_t savePos = 0;
+		while( idx != idxEnd ){
+			if( savePos != *idx ){
+				// savepos is lost, swap it:
+				KLTPType* lost = _patches[ savePos ];
+				_patches[ savePos ] = _patches[ *idx ];
+				_patches[ *idx ] = lost;
+
+				_poses[ savePos ] = _poses[ *idx ];
+			}
+			savePos++;
+			idx++;
+		}
+
+		for( size_t i = savePos; i < _patches.size(); i++ ){
+			delete _patches[ i ];
+		}
+		_patches.erase( _patches.begin() + trackedIndices.size(), _patches.end() );
+		_poses.erase( _poses.begin() + trackedIndices.size(), _poses.end() );		
+	}
+
+	inline void KLTWindow::createPyramid()
+	{
+		size_t w = _pyramid[ 0 ].width();
+		size_t h = _pyramid[ 0 ].height();
+
+		IScaleFilterBilinear filter;
+		float scale = 0.7f;
+		for( size_t i = 1; i < _pyramid.size(); i++ ){
+			w *= scale;
+			h *= scale;
+			_pyramid[ i - 1 ].scale( _pyramid[ i ], w, h, filter );
 		}
 	}
 }
