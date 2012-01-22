@@ -169,7 +169,7 @@ namespace cvt
 			// TODO: call the init method
 			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );	
 			std::cout << "Added " << numNewPoints << " new 3D Points" << std::endl;
-			Image debug;
+			//Image debug;
 //			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
 //			newStereoView.notify( debug );
 
