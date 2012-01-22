@@ -85,7 +85,7 @@ namespace cvt {
 			_cldepthcostgrad.setArg( 6, d );
 			_cldepthcostgrad.run( global, CLNDRange( 16, 16 ) );
 
-			_gf.apply( costgf, cost, cam1, 9, 1e-4f, true );
+			_gf.apply( costgf, cost, cam1, 13, 1e-4f, true );
 
 			_cldepthmin.setArg( 0, *c[ index ] );
 			_cldepthmin.setArg( 1, costgf );

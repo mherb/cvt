@@ -23,6 +23,7 @@ namespace cvt {
 
 	void BoxFilter::apply( Image& dst, const Image& src, const int radius, bool integral ) const
 	{
+		// FIXME: integrate IntegralFilter
 		dst.reallocate( src.width(), src.height(), src.format(), IALLOCATOR_CL );
 		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
 		if( integral ) {
