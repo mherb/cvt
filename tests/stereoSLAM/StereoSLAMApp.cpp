@@ -20,7 +20,7 @@ namespace cvt
 		_stepping( true ),
 		_nextImage( true )
 	{
-		_timerId = Application::registerTimer( 10, this );
+		_timerId = Application::registerTimer( 20, this );
 
 		Delegate<void ( const Image& )> d( &_gui, &SLAMGui::updateStereoView );
 		_slam.newStereoView.add( d );

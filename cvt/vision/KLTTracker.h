@@ -110,8 +110,8 @@ namespace cvt
 		Vector2f point;
 		typename KLTPType::JacType jSum;
 		typename PoseType::ParameterVectorType delta;
-		float diffSum;
-		size_t npix;
+		float diffSum = 0;
+		size_t npix = 0;
 		size_t numLines;
 		while( iter < _maxIters ){
 			jSum.setZero();
