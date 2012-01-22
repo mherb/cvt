@@ -7,32 +7,28 @@
 
 namespace cvt
 {
-	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _sum( 0 ), _sqrSum( 0 ), _flags( flags )
+	IntegralImage::IntegralImage( const Image & img, IntegralImageFlags flags ) : _flags( flags )
 	{
         update( img );
 	}
 
-    IntegralImage::IntegralImage( IntegralImageFlags flags ) : _sum( 0 ), _sqrSum( 0 ), _flags( flags )
+    IntegralImage::IntegralImage( IntegralImageFlags flags ) : _flags( flags )
     {
     }
 
     IntegralImage::~IntegralImage()
     {
-        if( _sum )
-            delete _sum;
-        if( _sqrSum )
-            delete _sqrSum;
     }
 
     void IntegralImage::update( const Image & img )
     {
         if( _flags & SUMMED_AREA ){
-            _sum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
-            img.integralImage( *_sum );
+            _sum.reallocate( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.integralImage( _sum );
         }
         if( _flags & SQUARED_SUMMED_AREA ){
-            _sqrSum = new Image( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
-            img.squaredIntegralImage( *_sqrSum );
+            _sqrSum.reallocate( img.width(), img.height(), IFormat::floatEquivalent( img.format() ), img.memType() );
+            img.squaredIntegralImage( _sqrSum );
         }
     }
 
@@ -41,7 +37,7 @@ namespace cvt
         if( !_flags & SUMMED_AREA )
             throw CVTException( "Summed Area Table is not computed -> cannot calculate area" );
 
-        return IntegralImage::area( *_sum, r );
+        return IntegralImage::area( _sum, r );
     }
 
     float IntegralImage::sqrArea( const Recti & r ) const
@@ -49,7 +45,7 @@ namespace cvt
         if( !_flags & SQUARED_SUMMED_AREA )
             throw CVTException( "Squared Summed Area Table is not computed -> cannot calculate area" );
 
-        return IntegralImage::area( *_sqrSum, r );
+        return IntegralImage::area( _sqrSum, r );
     }
 
     float IntegralImage::ncc( const Image & img,
@@ -66,8 +62,8 @@ namespace cvt
         // corresponding rect in img:
         Recti iRect( pos.x, pos.y, rOther.width, rOther.height );
 
-        float sumI = IntegralImage::area( *_sum, iRect );
-        float ssumI = IntegralImage::area( *_sqrSum, iRect );
+        float sumI = IntegralImage::area( _sum, iRect );
+        float ssumI = IntegralImage::area( _sqrSum, iRect );
 
         float sumO = IntegralImage::area( otherII.sumImage(), rOther );
         float ssumO = IntegralImage::area( otherII.sqrSumImage(), rOther );
@@ -107,8 +103,8 @@ namespace cvt
         // corresponding rect in this img:
         Recti iRect( pos.x, pos.y, patch.width(), patch.height() );
 
-        float sumI = IntegralImage::area( *_sum, iRect );
-        float ssumI = IntegralImage::area( *_sqrSum, iRect );
+        float sumI = IntegralImage::area( _sum, iRect );
+        float ssumI = IntegralImage::area( _sqrSum, iRect );
 
         float size = iRect.width * iRect.height;
 
@@ -201,12 +197,12 @@ namespace cvt
 	}
 
     template <typename T>
-    static void _dumpImage( Image & img )
+    static void _dumpImage( const Image & img )
     {
         size_t stride;
 
-        T * p, *ptr;
-        p = ptr = img.map<T>( &stride );
+        const T * p = img.map<T>( &stride );
+		const T *ptr = p;
         size_t h = img.height();
         while( h-- ){
             for( size_t x = 0; x < img.width(); x++ ){
@@ -257,11 +253,11 @@ namespace cvt
         sumImage.unmap( is );
     }
 
-    static bool _compare( Image & gt, Image & comp )
+    static bool _compare( const Image & gt, const Image & comp )
     {
         size_t iStride, sStride;
-        float * ip = gt.map<float>( &iStride );
-        float * is = comp.map<float>( &sStride );
+        const float * ip = gt.map<float>( &iStride );
+        const float * is = comp.map<float>( &sStride );
 
         bool ret = true;
         for( size_t y = 0; y < gt.height(); y++ ){
@@ -281,7 +277,7 @@ namespace cvt
         return ret;
     }
 
-    static bool _rectSum( Image & img, Image & sum, Recti & rect )
+    static bool _rectSum( const Image & img, const Image & sum, const Recti & rect )
     {
         bool success = true;
         float iiArea;
@@ -319,7 +315,7 @@ namespace cvt
         return success;
     }
 
-    static bool _sqrRectSum( Image & img, Image & sum, Recti & rect )
+    static bool _sqrRectSum( const Image & img, const Image & sum, const Recti & rect )
     {
         float iiArea;
         iiArea = IntegralImage::area( sum, rect );
