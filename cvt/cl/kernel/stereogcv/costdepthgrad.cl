@@ -2,10 +2,11 @@
 #define COSTTHRESHOLDGRAD 0.01f //0.008f
 #define ALPHA 0.10f
 
-__kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_only image2d_t img0, __read_only image2d_t img1, __read_only image2d_t grad0, __read_only image2d_t grad1, __read_only global float4* proj, float depth )
+__kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_only image2d_t img0, __read_only image2d_t img1,
+									   __read_only image2d_t grad0, __read_only image2d_t grad1, __read_only global float4* proj, float depth )
 {
 	const float4 dotmul = ( float4 ) ( 0.3333f, 0.3333f, 0.3333f, 0.0f );
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
 	int2 coord;
 	float2 coord2;
 	float4 mat[ 3 ];

@@ -6,6 +6,7 @@
 #include <cvt/cl/CLKernel.h>
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/gfx/ifilter/StereoGCVFilter.h>
+#include <cvt/gfx/ifilter/IntegralFilter.h>
 #include <cvt/gfx/ifilter/BoxFilter.h>
 #include <cvt/io/Resources.h>
 #include <cvt/io/xml/XMLDocument.h>
@@ -110,13 +111,23 @@ int main( int argc, char* argv[] )
 
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
+/*
+	IntegralFilter iint;
+	BoxFilter boxf;
+	Image intimg0( img0.width(), img0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+	Image output;
+	iint.apply( intimg0, img0 );
+	boxf.apply( output, intimg0, 10 );
+	output.save( "boxfilter.png" );
+	return 1; */
+
 
 	Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 	Matrix4f T( 1.0f, 0.0f, D, 0.0f,
 			    0.0f, 1.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f,
 			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / D );
+	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / Math::abs( D * 3.0f ) );
 	disp.save( "disparity.png" );
 
 	return 0;
