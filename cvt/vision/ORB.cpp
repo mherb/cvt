@@ -55,15 +55,22 @@ namespace cvt {
 		_features.reserve( 512 );
 		_scaleFactors[ 0 ] = 1.0f;
 	}
+	
+	ORB::~ORB()
+	{
+		delete[] _scaleFactors;
+		delete[] _iimages;
+	}
 
 	void ORB::update( const Image & img )
 	{
+		// clear all old
 		_features.clear();
+	
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
 
-		// clear all old
 		detect( img, 0 );
 
 		Image* pyrImages = new Image[ _octaves - 1 ];
@@ -78,15 +85,10 @@ namespace cvt {
 			pyrimg++;
 		}
 		delete[] pyrImages;
+
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
 		extract( _octaves );
-	}
-
-	ORB::~ORB()
-	{
-		delete[] _scaleFactors;
-		delete[] _iimages;
 	}
 
 	void ORB::detect( const Image& img, size_t octave )

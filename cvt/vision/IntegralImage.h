@@ -43,9 +43,9 @@ namespace cvt
              */
             float   ncc( const Image & img, const Patch & patch, const Vector2i & pos ) const;
 
-            Image & sumImage() const { return *_sum; };
-            Image & sqrSumImage() const { return *_sqrSum; };
-            IntegralImageFlags flags() const { return _flags; };
+            const Image & sumImage()	const { return _sum; };
+            const Image & sqrSumImage() const { return _sqrSum; };
+            IntegralImageFlags flags()  const { return _flags; };
 
             static inline float area( const Image & img, const Recti & r );
 
@@ -53,9 +53,9 @@ namespace cvt
             static inline float area( const float * ptr, size_t x, size_t y, size_t w, size_t h, size_t stride );
 
         private:
-            Image*              _sum;
-            Image*              _sqrSum;
-            IntegralImageFlags  _flags;
+            Image              _sum;
+            Image              _sqrSum;
+            IntegralImageFlags _flags;
 
 	};
 

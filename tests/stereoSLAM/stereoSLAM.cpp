@@ -130,6 +130,9 @@ int main( int argc, char* argv[] )
 		loadCameraCalib( camCalib1, calib1 );
 	}
 
+	input[ 0 ]->nextFrame();
+	input[ 1 ]->nextFrame();
+
 	StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
 	Application::run();
 
