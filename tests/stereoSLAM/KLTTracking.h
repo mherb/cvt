@@ -52,8 +52,8 @@ namespace cvt
 	inline KLTTracking::KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_stereoMatcher( 5.0f/*maxLineDist*/, 50 /*maxDescdist*/, c0, c1 ),
-		_maxTriangReprojError( 2.0f ),
+		_stereoMatcher( 5.0f/*maxLineDist*/, 60 /*maxDescdist*/, c0, c1 ),
+		_maxTriangReprojError( 7.0f ),
 		_klt( 10 )
 	{
 	}
@@ -126,8 +126,8 @@ namespace cvt
 													   const Image& first, 
 													   const Image& second )
 	{
-		ORB orb0( first, 1, 0.5f, 20, 2000, true );
-		ORB orb1( second, 1, 0.5f, 20, 2000, true );
+		ORB orb0( first, 2, 0.5f, 20, 2000, true );
+		ORB orb1( second, 2, 0.5f, 20, 2000, true );
 
 
 		// find stereoMatches by avoiding already found matches
@@ -185,25 +185,30 @@ namespace cvt
 
 						float reprErr = triangulateSinglePoint( pNew, p0, p1, _camCalib0.projectionMatrix(), _camCalib1.projectionMatrix() );
 						if( reprErr < _maxTriangReprojError ){
-							meas.point[ 0 ] = p0.x;
-							meas.point[ 1 ] = p0.y;
+							PatchType* newPatch = new PatchType();
+							if( newPatch->update( ptr + ( ( int )p0.y * stride - 8 ) + ( int )p0.x - 8, stride ) ) {
+								// good patch
+								newPatch->position() = p0;
+								meas.point[ 0 ] = p0.x;
+								meas.point[ 1 ] = p0.y;
 
-							Eigen::Vector4d & point = mapFeat.estimate();
-							point[ 0 ] = pNew[ 0 ];
-							point[ 1 ] = pNew[ 1 ];
-							point[ 2 ] = pNew[ 2 ];
-							point[ 3 ] = pNew[ 3 ];
-							point = poseInv * point;
+								Eigen::Vector4d & point = mapFeat.estimate();
+								point[ 0 ] = pNew[ 0 ];
+								point[ 1 ] = pNew[ 1 ];
+								point[ 2 ] = pNew[ 2 ];
+								point[ 3 ] = pNew[ 3 ];
+								point = poseInv * point;
 
-							size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
+								size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
+								if( newPointId != _patchForId.size() )
+									std::cout << "IDS OUT OF SYNC!" << std::endl;
 
-							// add new patch:
-							_patchForId.push_back( new PatchType() );
-
-							_patchForId[ newPointId ]->position() = p0;
-							_patchForId[ newPointId ]->update( ptr + ( ( int )p0.y * stride - 8 ) + ( int )p0.x - 8, stride );
-
-							numNew++;
+								_patchForId.push_back( newPatch );
+								numNew++;
+							} else {
+								// bad patch: do not take
+								delete newPatch;
+							}
 						}
 					}
 				}

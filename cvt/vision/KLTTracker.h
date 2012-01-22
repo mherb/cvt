@@ -29,6 +29,9 @@ namespace cvt
 								  const std::vector<KLTPType*>& patches,
 								  const std::vector<Image>& pyramid );
 
+			float ssdThreshold() const { return _ssdThresh; }
+			void setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
+
 		private:
 			size_t _maxIters;
 			size_t _patchSize;
@@ -57,7 +60,7 @@ namespace cvt
 		_patchSize( 16 ),
 		_ssdThresh( 0.0f )
 	{
-		_ssdThresh = Math::sqr( 30 );
+		_ssdThresh = Math::sqr( 20.0f );
 	}
 
 	template <class PoseType>
