@@ -8,7 +8,7 @@ namespace cvt
 	class GLView : public Widget
 	{
 		public:
-			GLView() : 
+			GLView() :
 				_viewport( rect() ),
 				_allowViewportChange( false )
 			{
@@ -16,7 +16,7 @@ namespace cvt
 
 			virtual ~GLView(){}
 
-			void setViewport( const Recti & rect );
+			void setViewport( const Recti& rect );
 			void setViewport( int x, int y, size_t w, size_t h );
 
 		protected:
@@ -36,6 +36,15 @@ namespace cvt
 			glViewport( r.x, _viewport.height - ( r.y + r.height ), r.width, r.height );
 		}
 	}
-} 
+
+	inline void GLView::setViewport( const Recti& vrect )
+	{
+		if( _allowViewportChange ) {
+			Recti r = rect();
+			r.intersect( vrect );
+			glViewport( r.x, _viewport.height - ( r.y + r.height ), r.width, r.height );
+		}
+	}
+}
 
 #endif

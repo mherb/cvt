@@ -55,15 +55,22 @@ namespace cvt {
 		_features.reserve( 512 );
 		_scaleFactors[ 0 ] = 1.0f;
 	}
+	
+	ORB::~ORB()
+	{
+		delete[] _scaleFactors;
+		delete[] _iimages;
+	}
 
 	void ORB::update( const Image & img )
 	{
+		// clear all old
 		_features.clear();
+	
 		float scale = 1.0f;
 		IScaleFilterBilinear scaleFilter;
         //IScaleFilterGauss scaleFilter;
 
-		// clear all old
 		detect( img, 0 );
 
 		Image* pyrImages = new Image[ _octaves - 1 ];
@@ -78,15 +85,10 @@ namespace cvt {
 			pyrimg++;
 		}
 		delete[] pyrImages;
+
 		if( _numFeatures )
 			selectBestFeatures( _numFeatures );
 		extract( _octaves );
-	}
-
-	ORB::~ORB()
-	{
-		delete[] _scaleFactors;
-		delete[] _iimages;
 	}
 
 	void ORB::detect( const Image& img, size_t octave )
@@ -283,11 +285,11 @@ namespace cvt {
 										             y + _patterns[ index ][ ( n ) * 2 ][ 1 ] - 2, 5, 5, widthstep ) < \
 					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,\
 										             y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5, widthstep ) )
-
+		uint8_t* d = feature.desc.data();
 		for( int i = 0; i < 32; i++ ) {
-			feature.desc[ i ] = 0;
+			d[ i ] = 0;
 			for( int k = 0; k < 8; k++ ) {
-				feature.desc[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
+				d[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
 			}
 		}
 		feature.pt /= _scaleFactors[ feature.octave ];

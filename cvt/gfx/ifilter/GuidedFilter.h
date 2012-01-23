@@ -15,15 +15,22 @@ namespace cvt {
 			GuidedFilter();
 			~GuidedFilter() {};
 
-			void apply( Image& dst, const Image& src, const Image& guide, const int radius, const float epsilon ) const;
+			void apply( Image& dst, const Image& src, const Image& guide, const int radius, const float epsilon, bool rgbcovariance = false ) const;
 
 			void apply( const ParamSet* attribs, IFilterType iftype ) const;
 
 		private:
+			void applyGC( Image& dst, const Image& src, const Image& guide, const int radius, const float epsilon ) const;
+			void applyGC_COV( Image& dst, const Image& src, const Image& guide, const int radius, const float epsilon ) const;
+			void applyCC( Image& dst, const Image& src, const Image& guide, const int radius, const float epsilon ) const;
+
 			GuidedFilter( const GuidedFilter& t );
 
 			CLKernel	   _clguidedfilter_calcab;
-			CLKernel	   _clguidedfilter_applyab;
+			CLKernel	   _clguidedfilter_calcab_outerrgb;
+			CLKernel	   _clguidedfilter_applyab_gc;
+			CLKernel	   _clguidedfilter_applyab_gc_outer;
+			CLKernel	   _clguidedfilter_applyab_cc;
 			IntegralFilter _intfilter;
 			BoxFilter	   _boxfilter;
 	};

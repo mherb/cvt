@@ -9,6 +9,8 @@ namespace cvt {
 		public:
 			GLScene();
 			~GLScene();
+
+			void draw() {}
 	};
 
 	inline GLScene::GLScene() : GLSNode( GLSNODE_ROOT )
@@ -18,6 +20,7 @@ namespace cvt {
 	inline GLScene::~GLScene()
 	{
 	}
+
 }
 
 #endif

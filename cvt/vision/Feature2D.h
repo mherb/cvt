@@ -41,6 +41,25 @@ namespace cvt {
         VectorFeature2DInserter( const std::vector<Feature2D<T> > & );
     };
 
+
+    template<typename T>
+    struct VectorVector2Inserter
+    {
+        VectorVector2Inserter( std::vector<Vector2<T> > & vec ) : _vec( vec )
+        {
+        }
+
+        void operator()( T x, T y )
+        {
+            _vec.push_back( Vector2<T>( x, y ) );
+        }
+
+    private:
+        std::vector<Vector2<T> >  & _vec;
+
+        VectorVector2Inserter( const std::vector<Vector2<T> > & );
+    };
+
 }
 
 #endif

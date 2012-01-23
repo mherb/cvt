@@ -34,6 +34,7 @@ namespace cvt {
 			typedef Eigen::Matrix<T, NPARAMS, NPARAMS> ScreenHessType;
 			typedef Eigen::Matrix<T, NPARAMS, 1> ParameterVectorType;
 			typedef Eigen::Matrix<T, 3, 1> PointType;
+			typedef Eigen::Matrix<T, 2, 1> SPType;
 
 			Translation2D();
 			~Translation2D(){};
@@ -64,6 +65,9 @@ namespace cvt {
 
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
+			
+			/* transform the point: warped = current^-1 * p */
+			void transformInverse( SPType & warped, const SPType & p ) const;
 
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
@@ -90,6 +94,9 @@ namespace cvt {
 			/* get back the currently stored transformation matrix */
 			const MatrixType & transformation() const { return _current; }
 			MatrixType & transformation() { return _current; }
+
+			/* scale the current transformation: useful for scale space algorithms */
+			void scale( T s );
 
 		private:
 			MatrixType		_current;
@@ -182,6 +189,13 @@ namespace cvt {
 	{
 		warped = _current * p;
 	}
+	
+	template < typename T >
+	inline void Translation2D<T>::transformInverse( SPType & warped, const SPType & p ) const
+	{
+		warped[ 0 ] = p[ 0 ] - _current( 0, 2 );
+		warped[ 1 ] = p[ 1 ] - _current( 1, 2 );
+	}
 
 	template < typename T >
 	inline void Translation2D<T>::jacobianAroundT( JacMatType & J, const PointType & p ) const
@@ -243,6 +257,15 @@ namespace cvt {
 		wx = ScreenHessType::Zero();
 		wy = ScreenHessType::Zero();
 	}
+	
+	template <typename T>
+	inline void Translation2D<T>::scale( T s )
+	{
+		_current( 0, 2 ) *= s;
+		_current( 1, 2 ) *= s;
+	}	
+
+
 }
 
 #endif

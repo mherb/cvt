@@ -13,6 +13,13 @@ namespace cvt
 	{
 	}
 
+	void SlamMap::clear()
+	{
+		_keyframes.clear();
+		_features.clear();
+		_numMeas = 0;
+	}
+
 	size_t SlamMap::addKeyframe( const Eigen::Matrix4d& pose )
 	{
 		size_t id = _keyframes.size();
@@ -66,19 +73,9 @@ namespace cvt
 	void SlamMap::selectVisibleFeatures( std::vector<size_t> & visibleFeatureIds,
 										 std::vector<Vector2f> & projections,
 									     const Eigen::Matrix4d&	cameraPose,
-										 const CameraCalibration& camCalib ) 
+										 const CameraCalibration& camCalib,
+										 double maxDistance ) const 
 	{
-		double maxDistance = 9.0;
-		Eigen::Matrix4d poseInv;
-		{
-			Eigen::Matrix3d RInv = cameraPose.block<3, 3>( 0, 0 ).transpose();
-			Eigen::Vector3d tInv = -RInv * cameraPose.block<3, 1>( 0, 3 );
-			poseInv.block<3, 3>( 0, 0 ) = RInv;
-			poseInv.block<3, 1>( 0, 3 ) = tInv;
-			poseInv( 3, 0 ) = poseInv( 3, 1 ) = poseInv( 3, 2 ) = 0.0;
-			poseInv( 3, 3 ) = 1.0;
-		}
-
 		Eigen::Vector4d pointInCam;
 		Vector4f pic;
 		Vector4f sp;
@@ -101,7 +98,7 @@ namespace cvt
 					const MapFeature& feature = _features[ fId ];
 
 					if( usedPoints.find( fId ) == usedPoints.end() ){
-						pointInCam = poseInv * feature.estimate();
+						pointInCam = cameraPose * feature.estimate();
 						pointInCam /= pointInCam[ 3 ];
 						if( pointInCam[ 2 ] > 0.0 ){
 							pic[ 0 ] = ( float )pointInCam[ 0 ];

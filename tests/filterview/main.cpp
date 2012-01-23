@@ -34,13 +34,13 @@ int main()
 	m.setTitle( view.name() );
 	m.show();
 
-	IFilterView view2( PluginManager::instance().getIFilter("BCS") );
+/*	IFilterView view2( PluginManager::instance().getIFilter("BCS") );
 	Moveable m2( &view2 );
 	w.addWidget( &m2 );
 	m2.setSize( 200, 200 );
 	m2.setPosition( 10, 10 );
 	m2.setTitle( view2.name() );
-	m2.show();
+	m2.show();*/
 
     Application::run();
     return 0;
