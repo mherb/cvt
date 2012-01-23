@@ -17,9 +17,11 @@ namespace cvt
 		private:
 			// file descriptor
 			int		_fd;
-			size_t	_currSize;
-			size_t	_maxSize;
+			off_t	_currSize;
+			off_t	_maxSize;
 
+			// the total offset into the file
+			off_t	_offsetInFile;
 
 			/* current position in mapped region */
 			void	* _map;
