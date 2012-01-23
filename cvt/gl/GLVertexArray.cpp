@@ -3,7 +3,7 @@
 namespace cvt {
 
 
-	GLVertexArray::GLVertexArray() : _arrays( 0 )
+	GLVertexArray::GLVertexArray() : _arrays( 0 ), _color( 0.0f, 0.0f, 0.0f, 1.0f )
 	{
 		GL::glGenVertexArrays( 1, &_vao );
 	}
@@ -26,7 +26,7 @@ namespace cvt {
 		GL::glBindVertexArray( 0 );
 	}
 
-	void GLVertexArray::setAttribData( GLuint index, float v1 )
+/*	void GLVertexArray::setAttribData( GLuint index, float v1 )
 	{
 		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
@@ -52,14 +52,15 @@ namespace cvt {
 		CVT_ASSERT( index < 16, "OpenGL attrib is greater than 16!" );
 		_arrays &= ~( 1 << index );
 		glVertexAttrib4f( index, v1, v2, v3, v4 );
-	}
+	}*/
 
 	void GLVertexArray::setColor( const Color& color )
 	{
-		GL::glBindVertexArray( _vao );
+		_color = color;
+/*		GL::glBindVertexArray( _vao );
 		_arrays &= ~( 1 << GLSL_COLOR_IDX );
 		glVertexAttrib4fv( GLSL_COLOR_IDX, color.data() );
-		GL::glBindVertexArray( 0 );
+		GL::glBindVertexArray( 0 );*/
 	}
 
 	void GLVertexArray::setVertexData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
@@ -86,6 +87,10 @@ namespace cvt {
 				glEnableVertexAttribArray( i );
 			}
 		}
+
+		if( !( _arrays & ( 1 << GLSL_COLOR_IDX ) ) )
+			glVertexAttrib4fv( GLSL_COLOR_IDX, _color.data() );
+
 		glDrawArrays( mode, first, count );
 
 		for( unsigned int i = 0; i < 16; i++ ) {
@@ -109,6 +114,9 @@ namespace cvt {
 				glEnableVertexAttribArray( i );
 			}
 		}
+
+		if( !( _arrays & ( 1 << GLSL_COLOR_IDX ) ) )
+			glVertexAttrib4fv( GLSL_COLOR_IDX, _color.data() );
 
 		elembuf.bind();
 		glDrawElements( mode, count, type, 0 );

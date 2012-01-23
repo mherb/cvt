@@ -67,6 +67,9 @@ namespace cvt {
 
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
+			
+			/* transform the point: warped = current^-1 * p */
+			void transformInverse( Eigen::Matrix<T, 2, 1> & warped, const Eigen::Matrix<T, 2, 1> & p ) const;
 
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
@@ -93,6 +96,8 @@ namespace cvt {
 			/* get back the currently stored transformation matrix */
 			const MatrixType & transformation() const { return _current; }
 			MatrixType & transformation() { return _current; }
+
+			void scale( T s );
 
 		private:
 			MatrixType		_current;
@@ -186,6 +191,14 @@ namespace cvt {
 	inline void Sim2<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
+	}
+
+
+	template < typename T >
+	inline void Sim2<T>::transformInverse( Eigen::Matrix<T, 2, 1> & warped, const Eigen::Matrix<T, 2, 1> & p ) const
+	{
+		warped = p - _current.template block<2, 1>( 0, 2 );
+		warped = _current.template block<2, 2>( 0, 0 ).transpose() * warped;
 	}
 
 	template < typename T >
@@ -287,6 +300,12 @@ namespace cvt {
 			  0,   0,   0, 0.5,
 			0.5,   0,  -y,   x,
 			  0, 0.5,   x,   y;
+	}
+	
+	template <typename T>
+	inline void Sim2<T>::scale( T s )
+	{
+		_current.template block<2, 3>( 0, 0 ) *= s;
 	}
 }
 

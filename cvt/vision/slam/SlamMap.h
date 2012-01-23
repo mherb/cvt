@@ -16,6 +16,8 @@ namespace cvt
 			SlamMap();
 			~SlamMap();
 
+			void clear();
+
 			size_t addKeyframe( const Eigen::Matrix4d& pose );
 			size_t addFeature( const MapFeature& world );
 
@@ -33,19 +35,20 @@ namespace cvt
 			void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatures,
 									      std::vector<Vector2f>	   & projections,
 										  const Eigen::Matrix4d	   & cameraPose,
-										  const CameraCalibration  & camCalib );
+										  const CameraCalibration  & camCalib,
+										  double maxDistance = 3.0	) const;
 
 			const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
 			MapFeature&				featureForId( size_t id )		 { return _features[ id ];}
 			const Keyframe&			keyframeForId( size_t id ) const { return _keyframes[ id ];}
 			Keyframe&				keyframeForId( size_t id )		 { return _keyframes[ id ];}
 			const Eigen::Matrix3d&  intrinsics() const { return _intrinsics; }
+			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
 			size_t numFeatures()	 const { return _features.size(); }
 			size_t numKeyframes()	 const { return _keyframes.size(); }
 			size_t numMeasurements() const { return _numMeas; }
 
-			void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 	
 			void deserialize( XMLNode* node );
 			XMLNode* serialize() const;

@@ -124,18 +124,26 @@ SET( CL_KERNELS
 	cl/kernel/gaussiir2.cl
 	cl/kernel/BC.cl
 	cl/kernel/clear.cl
+	cl/kernel/fill.cl
+	cl/kernel/gradx.cl
+	cl/kernel/gradxy.cl
 	cl/kernel/median3.cl
 	cl/kernel/fgp/fgp.cl
 	cl/kernel/fgp/fgp_data.cl
+	cl/kernel/boxfilter/boxfilter_prefixsum.cl
+	cl/kernel/boxfilter/boxfilter.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
+	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
 	cl/kernel/prefixsum/prefixsum_block2.cl
-	cl/kernel/prefixsum/prefixsum_boxfilter.cl
 	cl/kernel/guidedfilter/guidedfilter_calcab.cl
-	cl/kernel/guidedfilter/guidedfilter_applyab.cl
+	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl
+	cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl
 	cl/kernel/pyr/pyrdown_binom3.cl
 	cl/kernel/pyr/pyrdown_binom5.cl
 	cl/kernel/pyr/pyrup.cl
@@ -144,24 +152,36 @@ SET( CL_KERNELS
 	cl/kernel/tvl1flow/tvl1.cl
 	cl/kernel/tvl1flow/tvl1_dataadd.cl
 	cl/kernel/tvl1flow/tvl1_warp.cl
+	cl/kernel/stereogcv/costdepth.cl
+	cl/kernel/stereogcv/costdepthgrad.cl
+	cl/kernel/stereogcv/costmin.cl
+	cl/kernel/stereogcv/costdepthconv.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
 CLTOHEADER( cl/kernel/gaussiir2.cl )
 CLTOHEADER( cl/kernel/BC.cl )
 CLTOHEADER( cl/kernel/clear.cl )
+CLTOHEADER( cl/kernel/fill.cl )
+CLTOHEADER( cl/kernel/gradx.cl )
+CLTOHEADER( cl/kernel/gradxy.cl )
 CLTOHEADER( cl/kernel/median3.cl )
 CLTOHEADER( cl/kernel/fgp/fgp.cl )
 CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
+CLTOHEADER( cl/kernel/boxfilter/boxfilter_prefixsum.cl )
+CLTOHEADER( cl/kernel/boxfilter/boxfilter.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_boxfilter.cl )
 CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl )
+CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
 CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
 CLTOHEADER( cl/kernel/pyr/pyrup.cl )
@@ -170,7 +190,10 @@ CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
-
+CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
+CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
+CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
+CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -195,18 +218,26 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/gaussiir2.h
 	cl/kernel/BC.h
 	cl/kernel/clear.h
+	cl/kernel/fill.h
 	cl/kernel/median3.h
+	cl/kernel/gradx.h
+	cl/kernel/gradxy.h
 	cl/kernel/fgp/fgp.h
 	cl/kernel/fgp/fgp_data.h
+	cl/kernel/boxfilter/boxfilter_prefixsum.h
+	cl/kernel/boxfilter/boxfilter.h
 	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
+	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
 	cl/kernel/prefixsum/prefixsum_block2.h
-	cl/kernel/prefixsum/prefixsum_boxfilter.h
 	cl/kernel/guidedfilter/guidedfilter_calcab.h
-	cl/kernel/guidedfilter/guidedfilter_applyab.h
+	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h
+	cl/kernel/guidedfilter/guidedfilter_applyab_cc.h
 	cl/kernel/pyr/pyrdown_binom3.h
 	cl/kernel/pyr/pyrdown_binom5.h
 	cl/kernel/pyr/pyrdown.h
@@ -215,17 +246,28 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/tvl1flow/tvl1.h
 	cl/kernel/tvl1flow/tvl1_warp.h
 	cl/kernel/tvl1flow/tvl1_dataadd.h
+	cl/kernel/stereogcv/costdepth.h
+	cl/kernel/stereogcv/costdepthgrad.h
+	cl/kernel/stereogcv/costmin.h
+	cl/kernel/stereogcv/costdepthconv.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
 	geom/Line2D.h
 	geom/Model.h
-	geom/Mesh.h
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
+	geom/scene/SceneCamera.h
+	geom/scene/SceneGeometry.h
 	geom/scene/Scene.h
+	geom/scene/SceneLight.h
 	geom/scene/SceneLoader.h
+	geom/scene/SceneMaterial.h
+	geom/scene/SceneMesh.h
+	geom/scene/SceneNode.h
+	geom/scene/SceneSpatial.h
+	geom/scene/SceneTexture.h
 	gfx/Color.h
 	gfx/Image.h
 	gfx/IFormat.h
@@ -240,6 +282,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/IntegralFilter.h
 	gfx/ifilter/BoxFilter.h
 	gfx/ifilter/GuidedFilter.h
+	gfx/ifilter/StereoGCVFilter.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -416,6 +459,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/PluginFile.h
 	util/Data.h
     util/DataIterator.h
+	vision/BinaryDescriptor.h
 	vision/Brief.h
 	vision/CameraCalibration.h
 	vision/DLT.h
@@ -431,6 +475,8 @@ SET(${MODULE_NAME}_HEADERS
 	vision/IntegralImage.h
 	vision/Flow.h
 	vision/HCalibration.h
+	vision/KLTPatch.h
+	vision/KLTTracker.h
 	vision/LSH.h
 	vision/MeasurementModel.h
 	vision/ORB.h
@@ -495,6 +541,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/IntegralFilter.cpp
 	gfx/ifilter/BoxFilter.cpp
 	gfx/ifilter/GuidedFilter.cpp
+	gfx/ifilter/StereoGCVFilter.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
@@ -507,6 +554,8 @@ SET(${MODULE_NAME}_SOURCES
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
 	geom/scene/Scene.cpp
+	geom/scene/SceneGeometry.cpp
+	geom/scene/SceneMesh.cpp
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLFBO.cpp

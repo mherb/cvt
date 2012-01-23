@@ -12,6 +12,7 @@ namespace cvt
 			DescriptorDatabase();
 			~DescriptorDatabase();
 
+			void clear();
 			void addDescriptor( const Desc & desc, size_t id );
 
 			const Desc & descriptor( size_t id ) const;
@@ -32,6 +33,12 @@ namespace cvt
 			if( _descriptors[ i ] != 0 )
 				delete _descriptors[ i ];
 		}
+	}
+
+	template <class Desc>
+	inline void DescriptorDatabase<Desc>::clear()
+	{
+		_descriptors.clear();
 	}
 
 	template <class Desc>

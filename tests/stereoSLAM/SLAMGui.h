@@ -20,8 +20,9 @@ namespace cvt
 			~SLAMGui();
 
 			void setCurrentImage( const Image& img );
+			void setNumTrackedFeatures( size_t n );
 			void resizeEvent( ResizeEvent* event );
-			void updateStereoView( const StereoSLAM::ORBData* orbData );
+			void updateStereoView( const Image& img );
 			void updateCameraPose( const Matrix4f & m );
 
 			void addNextFrameButtonDelegate( const Delegate<void (void)> & d );
@@ -30,19 +31,24 @@ namespace cvt
 			void setStepping( bool value );
 			void setFPS( float fps );
 
-			void addPoints( const std::vector<Vector4f> & pts ) { _slamView.addPoints( pts ); }
-
-			void updateTrackedPoints( const PointSet2d & pset );
+			void setSaveButtonDelegate( const Delegate<void (void)> & d );
+			void addMapClearDelegate( const Delegate<void (void)> & d ){ _resetMap.clicked.add( d ); }
+			
+			void mapChanged( const SlamMap & m );
 
 		private:
-			ImageView	_image0;
+			ImageView	_currentImg;
+			Moveable	_currentMov;
 			ImageView	_stereoView;
+			Moveable	_stereoMov;
 			SLAMView	_slamView;
 			Moveable	_slamMov;
 			Button		_stepping;
 			Button		_nextFrame;
 			Label		_fpsLabel;
 			Button		_resetCamera;
+			Button		_saveMap;
+			Button		_resetMap;
 
 			float		_imageAspect;
 			
@@ -52,17 +58,24 @@ namespace cvt
 	};
 
 	inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
+		_currentMov( &_currentImg ),
+		_stereoMov( &_stereoView ),
 		_slamMov( &_slamView ),
 		_stepping( "Step" ),
 		_nextFrame( "Next" ),
 		_fpsLabel( "FPS:" ),
 		_resetCamera( "Set Cam" ),
+		_saveMap( "Save Map" ),
+		_resetMap( "Clear Map" ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
 		
 		Delegate<void (void)> d( &_slamView, &SLAMView::resetCameraView );
 		_resetCamera.clicked.add( d );
+		
+		Delegate<void (void)> resetMap( &_slamView, &SLAMView::clearMap );
+		addMapClearDelegate( resetMap );
 	}
 
 	inline SLAMGui::~SLAMGui()
@@ -74,9 +87,9 @@ namespace cvt
 		setSize( 1000, 600 );
 		
 		float w = _imageAspect * 300;
-		_image0.setSize( (int)w, 300 );
-		_stereoView.setSize( (int)2*w, 300 );
-		_stereoView.setPosition( 0, 300 );
+		_currentMov.setSize( (int)w, 300 );
+		_stereoMov.setSize( (int)2*w, 300 );
+		_stereoMov.setPosition( 0, 300 );
 
 		_slamMov.setSize( 320, 240 );
 
@@ -91,86 +104,45 @@ namespace cvt
 		this->addWidget( &_fpsLabel, wl );
 		wl.setAnchoredTop( 100, 20 );
 		this->addWidget( &_resetCamera, wl );
+		wl.setAnchoredTop( 130, 20 );
+		this->addWidget( &_saveMap, wl );
+		wl.setAnchoredTop( 160, 20 );
+		this->addWidget( &_resetMap, wl );
 
-		this->addWidget( &_image0 );
-		this->addWidget( &_stereoView );
+		this->addWidget( &_currentMov );
+		this->addWidget( &_stereoMov );
 		this->addWidget( &_slamMov );
 		_slamMov.setTitle( "3D View" );
+
+		_stereoMov.setTitle( "Last KF" );
+
+		setNumTrackedFeatures( 0 );
 
 		setVisible( true );
 	}
 			
 	inline void SLAMGui::resizeEvent( ResizeEvent* event )
 	{
-		size_t h = event->height() / 2;
-		float w = _imageAspect * h;
-		_image0.setSize( (int)w, h );
-		_stereoView.setSize( (int)2*w, h );
-		_stereoView.setPosition( 0, h );
 		Window::resizeEvent( event );
 	}
 
 	inline void SLAMGui::setCurrentImage( const Image& img )
 	{
-		Image color;
-		img.convert( color, IFormat::RGBA_UINT8 );
-
-		{
-			GFXEngineImage ge( color );
-			GFX g( &ge );
-			g.color() = Color::GREEN;
-
-			Recti r;
-			r.width = 31;
-			r.height = 31;
-			for( size_t i = 0; i < _trackedPoints.size(); i++ ){
-				r.x = ( int )_trackedPoints[ i ].x - 15;
-				r.y = ( int )_trackedPoints[ i ].y - 15;
-				g.drawRect( r );
-			}
-		}
-
-		_image0.setImage( color );
+		_currentImg.setImage( img );
 		_imageAspect = (float)img.width() / (float)img.height();
 	}
 
-	inline void SLAMGui::updateStereoView( const StereoSLAM::ORBData* orbData )
+
+	inline void SLAMGui::setNumTrackedFeatures( size_t n )
 	{
-		Image tmp( 2*orbData->img0->width(), orbData->img0->height(), IFormat::GRAY_UINT8 );
-		Recti rect( 0, 0, orbData->img0->width(), orbData->img0->height() );
-		tmp.copyRect( 0, 0, *(orbData->img0), rect );
-		tmp.copyRect( orbData->img0->width(), 0, *(orbData->img1), rect );
+		String s;
+		s.sprintf( "Currently Tracked: %d", n );
+		_currentMov.setTitle( s );
+	}
 
-		std::vector<FeatureMatch> * matches = orbData->matches;
-
-		Image color;
-		tmp.convert( color, IFormat::RGBA_UINT8 );
-
-		{
-			GFXEngineImage ge( color );
-			GFX g( &ge );
-			g.color() = Color::GREEN;
-			const ORB * orb = ( orbData->orb0 ); 
-			for( size_t i = 0; i < orb->size(); i++ ){
-				g.fillRect( (*orb)[ i ].pt.x - 1, (*orb)[ i ].pt.y - 1, 3, 3 );
-			}
-			
-			orb = orbData->orb1; 
-			for( size_t i = 0; i < orb->size(); i++ ){
-				g.fillRect( (*orb)[ i ].pt.x - 1 + orbData->img0->width(), (*orb)[ i ].pt.y - 1, 3, 3 );
-			}
-
-			g.color() = Color::RED;
-			for( size_t i = 0; i < matches->size(); i++ ){
-				if( (*matches)[ i ].feature1 ){
-					Vector2f p2 = (*matches)[ i ].feature1->pt;
-					p2.x += orbData->img0->width();
-					g.drawLine( (*matches)[ i ].feature0->pt, p2 );
-				}
-			}
-		}
-
-		_stereoView.setImage( color );
+	inline void SLAMGui::updateStereoView( const Image& img )
+	{
+		_stereoView.setImage( img );
 	}
 
 	inline void SLAMGui::updateCameraPose( const Matrix4f & m )
@@ -204,9 +176,14 @@ namespace cvt
 		_fpsLabel.setLabel( title );
 	}
 
-	inline void SLAMGui::updateTrackedPoints( const PointSet2d & pset )
+	inline void SLAMGui::setSaveButtonDelegate( const Delegate<void (void)> & d )
 	{
-		_trackedPoints = pset;
+		_saveMap.clicked.add( d );
+	}
+			
+	inline void SLAMGui::mapChanged( const SlamMap & m )
+	{
+		_slamView.mapChanged( m );
 	}
 }
 

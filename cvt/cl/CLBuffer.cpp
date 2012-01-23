@@ -19,6 +19,14 @@ namespace cvt
 			throw CLException( err );
 	}
 
+	CLBuffer::CLBuffer( void* data, size_t size, cl_mem_flags flags ) : _size( size )
+	{
+		cl_int err;
+		_object = ::clCreateBuffer( *CL::defaultContext(), flags | CL_MEM_COPY_HOST_PTR, size, data, &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
 	CLContext CLBuffer::context() const
 	{
 		return CLContext( _context() );

@@ -35,6 +35,23 @@ namespace cvt {
 		glBindBuffer( _target, 0 );
 	}
 
+	/*
+	void GLBuffer::alloc( GLenum usage, size_t size, const GLBuffer & data )
+	{
+		if( this == &data )
+			throw CVTException( "Target and Source Buffer are the same" );
+
+		glBindBuffer( GL_COPY_WRITE_BUFFER, _buffer );
+		_size = size;
+		glBufferData( GL_COPY_WRITE_BUFFER, ( GLsizeiptr ) size, NULL, usage );
+		
+		glBindBuffer( GL_COPY_READ_BUFFER, data._buffer );
+		glCopyBufferSubData( GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, Math::min( _size, data._size ) );
+
+		glBindBuffer( GL_COPY_WRITE_BUFFER, 0 );
+		glBindBuffer( GL_COPY_READ_BUFFER, 0 );
+	}
+	*/
 
 	void GLBuffer::setData( size_t size, const void* data, size_t offset )
 	{

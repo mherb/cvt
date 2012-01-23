@@ -4,8 +4,8 @@
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
+#include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/vision/Vision.h>
-#include <cvt/vision/ORB.h>
 #include <cvt/vision/EPnP.h>
 #include <cvt/vision/FeatureMatch.h>
 #include <cvt/math/SE3.h>
@@ -13,13 +13,17 @@
 #include <cvt/math/sac/EPnPSAC.h>
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/Time.h>
+#include <cvt/util/Time.h>
 
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
 
 #include "ORBStereoMatching.h"
 #include "DescriptorDatabase.h"
-#include "FeatureTracking.h"
+#include "ORBTracking.h"
+#include "MapOptimizer.h"
+#include "FeatureAnalyzer.h"
 
 #include <set>
 
@@ -29,20 +33,9 @@ namespace cvt
 	class StereoSLAM
 	{
 		public:
-
-			struct ORBData
-			{
-				ORB* orb0;
-				Image* img0;
-				ORB* orb1;
-				Image* img1;
-				std::vector<FeatureMatch>* matches;
-			};
-
-			StereoSLAM( const CameraCalibration& c0,
-						size_t w0, size_t h0,
-						const CameraCalibration& c1,
-						size_t w1, size_t h1 );
+			StereoSLAM( FeatureTracking* ft, 
+					    const CameraCalibration& c0, size_t w0, size_t h0,
+						const CameraCalibration& c1, size_t w1, size_t h1 );
 
 			// new round with two new images, maybe also hand in a pose prediction?
 			void newImages( const Image& img0, const Image& img1 );
@@ -54,11 +47,14 @@ namespace cvt
 				return _undist0;
 			}
 
-			Signal<const ORBData*>		newORBData;	
-			Signal<const Keyframe&>		newKeyFrame;	
-			Signal<const std::vector<Vector4f>&>		newPoints;	
-			Signal<const PointSet2d&>	trackedPoints;	
+			const SlamMap & map() const { return _map; }
+			void clear();
+
+			Signal<const Image&>		newStereoView;	
+			Signal<const SlamMap&>		mapChanged;	
 			Signal<const Matrix4f&>		newCameraPose;	
+			Signal<const Image&>		trackedPointsImage;	
+			Signal<size_t>				numTrackedPoints;	
 
 		private:
 			/* camera calibration data and undistortion maps */
@@ -70,57 +66,54 @@ namespace cvt
 			/* undistorted images */
 			Image				_undist0;
 			Image				_undist1;
-			
-			/* descriptor matching parameters */
-			float				_matcherMaxLineDistance;	
-			float				_matcherMaxDescriptorDist;
-			ORBStereoMatching	_stereoMatcher;
-			float				_maxTriangReprojError;
 
-			/* orb parameters */
-			size_t				_orbOctaves;
-			float				_orbScaleFactor;
-			uint8_t				_orbCornerThreshold;
-			size_t				_orbMaxFeatures;
-			bool				_orbNonMaxSuppression;
 
 			// FeatureTracker (single view)
-			DescriptorDatabase<ORBFeature>	_descriptorDatabase;
 			float				_trackingSearchRadius;
-		    FeatureTracking		_featureTracking;
+			FeatureTracking*	_featureTracking;
+
+			// minimum needed features before new keyframe is added
+			size_t				_minTrackedFeatures;
 
 
-			/* the current (camera) pose */
+			/* the current pose of the camera rig */
 			SE3<double>			_pose;
 
 			/* the active Keyframe Id (closest to _pose) */
 			int					_activeKF;
+			double				_minKeyframeDistance;
+			double				_maxKeyframeDistance;
 
 			SlamMap				_map;
 
-			// triangulate 3D points from 2D matches
-			float triangulate( MapFeature& feature, FeatureMatch & match ) const;
+			MapOptimizer		_bundler;
+			Image				_lastImage;
 
 			void estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d );
+
+			void debugPatchWorkImage( const std::set<size_t> & indices,
+								      const std::vector<size_t> & featureIds,
+								      const std::vector<FeatureMatch> & matches );
+
+			bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
+
+			void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
+			void createDebugImageStereo( Image & debugImage, 
+										 const std::vector<FeatureMatch> & matches,
+										 const std::vector<size_t> & indices ) const;
 	};
 
-	inline StereoSLAM::StereoSLAM( const CameraCalibration& c0,
+	inline StereoSLAM::StereoSLAM( FeatureTracking* ft,
+								   const CameraCalibration& c0,
 								   size_t w0, size_t h0, 
 								   const CameraCalibration& c1,
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
-		_matcherMaxLineDistance( 7.0f ),
-		_matcherMaxDescriptorDist( 70 ),
-		_stereoMatcher( _matcherMaxLineDistance, _matcherMaxDescriptorDist, _camCalib0, _camCalib1 ),
-		_maxTriangReprojError( 7.0f ),
-		_orbOctaves( 3 ), 
-		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 15 ),
-		_orbMaxFeatures( 1500 ),
-		_orbNonMaxSuppression( true ),
-		_trackingSearchRadius( 40.0f ),
-		_featureTracking( _descriptorDatabase, _matcherMaxDescriptorDist, _trackingSearchRadius ),
-		_activeKF( -1 )
+		_featureTracking( ft ),
+		_minTrackedFeatures( 50 ),
+		_activeKF( -1 ),
+		_minKeyframeDistance( 0.05 ),
+		_maxKeyframeDistance( 1.0 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -140,207 +133,60 @@ namespace cvt
 		cx = c1.intrinsics()[ 0 ][ 2 ];
 		cy = c1.intrinsics()[ 1 ][ 2 ];
 		IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+		Eigen::Matrix3d K;
+		EigenBridge::toEigen( K, _camCalib0.intrinsics() );
+		_map.setIntrinsics( K );
 	}
 
 	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
-		// undistort
+		// undistort the first image
 		IWarp::apply( _undist0, img0, _undistortMap0 );
-
-		// create the ORB
-		ORB orb0( _undist0, 
-				  _orbOctaves, 
-				  _orbScaleFactor,
-				  _orbCornerThreshold,
-				  _orbMaxFeatures,
-				  _orbNonMaxSuppression );
-
-		// predict visible features with map and current pose
-		std::vector<size_t>	  predictedIds;
-		std::vector<Vector2f> predictedPositions;
-		
-		_map.selectVisibleFeatures( predictedIds, 
-									predictedPositions, 
-									_pose.transformation(), 
-									_camCalib0 );
-
-		std::vector<FeatureMatch> matchedFeatures;
-		_featureTracking.trackFeatures( matchedFeatures, 
-									    predictedIds,
-									    predictedPositions,
-									    orb0 );
 
 		PointSet2d p2d;
 		PointSet3d p3d;
-		Vector3d p3;
-		Vector2d p2;
+		_featureTracking->trackFeatures( p3d, p2d, _map, _pose, _undist0 );
 
-		std::set<size_t> matchedIndices;
+		Image debug;
+		createDebugImageMono( debug, p2d );
+		trackedPointsImage.notify( debug );
+		numTrackedPoints.notify( p2d.size() );
 
-		for( size_t i = 0; i < matchedFeatures.size(); i++ ){
-			if( matchedFeatures[ i ].feature1 ){
-				// got a match so add it to the point sets
-				const MapFeature & mapFeat = _map.featureForId( predictedIds[ i ] );
-				p3.x = mapFeat.estimate().x(); 
-				p3.y = mapFeat.estimate().y(); 
-				p3.z = mapFeat.estimate().z();
-				p3d.add( p3 );
-				p2.x = matchedFeatures[ i ].feature1->pt.x;
-				p2.y = matchedFeatures[ i ].feature1->pt.y;
-				p2d.add( p2 );
-				matchedIndices.insert( i );
-			}
-		}
-
-
-		/* at least 10 corresp. */
-		if( p3d.size() > 9 ){
+		size_t numTrackedFeatures = p3d.size();
+		if( numTrackedFeatures > 6 ){
 			estimateCameraPose( p3d, p2d );
-		} else {
-			std::cout << "TOO FEW FEATURES TO ESTIMATE POSE" << std::endl;
-			// TODO: How do we adress this? 
-			// - Create a submap and try to merge it later
-			// - relocalize against whole map?
-		}
+		} 
 
-		if( p3d.size() < 100 ){
+		if( newKeyframeNeeded( numTrackedFeatures ) ){
+			std::cout << "Adding new keyframe: currently tracked features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
-			// create the ORB
-			ORB orb1(_undist1, 
-					 _orbOctaves, 
-					 _orbScaleFactor,
-					 _orbCornerThreshold,
-					 _orbMaxFeatures,
-					 _orbNonMaxSuppression );
-
-			// find stereoMatches & by avoiding already found matches
-			std::vector<FeatureMatch> matches;
-			_stereoMatcher.matchEpipolar( matches, orb0, orb1, matchedIndices );
-
-			// Create a new keyframe with image 0 as reference image
-			if( matches.size() > 0 ){
-				std::vector<Vector4f> pts4f;
-				Vector4f currP;
-				
-				//std::cout << "Tracked Features: " << p3d.size();
-				
-				size_t kId = _map.addKeyframe( _pose.transformation() );
-				MapMeasurement meas;
-				
-				Eigen::Matrix4d featureCov = 0.2 * Eigen::Matrix4d::Identity();
-			
-				MapFeature mapFeat( Eigen::Vector4d::Zero(), featureCov );
-				for( size_t i = 0; i < matches.size(); i++ ){
-					if( matches[ i ].feature1 ){
-						float reprErr = triangulate( mapFeat, matches[ i ] );
-
-						// TODO: covariance according to triangulation precision
-						
-						if( reprErr < _maxTriangReprojError ){
-							meas.point[ 0 ] = matches[ i ].feature0->pt.x;
-							meas.point[ 1 ] = matches[ i ].feature0->pt.y;
-							size_t newPointId = _map.addFeatureToKeyframe( mapFeat, meas, kId );
-							_descriptorDatabase.addDescriptor( *( ORBFeature* )matches[ i ].feature0, newPointId );
-
-							const Eigen::Vector4d & wp = mapFeat.estimate();
-							currP.x = ( float ) ( wp.x() );
-							currP.y = ( float ) ( wp.y() );
-							currP.z = ( float ) ( wp.z() );
-							currP.w = ( float ) ( wp.w() );
-							pts4f.push_back( currP );
-						}
-					}
-				}
-
-				if( pts4f.size() > 5 ){
-					// TODO: add the currently tracked MapFeatures to the Keyframe as well!
-					// in order to get the dependency between the frames
-					// these are the matched indices, so for each matched index, we add a measurement to the mapfeature
-					// and the respective mapfeature to the new keyframe!
-
-					newPoints.notify( pts4f );
-				} else {
-					// TODO: don't use this keyframe -> remove it from the map again?!
-				}
-
-				_activeKF = _map.findClosestKeyframe( _pose.transformation() );
-			} else {
-				// WHAT DO WE DO IF WE CAN'T FIND STEREO CORRESPONDENCES?!
-				std::cout << "Error: no stereo matches found" << std::endl;
+			if( _bundler.isRunning() ){
+				std::cout << "Waiting for last SBA to finish!" << std::endl;
+				_bundler.join();
 			}
 
-			// notify observers that there is new orb data
-			// e.g. gui or a localizer 
-			ORBData data;
-			data.orb0 = &orb0;
-			data.img0 = &_undist0;
-			data.orb1 = &orb1;
-			data.img1 = &_undist1;
-			data.matches = &matches;
-			newORBData.notify( &data );
+			// TODO: call the init method
+			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );	
+			std::cout << "Added " << numNewPoints << " new 3D Points" << std::endl;
+			//Image debug;
+//			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
+//			newStereoView.notify( debug );
+
+			// new keyframe added -> run the sba thread	
+			if( _map.numKeyframes() > 1 ){
+				_bundler.run( &_map );
+				//_bundler.join();
+			}
+			mapChanged.notify( _map );				
 		}
+ 
+		int last = _activeKF;
+		_activeKF = _map.findClosestKeyframe( _pose.transformation() );
+		if( _activeKF != last )
+			std::cout << "Active KF: " << _activeKF << std::endl;
 
-		if( orb0.size() < 100 && _orbCornerThreshold > 10 )
-			_orbCornerThreshold--;
-		else if( orb0.size() > 600 && _orbCornerThreshold < 80 )
-			_orbCornerThreshold++;
 		
-		trackedPoints.notify( p2d );
-	}
-
-	inline float StereoSLAM::triangulate( MapFeature& feature, 
-										  FeatureMatch & match ) const
-	{
-		Vector4f tmp;
-		Vector4f repr;
-		Vector2f repr2, p0, p1;
-
-		p0 = match.feature0->pt;
-		p1 = match.feature1->pt;
-
-		Vision::correctCorrespondencesSampson( p0, 
-											   p1, 
-											  _stereoMatcher.fundamental() );
-
-		Vision::triangulate( tmp,
-							_camCalib0.projectionMatrix(),
-							_camCalib1.projectionMatrix(),
-							p0,
-							p1 );
-			
-		// normalize 4th coord;
-		tmp /= tmp.w;
-		if( tmp.z > 0.0f ){
-			float error = 0.0f;
-
-			repr = _camCalib0.projectionMatrix() * tmp;
-			repr2.x = repr.x / repr.z;
-			repr2.y = repr.y / repr.z;
-
-			error += ( match.feature0->pt - repr2 ).length();
-
-			repr = _camCalib1.projectionMatrix() * tmp;
-			repr2.x = repr.x / repr.z;
-			repr2.y = repr.y / repr.z;
-			error += ( match.feature1->pt - repr2 ).length();
-
-			error /= 2.0f;
-
-			if( error < _maxTriangReprojError ){
-				Eigen::Vector4d & np = feature.estimate();
-				np[ 0 ] = tmp.x;
-				np[ 1 ] = tmp.y;
-				np[ 2 ] = tmp.z;
-				np[ 3 ] = tmp.w;
-
-				// transform to world coordinates
-				np = _pose.transformation() * np;
-			}
-			return error;
-		} 
-		
-		return _maxTriangReprojError;
 	}
 
 	inline void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
@@ -350,36 +196,27 @@ namespace cvt
 		K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
 		K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
 		K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
-
-		/*	
-		EPnPSAC sacModel( p3d, p2d, K );
-		double maxReprojectionError = 6.0;
-		double outlierProb = 0.1;
-		RANSAC<EPnPSAC> ransac( sacModel, maxReprojectionError, outlierProb );
-
-		size_t maxRansacIters = 200;
-		Matrix4d m;
-		m = ransac.estimate( maxRansacIters );
-		*/
-		
-		EPnPd epnp( p3d );
-		Matrix4d m;
-		epnp.solve( m, p2d, K );
-
 		Eigen::Matrix<double, 3, 3> Ke;
 		Eigen::Matrix<double, 4, 4> extrC;
+		EigenBridge::toEigen( Ke, K );
+		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
+		
 		Eigen::Matrix4d me;
-		for( size_t i = 0; i < 3; i++ )
-			for( size_t k = 0; k < 3; k++ )
-				Ke( i, k ) = K[ i ][ k ];
-		for( size_t i = 0; i < 4; i++ ){
-			for( size_t k = 0; k < 4; k++ ){
-				extrC( i, k ) = _camCalib0.extrinsics()[ i ][ k ];
-				me( i, k ) = m[ i ][ k ];
-			}
-		}
+		/*
+		Matrix4d m;
+		EPnPd epnp( p3d );
+		epnp.solve( m, p2d, K );
+		
+		// from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
+		EigenBridge::toEigen( me, m );
+		me = extrC.inverse() * me;
+		*/
+
+		me = _pose.transformation();		
 
 		PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
+		pointCorresp.setPose( me );
+
 		Eigen::Matrix<double, 3, 1> p3;
 		Eigen::Matrix<double, 2, 1> p2;
 		for( size_t i = 0; i < p3d.size(); i++ ){
@@ -391,21 +228,137 @@ namespace cvt
 			pointCorresp.add( p3, p2 );
 		}
 		
-		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 10.0 );
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
-		termCriteria.setCostThreshold( 0.001 );
+		termCriteria.setCostThreshold( 0.01 );
 		termCriteria.setMaxIterations( 10 );
 		lm.optimize( pointCorresp, costFunction, termCriteria );
 
-		me = pointCorresp.pose().transformation().inverse();
+		//me = pointCorresp.pose().transformation().inverse();
+		me = pointCorresp.pose().transformation();
 		_pose.set( me );
 
 		Matrix4f mf;
-		for( size_t i = 0; i < 4; i++ )
-			for( size_t k = 0; k < 4; k++ )
-				mf[ i ][ k ] = me( i, k );
+		EigenBridge::toCVT( mf, me );
 		newCameraPose.notify( mf );
+	}
+
+	inline void StereoSLAM::clear()
+	{
+		if( _bundler.isRunning() )
+			_bundler.join();
+
+		_map.clear();
+		_featureTracking->clear();
+
+		Eigen::Matrix4d I( Eigen::Matrix4d::Identity() );
+		_pose.set( I );
+		_activeKF = -1;
+	}
+
+
+			
+	inline void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
+											     const std::vector<size_t> & featureIds,
+												 const std::vector<FeatureMatch> & matches )
+	{
+		std::set<size_t>::const_iterator idIter = indices.begin();
+		const std::set<size_t>::const_iterator idIterEnd = indices.end();
+
+		size_t patchSize = 31;
+		size_t patchHalf = patchSize >> 1;
+		FeatureAnalyzer patchWork( 20, patchSize, 10 );
+
+		Vector2f p0, p1;
+		while( idIter != idIterEnd ){
+			size_t featureId = featureIds[ *idIter ];
+			const MapFeature & mf = _map.featureForId( featureId );
+			const Keyframe & kf = _map.keyframeForId( *( mf.pointTrackBegin() ) );
+			const MapMeasurement & meas = kf.measurementForId( featureId );
+
+			p0.x = ( float )meas.point[ 0 ]; 
+			p0.y = ( float )meas.point[ 1 ];
+			if( p0.x < patchHalf || p0.y < patchHalf )
+				 std::cout << "Bad Point: " << p0  << " feature id: " << featureId << " kfId: " << kf.id() << std::endl;
+			p0.x -= patchHalf;
+			p0.y -= patchHalf;
+
+			p1 = matches[ *idIter ].feature1->pt;
+			p1.x -= patchHalf; 
+			p1.y -= patchHalf;
+
+			patchWork.addPatches( _undist0, p1, kf.image(), p0 );
+
+			++idIter;
+		}
+
+		patchWork.image().save( "patchwork.png" );
+	}
+
+	inline bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
+	{
+		double kfDist = _minKeyframeDistance + 1.0;
+	    if( _activeKF != -1 ){
+			kfDist = _map.keyframeForId( _activeKF ).distance( _pose.transformation() );
+		}
+
+		// if distance is too far from active, always create a new one:
+		if( kfDist > _maxKeyframeDistance )
+			return true;
+
+		// if too few features and minimum distance from last keyframe create new
+		if( numTrackedFeatures < _minTrackedFeatures && kfDist > _minKeyframeDistance )
+			return true;
+
+		return false;
+	}
+
+	inline void StereoSLAM::createDebugImageMono( Image & debug, const PointSet2d & tracked ) const 
+	{
+		_undist0.convert( debug, IFormat::RGBA_UINT8 );
+
+		{
+			GFXEngineImage ge( debug );
+			GFX g( &ge );
+			g.color() = Color::GREEN;
+
+			Recti r;
+			size_t pSize = 17;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
+			for( size_t i = 0; i < tracked.size(); i++ ){
+				r.x = ( int )tracked[ i ].x - phSize;
+				r.y = ( int )tracked[ i ].y - phSize;
+				g.drawRect( r );
+			}
+		}
+	}
+	
+	inline void StereoSLAM::createDebugImageStereo( Image & debugImage, 
+													const std::vector<FeatureMatch> & matches,
+													const std::vector<size_t> & indices ) const
+	{
+		debugImage.reallocate( 2 * _undist0.width(), _undist0.height(), IFormat::RGBA_UINT8 );
+		Image tmp( debugImage.width(), debugImage.height(), IFormat::GRAY_UINT8 );
+		Recti rect( 0, 0, _undist0.width(), _undist0.height() );
+		tmp.copyRect( 0, 0, _undist0, rect );
+		tmp.copyRect( _undist0.width(), 0, _undist1, rect );
+
+		tmp.convert( debugImage, IFormat::RGBA_UINT8 );
+		{
+			GFXEngineImage ge( debugImage );
+			GFX g( &ge );
+			
+			g.color() = Color::RED;
+			for( size_t i = 0; i < indices.size(); i++ ){
+				const FeatureMatch & match = matches[ indices[ i ] ];
+					Vector2f p2 = match.feature1->pt;
+					p2.x += _undist0.width();
+					g.drawLine( match.feature0->pt, p2 );
+			}
+		}
 	}
 }
 

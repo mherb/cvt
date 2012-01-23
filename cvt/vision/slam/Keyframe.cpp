@@ -25,6 +25,17 @@ namespace cvt
 		if( _img )
 			delete _img;
 	}
+			
+	Keyframe::Keyframe( const Keyframe & other ) :
+		XMLSerializable(),
+		_id( other._id ),
+		_pose( other._pose ),
+		_img( 0 ),
+		_featMeas( other._featMeas )
+	{
+		if( other._img )
+			_img = new Image( *other._img );
+	}
 
 	void Keyframe::setImage( const Image& img )
 	{
@@ -48,7 +59,15 @@ namespace cvt
 	double Keyframe::distance( const Eigen::Matrix4d & transform ) const
 	{
 		const Eigen::Matrix4d & poseMat = _pose.transformation();
-		return ( transform.block<3, 1>( 0, 3 ) - poseMat.block<3, 1>( 0, 3 ) ).squaredNorm();
+		double dist = ( transform.block<3, 1>( 0, 3 ) - poseMat.block<3, 1>( 0, 3 ) ).norm();
+	
+		const Eigen::Matrix3d & poseR = poseMat.block<3, 3>( 0, 0 );
+		const Eigen::Matrix3d & kfR   = transform.block<3, 3>( 0, 0 );
+		Eigen::Matrix3d deltaR = poseR.transpose() * kfR;
+		Eigen::Vector3d euler = deltaR.eulerAngles( 0, 1, 2 );
+		dist += euler.norm();
+
+		return dist;
 	}
 
 
