@@ -94,9 +94,6 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
-			static Time t;
-			std::cout << t.elapsedMilliSeconds() << std::endl;
-			t.reset();
 			//Time camt;
 			//camt.reset();
 			_cam->nextFrame();
@@ -109,7 +106,7 @@ class CameraTimeout : public TimeoutHandler
 			//if( camt.elapsedMicroSeconds() > 3000.0 )
 			//	std::cout << camt.elapsedMicroSeconds() << std::endl;
 			_frames++;
-			if( _timer.elapsedSeconds() > 5.0f ) {
+			if( _timer.elapsedSeconds() > 2.0f ) {
 				char buf[ 200 ];
 				sprintf( buf,"Camera FPS: %.2f", _frames / _timer.elapsedSeconds() );
 				_moveable->setTitle( buf );
@@ -206,14 +203,13 @@ int main( )
 
 		CameraTimeout camTimeOut( cam, &m, &camView );
 
-
 		Button dumpButton( "Save" );
 		Delegate<void ()> dump( &camTimeOut, &CameraTimeout::setDump );
 		dumpButton.clicked.add( dump );
 		wl.setAnchoredBottom( 40, 20 );
 		w.addWidget( &dumpButton, wl );
 
-		uint32_t timerId = Application::registerTimer( 30, &camTimeOut );
+		uint32_t timerId = Application::registerTimer( 10, &camTimeOut );
 		Application::run();
 		Application::unregisterTimer( timerId );
 
