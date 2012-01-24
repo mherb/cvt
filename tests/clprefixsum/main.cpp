@@ -12,7 +12,7 @@
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_vert.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_block2.h>
-#include <cvt/cl/kernel/prefixsum/prefixsum_boxfilter.h>
+#include <cvt/cl/kernel/boxfilter/boxfilter_prefixsum.h>
 
 using namespace cvt;
 
@@ -46,11 +46,11 @@ int main( int argc, char** argv )
 
 			CLKernel kern4( _prefixsum_block2_source, "prefixsum_block2" );
 
-			CLKernel kern5( _prefixsum_boxfilter_source, "prefixsum_boxfilter" );
+			CLKernel kern5( _boxfilter_prefixsum_source, "boxfilter_prefixsum" );
 
 //		for( int size = 64; size <= 4096; size++ ) {
 			Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
-			input.convert( climg );
+//			input.convert( climg );
 			//climg.fill( Color::WHITE );
 			Image output(input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
@@ -74,8 +74,8 @@ int main( int argc, char** argv )
 
 			kern4.setArg( 0, output );
 			kern4.setArg( 1, output );
-			kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
-			kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
+			//kern4.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
+			//kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
 			kern4.run( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			kern5.setArg( 0, climg );
@@ -84,8 +84,8 @@ int main( int argc, char** argv )
 			kern5.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
 			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
-			climg.save( "boxfilter.png" );
-#if 1
+//			climg.save( "boxfilter.png" );
+#if 0
 
 			Image iicpu( input.width(), input.height(), IFormat::floatEquivalent( input.format() ) );
 			input.integralImage( iicpu );

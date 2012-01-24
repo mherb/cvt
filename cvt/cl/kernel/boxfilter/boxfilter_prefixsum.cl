@@ -32,8 +32,8 @@ __kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only imag
 	coord.y = get_global_id( 1 );
 
 
-	mincoord.x = max( 0, coord.x - r - 1 );
-	mincoord.y = max( 0, coord.y - r - 1 );
+	mincoord.x = max( 0, coord.x - r+ 1 ) - 1;
+	mincoord.y = max( 0, coord.y - r ) - 1;
 	maxcoord.x = min( width - 1, coord.x + r );
 	maxcoord.y = min( height - 1, coord.y + r );
 
