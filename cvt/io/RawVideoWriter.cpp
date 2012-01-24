@@ -11,6 +11,7 @@ namespace cvt
 		_fd( -1 ),
 		_currSize( 0 ),
 		_maxSize( 0 ),
+		_offsetInFile( 0 ),
 		_map( 0 ),
 		_mappedSize( 0 ),
 		_pos( 0 ),
@@ -97,6 +98,7 @@ namespace cvt
 
 		SIMD * simd = SIMD::instance();
 		simd->Memcpy( _pos, imgData, _imgSize );
+
 		img.unmap( imgData );
 
 		uint8_t* ppos = (uint8_t*)( ( size_t )_pos &( ~( _pageSize - 1 ) ) );
@@ -109,11 +111,13 @@ namespace cvt
 		}
 
 		_pos += _imgSize;
+		_offsetInFile += _imgSize;
 		_currSize += _imgSize;
 	}
 
 	void RawVideoWriter::remapFile()
 	{
+		size_t resizeSize = 50 * _imgSize;
 		if( _currSize == _maxSize ){
 			if( _map != 0 ){
 
@@ -129,28 +133,23 @@ namespace cvt
 				_mappedSize = 0;
 			}
 
-			_maxSize += ( 50 * _imgSize );
+			_maxSize += resizeSize;
 			resizeFile();
 		}
 
 		// file has maxSize 
-		size_t mapSize;
-		size_t offset;
-		size_t ptrOffset;
-		if( _pos == 0 ){
-			// we are mapping the first time
-			mapSize = _maxSize;
-			offset = 0;
-			ptrOffset = 0;
-		} else {
-			ldiv_t palignment = ldiv( _currSize, _pageSize );
-			offset = _pageSize * palignment.quot;
-			ptrOffset = palignment.rem;
-			mapSize = _maxSize - offset + ptrOffset;
+		size_t mapSize = resizeSize;
+		off_t alignedOffset = 0;
+		size_t ptrOffset = 0;
+		if( _offsetInFile != 0 ){
+			// copmute page aligned offset: 
+			alignedOffset = _offsetInFile & ( ~( _pageSize - 1 ) );
+			ptrOffset = _offsetInFile - alignedOffset;
+			mapSize += ptrOffset;
 		}
-
-		_map = mmap( 0, mapSize, PROT_WRITE, MAP_SHARED, _fd, offset );
+		_map = mmap( 0, mapSize, PROT_WRITE, MAP_SHARED, _fd, alignedOffset );
 		if( _map == MAP_FAILED ){
+			std::cout << "MapSize: " << mapSize << " AlignedOffset: " << alignedOffset << ", _offsetInFile " << _offsetInFile << std::endl;
 			char * err = strerror( errno );
 			String msg( "Could not map file: " );
 			msg += err;
@@ -177,6 +176,7 @@ namespace cvt
 		*( ( uint32_t* )_pos ) = _height; _pos += sizeof( uint32_t );
 		*( ( uint32_t* )_pos ) = _stride; _pos += sizeof( uint32_t );
 		*( ( uint32_t* )_pos ) = _formatID; _pos += sizeof( uint32_t );
+		_offsetInFile += 4 * sizeof( uint32_t );
 	}
 
 	void RawVideoWriter::resizeFile()
