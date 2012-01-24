@@ -6,8 +6,10 @@
 
 namespace cvt {
 	class GuidedFilter;
+	class StereoGCVFilter;
 	class IntegralFilter : public IFilter {
 		friend class GuidedFilter;
+		friend class StereoGCVFilter;
 		public:
 			IntegralFilter();
 			void apply( Image& dst, const Image& src, const Image* src2 = NULL ) const;

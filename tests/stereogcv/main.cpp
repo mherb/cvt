@@ -12,7 +12,7 @@
 #include <cvt/io/xml/XMLDocument.h>
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/Vision.h>
-
+#include <cvt/util/Time.h>
 
 using namespace cvt;
 
@@ -109,6 +109,7 @@ int main( int argc, char* argv[] )
 		D = String( argv[ 3 ] ).toFloat();
 
 
+	try {
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
 /*
@@ -121,14 +122,14 @@ int main( int argc, char* argv[] )
 	output.save( "boxfilter.png" );
 	return 1; */
 
-
-	Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-	Matrix4f T( 1.0f, 0.0f, D, 0.0f,
-			    0.0f, 1.0f, 0.0f, 0.0f,
-			    0.0f, 0.0f, 0.0f, 1.0f,
-			    0.0f, 0.0f, 0.0f, 1.0f );
-	stereogcv.apply( disp, img1, img0, T, 0.0f, 1.0f, 1.0f / Math::abs( D * 3.0f ) );
-	disp.save( "disparity.png" );
+		Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+		Time t;
+		stereogcv.apply( disp, img1, img0, 0.0f, D, 1.0f );
+		std::cout << t.elapsedMilliSeconds() << std::endl;
+		disp.save( "disparity.png" );
+	} catch( CLException& e ) {
+		std::cout << e.what() << std::endl;
+	}
 
 	return 0;
 }
