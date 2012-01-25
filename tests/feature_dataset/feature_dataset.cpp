@@ -30,7 +30,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#define TEST_ORB2
+//#define TEST_ORB2
 
 using namespace cvt;
 

@@ -73,8 +73,8 @@ namespace cvt {
 
 		_clprefixsum_block2.setArg( 0, dst );
 		_clprefixsum_block2.setArg( 1, dst );
-		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
-		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
 		_clprefixsum_block2.run( CLNDRange( Math::pad( dst.width(), _blocksize ), Math::pad( dst.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 	}
 
@@ -109,14 +109,14 @@ namespace cvt {
 
 		_clprefixsum_block2.setArg( 0, dst_RR_RG_RB );
 		_clprefixsum_block2.setArg( 1, dst_RR_RG_RB );
-		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
-		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
 		_clprefixsum_block2.run( CLNDRange( Math::pad( dst_RR_RG_RB.width(), _blocksize ), Math::pad( dst_RR_RG_RB.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 
 		_clprefixsum_block2.setArg( 0, dst_GG_GB_BB );
 		_clprefixsum_block2.setArg( 1, dst_GG_GB_BB );
-		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
-		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+//		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
 		_clprefixsum_block2.run( CLNDRange( Math::pad( dst_GG_GB_BB.width(), _blocksize ), Math::pad( dst_GG_GB_BB.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 	}
 

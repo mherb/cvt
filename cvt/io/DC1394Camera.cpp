@@ -1,7 +1,7 @@
 #include "DC1394Camera.h"
 #include <cvt/util/Exception.h>
 
-#include <sstream>
+#include <cvt/util/String.h>
 
 namespace cvt
 {
@@ -342,9 +342,11 @@ namespace cvt
 		if( !cam )
 			throw CVTException( "Could not create camera handle" );
 
-		std::stringstream name;
-		name << cam->vendor << " " << cam->model;
-		info.setName( name.str() );
+		String name;
+		name += cam->vendor;
+		name += " ";
+	    name += cam->model;
+		info.setName( name );
 
 		// get supported frame formats + speeds
 		dc1394error_t error;
