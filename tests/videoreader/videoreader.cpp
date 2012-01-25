@@ -56,8 +56,10 @@ public:
 		int w, h;
 		size( w, h );
 		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->fillRect( 0, 0, w, h );        
-		gfx->drawImage( 0, 0, w, h, _video->frame() );
+		gfx->fillRect( 0, 0, w, h );  
+		Image color;
+		_video->frame().convert( color, IFormat::RGBA_UINT8 );		
+		gfx->drawImage( 0, 0, w, h, color );
 	}
     
 private:    
