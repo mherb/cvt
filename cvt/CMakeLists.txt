@@ -156,6 +156,7 @@ SET( CL_KERNELS
 	cl/kernel/stereogcv/costdepthgrad.cl
 	cl/kernel/stereogcv/costmin.cl
 	cl/kernel/stereogcv/costdepthconv.cl
+	cl/kernel/stereogcv/occlusioncheck.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -194,6 +195,7 @@ CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
 CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
+CLTOHEADER( cl/kernel/stereogcv/occlusioncheck.cl )
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -250,6 +252,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/stereogcv/costdepthgrad.h
 	cl/kernel/stereogcv/costmin.h
 	cl/kernel/stereogcv/costdepthconv.h
+	cl/kernel/stereogcv/occlusioncheck.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h

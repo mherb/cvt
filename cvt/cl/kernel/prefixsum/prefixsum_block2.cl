@@ -110,13 +110,15 @@ __kernel void prefixsum_block2( __write_only image2d_t out,  __read_only image2d
 #if 1
 {
 		/* just for last lines exactly at the edge of the local size patch*/
-		if( coord.y == height - 1 && lx < lw - 1 && ly == lh - 1 ) {
+
+	// FIXME
+		if( coord.y == height - 1 && lx < lw - 1 && ly == lh - 1 && coord.x < width ) {
 			tmp = read_imagef( in, sampler, coord );
 			tmp += read_imagef( in, sampler, base + ( int2 ) ( -1, ly ) );
 			write_imagef( out, coord, tmp );
 		}
 
-		if( coord.x == width - 1 && ly < lh - 1 && lx == lw - 1 ) {
+		if( coord.x == width - 1 && ly < lh - 1 && lx == lw - 1 && coord.y < height ) {
 			tmp = read_imagef( in, sampler, coord );
 			tmp += read_imagef( in, sampler, base + ( int2 ) ( lx, -1 ) );
 			write_imagef( out, coord, tmp );

@@ -3,6 +3,7 @@
 #include <cvt/cl/kernel/stereogcv/costdepthgrad.h>
 #include <cvt/cl/kernel/stereogcv/costmin.h>
 #include <cvt/cl/kernel/stereogcv/costdepthconv.h>
+#include <cvt/cl/kernel/stereogcv/occlusioncheck.h>
 #include <cvt/cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.h>
 #include <cvt/cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h>
 #include <cvt/cl/kernel/fill.h>
@@ -34,14 +35,35 @@ namespace cvt {
 		_clcdconv( _costdepthconv_source, "stereogcv_costdepthconv" ),
 		_clgrad( _gradx_source, "gradx" ),
 		_clguidedfilter_calcab_outerrgb( _guidedfilter_calcab_outerrgb_source, "guidedfilter_calcab_outerrgb" ),
-		_clguidedfilter_applyab_gc_outer( _guidedfilter_applyab_gc_outer_source, "guidedfilter_applyab_gc_outer" )
+		_clguidedfilter_applyab_gc_outer( _guidedfilter_applyab_gc_outer_source, "guidedfilter_applyab_gc_outer" ),
+		_clocclusioncheck( _occlusioncheck_source, "stereogcv_occlusioncheck" )
 	{
 	}
 
-
 	void StereoGCVFilter::apply( Image& dst, const Image& cam0, const Image& cam1, float dmin, float dmax, float dt ) const
 	{
-#define RADIUS 9
+		Image d0( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+		Image d1( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+
+		depthmap( d0, cam0, cam1, dmin, dmax, dt );
+		depthmap( d1, cam1, cam0, dmin, -dmax, -dt );
+
+//		d0.save( "disparity0.png" );
+//		d1.save( "disparity1.png" );
+		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
+
+		dst.reallocate( cam0.width(), cam0.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
+
+		_clocclusioncheck.setArg( 0, dst );
+		_clocclusioncheck.setArg( 1, d0 );
+		_clocclusioncheck.setArg( 2, d1 );
+		_clocclusioncheck.setArg( 3, Math::abs( dmax ) );
+		_clocclusioncheck.run( global, CLNDRange( 16, 16 ) );
+	}
+
+	void StereoGCVFilter::depthmap( Image& dst, const Image& cam0, const Image& cam1, float dmin, float dmax, float dt ) const
+	{
+#define RADIUS 10
 #define EPSILON 1e-4f
 		// StereoGCV
 		Image cost( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
@@ -104,7 +126,7 @@ namespace cvt {
 //			_gf.apply( costgf, cost, cam1, 9, 1e-4f, true );
 
 			_intfilter.apply( iint, cost );
-			_boxfilter.apply( imeanS, iint, 8 );
+			_boxfilter.apply( imeanS, iint, RADIUS );
 			_intfilter.apply( iint, cam1, &cost );
 			_boxfilter.apply( imeanGS, iint, RADIUS );
 
@@ -138,7 +160,6 @@ namespace cvt {
 			index = 1 - index;
 		}
 
-		dst.reallocate( cam0.width(), cam0.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
 
 		_clcdconv.setArg( 0, dst );
 		_clcdconv.setArg( 1, *c[ !index ] );
