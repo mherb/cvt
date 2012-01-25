@@ -2,8 +2,6 @@
 #include <cvt/io/FileSystem.h>
 
 #include <iostream>
-#include <string>
-#include <sstream>
 
 #include <cstdlib>
 #include <unistd.h>
@@ -474,9 +472,9 @@ namespace cvt {
 		if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
 			throw CVTException( "ioctl failed!" );
 
-		std::stringstream ss;
-		ss << caps.card;
-		info.setName( ss.str() );
+		String name;
+		name.sprintf( "%s", (char*)caps.card );
+		info.setName( name );
 		info.setIndex( index );
 		info.setType( CAMERATYPE_V4L2 );
 
