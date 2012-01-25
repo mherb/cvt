@@ -258,6 +258,7 @@ SET(${MODULE_NAME}_HEADERS
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
+	geom/Box.h
 	geom/scene/SceneCamera.h
 	geom/scene/SceneGeometry.h
 	geom/scene/Scene.h
