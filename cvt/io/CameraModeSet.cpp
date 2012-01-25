@@ -116,7 +116,7 @@ namespace cvt {
 		out << "\tModes:\n\t\t";
 		for( size_t i = 0; i < info.size(); i++ ){
 			out << info.mode( i ) << ", ";
-			if( i != 0 && ( i % 3 ) == 0 && ( i + 1 ) < info.size() ){
+			if( i != 0 && ( (i+1) % 2 ) == 0 && ( i + 1 ) < info.size() ){
 				out << "\n\t\t";
 			}
 		}
