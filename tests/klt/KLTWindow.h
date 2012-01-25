@@ -34,7 +34,7 @@ namespace cvt {
 			KLTWindow( VideoInput & video ) :
 				_window( "KLT" ),	
 				_video( video ),
-				_klt( 3 ),
+				_klt( 2 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -47,7 +47,7 @@ namespace cvt {
 				_window.setVisible( true );
 				_window.update();				
 
-				_pyramid.resize( 3 );
+				_pyramid.resize( 4 );
 				_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
 			
 				redetectFeatures( _pyramid[ 0 ] );

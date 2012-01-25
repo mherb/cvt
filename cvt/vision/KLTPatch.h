@@ -24,11 +24,12 @@ namespace cvt
 			const HessType&  inverseHessian() const { return _inverseHessian; }
 			const JacType*   jacobians()	  const { return _jac; }
 
+			size_t size() const { return pSize; }
+
 
 			static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
 									    const std::vector<Vector2f> & positions, 
 										const Image & img );
-
 		private:
 			Vector2f	_pos;
 			uint8_t		_patch[ pSize * pSize ];
@@ -45,6 +46,7 @@ namespace cvt
 	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* ptr, size_t stride )
 	{
 		const uint8_t* nextLine = ptr + stride;
+		const uint8_t* prevLine = ptr - stride;
 
 		size_t numLines = pSize;
 
@@ -64,8 +66,8 @@ namespace cvt
 			point[ 0 ] = _pos[ 0 ] - hsize;
 			for( size_t i = 0; i < pSize; i++ ){
 				*p = ptr[ i ];
-				g[ 0 ] = ( int16_t )ptr[ i + 1 ]  - ( int16_t )ptr[ i ];
-				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )ptr[ i ];
+				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
+				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
 
 				pose.screenJacobian( sj, point );
 				*J = sj.transpose() * g;
@@ -76,6 +78,7 @@ namespace cvt
 				p++;
 				point[ 0 ] += 1.0f;
 			}
+			prevLine = ptr;
 			ptr = nextLine;
 			nextLine += stride;
 			point[ 1 ] += 1.0f;

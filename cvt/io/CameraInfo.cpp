@@ -8,7 +8,8 @@ namespace cvt
 			"Video4Linux",
 			"Apple QTKit",
 			"DC1394 Firewire",
-			"IDS ueye"
+			"UEYE USB",
+			"OPENNI"
 		};
 
 		out << "Name: " << info.name() <<

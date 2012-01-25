@@ -257,10 +257,26 @@ namespace cvt {
 	{
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
+		bool donormals = _normals.size();
+		Vector3f* nt = &_normals[ 0 ];
+		Matrix3f _nnmat( mat );
+		_nnmat.transposeSelf();
+		_nnmat.inverseSelf();
 
-		while( n-- ) {
-			*pt = mat * *pt;
-			pt++;
+		// FIXME: also tangents
+
+		if( donormals ) {
+			while( n-- ) {
+				*pt = mat * *pt;
+				pt++;
+			}
+		} else {
+			while( n-- ) {
+				*pt = mat * *pt;
+				pt++;
+				*nt = _nnmat * *nt;
+				nt++;
+			}
 		}
 	}
 
@@ -269,28 +285,46 @@ namespace cvt {
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
 		bool donormals = _normals.size();
-		Vector3f* nt = &_vertices[ 0 ];
+		Vector3f* nt = &_normals[ 0 ];
+		Matrix3f _nnmat( mat );
+		_nnmat.transposeSelf();
+		_nnmat.inverseSelf();
+
 		// FIXME: also tangents
 
 		if( mat[ 3 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
 			/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
-			Matrix3f _mat( mat );
-			Matrix3f _nnmat = _mat.transpose();
-			_nnmat.inverseSelf();
 			Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
-			while( n-- ) {
-				*pt = _mat * *pt;
-				*pt += trans;
-				pt++;
-				if( donormals ) {
+			Matrix3f _mat( mat );
+			if( donormals ) {
+
+				while( n-- ) {
+					*pt = _mat * *pt;
+					*pt += trans;
+					pt++;
 					*nt = _nnmat * *nt;
 					nt++;
 				}
-			}
+
+			} else {
+				while( n-- ) {
+					*pt = _mat * *pt;
+					*pt += trans;
+					pt++;
+				}	}
 		} else {
-			while( n-- ) {
-				*pt = mat * *pt;
-				pt++;
+			if( donormals ) {
+				while( n-- ) {
+					*pt = mat * *pt;
+					pt++;
+					*nt = _nnmat * *nt;
+					nt++;
+				}
+			} else {
+				while( n-- ) {
+					*pt = mat * *pt;
+					pt++;
+				}
 			}
 		}
 	}

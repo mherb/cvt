@@ -1,12 +1,12 @@
 #ifndef CVT_CAMERAINFO_H
 #define CVT_CAMERAINFO_H
 
-#include <string>
 #include <vector>
 #include <fstream>
 #include <cvt/gfx/Image.h>
 #include <cvt/io/CameraMode.h>
 #include <cvt/io/CameraModeSet.h>
+#include <cvt/util/String.h>
 
 namespace cvt {
 
@@ -15,7 +15,8 @@ namespace cvt {
 		CAMERATYPE_V4L2,
 		CAMERATYPE_QTKIT,
 		CAMERATYPE_DC1394,
-		CAMERATYPE_UEYE
+		CAMERATYPE_UEYE,
+		CAMERATYPE_OPENNI
 	};
 
 	class CameraInfo
@@ -23,8 +24,8 @@ namespace cvt {
 		public:
 			CameraInfo();
 
-			const std::string & name( ) const;
-			void setName( const std::string & name );
+			const String & name() const;
+			void setName( const String & name );
 
 			CameraType type() const;
 			void setType( CameraType type );
@@ -39,7 +40,7 @@ namespace cvt {
 			const CameraModeSet & modeSet() const;
 
 		private:
-			std::string _name;
+			String _name;
 			CameraType _type;
 			size_t _index;
 			CameraModeSet _modeSet;
@@ -49,12 +50,12 @@ namespace cvt {
 	{
 	}
 
-	inline const std::string & CameraInfo::name() const
+	inline const String& CameraInfo::name() const
 	{
 		return _name;
 	}
 
-	inline void CameraInfo::setName( const std::string & name )
+	inline void CameraInfo::setName( const String & name )
 	{
 		_name = name;
 	}
