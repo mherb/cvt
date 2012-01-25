@@ -11,11 +11,11 @@
 
 namespace cvt
 {
-	template <class PoseType>
+	template <class PoseType, size_t pSize=16>
 	class KLTTracker
 	{
 		public:
-			typedef KLTPatch<16, PoseType>	KLTPType;
+			typedef KLTPatch<pSize, PoseType>	KLTPType;
 
 			KLTTracker( size_t maxIters = 20 );
 
@@ -34,7 +34,6 @@ namespace cvt
 
 		private:
 			size_t _maxIters;
-			size_t _patchSize;
 			float  _ssdThresh;
 			
 			bool trackSinglePatch( PoseType& pose, 
@@ -45,7 +44,7 @@ namespace cvt
 
 			bool checkBounds( const Eigen::Vector2f & p, size_t width, size_t height ) const
 			{
-				size_t h = _patchSize >> 1;
+				size_t h = pSize >> 1;
 				if( p[ 0 ] <= h || p[ 1 ] <= h || p[ 0 ] + h >= width || p[ 1 ] + h >= height )
 					return false;
 				return true;
@@ -54,17 +53,16 @@ namespace cvt
 	};
 
 
-	template <class PoseType>
-	inline KLTTracker<PoseType>::KLTTracker( size_t maxIters ) :
+	template <class PoseType, size_t pSize>
+	inline KLTTracker<PoseType, pSize>::KLTTracker( size_t maxIters ) :
 		_maxIters( maxIters ),
-		_patchSize( 16 ),
 		_ssdThresh( 0.0f )
 	{
 		_ssdThresh = Math::sqr( 20.0f );
 	}
 
-	template <class PoseType>
-	inline void KLTTracker<PoseType>::trackFeatures( std::vector<size_t> & trackedIndices,
+	template <class PoseType, size_t pSize>
+	inline void KLTTracker<PoseType, pSize>::trackFeatures( std::vector<size_t> & trackedIndices,
 									std::vector<PoseType> & poses,
 									const std::vector<KLTPType*>& patches,
 									const Image& current )
@@ -96,14 +94,14 @@ namespace cvt
 		current.unmap( currImgPtr );
 	}
 
-	template <class PoseType>
-	inline bool KLTTracker<PoseType>::trackSinglePatch( PoseType & pose, 
+	template <class PoseType, size_t pSize>
+	inline bool KLTTracker<PoseType, pSize>::trackSinglePatch( PoseType & pose, 
 									   const Vector2f & tempPos,
 									   const KLTPType& patch,
 									   const uint8_t* current, size_t currStride,
 									   size_t width, size_t height )
 	{
-		size_t halfSize = _patchSize >> 1;
+		size_t halfSize = pSize >> 1;
 		
 		Eigen::Vector2f p2;
 		Eigen::Vector2f pp;
@@ -118,7 +116,7 @@ namespace cvt
 		size_t numLines;
 		while( iter < _maxIters ){
 			jSum.setZero();
-			numLines = _patchSize;
+			numLines = pSize;
 			diffSum = 0.0f;
 			npix = 0;
 
@@ -127,7 +125,7 @@ namespace cvt
 			const uint8_t* temp = patch.pixels();
 			while( numLines-- ){
 				p2[ 0 ] = tempPos.x - halfSize; 
-				for( size_t i = 0; i < _patchSize; i++ ){
+				for( size_t i = 0; i < pSize; i++ ){
 					pose.transformInverse( pp, p2 );
 					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
 						float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
@@ -159,8 +157,8 @@ namespace cvt
 		return true;
 	}
 
-	template <class PoseType>
-	inline void KLTTracker<PoseType>::trackMultiscale( std::vector<size_t> & trackedIndices,
+	template <class PoseType, size_t pSize>
+	inline void KLTTracker<PoseType, pSize>::trackMultiscale( std::vector<size_t> & trackedIndices,
 									  std::vector<PoseType> & poses,
 									  const std::vector<KLTPType*>& patches,
 									  const std::vector<Image>& pyramid )
