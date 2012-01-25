@@ -2,7 +2,8 @@
 #define CVT_STEREOGCV_H
 
 #include <cvt/gfx/IFilter.h>
-#include <cvt/gfx/ifilter/GuidedFilter.h>
+#include <gfx/ifilter/IntegralFilter.h>
+#include <gfx/ifilter/BoxFilter.h>
 #include <cvt/cl/CLKernel.h>
 
 namespace cvt {
@@ -11,7 +12,7 @@ namespace cvt {
 					StereoGCVFilter();
 					~StereoGCVFilter();
 
-			void	apply( Image& dst, const Image& cam0, const Image& cam1, const Matrix4f& T, float dmin, float dmax, float dt = 1.0f ) const;
+			void	apply( Image& dst, const Image& cam0, const Image& cam1, float dmin, float dmax, float dt = 1.0f ) const;
 			void	apply( const ParamSet* attribs, IFilterType iftype ) const {}
 
 		private:
@@ -22,7 +23,11 @@ namespace cvt {
 			CLKernel		_clcdconv;
 			CLKernel		_clgrad;
 //			CLKernel		_cldepthrefine;
-			GuidedFilter	_gf;
+			CLKernel	   _clguidedfilter_calcab_outerrgb;
+			CLKernel	   _clguidedfilter_applyab_gc_outer;
+			IntegralFilter _intfilter;
+			BoxFilter	   _boxfilter;
+
 	};
 
 	inline StereoGCVFilter::~StereoGCVFilter()
