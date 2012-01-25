@@ -21,7 +21,7 @@
 
 __kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only image2d_t in, const int r )
 {
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
 	int2 coord, mincoord, maxcoord;
@@ -31,9 +31,11 @@ __kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only imag
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
+	if( coord.x >= width || coord.y >= height )
+		return;
 
-	mincoord.x = max( 0, coord.x - r+ 1 ) - 1;
-	mincoord.y = max( 0, coord.y - r ) - 1;
+	mincoord.x = max( 0, coord.x - r -1 );
+	mincoord.y = max( 0, coord.y - r -1 );
 	maxcoord.x = min( width - 1, coord.x + r );
 	maxcoord.y = min( height - 1, coord.y + r );
 
@@ -46,7 +48,6 @@ __kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only imag
 
 	value /= ( float4 ) size;
 
-	if( coord.x < width && coord.y < height )
-		write_imagef( out, coord, value );
+	write_imagef( out, coord, value );
 }
 
