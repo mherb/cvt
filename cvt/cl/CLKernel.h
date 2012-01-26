@@ -70,7 +70,7 @@ namespace cvt {
 	inline CLKernel::CLKernel( const String& source, const String& name )
 	{
 		CLProgram prog( *CL::defaultContext(), source );
-		if( ! prog.build( *CL::defaultDevice() ,"-cl-denorms-are-zero -cl-unsafe-math-optimizations"/*, "-cl-single-precision-constant -cl-denorms-are-zero -cl-mad-enable -cl-fast-relaxed-math"*/ ) ) {
+		if( ! prog.build( *CL::defaultDevice() ,"-cl-denorms-are-zero -cl-single-precision-constant"/*, "-cl-single-precision-constant -cl-denorms-are-zero -cl-mad-enable -cl-fast-relaxed-math"*/ ) ) {
 			String log;
 			prog.buildLog( *CL::defaultDevice(), log );
 			throw CVTException( log.c_str() );
