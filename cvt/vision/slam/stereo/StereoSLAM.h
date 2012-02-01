@@ -51,6 +51,8 @@ namespace cvt
 			const SlamMap & map() const { return _map; }
 			void clear();
 
+			void setPose( const Matrix4d& pose );
+
 			Signal<const Image&>		newStereoView;	
 			Signal<void>				keyframeAdded;	
 			Signal<const SlamMap&>		mapChanged;	
