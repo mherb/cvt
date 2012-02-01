@@ -24,10 +24,13 @@ namespace cvt
 			void onTimeout();
 
 			void toggleStepping();
+
 			void nextPressed() { _nextImage = true; };
 
 			void saveMap();
 			void clearMap();
+
+			void saveImages();
 
 		private:
 			std::vector<VideoInput*> _cams;

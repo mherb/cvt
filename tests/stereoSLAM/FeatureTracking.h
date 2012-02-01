@@ -26,8 +26,9 @@ namespace cvt
 												   const Image& first, 
 												   const Image& second ) = 0;
 
-		protected:
+			Signal<const Image&>	debugImage;
 
+		protected:
 			/* triangulate a new point */	
 			virtual float triangulateSinglePoint( Vector4f&			newPoint, 
 												  const Vector2f&	point0,
@@ -53,7 +54,7 @@ namespace cvt
 		// normalize 4th coord;
 		newPoint /= newPoint.w;
 		float error = 10000.0f;
-		if( newPoint.z > 0.0f && newPoint.z < 20 ){
+		if( newPoint.z > 0.0f && newPoint.z < 30 ){
 			repr = projMat0 * newPoint;
 			repr2.x = repr.x / repr.z;
 			repr2.y = repr.y / repr.z;
@@ -92,7 +93,7 @@ namespace cvt
 		// average & normalize
 		sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
 	
-		return ( sad > 0.7f ) ? true : false;	
+		return ( sad > 0.75f ) ? true : false;	
 	}
 }
 
