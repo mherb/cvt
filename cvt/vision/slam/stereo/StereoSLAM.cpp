@@ -1,113 +1,12 @@
-#ifndef CVT_STEREO_SLAM_H
-#define CVT_STEREO_SLAM_H
-
-#include <cvt/vision/CameraCalibration.h>
-#include <cvt/vision/PointCorrespondences3d2d.h>
-#include <cvt/gfx/ifilter/IWarp.h>
-#include <cvt/gfx/GFXEngineImage.h>
-#include <cvt/vision/Vision.h>
-#include <cvt/vision/EPnP.h>
-#include <cvt/vision/FeatureMatch.h>
-#include <cvt/math/SE3.h>
-#include <cvt/math/sac/RANSAC.h>
-#include <cvt/math/sac/EPnPSAC.h>
-#include <cvt/math/LevenbergMarquard.h>
-#include <cvt/util/Signal.h>
-#include <cvt/util/Time.h>
-#include <cvt/util/Time.h>
-
-#include <cvt/vision/slam/SlamMap.h>
-#include <cvt/vision/slam/Keyframe.h>
-
-#include "ORBStereoMatching.h"
-#include "DescriptorDatabase.h"
-#include "ORBTracking.h"
-#include "MapOptimizer.h"
-#include "FeatureAnalyzer.h"
-
-#include <set>
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
 
 namespace cvt
 {
-	// Managing class for stereo SLAM
-	class StereoSLAM
-	{
-		public:
-			StereoSLAM( FeatureTracking* ft, 
-					    const CameraCalibration& c0, size_t w0, size_t h0,
-						const CameraCalibration& c1, size_t w1, size_t h1 );
-
-			// new round with two new images, maybe also hand in a pose prediction?
-			void newImages( const Image& img0, const Image& img1 );
-
-			const Image& undistorted( size_t idx = 0 ) const 
-			{
-				if( idx )
-					return _undist1;
-				return _undist0;
-			}
-
-			const SlamMap & map() const { return _map; }
-			void clear();
-
-			Signal<const Image&>		newStereoView;	
-			Signal<void>				keyframeAdded;	
-			Signal<const SlamMap&>		mapChanged;	
-			Signal<const Matrix4f&>		newCameraPose;	
-			Signal<size_t>				numTrackedPoints;	
-
-		private:
-			/* camera calibration data and undistortion maps */
-			CameraCalibration	_camCalib0;
-			CameraCalibration	_camCalib1;
-			Image				_undistortMap0;
-			Image				_undistortMap1;
-
-			/* undistorted images */
-			Image				_undist0;
-			Image				_undist1;
-
-
-			// FeatureTracker (single view)
-			float				_trackingSearchRadius;
-			FeatureTracking*	_featureTracking;
-
-			// minimum needed features before new keyframe is added
-			size_t				_minTrackedFeatures;
-
-
-			/* the current pose of the camera rig */
-			SE3<double>			_pose;
-
-			/* the active Keyframe Id (closest to _pose) */
-			int					_activeKF;
-			double				_minKeyframeDistance;
-			double				_maxKeyframeDistance;
-
-			SlamMap				_map;
-
-			MapOptimizer		_bundler;
-			Image				_lastImage;
-
-			void estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d );
-
-			void debugPatchWorkImage( const std::set<size_t> & indices,
-								      const std::vector<size_t> & featureIds,
-								      const std::vector<FeatureMatch> & matches );
-
-			bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
-
-			void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
-			void createDebugImageStereo( Image & debugImage, 
-										 const std::vector<FeatureMatch> & matches,
-										 const std::vector<size_t> & indices ) const;
-	};
-
-	inline StereoSLAM::StereoSLAM( FeatureTracking* ft,
-								   const CameraCalibration& c0,
-								   size_t w0, size_t h0, 
-								   const CameraCalibration& c1,
-								   size_t w1, size_t h1 ):
+	StereoSLAM::StereoSLAM( FeatureTracking* ft,
+						   const CameraCalibration& c0,
+						   size_t w0, size_t h0, 
+						   const CameraCalibration& c1,
+						   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_featureTracking( ft ),
 		_minTrackedFeatures( 80 ),
@@ -138,7 +37,7 @@ namespace cvt
 		_map.setIntrinsics( K );
 	}
 
-	inline void StereoSLAM::newImages( const Image& img0, const Image& img1 )
+	void StereoSLAM::newImages( const Image& img0, const Image& img1 )
 	{
 		// undistort the first image
 		IWarp::apply( _undist0, img0, _undistortMap0 );
@@ -165,9 +64,9 @@ namespace cvt
 
 			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );
 
-//			Image debug;
-//			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
-//			newStereoView.notify( debug );
+			//			Image debug;
+			//			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
+			//			newStereoView.notify( debug );
 
 			// new keyframe added -> run the sba thread	
 			if( _map.numKeyframes() > 1 && numNewPoints ){
@@ -177,33 +76,33 @@ namespace cvt
 			}
 			mapChanged.notify( _map );				
 		}
- 
+
 		int last = _activeKF;
 		_activeKF = _map.findClosestKeyframe( _pose.transformation() );
 		if( _activeKF != last )
 			std::cout << "Active KF: " << _activeKF << std::endl;
 	}
 
-	inline void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
+	void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
 	{
 		const Matrix3f & kf = _camCalib0.intrinsics();
 		Eigen::Matrix<double, 3, 3> Ke;
 		Eigen::Matrix<double, 4, 4> extrC;
 		EigenBridge::toEigen( Ke, kf );
 		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
-		
+
 		Eigen::Matrix4d me;
 		/*
-		Matrix3d K;
-		EigenBridge::toCVT( K, kf );
-		Matrix4d m;
-		EPnPd epnp( p3d );
-		epnp.solve( m, p2d, K );
-		
+		   Matrix3d K;
+		   EigenBridge::toCVT( K, kf );
+		   Matrix4d m;
+		   EPnPd epnp( p3d );
+		   epnp.solve( m, p2d, K );
+
 		// from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
 		EigenBridge::toEigen( me, m );
 		me = extrC.inverse() * me;
-		*/
+		 */
 
 		me = _pose.transformation();		
 
@@ -220,7 +119,7 @@ namespace cvt
 			p2[ 1 ] = p2d[ i ].y;
 			pointCorresp.add( p3, p2 );
 		}
-		
+
 		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 5.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
@@ -237,7 +136,7 @@ namespace cvt
 		newCameraPose.notify( mf );
 	}
 
-	inline void StereoSLAM::clear()
+	void StereoSLAM::clear()
 	{
 		if( _bundler.isRunning() )
 			_bundler.join();
@@ -251,10 +150,10 @@ namespace cvt
 	}
 
 
-			
-	inline void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
-											     const std::vector<size_t> & featureIds,
-												 const std::vector<FeatureMatch> & matches )
+
+	void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
+										 const std::vector<size_t> & featureIds,
+										 const std::vector<FeatureMatch> & matches )
 	{
 		std::set<size_t>::const_iterator idIter = indices.begin();
 		const std::set<size_t>::const_iterator idIterEnd = indices.end();
@@ -273,7 +172,7 @@ namespace cvt
 			p0.x = ( float )meas.point[ 0 ]; 
 			p0.y = ( float )meas.point[ 1 ];
 			if( p0.x < patchHalf || p0.y < patchHalf )
-				 std::cout << "Bad Point: " << p0  << " feature id: " << featureId << " kfId: " << kf.id() << std::endl;
+				std::cout << "Bad Point: " << p0  << " feature id: " << featureId << " kfId: " << kf.id() << std::endl;
 			p0.x -= patchHalf;
 			p0.y -= patchHalf;
 
@@ -289,10 +188,10 @@ namespace cvt
 		patchWork.image().save( "patchwork.png" );
 	}
 
-	inline bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
+	bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
 	{
 		double kfDist = _minKeyframeDistance + 1.0;
-	    if( _activeKF != -1 ){
+		if( _activeKF != -1 ){
 			kfDist = _map.keyframeForId( _activeKF ).distance( _pose.transformation() );
 		}
 
@@ -307,9 +206,9 @@ namespace cvt
 		return false;
 	}
 
-	inline void StereoSLAM::createDebugImageStereo( Image & debugImage, 
-													const std::vector<FeatureMatch> & matches,
-													const std::vector<size_t> & indices ) const
+	void StereoSLAM::createDebugImageStereo( Image & debugImage, 
+											const std::vector<FeatureMatch> & matches,
+											const std::vector<size_t> & indices ) const
 	{
 		debugImage.reallocate( 2 * _undist0.width(), _undist0.height(), IFormat::RGBA_UINT8 );
 		Image tmp( debugImage.width(), debugImage.height(), IFormat::GRAY_UINT8 );
@@ -321,16 +220,14 @@ namespace cvt
 		{
 			GFXEngineImage ge( debugImage );
 			GFX g( &ge );
-			
+
 			g.color() = Color::RED;
 			for( size_t i = 0; i < indices.size(); i++ ){
 				const FeatureMatch & match = matches[ indices[ i ] ];
-					Vector2f p2 = match.feature1->pt;
-					p2.x += _undist0.width();
-					g.drawLine( match.feature0->pt, p2 );
+				Vector2f p2 = match.feature1->pt;
+				p2.x += _undist0.width();
+				g.drawLine( match.feature0->pt, p2 );
 			}
 		}
 	}
 }
-
-#endif
