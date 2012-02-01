@@ -8,8 +8,8 @@
 #include <cvt/vision/CameraCalibration.h>
 
 #include <cvt/gui/Application.h>
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
 
-#include "StereoSLAM.h"
 #include "StereoSLAMApp.h"
 
 using namespace cvt;
@@ -89,16 +89,19 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
 int main( int argc, char* argv[] )
 {
 	bool useSeq = false;
-	int seqNum = 0;
+	String folder = "";
+	Resources r;
 	if( argc > 1 ){
 		String option( argv[ 1 ] );
 		if( option == "SEQUENCE" )
 			useSeq = true;
-		if( argc > 2 )
-			seqNum = atoi( argv[ 2 ] );
+		if( argc > 2 ){
+			folder = argv[ 2 ];
+		} else {
+			folder = r.find( "stereoSLAM/floor_2min_44fps" );
+		}
 	}
 
-	Resources r;
 	String id0( "4002738790" );
 	String id1( "4002738788" );
 
@@ -106,18 +109,8 @@ int main( int argc, char* argv[] )
 	std::vector<VideoInput*> input;
 
 	if( useSeq ){
-		String folder;
-		switch( seqNum ){
-			case 0:
-				folder = r.find( "stereoSLAM/floor_2min_44fps" );
-				break;
-			case 1:
-				folder = r.find( "stereoSLAM/office_2min_42fps" );
-				break;
-			default:
-				throw CVTException( "UKNOWN SEQUENCE NUMBER" );
-		}
-		folder += "/";
+		if( folder[ folder.length() - 1 ] != '/' )
+			folder += "/";
 		loadSequenceFromFolder( input, 
 							    camCalib0, camCalib1,
 								id0, id1,

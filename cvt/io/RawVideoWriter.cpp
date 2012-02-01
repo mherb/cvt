@@ -92,7 +92,7 @@ namespace cvt
 		}
 
 		// check if we need to remap
-		if( ( _currSize + _imgSize ) > _maxSize ){
+		if( ( _currSize + ( off_t )_imgSize ) > _maxSize ){
 			remapFile();
 		}
 
@@ -118,24 +118,20 @@ namespace cvt
 	void RawVideoWriter::remapFile()
 	{
 		size_t resizeSize = 50 * _imgSize;
-		if( _currSize == _maxSize ){
-			if( _map != 0 ){
-
-				if( munmap( _map, _mappedSize ) != 0 ){
-					char * err = strerror( errno );
-					String msg( "Could not unmap memory: " );
-					msg += err;
-					_map = 0;
-					_mappedSize = 0;
-					throw CVTException( msg.c_str() );
-				}
+		if( _map != 0 ){
+			if( munmap( _map, _mappedSize ) != 0 ){
+				char * err = strerror( errno );
+				String msg( "Could not unmap memory: " );
+				msg += err;
 				_map = 0;
 				_mappedSize = 0;
+				throw CVTException( msg.c_str() );
 			}
-
-			_maxSize += resizeSize;
-			resizeFile();
+			_map = 0;
+			_mappedSize = 0;
 		}
+		_maxSize += resizeSize;
+		resizeFile();
 
 		// file has maxSize 
 		size_t mapSize = resizeSize;

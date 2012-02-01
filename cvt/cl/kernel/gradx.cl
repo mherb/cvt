@@ -9,7 +9,7 @@ __kernel void gradx( __write_only image2d_t out, __read_only image2d_t src, __lo
 	const int lh = get_local_size( 1 );
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
-	const int2 base = ( int2 )( get_group_id( 0 ) * lw - 1, get_group_id( 1 ) * lh );
+	const int2 base = { get_group_id( 0 ) * lw - 1, get_group_id( 1 ) * lh };
 	const int bstride = lw + 2;
 	float2 coord;
 	float4 dx;

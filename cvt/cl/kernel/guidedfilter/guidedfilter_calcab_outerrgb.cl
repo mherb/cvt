@@ -54,7 +54,7 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 										   __read_only image2d_t imgmeanSG, __read_only image2d_t imgmean_RR_RG_RB, __read_only image2d_t imgmean_GG_GB_BB,
 										   const float epsilon )
 {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	const int width = get_image_width( imga );
 	const int height = get_image_height( imga );
 	int2 coord;
@@ -64,6 +64,9 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
+	if( coord.x >= width || coord.y >= height )
+		return;
+
 	meanG = read_imagef( imgmeanG, sampler, coord );
 	meanS = read_imagef( imgmeanS, sampler, coord );
 	meanSG = read_imagef( imgmeanSG, sampler, coord );
@@ -71,7 +74,7 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	meanGG_GB_BB = read_imagef( imgmean_GG_GB_BB, sampler, coord );
 
 	cov = meanSG - meanG * meanS;
-	cov.w = 0.0f;
+//	cov.w = 0.0f;
 
 	meanRR_RG_RB.xyz -= meanG.x * meanG.xyz;
 	meanGG_GB_BB.xy -= meanG.y * meanG.yz;
@@ -95,9 +98,7 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	a = LUSolve( var, cov );
 	b = meanS - ( float4 ) dot( meanG, a );
 
-	if( coord.x < width && coord.y < height ) {
-		write_imagef( imga, coord, a );
-		write_imagef( imgb, coord, b );
-	}
+	write_imagef( imga, coord, a );
+	write_imagef( imgb, coord, b );
 }
 

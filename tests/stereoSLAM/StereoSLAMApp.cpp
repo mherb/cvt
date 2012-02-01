@@ -3,8 +3,9 @@
 #include <cvt/gui/Application.h>
 #include <cvt/io/xml/XMLDocument.h>
 
-#include "ORBTracking.h"
-#include "KLTTracking.h"
+#include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
+#include <cvt/vision/slam/stereo/ORBTracking.h>
+#include <cvt/vision/slam/stereo/KLTTracking.h>
 
 namespace cvt
 {
@@ -12,8 +13,9 @@ namespace cvt
 										 const CameraCalibration & c0,
 										 const CameraCalibration & c1 ):
 		_cams( cams ),
-		_featureTracking( new ORBTracking( c0, c1 ) ),
+		//_featureTracking( new ORBTracking( c0, c1 ) ),
 		//_featureTracking( new KLTTracking( c0, c1 ) ),
+		_featureTracking( new ORBTrackingSequential( c0, c1 ) ),
 		_slam( _featureTracking, c0, cams[ 0 ]->width(), cams[ 0 ]->height(), c1, cams[ 1 ]->width(), cams[ 1 ]->height() ),
 		_img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
 		_img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
@@ -38,7 +40,7 @@ namespace cvt
 		_gui.setStepping( _stepping );
 		
 		Delegate<void (const Image&)> d4( &_gui, &SLAMGui::setCurrentImage );
-		_slam.trackedPointsImage.add( d4 );
+		_featureTracking->debugImage.add( d4 );
 
 		Delegate<void (size_t)> dnpts( &_gui, &SLAMGui::setNumTrackedFeatures );
 		_slam.numTrackedPoints.add( dnpts );
@@ -48,6 +50,9 @@ namespace cvt
 		
 		Delegate<void (void)> cM( this, &StereoSLAMApp::clearMap );
 		_gui.addMapClearDelegate( cM );
+
+		Delegate<void (void)> kfAddDel( this, &StereoSLAMApp::saveImages );
+		_slam.keyframeAdded.add( kfAddDel );
 	}
 
 	StereoSLAMApp::~StereoSLAMApp()
@@ -98,5 +103,16 @@ namespace cvt
 	void StereoSLAMApp::clearMap()
 	{
 		_slam.clear();
+	}
+
+	void StereoSLAMApp::saveImages()
+	{
+		//static size_t keyframeIter = 0;
+		//String savename;
+		//savename.sprintf( "ueye_4002738790_keyframe_%05d.cvtraw", keyframeIter );
+		//_cams[ 0 ]->frame().save( savename );
+		//savename.sprintf( "ueye_4002738788_keyframe_%05d.cvtraw", keyframeIter );
+		//_cams[ 1 ]->frame().save( savename );
+		//keyframeIter++;
 	}
 }
