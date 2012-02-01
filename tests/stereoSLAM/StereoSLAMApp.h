@@ -6,9 +6,9 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Time.h>
 
-#include "StereoSLAM.h"
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
+#include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include "SLAMGui.h"
-#include "FeatureTracking.h"
 
 namespace cvt
 {

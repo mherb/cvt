@@ -1,72 +1,8 @@
-#ifndef ORB_TRACKING_H
-#define ORB_TRACKING_H
-
-#include "FeatureTracking.h"
-#include <cvt/vision/slam/MapFeature.h>
-#include "DescriptorDatabase.h"
-#include <cvt/vision/ORB.h>
-#include <cvt/vision/Vision.h>
+#include <cvt/vision/slam/stereo/ORBTracking.h>
 
 namespace cvt
 {
-
-	/**
-	 *	Feature Tracking using ORB Matching	
-	 */
-	class ORBTracking : public FeatureTracking 
-	{
-		public:
-			ORBTracking( const CameraCalibration& c0, const CameraCalibration & c1 );
-			~ORBTracking();
-
-			void trackFeatures( PointSet3d&			p3d, 
-								PointSet2d&			p2d,
-								const SlamMap&		map,
-								const SE3<double>&	pose,
-                                const Image&		img );
-
-			size_t triangulateNewFeatures( SlamMap& map, 
-										   const SE3<double>& pose, 
-										   const Image& first, 
-										   const Image& second );
-
-			void clear();
-
-		private:
-			const CameraCalibration&		_camCalib0;
-			const CameraCalibration&		_camCalib1;
-			DescriptorDatabase<ORBFeature>	_descriptors;
-            size_t							_maxDescDistance;
-            float							_windowRadius;
-
-			/* descriptor matching parameters */
-			float							_matcherMaxLineDistance;	
-			float							_maxTriangReprojError;
-			ORBStereoMatching				_stereoMatcher;
-
-			/* orb parameters */
-			size_t							_orbOctaves;
-			float							_orbScaleFactor;
-			uint8_t							_orbCornerThreshold;
-			size_t							_orbMaxFeatures;
-			bool							_orbNonMaxSuppression;
-			ORB								_orb0;
-			std::set<size_t>				_orb0MatchedIds;
-			std::vector<FeatureMatch>		_trackedInFirst;
-
-			std::vector<size_t>				_predictedIds;
-			std::vector<Vector2f>			_predictedPositions;
-
-			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const;
-
-			void correspondencesFromMatchedFeatures( PointSet3d& p3d, PointSet2d& p2d,
-													 std::set<size_t>& matchedIndices,
-													 const SlamMap & map, 
-													 const Image& img );
-
-	};
-
-	inline ORBTracking::ORBTracking( const CameraCalibration & c0, const CameraCalibration & c1 ) :
+	ORBTracking::ORBTracking( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
 		_maxDescDistance( 80 ),
@@ -83,16 +19,16 @@ namespace cvt
 	{
 	}
 
-	inline ORBTracking::~ORBTracking()
+	ORBTracking::~ORBTracking()
 	{
 	}
 
-    inline void ORBTracking::trackFeatures( PointSet3d&			p3d, 
-										    PointSet2d&			p2d,
-											const SlamMap&		map,
-											const SE3<double>&	pose,
-                                            const Image&		img )
-    {
+	void ORBTracking::trackFeatures( PointSet3d&			p3d, 
+									PointSet2d&			p2d,
+									const SlamMap&		map,
+									const SE3<double>&	pose,
+									const Image&		img )
+	{
 		// create the ORB
 		_orb0.update( img );
 
@@ -101,37 +37,37 @@ namespace cvt
 		_predictedPositions.clear();
 		map.selectVisibleFeatures( _predictedIds, _predictedPositions, pose.transformation(), _camCalib0 );
 
-        // we want to find the best matching orb feature from current, that lies
-        // within a certain distance from the "predicted" position
-        std::vector<size_t>::const_iterator currentId = _predictedIds.begin();
-        std::vector<size_t>::const_iterator tEnd = _predictedIds.end();
-        std::vector<Vector2f>::const_iterator pred = _predictedPositions.begin();
+		// we want to find the best matching orb feature from current, that lies
+		// within a certain distance from the "predicted" position
+		std::vector<size_t>::const_iterator currentId = _predictedIds.begin();
+		std::vector<size_t>::const_iterator tEnd = _predictedIds.end();
+		std::vector<Vector2f>::const_iterator pred = _predictedPositions.begin();
 
 		// keep track of already assigned indices to avoid double associations
 		std::set<size_t> used;
 		_trackedInFirst.clear();
-        while( currentId != tEnd ){
+		while( currentId != tEnd ){
 			FeatureMatch m;
 			const ORBFeature & desc = _descriptors.descriptor( *currentId );
 			m.feature0 = &desc;
-            matchInWindow( m, *pred, _orb0, used );
+			matchInWindow( m, *pred, _orb0, used );
 			_trackedInFirst.push_back( m );
 			++currentId;
 			++pred;
-        }
+		}
 
 		_orb0MatchedIds.clear();
 		correspondencesFromMatchedFeatures( p3d, p2d, _orb0MatchedIds, map, img );
-    }
+	}
 
-    inline void ORBTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const
-    {
+	void ORBTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const
+	{
 		const ORBFeature * f = (ORBFeature*)match.feature0;
-        match.distance = _maxDescDistance;
-        size_t currDist;
+		match.distance = _maxDescDistance;
+		size_t currDist;
 		const std::set<size_t>::const_iterator usedEnd = used.end();
 		size_t matchedId = 0;
-        for( size_t i = 0; i < orb.size(); i++ ){
+		for( size_t i = 0; i < orb.size(); i++ ){
 			if( used.find( i ) == usedEnd ){
 				if( ( p - orb[ i ].pt ).length() < _windowRadius ){
 					// try to match
@@ -143,18 +79,18 @@ namespace cvt
 					}
 				}
 			}
-        }
+		}
 
 		// to ensure unique matches
 		if( match.distance < _maxDescDistance ){
 			used.insert( matchedId );
 		}
-    }
+	}
 
-	inline size_t ORBTracking::triangulateNewFeatures( SlamMap& map,
-													   const SE3<double> & pose,
-													   const Image & firstView,
-												       const Image & secondView )
+	size_t ORBTracking::triangulateNewFeatures( SlamMap& map,
+											   const SE3<double> & pose,
+											   const Image & firstView,
+											   const Image & secondView )
 	{
 		// create the ORB
 		ORB orb1( secondView, 
@@ -233,11 +169,11 @@ namespace cvt
 		return numNew;
 	}
 
-	inline void ORBTracking::correspondencesFromMatchedFeatures( PointSet3d& p3d, 
-															     PointSet2d& p2d,
-															     std::set<size_t>& matchedIndices,
-															     const SlamMap & map, 
-															     const Image& img )
+	void ORBTracking::correspondencesFromMatchedFeatures( PointSet3d& p3d, 
+														 PointSet2d& p2d,
+														 std::set<size_t>& matchedIndices,
+														 const SlamMap & map, 
+														 const Image& img )
 	{
 		Vector3d p3;
 		Vector2d p2;
@@ -249,7 +185,7 @@ namespace cvt
 				size_t keyframeId = *( mapFeat.pointTrackBegin() );
 				const FeatureMatch& match = _trackedInFirst[ i ];
 				if( checkFeatureSAD( match.feature0->pt, match.feature1->pt, 
-									 map.keyframeForId( keyframeId ).image(), img ) ) {
+									map.keyframeForId( keyframeId ).image(), img ) ) {
 					p3.x = mapFeat.estimate().x(); 
 					p3.y = mapFeat.estimate().y(); 
 					p3.z = mapFeat.estimate().z();
@@ -263,9 +199,9 @@ namespace cvt
 		}
 	}
 
-	inline void ORBTracking::clear()
+	void ORBTracking::clear()
 	{
 		_descriptors.clear();
 	}
 }
-#endif
+

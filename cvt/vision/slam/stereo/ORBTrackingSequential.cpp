@@ -1,78 +1,8 @@
-#ifndef ORB_TRACKINGSEQUENTIAL_H
-#define ORB_TRACKINGSEQUENTIAL_H
-
-#include "FeatureTracking.h"
-#include <cvt/vision/slam/MapFeature.h>
-#include "DescriptorDatabase.h"
-#include <cvt/vision/ORB.h>
-#include <cvt/vision/Vision.h>
+#include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
 
 namespace cvt
 {
-
-	/**
-	 *	Feature Tracking using ORB Matching	
-	 */
-	class ORBTrackingSequential : public FeatureTracking 
-	{
-		public:
-			ORBTrackingSequential( const CameraCalibration& c0, const CameraCalibration & c1 );
-			~ORBTrackingSequential();
-
-			void trackFeatures( PointSet3d&			p3d, 
-								PointSet2d&			p2d,
-								const SlamMap&		map,
-								const SE3<double>&	pose,
-                                const Image&		img );
-
-			size_t triangulateNewFeatures( SlamMap& map, 
-										   const SE3<double>& pose, 
-										   const Image& first, 
-										   const Image& second );
-
-			void clear();
-
-		private:
-			const CameraCalibration&		_camCalib0;
-			const CameraCalibration&		_camCalib1;
-			DescriptorDatabase<ORBFeature>	_descriptors;
-            size_t							_maxDescDistance;
-            float							_windowRadius;
-
-			/* descriptor matching parameters */
-			float							_matcherMaxLineDistance;	
-			float							_maxTriangReprojError;
-			ORBStereoMatching				_stereoMatcher;
-
-			/* orb parameters */
-			size_t							_orbOctaves;
-			float							_orbScaleFactor;
-			uint8_t							_orbCornerThreshold;
-			size_t							_orbMaxFeatures;
-			bool							_orbNonMaxSuppression;
-			ORB								_orb0;
-			std::set<size_t>				_orb0MatchedIds;
-
-			// feature IDs of the features tracked in the last frame	
-			std::vector<size_t>				_lastTrackedIds;
-			// positions of the features in the last frame
-			std::vector<ORBFeature>			_lastTrackedFeatures;
-
-
-			Image							_debug;
-
-			void trackSequential( PointSet3d& p3d, PointSet2d& p2d, const SlamMap& map, const Image& image );
-			void trackNonSequential( PointSet3d& p3d, PointSet2d& p2d, const SlamMap& map, const SE3<double>& pose, const Image& image );
-
-			int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const;
-			template <class Container>
-			void drawPointsInImage( Image& debug, const Color& c, const Container& points, size_t offset = 0 );
-
-			template <class ORBContainer>
-			void drawOrbsInImage( Image& debug, const Color& c, const ORBContainer& points );
-	};
-
-	inline ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
+	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
 		_maxDescDistance( 70 ),
@@ -89,20 +19,20 @@ namespace cvt
 	{
 	}
 
-	inline ORBTrackingSequential::~ORBTrackingSequential()
+	ORBTrackingSequential::~ORBTrackingSequential()
 	{
 	}
 
-	inline void ORBTrackingSequential::trackFeatures( PointSet3d&			p3d, 
-													  PointSet2d&			p2d,
-													  const SlamMap&		map,
-													  const SE3<double>&	pose,
-													  const Image&			img )
+	void ORBTrackingSequential::trackFeatures( PointSet3d&			p3d, 
+											  PointSet2d&			p2d,
+											  const SlamMap&		map,
+											  const SE3<double>&	pose,
+											  const Image&			img )
 	{
 		// create the ORB
 		_orb0.update( img );
 		img.convert( _debug, IFormat::RGBA_UINT8 );
-		
+
 		drawOrbsInImage( _debug, Color::BLUE, _orb0 );
 		drawOrbsInImage( _debug, Color::RED, _lastTrackedFeatures );
 		trackSequential( p3d, p2d, map, img );
@@ -114,11 +44,11 @@ namespace cvt
 		debugImage.notify( _debug );
 	}
 
-	inline void ORBTrackingSequential::trackSequential( PointSet3d&			p3d, 
-													    PointSet2d&			p2d,
-												        const SlamMap&		map,
-													    const Image&		img )
-    {
+	void ORBTrackingSequential::trackSequential( PointSet3d&			p3d, 
+												PointSet2d&			p2d,
+												const SlamMap&		map,
+												const Image&		img )
+	{
 		// keep track of already assigned indices to avoid double associations
 		Vector3d p3;
 		Vector2d p2;
@@ -135,7 +65,7 @@ namespace cvt
 				const MapFeature & mapFeat = map.featureForId( currId );
 				size_t keyframeId = *( mapFeat.pointTrackBegin() );
 				if( checkFeatureSAD( m.feature0->pt, m.feature1->pt, 
-									 map.keyframeForId( keyframeId ).image(), img ) ) {
+									map.keyframeForId( keyframeId ).image(), img ) ) {
 					p3.x = mapFeat.estimate().x(); 
 					p3.y = mapFeat.estimate().y(); 
 					p3.z = mapFeat.estimate().z();
@@ -153,14 +83,14 @@ namespace cvt
 
 		_lastTrackedFeatures.erase( _lastTrackedFeatures.begin() + savePos, _lastTrackedFeatures.end() );
 		_lastTrackedIds.erase( _lastTrackedIds.begin() + savePos, _lastTrackedIds.end() );
-    }
+	}
 
 
-	inline void ORBTrackingSequential::trackNonSequential( PointSet3d&			p3d, 
-														   PointSet2d&			p2d,
-														   const SlamMap&		map,
-														   const SE3<double>&	pose,
-														   const Image&			img )
+	void ORBTrackingSequential::trackNonSequential( PointSet3d&			p3d, 
+												   PointSet2d&			p2d,
+												   const SlamMap&		map,
+												   const SE3<double>&	pose,
+												   const Image&			img )
 	{
 		// predict visible features with map and current pose
 		std::vector<size_t>		predictedIds;
@@ -171,7 +101,7 @@ namespace cvt
 
 		// remove the already tracked ids:
 		bool hit;
-			
+
 		size_t savePos = 0;
 		for( size_t k = 0; k < predictedIds.size(); k++ ){
 			hit = false;
@@ -192,26 +122,26 @@ namespace cvt
 		predictedIds.erase( predictedIds.begin() + savePos, predictedIds.end() );
 		predictedPositions.erase( predictedPositions.begin() + savePos, predictedPositions.end() );
 
-        // we want to find the best matching orb feature from current, that lies
-        // within a certain distance from the "predicted" position
-        std::vector<size_t>::const_iterator currentId = predictedIds.begin();
-        std::vector<size_t>::const_iterator tEnd = predictedIds.end();
-        std::vector<Vector2f>::const_iterator pred = predictedPositions.begin();
+		// we want to find the best matching orb feature from current, that lies
+		// within a certain distance from the "predicted" position
+		std::vector<size_t>::const_iterator currentId = predictedIds.begin();
+		std::vector<size_t>::const_iterator tEnd = predictedIds.end();
+		std::vector<Vector2f>::const_iterator pred = predictedPositions.begin();
 
 		// keep track of already assigned indices to avoid double associations
 		Vector3d p3;
 		Vector2d p2;
-        while( currentId != tEnd ){
+		while( currentId != tEnd ){
 			FeatureMatch m;
 			const ORBFeature & desc = _descriptors.descriptor( *currentId );
 			m.feature0 = &desc;
-            int orbid = matchInWindow( m, *pred, _orb0, _orb0MatchedIds );
+			int orbid = matchInWindow( m, *pred, _orb0, _orb0MatchedIds );
 			if( m.feature1 ){
 				// got a match so add it to the point sets
 				const MapFeature & mapFeat = map.featureForId( *currentId );
 				size_t keyframeId = *( mapFeat.pointTrackBegin() );
 				if( checkFeatureSAD( m.feature0->pt, m.feature1->pt, 
-									 map.keyframeForId( keyframeId ).image(), img ) ) {
+									map.keyframeForId( keyframeId ).image(), img ) ) {
 					p3.x = mapFeat.estimate().x(); 
 					p3.y = mapFeat.estimate().y(); 
 					p3.z = mapFeat.estimate().z();
@@ -226,17 +156,17 @@ namespace cvt
 			}
 			++currentId;
 			++pred;
-        }
+		}
 	}
 
-    inline int ORBTrackingSequential::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const
-    {
+	int ORBTrackingSequential::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const
+	{
 		const ORBFeature * f = (ORBFeature*)match.feature0;
-        match.distance = _maxDescDistance;
-        size_t currDist;
+		match.distance = _maxDescDistance;
+		size_t currDist;
 		const std::set<size_t>::const_iterator usedEnd = used.end();
 		size_t matchedId = 0;
-        for( size_t i = 0; i < orb.size(); i++ ){
+		for( size_t i = 0; i < orb.size(); i++ ){
 			if( used.find( i ) == usedEnd ){
 				if( ( p - orb[ i ].pt ).length() < _windowRadius ){
 					// try to match
@@ -248,7 +178,7 @@ namespace cvt
 					}
 				}
 			}
-        }
+		}
 
 		// to ensure unique matches
 		if( match.distance < _maxDescDistance ){
@@ -257,12 +187,12 @@ namespace cvt
 		}
 
 		return -1;
-    }
+	}
 
-	inline size_t ORBTrackingSequential::triangulateNewFeatures( SlamMap& map,
-													   const SE3<double> & pose,
-													   const Image & firstView,
-												       const Image & secondView )
+	size_t ORBTrackingSequential::triangulateNewFeatures( SlamMap& map,
+														 const SE3<double> & pose,
+														 const Image & firstView,
+														 const Image & secondView )
 	{
 		// create the ORB
 		ORB orb1( secondView, 
@@ -340,7 +270,7 @@ namespace cvt
 		return numNew;
 	}
 
-	inline void ORBTrackingSequential::clear()
+	void ORBTrackingSequential::clear()
 	{
 		_descriptors.clear();
 		_lastTrackedIds.clear();
@@ -348,51 +278,4 @@ namespace cvt
 	}
 
 
-	template <class Container>
-	inline void ORBTrackingSequential::drawPointsInImage( Image& debug, 
-														  const Color& c, 
-														  const Container& points,
-														  size_t offset	)
-	{
-		{
-			GFXEngineImage ge( debug );
-			GFX g( &ge );
-			g.color() = c;
-
-			Recti r;
-			size_t pSize = 5;
-			size_t phSize = pSize >> 1;
-			r.width = pSize;
-			r.height = pSize;
-			for( size_t i = offset; i < points.size(); i++ ){
-				r.x = ( int )points[ i ][ 0 ] - phSize;
-				r.y = ( int )points[ i ][ 1 ] - phSize;
-				g.drawRect( r );
-			}
-		}
-	}
-
-	template <class ORBContainer>
-	inline void ORBTrackingSequential::drawOrbsInImage( Image& debug, 
-														const Color& c, 
-														const ORBContainer& points )
-	{
-		{
-			GFXEngineImage ge( debug );
-			GFX g( &ge );
-			g.color() = c;
-
-			Recti r;
-			size_t pSize = 5;
-			size_t phSize = pSize >> 1;
-			r.width = pSize;
-			r.height = pSize;
-			for( size_t i = 0; i < points.size(); i++ ){
-				r.x = ( int )points[ i ].pt[ 0 ] - phSize;
-				r.y = ( int )points[ i ].pt[ 1 ] - phSize;
-				g.drawRect( r );
-			}
-		}
-	}
 }
-#endif

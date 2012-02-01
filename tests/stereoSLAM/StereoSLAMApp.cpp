@@ -3,9 +3,9 @@
 #include <cvt/gui/Application.h>
 #include <cvt/io/xml/XMLDocument.h>
 
-#include "ORBTracking.h"
-#include "ORBTrackingSequential.h"
-#include "KLTTracking.h"
+#include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
+#include <cvt/vision/slam/stereo/ORBTracking.h>
+#include <cvt/vision/slam/stereo/KLTTracking.h>
 
 namespace cvt
 {

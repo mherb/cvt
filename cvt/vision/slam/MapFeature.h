@@ -3,6 +3,11 @@
 
 #include <Eigen/Core>
 #include <set>
+#include <cvt/io/xml/XMLNode.h>
+#include <cvt/io/xml/XMLSerializable.h>
+#include <cvt/io/xml/XMLElement.h>
+#include <cvt/io/xml/XMLText.h>
+#include <cvt/util/EigenBridge.h>
 
 namespace cvt
 {

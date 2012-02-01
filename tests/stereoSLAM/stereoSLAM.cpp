@@ -8,8 +8,8 @@
 #include <cvt/vision/CameraCalibration.h>
 
 #include <cvt/gui/Application.h>
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
 
-#include "StereoSLAM.h"
 #include "StereoSLAMApp.h"
 
 using namespace cvt;
