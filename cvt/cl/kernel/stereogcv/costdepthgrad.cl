@@ -35,7 +35,7 @@ __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_on
 #define DSIZE 3
 //		float delta[ DSIZE ] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
 //		float w[ DSIZE ] = { 0.25f, 0.25f, 0.5f, 0.25f, 0.25f };
-		float delta[ DSIZE ] = { -1.0f, 0.0f, 1.0f };
+		float delta[ DSIZE ] = { -0.5f, 0.0f, 0.5f };
 		float w[ DSIZE ] = { 0.25f, 0.5f, 0.25f };
 
 		for( int iy = 0; iy < DSIZE; iy++ ) {
