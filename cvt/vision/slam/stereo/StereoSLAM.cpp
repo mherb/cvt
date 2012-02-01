@@ -149,7 +149,12 @@ namespace cvt
 		_activeKF = -1;
 	}
 
-
+	void StereoSLAM::setPose( const Matrix4d& pose )
+	{
+		Eigen::Matrix4d pe;
+		EigenBridge::toEigen( pe, pose );
+		_pose.set( pe );
+	}
 
 	void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
 										 const std::vector<size_t> & featureIds,
