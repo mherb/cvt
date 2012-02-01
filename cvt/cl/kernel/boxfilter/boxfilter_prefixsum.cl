@@ -24,29 +24,24 @@ __kernel void boxfilter_prefixsum( __write_only image2d_t out,  __read_only imag
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
-	int2 coord, mincoord, maxcoord;
+	int2 mincoord, maxcoord;
+	int2 coord = { get_global_id( 0 ), get_global_id( 1 ) };
 	float size;
 	float4 value;
-
-	coord.x = get_global_id( 0 );
-	coord.y = get_global_id( 1 );
 
 	if( coord.x >= width || coord.y >= height )
 		return;
 
-	mincoord.x = max( 0, coord.x - r -1 );
-	mincoord.y = max( 0, coord.y - r -1 );
-	maxcoord.x = min( width - 1, coord.x + r );
-	maxcoord.y = min( height - 1, coord.y + r );
+	mincoord = max( ( int2 ) 0, coord - ( int2 ) ( r + 1 ) );
+	maxcoord = min( ( int2 ) ( width - 1, height - 1 ), coord + ( int2 ) ( r ) );
 
-	size = ( maxcoord.x - mincoord.x ) * ( maxcoord.y - mincoord.y );
+	int2 tmp = maxcoord - mincoord;
 
 	value  = read_imagef( in, sampler, mincoord );
 	value -= read_imagef( in, sampler, ( int2 )( mincoord.x, maxcoord.y ) );
 	value -= read_imagef( in, sampler, ( int2 )( maxcoord.x, mincoord.y ) );
 	value += read_imagef( in, sampler, maxcoord );
-
-	value /= ( float4 ) size;
+	value /= ( float4 ) ( tmp.x * tmp.y );
 
 	write_imagef( out, coord, value );
 }
