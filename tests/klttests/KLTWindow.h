@@ -23,9 +23,9 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			//typedef GA2<float>				PoseType;
+			typedef GA2<float>				PoseType;
 			//typedef Sim2<float>				PoseType;
-			typedef Translation2D<float>		PoseType;
+			//typedef Translation2D<float>		PoseType;
 			typedef KLTTracker<PoseType, 64>	KLTType;
 			typedef KLTType::KLTPType			KLTPType;
 
@@ -92,8 +92,8 @@ namespace cvt {
 		getchar();
 		std::vector<size_t>	  trackedIndices;
 		_kltTime.reset();	
-		//_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
-		_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
+		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
+		//_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
@@ -136,7 +136,13 @@ namespace cvt {
 
 		_patches.push_back( p );
 		_poses.push_back( PoseType() );
-		_poses.back().set( 4, 4 );
+
+		Matrix3f m;
+		m.setIdentity();
+		m[ 0 ][ 2 ] = 4;
+		m[ 1 ][ 2 ] = 4;
+
+		_poses.back().set( m );
 
 	}
 	

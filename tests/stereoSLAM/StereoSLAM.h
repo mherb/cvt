@@ -51,9 +51,9 @@ namespace cvt
 			void clear();
 
 			Signal<const Image&>		newStereoView;	
+			Signal<void>				keyframeAdded;	
 			Signal<const SlamMap&>		mapChanged;	
 			Signal<const Matrix4f&>		newCameraPose;	
-			Signal<const Image&>		trackedPointsImage;	
 			Signal<size_t>				numTrackedPoints;	
 
 		private:
@@ -110,7 +110,7 @@ namespace cvt
 								   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_featureTracking( ft ),
-		_minTrackedFeatures( 50 ),
+		_minTrackedFeatures( 80 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.05 ),
 		_maxKeyframeDistance( 1.0 )
@@ -147,9 +147,6 @@ namespace cvt
 		PointSet3d p3d;
 		_featureTracking->trackFeatures( p3d, p2d, _map, _pose, _undist0 );
 
-		Image debug;
-		createDebugImageMono( debug, p2d );
-		trackedPointsImage.notify( debug );
 		numTrackedPoints.notify( p2d.size() );
 
 		size_t numTrackedFeatures = p3d.size();
@@ -166,17 +163,17 @@ namespace cvt
 				_bundler.join();
 			}
 
-			// TODO: call the init method
-			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );	
-			std::cout << "Added " << numNewPoints << " new 3D Points" << std::endl;
-			//Image debug;
+			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );
+
+//			Image debug;
 //			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
 //			newStereoView.notify( debug );
 
 			// new keyframe added -> run the sba thread	
-			if( _map.numKeyframes() > 1 ){
+			if( _map.numKeyframes() > 1 && numNewPoints ){
 				_bundler.run( &_map );
 				//_bundler.join();
+				keyframeAdded.notify();
 			}
 			mapChanged.notify( _map );				
 		}
@@ -185,24 +182,20 @@ namespace cvt
 		_activeKF = _map.findClosestKeyframe( _pose.transformation() );
 		if( _activeKF != last )
 			std::cout << "Active KF: " << _activeKF << std::endl;
-
-		
 	}
 
 	inline void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
 	{
-		Matrix3d K;
 		const Matrix3f & kf = _camCalib0.intrinsics();
-		K[ 0 ][ 0 ] = kf[ 0 ][ 0 ];	K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
-		K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
-		K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
 		Eigen::Matrix<double, 3, 3> Ke;
 		Eigen::Matrix<double, 4, 4> extrC;
-		EigenBridge::toEigen( Ke, K );
+		EigenBridge::toEigen( Ke, kf );
 		EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
 		
 		Eigen::Matrix4d me;
 		/*
+		Matrix3d K;
+		EigenBridge::toCVT( K, kf );
 		Matrix4d m;
 		EPnPd epnp( p3d );
 		epnp.solve( m, p2d, K );
@@ -228,7 +221,7 @@ namespace cvt
 			pointCorresp.add( p3, p2 );
 		}
 		
-		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 5.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
 		termCriteria.setCostThreshold( 0.01 );
@@ -308,34 +301,12 @@ namespace cvt
 			return true;
 
 		// if too few features and minimum distance from last keyframe create new
-		if( numTrackedFeatures < _minTrackedFeatures && kfDist > _minKeyframeDistance )
+		if( numTrackedFeatures < _minTrackedFeatures /*&& kfDist > _minKeyframeDistance*/ )
 			return true;
 
 		return false;
 	}
 
-	inline void StereoSLAM::createDebugImageMono( Image & debug, const PointSet2d & tracked ) const 
-	{
-		_undist0.convert( debug, IFormat::RGBA_UINT8 );
-
-		{
-			GFXEngineImage ge( debug );
-			GFX g( &ge );
-			g.color() = Color::GREEN;
-
-			Recti r;
-			size_t pSize = 17;
-			size_t phSize = pSize >> 1;
-			r.width = pSize;
-			r.height = pSize;
-			for( size_t i = 0; i < tracked.size(); i++ ){
-				r.x = ( int )tracked[ i ].x - phSize;
-				r.y = ( int )tracked[ i ].y - phSize;
-				g.drawRect( r );
-			}
-		}
-	}
-	
 	inline void StereoSLAM::createDebugImageStereo( Image & debugImage, 
 													const std::vector<FeatureMatch> & matches,
 													const std::vector<size_t> & indices ) const
