@@ -12,13 +12,10 @@ namespace cvt
 		_runMode( UEYE_MODE_FREERUN )
 	{
 		this->open( mode );
-		this->setPixelClock( 35 );
-		this->setFramerate( 40.0 );
-		this->setExposureTime( 25 );
-		this->setAutoShutter( true );
-		//this->setAutoSensorShutter( true );
-//		this->setAutoGain( true );
 		this->setIdentifier();
+	
+		// load internally stored parameters as default starting point	
+		loadParameters( "/cam/set1" );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()

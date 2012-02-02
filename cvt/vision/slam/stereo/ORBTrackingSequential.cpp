@@ -5,15 +5,15 @@ namespace cvt
 	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_maxDescDistance( 40 ),
+		_maxDescDistance( 70 ),
 		_windowRadius( 20 ),
 		_matcherMaxLineDistance( 7.0f ),
-		_maxTriangReprojError( 3.0f ),
+		_maxTriangReprojError( 7.0f ),
 		_stereoMatcher( _matcherMaxLineDistance, _maxDescDistance, c0, c1 ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 30 ),
-		_orbMaxFeatures( 1000 ),
+		_orbCornerThreshold( 25 ),
+		_orbMaxFeatures( 4000 ),
 		_orbNonMaxSuppression( true ),
 		_orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
 	{

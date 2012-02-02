@@ -19,10 +19,10 @@ namespace cvt
 		_slam( _featureTracking, c0, cams[ 0 ]->width(), cams[ 0 ]->height(), c1, cams[ 1 ]->width(), cams[ 1 ]->height() ),
 		_img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
 		_img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
-		_stepping( true ),
+		_stepping( false ),
 		_nextImage( true )
 	{
-		_timerId = Application::registerTimer( 20, this );
+		_timerId = Application::registerTimer( 10, this );
 
 		Delegate<void ( const Image& )> d( &_gui, &SLAMGui::updateStereoView );
 		_slam.newStereoView.add( d );
