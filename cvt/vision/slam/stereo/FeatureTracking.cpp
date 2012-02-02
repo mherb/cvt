@@ -57,6 +57,11 @@ namespace cvt
 		// average & normalize
 		sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
 
-		return ( sad > 0.75f ) ? true : false;	
+		if( sad > 0.8 ){
+			//std::cout << sad << std::endl;
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

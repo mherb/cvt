@@ -5,15 +5,15 @@ namespace cvt
 	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_maxDescDistance( 70 ),
-		_windowRadius( 80 ),
-		_matcherMaxLineDistance( 5.0f ),
-		_maxTriangReprojError( 5.0f ),
+		_maxDescDistance( 40 ),
+		_windowRadius( 20 ),
+		_matcherMaxLineDistance( 7.0f ),
+		_maxTriangReprojError( 3.0f ),
 		_stereoMatcher( _matcherMaxLineDistance, _maxDescDistance, c0, c1 ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 25 ),
-		_orbMaxFeatures( 1200 ),
+		_orbCornerThreshold( 30 ),
+		_orbMaxFeatures( 1000 ),
 		_orbNonMaxSuppression( true ),
 		_orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
 	{
@@ -44,10 +44,10 @@ namespace cvt
 		debugImage.notify( _debug );
 	}
 
-	void ORBTrackingSequential::trackSequential( PointSet3d&			p3d, 
-												PointSet2d&			p2d,
-												const SlamMap&		map,
-												const Image&		img )
+	void ORBTrackingSequential::trackSequential( PointSet3d&		p3d, 
+												 PointSet2d&		p2d,
+												 const SlamMap&		map,
+												 const Image&		img )
 	{
 		// keep track of already assigned indices to avoid double associations
 		Vector3d p3;
@@ -93,40 +93,40 @@ namespace cvt
 												   const Image&			img )
 	{
 		// predict visible features with map and current pose
-		std::vector<size_t>		predictedIds;
-		std::vector<Vector2f>	predictedPositions;
-		map.selectVisibleFeatures( predictedIds, predictedPositions, pose.transformation(), _camCalib0 );
+		_predictedIds.clear();
+		_predictedPositions.clear();
+		map.selectVisibleFeatures( _predictedIds, _predictedPositions, pose.transformation(), _camCalib0 );
 
-		drawPointsInImage( _debug, Color::YELLOW, predictedPositions );
+		drawPointsInImage( _debug, Color::YELLOW, _predictedPositions );
 
 		// remove the already tracked ids:
 		bool hit;
 
 		size_t savePos = 0;
-		for( size_t k = 0; k < predictedIds.size(); k++ ){
+		for( size_t k = 0; k < _predictedIds.size(); k++ ){
 			hit = false;
 			for( size_t i = 0; i < _lastTrackedIds.size(); i++ ){
-				if( _lastTrackedIds[ i ] == predictedIds[ k ] ){
+				if( _lastTrackedIds[ i ] == _predictedIds[ k ] ){
 					hit = true;
 					break;
 				}
 			}
 			if( !hit ){
 				if( savePos != k ){
-					predictedIds[ savePos ] = predictedIds[ k ];
-					predictedPositions[ savePos ] = predictedPositions[ k ];
+					_predictedIds[ savePos ] = _predictedIds[ k ];
+					_predictedPositions[ savePos ] = _predictedPositions[ k ];
 					savePos++;
 				}
 			}
 		}
-		predictedIds.erase( predictedIds.begin() + savePos, predictedIds.end() );
-		predictedPositions.erase( predictedPositions.begin() + savePos, predictedPositions.end() );
+		_predictedIds.erase( _predictedIds.begin() + savePos, _predictedIds.end() );
+		_predictedPositions.erase( _predictedPositions.begin() + savePos, _predictedPositions.end() );
 
 		// we want to find the best matching orb feature from current, that lies
 		// within a certain distance from the "predicted" position
-		std::vector<size_t>::const_iterator currentId = predictedIds.begin();
-		std::vector<size_t>::const_iterator tEnd = predictedIds.end();
-		std::vector<Vector2f>::const_iterator pred = predictedPositions.begin();
+		std::vector<size_t>::const_iterator currentId = _predictedIds.begin();
+		std::vector<size_t>::const_iterator tEnd = _predictedIds.end();
+		std::vector<Vector2f>::const_iterator pred = _predictedPositions.begin();
 
 		// keep track of already assigned indices to avoid double associations
 		Vector3d p3;
@@ -208,6 +208,17 @@ namespace cvt
 		// alreadyMatchedIndices are the indices of orb0 that have been matched before
 		_stereoMatcher.matchEpipolar( stereoMatches, _orb0, orb1, _orb0MatchedIds );
 
+		//size_t savepos = 0;
+		//for( size_t i = 0; i < stereoMatches.size(); i++ ){
+		//	if( rangeCheck( stereoMatches[ i ].feature1->pt, 60.0f ) ){
+		//		if( i != savepos ){
+		//			stereoMatches[ savepos ] = stereoMatches[ i ];
+		//			savepos++;
+		//		}
+		//	}
+		//}
+		//stereoMatches.erase( stereoMatches.begin() + savepos, stereoMatches.end() );
+
 		size_t numNew = 0;
 		// Create a new keyframe with image 0 as reference image
 		if( stereoMatches.size() > 0 ){
@@ -275,6 +286,20 @@ namespace cvt
 		_descriptors.clear();
 		_lastTrackedIds.clear();
 		_lastTrackedFeatures.clear();
+	}
+
+	bool ORBTrackingSequential::rangeCheck( const Vector2f& p, float minDist ) const
+	{
+		float thresh = Math::sqr( minDist );
+		for( size_t i = 0; i < _predictedPositions.size(); i++ ){
+			if( ( p - _predictedPositions[ i ] ).lengthSqr() < thresh )
+				return false;
+		}
+		for( size_t i = 0; i < _lastTrackedFeatures.size(); i++ ){
+			if( ( p - _lastTrackedFeatures[ i ].pt ).lengthSqr() < thresh )
+				return false;
+		}
+		return true;
 	}
 
 
