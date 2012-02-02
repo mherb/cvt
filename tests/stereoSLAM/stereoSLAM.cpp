@@ -55,6 +55,7 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 	if( cam0 && cam1 ){
 		cam0->startCapture();
 		cam1->startCapture();
+
 		cameras.push_back( cam0 );
 		cameras.push_back( cam1 );
 	} else {
