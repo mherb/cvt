@@ -60,6 +60,9 @@ namespace cvt
 			std::vector<size_t>				_lastTrackedIds;
 			// positions of the features in the last frame
 			std::vector<ORBFeature>			_lastTrackedFeatures;
+			
+			std::vector<size_t>				_predictedIds;
+			std::vector<Vector2f>			_predictedPositions;
 
 
 			Image							_debug;
@@ -73,6 +76,8 @@ namespace cvt
 
 			template <class ORBContainer>
 				void drawOrbsInImage( Image& debug, const Color& c, const ORBContainer& points );
+
+			bool rangeCheck( const Vector2f& p, float range ) const;
 	};
 
 	template <class Container>

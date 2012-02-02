@@ -9,10 +9,10 @@ namespace cvt
 						   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_featureTracking( ft ),
-		_minTrackedFeatures( 80 ),
+		_minTrackedFeatures( 30 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.05 ),
-		_maxKeyframeDistance( 1.0 )
+		_maxKeyframeDistance( 0.6 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -71,7 +71,7 @@ namespace cvt
 			// new keyframe added -> run the sba thread	
 			if( _map.numKeyframes() > 1 && numNewPoints ){
 				_bundler.run( &_map );
-				//_bundler.join();
+				_bundler.join();
 				keyframeAdded.notify();
 			}
 			mapChanged.notify( _map );				
@@ -120,11 +120,11 @@ namespace cvt
 			pointCorresp.add( p3, p2 );
 		}
 
-		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 5.0 );
+		RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
 		LevenbergMarquard<double> lm;
 		TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
 		termCriteria.setCostThreshold( 0.01 );
-		termCriteria.setMaxIterations( 10 );
+		termCriteria.setMaxIterations( 20 );
 		lm.optimize( pointCorresp, costFunction, termCriteria );
 
 		//me = pointCorresp.pose().transformation().inverse();
@@ -157,8 +157,8 @@ namespace cvt
 	}
 
 	void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,
-										 const std::vector<size_t> & featureIds,
-										 const std::vector<FeatureMatch> & matches )
+										  const std::vector<size_t> & featureIds,
+										  const std::vector<FeatureMatch> & matches )
 	{
 		std::set<size_t>::const_iterator idIter = indices.begin();
 		const std::set<size_t>::const_iterator idIterEnd = indices.end();
