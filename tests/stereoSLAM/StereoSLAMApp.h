@@ -6,9 +6,9 @@
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Time.h>
 
-#include "StereoSLAM.h"
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
+#include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include "SLAMGui.h"
-#include "FeatureTracking.h"
 
 namespace cvt
 {
@@ -24,10 +24,13 @@ namespace cvt
 			void onTimeout();
 
 			void toggleStepping();
+
 			void nextPressed() { _nextImage = true; };
 
 			void saveMap();
 			void clearMap();
+
+			void saveImages();
 
 		private:
 			std::vector<VideoInput*> _cams;

@@ -26,15 +26,16 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			//typedef GA2<float>			PoseType;
-			//typedef Sim2<float>			PoseType;
-			typedef Translation2D<float>	PoseType;
-			typedef KLTPatch<16, PoseType>	KLTPType;
+			//typedef GA2<float>			 PoseType;
+			//typedef Sim2<float>			 PoseType;
+			typedef Translation2D<float>	 PoseType;
+			typedef KLTTracker<PoseType, 32> KLTType;	
+			typedef KLTType::KLTPType		 KLTPType;
 
 			KLTWindow( VideoInput & video ) :
 				_window( "KLT" ),	
 				_video( video ),
-				_klt( 2 ),
+				_klt( 6 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -47,7 +48,7 @@ namespace cvt {
 				_window.setVisible( true );
 				_window.update();				
 
-				_pyramid.resize( 4 );
+				_pyramid.resize( 2 );
 				_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
 			
 				redetectFeatures( _pyramid[ 0 ] );
@@ -56,6 +57,8 @@ namespace cvt {
 				_imView.setImage( _pyramid[ 0 ] );
 				_fps = 0.0;
 				_iter = 0;
+
+				_klt.setSSDThreshold( 200 );
 			}
 
 			~KLTWindow()
@@ -75,7 +78,7 @@ namespace cvt {
 			ImageView				_imView;
 			VideoInput &			_video;
 
-			KLTTracker<PoseType>		_klt;
+			KLTType						_klt;
 			Time						_kltTime;
 			double						_kltTimeSum;
 			size_t						_kltIters;
@@ -105,8 +108,8 @@ namespace cvt {
 		std::vector<size_t>	  trackedIndices;
 	
 		_kltTime.reset();	
-		//_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
-		_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
+		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
+		//_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;

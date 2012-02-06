@@ -8,7 +8,7 @@
 #include <cvt/gui/ImageView.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#include "StereoSLAM.h"
+#include <cvt/vision/slam/stereo/StereoSLAM.h>
 #include "SLAMView.h"
 
 namespace cvt
