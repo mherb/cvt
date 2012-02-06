@@ -100,9 +100,9 @@ int main( int argc, char* argv[] )
 	StereoGCVFilter stereogcv;
     Image i0, i1, tmp;
 	tmp.load( argv[ 1 ] );
-	tmp.convert( i0, IFormat::RGBA_UINT8 );
+	tmp.convert( i0, IFormat::RGBA_FLOAT );
 	tmp.load( argv[ 2 ] );
-	tmp.convert( i1, IFormat::RGBA_UINT8 );
+	tmp.convert( i1, IFormat::RGBA_FLOAT );
 
 	float D = 100.0f;
 	if( argc >= 4 )
@@ -124,7 +124,8 @@ int main( int argc, char* argv[] )
 
 		Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		Time t;
-		stereogcv.apply( disp, img1, img0, 0.0f, D, 1.0f );
+//		stereogcv.apply( disp, img1, img0, -0.5f * D, 0.5f * D, 1.0f );
+		stereogcv.apply( disp, img1, img0, 0, D, 1.0f );
 		std::cout << t.elapsedMilliSeconds() << std::endl;
 		disp.save( "disparity.png" );
 	} catch( CLException& e ) {

@@ -16,11 +16,13 @@ __kernel void prefixsum_pblock_outerrgb( __write_only image2d_t out_RR_RG_RB, __
 	coord.y = get_global_id( 1 );
 
 	rgb  = read_imagef( in, sampler, coord );
-	buf[ lid ] = ( float8 ) ( rgb.x * rgb.xyz, 0.0f, rgb.y * rgb.yz, rgb.z * rgb.z, 0.0f );
+	tmp = ( float8 ) ( rgb.x * rgb.xyz, 0.0f, rgb.y * rgb.yz, rgb.z * rgb.z, 0.0f );
+	buf[ lid ] = tmp;
 
 	// assume lw == lh
 	for( int offset = 1; offset < lw; offset <<= 1 )
 	{
+		barrier( CLK_LOCAL_MEM_FENCE );
 		if( lx >= offset )
 			tmp += buf[ lid - offset ];
 		barrier( CLK_LOCAL_MEM_FENCE );

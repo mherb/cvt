@@ -135,6 +135,7 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
+	cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.cl
 	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
@@ -154,6 +155,7 @@ SET( CL_KERNELS
 	cl/kernel/tvl1flow/tvl1_warp.cl
 	cl/kernel/stereogcv/costdepth.cl
 	cl/kernel/stereogcv/costdepthgrad.cl
+	cl/kernel/stereogcv/costdepthncc.cl
 	cl/kernel/stereogcv/costmin.cl
 	cl/kernel/stereogcv/costdepthconv.cl
 	cl/kernel/stereogcv/occlusioncheck.cl
@@ -174,6 +176,7 @@ CLTOHEADER( cl/kernel/boxfilter/boxfilter.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
+CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
 CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
@@ -193,6 +196,7 @@ CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
 CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
+CLTOHEADER( cl/kernel/stereogcv/costdepthncc.cl )
 CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
 CLTOHEADER( cl/kernel/stereogcv/occlusioncheck.cl )
@@ -231,6 +235,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/prefixsum/prefixsum_pblock.h
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
+	cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.h
 	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h
 	cl/kernel/prefixsum/prefixsum_horiz.h
 	cl/kernel/prefixsum/prefixsum_vert.h
@@ -250,6 +255,7 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/tvl1flow/tvl1_dataadd.h
 	cl/kernel/stereogcv/costdepth.h
 	cl/kernel/stereogcv/costdepthgrad.h
+	cl/kernel/stereogcv/costdepthncc.h
 	cl/kernel/stereogcv/costmin.h
 	cl/kernel/stereogcv/costdepthconv.h
 	cl/kernel/stereogcv/occlusioncheck.h
@@ -287,6 +293,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/BoxFilter.h
 	gfx/ifilter/GuidedFilter.h
 	gfx/ifilter/StereoGCVFilter.h
+	gfx/ifilter/TVL1Flow.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -546,6 +553,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/BoxFilter.cpp
 	gfx/ifilter/GuidedFilter.cpp
 	gfx/ifilter/StereoGCVFilter.cpp
+	gfx/ifilter/TVL1Flow.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp

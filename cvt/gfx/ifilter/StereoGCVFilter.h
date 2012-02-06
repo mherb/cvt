@@ -20,6 +20,7 @@ namespace cvt {
 
 			CLKernel		_cldepthcost;
 			CLKernel		_cldepthcostgrad;
+			CLKernel		_cldepthcostncc;
 			CLKernel		_cldepthmin;
 			CLKernel		_clfill;
 			CLKernel		_clcdconv;
