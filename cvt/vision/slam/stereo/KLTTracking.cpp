@@ -1,55 +1,8 @@
-#ifndef CVT_KLT_FEATURE_TRACKING_H
-#define CVT_KLT_FEATURE_TRACKING_H
-
-#include "FeatureTracking.h"
-
-#include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/slam/stereo/KLTTracking.h>
 
 namespace cvt
 {
-	class KLTTracking : public FeatureTracking
-	{
-		public:
-			KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 );
-
-
-			void trackFeatures( PointSet3d&			p3d, 
-								PointSet2d&			p2d,
-								const SlamMap&		map,
-								const SE3<double>&	pose,
-								const Image&		img );
-
-			bool checkFeature( const FeatureMatch& match, 
-							   const Image& i0, 
-							   const Image& i1 ) const;
-
-			void clear();
-
-			size_t triangulateNewFeatures( SlamMap& map, 
-										   const SE3<double>& pose, 
-										   const Image& first, 
-										   const Image& second );
-
-		private:
-			typedef Translation2D<float> PoseType;
-
-			const CameraCalibration&	_camCalib0;
-			const CameraCalibration&	_camCalib1;
-			ORBStereoMatching			_stereoMatcher;
-			float						_maxTriangReprojError;
-
-			std::vector<size_t>			_predictedIds;
-			std::vector<Vector2f>		_predictedPositions;
-			std::vector<size_t>			_trackedIndices;
-			
-			KLTTracker<PoseType>		_klt;
-			std::vector<Vector2f>		_trackedPositions;
-
-			typedef KLTPatch<16, PoseType> PatchType;
-			std::vector<PatchType*>		_patchForId;
-	};
-
-	inline KLTTracking::KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 ) :
+	KLTTracking::KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
 		_stereoMatcher( 5.0f/*maxLineDist*/, 60 /*maxDescdist*/, c0, c1 ),
@@ -58,11 +11,11 @@ namespace cvt
 	{
 	}
 
-	inline void KLTTracking::trackFeatures( PointSet3d&			p3d, 
-										    PointSet2d&			p2d,
-										    const SlamMap&		map,
-										    const SE3<double>&	pose,
-										    const Image&		img )
+	void KLTTracking::trackFeatures( PointSet3d&			p3d, 
+									PointSet2d&			p2d,
+									const SlamMap&		map,
+									const SE3<double>&	pose,
+									const Image&		img )
 	{
 		// predict ids and positions:
 		_predictedIds.clear();
@@ -76,7 +29,7 @@ namespace cvt
 
 		poses.resize( _predictedIds.size() );
 		predPatches.resize( _predictedIds.size() );
-	    Vector2f offset;	
+		Vector2f offset;	
 		for( size_t i = 0; i < _predictedIds.size(); i++ ){
 			predPatches[ i ] = _patchForId[ _predictedIds[ i ] ];
 			offset = predPatches[ i ]->position() - _predictedPositions[ i ];
@@ -104,7 +57,7 @@ namespace cvt
 			p3d.add( p3 );
 
 			EigenBridge::toEigen( tmpa, predPatches[ currIdx ]->position() );
-			
+
 			poses[ currIdx ].transformInverse( tmpb, tmpa );
 			EigenBridge::toCVT( _trackedPositions[ i ], tmpb );
 			p2.x = _trackedPositions[ i ].x;
@@ -113,7 +66,7 @@ namespace cvt
 		}
 	}
 
-	inline void KLTTracking::clear()
+	void KLTTracking::clear()
 	{
 		for( size_t i = 0; i < _patchForId.size(); i++ ){
 			delete _patchForId[ i ];
@@ -121,10 +74,10 @@ namespace cvt
 		_patchForId.clear();
 	}
 
-	inline size_t KLTTracking::triangulateNewFeatures( SlamMap& map, 
-													   const SE3<double>& pose, 
-													   const Image& first, 
-													   const Image& second )
+	size_t KLTTracking::triangulateNewFeatures( SlamMap& map, 
+											   const SE3<double>& pose, 
+											   const Image& first, 
+											   const Image& second )
 	{
 		ORB orb0( first, 2, 0.5f, 20, 2000, true );
 		ORB orb1( second, 2, 0.5f, 20, 2000, true );
@@ -217,8 +170,4 @@ namespace cvt
 		}
 		return numNew;
 	}
-
-	
 }
-
-#endif

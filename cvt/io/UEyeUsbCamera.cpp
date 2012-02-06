@@ -12,12 +12,10 @@ namespace cvt
 		_runMode( UEYE_MODE_FREERUN )
 	{
 		this->open( mode );
-		this->setPixelClock( 35 );
-		this->setFramerate( 40.0 );
-		this->setAutoShutter( true );
-		//this->setAutoSensorShutter( true );
-//		this->setAutoGain( true );
 		this->setIdentifier();
+	
+		// load internally stored parameters as default starting point	
+		loadParameters( "/cam/set1" );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
@@ -60,20 +58,29 @@ namespace cvt
 	{
 		double pVal1 = value?1:0;
 		double pVal2 = 0;
-		is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &pVal1, &pVal2 );
+		int ret = is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_SENSOR_SHUTTER, &pVal1, &pVal2 );
+		if( ret != IS_SUCCESS ){
+			std::cout << "Error when setting auto sensor shutter" << std::endl;
+		}
 	}
 
 	void UEyeUsbCamera::setAutoWhiteBalance( bool value )
 	{
-		double pVal1 = value?1:0;
-		double pVal2 = 0;
-		is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_WHITEBALANCE, &pVal1, &pVal2 );
-	}
+		double val = value?1.0:0.0;
+		int ret = is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_WHITEBALANCE, &val, NULL );
+		if( ret != IS_SUCCESS ){
+			std::cout << "Error when setting auto white balance" << std::endl;
+		}
+	}	
 
 	void UEyeUsbCamera::setWhiteBalanceOnce()
 	{
 		double val = 1.0;
-		is_SetAutoParameter( _camHandle, IS_SET_AUTO_WB_ONCE, &val , NULL );
+		int ret = is_SetAutoParameter( _camHandle, IS_SET_AUTO_WB_ONCE, &val, NULL );
+		if( ret != IS_SUCCESS ){
+			std::cout << "Error when setting auto white balance once" << std::endl;
+		}
+		setAutoWhiteBalance( true );
 	}
 
 	void UEyeUsbCamera::setMaxAutoShutter( double value )
@@ -118,6 +125,27 @@ namespace cvt
 	void UEyeUsbCamera::setVerticalMirror( bool value )
 	{
 		is_SetRopEffect( _camHandle, IS_SET_ROP_MIRROR_LEFTRIGHT, value?1:0, 0 );
+	}
+
+	void UEyeUsbCamera::getHardwareGains( int& master, int& red, int& green, int& blue )
+	{
+		master	= is_SetHardwareGain( _camHandle, IS_GET_MASTER_GAIN, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER );
+		red		= is_SetHardwareGain( _camHandle, IS_GET_RED_GAIN, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER );
+		green	= is_SetHardwareGain( _camHandle, IS_GET_GREEN_GAIN, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER );
+		blue	= is_SetHardwareGain( _camHandle, IS_GET_BLUE_GAIN, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER );
+
+		if( master	== IS_NO_SUCCESS ||
+		    red		== IS_NO_SUCCESS ||
+		    green   == IS_NO_SUCCESS ||
+			blue	== IS_NO_SUCCESS )
+			throw CVTException( "Error when getting hardware gains" );
+	}
+
+	void UEyeUsbCamera::setHardwareGains( int master, int red, int green, int blue )
+	{
+		int ret = is_SetHardwareGain( _camHandle, master, red, green, blue );
+		if( ret != IS_SUCCESS )
+			throw CVTException( "Error when setting hardware gains" );
 	}
 
 	void UEyeUsbCamera::setFramerate( double fps )
@@ -213,7 +241,6 @@ namespace cvt
 	{
 		bool val = ( _runMode == UEYE_MODE_FREERUN );
 		setLiveMode( val );
-		setWhiteBalanceOnce();
 		enableEvents();
 	}
 
@@ -383,6 +410,21 @@ namespace cvt
 			is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_SOFTWARE );
 			_runMode = UEYE_MODE_TRIGGERED;
 		}
+	}
+
+	void UEyeUsbCamera::saveParameters( const String& filename ) const
+	{
+		int ret = is_SaveParameters( _camHandle, ( const IS_CHAR* )filename.c_str() );
+		if( ret != IS_SUCCESS ){
+			std::cout << "Could not save parameters to file" << std::endl;
+		}
+	}
+
+	void UEyeUsbCamera::loadParameters( const String& filename )
+	{
+		int ret = is_LoadParameters( _camHandle, ( const IS_CHAR* )filename.c_str() );	
+		if( ret != IS_SUCCESS )
+			std::cout << "Error loading parameters from file" << std::endl;
 	}
 
 	void UEyeUsbCamera::enableFreerun()

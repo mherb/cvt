@@ -503,6 +503,15 @@ SET(${MODULE_NAME}_HEADERS
 	vision/slam/Keyframe.h
 	vision/slam/MapFeature.h
 	vision/slam/MapMeasurement.h
+	vision/slam/stereo/StereoSLAM.h
+	vision/slam/stereo/DescriptorDatabase.h
+	vision/slam/stereo/FeatureTracking.h
+	vision/slam/stereo/ORBTracking.h
+	vision/slam/stereo/ORBTrackingSequential.h
+	vision/slam/stereo/KLTTracking.h
+	vision/slam/stereo/ORBStereoMatching.h
+	vision/slam/stereo/MapOptimizer.h
+	vision/slam/stereo/FeatureAnalyzer.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -667,6 +676,11 @@ SET(${MODULE_NAME}_SOURCES
 	vision/SparseBundleAdjustment.cpp
 	vision/slam/Keyframe.cpp
 	vision/slam/SlamMap.cpp
+	vision/slam/stereo/FeatureTracking.cpp
+	vision/slam/stereo/KLTTracking.cpp
+	vision/slam/stereo/ORBTracking.cpp
+	vision/slam/stereo/ORBTrackingSequential.cpp
+	vision/slam/stereo/StereoSLAM.cpp
 	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
 	io/xml/XMLDecoderUTF8.cpp
@@ -776,10 +790,12 @@ IF( OPENNI_FOUND )
 	SET(${MODULE_NAME}_HEADERS
 		${${MODULE_NAME}_HEADERS}
 		io/OpenNICamera.h
+		io/OpenNIManager.h
 	)
 	SET(${MODULE_NAME}_SOURCES
 		${${MODULE_NAME}_SOURCES}
 		io/OpenNICamera.cpp
+		io/OpenNIManager.cpp
 	)
 	INCLUDE_DIRECTORIES(
 		BEFORE

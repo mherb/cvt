@@ -63,6 +63,7 @@ namespace cvt {
 		float lsqrt = c.lengthSqr();
 		if( lsqrt > Math::EPSILONF ) {
 			Quaternionf q( c[ 0 ], c[ 1 ], c[ 2 ], v1 * v2 );
+			q.normalize();
 			mat = q.toMatrix4();
 		} else {
 			mat.setIdentity();

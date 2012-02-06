@@ -111,7 +111,7 @@ namespace cvt
 		Vector2f point;
 		typename KLTPType::JacType jSum;
 		typename PoseType::ParameterVectorType delta;
-		float diffSum = 0;
+		float diffSum = 0.0f;
 		size_t npix = 0;
 		size_t numLines;
 		while( iter < _maxIters ){
@@ -147,6 +147,9 @@ namespace cvt
 			// solve for the delta:
 			delta = patch.inverseHessian() * jSum;
 			pose.applyInverse( delta );
+
+			if( diffSum / npix < 20.0f )
+				return true;
 			
 			iter++;
 		}

@@ -37,9 +37,14 @@ class UEyeUsbCamera : public Camera
             void	setPixelClock( unsigned int value );
             void	setHorizontalMirror( bool value );
             void	setVerticalMirror( bool value );
+
+			void	getHardwareGains( int& master, int& red, int& green, int& blue );
+			void	setHardwareGains( int master, int red, int green, int blue );
 			
 			void	setLiveMode( bool val );
 
+			void	saveParameters( const String& filename ) const;
+			void	loadParameters( const String& filename );
         private:
             bool	initCam();
             void	open( const CameraMode & mode );
