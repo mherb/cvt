@@ -74,7 +74,7 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	meanGG_GB_BB = read_imagef( imgmean_GG_GB_BB, sampler, coord );
 
 	cov = meanSG - meanG * meanS;
-//	cov.w = 0.0f;
+	cov.w = 0.0f;
 
 	meanRR_RG_RB.xyz -= meanG.x * meanG.xyz;
 	meanGG_GB_BB.xy -= meanG.y * meanG.yz;
@@ -84,9 +84,10 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	var[ 1 ] = ( float4 ) ( meanRR_RG_RB.y, meanGG_GB_BB.xy, 0.0f );
 	var[ 2 ] = ( float4 ) ( meanRR_RG_RB.z, meanGG_GB_BB.yz, 0.0f );
 
-	var[ 0 ].x += 2.0f * epsilon;
-	var[ 1 ].y += 2.0f * epsilon;
-	var[ 2 ].z += 2.0f * epsilon;
+	var[ 0 ].x += 1.0f * epsilon;
+	var[ 1 ].y += 1.0f * epsilon;
+	var[ 2 ].z += 1.0f * epsilon;
+
 
 //	inverse3x3( var );
 //

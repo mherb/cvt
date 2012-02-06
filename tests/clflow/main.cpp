@@ -9,7 +9,7 @@
 #include <cvt/vision/Flow.h>
 #include <cvt/io/FloFile.h>
 
-#include "TVL1Flow.h"
+#include <cvt/gfx/ifilter/TVL1Flow.h>
 
 using namespace cvt;
 
@@ -40,7 +40,7 @@ int main( int argc, char** argv )
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
 		ccode.reallocate( output.width(), output.height(), IFormat::BGRA_FLOAT );
-		Flow::colorCode( ccode, output, 3.0f );
+		Flow::colorCode( ccode, output, 20.0f );
 		ccode.save( "flow.png" );
 
 		if( argc == 4 ) {

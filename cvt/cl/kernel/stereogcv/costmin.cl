@@ -17,7 +17,7 @@ __kernel void stereogcv_costmin( __write_only image2d_t costout, __read_only ima
 	Cnew.x = read_imagef( newcost, sampler, coord ).x;
 //	Cnew.y = newdepth;
 
-	if( Cnew.x <  C.x ) {
+	if( Cnew.x < C.x ) {
 		C.x = Cnew.x;
 		C.y = newdepth;
 	}

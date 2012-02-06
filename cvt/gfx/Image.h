@@ -108,6 +108,8 @@ namespace cvt {
 
 			void pyrdown( Image& dst ) const;
 
+			void printValues( std::ostream& o, const Recti& rect ) const;
+
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
 			void convolveU8( Image& idst, const IKernel& kernel ) const;
