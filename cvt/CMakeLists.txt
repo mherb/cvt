@@ -782,10 +782,12 @@ IF( OPENNI_FOUND )
 	SET(${MODULE_NAME}_HEADERS
 		${${MODULE_NAME}_HEADERS}
 		io/OpenNICamera.h
+		io/OpenNIManager.h
 	)
 	SET(${MODULE_NAME}_SOURCES
 		${${MODULE_NAME}_SOURCES}
 		io/OpenNICamera.cpp
+		io/OpenNIManager.cpp
 	)
 	INCLUDE_DIRECTORIES(
 		BEFORE

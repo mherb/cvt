@@ -1,5 +1,7 @@
 #include <cvt/io/OpenNICamera.h>
 
+#include <cvt/io/OpenNIManager.h>
+
 namespace cvt
 {
 	OpenNICamera::OpenNICamera()
@@ -159,18 +161,20 @@ namespace cvt
 	{
 		XnStatus status = XN_STATUS_OK;
 		
-		_rgb.reallocate( w, h, IFormat::BAYER_RGGB_UINT8 );
+		//_rgb.reallocate( w, h, IFormat::BAYER_RGGB_UINT8 );
+		_rgb.reallocate( w, h, IFormat::UYVY_UINT8 );
 
 		status = _imageGen.Create( _context );
 		if( status != XN_STATUS_OK ){
 			throw CVTException( "Could note create image generator" );
 		}
 
-		status = _imageGen.SetIntProperty( "InputFormat", 6 );
+		status = _imageGen.SetIntProperty( "InputFormat", 5 );
 		if( status != XN_STATUS_OK )
 			throw CVTException( "Could not set InputFormat" );
 
-		status = _imageGen.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
+		//status = _imageGen.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
+		status = _imageGen.SetPixelFormat( XN_PIXEL_FORMAT_YUV422 );
 		if( status != XN_STATUS_OK )
 			throw CVTException( "Could not set PixelFormat" );
 
@@ -186,42 +190,68 @@ namespace cvt
 
 	size_t OpenNICamera::count()
 	{
-		xn::Context context;
-		XnStatus status = context.Init();
-
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Error when initializing OpenNI context" );
-		}
-
-		xn::NodeInfoList devices;
-		status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEVICE, NULL, devices );
-
-		xn::NodeInfoList::Iterator itBegin = devices.Begin();
-		xn::NodeInfoList::Iterator itEnd = devices.End();
-
-		size_t num = 0;
-		while( itBegin != itEnd ){
-			num++;
-			itBegin++;
-		}
-
-		return num;
+		return OpenNIManager::instance().deviceCount();
 	}
-
+	
 	void OpenNICamera::cameraInfo( size_t index, CameraInfo& info )
 	{
-		// TODO: get the camera info for the given index of OpenNI cams
-		xn::Context context;
-		XnStatus status = context.Init();
-
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Error when initializing OpenNI context" );
-		}
-
-		xn::Device device;
-		OpenNICamera::deviceForId( device, context, index );
-
+		info = OpenNIManager::instance().cameraInfoForDevice( index );
 	}
+
+	static void enumerateImageModes( xn::Context & context )
+	{
+		XnStatus status = XN_STATUS_OK;
+
+		xn::NodeInfoList nodeList;
+		status = context.EnumerateProductionTrees( XN_NODE_TYPE_IMAGE, NULL, nodeList );
+
+		xn::NodeInfoList::Iterator it = nodeList.Begin();
+		xn::NodeInfoList::Iterator itEnd = nodeList.End();
+
+		size_t n = 0;
+		while( it != itEnd ){
+			it++;
+			n++;
+		}
+		std::cout << n << " possible Image nodes" << std::endl;
+	}
+
+	static void enumerateDepthNodes( xn::Context & context )
+	{
+		XnStatus status = XN_STATUS_OK;
+
+		xn::NodeInfoList nodeList;
+		status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEPTH, NULL, nodeList );
+
+		xn::NodeInfoList::Iterator it = nodeList.Begin();
+		xn::NodeInfoList::Iterator itEnd = nodeList.End();
+
+		size_t n = 0;
+		while( it != itEnd ){
+			it++;
+			n++;
+		}
+		std::cout << n << " possible Depth nodes" << std::endl;
+	}
+
+	static void enumerateIrNodes( xn::Context & context )
+	{
+		XnStatus status = XN_STATUS_OK;
+
+		xn::NodeInfoList nodeList;
+		status = context.EnumerateProductionTrees( XN_NODE_TYPE_IR, NULL, nodeList );
+
+		xn::NodeInfoList::Iterator it = nodeList.Begin();
+		xn::NodeInfoList::Iterator itEnd = nodeList.End();
+
+		size_t n = 0;
+		while( it != itEnd ){
+			it++;
+			n++;
+		}
+		std::cout << n << " possible IR nodes" << std::endl;
+	}
+
 
 	void OpenNICamera::deviceForId( xn::Device& device, xn::Context& context, size_t idx )
 	{
