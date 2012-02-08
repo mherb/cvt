@@ -87,29 +87,11 @@ namespace cvt {
 			XnUInt32 numModes = imgGen.GetSupportedMapOutputModesCount();
 			XnMapOutputMode modes[ numModes ];
 
-			imgGen.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
-
 			status = imgGen.GetSupportedMapOutputModes( modes, numModes );
 			if( status == XN_STATUS_OK ){
 				std::vector<XnMapOutputMode> uniqueModes;
-				for( size_t i = 0; i < numModes; i++ ){
-					bool isNew = true;
-					for( size_t x = 0; x < uniqueModes.size(); x++ ){
-						if( uniqueModes[ x ].nXRes == modes[ i ].nXRes &&
-						    uniqueModes[ x ].nYRes == modes[ i ].nYRes &&
-						    uniqueModes[ x ].nFPS  == modes[ i ].nFPS ){
-							isNew = false;
-							break;
-						}
-					}
-					if( isNew ){
-						uniqueModes.push_back( modes[ i ] );
-					}
-				}
-
-				// now we have a unique set of modes
-				// -> find out which work with which Image Formats
-				findSupportedModes( idx, uniqueModes, imgGen );
+				getUniqueModeList( modes, numModes, uniqueModes );
+				findSupportedModes( _deviceList[ idx ].rgbInfo , uniqueModes, imgGen );
 			}
 			
 		}
@@ -118,34 +100,93 @@ namespace cvt {
 		xn::DepthGenerator	depthGen;
 		if( createDepthGeneratorForDevice( depthGen, idx, context ) ){
 			// find out about supported format etc.
+			XnUInt32 numModes = depthGen.GetSupportedMapOutputModesCount();
+			XnMapOutputMode modes[ numModes ];
+
+			status = depthGen.GetSupportedMapOutputModes( modes, numModes );
+			if( status == XN_STATUS_OK ){
+				std::vector<XnMapOutputMode> uniqueModes;
+				getUniqueModeList( modes, numModes, uniqueModes );
+
+				std::cout << "Depth ModeS: " << std::endl;
+				for( size_t i = 0; i < uniqueModes.size(); i++ ){
+					std::cout << uniqueModes[ i ].nXRes << "x"
+						      << uniqueModes[ i ].nYRes << "@"
+						      << uniqueModes[ i ].nFPS << std::endl;
+					_deviceList[ idx ].depthInfo.addMode( CameraMode( ( size_t )uniqueModes[ i ].nXRes, 
+																	  ( size_t )uniqueModes[ i ].nYRes,
+																      ( size_t )uniqueModes[ i ].nFPS, 
+																	  IFormat::GRAY_UINT16 ) );
+				}
+			}
 		}
 
-		xn::IRGenerator		irGen;
+		xn::IRGenerator	irGen;
 		if( createIRGeneratorForDevice( irGen, idx, context ) ){
 			// find out about supported format etc.
+			// find out about supported format etc.
+			XnUInt32 numModes = irGen.GetSupportedMapOutputModesCount();
+			XnMapOutputMode modes[ numModes ];
+
+			status = irGen.GetSupportedMapOutputModes( modes, numModes );
+			if( status == XN_STATUS_OK ){
+				std::vector<XnMapOutputMode> uniqueModes;
+				getUniqueModeList( modes, numModes, uniqueModes );
+				for( size_t i = 0; i < uniqueModes.size(); i++ ){
+					std::cout << uniqueModes[ i ].nXRes << "x"
+						      << uniqueModes[ i ].nYRes << "@"
+						      << uniqueModes[ i ].nFPS << std::endl;
+					_deviceList[ idx ].irInfo.addMode( CameraMode( uniqueModes[ i ].nXRes, uniqueModes[ i ].nYRes,
+																   uniqueModes[ i ].nFPS, IFormat::GRAY_UINT16 ) );
+				}
+			}
 		}
 			
 	}
 
-	
-	void OpenNIManager::findSupportedModes( size_t idx, const std::vector<XnMapOutputMode> & possibleModes, xn::ImageGenerator & gen )
+			
+	void OpenNIManager::getUniqueModeList( const XnMapOutputMode* modes, size_t num, std::vector<XnMapOutputMode> & unique )
 	{
-		CameraInfo& camInfo = _deviceList[ idx ].rgbInfo;
-
+		for( size_t i = 0; i < num; i++ ){
+			bool isNew = true;
+			for( size_t x = 0; x < unique.size(); x++ ){
+				if( unique[ x ].nXRes == modes[ i ].nXRes &&
+				    unique[ x ].nYRes == modes[ i ].nYRes &&
+				    unique[ x ].nFPS  == modes[ i ].nFPS ){
+					isNew = false;
+					break;
+				}
+			}
+			if( isNew ){
+				unique.push_back( modes[ i ] );
+			}
+		}
+	}
+	
+	void OpenNIManager::findSupportedModes( CameraInfo& camInfo, const std::vector<XnMapOutputMode> & possibleModes, xn::MapGenerator & gen )
+	{
 		std::vector<OpenNIImageFormats> formatsToCheck;
 		formatsToCheck.push_back( OPENNI_FORMAT_UNCOMPRESSED_YUV422 );
 		formatsToCheck.push_back( OPENNI_FORMAT_UNCOMPRESSED_BAYER );
 		formatsToCheck.push_back( OPENNI_FORMAT_UNCOMPRESSED_GRAY8 );
 
 		XnStatus status = XN_STATUS_OK;
+		IFormat format = IFormat::GRAY_UINT8;
 		for( size_t i = 0; i < formatsToCheck.size(); i++ ){
+			if( formatsToCheck[ i ] == OPENNI_FORMAT_UNCOMPRESSED_YUV422 )
+				format = IFormat::UYVY_UINT8;
+			else if( formatsToCheck[ i ] == OPENNI_FORMAT_UNCOMPRESSED_BAYER )
+				format = IFormat::BAYER_RGGB_UINT8; // TODO: we need BAYER_GRBG
+			else
+				format = IFormat::GRAY_UINT8;
+
 			if( gen.SetIntProperty( "InputFormat", formatsToCheck[ i ] ) == XN_STATUS_OK ){
 				for( size_t m = 0; m < possibleModes.size(); m++ ){
 					if( gen.SetMapOutputMode( possibleModes[ m ] ) == XN_STATUS_OK ){
-						std::cout << "Found Supported Mode: " << formatsToCheck[ i ] << ": " << 
-							         possibleModes[ m ].nXRes << ", " << 
-							         possibleModes[ m ].nYRes << ", " << 
-							         possibleModes[ m ].nFPS << std::endl; 
+						camInfo.addMode( CameraMode( possibleModes[ m ].nXRes,
+													 possibleModes[ m ].nYRes,
+													 possibleModes[ m ].nFPS,
+													 format ) );
 					}
 				}
 			}

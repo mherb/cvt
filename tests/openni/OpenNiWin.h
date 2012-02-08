@@ -34,9 +34,10 @@ namespace cvt
 	inline OpenNiWin::OpenNiWin() :
 		_window( "OpenNI" ),
 		_rgbMov( &_rgbView ),
-		_depthMov( &_depthView )
+		_depthMov( &_depthView ),
+		_cam( 0, CameraMode( 320, 240, 60, IFormat::UYVY_UINT8 ) )
 	{
-		_timerId = Application::registerTimer( 15, this );
+		_timerId = Application::registerTimer( 10, this );
 
 		_window.setSize( 800, 600 );
 		_depthMov.setSize( 320, 240 );
