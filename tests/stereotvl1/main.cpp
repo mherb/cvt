@@ -6,10 +6,7 @@
 
 #include <cvt/util/Time.h>
 
-#include <cvt/vision/Flow.h>
-#include <cvt/io/FloFile.h>
-
-#include <cvt/gfx/ifilter/TVL1Flow.h>
+#include <cvt/gfx/ifilter/TVL1Stereo.h>
 
 using namespace cvt;
 
@@ -32,25 +29,17 @@ int main( int argc, char** argv )
 	Image ccode;
 
 	try {
-		TVL1Flow flow( 0.70, 10 );
+		TVL1Stereo stereo( 0.80, 15 );
 
 		Time t;
-		flow.apply( output, input1, input2 );
+		stereo.apply( output, input1, input2 );
 
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
-		ccode.reallocate( output.width(), output.height(), IFormat::BGRA_FLOAT );
-		Flow::colorCode( ccode, output, 3.0f );
-		ccode.save( "flow.png" );
+		output.add( -10.0f );
+		output.mul( -1.0f / 100.0f );
+		output.save("stereo.png");
 
-		if( argc == 4 ) {
-			Image gt;
-			FloFile::FloReadFile( gt, argv[ 3 ] );
-			float aee = Flow::AEE( output, gt );
-			float aae = Flow::AAE( output, gt );
-			std::cout << "AEE: " << aee << std::endl;
-			std::cout << "AAE: " << aae << std::endl;
-		}
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;

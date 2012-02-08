@@ -6,6 +6,8 @@
 
 #include <cvt/gfx/IConvert.h>
 
+#include <iomanip>
+
 namespace cvt {
 
 	void Image::convert( Image& dst ) const
@@ -1576,34 +1578,39 @@ namespace cvt {
         size_t inStride;
         size_t dstStride;
 
-        float * out = dst.map<float>( &dstStride );
-        SIMD * simd = SIMD::instance();
+        float* out = dst.map<float>( &dstStride );
+        SIMD* simd = SIMD::instance();
 
         IFormatID fId = this->format().formatID;
 
         switch ( fId ) {
             case IFORMAT_GRAY_UINT8:
             {
-                const uint8_t * in = this->map<uint8_t>( &inStride );
+                const uint8_t* in = this->map<uint8_t>( &inStride );
                 simd->prefixSum1_u8_to_f( out, dstStride, in, inStride, width(), height() );
+                this->unmap( in );
+            }
+            break;
+            case IFORMAT_GRAY_FLOAT:
+            {
+                const float* in = this->map<float>( &inStride );
+                simd->prefixSum1_f_to_f( out, dstStride, in, inStride, width(), height() );
                 this->unmap( in );
             }
             break;
             case IFORMAT_BGRA_UINT8:
             case IFORMAT_RGBA_UINT8:
-            {
-                const uint8_t * in = this->map<uint8_t > ( &inStride );
-                simd->prefixSum1_xxxxu8_to_f( out, dstStride, in, inStride, width( ), height( ) );
-                this->unmap( in );
-            }
+			{
+				const uint8_t* in = this->map<uint8_t > ( &inStride );
+				simd->prefixSum1_xxxxu8_to_f( out, dstStride, in, inStride, width( ), height( ) );
+				this->unmap( in );
+			}
                 break;
-
-
             default:
                 this->unmap( out );
                 throw CVTException( "IntegralImage not implemented for type: " + fId );
         }
-        this->unmap( out );
+        dst.unmap( out );
     }
 
     void Image::squaredIntegralImage( Image & dst ) const
@@ -1626,12 +1633,19 @@ namespace cvt {
                 this->unmap( in );
             }
             break;
+            case IFORMAT_GRAY_FLOAT:
+            {
+                const float * in = this->map<float>( &inStride );
+                simd->prefixSumSqr1_f_to_f( out, dstStride, in, inStride, width(), height() );
+                this->unmap( in );
+            }
+            break;
 
             default:
                 this->unmap( out );
                 throw CVTException( "Squared integralImage not implemented for type: " + fId );
         }
-        this->unmap( out );
+        dst.unmap( out );
     }
 
 
@@ -1717,5 +1731,91 @@ namespace cvt {
 
 		unmap( src );
 		out.unmap( dst );
+	}
+
+
+	void Image::printValues( std::ostream& o, const Recti& _rect ) const
+	{
+		size_t w, h, stride;
+
+		Recti rect( _rect );
+		rect.intersect( this->rect() );
+
+
+		if( rect.isEmpty() )
+			return;
+
+		switch ( _mem->_format.formatID ) {
+			case IFORMAT_GRAY_UINT8:
+			case IFORMAT_BAYER_RGGB_UINT8:
+				{
+					const uint8_t* ptr, *base;
+					base = ptr = map( &stride );
+					ptr += rect.y * stride + rect.x;
+					h = rect.height;
+					while( h-- ) {
+						w = rect.width;
+						for( size_t x = 0; x < w; x++ )
+							o << "0x" << std::setw( 2 ) << std::hex << *( ptr + x ) << " ";
+						o << "\n";
+						ptr += stride;
+					}
+					unmap( base );
+				}
+				break;
+			case IFORMAT_GRAY_FLOAT:
+				{
+					const uint8_t* ptr, *base;
+					base = ptr = map( &stride );
+					ptr += rect.y * stride + rect.x * sizeof( float );
+					h = rect.height;
+					while( h-- ) {
+						w = rect.width;
+						for( size_t x = 0; x < w; x++ )
+							o << std::setiosflags( std::ios::fixed ) << std::setprecision( 2 ) << *( ( ( float* ) ptr ) + x ) << " ";
+						o << "\n";
+						ptr += stride;
+					}
+					unmap( base );
+				}
+				break;
+			case IFORMAT_RGBA_UINT8:
+			case IFORMAT_BGRA_UINT8:
+				{
+					const uint8_t* ptr, *base;
+					base = ptr = map( &stride );
+					ptr += rect.y * stride + rect.x * 4;
+					h = rect.height;
+					while( h-- ) {
+						w = rect.width * 4;
+						for( size_t x = 0; x < w; x++ )
+							o << "0x" << std::setw( 2 ) << std::hex << *( ptr + x ) << " ";
+						o << "\n";
+						ptr += stride;
+					}
+					unmap( base );
+				}
+				break;
+			case IFORMAT_RGBA_FLOAT:
+			case IFORMAT_BGRA_FLOAT:
+				{
+					const uint8_t* ptr, *base;
+					base = ptr = map( &stride );
+					ptr += rect.y * stride + rect.x * sizeof( float ) * 4;
+					h = rect.height;
+					while( h-- ) {
+						w = rect.width * 4;
+						for( size_t x = 0; x < w; x++ )
+							o << std::setiosflags( std::ios::fixed ) << std::setprecision( 2 ) << *( ( ( float* ) ptr ) + x ) << " ";
+						o << "\n";
+						ptr += stride;
+					}
+					unmap( base );
+				}
+				break;
+			default:
+				throw CVTException("Unimplemented");
+				break;
+		}
 	}
 }
