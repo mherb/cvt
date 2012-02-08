@@ -4,6 +4,7 @@ SET( ADDITIONAL_FILES
 	 #"${PROJECT_SOURCE_DIR}/cmake/FinduOpenNI.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/shipped/GLCLTOHEADER.cmake" 
+	 "${PROJECT_SOURCE_DIR}/cmake/shipped/MacroCVTApplication.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/shipped/FindCVT.cmake" 
 )
 
