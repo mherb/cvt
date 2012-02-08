@@ -2,6 +2,7 @@ SET( ADDITIONAL_FILES
 	 "${PROJECT_SOURCE_DIR}/cmake/FindOpenCL.cmake" 
 	 #"${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsbCamera.cmake" 
 	 #"${PROJECT_SOURCE_DIR}/cmake/FinduOpenNI.cmake" 
+	 "${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/shipped/GLCLTOHEADER.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/shipped/FindCVT.cmake" 
 )
@@ -13,7 +14,7 @@ INSTALL( FILES ${ADDITIONAL_FILES}
 INCLUDE(InstallRequiredSystemLibraries)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Computer Vision Tools Library (CVT)")
-SET(CPACK_PACKAGE_NAME "Computer Vision Tools Library")
+SET(CPACK_PACKAGE_NAME "libcvt")
 SET(CPACK_PACKAGE_VENDOR "Philipp Heise and Sebastian Klose")
 SET(CPACK_PACKAGE_CONTACT "Sebastian Klose, kloses@in.tum.de")
 

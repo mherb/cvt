@@ -1,6 +1,9 @@
 # first find all dependencies
 # this cannot be checked vie system dependencies!
 FIND_PACKAGE(OpenCL REQUIRED)
+INCLUDE_DIRECTORIES( ${OPENCL_INCLUDE_DIR} )
+FIND_PACKAGE(Eigen3 REQUIRED)
+INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
 
 FIND_PATH( CVT_INCLUDE_DIR 
 	NAMES cvt/geom/Model.h

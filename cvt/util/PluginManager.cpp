@@ -25,7 +25,7 @@ namespace cvt {
 		}
 
 		if( FileSystem::exists( "/usr/share/cvt/plugins" ) ){
-			_pluginPaths.push_back( "/usr/share/cvt/plugins" );
+			_pluginPaths.push_back( "/usr/share/cvt/plugins/" );
 		}
 	}
 
