@@ -159,6 +159,8 @@ SET( CL_KERNELS
 	cl/kernel/stereogcv/costmin.cl
 	cl/kernel/stereogcv/costdepthconv.cl
 	cl/kernel/stereogcv/occlusioncheck.cl
+	cl/kernel/tvl1stereo/tvl1.cl
+	cl/kernel/tvl1stereo/tvl1_warp.cl
 )
 
 CLTOHEADER( cl/kernel/gaussiir.cl )
@@ -200,6 +202,8 @@ CLTOHEADER( cl/kernel/stereogcv/costdepthncc.cl )
 CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
 CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
 CLTOHEADER( cl/kernel/stereogcv/occlusioncheck.cl )
+CLTOHEADER( cl/kernel/tvl1stereo/tvl1.cl )
+CLTOHEADER( cl/kernel/tvl1stereo/tvl1_warp.cl )
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -259,6 +263,8 @@ SET(${MODULE_NAME}_HEADERS
 	cl/kernel/stereogcv/costmin.h
 	cl/kernel/stereogcv/costdepthconv.h
 	cl/kernel/stereogcv/occlusioncheck.h
+	cl/kernel/tvl1stereo/tvl1.h
+	cl/kernel/tvl1stereo/tvl1_warp.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -294,6 +300,7 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/GuidedFilter.h
 	gfx/ifilter/StereoGCVFilter.h
 	gfx/ifilter/TVL1Flow.h
+	gfx/ifilter/TVL1Stereo.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -563,6 +570,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/GuidedFilter.cpp
 	gfx/ifilter/StereoGCVFilter.cpp
 	gfx/ifilter/TVL1Flow.cpp
+	gfx/ifilter/TVL1Stereo.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
