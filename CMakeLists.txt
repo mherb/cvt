@@ -18,8 +18,8 @@ INSTALL( TARGETS "glcltoheader" RUNTIME DESTINATION "share/cvt/utils" COMPONENT 
 ADD_SUBDIRECTORY(cvt)
 ADD_SUBDIRECTORY(plugins)
 
-OPTION( BUILD_TESTS "Build the test apps or not" TRUE )
-IF( BUILD_TESTS )
+OPTION( CVT_BUILD_TESTS "Build the test apps or not" TRUE )
+IF( CVT_BUILD_TESTS )
 	ADD_SUBDIRECTORY(tests)
 ENDIF()
 
