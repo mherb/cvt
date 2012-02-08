@@ -1,4 +1,4 @@
-#include "TVL1Flow.h"
+#include <cvt/gfx/ifilter/TVL1Stereo.h>
 
 #include <cvt/cl/kernel/clear.h>
 #include <cvt/cl/kernel/median3.h>
@@ -6,9 +6,8 @@
 #include <cvt/cl/kernel/pyr/pyrdown_binom3.h>
 #include <cvt/cl/kernel/pyr/pyrdown_binom5.h>
 #include <cvt/cl/kernel/pyr/pyrdown.h>
-#include <cvt/cl/kernel/tvl1flow/tvl1.h>
-#include <cvt/cl/kernel/tvl1flow/tvl1_warp.h>
-#include <cvt/cl/kernel/tvl1flow/tvl1_dataadd.h>
+#include <cvt/cl/kernel/tvl1stereo/tvl1.h>
+#include <cvt/cl/kernel/tvl1stereo/tvl1_warp.h>
 
 #include <cvt/vision/Flow.h>
 
@@ -21,16 +20,15 @@ namespace cvt {
 			&pout,
 		};
 
-		TVL1Flow::TVL1Flow( float scalefactor, size_t levels ) : IFilter( "TVL1Flow", _params, 2, IFILTER_OPENCL ),
+		TVL1Stereo::TVL1Stereo( float scalefactor, size_t levels ) : IFilter( "TVL1Stereo", _params, 2, IFILTER_OPENCL ),
 			_toggle( false ),
 			_scalefactor( scalefactor ),
 			_levels( levels ),
 			_pyrup( _pyrupmul_source, "pyrup_mul" ),
-//			_pyrdown( _pyrdown_source, "pyrdown" ),
 			_pyrdown( _pyrdown_source, "pyrdown" ),
+//			_pyrdown( _pyrdown_binom3_source, "pyrdown_binom3" ),
 			_tvl1( _tvl1_source, "tvl1" ),
 			_tvl1_warp( _tvl1_warp_source, "tvl1_warp" ),
-			_tvl1_dataadd( _tvl1_dataadd_source, "tvl1_dataadd" ),
 			_clear( _clear_source, "clear" ),
 			_median3( _median3_source, "median3" ),
 			_lambda( 70.0f )
@@ -39,13 +37,13 @@ namespace cvt {
 			_pyr[ 1 ] = new Image[ levels ];
 		}
 
-		TVL1Flow::~TVL1Flow()
+		TVL1Stereo::~TVL1Stereo()
 		{
 			delete[ ] _pyr[ 0 ];
 			delete[ ] _pyr[ 1 ];
 		}
 
-		void TVL1Flow::apply( Image& output, const Image& src1, const Image& src2 )
+		void TVL1Stereo::apply( Image& output, const Image& src1, const Image& src2 )
 		{
 			if( src1.width() != src2.width() ||
 			    src1.height() != src2.height() )
@@ -69,11 +67,11 @@ namespace cvt {
 				if( flow )
 					flowold = flow;
 
-				flow = new Image( _pyr[ 0 ][ l ].width(), _pyr[ 0 ][ l ].height(), IFormat::GRAYALPHA_FLOAT, IALLOCATOR_CL );
+				flow = new Image( _pyr[ 0 ][ l ].width(), _pyr[ 0 ][ l ].height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 				if( flowold ) {
 					_pyrup.setArg( 0, *flow );
 					_pyrup.setArg( 1, *flowold );
-					_pyrup.setArg( 2, 1.0f );
+					_pyrup.setArg( 2, 1.0f / _scalefactor );
 					_pyrup.run( CLNDRange( Math::pad( flow->width(), PYRUPWGSIZE ), Math::pad( flow->height(), PYRUPWGSIZE ) ), CLNDRange( PYRUPWGSIZE, PYRUPWGSIZE ) );
 				} else {
 					_clear.setArg( 0, *flow );
@@ -97,10 +95,10 @@ namespace cvt {
 			delete flow;
 		}
 
-		void TVL1Flow::solveTVL1( Image& flow, const Image& src1, const Image& src2, bool median )
+		void TVL1Stereo::solveTVL1( Image& flow, const Image& src1, const Image& src2, bool median )
 		{
-			Image flowtmp( flow.width(), flow.height(), IFormat::GRAYALPHA_FLOAT, IALLOCATOR_CL );
-			Image flow0( flow.width(), flow.height(), IFormat::GRAYALPHA_FLOAT, IALLOCATOR_CL );
+			Image flowtmp( flow.width(), flow.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+			Image flow0( flow.width(), flow.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 			Image warp( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 			Image p0( flow.width(), flow.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
@@ -116,7 +114,7 @@ namespace cvt {
 
 				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
-			for( int i = 0; i < 20; i++ ) {
+			for( int i = 0; i < 40; i++ ) {
 				if( median ) {
 					_median3.setArg( 0, flow0 );
 					_median3.setArg( 1, *us[ 1 ] );
@@ -141,7 +139,7 @@ namespace cvt {
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
 				float t = 1.0f, told = 1.0f;
-#define ROFITER 60
+#define ROFITER 200
 				for( int k = 0; k < ROFITER; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );
@@ -150,7 +148,7 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 2.5f ) ) );
+					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 10.0f ) ) );
 //					_tvl1.setArg( 6, _lambda * ( ( Math::tanh( ( ( float ) ( -k ) + 0.5f * ( float ) ROFITER ) * 0.75f ) * 0.5f + 0.5f ) ) );
 					_tvl1.setArg( 7, THETA );
 				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );
@@ -191,7 +189,7 @@ namespace cvt {
 					flow = *us[ 1 ];
 		}
 
-		void TVL1Flow::fillPyramidCL( const Image& img, size_t index )
+		void TVL1Stereo::fillPyramidCL( const Image& img, size_t index )
 		{
 			Image* pyr = _pyr[ index ];
 
@@ -200,7 +198,7 @@ namespace cvt {
 			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_CL );
 			img.convert( pyr[ 0 ] );
 			for( size_t l = 1; l < _levels; l++ ) {
-				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::RGBA_UINT8, IALLOCATOR_CL );
 				_pyrdown.setArg( 0, pyr[ l ] );
 				_pyrdown.setArg( 1, pyr[ l - 1 ] );
 //				_pyrdown.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * ( PYRWGSIZE + 4 ) ) );

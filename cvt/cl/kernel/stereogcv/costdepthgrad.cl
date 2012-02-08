@@ -1,11 +1,44 @@
-#define COSTTHRESHOLD 0.05 //0.028f
-#define COSTTHRESHOLDGRAD 0.01f //0.008f
+#define COSTTHRESHOLD 0.028 //0.028f
+#define COSTTHRESHOLDGRAD 0.008 //0.008f
 #define ALPHA 0.10f
+
+inline float4 rgba2hsla(float4 rgba) {
+	float r = rgba.x,
+		  g = rgba.y,
+		  b = rgba.z,
+		  a = rgba.w;
+
+	float mn = min(r, min(g, b));
+	float mx = max(r, max(g, b));
+
+	float l = (mn + mx) / 2.f;
+	float s, h;
+	if (mn == mx) {
+		s = h = 0;
+	} else {
+		float diff = mx - mn;
+		float sum = mx + mn;
+		if (l < 0.5f)
+			s = diff / sum;
+		else
+			s = diff / (2.0f - sum);
+		if (r == mx)
+			h = (g - b) / diff;
+		else if (g == mx)
+			h = 2.0f + (b - r) / diff;
+		else //if (b == mx)
+			h = 4.0f + (r - g) / diff;
+	}
+	h = clamp(h / 6.0f, 0.0f, 1.0f);
+	return (float4)(h, s, l, a);
+}
 
 __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_only image2d_t img0, __read_only image2d_t img1,
 									   __read_only image2d_t grad0, __read_only image2d_t grad1, float depth )
 {
 	const float4 dotmul = ( float4 ) ( 0.3333f, 0.3333f, 0.3333f, 0.0f );
+	const float4 dotmulGRAY = ( float4 ) (0.2126f, 0.7152f, 0.0722f, 0.0f );
+	const float4 dotmulHSL = ( float4 ) ( 0.4f, 0.4f, 0.2f, 0.0f );
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
 	int2 coord;
 	float2 coord2;
@@ -32,29 +65,41 @@ __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_on
 //#define BLOCK
 #ifdef BLOCK
 		float c = 0.0f, wsum = 0.0f;
-#define DSIZE 3
-//		float delta[ DSIZE ] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
-//		float w[ DSIZE ] = { 0.25f, 0.25f, 0.5f, 0.25f, 0.25f };
-		float delta[ DSIZE ] = { -0.5f, 0.0f, 0.5f };
-		float w[ DSIZE ] = { 0.25f, 0.5f, 0.25f };
+#define DSIZE 5
+//		float delta[ DSIZE ] = { -4.0f, -3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f };
+//		float w[ DSIZE ] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
+//		float w[ DSIZE ] = { 0.125f, 0.25f, 0.25f, 0.5f, 0.25f, 0.25f, 0.125f };
+		float delta[ DSIZE ] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f };
+		float w[ DSIZE ] = { 0.125f, 0.25f, 0.75f, 0.25f, 0.125f };
+//		float delta[ DSIZE ] = { -0.5f, 0.0f, 0.5f };
+//		float w[ DSIZE ] = { 0.25f, 0.5f, 0.25f };
 
+		float Ci = 0, Cg = 0;
 		for( int iy = 0; iy < DSIZE; iy++ ) {
 			for( int ix = 0; ix < DSIZE; ix++ ) {
-				I0 = read_imagef( img0, sampler, coord + ( float2 ) ( delta[ ix ], delta[ iy ] ) );
-				G0 = read_imagef( grad0, sampler, coord  + ( float2 ) ( delta[ ix ], delta[ iy ] ));
-				I1 = read_imagef( img1, sampler, coord2  + ( float2 ) ( delta[ ix ], delta[ iy ] ));
-				G1 = read_imagef( grad1, sampler, coord2  + ( float2 ) ( delta[ ix ], delta[ iy ] ));
+				I0 = ( read_imagef( img0, sampler, coord + ( float2 ) ( delta[ ix ], delta[ iy ] ) ) );
+				G0 = ( read_imagef( grad0, sampler, coord  + ( float2 ) ( delta[ ix ], delta[ iy ] )) );
+				I1 = ( read_imagef( img1, sampler, coord2  + ( float2 ) ( delta[ ix ], delta[ iy ] )) );
+				G1 = ( read_imagef( grad1, sampler, coord2  + ( float2 ) ( delta[ ix ], delta[ iy ] )) );
 				c +=  w[ ix ] * w[ iy ] * mix( fmin( dot( fabs( I1 - I0 ), dotmul ), COSTTHRESHOLD ) , fmin( dot( fabs( G1 - G0 ), dotmul ), COSTTHRESHOLDGRAD ), ALPHA );
-				//c += w[ ix ] * w[ iy ] * ( mix( fmin( fast_length( I1 - I0 ), COSTTHRESHOLD ) , fmin( fast_length( G1 - G0 ), COSTTHRESHOLDGRAD ), ALPHA ) );
+
+//				Ci +=  w[ ix ] * w[ iy ] * dot( fabs( I1 - I0 ), dotmul );
+//			    Cg +=  w[ ix ] * w[ iy ] * dot( fabs( G1 - G0 ), dotmul );
+//				c += w[ ix ] * w[ iy ] * ( mix( fmin( fast_length( I1 - I0 ), COSTTHRESHOLD ) , fmin( fast_length( G1 - G0 ), COSTTHRESHOLDGRAD ), ALPHA ) );
 				wsum += w[ ix ] * w[ iy ];
 			}
 		}
-		Cout.x = c / wsum;
+		//Ci /= wsum;
+		//Cg /= wsum;
+		//Ci = fmin( Ci, COSTTHRESHOLD );
+		//Cg = fmin( Cg, COSTTHRESHOLDGRAD );
+		//Cout = ( float4 ) mix( Ci, Cg, ALPHA );
+		Cout = ( float4 ) ( c / wsum );
 #else
-		I0 = read_imagef( img0, sampler, coord  );
-		G0 = read_imagef( grad0, sampler, coord );
-		I1 = read_imagef( img1, sampler, coord2 );
-		G1 = read_imagef( grad1, sampler, coord2 );
+		I0 = ( read_imagef( img0, sampler, coord  ) );
+		G0 = ( read_imagef( grad0, sampler, coord ) );
+		I1 = ( read_imagef( img1, sampler, coord2 ) );
+		G1 = ( read_imagef( grad1, sampler, coord2 ) );
 		Cout = ( float4 ) mix( fmin( dot( fabs( I1 - I0 ), dotmul ), COSTTHRESHOLD ) , fmin( dot( fabs( G1 - G0 ), dotmul ), COSTTHRESHOLDGRAD ), ALPHA );
 //		Cout = ( float4 ) mix( fmin( fast_length( I1 - I0 ), COSTTHRESHOLD ) , fmin( fast_length( G1 - G0 ), COSTTHRESHOLDGRAD ), ALPHA );
 #endif

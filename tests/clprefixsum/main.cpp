@@ -9,6 +9,7 @@
 #include <iomanip>
 
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock.h>
+#include <cvt/cl/kernel/prefixsum/prefixsum_pblock_sqr.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_vert.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_block2.h>
@@ -38,7 +39,7 @@ int main( int argc, char** argv )
 
 	try {
 
-			CLKernel kern( _prefixsum_pblock_source, "prefixsum_pblock" );
+			CLKernel kern( _prefixsum_pblock_sqr_source, "prefixsum_pblock_sqr" );
 
 			CLKernel kern2( _prefixsum_horiz_source, "prefixsum_horiz" );
 
@@ -49,8 +50,8 @@ int main( int argc, char** argv )
 			CLKernel kern5( _boxfilter_prefixsum_source, "boxfilter_prefixsum" );
 
 //		for( int size = 64; size <= 4096; size++ ) {
-			Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
-//			input.convert( climg );
+			Image climg( input.width(), input.height(),IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
+			input.convert( climg );
 			//climg.fill( Color::WHITE );
 			Image output(input.width(), input.height(), IFormat::floatEquivalent( input.format() ), IALLOCATOR_CL );
 
@@ -78,18 +79,24 @@ int main( int argc, char** argv )
 			//kern4.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * CLSIZE ) );
 			kern4.run( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
-			kern5.setArg( 0, climg );
+/*			kern5.setArg( 0, climg );
 			kern5.setArg( 1, output );
 			kern5.setArg( 2, 8 );
 			kern5.runWait( CLNDRange( Math::pad( input.width(), CLSIZE ), Math::pad( input.height(), CLSIZE ) ), CLNDRange( CLSIZE, CLSIZE ) );
 
-			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;
+			std::cout << input.width() * input.height() << " " << t.elapsedMilliSeconds() << std::endl;*/
 //			climg.save( "boxfilter.png" );
-#if 0
+#if 1
 
+			climg.printValues( std::cout, Recti( 0,0,10,10 ) );
+			std::cout << "-------------------------------------" << std::endl;
+			output.printValues( std::cout, Recti( 0,0,10,10 ) );
 			Image iicpu( input.width(), input.height(), IFormat::floatEquivalent( input.format() ) );
-			input.integralImage( iicpu );
-			iicpu.mul( 1.0f / 255.0f );
+			climg.squaredIntegralImage( iicpu );
+
+			std::cout << "-------------------------------------" << std::endl;
+			iicpu.printValues( std::cout, Recti( 0,0,10,10 ) );
+//			iicpu.mul( 1.0f / 255.0f );
 			std::cout << "SSD:"  << iicpu.ssd( output ) / ( float )( input.width() * input.height() ) << std::endl;
 			output.sub( iicpu );
 			output.save( "bla.png" );

@@ -4895,6 +4895,33 @@ namespace cvt {
         }
     }
 
+
+    void SIMD::prefixSum1_f_to_f( float * dst, size_t dstStride, const float* src, size_t srcStride, size_t width, size_t height ) const
+	{
+		// first row
+		dst[ 0 ] = src[ 0 ];
+		for( size_t i = 1; i < width; i++ ){
+			dst[ i ] = dst[ i - 1 ] + src[ i ];
+		}
+		height--;
+
+		float * prevRow = dst;
+		dst+=dstStride;
+		src+=srcStride;
+
+		float currRow;
+		while( height-- ){
+			currRow = 0;
+			for( size_t i = 0; i < width; i++ ){
+				currRow += src[ i ];
+				dst[ i ] = currRow + prevRow[ i ];
+			}
+			prevRow = dst;
+			dst += dstStride;
+			src += srcStride;
+		}
+	}
+
     void SIMD::prefixSum1_xxxxu8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const
     {
         // first row
@@ -4962,6 +4989,33 @@ namespace cvt {
             src  += srcStride;
         }
     }
+
+    void SIMD::prefixSumSqr1_f_to_f( float * dst, size_t dStride, const float* src, size_t srcStride, size_t width, size_t height ) const
+	{
+		dst[ 0 ] = Math::sqr( src[ 0 ] );
+		for( size_t i = 1; i < width; i++ ){
+			dst[ i ] = dst[ i - 1 ] + Math::sqr( src[ i ] );
+		}
+		height--;
+
+		float * prevRow = dst;
+
+		dst += dStride;
+		src  += srcStride;
+
+		float currRow;
+		while( height-- ){
+			currRow = 0;
+			for( size_t i = 0; i < width; i++ ){
+				currRow += Math::sqr( src[ i ] );
+				dst[ i ] = currRow + prevRow[ i ];
+			}
+			prevRow = dst;
+			dst += dStride;
+			src  += srcStride;
+		}
+	}
+
 
 	void SIMD::cleanup()
 	{

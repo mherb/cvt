@@ -111,7 +111,7 @@ namespace cvt {
 	void IWarp::warpUndistort( Image& idst, float k1, float k2, float cx, float cy, float fx, float fy, size_t srcWidth, size_t srcHeight, float k3, float p1, float p2 )
 	{
 		if( idst.format() != IFormat::GRAYALPHA_FLOAT )
-			throw CVTException( "Unsupported warp image type" );
+			idst.reallocate( srcWidth, srcHeight, IFormat::GRAYALPHA_FLOAT );
 
 		uint8_t* dst;
 		float* pdst;
@@ -148,7 +148,7 @@ namespace cvt {
 	void IWarp::warpUndistort( Image& idst, Matrix3f& Knew, const CameraCalibration& calib, size_t srcWidth, size_t srcHeight, float alpha, float beta  )
 	{
 		if( idst.format() != IFormat::GRAYALPHA_FLOAT )
-			throw CVTException( "Unsupported warp image type" );
+			idst.reallocate( srcWidth, srcHeight, IFormat::GRAYALPHA_FLOAT );
 
 		uint8_t* dst;
 		float* pdst;
