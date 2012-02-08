@@ -1,15 +1,10 @@
 SET( ADDITIONAL_FILES
-	 "${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/FindOpenCL.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/Findffmpeg.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/FindLibPng.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/FindDC1394.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsbCamera.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsbCamera.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/CompilerFlags.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/CompileDefinitions.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/BuildTypes.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/GLCLTOHEADER.cmake" )
+	 #"${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsbCamera.cmake" 
+	 #"${PROJECT_SOURCE_DIR}/cmake/FinduOpenNI.cmake" 
+	 "${PROJECT_SOURCE_DIR}/cmake/shipped/GLCLTOHEADER.cmake" 
+	 "${PROJECT_SOURCE_DIR}/cmake/shipped/FindCVT.cmake" 
+)
 
 INSTALL( FILES ${ADDITIONAL_FILES}
 		 DESTINATION "share/cvt/cmake"
