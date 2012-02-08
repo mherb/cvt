@@ -28,6 +28,11 @@ namespace cvt {
 			size_t deviceCount() const { return _deviceList.size(); };
 			const CameraInfo& cameraInfoForDevice( size_t idx ) const { return _deviceList[ idx ].rgbInfo; }
 			
+			const DeviceInformation& deviceInfoForCam( size_t idx ) const 
+			{ 
+				return _deviceList[ idx ]; 
+			}
+			
 
 			/**
 			 * @return: true if generator is valid, 
@@ -66,7 +71,9 @@ namespace cvt {
 
 			void nameAndSerialForDevice( String& name, String& serial, xn::Device& device ) const;
 
-			void findSupportedModes( size_t idx, const std::vector<XnMapOutputMode> & possibleModes, xn::ImageGenerator& gen );
+			void getUniqueModeList( const XnMapOutputMode* modes,  size_t num, std::vector<XnMapOutputMode> & unique );
+
+			void findSupportedModes( CameraInfo& camInfo, const std::vector<XnMapOutputMode> & possibleModes, xn::MapGenerator& gen );
 
 			// device list:
 			std::vector<DeviceInformation>	_deviceList;

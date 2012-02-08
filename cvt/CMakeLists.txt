@@ -27,21 +27,13 @@ endif(DOXYGEN_FOUND)
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(ffmpeg REQUIRED)
+FIND_PACKAGE(OpenCL REQUIRED)
 
-IF( APPLE )
-# FIXME for OSX
-#	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
-#	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
-#	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
-#	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
-#	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
-#	LINK_DIRECTORIES(/usr/X11/lib)
-ELSE( APPLE )
+IF( LINUX )
 	FIND_PACKAGE(OpenGL REQUIRED)
 	FIND_PACKAGE(X11 REQUIRED)
-ENDIF( APPLE )
+ENDIF()
 
-FIND_PACKAGE(OpenCL REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -55,8 +47,7 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 IF( LINUX )
 	SET(${MODULE_NAME}_DEP_LIBRARIES
 		${${MODULE_NAME}_DEP_LIBRARIES}
-		rt 
-	)
+		rt )
 ENDIF( LINUX )
 
 SET( GLSL_SHADER
@@ -499,6 +490,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/slam/stereo/StereoSLAM.h
 	vision/slam/stereo/DescriptorDatabase.h
 	vision/slam/stereo/FeatureTracking.h
+	vision/slam/stereo/FASTFeatureTracking.h
 	vision/slam/stereo/ORBTracking.h
 	vision/slam/stereo/ORBTrackingSequential.h
 	vision/slam/stereo/KLTTracking.h
@@ -669,6 +661,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/slam/Keyframe.cpp
 	vision/slam/SlamMap.cpp
 	vision/slam/stereo/FeatureTracking.cpp
+	vision/slam/stereo/FASTFeatureTracking.cpp
 	vision/slam/stereo/KLTTracking.cpp
 	vision/slam/stereo/ORBTracking.cpp
 	vision/slam/stereo/ORBTrackingSequential.cpp
@@ -709,12 +702,6 @@ IF(UNIX)
 			"-framework QTKit"
 			"-framework OpenGL"
 		)
-
-		INCLUDE_DIRECTORIES(
-		    BEFORE
-			/usr/X11/include
-		)
-
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h

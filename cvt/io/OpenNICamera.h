@@ -19,7 +19,7 @@ namespace cvt
 				BAYER_UNCOMPRESSED	= 6,
 			};
 
-			OpenNICamera();
+			OpenNICamera( size_t idx, const CameraMode& mode );
 			~OpenNICamera();
 
             void			startCapture();

@@ -4,19 +4,21 @@
 
 namespace cvt
 {
-	OpenNICamera::OpenNICamera()
+	OpenNICamera::OpenNICamera( size_t idx, const CameraMode& mode )
 	{
 		XnStatus status = _context.Init();
 		if( status != XN_STATUS_OK ){
 			throw CVTException( "Could not initialize context" );
 		}
-		deviceForId( _device, _context, 0 );
-	
-		size_t w = 640; 	
-		size_t h = 480; 	
-		size_t fps = 30; 	
-		initDepthGenerator( w, h, fps );
-		initImageGenerator( w, h, fps );
+
+		OpenNIManager& manager = OpenNIManager::instance();
+
+		const OpenNIManager::DeviceInformation& devInfo = manager.deviceInfoForCam( idx );
+
+			
+
+		initDepthGenerator( 320, 240, 60 );
+		initImageGenerator( 320, 240, 60 );
 	}
 
 	OpenNICamera::~OpenNICamera()
@@ -252,28 +254,4 @@ namespace cvt
 		std::cout << n << " possible IR nodes" << std::endl;
 	}
 
-
-	void OpenNICamera::deviceForId( xn::Device& device, xn::Context& context, size_t idx )
-	{
-		xn::NodeInfoList devices;
-		XnStatus status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEVICE, NULL, devices );
-
-		xn::NodeInfoList::Iterator it	 = devices.Begin();
-		xn::NodeInfoList::Iterator itEnd = devices.End();
-
-		size_t num = 0;
-		while( num != idx ){
-			num++;
-			it++;
-			if( it == itEnd )
-				throw CVTException( "no camera with given id" );
-		}
-
-		xn::NodeInfo ninfo = *it;
-		status = context.CreateProductionTree( ninfo, device );
-
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Could not create production tree for device" );
-
-	}
 }
