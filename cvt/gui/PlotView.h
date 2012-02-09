@@ -131,6 +131,14 @@ namespace cvt {
 		if( _view == r )
 			return;
 		_view = r;
+
+		List<PlotDataStyled>::Iterator it = _pdata.begin();
+		List<PlotDataStyled>::Iterator end = _pdata.end();
+		while( it != end ) {
+			( *it ).update( _view );
+			it++;
+		}
+
 		update();
 	}
 
