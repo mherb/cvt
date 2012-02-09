@@ -65,7 +65,7 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	dy = BUF2( lx, ly + 1 ).x - w.x;
 
 	// HUBER
-#define EPS 0.04f
+#define EPS 0.01f
 	float4 delta = ( float4 ) ( dx, dy, 0, 0 );
 	pout = BUF( lx, ly ) + ( 1.0f / ( 4.0f * theta ) ) * ( delta - EPS * BUF( lx, ly) );
 //	float n = fmax(  1.0f,  fmax( fast_length( pout.xy ), fast_length( pout.zw ) ) / w.w );
