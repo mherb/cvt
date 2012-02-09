@@ -4,8 +4,11 @@
 #include <cstdlib>
 
 #ifdef APPLE
-//#include <mach-o/dyld.h>
-#include <dlfcn.h>
+	//#include <mach-o/dyld.h>
+	#include <dlfcn.h>
+#else // this needs to be included here, not in the header because of Eigen! 
+	#include <GL/glext.h>
+	#include <GL/glx.h>
 #endif
 
 namespace cvt {
