@@ -1,6 +1,5 @@
 #include <cvt/gl/OpenGL.h>
 
-#include <GL/glx.h>
 
 #include <cstdlib>
 
