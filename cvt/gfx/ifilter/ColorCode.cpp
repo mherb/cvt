@@ -1,4 +1,6 @@
 #include <cvt/gfx/ifilter/ColorCode.h>
+#include <cvt/gfx/IMapScoped.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 	static ParamInfoTyped<Image*> pin( "Input", true );
@@ -13,9 +15,9 @@ namespace cvt {
 	static float _colorgradient[ NUMCOLORS * 4 ] = {
 		1.000000f, 0.000000f, 0.000000f, 1.0f,
 		1.000000f, 1.000000f, 0.000000f, 1.0f,
-		1.000000f, 0.000000f, 1.000000f, 1.0f,
+		0.000000f, 1.000000f, 0.000000f, 1.0f,
+		0.000000f, 1.000000f, 1.000000f, 1.0f,
 		0.000000f, 0.000000f, 1.000000f, 1.0f,
-		0.000000f, 0.000000f, 0.000000f, 1.0f,
 	};
 
 
@@ -24,61 +26,45 @@ namespace cvt {
 	{
 	}
 
-	void ColorCode::apply( Image& idst, const Image& isrc, float min, float max ) const
+	void ColorCode::apply( Image& idst, const Image& isrc, float min, float max )
 	{
 		if( isrc.format() != IFormat::GRAY_FLOAT )
 			throw CVTException( "Illegal data for color-coding" );
 
-		uint8_t* dst;
-		uint8_t* src;
-		size_t stridedst;
-		size_t stridesrc;
 		float* pdst;
-		float* psrc;
+		const float* psrc;
 		size_t w, h;
-		float d;
-		float color[ 4 ];
-		float radius;
-		float angle;
 		float val;
 		float alpha;
 		size_t i1, i2;
-		uint8_t const* optr1;
-		uint8_t const* optr2;
+		float low = Math::min( min, max );
+		float high = Math::max( min, max );
 
 		idst.reallocate( isrc.width(), isrc.height(), IFormat::RGBA_FLOAT );
 
-		optr1 = dst = idst.map( &stridedst );
-		optr2 = src = isrc.map( &stridesrc );
+		IMapScoped<float> dstmap( idst );
+		IMapScoped<const float> srcmap( isrc );
+
 
 		h = idst.height();
 		while( h-- ) {
-			pdst = ( float* ) dst;
-			psrc = ( float* ) src;
+			pdst = dstmap.ptr();
+			psrc = srcmap.ptr();
 
 			w = idst.width();
 			while( w-- ) {
-				d = *psrc++;
-				val = ( Math::clamp( d - min, 0, max ) / max ) *  ( float ) ( NUMCOLORS - 1 );
+				val = ( ( Math::clamp( *psrc++, low, high ) - min ) / ( max - min ) ) *  ( float ) ( NUMCOLORS - 1 );
 				alpha = val - Math::floor( val );
 				i1 = ( size_t ) val;
-				i2 = Math::max( i1 + 1, NUMCOLORS - 1 );
-				color[ 0 ] = Math::mix( _colorgradient[ i1 * 4 ], _colorgradient[ i2 * 4 ], alpha  );
-				color[ 1 ] = Math::mix( _colorgradient[ i1 * 4 + 1 ], _colorgradient[ i2 * 4 + 1 ], alpha  );
-				color[ 2 ] = Math::mix( _colorgradient[ i1 * 4 + 2 ], _colorgradient[ i2 * 4 + 2 ], alpha  );
-				color[ 3 ] = 1.0f;
-				/* alpha remains */
-				*pdst++ = color[ 0 ];
-				*pdst++ = color[ 1 ];
-				*pdst++ = color[ 2 ];
-				*pdst++ = color[ 3 ];
+				i2 = Math::min<size_t>( i1 + 1, NUMCOLORS - 1 );
+				*pdst++ = Math::mix( _colorgradient[ i1 * 4 ], _colorgradient[ i2 * 4 ], alpha  );
+				*pdst++ = Math::mix( _colorgradient[ i1 * 4 + 1 ], _colorgradient[ i2 * 4 + 1 ], alpha  );
+				*pdst++ = Math::mix( _colorgradient[ i1 * 4 + 2 ], _colorgradient[ i2 * 4 + 2 ], alpha  );
+				*pdst++ = 1.0f;	/* alpha is one */
 			}
-
-			dst += stridedst;
-			src += stridesrc;
+			dstmap++;
+			srcmap++;
 		}
-		idst.unmap( optr1 );
-		isrc.unmap( optr2 );
 	}
 
 
@@ -89,7 +75,7 @@ namespace cvt {
 		Image * out = set->arg<Image*>( 1 );
 
 		switch ( t ) {
-			case IFILTER_OPENCL:
+			case IFILTER_CPU:
 				this->apply( *out, *in );
 				break;
 			default:
