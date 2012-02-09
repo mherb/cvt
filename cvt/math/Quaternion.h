@@ -11,6 +11,7 @@ namespace cvt {
 			public:
 				Quaternion();
 				Quaternion( T x, T y, T z, T w );
+				Quaternion( T phi, T theta, T psi );
 				Quaternion( const Quaternion& q2 );
 
 				void				set( T x, T y, T z, T w );
@@ -50,7 +51,7 @@ namespace cvt {
 
 	template<typename T>
 		inline Quaternion<T>::Quaternion()
-		{
+		{		
 		}
 
 	template<typename T>
@@ -69,6 +70,22 @@ namespace cvt {
 			y = q.y;
 			z = q.z;
 			w = q.w;
+		}
+
+	template<typename T>
+		inline Quaternion<T>::Quaternion( T phi, T theta , T psi )
+		{
+			T s_phi   = Math::sin( phi / ( T )2 );
+			T s_theta = Math::sin( theta / ( T )2 );
+			T s_psi   = Math::sin( psi / ( T )2 );
+			T c_phi   = Math::cos( phi / ( T )2 );
+			T c_theta = Math::cos( theta / ( T )2 );
+			T c_psi   = Math::cos( psi / ( T )2 );
+
+			w = c_phi * c_theta * c_psi + s_phi * s_theta * s_psi;
+			x = s_phi * c_theta * c_psi - c_phi * s_theta * s_psi;
+			y = c_phi * s_theta * c_psi + s_phi * c_theta * s_psi;
+			z = c_phi * c_theta * s_psi - s_phi * s_theta * c_psi;
 		}
 
 	template<typename T>
