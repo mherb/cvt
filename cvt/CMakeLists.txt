@@ -302,6 +302,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ColorspaceXYZ.h
 	gfx/Font.h
 	gfx/Alignment.h
+	gfx/Path.h
+	gfx/DummyFont.h
 	gl/OpenGL.h
 	gl/GLFBO.h
 	gl/GLFormat.h
@@ -429,6 +431,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/graph/GraphNode.h
 	math/graph/GraphEdge.h
 	math/graph/GraphVisitor.h
+	math/SparseBlockMatrix.h
 	util/CPU.h
 	util/CVTTest.h
 	util/Condition.h

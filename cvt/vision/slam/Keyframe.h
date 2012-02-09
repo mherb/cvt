@@ -16,6 +16,8 @@ namespace cvt
 	class Keyframe : public XMLSerializable
 	{
 		public:
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 			typedef std::pair<size_t, MapMeasurement> MapPairType;
 			typedef std::map<size_t, MapMeasurement, std::less<size_t>, Eigen::aligned_allocator<MapPairType> > MapType;
 			typedef MapType::const_iterator MeasurementIterator;

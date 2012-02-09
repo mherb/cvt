@@ -52,6 +52,7 @@ namespace cvt
 			void clear();
 
 			void setPose( const Matrix4d& pose );
+			const SE3<double>& pose() const { return _pose; };
 
 			Signal<const Image&>		newStereoView;	
 			Signal<void>				keyframeAdded;	
