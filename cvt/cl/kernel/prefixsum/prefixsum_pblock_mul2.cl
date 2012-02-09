@@ -21,6 +21,7 @@ __kernel void prefixsum_pblock_mul2( __write_only image2d_t out,  __read_only im
 	// assume lw == lh
 	for( int offset = 1; offset < lw; offset <<= 1 )
 	{
+		barrier( CLK_LOCAL_MEM_FENCE );
 		if( lx >= offset )
 			tmp += buf[ lid - offset ];
 		barrier( CLK_LOCAL_MEM_FENCE );

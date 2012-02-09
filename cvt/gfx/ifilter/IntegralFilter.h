@@ -17,10 +17,12 @@ namespace cvt {
 
 		private:
 			void applyOuterRGB( Image& dst_RR_RG_RB, Image& dst_GG_GB_BB, const Image& src ) const;
+			void applyShifted( Image& dst, const Image& src1, const Image& src2, float dx = 0, float dy = 0 ) const;
 
 			CLKernel _clprefixsum_blockp;
 			CLKernel _clprefixsum_blockp_sqr;
 			CLKernel _clprefixsum_blockp_mul2;
+			CLKernel _clprefixsum_blockp_mul2_shifted;
 			CLKernel _clprefixsum_blockp_outerrgb;
 			CLKernel _clprefixsum_horiz;
 			CLKernel _clprefixsum_vert;

@@ -14,13 +14,14 @@ __kernel void prefixsum_pblock_sqr( __write_only image2d_t out,  __read_only ima
 	coord.x = get_global_id( 0 );
 	coord.y = get_global_id( 1 );
 
-	tmp  = read_imagef( in, sampler, coord );
+	tmp = read_imagef( in, sampler, coord );
 	tmp *= tmp;
 	buf[ lid ] = tmp;
 
 	// assume lw == lh
 	for( int offset = 1; offset < lw; offset <<= 1 )
 	{
+		barrier( CLK_LOCAL_MEM_FENCE );
 		if( lx >= offset )
 			tmp += buf[ lid - offset ];
 		barrier( CLK_LOCAL_MEM_FENCE );

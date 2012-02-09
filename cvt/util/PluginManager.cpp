@@ -17,20 +17,36 @@ namespace cvt {
 		return *_instance;
 	}
 
+	PluginManager::PluginManager()
+	{
+		// add folders to plugin path vector:
+		if( FileSystem::exists( PLUGIN_PATH ) ){
+			_pluginPaths.push_back( PLUGIN_PATH );
+		}
+
+		if( FileSystem::exists( "/usr/share/cvt/plugins" ) ){
+			_pluginPaths.push_back( "/usr/share/cvt/plugins/" );
+		}
+	}
+
 	void PluginManager::loadDefault()
 	{
 		// Static default plugins
 
 		// Runtime loaded plugins
 		std::vector<String> entries;
-		FileSystem::ls( PLUGIN_PATH, entries );
-		for( std::vector<String>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
-			try {
-				String path( PLUGIN_PATH );
-				path += *it;
-				//std::cout << path << std::endl;
-				loadPlugin( path.c_str() );
-			} catch( Exception e ) {
+		for( size_t f = 0; f < _pluginPaths.size(); f++ ){
+			FileSystem::ls( _pluginPaths[ f ], entries );
+			for( std::vector<String>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
+				String path( _pluginPaths[ f ] );
+				try {
+					
+					path += *it;
+					//std::cout << path << std::endl;
+					loadPlugin( path.c_str() );
+				} catch( Exception e ) {
+					std::cout << "Could not load plugin at path: " << path << std::endl;
+				}
 			}
 		}
 	}
@@ -40,4 +56,5 @@ namespace cvt {
 		if( _instance )
 			delete _instance;
 	}
+
 }

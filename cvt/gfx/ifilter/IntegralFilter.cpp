@@ -2,6 +2,7 @@
 
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock_mul2.h>
+#include <cvt/cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock_sqr.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h>
 #include <cvt/cl/kernel/prefixsum/prefixsum_horiz.h>
@@ -24,6 +25,7 @@ namespace cvt {
 		_clprefixsum_blockp( _prefixsum_pblock_source, "prefixsum_pblock" ),
 		_clprefixsum_blockp_sqr( _prefixsum_pblock_sqr_source, "prefixsum_pblock_sqr" ),
 		_clprefixsum_blockp_mul2( _prefixsum_pblock_mul2_source, "prefixsum_pblock_mul2" ),
+		_clprefixsum_blockp_mul2_shifted( _prefixsum_pblock_mul2_shifted_source, "prefixsum_pblock_mul2_shifted" ),
 		_clprefixsum_blockp_outerrgb( _prefixsum_pblock_outerrgb_source, "prefixsum_pblock_outerrgb" ),
 		_clprefixsum_horiz( _prefixsum_horiz_source, "prefixsum_horiz" ),
 		_clprefixsum_vert( _prefixsum_vert_source, "prefixsum_vert" ),
@@ -118,6 +120,35 @@ namespace cvt {
 //		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
 //		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
 		_clprefixsum_block2.run( CLNDRange( Math::pad( dst_GG_GB_BB.width(), _blocksize ), Math::pad( dst_GG_GB_BB.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
+	}
+
+
+	void IntegralFilter::applyShifted( Image& dst, const Image& src, const Image& src2, float dx, float dy ) const
+	{
+		Vector2f shift( dx, dy );
+
+		_clprefixsum_blockp_mul2_shifted.setArg( 0, dst );
+		_clprefixsum_blockp_mul2_shifted.setArg( 1, src );
+		_clprefixsum_blockp_mul2_shifted.setArg( 2, src2 );
+		_clprefixsum_blockp_mul2_shifted.setArg( 3, shift );
+		_clprefixsum_blockp_mul2_shifted.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * _blocksize * _blocksize ) );
+		_clprefixsum_blockp_mul2_shifted.run( CLNDRange( Math::pad( src.width(), _blocksize ), Math::pad( src.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
+
+		_clprefixsum_horiz.setArg( 0, dst );
+		_clprefixsum_horiz.setArg( 1, dst );
+		_clprefixsum_horiz.setArg<int>( 2, _blocksize );
+		_clprefixsum_horiz.run( CLNDRange( Math::pad( dst.height(), _blocksize ) ), CLNDRange( _blocksize ) );
+
+		_clprefixsum_vert.setArg( 0, dst );
+		_clprefixsum_vert.setArg( 1, dst );
+		_clprefixsum_vert.setArg<int>( 2, _blocksize );
+		_clprefixsum_vert.run( CLNDRange( Math::pad( dst.width(), _blocksize ) ), CLNDRange( _blocksize ) );
+
+		_clprefixsum_block2.setArg( 0, dst );
+		_clprefixsum_block2.setArg( 1, dst );
+		//		_clprefixsum_block2.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+		//		_clprefixsum_block2.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * _blocksize ) );
+		_clprefixsum_block2.run( CLNDRange( Math::pad( dst.width(), _blocksize ), Math::pad( dst.height(), _blocksize ) ), CLNDRange( _blocksize, _blocksize ) );
 	}
 
 

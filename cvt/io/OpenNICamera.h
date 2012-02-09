@@ -10,7 +10,16 @@ namespace cvt
 	class OpenNICamera : public Camera 
 	{
 		public:
-			OpenNICamera();
+			enum InputFormat
+			{
+				BAYER_COMPRESSED	= 0,
+				UYVY_COMPRESSED		= 1,
+				JPEG				= 2,
+				UYVY_UNCOMPRESSED	= 5,
+				BAYER_UNCOMPRESSED	= 6,
+			};
+
+			OpenNICamera( size_t idx, const CameraMode& mode );
 			~OpenNICamera();
 
             void			startCapture();
@@ -36,6 +45,7 @@ namespace cvt
 			xn::Device			_device;
 			xn::DepthGenerator	_depthGen;
 			xn::ImageGenerator	_imageGen;
+			xn::IRGenerator		_irGen;
 
 			void initDepthGenerator( size_t w, size_t h, size_t fps );
 			void initImageGenerator( size_t w, size_t h, size_t fps );
