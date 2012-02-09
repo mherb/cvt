@@ -2,7 +2,6 @@
 #include <cvt/util/Exception.h>
 #include <cvt/io/FileSystem.h>
 #include <cvt/util/String.h>
-#include <string>
 #include <vector>
 
 namespace cvt {
