@@ -181,6 +181,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/Image.h
 	gfx/IFormat.h
 	gfx/IConvert.h
+	gfx/IMapScoped.h
+	gfx/ifilter/ColorCode.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/ROFFGPFilter.h
 	gfx/ifilter/Homography.h
@@ -429,6 +431,7 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/Image.cpp
 	gfx/ImageOperations.cpp
 	gfx/ImageTest.cpp
+	gfx/ifilter/ColorCode.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/ROFFGPFilter.cpp
 	gfx/ifilter/Homography.cpp

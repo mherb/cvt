@@ -114,7 +114,7 @@ namespace cvt {
 
 				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
-			for( int i = 0; i < 40; i++ ) {
+			for( int i = 0; i < 20; i++ ) {
 				if( median ) {
 					_median3.setArg( 0, flow0 );
 					_median3.setArg( 1, *us[ 1 ] );
@@ -139,7 +139,7 @@ namespace cvt {
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
 				float t = 1.0f, told = 1.0f;
-#define ROFITER 200
+#define ROFITER 50
 				for( int k = 0; k < ROFITER; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );
@@ -148,7 +148,7 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 10.0f ) ) );
+					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 3.0f ) ) );
 //					_tvl1.setArg( 6, _lambda * ( ( Math::tanh( ( ( float ) ( -k ) + 0.5f * ( float ) ROFITER ) * 0.75f ) * 0.5f + 0.5f ) ) );
 					_tvl1.setArg( 7, THETA );
 				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );

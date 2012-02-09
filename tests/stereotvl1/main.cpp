@@ -7,6 +7,7 @@
 #include <cvt/util/Time.h>
 
 #include <cvt/gfx/ifilter/TVL1Stereo.h>
+#include <cvt/gfx/ifilter/ColorCode.h>
 
 using namespace cvt;
 
@@ -36,9 +37,13 @@ int main( int argc, char** argv )
 
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
-		output.add( -10.0f );
-		output.mul( -1.0f / 100.0f );
-		output.save("stereo.png");
+		Image tmp;
+		ColorCode::apply( tmp, output, -75.0f, 0.0f );
+		tmp.save("stereo.png");
+
+//		output.add( -10.0f );
+//		output.mul( -1.0f / 100.0f );
+//		output.save("stereo.png");
 
 
 	} catch( CLException& e ) {
