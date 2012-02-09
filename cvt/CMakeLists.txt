@@ -81,35 +81,6 @@ SET( GLSL_SHADER
 	gl/shader/150/texmls_150.vert
 )
 
-GLSLTOHEADER(gl/shader/120/basic_120.vert)
-GLSLTOHEADER(gl/shader/120/basic_120.frag)
-GLSLTOHEADER(gl/shader/120/text_120.vert)
-GLSLTOHEADER(gl/shader/120/text_120.frag)
-GLSLTOHEADER(gl/shader/120/icon_120.vert)
-GLSLTOHEADER(gl/shader/120/icon_120.frag)
-GLSLTOHEADER(gl/shader/120/basictex_120.vert)
-GLSLTOHEADER(gl/shader/120/basictex_120.frag)
-GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
-GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
-GLSLTOHEADER(gl/shader/120/basiclight_120.frag)
-GLSLTOHEADER(gl/shader/120/basiclight_120.vert)
-GLSLTOHEADER(gl/shader/120/texmls_120.frag)
-GLSLTOHEADER(gl/shader/120/texmls_120.vert)
-GLSLTOHEADER(gl/shader/150/basic_150.vert)
-GLSLTOHEADER(gl/shader/150/basic_150.frag)
-GLSLTOHEADER(gl/shader/150/text_150.vert)
-GLSLTOHEADER(gl/shader/150/text_150.frag)
-GLSLTOHEADER(gl/shader/150/icon_150.vert)
-GLSLTOHEADER(gl/shader/150/icon_150.frag)
-GLSLTOHEADER(gl/shader/150/basictex_150.vert)
-GLSLTOHEADER(gl/shader/150/basictex_150.frag)
-GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
-GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
-GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
-GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
-GLSLTOHEADER(gl/shader/150/texmls_150.frag)
-GLSLTOHEADER(gl/shader/150/texmls_150.vert)
-
 SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
 	cl/kernel/gaussiir2.cl
@@ -154,47 +125,19 @@ SET( CL_KERNELS
 	cl/kernel/tvl1stereo/tvl1_warp.cl
 )
 
-CLTOHEADER( cl/kernel/gaussiir.cl )
-CLTOHEADER( cl/kernel/gaussiir2.cl )
-CLTOHEADER( cl/kernel/BC.cl )
-CLTOHEADER( cl/kernel/clear.cl )
-CLTOHEADER( cl/kernel/fill.cl )
-CLTOHEADER( cl/kernel/gradx.cl )
-CLTOHEADER( cl/kernel/gradxy.cl )
-CLTOHEADER( cl/kernel/median3.cl )
-CLTOHEADER( cl/kernel/fgp/fgp.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
-CLTOHEADER( cl/kernel/boxfilter/boxfilter_prefixsum.cl )
-CLTOHEADER( cl/kernel/boxfilter/boxfilter.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
-CLTOHEADER( cl/kernel/pyr/pyrup.cl )
-CLTOHEADER( cl/kernel/pyr/pyrupmul.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepthncc.cl )
-CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
-CLTOHEADER( cl/kernel/stereogcv/occlusioncheck.cl )
-CLTOHEADER( cl/kernel/tvl1stereo/tvl1.cl )
-CLTOHEADER( cl/kernel/tvl1stereo/tvl1_warp.cl )
+FOREACH( CLFILE ${CL_KERNELS} )
+	CLTOHEADER( ${CLFILE} )
+	# add it to the generated cl headers
+	SET( CL_GEN_HEADER_${MODULE_NAME} ${CL_GEN_HEADER_${MODULE_NAME}} "${CL_GEN_OUTPUT}" )
+	# add the dependency to this generated file
+	SET( GENDEPS_${MODULE_NAME} ${GENDEPS_${MODULE_NAME}} "${CLGEN_TARGET}" )
+ENDFOREACH(CLFILE)
+
+FOREACH( GLSLFILE ${GLSL_SHADER} )
+	GLSLTOHEADER( ${GLSLFILE} )
+	SET( GLSL_GEN_HEADER_${MODULE_NAME} ${GLSL_GEN_HEADER_${MODULE_NAME}} "${GLSL_GEN_OUTPUT}" )
+	SET( GENDEPS_${MODULE_NAME} ${GENDEPS_${APP_NAME}} "${GLSLGEN_TARGET}" )
+ENDFOREACH(GLSLFILE)
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -215,47 +158,6 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLProgram.h
 	cl/CLUtil.h
 	cl/OpenCL.h
-	cl/kernel/gaussiir.h
-	cl/kernel/gaussiir2.h
-	cl/kernel/BC.h
-	cl/kernel/clear.h
-	cl/kernel/fill.h
-	cl/kernel/median3.h
-	cl/kernel/gradx.h
-	cl/kernel/gradxy.h
-	cl/kernel/fgp/fgp.h
-	cl/kernel/fgp/fgp_data.h
-	cl/kernel/boxfilter/boxfilter_prefixsum.h
-	cl/kernel/boxfilter/boxfilter.h
-	cl/kernel/prefixsum/prefixsum_pblock.h
-	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
-	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
-	cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.h
-	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h
-	cl/kernel/prefixsum/prefixsum_horiz.h
-	cl/kernel/prefixsum/prefixsum_vert.h
-	cl/kernel/prefixsum/prefixsum_block2.h
-	cl/kernel/guidedfilter/guidedfilter_calcab.h
-	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_gc.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_cc.h
-	cl/kernel/pyr/pyrdown_binom3.h
-	cl/kernel/pyr/pyrdown_binom5.h
-	cl/kernel/pyr/pyrdown.h
-	cl/kernel/pyr/pyrup.h
-	cl/kernel/pyr/pyrupmul.h
-	cl/kernel/tvl1flow/tvl1.h
-	cl/kernel/tvl1flow/tvl1_warp.h
-	cl/kernel/tvl1flow/tvl1_dataadd.h
-	cl/kernel/stereogcv/costdepth.h
-	cl/kernel/stereogcv/costdepthgrad.h
-	cl/kernel/stereogcv/costdepthncc.h
-	cl/kernel/stereogcv/costmin.h
-	cl/kernel/stereogcv/costdepthconv.h
-	cl/kernel/stereogcv/occlusioncheck.h
-	cl/kernel/tvl1stereo/tvl1.h
-	cl/kernel/tvl1stereo/tvl1_warp.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -330,34 +232,6 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLDrawModelProg.h
 	gl/progs/GLFillPathProg.h
 	gl/progs/GLTexMLSProg.h
-	gl/shader/120/basic_120_vert.h
-	gl/shader/120/basic_120_frag.h
-	gl/shader/120/basicrr_120_frag.h
-	gl/shader/120/text_120_vert.h
-	gl/shader/120/text_120_frag.h
-	gl/shader/120/icon_120_vert.h
-	gl/shader/120/icon_120_frag.h
-	gl/shader/120/basictex_120_vert.h
-	gl/shader/120/basictex_120_frag.h
-	gl/shader/120/basicrrtex_120_frag.h
-	gl/shader/120/basiclight_120_frag.h
-	gl/shader/120/basiclight_120_vert.h
-	gl/shader/150/basic_150_vert.h
-	gl/shader/150/basic_150_frag.h
-	gl/shader/150/basicrr_150_frag.h
-	gl/shader/150/text_150_vert.h
-	gl/shader/150/text_150_frag.h
-	gl/shader/150/icon_150_vert.h
-	gl/shader/150/icon_150_frag.h
-	gl/shader/150/basictex_150_vert.h
-	gl/shader/150/basictex_150_frag.h
-	gl/shader/150/basicrrtex_150_frag.h
-	gl/shader/150/basiclight_150_frag.h
-	gl/shader/150/basiclight_150_vert.h
-	gl/shader/120/texmls_120_frag.h
-	gl/shader/120/texmls_120_vert.h
-	gl/shader/150/texmls_150_frag.h
-	gl/shader/150/texmls_150_vert.h
 	gui/Application.h
 	gui/BasicTimer.h
 	gui/Button.h
@@ -523,7 +397,9 @@ SET(${MODULE_NAME}_HEADERS
 	io/xml/XMLLeaf.h
 	io/xml/XMLNode.h
 	io/xml/XMLText.h
-	${GLSL_SHADER}
+	${GLSL_GEN_HEADER_${MODULE_NAME}}
+	${CL_GEN_HEADER_${MODULE_NAME}}
+	${GLSL_SHADER} # FIXME: this way, the shaders and cl kernels will be shipped ...
 	${CL_KERNELS}
 )
 
@@ -819,7 +695,9 @@ INCLUDE_DIRECTORIES(
 MODULE_CONFIGURATION("${MODULE_NAME}"
 					 "${${MODULE_NAME}_HEADERS}"
 					 "${${MODULE_NAME}_SOURCES}"
-					 "${${MODULE_NAME}_DEP_LIBRARIES}")
+					 "${${MODULE_NAME}_DEP_LIBRARIES}"
+					 "${GENDEPS_${MODULE_NAME}}"
+)
 
 set_target_properties(${MODULE_NAME}
 	      PROPERTIES COMPILE_DEFINITIONS
