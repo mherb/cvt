@@ -1,16 +1,14 @@
-#ifndef CVT_TVL1FLOW_H
-#define CVT_TVL1FLOW_H
+#ifndef CVT_TVL1STEREO_H
+#define CVT_TVL1STEREO_H
 
 #include <cvt/gfx/IFilter.h>
-#include <cvt/gfx/ifilter/ROFFGPFilter.h>
-#include <cvt/gfx/ifilter/GuidedFilter.h>
 #include <cvt/cl/CLKernel.h>
 
 namespace cvt {
-	class TVL1Flow : public IFilter {
+	class TVL1Stereo : public IFilter {
 		public:
-			TVL1Flow( float scalefactor, size_t levels );
-			~TVL1Flow();
+			TVL1Stereo( float scalefactor, size_t levels );
+			~TVL1Stereo();
 			void apply( Image& flow, const Image& src1, const Image& src2 );
 			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const {};
 
@@ -25,12 +23,9 @@ namespace cvt {
 			CLKernel	 _pyrdown;
 			CLKernel	 _tvl1;
 			CLKernel	 _tvl1_warp;
-			CLKernel	 _tvl1_dataadd;
 			CLKernel	 _clear;
 			CLKernel	 _median3;
 			float		 _lambda;
-//			ROFFGPFilter _rof;
-			GuidedFilter _gf;
 			Image*		 _pyr[ 2 ];
 	};
 }

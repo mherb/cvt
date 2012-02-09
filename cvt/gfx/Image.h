@@ -37,10 +37,17 @@ namespace cvt {
             Recti rect() const;
 
 			size_t channels() const;
-			// bits per channel
+			
+			/**
+			 * @return bits per channel
+			 */
 			size_t bpc() const;
-			// bytes per pixel
+
+			/**
+			 * @return bytes per pixel!
+			 */
 			size_t bpp() const;
+
 			const IFormat & format() const;
 			IAllocatorType memType() const { return _mem->type(); };
 			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
@@ -107,6 +114,8 @@ namespace cvt {
             void squaredIntegralImage( Image & dst ) const;
 
 			void pyrdown( Image& dst ) const;
+
+			void printValues( std::ostream& o, const Recti& rect ) const;
 
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;

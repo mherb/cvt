@@ -27,21 +27,13 @@ endif(DOXYGEN_FOUND)
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(LibPng REQUIRED)
 FIND_PACKAGE(ffmpeg REQUIRED)
+FIND_PACKAGE(OpenCL REQUIRED)
 
-IF( APPLE )
-# FIXME for OSX
-#	SET( OPENGL_gl_LIBRARY "/usr/X11/lib/libGL.dylib" )
-#	SET( OPENGL_glu_LIBRARY "/usr/X11/lib/libGLU.dylib" )
-#	SET( OPENGL_INCLUDE_DIR "/usr/X11/include/GL" )
-#	SET( X11_X11_LIB "/usr/X11/lib/libX11.dylib")
-#	SET( OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
-#	LINK_DIRECTORIES(/usr/X11/lib)
-ELSE( APPLE )
+IF( UNIX AND NOT APPLE )
 	FIND_PACKAGE(OpenGL REQUIRED)
 	FIND_PACKAGE(X11 REQUIRED)
-ENDIF( APPLE )
+ENDIF()
 
-FIND_PACKAGE(OpenCL REQUIRED)
 
 # libs
 SET(${MODULE_NAME}_DEP_LIBRARIES
@@ -52,12 +44,11 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${FFMPEG_LIBRARIES}
 )
 
-IF( LINUX )
+IF( UNIX AND NOT APPLE )
 	SET(${MODULE_NAME}_DEP_LIBRARIES
 		${${MODULE_NAME}_DEP_LIBRARIES}
-		rt 
-	)
-ENDIF( LINUX )
+		rt )
+ENDIF()
 
 SET( GLSL_SHADER
 	gl/shader/120/basic_120.vert
@@ -90,35 +81,6 @@ SET( GLSL_SHADER
 	gl/shader/150/texmls_150.vert
 )
 
-GLSLTOHEADER(gl/shader/120/basic_120.vert)
-GLSLTOHEADER(gl/shader/120/basic_120.frag)
-GLSLTOHEADER(gl/shader/120/text_120.vert)
-GLSLTOHEADER(gl/shader/120/text_120.frag)
-GLSLTOHEADER(gl/shader/120/icon_120.vert)
-GLSLTOHEADER(gl/shader/120/icon_120.frag)
-GLSLTOHEADER(gl/shader/120/basictex_120.vert)
-GLSLTOHEADER(gl/shader/120/basictex_120.frag)
-GLSLTOHEADER(gl/shader/120/basicrrtex_120.frag)
-GLSLTOHEADER(gl/shader/120/basicrr_120.frag)
-GLSLTOHEADER(gl/shader/120/basiclight_120.frag)
-GLSLTOHEADER(gl/shader/120/basiclight_120.vert)
-GLSLTOHEADER(gl/shader/120/texmls_120.frag)
-GLSLTOHEADER(gl/shader/120/texmls_120.vert)
-GLSLTOHEADER(gl/shader/150/basic_150.vert)
-GLSLTOHEADER(gl/shader/150/basic_150.frag)
-GLSLTOHEADER(gl/shader/150/text_150.vert)
-GLSLTOHEADER(gl/shader/150/text_150.frag)
-GLSLTOHEADER(gl/shader/150/icon_150.vert)
-GLSLTOHEADER(gl/shader/150/icon_150.frag)
-GLSLTOHEADER(gl/shader/150/basictex_150.vert)
-GLSLTOHEADER(gl/shader/150/basictex_150.frag)
-GLSLTOHEADER(gl/shader/150/basicrrtex_150.frag)
-GLSLTOHEADER(gl/shader/150/basicrr_150.frag)
-GLSLTOHEADER(gl/shader/150/basiclight_150.frag)
-GLSLTOHEADER(gl/shader/150/basiclight_150.vert)
-GLSLTOHEADER(gl/shader/150/texmls_150.frag)
-GLSLTOHEADER(gl/shader/150/texmls_150.vert)
-
 SET( CL_KERNELS
 	cl/kernel/gaussiir.cl
 	cl/kernel/gaussiir2.cl
@@ -135,6 +97,7 @@ SET( CL_KERNELS
 	cl/kernel/prefixsum/prefixsum_pblock.cl
 	cl/kernel/prefixsum/prefixsum_pblock_sqr.cl
 	cl/kernel/prefixsum/prefixsum_pblock_mul2.cl
+	cl/kernel/prefixsum/prefixsum_pblock_mul2_shifted.cl
 	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl
 	cl/kernel/prefixsum/prefixsum_horiz.cl
 	cl/kernel/prefixsum/prefixsum_vert.cl
@@ -154,48 +117,27 @@ SET( CL_KERNELS
 	cl/kernel/tvl1flow/tvl1_warp.cl
 	cl/kernel/stereogcv/costdepth.cl
 	cl/kernel/stereogcv/costdepthgrad.cl
+	cl/kernel/stereogcv/costdepthncc.cl
 	cl/kernel/stereogcv/costmin.cl
 	cl/kernel/stereogcv/costdepthconv.cl
 	cl/kernel/stereogcv/occlusioncheck.cl
+	cl/kernel/tvl1stereo/tvl1.cl
+	cl/kernel/tvl1stereo/tvl1_warp.cl
 )
 
-CLTOHEADER( cl/kernel/gaussiir.cl )
-CLTOHEADER( cl/kernel/gaussiir2.cl )
-CLTOHEADER( cl/kernel/BC.cl )
-CLTOHEADER( cl/kernel/clear.cl )
-CLTOHEADER( cl/kernel/fill.cl )
-CLTOHEADER( cl/kernel/gradx.cl )
-CLTOHEADER( cl/kernel/gradxy.cl )
-CLTOHEADER( cl/kernel/median3.cl )
-CLTOHEADER( cl/kernel/fgp/fgp.cl )
-CLTOHEADER( cl/kernel/fgp/fgp_data.cl )
-CLTOHEADER( cl/kernel/boxfilter/boxfilter_prefixsum.cl )
-CLTOHEADER( cl/kernel/boxfilter/boxfilter.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_sqr.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_mul2.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_pblock_outerrgb.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_horiz.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_vert.cl )
-CLTOHEADER( cl/kernel/prefixsum/prefixsum_block2.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.cl )
-CLTOHEADER( cl/kernel/guidedfilter/guidedfilter_applyab_cc.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown_binom3.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown_binom5.cl )
-CLTOHEADER( cl/kernel/pyr/pyrup.cl )
-CLTOHEADER( cl/kernel/pyr/pyrupmul.cl )
-CLTOHEADER( cl/kernel/pyr/pyrdown.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1_dataadd.cl )
-CLTOHEADER( cl/kernel/tvl1flow/tvl1_warp.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepth.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepthgrad.cl )
-CLTOHEADER( cl/kernel/stereogcv/costmin.cl )
-CLTOHEADER( cl/kernel/stereogcv/costdepthconv.cl )
-CLTOHEADER( cl/kernel/stereogcv/occlusioncheck.cl )
+FOREACH( CLFILE ${CL_KERNELS} )
+	CLTOHEADER( ${CLFILE} )
+	# add it to the generated cl headers
+	SET( CL_GEN_HEADER_${MODULE_NAME} ${CL_GEN_HEADER_${MODULE_NAME}} ${CL_GEN_OUTPUT} )
+	# add the dependency to this generated file
+	SET( GENDEPS_${MODULE_NAME} ${GENDEPS_${MODULE_NAME}} "${CLGEN_TARGET}" )
+ENDFOREACH(CLFILE)
+
+FOREACH( GLSLFILE ${GLSL_SHADER} )
+	GLSLTOHEADER( ${GLSLFILE} )
+	SET( GLSL_GEN_HEADER_${MODULE_NAME} ${GLSL_GEN_HEADER_${MODULE_NAME}} "${GLSL_GEN_OUTPUT}" )
+	SET( GENDEPS_${MODULE_NAME} ${GENDEPS_${MODULE_NAME}} "${GLSLGEN_TARGET}" )
+ENDFOREACH(GLSLFILE)
 
 
 SET(${MODULE_NAME}_HEADERS
@@ -216,43 +158,6 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLProgram.h
 	cl/CLUtil.h
 	cl/OpenCL.h
-	cl/kernel/gaussiir.h
-	cl/kernel/gaussiir2.h
-	cl/kernel/BC.h
-	cl/kernel/clear.h
-	cl/kernel/fill.h
-	cl/kernel/median3.h
-	cl/kernel/gradx.h
-	cl/kernel/gradxy.h
-	cl/kernel/fgp/fgp.h
-	cl/kernel/fgp/fgp_data.h
-	cl/kernel/boxfilter/boxfilter_prefixsum.h
-	cl/kernel/boxfilter/boxfilter.h
-	cl/kernel/prefixsum/prefixsum_pblock.h
-	cl/kernel/prefixsum/prefixsum_pblock_sqr.h
-	cl/kernel/prefixsum/prefixsum_pblock_mul2.h
-	cl/kernel/prefixsum/prefixsum_pblock_outerrgb.h
-	cl/kernel/prefixsum/prefixsum_horiz.h
-	cl/kernel/prefixsum/prefixsum_vert.h
-	cl/kernel/prefixsum/prefixsum_block2.h
-	cl/kernel/guidedfilter/guidedfilter_calcab.h
-	cl/kernel/guidedfilter/guidedfilter_calcab_outerrgb.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_gc.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h
-	cl/kernel/guidedfilter/guidedfilter_applyab_cc.h
-	cl/kernel/pyr/pyrdown_binom3.h
-	cl/kernel/pyr/pyrdown_binom5.h
-	cl/kernel/pyr/pyrdown.h
-	cl/kernel/pyr/pyrup.h
-	cl/kernel/pyr/pyrupmul.h
-	cl/kernel/tvl1flow/tvl1.h
-	cl/kernel/tvl1flow/tvl1_warp.h
-	cl/kernel/tvl1flow/tvl1_dataadd.h
-	cl/kernel/stereogcv/costdepth.h
-	cl/kernel/stereogcv/costdepthgrad.h
-	cl/kernel/stereogcv/costmin.h
-	cl/kernel/stereogcv/costdepthconv.h
-	cl/kernel/stereogcv/occlusioncheck.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
@@ -287,6 +192,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/ifilter/BoxFilter.h
 	gfx/ifilter/GuidedFilter.h
 	gfx/ifilter/StereoGCVFilter.h
+	gfx/ifilter/TVL1Flow.h
+	gfx/ifilter/TVL1Stereo.h
 #	gfx/ifilter/Sobel.h
 	gfx/IFilter.h
 	gfx/IScaleFilter.h
@@ -327,34 +234,6 @@ SET(${MODULE_NAME}_HEADERS
 	gl/progs/GLDrawModelProg.h
 	gl/progs/GLFillPathProg.h
 	gl/progs/GLTexMLSProg.h
-	gl/shader/120/basic_120_vert.h
-	gl/shader/120/basic_120_frag.h
-	gl/shader/120/basicrr_120_frag.h
-	gl/shader/120/text_120_vert.h
-	gl/shader/120/text_120_frag.h
-	gl/shader/120/icon_120_vert.h
-	gl/shader/120/icon_120_frag.h
-	gl/shader/120/basictex_120_vert.h
-	gl/shader/120/basictex_120_frag.h
-	gl/shader/120/basicrrtex_120_frag.h
-	gl/shader/120/basiclight_120_frag.h
-	gl/shader/120/basiclight_120_vert.h
-	gl/shader/150/basic_150_vert.h
-	gl/shader/150/basic_150_frag.h
-	gl/shader/150/basicrr_150_frag.h
-	gl/shader/150/text_150_vert.h
-	gl/shader/150/text_150_frag.h
-	gl/shader/150/icon_150_vert.h
-	gl/shader/150/icon_150_frag.h
-	gl/shader/150/basictex_150_vert.h
-	gl/shader/150/basictex_150_frag.h
-	gl/shader/150/basicrrtex_150_frag.h
-	gl/shader/150/basiclight_150_frag.h
-	gl/shader/150/basiclight_150_vert.h
-	gl/shader/120/texmls_120_frag.h
-	gl/shader/120/texmls_120_vert.h
-	gl/shader/150/texmls_150_frag.h
-	gl/shader/150/texmls_150_vert.h
 	gui/Application.h
 	gui/BasicTimer.h
 	gui/Button.h
@@ -502,6 +381,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/slam/stereo/StereoSLAM.h
 	vision/slam/stereo/DescriptorDatabase.h
 	vision/slam/stereo/FeatureTracking.h
+	vision/slam/stereo/FASTFeatureTracking.h
 	vision/slam/stereo/ORBTracking.h
 	vision/slam/stereo/ORBTrackingSequential.h
 	vision/slam/stereo/KLTTracking.h
@@ -520,7 +400,9 @@ SET(${MODULE_NAME}_HEADERS
 	io/xml/XMLLeaf.h
 	io/xml/XMLNode.h
 	io/xml/XMLText.h
-	${GLSL_SHADER}
+	${GLSL_GEN_HEADER_${MODULE_NAME}}
+	${CL_GEN_HEADER_${MODULE_NAME}}
+	${GLSL_SHADER} # FIXME: this way, the shaders and cl kernels will be shipped ...
 	${CL_KERNELS}
 )
 
@@ -558,6 +440,8 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/ifilter/BoxFilter.cpp
 	gfx/ifilter/GuidedFilter.cpp
 	gfx/ifilter/StereoGCVFilter.cpp
+	gfx/ifilter/TVL1Flow.cpp
+	gfx/ifilter/TVL1Stereo.cpp
 #	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
@@ -672,6 +556,7 @@ SET(${MODULE_NAME}_SOURCES
 	vision/slam/Keyframe.cpp
 	vision/slam/SlamMap.cpp
 	vision/slam/stereo/FeatureTracking.cpp
+	vision/slam/stereo/FASTFeatureTracking.cpp
 	vision/slam/stereo/KLTTracking.cpp
 	vision/slam/stereo/ORBTracking.cpp
 	vision/slam/stereo/ORBTrackingSequential.cpp
@@ -712,12 +597,6 @@ IF(UNIX)
 			"-framework QTKit"
 			"-framework OpenGL"
 		)
-
-		INCLUDE_DIRECTORIES(
-		    BEFORE
-			/usr/X11/include
-		)
-
 	ELSE(APPLE)
 		SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
 			io/V4L2Camera.h
@@ -737,7 +616,8 @@ ENDIF()
 
 # optional uEyeUsbCamera driver if available
 FIND_PACKAGE(uEyeUsbCamera)
-IF(UEYEUSB_FOUND)
+OPTION( CVT_USEUEYE "Use UEyeUsbCamera" TRUE )
+IF( UEYEUSB_FOUND AND CVT_USEUEYE )
 	SET(${MODULE_NAME}_HEADERS
 		${${MODULE_NAME}_HEADERS}
 		io/UEyeUsbCamera.h
@@ -754,11 +634,12 @@ IF(UEYEUSB_FOUND)
 		${${MODULE_NAME}_DEP_LIBRARIES}
 		${UEYEUSB_LIBRARY}
 	)
-ENDIF(UEYEUSB_FOUND)
+	ADD_DEFINITIONS( -DUEYE_FOUND )
+ENDIF()
 
-OPTION( USE_DC1394 "Use DC1394 library if available" TRUE )
+OPTION( CVT_USE_DC1394 "Use DC1394 library if available" TRUE )
 
-IF( ${USE_DC1394} )
+IF( ${CVT_USE_DC1394} )
 	FIND_PACKAGE(DC1394)
 	IF( ${LIBDC1394_FOUND} )
 		SET(${MODULE_NAME}_HEADERS
@@ -781,14 +662,17 @@ IF( ${USE_DC1394} )
 ENDIF()
 
 FIND_PACKAGE( OpenNI )
-IF( OPENNI_FOUND )
+OPTION( CVT_USE_OPENNI "Use OpenNI" TRUE )
+IF( OPENNI_FOUND AND CVT_USE_OPENNI )
 	SET(${MODULE_NAME}_HEADERS
 		${${MODULE_NAME}_HEADERS}
 		io/OpenNICamera.h
+		io/OpenNIManager.h
 	)
 	SET(${MODULE_NAME}_SOURCES
 		${${MODULE_NAME}_SOURCES}
 		io/OpenNICamera.cpp
+		io/OpenNIManager.cpp
 	)
 	INCLUDE_DIRECTORIES(
 		BEFORE
@@ -814,7 +698,9 @@ INCLUDE_DIRECTORIES(
 MODULE_CONFIGURATION("${MODULE_NAME}"
 					 "${${MODULE_NAME}_HEADERS}"
 					 "${${MODULE_NAME}_SOURCES}"
-					 "${${MODULE_NAME}_DEP_LIBRARIES}")
+					 "${${MODULE_NAME}_DEP_LIBRARIES}"
+					 "${GENDEPS_${MODULE_NAME}}"
+)
 
 set_target_properties(${MODULE_NAME}
 	      PROPERTIES COMPILE_DEFINITIONS

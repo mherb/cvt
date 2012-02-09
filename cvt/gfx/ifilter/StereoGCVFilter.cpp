@@ -1,6 +1,7 @@
 #include <cvt/gfx/ifilter/StereoGCVFilter.h>
 #include <cvt/cl/kernel/stereogcv/costdepth.h>
 #include <cvt/cl/kernel/stereogcv/costdepthgrad.h>
+#include <cvt/cl/kernel/stereogcv/costdepthncc.h>
 #include <cvt/cl/kernel/stereogcv/costmin.h>
 #include <cvt/cl/kernel/stereogcv/costdepthconv.h>
 #include <cvt/cl/kernel/stereogcv/occlusioncheck.h>
@@ -8,6 +9,8 @@
 #include <cvt/cl/kernel/guidedfilter/guidedfilter_applyab_gc_outer.h>
 #include <cvt/cl/kernel/fill.h>
 #include <cvt/cl/kernel/gradx.h>
+
+#include <gfx/ifilter/GuidedFilter.h>
 
 namespace cvt {
 	static ParamInfoTyped<Image*> pin0( "Input 0", true );
@@ -30,6 +33,7 @@ namespace cvt {
 		IFilter( "StereoGCVFilter", _params, 6, IFILTER_CPU | IFILTER_OPENCL ),
 		_cldepthcost( _costdepth_source, "stereogcv_costdepth" ),
 		_cldepthcostgrad( _costdepthgrad_source, "stereogcv_costdepthgrad" ),
+		_cldepthcostncc( _costdepthncc_source, "stereogcv_costdepthncc" ),
 		_cldepthmin( _costmin_source, "stereogcv_costmin" ),
 		_clfill( _fill_source, "fill" ),
 		_clcdconv( _costdepthconv_source, "stereogcv_costdepthconv" ),
@@ -46,10 +50,10 @@ namespace cvt {
 		Image d1( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 		depthmap( d0, cam0, cam1, dmin, dmax, dt );
-		depthmap( d1, cam1, cam0, dmin, -dmax, -dt );
+		depthmap( d1, cam1, cam0, -dmin, -dmax, -dt );
 
-//		d0.save( "disparity0.png" );
-//		d1.save( "disparity1.png" );
+		d0.save( "disparity0.png" );
+		d1.save( "disparity1.png" );
 		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
 
 		dst.reallocate( cam0.width(), cam0.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
@@ -63,8 +67,9 @@ namespace cvt {
 
 	void StereoGCVFilter::depthmap( Image& dst, const Image& cam0, const Image& cam1, float dmin, float dmax, float dt ) const
 	{
-#define RADIUS 10
-#define EPSILON 1e-4f
+#define RADIUS 9
+#define EPSILON 1e-3f
+#define NCCRADIUS 2
 		// StereoGCV
 		Image cost( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image costgf( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
@@ -78,15 +83,18 @@ namespace cvt {
 		Image iint( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image iint2( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image imeanG( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image imeanG1( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image imeanG0( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image imeanG12( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image imeanG02( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image imeanS( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		Image imeanGS( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image imean_RR_RG_RB( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image imean_GG_GB_BB( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
-
 		Image* c[ 2 ] = { &c0, &c1 };
 		int index = 0;
-		float fill[ 4 ] = { 1.0f, 0.0f, 0.0f, 0.0f };
+		float fill[ 4 ] = { 1e9f, 0.0f, 0.0f, 0.0f };
 
 		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
 
@@ -107,13 +115,30 @@ namespace cvt {
 		// Guided filter, same for all cost slices
 		_intfilter.apply( iint, cam1 );
 		_boxfilter.apply( imeanG, iint, RADIUS );
+
+		_boxfilter.apply( imeanG1, iint, NCCRADIUS );
+
+		// NCC / GuidedFilter
+		_intfilter.apply( iint, cam0 );
+		_boxfilter.apply( imeanG0, iint, NCCRADIUS );
+
+		_intfilter.apply( iint, cam1, &cam1 );
+		_boxfilter.apply( imeanG12, iint, NCCRADIUS );
+		_intfilter.apply( iint, cam0, &cam0 );
+		_boxfilter.apply( imeanG02, iint, NCCRADIUS );
+
+		// GuidedFilter
 		_intfilter.applyOuterRGB( iint, iint2, cam1 );
 		_boxfilter.apply( imean_RR_RG_RB, iint, RADIUS );
 		_boxfilter.apply( imean_GG_GB_BB, iint2, RADIUS );
 
+		GuidedFilter _gf;
+
 		if( dmax < dmin && dt > 0 ) dt = -dt;
 		size_t n = Math::abs( dmax - dmin ) / Math::abs( dt );
 		for( float d = dmin; n--; d += dt ) {
+#define USEPOINTSAD
+#ifdef USEPOINTSAD
 			_cldepthcostgrad.setArg( 0, cost );
 			_cldepthcostgrad.setArg( 1, cam1 );
 			_cldepthcostgrad.setArg( 2, cam0 );
@@ -121,9 +146,30 @@ namespace cvt {
 			_cldepthcostgrad.setArg( 4, g0 );
 			_cldepthcostgrad.setArg( 5, d );
 			_cldepthcostgrad.run( global, CLNDRange( 16, 16 ) );
+#else
+			_intfilter.applyShifted( iint, cam1, cam0, -d );
+			_boxfilter.apply( imeanGS, iint, NCCRADIUS );
+
+			String path;
+			path.sprintf("comb%04d.png", ( int ) d );
+			imeanGS.save(path);
+
+			_cldepthcostncc.setArg( 0, cost );
+			_cldepthcostncc.setArg( 1, imeanGS );
+			_cldepthcostncc.setArg( 2, imeanG1 );
+			_cldepthcostncc.setArg( 3, imeanG0 );
+			_cldepthcostncc.setArg( 4, imeanG12 );
+			_cldepthcostncc.setArg( 5, imeanG02 );
+			_cldepthcostncc.setArg( 6, -d );
+			_cldepthcostncc.run( global, CLNDRange( 16, 16 ) );
+
+			path.sprintf("cost%04d.png", ( int ) d );
+			cost.save( path );
+//			getchar();
+#endif
 
 			// Guided filter, dependent on current cost slice
-//			_gf.apply( costgf, cost, cam1, 9, 1e-4f, true );
+			//_gf.apply( costgf, cost, cam1, RADIUS, EPSILON, false );
 
 			_intfilter.apply( iint, cost );
 			_boxfilter.apply( imeanS, iint, RADIUS );

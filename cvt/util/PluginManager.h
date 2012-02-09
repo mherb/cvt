@@ -44,12 +44,11 @@ namespace cvt {
 			std::vector<SceneLoader*> _sceneloaders;
 			std::map< const String, IFilter*> _ifiltermap;
 
+			std::vector<String>	  _pluginPaths;
+
 			static PluginManager* _instance;
 	};
 
-	inline PluginManager::PluginManager()
-	{
-	}
 
 	inline PluginManager::~PluginManager()
 	{

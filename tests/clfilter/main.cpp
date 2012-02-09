@@ -5,9 +5,9 @@
 
 #include <cvt/util/Time.h>
 
-#include <gfx/ifilter/IntegralFilter.h>
-#include <gfx/ifilter/BoxFilter.h>
-#include <gfx/ifilter/GuidedFilter.h>
+#include <cvt/gfx/ifilter/IntegralFilter.h>
+#include <cvt/gfx/ifilter/BoxFilter.h>
+#include <cvt/gfx/ifilter/GuidedFilter.h>
 
 using namespace cvt;
 

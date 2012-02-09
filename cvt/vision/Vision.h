@@ -76,8 +76,8 @@ namespace cvt
 										 Matrix4<T>& T0new,
 										 Matrix3<T>& K1new,
 										 Matrix4<T>& T1new,
-										 Matrix3<T>& Trect0,
-										 Matrix3<T>& Trect1,
+										 Matrix3<T>& Timage0,
+										 Matrix3<T>& Timage1,
 										 const Matrix3<T>& K0,
 										 const Matrix4<T>& T0,
 										 const Matrix3<T>& K1,
@@ -312,8 +312,8 @@ namespace cvt
 												 Matrix4<T>& T0new,
 												 Matrix3<T>& K1new,
 												 Matrix4<T>& T1new,
-												 Matrix3<T>& Trect0,
-												 Matrix3<T>& Trect1,
+												 Matrix3<T>& Timage0,
+												 Matrix3<T>& Timage1,
 												 const Matrix3<T>& K0,
 												 const Matrix4<T>& T0,
 												 const Matrix3<T>& K1,
@@ -351,8 +351,8 @@ namespace cvt
 			T1new[ 1 ][ 3 ] = tmp[ 1 ];
 			T1new[ 2 ][ 3 ] = tmp[ 2 ];
 
-			Trect0 = K0new * T0new.toMatrix3() * ( K0 * T0.toMatrix3() ).inverse();
-			Trect1 = K1new * T1new.toMatrix3() * ( K1 * T1.toMatrix3() ).inverse();
+			Timage0 = K0new * T0new.toMatrix3() * ( K0 * T0.toMatrix3() ).inverse();
+			Timage1 = K1new * T1new.toMatrix3() * ( K1 * T1.toMatrix3() ).inverse();
 		}
 
 		template <class Mat3, class Vec3, class Vec2>

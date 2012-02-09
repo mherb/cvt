@@ -6,8 +6,8 @@
 #include <cvt/util/PluginManager.h>
 #include <cvt/cl/CLKernel.h>
 
-#include <gfx/ifilter/IntegralFilter.h>
-#include <gfx/ifilter/BoxFilter.h>
+#include <cvt/gfx/ifilter/IntegralFilter.h>
+#include <cvt/gfx/ifilter/BoxFilter.h>
 
 namespace cvt {
 	class GuidedFilter : public IFilter {

@@ -9,7 +9,7 @@
 #include <cvt/vision/Flow.h>
 #include <cvt/io/FloFile.h>
 
-#include "TVL1Flow.h"
+#include <cvt/gfx/ifilter/TVL1Flow.h>
 
 using namespace cvt;
 
@@ -32,7 +32,7 @@ int main( int argc, char** argv )
 	Image ccode;
 
 	try {
-		TVL1Flow flow( 0.95, 40 );
+		TVL1Flow flow( 0.70, 10 );
 
 		Time t;
 		flow.apply( output, input1, input2 );
