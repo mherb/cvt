@@ -2,8 +2,8 @@
 #define CVT_STEREOGCV_H
 
 #include <cvt/gfx/IFilter.h>
-#include <gfx/ifilter/IntegralFilter.h>
-#include <gfx/ifilter/BoxFilter.h>
+#include <cvt/gfx/ifilter/IntegralFilter.h>
+#include <cvt/gfx/ifilter/BoxFilter.h>
 #include <cvt/cl/CLKernel.h>
 
 namespace cvt {

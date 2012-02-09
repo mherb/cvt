@@ -1,8 +1,8 @@
 #ifndef IFILTER_ROFDENOISE_H
 #define IFILTER_ROFDENOISE_H
 
-#include "gfx/IFilter.h"
-#include "gfx/Image.h"
+#include <cvt/gfx/IFilter.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 
