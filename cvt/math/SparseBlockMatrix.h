@@ -26,7 +26,7 @@ namespace cvt
 			int*	_filled;
 			size_t	_numRows;
 			size_t	_numCols;
-			std::vector<BlockMatType>	_blocks;
+			std::vector<BlockMatType, Eigen::aligned_allocator<BlockMatType> >	_blocks;
 	};
 
 	template <size_t bRows, size_t bCols>
