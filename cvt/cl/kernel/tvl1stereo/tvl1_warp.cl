@@ -23,8 +23,8 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 
 	barrier( CLK_LOCAL_MEM_FENCE );
 
-#define ALPHA 0.9f
-#define BETA 5.0f
+#define ALPHA 1.0f
+#define BETA 15.0f
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), bstride ) + ( x ) + 1 ]
 #define CSELECT( val ) dot( val, ( float4 )( 0.3333f, 0.3333f, 0.3333f, 0.0f ) )
 //#define CSELECT( val ) dot( val, ( float4 )(0.2126f, 0.7152f, 0.0722f, 0.0f ) )
@@ -35,7 +35,6 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 	if( gx >= width || gy >= height )
 		return;
 
-	// FIXME: what about the 0.5f offset
 	coord = ( float2 )( gx + 0.5f, gy + 0.5f ) + ( float2 ) ( read_imagef( u, sampler, ( int2 )( gx, gy ) ).x, 0.0f );
 	dx1 = BUF( lx + 1, ly ) - BUF( lx - 1, ly  );
 	dy1 = BUF( lx, ly + 1 ) - BUF( lx , ly - 1 );
