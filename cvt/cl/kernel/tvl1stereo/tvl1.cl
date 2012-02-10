@@ -1,7 +1,6 @@
 __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __read_only image2d_t uimg, __read_only image2d_t u0img, __read_only image2d_t warp, __read_only image2d_t e1/*, __read_only image2d_t e0*/, const float lambda, const float theta/*, const float t*/, __local float4* buf, __local float4* buf2  )
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
-    const sampler_t samplerb = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
 	const int lx = get_local_id( 0 );
@@ -19,7 +18,7 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	for( int y = ly; y < lh + 2; y += lh ) {
 		for( int x = lx; x < lw + 2; x += lw ) {
 			// px, py
-			buf[ mul24( y, bstride ) + x ] = read_imagef( e1, samplerb, base2 + ( int2 )( x, y ) );// * ( 1.0f + t ) - t * read_imagef( e0, samplerb, base2 + ( int2 )( x, y ) );
+			buf[ mul24( y, bstride ) + x ] = read_imagef( e1, sampler, base2 + ( int2 )( x, y ) );// * ( 1.0f + t ) - t * read_imagef( e0, samplerb, base2 + ( int2 )( x, y ) );
 		}
 	}
 
@@ -65,7 +64,7 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	dy = BUF2( lx, ly + 1 ).x - w.x;
 
 	// HUBER
-#define EPS 0.01f
+#define EPS 0.04f
 	float4 delta = ( float4 ) ( dx, dy, 0, 0 );
 	pout = BUF( lx, ly ) + ( 1.0f / ( 4.0f * theta ) ) * ( delta - EPS * BUF( lx, ly) );
 //	float n = fmax(  1.0f,  fmax( fast_length( pout.xy ), fast_length( pout.zw ) ) / w.w );

@@ -39,7 +39,8 @@ __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_on
 	const float4 dotmul = ( float4 ) ( 0.3333f, 0.3333f, 0.3333f, 0.0f );
 	const float4 dotmulGRAY = ( float4 ) (0.2126f, 0.7152f, 0.0722f, 0.0f );
 	const float4 dotmulHSL = ( float4 ) ( 0.4f, 0.4f, 0.2f, 0.0f );
-	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
+	const sampler_t samplerlin = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_LINEAR;
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_NONE | CLK_FILTER_NEAREST;
 	int2 coord;
 	float2 coord2;
 	float4 I0, I1, G0, G1, vec, Cout;
@@ -52,7 +53,7 @@ __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_on
 	if( coord.x >= width || coord.y >= height )
 		return;
 
-	coord2 = ( float2 ) ( coord.x - depth, coord.y );
+	coord2 = ( float2 ) ( coord.x + 0.5f - depth, coord.y + 0.5f );
 
 	if( coord2.x < 0 || coord2.x >= width || coord2.y < 0 || coord2.y >= height ) {
 		Cout = ( float4 ) ( COSTTHRESHOLDGRAD + COSTTHRESHOLD );
@@ -98,8 +99,8 @@ __kernel void stereogcv_costdepthgrad( __write_only image2d_t costout, __read_on
 #else
 		I0 = ( read_imagef( img0, sampler, coord  ) );
 		G0 = ( read_imagef( grad0, sampler, coord ) );
-		I1 = ( read_imagef( img1, sampler, coord2 ) );
-		G1 = ( read_imagef( grad1, sampler, coord2 ) );
+		I1 = ( read_imagef( img1, samplerlin, coord2 ) );
+		G1 = ( read_imagef( grad1, samplerlin, coord2 ) );
 		Cout = ( float4 ) mix( fmin( dot( fabs( I1 - I0 ), dotmul ), COSTTHRESHOLD ) , fmin( dot( fabs( G1 - G0 ), dotmul ), COSTTHRESHOLDGRAD ), ALPHA );
 //		Cout = ( float4 ) mix( fmin( fast_length( I1 - I0 ), COSTTHRESHOLD ) , fmin( fast_length( G1 - G0 ), COSTTHRESHOLDGRAD ), ALPHA );
 #endif
