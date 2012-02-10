@@ -8,12 +8,12 @@ __kernel void prefixsum_pblock_mul2_shifted( __write_only image2d_t out,  __read
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
 	int2 coord = { get_global_id( 0 ), get_global_id( 1 ) };
-	float2 coordf = { get_global_id( 0 ), get_global_id( 1 ) };
+	float2 coordf = { get_global_id( 0 ) + 0.5f, get_global_id( 1 ) + 0.5f };
 	int lid = mul24( lw, ly ) + lx;
 	float4 tmp;
 
 
-	tmp  = read_imagef( in1, sampler, coord );
+	tmp  = read_imagef( in1, sampler, coordf );
 	tmp *= read_imagef( in2, sampler, coordf + shift );
 	buf[ lid ] = tmp;
 
