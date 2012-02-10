@@ -71,7 +71,6 @@ namespace cvt
 			// new keyframe added -> run the sba thread	
 			if( _map.numKeyframes() > 1 && numNewPoints ){
 				_bundler.run( &_map );
-				_bundler.join();
 				keyframeAdded.notify();
 			}
 			mapChanged.notify( _map );				
