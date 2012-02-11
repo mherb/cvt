@@ -5,6 +5,7 @@
 #include <cvt/util/ScopedBuffer.h>
 
 #include <cvt/gfx/IConvert.h>
+#include <cvt/gfx/IMapScoped.h>
 
 #include <iomanip>
 
@@ -18,6 +19,12 @@ namespace cvt {
 	void Image::convert( Image & dst, const IFormat & dstFormat ) const
 	{
 		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
+		IConvert::convert( dst, *this );
+	}
+
+	void Image::convert( Image& dst, const IFormat & dstformat, IAllocatorType memtype ) const
+	{
+		dst.reallocate( _mem->_width, _mem->_height, dstformat, memtype );
 		IConvert::convert( dst, *this );
 	}
 
@@ -519,20 +526,15 @@ namespace cvt {
 		switch( _mem->_format.type ) {
 			case IFORMAT_TYPE_FLOAT:
 				{
-					size_t sstride, dstride;
-					const uint8_t* src = i.map( &sstride );
-					const uint8_t* sbase = src;
-					uint8_t* dst = map( &dstride );
-					uint8_t* dbase = dst;
+					IMapScoped<const float> srcmap( i );
+					IMapScoped<float> dstmap( *this );
 
-					size_t h = _mem->_height;
+					size_t h = height();
 					while( h-- ) {
-						simd->MulAddValue1f( ( float* ) dst, ( float* ) src, alpha, _mem->_width * _mem->_format.channels );
-						src += sstride;
-						dst += dstride;
+						simd->MulAddValue1f( dstmap.ptr(), srcmap.ptr(), alpha, width() * _mem->_format.channels );
+						srcmap++;
+						dstmap++;
 					}
-					unmap( dbase);
-					i.unmap( sbase );
 				}
 				break;
 			default:
