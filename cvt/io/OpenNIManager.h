@@ -3,7 +3,7 @@
 
 #include <cvt/util/String.h>
 #include <cvt/io/CameraInfo.h>
-#include <ni/XnCppWrapper.h>
+#include <XnCppWrapper.h>
 
 namespace cvt {
 
@@ -32,7 +32,8 @@ namespace cvt {
 			{ 
 				return _deviceList[ idx ]; 
 			}
-			
+        
+            bool createDeviceForIdx( xn::Device& device, size_t idx, xn::Context& context );
 
 			/**
 			 * @return: true if generator is valid, 
@@ -41,6 +42,11 @@ namespace cvt {
 			bool createImageGeneratorForDevice( xn::ImageGenerator& generator, size_t idx, xn::Context& context );
 			bool createDepthGeneratorForDevice( xn::DepthGenerator& generator, size_t idx, xn::Context& context );
 			bool createIRGeneratorForDevice( xn::IRGenerator& generator, size_t idx, xn::Context& context );
+        
+            void initializeImageGenerator( xn::ImageGenerator& generator, const CameraMode& mode );
+            void initializeDepthGenerator( xn::DepthGenerator& generator, const CameraMode& mode );
+            void initializeIRGenerator( xn::IRGenerator& generator, const CameraMode& mode );
+        
 
 		private:
 			enum OpenNIImageFormats

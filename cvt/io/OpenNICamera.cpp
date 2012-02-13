@@ -11,14 +11,36 @@ namespace cvt
 			throw CVTException( "Could not initialize context" );
 		}
 
+
 		OpenNIManager& manager = OpenNIManager::instance();
+        
+        // create the device
+        manager.createDeviceForIdx( _device, idx, _context );
+        
+        const OpenNIManager::DeviceInformation& devInfo = manager.deviceInfoForCam( idx );
+        _identifier = devInfo.name;
+        _identifier += "_";
+        _identifier += devInfo.serial;
+        
+        if( !manager.createImageGeneratorForDevice( _imageGen, idx, _context ) ){
+            // device does not support imageGen
+            throw CVTException( "Device cannot generate rgb images" );
+        }
+        
+        if( !manager.createDepthGeneratorForDevice( _depthGen, idx, _context ) ){
+            // device does not support imageGen
+            throw CVTException( "Device cannot generate rgb images" );
+        }
+        
+        manager.initializeImageGenerator( _imageGen, mode );
+        
+        CameraMode m;
+        m.width = 320; m.height = 240; m.fps = 60;
+        
+        _depth.reallocate( m.width, m.height, IFormat::GRAY_UINT16 );
+        _rgb.reallocate( mode.width, mode.height, mode.format );
 
-		const OpenNIManager::DeviceInformation& devInfo = manager.deviceInfoForCam( idx );
-
-			
-
-		initDepthGenerator( 320, 240, 60 );
-		initImageGenerator( 320, 240, 60 );
+        manager.initializeDepthGenerator( _depthGen, m );
 	}
 
 	OpenNICamera::~OpenNICamera()
@@ -60,14 +82,11 @@ namespace cvt
 	{
 		XnStatus status = XN_STATUS_OK;
 
-		status = _depthGen.WaitAndUpdateData();
+        status = _context.WaitAndUpdateAll();
 		if( status != XN_STATUS_OK )
 			throw CVTException( "Error in WaitAndUpdateData for depth" );
+        
 		copyDepth();
-
-		status = _imageGen.WaitAndUpdateData();
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Error in WaitAndUpdateData for image" );
 		copyImage();
 	}
 
@@ -96,6 +115,35 @@ namespace cvt
 
 		_depth.unmap( ptr );
 	}
+    
+    void OpenNICamera::setSyncRGBDepth( bool val )
+    {
+        xn::FrameSyncCapability syncCap = _imageGen.GetFrameSyncCap();
+        if( syncCap.CanFrameSyncWith( _depthGen ) ){
+            bool isSynced = syncCap.IsFrameSyncedWith( _depthGen );
+            if( isSynced && !val ){
+                syncCap.StopFrameSyncWith( _depthGen );
+            } 
+            if( !isSynced && val ){
+                syncCap.FrameSyncWith( _depthGen );
+            }
+        }
+    }
+    
+    void OpenNICamera::setRegisterDepthToRGB( bool val )
+    {
+        xn::AlternativeViewPointCapability cap = _depthGen.GetAlternativeViewPointCap();
+        
+        bool canRegisterToRGB = cap.IsViewPointSupported( _imageGen );
+        if( canRegisterToRGB ){
+            bool isRegistered = cap.IsViewPointAs( _imageGen );
+            if( isRegistered && !val ){
+                cap.ResetViewPoint();
+            } else if( !isRegistered && val ) {
+                cap.SetViewPoint( _imageGen );
+            }
+        }
+    }
 	
 	void OpenNICamera::copyImage()
 	{
@@ -122,6 +170,19 @@ namespace cvt
 
 		_rgb.unmap( ptr );
 	}
+    
+    void OpenNICamera::imageFocalLength() const
+    {
+        XnFieldOfView fov;
+        XnStatus status = _depthGen.GetFieldOfView( fov );
+        if( status != XN_STATUS_OK )
+            throw CVTException( "Could not get FOV" );
+        
+        double fx =  _depth.width() / ( 2 * Math::tan( fov.fHFOV / 2.0 ) );
+        double fy =  _depth.height() / ( 2 * Math::tan( fov.fVFOV / 2.0 ) );
+        
+        std::cout << fx << ", " << fy << std::endl;
+    }
 
 	const Image& OpenNICamera::frame() const 
 	{
@@ -138,58 +199,6 @@ namespace cvt
 		return _identifier;
 	}
 
-	void OpenNICamera::initDepthGenerator( size_t w, size_t h, size_t fps )
-	{
-		XnStatus status = XN_STATUS_OK;
-		
-		_depth.reallocate( w, h, IFormat::GRAY_UINT16 );
-		
-		status = _depthGen.Create( _context );
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Could note create depth generator" );
-		}
-
-		XnMapOutputMode mode;
-		mode.nXRes = w;
-		mode.nYRes = h;
-		mode.nFPS  = fps;
-		status = _depthGen.SetMapOutputMode( mode );
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Could not set map outputmode for depth generator" );
-		}
-	}
-
-	void OpenNICamera::initImageGenerator( size_t w, size_t h, size_t fps )
-	{
-		XnStatus status = XN_STATUS_OK;
-		
-		//_rgb.reallocate( w, h, IFormat::BAYER_RGGB_UINT8 );
-		_rgb.reallocate( w, h, IFormat::UYVY_UINT8 );
-
-		status = _imageGen.Create( _context );
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Could note create image generator" );
-		}
-
-		status = _imageGen.SetIntProperty( "InputFormat", 5 );
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Could not set InputFormat" );
-
-		//status = _imageGen.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
-		status = _imageGen.SetPixelFormat( XN_PIXEL_FORMAT_YUV422 );
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Could not set PixelFormat" );
-
-		XnMapOutputMode mode;
-		mode.nXRes = w;
-		mode.nYRes = h;
-		mode.nFPS  = fps;
-		status = _imageGen.SetMapOutputMode( mode );
-		if( status != XN_STATUS_OK ){
-			throw CVTException( "Could not set map outputmode for image generator" );
-		}
-	}
-
 	size_t OpenNICamera::count()
 	{
 		return OpenNIManager::instance().deviceCount();
@@ -198,60 +207,6 @@ namespace cvt
 	void OpenNICamera::cameraInfo( size_t index, CameraInfo& info )
 	{
 		info = OpenNIManager::instance().cameraInfoForDevice( index );
-	}
-
-	static void enumerateImageModes( xn::Context & context )
-	{
-		XnStatus status = XN_STATUS_OK;
-
-		xn::NodeInfoList nodeList;
-		status = context.EnumerateProductionTrees( XN_NODE_TYPE_IMAGE, NULL, nodeList );
-
-		xn::NodeInfoList::Iterator it = nodeList.Begin();
-		xn::NodeInfoList::Iterator itEnd = nodeList.End();
-
-		size_t n = 0;
-		while( it != itEnd ){
-			it++;
-			n++;
-		}
-		std::cout << n << " possible Image nodes" << std::endl;
-	}
-
-	static void enumerateDepthNodes( xn::Context & context )
-	{
-		XnStatus status = XN_STATUS_OK;
-
-		xn::NodeInfoList nodeList;
-		status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEPTH, NULL, nodeList );
-
-		xn::NodeInfoList::Iterator it = nodeList.Begin();
-		xn::NodeInfoList::Iterator itEnd = nodeList.End();
-
-		size_t n = 0;
-		while( it != itEnd ){
-			it++;
-			n++;
-		}
-		std::cout << n << " possible Depth nodes" << std::endl;
-	}
-
-	static void enumerateIrNodes( xn::Context & context )
-	{
-		XnStatus status = XN_STATUS_OK;
-
-		xn::NodeInfoList nodeList;
-		status = context.EnumerateProductionTrees( XN_NODE_TYPE_IR, NULL, nodeList );
-
-		xn::NodeInfoList::Iterator it = nodeList.Begin();
-		xn::NodeInfoList::Iterator itEnd = nodeList.End();
-
-		size_t n = 0;
-		while( it != itEnd ){
-			it++;
-			n++;
-		}
-		std::cout << n << " possible IR nodes" << std::endl;
 	}
 
 }
