@@ -32,6 +32,7 @@ namespace cvt
 		IFORMAT_BGRA_FLOAT,
 
 		IFORMAT_BAYER_RGGB_UINT8,
+        IFORMAT_BAYER_GRBG_UINT8,
 		IFORMAT_YUYV_UINT8,
 		IFORMAT_UYVY_UINT8
 	};
@@ -74,6 +75,7 @@ namespace cvt
 		static const IFormat BGRA_INT16;
 		static const IFormat BGRA_FLOAT;
 		static const IFormat BAYER_RGGB_UINT8;
+        static const IFormat BAYER_GRBG_UINT8;
 		static const IFormat YUYV_UINT8;
 		static const IFormat UYVY_UINT8;
 
@@ -125,6 +127,8 @@ namespace cvt
 				return IFormat::BGRA_UINT8;
 			case IFORMAT_BAYER_RGGB_UINT8:
 				return IFormat::BAYER_RGGB_UINT8;
+            case IFORMAT_BAYER_GRBG_UINT8:
+				return IFormat::BAYER_GRBG_UINT8;
 			case IFORMAT_YUYV_UINT8:
 				return IFormat::YUYV_UINT8;
 			case IFORMAT_UYVY_UINT8:
@@ -216,6 +220,7 @@ namespace cvt
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
 
 			case IFORMAT_BAYER_RGGB_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+            case IFORMAT_BAYER_GRBG_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
 
 			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
@@ -252,6 +257,7 @@ namespace cvt
 			case IFORMAT_BGRA_FLOAT:		clorder = CL_BGRA; cltype = CL_FLOAT; break;
 
 			case IFORMAT_BAYER_RGGB_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
+            case IFORMAT_BAYER_GRBG_UINT8:	clorder = CL_INTENSITY; cltype = CL_UNORM_INT8; break;
 
 			case IFORMAT_YUYV_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
 			case IFORMAT_UYVY_UINT8:		clorder = CL_RA; cltype = CL_UNORM_INT8; break;
@@ -357,6 +363,8 @@ namespace cvt
                 return IFormat::YUYV_UINT8;
             case IFORMAT_BAYER_RGGB_UINT8:
                 return IFormat::BAYER_RGGB_UINT8;
+            case IFORMAT_BAYER_GRBG_UINT8:
+                return IFormat::BAYER_GRBG_UINT8;
 			default:
 				throw CVTException( "UNKOWN INPUT FORMAT: " );
 				break;
