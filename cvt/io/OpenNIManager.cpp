@@ -1,5 +1,4 @@
 #include <cvt/io/OpenNIManager.h>
-#include <ni/XnCppWrapper.h>
 
 namespace cvt {
 
@@ -170,13 +169,12 @@ namespace cvt {
 		formatsToCheck.push_back( OPENNI_FORMAT_UNCOMPRESSED_BAYER );
 		formatsToCheck.push_back( OPENNI_FORMAT_UNCOMPRESSED_GRAY8 );
 
-		XnStatus status = XN_STATUS_OK;
 		IFormat format = IFormat::GRAY_UINT8;
 		for( size_t i = 0; i < formatsToCheck.size(); i++ ){
 			if( formatsToCheck[ i ] == OPENNI_FORMAT_UNCOMPRESSED_YUV422 )
 				format = IFormat::UYVY_UINT8;
 			else if( formatsToCheck[ i ] == OPENNI_FORMAT_UNCOMPRESSED_BAYER )
-				format = IFormat::BAYER_RGGB_UINT8; // TODO: we need BAYER_GRBG
+				format = IFormat::BAYER_GRBG_UINT8;
 			else
 				format = IFormat::GRAY_UINT8;
 
@@ -203,6 +201,32 @@ namespace cvt {
 		}
 		return true;
 	}
+    
+    bool OpenNIManager::createDeviceForIdx( xn::Device& device, size_t idx, xn::Context& context )
+    {
+        xn::NodeInfoList devices;
+		XnStatus status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEVICE, NULL, devices );
+        
+        if( status != XN_STATUS_OK )
+            throw CVTException( "Could not enumerate devices" );
+        
+		xn::NodeInfoList::Iterator it= devices.Begin();
+		xn::NodeInfoList::Iterator itEnd = devices.End();
+        
+		while( it!= itEnd ){            
+            xn::NodeInfo n( *it );
+			if( nodeBelongsToDeviceIdx( idx, n, context ) ){
+                status = context.CreateProductionTree( n, device );
+                if( status != XN_STATUS_OK ){
+                    throw CVTException( "Could not create production tree for device" ); 
+                }
+                return true;
+            }
+
+			it++;
+		}
+        return false;
+    }
 
 
 	bool OpenNIManager::createImageGeneratorForDevice( xn::ImageGenerator& generator, size_t idx, xn::Context& context )
@@ -217,7 +241,6 @@ namespace cvt {
 
 		while( it != itEnd ){
 			xn::NodeInfo n( *it );
-
 			if( nodeBelongsToDeviceIdx( idx, n, context ) ){
 				// create the image generator from this node and return
 				status = context.CreateProductionTree( n, generator );
@@ -289,6 +312,58 @@ namespace cvt {
 
 		return false;
 	}
+    
+    void OpenNIManager::initializeImageGenerator( xn::ImageGenerator& generator, const CameraMode& mode )
+    {
+        OpenNIImageFormats format = OPENNI_FORMAT_UNCOMPRESSED_YUV422;
+        if( mode.format == IFormat::UYVY_UINT8 ){
+            format = OPENNI_FORMAT_UNCOMPRESSED_YUV422;
+            generator.SetPixelFormat( XN_PIXEL_FORMAT_YUV422 );
+        } else if( mode.format == IFormat::BAYER_GRBG_UINT8 ){
+            format = OPENNI_FORMAT_UNCOMPRESSED_BAYER;
+            generator.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
+        } else {
+            format = OPENNI_FORMAT_UNCOMPRESSED_GRAY8;
+            generator.SetPixelFormat( XN_PIXEL_FORMAT_GRAYSCALE_8_BIT );
+        }
+        
+        if( generator.SetIntProperty( "InputFormat", format ) != XN_STATUS_OK ){
+            throw CVTException( "Cannot set requested InputFormat for device" );
+        }
+                
+        XnMapOutputMode outputMode;
+        outputMode.nXRes = mode.width;
+        outputMode.nYRes = mode.height;
+        outputMode.nFPS  = mode.fps;
+    
+        if( generator.SetMapOutputMode( outputMode ) != XN_STATUS_OK ){
+            throw CVTException( "Could not set requested Map Outputmode" );
+        }
+    }
+    
+    void OpenNIManager::initializeDepthGenerator( xn::DepthGenerator& generator, const CameraMode& mode )
+    {
+        XnMapOutputMode outputMode;
+        outputMode.nXRes = mode.width;
+        outputMode.nYRes = mode.height;
+        outputMode.nFPS  = mode.fps;
+        
+        if( generator.SetMapOutputMode( outputMode ) != XN_STATUS_OK ){
+            throw CVTException( "Could not set requested Map Outputmode" );
+        }   
+    }
+    
+    void OpenNIManager::initializeIRGenerator( xn::IRGenerator& generator, const CameraMode& mode )
+    {
+        XnMapOutputMode outputMode;
+        outputMode.nXRes = mode.width;
+        outputMode.nYRes = mode.height;
+        outputMode.nFPS  = mode.fps;
+        
+        if( generator.SetMapOutputMode( outputMode ) != XN_STATUS_OK ){
+            throw CVTException( "Could not set requested Map Outputmode" );
+        }
+    }
 
 	bool OpenNIManager::nodeBelongsToDeviceIdx( size_t idx, xn::NodeInfo& nodeInfo, xn::Context& context ) const 
 	{
