@@ -4,6 +4,7 @@
 #include <cvt/io/xml/XMLDocument.h>
 
 #include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
+#include <cvt/vision/slam/stereo/FASTFeatureTracking.h>
 #include <cvt/vision/slam/stereo/ORBTracking.h>
 #include <cvt/vision/slam/stereo/KLTTracking.h>
 
@@ -16,6 +17,7 @@ namespace cvt
 		//_featureTracking( new ORBTracking( c0, c1 ) ),
 		//_featureTracking( new KLTTracking( c0, c1 ) ),
 		_featureTracking( new ORBTrackingSequential( c0, c1 ) ),
+		//_featureTracking( new FASTFeatureTracking( c0, c1 ) ),
 		_slam( _featureTracking, c0, cams[ 0 ]->width(), cams[ 0 ]->height(), c1, cams[ 1 ]->width(), cams[ 1 ]->height() ),
 		_img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
 		_img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
