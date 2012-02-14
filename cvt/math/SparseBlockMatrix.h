@@ -48,7 +48,7 @@ namespace cvt
 	template <size_t bRows, size_t bCols>
 	inline bool SparseBlockMatrix<bRows, bCols>::containsBlock( size_t row, size_t col ) const
 	{
-		return _filled[ row * _numCols + row  ] != -1;
+		return _filled[ row * _numCols + col ] != -1;
 	}
 
 	template <size_t bRows, size_t bCols>
