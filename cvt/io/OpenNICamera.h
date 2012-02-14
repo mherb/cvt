@@ -3,7 +3,7 @@
 
 #include <cvt/io/Camera.h>
 
-#include <ni/XnCppWrapper.h>
+#include <XnCppWrapper.h>
 
 namespace cvt
 {
@@ -32,9 +32,16 @@ namespace cvt
 			size_t			height() const { return _rgb.height(); }
 			const IFormat&	format() const { return _rgb.format(); }
 			const String&	identifier() const;
+        
+            void            setSyncRGBDepth( bool val );
+        
+            // enable / disable registration of RGB to Depth frame
+            void            setRegisterDepthToRGB( bool val );
 
             static size_t	count();
 			static void		cameraInfo( size_t index, CameraInfo & info );
+        
+            void imageFocalLength() const;
 
 		private:
 			Image	_rgb;
@@ -46,9 +53,6 @@ namespace cvt
 			xn::DepthGenerator	_depthGen;
 			xn::ImageGenerator	_imageGen;
 			xn::IRGenerator		_irGen;
-
-			void initDepthGenerator( size_t w, size_t h, size_t fps );
-			void initImageGenerator( size_t w, size_t h, size_t fps );
 
 			void copyDepth();
 			void copyImage();
