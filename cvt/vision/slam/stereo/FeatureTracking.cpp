@@ -17,7 +17,7 @@ namespace cvt
 		// normalize 4th coord;
 		newPoint /= newPoint.w;
 		float error = 10000.0f;
-		if( newPoint.z > 0.0f && newPoint.z < 30 ){
+		if( newPoint.z > 0.2f && newPoint.z < 40 ){
 			repr = projMat0 * newPoint;
 			repr2.x = repr.x / repr.z;
 			repr2.y = repr.y / repr.z;

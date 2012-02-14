@@ -1,9 +1,9 @@
 #include <iostream>
 
 #include <cvt/io/Resources.h>
-#include "cvt/io/xml/XMLDocument.h"
-#include "cvt/io/ImageSequence.h"
-#include "cvt/io/RawVideoReader.h"
+#include <cvt/io/xml/XMLDocument.h>
+#include <cvt/io/ImageSequence.h>
+#include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Camera.h>
 #include <cvt/vision/CameraCalibration.h>
 

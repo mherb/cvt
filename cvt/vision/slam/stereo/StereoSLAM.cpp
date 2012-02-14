@@ -9,7 +9,7 @@ namespace cvt
 						   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_featureTracking( ft ),
-		_minTrackedFeatures( 30 ),
+		_minTrackedFeatures( 80 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.05 ),
 		_maxKeyframeDistance( 0.6 )
