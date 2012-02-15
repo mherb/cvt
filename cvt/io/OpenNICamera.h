@@ -18,6 +18,14 @@ namespace cvt
 				UYVY_UNCOMPRESSED	= 5,
 				BAYER_UNCOMPRESSED	= 6,
 			};
+        
+            enum CaptureMode
+            {
+                DEPTH_ONLY,
+                DEPTH_RGB,
+                RGB_ONLY,
+                // TODO: IR Modes. what is possible?
+            };
 
 			OpenNICamera( size_t idx, const CameraMode& mode );
 			~OpenNICamera();
@@ -41,7 +49,9 @@ namespace cvt
             static size_t	count();
 			static void		cameraInfo( size_t index, CameraInfo & info );
         
-            void imageFocalLength() const;
+            void depthFocalLength() const;
+            void setCaptureMode( CaptureMode mode );
+
 
 		private:
 			Image	_rgb;
@@ -53,9 +63,18 @@ namespace cvt
 			xn::DepthGenerator	_depthGen;
 			xn::ImageGenerator	_imageGen;
 			xn::IRGenerator		_irGen;
+            
+            CaptureMode         _captureMode;
 
 			void copyDepth();
 			void copyImage();
+        
+            void startDepthCapture();
+            void startImageCapture();
+            void startIRCapture();
+            void stopDepthCapture();
+            void stopImageCapture();
+            void stopIRCapture();
 
 			static void deviceForId( xn::Device& device, xn::Context& context, size_t id );
 	};
