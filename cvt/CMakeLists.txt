@@ -357,6 +357,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/fast/FAST.inl
 	vision/Feature2D.h
 	vision/FeatureMatcher.h
+	vision/FeatureFilter.h
 	vision/FeatureMatch.h
 	vision/Ferns.h
 	vision/internal/Fern.h
