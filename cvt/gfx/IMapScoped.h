@@ -38,6 +38,7 @@ namespace cvt {
 				void		nextLine();
 				void		operator++( int );
 				void		operator--( int );
+				size_t		stride() const;
 
 			private:
 				IType	    _img;
@@ -93,6 +94,12 @@ namespace cvt {
 	inline void IMapScoped<T>::operator--( int )
 	{
 		_line -= _stride;
+	}
+
+	template<typename T>
+	inline size_t IMapScoped<T>::stride() const
+	{
+		return _stride;
 	}
 
 }

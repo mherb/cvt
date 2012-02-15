@@ -31,6 +31,7 @@ namespace cvt
 
 	inline void ImagePyramid::update( const Image& img )
 	{
+		_image[ 0 ].reallocate( img );
 		_image[ 0 ] = img;
 		recompute();
 	}
