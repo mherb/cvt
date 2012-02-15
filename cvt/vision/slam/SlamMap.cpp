@@ -54,10 +54,10 @@ namespace cvt
 	}
 
 
-	size_t SlamMap::findClosestKeyframe( const Eigen::Matrix4d& worldT ) const
+	int SlamMap::findClosestKeyframe( const Eigen::Matrix4d& worldT ) const
 	{
 		double nearest = 100000.0f;
-		size_t kf = 0;
+		int kf = -1;
 
 		for( size_t i = 0; i < _keyframes.size(); i++ ){
 			double dist = _keyframes[ i ].distance( worldT );
