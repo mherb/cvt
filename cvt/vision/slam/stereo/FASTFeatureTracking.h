@@ -3,7 +3,7 @@
 
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/gfx/GFX.h>
-
+#include <cvt/geom/Line2D.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
@@ -45,6 +45,9 @@ namespace cvt
 			ImagePyramid*					_currentPyramid;
 			ImagePyramid*					_lastPyramid;
 
+			// scale factors to scale up the features!
+			std::vector<float>				_scaleFactors;
+
 			// fast detector stuff
 			uint8_t									_fastThreshold;
 			size_t									_fastBorder;
@@ -53,10 +56,13 @@ namespace cvt
 			
 			// search radius for fast features
 			float							_windowRadius;
+			size_t							_patchSize;
+			float							_sadThreshold;
 
 			/* descriptor matching parameters */
-			float							_matcherMaxLineDistance;	
+			float							_maxLineDist;	
 			float							_maxTriangReprojError;
+			Matrix3f						_fundamental;
 
 			// feature IDs of the features tracked in the last frame	
 			std::vector<size_t>				_lastTrackedIds;
@@ -69,18 +75,107 @@ namespace cvt
 
 			Image							_debug;
 
+
 			void trackSequential( PointSet3d& p3d, PointSet2d& p2d, const SlamMap& map, const Image& image );
 			void trackNonSequential( PointSet3d& p3d, PointSet2d& p2d, const SlamMap& map, const SE3<double>& pose, const Image& image );
-
-			
-			//int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const;
 
 			// detect fastFeatures in all scales
 			void detectFeatures();
 
 			void swapPyramids();
 
+			/* using SAD, find the closest match */
+			float findBestMatchInWindow( Feature2Df& match, 
+										 const uint8_t* last, size_t lstride, 
+										 const Feature2Df& lastF ) const;
+
+			float findBestMatchOnLine( Feature2Df& match,
+									   const Line2Df& epiline,
+									   size_t octave,
+									   const uint8_t* ptrA, size_t strideA,
+									   const uint8_t* patch, size_t patchStride ) const;
+
+			bool alreadyTrackingFeatureInRange( const Feature2Df& f, float range ) const;
+
+			size_t patchSAD( const uint8_t* ptrA, size_t strideA, 
+							 const uint8_t* ptrB, size_t strideB ) const;
+
+			float triangulate( Vector2f& p0, Vector2f& p1, Vector4f& ptriang ) const;
+
+			template <class Container>	
+			void drawPointsInImage( Image& debug, const Color& c, const Container& points, size_t offset = 0 ) const;
+
 	};
+			
+	template <class Container>	
+	void FASTFeatureTracking::drawPointsInImage( Image& debug, const Color& c, const Container& points, size_t offset ) const
+	{
+		{
+			GFXEngineImage ge( debug );
+			GFX g( &ge );
+			g.color() = c;
+
+			Recti r;
+			size_t pSize = 5;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
+			for( size_t i = offset; i < points.size(); i++ ){
+				r.x = ( int )points[ i ][ 0 ] - phSize;
+				r.y = ( int )points[ i ][ 1 ] - phSize;
+				g.drawRect( r );
+			}
+		}
+	}
+
+	template <>	
+	void FASTFeatureTracking::drawPointsInImage<std::vector<Feature2Df> >( Image& debug, const Color& c, const std::vector<Feature2Df>& points, size_t offset ) const
+	{
+		{
+			GFXEngineImage ge( debug );
+			GFX g( &ge );
+			g.color() = c;
+
+			Recti r;
+			size_t pSize = 5;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
+			for( size_t i = offset; i < points.size(); i++ ){
+				r.x = ( int )points[ i ].pt.x * _scaleFactors[ points[ i ].octave ] - phSize;
+				r.y = ( int )points[ i ].pt.y * _scaleFactors[ points[ i ].octave ] - phSize;
+				g.drawRect( r );
+			}
+		}
+	}
+
+
+	template <>	
+	void FASTFeatureTracking::drawPointsInImage<FeatureRowLookupContainer>( Image& debug, const Color& c, const FeatureRowLookupContainer& points, size_t ) const
+	{
+		{
+			GFXEngineImage ge( debug );
+			GFX g( &ge );
+			g.color() = c;
+
+			Recti r;
+			size_t pSize = 5;
+			size_t phSize = pSize >> 1;
+			r.width = pSize;
+			r.height = pSize;
+
+			for( size_t i = 0; i < points.numRows(); i++ ){
+				FeatureRowLookupContainer::ConstRowIterator rowIter = points.rowBegin( i );
+				const FeatureRowLookupContainer::ConstRowIterator rowEnd = points.rowEnd( i );
+				while( rowIter != rowEnd ){
+					r.x = ( int )rowIter->pt.x * _scaleFactors[ rowIter->octave ] - phSize;
+					r.y = ( int )rowIter->pt.y * _scaleFactors[ rowIter->octave ] - phSize;
+					g.drawRect( r );
+					rowIter++;
+				}
+			}
+		}
+	}
 
 }
 

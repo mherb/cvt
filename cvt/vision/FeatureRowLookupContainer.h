@@ -11,8 +11,11 @@ namespace cvt
 
 			FeatureRowLookupContainer( size_t numRows = 0 );
 			
-			void setNumRows( size_t numRows );
-			void clear( int row = -1 );
+			void	setNumRows( size_t numRows );
+			size_t	numRows() const;
+			void	clear( int row = -1 );
+			
+			void	setOctave( size_t o );
 
 			void operator()( float x, float y );
 
@@ -23,9 +26,11 @@ namespace cvt
 
 		private:
 			std::vector< std::vector<Feature2Df> > _featureTable;
+			size_t								   _octave;
 	};
 
-	inline FeatureRowLookupContainer::FeatureRowLookupContainer( size_t numRows )
+	inline FeatureRowLookupContainer::FeatureRowLookupContainer( size_t numRows ) :
+		_octave( 0 )
 	{
 		setNumRows( numRows );
 	}
@@ -37,6 +42,15 @@ namespace cvt
 			_featureTable.resize( numRows );
 	}
 
+	inline size_t FeatureRowLookupContainer::numRows() const
+	{
+		return _featureTable.size();
+	}
+
+	inline void FeatureRowLookupContainer::setOctave( size_t o )
+	{
+		_octave = o;
+	}
 
 	inline void FeatureRowLookupContainer::clear( int row )
 	{
@@ -52,7 +66,7 @@ namespace cvt
 
 	inline void FeatureRowLookupContainer::operator()( float x, float y )
 	{
-		_featureTable[ ( size_t )y ].push_back( Feature2Df( x, y  ) );
+		_featureTable[ ( size_t )y ].push_back( Feature2Df( x, y, 0.0f, _octave ) );
 	}
 }
 
