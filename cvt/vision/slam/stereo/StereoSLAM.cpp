@@ -9,10 +9,10 @@ namespace cvt
 						   size_t w1, size_t h1 ):
 		_camCalib0( c0 ), _camCalib1( c1 ),
 		_featureTracking( ft ),
-		_minTrackedFeatures( 80 ),
+		_minTrackedFeatures( 50 ),
 		_activeKF( -1 ),
 		_minKeyframeDistance( 0.05 ),
-		_maxKeyframeDistance( 0.6 )
+		_maxKeyframeDistance( 0.5 )
 	{
 		// create the undistortion maps
 		_undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
@@ -54,7 +54,6 @@ namespace cvt
 		} 
 
 		if( newKeyframeNeeded( numTrackedFeatures ) ){
-			std::cout << "Adding new keyframe: currently tracked features -> " << p3d.size() << std::endl;
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
 			if( _bundler.isRunning() ){
@@ -72,8 +71,10 @@ namespace cvt
 			if( _map.numKeyframes() > 1 && numNewPoints ){
 				_bundler.run( &_map );
 				keyframeAdded.notify();
+			
+				mapChanged.notify( _map );
+				std::cout << "New Keyframe Added" << std::endl;
 			}
-			mapChanged.notify( _map );				
 		}
 
 		int last = _activeKF;

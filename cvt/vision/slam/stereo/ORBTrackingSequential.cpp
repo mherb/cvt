@@ -1,18 +1,19 @@
 #include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
+#include <cvt/vision/FeatureFilter.h>
 
 namespace cvt
 {
 	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_maxDescDistance( 80 ),
-		_windowRadius( 50 ),
-		_matcherMaxLineDistance( 2.0f ),
+		_maxDescDistance( 60 ),
+		_windowRadius( 60 ),
+		_matcherMaxLineDistance( 1.0f ),
 		_maxTriangReprojError( 5.0f ),
 		_stereoMatcher( _matcherMaxLineDistance, _maxDescDistance, c0, c1 ),
 		_orbOctaves( 3 ), 
-		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 30 ),
+		_orbScaleFactor( 0.6f ),
+		_orbCornerThreshold( 20 ),
 		_orbMaxFeatures( 0 /* all */ ),
 		_orbNonMaxSuppression( true ),
 		_orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
@@ -101,7 +102,6 @@ namespace cvt
 
 		// remove the already tracked ids:
 		bool hit;
-
 		size_t savePos = 0;
 		for( size_t k = 0; k < _predictedIds.size(); k++ ){
 			hit = false;
@@ -203,30 +203,55 @@ namespace cvt
 				 _orbMaxFeatures,
 				 _orbNonMaxSuppression );
 
+		FeatureFilter filter( 20, firstView.width(), firstView.height() );
+
+		const std::set<size_t>::const_iterator endIter = _orb0MatchedIds.end();
+		for( size_t i = 0; i < _orb0.size(); i++ ){
+			if( _orb0MatchedIds.find( i ) == endIter ){
+				if( rangeCheck( _orb0[ i ].pt, 30.0f ) ){
+					filter.addFeature( &_orb0[ i ] );
+				}
+			}
+		}
+
+		std::vector<const Feature2Df*> filteredFeatures0;
+		filter.gridFilteredFeatures( filteredFeatures0, 1000 );
+
 		// find stereoMatches by avoiding already found matches
 		std::vector<FeatureMatch> stereoMatches;
 
-		// alreadyMatchedIndices are the indices of orb0 that have been matched before
-		_stereoMatcher.matchEpipolar( stereoMatches, _orb0, orb1, _orb0MatchedIds );
+		FeatureMatch match;
+		std::set<size_t> orb1Assigned;
+		Vector2f p0, p1;
+		Vector4f pNew;
 
-		//size_t savepos = 0;
-		//for( size_t i = 0; i < stereoMatches.size(); i++ ){
-		//	if( rangeCheck( stereoMatches[ i ].feature1->pt, 60.0f ) ){
-		//		if( i != savepos ){
-		//			stereoMatches[ savepos ] = stereoMatches[ i ];
-		//			savepos++;
-		//		}
-		//	}
-		//}
-		//stereoMatches.erase( stereoMatches.begin() + savepos, stereoMatches.end() );
+		std::vector<const ORBFeature*> triangulatedFeat;
+		std::vector<Vector4f> triangulatedPoint;
+		std::vector<Vector2f> triangulatedMeas;
 
-		size_t numNew = 0;
-		// Create a new keyframe with image 0 as reference image
-		if( stereoMatches.size() > 0 ){
+		for( size_t i = 0; i < filteredFeatures0.size(); i++ ){
+			match.feature0 = filteredFeatures0[ i ];
+			size_t id = _stereoMatcher.matchEpipolar( match, orb1, orb1Assigned );
 
-			// add a new keyframe to the map
+			if( match.distance < _maxDescDistance && 
+				checkFeatureSAD( match.feature0->pt, match.feature1->pt, firstView, secondView ) ){
+				p0 = match.feature0->pt;
+				p1 = match.feature1->pt;
+				Vision::correctCorrespondencesSampson( p0, p1, _stereoMatcher.fundamental() );
+
+				float reprErr = triangulateSinglePoint( pNew, p0, p1, _camCalib0.projectionMatrix(), _camCalib1.projectionMatrix() );
+				if( reprErr < _maxTriangReprojError ){
+					triangulatedPoint.push_back( pNew );
+					triangulatedMeas.push_back( p0 );
+					triangulatedFeat.push_back( (const ORBFeature*)match.feature0 );
+					orb1Assigned.insert( id );
+				}
+			}
+		}
+
+		if( triangulatedPoint.size() > 15 ){
+			// Create a new keyframe with image 0 as reference image
 			size_t kId = map.addKeyframe( pose.transformation() );
-
 			Keyframe & keyframe = map.keyframeForId( kId );
 			keyframe.setImage( firstView );
 
@@ -244,42 +269,27 @@ namespace cvt
 				map.addMeasurement( pointId, kId, meas );
 			}
 
-			Vector2f p0, p1;
-			Vector4f pNew;
-
 			Eigen::Matrix4d poseInv = pose.transformation().inverse();
-			for( size_t i = 0; i < stereoMatches.size(); i++ ){
-				const FeatureMatch& match = stereoMatches[ i ];
-				if( match.feature1 ){
-					if( checkFeatureSAD( match.feature0->pt, match.feature1->pt, firstView, secondView ) ){
-						p0 = stereoMatches[ i ].feature0->pt;
-						p1 = stereoMatches[ i ].feature1->pt;
-						Vision::correctCorrespondencesSampson( p0, p1, _stereoMatcher.fundamental() );
+			for( size_t i = 0; i < triangulatedPoint.size(); i++ ){
+				meas.point[ 0 ] = triangulatedMeas[ i ].x;
+				meas.point[ 1 ] = triangulatedMeas[ i ].y;
 
-						float reprErr = triangulateSinglePoint( pNew, p0, p1, _camCalib0.projectionMatrix(), _camCalib1.projectionMatrix() );
-						if( reprErr < _maxTriangReprojError ){
-							meas.point[ 0 ] = p0.x;
-							meas.point[ 1 ] = p0.y;
+				Eigen::Vector4d & point = mapFeat.estimate();
+				point[ 0 ] = triangulatedPoint[ i ][ 0 ];
+				point[ 1 ] = triangulatedPoint[ i ][ 1 ];
+				point[ 2 ] = triangulatedPoint[ i ][ 2 ];
+				point[ 3 ] = triangulatedPoint[ i ][ 3 ];
+				point = poseInv * point;
 
-							Eigen::Vector4d & point = mapFeat.estimate();
-							point[ 0 ] = pNew[ 0 ];
-							point[ 1 ] = pNew[ 1 ];
-							point[ 2 ] = pNew[ 2 ];
-							point[ 3 ] = pNew[ 3 ];
-							point = poseInv * point;
-
-							size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
-							_descriptors.addDescriptor( *( ORBFeature* )stereoMatches[ i ].feature0, newPointId );
-							_lastTrackedIds.push_back( newPointId );
-							_lastTrackedFeatures.push_back( *( ORBFeature* )stereoMatches[ i ].feature0 );
-							numNew++;
-						}
-					}
-				}
+				size_t newPointId = map.addFeatureToKeyframe( mapFeat, meas, kId );
+				_descriptors.addDescriptor( *triangulatedFeat[ i ], newPointId );
+				_lastTrackedIds.push_back( newPointId );
+				_lastTrackedFeatures.push_back( *triangulatedFeat[ i ] );
 			}
+			std::cout << "New Features Triangulated: " << triangulatedPoint.size() << std::endl;
+			return _lastTrackedIds.size();
 		}
-		std::cout << "New Features Triangulated: " << numNew << std::endl;
-		return numNew;
+		return 0;
 	}
 
 	void ORBTrackingSequential::clear()
