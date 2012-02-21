@@ -1,4 +1,15 @@
-﻿GLuint GLTeapot::_faces[ 2976 ] = {
+/*
+			CVT - Computer Vision Tools Library
+
+ 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+
+ 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+ 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+ 	PARTICULAR PURPOSE.
+ */
+
+GLuint GLTeapot::_faces[ 2976 ] = {
 	2, 1, 0, 3, 2, 0, 1, 5, 4, 0, 1, 4, 5, 7, 6, 4, 5, 6, 7,
 	9, 8, 6, 7, 8, 3, 0, 10, 11, 3, 10, 0, 4, 12, 10, 0, 12, 4,
 	6, 13, 12, 4, 13, 6, 8, 14, 13, 6, 14, 11, 10, 15, 16, 11, 15, 10,
