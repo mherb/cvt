@@ -149,9 +149,11 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
+//					_tvl1.setArg( 6, _lambda );
 					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 6.0f ) ) );
 //					_tvl1.setArg( 6, _lambda * ( ( Math::tanh( ( ( float ) ( -k ) + 0.5f * ( float ) ROFITER ) * 0.75f ) * 0.5f + 0.5f ) ) );
 					_tvl1.setArg( 7, THETA );
+//					_tvl1.setArg( 7, THETA * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 6.0f ) ) );
 					_tvl1.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
 					_tvl1.setArg( 9, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 1 ) * ( TVL1WGSIZE + 1 ) ) );
 					_tvl1.run( CLNDRange(Math::pad( flow.width(), TVL1WGSIZE ), Math::pad( flow.height(), TVL1WGSIZE ) ), CLNDRange( TVL1WGSIZE, TVL1WGSIZE ) );

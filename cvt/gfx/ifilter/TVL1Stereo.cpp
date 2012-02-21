@@ -21,12 +21,11 @@ namespace cvt {
 		};
 
 		TVL1Stereo::TVL1Stereo( float scalefactor, size_t levels ) : IFilter( "TVL1Stereo", _params, 2, IFILTER_OPENCL ),
-			_toggle( false ),
 			_scalefactor( scalefactor ),
 			_levels( levels ),
 			_pyrup( _pyrupmul_source, "pyrup_mul" ),
 			_pyrdown( _pyrdown_source, "pyrdown" ),
-//			_pyrdown( _pyrdown_binom3_source, "pyrdown_binom3" ),
+			_pyrdownbinom( _pyrdown_binom3_source, "pyrdown_binom3" ),
 			_tvl1( _tvl1_source, "tvl1" ),
 			_tvl1_warp( _tvl1_warp_source, "tvl1_warp" ),
 			_clear( _clear_source, "clear" ),
@@ -78,18 +77,23 @@ namespace cvt {
 					_clear.run( CLNDRange(Math::pad( flow->width(), 16 ), Math::pad( flow->height(), 16 ) ), CLNDRange( 16, 16 ));
 				}
 
-				//float tmp = _lambda;
-				//_lambda = _lambda * Math::pow( _scalefactor, l );
+//				float tmp = _lambda;
+//				_lambda = _lambda * Math::pow( _scalefactor, l * 1.0f );
 				solveTVL1( *flow, _pyr[ 0 ][ l ], _pyr[ 1 ][ l ], true );
-				//_lambda = tmp;
+//				_lambda = tmp;
 			}
 
 			if( flowold )
 				delete flowold;
 
 			//*flow = *flowtmp;
-			output.reallocate( *flow, IALLOCATOR_CL );
+			output.reallocate( src1.width(), src2.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 			output = *flow;
+
+			//	_pyrup.setArg( 0, output );
+			//	_pyrup.setArg( 1, *flow );
+			//	_pyrup.setArg( 2, ( float ) output.width() / ( float ) flow->width() );
+			//	_pyrup.run( CLNDRange( Math::pad( output.width(), 16 ), Math::pad( output.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 
 			delete flow;
@@ -114,7 +118,7 @@ namespace cvt {
 
 				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
-			for( int i = 0; i < 20; i++ ) {
+			for( int i = 0; i < 10; i++ ) {
 				if( median ) {
 					_median3.setArg( 0, flow0 );
 					_median3.setArg( 1, *us[ 1 ] );
@@ -138,7 +142,6 @@ namespace cvt {
 
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
-				float t = 1.0f, told = 1.0f;
 #define ROFITER 50
 				for( int k = 0; k < ROFITER; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
@@ -148,16 +151,14 @@ namespace cvt {
 					_tvl1.setArg( 4, warp );
 					_tvl1.setArg( 5, *ps[ 1 ] );
 				//	_tvl1.setArg( 6, *ps[ 2 ] );
-					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 3.0f ) ) );
+					_tvl1.setArg( 6, _lambda );
+//					_tvl1.setArg( 6, _lambda * ( Math::exp( -( float ) ( k / ( float ) ROFITER ) * ( k / ( float ) ROFITER ) * 1.0f ) ) );
 //					_tvl1.setArg( 6, _lambda * ( ( Math::tanh( ( ( float ) ( -k ) + 0.5f * ( float ) ROFITER ) * 0.75f ) * 0.5f + 0.5f ) ) );
 					_tvl1.setArg( 7, THETA );
 				//	_tvl1.setArg( 9, ( told - 1.0f ) / t  );
 					_tvl1.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 2 ) * ( TVL1WGSIZE + 2 ) ) );
 					_tvl1.setArg( 9, CLLocalSpace( sizeof( cl_float4 ) * ( TVL1WGSIZE + 1 ) * ( TVL1WGSIZE + 1 ) ) );
 					_tvl1.run( CLNDRange(Math::pad( flow.width(), TVL1WGSIZE ), Math::pad( flow.height(), TVL1WGSIZE ) ), CLNDRange( TVL1WGSIZE, TVL1WGSIZE ) );
-
-				//	told = t;
-				//	t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * told * told ) );
 
 					tmp = ps[ 0 ];
 					ps[ 0 ] = ps[ 1 ];
@@ -195,10 +196,19 @@ namespace cvt {
 
 #define PYRWGSIZE 16
 
-			pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_CL );
-			img.convert( pyr[ 0 ] );
+			//pyr[ 0 ].reallocate( img.width(), img.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+			//
+			//Image tmp;
+			img.convert( pyr[ 0 ], IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+
+			//	pyr[ 0 ].reallocate( img.width() * 3.0, img.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+			//	_pyrdown.setArg( 0, pyr[ 0 ] );
+			//	_pyrdown.setArg( 1, tmp );
+			//	_pyrdown.run( CLNDRange( Math::pad( pyr[ 0 ].width(), PYRWGSIZE ), Math::pad( pyr[ 0 ].height(), PYRWGSIZE ) ), CLNDRange( PYRWGSIZE, PYRWGSIZE ) );
+
+
 			for( size_t l = 1; l < _levels; l++ ) {
-				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height() * _scalefactor, IFormat::RGBA_UINT8, IALLOCATOR_CL );
+				pyr[ l ].reallocate( pyr[ l - 1 ].width() * _scalefactor, pyr[ l - 1 ].height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 				_pyrdown.setArg( 0, pyr[ l ] );
 				_pyrdown.setArg( 1, pyr[ l - 1 ] );
 //				_pyrdown.setArg( 2, CLLocalSpace( sizeof( cl_float4 ) * ( PYRWGSIZE + 4 ) * ( PYRWGSIZE + 4 ) ) );
