@@ -192,18 +192,13 @@ namespace cvt
 		if( !initCam() )
 			throw CVTException( "Could not initialize camera" );
 
-		// display initialization
-		INT xPos;
-		INT yPos;
-		xPos = 0;
-		yPos = 0;;
-
 		IS_RECT aoiRect;
 		aoiRect.s32X = 0;
 		aoiRect.s32Y = 0;
 		aoiRect.s32Width = _width;
 		aoiRect.s32Height = _height;
 		is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) );
+		
 		is_GetImageMemPitch( _camHandle, &_stride );
 
 		_frame.reallocate( _width, _height, _frame.format() );
@@ -266,19 +261,20 @@ namespace cvt
 					{
 						// new frame available:
 						if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&curBuffer, ( char** )&lastBuffer ) == IS_SUCCESS ){
-							int bufSeqNum = bufNumForAddr( lastBuffer );
-							is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )lastBuffer );
+							int bufSeqNum = bufNumForAddr( curBuffer );
+							is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )curBuffer );
 
 							size_t stride;
 							uint8_t * framePtr = _frame.map( &stride );
-							is_CopyImageMem( _camHandle, (char*)lastBuffer, bufSeqNum, (char*)framePtr );
+
+							// TODO: use our memcpy here with _stride and stride!
+							is_CopyImageMem( _camHandle, (char*)curBuffer, bufSeqNum, (char*)framePtr );
 							
-							if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)lastBuffer ) == IS_NO_SUCCESS ){
+							if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)curBuffer ) == IS_NO_SUCCESS ){
 								std::cout << "UNLOCK FAILED" << std::endl;
 							}
 							
 							_frame.unmap( framePtr );
-
 						}
 					}
 					break;
@@ -287,7 +283,7 @@ namespace cvt
 					break;
 			}
 		} else {
-			is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ]);
+			is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] );
 			if( is_FreezeVideo( _camHandle, IS_DONT_WAIT ) == IS_NO_SUCCESS ){
 				std::cout << "ERROR IN IS_FREEZEVIDEO" << std::endl;
 			}

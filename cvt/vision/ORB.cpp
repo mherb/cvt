@@ -286,11 +286,17 @@ namespace cvt {
 					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,\
 										             y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5, widthstep ) )
 		uint8_t* d = feature.desc.data();
+		int idx;
 		for( int i = 0; i < 32; i++ ) {
-			d[ i ] = 0;
-			for( int k = 0; k < 8; k++ ) {
-				d[ i ] |= ( ORBTEST( i * 8 + k ) ) << k;
-			}
+			idx = i << 3;
+			d[ i ]  =   ORBTEST( idx );
+			d[ i ] |= ( ORBTEST( idx + 1 ) ) << 1;
+			d[ i ] |= ( ORBTEST( idx + 2 ) ) << 2;
+			d[ i ] |= ( ORBTEST( idx + 3 ) ) << 3;
+			d[ i ] |= ( ORBTEST( idx + 4 ) ) << 4;
+			d[ i ] |= ( ORBTEST( idx + 5 ) ) << 5;
+			d[ i ] |= ( ORBTEST( idx + 6 ) ) << 6;
+			d[ i ] |= ( ORBTEST( idx + 7 ) ) << 7;
 		}
 		feature.pt /= _scaleFactors[ feature.octave ];
 	}
@@ -302,10 +308,10 @@ namespace cvt {
 
 	void ORB::selectBestFeatures( size_t num )
 	{
-		std::sort( _features.begin(), _features.end(), compareOrbFeature );
-
-		if( _features.size() > num )
+		if( _features.size() > num ){
+			std::sort( _features.begin(), _features.end(), compareOrbFeature );
 			_features.erase( _features.begin() + num, _features.end() );
+		}
 	}
 
 	const int ORB::_circularoffset[ 31 ] = {  3,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 14, 15, 15, 15, 15,

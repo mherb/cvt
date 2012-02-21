@@ -31,7 +31,7 @@ namespace cvt
 								 const MapMeasurement& meas );
 
 
-			size_t findClosestKeyframe( const Eigen::Matrix4d& worldT ) const;
+			int findClosestKeyframe( const Eigen::Matrix4d& worldT ) const;
 
 			void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatures,
 									      std::vector<Vector2f>	   & projections,

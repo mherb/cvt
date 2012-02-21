@@ -19,6 +19,8 @@ namespace cvt
 			// assuming orb features are undistorted!
 			void matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1, const std::set<size_t> & usedIndices ) const;
 
+			size_t matchEpipolar( FeatureMatch& m, const ORB& orb1, const std::set<size_t>& usedIn1 ) const;
+
 			const Matrix3f & fundamental() const { return _fundamental; }
 
 		private:
@@ -41,13 +43,46 @@ namespace cvt
 								    c1.intrinsics(),
 								   	c1.extrinsics() );
 	}
+			
+	inline size_t ORBStereoMatching::matchEpipolar( FeatureMatch& m, const ORB& orb1, const std::set<size_t>& usedIn1 ) const
+	{ 
+		Vector3f point;
+		point.z = 1.0f;
+		
+		m.distance = _maxDescDist;
+		size_t distance;
+		
+
+		point.x = m.feature0->pt.x;
+		point.y = m.feature0->pt.y;
+		Line2Df l( _fundamental * point );
+
+		size_t currAssigned = 0;
+		const std::set<size_t>::const_iterator usedEnd = usedIn1.end();
+		const ORBFeature& f = ( const ORBFeature& )*m.feature0;
+		for( size_t k = 0; k < orb1.size(); k++ ){
+			if( usedIn1.find( k ) == usedEnd ) {
+				float lDist = l.distance( orb1[ k ].pt );
+				if( Math::abs( lDist ) < _maxLineDist ){
+					// check descriptor distance
+					distance = f.distance( orb1[ k ] );
+					if( distance < m.distance ){
+						m.feature1 = &orb1[ k ];
+						m.distance = distance;
+						currAssigned = k;
+					}
+				}	
+			}
+		}
+		return currAssigned;
+	}
 
 	inline void ORBStereoMatching::matchEpipolar( std::vector<FeatureMatch>& matches, const ORB& orb0, const ORB& orb1, const std::set<size_t> & used ) const
 	{
 		// with a row lookup table, we could probably speed up the search
 		Vector3f line, point;
-		FeatureMatch match;
 		point.z = 1.0f;
+		FeatureMatch match;
 		size_t distance;
 
 		std::set<size_t>::const_iterator usedEnd = used.end();
