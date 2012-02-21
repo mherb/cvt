@@ -47,6 +47,8 @@ namespace cvt {
 			virtual void SubValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void MulValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void DivValue1f( float* dst, float const* src, const float value, const size_t n ) const;
+                        
+                        virtual void MulValue1ui16( uint16_t* dst, uint16_t const* src, float value, size_t n ) const;
 
 			virtual void AddValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void SubValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;

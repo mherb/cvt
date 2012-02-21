@@ -946,6 +946,20 @@ namespace cvt {
 		while( i-- )
 			*dst++ = *src++ / value;
 	}
+    
+    void SIMD::MulValue1ui16( uint16_t* dst, uint16_t const* src, float value, size_t n ) const
+	{
+		size_t i = n >> 2;
+		while( i-- ) {
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+			*dst++ = *src++ * value;
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ = *src++ * value;
+	}
 
 	void SIMD::AddValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const
 	{

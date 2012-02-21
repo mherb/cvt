@@ -349,6 +349,20 @@ namespace cvt {
 					unmap( dbase );
 				}
 				break;
+            case IFORMAT_TYPE_UINT16:
+                {
+					size_t stride;
+					uint16_t* dst = map<uint16_t>( &stride );
+					uint16_t* dbase = dst;
+					size_t h = _mem->_height;
+
+					while( h-- ) {
+						simd->MulValue1ui16( dst, dst, alpha, _mem->_width * _mem->_format.channels );
+						dst += stride;
+					}
+					unmap( dbase );
+				}
+                break;
 			default:
 				throw CVTException("Unimplemented");
 

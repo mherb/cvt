@@ -32,15 +32,11 @@ namespace cvt
             throw CVTException( "Device cannot generate rgb images" );
         }
         
-        manager.initializeImageGenerator( _imageGen, mode );
-        
-        CameraMode m;
-        m.width = 320; m.height = 240; m.fps = 60;
-        
-        _depth.reallocate( m.width, m.height, IFormat::GRAY_UINT16 );
         _rgb.reallocate( mode.width, mode.height, mode.format );
-
-        manager.initializeDepthGenerator( _depthGen, m );
+        _depth.reallocate( mode.width, mode.height, IFormat::GRAY_UINT16 );
+        
+        manager.initializeImageGenerator( _imageGen, mode );
+        manager.initializeDepthGenerator( _depthGen, mode );
 	}
 
 	OpenNICamera::~OpenNICamera()
@@ -56,8 +52,8 @@ namespace cvt
                 startDepthCapture();
                 break;
             case DEPTH_RGB:
-                startDepthCapture();
                 startImageCapture();
+                startDepthCapture();
                 break;
             case RGB_ONLY:
                 startImageCapture();
@@ -100,32 +96,6 @@ namespace cvt
 		copyImage();
 	}
 
-	void OpenNICamera::copyDepth()
-	{
-		size_t stride;
-		uint16_t* ptr = _depth.map<uint16_t>( &stride );
-		const XnDepthPixel* dpixel = _depthGen.GetDepthMap();
-
-		SIMD* simd = SIMD::instance();
-
-		if( _depth.width() == stride ){
-			simd->Memcpy( ( uint8_t* )ptr, ( const uint8_t* )dpixel, _depth.width() * _depth.height() * sizeof( uint16_t ) );
-		} else {
-			uint16_t* p = ptr;
-			size_t h = _depth.height();
-			size_t w = _depth.width();
-			size_t bytesPerLine = w * sizeof( uint16_t );
-
-			while( h-- ){
-				simd->Memcpy( ( uint8_t* )p, ( const uint8_t* )dpixel, bytesPerLine );
-				p += stride;
-				dpixel += w; 
-			}
-		}
-
-		_depth.unmap( ptr );
-	}
-    
     void OpenNICamera::setSyncRGBDepth( bool val )
     {
         xn::FrameSyncCapability syncCap = _imageGen.GetFrameSyncCap();
@@ -155,18 +125,60 @@ namespace cvt
         }
     }
 	
+    void OpenNICamera::copyDepth()
+	{
+        _depthGen.GetMetaData( _depthData );
+        
+        if( _depthData.XRes() != _depth.width() || 
+            _depthData.YRes() != _depth.height() ){
+            _depth.reallocate( _depthData.XRes(), 
+                               _depthData.YRes(), 
+                               IFormat::GRAY_UINT16 );
+        }
+        
+        size_t stride;
+        uint16_t* ptr = _depth.map<uint16_t>( &stride );
+        
+        const XnDepthPixel* dpixel = _depthData.Data();
+        
+		SIMD* simd = SIMD::instance();
+		if( _depthData.XRes() == stride ){
+			simd->Memcpy( ( uint8_t* )ptr, ( const uint8_t* )dpixel, _depth.width() * _depth.height() * sizeof( uint16_t ) );
+		} else {
+			uint16_t* p = ptr;
+			size_t h = _depth.height();
+			size_t w = _depth.width();
+			size_t bytesPerLine = w * sizeof( uint16_t );
+
+			while( h-- ){
+				simd->Memcpy( ( uint8_t* )p, ( const uint8_t* )dpixel, bytesPerLine );
+				p += stride;
+				dpixel += w; 
+			}
+		}
+
+		_depth.unmap( ptr );
+	}
+    
 	void OpenNICamera::copyImage()
 	{
+        _imageGen.GetMetaData( _rgbData );
+        
+        size_t w = _rgbData.XRes();
+        size_t h = _rgbData.YRes();
+        
+        if( w != _rgb.width() || 
+            h != _rgb.height() ){
+            _depth.reallocate( w, h, IFormat::GRAY_UINT16 );
+        }
+        
 		size_t stride;
 		uint8_t* ptr = _rgb.map( &stride );
 
-		const uint8_t* iptr = _imageGen.GetImageMap();
-		size_t bytesPerLine = _rgb.width() * _imageGen.GetBytesPerPixel();
+		const uint8_t* iptr = _rgbData.Data();
+		size_t bytesPerLine = w * _rgbData.BytesPerPixel();
 		
 		SIMD* simd = SIMD::instance();
-
-		size_t h = _rgb.height();
-
 		if( bytesPerLine == stride ){
 			simd->Memcpy( ptr, iptr, h * bytesPerLine );
 		} else {
