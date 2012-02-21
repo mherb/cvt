@@ -69,7 +69,7 @@ namespace cvt {
 	{
 #define RADIUS 9
 #define EPSILON 1e-3f
-#define NCCRADIUS 2
+#define BOXRADIUS 1
 		// StereoGCV
 		Image cost( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
 		Image costgf( cam0.width(), cam0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL ); //FIXME: just use GRAYALPHA
@@ -116,16 +116,16 @@ namespace cvt {
 		_intfilter.apply( iint, cam1 );
 		_boxfilter.apply( imeanG, iint, RADIUS );
 
-		_boxfilter.apply( imeanG1, iint, NCCRADIUS );
+		_boxfilter.apply( imeanG1, iint, BOXRADIUS );
 
 		// NCC / GuidedFilter
 		_intfilter.apply( iint, cam0 );
-		_boxfilter.apply( imeanG0, iint, NCCRADIUS );
+		_boxfilter.apply( imeanG0, iint, BOXRADIUS );
 
 		_intfilter.apply( iint, cam1, &cam1 );
-		_boxfilter.apply( imeanG12, iint, NCCRADIUS );
+		_boxfilter.apply( imeanG12, iint, BOXRADIUS );
 		_intfilter.apply( iint, cam0, &cam0 );
-		_boxfilter.apply( imeanG02, iint, NCCRADIUS );
+		_boxfilter.apply( imeanG02, iint, BOXRADIUS );
 
 		// GuidedFilter
 		_intfilter.applyOuterRGB( iint, iint2, cam1 );
@@ -137,8 +137,10 @@ namespace cvt {
 		if( dmax < dmin && dt > 0 ) dt = -dt;
 		size_t n = Math::abs( dmax - dmin ) / Math::abs( dt );
 		for( float d = dmin; n--; d += dt ) {
+//#define USEBOXSAD
 #define USEPOINTSAD
-#ifdef USEPOINTSAD
+//#define USENCC
+#if defined( USEPOINTSAD )
 			_cldepthcostgrad.setArg( 0, cost );
 			_cldepthcostgrad.setArg( 1, cam1 );
 			_cldepthcostgrad.setArg( 2, cam0 );
@@ -146,13 +148,18 @@ namespace cvt {
 			_cldepthcostgrad.setArg( 4, g0 );
 			_cldepthcostgrad.setArg( 5, d );
 			_cldepthcostgrad.run( global, CLNDRange( 16, 16 ) );
-#else
-			_intfilter.applyShifted( iint, cam1, cam0, -d );
-			_boxfilter.apply( imeanGS, iint, NCCRADIUS );
+#elif defined( USEBOXSAD )
+			_cldepthcostgrad.setArg( 0, cost );
+			_cldepthcostgrad.setArg( 1, imeanG1 );
+			_cldepthcostgrad.setArg( 2, imeanG0 );
+			_cldepthcostgrad.setArg( 3, g1 );
+			_cldepthcostgrad.setArg( 4, g0 );
+			_cldepthcostgrad.setArg( 5, d );
+			_cldepthcostgrad.run( global, CLNDRange( 16, 16 ) );
 
-			String path;
-			path.sprintf("comb%04d.png", ( int ) d );
-			imeanGS.save(path);
+#elif defined( USENCC )
+			_intfilter.applyShifted( iint, cam1, cam0, -d );
+			_boxfilter.apply( imeanGS, iint, BOXRADIUS );
 
 			_cldepthcostncc.setArg( 0, cost );
 			_cldepthcostncc.setArg( 1, imeanGS );
@@ -163,9 +170,6 @@ namespace cvt {
 			_cldepthcostncc.setArg( 6, -d );
 			_cldepthcostncc.run( global, CLNDRange( 16, 16 ) );
 
-			path.sprintf("cost%04d.png", ( int ) d );
-			cost.save( path );
-//			getchar();
 #endif
 
 			// Guided filter, dependent on current cost slice

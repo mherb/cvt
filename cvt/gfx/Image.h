@@ -64,6 +64,7 @@ namespace cvt {
 			void copyRect( int x, int y, const Image& i, const Recti & roi );
 
 			Image* clone() const;
+			void convert( Image& dst, const IFormat & format, IAllocatorType memtype ) const;
 			void convert( Image& dst, const IFormat & format ) const;
 			void convert( Image& dst ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;

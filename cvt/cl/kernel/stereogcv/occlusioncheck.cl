@@ -1,4 +1,4 @@
-#define MAXDIFF 2.5f
+#define MAXDIFF 2.0f
 
 __kernel void stereogcv_occlusioncheck( __write_only image2d_t out, __read_only image2d_t img0, __read_only image2d_t img1, const float dscale )
 {

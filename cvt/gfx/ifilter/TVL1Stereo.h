@@ -16,11 +16,11 @@ namespace cvt {
 			void fillPyramidCL( const Image& img, size_t index );
 			void solveTVL1( Image& flow, const Image& src1, const Image& src2, bool median );
 
-			bool		 _toggle;
 			float		 _scalefactor;
 			size_t		 _levels;
 			CLKernel	 _pyrup;
 			CLKernel	 _pyrdown;
+			CLKernel	 _pyrdownbinom;
 			CLKernel	 _tvl1;
 			CLKernel	 _tvl1_warp;
 			CLKernel	 _clear;

@@ -45,6 +45,9 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 			else if( fabs( dt ) <= ltg2 && fabs( w.y ) >= 1e-8f )
 				u = u - ( dt / w.y );
 
+//			if( u > 0.0f )
+//				u = -1.0f;
+
 			dx = BUF( x, y ).x - BUF( x - 1, y ).x;
 			dy = BUF( x, y ).y - BUF( x, y - 1 ).y;
 			// image + theta * div( p )
@@ -64,9 +67,9 @@ __kernel void tvl1( __write_only image2d_t eout, __write_only image2d_t uout, __
 	dy = BUF2( lx, ly + 1 ).x - w.x;
 
 	// HUBER
-#define EPS 0.04f
+#define EPS 0.01f
 	float4 delta = ( float4 ) ( dx, dy, 0, 0 );
-	pout = BUF( lx, ly ) + ( 1.0f / ( 4.0f * theta ) ) * ( delta - EPS * BUF( lx, ly) );
+	pout = BUF( lx, ly ) + ( ( 1.0f / ( 4.0f * theta ) ) * ( delta - EPS * BUF( lx, ly) ) );
 //	float n = fmax(  1.0f,  fmax( fast_length( pout.xy ), fast_length( pout.zw ) ) / w.w );
 //	float n = fmax(  1.0f,  fast_length( pout ) / w.w );
 //	pout = pout / ( float4 ) ( n );
