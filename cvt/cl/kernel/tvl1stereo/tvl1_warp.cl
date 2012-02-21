@@ -24,7 +24,7 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 	barrier( CLK_LOCAL_MEM_FENCE );
 
 #define ALPHA 1.0f
-#define BETA 15.0f
+#define BETA 25.0f
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), bstride ) + ( x ) + 1 ]
 #define CSELECT( val ) dot( val, ( float4 )( 0.3333f, 0.3333f, 0.3333f, 0.0f ) )
 //#define CSELECT( val ) dot( val, ( float4 )(0.2126f, 0.7152f, 0.0722f, 0.0f ) )
@@ -46,8 +46,7 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 	value.x  = CSELECT( warped - BUF( lx, ly ) );
 	value.y  = CSELECT( mix( dx2, dx1, 0.4f ) );
 	value.z  = CSELECT( mix( dy2, dy1, 0.4f ) );
-//	value.w  = max( 1e-4f, 1.0f * exp( - pow( BETA * ( fast_length( mix( dx2, dx1, 0.5f ) ) + fast_length( mix( dy2, dy1, 0.5f )) ), ALPHA ) ) );
-	value.w  = max( 1e-6f, 1.0f * exp( - pow( BETA * ( CSELECT( mix( fabs( dx2 ), fabs( dx1 ), 0.5f ) ) + CSELECT( mix( fabs( dy2 ), fabs( dy1 ), 0.5f )) ), ALPHA ) ) );
+	value.w  = max( 1e-4f, 1.0f * exp( - pow( BETA * ( fast_length( mix( dx2, dx1, 0.5f ) ) /*+ fast_length( mix( dy2, dy1, 0.5f ))*/ ), ALPHA ) ) );
 
 	write_imagef( out,( int2 )( gx, gy ), value );
 }
