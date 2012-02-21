@@ -4,13 +4,13 @@
 
 namespace cvt
 {
-	OpenNICamera::OpenNICamera( size_t idx, const CameraMode& mode )
+	OpenNICamera::OpenNICamera( size_t idx, const CameraMode& mode ) :
+        _captureMode( DEPTH_RGB )
 	{
 		XnStatus status = _context.Init();
 		if( status != XN_STATUS_OK ){
 			throw CVTException( "Could not initialize context" );
 		}
-
 
 		OpenNIManager& manager = OpenNIManager::instance();
         
@@ -51,31 +51,41 @@ namespace cvt
 
 	void OpenNICamera::startCapture()
 	{
-		XnStatus status = XN_STATUS_OK;
-		status = _depthGen.StartGenerating();
-		if( status != XN_STATUS_OK ){
-			String msg;
-			msg.sprintf( "Could not start generating Depth: %s", xnGetStatusString( status ) );
-			throw CVTException( msg.c_str() );
-		}
-		status = _imageGen.StartGenerating();
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Could not start Generating Image" );
+		switch ( _captureMode ) {
+            case DEPTH_ONLY:
+                startDepthCapture();
+                break;
+            case DEPTH_RGB:
+                startDepthCapture();
+                startImageCapture();
+                break;
+            case RGB_ONLY:
+                startImageCapture();
+                break;
+            default:
+                throw CVTException( "Capture Mode not supported" );
+                break;
+        }
 	}
 
 	void OpenNICamera::stopCapture()
 	{
-		XnStatus status = XN_STATUS_OK;
-		status = _depthGen.StopGenerating();
-		if( status != XN_STATUS_OK ){
-			String msg;
-			msg.sprintf( "Could not stop Generating Depth: %s", xnGetStatusString( status ) );
-			throw CVTException( msg.c_str() );
-		}
-
-		status = _imageGen.StopGenerating();
-		if( status != XN_STATUS_OK )
-			throw CVTException( "Could not start Generating Image" );
+        switch ( _captureMode ) {
+            case DEPTH_ONLY:
+                stopDepthCapture();
+                break;
+            case DEPTH_RGB:
+                stopDepthCapture();
+                stopImageCapture();
+                break;
+            case RGB_ONLY:
+                stopImageCapture();
+                break;
+                
+            default:
+                throw CVTException( "Capture Mode not supported" );
+                break;
+        }
 	}
 
 	void OpenNICamera::nextFrame()
@@ -171,7 +181,7 @@ namespace cvt
 		_rgb.unmap( ptr );
 	}
     
-    void OpenNICamera::imageFocalLength() const
+    void OpenNICamera::depthFocalLength() const
     {
         XnFieldOfView fov;
         XnStatus status = _depthGen.GetFieldOfView( fov );
@@ -182,7 +192,133 @@ namespace cvt
         double fy =  _depth.height() / ( 2 * Math::tan( fov.fVFOV / 2.0 ) );
         
         std::cout << fx << ", " << fy << std::endl;
+        
+        // pix size in mm
+        XnDouble pixelSize;
+        status = _depthGen.GetRealProperty( "ZPPS", pixelSize );
+        if( status != XN_STATUS_OK ){
+            String msg;
+            msg.sprintf( "Could not get pixel size: %s", xnGetStatusString( status ) );
+            throw CVTException( msg.c_str() );
+        }
+        
+        // focal length in mm
+        XnUInt64 depthFocalLengthFullRes;
+        status = _depthGen.GetIntProperty( "ZPD", depthFocalLengthFullRes );
+        if( status != XN_STATUS_OK ){
+            String msg;
+            msg.sprintf( "Could not get depth focal length: %s", xnGetStatusString( status ) );
+            throw CVTException( msg.c_str() );
+        }
+      
+        // baseline in cm
+        XnDouble baseline;
+        status = _depthGen.GetRealProperty( "LDDIS", baseline );
+        if( status != XN_STATUS_OK ){
+            String msg;
+            msg.sprintf( "Could not get baseline: %s", xnGetStatusString( status ) );
+            throw CVTException( msg.c_str() );
+        }
+
+        //focal length from mm -> pixels (valid for 1280x1024)
+        std::cout << "Pixel Size: " << pixelSize << "mm" << std::endl;
+        std::cout << "Focal len: " << depthFocalLengthFullRes / pixelSize << "px" << std::endl;
+        std::cout << "Baseline: " << baseline << "cm" << std::endl;
     }
+    
+    void OpenNICamera::setCaptureMode( CaptureMode mode )
+    {
+        if( mode == _captureMode )
+            return;
+        stopCapture();
+        _captureMode = mode;
+        startCapture();
+    }
+    
+			
+	void OpenNICamera::startDepthCapture()
+	{
+		if( _depthGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _depthGen.StartGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not start generating Depth: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
+	void OpenNICamera::startImageCapture()
+	{
+        if( _imageGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _imageGen.StartGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not start generating Image: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
+	void OpenNICamera::startIRCapture()
+	{
+        if( _irGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _irGen.StartGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not start generating IR Image: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
+	void OpenNICamera::stopDepthCapture()
+	{
+        if( !_depthGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _depthGen.StopGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not stop generating Depth: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
+	void OpenNICamera::stopImageCapture()
+	{
+        if( !_imageGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _imageGen.StopGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not stop generating Image: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
+
+	void OpenNICamera::stopIRCapture()
+	{
+        if( !_irGen.IsGenerating() )
+            return;
+        
+		XnStatus status = XN_STATUS_OK;
+		status = _irGen.StopGenerating();
+		if( status != XN_STATUS_OK ){
+			String msg;
+			msg.sprintf( "Could not stop generating IR Image: %s", xnGetStatusString( status ) );
+			throw CVTException( msg.c_str() );
+		}
+	}
 
 	const Image& OpenNICamera::frame() const 
 	{

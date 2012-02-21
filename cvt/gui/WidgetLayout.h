@@ -19,16 +19,20 @@ namespace cvt {
 			void setAnchoredTop( unsigned int margintop, unsigned int height );
 			void setAnchoredBottom( unsigned int marginbottom, unsigned int height );
 			void setAnchoredTopBottom( unsigned int margintop, unsigned int marginbottom );
+			void setRelativeLeftRight( float left, float right );
+			void setRelativeTopBottom( float top, float bottom );
 			void rect( Recti& r, const Recti& parentrect ) const;
 
 		private:
-			enum LayoutH { LAYOUT_HNONE, LAYOUT_HL, LAYOUT_HR, LAYOUT_HLR };
-			enum LayoutV { LAYOUT_VNONE, LAYOUT_VT, LAYOUT_VB, LAYOUT_VTB };
+			enum LayoutH { LAYOUT_HNONE, LAYOUT_HL, LAYOUT_HR, LAYOUT_HLR, LAYOUT_HREL };
+			enum LayoutV { LAYOUT_VNONE, LAYOUT_VT, LAYOUT_VB, LAYOUT_VTB, LAYOUT_VREL };
 
 			LayoutH _layouth;
 			LayoutV _layoutv;
 			Vector2<unsigned int> _horizontal;
 			Vector2<unsigned int> _vertical;
+			Vector2f			  _horizontalRel;
+			Vector2f			  _verticalRel;
 	};
 
 	inline WidgetLayout::WidgetLayout()
@@ -37,6 +41,8 @@ namespace cvt {
 		_layoutv = LAYOUT_VNONE;
 		_horizontal.set( 0, 0 );
 		_vertical.set( 0, 0 );
+		_horizontalRel.set( 0.0f, 1.0f );
+		_verticalRel.set( 0.0f, 1.0f );
 	}
 
 	inline void WidgetLayout::setAnchoredLeft( unsigned int marginleft, unsigned int width )
@@ -75,6 +81,18 @@ namespace cvt {
 		_vertical.set( margintop, marginbottom );
 	}
 
+	inline void WidgetLayout::setRelativeLeftRight( float left, float right )
+	{
+		_layouth = LAYOUT_HREL;
+		_horizontalRel.set( left, right );
+	}
+
+	inline void WidgetLayout::setRelativeTopBottom( float top, float bottom )
+	{
+		_layoutv = LAYOUT_VREL;
+		_verticalRel.set( top, bottom );
+	}
+
 	inline void WidgetLayout::rect( Recti& rect, const Recti& prect ) const
 	{
 		switch( _layouth ) {
@@ -94,6 +112,12 @@ namespace cvt {
 				{
 					rect.x = prect.x + _horizontal[ 0 ];
 					rect.width = prect.width - _horizontal[ 0 ] - _horizontal[ 1 ];
+				}
+				break;
+			case LAYOUT_HREL:
+				{
+					rect.x = prect.x + _horizontalRel[ 0 ] * prect.width;
+					rect.width = ( _horizontalRel[ 1 ] - _horizontalRel[ 0 ] ) * prect.width;
 				}
 				break;
 			case LAYOUT_HNONE:
@@ -117,6 +141,12 @@ namespace cvt {
 				{
 					rect.y = prect.y + _vertical[ 0 ];
 					rect.height = prect.height - _vertical[ 0 ] - _vertical[ 1 ];
+				}
+				break;
+			case LAYOUT_VREL:
+				{
+					rect.y = prect.y + _verticalRel[ 0 ] * prect.height;
+					rect.height = ( _verticalRel[ 1 ] - _verticalRel[ 0 ] ) * prect.height;
 				}
 				break;
 			case LAYOUT_VNONE:

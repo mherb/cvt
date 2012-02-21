@@ -10,7 +10,7 @@ namespace cvt
 		_camCalib1( c1 ),
 		_currentPyramid( new ImagePyramid( 3, 0.5f ) ),
 		_lastPyramid( new ImagePyramid( 3, 0.5f ) ),
-		_fastThreshold( 20 ),
+		_fastThreshold( 30 ),
 		_fastBorder( 8 ),
 		_windowRadius( 30 ),
 		_patchSize( _fastBorder << 1 ),
@@ -383,9 +383,17 @@ namespace cvt
 		size_t h = ( *_currentPyramid )[ octave ].height();
 
 		// only check those lines affected:
-		size_t lStart = Math::max<int>( 0, -epiline[ 2 ] / epiline[ 1 ] );
-		size_t lStop  = Math::min<int>( h-1, ( -epiline[ 2 ] - epiline[ 0 ] * w ) / epiline[ 1 ] );
-
+        int l0 = -epiline[ 2 ] / epiline[ 1 ];
+        int l1 = ( -epiline[ 2 ] - epiline[ 0 ] * w ) / epiline[ 1 ];        
+        size_t lStart = Math::clamp<int>( l0, 0, h-1 );
+        size_t lStop  = Math::clamp<int>( l1, 0, h-1 );
+        
+        if( lStart > lStop ){
+            size_t tmp = lStart;
+            lStart = lStop;
+            lStop  = tmp;
+        }
+        
 		const std::set<size_t>::const_iterator idsEnd = _usedIdsForOctave[ octave ].end();
 
 		// check those lines:
@@ -459,13 +467,18 @@ namespace cvt
 	void FASTFeatureTracking::detectFeatures()
 	{
 		ImagePyramid& pyr = *_currentPyramid;
+        Image debug;
+        pyr[ 0 ].convert( debug, IFormat::RGBA_UINT8 );
 		for( size_t i = 0; i < _currentPyramid->octaves(); i++ ){
 			_fastContainer[ i ].setNumRows( pyr[ i ].height() );
 			_fastContainer[ i ].setOctave( i );
 			_fastContainer[ i ].clear();
 			_usedIdsForOctave[ i ].clear();
 			FAST::detect9( pyr[ i ], _fastThreshold, _fastContainer[ i ], _fastBorder );
-		}
+            drawPointsInImage( debug, cvt::Color::GREEN, _fastContainer[ i ] );
+        }
+        drawPointsInImage( debug, cvt::Color::RED, _lastTrackedFeatures );
+        debug.save( "fast_tracking_currg_lastr.png" );
 	}
 
 
