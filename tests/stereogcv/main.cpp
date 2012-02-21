@@ -13,6 +13,8 @@
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/util/Time.h>
+#include <cvt/gfx/ifilter/ROFFGPFilter.h>
+#include <cvt/gfx/ifilter/GuidedFilter.h>
 
 using namespace cvt;
 
@@ -100,9 +102,9 @@ int main( int argc, char* argv[] )
 	StereoGCVFilter stereogcv;
     Image i0, i1, tmp;
 	tmp.load( argv[ 1 ] );
-	tmp.convert( i0, IFormat::RGBA_FLOAT );
+	tmp.convert( i0, IFormat::RGBA_UINT8 );
 	tmp.load( argv[ 2 ] );
-	tmp.convert( i1, IFormat::RGBA_FLOAT );
+	tmp.convert( i1, IFormat::RGBA_UINT8 );
 
 	float D = 100.0f;
 	if( argc >= 4 )
@@ -121,6 +123,18 @@ int main( int argc, char* argv[] )
 	boxf.apply( output, intimg0, 10 );
 	output.save( "boxfilter.png" );
 	return 1; */
+		ROFFGPFilter rof;
+			GuidedFilter gf;
+
+//			rof.apply( tmp, img0, 0.2f, 200 );
+//			gf.apply( tmp, img0, img0, 20, 1e-2f );
+//			tmp.save("smooth1.png");
+//			img0.mad( tmp, -0.90f );
+
+//			rof.apply( tmp, img1, 0.2f, 200 );
+//			gf.apply( tmp, img1, img1, 20, 1e-2f );
+//			tmp.save("smooth2.png");
+//			img1.mad( tmp, -0.90f );
 
 		Image disp;//( i0.width(), i0.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		Time t;
