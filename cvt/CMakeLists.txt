@@ -224,6 +224,7 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLRBO.h
 	gl/GLTexFont.h
 	gl/GLTeapot.h
+	gl/GLTeapot.inl
 	gl/progs/GLBasicProg.h
 	gl/progs/GLFillRoundRectProg.h
 	gl/progs/GLDrawTextProg.h
@@ -313,6 +314,9 @@ SET(${MODULE_NAME}_HEADERS
 	util/CVTTest.h
 	util/Condition.h
 	util/Delegate.h
+    util/Delegate.inl
+	util/Data.h
+    util/DataIterator.h
 	util/Exception.h
 	util/EigenBridge.h
 	util/Inserter.h
@@ -341,8 +345,7 @@ SET(${MODULE_NAME}_HEADERS
 	util/Plugin.h
 	util/PluginManager.h
 	util/PluginFile.h
-	util/Data.h
-    util/DataIterator.h
+	util/internal/ParamTypes.def
 	vision/BinaryDescriptor.h
 	vision/Brief.h
 	vision/CameraCalibration.h
