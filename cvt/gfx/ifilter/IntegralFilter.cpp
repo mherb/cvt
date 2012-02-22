@@ -50,6 +50,7 @@ namespace cvt {
 
 	void IntegralFilter::apply( Image& dst, const Image& src, const Image* src2 ) const
 	{
+		dst.reallocate( src.width(), src.height(), IFormat::floatEquivalent( src.format() ), IALLOCATOR_CL );
 		// FIXME: hardcoded work-group size
 
 		if( src2 ) {
