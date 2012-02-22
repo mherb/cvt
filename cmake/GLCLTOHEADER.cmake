@@ -14,15 +14,14 @@ MACRO(GLSLTOHEADER _filename )
     ENDIF()
 
 	SET( GLSL_GEN_OUTPUT "${_path}${_basename}_${_ext}.h" )
-    ADD_CUSTOM_COMMAND(
-		OUTPUT  "${GLSL_GEN_OUTPUT}"
-		COMMAND "${GLCLTOHEADER_DST}" 
-				"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
-				"${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}_${_ext}.h" 
-				"${_basename}_${_ext}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" glcltoheader 
+	
+	ADD_CUSTOM_COMMAND(	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${GLSL_GEN_OUTPUT}
+						COMMAND ${GLCLTOHEADER_DST} 
+						"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
+						"${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}_${_ext}.h"
+						"${_basename}_${_ext}"
+						DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" "glcltoheader"
     )
-#	ADD_CUSTOM_TARGET( ${GLSLGEN_TARGET} DEPENDS ${GLSL_GEN_OUTPUT} )
 ENDMACRO(GLSLTOHEADER)
 
 MACRO(CLTOHEADER _filename)
@@ -36,15 +35,15 @@ MACRO(CLTOHEADER _filename)
 		SET(_path "${_path}/" )
     ENDIF()
 
+
 	SET( CL_GEN_OUTPUT "${_path}${_basename}.h" )
     ADD_CUSTOM_COMMAND(
-		OUTPUT  "${CL_GEN_OUTPUT}"		
-		COMMAND "${GLCLTOHEADER_DST}" 
-                "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
-				"${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}.h"
-				"${_basename}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" glcltoheader
+		OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/${CL_GEN_OUTPUT}
+		COMMAND ${GLCLTOHEADER_DST}
+                ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
+				${CMAKE_CURRENT_SOURCE_DIR}/${_path}${_basename}.h
+				${_basename}
+				DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_filename} glcltoheader
     )
-#	ADD_CUSTOM_TARGET( ${CLGEN_TARGET} DEPENDS ${CL_GEN_OUTPUT} )
 ENDMACRO(CLTOHEADER)
 
