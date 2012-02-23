@@ -22,8 +22,8 @@ namespace cvt
 		_maxTriangReprojError( 5.0f ),
 		_stereoMatcher( _matcherMaxLineDistance, _maxDescDistance, c0, c1 ),
 		_orbOctaves( 3 ), 
-		_orbScaleFactor( 0.6f ),
-		_orbCornerThreshold( 20 ),
+		_orbScaleFactor( 0.5f ),
+		_orbCornerThreshold( 25 ),
 		_orbMaxFeatures( 0 /* all */ ),
 		_orbNonMaxSuppression( true ),
 		_orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )

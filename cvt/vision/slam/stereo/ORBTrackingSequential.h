@@ -74,7 +74,6 @@ namespace cvt
 			std::vector<size_t>				_predictedIds;
 			std::vector<Vector2f>			_predictedPositions;
 
-
 			Image							_debug;
 
 			void trackSequential( PointSet3d& p3d, PointSet2d& p2d, const SlamMap& map, const Image& image );

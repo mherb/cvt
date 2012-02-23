@@ -18,6 +18,8 @@
 #include <cvt/geom/PointSet.h>
 #include <cvt/util/Signal.h>
 
+#include <cvt/util/ParamSet.h>
+
 namespace cvt
 {
 	class FeatureTracking
@@ -38,7 +40,6 @@ namespace cvt
 												  const SE3<double>& pose, 
 												  const Image& first, 
 												  const Image& second ) = 0;
-
 			Signal<const Image&>	debugImage;
 
 		protected:
