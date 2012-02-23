@@ -24,7 +24,7 @@
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
 #include <cvt/util/Time.h>
-#include <cvt/util/Time.h>
+#include <cvt/util/ParamSet.h>
 
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
