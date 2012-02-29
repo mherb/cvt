@@ -100,6 +100,12 @@ namespace cvt {
 			if( status == XN_STATUS_OK ){
 				std::vector<XnMapOutputMode> uniqueModes;
 				getUniqueModeList( modes, numModes, uniqueModes );
+
+				String name;
+				name += _deviceList[ idx ].name;
+				_deviceList[ idx ].rgbInfo.setName( name );
+				_deviceList[ idx ].rgbInfo.setIndex( idx );
+				_deviceList[ idx ].rgbInfo.setType( CAMERATYPE_OPENNI );
 				findSupportedModes( _deviceList[ idx ].rgbInfo , uniqueModes, imgGen );
 			}
 			
@@ -119,9 +125,9 @@ namespace cvt {
 
 				std::cout << "Depth ModeS: " << std::endl;
 				for( size_t i = 0; i < uniqueModes.size(); i++ ){
-					std::cout << uniqueModes[ i ].nXRes << "x"
+					/*std::cout << uniqueModes[ i ].nXRes << "x"
 						      << uniqueModes[ i ].nYRes << "@"
-						      << uniqueModes[ i ].nFPS << std::endl;
+						      << uniqueModes[ i ].nFPS << std::endl;*/
 					_deviceList[ idx ].depthInfo.addMode( CameraMode( ( size_t )uniqueModes[ i ].nXRes, 
 																	  ( size_t )uniqueModes[ i ].nYRes,
 																      ( size_t )uniqueModes[ i ].nFPS, 
