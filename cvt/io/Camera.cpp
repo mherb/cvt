@@ -25,6 +25,10 @@
 #include <cvt/io/DC1394Camera.h>
 #endif
 
+#ifdef OPENNI_FOUND
+#include <cvt/io/OpenNICamera.h>
+#endif
+
 namespace cvt {
 
 	std::vector<CameraInfo> Camera::_camInfos;
@@ -39,8 +43,10 @@ namespace cvt {
 
 	void Camera::updateInfo()
 	{
+		size_t count = 0;
 #ifdef APPLE
-		for( size_t i = 0; i < QTKitCamera::count() ; i++ ){
+		count = QTKitCamera::count();
+		for( size_t i = 0; i < count; i++ ){
 			Camera::_camInfos.push_back( CameraInfo() );
 			QTKitCamera::cameraInfo( i, Camera::_camInfos.back() );
 		}
@@ -64,10 +70,18 @@ namespace cvt {
 
 		// ueye cameras
 #ifdef UEYE_FOUND
-		size_t count = UEyeUsbCamera::count();
+		count = UEyeUsbCamera::count();
 		for( size_t i = 0; i < count; i++){
 			Camera::_camInfos.push_back( CameraInfo() );
 			UEyeUsbCamera::cameraInfo( i, Camera::_camInfos.back() );
+		}
+#endif
+
+#ifdef OPENNI_FOUND
+		count = OpenNICamera::count();
+		for( size_t i = 0; i < count; i++ ){
+			Camera::_camInfos.push_back( CameraInfo() );
+			OpenNICamera::cameraInfo( i, Camera::_camInfos.back() );
 		}
 #endif
 	}
@@ -105,6 +119,11 @@ namespace cvt {
 			case CAMERATYPE_QTKIT:
 #ifdef APPLE
 				cam = new QTKitCamera( camInfo.index(), mode );
+#endif
+				break;
+			case CAMERATYPE_OPENNI:
+#ifdef OPENNI_FOUND
+				cam = new OpenNICamera( camInfo.index(), mode );
 #endif
 				break;
 			default:
