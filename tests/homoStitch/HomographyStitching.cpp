@@ -73,13 +73,14 @@ namespace cvt {
 
 		HomographySAC model( matches );
 		RANSAC<HomographySAC> ransac( model, 1.0f /*maxreproj.*/, 0.5f /*outlierprob*/ );
-		Matrix3f homography = ransac.estimate( 15000 );
+		Matrix3f homography = ransac.estimate( 20000 );
 
 		if( !checkHomography( homography ) ){
 			std::cerr << "BAD HOMOGRAPHY, NOT ADDING IMAGE" << std::endl;
 			return;
 		}
 
+		// TODO: not always do this!
 		// compute the homography to the first image:
 		_homographies.push_back( _homographies.back() );
 		_homographies.back() *= homography;

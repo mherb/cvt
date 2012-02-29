@@ -97,7 +97,7 @@ class MultiCamApp : public TimeoutHandler
 
 				for( size_t i = 0; i < _cams.size(); i++ ){
 					name.sprintf( "camera_%02d_image_%03d.png", i, _dumpIter );
-					_cams[ i ]->frame().convert( img, IFormat::GRAY_UINT8 );
+					_cams[ i ]->frame().convert( img, IFormat::RGBA_UINT8 );
 					img.save( name );
 				}
 				_dump = false;
