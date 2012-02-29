@@ -23,7 +23,7 @@ namespace cvt
 	{
 		this->open( mode );
 		this->setIdentifier();
-	
+
 		// load internally stored parameters as default starting point	
 		loadParameters( "/cam/set1" );
 	}
@@ -451,7 +451,6 @@ namespace cvt
 		is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, (void*)&nMode, sizeof(nMode) );
 		*/
 	}
-
 
 	void UEyeUsbCamera::enableEvents()
 	{
