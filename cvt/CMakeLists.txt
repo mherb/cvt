@@ -279,6 +279,7 @@ SET(${MODULE_NAME}_HEADERS
 	math/CostFunction.h
 	math/Complex.h
 	math/Fixed.h
+	math/Function.h
 	math/JointMeasurements.h
 	math/GaussNewton.h
 	math/LevenbergMarquard.h
