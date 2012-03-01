@@ -16,10 +16,10 @@ namespace cvt {
     HomographyStitching::HomographyStitching() :
 		_octaves( 3 ),
 		_scale( 0.5f ),
-		_fastCornerThreshold( 25 ),
+		_fastCornerThreshold( 20 ),
 		_maxNumFeatures( 0 ),
-		_nonMaxSuppress( true ),
-		_maxDescriptorDistance( 50 ),
+		_nonMaxSuppress( false ),
+		_maxDescriptorDistance( 40 ),
 		_stitched( 0 )
     {
 		_stitched = new Image( 1280, 1024, IFormat::RGBA_UINT8 );

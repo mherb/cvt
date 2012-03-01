@@ -81,6 +81,30 @@ static inline void RotY2( Matrix3f& mat, float angle, float fx, float fy, float 
     mat[2][2] = d;
 }
 
+class WarpTx : public Function<Vector2f, Vector2f>
+{
+	public:
+		WarpTx( float tx ) : _tx( tx )
+		{
+		}
+
+		~WarpTx()
+		{
+		}
+
+		Vector2f operator()( const Vector2f& v ) const
+		{
+			//Matrix3f m;
+			//m.setAffine( Math::deg2Rad( 45.0f ), Math::deg2Rad( 10.0f ), 2.0f, 2.0f, 0.0f, -200.0f );				
+			//return m * v;
+			Vector2f p = v;
+			p.y = v.y + 100.0f * Math::sin( 2.0 * Math::TWO_PI * v.x / 512.0f );
+			return p;
+		}
+
+	private:
+		float _tx;
+};
 
 int main()
 {
@@ -90,6 +114,12 @@ int main()
 	try {
 		Image img;
 		img.load( inputFile.c_str() );
+
+		WarpTx w( 5.0f );
+		Image outg( img.width(), img.height(), IFormat::RGBA_UINT8 );
+		ITransform::apply( outg, img, w );
+		outg.save( "wtx.png" );
+		return 0;
 
 		Image imgf( img.width(), img.height(), IFormat::RGBA_FLOAT );
 		Image out( img.width(), img.height(), IFormat::RGBA_FLOAT );
