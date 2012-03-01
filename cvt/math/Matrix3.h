@@ -68,10 +68,10 @@ namespace cvt {
         bool                isEqual( const Matrix3<T> & other, T epsilon ) const;
 
 		void				setDiagonal( const Vector3<T>& diag );
-		void				setRotationX( T rad, bool rotateFrame = false );
-		void				setRotationY( T rad, bool rotateFrame = false );
-		void				setRotationZ( T rad, bool rotateFrame = false );
-        void                setRotationXYZ( T angleX, T angleY, T angleZ, bool rotateFrame = false );
+		void				setRotationX( T rad );
+		void				setRotationY( T rad );
+		void				setRotationZ( T rad );
+        void                setRotationXYZ( T angleX, T angleY, T angleZ );
 		void				setRotation( const Vector3<T>& axis, T rad );
 
 		void				setAffine( T theta, T phi, T sx, T sy, T tx, T ty );
@@ -379,13 +379,10 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::setRotationX( T rad, bool rotateFrame )
+	inline void Matrix3<T>::setRotationX( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
-
-		if( rotateFrame )
-			s = -s;
 
 		mat[ 0 ].x = 1;
 		mat[ 0 ].y = 0;
@@ -401,13 +398,10 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::setRotationY( T rad, bool rotateFrame )
+	inline void Matrix3<T>::setRotationY( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
-		
-		if( rotateFrame )
-			s = -s;
 
 		mat[ 0 ].x = c;
 		mat[ 0 ].y = 0;
@@ -423,13 +417,10 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Matrix3<T>::setRotationZ( T rad, bool rotateFrame )
+	inline void Matrix3<T>::setRotationZ( T rad )
 	{
 		T s = Math::sin( rad );
 		T c = Math::cos( rad );
-		
-		if( rotateFrame )
-			s = -s;
 
 		mat[ 0 ].x = c;
 		mat[ 0 ].y = -s;
@@ -445,7 +436,7 @@ namespace cvt {
 	}
 
     template<typename T>
-    inline void Matrix3<T>::setRotationXYZ( T angleX, T angleY, T angleZ, bool rotateFrame )
+    inline void Matrix3<T>::setRotationXYZ( T angleX, T angleY, T angleZ )
     {
         T cx = Math::cos( angleX );
         T cy = Math::cos( angleY );
@@ -455,16 +446,9 @@ namespace cvt {
         T sy = Math::sin( angleY );
         T sz = Math::sin( angleZ );
 
-		if( rotateFrame ){
-			sx = -sx;
-			sy = -sy;
-			sz = -sz;
-		}
-		
 		mat[ 0 ][ 0 ] =  cy * cz;
         mat[ 0 ][ 1 ] = -cy * sz;
         mat[ 0 ][ 2 ] =       sy;
-
 
         mat[ 1 ][ 0 ] = cx * sz + cz * sx * sy;
         mat[ 1 ][ 1 ] = cx * cz - sx * sy * sz;
@@ -487,10 +471,12 @@ namespace cvt {
 		T xy, xz, zz;
 		T x2, y2, z2;
 
-        x = axis.x; y = axis.y; z = axis.z;
-
 		c = Math::cos( rad * ( T ) 0.5 );
 		s = Math::sin( rad * ( T ) 0.5 );
+
+		x = axis.x * s;
+		y = axis.y * s;
+		z = axis.z * s;
 
 		x2 = x + x;
 		y2 = y + y;
@@ -509,15 +495,15 @@ namespace cvt {
 		wz = c * z2;
 
 		mat[ 0 ][ 0 ] = ( T ) 1 - ( yy + zz );
-		mat[ 0 ][ 1 ] = xy + wz;
-		mat[ 0 ][ 2 ] = xz - wy;
+		mat[ 0 ][ 1 ] = xy - wz;
+		mat[ 0 ][ 2 ] = xz + wy;
 
-		mat[ 1 ][ 0 ] = xy - wz;
+		mat[ 1 ][ 0 ] = xy + wz;
 		mat[ 1 ][ 1 ] = ( T ) 1 - ( xx + zz );
-		mat[ 1 ][ 2 ] = yz + wx;
+		mat[ 1 ][ 2 ] = yz - wx;
 
-		mat[ 2 ][ 0 ] = xz + wy;
-		mat[ 2 ][ 1 ] = yz - wx;
+		mat[ 2 ][ 0 ] = xz - wy;
+		mat[ 2 ][ 1 ] = yz + wx;
 		mat[ 2 ][ 2 ] = ( T ) 1 - ( xx + yy );
 	}
 
