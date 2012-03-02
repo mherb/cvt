@@ -690,7 +690,7 @@ namespace cvt {
 		__tmp = ( ( src2 >> 8) & 0xff00ff ) - ( ( src1 >> 8 ) & 0xff00ff );
 		__tmp *= alpha;
 //		__tmp += 0x800080;
-		__tmp += src1 & 0xff00ff00; \
+		__tmp += src1 & 0xff00ff00; 
 	    __tmp &= 0xff00ff00;
 		__tmp2 = ( src2 & 0xff00ff ) - ( src1 & 0xff00ff );
 		__tmp2 *= alpha;
