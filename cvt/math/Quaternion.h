@@ -15,6 +15,9 @@
 #include <cvt/math/Matrix.h>
 
 namespace cvt {
+	template<typename T> class Matrix3;
+	template<typename T> class Matrix4;
+
 	template<typename T>
 		class Quaternion
 		{
@@ -23,6 +26,7 @@ namespace cvt {
 				Quaternion( T x, T y, T z, T w );
 				Quaternion( T phi, T theta, T psi );
 				Quaternion( const Quaternion& q2 );
+				Quaternion( const Matrix3<T>& rotmat );
 
 				void				set( T x, T y, T z, T w );
 				void				setRotation( T x, T y, T z, T rad );
@@ -53,6 +57,8 @@ namespace cvt {
 				Matrix3<T>			toMatrix3( void ) const;
 				Matrix4<T>			toMatrix4( void ) const;
 				Vector3<T>			toEuler( void ) const;
+				void				toAxisAngle( Vector3<T>& axis, T& anglerad ) const;
+
 				const T*			ptr( void ) const;
 				T*					ptr( void );
 
@@ -96,6 +102,48 @@ namespace cvt {
 			x = s_phi * c_theta * c_psi - c_phi * s_theta * s_psi;
 			y = c_phi * s_theta * c_psi + s_phi * c_theta * s_psi;
 			z = c_phi * c_theta * s_psi - s_phi * s_theta * c_psi;
+		}
+
+	template<typename T>
+		inline Quaternion<T>::Quaternion( const Matrix3<T>& rotmat )
+		{
+			/*			From Quaternion to Matrix and Back
+						February 27th 2005 J.M.P. van Waveren
+						© 2005, Id Software, Inc.
+
+						Animating Rotation with Quaternion Curves
+						Ken Shoemaker
+			 */
+			T tr = rotmat.trace();
+			if ( tr > 0 ) {
+				T t = tr + 1.0f;
+				T s = Math::sqrt( t ) * ( T ) 2;
+				w = t / s;
+				z = ( rotmat[ 1 ][ 0 ] - rotmat[ 0 ][ 1 ] ) / s;
+				y = ( rotmat[ 0 ][ 1 ] - rotmat[ 2 ][ 0 ] ) / s;
+				x = ( rotmat[ 2 ][ 1 ] - rotmat[ 1 ][ 2 ] ) / s;
+			} else if ( rotmat[ 0 ][ 0 ] > rotmat[ 1 ][ 1 ] && rotmat[ 0 ][ 0 ] > rotmat[ 2 ][ 2 ] ) {
+				T t = rotmat[ 0 ][ 0 ] - rotmat[ 1 ][ 1 ] - rotmat[ 2 ][ 2 ] + ( T ) 1;
+				T s = Math::sqrt( t ) * ( T ) 2;
+				x = t / s;
+				y = ( rotmat[ 1 ][ 0 ] + rotmat[ 0 ][ 1 ] ) / s;
+				z = ( rotmat[ 0 ][ 2 ] + rotmat[ 2 ][ 0 ] ) / s;
+				w = ( rotmat[ 2 ][ 1 ] - rotmat[ 1 ][ 2 ] ) / s;
+			} else if ( rotmat[ 1 ][ 1 ] > rotmat[ 2 ][ 2 ] ) {
+				T t = - rotmat[ 0 ][ 0 ] + rotmat[ 1 ][ 1 ] - rotmat[ 2 ][ 2 ] + ( T ) 1;
+				T s = Math::sqrt( t ) * ( T ) 2;
+				y = t / s;
+				x = ( rotmat[ 1 ][ 0 ] + rotmat[ 0 ][ 1 ] ) / s;
+				w = ( rotmat[ 0 ][ 2 ] - rotmat[ 2 ][ 0 ] ) / s;
+				z = ( rotmat[ 2 ][ 1 ] + rotmat[ 1 ][ 2 ] ) / s;
+			} else {
+				T t = - rotmat[ 0 ][ 0 ] - rotmat[ 1 ][ 1 ] + rotmat[ 2 ][ 2 ] + ( T ) 1;
+				T s = Math::sqrt( t ) * ( T ) 2;
+				z = t / s;
+				w = ( rotmat[ 1 ][ 0 ] - rotmat[ 0 ][ 1 ] ) / s;
+				x = ( rotmat[ 0 ][ 2 ] + rotmat[ 2 ][ 0 ] ) / s;
+				y = ( rotmat[ 2 ][ 1 ] + rotmat[ 1 ][ 2 ] ) / s;
+			}
 		}
 
 	template<typename T>
@@ -424,6 +472,16 @@ namespace cvt {
 			result[ 2 ] = cvt::Math::atan2( (T)2 * ( x * y + w * z ), wwyy + xxzz );
 
 			return result;
+		}
+
+
+	template<typename T>
+		inline void Quaternion<T>::toAxisAngle( Vector3<T>& axis, T& angle ) const
+		{
+			angle = Math::acos( w ) * ( T ) 2;
+			axis.set( x, y, z );
+			axis /= Math::sin( angle * ( T ) 0.5 );
+			axis.normalize();
 		}
 
 	template<typename T>

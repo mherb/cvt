@@ -11,6 +11,7 @@
 #ifdef CVT_MATRIX_H
 
 #include <cvt/util/SIMD.h>
+#include <cvt/math/Quaternion.h>
 
 namespace cvt {
 	template<typename T> class Matrix2;
@@ -79,6 +80,7 @@ namespace cvt {
 		void				setProjectedRotation( T radx, T rady, T radz, T fx = 1024, T fy = 1024, T d = 1024 );
 		void				setSkewSymmetric( const Vector3<T>& t );
 
+
 		T					trace( void ) const;
 		T					determinant( void ) const;
 		Matrix3<T>			transpose( void ) const;
@@ -87,6 +89,8 @@ namespace cvt {
 		bool				inverseSelf( void );
 		void				svd( Matrix3<T>& u, Matrix3<T>& d, Matrix3<T>& vt ) const;
 		Matrix3<T>			pseudoInverse() const;
+
+		void				toAxisAngle( Vector3<T>& axis, T& angle ) const;
 
 		Matrix4<T>			toMatrix4( void ) const;
 		Matrix2<T>			toMatrix2( void ) const;
@@ -709,6 +713,19 @@ namespace cvt {
 	{
 		return Matrix2<T>( mat[ 0 ][ 0 ], mat[ 0 ][ 1 ],
 						   mat[ 1 ][ 0 ], mat[ 1 ][ 1 ] );
+	}
+
+	template<typename T>
+	inline void Matrix3<T>::toAxisAngle( Vector3<T>& axis, T& angle ) const
+	{
+		Quaternion<T> q( *this );
+		q.toAxisAngle( axis, angle );
+		/*angle = Math::acos( ( trace() -  ( T ) 1 ) / ( T ) 2 );
+		axis.x = mat[ 2 ][ 1 ] - mat[ 1 ][ 2 ];
+		axis.y = mat[ 0 ][ 2 ] - mat[ 2 ][ 0 ];
+		axis.z = mat[ 1 ][ 0 ] - mat[ 0 ][ 1 ];
+		axis /= Math::sin( angle ) * ( T ) 2;
+		axis.normalize();*/
 	}
 
 	template<typename T>
