@@ -12,6 +12,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/ORB.h>
 #include <vector>
+#include "CompositingSurface.h"
 
 
 namespace cvt {
@@ -23,9 +24,10 @@ namespace cvt {
 
             void addImage( const Image& img );
 
-            const Image& stitchedImage() const { return *_stitched; }
+            const Image& stitchedImage() const { return _surface->compositedImage(); }
             
         private:
+			CompositingSurface* _surface;
 			size_t	_octaves;
 			float	_scale;
 			uint8_t	_fastCornerThreshold;
@@ -35,16 +37,10 @@ namespace cvt {
 
             std::vector<Image>		_images;
 			std::vector<Matrix3f>	_homographies;
-
 			std::vector< std::vector<ORBFeature> > _featuresForView;
 
-			Matrix3f	_offsetTransform;
-            Image*		_stitched;
-
 			bool checkHomography( const Matrix3f& h );
-
 			void addFeatures( const ORB& orb );
-			void updateStitched();
     };
 
 }
