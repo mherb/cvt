@@ -11,10 +11,12 @@ namespace cvt
 			PlaneCompositingSurface();
 			~PlaneCompositingSurface();
 			
-			void addImage( const Image& img, const Matrix3f& homography );
+			void addImage( const Image& img, const Matrix3f& intrinsics, const Matrix3f& rot );
 
 		private:
+			bool		_first;
 			Matrix3f	_offsetTransform;
+			Matrix3f	_intrinsics0Inv;
 
 	};
 }

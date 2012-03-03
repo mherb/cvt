@@ -8,26 +8,25 @@ namespace cvt
 	class CylindricalCompositingSurface : public CompositingSurface
 	{
 		public:
-			CylindricalCompositingSurface( float radius, float focalLength );
+			CylindricalCompositingSurface( float radius );
 			~CylindricalCompositingSurface();
 
-			void addImage( const Image& img, const Matrix3f& homography );
+			void addImage( const Image& img, const Matrix3f& intrinsics, const Matrix3f& rotation );
 
 		private:
 			struct CylindricalWarp : public Function<Vector2f, Vector2f>
 			{
 				float		radius;
-				float		focal;
-				float		cx;
-				float		cy;
-				size_t		wc;
-				size_t		hc;
-				Matrix3f	homography;	
+				Matrix3f	rotation;	
+				Matrix3f	intrinsics;	
+				size_t		compWidth;	
+				size_t		compHeight;	
 
 				Vector2f operator()( const Vector2f& v ) const;
 			};
 
 			CylindricalWarp		_warpFunc;
+
 	};
 }
 
