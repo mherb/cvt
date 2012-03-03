@@ -59,6 +59,7 @@ namespace cvt
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
 		Vector2f undistortPoint( const Vector2f& in ) const;
 		Vector2f inverseUndistortPoint( const Vector2f& in ) const;
+		Vector2f inverseUndistortPoint2( const Vector2f& in ) const;
 		void calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const;
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
@@ -295,6 +296,29 @@ namespace cvt
 		p.y *= lambda.y;
 		return p + c;
 	}
+
+	inline Vector2f CameraCalibration::inverseUndistortPoint2( const Vector2f& in ) const
+	{
+		Vector2f c = Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] );
+		Vector2f f = Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] );
+		Vector2f p = ( in - c );
+		p /= f;
+		Vector2f x = p;
+
+		for( int kk = 0; kk < 20; kk++ ) {
+			float r2 = x.lengthSqr();
+			float r4 = Math::sqr( r2 );
+			float r6 = r2 * r4;
+
+			float radial =  1.0f + _radial[ 0 ] * r2 + _radial[ 1 ] * r4 + _radial[ 2 ] * r6;
+			Vector2f dx( 2.0f * _tangential[ 0 ] * x.x * x.y + _tangential[ 1 ]* ( r2 + 2.0f * Math::sqr( x.x ) ),
+						_tangential[ 0 ] * (r2 + 2.0f * Math::sqr( x.y ) ) + 2.0f * _tangential[ 1 ] * x.x * x.y );
+			x = ( p - dx )/radial;
+		}
+
+		return x.cmul( f ) + c;
+	}
+
 
 	struct FixedXinverseUndistort {
 		FixedXinverseUndistort( float x, const CameraCalibration* cam ) : _pt( x, 0 ), _cam( cam ) {}

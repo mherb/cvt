@@ -75,8 +75,8 @@ namespace cvt {
 			dst = map.ptr();
 			for( size_t x = 0; x < w; x++ ) {
 				Vector2f p = op( Vector2f( x, y ) );
-				*dst++ = Math::clamp<float>( p.x, 0, w - 1 );
-				*dst++ = Math::clamp<float>( p.y, 0, h - 1 );
+				*dst++ = p.x;//Math::clamp<float>( p.x, 0, w - 1 );
+				*dst++ = p.y;//Math::clamp<float>( p.y, 0, h - 1 );
 			}
 			map++;
 		}
