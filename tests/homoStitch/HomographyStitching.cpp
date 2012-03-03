@@ -14,9 +14,11 @@
 
 namespace cvt {
 
-    HomographyStitching::HomographyStitching() :
+    HomographyStitching::HomographyStitching( const Matrix3f& k ) :
+		_intrinsics( k ),
+		_intrinsicsInv( k.inverse() ),
 		//_surface( new PlaneCompositingSurface() ),
-		_surface( new CylindricalCompositingSurface( 600, 600 ) ),
+		_surface( new CylindricalCompositingSurface( k[ 0 ][ 0 ] ) ),
 		_octaves( 3 ),
 		_scale( 0.5f ),
 		_fastCornerThreshold( 30 ),
@@ -45,8 +47,11 @@ namespace cvt {
 			addFeatures( orb );
 			_homographies.push_back( Matrix3f() );
 			_homographies.back().setIdentity();
+			// identity rotation as well
+			_rotations.push_back( _homographies.back() );
 
-			_surface->addImage( img, _homographies.back() );
+			std::cout << "Homography:" << _homographies.back() << std::endl;
+			_surface->addImage( img, _intrinsics, _rotations.back() );
 			return;
 		}
 
@@ -71,11 +76,22 @@ namespace cvt {
 		// compute the homography to the first image:
 		_homographies.push_back( _homographies.back() );
 		_homographies.back() *= homography;
+
+		// extract the rotation and compute the overall rotation
+		Matrix3f rotation;
+		rotationFromHomography( rotation, homography );
+		_rotations.push_back( _rotations.back() );
+		_rotations.back() *= rotation;
+
+		Quaternionf q( _rotations.back() );
+		std::cout << "Angles: " << q.toEuler() << std::endl; 
 		
 		_images.push_back( img );
 		addFeatures( orb );
+			
+		std::cout << "Homography:" << _homographies.back() << std::endl;
 
-		_surface->addImage( img, _homographies.back() );
+		_surface->addImage( img, _intrinsics, _rotations.back() );
 	}
 
 	bool HomographyStitching::checkHomography( const Matrix3f & homography )
@@ -102,6 +118,12 @@ namespace cvt {
 		for( size_t i = 0; i < orb.size(); i++ ){
 			container.push_back( orb[ i ] );
 		}
+	}
+
+
+	void HomographyStitching::rotationFromHomography( Matrix3f& r, const Matrix3f& hom ) const
+	{
+		r = _intrinsicsInv * hom * _intrinsics; 
 	}
 
 }

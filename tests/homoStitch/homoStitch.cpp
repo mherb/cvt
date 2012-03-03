@@ -9,6 +9,7 @@ using namespace cvt;
 
 Camera* initCamera()
 {
+
     Camera::updateInfo();
 	size_t numCams = Camera::count();
 
@@ -49,8 +50,11 @@ void runFromSequence( int argc, char* argv[] )
         return;
     }
 
+	Matrix3f calib( 525.0f, 0.0f, 319.5f, 
+				    0.0f, 525.0f, 239.5f, 
+					0.0f, 0.0f, 1.0f );
 	Image img;
-	HomographyStitching stitcher;
+	HomographyStitching stitcher( calib );
 	
 	for( int i = 1; i < argc; i++ ){
 		img.load( argv[ i ] );
@@ -65,8 +69,12 @@ void runFromSequence( int argc, char* argv[] )
 
 void runFromCamera()
 {
+	Matrix3f calib( 525.0f, 0.0f, 319.5f, 
+				    0.0f, 525.0f, 239.5f, 
+					0.0f, 0.0f, 1.0f );
+
 	Camera* cam = initCamera();
-	StitchApp stitchApp( cam );
+	StitchApp stitchApp( cam, calib );
 	Application::run();
 
 	cam->stopCapture();

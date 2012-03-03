@@ -2,34 +2,26 @@
 
 namespace cvt
 {
-	CylindricalCompositingSurface::CylindricalCompositingSurface( float radius, float focal )
+	CylindricalCompositingSurface::CylindricalCompositingSurface( float radius )
 	{
-		int width = Math::PI * radius;
-		//int width = radius;
-		//_compositedImage->reallocate( width, 1024, IFormat::RGBA_UINT8 );
+		int width = Math::TWO_PI * radius;
+		_compositedImage->reallocate( width, 1024, IFormat::RGBA_UINT8 );
 
-		_warpFunc.homography.setIdentity();
+		_warpFunc.rotation.setIdentity();
+		_warpFunc.intrinsics.setIdentity();
 		_warpFunc.radius = radius;
-		_warpFunc.focal = focal;
-		_warpFunc.cx = 0;
-		_warpFunc.cy = 0;
-		_warpFunc.wc = _compositedImage->width() / 2.0f;
-		_warpFunc.hc = _compositedImage->height() / 2.0f;
+		_warpFunc.compWidth = _compositedImage->width();
+		_warpFunc.compHeight = _compositedImage->height();
 	}
 
 	CylindricalCompositingSurface::~CylindricalCompositingSurface()
 	{
 	}
 			
-	void CylindricalCompositingSurface::addImage( const Image& img, const Matrix3f& homography )
+	void CylindricalCompositingSurface::addImage( const Image& img, const Matrix3f& intrinsics, const Matrix3f& rotation )
 	{		
-		_warpFunc.homography = homography;
-		_warpFunc.cx = img.width() / 2.0f;
-		_warpFunc.cy = img.height() / 2.0f;
-		if( !_warpFunc.homography.inverseSelf() ){
-			std::cout << "Could not invert homography!" << std::endl;
-			return;
-		}
+		_warpFunc.rotation   = rotation;
+		_warpFunc.intrinsics = intrinsics;
 
 		ITransform::apply( *_compositedImage, img, _warpFunc, _compositedImage->width(), _compositedImage->height() );
 	}
@@ -37,16 +29,27 @@ namespace cvt
 	Vector2f CylindricalCompositingSurface::CylindricalWarp::operator()( const Vector2f& cyl ) const
 	{
 		// this is the inverse lookup:
-		// so first get from the cylinder to the base plane
-		Vector2f base;
-		float tangens = tan( ( ( cyl.x - wc ) / radius ) - Math::HALF_PI );
-		base.x = focal * tangens + cx;
-	    base.y = ( cyl.y - hc ) / radius * focal * Math::sqrt( 1.0f + Math::sqr( tangens ) ) + cy;
+		Vector3f cyl3;
+		float angle = Math::TWO_PI * cyl.x / ( float )compWidth - Math::PI;
+		cyl3.x = sin( angle );
+		float s = ( float )compWidth / Math::TWO_PI;
+		cyl3.y = ( cyl.y - 0.5f * compHeight ) / s;
+		cyl3.z = cos( angle );
 
-		return base;
-		// from base to image	
-		Vector2f image;
-		image = homography * base;
-		return image;
+		if( cyl.y == 100 ){
+			std::cout << "Angle: " << Math::rad2Deg( angle ) << std::endl;
+		}
+
+		// project the vector to the image plane
+		Vector3f image;
+		image = intrinsics * rotation.transpose() * cyl3;
+
+		Vector2f ret( -1.0f, -1.0f );
+		if( image.z > 0.0f ){
+			ret.x = image.x / image.z;
+			ret.y = image.y / image.z;
+		}
+
+		return ret;
 	}
 }
