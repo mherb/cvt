@@ -6,6 +6,7 @@ namespace cvt
 	{
 		int width = Math::TWO_PI * radius;
 		_compositedImage->reallocate( width, 1024, IFormat::RGBA_UINT8 );
+		_compositedImage->fill( Color::BLACK );
 
 		_warpFunc.rotation.setIdentity();
 		_warpFunc.intrinsics.setIdentity();
