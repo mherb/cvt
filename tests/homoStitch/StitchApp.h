@@ -13,7 +13,7 @@ namespace cvt
 	class StitchApp : public TimeoutHandler
 	{
 		public:
-			StitchApp( Camera* cam );
+			StitchApp( Camera* cam, const Matrix3f& calib );
 			~StitchApp();
 
 			void onTimeout();
@@ -27,9 +27,10 @@ namespace cvt
 
 	};
 
-	inline StitchApp::StitchApp( Camera* cam ) :
+	inline StitchApp::StitchApp( Camera* cam, const Matrix3f& calib ) :
 		_cam( cam ),
-		_window( "Stitching" )
+		_window( "Stitching" ),
+		_stitcher( calib )
 	{
 		_timerId = Application::registerTimer( 20, this );
 		_window.setSize( 640, 480 );

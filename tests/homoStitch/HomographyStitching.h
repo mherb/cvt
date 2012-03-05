@@ -19,7 +19,7 @@ namespace cvt {
 
     class HomographyStitching {
         public:
-            HomographyStitching();
+            HomographyStitching( const Matrix3f& camMat );
             ~HomographyStitching();
 
             void addImage( const Image& img );
@@ -27,6 +27,8 @@ namespace cvt {
             const Image& stitchedImage() const { return _surface->compositedImage(); }
             
         private:
+			Matrix3f	_intrinsics;
+			Matrix3f	_intrinsicsInv;
 			CompositingSurface* _surface;
 			size_t	_octaves;
 			float	_scale;
@@ -37,10 +39,13 @@ namespace cvt {
 
             std::vector<Image>		_images;
 			std::vector<Matrix3f>	_homographies;
+			std::vector<Matrix3f>	_rotations;
 			std::vector< std::vector<ORBFeature> > _featuresForView;
 
 			bool checkHomography( const Matrix3f& h );
 			void addFeatures( const ORB& orb );
+
+			void rotationFromHomography( Matrix3f& r, const Matrix3f& hom ) const;
     };
 
 }
