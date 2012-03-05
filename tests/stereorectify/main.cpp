@@ -23,39 +23,14 @@ struct UndistortOp
 {
 	UndistortOp( const CameraCalibration& calib ) : _calib( calib ) {}
 
-	inline Vector2f operator()( const Vector2f& pt ) const { return _calib.undistortPoint( pt ); }
+	inline Vector2f operator()( const Vector2f& pt ) const { return _calib.undistortPoint( pt - Vector2f(100, 100 ) ) + Vector2f( 0, 0 ); }
 
 	CameraCalibration _calib;
 };
 
+
 int main( int argc, char** argv )
 {
-	Matrix3f mat(   1.0000,  -0.0072,  -0.0059,
-				   0.0071,   0.9999,  -0.0151,
-				   0.0060,   0.0151,   0.9999 );
-	Vector3f aa( 0.0151079052 ,  -0.0059286737,  0.0071693550 );
-
-
-
-	std::cout << mat<< std::endl << std::endl;
-	mat.setRotation( aa / aa.length(), aa.length() );
-
-	std::cout << mat<< std::endl << std::endl;
-	Quaternionf q( mat );
-	std::cout << q.toMatrix3() << std::endl << std::endl;
-
-	Vector3f axis;
-	float angle;
-	q.toAxisAngle( axis, angle );
-	std::cout << axis << std::endl;
-	std::cout << angle << std::endl << std::endl;;
-
-	mat.toAxisAngle( axis, angle );
-	std::cout << axis << std::endl;
-	std::cout << angle << std::endl;
-	mat.setRotation( axis, angle * 0.5 );
-	std::cout << mat * mat << std::endl;
-	return 0;
 	// FIXME: add argc/argv check
 	CameraCalibration left;
 	CameraCalibration right;
@@ -66,12 +41,35 @@ int main( int argc, char** argv )
 	loadCameraCalib( right, argv[ 2 ] );
 
 	Image input( argv[ 3 ] );
-	Image warp( input.width(), input.height(), IFormat::GRAYALPHA_FLOAT );
-	Image out( input );
+	Image warp( input.width() + 200, input.height() + 200, IFormat::GRAYALPHA_FLOAT );
+	Image  out( input.width() + 200, input.height() + 200, input.format() );
 
 	UndistortOp op( left );
 	IWarp::warpGeneric( warp, op );
 //	IWarp::warpGeneric( warp, Delegate<Vector2f ( const Vector2f& )>( &left, &CameraCalibration::undistortPoint ) );
 	IWarp::apply( out, input, warp );
+
+	{
+		IMapScoped<uint8_t> map( out );
+		uint8_t* ptr = map.ptr();
+		size_t stride = map.stride();
+		for( float x = 0; x < input.width(); x++ ) {
+			Vector2f pt = left.inverseUndistortPoint2( Vector2f( x, 0  ) ) + Vector2f( 100, 100 );
+			int px = ( int ) ( pt.x + 0.5f );
+			int py = ( int ) ( pt.y + 0.5f );
+			if( px >= 0 && px < out.width() && py >= 0 && py < out.height() )
+				*( ( uint32_t* )( ptr + stride * py + px * 4 ) ) = 0xffffffff;
+		}
+
+		for( float x = 0; x < input.width(); x++ ) {
+			Vector2f pt = left.inverseUndistortPoint2( Vector2f( x, input.height() - 1 ) ) + Vector2f( 100, 100 );
+			int px = ( int ) ( pt.x + 0.5f );
+			int py = ( int ) ( pt.y + 0.5f );
+			if( px >= 0 && px < out.width() && py >= 0 && py < out.height() )
+				*( ( uint32_t* )( ptr + stride * py + px * 4 ) ) = 0xffffffff;
+		}
+
+	}
+
 	out.save("output.png");
 }
