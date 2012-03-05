@@ -2,24 +2,34 @@
 
 namespace cvt
 {
-	PlaneCompositingSurface::PlaneCompositingSurface()
+	PlaneCompositingSurface::PlaneCompositingSurface() :
+		_first( true )
 	{
 		_offsetTransform.setIdentity();
 		_offsetTransform[ 0 ][ 0 ] = 1.0f;
 		_offsetTransform[ 1 ][ 1 ] = 1.0f;
 		_offsetTransform[ 0 ][ 2 ] = _compositedImage->width() / 4;
 		_offsetTransform[ 1 ][ 2 ] = _compositedImage->height() / 4;
+		_intrinsics0Inv.setIdentity();
 	}
 
 	PlaneCompositingSurface::~PlaneCompositingSurface()
 	{
 	}
 
-	void PlaneCompositingSurface::addImage( const Image& img, const Matrix3f& hom )
+	void PlaneCompositingSurface::addImage( const Image& img, const Matrix3f& intrinsics, const Matrix3f& rot )
 	{
 		// first try if the image is still big enough to capture the content
 		Vector2f pt( 0, 0 );
 		Vector2f p0, p1, p2, p3;
+
+		if( _first ){
+			_intrinsics0Inv = intrinsics.inverse();
+			_first = false;
+		}
+
+		Matrix3f hom    = intrinsics * rot * _intrinsics0Inv;
+		std::cout << "Homography rebuild:" << hom << std::endl;
 
 		Matrix3f homAll = _offsetTransform * hom;
 

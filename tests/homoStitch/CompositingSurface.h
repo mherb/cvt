@@ -23,10 +23,10 @@ namespace cvt {
 
 			/**
 			 *	add a new Image to the compositing surface
-			 *	the alignment is given by a homography which transforms points 
+			 *	the alignment is given by a rotation which transforms points 
 			 *	from the current to the first image 
 			 */
-			virtual void addImage( const Image& img, const Matrix3f& homography ) = 0;
+			virtual void addImage( const Image& img, const Matrix3f& intrinsics, const Matrix3f& rot ) = 0;
 
 			const Image& compositedImage() const { return *_compositedImage; }
 
