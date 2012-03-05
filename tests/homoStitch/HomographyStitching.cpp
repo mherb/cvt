@@ -19,12 +19,12 @@ namespace cvt {
 		_intrinsicsInv( k.inverse() ),
 		//_surface( new PlaneCompositingSurface() ),
 		_surface( new CylindricalCompositingSurface( k[ 0 ][ 0 ] ) ),
-		_octaves( 3 ),
+		_octaves( 4 ),
 		_scale( 0.5f ),
-		_fastCornerThreshold( 30 ),
+		_fastCornerThreshold( 20 ),
 		_maxNumFeatures( 0 ),
 		_nonMaxSuppress( false ),
-		_maxDescriptorDistance( 50 )
+		_maxDescriptorDistance( 40 )
     {
     }
 
@@ -50,7 +50,6 @@ namespace cvt {
 			// identity rotation as well
 			_rotations.push_back( _homographies.back() );
 
-			std::cout << "Homography:" << _homographies.back() << std::endl;
 			_surface->addImage( img, _intrinsics, _rotations.back() );
 			return;
 		}
@@ -64,8 +63,8 @@ namespace cvt {
 		//FeatureMatcher::matchWithWindow( matches, orb, features0, 150, _maxDescriptorDistance );
 
 		HomographySAC model( matches );
-		RANSAC<HomographySAC> ransac( model, 2.0f /*maxreproj.*/, 0.4f /*outlierprob*/ );
-		Matrix3f homography = ransac.estimate( 10000 );
+		RANSAC<HomographySAC> ransac( model, 1.0f /*maxreproj.*/, 0.4f /*outlierprob*/ );
+		Matrix3f homography = ransac.estimate( 2000 );
 
 		if( !checkHomography( homography ) ){
 			std::cerr << "BAD HOMOGRAPHY, NOT ADDING IMAGE" << std::endl;
@@ -83,14 +82,9 @@ namespace cvt {
 		_rotations.push_back( _rotations.back() );
 		_rotations.back() *= rotation;
 
-		Quaternionf q( _rotations.back() );
-		std::cout << "Angles: " << q.toEuler() << std::endl; 
-		
 		_images.push_back( img );
 		addFeatures( orb );
 			
-		std::cout << "Homography:" << _homographies.back() << std::endl;
-
 		_surface->addImage( img, _intrinsics, _rotations.back() );
 	}
 

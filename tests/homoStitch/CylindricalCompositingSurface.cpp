@@ -36,10 +36,6 @@ namespace cvt
 		cyl3.y = ( cyl.y - 0.5f * compHeight ) / s;
 		cyl3.z = cos( angle );
 
-		if( cyl.y == 100 ){
-			std::cout << "Angle: " << Math::rad2Deg( angle ) << std::endl;
-		}
-
 		// project the vector to the image plane
 		Vector3f image;
 		image = intrinsics * rotation.transpose() * cyl3;
