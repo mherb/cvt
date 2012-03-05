@@ -21,7 +21,7 @@ namespace cvt {
 		_surface( new CylindricalCompositingSurface( k[ 0 ][ 0 ] ) ),
 		_octaves( 4 ),
 		_scale( 0.5f ),
-		_fastCornerThreshold( 20 ),
+		_fastCornerThreshold( 25 ),
 		_maxNumFeatures( 0 ),
 		_nonMaxSuppress( false ),
 		_maxDescriptorDistance( 40 )
@@ -63,8 +63,8 @@ namespace cvt {
 		//FeatureMatcher::matchWithWindow( matches, orb, features0, 150, _maxDescriptorDistance );
 
 		HomographySAC model( matches );
-		RANSAC<HomographySAC> ransac( model, 1.0f /*maxreproj.*/, 0.4f /*outlierprob*/ );
-		Matrix3f homography = ransac.estimate( 2000 );
+		RANSAC<HomographySAC> ransac( model, 0.5f /*maxreproj.*/, 0.4f /*outlierprob*/ );
+		Matrix3f homography = ransac.estimate( 10000 );
 
 		if( !checkHomography( homography ) ){
 			std::cerr << "BAD HOMOGRAPHY, NOT ADDING IMAGE" << std::endl;
