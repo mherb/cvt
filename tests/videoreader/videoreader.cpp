@@ -6,68 +6,115 @@
 
 #include <cvt/gui/Application.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Label.h>
+#include <cvt/gui/Button.h>
+#include <cvt/gui/ImageView.h>
 #include <cvt/gui/BasicTimer.h>
+#include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Delegate.h>
 
 using namespace cvt;
 
-class VideoPlayer : public Window
+class VideoPlayer : public TimeoutHandler
 {
-public:
-	VideoPlayer( const String& videoFile, size_t playSpeedMs ) : 
-        Window( "VideoPlayer" ), _video( 0 ), _timer(playSpeedMs ), _frames( 0 )
-	{
-		//_video = new VideoReader( videoFile, true );
-		_video = new RawVideoReader( videoFile, true );
-        // register a timer to retrieve the next video frame
-        Delegate<void ( BasicTimer* )> capturedelegate( this, &VideoPlayer::capture );
-        _timer.timeout.add( capturedelegate );
-        _timer.start();
-        
-        _video->nextFrame();
-            
-        this->setSize( 800, 600 );
-        this->show();
-        _time.reset();
-    }
-    
-    ~VideoPlayer()
-    {
-        _timer.stop();
-		delete _video;
-    }
-    
-    void capture( BasicTimer* )
-    { 
-        _video->nextFrame(); 
-        _frames++;
-        if( _time.elapsedSeconds() > 3.0f ){
-            char buf[ 100 ];
-            sprintf( buf, "VideoPlayer FPS: %0.1f", _frames / _time.elapsedSeconds() );            
-            _frames = 0;
-            _time.reset();           
-            this->setTitle( buf );
-        }
-        update();        
-    }
-        
-	void paintEvent( PaintEvent*, GFX* gfx )
-	{
-		int w, h;
-		size( w, h );
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->fillRect( 0, 0, w, h );  
-		Image color;
-		_video->frame().convert( color, IFormat::RGBA_UINT8 );		
-		gfx->drawImage( 0, 0, w, h, color );
-	}
-    
-private:    
-    VideoInput*		_video;
-    BasicTimer  _timer;
-    Delegate< void ( BasicTimer * ) >* _captureDelegate;
-    size_t      _frames;
-    Time        _time;
+	public:
+
+		VideoPlayer( const String& videoFile, size_t playSpeedMs ) : 
+			_window( "VideoPlayer" ), 
+			_imageNumLabel( "#" ), 
+			_pauseButton( "Pause" ), 
+			_pause( false ),
+			_video( 0 ), 
+			_frames( 0 ),
+			_seq( 0 )
+		{
+			//_video = new VideoReader( videoFile, true );
+			_video = new RawVideoReader( videoFile, true );
+
+			// register a timer to retrieve the next video frame
+			_timerId = Application::registerTimer( playSpeedMs, this );
+			
+
+			_window.setSize( 800, 600 );
+			WidgetLayout wl;
+			wl.setAnchoredTopBottom( 5, 30 );
+			wl.setAnchoredLeftRight( 5, 5 );
+			_window.addWidget( &_imView, wl );
+
+			wl.setAnchoredBottom( 5, 20 );
+			wl.setAnchoredLeft( 5, 120 );
+			_window.addWidget( &_imageNumLabel, wl );
+
+			wl.setAnchoredRight( 5, 150 );
+			_window.addWidget( &_pauseButton, wl );
+			
+			Delegate<void ()> d( this, &VideoPlayer::togglePause );
+			_pauseButton.clicked.add( d );
+			
+			_window.show();
+			
+			_time.reset();
+			_video->nextFrame();
+			_seq++;
+			_imView.setImage( _video->frame() );
+
+			String l;
+			l.sprintf( "# %05d", _frames );
+			_imageNumLabel.setLabel( l );
+		}
+
+		~VideoPlayer()
+		{
+			Application::unregisterTimer( _timerId );
+			delete _video;
+		}
+
+		void onTimeout()
+		{ 
+			if( !_pause ){
+				_video->nextFrame();
+				_seq++;
+				_frames++;
+				String l;
+				l.sprintf( "# %05d", _seq );
+				_imageNumLabel.setLabel( l );
+
+				Image color;
+				_video->frame().convert( color, IFormat::RGBA_UINT8 );
+				_imView.setImage( color );
+			}
+		
+			if( _time.elapsedSeconds() > 3.0f ){
+				char buf[ 100 ];
+				sprintf( buf, "VideoPlayer FPS: %0.1f", _frames / _time.elapsedSeconds() );            
+				_frames = 0;
+				_time.reset();           
+				_window.setTitle( buf );
+			}
+		}
+
+		void togglePause()
+		{
+			if( _pause ){
+				_pauseButton.setLabel( "Pause" );
+			} else {
+				_pauseButton.setLabel( "Play" );
+			}
+			_pause = !_pause;
+		}
+		
+
+	private:    
+		Window			_window;
+		Label			_imageNumLabel;
+		Button			_pauseButton;
+		bool			_pause;
+		ImageView		_imView;
+		VideoInput*		_video;
+		uint32_t		_timerId;
+		size_t			_frames;
+		size_t			_seq;
+		Time			_time;
 };
 
 int main( int argc, char** argv )
