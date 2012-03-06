@@ -24,7 +24,7 @@ __kernel void tvl1_warp( __write_only image2d_t out, __read_only image2d_t u, __
 	barrier( CLK_LOCAL_MEM_FENCE );
 
 #define ALPHA 1.0f
-#define BETA 25.0f
+#define BETA 10.0f
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), bstride ) + ( x ) + 1 ]
 #define CSELECT( val ) dot( val, ( float4 )( 0.3333f, 0.3333f, 0.3333f, 0.0f ) )
 //#define CSELECT( val ) dot( val, ( float4 )(0.2126f, 0.7152f, 0.0722f, 0.0f ) )
