@@ -63,7 +63,7 @@ namespace cvt {
 					 &interlace_type, NULL, NULL);
 
 		/* tell libpng to strip 16 bit/color files down to 8 bits/color */
-		png_set_strip_16(png_ptr);
+		//png_set_strip_16(png_ptr);
 
 		/* expand paletted or RGB images with transparency to full alpha channels
 		 * so the data will be available as RGBA quartets */
@@ -75,16 +75,28 @@ namespace cvt {
 
 		switch (color_type) {
 			case PNG_COLOR_TYPE_GRAY:
-				if(bit_depth < 8)
-					png_set_expand(png_ptr);
-				img.reallocate( width, height, IFormat::GRAY_UINT8 );
+				if( bit_depth <= 8 ) {
+					if(bit_depth < 8)
+						png_set_expand( png_ptr );
+					img.reallocate( width, height, IFormat::GRAY_UINT8 );
+				} else if( bit_depth == 16 ) {
+				    png_set_swap( png_ptr );
+					img.reallocate( width, height, IFormat::GRAY_UINT16 );
+				} else
+					throw CVTException("Unsupported PNG format");
 				break;
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
-				img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );
+				if( bit_depth == 16 ) {
+				    png_set_swap( png_ptr );
+					img.reallocate( width, height, IFormat::GRAYALPHA_UINT16 );
+				} else if( bit_depth == 8 )
+					img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );
+				else
+					throw CVTException("Unsupported PNG format");
 				break;
 			case PNG_COLOR_TYPE_RGB:
 			case PNG_COLOR_TYPE_PALETTE:
-				/* expand paletted colors into true RGB triplets */		    
+				/* expand paletted colors into true RGB triplets */
 				png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 			case PNG_COLOR_TYPE_RGBA:
 				//png_set_bgr(png_ptr);
