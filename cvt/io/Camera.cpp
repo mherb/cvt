@@ -8,7 +8,7 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-	#include <cvt/io/Camera.h>
+#include <cvt/io/Camera.h>
 
 #ifdef APPLE
 	#include <cvt/io/QTKitCamera.h>

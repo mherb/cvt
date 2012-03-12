@@ -4,7 +4,7 @@
 namespace cvt
 {
 	SLAMView::SLAMView() : 
-		_trans( -10 ),
+		_trans( 0.0f, 0.0f, -10.0f ),
 		_near( 0.1f ),
 		_far( 100.0f ),
 		_numKeyframes( 0 ),
@@ -39,7 +39,9 @@ namespace cvt
 
 		Matrix4f view, proj;
 		view.setIdentity();
-		view[ 2 ][ 3 ] = _trans;
+		view[ 0 ][ 3 ] = _trans[ 0 ];
+		view[ 1 ][ 3 ] = _trans[ 1 ];
+		view[ 2 ][ 3 ] = _trans[ 2 ];
 		view *= _rot;
 
 		proj = persp * view;
@@ -85,6 +87,10 @@ namespace cvt
 				_press.x = e->x;
 				_press.y = e->y;
 				break;
+			case 2:
+			case 3:
+				_panPress.x = e->x;
+				_panPress.y = e->y;
 			default:
 				break;
 		}
@@ -92,12 +98,17 @@ namespace cvt
 
 	void SLAMView::mouseReleaseEvent( MouseReleaseEvent* e )
 	{
-		if( e->button() == 4 ) {
-			_trans += 0.25f;
-			update();
-		} else if( e->button() == 5 ) {
-			_trans -= 0.25f;
-			update();
+		switch( e->button() ) {
+			case 4:
+				_trans.z += 0.25f;
+				update();
+				break;
+			case 5:
+				_trans.z -= 0.25f;
+				update();
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -112,6 +123,13 @@ namespace cvt
 			update();
 			_press.x = e->x;
 			_press.y = e->y;
+		}
+
+		if( e->buttonMask() & 2 || e->buttonMask() & 4 ) {
+			_trans.x += 0.01f * ( e->x - _panPress.x );
+			_trans.y -= 0.01f * ( e->y - _panPress.y );
+			_panPress.x = e->x;
+			_panPress.y = e->y;
 		}
 	}
 
@@ -225,7 +243,7 @@ namespace cvt
 		R.setRotationXYZ( 0, Math::PI, Math::PI );
 		_rot = R * _cam;
 		_rot.setTranslation( 0.0f, 0.0f, 0.0f );
-		_trans = _cam[ 2 ][ 3 ] - 1.0f;
+		_trans.z = _cam[ 2 ][ 3 ] - 1.0f;
 	}
 
 	void SLAMView::updateSingleKeyframe( GLfloat* ptr, const Keyframe & kf )

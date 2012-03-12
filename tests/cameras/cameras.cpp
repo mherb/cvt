@@ -189,10 +189,7 @@ int main( )
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
-
-
 	Camera * cam = 0;
-
 	try {
 		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
 		ImageView camView;

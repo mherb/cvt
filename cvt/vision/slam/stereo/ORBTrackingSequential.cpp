@@ -16,7 +16,7 @@ namespace cvt
 	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_maxDescDistance( 60 ),
+		_maxDescDistance( 80 ),
 		_windowRadius( 60 ),
 		_matcherMaxLineDistance( 1.0f ),
 		_maxTriangReprojError( 5.0f ),
@@ -98,10 +98,10 @@ namespace cvt
 
 
 	void ORBTrackingSequential::trackNonSequential( PointSet3d&			p3d, 
-												   PointSet2d&			p2d,
-												   const SlamMap&		map,
-												   const SE3<double>&	pose,
-												   const Image&			img )
+												    PointSet2d&			p2d,
+												    const SlamMap&		map,
+												    const SE3<double>&	pose,
+												    const Image&		img )
 	{
 		// predict visible features with map and current pose
 		_predictedIds.clear();
@@ -255,7 +255,12 @@ namespace cvt
 					triangulatedMeas.push_back( p0 );
 					triangulatedFeat.push_back( (const ORBFeature*)match.feature0 );
 					orb1Assigned.insert( id );
-				}
+				} /*else {
+					std::cout << "Reprojection Error too high: " << reprErr << std::endl;
+				}*/
+			} else {
+				std::cout << "Feature do not resemble enough" << std::endl;
+				std::cout << "DescDistance: " << match.distance << std::endl;
 			}
 		}
 
@@ -298,7 +303,7 @@ namespace cvt
 			}
 			std::cout << "New Features Triangulated: " << triangulatedPoint.size() << std::endl;
 			return _lastTrackedIds.size();
-		}
+		} 
 		return 0;
 	}
 

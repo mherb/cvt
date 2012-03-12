@@ -68,7 +68,7 @@ namespace cvt
 		sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
 
 		if( sad > 0.7 ){
-			//std::cout << sad << std::endl;
+			std::cout << sad << std::endl;
 			return true;
 		} else {
 			return false;

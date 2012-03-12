@@ -30,7 +30,7 @@ namespace cvt
 		private:
 			// view transform (virtual cam)
 			Matrix4f	_rot;
-			float		_trans;
+			Vector3f	_trans;
 			float		_near;
 			float		_far;
 
@@ -39,6 +39,7 @@ namespace cvt
 
 			ArcBall		_arcball;
 			Vector2i	_press;
+			Vector2i	_panPress;
 
 			GLBasicProg	_basicProg;
 
