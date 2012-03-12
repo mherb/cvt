@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <cvt/io/Resources.h>
-#include "cvt/io/xml/XMLDocument.h"
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/util/Signal.h>
@@ -127,31 +126,15 @@ class MyWindow : public Window
 		}
 };
 
-void loadCameraCalib( CameraCalibration& camCalib, const String& file )
-{
-	XMLDocument xmlDoc;
-	xmlDoc.load( file );
-	
-	XMLNode* node = xmlDoc.nodeByName( "CameraCalibration" );
-	camCalib.deserialize( node );
-	/*
-	std::cout << "CamCalib:\n" << camCalib0.extrinsics() <<  "\n" 
-						       << camCalib0.intrinsics() << "\n"
-							   << camCalib0.radialDistortion() << "\n"
-							   << camCalib0.tangentialDistortion() << std::endl;
-							   */
-}
-
 int main( int argc, char* argv[] )
 {
 	Resources r;
-
-	String calib0 = r.find( "calib_stereo/ueye_stereo_4002738788.xml" );
-	String calib1 = r.find( "calib_stereo/ueye_stereo_4002738790.xml" );
+	String calib0 = r.find( "calib_stereo/ueye_4002738788.xml" );
+	String calib1 = r.find( "calib_stereo/ueye_4002738790.xml" );
 
 	CameraCalibration camCalib0, camCalib1;
-	loadCameraCalib( camCalib0, calib0 );
-	loadCameraCalib( camCalib1, calib1 );
+	camCalib0.load( calib0 );
+	camCalib1.load( calib1 );
 
 	Matrix3f K0, K1, T0rectify, T1rectify;
 	Matrix4f T0, T1;
@@ -166,8 +149,8 @@ int main( int argc, char* argv[] )
 	std::cout << T0rectify << std::endl;
 	std::cout << T1rectify << std::endl;
 */
-	Image i0( r.find( "calib_stereo/ueye_stereo_4002738788.png" ) );
-	Image i1( r.find( "calib_stereo/ueye_stereo_4002738790.png" ) );
+	Image i0( r.find( "calib_stereo/ueye_4002738788.png" ) );
+	Image i1( r.find( "calib_stereo/ueye_4002738790.png" ) );
 	Image id0, id1, tmp0, tmp1;
 	
 	{
