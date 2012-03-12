@@ -102,11 +102,12 @@ namespace cvt {
 		Image imean_RR_RG_RB( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image imean_GG_GB_BB( cam0.width(), cam0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
+		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
+
 		Image* c[ 2 ] = { &c0, &c1 };
 		int index = 0;
 		float fill[ 4 ] = { 1e9f, 0.0f, 0.0f, 0.0f };
 
-		CLNDRange global( Math::pad16( cam0.width() ), Math::pad16( cam0.height() ) );
 
 		_clfill.setArg( 0, *c[ !index ] );
 		_clfill.setArg( 1, sizeof( cl_float ) * 4, fill );

@@ -22,6 +22,6 @@ __kernel void stereogcv_costdepthncc( __write_only image2d_t costout, __read_onl
 	m12 = read_imagef( meanI12, samplerlin, coordf + ( float2 ) ( depth, 0 ) );
 
 	ncc = ( m01 - m0 * m1 ) * rsqrt( ( m02 - m0 * m0 ) * ( m12 - m1 * m1 ) + 1e-10f );
-	float val = clamp( dot( ncc, dotmul ), 0.0f, 1.0f );
-	write_imagef( costout, coord, ( float4 ) -val );
+	float4 val = dot( ( float4 ) 1.0f - clamp( ncc, 0.0f, 1.0f ), dotmul );
+	write_imagef( costout, coord, val );
 }

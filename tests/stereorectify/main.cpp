@@ -35,15 +35,30 @@ int main( int argc, char** argv )
 	CameraCalibration left;
 	CameraCalibration right;
 
-	StereoCameraCalibration( left, right );
-
 	loadCameraCalib( left, argv[ 1 ] );
 	loadCameraCalib( right, argv[ 2 ] );
 
-	Image input( argv[ 3 ] );
-	Image warp( input.width() + 200, input.height() + 200, IFormat::GRAYALPHA_FLOAT );
-	Image  out( input.width() + 200, input.height() + 200, input.format() );
+	StereoCameraCalibration stereo( left, right );
+	StereoCameraCalibration newstereo;
 
+
+	Image inputl( argv[ 3 ] );
+	Image inputr( argv[ 4 ] );
+	Image warpl( inputl.width(), inputl.height(), IFormat::GRAYALPHA_FLOAT );
+	Image warpr( inputr.width(), inputr.height(), IFormat::GRAYALPHA_FLOAT );
+	Image outl( inputl.width(), inputl.height(), inputl.format() );
+	Image outr( inputr.width(), inputr.height(), inputr.format() );
+
+	stereo.undistortRectify( newstereo, warpl, warpr, inputl.width(), inputl.height() );
+
+
+	IWarp::apply( outl, inputl, warpl );
+	IWarp::apply( outr, inputr, warpr );
+
+	outl.save( "rectleft.png" );
+	outr.save( "rectright.png" );
+
+#if 0
 	UndistortOp op( left );
 	IWarp::warpGeneric( warp, op );
 //	IWarp::warpGeneric( warp, Delegate<Vector2f ( const Vector2f& )>( &left, &CameraCalibration::undistortPoint ) );
@@ -72,4 +87,5 @@ int main( int argc, char** argv )
 	}
 
 	out.save("output.png");
+#endif
 }
