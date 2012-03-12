@@ -4,7 +4,7 @@ namespace cvt
 {
 
 	RGBDParser::RGBDParser( const String& folder ) :
-	    _maxStampDiff( 0.01 ), // this is 10ms	
+	    _maxStampDiff( 0.1 ), // this is 8ms	
 		_folder( folder ),
 		_idx( 0 )
 	{
@@ -16,7 +16,28 @@ namespace cvt
 		loadRGBFilenames( rgbStamps );
 		loadDepthFilenames( depthStamps );	
 		loadGroundTruth();
+
+
+		std::cout << "RGB: " << _rgbFiles.size() << std::endl;
+		std::cout << "Depth: " << _depthFiles.size() << std::endl;
+		std::cout << "Stamps: " << _stamps.size() << std::endl;
+
 		sortOutData( rgbStamps, depthStamps );
+		std::cout << "RGB: " << _rgbFiles.size() << std::endl;
+		std::cout << "Depth: " << _depthFiles.size() << std::endl;
+		std::cout << "Stamps: " << _stamps.size() << std::endl;
+		getchar();
+
+
+		//std::cout << "RGB: " << _rgbFiles.size() << std::endl;
+		//for( size_t i = 0; i < _rgbFiles.size(); i++ )
+		//	std::cout << _rgbFiles[ i ] << std::endl;
+
+		//std::cout << "Depth: " << _depthFiles.size() << std::endl;
+		//for( size_t i = 0; i < _depthFiles.size(); i++ )
+		//	std::cout << _depthFiles[ i ] << std::endl;
+		//
+		//std::cout << "Stamps: " << _stamps.size() << std::endl;
 	}
 
 	void RGBDParser::loadNext()
@@ -62,7 +83,7 @@ namespace cvt
 		double stamp;
 		while( readNextFilename( name, stamp, iter ) ){
 			rgbStamps.push_back( stamp );
-			_rgbFiles.push_back( name );
+			_rgbFiles.push_back( _folder + name );
 		}
 	}
 	
@@ -79,7 +100,7 @@ namespace cvt
 		double stamp;
 		while( readNextFilename( name, stamp, iter ) ){
 			depthStamps.push_back( stamp );
-			_depthFiles.push_back( name );
+			_depthFiles.push_back( _folder + name );
 		}
 	}
 
@@ -181,12 +202,13 @@ namespace cvt
 			// find best gt pose for this rgb
 			size_t bestGtIdx = findClosestMatchInGTStamps( rgbStamps[ rgbIdx ], gtIdx );
 			if( Math::abs( _stamps[ bestGtIdx ] - rgbStamps[ rgbIdx ] ) > _maxStampDiff ){
-				break; // there is no more good pose for this rgb stamp!
+				rgbIdx++;
+				continue; // there is no good pose for this rgb stamp!
 			}
 
-			// find closest depth stamp to the gt stamp
-			size_t bestDepthIdx = findClosestMatchInDepthStamps( _stamps[ bestGtIdx ], depthIdx, depthStamps );
-			double depthDist = Math::abs( _stamps[ bestGtIdx ] - depthStamps[ bestDepthIdx ] );
+			// find closest depth stamp to the rgb idx
+			size_t bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], depthIdx, depthStamps );
+			double depthDist = Math::abs( rgbStamps[ rgbIdx ] - depthStamps[ bestDepthIdx ] );
 			if( depthDist < _maxStampDiff ){
 				// take it
 				_stamps[ savePos ] = _stamps[ bestGtIdx ];
@@ -195,9 +217,11 @@ namespace cvt
 				_rgbFiles[ savePos ] = _rgbFiles[ rgbIdx ];
 				savePos++;
 
-				gtIdx = bestGtIdx + 1;
-				depthIdx = bestDepthIdx + 1;
+				//gtIdx = bestGtIdx;
+				gtIdx++;
+				depthIdx = bestDepthIdx;
 			} else {
+				std::cout << "Could not find matching depth stamp" << std::endl;
 				gtIdx++;
 				depthIdx++;
 			}
@@ -205,11 +229,13 @@ namespace cvt
 			rgbIdx++;
 		}
 
+		std::cout << "Found: " << savePos << " matches" << std::endl;
+
 		// erase the rest: 
-		_stamps.erase( _stamps.begin() + gtIdx, _stamps.end() );
-		_groundTruthPoses.erase( _groundTruthPoses.begin() + gtIdx, _groundTruthPoses.end() );
-		_rgbFiles.erase( _rgbFiles.begin() + rgbIdx, _rgbFiles.end() );
-		_depthFiles.erase( _depthFiles.begin() + depthIdx, _depthFiles.end() );
+		_stamps.erase( _stamps.begin() + savePos, _stamps.end() );
+		_groundTruthPoses.erase( _groundTruthPoses.begin() + savePos, _groundTruthPoses.end() );
+		_rgbFiles.erase( _rgbFiles.begin() + savePos, _rgbFiles.end() );
+		_depthFiles.erase( _depthFiles.begin() + savePos, _depthFiles.end() );
 	}
 
 
