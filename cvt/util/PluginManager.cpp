@@ -49,7 +49,6 @@ namespace cvt {
 			for( std::vector<String>::iterator it = entries.begin(), end = entries.end(); it != end; ++it ) {
 				String path( _pluginPaths[ f ] );
 				try {
-					
 					path += *it;
 					//std::cout << path << std::endl;
 					loadPlugin( path.c_str() );

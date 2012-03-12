@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <cvt/util/String.h>
+#include <cvt/util/Version.h>
 
 namespace cvt {
 	class PluginManager;
@@ -25,8 +26,8 @@ namespace cvt {
 	};
 
 #define CVT_PLUGIN_MAGIC 0x43565450
-#define CVT_PLUGIN_MAJOR 0
-#define CVT_PLUGIN_MINOR 1
+#define CVT_PLUGIN_MAJOR CVT_VERSION_MAJOR
+#define CVT_PLUGIN_MINOR CVT_VERSION_MINOR
 
 #define CVT_PLUGIN( initfunc ) \
 	extern "C" { \

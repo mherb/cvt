@@ -47,9 +47,9 @@ namespace cvt {
 		return _camInfos.size();
 	}
 
-	inline const CameraInfo & Camera::info( size_t index )
+	inline const CameraInfo& Camera::info( size_t index )
 	{
-		if( index > _camInfos.size() ){
+		if( index >= _camInfos.size() ){
 			throw CVTException( "Could not return CameraInfo: Index out of bounds!" );
 		}
 
