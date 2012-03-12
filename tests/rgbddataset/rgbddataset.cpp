@@ -1,5 +1,7 @@
 #include <cvt/util/String.h>
+#include <cvt/gui/Application.h>
 #include "RGBDParser.h"
+#include "RGBDDatasetApp.h"
 
 using namespace cvt;
 
@@ -12,7 +14,10 @@ int main( int argc, char* argv[] )
 
 	try {
 	String folder( argv[ 1 ] );
-	RGBDParser parser( folder );
+
+	RGBDDatasetApp app( folder );
+
+	Application::run();
 	} catch ( cvt::Exception& e ){
 		std::cout << e.what() << std::endl;
 	}
