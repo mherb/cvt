@@ -123,6 +123,7 @@ SET( CL_KERNELS
 	cl/kernel/stereogcv/occlusioncheck.cl
 	cl/kernel/tvl1stereo/tvl1.cl
 	cl/kernel/tvl1stereo/tvl1_warp.cl
+	cl/kernel/TSDFVolume/TSDFVolume.cl
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )
