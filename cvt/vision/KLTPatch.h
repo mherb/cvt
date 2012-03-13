@@ -76,8 +76,17 @@ namespace cvt
 			point[ 0 ] = _pos[ 0 ] - hsize;
 			for( size_t i = 0; i < pSize; i++ ){
 				*p = ptr[ i ];
-				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
-				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
+
+			//	g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
+			//	g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
+				
+				g[ 0 ]  = 0.25f * ( ( int16_t ) prevLine[ i + 1 ] - ( int16_t ) prevLine[ i - 1 ] );
+				g[ 0 ] += 0.5f  * ( ( int16_t ) ptr[ i + 1 ]	  -  ( int16_t ) ptr[ i - 1 ] );
+				g[ 0 ] += 0.25f * ( ( int16_t ) nextLine[ i + 1 ] - ( int16_t ) nextLine[ i - 1 ] );
+
+				g[ 1 ]  = 0.25f * ( ( int16_t )nextLine[ i - 1 ] - ( int16_t )prevLine[ i - 1 ] );
+				g[ 1 ] += 0.5f  * ( ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ] );
+				g[ 1 ] += 0.25f * ( ( int16_t )nextLine[ i + 1 ] - ( int16_t )prevLine[ i + 1 ] );
 
 				pose.screenJacobian( sj, point );
 				*J = sj.transpose() * g;

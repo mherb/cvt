@@ -53,6 +53,4 @@ static void _init( cvt::PluginManager* pm )
 	pm->registerPlugin( canny );
 }
 
-extern "C" {
-	cvt::PluginInfo _cvtplugin = { 0x43565450, 0, 1, ( void ( * )( cvt::PluginManager* ) ) _init };
-}
+CVT_PLUGIN( _init )

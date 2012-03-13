@@ -69,7 +69,7 @@ namespace cvt {
 
 		v1.normalize();
 		v2.normalize();
-		c.cross( v1, v2 );
+		c.cross( v2, v1 );
 		float lsqrt = c.lengthSqr();
 		if( lsqrt > Math::EPSILONF ) {
 			Quaternionf q( c[ 0 ], c[ 1 ], c[ 2 ], v1 * v2 );

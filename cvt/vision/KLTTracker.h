@@ -40,18 +40,24 @@ namespace cvt
 								  const std::vector<Image>& pyramid );
 
 			float ssdThreshold() const { return _ssdThresh; }
-			void setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
+			void  setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
+
+			/* percentage of pixels that need to project in current view */
+			void  setMinPixFraction( float frac ){ _minPix = frac * Math::sqr( pSize ); }
+			void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
+			
+			bool trackPatch( PoseType& pose, 
+							 const Vector2f & tempPos,
+							 const KLTPType& patch,
+							 const uint8_t* current, size_t currStride,
+							 size_t width, size_t height );
 
 		private:
 			size_t _maxIters;
 			float  _ssdThresh;
+			size_t _minPix;
+			float  _earlyStepOutThresh;
 			
-			bool trackSinglePatch( PoseType& pose, 
-								   const Vector2f & tempPos,
-								   const KLTPType& patch,
-								   const uint8_t* current, size_t currStride,
-								   size_t width, size_t height );
-
 			bool checkBounds( const Eigen::Vector2f & p, size_t width, size_t height ) const
 			{
 				size_t h = pSize >> 1;
@@ -68,6 +74,8 @@ namespace cvt
 		_maxIters( maxIters ),
 		_ssdThresh( 0.0f )
 	{
+		setMinPixFraction( 0.8f );
+		setEarlyStepOutAvgSSD( 25.0f );
 		_ssdThresh = Math::sqr( 20.0f );
 	}
 
@@ -96,7 +104,7 @@ namespace cvt
 				continue;
 			}
 
-			if( trackSinglePatch( pose, patch.position(), patch, currImgPtr, currStride, w, h ) ){
+			if( trackPatch( pose, patch.position(), patch, currImgPtr, currStride, w, h ) ){
 				trackedIndices.push_back( i );
 			}
 		}
@@ -105,11 +113,11 @@ namespace cvt
 	}
 
 	template <class PoseType, size_t pSize>
-	inline bool KLTTracker<PoseType, pSize>::trackSinglePatch( PoseType & pose, 
-									   const Vector2f & tempPos,
-									   const KLTPType& patch,
-									   const uint8_t* current, size_t currStride,
-									   size_t width, size_t height )
+	inline bool KLTTracker<PoseType, pSize>::trackPatch( PoseType & pose, 
+														 const Vector2f & tempPos,
+									   					 const KLTPType& patch,
+									   					 const uint8_t* current, size_t currStride,
+									   					 size_t width, size_t height )
 	{
 		size_t halfSize = pSize >> 1;
 		
@@ -120,6 +128,7 @@ namespace cvt
 
 		Vector2f point;
 		typename KLTPType::JacType jSum;
+		typename KLTPType::HessType jtjSum;
 		typename PoseType::ParameterVectorType delta;
 		float diffSum = 0.0f;
 		size_t npix = 0;
@@ -133,14 +142,18 @@ namespace cvt
 			p2[ 1 ] = tempPos.y - halfSize; 
 			const typename KLTPType::JacType* J = patch.jacobians();
 			const uint8_t* temp = patch.pixels();
+			jtjSum.setZero();
 			while( numLines-- ){
 				p2[ 0 ] = tempPos.x - halfSize; 
 				for( size_t i = 0; i < pSize; i++ ){
 					pose.transformInverse( pp, p2 );
 					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
 						float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
+
 						diffSum += ( deltaImg * deltaImg );
+
 						jSum += ( *J *  deltaImg );
+						jtjSum += ( *J * J->transpose() );
 						npix++;
 					}
 
@@ -149,16 +162,18 @@ namespace cvt
 					p2[ 0 ] += 1;
 				}
 				p2[ 1 ] += 1;
-
 			}
-			if( npix < 100 )
+			
+			if( npix < _minPix )
 				return false;
 
 			// solve for the delta:
-			delta = patch.inverseHessian() * jSum;
+			//delta = patch.inverseHessian() * jSum;
+			delta = jtjSum.inverse() * jSum;
 			pose.applyInverse( delta );
 
-			if( diffSum / npix < 20.0f )
+			/* early step out? */
+			if( diffSum / npix < _earlyStepOutThresh )
 				return true;
 			
 			iter++;
@@ -203,14 +218,14 @@ namespace cvt
 			bool tracked = true;
 			_ssdThresh = origSSD / allScale;
 			while( i >= 0 ){
-				tracked = trackSinglePatch( currPose,
-										    currPosition,
-											patch,
-										   	ptr[ i ],
-										   	stride[ i ],
-											pyramid[ i ].width(), 
-											pyramid[ i ].height() );
-										  
+				tracked = trackPatch( currPose,
+									  currPosition,
+									  patch,
+									  ptr[ i ],
+									  stride[ i ],
+									  pyramid[ i ].width(), 
+									  pyramid[ i ].height() );
+									  
 				if( !tracked )
 					break;
 				if( i ){

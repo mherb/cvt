@@ -3,6 +3,8 @@
 
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Label.h>
+#include <cvt/gui/Slider.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/WidgetLayout.h>
 #include <cvt/gui/Application.h>
@@ -26,25 +28,35 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			//typedef GA2<float>			 PoseType;
-			//typedef Sim2<float>			 PoseType;
-			typedef Translation2D<float>	 PoseType;
-			typedef KLTTracker<PoseType, 32> KLTType;	
-			typedef KLTType::KLTPType		 KLTPType;
+			//typedef GA2<float>			  PoseType;
+			//typedef Sim2<float>			  PoseType;
+			typedef Translation2D<float>	  PoseType;
+			typedef KLTTracker<PoseType, 16>  KLTType;	
+			typedef KLTType::KLTPType		  KLTPType;
 
 			KLTWindow( VideoInput & video ) :
-				_window( "KLT" ),	
+				_window( "KLT" ),
+				_ssdSliderLabel( "SSD Threshold" ),
+				_ssdSlider( 0.0f, Math::sqr( 100.0f ), 0.0f ),
 				_video( video ),
-				_klt( 6 ),
+				_klt( 15 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
 				_timerId = Application::registerTimer( 10, this );
 				_window.setSize( 640, 480 );
 				WidgetLayout wl;
-				wl.setAnchoredTopBottom( 0, 0 );
-				wl.setAnchoredLeftRight( 0, 0 );
+				wl.setRelativeLeftRight( 0.0f, 0.7f );
+				wl.setRelativeTopBottom( 0.0f, 1.0f );
 				_window.addWidget( &_imView, wl );
+
+				wl.setRelativeLeftRight( 0.71f, 0.99f );
+				wl.setAnchoredTop( 2, 20 );
+				_window.addWidget( &_ssdSlider, wl );
+
+				Delegate<void (float)> ssdDel( &_klt, &KLTType::setSSDThreshold );
+				_ssdSlider.valueChanged.add( ssdDel );
+				
 				_window.setVisible( true );
 				_window.update();				
 
@@ -58,7 +70,6 @@ namespace cvt {
 				_fps = 0.0;
 				_iter = 0;
 
-				_klt.setSSDThreshold( 200 );
 			}
 
 			~KLTWindow()
@@ -69,13 +80,13 @@ namespace cvt {
 			void onTimeout();
 
 		private:
-			Image					_lena;
-			Recti					_currR;
-			int						_offX;
-			int						_offY;
 			uint32_t				_timerId;
 			Window					_window;
 			ImageView				_imView;
+
+			Label					_ssdSliderLabel;
+			Slider<float>			_ssdSlider;
+			
 			VideoInput &			_video;
 
 			KLTType						_klt;
@@ -91,11 +102,8 @@ namespace cvt {
 			std::vector<Image>			_pyramid;
 
 			void drawFeatures( Image & img, const std::vector<size_t> & indices );
-
 			void redetectFeatures( const Image & img );
-
 			void removeLost( const std::vector<size_t> & trackedIndices );
-			
 			void createPyramid();
 
 	};

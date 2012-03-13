@@ -16,6 +16,7 @@
 #include <cvt/util/Flags.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/math/Polynomial.h>
+#include <cvt/io/xml/XMLDocument.h>
 #include <cvt/io/xml/XMLElement.h>
 #include <cvt/io/xml/XMLText.h>
 #include <cvt/io/xml/XMLSerializable.h>
@@ -66,6 +67,8 @@ namespace cvt
         bool hasIntrinsics() const { return ( _flags & INTRINSICS ); }
         bool hasDistortion() const { return ( _flags & DISTORTION ); }
 
+		void load( const String& file );
+
         // de-/serialization interface
         void	 deserialize( XMLNode* node );
         XMLNode* serialize() const;
@@ -105,6 +108,15 @@ namespace cvt
         _flags( other._flags )
     {
     }
+
+	inline void CameraCalibration::load( const String& filename )
+	{
+		XMLDocument xmlDoc;
+		xmlDoc.load( filename );
+
+		XMLNode* node = xmlDoc.nodeByName( "CameraCalibration" );
+		this->deserialize( node );
+	}
 
     inline XMLNode* CameraCalibration::serialize() const
     {
