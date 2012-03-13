@@ -98,8 +98,6 @@ namespace cvt {
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
 
-
-
 		double t = _time.elapsedSeconds();
 		_iter++;
 		if( t > 3.0 ){
@@ -123,7 +121,6 @@ namespace cvt {
 		// we take a patch in the middle
 		KLTPType* p = new KLTPType();
 
-
 		size_t stride;
 		size_t phalf = p->size() >> 1;
 		size_t x = _pyramid[ 0 ].width() / 2;
@@ -131,6 +128,8 @@ namespace cvt {
 		const uint8_t* ptr = _pyramid[ 0 ].map( &stride );
 		p->position().x = x;
 		p->position().y = y;
+
+		// TODO: patch update should take the center pixel and a stride
 		p->update( ptr + ( y - phalf ) * stride + x - phalf, stride );
 		_pyramid[ 0 ].unmap( ptr );
 
@@ -140,8 +139,7 @@ namespace cvt {
 		Matrix3f m;
 		m.setIdentity();
 		m[ 0 ][ 2 ] = 4;
-		m[ 1 ][ 2 ] = 4;
-
+		m[ 1 ][ 2 ] = 4; // initial offset
 		_poses.back().set( m );
 
 	}
