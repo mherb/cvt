@@ -24,7 +24,8 @@ namespace cvt
 			RGBDParser( const String& folder );
 
 			void loadNext();
-
+			
+			size_t				iter() const { return _idx; }
 			size_t				size() const { return _stamps.size(); }
 			const RGBDSample&	data() const { return _sample; }
 
