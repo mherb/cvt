@@ -33,15 +33,15 @@ namespace cvt
 			~ORBTrackingSequential();
 
 			void trackFeatures( PointSet3d&			p3d, 
-							   PointSet2d&			p2d,
-							   const SlamMap&		map,
-							   const SE3<double>&	pose,
-							   const Image&		img );
+							    PointSet2d&			p2d,
+							    const SlamMap&		map,
+							    const SE3<double>&	pose,
+							    const Image&		img );
 
 			size_t triangulateNewFeatures( SlamMap& map, 
-										  const SE3<double>& pose, 
-										  const Image& first, 
-										  const Image& second );
+										   const SE3<double>& pose, 
+										   const Image& first, 
+										   const Image& second );
 
 			void clear();
 

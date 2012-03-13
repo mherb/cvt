@@ -14,21 +14,6 @@
 
 using namespace cvt;
 
-void loadCameraCalib( CameraCalibration& camCalib, const String& file )
-{
-	XMLDocument xmlDoc;
-	xmlDoc.load( file );
-	
-	XMLNode* node = xmlDoc.nodeByName( "CameraCalibration" );
-	camCalib.deserialize( node );
-	/*
-	std::cout << "CamCalib:\n" << camCalib0.extrinsics() <<  "\n" 
-						       << camCalib0.intrinsics() << "\n"
-							   << camCalib0.radialDistortion() << "\n"
-							   << camCalib0.tangentialDistortion() << std::endl;
-							   */
-}
-
 void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const String& id1 )
 {
     Camera::updateInfo();
@@ -77,13 +62,13 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
 {
 	String file;
 	file.sprintf( "%sueye_%s.xml", folder.c_str(), id0.c_str() );
-	loadCameraCalib( c0, file );
+	c0.load( file );
 	file.sprintf( "%sueye_%s.xml", folder.c_str(), id1.c_str() );
-	loadCameraCalib( c1, file );
+	c1.load( file );
 	
-	file.sprintf( "%sueye_%s.rawvid", folder.c_str(), id0.c_str() );
+	file.sprintf( "%sueye_%s.rawvideo", folder.c_str(), id0.c_str() );
 	videos.push_back( new RawVideoReader( file ) );
-	file.sprintf( "%sueye_%s.rawvid", folder.c_str(), id1.c_str() );
+	file.sprintf( "%sueye_%s.rawvideo", folder.c_str(), id1.c_str() );
 	videos.push_back( new RawVideoReader( file ) );
 }
 
@@ -103,8 +88,8 @@ int main( int argc, char* argv[] )
 		}
 	}
 
-	String id0( "4002738790" );
-	String id1( "4002738788" );
+	String id0( "4002738788" );
+	String id1( "4002738790" );
 
 	CameraCalibration camCalib0, camCalib1;
 	std::vector<VideoInput*> input;
@@ -118,10 +103,10 @@ int main( int argc, char* argv[] )
 								folder );
 	} else {
 		initCameras( input, id0, id1 );
-		String calib0 = r.find( "stereoSLAM/calib/ueye_4002738790.xml" );
-		String calib1 = r.find( "stereoSLAM/calib/ueye_4002738788.xml" );
-		loadCameraCalib( camCalib0, calib0 );
-		loadCameraCalib( camCalib1, calib1 );
+		String calib0 = r.find( "stereoSLAM/calib/ueye_4002738788.xml" );
+		String calib1 = r.find( "stereoSLAM/calib/ueye_4002738790.xml" );
+		camCalib0.load( calib0 );
+		camCalib1.load( calib1 );
 	}
 
 	input[ 0 ]->nextFrame();

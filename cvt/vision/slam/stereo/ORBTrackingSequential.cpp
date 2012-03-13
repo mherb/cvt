@@ -16,14 +16,14 @@ namespace cvt
 	ORBTrackingSequential::ORBTrackingSequential( const CameraCalibration & c0, const CameraCalibration & c1 ) :
 		_camCalib0( c0 ),
 		_camCalib1( c1 ),
-		_maxDescDistance( 60 ),
+		_maxDescDistance( 80 ),
 		_windowRadius( 60 ),
-		_matcherMaxLineDistance( 1.0f ),
-		_maxTriangReprojError( 5.0f ),
+		_matcherMaxLineDistance( 2.0f ),
+		_maxTriangReprojError( 2.0f ),
 		_stereoMatcher( _matcherMaxLineDistance, _maxDescDistance, c0, c1 ),
 		_orbOctaves( 3 ), 
 		_orbScaleFactor( 0.5f ),
-		_orbCornerThreshold( 25 ),
+		_orbCornerThreshold( 40 ),
 		_orbMaxFeatures( 0 /* all */ ),
 		_orbNonMaxSuppression( true ),
 		_orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
@@ -35,18 +35,21 @@ namespace cvt
 	}
 
 	void ORBTrackingSequential::trackFeatures( PointSet3d&			p3d, 
-											  PointSet2d&			p2d,
-											  const SlamMap&		map,
-											  const SE3<double>&	pose,
-											  const Image&			img )
+											   PointSet2d&			p2d,
+											   const SlamMap&		map,
+											   const SE3<double>&	pose,
+											   const Image&			img )
 	{
 		// create the ORB
 		_orb0.update( img );
+		_orb0MatchedIds.clear();
 		img.convert( _debug, IFormat::RGBA_UINT8 );
 
 		drawOrbsInImage( _debug, Color::BLUE, _orb0 );
 		drawOrbsInImage( _debug, Color::RED, _lastTrackedFeatures );
+		
 		trackSequential( p3d, p2d, map, img );
+		
 		drawPointsInImage( _debug, Color::GREEN, p2d );
 
 		size_t offset = p2d.size();
@@ -64,7 +67,6 @@ namespace cvt
 		Vector3d p3;
 		Vector2d p2;
 
-		_orb0MatchedIds.clear();
 		size_t savePos = 0;
 		for( size_t i = 0; i < _lastTrackedFeatures.size(); i++ ){
 			FeatureMatch m;
@@ -98,10 +100,10 @@ namespace cvt
 
 
 	void ORBTrackingSequential::trackNonSequential( PointSet3d&			p3d, 
-												   PointSet2d&			p2d,
-												   const SlamMap&		map,
-												   const SE3<double>&	pose,
-												   const Image&			img )
+												    PointSet2d&			p2d,
+												    const SlamMap&		map,
+												    const SE3<double>&	pose,
+												    const Image&		img )
 	{
 		// predict visible features with map and current pose
 		_predictedIds.clear();
@@ -211,14 +213,14 @@ namespace cvt
 				 _orbScaleFactor,
 				 _orbCornerThreshold,
 				 _orbMaxFeatures,
-				 _orbNonMaxSuppression );
+				 false );
 
 		FeatureFilter filter( 20, firstView.width(), firstView.height() );
 
 		const std::set<size_t>::const_iterator endIter = _orb0MatchedIds.end();
 		for( size_t i = 0; i < _orb0.size(); i++ ){
 			if( _orb0MatchedIds.find( i ) == endIter ){
-				if( rangeCheck( _orb0[ i ].pt, 30.0f ) ){
+				if( rangeCheck( _orb0[ i ].pt, 20.0f ) ){
 					filter.addFeature( &_orb0[ i ] );
 				}
 			}
@@ -241,8 +243,8 @@ namespace cvt
 
 		for( size_t i = 0; i < filteredFeatures0.size(); i++ ){
 			match.feature0 = filteredFeatures0[ i ];
-			size_t id = _stereoMatcher.matchEpipolar( match, orb1, orb1Assigned );
 
+			size_t id = _stereoMatcher.matchEpipolar( match, orb1, orb1Assigned );
 			if( match.distance < _maxDescDistance && 
 				checkFeatureSAD( match.feature0->pt, match.feature1->pt, firstView, secondView ) ){
 				p0 = match.feature0->pt;
@@ -255,8 +257,8 @@ namespace cvt
 					triangulatedMeas.push_back( p0 );
 					triangulatedFeat.push_back( (const ORBFeature*)match.feature0 );
 					orb1Assigned.insert( id );
-				}
-			}
+				} 
+			} 
 		}
 
 		if( triangulatedPoint.size() > 15 ){
@@ -296,9 +298,8 @@ namespace cvt
 				_lastTrackedIds.push_back( newPointId );
 				_lastTrackedFeatures.push_back( *triangulatedFeat[ i ] );
 			}
-			std::cout << "New Features Triangulated: " << triangulatedPoint.size() << std::endl;
 			return _lastTrackedIds.size();
-		}
+		} 
 		return 0;
 	}
 

@@ -12,6 +12,8 @@
 #define ORB_STEREO_MATCHING_H
 
 #include <cvt/vision/ORB.h>
+#include <cvt/vision/CameraCalibration.h>
+#include <cvt/vision/Vision.h>
 #include <cvt/geom/Line2D.h>
 
 #include <set>

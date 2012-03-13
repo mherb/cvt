@@ -43,6 +43,15 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
 	${FFMPEG_LIBRARIES}
 )
 
+SET( CVT_VERSION_MAJOR 0 )
+SET( CVT_VERSION_MINOR 3 )
+SET( CVT_VERSION_PATCH 0 )
+CONFIGURE_FILE (
+	"CVTVersion.h.in"
+	"${CMAKE_SOURCE_DIR}/cvt/util/Version.h"
+)
+# TODO: this file needs to be shipped as header!
+
 IF( UNIX AND NOT APPLE )
 	SET(${MODULE_NAME}_DEP_LIBRARIES
 		${${MODULE_NAME}_DEP_LIBRARIES}
@@ -139,6 +148,7 @@ ENDFOREACH(GLSLFILE)
 
 
 SET(${MODULE_NAME}_HEADERS
+	util/Version.h
 	cl/CLBuffer.h
 	cl/CLCommandQueue.h
 	cl/CLContext.h

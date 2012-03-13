@@ -124,11 +124,11 @@ namespace cvt {
         for( size_t i = 0; i < 100; i++ ){
             Matrix4<T> T1;
             T1.setRotationXYZ( Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
-                                Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
-                                Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ));
+                               Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
+                               Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ));
             T1.setTranslation( Math::rand( ( T )-10, ( T )10 ),
-                                Math::rand( ( T )-10, ( T )10 ),
-                                Math::rand( ( T )-10, ( T )10 ) );
+                               Math::rand( ( T )-10, ( T )10 ),
+                               Math::rand( ( T )-10, ( T )10 ) );
             T1[ 3 ][ 3 ] = ( T )1;
 
 
