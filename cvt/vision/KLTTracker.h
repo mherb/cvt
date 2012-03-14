@@ -137,7 +137,7 @@ namespace cvt
 			const typename KLTPType::JacType* J = patch.jacobians();
 			const uint8_t* temp = patch.pixels();
 			while( numLines-- ){
-				p2[ 0 ] = 0.0f;//tempPos.x - halfSize; 
+				p2[ 0 ] = 0.0f;
 				for( size_t i = 0; i < pSize; i++ ){
 					pose.transform( pp, p2 );
 					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
@@ -156,8 +156,9 @@ namespace cvt
 				p2[ 1 ] += 1;
 			}
 			
-			if( npix < _minPix )
+			if( npix < _minPix ){
 				return false;
+			}
 
 			// solve for the delta:
 			delta = patch.inverseHessian() * jSum;

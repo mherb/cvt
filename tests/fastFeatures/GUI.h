@@ -71,7 +71,7 @@ namespace cvt
         _scaleLabel( "Scale Factor: " ),
         _maxFeatureSlider( 50, 3000, 1000 ),
         _maxFeatureLabel( "Max Features: " ),
-        _nonMaxSuppression( "Non Max Suppression", true ),
+        _nonMaxSuppression( "Non Max Suppression", false ),
         _fpsLabel( "FPS: 0.0f" )
 	{
 		setSize( 960, 720 );
