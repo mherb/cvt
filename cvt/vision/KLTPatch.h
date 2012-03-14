@@ -68,25 +68,23 @@ namespace cvt
 		PoseType pose;
 		typename PoseType::ScreenJacType sj;
 
-		size_t hsize = pSize >> 1;
-		Eigen::Vector2f point;
-		point[ 1 ] = _pos[ 1 ] - hsize; 
+		Eigen::Vector2f point( 0.0f, 0.0f );
 		while( numLines-- )
 		{
-			point[ 0 ] = _pos[ 0 ] - hsize;
 			for( size_t i = 0; i < pSize; i++ ){
+				point[ 0 ] = i;
 				*p = ptr[ i ];
 
-			//	g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
-			//	g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
+				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
+				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
 				
-				g[ 0 ]  = 0.25f * ( ( int16_t ) prevLine[ i + 1 ] - ( int16_t ) prevLine[ i - 1 ] );
-				g[ 0 ] += 0.5f  * ( ( int16_t ) ptr[ i + 1 ]	  -  ( int16_t ) ptr[ i - 1 ] );
-				g[ 0 ] += 0.25f * ( ( int16_t ) nextLine[ i + 1 ] - ( int16_t ) nextLine[ i - 1 ] );
+			//	g[ 0 ]  = 0.25f * ( ( int16_t ) prevLine[ i + 1 ] - ( int16_t ) prevLine[ i - 1 ] );
+			//	g[ 0 ] += 0.5f  * ( ( int16_t ) ptr[ i + 1 ]	  -  ( int16_t ) ptr[ i - 1 ] );
+			//	g[ 0 ] += 0.25f * ( ( int16_t ) nextLine[ i + 1 ] - ( int16_t ) nextLine[ i - 1 ] );
 
-				g[ 1 ]  = 0.25f * ( ( int16_t )nextLine[ i - 1 ] - ( int16_t )prevLine[ i - 1 ] );
-				g[ 1 ] += 0.5f  * ( ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ] );
-				g[ 1 ] += 0.25f * ( ( int16_t )nextLine[ i + 1 ] - ( int16_t )prevLine[ i + 1 ] );
+			//	g[ 1 ]  = 0.25f * ( ( int16_t )nextLine[ i - 1 ] - ( int16_t )prevLine[ i - 1 ] );
+			//	g[ 1 ] += 0.5f  * ( ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ] );
+			//	g[ 1 ] += 0.25f * ( ( int16_t )nextLine[ i + 1 ] - ( int16_t )prevLine[ i + 1 ] );
 
 				pose.screenJacobian( sj, point );
 				*J = sj.transpose() * g;
@@ -95,7 +93,6 @@ namespace cvt
 
 				J++;
 				p++;
-				point[ 0 ] += 1.0f;
 			}
 			prevLine = ptr;
 			ptr = nextLine;
