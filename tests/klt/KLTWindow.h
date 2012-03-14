@@ -30,8 +30,8 @@ namespace cvt {
 		public:
 			//typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
-			typedef Translation2D<float>	  PoseType;
-			typedef KLTTracker<PoseType, 16>  KLTType;	
+			//typedef Translation2D<float>	  PoseType;
+			typedef KLTTracker<PoseType, 32>  KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
 			KLTWindow( VideoInput & video ) :

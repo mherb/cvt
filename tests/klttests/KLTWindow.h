@@ -23,7 +23,7 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			typedef GA2<float>				PoseType;
+			typedef GA2<float>					PoseType;
 			//typedef Sim2<float>				PoseType;
 			//typedef Translation2D<float>		PoseType;
 			typedef KLTTracker<PoseType, 64>	KLTType;
@@ -138,8 +138,11 @@ namespace cvt {
 
 		Matrix3f m;
 		m.setIdentity();
-		m[ 0 ][ 2 ] = 4;
-		m[ 1 ][ 2 ] = 4; // initial offset
+
+		m.setAffine( Math::deg2Rad( 2.5f ),
+					 Math::deg2Rad( 1.0f ),
+					 1.01f, 1.02f,
+					 4, 4 );
 		_poses.back().set( m );
 
 	}
