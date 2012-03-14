@@ -38,8 +38,11 @@ namespace cvt
             template<class PointContainer>
 			void extract( const Image & image, PointContainer & features );
 
-			void setThreshold( uint8_t threshold );
-			uint8_t threshold();
+			void setThreshold( uint8_t threshold )	{ _threshold = threshold; }
+			uint8_t threshold() const				{ return _threshold; }
+			
+			void setBorder( size_t border )			{ _border = border; }
+			size_t border() const					{ return _border; }
 
             void setNonMaxSuppress( bool val ) { _suppress = val; }
 
@@ -68,6 +71,7 @@ namespace cvt
 			uint8_t		_threshold;
             bool        _suppress;
             FASTSize    _fastSize;
+            size_t		_border;
 
             template<class PointContainer>
             void doExtract( const Image & img, PointContainer & features );
@@ -90,16 +94,6 @@ namespace cvt
             template<class PointContainer>
             static void detect9simd( const Image & img, uint8_t threshold, PointContainer & features, size_t border = 3 );
 	};
-
-	inline void FAST::setThreshold( uint8_t threshold )
-	{
-		_threshold = threshold;
-	}
-
-	inline uint8_t FAST::threshold()
-	{
-		return _threshold;
-	}
 
 	inline void FAST::make_offsets( int * offsets, size_t row_stride )
 	{

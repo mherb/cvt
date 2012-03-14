@@ -48,6 +48,7 @@ namespace cvt {
 			typedef Eigen::Matrix<T, NPARAMS, NPARAMS>		ScreenHessType;
 			typedef Eigen::Matrix<T, NPARAMS, 1>			ParameterVectorType;
 			typedef Eigen::Matrix<T, 3, 1>					PointType;
+			typedef Eigen::Matrix<T, 2, 1>					SPType;
 
 			GA2();
 			~GA2(){};
@@ -79,9 +80,10 @@ namespace cvt {
 
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
+			void transform( SPType & warped, const SPType & p ) const;
 			
 			/* transform the point: warped = current^-1 * p */
-			void transformInverse( Eigen::Matrix<T, 2, 1> & warped, const Eigen::Matrix<T, 2, 1> & p ) const;
+			void transformInverse( SPType & warped, const SPType & p ) const;
 
 			/* get the jacobian at a certain point */
 			void jacobian( JacMatType & J, const PointType & p ) const;
@@ -90,10 +92,10 @@ namespace cvt {
 			void hessian( HessMatType & H, const PointType & p ) const;
 
 			/* sp = proj( transform( p ) ) */
-			void project( Eigen::Matrix<T, 2, 1> & sp, const PointType & p ) const;
+			void project( SPType & sp, const PointType & p ) const;
 
 			/* sp = proj( transform( p ) ), J = d proj( transform( p ) ) / d params */
-			void project( Eigen::Matrix<T, 2, 1> & sp, ScreenJacType & J, const PointType & p ) const;
+			void project( SPType & sp, ScreenJacType & J, const PointType & p ) const;
 
 			/* p is already transformed with the current T in this case, but not yet projected! */
 			void jacobianAroundT( JacMatType & J, const PointType & p ) const;
@@ -204,6 +206,14 @@ namespace cvt {
 	inline void GA2<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
+	}
+
+	template < typename T >
+	inline void GA2<T>::transform( SPType & warped, const SPType & p ) const
+	{
+		warped = _current.template block<2, 2>( 0, 0 ) * p;
+		warped[ 0 ] += _current( 0, 2 );
+		warped[ 1 ] += _current( 1, 2 );
 	}
 
 	template < typename T >

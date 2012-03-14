@@ -26,12 +26,12 @@ namespace cvt {
 			typedef GA2<float>					PoseType;
 			//typedef Sim2<float>				PoseType;
 			//typedef Translation2D<float>		PoseType;
-			typedef KLTTracker<PoseType, 64>	KLTType;
+			typedef KLTTracker<PoseType, 32>	KLTType;
 			typedef KLTType::KLTPType			KLTPType;
 
 			KLTWindow( Image & img ) :
 				_window( "KLT" ),	
-				_klt( 2 ),
+				_klt( 1 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -42,7 +42,6 @@ namespace cvt {
 				wl.setAnchoredLeftRight( 0, 0 );
 				_window.addWidget( &_imView, wl );
 				_window.setVisible( true );
-				_window.update();				
 
 				_pyramid.resize( 3 );
 				img.convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
@@ -55,6 +54,8 @@ namespace cvt {
 				_pyramid[ 0 ].convert( debug, IFormat::RGBA_UINT8 );
 				drawRect( debug );
 				_imView.setImage( debug );
+
+				_window.update();				
 			}
 
 			~KLTWindow()
@@ -89,7 +90,6 @@ namespace cvt {
 
 	inline void KLTWindow::onTimeout()
 	{
-		getchar();
 		std::vector<size_t>	  trackedIndices;
 		_kltTime.reset();	
 		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
@@ -114,6 +114,10 @@ namespace cvt {
 		_pyramid[ 0 ].convert( debug, IFormat::RGBA_UINT8 );
 		drawRect( debug );
 		_imView.setImage( debug );
+
+		//std::cout << "Pose: " << _poses.back().transformation() << std::endl;
+
+		_window.update();
 	}
 
 	inline void KLTWindow::initialize()
@@ -139,10 +143,11 @@ namespace cvt {
 		Matrix3f m;
 		m.setIdentity();
 
-		m.setAffine( Math::deg2Rad( 2.5f ),
+		m.setAffine( Math::deg2Rad( 10.5f ),
 					 Math::deg2Rad( 1.0f ),
 					 1.01f, 1.02f,
-					 4, 4 );
+					 x-phalf+5, y-phalf+5 );
+
 		_poses.back().set( m );
 
 	}
@@ -153,21 +158,33 @@ namespace cvt {
 			GFXEngineImage ge( img );
 			GFX g( &ge );
 			g.color() = Color::GREEN;
+	
+			Eigen::Vector2f p0, p1, p2, p3;
+			Eigen::Vector2f a, b, c, d;
 
-		
-			KLTPType* p = _patches[ 0 ];
-			Recti r; 
-			r.width = p->size();
-		   	r.height = p->size();
+			size_t psize = _patches[ 0 ]->size();
 			
-			Eigen::Vector2f patchPos, currentPos;
-			EigenBridge::toEigen( patchPos, p->position() );
-				
-			_poses[ 0 ].transformInverse( currentPos, patchPos );
-			r.x = currentPos.x() - 8;
-			r.y = currentPos.y() - 8;
-			std::cout << "Current: " << currentPos[ 0 ] << ", " << currentPos[ 1 ] << " - True: " << patchPos[ 0 ] << ", " << patchPos[ 1 ] << std::endl;
-			g.drawRect( r );
+			p0[ 0 ] = 0.0f;	 p0[ 1 ] = 0.0f;
+			p1[ 0 ] = psize; p1[ 1 ] = 0.0f; 
+			p2[ 0 ] = psize; p2[ 1 ] = psize;
+			p3[ 0 ] = 0.0f;  p3[ 1 ] = psize;
+
+			_poses[ 0 ].transform( a, p0 );
+			_poses[ 0 ].transform( b, p1 );
+			_poses[ 0 ].transform( c, p2 );
+			_poses[ 0 ].transform( d, p3 );
+
+			Vector2f ca, cb, cc, cd;
+			EigenBridge::toCVT( ca, a );
+			EigenBridge::toCVT( cb, b );
+			EigenBridge::toCVT( cc, c );
+			EigenBridge::toCVT( cd, d );
+
+			g.drawLine( ca, cb );
+			g.drawLine( cb, cc );
+			g.drawLine( cc, cd );
+			g.drawLine( cd, ca );
+
 		}
 	}
 

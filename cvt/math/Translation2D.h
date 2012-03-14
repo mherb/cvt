@@ -75,6 +75,7 @@ namespace cvt {
 
 			/* transform the point */
 			void transform( PointType & warped, const PointType & p ) const;
+			void transform( SPType & warped, const SPType & p ) const;
 			
 			/* transform the point: warped = current^-1 * p */
 			void transformInverse( SPType & warped, const SPType & p ) const;
@@ -198,6 +199,13 @@ namespace cvt {
 	inline void Translation2D<T>::transform( PointType & warped, const PointType & p ) const
 	{
 		warped = _current * p;
+	}
+	
+	template < typename T >
+	inline void Translation2D<T>::transform( SPType & warped, const SPType & p ) const
+	{
+		warped[ 0 ] = p[ 0 ] + _current( 0, 2 );
+		warped[ 1 ] = p[ 1 ] + _current( 1, 2 );
 	}
 	
 	template < typename T >
