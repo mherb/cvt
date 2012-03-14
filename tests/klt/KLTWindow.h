@@ -30,7 +30,7 @@ namespace cvt {
 		public:
 			//typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
-			//typedef Translation2D<float>	  PoseType;
+			typedef Translation2D<float>	  PoseType;
 			typedef KLTTracker<PoseType, 32>  KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
@@ -196,8 +196,13 @@ namespace cvt {
 
 		size_t oldSize = _patches.size();
 		KLTPType::extractPatches( _patches, features, img );
+		Matrix3f startPose;
+		startPose.setIdentity();
 		for( size_t i = oldSize; i < _patches.size(); i++ ){
 			_poses.push_back( PoseType() );
+			startPose[ 0 ][ 2 ] = _patches[ i ].position().x; 
+			startPose[ 1 ][ 2 ] = _patches[ i ].position().y; 
+			_poses.back().set( startPose );
 		}
 	}
 

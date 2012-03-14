@@ -119,7 +119,7 @@ namespace cvt
 									   					 const uint8_t* current, size_t currStride,
 									   					 size_t width, size_t height )
 	{
-		size_t halfSize = pSize >> 1;
+		//size_t halfSize = pSize >> 1;
 		
 		Eigen::Vector2f p2;
 		Eigen::Vector2f pp;
@@ -139,12 +139,12 @@ namespace cvt
 			diffSum = 0.0f;
 			npix = 0;
 
-			p2[ 1 ] = tempPos.y - halfSize; 
+			p2[ 1 ] = 0.0f;//tempPos.y - halfSize; 
 			const typename KLTPType::JacType* J = patch.jacobians();
 			const uint8_t* temp = patch.pixels();
 			jtjSum.setZero();
 			while( numLines-- ){
-				p2[ 0 ] = tempPos.x - halfSize; 
+				p2[ 0 ] = 0.0f;//tempPos.x - halfSize; 
 				for( size_t i = 0; i < pSize; i++ ){
 					pose.transformInverse( pp, p2 );
 					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
