@@ -45,6 +45,7 @@ namespace cvt {
             _vec.push_back( Feature2D<T>( x, y ) );
         }
 
+
     private:
         std::vector<Feature2D<T> >  & _vec;
 

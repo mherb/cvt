@@ -20,7 +20,6 @@
 #include <cvt/math/GA2.h>
 
 #include <cvt/vision/KLTTracker.h>
-
 #include <cvt/gfx/GFXEngineImage.h>
 
 namespace cvt {
@@ -31,7 +30,7 @@ namespace cvt {
 			//typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
 			typedef Translation2D<float>	  PoseType;
-			typedef KLTTracker<PoseType, 32>  KLTType;	
+			typedef KLTTracker<PoseType, 7>   KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
 			KLTWindow( VideoInput & video ) :
@@ -39,7 +38,7 @@ namespace cvt {
 				_ssdSliderLabel( "SSD Threshold" ),
 				_ssdSlider( 0.0f, Math::sqr( 100.0f ), 0.0f ),
 				_video( video ),
-				_klt( 15 ),
+				_klt( 20 ),
 				_kltTimeSum( 0.0 ),
 				_kltIters( 0 )
 			{
@@ -117,7 +116,6 @@ namespace cvt {
 	
 		_kltTime.reset();	
 		_klt.trackFeatures( trackedIndices, _poses, _patches, _pyramid[ 0 ] );
-		//_klt.trackMultiscale( trackedIndices, _poses, _patches, _pyramid );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
@@ -155,20 +153,22 @@ namespace cvt {
 			GFX g( &ge );
 			g.color() = Color::GREEN;
 
-			Vector2f p0, p1;
+			Vector2f p1;
 			Eigen::Vector2f p;
 			Eigen::Vector2f pp;
+
 		
 			size_t idx;
 			for( size_t i = 0; i < indices.size(); i++ ){
 				idx = indices[ i ];
-				p0 = _patches[ idx ]->position();
-				p[ 0 ] = p0[ 0 ]; p[ 1 ] = p0[ 1 ];
+
+				p[ 0 ] = _patches[ idx ]->size() / 2;
+				p[ 1 ] = _patches[ idx ]->size() / 2;
 				
-				_poses[ idx ].transformInverse( pp, p );
+				_poses[ idx ].transform( pp, p );
 				EigenBridge::toCVT( p1, pp );
 
-				g.drawLine( p0, p1 );
+				g.drawLine( _patches[ idx ]->position(), p1 );
 			}
 		}
 	}
@@ -200,8 +200,8 @@ namespace cvt {
 		startPose.setIdentity();
 		for( size_t i = oldSize; i < _patches.size(); i++ ){
 			_poses.push_back( PoseType() );
-			startPose[ 0 ][ 2 ] = _patches[ i ].position().x; 
-			startPose[ 1 ][ 2 ] = _patches[ i ].position().y; 
+			startPose[ 0 ][ 2 ] = _patches[ i ]->position().x; 
+			startPose[ 1 ][ 2 ] = _patches[ i ]->position().y; 
 			_poses.back().set( startPose );
 		}
 	}
