@@ -6,6 +6,7 @@
 
 #include <cvt/vision/ORB.h>
 #include <cvt/vision/FAST.h>
+#include <cvt/vision/FeatureFilter.h>
 
 #include "GUI.h"
 
@@ -41,7 +42,8 @@ namespace cvt
             size_t      _fpsIter;
             Image       _gray;
 
-			FAST		_fastDetector;
+			FAST			_fastDetector;
+			FeatureFilter	_gridFilter;
 
 	};
 
@@ -52,7 +54,8 @@ namespace cvt
 		_maxNumFeatures( 1000 ),
 		_nonMaxSuppress( true ),
 		_timerId( 0 ),
-        _fpsIter( 0 )
+        _fpsIter( 0 ),
+		_gridFilter( 20, cam->width(), cam->height() )
 	{
 		// every 10 ms
 		_timerId = Application::registerTimer( 5, this );
