@@ -9,7 +9,8 @@ namespace cvt
 		_video( video ),
 		_klt( 10 ),
 		_kltTimeSum( 0.0 ),
-		_kltIters( 0 )
+		_kltIters( 0 ),
+		_gridFilter( 8, video.width(), video.height() )
 	{
 		_timerId = Application::registerTimer( 10, this );
 		_window.setSize( 640, 480 );
@@ -33,7 +34,7 @@ namespace cvt
 		_video.nextFrame();
 		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
 
-		_fast.setThreshold( 30 );
+		_fast.setThreshold( 14 );
 		_fast.setNonMaxSuppress( true );
 		_fast.setBorder( 16 );
 
@@ -131,27 +132,42 @@ namespace cvt
 
 	void KLTWindow::redetectFeatures( const Image & img )
 	{
-		std::vector<Vector2f> features;	
-		VectorVector2Inserter<float> inserter( features );
+		std::vector<Feature2Df> features;	
+		VectorFeature2DInserter<float> inserter( features );
 		_fast.extract( img, inserter );
 
+		_gridFilter.clear();
+		for( size_t i = 0; i < features.size(); i++ ){
+			_gridFilter.addFeature( &features[ i ] );
+		}
 
+		std::vector<const Feature2Df*> filtered;
+		_gridFilter.gridFilteredFeatures( filtered, 800 );
+
+		std::vector<Vector2f> filteredUnique;
+
+		std::vector<Vector2f> patchPositions;
+		patchPositions.reserve( _patches.size() );
 		for( size_t i = 0; i < _patches.size(); i++ ){
-			const Vector2f & p = _patches[ i ]->position();
-
-			std::vector<Vector2f>::iterator it = features.begin();
-			while( it != features.end() ){
-				if( ( p - *it ).lengthSqr() < 100.0f ){
-					it = features.erase( it );
-				} else {
-					it++;
+			// FIXME:this is the position of the patch in the first view!
+			patchPositions.push_back( patchToCurrentPosition( _poses[ i ],
+												 *_patches[ i ] ) );
+		}
+		
+		for( size_t k = 0; k < filtered.size(); k++ ){
+			bool good = true;
+			for( size_t i = 0; i < patchPositions.size(); i++ ){
+				if( ( patchPositions[ i ] - filtered[ k ]->pt ).lengthSqr() < 100.0f ){
+					good = false;
+					break;
 				}
-
 			}
+			if( good )
+				filteredUnique.push_back( filtered[ k ]->pt );
 		}
 
 		size_t oldSize = _patches.size();
-		KLTPType::extractPatches( _patches, features, img );
+		KLTPType::extractPatches( _patches, filteredUnique, img );
 		Matrix3f startPose;
 		startPose.setIdentity();
 		for( size_t i = oldSize; i < _patches.size(); i++ ){
@@ -160,5 +176,18 @@ namespace cvt
 			startPose[ 1 ][ 2 ] = _patches[ i ]->position().y - _patches[ i ]->size() / 2.0f; 
 			_poses.back().set( startPose );
 		}
+	}
+			
+	Vector2f KLTWindow::patchToCurrentPosition( const PoseType& pose, 
+											    const KLTPType& patch ) const
+	{
+		Eigen::Vector2f tmp( patch.size() / 2.0f, patch.size() / 2.0f );
+		Eigen::Vector2f p;
+
+		pose.transform( p, tmp );
+		Vector2f ret;
+		EigenBridge::toCVT( ret, p );
+
+		return ret;
 	}
 }

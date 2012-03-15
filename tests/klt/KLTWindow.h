@@ -10,6 +10,7 @@
 #include <cvt/gui/Application.h>
 
 #include <cvt/vision/FAST.h>
+#include <cvt/vision/FeatureFilter.h>
 #include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Resources.h>
 #include <cvt/util/Time.h>
@@ -28,10 +29,10 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			typedef GA2<float>				  PoseType;
+			//typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
-			//typedef Translation2D<float>	  PoseType;
-			typedef KLTTracker<PoseType, 9>   KLTType;	
+			typedef Translation2D<float>	  PoseType;
+			typedef KLTTracker<PoseType, 16>  KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
 			KLTWindow( VideoInput & video );
@@ -40,14 +41,14 @@ namespace cvt {
 			void onTimeout();
 
 		private:
-			uint32_t				_timerId;
-			Window					_window;
-			ImageView				_imView;
+			uint32_t					_timerId;
+			Window						_window;
+			ImageView					_imView;
 
-			Label					_ssdSliderLabel;
-			Slider<float>			_ssdSlider;
+			Label						_ssdSliderLabel;
+			Slider<float>				_ssdSlider;
 			
-			VideoInput &			_video;
+			VideoInput &				_video;
 
 			KLTType						_klt;
 			Time						_kltTime;
@@ -62,10 +63,12 @@ namespace cvt {
 			std::vector<Image>			_pyramid;
 
 			FAST						_fast;
+			FeatureFilter				_gridFilter;
 
 			void drawFeatures( Image & img );
 			void redetectFeatures( const Image & img );
 
+			Vector2f patchToCurrentPosition( const PoseType& pose, const KLTPType& patch ) const;
 	};
 
 }
