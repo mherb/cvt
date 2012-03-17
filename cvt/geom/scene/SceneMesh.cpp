@@ -9,8 +9,10 @@
  	PARTICULAR PURPOSE.
  */
 #include <cvt/geom/scene/SceneMesh.h>
+#include <set>
 
 namespace cvt {
+
 
 	void SceneMesh::removeRedundancy( float vepsilon, float nepsilon, float tepsilon )
 	{

@@ -210,7 +210,19 @@ namespace cvt {
 			return ( p1 == b2.p1 && p2 == b2.p2 );
 		}
 
+	template<typename T>
+	inline std::ostream& operator<<( std::ostream& out, const Box<T>& box )
+	{
+		T x, y, z, w, h, d;
+
+		box.getPosition( x, y, z );
+		box.getSize( w, h, d );
+		out << "Box: ( " << x << " , " << y << " , " << z << " ) ( "<< w << " x " << h << " x " << h << " ) "  << "\n";
+		return out;
+	}
+
 	typedef Box<float> Boxf;
+	typedef Box<double> Boxd;
 }
 
 #endif
