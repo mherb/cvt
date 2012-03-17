@@ -14,16 +14,16 @@ inline void FAST::doExtract( const Image & img, PointContainer & features )
 {
 	switch ( _fastSize ) {
 		case SEGMENT_9:
-			detect9( img, _threshold, features, 3 );
+			detect9( img, _threshold, features, _border );
 			break;
 		case SEGMENT_10:
-			detect10( img, _threshold, features, 3 );
+			detect10( img, _threshold, features, _border );
 			break;
 		case SEGMENT_11:
-			detect11( img, _threshold, features, 3 );
+			detect11( img, _threshold, features, _border );
 			break;
 		case SEGMENT_12:
-			detect12( img, _threshold, features, 3 );
+			detect12( img, _threshold, features, _border );
 			break;
 		default:
 			throw CVTException( "Unkown FAST size" );
@@ -38,33 +38,38 @@ inline void FAST::extract( const Image & img, PointContainer & features )
 		throw CVTException( "Input Image format must be GRAY_UINT8" );
 
 	if( _suppress ){
-        throw CVTException( "FAST NMS not working ATM" );
-        /*
 		std::vector<Feature2Df> allCorners;
+		VectorFeature2DInserter<float> tmpInserter( allCorners );
 
 		// detect candidates
-		doExtract( img, _threshold, inserter, 3 );
+		doExtract( img, tmpInserter );
 
 		switch ( _fastSize ) {
-		case SEGMENT_9:
-		score9( img, allCorners, _threshold );
-		break;
-		case SEGMENT_10:
-		score10( img, allCorners, _threshold );
-		break;
-		case SEGMENT_11:
-		score11( img, allCorners, _threshold );
-		break;
-		case SEGMENT_12:
-		score12( img, allCorners, _threshold );
-		break;
-		default:
-		throw CVTException( "Unkown FAST size" );
-		break;
+			case SEGMENT_9:
+				score9( img, allCorners, _threshold );
+				break;
+			case SEGMENT_10:
+				score10( img, allCorners, _threshold );
+				break;
+			case SEGMENT_11:
+				score11( img, allCorners, _threshold );
+				break;
+			case SEGMENT_12:
+				score12( img, allCorners, _threshold );
+				break;
+			default:
+				throw CVTException( "Unkown FAST size" );
+				break;
 		}
 
 		// non maximal suppression
-		this->nonmaxSuppression( features, allCorners );*/
+		// FIXME: this is a hack -> we have to copy the features in the end
+		std::vector<Feature2Df> suppressed;
+		this->nonmaxSuppression( suppressed, allCorners );	
+
+		for( size_t i = 0; i < suppressed.size(); i++ ){
+			features( suppressed[ i ].pt.x, suppressed[ i ].pt.y );
+		}	
 	} else {
 		doExtract<PointContainer>( img, features );
 	}

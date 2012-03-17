@@ -84,6 +84,7 @@ namespace cvt {
 		windowName.nitems   = title.length();
 
 		::XSetWMName( dpy, win, &windowName );
+		::XFlush( dpy );
 	}
 
 	void WidgetImplWinGLX11::setRect( const Recti& r )

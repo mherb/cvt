@@ -47,7 +47,6 @@ namespace cvt
 			void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
 			
 			bool trackPatch( PoseType& pose, 
-							 const Vector2f & tempPos,
 							 const KLTPType& patch,
 							 const uint8_t* current, size_t currStride,
 							 size_t width, size_t height );
@@ -74,8 +73,8 @@ namespace cvt
 		_maxIters( maxIters ),
 		_ssdThresh( 0.0f )
 	{
-		setMinPixFraction( 0.8f );
-		setEarlyStepOutAvgSSD( 25.0f );
+		setMinPixFraction( 0.9f );
+		setEarlyStepOutAvgSSD( 10.0f );
 		_ssdThresh = Math::sqr( 20.0f );
 	}
 
@@ -92,19 +91,18 @@ namespace cvt
 		size_t h = current.height();	
 
 		Eigen::Vector2f pp;
-		Eigen::Vector2f p2;
+		Eigen::Vector2f p2( 0.0f, 0.0f );
 		for( size_t i = 0; i < patches.size(); i++ ){
 			// track each single feature
 			PoseType & pose = poses[ i ];
 			const KLTPType& patch = *patches[ i ];
 
-			EigenBridge::toEigen( p2, patch.position() );
-		   	pose.transformInverse( pp, p2 );
+		   	pose.transform( pp, p2 );
 			if( !checkBounds( pp, w, h ) ){
 				continue;
 			}
 
-			if( trackPatch( pose, patch.position(), patch, currImgPtr, currStride, w, h ) ){
+			if( trackPatch( pose, patch, currImgPtr, currStride, w, h ) ){
 				trackedIndices.push_back( i );
 			}
 		}
@@ -114,13 +112,10 @@ namespace cvt
 
 	template <class PoseType, size_t pSize>
 	inline bool KLTTracker<PoseType, pSize>::trackPatch( PoseType & pose, 
-														 const Vector2f & tempPos,
 									   					 const KLTPType& patch,
 									   					 const uint8_t* current, size_t currStride,
 									   					 size_t width, size_t height )
 	{
-		size_t halfSize = pSize >> 1;
-		
 		Eigen::Vector2f p2;
 		Eigen::Vector2f pp;
 
@@ -128,7 +123,6 @@ namespace cvt
 
 		Vector2f point;
 		typename KLTPType::JacType jSum;
-		typename KLTPType::HessType jtjSum;
 		typename PoseType::ParameterVectorType delta;
 		float diffSum = 0.0f;
 		size_t npix = 0;
@@ -139,21 +133,19 @@ namespace cvt
 			diffSum = 0.0f;
 			npix = 0;
 
-			p2[ 1 ] = tempPos.y - halfSize; 
+			p2[ 1 ] = 0.0f;
 			const typename KLTPType::JacType* J = patch.jacobians();
 			const uint8_t* temp = patch.pixels();
-			jtjSum.setZero();
 			while( numLines-- ){
-				p2[ 0 ] = tempPos.x - halfSize; 
+				p2[ 0 ] = 0.0f;
 				for( size_t i = 0; i < pSize; i++ ){
-					pose.transformInverse( pp, p2 );
+					pose.transform( pp, p2 );
 					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
 						float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
 
 						diffSum += ( deltaImg * deltaImg );
 
 						jSum += ( *J *  deltaImg );
-						jtjSum += ( *J * J->transpose() );
 						npix++;
 					}
 
@@ -164,13 +156,14 @@ namespace cvt
 				p2[ 1 ] += 1;
 			}
 			
-			if( npix < _minPix )
+			if( npix < _minPix ){
 				return false;
+			}
 
 			// solve for the delta:
-			//delta = patch.inverseHessian() * jSum;
-			delta = jtjSum.inverse() * jSum;
-			pose.applyInverse( delta );
+			delta = patch.inverseHessian() * jSum;
+
+			pose.applyInverse( -delta );
 
 			/* early step out? */
 			if( diffSum / npix < _earlyStepOutThresh )
@@ -206,11 +199,10 @@ namespace cvt
 
 		float origSSD = _ssdThresh;
 
-
-		Vector2f currPosition;
 		for( size_t p = 0; p < patches.size(); p++ ){
 			const KLTPType & patch = *patches[ p ];
-			currPosition = allScale * patch.position();
+
+			// TODO: how do we need to change the pose correctly
 			PoseType & currPose = poses[ p ];
 			currPose.scale( allScale );
 
@@ -219,7 +211,6 @@ namespace cvt
 			_ssdThresh = origSSD / allScale;
 			while( i >= 0 ){
 				tracked = trackPatch( currPose,
-									  currPosition,
 									  patch,
 									  ptr[ i ],
 									  stride[ i ],
@@ -229,7 +220,6 @@ namespace cvt
 				if( !tracked )
 					break;
 				if( i ){
-					currPosition *= interScale;
 					currPose.scale( interScale );
 				}
 				i--;

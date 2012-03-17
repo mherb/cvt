@@ -19,7 +19,8 @@ namespace cvt
 	FAST::FAST( FASTSize size ) :
 		_threshold( 30 ),
         _suppress( false ),
-        _fastSize( size )
+        _fastSize( size ),
+		_border( 3 )
 	{
 	}
 

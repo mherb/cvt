@@ -68,34 +68,23 @@ namespace cvt
 		PoseType pose;
 		typename PoseType::ScreenJacType sj;
 
-		size_t hsize = pSize >> 1;
-		Eigen::Vector2f point;
-		point[ 1 ] = _pos[ 1 ] - hsize; 
+		Eigen::Vector2f point( 0.0f, 0.0f );
 		while( numLines-- )
 		{
-			point[ 0 ] = _pos[ 0 ] - hsize;
 			for( size_t i = 0; i < pSize; i++ ){
+				point[ 0 ] = i;
 				*p = ptr[ i ];
 
-			//	g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
-			//	g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
+				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
+				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
 				
-				g[ 0 ]  = 0.25f * ( ( int16_t ) prevLine[ i + 1 ] - ( int16_t ) prevLine[ i - 1 ] );
-				g[ 0 ] += 0.5f  * ( ( int16_t ) ptr[ i + 1 ]	  -  ( int16_t ) ptr[ i - 1 ] );
-				g[ 0 ] += 0.25f * ( ( int16_t ) nextLine[ i + 1 ] - ( int16_t ) nextLine[ i - 1 ] );
-
-				g[ 1 ]  = 0.25f * ( ( int16_t )nextLine[ i - 1 ] - ( int16_t )prevLine[ i - 1 ] );
-				g[ 1 ] += 0.5f  * ( ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ] );
-				g[ 1 ] += 0.25f * ( ( int16_t )nextLine[ i + 1 ] - ( int16_t )prevLine[ i + 1 ] );
-
 				pose.screenJacobian( sj, point );
-				*J = sj.transpose() * g;
+				*J =  sj.transpose() * g;
 
 				hess += ( *J ) * J->transpose();
 
 				J++;
 				p++;
-				point[ 0 ] += 1.0f;
 			}
 			prevLine = ptr;
 			ptr = nextLine;
@@ -124,7 +113,8 @@ namespace cvt
 		size_t phalf = pSize >> 1;
 
 		int x, y;
-		bool lastGood = true;
+
+		KLTPatch<pSize, PoseType>* patch = 0;
 		for( size_t i = 0; i < positions.size(); i++ ){
 			x = positions[ i ].x;
 			y = positions[ i ].y;
@@ -137,16 +127,15 @@ namespace cvt
 			y -= phalf;
 			const uint8_t* p = ptr + y * s + x;
 
-			if( lastGood )
-				patches.push_back( new KLTPatch<pSize, PoseType>() );
+			if( patch == 0 )	
+				patch = new KLTPatch<pSize, PoseType>();
 
-			patches.back()->position() = positions[ i ];
-			lastGood = patches.back()->update( p, s );
-		}
+			patch->position() = positions[ i ];
 
-		if( !lastGood ){
-			delete patches.back();
-			patches.pop_back();
+			if( patch->update( p, s ) ){
+				patches.push_back( patch );
+				patch = 0;
+			}
 		}
 
 		img.unmap( ptr );
