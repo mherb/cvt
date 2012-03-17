@@ -46,6 +46,7 @@ namespace cvt {
 				T*			ptr();
 				void		prevLine();
 				void		nextLine();
+				void		setLine( size_t l );
 				void		operator++( int );
 				void		operator--( int );
 				size_t		stride() const;
@@ -80,6 +81,14 @@ namespace cvt {
 	inline T* IMapScoped<T>::ptr()
 	{
 		return ( T* ) _line;
+	}
+
+	template <typename T>
+	inline void IMapScoped<T>::setLine( size_t l )
+	{
+		if( l >= _img.height() )
+			throw CVTException( "Trying to set line higher than actual image height!" );
+		_line = _base + _stride * l;
 	}
 
 	template<typename T>
