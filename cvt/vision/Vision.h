@@ -19,6 +19,9 @@
 #define	CVT_VISION_H
 
 #include <cvt/math/Matrix.h>
+#include <cvt/gfx/Image.h>
+#include <cvt/vision/CameraCalibration.h>
+#include <cvt/geom/scene/ScenePoints.h>
 
 #include <Eigen/SVD>
 
@@ -127,6 +130,7 @@ namespace cvt
 							 const Eigen::Matrix<T, 4, 4>& trans, 
 							 const Eigen::Matrix<T, 4, 1>& p );
 
+		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale = 1.0f );
     };
 
 

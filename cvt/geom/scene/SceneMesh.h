@@ -275,7 +275,7 @@ namespace cvt {
 
 		// FIXME: also tangents
 
-		if( donormals ) {
+		if( !donormals ) {
 			while( n-- ) {
 				*pt = mat * *pt;
 				pt++;

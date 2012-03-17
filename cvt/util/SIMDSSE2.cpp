@@ -857,6 +857,43 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::Conv_u16_to_f( float* dst, const uint16_t* src, const size_t n ) const
+	{
+		const float scale = 1.0f / ( float ) 0xffff;
+		const __m128 scale4 = _mm_set1_ps( scale );
+		const __m128i zero = _mm_setzero_si128();
+		__m128i in, tmp;
+		size_t i = n >> 3;
+
+		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
+			while( i-- ) {
+				in = _mm_loadu_si128( ( __m128i* ) src );
+				tmp = _mm_unpacklo_epi16( in, zero );
+				_mm_storeu_ps( dst, _mm_mul_ps( _mm_cvtepi32_ps( tmp ), scale4 ) );
+				dst += 4;
+				tmp = _mm_unpackhi_epi16( in, zero );
+				_mm_storeu_ps( dst, _mm_mul_ps( _mm_cvtepi32_ps( tmp ), scale4 ) );
+				src += 8;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				in = _mm_load_si128( ( __m128i* ) src );
+				tmp = _mm_unpacklo_epi16( in, zero );
+				_mm_stream_ps( dst, _mm_mul_ps( _mm_cvtepi32_ps( tmp ), scale4 ) );
+				dst += 4;
+				tmp = _mm_unpackhi_epi16( in, zero );
+				_mm_stream_ps( dst, _mm_mul_ps( _mm_cvtepi32_ps( tmp ), scale4 ) );
+				src += 8;
+				dst += 4;
+			}
+		}
+
+		i = n & 0x07;
+		while( i-- )
+			*dst++ = scale * ( float ) ( *src++ );
+	}
+
 	void SIMDSSE2::Conv_YUYVu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const
 	{
 		const __m128i Y2RGB = _mm_set_epi16( 1192, 0, 1192, 0, 1192, 0, 1192, 0 );

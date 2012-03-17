@@ -20,7 +20,8 @@ namespace cvt {
 	class SceneMesh;
 
 	enum SceneGeometryType {
-		SCENEGEOMETRY_MESH
+		SCENEGEOMETRY_MESH,
+		SCENEGEOMETRY_POINTS
 	};
 
 	class SceneGeometry : public SceneSpatial

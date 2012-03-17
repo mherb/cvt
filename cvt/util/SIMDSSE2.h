@@ -37,6 +37,7 @@ namespace cvt {
 			virtual void ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
 
 			void Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const;
+			void Conv_u16_to_f( float* dst, const uint16_t* src, const size_t n ) const;
 
 			virtual void Conv_YUYVu8_to_RGBAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
 			virtual void Conv_YUYVu8_to_BGRAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;

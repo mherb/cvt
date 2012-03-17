@@ -13,8 +13,48 @@
 #include <cvt/util/CVTTest.h>
 #include <cvt/math/Matrix.h>
 
+#include <cvt/gfx/IMapScoped.h>
+
+#include <vector>
+
 
 namespace cvt {
+
+	void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale )
+	{
+		Matrix3f Kinv = calibration.intrinsics().inverse();
+		std::vector<Vector3f> pts;
+		std::vector<Vector4f> colors;
+
+		scenepts.clear();
+
+		if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
+            throw CVTException( "unprojectToScenePoints: invalid texture or depth-map!" );
+
+		IMapScoped<const float> tex( texture );
+		IMapScoped<const float> dmap( depthmap );
+		size_t w = depthmap.width();
+		size_t h = depthmap.height();
+		for( size_t y = 0; y < h; y++ ) {
+			const float* dmapptr = dmap.ptr();
+			const float* texptr = tex.ptr();
+
+			for( size_t x = 0; x < w; x++ ) {
+				if( dmapptr[ x ] > 0 ) {
+					Vector3f pt = Kinv * Vector3f( x, y, 1.0f );
+					pts.push_back( pt * dmapptr[ x ] * dscale );
+					colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
+				}
+			}
+
+			dmap++;
+			tex++;
+		}
+
+		scenepts.setVertices( &pts[ 0 ], pts.size() );
+		scenepts.setColors( &colors[ 0 ], colors.size() );
+		scenepts.transform( calibration.extrinsics() );
+	}
 
     template <typename T>
     static bool _compare( const Matrix3<T> & a, const Matrix3<T> & b, T epsilon )
