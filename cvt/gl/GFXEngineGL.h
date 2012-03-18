@@ -50,7 +50,7 @@ namespace cvt {
 			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c );
 			const Font& font() const;
 
-			void drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far, const Color& c );
+			//void drawModel( GLModel& mdl, const Matrix4f& modelview, float near, float far, const Color& c );
 			bool supportsGL() const { return true; }
 			void beginGL();
 			void endGL();

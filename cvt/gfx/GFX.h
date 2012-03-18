@@ -14,7 +14,6 @@
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/gl/GLModel.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Drawable.h>
 #include <cvt/gfx/Font.h>
