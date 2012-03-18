@@ -172,7 +172,6 @@ SET(${MODULE_NAME}_HEADERS
 	geom/Bezier.h
 	geom/KDTree.h
 	geom/Line2D.h
-	geom/Model.h
 	geom/Polygon.h
 	geom/PointSet.h
 	geom/Rect.h
@@ -232,7 +231,6 @@ SET(${MODULE_NAME}_HEADERS
 	gl/GLBuffer.h
 	gl/GLTexture.h
 	gl/GLVertexArray.h
-	gl/GLModel.h
 	gl/GFXEngineGL.h
 	gl/GFXEngineGLFBO.h
 	gl/GLRBO.h
@@ -468,7 +466,6 @@ SET(${MODULE_NAME}_SOURCES
 	gfx/IKernel.cpp
 	gfx/ColorspaceXYZ.cpp
 	geom/KDTree.cpp
-	geom/Model.cpp
 	geom/Rect.cpp
 	geom/PointSetTest.cpp
 	geom/scene/Scene.cpp
@@ -477,7 +474,6 @@ SET(${MODULE_NAME}_SOURCES
 	gl/GLContext.cpp
 	gl/GLBuffer.cpp
 	gl/GLFBO.cpp
-	gl/GLModel.cpp
 	gl/GLProgram.cpp
 	gl/GLTexture.cpp
 	gl/GLVertexArray.cpp

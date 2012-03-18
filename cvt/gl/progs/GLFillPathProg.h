@@ -13,7 +13,7 @@
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
-#include <cvt/gl/GLModel.h>
+#include <cvt/gl/GLVertexArray.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/GFX.h>
