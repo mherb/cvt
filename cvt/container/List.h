@@ -39,6 +39,9 @@ namespace cvt {
 
 
 		public:
+			class Iterator;
+			class ReverseIterator;
+
 			List();
 			~List();
 			List( const List<T>& list );
@@ -55,6 +58,16 @@ namespace cvt {
 			const T& front() const;
 			const T& back() const;
 
+			Iterator find( const T& data ) const;
+			template<typename T2> Iterator find( const T2& data ) const;
+
+			Iterator begin() { return Iterator( _anchor._next ); }
+			Iterator end() { return Iterator( &_anchor ); }
+			Iterator remove( Iterator it );
+
+			Iterator rbegin() { return Iterator( _anchor._prev ); }
+			Iterator rend() { return Iterator( &_anchor ); }
+			Iterator remove( ReverseIterator it );
 
 			class Iterator {
 				friend class List;
@@ -78,12 +91,6 @@ namespace cvt {
 					NodeBase* _it;
 			};
 
-			Iterator find( const T& data ) const;
-			template<typename T2> Iterator find( const T2& data ) const;
-			Iterator begin() { return Iterator( _anchor._next ); }
-			Iterator end() { return Iterator( &_anchor ); }
-			Iterator remove( Iterator it );
-
 			class ReverseIterator {
 				friend class List;
 				public:
@@ -106,9 +113,6 @@ namespace cvt {
 					NodeBase* _it;
 			};
 
-			Iterator rbegin() { return Iterator( _anchor._prev ); }
-			Iterator rend() { return Iterator( &_anchor ); }
-			Iterator remove( ReverseIterator it );
 
 		private:
 			void unlinkNode( NodeBase* node );

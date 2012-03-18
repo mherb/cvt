@@ -12,7 +12,7 @@
 #define CVT_PLOTVIEW_H
 
 #include <cvt/gui/Widget.h>
-#include <cvt/util/List.h>
+#include <cvt/container/List.h>
 
 #include <cvt/gui/PlotData.h>
 

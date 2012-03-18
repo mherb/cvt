@@ -166,6 +166,8 @@ SET(${MODULE_NAME}_HEADERS
 	cl/CLProgram.h
 	cl/CLUtil.h
 	cl/OpenCL.h
+	container/List.h
+	container/RBTree.h
 	geom/ArcBall.h
 	geom/Bezier.h
 	geom/KDTree.h
