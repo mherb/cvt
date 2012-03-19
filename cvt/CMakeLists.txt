@@ -191,6 +191,8 @@ SET(${MODULE_NAME}_HEADERS
 	gfx/IFormat.h
 	gfx/IConvert.h
 	gfx/IMapScoped.h
+	gfx/ILoader.h
+	gfx/ISaver.h
 	gfx/ifilter/ColorCode.h
 	gfx/ifilter/ROFDenoise.h
 	gfx/ifilter/ROFFGPFilter.h
