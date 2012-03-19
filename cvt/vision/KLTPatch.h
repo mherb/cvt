@@ -25,11 +25,21 @@ namespace cvt
 
 			KLTPatch();
 
-			bool update( const uint8_t* ptr, size_t stride );
+			/**
+			 *	\brief update the internal patch data
+			 *	\param ptr		ptr to the image
+			 *	\param stride	stride of the image
+			 *	\param pos		position of the feature in the image
+			 * */
+			bool update( const uint8_t* ptr, size_t stride, const Vector2f& pos );
 
-				  Vector2f & position()		   { return _pos; }
-			const Vector2f & position()  const { return _pos; }
-			const uint8_t*   pixels()    const { return _patch; }
+			void currentCenter( Vector2f& center )  const; 
+			
+			PoseType&	pose()	{ return _pose; }
+			void		initPose( const Vector2f& pos );
+
+			const uint8_t*   pixels()		const { return _patch; }
+			const uint8_t*   transformed()  const { return _transformed; }
 
 			const HessType&  inverseHessian() const { return _inverseHessian; }
 			const JacType*   jacobians()	  const { return _jac; }
@@ -41,8 +51,13 @@ namespace cvt
 									    const std::vector<Vector2f> & positions, 
 										const Image & img );
 		private:
-			Vector2f	_pos;
+			/* this stores the transform from the 
+			 * Template space to the image space*/
+			PoseType	_pose;
+
+			/* the pixel original information */
 			uint8_t		_patch[ pSize * pSize ];
+			uint8_t		_transformed[ pSize * pSize ];
 			HessType	_inverseHessian;
 			JacType		_jac[ pSize * pSize ];
 	};
@@ -53,8 +68,10 @@ namespace cvt
 	}
 
 	template <size_t pSize, class PoseType>
-	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* ptr, size_t stride )
+	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* imgPtr, size_t stride, const Vector2f& pos )
 	{
+		const size_t pHalf = ( pSize >> 1 );
+		const uint8_t* ptr = imgPtr + ( int )( pos.y - pHalf ) * stride + ( int )pos.x - pHalf;
 		const uint8_t* nextLine = ptr + stride;
 		const uint8_t* prevLine = ptr - stride;
 
@@ -62,10 +79,10 @@ namespace cvt
 
 		JacType* J = _jac;
 		uint8_t* p = _patch;
+		uint8_t* t = _transformed;
 
 		Eigen::Matrix<float, 2, 1> g;
 		HessType hess( HessType::Zero() );
-		PoseType pose;
 		typename PoseType::ScreenJacType sj;
 
 		Eigen::Vector2f point( 0.0f, 0.0f );
@@ -73,24 +90,28 @@ namespace cvt
 		{
 			for( size_t i = 0; i < pSize; i++ ){
 				point[ 0 ] = i;
-				*p = ptr[ i ];
+				*p = *t = ptr[ i ];
 
 				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
 				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
 				
-				pose.screenJacobian( sj, point );
+				_pose.screenJacobian( sj, point );
 				*J =  sj.transpose() * g;
 
 				hess += ( *J ) * J->transpose();
-
 				J++;
 				p++;
+				t++;
 			}
+
 			prevLine = ptr;
 			ptr = nextLine;
 			nextLine += stride;
 			point[ 1 ] += 1.0f;
 		}
+		
+		// initialize the _pose
+		initPose( pos );
 
 		bool invertable = true;
 		_inverseHessian = hess.inverse();
@@ -115,6 +136,7 @@ namespace cvt
 		int x, y;
 
 		KLTPatch<pSize, PoseType>* patch = 0;
+
 		for( size_t i = 0; i < positions.size(); i++ ){
 			x = positions[ i ].x;
 			y = positions[ i ].y;
@@ -123,22 +145,40 @@ namespace cvt
 			    y < ( int )phalf || ( y + phalf - 2 ) > h )
 				continue;
 
-			x -= phalf;
-			y -= phalf;
-			const uint8_t* p = ptr + y * s + x;
-
 			if( patch == 0 )	
 				patch = new KLTPatch<pSize, PoseType>();
 
-			patch->position() = positions[ i ];
-
-			if( patch->update( p, s ) ){
+			if( patch->update( ptr, s, positions[ i ] ) ){
 				patches.push_back( patch );
 				patch = 0;
 			}
 		}
 
+		if( patch )
+			delete patch;
+
 		img.unmap( ptr );
+	}
+
+	template <size_t pSize, class PoseType>
+	inline void KLTPatch<pSize, PoseType>::currentCenter( Vector2f& center ) const
+	{
+		Eigen::Vector2f p0( pSize / 2.0f, pSize / 2.0f );
+		Eigen::Vector2f curCenter;
+		_pose.transform( curCenter, p0 );
+		
+		EigenBridge::toCVT( center, curCenter );		
+	}
+	
+	template <size_t pSize, class PoseType>
+	inline void KLTPatch<pSize, PoseType>::initPose( const Vector2f& pos ) 
+	{
+		Matrix3f m;
+		m.setIdentity();
+		const float sizeHalf = pSize / 2.0f;
+		m[ 0 ][ 2 ] = pos.x - sizeHalf;
+		m[ 1 ][ 2 ] = pos.y - sizeHalf;
+		_pose.set( m );
 	}
 
 }

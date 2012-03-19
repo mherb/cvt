@@ -21,7 +21,7 @@ namespace cvt
 	{
 	}
 
-	void KLTTracking::trackFeatures( PointSet3d&			p3d, 
+	void KLTTracking::trackFeatures( PointSet3d&		p3d, 
 									PointSet2d&			p2d,
 									const SlamMap&		map,
 									const SE3<double>&	pose,
@@ -34,27 +34,27 @@ namespace cvt
 
 
 		// initialize the KLTData:
-		std::vector<Translation2D<float> > poses;
 		std::vector<PatchType*>			   predPatches;
 
-		poses.resize( _predictedIds.size() );
 		predPatches.resize( _predictedIds.size() );
 		Vector2f offset;	
 		for( size_t i = 0; i < _predictedIds.size(); i++ ){
 			predPatches[ i ] = _patchForId[ _predictedIds[ i ] ];
-			offset = predPatches[ i ]->position() - _predictedPositions[ i ];
-			poses[ i ].set( offset.x, offset.y );
+//			offset = predPatches[ i ]->position() - _predictedPositions[ i ];
+//			poses[ i ].set( offset.x, offset.y );
 		}
+		throw CVTException( "FIXME: pose is now stored in the patch and trackSinglePatch " );
 
 		// track with klt:
 		_trackedIndices.clear();
-		_klt.trackFeatures( _trackedIndices, poses, predPatches, img );
+//		_klt.trackFeatures( _trackedIndices, predPatches, img );
 
 		// create the correspondences:
 		Vector3d p3;
 		Vector2d p2;
 
 		Eigen::Vector2f tmpa, tmpb;
+		Vector2f patchPos;
 
 		_trackedPositions.resize( _trackedIndices.size() );
 		for( size_t i = 0; i < _trackedIndices.size(); i++ ){
@@ -66,9 +66,10 @@ namespace cvt
 			p3.z = mapFeat.estimate().z();
 			p3d.add( p3 );
 
-			EigenBridge::toEigen( tmpa, predPatches[ currIdx ]->position() );
+			predPatches[ currIdx ]->currentCenter( patchPos );
+			EigenBridge::toEigen( tmpa, patchPos );
 
-			poses[ currIdx ].transformInverse( tmpb, tmpa );
+			//poses[ currIdx ].transformInverse( tmpb, tmpa );
 			EigenBridge::toCVT( _trackedPositions[ i ], tmpb );
 			p2.x = _trackedPositions[ i ].x;
 			p2.y = _trackedPositions[ i ].y;
@@ -149,9 +150,8 @@ namespace cvt
 						float reprErr = triangulateSinglePoint( pNew, p0, p1, _camCalib0.projectionMatrix(), _camCalib1.projectionMatrix() );
 						if( reprErr < _maxTriangReprojError ){
 							PatchType* newPatch = new PatchType();
-							if( newPatch->update( ptr + ( ( int )p0.y * stride - 8 ) + ( int )p0.x - 8, stride ) ) {
+							if( newPatch->update( ptr, stride, p0 ) ) {
 								// good patch
-								newPatch->position() = p0;
 								meas.point[ 0 ] = p0.x;
 								meas.point[ 1 ] = p0.y;
 

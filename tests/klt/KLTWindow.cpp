@@ -64,10 +64,9 @@ namespace cvt
 
 		size_t savePos = 0;
 		for( size_t i = 0; i < _patches.size(); i++ ){
-			if( _klt.trackPatch( _poses[ i ], *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
+			if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
 				if( i != savePos ){
 					_patches[ savePos ] = _patches[ i ];
-					_poses[ savePos ]	= _poses[ i ];
 				}
 				savePos++;
 			} else {
@@ -77,7 +76,6 @@ namespace cvt
 
 		size_t numAll = _patches.size();
 
-		_poses.erase( _poses.begin() + savePos, _poses.end() );
 		_patches.erase( _patches.begin() + savePos, _patches.end() );
 
 
@@ -114,18 +112,17 @@ namespace cvt
 			GFX g( &ge );
 			g.color() = Color::GREEN;
 
-			Vector2f p1;
-			Eigen::Vector2f p;
-			Eigen::Vector2f pp;
-
+			Vector2f c;
+			Recti r;
+			r.width = 5;
+			r.height = 5;
 			for( size_t i = 0; i < _patches.size(); i++ ){
-				p[ 0 ] = _patches[ i ]->size() / 2;
-				p[ 1 ] = _patches[ i ]->size() / 2;
+				_patches[ i ]->currentCenter( c );
 
-				_poses[ i ].transform( pp, p );
-				EigenBridge::toCVT( p1, pp );
+				r.x = c.x - 2;
+				r.y = c.y - 2;
+				g.drawRect( r );
 
-				g.drawLine( _patches[ i ]->position(), p1 );
 			}
 		}
 	}
@@ -147,11 +144,9 @@ namespace cvt
 		std::vector<Vector2f> filteredUnique;
 
 		std::vector<Vector2f> patchPositions;
-		patchPositions.reserve( _patches.size() );
+		patchPositions.resize( _patches.size() );
 		for( size_t i = 0; i < _patches.size(); i++ ){
-			// FIXME:this is the position of the patch in the first view!
-			patchPositions.push_back( patchToCurrentPosition( _poses[ i ],
-												 *_patches[ i ] ) );
+			_patches[ i ]->currentCenter( patchPositions[ i ] );
 		}
 		
 		for( size_t k = 0; k < filtered.size(); k++ ){
@@ -166,28 +161,7 @@ namespace cvt
 				filteredUnique.push_back( filtered[ k ]->pt );
 		}
 
-		size_t oldSize = _patches.size();
 		KLTPType::extractPatches( _patches, filteredUnique, img );
-		Matrix3f startPose;
-		startPose.setIdentity();
-		for( size_t i = oldSize; i < _patches.size(); i++ ){
-			_poses.push_back( PoseType() );
-			startPose[ 0 ][ 2 ] = _patches[ i ]->position().x - _patches[ i ]->size() / 2.0f;
-			startPose[ 1 ][ 2 ] = _patches[ i ]->position().y - _patches[ i ]->size() / 2.0f; 
-			_poses.back().set( startPose );
-		}
 	}
 			
-	Vector2f KLTWindow::patchToCurrentPosition( const PoseType& pose, 
-											    const KLTPType& patch ) const
-	{
-		Eigen::Vector2f tmp( patch.size() / 2.0f, patch.size() / 2.0f );
-		Eigen::Vector2f p;
-
-		pose.transform( p, tmp );
-		Vector2f ret;
-		EigenBridge::toCVT( ret, p );
-
-		return ret;
-	}
 }

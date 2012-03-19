@@ -262,7 +262,7 @@ namespace cvt {
 		ssize_t sw, sh;
 		Matrix3f Ttrans;
 		Vector2f pt1( 0, 0 ), pt2( 0, 0 );
-		SIMD* simd =SIMD::instance();
+		SIMD* simd = SIMD::instance();
 
 		w = idst.width();
 		h = idst.height();
