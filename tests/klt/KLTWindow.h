@@ -56,7 +56,6 @@ namespace cvt {
 			size_t						_kltIters;
 
 			std::vector<KLTPType*>		_patches;
-			std::vector<PoseType>		_poses;
 			Time						_time;
 			double						_fps;
 			size_t						_iter;
@@ -68,7 +67,6 @@ namespace cvt {
 			void drawFeatures( Image & img );
 			void redetectFeatures( const Image & img );
 
-			Vector2f patchToCurrentPosition( const PoseType& pose, const KLTPType& patch ) const;
 	};
 
 }

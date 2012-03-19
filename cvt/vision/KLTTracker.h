@@ -12,6 +12,7 @@
 #define CVT_KLT_TRACKER_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/geom/Line2D.h>
 #include <cvt/gfx/Image.h>
 #include <vector>
 
@@ -30,14 +31,8 @@ namespace cvt
 			KLTTracker( size_t maxIters = 20 );
 
 			void trackFeatures( std::vector<size_t> & trackedIndices,
-							    std::vector<PoseType> & poses,
 							    const std::vector<KLTPType*>& patches,
 							    const Image& current );
-
-			void trackMultiscale( std::vector<size_t> & trackedIndices,
-								  std::vector<PoseType> & poses,
-								  const std::vector<KLTPType*>& patches,
-								  const std::vector<Image>& pyramid );
 
 			float ssdThreshold() const { return _ssdThresh; }
 			void  setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
@@ -46,8 +41,7 @@ namespace cvt
 			void  setMinPixFraction( float frac ){ _minPix = frac * Math::sqr( pSize ); }
 			void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
 			
-			bool trackPatch( PoseType& pose, 
-							 const KLTPType& patch,
+			bool trackPatch( KLTPType& patch,
 							 const uint8_t* current, size_t currStride,
 							 size_t width, size_t height );
 
@@ -80,7 +74,6 @@ namespace cvt
 
 	template <class PoseType, size_t pSize>
 	inline void KLTTracker<PoseType, pSize>::trackFeatures( std::vector<size_t> & trackedIndices,
-									std::vector<PoseType> & poses,
 									const std::vector<KLTPType*>& patches,
 									const Image& current )
 	{
@@ -94,15 +87,13 @@ namespace cvt
 		Eigen::Vector2f p2( 0.0f, 0.0f );
 		for( size_t i = 0; i < patches.size(); i++ ){
 			// track each single feature
-			PoseType & pose = poses[ i ];
 			const KLTPType& patch = *patches[ i ];
-
-		   	pose.transform( pp, p2 );
+		   	patch.pose().transform( pp, p2 );
 			if( !checkBounds( pp, w, h ) ){
 				continue;
 			}
 
-			if( trackPatch( pose, patch, currImgPtr, currStride, w, h ) ){
+			if( trackPatch( patch, currImgPtr, currStride, w, h ) ){
 				trackedIndices.push_back( i );
 			}
 		}
@@ -111,13 +102,10 @@ namespace cvt
 	}
 
 	template <class PoseType, size_t pSize>
-	inline bool KLTTracker<PoseType, pSize>::trackPatch( PoseType & pose, 
-									   					 const KLTPType& patch,
+	inline bool KLTTracker<PoseType, pSize>::trackPatch( KLTPType& patch,
 									   					 const uint8_t* current, size_t currStride,
 									   					 size_t width, size_t height )
 	{
-		Eigen::Vector2f p2;
-		Eigen::Vector2f pp;
 
 		size_t iter = 0;
 
@@ -126,34 +114,58 @@ namespace cvt
 		typename PoseType::ParameterVectorType delta;
 		float diffSum = 0.0f;
 		size_t npix = 0;
-		size_t numLines;
+
+		Line2Df scanLine( Vector3f( 0.0f, 1.0f, 0.0f ) );
+		Line2Df lWarped;
+
+		const typename KLTPType::JacType* J = patch.jacobians();
+		const uint8_t* temp = patch.pixels();
+
+		uint8_t	warpedLine[ pSize ];
+		float	positions[ 2 * pSize ];
 		while( iter < _maxIters ){
 			jSum.setZero();
-			numLines = pSize;
+			
 			diffSum = 0.0f;
 			npix = 0;
 
-			p2[ 1 ] = 0.0f;
-			const typename KLTPType::JacType* J = patch.jacobians();
-			const uint8_t* temp = patch.pixels();
-			while( numLines-- ){
-				p2[ 0 ] = 0.0f;
-				for( size_t i = 0; i < pSize; i++ ){
-					pose.transform( pp, p2 );
-					if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
-						float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
+			//Matrix3f poseT = patch.pose().transformation().transpose();
 
-						diffSum += ( deltaImg * deltaImg );
+			for( size_t y = 0; y < pSize; y++ ){
+				//scanLine[ 2 ] = -y; 
+				//lWarped = poseT * scanLine.vector();
 
-						jSum += ( *J *  deltaImg );
-						npix++;
-					}
+				//if( Clipping::clip( r, l2, pt1, pt2 ) ) {
+				//	Vector2f px1, px2;
+				//	px1 = T * pt1;
+				//	px2 = T * pt2;
+
+				//	if( px1.x > px2.x ) {
+				//		Vector2f tmp = px1;
+				//		px1 = px2;
+				//		px2 = tmp;
+				//	}
+
+				//	ssize_t x1 =  Math::clamp<ssize_t>( px1.x, 0, w );
+				//	ssize_t len =  Math::clamp<ssize_t>( px2.x + 1, 0, w ) -x1;
+				//	Vector3f p = Tinv * Vector3f( x1, y, 1.0f );
+				//	simd->warpLinePerspectiveBilinear1u8( dst.ptr() + x1, src.ptr(), src.stride(), sw, sh,
+				//										 p.ptr(), nx.ptr(), len );
+				//}
+
+				/*
+				if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
+					float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
+					diffSum += ( deltaImg * deltaImg );
+					jSum += ( *J *  deltaImg );
+					npix++;
+				}
 
 					temp++;
 					J++;
 					p2[ 0 ] += 1;
 				}
-				p2[ 1 ] += 1;
+				*/
 			}
 			
 			if( npix < _minPix ){
@@ -163,10 +175,10 @@ namespace cvt
 			// solve for the delta:
 			delta = patch.inverseHessian() * jSum;
 
-			pose.applyInverse( -delta );
+			patch.pose().applyInverse( -delta );
 
 			/* early step out? */
-			if( diffSum / npix < _earlyStepOutThresh )
+			if( ( diffSum / npix ) < _earlyStepOutThresh )
 				return true;
 			
 			iter++;
@@ -178,64 +190,6 @@ namespace cvt
 		return true;
 	}
 
-	template <class PoseType, size_t pSize>
-	inline void KLTTracker<PoseType, pSize>::trackMultiscale( std::vector<size_t> & trackedIndices,
-									  std::vector<PoseType> & poses,
-									  const std::vector<KLTPType*>& patches,
-									  const std::vector<Image>& pyramid )
-	{
-		int i = pyramid.size() - 1;
-		float allScale   = ( float )pyramid[ i ].width() / pyramid[ 0 ].width();
-		float interScale = ( float )pyramid[ i - 1 ].width() / pyramid[ i ].width();
-
-		// map all:
-		std::vector<const uint8_t*> ptr;
-		std::vector<size_t>     stride;
-		ptr.resize( pyramid.size() );
-		stride.resize( pyramid.size() );
-		for( size_t i = 0; i < pyramid.size(); i++ ){
-			ptr[ i ] = pyramid[ i ].map( &stride[ i ] );
-		}
-
-		float origSSD = _ssdThresh;
-
-		for( size_t p = 0; p < patches.size(); p++ ){
-			const KLTPType & patch = *patches[ p ];
-
-			// TODO: how do we need to change the pose correctly
-			PoseType & currPose = poses[ p ];
-			currPose.scale( allScale );
-
-			i = pyramid.size() - 1;
-			bool tracked = true;
-			_ssdThresh = origSSD / allScale;
-			while( i >= 0 ){
-				tracked = trackPatch( currPose,
-									  patch,
-									  ptr[ i ],
-									  stride[ i ],
-									  pyramid[ i ].width(), 
-									  pyramid[ i ].height() );
-									  
-				if( !tracked )
-					break;
-				if( i ){
-					currPose.scale( interScale );
-				}
-				i--;
-				_ssdThresh /= interScale;
-			}
-		
-			if( tracked ){
-				trackedIndices.push_back( p );
-			}
-			_ssdThresh = origSSD;
-		}
-
-		for( size_t i = 0; i < pyramid.size(); i++ ){
-			pyramid[ i ].unmap( ptr[ i ] );
-		}
-	}
 }
 
 #endif
