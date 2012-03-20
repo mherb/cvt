@@ -11,9 +11,9 @@
 
 #include "RGBDParser.h"
 
-#define VOL_WIDTH  128
-#define VOL_HEIGHT 128
-#define VOL_DEPTH  128
+#define VOL_WIDTH  256
+#define VOL_HEIGHT 256
+#define VOL_DEPTH  256
 
 using namespace cvt;
 
@@ -40,9 +40,9 @@ int main( int argc, char** argv )
 							   0.0f,   516.5f, 255.3f,
 							    0.0,	  0.0f,  1.0f );
 
-		Matrix4f gridToWorld( 1.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f, -0.2f,
- 				              0.0f, 1.0f / ( float )( VOL_HEIGHT ), 0.0f, 0.0f,
-							  0.0f, 0.0f, 1.0f / ( float ) ( VOL_DEPTH ), 0.4f,
+		Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f, -0.2f,
+ 				              0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, 0.0f,
+							  0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), 0.4f,
 							  0.0f, 0.0f, 0.0f, 1.0f );
 
 		Matrix4f gridToCam;
@@ -68,9 +68,9 @@ int main( int argc, char** argv )
 
 		Time t;
 		/* add the depth maps */
-		for( int i = 0; i < 400; i++) {
+		for( int i = 0; i < 700; i++) {
 			rgbddata.loadNext();
-			rgbddata.data().depth.convert( depthmap, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+			rgbddata.data().depth.convert( depthmap, IFormat::GRAY_UINT16, IALLOCATOR_CL );
 //			camcalib.setExtrinsics( rgbddata.data().pose );
 //			rgbddata.data().rgb.convert( image, IFormat::RGBA_FLOAT );
 

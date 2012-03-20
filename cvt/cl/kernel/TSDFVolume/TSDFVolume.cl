@@ -8,7 +8,7 @@ __kernel void TSDFVolume_clear( global float2* cv, int width, int height, int de
 	if( gx >= width || gy >= height || gz >= depth )
 		return;
 
-	*cvptr = ( float2 ) ( 0.0f, 0.0f );
+	*cvptr = ( float2 ) ( -1.0f, 0.0f );
 }
 
 __kernel void TSDFVolume_add( global float2* cv, int width, int height, int depth, read_only image2d_t dmap, float dscale,
@@ -36,20 +36,21 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	z = dot( K[ 2 ], gpos );
 	ipos = ( float2 ) ( dot( K[ 0 ], gpos ), dot( K[ 1 ], gpos ) ) / z;
 
-//	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
+	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
 		d = read_imagef( dmap, sampler, ipos ).x * dscale;
-		if( d > 0 ) {
+		if( d > 0 && z > 0 ) {
 			sdf = gpos.z - d;
 			w = 1.0f;
-			tsdf = clamp( sdf / truncaction, -1.0f, 1.0f );
-			/*		if( sdf > 0 )
-					tsdf = min( 1.0f, sdf / truncaction );
-					else
-					tsdf = max( -1.0f, sdf / truncaction );*/
-			float2 old = *cvptr;
-			*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * ( old.y + w )  ) / ( 2.0f * old.y + w ), old.y + w );
+			tsdf = sdf / truncaction;//clamp( sdf / truncaction, -1.0f, 1.0f );
+			if( sdf >= -truncaction ) {
+//				if( sdf <= truncaction ) {
+					float2 old = *cvptr;
+					*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * ( old.y + w )  ) / ( 2.0f * old.y + w ), old.y + w );
+//				} else
+//					*cvptr = ( float2 ) ( 1.0f, 0.0f );
+			}
 		}
-//	}
+	}
 }
 
 __kernel void TSDFVolume_slice( write_only image2d_t out, int z, global float2* cv, int width, int height, int depth  )

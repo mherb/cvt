@@ -199,7 +199,12 @@ namespace cvt {
 		std::vector<Vector2f> mtexcoords;
 		std::vector<unsigned int> mfaces;
 		unsigned int idx = 0;
-		bool hasTex = true, hasNormal = true;
+		bool hasTex = false, hasNormal = false;
+
+		if( normals.size() )
+			hasNormal = true;
+		if( texcoords.size() )
+			hasTex = true;
 
 		for( std::vector<ObjFace>::iterator it = faces.begin(); it != faces.end() && ( hasTex || hasNormal ); ++it ) {
 			if( !it->hasTexcoords() ) hasTex = false;
@@ -266,15 +271,13 @@ namespace cvt {
 				}
 			}
 		}
+
 		mesh.setVertices( &mvertices[ 0 ], mvertices.size() );
 		mesh.setFaces( &mfaces[ 0 ], mfaces.size(), SCENEMESH_TRIANGLES );
 		if( hasTex )
 			mesh.setTexcoords( &mtexcoords[ 0 ], mtexcoords.size() );
 		if( hasNormal )
 			mesh.setNormals( &mnormals[ 0 ], mnormals.size() );
-
-		mesh.removeRedundancy();
-//		mesh.calculateNormals( );
 
 		return true;
 	}
@@ -368,8 +371,8 @@ namespace cvt {
 				} else // error
 					return false;
 		} else {
-			vt = 0;
-			vn = 0;
+			vt = v;
+			vn = v;
 		}
 
 		return true;
