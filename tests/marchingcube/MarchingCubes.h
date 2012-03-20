@@ -20,9 +20,11 @@ namespace cvt {
 			~MarchingCubes();
 
 			void triangulate( SceneMesh& mesh, float isolevel = 0.0f ) const;
+			void triangulateWithNormals( SceneMesh& mesh, float isolevel = 0.0f ) const;
 
 		private:
 			static void vertexInterp( Vector3f& vtx, const Vector3f& p1, const Vector3f& p2, float val1, float val2, float isolevel );
+			static void vertexNormalInterp( Vector3f& vtx, const Vector3f& p1, const Vector3f& p2, Vector3f& norm, const Vector3f& n1, const Vector3f& n2, float val1, float val2, float isolevel );
 
 			const float* _volume;
 			size_t		 _width;

@@ -22,14 +22,19 @@ int main( int argc, char** argv )
 	{
 		MarchingCubes mc( volume, grid, grid, grid );
 		SceneMesh mesh( "MyMesh" );
-		mc.triangulate( mesh );
-		mesh.removeRedundancy( 1e-2f );
+		mc.triangulateWithNormals( mesh );
+//		mesh.removeRedundancy( 1e-2f );
 //		mesh.calculateNormals( 5.0f );
 
 		f = fopen( "mcresult.obj", "wb" );
 		for( size_t idx = 0; idx < mesh.vertexSize(); idx++ ) {
 			Vector3f vtx = mesh.vertex( idx );
 			fprintf( f, "v %f %f %f\n", vtx.x, vtx.y, vtx.z );
+		}
+
+		for( size_t idx = 0; idx < mesh.normalSize(); idx++ ) {
+			Vector3f vtx = mesh.normal( idx );
+			fprintf( f, "vn %f %f %f\n", vtx.x, vtx.y, vtx.z );
 		}
 
 		const unsigned int* faces = mesh.faces();
