@@ -49,9 +49,6 @@ int main( int argc, char* argv[] )
     VideoInput * input = 0;
 	if( argc == 1 ){
         input = initCamera();
-    } else {
-        String ext( "cvtraw" );
-        input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
     }
 
 	try {

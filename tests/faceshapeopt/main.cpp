@@ -24,7 +24,7 @@ int main()
 	Image imgu, imgf;
 	int bla;
 
-	ImageSequence seq( "./imgseq/image_", "cvtraw", 30, 1016, 5 );
+	ImageSequence seq( "./imgseq/image_", "cvtraw" );
 
 	imgu.reallocate( seq.width(), seq.height(), IFormat::BGRA_UINT8 );
 	imgf.reallocate( seq.width(), seq.height(), IFormat::GRAY_FLOAT );

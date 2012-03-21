@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
         input = initCamera();
     } else {
         String ext( "cvtraw" );
-        input = new ImageSequence( argv[ 1 ], ext, 1, 2680, 5 );
+        input = new ImageSequence( argv[ 1 ], ext );
     }
 
 	try {

@@ -56,7 +56,7 @@ int main( int argc, char* argv[] )
 		int a = atoi( argv[ 3 ] );
 		int b = atoi( argv[ 4 ] );
 		int c = atoi( argv[ 5 ] );
-        input = new ImageSequence( argv[ 1 ], ext, a, b, c );
+        input = new ImageSequence( argv[ 1 ], ext );
     }
 
 	try {
