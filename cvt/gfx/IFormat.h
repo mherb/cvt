@@ -376,7 +376,9 @@ namespace cvt
             case IFORMAT_BAYER_GRBG_UINT8:
                 return IFormat::BAYER_GRBG_UINT8;
 			default:
-				throw CVTException( "UNKOWN INPUT FORMAT: " );
+				String msg;
+				msg.sprintf( "UNKNOWN INPUT FORMAT: %d", (int)formatID );
+				throw CVTException( msg.c_str() );
 				break;
 		}
     }
