@@ -13,18 +13,15 @@
 
 #include <cvt/io/VideoInput.h>
 #include <cvt/util/String.h>
+#include <vector>
 
 namespace cvt
 {
     class ImageSequence : public VideoInput
     {
         public:
-            ImageSequence( const String & base, 
-                           const String & ext,
-                           size_t startIndex, 
-                           size_t stopIndex, 
-                           size_t fieldWidth,
-                           char fillChar = '0' );
+            ImageSequence( const String& basename,
+                           const String& ext );
         
             ~ImageSequence(){}
         
@@ -36,13 +33,11 @@ namespace cvt
             
         
         private:
-            Image       _current;   
-            String		_baseName;
-            String 		_extension;            
-            size_t      _index;
-            size_t      _lastIndex;
-            size_t      _fieldWidth;
-            char        _fillChar;
+            Image					_current;   
+			std::vector<String>		_files;
+            size_t					_index;
+	
+			bool extractFolder( String& folder, const String& basename ) const;
     };
 }
 
