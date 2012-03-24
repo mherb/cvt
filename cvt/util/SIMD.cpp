@@ -1343,6 +1343,42 @@ namespace cvt {
 			*dst++ = scale * ( float ) ( *src++ );
 	}
 
+	void SIMD::Conv_u16_to_u8( uint8_t* dst, const uint16_t* src, const size_t n ) const
+	{
+
+		size_t i = n >> 2;
+
+		while( i-- ){
+			*dst++ = *src++ >> 8;
+			*dst++ = *src++ >> 8;
+			*dst++ = *src++ >> 8;
+			*dst++ = *src++ >> 8;
+		}
+		i = n & 0x03;
+		while( i-- )
+			*dst++ =  *src++ >> 8 ;
+	}
+
+	void SIMD::Conv_u16_to_XXXAu8( uint8_t* _dst, const uint16_t* src, const size_t n ) const
+	{
+
+		size_t i = n;
+		uint32_t* dst = ( uint32_t* ) _dst;
+		uint32_t tmp;
+		uint8_t val;
+
+		while( i-- ){
+			tmp = 0xff000000;
+			val = *src >> 8;
+			tmp |= ( val );
+			tmp |= ( val ) << 8;
+			tmp |= ( val ) << 16;
+
+			*dst++ = tmp;
+			src++;
+		}
+	}
+
 	void SIMD::Conv_GRAYu8_to_XXXAu8( uint8_t* _dst, const uint8_t* src, const size_t n ) const
 	{
 		size_t i = n;
