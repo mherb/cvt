@@ -134,6 +134,8 @@ namespace cvt {
 			virtual void Conv_fx_to_s16( int16_t* dst, const Fixed* src, const size_t n ) const;
 			virtual void Conv_u8_to_f( float* dst, const uint8_t* src, const size_t n ) const;
 			virtual void Conv_u16_to_f( float* dst, const uint16_t* src, const size_t n ) const;
+			virtual void Conv_u16_to_u8( uint8_t* dst, const uint16_t* src, const size_t n ) const;
+			virtual void Conv_u16_to_XXXAu8( uint8_t* dst, const uint16_t* src, const size_t n ) const;
 			virtual void Conv_GRAYf_to_GRAYu8( uint8_t* _dst, const float* src, const size_t n ) const;
 			virtual void Conv_GRAYf_to_XXXAf( float* dst, const float* src, const size_t n ) const;
 			virtual void Conv_GRAYu8_to_XXXAu8( uint8_t* _dst, const uint8_t* src, const size_t n ) const;
