@@ -75,6 +75,8 @@ namespace cvt {
 		}
 
 		template<typename T> static inline T sqr( T v ) { return v * v; }
+		
+		template<typename T> static inline T isNaN( T v ) { return v != v; }
 
 		size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
 		size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
