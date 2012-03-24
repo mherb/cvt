@@ -60,5 +60,13 @@ namespace cvt {
 		folder = basename.substring( 0, pos+1 );
 		return true;	
 	}
+
+
+	bool ImageSequence::hasNext() const
+	{
+		if( _index < ( _files.size() - 1 ) )
+			return true;
+		return false;
+	}
     
 }
