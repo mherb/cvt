@@ -30,6 +30,7 @@ namespace cvt
             const   IFormat & format() const { return _current.format(); }
             const   Image & frame() const { return _current; }
             void    nextFrame();
+			bool	hasNext() const;
             
         
         private:
