@@ -112,16 +112,53 @@ class VideoPlayer : public TimeoutHandler
 		Time			_time;
 };
 
+void createStereoImage( Image& stereo, const Image& rgb, const Image& depth )
+{
+	stereo.copyRect( 0, 0, rgb, rgb.rect() );	
+	stereo.copyRect( rgb.width(), 0, depth, depth.rect() );	
+}
+
+void saveStereoSeq()
+{
+	ImageSequence rgb( "/Users/sebi/Desktop/kanalbegehung_20_03_2012/rgb_000", "cvtraw" );
+	ImageSequence depth( "/Users/sebi/Desktop/kanalbegehung_20_03_2012/depth_000", "cvtraw" );
+
+	Image rgbImageU8( rgb.width(), rgb.height(), IFormat::RGBA_UINT8 );
+	Image depthImageU8( depth.width(), depth.height(), IFormat::RGBA_UINT8 );
+	Image depthScaled( depth.width(), depth.height(), depth.format() );
+	
+	Image stereo( depth.width() + rgb.width(), Math::max( depth.height(), rgb.height() ), IFormat::RGBA_UINT8 );
+	
+	size_t iter = 0;
+	String name;
+	while( rgb.hasNext() && depth.hasNext() ){
+		rgb.frame().convert( rgbImageU8 );
+		
+		depthScaled = depth.frame();
+		depthScaled.mul( 5.0f );
+		depthScaled.convert( depthImageU8 );
+		createStereoImage( stereo, rgbImageU8, depthImageU8 );
+
+		name.sprintf( "stereo_%06d.png", iter++ );
+		stereo.save( name );
+		std::cout << name << std::endl;
+
+		rgb.nextFrame();
+		depth.nextFrame();
+	}
+}
 
 int main( int argc, char** argv )
 {
+	saveStereoSeq();
+	return 0;
 	if( argc < 3 ){
 		std::cout << "Usage: " << argv[ 0 ] << "<basename> <extension>" << std::endl;
 		return 0;
 	}
 
 	ImageSequence sequence( argv[ 1 ], argv[ 2 ] );
-	
+
 	try {
 		VideoPlayer video( &sequence, 1000/30 );
         Application::run();
