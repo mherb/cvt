@@ -27,7 +27,7 @@ namespace cvt {
 			typedef GA2<float>					PoseType;
 			//typedef Sim2<float>				PoseType;
 			//typedef Translation2D<float>		PoseType;
-			typedef KLTTracker<PoseType, 16>	KLTType;
+			typedef KLTTracker<PoseType, 64>	KLTType;
 			typedef KLTType::KLTPType			KLTPType;
 
 			KLTWindow( Image & img );

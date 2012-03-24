@@ -39,7 +39,9 @@ namespace cvt
 			void		initPose( const Vector2f& pos );
 
 			const uint8_t*   pixels()		const { return _patch; }
-			const uint8_t*   transformed()  const { return _transformed; }
+        
+			const uint8_t*   transformed()  const { return _transformed; }    
+            uint8_t*   transformed() { return _transformed; }
 
 			const HessType&  inverseHessian() const { return _inverseHessian; }
 			const JacType*   jacobians()	  const { return _jac; }
@@ -60,6 +62,9 @@ namespace cvt
 			uint8_t		_transformed[ pSize * pSize ];
 			HessType	_inverseHessian;
 			JacType		_jac[ pSize * pSize ];
+
+			KLTPatch( const KLTPatch& );
+			KLTPatch& operator= (const KLTPatch& );
 	};
 
 	template <size_t pSize, class PoseType>

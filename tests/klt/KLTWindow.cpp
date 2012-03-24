@@ -10,6 +10,7 @@ namespace cvt
 		_klt( 10 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
+		_redetectThreshold( 20 ),
 		_gridFilter( 8, video.width(), video.height() )
 	{
 		_timerId = Application::registerTimer( 10, this );
@@ -25,6 +26,7 @@ namespace cvt
 
 		Delegate<void (float)> ssdDel( &_klt, &KLTType::setSSDThreshold );
 		_ssdSlider.valueChanged.add( ssdDel );
+		_ssdSlider.setValue( 50.0f );
 
 		_window.setVisible( true );
 		_window.update();				
@@ -32,7 +34,14 @@ namespace cvt
 		_pyramid.resize( 2 );
 		_video.nextFrame();
 		_video.nextFrame();
-		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
+
+		Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
+		_pyramid[ 0 ].reallocate( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
+		_video.frame().convert( gray, IFormat::GRAY_UINT8 );
+
+		const IKernel & horiz = IKernel::GAUSS_HORIZONTAL_3;
+		const IKernel & vert = IKernel::GAUSS_VERTICAL_3;
+		gray.convolve( _pyramid[ 0 ], horiz, vert );
 
 		_fast.setThreshold( 14 );
 		_fast.setNonMaxSuppress( true );
@@ -82,7 +91,7 @@ namespace cvt
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
 
-		if( _patches.size() < 50 )
+		if( _patches.size() < _redetectThreshold )
 			redetectFeatures( _pyramid[ 0 ] );
 
 		double t = _time.elapsedSeconds();
@@ -114,13 +123,14 @@ namespace cvt
 
 			Vector2f c;
 			Recti r;
-			r.width = 5;
-			r.height = 5;
+			size_t offset = PATCH_SIZE >> 1;
+			r.width = PATCH_SIZE;
+			r.height = PATCH_SIZE;
 			for( size_t i = 0; i < _patches.size(); i++ ){
 				_patches[ i ]->currentCenter( c );
 
-				r.x = c.x - 2;
-				r.y = c.y - 2;
+				r.x = c.x - offset;
+				r.y = c.y - offset;
 				g.drawRect( r );
 
 			}
