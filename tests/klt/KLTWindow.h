@@ -24,15 +24,17 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
+#define PATCH_SIZE ( 16 )
+
 namespace cvt {
 
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			//typedef GA2<float>			  PoseType;
+			typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
-			typedef Translation2D<float>	  PoseType;
-			typedef KLTTracker<PoseType, 16>  KLTType;	
+			//typedef Translation2D<float>	  PoseType;
+			typedef KLTTracker<PoseType, PATCH_SIZE>  KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
 			KLTWindow( VideoInput & video );
@@ -60,6 +62,8 @@ namespace cvt {
 			double						_fps;
 			size_t						_iter;
 			std::vector<Image>			_pyramid;
+
+			size_t						_redetectThreshold;
 
 			FAST						_fast;
 			FeatureFilter				_gridFilter;

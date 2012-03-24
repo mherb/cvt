@@ -18,7 +18,9 @@
 
 #include <cvt/vision/KLTPatch.h>
 #include <cvt/math/Translation2D.h>
+#include <cvt/math/Math.h>
 #include <cvt/util/EigenBridge.h>
+
 
 namespace cvt
 {
@@ -115,61 +117,80 @@ namespace cvt
 		float diffSum = 0.0f;
 		size_t npix = 0;
 
-		Line2Df scanLine( Vector3f( 0.0f, 1.0f, 0.0f ) );
-		Line2Df lWarped;
-
-		const typename KLTPType::JacType* J = patch.jacobians();
-		const uint8_t* temp = patch.pixels();
-
-		uint8_t	warpedLine[ pSize ];
-		float	positions[ 2 * pSize ];
+        // normal on x
+		Vector3f nx( 1.0f, 0.0f, 0.0f );
+        
+        Vector2f a( 0.0f, 0.0f );
+        Vector2f b( pSize, 0.0f );
+        Vector2f c( pSize, pSize );
+        Vector2f d( 0.0f, pSize );
+        Vector2f pWarped;
+        
 		while( iter < _maxIters ){
 			jSum.setZero();
 			
 			diffSum = 0.0f;
 			npix = 0;
 
-			//Matrix3f poseT = patch.pose().transformation().transpose();
+			//pose matrix
+			Matrix3f pose;
+			EigenBridge::toCVT( pose, patch.pose().transformation() );
+            
+            // first test if all points transform into the image, 
+            // if not, just return false -> patch no longer tracked
+            pWarped = pose * a;
+            if( pWarped.x < 0.0f || pWarped.x > ( width-1 ) ||
+                pWarped.y < 0.0f || pWarped.y > ( height-1 ) )
+                return false;
+            pWarped = pose * b;
+            if( pWarped.x < 0.0f || pWarped.x > ( width-1 ) ||
+               pWarped.y < 0.0f || pWarped.y > ( height-1 ) )
+                return false;
 
+            pWarped = pose * c;
+            if( pWarped.x < 0.0f || pWarped.x > ( width-1 ) ||
+               pWarped.y < 0.0f || pWarped.y > ( height-1 ) )
+                return false;
+            pWarped = pose * d;
+            if( pWarped.x < 0.0f || pWarped.x > ( width-1 ) ||
+               pWarped.y < 0.0f || pWarped.y > ( height-1 ) )
+                return false;
+            
+            // the warped current ones
+            uint8_t* warped = patch.transformed();
+            // the original template pixels
+            const uint8_t* temp = patch.pixels();
+            const typename KLTPType::JacType* J = patch.jacobians();
+
+			Vector2f pcur, ppcur;
 			for( size_t y = 0; y < pSize; y++ ){
-				//scanLine[ 2 ] = -y; 
-				//lWarped = poseT * scanLine.vector();
+                for( size_t i = 0; i < pSize; i++ ){
+					pcur.y = y;
+					pcur.x = i;
+					ppcur = pose * pcur;
 
-				//if( Clipping::clip( r, l2, pt1, pt2 ) ) {
-				//	Vector2f px1, px2;
-				//	px1 = T * pt1;
-				//	px2 = T * pt2;
+					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) )
+						return false;
 
-				//	if( px1.x > px2.x ) {
-				//		Vector2f tmp = px1;
-				//		px1 = px2;
-				//		px2 = tmp;
-				//	}
+					int ix = ( int )ppcur.x;
+					int iy = ( int )ppcur.y;
+					float fracx = ppcur.x - ix;
+					float fracy = ppcur.y - iy;
 
-				//	ssize_t x1 =  Math::clamp<ssize_t>( px1.x, 0, w );
-				//	ssize_t len =  Math::clamp<ssize_t>( px2.x + 1, 0, w ) -x1;
-				//	Vector3f p = Tinv * Vector3f( x1, y, 1.0f );
-				//	simd->warpLinePerspectiveBilinear1u8( dst.ptr() + x1, src.ptr(), src.stride(), sw, sh,
-				//										 p.ptr(), nx.ptr(), len );
-				//}
-
-				/*
-				if( ( size_t )pp[ 0 ] < width && ( size_t )pp[ 1 ] < height ){
-					float deltaImg = ( int16_t )current[ ( size_t )pp[ 1 ] * currStride + ( size_t )pp[ 0 ] ] - ( int16_t )*temp;
-					diffSum += ( deltaImg * deltaImg );
-					jSum += ( *J *  deltaImg );
-					npix++;
+					const uint8_t* px = current + iy * currStride + ix;
+					uint8_t v0 = Math::mix( px[ 0 ], px[ 1 ], fracx );
+					px += currStride;
+					uint8_t v1 = Math::mix( px[ 0 ], px[ 1 ], fracx );
+					v0 = Math::mix( v0, v1, fracy );
+					warped[ y * pSize + i ] = v0; 
+					
+					float deltaImg = ( int16_t )v0 - ( int16_t )temp[ y * pSize + i ];
+                    diffSum += Math::sqr( deltaImg * deltaImg );
+                    jSum += ( *J *  deltaImg );
+                    J++;
+				
 				}
-
-					temp++;
-					J++;
-					p2[ 0 ] += 1;
-				}
-				*/
-			}
-			
-			if( npix < _minPix ){
-				return false;
+                
 			}
 
 			// solve for the delta:
@@ -178,13 +199,13 @@ namespace cvt
 			patch.pose().applyInverse( -delta );
 
 			/* early step out? */
-			if( ( diffSum / npix ) < _earlyStepOutThresh )
-				return true;
+			//if( ( diffSum / Math::sqr( pSize ) ) < _earlyStepOutThresh )
+			//	return true;
 			
 			iter++;
 		}
 
-		if( ( diffSum / npix ) > _ssdThresh ){
+		if( ( diffSum / Math::sqr( pSize ) ) > _ssdThresh ){
 			return false;
 		}
 		return true;
