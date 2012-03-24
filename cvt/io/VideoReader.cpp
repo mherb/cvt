@@ -138,7 +138,6 @@ namespace cvt {
 
 						SIMD* simd = SIMD::instance();
 
-						const uint8_t * sOrig;
 						uint8_t * dOrig;
 						const uint8_t * src = _avFrame->data[ 0 ];
 						const uint8_t *srcu;
@@ -146,7 +145,6 @@ namespace cvt {
 
 						size_t stridedst;
 						uint8_t * dst = _frame->map( &stridedst );
-						sOrig = src;
 						dOrig = dst;
 
 						srcu = _avFrame->data[ 1 ];
