@@ -7,7 +7,7 @@ namespace cvt
 		_ssdSliderLabel( "SSD Threshold" ),
 		_ssdSlider( 0.0f, Math::sqr( 100.0f ), 0.0f ),
 		_video( video ),
-		_klt( 10 ),
+		_klt( 20 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_redetectThreshold( 20 ),

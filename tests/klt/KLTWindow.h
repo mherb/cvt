@@ -24,7 +24,7 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#define PATCH_SIZE ( 16 )
+#define PATCH_SIZE ( 32 )
 
 namespace cvt {
 

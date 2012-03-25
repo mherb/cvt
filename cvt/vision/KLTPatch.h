@@ -97,9 +97,20 @@ namespace cvt
 				point[ 0 ] = i;
 				*p = *t = ptr[ i ];
 
-				g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
-				g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
-				
+				// sobel style
+				g[ 0 ] = -( int16_t )prevLine[ i - 1 ] + ( int16_t )prevLine[ i + 1 ]
+					     + 2 * ( -( int16_t ) ptr[ i - 1 ] + ptr[ i + 1 ] )
+						 -( int16_t )nextLine[ i - 1 ] + ( int16_t )nextLine[ i + 1 ];
+
+				g[ 1 ] = ( int16_t )nextLine[ i - 1 ] + 2 * ( int16_t )nextLine[ i ] + ( int16_t )nextLine[ i + 1 ]
+						-( int16_t )prevLine[ i - 1 ] - 2 * ( int16_t )prevLine[ i ] - ( int16_t )prevLine[ i + 1 ];
+				g *= 0.125f;
+
+				// simple central derivative
+				//g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
+				//g[ 1 ] = ( int16_t )nextLine[ i ] - ( int16_t )prevLine[ i ];
+				//g *= 0.5f;
+
 				_pose.screenJacobian( sj, point );
 				*J =  sj.transpose() * g;
 
