@@ -44,8 +44,11 @@ Camera* selectCam()
     return cam;
 }
 
-int main()
+int main( int argc, char* argv[] )
 {
+	size_t maxSeconds = -1;
+	if( argc == 2 )
+		maxSeconds = atoi( argv[ 1 ] );
 
 	Camera * cam = selectCam();
 	
@@ -53,10 +56,11 @@ int main()
 	cam->nextFrame();
 
 	try {
+		std::cout << "Recording a sequence for max. " << maxSeconds << " seconds. (ctrl-c to abort)" << std::endl;
 		RawVideoWriter writer( "test.rawvid" );
 
 		Time t;
-		while( t.elapsedSeconds() < 20 ){
+		while( t.elapsedSeconds() < maxSeconds ){
 			cam->nextFrame();
 			writer.write( cam->frame() );
 		}
