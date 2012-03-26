@@ -46,7 +46,7 @@ namespace cvt
 			size_t	_imgSize;
 
 			/* change the filesize and update the mapping */
-			void remapFile();
+			void remapFile( size_t additionalBytes = 0 );
 
 			/* write the header to the file */
 			void writeHeader();
