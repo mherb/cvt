@@ -47,35 +47,28 @@ Camera* selectCam()
 int main()
 {
 
-	/*
 	Camera * cam = selectCam();
 	
 	cam->startCapture();
 	cam->nextFrame();
-	*/
 
 	try {
 		RawVideoWriter writer( "test.rawvid" );
 
-		Image img( 1024, 1024, IFormat::RGBA_UINT8 );
-		while( true ){
-			writer.write( img );
-		}
-		/*
 		Time t;
+		size_t iter = 0;
 		while( t.elapsedSeconds() < 20 ){
 			cam->nextFrame();
 			writer.write( cam->frame() );
 		}
-		std::cout << "Done" << std::endl;
-		*/
-
 	} catch ( const Exception & e ){
 		std::cout << e.what() << std::endl;
 	}
-/*
+
+	std::cout << "Done" << std::endl;
+
 	cam->stopCapture();
 	delete cam;
-*/
+
 	return 0;
 }
