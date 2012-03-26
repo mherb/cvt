@@ -42,6 +42,8 @@ namespace cvt {
 
 			void onTimeout();
 
+			void ssdThresholdChanged( float val );
+
 		private:
 			uint32_t					_timerId;
 			Window						_window;
