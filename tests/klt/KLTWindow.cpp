@@ -24,7 +24,10 @@ namespace cvt
 		wl.setAnchoredTop( 2, 20 );
 		_window.addWidget( &_ssdSlider, wl );
 
-		Delegate<void (float)> ssdDel( &_klt, &KLTType::setSSDThreshold );
+		wl.setAnchoredTop( 25, 20 );
+		_window.addWidget( &_ssdSliderLabel, wl );
+
+		Delegate<void (float)> ssdDel( this, &KLTWindow::ssdThresholdChanged );
 		_ssdSlider.valueChanged.add( ssdDel );
 		_ssdSlider.setValue( 50.0f );
 
@@ -59,6 +62,14 @@ namespace cvt
 	KLTWindow::~KLTWindow()
 	{
 		Application::unregisterTimer( _timerId );
+	}
+
+	void KLTWindow::ssdThresholdChanged( float val )
+	{
+		_klt.setSSDThreshold( val );
+		String label;
+		label.sprintf( "%0.1f", val );
+		_ssdSliderLabel.setTitle( label );
 	}
 
 	void KLTWindow::onTimeout()
