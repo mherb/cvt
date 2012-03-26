@@ -233,7 +233,7 @@ namespace cvt {
 		FD_ZERO(&rdset);
 		FD_SET(_fd, &rdset);
 		timeout.tv_sec = 0; // 1 sec timeout
-		timeout.tv_usec = 10000;
+		timeout.tv_usec = 50000; // 50ms
 
 		// select - wait for data or timeout
 		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );

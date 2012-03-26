@@ -39,10 +39,6 @@ namespace cvt
 			throw CVTException( msg.c_str() );
 		}
 
-		_currSize = 4 * sizeof( uint32_t );
-		_maxSize = _currSize;
-		resizeFile();
-
 		// get the system page size
 		_pageSize = sysconf( _SC_PAGE_SIZE );
 	}
@@ -89,7 +85,7 @@ namespace cvt
 			_imgSize = _height * _stride;
 
 			// need to write the header first
-			remapFile();
+			remapFile( 4 * sizeof( uint32_t ) );
 			writeHeader();
 		} else {
 			// check size and format
@@ -108,6 +104,7 @@ namespace cvt
 
 		SIMD * simd = SIMD::instance();
 		simd->Memcpy( _pos, imgData, _imgSize );
+		//memcpy( _pos, imgData, _imgSize );
 
 		img.unmap( imgData );
 
@@ -125,9 +122,9 @@ namespace cvt
 		_currSize += _imgSize;
 	}
 
-	void RawVideoWriter::remapFile()
+	void RawVideoWriter::remapFile( size_t additionalBytes )
 	{
-		size_t resizeSize = 50 * _imgSize;
+		size_t resizeSize = 50 * _imgSize + additionalBytes;
 		if( _map != 0 ){
 			if( munmap( _map, _mappedSize ) != 0 ){
 				char * err = strerror( errno );
@@ -153,6 +150,7 @@ namespace cvt
 			ptrOffset = _offsetInFile - alignedOffset;
 			mapSize += ptrOffset;
 		}
+
 		_map = mmap( 0, mapSize, PROT_WRITE, MAP_SHARED, _fd, alignedOffset );
 		if( _map == MAP_FAILED ){
 			std::cout << "MapSize: " << mapSize << " AlignedOffset: " << alignedOffset << ", _offsetInFile " << _offsetInFile << std::endl;
