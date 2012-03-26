@@ -56,7 +56,6 @@ int main()
 		RawVideoWriter writer( "test.rawvid" );
 
 		Time t;
-		size_t iter = 0;
 		while( t.elapsedSeconds() < 20 ){
 			cam->nextFrame();
 			writer.write( cam->frame() );
