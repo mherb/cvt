@@ -96,10 +96,11 @@ class MultiCamApp : public TimeoutHandler
 				Image img;
 
 				for( size_t i = 0; i < _cams.size(); i++ ){
-					name.sprintf( "camera_%02d_image_%03d.png", i, _dumpIter );
+					name.sprintf( "camera_%s_image_%03d.png", _cams[ i ]->identifier().c_str(), _dumpIter );
 					_cams[ i ]->frame().convert( img, IFormat::RGBA_UINT8 );
 					img.save( name );
 				}
+				std::cout << "dumped" << std::endl;
 				_dump = false;
 			}
 		}
