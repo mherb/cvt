@@ -3,6 +3,7 @@
 
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/Window.h>
+#include <cvt/gui/Button.h>
 #include <cvt/gui/Label.h>
 #include <cvt/gui/Slider.h>
 #include <cvt/gui/ImageView.h>
@@ -44,6 +45,9 @@ namespace cvt {
 
 			void ssdThresholdChanged( float val );
 
+			void steppingPressed();
+			void nextPressed();
+
 		private:
 			uint32_t					_timerId;
 			Window						_window;
@@ -52,6 +56,11 @@ namespace cvt {
 			Label						_ssdSliderLabel;
 			Slider<float>				_ssdSlider;
 			
+			Button						_stepButton;
+			Button						_nextButton;
+			bool						_stepping;
+			bool						_next;
+
 			VideoInput &				_video;
 
 			KLTType						_klt;
