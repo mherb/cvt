@@ -195,7 +195,6 @@ namespace cvt
 
 			// solve for the delta:
 			delta = patch.inverseHessian() * jSum;
-
 			patch.pose().applyInverse( -delta );
 
 			/* early step out? */
@@ -205,7 +204,8 @@ namespace cvt
 			iter++;
 		}
 
-		if( ( diffSum / Math::sqr( pSize ) ) > _ssdThresh ){
+		if( ( diffSum / Math::sqr<float>( pSize ) ) > _ssdThresh ){
+			std::cout << "Difference too high: " << ( diffSum / Math::sqr<float>( pSize ) ) << std::endl;
 			return false;
 		}
 		return true;
