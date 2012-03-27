@@ -6,12 +6,16 @@ namespace cvt
 		_window( "KLT" ),
 		_ssdSliderLabel( "SSD Threshold" ),
 		_ssdSlider( 0.0f, Math::sqr( 100.0f ), 0.0f ),
+		_stepButton( "Enable Freerun" ),
+		_nextButton( "Next Frame" ),
+		_stepping( true ),
+		_next( false ),
 		_video( video ),
 		_klt( 20 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_redetectThreshold( 20 ),
-		_gridFilter( 8, video.width(), video.height() )
+		_gridFilter( 20, video.width(), video.height() )
 	{
 		_timerId = Application::registerTimer( 10, this );
 		_window.setSize( 640, 480 );
@@ -26,6 +30,17 @@ namespace cvt
 
 		wl.setAnchoredTop( 25, 20 );
 		_window.addWidget( &_ssdSliderLabel, wl );
+
+		wl.setAnchoredTop( 47, 20 );
+		_window.addWidget( &_stepButton, wl );
+		wl.setAnchoredTop( 70, 20 );
+		_window.addWidget( &_nextButton, wl );
+
+		Delegate<void ()> stepDel( this, &KLTWindow::steppingPressed );
+		Delegate<void ()> nextDel( this, &KLTWindow::nextPressed );
+
+		_stepButton.clicked.add( stepDel );
+		_nextButton.clicked.add( nextDel );
 
 		Delegate<void (float)> ssdDel( this, &KLTWindow::ssdThresholdChanged );
 		_ssdSlider.valueChanged.add( ssdDel );
@@ -68,36 +83,63 @@ namespace cvt
 	{
 		_klt.setSSDThreshold( val );
 		String label;
-		label.sprintf( "%0.1f", val );
-		_ssdSliderLabel.setTitle( label );
+		label.sprintf( "Treshold: %0.1f", val );
+		_ssdSliderLabel.setLabel( label );
+	}
+
+	void KLTWindow::nextPressed()
+	{
+		_next = true;
+	}
+
+	void KLTWindow::steppingPressed()
+	{
+		String label;
+		if( _stepping ){
+			label = "Enable stepping";
+			_nextButton.setVisible( false );
+		} else {
+			label = "Enable freerun";
+			_nextButton.setVisible( true );
+		}
+		_stepping = !_stepping;
+		_stepButton.setLabel( label );
 	}
 
 	void KLTWindow::onTimeout()
 	{
+		if( _stepping && !_next )
+			return;
+		_next = false;
+		// convert to grayscale
 		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
+
 
 		_kltTime.reset();
 
-		IMapScoped<uint8_t> map( _pyramid[ 0 ] );
-		size_t w = _pyramid[ 0 ].width(); 
-		size_t h = _pyramid[ 0 ].height(); 
 
 		size_t savePos = 0;
-		for( size_t i = 0; i < _patches.size(); i++ ){
-			if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
-				if( i != savePos ){
-					_patches[ savePos ] = _patches[ i ];
+		size_t numAll = 0;
+		{
+			// map the image
+			IMapScoped<uint8_t> map( _pyramid[ 0 ] );
+			size_t w = _pyramid[ 0 ].width();
+			size_t h = _pyramid[ 0 ].height();
+
+			// track all patches
+			for( size_t i = 0; i < _patches.size(); i++ ){
+				if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
+					if( i != savePos ){
+						_patches[ savePos ] = _patches[ i ];
+					}
+					savePos++;
+				} else {
+					delete _patches[ i ];
 				}
-				savePos++;
-			} else {
-				delete _patches[ i ];
 			}
+			numAll = _patches.size();
+			_patches.erase( _patches.begin() + savePos, _patches.end() );
 		}
-
-		size_t numAll = _patches.size();
-
-		_patches.erase( _patches.begin() + savePos, _patches.end() );
-
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
