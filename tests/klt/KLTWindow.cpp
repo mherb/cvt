@@ -11,7 +11,7 @@ namespace cvt
 		_stepping( true ),
 		_next( false ),
 		_video( video ),
-		_klt( 20 ),
+		_klt( 50 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_redetectThreshold( 20 ),
@@ -114,9 +114,7 @@ namespace cvt
 		// convert to grayscale
 		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
 
-
 		_kltTime.reset();
-
 
 		size_t savePos = 0;
 		size_t numAll = 0;
