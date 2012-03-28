@@ -46,15 +46,6 @@ namespace cvt
 			size_t _maxIters;
 			float  _ssdThresh;
 			float  _earlyStepOutThresh;
-			
-			bool checkBounds( const Eigen::Vector2f & p, size_t width, size_t height ) const
-			{
-				size_t h = pSize >> 1;
-				if( p[ 0 ] <= h || p[ 1 ] <= h || p[ 0 ] + h >= width || p[ 1 ] + h >= height )
-					return false;
-				return true;
-			}
-
 	};
 
 
