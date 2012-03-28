@@ -11,6 +11,8 @@
 #ifndef CVT_IMAGE_PYRAMID_H
 #define CVT_IMAGE_PYRAMID_H
 
+#include <cvt/gfx/Image.h>
+
 namespace cvt
 {
 	class ImagePyramid
@@ -18,19 +20,36 @@ namespace cvt
 		public:
 			ImagePyramid( size_t octaves, float scaleFactor );
 
+			/**
+			 * \brief operators to access the scale space images
+			 */
 			Image&		 operator[]( size_t octave )	   { return _image[ octave ]; }
 			const Image& operator[]( size_t octave ) const { return _image[ octave ]; }
 
+			/**
+			 * \brief update the pyramid: pyr[ 0 ] = image; other scales will be computed from that
+			 * \param img the zeroth scale image
+			 */
 			void update( const Image& img );
-			void recompute();
-			
+		
+			/**
+			 * \brief	returns number of octaves in the pyramid
+			 * \desc	we start counting at 0 for the highest (biggest) image
+			 */	
 			size_t octaves() const { return _image.size(); }
+
+			/**
+			 * \brief	returns the scalefactor between the octaves
+			 */
 			float scaleFactor() const { return _scaleFactor; }
 
 		private:
 			std::vector<Image>	 _image;
 			float				 _scaleFactor;
 			IScaleFilterBilinear _filter;
+	
+			/* recompute the scale space from the first octave */	
+			void recompute();
 	};
 
 	inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor ) :
