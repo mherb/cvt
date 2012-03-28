@@ -32,15 +32,10 @@ namespace cvt
 
 			KLTTracker( size_t maxIters = 20 );
 
-			void trackFeatures( std::vector<size_t> & trackedIndices,
-							    const std::vector<KLTPType*>& patches,
-							    const Image& current );
-
 			float ssdThreshold() const { return _ssdThresh; }
 			void  setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
 
 			/* percentage of pixels that need to project in current view */
-			void  setMinPixFraction( float frac ){ _minPix = frac * Math::sqr( pSize ); }
 			void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
 			
 			bool trackPatch( KLTPType& patch,
@@ -50,7 +45,6 @@ namespace cvt
 		private:
 			size_t _maxIters;
 			float  _ssdThresh;
-			size_t _minPix;
 			float  _earlyStepOutThresh;
 			
 			bool checkBounds( const Eigen::Vector2f & p, size_t width, size_t height ) const
@@ -69,38 +63,8 @@ namespace cvt
 		_maxIters( maxIters ),
 		_ssdThresh( 0.0f )
 	{
-		setMinPixFraction( 0.9f );
 		setEarlyStepOutAvgSSD( 10.0f );
 		_ssdThresh = Math::sqr( 20.0f );
-	}
-
-	template <class PoseType, size_t pSize>
-	inline void KLTTracker<PoseType, pSize>::trackFeatures( std::vector<size_t> & trackedIndices,
-									const std::vector<KLTPType*>& patches,
-									const Image& current )
-	{
-		size_t currStride;
-		const uint8_t* currImgPtr = current.map( &currStride );
-
-		size_t w = current.width();
-		size_t h = current.height();	
-
-		Eigen::Vector2f pp;
-		Eigen::Vector2f p2( 0.0f, 0.0f );
-		for( size_t i = 0; i < patches.size(); i++ ){
-			// track each single feature
-			const KLTPType& patch = *patches[ i ];
-		   	patch.pose().transform( pp, p2 );
-			if( !checkBounds( pp, w, h ) ){
-				continue;
-			}
-
-			if( trackPatch( patch, currImgPtr, currStride, w, h ) ){
-				trackedIndices.push_back( i );
-			}
-		}
-
-		current.unmap( currImgPtr );
 	}
 
 	template <class PoseType, size_t pSize>

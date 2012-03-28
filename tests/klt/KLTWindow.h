@@ -11,6 +11,7 @@
 #include <cvt/gui/Application.h>
 
 #include <cvt/vision/FAST.h>
+#include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/FeatureFilter.h>
 #include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Resources.h>
@@ -25,7 +26,7 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#define PATCH_SIZE ( 16 )
+#define PATCH_SIZE ( 8 )
 
 namespace cvt {
 
@@ -72,7 +73,7 @@ namespace cvt {
 			Time						_time;
 			double						_fps;
 			size_t						_iter;
-			std::vector<Image>			_pyramid;
+			ImagePyramid				_pyramid;
 
 			size_t						_redetectThreshold;
 
@@ -81,11 +82,15 @@ namespace cvt {
 
 			void drawFeatures( Image & img );
 			void redetectFeatures( const Image & img );
+			void redetectMultiScale();
 
 			Image						_patchImage;
 
 			/* create an image with the patches inside */
 			void createPatchImage( const std::vector<KLTPType*> & patches );
+
+			/* returns number of lost features */
+			size_t trackSingleScale( const Image& img );
 
 	};
 

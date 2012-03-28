@@ -11,8 +11,9 @@
 #ifndef CVT_KLT_PATCH_H
 #define CVT_KLT_PATCH_H
 
-#include <cvt/math/Translation2D.h>
 #include <Eigen/Dense>
+#include <cvt/vision/ImagePyramid.h>
+#include <cvt/gfx/IMapScoped.h>
 
 namespace cvt
 {
@@ -31,50 +32,76 @@ namespace cvt
 			 *	\param stride	stride of the image
 			 *	\param pos		position of the feature in the image
 			 * */
-			bool update( const uint8_t* ptr, size_t stride, const Vector2f& pos );
+			bool update( const uint8_t* ptr, size_t stride, const Vector2f& pos, size_t octave = 0 );
 
 			void currentCenter( Vector2f& center )  const; 
 			
 			PoseType&	pose()	{ return _pose; }
 			void		initPose( const Vector2f& pos );
 
-			const uint8_t*   pixels()		const { return _patch; }
+			const uint8_t*   pixels( size_t octave = 0 ) const { return _patchDataForScale[ octave ].patch; }
         
-			const uint8_t*   transformed()  const { return _transformed; }    
-            uint8_t*   transformed() { return _transformed; }
+			const uint8_t*   transformed( size_t octave = 0 )  const { return _patchDataForScale[ octave ].transformed; }    
+			uint8_t*		 transformed( size_t octave = 0 )		 { return _patchDataForScale[ octave ].transformed; }    
 
-			const HessType&  inverseHessian() const { return _inverseHessian; }
-			const JacType*   jacobians()	  const { return _jac; }
+			const HessType&  inverseHessian( size_t octave = 0 ) const { return _patchDataForScale[ octave ].inverseHessian; }
+			const JacType*   jacobians( size_t octave = 0 )		 const { return _patchDataForScale[ octave ].jac; }
 
 			size_t size() const { return pSize; }
 
+			/**
+			 *	\brief	number of scales that are stored with this patch
+			 * */
+			size_t numScales() const { return _patchDataForScale.size(); }
 
 			static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
 									    const std::vector<Vector2f> & positions, 
 										const Image & img );
+			
+			/**
+			 * \brief extract patches a multiscale fashion from a image pyramid 
+			 * */
+			static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
+									    const std::vector<Vector2f> & positions, 
+										const ImagePyramid & pyramid );
 		private:
 			/* this stores the transform from the 
 			 * Template space to the image space*/
 			PoseType	_pose;
 
-			/* the pixel original information */
-			uint8_t		_patch[ pSize * pSize ];
-			uint8_t		_transformed[ pSize * pSize ];
-			HessType	_inverseHessian;
-			JacType		_jac[ pSize * pSize ];
+			struct PatchData
+			{
+				/* the pixel original information */
+				uint8_t		patch[ pSize * pSize ];
+			
+				/* the transformed information */
+				uint8_t		transformed[ pSize * pSize ];
+
+				HessType	inverseHessian;
+				JacType		jac[ pSize * pSize ];
+
+			};
+
+			std::vector<PatchData>	_patchDataForScale;
+			float					_scaleFactor;
 
 			KLTPatch( const KLTPatch& );
 			KLTPatch& operator= (const KLTPatch& );
 	};
 
 	template <size_t pSize, class PoseType>
-	inline KLTPatch<pSize, PoseType>::KLTPatch()
+	inline KLTPatch<pSize, PoseType>::KLTPatch() : 
+		_scaleFactor( 1.0f )
 	{
 	}
 
 	template <size_t pSize, class PoseType>
-	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* imgPtr, size_t stride, const Vector2f& pos )
+	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* imgPtr, size_t stride, const Vector2f& pos, size_t octave )
 	{
+		if( _patchDataForScale.size() <= octave ){
+			_patchDataForScale.resize( octave + 1 );
+		}
+
 		const size_t pHalf = ( pSize >> 1 );
 		const uint8_t* ptr = imgPtr + ( int )( pos.y - pHalf ) * stride + ( int )pos.x - pHalf;
 		const uint8_t* nextLine = ptr + stride;
@@ -82,9 +109,10 @@ namespace cvt
 
 		size_t numLines = pSize;
 
-		JacType* J = _jac;
-		uint8_t* p = _patch;
-		uint8_t* t = _transformed;
+		JacType* J = _patchDataForScale[ octave ].jac;
+		HessType& invH = _patchDataForScale[ octave ].inverseHessian;
+		uint8_t* p = _patchDataForScale[ octave ].patch;
+		uint8_t* t = _patchDataForScale[ octave ].transformed;
 
 		Eigen::Matrix<float, 2, 1> g;
 		HessType hess( HessType::Zero() );
@@ -126,12 +154,14 @@ namespace cvt
 			point[ 1 ] += 1.0f;
 		}
 		
-		// initialize the _pose
-		initPose( pos );
+		// initialize the _pose if at upper most octave
+		if( octave == 0 )
+			initPose( pos );
 
+		// TODO: maybe better check by evaluating the determinant of H?
 		bool invertable = true;
-		_inverseHessian = hess.inverse();
-		if( ( _inverseHessian * hess - HessType::Identity() ).array().sum() / PoseType::NPARAMS > 1.01 )
+		invH = hess.inverse();
+		if( ( invH * hess - HessType::Identity() ).array().sum() / PoseType::NPARAMS > 1.01 )
 			invertable = false;
 
 		return invertable;
@@ -174,6 +204,79 @@ namespace cvt
 			delete patch;
 
 		img.unmap( ptr );
+	}
+	
+	template <size_t pSize, class PoseType>
+	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
+														   const std::vector<Vector2f> & positions, 
+														   const ImagePyramid & pyr )
+	{
+
+
+		int x, y;
+
+		KLTPatch<pSize, PoseType>* patch = 0;
+
+
+		std::vector<const uint8_t*> maps;
+		std::vector<size_t> strides;
+		std::vector<float> scales;
+
+		maps.resize( pyr.octaves() );
+		strides.resize( pyr.octaves() );
+		scales.resize( pyr.octaves() );
+
+		maps[ 0 ] = pyr[ 0 ].map( &strides[ 0 ] );
+		scales[ 0 ] =  1.0f;
+		for( size_t i = 1; i < pyr.octaves(); i++ ){
+			maps[ i ] = pyr[ i ].map( &strides[ i ] );
+			scales[ i ] = scales[ i - 1 ] * pyr.scaleFactor();
+		}
+
+		Vector2f octavePos;
+		size_t phalf = pSize >> 1;
+		for( size_t i = 0; i < positions.size(); i++ ){
+
+			float fx = positions[ i ].x;
+			float fy = positions[ i ].y;
+
+			bool isGood = true;
+			if( patch == 0 )	
+				patch = new KLTPatch<pSize, PoseType>();
+			for( size_t o = 0; o < pyr.octaves(); o++ ){
+				x = scales[ o ] * fx;
+				y = scales[ o ] * fy;
+		
+				size_t w = pyr[ o ].width();
+				size_t h = pyr[ o ].height();
+
+				octavePos = positions[ i ] * scales[ o ];
+
+				if( x < ( int )phalf || ( x + phalf - 1 ) > w ||
+				    y < ( int )phalf || ( y + phalf - 2 ) > h ){
+					isGood = false;
+					break;
+				}
+
+				if( !patch->update( maps[ o ], strides[ o ], octavePos, o ) ){
+					isGood = false;
+					break;
+				}
+			}
+
+			if( isGood ){
+				patches.push_back( patch );
+				patch = 0;
+			}
+		}
+
+		if( patch )
+			delete patch;
+	
+		// unmap	
+		for( size_t i = 0; i < maps.size(); i++ ){
+			pyr[ i ].unmap( maps[ i ] );
+		}
 	}
 
 	template <size_t pSize, class PoseType>

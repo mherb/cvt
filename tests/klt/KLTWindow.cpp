@@ -14,6 +14,7 @@ namespace cvt
 		_klt( 12 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
+		_pyramid( 3, 0.5f ),
 		_redetectThreshold( 20 ),
 		_gridFilter( 20, video.width(), video.height() )
 	{
@@ -49,17 +50,13 @@ namespace cvt
 		_window.setVisible( true );
 		_window.update();				
 
-		_pyramid.resize( 2 );
 		_video.nextFrame();
 		_video.nextFrame();
 
 		Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
-		_pyramid[ 0 ].reallocate( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
 		_video.frame().convert( gray, IFormat::GRAY_UINT8 );
-
-		const IKernel & horiz = IKernel::GAUSS_HORIZONTAL_3;
-		const IKernel & vert = IKernel::GAUSS_VERTICAL_3;
-		gray.convolve( _pyramid[ 0 ], horiz, vert );
+	
+		_pyramid.update( gray );	
 
 		_fast.setThreshold( 14 );
 		_fast.setNonMaxSuppress( true );
@@ -105,6 +102,41 @@ namespace cvt
 		_stepping = !_stepping;
 		_stepButton.setLabel( label );
 	}
+			
+	size_t KLTWindow::trackSingleScale( const Image& img )
+	{
+		// map the image
+		IMapScoped<const uint8_t> map( img );
+		size_t w = img.width();
+		size_t h = img.height();
+
+		std::vector<KLTPType*> lost;
+		std::vector<KLTPType*> tracked;
+
+		// track all patches
+		for( size_t i = 0; i < _patches.size(); i++ ){
+			if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
+				tracked.push_back( _patches[ i ] );
+			} else {
+				lost.push_back( _patches[ i ] );
+			}
+		}
+
+		createPatchImage( lost );
+		_patchImage.save( "lostfeatures.png" );
+		SIMD* simd = SIMD::instance();
+		float psqr = Math::sqr( PATCH_SIZE );
+		for( size_t i = 0; i < lost.size(); i++ ){
+			size_t sad = simd->SAD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
+			size_t ssd = simd->SSD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
+
+			std::cout << "LOST PATCH: ssd=" << ssd / psqr << ", sad: " << sad / psqr << std::endl;
+
+			delete lost[ i ];
+		}
+		_patches = tracked;
+		return lost.size();
+	}
 
 	void KLTWindow::onTimeout()
 	{
@@ -112,48 +144,18 @@ namespace cvt
 			return;
 		_next = false;
 		// convert to grayscale
-		_video.frame().convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
+		Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
+		_video.frame().convert( gray, IFormat::GRAY_UINT8 );
+		_pyramid.update( gray );
 
 		_kltTime.reset();
 
-		size_t numAll = 0;
-		{
-			// map the image
-			IMapScoped<uint8_t> map( _pyramid[ 0 ] );
-			size_t w = _pyramid[ 0 ].width();
-			size_t h = _pyramid[ 0 ].height();
-
-			std::vector<KLTPType*> lost;
-			std::vector<KLTPType*> tracked;
-
-			// track all patches
-			for( size_t i = 0; i < _patches.size(); i++ ){
-				if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
-						tracked.push_back( _patches[ i ] );
-				} else {
-					lost.push_back( _patches[ i ] );
-				}
-			}
-			numAll = _patches.size();
-
-			createPatchImage( lost );
-			_patchImage.save( "lostfeatures.png" );
-			SIMD* simd = SIMD::instance();
-			float psqr = Math::sqr( PATCH_SIZE );
-			for( size_t i = 0; i < lost.size(); i++ ){
-				size_t sad = simd->SAD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
-				size_t ssd = simd->SSD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
-
-				std::cout << "LOST PATCH: ssd=" << ssd / psqr << ", sad: " << sad / psqr << std::endl;
-
-				delete lost[ i ];
-			}
-			_patches = tracked;
-		}
-
+		size_t lost = trackSingleScale( _pyramid[ 0 ] );
 
 		createPatchImage( _patches );
 		_patchImage.save( "featurepatches.png" );
+		
+		size_t numAll = _patches.size() + lost;
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
@@ -239,6 +241,60 @@ namespace cvt
 		}
 
 		KLTPType::extractPatches( _patches, filteredUnique, img );
+	}
+
+
+	void KLTWindow::redetectMultiScale()
+	{
+
+		std::vector<Feature2Df> features;	
+		float scale = 1.0f;
+		for( size_t i = 0; i < _pyramid.octaves(); i++ ){
+			std::vector<Feature2Df> scaleFeatures;	
+			VectorFeature2DInserter<float> inserter( scaleFeatures );
+			_fast.extract( _pyramid[ i ], inserter );
+
+			if( i != 0 ){
+				size_t start = features.size();
+				// insert the features
+				features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
+				
+				scale /= _pyramid.scaleFactor();
+				for( size_t f = start; f < features.size(); f++ ){
+					features[ f ].pt *= scale;
+				}
+			}
+		}
+
+		_gridFilter.clear();
+		for( size_t i = 0; i < features.size(); i++ ){
+			_gridFilter.addFeature( &features[ i ] );
+		}
+
+		std::vector<const Feature2Df*> filtered;
+		_gridFilter.gridFilteredFeatures( filtered, 400 );
+
+		std::vector<Vector2f> filteredUnique;
+
+		std::vector<Vector2f> patchPositions;
+		patchPositions.resize( _patches.size() );
+		for( size_t i = 0; i < _patches.size(); i++ ){
+			_patches[ i ]->currentCenter( patchPositions[ i ] );
+		}
+
+		for( size_t k = 0; k < filtered.size(); k++ ){
+			bool good = true;
+			for( size_t i = 0; i < patchPositions.size(); i++ ){
+				if( ( patchPositions[ i ] - filtered[ k ]->pt ).lengthSqr() < 100.0f ){
+					good = false;
+					break;
+				}
+			}
+			if( good )
+				filteredUnique.push_back( filtered[ k ]->pt );
+		}
+
+		KLTPType::extractPatches( _patches, filteredUnique, _pyramid );
 	}
 
 	void KLTWindow::createPatchImage( const std::vector<KLTPType*>& patches )
