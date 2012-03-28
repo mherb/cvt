@@ -25,7 +25,7 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#define PATCH_SIZE ( 32 )
+#define PATCH_SIZE ( 16 )
 
 namespace cvt {
 
@@ -81,6 +81,11 @@ namespace cvt {
 
 			void drawFeatures( Image & img );
 			void redetectFeatures( const Image & img );
+
+			Image						_patchImage;
+
+			/* create an image with the patches inside */
+			void createPatchImage( const std::vector<KLTPType*> & patches );
 
 	};
 

@@ -169,8 +169,10 @@ namespace cvt
 					pcur.x = i;
 					ppcur = pose * pcur;
 
-					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) )
+					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) ){
+						std::cout << "ISNAN" << std::endl;
 						return false;
+					}
 
 					int ix = ( int )ppcur.x;
 					int iy = ( int )ppcur.y;
@@ -205,7 +207,6 @@ namespace cvt
 		}
 
 		if( ( diffSum / Math::sqr<float>( pSize ) ) > _ssdThresh ){
-			std::cout << "Difference too high: " << ( diffSum / Math::sqr<float>( pSize ) ) << std::endl;
 			return false;
 		}
 		return true;
