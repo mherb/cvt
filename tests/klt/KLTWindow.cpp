@@ -11,7 +11,7 @@ namespace cvt
 		_stepping( true ),
 		_next( false ),
 		_video( video ),
-		_klt( 50 ),
+		_klt( 12 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_redetectThreshold( 20 ),
@@ -116,7 +116,6 @@ namespace cvt
 
 		_kltTime.reset();
 
-		size_t savePos = 0;
 		size_t numAll = 0;
 		{
 			// map the image
@@ -124,20 +123,37 @@ namespace cvt
 			size_t w = _pyramid[ 0 ].width();
 			size_t h = _pyramid[ 0 ].height();
 
+			std::vector<KLTPType*> lost;
+			std::vector<KLTPType*> tracked;
+
 			// track all patches
 			for( size_t i = 0; i < _patches.size(); i++ ){
 				if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
-					if( i != savePos ){
-						_patches[ savePos ] = _patches[ i ];
-					}
-					savePos++;
+						tracked.push_back( _patches[ i ] );
 				} else {
-					delete _patches[ i ];
+					lost.push_back( _patches[ i ] );
 				}
 			}
 			numAll = _patches.size();
-			_patches.erase( _patches.begin() + savePos, _patches.end() );
+
+			createPatchImage( lost );
+			_patchImage.save( "lostfeatures.png" );
+			SIMD* simd = SIMD::instance();
+			float psqr = Math::sqr( PATCH_SIZE );
+			for( size_t i = 0; i < lost.size(); i++ ){
+				size_t sad = simd->SAD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
+				size_t ssd = simd->SSD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
+
+				std::cout << "LOST PATCH: ssd=" << ssd / psqr << ", sad: " << sad / psqr << std::endl;
+
+				delete lost[ i ];
+			}
+			_patches = tracked;
 		}
+
+
+		createPatchImage( _patches );
+		_patchImage.save( "featurepatches.png" );
 
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
@@ -154,7 +170,7 @@ namespace cvt
 		}
 
 		String title;
-		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f, avgklt=%0.2fms", savePos, numAll, _fps, _kltTimeSum/_kltIters );
+		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f, avgklt=%0.2fms", _patches.size(), numAll, _fps, _kltTimeSum/_kltIters );
 		_window.setTitle( title );
 
 		Image debug;
@@ -200,7 +216,7 @@ namespace cvt
 		}
 
 		std::vector<const Feature2Df*> filtered;
-		_gridFilter.gridFilteredFeatures( filtered, 800 );
+		_gridFilter.gridFilteredFeatures( filtered, 400 );
 
 		std::vector<Vector2f> filteredUnique;
 
@@ -223,6 +239,49 @@ namespace cvt
 		}
 
 		KLTPType::extractPatches( _patches, filteredUnique, img );
+	}
+
+	void KLTWindow::createPatchImage( const std::vector<KLTPType*>& patches )
+	{
+		// according to the number of 
+		//patches: say we have an image with 1024:
+		size_t spacePerPatch = PATCH_SIZE + 5;
+		size_t heightPerPatch = 2 * PATCH_SIZE + 5;
+		size_t numPatchesPerLine = 1024.0f / spacePerPatch;
+		size_t numLines = 1 + patches.size() / numPatchesPerLine;
+		_patchImage.reallocate( 1024, numLines * heightPerPatch, IFormat::GRAY_UINT8 );
+
+		_patchImage.fill( Color::BLACK );
+
+		IMapScoped<uint8_t> map( _patchImage );
+		uint8_t* ptr = map.ptr();
+		size_t currentXPos = 0;
+		SIMD * simd = SIMD::instance();
+		
+		for( size_t i = 0; i < patches.size(); i++ ){
+			uint8_t * p = ptr + currentXPos * spacePerPatch;	
+			const uint8_t * patch = patches[ i ]->pixels();
+			size_t n = PATCH_SIZE;
+			while( n-- ){
+				simd->Memcpy( p, patch, PATCH_SIZE );
+				p += map.stride();
+				patch += PATCH_SIZE;
+			}
+			n = PATCH_SIZE;
+			patch = patches[ i ]->transformed();
+			while( n-- ){
+				simd->Memcpy( p, patch, PATCH_SIZE );
+				p += map.stride();
+				patch += PATCH_SIZE;
+			}
+
+			// set the pointer:
+			currentXPos++;
+			if( currentXPos == numPatchesPerLine ){
+				ptr += map.stride() * heightPerPatch;	
+				currentXPos = 0;
+			} 
+		}
 	}
 			
 }
