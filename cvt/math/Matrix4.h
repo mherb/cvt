@@ -10,8 +10,6 @@
  */
 #ifdef CVT_MATRIX_H
 
-#include <cvt/util/SIMD.h>
-
 namespace cvt {
 	template<typename T> class Matrix3;
 	template<typename T> class Matrix4;
@@ -107,8 +105,7 @@ namespace cvt {
 	template<typename T>
 	inline Matrix4<T>::Matrix4( const Matrix4<T>& m )
 	{
-		SIMD* simd = SIMD::instance();
-		simd->Memcpy( ( uint8_t* ) this->ptr(), ( const uint8_t* ) m.ptr(), sizeof( T ) * 16 );
+		memcpy( ( uint8_t* ) this->ptr(), ( const uint8_t* ) m.ptr(), sizeof( T ) * 16 );
 	}
 
 	template<typename T>
@@ -175,8 +172,7 @@ namespace cvt {
 	template<typename T>
 	inline Matrix4<T>::Matrix4( const T src[ 4 ][ 4 ] )
 	{
-		SIMD* simd = SIMD::instance();
-		simd->Memcpy( this->ptr(), src, sizeof( T ) * 16 );
+		memcpy( this->ptr(), src, sizeof( T ) * 16 );
 	}
 
 	template<typename T>

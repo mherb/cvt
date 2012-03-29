@@ -14,9 +14,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include <cvt/math/Math.h>
-
+#include <cvt/util/String.h>
 #include <cvt/math/Vector.h>
+#include <cvt/math/Math.h>
 
 #include <cvt/math/Matrix2.h>
 #include <cvt/math/Matrix3.h>

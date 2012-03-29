@@ -11,6 +11,7 @@
 #ifndef CVT_POINTSET_H
 #define CVT_POINTSET_H
 
+#include <cvt/util/SIMD.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/Exception.h>
