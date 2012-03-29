@@ -5094,6 +5094,44 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::scalePoints( Vector2f* dst, const Vector2f* src, const Vector2f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+	void SIMD::scalePoints( Vector3f* dst, const Vector3f* src, const Vector3f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+	void SIMD::scalePoints( Vector4f* dst, const Vector4f* src, const Vector4f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+
+	void SIMD::translatePoints( Vector2f* dst, const Vector2f* src, const Vector2f& translation, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = *src++ - translation;
+	}
+
+	void SIMD::translatePoints( Vector3f* dst, const Vector3f* src, const Vector3f& translation, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = *src++ - translation;
+	}
+
+	void SIMD::translatePoints( Vector4f* dst, const Vector4f* src, const Vector4f& translation, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = *src++ - translation;
+	}
+
+
 	void SIMD::transformPoints( Vector2f* dst, const Matrix2f& mat, const Vector2f* src, size_t n ) const
 	{
 		while( n-- )
