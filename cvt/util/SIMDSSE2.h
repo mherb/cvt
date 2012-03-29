@@ -70,6 +70,7 @@ namespace cvt {
 
 			using SIMDSSE::transformPoints;
 			virtual void transformPoints( Vector2f* dst, const Matrix2f& mat, const Vector2f* src, size_t n ) const;
+			virtual void transformPoints( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
 			virtual void transformPoints( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
 
 			using SIMDSSE::transformPointsHomogenize;

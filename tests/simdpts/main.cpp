@@ -250,11 +250,35 @@ void transformPoints( Vector2f* dst, const Matrix2f& _mat, const Vector2f* src, 
 		*dst = _mat * *src;
 }
 
+void transformPoints( Vector2f* dst, const Matrix3f& _mat, const Vector2f* src, size_t n )
+{
+	__m128 mat[ 3 ], tmp, out;
+
+	mat[ 0 ] = _mm_set_ps( _mat[ 1 ][ 0 ], _mat[ 0 ][ 0 ], _mat[ 1 ][ 0 ], _mat[ 0 ][ 0 ] );
+	mat[ 1 ] = _mm_set_ps( _mat[ 1 ][ 1 ], _mat[ 0 ][ 1 ], _mat[ 1 ][ 1 ], _mat[ 0 ][ 1 ] );
+	mat[ 2 ] = _mm_set_ps( _mat[ 1 ][ 2 ], _mat[ 0 ][ 2 ], _mat[ 1 ][ 2 ], _mat[ 0 ][ 2 ] );
+
+	size_t i = n >> 1; // 2 Vector2f make 4 floats ...
+	while( i-- ){
+		tmp = _mm_loadu_ps( ( ( const float* ) src ) + 0 );
+		out = _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 2, 2, 0, 0 ) ), mat[ 0 ] );
+		out = _mm_add_ps( out, _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 3, 3, 1, 1 ) ), mat[ 1 ] ) );
+		out = _mm_add_ps( out, mat[ 2 ] );
+		_mm_storeu_ps( ( float* ) dst, out );
+		src += 2;
+		dst += 2;
+	}
+
+	if( n & 0x01 )
+		*dst = _mat * *src;
+}
+
 
 int main()
 {
-	Matrix2f mat( 1.0f, 0.0f,
-				  0.0f, 2.0f );
+	Matrix3f mat( 1.0f, 0.0f, 2.0f,
+				  0.0f, 2.0f, 3.0f,
+				  0.0f, 0.0f, 1.0f );
 	Vector2f in[] = {
 					Vector2f( 1.0f, 2.0f ),
 					Vector2f( 4.0f, 5.0f ),
