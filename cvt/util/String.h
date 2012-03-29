@@ -16,8 +16,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+
 #include <cvt/math/Math.h>
-#include <cvt/util/SIMD.h>
+/*
+	FIXME:
+	We can't use SIMD here since Vector/Matrix uses it, which itself is used by SIMD.
+	Therefore all Memcpy operations use the C memcpy ...
+	#include <cvt/util/SIMD.h>
+*/
 #include <cvt/util/Exception.h>
 
 namespace cvt {
@@ -107,7 +113,8 @@ namespace cvt {
 		_len = _cstrlen( str );
 		_blen = Math::pad16( _len + 1 );
 		_str = new char[ _blen ];
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len + 1 );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len + 1 );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len + 1 );
 	}
 
 	inline String::String( const char* str, size_t len )
@@ -115,7 +122,8 @@ namespace cvt {
 		_len = Math::min( _cstrlen( str ), len );
 		_blen = Math::pad16( _len + 1 );
 		_str = new char[ _blen ];
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
 		_str[ _len ] = 0;
 	}
 
@@ -124,7 +132,8 @@ namespace cvt {
 		_len  = str._len;
 		_blen = str._blen;
 		_str = new char[ _blen ];
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, _len + 1 );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, _len + 1 );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, _len + 1 );
 	}
 
 	inline String::String( const String& str, int start, int len )
@@ -133,7 +142,8 @@ namespace cvt {
 			_len  = len;
 			_blen = Math::pad16( _len + 1 );
 			_str = new char[ _blen ];
-			SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
+			memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
+			//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
 		} else {
 			if( ( size_t ) start > str._len || len == 0 ) {
 				_str = new char[ 1 ];
@@ -143,7 +153,8 @@ namespace cvt {
 				_len  = str._len - start;
 				_blen = Math::pad16( _len + 1 );
 				_str = new char[ _blen ];
-				SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
+				memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
+				//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str + start, _len );
 			}
 		}
 		_str[ _len ] = 0;
@@ -184,7 +195,8 @@ namespace cvt {
 			_blen = Math::pad16( _len + 1 );
 			_str = new char[ _blen ];
 		}
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, _len );
 		_str[ _len ] = 0;
 	}
 
@@ -205,7 +217,8 @@ namespace cvt {
 	{
 		if( str._len >= _blen )
 			_grow( Math::pad16( str._len + 1 ) );
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, str._len + 1 );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, str._len + 1 );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str._str, str._len + 1 );
 		_len = str._len;
 		return *this;
 	}
@@ -216,7 +229,8 @@ namespace cvt {
 		size_t nlen = _cstrlen( str );
 		if( nlen >= _blen )
 			_grow( Math::pad16( nlen + 1 ) );
-		SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, nlen + 1 );
+		memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, nlen + 1 );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) _str, ( uint8_t* ) str, nlen + 1 );
 		_len = nlen;
 		return *this;
 	}
@@ -232,7 +246,8 @@ namespace cvt {
 	{
 		if( _len + str._len >= _blen )
 			_grow( Math::pad16( _len + str._len + 1 ) );
-		SIMD::instance()->Memcpy( ( uint8_t* ) ( _str + _len ), ( uint8_t* ) str._str, str._len + 1 );
+		memcpy( ( uint8_t* ) ( _str + _len ), ( uint8_t* ) str._str, str._len + 1 );
+		//SIMD::instance()->Memcpy( ( uint8_t* ) ( _str + _len ), ( uint8_t* ) str._str, str._len + 1 );
 		_len += str._len;
 		return *this;
 	}
@@ -508,7 +523,8 @@ namespace cvt {
 	{
 		char* newstr = new char[ newsize ];
 		if( _str ) {
-			SIMD::instance()->Memcpy( ( uint8_t* ) newstr, ( uint8_t* ) _str, _len + 1 );
+			memcpy( ( uint8_t* ) newstr, ( uint8_t* ) _str, _len + 1 );
+			//SIMD::instance()->Memcpy( ( uint8_t* ) newstr, ( uint8_t* ) _str, _len + 1 );
 			delete[] _str;
 		}
 		_str = newstr;
