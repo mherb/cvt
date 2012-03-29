@@ -228,9 +228,33 @@ void sumPoints( Vector2f& dst, const Vector2f* src, size_t n )
 		dst += *src;
 }
 
+void transformPoints( Vector2f* dst, const Matrix2f& _mat, const Vector2f* src, size_t n )
+{
+	__m128 mat[ 2 ], tmp, out;
+
+	tmp = _mm_loadu_ps( _mat.ptr() );
+	mat[ 0 ] = _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 2, 0, 2, 0 ) );
+	mat[ 1 ] = _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 3, 1, 3, 1 ) );
+
+	size_t i = n >> 1; // 2 Vector2f make 4 floats ...
+	while( i-- ){
+		tmp = _mm_loadu_ps( ( ( const float* ) src ) + 0 );
+		out = _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 2, 2, 0, 0 ) ), mat[ 0 ] );
+		out = _mm_add_ps( out, _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 3, 3, 1, 1 ) ), mat[ 1 ] ) );
+		_mm_storeu_ps( ( float* ) dst, out );
+		src += 2;
+		dst += 2;
+	}
+
+	if( n & 0x01 )
+		*dst = _mat * *src;
+}
+
+
 int main()
 {
-	Vector2f sum;
+	Matrix2f mat( 1.0f, 0.0f,
+				  0.0f, 2.0f );
 	Vector2f in[] = {
 					Vector2f( 1.0f, 2.0f ),
 					Vector2f( 4.0f, 5.0f ),
@@ -239,13 +263,14 @@ int main()
 					Vector2f( 5.0f, 4.0f )
 				   };
 
-	sumPoints( sum, in, 5 );
-	std::cout << sum << std::endl;
+	Vector2f out[ 5 ];
+	transformPoints( out, mat, in, 5 );
 
-	sum.setZero();
 	for( int i = 0; i < 5; i++ )
-		sum += in[ i ];
-	std::cout << sum << std::endl;
+		std::cout << out[ i ] << std::endl;
+
+	for( int i = 0; i < 5; i++ )
+		std::cout << mat * in[ i ] << std::endl;
 	return 0;
 
 #if 0
