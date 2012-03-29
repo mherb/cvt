@@ -3597,6 +3597,31 @@ void SIMDSSE2::transformPoints( Vector2f* dst, const Matrix2f& _mat, const Vecto
 		*dst = _mat * *src;
 }
 
+void SIMDSSE2::transformPoints( Vector2f* dst, const Matrix3f& _mat, const Vector2f* src, size_t n ) const
+{
+	__m128 mat[ 3 ], tmp, out;
+
+	mat[ 0 ] = _mm_set_ps( _mat[ 1 ][ 0 ], _mat[ 0 ][ 0 ], _mat[ 1 ][ 0 ], _mat[ 0 ][ 0 ] );
+	mat[ 1 ] = _mm_set_ps( _mat[ 1 ][ 1 ], _mat[ 0 ][ 1 ], _mat[ 1 ][ 1 ], _mat[ 0 ][ 1 ] );
+	mat[ 2 ] = _mm_set_ps( _mat[ 1 ][ 2 ], _mat[ 0 ][ 2 ], _mat[ 1 ][ 2 ], _mat[ 0 ][ 2 ] );
+
+	size_t i = n >> 1; // 2 Vector2f make 4 floats ...
+	while( i-- ){
+		tmp = _mm_loadu_ps( ( ( const float* ) src ) + 0 );
+		out = _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 2, 2, 0, 0 ) ), mat[ 0 ] );
+		out = _mm_add_ps( out, _mm_mul_ps( _mm_shuffle_ps( tmp, tmp, _MM_SHUFFLE( 3, 3, 1, 1 ) ), mat[ 1 ] ) );
+		out = _mm_add_ps( out, mat[ 2 ] );
+		_mm_storeu_ps( ( float* ) dst, out );
+		src += 2;
+		dst += 2;
+	}
+
+	if( n & 0x01 )
+		*dst = _mat * *src;
+}
+
+
+
 void SIMDSSE2::transformPoints( Vector3f* dst,const Matrix4f& _mat, const Vector3f* src, size_t n ) const
 {
 	__m128 mat[ 4 ], in1, in2, in3, tmp, out1, out2, out3, out4;
