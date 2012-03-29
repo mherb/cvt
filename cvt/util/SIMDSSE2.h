@@ -64,7 +64,15 @@ namespace cvt {
 			virtual void debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
-        
+
+			virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
+			virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;
+
+			using SIMDSSE::transformPoints;
+			virtual void transformPoints( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+
+			using SIMDSSE::transformPointsHomogenize;
+			virtual void transformPointsHomogenize( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
 		public:
 			virtual std::string name() const;
 			virtual SIMDType type() const;

@@ -5142,8 +5142,7 @@ namespace cvt {
 
 	void SIMD::translatePoints( Vector4f* dst, const Vector4f* src, const Vector4f& translation, size_t n ) const
 	{
-		while( n-- )
-			*dst++ = *src++ - translation;
+		SubValue4f( ( float* ) dst, ( const float* ) src, ( const float (&)[ 4 ] ) translation, n * 4 );
 	}
 
 
