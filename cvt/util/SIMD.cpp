@@ -5094,6 +5094,21 @@ namespace cvt {
 		}
 	}
 
+
+	void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
+	{
+		dst.setZero();
+		while( n-- )
+			dst += *src++;
+	}
+
+	void SIMD::sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const
+	{
+		dst.setZero();
+		while( n-- )
+			dst += *src++;
+	}
+
 	void SIMD::scalePoints( Vector2f* dst, const Vector2f* src, const Vector2f& scale, size_t n ) const
 	{
 		while( n-- )
