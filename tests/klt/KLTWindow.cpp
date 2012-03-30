@@ -11,7 +11,7 @@ namespace cvt
 		_stepping( true ),
 		_next( false ),
 		_video( video ),
-		_klt( 12 ),
+		_klt( 3 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_pyramid( 3, 0.5f ),
@@ -50,6 +50,10 @@ namespace cvt
 		_window.setVisible( true );
 		_window.update();				
 
+		_video.nextFrame();
+		_video.nextFrame();
+		_video.nextFrame();
+		_video.nextFrame();
 		_video.nextFrame();
 		_video.nextFrame();
 
@@ -155,7 +159,6 @@ namespace cvt
 
 		createPatchImage( lost );
 		_patchImage.save( "lostfeatures.png" );
-		SIMD* simd = SIMD::instance();
 		for( size_t i = 0; i < lost.size(); i++ ){
 			delete lost[ i ];
 		}
@@ -227,7 +230,6 @@ namespace cvt
 			r.height = PATCH_SIZE;
 			for( size_t i = 0; i < _patches.size(); i++ ){
 				_patches[ i ]->currentCenter( c );
-
 				r.x = c.x - offset;
 				r.y = c.y - offset;
 				g.drawRect( r );
@@ -248,7 +250,7 @@ namespace cvt
 		}
 
 		std::vector<const Feature2Df*> filtered;
-		_gridFilter.gridFilteredFeatures( filtered, 400 );
+		_gridFilter.gridFilteredFeatures( filtered, 700 );
 
 		std::vector<Vector2f> filteredUnique;
 
@@ -320,8 +322,10 @@ namespace cvt
 					break;
 				}
 			}
-			if( good )
+			if( good ){
 				filteredUnique.push_back( filtered[ k ]->pt );
+				std::cout << "Added Feature: " << filteredUnique.back() << std::endl;
+			}
 		}
 
 		KLTPType::extractPatches( _patches, filteredUnique, _pyramid );

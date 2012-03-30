@@ -147,11 +147,6 @@ namespace cvt
 										   map.ptr(), map.stride(),
 										   oc );
 
-				//	Image pixels( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.pixels( oc ), pSize );
-				//	Image pixelsT( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.transformed( oc ), pSize );
-				//	pixels.save( "pixels.png" );
-				//	pixelsT.save( "pixelsT.png" );
-
 					// solve for the delta:
 					delta = patch.inverseHessian( oc ) * jSum;
 
@@ -210,10 +205,9 @@ namespace cvt
 				for( size_t i = 0; i < pSize; i++ ){
 					ppcur = pose * pcur;
 
-//					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) ){
-//						std::cout << "ISNAN" << std::endl;
-//						return false;
-//					}
+					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) ){
+						return Math::MAXF;
+					}
 
 					int ix = ( int )ppcur.x;
 					int iy = ( int )ppcur.y;
