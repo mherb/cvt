@@ -163,9 +163,8 @@ namespace cvt {
 		const Vector3f* pt = &_vertices[ 0 ];
 		Vector3f centroid;
 
-		centroid.setZero();
-		while( n-- )
-			centroid += *pt++;
+		SIMD::instance()->sumPoints( centroid, pt, n );
+
 		centroid /= ( float ) _vertices.size();
 		return centroid;
 	}
@@ -201,8 +200,7 @@ namespace cvt {
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
 
-		while( n-- )
-			*pt++ += translation;
+		SIMD::instance()->translatePoints( pt, pt, translation, n );
 	}
 
 	inline void ScenePoints::scale( float scale )
@@ -210,8 +208,7 @@ namespace cvt {
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
 
-		while( n-- )
-			*pt++ *= scale;
+		SIMD::instance()->MulValue1f( ( float* ) pt, ( const float* ) pt, scale, n * 3 );
 	}
 
 	inline void ScenePoints::transform( const Matrix3f& mat )
@@ -220,10 +217,7 @@ namespace cvt {
 		Vector3f* pt = &_vertices[ 0 ];
 
 
-		while( n-- ) {
-			*pt = mat * *pt;
-			pt++;
-		}
+		SIMD::instance()->transformPoints( pt, mat, pt, n );
 	}
 
 	inline void ScenePoints::transform( const Matrix4f& mat )
@@ -233,18 +227,9 @@ namespace cvt {
 
 		if( mat[ 3 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
 			/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
-			Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
-			Matrix3f _mat( mat );
-			while( n-- ) {
-				*pt = _mat * *pt;
-				*pt += trans;
-				pt++;
-			}
+			SIMD::instance()->transformPoints( pt, mat, pt, n );
 		} else {
-			while( n-- ) {
-				*pt = mat * *pt;
-				pt++;
-			}
+			SIMD::instance()->transformPointsHomogenize( pt, mat, pt, n );
 		}
 	}
 

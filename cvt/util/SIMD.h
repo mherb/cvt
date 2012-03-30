@@ -17,6 +17,9 @@
 
 #include <cvt/gfx/IScaleFilter.h>
 
+#include <cvt/math/Matrix.h>
+#include <cvt/math/Vector.h>
+
 namespace cvt {
 	enum SIMDType {
 		SIMD_BASE = 0,
@@ -57,8 +60,8 @@ namespace cvt {
 			virtual void SubValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void MulValue1f( float* dst, float const* src, const float value, const size_t n ) const;
 			virtual void DivValue1f( float* dst, float const* src, const float value, const size_t n ) const;
-                        
-                        virtual void MulValue1ui16( uint16_t* dst, uint16_t const* src, float value, size_t n ) const;
+
+			virtual void MulValue1ui16( uint16_t* dst, uint16_t const* src, float value, size_t n ) const;
 
 			virtual void AddValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
 			virtual void SubValue4f( float* dst, float const* src, const float (&value)[ 4 ], const size_t n ) const;
@@ -214,6 +217,25 @@ namespace cvt {
             virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
             virtual void prefixSumSqr1_f_to_f( float * dst, size_t dStride, const float* src, size_t srcStride, size_t width, size_t height ) const;
 
+			virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
+			virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;
+
+			virtual void scalePoints( Vector2f* dst, const Vector2f* src, const Vector2f& scale, size_t n ) const;
+			virtual void scalePoints( Vector3f* dst, const Vector3f* src, const Vector3f& scale, size_t n ) const;
+			virtual void scalePoints( Vector4f* dst, const Vector4f* src, const Vector4f& scale, size_t n ) const;
+
+			virtual void translatePoints( Vector2f* dst, const Vector2f* src, const Vector2f& translation, size_t n ) const;
+			virtual void translatePoints( Vector3f* dst, const Vector3f* src, const Vector3f& translation, size_t n ) const;
+			virtual void translatePoints( Vector4f* dst, const Vector4f* src, const Vector4f& translation, size_t n ) const;
+
+			virtual void transformPoints( Vector2f* dst, const Matrix2f& mat, const Vector2f* src, size_t n ) const;
+			virtual void transformPoints( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
+			virtual void transformPoints( Vector3f* dst, const Matrix3f& mat, const Vector3f* src, size_t n ) const;
+			virtual void transformPoints( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+			virtual void transformPoints( Vector4f* dst, const Matrix4f& mat, const Vector4f* src, size_t n ) const;
+
+			virtual void transformPointsHomogenize( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
+			virtual void transformPointsHomogenize( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
 
 			virtual std::string name() const;
 			virtual SIMDType type() const;

@@ -21,6 +21,7 @@
 #include <cvt/util/SIMDAVX.h>
 #include <cvt/util/CPU.h>
 
+
 namespace cvt {
 	const float _table_alpha_u8_f[256] = {
 		0.000000000000f, 0.003921568627f, 0.007843137255f, 0.011764705882f,
@@ -5093,6 +5094,105 @@ namespace cvt {
 		}
 	}
 
+
+	void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
+	{
+		dst.setZero();
+		while( n-- )
+			dst += *src++;
+	}
+
+	void SIMD::sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const
+	{
+		dst.setZero();
+		while( n-- )
+			dst += *src++;
+	}
+
+	void SIMD::scalePoints( Vector2f* dst, const Vector2f* src, const Vector2f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+	void SIMD::scalePoints( Vector3f* dst, const Vector3f* src, const Vector3f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+	void SIMD::scalePoints( Vector4f* dst, const Vector4f* src, const Vector4f& scale, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = ( *src++ ).cmul( scale );
+	}
+
+
+	void SIMD::translatePoints( Vector2f* dst, const Vector2f* src, const Vector2f& translation, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = *src++ + translation;
+	}
+
+	void SIMD::translatePoints( Vector3f* dst, const Vector3f* src, const Vector3f& translation, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = *src++ + translation;
+	}
+
+	void SIMD::translatePoints( Vector4f* dst, const Vector4f* src, const Vector4f& translation, size_t n ) const
+	{
+		AddValue4f( ( float* ) dst, ( const float* ) src, ( const float (&)[ 4 ] ) translation, n * 4 );
+	}
+
+
+	void SIMD::transformPoints( Vector2f* dst, const Matrix2f& mat, const Vector2f* src, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = mat * *src++;
+	}
+
+	void SIMD::transformPoints( Vector2f* dst, const Matrix3f& _mat, const Vector2f* src, size_t n ) const
+	{
+		Matrix2f mat = _mat.toMatrix2();
+		Vector2f t( _mat[ 0 ][ 2 ], _mat[ 1 ][ 2 ] );
+
+		while( n-- )
+			*dst++ = mat * *src++ + t;
+	}
+
+	void SIMD::transformPoints( Vector3f* dst, const Matrix3f& mat, const Vector3f* src, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = mat * *src++;
+	}
+
+	void SIMD::transformPoints( Vector3f* dst, const Matrix4f& _mat, const Vector3f* src, size_t n ) const
+	{
+		Matrix3f mat = _mat.toMatrix3();
+		Vector3f t( _mat[ 0 ][ 3 ], _mat[ 1 ][ 3 ], _mat[ 1 ][ 3 ] );
+
+		while( n-- )
+			*dst++ = mat * *src++ + t;
+	}
+
+	void SIMD::transformPoints( Vector4f* dst, const Matrix4f& mat, const Vector4f* src, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = mat * *src++;
+	}
+
+	void SIMD::transformPointsHomogenize( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = mat * *src++;
+	}
+
+	void SIMD::transformPointsHomogenize( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const
+	{
+		while( n-- )
+			*dst++ = mat * *src++;
+	}
 
 	void SIMD::cleanup()
 	{
