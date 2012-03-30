@@ -2,14 +2,14 @@
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/Delegate.h>
 
-//#define MULTISCALE
+#define MULTISCALE
 
 namespace cvt
 {
 
 	KLTWindow::KLTWindow( Image & img ) :
 		_window( "KLT" ),	
-		_klt( 1 ),
+		_klt( 2 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_pyramid( 3, 0.5f ),
@@ -128,7 +128,7 @@ namespace cvt
 
 #ifdef MULTISCALE
 		KLTPType::extractPatches( _patches, positions, _pyramid );
-		savePatchAsImage( "patch.png" );
+	//	savePatchAsImage( "patch.png" );
 #else
 		KLTPType::extractPatches( _patches, positions, _pyramid[ 0 ] );
 #endif
@@ -146,7 +146,12 @@ namespace cvt
 		affine.setIdentity();
 		//affine[ 0 ][ 2 ] = curr( 0, 2 ) - 15;
 		//affine[ 1 ][ 2 ] = curr( 1, 2 ) - 15;
-		affine.setAffine( Math::deg2Rad( 10.0f ), 0, 1.1f, 1.0f, curr( 0, 2 ), curr( 1, 2 ) );
+		affine.setAffine( Math::deg2Rad( 10.0f ), 
+						  0, 
+						  1.1f, 
+						  1.0f, 
+						  curr( 0, 2 ) + 10, 
+						  curr( 1, 2 ) + 10 );
 		_patches[ 0 ]->pose().set( affine );
 
 	}

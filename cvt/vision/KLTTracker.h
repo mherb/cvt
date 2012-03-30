@@ -137,8 +137,6 @@ namespace cvt
 					//pose matrix
 					EigenBridge::toCVT( poseMat, tmpPose.transformation() );
 
-					std::cout << "\n\nMatrix - octave " << oc << " iter: " << iter << "\n" << poseMat << std::endl;
-
 					// first test if all points transform into the image
 					if( !patchIsInImage( poseMat, w, h ) ){
 						return false;
@@ -149,16 +147,15 @@ namespace cvt
 										   map.ptr(), map.stride(),
 										   oc );
 
-//					Image pixels( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.pixels( oc ), pSize );
-//					Image pixelsT( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.transformed( oc ), pSize );
-//					pixels.save( "pixels.png" );
-//					pixelsT.save( "pixelsT.png" );
+				//	Image pixels( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.pixels( oc ), pSize );
+				//	Image pixelsT( pSize, pSize, IFormat::GRAY_UINT8, (uint8_t*)patch.transformed( oc ), pSize );
+				//	pixels.save( "pixels.png" );
+				//	pixelsT.save( "pixelsT.png" );
 
 					// solve for the delta:
 					delta = patch.inverseHessian( oc ) * jSum;
 
 					if( delta.norm() < 0.0001f ){
-						std::cout << "Delta norm: " << delta.norm() << std::endl;
 						break;
 					}
 
@@ -249,11 +246,6 @@ namespace cvt
 			static const Vector2f b(  half, -half );
 			static const Vector2f c(  half,  half );
 			static const Vector2f d( -half,  half );
-
-			std::cout << a << std::endl;
-			std::cout << b << std::endl;
-			std::cout << c << std::endl;
-			std::cout << d << std::endl;
 
 			Vector2f pWarped;
 
