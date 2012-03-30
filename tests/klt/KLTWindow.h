@@ -91,6 +91,7 @@ namespace cvt {
 
 			/* returns number of lost features */
 			size_t trackSingleScale( const Image& img );
+			size_t trackMultiScale();
 
 	};
 

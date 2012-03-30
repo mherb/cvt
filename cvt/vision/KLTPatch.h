@@ -24,7 +24,7 @@ namespace cvt
 			typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
 			typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>				   JacType;
 
-			KLTPatch();
+			KLTPatch( size_t octaves = 1 );
 
 			/**
 			 *	\brief update the internal patch data
@@ -90,20 +90,17 @@ namespace cvt
 	};
 
 	template <size_t pSize, class PoseType>
-	inline KLTPatch<pSize, PoseType>::KLTPatch() : 
+	inline KLTPatch<pSize, PoseType>::KLTPatch( size_t octaves ) : 
 		_scaleFactor( 1.0f )
 	{
+		_patchDataForScale.resize( octaves );
 	}
 
 	template <size_t pSize, class PoseType>
 	inline bool KLTPatch<pSize, PoseType>::update( const uint8_t* imgPtr, size_t stride, const Vector2f& pos, size_t octave )
 	{
-		if( _patchDataForScale.size() <= octave ){
-			_patchDataForScale.resize( octave + 1 );
-		}
-
-		const size_t pHalf = ( pSize >> 1 );
-		const uint8_t* ptr = imgPtr + ( int )( pos.y - pHalf ) * stride + ( int )pos.x - pHalf;
+		const float pHalf = ( pSize >> 1 );
+		const uint8_t* ptr = imgPtr + ( int )( pos.y - pHalf ) * stride + ( int )( pos.x - pHalf );
 		const uint8_t* nextLine = ptr + stride;
 		const uint8_t* prevLine = ptr - stride;
 
@@ -118,11 +115,11 @@ namespace cvt
 		HessType hess( HessType::Zero() );
 		typename PoseType::ScreenJacType sj;
 
-		Eigen::Vector2f point( 0.0f, 0.0f );
+		Eigen::Vector2f point( -pHalf, -pHalf );
 		while( numLines-- )
-		{
+		{			
+			point[ 0 ] = -pHalf;
 			for( size_t i = 0; i < pSize; i++ ){
-				point[ 0 ] = i;
 				*p = *t = ptr[ i ];
 
 				// sobel style
@@ -146,6 +143,8 @@ namespace cvt
 				J++;
 				p++;
 				t++;
+
+				point[ 0 ] += 1.0f;
 			}
 
 			prevLine = ptr;
@@ -242,8 +241,8 @@ namespace cvt
 
 			bool isGood = true;
 			if( patch == 0 )	
-				patch = new KLTPatch<pSize, PoseType>();
-			for( size_t o = 0; o < pyr.octaves(); o++ ){
+				patch = new KLTPatch<pSize, PoseType>( pyr.octaves() );
+			for( int o = pyr.octaves()-1; o >= 0; o-- ){
 				x = scales[ o ] * fx;
 				y = scales[ o ] * fy;
 		
@@ -282,11 +281,9 @@ namespace cvt
 	template <size_t pSize, class PoseType>
 	inline void KLTPatch<pSize, PoseType>::currentCenter( Vector2f& center ) const
 	{
-		Eigen::Vector2f p0( pSize / 2.0f, pSize / 2.0f );
-		Eigen::Vector2f curCenter;
-		_pose.transform( curCenter, p0 );
-		
-		EigenBridge::toCVT( center, curCenter );		
+		const Eigen::Matrix3f& tmp = _pose.transformation();
+		center.x = tmp( 0, 2 );
+		center.y = tmp( 1, 2 );
 	}
 	
 	template <size_t pSize, class PoseType>
@@ -294,9 +291,8 @@ namespace cvt
 	{
 		Matrix3f m;
 		m.setIdentity();
-		const float sizeHalf = pSize / 2.0f;
-		m[ 0 ][ 2 ] = pos.x - sizeHalf;
-		m[ 1 ][ 2 ] = pos.y - sizeHalf;
+		m[ 0 ][ 2 ] = pos.x;
+		m[ 1 ][ 2 ] = pos.y;
 		_pose.set( m );
 	}
 

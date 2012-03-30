@@ -62,7 +62,8 @@ namespace cvt
 		_fast.setNonMaxSuppress( true );
 		_fast.setBorder( 16 );
 
-		redetectFeatures( _pyramid[ 0 ] );
+		//redetectFeatures( _pyramid[ 0 ] );
+		redetectMultiScale();
 		std::cout << "Numinitial: " << _patches.size() << std::endl;
 
 		_imView.setImage( _pyramid[ 0 ] );
@@ -138,6 +139,30 @@ namespace cvt
 		return lost.size();
 	}
 
+	size_t KLTWindow::trackMultiScale()
+	{
+		std::vector<KLTPType*> lost;
+		std::vector<KLTPType*> tracked;
+
+		// track all patches
+		for( size_t i = 0; i < _patches.size(); i++ ){
+			if( _klt.trackPatchMultiscale( *_patches[ i ], _pyramid ) ){
+				tracked.push_back( _patches[ i ] );
+			} else {
+				lost.push_back( _patches[ i ] );
+			}
+		}
+
+		createPatchImage( lost );
+		_patchImage.save( "lostfeatures.png" );
+		SIMD* simd = SIMD::instance();
+		for( size_t i = 0; i < lost.size(); i++ ){
+			delete lost[ i ];
+		}
+		_patches = tracked;
+		return lost.size();
+	}
+
 	void KLTWindow::onTimeout()
 	{
 		if( _stepping && !_next )
@@ -150,7 +175,8 @@ namespace cvt
 
 		_kltTime.reset();
 
-		size_t lost = trackSingleScale( _pyramid[ 0 ] );
+		//size_t lost = trackSingleScale( _pyramid[ 0 ] );
+		size_t lost = trackMultiScale();
 
 		createPatchImage( _patches );
 		_patchImage.save( "featurepatches.png" );
@@ -160,8 +186,12 @@ namespace cvt
 		_kltTimeSum += _kltTime.elapsedMilliSeconds();
 		_kltIters++;
 
-		if( _patches.size() < _redetectThreshold )
-			redetectFeatures( _pyramid[ 0 ] );
+		size_t numTracked = _patches.size();
+
+		if( _patches.size() < _redetectThreshold ){
+			//redetectFeatures( _pyramid[ 0 ] );
+			redetectMultiScale();
+		}
 
 		double t = _time.elapsedSeconds();
 		_iter++;
@@ -172,7 +202,7 @@ namespace cvt
 		}
 
 		String title;
-		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f, avgklt=%0.2fms", _patches.size(), numAll, _fps, _kltTimeSum/_kltIters );
+		title.sprintf( "KLT: tracked=%d, all=%d, fps=%0.2f, avgklt=%0.2fms", numTracked, numAll, _fps, _kltTimeSum/_kltIters );
 		_window.setTitle( title );
 
 		Image debug;

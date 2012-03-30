@@ -16,6 +16,7 @@
 #include <cvt/math/GA2.h>
 
 #include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/ImagePyramid.h>
 
 #include <cvt/gfx/GFXEngineImage.h>
 
@@ -27,7 +28,7 @@ namespace cvt {
 			typedef GA2<float>					PoseType;
 			//typedef Sim2<float>				PoseType;
 			//typedef Translation2D<float>		PoseType;
-			typedef KLTTracker<PoseType, 64>	KLTType;
+			typedef KLTTracker<PoseType, 32>	KLTType;
 			typedef KLTType::KLTPType			KLTPType;
 
 			KLTWindow( Image & img );
@@ -37,6 +38,9 @@ namespace cvt {
 			void onTimeout();
 
 			void nextStep() { _step = true; }
+
+			void singleScaleUpdate();
+			void multiScaleUpdate();
 
 		private:
 			uint32_t				_timerId;
@@ -52,14 +56,17 @@ namespace cvt {
 			Time					_time;
 			double					_fps;
 			size_t					_iter;
-			std::vector<Image>		_pyramid;
+			ImagePyramid			_pyramid;
 
 			Button					_stepButton;
 			bool					_step;
 
-			void createPyramid();
+			Matrix3f				_groundtruth;
+
 			void initialize();
 			void drawRect( Image& img );
+
+			void savePatchAsImage( const String& filename );
 
 	};
 

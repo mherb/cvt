@@ -2,6 +2,8 @@
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/Delegate.h>
 
+//#define MULTISCALE
+
 namespace cvt
 {
 
@@ -10,6 +12,7 @@ namespace cvt
 		_klt( 1 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
+		_pyramid( 3, 0.5f ),
 		_stepButton( "Step" ),
 		_step( false )
 	{
@@ -25,9 +28,11 @@ namespace cvt
 
 		_window.setVisible( true );
 
-		_pyramid.resize( 3 );
-		img.convert( _pyramid[ 0 ], IFormat::GRAY_UINT8 );
-		createPyramid();
+		Image gray;
+		img.convert( gray, IFormat::GRAY_UINT8 );
+
+		_pyramid.update( gray );
+		
 		_fps = 0.0;
 		_iter = 0;
 
@@ -53,21 +58,24 @@ namespace cvt
 	void KLTWindow::onTimeout()
 	{
 		if( _step ){
-			std::vector<size_t>	  trackedIndices;
 			_kltTime.reset();
 
-			IMapScoped<const uint8_t> map( _pyramid[ 0 ] );
-			_klt.trackPatch( *_patches[ 0 ], 
-							map.ptr(), map.stride(),
-							_pyramid[ 0 ].width(), _pyramid[ 0 ].height() );
+#ifdef MULTISCALE
+			multiScaleUpdate();
+#else
+			singleScaleUpdate();
+#endif
 
-			std::cout << _patches[ 0 ]->pose().transformation() << std::endl;
+			Matrix3f curr;
+			EigenBridge::toCVT( curr, _patches[ 0 ]->pose().transformation() );
+
+			_iter++;
+			std::cout << _iter << ": Error\n" << _groundtruth - curr << std::endl;
 
 			_kltTimeSum += _kltTime.elapsedMilliSeconds();
 			_kltIters++;
 
 			double t = _time.elapsedSeconds();
-			_iter++;
 			if( t > 3.0 ){
 				_fps = _iter / t;
 				_time.reset();
@@ -86,32 +94,61 @@ namespace cvt
 		}
 	}
 
+	void KLTWindow::singleScaleUpdate()
+	{
+		IMapScoped<const uint8_t> map( _pyramid[ 0 ] );
+ 		bool res = _klt.trackPatch( *_patches[ 0 ], 
+									map.ptr(), map.stride(),
+									_pyramid[ 0 ].width(),
+									_pyramid[ 0 ].height() );
+		if( !res ){
+			std::cout << "LOST PATCH" << std::endl;
+		}
+	}
+
+	void KLTWindow::multiScaleUpdate()
+	{
+		bool res = _klt.trackPatchMultiscale( *_patches[ 0 ], _pyramid );
+
+		if( !res ){
+			std::cout << "LOST PATCH" << std::endl;
+		}
+						  
+	}
+
 	void KLTWindow::initialize()
 	{
 		// we take a patch in the middle
-		KLTPType* p = new KLTPType();
-
 		Vector2f initPos;
 		initPos.x = _pyramid[ 0 ].width() / 2;
 		initPos.y = _pyramid[ 0 ].height() / 2;
+
+		std::vector<Vector2f> positions;
+		positions.push_back( initPos );
+
+#ifdef MULTISCALE
+		KLTPType::extractPatches( _patches, positions, _pyramid );
+		savePatchAsImage( "patch.png" );
+#else
+		KLTPType::extractPatches( _patches, positions, _pyramid[ 0 ] );
+#endif
+
+		if( _patches.size() == 0 ){
+			throw CVTException( "PATCH NOT BUILD" );
+		}
 		
-		size_t stride;
-		const uint8_t* ptr = _pyramid[ 0 ].map( &stride );
-		p->update( ptr, stride, initPos );
-
-		_pyramid[ 0 ].unmap( ptr );
-
-		_patches.push_back( p );
 
 		Eigen::Matrix3f curr = _patches[ 0 ]->pose().transformation();
+		EigenBridge::toCVT( _groundtruth, curr );
 
-		std::cout << "curr: " << curr << std::endl;
-
+		// displace it
 		Matrix3f affine;
+		affine.setIdentity();
+		//affine[ 0 ][ 2 ] = curr( 0, 2 ) - 15;
+		//affine[ 1 ][ 2 ] = curr( 1, 2 ) - 15;
 		affine.setAffine( Math::deg2Rad( 10.0f ), 0, 1.1f, 1.0f, curr( 0, 2 ), curr( 1, 2 ) );
 		_patches[ 0 ]->pose().set( affine );
 
-		std::cout << "After update: " << _patches[ 0 ]->pose().transformation() << std::endl;
 	}
 	
 	void KLTWindow::drawRect( Image & img )
@@ -125,11 +162,11 @@ namespace cvt
 			Eigen::Vector2f a, b, c, d;
 
 
-			size_t psize = _patches[ 0 ]->size();
-			p0[ 0 ] = 0.0f;	 p0[ 1 ] = 0.0f;
-			p1[ 0 ] = psize; p1[ 1 ] = 0.0f; 
-			p2[ 0 ] = psize; p2[ 1 ] = psize;
-			p3[ 0 ] = 0.0f;  p3[ 1 ] = psize;
+			size_t half = _patches[ 0 ]->size();
+			p0[ 0 ] = -half; p0[ 1 ] = -half;
+			p1[ 0 ] =  half; p1[ 1 ] = -half; 
+			p2[ 0 ] =  half; p2[ 1 ] =  half;
+			p3[ 0 ] = -half; p3[ 1 ] =  half;
 
 			const PoseType& pose = _patches[ 0 ]->pose();
 			pose.transform( a, p0 );
@@ -151,17 +188,27 @@ namespace cvt
 		}
 	}
 
-	void KLTWindow::createPyramid()
+			
+	void KLTWindow::savePatchAsImage( const String& filename )
 	{
-		size_t w = _pyramid[ 0 ].width();
-		size_t h = _pyramid[ 0 ].height();
+		KLTPType & patch = *_patches[ 0 ];
 
-		IScaleFilterBilinear filter;
-		float scale = 0.7f;
-		for( size_t i = 1; i < _pyramid.size(); i++ ){
-			w *= scale;
-			h *= scale;
-			_pyramid[ i - 1 ].scale( _pyramid[ i ], w, h, filter );
+		size_t octaves = _pyramid.octaves();
+
+		Image patchImage( octaves * patch.size(), patch.size(), IFormat::GRAY_UINT8 );
+
+		IMapScoped<uint8_t> map( patchImage );
+
+		for( size_t h = 0; h < patchImage.height(); h++ ){
+			uint8_t* line = map.ptr();
+			for( size_t o = 0; o < octaves; o++ ){
+				for( size_t x = 0; x < patch.size(); x++ ){
+					*line++ = patch.pixels( o )[ h * patch.size() + x ];
+				}				
+			}
+			map++;
 		}
+
+		patchImage.save( filename );
 	}
 }
