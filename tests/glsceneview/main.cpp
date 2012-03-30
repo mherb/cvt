@@ -33,7 +33,7 @@ int main( int argc, char** argv )
 	Window w( "meshView" );
 	w.setSize( 640, 480 );
 	SceneMesh* mesh = ( ( SceneMesh* ) s.geometry( index ) );
-	mesh->translate( mesh->centroid() );
+	mesh->translate( -mesh->centroid() );
 //	Matrix4f r;
 //	r.setRotationY( Math::deg2Rad( 45.0f ) );
 //	mesh->transform( r );
