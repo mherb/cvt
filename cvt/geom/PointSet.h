@@ -192,7 +192,7 @@ namespace cvt
 			PTTYPE* pt = &_pts[ 0 ];
 			size_t n = _pts.size();
 			while( n-- )
-				*pt++ -= t;
+				*pt++ += t;
 		}
 
 	template<>
