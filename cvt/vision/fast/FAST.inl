@@ -64,6 +64,9 @@ inline void FAST::extract( const Image & img, PointContainer & features )
 
 		// non maximal suppression
 		// FIXME: this is a hack -> we have to copy the features in the end
+		if( allCorners.size() == 0 ){
+			return;
+		}
 		std::vector<Feature2Df> suppressed;
 		this->nonmaxSuppression( suppressed, allCorners );	
 
