@@ -11,6 +11,7 @@
 #ifndef CVT_SCENEMESH_H
 #define CVT_SCENEMESH_H
 
+#include <cvt/util/SIMD.h>
 #include <cvt/geom/scene/SceneGeometry.h>
 
 #include <vector>
@@ -212,9 +213,8 @@ namespace cvt {
 		const Vector3f* pt = &_vertices[ 0 ];
 		Vector3f centroid;
 
-		centroid.setZero();
-		while( n-- )
-			centroid += *pt++;
+		SIMD::instance()->sumPoints( centroid, pt, n );
+
 		centroid /= ( float ) _vertices.size();
 		return centroid;
 	}
@@ -250,8 +250,7 @@ namespace cvt {
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
 
-		while( n-- )
-			*pt++ += translation;
+		SIMD::instance()->translatePoints( pt, pt, translation, n );
 	}
 
 	inline void SceneMesh::scale( float scale )
@@ -259,8 +258,7 @@ namespace cvt {
 		size_t n = _vertices.size();
 		Vector3f* pt = &_vertices[ 0 ];
 
-		while( n-- )
-			*pt++ *= scale;
+		SIMD::instance()->MulValue1f( ( float* ) pt, ( const float* ) pt, scale, n * 3 );
 	}
 
 	inline void SceneMesh::transform( const Matrix3f& mat )
@@ -276,17 +274,10 @@ namespace cvt {
 		// FIXME: also tangents
 
 		if( !donormals ) {
-			while( n-- ) {
-				*pt = mat * *pt;
-				pt++;
-			}
+			SIMD::instance()->transformPoints( pt, mat, pt, n );
 		} else {
-			while( n-- ) {
-				*pt = mat * *pt;
-				pt++;
-				*nt = _nnmat * *nt;
-				nt++;
-			}
+			SIMD::instance()->transformPoints( pt, mat, pt, n );
+			SIMD::instance()->transformPoints( nt, _nnmat, nt, n );
 		}
 	}
 
@@ -304,37 +295,18 @@ namespace cvt {
 
 		if( mat[ 3 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
 			/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
-			Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
-			Matrix3f _mat( mat );
-			if( donormals ) {
-
-				while( n-- ) {
-					*pt = _mat * *pt;
-					*pt += trans;
-					pt++;
-					*nt = _nnmat * *nt;
-					nt++;
-				}
-
+			if( !donormals ) {
+				SIMD::instance()->transformPoints( pt, mat, pt, n );
 			} else {
-				while( n-- ) {
-					*pt = _mat * *pt;
-					*pt += trans;
-					pt++;
-				}	}
+				SIMD::instance()->transformPoints( pt, mat, pt, n );
+				SIMD::instance()->transformPoints( nt, _nnmat, nt, n );
+			}
 		} else {
-			if( donormals ) {
-				while( n-- ) {
-					*pt = mat * *pt;
-					pt++;
-					*nt = _nnmat * *nt;
-					nt++;
-				}
+			if( !donormals ) {
+				SIMD::instance()->transformPointsHomogenize( pt, mat, pt, n );
 			} else {
-				while( n-- ) {
-					*pt = mat * *pt;
-					pt++;
-				}
+				SIMD::instance()->transformPointsHomogenize( pt, mat, pt, n );
+				SIMD::instance()->transformPoints( nt, _nnmat, nt, n );
 			}
 		}
 	}

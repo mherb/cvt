@@ -11,6 +11,7 @@
 #ifndef CVT_POINTSET_H
 #define CVT_POINTSET_H
 
+#include <cvt/util/SIMD.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/Exception.h>
@@ -142,6 +143,32 @@ namespace cvt
 			return mean;
 		}
 
+	template<>
+		inline PointSet<2,float>::PTTYPE PointSet<2,float>::mean() const
+		{
+			const PTTYPE* pt = &_pts[ 0 ];
+			PTTYPE mean;
+			size_t n = _pts.size();
+
+			SIMD::instance()->sumPoints( mean, pt, n );
+
+			mean /= ( float ) size();
+			return mean;
+		}
+
+	template<>
+		inline PointSet<3,float>::PTTYPE PointSet<3,float>::mean() const
+		{
+			const PTTYPE* pt = &_pts[ 0 ];
+			PTTYPE mean;
+			size_t n = _pts.size();
+
+			SIMD::instance()->sumPoints( mean, pt, n );
+
+			mean /= ( float ) size();
+			return mean;
+		}
+
     template<int dim, typename _T>
 		inline	typename PointSet<dim,_T>::PTTYPE PointSet<dim,_T>::variance() const
 		{
@@ -165,8 +192,25 @@ namespace cvt
 			PTTYPE* pt = &_pts[ 0 ];
 			size_t n = _pts.size();
 			while( n-- )
-				*pt++ -= t;
+				*pt++ += t;
 		}
+
+	template<>
+		inline void PointSet<2,float>::translate( const PTTYPE& t )
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			size_t n = _pts.size();
+			SIMD::instance()->translatePoints( pt, pt, t, n );
+		}
+
+	template<>
+		inline void PointSet<3,float>::translate( const PTTYPE& t )
+		{
+			PTTYPE* pt = &_pts[ 0 ];
+			size_t n = _pts.size();
+			SIMD::instance()->translatePoints( pt, pt, t, n );
+		}
+
 
 	template<int dim, typename _T>
 		inline void PointSet<dim,_T>::scale( _T s )
@@ -175,6 +219,22 @@ namespace cvt
 			size_t n = _pts.size();
 			while( n-- )
 				*pt++ *= s;
+		}
+
+	template<>
+		inline void PointSet<2,float>::scale( float s )
+		{
+			float* pt = ( float* ) &_pts[ 0 ];
+			size_t n = _pts.size();
+			SIMD::instance()->MulValue1f( pt, pt, s, n * 2 );
+		}
+
+	template<>
+		inline void PointSet<3,float>::scale( float s )
+		{
+			float* pt = ( float* ) &_pts[ 0 ];
+			size_t n = _pts.size();
+			SIMD::instance()->MulValue1f( pt, pt, s, n * 3 );
 		}
 
 	template<int dim, typename _T>
@@ -197,18 +257,9 @@ namespace cvt
 
 			/* if last row is [ 0 0 1 ], split mat into 2 x 2 matrix and translation */
 			if( mat[ 2 ] == Vector3f( 0, 0, 1.0f ) ) {
-				Matrix2f _mat( mat );
-				Vector2f trans( mat[ 0 ][ 2 ], mat[ 1 ][ 2 ] );
-				while( n-- ) {
-					*pt = _mat * *pt;
-					*pt += trans;
-					pt++;
-				}
+				SIMD::instance()->transformPoints( pt, mat, pt, n );
 			} else {
-				while( n-- ) {
-					*pt = mat * *pt;
-					pt++;
-				}
+				SIMD::instance()->transformPointsHomogenize( pt, mat, pt, n );
 			}
 		}
 
@@ -242,19 +293,10 @@ namespace cvt
 			size_t n = _pts.size();
 
 			/* if last row is [ 0 0 0 1 ], split mat into 3 x 3 matrix and translation */
-			if( mat[ 3 ] == Vector4f( 0, 0, 0, 1 ) ) {
-				Matrix3f _mat( mat );
-				Vector3f trans( mat[ 0 ][ 3 ], mat[ 1 ][ 3 ], mat[ 2 ][ 3 ] );
-				while( n-- ) {
-					*pt = _mat * *pt;
-					*pt += trans;
-					pt++;
-				}
+			if( mat[ 2 ] == Vector4f( 0, 0, 0, 1.0f ) ) {
+				SIMD::instance()->transformPoints( pt, mat, pt, n );
 			} else {
-				while( n-- ) {
-					*pt = mat * *pt;
-					pt++;
-				}
+				SIMD::instance()->transformPointsHomogenize( pt, mat, pt, n );
 			}
 		}
 
