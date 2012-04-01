@@ -35,7 +35,9 @@ namespace cvt {
 		CGLPixelFormatObj pixfmt;
 		GLint npix;
 
+		// FIXME
 		CGLPixelFormatAttribute attribs[ 20 ] = {
+			kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core,
 	//		kCGLPFAColorSize, ( CGLPixelFormatAttribute )  Math::max( _format.redSize(), Math::max( _format.greenSize(), _format.blueSize() ) ),
 			kCGLPFAAlphaSize,	 ( CGLPixelFormatAttribute ) _format.alphaSize(),
 			kCGLPFADepthSize,	 ( CGLPixelFormatAttribute ) _format.depthSize(),

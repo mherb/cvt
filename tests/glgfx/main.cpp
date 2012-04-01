@@ -25,8 +25,8 @@ class View : public Window
 #include "butterfly.h"
 		Matrix3f t;
 		t.setIdentity();
-		t[ 0 ][ 0 ] = 2.0f;
-		t[ 1 ][ 1 ] = 2.0f;
+		t[ 0 ][ 0 ] = 1.0f;
+		t[ 1 ][ 1 ] = 1.0f;
 		p1.transform( t );
 		p2.transform( t );
 		p3.transform( t );
@@ -42,13 +42,13 @@ class View : public Window
 	{
 		Matrix3f t1, t2;
 		t1.setIdentity();
-		t1[ 0 ][ 2 ] = 400.0f;
-		t1[ 1 ][ 2 ] = 400.0f;
+		t1[ 0 ][ 2 ] = 200.0f;
+		t1[ 1 ][ 2 ] = 200.0f;
 		t2.setRotationZ( Math::deg2Rad( 1.0f ) );
 		t1 = t1 * t2;
 		t2.setIdentity();
-		t2[ 0 ][ 2 ] = -400.0f;
-		t2[ 1 ][ 2 ] = -400.0f;
+		t2[ 0 ][ 2 ] = -200.0f;
+		t2[ 1 ][ 2 ] = -200.0f;
 		t1 = t1 * t2;
 		p1.transform( t1 );
 		p2.transform( t1 );
@@ -67,11 +67,11 @@ class View : public Window
 #else
 		g->setLineWidth( 0.0f );
 		g->color().set( 0.95f, 0.5f, 0.0f, 1.0f );
-		g->strokePath( p1 );
+		g->fillPath( p1 );
 		g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-		g->strokePath( p3 );
+		g->fillPath( p3 );
 		g->color().set( 1.0f, 0.95f, 0.9f, 1.0f );
-		g->strokePath( p2 );
+		g->fillPath( p2 );
 
 		frames++;
 
@@ -98,7 +98,7 @@ int main( int argc, char** argv )
 {
 	View ui;
 	Delegate<void ( BasicTimer* )> d( &ui, &View::timeout );
-	BasicTimer timer( 33 );
+	BasicTimer timer( 5 );
 	timer.timeout.add( d );
 	timer.start();
 

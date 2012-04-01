@@ -14,12 +14,14 @@
 #include <cvt/math/Math.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Path.h>
-#include <cvt/geom/Bezier.h>
+#include <cvt/geom/CBezier.h>
+#include <cvt/geom/QBezier.h>
 #include <cvt/geom/Rect.h>
 #include <vector>
 
 namespace cvt {
-	template<typename T> class Bezier;
+	template<typename T> class CBezier2;
+	template<typename T> class QBezier2;
 
 	template<typename T>
 	class Polygon {
@@ -49,7 +51,7 @@ namespace cvt {
 		public:
 			PolygonSet() {};
 			~PolygonSet() {};
-			PolygonSet( const Path<T>& path, T tolerance = ( ( T ) 1 / ( T ) 2 ) );
+			PolygonSet( const Path<T>& path, T tolerance = ( T ) 1  );
 
 			const Polygon<T> operator[]( int index ) const;
 			Polygon<T>& operator[]( int index );
@@ -206,7 +208,7 @@ namespace cvt {
 						break;
 				case Path<T>::PATHNODE_CURVE:
 						if( poly.size() ) {
-							Bezier<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
+							CBezier2<T> spline( current, node.pt[ 0 ], node.pt[ 1 ], node.pt[ 2 ] );
 							spline.addToPolygon( poly, tolerance );
 #if 0
 							/* flatten the spline */
