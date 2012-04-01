@@ -169,7 +169,8 @@ SET(${MODULE_NAME}_HEADERS
 	container/List.h
 	container/RBTree.h
 	geom/ArcBall.h
-	geom/Bezier.h
+	geom/QBezier.h
+	geom/CBezier.h
 	geom/KDTree.h
 	geom/Line2D.h
 	geom/Polygon.h

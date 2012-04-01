@@ -96,10 +96,19 @@ namespace cvt {
 		}
 
 		/* extensions check */
-		String cvtstr = ( const char* ) glGetString( GL_EXTENSIONS );
-		cvtstr.tokenize( _extensions, ' ' );
+		if( _glmajor > 2 ) {
+			int numext;
+			glGetIntegerv( GL_NUM_EXTENSIONS, &numext );
+			for( int i = 0; i < numext; i++ ) {
+				_extensions.push_back( ( const char* ) glGetStringi( GL_EXTENSIONS, i ) );
+			}
+		} else {
+			String cvtstr( ( const char* ) glGetString( GL_EXTENSIONS ) );
+			std::cout << cvtstr << std::endl;
+			cvtstr.tokenize( _extensions, ' ' );
+		}
 
-		if( existsExtension( "GL_ARB_vertex_array_object" ) ) {
+		if( existsExtension( "GL_ARB_vertex_array_object" ) || _glmajor > 2 ) {
 			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArrays" );
 			glDeleteVertexArrays = ( void (*)( GLsizei, const GLuint* ) ) getProcAddress( "glDeleteVertexArrays" );
 			glBindVertexArray = ( void (*)( GLuint ) ) getProcAddress( "glBindVertexArray" );
@@ -114,12 +123,12 @@ namespace cvt {
 			std::exit( EXIT_FAILURE );
 		}
 
-		if( !existsExtension( "GL_ARB_texture_non_power_of_two" ) ) {
+		if( !existsExtension( "GL_ARB_texture_non_power_of_two" ) && _glmajor <= 2 ) {
 			std::cerr << "GL texture non power of two extension missing" << std::endl;
 			std::exit( EXIT_FAILURE );
 		}
 
-		if( existsExtension( "GL_EXT_framebuffer_object" ) || existsExtension( "GL_ARB_framebuffer_object" ) ) {
+		if( existsExtension( "GL_EXT_framebuffer_object" ) || existsExtension( "GL_ARB_framebuffer_object" ) || _glmajor > 2 ) {
 			glBindRenderbuffer = ( void (*)( GLenum target, GLuint renderbuffer) ) getProcAddress( "glBindRenderbuffer" );
 			glDeleteRenderbuffers = ( void (*)( GLsizei n, const GLuint *renderbuffers) ) getProcAddress( "glDeleteRenderbuffers" );
 			glGenRenderbuffers = ( void (*)( GLsizei n, GLuint *renderbuffers) ) getProcAddress( "glGenRenderbuffers" );

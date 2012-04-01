@@ -16,6 +16,8 @@
 #endif
 
 #ifdef APPLE
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+	#include <OpenGL/gl3.h>
     #include <OpenGL/gl.h>
     #include <OpenGL/glext.h>
     #include <OpenGL/OpenGL.h>
@@ -42,8 +44,8 @@ namespace cvt {
 		friend class ApplicationOSX;
 
 		public:
-			static void GLVersion( unsigned int* major, unsigned int* minor );
-			static void GLSLVersion( unsigned int* major, unsigned int* minor );
+			static void GLVersion( unsigned int& major, unsigned int& minor );
+			static void GLSLVersion( unsigned int& major, unsigned int& minor );
 			static bool isGLSLVersionSupported( unsigned int major, unsigned int minor );
 			static bool existsExtension( const String& extname );
 			static void ( *getProcAddress( const char* str ) ) ();
@@ -93,6 +95,19 @@ namespace cvt {
 	{
 		return ( _glslmajor > major || ( _glslmajor == major && _glslminor >= minor ) );
 	}
+
+	inline void GL::GLVersion( unsigned int& major, unsigned int& minor )
+	{
+		major = _glmajor;
+		minor = _glminor;
+	}
+
+	inline void GL::GLSLVersion( unsigned int& major, unsigned int& minor )
+	{
+		major = _glslmajor;
+		minor = _glslminor;
+	}
+
 
 }
 
