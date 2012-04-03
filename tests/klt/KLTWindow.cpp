@@ -14,7 +14,7 @@ namespace cvt
 		_klt( 3 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
-		_pyramid( 3, 0.5f ),
+		_pyramid( 1, 0.5f ),
 		_redetectThreshold( 20 ),
 		_gridFilter( 20, video.width(), video.height() )
 	{
@@ -286,10 +286,10 @@ namespace cvt
 			VectorFeature2DInserter<float> inserter( scaleFeatures );
 			_fast.extract( _pyramid[ i ], inserter );
 
+			size_t start = features.size();
+			// insert the features
+			features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
 			if( i != 0 ){
-				size_t start = features.size();
-				// insert the features
-				features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
 				
 				scale /= _pyramid.scaleFactor();
 				for( size_t f = start; f < features.size(); f++ ){
