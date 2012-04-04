@@ -33,7 +33,11 @@ namespace cvt
 				KLTTracker( size_t maxIters = 20 );
 
 				float ssdThreshold() const { return _ssdThresh; }
-				void  setSSDThreshold( float ssd ) { _ssdThresh = ssd; }
+
+				/**
+				 * \brief	set max. avg. SSD thresh per pixel
+				 */
+				void  setSSDThreshold( float ssd ) { _ssdThresh = Math::sqr( pSize ) * ssd; }
 
 				/* percentage of pixels that need to project in current view */
 				void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
@@ -64,7 +68,8 @@ namespace cvt
 			_ssdThresh( 0.0f )
 		{
 			setEarlyStepOutAvgSSD( 10.0f );
-			_ssdThresh = Math::sqr( 20.0f );
+
+			setSSDThreshold( Math::sqr( 40 ) );
 		}
 
 		template <class PoseType, size_t pSize>
@@ -92,8 +97,6 @@ namespace cvt
 
 				diffSum = buildSystem( patch, jSum, pose, current, currStride );
 
-				std::cout << diffSum << std::endl;
-
 				// solve for the delta:
 				delta = patch.inverseHessian() * jSum;
 				patch.pose().applyInverse( -delta );
@@ -101,7 +104,7 @@ namespace cvt
 				iter++;
 			}
 
-			if( ( diffSum / Math::sqr<float>( pSize ) ) > _ssdThresh ){
+			if( diffSum > _ssdThresh ){
 				return false;
 			}
 			return true;
@@ -126,13 +129,15 @@ namespace cvt
 
 			PoseType tmpPose;
 			tmpPose.set( poseMat );
-			float diffSum = Math::sqr( pSize * 255 );
 
+			const float maxDiff = Math::sqr( pSize * 255 );
+			float diffSum = maxDiff;
 			for( int oc = pyramid.octaves() - 1; oc >= 0; --oc ){ 
 				IMapScoped<const uint8_t> map( pyramid[ oc ] );
 				size_t w = pyramid[ oc ].width();
 				size_t h = pyramid[ oc ].height();
 				size_t iter = 0;
+				diffSum = Math::sqr( pSize * 255 );
 				while( iter < _maxIters ){
 					//pose matrix
 					EigenBridge::toCVT( poseMat, tmpPose.transformation() );
@@ -147,12 +152,16 @@ namespace cvt
 										   map.ptr(), map.stride(),
 										   oc );
 
+					if( diffSum >= maxDiff ){
+						return false;
+					}
+
+
 					// solve for the delta:
 					delta = patch.inverseHessian( oc ) * jSum;
 
-					if( delta.norm() < 0.0001f ){
+					if( delta.norm() < 1e-7 )
 						break;
-					}
 
 					tmpPose.applyInverse( -delta );
 					
@@ -168,16 +177,13 @@ namespace cvt
 				}
 			}
 			
-			// set the patch pose accordingly
+			// set the final patch pose accordingly
 			patch.pose().transformation() = tmpPose.transformation();
 
-			// test avg difference per pixel
-			// TODO: either leave that for outside, or let this test be done
-			// by a functor -> TrackingQualityCheck or s.th. like this
-			if( ( diffSum / Math::sqr<float>( pSize ) ) > _ssdThresh ){
+			// if the ssd is below the threshold
+			if( diffSum > _ssdThresh ){
 				return false;
 			}
-
 
 			return true;
 		}
@@ -197,6 +203,11 @@ namespace cvt
 
 			static const float half = pSize >> 1;
 			float diffSum = 0.0f;
+
+			for( size_t i = 0; i < 3; i++ )
+				for( size_t k = 0; k < 3; k++ )
+					if( Math::isNaN( pose[ i ][ k ] ) )
+						return Math::MAXF;
 			
 			Vector2f pcur, ppcur;
 			pcur.y = -half;
@@ -204,10 +215,6 @@ namespace cvt
 				pcur.x = -half;
 				for( size_t i = 0; i < pSize; i++ ){
 					ppcur = pose * pcur;
-
-					if( Math::isNaN( ppcur.x ) || Math::isNaN( ppcur.y ) ){
-						return Math::MAXF;
-					}
 
 					int ix = ( int )ppcur.x;
 					int iy = ( int )ppcur.y;
@@ -217,12 +224,13 @@ namespace cvt
 					const uint8_t* px = imgPtr + iy * iStride + ix;
 					uint8_t v0 = Math::mix( px[ 0 ], px[ 1 ], fracx );
 					px += iStride;
+
 					uint8_t v1 = Math::mix( px[ 0 ], px[ 1 ], fracx );
 					v0 = Math::mix( v0, v1, fracy );
 					warped[ y * pSize + i ] = v0; 
 
 					float deltaImg = ( int16_t )v0 - ( int16_t )temp[ y * pSize + i ];
-					diffSum += Math::sqr( deltaImg * deltaImg );
+					diffSum += Math::sqr( deltaImg );
 					jacSum += ( *J *  deltaImg );
 					J++;
 					pcur.x += 1.0f;

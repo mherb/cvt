@@ -1,6 +1,5 @@
 #include <cvt/io/Camera.h>
-#include <cvt/io/VideoReader.h>
-#include <cvt/io/ImageSequence.h>
+#include <cvt/io/RawVideoReader.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/String.h>
 #include "FeatureTrackApp.h"
@@ -49,8 +48,10 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
         input = initCamera();
     } else {
-        String ext( "cvtraw" );
-        input = new ImageSequence( argv[ 1 ], ext );
+        input = new RawVideoReader( argv[ 1 ] );
+		size_t skipframes = 90;
+		while( skipframes-- )
+			input->nextFrame();
     }
 
 	try {
