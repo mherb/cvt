@@ -4,7 +4,6 @@
 #include <cvt/io/xml/XMLDocument.h>
 
 #include <cvt/vision/slam/stereo/ORBTrackingSequential.h>
-#include <cvt/vision/slam/stereo/FASTFeatureTracking.h>
 #include <cvt/vision/slam/stereo/ORBTracking.h>
 #include <cvt/vision/slam/stereo/KLTTracking.h>
 
