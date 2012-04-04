@@ -42,6 +42,17 @@ namespace cvt
 			 * \brief	returns the scalefactor between the octaves
 			 */
 			float scaleFactor() const { return _scaleFactor; }
+			
+			/**
+			 *	\brief	set the scalefactor 
+			 */
+			void setScaleFactor( float scale ) { _scaleFactor = scale; }
+
+			/**
+			 *	\brief	reset the number of octaves of the pyramid
+			 *	\param	o	the new number of octaves
+			 */
+			void setNumOctaves( size_t o );
 
 		private:
 			std::vector<Image>	 _image;
@@ -55,7 +66,7 @@ namespace cvt
 	inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor ) :
 		_scaleFactor( scaleFactor )
 	{
-		_image.resize( octaves );
+		setNumOctaves( octaves );
 	}
 
 	inline void ImagePyramid::update( const Image& img )
@@ -75,6 +86,14 @@ namespace cvt
 			h *= _scaleFactor;
 			_image[ i - 1].scale( _image[ i ], ( size_t )w, ( size_t )h, _filter );
 		}
+	}
+
+	inline void ImagePyramid::setNumOctaves( size_t o )
+	{
+		if( _image.size() == o )
+			return;
+
+		_image.resize( o );
 	}
 
 }

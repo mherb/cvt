@@ -251,8 +251,8 @@ namespace cvt
 
 				octavePos = positions[ i ] * scales[ o ];
 
-				if( x < ( int )phalf || ( x + phalf - 1 ) > w ||
-				    y < ( int )phalf || ( y + phalf - 2 ) > h ){
+				if( x < ( int )phalf + 1 || ( x + phalf + 1 ) >= w ||
+				    y < ( int )phalf + 1 || ( y + phalf + 1 ) >= h ){
 					isGood = false;
 					break;
 				}

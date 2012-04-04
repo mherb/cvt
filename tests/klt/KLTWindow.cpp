@@ -5,19 +5,20 @@ namespace cvt
 	KLTWindow::KLTWindow( VideoInput & video ) :
 		_window( "KLT" ),
 		_ssdSliderLabel( "SSD Threshold" ),
-		_ssdSlider( 0.0f, Math::sqr( 100.0f ), 0.0f ),
+		_ssdSlider( 0.0f, 255.0f, 20.0f ),
 		_stepButton( "Enable Freerun" ),
 		_nextButton( "Next Frame" ),
 		_stepping( true ),
 		_next( false ),
 		_video( video ),
-		_klt( 3 ),
+		_klt( 5 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
 		_pyramid( 3, 0.5f ),
 		_redetectThreshold( 20 ),
 		_gridFilter( 20, video.width(), video.height() )
 	{
+		_klt.setSSDThreshold( 100.0f );
 		_timerId = Application::registerTimer( 10, this );
 		_window.setSize( 640, 480 );
 		WidgetLayout wl;
@@ -62,9 +63,9 @@ namespace cvt
 	
 		_pyramid.update( gray );	
 
-		_fast.setThreshold( 14 );
+		_fast.setThreshold( 30 );
 		_fast.setNonMaxSuppress( true );
-		_fast.setBorder( 16 );
+		_fast.setBorder( PATCH_SIZE / 2 + 1 );
 
 		//redetectFeatures( _pyramid[ 0 ] );
 		redetectMultiScale();
@@ -83,7 +84,8 @@ namespace cvt
 
 	void KLTWindow::ssdThresholdChanged( float val )
 	{
-		_klt.setSSDThreshold( val );
+
+		_klt.setSSDThreshold( Math::sqr( val ) );
 		String label;
 		label.sprintf( "Treshold: %0.1f", val );
 		_ssdSliderLabel.setLabel( label );
@@ -152,6 +154,8 @@ namespace cvt
 		for( size_t i = 0; i < _patches.size(); i++ ){
 			if( _klt.trackPatchMultiscale( *_patches[ i ], _pyramid ) ){
 				tracked.push_back( _patches[ i ] );
+				//dumpPatch( *_patches[ i ], i );
+
 			} else {
 				lost.push_back( _patches[ i ] );
 			}
@@ -286,10 +290,10 @@ namespace cvt
 			VectorFeature2DInserter<float> inserter( scaleFeatures );
 			_fast.extract( _pyramid[ i ], inserter );
 
+			size_t start = features.size();
+			// insert the features
+			features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
 			if( i != 0 ){
-				size_t start = features.size();
-				// insert the features
-				features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
 				
 				scale /= _pyramid.scaleFactor();
 				for( size_t f = start; f < features.size(); f++ ){
@@ -337,9 +341,9 @@ namespace cvt
 		//patches: say we have an image with 1024:
 		size_t spacePerPatch = PATCH_SIZE + 5;
 		size_t heightPerPatch = 2 * PATCH_SIZE + 5;
-		size_t numPatchesPerLine = 1024.0f / spacePerPatch;
+		size_t numPatchesPerLine = 640.0f / spacePerPatch;
 		size_t numLines = 1 + patches.size() / numPatchesPerLine;
-		_patchImage.reallocate( 1024, numLines * heightPerPatch, IFormat::GRAY_UINT8 );
+		_patchImage.reallocate( 640, numLines * heightPerPatch, IFormat::GRAY_UINT8 );
 
 		_patchImage.fill( Color::BLACK );
 
@@ -372,6 +376,44 @@ namespace cvt
 				currentXPos = 0;
 			} 
 		}
+	}
+
+	void KLTWindow::dumpPatch( KLTPType& patch, size_t i )
+	{
+		// evaluate some cost functions:
+		SIMD* simd = SIMD::instance();
+
+		size_t sad = simd->SAD( patch.pixels( 0 ), patch.transformed( 0 ), Math::sqr( PATCH_SIZE ) );
+		float  ssd = simd->SSD( patch.pixels( 0 ), patch.transformed( 0 ), Math::sqr( PATCH_SIZE ) );
+
+	
+		if( sad > 30 * Math::sqr( PATCH_SIZE ) ) {
+			Image out( PATCH_SIZE * 2, PATCH_SIZE, IFormat::GRAY_UINT8 );
+
+			{
+				IMapScoped<uint8_t> map( out );
+				const uint8_t* p = patch.pixels();
+				const uint8_t* t = patch.transformed();
+
+				size_t h = PATCH_SIZE;
+				while( h-- ){
+					uint8_t* pout = map.ptr();
+
+					for( size_t i = 0; i < PATCH_SIZE; i++ ){
+						*pout++ = *p++;
+					}
+					for( size_t i = 0; i < PATCH_SIZE; i++ ){
+						*pout++ = *t++;
+					}
+					map++;
+				}
+			}
+		
+			String filename;
+			filename.sprintf( "patch_%02d_sad_%02d_ssd_%0.1f.png", i, sad, ssd );
+			out.save( filename );
+		}
+
 	}
 			
 }

@@ -26,7 +26,7 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#define PATCH_SIZE ( 16 )
+#define PATCH_SIZE ( 8 )
 
 namespace cvt {
 
@@ -92,6 +92,7 @@ namespace cvt {
 			/* returns number of lost features */
 			size_t trackSingleScale( const Image& img );
 			size_t trackMultiScale();
+			void dumpPatch( KLTPType& patch, size_t i );
 
 	};
 
