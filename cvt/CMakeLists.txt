@@ -94,12 +94,15 @@ SET( CL_KERNELS
 	cl/kernel/gaussiir2.cl
 	cl/kernel/BC.cl
 	cl/kernel/clear.cl
+	cl/kernel/clearbuffer.cl
 	cl/kernel/fill.cl
 	cl/kernel/gradx.cl
 	cl/kernel/gradxy.cl
 	cl/kernel/median3.cl
 	cl/kernel/fgp/fgp.cl
 	cl/kernel/fgp/fgp_data.cl
+	cl/kernel/fgp/fgpgrayweightedhuber.cl
+	cl/kernel/fgp/fgpgrayweightedhuber_data.cl
 	cl/kernel/boxfilter/boxfilter_prefixsum.cl
 	cl/kernel/boxfilter/boxfilter.cl
 	cl/kernel/prefixsum/prefixsum_pblock.cl

@@ -22,14 +22,14 @@ int main( int argc, char** argv )
 	Image input( argv[ 1 ] );
 	Image climg( input.width(), input.height(), input.format(), IALLOCATOR_CL );
 //	climg = input;
-//	input.convert( climg );
+	input.convert( climg );
 
 	Image output( input.width(), input.height(), input.format(), IALLOCATOR_CL );
 
 //		climg.save("roffgporig.png");
 		ROFFGPFilter filter;
-		filter.apply( output, climg, 1.0f, 20 );
-//		output.save( "roffgp.png" );
+		filter.apply( output, climg, 0.15f, 20 );
+		output.save( "roffgp.png" );
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
 	}
