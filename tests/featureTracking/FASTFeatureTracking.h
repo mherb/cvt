@@ -18,7 +18,7 @@ namespace cvt
 			static const size_t PatchSize = 16;
 			typedef GA2<float>							PoseType;
 			typedef KLTTracker<PoseType, PatchSize>		KLTType;	
-			typedef typename KLTType::KLTPType			PatchType;
+			typedef KLTType::KLTPType					PatchType;
 			
 			FASTFeatureTracking();
 			~FASTFeatureTracking();
@@ -32,12 +32,12 @@ namespace cvt
 							    std::vector<PatchType*>& predicted,
 							    const Image& image );
 
-			void setNumOctaves( size_t v ) { _pyramid.setNumOctaves( v ); }
-			void setScaleFactor( float v ) { _pyramid.setScaleFactor( v ); }
-			void setFASTThreshold( uint8_t v ) { _detector.setThreshold( v ); }
-			void setFASTSADThreshold( float v ) { _fastMinMatchingThreshold = v; }
-			void setKLTSSDThreshold( float v ); 
-			void setNonMaxSuppression( bool v ) { _detector.setNonMaxSuppress( v ); }
+			void setNumOctaves( size_t v )		  { _pyramid.setNumOctaves( v ); }
+			void setScaleFactor( float v )		  { _pyramid.setScaleFactor( v ); }
+			void setFASTThreshold( uint8_t v )    { _detector.setThreshold( v ); }
+			void setFASTSADThreshold( float v )   { _fastMinMatchingThreshold = v; }
+			void setKLTSSDThreshold( float v )	  { _kltSSDThreshold = Math::sqr( v ); } 
+			void setNonMaxSuppression( bool v )	  { _detector.setNonMaxSuppress( v ); }
 			void setMaxMatchingRadius( size_t r ) { _fastMatchingWindowSqr = Math::sqr( r ); }
 
 			const std::vector<Feature2Df>& lastDetectedFeatures() const { return _currentFeatures; }
@@ -52,9 +52,13 @@ namespace cvt
 
 			size_t					_fastMatchingWindowSqr;
 			float					_fastMinMatchingThreshold;
+			float					_kltSSDThreshold;
 
 			std::vector<Feature2Df>	_currentFeatures;
 			std::set<size_t>		_associatedIndexes;
+
+			/* cache the simd instance here */
+			SIMD*					_simd;					
 
 			void detectCurrentFeatures( const Image& img );
 

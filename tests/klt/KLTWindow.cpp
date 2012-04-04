@@ -18,7 +18,8 @@ namespace cvt
 		_redetectThreshold( 20 ),
 		_gridFilter( 20, video.width(), video.height() )
 	{
-		_klt.setSSDThreshold( 100.0f );
+		_ssdThresh = Math::sqr( 20 );
+
 		_timerId = Application::registerTimer( 10, this );
 		_window.setSize( 640, 480 );
 		WidgetLayout wl;
@@ -84,8 +85,7 @@ namespace cvt
 
 	void KLTWindow::ssdThresholdChanged( float val )
 	{
-
-		_klt.setSSDThreshold( Math::sqr( val ) );
+		_ssdThresh = Math::sqr( val );
 		String label;
 		label.sprintf( "Treshold: %0.1f", val );
 		_ssdSliderLabel.setLabel( label );
@@ -120,10 +120,18 @@ namespace cvt
 		std::vector<KLTPType*> lost;
 		std::vector<KLTPType*> tracked;
 
+		SIMD* simd = SIMD::instance();
+		const size_t nPixels = Math::sqr( PATCH_SIZE );
+		const float maxSSD = nPixels * _ssdThresh;
+
 		// track all patches
 		for( size_t i = 0; i < _patches.size(); i++ ){
 			if( _klt.trackPatch( *_patches[ i ], map.ptr(), map.stride(), w, h ) ){
-				tracked.push_back( _patches[ i ] );
+				float ssd = simd->SSD( _patches[ i ]->pixels(), _patches[ i ]->transformed(), nPixels );
+				if( ssd < maxSSD )
+					tracked.push_back( _patches[ i ] );
+				else 
+					lost.push_back( _patches[ i ] );
 			} else {
 				lost.push_back( _patches[ i ] );
 			}
@@ -131,16 +139,10 @@ namespace cvt
 
 		createPatchImage( lost );
 		_patchImage.save( "lostfeatures.png" );
-		SIMD* simd = SIMD::instance();
-		float psqr = Math::sqr( PATCH_SIZE );
 		for( size_t i = 0; i < lost.size(); i++ ){
-			size_t sad = simd->SAD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
-			size_t ssd = simd->SSD( lost[ i ]->pixels(), lost[ i ]->transformed(), Math::sqr( PATCH_SIZE ) );
-
-			std::cout << "LOST PATCH: ssd=" << ssd / psqr << ", sad: " << sad / psqr << std::endl;
-
 			delete lost[ i ];
 		}
+
 		_patches = tracked;
 		return lost.size();
 	}
@@ -149,20 +151,26 @@ namespace cvt
 	{
 		std::vector<KLTPType*> lost;
 		std::vector<KLTPType*> tracked;
+		
+		SIMD* simd = SIMD::instance();
+		const size_t nPixels = Math::sqr( PATCH_SIZE );
+		const float maxSSD = nPixels * _ssdThresh;
 
 		// track all patches
 		for( size_t i = 0; i < _patches.size(); i++ ){
 			if( _klt.trackPatchMultiscale( *_patches[ i ], _pyramid ) ){
-				tracked.push_back( _patches[ i ] );
-				//dumpPatch( *_patches[ i ], i );
-
+				float ssd = simd->SSD( _patches[ i ]->pixels(), _patches[ i ]->transformed(), nPixels );
+				if( ssd < maxSSD )
+					tracked.push_back( _patches[ i ] );
+				else 
+					lost.push_back( _patches[ i ] );
 			} else {
 				lost.push_back( _patches[ i ] );
 			}
 		}
 
-		createPatchImage( lost );
-		_patchImage.save( "lostfeatures.png" );
+		//createPatchImage( lost );
+		//_patchImage.save( "lostfeatures.png" );
 		for( size_t i = 0; i < lost.size(); i++ ){
 			delete lost[ i ];
 		}
@@ -185,8 +193,8 @@ namespace cvt
 		//size_t lost = trackSingleScale( _pyramid[ 0 ] );
 		size_t lost = trackMultiScale();
 
-		createPatchImage( _patches );
-		_patchImage.save( "featurepatches.png" );
+		//createPatchImage( _patches );
+		//_patchImage.save( "featurepatches.png" );
 		
 		size_t numAll = _patches.size() + lost;
 
@@ -387,7 +395,7 @@ namespace cvt
 		float  ssd = simd->SSD( patch.pixels( 0 ), patch.transformed( 0 ), Math::sqr( PATCH_SIZE ) );
 
 	
-		if( sad > 30 * Math::sqr( PATCH_SIZE ) ) {
+		if( sad > ( size_t )( 30 * Math::sqr( PATCH_SIZE ) ) ) {
 			Image out( PATCH_SIZE * 2, PATCH_SIZE, IFormat::GRAY_UINT8 );
 
 			{

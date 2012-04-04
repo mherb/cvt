@@ -124,12 +124,21 @@ namespace cvt
 
 				// sobel style
 				g[ 0 ] = -( int16_t )prevLine[ i - 1 ] + ( int16_t )prevLine[ i + 1 ]
-					     + 2 * ( -( int16_t ) ptr[ i - 1 ] + ptr[ i + 1 ] )
+					     + 2 * ( -( int16_t )ptr[ i - 1 ] + ( int16_t )ptr[ i + 1 ] )
 						 -( int16_t )nextLine[ i - 1 ] + ( int16_t )nextLine[ i + 1 ];
 
 				g[ 1 ] = ( int16_t )nextLine[ i - 1 ] + 2 * ( int16_t )nextLine[ i ] + ( int16_t )nextLine[ i + 1 ]
 						-( int16_t )prevLine[ i - 1 ] - 2 * ( int16_t )prevLine[ i ] - ( int16_t )prevLine[ i + 1 ];
 				g *= 0.125f;
+			
+				// scharr	
+				//g[ 0 ] =    3 * ( -( int16_t )prevLine[ i - 1 ] + ( int16_t )prevLine[ i + 1 ] )
+				//	     + 10 * ( -( int16_t )     ptr[ i - 1 ] + ( int16_t )ptr[ i + 1 ] )
+				//		 +  3 * ( -( int16_t )nextLine[ i - 1 ] + ( int16_t )nextLine[ i + 1 ] );
+
+				//g[ 1 ] = 3 * ( int16_t )nextLine[ i - 1 ] + 10 * ( int16_t )nextLine[ i ] + 3 * ( int16_t )nextLine[ i + 1 ]
+				//		-3 * ( int16_t )prevLine[ i - 1 ] - 10 * ( int16_t )prevLine[ i ] - 3 * ( int16_t )prevLine[ i + 1 ];
+				//g *= 1.0f / 64.0f;
 
 				// simple central derivative
 				//g[ 0 ] = ( int16_t )ptr[ i + 1 ] - ( int16_t )ptr[ i - 1 ];
