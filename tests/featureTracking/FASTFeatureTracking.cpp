@@ -7,22 +7,20 @@ namespace cvt
 		_pyramid( 3, 0.5f ),
 		_klt( 5 ),
 		_fastMatchingWindowSqr( Math::sqr( 20 ) ),
-		_fastMinMatchingThreshold( 0.8 )
+		_fastMinMatchingThreshold( 0.8 ),
+		_kltSSDThreshold( 10.8 )
 	{
-		_detector.setBorder( PatchSize + 1 );
+		_detector.setBorder( PatchSize );
 		_detector.setNonMaxSuppress( true );
 		_detector.setThreshold( 12 );
+
+		_simd = SIMD::instance();
 	}
 
 	FASTFeatureTracking::~FASTFeatureTracking()
 	{
 	}
 			
-	void FASTFeatureTracking::setKLTSSDThreshold( float v )
-	{
-		_klt.setSSDThreshold( Math::sqr( v ) );
-	}
-
 	void FASTFeatureTracking::trackFeatures( std::vector<PatchType*>& tracked,
 											 std::vector<PatchType*>& lost,
 											 std::vector<PatchType*>& predicted,
@@ -34,6 +32,9 @@ namespace cvt
 		_associatedIndexes.clear();
 		_currentFeatures.clear();
 		detectCurrentFeatures( image );
+
+		const float maxSSD = Math::sqr( PatchSize ) * _kltSSDThreshold;
+		static const size_t nPixels = Math::sqr( PatchSize );
 
 		for( size_t i = 0; i < predicted.size(); i++ ){
 			PatchType* patch = predicted[ i ];
@@ -51,7 +52,15 @@ namespace cvt
 
 				// now try to track with klt in multiscale fashion
 				if( _klt.trackPatchMultiscale( *patch, _pyramid ) ){
-					tracked.push_back( patch );
+					// we didn't lose the patch but should check some
+					// similarity measures before assuming it's correctly tracked
+					float ssd = _simd->SSD( patch->pixels(), patch->transformed(), nPixels );
+					float sad = _simd->SAD( patch->pixels(), patch->transformed(), nPixels );
+
+					if( sad > _fastMinMatchingThreshold && ssd < maxSSD )
+						tracked.push_back( patch );
+					else 
+						lost.push_back( patch );
 				} else {
 					lost.push_back( patch );
 				} 
@@ -97,7 +106,6 @@ namespace cvt
 		IMapScoped<const uint8_t> map( _pyramid[ octave ] );
 		float downscale = Math::pow( _pyramid.scaleFactor(), octave );
 		
-		SIMD* simd = SIMD::instance();
 		std::set<size_t>::const_iterator assocEnd = _associatedIndexes.end();
 
 		static const float normalizer = 1.0f / ( Math::sqr( PatchSize ) * 255 );
@@ -121,7 +129,7 @@ namespace cvt
 				size_t rows = PatchSize;
 				size_t sadSum = 0;
 				while( rows-- ){
-					sadSum += simd->SAD( p1, p2, PatchSize );
+					sadSum += _simd->SAD( p1, p2, PatchSize );
 					p1 += PatchSize;
 					p2 += map.stride();
 				}

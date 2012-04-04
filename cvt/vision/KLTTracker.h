@@ -33,16 +33,6 @@ namespace cvt
 				KLTTracker( size_t maxIters = 20 );
 
 				/**
-				 *	\brief return the current ssd threshold
-				 */
-				float ssdThreshold() const { return _ssdThresh; }
-
-				/**
-				 * \brief	set max. avg. SSD thresh per pixel
-				 */
-				void  setSSDThreshold( float ssd ) { _ssdThresh = Math::sqr( pSize ) * ssd; }
-
-				/**
 				 *	\brief	set the maximum number of iterations
 				 */
 				void setMaxIterations( size_t maxIter ) { _maxIters = maxIter; }
@@ -64,7 +54,6 @@ namespace cvt
 
 			private:
 				size_t _maxIters;
-				float  _ssdThresh;
 
 				/* warps all the patch pixels */
 				float buildSystem( KLTPType& patch, typename KLTPType::JacType& jacSum, const Matrix3f& pose, const uint8_t* iPtr, size_t iStride, size_t octave = 0 );
@@ -75,10 +64,8 @@ namespace cvt
 
 		template <class PoseType, size_t pSize>
 		inline KLTTracker<PoseType, pSize>::KLTTracker( size_t maxIters ) :
-			_maxIters( maxIters ),
-			_ssdThresh( 0.0f )
+			_maxIters( maxIters )
 		{
-			setSSDThreshold( Math::sqr( 40 ) );
 		}
 
 		template <class PoseType, size_t pSize>
@@ -111,10 +98,6 @@ namespace cvt
 				patch.pose().applyInverse( -delta );
 
 				iter++;
-			}
-
-			if( diffSum > _ssdThresh ){
-				return false;
 			}
 			return true;
 		}
@@ -188,12 +171,6 @@ namespace cvt
 			
 			// set the final patch pose accordingly
 			patch.pose().transformation() = tmpPose.transformation();
-
-			// if the ssd is below the threshold
-			if( diffSum > _ssdThresh ){
-				return false;
-			}
-
 			return true;
 		}
 
@@ -261,21 +238,23 @@ namespace cvt
 			Vector2f pWarped;
 
 			pWarped = pose * a;
-			if( pWarped.x < 0.0f || pWarped.x > ( w-1 ) ||
-			   pWarped.y < 0.0f || pWarped.y > ( h-1 ) )
+			if( pWarped.x < 0.0f || pWarped.x >= w ||
+			    pWarped.y < 0.0f || pWarped.y >= h )
 				return false;
+			
 			pWarped = pose * b;
-			if( pWarped.x < 0.0f || pWarped.x > ( w-1 ) ||
-			   pWarped.y < 0.0f || pWarped.y > ( h-1 ) )
+			if( pWarped.x < 0.0f || pWarped.x >= w ||
+			    pWarped.y < 0.0f || pWarped.y >= h )
 				return false;
 
 			pWarped = pose * c;
-			if( pWarped.x < 0.0f || pWarped.x > ( w-1 ) ||
-			   pWarped.y < 0.0f || pWarped.y > ( h-1 ) )
+			if( pWarped.x < 0.0f || pWarped.x >= w ||
+			    pWarped.y < 0.0f || pWarped.y >= h )
 				return false;
+			
 			pWarped = pose * d;
-			if( pWarped.x < 0.0f || pWarped.x > ( w-1 ) ||
-			   pWarped.y < 0.0f || pWarped.y > ( h-1 ) )
+			if( pWarped.x < 0.0f || pWarped.x >= w ||
+			    pWarped.y < 0.0f || pWarped.y >= h )
 				return false;
 			return true;
 		}

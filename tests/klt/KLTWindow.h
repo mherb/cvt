@@ -26,7 +26,7 @@
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/gfx/GFXEngineImage.h>
 
-#define PATCH_SIZE ( 8 )
+#define PATCH_SIZE ( 16 )
 
 namespace cvt {
 
@@ -56,6 +56,7 @@ namespace cvt {
 
 			Label						_ssdSliderLabel;
 			Slider<float>				_ssdSlider;
+			float						_ssdThresh;
 			
 			Button						_stepButton;
 			Button						_nextButton;
