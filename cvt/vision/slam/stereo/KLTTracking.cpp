@@ -22,10 +22,10 @@ namespace cvt
 	}
 
 	void KLTTracking::trackFeatures( PointSet3d&		p3d, 
-									PointSet2d&			p2d,
-									const SlamMap&		map,
-									const SE3<double>&	pose,
-									const Image&		img )
+									 PointSet2d&		p2d,
+									 const SlamMap&		map,
+									 const SE3<double>&	pose,
+									 const Image&		img )
 	{
 		// predict ids and positions:
 		_predictedIds.clear();

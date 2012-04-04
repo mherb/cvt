@@ -22,17 +22,18 @@ namespace cvt
 			Gui();
 
 			void updateImage( const cvt::Image & img,
-                              const std::list<ORBFeature>   & tracked,
-                              const std::vector<ORBFeature> & lost,
-                              const std::vector<ORBFeature> & unmatched  );
+                              const std::vector<Vector2f> & tracked );
 
 			void observeFastThresholdSlider( const Delegate<void ( uint8_t )> & delegate );
+			void observeFastSADThresholdSlider( const Delegate<void ( float )> & delegate );
             void observeOctaveSlider( const Delegate<void ( size_t )> & delegate );
             void observeScaleSlider( const Delegate<void ( float )> & delegate );
             void observeMaxFeatureSlider( const Delegate<void ( size_t )> & delegate );
             void observeNonMaxSuppression( const Delegate<void (ToggleButton *)> & delegate );
             void observeMaxDescDistanceSlider( const Delegate<void (size_t)> & delegate );
             void observeMatchRadiusSlider( const Delegate<void (size_t)> & delegate );
+            void observeKLTSSDSlider( const Delegate<void (float)> & delegate );
+            void observeGridSizeSlider( const Delegate<void (size_t)> & delegate );
 
             void setFPS( float fps );
 
@@ -40,8 +41,12 @@ namespace cvt
 			ImageView		_imgView;
 			Moveable		_imgMov;
 			Button			_quit;
+
 			Slider<uint8_t> _fastThreshSlider;
             Label           _fastThreshLabel;
+			
+			Slider<float>	_fastSADThreshSlider;
+            Label           _fastSADThreshLabel;
 
             Slider<size_t>  _octaveSlider;
             Label           _octaveLabel;
@@ -61,15 +66,23 @@ namespace cvt
 
             Slider<size_t>  _matchRadiusSlider;
             Label           _matchRadiusLabel;
+            
+			Slider<float>   _kltSSDSlider;
+            Label           _kltSSDSliderLabel;
+			
+			Slider<size_t>  _gridSizeSlider;
+            Label           _gridSizeSliderLabel;
 
 
             void updateFastSliderLabel( uint8_t thresh );
+            void updateFastSADSliderLabel( float thresh );
             void updateOctaveLabel( size_t v );
             void updateScaleLabel( float v );
             void updateMaxFeatureLabel( size_t v );
             void updateMaxDescDistanceLabel( size_t v );
             void updateMatchRadiusLabel( size_t v );
-
+            void updateKLTSSDSliderLabel( float v );
+            void updateGridSizeSliderLabel( size_t v );
 	};
 
 	inline Gui::Gui():
@@ -79,6 +92,8 @@ namespace cvt
 		_quit( "Quit" ),
 		_fastThreshSlider( 10, 120, 25 ),
         _fastThreshLabel( "FAST threshold:" ),
+		_fastSADThreshSlider( 0.0f, 1.0f, 0.7f ),
+        _fastSADThreshLabel( "FAST-SAD threshold:" ),
         _octaveSlider( 1, 5, 3 ),
         _octaveLabel( "Octaves: " ),
         _scaleSlider( 0.3f, 0.9f, 0.6f ),
@@ -90,7 +105,11 @@ namespace cvt
         _maxDescDistanceSlider( 0, 256, 50 ),
         _maxDescLabel( "Max Desc. Dist.: 50" ),
         _matchRadiusSlider( 5, 100, 30 ),
-        _matchRadiusLabel( "Match Radius: 30" )
+        _matchRadiusLabel( "Match Radius: 30" ),
+        _kltSSDSlider( 0.0f, 255.0f, 10.0f ),
+        _kltSSDSliderLabel( "KLT-SSD THRESH: 0" ),
+        _gridSizeSlider( 1, 200, 20 ),
+        _gridSizeSliderLabel( "GridSize: 0" )
 	{
 		setSize( 960, 720 );
 
@@ -102,6 +121,9 @@ namespace cvt
 
         Delegate<void ( uint8_t )> threshChange( this, &Gui::updateFastSliderLabel );
         observeFastThresholdSlider( threshChange );
+        
+		Delegate<void ( float )> fastsadthresh( this, &Gui::updateFastSADSliderLabel );
+        observeFastSADThresholdSlider( fastsadthresh );
 
         Delegate<void ( size_t )> octaveChange( this, &Gui::updateOctaveLabel );
         observeOctaveSlider( octaveChange );
@@ -114,8 +136,15 @@ namespace cvt
 
         Delegate<void ( size_t )> maxDDChange( this, &Gui::updateMaxDescDistanceLabel );
         observeMaxDescDistanceSlider( maxDDChange );
-        Delegate<void ( size_t )> matchRadiusChange( this, &Gui::updateMatchRadiusLabel );
+        
+		Delegate<void ( size_t )> matchRadiusChange( this, &Gui::updateMatchRadiusLabel );
         observeMatchRadiusSlider( matchRadiusChange );
+		
+		Delegate<void ( float )> kltssdthreshchange( this, &Gui::updateKLTSSDSliderLabel );
+        observeKLTSSDSlider( kltssdthreshchange );
+		
+		Delegate<void ( size_t )> grid( this, &Gui::updateGridSizeSliderLabel );
+        observeGridSizeSlider( grid );
 
         WidgetLayout wl;
         size_t h = 10;
@@ -129,6 +158,14 @@ namespace cvt
 		addWidget( &_fastThreshSlider, wl );
         wl.setAnchoredRight( 160, 150 );
         addWidget( &_fastThreshLabel, wl );
+        updateFastSliderLabel( 25 );
+        
+		h += 30;
+        wl.setAnchoredRight( 10, 150 );
+		wl.setAnchoredBottom( h, 20 );
+		addWidget( &_fastSADThreshSlider, wl );
+        wl.setAnchoredRight( 160, 150 );
+        addWidget( &_fastSADThreshLabel, wl );
         updateFastSliderLabel( 25 );
 
         h+=30;
@@ -168,6 +205,20 @@ namespace cvt
 		addWidget( &_matchRadiusSlider, wl );
         wl.setAnchoredRight( 160, 150 );
         addWidget( &_matchRadiusLabel, wl );
+        
+		h+=30;
+        wl.setAnchoredRight( 10, 150 );
+		wl.setAnchoredBottom( h, 20 );
+		addWidget( &_kltSSDSlider, wl );
+        wl.setAnchoredRight( 160, 150 );
+        addWidget( &_kltSSDSliderLabel, wl );
+		
+		h+=30;
+        wl.setAnchoredRight( 10, 150 );
+		wl.setAnchoredBottom( h, 20 );
+		addWidget( &_gridSizeSlider, wl );
+        wl.setAnchoredRight( 160, 150 );
+        addWidget( &_gridSizeSliderLabel, wl );
 
         h+=30;
         wl.setAnchoredRight( 10, 300 );
@@ -178,6 +229,7 @@ namespace cvt
         wl.setAnchoredRight( 160, 150 );
 		wl.setAnchoredBottom( h, 20 );
 		addWidget( &_fpsLabel, wl );
+        
 
 		setVisible( true );
 	}
@@ -185,6 +237,11 @@ namespace cvt
 	inline void Gui::observeFastThresholdSlider( const Delegate<void ( uint8_t )> & delegate )
 	{
 	   	_fastThreshSlider.valueChanged.add( delegate );
+	}
+
+	inline void Gui::observeFastSADThresholdSlider( const Delegate<void ( float )> & delegate )
+	{
+	   	_fastSADThreshSlider.valueChanged.add( delegate );
 	}
 
     inline void Gui::observeOctaveSlider( const Delegate<void ( size_t )> & delegate )
@@ -216,12 +273,30 @@ namespace cvt
     {
         _matchRadiusSlider.valueChanged.add( delegate );
     }
+    
+	inline void Gui::observeKLTSSDSlider( const Delegate<void (float)>& delegate )
+    {
+        _kltSSDSlider.valueChanged.add( delegate );
+    }
+
+	inline void Gui::observeGridSizeSlider( const Delegate<void (size_t)>& delegate )
+    {
+        _gridSizeSlider.valueChanged.add( delegate );
+    }
 
     inline void Gui::updateFastSliderLabel( uint8_t thresh )
     {
         String title( "FAST threshold: " );
         title += thresh;
         _fastThreshLabel.setLabel( title );
+    }
+    
+	inline void Gui::updateFastSADSliderLabel( float thresh )
+    {
+        String title;
+
+		title.sprintf( "F-SAD threshold: %0.2f", thresh );
+        _fastSADThreshLabel.setLabel( title );
     }
 
     inline void Gui::updateOctaveLabel( size_t v )
@@ -259,6 +334,20 @@ namespace cvt
         _matchRadiusLabel.setLabel( title );
     }
 
+    inline void Gui::updateKLTSSDSliderLabel( float v )
+    {
+        String title;
+		title.sprintf( "klt-SSD-THRESH: %0.2f", v );
+        _kltSSDSliderLabel.setLabel( title );
+    }
+    
+	inline void Gui::updateGridSizeSliderLabel( size_t v )
+    {
+        String title( "Grid Size: " );
+        title += v;
+        _gridSizeSliderLabel.setLabel( title );
+    }
+
     inline void Gui::setFPS( float fps )
     {
         String title;
@@ -267,30 +356,19 @@ namespace cvt
     }
 
 	inline void Gui::updateImage( const cvt::Image & img,
-                                  const std::list<ORBFeature> & tracked,
-                                  const std::vector<ORBFeature> & lost,
-                                  const std::vector<ORBFeature> & unmatched )
+                                  const std::vector<Vector2f> & tracked
+                                  )
 	{
         Image out( img );
         {
             GFXEngineImage ge( out );
             GFX g( &ge );
             
-            g.color() = Color::YELLOW;
-            for( size_t i = 0; i < unmatched.size(); i++ ) {
-                g.fillRect( unmatched[ i ].pt.x-1, unmatched[ i ].pt.y-1, 3, 3 );
-			}
-
-            g.color() = Color::RED;
-            for( size_t i = 0; i < lost.size(); i++ ) {
-                g.fillRect( lost[ i ].pt.x-1, lost[ i ].pt.y-1, 3, 3 );
-			}
-
             g.color() = Color::GREEN;
-            std::list<ORBFeature>::const_iterator tIter = tracked.begin();
-            std::list<ORBFeature>::const_iterator tEnd = tracked.end();
+            std::vector<Vector2f>::const_iterator tIter = tracked.begin();
+            const std::vector<Vector2f>::const_iterator tEnd = tracked.end();
             while( tIter != tEnd ){
-                g.fillRect( tIter->pt.x-1, tIter->pt.y-1, 3, 3 );
+                g.fillRect( tIter->x-1, tIter->y-1, 3, 3 );
                 tIter++;
             }
 		}
