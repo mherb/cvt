@@ -32,6 +32,9 @@ namespace cvt
 
 				KLTTracker( size_t maxIters = 20 );
 
+				/**
+				 *	\brief return the current ssd threshold
+				 */
 				float ssdThreshold() const { return _ssdThresh; }
 
 				/**
@@ -39,21 +42,29 @@ namespace cvt
 				 */
 				void  setSSDThreshold( float ssd ) { _ssdThresh = Math::sqr( pSize ) * ssd; }
 
-				/* percentage of pixels that need to project in current view */
-				void  setEarlyStepOutAvgSSD( float ssd ){ _earlyStepOutThresh = ssd; }
+				/**
+				 *	\brief	set the maximum number of iterations
+				 */
+				void setMaxIterations( size_t maxIter ) { _maxIters = maxIter; }
 
+				/**
+				 *	\brief	get the maximum number of iterations
+				 */
+				size_t maxIterations() const { return _maxIters; }
+
+				/* track a single scale patch */
 				bool trackPatch( KLTPType& patch,
 								const uint8_t* current, size_t currStride,
 								size_t width, size_t height );
 
 
+				/* track patch using scale space */
 				bool trackPatchMultiscale( KLTPType& patch,
 										  const ImagePyramid& pyramid );
 
 			private:
 				size_t _maxIters;
 				float  _ssdThresh;
-				float  _earlyStepOutThresh;
 
 				/* warps all the patch pixels */
 				float buildSystem( KLTPType& patch, typename KLTPType::JacType& jacSum, const Matrix3f& pose, const uint8_t* iPtr, size_t iStride, size_t octave = 0 );
@@ -67,8 +78,6 @@ namespace cvt
 			_maxIters( maxIters ),
 			_ssdThresh( 0.0f )
 		{
-			setEarlyStepOutAvgSSD( 10.0f );
-
 			setSSDThreshold( Math::sqr( 40 ) );
 		}
 
@@ -130,7 +139,7 @@ namespace cvt
 			PoseType tmpPose;
 			tmpPose.set( poseMat );
 
-			const float maxDiff = Math::sqr( pSize * 255 );
+			const float maxDiff = Math::sqr( pSize * 255.0f );
 			float diffSum = maxDiff;
 			for( int oc = pyramid.octaves() - 1; oc >= 0; --oc ){ 
 				IMapScoped<const uint8_t> map( pyramid[ oc ] );
