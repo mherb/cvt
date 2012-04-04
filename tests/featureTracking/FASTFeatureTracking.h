@@ -15,7 +15,7 @@ namespace cvt
 	class FASTFeatureTracking
 	{
 		public:
-			static const size_t PatchSize = 8;
+			static const size_t PatchSize = 16;
 			typedef GA2<float>							PoseType;
 			typedef KLTTracker<PoseType, PatchSize>		KLTType;	
 			typedef typename KLTType::KLTPType			PatchType;
@@ -28,8 +28,21 @@ namespace cvt
 			 *	\param predicted	predicted visible patches (including positions)
 			 */
 			void trackFeatures( std::vector<PatchType*>& tracked, 
+							    std::vector<PatchType*>& lost,
 							    std::vector<PatchType*>& predicted,
 							    const Image& image );
+
+			void setNumOctaves( size_t v ) { _pyramid.setNumOctaves( v ); }
+			void setScaleFactor( float v ) { _pyramid.setScaleFactor( v ); }
+			void setFASTThreshold( uint8_t v ) { _detector.setThreshold( v ); }
+			void setFASTSADThreshold( float v ) { _fastMinMatchingThreshold = v; }
+			void setKLTSSDThreshold( float v ); 
+			void setNonMaxSuppression( bool v ) { _detector.setNonMaxSuppress( v ); }
+			void setMaxMatchingRadius( size_t r ) { _fastMatchingWindowSqr = Math::sqr( r ); }
+
+			const std::vector<Feature2Df>& lastDetectedFeatures() const { return _currentFeatures; }
+			const std::set<size_t>& associatedFeatures() const { return _associatedIndexes; }
+			const ImagePyramid& pyramid() const { return _pyramid; }
 
 		private:
 			FAST					_detector;
@@ -45,7 +58,7 @@ namespace cvt
 
 			void detectCurrentFeatures( const Image& img );
 
-			int bestFASTFeatureInRadius( const Image& img, const PatchType& patch );
+			int bestFASTFeatureInRadius( const PatchType& patch );
 
 	};
 }

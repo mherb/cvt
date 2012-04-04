@@ -7,6 +7,7 @@
 #include <cvt/vision/ORB.h>
 
 #include "GUI.h"
+#include "FASTFeatureTracking.h"
 
 #include <vector>
 #include <list>
@@ -24,72 +25,70 @@ namespace cvt
 			FeatureTrackApp( VideoInput * cam );
 			~FeatureTrackApp();
 
-			void setFastThreshold( uint8_t thresh ) { _fastThreshold = thresh; }
-            void setNumScales( size_t v )           { _numScales = v; }
-            void setScaleFactor( float v )          { _scaleFactor = v; }
+			void setFastThreshold( uint8_t thresh ) { _featureTracking.setFASTThreshold( thresh ); }
+            void setNumScales( size_t v )           { _featureTracking.setNumOctaves( v ); }
+            void setScaleFactor( float v )          { _featureTracking.setScaleFactor( v ); }
+            void setNonMaxSuppress( ToggleButton* p ) { _featureTracking.setNonMaxSuppression( p->state() ); }
+            void setMatchRadius( size_t v )         { _featureTracking.setMaxMatchingRadius( v ); }
             void setMaxFeatures( size_t v )         { _maxNumFeatures = v; }
-            void setNonMaxSuppress( ToggleButton* p ) { _nonMaxSuppress = p->state(); }
-            void setMaxDescDist( size_t v )         { _maxDescDistance = v; }
-            void setMatchRadius( size_t v )         { _windowRadius = v; }
-
-            // match the ORB features of the current image, against the last tracked ones
-            // lost will contain those from the last step that could not be found again
-            // unmatched will contain the features of the image, that are "new"
-            void trackFeatures( const ORB & current,
-                                std::vector<ORBFeature> & lost,
-                                std::vector<ORBFeature> & unmatched );
+			void setGridSize( size_t v )			{ _gridSize = v; };
 
 		private:
 			void onTimeout();
-            int matchInWindow( const ORBFeature & f, const ORB & orb ) const;
-            void addNewFeatures( const std::vector<ORBFeature> & features );
+            
+			VideoInput*				_cam;
+			FASTFeatureTracking		_featureTracking;
+			size_t					_maxNumFeatures;
+			size_t					_gridSize;
+			
+			uint32_t				_timerId;
 
-			VideoInput*	_cam;
-			size_t		_numScales;
-			float		_scaleFactor;
-			uint8_t		_fastThreshold;
-			size_t		_maxNumFeatures;
-			bool		_nonMaxSuppress;
-			uint32_t	_timerId;
-            float       _windowRadius;
-            size_t      _maxDescDistance;
+			Gui						_gui;
+			Time					_timer;
+            size_t      			_fpsIter;
+            Image       			_gray;
 
-			Gui			_gui;
-			Time		_timer;
-            size_t      _fpsIter;
-            Image       _gray;
+			std::vector<FASTFeatureTracking::PatchType*>	_features;
 
-            std::list<ORBFeature> _tracked;
+			void addNewPatches();
+			void drawResult();
 	};
 
 	inline FeatureTrackApp::FeatureTrackApp( VideoInput * cam ) :
 		_cam( cam ),
-		_numScales( 3 ),
-		_scaleFactor( 0.5f ),
-		_fastThreshold( 25 ),
-		_maxNumFeatures( 1000 ),
-		_nonMaxSuppress( true ),
+		_maxNumFeatures( 200 ),
+		_gridSize( 20 ),
 		_timerId( 0 ),
-        _windowRadius( 30.0f ),
-        _maxDescDistance( 50 ),
         _fpsIter( 0 )
 	{
 		// every 10 ms
 		_timerId = Application::registerTimer( 1, this );
 
+		Delegate<void ( float )> a( &_featureTracking, &FASTFeatureTracking::setKLTSSDThreshold );
+		_gui.observeKLTSSDSlider( a );
+		
+		Delegate<void ( size_t )> grid( this, &FeatureTrackApp::setGridSize );
+		_gui.observeGridSizeSlider( grid );
+
 		Delegate<void ( uint8_t )> d( this, &FeatureTrackApp::setFastThreshold );
 		_gui.observeFastThresholdSlider( d );
-        Delegate<void ( size_t )> o( this, &FeatureTrackApp::setNumScales );
+
+		Delegate<void ( float )> fastsad( &_featureTracking, &FASTFeatureTracking::setFASTSADThreshold );
+		_gui.observeFastSADThresholdSlider( fastsad );
+
+		Delegate<void ( size_t )> o( this, &FeatureTrackApp::setNumScales );
 		_gui.observeOctaveSlider( o );
-        Delegate<void ( float )> s( this, &FeatureTrackApp::setScaleFactor );
+
+		Delegate<void ( float )> s( this, &FeatureTrackApp::setScaleFactor );
 		_gui.observeScaleSlider( s );
-        Delegate<void ( size_t )> n( this, &FeatureTrackApp::setMaxFeatures );
+
+		Delegate<void ( size_t )> n( this, &FeatureTrackApp::setMaxFeatures );
 		_gui.observeMaxFeatureSlider( n );
-        Delegate<void ( size_t )> dd( this, &FeatureTrackApp::setMaxDescDist );
-		_gui.observeMaxDescDistanceSlider( dd );
-        Delegate<void ( size_t )> mr( this, &FeatureTrackApp::setMatchRadius );
+
+		Delegate<void ( size_t )> mr( this, &FeatureTrackApp::setMatchRadius );
 		_gui.observeMatchRadiusSlider( mr );
-        Delegate<void ( ToggleButton* )> nms( this, &FeatureTrackApp::setNonMaxSuppress );
+
+		Delegate<void ( ToggleButton* )> nms( this, &FeatureTrackApp::setNonMaxSuppress );
 		_gui.observeNonMaxSuppression( nms );
     }
 
@@ -104,23 +103,25 @@ namespace cvt
         _cam->nextFrame();
         _cam->frame().convert( _gray, IFormat::GRAY_UINT8 );
 
-		// compute the features for the current frame
-        ORB orb( _gray, _numScales, _scaleFactor, _fastThreshold, _maxNumFeatures, _nonMaxSuppress );
+		// try to track the features:
+		std::vector<FASTFeatureTracking::PatchType*> tracked;
+		std::vector<FASTFeatureTracking::PatchType*> lost;
+	   _featureTracking.trackFeatures( tracked, lost, _features, _gray );
 
-        // try to find the features from the last frame
-        std::vector<ORBFeature> lostFeatures, unMatched;
+	   for( size_t l = 0; l < lost.size(); l++ )
+		   delete lost[ l ];
 
-        trackFeatures( orb, lostFeatures, unMatched );
+	   _features = tracked;
 
-		Image curr;
-		_cam->frame().convert( curr, IFormat::RGBA_UINT8 );
-        _gui.updateImage( curr, _tracked, lostFeatures, unMatched );
+	   if( tracked.size() < 40 ){
+		   std::cout << "NEED MORE FEATURES:" << std::endl;
+		   addNewPatches();
+	   }
+
+	   drawResult();
 
         // if number of tracked features drops below thresh,
         // add the unmachted from this frame
-        if( _tracked.size() < 100 ){
-            addNewFeatures( unMatched );
-        }
 
         if( _fpsIter++ == 50 ){
             _gui.setFPS( 50000.0f / _timer.elapsedMilliSeconds() );
@@ -130,71 +131,50 @@ namespace cvt
 
 	}
 
-    inline void FeatureTrackApp::trackFeatures( const ORB & current,
-                                                std::vector<ORBFeature> & lost,
-                                                std::vector<ORBFeature> & unmatched )
-    {
-        // we want to find the best matching orb feature from current, that lies
-        // within a certain distance from the "predicted" position
-        std::list<ORBFeature>::iterator predicted = _tracked.begin();
-        std::list<ORBFeature>::iterator delIter;
-        const std::list<ORBFeature>::iterator tEnd = _tracked.end();
+	void FeatureTrackApp::addNewPatches()
+	{
+		const std::vector<Feature2Df>& detected   = _featureTracking.lastDetectedFeatures();
+		const std::set<size_t>& alreadyAssociated = _featureTracking.associatedFeatures();
+		const ImagePyramid&		pyramid			  = _featureTracking.pyramid();
 
-        std::set<int> matchedIndices;
+		// apply grid filtering: 
+		FeatureFilter gridfilter( _gridSize, pyramid[ 0 ].width(), pyramid[ 0 ].height() );
 
-        while( predicted != tEnd ){
-            int matchIdx = matchInWindow( *predicted, current );
 
-            if( matchIdx != -1 ){
-                // TODO: avoid double matching of a single ORB feature
-                *predicted = current[ matchIdx ];
-                predicted++;
+		const std::set<size_t>::const_iterator assocEnd = alreadyAssociated.end();
+		for( size_t i = 0; i < detected.size(); i++ ){
+			if( assocEnd == alreadyAssociated.find( i ) ){
+				// free feature:
+				gridfilter.addFeature( &detected[ i ] );
+			}
+		}
+		
+		std::vector<const Feature2Df*> filteredFeatures;
+		gridfilter.gridFilteredFeatures( filteredFeatures, _maxNumFeatures );
+		
+		std::vector<Vector2f> freeFeatures;
+		freeFeatures.resize( filteredFeatures.size() );
+		for( size_t i = 0; i < filteredFeatures.size(); i++ ){
+			freeFeatures[ i ] = filteredFeatures[ i ]->pt;
+		}
 
-                matchedIndices.insert( matchIdx );
-            } else {
-                // not found, remove from tracked and add to lost features
-                lost.push_back( *predicted );
-                delIter = predicted;
-                predicted++;
-                _tracked.erase( delIter );
-            }
-        }
+		FASTFeatureTracking::PatchType::extractPatches( _features, freeFeatures, pyramid );
+	}
 
-        const std::set<int>::iterator matchedEnd = matchedIndices.end();
+	void FeatureTrackApp::drawResult()
+	{
+		Image curr;
+		_cam->frame().convert( curr, IFormat::RGBA_UINT8 );
+		
+		// copy all feature positions:
+		std::vector<Vector2f> tracked;
+		tracked.resize( _features.size() );
+		for( size_t i = 0; i < _features.size(); i++ ){
+			_features[ i ]->currentCenter( tracked[ i ] );
+		}
 
-        for( size_t i = 0; i < current.size(); i++ ){
-            if( matchedIndices.find( i ) == matchedEnd ){
-                unmatched.push_back( current[ i ] );
-            }
-        }
-    }
-
-    inline int FeatureTrackApp::matchInWindow( const ORBFeature & f, const ORB & orb ) const
-    {
-        int idx = -1;
-        size_t bestDistance = _maxDescDistance;
-        size_t currDist;
-
-        for( size_t i = 0; i < orb.size(); i++ ){
-            if( ( f.pt - orb[ i ].pt ).length() < _windowRadius ){
-                // try to match
-                currDist = f.distance( orb[ i ] );
-                if( currDist < bestDistance ){
-                    bestDistance = currDist;
-                    idx = i;
-                }
-            }
-        }
-
-        return idx;
-    }
-
-    inline void FeatureTrackApp::addNewFeatures( const std::vector<ORBFeature> & features )
-    {
-        for( size_t i = 0; i < features.size(); i++ ){
-            _tracked.push_back( features[ i ] );
-        }
-    }
+		_gui.updateImage( curr, tracked );
+	}
 
 }
 
