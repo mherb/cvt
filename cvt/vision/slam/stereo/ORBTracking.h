@@ -30,16 +30,11 @@ namespace cvt
 			ORBTracking( const CameraCalibration& c0, const CameraCalibration & c1 );
 			~ORBTracking();
 
-			void trackFeatures( PointSet3d&			p3d, 
-								PointSet2d&			p2d,
-								const SlamMap&		map,
-								const SE3<double>&	pose,
-                                const Image&		img );
-
-			size_t triangulateNewFeatures( SlamMap& map, 
-										   const SE3<double>& pose, 
-										   const Image& first, 
-										   const Image& second );
+			void trackFeatures( PointSet2d&						trackedPositions,
+								std::vector<size_t>&			trackedFeatureIds,
+								const std::vector<Vector2f>&	predictedPositions,
+								const std::vector<size_t>&		predictedIds,
+								const Image&					img );
 
 			void clear();
 
@@ -63,17 +58,8 @@ namespace cvt
 			bool							_orbNonMaxSuppression;
 			ORB								_orb0;
 			std::set<size_t>				_orb0MatchedIds;
-			std::vector<FeatureMatch>		_trackedInFirst;
 
-			std::vector<size_t>				_predictedIds;
-			std::vector<Vector2f>			_predictedPositions;
-
-			void matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, std::set<size_t> & used ) const;
-
-			void correspondencesFromMatchedFeatures( PointSet3d& p3d, PointSet2d& p2d,
-													 std::set<size_t>& matchedIndices,
-													 const SlamMap & map, 
-													 const Image& img );
+			int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const;
 
 	};
 }
