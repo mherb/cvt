@@ -24,22 +24,24 @@ namespace cvt
 			KLTTracking( const CameraCalibration& c0, const CameraCalibration& c1 );
 
 
-			void trackFeatures( PointSet3d&			p3d, 
-								PointSet2d&			p2d,
-								const SlamMap&		map,
-								const SE3<double>&	pose,
-								const Image&		img );
+			/**
+			 * \brief track features in the current Image
+			 * \param trackedPositions		positions of the tracked 2D features	
+			 * \param trackedFeatureIds		ids (of predictedIds) that have been tracked	
+			 * \param predictedPositions	vector of predicted feature positions
+			 * \param img					the current image			 
+			 */
+			virtual void trackFeatures( PointSet2d&						trackedPositions,
+										std::vector<size_t>&			trackedFeatureIds,
+									    const std::vector<Vector2f>&	predictedPositions,
+										const std::vector<size_t>&		predictedIds,
+										const Image&					img ) = 0;
 
 			bool checkFeature( const FeatureMatch& match, 
 							   const Image& i0, 
 							   const Image& i1 ) const;
 
 			void clear();
-
-			size_t triangulateNewFeatures( SlamMap& map, 
-										   const SE3<double>& pose, 
-										   const Image& first, 
-										   const Image& second );
 
 		private:
 			typedef Translation2D<float> PoseType;
