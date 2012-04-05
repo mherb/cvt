@@ -18,7 +18,7 @@ namespace cvt
                            size_t w1, size_t h1 ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 50 ),
+       _minTrackedFeatures( 30 ),
        _activeKF( -1 ),
        _minKeyframeDistance( 0.05 ),
        _maxKeyframeDistance( 0.5 )
