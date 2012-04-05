@@ -96,6 +96,7 @@ SET( CL_KERNELS
 	cl/kernel/clear.cl
 	cl/kernel/clearbuffer.cl
 	cl/kernel/fill.cl
+	cl/kernel/imageutil.cl
 	cl/kernel/gradx.cl
 	cl/kernel/gradxy.cl
 	cl/kernel/median3.cl
@@ -127,6 +128,7 @@ SET( CL_KERNELS
 	cl/kernel/tvl1flow/tvl1_dataadd.cl
 	cl/kernel/tvl1flow/tvl1_warp.cl
 	cl/kernel/stereo/stereoCV.cl
+	cl/kernel/stereo/stereoCVQSearch.cl
 	cl/kernel/stereogcv/costdepth.cl
 	cl/kernel/stereogcv/costdepthgrad.cl
 	cl/kernel/stereogcv/costdepthncc.cl

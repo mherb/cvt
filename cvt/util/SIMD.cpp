@@ -1262,6 +1262,14 @@ namespace cvt {
 			*dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
 	}
 
+	void SIMD::Conv_GRAYALPHAf_to_GRAYf( float* dst, const float* src, const size_t n ) const
+	{
+		size_t i = n;
+		while( i-- ) {
+			*dst++ = *src++;
+			src++;
+		}
+	}
 
 	void SIMD::Conv_GRAYf_to_GRAYu8( uint8_t* dst, const float* src, const size_t n ) const
 	{

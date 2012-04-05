@@ -64,7 +64,7 @@ __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv,
 	const int width = get_image_width( dmap );
 	const int height = get_image_height( dmap );
 	const int stride = mul24( width, height );
-	global float* cvptr = cv + ( mul24( gy, width ) + gx );
+	global const float* cvptr = cv + ( mul24( gy, width ) + gx );
 	int idx, cmp;
 	float val, nval;
 
@@ -83,4 +83,41 @@ __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv,
 
 	val = ( float ) idx / ( float ) depth;
 	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( val, val, val, 1.0f ) );
+}
+
+__kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const float* cv, int depth )
+{
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int width = get_image_width( dmap );
+	const int height = get_image_height( dmap );
+	const int stride = mul24( width, height );
+	global const float* cvptr = cv + ( mul24( gy, width ) + gx );
+	int idx, cmp;
+	float val, nval, cmin, cmax, avg;
+
+	if( gx >= width || gy >= height )
+		return;
+
+	idx = 0;
+	val = cvptr[ 0 ];
+	cmax = val;
+	cmin = val;
+	avg = val;
+
+	for( int d = 1; d < depth; d++ ) {
+		nval = cvptr[ d * stride ];
+		avg += nval;
+		cmax = fmax( nval, cmax );
+		cmin = fmin( nval, cmin );
+		cmp = isless( nval, val );
+		val = select( val, nval, cmp );
+		idx = select( idx, d, cmp );
+	}
+
+	avg /= depth;
+
+	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, 1.0f, 0.0f, 1.0f ) );
+//	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( exp( -fabs( avg - cmin ) ), 0.01f, 1.0f ), 0.0f, 1.0f ) );
+//	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( pow( fabs( avg - cmin ) * 1.0f + 0.5f, 2.0f ), 0.01f, 5.0f ), 0.0f, 1.0f ) );
 }
