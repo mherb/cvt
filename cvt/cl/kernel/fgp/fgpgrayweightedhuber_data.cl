@@ -37,7 +37,7 @@ __kernel void fgp_data( __write_only image2d_t output, __read_only image2d_t ein
 	delta = center - ( float2 ) ( left, top );
 	// image + lambda * div( p )
 	float4 pixel = read_imagef( img, sampler, ( int2 )( gx, gy ) );
-	pixel.x += lambda * ( delta.x + delta.y );
+	pixel.x += lambda * pixel.y * ( delta.x + delta.y );
 
 	write_imagef( output, ( int2 ) ( gx, gy ), pixel );
 }
