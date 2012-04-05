@@ -10,13 +10,16 @@
 #include <cvt/cl/kernel/fgp/fgpgrayweightedhuber.h>
 #include <cvt/cl/kernel/fgp/fgpgrayweightedhuber_data.h>
 #include <cvt/cl/kernel/clear.h>
+#include <cvt/cl/kernel/stereo/stereoCV.h>
+#include <cvt/cl/kernel/stereo/stereoCVQSearch.h>
+#include <cvt/cl/kernel/imageutil.h>
 
 using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	if( argc != 2 ) {
-		std::cout << "usage: " << argv[ 0 ] << " image" << std::endl;
+	if( argc != 4 ) {
+		std::cout << "usage: " << argv[ 0 ] << " left right dmax" << std::endl;
 		return 0;
 	}
 
@@ -24,56 +27,138 @@ int main( int argc, char** argv )
 	CLPlatform::get( platforms );
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
-	Image input( argv[ 1 ] );
-	Image gray;
-	input.convert( gray, IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-	Image output( gray.width(), gray.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+	int depth = String( argv[ 3 ] ).toInteger();
+	Image left( argv[ 1 ] );
+	Image right( argv[ 2 ] );
+
+	Image clleft( left, IALLOCATOR_CL );
+	Image clright( right, IALLOCATOR_CL );
+	Image cldmap( left.width(), left.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+	Image cldmaptmp( left.width(), left.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+	Image output( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 	try {
-		float lambda = 0.05f;
-		float t = 1.0f, told = 1.0f;
-		int iter = 50, n = 0;
+		float theta = 0.2f;
+		float lambda = 1.0f;
+		float t, told;
+		int inner = 0, outer = 50, n = 0, i = 0;
 		CLKernel kernclear( _clear_source, "clear" );
 		CLKernel kernfgp( _fgpgrayweightedhuber_source, "fgp" );
 		CLKernel kernfgpdata( _fgpgrayweightedhuber_data_source, "fgp_data" );
+		CLKernel kerncv( _stereoCV_source, "stereoCV" );
+		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTAMINMAX" );
+		CLKernel kerncvqsearch( _stereoCVQSearch_source, "stereoCV_QSearch" );
+		CLKernel kernextractr( _imageutil_source, "image_rgba_to_gray_x" );
+		CLKernel kernexpw( _imageutil_source, "image_gradexp_to_x" );
 
-		// FIXME: add another buffer to read and write only to one ...
-		Image e0( gray.width(), gray.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
-		Image e1( gray.width(), gray.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		CLBuffer cv( sizeof( cl_float ) * left.width() * left.height() * depth  );
+
+		kerncv.setArg( 0, cv );
+		kerncv.setArg( 1, depth );
+		kerncv.setArg( 2, clright );
+		kerncv.setArg( 3, clleft );
+		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( depth + 256 ) ) );
+		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
+
+		kerncvwta.setArg( 0, cldmaptmp );
+		kerncvwta.setArg( 1, cv );
+		kerncvwta.setArg( 2, depth );
+		kerncvwta.run( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
+
+		kernexpw.setArg( 0, cldmap );
+		kernexpw.setArg( 1, cldmaptmp );
+		kernexpw.setArg( 2, clright );
+		kernexpw.setArg( 3, 2 );
+		kernexpw.run( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
+
+		Image e0( cldmap.width(), cldmap.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image e1( cldmap.width(), cldmap.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 		Time timer;
 
-		kernclear.setArg( 0, e0 );
-		kernclear.run( CLNDRange( Math::pad16( gray.width() ), Math::pad16( gray.height() ) ), CLNDRange( 16, 16 ) );
+			told = t = 1.0f;
+			kernclear.setArg( 0, e0 );
+			kernclear.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
 
+
+#define BETA 0.001f
 #define KSIZE 16
-		while( n < iter ) {
-			bool b = n & 0x01;
-			kernfgp.setArg( 0,  b ? e0 : e1 );
-			kernfgp.setArg( 1,  b ? e1 : e0 );
-			kernfgp.setArg( 2, gray );
-			kernfgp.setArg( 3, lambda );
-			kernfgp.setArg( 4, ( told - 1.0f ) / t );
-			kernfgp.setArg( 5, CLLocalSpace( sizeof( cl_float4 ) * ( ( KSIZE + 2 ) * ( KSIZE + 2 ) ) ) );
-			kernfgp.setArg( 6, CLLocalSpace( sizeof( cl_float4 ) * ( ( KSIZE + 1 ) * ( KSIZE + 1 ) ) ) );
-			kernfgp.run( CLNDRange( Math::pad( gray.width(), KSIZE ), Math::pad( gray.height(), KSIZE ) ), CLNDRange( KSIZE, KSIZE ) );
+//#define DEBUGIMAGE 1
 
-			told = t;
-			t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * Math::sqr( told ) ) );
-			n++;
+		while( i < outer ) {
+
+			std::cout << "Theta: " << theta << std::endl;
+
+			inner += 10;
+			while( n < inner ) {
+				bool b = n & 0x01;
+				kernfgp.setArg( 0,  b ? e0 : e1 );
+				kernfgp.setArg( 1,  b ? e1 : e0 );
+				kernfgp.setArg( 2, cldmap );
+				kernfgp.setArg( 3, theta );
+				kernfgp.setArg( 4, ( told - 1.0f ) / t );
+				kernfgp.setArg( 5, CLLocalSpace( sizeof( cl_float4 ) * ( ( KSIZE + 2 ) * ( KSIZE + 2 ) ) ) );
+				kernfgp.setArg( 6, CLLocalSpace( sizeof( cl_float4 ) * ( ( KSIZE + 1 ) * ( KSIZE + 1 ) ) ) );
+				kernfgp.run( CLNDRange( Math::pad( cldmap.width(), KSIZE ), Math::pad( cldmap.height(), KSIZE ) ), CLNDRange( KSIZE, KSIZE ) );
+
+				told = t;
+				t = 0.5f * ( 1.0f + Math::sqrt( 1.0f + 4.0f * Math::sqr( told ) ) );
+				n++;
+			}
+
+			kernfgpdata.setArg( 0, cldmaptmp );
+			kernfgpdata.setArg( 1, ( n & 0x01 ) ? e1 : e0 );
+			kernfgpdata.setArg( 2, cldmap );
+			kernfgpdata.setArg( 3, theta );
+			kernfgpdata.setArg( 4, ( told - 1.0f ) / t );
+			kernfgpdata.setArg( 5, CLLocalSpace( sizeof( cl_float4 ) * ( 17 * 17 ) ) );
+			kernfgpdata.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
+
+#ifdef DEBUGIMAGE
+			{
+				kernextractr.setArg( 0, output );
+				kernextractr.setArg( 1, cldmaptmp );
+				kernextractr.setArg( 2, 0 );
+				kernextractr.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
+				output.save( "dmapcvtvl1.png" );
+				getchar();
+			}
+#endif
+
+			kerncvqsearch.setArg( 0, cldmap );
+			kerncvqsearch.setArg( 1, cldmaptmp );
+			kerncvqsearch.setArg( 2, cv );
+			kerncvqsearch.setArg( 3, depth );
+			kerncvqsearch.setArg( 4, theta );
+			kerncvqsearch.setArg( 5, lambda );
+			kerncvqsearch.run( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
+
+#ifdef DEBUGIMAGE
+			{
+				kernextractr.setArg( 0, output );
+				kernextractr.setArg( 1, cldmap );
+				kernextractr.setArg( 2, 0 );
+				kernextractr.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
+				output.save( "dmapcvtvl1.png" );
+				getchar();
+			}
+#endif
+
+			i++;
+			theta = theta * ( 1.0f - BETA * i );
+			theta = Math::max( 1e-4f, theta );
 		}
 
-		kernfgpdata.setArg( 0, output );
-		kernfgpdata.setArg( 1, ( n & 0x01 ) ? e1 : e0 );
-		kernfgpdata.setArg( 2, gray );
-		kernfgpdata.setArg( 3, lambda );
-		kernfgpdata.setArg( 4, ( told - 1.0f ) / t );
-		kernfgpdata.setArg( 5, CLLocalSpace( sizeof( cl_float4 ) * ( 17 * 17 ) ) );
-		kernfgpdata.runWait( CLNDRange( Math::pad16( gray.width() ), Math::pad16( gray.height() ) ), CLNDRange( 16, 16 ) );
+
+		{
+			kernextractr.setArg( 0, output );
+			kernextractr.setArg( 1, cldmap );
+			kernextractr.setArg( 2, 0 );
+			kernextractr.runWait( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
+			output.save( "dmapcvtvl1.png" );
+		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;
-
-		output.save( "fgpgrayhuber.png" );
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
