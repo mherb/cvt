@@ -79,6 +79,7 @@ namespace cvt
    int ORBTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const
    {
       const ORBFeature * f = (ORBFeature*)match.feature0;
+      match.feature1 = 0;
       match.distance = _maxDescDistance;
       size_t currDist;
       const std::set<size_t>::const_iterator usedEnd = used.end();
