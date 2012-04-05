@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+         CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+    Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+   PARTICULAR PURPOSE.
  */
 #ifndef CVT_MAP_FEATURE_H
 #define CVT_MAP_FEATURE_H
@@ -21,104 +21,104 @@
 
 namespace cvt
 {
-	class MapFeature : public XMLSerializable
-	{
-		public:
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+   class MapFeature : public XMLSerializable
+   {
+      public:
+         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-			typedef std::set<size_t>::const_iterator ConstPointTrackIterator;
+         typedef std::set<size_t>::const_iterator ConstPointTrackIterator;
 
-			MapFeature( const Eigen::Vector4d & p, const Eigen::Matrix4d & covariance );
-			MapFeature();
+         MapFeature( const Eigen::Vector4d & p, const Eigen::Matrix4d & covariance );
+         MapFeature();
 
-			Eigen::Vector4d&		estimate()		   { return _point; }
-			const Eigen::Vector4d&	estimate()   const { return _point; }
-			Eigen::Matrix4d&		covariance()	   { return _covariance; }
-			const Eigen::Matrix4d&	covariance() const { return _covariance; }
+         Eigen::Vector4d&       estimate()         { return _point; }
+         const Eigen::Vector4d&	estimate()   const { return _point; }
+         Eigen::Matrix4d&		covariance()          { return _covariance; }
+         const Eigen::Matrix4d&	covariance() const { return _covariance; }
 
-			ConstPointTrackIterator pointTrackBegin() const	{ return _pointTrack.begin(); };
-			ConstPointTrackIterator pointTrackEnd() const	{ return _pointTrack.end();   };
+         ConstPointTrackIterator pointTrackBegin() const	{ return _pointTrack.begin(); };
+         ConstPointTrackIterator pointTrackEnd() const	{ return _pointTrack.end();   };
 
-			void addPointTrack( size_t camId ) { _pointTrack.insert( camId ); }
-			
-			XMLNode* serialize() const;
-			void     deserialize( XMLNode* node );
+         void addPointTrack( size_t camId ) { _pointTrack.insert( camId ); }
 
-		private:
-			Eigen::Vector4d		_point;
-			Eigen::Matrix4d		_covariance;
+         XMLNode* serialize() const;
+         void     deserialize( XMLNode* node );
 
-			// camera ids which have measurements of this point
-			std::set<size_t>	_pointTrack;
+      private:
+         Eigen::Vector4d		_point;
+         Eigen::Matrix4d		_covariance;
 
-	};
-			
-	inline MapFeature::MapFeature( const Eigen::Vector4d & p, 
-								   const Eigen::Matrix4d & covariance ):
-		_point( p ),
-		_covariance( covariance )
-	{
-	}
+         // camera ids which have measurements of this point
+         std::set<size_t>	_pointTrack;
 
-	inline MapFeature::MapFeature():
-		_point( Eigen::Vector4d::Zero() ),
-		_covariance( Eigen::Matrix4d::Identity() )
-	{
-	}
+   };
 
-	inline XMLNode* MapFeature::serialize() const
-	{
-		XMLElement* mf = new XMLElement( "MapFeature" );
+   inline MapFeature::MapFeature( const Eigen::Vector4d & p,
+                           const Eigen::Matrix4d & covariance ):
+      _point( p ),
+      _covariance( covariance )
+   {
+   }
 
-		XMLElement* n;
+   inline MapFeature::MapFeature():
+      _point( Eigen::Vector4d::Zero() ),
+      _covariance( Eigen::Matrix4d::Identity() )
+   {
+   }
 
-		Vector4d p;
-		EigenBridge::toCVT( p, _point );
-		n = new XMLElement( "Point3d" );
-		n->addChild( new XMLText( p.toString() ) );
-		mf->addChild( n );
+   inline XMLNode* MapFeature::serialize() const
+   {
+      XMLElement* mf = new XMLElement( "MapFeature" );
 
-		Matrix4d cov;
-		EigenBridge::toCVT( cov, _covariance );
-		n = new XMLElement( "Covariance" );
-		n->addChild( new XMLText( cov.toString() ) );
-		mf->addChild( n );
+      XMLElement* n;
 
-		n = new XMLElement( "PointTrack" );
-		std::set<size_t>::const_iterator it = _pointTrack.begin();
-		const std::set<size_t>::const_iterator itEnd = _pointTrack.end();
+      Vector4d p;
+      EigenBridge::toCVT( p, _point );
+      n = new XMLElement( "Point3d" );
+      n->addChild( new XMLText( p.toString() ) );
+      mf->addChild( n );
 
-		String val;
-		while( it != itEnd ){
-			XMLElement* id = new XMLElement( "KeyframeId" );
-			val.sprintf( "%d", *it );
-			id->addChild( new XMLText( val ) );
-			n->addChild( id );
-			++it;
-		}
-		mf->addChild( n );
+      Matrix4d cov;
+      EigenBridge::toCVT( cov, _covariance );
+      n = new XMLElement( "Covariance" );
+      n->addChild( new XMLText( cov.toString() ) );
+      mf->addChild( n );
 
-		return mf;
-	}
+      n = new XMLElement( "PointTrack" );
+      std::set<size_t>::const_iterator it = _pointTrack.begin();
+      const std::set<size_t>::const_iterator itEnd = _pointTrack.end();
 
-	inline void MapFeature::deserialize( XMLNode* node )
-	{
-		if( node->name() != "MapFeature" ){
-			throw CVTException( "This is not a MapFeature node!" );
-		}
+      String val;
+      while( it != itEnd ){
+         XMLElement* id = new XMLElement( "KeyframeId" );
+         val.sprintf( "%d", *it );
+         id->addChild( new XMLText( val ) );
+         n->addChild( id );
+         ++it;
+      }
+      mf->addChild( n );
 
-		Vector4d p = Vector4d::fromString( node->childByName( "Point3d" )->child( 0 )->value() );
-		EigenBridge::toEigen( _point, p );
-		
-		Matrix4d cov = Matrix4d::fromString( node->childByName( "Covariance" )->child( 0 )->value() );
-		EigenBridge::toEigen( _covariance, cov );
+      return mf;
+   }
 
-		XMLNode* n = node->childByName( "PointTrack" );
-		for( size_t i = 0; i < n->childSize(); i++ ){
-			XMLNode* kfNode = n->child( i );
-			_pointTrack.insert( kfNode->child( 0 )->value().toInteger() );
-		}
-	}
+   inline void MapFeature::deserialize( XMLNode* node )
+   {
+      if( node->name() != "MapFeature" ){
+         throw CVTException( "This is not a MapFeature node!" );
+      }
+
+      Vector4d p = Vector4d::fromString( node->childByName( "Point3d" )->child( 0 )->value() );
+      EigenBridge::toEigen( _point, p );
+
+      Matrix4d cov = Matrix4d::fromString( node->childByName( "Covariance" )->child( 0 )->value() );
+      EigenBridge::toEigen( _covariance, cov );
+
+      XMLNode* n = node->childByName( "PointTrack" );
+      for( size_t i = 0; i < n->childSize(); i++ ){
+         XMLNode* kfNode = n->child( i );
+         _pointTrack.insert( kfNode->child( 0 )->value().toInteger() );
+      }
+   }
 
 }
 

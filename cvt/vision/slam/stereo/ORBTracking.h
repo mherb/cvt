@@ -27,28 +27,23 @@ namespace cvt
    class ORBTracking : public FeatureTracking
    {
       public:
-         ORBTracking( const CameraCalibration& c0, const CameraCalibration & c1 );
+         ORBTracking();
          ~ORBTracking();
 
-         void trackFeatures( PointSet2d&						trackedPositions,
-                        std::vector<size_t>&			trackedFeatureIds,
-                        const std::vector<Vector2f>&	predictedPositions,
-                        const std::vector<size_t>&		predictedIds,
-                        const Image&					img );
+         void trackFeatures( PointSet2d&                    trackedPositions,
+                             std::vector<size_t>&           trackedFeatureIds,
+                             const std::vector<Vector2f>&   predictedPositions,
+                             const std::vector<size_t>&     predictedIds,
+                             const Image&                   img );
+
+         void addFeatureToDatabase( const Vector2f & f, size_t id );
 
          void clear();
 
       private:
-         const CameraCalibration&       _camCalib0;
-         const CameraCalibration&       _camCalib1;
          DescriptorDatabase<ORBFeature> _descriptors;
-            size_t                      _maxDescDistance;
-            float                       _windowRadius;
-
-         /* descriptor matching parameters */
-         float							_matcherMaxLineDistance;
-         float							_maxTriangReprojError;
-         ORBStereoMatching			_stereoMatcher;
+         size_t                         _maxDescDistance;
+         float                          _windowRadius;
 
          /* orb parameters */
          size_t						_orbOctaves;
