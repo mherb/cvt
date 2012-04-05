@@ -52,29 +52,45 @@ namespace cvt
 		// undistort the first image
 		IWarp::apply( _undist0, img0, _undistortMap0 );
 
+		// predict current visible features by projecting with current estimate of pose
+		std::vector<Vector2f> predictedPositions;
+		std::vector<size_t>   predictedFeatureIds;
+		_map.selectVisibleFeatures( predictedFeatureIds, predictedPositions,
+									_pose.transformation(), _camCalib0, 3.0f /* TODO: make it a param */  );
+
+		// track the predicted features
 		PointSet2d p2d;
+		std::vector<size_t>   trackedIds;
+		_featureTracking->trackFeatures( p2d, trackedIds, 
+										 predictedPositions, predictedFeatureIds, _undist0 );
+
+		/* get the 3d points from the map */
 		PointSet3d p3d;
-		_featureTracking->trackFeatures( p3d, p2d, _map, _pose, _undist0 );
+		fillPointsetFromIds( p3d, trackedIds );
 
 		numTrackedPoints.notify( p2d.size() );
-
 		size_t numTrackedFeatures = p3d.size();
 		if( numTrackedFeatures > 6 ){
 			estimateCameraPose( p3d, p2d );
+		} else {
+			// too few features -> lost track: relocalization needed
 		} 
 
 		if( newKeyframeNeeded( numTrackedFeatures ) ){
+			// undistort the second view
 			IWarp::apply( _undist1, img1, _undistortMap1 );
 
+			// wait until current ba thread is ready 
 			if( _bundler.isRunning() ){
-				std::cout << "Waiting for last SBA to finish!" << std::endl;
 				_bundler.join();
 			}
 
-			size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );
+			// TODO: move the stereo correspondence and triangulation part into a seperate class
+			//		 * add a StereoMatchingStrategy (e.g. based on orb, based on Patch block matching + klt?)
+			size_t numNewPoints = 0;
+			//size_t numNewPoints = _featureTracking->triangulateNewFeatures( _map, _pose, _undist0, _undist1 );
 
 			//			Image debug;
-			//			createDebugImageStereo( debug, _featureTracking.lastStereoMatches(), matchedStereoIndices );
 			//			newStereoView.notify( debug );
 
 			// new keyframe added -> run the sba thread	
@@ -243,6 +259,17 @@ namespace cvt
 				p2.x += _undist0.width();
 				g.drawLine( match.feature0->pt, p2 );
 			}
+		}
+	}
+
+	void StereoSLAM::fillPointsetFromIds( PointSet3d& pset, const std::vector<size_t>& ids ) const
+	{
+		std::vector<size_t>::const_iterator it = ids.begin();
+		const std::vector<size_t>::const_iterator end = ids.end();
+		while( it != end ){
+			const Eigen::Vector4d& p = _map.featureForId( *it++ ).estimate();
+			double n = 1.0 / p[ 3 ];	
+			pset.add( Vector3d( p[ 0 ] * n, p[ 1 ] * n, p[ 2 ] * n  ) );
 		}
 	}
 }

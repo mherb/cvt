@@ -4,7 +4,7 @@ namespace cvt
 {
 
 	RGBDParser::RGBDParser( const String& folder ) :
-	    _maxStampDiff( 0.1 ), // this is 8ms	
+	    _maxStampDiff( 0.1 ), // this is 100ms
 		_folder( folder ),
 		_idx( 0 )
 	{
@@ -189,7 +189,6 @@ namespace cvt
 	void RGBDParser::sortOutData( const std::vector<double>& rgbStamps, 
 								  const std::vector<double>& depthStamps )
 	{
-	
 		size_t gtIdx	= 0;
 		size_t depthIdx = 0;
 		size_t rgbIdx	= 0;
