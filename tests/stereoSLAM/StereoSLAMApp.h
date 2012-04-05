@@ -12,44 +12,45 @@
 
 namespace cvt
 {
-	class StereoSLAMApp : public TimeoutHandler
-	{
-		public:
-			StereoSLAMApp( const std::vector<VideoInput*> & cams,
-						   const CameraCalibration & c0,
-						   const CameraCalibration & c1 );
+   class StereoSLAMApp : public TimeoutHandler
+   {
+      public:
+         StereoSLAMApp( const std::vector<VideoInput*> & cams,
+                     const CameraCalibration & c0,
+                     const CameraCalibration & c1 );
 
-			~StereoSLAMApp();
+         ~StereoSLAMApp();
 
-			void onTimeout();
+         void onTimeout();
 
-			void toggleStepping();
+         void toggleStepping();
 
-			void nextPressed() { _nextImage = true; };
+         void nextPressed() { _nextImage = true; };
 
-			void saveMap();
-			void clearMap();
+         void saveMap();
+         void clearMap();
 
-			void saveImages();
+         void saveImages();
 
-		private:
-			std::vector<VideoInput*> _cams;
-			FeatureTracking*		 _featureTracking;
-			StereoSLAM				 _slam;
-			Image					 _img0, _img1;
+      private:
+         std::vector<VideoInput*> _cams;
+         FeatureTracking*		 _featureTracking;
+         DepthInitializer*    _depthInit;
+         StereoSLAM				 _slam;
+         Image					 _img0, _img1;
 
-			uint32_t				_timerId;
+         uint32_t				_timerId;
 
-			// the gui
-			SLAMGui					_gui;
+         // the gui
+         SLAMGui					_gui;
 
-			Time					_time;
-			size_t					_timeIter;
+         Time					_time;
+         size_t					_timeIter;
 
-			bool					_stepping;
-			bool					_nextImage;
+         bool					_stepping;
+         bool					_nextImage;
 
-	};
+   };
 
 
 }

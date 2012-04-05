@@ -30,11 +30,14 @@ namespace cvt
           * \param predictedPositions	vector of predicted feature positions
           * \param img					the current image
           */
-         virtual void trackFeatures( PointSet2d&						trackedPositions,
-                                     std::vector<size_t>&			trackedFeatureIds,
+         virtual void trackFeatures( PointSet2d&							trackedPositions,
+                                     std::vector<size_t>&				trackedFeatureIds,
                                      const std::vector<Vector2f>&	predictedPositions,
                                      const std::vector<size_t>&		predictedIds,
-                                     const Image&						img ) = 0;
+                                     const Image&							img ) = 0;
+
+
+         virtual void addFeatureToDatabase( const Vector2f & f, size_t id ) = 0;
 
          /* clear all internally cached data if neccessary */
          virtual void clear() = 0;
@@ -42,13 +45,6 @@ namespace cvt
          Signal<const Image&>	debugImage;
 
       protected:
-         /* triangulate a new point */
-         float triangulateSinglePoint( Vector4f&			newPoint,
-                                const Vector2f&	point0,
-                                const Vector2f&	point1,
-                                const Matrix4f&	projMat0,
-                                const Matrix4f&	projMat1 ) const;
-
          bool checkFeatureSAD( const Vector2f& p0, const Vector2f& p1, const Image & i0, const Image & i1 ) const;
    };
 }
