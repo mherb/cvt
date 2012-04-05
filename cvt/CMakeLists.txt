@@ -403,11 +403,11 @@ SET(${MODULE_NAME}_HEADERS
 	vision/slam/stereo/DescriptorDatabase.h
 	vision/slam/stereo/FeatureTracking.h
 	vision/slam/stereo/ORBTracking.h
-	vision/slam/stereo/ORBTrackingSequential.h
 	vision/slam/stereo/KLTTracking.h
 	vision/slam/stereo/ORBStereoMatching.h
 	vision/slam/stereo/MapOptimizer.h
 	vision/slam/stereo/FeatureAnalyzer.h
+	vision/slam/stereo/DepthInitializer.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
@@ -577,7 +577,6 @@ SET(${MODULE_NAME}_SOURCES
 	vision/slam/stereo/FeatureTracking.cpp
 	vision/slam/stereo/KLTTracking.cpp
 	vision/slam/stereo/ORBTracking.cpp
-	vision/slam/stereo/ORBTrackingSequential.cpp
 	vision/slam/stereo/StereoSLAM.cpp
 	vision/Vision.cpp
 	io/xml/XMLDecoder.cpp
