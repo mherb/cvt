@@ -407,6 +407,7 @@ SET(${MODULE_NAME}_HEADERS
 	vision/slam/stereo/ORBStereoMatching.h
 	vision/slam/stereo/MapOptimizer.h
 	vision/slam/stereo/FeatureAnalyzer.h
+	vision/slam/stereo/DepthInitializer.h
 	io/xml/XMLAttribute.h
 	io/xml/XMLCData.h
 	io/xml/XMLComment.h
