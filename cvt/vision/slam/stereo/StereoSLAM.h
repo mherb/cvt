@@ -115,6 +115,9 @@ namespace cvt
 			void createDebugImageStereo( Image & debugImage, 
 										 const std::vector<FeatureMatch> & matches,
 										 const std::vector<size_t> & indices ) const;
+
+			void fillPointsetFromIds( PointSet3d& pset, const std::vector<size_t>& ids ) const;
+
 	};
 
 }
