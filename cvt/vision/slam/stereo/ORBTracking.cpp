@@ -17,7 +17,7 @@ namespace cvt
       _windowRadius( 25 ),
       _orbOctaves( 4 ),
       _orbScaleFactor( 0.5f ),
-      _orbCornerThreshold( 20 ),
+      _orbCornerThreshold( 15 ),
       _orbMaxFeatures( 800 ),
       _orbNonMaxSuppression( true ),
       _orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
@@ -28,11 +28,11 @@ namespace cvt
    {
    }
 
-   void ORBTracking::trackFeatures( PointSet2d&					trackedPositions,
-                                   std::vector<size_t>&			trackedFeatureIds,
-                                   const std::vector<Vector2f>&	predictedPositions,
-                                   const std::vector<size_t>&		predictedIds,
-                                   const Image&					img )
+   void ORBTracking::trackFeatures( PointSet2d&                     trackedPositions,
+                                    std::vector<size_t>&			trackedFeatureIds,
+                                    const std::vector<Vector2f>&	predictedPositions,
+                                    const std::vector<size_t>&		predictedIds,
+                                    const Image&					img )
    {
       // create the ORB
       _orb0.update( img );

@@ -42,8 +42,6 @@ namespace cvt
          /* clear all internally cached data if neccessary */
          virtual void clear() = 0;
 
-         Signal<const Image&>	debugImage;
-
       protected:
          bool checkFeatureSAD( const Vector2f& p0, const Vector2f& p1, const Image & i0, const Image & i1 ) const;
    };

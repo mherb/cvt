@@ -67,6 +67,10 @@ namespace cvt
       _featureTracking->trackFeatures( p2d, trackedIds,
                                        predictedPositions, predictedFeatureIds, _undist0 );
 
+      Image debugMono;
+      createDebugImageMono( debugMono, p2d );
+      trackedFeatureImage.notify( debugMono );
+
       /* get the 3d points from the map */
       PointSet3d p3d;
       fillPointsetFromIds( p3d, trackedIds );
@@ -77,6 +81,7 @@ namespace cvt
          estimateCameraPose( p3d, p2d );
       } else {
          // too few features -> lost track: relocalization needed
+          std::cout << "Too few features tracked" << std::endl;
       }
 
       if( newKeyframeNeeded( numTrackedFeatures ) ){
@@ -98,6 +103,10 @@ namespace cvt
          std::vector<DepthInitializer::DepthInitResult> triangulated;
          _depthInit->triangulateFeatures( triangulated, avoidPos, _undist0, _undist1 );
 
+         Image debugStereo;
+         createDebugImageStereo( debugStereo, triangulated );
+         newStereoView.notify( debugStereo );
+
          if( triangulated.size() > 10 ){
              // create new keyframe with map features
              addNewKeyframe( triangulated );
@@ -108,12 +117,11 @@ namespace cvt
              keyframeAdded.notify();
              mapChanged.notify( _map );
              std::cout << "New Keyframe Added" << std::endl;
+             std::cout << "Triangulated: " << triangulated.size() << std::endl;
 
          } else {
              std::cout << "Could only triangulate " << triangulated.size() << " new features " << std::endl;
          }
-
-
       }
 
       int last = _activeKF;
@@ -214,7 +222,7 @@ namespace cvt
 
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
 
-           // TODO: to the descriptor database, add the featureId with the feature respective data!
+           _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
    }
 
@@ -273,9 +281,23 @@ namespace cvt
       return false;
    }
 
+   void StereoSLAM::createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const
+   {
+       _undist0.convert( debugImage, IFormat::RGBA_UINT8 );
+
+       GFXEngineImage ge( debugImage );
+       GFX g( &ge );
+
+       g.color() = Color::GREEN;
+
+       for( size_t i = 0; i < tracked.size(); i++ ){
+           const Vector2d & p = tracked[ i ];
+           g.fillRect( ( int )p.x - 1, ( int )p.y - 1, 3, 3 );
+       }
+   }
+
    void StereoSLAM::createDebugImageStereo( Image & debugImage,
-                                 const std::vector<FeatureMatch> & matches,
-                                 const std::vector<size_t> & indices ) const
+                                            const std::vector<DepthInitializer::DepthInitResult>& triang ) const
    {
       debugImage.reallocate( 2 * _undist0.width(), _undist0.height(), IFormat::RGBA_UINT8 );
       Image tmp( debugImage.width(), debugImage.height(), IFormat::GRAY_UINT8 );
@@ -289,11 +311,11 @@ namespace cvt
          GFX g( &ge );
 
          g.color() = Color::RED;
-         for( size_t i = 0; i < indices.size(); i++ ){
-            const FeatureMatch & match = matches[ indices[ i ] ];
-            Vector2f p2 = match.feature1->pt;
+         for( size_t i = 0; i < triang.size(); i++ ){
+            const DepthInitializer::DepthInitResult & res = triang[ i ];
+            Vector2f p2 = res.meas1;
             p2.x += _undist0.width();
-            g.drawLine( match.feature0->pt, p2 );
+            g.drawLine( res.meas0, p2 );
          }
       }
    }

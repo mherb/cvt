@@ -41,7 +41,7 @@ namespace cvt
       _gui.setStepping( _stepping );
 
       Delegate<void (const Image&)> d4( &_gui, &SLAMGui::setCurrentImage );
-      _featureTracking->debugImage.add( d4 );
+      _slam.trackedFeatureImage.add( d4 );
 
       Delegate<void (size_t)> dnpts( &_gui, &SLAMGui::setNumTrackedFeatures );
       _slam.numTrackedPoints.add( dnpts );

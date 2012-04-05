@@ -69,6 +69,7 @@ namespace cvt
          const SE3<double>& pose() const { return _pose; };
 
          Signal<const Image&>       newStereoView;
+         Signal<const Image&>       trackedFeatureImage;
          Signal<void>               keyframeAdded;
          Signal<const SlamMap&>     mapChanged;
          Signal<const Matrix4f&>    newCameraPose;
@@ -117,9 +118,9 @@ namespace cvt
          void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated );
 
          void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
+
          void createDebugImageStereo( Image & debugImage,
-                               const std::vector<FeatureMatch> & matches,
-                               const std::vector<size_t> & indices ) const;
+                                      const std::vector<DepthInitializer::DepthInitResult>& triang ) const;
    };
 
 }
