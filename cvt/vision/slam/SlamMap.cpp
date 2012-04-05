@@ -66,7 +66,7 @@ namespace cvt
 
 	int SlamMap::findClosestKeyframe( const Eigen::Matrix4d& worldT ) const
 	{
-		double nearest = 100000.0f;
+		double nearest = Math::MAXF;
 		int kf = -1;
 
 		for( size_t i = 0; i < _keyframes.size(); i++ ){
