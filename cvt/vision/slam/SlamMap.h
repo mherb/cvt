@@ -43,7 +43,15 @@ namespace cvt
 
 			int findClosestKeyframe( const Eigen::Matrix4d& worldT ) const;
 
-			void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatures,
+			/**
+			 *	\brief predict features that project into the current frame
+			 *	\param	visibleFeatureIds	ids visible features 
+			 *	\param	projections		    the predicted feature positions in the given frame	
+			 *	\param	cameraPose		    pose of the camera
+			 *	\param	camCalib			calibration of the camera
+			 *	\param	maxDistance			maximum distance of keyframes that are taken into account for projection 
+			 */
+			void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatureIds,
 									      std::vector<Vector2f>	   & projections,
 										  const Eigen::Matrix4d	   & cameraPose,
 										  const CameraCalibration  & camCalib,

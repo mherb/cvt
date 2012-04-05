@@ -9,6 +9,7 @@
  	PARTICULAR PURPOSE.
  */
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
+#include <cvt/vision/Vision.h>
 
 namespace cvt
 {
