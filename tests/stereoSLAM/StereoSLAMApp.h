@@ -16,8 +16,8 @@ namespace cvt
    {
       public:
          StereoSLAMApp( const std::vector<VideoInput*> & cams,
-                     const CameraCalibration & c0,
-                     const CameraCalibration & c1 );
+                        const CameraCalibration & c0,
+                        const CameraCalibration & c1 );
 
          ~StereoSLAMApp();
 
@@ -33,22 +33,22 @@ namespace cvt
          void saveImages();
 
       private:
-         std::vector<VideoInput*> _cams;
-         FeatureTracking*		 _featureTracking;
-         DepthInitializer*    _depthInit;
-         StereoSLAM				 _slam;
-         Image					 _img0, _img1;
+         std::vector<VideoInput*>   _cams;
+         FeatureTracking*           _featureTracking;
+         DepthInitializer*          _depthInit;
+         StereoSLAM                 _slam;
+         Image                      _img0, _img1;
 
-         uint32_t				_timerId;
+         uint32_t                   _timerId;
 
          // the gui
          SLAMGui					_gui;
 
-         Time					_time;
-         size_t					_timeIter;
+         Time                       _time;
+         size_t                     _timeIter;
 
-         bool					_stepping;
-         bool					_nextImage;
+         bool                       _stepping;
+         bool                       _nextImage;
 
    };
 
