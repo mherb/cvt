@@ -536,6 +536,38 @@ SSE_ACOP1_FLOAT( DivValue1f, _mm_div_ps, / )
 SSE_ACOP1_AOP2_FLOAT( MulAddValue1f, _mm_mul_ps, *, _mm_add_ps, + )
 SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 
+	void SIMDSSE::Conv_GRAYALPHAf_to_GRAYf( float* dst, const float* src, const size_t n ) const
+	{
+		__m128 a, b;
+		size_t i = n >> 2;
+
+		if( ( ( size_t ) dst | ( size_t ) src ) & 0xF ) {
+			while( i-- ) {
+				a = _mm_loadu_ps( src );
+				b = _mm_loadu_ps( src + 4 );
+				a = _mm_shuffle_ps( a, b, _MM_SHUFFLE( 2, 0, 2, 0 ) );
+				_mm_storeu_ps( dst, a  );
+				src += 8;
+				dst += 4;
+			}
+		} else {
+			while( i-- ) {
+				a = _mm_load_ps( src );
+				b = _mm_load_ps( src + 4 );
+				a = _mm_shuffle_ps( a, b, _MM_SHUFFLE( 2, 0, 2, 0 ) );
+				_mm_stream_ps( dst, a  );
+				src += 8;
+				dst += 4;
+			}
+		}
+
+		i = n & 0x03;
+		while( i-- ) {
+			*dst++ = *src++;
+			src++;
+		}
+	}
+
 	void SIMDSSE::Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const
 	{
 		size_t i = n;

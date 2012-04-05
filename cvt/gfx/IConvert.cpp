@@ -140,6 +140,21 @@ namespace cvt {
 		CONV( Conv_GRAYf_to_GRAYu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
 	}
 
+	static void Conv_GRAYALPHAf_to_GRAYf( Image & dstImage, const Image & sourceImage )
+	{
+		SIMD* simd = SIMD::instance();
+		const uint8_t* src;
+		const uint8_t* sbase;
+		size_t sstride;
+		size_t dstride;
+		uint8_t* dst;
+		uint8_t* dbase;
+		size_t h;
+
+		CONV( Conv_GRAYALPHAf_to_GRAYf, dstImage, float*, sourceImage, float*, sourceImage.width() )
+	}
+
+
 	static void Conv_GRAYf_to_XXXAf( Image & dstImage, const Image & sourceImage )
 	{
 		SIMD* simd = SIMD::instance();
@@ -621,6 +636,7 @@ namespace cvt {
 
 		/* GRAYALPHA_FLOAT TO X */
 		TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_f_to_u8;
+		TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAY_FLOAT ) = &Conv_GRAYALPHAf_to_GRAYf;
 
 		/* RGBA_UINT8 TO X */
 		TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_RGBAu8_to_GRAYu8;
