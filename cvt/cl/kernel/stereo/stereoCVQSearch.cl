@@ -26,13 +26,15 @@ __kernel void stereoCV_QSearch( __write_only image2d_t dmap, __read_only image2d
 	/* ( depth-estimate, C_max - C_min, )*/
 	in = read_imagef( input, sampler, ( int2 ) ( gx, gy ) );
 
-#define EVALQ( dnew, C ) ( ( ( dnew - didx ) * ( dnew - didx ) ) / ( 2.0f * theta ) + lambda * C )
+#define EVALQ( dnew, C ) ( ( ( dnew - in.x ) * ( dnew - in.x ) ) / ( 2.0f * theta ) + lambda * C )
 
+	val = 1e10f;
+	idx = depth;
 	// eval at
-	didx = in.x * ( float ) depth;
-	didx = clamp( didx, 0, depth - 1 );
-	idx = ( int ) ( didx + 0.5f );
-	val = EVALQ( ( float ) idx, cvptr[ idx * stride ] );
+//	didx = in.x * ( float ) depth;
+//	didx = clamp( didx, 0, depth - 1 );
+//	idx = ( int ) ( didx + 0.5f );
+//	val = EVALQ( ( ( float ) idx / ( float ) depth ), cvptr[ idx * stride ] );
 //	int r = ( int ) ( 2.0f * theta * lambda * in.y + 0.5f );
 //	int dmin = clamp( idx - r, 0, depth );
 //	int dmax = clamp( idx + r, 0, depth );
@@ -41,11 +43,28 @@ __kernel void stereoCV_QSearch( __write_only image2d_t dmap, __read_only image2d
 
 	for( int d = dmin; d < dmax; d++ ) {
 		nval = EVALQ( ( ( float ) d / ( float ) depth ), cvptr[ d * stride ] );
-		cmp = isless( nval, val );
-		val = select( val, nval, cmp );
-		idx = select( idx, d, cmp );
+		if( nval < val ) {
+			val = nval;
+			idx = d;
+		}
+		//cmp = isless( nval, val );
+		//val = select( val, nval, cmp );
+		//idx = select( idx, d, cmp );
 	}
+	if( idx >= 2 && idx < depth - 2 ) {
+		float dx = EVALQ( ( ( float ) ( idx ) / ( float ) depth ), cvptr[ ( idx ) * stride ] )
+					- EVALQ( ( ( float ) ( idx - 1 ) / ( float ) depth ), cvptr[ ( idx - 1 ) * stride ] );
+//		float d2x = EVALQ( ( ( float ) ( idx + 1 ) / ( float ) depth ), cvptr[ ( idx + 1 ) * stride ] )
+//					+ EVALQ( ( ( float ) ( idx - 1 ) / ( float ) depth ), cvptr[ ( idx - 1 ) * stride ] )
+//					- 2.0f * EVALQ( ( ( float ) ( idx ) / ( float ) depth ), cvptr[ ( idx ) * stride ] );
+		float d2x = -dx + ( - EVALQ( ( ( float ) ( idx ) / ( float ) depth ), cvptr[ ( idx ) * stride ] )
+					+ EVALQ( ( ( float ) ( idx + 1 ) / ( float ) depth ), cvptr[ ( idx + 1 ) * stride ] ) );
 
-	in.x = ( float ) idx / ( float ) depth;
+
+
+
+		in.x = ( ( float ) idx - 0.5f * dx / ( d2x ) ) / ( float ) depth;
+	} else
+		in.x = ( float ) idx / ( float ) depth;
 	write_imagef( dmap, ( int2 ) ( gx, gy ), in );
 }
