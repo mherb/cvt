@@ -31,17 +31,20 @@ int main( int argc, char** argv )
 	Image left( argv[ 1 ] );
 	Image right( argv[ 2 ] );
 
-	Image clleft( left, IALLOCATOR_CL );
+	Image clleft( left, IALLOCATOR_CL);
 	Image clright( right, IALLOCATOR_CL );
 	Image cldmap( left.width(), left.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 	Image cldmaptmp( left.width(), left.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 	Image output( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
+	//left.convert( clleft, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+	//right.convert( clright, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+
 	try {
 		float theta = 0.5f;
 		float lambda = 1.0f;
 		float t, told;
-		int inner = 40, outer = 100, n = 0, i = 0;
+		int inner = 20, outer = 50, n = 0, i = 0;
 		CLKernel kernclear( _clear_source, "clear" );
 		CLKernel kernfgp( _fgpgrayweightedhuber_source, "fgp" );
 		CLKernel kernfgpdata( _fgpgrayweightedhuber_data_source, "fgp_data" );
@@ -81,17 +84,19 @@ int main( int argc, char** argv )
 			kernclear.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
 
 
-#define THETA 10.0f
-#define LAMBDA 5.0f
-#define BETA 0.00001f
+#define THETA  1.0f
+#define LAMBDA 4.0f
+#define BETA 0.001f
 #define KSIZE 16
 //#define DEBUGIMAGE 1
 
+		theta = THETA;
+
 		while( i < outer ) {
 		//	theta = 0.01f;
-			theta = THETA * ( exp( -6.0f * Math::sqr( ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) ) + 1e-4f;
-			lambda = LAMBDA * ( 1.0f -  ( ( float )  i ) / ( float ) ( outer - 1 ) ) + 0.5f;
-
+			theta = THETA * ( exp( -4.0f * Math::sqr( ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) ) + 1e-4f;
+		//	lambda = LAMBDA * ( 1.0f -  ( ( float )  i ) / ( float ) ( outer - 1 ) ) + 1.0f;
+		//	lambda = LAMBDA * ( exp( -20.0f * ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) + 1.0f;
 
 
 			std::cout << "Theta: " << theta << std::endl;
@@ -152,8 +157,8 @@ int main( int argc, char** argv )
 #endif
 
 			i++;
-	//		theta = theta * ( 1.0f - BETA * i );
-	//		theta = Math::max( 1e-4f, theta );
+			//theta = theta * ( 1.0f - BETA * i );
+			//theta = Math::max( 1e-4f, theta );
 		}
 
 
@@ -162,9 +167,9 @@ int main( int argc, char** argv )
 			kernextractr.setArg( 1, cldmap );
 			kernextractr.setArg( 2, 0 );
 			kernextractr.runWait( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
-			Image out;
-			output.convert( out, IFormat::GRAY_UINT8 );
-			out.save( "dmapcvtvl1.png" );
+			output.save("d.cvtraw");
+			right.save("c.cvtraw");
+			output.save( "dmapcvtvl1.png" );
 		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;

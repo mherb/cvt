@@ -54,7 +54,7 @@ __kernel void stereoCV( global float* cv, int depth, __read_only image2d_t src1,
 
 	/* store the result of the cost function */
 	for( int d = 0; d < depth; d++ )
-		cvptr[ d * stride ] = clamp( costRGB_L1( pixel, buf[ lx + d ] ), 0.0f, 0.2f );
+		cvptr[ d * stride ] = costRGB_L1( pixel, buf[ lx + d ] );
 }
 
 __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv, int depth )
@@ -119,7 +119,7 @@ __kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const floa
 	avg /= depth;
 	avg2 /= depth;
 
-	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, cmax - cmin, 0.0f, 1.0f ) );
+	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) ( depth - 1 ), cmax - cmin, 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( 1.0f * exp( -1.0f * fabs( avg - cmin ) - 1.0f * ( avg2 - avg * avg ) ), 1e-4f, 1.0f ) , 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( pow( fabs( avg - cmin ) * 1.0f, -1.0f ), 1e-5f, 1.0f ), 0.0f, 1.0f ) );
 }
