@@ -1,8 +1,9 @@
-#define COSTTHRESHOLD 0.028 //0.028f
-#define COSTTHRESHOLDGRAD 0.008 //0.008f
+#define COSTTHRESHOLD 0.028f //0.028f
+#define COSTTHRESHOLDGRAD 0.008f //0.008f
 #define ALPHA 0.10f
 
-inline float4 rgba2hsla(float4 rgba) {
+inline float4 rgba2hsla(float4 rgba)
+{
 	float r = rgba.x,
 		  g = rgba.y,
 		  b = rgba.z,

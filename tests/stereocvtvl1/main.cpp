@@ -38,10 +38,10 @@ int main( int argc, char** argv )
 	Image output( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 	try {
-		float theta = 0.2f;
+		float theta = 0.5f;
 		float lambda = 1.0f;
 		float t, told;
-		int inner = 0, outer = 50, n = 0, i = 0;
+		int inner = 40, outer = 100, n = 0, i = 0;
 		CLKernel kernclear( _clear_source, "clear" );
 		CLKernel kernfgp( _fgpgrayweightedhuber_source, "fgp" );
 		CLKernel kernfgpdata( _fgpgrayweightedhuber_data_source, "fgp_data" );
@@ -81,15 +81,21 @@ int main( int argc, char** argv )
 			kernclear.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
 
 
-#define BETA 0.001f
+#define THETA 10.0f
+#define LAMBDA 5.0f
+#define BETA 0.00001f
 #define KSIZE 16
 //#define DEBUGIMAGE 1
 
 		while( i < outer ) {
+		//	theta = 0.01f;
+			theta = THETA * ( exp( -6.0f * Math::sqr( ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) ) + 1e-4f;
+			lambda = LAMBDA * ( 1.0f -  ( ( float )  i ) / ( float ) ( outer - 1 ) ) + 0.5f;
+
+
 
 			std::cout << "Theta: " << theta << std::endl;
-
-			inner += 10;
+			n = 0;
 			while( n < inner ) {
 				bool b = n & 0x01;
 				kernfgp.setArg( 0,  b ? e0 : e1 );
@@ -125,6 +131,7 @@ int main( int argc, char** argv )
 			}
 #endif
 
+			std::cout << "Theta: " << theta << std::endl;
 			kerncvqsearch.setArg( 0, cldmap );
 			kerncvqsearch.setArg( 1, cldmaptmp );
 			kerncvqsearch.setArg( 2, cv );
@@ -145,8 +152,8 @@ int main( int argc, char** argv )
 #endif
 
 			i++;
-			theta = theta * ( 1.0f - BETA * i );
-			theta = Math::max( 1e-4f, theta );
+	//		theta = theta * ( 1.0f - BETA * i );
+	//		theta = Math::max( 1e-4f, theta );
 		}
 
 
@@ -155,7 +162,9 @@ int main( int argc, char** argv )
 			kernextractr.setArg( 1, cldmap );
 			kernextractr.setArg( 2, 0 );
 			kernextractr.runWait( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
-			output.save( "dmapcvtvl1.png" );
+			Image out;
+			output.convert( out, IFormat::GRAY_UINT8 );
+			out.save( "dmapcvtvl1.png" );
 		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;
