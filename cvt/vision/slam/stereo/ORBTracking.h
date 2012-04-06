@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+         CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+    Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+   PARTICULAR PURPOSE.
  */
 #ifndef ORB_TRACKING_H
 #define ORB_TRACKING_H
@@ -21,47 +21,42 @@
 namespace cvt
 {
 
-	/**
-	 *	Feature Tracking using ORB Matching	
-	 */
-	class ORBTracking : public FeatureTracking 
-	{
-		public:
-			ORBTracking( const CameraCalibration& c0, const CameraCalibration & c1 );
-			~ORBTracking();
+   /**
+    *	Feature Tracking using ORB Matching
+    */
+   class ORBTracking : public FeatureTracking
+   {
+      public:
+         ORBTracking();
+         ~ORBTracking();
 
-			void trackFeatures( PointSet2d&						trackedPositions,
-								std::vector<size_t>&			trackedFeatureIds,
-								const std::vector<Vector2f>&	predictedPositions,
-								const std::vector<size_t>&		predictedIds,
-								const Image&					img );
+         void trackFeatures( PointSet2d&                    trackedPositions,
+                             std::vector<size_t>&           trackedFeatureIds,
+                             const std::vector<Vector2f>&   predictedPositions,
+                             const std::vector<size_t>&     predictedIds,
+                             const Image&                   img );
 
-			void clear();
+         void addFeatureToDatabase( const Vector2f & f, size_t id );
 
-		private:
-			const CameraCalibration&		_camCalib0;
-			const CameraCalibration&		_camCalib1;
-			DescriptorDatabase<ORBFeature>	_descriptors;
-            size_t							_maxDescDistance;
-            float							_windowRadius;
+         void clear();
 
-			/* descriptor matching parameters */
-			float							_matcherMaxLineDistance;	
-			float							_maxTriangReprojError;
-			ORBStereoMatching				_stereoMatcher;
+      private:
+         DescriptorDatabase<ORBFeature> _descriptors;
+         size_t                         _maxDescDistance;
+         float                          _windowRadius;
 
-			/* orb parameters */
-			size_t							_orbOctaves;
-			float							_orbScaleFactor;
-			uint8_t							_orbCornerThreshold;
-			size_t							_orbMaxFeatures;
-			bool							_orbNonMaxSuppression;
-			ORB								_orb0;
-			std::set<size_t>				_orb0MatchedIds;
+         /* orb parameters */
+         size_t						_orbOctaves;
+         float							_orbScaleFactor;
+         uint8_t						_orbCornerThreshold;
+         size_t						_orbMaxFeatures;
+         bool							_orbNonMaxSuppression;
+         ORB							_orb0;
+         std::set<size_t>			_orb0MatchedIds;
 
-			int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const;
+         int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const;
 
-	};
+   };
 }
 
 #endif
