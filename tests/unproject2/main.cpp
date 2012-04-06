@@ -28,7 +28,7 @@ int main( int argc, char** argv )
 		Image c, dmap;
 		image.convert( c, IFormat::RGBA_FLOAT );
 		depthmap.convert( dmap, IFormat::GRAY_FLOAT );
-		Vision::unprojectToScenePoints( pts, c, dmap scale);
+		Vision::unprojectToScenePoints( pts, c, dmap, scale);
 
 		pts.translate( -pts.centroid() );
 
