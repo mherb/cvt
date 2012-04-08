@@ -50,7 +50,8 @@ namespace cvt {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		_fbo.bind();
 		setViewport( Recti( 0, 0, _fbo.width(), _fbo.height() ) );
-		setChildrect( Recti( 0, 0, _fbo.width(), _fbo.height() ) );
+		setClipRect( Recti( 0, 0, _fbo.width(), _fbo.height() ) );
+		_translation.set( 0, 0 );
 	}
 
 	void GFXEngineGLFBO::end()

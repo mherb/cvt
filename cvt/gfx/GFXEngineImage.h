@@ -40,17 +40,21 @@ namespace cvt {
 			const Font& font() const { return _dfont; };
 
 			/* optional - only used by the Widget in paintChild */
-			void setChildrect( const Recti& childrect ) { _crect = childrect; };
-			const Recti& childrect() const { return _crect;};
+			void setClipRect( const Recti& childrect ) { _crect = childrect; };
+			const Recti& clipRect() const { return _crect;};
+
+			void setTranslation( const Vector2i& t ) { _translation += t; };
+			const Vector2i& translation() const { return _translation; };
 
 		private:
 			void drawLine( const Vector2i& pt1, const Vector2i& pt2, float width, const Color& c );
 
-			Image& _img;
-			Recti _crect;
-			DummyFont _dfont;
-			uint8_t* _ptr;
-			size_t _stride;
+			Image&		_img;
+			Recti		_crect;
+			Vector2i	_translation;
+			DummyFont	_dfont;
+			uint8_t*	_ptr;
+			size_t		_stride;
 	};
 
 	inline GFXEngineImage::GFXEngineImage( Image& img ) : _img( img )

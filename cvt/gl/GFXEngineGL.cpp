@@ -38,7 +38,8 @@ namespace cvt {
 					glEnable( GL_MULTISAMPLE );
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glViewport( 0, 0, _viewport.width, _viewport.height );
-				setChildrect( _viewport );
+				setClipRect( _viewport );
+				_translation.set( 0, 0 );
 				glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 			}
 
@@ -47,19 +48,19 @@ namespace cvt {
 				_ctx->swapBuffers();
 			}
 
-			void GFXEngineGL::setChildrect( const Recti& childrect )
+			void GFXEngineGL::setClipRect( const Recti& cliprect )
 			{
-				_childrect = childrect;
+				_cliprect = cliprect;
 				Recti clip;
 				clip = _viewport;
-				clip.intersect( _childrect );
+				clip.intersect( _cliprect );
 				glScissor( clip.x, _viewport.height - ( clip.y + clip.height ), clip.width, clip.height );
 			}
 
 			void GFXEngineGL::drawLines( const Vector2f* pts, size_t n, float width, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				basicp.bind();
 				basicp.setProjection( proj );
 				basicp.setColor( c );
@@ -70,7 +71,7 @@ namespace cvt {
 			void GFXEngineGL::fillRect( const Recti& rect, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				basicp.bind();
 				basicp.setProjection( proj );
 				basicp.setColor( c );
@@ -84,7 +85,7 @@ namespace cvt {
 			void GFXEngineGL::fillRoundRect( const Recti& rect, float radius, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				fillrrectp.bind();
 				fillrrectp.setProjection( proj );
 				fillrrectp.setColor( c );
@@ -105,7 +106,7 @@ namespace cvt {
 			{
 				if( width <= 0.0f ) {
 					Matrix4f proj;
-					GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+					GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 					basicp.bind();
 					basicp.setProjection( proj );
 					basicp.setColor( c );
@@ -122,7 +123,7 @@ namespace cvt {
 			void GFXEngineGL::fillPath( const Pathf& path, const Color& c, GFX::PolygonFillRule rule )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				fillpathp.bind();
 				fillpathp.setProjection( proj );
 				fillpathp.setColor( c );
@@ -133,7 +134,7 @@ namespace cvt {
 			void GFXEngineGL::drawText( int x, int y, const char* text, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawtextp.bind();
 				drawtextp.setProjection( proj );
 				drawtextp.setColor( c );
@@ -150,7 +151,7 @@ namespace cvt {
 				}
 
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawimgp.bind();
 				drawimgp.setProjection( proj );
 				drawimgp.setAlpha( alpha );
@@ -170,7 +171,7 @@ namespace cvt {
 				}
 
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawimgp.bind();
 				drawimgp.setProjection( proj );
 				drawimgp.setAlpha( alpha );
@@ -184,7 +185,7 @@ namespace cvt {
 			void GFXEngineGL::drawIcon( int x, int y, GFX::Icon i, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );
@@ -195,7 +196,7 @@ namespace cvt {
 			void GFXEngineGL::drawIcons( const Vector2i* pts, size_t npts, GFX::Icon i, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );
@@ -206,7 +207,7 @@ namespace cvt {
 			void GFXEngineGL::drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c )
 			{
 				Matrix4f proj;
-				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _childrect.x, ( float ) _childrect.y, -1.0f, 1.0f, _fliph );
+				GL::orthoTranslation( proj, 0, ( float ) _viewport.width, 0, ( float ) _viewport.height, ( float ) _translation.x, ( float ) _translation.y, -1.0f, 1.0f, _fliph );
 				drawiconp.bind();
 				drawiconp.setProjection( proj );
 				drawiconp.setColor( c );
@@ -221,7 +222,7 @@ namespace cvt {
 			void GFXEngineGL::endGL()
 			{
 				Recti clip;
-				
+
 				glEnable( GL_BLEND );
 				glEnable( GL_TEXTURE_2D );
 				glEnable( GL_POINT_SPRITE );
@@ -232,9 +233,9 @@ namespace cvt {
 					glEnable( GL_MULTISAMPLE );
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glViewport( 0, 0, _viewport.width, _viewport.height );
-				
+
 				clip = _viewport;
-				clip.intersect( _childrect );
+				clip.intersect( _cliprect );
 				glScissor( clip.x, _viewport.height - ( clip.y + clip.height ), clip.width, clip.height );
 			}
 
