@@ -179,6 +179,7 @@ namespace cvt {
 		Recti rect( 0, 0, _img.width(), _img.height() );
 		Vector2i pt1, pt2;
 
+		n = n >> 1;
 		for( size_t i = 0; i < n; i++ ) {
 			pt1.set( Math::round( pts[ i * 2  ].x ), Math::round( pts[ i * 2 ].y ) );
 			pt2.set( Math::round( pts[ i * 2 + 1 ].x ), Math::round( pts[ i * 2 + 1 ].y ) );
