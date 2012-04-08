@@ -105,7 +105,7 @@ namespace cvt {
 
 	inline void GFXEngineGL::setTranslation( const Vector2i& trans )
 	{
-		_translation += trans;
+		_translation = trans;
 	}
 
 	inline const Vector2i& GFXEngineGL::translation() const
