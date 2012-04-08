@@ -20,17 +20,18 @@ int main()
 		g.fillRect( 100, 100, 200, 200 );
 		g.color().set( 1.0f, 0.0f, 0.0f, 1.0f );
 
-		Rectf r( 100, 100, 200, 200 );
+		Rectf r( 100, 100, 199, 199 );
 
 		for( int i = 0; i < 5000; i++ ) {
 			g.color().set( Math::rand( 0.0f, 1.0f ), Math::rand( 0.0f, 1.0f ), Math::rand( 0.0f, 1.0f ), 1.0f );
 			Vector2f pt1, pt2;
-			pt1.x = Math::rand( 0, 400 );
-			pt1.y = Math::rand( 0, 400 );
-			pt2.x = Math::rand( 0, 400 );
-			pt2.y = Math::rand( 0, 400 );
-			if( Clipping::clip( r, pt1, pt2 ) )
-			g.drawLine( pt1, pt2 );
+			pt1.x = Math::rand( -1000, 1000 );
+			pt1.y = Math::rand( -1000, 1000 );
+			pt2.x = Math::rand( -1000, 1000 );
+			pt2.y = Math::rand( -1000, 1000 );
+			if( Clipping::clip( r, pt1, pt2 ) ) {
+				g.drawLine( pt1, pt2 );
+			}
 		}
 	}
 	out.save( "gfximg.png" );

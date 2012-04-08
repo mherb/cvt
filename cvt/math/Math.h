@@ -81,6 +81,22 @@ namespace cvt {
 		size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
 		size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
 
+		static inline float floatPrev( float f )
+		{
+			_flint32 u;
+			u.f = f;
+			u.i -= 1;
+			return u.f;
+		}
+
+		static inline float floatNext( float f )
+		{
+			_flint32 u;
+			u.f = f;
+			u.i += 1;
+			return u.f;
+		}
+
 		template<typename T>
 			static inline T epsilon()
 			{
