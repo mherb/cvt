@@ -20,6 +20,9 @@ namespace cvt {
 		SIMD* simd = SIMD::instance();
 
 		Recti rect( 0, 0, _img.width(), _img.height() );
+		Recti fillrect( _rect );
+		fillrect.x += _translation.x;
+		fillrect.y += _translation.y;
 		rect.intersect( _rect );
 		if( rect.isEmpty() )
 			return;
