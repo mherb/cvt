@@ -199,29 +199,44 @@ namespace cvt {
 	}
 
 
-	void GFX::setChildrect( const Recti& r )
+	void GFX::setClipRect( const Recti& r )
 	{
-		_engine->setChildrect( r );
+		_engine->setClipRect( r );
 	}
 
-	const Recti& GFX::childrect() const
+	const Recti& GFX::clipRect() const
 	{
-		return _engine->childrect();
+		return _engine->clipRect();
 	}
-
 
 	bool GFX::supportsGL() const
 	{
 		return _engine->supportsGL();
 	}
-	
+
 	void GFX::beginGL()
 	{
 		_engine->beginGL();
 	}
-	
+
 	void GFX::endGL()
 	{
 		_engine->endGL();
 	}
+
+	void GFX::setTranslation( const Vector2i& translation )
+	{
+		_engine->setTranslation( translation );
+	}
+
+	void GFX::setTranslation( int tx, int ty )
+	{
+		_engine->setTranslation( Vector2i( tx, ty ) );
+	}
+
+	const Vector2i& GFX::translation()
+	{
+		return _engine->translation();
+	}
+
 }

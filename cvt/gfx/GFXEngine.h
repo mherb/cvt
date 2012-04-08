@@ -48,9 +48,11 @@ namespace cvt {
 			virtual void beginGL() {}
 			virtual void endGL() {}
 
-			/* optional - only used by the Widget in paintChild */
-			virtual void setChildrect( const Recti& childrect ) = 0;
-			virtual const Recti& childrect() const = 0;
+			virtual void setClipRect( const Recti& childrect ) = 0;
+			virtual const Recti& clipRect() const = 0;
+
+			virtual void setTranslation( const Vector2i& trans ) = 0;
+			virtual const Vector2i& translation() const = 0;
 
 	};
 }

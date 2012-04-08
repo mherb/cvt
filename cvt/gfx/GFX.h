@@ -93,9 +93,14 @@ namespace cvt {
 			void beginGL();
 			void endGL();
 
+			void setTranslation( const Vector2i& translation );
+			void setTranslation( int tx, int ty );
+
+			const Vector2i& translation();
+
 		private:
-			void setChildrect( const Recti& r );
-			const Recti& childrect() const;
+			void setClipRect( const Recti& r );
+			const Recti& clipRect() const;
 
 			GFXEngine* _engine;
 			bool _active;

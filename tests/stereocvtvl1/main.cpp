@@ -44,7 +44,7 @@ int main( int argc, char** argv )
 		float theta = 0.5f;
 		float lambda = 1.0f;
 		float t, told;
-		int inner = 20, outer = 50, n = 0, i = 0;
+		int inner = 10, outer = 40, n = 0, i = 0;
 		CLKernel kernclear( _clear_source, "clear" );
 		CLKernel kernfgp( _fgpgrayweightedhuber_source, "fgp" );
 		CLKernel kernfgpdata( _fgpgrayweightedhuber_data_source, "fgp_data" );

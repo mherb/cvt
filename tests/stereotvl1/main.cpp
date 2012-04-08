@@ -63,13 +63,13 @@ int main( int argc, char** argv )
 			std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
 		}
-		Image tmp;
-		ColorCode::apply( tmp, output, -80.0f, 10.0f );
-		tmp.save("stereo.png");
+	//	Image tmp;
+	//	ColorCode::apply( tmp, output, -80.0f, 10.0f );
+	//	tmp.save("stereo.png");
 
-//		output.add( -10.0f );
-//		output.mul( -1.0f / 100.0f );
-//		output.save("stereo.png");
+		output.add( -10.0f );
+		output.mul( -1.0f / 100.0f );
+		output.save("stereo.png");
 
 
 	} catch( CLException& e ) {
