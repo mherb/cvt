@@ -228,7 +228,7 @@ namespace cvt {
 
 	void GFX::setTranslation( const Vector2i& translation )
 	{
-		_translation += translation;
+		_translation = translation;
 		_engine->setTranslation( _translationGlobal + _translation );
 	}
 
