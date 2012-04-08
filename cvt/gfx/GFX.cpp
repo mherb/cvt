@@ -19,11 +19,11 @@ namespace cvt {
 		setDefault();
 	}
 
-	GFX::GFX( const GFX& g ) :  _engine( NULL ), _active( false ), _color( g._color ), _linewidth( g._linewidth )
+	GFX::GFX( const GFX& g ) :  _engine( NULL ), _active( false ), _color( g._color ), _linewidth( g._linewidth ), _translation( g._translation), _translationGlobal( 0, 0 )
 	{
 	}
 
-	GFX::GFX( GFXEngine* engine ) : _engine( engine ), _active( false )
+	GFX::GFX( GFXEngine* engine ) : _engine( engine ), _active( false ), _translationGlobal( 0, 0 )
 	{
 		setDefault();
 		begin();
@@ -75,6 +75,8 @@ namespace cvt {
 	{
 		_color.set( 1.0f, 1.0f, 1.0f, 1.0f );
 		_linewidth = 1.0f;
+		_translation.setZero();
+		_engine->setTranslation( _translationGlobal );
 	}
 
 	void GFX::drawLine( int x1, int y1, int x2, int y2 )
@@ -226,17 +228,25 @@ namespace cvt {
 
 	void GFX::setTranslation( const Vector2i& translation )
 	{
-		_engine->setTranslation( translation );
+		_translation += translation;
+		_engine->setTranslation( _translationGlobal + _translation );
 	}
 
 	void GFX::setTranslation( int tx, int ty )
 	{
-		_engine->setTranslation( Vector2i( tx, ty ) );
+		_engine->setTranslation( _translation + Vector2i( tx, ty ) );
 	}
 
-	const Vector2i& GFX::translation()
+	const Vector2i& GFX::translation() const
 	{
-		return _engine->translation();
+		return _translation;
 	}
+
+
+	void GFX::setTranslationGlobal( const Vector2i& translation )
+	{
+		_translationGlobal = translation;
+	}
+
 
 }

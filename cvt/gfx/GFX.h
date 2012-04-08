@@ -68,7 +68,7 @@ namespace cvt {
 
 			void fillRect( const Recti& rect );
 			void fillRect( int x, int y, int width, int height );
-			
+
 			void drawRect( const Recti& rect );
 
 			void fillRoundRect( const Recti& rect, float radius );
@@ -96,16 +96,21 @@ namespace cvt {
 			void setTranslation( const Vector2i& translation );
 			void setTranslation( int tx, int ty );
 
-			const Vector2i& translation();
+			const Vector2i& translation() const;
 
 		private:
 			void setClipRect( const Recti& r );
 			const Recti& clipRect() const;
 
+			/* setDefault needs to be called after changing the global translation */
+			void setTranslationGlobal( const Vector2i& translation );
+
 			GFXEngine* _engine;
-			bool _active;
-			Color _color;
-			float _linewidth;
+			bool	   _active;
+			Color	   _color;
+			float	   _linewidth;
+			Vector2i   _translation;
+			Vector2i   _translationGlobal;
 	};
 
 	inline void GFX::setColor( const Color& c )

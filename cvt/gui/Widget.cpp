@@ -157,7 +157,6 @@ namespace cvt {
 
 		/* get current cliprect and translation */
 		Recti cliprect = gfx->clipRect();
-		Vector2i trans = gfx->translation();
 		/* get child rectangle in global coords */
 		Recti newcliprect = w->rect();
 		Recti childrect = newcliprect;
@@ -167,15 +166,16 @@ namespace cvt {
 		/* set new clipping  */
 		gfx->setClipRect( newcliprect );
 		/* do painting with default GFX, only paint currently visible part */
+		newcliprect.intersect( rect );
 		PaintEvent pe( newcliprect );
+		gfx->setTranslationGlobal( Vector2i( childrect.x, childrect.y ) );
 		gfx->setDefault();
-		Vector2i newtrans( childrect.x, childrect.y );
-		mapLocal( newtrans.x, newtrans.y );
-		gfx->setTranslation( newtrans );
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
+		Recti thisrect = this->rect();
+		gfx->setTranslationGlobal( Vector2i( thisrect.x, thisrect.y ) );
+		gfx->setDefault();
 		gfx->setClipRect( cliprect );
-		gfx->setTranslation( -newtrans );
 	}
 
 	GFXEngine* Widget::gfxEngine()

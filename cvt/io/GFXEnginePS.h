@@ -43,7 +43,7 @@ namespace cvt {
 			void setClipRect( const Recti& clip ) { _crect = clip; };
 			const Recti& clipRect() const { return _crect;};
 
-			void setTranslation( const Vector2i& t ) { _translation += t; };
+			void setTranslation( const Vector2i& t ) { _translation = t; };
 			const Vector2i& translation() const { return _translation };
 
 		private:
