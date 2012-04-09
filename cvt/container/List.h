@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
+#include <functional>
 
 namespace cvt {
 
@@ -69,6 +70,11 @@ namespace cvt {
 			Iterator rend() { return Iterator( &_anchor ); }
 			Iterator remove( ReverseIterator it );
 
+			void sort();
+
+			template<typename CMP >
+			void sort( CMP cmp );
+
 			class Iterator {
 				friend class List;
 				public:
@@ -116,6 +122,9 @@ namespace cvt {
 
 		private:
 			void unlinkNode( NodeBase* node );
+			void swapNodes( NodeBase* a, NodeBase* b );
+			template<typename CMP>
+			NodeBase* mergeSort( NodeBase* a, NodeBase* b, CMP cmp );
 
 			NodeBase  _anchor;
 			size_t	  _size;
@@ -271,6 +280,144 @@ namespace cvt {
 	}
 
 	template<typename T>
+	template<typename CMP>
+	inline typename List<T>::NodeBase* List<T>::mergeSort( NodeBase* a, NodeBase* b, CMP cmp )
+	{
+		NodeBase* dst, *ret;
+
+		/* set start first element of a or b */
+		if( cmp( ( ( Node* ) a )->_data, ( ( Node* ) b )->_data ) ) {
+			dst = a;
+			dst->_prev = b->_prev;
+			a = a->_next;
+		} else {
+			dst = b;
+			b = b->_next;
+		}
+		ret = dst;
+
+		/* merge the lists */
+		while( a && b ) {
+			if( cmp( ( ( Node* ) a )->_data, ( ( Node* ) b )->_data ) ) {
+				dst->_next = a;
+				dst->_next->_prev = dst;
+				dst = dst->_next;
+				a = a->_next;
+			} else {
+				dst->_next = b;
+				dst->_next->_prev = dst;
+				dst = dst->_next;
+				b = b->_next;
+			}
+		}
+
+		/* append the rest of either a or b */
+		if( a ) {
+			dst->_next = a;
+			dst->_next->_prev = dst;
+		} else if( b ) {
+			dst->_next = b;
+			dst->_next->_prev = dst;
+		}
+
+		/* find end of list */
+		if( !ret->_prev ) {
+			_anchor._prev = dst;
+			while( _anchor._prev->_next )
+				_anchor._prev = _anchor._prev->_next;
+		}
+		return ret;
+	}
+
+	template<typename T>
+	inline void List<T>::sort()
+	{
+		sort( std::less<T>() );
+	}
+
+	template<typename T>
+	template<typename CMP>
+	inline void List<T>::sort( CMP cmp )
+	{
+		if( _size <= 1 )
+			return;
+
+		NodeBase* head = _anchor._next;
+		NodeBase* tail = _anchor._prev;
+		head->_prev = NULL;
+		tail->_next = NULL;
+
+		NodeBase* it = head;
+
+		/*
+			Transform double-lined list
+
+			a <-> b <-> c <-> d <-> e
+
+			to list of single-linked lists with a < b, d < c, -> is _prev and | is _next )
+																			  v
+			a -> d -> e
+			|	 |    |
+		    v	 v    v
+			b	 c   NULL
+			|	 |
+			v	 v
+		   NULL NULL
+		 */
+		while( it && it->_next ) {
+			if( cmp( ( ( Node* ) it->_next )->_data, ( ( Node* ) it )->_data ) ) {
+				NodeBase *tmp;
+
+				// previous element or head points to next
+				if( it->_prev )
+					it->_prev->_prev = it->_next;
+				else
+					head = it->_next;
+
+				tmp = it->_next; // next element
+
+				it->_prev = it->_next; // previous of it is next
+				it->_next = NULL; // next of it is NUL
+
+				tmp->_prev = tmp->_next;
+				tmp->_next = it;
+				it = tmp->_prev;
+
+			} else {
+				// the previous of the next element of next is it
+				if( it->_next->_next )
+					it->_next->_next->_prev = it;
+				else
+					tail = it;
+
+				it->_prev = it->_next->_next; // prev points to next after next
+				it->_next->_next = NULL; // next pointer of next element points to NULL
+				it = it->_prev; // go to next after next
+			}
+		}
+
+		if( it && !it->_next ) { // if the size is odd, then the prev pointer of the last element is set to NULL
+			it->_prev = NULL;
+			tail = it;
+		}
+
+		/* Now merge-sort the single-linked lists to double-linked list */
+		NodeBase* next;
+		while( head && head->_prev ) {
+			next = head = mergeSort( head, head->_prev, cmp );
+			while( next->_prev && next->_prev->_prev ) {
+				next->_prev = mergeSort( next->_prev, next->_prev->_prev, cmp );
+				next = next->_prev;
+			}
+		}
+
+		_anchor._next = head;
+		_anchor._next->_prev = &_anchor;
+		// _anchor._prev = _anchor._next; // already set in mergeSort
+		_anchor._prev->_next = &_anchor;
+	}
+
+	template<typename T>
 	inline void List<T>::clear()
 	{
 		if( isEmpty() )
@@ -280,7 +427,7 @@ namespace cvt {
 		Iterator iend = end();
 		while( it != iend ) {
 			Iterator cur = it;
-			it++;
+			++it;
 			delete ( Node* ) cur._it;
 		}
 		_anchor._prev = &_anchor;
@@ -293,6 +440,27 @@ namespace cvt {
 	{
 		node->_prev->_next = node->_next;
 		node->_next->_prev = node->_prev;
+	}
+
+
+	template<typename T>
+	inline void List<T>::swapNodes( NodeBase* a, NodeBase* b )
+	{
+		NodeBase* temp;
+
+		temp = a->_next;
+		a->_next = b->_next;
+		b->_next = temp;
+
+		a->_next->_prev = a;
+		b->_next->_prev = b;
+
+		temp = a->_prev;
+		a->_prev = b->_prev;
+		b->_prev = temp;
+
+		a->_prev->_next = a;
+		b->_prev->_next = b;
 	}
 
 }
