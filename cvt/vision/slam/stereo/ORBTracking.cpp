@@ -14,7 +14,7 @@ namespace cvt
 {
    ORBTracking::ORBTracking() :
       _maxDescDistance( 80 ),
-      _windowRadius( 25 ),
+      _windowRadius( 40 ),
       _orbOctaves( 4 ),
       _orbScaleFactor( 0.5f ),
       _orbCornerThreshold( 15 ),
@@ -73,7 +73,7 @@ namespace cvt
            }
        }
 
-       _descriptors.addDescriptor( _orb0[ closestIdx], id );
+       _descriptors.addDescriptor( _orb0[ closestIdx ], id );
    }
 
    int ORBTracking::matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const
