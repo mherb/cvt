@@ -57,25 +57,30 @@ namespace cvt {
 
 			void setViewport( const Recti& viewport );
 			const Recti& viewport() const;
-			void setChildrect( const Recti& childrect );
-			const Recti& childrect() const;
+
+			void setClipRect( const Recti& childrect );
+			const Recti& clipRect() const;
+
+			void setTranslation( const Vector2i& trans );
+			const Vector2i& translation() const;
 
 		protected:
 			GFXEngineGL( const GFXEngineGL& );
 
-			GLContext* _ctx;
-			Recti _viewport;
-			Recti _childrect;
-			bool _fliph;
+			GLContext*		_ctx;
+			Recti			_viewport;
+			Recti			_cliprect;
+			Vector2i		_translation;
+			bool			_fliph;
 
-			GLBasicProg basicp;
+			GLBasicProg			basicp;
 			GLFillRoundRectProg fillrrectp;
-			GLDrawTextProg drawtextp;
-			GLDrawImageProg drawimgp;
-			GLDrawIconProg drawiconp;
-			GLDrawModelProg modelp;
-			GLFillPathProg fillpathp;
-			GLTexFont _glfont;
+			GLDrawTextProg		drawtextp;
+			GLDrawImageProg		drawimgp;
+			GLDrawIconProg		drawiconp;
+			GLDrawModelProg		modelp;
+			GLFillPathProg		fillpathp;
+			GLTexFont			_glfont;
 	};
 
 	inline void GFXEngineGL::setViewport( const Recti& viewport )
@@ -88,15 +93,26 @@ namespace cvt {
 		return _viewport;
 	}
 
-
-	inline const Recti& GFXEngineGL::childrect() const
+	inline const Recti& GFXEngineGL::clipRect() const
 	{
-		return _childrect;
+		return _cliprect;
 	}
 
 	inline const Font& GFXEngineGL::font() const
 	{
 		return _glfont;
 	}
+
+	inline void GFXEngineGL::setTranslation( const Vector2i& trans )
+	{
+		_translation = trans;
+	}
+
+	inline const Vector2i& GFXEngineGL::translation() const
+	{
+		return _translation;
+	}
+
+
 
 }

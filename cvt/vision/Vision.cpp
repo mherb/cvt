@@ -56,6 +56,43 @@ namespace cvt {
 		scenepts.transform( calibration.extrinsics() );
 	}
 
+	void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, float dscale )
+	{
+		std::vector<Vector3f> pts;
+		std::vector<Vector4f> colors;
+
+		scenepts.clear();
+
+		if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
+            throw CVTException( "unprojectToScenePoints: invalid texture or depth-map!" );
+
+		IMapScoped<const float> tex( texture );
+		IMapScoped<const float> dmap( depthmap );
+		size_t w = depthmap.width();
+		size_t h = depthmap.height();
+		float dx = 0.5f * depthmap.width();
+		float dy = 0.5f * depthmap.height();
+
+		for( size_t y = 0; y < h; y++ ) {
+			const float* dmapptr = dmap.ptr();
+			const float* texptr = tex.ptr();
+
+			for( size_t x = 0; x < w; x++ ) {
+				if( dmapptr[ x ] > 0 ) {
+					Vector3f pt = Vector3f( ( x - dx ) / ( float ) w , ( y - dy ) / ( float ) h, dmapptr[ x ] * dscale );
+					pts.push_back( pt );
+					colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
+				}
+			}
+
+			dmap++;
+			tex++;
+		}
+
+		scenepts.setVertices( &pts[ 0 ], pts.size() );
+		scenepts.setColors( &colors[ 0 ], colors.size() );
+	}
+
     template <typename T>
     static bool _compare( const Matrix3<T> & a, const Matrix3<T> & b, T epsilon )
     {

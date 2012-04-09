@@ -12,7 +12,7 @@ __kernel void image_rgba_to_gray_x( __write_only image2d_t out, __read_only imag
 		return;
 
 	float4 pixel = read_imagef( in, sampler, coord );
-	write_imagef( out, coord, ( float4 ) *( ( float* )( &pixel ) + chan )
+	write_imagef( out, coord, ( float4 ) 1.0f - *( ( float* )( &pixel ) + chan )
  );
 }
 
@@ -44,11 +44,11 @@ __kernel __attribute__((reqd_work_group_size( 16, 16, 1))) void image_gradexp_to
 		return;
 
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), 18 ) + ( x ) + 1 ]
-#define ALPHA 1.0f
-#define BETA 20.0f
+#define ALPHA 4.0f
+#define BETA 2.0f
 #define GAMMA 1.0f
-	float2 delta = 0.5f * ( float2 ) ( BUF( lx + 1, ly ) - BUF( lx - 1, ly ), BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) );
-	float weight = max( 1e-3f, GAMMA * exp( - pow( BETA * ( fabs( delta.x ) + fabs( delta.y) ), ALPHA ) ) );
+	float2 delta = ( float2 ) ( BUF( lx - 1, ly ) - BUF( lx , ly ), BUF( lx, ly - 1 ) - BUF( lx, ly ) );
+	float weight = fmax( 1e-4f, GAMMA * exp( - BETA * pow( fast_length( delta ), ALPHA ) ) );
 	float4 pixel = read_imagef( in, sampler, coord );
 	*( ( float* )( &pixel ) + chan ) = weight;
 	write_imagef( out, coord, ( float4 ) pixel );

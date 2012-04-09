@@ -39,21 +39,26 @@ namespace cvt {
 			void drawIcons( const Vector2f* pts, size_t npts, GFX::Icon i, const Color& c ) {};
 
 			const Font& font() const { return _dfont; };
-			/* optional - only used by the Widget in paintChild */
-			void setChildrect( const Recti& childrect ) { _crect = childrect; };
-			const Recti& childrect() const { return _crect;};
+
+			void setClipRect( const Recti& clip ) { _crect = clip; };
+			const Recti& clipRect() const { return _crect;};
+
+			void setTranslation( const Vector2i& t ) { _translation = t; };
+			const Vector2i& translation() const { return _translation };
 
 		private:
 			void psColor( const Color& c );
 
-			std::string _filename;
-			size_t _width, _height;
-			FILE* _fd;
-			Recti _crect;
-			DummyFont _dfont;
+			std::string		_filename;
+			size_t			_width
+			size_t			_height;
+			FILE*			_fd;
+			Recti			_crect;
+			Vector2i		_translation;
+			DummyFont		_dfont;
 	};
 
-	inline GFXEnginePS::GFXEnginePS( const std::string& path, size_t width, size_t height ) : _filename( path ), _width( width ), _height( height ), _fd( 0 )
+	inline GFXEnginePS::GFXEnginePS( const std::string& path, size_t width, size_t height ) : _filename( path ), _width( width ), _height( height ), _fd( 0 ), _translation( 0, 0 )
 	{
 	}
 
