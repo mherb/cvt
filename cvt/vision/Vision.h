@@ -131,6 +131,8 @@ namespace cvt
 							 const Eigen::Matrix<T, 4, 1>& p );
 
 		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale = 1.0f );
+
+		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, float dscale = 1.0f );
     };
 
 

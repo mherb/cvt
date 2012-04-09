@@ -155,22 +155,27 @@ namespace cvt {
 		if( w->parent() != this )
 			return;
 
-		// FIXME: is rect in local coords or in child coords
+		/* get current cliprect and translation */
+		Recti cliprect = gfx->clipRect();
+		/* get child rectangle in global coords */
+		Recti newcliprect = w->rect();
+		Recti childrect = newcliprect;
 
-		/* get current childrect */
-		Recti crect = gfx->childrect( );
-		/* get child rectangle */
-		Recti rchild = w->rect();
-//		rchild.intersect( crect );
+		newcliprect.intersect( cliprect );
 
-		/* set new childrect */
-		gfx->setChildrect( rchild );
-		/* do painting with default GFX */
-		PaintEvent pe( 0, 0, rchild.width, rchild.height );
+		/* set new clipping  */
+		gfx->setClipRect( newcliprect );
+		/* do painting with default GFX, only paint currently visible part */
+		newcliprect.intersect( rect );
+		PaintEvent pe( newcliprect );
+		gfx->setTranslationGlobal( Vector2i( childrect.x, childrect.y ) );
 		gfx->setDefault();
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
-		gfx->setChildrect( crect );
+		Recti thisrect = this->rect();
+		gfx->setTranslationGlobal( Vector2i( thisrect.x, thisrect.y ) );
+		gfx->setDefault();
+		gfx->setClipRect( cliprect );
 	}
 
 	GFXEngine* Widget::gfxEngine()

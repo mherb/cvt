@@ -20,6 +20,9 @@ namespace cvt {
 		SIMD* simd = SIMD::instance();
 
 		Recti rect( 0, 0, _img.width(), _img.height() );
+		Recti fillrect( _rect );
+		fillrect.x += _translation.x;
+		fillrect.y += _translation.y;
 		rect.intersect( _rect );
 		if( rect.isEmpty() )
 			return;
@@ -176,9 +179,12 @@ namespace cvt {
 		Recti rect( 0, 0, _img.width(), _img.height() );
 		Vector2i pt1, pt2;
 
+		n = n >> 1;
 		for( size_t i = 0; i < n; i++ ) {
 			pt1.set( Math::round( pts[ i * 2  ].x ), Math::round( pts[ i * 2 ].y ) );
 			pt2.set( Math::round( pts[ i * 2 + 1 ].x ), Math::round( pts[ i * 2 + 1 ].y ) );
+			pt1 += _translation;
+			pt2 += _translation;
 			if( Clipping::clip( rect, pt1, pt2 ) )
 				drawLine( pt1, pt2, width, c );
 		}
@@ -345,18 +351,14 @@ namespace cvt {
 
 	void GFXEngineImage::drawRect( const Recti& rect, float width, const Color& c )
 	{
-		Vector2i p0, p1;
-		
-		p0.x = rect.x; p0.y = rect.y;
-		p1.x = p0.x + rect.width; p1.y = rect.y;
-		drawLine( p0, p1, width, c );
-		
-		p1.x = p0.x; p1.y = rect.y + rect.height;
-		drawLine( p0, p1, width, c );
+		Vector2f pts[ 5 ];
 
-		p0.x = rect.x + rect.width; p0.y = rect.y + rect.height;
-		drawLine( p0, p1, width, c );
-		p1.x = p0.x; p1.y = rect.y;
-		drawLine( p0, p1, width, c );
+		pts[ 0 ].set( rect.x, rect.y );
+		pts[ 1 ].set( rect.x + rect.width, rect.y );
+		pts[ 2 ].set( rect.x + rect.width, rect.y + rect.height );
+		pts[ 3 ].set( rect.x, rect.y + rect.height );
+		pts[ 4 ] = pts[ 0 ];
+
+		drawLines( pts, 5, width, c );
 	}
 }

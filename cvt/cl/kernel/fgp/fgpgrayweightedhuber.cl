@@ -56,7 +56,7 @@ __kernel void fgp( __write_only image2d_t eout, __read_only image2d_t ein, __rea
 			delta = center - ( float2 ) ( left, top );
 			// image + lambda * div( p )
 			float4 pixel = read_imagef( img, sampler, base + ( int2 )( x, y ) );
-			pixel.x += lambda * pixel.y * ( delta.x + delta.y );
+			pixel.x += lambda * ( delta.x + delta.y );
 			BUF2( x, y ) = pixel;
 		}
 //		for( int x = lx; x < lw + 1; x += lw ) {
@@ -66,7 +66,7 @@ __kernel void fgp( __write_only image2d_t eout, __read_only image2d_t ein, __rea
 			delta = center - ( float2 ) ( left, top );
 			// image + lambda * div( p )
 			float4 pixel = read_imagef( img, sampler, base + ( int2 )( lx, y ) );
-			pixel.x += lambda * pixel.y * ( delta.x + delta.y );
+			pixel.x += lambda * ( delta.x + delta.y );
 			BUF2( lx, y ) = pixel;
 //		}
 	}
@@ -82,9 +82,9 @@ __kernel void fgp( __write_only image2d_t eout, __read_only image2d_t ein, __rea
 
 	// calculate e_{ t + 1 }
 	enew = BUF( lx, ly );
-	enew.xy = enew.xy + ( ( 0.125f / lambda ) * pixel.y ) * ( float2 ) ( dx, dy );
+	enew.xy = enew.xy + ( ( 0.125f / lambda ) ) * ( float2 ) ( dx, dy ) - 0.02f * enew.xy;
 
-	float norm = fmax( 1.0f, fast_length( enew.xy ) / pixel.z );
+	float norm = fmax( 1.0f, fast_length( enew.xy ) / pixel.z  );
 	enew.xy = enew.xy / norm;
 
 	// store e_{ t + 1 }, e_t
