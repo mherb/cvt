@@ -350,11 +350,11 @@ namespace cvt {
 		NodeBase* it = head;
 
 		/*
-			Transform double-lined list
+			Transform double-linked list
 
 			a <-> b <-> c <-> d <-> e
 
-			to list of single-linked lists with a < b, d < c, -> is _prev and | is _next )
+			to list of single-linked lists with a < b, d < c, -> is _prev and | is _next
 																			  v
 			a -> d -> e
 			|	 |    |
