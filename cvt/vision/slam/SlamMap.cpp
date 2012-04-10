@@ -81,27 +81,34 @@ namespace cvt
    }
 
    void SlamMap::selectVisibleFeatures( std::vector<size_t> & visibleFeatureIds,
-                               std::vector<Vector2f> & projections,
-                                const Eigen::Matrix4d&	cameraPose,
-                               const CameraCalibration& camCalib,
-                               double maxDistance ) const
+                                        std::vector<Vector2f> & projections,
+                                        const Eigen::Matrix4d&	cameraPose /* this is the rig pose*/,
+                                        const CameraCalibration& camCalib,
+                                        double maxDistance ) const
    {
       Eigen::Vector4d pointInCam;
       Vector4f pic;
       Vector4f sp;
       Vector2f pointInScreen;
 
+      // this is a hack: we should store the image width/height with the calibration object!
       Vector2f c = camCalib.center();
       c *= 2.0f;
 
       std::set<size_t> usedPoints;
       for( size_t i = 0; i < _keyframes.size(); i++ ){
-         if( _keyframes[ i ].distance( cameraPose ) < maxDistance ){
-            // check if the points of this keyframe would project to this camera
+          double kfDistance = _keyframes[ i ].distance( cameraPose );
+          std::cout << "KF " << i << "distance " << kfDistance << std::endl;
+          if( kfDistance < maxDistance ){
+            // check if the points of this keyframe project to this camera
             const Keyframe& kf = _keyframes[ i ];
 
             Keyframe::MeasurementIterator iter = kf.measurementsBegin();
             const Keyframe::MeasurementIterator measEnd = kf.measurementsEnd();
+
+            if( iter == measEnd ){
+                throw CVTException( "KEYFRAME HAS NO 2D MEASUREMENTS" );
+            }
 
             while( iter != measEnd ){
                size_t fId = iter->first;
