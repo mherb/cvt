@@ -44,13 +44,13 @@ namespace cvt {
 			const Recti& clipRect() const { return _crect;};
 
 			void setTranslation( const Vector2i& t ) { _translation = t; };
-			const Vector2i& translation() const { return _translation };
+                        const Vector2i& translation() const { return _translation; }
 
 		private:
 			void psColor( const Color& c );
 
 			std::string		_filename;
-			size_t			_width
+                        size_t			_width;
 			size_t			_height;
 			FILE*			_fd;
 			Recti			_crect;
