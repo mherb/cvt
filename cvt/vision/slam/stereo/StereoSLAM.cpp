@@ -58,8 +58,12 @@ namespace cvt
       // predict current visible features by projecting with current estimate of pose
       std::vector<Vector2f> predictedPositions;
       std::vector<size_t>   predictedFeatureIds;
-      _map.selectVisibleFeatures( predictedFeatureIds, predictedPositions,
-                           _pose.transformation(), _camCalib0, 3.0f /* TODO: make it a param */  );
+      _map.selectVisibleFeatures(  predictedFeatureIds, predictedPositions,
+                                  _pose.transformation(), _camCalib0, 3.0f /* TODO: make it a param */  );
+
+      for( size_t i = 0; i < predictedPositions.size(); i++ ){
+          std::cout << "PredictedPos: " << predictedPositions[ i ] << std::endl;
+      }
 
       // track the predicted features
       PointSet2d p2d;
@@ -224,6 +228,9 @@ namespace cvt
 
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
+
+       // TODO: also add the currently tracked ones from previous keyframes!
+
    }
 
    void StereoSLAM::debugPatchWorkImage( const std::set<size_t> & indices,

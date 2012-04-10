@@ -46,13 +46,13 @@ namespace cvt
          float                          _windowRadius;
 
          /* orb parameters */
-         size_t						_orbOctaves;
+         size_t                         _orbOctaves;
          float							_orbScaleFactor;
          uint8_t						_orbCornerThreshold;
-         size_t						_orbMaxFeatures;
+         size_t                         _orbMaxFeatures;
          bool							_orbNonMaxSuppression;
          ORB							_orb0;
-         std::set<size_t>			_orb0MatchedIds;
+         std::set<size_t>               _orb0MatchedIds;
 
          int matchInWindow( FeatureMatch& match, const Vector2f & p, const ORB & orb, const std::set<size_t> & used ) const;
 
