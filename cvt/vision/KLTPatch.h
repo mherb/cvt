@@ -22,7 +22,7 @@ namespace cvt
 	{
 		public:
 			typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
-			typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>				   JacType;
+                        typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>		   JacType;
 
 			KLTPatch( size_t octaves = 1 );
 
@@ -45,9 +45,9 @@ namespace cvt
 			uint8_t*		 transformed( size_t octave = 0 )		 { return _patchDataForScale[ octave ].transformed; }    
 
 			const HessType&  inverseHessian( size_t octave = 0 ) const { return _patchDataForScale[ octave ].inverseHessian; }
-			const JacType*   jacobians( size_t octave = 0 )		 const { return _patchDataForScale[ octave ].jac; }
+                        const JacType*   jacobians( size_t octave = 0 )      const { return _patchDataForScale[ octave ].jac; }
 
-			size_t size() const { return pSize; }
+                        static size_t size() { return pSize; }
 
 			/**
 			 *	\brief	number of scales that are stored with this patch
@@ -178,8 +178,8 @@ namespace cvt
 
 	template <size_t pSize, class PoseType>
 	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
-														   const std::vector<Vector2f> & positions, 
-														   const Image & img )
+                                                               const std::vector<Vector2f> & positions,
+                                                               const Image & img )
 	{
 		size_t s;
 		const uint8_t* ptr = img.map( &s );
@@ -217,15 +217,12 @@ namespace cvt
 	
 	template <size_t pSize, class PoseType>
 	inline void KLTPatch<pSize, PoseType>::extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
-														   const std::vector<Vector2f> & positions, 
-														   const ImagePyramid & pyr )
+                                                               const std::vector<Vector2f> & positions,
+                                                               const ImagePyramid & pyr )
 	{
-
-
 		int x, y;
 
 		KLTPatch<pSize, PoseType>* patch = 0;
-
 
 		std::vector<const uint8_t*> maps;
 		std::vector<size_t> strides;

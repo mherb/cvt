@@ -97,8 +97,7 @@ namespace cvt
 
       std::set<size_t> usedPoints;
       for( size_t i = 0; i < _keyframes.size(); i++ ){
-          double kfDistance = _keyframes[ i ].distance( cameraPose );
-          std::cout << "KF " << i << "distance " << kfDistance << std::endl;
+          double kfDistance = _keyframes[ i ].distance( cameraPose );          
           if( kfDistance < maxDistance ){
             // check if the points of this keyframe project to this camera
             const Keyframe& kf = _keyframes[ i ];
@@ -113,6 +112,7 @@ namespace cvt
                if( usedPoints.find( fId ) == usedPoints.end() ){
                   pointInCam = cameraPose * feature.estimate();
                   pointInCam /= pointInCam[ 3 ];
+
                   if( pointInCam[ 2 ] > 0.0 ){
                      pic[ 0 ] = ( float )pointInCam[ 0 ];
                      pic[ 1 ] = ( float )pointInCam[ 1 ];
