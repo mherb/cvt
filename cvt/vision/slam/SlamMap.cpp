@@ -106,10 +106,6 @@ namespace cvt
             Keyframe::MeasurementIterator iter = kf.measurementsBegin();
             const Keyframe::MeasurementIterator measEnd = kf.measurementsEnd();
 
-            if( iter == measEnd ){
-                throw CVTException( "KEYFRAME HAS NO 2D MEASUREMENTS" );
-            }
-
             while( iter != measEnd ){
                size_t fId = iter->first;
                const MapFeature& feature = _features[ fId ];
