@@ -91,7 +91,7 @@ int main( int argc, char* argv[] )
     //String id0( "4002738788" );
     //String id1( "4002738791" );
     
-	String id0( "4002738790" );
+    String id0( "4002738790" );
     String id1( "4002738788" );
 
     CameraCalibration camCalib0, camCalib1;
@@ -106,11 +106,21 @@ int main( int argc, char* argv[] )
                                 folder );
     } else {
         initCameras( input, id0, id1 );
-        String calib0 = r.find( "stereoSLAM/calib/ueye_4002738788.xml" );
-        String calib1 = r.find( "stereoSLAM/calib/ueye_4002738790.xml" );
+        String path;
+        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id0.c_str() );
+        String calib0 = r.find( path );
+        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id1.c_str() );
+        String calib1 = r.find( path );
         camCalib0.load( calib0 );
         camCalib1.load( calib1 );
     }
+
+    std::cout << "Calib0: " << std::endl;
+    std::cout << camCalib0.extrinsics() << std::endl;
+    std::cout << camCalib0.intrinsics() << std::endl;
+    std::cout << camCalib0.projectionMatrix() << std::endl;
+    getchar();
+
 
     input[ 0 ]->nextFrame();
     input[ 1 ]->nextFrame();

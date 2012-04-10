@@ -42,7 +42,7 @@ namespace cvt
          uint32_t                   _timerId;
 
          // the gui
-         SLAMGui					_gui;
+         SLAMGui		    _gui;
 
          Time                       _time;
          size_t                     _timeIter;

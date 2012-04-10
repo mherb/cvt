@@ -14,9 +14,9 @@ namespace cvt
                                  const CameraCalibration & c0,
                                  const CameraCalibration & c1 ):
       _cams( cams ),
-      _featureTracking( new ORBTracking() ),
-      //_featureTracking( new KLTTracking() ),
-       _depthInit( new ORBStereoInit( c0, c1, 4.0f, 60.0f ) ),
+      //_featureTracking( new ORBTracking() ),
+      _featureTracking( new KLTTracking( 3, 0.5f ) ),
+       _depthInit( new ORBStereoInit( c0, c1, 5.0f, 20.0f ) ),
       _slam( _featureTracking, _depthInit, cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 1 ]->width(), cams[ 1 ]->height() ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),

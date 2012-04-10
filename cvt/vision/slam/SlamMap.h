@@ -29,16 +29,39 @@ namespace cvt
 
          void clear();
 
+        /**
+         *	\brief		add a new keyframe to the map
+         *	\param pose	the pose of the keyframe in the map: TODO: should be KF to world <- verify
+         */
          size_t addKeyframe( const Eigen::Matrix4d& pose );
+
+        /**
+         *	\brief 		add a new 3D feature to the map
+         *	\param world	the mapfeature to add
+         *	\return 	the id of the newly added feature in the map
+         */
          size_t addFeature( const MapFeature& world );
 
+        /**
+         *	\brief			add a new feature to a given keyframe (and the map)
+         *	\param	world		the 3D MapFeature
+         *	\param	feature		the 2D Measurement of the feature in the keyframe
+         *	\param	keyframeId	the id of the keyframe
+         *	\return 		the id of the newly added feature in the map
+         */
          size_t addFeatureToKeyframe( const MapFeature& world,
                                       const MapMeasurement& feature,
                                       size_t keyframeId );
 
+         /**
+          *	\brief		adds a measurement to the point track of a given MapMeasurement and Keyframe
+          *	\param	pointId	id of the 3D map measurement
+          *	\param	keyframeId id of the keyframe
+          *	\param	meas	the map measurement to add
+          */
          void addMeasurement( size_t pointId,
-                          size_t keyframeId,
-                         const MapMeasurement& meas );
+                              size_t keyframeId,
+                              const MapMeasurement& meas );
 
 
          int findClosestKeyframe( const Eigen::Matrix4d& worldT ) const;

@@ -16,7 +16,7 @@
 #include <cvt/vision/slam/MapFeature.h>
 #include <cvt/vision/slam/stereo/DescriptorDatabase.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
-#include <cvt/vision/slam/stereo/ORBStereoMatching.h>
+#include <cvt/vision/FeatureMatch.h>
 
 namespace cvt
 {

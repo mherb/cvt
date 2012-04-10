@@ -10,6 +10,18 @@
  */
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
 
+//#include <cvt/vision/EPnP.h>
+//#include <cvt/math/sac/RANSAC.h>
+//#include <cvt/math/sac/EPnPSAC.h>
+#include <cvt/math/LevenbergMarquard.h>
+#include <cvt/vision/PointCorrespondences3d2d.h>
+#include <cvt/gfx/ifilter/IWarp.h>
+#include <cvt/gfx/GFXEngineImage.h>
+#include <cvt/vision/Vision.h>
+#include <cvt/vision/slam/stereo/FeatureAnalyzer.h>
+#include <cvt/util/Time.h>
+
+
 namespace cvt
 {
    StereoSLAM::StereoSLAM( FeatureTracking* ft,
@@ -46,7 +58,7 @@ namespace cvt
       cy = c1.intrinsics()[ 1 ][ 2 ];
       IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
       Eigen::Matrix3d K;
-      EigenBridge::toEigen( K, _camCalib0.intrinsics() );
+      EigenBridge::toEigen( K, c0.intrinsics() );
       _map.setIntrinsics( K );
    }
 
@@ -59,11 +71,7 @@ namespace cvt
       std::vector<Vector2f> predictedPositions;
       std::vector<size_t>   predictedFeatureIds;
       _map.selectVisibleFeatures(  predictedFeatureIds, predictedPositions,
-                                  _pose.transformation(), _camCalib0, 3.0f /* TODO: make it a param */  );
-
-      for( size_t i = 0; i < predictedPositions.size(); i++ ){
-          std::cout << "PredictedPos: " << predictedPositions[ i ] << std::endl;
-      }
+                                  _pose.transformation(), _depthInit->calibration0(), 3.0f /* TODO: make it a param */  );
 
       // track the predicted features
       PointSet2d p2d;
@@ -85,7 +93,7 @@ namespace cvt
          estimateCameraPose( p3d, p2d );
       } else {
          // too few features -> lost track: relocalization needed
-          std::cout << "Too few features tracked" << std::endl;
+          std::cout << "Too few features tracked - relocalization needed" << std::endl;
       }
 
       if( newKeyframeNeeded( numTrackedFeatures ) ){
@@ -113,7 +121,7 @@ namespace cvt
 
          if( triangulated.size() > 10 ){
              // create new keyframe with map features
-             addNewKeyframe( triangulated );
+             addNewKeyframe( triangulated, p2d, trackedIds );
 
              if( _map.numKeyframes() > 1 ){
                 _bundler.run( &_map );
@@ -136,11 +144,11 @@ namespace cvt
 
    void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
    {
-      const Matrix3f & kf = _camCalib0.intrinsics();
+      const Matrix3f & kf = _depthInit->calibration0().intrinsics();
       Eigen::Matrix<double, 3, 3> Ke;
       Eigen::Matrix<double, 4, 4> extrC;
       EigenBridge::toEigen( Ke, kf );
-      EigenBridge::toEigen( extrC, _camCalib0.extrinsics() );
+      EigenBridge::toEigen( extrC,  _depthInit->calibration0().extrinsics() );
 
       Eigen::Matrix4d me;
       /*
@@ -206,7 +214,9 @@ namespace cvt
       _pose.set( pe );
    }
 
-   void StereoSLAM::addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated )
+   void StereoSLAM::addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
+                                   const PointSet2d& p2d,
+                                   const std::vector<size_t>& trackedIds )
    {
        Eigen::Matrix4d poseInv = _pose.transformation().inverse();
        size_t kid = _map.addKeyframe( _pose.transformation() );
@@ -225,11 +235,13 @@ namespace cvt
            mf.estimate() = poseInv * p3d;
 
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
-
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
 
-       // TODO: also add the currently tracked ones from previous keyframes!
+       for( size_t i = 0; i < trackedIds.size(); i++ ){
+           EigenBridge::toEigen( mm.point, p2d[ i ] );
+           _map.addMeasurement( trackedIds[ i ], kid, mm );
+       }
 
    }
 

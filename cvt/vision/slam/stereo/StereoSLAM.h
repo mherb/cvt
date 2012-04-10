@@ -11,32 +11,14 @@
 #ifndef CVT_STEREO_SLAM_H
 #define CVT_STEREO_SLAM_H
 
-#include <cvt/vision/CameraCalibration.h>
-#include <cvt/vision/PointCorrespondences3d2d.h>
-#include <cvt/gfx/ifilter/IWarp.h>
-#include <cvt/gfx/GFXEngineImage.h>
-#include <cvt/vision/Vision.h>
-#include <cvt/vision/EPnP.h>
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/gfx/Image.h>
 #include <cvt/math/SE3.h>
-#include <cvt/math/sac/RANSAC.h>
-#include <cvt/math/sac/EPnPSAC.h>
-#include <cvt/math/LevenbergMarquard.h>
 #include <cvt/util/Signal.h>
-#include <cvt/util/Time.h>
-#include <cvt/util/ParamSet.h>
-
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
-
+#include <cvt/vision/FeatureMatch.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
-
-#include <cvt/vision/slam/stereo/DescriptorDatabase.h>
-
-#include <cvt/vision/slam/stereo/ORBTracking.h>
-#include <cvt/vision/slam/stereo/FeatureAnalyzer.h>
-
 #include <cvt/vision/slam/stereo/MapOptimizer.h>
 
 #include <set>
@@ -76,9 +58,7 @@ namespace cvt
          Signal<size_t>             numTrackedPoints;
 
       private:
-         /* camera calibration data and undistortion maps */
-         CameraCalibration  _camCalib0;
-         CameraCalibration  _camCalib1;
+         /* undistortion maps */
          Image              _undistortMap0;
          Image              _undistortMap1;
 
@@ -115,7 +95,9 @@ namespace cvt
 
          void fillPointsetFromIds( PointSet3d& pset, const std::vector<size_t>& ids ) const;
 
-         void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated );
+         void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
+                              const PointSet2d& p2d,
+                              const std::vector<size_t>& trackedIds );
 
          void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
 

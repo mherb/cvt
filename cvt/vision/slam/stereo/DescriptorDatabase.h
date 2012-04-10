@@ -24,8 +24,7 @@ namespace cvt
 
 			void clear();
 			void addDescriptor( const Desc & desc, size_t id );
-
-			const Desc & descriptor( size_t id ) const;
+                        const Desc& descriptor( size_t id ) const;
 
 		private:
 			std::vector<Desc*>	_descriptors;
