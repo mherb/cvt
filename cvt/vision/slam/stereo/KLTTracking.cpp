@@ -16,16 +16,21 @@ namespace cvt
         _klt( 10 ),
         _numOctaves( kltOctaves ),
         _pyramid( _numOctaves, scaleFactor ),
-        _ssdThreshold( Math::sqr( 60.0f ) ),
-        _sadThreshold( 50 )
+        _ssdThreshold( Math::sqr( 50.0f ) ),
+        _sadThreshold( 25 )
     {
     }
 
-    void KLTTracking::trackFeatures( PointSet2d&			trackedPositions,
-                                     std::vector<size_t>&		trackedFeatureIds,
+    KLTTracking::~KLTTracking()
+    {
+        clear();
+    }
+
+    void KLTTracking::trackFeatures( PointSet2d&                    trackedPositions,
+                                     std::vector<size_t>&           trackedFeatureIds,
                                      const std::vector<Vector2f>&	predictedPositions,
                                      const std::vector<size_t>&		predictedIds,
-                                     const Image&			img )
+                                     const Image&                   img )
     {
         _pyramid.update( img );
 
@@ -39,8 +44,14 @@ namespace cvt
         for( size_t i = 0; i < predictedPositions.size(); i++ ){
             const Vector2f& p = predictedPositions[ i ];
 
+            size_t id = predictedIds[ i ];
             //  get the patch
-            PatchType* patch = _patchForId[ predictedIds[ i ] ];
+            PatchType* patch = _patchForId[ id ];
+
+            if( patch == 0 ){
+                // this was a bad PATCH
+                continue;
+            }
 
             //  update patch position to current predicted one
             Eigen::Matrix3f & m = patch->pose().transformation();
@@ -56,7 +67,7 @@ namespace cvt
                     if( sad < maxSAD ){
                         patch->currentCenter( center );
                         trackedPositions.add( Vector2d( center.x, center.y ) );
-                        trackedFeatureIds.push_back( predictedIds[ i ] );
+                        trackedFeatureIds.push_back( id );
                     }
                 }
             }
@@ -65,21 +76,23 @@ namespace cvt
 
     void KLTTracking::addFeatureToDatabase( const Vector2f & f, size_t id )
     {
-        if( _patchForId.size() <= id ){
-            _patchForId.resize( id + 2000, 0 );
-        } else if( _patchForId[ id ] != 0 ){
-            delete _patchForId[ id ];
-        }
-
         std::vector<PatchType*> patches;
         std::vector<Vector2f>  feature;
         feature.push_back( f );
 
         PatchType::extractPatches( patches, feature, _pyramid );
 
-        if( patches.size() ){
-            _patchForId[ id ] = patches[ 0 ];
+        if( id != _patchForId.size() ){
+            throw CVTException( "Patch IDs out of sync" );
         }
+
+        // FIXME: shall we handle this differently?
+        // Problem: Map has already added feature with id at this point
+        if( patches.size() )
+            _patchForId.push_back( patches[ 0 ] );
+        else
+            _patchForId.push_back( 0 );
+
     }
 
 
