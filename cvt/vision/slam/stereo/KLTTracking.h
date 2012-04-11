@@ -23,6 +23,7 @@ namespace cvt
     {
         public:
             KLTTracking( size_t kltOctaves, float scaleFactor );
+            ~KLTTracking();
 
             /**
              * \brief track features in the current Image

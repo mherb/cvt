@@ -235,6 +235,7 @@ namespace cvt
            mf.estimate() = poseInv * p3d;
 
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
+           std::cout << __FUNCTION__ << " new feature with id: " << featureId << std::endl;
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
 
