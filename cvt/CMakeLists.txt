@@ -237,6 +237,8 @@ SET(${MODULE_NAME}_HEADERS
    gl/GLException.h
    gl/GLProgram.h
    gl/GLBuffer.h
+   gl/GLLines.h
+   gl/GLPoints.h
    gl/GLTexture.h
    gl/GLVertexArray.h
    gl/GFXEngineGL.h

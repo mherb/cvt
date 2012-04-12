@@ -17,6 +17,7 @@
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
 #include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/slam/stereo/MapOptimizer.h>
@@ -103,6 +104,8 @@ namespace cvt
 
          void createDebugImageStereo( Image & debugImage,
                                       const std::vector<DepthInitializer::DepthInitResult>& triang ) const;
+
+         void createUndistortionMaps( const CameraCalibration& c0, const CameraCalibration& c1 );
    };
 
 }

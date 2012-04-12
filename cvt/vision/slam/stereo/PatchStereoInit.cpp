@@ -23,7 +23,7 @@ namespace cvt {
         _pyramidView0( 3, 0.5f ),
         _pyramidView1( 3, 0.5f ),
         _maxNewFeatures( 1000 ),
-        _maxSAD( 25 * Math::sqr( PatchSize ) ),
+        _maxSAD( 40 * Math::sqr( PatchSize ) ),
         _maxEpilineDistance( 5.0f )
     {
         _detector.setBorder( 16 );
@@ -52,7 +52,9 @@ namespace cvt {
         std::vector<Feature2Df> features0, features1;
 
         // first, detect the features in both views over multiple scales
+        _detector.setNonMaxSuppress( true );
         detectFeatures( features0, _pyramidView0 );
+        _detector.setNonMaxSuppress( false );
         detectFeatures( features1, _pyramidView1 );
 
         std::vector<Vector2f> filtered0;

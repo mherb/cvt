@@ -34,29 +34,15 @@ namespace cvt
        _activeKF( -1 ),
        _minKeyframeDistance( 0.05 ),
        _maxKeyframeDistance( 0.5 )
-   {
+   {       
+       const CameraCalibration& c0 = _depthInit->calibration0();
+       const CameraCalibration& c1 = _depthInit->calibration1();
+
       // create the undistortion maps
       _undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
-
-      const CameraCalibration& c0 = _depthInit->calibration0();
-      const CameraCalibration& c1 = _depthInit->calibration1();
-
-      Vector3f radial = c0.radialDistortion();
-      Vector2f tangential = c0.tangentialDistortion();
-      float fx = c0.intrinsics()[ 0 ][ 0 ];
-      float fy = c0.intrinsics()[ 1 ][ 1 ];
-      float cx = c0.intrinsics()[ 0 ][ 2 ];
-      float cy = c0.intrinsics()[ 1 ][ 2 ];
-      IWarp::warpUndistort( _undistortMap0, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w0, h0, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-
       _undistortMap1.reallocate( w1, h1, IFormat::GRAYALPHA_FLOAT );
-      radial = c1.radialDistortion();
-      tangential = c1.tangentialDistortion();
-      fx = c1.intrinsics()[ 0 ][ 0 ];
-      fy = c1.intrinsics()[ 1 ][ 1 ];
-      cx = c1.intrinsics()[ 0 ][ 2 ];
-      cy = c1.intrinsics()[ 1 ][ 2 ];
-      IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+      createUndistortionMaps( c0, c1 );
+
       Eigen::Matrix3d K;
       EigenBridge::toEigen( K, c0.intrinsics() );
       _map.setIntrinsics( K );
@@ -234,8 +220,7 @@ namespace cvt
 
            mf.estimate() = poseInv * p3d;
 
-           size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
-           std::cout << __FUNCTION__ << " new feature with id: " << featureId << std::endl;
+           size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );           
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
 
@@ -349,5 +334,29 @@ namespace cvt
          double n = 1.0 / p[ 3 ];
          pset.add( Vector3d( p[ 0 ] * n, p[ 1 ] * n, p[ 2 ] * n  ) );
       }
+   }
+
+   void StereoSLAM::createUndistortionMaps( const CameraCalibration& c0, const CameraCalibration& c1 )
+   {
+       size_t w0 = _undistortMap0.width();
+       size_t h0 = _undistortMap0.height();
+       size_t w1 = _undistortMap1.width();
+       size_t h1 = _undistortMap1.height();
+
+       Vector3f radial = c0.radialDistortion();
+       Vector2f tangential = c0.tangentialDistortion();
+       float fx = c0.intrinsics()[ 0 ][ 0 ];
+       float fy = c0.intrinsics()[ 1 ][ 1 ];
+       float cx = c0.intrinsics()[ 0 ][ 2 ];
+       float cy = c0.intrinsics()[ 1 ][ 2 ];
+       IWarp::warpUndistort( _undistortMap0, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w0, h0, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+
+       radial = c1.radialDistortion();
+       tangential = c1.tangentialDistortion();
+       fx = c1.intrinsics()[ 0 ][ 0 ];
+       fy = c1.intrinsics()[ 1 ][ 1 ];
+       cx = c1.intrinsics()[ 0 ][ 2 ];
+       cy = c1.intrinsics()[ 1 ][ 2 ];
+       IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
    }
 }
