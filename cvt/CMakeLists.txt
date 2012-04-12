@@ -410,6 +410,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/stereo/FeatureAnalyzer.h
    vision/slam/stereo/DepthInitializer.h
    vision/slam/stereo/ORBStereoInit.h
+   vision/slam/stereo/PatchStereoInit.h
    io/xml/XMLAttribute.h
    io/xml/XMLCData.h
    io/xml/XMLComment.h
@@ -579,6 +580,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/stereo/ORBTracking.cpp
    vision/slam/stereo/StereoSLAM.cpp
    vision/slam/stereo/ORBStereoInit.cpp
+   vision/slam/stereo/PatchStereoInit.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp
    io/xml/XMLDecoderUTF8.cpp

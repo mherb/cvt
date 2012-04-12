@@ -15,8 +15,7 @@ namespace cvt
 
    ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1, float maxEpilineDistance, float maxDescriptorDistance ) :
        DepthInitializer( c0, c1 ),
-       _matcher( maxEpilineDistance, maxDescriptorDistance, c0, c1 ),
-       _maxTriangError( 2.0f )
+       _matcher( maxEpilineDistance, maxDescriptorDistance, c0, c1 )
    {
    }
 
@@ -56,7 +55,9 @@ namespace cvt
                 result.meas1 = match.feature1->pt;
                 Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _matcher.fundamental() );
 
-                result.reprojectionError = triangulateSinglePoint( result.point3d, result.meas0, result.meas1, _calib0.projectionMatrix(), _calib1.projectionMatrix() );
+                triangulateSinglePoint( result,
+                                        _calib0.projectionMatrix(),
+                                        _calib1.projectionMatrix() );
 
                 if( result.reprojectionError < _maxTriangError ){
                     triangulated.push_back( result );

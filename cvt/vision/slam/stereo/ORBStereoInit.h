@@ -25,12 +25,8 @@ namespace cvt
                                     const std::vector<Vector2f> & avoidPositionsImg0,
                                     const Image& view0, const Image& view1 );
 
-          void  setMaxTriangulationError( float v ) { _maxTriangError = v; }
-          float maxTriangulationError() const       { return _maxTriangError; }
-
       private:
           ORBStereoMatching     _matcher;
-          float                 _maxTriangError;
    };
 
 }

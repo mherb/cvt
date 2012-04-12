@@ -7,6 +7,7 @@
 #include <cvt/vision/slam/stereo/KLTTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/slam/stereo/ORBStereoInit.h>
+#include <cvt/vision/slam/stereo/PatchStereoInit.h>
 
 namespace cvt
 {
@@ -16,7 +17,8 @@ namespace cvt
       _cams( cams ),
       //_featureTracking( new ORBTracking() ),
       _featureTracking( new KLTTracking( 3, 0.5f ) ),
-       _depthInit( new ORBStereoInit( c0, c1, 5.0f, 20.0f ) ),
+      //_depthInit( new ORBStereoInit( c0, c1, 5.0f, 20.0f ) ),
+      _depthInit( new PatchStereoInit( c0, c1 ) ),
       _slam( _featureTracking, _depthInit, cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 1 ]->width(), cams[ 1 ]->height() ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
