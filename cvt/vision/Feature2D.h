@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef CVT_FEATURE2D_H
 #define CVT_FEATURE2D_H
@@ -15,23 +15,23 @@
 #include <vector>
 
 namespace cvt {
-	template<typename T>
-	struct Feature2D {
-		Feature2D( T x = 0, T y = 0, float angle = 0.0f, size_t octave = 0, float score = 0.0f );
+    template<typename T>
+    struct Feature2D {
+        Feature2D( T x = 0, T y = 0, float angle = 0.0f, size_t octave = 0, float score = 0.0f );
 
-		Vector2<T> pt;
-		float angle;
-		size_t octave;
+        Vector2<T> pt;
+        float angle;
+        size_t octave;
         float score;
-	};
+    };
 
     template <typename T>
-	inline Feature2D<T>::Feature2D( T x, T y, float a, size_t o, float sc ) : pt( x, y ), angle( a ), octave( o ), score( sc )
-	{
-	}
+    inline Feature2D<T>::Feature2D( T x, T y, float a, size_t o, float sc ) : pt( x, y ), angle( a ), octave( o ), score( sc )
+    {
+    }
 
-	typedef Feature2D<int> Feature2Di;
-	typedef Feature2D<float> Feature2Df;
+    typedef Feature2D<int> Feature2Di;
+    typedef Feature2D<float> Feature2Df;
 
     template<typename T>
     struct VectorFeature2DInserter
@@ -51,6 +51,36 @@ namespace cvt {
 
         VectorFeature2DInserter( const std::vector<Feature2D<T> > & );
     };
+
+    template<typename T>
+    struct ScaleSpaceFeatureInserter
+    {
+        ScaleSpaceFeatureInserter( std::vector<Feature2D<T> >  & vec ) :
+            scale( 1.0f ),
+            octave( 0 ),
+            _vec( vec )
+        {
+        }
+
+        void operator()( T x, T y )
+        {
+            _vec.push_back( Feature2D<T>( scale * x, scale * y, 0.0f, octave ) );
+        }
+
+        /**
+         *  \brief multiplicative scale factor applied to the positions
+         */
+        float  scale;
+        size_t octave;
+
+    private:
+        std::vector<Feature2D<T> >  & _vec;
+
+        ScaleSpaceFeatureInserter( const std::vector<Feature2D<T> > & );
+    };
+
+    typedef ScaleSpaceFeatureInserter<float>    ScaleSpaceFeatureInserterf;
+    typedef ScaleSpaceFeatureInserter<int>      ScaleSpaceFeatureInserteri;
 
 
     template<typename T>
