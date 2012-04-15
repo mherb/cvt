@@ -286,6 +286,7 @@ SET(${MODULE_NAME}_HEADERS
    io/Resources.h
    io/RawVideoWriter.h
    io/RawVideoReader.h
+   io/RGBDParser.h
    io/VideoInput.h
    io/VideoReader.h
    io/Postscript.h
@@ -523,6 +524,7 @@ SET(${MODULE_NAME}_SOURCES
    io/Resources.cpp
    io/RawVideoWriter.cpp
    io/RawVideoReader.cpp
+   io/RGBDParser.cpp
    io/VideoReader.cpp
    io/Host.cpp
    io/Socket.cpp
