@@ -10,6 +10,7 @@
 #include <cvt/geom/scene/ScenePoints.h>
 #include <cvt/gl/GLPoints.h>
 #include <cvt/gl/GLLines.h>
+#include <cvt/io/VideoInput.h>
 
 namespace cvt {
 	class GLSceneView : public GLView
@@ -19,23 +20,24 @@ namespace cvt {
 			~GLSceneView();
 
 			void paintGLEvent( PaintEvent* );
-
 			void mousePressEvent( MousePressEvent* e );
 			void mouseReleaseEvent( MouseReleaseEvent* e );
 			void mouseMoveEvent( MouseMoveEvent* e);
 			void resizeEvent( ResizeEvent* e );
 
-		private:
-//			GLProgram _prog;
-			float			_scale;
-			GLBasicProg		_prog;
-			GLPoints		_points;			
-			ArcBall			_arcball;
-			Matrix4f		_transformation;
-			Vector2i		_mousepress;
+                        void setScenePoints( const ScenePoints& pts );
+
+                private:
+                        float                       _scale;
+                        GLBasicProg                 _prog;
+                        GLPoints                    _points;
+                        ArcBall                     _arcball;
+                        Matrix4f                    _transformation;
+                        Vector2i                    _mousepress;
 	};
 
-        inline GLSceneView::GLSceneView() : _scale( 1.0f )
+        inline GLSceneView::GLSceneView() :
+            _scale( 1.0f )
 	{
 		_transformation.setIdentity();
 	}
@@ -66,10 +68,8 @@ namespace cvt {
 			_prog.setProjection( proj * tmp );
 
 			glEnable( GL_DEPTH_TEST );
-			_points.draw();			
-			Boxf box( -0.2, 0.0, 0.4, 0.8f, 1.0f, 1.4f );
-			GLLines glbox( box, Color::RED );
-			glbox.draw();
+                        glPointSize( 3.0f );
+                        _points.draw();
 			glDisable( GL_DEPTH_TEST );
 
 		}
@@ -119,6 +119,12 @@ namespace cvt {
 			update();
 		}
 	}
+
+        inline void GLSceneView::setScenePoints( const ScenePoints& pts )
+        {
+            _points.setScenePoints( pts );
+            update();
+        }
 }
 
 #endif

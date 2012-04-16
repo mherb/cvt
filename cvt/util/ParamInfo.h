@@ -48,10 +48,15 @@ namespace cvt
 	{		
 		public:
 			virtual ~ParamInfo(){}
-		
+
+                        /**
+                         *  \brief descriptive type
+                         */
 			ParamType	type;			
 
-			/* descriptive name */
+                        /**
+                         *  \brief descriptive name
+                         */
 			std::string	name;
 
 			/* count times this type */
