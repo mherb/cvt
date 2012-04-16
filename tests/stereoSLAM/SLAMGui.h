@@ -7,8 +7,10 @@
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gfx/GFXEngineImage.h>
+#include <cvt/gui/ParamSetView.h>
 
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
+
 #include "SLAMView.h"
 
 namespace cvt
@@ -16,7 +18,7 @@ namespace cvt
 	class SLAMGui : public Window 
 	{
 		public:
-			SLAMGui(); 
+                        SLAMGui( ParamSet& depthInitParams );
 			~SLAMGui();
 
 			void setCurrentImage( const Image& img );
@@ -48,7 +50,10 @@ namespace cvt
 			Label		_fpsLabel;
 			Button		_resetCamera;
 			Button		_saveMap;
-			Button		_resetMap;
+                        Button		_resetMap;
+                        ParamSetView    _depthInitParamsView;
+                        Moveable        _depthParamsMov;
+
 
 			float		_imageAspect;
 			
@@ -57,7 +62,7 @@ namespace cvt
 			void setupGui();
 	};
 
-	inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
+        inline SLAMGui::SLAMGui( ParamSet& depthInitParams ) : Window( "SLAMGui" ),
 		_currentMov( &_currentImg ),
 		_stereoMov( &_stereoView ),
 		_slamMov( &_slamView ),
@@ -67,6 +72,8 @@ namespace cvt
 		_resetCamera( "Set Cam" ),
 		_saveMap( "Save Map" ),
 		_resetMap( "Clear Map" ),
+                _depthInitParamsView( depthInitParams ),
+                _depthParamsMov( &_depthInitParamsView ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
@@ -92,6 +99,10 @@ namespace cvt
 		_stereoMov.setPosition( 0, 300 );
 
 		_slamMov.setSize( 320, 240 );
+
+                _depthParamsMov.setSize( 320, 300 );
+                _depthParamsMov.setTitle( "DepthInit Parameters" );
+                addWidget( &_depthParamsMov );
 
 		// buttons to the top right
 		WidgetLayout wl;

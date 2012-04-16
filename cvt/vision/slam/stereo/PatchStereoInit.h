@@ -32,13 +32,15 @@ namespace cvt {
 
             struct Parameters
             {
-                size_t  maxNewFeatures;
-                size_t  maxSAD;
-                float   maxEpilineDistance;
-                float   maxReprojectionError;
-                float   maxDepth;
-                float   minDepth;
-                uint8_t fastThreshold;
+                size_t   maxNewFeatures;
+                size_t   maxSAD;
+                float    maxEpilineDistance;
+                float    maxReprojectionError;
+                float    maxDepth;
+                float    minDepth;
+                uint8_t  fastThreshold;
+                uint16_t gridSize;
+                float    minInterFeatureDistance;
             };
 
         private:

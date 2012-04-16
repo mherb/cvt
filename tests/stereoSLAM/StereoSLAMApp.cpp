@@ -22,6 +22,7 @@ namespace cvt
       _slam( _featureTracking, _depthInit, cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 1 ]->width(), cams[ 1 ]->height() ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
+       _gui( _depthInit->parameters() ),
       _stepping( false ),
       _nextImage( true )
    {

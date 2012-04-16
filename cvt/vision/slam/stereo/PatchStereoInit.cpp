@@ -27,14 +27,16 @@ namespace cvt {
         new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 3.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
         new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
         new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 30.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxDepth ) ),
-        new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 20, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) )
+        new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 20, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) ),
+        new ParamInfoTyped<uint16_t>( "gridSize", 1, 1000, 30, true, 1, offsetof( PatchStereoInit::Parameters, gridSize ) ),
+        new ParamInfoTyped<float>( "minInterFeatureDistance", 2.0f, 200.0f, 20.0f, true, 1, offsetof( PatchStereoInit::Parameters, minInterFeatureDistance ) )
     };
 
     PatchStereoInit::PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ):
         DepthInitializer( c0, c1 ),
         _pyramidView0( 3, 0.5f ),
         _pyramidView1( 3, 0.5f ),
-        _pset( _pinfos, 7, false )
+        _pset( _pinfos, 9, false )
     {
         _params = _pset.ptr<Parameters>();
         _detector.setBorder( 16 );
@@ -84,7 +86,7 @@ namespace cvt {
         for( size_t i = 0; i < pyramid.octaves(); i++ ){
             inserter.octave = i;
             _detector.extract( pyramid[ i ], inserter );
-            inserter.scale *= pyramid.scaleFactor();
+            inserter.scale /= pyramid.scaleFactor();
         }
     }
 
@@ -93,14 +95,14 @@ namespace cvt {
                                           const std::vector<Vector2f>& avoid )
     {
         // perform a grid filtering on the first view to have better distribution
-        FeatureFilter gridFilter( 30, _pyramidView0[ 0 ].width(), _pyramidView0[ 0 ].height() );
-
+        FeatureFilter gridFilter( _params->gridSize, _pyramidView0[ 0 ].width(), _pyramidView0[ 0 ].height() );
+        float minDistSqr = Math::sqr( _params->minInterFeatureDistance );
         for( size_t i = 0; i < features.size(); i++ ){
             // check if there is a too close feature in the avoid set
             const Feature2Df & f = features[ i ];
             bool take = true;
             for( size_t k = 0; k < avoid.size(); k++ ){
-                if( ( f.pt - avoid[ k ] ).lengthSqr() > 400.0f ){
+                if( ( f.pt - avoid[ k ] ).lengthSqr() < minDistSqr ){
                     take = false;
                     break;
                 }
