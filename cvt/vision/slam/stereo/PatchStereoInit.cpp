@@ -14,20 +14,31 @@
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/geom/Line2D.h>
 
+#include <cvt/util/ParamInfo.h>
+
 #include <set>
 
 namespace cvt {
+
+    static ParamInfo* _pinfos[] = {
+        new ParamInfoTyped<size_t>( "maxNewFeatures", 0, 5000, 400, true, 1, offsetof( PatchStereoInit::Parameters, maxNewFeatures ) ),
+        new ParamInfoTyped<size_t>( "maxSAD", 0, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, maxSAD ) ),
+        new ParamInfoTyped<float>( "maxEpilineDistance", 0.0f, 10.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxEpilineDistance ) ),
+        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 3.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
+        new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
+        new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 30.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxDepth ) ),
+        new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 20, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) )
+    };
 
     PatchStereoInit::PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ):
         DepthInitializer( c0, c1 ),
         _pyramidView0( 3, 0.5f ),
         _pyramidView1( 3, 0.5f ),
-        _maxNewFeatures( 1000 ),
-        _maxSAD( 40 * Math::sqr( PatchSize ) ),
-        _maxEpilineDistance( 5.0f )
+        _pset( _pinfos, 7, false )
     {
+        _params = _pset.ptr<Parameters>();
         _detector.setBorder( 16 );
-        _detector.setThreshold( 15 );
+        _detector.setThreshold( _params->fastThreshold );
         _detector.setNonMaxSuppress( true );
 
         // calc the fundamental matrix from the calibration data
@@ -101,7 +112,7 @@ namespace cvt {
         }
 
         // now filter the features
-        gridFilter.gridFilteredFeatures( filtered, _maxNewFeatures );
+        gridFilter.gridFilteredFeatures( filtered, _params->maxNewFeatures );
     }
 
     void PatchStereoInit::matchAndTriangulate( std::vector<DepthInitResult>& triangulated,
@@ -116,6 +127,9 @@ namespace cvt {
         IMapScoped<const uint8_t> map0( _pyramidView0[ 0 ] );
         IMapScoped<const uint8_t> map1( _pyramidView0[ 1 ] );
         const size_t PatchHalf = PatchSize >> 1;
+        size_t maxSAD = _params->maxSAD * Math::sqr( PatchSize );
+
+        Rangef depthRange( _params->minDepth, _params->maxDepth );
 
         size_t w0 = _pyramidView0[ 0 ].width();
         size_t h0 = _pyramidView0[ 0 ].height();
@@ -137,7 +151,7 @@ namespace cvt {
             Line2Df l( _fundamental * p0 );
 
             const std::set<size_t>::const_iterator assignedEnd = assigned.end();
-            size_t bestSAD = _maxSAD;
+            size_t bestSAD = maxSAD;
             size_t bestIdx =  0;
 
             for( size_t k = 0; k < f1.size(); k++ ){
@@ -149,7 +163,7 @@ namespace cvt {
                         continue;
 
                     float d = Math::abs( l.distance( p1 ) );
-                    if( d < _maxEpilineDistance ){
+                    if( d < _params->maxEpilineDistance ){
                         const uint8_t* ptr1 = map1.ptr() + (int)( p1.y - PatchHalf ) * map1.stride() + (int)p1.x - PatchHalf;
                         // check if SAD is smaller than current best
                         size_t sad = computePatchSAD( ptr0, map0.stride(), ptr1, map1.stride() );
@@ -162,7 +176,7 @@ namespace cvt {
                 }
             }
 
-            if( bestSAD < _maxSAD ){
+            if( bestSAD < maxSAD ){
                 // found a match:
                 assigned.insert( bestIdx );
                 // TODO:do a subpixel refinement of the patchpos in the second image
@@ -175,9 +189,10 @@ namespace cvt {
 
                 triangulateSinglePoint( result,
                                         _calib0.projectionMatrix(),
-                                        _calib1.projectionMatrix() );
+                                        _calib1.projectionMatrix(),
+                                        depthRange );
 
-                if( result.reprojectionError < _maxTriangError ){
+                if( result.reprojectionError < _params->maxReprojectionError ){
                     triangulated.push_back( result );
                 }
             }

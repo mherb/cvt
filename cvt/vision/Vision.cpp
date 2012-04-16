@@ -51,8 +51,7 @@ namespace cvt {
 			tex++;
 		}
 
-		scenepts.setVertices( &pts[ 0 ], pts.size() );
-		scenepts.setColors( &colors[ 0 ], colors.size() );
+                scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
 		scenepts.transform( calibration.extrinsics() );
 	}
 
@@ -89,8 +88,7 @@ namespace cvt {
 			tex++;
 		}
 
-		scenepts.setVertices( &pts[ 0 ], pts.size() );
-		scenepts.setColors( &colors[ 0 ], colors.size() );
+                scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
 	}
 
     template <typename T>

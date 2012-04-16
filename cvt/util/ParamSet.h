@@ -23,16 +23,22 @@ namespace cvt
 	class ParamSet
 	{
 		public:
-			/*
-			 * @param pInfos		array of ParamInfo
-			 * @param n				size of array
-			 * @param genOffsets	if true, the offsets will be generated and set during construction
+                        /**
+                         * \brief Constructor for a ParamSet
+                         * \param pInfos	array of ParamInfo
+                         * \param n		size of array
+                         * \param genOffsets	if true, the offsets will be generated and set during construction
+                         *                      if e.g. you want to store your params in a struct, you should specify the offsets yourself!
 			 */
 			ParamSet( ParamInfo** pInfos, size_t n, bool genOffsets = true );
 
 			~ParamSet();
 
-			/* get handle to a parameter with the given name */
+                        /**
+                         *  \brief get handle to a parameter with the given name
+                         *  \param name name of the parameter
+                         *  \return the handle (id) which can be used to access the parameter
+                         */
 			size_t paramHandle( const std::string & name );
 
 			/* set parameter */
