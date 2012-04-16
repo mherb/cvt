@@ -15,7 +15,7 @@
 #include <cvt/util/Time.h>
 
 #include <GLSceneView.h>
-#include <ParamSetView.h>
+#include <cvt/gui/ParamSetView.h>
 
 namespace cvt
 {
@@ -62,8 +62,8 @@ namespace cvt
     inline DepthInitApp::DepthInitApp( std::vector<VideoInput*>& videos, const std::vector<CameraCalibration>& calibrations ) :
         _videos( videos ),
         _calibrations( calibrations ),
-        _depthInit( new ORBStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
-        //_depthInit( new PatchStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
+        //_depthInit( new ORBStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
+        _depthInit( new PatchStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
         _depthParamsView( _depthInit->parameters() ),
         _depthParamsMov( &_depthParamsView ),
         _window( "DepthView" ),
@@ -85,6 +85,7 @@ namespace cvt
         _toggleStepping.clicked.add( t );
 
         _depthParamsMov.setSize( 200, 400 );
+        _depthParamsMov.setTitle( "Depth Initializer Parameters" );
         _window.addWidget( &_depthParamsMov );
 
         _window.setVisible( true );
@@ -126,7 +127,6 @@ namespace cvt
         std::vector<DepthInitializer::DepthInitResult> initresult;
         std::vector<Vector2f> avoidPos;
         _depthInit->triangulateFeatures( initresult, avoidPos, _undist0, _undist1 );
-
 
         updatePointsView( initresult, color0 );
 

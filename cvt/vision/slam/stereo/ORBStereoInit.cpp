@@ -19,7 +19,7 @@ namespace cvt
         new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( ORBStereoInit::Parameters, minDepth ) ),
         new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 30.0f, true, 1, offsetof( ORBStereoInit::Parameters, maxDepth ) ),
         new ParamInfoTyped<uint8_t>( "fastThreshold", 10, 200, 20, true, 1, offsetof( ORBStereoInit::Parameters, fastThreshold ) ),
-        new ParamInfoTyped<uint32_t>( "orbMaxFeatures", 10, 10000, 2000, true, 1, offsetof( ORBStereoInit::Parameters, orbMaxFeatures ) ),
+        new ParamInfoTyped<uint32_t>( "orbMaxFeatures", 10, 10000, 2000, true, 1, offsetof( ORBStereoInit::Parameters, orbMaxFeatures ) )
     };
 
    ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ) :
@@ -39,8 +39,8 @@ namespace cvt
        _matcher.setMaxLineDist( params->maxEpilineDistance );
        Rangef depthRange( params->minDepth, params->maxDepth );
 
-       ORB orb0( view0, 2, 0.5f, 20, 2000, true );
-       ORB orb1( view1, 2, 0.5f, 20, 2000, true );
+       ORB orb0( view0, 2, 0.5f, params->fastThreshold, params->orbMaxFeatures, true );
+       ORB orb1( view1, 2, 0.5f, params->fastThreshold, params->orbMaxFeatures, true );
 
        // find stereoMatches by avoiding already found matches
        std::set<size_t> doNotUse;
