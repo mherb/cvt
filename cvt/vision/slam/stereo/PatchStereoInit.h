@@ -24,21 +24,31 @@ namespace cvt {
             PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 );
             ~PatchStereoInit();
 
-            void triangulateFeatures( std::vector<DepthInitResult> & triangulated,
-                                      const std::vector<Vector2f>  & avoidPositionsImg0,
-                                      const Image& view0, const Image& view1 );
+            void        triangulateFeatures( std::vector<DepthInitResult> & triangulated,
+                                             const std::vector<Vector2f>  & avoidPositionsImg0,
+                                             const Image& view0, const Image& view1 );
+
+            ParamSet&   parameters()    { return _pset; }
+
+            struct Parameters
+            {
+                size_t  maxNewFeatures;
+                size_t  maxSAD;
+                float   maxEpilineDistance;
+                float   maxReprojectionError;
+                float   maxDepth;
+                float   minDepth;
+                uint8_t fastThreshold;
+            };
 
         private:
             static const size_t PatchSize = 16;
 
             FAST            _detector;
-
             ImagePyramid    _pyramidView0;
             ImagePyramid    _pyramidView1;
-
-            size_t          _maxNewFeatures;
-            size_t          _maxSAD;
-            float           _maxEpilineDistance;
+            ParamSet        _pset;
+            Parameters*     _params;
 
             Matrix3f        _fundamental;
 
