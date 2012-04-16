@@ -127,7 +127,7 @@ namespace cvt {
         std::set<size_t> assigned;
 
         IMapScoped<const uint8_t> map0( _pyramidView0[ 0 ] );
-        IMapScoped<const uint8_t> map1( _pyramidView0[ 1 ] );
+        IMapScoped<const uint8_t> map1( _pyramidView1[ 0 ] );
         const size_t PatchHalf = PatchSize >> 1;
         size_t maxSAD = _params->maxSAD * Math::sqr( PatchSize );
 
