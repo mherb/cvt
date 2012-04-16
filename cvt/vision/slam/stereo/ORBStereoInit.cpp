@@ -12,10 +12,20 @@
 
 namespace cvt
 {
+    static ParamInfo* _pinfos[] = {
+        new ParamInfoTyped<float>( "maxEpilineDistance", 0.0f, 10.0f, 1.0f, true, 1, offsetof( ORBStereoInit::Parameters, maxEpilineDistance ) ),
+        new ParamInfoTyped<float>( "maxDescriptorDistance", 0.0f, 255.0f, 80.0f, true, 1, offsetof( ORBStereoInit::Parameters, maxDescriptorDistance ) ),
+        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 20.0f, 2.0f, true, 1, offsetof( ORBStereoInit::Parameters, maxReprojectionError ) ),
+        new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( ORBStereoInit::Parameters, minDepth ) ),
+        new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 30.0f, true, 1, offsetof( ORBStereoInit::Parameters, maxDepth ) ),
+        new ParamInfoTyped<uint8_t>( "fastThreshold", 10, 200, 20, true, 1, offsetof( ORBStereoInit::Parameters, fastThreshold ) ),
+        new ParamInfoTyped<uint32_t>( "orbMaxFeatures", 10, 10000, 2000, true, 1, offsetof( ORBStereoInit::Parameters, orbMaxFeatures ) ),
+    };
 
-   ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1, float maxEpilineDistance, float maxDescriptorDistance ) :
+   ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ) :
        DepthInitializer( c0, c1 ),
-       _matcher( maxEpilineDistance, maxDescriptorDistance, c0, c1 )
+       _matcher( 1.0f, 80, c0, c1 ),
+       _pset( _pinfos, 7, false )
    {
    }
 
@@ -23,6 +33,12 @@ namespace cvt
                                             const std::vector<Vector2f> & avoidPositionsImg0,
                                             const Image& view0, const Image& view1 )
    {
+       Parameters* params = _pset.ptr<Parameters>();
+
+       _matcher.setMaxDescDist( params->maxDescriptorDistance );
+       _matcher.setMaxLineDist( params->maxEpilineDistance );
+       Rangef depthRange( params->minDepth, params->maxDepth );
+
        ORB orb0( view0, 2, 0.5f, 20, 2000, true );
        ORB orb1( view1, 2, 0.5f, 20, 2000, true );
 
@@ -57,9 +73,10 @@ namespace cvt
 
                 triangulateSinglePoint( result,
                                         _calib0.projectionMatrix(),
-                                        _calib1.projectionMatrix() );
+                                        _calib1.projectionMatrix(),
+                                        depthRange );
 
-                if( result.reprojectionError < _maxTriangError ){
+                if( result.reprojectionError < params->maxReprojectionError ){
                     triangulated.push_back( result );
                 }
              }
