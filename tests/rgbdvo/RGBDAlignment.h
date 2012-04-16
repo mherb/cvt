@@ -3,15 +3,15 @@
 
 namespace cvt
 {
-	class RGBDAlignment
-	{
-		public:
-			RGBDAlignment();
-			~RGBDAlignment();
+    class RGBDAlignment
+    {
+        public:
+            RGBDAlignment();
+            ~RGBDAlignment();
 
-		private:
+        private:
 
-	};
+    };
 }
 
 #endif
