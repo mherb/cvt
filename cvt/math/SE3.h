@@ -28,17 +28,16 @@ namespace cvt
 {
 	template<typename T>
 	class SE3 
-	{
-		typedef Eigen::Matrix<T, 4, 4> MatrixType;
-		typedef Eigen::Matrix<T, 3, 6> JacMatType;
-		typedef Eigen::Matrix<T, 24, 6> HessMatType;
-		typedef Eigen::Matrix<T, 2, 6> ScreenJacType;
-		typedef Eigen::Matrix<T, 6, 6> ScreenHessType;
-		typedef Eigen::Matrix<T, 6, 1> ParameterVectorType;
-		typedef Eigen::Matrix<T, 3, 1> PointType;
-		typedef Eigen::Matrix<T, 4, 1> PointTypeHom;
-		
+        {
 		public:
+                        typedef Eigen::Matrix<T, 4, 4>  MatrixType;
+                        typedef Eigen::Matrix<T, 3, 6>  JacMatType;
+                        typedef Eigen::Matrix<T, 24, 6> HessMatType;
+                        typedef Eigen::Matrix<T, 2, 6>  ScreenJacType;
+                        typedef Eigen::Matrix<T, 6, 6>  ScreenHessType;
+                        typedef Eigen::Matrix<T, 6, 1>  ParameterVectorType;
+                        typedef Eigen::Matrix<T, 3, 1>  PointType;
+                        typedef Eigen::Matrix<T, 4, 1>  PointTypeHom;
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 			/** 
@@ -53,10 +52,17 @@ namespace cvt
 			void set( const ParameterVectorType & p );
 			void set( const MatrixType & t ) { _current = t; }
 			void apply( const ParameterVectorType & delta );
+                        void applyInverse( const ParameterVectorType & delta );
 			void transform( PointType & warped, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
 
+                        /**
+                         *  \brief  evaluates the screen jacobians for a given 3D point in camera coordinates (jac. around current pose estimate!)
+                         *  \param  J   (output) the result
+                         *  \param  p   the 3D point given in camera coordinates
+                         *  \param  m   the intrinsic calibration matrix
+                         */
 			void screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & m ) const;
 
 			void hessian( HessMatType & h, const PointType & p ) const;
@@ -68,9 +74,9 @@ namespace cvt
 			 *	\param	p	the 3d point in camera coordinates for which to evaluate the hessian
 			 */
 			void screenHessian( ScreenHessType & wx, 
-								ScreenHessType & wy,
-							    const PointType & p,
-							    const Eigen::Matrix<T, 3, 3> & m ) const;
+                                            ScreenHessType & wy,
+                                            const PointType & p,
+                                            const Eigen::Matrix<T, 3, 3> & m ) const;
 			
 			/* p has to be pretransformed with the current T in this case! */
 			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
@@ -163,6 +169,39 @@ namespace cvt
 				
 		_current = trans * _current;
 	}
+
+        template <typename T>
+        inline void SE3<T>::applyInverse( const ParameterVectorType & delta )
+        {
+            // exponential can be evaluated in closed form in this case:
+            T theta = Math::sqrt( Math::sqr( delta[ 0 ] ) + Math::sqr( delta[ 1 ] ) + Math::sqr( delta[ 2 ] ) );
+
+            Eigen::Matrix<T, 4, 4> trans;
+
+            if( theta == 0 ){
+                    trans( 0, 0 ) = 1.0; trans( 0, 1 ) = 0.0; trans( 0, 2 ) = 0.0; trans( 0, 3 ) = delta[ 3 ];
+                    trans( 1, 0 ) = 0.0; trans( 1, 1 ) = 1.0; trans( 1, 2 ) = 0.0; trans( 1, 3 ) = delta[ 4 ];
+                    trans( 2, 0 ) = 0.0; trans( 2, 1 ) = 0.0; trans( 2, 2 ) = 1.0; trans( 2, 3 ) = delta[ 5 ];
+                    trans( 3, 0 ) = 0.0; trans( 3, 1 ) = 0.0; trans( 3, 2 ) = 0.0; trans( 3, 3 ) =        1.0;
+            } else {
+                    T a = Math::sin( theta ) / theta;
+                    T thetaSqr = theta * theta;
+                    T b = ( 1 - Math::cos( theta ) ) / ( thetaSqr );
+
+                    Eigen::Matrix<T, 3, 3> angleSkew;
+                    angleSkew( 0, 0 ) =         0  ; angleSkew( 0, 1 ) = -delta[ 2 ]; angleSkew( 0, 2 ) =  delta[ 1 ];
+                    angleSkew( 1, 0 ) =  delta[ 2 ]; angleSkew( 1, 1 ) =         0  ; angleSkew( 1, 2 ) = -delta[ 0 ];
+                    angleSkew( 2, 0 ) = -delta[ 1 ]; angleSkew( 2, 1 ) =  delta[ 0 ]; angleSkew( 2, 2 ) =         0  ;
+
+                    Eigen::Matrix<T, 3, 3> angleSkewSqr = angleSkew * angleSkew;
+
+                    trans.template block<3, 3>( 0, 0 ) = Eigen::Matrix<T, 3, 3>::Identity() + a * angleSkew + b * angleSkewSqr;
+                    trans.template block<3, 1>( 0, 3 ) = ( Eigen::Matrix<T, 3, 3>::Identity() + b * angleSkew + (1 - a ) / thetaSqr * angleSkewSqr ) * delta.template segment<3>( 3 );
+
+                    trans( 3, 0 ) = 0; trans( 3, 1 ) = 0; trans( 3, 2 ) = 0; trans( 3, 3 ) = 1;
+            }
+            _current*= trans;
+        }
 	
 	template <typename T>
 	inline void SE3<T>::jacobian( JacMatType & J, const PointType & pp ) const
