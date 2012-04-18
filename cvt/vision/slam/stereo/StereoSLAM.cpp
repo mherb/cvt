@@ -137,17 +137,19 @@ namespace cvt
       EigenBridge::toEigen( extrC,  _depthInit->calibration0().extrinsics() );
 
       Eigen::Matrix4d me;
-      /*
-         Matrix3d K;
-         EigenBridge::toCVT( K, kf );
-         Matrix4d m;
-         EPnPd epnp( p3d );
-         epnp.solve( m, p2d, K );
+/*
+      Matrix3d K;
+      K[ 0 ][ 0 ] = kf[ 0 ][ 0 ]; K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
+      K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
+      K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
+      Matrix4d m;
+      EPnPd epnp( p3d );
+      epnp.solve( m, p2d, K );
 
       // from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
       EigenBridge::toEigen( me, m );
       me = extrC.inverse() * me;
-       */
+*/
 
       me = _pose.transformation();
 
