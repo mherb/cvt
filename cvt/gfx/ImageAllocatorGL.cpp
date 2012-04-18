@@ -136,7 +136,6 @@ namespace cvt {
 		}
 	}
 
-
 	void ImageAllocatorGL::getGLFormat( const IFormat & format, GLenum& glformat, GLenum& gltype ) const
 	{
 		switch ( format.formatID ) {
@@ -160,7 +159,8 @@ namespace cvt {
 			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
 
-			case IFORMAT_BAYER_RGGB_UINT8:	glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
+                        case IFORMAT_BAYER_RGGB_UINT8:          glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
+                        case IFORMAT_BAYER_GRBG_UINT8:          glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
 
 			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
