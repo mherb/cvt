@@ -48,7 +48,10 @@ namespace cvt
                     const RGBDParser::RGBDSample& sample = _rgbdset.data();
 
                     _rgbView.setImage( sample.rgb );
-                    _depthView.setImage( sample.depth );
+
+                    Image du8;
+                    sample.depth.convert( du8, IFormat::GRAY_UINT8 );
+                    _depthView.setImage( du8 );
 
                     String title;
                     title.sprintf( "RGBD Dataset: %d / %d", _rgbdset.iter(), _rgbdset.size() );
