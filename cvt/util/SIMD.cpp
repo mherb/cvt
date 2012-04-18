@@ -5202,6 +5202,17 @@ namespace cvt {
 			*dst++ = mat * *src++;
 	}
 
+        void SIMD::projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const
+        {
+            Vector3f pp;
+            while( n-- ){
+                pp = mat * *src++;
+                dst->x = pp.x / pp.z;
+                dst->y = pp.y / pp.z;
+                dst++;
+            }
+        }
+
 	void SIMD::cleanup()
 	{
 		if( _simd )
