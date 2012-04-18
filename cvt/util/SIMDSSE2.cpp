@@ -159,7 +159,7 @@ namespace cvt
 		size_t i, k, b1, b2;
 
 		if( wn == 1 ) {
-			MulAddU8Value1fx( dst, src, *weights, width );
+                        MulU8Value1fx( dst, src, *weights, width );
 			return;
 		}
 
