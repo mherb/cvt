@@ -20,6 +20,7 @@
 
 #include <cvt/math/Matrix.h>
 #include <cvt/gfx/Image.h>
+#include <cvt/geom/PointSet.h>
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/geom/scene/ScenePoints.h>
 
@@ -133,6 +134,8 @@ namespace cvt
 		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale = 1.0f );
 
 		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, float dscale = 1.0f );
+
+                static void unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale );
     };
 
 
