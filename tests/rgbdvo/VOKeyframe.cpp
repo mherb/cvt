@@ -16,7 +16,8 @@ namespace cvt
         _depthScaling( 1.0f / depthScaling )
     {
         rgb.convert( _gray, IFormat::GRAY_FLOAT );
-        computeJacobians( K );
+        computeGradients();
+        computeJacobians( K );        
     }
 
     VOKeyframe::~VOKeyframe()
@@ -25,9 +26,6 @@ namespace cvt
 
     void VOKeyframe::computeJacobians( const Matrix3f& intrinsics )
     {
-        // compute the gradients
-        computeGradients();
-
         PointSet3f points3d;
         Vision::unprojectToXYZ( points3d, _depth, intrinsics, _depthScaling );
 
@@ -87,7 +85,32 @@ namespace cvt
         _gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
         _gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
-        _gray.convolve( _gx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
-        _gray.convolve( _gy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
+        _gray.convolve( _gx, IKernel::HAAR_HORIZONTAL_2 );
+        _gray.convolve( _gy, IKernel::HAAR_VERTICAL_2 );
+    }
+
+    void VOKeyframe::computeSDImages( const Matrix3f& intrinsics )
+    {
+        std::vector<size_t> strides( 6 );
+        std::vector<float*> maps( 6 );
+        _steepestDescentImages.resize( 6 );
+
+        for( size_t i = 0; i < 6; i++ ){
+            _steepestDescentImages[ i ].reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
+            maps[ i ] = _steepestDescentImages[ i ].map<float>( &strides[ i ] );
+        }
+
+        PointSet3f points3d;
+        Vision::unprojectToXYZ( points3d, _depth, intrinsics, _depthScaling );
+
+        for( size_t y = 0; y < _depth.height(); y++ ){
+            for( size_t x = 0; x < _depth.height(); x++ ){
+                // TODO: fill the jacobian images
+            }
+        }
+
+        for( size_t i = 0; i < 6; i++ ){
+           _steepestDescentImages[ i ].unmap( maps[ i ] );
+        }
     }
 }
