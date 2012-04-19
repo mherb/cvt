@@ -32,8 +32,8 @@ namespace cvt {
 
             struct Parameters
             {
-                size_t   maxNewFeatures;
-                size_t   maxSAD;
+                uint32_t maxNewFeatures;
+                uint64_t maxSAD;
                 float    maxEpilineDistance;
                 float    maxReprojectionError;
                 float    maxDepth;
