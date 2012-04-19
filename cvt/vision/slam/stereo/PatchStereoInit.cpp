@@ -21,8 +21,8 @@
 namespace cvt {
 
     static ParamInfo* _pinfos[] = {
-        new ParamInfoTyped<size_t>( "maxNewFeatures", 0, 5000, 400, true, 1, offsetof( PatchStereoInit::Parameters, maxNewFeatures ) ),
-        new ParamInfoTyped<size_t>( "maxSAD", 0, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, maxSAD ) ),
+        new ParamInfoTyped<uint32_t>( "maxNewFeatures", 0, 5000, 400, true, 1, offsetof( PatchStereoInit::Parameters, maxNewFeatures ) ),
+        new ParamInfoTyped<uint64_t>( "maxSAD", 0, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, maxSAD ) ),
         new ParamInfoTyped<float>( "maxEpilineDistance", 0.0f, 10.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxEpilineDistance ) ),
         new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 3.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
         new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
