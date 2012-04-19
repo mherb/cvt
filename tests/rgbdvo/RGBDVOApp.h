@@ -6,7 +6,7 @@
 #include <cvt/io/RGBDParser.h>
 #include <VOKeyframe.h>
 #include <RGBDAlignment.h>
-#include <GLSceneView.h>
+#include <PoseView.h>
 
 #include <vector>
 
@@ -35,11 +35,17 @@ namespace cvt
                 Moveable                    _gxMov;
                 ImageView                   _gyView;
                 Moveable                    _gyMov;
+                PoseView                    _poseView;
+                Moveable                    _poseMov;
 
-                GLSceneView                 _sceneView;
+                //GLSceneView                 _sceneView;
 
                 Button                      _nextButton;
                 bool                        _nextPressed;
+                Button                      _stepButton;
+                bool                        _step;
+                Button                      _optimizeButton;
+                bool                        _optimize;
 
                 // pose relative to the keyframe
                 SE3<float>                  _relativePose;
@@ -51,5 +57,7 @@ namespace cvt
                 void addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose );
 
                 void nextPressed();
+                void optimizePressed();
+                void toggleStepping();
 	};
 }

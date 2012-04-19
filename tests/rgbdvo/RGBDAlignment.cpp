@@ -27,7 +27,6 @@ namespace cvt
         rgb.convert( gray );
 
         size_t iter = 0;
-
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;
 
@@ -49,7 +48,6 @@ namespace cvt
         const VOKeyframe::JacType* jacobians = keyframe.jacobians();
         const VOKeyframe::HessianType& invHess = keyframe.inverseHessian();
 
-
         size_t floatStride = grayMap.stride() / sizeof( float );
 
         while( iter < _maxIterations ){
@@ -64,10 +62,10 @@ namespace cvt
 
             deltaSum.setZero();
             size_t numGood = 0;
+            float ssd = 0.0f;
 
             for( size_t i = 0; i < warpedPts.size(); i++ ){
                 const Vector2f& pw = warpedPts[ i ];
-
                 if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     int lx = ( int )pw.x;
@@ -84,26 +82,20 @@ namespace cvt
 
                     // compute the delta
                     float delta = kfPixels[ i ] - v;
-                    deltaSum += delta * jacobians[ i ];
+                    ssd += Math::sqr( delta );
+
+                    VOKeyframe::JacType jtmp = delta * jacobians[ i ];
+
+                    deltaSum += jtmp;
                     numGood++;
                 }
             }
 
             // evaluate the delta parameters
             SE3<float>::ParameterVectorType deltaP = -invHess * deltaSum.transpose();
-//            std::cout << "Num Good Measurements: " << numGood << std::endl;
-//            std::cout << "DeltaVec: "
-//                      << deltaP[ 0 ] << ", "
-//                      << deltaP[ 1 ] << ", "
-//                      << deltaP[ 2 ] << ", "
-//                      << deltaP[ 3 ] << ", "
-//                      << deltaP[ 4 ] << ", "
-//                      << deltaP[ 5 ] << std::endl;
-
             predicted.applyInverse( -deltaP );
 
             iter++;
         }
-
     }
 }

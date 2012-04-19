@@ -115,14 +115,13 @@ namespace cvt {
             for( size_t y = 0; y < depth.height(); y++ ){
                 const uint16_t* dptr = depthMap.ptr();
                 for( size_t x = 0; x < depth.width(); x++ ){
-                    float d = *dptr * depthScale;
+                    float d = dptr[ x ] * depthScale;
                     p3d[ 0 ] = tmpx[ x ] * d;
                     p3d[ 1 ] = tmpy[ y ] * d;
                     p3d[ 2 ] = d;
-                    pts.add( p3d );
-
-                    dptr++;
+                    pts.add( p3d );                    
                 }
+                // next line in depth image
                 depthMap++;
             }
         }
