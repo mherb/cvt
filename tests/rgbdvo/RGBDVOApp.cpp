@@ -132,7 +132,7 @@ namespace cvt
         _keyframes.push_back( kf );
         _activeKeyframe = _keyframes.back();
 
-        _keyframeImage.setImage( kf->gray() );
+        _keyframeImage.setImage( sample.rgb );
         _gxView.setImage( _activeKeyframe->gradX() );
         _gyView.setImage( _activeKeyframe->gradY() );
 
@@ -143,17 +143,6 @@ namespace cvt
 
         _poseView.addKeyframe( kfPose );
         _poseView.setCamPose( _absolutePose );
-
-        /*
-        ScenePoints pts( "bla" );
-        std::vector<Vector4f> colors;
-        const float* c = kf->pixelData();
-        for( size_t i = 0; i < kf->numPoints(); i++ ){
-            colors.push_back( Vector4f( c[ i ], c[ i ], c[ i ], 1.0f ) );
-        }
-
-        pts.setVerticesWithColor( kf->pointsPtr(), &colors[ 0 ], kf->numPoints() );
-        _sceneView.setScenePoints( pts );*/
     }
 
     void RGBDVOApp::nextPressed()
