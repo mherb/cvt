@@ -12,8 +12,8 @@
 
 namespace cvt
 {
-	class RGBDVOApp : public TimeoutHandler
-	{
+    class RGBDVOApp : public TimeoutHandler
+    {
             public:
                 RGBDVOApp( const String& folder, const Matrix3f& K );
                 ~RGBDVOApp();
@@ -31,10 +31,6 @@ namespace cvt
                 Moveable                    _kfMov;
                 ImageView                   _currentImage;
                 Moveable                    _imageMov;
-                ImageView                   _gxView;
-                Moveable                    _gxMov;
-                ImageView                   _gyView;
-                Moveable                    _gyMov;
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
 
@@ -54,10 +50,11 @@ namespace cvt
 
                 void setupGui();
 
+                bool needNewKeyframe( const Matrix4f& relativePose ) const;
                 void addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose );
 
                 void nextPressed();
                 void optimizePressed();
                 void toggleStepping();
-	};
+    };
 }

@@ -12,7 +12,6 @@ namespace cvt
         _pose( pose )
     {
         rgb.convert( _gray, IFormat::GRAY_FLOAT );
-        computeGradients();
         computeJacobians( depth, K, 1.0f / depthScaling );
     }
 
@@ -22,6 +21,9 @@ namespace cvt
 
     void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, float depthScaling )
     {
+        Image gxI, gyI;
+        computeGradients( gxI, gyI );
+
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
         float cx    = intrinsics[ 0 ][ 2 ];
@@ -38,8 +40,8 @@ namespace cvt
             tmpy[ i ] = ( i - cy ) * invFy;
         }
 
-        IMapScoped<const float> gxMap( _gx );
-        IMapScoped<const float> gyMap( _gy );
+        IMapScoped<const float> gxMap( gxI );
+        IMapScoped<const float> gyMap( gyI );
         IMapScoped<const float> grayMap( _gray );
         IMapScoped<const uint16_t> depthMap( depth );
 
@@ -81,7 +83,6 @@ namespace cvt
 
                     pose.screenJacobian( J, p3d, K );
 
-
                     j = 0.5f * g.transpose() * J;
 
                     _jacobians.push_back( j );
@@ -104,12 +105,12 @@ namespace cvt
 
     }
 
-    void VOKeyframe::computeGradients()
+    void VOKeyframe::computeGradients( Image& gx, Image& gy ) const
     {
-        _gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
-        _gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
+        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
+        gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
-        _gray.convolve( _gx, IKernel::HAAR_HORIZONTAL_3 );
-        _gray.convolve( _gy, IKernel::HAAR_VERTICAL_3 );
+        _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
+        _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
     }
 }

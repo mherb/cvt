@@ -32,14 +32,9 @@ namespace cvt
             size_t              numPoints()             const { return _points3d.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
 
-            const Image&        gradX()                 const { return _gx; }
-            const Image&        gradY()                 const { return _gy; }
-
         private:
             Matrix4f    _pose;
             Image       _gray;
-            Image       _gx;
-            Image       _gy;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>   _points3d;
@@ -58,7 +53,7 @@ namespace cvt
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, float invDepthScale );
 
-            void computeGradients();
+            void computeGradients( Image& gx, Image& gy ) const;
     };
 }
 

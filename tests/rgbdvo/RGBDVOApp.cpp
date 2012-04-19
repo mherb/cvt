@@ -9,13 +9,11 @@ namespace cvt
 {
 
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K ) :
-        _parser( folder ),
+        _parser( folder, 0.1f ),
         _aligner( K, 15, 5000.0f),
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
-        _gxMov( &_gxView ),
-        _gyMov( &_gyView ),
         _poseMov( &_poseView ),
         _nextButton( "next" ),
         _nextPressed( false ),
@@ -24,7 +22,7 @@ namespace cvt
         _optimizeButton( "optimize" ),
         _optimize( false )
     {
-        _timerId = Application::registerTimer( 50, this );
+        _timerId = Application::registerTimer( 20, this );
         setupGui();
 
         _parser.loadNext();
@@ -61,9 +59,25 @@ namespace cvt
             EigenBridge::toCVT( tmp, _relativePose.transformation() );
             _absolutePose = _activeKeyframe->pose() * tmp.inverse();
 
+            if( needNewKeyframe( tmp ) ){
+                addNewKeyframe( d, _absolutePose );
+            }
+
             _poseView.setCamPose( _absolutePose );
             _poseView.setGTPose( d.pose );
         }
+    }
+
+    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel ) const
+    {
+        Vector3f t;
+        t.x = rel[ 0 ][ 3 ];
+        t.y = rel[ 1 ][ 3 ];
+        t.z = rel[ 2 ][ 3 ];
+
+        if( t.length() > 0.5f )
+            return true;
+        return false;
     }
 
     void RGBDVOApp::setupGui()
@@ -80,16 +94,6 @@ namespace cvt
         _imageMov.setSize( 300, 200 );
         _imageMov.setPosition( 300, 0 );
         _imageMov.setTitle( "Current Image" );
-
-        _mainWindow.addWidget( &_gxMov );
-        _gxMov.setSize( 300, 200 );
-        _gxMov.setPosition( 300, 0 );
-        _gxMov.setTitle( "Gradient X" );
-
-        _mainWindow.addWidget( &_gyMov );
-        _gyMov.setSize( 300, 200 );
-        _gyMov.setPosition( 300, 0 );
-        _gyMov.setTitle( "Gradient Y" );
 
         _mainWindow.addWidget( &_poseMov );
         _poseMov.setSize( 300, 200 );
@@ -133,8 +137,6 @@ namespace cvt
         _activeKeyframe = _keyframes.back();
 
         _keyframeImage.setImage( sample.rgb );
-        _gxView.setImage( _activeKeyframe->gradX() );
-        _gyView.setImage( _activeKeyframe->gradY() );
 
         // reset the relative pose
         SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();
