@@ -32,20 +32,20 @@ namespace cvt
             size_t              numPoints()             const { return _points3d.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
 
-            const Image&        gray()                  const { return _gray; }
             const Image&        gradX()                 const { return _gx; }
             const Image&        gradY()                 const { return _gy; }
 
         private:
             Matrix4f    _pose;
-
             Image       _gray;
-            Image       _depth;
             Image       _gx;
             Image       _gy;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>   _points3d;
+
+            // the image positions of the used points
+            std::vector<Vector2f>   _pixelPositions;
 
             // the pixel values (gray) for the points
             std::vector<float>      _pixelValues;
@@ -53,16 +53,13 @@ namespace cvt
             // jacobians for that points
             std::vector<JacType>    _jacobians;
 
-            // scale factor to get the depth values to meters
-            float                   _depthScaling;
-
             // precomputed inverse of the hessian approx.
             Eigen::Matrix<float, 6, 6>  _inverseHessian;
 
-            void computeJacobians( const Matrix3f& intrinsics );
+            void computeJacobians( const Image& depth, const Matrix3f& intrinsics, float invDepthScale );
 
             void computeGradients();
-    };    
+    };
 }
 
 #endif
