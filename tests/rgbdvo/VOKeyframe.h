@@ -36,13 +36,6 @@ namespace cvt
             const Image&        gradX()                 const { return _gx; }
             const Image&        gradY()                 const { return _gy; }
 
-            /**
-             *  \brief get the steepest descent image for a single pose parameter
-             *  \param  idx the idx of the pose parameter
-             *  \return image with "per pixel" jacobians (0 if there's either no gradient or no depth value available)
-             */
-            const Image&        sdImage( size_t idx )   const { return _steepestDescentImages[ idx ]; }
-
         private:
             Matrix4f    _pose;
 
@@ -50,9 +43,6 @@ namespace cvt
             Image       _depth;
             Image       _gx;
             Image       _gy;
-
-            std::vector<Image>  _steepestDescentImages;
-            Image               _ptsImage;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>   _points3d;
@@ -72,7 +62,6 @@ namespace cvt
             void computeJacobians( const Matrix3f& intrinsics );
 
             void computeGradients();
-            void computeSDImages( const Matrix3f& intrinsics );
     };    
 }
 

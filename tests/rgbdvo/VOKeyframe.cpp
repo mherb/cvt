@@ -26,12 +26,27 @@ namespace cvt
 
     void VOKeyframe::computeJacobians( const Matrix3f& intrinsics )
     {
-        PointSet3f points3d;
-        Vision::unprojectToXYZ( points3d, _depth, intrinsics, _depthScaling );
+        float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
+        float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
+        float cx    = intrinsics[ 0 ][ 2 ];
+        float cy    = intrinsics[ 1 ][ 2 ];
+
+        // temp vals
+        std::vector<float> tmpx( _depth.width() );
+        std::vector<float> tmpy( _depth.height() );
+
+        for( size_t i = 0; i < tmpx.size(); i++ ){
+            tmpx[ i ] = ( i - cx ) * invFx;
+        }
+        for( size_t i = 0; i < tmpy.size(); i++ ){
+            tmpy[ i ] = ( i - cy ) * invFy;
+        }
+
 
         IMapScoped<const float> gxMap( _gx );
         IMapScoped<const float> gyMap( _gy );
         IMapScoped<const float> grayMap( _gray );
+        IMapScoped<const uint16_t> depthMap( _depth );
 
         // eval the jacobians:
         Eigen::Vector3f p3d;
@@ -54,26 +69,29 @@ namespace cvt
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
+            const uint16_t* d = depthMap.ptr();
             for( size_t x = 0; x < _depth.width(); x++, ptIdx++ ){
-                const Vector3f& pcvt = points3d[ ptIdx ];
-
-                if( pcvt.z < 0.01f ){
+                if( d[ x ] == 0 ){
                     continue;
                 } else {
-                    EigenBridge::toEigen( p3d, pcvt );
                     g[ 0 ] = -gx[ x ];
                     g[ 1 ] = -gy[ x ];
 
                     if( g.squaredNorm() < gradThreshold )
                         continue;
+                    
+					p3d[ 2 ] = d[ x ] * _depthScaling;
+					p3d[ 0 ] = tmpx[ x ] * p3d[ 2 ];
+					p3d[ 1 ] = tmpy[ y ] * p3d[ 2 ];
 
                     pose.screenJacobian( J, p3d, K );
+
 
                     j = 0.5f * g.transpose() * J;
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
-                    _points3d.push_back( pcvt );
+                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
 
                     H.noalias() += j.transpose() * j;
                     npts++;
@@ -82,6 +100,7 @@ namespace cvt
             gxMap++;
             gyMap++;
             grayMap++;
+            depthMap++;
         }
 
         // precompute the inverse hessian
@@ -96,84 +115,5 @@ namespace cvt
 
         _gray.convolve( _gx, IKernel::HAAR_HORIZONTAL_3 );
         _gray.convolve( _gy, IKernel::HAAR_VERTICAL_3 );
-    }
-
-    void VOKeyframe::computeSDImages( const Matrix3f& intrinsics )
-    {
-        std::vector<size_t> strides( 6 );
-        std::vector<float*> maps( 6 );
-        std::vector<float*> sdPtrs( 6 );
-        _steepestDescentImages.resize( 6 );
-
-        for( size_t i = 0; i < 6; i++ ){
-            _steepestDescentImages[ i ].reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
-            maps[ i ] = _steepestDescentImages[ i ].map<float>( &strides[ i ] );
-            sdPtrs[ i ] = maps[ i ];
-        }
-
-        IMapScoped<const float> gxMap( _gx );
-        IMapScoped<const float> gyMap( _gy );
-
-        PointSet3f points3d;
-        Vision::unprojectToXYZ( points3d, _depth, intrinsics, _depthScaling );
-
-        SE3<float> pose; // dummy: TODO: the screenJacobian function of the pose can be static!
-
-        Eigen::Vector2f g;
-        SE3<float>::ScreenJacType J;
-        J.setZero();
-        JacType jacobian;
-        HessianType hessian;
-        hessian.setZero();
-
-        Eigen::Matrix3f ke;
-        Eigen::Vector3f pe;
-        EigenBridge::toEigen( ke, intrinsics );
-
-        size_t pidx = 0;
-        for( size_t y = 0; y < _depth.height(); y++ ){
-            const float* gx = gxMap.ptr();
-            const float* gy = gyMap.ptr();
-            for( size_t x = 0; x < _depth.width(); x++ ){
-                const Vector3f& p = points3d[ pidx ];
-
-                if( p.z > 0.05f ){
-                    g[ 0 ] = -gx[ x ];
-                    g[ 1 ] = -gy[ x ];
-                    EigenBridge::toEigen( pe, p );
-                    pose.screenJacobian( J, pe, ke );
-                    jacobian = g.transpose() * J;
-                    hessian.noalias() += jacobian.transpose() * jacobian;
-                } else {
-                    jacobian.setZero();
-                }
-
-                for( size_t i = 0; i < 6; i++ ){
-                    sdPtrs[ i ][ x ] = jacobian[ i ];
-                }
-
-                pidx++;
-            }
-
-            /* update all the pointers */
-            // next line for the sd images
-            for( size_t i = 0; i < 6; i++ ){
-                sdPtrs[ i ] += strides[ i ];
-            }
-            gxMap++;
-            gyMap++;
-        }
-
-        HessianType hinv = hessian.inverse();
-
-        //String file;
-        for( size_t i = 0; i < 6; i++ ){
-           _steepestDescentImages[ i ].unmap( maps[ i ] );
-
-          // file.sprintf( "sdimage_%d.png", i );
-          // _steepestDescentImages[ i ].save( file );
-        }
-        //_depth.save( "rgbdvo_depth.png" );
-        //_gray.save( "rgbdvo_gray.png" );
     }
 }

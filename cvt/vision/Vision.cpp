@@ -94,7 +94,6 @@ namespace cvt {
         void Vision::unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale )
         {
             IMapScoped<const uint16_t> depthMap( depth );
-
             float invFx = 1.0f / K[ 0 ][ 0 ];
             float invFy = 1.0f / K[ 1 ][ 1 ];
             float cx    = K[ 0 ][ 2 ];
