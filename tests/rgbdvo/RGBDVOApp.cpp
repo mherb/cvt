@@ -10,7 +10,7 @@ namespace cvt
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K ) :
         _parser( folder, 0.1f ),
     #ifdef MULTISCALE
-        _aligner( K, 5, 5000.0f, 3, 0.5f ),
+        _aligner( K, 8, 5000.0f, 3, 0.5f ),
     #else
         _aligner( K, 15, 5000.0f),
     #endif
@@ -60,7 +60,7 @@ namespace cvt
             Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
             d.rgb.convert( gray );
 
-            _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
+            RGBDAlignment::Result alignResult = _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
 
             std::cout << "Alignment took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
@@ -71,7 +71,7 @@ namespace cvt
 
             std::cout << "Pose error: \n" << _absolutePose - d.pose << std::endl;
 
-            if( needNewKeyframe( tmp ) ){
+            if( needNewKeyframe( tmp, alignResult ) ){
                 Image depth( d.depth.width(), d.depth.height(), IFormat::GRAY_FLOAT );
                 d.depth.convert( depth );
                 addNewKeyframe( gray, depth, _absolutePose );
@@ -82,14 +82,19 @@ namespace cvt
         }
     }
 
-    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel ) const
+    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel, const RGBDAlignment::Result& alignResult ) const
     {
+        // check the ssd:
+        float avgSSD = alignResult.SSD / alignResult.numPixels;
+        if( avgSSD > Math::sqr( 50 ) )
+            return true;
+
+        // check the relative pose
         Vector3f t;
         t.x = rel[ 0 ][ 3 ];
         t.y = rel[ 1 ][ 3 ];
         t.z = rel[ 2 ][ 3 ];
-
-        if( t.length() > 0.5f )
+        if( t.length() > 0.3f )
             return true;
         return false;
     }

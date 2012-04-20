@@ -14,10 +14,8 @@ namespace cvt {
         pyrDepth.update( depth );
 
         Matrix3f scaledK = K;
-
         for( size_t i = 0; i < octaves; i++ ){
-            _octaveKeyframes.push_back( new VOKeyframe( pyrGray[ i ], pyrDepth[ i ], pose, scaledK, depthScale ) );
-            std::cout << "Inverse Hessian of octave " << i << "\n" << _octaveKeyframes.back()->inverseHessian() << std::endl;
+            _octaveKeyframes.push_back( new VOKeyframe( pyrGray[ i ], pyrDepth[ i ], pose, scaledK, depthScale ) );            
             scaledK *= scalefac;
             scaledK[ 2 ][ 2 ] = 1.0f;
         }
