@@ -5,10 +5,14 @@
 #include <cvt/gui/Button.h>
 #include <cvt/io/RGBDParser.h>
 #include <VOKeyframe.h>
+#include <MultiscaleKeyframe.h>
 #include <RGBDAlignment.h>
+#include <RGBDScaleSpaceAlignment.h>
 #include <PoseView.h>
 
 #include <vector>
+
+#define MULTISCALE
 
 namespace cvt
 {
@@ -22,8 +26,17 @@ namespace cvt
 
             private:
                 RGBDParser                  _parser;
+
+#ifdef MULTISCALE
+                std::vector<MultiscaleKeyframe*> _keyframes;
+                RGBDScaleSpaceAlignment          _aligner;
+                MultiscaleKeyframe*              _activeKeyframe;
+#else
                 std::vector<VOKeyframe*>    _keyframes;
                 RGBDAlignment               _aligner;
+                VOKeyframe*                 _activeKeyframe;
+#endif
+
                 Window                      _mainWindow;
                 uint32_t                    _timerId;
 
@@ -33,8 +46,6 @@ namespace cvt
                 Moveable                    _imageMov;
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
-
-                //GLSceneView                 _sceneView;
 
                 Button                      _nextButton;
                 bool                        _nextPressed;
@@ -46,12 +57,12 @@ namespace cvt
                 // pose relative to the keyframe
                 SE3<float>                  _relativePose;
                 Matrix4f                    _absolutePose;
-                VOKeyframe*                 _activeKeyframe;
+
 
                 void setupGui();
 
                 bool needNewKeyframe( const Matrix4f& relativePose ) const;
-                void addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose );
+                void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
                 void nextPressed();
                 void optimizePressed();

@@ -8,10 +8,11 @@
 
 namespace cvt
 {
-    VOKeyframe::VOKeyframe( const Image& rgb, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling ) :
-        _pose( pose )
+    VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
+                            const Matrix4f& pose, const Matrix3f& K, float depthScaling ) :
+        _pose( pose ),
+        _gray( gray )
     {
-        rgb.convert( _gray, IFormat::GRAY_FLOAT );
         computeJacobians( depth, K, 1.0f / depthScaling );
     }
 
