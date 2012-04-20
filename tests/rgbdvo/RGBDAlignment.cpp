@@ -8,7 +8,7 @@ namespace cvt
     RGBDAlignment::RGBDAlignment( const Matrix3f& K, size_t maxIterations, float depthScale ) :
         _intrinsics( K ),
         _maxIterations( maxIterations ),
-        _depthScale( 1.0f / depthScale )
+        _depthScale( ( float )0xffff / depthScale )
     {
     }
 

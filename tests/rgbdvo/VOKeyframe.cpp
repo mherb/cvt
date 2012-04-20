@@ -13,7 +13,7 @@ namespace cvt
         _pose( pose ),
         _gray( gray )
     {
-        computeJacobians( depth, K, 1.0f / depthScaling );
+        computeJacobians( depth, K, ( float )0xffff / depthScaling );
     }
 
     VOKeyframe::~VOKeyframe()
@@ -61,26 +61,23 @@ namespace cvt
         float gradThreshold = Math::sqr( 0.1f );
 
         size_t npts = 0;
-
-        size_t ptIdx = 0;
         for( size_t y = 0; y < depth.height(); y++ ){
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
             const float* d = depthMap.ptr();
-            for( size_t x = 0; x < depth.width(); x++, ptIdx++ ){
-                if( d[ x ] == 0 ){
-                    continue;
-                } else {
+            for( size_t x = 0; x < depth.width(); x++ ){
+                float z = d[ x ] * depthScaling;
+                if( z > 0.05f ){
                     g[ 0 ] = -gx[ x ];
                     g[ 1 ] = -gy[ x ];
 
                     if( g.squaredNorm() < gradThreshold )
                         continue;
 
-                    p3d[ 2 ] = d[ x ] * depthScaling;
-                    p3d[ 0 ] = tmpx[ x ] * p3d[ 2 ];
-                    p3d[ 1 ] = tmpy[ y ] * p3d[ 2 ];
+                    p3d[ 0 ] = tmpx[ x ] * z;
+                    p3d[ 1 ] = tmpy[ y ] * z;
+                    p3d[ 2 ] = z;
 
                     pose.screenJacobian( J, p3d, K );
 

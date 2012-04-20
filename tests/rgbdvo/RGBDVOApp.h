@@ -12,7 +12,7 @@
 
 #include <vector>
 
-//#define MULTISCALE
+#define MULTISCALE
 
 namespace cvt
 {
