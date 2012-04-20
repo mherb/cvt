@@ -16,16 +16,10 @@ namespace cvt
     {
     }
 
-    void RGBDAlignment::alignWithKeyFrame( SE3<float>& predicted,
+    void RGBDAlignment::alignWithKeyframe( SE3<float>& predicted,
                                            const VOKeyframe& keyframe,
-                                           const Image& rgb,
-                                           const Image& /*depth*/ )
+                                           const Image& gray )
     {
-
-        // to gray
-        Image gray( rgb.width(), rgb.height(), IFormat::GRAY_FLOAT );
-        rgb.convert( gray );
-
         size_t iter = 0;
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;

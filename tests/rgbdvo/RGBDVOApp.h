@@ -5,15 +5,19 @@
 #include <cvt/gui/Button.h>
 #include <cvt/io/RGBDParser.h>
 #include <VOKeyframe.h>
+#include <MultiscaleKeyframe.h>
 #include <RGBDAlignment.h>
+#include <RGBDScaleSpaceAlignment.h>
 #include <PoseView.h>
 
 #include <vector>
 
+//#define MULTISCALE
+
 namespace cvt
 {
-	class RGBDVOApp : public TimeoutHandler
-	{
+    class RGBDVOApp : public TimeoutHandler
+    {
             public:
                 RGBDVOApp( const String& folder, const Matrix3f& K );
                 ~RGBDVOApp();
@@ -22,8 +26,17 @@ namespace cvt
 
             private:
                 RGBDParser                  _parser;
+
+#ifdef MULTISCALE
+                std::vector<MultiscaleKeyframe*> _keyframes;
+                RGBDScaleSpaceAlignment          _aligner;
+                MultiscaleKeyframe*              _activeKeyframe;
+#else
                 std::vector<VOKeyframe*>    _keyframes;
                 RGBDAlignment               _aligner;
+                VOKeyframe*                 _activeKeyframe;
+#endif
+
                 Window                      _mainWindow;
                 uint32_t                    _timerId;
 
@@ -31,14 +44,8 @@ namespace cvt
                 Moveable                    _kfMov;
                 ImageView                   _currentImage;
                 Moveable                    _imageMov;
-                ImageView                   _gxView;
-                Moveable                    _gxMov;
-                ImageView                   _gyView;
-                Moveable                    _gyMov;
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
-
-                //GLSceneView                 _sceneView;
 
                 Button                      _nextButton;
                 bool                        _nextPressed;
@@ -50,14 +57,15 @@ namespace cvt
                 // pose relative to the keyframe
                 SE3<float>                  _relativePose;
                 Matrix4f                    _absolutePose;
-                VOKeyframe*                 _activeKeyframe;
+
 
                 void setupGui();
 
-                void addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose );
+                bool needNewKeyframe( const Matrix4f& relativePose ) const;
+                void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
                 void nextPressed();
                 void optimizePressed();
                 void toggleStepping();
-	};
+    };
 }

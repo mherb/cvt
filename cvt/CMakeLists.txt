@@ -386,6 +386,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/Ferns.h
    vision/internal/Fern.h
    vision/IntegralImage.h
+   vision/ImagePyramid.h
    vision/Flow.h
    vision/HCalibration.h
    vision/KLTPatch.h
