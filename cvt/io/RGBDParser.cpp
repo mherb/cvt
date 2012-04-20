@@ -166,7 +166,6 @@ namespace cvt
         return true;
     }
 
-
     size_t RGBDParser::findClosestMatchInGTStamps( double val, size_t startIdx )
     {
         size_t bestIdx = startIdx;
@@ -184,53 +183,46 @@ namespace cvt
         }
         return bestIdx;
     }
+
     void RGBDParser::sortOutData( const std::vector<double>& rgbStamps,
                                   const std::vector<double>& depthStamps )
     {
+        size_t rgbIdx = 0;
 
-        size_t gtIdx	= 0;
-        size_t depthIdx = 0;
-        size_t rgbIdx	= 0;
-        size_t savePos	= 0;
+        std::vector<double> stamps;
+        std::vector<Matrix4f> poses;
+        std::vector<String> color;
+        std::vector<String> depth;
 
-        while( rgbIdx < rgbStamps.size() &&
-               depthIdx < depthStamps.size() &&
-               gtIdx < _stamps.size() ){
-
+        while( rgbIdx < rgbStamps.size() ){
             // find best depth for this rgb
-            size_t bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], depthIdx, depthStamps );
+            size_t bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], 0, depthStamps );
             double depthDist = Math::abs( rgbStamps[ rgbIdx ] - depthStamps[ bestDepthIdx ] );
             if( depthDist < _maxStampDiff ){
                 // now we have the match: rgbIdx & depthIdx and should search for the closest gt
-                size_t bestGtIdx = findClosestMatchInGTStamps( rgbStamps[ rgbIdx ], gtIdx );
-                if( Math::abs( _stamps[ bestGtIdx ] - rgbStamps[ rgbIdx ] ) > _maxStampDiff ){
-                    rgbIdx++;
-                    continue; // there is no good pose for this rgb stamp!
+                size_t bestGtIdx = findClosestMatchInGTStamps( rgbStamps[ rgbIdx ], 0 );
+                if( Math::abs( _stamps[ bestGtIdx ] - rgbStamps[ rgbIdx ] ) < _maxStampDiff ){
+                    // take it
+                    stamps.push_back( _stamps[ bestGtIdx ] );
+                    poses.push_back( _groundTruthPoses[ bestGtIdx ] );
+                    depth.push_back( _depthFiles[ bestDepthIdx ] );
+                    color.push_back( _rgbFiles[ rgbIdx ] );
+                } else {
+                    //std::cout.precision( 15 );
+                    //std::cout << "Could not find match in GT stamps for: " << std::fixed << rgbStamps[ rgbIdx ] << std::endl;
                 }
-
-                // take it
-                _stamps[ savePos ] = _stamps[ bestGtIdx ];
-                _groundTruthPoses[ savePos ] = _groundTruthPoses[ bestGtIdx ];
-                _depthFiles[ savePos ] = _depthFiles[ bestDepthIdx ];
-                _rgbFiles[ savePos ] = _rgbFiles[ rgbIdx ];
-                savePos++;
-
-                gtIdx = bestGtIdx;
-                depthIdx = bestDepthIdx;
-            }
-
-            rgbIdx++;
+           } else {
+                //std::cout.precision( 15 );
+                //std::cout << "Could not find match in depth stamps for: " << std::fixed << rgbStamps[ rgbIdx ] << std::endl;
+           }
+           rgbIdx++;
         }
-        std::cout << "Found: " << savePos << " matches" << std::endl;
+        std::cout << "Found: " << stamps.size() << " matches" << std::endl;
 
-        // erase the rest:
-        _stamps.erase( _stamps.begin() + savePos, _stamps.end() );
-        _groundTruthPoses.erase( _groundTruthPoses.begin() + savePos, _groundTruthPoses.end() );
-
-        if( savePos < _rgbFiles.size() )
-            _rgbFiles.erase( _rgbFiles.begin() + savePos, _rgbFiles.end() );
-        if( savePos < _depthFiles.size() )
-        _depthFiles.erase( _depthFiles.begin() + savePos, _depthFiles.end() );
+        _groundTruthPoses = poses;
+        _stamps = stamps;
+        _rgbFiles = color;
+        _depthFiles = depth;
     }
 
 

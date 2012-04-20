@@ -7,15 +7,16 @@
 
 namespace cvt
 {
-
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K ) :
-        _parser( folder ),
+        _parser( folder, 0.1f ),
+    #ifdef MULTISCALE
+        _aligner( K, 5, 5000.0f, 3, 0.5f ),
+    #else
         _aligner( K, 15, 5000.0f),
+    #endif
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
-        _gxMov( &_gxView ),
-        _gyMov( &_gyView ),
         _poseMov( &_poseView ),
         _nextButton( "next" ),
         _nextPressed( false ),
@@ -24,11 +25,15 @@ namespace cvt
         _optimizeButton( "optimize" ),
         _optimize( false )
     {
-        _timerId = Application::registerTimer( 50, this );
+        _timerId = Application::registerTimer( 20, this );
         setupGui();
 
         _parser.loadNext();
-        addNewKeyframe( _parser.data(), _parser.data().pose );
+        Image gray, depth;
+        _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
+        _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
+
+        addNewKeyframe( gray, depth, _parser.data().pose );
     }
 
     RGBDVOApp::~RGBDVOApp()
@@ -52,7 +57,10 @@ namespace cvt
             Time t;
             const RGBDParser::RGBDSample& d = _parser.data();
             // try to align:
-            _aligner.alignWithKeyFrame( _relativePose, *_activeKeyframe, d.rgb, d.depth );
+            Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
+            d.rgb.convert( gray );
+
+            _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
 
             std::cout << "Alignment took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
@@ -61,9 +69,29 @@ namespace cvt
             EigenBridge::toCVT( tmp, _relativePose.transformation() );
             _absolutePose = _activeKeyframe->pose() * tmp.inverse();
 
+            std::cout << "Pose error: \n" << _absolutePose - d.pose << std::endl;
+
+            if( needNewKeyframe( tmp ) ){
+                Image depth( d.depth.width(), d.depth.height(), IFormat::GRAY_FLOAT );
+                d.depth.convert( depth );
+                addNewKeyframe( gray, depth, _absolutePose );
+            }
+
             _poseView.setCamPose( _absolutePose );
             _poseView.setGTPose( d.pose );
         }
+    }
+
+    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel ) const
+    {
+        Vector3f t;
+        t.x = rel[ 0 ][ 3 ];
+        t.y = rel[ 1 ][ 3 ];
+        t.z = rel[ 2 ][ 3 ];
+
+        if( t.length() > 0.5f )
+            return true;
+        return false;
     }
 
     void RGBDVOApp::setupGui()
@@ -80,16 +108,6 @@ namespace cvt
         _imageMov.setSize( 300, 200 );
         _imageMov.setPosition( 300, 0 );
         _imageMov.setTitle( "Current Image" );
-
-        _mainWindow.addWidget( &_gxMov );
-        _gxMov.setSize( 300, 200 );
-        _gxMov.setPosition( 300, 0 );
-        _gxMov.setTitle( "Gradient X" );
-
-        _mainWindow.addWidget( &_gyMov );
-        _gyMov.setSize( 300, 200 );
-        _gyMov.setPosition( 300, 0 );
-        _gyMov.setTitle( "Gradient Y" );
 
         _mainWindow.addWidget( &_poseMov );
         _poseMov.setSize( 300, 200 );
@@ -123,18 +141,21 @@ namespace cvt
         _mainWindow.setVisible( true );
     }
 
-    void RGBDVOApp::addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose )
+    void RGBDVOApp::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         Time t;
-        VOKeyframe* kf = new VOKeyframe( sample.rgb, sample.depth, kfPose, _aligner.intrinsics(), 5000.0f );
+
+#ifdef MULTISCALE
+        MultiscaleKeyframe* kf = new MultiscaleKeyframe( kfPose, _aligner.intrinsics(), gray, depth, 5000.0f, 3, 0.5f );
+#else
+        VOKeyframe* kf = new VOKeyframe( gray, depth, kfPose, _aligner.intrinsics(), 5000.0f );
+#endif
         std::cout << "Keyframe creation took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
         _keyframes.push_back( kf );
         _activeKeyframe = _keyframes.back();
 
-        _keyframeImage.setImage( kf->gray() );
-        _gxView.setImage( _activeKeyframe->gradX() );
-        _gyView.setImage( _activeKeyframe->gradY() );
+        _keyframeImage.setImage( gray );
 
         // reset the relative pose
         SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();
@@ -143,17 +164,6 @@ namespace cvt
 
         _poseView.addKeyframe( kfPose );
         _poseView.setCamPose( _absolutePose );
-
-        /*
-        ScenePoints pts( "bla" );
-        std::vector<Vector4f> colors;
-        const float* c = kf->pixelData();
-        for( size_t i = 0; i < kf->numPoints(); i++ ){
-            colors.push_back( Vector4f( c[ i ], c[ i ], c[ i ], 1.0f ) );
-        }
-
-        pts.setVerticesWithColor( kf->pointsPtr(), &colors[ 0 ], kf->numPoints() );
-        _sceneView.setScenePoints( pts );*/
     }
 
     void RGBDVOApp::nextPressed()
