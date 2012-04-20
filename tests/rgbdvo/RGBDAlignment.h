@@ -15,10 +15,9 @@ namespace cvt
             /**
              *  \brief align a given image pair (rgb + depth)
              */
-            void alignWithKeyFrame( SE3<float>& predicted,
+            void alignWithKeyframe( SE3<float>& predicted,
                                     const VOKeyframe& keyframe,
-                                    const Image& rgb,
-                                    const Image& depth );
+                                    const Image& gray );
 
             const Matrix3f& intrinsics() const { return _intrinsics; }
 

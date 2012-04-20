@@ -7,10 +7,13 @@
 
 namespace cvt
 {
-
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K ) :
         _parser( folder, 0.1f ),
+    #ifdef MULTISCALE
+        _aligner( K, 5, 5000.0f, 3, 0.5f ),
+    #else
         _aligner( K, 15, 5000.0f),
+    #endif
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
@@ -26,7 +29,9 @@ namespace cvt
         setupGui();
 
         _parser.loadNext();
-        addNewKeyframe( _parser.data(), _parser.data().pose );
+        Image gray;
+        _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
+        addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
     }
 
     RGBDVOApp::~RGBDVOApp()
@@ -50,7 +55,9 @@ namespace cvt
             Time t;
             const RGBDParser::RGBDSample& d = _parser.data();
             // try to align:
-            _aligner.alignWithKeyFrame( _relativePose, *_activeKeyframe, d.rgb, d.depth );
+            Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
+            d.rgb.convert( gray );
+            _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
 
             std::cout << "Alignment took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
@@ -60,7 +67,7 @@ namespace cvt
             _absolutePose = _activeKeyframe->pose() * tmp.inverse();
 
             if( needNewKeyframe( tmp ) ){
-                addNewKeyframe( d, _absolutePose );
+                addNewKeyframe( gray, d.depth, _absolutePose );
             }
 
             _poseView.setCamPose( _absolutePose );
@@ -127,16 +134,21 @@ namespace cvt
         _mainWindow.setVisible( true );
     }
 
-    void RGBDVOApp::addNewKeyframe( const RGBDParser::RGBDSample& sample, const Matrix4f& kfPose )
+    void RGBDVOApp::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         Time t;
-        VOKeyframe* kf = new VOKeyframe( sample.rgb, sample.depth, kfPose, _aligner.intrinsics(), 5000.0f );
+
+#ifdef MULTISCALE
+        MultiscaleKeyframe* kf = new MultiscaleKeyframe( kfPose, _aligner.intrinsics(), gray, depth, 5000.0f, 3, 0.5f );
+#else
+        VOKeyframe* kf = new VOKeyframe( gray, depth, kfPose, _aligner.intrinsics(), 5000.0f );
+#endif
         std::cout << "Keyframe creation took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
         _keyframes.push_back( kf );
         _activeKeyframe = _keyframes.back();
 
-        _keyframeImage.setImage( sample.rgb );
+        _keyframeImage.setImage( gray );
 
         // reset the relative pose
         SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();

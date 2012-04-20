@@ -16,13 +16,13 @@ namespace cvt
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
             /**
-             * \param	rgb             RGB Image
-             * \param	depth           Depth Image
+             * \param	gray            gray Image (float)
+             * \param	depth           Depth Image (uint16_t)
              * \param	pose            pose for this keyframe
              * \param   K               the intrinsics for the rgb image
              * \param   dephtScaling    scale factor of the depth image: depthScaling equals to 1m!
              */
-            VOKeyframe( const Image& rgb, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling = 5000.0f );
+            VOKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling = 5000.0f );
             ~VOKeyframe();
 
             const HessianType&  inverseHessian()        const { return _inverseHessian; }
