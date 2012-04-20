@@ -17,7 +17,7 @@ namespace cvt
 
             /**
              * \param	gray            gray Image (float)
-             * \param	depth           Depth Image (uint16_t)
+             * \param	depth           Depth Image (float)
              * \param	pose            pose for this keyframe
              * \param   K               the intrinsics for the rgb image
              * \param   dephtScaling    scale factor of the depth image: depthScaling equals to 1m!
