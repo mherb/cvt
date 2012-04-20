@@ -61,7 +61,7 @@ namespace cvt
 
                 void setupGui();
 
-                bool needNewKeyframe( const Matrix4f& relativePose ) const;
+                bool needNewKeyframe( const Matrix4f& relativePose, const RGBDAlignment::Result& alignResult ) const;
                 void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
                 void nextPressed();

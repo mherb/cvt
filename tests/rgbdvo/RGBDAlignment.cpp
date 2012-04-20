@@ -16,11 +16,15 @@ namespace cvt
     {
     }
 
-    void RGBDAlignment::alignWithKeyframe( SE3<float>& predicted,
-                                           const VOKeyframe& keyframe,
-                                           const Image& gray )
+    RGBDAlignment::Result RGBDAlignment::alignWithKeyframe( SE3<float>& predicted,
+                                                            const VOKeyframe& keyframe,
+                                                            const Image& gray )
     {
-        size_t iter = 0;
+        Result result;
+        result.SSD = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
+
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;
 
@@ -44,7 +48,7 @@ namespace cvt
 
         size_t floatStride = grayMap.stride() / sizeof( float );
 
-        while( iter < _maxIterations ){
+        while( result.iterations < _maxIterations ){
             // build the updated projection Matrix
             const Eigen::Matrix4f& m = predicted.transformation();
             mEigen.block<3, 3>( 0, 0 ) = Keigen * m.block<3, 3>( 0, 0 );
@@ -55,8 +59,8 @@ namespace cvt
             simd->projectPoints( &warpedPts[ 0 ], projMat, keyframe.pointsPtr(), keyframe.numPoints() );
 
             deltaSum.setZero();
-            size_t numGood = 0;
-            float ssd = 0.0f;
+            result.numPixels = 0;
+            result.SSD = 0.0f;
 
             for( size_t i = 0; i < warpedPts.size(); i++ ){
                 const Vector2f& pw = warpedPts[ i ];
@@ -76,12 +80,11 @@ namespace cvt
 
                     // compute the delta
                     float delta = kfPixels[ i ] - v;
-                    ssd += Math::sqr( delta );
+                    result.SSD += Math::sqr( delta );
+                    result.numPixels++;
 
                     VOKeyframe::JacType jtmp = delta * jacobians[ i ];
-
-                    deltaSum += jtmp;
-                    numGood++;
+                    deltaSum += jtmp;                    
                 }
             }
 
@@ -89,7 +92,11 @@ namespace cvt
             SE3<float>::ParameterVectorType deltaP = -invHess * deltaSum.transpose();
             predicted.applyInverse( -deltaP );
 
-            iter++;
+            result.iterations++;
+            if( deltaP.squaredNorm() < 1e-7 )
+                return result;
         }
+        return result;
     }
+
 }
