@@ -80,9 +80,9 @@ namespace cvt
                     if( g.squaredNorm() < gradThreshold )
                         continue;
                     
-					p3d[ 2 ] = d[ x ] * _depthScaling;
-					p3d[ 0 ] = tmpx[ x ] * p3d[ 2 ];
-					p3d[ 1 ] = tmpy[ y ] * p3d[ 2 ];
+                    p3d[ 2 ] = d[ x ] * _depthScaling;
+                    p3d[ 0 ] = tmpx[ x ] * p3d[ 2 ];
+                    p3d[ 1 ] = tmpy[ y ] * p3d[ 2 ];
 
                     pose.screenJacobian( J, p3d, K );
 
