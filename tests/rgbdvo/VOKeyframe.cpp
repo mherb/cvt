@@ -44,7 +44,7 @@ namespace cvt
         IMapScoped<const float> gxMap( gxI );
         IMapScoped<const float> gyMap( gyI );
         IMapScoped<const float> grayMap( _gray );
-        IMapScoped<const uint16_t> depthMap( depth );
+        IMapScoped<const float> depthMap( depth );
 
         // eval the jacobians:
         Eigen::Vector3f p3d;
@@ -67,7 +67,7 @@ namespace cvt
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
-            const uint16_t* d = depthMap.ptr();
+            const float* d = depthMap.ptr();
             for( size_t x = 0; x < depth.width(); x++, ptIdx++ ){
                 if( d[ x ] == 0 ){
                     continue;

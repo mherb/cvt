@@ -23,7 +23,7 @@ namespace cvt {
         _grayPyramid.update( gray );
 
         // for each scale, call the respective aligner
-        for( int i = _grayPyramid.octaves(); i >= 0; i-- ){
+        for( int i = _grayPyramid.octaves() - 1; i >= 0; i-- ){
             _alignerForOctave[ i ].alignWithKeyframe( predictedPose, kf.keyframeForOctave( i ), _grayPyramid[ i ] );
         }
     }

@@ -29,9 +29,11 @@ namespace cvt
         setupGui();
 
         _parser.loadNext();
-        Image gray;
+        Image gray, depth;
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
-        addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
+        _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
+
+        addNewKeyframe( gray, depth, _parser.data().pose );
     }
 
     RGBDVOApp::~RGBDVOApp()
@@ -57,6 +59,7 @@ namespace cvt
             // try to align:
             Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
             d.rgb.convert( gray );
+
             _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
 
             std::cout << "Alignment took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
@@ -66,8 +69,12 @@ namespace cvt
             EigenBridge::toCVT( tmp, _relativePose.transformation() );
             _absolutePose = _activeKeyframe->pose() * tmp.inverse();
 
+            std::cout << "Pose error: \n" << _absolutePose - d.pose << std::endl;
+
             if( needNewKeyframe( tmp ) ){
-                addNewKeyframe( gray, d.depth, _absolutePose );
+                Image depth( d.depth.width(), d.depth.height(), IFormat::GRAY_FLOAT );
+                d.depth.convert( depth );
+                addNewKeyframe( gray, depth, _absolutePose );
             }
 
             _poseView.setCamPose( _absolutePose );
