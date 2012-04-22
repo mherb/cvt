@@ -127,6 +127,62 @@ static bool _hammingTest()
     return result;
 }
 
+static bool _projectTest()
+{
+	std::vector<Vector2f> gtProjected;
+	std::vector<Vector3f> pts3d;
+	Matrix4f projectionMat; projectionMat.setIdentity();
+	Matrix3f K, R, tmp;
+	Vector3f t;
+	t.x = 20.0f, t.y = 30.0f, t.z = 40.0f;
+	R.setRotationXYZ( Math::HALF_PI, Math::PI / 2.0f, Math::PI / 10.0f );
+	K.setIdentity();
+	K[ 0 ][ 0 ] = 640.0f;
+	K[ 0 ][ 2 ] = 321.0f;
+	K[ 1 ][ 1 ] = 641.0f;
+	K[ 1 ][ 2 ] = 241.0f;
+	tmp = K * R;
+	t = K * t;
+
+	for( size_t r = 0; r < 3; r++ ){
+		for( size_t c = 0; c < 3; c++ ){
+			projectionMat[ r ][ c ] = tmp[ r ][ c ];
+		}
+		projectionMat[ r ][ 3 ] = t[ r ];
+	}
+	projectionMat.setIdentity();
+
+	Vector2f res;
+	Vector3f p, pp;
+	for( size_t i = 0; i < 205; i++ ){
+		p.x = Math::rand( -100.0f, 100.0f );
+		p.y = Math::rand( -100.0f, 100.0f );
+		p.z = Math::rand( -100.0f, 100.0f );
+		pp = projectionMat * p;
+		res.x = pp.x / pp.z;
+		res.y = pp.y / pp.z;
+		gtProjected.push_back( res );
+		pts3d.push_back( p );
+	}
+
+	SIMD* simd = SIMD::instance();
+	std::vector<Vector2f> result;
+
+	result.resize( pts3d.size() );
+	simd->projectPoints( &result[ 0 ], projectionMat, &pts3d[ 0 ], pts3d.size() );
+
+	bool testResult = true;
+	for( size_t i = 0; i < result.size(); i++ ){
+		if( result[ i ] != gtProjected[ i ] ){
+			testResult = false;
+			std::cout << "Error: 3D: " << pts3d[ i ] << ", True: " << gtProjected[ i ] << " Simd: " << result[ i ] << std::endl;
+			break;
+		}
+	}
+
+	return testResult;
+}
+
 BEGIN_CVTTEST( simd )
 		float* fdst;
 		float* fsrc1;
@@ -157,8 +213,11 @@ BEGIN_CVTTEST( simd )
 		delete[] fsrc2;
 #undef TESTSIZE
                 
-        bool hammingResult = _hammingTest();
-        CVTTEST_PRINT( "HammingDistance", hammingResult );
+        bool testResult = _hammingTest();
+        CVTTEST_PRINT( "HammingDistance", testResult );
+        
+		testResult = _projectTest();
+        CVTTEST_PRINT( "Project Points 3d->2d", testResult );
 
 #define TESTSIZE ( 2048 * 2048 )
 		fdst = new float[ TESTSIZE ];

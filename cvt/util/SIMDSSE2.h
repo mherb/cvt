@@ -76,7 +76,8 @@ namespace cvt {
 			using SIMDSSE::transformPointsHomogenize;
 			virtual void transformPointsHomogenize( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
 
-                        //virtual void projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+			virtual void projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+
 		public:
 			virtual std::string name() const;
 			virtual SIMDType type() const;
