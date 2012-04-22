@@ -3790,8 +3790,7 @@ void SIMDSSE2::transformPointsHomogenize( Vector3f* dst,const Matrix4f& _mat, co
 		*dst++ = _mat * *src++;
 }
 
-/*
-void SIMDSSE2::projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const
+void SIMDSSE2::projectPoints( Vector2f* dst, const Matrix4f& _mat, const Vector3f* src, size_t n ) const
 {
         __m128 mat[ 4 ], in1, in2, in3, tmp, out1, out2, out3, out4;
         mat[ 0 ] = _mm_loadu_ps( ( ( const float* ) _mat.ptr() ) );
@@ -3855,11 +3854,11 @@ void SIMDSSE2::projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f
                  //   div
                  //   store
                  //
-                tmp  = _mm_shuffle_ps( out1, out2, _MM_SHUFFLE( 0, 1, 0, 1 ) );
+                tmp  = _mm_shuffle_ps( out1, out2, _MM_SHUFFLE( 1, 0, 1, 0 ) );
                 out1 = _mm_shuffle_ps( out1, out2, _MM_SHUFFLE( 2, 2, 2, 2 ) );
                 out1 = _mm_div_ps( tmp, out1 );
 
-                tmp  = _mm_shuffle_ps( out3, out4, _MM_SHUFFLE( 0, 1, 0, 1 ) );
+                tmp  = _mm_shuffle_ps( out3, out4, _MM_SHUFFLE( 1, 0, 1, 0 ) );
                 out3 = _mm_shuffle_ps( out3, out4, _MM_SHUFFLE( 2, 2, 2, 2 ) );
                 out2 = _mm_div_ps( tmp, out3 );
 
@@ -3877,12 +3876,11 @@ void SIMDSSE2::projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f
 
         Vector3f pp;
         while( i-- ){
-            pp = mat * *src++;
+            pp = _mat * *src++;
             dst->x = pp.x / pp.z;
             dst->y = pp.y / pp.z;
             dst++;
         }
 }
-*/
 
 }
