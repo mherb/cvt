@@ -8,11 +8,11 @@
 namespace cvt
 {
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K ) :
-        _parser( folder, 0.1f ),
+        _parser( folder, 0.05f ),
     #ifdef MULTISCALE
-        _aligner( K, 8, 5000.0f, 3, 0.5f ),
+        _aligner( K, 10, DepthScale, 3, 0.5f ),
     #else
-        _aligner( K, 15, 5000.0f),
+        _aligner( K, 15, DepthScale ),
     #endif
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
@@ -60,7 +60,8 @@ namespace cvt
             Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
             d.rgb.convert( gray );
 
-            RGBDAlignment::Result alignResult = _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
+            //RGBDAlignment::Result alignResult = _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
+            ESMAlignment::Result alignResult = _aligner.alignWithKeyframe( _relativePose, *_activeKeyframe, gray );
 
             std::cout << "Alignment took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 
@@ -82,11 +83,12 @@ namespace cvt
         }
     }
 
-    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel, const RGBDAlignment::Result& alignResult ) const
+    //bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel, const RGBDAlignment::Result& alignResult ) const
+    bool RGBDVOApp::needNewKeyframe( const Matrix4f& rel, const ESMAlignment::Result& alignResult ) const
     {
         // check the ssd:
-        float avgSSD = alignResult.SSD / alignResult.numPixels;
-        if( avgSSD > Math::sqr( 50 ) )
+        float avgSSD = alignResult.SSD / alignResult.numPixels;        
+        if( avgSSD > Math::sqr( 30 ) )
             return true;
 
         // check the relative pose
@@ -95,6 +97,11 @@ namespace cvt
         t.y = rel[ 1 ][ 3 ];
         t.z = rel[ 2 ][ 3 ];
         if( t.length() > 0.3f )
+            return true;
+
+        Quaternionf q( rel.toMatrix3() );
+        Vector3f euler = q.toEuler();
+        if( euler.length() > Math::deg2Rad( 3.0f ) )
             return true;
         return false;
     }
@@ -151,9 +158,10 @@ namespace cvt
         Time t;
 
 #ifdef MULTISCALE
-        MultiscaleKeyframe* kf = new MultiscaleKeyframe( kfPose, _aligner.intrinsics(), gray, depth, 5000.0f, 3, 0.5f );
+        MultiscaleKeyframe* kf = new MultiscaleKeyframe( kfPose, _aligner.intrinsics(), gray, depth, DepthScale, 3, 0.5f );
 #else
-        VOKeyframe* kf = new VOKeyframe( gray, depth, kfPose, _aligner.intrinsics(), 5000.0f );
+        //VOKeyframe* kf = new VOKeyframe( gray, depth, kfPose, _aligner.intrinsics(), DepthScale );
+        ESMKeyframe* kf = new ESMKeyframe( gray, depth, kfPose, _aligner.intrinsics(), DepthScale );
 #endif
         std::cout << "Keyframe creation took: " << t.elapsedMilliSeconds() << "ms" << std::endl;
 

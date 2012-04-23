@@ -80,6 +80,7 @@ namespace cvt
 
                     // compute the delta
                     float delta = kfPixels[ i ] - v;
+                    //float delta = Math::clamp( kfPixels[ i ] - v, -0.3f, 0.3f );
                     result.SSD += Math::sqr( delta );
                     result.numPixels++;
 
@@ -93,7 +94,7 @@ namespace cvt
             predicted.applyInverse( -deltaP );
 
             result.iterations++;
-            if( deltaP.squaredNorm() < 1e-7 )
+            if( deltaP.norm() < 1e-7 )
                 return result;
         }
         return result;
