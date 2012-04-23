@@ -48,6 +48,7 @@ namespace cvt
         _sample.rgb.load( _rgbFiles[ _idx ] );
         _sample.depth.load( _depthFiles[ _idx ] );
         _sample.pose = _groundTruthPoses[ _idx ];
+        _sample.poseValid = _poseValid[ _idx ];
         _idx++;
     }
 
@@ -193,6 +194,7 @@ namespace cvt
         std::vector<Matrix4f> poses;
         std::vector<String> color;
         std::vector<String> depth;
+        std::vector<bool> validity;
 
         while( rgbIdx < rgbStamps.size() ){
             // find best depth for this rgb
@@ -200,14 +202,19 @@ namespace cvt
             double depthDist = Math::abs( rgbStamps[ rgbIdx ] - depthStamps[ bestDepthIdx ] );
             if( depthDist < _maxStampDiff ){
                 // now we have the match: rgbIdx & depthIdx and should search for the closest gt
+                depth.push_back( _depthFiles[ bestDepthIdx ] );
+                color.push_back( _rgbFiles[ rgbIdx ] );
+
                 size_t bestGtIdx = findClosestMatchInGTStamps( rgbStamps[ rgbIdx ], 0 );
                 if( Math::abs( _stamps[ bestGtIdx ] - rgbStamps[ rgbIdx ] ) < _maxStampDiff ){
                     // take it
                     stamps.push_back( _stamps[ bestGtIdx ] );
                     poses.push_back( _groundTruthPoses[ bestGtIdx ] );
-                    depth.push_back( _depthFiles[ bestDepthIdx ] );
-                    color.push_back( _rgbFiles[ rgbIdx ] );
+                    validity.push_back( true );
                 } else {
+                    stamps.push_back( rgbStamps[ rgbIdx ] );
+                    poses.push_back( poses.back() );
+                    validity.push_back( false );
                     //std::cout.precision( 15 );
                     //std::cout << "Could not find match in GT stamps for: " << std::fixed << rgbStamps[ rgbIdx ] << std::endl;
                 }
@@ -223,6 +230,7 @@ namespace cvt
         _stamps = stamps;
         _rgbFiles = color;
         _depthFiles = depth;
+        _poseValid = validity;
     }
 
 

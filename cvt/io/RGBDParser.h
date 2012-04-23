@@ -28,6 +28,7 @@ namespace cvt
                 Image		rgb;
                 Image		depth;
                 Matrix4f	pose;
+                bool            poseValid;
                 double		stamp;
             };
 
@@ -47,6 +48,7 @@ namespace cvt
             std::vector<String>		_rgbFiles;
             std::vector<String>		_depthFiles;
             std::vector<double>		_stamps;
+            std::vector<bool>		_poseValid;
 
             RGBDSample				_sample;
             size_t					_idx;
