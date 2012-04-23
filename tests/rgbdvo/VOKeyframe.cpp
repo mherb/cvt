@@ -58,7 +58,7 @@ namespace cvt
         EigenBridge::toEigen( K, intrinsics );
         SE3<float> pose;
 
-        float gradThreshold = Math::sqr( 0.1f );
+        float gradThreshold = Math::sqr( 0.07f );
 
         size_t npts = 0;
         for( size_t y = 0; y < depth.height(); y++ ){
