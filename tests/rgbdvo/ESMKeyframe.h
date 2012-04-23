@@ -15,10 +15,11 @@
 #include <Eigen/Core>
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
+#include <KeyframeBase.h>
 
 namespace cvt {
 
-    class ESMKeyframe
+    class ESMKeyframe : public KeyframeBase<ESMKeyframe>
     {
         public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;

@@ -8,8 +8,6 @@
 #include <ESMKeyframe.h>
 #include <ESMAlignment.h>
 #include <MultiscaleKeyframe.h>
-#include <RGBDAlignment.h>
-#include <RGBDScaleSpaceAlignment.h>
 #include <PoseView.h>
 
 #include <vector>
