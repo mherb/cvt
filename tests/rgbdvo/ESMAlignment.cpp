@@ -61,9 +61,6 @@ namespace cvt
         const ESMKeyframe::JacType* jacobians = keyframe.jacobians();
 
         size_t floatStride = grayMap.stride() / sizeof( float );
-
-        Image warped( gray.width(), gray.height(), IFormat::GRAYALPHA_FLOAT );
-
         size_t numPositions = keyframe.numPoints();
 
         while( result.iterations < _maxIterations ){
