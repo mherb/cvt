@@ -3,17 +3,25 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
+#include <cvt/math/SE3.h>
 
 #include <vector>
 #include <Eigen/Core>
+#include <KeyframeBase.h>
 
 namespace cvt
 {
-    class VOKeyframe
+    class VOKeyframe : public KeyframeBase<VOKeyframe>
     {
         public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
+
+            struct Result {
+                float  SSD;
+                size_t numPixels;
+                size_t iterations;
+            };
 
             /**
              * \param	gray            gray Image (float)
@@ -23,14 +31,21 @@ namespace cvt
              * \param   dephtScaling    scale factor of the depth image: depthScaling equals to 1m!
              */
             VOKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling = 5000.0f );
+
             ~VOKeyframe();
 
-            const HessianType&  inverseHessian()        const { return _inverseHessian; }
-            const JacType*      jacobians()             const { return &_jacobians[ 0 ]; }
-            const Vector3f*     pointsPtr()             const { return &_points3d[ 0 ]; }
-            const float*        pixelData()             const { return &_pixelValues[ 0 ]; }
-            size_t              numPoints()             const { return _points3d.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
+
+            /**
+             *  \brief copmute the relative pose of an image w.r.t. this keyframe
+             *  \param  predicted   input/output the pose of the image w.r.t. this keyframe
+             *  \param  gray        the grayscale image of type GRAY_FLOAT
+             *  \return Result information (ssd, iterations, numPixel, ...)
+             */
+            Result computeRelativePose( SE3<float>& predicted,
+                                        const Image& gray,
+                                        const Matrix3f& intrinsics,
+                                        size_t maxIters ) const;
 
         protected:
             Matrix4f    _pose;
@@ -38,9 +53,6 @@ namespace cvt
 
             // the 3D points of this keyframe
             std::vector<Vector3f>   _points3d;
-
-            // the image positions of the used points
-            std::vector<Vector2f>   _pixelPositions;
 
             // the pixel values (gray) for the points
             std::vector<float>      _pixelValues;
