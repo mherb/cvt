@@ -22,6 +22,7 @@ namespace cvt {
     class ESMKeyframe : public KeyframeBase<ESMKeyframe>
     {
         public:
+			typedef KeyframeBase<ESMKeyframe>::Result Result;
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 2, 6> JacType;
 
@@ -41,6 +42,11 @@ namespace cvt {
             const Vector2f*     gradients()             const { return &_templateGradients[ 0 ]; }
             size_t              numPoints()             const { return _pixelValues.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
+            
+			Result computeRelativePose( SE3<float>& predicted,
+                                        const Image& gray,
+                                        const Matrix3f& intrinsics,
+                                        size_t maxIters ) const;
 
         protected:
             Matrix4f    _pose;
@@ -48,9 +54,6 @@ namespace cvt {
 
             // the 3D points of this keyframe
             std::vector<Vector3f>   _points3d;
-
-            // the image positions of the used points
-            std::vector<Vector2f>   _pixelPositions;
 
             // the image gradients of the used points
             std::vector<Vector2f>   _templateGradients;
@@ -63,6 +66,10 @@ namespace cvt {
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, float invDepthScale );
             void computeGradients( Image& gx, Image& gy ) const;
+    
+			float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
+
+			bool evalGradient( Vector2f& grad, const Vector2f* positions, const float* ptr, size_t stride, size_t w, size_t h ) const;
     };
 
 }

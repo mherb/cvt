@@ -6,7 +6,6 @@
 #include <cvt/io/RGBDParser.h>
 #include <VOKeyframe.h>
 #include <ESMKeyframe.h>
-#include <ESMAlignment.h>
 #include <MultiscaleKeyframe.h>
 #include <PoseView.h>
 
@@ -27,6 +26,7 @@ namespace cvt
             private:
                 static const float DepthScale = 5000.0f / 1.031f;
                 RGBDParser                  _parser;
+				Matrix3f					_K;
 
 #ifdef MULTISCALE
                 std::vector<MultiscaleKeyframe*> _keyframes;
@@ -37,7 +37,6 @@ namespace cvt
                 //RGBDAlignment               _aligner;
                 //VOKeyframe*                 _activeKeyframe;
                 std::vector<ESMKeyframe*>    _keyframes;
-                ESMAlignment                 _aligner;
                 ESMKeyframe*                 _activeKeyframe;
 #endif
 
@@ -66,7 +65,7 @@ namespace cvt
                 void setupGui();
 
                 //bool needNewKeyframe( const Matrix4f& relativePose, const RGBDAlignment::Result& alignResult ) const;
-                bool needNewKeyframe( const Matrix4f& relativePose, const ESMAlignment::Result& alignResult ) const;
+                bool needNewKeyframe( const Matrix4f& relativePose, const ESMKeyframe::Result& alignResult ) const;
                 void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
                 void nextPressed();

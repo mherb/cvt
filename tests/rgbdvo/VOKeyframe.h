@@ -14,14 +14,9 @@ namespace cvt
     class VOKeyframe : public KeyframeBase<VOKeyframe>
     {
         public:
+			typedef KeyframeBase<VOKeyframe>::Result Result;
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
-
-            struct Result {
-                float  SSD;
-                size_t numPixels;
-                size_t iterations;
-            };
 
             /**
              * \param	gray            gray Image (float)
