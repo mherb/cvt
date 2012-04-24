@@ -18,15 +18,33 @@
 
 namespace cvt {
 
+    struct VOResult {
+        float  SSD;
+        size_t numPixels;
+        size_t iterations;
+    };
+
+    struct VOParams
+    {
+        VOParams() :
+            maxIters( 10 ),
+            depthScale( 5000.0f ),
+            gradientThreshold( 0.1f ),
+            minDepth( 0.05f ),
+            minParameterUpdate( 1e-5 )
+        {}
+
+        size_t  maxIters;
+        float   depthScale;
+        float   gradientThreshold;
+        float   minDepth;
+        float   minParameterUpdate;
+    };
+
     template <class Derived>
     class KeyframeBase
     {
-        public:
-            struct Result {
-                float  SSD;
-                size_t numPixels;
-                size_t iterations;
-            };
+        public:            
 
             /**
              * \param	gray            gray Image (float)
@@ -35,15 +53,10 @@ namespace cvt {
              * \param   K               the intrinsics for the rgb image
              * \param   dephtScaling    scale factor of the depth image: depthScaling equals to 1m!
              */
-            static Derived* create( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling )
+            static Derived* create( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params )
             {
                 // derived HAS to have this constructor
-                return new Derived( gray, depth, pose, K, depthScaling );
-            }
-
-            ~KeyframeBase()
-            {
-                delete ( Derived* )this;
+                return new Derived( gray, depth, pose, K, params );
             }
 
             const Matrix4f& pose() const { return ( ( Derived* )this )->pose(); }
@@ -54,12 +67,17 @@ namespace cvt {
              *  \param  gray        the grayscale image of type GRAY_FLOAT
              *  \return Result information (ssd, iterations, numPixel, ...)
              */
-            Result computeRelativePose( SE3<float>& predicted,
-                                        const Image& gray,
-                                        const Matrix3f& intrinsics,
-                                        size_t maxIters ) const
+            VOResult computeRelativePose( SE3<float>& predicted,
+                                          const Image& gray,
+                                          const Matrix3f& intrinsics,
+                                          const VOParams& params ) const
             {
-                return ( ( Derived* )this )->computeRelativePose( predicted, gray, intrinsics, maxIters );
+                return ( ( Derived* )this )->computeRelativePose( predicted, gray, intrinsics, params );
+            }
+
+        protected:
+            ~KeyframeBase()
+            {
             }
     };
 

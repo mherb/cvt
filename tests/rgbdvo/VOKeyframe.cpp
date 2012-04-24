@@ -9,21 +9,23 @@
 namespace cvt
 {
     VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
-                            const Matrix4f& pose, const Matrix3f& K, float depthScaling ) :
+                            const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray )
     {
-        computeJacobians( depth, K, ( float )0xffff / depthScaling );
+        computeJacobians( depth, K, params );
     }
 
     VOKeyframe::~VOKeyframe()
-    {
+    {        
     }
 
-    void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, float depthScaling )
+    void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI );
+
+        float depthScaling = ( float )0xffff / params.depthScale;
 
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
@@ -58,7 +60,7 @@ namespace cvt
         EigenBridge::toEigen( K, intrinsics );
         SE3<float> pose;
 
-        float gradThreshold = Math::sqr( 0.07f );
+        float gradThreshold = Math::sqr( params.gradientThreshold );
 
         for( size_t y = 0; y < depth.height(); y++ ){
             const float* gx = gxMap.ptr();
@@ -67,7 +69,7 @@ namespace cvt
             const float* d = depthMap.ptr();
             for( size_t x = 0; x < depth.width(); x++ ){
                 float z = d[ x ] * depthScaling;
-                if( z > 0.05f ){
+                if( z > params.minDepth ){
                     g[ 0 ] = -gx[ x ];
                     g[ 1 ] = -gy[ x ];
 
@@ -108,12 +110,12 @@ namespace cvt
         _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
     }
 
-    VOKeyframe::Result VOKeyframe::computeRelativePose( SE3<float>& predicted,
-                                                        const Image& gray,
-                                                        const Matrix3f& intrinsics,
-                                                        size_t maxIters ) const
+    VOResult VOKeyframe::computeRelativePose( SE3<float>& predicted,
+                                              const Image& gray,
+                                              const Matrix3f& intrinsics,
+                                              const VOParams& params ) const
     {
-        Result result;
+        VOResult result;
         result.SSD = 0.0f;
         result.iterations = 0;
         result.numPixels = 0;
@@ -136,7 +138,7 @@ namespace cvt
         IMapScoped<const float> grayMap( gray );
         size_t floatStride = grayMap.stride() / sizeof( float );
 
-        while( result.iterations < maxIters ){
+        while( result.iterations < params.maxIters ){
             // build the updated projection Matrix
             const Eigen::Matrix4f& m = predicted.transformation();
             mEigen.block<3, 3>( 0, 0 ) = Keigen * m.block<3, 3>( 0, 0 );
@@ -181,7 +183,7 @@ namespace cvt
             predicted.applyInverse( -deltaP );
 
             result.iterations++;
-            if( deltaP.norm() < 1e-7 )
+            if( deltaP.norm() < params.minParameterUpdate )
                 return result;
         }
         return result;

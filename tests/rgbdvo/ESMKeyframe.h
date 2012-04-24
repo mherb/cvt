@@ -21,8 +21,7 @@ namespace cvt {
 
     class ESMKeyframe : public KeyframeBase<ESMKeyframe>
     {
-        public:
-			typedef KeyframeBase<ESMKeyframe>::Result Result;
+        public:			
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 2, 6> JacType;
 
@@ -33,7 +32,7 @@ namespace cvt {
              * \param   K               the intrinsics for the rgb image
              * \param   dephtScaling    scale factor of the depth image: depthScaling equals to 1m!
              */
-            ESMKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, float depthScaling );
+            ESMKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
             ~ESMKeyframe();
 
             const JacType*      jacobians()             const { return &_jacobians[ 0 ]; }
@@ -43,10 +42,10 @@ namespace cvt {
             size_t              numPoints()             const { return _pixelValues.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
             
-			Result computeRelativePose( SE3<float>& predicted,
-                                        const Image& gray,
-                                        const Matrix3f& intrinsics,
-                                        size_t maxIters ) const;
+            VOResult computeRelativePose( SE3<float>& predicted,
+                                          const Image& gray,
+                                          const Matrix3f& intrinsics,
+                                          const VOParams& params ) const;
 
         protected:
             Matrix4f    _pose;
@@ -64,7 +63,7 @@ namespace cvt {
             // jacobians for that points
             std::vector<JacType>    _jacobians;
 
-            void computeJacobians( const Image& depth, const Matrix3f& intrinsics, float invDepthScale );
+            void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
             void computeGradients( Image& gx, Image& gy ) const;
     
 			float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
