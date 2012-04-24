@@ -38,11 +38,14 @@ namespace cvt
         _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
         _vo.addNewKeyframe( gray, depth, _parser.data().pose );
+
+        _fileOut.open( "trajectory.txt" );
     }
 
     RGBDVOApp::~RGBDVOApp()
     {
         Application::unregisterTimer( _timerId );
+        _fileOut.close();
     }
 
     void RGBDVOApp::onTimeout()
@@ -67,16 +70,33 @@ namespace cvt
             title.sprintf( "RGBDVO: Avg. Speed %0.1f ms", _cumulativeAlignmentSpeed / _numAlignments );
             _mainWindow.setTitle( title );
 
+
             // update the absolute pose
             Matrix4f absPose;
             _vo.pose( absPose );
 
-            //std::cout << "Pose error: \n" << absPose - d.pose << std::endl;
+            writePose( absPose, d.stamp );
 
             _poseView.setCamPose( absPose );
             _poseView.setGTPose( d.pose );
         }
     }    
+
+    void RGBDVOApp::writePose( const Matrix4f& pose, double stamp )
+    {
+        Quaternionf q( pose.toMatrix3() );
+
+        _fileOut.precision( 15 );
+        _fileOut << std::fixed << stamp << " "
+                 << pose[ 0 ][ 3 ] << " "
+                 << pose[ 1 ][ 3 ] << " "
+                 << pose[ 2 ][ 3 ] << " "
+                 << q.x << " "
+                 << q.y << " "
+                 << q.z << " "
+                 << q.w << std::endl;
+
+    }
 
     void RGBDVOApp::setupGui()
     {
