@@ -95,7 +95,6 @@ namespace cvt
 
                     _jacobians.push_back( J );
                     _pixelValues.push_back( value[ x ] );
-                    _pixelPositions.push_back( Vector2f( x, y ) );
                     _templateGradients.push_back( Vector2f( g[ 0 ], g[ 1 ] ) );
                     _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
 
@@ -169,5 +168,128 @@ namespace cvt
 
         _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
         _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
+    }
+
+
+	ESMKeyframe::Result ESMKeyframe::computeRelativePose( SE3<float>& predicted,
+														  const Image& gray,
+														  const Matrix3f& intrinsics,
+														  size_t maxIters ) const
+	{
+        Result result;
+        result.SSD = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
+
+        SIMD* simd = SIMD::instance();
+        Matrix4f projMat;
+
+        std::vector<Vector2f> warpedPts;
+        warpedPts.resize( _points3d.size() );
+
+        Eigen::Matrix4f mEigen;
+        mEigen.setIdentity();
+
+        Eigen::Matrix3f Keigen;
+        EigenBridge::toEigen( Keigen, intrinsics );
+
+
+        // sum of jacobians * delta
+        ESMKeyframe::JacType jac;
+        ESMKeyframe::HessianType approxHessian;
+        Eigen::Matrix<float, 1, 6> deltaSum, jtmp;
+        Eigen::Matrix<float, 1, 2> gradient;
+        Vector2f warpedGrad;
+
+        IMapScoped<const float> grayMap( gray );
+
+        size_t floatStride = grayMap.stride() / sizeof( float );
+        size_t numPositions = _pixelValues.size();
+
+        while( result.iterations < maxIters ){
+            // build the updated projection Matrix
+            const Eigen::Matrix4f& m = predicted.transformation();
+            mEigen.block<3, 3>( 0, 0 ) = Keigen * m.block<3, 3>( 0, 0 );
+            mEigen.block<3, 1>( 0, 3 ) = Keigen * m.block<3, 1>( 0, 3 );
+            EigenBridge::toCVT( projMat, mEigen );
+
+            // project the points:
+            simd->projectPoints( &warpedPts[ 0 ], projMat, &_points3d[ 0 ], _points3d.size() );
+
+            deltaSum.setZero();
+            approxHessian.setZero();
+            result.numPixels = 0;
+            result.SSD = 0.0f;
+
+            for( size_t i = 0; i < numPositions; i++ ){
+                const Vector2f& pw = warpedPts[ i * 5 ];
+                if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
+                    pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
+                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
+
+                    // compute the delta
+                    float delta = _pixelValues[ i ] - v;
+                    result.SSD += Math::sqr( delta );
+                    result.numPixels++;
+
+                    gradient[ 0 ] = _templateGradients[ i ].x;
+                    gradient[ 1 ] = _templateGradients[ i ].y;
+
+                    // if we can evaluate a warped gradient, we do esm style, else normal!
+                    if( evalGradient( warpedGrad, &warpedPts[ i * 5 ], grayMap.ptr(), floatStride, gray.width(), gray.height() ) ){
+                        gradient[ 0 ] += warpedGrad.x;
+                        gradient[ 1 ] += warpedGrad.y;
+                        gradient *= 0.5f;
+                    }
+
+                    jtmp = gradient * _jacobians[ i ];
+                    deltaSum += delta * jtmp;
+                    approxHessian.noalias() += jtmp.transpose() * jtmp;
+                }
+            }
+
+            // evaluate the delta parameters
+            SE3<float>::ParameterVectorType deltaP = -approxHessian.inverse() * deltaSum.transpose();
+            predicted.applyInverse( -deltaP );
+
+            result.iterations++;
+
+            if( deltaP.norm() < 1e-4 ){
+                return result;
+            }
+        }
+        return result;
+	}
+
+    float ESMKeyframe::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
+    {
+        int lx = ( int )pos.x;
+        int ly = ( int )pos.y;
+        float fx = pos.x - lx;
+        float fy = pos.y - ly;
+
+        const float* p0 = ptr + ly * stride + lx;
+        const float* p1 = p0 + stride;
+
+        float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
+        float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
+        return Math::mix( v0, v1, fy );
+    }
+
+    bool ESMKeyframe::evalGradient( Vector2f& grad, const Vector2f* positions, const float* ptr, size_t stride, size_t w, size_t h ) const
+    {
+        if( positions[ 0 ].x < 0 || positions[ 0 ].x > w - 1 || positions[ 0 ].y < 0 || positions[ 0 ].y > h - 1 ||
+            positions[ 1 ].x < 0 || positions[ 1 ].x > w - 1 || positions[ 1 ].y < 0 || positions[ 1 ].y > h - 1 ||
+            positions[ 2 ].x < 0 || positions[ 2 ].x > w - 1 || positions[ 2 ].y < 0 || positions[ 2 ].y > h - 1 ||
+            positions[ 3 ].x < 0 || positions[ 3 ].x > w - 1 || positions[ 3 ].y < 0 || positions[ 3 ].y > h - 1 )
+            return false;
+        float v0, v1;
+        v0 = interpolatePixelValue( positions[ 0 ], ptr, stride );
+        v1 = interpolatePixelValue( positions[ 1 ], ptr, stride );
+        grad.x = 0.5f * ( v1 - v0 );
+        v0 = interpolatePixelValue( positions[ 2 ], ptr, stride );
+        v1 = interpolatePixelValue( positions[ 3 ], ptr, stride );
+        grad.y = 0.5f * ( v1 - v0 );
+        return true;
     }
 }
