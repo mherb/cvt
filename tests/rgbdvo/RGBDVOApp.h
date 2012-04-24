@@ -11,6 +11,8 @@
 #include <VOKeyframe.h>
 #include <MultiscaleKeyframe.h>
 
+#include <fstream>
+
 namespace cvt
 {
     class RGBDVOApp : public TimeoutHandler
@@ -33,6 +35,8 @@ namespace cvt
                 typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 RGBDVisualOdometry<KFType>          _vo;
 
+                std::ofstream               _fileOut;
+
                 float                       _cumulativeAlignmentSpeed;
                 size_t                      _numAlignments;
 
@@ -50,7 +54,7 @@ namespace cvt
                 Button                      _stepButton;
                 bool                        _step;
                 Button                      _optimizeButton;
-                bool                        _optimize;                
+                bool                        _optimize;
 
                 void keyframeAddedCallback( const Matrix4f& pose );
                 void activeKeyframeChangedCallback();
@@ -59,5 +63,7 @@ namespace cvt
                 void nextPressed();
                 void optimizePressed();
                 void toggleStepping();
+
+                void writePose( const Matrix4f& pose, double stamp );
     };
 }
