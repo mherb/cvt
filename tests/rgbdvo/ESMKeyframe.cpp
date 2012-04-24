@@ -20,21 +20,23 @@
 namespace cvt
 {
     ESMKeyframe::ESMKeyframe( const Image& gray, const Image& depth,
-                            const Matrix4f& pose, const Matrix3f& K, float depthScaling ) :
+                             const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray )
     {
-        computeJacobians( depth, K, ( float )0xffff / depthScaling );
+        computeJacobians( depth, K, params );
     }
 
     ESMKeyframe::~ESMKeyframe()
     {
     }
 
-    void ESMKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, float depthScaling )
+    void ESMKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI );
+
+        float depthScaling = ( float )0xffff / params.depthScale;
 
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
@@ -67,7 +69,7 @@ namespace cvt
         EigenBridge::toEigen( K, intrinsics );
         SE3<float> pose;
 
-        float gradThreshold = Math::sqr( 0.1f );
+        float gradThreshold = Math::sqr( params.gradientThreshold );
 
         gxMap++;
         gyMap++;
@@ -80,7 +82,7 @@ namespace cvt
             const float* d = depthMap.ptr();
             for( size_t x = 1; x < depth.width() - 1; x++ ){
                 float z = d[ x ] * depthScaling;
-                if( z > 0.05f ){
+                if( z > params.minDepth ){
                     g[ 0 ] = -0.5f * gx[ x ];
                     g[ 1 ] = -0.5f * gy[ x ];
 
@@ -101,7 +103,7 @@ namespace cvt
                     // now check the neigbours -> needed for esm gradient
                     float centerZ = z;
                     z = d[ x - 1 ] * depthScaling;
-                    if( z > 0.05f ){
+                    if( z > params.minDepth ){
                         p3d[ 0 ] = tmpx[ x - 1 ] * z;
                         p3d[ 1 ] = tmpy[ y ] * z;
                         p3d[ 2 ] = z;
@@ -114,7 +116,7 @@ namespace cvt
 
                     // now check the neigbours -> needed for esm gradient
                     z = d[ x + 1 ] * depthScaling;
-                    if( z > 0.05f ){
+                    if( z > params.minDepth ){
                         p3d[ 0 ] = tmpx[ x + 1 ] * z;
                         p3d[ 1 ] = tmpy[ y ] * z;
                         p3d[ 2 ] = z;
@@ -127,7 +129,7 @@ namespace cvt
 
                     depthMap--;
                     z = d[ x ] * depthScaling;
-                    if( z > 0.05f ){
+                    if( z > params.minDepth ){
                         p3d[ 0 ] = tmpx[ x ] * z;
                         p3d[ 1 ] = tmpy[ y - 1 ] * z;
                         p3d[ 2 ] = z;
@@ -141,7 +143,7 @@ namespace cvt
                     depthMap++; // back to current line
                     depthMap++; // next line
                     z = d[ x ] * depthScaling;
-                    if( z > 0.05f ){
+                    if( z > params.minDepth ){
                         p3d[ 0 ] = tmpx[ x ] * z;
                         p3d[ 1 ] = tmpy[ y + 1 ] * z;
                         p3d[ 2 ] = z;
@@ -163,7 +165,7 @@ namespace cvt
 
     void ESMKeyframe::computeGradients( Image& gx, Image& gy ) const
     {
-        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
+        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
         _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
@@ -171,12 +173,12 @@ namespace cvt
     }
 
 
-	ESMKeyframe::Result ESMKeyframe::computeRelativePose( SE3<float>& predicted,
-														  const Image& gray,
-														  const Matrix3f& intrinsics,
-														  size_t maxIters ) const
+    VOResult ESMKeyframe::computeRelativePose( SE3<float>& predicted,
+                                               const Image& gray,
+                                               const Matrix3f& intrinsics,
+                                               const VOParams& params ) const
 	{
-        Result result;
+        VOResult result;
         result.SSD = 0.0f;
         result.iterations = 0;
         result.numPixels = 0;
@@ -206,7 +208,7 @@ namespace cvt
         size_t floatStride = grayMap.stride() / sizeof( float );
         size_t numPositions = _pixelValues.size();
 
-        while( result.iterations < maxIters ){
+        while( result.iterations < params.maxIters ){
             // build the updated projection Matrix
             const Eigen::Matrix4f& m = predicted.transformation();
             mEigen.block<3, 3>( 0, 0 ) = Keigen * m.block<3, 3>( 0, 0 );
@@ -254,7 +256,7 @@ namespace cvt
 
             result.iterations++;
 
-            if( deltaP.norm() < 1e-4 ){
+            if( deltaP.norm() < params.minParameterUpdate ){
                 return result;
             }
         }
