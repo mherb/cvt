@@ -23,15 +23,25 @@ namespace cvt
 
         std::vector<double> rgbStamps;
         std::vector<double> depthStamps;
-        loadRGBFilenames( rgbStamps );
-        loadDepthFilenames( depthStamps );
+
+        String assocFile = _folder + "associated.txt";
+        bool associated = false;
+        if( FileSystem::exists( assocFile ) ){
+            // load the associated
+            std::cout << "Using preassociated file" << std::endl;
+            loadDepthAndRGB( rgbStamps, depthStamps );
+            associated = true;
+        } else {
+            loadRGBFilenames( rgbStamps );
+            loadDepthFilenames( depthStamps );
+        }
         loadGroundTruth();
 
         std::cout << "RGB: " << _rgbFiles.size() << std::endl;
         std::cout << "Depth: " << _depthFiles.size() << std::endl;
         std::cout << "Stamps: " << _stamps.size() << std::endl;
 
-        sortOutData( rgbStamps, depthStamps );
+        sortOutData( rgbStamps, depthStamps, associated );
         std::cout << "RGB: " << _rgbFiles.size() << std::endl;
         std::cout << "Depth: " << _depthFiles.size() << std::endl;
         std::cout << "Stamps: " << _stamps.size() << std::endl;
@@ -86,6 +96,38 @@ namespace cvt
         }
     }
 
+    void RGBDParser::loadDepthAndRGB( std::vector<double>& rgbStamps, std::vector<double>& depthStamps )
+    {
+        _rgbFiles.clear();
+        _depthFiles.clear();
+
+        String file = _folder + "associated.txt";
+        Data assocFile;
+        FileSystem::load( assocFile, file );
+        DataIterator iter( assocFile );
+
+        while( iter.hasNext() ){
+            std::vector<String> tokens;
+            iter.tokenizeNextLine( tokens, " " );
+
+            if( tokens.size() == 4 ){
+                double t = tokens[ 0 ].toDouble();
+                if( tokens[ 1 ].hasPrefix( "rgb" ) ){
+                    // rgb then depth
+                    rgbStamps.push_back( t );
+                    _rgbFiles.push_back( _folder + tokens[ 1 ] );
+                    depthStamps.push_back( tokens[ 2 ].toDouble() );
+                    _depthFiles.push_back( _folder + tokens[ 3 ] );
+                } else {
+                    depthStamps.push_back( t );
+                    _depthFiles.push_back( _folder + tokens[ 1 ] );
+                    rgbStamps.push_back( tokens[ 2 ].toDouble() );
+                    _rgbFiles.push_back( _folder + tokens[ 3 ] );
+                }
+            }
+        }
+    }
+
     void RGBDParser::loadDepthFilenames( std::vector<double>& depthStamps )
     {
         String file;
@@ -135,8 +177,7 @@ namespace cvt
         pose = q.toMatrix4();
         pose[ 0 ][ 3 ] = tx;
         pose[ 1 ][ 3 ] = ty;
-        pose[ 2 ][ 3 ] = tz;
-        pose[ 3 ][ 3 ] = 1.0;
+        pose[ 2 ][ 3 ] = tz;        
 
         return true;
     }
@@ -170,23 +211,20 @@ namespace cvt
     size_t RGBDParser::findClosestMatchInGTStamps( double val, size_t startIdx )
     {
         size_t bestIdx = startIdx;
-        double best = Math::abs( _stamps[ startIdx ] - val );
-        double last = best;
+        double best = Math::abs( _stamps[ startIdx ] - val );        
         for( size_t i = startIdx + 1; i < _stamps.size(); i++ ){
             double cur = Math::abs( _stamps[ i ] - val );
             if( cur < best ){
                 best = cur;
                 bestIdx = i;
             }
-            if( cur > last )
-                break;
-            last = cur;
         }
         return bestIdx;
     }
 
     void RGBDParser::sortOutData( const std::vector<double>& rgbStamps,
-                                  const std::vector<double>& depthStamps )
+                                  const std::vector<double>& depthStamps,
+                                  bool rgbAndDepthAssocitated )
     {
         size_t rgbIdx = 0;
 
@@ -198,7 +236,10 @@ namespace cvt
 
         while( rgbIdx < rgbStamps.size() ){
             // find best depth for this rgb
-            size_t bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], 0, depthStamps );
+            size_t bestDepthIdx = rgbIdx;
+            if( !rgbAndDepthAssocitated ){
+                bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], 0, depthStamps );
+            }
             double depthDist = Math::abs( rgbStamps[ rgbIdx ] - depthStamps[ bestDepthIdx ] );
             if( depthDist < _maxStampDiff ){
                 // now we have the match: rgbIdx & depthIdx and should search for the closest gt
