@@ -107,42 +107,39 @@ namespace cvt {
 	template<typename T>
 		inline Quaternion<T>::Quaternion( const Matrix3<T>& rotmat )
 		{
-			/*			From Quaternion to Matrix and Back
-						February 27th 2005 J.M.P. van Waveren
-						© 2005, Id Software, Inc.
-
-						Animating Rotation with Quaternion Curves
-						Ken Shoemaker
+            /*
+                Algorithm from Ken Shoemake's Siggraph course notes article in 1987
+                "Quaternion Calculus and Fast Animation"
 			 */
 			T tr = rotmat.trace();
 			if ( tr > 0 ) {
-				T t = tr + 1.0f;
-				T s = Math::sqrt( t ) * ( T ) 2;
-				w = t / s;
-				z = ( rotmat[ 1 ][ 0 ] - rotmat[ 0 ][ 1 ] ) / s;
-				y = ( rotmat[ 0 ][ 1 ] - rotmat[ 2 ][ 0 ] ) / s;
-				x = ( rotmat[ 2 ][ 1 ] - rotmat[ 1 ][ 2 ] ) / s;
-			} else if ( rotmat[ 0 ][ 0 ] > rotmat[ 1 ][ 1 ] && rotmat[ 0 ][ 0 ] > rotmat[ 2 ][ 2 ] ) {
-				T t = rotmat[ 0 ][ 0 ] - rotmat[ 1 ][ 1 ] - rotmat[ 2 ][ 2 ] + ( T ) 1;
-				T s = Math::sqrt( t ) * ( T ) 2;
-				x = t / s;
-				y = ( rotmat[ 1 ][ 0 ] + rotmat[ 0 ][ 1 ] ) / s;
-				z = ( rotmat[ 0 ][ 2 ] + rotmat[ 2 ][ 0 ] ) / s;
-				w = ( rotmat[ 2 ][ 1 ] - rotmat[ 1 ][ 2 ] ) / s;
-			} else if ( rotmat[ 1 ][ 1 ] > rotmat[ 2 ][ 2 ] ) {
-				T t = - rotmat[ 0 ][ 0 ] + rotmat[ 1 ][ 1 ] - rotmat[ 2 ][ 2 ] + ( T ) 1;
-				T s = Math::sqrt( t ) * ( T ) 2;
-				y = t / s;
-				x = ( rotmat[ 1 ][ 0 ] + rotmat[ 0 ][ 1 ] ) / s;
-				w = ( rotmat[ 0 ][ 2 ] - rotmat[ 2 ][ 0 ] ) / s;
-				z = ( rotmat[ 2 ][ 1 ] + rotmat[ 1 ][ 2 ] ) / s;
-			} else {
-				T t = - rotmat[ 0 ][ 0 ] - rotmat[ 1 ][ 1 ] + rotmat[ 2 ][ 2 ] + ( T ) 1;
-				T s = Math::sqrt( t ) * ( T ) 2;
-				z = t / s;
-				w = ( rotmat[ 1 ][ 0 ] - rotmat[ 0 ][ 1 ] ) / s;
-				x = ( rotmat[ 0 ][ 2 ] + rotmat[ 2 ][ 0 ] ) / s;
-				y = ( rotmat[ 2 ][ 1 ] + rotmat[ 1 ][ 2 ] ) / s;
+                // |w| > 0.5
+                T root = Math::sqrt( tr + ( T )1 ); // 2w
+                w = ( ( T ) 0.5 ) * root;
+                root = ( ( T ) 0.5 ) / root; // 1 /(4w)
+                x = ( rotmat[ 2 ][ 1 ] - rotmat[ 1 ][ 2 ] ) * root;
+                y = ( rotmat[ 0 ][ 2 ] - rotmat[ 2 ][ 0 ] ) * root;
+                z = ( rotmat[ 1 ][ 0 ] - rotmat[ 0 ][ 1 ] ) * root;
+            } else {
+                // |w| <= 0.5
+                int i, j, k;
+                i = 0;
+                if( rotmat[ 1 ][ 1 ] > rotmat[ 0 ][ 0 ] ){
+                    i = 1;
+                }
+                if( rotmat[ 2 ][ 2 ] > rotmat[ i ][ i ] ){
+                    i = 2;
+                }
+                j = ( i + 1 ) % 3;
+                k = ( j + 1 ) % 3;
+
+                T root = Math::sqrt( rotmat[ i ][ i ] - rotmat[ j ][ j ] - rotmat[ k ][ k ] + ( T )1 ); // 2w
+                T* xyz[ 3 ] = { &x, &y, &z };
+                *xyz[ i ] = ( T )( 0.5 ) * root;
+                root = ( ( T ) 0.5 ) / root;
+                w = ( rotmat[ k ][ j ] - rotmat[ j ][ k ] ) * root;
+                *xyz[ j ] = ( rotmat[ j ][ i ] + rotmat[ i ][ j ] ) * root;
+                *xyz[ k ] = ( rotmat[ k ][ i ] + rotmat[ i ][ k ] ) * root;
 			}
 		}
 
