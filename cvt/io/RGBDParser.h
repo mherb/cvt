@@ -28,7 +28,7 @@ namespace cvt
                 Image		rgb;
                 Image		depth;
                 Matrix4f	pose;
-                bool            poseValid;
+                bool        poseValid;
                 double		stamp;
             };
 
@@ -36,9 +36,10 @@ namespace cvt
 
             void loadNext();
 
-            size_t				iter() const { return _idx; }
-            size_t				size() const { return _stamps.size(); }
-            const RGBDSample&	data() const { return _sample; }
+            size_t				iter()    const { return _idx; }
+            size_t				size()    const { return _stamps.size(); }
+            bool                hasNext() const { return _idx < _stamps.size(); }
+            const RGBDSample&	data()    const { return _sample; }
 
         private:
             const double			_maxStampDiff;
@@ -56,12 +57,14 @@ namespace cvt
             void loadGroundTruth();
             void loadRGBFilenames( std::vector<double> & stamps );
             void loadDepthFilenames( std::vector<double> & stamps );
+            void loadDepthAndRGB( std::vector<double>& rgbStamps, std::vector<double>& depthStamps );
 
             bool readNext( Matrix4f& pose, double& stamp, DataIterator& iter );
             bool readNextFilename( String& filename, double& stamp, DataIterator& iter );
 
             void sortOutData( const std::vector<double>& rgbStamps,
-                              const std::vector<double>& depthStamps );
+                              const std::vector<double>& depthStamps,
+                              bool rgbAndDepthAssocitated );
 
             size_t findClosestMatchInGTStamps( double val, size_t startIdx );
 
