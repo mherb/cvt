@@ -8,7 +8,7 @@
 namespace cvt
 {
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params ) :
-        _parser( folder, 0.05f ),
+        _parser( folder, 0.02f ),
         _vo( K, params ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
@@ -19,9 +19,9 @@ namespace cvt
         _nextButton( "next" ),
         _nextPressed( false ),
         _stepButton( "toggle stepping" ),
-        _step( true ),
+        _step( false ),
         _optimizeButton( "optimize" ),
-        _optimize( false )
+        _optimize( true )
     {
         _timerId = Application::registerTimer( 10, this );
         setupGui();
@@ -33,11 +33,20 @@ namespace cvt
         _vo.activeKeyframeChanged.add( actkfChgDel );
 
         _parser.loadNext();
-        Image gray, depth;
+        while( _parser.data().poseValid == false )
+            _parser.loadNext();
+
+        Image gray, smoothed, depth;
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
         _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
-        _vo.addNewKeyframe( gray, depth, _parser.data().pose );
+        smoothed.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
+        gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+
+        _vo.addNewKeyframe( smoothed, depth, _parser.data().pose );
+
+        _avgTransError.setZero();
+        _validPoseCounter = 0;
 
         _fileOut.open( "trajectory.txt" );
     }
@@ -49,8 +58,13 @@ namespace cvt
     }
 
     void RGBDVOApp::onTimeout()
-    {
+    {        
         if( _nextPressed || !_step ){
+            if( !_parser.hasNext() ){
+                _avgTransError /= _validPoseCounter;
+                std::cout << "Mean Translational Error: " << _avgTransError << " Len: " << _avgTransError.length() << std::endl;
+                Application::exit();
+            }
             _parser.loadNext();
             _currentImage.setImage( _parser.data().rgb );
             _nextPressed = false;
@@ -63,7 +77,10 @@ namespace cvt
             Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
             d.rgb.convert( gray );
 
-            _vo.updatePose( gray, d.depth );
+            Image smoothed( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
+            gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+
+            _vo.updatePose( smoothed, d.depth );
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
             String title;
@@ -74,6 +91,13 @@ namespace cvt
             // update the absolute pose
             Matrix4f absPose;
             _vo.pose( absPose );
+
+            if( d.poseValid ){
+                _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - d.pose[ 0 ][ 3 ] );
+                _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - d.pose[ 1 ][ 3 ] );
+                _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - d.pose[ 2 ][ 3 ] );
+                _validPoseCounter++;
+            }
 
             writePose( absPose, d.stamp );
 

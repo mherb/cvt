@@ -80,8 +80,8 @@ namespace cvt {
     inline RGBDVisualOdometry<DerivedKF>::RGBDVisualOdometry( const Matrix3f& K, const VOParams& params ) :
         _intrinsics( K ),
         _params( params ),
-        _maxTranslationDistance( 0.3f ),
-        _maxRotationDistance( Math::deg2Rad( 3.0f ) ),
+        _maxTranslationDistance( 0.4f ),
+        _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 )
     {
@@ -122,9 +122,13 @@ namespace cvt {
         Image dFloat( depth.width(), depth.height(), IFormat::GRAY_FLOAT );
         depth.convert( dFloat );
 
-        DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
-        _keyframes.push_back( kf );
-        _activeKeyframe = _keyframes.back();
+        if( _activeKeyframe )
+            delete _activeKeyframe;
+        _activeKeyframe = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
+
+        // DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
+        //_keyframes.push_back( kf );
+        //_activeKeyframe = _keyframes.back();
 
         // set the relative pose to identity
         SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();
@@ -137,7 +141,7 @@ namespace cvt {
         // check the ssd:
         float avgSSD = alignResult.SSD / alignResult.numPixels;
         if( avgSSD > _maxSSDSqr ){
-            std::cout << "Avg SSD: " << avgSSD << std::endl;
+            //std::cout << "Avg SSD: " << avgSSD << std::endl;
             return true;
         }
 
@@ -145,7 +149,7 @@ namespace cvt {
 
         float tmp = rel.block<3, 1>( 0, 3 ).norm();
         if( tmp > _maxTranslationDistance ){
-            std::cout << "Translation Distance: " << tmp << std::endl;
+            //std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
 
@@ -156,7 +160,7 @@ namespace cvt {
         Vector3f euler = q.toEuler();
         tmp = euler.length();
         if( tmp > _maxRotationDistance ){
-            std::cout << "Rotation Distance: " << tmp << std::endl;
+            //std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
         return false;

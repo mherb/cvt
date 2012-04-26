@@ -70,8 +70,8 @@ namespace cvt
             for( size_t x = 0; x < depth.width(); x++ ){
                 float z = d[ x ] * depthScaling;
                 if( z > params.minDepth ){
-                    g[ 0 ] = -gx[ x ];
-                    g[ 1 ] = -gy[ x ];
+                    g[ 0 ] = gx[ x ];
+                    g[ 1 ] = gy[ x ];
 
                     if( g.squaredNorm() < gradThreshold )
                         continue;
@@ -103,11 +103,16 @@ namespace cvt
 
     void VOKeyframe::computeGradients( Image& gx, Image& gy ) const
     {
+        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
+        IKernel ky = IKernel::HAAR_VERTICAL_3;
+        kx.scale( -0.5f );
+        ky.scale( -0.5f );
+
         gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
         gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
-        _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
-        _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
+        _gray.convolve( gx, kx );
+        _gray.convolve( gy, ky );
     }
 
     VOResult VOKeyframe::computeRelativePose( SE3<float>& predicted,

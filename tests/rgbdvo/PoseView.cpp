@@ -8,28 +8,28 @@ namespace cvt
         _near( 0.1f ),
         _far( 100.0f ),
         _numKeyframes( 0 ),
-        _maxKeyframes( 500 )
+        _maxKeyframes( 5000 )
     {
         createGrid( 20 );
         createAxes();
         createKeyframeBuffer();
 
         _rot.setIdentity();
-                _cam.setIdentity();
-                _gtPose.setIdentity();
+        _cam.setIdentity();
+        _gtPose.setIdentity();
     }
 
     void PoseView::setCamPose( const Matrix4f & m )
     {
-                _cam = m;
-                update();
+        _cam = m;
+        update();
     }
 
-        void PoseView::setGTPose( const Matrix4f & m )
-        {
-            _gtPose = m;
-            update();
-        }
+    void PoseView::setGTPose( const Matrix4f & m )
+    {
+        _gtPose = m;
+        update();
+    }
 
     void PoseView::paintGLEvent( PaintEvent* )
     {
@@ -66,14 +66,14 @@ namespace cvt
 
                 // draw the current camera pose
         proj = persp * view * _cam;
-                _basicProg.setProjection( proj );
+        _basicProg.setProjection( proj );
         _axes.draw( GL_LINES, 0, 6 );
 
-                // draw the ground truth axes
-                proj = persp * view * _gtPose;
-                _basicProg.setProjection( proj );
-                _axes.setColor( Color::GREEN );
-                _axes.draw( GL_LINES, 0, 6 );
+        // draw the ground truth axes
+        proj = persp * view * _gtPose;
+        _basicProg.setProjection( proj );
+        _axes.setColor( Color::GREEN );
+        _axes.draw( GL_LINES, 0, 6 );
 
         _basicProg.unbind();
     }
