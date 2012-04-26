@@ -33,7 +33,9 @@ namespace cvt
                 //typedef VOKeyframe KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
                 typedef MultiscaleKeyframe<VOKeyframe> KFType;
-                RGBDVisualOdometry<KFType>          _vo;
+                RGBDVisualOdometry<KFType>  _vo;
+                Vector3f                    _avgTransError;
+                size_t                      _validPoseCounter;
 
                 std::ofstream               _fileOut;
 

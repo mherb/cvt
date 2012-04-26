@@ -83,8 +83,8 @@ namespace cvt
             for( size_t x = 1; x < depth.width() - 1; x++ ){
                 float z = d[ x ] * depthScaling;
                 if( z > params.minDepth ){
-                    g[ 0 ] = -0.5f * gx[ x ];
-                    g[ 1 ] = -0.5f * gy[ x ];
+                    g[ 0 ] = gx[ x ];
+                    g[ 1 ] = gy[ x ];
 
                     if( g.squaredNorm() < gradThreshold )
                         continue;
@@ -168,10 +168,14 @@ namespace cvt
         gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
+        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
+        IKernel ky = IKernel::HAAR_VERTICAL_3;
+        kx.scale( -0.5f );
+        ky.scale( -0.5f );
+
         _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
         _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
     }
-
 
     VOResult ESMKeyframe::computeRelativePose( SE3<float>& predicted,
                                                const Image& gray,
