@@ -70,8 +70,8 @@ namespace cvt {
             /* vector of all the keyframes (TODO: maybe graph would be cooler) */
             std::vector<DerivedKF*>  _keyframes;
 
-            /* current / last pose w.r.t. active keyframe */
-            SE3<float>                  _relativePose;
+            /* current / last pose w.r.t. active keyframe */            
+            PoseRepresentation          _relativePose;
 
             bool needNewKeyframe( const VOResult& alignResult ) const;
     };
@@ -103,11 +103,10 @@ namespace cvt {
         // align with the current keyframe
         VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
+        //std::cout << "Gain: " << _relativePose.gain << ", Bias: " << _relativePose.bias << std::endl;
+
         // check if we need a new keyframe
         if( needNewKeyframe( result ) ){
-            // TODO: check if there is a close enough keyframe somewhere in the map
-            // if so, use that one, update the relative pose accordingly and notify activeKeyframe observers
-
             Matrix4f absPose;
             pose( absPose );
             addNewKeyframe( gray, depth, absPose );
@@ -132,7 +131,9 @@ namespace cvt {
 
         // set the relative pose to identity
         SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();
-        _relativePose.set( I );
+        _relativePose.pose.set( I );
+        _relativePose.bias = 0.0f;
+        _relativePose.gain = 0.0f;
     }
 
     template <class DerivedKF>
@@ -145,7 +146,7 @@ namespace cvt {
             return true;
         }
 
-        const Eigen::Matrix4f& rel = _relativePose.transformation();
+        const Eigen::Matrix4f& rel = _relativePose.pose.transformation();
 
         float tmp = rel.block<3, 1>( 0, 3 ).norm();
         if( tmp > _maxTranslationDistance ){
@@ -170,7 +171,7 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF>::pose( Matrix4f& pose ) const
     {
         Matrix4f tmp;
-        EigenBridge::toCVT( tmp, _relativePose.transformation() );
+        EigenBridge::toCVT( tmp, _relativePose.pose.transformation() );
         pose = _activeKeyframe->pose() * tmp.inverse();
     }
 }

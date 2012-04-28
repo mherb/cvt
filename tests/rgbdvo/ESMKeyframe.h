@@ -42,7 +42,7 @@ namespace cvt {
             size_t              numPoints()             const { return _pixelValues.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
             
-            VOResult computeRelativePose( SE3<float>& predicted,
+            VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const;

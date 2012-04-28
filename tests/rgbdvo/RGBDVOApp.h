@@ -9,6 +9,7 @@
 #include <RGBDVisualOdometry.h>
 #include <ESMKeyframe.h>
 #include <VOKeyframe.h>
+#include <AIIKeyframe.h>
 #include <MultiscaleKeyframe.h>
 
 #include <fstream>
@@ -30,9 +31,10 @@ namespace cvt
             private:                
                 RGBDParser                          _parser;
                 //typedef ESMKeyframe KFType;
+                typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
-                typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                //typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 RGBDVisualOdometry<KFType>  _vo;
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

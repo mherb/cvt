@@ -45,7 +45,7 @@ namespace cvt {
 
             const Matrix4f&     pose()  const { return _octaveKeyframes[ 0 ]->pose(); }
 
-            VOResult computeRelativePose( SE3<float>& predicted,
+            VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const

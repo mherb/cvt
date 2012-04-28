@@ -177,7 +177,7 @@ namespace cvt
         _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
     }
 
-    VOResult ESMKeyframe::computeRelativePose( SE3<float>& predicted,
+    VOResult ESMKeyframe::computeRelativePose( PoseRepresentation& predicted,
                                                const Image& gray,
                                                const Matrix3f& intrinsics,
                                                const VOParams& params ) const
@@ -214,7 +214,7 @@ namespace cvt
 
         while( result.iterations < params.maxIters ){
             // build the updated projection Matrix
-            const Eigen::Matrix4f& m = predicted.transformation();
+            const Eigen::Matrix4f& m = predicted.pose.transformation();
             mEigen.block<3, 3>( 0, 0 ) = Keigen * m.block<3, 3>( 0, 0 );
             mEigen.block<3, 1>( 0, 3 ) = Keigen * m.block<3, 1>( 0, 3 );
             EigenBridge::toCVT( projMat, mEigen );
@@ -256,7 +256,7 @@ namespace cvt
 
             // evaluate the delta parameters
             SE3<float>::ParameterVectorType deltaP = -approxHessian.inverse() * deltaSum.transpose();
-            predicted.applyInverse( -deltaP );
+            predicted.pose.applyInverse( -deltaP );
 
             result.iterations++;
 

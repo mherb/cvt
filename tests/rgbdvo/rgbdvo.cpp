@@ -35,16 +35,11 @@ void testQuaternionPrecision( const Matrix4f& pose )
 
 }
 
-void runBatch( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+template <class KFType>
+void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     RGBDParser parser( folder, 0.05f );
-
-    //typedef VOKeyframe KFType;
-    //typedef ESMKeyframe KFType;
-    typedef MultiscaleKeyframe<VOKeyframe> KFType;
-    //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
     RGBDVisualOdometry<KFType> vo( K, params );
-
     vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
     vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
@@ -83,6 +78,25 @@ void runBatch( const VOParams& params, const Matrix3f& K, const String& folder, 
     file.close();
 }
 
+void runBatch( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
+    std::cout << "Keyframetype: " << kftypeString << std::endl;
+    if( kftypeString.toUpper() == "VO" ){
+        runVOWithKFType<VOKeyframe>( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "ESM" ){
+        runVOWithKFType<ESMKeyframe>( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII" ) {
+        runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "MS_VO" ) {
+        runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "MS_ESM" ) {
+        runVOWithKFType<MultiscaleKeyframe<ESMKeyframe> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "MS_AII" ) {
+        runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
+    }
+}
+
 int main( int argc, char* argv[] )
 {
     ConfigFile cfg( "rgbdvo.cfg" );
@@ -103,9 +117,11 @@ int main( int argc, char* argv[] )
     K.setIdentity();
     K[ 0 ][ 0 ] = 520.9f; K[ 0 ][ 2 ] = 325.1f;
     K[ 1 ][ 1 ] = 521.0f; K[ 1 ][ 2 ] = 249.7f;
-
+/*
     runBatch( params, K, folder, cfg );
+    cfg.save( "test.cfg" );
     return 0;
+*/
 
     RGBDVOApp app( folder, K, params );
     app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
