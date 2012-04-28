@@ -1,5 +1,5 @@
-#ifndef CVT_VO_KEYFRAME_H
-#define CVT_VO_KEYFRAME_H
+#ifndef CVT_AII_KEYFRAME_H
+#define CVT_AII_KEYFRAME_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
@@ -7,15 +7,16 @@
 
 #include <vector>
 #include <Eigen/Core>
+#include <Eigen/StdVector>
 #include <KeyframeBase.h>
 
 namespace cvt
 {
-    class VOKeyframe : public KeyframeBase<VOKeyframe>
+    class AIIKeyframe : public KeyframeBase<AIIKeyframe>
     {
         public:			
-            typedef Eigen::Matrix<float, 6, 6> HessianType;
-            typedef Eigen::Matrix<float, 1, 6> JacType;
+            typedef Eigen::Matrix<float, 8, 8> HessianType;
+            typedef Eigen::Matrix<float, 1, 8> JacType;
 
             /**
              * \param	gray            gray Image (float)
@@ -24,11 +25,11 @@ namespace cvt
              * \param   K               the intrinsics for the rgb image
              * \param   params          parameters
              */
-            VOKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
+            AIIKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
 
-            ~VOKeyframe();
+            ~AIIKeyframe();
 
-            const Matrix4f&     pose()                  const { return _pose; }
+            const Matrix4f&     pose()  const { return _pose; }
 
             /**
              *  \brief copmute the relative pose of an image w.r.t. this keyframe
@@ -41,9 +42,9 @@ namespace cvt
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const;
 
-        protected:
+        protected:            
             Matrix4f                    _pose;
-            Image                       _gray;
+            Image                       _gray;            
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
@@ -52,10 +53,10 @@ namespace cvt
             std::vector<float>          _pixelValues;
 
             // jacobians for that points
-            std::vector<JacType>        _jacobians;
+            std::vector<JacType, Eigen::aligned_allocator<JacType> > _jacobians;
 
             // precomputed inverse of the hessian approx.
-            Eigen::Matrix<float, 6, 6>  _inverseHessian;
+            HessianType                 _inverseHessian;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
             void computeGradients( Image& gx, Image& gy ) const;

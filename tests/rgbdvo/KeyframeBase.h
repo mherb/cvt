@@ -24,6 +24,18 @@ namespace cvt {
         size_t iterations;
     };
 
+    struct PoseRepresentation
+    {
+        PoseRepresentation() :
+            gain( 0.0f ), bias( 0.0f )
+        {
+        }
+
+        SE3<float>  pose;
+        float       gain;
+        float       bias;
+    };
+
     struct VOParams
     {
         VOParams() :
@@ -67,7 +79,7 @@ namespace cvt {
              *  \param  gray        the grayscale image of type GRAY_FLOAT
              *  \return Result information (ssd, iterations, numPixel, ...)
              */
-            VOResult computeRelativePose( SE3<float>& predicted,
+            VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const

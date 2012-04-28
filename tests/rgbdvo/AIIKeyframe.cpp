@@ -1,4 +1,4 @@
-#include <VOKeyframe.h>
+#include <AIIKeyframe.h>
 
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>
@@ -8,7 +8,7 @@
 
 namespace cvt
 {
-    VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
+    AIIKeyframe::AIIKeyframe( const Image& gray, const Image& depth,
                             const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray )
@@ -16,11 +16,11 @@ namespace cvt
         computeJacobians( depth, K, params );
     }
 
-    VOKeyframe::~VOKeyframe()
+    AIIKeyframe::~AIIKeyframe()
     {        
     }
 
-    void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
+    void AIIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI );
@@ -51,7 +51,7 @@ namespace cvt
         // eval the jacobians:
         Eigen::Vector3f p3d;
         Eigen::Vector2f g;
-        Eigen::Matrix<float, 1, 6> j;
+        JacType j;
         SE3<float>::ScreenJacType J;
 
         HessianType H( HessianType::Zero() );
@@ -82,7 +82,9 @@ namespace cvt
 
                     pose.screenJacobian( J, p3d, K );
 
-                    j = g.transpose() * J;
+                    j.head<6>() = g.transpose() * J;
+                    j[ 6 ] = value[ x ];
+                    j[ 7 ] = 1.0f;
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
@@ -101,24 +103,24 @@ namespace cvt
 
     }
 
-    void VOKeyframe::computeGradients( Image& gx, Image& gy ) const
+    void AIIKeyframe::computeGradients( Image& gx, Image& gy ) const
     {
         IKernel kx = IKernel::HAAR_HORIZONTAL_3;
         IKernel ky = IKernel::HAAR_VERTICAL_3;
         kx.scale( -0.5f );
         ky.scale( -0.5f );
 
-        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT);
+        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
 
         _gray.convolve( gx, kx );
         _gray.convolve( gy, ky );
     }
 
-    VOResult VOKeyframe::computeRelativePose( PoseRepresentation& predicted,
-                                              const Image& gray,
-                                              const Matrix3f& intrinsics,
-                                              const VOParams& params ) const
+    VOResult AIIKeyframe::computeRelativePose( PoseRepresentation& predicted,
+                                               const Image& gray,
+                                               const Matrix3f& intrinsics,
+                                               const VOParams& params ) const
     {
         VOResult result;
         result.SSD = 0.0f;
@@ -173,6 +175,9 @@ namespace cvt
                     float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
                     float v = Math::mix( v0, v1, fy );
 
+                    // bias gain:
+                    v = ( 1.0f + predicted.gain ) * v + predicted.bias;
+
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
                     result.SSD += Math::sqr( delta );
@@ -184,8 +189,13 @@ namespace cvt
             }
 
             // evaluate the delta parameters
-            SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
-            predicted.pose.applyInverse( -deltaP );
+            //SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
+            Eigen::Matrix<float, 8, 1> deltaP = -_inverseHessian * deltaSum.transpose();
+
+            predicted.pose.applyInverse( -deltaP.head<6>() );
+            // update bias and gain
+            predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
+            predicted.bias = ( predicted.bias - deltaP[ 7 ] ) / ( 1.0f + deltaP[ 6 ] );
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )
