@@ -34,7 +34,7 @@ namespace cvt
     void ESMKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
-        computeGradients( gxI, gyI );
+        computeGradients( gxI, gyI, _gray );
 
         float depthScaling = ( float )0xffff / params.depthScale;
 
@@ -163,20 +163,6 @@ namespace cvt
         }
     }
 
-    void ESMKeyframe::computeGradients( Image& gx, Image& gy ) const
-    {
-        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
-        gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
-
-        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
-        IKernel ky = IKernel::HAAR_VERTICAL_3;
-        kx.scale( -0.5f );
-        ky.scale( -0.5f );
-
-        _gray.convolve( gx, IKernel::HAAR_HORIZONTAL_3 );
-        _gray.convolve( gy, IKernel::HAAR_VERTICAL_3 );
-    }
-
     VOResult ESMKeyframe::computeRelativePose( PoseRepresentation& predicted,
                                                const Image& gray,
                                                const Matrix3f& intrinsics,
@@ -266,21 +252,6 @@ namespace cvt
         }
         return result;
 	}
-
-    float ESMKeyframe::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
-    {
-        int lx = ( int )pos.x;
-        int ly = ( int )pos.y;
-        float fx = pos.x - lx;
-        float fy = pos.y - ly;
-
-        const float* p0 = ptr + ly * stride + lx;
-        const float* p1 = p0 + stride;
-
-        float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
-        float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
-        return Math::mix( v0, v1, fy );
-    }
 
     bool ESMKeyframe::evalGradient( Vector2f& grad, const Vector2f* positions, const float* ptr, size_t stride, size_t w, size_t h ) const
     {

@@ -23,7 +23,7 @@ namespace cvt
     void AIIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
-        computeGradients( gxI, gyI );
+        computeGradients( gxI, gyI, _gray );
 
         float depthScaling = ( float )0xffff / params.depthScale;
 
@@ -103,20 +103,6 @@ namespace cvt
 
     }
 
-    void AIIKeyframe::computeGradients( Image& gx, Image& gy ) const
-    {
-        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
-        IKernel ky = IKernel::HAAR_VERTICAL_3;
-        kx.scale( -0.5f );
-        ky.scale( -0.5f );
-
-        gx.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
-        gy.reallocate( _gray.width(), _gray.height(), IFormat::GRAY_FLOAT );
-
-        _gray.convolve( gx, kx );
-        _gray.convolve( gy, ky );
-    }
-
     VOResult AIIKeyframe::computeRelativePose( PoseRepresentation& predicted,
                                                const Image& gray,
                                                const Matrix3f& intrinsics,
@@ -163,17 +149,7 @@ namespace cvt
                 const Vector2f& pw = warpedPts[ i ];
                 if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
-                    int lx = ( int )pw.x;
-                    int ly = ( int )pw.y;
-                    float fx = pw.x - lx;
-                    float fy = pw.y - ly;
-
-                    const float* p0 = grayMap.ptr() + ly * floatStride + lx;
-                    const float* p1 = p0 + floatStride;
-
-                    float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
-                    float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
-                    float v = Math::mix( v0, v1, fy );
+                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
 
                     // bias gain:
                     v = ( 1.0f + predicted.gain ) * v + predicted.bias;
@@ -194,8 +170,10 @@ namespace cvt
 
             predicted.pose.applyInverse( -deltaP.head<6>() );
             // update bias and gain
-            predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
             predicted.bias = ( predicted.bias - deltaP[ 7 ] ) / ( 1.0f + deltaP[ 6 ] );
+            predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
+//            predicted.bias = predicted.bias - ( predicted.gain  + 1.0f ) * deltaP[ 7 ] ;
+//            predicted.gain = ( predicted.gain + 1.0f ) / ( 1.0f + deltaP[ 6 ] );
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )

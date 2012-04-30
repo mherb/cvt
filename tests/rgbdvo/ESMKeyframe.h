@@ -35,13 +35,7 @@ namespace cvt {
             ESMKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
             ~ESMKeyframe();
 
-            const JacType*      jacobians()             const { return &_jacobians[ 0 ]; }
-            const Vector3f*     pointsPtr()             const { return &_points3d[ 0 ]; }
-            const float*        pixelData()             const { return &_pixelValues[ 0 ]; }
-            const Vector2f*     gradients()             const { return &_templateGradients[ 0 ]; }
-            size_t              numPoints()             const { return _pixelValues.size(); }
             const Matrix4f&     pose()                  const { return _pose; }
-            
             VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
@@ -64,10 +58,6 @@ namespace cvt {
             std::vector<JacType>    _jacobians;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
-            void computeGradients( Image& gx, Image& gy ) const;
-    
-			float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
-
 			bool evalGradient( Vector2f& grad, const Vector2f* positions, const float* ptr, size_t stride, size_t w, size_t h ) const;
     };
 

@@ -13,22 +13,18 @@ namespace cvt {
             MultiscaleKeyframe( const Image& gray, const Image& depth,
                                 const Matrix4f& pose, const Matrix3f& K,
                                 const VOParams& params ) :
-                _grayPyramid( 3, 0.5f )
+                _grayPyramid( params.octaves, params.pyrScale )
             {
-                size_t  octaves  = 3;
-                float   scalefac = 0.5f;
-
                 // create one VOKeyframe per octave
-                ImagePyramid pyrGray( octaves, scalefac );
-                pyrGray.update( gray );
+                _grayPyramid.update( gray );
 
-                ImagePyramid pyrDepth( octaves, scalefac );
+                ImagePyramid pyrDepth( _grayPyramid.octaves(), _grayPyramid.scaleFactor() );
                 pyrDepth.update( depth );
 
                 Matrix3f scaledK = K;
-                for( size_t i = 0; i < octaves; i++ ){
-                    _octaveKeyframes.push_back( new KFType( pyrGray[ i ], pyrDepth[ i ], pose, scaledK, params ) );
-                    scaledK *= scalefac;
+                for( size_t i = 0; i < _grayPyramid.octaves(); i++ ){
+                    _octaveKeyframes.push_back( new KFType( _grayPyramid[ i ], pyrDepth[ i ], pose, scaledK, params ) );
+                    scaledK *= _grayPyramid.scaleFactor();
                     scaledK[ 2 ][ 2 ] = 1.0f;
                 }
             }
