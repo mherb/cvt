@@ -42,10 +42,10 @@ namespace cvt {
 		}
 		av_register_all();
 
-		if( av_open_input_file( &_formatContext, fileName.c_str(), NULL, 0, NULL ) != 0 )
+		if( avformat_open_input( &_formatContext, fileName.c_str(), NULL, NULL ) < 0 )
 			throw CVTException( "Could not open file!" );
 
-		if( av_find_stream_info( _formatContext ) < 0 )
+		if( avformat_find_stream_info( _formatContext, NULL ) < 0 )
 			throw CVTException( "Could not find stream information" );
 
 		// find first video stream:
@@ -66,12 +66,13 @@ namespace cvt {
 			throw CVTException( "No appropriate codec found" );
 		}
 
-		if( avcodec_open( _codecContext, _codec ) < 0 )
+		if( avcodec_open2( _codecContext, _codec, NULL ) < 0 )
 			throw CVTException( "Could not open codec!" );
 
 		_width = _codecContext->width;
 		_height = _codecContext->height;
-		this->updateFormat();
+
+		updateFormat();
 
 		_avFrame = avcodec_alloc_frame();
 	}
@@ -83,7 +84,7 @@ namespace cvt {
 
 		av_free( _avFrame );
 		avcodec_close( _codecContext );
-		av_close_input_file( _formatContext );
+		avformat_close_input( &_formatContext );
 	}
 
 	void VideoReader::updateFormat()
