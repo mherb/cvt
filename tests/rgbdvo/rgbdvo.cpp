@@ -145,16 +145,19 @@ int main( int argc, char* argv[] )
     K.setIdentity();
     K[ 0 ][ 0 ] = 520.9f; K[ 0 ][ 2 ] = 325.1f;
     K[ 1 ][ 1 ] = 521.0f; K[ 1 ][ 2 ] = 249.7f;
-    runBatch( params, K, folder, cfg );
+  /*
+  	runBatch( params, K, folder, cfg );
     cfg.save( "test.cfg" );
     return 0;
-/*
+	*/
+
+	std::cout << "Num Cams: " << OpenNICamera::count() << std::endl;
     RGBDVOApp app( folder, K, params );
     app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
     app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
     Application::run();
-*/
+
 
     return 0;
 }
