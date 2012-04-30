@@ -43,7 +43,10 @@ namespace cvt {
             depthScale( 5000.0f ),
             gradientThreshold( 0.1f ),
             minDepth( 0.05f ),
-            minParameterUpdate( 1e-5 )
+            minParameterUpdate( 1e-5 ),
+            robustParam( 0.1f ),
+			octaves( 3 ),
+			pyrScale( 0.5f )
         {}
 
         size_t  maxIters;
@@ -51,6 +54,11 @@ namespace cvt {
         float   gradientThreshold;
         float   minDepth;
         float   minParameterUpdate;
+		float	robustParam;
+		
+		// for the multiscale
+		size_t  octaves;
+		float	pyrScale;
     };
 
     template <class Derived>
@@ -91,7 +99,41 @@ namespace cvt {
             ~KeyframeBase()
             {
             }
+    
+			float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
+            void computeGradients( Image& gx, Image& gy, const Image gray ) const;
     };
+
+	template <class Derived>
+    inline float KeyframeBase<Derived>::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
+    {
+        int lx = ( int )pos.x;
+        int ly = ( int )pos.y;
+        float fx = pos.x - lx;
+        float fy = pos.y - ly;
+
+        const float* p0 = ptr + ly * stride + lx;
+        const float* p1 = p0 + stride;
+
+        float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
+        float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
+        return Math::mix( v0, v1, fy );
+    }
+
+	template <class Derived>
+	inline void KeyframeBase<Derived>::computeGradients( Image& gx, Image& gy, const Image gray ) const
+	{
+        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
+        IKernel ky = IKernel::HAAR_VERTICAL_3;
+        kx.scale( -0.5f );
+        ky.scale( -0.5f );
+
+        gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
+        gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
+
+        gray.convolve( gx, kx );
+        gray.convolve( gy, ky );
+    }
 
 }
 

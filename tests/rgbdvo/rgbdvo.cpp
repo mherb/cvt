@@ -1,5 +1,6 @@
 #include <cvt/util/String.h>
 #include <cvt/util/EigenBridge.h>
+#include <cvt/util/Time.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/gui/Application.h>
 
@@ -58,14 +59,23 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     Matrix4f pose; pose.setIdentity();
 
     size_t stepIter = parser.size() / 20;
+
+	Time time;
+	size_t iters = 0;
+	float timeSum;	
+
     while( parser.hasNext() ){
         parser.loadNext();
         const RGBDParser::RGBDSample& d = parser.data();
 
+		time.reset();
         d.rgb.convert( gray );
         //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
-
         vo.updatePose( gray, d.depth );
+
+		timeSum += time.elapsedMilliSeconds();
+		iters++;
+
         vo.pose( pose );
         writePoseToFile( file, pose, d.stamp );
 
@@ -76,9 +86,12 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     }
     std::cout << std::endl;
     file.close();
+
+	std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
+	std::cout << "Number of Create Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
-void runBatch( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
@@ -88,13 +101,26 @@ void runBatch( const VOParams& params, const Matrix3f& K, const String& folder, 
         runVOWithKFType<ESMKeyframe>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {
         runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
+		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+    } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
+		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
+        runVOWithKFType<RobustKeyframe<Tukey> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_VO" ) {
         runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ESM" ) {
         runVOWithKFType<MultiscaleKeyframe<ESMKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_AII" ) {
         runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
-    }
+    } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
+		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber> > >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
+		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
+       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey> > >( params, K, folder, cfg );
+    } else {
+		std::cout << "Unknown keyframe type" << std::endl;
+	}
 }
 
 int main( int argc, char* argv[] )
@@ -112,22 +138,23 @@ int main( int argc, char* argv[] )
     params.gradientThreshold = cfg.valueForName( "gradientThreshold", 0.2f );
     params.depthScale = cfg.valueForName( "depthFactor", 5000.0f ) * cfg.valueForName( "depthScale", 1.0f );
     params.minParameterUpdate = cfg.valueForName( "minDeltaP", 0.0f );
+    params.pyrScale = cfg.valueForName( "pyrScale", 0.5f );
+    params.octaves = cfg.valueForName( "pyrOctaves", 3 );
 
     Matrix3f K;
     K.setIdentity();
     K[ 0 ][ 0 ] = 520.9f; K[ 0 ][ 2 ] = 325.1f;
     K[ 1 ][ 1 ] = 521.0f; K[ 1 ][ 2 ] = 249.7f;
-/*
     runBatch( params, K, folder, cfg );
     cfg.save( "test.cfg" );
     return 0;
-*/
-
+/*
     RGBDVOApp app( folder, K, params );
     app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
     app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
     Application::run();
+*/
 
     return 0;
 }

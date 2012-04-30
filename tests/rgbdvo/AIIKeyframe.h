@@ -59,7 +59,6 @@ namespace cvt
             HessianType                 _inverseHessian;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
-            void computeGradients( Image& gx, Image& gy ) const;
     };
 }
 

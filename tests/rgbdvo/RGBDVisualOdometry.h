@@ -56,6 +56,8 @@ namespace cvt {
              */
             Signal<void>               activeKeyframeChanged;
 
+			size_t						numOverallKeyframes() const { return _numCreated; };
+
         private:
             Matrix3f                    _intrinsics;
             VOParams                    _params;
@@ -66,6 +68,8 @@ namespace cvt {
 
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
+
+			size_t						_numCreated;
 
             /* vector of all the keyframes (TODO: maybe graph would be cooler) */
             std::vector<DerivedKF*>  _keyframes;
@@ -83,7 +87,8 @@ namespace cvt {
         _maxTranslationDistance( 0.4f ),
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
-        _activeKeyframe( 0 )
+        _activeKeyframe( 0 ),
+		_numCreated( 0 )
     {
     }
 
@@ -134,6 +139,7 @@ namespace cvt {
         _relativePose.pose.set( I );
         _relativePose.bias = 0.0f;
         _relativePose.gain = 0.0f;
+		_numCreated++;
     }
 
     template <class DerivedKF>
