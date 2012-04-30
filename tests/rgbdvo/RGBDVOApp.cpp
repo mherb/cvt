@@ -8,7 +8,11 @@
 namespace cvt
 {
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params ) :
+#ifdef USE_CAM
+		_cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
+#else
         _parser( folder, 0.02f ),
+#endif
         _vo( K, params ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
@@ -32,18 +36,23 @@ namespace cvt
         _vo.keyframeAdded.add( kfAddDel );
         _vo.activeKeyframeChanged.add( actkfChgDel );
 
+        Image gray;
+#ifdef USE_CAM
+		_cam.startCapture();
+		_cam.nextFrame();
+
+		_cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+
+		Matrix4f tmp; tmp.setIdentity();
+        _vo.addNewKeyframe( gray, _cam.depth(), tmp );
+#else
         _parser.loadNext();
         while( _parser.data().poseValid == false )
             _parser.loadNext();
-
-        Image gray, smoothed, depth;
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
-        _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
+        _vo.addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
+#endif
 
-        smoothed.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
-        gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
-
-        _vo.addNewKeyframe( smoothed, depth, _parser.data().pose );
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
@@ -60,6 +69,10 @@ namespace cvt
     void RGBDVOApp::onTimeout()
     {        
         if( _nextPressed || !_step ){
+#ifdef USE_CAM
+			_cam.nextFrame();
+            _currentImage.setImage( _cam.frame() );
+#else
             if( !_parser.hasNext() ){
                 _avgTransError /= _validPoseCounter;
                 std::cout << "Mean Translational Error: " << _avgTransError << " Len: " << _avgTransError.length() << std::endl;
@@ -67,20 +80,24 @@ namespace cvt
             }
             _parser.loadNext();
             _currentImage.setImage( _parser.data().rgb );
+#endif
             _nextPressed = false;
         }
 
         if( _optimize ){
             Time t;
+#ifdef USE_CAM
+            Image gray;
+			_cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+            _vo.updatePose( gray, _cam.depth() );
+#else
             const RGBDParser::RGBDSample& d = _parser.data();
             // try to align:
             Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
             d.rgb.convert( gray );
 
-            Image smoothed( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
-            gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
-
-            _vo.updatePose( smoothed, d.depth );
+            _vo.updatePose( gray, d.depth );
+#endif
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
             String title;
@@ -92,17 +109,18 @@ namespace cvt
             Matrix4f absPose;
             _vo.pose( absPose );
 
+#ifndef USE_CAM
             if( d.poseValid ){
                 _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - d.pose[ 0 ][ 3 ] );
                 _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - d.pose[ 1 ][ 3 ] );
                 _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - d.pose[ 2 ][ 3 ] );
                 _validPoseCounter++;
             }
-
             writePose( absPose, d.stamp );
+            _poseView.setGTPose( d.pose );
+#endif
 
             _poseView.setCamPose( absPose );
-            _poseView.setGTPose( d.pose );
         }
     }    
 

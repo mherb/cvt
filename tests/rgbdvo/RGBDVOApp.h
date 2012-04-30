@@ -14,6 +14,12 @@
 #include <MultiscaleKeyframe.h>
 #include <RobustWeighting.h>
 
+#define USE_CAM
+#ifdef USE_CAM
+#include <cvt/io/OpenNICamera.h>
+#endif
+
+
 #include <fstream>
 
 namespace cvt
@@ -30,13 +36,19 @@ namespace cvt
                 void setMaxRotationDistance( float dist )         { _vo.setMaxRotationDistance( dist ); }
                 void setMaxSSD( float dist )                      { _vo.setMaxSSD( dist ); }
 
-            private:                
+            private:
+#ifdef USE_CAM
+                OpenNICamera						_cam;
+#else
                 RGBDParser                          _parser;
+#endif
+
                 //typedef ESMKeyframe KFType;
-                typedef AIIKeyframe KFType;
+                //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
-                //typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
                 RGBDVisualOdometry<KFType>  _vo;
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
