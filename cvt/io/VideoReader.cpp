@@ -42,11 +42,18 @@ namespace cvt {
 		}
 		av_register_all();
 
+#if LIBAVFORMAT_VERSION_MAJOR == 52
+        if( av_open_input_file( &_formatContext, fileName.c_str(), NULL, 0, NULL ) != 0 )
+            throw CVTException( "Could not open file!" );
+
+        if( av_find_stream_info( _formatContext ) < 0 )
+            throw CVTException( "Could not find stream information" );
+#else /* 54 */
 		if( avformat_open_input( &_formatContext, fileName.c_str(), NULL, NULL ) < 0 )
 			throw CVTException( "Could not open file!" );
-
-		if( avformat_find_stream_info( _formatContext, NULL ) < 0 )
-			throw CVTException( "Could not find stream information" );
+        if( avformat_find_stream_info( _formatContext, NULL ) < 0 )
+            throw CVTException( "Could not find stream information" );
+#endif
 
 		// find first video stream:
 		for( unsigned int i = 0; i < _formatContext->nb_streams; i++ ){
@@ -66,8 +73,13 @@ namespace cvt {
 			throw CVTException( "No appropriate codec found" );
 		}
 
+#if LIBAVCODEC_VERSION_MAJOR == 52
+        if( avcodec_open( _codecContext, _codec ) < 0 )
+            throw CVTException( "Could not open codec!" );
+#else /* 54 */
 		if( avcodec_open2( _codecContext, _codec, NULL ) < 0 )
 			throw CVTException( "Could not open codec!" );
+#endif
 
 		_width = _codecContext->width;
 		_height = _codecContext->height;
@@ -83,8 +95,12 @@ namespace cvt {
 			delete _frame;
 
 		av_free( _avFrame );
-		avcodec_close( _codecContext );
-		avformat_close_input( &_formatContext );
+		avcodec_close( _codecContext );        
+#if LIBAVFORMAT_VERSION_MAJOR == 52
+        av_close_input_file( _formatContext );
+#else /* silently assume 54*/
+        avformat_close_input( &_formatContext );
+#endif
 	}
 
 	void VideoReader::updateFormat()
