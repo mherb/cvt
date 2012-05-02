@@ -55,7 +55,8 @@ CONFIGURE_FILE (
 IF( UNIX AND NOT APPLE )
    SET(${MODULE_NAME}_DEP_LIBRARIES
       ${${MODULE_NAME}_DEP_LIBRARIES}
-      rt )
+      rt
+      pthread )
 ENDIF()
 
 SET( GLSL_SHADER
