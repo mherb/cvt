@@ -10,6 +10,7 @@
 #include <ESMKeyframe.h>
 #include <VOKeyframe.h>
 #include <AIIKeyframe.h>
+#include <RobustAIIKeyframe.h>
 #include <RobustKeyframe.h>
 #include <MultiscaleKeyframe.h>
 #include <RobustWeighting.h>
