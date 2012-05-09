@@ -1,5 +1,5 @@
-#ifndef CVT_ROBUST_KEYFRAME_H
-#define CVT_ROBUST_KEYFRAME_H
+#ifndef CVT_ROBUST_AII_KEYFRAME_H
+#define CVT_ROBUST_AII_KEYFRAME_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
@@ -15,7 +15,7 @@
 namespace cvt
 {
 	template <class WeighterType>
-    class RobustKeyframe : public KeyframeBase<RobustKeyframe<WeighterType> >
+    class RobustAIIKeyframe : public KeyframeBase<RobustAIIKeyframe<WeighterType> >
     {
         public:			
             typedef Eigen::Matrix<float, 8, 8> HessianType;
@@ -28,9 +28,9 @@ namespace cvt
              * \param   K               the intrinsics for the rgb image
              * \param   params          parameters
              */
-            RobustKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
+            RobustAIIKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
 
-            ~RobustKeyframe();
+            ~RobustAIIKeyframe();
 
             const Matrix4f&     pose()                  const { return _pose; }
 
@@ -62,13 +62,13 @@ namespace cvt
 			WeighterType				_weighter;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
-			using KeyframeBase<RobustKeyframe<WeighterType> >::computeGradients;
-			using KeyframeBase<RobustKeyframe<WeighterType> >::interpolatePixelValue;
+			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::computeGradients;
+			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::interpolatePixelValue;
     };
 
 
 	template <class Weighter>
-    inline RobustKeyframe<Weighter>::RobustKeyframe( const Image& gray, const Image& depth,
+    inline RobustAIIKeyframe<Weighter>::RobustAIIKeyframe( const Image& gray, const Image& depth,
 													 const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray ),
@@ -78,12 +78,12 @@ namespace cvt
     }
 
 	template <class Weighter>
-    inline RobustKeyframe<Weighter>::~RobustKeyframe()
+    inline RobustAIIKeyframe<Weighter>::~RobustAIIKeyframe()
     {       	
     }
 
 	template <class Weighter>
-    inline void RobustKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
+    inline void RobustAIIKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI, _gray );
@@ -163,7 +163,7 @@ namespace cvt
     }
 
 	template <class Weighter>
-    inline VOResult RobustKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
+    inline VOResult RobustAIIKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
 																  const Image& gray,
                                               			 		  const Matrix3f& intrinsics,
                                               			 		  const VOParams& params ) const
