@@ -351,14 +351,20 @@ namespace cvt {
 
 	void GFXEngineImage::drawRect( const Recti& rect, float width, const Color& c )
 	{
-		Vector2f pts[ 5 ];
+        Vector2f pts[ 8 ];
 
 		pts[ 0 ].set( rect.x, rect.y );
 		pts[ 1 ].set( rect.x + rect.width, rect.y );
-		pts[ 2 ].set( rect.x + rect.width, rect.y + rect.height );
-		pts[ 3 ].set( rect.x, rect.y + rect.height );
-		pts[ 4 ] = pts[ 0 ];
 
-		drawLines( pts, 5, width, c );
+        pts[ 2 ].set( rect.x + rect.width, rect.y );
+        pts[ 3 ].set( rect.x + rect.width, rect.y + rect.height );
+
+        pts[ 4 ].set( rect.x + rect.width, rect.y + rect.height );
+        pts[ 5 ].set( rect.x, rect.y + rect.height );
+
+        pts[ 6 ].set( rect.x, rect.y + rect.height );
+        pts[ 7 ] = pts[ 0 ];
+
+        drawLines( pts, 8, width, c );
 	}
 }
