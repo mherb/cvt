@@ -32,11 +32,11 @@ namespace cvt
              * \param predictedPositions	vector of predicted feature positions
              * \param img			the current image
              */
-            void trackFeatures( PointSet2d&			trackedPositions,
-                                std::vector<size_t>&		trackedFeatureIds,
+            void trackFeatures( PointSet2d&                     trackedPositions,
+                                std::vector<size_t>&            trackedFeatureIds,
                                 const std::vector<Vector2f>&	predictedPositions,
-                                const std::vector<size_t>&	predictedIds,
-                                const Image&			img );
+                                const std::vector<size_t>&      predictedIds,
+                                const Image&                    img );
 
             /**
              * \brief add a new feature to the known ones! (e.g. after triangulation)
