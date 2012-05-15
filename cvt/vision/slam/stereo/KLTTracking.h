@@ -46,7 +46,7 @@ namespace cvt
 
         private:
             typedef GA2<float>          PoseType;
-            static const size_t         PatchSize = 16;
+            static const size_t         PatchSize = 32;
             typedef KLTTracker<PoseType, PatchSize> KLTType;
             typedef KLTType::KLTPType   PatchType;
 

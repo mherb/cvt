@@ -30,7 +30,7 @@ namespace cvt
                            size_t w1, size_t h1 ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 30 ),
+       _minTrackedFeatures( 100 ),
        _activeKF( -1 ),
        _minKeyframeDistance( 0.05 ),
        _maxKeyframeDistance( 0.5 )
@@ -167,11 +167,11 @@ namespace cvt
          pointCorresp.add( p3, p2 );
       }
 
-      RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
+      RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 1.0 );
       LevenbergMarquard<double> lm;
       TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
       termCriteria.setCostThreshold( 0.01 );
-      termCriteria.setMaxIterations( 20 );
+      termCriteria.setMaxIterations( 40 );
       lm.optimize( pointCorresp, costFunction, termCriteria );
 
       me = pointCorresp.pose().transformation();

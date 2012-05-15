@@ -24,10 +24,10 @@ namespace cvt {
         new ParamInfoTyped<uint32_t>( "maxNewFeatures", 0, 5000, 400, true, 1, offsetof( PatchStereoInit::Parameters, maxNewFeatures ) ),
         new ParamInfoTyped<uint64_t>( "maxSAD", 0, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, maxSAD ) ),
         new ParamInfoTyped<float>( "maxEpilineDistance", 0.0f, 10.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxEpilineDistance ) ),
-        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 3.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
-        new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 0.5f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
-        new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 30.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxDepth ) ),
-        new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 20, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) ),
+        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
+        new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
+        new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 50.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxDepth ) ),
+        new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) ),
         new ParamInfoTyped<uint16_t>( "gridSize", 1, 1000, 30, true, 1, offsetof( PatchStereoInit::Parameters, gridSize ) ),
         new ParamInfoTyped<float>( "minInterFeatureDistance", 2.0f, 200.0f, 20.0f, true, 1, offsetof( PatchStereoInit::Parameters, minInterFeatureDistance ) )
     };
