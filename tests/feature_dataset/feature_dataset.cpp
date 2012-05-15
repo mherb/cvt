@@ -245,6 +245,7 @@ class FeatureWindow : public Window
             img.unmap( ptr );
         }
 
+        /*
     void testOpenCV()
     {
         cv::ORB::CommonParams orbParams( 1.0f / _scaleFactor, _numScales );
@@ -264,7 +265,9 @@ class FeatureWindow : public Window
         ocvORB( cvImg, mask, kp1, desc1 );
         matchOCV( kp0, kp1, desc0, desc1 );
     }
+    */
 
+        /*
     void matchOCV( const std::vector<cv::KeyPoint> & kp0,
                    const std::vector<cv::KeyPoint> & kp1,
                    const cv::Mat & desc0,
@@ -297,7 +300,7 @@ class FeatureWindow : public Window
         }
 
         std::cout << "Inlier: " << inlier << " / " << numMatches << "\t" << std::setprecision( 5 ) << 100.0f * (float)inlier / (float)numMatches << "%\t num Overall matches: " << matches.size() << std::endl << std::endl;
-    }
+    }*/
 
     void runBatchMode()
     {
@@ -468,7 +471,7 @@ class FeatureWindow : public Window
         repaint();
 
         std::cout << "OPENCV:\n";
-        testOpenCV();
+        //testOpenCV();
     }
 
   private:
