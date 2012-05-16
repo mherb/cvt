@@ -6,14 +6,14 @@
 #include <cvt/io/RGBDParser.h>
 #include <PoseView.h>
 
-#include <RGBDVisualOdometry.h>
-#include <ESMKeyframe.h>
-#include <VOKeyframe.h>
-#include <AIIKeyframe.h>
-#include <RobustAIIKeyframe.h>
-#include <RobustKeyframe.h>
-#include <MultiscaleKeyframe.h>
-#include <RobustWeighting.h>
+#include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
+#include <cvt/vision/rgbdvo/VOKeyframe.h>
+#include <cvt/vision/rgbdvo/AIIKeyframe.h>
+#include <cvt/vision/rgbdvo/RobustAIIKeyframe.h>
+#include <cvt/vision/rgbdvo/RobustKeyframe.h>
+#include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
+#include <cvt/vision/rgbdvo/RobustWeighting.h>
 
 #define USE_CAM
 #ifdef USE_CAM

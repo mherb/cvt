@@ -1,7 +1,7 @@
 #ifndef CVT_MULTISCALEKEYFRAME_H
 #define CVT_MULTISCALEKEYFRAME_H
 
-#include <KeyframeBase.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/vision/ImagePyramid.h>
 
 namespace cvt {
