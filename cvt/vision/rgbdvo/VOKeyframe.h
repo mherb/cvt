@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <Eigen/Core>
-#include <KeyframeBase.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 
 namespace cvt
 {

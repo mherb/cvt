@@ -35,8 +35,9 @@ namespace cvt
 		_window( "OpenNI" ),
 		_rgbMov( &_rgbView ),
 		_depthMov( &_depthView ),
-		_cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) )
-                //_cam( 0, CameraMode( 320, 240, 60, IFormat::UYVY_UINT8 ) )
+        //_cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) )
+          _cam( 0, CameraMode( 320, 240, 60, IFormat::UYVY_UINT8 ) )
+    //  _cam( 0, CameraMode( 1280, 1024, 30, IFormat::UYVY_UINT8 ) )
 	{
 		_timerId = Application::registerTimer( 10, this );
                 _cam.startCapture();
