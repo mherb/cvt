@@ -1,4 +1,4 @@
-#include <VOKeyframe.h>
+#include <cvt/vision/rgbdvo/AIIKeyframe.h>
 
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>
@@ -8,7 +8,7 @@
 
 namespace cvt
 {
-    VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
+    AIIKeyframe::AIIKeyframe( const Image& gray, const Image& depth,
                             const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray )
@@ -16,11 +16,11 @@ namespace cvt
         computeJacobians( depth, K, params );
     }
 
-    VOKeyframe::~VOKeyframe()
+    AIIKeyframe::~AIIKeyframe()
     {        
     }
 
-    void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
+    void AIIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI, _gray );
@@ -51,7 +51,7 @@ namespace cvt
         // eval the jacobians:
         Eigen::Vector3f p3d;
         Eigen::Vector2f g;
-        Eigen::Matrix<float, 1, 6> j;
+        JacType j;
         SE3<float>::ScreenJacType J;
 
         HessianType H( HessianType::Zero() );
@@ -82,7 +82,9 @@ namespace cvt
 
                     pose.screenJacobian( J, p3d, K );
 
-                    j = g.transpose() * J;
+                    j.head<6>() = g.transpose() * J;
+                    j[ 6 ] = value[ x ];
+                    j[ 7 ] = 1.0f;
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
@@ -101,10 +103,10 @@ namespace cvt
 
     }
 
-    VOResult VOKeyframe::computeRelativePose( PoseRepresentation& predicted,
-                                              const Image& gray,
-                                              const Matrix3f& intrinsics,
-                                              const VOParams& params ) const
+    VOResult AIIKeyframe::computeRelativePose( PoseRepresentation& predicted,
+                                               const Image& gray,
+                                               const Matrix3f& intrinsics,
+                                               const VOParams& params ) const
     {
         VOResult result;
         result.SSD = 0.0f;
@@ -117,7 +119,8 @@ namespace cvt
         std::vector<Vector2f> warpedPts;
         warpedPts.resize( _points3d.size() );
 
-        Eigen::Matrix4f mEigen( Eigen::Matrix4f::Identity() );
+        Eigen::Matrix4f mEigen;
+        mEigen.setIdentity();
 
         Eigen::Matrix3f Keigen;
         EigenBridge::toEigen( Keigen, intrinsics );
@@ -148,6 +151,9 @@ namespace cvt
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
 
+                    // bias gain:
+                    v = ( 1.0f + predicted.gain ) * v + predicted.bias;
+
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
                     result.SSD += Math::sqr( delta );
@@ -159,8 +165,15 @@ namespace cvt
             }
 
             // evaluate the delta parameters
-            SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
-            predicted.pose.applyInverse( -deltaP );
+            //SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
+            Eigen::Matrix<float, 8, 1> deltaP = -_inverseHessian * deltaSum.transpose();
+
+            predicted.pose.applyInverse( -deltaP.head<6>() );
+            // update bias and gain
+            predicted.bias = ( predicted.bias - deltaP[ 7 ] ) / ( 1.0f + deltaP[ 6 ] );
+            predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
+//            predicted.bias = predicted.bias - ( predicted.gain  + 1.0f ) * deltaP[ 7 ] ;
+//            predicted.gain = ( predicted.gain + 1.0f ) / ( 1.0f + deltaP[ 6 ] );
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )

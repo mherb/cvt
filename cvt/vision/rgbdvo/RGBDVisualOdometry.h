@@ -12,7 +12,7 @@
 #ifndef CVT_RGBDVISUALODOMETRY_H
 #define CVT_RGBDVISUALODOMETRY_H
 
-#include <KeyframeBase.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/math/SE3.h>
 #include <cvt/util/EigenBridge.h>
