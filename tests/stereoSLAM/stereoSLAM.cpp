@@ -54,8 +54,7 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 }
 
 void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
-                             CameraCalibration& c0,
-                             CameraCalibration& c1,                            
+                             std::vector<CameraCalibration> & calibs,
                              const String& folder )
 {
     std::vector<String> xmlFiles;
@@ -67,15 +66,16 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
     String id0 = xmlFiles[ 0 ];
     String id1 = xmlFiles[ 1 ];
 
-    c0.load( id0 );
-    c1.load( id1 );
+    calibs.resize( 2 );
+    calibs[ 0 ].load( id0 );
+    calibs[ 1 ].load( id1 );
 
     cvt::Matrix4f I;
     I.setIdentity();
-    if( c0.extrinsics() != I ) {
-        CameraCalibration tmp = c0;
-        c0 = c1;
-        c1 = tmp;
+    if( calibs[ 0 ].extrinsics() != I ) {
+        CameraCalibration tmp = calibs[ 0 ];
+        calibs[ 0 ] = calibs[ 1 ];
+        calibs[ 1 ] = tmp;
 
         String tmpS;
         tmpS = id0;
@@ -99,7 +99,7 @@ int main( int argc, char* argv[] )
     Resources r;
     if( argc > 1 ){
         String option( argv[ 1 ] );
-        if( option == "SEQUENCE" )
+        if( option.toUpper() == "SEQUENCE" )
             useSeq = true;
         if( argc > 2 ){
             folder = argv[ 2 ];
@@ -109,16 +109,15 @@ int main( int argc, char* argv[] )
     }
 
 
-    CameraCalibration camCalib0, camCalib1;
     std::vector<VideoInput*> input;
+    std::vector<CameraCalibration> calibs;
 
     if( useSeq ){
         if( folder[ folder.length() - 1 ] != '/' )
             folder += "/";
-        loadSequenceFromFolder( input,
-                                camCalib0, camCalib1,    
-                                folder );
+        loadSequenceFromFolder( input, calibs, folder );
     } else {
+        calibs.resize( 2 );
         String id0( "4002738790" );
         String id1( "4002738788" );
         initCameras( input, id0, id1 );
@@ -127,20 +126,20 @@ int main( int argc, char* argv[] )
         String calib0 = r.find( path );
         path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id1.c_str() );
         String calib1 = r.find( path );
-        camCalib0.load( calib0 );
-        camCalib1.load( calib1 );
+        calibs[ 0 ].load( calib0 );
+        calibs[ 1 ].load( calib1 );
     }
 
     std::cout << "Calib0: " << std::endl;
-    std::cout << camCalib0.extrinsics() << std::endl;
-    std::cout << camCalib0.intrinsics() << std::endl;
-    std::cout << camCalib0.projectionMatrix() << std::endl;
+    std::cout << calibs[ 0 ].extrinsics() << std::endl;
+    std::cout << calibs[ 0 ].intrinsics() << std::endl;
+    std::cout << calibs[ 0 ].projectionMatrix() << std::endl;
 
 
     input[ 0 ]->nextFrame();
     input[ 1 ]->nextFrame();
 
-    StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
+    StereoSLAMApp slamApp( input, calibs );
     Application::run();
 
     return 0;

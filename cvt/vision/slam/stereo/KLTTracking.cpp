@@ -16,7 +16,7 @@ namespace cvt
         _klt( 10 ),
         _numOctaves( kltOctaves ),
         _pyramid( _numOctaves, scaleFactor ),
-        _ssdThreshold( Math::sqr( 50.0f ) ),
+        _ssdThreshold( Math::sqr( 30.0f ) ),
         _sadThreshold( 25 )
     {
     }
