@@ -404,6 +404,15 @@ SET(${MODULE_NAME}_HEADERS
    vision/PointCorrespondences3d2d.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
+   vision/rgbdvo/AIIKeyframe.h
+   vision/rgbdvo/ESMKeyframe.h
+   vision/rgbdvo/KeyframeBase.h
+   vision/rgbdvo/MultiscaleKeyframe.h
+   vision/rgbdvo/RGBDVisualOdometry.h
+   vision/rgbdvo/RobustAIIKeyframe.h
+   vision/rgbdvo/RobustKeyframe.h
+   vision/rgbdvo/RobustWeighting.h
+   vision/rgbdvo/VOKeyframe.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
@@ -585,6 +594,8 @@ SET(${MODULE_NAME}_SOURCES
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
+   vision/rgbdvo/AIIKeyframe.cpp
+   vision/rgbdvo/ESMKeyframe.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp

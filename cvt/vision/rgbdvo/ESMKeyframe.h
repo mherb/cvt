@@ -15,7 +15,7 @@
 #include <Eigen/Core>
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
-#include <KeyframeBase.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 
 namespace cvt {
 
