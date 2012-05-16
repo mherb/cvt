@@ -30,8 +30,7 @@ namespace cvt
    class StereoSLAM
    {
       public:
-         StereoSLAM( FeatureTracking* ft,
-                     DepthInitializer* di,
+         StereoSLAM( FeatureTracking* ft, DepthInitializer* di,
                      size_t w0, size_t h0,
                      size_t w1, size_t h1 );
 

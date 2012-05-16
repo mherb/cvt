@@ -5,7 +5,7 @@
 #include <cvt/gui/Application.h>
 
 #include <RGBDVOApp.h>
-#include <ConfigFile.h>
+#include <cvt/util/ConfigFile.h>
 
 #include <Eigen/Geometry>
 

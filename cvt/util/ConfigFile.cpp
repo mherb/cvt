@@ -9,8 +9,8 @@
  	PARTICULAR PURPOSE.
 */
 
-#include <ConfigFile.h>
 #include <cvt/io/FileSystem.h>
+#include <cvt/util/ConfigFile.h>
 #include <cvt/util/Data.h>
 #include <cvt/util/DataIterator.h>
 #include <fstream>

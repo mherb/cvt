@@ -154,7 +154,6 @@ ENDFOREACH(GLSLFILE)
 
 
 SET(${MODULE_NAME}_HEADERS
-   util/Version.h
    cl/CLBuffer.h
    cl/CLCommandQueue.h
    cl/CLContext.h
@@ -337,13 +336,15 @@ SET(${MODULE_NAME}_HEADERS
    math/graph/GraphEdge.h
    math/graph/GraphVisitor.h
    math/SparseBlockMatrix.h
+   util/Version.h
    util/CPU.h
    util/CVTTest.h
    util/Condition.h
+   util/ConfigFile.h
    util/Delegate.h
-    util/Delegate.inl
+   util/Delegate.inl
    util/Data.h
-    util/DataIterator.h
+   util/DataIterator.h
    util/Exception.h
    util/EigenBridge.h
    util/Inserter.h
@@ -550,6 +551,7 @@ SET(${MODULE_NAME}_SOURCES
    math/SL3Test.cpp
    math/Sim2Test.cpp
    math/GA2Test.cpp
+   util/ConfigFile.cpp
    util/ParamInfo.cpp
    util/ParamSet.cpp
    util/Range.cpp
