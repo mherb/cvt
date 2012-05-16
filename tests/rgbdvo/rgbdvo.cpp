@@ -297,6 +297,7 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
 int main( int argc, char* argv[] )
 {
     ConfigFile cfg( "rgbdvo.cfg" );
+    //ConfigFile cfg( "rgbdvo_freiburg1.cfg" );
 
     if( argc < 2 ){
         std::cout << "Usage: " << argv[ 0 ] << " <rgbd_dataset_folder>" << std::endl;
@@ -314,8 +315,16 @@ int main( int argc, char* argv[] )
 
     Matrix3f K;
     K.setIdentity();
-    K[ 0 ][ 0 ] = 520.9f; K[ 0 ][ 2 ] = 325.1f;
-    K[ 1 ][ 1 ] = 521.0f; K[ 1 ][ 2 ] = 249.7f;
+	// freiburg 1
+    // K[ 0 ][ 0 ] = 517.306408;
+	// K[ 0 ][ 2 ] = 318.643040;
+    // K[ 1 ][ 1 ] = 516.469215;
+	// K[ 1 ][ 2 ] = 255.313989;
+	// freiburg 2
+    K[ 0 ][ 0 ] = 520.9f; 
+	K[ 0 ][ 2 ] = 325.1f;
+    K[ 1 ][ 1 ] = 521.0f; 
+	K[ 1 ][ 2 ] = 249.7f;
 
   	runBatch( params, K, folder, cfg );
 //    convergenceAnalysis( params, K, folder, cfg );
