@@ -338,6 +338,7 @@ SET(${MODULE_NAME}_HEADERS
    math/SparseBlockMatrix.h
    util/Version.h
    util/CPU.h
+   util/CVTAssert.h
    util/CVTTest.h
    util/Condition.h
    util/ConfigFile.h
@@ -439,6 +440,7 @@ SET(${MODULE_NAME}_HEADERS
    io/xml/XMLEncoding.h
    io/xml/XMLLeaf.h
    io/xml/XMLNode.h
+   io/xml/XMLSerializable.h
    io/xml/XMLText.h
    ${GLSL_GEN_HEADER_${MODULE_NAME}}
    ${CL_GEN_HEADER_${MODULE_NAME}}
@@ -596,6 +598,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/SparseBundleAdjustment.cpp
    vision/rgbdvo/AIIKeyframe.cpp
    vision/rgbdvo/ESMKeyframe.cpp
+   vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp

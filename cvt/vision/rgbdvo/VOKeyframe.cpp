@@ -1,4 +1,4 @@
-#include <VOKeyframe.h>
+#include <cvt/vision/rgbdvo/VOKeyframe.h>
 
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>
