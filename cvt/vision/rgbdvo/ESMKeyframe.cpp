@@ -9,7 +9,7 @@
  	PARTICULAR PURPOSE.
 */
 
-#include <ESMKeyframe.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>

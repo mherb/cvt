@@ -1,5 +1,5 @@
-#ifndef CVT_ROBUST_AII_KEYFRAME_H
-#define CVT_ROBUST_AII_KEYFRAME_H
+#ifndef CVT_ROBUST_KEYFRAME_H
+#define CVT_ROBUST_KEYFRAME_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <Eigen/Core>
-#include <KeyframeBase.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>
 #include <cvt/util/EigenBridge.h>
@@ -15,11 +15,11 @@
 namespace cvt
 {
 	template <class WeighterType>
-    class RobustAIIKeyframe : public KeyframeBase<RobustAIIKeyframe<WeighterType> >
+    class RobustKeyframe : public KeyframeBase<RobustKeyframe<WeighterType> >
     {
         public:			
-            typedef Eigen::Matrix<float, 8, 8> HessianType;
-            typedef Eigen::Matrix<float, 1, 8> JacType;
+            typedef Eigen::Matrix<float, 6, 6> HessianType;
+            typedef Eigen::Matrix<float, 1, 6> JacType;
 
             /**
              * \param	gray            gray Image (float)
@@ -28,9 +28,9 @@ namespace cvt
              * \param   K               the intrinsics for the rgb image
              * \param   params          parameters
              */
-            RobustAIIKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
+            RobustKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
 
-            ~RobustAIIKeyframe();
+            ~RobustKeyframe();
 
             const Matrix4f&     pose()                  const { return _pose; }
 
@@ -57,18 +57,18 @@ namespace cvt
             std::vector<float>          _pixelValues;
 
             // jacobians for that points
-            std::vector<JacType, Eigen::aligned_allocator<JacType> > _jacobians;
+            std::vector<JacType>        _jacobians;
 
 			WeighterType				_weighter;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
-			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::computeGradients;
-			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::interpolatePixelValue;
+			using KeyframeBase<RobustKeyframe<WeighterType> >::computeGradients;
+			using KeyframeBase<RobustKeyframe<WeighterType> >::interpolatePixelValue;
     };
 
 
 	template <class Weighter>
-    inline RobustAIIKeyframe<Weighter>::RobustAIIKeyframe( const Image& gray, const Image& depth,
+    inline RobustKeyframe<Weighter>::RobustKeyframe( const Image& gray, const Image& depth,
 													 const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray ),
@@ -78,12 +78,12 @@ namespace cvt
     }
 
 	template <class Weighter>
-    inline RobustAIIKeyframe<Weighter>::~RobustAIIKeyframe()
+    inline RobustKeyframe<Weighter>::~RobustKeyframe()
     {       	
     }
 
 	template <class Weighter>
-    inline void RobustAIIKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
+    inline void RobustKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI, _gray );
@@ -114,10 +114,8 @@ namespace cvt
         // eval the jacobians:
         Eigen::Vector3f p3d;
         Eigen::Vector2f g;
-        JacType j;
+        Eigen::Matrix<float, 1, 6> j;
         SE3<float>::ScreenJacType J;
-
-        HessianType H( HessianType::Zero() );
 
         Eigen::Matrix3f K;
         EigenBridge::toEigen( K, intrinsics );
@@ -145,14 +143,11 @@ namespace cvt
 
                     pose.screenJacobian( J, p3d, K );
 
-                    j.head<6>() = g.transpose() * J;
-					j[ 6 ] = value[ x ];
-					j[ 7 ] = 1.0f;
+                    j = g.transpose() * J;
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
                     _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );                    
-                    H.noalias() += j.transpose() * j;                    
                 }
             }
             gxMap++;
@@ -163,7 +158,7 @@ namespace cvt
     }
 
 	template <class Weighter>
-    inline VOResult RobustAIIKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
+    inline VOResult RobustKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
 																  const Image& gray,
                                               			 		  const Matrix3f& intrinsics,
                                               			 		  const VOParams& params ) const
@@ -214,9 +209,6 @@ namespace cvt
                 if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
-                    
-					// bias gain:
-                    v = ( 1.0f + predicted.gain ) * v + predicted.bias;
 
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
@@ -231,11 +223,8 @@ namespace cvt
             }
 
             // evaluate the delta parameters
-			Eigen::Matrix<float, 8, 1> deltaP = -H.inverse() * deltaSum.transpose();
-            predicted.pose.applyInverse( -deltaP.head<6>() );
-            // update bias and gain
-            predicted.bias = ( predicted.bias - deltaP[ 7 ] ) / ( 1.0f + deltaP[ 6 ] );
-            predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
+            SE3<float>::ParameterVectorType deltaP = -H.inverse() * deltaSum.transpose();
+            predicted.pose.applyInverse( -deltaP );
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )

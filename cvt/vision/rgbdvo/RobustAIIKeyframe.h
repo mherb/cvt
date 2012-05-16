@@ -1,26 +1,89 @@
-#include <AIIKeyframe.h>
+#ifndef CVT_ROBUST_AII_KEYFRAME_H
+#define CVT_ROBUST_AII_KEYFRAME_H
 
+#include <cvt/gfx/Image.h>
+#include <cvt/math/Matrix.h>
+#include <cvt/math/SE3.h>
+
+#include <vector>
+#include <Eigen/Core>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/math/SE3.h>
 #include <cvt/util/EigenBridge.h>
 
-#include <Eigen/Dense>
-
 namespace cvt
 {
-    AIIKeyframe::AIIKeyframe( const Image& gray, const Image& depth,
-                            const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
+	template <class WeighterType>
+    class RobustAIIKeyframe : public KeyframeBase<RobustAIIKeyframe<WeighterType> >
+    {
+        public:			
+            typedef Eigen::Matrix<float, 8, 8> HessianType;
+            typedef Eigen::Matrix<float, 1, 8> JacType;
+
+            /**
+             * \param	gray            gray Image (float)
+             * \param	depth           Depth Image (float)
+             * \param	pose            pose for this keyframe
+             * \param   K               the intrinsics for the rgb image
+             * \param   params          parameters
+             */
+            RobustAIIKeyframe( const Image& gray, const Image& depth, const Matrix4f& pose, const Matrix3f& K, const VOParams& params );
+
+            ~RobustAIIKeyframe();
+
+            const Matrix4f&     pose()                  const { return _pose; }
+
+            /**
+             *  \brief copmute the relative pose of an image w.r.t. this keyframe
+             *  \param  predicted   input/output the pose of the image w.r.t. this keyframe
+             *  \param  gray        the grayscale image of type GRAY_FLOAT
+             *  \return Result information (ssd, iterations, numPixel, ...)
+             */
+            VOResult computeRelativePose( PoseRepresentation& predicted,
+                                          const Image& gray,
+                                          const Matrix3f& intrinsics,
+                                          const VOParams& params ) const;
+
+			
+        protected:
+            Matrix4f                    _pose;
+            Image                       _gray;
+
+            // the 3D points of this keyframe
+            std::vector<Vector3f>       _points3d;
+
+            // the pixel values (gray) for the points
+            std::vector<float>          _pixelValues;
+
+            // jacobians for that points
+            std::vector<JacType, Eigen::aligned_allocator<JacType> > _jacobians;
+
+			WeighterType				_weighter;
+
+            void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
+			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::computeGradients;
+			using KeyframeBase<RobustAIIKeyframe<WeighterType> >::interpolatePixelValue;
+    };
+
+
+	template <class Weighter>
+    inline RobustAIIKeyframe<Weighter>::RobustAIIKeyframe( const Image& gray, const Image& depth,
+													 const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
-        _gray( gray )
+        _gray( gray ),
+		_weighter( params.robustParam )
     {
         computeJacobians( depth, K, params );
     }
 
-    AIIKeyframe::~AIIKeyframe()
-    {        
+	template <class Weighter>
+    inline RobustAIIKeyframe<Weighter>::~RobustAIIKeyframe()
+    {       	
     }
 
-    void AIIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
+	template <class Weighter>
+    inline void RobustAIIKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
         computeGradients( gxI, gyI, _gray );
@@ -83,8 +146,8 @@ namespace cvt
                     pose.screenJacobian( J, p3d, K );
 
                     j.head<6>() = g.transpose() * J;
-                    j[ 6 ] = value[ x ];
-                    j[ 7 ] = 1.0f;
+					j[ 6 ] = value[ x ];
+					j[ 7 ] = 1.0f;
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
@@ -97,16 +160,13 @@ namespace cvt
             grayMap++;
             depthMap++;
         }
-
-        // precompute the inverse hessian
-        _inverseHessian = H.inverse();
-
     }
 
-    VOResult AIIKeyframe::computeRelativePose( PoseRepresentation& predicted,
-                                               const Image& gray,
-                                               const Matrix3f& intrinsics,
-                                               const VOParams& params ) const
+	template <class Weighter>
+    inline VOResult RobustAIIKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
+																  const Image& gray,
+                                              			 		  const Matrix3f& intrinsics,
+                                              			 		  const VOParams& params ) const
     {
         VOResult result;
         result.SSD = 0.0f;
@@ -124,6 +184,8 @@ namespace cvt
 
         Eigen::Matrix3f Keigen;
         EigenBridge::toEigen( Keigen, intrinsics );
+
+		HessianType H;
 
         // sum of jacobians * delta
         JacType deltaSum, jtmp;
@@ -145,35 +207,35 @@ namespace cvt
             result.numPixels = 0;
             result.SSD = 0.0f;
 
+			H.setZero();
+
             for( size_t i = 0; i < warpedPts.size(); i++ ){
                 const Vector2f& pw = warpedPts[ i ];
                 if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
-
-                    // bias gain:
+                    
+					// bias gain:
                     v = ( 1.0f + predicted.gain ) * v + predicted.bias;
 
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
                     result.SSD += Math::sqr( delta );
                     result.numPixels++;
+                    
+					jtmp = _weighter.weight( delta ) * _jacobians[ i ];
 
-                    jtmp = delta * _jacobians[ i ];
-                    deltaSum += jtmp;
+					H += jtmp.transpose() * jtmp;
+                    deltaSum += ( delta * jtmp );
                 }
             }
 
             // evaluate the delta parameters
-            //SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
-            Eigen::Matrix<float, 8, 1> deltaP = -_inverseHessian * deltaSum.transpose();
-
+			Eigen::Matrix<float, 8, 1> deltaP = -H.inverse() * deltaSum.transpose();
             predicted.pose.applyInverse( -deltaP.head<6>() );
             // update bias and gain
             predicted.bias = ( predicted.bias - deltaP[ 7 ] ) / ( 1.0f + deltaP[ 6 ] );
             predicted.gain = ( predicted.gain - deltaP[ 6 ] ) / ( 1.0f + deltaP[ 6 ] );
-//            predicted.bias = predicted.bias - ( predicted.gain  + 1.0f ) * deltaP[ 7 ] ;
-//            predicted.gain = ( predicted.gain + 1.0f ) / ( 1.0f + deltaP[ 6 ] );
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )
@@ -182,3 +244,5 @@ namespace cvt
         return result;
     }
 }
+
+#endif
