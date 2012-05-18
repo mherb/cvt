@@ -30,11 +30,11 @@ namespace cvt
                            size_t w1, size_t h1 ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 100 ),
+       _minTrackedFeatures( 50 ),
        _activeKF( -1 ),
        _minKeyframeDistance( 0.05 ),
        _maxKeyframeDistance( 0.5 )
-   {       
+   {
        const CameraCalibration& c0 = _depthInit->calibration0();
        const CameraCalibration& c1 = _depthInit->calibration1();
 
@@ -105,12 +105,12 @@ namespace cvt
          createDebugImageStereo( debugStereo, triangulated );
          newStereoView.notify( debugStereo );
 
-         if( triangulated.size() > 10 ){
+         if( ( triangulated.size() + numTrackedFeatures ) > 10 ){
              // create new keyframe with map features
              addNewKeyframe( triangulated, p2d, trackedIds );
 
              if( _map.numKeyframes() > 1 ){
-                _bundler.run( &_map );
+                //_bundler.run( &_map );
              }
              keyframeAdded.notify();
              mapChanged.notify( _map );
@@ -222,7 +222,7 @@ namespace cvt
 
            mf.estimate() = poseInv * p3d;
 
-           size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );           
+           size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
 
