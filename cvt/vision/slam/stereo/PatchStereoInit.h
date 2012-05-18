@@ -15,6 +15,8 @@
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
+#include <cvt/vision/KLTTracker.h>
+#include <cvt/math/GA2.h>
 
 namespace cvt {
 
@@ -56,6 +58,10 @@ namespace cvt {
 
             SIMD*           _simd;
 
+            // subpixel position refiner
+            typedef KLTTracker<GA2<float>, PatchSize> KLTType;
+            KLTType     _refiner;
+
             void detectFeatures( std::vector<Feature2Df>& features, const ImagePyramid& pyramid );
 
             void filterFeatures( std::vector<Vector2f>& filtered,
@@ -69,6 +75,8 @@ namespace cvt {
             size_t computePatchSAD( const uint8_t* p0, size_t s0,
                                     const uint8_t* p1, size_t s1 ) const;
 
+            bool refinePositionSubPixel( KLTType::KLTPType& patch,
+                                         const uint8_t* ptr, size_t stride );
 
     };
 
