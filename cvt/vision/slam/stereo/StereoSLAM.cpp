@@ -30,10 +30,10 @@ namespace cvt
                            size_t w1, size_t h1 ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 50 ),
+       _minTrackedFeatures( 40 ),
        _activeKF( -1 ),
-       _minKeyframeDistance( 0.05 ),
-       _maxKeyframeDistance( 0.5 )
+       _minKeyframeDistance( 0.1 ),
+       _maxKeyframeDistance( 0.8 )
    {
        const CameraCalibration& c0 = _depthInit->calibration0();
        const CameraCalibration& c1 = _depthInit->calibration1();
@@ -57,7 +57,7 @@ namespace cvt
       std::vector<Vector2f> predictedPositions;
       std::vector<size_t>   predictedFeatureIds;
       _map.selectVisibleFeatures(  predictedFeatureIds, predictedPositions,
-                                  _pose.transformation(), _depthInit->calibration0(), 3.0f /* TODO: make it a param */  );
+                                  _pose.transformation(), _depthInit->calibration0(), 5.0f /* TODO: make it a param */  );
 
       // track the predicted features
       PointSet2d p2d;
@@ -109,9 +109,10 @@ namespace cvt
              // create new keyframe with map features
              addNewKeyframe( triangulated, p2d, trackedIds );
 
-             if( _map.numKeyframes() > 1 ){
-                //_bundler.run( &_map );
+             if( _map.numKeyframes() > 2 ){
+               //_bundler.run( &_map );
              }
+
              keyframeAdded.notify();
              mapChanged.notify( _map );
              std::cout << "New Keyframe Added" << std::endl;
@@ -142,6 +143,7 @@ namespace cvt
       K[ 0 ][ 0 ] = kf[ 0 ][ 0 ]; K[ 0 ][ 1 ] = kf[ 0 ][ 1 ]; K[ 0 ][ 2 ] = kf[ 0 ][ 2 ];
       K[ 1 ][ 0 ] = kf[ 1 ][ 0 ]; K[ 1 ][ 1 ] = kf[ 1 ][ 1 ]; K[ 1 ][ 2 ] = kf[ 1 ][ 2 ];
       K[ 2 ][ 0 ] = kf[ 2 ][ 0 ]; K[ 2 ][ 1 ] = kf[ 2 ][ 1 ]; K[ 2 ][ 2 ] = kf[ 2 ][ 2 ];
+
       Matrix4d m;
       EPnPd epnp( p3d );
       epnp.solve( m, p2d, K );
@@ -162,19 +164,21 @@ namespace cvt
          p3[ 0 ] = p3d[ i ].x;
          p3[ 1 ] = p3d[ i ].y;
          p3[ 2 ] = p3d[ i ].z;
+
          p2[ 0 ] = p2d[ i ].x;
          p2[ 1 ] = p2d[ i ].y;
          pointCorresp.add( p3, p2 );
       }
 
-      RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 1.0 );
+      RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
       LevenbergMarquard<double> lm;
       TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
       termCriteria.setCostThreshold( 0.01 );
-      termCriteria.setMaxIterations( 40 );
+      termCriteria.setMaxIterations( 20 );
       lm.optimize( pointCorresp, costFunction, termCriteria );
 
       me = pointCorresp.pose().transformation();
+
       _pose.set( me );
 
       Matrix4f mf;
@@ -281,8 +285,11 @@ namespace cvt
       if( kfDist > _maxKeyframeDistance )
          return true;
 
+      if( numTrackedFeatures < 10 )
+          return true;
+
       // if too few features and minimum distance from last keyframe create new
-      if( numTrackedFeatures < _minTrackedFeatures /*&& kfDist > _minKeyframeDistance*/ )
+      if( numTrackedFeatures < _minTrackedFeatures && kfDist > _minKeyframeDistance )
          return true;
 
       return false;

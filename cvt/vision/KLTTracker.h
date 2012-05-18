@@ -77,6 +77,8 @@ namespace cvt
 			typename PoseType::ParameterVectorType delta;
 
 			float diffSum = 0.0f;
+            const float maxDiff = 0.7 * Math::sqr( pSize * 255.0f );
+
 			size_t iter = 0;
 			while( iter < _maxIters ){
 				jSum.setZero();
@@ -92,6 +94,9 @@ namespace cvt
 				}
 
 				diffSum = buildSystem( patch, jSum, pose, current, currStride );
+
+                if( diffSum > maxDiff )
+                    return false;
 
 				// solve for the delta:
 				delta = patch.inverseHessian() * jSum;

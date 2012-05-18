@@ -24,7 +24,7 @@ namespace cvt {
         new ParamInfoTyped<uint32_t>( "maxNewFeatures", 0, 5000, 400, true, 1, offsetof( PatchStereoInit::Parameters, maxNewFeatures ) ),
         new ParamInfoTyped<uint64_t>( "maxSAD", 0, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, maxSAD ) ),
         new ParamInfoTyped<float>( "maxEpilineDistance", 0.0f, 10.0f, 4.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxEpilineDistance ) ),
-        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
+        new ParamInfoTyped<float>( "maxReprojectionError", 0.0f, 10.0f, 2.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxReprojectionError ) ),
         new ParamInfoTyped<float>( "minDepth", 0.1f, 5.0f, 1.0f, true, 1, offsetof( PatchStereoInit::Parameters, minDepth ) ),
         new ParamInfoTyped<float>( "maxDepth", 3.0f, 100.0f, 50.0f, true, 1, offsetof( PatchStereoInit::Parameters, maxDepth ) ),
         new ParamInfoTyped<uint8_t>( "fastThreshold", 1, 255, 30, true, 1, offsetof( PatchStereoInit::Parameters, fastThreshold ) ),
@@ -189,16 +189,11 @@ namespace cvt {
                 patch.update( map0.ptr(), map0.stride(), pos0, 0 );
                 patch.initPose( result.meas1 );
 
+                Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _fundamental );
                 if( refinePositionSubPixel( patch, map1.ptr(), map1.stride() ) ){
 
-                    // refined:
-                    Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _fundamental );
-                    std::cout << "Initial second corresp: " << result.meas1 << std::endl;
+                    // refined:                    
                     patch.currentCenter( result.meas1 );
-
-                    std::cout << "Refined second corresp: " << result.meas1 << std::endl;
-
-
 
                     triangulateSinglePoint( result,
                                             _calib0.projectionMatrix(),
@@ -232,7 +227,14 @@ namespace cvt {
     bool PatchStereoInit::refinePositionSubPixel( PatchStereoInit::KLTType::KLTPType& patch,
                                                   const uint8_t* ptr, size_t stride )
     {
-        return _refiner.trackPatch( patch, ptr, stride, _pyramidView1[ 0 ].width(), _pyramidView1[ 0 ].height() );
+        if( _refiner.trackPatch( patch, ptr, stride, _pyramidView1[ 0 ].width(), _pyramidView1[ 0 ].height() ) ){
+            // check the SAD
+            float sad = _simd->SAD( patch.pixels(), patch.transformed(), NumPatchPixel ) / float( NumPatchPixel );
+            if( sad < _params->maxSAD )
+                return true;
+        }
+
+        return false;
     }
 
 }
