@@ -118,13 +118,13 @@ int main( int argc, char* argv[] )
         loadSequenceFromFolder( input, calibs, folder );
     } else {
         calibs.resize( 2 );
-        String id0( "4002738790" );
+        String id0( "4002738791" );
         String id1( "4002738788" );
         initCameras( input, id0, id1 );
         String path;
-        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id0.c_str() );
+        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id0.c_str() );
         String calib0 = r.find( path );
-        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id1.c_str() );
+        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id1.c_str() );
         String calib1 = r.find( path );
         calibs[ 0 ].load( calib0 );
         calibs[ 1 ].load( calib1 );

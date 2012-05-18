@@ -14,14 +14,14 @@ namespace cvt
    StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,const std::vector<CameraCalibration>& calibs ) :
       _cams( cams ),
       //_featureTracking( new ORBTracking() ),
-      _featureTracking( new KLTTracking( 3, 0.5f ) ),
+      _featureTracking( new KLTTracking( 4, 0.6f ) ),
       //_depthInit( new ORBStereoInit( c0, c1, 5.0f, 20.0f ) ),
       _depthInit( new PatchStereoInit( calibs[ 0 ], calibs[ 1 ] ) ),
       _slam( _featureTracking, _depthInit, cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 1 ]->width(), cams[ 1 ]->height() ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
        _gui( _depthInit->parameters() ),
-      _stepping( false ),
+      _stepping( true ),
       _nextImage( true )
    {
       _timerId = Application::registerTimer( 10, this );
@@ -89,10 +89,12 @@ namespace cvt
 
    void StereoSLAMApp::saveMap()
    {
-      std::cout << "Saving map" << std::endl;
+      std::cout << "Saving map ...";
       XMLDocument doc;
       doc.addNode( _slam.map().serialize() );
       doc.save( "map.xml" );
+
+      std::cout << " done" << std::endl;
    }
 
 

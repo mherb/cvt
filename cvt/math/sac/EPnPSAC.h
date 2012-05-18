@@ -47,8 +47,8 @@ namespace cvt
         size_t minSampleSize() const
         {
             // what is a good number for EPnP?
-		    // In principle it should work with 4 	
-            return 4;
+            // In principle it should work with 4
+            return 6;
         }
 
         ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
