@@ -110,7 +110,7 @@ namespace cvt {
 			if( costFunc.isRobust ){
 				weighting( 0, 0 ) = weighting( 1, 1 ) = weight;
 				A += ( J.transpose() * weighting * J );
-				b +=( J.transpose() * weighting * r );
+                b += ( J.transpose() * weighting * r );
 			} else {
 				A += ( J.transpose() * J );
 				b +=( J.transpose() * r );

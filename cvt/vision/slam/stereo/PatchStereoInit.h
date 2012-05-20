@@ -46,7 +46,7 @@ namespace cvt {
             };
 
         private:
-            static const size_t PatchSize = 8;
+            static const size_t PatchSize = 16;
             static const size_t NumPatchPixel = PatchSize * PatchSize;
 
             FAST            _detector;

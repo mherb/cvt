@@ -20,6 +20,9 @@
 #include <cvt/math/sac/SampleConsensusModel.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/vision/Vision.h>
+#include <cvt/vision/PointCorrespondences3d2d.h>
+#include <cvt/math/LevenbergMarquard.h>
+#include <cvt/util/EigenBridge.h>
 
 namespace cvt
 {
@@ -49,8 +52,9 @@ namespace cvt
         }
 
         ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
+        ResultType estimateWithInliers( const ResultType& prev, const std::vector<size_t> & sampleIndices ) const;
 
-        ResultType refine( const std::vector<size_t> & inlierIndices ) const;
+        ResultType refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const;
 
         void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
@@ -76,26 +80,83 @@ namespace cvt
         PointSet3d featureVecs;
 
 		Vector3d tmp;
+        Vector3d tmp2;
         for( size_t i = 0; i < sampleIndices.size(); i++ ){
             worldPts.add( _points3d[ sampleIndices[ i ] ] );
-			tmp = _intrinsicsInv * _points2d[ sampleIndices[ i ] ];
+            tmp2.x = _points2d[ sampleIndices[ i ] ].x;
+            tmp2.y = _points2d[ sampleIndices[ i ] ].y;
+            tmp2.z = 1;
+            tmp = _intrinsicsInv * tmp2;
 			tmp.normalize();
             featureVecs.add( tmp );
         }
 	
 		std::vector<Matrix4d> results;
-		Vision::p3p( results, featureVecs, worldPts );
+        Vision::p3p( results, ( Vector3d* )featureVecs.ptr(), ( Vector3d* )worldPts.ptr() );
 
-		// TODO: check which of the 4 solutions is good
-			
-        return trans; 
+        Vector3d pcam;
+        Vector2d pp;
+
+        double best = 10000;
+        int bestIdx = -1;
+
+        for( size_t i = 0; i < results.size(); i++ ){
+            pcam = results[ i ] * worldPts[ 0 ];
+            pp = _intrinsics * pcam;
+            pp -= _points2d[ sampleIndices[ 0 ] ];
+            double error = pp.lengthSqr();
+
+            if( error < best ){
+                best = error;
+                bestIdx = i;
+            }
+        }
+
+        if( bestIdx == -1 ){
+            Matrix4d trans;
+            trans.setIdentity();
+            return trans;
+        }
+
+        return results[ bestIdx ];
     }
 
-    inline P3PSac::ResultType P3PSac::refine( const std::vector<size_t> & inlierIndices ) const
+    inline P3PSac::ResultType P3PSac::refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const
     {
-        // TODO: would be nicer, to use estimate, to get a linear estimate,
-        //       and then refine it iteratively using GN or LM e.g.
-        return estimate( inlierIndices );
+        Eigen::Matrix3d K;
+        Eigen::Matrix4d ext( Eigen::Matrix4d::Identity() ), me;
+
+        std::cout << "Num inlier: " << inlierIndices.size() << std::endl;
+
+        PointCorrespondences3d2d<double> pointCorresp( K, ext );
+        EigenBridge::toEigen( me, res );
+        pointCorresp.setPose( me );
+
+        Eigen::Vector3d p3;
+        Eigen::Vector2d p2;
+        for( size_t i = 0; i < inlierIndices.size(); i++ ){
+            size_t idx = inlierIndices[ i ];
+           p3[ 0 ] = _points3d[ idx ].x;
+           p3[ 1 ] = _points3d[ idx ].y;
+           p3[ 2 ] = _points3d[ idx ].z;
+
+           p2[ 0 ] = _points2d[ idx ].x;
+           p2[ 1 ] = _points2d[ idx ].y;
+           pointCorresp.add( p3, p2 );
+        }
+
+        RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 1.0 );
+        LevenbergMarquard<double> lm;
+        TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
+        termCriteria.setCostThreshold( 0.1 );
+        termCriteria.setMaxIterations( 20 );
+        lm.optimize( pointCorresp, costFunction, termCriteria );
+
+        me = pointCorresp.pose().transformation();
+
+        Matrix4d refined;
+        EigenBridge::toCVT( refined, me );
+        return refined;
     }
 
     inline void P3PSac::inliers( std::vector<size_t> & inlierIndices,
@@ -108,7 +169,7 @@ namespace cvt
 
 		/* invert the pose */
 		Matrix3d R = _intrinsics * estimate.toMatrix3();
-		Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 2 ] );
+        Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 3 ] );
 		// apply intrinsics
 		t = _intrinsics * t;
 

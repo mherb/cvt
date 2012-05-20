@@ -128,6 +128,7 @@ namespace cvt
 		if( e->buttonMask() & 2 || e->buttonMask() & 4 ) {
 			_trans.x += 0.01f * ( e->x - _panPress.x );
 			_trans.y -= 0.01f * ( e->y - _panPress.y );
+            update();
 			_panPress.x = e->x;
 			_panPress.y = e->y;
 		}
