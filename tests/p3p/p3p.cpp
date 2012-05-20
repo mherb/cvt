@@ -7,8 +7,6 @@
 #include <cvt/math/Matrix.h>
 #include <cvt/util/Time.h>
 
-#include "P3pKneip.h"
-
 using namespace cvt;
 
 template <typename T>
@@ -65,16 +63,11 @@ int main( void )
     K[ 1 ][ 1 ] = 650.0; K[ 1 ][ 2 ] = 240.0;
     K[ 2 ][ 2 ] = 1;
 
-    //genPoints( ptset, 3 );
-    ptset.add( Vector3d( 0, 0, 0 ) );
-    ptset.add( Vector3d( -1, 1, 1 ) );
-    ptset.add( Vector3d( 0, -2, 0 ) );
-
+    genPoints( ptset, 3 );
     transformPoints( ptset2d, K, R, t, ptset, 0.0 );
 
     std::vector<Vector3d> featureVecs;
     Matrix3d kinv = K.inverse();
-    //kinv.setIdentity();
 
     featureVecs.resize( ptset2d.size() );
     Vector3d tmp;
