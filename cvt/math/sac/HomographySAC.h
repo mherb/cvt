@@ -58,9 +58,8 @@ namespace cvt
             return 4;
         }
 
-        ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
-
-        ResultType refine( const std::vector<size_t> & inlierIndices ) const;
+        ResultType estimate( const std::vector<size_t> & sampleIndices ) const;        
+        ResultType refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const;
 
         void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
@@ -79,7 +78,7 @@ namespace cvt
         return set0.alignPerspective( set1 );
     }
 
-    HomographySAC::ResultType HomographySAC::refine( const std::vector<size_t> & inlierIndices ) const
+    HomographySAC::ResultType HomographySAC::refine( const ResultType&, const std::vector<size_t> & inlierIndices ) const
     {
         // TODO: would be nicer, to use estimate, to get a linear estimate,
         //       and then refine it iteratively using GN or LM e.g.

@@ -58,8 +58,7 @@ namespace cvt
 			}
 
 			ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
-
-			ResultType refine( const std::vector<size_t> & inlierIndices ) const;
+            ResultType refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const;
 
 			void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
@@ -80,7 +79,7 @@ namespace cvt
         return set0.essentialMatrix( set1, _K );
     }
 
-    EssentialSAC::ResultType EssentialSAC::refine( const std::vector<size_t> & inlierIndices ) const
+    EssentialSAC::ResultType EssentialSAC::refine( const ResultType&, const std::vector<size_t> & inlierIndices ) const
     {
         return estimate( inlierIndices );
     }

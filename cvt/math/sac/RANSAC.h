@@ -69,7 +69,6 @@ namespace cvt
             randomSamples( indices );
             result = _model.estimate( indices );
 
-            inliers.clear();
             _model.inliers( inliers, result, _maxDistance );
 
             if( inliers.size() > numBest ){
@@ -96,7 +95,7 @@ namespace cvt
         result = _model.estimate( bestIndices );
         _model.inliers( inliers, result, _maxDistance );
 
-        return _model.refine( inliers );
+        return _model.refine( result, inliers );
     }
 
     template<class Model>

@@ -48,9 +48,8 @@ namespace cvt
 
         size_t minSampleSize() const { return 2; }
 
-        ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
-
-        ResultType refine( const std::vector<size_t> & inliers  ) const;
+        ResultType estimate( const std::vector<size_t> & sampleIndices ) const;        
+        ResultType refine( const ResultType& res, const std::vector<size_t> & inliers  ) const;
 
         void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
@@ -66,7 +65,7 @@ namespace cvt
         return Line2Df( p0, p1 );
     }
 
-    inline Line2DSAC::ResultType Line2DSAC::refine( const std::vector<size_t> & inliers  ) const
+    inline Line2DSAC::ResultType Line2DSAC::refine( const ResultType& res, const std::vector<size_t> & inliers  ) const
     {
         Eigen::Matrix3f cov( Eigen::Matrix3f::Zero() );
 

@@ -51,15 +51,16 @@ namespace cvt
             return ( ( Derived *)this )->estimate( sampleIndices );
         }
 
-        ResultType refine( const std::vector<size_t> & inliers  ) const
+        ResultType refine( const ResultType& res, const std::vector<size_t> & inliers  ) const
         {
-            return ( ( Derived *)this )->refine( inliers );
+            return ( ( Derived *)this )->refine( res, inliers );
         }
 
         void inliers( std::vector<size_t> & sampleIndices,
                       const ResultType & estimate,
                       const DistanceType maxDistance ) const
         {
+            sampleIndices.clear();
             ( ( Derived *)this )->inliers( sampleIndices, estimate, maxDistance );
         }
     };
