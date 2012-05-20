@@ -34,11 +34,11 @@ namespace cvt
       public:
 
         /**
-         * \brief   Perspective-from-3-Points solution as ins Kneip 2011 (ethz)
+         * \brief   Perspective-from-3-Points solution as in Kneip 2011 (ethz)
          * \return  vector of possible solutions
          *
          */
-        static inline void p3p( std::vector<Matrix4d>& transforms, const Vector3d* pw, const Vector3d *featureVec );
+        static inline void p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints );
 
         /**
          * @brief Decomposition of Essential Matrix into R and t
@@ -145,133 +145,145 @@ namespace cvt
         static void unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale );
     };
 
-    inline void Vision::p3p( std::vector<Matrix4d>& transforms, const Vector3d* pw, const Vector3d* featureVec )
+    inline void Vision::p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints )
     {
-        // TODO: we assume that we this is called with exactly 3 point correspondences!
-        Vector3d P1 = pw[ 0 ];
-        Vector3d P2 = pw[ 1 ];
-        Vector3d P3 = pw[ 2 ];
+        // Extraction of world points
+        Vector3d P1, P2, P3, f1, f2, f3;
 
-        // if the points are colinear, the algorithm does not work!
+        P1 = worldPoints[ 0 ];
+        P2 = worldPoints[ 1 ];
+        P3 = worldPoints[ 2 ];
+
+        // Verification that world points are not colinear
         Vector3d temp1 = P2 - P1;
         Vector3d temp2 = P3 - P1;
-        if( temp1.cross( temp2 ).length() == 0 )
+
+        if( temp1.cross( temp2 ).length() == 0)
             return;
 
-        const Vector3d& f1 = featureVec[ 0 ];
-        const Vector3d& f2 = featureVec[ 1 ];
-        const Vector3d& f3 = featureVec[ 2 ];
+        // Extraction of feature vectors
+        f1 = featureVectors[ 0 ];
+        f2 = featureVectors[ 1 ];
+        f3 = featureVectors[ 2 ];
 
-        // intermediate camera frame
+        // Creation of intermediate camera frame
         Vector3d e1 = f1;
-        e1.normalize();
-        Vector3d e3 = e1.cross( f2 );
+        Vector3d e3 = f1.cross( f2 );
         e3.normalize();
         Vector3d e2 = e3.cross( e1 );
 
-        Matrix3d T( e1, e2, e3 );
+        Matrix3d T;
+        T[ 0 ] = e1;
+        T[ 1 ] = e2;
+        T[ 2 ] = e3;
 
-        Vector3d f3v = T * f3;
-        Vector3d f1v, f2v;
+        f3 = T * f3;
 
-        // Reinforce that f3[ 2 ] > 0 for having theta in [0;pi]
-        if( f3v[ 2 ] > 0 ) {
-            f1v = featureVec[ 1 ];
-            f2v = featureVec[ 0 ];
-            f3v = featureVec[ 2 ];
+        // Reinforce that f3[2] > 0 for having theta in [0;pi]
+        if( f3[ 2 ] > 0 ){
+            f1 = featureVectors[ 1 ];
+            f2 = featureVectors[ 0 ];
+            f3 = featureVectors[ 2 ];
 
-            e1 = f1v;
-            e1.normalize();
-            e3 = e1.cross( f2v );
+            e1 = f1;
+            e3 = f1.cross( f2 );
             e3.normalize();
             e2 = e3.cross( e1 );
 
             T[ 0 ] = e1;
             T[ 1 ] = e2;
             T[ 2 ] = e3;
-            f3v = T * f3v;
 
-            P1 = pw[ 1 ];
-            P2 = pw[ 0 ];
-            P3 = pw[ 2 ];
+            f3 = T * f3;
+
+            Vector3d tvec;
+            tvec = P1;
+            P1 = P2;
+            P2 = tvec;
         }
 
-        //intermediate world frame
-        Vector3d p_21 = P2 - P1;
-        Vector3d p_31 = P3 - P1;
-        Vector3d n1 = p_21;
+
+        // Creation of intermediate world frame
+        Vector3d n1 = P2-P1;
         n1.normalize();
-        double d_12 = p_21.length();
 
-
-        Vector3d n3 = n1.cross( p_31 );
+        Vector3d n3 = n1.cross( P3-P1 );
         n3.normalize();
+
         Vector3d n2 = n3.cross( n1 );
 
-        Matrix3d N( n1, n2, n3 );
+        Matrix3d N;
+        N[ 0 ] = n1;
+        N[ 1 ] = n2;
+        N[ 2 ] = n3;
 
         // Extraction of known parameters
-        Vector3d P3n = N * p_31;
+        P3 = N * ( P3 - P1 );
+        double d_12 = ( P2 - P1 ).length();
+        double f_1 = f3[0]/f3[2];
+        double f_2 = f3[1]/f3[2];
+        double p_1 = P3[0];
+        double p_2 = P3[1];
 
-        double f_1 = f3v[ 0 ] / f3v[ 2 ];
-        double f_2 = f3v[ 1 ] / f3v[ 2 ];
-        double p_1 = P3n[ 0 ];
-        double p_2 = P3n[ 1 ];
+        double cos_beta = f1 * f2;
+        double b = 1 / (1-pow(cos_beta,2)) - 1;
 
-        double cos_beta = f1v * f2v;
-        double b = 1.0 / ( 1.0 - Math::pow( cos_beta, 2.0 ) ) - 1.0;
-
-        if( cos_beta < 0.0 ){
-            b = -Math::sqrt( b );
-        } else {
-            b = Math::sqrt( b );
-        }
+        if (cos_beta < 0)
+            b = -sqrt(b);
+        else
+            b = sqrt(b);
 
         // Definition of temporary variables for avoiding multiple computation
-        double f_1_2  = Math::sqr( f_1 );
-        double f_2_2  = Math::sqr( f_2 );
-        double p_1_2  = Math::sqr( p_1);
-        double p_1_3  = p_1_2 * p_1;
-        double p_1_4  = p_1_3 * p_1;
-        double p_2_2  = Math::sqr( p_2 );
-        double p_2_3  = p_2_2 * p_2;
-        double p_2_4  = p_2_3 * p_2;
-        double d_12_2 = Math::sqr( d_12 );
-        double b_2    = Math::sqr( b );
+        double f_1_pw2 = pow(f_1,2);
+        double f_2_pw2 = pow(f_2,2);
+        double p_1_pw2 = pow(p_1,2);
+        double p_1_pw3 = p_1_pw2 * p_1;
+        double p_1_pw4 = p_1_pw3 * p_1;
+        double p_2_pw2 = pow(p_2,2);
+        double p_2_pw3 = p_2_pw2 * p_2;
+        double p_2_pw4 = p_2_pw3 * p_2;
+        double d_12_pw2 = pow(d_12,2);
+        double b_pw2 = pow(b,2);
 
         // Computation of factors of 4th degree polynomial
         double factors[ 5 ];
 
-        factors[ 0 ] = -f_2_2 * p_2_4 - p_2_4 * f_1_2 - p_2_4;
-        factors[ 1 ] =  2.0 * p_2_3 * d_12 * b + 2.0 * f_2_2 * p_2_3 * d_12 * b - 2.0 * f_2 * p_2_3 * f_1 * d_12;
-        factors[ 2 ] =  -f_2_2 * p_2_2 * p_1_2
-                        - f_2_2 * p_2_2 * d_12_2 * b_2
-                        - f_2_2 * p_2_2 * d_12_2
-                        + f_2_2 * p_2_4
-                        + p_2_4 * f_1_2
-                        + 2.0 * p_1 * p_2_2 * d_12
-                        + 2.0 * f_1 * f_2 * p_1 * p_2_2 * d_12 * b
-                        - p_2_2 * p_1_2 * f_1_2
-                        + 2.0 * p_1 * p_2_2 * f_2_2 * d_12
-                        - p_2_2 * d_12_2 * b_2
-                        - 2.0 * p_1_2 * p_2_2;
+        factors[0] = -f_2_pw2*p_2_pw4
+                     -p_2_pw4*f_1_pw2
+                     -p_2_pw4;
 
-        factors[ 3 ] =   2.0 * p_1_2 * p_2 * d_12 * b
-                        +2.0 * f_2 * p_2_3 * f_1 * d_12
-                        -2.0 * f_2_2 * p_2_3 * d_12 * b
-                        -2.0 * p_1 * p_2 * d_12_2 * b;
+        factors[1] = 2*p_2_pw3*d_12*b
+                     +2*f_2_pw2*p_2_pw3*d_12*b
+                     -2*f_2*p_2_pw3*f_1*d_12;
 
-        factors[ 4 ] =  -2.0 * f_2 * p_2_2 * f_1 * p_1 * d_12 * b
-                        +f_2_2 * p_2_2 * d_12_2
-                        +2.0 * p_1_3 * d_12
-                        - p_1_2 * d_12_2
-                        + f_2_2 * p_2_2 * p_1_2
-                        - p_1_4
-                        - 2.0 * f_2_2 * p_2_2 * p_1 * d_12
-                        + p_2_2 * f_1_2 * p_1_2
-                        + f_2_2 * p_2_2 * d_12_2 * b_2;
+        factors[2] = -f_2_pw2*p_2_pw2*p_1_pw2
+                     -f_2_pw2*p_2_pw2*d_12_pw2*b_pw2
+                     -f_2_pw2*p_2_pw2*d_12_pw2
+                     +f_2_pw2*p_2_pw4
+                     +p_2_pw4*f_1_pw2
+                     +2*p_1*p_2_pw2*d_12
+                     +2*f_1*f_2*p_1*p_2_pw2*d_12*b
+                     -p_2_pw2*p_1_pw2*f_1_pw2
+                     +2*p_1*p_2_pw2*f_2_pw2*d_12
+                     -p_2_pw2*d_12_pw2*b_pw2
+                     -2*p_1_pw2*p_2_pw2;
 
-        // Computation of quartic solutions
+        factors[3] = 2*p_1_pw2*p_2*d_12*b
+                     +2*f_2*p_2_pw3*f_1*d_12
+                     -2*f_2_pw2*p_2_pw3*d_12*b
+                     -2*p_1*p_2*d_12_pw2*b;
+
+        factors[4] = -2*f_2*p_2_pw2*f_1*p_1*d_12*b
+                     +f_2_pw2*p_2_pw2*d_12_pw2
+                     +2*p_1_pw3*d_12
+                     -p_1_pw2*d_12_pw2
+                     +f_2_pw2*p_2_pw2*p_1_pw2
+                     -p_1_pw4
+                     -2*f_2_pw2*p_2_pw2*p_1*d_12
+                     +p_2_pw2*f_1_pw2*p_1_pw2
+                     +f_2_pw2*p_2_pw2*d_12_pw2*b_pw2;
+
+        // Computation of roots
         Vector4d realRoots;
         Math::solveQuarticReal( realRoots,
                                 factors[ 0 ],
@@ -279,49 +291,47 @@ namespace cvt
                                 factors[ 2 ],
                                 factors[ 3 ],
                                 factors[ 4 ] );
-        std::cout << "Factors: " << factors[ 0 ] << " "
-                                 << factors[ 1 ] << " "
-                                 << factors[ 2 ] << " "
-                                 << factors[ 3 ] << " "
-                                 << factors[ 4 ] << std::endl;
 
         // Backsubstitution of each solution
-        for(int i=0; i<4; i++) {
-            double cot_alpha = ( -f_1 * p_1 / f_2 - realRoots[ i ] * p_2 + d_12 *b ) / ( -f_1 * realRoots[ i ] * p_2 / f_2 + p_1 - d_12 );
+        solutions.resize( 4 );
+        for( int i = 0; i< 4; i++ )
+        {
+            double cot_alpha = (-f_1*p_1/f_2-realRoots[i]*p_2+d_12*b)/(-f_1*realRoots[i]*p_2/f_2+p_1-d_12);
 
-            double cos_theta = realRoots[ i ];
-            double sin_theta = Math::sqrt( 1.0 - Math::sqr( realRoots[ i ] ) );
-            double sin_alpha = Math::sqrt( 1.0 / ( Math::sqr( cot_alpha ) + 1.0 ) );
-            double cos_alpha = Math::sqrt( 1.0 - Math::sqr( sin_alpha ) );
+            double cos_theta = realRoots[i];
+            double sin_theta = sqrt(1-pow(realRoots[i],2));
+            double sin_alpha = sqrt(1/(pow(cot_alpha,2)+1));
+            double cos_alpha = sqrt(1-pow(sin_alpha,2));
 
-            if( cot_alpha < 0.0 )
+            if (cot_alpha < 0)
                 cos_alpha = -cos_alpha;
 
-            Vector3d C( d_12 * cos_alpha * ( sin_alpha * b + cos_alpha ),
-                        cos_theta * d_12 * sin_alpha * ( sin_alpha * b + cos_alpha ),
-                        sin_theta * d_12 * sin_alpha * ( sin_alpha * b + cos_alpha ) );
+            Vector3d C;
+            C.x = d_12*cos_alpha*(sin_alpha*b+cos_alpha);
+            C.y = cos_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
+            C.z = sin_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
 
-            C = P1 + N.transpose() * C;
+            Matrix3d NT = N.transpose();
+            C = P1 + NT * C;
 
-            Matrix3d R;
-            R[ 0 ][ 0 ] = -cos_alpha;
-            R[ 0 ][ 1 ] = -sin_alpha*cos_theta;
-            R[ 0 ][ 2 ] = -sin_alpha*sin_theta;
+            Matrix3d R(    -cos_alpha,		-sin_alpha*cos_theta,	-sin_alpha*sin_theta,
+                            sin_alpha,		-cos_alpha*cos_theta,	-cos_alpha*sin_theta,
+                                    0,                -sin_theta,              cos_theta );
 
-            R[ 1 ][ 0 ] =  sin_alpha;
-            R[ 1 ][ 1 ] = -cos_alpha * cos_theta;
-            R[ 1 ][ 2 ] = -cos_alpha * sin_theta;
+            R = NT * R.transpose() * T;
+            R.transposeSelf();
+            C = -R*C;
 
-            R[ 2 ][ 0 ] = 0;
-            R[ 2 ][ 1 ] = -sin_theta;
-            R[ 2 ][ 2 ] = cos_theta;
+            Matrix4d & res = solutions[ i ];
 
-            R = N.transpose() * R.transpose() * T;
-
-            transforms.push_back( Matrix4d( R[ 0 ][ 0 ], R[ 0 ][ 1 ], R[ 0 ][ 2 ], C[ 0 ],
-                                            R[ 1 ][ 0 ], R[ 1 ][ 1 ], R[ 1 ][ 2 ], C[ 1 ],
-                                            R[ 2 ][ 0 ], R[ 2 ][ 1 ], R[ 2 ][ 2 ], C[ 2 ],
-                                                    0.0,         0.0,         0.0,  1.0 ) );
+            for( size_t r = 0; r < 3; r++ ){
+                for( size_t c = 0; c < 3; c++ ){
+                    res[ r ][ c ] = R[ r ][ c ];
+                }
+                res[ r ][ 3 ] = C[ r ];
+            }
+            res[ 3 ][ 0 ] = res[ 3 ][ 1 ] = res[ 3 ][ 2 ] = 0.0;
+            res[ 3 ][ 3 ] = 1;
 
         }
     }
