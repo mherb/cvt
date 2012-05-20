@@ -16,6 +16,8 @@
 #include <cvt/util/String.h>
 #include <cvt/util/Exception.h>
 
+#define DEBUG_PRINT( VAR ) std::cout << #VAR << " = " << VAR << std::endl;
+
 namespace cvt {
 
 	class Util {
