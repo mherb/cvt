@@ -5,6 +5,7 @@
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/FeatureFilter.h>
 #include <cvt/vision/KLTTracker.h>
+#include <cvt/util/Util.h>
 #include <cvt/math/GA2.h>
 
 #include <vector>
@@ -35,14 +36,14 @@ namespace cvt
 			void setNumOctaves( size_t v )		  { _pyramid.setNumOctaves( v ); }
 			void setScaleFactor( float v )		  { _pyramid.setScaleFactor( v ); }
 			void setFASTThreshold( uint8_t v )    { _detector.setThreshold( v ); }
-			void setFASTSADThreshold( float v )   { _fastMinMatchingThreshold = v; }
-			void setKLTSSDThreshold( float v )	  { _kltSSDThreshold = Math::sqr( v ); } 
+            void setFASTSADThreshold( float v )   { _fastMaxSADThreshold = v * 255; }
+            void setKLTSSDThreshold( float v )	  { _kltSSDThreshold = Math::sqr( v ); }
 			void setNonMaxSuppression( bool v )	  { _detector.setNonMaxSuppress( v ); }
-			void setMaxMatchingRadius( size_t r ) { _fastMatchingWindowSqr = Math::sqr( r ); }
+            void setMaxMatchingRadius( size_t r ) { _fastMatchingWindowSqr = Math::sqr( r ); DEBUG_PRINT(r)}
 
-			const std::vector<Feature2Df>& lastDetectedFeatures() const { return _currentFeatures; }
-			const std::set<size_t>& associatedFeatures() const { return _associatedIndexes; }
-			const ImagePyramid& pyramid() const { return _pyramid; }
+            const std::vector<Feature2Df>&  lastDetectedFeatures()  const { return _currentFeatures; }
+            const std::set<size_t>&         associatedFeatures()    const { return _associatedIndexes; }
+            const ImagePyramid&             pyramid()               const { return _pyramid; }
 
 		private:
 			FAST					_detector;
@@ -51,7 +52,7 @@ namespace cvt
 			KLTType					_klt;
 
 			size_t					_fastMatchingWindowSqr;
-			float					_fastMinMatchingThreshold;
+            float					_fastMaxSADThreshold;
 			float					_kltSSDThreshold;
 
 			std::vector<Feature2Df>	_currentFeatures;

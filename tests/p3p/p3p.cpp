@@ -39,9 +39,9 @@ void genPoints( PointSet<3, T> & ptset, size_t n )
     srandom( time( NULL ) );
     Vector3<T> p;
     while( n-- ){
-        p.x = Math::rand( (T)-1000, (T)1000 );
-        p.y = Math::rand( (T)-1000, (T)1000 );
-        p.z = Math::rand( (T)10, (T)1000 );
+        p.x = Math::rand( (T)-100, (T)100 );
+        p.y = Math::rand( (T)-100, (T)100 );
+        p.z = Math::rand( (T)10, (T)100 );
 
         ptset.add( p );
     }
@@ -65,8 +65,15 @@ void standardTest()
     Matrix3d R; Vector3d t;
     Matrix3<double> K;
 
-    R.setRotationXYZ( 0.1, 0.0, 0.0 );
-    t.set( 0, 0, 10 );
+    srand( time( NULL ) );
+    Vector3d rnd;
+    for( size_t i = 0; i < 3; i++ )
+        rnd[ i ] = Math::rand( -Math::PI / 2.0, Math::PI / 2.0 );
+    R.setRotationXYZ( rnd.x, rnd.y, rnd.z );
+
+    for( size_t i = 0; i < 3; i++ )
+        rnd[ i ] = Math::rand( -5.0, 5.0 );
+    t.set( rnd.x, rnd.y, rnd.z );
 
     K.setZero();
     K[ 0 ][ 0 ] = 650.0; K[ 0 ][ 2 ] = 320.0;
@@ -74,7 +81,7 @@ void standardTest()
     K[ 2 ][ 2 ] = 1;
 
     genPoints( ptset, 4 );
-    transformPoints( ptset2d, K, R, t, ptset, 0.0 );
+    transformPoints( ptset2d, K, R, t, ptset, 4.0 );
 
     std::vector<Vector3d> featureVecs;
     Matrix3d kinv = K.inverse();
@@ -126,8 +133,15 @@ void ransacTest()
     Matrix3d R; Vector3d t;
     Matrix3<double> K;
 
-    R.setRotationXYZ( 0.1, 0.0, 0.0 );
-    t.set( 0, 0, 10 );
+    srand( time( NULL ) );
+    Vector3d rnd;
+    for( size_t i = 0; i < 3; i++ )
+        rnd[ i ] = Math::rand( -Math::PI / 2.0, Math::PI / 2.0 );
+    R.setRotationXYZ( rnd.x, rnd.y, rnd.z );
+
+    for( size_t i = 0; i < 3; i++ )
+        rnd[ i ] = Math::rand( -10.0, 10.0 );
+    t.set( rnd.x, rnd.y, rnd.z );
 
     K.setZero();
     K[ 0 ][ 0 ] = 650.0; K[ 0 ][ 2 ] = 320.0;
@@ -135,19 +149,19 @@ void ransacTest()
     K[ 2 ][ 2 ] = 1;
 
     genPoints( ptset, 80 );
-    transformPoints( ptset2d, K, R, t, ptset, 0.0 );
+    transformPoints( ptset2d, K, R, t, ptset, 1.0 );
 
     // add outliers:
-    genPoints( ptset, 10 );
-    addOutlier( ptset2d, 10 );
+    genPoints( ptset, 50 );
+    addOutlier( ptset2d, 50 );
 
     Matrix3d kinv = K.inverse();
 
     Matrix4d estimated;
     Time time;
     P3PSac model( ptset, ptset2d, K, kinv );
-    RANSAC<P3PSac> ransac( model, 1.0, 0.1 );
-    estimated = ransac.estimate( 1000 );
+    RANSAC<P3PSac> ransac( model, 2.0, 0.2 );
+    estimated = ransac.estimate( 10000 );
 
     std::cout << "speed: " << time.elapsedMilliSeconds() << "ms" << std::endl;
 

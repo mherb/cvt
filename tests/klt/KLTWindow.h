@@ -33,9 +33,9 @@ namespace cvt {
 	class KLTWindow : public TimeoutHandler
 	{
 		public:
-			//typedef GA2<float>			  PoseType;
+            typedef GA2<float>			  PoseType;
 			//typedef Sim2<float>			  PoseType;
-			typedef Translation2D<float>	  PoseType;
+            //typedef Translation2D<float>	  PoseType;
 			typedef KLTTracker<PoseType, PATCH_SIZE>  KLTType;	
 			typedef KLTType::KLTPType		  KLTPType;
 
