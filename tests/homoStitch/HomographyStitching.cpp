@@ -63,8 +63,8 @@ namespace cvt {
 		//FeatureMatcher::matchWithWindow( matches, orb, features0, 150, _maxDescriptorDistance );
 
 		HomographySAC model( matches );
-		RANSAC<HomographySAC> ransac( model, 0.5f /*maxreproj.*/, 0.4f /*outlierprob*/ );
-		Matrix3f homography = ransac.estimate( 10000 );
+        RANSAC<HomographySAC> ransac( model, 1.5f /*maxreproj.*/, 0.2f /*outlierprob*/ );
+        Matrix3f homography = ransac.estimate( 4000 );
 
 		if( !checkHomography( homography ) ){
 			std::cerr << "BAD HOMOGRAPHY, NOT ADDING IMAGE" << std::endl;

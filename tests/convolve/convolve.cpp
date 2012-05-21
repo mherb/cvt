@@ -5,6 +5,7 @@
 #include <cvt/gfx/ifilter/ROFDenoise.h>
 #include <cvt/gfx/Color.h>
 #include <cvt/util/Exception.h>
+#include <cvt/util/SIMD.h>
 
 #include <string>
 
@@ -55,6 +56,10 @@ int main(int argc, char* argv[])
 		out.fill( cvt::Color( 0.0f,0.0f,0.0f,1.0f) );
 		imgf.convolve( out, cvt::IKernel::MEAN_HORIZONTAL_3, cvt::IKernel::MEAN_VERTICAL_3);
 		out.save( "convolveg2-float.png");
+	
+		cvt::Image gy( img.width(), img.height(), cvt::IFormat::GRAY_INT16 );
+		img.convolve( gy, cvt::IKernel::HAAR_VERTICAL_3 );
+		gy.save( "convolve_u8_u16.cvtraw");
 		
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;

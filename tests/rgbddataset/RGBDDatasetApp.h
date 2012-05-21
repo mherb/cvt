@@ -8,66 +8,69 @@
 #include <cvt/gui/Button.h>
 #include <cvt/gui/ImageView.h>
 
-#include "RGBDParser.h"
+#include <cvt/io/RGBDParser.h>
 
 namespace cvt
 {
-	class RGBDDatasetApp : public TimeoutHandler
-	{
-		public:
-			RGBDDatasetApp( const String& datasetFolder ) :
-				_window( "RGBD Dataset" ),
-				_rgbMov( &_rgbView ),
-				_depthMov( &_depthView ),
-				_rgbdset( datasetFolder ),
-				_loadNext( true )
-			{
-				_window.setSize( 800, 600 );
-				_window.setVisible( true );
-				_window.setMinimumSize( 320, 240 );
+    class RGBDDatasetApp : public TimeoutHandler
+    {
+        public:
+            RGBDDatasetApp( const String& datasetFolder ) :
+                _window( "RGBD Dataset" ),
+                _rgbMov( &_rgbView ),
+                _depthMov( &_depthView ),
+                _rgbdset( datasetFolder ),
+                _loadNext( true )
+            {
+                _window.setSize( 800, 600 );
+                _window.setVisible( true );
+                _window.setMinimumSize( 320, 240 );
 
 
-				_rgbMov.setTitle( "RGB" );
-				_depthMov.setTitle( "Depth" );
-				_rgbMov.setSize( 320, 240 );
-				_depthMov.setSize( 320, 240 );
-				_window.addWidget( &_rgbMov );
-				_window.addWidget( &_depthMov );
-				
-				_timerId = Application::registerTimer( 20, this );
-			}
+                _rgbMov.setTitle( "RGB" );
+                _depthMov.setTitle( "Depth" );
+                _rgbMov.setSize( 320, 240 );
+                _depthMov.setSize( 320, 240 );
+                _window.addWidget( &_rgbMov );
+                _window.addWidget( &_depthMov );
 
-			~RGBDDatasetApp()
-			{
-			}
-			
-			void onTimeout()
-			{
-				if( _loadNext ){
-					_rgbdset.loadNext();
-					const RGBDParser::RGBDSample& sample = _rgbdset.data();
+                _timerId = Application::registerTimer( 20, this );
+            }
 
-					_rgbView.setImage( sample.rgb );
-					_depthView.setImage( sample.depth );
+            ~RGBDDatasetApp()
+            {
+            }
 
-					String title;
-					title.sprintf( "RGBD Dataset: %d / %d", _rgbdset.iter(), _rgbdset.size() );
-					_window.setTitle( title );
-				}
-			}
+            void onTimeout()
+            {
+                if( _loadNext ){
+                    _rgbdset.loadNext();
+                    const RGBDParser::RGBDSample& sample = _rgbdset.data();
 
-		private:
-			Window		_window;
-			ImageView	_rgbView;
-			ImageView	_depthView;
-			Moveable	_rgbMov;
-			Moveable	_depthMov;
-			
-			RGBDParser	_rgbdset;
-			uint32_t	_timerId;
-			bool		_loadNext;
+                    _rgbView.setImage( sample.rgb );
 
-	};
+                    Image du8;
+                    sample.depth.convert( du8, IFormat::GRAY_UINT8 );
+                    _depthView.setImage( du8 );
+
+                    String title;
+                    title.sprintf( "RGBD Dataset: %d / %d", _rgbdset.iter(), _rgbdset.size() );
+                    _window.setTitle( title );
+                }
+            }
+
+        private:
+            Window		_window;
+            ImageView	_rgbView;
+            ImageView	_depthView;
+            Moveable	_rgbMov;
+            Moveable	_depthMov;
+
+            RGBDParser	_rgbdset;
+            uint32_t	_timerId;
+            bool		_loadNext;
+
+    };
 }
 
 #endif

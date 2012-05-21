@@ -16,8 +16,7 @@ namespace cvt
    {
       public:
          StereoSLAMApp( const std::vector<VideoInput*> & cams,
-                        const CameraCalibration & c0,
-                        const CameraCalibration & c1 );
+                        const std::vector<CameraCalibration>& calibs );
 
          ~StereoSLAMApp();
 

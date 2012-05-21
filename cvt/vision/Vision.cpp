@@ -51,8 +51,7 @@ namespace cvt {
 			tex++;
 		}
 
-		scenepts.setVertices( &pts[ 0 ], pts.size() );
-		scenepts.setColors( &colors[ 0 ], colors.size() );
+                scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
 		scenepts.transform( calibration.extrinsics() );
 	}
 
@@ -89,9 +88,42 @@ namespace cvt {
 			tex++;
 		}
 
-		scenepts.setVertices( &pts[ 0 ], pts.size() );
-		scenepts.setColors( &colors[ 0 ], colors.size() );
+                scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
 	}
+
+        void Vision::unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale )
+        {
+            IMapScoped<const uint16_t> depthMap( depth );
+            float invFx = 1.0f / K[ 0 ][ 0 ];
+            float invFy = 1.0f / K[ 1 ][ 1 ];
+            float cx    = K[ 0 ][ 2 ];
+            float cy    = K[ 1 ][ 2 ];
+
+            // temp vals
+            std::vector<float> tmpx( depth.width() );
+            std::vector<float> tmpy( depth.height() );
+
+            for( size_t i = 0; i < tmpx.size(); i++ ){
+                tmpx[ i ] = ( i - cx ) * invFx;
+            }
+            for( size_t i = 0; i < tmpy.size(); i++ ){
+                tmpy[ i ] = ( i - cy ) * invFy;
+            }
+
+            Vector3f p3d;
+            for( size_t y = 0; y < depth.height(); y++ ){
+                const uint16_t* dptr = depthMap.ptr();
+                for( size_t x = 0; x < depth.width(); x++ ){
+                    float d = dptr[ x ] * depthScale;
+                    p3d[ 0 ] = tmpx[ x ] * d;
+                    p3d[ 1 ] = tmpy[ y ] * d;
+                    p3d[ 2 ] = d;
+                    pts.add( p3d );                    
+                }
+                // next line in depth image
+                depthMap++;
+            }
+        }
 
     template <typename T>
     static bool _compare( const Matrix3<T> & a, const Matrix3<T> & b, T epsilon )
@@ -200,20 +232,20 @@ namespace cvt {
 
         for( size_t i = 0; i < 100; i++ ){
             Matrix4<T> T1;
-            T1.setRotationXYZ( Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
-                               Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ),
-                               Math::rand( ( T )-Math::PI/6.0, ( T )Math::PI/6.0 ));
-            T1.setTranslation( Math::rand( ( T )-10, ( T )10 ),
-                               Math::rand( ( T )-10, ( T )10 ),
-                               Math::rand( ( T )-10, ( T )10 ) );
+            T1.setRotationXYZ( Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+                               Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+                               Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ));
+            T1.setTranslation( Math::rand( ( T )-0.5, ( T )0.5 ),
+                               Math::rand( ( T )-0.5, ( T )0.5 ),
+                               Math::rand( ( T )-0.5, ( T )0.5 ) );
             T1[ 3 ][ 3 ] = ( T )1;
 
 
 			Vision::composeFundamental( fund, K, T0, K, T1 );
 
-            Vector4<T> truePoint( Math::rand( ( T )-100, ( T )200 ),
-                                  Math::rand( ( T )-100, ( T )200 ),
-                                  Math::rand( ( T )-100, ( T )200 ),
+            Vector4<T> truePoint( Math::rand( ( T )-100, ( T )100 ),
+                                  Math::rand( ( T )-100, ( T )100 ),
+                                  Math::rand( ( T )5, ( T )50 ),
                                   ( T )1 );
 
             Matrix3<T> R = T1.toMatrix3();
@@ -238,10 +270,10 @@ namespace cvt {
             proj1[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
             proj1[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
 
-			proj0[ 0 ] += Math::rand( ( T )-1, ( T )1 );
-			proj0[ 1 ] += Math::rand( ( T )-1, ( T )1 );
-			proj1[ 0 ] += Math::rand( ( T )-1, ( T )1 );
-			proj1[ 1 ] += Math::rand( ( T )-1, ( T )1 );
+			proj0[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+			proj0[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+			proj1[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+			proj1[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
 
 			Vision::correctCorrespondencesSampson( proj0, proj1, fund );
             Vision::triangulate( tmp, P0, P1, proj0, proj1 );
@@ -255,6 +287,7 @@ namespace cvt {
             if( !b ){
                 std::cout << "Ground Truth point:\t\t" << truePoint << std::endl;
                 std::cout << "Estimated \t\t: " << tmp << std::endl;
+                std::cout << "Distance \t\t: " << ( tmp - truePoint ).length()  << std::endl;
             }
         }
 

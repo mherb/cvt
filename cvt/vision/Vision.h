@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 /*
  * File:   Vision.h
@@ -20,6 +20,7 @@
 
 #include <cvt/math/Matrix.h>
 #include <cvt/gfx/Image.h>
+#include <cvt/geom/PointSet.h>
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/geom/scene/ScenePoints.h>
 
@@ -31,6 +32,13 @@ namespace cvt
     class Vision
     {
       public:
+
+        /**
+         * \brief   Perspective-from-3-Points solution as in Kneip 2011 (ethz)
+         * \return  vector of possible solutions
+         *
+         */
+        static inline void p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints );
 
         /**
          * @brief Decomposition of Essential Matrix into R and t
@@ -57,84 +65,276 @@ namespace cvt
                                  const Vector2<T>& p0,
                                  const Vector2<T>& p1 );
 
-		/**
-		 *	@brief	Construct fundamental matrix (cam 0 to cam1) out of calibration data
-		 *	@param	f	output fundamental matrix
-		 *	@param	K0	intrinsics of camera 0
-		 *	@param	T0	extrinsics of camera 0 (cam2World)
-		 *	@param	K1	intrinsics of camera 1
-		 *	@param	T1	extrinsics of camera 1 (cam2World)
-		 */
-		template<typename T>
-		static void composeFundamental( Matrix3<T>& f, 
-									    const Matrix3<T>& K0, 
-										const Matrix4<T>& T0,
-										const Matrix3<T>& K1, 
-										const Matrix4<T>& T1 );
+        /**
+         *	@brief	Construct fundamental matrix (cam 0 to cam1) out of calibration data
+         *	@param	f	output fundamental matrix
+         *	@param	K0	intrinsics of camera 0
+         *	@param	T0	extrinsics of camera 0 (cam2World)
+         *	@param	K1	intrinsics of camera 1
+         *	@param	T1	extrinsics of camera 1 (cam2World)
+         */
+        template<typename T>
+        static void composeFundamental( Matrix3<T>& f,
+                                        const Matrix3<T>& K0,
+                                        const Matrix4<T>& T0,
+                                        const Matrix3<T>& K1,
+                                        const Matrix4<T>& T1 );
 
-		/**
-		  @brief Extract the epipoles of a fundamental matrix
-		  @param e0 epipole such that e0 * F^T = 0;
-		  @param e1 epipole such that F * e1 = 0;
-		  @param f  fundamental matrix
-		*/
-		template<typename T>
-		static void epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f );
+        /**
+          @brief Extract the epipoles of a fundamental matrix
+          @param e0 epipole such that e0 * F^T = 0;
+          @param e1 epipole such that F * e1 = 0;
+          @param f  fundamental matrix
+        */
+        template<typename T>
+        static void epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f );
 
-		/*
-		  @brief  A. Fusiello, E. Trucco, and A. Verri. A compact algorithm for rectification of stereo pairs. Machine Vision and Applications, 12(1):16-22, 2000.
-		*/
-		template<typename T>
-		static void stereoRectification( Matrix3<T>& K0new,
-										 Matrix4<T>& T0new,
-										 Matrix3<T>& K1new,
-										 Matrix4<T>& T1new,
-										 Matrix3<T>& Timage0,
-										 Matrix3<T>& Timage1,
-										 const Matrix3<T>& K0,
-										 const Matrix4<T>& T0,
-										 const Matrix3<T>& K1,
-										 const Matrix4<T>& T1 );
-		/**
-		 *	@brief	correct point correspondences according to fundamental constraint
-		 *			using first order Sampson Approximation
-		 *	@param p0			Point correspondence 0
-		 *	@param p1			Point correspondence 1
-		 *	@param fundamental	Fundamental Matrix: p1'Fp0 = 0
-		 */
-		template<typename T>
-		static void correctCorrespondencesSampson( Vector2<T>& p0, 
-												   Vector2<T>& p1,
-												   const Matrix3<T>& fundamental );
+        /*
+          @brief  A. Fusiello, E. Trucco, and A. Verri. A compact algorithm for rectification of stereo pairs. Machine Vision and Applications, 12(1):16-22, 2000.
+        */
+        template<typename T>
+        static void stereoRectification( Matrix3<T>& K0new,
+                                         Matrix4<T>& T0new,
+                                         Matrix3<T>& K1new,
+                                         Matrix4<T>& T1new,
+                                         Matrix3<T>& Timage0,
+                                         Matrix3<T>& Timage1,
+                                         const Matrix3<T>& K0,
+                                         const Matrix4<T>& T0,
+                                         const Matrix3<T>& K1,
+                                         const Matrix4<T>& T1 );
+        /**
+         *	@brief	correct point correspondences according to fundamental constraint
+         *			using first order Sampson Approximation
+         *	@param p0			Point correspondence 0
+         *	@param p1			Point correspondence 1
+         *	@param fundamental	Fundamental Matrix: p1'Fp0 = 0
+         */
+        template<typename T>
+        static void correctCorrespondencesSampson( Vector2<T>& p0,
+                                                   Vector2<T>& p1,
+                                                   const Matrix3<T>& fundamental );
 
-	/*	template<typename T>
-		static void correctCorrespondences( Vector3<T>& p0,
-										    Vector3<T>& p1,
-										    const Matrix3<T>& essential );*/
+    /*	template<typename T>
+        static void correctCorrespondences( Vector3<T>& p0,
+                                            Vector3<T>& p1,
+                                            const Matrix3<T>& essential );*/
 
-		/**
-		 *	@brief	project 3d point to a screen point with intrinsic matrix
-		 *	@param	p2	resulting screenpoint
-		 *	@param	K	intrinsic matrix
-		 *	@param	p3	3d point given in camera coordinates
-		 */
-		template <class Mat3, class Vec3, class Vec2>
-		static void project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 );
-		
-		template <class Mat3, class Vec3, class Vec2>
-		static void project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 );
-		
-		template <class T>
-		static void project( Eigen::Matrix<T, 2, 1> & p2, 
-						     const Eigen::Matrix<T, 3, 3>& K, 
-							 const Eigen::Matrix<T, 4, 4>& trans, 
-							 const Eigen::Matrix<T, 4, 1>& p );
+        /**
+         *	@brief	project 3d point to a screen point with intrinsic matrix
+         *	@param	p2	resulting screenpoint
+         *	@param	K	intrinsic matrix
+         *	@param	p3	3d point given in camera coordinates
+         */
+        template <class Mat3, class Vec3, class Vec2>
+        static void project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 );
 
-		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale = 1.0f );
+        template <class Mat3, class Vec3, class Vec2>
+        static void project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 );
 
-		static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, float dscale = 1.0f );
+        template <class T>
+        static void project( Eigen::Matrix<T, 2, 1> & p2,
+                             const Eigen::Matrix<T, 3, 3>& K,
+                             const Eigen::Matrix<T, 4, 4>& trans,
+                             const Eigen::Matrix<T, 4, 1>& p );
+
+        static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale = 1.0f );
+
+        static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, float dscale = 1.0f );
+
+        static void unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale );
     };
 
+    inline void Vision::p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints )
+    {
+        // Extraction of world points
+        Vector3d P1, P2, P3, f1, f2, f3;
+
+        P1 = worldPoints[ 0 ];
+        P2 = worldPoints[ 1 ];
+        P3 = worldPoints[ 2 ];
+
+        // Verification that world points are not colinear
+        Vector3d temp1 = P2 - P1;
+        Vector3d temp2 = P3 - P1;
+
+        if( temp1.cross( temp2 ).length() == 0)
+            return;
+
+        // Extraction of feature vectors
+        f1 = featureVectors[ 0 ];
+        f2 = featureVectors[ 1 ];
+        f3 = featureVectors[ 2 ];
+
+        // Creation of intermediate camera frame
+        Vector3d e1 = f1;
+        Vector3d e3 = f1.cross( f2 );
+        e3.normalize();
+        Vector3d e2 = e3.cross( e1 );
+
+        Matrix3d T;
+        T[ 0 ] = e1;
+        T[ 1 ] = e2;
+        T[ 2 ] = e3;
+
+        f3 = T * f3;
+
+        // Reinforce that f3[2] > 0 for having theta in [0;pi]
+        if( f3[ 2 ] > 0 ){
+            f1 = featureVectors[ 1 ];
+            f2 = featureVectors[ 0 ];
+            f3 = featureVectors[ 2 ];
+
+            e1 = f1;
+            e3 = f1.cross( f2 );
+            e3.normalize();
+            e2 = e3.cross( e1 );
+
+            T[ 0 ] = e1;
+            T[ 1 ] = e2;
+            T[ 2 ] = e3;
+
+            f3 = T * f3;
+
+            Vector3d tvec;
+            tvec = P1;
+            P1 = P2;
+            P2 = tvec;
+        }
+
+
+        // Creation of intermediate world frame
+        Vector3d n1 = P2-P1;
+        n1.normalize();
+
+        Vector3d n3 = n1.cross( P3-P1 );
+        n3.normalize();
+
+        Vector3d n2 = n3.cross( n1 );
+
+        Matrix3d N;
+        N[ 0 ] = n1;
+        N[ 1 ] = n2;
+        N[ 2 ] = n3;
+
+        // Extraction of known parameters
+        P3 = N * ( P3 - P1 );
+        double d_12 = ( P2 - P1 ).length();
+        double f_1 = f3[0]/f3[2];
+        double f_2 = f3[1]/f3[2];
+        double p_1 = P3[0];
+        double p_2 = P3[1];
+
+        double cos_beta = f1 * f2;
+        double b = 1 / (1-pow(cos_beta,2)) - 1;
+
+        if (cos_beta < 0)
+            b = -sqrt(b);
+        else
+            b = sqrt(b);
+
+        // Definition of temporary variables for avoiding multiple computation
+        double f_1_pw2 = pow(f_1,2);
+        double f_2_pw2 = pow(f_2,2);
+        double p_1_pw2 = pow(p_1,2);
+        double p_1_pw3 = p_1_pw2 * p_1;
+        double p_1_pw4 = p_1_pw3 * p_1;
+        double p_2_pw2 = pow(p_2,2);
+        double p_2_pw3 = p_2_pw2 * p_2;
+        double p_2_pw4 = p_2_pw3 * p_2;
+        double d_12_pw2 = pow(d_12,2);
+        double b_pw2 = pow(b,2);
+
+        // Computation of factors of 4th degree polynomial
+        double factors[ 5 ];
+
+        factors[0] = -f_2_pw2*p_2_pw4
+                     -p_2_pw4*f_1_pw2
+                     -p_2_pw4;
+
+        factors[1] = 2*p_2_pw3*d_12*b
+                     +2*f_2_pw2*p_2_pw3*d_12*b
+                     -2*f_2*p_2_pw3*f_1*d_12;
+
+        factors[2] = -f_2_pw2*p_2_pw2*p_1_pw2
+                     -f_2_pw2*p_2_pw2*d_12_pw2*b_pw2
+                     -f_2_pw2*p_2_pw2*d_12_pw2
+                     +f_2_pw2*p_2_pw4
+                     +p_2_pw4*f_1_pw2
+                     +2*p_1*p_2_pw2*d_12
+                     +2*f_1*f_2*p_1*p_2_pw2*d_12*b
+                     -p_2_pw2*p_1_pw2*f_1_pw2
+                     +2*p_1*p_2_pw2*f_2_pw2*d_12
+                     -p_2_pw2*d_12_pw2*b_pw2
+                     -2*p_1_pw2*p_2_pw2;
+
+        factors[3] = 2*p_1_pw2*p_2*d_12*b
+                     +2*f_2*p_2_pw3*f_1*d_12
+                     -2*f_2_pw2*p_2_pw3*d_12*b
+                     -2*p_1*p_2*d_12_pw2*b;
+
+        factors[4] = -2*f_2*p_2_pw2*f_1*p_1*d_12*b
+                     +f_2_pw2*p_2_pw2*d_12_pw2
+                     +2*p_1_pw3*d_12
+                     -p_1_pw2*d_12_pw2
+                     +f_2_pw2*p_2_pw2*p_1_pw2
+                     -p_1_pw4
+                     -2*f_2_pw2*p_2_pw2*p_1*d_12
+                     +p_2_pw2*f_1_pw2*p_1_pw2
+                     +f_2_pw2*p_2_pw2*d_12_pw2*b_pw2;
+
+        // Computation of roots
+        Vector4d realRoots;
+        Math::solveQuarticReal( realRoots,
+                                factors[ 0 ],
+                                factors[ 1 ],
+                                factors[ 2 ],
+                                factors[ 3 ],
+                                factors[ 4 ] );
+
+        // Backsubstitution of each solution
+        solutions.resize( 4 );
+        for( int i = 0; i< 4; i++ )
+        {
+            double cot_alpha = (-f_1*p_1/f_2-realRoots[i]*p_2+d_12*b)/(-f_1*realRoots[i]*p_2/f_2+p_1-d_12);
+
+            double cos_theta = realRoots[i];
+            double sin_theta = sqrt(1-pow(realRoots[i],2));
+            double sin_alpha = sqrt(1/(pow(cot_alpha,2)+1));
+            double cos_alpha = sqrt(1-pow(sin_alpha,2));
+
+            if (cot_alpha < 0)
+                cos_alpha = -cos_alpha;
+
+            Vector3d C;
+            C.x = d_12*cos_alpha*(sin_alpha*b+cos_alpha);
+            C.y = cos_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
+            C.z = sin_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
+
+            Matrix3d NT = N.transpose();
+            C = P1 + NT * C;
+
+            Matrix3d R(    -cos_alpha,		-sin_alpha*cos_theta,	-sin_alpha*sin_theta,
+                            sin_alpha,		-cos_alpha*cos_theta,	-cos_alpha*sin_theta,
+                                    0,                -sin_theta,              cos_theta );
+
+            R = NT * R.transpose() * T;
+            R.transposeSelf();
+            C = -R*C;
+
+            Matrix4d & res = solutions[ i ];
+
+            for( size_t r = 0; r < 3; r++ ){
+                for( size_t c = 0; c < 3; c++ ){
+                    res[ r ][ c ] = R[ r ][ c ];
+                }
+                res[ r ][ 3 ] = C[ r ];
+            }
+            res[ 3 ][ 0 ] = res[ 3 ][ 1 ] = res[ 3 ][ 2 ] = 0.0;
+            res[ 3 ][ 3 ] = 1;
+
+        }
+    }
 
     template<typename T>
     inline void Vision::decomposeEssential( Matrix3<T> & R0,
@@ -225,185 +425,185 @@ namespace cvt
         point3d[ 3 ] = v[ 3 ];
     }
 
-	template<typename T>
-	inline void Vision::correctCorrespondencesSampson( Vector2<T>& p0, 
-													   Vector2<T>& p1,
-													   const Matrix3<T>& fundamental )
-	{
-		Vector3<T> x0, x1;
-		x0.x = p0.x;
-		x0.y = p0.y;
-		x0.z = 1;
-		x1.x = p1.x;
-		x1.y = p1.y;
-		x1.z = 1;
-		
-		Vector3<T> Fx0 = fundamental * x0; 
-		Vector3<T> FTx1 = fundamental.transpose() * x1;
+    template<typename T>
+    inline void Vision::correctCorrespondencesSampson( Vector2<T>& p0,
+                                                       Vector2<T>& p1,
+                                                       const Matrix3<T>& fundamental )
+    {
+        Vector3<T> x0, x1;
+        x0.x = p0.x;
+        x0.y = p0.y;
+        x0.z = 1;
+        x1.x = p1.x;
+        x1.y = p1.y;
+        x1.z = 1;
 
-		T factor = x1*Fx0 / 
-				   ( Math::sqr( Fx0[ 0 ] ) + 
-					 Math::sqr( Fx0[ 1 ] ) + 
-					 Math::sqr( FTx1[ 0 ] ) + 
-					 Math::sqr( FTx1[ 1 ] ) );
-		p0[ 0 ] -= factor * FTx1[ 0 ];
-		p0[ 1 ] -= factor * FTx1[ 1 ];
-		p1[ 0 ] -= factor * Fx0[ 0 ];
-		p1[ 1 ] -= factor * Fx0[ 1 ];
-	}
+        Vector3<T> Fx0 = fundamental * x0;
+        Vector3<T> FTx1 = fundamental.transpose() * x1;
+
+        T factor = x1*Fx0 /
+                   ( Math::sqr( Fx0[ 0 ] ) +
+                     Math::sqr( Fx0[ 1 ] ) +
+                     Math::sqr( FTx1[ 0 ] ) +
+                     Math::sqr( FTx1[ 1 ] ) );
+        p0[ 0 ] -= factor * FTx1[ 0 ];
+        p0[ 1 ] -= factor * FTx1[ 1 ];
+        p1[ 0 ] -= factor * Fx0[ 0 ];
+        p1[ 1 ] -= factor * Fx0[ 1 ];
+    }
 
 #if 0
-	template<typename T>
-	inline void Vision::correctCorrespondences( Vector3<T>& p0,
-										        Vector3<T>& p1,
-												const Matrix3<T>& essential )
-	{
-		Matrix3<T> T0, T1, R0, R1;
-		Matrix3<T> E;
-		Matrix3<T> U, D, V;
-		Vector3<T> e0, e1;
+    template<typename T>
+    inline void Vision::correctCorrespondences( Vector3<T>& p0,
+                                                Vector3<T>& p1,
+                                                const Matrix3<T>& essential )
+    {
+        Matrix3<T> T0, T1, R0, R1;
+        Matrix3<T> E;
+        Matrix3<T> U, D, V;
+        Vector3<T> e0, e1;
 
-		T0.setIdentity()
-		T0[ 0 ][ 2 ] = p0.x;
-		T0[ 1 ][ 2 ] = p0.y;
-		T1.setIdentity();
-		T1[ 0 ][ 2 ] = p1.x;
-		T1[ 1 ][ 2 ] = p1.y;
+        T0.setIdentity()
+        T0[ 0 ][ 2 ] = p0.x;
+        T0[ 1 ][ 2 ] = p0.y;
+        T1.setIdentity();
+        T1[ 0 ][ 2 ] = p1.x;
+        T1[ 1 ][ 2 ] = p1.y;
 
-		E = T1.transpose() * essential * T0;
+        E = T1.transpose() * essential * T0;
 
-		E.svd( U, D, V );
+        E.svd( U, D, V );
 
-		e0.set( U[ 0 ][ 2 ],  U[ 1 ][ 2 ], U[ 2 ][ 2 ] );
-		e0 /= Math::sqr( e0.x ) + Math::sqr( e0.y );
+        e0.set( U[ 0 ][ 2 ],  U[ 1 ][ 2 ], U[ 2 ][ 2 ] );
+        e0 /= Math::sqr( e0.x ) + Math::sqr( e0.y );
 
-		e1 = V[ 2 ];
-		e1 /= Math::sqr( e1.x ) + Math::sqr( e1.y );
+        e1 = V[ 2 ];
+        e1 /= Math::sqr( e1.x ) + Math::sqr( e1.y );
 
-		R0.setIdentity();
-		R0[ 0 ][ 0 ] =  e0.x;
-		R0[ 0 ][ 1 ] =  e0.y;
-		R0[ 1 ][ 0 ] = -e0.y;
-		R0[ 1 ][ 1 ] =  e0.x;
+        R0.setIdentity();
+        R0[ 0 ][ 0 ] =  e0.x;
+        R0[ 0 ][ 1 ] =  e0.y;
+        R0[ 1 ][ 0 ] = -e0.y;
+        R0[ 1 ][ 1 ] =  e0.x;
 
-		R1.setIdentity();
-		R1[ 0 ][ 0 ] =  e1.x;
-		R1[ 0 ][ 1 ] =  e1.y;
-		R1[ 1 ][ 0 ] = -e1.y;
-		R1[ 1 ][ 1 ] =  e1.x;
+        R1.setIdentity();
+        R1[ 0 ][ 0 ] =  e1.x;
+        R1[ 0 ][ 1 ] =  e1.y;
+        R1[ 1 ][ 0 ] = -e1.y;
+        R1[ 1 ][ 1 ] =  e1.x;
 
-		E = R1 * E * R0.transpose();
+        E = R1 * E * R0.transpose();
 
 
-	}
+    }
 #endif
 
-		template<typename T>
-		inline void Vision::composeFundamental( Matrix3<T>& f, 
-												const Matrix3<T>& K0, 
-												const Matrix4<T>& T0,
-												const Matrix3<T>& K1, 
-												const Matrix4<T>& T1 )
-		{
-			/* from cam1 to cam0 */
-			Matrix4<T> t10 = T1 * T0.inverse();
-			Matrix3<T> R = t10.toMatrix3();
-			Matrix3<T> tSkew;
-			tSkew.setSkewSymmetric( Vector3<T>( t10[ 0 ][ 3 ], t10[ 1 ][ 3 ], t10[ 2 ][ 3 ] ) );
-			f = K1.inverse().transpose() * tSkew * R * K0.inverse();	
-		}
+        template<typename T>
+        inline void Vision::composeFundamental( Matrix3<T>& f,
+                                                const Matrix3<T>& K0,
+                                                const Matrix4<T>& T0,
+                                                const Matrix3<T>& K1,
+                                                const Matrix4<T>& T1 )
+        {
+            /* from cam1 to cam0 */
+            Matrix4<T> t10 = T1 * T0.inverse();
+            Matrix3<T> R = t10.toMatrix3();
+            Matrix3<T> tSkew;
+            tSkew.setSkewSymmetric( Vector3<T>( t10[ 0 ][ 3 ], t10[ 1 ][ 3 ], t10[ 2 ][ 3 ] ) );
+            f = K1.inverse().transpose() * tSkew * R * K0.inverse();
+        }
 
-		template<typename T>
-		inline void Vision::epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f )
-		{
-			Matrix3<T> U, D, V;
-			f.svd( U, D, V );
-			e0 = U.col( 2 );
-			e1 = V.row( 2 );
-		}
+        template<typename T>
+        inline void Vision::epipolesFundamental( Vector3<T>& e0, Vector3<T>& e1, Matrix3<T>& f )
+        {
+            Matrix3<T> U, D, V;
+            f.svd( U, D, V );
+            e0 = U.col( 2 );
+            e1 = V.row( 2 );
+        }
 
 
-		template<typename T>
-		inline void Vision::stereoRectification( Matrix3<T>& K0new,
-												 Matrix4<T>& T0new,
-												 Matrix3<T>& K1new,
-												 Matrix4<T>& T1new,
-												 Matrix3<T>& Timage0,
-												 Matrix3<T>& Timage1,
-												 const Matrix3<T>& K0,
-												 const Matrix4<T>& T0,
-												 const Matrix3<T>& K1,
-												 const Matrix4<T>& T1 )
-		{
-			Vector3<T> c0, c1, v1, v2, v3;
+        template<typename T>
+        inline void Vision::stereoRectification( Matrix3<T>& K0new,
+                                                 Matrix4<T>& T0new,
+                                                 Matrix3<T>& K1new,
+                                                 Matrix4<T>& T1new,
+                                                 Matrix3<T>& Timage0,
+                                                 Matrix3<T>& Timage1,
+                                                 const Matrix3<T>& K0,
+                                                 const Matrix4<T>& T0,
+                                                 const Matrix3<T>& K1,
+                                                 const Matrix4<T>& T1 )
+        {
+            Vector3<T> c0, c1, v1, v2, v3;
 
-			c0 = -Matrix3<T>( T0 ).transpose() * Vector3<T>( T0[ 0 ][ 3 ], T0[ 1 ][ 3 ], T0[ 2 ][ 3 ] );
-			c1 = -Matrix3<T>( T1 ).transpose() * Vector3<T>( T1[ 0 ][ 3 ], T1[ 1 ][ 3 ], T1[ 2 ][ 3 ] );
+            c0 = -Matrix3<T>( T0 ).transpose() * Vector3<T>( T0[ 0 ][ 3 ], T0[ 1 ][ 3 ], T0[ 2 ][ 3 ] );
+            c1 = -Matrix3<T>( T1 ).transpose() * Vector3<T>( T1[ 0 ][ 3 ], T1[ 1 ][ 3 ], T1[ 2 ][ 3 ] );
 
-			v1 = c1 - c0;
-			v2 = Vector3<T>( T0[ 2 ][ 0 ], T0[ 2 ][ 1 ], T0[ 2 ][ 2 ] ).cross( v1 );
-			v3 = v1.cross( v2 );
+            v1 = c1 - c0;
+            v2 = Vector3<T>( T0[ 2 ][ 0 ], T0[ 2 ][ 1 ], T0[ 2 ][ 2 ] ).cross( v1 );
+            v3 = v1.cross( v2 );
 
-			Matrix3<T> R( v1 / v1.length(), v2 / v2.length(), v3 / v3.length() );
+            Matrix3<T> R( v1 / v1.length(), v2 / v2.length(), v3 / v3.length() );
 
-			K0new = ( K0 + K1 ) * 0.5f;
-			K0new[ 0 ][ 1 ] = 0.0f; // no skew
-			K1new = K0new;
+            K0new = ( K0 + K1 ) * 0.5f;
+            K0new[ 0 ][ 1 ] = 0.0f; // no skew
+            K1new = K0new;
 
 //			Matrix3<T> K01new2 = K01new;
 //			K01new[ 0 ][ 2 ] = K0[ 0 ][ 2 ];
 //			K01new2[ 0 ][ 2 ] = K1[ 0 ][ 2 ];
 
-			T0new = R.toMatrix4();
-			T1new = R.toMatrix4();
+            T0new = R.toMatrix4();
+            T1new = R.toMatrix4();
 
-			Vector3<T> tmp = - R * c0;
-			T0new[ 0 ][ 3 ] = tmp[ 0 ];
-			T0new[ 1 ][ 3 ] = tmp[ 1 ];
-			T0new[ 2 ][ 3 ] = tmp[ 2 ];
+            Vector3<T> tmp = - R * c0;
+            T0new[ 0 ][ 3 ] = tmp[ 0 ];
+            T0new[ 1 ][ 3 ] = tmp[ 1 ];
+            T0new[ 2 ][ 3 ] = tmp[ 2 ];
 
-			tmp = - R * c1;
-			T1new[ 0 ][ 3 ] = tmp[ 0 ];
-			T1new[ 1 ][ 3 ] = tmp[ 1 ];
-			T1new[ 2 ][ 3 ] = tmp[ 2 ];
+            tmp = - R * c1;
+            T1new[ 0 ][ 3 ] = tmp[ 0 ];
+            T1new[ 1 ][ 3 ] = tmp[ 1 ];
+            T1new[ 2 ][ 3 ] = tmp[ 2 ];
 
-			Timage0 = K0new * T0new.toMatrix3() * ( K0 * T0.toMatrix3() ).inverse();
-			Timage1 = K1new * T1new.toMatrix3() * ( K1 * T1.toMatrix3() ).inverse();
-		}
+            Timage0 = K0new * T0new.toMatrix3() * ( K0 * T0.toMatrix3() ).inverse();
+            Timage1 = K1new * T1new.toMatrix3() * ( K1 * T1.toMatrix3() ).inverse();
+        }
 
-		template <class Mat3, class Vec3, class Vec2>
-		inline void Vision::project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 )
-		{
-			Vec3 pp = K * p3;
-			p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
-			p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
-		}
+        template <class Mat3, class Vec3, class Vec2>
+        inline void Vision::project( Vec2 & p2, const Mat3 & K, const Vec3 & p3 )
+        {
+            Vec3 pp = K * p3;
+            p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
+            p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
+        }
 
-		template <class Mat3, class Vec3, class Vec2>
-		inline void Vision::project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 )
-		{
-			Vec3 pp = KR * p3 + Kt;
-			p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
-			p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
-		}
+        template <class Mat3, class Vec3, class Vec2>
+        inline void Vision::project( Vec2 & p2, const Mat3 & KR, const Vec3 & Kt, const Vec3 & p3 )
+        {
+            Vec3 pp = KR * p3 + Kt;
+            p2[ 0 ] = pp[ 0 ] / pp[ 2 ];
+            p2[ 1 ] = pp[ 1 ] / pp[ 2 ];
+        }
 
-		template <class T>
-		inline void Vision::project( Eigen::Matrix<T, 2, 1> & p2, 
-									 const Eigen::Matrix<T, 3, 3>& K, 
-									 const Eigen::Matrix<T, 4, 4>& trans, 
-									 const Eigen::Matrix<T, 4, 1>& p )
-		{
-			Eigen::Matrix<T, 4, 1> ptmp = trans * p;
-			
-			Eigen::Matrix<T, 3, 1> p3;
-			p3[ 0 ] = ptmp[ 0 ] / ptmp[ 3 ];
-			p3[ 1 ] = ptmp[ 1 ] / ptmp[ 3 ];
-			p3[ 2 ] = ptmp[ 2 ] / ptmp[ 3 ];
-			p3 = K * p3;
-			
-			p2[ 0 ] = p3[ 0 ] / p3[ 2 ];
-			p2[ 1 ] = p3[ 1 ] / p3[ 2 ];
-		}
+        template <class T>
+        inline void Vision::project( Eigen::Matrix<T, 2, 1> & p2,
+                                     const Eigen::Matrix<T, 3, 3>& K,
+                                     const Eigen::Matrix<T, 4, 4>& trans,
+                                     const Eigen::Matrix<T, 4, 1>& p )
+        {
+            Eigen::Matrix<T, 4, 1> ptmp = trans * p;
+
+            Eigen::Matrix<T, 3, 1> p3;
+            p3[ 0 ] = ptmp[ 0 ] / ptmp[ 3 ];
+            p3[ 1 ] = ptmp[ 1 ] / ptmp[ 3 ];
+            p3[ 2 ] = ptmp[ 2 ] / ptmp[ 3 ];
+            p3 = K * p3;
+
+            p2[ 0 ] = p3[ 0 ] / p3[ 2 ];
+            p2[ 1 ] = p3[ 1 ] / p3[ 2 ];
+        }
 
 }
 

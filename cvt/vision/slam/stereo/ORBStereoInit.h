@@ -19,18 +19,27 @@ namespace cvt
    class ORBStereoInit : public DepthInitializer
    {
       public:
-          ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1, float maxEpilineDistance, float maxDescriptorDistance );
+          ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 );
 
           void triangulateFeatures( std::vector<DepthInitResult> & triangulated,
                                     const std::vector<Vector2f> & avoidPositionsImg0,
                                     const Image& view0, const Image& view1 );
 
-          void  setMaxTriangulationError( float v ) { _maxTriangError = v; }
-          float maxTriangulationError() const       { return _maxTriangError; }
+          ParamSet& parameters() { return _pset; }
+
+          struct Parameters {
+              float     maxEpilineDistance;
+              float     maxDescriptorDistance;
+              float     maxReprojectionError;
+              float     minDepth;
+              float     maxDepth;
+              uint8_t   fastThreshold;
+              uint32_t  orbMaxFeatures;
+          };
 
       private:
           ORBStereoMatching     _matcher;
-          float                 _maxTriangError;
+          ParamSet              _pset;
    };
 
 }

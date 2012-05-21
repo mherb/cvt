@@ -79,6 +79,8 @@ namespace cvt {
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
 			void	replace( char cold, char cnew );
+            String& toLower();
+            String& toUpper();
 
 			void	 tokenize( std::vector<String>& tokens, char delimiter ) const;
 			long int toInteger() const;
@@ -440,6 +442,30 @@ namespace cvt {
 			}
 		} while( *eptr );
 	}
+
+    inline String& String::toLower()
+    {
+        ssize_t n = _len;
+        char* ptr = _str;
+        while( n ) {
+            *ptr = tolower( *ptr );
+            ptr++;
+            n--;
+        }
+        return *this;
+    }
+
+    inline String& String::toUpper()
+    {
+        ssize_t n = _len;
+        char* ptr = _str;
+        while( n ) {
+            *ptr = toupper( *ptr );
+            ptr++;
+            n--;
+        }
+        return *this;
+    }
 
 	inline long int String::toInteger() const
 	{

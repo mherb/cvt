@@ -47,13 +47,12 @@ namespace cvt
         size_t minSampleSize() const
         {
             // what is a good number for EPnP?
-		    // In principle it should work with 4 	
+            // In principle it should work with 4
             return 4;
         }
 
         ResultType estimate( const std::vector<size_t> & sampleIndices ) const;
-
-        ResultType refine( const std::vector<size_t> & inlierIndices ) const;
+        ResultType refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const;
 
         void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
@@ -89,7 +88,7 @@ namespace cvt
         return trans; 
     }
 
-    inline EPnPSAC::ResultType EPnPSAC::refine( const std::vector<size_t> & inlierIndices ) const
+    inline EPnPSAC::ResultType EPnPSAC::refine( const ResultType&, const std::vector<size_t> & inlierIndices ) const
     {
         // TODO: would be nicer, to use estimate, to get a linear estimate,
         //       and then refine it iteratively using GN or LM e.g.
@@ -106,7 +105,7 @@ namespace cvt
 
 		/* invert the pose */
 		Matrix3d R = _intrinsics * estimate.toMatrix3();
-		Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 2 ] );
+        Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 3 ] );
 		// apply intrinsics
 		t = _intrinsics * t;
 

@@ -5,14 +5,14 @@ FIND_PATH(OPENNI_INCLUDES
 	/usr/local/dc1394/include/ni
 	/usr/local/include/ni
 	/usr/include/ni
+        /usr/include/openni
 	/opt/local/include/ni
 )
 
 FIND_LIBRARY(OPENNI_LIBRARY
 	NAMES OpenNI
 	PATHS
-	${CMAKE_LIBRARY_PATH}
-	/usr/local/dc1394/lib
+	${CMAKE_LIBRARY_PATH}	
 	/usr/local/lib
 	/usr/lib
 	/opt/local/lib
@@ -22,8 +22,7 @@ IF( OPENNI_LIBRARY AND OPENNI_INCLUDES )
 	FIND_LIBRARY( OPENNI_PRIME_SENSOR_MODULE 
 		NAMES XnCore
 		PATHS
-		${CMAKE_LIBRARY_PATH}
-		/usr/local/dc1394/lib
+		${CMAKE_LIBRARY_PATH}		
 		/usr/local/lib
 		/usr/lib
 		/opt/local/lib
@@ -32,10 +31,12 @@ IF( OPENNI_LIBRARY AND OPENNI_INCLUDES )
 	SET( OPENNI_FOUND TRUE)
 	ADD_DEFINITIONS( -DOPENNI_FOUND )
 
-	SET( OPENNI_LIBRARIES
-		${OPENNI_LIBRARY}
+        SET( OPENNI_LIBRARIES ${OPENNI_LIBRARY} )
+    IF( OPENNI_PRIME_SENSOR_MODULE )
+        SET( OPENNI_LIBRARIES ${OPENNI_LIBRARIES}
 		${OPENNI_PRIME_SENSOR_MODULE}
 	)
+    ENDIF()
 ENDIF()
 
 MARK_AS_ADVANCED(

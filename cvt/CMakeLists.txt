@@ -55,7 +55,8 @@ CONFIGURE_FILE (
 IF( UNIX AND NOT APPLE )
    SET(${MODULE_NAME}_DEP_LIBRARIES
       ${${MODULE_NAME}_DEP_LIBRARIES}
-      rt )
+      rt
+      pthread )
 ENDIF()
 
 SET( GLSL_SHADER
@@ -153,7 +154,6 @@ ENDFOREACH(GLSLFILE)
 
 
 SET(${MODULE_NAME}_HEADERS
-   util/Version.h
    cl/CLBuffer.h
    cl/CLCommandQueue.h
    cl/CLContext.h
@@ -237,6 +237,8 @@ SET(${MODULE_NAME}_HEADERS
    gl/GLException.h
    gl/GLProgram.h
    gl/GLBuffer.h
+   gl/GLLines.h
+   gl/GLPoints.h
    gl/GLTexture.h
    gl/GLVertexArray.h
    gl/GFXEngineGL.h
@@ -263,6 +265,8 @@ SET(${MODULE_NAME}_HEADERS
    gui/internal/WidgetImplDefault.h
    gui/Label.h
    gui/Moveable.h
+   gui/ParamSetView.h
+   gui/ParamView.h
    gui/PlotView.h
    gui/PlotData.h
    gui/PlotDataSamples.h
@@ -284,6 +288,7 @@ SET(${MODULE_NAME}_HEADERS
    io/Resources.h
    io/RawVideoWriter.h
    io/RawVideoReader.h
+   io/RGBDParser.h
    io/VideoInput.h
    io/VideoReader.h
    io/Postscript.h
@@ -317,6 +322,7 @@ SET(${MODULE_NAME}_HEADERS
    math/sac/HomographySAC.h
    math/sac/EssentialSAC.h
    math/sac/EPnPSAC.h
+   math/sac/P3PSac.h
    math/SE3.h
    math/SL3.h
    math/Translation2D.h
@@ -331,13 +337,16 @@ SET(${MODULE_NAME}_HEADERS
    math/graph/GraphEdge.h
    math/graph/GraphVisitor.h
    math/SparseBlockMatrix.h
+   util/Version.h
    util/CPU.h
+   util/CVTAssert.h
    util/CVTTest.h
    util/Condition.h
+   util/ConfigFile.h
    util/Delegate.h
-    util/Delegate.inl
+   util/Delegate.inl
    util/Data.h
-    util/DataIterator.h
+   util/DataIterator.h
    util/Exception.h
    util/EigenBridge.h
    util/Inserter.h
@@ -381,6 +390,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/Ferns.h
    vision/internal/Fern.h
    vision/IntegralImage.h
+   vision/ImagePyramid.h
    vision/Flow.h
    vision/HCalibration.h
    vision/KLTPatch.h
@@ -396,6 +406,15 @@ SET(${MODULE_NAME}_HEADERS
    vision/PointCorrespondences3d2d.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
+   vision/rgbdvo/AIIKeyframe.h
+   vision/rgbdvo/ESMKeyframe.h
+   vision/rgbdvo/KeyframeBase.h
+   vision/rgbdvo/MultiscaleKeyframe.h
+   vision/rgbdvo/RGBDVisualOdometry.h
+   vision/rgbdvo/RobustAIIKeyframe.h
+   vision/rgbdvo/RobustKeyframe.h
+   vision/rgbdvo/RobustWeighting.h
+   vision/rgbdvo/VOKeyframe.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
@@ -410,6 +429,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/stereo/FeatureAnalyzer.h
    vision/slam/stereo/DepthInitializer.h
    vision/slam/stereo/ORBStereoInit.h
+   vision/slam/stereo/PatchStereoInit.h
    io/xml/XMLAttribute.h
    io/xml/XMLCData.h
    io/xml/XMLComment.h
@@ -421,6 +441,7 @@ SET(${MODULE_NAME}_HEADERS
    io/xml/XMLEncoding.h
    io/xml/XMLLeaf.h
    io/xml/XMLNode.h
+   io/xml/XMLSerializable.h
    io/xml/XMLText.h
    ${GLSL_GEN_HEADER_${MODULE_NAME}}
    ${CL_GEN_HEADER_${MODULE_NAME}}
@@ -501,6 +522,8 @@ SET(${MODULE_NAME}_SOURCES
    gui/Button.cpp
    gui/GLView.cpp
    gui/Moveable.cpp
+   gui/ParamSetView.cpp
+   gui/ParamView.cpp
    gui/PlotView.cpp
    gui/ImageView.cpp
    gui/internal/TimerInfo.cpp
@@ -520,6 +543,7 @@ SET(${MODULE_NAME}_SOURCES
    io/Resources.cpp
    io/RawVideoWriter.cpp
    io/RawVideoReader.cpp
+   io/RGBDParser.cpp
    io/VideoReader.cpp
    io/Host.cpp
    io/Socket.cpp
@@ -539,6 +563,7 @@ SET(${MODULE_NAME}_SOURCES
    math/SL3Test.cpp
    math/Sim2Test.cpp
    math/GA2Test.cpp
+   util/ConfigFile.cpp
    util/ParamInfo.cpp
    util/ParamSet.cpp
    util/Range.cpp
@@ -572,6 +597,9 @@ SET(${MODULE_NAME}_SOURCES
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
+   vision/rgbdvo/AIIKeyframe.cpp
+   vision/rgbdvo/ESMKeyframe.cpp
+   vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp
@@ -579,6 +607,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/stereo/ORBTracking.cpp
    vision/slam/stereo/StereoSLAM.cpp
    vision/slam/stereo/ORBStereoInit.cpp
+   vision/slam/stereo/PatchStereoInit.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp
    io/xml/XMLDecoderUTF8.cpp

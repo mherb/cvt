@@ -13,6 +13,7 @@
 
 #include <cvt/math/graph/GraphEdge.h>
 #include <vector>
+#include <iostream>
 
 namespace cvt {
 	template<typename,typename> class Graph;

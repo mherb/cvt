@@ -51,6 +51,7 @@ namespace cvt
 
                         static size_t size() { return pSize; }
 
+
             /**
              *	\brief	number of scales that are stored with this patch
              * */

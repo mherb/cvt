@@ -64,7 +64,7 @@ namespace cvt {
 
 	void OpenNIManager::nameAndSerialForDevice( String& name, String& serial, xn::Device& device ) const
 	{
-		const size_t bufsize = 255;
+        const size_t bufsize = 2048;
 		char buffer[ bufsize ];
 
 		xn::DeviceIdentificationCapability idCap = device.GetIdentificationCap();
@@ -398,11 +398,13 @@ namespace cvt {
 			if( desc.Type == XN_NODE_TYPE_DEVICE ){
 				xn::Device dev;
 				status = context.CreateProductionTree( n, dev );
-				// get the name
-				nameAndSerialForDevice( currName, currSerial, dev );
-				if( currName == neededDevice.name && currSerial == neededDevice.serial ){
-					return true;
-				}
+                if( status == XN_STATUS_OK ){
+                    // get the name
+                    nameAndSerialForDevice( currName, currSerial, dev );
+                    if( currName == neededDevice.name && currSerial == neededDevice.serial ){
+                        return true;
+                    }
+                }
 			}
 
 			it++;
