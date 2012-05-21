@@ -13,11 +13,11 @@
 namespace cvt
 {
     KLTTracking::KLTTracking( size_t kltOctaves, float scaleFactor ) :
-        _klt( 5 ),
+        _klt( 10 ),
         _numOctaves( kltOctaves ),
         _pyramid( _numOctaves, scaleFactor ),
-        _ssdThreshold( Math::sqr( 20.0f ) ),
-        _sadThreshold( 20 )
+        _ssdThreshold( Math::sqr( 30.0f ) ),
+        _sadThreshold( 30 )
     {
     }
 
@@ -54,9 +54,13 @@ namespace cvt
             }
 
             //  update patch position to current predicted one
+            /*
             Eigen::Matrix3f & m = patch->pose().transformation();
+            //m.setIdentity();
             m( 0, 2 ) = p.x;
-            m( 1, 2 ) = p.y;
+            m( 1, 2 ) = p.y;*/
+
+            patch->initPose( p );
 
             //  try to track the patch
             if( _klt.trackPatchMultiscale( *patch, _pyramid ) ){

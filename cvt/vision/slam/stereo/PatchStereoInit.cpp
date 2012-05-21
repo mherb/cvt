@@ -138,7 +138,7 @@ namespace cvt {
         size_t w1 = _pyramidView1[ 0 ].width();
         size_t h1 = _pyramidView1[ 0 ].height();
 
-        KLTType::KLTPType patch( 1 );
+        KLTType::KLTPType patch( 10 );
 
         for( size_t i = 0; i < f0.size(); i++ ){
             const Vector2f& pos0 = f0[ i ];
@@ -189,11 +189,12 @@ namespace cvt {
                 patch.update( map0.ptr(), map0.stride(), pos0, 0 );
                 patch.initPose( result.meas1 );
 
-                Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _fundamental );
                 if( refinePositionSubPixel( patch, map1.ptr(), map1.stride() ) ){
 
                     // refined:                    
                     patch.currentCenter( result.meas1 );
+
+                    Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _fundamental );
 
                     triangulateSinglePoint( result,
                                             _calib0.projectionMatrix(),
