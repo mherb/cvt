@@ -33,7 +33,8 @@ __kernel __attribute__((reqd_work_group_size( 16, 16, 1))) void image_gradexp_to
 
 	for( int y = ly; y < 18; y += 16 ) {
 		for( int x = lx; x < 18; x += 16 ) {
-			buf[ mul24( y, 18 ) + x ] = dot( read_imagef( img, samplerclamp, base + ( int2 )( x, y ) ), dotmulGRAY );
+			//buf[ mul24( y, 18 ) + x ] = dot( read_imagef( img, samplerclamp, base + ( int2 )( x, y ) ), dotmulGRAY );
+			buf[ mul24( y, 18 ) + x ] = read_imagef( img, samplerclamp, base + ( int2 )( x, y ) ).x;
 		}
 	}
 
@@ -43,12 +44,12 @@ __kernel __attribute__((reqd_work_group_size( 16, 16, 1))) void image_gradexp_to
 		return;
 
 #define BUF( x, y ) buf[ mul24( ( ( y ) + 1 ), 18 ) + ( x ) + 1 ]
-#define ALPHA 1.0f
-#define BETA 10.0f
+#define ALPHA 2.0f
+#define BETA 5.0f
 #define GAMMA 1.0f
 	float2 delta = ( float2 ) ( BUF( lx - 1, ly ) - BUF( lx + 1, ly ), BUF( lx, ly - 1 ) - BUF( lx, ly + 1 ) );
 	float4 pixel = read_imagef( in, sampler, coord );
-	float weight = fmax( 1e-4f, GAMMA * exp( - BETA * pow( fast_length( delta ), ALPHA ) ) );
+	float weight = GAMMA * exp( - BETA * pow( fast_length( delta ), ALPHA ) );
 	*( ( float* )( &pixel ) + chan ) = weight;
 	write_imagef( out, coord, ( float4 ) pixel );
 #undef BUF

@@ -54,7 +54,7 @@ __kernel void stereoCV( global float* cv, int depth, __read_only image2d_t src1,
 
 	/* store the result of the cost function */
 	for( int d = 0; d < depth; d++ )
-		cvptr[ d * stride ] = costRGB_L1( pixel, buf[ lx + d ] );
+		cvptr[ d * stride ] = costGRAY_L1( pixel, buf[ lx + d ] );
 }
 
 __kernel void stereoCV_GRAY_AD( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
