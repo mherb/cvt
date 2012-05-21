@@ -38,7 +38,7 @@ namespace cvt {
 
 			void				setVertices( const Vector3f* data, size_t size );
 			//			void				setTexcoords( const Vector2f* data, size_t size );
-			void				setColors( const Vector4f* data, size_t size );
+                        void				setVerticesWithColor( const Vector3f* vertices, const Vector4f* colors, size_t size );
 
 			const Vector3f*		vertices() const;
 			//			const Vector2f*		texcoords() const;
@@ -131,9 +131,10 @@ namespace cvt {
 		_vertices.assign( data, data + size );
 	}
 
-	inline void ScenePoints::setColors( const Vector4f* data, size_t size )
+        inline void ScenePoints::setVerticesWithColor( const Vector3f* vertices, const Vector4f* colors, size_t size )
 	{
-		_colors.assign( data, data + size );
+                _vertices.assign( vertices, vertices + size );
+                _colors.assign( colors, colors + size );
 	}
 
 

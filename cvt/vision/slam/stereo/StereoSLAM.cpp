@@ -11,8 +11,8 @@
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
 
 //#include <cvt/vision/EPnP.h>
-//#include <cvt/math/sac/RANSAC.h>
-//#include <cvt/math/sac/EPnPSAC.h>
+#include <cvt/math/sac/RANSAC.h>
+#include <cvt/math/sac/P3PSac.h>
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
@@ -30,33 +30,19 @@ namespace cvt
                            size_t w1, size_t h1 ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 30 ),
+       _minTrackedFeatures( 60 ),
        _activeKF( -1 ),
-       _minKeyframeDistance( 0.05 ),
-       _maxKeyframeDistance( 0.5 )
+       _minKeyframeDistance( 0.01 ),
+       _maxKeyframeDistance( 0.02 )
    {
+       const CameraCalibration& c0 = _depthInit->calibration0();
+       const CameraCalibration& c1 = _depthInit->calibration1();
+
       // create the undistortion maps
       _undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
-
-      const CameraCalibration& c0 = _depthInit->calibration0();
-      const CameraCalibration& c1 = _depthInit->calibration1();
-
-      Vector3f radial = c0.radialDistortion();
-      Vector2f tangential = c0.tangentialDistortion();
-      float fx = c0.intrinsics()[ 0 ][ 0 ];
-      float fy = c0.intrinsics()[ 1 ][ 1 ];
-      float cx = c0.intrinsics()[ 0 ][ 2 ];
-      float cy = c0.intrinsics()[ 1 ][ 2 ];
-      IWarp::warpUndistort( _undistortMap0, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w0, h0, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-
       _undistortMap1.reallocate( w1, h1, IFormat::GRAYALPHA_FLOAT );
-      radial = c1.radialDistortion();
-      tangential = c1.tangentialDistortion();
-      fx = c1.intrinsics()[ 0 ][ 0 ];
-      fy = c1.intrinsics()[ 1 ][ 1 ];
-      cx = c1.intrinsics()[ 0 ][ 2 ];
-      cy = c1.intrinsics()[ 1 ][ 2 ];
-      IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+      createUndistortionMaps( c0, c1 );
+
       Eigen::Matrix3d K;
       EigenBridge::toEigen( K, c0.intrinsics() );
       _map.setIntrinsics( K );
@@ -71,7 +57,7 @@ namespace cvt
       std::vector<Vector2f> predictedPositions;
       std::vector<size_t>   predictedFeatureIds;
       _map.selectVisibleFeatures(  predictedFeatureIds, predictedPositions,
-                                  _pose.transformation(), _depthInit->calibration0(), 3.0f /* TODO: make it a param */  );
+                                  _pose.transformation(), _depthInit->calibration0(), 1.0f /* TODO: make it a param */  );
 
       // track the predicted features
       PointSet2d p2d;
@@ -119,13 +105,14 @@ namespace cvt
          createDebugImageStereo( debugStereo, triangulated );
          newStereoView.notify( debugStereo );
 
-         if( triangulated.size() > 10 ){
+         if( ( triangulated.size() + numTrackedFeatures ) > 10 ){
              // create new keyframe with map features
              addNewKeyframe( triangulated, p2d, trackedIds );
 
-             if( _map.numKeyframes() > 1 ){
-                _bundler.run( &_map );
+             if( _map.numKeyframes() > 2 ){
+               _bundler.run( &_map );
              }
+
              keyframeAdded.notify();
              mapChanged.notify( _map );
              std::cout << "New Keyframe Added" << std::endl;
@@ -145,52 +132,26 @@ namespace cvt
    void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
    {
       const Matrix3f & kf = _depthInit->calibration0().intrinsics();
-      Eigen::Matrix<double, 3, 3> Ke;
-      Eigen::Matrix<double, 4, 4> extrC;
-      EigenBridge::toEigen( Ke, kf );
-      EigenBridge::toEigen( extrC,  _depthInit->calibration0().extrinsics() );
+      Matrix3d k, kinv;
+      for( size_t r = 0; r < 3; r++ )
+          for( size_t c = 0; c < 3; c++ )
+              k[ r ][ c ] = kf[ r ][ c ];
+      kinv = k.inverse();
+      P3PSac model( p3d, p2d, k, kinv );
+      RANSAC<P3PSac> ransac( model, 3.0, 0.2 );
+      Matrix4d estimated = ransac.estimate( 2000 );
 
       Eigen::Matrix4d me;
-      /*
-         Matrix3d K;
-         EigenBridge::toCVT( K, kf );
-         Matrix4d m;
-         EPnPd epnp( p3d );
-         epnp.solve( m, p2d, K );
-
-      // from EPnP we get the pose of the camera, to get pose of the rig, we need to remove the extrinsics
-      EigenBridge::toEigen( me, m );
-      me = extrC.inverse() * me;
-       */
-
-      me = _pose.transformation();
-
-      PointCorrespondences3d2d<double> pointCorresp( Ke, extrC );
-      pointCorresp.setPose( me );
-
-      Eigen::Matrix<double, 3, 1> p3;
-      Eigen::Matrix<double, 2, 1> p2;
-      for( size_t i = 0; i < p3d.size(); i++ ){
-         p3[ 0 ] = p3d[ i ].x;
-         p3[ 1 ] = p3d[ i ].y;
-         p3[ 2 ] = p3d[ i ].z;
-         p2[ 0 ] = p2d[ i ].x;
-         p2[ 1 ] = p2d[ i ].y;
-         pointCorresp.add( p3, p2 );
-      }
-
-      RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 2.0 );
-      LevenbergMarquard<double> lm;
-      TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
-      termCriteria.setCostThreshold( 0.01 );
-      termCriteria.setMaxIterations( 20 );
-      lm.optimize( pointCorresp, costFunction, termCriteria );
-
-      me = pointCorresp.pose().transformation();
+      EigenBridge::toEigen( me, estimated );
       _pose.set( me );
+
+
+
 
       Matrix4f mf;
       EigenBridge::toCVT( mf, me );
+      std::cout << mf << std::endl;
+      std::cout << estimated << std::endl;
       newCameraPose.notify( mf );
    }
 
@@ -235,7 +196,6 @@ namespace cvt
            mf.estimate() = poseInv * p3d;
 
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
-           std::cout << __FUNCTION__ << " new feature with id: " << featureId << std::endl;
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
        }
 
@@ -294,8 +254,11 @@ namespace cvt
       if( kfDist > _maxKeyframeDistance )
          return true;
 
+      if( numTrackedFeatures < 10 )
+          return true;
+
       // if too few features and minimum distance from last keyframe create new
-      if( numTrackedFeatures < _minTrackedFeatures /*&& kfDist > _minKeyframeDistance*/ )
+      if( numTrackedFeatures < _minTrackedFeatures && kfDist > _minKeyframeDistance )
          return true;
 
       return false;
@@ -349,5 +312,29 @@ namespace cvt
          double n = 1.0 / p[ 3 ];
          pset.add( Vector3d( p[ 0 ] * n, p[ 1 ] * n, p[ 2 ] * n  ) );
       }
+   }
+
+   void StereoSLAM::createUndistortionMaps( const CameraCalibration& c0, const CameraCalibration& c1 )
+   {
+       size_t w0 = _undistortMap0.width();
+       size_t h0 = _undistortMap0.height();
+       size_t w1 = _undistortMap1.width();
+       size_t h1 = _undistortMap1.height();
+
+       Vector3f radial = c0.radialDistortion();
+       Vector2f tangential = c0.tangentialDistortion();
+       float fx = c0.intrinsics()[ 0 ][ 0 ];
+       float fy = c0.intrinsics()[ 1 ][ 1 ];
+       float cx = c0.intrinsics()[ 0 ][ 2 ];
+       float cy = c0.intrinsics()[ 1 ][ 2 ];
+       IWarp::warpUndistort( _undistortMap0, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w0, h0, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
+
+       radial = c1.radialDistortion();
+       tangential = c1.tangentialDistortion();
+       fx = c1.intrinsics()[ 0 ][ 0 ];
+       fy = c1.intrinsics()[ 1 ][ 1 ];
+       cx = c1.intrinsics()[ 0 ][ 2 ];
+       cy = c1.intrinsics()[ 1 ][ 2 ];
+       IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
    }
 }

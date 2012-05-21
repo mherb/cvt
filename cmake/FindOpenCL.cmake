@@ -45,6 +45,7 @@ ELSE (WIN32)
 			~/NVIDIA_GPU_Computing_SDK/OpenCL/common/inc/ 
 			/usr/local/nvgpu/OpenCL/common/inc/ 
 			/usr/local/ati-stream-sdk/include/
+			/opt/AMDAPP/include/
 			$ENV{ATISTREAMSDKROOT}/include
 		)
 	

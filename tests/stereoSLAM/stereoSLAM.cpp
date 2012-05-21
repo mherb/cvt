@@ -54,22 +54,42 @@ void initCameras( std::vector<VideoInput*> & cameras, const String & id0, const 
 }
 
 void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
-                             CameraCalibration& c0,
-                             CameraCalibration& c1,
-                             const String& id0,
-                             const String& id1,
+                             std::vector<CameraCalibration> & calibs,
                              const String& folder )
 {
-    String file;
-    file.sprintf( "%sueye_%s.xml", folder.c_str(), id0.c_str() );
-    c0.load( file );
-    file.sprintf( "%sueye_%s.xml", folder.c_str(), id1.c_str() );
-    c1.load( file );
+    std::vector<String> xmlFiles;
+    FileSystem::filesWithExtension( folder, xmlFiles, "xml" );
 
-    file.sprintf( "%sueye_%s.rawvideo", folder.c_str(), id0.c_str() );
-    videos.push_back( new RawVideoReader( file ) );
-    file.sprintf( "%sueye_%s.rawvideo", folder.c_str(), id1.c_str() );
-    videos.push_back( new RawVideoReader( file ) );
+    if( xmlFiles.size() != 2 )
+        throw CVTException( "found more than 2 xml files, cannot determine which are the calibration files" );
+
+    String id0 = xmlFiles[ 0 ];
+    String id1 = xmlFiles[ 1 ];
+
+    calibs.resize( 2 );
+    calibs[ 0 ].load( id0 );
+    calibs[ 1 ].load( id1 );
+
+    cvt::Matrix4f I;
+    I.setIdentity();
+    if( calibs[ 0 ].extrinsics() != I ) {
+        CameraCalibration tmp = calibs[ 0 ];
+        calibs[ 0 ] = calibs[ 1 ];
+        calibs[ 1 ] = tmp;
+
+        String tmpS;
+        tmpS = id0;
+        id0 = id1;
+        id1 = tmpS;
+    }
+
+    // remove the extensions
+    String file0 = id0.substring( 0, id0.length() - 3 );
+    String file1 = id1.substring( 0, id0.length() - 3 );
+    file0 += "rawvideo";
+    file1 += "rawvideo";
+    videos.push_back( new RawVideoReader( file0 ) );
+    videos.push_back( new RawVideoReader( file1 ) );
 }
 
 int main( int argc, char* argv[] )
@@ -79,7 +99,7 @@ int main( int argc, char* argv[] )
     Resources r;
     if( argc > 1 ){
         String option( argv[ 1 ] );
-        if( option == "SEQUENCE" )
+        if( option.toUpper() == "SEQUENCE" )
             useSeq = true;
         if( argc > 2 ){
             folder = argv[ 2 ];
@@ -88,44 +108,38 @@ int main( int argc, char* argv[] )
         }
     }
 
-    //String id0( "4002738788" );
-    //String id1( "4002738791" );
-    
-    String id0( "4002738790" );
-    String id1( "4002738788" );
 
-    CameraCalibration camCalib0, camCalib1;
     std::vector<VideoInput*> input;
+    std::vector<CameraCalibration> calibs;
 
     if( useSeq ){
         if( folder[ folder.length() - 1 ] != '/' )
             folder += "/";
-        loadSequenceFromFolder( input,
-                                camCalib0, camCalib1,
-                                id0, id1,
-                                folder );
+        loadSequenceFromFolder( input, calibs, folder );
     } else {
+        calibs.resize( 2 );
+        String id0( "4002738791" );
+        String id1( "4002738788" );
         initCameras( input, id0, id1 );
         String path;
-        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id0.c_str() );
+        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id0.c_str() );
         String calib0 = r.find( path );
-        path.sprintf( "stereoSLAM/calib/ueye_%s.xml", id1.c_str() );
+        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id1.c_str() );
         String calib1 = r.find( path );
-        camCalib0.load( calib0 );
-        camCalib1.load( calib1 );
+        calibs[ 0 ].load( calib0 );
+        calibs[ 1 ].load( calib1 );
     }
 
     std::cout << "Calib0: " << std::endl;
-    std::cout << camCalib0.extrinsics() << std::endl;
-    std::cout << camCalib0.intrinsics() << std::endl;
-    std::cout << camCalib0.projectionMatrix() << std::endl;
-    getchar();
+    std::cout << calibs[ 0 ].extrinsics() << std::endl;
+    std::cout << calibs[ 0 ].intrinsics() << std::endl;
+    std::cout << calibs[ 0 ].projectionMatrix() << std::endl;
 
 
     input[ 0 ]->nextFrame();
     input[ 1 ]->nextFrame();
 
-    StereoSLAMApp slamApp( input, camCalib0, camCalib1 );
+    StereoSLAMApp slamApp( input, calibs );
     Application::run();
 
     return 0;

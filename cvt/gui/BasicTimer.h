@@ -13,6 +13,7 @@
 
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/util/Signal.h>
+#include <iostream>
 #include <stdint.h>
 
 namespace cvt {

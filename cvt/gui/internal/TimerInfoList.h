@@ -14,6 +14,7 @@
 #include <cvt/gui/TimeoutHandler.h>
 
 #include <stdint.h>
+#include <iostream>
 #include <list>
 #include <utility>
 

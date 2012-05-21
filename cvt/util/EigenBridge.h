@@ -28,6 +28,8 @@ namespace cvt
 			template <typename T0, typename T1>
 				static void toEigen( Eigen::Matrix<T0, 2, 1> & e, const Vector2<T1> & c );
 			template <typename T0, typename T1>
+				static void toEigen( Eigen::Matrix<T0, 3, 1> & e, const Vector3<T1> & c );
+			template <typename T0, typename T1>
 				static void toEigen( Eigen::Matrix<T0, 4, 1> & e, const Vector4<T1> & c );
 
 			template <typename T0, typename T1>
@@ -74,6 +76,14 @@ namespace cvt
 		e[ 0 ] = c[ 0 ];
 		e[ 1 ] = c[ 1 ];
 	}
+
+        template <typename T0, typename T1>
+        inline void EigenBridge::toEigen( Eigen::Matrix<T0, 3, 1> & e, const Vector3<T1> & c )
+        {
+                e[ 0 ] = c[ 0 ];
+                e[ 1 ] = c[ 1 ];
+                e[ 2 ] = c[ 2 ];
+        }
 	
 	template <typename T0, typename T1>
 	inline void EigenBridge::toEigen( Eigen::Matrix<T0, 4, 1> & e, const Vector4<T1> & c )

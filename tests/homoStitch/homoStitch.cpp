@@ -83,8 +83,8 @@ void runFromCamera()
 
 int main( int argc, char* argv[] )
 {
-	//runFromCamera();
+    runFromCamera();
 
-	runFromSequence( argc, argv );
+    //runFromSequence( argc, argv );
     return 0;
 }

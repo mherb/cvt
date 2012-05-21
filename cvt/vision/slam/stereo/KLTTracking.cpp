@@ -13,11 +13,11 @@
 namespace cvt
 {
     KLTTracking::KLTTracking( size_t kltOctaves, float scaleFactor ) :
-        _klt( 10 ),
+        _klt( 5 ),
         _numOctaves( kltOctaves ),
         _pyramid( _numOctaves, scaleFactor ),
-        _ssdThreshold( Math::sqr( 50.0f ) ),
-        _sadThreshold( 25 )
+        _ssdThreshold( Math::sqr( 20.0f ) ),
+        _sadThreshold( 20 )
     {
     }
 

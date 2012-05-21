@@ -16,6 +16,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Vector.h>
 #include <cvt/util/Range.h>
+#include <cvt/util/ParamSet.h>
 
 #include <vector>
 
@@ -42,31 +43,26 @@ namespace cvt
                                               const std::vector<Vector2f> & avoidPositionsImg0,
                                               const Image& view0, const Image& view1 ) = 0;
 
-            void setAllowedDepthRange( const Rangef & range ) { _depthRange = range; }
-            const Rangef allowedDepthRange() const { return _depthRange; }
+            virtual ParamSet&                parameters() = 0;
 
             const CameraCalibration& calibration0() const { return _calib0; }
             const CameraCalibration& calibration1() const { return _calib1; }
 
         protected:
             const CameraCalibration & _calib0;
-            const CameraCalibration & _calib1;
-
-            Rangef                    _depthRange;
+            const CameraCalibration & _calib1;            
 
             /* triangulate a new point */
-            float triangulateSinglePoint( Vector4f&			newPoint,
-                                          const Vector2f&	point0,
-                                          const Vector2f&	point1,
-                                          const Matrix4f&	projMat0,
-                                          const Matrix4f&	projMat1 ) const;
+            void triangulateSinglePoint( DepthInitResult&   result,
+                                         const Matrix4f&    projMat0,
+                                         const Matrix4f&    projMat1,
+                                         const Rangef&      depthRange ) const;
 
     };
 
     inline DepthInitializer::DepthInitializer( const CameraCalibration& c0, const CameraCalibration& c1 ) :
         _calib0( c0 ),
-        _calib1( c1 ),
-        _depthRange( 0.1f, 50.0f )
+        _calib1( c1 )
     {
     }
 
@@ -74,33 +70,32 @@ namespace cvt
    {
    }
 
-   inline float DepthInitializer::triangulateSinglePoint( Vector4f&         newPoint,
-                                                          const Vector2f&   point0, const Vector2f& 	point1,
-                                                          const Matrix4f& 	projMat0, const Matrix4f& 	projMat1 ) const
+   inline void DepthInitializer::triangulateSinglePoint( DepthInitResult& result,
+                                                         const Matrix4f&  projMat0,
+                                                         const Matrix4f&  projMat1,
+                                                         const Rangef&    depthRange ) const
    {
        Vector4f repr;
        Vector2f repr2;
 
-       Vision::triangulate( newPoint, projMat0, projMat1, point0, point1 );
+       Vision::triangulate( result.point3d, projMat0, projMat1, result.meas0, result.meas1 );
 
        // normalize 4th coord;
-       newPoint /= newPoint.w;
-       float error = 10000.0f;
-       if( newPoint.z > _depthRange.min && newPoint.z < _depthRange.max ){
-           repr = projMat0 * newPoint;
+       result.point3d /= result.point3d.w;
+       result.reprojectionError = Math::MAXF;
+       if( result.point3d.z > depthRange.min && result.point3d.z < depthRange.max ){
+           repr = projMat0 * result.point3d;
            repr2.x = repr.x / repr.z;
            repr2.y = repr.y / repr.z;
-           error = ( point0 - repr2 ).length();
+           result.reprojectionError = ( result.meas0 - repr2 ).length();
 
-           repr = projMat1 * newPoint;
+           repr = projMat1 * result.point3d;
            repr2.x = repr.x / repr.z;
            repr2.y = repr.y / repr.z;
-           error += ( point1 - repr2 ).length();
+           result.reprojectionError += ( result.meas1 - repr2 ).length();
 
-           error /= 2.0f;
+           result.reprojectionError /= 2.0f;
        }
-
-       return error;
    }
 }
 
