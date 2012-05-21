@@ -48,7 +48,7 @@ namespace cvt
          void clear();
 
          void setPose( const Matrix4d& pose );
-         const SE3<double>& pose() const { return _pose; };
+         const SE3<double>& pose() const { return _pose; }
 
          Signal<const Image&>       newStereoView;
          Signal<const Image&>       trackedFeatureImage;
@@ -85,7 +85,7 @@ namespace cvt
          MapOptimizer       _bundler;
          Image              _lastImage;
 
-         void estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d );
+         void estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3d & p3d, const PointSet2d & p2d );
 
          void debugPatchWorkImage( const std::set<size_t>&          indices,
                                    const std::vector<size_t>&       featureIds,
@@ -93,13 +93,17 @@ namespace cvt
 
          bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
 
-         void fillPointsetFromIds( PointSet3d& pset, const std::vector<size_t>& ids ) const;
+         void fillPointsetFromIds( PointSet3d& pset,
+                                   const std::vector<size_t>& ids ) const;
 
          void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
                               const PointSet2d& p2d,
-                              const std::vector<size_t>& trackedIds );
+                              const std::vector<size_t>& trackedIds,
+                              const std::vector<size_t>& inliers );
 
-         void createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const;
+         void createDebugImageMono( Image & debugImage,
+                                    const PointSet2d & tracked,
+                                    const std::vector<Vector2f> & predPos ) const;
 
          void createDebugImageStereo( Image & debugImage,
                                       const std::vector<DepthInitializer::DepthInitResult>& triang ) const;

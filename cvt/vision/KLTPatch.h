@@ -24,7 +24,7 @@ namespace cvt
     {
         public:
             typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
-                        typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>		   JacType;
+            typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>                 JacType;
 
             KLTPatch( size_t octaves = 1 );
 
@@ -173,13 +173,15 @@ namespace cvt
         if( octave == 0 )
             initPose( pos );
 
-        // TODO: maybe better check by evaluating the determinant of H?
-        bool invertable = true;
-        invH = hess.inverse();
-        if( ( invH * hess - HessType::Identity() ).array().sum() / PoseType::NPARAMS > 1.01 )
-            invertable = false;
 
-        return invertable;
+        float det = hess.determinant();
+
+        if( Math::abs( det ) > 1e-6 ){
+            invH = hess.inverse();
+            return true;
+        }
+
+        return false;
     }
 
     template <size_t pSize, class PoseType>

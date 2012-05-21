@@ -39,14 +39,14 @@ namespace cvt
                                 const Image&                    img );
 
             /**
-             * \brief add a new feature to the known ones! (e.g. after triangulation)
+             * \brief add a new feature to the database! (e.g. after triangulation)
              */
             void addFeatureToDatabase( const Vector2f & f, size_t id );
             void clear();
 
         private:
             typedef GA2<float>          PoseType;
-            static const size_t         PatchSize = 32;
+            static const size_t         PatchSize = 16;
             typedef KLTTracker<PoseType, PatchSize> KLTType;
             typedef KLTType::KLTPType   PatchType;
 
