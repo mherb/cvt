@@ -57,6 +57,86 @@ __kernel void stereoCV( global float* cv, int depth, __read_only image2d_t src1,
 		cvptr[ d * stride ] = costRGB_L1( pixel, buf[ lx + d ] );
 }
 
+__kernel void stereoCV_GRAY_AD( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
+{
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+	const int lx = get_local_id( 0 );
+	const int lw = get_local_size( 0 );
+	const int gid = get_group_id( 0 );
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int base = mul24( gid, lw );
+	const int width = get_image_width( src1 );
+	const int height = get_image_height( src2 );
+	const int buflen = depth + lw;
+	const int stride = mul24( width, height );
+	float pixel;
+	global float* cvptr = cv + ( mul24( gy, width ) + gx );
+
+	/* Fill the local buffer with data from src2 */
+	for( int d = lx; d < buflen; d += lw )
+		buf[ d ] = read_imagef( src2, sampler, ( int2 )( base + d, gy ) ).x;
+
+	barrier( CLK_LOCAL_MEM_FENCE );
+
+	/* we assume src1.width == src2.width == cv.width */
+	if( gx >= width )
+		return;
+
+	/* read current pixel from src1 */
+	pixel = read_imagef( src1, sampler, ( int2 ) ( gx, gy ) ).x;
+
+	/* store the result of the cost function */
+	for( int d = 0; d < depth; d++ )
+		cvptr[ d * stride ] = fabs( pixel - buf[ lx + d ] );
+}
+
+__kernel void stereoCV_GRAY_SAD( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
+{
+#define R 1
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const int lx = get_local_id( 0 );
+	const int lw = get_local_size( 0 );
+	const int gid = get_group_id( 0 );
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int base = mul24( gid, lw );
+	const int width = get_image_width( src1 );
+	const int height = get_image_height( src2 );
+	const int buflen = depth + lw;
+	const int stride = mul24( width, height );
+	float pixel[ ( 2 * R + 1 ) * ( 2 * R + 1 ) ];
+	global float* cvptr = cv + ( mul24( gy, width ) + gx );
+
+	/* Fill the local buffer with data from src2 */
+	for( int d = lx; d < buflen; d += lw )
+		for( int dy =-R; dy <= R; dy++ )
+			for( int dx =-R; dx <= R; dx++ )
+				buf[ d * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * R + dx + R ] = read_imagef( src2, sampler, ( int2 )( base + d + dx, gy + dy ) ).x;
+
+	barrier( CLK_LOCAL_MEM_FENCE );
+
+	/* we assume src1.width == src2.width == cv.width */
+	if( gx >= width )
+		return;
+
+	/* read current pixel from src1 */
+	for( int dy =-R; dy <= R; dy++ )
+		for( int dx =-R; dx <= R; dx++ )
+			pixel[ ( dy + R ) * R + dx + R ] = read_imagef( src1, sampler, ( int2 ) ( gx + dx, gy + dy ) ).x;
+
+	/* store the result of the cost function */
+	for( int d = 0; d < depth; d++ ) {
+		float val = 0;
+		for( int dy =-R; dy <= R; dy++ ) {
+			for( int dx =-R; dx <= R; dx++ ) {
+				val += fabs( pixel[ ( dy + R ) * R + dx + R ] - buf[ ( lx + d ) * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * R + dx + R] );
+			}
+		}
+		cvptr[ d * stride ] = val / ( float ) ( ( 2 * R + 1 ) * ( 2 * R + 1 ) );
+	}
+}
+
 __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv, int depth )
 {
 	const int gx = get_global_id( 0 );
@@ -94,16 +174,20 @@ __kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const floa
 	const int stride = mul24( width, height );
 	global const float* cvptr = cv + ( mul24( gy, width ) + gx );
 	int idx, cmp;
-	float val, nval, cmin, cmax, avg, avg2;
+	float val, val2, nval, cmin, cmax, avg, avg2, curv;
 
 	if( gx >= width || gy >= height )
 		return;
 
 	idx = 0;
 	val = cvptr[ 0 ];
+	val2 = cvptr[ 0 ];
 	cmax = val;
 	cmin = val;
 	avg = val;
+	avg2 = val * val;
+	curv = 0;
+	float nmins = 0;
 
 	for( int d = 1; d < depth; d++ ) {
 		nval = cvptr[ d * stride ];
@@ -112,13 +196,26 @@ __kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const floa
 		cmax = fmax( nval, cmax );
 		cmin = fmin( nval, cmin );
 		cmp = isless( nval, val );
+		val2 = select( val2, val, cmp );
 		val = select( val, nval, cmp );
 		idx = select( idx, d, cmp );
+//		curv += ( cvptr[ ( max( d - 1, 0 ) ) * stride ] + cvptr[ ( min( d + 1, depth - 1 ) ) *stride ] - 2.0f * nval ) < 0;
+//		curv += fabs( cvptr[ ( max( d - 1, 0 ) ) * stride ] - nval );
+
+	/*	if( d < depth - 1 ) {
+			if( cvptr[ ( d - 1 ) * stride ] >= nval && cvptr[ ( d + 1 ) *stride ] >= nval )
+				nmins += 1;
+		}*/
 	}
 
-	avg /= depth;
-	avg2 /= depth;
+	avg /= ( float ) depth;
+	avg2 /= ( float ) depth;
 
+	float gammaval = ( val2 + 1e-4f ) / ( val + 1e-4f );// ( cvptr[ ( max( idx - 1, 0 ) ) * stride ] + cvptr[ ( min( idx + 1, depth - 1 ) ) *stride ] - 2.0f * val );// + clamp( 0.5f - avg, 0.0f, 0.5f );//( avg - cmin ) * ( avg - cmin );//( avg2 - avg * avg );//avg - cmin;
+//	gammaval = gammaval * gammaval;
+#define GAMMA 0.01f
+	gammaval = clamp( ( 1.0 - exp( -0.05f * gammaval ) ), 0.0f, 1.0f ) * 0.25f + 0.5f * exp( -val * 300.0f ) + 0.25f * ( exp( -150.0 * ( avg - val ) ) ); ;//1.0f / ( 1.0f + exp( -( 1.0f * ( val2 / ( val + 1e-4f) - 3.0f ) ) ) );
+	gammaval = clamp( gammaval, 0.0f, 1.0f );
 	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) ( depth - 1 ), cmax - cmin, 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( 1.0f * exp( -1.0f * fabs( avg - cmin ) - 1.0f * ( avg2 - avg * avg ) ), 1e-4f, 1.0f ) , 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( pow( fabs( avg - cmin ) * 1.0f, -1.0f ), 1e-5f, 1.0f ), 0.0f, 1.0f ) );
