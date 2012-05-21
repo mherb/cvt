@@ -128,41 +128,15 @@ class MyWindow : public Window
 
 int main( int argc, char* argv[] )
 {
-	Resources r;
-	String calib0 = r.find( "calib_stereo/ueye_4002738788.xml" );
-	String calib1 = r.find( "calib_stereo/ueye_4002738790.xml" );
-
 	CameraCalibration camCalib0, camCalib1;
-	camCalib0.load( calib0 );
-	camCalib1.load( calib1 );
+	camCalib0.load( argv[1] );
+	camCalib1.load( argv[2] );
 
-	Matrix3f K0, K1, T0rectify, T1rectify;
-	Matrix4f T0, T1;
 
-	Vision::stereoRectification( K0, T0, K1, T1, T0rectify, T1rectify, camCalib0.intrinsics(), camCalib0.extrinsics(), camCalib1.intrinsics(), camCalib1.extrinsics() );
-
-	
-
-/*
-	std::cout << K0.toMatrix4() * T0 << std::endl;
-	std::cout << K1.toMatrix4() * T1 << std::endl;
-	std::cout << T0rectify << std::endl;
-	std::cout << T1rectify << std::endl;
-*/
-	Image i0( r.find( "calib_stereo/ueye_4002738788.png" ) );
-	Image i1( r.find( "calib_stereo/ueye_4002738790.png" ) );
+	Image i0( argv[3] );
+	Image i1( argv[4] );
 	Image id0, id1, tmp0, tmp1;
 	
-	{
-//		Rectf i, min, max;
-//		i.set( 0, 0, i0.width(), i0.height() );
-//		camCalib0.calcUndistortRects( min, max, i );
-
-//		camCalib0.inverseUndistortPoint( Vector2f( 0.0f, 0.0f ) );
-//		camCalib0.setDistortion( camCalib0.radialDistortion(), Vector2f( 0.0f, 0.0f ) );
-
-	}
-
 	Image warp;
 	Vector3f radial = camCalib0.radialDistortion();
 	Vector2f tangential = camCalib0.tangentialDistortion();
@@ -175,62 +149,7 @@ int main( int argc, char* argv[] )
 	warp.reallocate( i0.width(), i0.height() , IFormat::GRAYALPHA_FLOAT );
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i0.width(), i0.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i0.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( tmp1, tmp0, warp );
-#if 0
-	{
-		Rectf min, max, in( 0, 0, i0.width(), i0.height() );
-		Recti imin, imax;
-		camCalib0.calcUndistortRects( min, max, in );
-
-		imin.x = ( int ) Math::round( min.x ) + 250;
-		imin.y = ( int ) Math::round( min.y ) + 250;
-		imin.width = ( int ) Math::round( min.width );
-		imin.height = ( int ) Math::round( min.height );
-		imax.x = ( int ) Math::round( max.x ) + 250;
-		imax.y = ( int ) Math::round( max.y ) + 250;
-		imax.width = ( int ) Math::round( max.width );
-		imax.height = ( int ) Math::round( max.height );
-
-		{
-			GFXEngineImage ge( id0 );
-			GFX g( &ge );
-			g.color() = Color::GREEN;
-			g.drawRect( imin );
-			g.color() = Color::RED;
-			g.drawRect( imax );
-
-			g.color() = Color::BLUE;
-			for( float x = 0; x <= i0.width() - 5.0f; x += 5.0f ) {
-				Vector2f pt1( x, 0.0f );
-				Vector2f pt2( x + 5.0f, 0.0f );
-				pt1 = camCalib0.inverseUndistortPoint( pt1 );
-				pt2 = camCalib0.inverseUndistortPoint( pt2 );
-				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-				pt1.set( x, i0.height() - 1 );
-				pt2.set( x + 5.0f, i0.height() - 1 );
-				pt1 = camCalib0.inverseUndistortPoint( pt1 );
-				pt2 = camCalib0.inverseUndistortPoint( pt2 );
-				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-			}
-			for( float y = 0; y <= i0.height() - 5.0f; y += 5.0f ) {
-				Vector2f pt1( 0, y );
-				Vector2f pt2( 0, y + 5.0f );
-				pt1 = camCalib0.inverseUndistortPoint( pt1 );
-				pt2 = camCalib0.inverseUndistortPoint( pt2 );
-				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-				pt1.set( i0.width() - 1, y );
-				pt2.set( i0.width() - 1, y + 5.0f );
-				pt1 = camCalib0.inverseUndistortPoint( pt1 );
-				pt2 = camCalib0.inverseUndistortPoint( pt2 );
-				g.drawLine( pt1 + Vector2f( 250.0f, 250.0f ), pt2 +Vector2f( 250.0f, 250.0f ) );
-			}
-		}
-	}
-
-	id0.save( "undistort.png" );
-#endif
-//	id0.reallocate( tmp1 ); // WTF - Why ?
-	ITransform::apply( id0, tmp1, T0rectify );
+	IWarp::apply( id0, tmp0, warp );
 
 	radial = camCalib1.radialDistortion();
 	tangential = camCalib1.tangentialDistortion();
@@ -240,15 +159,7 @@ int main( int argc, char* argv[] )
 	cy = camCalib1.intrinsics()[ 1 ][ 2 ];
 	IWarp::warpUndistort( warp, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, i1.width(), i1.height(), radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
 	i1.convert( tmp0, IFormat::RGBA_UINT8 );
-	IWarp::apply( tmp1, tmp0, warp );
-//	id1.reallocate( tmp1 ); // WTF - Why ?
-	ITransform::apply( id1, tmp1, T1rectify );
-
-
-	camCalib0.setIntrinsics( K0 );
-	camCalib0.setExtrinsics( T0 );
-	camCalib1.setIntrinsics( K1 );
-	camCalib1.setExtrinsics( T1 );
+	IWarp::apply( id1, tmp0, warp );
 
 	Matrix3f fundamental;
 	Vision::composeFundamental( fundamental, 
@@ -256,13 +167,6 @@ int main( int argc, char* argv[] )
 								camCalib0.extrinsics(),
 								camCalib1.intrinsics(),
 								camCalib1.extrinsics() );
-
-	/*{
-		Vector3f e0, e1;
-		Vision::epipolesFundamental( e0, e1, fundamental );
-		std::cout << fundamental.transpose() * e0 << std::endl;
-		std::cout << fundamental * e1 << std::endl;
-	}*/
 
 	MyWindow win( fundamental, id0, id1 );
 	win.setSize( 800, 600 );
