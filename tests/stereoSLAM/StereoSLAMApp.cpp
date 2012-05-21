@@ -5,6 +5,7 @@
 
 #include <cvt/vision/slam/stereo/ORBTracking.h>
 #include <cvt/vision/slam/stereo/KLTTracking.h>
+#include <RefinedFASTTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/slam/stereo/ORBStereoInit.h>
 #include <cvt/vision/slam/stereo/PatchStereoInit.h>
@@ -13,8 +14,9 @@ namespace cvt
 {
    StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,const std::vector<CameraCalibration>& calibs ) :
       _cams( cams ),
-      _featureTracking( new ORBTracking() ),
-      //_featureTracking( new KLTTracking( 4, 0.6f ) ),
+      //_featureTracking( new ORBTracking() ),
+      //_featureTracking( new KLTTracking( 3, 0.5f ) ),
+       _featureTracking( new RefinedFASTTracking() ),
       //_depthInit( new ORBStereoInit( c0, c1, 5.0f, 20.0f ) ),
       _depthInit( new PatchStereoInit( calibs[ 0 ], calibs[ 1 ] ) ),
       _slam( _featureTracking, _depthInit, cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 1 ]->width(), cams[ 1 ]->height() ),
