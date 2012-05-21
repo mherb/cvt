@@ -94,6 +94,7 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
 
 int main( int argc, char* argv[] )
 {
+    srand( time(NULL) );
     bool useSeq = false;
     String folder = "";
     Resources r;
