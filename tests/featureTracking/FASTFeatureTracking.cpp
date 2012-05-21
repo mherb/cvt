@@ -7,7 +7,7 @@ namespace cvt
 		_pyramid( 3, 0.5f ),
 		_klt( 5 ),
 		_fastMatchingWindowSqr( Math::sqr( 20 ) ),
-		_fastMinMatchingThreshold( 0.8 ),
+        _fastMaxSADThreshold( 30 ),
 		_kltSSDThreshold( 10.8 )
 	{
 		_detector.setBorder( PatchSize );
@@ -25,15 +25,15 @@ namespace cvt
 											 std::vector<PatchType*>& lost,
 											 std::vector<PatchType*>& predicted,
 											 const Image& image )
-	{
-		std::vector<Feature2Df> currentFeatures;
-
+    {
 		// detect current fast features
 		_associatedIndexes.clear();
 		_currentFeatures.clear();
 		detectCurrentFeatures( image );
 
 		const float maxSSD = Math::sqr( PatchSize ) * _kltSSDThreshold;
+        const float maxSAD = Math::sqr( PatchSize ) * _fastMaxSADThreshold;
+
 		static const size_t nPixels = Math::sqr( PatchSize );
 
 		for( size_t i = 0; i < predicted.size(); i++ ){
@@ -46,9 +46,10 @@ namespace cvt
 				_associatedIndexes.insert( ( size_t )idx );
 
 				// update the current position offset to the one of the fast feature
-				Eigen::Matrix3f& m = patch->pose().transformation();
+                /*Eigen::Matrix3f& m = patch->pose().transformation();
 				m( 0, 2 ) = _currentFeatures[ idx ].pt.x;
-				m( 1, 2 ) = _currentFeatures[ idx ].pt.y;
+                m( 1, 2 ) = _currentFeatures[ idx ].pt.y;*/
+                patch->initPose( _currentFeatures[ idx ].pt );
 
 				// now try to track with klt in multiscale fashion
 				if( _klt.trackPatchMultiscale( *patch, _pyramid ) ){
@@ -57,11 +58,16 @@ namespace cvt
 					float ssd = _simd->SSD( patch->pixels(), patch->transformed(), nPixels );
 					float sad = _simd->SAD( patch->pixels(), patch->transformed(), nPixels );
 
-					if( sad > _fastMinMatchingThreshold && ssd < maxSSD )
+                    if( sad < maxSAD && ssd < maxSSD )
 						tracked.push_back( patch );
-					else 
+                    else {
+                        std::cout << "TrackPatch failed -> sad/ssd check:" << std::endl;
+                        std::cout << " SAD: " << sad / Math::sqr(PatchSize) << std::endl;
+                        std::cout << " SSD: " << ssd / Math::sqr(PatchSize) << std::endl;
 						lost.push_back( patch );
+                    }
 				} else {
+                    std::cout << "TrackPatch failed" << std::endl;
 					lost.push_back( patch );
 				} 
 			} else {
@@ -108,10 +114,10 @@ namespace cvt
 		
 		std::set<size_t>::const_iterator assocEnd = _associatedIndexes.end();
 
-		static const float normalizer = 1.0f / ( Math::sqr( PatchSize ) * 255 );
 		static const float patchHalfOffset = PatchSize / 2.0f;
 
-		float best = _fastMinMatchingThreshold;
+
+        float best = Math::sqr( PatchSize ) * _fastMaxSADThreshold;
 		int idx = -1;
 
 		for( size_t i = 0; i < _currentFeatures.size(); i++ ){
@@ -133,11 +139,9 @@ namespace cvt
 					p1 += PatchSize;
 					p2 += map.stride();
 				}
-
-				float sad = 1.0f - normalizer * sadSum;
 				
-				if( sad > best ){
-					best = sad;
+                if( sadSum < best ){
+                    best = sadSum;
 					idx = i;
 				}
 			}
