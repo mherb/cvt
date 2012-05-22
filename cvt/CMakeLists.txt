@@ -404,6 +404,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/Patch.h
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
+   vision/StereoCameraCalibration.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/AIIKeyframe.h
