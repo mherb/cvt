@@ -223,6 +223,8 @@ namespace cvt {
 										   0, fnew, cright.y,
 										   0,      0,		 1 ) );
 		cam1.setDistortion( Vector3f( 0.0f, 0.0f, 0.0f ), Vector2f( 0.0f, 0.0f ) );
+        stereo.setFirstCamera( cam0 );
+        stereo.setSecondCamera( cam1 );
 	}
 
 }
