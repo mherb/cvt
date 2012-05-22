@@ -50,9 +50,9 @@ namespace cvt
 			Label		_fpsLabel;
 			Button		_resetCamera;
 			Button		_saveMap;
-                        Button		_resetMap;
-                        ParamSetView    _depthInitParamsView;
-                        Moveable        _depthParamsMov;
+            Button          _resetMap;
+            ParamSetView    _depthInitParamsView;
+            Moveable        _depthParamsMov;
 
 
 			float		_imageAspect;
