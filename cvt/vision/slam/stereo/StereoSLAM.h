@@ -18,6 +18,7 @@
 #include <cvt/vision/slam/Keyframe.h>
 #include <cvt/vision/FeatureMatch.h>
 #include <cvt/vision/CameraCalibration.h>
+#include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/slam/stereo/MapOptimizer.h>
@@ -30,9 +31,7 @@ namespace cvt
    class StereoSLAM
    {
       public:
-         StereoSLAM( FeatureTracking* ft, DepthInitializer* di,
-                     size_t w0, size_t h0,
-                     size_t w1, size_t h1 );
+         StereoSLAM( FeatureTracking* ft, DepthInitializer* di );
 
          // new round with two new images, maybe also hand in a pose prediction?
          void newImages( const Image& img0, const Image& img1 );
@@ -58,10 +57,6 @@ namespace cvt
          Signal<size_t>             numTrackedPoints;
 
       private:
-         /* undistortion maps */
-         Image              _undistortMap0;
-         Image              _undistortMap1;
-
          /* undistorted images */
          Image              _undist0;
          Image              _undist1;
@@ -106,9 +101,7 @@ namespace cvt
                                     const std::vector<Vector2f> & predPos ) const;
 
          void createDebugImageStereo( Image & debugImage,
-                                      const std::vector<DepthInitializer::DepthInitResult>& triang ) const;
-
-         void createUndistortionMaps( const CameraCalibration& c0, const CameraCalibration& c1 );
+                                      const std::vector<DepthInitializer::DepthInitResult>& triang ) const;         
    };
 
 }
