@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #include <cvt/vision/Vision.h>
 
@@ -20,76 +20,76 @@
 
 namespace cvt {
 
-	void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale )
-	{
-		Matrix3f Kinv = calibration.intrinsics().inverse();
-		std::vector<Vector3f> pts;
-		std::vector<Vector4f> colors;
+    void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, const CameraCalibration& calibration, float dscale )
+    {
+        Matrix3f Kinv = calibration.intrinsics().inverse();
+        std::vector<Vector3f> pts;
+        std::vector<Vector4f> colors;
 
-		scenepts.clear();
+        scenepts.clear();
 
-		if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
+        if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
             throw CVTException( "unprojectToScenePoints: invalid texture or depth-map!" );
 
-		IMapScoped<const float> tex( texture );
-		IMapScoped<const float> dmap( depthmap );
-		size_t w = depthmap.width();
-		size_t h = depthmap.height();
-		for( size_t y = 0; y < h; y++ ) {
-			const float* dmapptr = dmap.ptr();
-			const float* texptr = tex.ptr();
+        IMapScoped<const float> tex( texture );
+        IMapScoped<const float> dmap( depthmap );
+        size_t w = depthmap.width();
+        size_t h = depthmap.height();
+        for( size_t y = 0; y < h; y++ ) {
+            const float* dmapptr = dmap.ptr();
+            const float* texptr = tex.ptr();
 
-			for( size_t x = 0; x < w; x++ ) {
-				if( dmapptr[ x ] > 0 ) {
-					Vector3f pt = Kinv * Vector3f( x, y, 1.0f );
-					pts.push_back( pt * dmapptr[ x ] * dscale );
-					colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
-				}
-			}
+            for( size_t x = 0; x < w; x++ ) {
+                if( dmapptr[ x ] > 0 ) {
+                    Vector3f pt = Kinv * Vector3f( x, y, 1.0f );
+                    pts.push_back( pt * dmapptr[ x ] * dscale );
+                    colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
+                }
+            }
 
-			dmap++;
-			tex++;
-		}
+            dmap++;
+            tex++;
+        }
 
                 scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
-		scenepts.transform( calibration.extrinsics() );
-	}
+        scenepts.transform( calibration.extrinsics() );
+    }
 
-	void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, float dscale )
-	{
-		std::vector<Vector3f> pts;
-		std::vector<Vector4f> colors;
+    void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, float dscale )
+    {
+        std::vector<Vector3f> pts;
+        std::vector<Vector4f> colors;
 
-		scenepts.clear();
+        scenepts.clear();
 
-		if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
+        if( texture.format() != IFormat::RGBA_FLOAT || depthmap.format() != IFormat::GRAY_FLOAT || texture.width() != depthmap.width() || texture.height() != depthmap.height() )
             throw CVTException( "unprojectToScenePoints: invalid texture or depth-map!" );
 
-		IMapScoped<const float> tex( texture );
-		IMapScoped<const float> dmap( depthmap );
-		size_t w = depthmap.width();
-		size_t h = depthmap.height();
-		float dx = 0.5f * depthmap.width();
-		float dy = 0.5f * depthmap.height();
+        IMapScoped<const float> tex( texture );
+        IMapScoped<const float> dmap( depthmap );
+        size_t w = depthmap.width();
+        size_t h = depthmap.height();
+        float dx = 0.5f * depthmap.width();
+        float dy = 0.5f * depthmap.height();
 
-		for( size_t y = 0; y < h; y++ ) {
-			const float* dmapptr = dmap.ptr();
-			const float* texptr = tex.ptr();
+        for( size_t y = 0; y < h; y++ ) {
+            const float* dmapptr = dmap.ptr();
+            const float* texptr = tex.ptr();
 
-			for( size_t x = 0; x < w; x++ ) {
-				if( dmapptr[ x ] > 0 ) {
-					Vector3f pt = Vector3f( ( x - dx ) / ( float ) w , ( y - dy ) / ( float ) h, dmapptr[ x ] * dscale );
-					pts.push_back( pt );
-					colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
-				}
-			}
+            for( size_t x = 0; x < w; x++ ) {
+                if( dmapptr[ x ] > 0 ) {
+                    Vector3f pt = Vector3f( ( x - dx ) / ( float ) w , ( y - dy ) / ( float ) h, dmapptr[ x ] * dscale );
+                    pts.push_back( pt );
+                    colors.push_back( Vector4f( texptr[ x * 4 + 0 ], texptr[ x * 4 + 1 ], texptr[ x * 4 + 2 ], texptr[ x * 4 + 3 ] ) );
+                }
+            }
 
-			dmap++;
-			tex++;
-		}
+            dmap++;
+            tex++;
+        }
 
                 scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
-	}
+    }
 
         void Vision::unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale )
         {
@@ -118,7 +118,7 @@ namespace cvt {
                     p3d[ 0 ] = tmpx[ x ] * d;
                     p3d[ 1 ] = tmpy[ y ] * d;
                     p3d[ 2 ] = d;
-                    pts.add( p3d );                    
+                    pts.add( p3d );
                 }
                 // next line in depth image
                 depthMap++;
@@ -218,17 +218,91 @@ namespace cvt {
     }
 
     template <typename T>
+    static bool _triangulateMultiView()
+    {
+        bool ret = true;
+
+        Matrix3<T> K( 600.0,   0.0, 320.0,
+                        0.0, 600.0, 240.0,
+                        0.0,   0.0,   1.0 );
+
+        Matrix4<T> T0;
+        T0.setIdentity();
+
+        size_t ncams = 5;
+        std::vector<Matrix4<T> > pmats( ncams );
+        std::vector<Vector2<T> > ipts( ncams );
+
+        for( size_t i = 0; i < 100; i++ ){
+            Vector4<T> truePoint( Math::rand( ( T )-50, ( T )50 ),
+                                  Math::rand( ( T )-50, ( T )50 ),
+                                  Math::rand( ( T )5, ( T )50 ),
+                                  ( T )1 );
+
+            Vector4<T> tmp;
+            Vector2<T> proj;
+            for( size_t c = 0; c < ncams; c++ ){
+                T0.setRotationXYZ( Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+                               Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+                               Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ));
+                T0.setTranslation( Math::rand( ( T )-0.5, ( T )0.5 ),
+                               Math::rand( ( T )-0.5, ( T )0.5 ),
+                               Math::rand( ( T )-0.5, ( T )0.5 ) );
+                T0[ 3 ][ 3 ] = ( T )1;
+
+                Matrix3<T> R = T0.toMatrix3();
+                Matrix4<T> P0( K*R );
+                Vector3<T> t( T0[ 0 ][ 3 ], T0[ 1 ][ 3 ], T0[ 2 ][ 3 ] );
+                t = K * t;
+                P0[ 0 ][ 3 ] = t[ 0 ];
+                P0[ 1 ][ 3 ] = t[ 1 ];
+                P0[ 2 ][ 3 ] = t[ 2 ];
+                P0[ 3 ][ 3 ] = ( T )1;
+                pmats[ c ] = P0;
+
+                tmp = P0 * truePoint;
+                proj[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
+                proj[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
+
+                proj[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+                proj[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+
+                ipts[ c ] = proj;
+            }
+
+            Vision::triangulate( tmp, &pmats[ 0 ], &ipts[ 0 ], ncams );
+
+            // normalize
+            tmp *= ( T )1 / tmp[ 3 ];
+
+            bool b = ( ( tmp - truePoint ).length() < 3 );
+            ret &= b;
+
+            if( !b ){
+                std::cout << "Ground Truth point:\t\t" << truePoint << std::endl;
+                std::cout << "Estimated \t\t: " << tmp << std::endl;
+                std::cout << "Distance \t\t: " << ( tmp - truePoint ).length()  << std::endl;
+            }
+        }
+
+        return ret;
+    }
+
+    template <typename T>
     static bool _triangulate()
     {
         bool ret = true;
 
-        Matrix3<T> K( 230.0,   0.0, 320.0,
-                        0.0, 235.0, 240.0,
+        Matrix3<T> K( 600.0,   0.0, 320.0,
+                        0.0, 600.0, 240.0,
                         0.0,   0.0,   1.0 );
 
-		Matrix4<T> T0;
-		T0.setIdentity();
-		Matrix3<T> fund;
+        Matrix4<T> T0;
+        T0.setIdentity();
+        Matrix3<T> fund;
+
+        std::vector<Matrix4<T> > pmats( 2 );
+        std::vector<Vector2<T> > ipts( 2 );
 
         for( size_t i = 0; i < 100; i++ ){
             Matrix4<T> T1;
@@ -241,10 +315,10 @@ namespace cvt {
             T1[ 3 ][ 3 ] = ( T )1;
 
 
-			Vision::composeFundamental( fund, K, T0, K, T1 );
+            Vision::composeFundamental( fund, K, T0, K, T1 );
 
-            Vector4<T> truePoint( Math::rand( ( T )-100, ( T )100 ),
-                                  Math::rand( ( T )-100, ( T )100 ),
+            Vector4<T> truePoint( Math::rand( ( T )-50, ( T )50 ),
+                                  Math::rand( ( T )-50, ( T )50 ),
                                   Math::rand( ( T )5, ( T )50 ),
                                   ( T )1 );
 
@@ -253,12 +327,14 @@ namespace cvt {
             Vector3<T> t( T1[ 0 ][ 3 ], T1[ 1 ][ 3 ], T1[ 2 ][ 3 ] );
 
             t = K * t;
-            P1[ 0][  3 ] = t[ 0 ];
-            P1[ 1][  3 ] = t[ 1 ];
-            P1[ 2][  3 ] = t[ 2 ];
+            P1[ 0 ][ 3 ] = t[ 0 ];
+            P1[ 1 ][ 3 ] = t[ 1 ];
+            P1[ 2 ][ 3 ] = t[ 2 ];
             P1[ 3 ][ 3 ] = ( T )1;
             P0[ 3 ][ 3 ] = ( T )1;
 
+            pmats[ 0 ] = P0;
+            pmats[ 1 ] = P1;
 
             Vector4<T> tmp;
             Vector2<T> proj0, proj1;
@@ -270,18 +346,22 @@ namespace cvt {
             proj1[ 0 ] = tmp[ 0 ] / tmp[ 2 ];
             proj1[ 1 ] = tmp[ 1 ] / tmp[ 2 ];
 
-			proj0[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
-			proj0[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
-			proj1[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
-			proj1[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+            proj0[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+            proj0[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+            proj1[ 0 ] += Math::rand( ( T )-0.2, ( T )0.2 );
+            proj1[ 1 ] += Math::rand( ( T )-0.2, ( T )0.2 );
 
-			Vision::correctCorrespondencesSampson( proj0, proj1, fund );
-            Vision::triangulate( tmp, P0, P1, proj0, proj1 );
+            Vision::correctCorrespondencesSampson( proj0, proj1, fund );
+
+            ipts[ 0 ] = proj0;
+            ipts[ 1 ] = proj1;
+            //Vision::triangulate( tmp, P0, P1, proj0, proj1 );
+            Vision::triangulate( tmp, &pmats[ 0 ], &ipts[ 0 ], 2 );
 
             // normalize
             tmp *= ( T )1 / tmp[ 3 ];
 
-            bool b = ( ( tmp - truePoint ).length() < 5 );
+            bool b = ( ( tmp - truePoint ).length() < 3 );
             ret &= b;
 
             if( !b ){
@@ -312,6 +392,10 @@ BEGIN_CVTTEST( Vision )
     testResult &= b;
     b = _triangulate<double>();
     CVTTEST_PRINT( "triangulate<double>()\t", b );
+    testResult &= b;
+
+    b = _triangulateMultiView<double>();
+    CVTTEST_PRINT( "triangulateMultiView<double>()\t", b );
     testResult &= b;
 
     return testResult;
