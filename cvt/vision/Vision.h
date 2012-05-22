@@ -66,6 +66,15 @@ namespace cvt
                                  const Vector2<T>& p1 );
 
         /**
+         *  \brief Triangulate from n views
+         */
+        template<typename T>
+        static void triangulate( Vector4<T> & p3d,
+                                 const Matrix4<T>* projMats,
+                                 const Vector2<T>* imgPts,
+                                 size_t n );
+
+        /**
          *	@brief	Construct fundamental matrix (cam 0 to cam1) out of calibration data
          *	@param	f	output fundamental matrix
          *	@param	K0	intrinsics of camera 0
@@ -396,25 +405,25 @@ namespace cvt
     {
         Eigen::Matrix<T, 4, 4> A;
 
-        A( 0, 0 ) = p0.x * proj0[ 2 ][ 0 ] - proj0[ 0 ][ 0 ];
-        A( 0, 1 ) = p0.x * proj0[ 2 ][ 1 ] - proj0[ 0 ][ 1 ];
-        A( 0, 2 ) = p0.x * proj0[ 2 ][ 2 ] - proj0[ 0 ][ 2 ];
-        A( 0, 3 ) = p0.x * proj0[ 2 ][ 3 ] - proj0[ 0 ][ 3 ];
+        A( 0, 0 ) = -p0.x * proj0[ 2 ][ 0 ] + proj0[ 0 ][ 0 ];
+        A( 0, 1 ) = -p0.x * proj0[ 2 ][ 1 ] + proj0[ 0 ][ 1 ];
+        A( 0, 2 ) = -p0.x * proj0[ 2 ][ 2 ] + proj0[ 0 ][ 2 ];
+        A( 0, 3 ) = -p0.x * proj0[ 2 ][ 3 ] + proj0[ 0 ][ 3 ];
 
-        A( 1, 0 ) = p0.y * proj0[ 2 ][ 0 ] - proj0[ 1 ][ 0 ];
-        A( 1, 1 ) = p0.y * proj0[ 2 ][ 1 ] - proj0[ 1 ][ 1 ];
-        A( 1, 2 ) = p0.y * proj0[ 2 ][ 2 ] - proj0[ 1 ][ 2 ];
-        A( 1, 3 ) = p0.y * proj0[ 2 ][ 3 ] - proj0[ 1 ][ 3 ];
+        A( 1, 0 ) = -p0.y * proj0[ 2 ][ 0 ] + proj0[ 1 ][ 0 ];
+        A( 1, 1 ) = -p0.y * proj0[ 2 ][ 1 ] + proj0[ 1 ][ 1 ];
+        A( 1, 2 ) = -p0.y * proj0[ 2 ][ 2 ] + proj0[ 1 ][ 2 ];
+        A( 1, 3 ) = -p0.y * proj0[ 2 ][ 3 ] + proj0[ 1 ][ 3 ];
 
-        A( 2, 0 ) = p1.x * proj1[ 2 ][ 0 ] - proj1[ 0 ][ 0 ];
-        A( 2, 1 ) = p1.x * proj1[ 2 ][ 1 ] - proj1[ 0 ][ 1 ];
-        A( 2, 2 ) = p1.x * proj1[ 2 ][ 2 ] - proj1[ 0 ][ 2 ];
-        A( 2, 3 ) = p1.x * proj1[ 2 ][ 3 ] - proj1[ 0 ][ 3 ];
+        A( 2, 0 ) = -p1.x * proj1[ 2 ][ 0 ] + proj1[ 0 ][ 0 ];
+        A( 2, 1 ) = -p1.x * proj1[ 2 ][ 1 ] + proj1[ 0 ][ 1 ];
+        A( 2, 2 ) = -p1.x * proj1[ 2 ][ 2 ] + proj1[ 0 ][ 2 ];
+        A( 2, 3 ) = -p1.x * proj1[ 2 ][ 3 ] + proj1[ 0 ][ 3 ];
 
-        A( 3, 0 ) = p1.y * proj1[ 2 ][ 0 ] - proj1[ 1 ][ 0 ];
-        A( 3, 1 ) = p1.y * proj1[ 2 ][ 1 ] - proj1[ 1 ][ 1 ];
-        A( 3, 2 ) = p1.y * proj1[ 2 ][ 2 ] - proj1[ 1 ][ 2 ];
-        A( 3, 3 ) = p1.y * proj1[ 2 ][ 3 ] - proj1[ 1 ][ 3 ];
+        A( 3, 0 ) = -p1.y * proj1[ 2 ][ 0 ] + proj1[ 1 ][ 0 ];
+        A( 3, 1 ) = -p1.y * proj1[ 2 ][ 1 ] + proj1[ 1 ][ 1 ];
+        A( 3, 2 ) = -p1.y * proj1[ 2 ][ 2 ] + proj1[ 1 ][ 2 ];
+        A( 3, 3 ) = -p1.y * proj1[ 2 ][ 3 ] + proj1[ 1 ][ 3 ];
 
         Eigen::JacobiSVD<Eigen::Matrix<T, 4, 4> > svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
 
@@ -423,6 +432,41 @@ namespace cvt
         point3d[ 1 ] = v[ 1 ];
         point3d[ 2 ] = v[ 2 ];
         point3d[ 3 ] = v[ 3 ];
+    }
+
+
+    template<typename T>
+    inline void Vision::triangulate( Vector4<T> & p3d,
+                                     const Matrix4<T>* projMats,
+                                     const Vector2<T>* imgPts,
+                                     size_t n )
+    {
+        Eigen::Matrix<T, Eigen::Dynamic, 4> A( 2 * n, 4 );
+
+        size_t idx = 0;
+        for( size_t i = 0; i < n; i++ ){
+            const Matrix4<T> & P = projMats[ i ];
+            const Vector2<T> & u = imgPts[ i ];
+
+            A( idx, 0 ) =  P[ 0 ][ 0 ] - u.x * P[ 2 ][ 0 ];
+            A( idx, 1 ) =  P[ 0 ][ 1 ] - u.x * P[ 2 ][ 1 ];
+            A( idx, 2 ) =  P[ 0 ][ 2 ] - u.x * P[ 2 ][ 2 ];
+            A( idx++, 3 ) =  P[ 0 ][ 3 ] - u.x * P[ 2 ][ 3 ];
+
+            A( idx, 0 ) =  P[ 1 ][ 0 ] - u.y * P[ 2 ][ 0 ];
+            A( idx, 1 ) =  P[ 1 ][ 1 ] - u.y * P[ 2 ][ 1 ];
+            A( idx, 2 ) =  P[ 1 ][ 2 ] - u.y * P[ 2 ][ 2 ];
+            A( idx++, 3 ) =  P[ 1 ][ 3 ] - u.y * P[ 2 ][ 3 ];
+
+        }
+
+        Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, 4> > svd( A, Eigen::ComputeFullU | Eigen::ComputeFullV );
+
+        const Eigen::Matrix<T, 4, 1> & v = svd.matrixV().col( 3 );
+        p3d[ 0 ] = v[ 0 ];
+        p3d[ 1 ] = v[ 1 ];
+        p3d[ 2 ] = v[ 2 ];
+        p3d[ 3 ] = v[ 3 ];
     }
 
     template<typename T>
