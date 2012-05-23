@@ -6,6 +6,7 @@
 #include <cvt/cl/CLBuffer.h>
 #include <cvt/util/String.h>
 #include <cvt/util/Time.h>
+#include <cvt/gfx/ifilter/ColorCode.h>
 
 #include <cvt/cl/kernel/fgp/fgpgrayweightedhuber.h>
 #include <cvt/cl/kernel/fgp/fgpgrayweightedhuber_data.h>
@@ -41,15 +42,15 @@ int main( int argc, char** argv )
 	//right.convert( clright, IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 	try {
-		float theta = 0.5f;
+		float theta = 0.2f;
 		float lambda = 1.0f;
 		float t, told;
-		int inner = 10, outer = 40, n = 0, i = 0;
+		int inner = 20, outer = 50, n = 0, i = 0;
 		CLKernel kernclear( _clear_source, "clear" );
 		CLKernel kernfgp( _fgpgrayweightedhuber_source, "fgp" );
 		CLKernel kernfgpdata( _fgpgrayweightedhuber_data_source, "fgp_data" );
-		CLKernel kerncv( _stereoCV_source, "stereoCV" );
-		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTAMINMAX" );
+		CLKernel kerncv( _stereoCV_source, "stereoCV_GRAY_SAD" );
+		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTA" );
 		CLKernel kerncvqsearch( _stereoCVQSearch_source, "stereoCV_QSearch" );
 		CLKernel kernextractr( _imageutil_source, "image_rgba_to_gray_x" );
 		CLKernel kernexpw( _imageutil_source, "image_gradexp_to_x" );
@@ -60,7 +61,7 @@ int main( int argc, char** argv )
 		kerncv.setArg( 1, depth );
 		kerncv.setArg( 2, clright );
 		kerncv.setArg( 3, clleft );
-		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( depth + 256 ) ) );
+		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 9 * ( depth + 256 ) ) );
 		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
 
 		kerncvwta.setArg( 0, cldmaptmp );
@@ -84,8 +85,8 @@ int main( int argc, char** argv )
 			kernclear.run( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
 
 
-#define THETA  1.0f
-#define LAMBDA 4.0f
+#define THETA  0.5f
+#define LAMBDA 1.0f
 #define BETA 0.001f
 #define KSIZE 16
 //#define DEBUGIMAGE 1
@@ -94,7 +95,7 @@ int main( int argc, char** argv )
 
 		while( i < outer ) {
 		//	theta = 0.01f;
-			theta = THETA * ( exp( -4.0f * Math::sqr( ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) ) + 1e-4f;
+			theta = THETA * ( exp( -5.0f * Math::sqr( ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) ) + 1e-6f;
 		//	lambda = LAMBDA * ( 1.0f -  ( ( float )  i ) / ( float ) ( outer - 1 ) ) + 1.0f;
 		//	lambda = LAMBDA * ( exp( -20.0f * ( ( float )  i ) / ( float ) ( outer - 1 ) ) ) + 1.0f;
 
@@ -136,7 +137,7 @@ int main( int argc, char** argv )
 			}
 #endif
 
-			std::cout << "Theta: " << theta << std::endl;
+			//std::cout << "Theta: " << theta << std::endl;
 			kerncvqsearch.setArg( 0, cldmap );
 			kerncvqsearch.setArg( 1, cldmaptmp );
 			kerncvqsearch.setArg( 2, cv );
@@ -169,7 +170,16 @@ int main( int argc, char** argv )
 			kernextractr.runWait( CLNDRange( Math::pad16( cldmap.width() ), Math::pad16( cldmap.height() ) ), CLNDRange( 16, 16 ) );
 			output.save("d.cvtraw");
 			right.save("c.cvtraw");
+			{
+				Image tmp;
+				right.convert( tmp, IFormat::RGBA_UINT8 );
+				tmp.save("c.png");
+			}
 			output.save( "dmapcvtvl1.png" );
+			Image tmp;
+			ColorCode::apply( tmp, output, 1.0f, 0.0f );
+			tmp.save("dmap-color-cvtvl1.png");
+
 		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;

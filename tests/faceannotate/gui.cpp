@@ -23,7 +23,7 @@ class FaceUI : public Window
 		img.load( imgstr.c_str() );
 		_glimage.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 		try {
-			IConvert::convert( _glimage, img );
+			IConvert::convert( _glimage, img, ICONVERT_DEBAYER_LINEAR );
 		} catch( Exception e ) {
 			std::cerr << "Conversion error: " << e.what() << std::endl;
 		}

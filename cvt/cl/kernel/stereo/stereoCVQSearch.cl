@@ -69,6 +69,6 @@ __kernel void stereoCV_QSearch( __write_only image2d_t dmap, __read_only image2d
 		in.x = ( ( float ) idx - 1.0f *  dx / d2x ) / scale;
 	} else
 #endif
-		in.x = ( float ) idx / scale;
+	in.x = ( float ) idx / scale;
 	write_imagef( dmap, ( int2 ) ( gx, gy ), in );
 }

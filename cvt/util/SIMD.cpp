@@ -4654,6 +4654,193 @@ namespace cvt {
         *dst++ = v;
     }
 
+#define HQPTR(x,off) ( ( int ) *((x)+off) )
+
+#define BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p3,-1) + HQPTR(p3,1) + HQPTR(p2,0) + HQPTR(p4,0) ) << 1 ) \
+												 + ( HQPTR(p3,0) << 2 ) - HQPTR(p1,0) - HQPTR(p5,0) - HQPTR(p3,-2) - HQPTR(p3,2) ) >> 3 )
+
+#define BAYER_HQ_G_AT_B( p1, p2, p3, p4, p5 ) BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 )
+
+
+#define BAYER_HQ_R_AT_G_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p3,-1) + HQPTR(p3, 1) ) << 2 ) + ( HQPTR(p3,0) << 2 ) + HQPTR(p3,0) \
+													  - HQPTR(p2,-1) - HQPTR(p2,+1) - HQPTR(p4,-1) - HQPTR(p4,1) - HQPTR(p3,-2) - HQPTR(p3,+2) + \
+													( ( HQPTR(p1,0) + HQPTR(p5,0) ) >> 1 ) ) >> 3 )
+
+#define BAYER_HQ_B_AT_G_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p2,0) + HQPTR(p4, 0) ) << 2 ) + ( HQPTR(p3,0) << 2 ) + HQPTR(p3,0) \
+													  - HQPTR(p2,-1) - HQPTR(p2,+1) - HQPTR(p4,-1) - HQPTR(p4,1) - HQPTR(p1,0) - HQPTR(p5,0) + \
+													( ( HQPTR(p3,-2) + HQPTR(p3,+2) ) >> 1 ) ) >> 3 )
+
+
+#define BAYER_HQ_B_AT_R_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p2,-1) + HQPTR(p2, 1) + HQPTR(p4,-1) + HQPTR(p4,1) ) << 1 ) + ( ( HQPTR(p3,0) << 2 ) + ( HQPTR(p3,0) << 1 ) ) \
+													- ( HQPTR(p3,-2) + HQPTR(p3,+2) + HQPTR(p1,0) + HQPTR(p5,0) ) \
+													- ( ( HQPTR(p3,-2) + HQPTR(p3,+2) + HQPTR(p1,0) + HQPTR(p5,0) ) >> 1  ) ) >> 3 )
+
+#define BAYER_HQ_R_AT_G_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_B_AT_G_EVEN( p1, p2, p3, p4, p5 )
+
+#define BAYER_HQ_B_AT_G_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_R_AT_G_EVEN( p1, p2, p3, p4, p5 )
+
+#define BAYER_HQ_R_AT_B_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_B_AT_R_EVEN( p1, p2, p3, p4, p5 )
+
+    void SIMD::debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
+											 const uint32_t* _src4, const uint32_t* _src5, size_t n ) const
+	{
+		uint32_t v;
+		const uint8_t* src1 = ( const uint8_t* ) _src1;
+		const uint8_t* src2 = ( const uint8_t* ) _src2;
+		const uint8_t* src3 = ( const uint8_t* ) _src3;
+		const uint8_t* src4 = ( const uint8_t* ) _src4;
+		const uint8_t* src5 = ( const uint8_t* ) _src5;
+
+		v = 0xff000000;
+		v |= *src3; // RED
+		v |= BAYER_MIX4( HQPTR(src3,1), HQPTR(src3,1), HQPTR(src2,0), HQPTR(src4,0) ) << 8; // GREEN
+		v |= BAYER_MIX2( HQPTR(src2,1), HQPTR(src4,1) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= BAYER_MIX2( HQPTR(src3,1), HQPTR(src3,-1) ); // RED
+		v |= *src3 << 8; // GREEN
+		v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		size_t i = ( n - 4 ) >> 1;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= *src3; // RED
+			v |= Math::clamp( BAYER_HQ_G_AT_R( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 8; // GREEN
+			v |= Math::clamp( BAYER_HQ_B_AT_R_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+			src4++;
+			src5++;
+
+			v = 0xff000000;
+			v |= Math::clamp( BAYER_HQ_R_AT_G_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+			v |= ( *src3 ) << 8; // GREEN
+			v |= Math::clamp( BAYER_HQ_B_AT_G_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+			src4++;
+			src5++;
+		}
+
+		v = 0xff000000;
+		v |= *src3; // RED
+		v |= BAYER_MIX4( HQPTR(src3,-1), HQPTR(src3,1), HQPTR(src2,0), HQPTR(src4,0) ) << 8; // GREEN
+		v |= BAYER_MIX4( HQPTR(src2,-1), HQPTR(src4,-1), HQPTR(src2,1), HQPTR(src4,1) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= *( src3 - 1 ); // RED
+		v |= *src3 << 8; // GREEN
+		v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+	}
+
+    void SIMD::debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
+											 const uint32_t* _src4, const uint32_t* _src5, size_t n ) const
+	{
+		uint32_t v;
+		const uint8_t* src1 = ( const uint8_t* ) _src1;
+		const uint8_t* src2 = ( const uint8_t* ) _src2;
+		const uint8_t* src3 = ( const uint8_t* ) _src3;
+		const uint8_t* src4 = ( const uint8_t* ) _src4;
+		const uint8_t* src5 = ( const uint8_t* ) _src5;
+
+		v = 0xff000000;
+		v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ); // RED
+		v |= *src3 << 8; // GREEN
+		v |= *(src3+1) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= BAYER_MIX4( HQPTR(src2,-1), HQPTR(src4,-1), HQPTR(src2,1), HQPTR(src4,1) ); // RED
+		v |= BAYER_MIX4( HQPTR(src2,0), HQPTR(src4,0), HQPTR(src3,-1), HQPTR(src3,1) ) << 8; // GREEN
+		v |= *src3 << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		size_t i = ( n - 4 ) >> 1;
+		while( i-- ) {
+			v = 0xff000000;
+			v |= Math::clamp( BAYER_HQ_R_AT_G_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+			v |= *src3 << 8; // GREEN
+			v |= Math::clamp( BAYER_HQ_B_AT_G_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+			src4++;
+			src5++;
+
+			v = 0xff000000;
+			v |= Math::clamp( BAYER_HQ_R_AT_B_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+			v |= Math::clamp( BAYER_HQ_G_AT_B( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 8; // GREEN
+			v |= *src3 << 16; // BLUE
+			*dst++ = v;
+			src1++;
+			src2++;
+			src3++;
+			src4++;
+			src5++;
+		}
+
+		v = 0xff000000;
+		v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ); // RED
+		v |= *src3 << 8; // GREEN
+		v |= BAYER_MIX2( HQPTR(src3,-1), HQPTR(src3,1) ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= BAYER_MIX2( HQPTR(src2,-1), HQPTR(src4,-1) ); // RED
+		v |= BAYER_MIX4( HQPTR(src2,0), HQPTR(src4,0), HQPTR(src3,-1), HQPTR(src3,-1) ) << 8; // GREEN
+		v |= *src3 << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+	}
+
 #define _IIR_INITIAL4( c )\
         l0[ c ] = n[ 0 ] * x0[ c ] + n[ 1 ] * x0[ c ] + n[ 2 ] * x0[ c ] + n[ 3 ] * x0[ c ]\
             - b * ( d[ 0 ] * x0[ c ] + d[ 1 ] * x0[ c ] + d[ 2 ] * x0[ c ] + d[ 3 ] * x0[ c ] );\
