@@ -126,8 +126,6 @@ namespace cvt
         Eigen::Matrix3d K;
         Eigen::Matrix4d ext( Eigen::Matrix4d::Identity() ), me;
 
-        std::cout << "Num inlier: " << inlierIndices.size() << std::endl;
-
         PointCorrespondences3d2d<double> pointCorresp( K, ext );
         EigenBridge::toEigen( me, res );
         pointCorresp.setPose( me );

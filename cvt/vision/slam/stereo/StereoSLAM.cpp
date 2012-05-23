@@ -10,9 +10,10 @@
  */
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
 
-//#include <cvt/vision/EPnP.h>
+
 #include <cvt/math/sac/RANSAC.h>
 #include <cvt/math/sac/P3PSac.h>
+#include <cvt/math/sac/EPnPSAC.h>
 #include <cvt/math/LevenbergMarquard.h>
 #include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
@@ -24,49 +25,40 @@
 
 namespace cvt
 {
-   StereoSLAM::StereoSLAM( FeatureTracking* ft,
-                           DepthInitializer* di,
-                           size_t w0, size_t h0,
-                           size_t w1, size_t h1 ):
+   StereoSLAM::StereoSLAM( FeatureTracking* ft, DepthInitializer* di ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 60 ),
+       _minTrackedFeatures( 30 ),
        _activeKF( -1 ),
-       _minKeyframeDistance( 0.01 ),
-       _maxKeyframeDistance( 0.02 )
+       _minKeyframeDistance( 0.2 ),
+       _maxKeyframeDistance( 0.4 )
    {
-       const CameraCalibration& c0 = _depthInit->calibration0();
-       const CameraCalibration& c1 = _depthInit->calibration1();
-
-      // create the undistortion maps
-      _undistortMap0.reallocate( w0, h0, IFormat::GRAYALPHA_FLOAT );
-      _undistortMap1.reallocate( w1, h1, IFormat::GRAYALPHA_FLOAT );
-      createUndistortionMaps( c0, c1 );
-
       Eigen::Matrix3d K;
-      EigenBridge::toEigen( K, c0.intrinsics() );
+      EigenBridge::toEigen( K, _depthInit->calibration0().intrinsics() );
       _map.setIntrinsics( K );
    }
 
    void StereoSLAM::newImages( const Image& img0, const Image& img1 )
    {
       // undistort the first image
-      IWarp::apply( _undist0, img0, _undistortMap0 );
+      IWarp::apply( _undist0, img0, _depthInit->undistortionMap0() );
 
       // predict current visible features by projecting with current estimate of pose
       std::vector<Vector2f> predictedPositions;
       std::vector<size_t>   predictedFeatureIds;
       _map.selectVisibleFeatures(  predictedFeatureIds, predictedPositions,
-                                  _pose.transformation(), _depthInit->calibration0(), 1.0f /* TODO: make it a param */  );
+                                  _pose.transformation(), _depthInit->calibration0(), 0.3f /* TODO: make it a param */  );
 
       // track the predicted features
       PointSet2d p2d;
       std::vector<size_t>   trackedIds;
+
+
       _featureTracking->trackFeatures( p2d, trackedIds,
                                        predictedPositions, predictedFeatureIds, _undist0 );
 
       Image debugMono;
-      createDebugImageMono( debugMono, p2d );
+      createDebugImageMono( debugMono, p2d, predictedPositions );
       trackedFeatureImage.notify( debugMono );
 
       /* get the 3d points from the map */
@@ -75,16 +67,19 @@ namespace cvt
 
       numTrackedPoints.notify( p2d.size() );
       size_t numTrackedFeatures = p3d.size();
+
+      std::vector<size_t> trackingInliers;
       if( numTrackedFeatures > 6 ){
-         estimateCameraPose( p3d, p2d );
+         estimateCameraPose( trackingInliers, p3d, p2d );
+         std::cout << "Inliers: " << trackingInliers.size() << std::endl;
       } else {
          // too few features -> lost track: relocalization needed
           std::cout << "Too few features tracked - relocalization needed" << std::endl;
       }
 
-      if( newKeyframeNeeded( numTrackedFeatures ) ){
+      if( newKeyframeNeeded( trackingInliers.size() ) ){
          // undistort the second view
-         IWarp::apply( _undist1, img1, _undistortMap1 );
+         IWarp::apply( _undist1, img1, _depthInit->undistortionMap1() );
 
          // wait until current ba thread is ready
          if( _bundler.isRunning() ){
@@ -92,10 +87,11 @@ namespace cvt
          }
 
          std::vector<Vector2f> avoidPos;
-         avoidPos.resize( p2d.size() );
-         for( size_t i = 0; i < p2d.size(); ++i ){
-             avoidPos[ i ].x = p2d[ i ].x;
-             avoidPos[ i ].y = p2d[ i ].y;
+         avoidPos.resize( trackingInliers.size() );
+         for( size_t i = 0; i < trackingInliers.size(); ++i ){
+             size_t idx = trackingInliers[ i ];
+             avoidPos[ i ].x = p2d[ idx ].x;
+             avoidPos[ i ].y = p2d[ idx ].y;
          }
 
          std::vector<DepthInitializer::DepthInitResult> triangulated;
@@ -105,9 +101,9 @@ namespace cvt
          createDebugImageStereo( debugStereo, triangulated );
          newStereoView.notify( debugStereo );
 
-         if( ( triangulated.size() + numTrackedFeatures ) > 10 ){
+         if( ( triangulated.size() + trackingInliers.size() ) > 10 ){
              // create new keyframe with map features
-             addNewKeyframe( triangulated, p2d, trackedIds );
+             addNewKeyframe( triangulated, p2d, trackedIds, trackingInliers );
 
              if( _map.numKeyframes() > 2 ){
                _bundler.run( &_map );
@@ -129,7 +125,7 @@ namespace cvt
          std::cout << "Active KF: " << _activeKF << std::endl;
    }
 
-   void StereoSLAM::estimateCameraPose( const PointSet3d & p3d, const PointSet2d & p2d )
+   void StereoSLAM::estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3d & p3d, const PointSet2d & p2d )
    {
       const Matrix3f & kf = _depthInit->calibration0().intrinsics();
       Matrix3d k, kinv;
@@ -137,21 +133,38 @@ namespace cvt
           for( size_t c = 0; c < 3; c++ )
               k[ r ][ c ] = kf[ r ][ c ];
       kinv = k.inverse();
-      P3PSac model( p3d, p2d, k, kinv );
-      RANSAC<P3PSac> ransac( model, 3.0, 0.2 );
-      Matrix4d estimated = ransac.estimate( 2000 );
+
+      //P3PSac model( p3d, p2d, k, kinv );
+      //RANSAC<P3PSac> ransac( model, 5.0, 0.2 );
+      EPnPSAC model( p3d, p2d, k );
+      RANSAC<EPnPSAC> ransac( model, 5.0, 0.4 );
+
+
+      Matrix4d estimated;
+      float inlierPercentage = 0.0f;
+
+      float minInThresh = 0.6f;
+      size_t iter = 0;
+      while( inlierPercentage < minInThresh ){
+        estimated = ransac.estimate( 3000 );
+        inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
+        std::cout << "Inlier Percentage: " << inlierPercentage << std::endl;
+        iter++;
+
+        if( iter == 10 ){
+            minInThresh *= 0.9f;
+            iter = 0;
+        }
+      }
 
       Eigen::Matrix4d me;
       EigenBridge::toEigen( me, estimated );
       _pose.set( me );
 
-
-
+      inlierIndices = ransac.inlierIndices();
 
       Matrix4f mf;
-      EigenBridge::toCVT( mf, me );
-      std::cout << mf << std::endl;
-      std::cout << estimated << std::endl;
+      EigenBridge::toCVT( mf, me );      
       newCameraPose.notify( mf );
    }
 
@@ -177,7 +190,8 @@ namespace cvt
 
    void StereoSLAM::addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
                                    const PointSet2d& p2d,
-                                   const std::vector<size_t>& trackedIds )
+                                   const std::vector<size_t>& trackedIds,
+                                   const std::vector<size_t>& inliers )
    {
        Eigen::Matrix4d poseInv = _pose.transformation().inverse();
        size_t kid = _map.addKeyframe( _pose.transformation() );
@@ -187,6 +201,7 @@ namespace cvt
        MapFeature     mf;
 
        mm.information.setIdentity();
+       mm.information *= 0.15;
 
        for( size_t i = 0; i < triangulated.size(); ++i ){
            const DepthInitializer::DepthInitResult & res = triangulated[ i ];
@@ -197,11 +212,13 @@ namespace cvt
 
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
            _featureTracking->addFeatureToDatabase( res.meas0, featureId );
+
        }
 
-       for( size_t i = 0; i < trackedIds.size(); i++ ){
-           EigenBridge::toEigen( mm.point, p2d[ i ] );
-           _map.addMeasurement( trackedIds[ i ], kid, mm );
+       for( size_t i = 0; i < inliers.size(); i++ ){
+           size_t idx = inliers[ i ];
+           EigenBridge::toEigen( mm.point, p2d[ idx ] );
+           _map.addMeasurement( trackedIds[ idx ], kid, mm );
        }
 
    }
@@ -264,18 +281,25 @@ namespace cvt
       return false;
    }
 
-   void StereoSLAM::createDebugImageMono( Image & debugImage, const PointSet2d & tracked ) const
+   void StereoSLAM::createDebugImageMono( Image & debugImage, const PointSet2d & tracked, const std::vector<Vector2f>& predPos ) const
    {
        _undist0.convert( debugImage, IFormat::RGBA_UINT8 );
 
        GFXEngineImage ge( debugImage );
        GFX g( &ge );
 
+       g.color() = Color::YELLOW;
+
+       for( size_t i = 0; i < predPos.size(); i++ ){
+           const Vector2f & p = predPos[ i ];
+           g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
+       }
+
        g.color() = Color::GREEN;
 
        for( size_t i = 0; i < tracked.size(); i++ ){
            const Vector2d & p = tracked[ i ];
-           g.fillRect( ( int )p.x - 1, ( int )p.y - 1, 3, 3 );
+           g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
        }
    }
 
@@ -303,38 +327,16 @@ namespace cvt
       }
    }
 
-   void StereoSLAM::fillPointsetFromIds( PointSet3d& pset, const std::vector<size_t>& ids ) const
+   void StereoSLAM::fillPointsetFromIds( PointSet3d& pset,
+                                         const std::vector<size_t>& trackedIds ) const
    {
-      std::vector<size_t>::const_iterator it = ids.begin();
-      const std::vector<size_t>::const_iterator end = ids.end();
+      std::vector<size_t>::const_iterator it = trackedIds.begin();
+      const std::vector<size_t>::const_iterator end = trackedIds.end();
       while( it != end ){
-         const Eigen::Vector4d& p = _map.featureForId( *it++ ).estimate();
+         const Eigen::Vector4d& p = _map.featureForId( *it ).estimate();
          double n = 1.0 / p[ 3 ];
          pset.add( Vector3d( p[ 0 ] * n, p[ 1 ] * n, p[ 2 ] * n  ) );
+         it++;
       }
-   }
-
-   void StereoSLAM::createUndistortionMaps( const CameraCalibration& c0, const CameraCalibration& c1 )
-   {
-       size_t w0 = _undistortMap0.width();
-       size_t h0 = _undistortMap0.height();
-       size_t w1 = _undistortMap1.width();
-       size_t h1 = _undistortMap1.height();
-
-       Vector3f radial = c0.radialDistortion();
-       Vector2f tangential = c0.tangentialDistortion();
-       float fx = c0.intrinsics()[ 0 ][ 0 ];
-       float fy = c0.intrinsics()[ 1 ][ 1 ];
-       float cx = c0.intrinsics()[ 0 ][ 2 ];
-       float cy = c0.intrinsics()[ 1 ][ 2 ];
-       IWarp::warpUndistort( _undistortMap0, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w0, h0, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-
-       radial = c1.radialDistortion();
-       tangential = c1.tangentialDistortion();
-       fx = c1.intrinsics()[ 0 ][ 0 ];
-       fy = c1.intrinsics()[ 1 ][ 1 ];
-       cx = c1.intrinsics()[ 0 ][ 2 ];
-       cy = c1.intrinsics()[ 1 ][ 2 ];
-       IWarp::warpUndistort( _undistortMap1, radial[ 0 ], radial[ 1 ], cx, cy, fx, fy, w1, h1, radial[ 2 ], tangential[ 0 ], tangential[ 1 ] );
-   }
+   }   
 }

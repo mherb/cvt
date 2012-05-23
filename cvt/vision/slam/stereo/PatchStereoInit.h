@@ -17,13 +17,15 @@
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/KLTTracker.h>
 #include <cvt/math/GA2.h>
+#include <cvt/math/Translation2D.h>
 
 namespace cvt {
 
     class PatchStereoInit : public DepthInitializer
     {
         public:
-            PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 );
+            PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1,
+                             size_t w0, size_t h0 );
             ~PatchStereoInit();
 
             void        triangulateFeatures( std::vector<DepthInitResult> & triangulated,
@@ -55,12 +57,12 @@ namespace cvt {
             ParamSet        _pset;
             Parameters*     _params;
 
-            Matrix3f        _fundamental;
-
             SIMD*           _simd;
 
             // subpixel position refiner
-            typedef KLTTracker<GA2<float>, PatchSize> KLTType;
+            //typedef GA2<float> PoseT;
+            typedef Translation2D<float> PoseT;
+            typedef KLTTracker<PoseT, PatchSize> KLTType;
             KLTType     _refiner;
 
             void detectFeatures( std::vector<Feature2Df>& features, const ImagePyramid& pyramid );

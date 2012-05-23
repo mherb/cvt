@@ -39,11 +39,14 @@ namespace cvt
 
         ResultType estimate( size_t maxIter = 0 );
 
+        const std::vector<size_t> &  inlierIndices() const { return _lastInliers; };
+
       private:
         SampleConsensusModel<Model>&  _model;
 
         DistanceType                  _maxDistance;
         float                         _outlierProb;
+        std::vector<size_t>           _lastInliers;
 
         void randomSamples( std::vector<size_t> & indices );
     };
@@ -56,8 +59,7 @@ namespace cvt
 
         ResultType result;
 
-        std::vector<size_t> indices;
-        std::vector<size_t> inliers;
+        std::vector<size_t> indices;        
 
         std::vector<size_t> bestIndices;
         size_t numBest = 0;
@@ -69,13 +71,13 @@ namespace cvt
             randomSamples( indices );
             result = _model.estimate( indices );
 
-            _model.inliers( inliers, result, _maxDistance );
+            _model.inliers( _lastInliers, result, _maxDistance );
 
-            if( inliers.size() > numBest ){
-                numBest = inliers.size();
+            if( _lastInliers.size() > numBest ){
+                numBest = _lastInliers.size();
                 bestIndices = indices;
 
-                float epsilon = 1.0f - ( float )inliers.size() / ( float )_model.size();
+                float epsilon = 1.0f - ( float )_lastInliers.size() / ( float )_model.size();
 
                 size_t newn = Math::log( _outlierProb ) / Math::log( 1.0f - Math::pow( 1.0f - epsilon, ( float )_model.minSampleSize() ) );
 
@@ -93,9 +95,9 @@ namespace cvt
         }
 
         result = _model.estimate( bestIndices );
-        _model.inliers( inliers, result, _maxDistance );
+        _model.inliers( _lastInliers, result, _maxDistance );
 
-        return _model.refine( result, inliers );
+        return _model.refine( result, _lastInliers );
     }
 
     template<class Model>
