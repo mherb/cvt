@@ -7,6 +7,7 @@
 #include <cvt/util/String.h>
 #include <cvt/util/Time.h>
 
+#include <cvt/gfx/ifilter/ColorCode.h>
 #include <cvt/cl/kernel/stereo/stereoCV.h>
 
 using namespace cvt;
@@ -31,7 +32,7 @@ int main( int argc, char** argv )
 	Image cldmap( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 	try {
-		CLKernel kerncv( _stereoCV_source, "stereoCV" );
+		CLKernel kerncv( _stereoCV_source, "stereoCV_GRAY_SAD" );
 		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTA" );
 
 		CLBuffer cv( sizeof( cl_float ) * left.width() * left.height() * depth  );
@@ -42,7 +43,7 @@ int main( int argc, char** argv )
 		kerncv.setArg( 1, depth );
 		kerncv.setArg( 2, clright );
 		kerncv.setArg( 3, clleft );
-		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float4 ) * ( depth + 256 ) ) );
+		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 9 * ( depth + 256 ) ) );
 		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
 
 		kerncvwta.setArg( 0, cldmap );
@@ -51,6 +52,9 @@ int main( int argc, char** argv )
 		kerncvwta.runWait( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
 
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
+		Image tmp;
+		ColorCode::apply( tmp, cldmap, 1.0f, 0.0f );
+		tmp.save("dmap-color.png");
 
 		cldmap.save( "dmap.png" );
 

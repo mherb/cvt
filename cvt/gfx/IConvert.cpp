@@ -9,6 +9,7 @@
     PARTICULAR PURPOSE.
  */
 #include <cvt/gfx/IConvert.h>
+#include <cvt/gfx/Image.h>
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
@@ -35,7 +36,7 @@ namespace cvt {
         return;															\
     }
 
-    static void Conv_XYZAf_to_ZYXAf( Image & dstImage, const Image & sourceImage )
+    static void Conv_XYZAf_to_ZYXAf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -48,7 +49,7 @@ namespace cvt {
         CONV( Conv_XYZAf_to_ZYXAf, dstImage, float*, sourceImage, float*, sourceImage.width() )
     }
 
-    static void Conv_XYZAu8_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_XYZAu8_to_ZYXAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -61,7 +62,7 @@ namespace cvt {
         CONV( Conv_XYZAu8_to_ZYXAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_u8_to_f( Image & dstImage, const Image & sourceImage )
+    static void Conv_u8_to_f( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -74,7 +75,7 @@ namespace cvt {
         CONV( Conv_u8_to_f, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() * dstImage.channels() )
     }
 
-    static void Conv_u16_to_u8( Image& dstImage, const Image& sourceImage )
+    static void Conv_u16_to_u8( Image& dstImage, const Image& sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -86,7 +87,7 @@ namespace cvt {
         size_t h;
         CONV( Conv_u16_to_u8, dstImage, uint8_t*, sourceImage, uint16_t*, sourceImage.width() * dstImage.channels() )
     }
-    static void Conv_u16_to_XXXAu8( Image& dstImage, const Image& sourceImage )
+    static void Conv_u16_to_XXXAu8( Image& dstImage, const Image& sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -99,7 +100,7 @@ namespace cvt {
         CONV( Conv_u16_to_XXXAu8, dstImage, uint8_t*, sourceImage, uint16_t*, sourceImage.width() )
     }
 
-    static void Conv_u16_to_f( Image & dstImage, const Image & sourceImage )
+    static void Conv_u16_to_f( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -112,7 +113,7 @@ namespace cvt {
         CONV( Conv_u16_to_f, dstImage, float*, sourceImage, uint16_t*, sourceImage.width() * dstImage.channels() )
     }
 
-    static void Conv_f_to_u8( Image & dstImage, const Image & sourceImage )
+    static void Conv_f_to_u8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -126,7 +127,7 @@ namespace cvt {
         CONV( Conv_f_to_u8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
     }
 
-    static void Conv_GRAYf_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_GRAYf_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -140,7 +141,7 @@ namespace cvt {
         CONV( Conv_GRAYf_to_GRAYu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
     }
 
-    static void Conv_GRAYALPHAf_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_GRAYALPHAf_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -155,7 +156,7 @@ namespace cvt {
     }
 
 
-    static void Conv_GRAYf_to_XXXAf( Image & dstImage, const Image & sourceImage )
+    static void Conv_GRAYf_to_XXXAf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -170,7 +171,7 @@ namespace cvt {
     }
 
 
-    static void Conv_RGBAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_RGBAu8_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -184,7 +185,7 @@ namespace cvt {
         CONV( Conv_RGBAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_GRAYu8_to_XXXAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_GRAYu8_to_XXXAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -198,7 +199,7 @@ namespace cvt {
         CONV( Conv_GRAYu8_to_XXXAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_XXXAu8_to_XXXAf( Image & dstImage, const Image & sourceImage )
+    static void Conv_XXXAu8_to_XXXAf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -212,7 +213,7 @@ namespace cvt {
         CONV( Conv_XXXAu8_to_XXXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_XXXAf_to_XXXAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_XXXAf_to_XXXAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -226,7 +227,7 @@ namespace cvt {
         CONV( Conv_XXXAf_to_XXXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )
     }
 
-    static void Conv_XYZAu8_to_ZYXAf( Image & dstImage, const Image & sourceImage )
+    static void Conv_XYZAu8_to_ZYXAf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -240,7 +241,7 @@ namespace cvt {
         CONV( Conv_XYZAu8_to_ZYXAf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_XYZAf_to_ZYXAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_XYZAf_to_ZYXAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -254,7 +255,7 @@ namespace cvt {
         CONV( Conv_XYZAf_to_ZYXAu8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() )
     }
 
-    static void Conv_BGRAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_BGRAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -268,7 +269,7 @@ namespace cvt {
         CONV( Conv_BGRAu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_RGBAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_RGBAu8_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -283,7 +284,7 @@ namespace cvt {
     }
 
 
-    static void Conv_BGRAu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_BGRAu8_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -297,7 +298,7 @@ namespace cvt {
         CONV( Conv_BGRAu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_BGRAf_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_BGRAf_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -311,7 +312,7 @@ namespace cvt {
         CONV( Conv_BGRAf_to_GRAYf, dstImage, float*, sourceImage, float*, sourceImage.width() )
     }
 
-    static void Conv_RGBAf_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_RGBAf_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -326,7 +327,7 @@ namespace cvt {
     }
 
 
-    static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_YUYVu8_to_RGBAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -340,7 +341,7 @@ namespace cvt {
         CONV( Conv_YUYVu8_to_RGBAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_YUYVu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_YUYVu8_to_BGRAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -354,7 +355,7 @@ namespace cvt {
         CONV( Conv_YUYVu8_to_BGRAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_UYVYu8_to_RGBAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -368,7 +369,7 @@ namespace cvt {
         CONV( Conv_UYVYu8_to_RGBAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_UYVYu8_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_UYVYu8_to_BGRAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -383,7 +384,7 @@ namespace cvt {
     }
 
 
-    static void Conv_UYVYu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_UYVYu8_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -397,7 +398,7 @@ namespace cvt {
         CONV( Conv_UYVYu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_UYVYu8_to_GRAYf( Image & dstImage, const Image & sourceImage )
+    static void Conv_UYVYu8_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -411,7 +412,7 @@ namespace cvt {
         CONV( Conv_UYVYu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_UYVYu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_UYVYu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -425,7 +426,7 @@ namespace cvt {
         CONV( Conv_UYVYu8_to_GRAYALPHAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_YUYVu8_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -439,7 +440,7 @@ namespace cvt {
         CONV( Conv_YUYVu8_to_GRAYu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
-    static void Conv_YUYVu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage )
+    static void Conv_YUYVu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
         const uint8_t* src;
@@ -456,11 +457,13 @@ namespace cvt {
 
 #undef CONV
 
-    void Conv_BAYER_RGGB_to_RGBAu8( Image & dstImage, const Image & sourceImage )
+    void Conv_BAYER_RGGB_to_RGBAu8( Image & dstImage, const Image & sourceImage, IConvertFlags flags )
     {
         const uint32_t* src1;
         const uint32_t* src2;
         const uint32_t* src3;
+        const uint32_t* src4;
+        const uint32_t* src5;
         const uint8_t* osrc;
         uint32_t* dst;
         uint8_t* odst;
@@ -477,38 +480,76 @@ namespace cvt {
         sstride = sstride >> 2;
         src2 = src1 + sstride;
         src3 = src2 + sstride;
+        src4 = src3 + sstride;
+        src5 = src4 + sstride;
         w = sourceImage.width();
         h = sourceImage.height();
         odst = dstImage.map( &dstride );
         dst = ( uint32_t* ) odst;
         dstride = dstride >> 2;
 
-        simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
-        dst += dstride;
-        for( i = 1; i < h - 1; i += 2 ) {
-            simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
-            dst += dstride;
-            src1 += sstride;
-            src2 += sstride;
-            src3 += sstride;
-            simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
-            dst += dstride;
-            src1 += sstride;
-            src2 += sstride;
-            src3 += sstride;
-        }
-        if( i < h ) {
-            if( i & 1 ) {
-                simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src1, w >> 2 );
-            } else {
-                simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src1, w >> 2 );
-            }
-        }
+		if( flags & ICONVERT_DEBAYER_HQLINEAR ) {
+			simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
+			dst += dstride;
+			simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+			dst += dstride;
+			for( i = 2; i < h - 2; i += 2 ) {
+				simd->debayerhq_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				src4 += sstride;
+				src5 += sstride;
+				simd->debayerhq_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				src4 += sstride;
+				src5 += sstride;
+			}
+			if( h - 2 == i ) {
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src2, src3, src4, w >> 2 );
+				dst += dstride;
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src3, src4, src3, w >> 2 );
+			} else {
+				simd->debayerhq_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src3, src4, src5, w >> 2 );
+				dst += dstride;
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src3, src4, src3, w >> 2 );
+			}
+
+		} else {
+			simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
+			dst += dstride;
+			for( i = 1; i < h - 1; i += 2 ) {
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+			}
+			if( h - 1 == i )
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src1, w >> 2 );
+			else {
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src2, src3, src2, w >> 2 );
+			}
+		}
+
         dstImage.unmap( odst );
         sourceImage.unmap( osrc );
     }
 
-    void Conv_BAYER_RGGB_to_BGRAu8( Image & dstImage, const Image & sourceImage )
+    void Conv_BAYER_RGGB_to_BGRAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         const uint32_t* src1;
         const uint32_t* src2;
@@ -560,7 +601,7 @@ namespace cvt {
         sourceImage.unmap( osrc );
     }
 
-    void Conv_BAYER_RGGB_to_GRAYu8( Image & dstImage, const Image & sourceImage )
+    void Conv_BAYER_RGGB_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         const uint32_t* src1;
         const uint32_t* src2;
@@ -707,7 +748,7 @@ namespace cvt {
     }
 
 
-    void IConvert::convert( Image & dst, const Image & src )
+    void IConvert::convert( Image & dst, const Image & src, IConvertFlags flags )
     {
         if( src.format() == dst.format() ) {
             dst.copy( src );
@@ -724,7 +765,7 @@ namespace cvt {
 
         IConvert self = IConvert::instance();
         if( self.TABLE( _convertFuncs, sourceID, dstID ) ){
-            self.TABLE( _convertFuncs, sourceID, dstID)( dst, src );
+            self.TABLE( _convertFuncs, sourceID, dstID)( dst, src, flags );
         } else {
             std::cerr << "CONVERSION MISSING: " << src.format() << " -> " << dst.format() << std::endl;
             throw CVTException( "Conversion not implemented!" );

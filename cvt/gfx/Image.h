@@ -18,6 +18,7 @@
 #include <cvt/gfx/Color.h>
 #include <cvt/gfx/IFormat.h>
 #include <cvt/gfx/IScaleFilter.h>
+#include <cvt/gfx/IConvert.h>
 #include <cvt/geom/Rect.h>
 #include <cvt/gfx/ImageAllocator.h>
 #include <cvt/gfx/IKernel.h>
@@ -74,9 +75,9 @@ namespace cvt {
 			void copyRect( int x, int y, const Image& i, const Recti & roi );
 
 			Image* clone() const;
-			void convert( Image& dst, const IFormat & format, IAllocatorType memtype ) const;
-			void convert( Image& dst, const IFormat & format ) const;
-			void convert( Image& dst ) const;
+			void convert( Image& dst, const IFormat & format, IAllocatorType memtype, IConvertFlags flags = ICONVERT_DEBAYER_LINEAR  ) const;
+			void convert( Image& dst, const IFormat & format, IConvertFlags flags = ICONVERT_DEBAYER_LINEAR  ) const;
+			void convert( Image& dst, IConvertFlags flags = ICONVERT_DEBAYER_LINEAR  ) const;
 			void scale( Image& dst, size_t width, size_t height, const IScaleFilter& filter ) const;
 
 			void load( const String& path, ILoader* loader = NULL );

@@ -82,7 +82,7 @@ __kernel void fgp( __write_only image2d_t eout, __read_only image2d_t ein, __rea
 
 	// calculate e_{ t + 1 }
 	enew = BUF( lx, ly );
-	enew.xy = enew.xy + ( ( 0.125f / lambda ) ) * ( float2 ) ( dx, dy ) - 0.02f * enew.xy;
+	enew.xy = enew.xy + ( ( 0.125f / lambda ) ) * ( float2 ) ( dx, dy ) - 0.01f * enew.xy;
 
 	float norm = fmax( 1.0f, fast_length( enew.xy ) / pixel.z  );
 	enew.xy = enew.xy / norm;
