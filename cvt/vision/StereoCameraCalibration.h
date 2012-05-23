@@ -35,12 +35,15 @@ namespace cvt {
 			void					 undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright,
 													   size_t width, size_t height, bool verticalstereo = false ) const;
 
+            float                    baseLine()    const;
+            float                    focalLength() const { return _first.intrinsics()[ 0 ][ 0 ]; }
+
 		private:
 			struct UndistortRectifyWarp {
 				UndistortRectifyWarp( const Vector2f& fnew, const Vector2f& cnew, const Matrix3f& rotation,
 									  const Vector3f& radial, const Vector2f& tangential, const Vector2f& fold, const Vector2f& cold ) :
 					_fnew( fnew ),
-					_cnew( cnew ),
+					_cnew( cnew ),                    
 					_rot( rotation ),
 					_radial( radial ),
 					_tangential( tangential ),
@@ -223,7 +226,16 @@ namespace cvt {
 										   0, fnew, cright.y,
 										   0,      0,		 1 ) );
 		cam1.setDistortion( Vector3f( 0.0f, 0.0f, 0.0f ), Vector2f( 0.0f, 0.0f ) );
+        stereo.setFirstCamera( cam0 );
+        stereo.setSecondCamera( cam1 );
 	}
+
+    inline float StereoCameraCalibration::baseLine() const
+    {
+        return Math::sqrt( Math::sqr( _extrinsics[ 0 ][ 3 ] ) +
+                           Math::sqr( _extrinsics[ 1 ][ 3 ] ) +
+                           Math::sqr( _extrinsics[ 2 ][ 3 ] ) );
+    }
 
 }
 

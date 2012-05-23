@@ -1,23 +1,12 @@
 #include <iostream>
 
 #include <cvt/io/Resources.h>
-#include <cvt/io/xml/XMLDocument.h>
 #include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/Vision.h>
 
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/util/Delegate.h>
 #include <cvt/math/Quaternion.h>
-
-using namespace cvt;
-void loadCameraCalib( CameraCalibration& camCalib, const String& file )
-{
-	XMLDocument xmlDoc;
-	xmlDoc.load( file );
-	
-	XMLNode* node = xmlDoc.nodeByName( "CameraCalibration" );
-	camCalib.deserialize( node );
-}
 
 struct UndistortOp
 {
@@ -34,9 +23,8 @@ int main( int argc, char** argv )
 	// FIXME: add argc/argv check
 	CameraCalibration left;
 	CameraCalibration right;
-
-	loadCameraCalib( left, argv[ 1 ] );
-	loadCameraCalib( right, argv[ 2 ] );
+    left.load( argv[ 0 ] );
+    right.load( argv[ 1 ] );
 
 	StereoCameraCalibration stereo( left, right );
 	StereoCameraCalibration newstereo;

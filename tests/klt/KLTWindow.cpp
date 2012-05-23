@@ -11,10 +11,10 @@ namespace cvt
 		_stepping( true ),
 		_next( false ),
 		_video( video ),
-		_klt( 5 ),
+        _klt( 10 ),
 		_kltTimeSum( 0.0 ),
 		_kltIters( 0 ),
-		_pyramid( 3, 0.5f ),
+        _pyramid( 3, 0.5f ),
 		_redetectThreshold( 20 ),
 		_gridFilter( 20, video.width(), video.height() )
 	{

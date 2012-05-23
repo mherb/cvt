@@ -13,12 +13,12 @@
 namespace cvt
 {
    ORBTracking::ORBTracking() :
-      _maxDescDistance( 60 ),
-      _windowRadius( 25 ),
+      _maxDescDistance( 80 ),
+      _windowRadius( 100 ),
       _orbOctaves( 3 ),
       _orbScaleFactor( 0.5f ),
-      _orbCornerThreshold( 17 ),
-      _orbMaxFeatures( 1000 ),
+      _orbCornerThreshold( 15 ),
+      _orbMaxFeatures( 2000 ),
       _orbNonMaxSuppression( true ),
       _orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
    {

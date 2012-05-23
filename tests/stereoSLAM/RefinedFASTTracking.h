@@ -1,0 +1,67 @@
+#ifndef CVT_REFINED_FASTTRACKING_H
+#define CVT_REFINED_FASTTRACKING_H
+
+#include <cvt/vision/slam/stereo/FeatureTracking.h>
+#include <cvt/vision/FAST.h>
+#include <cvt/vision/ImagePyramid.h>
+#include <cvt/vision/FeatureFilter.h>
+#include <cvt/vision/KLTTracker.h>
+#include <cvt/util/Util.h>
+#include <cvt/math/GA2.h>
+
+#include <vector>
+#include <set>
+
+namespace cvt
+{
+    class RefinedFASTTracking : public FeatureTracking
+    {
+        public:
+            RefinedFASTTracking();
+            ~RefinedFASTTracking();
+
+            void trackFeatures( PointSet2d&                     trackedPositions,
+                                std::vector<size_t>&            trackedFeatureIds,
+                                const std::vector<Vector2f>&	predictedPositions,
+                                const std::vector<size_t>&      predictedIds,
+                                const Image&                    img );
+
+            /**
+             * \brief add a new feature to the database! (e.g. after triangulation)
+             */
+            void addFeatureToDatabase( const Vector2f & f, size_t id );
+            void clear();
+
+            const std::vector<Feature2Df>&  lastDetectedFeatures()  const { return _currentFeatures; }
+            const std::set<size_t>&         associatedFeatures()    const { return _associatedIndexes; }
+            const ImagePyramid&             pyramid()               const { return _pyramid; }
+
+        private:
+            static const size_t PatchSize = 16;
+            typedef GA2<float>							PoseType;
+            typedef KLTTracker<PoseType, PatchSize>		KLTType;
+            typedef KLTType::KLTPType					PatchType;
+
+            FAST					_detector;
+            ImagePyramid			_pyramid;
+
+            KLTType					_klt;
+
+            size_t					_fastMatchingWindowSqr;
+            float					_fastMaxSADThreshold;
+            float					_kltSSDThreshold;
+
+            std::vector<PatchType*> _patchForId;
+
+            std::vector<Feature2Df>	_currentFeatures;
+            std::set<size_t>		_associatedIndexes;
+
+            /* cache the simd instance here */
+            SIMD*					_simd;
+
+            void detectCurrentFeatures( const Image& img );
+            int bestFASTFeatureInRadius( const PatchType& patch );
+    };
+}
+
+#endif

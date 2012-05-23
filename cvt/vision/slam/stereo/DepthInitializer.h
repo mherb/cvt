@@ -11,7 +11,7 @@
 #ifndef CVT_DEPTHINITIALIZER_H
 #define CVT_DEPTHINITIALIZER_H
 
-#include <cvt/vision/CameraCalibration.h>
+#include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/Vision.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Vector.h>
@@ -33,7 +33,7 @@ namespace cvt
                 float       reprojectionError;
             };
 
-            DepthInitializer( const CameraCalibration& c0, const CameraCalibration& c1 );
+            DepthInitializer( const CameraCalibration& c0, const CameraCalibration& c1, size_t w, size_t h );
             virtual ~DepthInitializer();
 
             /**
@@ -45,12 +45,15 @@ namespace cvt
 
             virtual ParamSet&                parameters() = 0;
 
-            const CameraCalibration& calibration0() const { return _calib0; }
-            const CameraCalibration& calibration1() const { return _calib1; }
+            const CameraCalibration& calibration0() const { return _stereoCalib.firstCamera(); }
+            const CameraCalibration& calibration1() const { return _stereoCalib.secondCamera(); }
+
+            const Image&    undistortionMap0() const { return _undistortionMaps[ 0 ]; }
+            const Image&    undistortionMap1() const { return _undistortionMaps[ 1 ]; }
 
         protected:
-            const CameraCalibration & _calib0;
-            const CameraCalibration & _calib1;            
+            StereoCameraCalibration     _stereoCalib;
+            std::vector<Image>          _undistortionMaps;
 
             /* triangulate a new point */
             void triangulateSinglePoint( DepthInitResult&   result,
@@ -60,10 +63,13 @@ namespace cvt
 
     };
 
-    inline DepthInitializer::DepthInitializer( const CameraCalibration& c0, const CameraCalibration& c1 ) :
-        _calib0( c0 ),
-        _calib1( c1 )
+    inline DepthInitializer::DepthInitializer( const CameraCalibration& c0, const CameraCalibration& c1, size_t w, size_t h )
     {
+        StereoCameraCalibration scam( c0, c1 );
+        _undistortionMaps.resize( 2 );
+        _undistortionMaps[ 0 ].reallocate( w, h, IFormat::GRAYALPHA_FLOAT );
+        _undistortionMaps[ 1 ].reallocate( w, h, IFormat::GRAYALPHA_FLOAT );
+        scam.undistortRectify( _stereoCalib, _undistortionMaps[ 0 ], _undistortionMaps[ 1 ], w, h, false );
     }
 
    inline DepthInitializer::~DepthInitializer()

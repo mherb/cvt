@@ -19,7 +19,7 @@ namespace cvt
    class ORBStereoInit : public DepthInitializer
    {
       public:
-          ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 );
+          ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1, size_t w, size_t h );
 
           void triangulateFeatures( std::vector<DepthInitResult> & triangulated,
                                     const std::vector<Vector2f> & avoidPositionsImg0,

@@ -32,8 +32,8 @@ namespace cvt {
         new ParamInfoTyped<float>( "minInterFeatureDistance", 2.0f, 200.0f, 20.0f, true, 1, offsetof( PatchStereoInit::Parameters, minInterFeatureDistance ) )
     };
 
-    PatchStereoInit::PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ):
-        DepthInitializer( c0, c1 ),
+    PatchStereoInit::PatchStereoInit( const CameraCalibration& c0, const CameraCalibration& c1, size_t w0, size_t h0 ):
+        DepthInitializer( c0, c1, w0, h0 ),
         _pyramidView0( 3, 0.5f ),
         _pyramidView1( 3, 0.5f ),
         _pset( _pinfos, 9, false )
@@ -43,10 +43,6 @@ namespace cvt {
         _detector.setThreshold( _params->fastThreshold );
         _detector.setNonMaxSuppress( true );
 
-        // calc the fundamental matrix from the calibration data
-        Vision::composeFundamental( _fundamental,
-                                    c0.intrinsics(), c0.extrinsics(),
-                                    c1.intrinsics(), c1.extrinsics() );
         _simd = SIMD::instance();
     }
 
@@ -138,7 +134,19 @@ namespace cvt {
         size_t w1 = _pyramidView1[ 0 ].width();
         size_t h1 = _pyramidView1[ 0 ].height();
 
-        KLTType::KLTPType patch( 1 );
+        KLTType::KLTPType patch( 10 );
+
+        float baseLine = _stereoCalib.baseLine();
+        const Matrix3f& K = _stereoCalib.firstCamera().intrinsics();
+        float focalLen = K[ 0 ][ 0 ];
+        float cx = K[ 0 ][ 2 ];
+        float cy = K[ 1 ][ 2 ];
+
+        std::cout << "Baseline: " << baseLine << std::endl;
+        std::cout << "FocalLen: " << focalLen << std::endl;
+
+        float minDisp = focalLen * baseLine / depthRange.max;
+        float maxDisp = focalLen * baseLine / depthRange.min;
 
         for( size_t i = 0; i < f0.size(); i++ ){
             const Vector2f& pos0 = f0[ i ];
@@ -152,8 +160,6 @@ namespace cvt {
 
             const uint8_t* ptr0 = map0.ptr() + (int)( p0.y - PatchHalf ) * map0.stride() + (int)p0.x - PatchHalf;
 
-            Line2Df l( _fundamental * p0 );
-
             const std::set<size_t>::const_iterator assignedEnd = assigned.end();
             size_t bestSAD = maxSAD;
             size_t bestIdx =  0;
@@ -166,8 +172,9 @@ namespace cvt {
                         p1.y < PatchHalf || ( p1.y + PatchHalf ) >= h1 )
                         continue;
 
-                    float d = Math::abs( l.distance( p1 ) );
-                    if( d < _params->maxEpilineDistance ){
+                    float d = Math::abs( p0.y - p1.y );
+
+                    if( d < _params->maxEpilineDistance ){                        
                         const uint8_t* ptr1 = map1.ptr() + (int)( p1.y - PatchHalf ) * map1.stride() + (int)p1.x - PatchHalf;
                         // check if SAD is smaller than current best
                         size_t sad = computePatchSAD( ptr0, map0.stride(), ptr1, map1.stride() );
@@ -189,20 +196,26 @@ namespace cvt {
                 patch.update( map0.ptr(), map0.stride(), pos0, 0 );
                 patch.initPose( result.meas1 );
 
-                Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _fundamental );
                 if( refinePositionSubPixel( patch, map1.ptr(), map1.stride() ) ){
 
                     // refined:                    
                     patch.currentCenter( result.meas1 );
 
-                    triangulateSinglePoint( result,
-                                            _calib0.projectionMatrix(),
-                                            _calib1.projectionMatrix(),
-                                            depthRange );
+                    //std::cout << "Y Offset: " << result.meas1.y - result.meas0.y  << std::endl;
 
-                    if( result.reprojectionError < _params->maxReprojectionError ){
+                    float disparity = result.meas1.x - result.meas0.x;
+
+                    if( disparity > minDisp && disparity < maxDisp ){
+                        float depth = focalLen * baseLine / disparity;
+
+                        result.point3d.x = ( result.meas0.x - cx ) * depth / focalLen;
+                        result.point3d.y = ( result.meas0.y - cy ) * depth / focalLen;
+                        result.point3d.z = depth;
+                        result.point3d.w = 1.0f;
+
                         triangulated.push_back( result );
                         assigned.insert( bestIdx );
+
                     }
                 }
             }

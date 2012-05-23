@@ -22,9 +22,10 @@ namespace cvt
         new ParamInfoTyped<uint32_t>( "orbMaxFeatures", 10, 10000, 2000, true, 1, offsetof( ORBStereoInit::Parameters, orbMaxFeatures ) )
     };
 
-   ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1 ) :
-       DepthInitializer( c0, c1 ),
-       _matcher( 1.0f, 80, c0, c1 ),
+   ORBStereoInit::ORBStereoInit( const CameraCalibration& c0, const CameraCalibration& c1,
+                                 size_t w0, size_t h0 ) :
+       DepthInitializer( c0, c1, w0, h0 ),
+       _matcher( 1.0f, 80, _stereoCalib.firstCamera(), _stereoCalib.secondCamera() ),
        _pset( _pinfos, 7, false )
    {
    }
@@ -72,8 +73,8 @@ namespace cvt
                 Vision::correctCorrespondencesSampson( result.meas0, result.meas1, _matcher.fundamental() );
 
                 triangulateSinglePoint( result,
-                                        _calib0.projectionMatrix(),
-                                        _calib1.projectionMatrix(),
+                                        _stereoCalib.firstCamera().projectionMatrix(),
+                                        _stereoCalib.secondCamera().projectionMatrix(),
                                         depthRange );
 
                 if( result.reprojectionError < params->maxReprojectionError ){
