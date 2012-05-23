@@ -1,7 +1,10 @@
 #include <cvt/util/SIMD.h>
 #include <cvt/util/SIMDDebug.h>
+#include <cvt/util/Util.h>
 
+#include <cvt/math/Math.h>
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/IMapScoped.h>
 
 using namespace cvt;
 
@@ -113,16 +116,256 @@ void sse2_debayer_EVEN_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, cons
 		}
 	}
 
+#define BAYER_RGGB_R1( x ) ( ( x ) & 0xff )
+#define BAYER_RGGB_R2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
+#define BAYER_RGGB_EVEN_G1( x ) ( ( x ) & 0xff )
+#define BAYER_RGGB_EVEN_G2( x ) ( ( ( x ) & 0xff0000 ) >> 16 )
+#define BAYER_RGGB_ODD_G1( x ) ( ( ( x ) & 0xff00 ) >> 8 )
+#define BAYER_RGGB_ODD_G2( x ) ( ( x ) >> 24 )
+#define BAYER_RGGB_B1( x ) ( ( ( x ) & 0xff00 ) >> 8 )
+#define BAYER_RGGB_B2( x ) ( ( x ) >> 24 )
+
+#define BAYER_MIX2( x, y ) ( ( ( x ) + ( y ) ) >> 1 )
+#define BAYER_MIX4( x, y, z, w  ) ( ( ( x ) + ( y ) + ( z ) + ( w ) ) >> 2 )
+
+#define BAYER_MIX4_NODIV( x, y, z, w  ) ( ( ( ( x ) + ( y ) + ( z ) + ( w ) ) ) << 1 )
+
+#define BAYER_MIX2_NODIV( x, y ) ( ( ( x ) + ( y ) ) << 2 )
+
+#define BAYER_GRAD5_4( x, y, z, w, v  ) ( ( ( ( int )( ( x ) << 2 ) - ( int )( y ) - ( int )( z ) - ( int )( w ) - ( int )( v ) ) ) )
+
+#define BAYER_GRAD5_6( x, y, z, w, v  ) ( ( ( ( int )( ( ( x ) << 2 ) + ( ( x ) << 1 ) ) - \
+									    ( ( ( int )( y ) + ( int )( z ) + ( int )( w ) + ( int )( v ) ) + ( ( ( int )( y ) + ( int )( z ) + ( int )( w ) + ( int )( v ) ) >> 1 ) ) ) ) )
+#define BAYER_GRAD9_5( x, y, z, w, v, m, n, o, p  ) ( ( ( ( int )( ( ( x ) << 2 ) + ( ( x ) ) ) - \
+									    ( ( ( int )( y ) + ( int )( z ) + ( int )( w ) + ( int )( v ) + ( int ) ( m ) + ( int ) ( n ) ) ) + ( ( ( int )( o ) + ( int )( p ) ) >> 1 ) ) ) )
+
+#define HQPTR(x,off) ( ( int ) *((x)+off) )
+
+#define BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p3,-1) + HQPTR(p3,1) + HQPTR(p2,0) + HQPTR(p4,0) ) << 1 ) \
+												 + ( HQPTR(p3,0) << 2 ) - HQPTR(p1,0) - HQPTR(p5,0) - HQPTR(p3,-2) - HQPTR(p3,2) ) >> 3 )
+
+#define BAYER_HQ_G_AT_B( p1, p2, p3, p4, p5 ) BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 )
+
+
+#define BAYER_HQ_R_AT_G_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p3,-1) + HQPTR(p3, 1) ) << 2 ) + ( HQPTR(p3,0) << 2 ) + HQPTR(p3,0) \
+													  - HQPTR(p2,-1) - HQPTR(p2,+1) - HQPTR(p4,-1) - HQPTR(p4,1) - HQPTR(p3,-2) - HQPTR(p3,+2) + \
+													( ( HQPTR(p1,0) + HQPTR(p5,0) ) >> 1 ) ) >> 3 )
+
+#define BAYER_HQ_B_AT_G_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p2,0) + HQPTR(p4, 0) ) << 2 ) + ( HQPTR(p3,0) << 2 ) + HQPTR(p3,0) \
+													  - HQPTR(p2,-1) - HQPTR(p2,+1) - HQPTR(p4,-1) - HQPTR(p4,1) - HQPTR(p1,0) - HQPTR(p5,0) + \
+													( ( HQPTR(p3,-2) + HQPTR(p3,+2) ) >> 1 ) ) >> 3 )
+
+
+#define BAYER_HQ_B_AT_R_EVEN( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p2,-1) + HQPTR(p2, 1) + HQPTR(p4,-1) + HQPTR(p4,1) ) << 1 ) + ( ( HQPTR(p3,0) << 2 ) + ( HQPTR(p3,0) << 1 ) ) \
+													- ( HQPTR(p3,-2) + HQPTR(p3,+2) + HQPTR(p1,0) + HQPTR(p5,0) ) \
+													- ( ( HQPTR(p3,-2) + HQPTR(p3,+2) + HQPTR(p1,0) + HQPTR(p5,0) ) >> 1  ) ) >> 3 )
+
+#define BAYER_HQ_R_AT_G_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_B_AT_G_EVEN( p1, p2, p3, p4, p5 )
+
+#define BAYER_HQ_B_AT_G_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_R_AT_G_EVEN( p1, p2, p3, p4, p5 )
+
+#define BAYER_HQ_R_AT_B_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_B_AT_R_EVEN( p1, p2, p3, p4, p5 )
+
+void debayerhq_even( uint32_t* dst, const uint8_t* src1, const uint8_t* src2,
+					 const uint8_t* src3, const uint8_t* src4, const uint8_t* src5, const size_t n ) 
+{
+	uint32_t v;
+
+	v = 0xff000000;
+	v |= *src3; // RED
+	v |= BAYER_MIX4( HQPTR(src3,1), HQPTR(src3,1), HQPTR(src2,0), HQPTR(src4,0) ) << 8; // GREEN
+	v |= BAYER_MIX2( HQPTR(src2,1), HQPTR(src4,1) ) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	v = 0xff000000;
+	v |= BAYER_MIX2( HQPTR(src3,1), HQPTR(src3,-1) ); // RED
+	v |= *src3 << 8; // GREEN
+	v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	size_t i = ( n - 4 ) >> 1;
+	while( i-- ) {
+		v = 0xff000000;
+		v |= *src3; // RED
+		v |= Math::clamp( BAYER_HQ_G_AT_R( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 8; // GREEN
+		v |= Math::clamp( BAYER_HQ_B_AT_R_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= Math::clamp( BAYER_HQ_R_AT_G_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+		v |= ( *src3 ) << 8; // GREEN
+		v |= Math::clamp( BAYER_HQ_B_AT_G_EVEN( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+	}
+
+	v = 0xff000000;
+	v |= *src3; // RED
+	v |= BAYER_MIX4( HQPTR(src3,-1), HQPTR(src3,1), HQPTR(src2,0), HQPTR(src4,0) ) << 8; // GREEN
+	v |= BAYER_MIX4( HQPTR(src2,-1), HQPTR(src4,-1), HQPTR(src2,1), HQPTR(src4,1) ) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	v = 0xff000000;
+	v |= *( src3 - 1 ); // RED
+	v |= *src3 << 8; // GREEN
+	v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+}
+
+void debayerhq_odd( uint32_t* dst, const uint8_t* src1, const uint8_t* src2,
+					 const uint8_t* src3, const uint8_t* src4, const uint8_t* src5, const size_t n )
+{
+	uint32_t v;
+
+	v = 0xff000000;
+	v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ); // RED
+	v |= *src3 << 8; // GREEN
+	v |= *(src3+1) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	v = 0xff000000;
+	v |= BAYER_MIX4( HQPTR(src2,-1), HQPTR(src4,-1), HQPTR(src2,1), HQPTR(src4,1) ); // RED
+	v |= BAYER_MIX4( HQPTR(src2,0), HQPTR(src4,0), HQPTR(src3,-1), HQPTR(src3,1) ) << 8; // GREEN
+	v |= *src3 << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	size_t i = ( n - 4 ) >> 1;
+	while( i-- ) {
+		v = 0xff000000;
+		v |= Math::clamp( BAYER_HQ_R_AT_G_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+		v |= *src3 << 8; // GREEN
+		v |= Math::clamp( BAYER_HQ_B_AT_G_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+
+		v = 0xff000000;
+		v |= Math::clamp( BAYER_HQ_R_AT_B_ODD( src1, src2, src3, src4, src5 ), 0x0, 0xff ); // RED
+		v |= Math::clamp( BAYER_HQ_G_AT_B( src1, src2, src3, src4, src5 ), 0x0, 0xff ) << 8; // GREEN
+		v |= *src3 << 16; // BLUE
+		*dst++ = v;
+		src1++;
+		src2++;
+		src3++;
+		src4++;
+		src5++;
+	}
+
+	v = 0xff000000;
+	v |= BAYER_MIX2( HQPTR(src2,0), HQPTR(src4,0) ); // RED
+	v |= *src3 << 8; // GREEN
+	v |= BAYER_MIX2( HQPTR(src3,-1), HQPTR(src3,1) ) << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+
+	v = 0xff000000;
+	v |= BAYER_MIX2( HQPTR(src2,-1), HQPTR(src4,-1) ); // RED
+	v |= BAYER_MIX4( HQPTR(src2,0), HQPTR(src4,0), HQPTR(src3,-1), HQPTR(src3,-1) ) << 8; // GREEN
+	v |= *src3 << 16; // BLUE
+	*dst++ = v;
+	src1++;
+	src2++;
+	src3++;
+	src4++;
+	src5++;
+}
+
+
+void dodebayer( Image& out, const Image& bayer )
+{
+	out.reallocate( bayer.width(), bayer.height(), IFormat::RGBA_UINT8 );
+	IMapScoped<uint32_t> dst( out );
+	IMapScoped<const uint8_t> src( bayer );
+	size_t sstride = src.stride();
+	const uint8_t* s1 = src.ptr(); src++;
+	const uint8_t* s2 = src.ptr(); src++;
+	const uint8_t* s3 = src.ptr(); src++;
+	const uint8_t* s4 = src.ptr(); src++;
+	const uint8_t* s5 = src.ptr();
+	size_t w = bayer.width();
+	size_t h = bayer.height();
+
+	dst.setLine( 2 );
+	h = ( h >> 1 ) - 2;
+
+	while( h-- ) {
+		debayerhq_even( dst.ptr(), s1, s2, s3, s4, s5, w );
+		s1 += sstride;
+		s2 += sstride;
+		s3 += sstride;
+		s4 += sstride;
+		s5 += sstride;
+		dst++;
+
+		debayerhq_odd( dst.ptr(), s1, s2, s3, s4, s5, w );
+		s1 += sstride;
+		s2 += sstride;
+		s3 += sstride;
+		s4 += sstride;
+		s5 += sstride;
+		dst++;
+	}
+}
+
 int main()
 {
 	Image in, bayer, out;
 
-	in.load( "../data/lena.png" );
+	in.load( "../data/bbc-hd.png" );
 	mosaic_image( bayer, in );
 
-	out.reallocate( in.width(), in.height(), IFormat::BGRA_UINT8 );
-	bayer.convert( out );
+//	out.reallocate( in.width(), in.height(), IFormat::RGBA_UINT8 );
+//	bayer.convert( out );
+	dodebayer( out, bayer );
+	out.save( "debayerhq.png" );
 
+	bayer.convert( out, ICONVERT_DEBAYER_LINEAR );
 	out.save( "debayer.png" );
 	return 0;
 
