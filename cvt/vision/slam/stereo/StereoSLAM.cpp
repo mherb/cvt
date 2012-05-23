@@ -30,8 +30,8 @@ namespace cvt
        _depthInit( di ),
        _minTrackedFeatures( 30 ),
        _activeKF( -1 ),
-       _minKeyframeDistance( 0.2 ),
-       _maxKeyframeDistance( 0.4 )
+       _minKeyframeDistance( 0.1 ),
+       _maxKeyframeDistance( 0.3 )
    {
       Eigen::Matrix3d K;
       EigenBridge::toEigen( K, _depthInit->calibration0().intrinsics() );
