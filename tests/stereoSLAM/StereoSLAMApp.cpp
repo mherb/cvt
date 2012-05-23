@@ -113,12 +113,12 @@ namespace cvt
 
    void StereoSLAMApp::saveImages()
    {
-      //static size_t keyframeIter = 0;
-      //String savename;
-      //savename.sprintf( "ueye_4002738790_keyframe_%05d.cvtraw", keyframeIter );
-      //_cams[ 0 ]->frame().save( savename );
-      //savename.sprintf( "ueye_4002738788_keyframe_%05d.cvtraw", keyframeIter );
-      //_cams[ 1 ]->frame().save( savename );
-      //keyframeIter++;
+      static size_t keyframeIter = 0;
+      String savename;
+      savename.sprintf( "ueye_4002738790_keyframe_%05d.cvtraw", keyframeIter );
+      _cams[ 0 ]->frame().save( savename );
+      savename.sprintf( "ueye_4002738788_keyframe_%05d.cvtraw", keyframeIter );
+      _cams[ 1 ]->frame().save( savename );
+      keyframeIter++;
    }
 }
