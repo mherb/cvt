@@ -13,29 +13,27 @@
 #include <cvt/util/SIMD.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/ScopedBuffer.h>
-
-#include <cvt/gfx/IConvert.h>
 #include <cvt/gfx/IMapScoped.h>
 
 #include <iomanip>
 
 namespace cvt {
 
-	void Image::convert( Image& dst ) const
+	void Image::convert( Image& dst, IConvertFlags flags ) const
 	{
-		IConvert::convert( dst, *this );
+		IConvert::convert( dst, *this, flags );
 	}
 
-	void Image::convert( Image & dst, const IFormat & dstFormat ) const
+	void Image::convert( Image & dst, const IFormat & dstFormat, IConvertFlags flags  ) const
 	{
 		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
-		IConvert::convert( dst, *this );
+		IConvert::convert( dst, *this, flags );
 	}
 
-	void Image::convert( Image& dst, const IFormat & dstformat, IAllocatorType memtype ) const
+	void Image::convert( Image& dst, const IFormat & dstformat, IAllocatorType memtype, IConvertFlags flags ) const
 	{
 		dst.reallocate( _mem->_width, _mem->_height, dstformat, memtype );
-		IConvert::convert( dst, *this );
+		IConvert::convert( dst, *this, flags );
 	}
 
 	void Image::fill( const Color& c )

@@ -155,7 +155,7 @@ namespace cvt {
             virtual void Conv_BGRAu8_to_GRAYu8( uint8_t* _dst, uint8_t const* _src, const size_t n ) const;
             virtual void Conv_RGBAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
             virtual void Conv_BGRAf_to_GRAYf( float* _dst, const float* _src, const size_t n ) const;
-                        virtual void Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const;
+            virtual void Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const;
             virtual void Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const;
 
 
@@ -201,22 +201,27 @@ namespace cvt {
             virtual void debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
             virtual void debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
+            virtual void debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
+													   const uint32_t* src4, const uint32_t* src5, size_t n ) const;
+            virtual void debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
+													   const uint32_t* src4, const uint32_t* src5, size_t n ) const;
+
             virtual void debayer_EVEN_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
             virtual void debayer_ODD_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
             virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
             virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
-                        virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
+			virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
 
-                        // prefix sum for 1 channel images
-                        virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const;
-                        virtual void prefixSum1_f_to_f( float * dst, size_t dstStride, const float* src, size_t srcStride, size_t width, size_t height ) const;
-                        virtual void prefixSum1_xxxxu8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+			// prefix sum for 1 channel images
+			virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const;
+			virtual void prefixSum1_f_to_f( float * dst, size_t dstStride, const float* src, size_t srcStride, size_t width, size_t height ) const;
+			virtual void prefixSum1_xxxxu8_to_f( float * dst, size_t dstStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
 
-                        // prefix sum and square sum
-                        virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
-                        virtual void prefixSumSqr1_f_to_f( float * dst, size_t dStride, const float* src, size_t srcStride, size_t width, size_t height ) const;
+			// prefix sum and square sum
+			virtual void prefixSumSqr1_u8_to_f( float * dst, size_t dStride, const uint8_t * src, size_t srcStride, size_t width, size_t height ) const;
+			virtual void prefixSumSqr1_f_to_f( float * dst, size_t dStride, const float* src, size_t srcStride, size_t width, size_t height ) const;
 
             virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
             virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;
