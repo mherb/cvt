@@ -161,6 +161,7 @@ ADD_SUBDIRECTORY(undistort)
 ADD_SUBDIRECTORY(undistortrectify)
 ADD_SUBDIRECTORY(unproject)
 ADD_SUBDIRECTORY(unproject2)
+ADD_SUBDIRECTORY(unproject3)
 ADD_SUBDIRECTORY(util)
 
 ADD_SUBDIRECTORY(videoreader)

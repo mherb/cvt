@@ -16,7 +16,7 @@
 #include <cvt/gfx/ifilter/IWarp.h>
 
 namespace cvt {
-	class StereoCameraCalibration
+	class StereoCameraCalibration : public XMLSerializable
 	{
 		public:
 			StereoCameraCalibration();
@@ -37,6 +37,14 @@ namespace cvt {
 
             float                    baseLine()    const;
             float                    focalLength() const { return _first.intrinsics()[ 0 ][ 0 ]; }
+
+			void load( const String& file );
+
+			// de-/serialization interface
+			void	 deserialize( XMLNode* node );
+			XMLNode* serialize() const;
+
+
 
 		private:
 			struct UndistortRectifyWarp {
@@ -236,6 +244,58 @@ namespace cvt {
                            Math::sqr( _extrinsics[ 1 ][ 3 ] ) +
                            Math::sqr( _extrinsics[ 2 ][ 3 ] ) );
     }
+
+	inline void StereoCameraCalibration::load( const String& filename )
+	{
+		XMLDocument xmlDoc;
+		xmlDoc.load( filename );
+
+		XMLNode* node = xmlDoc.nodeByName( "StereoCameraCalibration" );
+		this->deserialize( node );
+	}
+
+   inline XMLNode* StereoCameraCalibration::serialize() const
+   {
+	   XMLNode * root;
+
+	   root = new XMLElement( "StereoCameraCalibration" );
+
+	   XMLElement * element = new XMLElement( "Extrinsics" );
+	   element->addChild( new XMLText( _extrinsics.toString() ) );
+	   root->addChild( element );
+
+	   element = new XMLElement( "FirstCamera" );
+	   element->addChild( _first.serialize()  );
+	   root->addChild( element );
+
+	   element = new XMLElement( "SecondCamera" );
+	   element->addChild( _second.serialize()  );
+	   root->addChild( element );
+
+	   return root;
+   }
+
+    inline void StereoCameraCalibration::deserialize( XMLNode* node )
+	{
+		if( node->name() != "StereoCameraCalibration" )
+			throw CVTException( "this is not a camera calibration node" );
+		XMLNode * n;
+		n = node->childByName( "Extrinsics" );
+		if( n != NULL ){
+			Matrix4f mat = Matrix4f::fromString( n->child( 0 )->value() );
+			setExtrinsics( mat );
+		}
+
+		n = node->childByName( "FirstCamera" );
+		if( n != NULL ){
+			_first.deserialize( n->child( 0 ) );
+		}
+
+		n = node->childByName( "SecondCamera" );
+		if( n != NULL ){
+			_second.deserialize( n->child( 0 ) );
+		}
+	}
 
 }
 

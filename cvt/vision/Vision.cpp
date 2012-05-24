@@ -126,8 +126,10 @@ namespace cvt {
         }
 
 
-		static void disparityToDepthmap( Image& depthmap, const Image& disparity, const float focallength, const float baseline, const float dispthres )
+		void Vision::disparityToDepthmap( Image& depthmap, const Image& disparity, const float dispscale, const float focallength, const float baseline, const float dispthres )
 		{
+			depthmap.reallocate( disparity.width(), disparity.height(), IFormat::GRAY_FLOAT );
+
             IMapScoped<const float> src( disparity );
             IMapScoped<float> dst( depthmap );
 			float fb = focallength * baseline;
@@ -137,8 +139,9 @@ namespace cvt {
                 float* dptr = dst.ptr();
                 const float* sptr = src.ptr();
                 for( size_t x = 0; x < disparity.width(); x++ ){
-					if( sptr[ x ] > dispthres )
-						dptr[ x ] = fb / sptr[ x ];
+					float disp = sptr[ x ] * dispscale;
+					if( disp > dispthres )
+						dptr[ x ] = fb / disp;
 					else
 						dptr[ x ] = 0;
                 }
