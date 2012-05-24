@@ -152,6 +152,8 @@ namespace cvt
         static void unprojectToScenePoints( ScenePoints& pts, const Image& texture, const Image& depthmap, float dscale = 1.0f );
 
         static void unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale );
+
+		static void disparityToDepthmap( Image& depthmap, const Image& disparity, const float focallength, const float baseline, const float dispthres = 0.01f );
     };
 
     inline void Vision::p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints )
