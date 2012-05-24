@@ -1,12 +1,15 @@
 #include <iostream>
 
 #include <cvt/io/Resources.h>
+#include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/Vision.h>
 
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/util/Delegate.h>
 #include <cvt/math/Quaternion.h>
+
+using namespace cvt;
 
 struct UndistortOp
 {
@@ -21,10 +24,16 @@ struct UndistortOp
 int main( int argc, char** argv )
 {
 	// FIXME: add argc/argv check
+
+	if( argc != 5 ) {
+		std::cout << argv[ 0 ] << " calib0 calib1 image1 image2" << std::endl;
+		return 0;
+	}
+
 	CameraCalibration left;
 	CameraCalibration right;
-    left.load( argv[ 0 ] );
-    right.load( argv[ 1 ] );
+    left.load( argv[ 1 ] );
+    right.load( argv[ 2 ] );
 
 	StereoCameraCalibration stereo( left, right );
 	StereoCameraCalibration newstereo;
@@ -45,6 +54,10 @@ int main( int argc, char** argv )
 
 	outl.save( "rectleft.png" );
 	outr.save( "rectright.png" );
+
+	XMLDocument xmldoc;
+	xmldoc.addNode( newstereo.serialize() );
+	xmldoc.save("stereorectify.xml");
 
 #if 0
 	UndistortOp op( left );

@@ -176,6 +176,7 @@ int main( int argc, char** argv )
 				tmp.save("c.png");
 			}
 			output.save( "dmapcvtvl1.png" );
+			output.save( "d.cvtraw" );
 			Image tmp;
 			ColorCode::apply( tmp, output, 1.0f, 0.0f );
 			tmp.save("dmap-color-cvtvl1.png");
