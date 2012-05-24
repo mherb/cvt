@@ -51,7 +51,7 @@ namespace cvt {
             tex++;
         }
 
-                scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
+        scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
         scenepts.transform( calibration.extrinsics() );
     }
 
@@ -124,6 +124,28 @@ namespace cvt {
                 depthMap++;
             }
         }
+
+
+		static void disparityToDepthmap( Image& depthmap, const Image& disparity, const float focallength, const float baseline, const float dispthres )
+		{
+            IMapScoped<const float> src( disparity );
+            IMapScoped<float> dst( depthmap );
+			float fb = focallength * baseline;
+
+			size_t height = disparity.height();
+            while( height-- ){
+                float* dptr = dst.ptr();
+                const float* sptr = src.ptr();
+                for( size_t x = 0; x < disparity.width(); x++ ){
+					if( sptr[ x ] > dispthres )
+						dptr[ x ] = fb / sptr[ x ];
+					else
+						dptr[ x ] = 0;
+                }
+				src++;
+				dst++;
+            }
+		}
 
     template <typename T>
     static bool _compare( const Matrix3<T> & a, const Matrix3<T> & b, T epsilon )
