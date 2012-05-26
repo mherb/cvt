@@ -54,9 +54,8 @@ class FeatureROC
         _fastThreshold( 30 ),
         _currentDataSet( 0 ),
         _currentImage( 0 ),
-		_maxFeatures( 1000 ),
-		_orbParams( 1.0 / _scaleFactor, _numScales ),
-		_orb( _maxFeatures, _orbParams )
+		_maxFeatures( 1000 ),		
+        _orb( _maxFeatures, 1.0f / _scaleFactor, _numScales, _fastThreshold )
     {
         _dataSets.push_back( "bark" );
         _dataSets.push_back( "bikes" );
@@ -186,7 +185,7 @@ class FeatureROC
 
 	void matchFeatures()
     {
-        cv::BruteForceMatcher<cv::Hamming> matcher;
+        cv::BFMatcher matcher( cv::NORM_HAMMING );
         std::vector<cv::DMatch> matches;
         matcher.match( _desc1, _desc0, matches );
 
@@ -231,7 +230,6 @@ class FeatureROC
 	size_t					  _maxFeatures;
 
 
-    cv::ORB::CommonParams	  _orbParams;
 	cv::vector<cv::KeyPoint>  _kp0;
 	cv::vector<cv::KeyPoint>  _kp1;
 	cv::ORB					  _orb;
