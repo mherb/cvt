@@ -45,7 +45,8 @@ fprintf('<?xml version="1.0" encoding="UTF-8"?>\n');
 fprintf('<CameraCalibration>\n');
 fprintf('	<Extrinsics>\n');
 
-fprintfMat( cat(1,[SC.R SC.T],[0 0 0 1]));
+% translation from matlab calib is in mm -> convert to m!
+fprintfMat( cat(1,[SC.R 0.001 * SC.T],[0 0 0 1]));
 
 fprintf('	</Extrinsics>\n');
 
