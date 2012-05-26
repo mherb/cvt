@@ -63,7 +63,7 @@ namespace cvt
         _videos( videos ),
         _calibrations( calibrations ),
         //_depthInit( new ORBStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
-        _depthInit( new PatchStereoInit( calibrations[ 0 ], calibrations[ 1 ] ) ),
+        _depthInit( new PatchStereoInit( calibrations[ 0 ], calibrations[ 1 ], videos[ 0 ]->width(), videos[ 0 ]->height() ) ),
         _depthParamsView( _depthInit->parameters() ),
         _depthParamsMov( &_depthParamsView ),
         _window( "DepthView" ),

@@ -248,8 +248,7 @@ void testORB()
     size_t nLevels = 1;
     uint8_t cornerThresh = 20;
 
-    cv::ORB::CommonParams orbParams( scaleFactor, nLevels, cornerThresh );
-    cv::ORB ocvORB( 1000, orbParams );
+    cv::ORB ocvORB( 1000, scaleFactor, nLevels, cornerThresh );
 
     cv::Mat mask, descriptors;
 
