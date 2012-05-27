@@ -23,7 +23,7 @@ inline float costGRAY_L2( const float4 i1, const float4 i2 )
 	return tmp * tmp;
 }
 
-__kernel void stereoCV( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float4* buf  )
+__kernel void stereoCV( global float* cv, const int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float4* buf  )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int lx = get_local_id( 0 );
@@ -57,7 +57,7 @@ __kernel void stereoCV( global float* cv, int depth, __read_only image2d_t src1,
 		cvptr[ d * stride ] = costGRAY_L1( pixel, buf[ lx + d ] );
 }
 
-__kernel void stereoCV_GRAY_AD( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
+__kernel void stereoCV_GRAY_AD( global float* cv, const int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int lx = get_local_id( 0 );
@@ -91,7 +91,7 @@ __kernel void stereoCV_GRAY_AD( global float* cv, int depth, __read_only image2d
 		cvptr[ d * stride ] = fabs( pixel - buf[ lx + d ] );
 }
 
-__kernel void stereoCV_GRAY_SAD( global float* cv, int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
+__kernel void stereoCV_GRAY_SAD( global float* cv, const int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
 {
 #define R 1
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
@@ -137,7 +137,7 @@ __kernel void stereoCV_GRAY_SAD( global float* cv, int depth, __read_only image2
 	}
 }
 
-__kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv, int depth )
+__kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv, const int depth )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -165,7 +165,7 @@ __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv,
 	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( val, val, val, 1.0f ) );
 }
 
-__kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const float* cv, int depth )
+__kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const float* cv, const int depth )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -219,4 +219,59 @@ __kernel void stereoCV_WTAMINMAX( __write_only image2d_t dmap, global const floa
 	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) ( depth - 1 ), cmax - cmin, 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( 1.0f * exp( -1.0f * fabs( avg - cmin ) - 1.0f * ( avg2 - avg * avg ) ), 1e-4f, 1.0f ) , 0.0f, 1.0f ) );
 //	write_imagef( dmap, ( int2 ) ( gx, gy ), ( float4 ) ( ( float ) idx / ( float ) depth, clamp( pow( fabs( avg - cmin ) * 1.0f, -1.0f ), 1e-5f, 1.0f ), 0.0f, 1.0f ) );
+}
+
+__kernel void stereoCV_boxfilter( global float* cvout, global const float* cvin, const int width, const int height, const int depth, const int r, local float* buf )
+{
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int lw = get_local_size( 0 );
+	const int lh = get_local_size( 1 );
+	const int r2 = r * 2;
+	const int bstride = lw + r2;
+	const int stride = mul24( width, height );
+	int2 mincoord, maxcoord;
+	global const float* cvptr = cvin + stride * get_global_id( 2 );// + ( mul24( gy, width ) + gx );
+	global float* cvoptr = cvout + stride * get_global_id( 2 );
+	float size;
+	const int basex = get_group_id( 0 ) * lw - r;
+	const int basey = get_group_id( 1 ) * lh - r;
+
+	mincoord.x = max( 0, basex );
+	mincoord.y = max( 0, basey );
+	maxcoord.x = min( width - 1, basex + bstride );
+	maxcoord.y = min( height - 1, basey + bstride );
+
+	for( int y = mincoord.y + ly; y < maxcoord.y; y += lh ) {
+		for( int x = mincoord.x + lx; x < maxcoord.x; x += lw ) {
+//			int2 cvpos = min( max( ( int2 )( basex + x - r, basey + y - r  ), ( int2 ) ( 0, 0 ) ), ( int2 ) ( width - 1, height - 1 ) );
+//			int2 cvpos =( int2 )( basex + x - r, basey + y - r  );
+//			if(cvpos.x >= 0 && cvpos.x < width && cvpos.y  >= 0 && cvpos.y < height )
+			buf[ mul24( y - basey, bstride ) + x - basex ] = cvptr[ mul24( y, width ) + x ];
+		}
+	}
+	barrier( CLK_LOCAL_MEM_FENCE );
+
+	if( gx >= width || gy >= height )
+		return;
+
+#define BUF( x, y ) ( buf[ mul24( ( y ) + r, bstride ) + ( x ) + r ] )
+
+	mincoord.x = max( 0, gx - r );
+	mincoord.y = max( 0, gy - r );
+	maxcoord.x = min( width - 1, gx + r );
+	maxcoord.y = min( height - 1, gy + r );
+
+	size = ( maxcoord.x - mincoord.x + 1 ) * ( maxcoord.y - mincoord.y + 1 );
+	mincoord -= ( int2 ) ( gx, gy );
+	maxcoord -= ( int2 ) ( gx, gy );
+
+	float value = 0;
+	for( int y = mincoord.y; y <= maxcoord.y; y++ )
+		for( int x = mincoord.x; x <= maxcoord.x; x++ )
+			value += BUF( lx + x, ly + y );
+	value /= size;
+	cvoptr[ mul24( gy, width ) + gx ] = value;
 }

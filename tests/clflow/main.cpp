@@ -40,7 +40,7 @@ int main( int argc, char** argv )
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
 		ccode.reallocate( output.width(), output.height(), IFormat::BGRA_FLOAT );
-		Flow::colorCode( ccode, output, 3.0f );
+		Flow::colorCode( ccode, output, 1.0f );
 		ccode.save( "flow.png" );
 
 		if( argc == 4 ) {

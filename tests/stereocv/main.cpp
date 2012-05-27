@@ -32,10 +32,13 @@ int main( int argc, char** argv )
 	Image cldmap( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 	try {
-		CLKernel kerncv( _stereoCV_source, "stereoCV_GRAY_SAD" );
+		CLKernel kerncv( _stereoCV_source, "stereoCV_GRAY_AD" );
+		CLKernel kerncvbox( _stereoCV_source, "stereoCV_boxfilter" );
 		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTA" );
 
+
 		CLBuffer cv( sizeof( cl_float ) * left.width() * left.height() * depth  );
+		CLBuffer cv2( sizeof( cl_float ) * left.width() * left.height() * depth  );
 
 		Time t;
 
@@ -43,11 +46,24 @@ int main( int argc, char** argv )
 		kerncv.setArg( 1, depth );
 		kerncv.setArg( 2, clright );
 		kerncv.setArg( 3, clleft );
-		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 9 * ( depth + 256 ) ) );
+		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 1 * ( depth + 256 ) ) );
 		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
 
+#if 1
+#define CVBOXWG 16
+		int r = 3;
+		kerncvbox.setArg( 0, cv2 );
+		kerncvbox.setArg( 1, cv );
+		kerncvbox.setArg<int>( 2, left.width() );
+		kerncvbox.setArg<int>( 3, left.height() );
+		kerncvbox.setArg( 4, depth );
+		kerncvbox.setArg( 5, r );
+		kerncvbox.setArg( 6, CLLocalSpace( sizeof( cl_float ) * ( CVBOXWG + 2 * r ) * ( CVBOXWG + 2 * r ) ) );
+		kerncvbox.run( CLNDRange( Math::pad( left.width(), CVBOXWG ), Math::pad( left.height(), CVBOXWG ), depth ), CLNDRange( CVBOXWG, CVBOXWG, 1 ) );
+#endif
+
 		kerncvwta.setArg( 0, cldmap );
-		kerncvwta.setArg( 1, cv );
+		kerncvwta.setArg( 1, cv2 );
 		kerncvwta.setArg( 2, depth );
 		kerncvwta.runWait( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
 
