@@ -45,8 +45,8 @@ namespace cvt {
 			_clboxfilter.setArg( 0, dst );
 			_clboxfilter.setArg( 1, src );
 			_clboxfilter.setArg( 2, radius );
-			_clboxfilter.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( 16 + radius ) * ( 16 * radius ) ) );
-			_clboxfilter.run( global, CLNDRange( 16, 16 ) );
+			_clboxfilter.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( 16 + 2 * radius ) * ( 16 + 2 * radius ) ) );
+			_clboxfilter.runWait( global, CLNDRange( 16, 16 ) );
 		}
 	}
 
