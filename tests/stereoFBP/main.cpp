@@ -8,14 +8,14 @@
 #include <cvt/util/Time.h>
 
 #include <cvt/gfx/ifilter/ColorCode.h>
-#include <cvt/cl/kernel/stereo/stereoCV.h>
+#include <cvt/cl/kernel/stereo/stereoCVFBP.h>
 
 using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	if( argc != 4 ) {
-		std::cout << "usage: " << argv[ 0 ] << " left-image right-image max-disp" << std::endl;
+	if( argc != 5 ) {
+		std::cout << "usage: " << argv[ 0 ] << " left-image right-image max-disp iter" << std::endl;
 		return 0;
 	}
 
@@ -24,6 +24,7 @@ int main( int argc, char** argv )
 	CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
 
 	int depth = String( argv[ 3 ] ).toInteger();
+	int iter = String( argv[ 4 ] ).toInteger();
 	Image left( argv[ 1 ] );
 	Image right( argv[ 2 ] );
 
@@ -32,13 +33,12 @@ int main( int argc, char** argv )
 	Image cldmap( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 	try {
-		CLKernel kerncv( _stereoCV_source, "stereoCV_GRAY_AD" );
-		CLKernel kerncvbox( _stereoCV_source, "stereoCV_boxfilter" );
-		CLKernel kerncvwta( _stereoCV_source, "stereoCV_WTA" );
+		CLKernel kerncv( _stereoCVFBP_source, "stereoCV_FBP_AD" );
+		CLKernel kerncvfbp( _stereoCVFBP_source, "stereoCV_FBP" );
+		CLKernel kerncvwta( _stereoCVFBP_source, "stereoCV_FBP_WTA" );
 
 
-		CLBuffer cv( sizeof( cl_float ) * left.width() * left.height() * depth  );
-		CLBuffer cv2( sizeof( cl_float ) * left.width() * left.height() * depth  );
+		CLBuffer cv( sizeof( cl_float2 ) * left.width() * left.height() * depth  );
 
 		Time t;
 
@@ -49,30 +49,25 @@ int main( int argc, char** argv )
 		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 1 * ( depth + 256 ) ) );
 		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
 
-#if 1
-#define CVBOXWG 16
-		int r = 1;
-		kerncvbox.setArg( 0, cv2 );
-		kerncvbox.setArg( 1, cv );
-		kerncvbox.setArg<int>( 2, left.width() );
-		kerncvbox.setArg<int>( 3, left.height() );
-		kerncvbox.setArg( 4, depth );
-		kerncvbox.setArg( 5, r );
-		kerncvbox.setArg( 6, CLLocalSpace( sizeof( cl_float ) * ( CVBOXWG + 2 * r ) * ( CVBOXWG + 2 * r ) ) );
-		kerncvbox.run( CLNDRange( Math::pad( left.width(), CVBOXWG ), Math::pad( left.height(), CVBOXWG ), depth ), CLNDRange( CVBOXWG, CVBOXWG, 1 ) );
-#endif
+		for( int i = 0; i < iter; i++ ) {
+			kerncvfbp.setArg( 0, cv );
+			kerncvfbp.setArg<int>( 1, left.width() );
+			kerncvfbp.setArg<int>( 2, left.height() );
+			kerncvfbp.setArg( 3, depth );
+			kerncvfbp.setArg( 4, i );
+			kerncvfbp.run( CLNDRange( Math::pad( left.width() / 2, 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		}
 
 		kerncvwta.setArg( 0, cldmap );
-		kerncvwta.setArg( 1, cv2 );
+		kerncvwta.setArg( 1, cv );
 		kerncvwta.setArg( 2, depth );
 		kerncvwta.runWait( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
 
 		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		Image tmp;
 		ColorCode::apply( tmp, cldmap, 1.0f, 0.0f );
-		tmp.save("dmap-color.png");
-
-		cldmap.save( "dmap.png" );
+		tmp.save("dmap-fbp-color.png");
+		cldmap.save( "dmap-fbp.png" );
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
