@@ -23,7 +23,7 @@ SET(CPACK_PACKAGE_CONTACT "Sebastian Klose, kloses@in.tum.de")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Sebastian Klose, kloses@in.tum.de")
 
 # dependencies: Eigen, ffmpeg
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libpng12-dev (>=1.2.43), libeigen3-dev (>=3.0.1), libdc1394-22-dev, libavformat-dev (>=4:0.6), libavcodec-dev (>=4:0.6)")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libpng12-dev (>=1.2.42), libeigen3-dev (>=3.0.1), libdc1394-22-dev, libavformat-dev (>=4:0.6), libavcodec-dev (>=4:0.6)")
 
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/Copyright.txt")
