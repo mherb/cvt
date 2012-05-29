@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY(brief)
 ADD_SUBDIRECTORY(bspline)
 ADD_SUBDIRECTORY(bsplinehist)
+ADD_SUBDIRECTORY(boxfilter)
 
 ADD_SUBDIRECTORY(calibration)
 ADD_SUBDIRECTORY(cameras)

@@ -69,3 +69,105 @@ __kernel void boxfilter( __write_only image2d_t out,  __read_only image2d_t in, 
 	write_imagef( out, coord, value );
 }
 
+void prefixScanHorizontal( local float4* block, const int len )
+{
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+	const int lw = get_local_size( 0 );
+	const int lh = get_local_size( 1 );
+	const int lenhalf = len >> 1;
+	const int tidx2 = lx << 1;
+	const int tidy2 = ly << 1;
+	int offset = 1;
+
+	for(int d = lenhalf; d > 0; d >>= 1 ) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		int ai = offset * ( tidx2 + 1) - 1;
+		int bi = offset * ( tidx2 + 2) - 1;
+		if( bi < len ) {
+			for( int y = ly; y < len; y += lh ) {
+				block[ bi + y * len ] += block[ ai + y * len ];
+			}
+		}
+		barrier(CLK_LOCAL_MEM_FENCE);
+		ai = offset * ( tidy2 + 1 ) - 1;
+		bi = offset * ( tidy2 + 2 ) - 1;
+		if( bi < len ) {
+			for( int x = lx; x < len; x += lw ) {
+				block[ bi * len + x ] += block[ai * len + x ];
+			}
+		}
+		offset <<= 1;
+	}
+	// scan back down the tree
+	offset >>= 1;
+	// traverse down the tree building the scan in the place
+	for(int d = 1; d <= lenhalf; d <<= 1 ) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		int bi = offset * ( tidx2 + 3 ) - 1;
+		int ai = offset * ( tidx2 + 2 ) - 1;
+		if( bi < len ) {
+			for( int y = ly; y < len; y += lh ) {
+				block[bi + y * len ] += block[ ai + y * len ];
+			}
+		}
+		barrier(CLK_LOCAL_MEM_FENCE);
+		bi = offset * ( tidy2 + 3 ) - 1;
+		ai = offset * ( tidy2 + 2 ) - 1;
+		if( bi < len ) {
+			for( int x = lx; x < len; x += lw ) {
+				block[ bi * len + x ] += block[ai * len + x ];
+			}
+		}
+		offset >>= 1;
+	}
+}
+
+
+__kernel void boxfilter2( __write_only image2d_t out,  __read_only image2d_t in, const int r, local float4* buf )
+{
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const int width = get_image_width( out );
+	const int height = get_image_height( out );
+	const int lx = get_local_id( 0 );
+    const int ly = get_local_id( 1 );
+    const int lw = get_local_size( 0 );
+    const int lh = get_local_size( 1 );
+	const int r2 = r * 2;
+    const int bstride = lw + r2;
+	const int2 base = ( int2 )( get_group_id( 0 ) * lw - r, get_group_id( 1 ) * lh - r );
+	int2 coord, mincoord, maxcoord;
+	float size;
+	float4 value;
+
+	for( int y = ly; y < lh + r2; y += lh ) {
+		for( int x = lx; x < lw + r2; x += lw ) {
+			buf[ y * bstride + x ] = read_imagef( in, sampler, base + ( int2 )( x, y ) );
+		}
+	}
+
+	barrier( CLK_LOCAL_MEM_FENCE );
+
+	prefixScanHorizontal( buf, bstride );
+
+	barrier( CLK_LOCAL_MEM_FENCE );
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+#define BUF( x, y ) ( buf[ mul24( ( y ) + r, bstride ) + ( x ) + r ] )
+
+	value = BUF( lx + r , ly + r );
+	if( lx > 0 )
+		value -= BUF( lx - r - 1 , ly + r  );
+	if( ly > 0 )
+		value -= BUF( lx +  r, ly - r - 1 );
+	if( lx > 0 && ly > 0 )
+		value += BUF( lx - r - 1, ly - r - 1 );
+
+	write_imagef( out, coord, value / ( float) ( ( 2 * r + 1 ) * ( 2 * r  + 1 ) ) );
+}
+
+
