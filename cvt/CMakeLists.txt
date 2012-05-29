@@ -129,6 +129,7 @@ SET( CL_KERNELS
     cl/kernel/tvl1flow/tvl1_dataadd.cl
     cl/kernel/tvl1flow/tvl1_warp.cl
     cl/kernel/stereo/stereoCV.cl
+    cl/kernel/stereo/stereoCVFBP.cl
     cl/kernel/stereo/stereoCVQSearch.cl
     cl/kernel/stereogcv/costdepth.cl
     cl/kernel/stereogcv/costdepthgrad.cl
