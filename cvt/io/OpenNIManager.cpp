@@ -39,6 +39,11 @@ namespace cvt {
 		xn::NodeInfoList devices;
 		status = context.EnumerateProductionTrees( XN_NODE_TYPE_DEVICE, NULL, devices );
 
+		if( status != XN_STATUS_OK ){
+            // this causes a problem if no device is connected!
+//			throw CVTException( "Error enumerating production trees" );
+		}
+
 		xn::NodeInfoList::Iterator it= devices.Begin();
 		xn::NodeInfoList::Iterator itEnd = devices.End();
 
@@ -64,10 +69,11 @@ namespace cvt {
 
 	void OpenNIManager::nameAndSerialForDevice( String& name, String& serial, xn::Device& device ) const
 	{
-        const size_t bufsize = 2048;
+        const size_t bufsize = 1024;
 		char buffer[ bufsize ];
 
 		xn::DeviceIdentificationCapability idCap = device.GetIdentificationCap();
+
 		XnStatus status = idCap.GetDeviceName( buffer, bufsize );
 		if( status == XN_STATUS_OK ){
 			name = buffer;
