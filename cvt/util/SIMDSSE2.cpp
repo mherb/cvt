@@ -2384,6 +2384,143 @@ void SIMDSSE2::prefixSumSqr1_u8_to_f( float * _dst, size_t dStride, const uint8_
 		_src += srcStride;
 	}
 }
+#define BOXFILTER_PREFIXSUM_16_1F_TO_U8()							\
+																	\
+	r1 = _mm_loadu_ps( A );											\
+	r2 = _mm_loadu_ps( B );											\
+	r3 = _mm_loadu_ps( C );											\
+	r4 = _mm_loadu_ps( D );											\
+	r1 = _mm_sub_ps( r1, r2 );	/* r1 = a - b */					\
+	r1 = _mm_add_ps( r1, r3 );	/* r1 = a - b + c */				\
+	r1 = _mm_sub_ps( r1, r4 );	/* r1 = a - b + c - d */			\
+	r1 = _mm_mul_ps( r1, r5 );	/* r1 = (a - b + c - d) / scale; */	\
+	e1 = _mm_cvtps_epi32( r1 );										\
+	A += 4;B += 4;C += 4;D += 4;									\
+	r1 = _mm_loadu_ps( A );											\
+	r2 = _mm_loadu_ps( B );											\
+	r3 = _mm_loadu_ps( C );											\
+	r4 = _mm_loadu_ps( D );											\
+	r1 = _mm_sub_ps( r1, r2 );	/* r1 = a - b */					\
+	r1 = _mm_add_ps( r1, r3 );	/* r1 = a - b + c */				\
+	r1 = _mm_sub_ps( r1, r4 );	/* r1 = a - b + c - d */			\
+	r1 = _mm_mul_ps( r1, r5 );	/* r1 = (a - b + c - d) / scale; */	\
+	e1 = _mm_packs_epi32( e1, _mm_cvtps_epi32( r1 ) );				\
+	A += 4;B += 4;C += 4;D += 4;									\
+	r1 = _mm_loadu_ps( A );											\
+	r2 = _mm_loadu_ps( B );											\
+	r3 = _mm_loadu_ps( C );											\
+	r4 = _mm_loadu_ps( D );											\
+	r1 = _mm_sub_ps( r1, r2 );	/* r1 = a - b */					\
+	r1 = _mm_add_ps( r1, r3 );	/* r1 = a - b + c */				\
+	r1 = _mm_sub_ps( r1, r4 );	/* r1 = a - b + c - d */			\
+	r1 = _mm_mul_ps( r1, r5 );	/* r1 = (a - b + c - d) / scale; */	\
+	e2 = _mm_cvtps_epi32( r1 );										\
+	A += 4;B += 4;C += 4;D += 4;									\
+	r1 = _mm_loadu_ps( A );											\
+	r2 = _mm_loadu_ps( B );											\
+	r3 = _mm_loadu_ps( C );											\
+	r4 = _mm_loadu_ps( D );											\
+	r1 = _mm_sub_ps( r1, r2 );	/* r1 = a - b */					\
+	r1 = _mm_add_ps( r1, r3 );	/* r1 = a - b + c */				\
+	r1 = _mm_sub_ps( r1, r4 );	/* r1 = a - b + c - d */			\
+	r1 = _mm_mul_ps( r1, r5 );	/* r1 = (a - b + c - d) / scale; */	\
+	e2 = _mm_packs_epi32( e2, _mm_cvtps_epi32( r1 ) );				\
+	A += 4;B += 4;C += 4;D += 4;									\
+	e1 = _mm_packus_epi16( e1, e2 );								\
+	_mm_storeu_si128( ( __m128i* ) dst, e1 );						\
+	dst += 16;														\
+
+
+static inline void boxFilterLineInternal1_f_to_u8( uint8_t *dst, const float *A, const float *B, const float *C, const float *D, float scale, size_t n )
+{
+	__m128 r1, r2, r3, r4;
+    __m128i	e1, e2;
+	const __m128 r5 = _mm_set1_ps( scale );
+
+	// loop unroll: process 4 blocks of 4 floats at a time
+	size_t i = n >> 4;
+	while( i-- ) {
+		BOXFILTER_PREFIXSUM_16_1F_TO_U8();
+	}
+
+	i = n & 0x0F;
+	while ( i-- )
+	{
+		*dst++ =  ( uint8_t ) Math::clamp( ( *A++ - *B++ - *D++ + *C++ ) * scale, 0.0f, 255.0f );
+	}
+}
+
+void SIMDSSE2::boxFilterPrefixSum1_f_to_u8( uint8_t* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+{
+	// FIXME
+	srcstride >>= 2;
+
+	size_t x;
+	size_t y;
+	size_t boxwr = boxwidth >> 1;
+	size_t boxhr = boxheight >> 1;
+	size_t hend = height - boxhr;
+	size_t wend = width - boxwr;
+	const float* A = src + srcstride * boxhr + boxwr;
+	const float* B = src + boxwr;
+	const float* C = src;
+	const float* D = src + srcstride * boxhr;
+	const float scale = 1.0f / ( boxwidth * boxheight );
+
+	for( y = 0; y <= boxhr; y++ ) {
+		for( x = 0; x <= boxwr; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp( A[ x ] / ( float )( ( boxwr + 1 + x ) * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+		}
+		for( ; x < wend; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp(( A[ x ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( boxwidth * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+		}
+		for( ; x < width; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp(( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+		}
+		A += srcstride;
+		D += srcstride;
+		dst += dststride;
+	}
+
+	for( ; y < hend; y++ ) {
+		for( x = 0; x <= boxwr; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp(( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) ), 0.0f, 255.0f );
+		}
+		boxFilterLineInternal1_f_to_u8( dst + x, A + x, B + x, C, D, scale, wend - x );
+		x = wend;
+
+		for( ; x < width; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp(( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight ), 0.0f, 255.0f );
+		}
+
+		A += srcstride;
+		B += srcstride;
+		C += srcstride;
+		D += srcstride;
+		dst += dststride;
+	}
+
+	A -= srcstride;
+	D -= srcstride;
+
+	for( ; y < height; y++ ) {
+		for( x = 0; x <= boxwr; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp( ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+		}
+		for( ; x < wend; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp( ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) / ( float ) ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+		}
+		for( ; x < width; x++ ) {
+			dst[ x ] = ( uint8_t ) Math::clamp( ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+		}
+
+
+		B += srcstride;
+		C += srcstride;
+		dst += dststride;
+	}
+
+}
 
 void SIMDSSE2::debayer_ODD_RGGBu8_BGRAu8( uint32_t* _dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, const size_t width ) const
 {
