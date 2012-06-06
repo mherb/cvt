@@ -47,20 +47,20 @@ int main( int argc, char* argv[] )
 	if( argc == 1 ){
 //		input = NULL;
         input = initCamera();
+        if( input == 0 ){
+            return 0;
+        }
     } else {
-		if( argc < 6 ){
-			std::cout << "Usage: " << argv[ 0 ] << "<base> <ext> <start> <stop> <nrwidth>" << std::endl;
+        if( argc < 3 ){
+            std::cout << "Usage: " << argv[ 0 ] << "<base> <ext>" << std::endl;
 			return 0;
 		}
-        String ext( argv[ 2 ] );
-		int a = atoi( argv[ 3 ] );
-		int b = atoi( argv[ 4 ] );
-		int c = atoi( argv[ 5 ] );
+        String ext( argv[ 2 ] );		
         input = new ImageSequence( argv[ 1 ], ext );
     }
 
 	try {
-		MIApp app( input );
+		MIApp app( input );        
 		Application::run();
 	} catch( const cvt::Exception & e ) {
 		std::cout << e.what() << std::endl;

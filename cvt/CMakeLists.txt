@@ -411,6 +411,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/AIIKeyframe.h
    vision/rgbdvo/ESMKeyframe.h
    vision/rgbdvo/KeyframeBase.h
+   vision/rgbdvo/MIKeyframe.h
    vision/rgbdvo/MultiscaleKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RobustAIIKeyframe.h
@@ -601,6 +602,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/SparseBundleAdjustment.cpp
    vision/rgbdvo/AIIKeyframe.cpp
    vision/rgbdvo/ESMKeyframe.cpp
+   vision/rgbdvo/MIKeyframe.cpp
    vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp

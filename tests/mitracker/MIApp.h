@@ -138,8 +138,8 @@ namespace cvt
 					Image diff( _tracker.templateImage() );
 					diff.sub( _tracker.warped() );
 					_gui.setTemplateImage( _tracker.templateImage(), 
-										  _tracker.warped(), 
-										  diff );
+                                           _tracker.warped(),
+                                           diff );
 					std::vector<Vector2f> pts;
 					calculateRectPoints( pts );
 					_gui.setPoints( pts );

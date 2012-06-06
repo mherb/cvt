@@ -158,7 +158,8 @@ namespace cvt {
 			hinv = h.inverse();
 
 			tmp.fill( Color::WHITE );
-			ITransform::apply( tmp, img, hinv );
+            ITransform::apply( tmp, img, hinv, _warped.width(), _warped.height() );
+
 			tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
 			// calculate the online stuff:
@@ -195,7 +196,7 @@ namespace cvt {
 	{
 		_templateGradX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 		_templateGradY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
-		_templateGradXX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
+        _templateGradXX.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 		_templateGradYY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 		_templateGradXY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 
@@ -205,6 +206,9 @@ namespace cvt {
 		_itemplate.convolve( _templateGradXX, lxx );
 		IKernel lyy( IKernel::LAPLACE_3_YY );
 		_itemplate.convolve( _templateGradYY, lyy );
+
+        _templateGradX.mul( 0.5f );
+        _templateGradY.mul( 0.5f );
 
 		float kxydata[]={0.25f, 0.0f, -0.25,
 					     0.0f, 0.0f, 0.0f,
@@ -224,8 +228,9 @@ namespace cvt {
 
 		Image tmp;
 		img.convert( tmp, IFormat::GRAY_FLOAT );
-		_itemplate.reallocate( tmp );
+		_itemplate.reallocate( tmp );        
 		tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+
 		updateTemplateGradients();
 
 		offlineTemplateDerivatives();
@@ -482,7 +487,6 @@ namespace cvt {
 		_hessApprox = _miHessian.inverse();
 	}
 	
-
 	inline void MITracker::updateDerivatives()
 	{
 		float c1[ ( _numBins + 1 ) ][ ( _numBins + 1 ) ];
@@ -623,8 +627,8 @@ namespace cvt {
 				hess( 1, 0 ) = gxy[ x ];
 				hess( 1, 1 ) = -gyy[ x ];
 			
-				grad *= 0.5f * ( float )(_numBins - 3);
-				hess *= ( float )(_numBins - 3);
+                grad *= ( float )( _numBins - 3 );
+                hess *= ( float )( _numBins - 3 );
 
 				p[ 0 ] = x;
 				_pose.screenJacobian( screenJac, p );
