@@ -662,7 +662,7 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 	C += 4;															\
 	D += 4;															\
 
-	static inline void boxFilterLineInternal( float *dst, const float *A, const float *B, const float *C, const float *D, float scale, size_t n )
+	static inline void boxFilterLineInternal1_f_to_f( float *dst, const float *A, const float *B, const float *C, const float *D, float scale, size_t n )
 	{
 		__m128 r1, r2, r3, r4;
 		const __m128 r5 = _mm_set1_ps( scale );
@@ -681,13 +681,12 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 			BOXFILTER_PREFIXSUM1F_ONCE();
 		}
 
-		// process up to 8 blocks of 4 floats
+		// process up to 4 blocks of 4 floats
 		i = (n >> 2) & 0x07;
 		while ( i-- ) {
 			BOXFILTER_PREFIXSUM1F_ONCE();
 		}
 
-		// process up to 4 floats
 		i = n & 0x03;
 		while ( i-- )
 		{
@@ -695,7 +694,7 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 		}
 	}
 
-	void SIMDSSE::boxFilterPrefixSum1f( float* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+	void SIMDSSE::boxFilterPrefixSum1_f_to_f( float* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
 	{
 		// FIXME
 		srcstride >>= 2;
@@ -732,7 +731,7 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 			for( x = 0; x <= boxwr; x++ ) {
 				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) );
 			}
-			boxFilterLineInternal( dst + x, A + x, B + x, C, D, scale, wend - x );
+			boxFilterLineInternal1_f_to_f( dst + x, A + x, B + x, C, D, scale, wend - x );
 			x = wend;
 			for( ; x < width; x++ ) {
 				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight );
@@ -752,7 +751,7 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 			for( x = 0; x <= boxwr; x++ ) {
 				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) );
 			}
-			boxFilterLineInternal( dst + x, A + x, B + x, C + x - ( boxwr + 1 ), D + x - ( boxwr + 1 ), 1.0 / ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) ), wend - x );
+			boxFilterLineInternal1_f_to_f( dst + x, A + x, B + x, C + x - ( boxwr + 1 ), D + x - ( boxwr + 1 ), 1.0 / ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) ), wend - x );
 			x = wend;
 			for( ; x < width; x++ ) {
 				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) );
