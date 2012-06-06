@@ -5308,6 +5308,80 @@ namespace cvt {
     }
 
 
+	void SIMD::boxFilterPrefixSum1f( float* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+	{
+		// FIXME
+		srcstride >>= 2;
+		dststride >>= 2;
+
+		size_t x;
+		size_t y;
+		size_t boxwr = boxwidth >> 1;
+		size_t boxhr = boxheight >> 1;
+		size_t hend = height - boxhr;
+		size_t wend = width - boxwr;
+		const float* A = src + srcstride * boxhr + boxwr;
+		const float* B = src + boxwr;
+		const float* C = src;
+		const float* D = src + srcstride * boxhr;
+		const float scale = 1.0f / ( boxwidth * boxheight );
+
+		for( y = 0; y <= boxhr; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = A[ x ] / ( float )( ( boxwr + 1 + x ) * ( boxhr + 1 + y ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( boxwidth * ( boxhr + 1 + y ) );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + y ) );
+			}
+			A += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		for( ; y < hend; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) * scale;
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight );
+			}
+
+			A += srcstride;
+			B += srcstride;
+			C += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		A -= srcstride;
+		D -= srcstride;
+
+		for( ; y < height; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) / ( float ) ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+
+
+			B += srcstride;
+			C += srcstride;
+			dst += dststride;
+		}
+
+	}
+
+
     void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
     {
         dst.setZero();

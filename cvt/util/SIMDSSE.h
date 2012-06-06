@@ -52,6 +52,8 @@ namespace cvt {
 			virtual void warpLinePerspectiveBilinear4f( float* dst, const float* src, size_t srcStride, size_t srcWidth, size_t srcHeight,
 													    const float* point, const float* normal, const size_t n ) const;
 
+			virtual void boxFilterPrefixSum1f( float* dst, size_t dstride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const;
+
 			virtual std::string name() const;
 			virtual SIMDType type() const;
 	};
