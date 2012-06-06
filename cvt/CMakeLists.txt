@@ -377,6 +377,8 @@ SET(${MODULE_NAME}_HEADERS
    util/PluginManager.h
    util/PluginFile.h
    util/internal/ParamTypes.def
+   vision/alignment/KLTPatch.h
+   vision/alignment/PatchBase.h
    vision/BinaryDescriptor.h
    vision/Brief.h
    vision/CameraCalibration.h
