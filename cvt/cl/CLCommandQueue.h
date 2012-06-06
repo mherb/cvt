@@ -33,7 +33,7 @@ namespace cvt {
 		public:
 			CLCommandQueue( cl_command_queue q = NULL );
 			CLCommandQueue( const CLCommandQueue& q );
-			CLCommandQueue( const CLContext& context, const CLDevice& device, cl_command_queue_properties props = NULL );
+			CLCommandQueue( const CLContext& context, const CLDevice& device, cl_command_queue_properties props = 0 );
 
 			CLContext context() const;
 			CLDevice device() const;
