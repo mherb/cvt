@@ -154,6 +154,41 @@ namespace cvt
         static void unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale );
 
 		static void disparityToDepthmap( Image& depthmap, const Image& disparity, const float dispscale, const float focallength, const float baseline, const float dispthres = 0.01f );
+
+        /**
+         *	@brief	computes pose from homography
+         *	@param	P	matrix with pose
+         *	@param	K	intrinsic matrix
+         *	@param	H	homography matrix
+         */
+        template <class Mat4, class Mat3>
+        static void poseFromHomography( Mat4 &P, const Mat3 &K, const Mat3 &H )
+        {
+            Mat3 G = K.inverse() * H;
+            G = G.transpose();          // transpose G to access rows instead of columns
+
+            double l = 1.0 / Math::sqrt( G[0].length() * G[1].length() );
+
+            G *= l;
+
+            Mat3 T;
+            T[0] = G[0] + G[1];         // c
+            T[1] = G[0].cross( G[1] );  // p
+            T[2] = T[0].cross( T[1] );  // d
+
+            T[0].normalize();
+            T[2].normalize();
+
+            Mat3 R;
+            R[0] = 1.0 / Math::sqrt(2) * ( T[0] + T[2] );
+            R[1] = 1.0 / Math::sqrt(2) * ( T[0] - T[2] );
+            R[2] = R[0].cross( R[1] );
+
+            P[0][0] = R[0][0];  P[0][1] = R[1][0];  P[0][2] = R[2][0];  P[0][3] = G[2][0];
+            P[1][0] = R[0][1];  P[1][1] = R[1][1];  P[1][2] = R[2][1];  P[1][3] = G[2][1];
+            P[2][0] = R[0][2];  P[2][1] = R[1][2];  P[2][2] = R[2][2];  P[2][3] = G[2][2];
+            P[3][0] = 0;        P[3][1] = 0;        P[3][2] = 0;        P[3][3] = 1;
+        }
     };
 
     inline void Vision::p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints )

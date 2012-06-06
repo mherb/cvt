@@ -57,12 +57,12 @@ namespace cvt
 			void jacobian( JacMatType & J, const PointType & p ) const;
 			void jacobian( JacMatType & J, const PointTypeHom & p ) const;
 
-                        /**
-                         *  \brief  evaluates the screen jacobians for a given 3D point in camera coordinates (jac. around current pose estimate!)
-                         *  \param  J   (output) the result
-                         *  \param  p   the 3D point given in camera coordinates
-                         *  \param  m   the intrinsic calibration matrix
-                         */
+            /**
+             *  \brief  evaluates the screen jacobians for a given 3D point in camera coordinates (jac. around current pose estimate!)
+             *  \param  J   (output) the result
+             *  \param  p   the 3D point given in camera coordinates
+             *  \param  m   the intrinsic calibration matrix
+             */
 			void screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & m ) const;
 
 			void hessian( HessMatType & h, const PointType & p ) const;
@@ -73,10 +73,10 @@ namespace cvt
 			 *	\param	wy	second partial derivatives of the y component
 			 *	\param	p	the 3d point in camera coordinates for which to evaluate the hessian
 			 */
-			void screenHessian( ScreenHessType & wx, 
-                                            ScreenHessType & wy,
-                                            const PointType & p,
-                                            const Eigen::Matrix<T, 3, 3> & m ) const;
+            void screenHessian( ScreenHessType & wx,
+                                ScreenHessType & wy,
+                                const PointType & p,
+                                const Eigen::Matrix<T, 3, 3> & m ) const;
 			
 			/* p has to be pretransformed with the current T in this case! */
 			void jacobianAroundT( JacMatType & J, const PointTypeHom & p ) const;
