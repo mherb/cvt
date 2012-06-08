@@ -226,6 +226,8 @@ namespace cvt {
 			virtual void boxFilterPrefixSum1_f_to_f( float* dst, size_t dstride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const;
 			virtual void boxFilterPrefixSum1_f_to_u8( uint8_t* dst, size_t dstride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const;
 
+			virtual void adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const;
+
             virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
             virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;
 

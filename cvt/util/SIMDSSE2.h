@@ -67,6 +67,8 @@ namespace cvt {
 			virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 			virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
+			virtual void adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const;
+
 			virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
 			virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;
 

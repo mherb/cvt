@@ -5454,6 +5454,15 @@ namespace cvt {
 	}
 
 
+	void SIMD::adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const
+	{
+		while ( n-- )
+		{
+			*dst++ = ( *src++ - *srcmean++ ) > t ? 0xff : 0x0;
+		}
+	}
+
+
     void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
     {
         dst.setZero();

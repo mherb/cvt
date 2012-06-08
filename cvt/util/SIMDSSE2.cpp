@@ -3659,6 +3659,124 @@ void SIMDSSE2::debayer_ODD_RGGBu8_GRAYu8( uint32_t* _dst, const uint32_t* src1, 
 	_mm_storeu_si128( ( __m128i * ) ( dst ), _mm_or_si128( t, t2 ) );
 }
 
+
+
+void SIMDSSE2::adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const
+{
+	__m128 r1, r2, r3, r4, rm;
+	__m128i ra, rb, rc;
+	const __m128 r5 = _mm_set1_ps( t );
+	size_t i = n >> 4;
+
+	if( ( ( size_t ) dst | ( size_t ) src | ( size_t ) srcmean ) & 0xf ) {
+		while( i-- ) {
+			/* first */
+			r1 = _mm_loadu_ps( src );
+			rm = _mm_loadu_ps( srcmean );
+
+			r1 = _mm_sub_ps( r1, rm );	/* r1 = src - mean */
+			r1 = _mm_cmpge_ps( r1, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* second */
+			r2 = _mm_loadu_ps( src );
+			rm = _mm_loadu_ps( srcmean );
+
+			r2 = _mm_sub_ps( r2, rm );	/* r1 = src - mean */
+			r2 = _mm_cmpge_ps( r2, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* third */
+			r3 = _mm_loadu_ps( src );
+			rm = _mm_loadu_ps( srcmean );
+
+			r3 = _mm_sub_ps( r3, rm );	/* r1 = src - mean */
+			r3 = _mm_cmpge_ps( r3, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* fourth */
+			r4 = _mm_loadu_ps( src );
+			rm = _mm_loadu_ps( srcmean );
+
+			r4 = _mm_sub_ps( r4, rm );	/* r1 = src - mean */
+			r4 = _mm_cmpge_ps( r4, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			ra = _mm_packs_epi32( ( __m128i ) r1, ( __m128i ) r2 );
+			rb = _mm_packs_epi32( ( __m128i ) r3, ( __m128i ) r4 );
+
+			rc = _mm_packs_epi16( ra, rb );
+			_mm_storeu_si128( ( __m128i* ) dst, rc );
+
+			dst += 16;
+		}
+	} else {
+		while( i-- ) {
+			/* first */
+			r1 = _mm_load_ps( src );
+			rm = _mm_load_ps( srcmean );
+
+			r1 = _mm_sub_ps( r1, rm );	/* r1 = src - mean */
+			r1 = _mm_cmpge_ps( r1, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* second */
+			r2 = _mm_load_ps( src );
+			rm = _mm_load_ps( srcmean );
+
+			r2 = _mm_sub_ps( r2, rm );	/* r1 = src - mean */
+			r2 = _mm_cmpge_ps( r2, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* third */
+			r3 = _mm_load_ps( src );
+			rm = _mm_load_ps( srcmean );
+
+			r3 = _mm_sub_ps( r3, rm );	/* r1 = src - mean */
+			r3 = _mm_cmpge_ps( r3, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			/* fourth */
+			r4 = _mm_load_ps( src );
+			rm = _mm_load_ps( srcmean );
+
+			r4 = _mm_sub_ps( r4, rm );	/* r1 = src - mean */
+			r4 = _mm_cmpge_ps( r4, r5 ); /* r1 = cmp_ge(r1, c) */
+
+			src += 4;
+			srcmean += 4;
+
+			ra = _mm_packs_epi32( ( __m128i ) r1, ( __m128i ) r2 );
+			rb = _mm_packs_epi32( ( __m128i ) r3, ( __m128i ) r4 );
+
+			rc = _mm_packs_epi16( ra, rb );
+			_mm_stream_si128( ( __m128i* ) dst, rc );
+
+			dst += 16;
+		}
+	}
+
+	i = n & 0xf;
+	while ( i-- )
+	{
+		*dst++ = ( *src++ - *srcmean++ ) > t ? 0xff : 0x0;
+	}
+}
+
 void SIMDSSE2::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
 {
 	__m128 result = _mm_setzero_ps();
