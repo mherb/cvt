@@ -6,6 +6,8 @@
 #include <cvt/gfx/IComponents.h>
 #include <cvt/cl/OpenCL.h>
 #include <cvt/cl/CLPlatform.h>
+#include <cvt/gfx/GFX.h>
+#include <cvt/gfx/GFXEngineImage.h>
 
 using namespace cvt;
 
@@ -44,18 +46,44 @@ int main( int argc, char** argv )
 
 	{
 		for( size_t i = 0; i < comp.size(); i++ ) {
-			Image icomps( src.width(), src.height(), IFormat::GRAY_UINT8 );
+			Image icomps( src.width(), src.height(), IFormat::RGBA_UINT8 );
 			icomps.fill( Color::BLACK );
 			{
 				PointSet<2,float>& ptset = comp[ i ];
 				if( ptset.size() < 20 )
 					continue;
 
-				IMapScoped<uint8_t> map( icomps );
-				for( size_t k = 0; k < ptset.size(); k++ ) {
-					Vector2f pt = ptset[ k ];
-					*( map.base() + map.stride() * ( int ) pt.y + ( int ) pt.x ) = 0xff;
+				Ellipsef ellipse;
+				ptset.fitEllipse( ellipse );
+				std::cout << ellipse << std::endl;
+
+				{
+					GFXEngineImage ge( icomps );
+					GFX g( &ge );
+
+					Vector2f pt1( 1, 0 );
+					Vector2f pt2( -1, 0 );
+					Vector2f pt3( 0, 1 );
+					Vector2f pt4( 0, -1 );
+
+					Matrix3f ellipseT, ellipseScale;
+					ellipseT.setRotationZ( ellipse.orientation() );
+					ellipseT[ 0 ][ 2 ] = ellipse.center().x;
+					ellipseT[ 1 ][ 2 ] = ellipse.center().y;
+					ellipseScale.setIdentity();
+					ellipseScale[ 0 ][ 0 ] = ellipse.semiMajor();
+					ellipseScale[ 1 ][ 1 ] = ellipse.semiMinor();
+					Matrix3f mat = ellipseT * ellipseScale;
+
+					g.setColor( Color::RED );
+					g.drawLine( mat * pt1, mat * pt2 );
+					g.drawLine( mat * pt3, mat * pt4 );
 				}
+//				IMapScoped<uint8_t> map( icomps );
+//				for( size_t k = 0; k < ptset.size(); k++ ) {
+//					Vector2f pt = ptset[ k ];
+//					*( map.base() + map.stride() * ( int ) pt.y + ( int ) pt.x ) = 0xff;
+//				}
 			}
 			icomps.save( "outcomponents.png" );
 			getchar();
