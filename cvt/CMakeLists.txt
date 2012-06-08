@@ -200,6 +200,7 @@ SET(${MODULE_NAME}_HEADERS
    gfx/IMapScoped.h
    gfx/ILoader.h
    gfx/ISaver.h
+   gfx/ifilter/AdaptiveThreshold.h
    gfx/ifilter/ColorCode.h
    gfx/ifilter/ROFDenoise.h
    gfx/ifilter/ROFFGPFilter.h
@@ -477,6 +478,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/Image.cpp
    gfx/ImageOperations.cpp
    gfx/ImageTest.cpp
+   gfx/ifilter/AdaptiveThreshold.cpp
    gfx/ifilter/ColorCode.cpp
    gfx/ifilter/ROFDenoise.cpp
    gfx/ifilter/ROFFGPFilter.cpp
