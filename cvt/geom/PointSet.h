@@ -18,7 +18,6 @@
 #include <cvt/util/Exception.h>
 #include <vector>
 #include <Eigen/SVD>
-#include <Eigen/Eigenvalues>
 
 namespace cvt
 {
@@ -1182,52 +1181,33 @@ namespace cvt
 
 		// build up constraint matrix
 		EigenMatrix6 C;
-
-		C << 0.0f, 0.0f, -2.0f, 0.0f, 0.0f, 0.0f,
-		  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		  -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f;
+		C.setZero();
+		C( 0, 2 ) = ( _T ) -2;
+		C( 1, 1 ) = ( _T )  1;
+		C( 2, 0 ) = ( _T ) -2;
 
 		EigenMatrix3 tmpA;
-
-		tmpA << scatter(0,0), scatter(0,1), scatter(0,2),
-			 scatter(1,0), scatter(1,1), scatter(1,2),
-			 scatter(2,0), scatter(2,1), scatter(2,2);
+	    tmpA = scatter.template block<3,3>( 0, 0 );
 
 		EigenMatrix3 tmpB;
-
-		tmpB << scatter(0,3), scatter(0,4), scatter(0,5),
-			 scatter(1,3), scatter(1,4), scatter(1,5),
-			 scatter(2,3), scatter(2,4), scatter(2,5);
-
+	    tmpB = scatter.template block<3,3>( 0, 3 );
 
 		EigenMatrix3 tmpC;
-
-		tmpC << scatter(3,3), scatter(3,4), scatter(3,5),
-			 scatter(4,3), scatter(4,4), scatter(4,5),
-			 scatter(5,3), scatter(5,4), scatter(5,5);
+	    tmpC = scatter.template block<3,3>( 3, 3 );
 
 		EigenMatrix3 tmpD;
-
-		tmpD << C(0,0), C(0,1), C(0,2),
-			 C(1,0), C(1,1), C(1,2),
-			 C(2,0), C(2,1), C(2,2);
+		tmpD = C.template block<3,3>( 0, 0 );
 
 		EigenMatrix3 tmpE = tmpC.inverse() * tmpB.transpose();
 		EigenMatrix3 A = tmpD.inverse() * ( tmpA - tmpB * tmpE );
 
-		Eigen::SelfAdjointEigenSolver<EigenMatrix3> solver( A );
-		typename Eigen::SelfAdjointEigenSolver<EigenMatrix3>::MatrixType eigenVectors = solver.eigenvectors();
+        Eigen::JacobiSVD<Eigen::Matrix<float, 3, 3> > esvd( A, Eigen::ComputeFullV );
+		EigenVector3 top = esvd.matrixV().col( 2 );
 
-		EigenVector3 top( eigenVectors( 0, 0 ), eigenVectors( 1, 0 ), eigenVectors( 2, 0 ) );
 		EigenVector3 bottom = -tmpE * top;
 
 		EigenVector6 parNorm;
-
-		parNorm << top(0), top(1), top(2),
-				bottom(0), bottom(1), bottom(2);
+		parNorm << top(0), top(1), top(2), bottom(0), bottom(1), bottom(2);
 
 		// unnormalize system parameters
 		EigenVector6 par;
