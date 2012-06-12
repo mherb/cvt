@@ -23,7 +23,7 @@ int main( int argc, char** argv )
 
 	BoxFilter box;
 	Time t;
-	box.apply( out, in, 1, false );
+	box.apply( out, in, 1, IFILTER_OPENCL );
 	std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
 	out.save( "box.png" );

@@ -44,6 +44,7 @@ namespace cvt {
 
 				void		reset();
 				T*			ptr();
+				T*			base();
 				void		prevLine();
 				void		nextLine();
 				void		setLine( size_t l );
@@ -81,6 +82,12 @@ namespace cvt {
 	inline T* IMapScoped<T>::ptr()
 	{
 		return ( T* ) _line;
+	}
+
+	template<typename T>
+	inline T* IMapScoped<T>::base()
+	{
+		return ( T* ) _base;
 	}
 
 	template <typename T>
