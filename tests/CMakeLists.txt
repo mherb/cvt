@@ -4,6 +4,7 @@ ADD_SUBDIRECTORY(bsplinehist)
 ADD_SUBDIRECTORY(boxfilter)
 
 ADD_SUBDIRECTORY(calibration)
+ADD_SUBDIRECTORY(calibrationOptimization)
 ADD_SUBDIRECTORY(cameras)
 ADD_SUBDIRECTORY(canny)
 ADD_SUBDIRECTORY(clfilter)
