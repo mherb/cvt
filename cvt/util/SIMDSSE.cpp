@@ -641,6 +641,130 @@ SSE_ACOP1_AOP2_FLOAT( MulSubValue1f, _mm_mul_ps, *, _mm_sub_ps, - )
 
 	}
 
+#define BOXFILTER_PREFIXSUM1F_ONCE()												\
+																	\
+	/* once */														\
+	r1 = _mm_loadu_ps( A );											\
+	r2 = _mm_loadu_ps( B );											\
+	r3 = _mm_loadu_ps( C );											\
+	r4 = _mm_loadu_ps( D );											\
+																	\
+	r1 = _mm_sub_ps( r1, r2 );	/* r1 = a - b */					\
+	r1 = _mm_add_ps( r1, r3 );	/* r1 = a - b + c */				\
+	r1 = _mm_sub_ps( r1, r4 );	/* r1 = a - b + c - d */			\
+	r1 = _mm_mul_ps( r1, r5 );	/* r1 = (a - b + c - d) / scale; */	\
+																	\
+	_mm_storeu_ps(dst, r1);											\
+																	\
+	dst += 4;														\
+	A += 4;															\
+	B += 4;															\
+	C += 4;															\
+	D += 4;															\
+
+	static inline void boxFilterLineInternal1_f_to_f( float *dst, const float *A, const float *B, const float *C, const float *D, float scale, size_t n )
+	{
+		__m128 r1, r2, r3, r4;
+		const __m128 r5 = _mm_set1_ps( scale );
+
+		// loop unroll: process 8 blocks of 4 floats at a time
+		size_t i = n >> 5;
+		while( i-- ) {
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+			BOXFILTER_PREFIXSUM1F_ONCE();
+		}
+
+		// process up to 4 blocks of 4 floats
+		i = (n >> 2) & 0x07;
+		while ( i-- ) {
+			BOXFILTER_PREFIXSUM1F_ONCE();
+		}
+
+		i = n & 0x03;
+		while ( i-- )
+		{
+			*dst++ = ( *A++ - *B++ - *D++ + *C++ ) * scale;
+		}
+	}
+
+	void SIMDSSE::boxFilterPrefixSum1_f_to_f( float* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+	{
+		// FIXME
+		srcstride >>= 2;
+		dststride >>= 2;
+
+		size_t x;
+		size_t y;
+		size_t boxwr = boxwidth >> 1;
+		size_t boxhr = boxheight >> 1;
+		size_t hend = height - boxhr;
+		size_t wend = width - boxwr;
+		const float* A = src + srcstride * boxhr + boxwr;
+		const float* B = src + boxwr;
+		const float* C = src;
+		const float* D = src + srcstride * boxhr;
+		const float scale = 1.0f / ( boxwidth * boxheight );
+
+		for( y = 0; y <= boxhr; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = A[ x ] / ( float )( ( boxwr + 1 + x ) * ( boxhr + 1 + y ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( boxwidth * ( boxhr + 1 + y ) );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + y ) );
+			}
+			A += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		for( ; y < hend; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) );
+			}
+			boxFilterLineInternal1_f_to_f( dst + x, A + x, B + x, C, D, scale, wend - x );
+			x = wend;
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight );
+			}
+
+			A += srcstride;
+			B += srcstride;
+			C += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		A -= srcstride;
+		D -= srcstride;
+
+		for( ; y < height; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+			boxFilterLineInternal1_f_to_f( dst + x, A + x, B + x, C + x - ( boxwr + 1 ), D + x - ( boxwr + 1 ), 1.0 / ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) ), wend - x );
+			x = wend;
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+
+
+			B += srcstride;
+			C += srcstride;
+			dst += dststride;
+		}
+
+	}
+
 	void SIMDSSE::Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const
 	{
 		size_t n2 = n >> 4;

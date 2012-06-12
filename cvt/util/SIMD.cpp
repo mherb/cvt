@@ -5308,6 +5308,161 @@ namespace cvt {
     }
 
 
+	void SIMD::boxFilterPrefixSum1_f_to_f( float* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+	{
+		// FIXME
+		srcstride >>= 2;
+		dststride >>= 2;
+
+		size_t x;
+		size_t y;
+		size_t boxwr = boxwidth >> 1;
+		size_t boxhr = boxheight >> 1;
+		size_t hend = height - boxhr;
+		size_t wend = width - boxwr;
+		const float* A = src + srcstride * boxhr + boxwr;
+		const float* B = src + boxwr;
+		const float* C = src;
+		const float* D = src + srcstride * boxhr;
+		const float scale = 1.0f / ( boxwidth * boxheight );
+
+		for( y = 0; y <= boxhr; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = A[ x ] / ( float )( ( boxwr + 1 + x ) * ( boxhr + 1 + y ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( boxwidth * ( boxhr + 1 + y ) );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + y ) );
+			}
+			A += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		for( ; y < hend; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) * scale;
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight );
+			}
+
+			A += srcstride;
+			B += srcstride;
+			C += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		A -= srcstride;
+		D -= srcstride;
+
+		for( ; y < height; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) / ( float ) ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) );
+			}
+
+
+			B += srcstride;
+			C += srcstride;
+			dst += dststride;
+		}
+
+	}
+
+	void SIMD::boxFilterPrefixSum1_f_to_u8( uint8_t* dst, size_t dststride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const
+	{
+		// FIXME
+		srcstride >>= 2;
+
+		size_t x;
+		size_t y;
+		size_t boxwr = boxwidth >> 1;
+		size_t boxhr = boxheight >> 1;
+		size_t hend = height - boxhr;
+		size_t wend = width - boxwr;
+		const float* A = src + srcstride * boxhr + boxwr;
+		const float* B = src + boxwr;
+		const float* C = src;
+		const float* D = src + srcstride * boxhr;
+		const float scale = 1.0f / ( boxwidth * boxheight );
+
+		for( y = 0; y <= boxhr; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp( A[ x ] / ( float )( ( boxwr + 1 + x ) * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp(( A[ x ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( boxwidth * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp(( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 ) ]  ) / ( float )( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + y ) ), 0.0f, 255.0f );
+			}
+			A += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		for( ; y < hend; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp(( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxheight ) ), 0.0f, 255.0f );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp(( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) * scale, 0.0f, 255.0f );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp(( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * boxheight ), 0.0f, 255.0f );
+			}
+
+			A += srcstride;
+			B += srcstride;
+			C += srcstride;
+			D += srcstride;
+			dst += dststride;
+		}
+
+		A -= srcstride;
+		D -= srcstride;
+
+		for( ; y < height; y++ ) {
+			for( x = 0; x <= boxwr; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp( ( A[ x ] - B[ x ] ) / ( float )( ( boxwr + 1 + x) * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+			}
+			for( ; x < wend; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp( ( A[ x ] - D[ x - ( boxwr + 1 ) ] - B[ x ] + C[ x - ( boxwr + 1 ) ]  ) / ( float ) ( boxwidth * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+			}
+			for( ; x < width; x++ ) {
+				dst[ x ] = ( uint8_t ) Math::clamp( ( A[ width - 1 - boxwr ] - D[ x - ( boxwr + 1 )] - B[ width - 1 - boxwr ] + C[ x - ( boxwr + 1) ]  ) / ( float ) ( ( boxwr + 1 + ( width - 1 - x ) ) * ( boxhr + 1 + ( height - 1 - y ) ) ), 0.0f, 255.0f );
+			}
+
+
+			B += srcstride;
+			C += srcstride;
+			dst += dststride;
+		}
+
+	}
+
+
+	void SIMD::adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const
+	{
+		while ( n-- )
+		{
+			*dst++ = ( *src++ - *srcmean++ ) > t ? 0xff : 0x0;
+		}
+	}
+
+
     void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
     {
         dst.setZero();
