@@ -261,6 +261,7 @@ SET(${MODULE_NAME}_HEADERS
    gui/Application.h
    gui/BasicTimer.h
    gui/Button.h
+   gui/Events.h
    gui/GLView.h
    gui/ImageView.h
    gui/internal/TimerInfo.h

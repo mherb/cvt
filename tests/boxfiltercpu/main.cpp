@@ -54,7 +54,7 @@ int main( int argc, char** argv )
 					continue;
 
 				Ellipsef ellipse;
-				ptset.fitEllipse( ellipse );
+				std::cout << ptset.fitEllipse( ellipse ) << std::endl;
 				std::cout << ellipse << std::endl;
 
 				{
