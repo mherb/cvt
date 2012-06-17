@@ -14,7 +14,7 @@ namespace cvt
 {
     class MIKeyframe : public KeyframeBase<MIKeyframe>
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
@@ -32,7 +32,7 @@ namespace cvt
             const Matrix4f&     pose()                  const { return _pose; }
 
             /**
-             *  \brief copmute the relative pose of an image w.r.t. this keyframe
+             *  \brief compute the relative pose of an image w.r.t. this keyframe
              *  \param  predicted   input/output the pose of the image w.r.t. this keyframe
              *  \param  gray        the grayscale image of type GRAY_FLOAT
              *  \return Result information (ssd, iterations, numPixel, ...)
@@ -47,9 +47,9 @@ namespace cvt
             Matrix4f                    _pose;
             Image                       _gray;
 
-			/* Mutual Information stuff */
-			size_t						_numBins;
-			float*						_jointHistogram;
+            /* Mutual Information stuff */
+            size_t						_numBins;
+            float*						_jointHistogram;
             float*						_templateHistogram;
 
             // the 3D points of this keyframe
@@ -60,9 +60,12 @@ namespace cvt
 
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
-            std::vector<JacType>        _jacobians;
+            // screen jacobians and screen hessians of image w.r.t. pose!
+			std::vector<JacType>        _jacobians;
             HessianVector               _hessians;
-            HessianType                 _hessian;
+            
+			// the mutual information heassian (stored as inverse for efficiency)
+			HessianType                 _hessian;
 
             std::vector<Vector4f>       _splineWeights;
             std::vector<Vector4f>       _splineDerivativeWeights;
@@ -73,7 +76,6 @@ namespace cvt
             void addToHistograms( int pixVal, const Vector4f& weights );
 
             void evaluateHessian();
-
     };
 }
 
