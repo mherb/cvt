@@ -14,7 +14,7 @@ namespace cvt
 {
     class MIKeyframe : public KeyframeBase<MIKeyframe>
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
@@ -32,7 +32,7 @@ namespace cvt
             const Matrix4f&     pose()                  const { return _pose; }
 
             /**
-             *  \brief copmute the relative pose of an image w.r.t. this keyframe
+             *  \brief compute the relative pose of an image w.r.t. this keyframe
              *  \param  predicted   input/output the pose of the image w.r.t. this keyframe
              *  \param  gray        the grayscale image of type GRAY_FLOAT
              *  \return Result information (ssd, iterations, numPixel, ...)
@@ -46,10 +46,10 @@ namespace cvt
             Matrix4f                    _pose;
             Image                       _gray;
 
-			/* Mutual Information stuff */
-			size_t						_numBins;
-			float*						_jointHistogram;
-			float*						_templateHistogram;
+            /* Mutual Information stuff */
+            size_t						_numBins;
+            float*						_jointHistogram;
+            float*						_templateHistogram;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
@@ -59,7 +59,7 @@ namespace cvt
 
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
-            std::vector<JacType>        _jacobians;            
+            std::vector<JacType>        _jacobians;
             HessianVector               _jacobiansOuterProduct;
             HessianVector               _hessians;
             std::vector<Vector4f>       _splineWeights;
