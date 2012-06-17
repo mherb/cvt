@@ -187,7 +187,7 @@ namespace cvt {
 		Eigen::Matrix<float, NUMPARAMS, 1> delta;
 		delta.setZero();
 		delta = -_hessApprox * _miJacobian;
-		_pose.applyInverse( delta );
+        _pose.applyInverse( -delta );
 
 		return delta.norm();
 	}
@@ -200,15 +200,20 @@ namespace cvt {
 		_templateGradYY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 		_templateGradXY.reallocate( _itemplate.width(), _itemplate.height(), _itemplate.format() );
 
-		_itemplate.convolve( _templateGradX, IKernel::HAAR_HORIZONTAL_3 );
-		_itemplate.convolve( _templateGradY, IKernel::HAAR_VERTICAL_3 );
-		IKernel lxx( IKernel::LAPLACE_3_XX );
-		_itemplate.convolve( _templateGradXX, lxx );
-		IKernel lyy( IKernel::LAPLACE_3_YY );
-		_itemplate.convolve( _templateGradYY, lyy );
+        IKernel kx = IKernel::HAAR_HORIZONTAL_3;
+        IKernel ky = IKernel::HAAR_VERTICAL_3;
+        kx.scale( -0.5f );
+        ky.scale( -0.5f );
 
-        _templateGradX.mul( 0.5f );
-        _templateGradY.mul( 0.5f );
+        IKernel laplx = IKernel::LAPLACE_5_XX;
+        laplx.scale( -0.25f );
+        IKernel laply = IKernel::LAPLACE_5_XX;
+        laply.scale( -0.25f );
+
+        _itemplate.convolve( _templateGradX, kx );
+        _itemplate.convolve( _templateGradY, ky );
+        _itemplate.convolve( _templateGradXX, laplx );
+        _itemplate.convolve( _templateGradYY, laply );
 
 		float kxydata[]={0.25f, 0.0f, -0.25,
 					     0.0f, 0.0f, 0.0f,
@@ -622,10 +627,10 @@ namespace cvt {
 
 				// second order image derivatives
 				//hess << gxx[ x ], gxy[ x ], gxy[ x ], gyy[ x ];
-				hess( 0, 0 ) = -gxx[ x ];
+                hess( 0, 0 ) = gxx[ x ];
 				hess( 0, 1 ) = gxy[ x ];
 				hess( 1, 0 ) = gxy[ x ];
-				hess( 1, 1 ) = -gyy[ x ];
+                hess( 1, 1 ) = gyy[ x ];
 			
                 grad *= ( float )( _numBins - 3 );
                 hess *= ( float )( _numBins - 3 );
