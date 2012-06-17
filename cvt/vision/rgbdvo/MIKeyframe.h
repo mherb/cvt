@@ -43,13 +43,14 @@ namespace cvt
                                           const VOParams& params ) const;
 
         protected:
+            IKernel                     _kx, _ky, _kxx, _kyy;
             Matrix4f                    _pose;
             Image                       _gray;
 
 			/* Mutual Information stuff */
 			size_t						_numBins;
 			float*						_jointHistogram;
-			float*						_templateHistogram;
+            float*						_templateHistogram;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
@@ -59,13 +60,20 @@ namespace cvt
 
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
-            std::vector<JacType>        _jacobians;            
-            HessianVector               _jacobiansOuterProduct;
+            std::vector<JacType>        _jacobians;
             HessianVector               _hessians;
+            HessianType                 _hessian;
+
             std::vector<Vector4f>       _splineWeights;
             std::vector<Vector4f>       _splineDerivativeWeights;
+            std::vector<Vector4f>       _splineSecondDerivativeWeights;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
+
+            void addToHistograms( int pixVal, const Vector4f& weights );
+
+            void evaluateHessian();
+
     };
 }
 
