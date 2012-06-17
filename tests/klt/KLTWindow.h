@@ -15,87 +15,89 @@
 #include <cvt/vision/FeatureFilter.h>
 #include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Resources.h>
-#include <cvt/util/Time.h>
 #include <cvt/gfx/IMapScoped.h>
+#include <cvt/util/Time.h>
 #include <cvt/util/EigenBridge.h>
 
 #include <cvt/math/Translation2D.h>
 #include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
-#include <cvt/vision/KLTTracker.h>
+//#include <cvt/vision/KLTTracker.h>
+
 #include <cvt/gfx/GFXEngineImage.h>
+#include <cvt/vision/alignment/KLTPatch.h>
 
 #define PATCH_SIZE ( 16 )
 
 namespace cvt {
 
-	class KLTWindow : public TimeoutHandler
-	{
-		public:
+    class KLTWindow : public TimeoutHandler
+    {
+        public:
             typedef GA2<float>			  PoseType;
-			//typedef Sim2<float>			  PoseType;
+            //typedef Sim2<float>			  PoseType;
             //typedef Translation2D<float>	  PoseType;
-			typedef KLTTracker<PoseType, PATCH_SIZE>  KLTType;	
-			typedef KLTType::KLTPType		  KLTPType;
+            //typedef KLTTracker<PoseType, PATCH_SIZE>  KLTType;
+            //typedef KLTType::KLTPType		  KLTPType;
+            typedef KLTPatch<PATCH_SIZE, PoseType>  PatchType;
 
-			KLTWindow( VideoInput & video );
-			~KLTWindow();
+            KLTWindow( VideoInput & video );
+            ~KLTWindow();
 
-			void onTimeout();
+            void onTimeout();
 
-			void ssdThresholdChanged( float val );
+            void ssdThresholdChanged( float val );
 
-			void steppingPressed();
-			void nextPressed();
+            void steppingPressed();
+            void nextPressed();
 
-		private:
-			uint32_t					_timerId;
-			Window						_window;
-			ImageView					_imView;
+        private:
+            uint32_t					_timerId;
+            Window						_window;
+            ImageView					_imView;
 
-			Label						_ssdSliderLabel;
-			Slider<float>				_ssdSlider;
-			float						_ssdThresh;
-			
-			Button						_stepButton;
-			Button						_nextButton;
-			bool						_stepping;
-			bool						_next;
+            Label						_ssdSliderLabel;
+            Slider<float>				_ssdSlider;
+            float						_ssdThresh;
 
-			VideoInput &				_video;
+            Button						_stepButton;
+            Button						_nextButton;
+            bool						_stepping;
+            bool						_next;
 
-			KLTType						_klt;
-			Time						_kltTime;
-			double						_kltTimeSum;
-			size_t						_kltIters;
+            VideoInput &				_video;
 
-			std::vector<KLTPType*>		_patches;
-			Time						_time;
-			double						_fps;
-			size_t						_iter;
-			ImagePyramid				_pyramid;
+            //KLTType						_klt;
+            Time						_kltTime;
+            double						_kltTimeSum;
+            size_t						_kltIters;
 
-			size_t						_redetectThreshold;
+            std::vector<PatchType*>		_patches;
+            Time						_time;
+            double						_fps;
+            size_t						_iter;
+            ImagePyramid				_pyramid;
 
-			FAST						_fast;
-			FeatureFilter				_gridFilter;
+            size_t						_redetectThreshold;
 
-			void drawFeatures( Image & img );
-			void redetectFeatures( const Image & img );
-			void redetectMultiScale();
+            FAST						_fast;
+            FeatureFilter				_gridFilter;
 
-			Image						_patchImage;
+            void drawFeatures( Image & img );
+            void redetectFeatures( const Image & img );
+            void redetectMultiScale();
 
-			/* create an image with the patches inside */
-			void createPatchImage( const std::vector<KLTPType*> & patches );
+            Image						_patchImage;
 
-			/* returns number of lost features */
-			size_t trackSingleScale( const Image& img );
-			size_t trackMultiScale();
-			void dumpPatch( KLTPType& patch, size_t i );
+            /* create an image with the patches inside */
+            void createPatchImage( const std::vector<PatchType*> & patches );
 
-	};
+            /* returns number of lost features */
+            size_t track();
+            void dumpPatch( PatchType& patch, size_t i );
+
+    };
 
 }
 
