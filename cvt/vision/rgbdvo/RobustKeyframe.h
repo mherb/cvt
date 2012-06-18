@@ -14,10 +14,10 @@
 
 namespace cvt
 {
-	template <class WeighterType>
+    template <class WeighterType>
     class RobustKeyframe : public KeyframeBase<RobustKeyframe<WeighterType> >
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
@@ -45,7 +45,7 @@ namespace cvt
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const;
 
-			
+
         protected:
             Matrix4f                    _pose;
             Image                       _gray;
@@ -59,30 +59,30 @@ namespace cvt
             // jacobians for that points
             std::vector<JacType>        _jacobians;
 
-			WeighterType				_weighter;
+            WeighterType				_weighter;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
-			using KeyframeBase<RobustKeyframe<WeighterType> >::computeGradients;
-			using KeyframeBase<RobustKeyframe<WeighterType> >::interpolatePixelValue;
+            using KeyframeBase<RobustKeyframe<WeighterType> >::computeGradients;
+            using KeyframeBase<RobustKeyframe<WeighterType> >::interpolatePixelValue;
     };
 
 
-	template <class Weighter>
+    template <class Weighter>
     inline RobustKeyframe<Weighter>::RobustKeyframe( const Image& gray, const Image& depth,
-													 const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
+                                                     const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose ),
         _gray( gray ),
-		_weighter( params.robustParam )
+        _weighter( params.robustParam )
     {
         computeJacobians( depth, K, params );
     }
 
-	template <class Weighter>
+    template <class Weighter>
     inline RobustKeyframe<Weighter>::~RobustKeyframe()
-    {       	
+    {
     }
 
-	template <class Weighter>
+    template <class Weighter>
     inline void RobustKeyframe<Weighter>::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
     {
         Image gxI, gyI;
@@ -147,7 +147,7 @@ namespace cvt
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
-                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );                    
+                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
                 }
             }
             gxMap++;
@@ -157,11 +157,11 @@ namespace cvt
         }
     }
 
-	template <class Weighter>
+    template <class Weighter>
     inline VOResult RobustKeyframe<Weighter>::computeRelativePose( PoseRepresentation& predicted,
-																  const Image& gray,
-                                              			 		  const Matrix3f& intrinsics,
-                                              			 		  const VOParams& params ) const
+                                                                  const Image& gray,
+                                                                  const Matrix3f& intrinsics,
+                                                                  const VOParams& params ) const
     {
         VOResult result;
         result.SSD = 0.0f;
@@ -180,7 +180,7 @@ namespace cvt
         Eigen::Matrix3f Keigen;
         EigenBridge::toEigen( Keigen, intrinsics );
 
-		HessianType H;
+        HessianType H;
 
         // sum of jacobians * delta
         JacType deltaSum, jtmp;
@@ -202,7 +202,7 @@ namespace cvt
             result.numPixels = 0;
             result.SSD = 0.0f;
 
-			H.setZero();
+            H.setZero();
 
             for( size_t i = 0; i < warpedPts.size(); i++ ){
                 const Vector2f& pw = warpedPts[ i ];
@@ -214,10 +214,10 @@ namespace cvt
                     float delta = _pixelValues[ i ] - v;
                     result.SSD += Math::sqr( delta );
                     result.numPixels++;
-                    
-					jtmp = _weighter.weight( delta ) * _jacobians[ i ];
 
-					H += jtmp.transpose() * jtmp;
+                    jtmp = _weighter.weight( delta ) * _jacobians[ i ];
+
+                    H += jtmp.transpose() * jtmp;
                     deltaSum += ( delta * jtmp );
                 }
             }
