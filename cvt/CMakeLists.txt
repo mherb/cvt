@@ -560,7 +560,6 @@ SET(${MODULE_NAME}_SOURCES
    io/TCPServer.cpp
    io/UDPClient.cpp
    math/Complex.cpp
-   math/ESM.cpp
    math/Fixed.cpp
    math/JointMeasurements.cpp
    math/JointMeasurementsTest.cpp
