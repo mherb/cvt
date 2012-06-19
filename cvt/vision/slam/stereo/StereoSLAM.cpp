@@ -164,7 +164,7 @@ namespace cvt
       inlierIndices = ransac.inlierIndices();
 
       Matrix4f mf;
-      EigenBridge::toCVT( mf, me );      
+      EigenBridge::toCVT( mf, me );
       newCameraPose.notify( mf );
    }
 
@@ -201,7 +201,7 @@ namespace cvt
        MapFeature     mf;
 
        mm.information.setIdentity();
-       mm.information *= 0.15;
+       mm.information *= 0.4;
 
        for( size_t i = 0; i < triangulated.size(); ++i ){
            const DepthInitializer::DepthInitResult & res = triangulated[ i ];
@@ -338,5 +338,5 @@ namespace cvt
          pset.add( Vector3d( p[ 0 ] * n, p[ 1 ] * n, p[ 2 ] * n  ) );
          it++;
       }
-   }   
+   }
 }
