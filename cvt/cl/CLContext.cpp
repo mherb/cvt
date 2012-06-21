@@ -34,7 +34,7 @@ namespace cvt {
 		cl_context_properties props[ 3 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
-		props[ 2 ] = NULL;
+		props[ 2 ] = 0;
 
 		if( cerrlog )
 			_object = ::clCreateContext( props, devices.size(), ( cl_device_id* ) &devices[ 0 ], CLContext::cerrlog, NULL, &err );
@@ -50,7 +50,7 @@ namespace cvt {
 		cl_context_properties props[ 3 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
-		props[ 2 ] = NULL;
+		props[ 2 ] = 0;
 
 		if( cerrlog )
 			_object = ::clCreateContext( props, 1,  ( cl_device_id* ) &device, CLContext::cerrlog, NULL, &err );
@@ -66,7 +66,7 @@ namespace cvt {
 		cl_context_properties props[ 3 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
-		props[ 2 ] = NULL;
+		props[ 2 ] = 0;
 
 		if( cerrlog )
 			_object = ::clCreateContextFromType( props, type, CLContext::cerrlog, NULL, &err );

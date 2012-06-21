@@ -13,8 +13,12 @@ int main()
 	if( numCams == 0 )
 		return 0;
 
-	OpenNiWin win;
-	Application::run();
+	try {
+		OpenNiWin win;
+		Application::run();
+	} catch ( const cvt::Exception & e ){
+		std::cout << e.what() << std::endl;
+	}
 	
 	return 0;
 }

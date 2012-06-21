@@ -28,17 +28,35 @@ int main( int argc, char** argv )
 	Image left( argv[ 1 ] );
 	Image right( argv[ 2 ] );
 
-	Image clleft( left, IALLOCATOR_CL );
-	Image clright( right, IALLOCATOR_CL );
+	Image clleft( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+	Image clright( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 	Image cldmap( left.width(), left.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+	left.convert( clleft );
+	right.convert( clright );
 
 	try {
 		CLKernel kerncv( _stereoCVFBP_source, "stereoCV_FBP_AD" );
 		CLKernel kerncvfbp( _stereoCVFBP_source, "stereoCV_FBP" );
 		CLKernel kerncvwta( _stereoCVFBP_source, "stereoCV_FBP_WTA" );
+		CLKernel kerncvsobel( _stereoCVFBP_source, "stereoCV_FBP_Sobel" );
+//		CLKernel kerncvup( _stereoCVFBP_source, "stereoCV_FBP_HALFDOWN" );
+//		CLKernel kerncvdown( _stereoCVFBP_source, "stereoCV_FBP_HALFUP" );
 
+	//	Image tmp2( clleft, IALLOCATOR_CL );
+	//	kerncvsobel.setArg( 0, clleft );
+	//	kerncvsobel.setArg( 1, tmp2 );
+	//	kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+	//	clleft.save("sobell.png");
+
+	//	Image tmp3( clright, IALLOCATOR_CL );
+	//	kerncvsobel.setArg( 0, clright );
+	//	kerncvsobel.setArg( 1, tmp3 );
+	//	kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+	//	clright.save("sobelr.png");
 
 		CLBuffer cv( sizeof( cl_float2 ) * left.width() * left.height() * depth  );
+//		CLBuffer cv2( sizeof( cl_float2 ) * ( left.width() / 2 )  * ( left.height() / 2 ) * depth  );
+//		CLBuffer cv3( sizeof( cl_float2 ) * ( left.width() / 4 )  * ( left.height() / 4 ) * depth  );
 
 		Time t;
 
@@ -49,6 +67,32 @@ int main( int argc, char** argv )
 		kerncv.setArg( 4, CLLocalSpace( sizeof( cl_float ) * 1 * ( depth + 256 ) ) );
 		kerncv.run( CLNDRange( Math::pad( left.width(), 256 ), left.height() ), CLNDRange( 256, 1 ) );
 
+#if 0
+		kerncvdown.setArg( 0, cv2 );
+		kerncvdown.setArg( 1, cv );
+		kerncvdown.setArg<int>( 2, ( left.width() / 2 ) );
+		kerncvdown.setArg<int>( 3, ( left.height() / 2 ) );
+		kerncvdown.setArg( 4, depth );
+		kerncvdown.run( CLNDRange( Math::pad( left.width() / 2, 16 ), Math::pad( left.height() / 2, 16 ), depth ), CLNDRange( 16, 16, 1 ) );
+
+
+		for( int i = 0; i < iter; i++ ) {
+			kerncvfbp.setArg( 0, cv2 );
+			kerncvfbp.setArg<int>( 1, left.width() / 2 );
+			kerncvfbp.setArg<int>( 2, left.height() / 2 );
+			kerncvfbp.setArg( 3, depth );
+			kerncvfbp.setArg( 4, i );
+			kerncvfbp.run( CLNDRange( Math::pad( left.width() / 4, 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		}
+
+		kerncvup.setArg( 0, cv );
+		kerncvup.setArg( 1, cv2 );
+		kerncvup.setArg<int>( 2, left.width() );
+		kerncvup.setArg<int>( 3, left.height() );
+		kerncvup.setArg( 4, depth );
+		kerncvup.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ), depth ), CLNDRange( 16, 16, 1 ) );
+#endif
+
 		for( int i = 0; i < iter; i++ ) {
 			kerncvfbp.setArg( 0, cv );
 			kerncvfbp.setArg<int>( 1, left.width() );
@@ -58,13 +102,14 @@ int main( int argc, char** argv )
 			kerncvfbp.run( CLNDRange( Math::pad( left.width() / 2, 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
 		}
 
+
 		kerncvwta.setArg( 0, cldmap );
 		kerncvwta.setArg( 1, cv );
 		kerncvwta.setArg( 2, depth );
 		kerncvwta.runWait( CLNDRange( Math::pad16( left.width() ), Math::pad16( left.height() ) ), CLNDRange( 16, 16 ) );
 
-		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		Image tmp;
+		std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 		ColorCode::apply( tmp, cldmap, 1.0f, 0.0f );
 		tmp.save("dmap-fbp-color.png");
 		cldmap.save( "dmap-fbp.png" );

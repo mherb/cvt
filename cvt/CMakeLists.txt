@@ -193,10 +193,12 @@ SET(${MODULE_NAME}_HEADERS
    gfx/Color.h
    gfx/Image.h
    gfx/IFormat.h
+   gfx/IComponents.h
    gfx/IConvert.h
    gfx/IMapScoped.h
    gfx/ILoader.h
    gfx/ISaver.h
+   gfx/ifilter/AdaptiveThreshold.h
    gfx/ifilter/ColorCode.h
    gfx/ifilter/ROFDenoise.h
    gfx/ifilter/ROFFGPFilter.h
@@ -256,6 +258,7 @@ SET(${MODULE_NAME}_HEADERS
    gui/Application.h
    gui/BasicTimer.h
    gui/Button.h
+   gui/Events.h
    gui/GLView.h
    gui/ImageView.h
    gui/internal/TimerInfo.h
@@ -374,6 +377,8 @@ SET(${MODULE_NAME}_HEADERS
    util/PluginManager.h
    util/PluginFile.h
    util/internal/ParamTypes.def
+   vision/alignment/KLTPatch.h
+   vision/alignment/PatchBase.h
    vision/BinaryDescriptor.h
    vision/Brief.h
    vision/CameraCalibration.h
@@ -408,6 +413,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/AIIKeyframe.h
    vision/rgbdvo/ESMKeyframe.h
    vision/rgbdvo/KeyframeBase.h
+   vision/rgbdvo/MIKeyframe.h
    vision/rgbdvo/MultiscaleKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RobustAIIKeyframe.h
@@ -471,6 +477,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/Image.cpp
    gfx/ImageOperations.cpp
    gfx/ImageTest.cpp
+   gfx/ifilter/AdaptiveThreshold.cpp
    gfx/ifilter/ColorCode.cpp
    gfx/ifilter/ROFDenoise.cpp
    gfx/ifilter/ROFFGPFilter.cpp
@@ -550,7 +557,6 @@ SET(${MODULE_NAME}_SOURCES
    io/TCPServer.cpp
    io/UDPClient.cpp
    math/Complex.cpp
-   math/ESM.cpp
    math/Fixed.cpp
    math/JointMeasurements.cpp
    math/JointMeasurementsTest.cpp
@@ -598,6 +604,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/SparseBundleAdjustment.cpp
    vision/rgbdvo/AIIKeyframe.cpp
    vision/rgbdvo/ESMKeyframe.cpp
+   vision/rgbdvo/MIKeyframe.cpp
    vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp

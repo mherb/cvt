@@ -25,6 +25,7 @@ namespace cvt
         public:
             typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
             typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>                 JacType;
+            static const size_t PatchSize = pSize;
 
             KLTPatch( size_t octaves = 1 );
 

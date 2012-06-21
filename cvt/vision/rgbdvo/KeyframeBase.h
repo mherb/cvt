@@ -90,7 +90,7 @@ namespace cvt {
             VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
-                                          const VOParams& params ) const
+                                          const VOParams& params )
             {
                 return ( ( Derived* )this )->computeRelativePose( predicted, gray, intrinsics, params );
             }

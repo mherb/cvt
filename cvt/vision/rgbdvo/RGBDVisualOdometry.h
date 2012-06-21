@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
 */
 
 #ifndef CVT_RGBDVISUALODOMETRY_H
@@ -29,6 +29,13 @@ namespace cvt {
             ~RGBDVisualOdometry();
 
             void updatePose( const Image& gray, const Image& depth );
+
+            /**
+             *  \brief  update the pose by using the given pose as starting point
+             *  \param  pose will be the initial value for the optimization and contains the computed result
+             */
+            void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
+
             void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
             /**
@@ -56,7 +63,7 @@ namespace cvt {
              */
             Signal<void>               activeKeyframeChanged;
 
-			size_t						numOverallKeyframes() const { return _numCreated; };
+            size_t numOverallKeyframes()                const { return _numCreated; }
 
         private:
             Matrix3f                    _intrinsics;
@@ -69,12 +76,12 @@ namespace cvt {
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
 
-			size_t						_numCreated;
+            size_t						_numCreated;
 
             /* vector of all the keyframes (TODO: maybe graph would be cooler) */
-            std::vector<DerivedKF*>  _keyframes;
+            std::vector<DerivedKF*>     _keyframes;
 
-            /* current / last pose w.r.t. active keyframe */            
+            /* current / last pose w.r.t. active keyframe */
             PoseRepresentation          _relativePose;
 
             bool needNewKeyframe( const VOResult& alignResult ) const;
@@ -88,13 +95,13 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 ),
-		_numCreated( 0 )
+        _numCreated( 0 )
     {
     }
 
     template <class DerivedKF>
     inline RGBDVisualOdometry<DerivedKF>::~RGBDVisualOdometry()
-    {        
+    {
         for( size_t i = 0; i < _keyframes.size(); i++ ){
             delete _keyframes[ i ];
         }
@@ -121,6 +128,26 @@ namespace cvt {
     }
 
     template <class DerivedKF>
+    inline void RGBDVisualOdometry<DerivedKF>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
+    {
+        // align with the current keyframe
+        // convert pose to a relative prediction:
+        const Matrix4f& kfPose = _activeKeyframe->pose();
+        _relativePose.pose = pose.inverse() * kfPose;
+        VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
+
+        // get back the absolute pose;
+        this->pose( pose );
+
+        // check if we need a new keyframe
+        if( needNewKeyframe( result ) ){
+            addNewKeyframe( gray, depth, pose );
+            keyframeAdded.notify( pose );
+            activeKeyframeChanged.notify();
+        }
+    }
+
+    template <class DerivedKF>
     inline void RGBDVisualOdometry<DerivedKF>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         Image dFloat( depth.width(), depth.height(), IFormat::GRAY_FLOAT );
@@ -139,7 +166,7 @@ namespace cvt {
         _relativePose.pose.set( I );
         _relativePose.bias = 0.0f;
         _relativePose.gain = 0.0f;
-		_numCreated++;
+        _numCreated++;
     }
 
     template <class DerivedKF>
@@ -179,7 +206,8 @@ namespace cvt {
         Matrix4f tmp;
         EigenBridge::toCVT( tmp, _relativePose.pose.transformation() );
         pose = _activeKeyframe->pose() * tmp.inverse();
-    }
+    }    
+
 }
 
 #endif // RGBDVISUALODOMETRY_H
