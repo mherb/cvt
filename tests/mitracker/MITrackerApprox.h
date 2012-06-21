@@ -114,14 +114,14 @@ namespace cvt {
     };
 
     inline MITracker::MITracker() :
-        _numBins( 10 ),
+        _numBins( 16 ),
         _jTemp( 0 ),
         _jTempOuter( 0 ),
         _hTemp( 0 ),
         _tempSplineWeights( 0 ),
         _tempSplineDerivWeights( 0 ),
         _maxIter( 10 ),
-        _gradThresh( 0.01f ),
+        _gradThresh( 0.02f ),
         _evaluated( 0 )
     {
         _jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -162,7 +162,7 @@ namespace cvt {
             tmp.fill( Color::WHITE );
             ITransform::apply( tmp, img, hinv, _warped.width(), _warped.height() );
 
-            tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+            tmp.convolve( _warped, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 
             // calculate the online stuff:
             updateInputHistograms();
@@ -177,8 +177,6 @@ namespace cvt {
 
             iter++;
         }
-
-        //std::cout << MI() << std::endl;
     }
 
     inline float MITracker::solveDeltaPose()
@@ -205,7 +203,7 @@ namespace cvt {
         ky.scale( -0.5f );
         IKernel laplx = IKernel::LAPLACE_5_XX;
         laplx.scale( -0.25f );
-        IKernel laply = IKernel::LAPLACE_5_XX;
+        IKernel laply = IKernel::LAPLACE_5_YY;
         laply.scale( -0.25f );
 
         _itemplate.convolve( _templateGradX, kx );
@@ -213,13 +211,13 @@ namespace cvt {
         _itemplate.convolve( _templateGradXX, laplx );
         _itemplate.convolve( _templateGradYY, laply );
 
-        /*
+
         float kxydata[]={0.25f, 0.0f, -0.25,
                          0.0f, 0.0f, 0.0f,
                          -0.25f, 0.0f, 0.25f };
         IKernel kxy( 3, 3, kxydata );
-        */
-        _itemplate.convolve( _templateGradXY, kx, ky );
+        //_itemplate.convolve( _templateGradXY, kx, ky );
+        _itemplate.convolve( _templateGradXY, kxy );
     }
 
     inline void MITracker::updateTemplate( const Image& img, const Vector2f& pos )
@@ -234,7 +232,7 @@ namespace cvt {
         Image tmp;
         img.convert( tmp, IFormat::GRAY_FLOAT );
         _itemplate.reallocate( tmp );
-        tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+        tmp.convolve( _itemplate, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 
         updateTemplateGradients();
 
@@ -296,7 +294,7 @@ namespace cvt {
     {
         size_t stride;
         size_t tstride;
-        const float* ptr = _warped.map<float>( &stride );
+        const float* ptr  = _warped.map<float>( &stride );
         const float* tptr = _itemplate.map<float>( &tstride );
         size_t w, h;
         float sum = 0;
@@ -311,8 +309,7 @@ namespace cvt {
         const float* pit = tptr;
         const float norm = w * h;
 
-        float splm, val;
-
+        float splm;
         while( h-- ) {
             size_t n = w;
             const float* pval = pi;
@@ -447,7 +444,7 @@ namespace cvt {
                     }
                 }
                 hessSum -= _hTemp[ y * w + x ] * sumH;
-                hessSum += _jTemp[ y * w + x ] * _jTemp[ y * w + x ].transpose() * sumJtJ;
+                hessSum += currJac * currJac.transpose() * sumJtJ;
             }
             map++;
         }
@@ -462,6 +459,7 @@ namespace cvt {
             hessSum += normInvSqr * *c2 * *J * J->transpose();
         }
         _miHessian = hessSum.inverse();
+        std::cout << "inverse Hessian: " << _miHessian << std::endl;
 
         delete[] binJac;
     }
@@ -515,7 +513,7 @@ namespace cvt {
                     sumTmp += _tempSplineWeights[ ( y * w + x ) * 4 + 3 ] * c1[ *rBin + 2 ][ tidx + m ];
                     sumJ += spl * sumTmp;
                 }
-                _miJacobian += _jTemp[ y * w + x ] * sumJ;
+                _miJacobian -= _jTemp[ y * w + x ] * sumJ;
             }
             pi += stride;
         }
@@ -624,15 +622,15 @@ namespace cvt {
                 for( int bin = 0; bin < 4; bin++ ){
                     splineDeriv = BSpline<float>::evalDerivative( (float)( binIdx + bin - 1 ) - pixVal );
                     splineDeriv2 = BSpline<float>::evalSecondDerivative( (float)( binIdx + bin - 1 ) - pixVal );
-                    _tempSplineWeights[ 4 * iter + bin ] = -splineDeriv;
+                    _tempSplineWeights[ 4 * iter + bin ] = splineDeriv;
                     _tempSplineDerivWeights[ 4 * iter + bin ] = splineDeriv2;
                 }
             }
-            gx += gxStride;
-            gy += gyStride;
-            gxx += gxxStride;
-            gyy += gyyStride;
-            gxy += gxyStride;
+            gx   += gxStride;
+            gy   += gyStride;
+            gxx  += gxxStride;
+            gyy  += gyyStride;
+            gxy  += gxyStride;
             iptr += iStride;
         }
         _itemplate.unmap( i_ptr );
