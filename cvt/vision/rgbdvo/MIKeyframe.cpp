@@ -24,8 +24,10 @@ namespace cvt
         _kxx.scale( -0.25f );
         _kyy.scale( -0.25f );
 
-		_jointHistogram		= new float[ Math::sqr( _numBins + 1 ) ];
+		_jointHistogram		= new float[ Math::sqr( _numBins + 1 ) ];        
         _templateHistogram	= new float[ _numBins + 1 ];
+        _logFactors         = new float[ Math::sqr( _numBins + 1 ) ];
+
         computeJacobians( depth, K, params );
     }
 
@@ -36,6 +38,9 @@ namespace cvt
 
         if( _templateHistogram )
             delete[] _templateHistogram;
+
+        if( _logFactors )
+            delete[] _logFactors;
     }
 
     void MIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
@@ -97,8 +102,8 @@ namespace cvt
         float gradThreshold = Math::sqr( params.gradientThreshold );
 
         SIMD* simd = SIMD::instance();
-        simd->SetValue1f( _templateHistogram, 1e-10f, _numBins + 1 );
-        simd->SetValue1f( _jointHistogram, 1e-10f, Math::sqr( _numBins + 1 ) );
+        simd->SetValue1f( _templateHistogram, 0.0f, _numBins + 1 );
+        clearJointHistogram( simd );
 
         float normFactor = ( float ) ( _numBins - 3 );
         for( size_t y = 0; y < depth.height(); y++ ){
@@ -120,6 +125,7 @@ namespace cvt
 					
                     hess( 0, 0 ) = gxx[ x ]; hess( 0, 1 ) = gxy[ x ];
                     hess( 1, 0 ) = gxy[ x ]; hess( 1, 1 ) = gyy[ x ];
+
 
                     g	 *= ( float )( _numBins - 3 ); // scale to the number of bins
                     hess *= ( float )( _numBins - 3 ); // scale to the number of bins
@@ -144,7 +150,9 @@ namespace cvt
 
                     pixVal = normFactor * value[ x ] + 1.0f;
 
-                    float binIdx = ( int ) pixVal - 1 - pixVal;
+                    _templateBins.push_back( ( int )pixVal );
+
+                    float binIdx = _templateBins.back() - 1.0f - pixVal;
                     Vector4f dWeights, d2Weights, weights;
                     for( int bin = 0; bin < 4; bin++ ){
                         float idx = binIdx + bin;
@@ -180,8 +188,7 @@ namespace cvt
     }
 
     void MIKeyframe::addToHistograms( int bin, const Vector4f& weights )
-    {
-        // is the bin
+    {        
         Vector4f tmp;
         for( int t = bin - 1, i = 0; t < 3; t++, i++ ){
             _templateHistogram[ t ] += weights[ i ];
@@ -206,17 +213,7 @@ namespace cvt
         }
 
         // precompute the factor, for each r, t combo log( p_I*I* / p_I* )
-        float sigma[ binsSqr ];
-        float* joint = _jointHistogram;
-        float* c1 = sigma;
-        for( size_t r = 0; r < binsPerRow; r++ ) {
-            float rval = _templateHistogram[ r ];
-            for( size_t t = 0; t < binsPerRow; t++ ) {
-                *c1 = Math::log( *joint / rval );
-                c1++;
-                joint++;
-            }
-        }
+        updateLogFactors();
 
         _hessian.setZero();
         float sumJ, sumH;
@@ -237,11 +234,11 @@ namespace cvt
             sumJ = 0.0f;
             sumH = 0.0f;
 
-            c1 = sigma + binsPerRow * ( tidx - 1 );
+            float* c1 = _logFactors + binsPerRow * ( tidx - 1 );
             JacType* jacRow = jacobianHistogram + binsPerRow * ( tidx - 1 );
-            for( int r = -1; r <= 2; r++ ) {
+            for( int r = -1; r < 3; r++ ) {
                 float spl = w[ r + 1 ]; // the precomputed spline weight
-                for( int t = -1; t <= 2; t++ ) {
+                for( int t = -1; t < 3; t++ ) {
                     sumJ += spl * dw2[ t + 1 ] * c1[ tidx + t ];
                     spl *= dw[ t + 1 ];
                     sumH += spl * c1[ tidx + t ];
@@ -251,33 +248,38 @@ namespace cvt
                 jacRow += binsPerRow;
             }
 
+            //std::cout << "HCoeff: " << sumH << " JCoeff: " << sumJ << std::endl;
             _hessian += ( sumJ * j.transpose() * j - sumH * h );
         }
 
+        std::cout << "Before JTJ: " << _hessian << std::endl;
         _hessian /= ( float )_pixelValues.size();
 
         JacType* currJ = jacobianHistogram;
-        float* hist  = _templateHistogram;
-        joint = _jointHistogram;
+
+        float* joint = _jointHistogram;
         HessianType hsum = HessianType::Zero();
         for( size_t r = 0; r < binsPerRow; r++ ) {
             for( size_t t = 0; t < binsPerRow; t++ ) {
-                hsum +=  ( 1.0f / *joint - 1.0f / *hist ) * currJ->transpose() * *currJ;
+                hsum +=  ( 1.0f / *joint - 1.0f / _templateHistogram[ t ] ) * currJ->transpose() * *currJ;
                 joint++;
                 currJ++;
-            }
-            hist++;
+            }            
         }
         hsum /= Math::sqr( ( float )_pixelValues.size() );
         hsum += _hessian;
 
+        std::cout << hsum << std::endl;
         _hessian = hsum.inverse();
+        std::cout << _hessian << std::endl;
+
+        delete[] jacobianHistogram;
     }
 
     VOResult MIKeyframe::computeRelativePose( PoseRepresentation& predicted,
                                               const Image& gray,
                                               const Matrix3f& intrinsics,
-                                              const VOParams& params ) const
+                                              const VOParams& params )
     {
         VOResult result;
         result.SSD = 0.0f;
@@ -296,7 +298,7 @@ namespace cvt
         EigenBridge::toEigen( Keigen, intrinsics );
 
         // sum of jacobians * delta
-        JacType deltaSum, jtmp;
+        JacType deltaSum;
 
         IMapScoped<const float> grayMap( gray );
         size_t floatStride = grayMap.stride() / sizeof( float );
@@ -311,32 +313,128 @@ namespace cvt
             // project the points:
             simd->projectPoints( &warpedPts[ 0 ], projMat, &_points3d[ 0 ], _points3d.size() );
 
-            deltaSum.setZero();
-            result.numPixels = 0;
-            result.SSD = 0.0f;
+            // remember which points are valid
+            std::vector<size_t> validPointIndices;
+            validPointIndices.reserve( warpedPts.size() );
+            std::vector<Vector4f> imgSplineVals;
+            imgSplineVals.reserve( warpedPts.size() );
+            std::vector<int> imgBins;
+            imgBins.reserve( warpedPts.size() );
 
+            clearJointHistogram( simd );
+
+            // update the joint histogram
             for( size_t i = 0; i < warpedPts.size(); i++ ){
                 const Vector2f& pw = warpedPts[ i ];
                 if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
 
-                    // compute the delta
-                    float delta = _pixelValues[ i ] - v;
-                    result.SSD += Math::sqr( delta );
-                    result.numPixels++;
+                    // update the joint histogram using v and pixVals[ i ]
+                    v = v * ( _numBins - 3 ) + 1.0f;
+                    int r = (int)v;
+                    v = (int)v - v; // fraction part
 
-                    jtmp = delta * _jacobians[ i ];
-                    deltaSum += jtmp;
+                    Vector4f rvals;
+                    rvals[ 0 ] = BSplinef::eval( v - 1.0f );
+                    rvals[ 1 ] = BSplinef::eval( v );
+                    rvals[ 2 ] = BSplinef::eval( v + 1.0f );
+                    rvals[ 3 ] = BSplinef::eval( v + 2.0f );
+
+                    const Vector4f & tvals = _splineWeights[ i ];
+
+                    addToJointHistogram( r, _templateBins[ i ], rvals, tvals );
+
+                    validPointIndices.push_back( i );
+                    imgSplineVals.push_back( rvals );
+                    imgBins.push_back( r );
                 }
             }
 
-            // evaluate the delta parameters
-            //SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
-            //predicted.pose.applyInverse( -deltaP );
+            // normalize the joint histogram:
+            float normalizer = 1.0f / validPointIndices.size();
+            simd->MulValue1f( _jointHistogram, _jointHistogram, normalizer, Math::sqr( _numBins + 1 ) );
 
-            result.iterations++;            
+            // evaluate the log factors for faster computation
+            updateLogFactors();
+
+            // evaluate the jacobian:
+            const std::vector<size_t>::const_iterator idxEnd = validPointIndices.end();
+            int i = 0;
+            deltaSum.setZero();
+            for( std::vector<size_t>::const_iterator idx = validPointIndices.begin();
+                 idx != idxEnd;
+                 idx++, i++ ){
+                const JacType& j            = _jacobians[ *idx ];
+                const Vector4f& tDerivVals  = _splineDerivativeWeights[ *idx ];
+                int   t                     = _templateBins[ *idx ];
+                int   r                     = imgBins[ i ];
+                const Vector4f& rVals       = imgSplineVals[ i ];
+
+                float sum = calcSummedFactors( r, t, rVals, tDerivVals );
+
+                deltaSum += sum * j;
+            }
+            deltaSum *= -normalizer;
+            std::cout << "JSum: " << deltaSum << std::endl;
+
+            // compute the delta step
+            SE3<float>::ParameterVectorType deltaP = -_hessian * deltaSum.transpose();
+            std::cout << "Delta:\n" << deltaP << std::endl;
+
+            predicted.pose.applyInverse( -deltaP );
+
+            result.iterations++;
+            result.numPixels = validPointIndices.size();
         }
         return result;
+    }
+
+    void MIKeyframe::clearJointHistogram( const SIMD* simd )
+    {
+        simd->SetValue1f( _jointHistogram, 0.0f, Math::sqr( _numBins + 1 ) );
+    }
+
+    void MIKeyframe::updateLogFactors()
+    {
+        float* joint = _jointHistogram;
+        float* c1 = _logFactors;
+        static const size_t binsPerRow = _numBins + 1;
+        for( size_t r = 0; r < binsPerRow; r++ ) {
+            for( size_t t = 0; t < binsPerRow; t++ ) {
+                *c1 = Math::log( LogOffset + *joint / ( _templateHistogram[ t ] + LogOffset ) );
+                c1++;
+                joint++;
+            }
+        }
+    }
+
+    void MIKeyframe::addToJointHistogram( int rBin, int tBin, const Vector4f& rvals, const Vector4f& tvals )
+    {
+        for( size_t r = 0; r < 4; r++ ){
+            float* jrow = _jointHistogram + ( rBin - 1 + r ) * ( _numBins + 1 );
+            jrow[ tBin - 1 ] += rvals[ r ] * tvals[ 0 ];
+            jrow[ tBin     ] += rvals[ r ] * tvals[ 1 ];
+            jrow[ tBin + 1 ] += rvals[ r ] * tvals[ 2 ];
+            jrow[ tBin + 2 ] += rvals[ r ] * tvals[ 3 ];
+        }
+    }
+
+    float MIKeyframe::calcSummedFactors( int r, int t, const Vector4f& rVals, const Vector4f& tVals )
+    {
+        float sum = 0.0f;
+        static const size_t stride = _numBins + 1;
+
+        const float* logRow = _logFactors + ( r - 1 ) * stride;
+        for( size_t y = 0; y < 4; y++ ){
+            float tsum = 0.0f;
+            tsum += logRow[ t - 1 ] * tVals[ 0 ];
+            tsum += logRow[ t     ] * tVals[ 1 ];
+            tsum += logRow[ t + 1 ] * tVals[ 2 ];
+            tsum += logRow[ t + 2 ] * tVals[ 3 ];
+            sum += rVals[ y ] * tsum;
+            logRow += stride;
+        }
+        return sum;
     }
 }

@@ -6,14 +6,16 @@
 #include <cvt/io/RGBDParser.h>
 #include <PoseView.h>
 
-#include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
+#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
+#include <cvt/vision/rgbdvo/MIKeyframe.h>
 #include <cvt/vision/rgbdvo/VOKeyframe.h>
 #include <cvt/vision/rgbdvo/AIIKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustAIIKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustKeyframe.h>
 #include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
+#include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
 //#define USE_CAM
 #ifdef USE_CAM
@@ -47,10 +49,11 @@ namespace cvt
                 //typedef ESMKeyframe KFType;
                 //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
-                typedef RobustKeyframe<Tukey> KFType;
+                //typedef RobustKeyframe<Tukey> KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
-                //typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
+                //typedef cvt::MIKeyframe KFType;
                 RGBDVisualOdometry<KFType>  _vo;
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

@@ -53,6 +53,55 @@ void writeConvergenceTestSampleToFile( std::ofstream& file,
 }
 
 template <class KFType>
+void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    RGBDParser parser( folder, 0.05f );
+
+    // go to an image somewhere inside the dataset
+    size_t iter = 0;
+    while( iter++ < 100 )
+        parser.loadNext();
+    const RGBDParser::RGBDSample& d = parser.data();
+
+    Image gray;
+    d.rgb.convert( gray, IFormat::GRAY_FLOAT );
+
+    Image dFloat;
+    d.depth.convert( dFloat, IFormat::GRAY_FLOAT );
+
+    Matrix4f poseMat;
+    poseMat.setIdentity();
+
+    KFType* keyframe = KFType::create( gray, dFloat, poseMat, K, params );
+    PoseRepresentation relPose;
+    relPose.bias = 0.0f;
+    relPose.gain = 0.0f;
+
+    //const float angleRange = cfg.valueForName( "convTestRotoRangeDeg", 20.0f ) * Math::PI / 180.0f;
+    const float tx = cfg.valueForName( "convergenceTestTx", 0.5f );
+
+    relPose.pose.set( 0.0f, 0.0f, 0.0f, tx, 0.0f, 0.0f );
+
+    iter = 0;
+    while( true ){
+        VOResult result = keyframe->computeRelativePose( relPose, gray, K, params );
+        EigenBridge::toCVT( poseMat, relPose.pose.transformation() );
+        Vector3f vt( poseMat[ 0 ][ 3 ], poseMat[ 1 ][ 3 ], poseMat[ 2 ][ 3 ] );
+        Quaternionf q( poseMat.toMatrix3() );
+        Vector3f v( q.toEuler() );
+
+        iter++;
+        std::cout << "\n**** Iteration -> " << iter << " <- *****" << std::endl;
+        std::cout << "Euler Angles: " << v << std::endl;
+        std::cout << "delta T: " << vt << std::endl;
+        std::cout << "Valid pixels: " << result.numPixels << std::endl;
+
+        getchar();
+    }
+    delete keyframe;
+}
+
+template <class KFType>
 void convergenceTest( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     RGBDParser parser( folder, 0.05f );
@@ -325,6 +374,9 @@ int main( int argc, char* argv[] )
     K[ 0 ][ 2 ] = 325.1f;
     K[ 1 ][ 1 ] = 521.0f;
     K[ 1 ][ 2 ] = 249.7f;
+
+    testFunc<MIKeyframe>( params, K, folder, cfg );
+    return 0;
 
 //  	runBatch( params, K, folder, cfg );
 //    convergenceAnalysis( params, K, folder, cfg );
