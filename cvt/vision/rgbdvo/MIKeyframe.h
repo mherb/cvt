@@ -1,5 +1,5 @@
-#ifndef CVT_VO_KEYFRAME_H
-#define CVT_VO_KEYFRAME_H
+#ifndef CVT_MI_KEYFRAME_H
+#define CVT_MI_KEYFRAME_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
@@ -40,9 +40,10 @@ namespace cvt
             VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
-                                          const VOParams& params ) const;
+                                          const VOParams& params );
 
         protected:
+            static const float          LogOffset = 1e-6f;
             IKernel                     _kx, _ky, _kxx, _kyy;
             Matrix4f                    _pose;
             Image                       _gray;
@@ -51,12 +52,14 @@ namespace cvt
             size_t						_numBins;
             float*						_jointHistogram;
             float*						_templateHistogram;
+            float*						_logFactors;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
 
             // the pixel values (gray) for the points
             std::vector<float>          _pixelValues;
+            std::vector<int>            _templateBins;
 
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
@@ -76,6 +79,14 @@ namespace cvt
             void addToHistograms( int pixVal, const Vector4f& weights );
 
             void evaluateApproximateHessian();
+
+            void clearJointHistogram( const SIMD* simd );
+
+            void addToJointHistogram( int r, int t, const Vector4f& rvals, const Vector4f& tvals );
+
+            void updateLogFactors();
+
+            float calcSummedFactors( int r, int t, const Vector4f& rVals, const Vector4f& tVals );
     };
 }
 
