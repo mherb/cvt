@@ -23,8 +23,9 @@ namespace cvt {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-            typedef Eigen::Matrix<float,NUMPARAMS, 1> JacType;
-            typedef Eigen::Matrix<float,NUMPARAMS, NUMPARAMS> HessType;
+            typedef SL3<float> PoseType;
+            typedef Eigen::Matrix<float,PoseType::NPARAMS, 1> JacType;
+            typedef Eigen::Matrix<float,PoseType::NPARAMS, PoseType::NPARAMS> HessType;
 
             MITracker();
             ~MITracker();
@@ -84,44 +85,35 @@ namespace cvt {
             // backprojection of image to template space
             Image	_warped;
 
-            //PoseHomography<float> _pose;
-
-            SL3<float>				_pose;
-            //GA2<float>				_pose;
-            //Sim2<float>				_pose;
-            //Translation2D<float>		_pose;
-            //PoseTranslation<float>	_pose;
+            PoseType		_pose;
 
             JacType			_miJacobian;
             HessType        _miHessian;
 
             // for the template we can calculate offline data once:
-            Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
-            Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _jTempOuter;
-            Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
+            JacType*            _jTemp;
+            HessType*           _hTemp;
 
-            float*			     _tempSplineWeights;
-            float*			     _tempSplineDerivWeights;
-            std::vector<int>	 _binValues;
+            float*              _tempSplineWeights;
+            float*              _tempSplineDerivWeights;
+            std::vector<int>    _binValues;
 
-            // optimization related:
-            size_t	_maxIter;
+            size_t              _maxIter;
 
-            Matrix3f	_currPose;
+            Matrix3f            _currPose;
 
-            float		_gradThresh;
-            bool*		_evaluated;
+            float               _gradThresh;
+            bool*               _evaluated;
     };
 
     inline MITracker::MITracker() :
         _numBins( 16 ),
-        _jTemp( 0 ),
-        _jTempOuter( 0 ),
+        _jTemp( 0 ),        
         _hTemp( 0 ),
         _tempSplineWeights( 0 ),
         _tempSplineDerivWeights( 0 ),
         _maxIter( 10 ),
-        _gradThresh( 0.02f ),
+        _gradThresh( 0.04f ),
         _evaluated( 0 )
     {
         _jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -133,9 +125,7 @@ namespace cvt {
         delete[] _jhist;
         delete[] _thist;
         if( _jTemp )
-            delete[] _jTemp;
-        if( _jTempOuter )
-            delete[] _jTempOuter;
+            delete[] _jTemp;        
         if( _hTemp )
             delete[] _hTemp;
         if( _tempSplineWeights )
@@ -166,7 +156,6 @@ namespace cvt {
 
             // calculate the online stuff:
             updateInputHistograms();
-
             updateDerivatives();
 
             float epsilon = solveDeltaPose();
@@ -526,9 +515,7 @@ namespace cvt {
     inline void MITracker::offlineTemplateDerivatives()
     {
         if( _jTemp )
-            delete[] _jTemp;
-        if( _jTempOuter )
-            delete[] _jTempOuter;
+            delete[] _jTemp;        
         if( _hTemp )
             delete[] _hTemp;
         if( _tempSplineWeights )
@@ -541,8 +528,7 @@ namespace cvt {
         size_t numPixel = _itemplate.width() * _itemplate.height();
 
         // we need numbins times pixel values
-        _jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ numPixel ];
-        _jTempOuter = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ numPixel ];
+        _jTemp = new Eigen::Matrix<float, NUMPARAMS, 1>[ numPixel ];        
         _hTemp = new Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>[ numPixel ];
         _tempSplineWeights = new float[ 4 * numPixel ];
         _tempSplineDerivWeights= new float[ 4 * numPixel ];
@@ -612,8 +598,7 @@ namespace cvt {
 
                 _pose.screenHessian( wx, wy, p );
 
-                _jTemp[ iter ] = (grad * screenJac).transpose();
-                _jTempOuter[ iter ] = _jTemp[ iter ] * _jTemp[ iter ].transpose();
+                _jTemp[ iter ] = (grad * screenJac).transpose();                
                 _hTemp[ iter ] = screenJac.transpose() * hess * screenJac + grad[ 0 ] * wx + grad[ 1 ] * wy;
 
                 pixVal = normFactor * iptr[ x ] + 1.0f;
@@ -655,7 +640,6 @@ namespace cvt {
         h( 2, 1 ) = hom[ 2 ][ 1 ];
         h( 2, 2 ) = hom[ 2 ][ 2 ];
     }
-
 }
 
 #endif

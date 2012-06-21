@@ -10,14 +10,17 @@ namespace cvt
 {
     VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
                             const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
-        _pose( pose ),
-        _gray( gray )
+        _pose( pose )
+        //,_gray( gray )
     {
+        _gray.reallocate( gray );
+        gray.convolve( _gray, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+
         computeJacobians( depth, K, params );
     }
 
     VOKeyframe::~VOKeyframe()
-    {        
+    {
     }
 
     void VOKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
@@ -86,8 +89,8 @@ namespace cvt
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
-                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );                    
-                    H.noalias() += j.transpose() * j;                    
+                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
+                    H.noalias() += j.transpose() * j;
                 }
             }
             gxMap++;
