@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
 */
 
 #ifndef CVT_RGBDVISUALODOMETRY_H
@@ -56,7 +56,7 @@ namespace cvt {
              */
             Signal<void>               activeKeyframeChanged;
 
-			size_t						numOverallKeyframes() const { return _numCreated; };
+            size_t numOverallKeyframes()                const { return _numCreated; }
 
         private:
             Matrix3f                    _intrinsics;
@@ -69,12 +69,12 @@ namespace cvt {
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
 
-			size_t						_numCreated;
+            size_t						_numCreated;
 
             /* vector of all the keyframes (TODO: maybe graph would be cooler) */
-            std::vector<DerivedKF*>  _keyframes;
+            std::vector<DerivedKF*>     _keyframes;
 
-            /* current / last pose w.r.t. active keyframe */            
+            /* current / last pose w.r.t. active keyframe */
             PoseRepresentation          _relativePose;
 
             bool needNewKeyframe( const VOResult& alignResult ) const;
@@ -88,13 +88,13 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 ),
-		_numCreated( 0 )
+        _numCreated( 0 )
     {
     }
 
     template <class DerivedKF>
     inline RGBDVisualOdometry<DerivedKF>::~RGBDVisualOdometry()
-    {        
+    {
         for( size_t i = 0; i < _keyframes.size(); i++ ){
             delete _keyframes[ i ];
         }
@@ -139,7 +139,7 @@ namespace cvt {
         _relativePose.pose.set( I );
         _relativePose.bias = 0.0f;
         _relativePose.gain = 0.0f;
-		_numCreated++;
+        _numCreated++;
     }
 
     template <class DerivedKF>
