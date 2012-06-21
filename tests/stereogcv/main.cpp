@@ -120,7 +120,7 @@ int main( int argc, char* argv[] )
 	Image intimg0( img0.width(), img0.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 	Image output;
 	iint.apply( intimg0, img0 );
-	boxf.apply( output, intimg0, 10 );
+	boxf.apply( output, intimg0, 10, IFILTER_CL );
 	output.save( "boxfilter.png" );
 	return 1; */
 		ROFFGPFilter rof;

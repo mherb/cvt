@@ -399,6 +399,43 @@ namespace cvt {
         return ret;
     }
 
+    template <typename T>
+	static bool _poseFromHomography()
+	{
+		Matrix3<T> K( 600.0,   0.0, 320.0,
+					 0.0, 600.0, 240.0,
+					 0.0,   0.0,   1.0 );
+
+		for( size_t i = 0; i < 10; i++ ){
+			Matrix4<T> T1, T2;
+			T1.setRotationXYZ( Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+							  Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
+							  Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ));
+			T1.setTranslation( Math::rand( ( T )-0.5, ( T )0.5 ),
+							  Math::rand( ( T )-0.5, ( T )0.5 ),
+							  Math::rand( ( T )-0.5, ( T )0.5 ) );
+
+			Matrix3<T> RT = T1.toMatrix3();
+			RT[ 0 ][ 2 ] = T1[ 0 ][ 3 ];
+			RT[ 1 ][ 2 ] = T1[ 1 ][ 3 ];
+			RT[ 2 ][ 2 ] = T1[ 2 ][ 3 ];
+
+			Matrix3<T> H = K * RT;
+
+			Vision::poseFromHomography( T2, K, H );
+			T1 -= T2;
+			T sum = 0;
+			for( int y = 0; y < 4; y++ )
+				for( int x = 0; x < 4; x++ )
+					sum += T1[ y ][ x ];
+			sum /= ( T ) 16;
+			if( sum < 1e-3 )
+				continue;
+			return false;
+		}
+		return true;
+	}
+
 BEGIN_CVTTEST( Vision )
     bool testResult = true;
     bool b;
@@ -422,6 +459,10 @@ BEGIN_CVTTEST( Vision )
     b = _triangulateMultiView<double>();
     CVTTEST_PRINT( "triangulateMultiView<double>()\t", b );
     testResult &= b;
+
+	b = _poseFromHomography<double>();
+    CVTTEST_PRINT( "poseFromHomography<double>()\t", b );
+	testResult &= b;
 
     return testResult;
 END_CVTTEST

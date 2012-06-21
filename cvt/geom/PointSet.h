@@ -12,6 +12,7 @@
 #define CVT_POINTSET_H
 
 #include <cvt/util/SIMD.h>
+#include <cvt/geom/Ellipse.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/Exception.h>
@@ -58,6 +59,8 @@ namespace cvt
 				MATTYPE alignRigid( const PointSet<dim,_T>& ptset ) const;
 				MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
 				Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
+
+				_T	 fitEllipse( Ellipse<_T>& ellipse ) const;
 
                 /**
                  * Computes the essential matrix between two views from the same camera
@@ -1084,6 +1087,180 @@ namespace cvt
         return Et;
     }
 
+
+	template<int dim, typename _T>
+	_T	 PointSet<dim,_T>::fitEllipse( Ellipse<_T>& ellipse ) const
+	{
+		if( dim != 2 )
+			return INFINITY;
+
+		typedef Eigen::Matrix<_T, 6, 6> EigenMatrix6;
+		typedef Eigen::Matrix<_T, 3, 3> EigenMatrix3;
+		typedef Eigen::Matrix<_T, 3, 1> EigenVector3;
+		typedef Eigen::Matrix<_T, 6, 1> EigenVector6;
+
+		EigenMatrix6 scatter;
+		_T x2, y2, xy, x, y;
+		_T mx, my, sx, sy;
+
+		MATTYPE sim;
+
+		// normalize the points
+		PointSet<dim,_T> points = *this;
+		points.normalize( sim );
+
+		sim.inverseSelf();
+		sx = sim[ 0 ][ 0 ];
+		sy = sim[ 1 ][ 1 ];
+		mx = sim[ 0 ][ 2 ];
+		my = sim[ 1 ][ 2 ];
+
+		// compute upper scatter matrix
+		scatter.setZero();
+
+		size_t n = points.size();
+		const PTTYPE* pt = &points[ 0 ];
+
+		while( n-- ) {
+			x	= pt->x;
+			y	= pt->y;
+			pt++;
+			x2	= x * x;
+			y2	= y * y;
+			xy	= x * y;
+
+			scatter( 0 , 0 ) += x2 * x2;
+			scatter( 0 , 1 ) += x2 * xy;
+			scatter( 0 , 2 ) += x2 * y2;
+			scatter( 0 , 3 ) += x2 * x;
+			scatter( 0 , 4 ) += x2 * y;
+			scatter( 0 , 5 ) += x2;
+
+			scatter( 1 , 1 ) += xy * xy;
+			scatter( 1 , 2 ) += xy * y2;
+			scatter( 1 , 3 ) += xy * x;
+			scatter( 1 , 4 ) += xy * y;
+			scatter( 1 , 5 ) += xy;
+
+			scatter( 2 , 2 ) += y2 * y2;
+			scatter( 2 , 3 ) += y2 * x;
+			scatter( 2 , 4 ) += y2 * y;
+			scatter( 2 , 5 ) += y2;
+
+			scatter( 3 , 3 ) += x * x;
+			scatter( 3 , 4 ) += x * y;
+			scatter( 3 , 5 ) += x;
+
+			scatter( 4 , 4 ) += y * y;
+			scatter( 4 , 5 ) += y;
+
+			scatter( 5 , 5 ) += ( _T ) 1;
+		}
+
+		// make matrix symmetric
+
+		scatter( 1 , 0 ) = scatter( 0 , 1 );
+		scatter( 2 , 0 ) = scatter( 0 , 2 );
+		scatter( 3 , 0 ) = scatter( 0 , 3 );
+		scatter( 4 , 0 ) = scatter( 0 , 4 );
+		scatter( 5 , 0 ) = scatter( 0 , 5 );
+
+		scatter( 2 , 1 ) = scatter( 1 , 2 );
+		scatter( 3 , 1 ) = scatter( 1 , 3 );
+		scatter( 4 , 1 ) = scatter( 1 , 4 );
+		scatter( 5 , 1 ) = scatter( 1 , 5 );
+
+		scatter( 3 , 2 ) = scatter( 2 , 3 );
+		scatter( 4 , 2 ) = scatter( 2 , 4 );
+		scatter( 5 , 2 ) = scatter( 2 , 5 );
+
+		scatter( 4 , 3 ) = scatter( 3 , 4 );
+		scatter( 5 , 3 ) = scatter( 3 , 5 );
+
+		scatter( 5 , 4 ) = scatter( 4 , 5 );
+
+		// build up constraint matrix
+		EigenMatrix6 C;
+		C.setZero();
+		C( 0, 2 ) = ( _T ) -2;
+		C( 1, 1 ) = ( _T )  1;
+		C( 2, 0 ) = ( _T ) -2;
+
+		EigenMatrix3 tmpA;
+	    tmpA = scatter.template block<3,3>( 0, 0 );
+
+		EigenMatrix3 tmpB;
+	    tmpB = scatter.template block<3,3>( 0, 3 );
+
+		EigenMatrix3 tmpC;
+	    tmpC = scatter.template block<3,3>( 3, 3 );
+
+		EigenMatrix3 tmpD;
+		tmpD = C.template block<3,3>( 0, 0 );
+
+		EigenMatrix3 tmpE = tmpC.inverse() * tmpB.transpose();
+		EigenMatrix3 A = tmpD.inverse() * ( tmpA - tmpB * tmpE );
+
+        Eigen::JacobiSVD<Eigen::Matrix<float, 3, 3> > esvd( A, Eigen::ComputeFullV );
+		EigenVector3 top = esvd.matrixV().col( 2 );
+
+		EigenVector3 bottom = -tmpE * top;
+
+		EigenVector6 parNorm;
+		parNorm << top(0), top(1), top(2), bottom(0), bottom(1), bottom(2);
+
+		// unnormalize system parameters
+		EigenVector6 par;
+
+		par(0) = parNorm(0)*sy*sy;
+		par(1) = parNorm(1)*sx*sy;
+		par(2) = parNorm(2)*sx*sx;
+		par(3) = -2.0f*parNorm(0)*sy*sy*mx - parNorm(1)*sx*sy*my + parNorm(3)*sx*sy*sy;
+		par(4) = -parNorm(1)*sx*sy*mx - 2.0f*top(2)*sx*sx*my + parNorm(4)*sx*sx*sy;
+		par(5) = parNorm(0)*sy*sy*mx*mx + parNorm(1)*sx*sy*mx*my + parNorm(2)*sx*sx*my*my
+			- parNorm(3)*sx*sy*sy*mx - parNorm(4)*sx*sx*sy*my
+			+ parNorm(5)*sx*sx*sy*sy;
+
+		// compute ellipse parameters
+
+		_T thetarad = Math::atan2( double(par(1)), double(par(0) - par(2)) ) * ( _T ) 0.5;
+		_T cost = Math::cos( thetarad );
+		_T sint = Math::sin( thetarad );
+		_T sin_squared = sint * sint;
+		_T cos_squared = cost * cost;
+		_T cos_sin = sint * cost;
+
+		_T Ao =  par(5);
+		_T Au =  par(3) * cost + par(4) * sint;
+		_T Av = -par(3) * sint + par(4) * cost;
+		_T Auu = par(0) * cos_squared + par(2) * sin_squared + par(1) * cos_sin;
+		_T Avv = par(0) * sin_squared + par(2) * cos_squared - par(1) * cos_sin;
+
+		_T tuCentre = - Au/(2*Auu);
+		_T tvCentre = - Av/(2*Avv);
+		_T wCentre = Ao - Auu*tuCentre*tuCentre - Avv*tvCentre*tvCentre;
+
+		ellipse.center().x = tuCentre * cost - tvCentre * sint;
+		ellipse.center().y = tuCentre * sint + tvCentre * cost;
+
+		_T Ru = -wCentre/Auu;
+		_T Rv = -wCentre/Avv;
+
+		ellipse.semiMajor() = Math::sqrt( Math::abs( Ru ) );
+		ellipse.semiMinor() = Math::sqrt( Math::abs( Rv ) );
+
+		ellipse.orientation() = thetarad;
+
+//		params.AxesDirection[0].x = cost;
+//		params.AxesDirection[0].y = sint;
+//
+//		params.AxesDirection[1].x = -sint;
+//		params.AxesDirection[1].y = cost;
+
+		// return fit error
+		_T ret = parNorm.transpose() * scatter * parNorm;
+		return ret / ( _T ) points.size();
+	}
 
 	template<int dim, typename _T>
 	inline std::ostream& operator<<( std::ostream& out, const PointSet<dim,_T>& ptset )

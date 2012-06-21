@@ -9,6 +9,7 @@
  	PARTICULAR PURPOSE.
  */
 #include <cvt/gfx/ifilter/BoxFilter.h>
+#include <cvt/gfx/IMapScoped.h>
 
 #include <cvt/cl/kernel/boxfilter/boxfilter_prefixsum.h>
 #include <cvt/cl/kernel/boxfilter/boxfilter.h>
@@ -31,22 +32,36 @@ namespace cvt {
 	{
 	}
 
-	void BoxFilter::apply( Image& dst, const Image& src, const int radius, bool integral ) const
+	void BoxFilter::apply( Image& dst, const Image& src, const int radius, IFilterType type ) const
 	{
-		// FIXME: integrate IntegralFilter
-		dst.reallocate( src.width(), src.height(), dst.format(), IALLOCATOR_CL );
-		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
-		if( integral ) {
-			_clboxfilter_prefixsum.setArg( 0, dst );
-			_clboxfilter_prefixsum.setArg( 1, src );
-			_clboxfilter_prefixsum.setArg( 2, radius );
-			_clboxfilter_prefixsum.run( global, CLNDRange( 16, 16 ) );
+		if( type == IFILTER_OPENCL ) {
+			// FIXME: integrate IntegralFilter
+			dst.reallocate( src.width(), src.height(), dst.format(), IALLOCATOR_CL );
+			CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
+			//if( integral ) {
+				_clboxfilter_prefixsum.setArg( 0, dst );
+				_clboxfilter_prefixsum.setArg( 1, src );
+				_clboxfilter_prefixsum.setArg( 2, radius );
+				_clboxfilter_prefixsum.run( global, CLNDRange( 16, 16 ) );
+			/*} else {
+				_clboxfilter.setArg( 0, dst );
+				_clboxfilter.setArg( 1, src );
+				_clboxfilter.setArg( 2, radius );
+				_clboxfilter.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( 16 + 2 * radius ) * ( 16 + 2 * radius ) ) );
+				_clboxfilter.runWait( global, CLNDRange( 16, 16 ) );
+			}*/
 		} else {
-			_clboxfilter.setArg( 0, dst );
-			_clboxfilter.setArg( 1, src );
-			_clboxfilter.setArg( 2, radius );
-			_clboxfilter.setArg( 3, CLLocalSpace( sizeof( cl_float4 ) * ( 16 + 2 * radius ) * ( 16 + 2 * radius ) ) );
-			_clboxfilter.runWait( global, CLNDRange( 16, 16 ) );
+			dst.reallocate( src.width(), src.height(), dst.format() );
+			if( src.format().formatID == IFORMAT_GRAY_FLOAT && dst.format().formatID == IFORMAT_GRAY_FLOAT ) {
+				cvt::IMapScoped<float> mapdst( dst );
+				cvt::IMapScoped<const float> mapsrc( src );
+				SIMD::instance()->boxFilterPrefixSum1_f_to_f( mapdst.ptr(), mapdst.stride(), mapsrc.ptr(), mapsrc.stride(), dst.width(), dst.height(), 2*radius+1, 2*radius+1 );
+			} else if( src.format().formatID == IFORMAT_GRAY_FLOAT && dst.format().formatID == IFORMAT_GRAY_UINT8 ) {
+				cvt::IMapScoped<uint8_t> mapdst( dst );
+				cvt::IMapScoped<const float> mapsrc( src );
+				SIMD::instance()->boxFilterPrefixSum1_f_to_u8( mapdst.ptr(), mapdst.stride(), mapsrc.ptr(), mapsrc.stride(), dst.width(), dst.height(), 2*radius+1, 2*radius+1 );
+			} else
+				throw CVTException( "Unsupported image format!" );
 		}
 	}
 
