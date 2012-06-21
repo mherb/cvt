@@ -23,8 +23,9 @@ namespace cvt {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-            typedef Eigen::Matrix<float,NUMPARAMS, 1> JacType;
-            typedef Eigen::Matrix<float,NUMPARAMS, NUMPARAMS> HessType;
+            typedef SL3<float> PoseType;
+            typedef Eigen::Matrix<float,PoseType::NPARAMS, 1> JacType;
+            typedef Eigen::Matrix<float,PoseType::NPARAMS, PoseType::NPARAMS> HessType;
 
             MITracker();
             ~MITracker();
@@ -84,21 +85,15 @@ namespace cvt {
             // backprojection of image to template space
             Image	_warped;
 
-            //PoseHomography<float> _pose;
-
-            SL3<float>				_pose;
-            //GA2<float>				_pose;
-            //Sim2<float>				_pose;
-            //Translation2D<float>		_pose;
-            //PoseTranslation<float>	_pose;
+            PoseType		_pose;
 
             JacType			_miJacobian;
             HessType        _miHessian;
 
             // for the template we can calculate offline data once:
-            Eigen::Matrix<float, NUMPARAMS, 1>*  _jTemp;
-            Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _jTempOuter;
-            Eigen::Matrix<float, NUMPARAMS, NUMPARAMS>*  _hTemp;
+            JacType*   _jTemp;
+            HessType*  _jTempOuter;
+            HessType*  _hTemp;
 
             float*			     _tempSplineWeights;
             float*			     _tempSplineDerivWeights;
@@ -121,7 +116,7 @@ namespace cvt {
         _tempSplineWeights( 0 ),
         _tempSplineDerivWeights( 0 ),
         _maxIter( 10 ),
-        _gradThresh( 0.01f ),
+        _gradThresh( 0.04f ),
         _evaluated( 0 )
     {
         _jhist = new float[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
@@ -166,7 +161,6 @@ namespace cvt {
 
             // calculate the online stuff:
             updateInputHistograms();
-
             updateDerivatives();
 
             float epsilon = solveDeltaPose();
