@@ -15,7 +15,7 @@
 #include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 
-#define USE_CAM
+//#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
@@ -47,8 +47,9 @@ namespace cvt
                 //typedef ESMKeyframe KFType;
                 //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
+                typedef RobustKeyframe<Tukey> KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
-                typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                //typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
                 RGBDVisualOdometry<KFType>  _vo;
                 Vector3f                    _avgTransError;

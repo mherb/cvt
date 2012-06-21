@@ -96,9 +96,9 @@ namespace cvt
 
         float gradThreshold = Math::sqr( params.gradientThreshold );
 
-        // we also compute the histograms on the fly, so zero them here!:
-        memset( _templateHistogram, 0, (_numBins + 1)*sizeof(float) );
-        memset( _jointHistogram, 0, Math::sqr(_numBins + 1)*sizeof(float) );
+        SIMD* simd = SIMD::instance();
+        simd->SetValue1f( _templateHistogram, 1e-10f, _numBins + 1 );
+        simd->SetValue1f( _jointHistogram, 1e-10f, Math::sqr( _numBins + 1 ) );
 
         float normFactor = ( float ) ( _numBins - 3 );
         for( size_t y = 0; y < depth.height(); y++ ){
@@ -171,13 +171,12 @@ namespace cvt
         }
 
         // normalize the histograms by the number of points
-        float norm = 1.0f / _pixelValues.size();
-        SIMD* simd = SIMD::instance();
+        float norm = 1.0f / _pixelValues.size();        
         simd->MulValue1f( _templateHistogram, _templateHistogram, norm, _numBins + 1 );
         simd->MulValue1f( _jointHistogram, _jointHistogram, norm, Math::sqr( _numBins + 1 ) );
 
         // compute the template hessian from the stored quantities
-        evaluateHessian();
+        evaluateApproximateHessian();
     }
 
     void MIKeyframe::addToHistograms( int bin, const Vector4f& weights )
@@ -195,71 +194,84 @@ namespace cvt
         }
     }
 
-    void MIKeyframe::evaluateHessian()
+    void MIKeyframe::evaluateApproximateHessian()
     {
-        /*
-        JacType* jacobianHistogram = new JacType[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
+        const size_t binsSqr = Math::sqr( _numBins + 1 );
+        const size_t binsPerRow = _numBins + 1;
 
-        for( size_t y = 0; y < _numBins+1; y++ ) {
-            for( size_t x = 0; x < _numBins+1; x++ ) {
-                jacobianHistogram[ y * ( _numBins + 1 ) + x ].setZero();
-            }
+        // we need this, as we have to compute dpii/ddelta^T*dpii/ddelta
+        JacType* jacobianHistogram = new JacType[ binsSqr ];
+        for( size_t b = 0; b < binsSqr; b++ ) {
+            jacobianHistogram[ b ].setZero();
         }
 
-        size_t stride = _numBins + 1;
-        float c1[ Math::sqr( stride ) ];
-        float c2[ ( _numBins + 1 ) * ( _numBins + 1 ) ];
-        for( size_t y = 0; y < _numBins+1; y++ ) {
-            for( size_t x = 0; x < _numBins+1; x++ ) {
-                float jval = _jointHistogram[ y * ( _numBins + 1 ) + x ] + 1e-10f;
-                float tval = _templateHistogram[ y ] + 1e-10f;
-                c1[ y ][ x ] = Math::log( jval / tval );
-                c2[ y ][ x ] = 1.0f / jval;
+        // precompute the factor, for each r, t combo log( p_I*I* / p_I* )
+        float sigma[ binsSqr ];
+        float* joint = _jointHistogram;
+        float* c1 = sigma;
+        for( size_t r = 0; r < binsPerRow; r++ ) {
+            float rval = _templateHistogram[ r ];
+            for( size_t t = 0; t < binsPerRow; t++ ) {
+                *c1 = Math::log( *joint / rval );
+                c1++;
+                joint++;
             }
         }
-
 
         _hessian.setZero();
-
         float sumJ, sumH;
 
         // go over each point
         for( size_t i = 0; i < _pixelValues.size(); i++ ){
             const float & pixValue = _pixelValues[ i ];
-            const JacType & j = _jacobians[ i ];
-            const HessianType& h = _hessian[ i ];
-            const Vector4f& dw  = _splineDerivativeWeights[ i ];
-            const Vector4f& dw2 = _splineSecondDerivativeWeights[ i ];
-            const Vector4f& w = _splineWeights[ i ];
+            const JacType & j    = _jacobians[ i ];
+            const HessianType& h = _hessians[ i ];
+            const Vector4f& dw   = _splineDerivativeWeights[ i ];
+            const Vector4f& dw2  = _splineSecondDerivativeWeights[ i ];
+            const Vector4f& w    = _splineWeights[ i ];
 
-            float t = pixValue * (float)( _numBins - 3 ) + 1.0f;
-            int tidx = ( int )t;
+            // t and r are the same (initially) as the images are the same
+            float tmp = pixValue * ( float )( _numBins - 3 ) + 1.0f;
+            int tidx = ( int )tmp;
 
             sumJ = 0.0f;
             sumH = 0.0f;
-            for( int m = -1; m <= 2; m++ ) {
-                float& spl = w[ m + 1 ];
-                for( int o = -1; o <= 2; o++ ) {
-                    sumJ +=  spl *  dw[ o + 1 ] * c1[ tidx + o ][ tidx + m ];
-                    sumH +=  spl * dw2[ o + 1 ] * c1[ tidx + o ][ tidx + m ];
-                    allJac[ tidx + o ][ tidx + m ] += spl * dw[ o + 1 ] * j / norm;
+
+            c1 = sigma + binsPerRow * ( tidx - 1 );
+            JacType* jacRow = jacobianHistogram + binsPerRow * ( tidx - 1 );
+            for( int r = -1; r <= 2; r++ ) {
+                float spl = w[ r + 1 ]; // the precomputed spline weight
+                for( int t = -1; t <= 2; t++ ) {
+                    sumJ += spl * dw2[ t + 1 ] * c1[ tidx + t ];
+                    spl *= dw[ t + 1 ];
+                    sumH += spl * c1[ tidx + t ];
+                    jacRow[ tidx + t ] += spl * j;
                 }
+                c1 += binsPerRow;
+                jacRow += binsPerRow;
             }
-            _hessian += h * sumJ + sumH * _jTempOuter[ y * w + x ];
 
-            pi += stride;
+            _hessian += ( sumJ * j.transpose() * j - sumH * h );
         }
 
-        _miHessian /= norm;
-        _warped.unmap( ptr );
+        _hessian /= ( float )_pixelValues.size();
 
-        for( size_t y = 0; y < _numBins+1; y++ ) {
-            for( size_t x = 0; x < _numBins+1; x++ ) {
-                _miHessian += c2[ y ][ x ] * allJac[ y ][ x ] * allJac[ y ][ x ].transpose();
+        JacType* currJ = jacobianHistogram;
+        float* hist  = _templateHistogram;
+        joint = _jointHistogram;
+        HessianType hsum = HessianType::Zero();
+        for( size_t r = 0; r < binsPerRow; r++ ) {
+            for( size_t t = 0; t < binsPerRow; t++ ) {
+                hsum +=  ( 1.0f / *joint - 1.0f / *hist ) * currJ->transpose() * *currJ;
+                joint++;
+                currJ++;
             }
+            hist++;
         }
-        _miHessian -= _hOfflineTemp;
-        _hessApprox = _miHessian.inverse();*/
+        hsum /= Math::sqr( ( float )_pixelValues.size() );
+        hsum += _hessian;
+
+        _hessian = hsum.inverse();
     }
 
     VOResult MIKeyframe::computeRelativePose( PoseRepresentation& predicted,
@@ -323,9 +335,7 @@ namespace cvt
             //SE3<float>::ParameterVectorType deltaP = -_inverseHessian * deltaSum.transpose();
             //predicted.pose.applyInverse( -deltaP );
 
-            result.iterations++;
-            //if( deltaP.norm() < params.minParameterUpdate )
-            //    return result;
+            result.iterations++;            
         }
         return result;
     }

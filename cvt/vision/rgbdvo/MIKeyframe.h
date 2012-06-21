@@ -75,7 +75,7 @@ namespace cvt
 
             void addToHistograms( int pixVal, const Vector4f& weights );
 
-            void evaluateHessian();
+            void evaluateApproximateHessian();
     };
 }
 

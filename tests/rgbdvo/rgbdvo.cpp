@@ -185,21 +185,21 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
     size_t stepIter = parser.size() / 20;
 
-	Time time;
-	size_t iters = 0;
+    Time time;
+    size_t iters = 0;
     float timeSum = 0;
 
     while( parser.hasNext() ){
         parser.loadNext();
         const RGBDParser::RGBDSample& d = parser.data();
 
-		time.reset();
+        time.reset();
         d.rgb.convert( gray );
         //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
         vo.updatePose( gray, d.depth );
 
-		timeSum += time.elapsedMilliSeconds();
-		iters++;
+        timeSum += time.elapsedMilliSeconds();
+        iters++;
 
         vo.pose( pose );
         writePoseToFile( file, pose, d.stamp );
@@ -212,8 +212,8 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     std::cout << std::endl;
     file.close();
 
-	std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
-	std::cout << "Number of Create Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
+    std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
+    std::cout << "Number of Create Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
 void convergenceAnalysis( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
@@ -260,16 +260,16 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
     } else if( kftypeString.toUpper() == "AII" ) {
         runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
-		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
         runVOWithKFType<RobustKeyframe<Huber> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_AII_HUBER" ) {
-		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
         runVOWithKFType<RobustAIIKeyframe<Huber> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
-		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
         runVOWithKFType<RobustKeyframe<Tukey> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_AII_TUKEY" ) {
-		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
         runVOWithKFType<RobustAIIKeyframe<Tukey> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_VO" ) {
         runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
@@ -278,20 +278,20 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
     } else if( kftypeString.toUpper() == "MS_AII" ) {
         runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
-		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
        runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
-		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
        runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_AII_HUBER" ) {
-		params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
        runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Huber> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_AII_TUKEY" ) {
-		params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
        runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Tukey> > >( params, K, folder, cfg );
     } else {
-		std::cout << "Unknown keyframe type" << std::endl;
-	}
+        std::cout << "Unknown keyframe type" << std::endl;
+    }
 }
 
 int main( int argc, char* argv[] )
@@ -315,30 +315,31 @@ int main( int argc, char* argv[] )
 
     Matrix3f K;
     K.setIdentity();
-	// freiburg 1
+    // freiburg 1
     // K[ 0 ][ 0 ] = 517.306408;
-	// K[ 0 ][ 2 ] = 318.643040;
+    // K[ 0 ][ 2 ] = 318.643040;
     // K[ 1 ][ 1 ] = 516.469215;
-	// K[ 1 ][ 2 ] = 255.313989;
-	// freiburg 2
-    K[ 0 ][ 0 ] = 520.9f; 
-	K[ 0 ][ 2 ] = 325.1f;
-    K[ 1 ][ 1 ] = 521.0f; 
-	K[ 1 ][ 2 ] = 249.7f;
+    // K[ 1 ][ 2 ] = 255.313989;
+    // freiburg 2
+    K[ 0 ][ 0 ] = 520.9f;
+    K[ 0 ][ 2 ] = 325.1f;
+    K[ 1 ][ 1 ] = 521.0f;
+    K[ 1 ][ 2 ] = 249.7f;
 
-  	runBatch( params, K, folder, cfg );
+//  	runBatch( params, K, folder, cfg );
 //    convergenceAnalysis( params, K, folder, cfg );
-    cfg.save( "rgbdvo.cfg" );
-    return 0;
+//    cfg.save( "rgbdvo.cfg" );
+//    return 0;
 
-/*
-	std::cout << "Num Cams: " << OpenNICamera::count() << std::endl;
+    cfg.save( "rgbdvo.cfg" );
+
+//	std::cout << "Num Cams: " << OpenNICamera::count() << std::endl;
     RGBDVOApp app( folder, K, params );
     app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
     app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
     Application::run();
-*/
+
 
 
     return 0;
