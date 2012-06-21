@@ -595,7 +595,6 @@ namespace cvt {
 
                 p[ 0 ] = x;
                 _pose.screenJacobian( screenJac, p );
-
                 _pose.screenHessian( wx, wy, p );
 
                 _jTemp[ iter ] = (grad * screenJac).transpose();                
