@@ -223,6 +223,7 @@ SET(${MODULE_NAME}_HEADERS
    gfx/ImageAllocatorMem.h
    gfx/ImageAllocatorCL.h
    gfx/ImageAllocatorGL.h
+   gfx/Clipping.h
    gfx/Drawable.h
    gfx/GFXEngine.h
    gfx/GFXEngineImage.h
@@ -262,6 +263,16 @@ SET(${MODULE_NAME}_HEADERS
    gui/BasicTimer.h
    gui/Button.h
    gui/Events.h
+   gui/event/CloseEvent.h
+   gui/event/Event.h
+   gui/event/HideEvent.h
+   gui/event/MouseMoveEvent.h
+   gui/event/MousePressEvent.h
+   gui/event/MouseReleaseEvent.h
+   gui/event/MoveEvent.h
+   gui/event/PaintEvent.h
+   gui/event/ResizeEvent.h
+   gui/event/ShowEvent.h
    gui/GLView.h
    gui/ImageView.h
    gui/internal/TimerInfo.h
@@ -275,6 +286,7 @@ SET(${MODULE_NAME}_HEADERS
    gui/PlotData.h
    gui/PlotDataSamples.h
    gui/Slider.h
+   gui/TimeoutHandler.h
    gui/ToggleButton.h
    gui/Window.h
    gui/Widget.h
