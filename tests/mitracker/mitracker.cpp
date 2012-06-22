@@ -9,20 +9,20 @@ using namespace cvt;
 Camera * initCamera()
 {
     Camera::updateInfo();
-	size_t numCams = Camera::count();
+    size_t numCams = Camera::count();
 
-	std::cout << "Overall number of Cameras: " << numCams << std::endl;
-	if( numCams == 0 ){
-		std::cout << "Please connect a camera!" << std::endl;
-		return 0;
-	}
+    std::cout << "Overall number of Cameras: " << numCams << std::endl;
+    if( numCams == 0 ){
+        std::cout << "Please connect a camera!" << std::endl;
+        return 0;
+    }
 
-	for( size_t i = 0; i < numCams; i++ ){
-		const CameraInfo & info = Camera::info( i );
-		std::cout << "Camera " << i << ": " << info << std::endl;
-	}
+    for( size_t i = 0; i < numCams; i++ ){
+        const CameraInfo & info = Camera::info( i );
+        std::cout << "Camera " << i << ": " << info << std::endl;
+    }
 
-	size_t selection = numCams;
+    size_t selection = numCams;
     if( numCams == 1 ){
         selection = 0;
     } else {
@@ -44,8 +44,7 @@ Camera * initCamera()
 int main( int argc, char* argv[] )
 {
     VideoInput * input = 0;
-	if( argc == 1 ){
-//		input = NULL;
+    if( argc == 1 ){
         input = initCamera();
         if( input == 0 ){
             return 0;
@@ -53,21 +52,21 @@ int main( int argc, char* argv[] )
     } else {
         if( argc < 3 ){
             std::cout << "Usage: " << argv[ 0 ] << "<base> <ext>" << std::endl;
-			return 0;
-		}
-        String ext( argv[ 2 ] );		
+            return 0;
+        }
+        String ext( argv[ 2 ] );
         input = new ImageSequence( argv[ 1 ], ext );
     }
 
-	try {
-		MIApp app( input );        
-		Application::run();
-	} catch( const cvt::Exception & e ) {
-		std::cout << e.what() << std::endl;
-	}
+    try {
+        MIApp app( input );
+        Application::run();
+    } catch( const cvt::Exception & e ) {
+        std::cout << e.what() << std::endl;
+    }
 
     if( input )
-		delete input;
+        delete input;
 
-	return 0;
+    return 0;
 }
