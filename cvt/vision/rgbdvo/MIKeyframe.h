@@ -1,5 +1,5 @@
-#ifndef CVT_VO_KEYFRAME_H
-#define CVT_VO_KEYFRAME_H
+#ifndef CVT_MI_KEYFRAME_H
+#define CVT_MI_KEYFRAME_H
 
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
@@ -14,7 +14,7 @@ namespace cvt
 {
     class MIKeyframe : public KeyframeBase<MIKeyframe>
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
@@ -32,7 +32,7 @@ namespace cvt
             const Matrix4f&     pose()                  const { return _pose; }
 
             /**
-             *  \brief copmute the relative pose of an image w.r.t. this keyframe
+             *  \brief compute the relative pose of an image w.r.t. this keyframe
              *  \param  predicted   input/output the pose of the image w.r.t. this keyframe
              *  \param  gray        the grayscale image of type GRAY_FLOAT
              *  \return Result information (ssd, iterations, numPixel, ...)
@@ -40,32 +40,53 @@ namespace cvt
             VOResult computeRelativePose( PoseRepresentation& predicted,
                                           const Image& gray,
                                           const Matrix3f& intrinsics,
-                                          const VOParams& params ) const;
+                                          const VOParams& params );
 
         protected:
+            static const float          LogOffset = 1e-6f;
+            IKernel                     _kx, _ky, _kxx, _kyy;
             Matrix4f                    _pose;
             Image                       _gray;
 
-			/* Mutual Information stuff */
-			size_t						_numBins;
-			float*						_jointHistogram;
-			float*						_templateHistogram;
+            /* Mutual Information stuff */
+            size_t						_numBins;
+            float*						_jointHistogram;
+            float*						_templateHistogram;
+            float*						_logFactors;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
 
             // the pixel values (gray) for the points
             std::vector<float>          _pixelValues;
+            std::vector<int>            _templateBins;
 
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
-            std::vector<JacType>        _jacobians;            
-            HessianVector               _jacobiansOuterProduct;
+            // screen jacobians and screen hessians of image w.r.t. pose!
+			std::vector<JacType>        _jacobians;
             HessianVector               _hessians;
+            
+			// the mutual information heassian (stored as inverse for efficiency)
+			HessianType                 _hessian;
+
             std::vector<Vector4f>       _splineWeights;
             std::vector<Vector4f>       _splineDerivativeWeights;
+            std::vector<Vector4f>       _splineSecondDerivativeWeights;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
+
+            void addToHistograms( int pixVal, const Vector4f& weights );
+
+            void evaluateApproximateHessian();
+
+            void clearJointHistogram( const SIMD* simd );
+
+            void addToJointHistogram( int r, int t, const Vector4f& rvals, const Vector4f& tvals );
+
+            void updateLogFactors();
+
+            float calcSummedFactors( int r, int t, const Vector4f& rVals, const Vector4f& tVals );
     };
 }
 

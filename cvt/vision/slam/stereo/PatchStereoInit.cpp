@@ -142,8 +142,8 @@ namespace cvt {
         float cx = K[ 0 ][ 2 ];
         float cy = K[ 1 ][ 2 ];
 
-        std::cout << "Baseline: " << baseLine << std::endl;
-        std::cout << "FocalLen: " << focalLen << std::endl;
+        //std::cout << "Baseline: " << baseLine << std::endl;
+        //std::cout << "FocalLen: " << focalLen << std::endl;
 
         float minDisp = focalLen * baseLine / depthRange.max;
         float maxDisp = focalLen * baseLine / depthRange.min;
@@ -174,7 +174,7 @@ namespace cvt {
 
                     float d = Math::abs( p0.y - p1.y );
 
-                    if( d < _params->maxEpilineDistance ){                        
+                    if( d < _params->maxEpilineDistance && p1.x < p0.x ){
                         const uint8_t* ptr1 = map1.ptr() + (int)( p1.y - PatchHalf ) * map1.stride() + (int)p1.x - PatchHalf;
                         // check if SAD is smaller than current best
                         size_t sad = computePatchSAD( ptr0, map0.stride(), ptr1, map1.stride() );
@@ -198,12 +198,10 @@ namespace cvt {
 
                 if( refinePositionSubPixel( patch, map1.ptr(), map1.stride() ) ){
 
-                    // refined:                    
+                    // refined:
                     patch.currentCenter( result.meas1 );
 
-                    //std::cout << "Y Offset: " << result.meas1.y - result.meas0.y  << std::endl;
-
-                    float disparity = result.meas1.x - result.meas0.x;
+                    float disparity = ( -result.meas1.x + result.meas0.x );
 
                     if( disparity > minDisp && disparity < maxDisp ){
                         float depth = focalLen * baseLine / disparity;
