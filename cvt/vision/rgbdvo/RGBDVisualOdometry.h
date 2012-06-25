@@ -133,7 +133,10 @@ namespace cvt {
         // align with the current keyframe
         // convert pose to a relative prediction:
         const Matrix4f& kfPose = _activeKeyframe->pose();
-        _relativePose.pose = pose.inverse() * kfPose;
+        pose = pose.inverse() * kfPose;
+		Eigen::Matrix4f tmp;
+		EigenBridge::toEigen( tmp, pose );
+		_relativePose.pose.set( tmp );
         VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
         // get back the absolute pose;
