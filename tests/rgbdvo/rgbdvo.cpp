@@ -78,9 +78,11 @@ void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, 
     relPose.gain = 0.0f;
 
     //const float angleRange = cfg.valueForName( "convTestRotoRangeDeg", 20.0f ) * Math::PI / 180.0f;
-    const float tx = cfg.valueForName( "convergenceTestTx", 0.5f );
+    const float tx = cfg.valueForName( "convergenceTestTx", 0.06f );
+    const float ty = cfg.valueForName( "convergenceTestTy", 0.02f );
+    const float tz = cfg.valueForName( "convergenceTestTz", 0.02f );
 
-    relPose.pose.set( 0.0f, 0.0f, 0.0f, tx, 0.0f, 0.0f );
+    relPose.pose.set( 0.0f, 0.0f, 0.0f, tx, ty, tz );
 
     iter = 0;
     while( true ){
@@ -94,9 +96,12 @@ void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, 
         std::cout << "\n**** Iteration -> " << iter << " <- *****" << std::endl;
         std::cout << "Euler Angles: " << v << std::endl;
         std::cout << "delta T: " << vt << std::endl;
+        std::cout << "abs T diff: " << vt.length() << std::endl;
         std::cout << "Valid pixels: " << result.numPixels << std::endl;
 
-        getchar();
+        if( vt.length() < 0.03f )
+            break;
+        //getchar();
     }
     delete keyframe;
 }
@@ -375,10 +380,15 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 1 ] = 521.0f;
     K[ 1 ][ 2 ] = 249.7f;
 
-    testFunc<MIKeyframe>( params, K, folder, cfg );
+
+    //typedef MultiscaleKeyframe<MIKeyframe> testKF;
+    //typedef MultiscaleKeyframe<VOKeyframe> testKF;
+    typedef MIKeyframe testKF;
+    testFunc<testKF>( params, K, folder, cfg );
+    cfg.save( "rgbdvo.cfg" );
     return 0;
 
-//  	runBatch( params, K, folder, cfg );
+//    runBatch( params, K, folder, cfg );
 //    convergenceAnalysis( params, K, folder, cfg );
 //    cfg.save( "rgbdvo.cfg" );
 //    return 0;
