@@ -16,15 +16,18 @@ namespace cvt
         _kxx( IKernel::LAPLACE_5_XX ),
         _kyy( IKernel::LAPLACE_5_YY ),
         _pose( pose ),
-        _gray( gray ),
-		_numBins( 10 )
+        //_gray( gray ),
+        _numBins( 64 )
     {
+        _gray.reallocate( gray );
+        gray.convolve( _gray, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+
         _kx.scale( -0.5f );
         _ky.scale( -0.5f );
         _kxx.scale( -0.25f );
         _kyy.scale( -0.25f );
 
-		_jointHistogram		= new float[ Math::sqr( _numBins + 1 ) ];        
+        _jointHistogram		= new float[ Math::sqr( _numBins + 1 ) ];
         _templateHistogram	= new float[ _numBins + 1 ];
         _logFactors         = new float[ Math::sqr( _numBins + 1 ) ];
 
@@ -32,7 +35,7 @@ namespace cvt
     }
 
     MIKeyframe::~MIKeyframe()
-    {        
+    {
         if( _jointHistogram )
             delete[] _jointHistogram;
 
@@ -47,11 +50,11 @@ namespace cvt
     {
         Image gxI, gyI, gxxI, gyyI, gxyI;
 
-		gxI.reallocate( _gray );
-		gyI.reallocate( _gray );
-		gxxI.reallocate( _gray );
-		gyyI.reallocate( _gray );
-		gxyI.reallocate( _gray );
+        gxI.reallocate( _gray );
+        gyI.reallocate( _gray );
+        gxxI.reallocate( _gray );
+        gyyI.reallocate( _gray );
+        gxyI.reallocate( _gray );
 
         _gray.convolve( gxI, _kx );
         _gray.convolve( gyI, _ky );
@@ -99,7 +102,7 @@ namespace cvt
         EigenBridge::toEigen( K, intrinsics );
         SE3<float> pose;
 
-        float gradThreshold = Math::sqr( params.gradientThreshold );
+        //float gradThreshold = Math::sqr( params.gradientThreshold );
 
         SIMD* simd = SIMD::instance();
         simd->SetValue1f( _templateHistogram, 0.0f, _numBins + 1 );
@@ -121,21 +124,21 @@ namespace cvt
                 float z = d[ x ] * depthScaling;
                 if( z > params.minDepth ){
                     g[ 0 ] = gx[ x ];
-                    g[ 1 ] = gy[ x ];                    
-					
+                    g[ 1 ] = gy[ x ];
+
                     hess( 0, 0 ) = gxx[ x ]; hess( 0, 1 ) = gxy[ x ];
                     hess( 1, 0 ) = gxy[ x ]; hess( 1, 1 ) = gyy[ x ];
 
+                    // scale gradient and hessian to binspace
+                    g	 *= normFactor; // scale to the number of bins
+                    hess *= normFactor; // scale to the number of bins
 
-                    g	 *= ( float )( _numBins - 3 ); // scale to the number of bins
-                    hess *= ( float )( _numBins - 3 ); // scale to the number of bins
-				
                     p3d[ 0 ] = tmpx[ x ] * z;
                     p3d[ 1 ] = tmpy[ y ] * z;
                     p3d[ 2 ] = z;
 
                     pose.screenJacobian( J, p3d, K );
-					pose.screenHessian( wx, wy, p3d, K );
+                    pose.screenHessian( wx, wy, p3d, K );
 
                     j = g.transpose() * J;
 
@@ -148,18 +151,20 @@ namespace cvt
 
                     _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
 
+                    // calculate the histogram bin (as float)
                     pixVal = normFactor * value[ x ] + 1.0f;
 
+                    // store the bin
                     _templateBins.push_back( ( int )pixVal );
 
-                    float binIdx = _templateBins.back() - 1.0f - pixVal;
+                    float binIdx = ( float )_templateBins.back() - 1.0f - pixVal;
                     Vector4f dWeights, d2Weights, weights;
                     for( int bin = 0; bin < 4; bin++ ){
                         float idx = binIdx + bin;
                         weights[ bin ]   = BSpline<float>::eval( idx );
                         dWeights[ bin ]  = BSpline<float>::evalDerivative( idx );
                         d2Weights[ bin ] = BSpline<float>::evalSecondDerivative( idx );
-					}
+                    }
 
                     _splineWeights.push_back( weights );
                     _splineDerivativeWeights.push_back( dWeights );
@@ -169,7 +174,7 @@ namespace cvt
                     addToHistograms( ( int )pixVal, weights );
                 }
             }
-            gxMap++;            
+            gxMap++;
             gyMap++;
             gxxMap++;
             gyyMap++;
@@ -179,25 +184,26 @@ namespace cvt
         }
 
         // normalize the histograms by the number of points
-        float norm = 1.0f / _pixelValues.size();        
+        float norm = 1.0f / ( float )_pixelValues.size();
         simd->MulValue1f( _templateHistogram, _templateHistogram, norm, _numBins + 1 );
         simd->MulValue1f( _jointHistogram, _jointHistogram, norm, Math::sqr( _numBins + 1 ) );
+        //checkJointHistogram();
+        //checkTempHistogram();
 
         // compute the template hessian from the stored quantities
         evaluateApproximateHessian();
     }
 
     void MIKeyframe::addToHistograms( int bin, const Vector4f& weights )
-    {        
-        Vector4f tmp;
-        for( int t = bin - 1, i = 0; t < 3; t++, i++ ){
-            _templateHistogram[ t ] += weights[ i ];
-            // the joint histogram:
-            float* jrow = _jointHistogram + t * ( _numBins + 3 );
-
-            tmp = weights[ i ] * weights;
-            for( int r = bin - 1, k = 0; r < 3; r++, k++ )
-                jrow[ r ] += tmp[ k ];
+    {
+        static const size_t stride = _numBins + 1;
+        float* thist = _templateHistogram + bin - 1;
+        float* jhist = _jointHistogram + ( bin - 1 ) * stride + bin - 1;
+        for( int t = 0; t < 4; t++ ){
+            thist[ t ] += weights[ t ];
+            for( int r = 0; r < 4; r++ )
+                jhist[ r ] += ( weights[ t ] * weights[ r ] );
+            jhist += stride;
         }
     }
 
@@ -218,6 +224,9 @@ namespace cvt
         _hessian.setZero();
         float sumJ, sumH;
 
+        // for normalizing pixel values to bin space
+        float normFactor = (float)( _numBins - 3 );
+
         // go over each point
         for( size_t i = 0; i < _pixelValues.size(); i++ ){
             const float & pixValue = _pixelValues[ i ];
@@ -228,21 +237,21 @@ namespace cvt
             const Vector4f& w    = _splineWeights[ i ];
 
             // t and r are the same (initially) as the images are the same
-            float tmp = pixValue * ( float )( _numBins - 3 ) + 1.0f;
+            float tmp = pixValue * normFactor + 1.0f;
             int tidx = ( int )tmp;
 
             sumJ = 0.0f;
             sumH = 0.0f;
 
-            float* c1 = _logFactors + binsPerRow * ( tidx - 1 );
-            JacType* jacRow = jacobianHistogram + binsPerRow * ( tidx - 1 );
-            for( int r = -1; r < 3; r++ ) {
-                float spl = w[ r + 1 ]; // the precomputed spline weight
-                for( int t = -1; t < 3; t++ ) {
-                    sumJ += spl * dw2[ t + 1 ] * c1[ tidx + t ];
-                    spl *= dw[ t + 1 ];
-                    sumH += spl * c1[ tidx + t ];
-                    jacRow[ tidx + t ] += spl * j;
+            float* c1 = _logFactors + binsPerRow * ( tidx - 1 ) + tidx - 1;
+            JacType* jacRow = jacobianHistogram + binsPerRow * ( tidx - 1 ) + tidx - 1;
+            for( int r = 0; r < 4; r++ ) {
+                float spl = w[ r ]; // the precomputed spline weight
+                for( int t = 0; t < 4; t++ ) {
+                    sumJ += spl * dw2[ t ] * c1[ t ];
+                    spl *= dw[ t ];
+                    sumH += spl * c1[ t ];
+                    jacRow[ t ] += spl * j;
                 }
                 c1 += binsPerRow;
                 jacRow += binsPerRow;
@@ -261,10 +270,10 @@ namespace cvt
         HessianType hsum = HessianType::Zero();
         for( size_t r = 0; r < binsPerRow; r++ ) {
             for( size_t t = 0; t < binsPerRow; t++ ) {
-                hsum +=  ( 1.0f / *joint - 1.0f / _templateHistogram[ t ] ) * currJ->transpose() * *currJ;
+                hsum +=  ( 1.0f / ( *joint + LogOffset ) - 1.0f / ( _templateHistogram[ t ] + LogOffset ) ) * currJ->transpose() * *currJ;
                 joint++;
                 currJ++;
-            }            
+            }
         }
         hsum /= Math::sqr( ( float )_pixelValues.size() );
         hsum += _hessian;
@@ -354,6 +363,9 @@ namespace cvt
             // normalize the joint histogram:
             float normalizer = 1.0f / validPointIndices.size();
             simd->MulValue1f( _jointHistogram, _jointHistogram, normalizer, Math::sqr( _numBins + 1 ) );
+            //checkJointHistogram();
+
+            normalizer = 1.0f / _jacobians.size();
 
             // evaluate the log factors for faster computation
             updateLogFactors();
@@ -376,11 +388,9 @@ namespace cvt
                 deltaSum += sum * j;
             }
             deltaSum *= -normalizer;
-            std::cout << "JSum: " << deltaSum << std::endl;
 
             // compute the delta step
-            SE3<float>::ParameterVectorType deltaP = -_hessian * deltaSum.transpose();
-            std::cout << "Delta:\n" << deltaP << std::endl;
+            SE3<float>::ParameterVectorType deltaP = _hessian * deltaSum.transpose();
 
             predicted.pose.applyInverse( -deltaP );
 
@@ -393,6 +403,33 @@ namespace cvt
     void MIKeyframe::clearJointHistogram( const SIMD* simd )
     {
         simd->SetValue1f( _jointHistogram, 0.0f, Math::sqr( _numBins + 1 ) );
+    }
+
+    float MIKeyframe::MI()
+    {
+        float mi = 0;
+        float _thist[ _numBins + 1 ];
+        float _whist[ _numBins + 1 ];
+
+        for( size_t x = 0; x < _numBins+1; x++ ) {
+            _thist[ x ] = 0;
+            _whist[ x ] = 0;
+        }
+        for( size_t y = 0; y < _numBins+1; y++ ) {
+            for( size_t x = 0; x < _numBins+1; x++ ) {
+                _thist[ y ] += _jointHistogram[ y * ( _numBins + 1 ) + x ];
+                _whist[ x ] += _jointHistogram[ y * ( _numBins + 1 ) + x ];
+            }
+        }
+
+        for( size_t y = 0; y < _numBins+1; y++ ) {
+            for( size_t x = 0; x < _numBins+1; x++ ) {
+                float jval = _jointHistogram[ y * ( _numBins + 1 ) + x ];
+                mi += jval * Math::log( ( jval + 1e-10f ) / ( _thist[ y ] * _whist[ x ] + 1e-10f ) );
+            }
+        }
+
+        return mi;
     }
 
     void MIKeyframe::updateLogFactors()
@@ -436,5 +473,28 @@ namespace cvt
             logRow += stride;
         }
         return sum;
+    }
+
+    void MIKeyframe::checkJointHistogram()
+    {
+        static const size_t stride = _numBins + 1;
+
+        float* jh = _jointHistogram;
+        float sum = 0.0f;
+        for( size_t r = 0; r < stride; r++ ){
+            for( size_t t = 0; t < stride; t++ ){
+                sum += *jh++;
+            }
+        }
+
+        std::cout << "Joint Histogram Sum: " << sum << std::endl;
+    }
+
+    void MIKeyframe::checkTempHistogram()
+    {
+        float sum = 0.0f;
+        for( size_t r = 0; r < _numBins + 1; r++ )
+            sum += _templateHistogram[ r ];
+        std::cout << "Template Histogram Sum: " << sum << std::endl;
     }
 }

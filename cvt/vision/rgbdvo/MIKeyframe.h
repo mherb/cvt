@@ -43,7 +43,7 @@ namespace cvt
                                           const VOParams& params );
 
         protected:
-            static const float          LogOffset = 1e-6f;
+            static const float          LogOffset = 1e-4f;
             IKernel                     _kx, _ky, _kxx, _kyy;
             Matrix4f                    _pose;
             Image                       _gray;
@@ -64,11 +64,11 @@ namespace cvt
             // jacobians for that points
             typedef std::vector<HessianType, Eigen::aligned_allocator<HessianType> > HessianVector;
             // screen jacobians and screen hessians of image w.r.t. pose!
-			std::vector<JacType>        _jacobians;
+            std::vector<JacType>        _jacobians;
             HessianVector               _hessians;
-            
-			// the mutual information heassian (stored as inverse for efficiency)
-			HessianType                 _hessian;
+
+            // the mutual information heassian (stored as inverse for efficiency)
+            HessianType                 _hessian;
 
             std::vector<Vector4f>       _splineWeights;
             std::vector<Vector4f>       _splineDerivativeWeights;
@@ -87,6 +87,12 @@ namespace cvt
             void updateLogFactors();
 
             float calcSummedFactors( int r, int t, const Vector4f& rVals, const Vector4f& tVals );
+
+            float MI();
+
+            void checkJointHistogram();
+            void checkTempHistogram();
+
     };
 }
 
