@@ -33,6 +33,7 @@ namespace cvt {
             /**
              *  \brief  update the pose by using the given pose as starting point
              *  \param  pose will be the initial value for the optimization and contains the computed result
+             *          it has to be the pose from world to camera!
              */
             void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
 
@@ -206,7 +207,7 @@ namespace cvt {
         Matrix4f tmp;
         EigenBridge::toCVT( tmp, _relativePose.pose.transformation() );
         pose = _activeKeyframe->pose() * tmp.inverse();
-    }    
+    }
 
 }
 
