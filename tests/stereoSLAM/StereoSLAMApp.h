@@ -24,9 +24,10 @@ namespace cvt
 
          void toggleStepping();
 
-         void nextPressed() { _nextImage = true; };
+         void nextPressed() { _nextImage = true; }
 
          void saveMap();
+
          void clearMap();
 
          void saveImages();
@@ -40,8 +41,7 @@ namespace cvt
 
          uint32_t                   _timerId;
 
-         // the gui
-         SLAMGui		    _gui;
+         SLAMGui                    _gui;
 
          Time                       _time;
          size_t                     _timeIter;
