@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
 */
 
 #ifndef CVT_KEYFRAMEBASE_H
@@ -45,8 +45,8 @@ namespace cvt {
             minDepth( 0.05f ),
             minParameterUpdate( 1e-5 ),
             robustParam( 0.1f ),
-			octaves( 3 ),
-			pyrScale( 0.5f )
+            octaves( 3 ),
+            pyrScale( 0.5f )
         {}
 
         size_t  maxIters;
@@ -54,17 +54,17 @@ namespace cvt {
         float   gradientThreshold;
         float   minDepth;
         float   minParameterUpdate;
-		float	robustParam;
-		
-		// for the multiscale
-		size_t  octaves;
-		float	pyrScale;
+        float	robustParam;
+
+        // for the multiscale
+        size_t  octaves;
+        float	pyrScale;
     };
 
     template <class Derived>
     class KeyframeBase
     {
-        public:            
+        public:
 
             /**
              * \param	gray            gray Image (float)
@@ -99,12 +99,12 @@ namespace cvt {
             ~KeyframeBase()
             {
             }
-    
-			float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
+
+            float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
             void computeGradients( Image& gx, Image& gy, const Image gray ) const;
     };
 
-	template <class Derived>
+    template <class Derived>
     inline float KeyframeBase<Derived>::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
     {
         int lx = ( int )pos.x;
@@ -120,9 +120,9 @@ namespace cvt {
         return Math::mix( v0, v1, fy );
     }
 
-	template <class Derived>
-	inline void KeyframeBase<Derived>::computeGradients( Image& gx, Image& gy, const Image gray ) const
-	{
+    template <class Derived>
+    inline void KeyframeBase<Derived>::computeGradients( Image& gx, Image& gy, const Image gray ) const
+    {
         IKernel kx = IKernel::HAAR_HORIZONTAL_3;
         IKernel ky = IKernel::HAAR_VERTICAL_3;
         kx.scale( -0.5f );
