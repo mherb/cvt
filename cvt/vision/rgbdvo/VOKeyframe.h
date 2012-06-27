@@ -13,7 +13,7 @@ namespace cvt
 {
     class VOKeyframe : public KeyframeBase<VOKeyframe>
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 6, 6> HessianType;
             typedef Eigen::Matrix<float, 1, 6> JacType;
 
@@ -41,6 +41,8 @@ namespace cvt
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const;
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         protected:
             Matrix4f                    _pose;
             Image                       _gray;
@@ -55,7 +57,7 @@ namespace cvt
             std::vector<JacType>        _jacobians;
 
             // precomputed inverse of the hessian approx.
-            Eigen::Matrix<float, 6, 6>  _inverseHessian;
+            HessianType                 _inverseHessian;
 
             void computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params );
     };
