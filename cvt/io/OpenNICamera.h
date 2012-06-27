@@ -7,78 +7,92 @@
 
 namespace cvt
 {
-	class OpenNICamera : public Camera 
-	{
-		public:
-			enum InputFormat
-			{
-				BAYER_COMPRESSED	= 0,
-				UYVY_COMPRESSED		= 1,
-				JPEG				= 2,
-				UYVY_UNCOMPRESSED	= 5,
-				BAYER_UNCOMPRESSED	= 6,
-			};
+    class OpenNICamera : public Camera
+    {
+        public:
+            enum InputFormat
+            {
+                BAYER_COMPRESSED	= 0,
+                UYVY_COMPRESSED		= 1,
+                JPEG				= 2,
+                UYVY_UNCOMPRESSED	= 5,
+                BAYER_UNCOMPRESSED	= 6,
+            };
 
-			enum CaptureMode
-			{
-				DEPTH_RGB,
-				DEPTH_ONLY,
-				RGB_ONLY
-			};	
+            enum CaptureMode
+            {
+                DEPTH_RGB,
+                DEPTH_ONLY,
+                RGB_ONLY
+            };
 
-			OpenNICamera( size_t idx, const CameraMode& mode );
-			~OpenNICamera();
+            enum AntiFlickerMode
+            {
+                OFF   = XN_POWER_LINE_FREQUENCY_OFF,
+                HZ_50 = XN_POWER_LINE_FREQUENCY_50_HZ,
+                HZ_60 = XN_POWER_LINE_FREQUENCY_60_HZ
+            };
+
+            OpenNICamera( size_t idx, const CameraMode& mode );
+            ~OpenNICamera();
 
             void			startCapture();
             void			stopCapture();
-			void			nextFrame();
+            void			nextFrame();
             const Image&	frame() const;
             const Image&	depth() const;
 
-			size_t			width()  const { return _rgb.width();  }
-			size_t			height() const { return _rgb.height(); }
-			const IFormat&	format() const { return _rgb.format(); }
-			const String&	identifier() const;
-        
+            size_t			width()  const { return _rgb.width();  }
+            size_t			height() const { return _rgb.height(); }
+            const IFormat&	format() const { return _rgb.format(); }
+            const String&	identifier() const;
+
             void            setSyncRGBDepth( bool val );
-        
+
             // enable / disable registration of RGB to Depth frame
             void            setRegisterDepthToRGB( bool val );
 
             static size_t	count();
-			static void		cameraInfo( size_t index, CameraInfo & info );
-        
+            static void		cameraInfo( size_t index, CameraInfo & info );
+
             void depthFocalLength() const;
 
-			void setCaptureMode( CaptureMode mode );
-			void startDepthCapture();
-			void startImageCapture();
-			void startIRCapture();
-			void stopDepthCapture();
-			void stopImageCapture();
-			void stopIRCapture();
+            void setCaptureMode( CaptureMode mode );
+            void startDepthCapture();
+            void startImageCapture();
+            void startIRCapture();
+            void stopDepthCapture();
+            void stopImageCapture();
+            void stopIRCapture();
 
-		private:
-			CaptureMode			_captureMode;
-			Image				_rgb;
-			Image				_depth;
-			String				_identifier;
+            void setAutoExposure( bool value );
+            void setBacklightCompensation( bool value );
+            void setAntiFlicker( AntiFlickerMode mode );
+            void setGain();
 
-			xn::Context			_context;
-			xn::Device			_device;
+            float           maxDepthRange() const;
 
-			xn::DepthGenerator	_depthGen;
-			xn::ImageGenerator	_imageGen;
-			xn::IRGenerator		_irGen;
+        private:
+            CaptureMode			_captureMode;
+            Image				_rgb;
+            Image				_depth;
+            String				_identifier;
 
-			xn::DepthMetaData	_depthData;
-			xn::ImageMetaData	_rgbData;
+            xn::Context			_context;
+            xn::Device			_device;
 
-			void copyDepth();
-			void copyImage();
+            xn::DepthGenerator	_depthGen;
+            xn::ImageGenerator	_imageGen;
+            xn::IRGenerator		_irGen;
 
-			static void deviceForId( xn::Device& device, xn::Context& context, size_t id );
-	};
+            xn::DepthMetaData	_depthData;
+            xn::ImageMetaData	_rgbData;
+
+            void copyDepth();
+            void copyImage();
+
+            static void deviceForId( xn::Device& device, xn::Context& context, size_t id );
+    };
 }
 
 #endif
