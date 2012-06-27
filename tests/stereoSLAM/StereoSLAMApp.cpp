@@ -55,8 +55,8 @@ namespace cvt
       Delegate<void (void)> cM( this, &StereoSLAMApp::clearMap );
       _gui.addMapClearDelegate( cM );
 
-      //Delegate<void (void)> kfAddDel( this, &StereoSLAMApp::saveImages );
-      //_slam.keyframeAdded.add( kfAddDel );
+      Delegate<void (void)> kfAddDel( this, &StereoSLAMApp::saveImages );
+      _slam.keyframeAdded.add( kfAddDel );
    }
 
    StereoSLAMApp::~StereoSLAMApp()
