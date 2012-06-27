@@ -14,7 +14,7 @@ namespace cvt
 {
     class AIIKeyframe : public KeyframeBase<AIIKeyframe>
     {
-        public:			
+        public:
             typedef Eigen::Matrix<float, 8, 8> HessianType;
             typedef Eigen::Matrix<float, 1, 8> JacType;
 
@@ -42,9 +42,11 @@ namespace cvt
                                           const Matrix3f& intrinsics,
                                           const VOParams& params ) const;
 
-        protected:            
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+        protected:
             Matrix4f                    _pose;
-            Image                       _gray;            
+            Image                       _gray;
 
             // the 3D points of this keyframe
             std::vector<Vector3f>       _points3d;
