@@ -30,14 +30,17 @@ namespace cvt
 
         float depthScaling = ( float )0xffff / params.depthScale;
 
+        // we have to take into account the scale factor
+        float scale = depth.width() / _gray.width();
+
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
         float cx    = intrinsics[ 0 ][ 2 ];
         float cy    = intrinsics[ 1 ][ 2 ];
 
         // temp vals
-        std::vector<float> tmpx( depth.width() );
-        std::vector<float> tmpy( depth.height() );
+        std::vector<float> tmpx( _gray.width() );
+        std::vector<float> tmpy( _gray.height() );
 
         for( size_t i = 0; i < tmpx.size(); i++ ){
             tmpx[ i ] = ( i - cx ) * invFx;
@@ -65,13 +68,14 @@ namespace cvt
 
         float gradThreshold = Math::sqr( params.gradientThreshold );
 
-        for( size_t y = 0; y < depth.height(); y++ ){
+        for( size_t y = 0; y < _gray.height(); y++ ){
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
             const float* d = depthMap.ptr();
-            for( size_t x = 0; x < depth.width(); x++ ){
-                float z = d[ x ] * depthScaling;
+            depthMap.setLine( scale * y );
+            for( size_t x = 0; x < _gray.width(); x++ ){
+                float z = d[ ( size_t ) scale * x ] * depthScaling;
                 if( z > params.minDepth ){
                     g[ 0 ] = gx[ x ];
                     g[ 1 ] = gy[ x ];
@@ -96,7 +100,6 @@ namespace cvt
             gxMap++;
             gyMap++;
             grayMap++;
-            depthMap++;
         }
 
         // precompute the inverse hessian
