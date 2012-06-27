@@ -63,6 +63,7 @@ namespace cvt
         _gray.convolve( gyyI, _kyy );
 
         float depthScaling = ( float )0xffff / params.depthScale;
+        float scale = ( float )depth.width() / ( float )_gray.width();
 
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
@@ -70,8 +71,8 @@ namespace cvt
         float cy    = intrinsics[ 1 ][ 2 ];
 
         // temp vals for speeding up the unprojection
-        std::vector<float> tmpx( depth.width() );
-        std::vector<float> tmpy( depth.height() );
+        std::vector<float> tmpx( _gray.width() );
+        std::vector<float> tmpy( _gray.height() );
         for( size_t i = 0; i < tmpx.size(); i++ ){
             tmpx[ i ] = ( i - cx ) * invFx;
         }
@@ -109,7 +110,7 @@ namespace cvt
         clearJointHistogram( simd );
 
         float normFactor = ( float ) ( _numBins - 3 );
-        for( size_t y = 0; y < depth.height(); y++ ){
+        for( size_t y = 0; y < _gray.height(); y++ ){
             const float* gx  = gxMap.ptr();
             const float* gy  = gyMap.ptr();
             const float* gxx = gxxMap.ptr();
@@ -117,11 +118,13 @@ namespace cvt
             const float* gxy = gxyMap.ptr();
 
             const float* value = grayMap.ptr();
+
+            depthMap.setLine( scale * y );
             const float* d = depthMap.ptr();
 
             float pixVal;
-            for( size_t x = 0; x < depth.width(); x++ ){
-                float z = d[ x ] * depthScaling;
+            for( size_t x = 0; x < _gray.width(); x++ ){
+                float z = d[ ( size_t )( x * scale ) ] * depthScaling;
                 if( z > params.minDepth ){
                     g[ 0 ] = gx[ x ];
                     g[ 1 ] = gy[ x ];
@@ -180,7 +183,6 @@ namespace cvt
             gyyMap++;
             gxyMap++;
             grayMap++;
-            depthMap++;
         }
 
         // normalize the histograms by the number of points

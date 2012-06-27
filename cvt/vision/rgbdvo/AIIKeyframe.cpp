@@ -17,7 +17,7 @@ namespace cvt
     }
 
     AIIKeyframe::~AIIKeyframe()
-    {        
+    {
     }
 
     void AIIKeyframe::computeJacobians( const Image& depth, const Matrix3f& intrinsics, const VOParams& params )
@@ -26,6 +26,7 @@ namespace cvt
         computeGradients( gxI, gyI, _gray );
 
         float depthScaling = ( float )0xffff / params.depthScale;
+        float scale = ( float )depth.width() / ( float )_gray.width();
 
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
@@ -33,8 +34,8 @@ namespace cvt
         float cy    = intrinsics[ 1 ][ 2 ];
 
         // temp vals
-        std::vector<float> tmpx( depth.width() );
-        std::vector<float> tmpy( depth.height() );
+        std::vector<float> tmpx( _gray.width() );
+        std::vector<float> tmpy( _gray.height() );
 
         for( size_t i = 0; i < tmpx.size(); i++ ){
             tmpx[ i ] = ( i - cx ) * invFx;
@@ -62,13 +63,15 @@ namespace cvt
 
         float gradThreshold = Math::sqr( params.gradientThreshold );
 
-        for( size_t y = 0; y < depth.height(); y++ ){
+        for( size_t y = 0; y < _gray.height(); y++ ){
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
+
+            depthMap.setLine( scale * y );
             const float* d = depthMap.ptr();
-            for( size_t x = 0; x < depth.width(); x++ ){
-                float z = d[ x ] * depthScaling;
+            for( size_t x = 0; x < _gray.width(); x++ ){
+                float z = d[ ( size_t )( scale * x ) ] * depthScaling;
                 if( z > params.minDepth ){
                     g[ 0 ] = gx[ x ];
                     g[ 1 ] = gy[ x ];
@@ -88,14 +91,13 @@ namespace cvt
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
-                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );                    
-                    H.noalias() += j.transpose() * j;                    
+                    _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
+                    H.noalias() += j.transpose() * j;
                 }
             }
             gxMap++;
             gyMap++;
             grayMap++;
-            depthMap++;
         }
 
         // precompute the inverse hessian
