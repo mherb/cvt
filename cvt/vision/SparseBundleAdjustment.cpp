@@ -66,7 +66,7 @@ namespace cvt {
         // SimplicialCholesky -> LDLt by default, can also set LLt
         Eigen::SimplicialCholesky<Eigen::SparseMatrix<double, Eigen::ColMajor>, Eigen::Lower> solver;
 
-        double lastCosts = 0.0;
+        double lastCosts = 1e20;
         while( true ){
             // build the reduced system: in first iteration, eval costs
             buildReducedCameraSystem( map );
@@ -91,6 +91,7 @@ namespace cvt {
             if( _costs < lastCosts ){
                 // step was good -> update lambda and do next step
                 _lambda *= 0.1;
+                _iterations++;
             } else {
                 deltaCam	*= -1.0;
                 deltaPoint  *= -1.0;
@@ -105,7 +106,7 @@ namespace cvt {
                 _costs = lastCosts;
             }
 
-            _iterations++;
+
             if( criteria.finished( _costs, _iterations ) ){
                 break;
             }

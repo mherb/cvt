@@ -19,7 +19,7 @@ namespace cvt
     class ImagePyramid
     {
         public:
-            ImagePyramid( size_t octaves, float scaleFactor, const IScaleFilter& filter = IScaleFilterBilinear() );
+            ImagePyramid( size_t octaves, float scaleFactor );
 
             /**
              * \brief operators to access the scale space images
@@ -58,15 +58,14 @@ namespace cvt
         private:
             std::vector<Image>	 _image;
             float				 _scaleFactor;
-            const IScaleFilter&  _filter;
+            const IScaleFilterBilinear  _filter;
 
             /* recompute the scale space from the first octave */
             void recompute();
     };
 
-    inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor, const IScaleFilter& filter ) :
-        _scaleFactor( scaleFactor ),
-        _filter( filter )
+    inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor ) :
+        _scaleFactor( scaleFactor )
     {
         setNumOctaves( octaves );
     }

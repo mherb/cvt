@@ -25,8 +25,7 @@ namespace cvt
             void execute( SlamMap* map );
             bool isRunning() const;
 
-        private:
-            SparseBundleAdjustment		_sba;
+        private:            
             TerminationCriteria<double>	_termCrit;
             bool						_isRunning;
     };
@@ -46,8 +45,9 @@ namespace cvt
 
     inline void MapOptimizer::execute( SlamMap* map )
     {
+        SparseBundleAdjustment sba;
         _isRunning = true;
-        _sba.optimize( *map, _termCrit );
+        sba.optimize( *map, _termCrit );
         _isRunning = false;
     }
 
