@@ -18,12 +18,10 @@ namespace cvt {
                 // create one VOKeyframe per octave
                 _grayPyramid.update( gray );
 
-                ImagePyramid pyrDepth( _grayPyramid.octaves(), _grayPyramid.scaleFactor() );
-                pyrDepth.update( depth );
 
                 Matrix3f scaledK = K;
                 for( size_t i = 0; i < _grayPyramid.octaves(); i++ ){
-                    _octaveKeyframes.push_back( new KFType( _grayPyramid[ i ], pyrDepth[ i ], pose, scaledK, params ) );
+                    _octaveKeyframes.push_back( new KFType( _grayPyramid[ i ], depth, pose, scaledK, params ) );
                     scaledK *= _grayPyramid.scaleFactor();
                     scaledK[ 2 ][ 2 ] = 1.0f;
                 }
