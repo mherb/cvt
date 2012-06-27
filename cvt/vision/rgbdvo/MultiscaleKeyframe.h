@@ -57,6 +57,11 @@ namespace cvt {
                 return r;
             }
 
+            const KFType& keyframeForOctave( size_t octave ) const { return _octaveKeyframes[ octave ]; }
+            const Image& grayImageForOctave( size_t octave ) const { return _grayPyramid[ octave ]; }
+
+            size_t octaves() const { return _grayPyramid.octaves(); }
+
         private:
             std::vector<KFType*>    _octaveKeyframes;
             mutable ImagePyramid    _grayPyramid;

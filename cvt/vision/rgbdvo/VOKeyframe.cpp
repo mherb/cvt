@@ -31,7 +31,7 @@ namespace cvt
         float depthScaling = ( float )0xffff / params.depthScale;
 
         // we have to take into account the scale factor
-        float scale = depth.width() / _gray.width();
+        float scale = ( float )depth.width() / ( float )_gray.width();
 
         float invFx = 1.0f / intrinsics[ 0 ][ 0 ];
         float invFy = 1.0f / intrinsics[ 1 ][ 1 ];
@@ -72,8 +72,9 @@ namespace cvt
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
             const float* value = grayMap.ptr();
-            const float* d = depthMap.ptr();
+
             depthMap.setLine( scale * y );
+            const float* d = depthMap.ptr();
             for( size_t x = 0; x < _gray.width(); x++ ){
                 float z = d[ ( size_t ) scale * x ] * depthScaling;
                 if( z > params.minDepth ){
