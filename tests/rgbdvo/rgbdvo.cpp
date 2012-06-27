@@ -382,8 +382,9 @@ int main( int argc, char* argv[] )
 
 
     //typedef MultiscaleKeyframe<MIKeyframe> testKF;
-    //typedef MultiscaleKeyframe<VOKeyframe> testKF;
-    typedef MIKeyframe testKF;
+    typedef MultiscaleKeyframe<VOKeyframe> testKF;
+    //typedef MultiscaleKeyframe<RobustKeyframe<Huber> > testKF;
+    //typedef MIKeyframe testKF;
     testFunc<testKF>( params, K, folder, cfg );
     cfg.save( "rgbdvo.cfg" );
     return 0;
