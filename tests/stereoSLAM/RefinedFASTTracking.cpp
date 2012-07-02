@@ -4,11 +4,11 @@ namespace cvt
 {
     RefinedFASTTracking::RefinedFASTTracking() :
         _detector( SEGMENT_9 ),
-        _pyramid( 4, 0.5f ),
-        _klt( 3 ),
-        _fastMatchingWindowSqr( Math::sqr( 50 ) ),
-        _fastMaxSADThreshold( 50 ),
-        _kltSSDThreshold( Math::sqr( 50 ) )
+        _pyramid( 3, 0.5f ),
+        _klt( 6 ),
+        _fastMatchingWindowSqr( Math::sqr( 30 ) ),
+        _fastMaxSADThreshold( 40 ),
+        _kltSSDThreshold( Math::sqr( 40 ) )
     {
         _detector.setBorder( PatchSize );
         _detector.setNonMaxSuppress( true );
