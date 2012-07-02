@@ -125,14 +125,19 @@ namespace cvt {
     {
         IKernel kx = IKernel::HAAR_HORIZONTAL_3;
         IKernel ky = IKernel::HAAR_VERTICAL_3;
+        IKernel gaussx = IKernel::GAUSS_HORIZONTAL_3;
+        IKernel gaussy = IKernel::GAUSS_VERTICAL_3;
+
         kx.scale( -0.5f );
         ky.scale( -0.5f );
 
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
 
-        gray.convolve( gx, kx );
-        gray.convolve( gy, ky );
+        gray.convolve( gx, kx, gaussy );
+        gray.convolve( gy, gaussx, ky );
+        //gray.convolve( gx, kx );
+        //gray.convolve( gy, ky );
     }
 
 }
