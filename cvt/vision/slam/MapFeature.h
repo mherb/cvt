@@ -41,6 +41,8 @@ namespace cvt
 
          void addPointTrack( size_t camId ) { _pointTrack.insert( camId ); }
 
+         bool visibleInCamera( size_t camId ) const { return _pointTrack.find( camId ) != _pointTrack.end(); }
+
          XMLNode* serialize() const;
          void     deserialize( XMLNode* node );
 
