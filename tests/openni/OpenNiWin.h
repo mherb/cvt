@@ -42,7 +42,12 @@ namespace cvt
     {
         _timerId = Application::registerTimer( 10, this );
 
+        _cam.setRegisterDepthToRGB( true );
+        _cam.setSyncRGBDepth( true );
+
         _cam.startCapture();
+
+        _cam.setAntiFlicker( OpenNICamera::HZ_50 );
 
         _window.setSize( 800, 600 );
         _depthMov.setSize( 320, 240 );
@@ -68,9 +73,9 @@ namespace cvt
 
     inline void OpenNiWin::onTimeout()
     {
-                _cam.nextFrame();
+        _cam.nextFrame();
 
-                _iters++;
+        _iters++;
         double t;
         if( ( t = _time.elapsedSeconds() ) > 3.0 ){
             String title;
@@ -80,13 +85,15 @@ namespace cvt
             _time.reset();
         }
 
-                _cam.depthFocalLength();
+        //_cam.depthFocalLength();
 
-                Image img;
-                _cam.frame().convert( img, IFormat::RGBA_UINT8 );
+        std::cout << "Max Depth: " << _cam.maxDepthRange() << std::endl;
 
-                Image dCopy( _cam.depth() );
-                dCopy.mul( 3.0f );
+        Image img;
+        _cam.frame().convert( img, IFormat::RGBA_UINT8 );
+
+        Image dCopy( _cam.depth() );
+        dCopy.mul( 3.0f );
         _rgbView.setImage( img );
         _depthView.setImage( dCopy );
     }
