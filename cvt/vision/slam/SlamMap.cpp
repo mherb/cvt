@@ -97,7 +97,7 @@ namespace cvt
 
       std::set<size_t> usedPoints;
       for( size_t i = 0; i < _keyframes.size(); i++ ){
-          double kfDistance = _keyframes[ i ].distance( cameraPose );          
+          double kfDistance = _keyframes[ i ].distance( cameraPose );
           if( kfDistance < maxDistance ){
             // check if the points of this keyframe project to this camera
             const Keyframe& kf = _keyframes[ i ];
@@ -210,5 +210,14 @@ namespace cvt
       mapNode->addChild( mapFeatureNodes );
 
       return mapNode;
+   }
+
+   void SlamMap::load( const String& filename )
+   {
+       XMLDocument xmlDoc;
+       xmlDoc.load( filename );
+
+       XMLNode* node = xmlDoc.nodeByName( "SlamMap" );
+       this->deserialize( node );
    }
 }

@@ -91,9 +91,10 @@ namespace cvt
          size_t numKeyframes()	 const { return _keyframes.size(); }
          size_t numMeasurements() const { return _numMeas; }
 
-
          void deserialize( XMLNode* node );
          XMLNode* serialize() const;
+
+         void load( const cvt::String& filename );
 
       private:
          std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> >		_keyframes;
