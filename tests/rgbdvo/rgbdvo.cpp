@@ -385,9 +385,9 @@ int main( int argc, char* argv[] )
     typedef MultiscaleKeyframe<VOKeyframe> testKF;
     //typedef MultiscaleKeyframe<RobustKeyframe<Huber> > testKF;
     //typedef MIKeyframe testKF;
-    testFunc<testKF>( params, K, folder, cfg );
-    cfg.save( "rgbdvo.cfg" );
-    return 0;
+//    testFunc<testKF>( params, K, folder, cfg );
+//    cfg.save( "rgbdvo.cfg" );
+//    return 0;
 
 //    runBatch( params, K, folder, cfg );
 //    convergenceAnalysis( params, K, folder, cfg );
