@@ -98,7 +98,8 @@ namespace cvt
     {
         XnStatus status = XN_STATUS_OK;
 
-        status = _context.WaitAndUpdateAll();
+        //status = _context.WaitAndUpdateAll();
+        status = _context.WaitAnyUpdateAll();
         if( status != XN_STATUS_OK )
             throw CVTException( "Error in WaitAndUpdateData for depth" );
 
