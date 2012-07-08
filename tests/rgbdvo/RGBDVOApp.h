@@ -1,6 +1,7 @@
 #include <cvt/gui/Window.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Moveable.h>
+#include <cvt/gui/Label.h>
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/Button.h>
 #include <cvt/io/RGBDParser.h>
@@ -17,7 +18,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
-//#define USE_CAM
+#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
@@ -50,6 +51,7 @@ namespace cvt
                 //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
                 //typedef RobustKeyframe<Tukey> KFType;
+                //typedef RobustKeyframe<Huber> KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
                 typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
@@ -73,6 +75,11 @@ namespace cvt
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
                 Button                      _nextButton;
+
+                Label                       _ssdLabel;
+                Label                       _tdistLabel;
+                Label                       _rotDistLabel;
+
                 bool                        _nextPressed;
                 Button                      _stepButton;
                 bool                        _step;

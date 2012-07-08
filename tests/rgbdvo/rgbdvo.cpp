@@ -366,6 +366,7 @@ int main( int argc, char* argv[] )
     params.minParameterUpdate = cfg.valueForName( "minDeltaP", 0.0f );
     params.pyrScale = cfg.valueForName( "pyrScale", 0.5f );
     params.octaves = cfg.valueForName( "pyrOctaves", 3 );
+    params.robustParam = cfg.valueForName( "robustParam", 0.3f );
 
     Matrix3f K;
     K.setIdentity();
@@ -382,7 +383,7 @@ int main( int argc, char* argv[] )
 
 
     //typedef MultiscaleKeyframe<MIKeyframe> testKF;
-    typedef MultiscaleKeyframe<VOKeyframe> testKF;
+    //typedef MultiscaleKeyframe<VOKeyframe> testKF;
     //typedef MultiscaleKeyframe<RobustKeyframe<Huber> > testKF;
     //typedef MIKeyframe testKF;
 //    testFunc<testKF>( params, K, folder, cfg );
