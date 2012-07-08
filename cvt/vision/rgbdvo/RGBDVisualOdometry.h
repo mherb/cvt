@@ -66,6 +66,8 @@ namespace cvt {
 
             size_t numOverallKeyframes()                const { return _numCreated; }
 
+            const VOResult& lastResult() const { return _lastResult; }
+
         private:
             Matrix3f                    _intrinsics;
             VOParams                    _params;
@@ -84,6 +86,7 @@ namespace cvt {
 
             /* current / last pose w.r.t. active keyframe */
             PoseRepresentation          _relativePose;
+            VOResult                    _lastResult;
 
             bool needNewKeyframe( const VOResult& alignResult ) const;
     };
@@ -114,12 +117,12 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF>::updatePose( const Image& gray, const Image& depth )
     {
         // align with the current keyframe
-        VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
+        _lastResult = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
         //std::cout << "Gain: " << _relativePose.gain << ", Bias: " << _relativePose.bias << std::endl;
 
         // check if we need a new keyframe
-        if( needNewKeyframe( result ) ){
+        if( needNewKeyframe( _lastResult ) ){
             Matrix4f absPose;
             pose( absPose );
             addNewKeyframe( gray, depth, absPose );
@@ -135,9 +138,9 @@ namespace cvt {
         // convert pose to a relative prediction:
         const Matrix4f& kfPose = _activeKeyframe->pose();
         pose = pose.inverse() * kfPose;
-		Eigen::Matrix4f tmp;
-		EigenBridge::toEigen( tmp, pose );
-		_relativePose.pose.set( tmp );
+        Eigen::Matrix4f tmp;
+        EigenBridge::toEigen( tmp, pose );
+        _relativePose.pose.set( tmp );
         VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
         // get back the absolute pose;
