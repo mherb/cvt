@@ -332,6 +332,9 @@ namespace cvt
             std::vector<int> imgBins;
             imgBins.reserve( warpedPts.size() );
 
+            std::vector<float> currentPixelVals;
+            currentPixelVals.reserve( warpedPts.size() );
+
             clearJointHistogram( simd );
 
             // update the joint histogram
@@ -343,6 +346,8 @@ namespace cvt
 
                     // update the joint histogram using v and pixVals[ i ]
                     v = v * ( _numBins - 3 ) + 1.0f;
+                    currentPixelVals.push_back( v );
+
                     int r = (int)v;
                     v = (int)v - v; // fraction part
 
@@ -367,7 +372,7 @@ namespace cvt
             simd->MulValue1f( _jointHistogram, _jointHistogram, normalizer, Math::sqr( _numBins + 1 ) );
             //checkJointHistogram();
 
-            normalizer = 1.0f / _jacobians.size();
+            //normalizer = 1.0f / _jacobians.size();
 
             // evaluate the log factors for faster computation
             updateLogFactors();
@@ -392,7 +397,7 @@ namespace cvt
             deltaSum *= -normalizer;
 
             // compute the delta step
-            SE3<float>::ParameterVectorType deltaP = _hessian * deltaSum.transpose();
+            SE3<float>::ParameterVectorType deltaP = -_hessian * deltaSum.transpose();
 
             predicted.pose.applyInverse( -deltaP );
 
@@ -498,5 +503,9 @@ namespace cvt
         for( size_t r = 0; r < _numBins + 1; r++ )
             sum += _templateHistogram[ r ];
         std::cout << "Template Histogram Sum: " << sum << std::endl;
+    }
+
+    void MIKeyframe::checkJacobianComputation()
+    {
     }
 }
