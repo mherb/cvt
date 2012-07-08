@@ -98,13 +98,12 @@ namespace cvt
     {
         XnStatus status = XN_STATUS_OK;
 
-        //status = _context.WaitAndUpdateAll();
         status = _context.WaitAnyUpdateAll();
         if( status != XN_STATUS_OK )
             throw CVTException( "Error in WaitAndUpdateData for depth" );
 
-        copyDepth();
         copyImage();
+        copyDepth();
     }
 
     void OpenNICamera::setSyncRGBDepth( bool val )
@@ -117,6 +116,19 @@ namespace cvt
             }
             if( !isSynced && val ){
                 syncCap.FrameSyncWith( _depthGen );
+            }
+        } else {
+            syncCap = _depthGen.GetFrameSyncCap();
+            if( syncCap.CanFrameSyncWith( _imageGen ) ){
+                bool isSynced = syncCap.IsFrameSyncedWith( _imageGen );
+                if( isSynced && !val ){
+                    syncCap.StopFrameSyncWith( _imageGen );
+                }
+                if( !isSynced && val ){
+                    syncCap.FrameSyncWith( _imageGen );
+                }
+            } else {
+                std::cout << "Cannot Sync RGB and Depth" << std::endl;
             }
         }
     }
@@ -133,6 +145,8 @@ namespace cvt
             } else if( !isRegistered && val ) {
                 cap.SetViewPoint( _imageGen );
             }
+        } else {
+            std::cout << "Cannot register depth to rgb" << std::endl;
         }
     }
 
