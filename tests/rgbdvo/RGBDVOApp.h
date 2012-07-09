@@ -18,7 +18,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
-#define USE_CAM
+//#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
@@ -95,5 +95,7 @@ namespace cvt
                 void toggleStepping();
 
                 void writePose( const Matrix4f& pose, double stamp );
+
+                bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
     };
 }
