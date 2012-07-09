@@ -70,9 +70,24 @@ namespace cvt
         _fileOut.close();
     }
 
+    bool RGBDVOApp::positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose )
+    {
+
+        Vector4f t0 = lastPose.col( 3 );
+        Vector4f t1 = currentPose.col( 3 );
+
+        if( ( t0 - t1 ).length() > 0.5f )
+            return true;
+
+        return false;
+    }
+
     void RGBDVOApp::onTimeout()
     {
+        static size_t iter = 0;
+
         if( _nextPressed || !_step ){
+            iter++;
 #ifdef USE_CAM
             _cam.nextFrame();
             _currentImage.setImage( _cam.frame() );
@@ -89,6 +104,8 @@ namespace cvt
         }
 
         if( _optimize ){
+            Matrix4f lastPose;
+            _vo.pose( lastPose );
             Time t;
 #ifdef USE_CAM
             Image gray;
@@ -119,6 +136,9 @@ namespace cvt
             // update the absolute pose
             Matrix4f absPose;
             _vo.pose( absPose );
+            if( positionJumped( absPose, lastPose) ){
+                std::cout << "Position Jump at iteratio: " << iter << std::endl;
+            }
 
 #ifndef USE_CAM
             if( d.poseValid ){
@@ -196,6 +216,7 @@ namespace cvt
         _optimizeButton.clicked.add( d2 );
 
         wl.setAnchoredBottom( 110, 30 );
+        wl.setAnchoredRight( 5, 150 );
         _mainWindow.addWidget( &_ssdLabel, wl );
         wl.setAnchoredBottom( 145, 30 );
         _mainWindow.addWidget( &_tdistLabel, wl );
@@ -203,8 +224,6 @@ namespace cvt
         _mainWindow.addWidget( &_rotDistLabel, wl );
 
         _mainWindow.setVisible( true );
-
-
     }
 
     void RGBDVOApp::nextPressed()
