@@ -53,6 +53,9 @@ namespace cvt
             // the pixel values (gray) for the points
             std::vector<float>          _pixelValues;
 
+            // offsets into the image
+            std::vector<size_t>         _pixelOffsets;
+
             // jacobians for that points
             std::vector<JacType>        _jacobians;
 

@@ -92,6 +92,7 @@ namespace cvt
 
             void checkJointHistogram();
             void checkTempHistogram();
+            void checkJacobianComputation();
 
     };
 }

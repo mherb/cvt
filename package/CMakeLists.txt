@@ -16,6 +16,7 @@ INCLUDE(InstallRequiredSystemLibraries)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Computer Vision Tools Library (CVT)")
 SET(CPACK_PACKAGE_NAME "libcvt")
+SET(CPACK_BUNDLE_NAME "CVT")
 SET(CPACK_PACKAGE_VENDOR "Philipp Heise and Sebastian Klose")
 SET(CPACK_PACKAGE_CONTACT "Sebastian Klose, kloses@in.tum.de")
 

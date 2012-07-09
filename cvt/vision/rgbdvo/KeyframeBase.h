@@ -128,8 +128,10 @@ namespace cvt {
         IKernel gaussx = IKernel::GAUSS_HORIZONTAL_3;
         IKernel gaussy = IKernel::GAUSS_VERTICAL_3;
 
-        kx.scale( -0.5f );
-        ky.scale( -0.5f );
+        const float scale = -1.0f;
+        //const float scale = -0.5f;
+        kx.scale( scale );
+        ky.scale( scale );
 
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
