@@ -28,10 +28,10 @@ namespace cvt
    StereoSLAM::StereoSLAM( FeatureTracking* ft, DepthInitializer* di ):
        _featureTracking( ft ),
        _depthInit( di ),
-       _minTrackedFeatures( 30 ),
+       _minTrackedFeatures( 50 ),
        _activeKF( -1 ),
        _minKeyframeDistance( 0.1 ),
-       _maxKeyframeDistance( 0.3 )
+       _maxKeyframeDistance( 0.4 )
    {
       Eigen::Matrix3d K;
       EigenBridge::toEigen( K, _depthInit->calibration0().intrinsics() );
@@ -105,7 +105,7 @@ namespace cvt
              // create new keyframe with map features
              addNewKeyframe( triangulated, p2d, trackedIds, trackingInliers );
 
-             if( _map.numKeyframes() > 2 ){
+             if( _map.numKeyframes() >  4 ){
                _bundler.run( &_map );
              }
 
@@ -201,7 +201,7 @@ namespace cvt
        MapFeature     mf;
 
        mm.information.setIdentity();
-       mm.information *= 0.4;
+       mm.information *= 0.6;
 
        for( size_t i = 0; i < triangulated.size(); ++i ){
            const DepthInitializer::DepthInitResult & res = triangulated[ i ];

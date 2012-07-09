@@ -90,8 +90,7 @@ namespace cvt {
 
             if( _costs < lastCosts ){
                 // step was good -> update lambda and do next step
-                _lambda *= 0.1;
-                _iterations++;
+                _lambda *= 0.1;                
             } else {
                 deltaCam	*= -1.0;
                 deltaPoint  *= -1.0;
@@ -106,6 +105,7 @@ namespace cvt {
                 _costs = lastCosts;
             }
 
+            _iterations++;
 
             if( criteria.finished( _costs, _iterations ) ){
                 break;
@@ -227,8 +227,8 @@ namespace cvt {
             }
 
             // initial lambda
-            //_lambda = avgDiag / ( ( _nCams + _nPts ) * 1000.0 );
-            _lambda = 1.0;
+            _lambda = avgDiag / ( ( _nCams + _nPts ) * 1000.0 );
+            //_lambda = 1.0;
         }
     }
 
