@@ -11,10 +11,10 @@ namespace cvt
     VOKeyframe::VOKeyframe( const Image& gray, const Image& depth,
                             const Matrix4f& pose, const Matrix3f& K, const VOParams& params ) :
         _pose( pose )
-        //,_gray( gray )
+        ,_gray( gray )
     {
-        _gray.reallocate( gray );
-        gray.convolve( _gray, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+        //_gray.reallocate( gray );
+        //gray.convolve( _gray, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
         computeJacobians( depth, K, params );
     }
@@ -68,6 +68,8 @@ namespace cvt
 
         float gradThreshold = Math::sqr( params.gradientThreshold );
 
+        size_t floatStride = grayMap.stride() / sizeof( float );
+
         for( size_t y = 0; y < _gray.height(); y++ ){
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
@@ -94,6 +96,7 @@ namespace cvt
 
                     _jacobians.push_back( j );
                     _pixelValues.push_back( value[ x ] );
+                    _pixelOffsets.push_back( floatStride * y + x );
                     _points3d.push_back( Vector3f( p3d[ 0 ], p3d[ 1 ], p3d[ 2 ] ) );
                     H.noalias() += j.transpose() * j;
                 }
@@ -135,6 +138,11 @@ namespace cvt
         IMapScoped<const float> grayMap( gray );
         size_t floatStride = grayMap.stride() / sizeof( float );
 
+
+        Image warpedOut( gray.width(), gray.height(), gray.format() );
+        warpedOut.fill( Color::WHITE );
+        IMapScoped<float> warpedMap( warpedOut );
+        float* wOut = warpedMap.ptr();
         while( result.iterations < params.maxIters ){
             // build the updated projection Matrix
             const Eigen::Matrix4f& m = predicted.pose.transformation();
@@ -155,6 +163,8 @@ namespace cvt
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
 
+                    wOut[ _pixelOffsets[ i ] ] = v;
+
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
                     result.SSD += Math::sqr( delta );
@@ -171,8 +181,13 @@ namespace cvt
 
             result.iterations++;
             if( deltaP.norm() < params.minParameterUpdate )
-                return result;
+                break;
         }
+
+        String outName;
+        outName.sprintf( "warped_%d_%d.png", gray.width(), gray.height() );
+        warpedOut.save( outName );
+
         return result;
     }
 }

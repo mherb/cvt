@@ -1,6 +1,7 @@
 #include <cvt/gui/Window.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Moveable.h>
+#include <cvt/gui/Label.h>
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/gui/Button.h>
 #include <cvt/io/RGBDParser.h>
@@ -50,6 +51,7 @@ namespace cvt
                 //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
                 //typedef RobustKeyframe<Tukey> KFType;
+                //typedef RobustKeyframe<Huber> KFType;
                 //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
                 typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
@@ -73,6 +75,11 @@ namespace cvt
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
                 Button                      _nextButton;
+
+                Label                       _ssdLabel;
+                Label                       _tdistLabel;
+                Label                       _rotDistLabel;
+
                 bool                        _nextPressed;
                 Button                      _stepButton;
                 bool                        _step;
@@ -88,5 +95,7 @@ namespace cvt
                 void toggleStepping();
 
                 void writePose( const Matrix4f& pose, double stamp );
+
+                bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
     };
 }

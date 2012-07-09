@@ -9,7 +9,7 @@ namespace cvt
 {
     RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params ) :
 #ifdef USE_CAM
-		_cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
+        _cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
 #else
         _parser( folder, 0.02f ),
 #endif
@@ -25,7 +25,10 @@ namespace cvt
         _stepButton( "toggle stepping" ),
         _step( false ),
         _optimizeButton( "optimize" ),
-        _optimize( true )
+        _optimize( true ),
+        _ssdLabel( "SSD:" ),
+        _tdistLabel( "T-Distance:" ),
+        _rotDistLabel( "R-Distance:" )
     {
         _timerId = Application::registerTimer( 10, this );
         setupGui();
@@ -38,12 +41,14 @@ namespace cvt
 
         Image gray;
 #ifdef USE_CAM
-		_cam.startCapture();
-		_cam.nextFrame();
+        _cam.setRegisterDepthToRGB( true );
+        //_cam.setSyncRGBDepth( true );
+        _cam.startCapture();
+        _cam.nextFrame();
 
-		_cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+        _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
 
-		Matrix4f tmp; tmp.setIdentity();
+        Matrix4f tmp; tmp.setIdentity();
         _vo.addNewKeyframe( gray, _cam.depth(), tmp );
 #else
         _parser.loadNext();
@@ -52,7 +57,6 @@ namespace cvt
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
         _vo.addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
 #endif
-
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
@@ -66,11 +70,26 @@ namespace cvt
         _fileOut.close();
     }
 
+    bool RGBDVOApp::positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose )
+    {
+
+        Vector4f t0 = lastPose.col( 3 );
+        Vector4f t1 = currentPose.col( 3 );
+
+        if( ( t0 - t1 ).length() > 0.5f )
+            return true;
+
+        return false;
+    }
+
     void RGBDVOApp::onTimeout()
-    {        
+    {
+        static size_t iter = 0;
+
         if( _nextPressed || !_step ){
+            iter++;
 #ifdef USE_CAM
-			_cam.nextFrame();
+            _cam.nextFrame();
             _currentImage.setImage( _cam.frame() );
 #else
             if( !_parser.hasNext() ){
@@ -85,10 +104,12 @@ namespace cvt
         }
 
         if( _optimize ){
+            Matrix4f lastPose;
+            _vo.pose( lastPose );
             Time t;
 #ifdef USE_CAM
             Image gray;
-			_cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+            _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
             _vo.updatePose( gray, _cam.depth() );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
@@ -97,7 +118,14 @@ namespace cvt
             d.rgb.convert( gray );
 
             _vo.updatePose( gray, d.depth );
+
 #endif
+
+            const VOResult& result = _vo.lastResult();
+            String str;
+            str.sprintf( "SSD: %0.2f", result.SSD / result.numPixels );
+            _ssdLabel.setLabel( str );
+
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
             String title;
@@ -108,6 +136,9 @@ namespace cvt
             // update the absolute pose
             Matrix4f absPose;
             _vo.pose( absPose );
+            if( positionJumped( absPose, lastPose) ){
+                std::cout << "Position Jump at iteratio: " << iter << std::endl;
+            }
 
 #ifndef USE_CAM
             if( d.poseValid ){
@@ -122,7 +153,7 @@ namespace cvt
 
             _poseView.setCamPose( absPose );
         }
-    }    
+    }
 
     void RGBDVOApp::writePose( const Matrix4f& pose, double stamp )
     {
@@ -183,6 +214,14 @@ namespace cvt
         _mainWindow.addWidget( &_optimizeButton, wl );
         Delegate<void ()> d2( this, &RGBDVOApp::optimizePressed );
         _optimizeButton.clicked.add( d2 );
+
+        wl.setAnchoredBottom( 110, 30 );
+        wl.setAnchoredRight( 5, 150 );
+        _mainWindow.addWidget( &_ssdLabel, wl );
+        wl.setAnchoredBottom( 145, 30 );
+        _mainWindow.addWidget( &_tdistLabel, wl );
+        wl.setAnchoredBottom( 180, 30 );
+        _mainWindow.addWidget( &_rotDistLabel, wl );
 
         _mainWindow.setVisible( true );
     }
