@@ -141,6 +141,11 @@ namespace cvt
 	{
 		_currentImg.setImage( img );
 		_imageAspect = (float)img.width() / (float)img.height();
+
+       /* static size_t iter = 0;
+        cvt::String name;
+        name.sprintf( "mono_%04d.png", iter++ );
+        img.save( name );*/
 	}
 
 
@@ -154,6 +159,13 @@ namespace cvt
 	inline void SLAMGui::updateStereoView( const Image& img )
 	{
 		_stereoView.setImage( img );
+/*
+        static size_t iter = 0;
+        cvt::String name;
+        name.sprintf( "stereo_%04d.png", iter++ );
+        img.save( name );
+*/
+
 	}
 
 	inline void SLAMGui::updateCameraPose( const Matrix4f & m )
