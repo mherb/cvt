@@ -21,6 +21,7 @@ namespace cvt {
     {
         public:
             typedef cvt::Vector3<T>         WorldPointType;
+			typedef cvt::Matrix4<T>			MatrixType;
 
             // Todo: This is Model Dependent!
             // e.g. if we use affine illumination or less parameters
@@ -29,7 +30,7 @@ namespace cvt {
             RGBDTemplate();
             ~RGBDTemplate();
 
-            void update( const Image& gray, const Image& depth );
+            void update( const Image& gray, const Image& depth, const MatrixType& pose );
 
             const WorldPointType*   points()    const { return &_points3d[ 0 ]; }
             size_t                  numPoints() const { return _points3d.size(); }
@@ -65,6 +66,31 @@ namespace cvt {
             }
 
     };
+
+
+    template <class T>        
+	void RGBDTemplate<T>::update( const Image& gray, const Image& depth, const MatrixType& pose )
+	{
+		/* we distinguish three types: 
+		  * forward: points from the current Image are used:   min( sum( T( w( x, p ) ) - I( x ) ) ) 
+		  * backward: points from the template Image are used: min( sum( T( x ) - I( w( x, p ) ) ) )
+		  * inverse compositional:							   min( sum( T( w( x, dp ) ) - I( w( x, p ) ) ) )
+
+		  * As we want a generic framework, we should put the logic for that into seperate classes: 
+		  * forward:  points are warped from current image to Template: P_t = W_tc * P_c
+		  * backward: points are warped from template image to current: P_c = W_ct * P_t
+		  * inverse compositional: points are warped from the template into the current image: P_c = W_ct * P_t
+		*/
+
+		/* Forward: Reference is the current image
+			* compute gradients of Template -> template is the previous
+			* get the 3D points from the depth image
+		    * warp them to the other frame using the pose (3D pts)
+			* project them
+			* evaluate the jacobians
+			* interpolate the current pixel values
+		 */
+	}
 
 }
 
