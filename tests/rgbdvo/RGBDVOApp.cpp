@@ -7,13 +7,14 @@
 
 namespace cvt
 {
-    RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params ) :
+    RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params) :
 #ifdef USE_CAM
         _cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
 #else
         _parser( folder, 0.02f ),
 #endif
         _vo( K, params ),
+        _aligner( K ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
         _mainWindow( "RGBD-VO" ),
@@ -56,6 +57,10 @@ namespace cvt
             _parser.loadNext();
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
         _vo.addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
+
+        _alignerRelativePose = _parser.data().pose;
+
+        _aligner.alignFrames( _alignerRelativePose, gray, _parser.data().depth );
 #endif
 
         _avgTransError.setZero();
@@ -119,6 +124,7 @@ namespace cvt
 
             _vo.updatePose( gray, d.depth );
 
+            _aligner.alignFrames( _alignerRelativePose, gray, d.depth );
 #endif
 
             const VOResult& result = _vo.lastResult();
@@ -139,6 +145,10 @@ namespace cvt
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteratio: " << iter << std::endl;
             }
+
+            std::cout << "Inverse Compositional Pose: \n" << absPose << std::endl;
+            std::cout << "Forward Compositional Pose: \n" << _alignerRelativePose << std::endl;
+            std::cout << "Difference: \n" << absPose - _alignerRelativePose << std::endl;
 
 #ifndef USE_CAM
             if( d.poseValid ){

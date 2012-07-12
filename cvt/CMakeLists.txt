@@ -427,6 +427,8 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/MIKeyframe.h
    vision/rgbdvo/MultiscaleKeyframe.h
+   vision/rgbdvo/RGBDAlignment.h
+   vision/rgbdvo/RGBDTemplate.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RobustAIIKeyframe.h
    vision/rgbdvo/RobustKeyframe.h

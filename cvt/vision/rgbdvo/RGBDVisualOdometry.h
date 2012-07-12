@@ -37,6 +37,9 @@ namespace cvt {
              */
             void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
 
+            /**
+             *  \param kfPose   pose of the keyframe: T_wk or T_kw?
+             */
             void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
             /**

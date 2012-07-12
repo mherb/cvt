@@ -8,6 +8,7 @@
 #include <PoseView.h>
 
 #include <cvt/vision/rgbdvo/KeyframeBase.h>
+#include <cvt/vision/rgbdvo/RGBDAlignment.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
 #include <cvt/vision/rgbdvo/MIKeyframe.h>
 #include <cvt/vision/rgbdvo/VOKeyframe.h>
@@ -57,6 +58,10 @@ namespace cvt
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
                 //typedef cvt::MIKeyframe KFType;
                 RGBDVisualOdometry<KFType>  _vo;
+
+                RGBDAlignment<float>        _aligner;
+                Matrix4<float>              _alignerRelativePose;
+
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
 
@@ -76,15 +81,15 @@ namespace cvt
                 Moveable                    _poseMov;
                 Button                      _nextButton;
 
-                Label                       _ssdLabel;
-                Label                       _tdistLabel;
-                Label                       _rotDistLabel;
-
                 bool                        _nextPressed;
                 Button                      _stepButton;
                 bool                        _step;
                 Button                      _optimizeButton;
                 bool                        _optimize;
+
+                Label                       _ssdLabel;
+                Label                       _tdistLabel;
+                Label                       _rotDistLabel;
 
                 void keyframeAddedCallback( const Matrix4f& pose );
                 void activeKeyframeChangedCallback();
