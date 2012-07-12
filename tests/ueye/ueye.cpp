@@ -36,6 +36,8 @@ class CameraTimeout : public TimeoutHandler
 			_cam->startCapture();
 			_cam->setHardwareGains( 0, 8, 0, 14 );
 			_timer.reset();
+
+            _cam->testIOSupport();
 		}
 
 		~CameraTimeout()
@@ -56,7 +58,7 @@ class CameraTimeout : public TimeoutHandler
 				_moveable->setTitle( buf );
 				_frames = 0;
 				_timer.reset();
-				showGains();
+                //showGains();
 			}
 
 			if( _dump ){

@@ -21,6 +21,18 @@ namespace cvt
 class UEyeUsbCamera : public Camera
     {
         public:
+            enum UEyeRunMode {
+                UEYE_MODE_TRIGGERED,
+                UEYE_MODE_FREERUN
+            };
+
+            enum FlashMode {
+                FLASH_PERMANENT_HIGH,
+                FLASH_PERMANENT_LOW,
+                FLASH_HIGH_ON_EXPOSURE,
+                FLASH_LOW_ON_EXPOSUE
+            };
+
             UEyeUsbCamera( size_t camIndex, const CameraMode& mode );
             virtual ~UEyeUsbCamera();
 
@@ -55,6 +67,9 @@ class UEyeUsbCamera : public Camera
 
 			void	saveParameters( const String& filename ) const;
 			void	loadParameters( const String& filename );
+
+            void    testIOSupport();
+
         private:
             bool	initCam();
             void	open( const CameraMode & mode );
@@ -71,26 +86,20 @@ class UEyeUsbCamera : public Camera
 			void	enableEvents();
 			void	disableEvents();
 
-            int			_camIndex;
+            int             _camIndex;
 
             // uEye variables
-            HIDS		_camHandle;		// handle to camera
-            INT			_width;			// width of image
-            INT			_height;		// height of image
-            INT			_stride;		// stride of image
+            HIDS            _camHandle;		// handle to camera
+            INT             _width;			// width of image
+            INT             _height;		// height of image
+            INT             _stride;		// stride of image
 
-			static const size_t	_numImageBuffers = 3;
-			uint8_t*			_buffers[ _numImageBuffers ];
-			INT					_bufferIds[ _numImageBuffers ];
+            static const size_t	_numImageBuffers = 5;
+            uint8_t*		_buffers[ _numImageBuffers ];
+            INT				_bufferIds[ _numImageBuffers ];
 
 			mutable Image	_frame;
-			String	_identifier;
-			
-			enum UEyeRunMode
-			{
-				UEYE_MODE_TRIGGERED,
-				UEYE_MODE_FREERUN
-			};
+            String          _identifier;
 			UEyeRunMode		_runMode;
     };
 

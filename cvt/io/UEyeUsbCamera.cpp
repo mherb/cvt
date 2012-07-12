@@ -433,6 +433,85 @@ namespace cvt
 			std::cout << "Error loading parameters from file" << std::endl;
 	}
 
+    void UEyeUsbCamera::testIOSupport()
+    {
+        UINT supportedIOs = 0;
+        INT ret;
+        ret = is_IO( _camHandle, IS_IO_CMD_GPIOS_GET_SUPPORTED, ( void* )&supportedIOs, sizeof( supportedIOs ) );
+
+
+        if( ret != IS_SUCCESS ){
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED function not supported by cam" << std::endl;
+        } else {
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED: ";
+            if( supportedIOs & IO_GPIO_1 ){ std::cout << "IO_GPIO_1 "; }
+            if( supportedIOs & IO_GPIO_2 ){ std::cout << "IO_GPIO_2 "; }
+            if( supportedIOs & IO_GPIO_3 ){ std::cout << "IO_GPIO_3 "; }
+            if( supportedIOs & IO_GPIO_4 ){ std::cout << "IO_GPIO_4 "; }
+            std::cout << std::endl;
+        }
+
+        supportedIOs = 0;
+        ret = is_IO( _camHandle, IS_IO_CMD_GPIOS_GET_SUPPORTED_INPUTS, ( void* )&supportedIOs, sizeof( supportedIOs ) );
+        if( ret != IS_SUCCESS ){
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED_INPUTS function not supported by cam" << std::endl;
+        } else {
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED_INPUTS: ";
+            if( supportedIOs & IO_GPIO_1 ){ std::cout << "IO_GPIO_1 "; }
+            if( supportedIOs & IO_GPIO_2 ){ std::cout << "IO_GPIO_2 "; }
+            if( supportedIOs & IO_GPIO_3 ){ std::cout << "IO_GPIO_3 "; }
+            if( supportedIOs & IO_GPIO_4 ){ std::cout << "IO_GPIO_4 "; }
+            std::cout << std::endl;
+        }
+
+        supportedIOs = 0;
+        ret = is_IO( _camHandle, IS_IO_CMD_GPIOS_GET_SUPPORTED_OUTPUTS, ( void* )&supportedIOs, sizeof( supportedIOs ) );
+        if( ret != IS_SUCCESS ){
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED_OUTPUTS function not supported by cam" << std::endl;
+        } else {
+            std::cout << "IS_IO_CMD_GPIOS_GET_SUPPORTED_OUTPUTS: ";
+            if( supportedIOs & IO_GPIO_1 ){ std::cout << "IO_GPIO_1 "; }
+            if( supportedIOs & IO_GPIO_2 ){ std::cout << "IO_GPIO_2 "; }
+            if( supportedIOs & IO_GPIO_3 ){ std::cout << "IO_GPIO_3 "; }
+            if( supportedIOs & IO_GPIO_4 ){ std::cout << "IO_GPIO_4 "; }
+            std::cout << std::endl;
+        }
+
+        supportedIOs = 0;
+        ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_SUPPORTED_GPIOS, ( void* )&supportedIOs, sizeof( supportedIOs ) );
+        if( ret != IS_SUCCESS ){
+            std::cout << "IS_IO_CMD_FLASH_GET_SUPPORTED_GPIOS function not supported by cam" << std::endl;
+        } else {
+            std::cout << "IS_IO_CMD_FLASH_GET_SUPPORTED_GPIOS: ";
+            if( supportedIOs & IO_FLASH_MODE_GPIO_1 ){
+                std::cout << "IO_FLASH_MODE_GPIO_1 ";
+                //ret = is_IO( _camHandle, IS_IO_CMD_GPIOS_GET_DIRECTION, ( void* )&gpio, sizeof( gpio ) );
+            }
+            if( supportedIOs & IO_FLASH_MODE_GPIO_2 ){
+                std::cout << "IO_FLASH_MODE_GPIO_2 ";
+            }
+            if( supportedIOs & IO_FLASH_MODE_GPIO_3 ){
+                std::cout << "IO_FLASH_MODE_GPIO_3 ";
+            }
+            if( supportedIOs & IO_FLASH_MODE_GPIO_4 ){
+                std::cout << "IO_FLASH_MODE_GPIO_4 ";
+            }
+            std::cout << std::endl;
+        }
+
+
+        /*
+        supportedIOs = is_SetFlashStrobe( _camHandle, IS_GET_SUPPORTED_FLASH_IO_PORTS, 0 );
+
+        std::cout << "Supported Flash IO Ports: ";
+        if( supportedIOs & IS_SET_FLASH_IO_1 ) std::cout << "IS_SET_FLSAH_IO_1 ";
+        if( supportedIOs & IS_SET_FLASH_IO_2 ) std::cout << "IS_SET_FLSAH_IO_2 ";
+        */
+
+
+
+    }
+
 	void UEyeUsbCamera::enableFreerun()
 	{
 		is_CaptureVideo( _camHandle, IS_DONT_WAIT );
