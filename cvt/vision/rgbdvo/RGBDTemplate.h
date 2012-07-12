@@ -13,6 +13,11 @@
 #define CVT_RGBDTEMPLATE_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/math/Matrix.h>
+#include <cvt/gfx/IMapScoped.h>
+#include <cvt/util/EigenBridge.h>
+
+#include <Eigen/Core>
 
 namespace cvt {
 
@@ -20,76 +25,111 @@ namespace cvt {
     class RGBDTemplate
     {
         public:
+            struct Params
+            {
+                Params() :
+                    depthScale( 1.031 * 5000.0 ),
+                    minDepth( 0.2 )
+                {
+                }
+
+                T depthScale;
+                T minDepth;
+            };
+
             typedef cvt::Vector3<T>         WorldPointType;
-			typedef cvt::Matrix4<T>			MatrixType;
+            typedef cvt::Matrix4<T>			Matrix4Type;
+            typedef cvt::Matrix3<T>			Matrix3Type;
 
             // Todo: This is Model Dependent!
             // e.g. if we use affine illumination or less parameters
             typedef Eigen::Matrix<T, 6, 1>  JacType;
 
-            RGBDTemplate();
-            ~RGBDTemplate();
+            RGBDTemplate()
+            {}
 
-            void update( const Image& gray, const Image& depth, const MatrixType& pose );
+            ~RGBDTemplate()
+            {}
 
-            const WorldPointType*   points()    const { return &_points3d[ 0 ]; }
+            /* extract 3D Points from depth & corresponding pixel values */
+            void updateTemplate( const Image& gray, const Image& depth, const Matrix4<T>& pose, const Matrix3Type& K, const Params &params );
+
+            const WorldPointType*   points()    const { return &_points3d[ 0 ]; }            
+            const float*            pixels()    const { return &_pixelValues[ 0 ]; }
             size_t                  numPoints() const { return _points3d.size(); }
-            const JacType*          jacobians() const { return &_jacobians[ 0 ]; }
 
         private:
             std::vector<float>          _pixelValues;
             std::vector<Vector3<T> >    _points3d;
-            std::vector<JacType>        _jacobians;
 
-            void computeImageGradients( Image& gx, Image& gy, const Image& gray )
-            {
-                IKernel kx = IKernel::HAAR_HORIZONTAL_3;
-                IKernel ky = IKernel::HAAR_VERTICAL_3;
-                IKernel gaussx = IKernel::GAUSS_HORIZONTAL_3;
-                IKernel gaussy = IKernel::GAUSS_VERTICAL_3;
+            // offsets into the mapped floating point image
+            std::vector<size_t>         _pointOffsets;
 
-                //const float scale = -1.0f;
-                const float scale = -0.5f;
-                kx.scale( scale );
-                ky.scale( scale );
-
-                gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
-                gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
-
-                // sobel
-                gray.convolve( gx, kx, gaussy );
-                gray.convolve( gy, gaussx, ky );
-
-                // normal
-                //gray.convolve( gx, kx );
-                //gray.convolve( gy, ky );
-            }
 
     };
 
+    template <typename T>
+    inline void RGBDTemplate<T>::updateTemplate( const Image& gray, const Image& depth, const Matrix4<T>& pose, const Matrix3Type& K, const Params &params )
+    {
+        T depthScaling = ( T )0xffff / params.depthScale;
 
-    template <class T>        
-	void RGBDTemplate<T>::update( const Image& gray, const Image& depth, const MatrixType& pose )
-	{
-		/* we distinguish three types: 
-		  * forward: points from the current Image are used:   min( sum( T( w( x, p ) ) - I( x ) ) ) 
-		  * backward: points from the template Image are used: min( sum( T( x ) - I( w( x, p ) ) ) )
-		  * inverse compositional:							   min( sum( T( w( x, dp ) ) - I( w( x, p ) ) ) )
+        // we have to take into account the scale factor
+        T scale = ( float )depth.width() / ( float )gray.width();
 
-		  * As we want a generic framework, we should put the logic for that into seperate classes: 
-		  * forward:  points are warped from current image to Template: P_t = W_tc * P_c
-		  * backward: points are warped from template image to current: P_c = W_ct * P_t
-		  * inverse compositional: points are warped from the template into the current image: P_c = W_ct * P_t
-		*/
+        T invFx = 1.0f / K[ 0 ][ 0 ];
+        T invFy = 1.0f / K[ 1 ][ 1 ];
+        T cx    = K[ 0 ][ 2 ];
+        T cy    = K[ 1 ][ 2 ];
 
-		/* Forward: Reference is the current image
-			* compute gradients of Template -> template is the previous
-			* get the 3D points from the depth image
-		    * warp them to the other frame using the pose (3D pts)
-			* project them
-			* evaluate the jacobians
-			* interpolate the current pixel values
-		 */
+        // temp vals
+        std::vector<T> tmpx( gray.width() );
+        std::vector<T> tmpy( gray.height() );
+
+        for( size_t i = 0; i < tmpx.size(); i++ ){
+            tmpx[ i ] = ( i - cx ) * invFx;
+        }
+        for( size_t i = 0; i < tmpy.size(); i++ ){
+            tmpy[ i ] = ( i - cy ) * invFy;
+        }
+
+        IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> depthMap( depth );
+
+        Eigen::Matrix3f Keigen;
+        EigenBridge::toEigen( Keigen, K );
+
+        size_t floatStride = grayMap.stride() / sizeof( float );
+
+        { // prereserve space
+            const size_t reserveSize = gray.width() * gray.height() * 0.8;
+            _pixelValues.reserve( reserveSize );
+            _pointOffsets.reserve( reserveSize );
+            _points3d.reserve( reserveSize );
+        }
+
+        for( size_t y = 0; y < gray.height(); y++ ){
+            const float* value = grayMap.ptr();
+
+            depthMap.setLine( scale * y );
+            const float* d = depthMap.ptr();
+            for( size_t x = 0; x < gray.width(); x++ ){
+                T z = d[ ( size_t ) scale * x ] * depthScaling;
+                if( z > params.minDepth ){
+                    _pixelValues.push_back( value[ x ] );
+                    _pointOffsets.push_back( floatStride * y + x );
+                    Vector3f p( tmpx[ x ] * z, tmpy[ y ] * z, z );
+                    _points3d.push_back( pose * p );
+
+
+
+                    std::cout << "Added Point:  " << p << std::endl;
+                    std::cout << "Scale: " << scale << std::endl;
+                    //std::cout << "World Coords: " << _points3d.back() << std::endl;
+
+                }
+            }
+            grayMap++;
+        }
 	}
 
 }
