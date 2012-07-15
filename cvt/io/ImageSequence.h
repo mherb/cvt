@@ -29,7 +29,7 @@ namespace cvt
             size_t  height() const { return _current.height(); }
             const   IFormat & format() const { return _current.format(); }
             const   Image & frame() const { return _current; }
-            void    nextFrame();
+            bool    nextFrame( size_t timeout = 0 );
 			bool	hasNext() const;
             
         

@@ -126,11 +126,12 @@ namespace cvt
 	}
 
 
-	void DC1394Camera::nextFrame( )
+	bool DC1394Camera::nextFrame( size_t /*timeout*/ )
 	{
 		if( !_capturing )
-			return;
+			return false;
 
+		// TODO: howto use timeout with DC1394? This is blocking ATM!
 		dc1394video_frame_t* frame;
 		dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_WAIT, &frame );
 		
@@ -145,6 +146,8 @@ namespace cvt
 
 		/* FIXME: convert to image format ... */
 		dc1394_capture_enqueue( _camera, frame );
+		
+		return true;
 	}
 
 	/**

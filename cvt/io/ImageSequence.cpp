@@ -35,12 +35,15 @@ namespace cvt {
 		nextFrame();
     }
     
-    void ImageSequence::nextFrame()
+    bool ImageSequence::nextFrame( size_t )
     {
         // build the string and load the frame
 		if( _index < _files.size() ){
 			_current.load( _files[ _index ] );
 			_index++;
+			return true;
+		} else {
+			return false;
 		}
     }
 
