@@ -257,29 +257,32 @@ namespace cvt
 		disableEvents();
 	}
 
-	void UEyeUsbCamera::nextFrame()
+	bool UEyeUsbCamera::nextFrame( size_t timeout )
 	{
         INT ret = IS_SUCCESS;
 
         switch( _runMode ){
             case UEYE_MODE_FREERUN:
-                ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 200 /* this is 5fps */ );
-                if( ret == IS_TIMED_OUT ){
-                    std::cout << "Timeout in nextFrame()" << std::endl;
-                } else if ( ret == IS_SUCCESS ){
+                ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, timeout );
+				if( ret == IS_TIMED_OUT ){
+					// timeout
+					return false; 
+				} else if ( ret == IS_SUCCESS ){
                     // new frame available:
                     bufferToFrame();
                 }
                 break;
             default:
-                ret = is_FreezeVideo( _camHandle, 1000 );
+                ret = is_FreezeVideo( _camHandle, timeout );
                 if( ret == IS_TIMED_OUT ){
-                    std::cout << "Timeout in nextFrame()" << std::endl;
+					// timeout
+					return false; 
                 } else if ( ret == IS_SUCCESS ){
                     // new frame available:
                     bufferToFrame();
                 }
         }
+		return true;
 	}
 
     void UEyeUsbCamera::bufferToFrame()

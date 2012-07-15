@@ -21,8 +21,12 @@ namespace cvt {
 		virtual ~VideoInput(){};
 		virtual size_t width() const = 0;
 		virtual size_t height() const = 0;
+
 		virtual const Image & frame() const = 0;
-		virtual void nextFrame() = 0;
+
+		/* trigger / load next frame, timeOut in ms */
+		virtual bool nextFrame( size_t timeOut = 0 ) = 0;
+		
 		virtual const IFormat & format() const = 0;
 	};
 }

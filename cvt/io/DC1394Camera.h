@@ -29,7 +29,7 @@ namespace cvt
 			void startCapture();
 			void stopCapture();
 
-			void nextFrame();
+			bool nextFrame( size_t timeout = 30 );
 			const Image& frame() const;
 			size_t width() const { return _width;}
 			size_t height() const { return _height;}
