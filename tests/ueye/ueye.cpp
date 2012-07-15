@@ -33,11 +33,16 @@ class CameraTimeout : public TimeoutHandler
 			_dump( false ),
 			_dumpIter( 0 )
 		{
+            _cam->setFramerate( 30 );
 			_cam->startCapture();
+            _cam->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
+
+            _cam->setTriggerDelay( 0 );
+
 			_cam->setHardwareGains( 0, 8, 0, 14 );
 			_timer.reset();
 
-            _cam->testIOSupport();
+            //_cam->testIOSupport();
 		}
 
 		~CameraTimeout()
@@ -47,10 +52,9 @@ class CameraTimeout : public TimeoutHandler
 
 		void onTimeout()
 		{
-			_cam->nextFrame();
+            _cam->nextFrame();
 			_view->setImage( _cam->frame() );
-			//if( camt.elapsedMicroSeconds() > 3000.0 )
-			//	std::cout << camt.elapsedMicroSeconds() << std::endl;
+
 			_frames++;
 			if( _timer.elapsedSeconds() > 0.3f ) {
 				char buf[ 200 ];
@@ -138,8 +142,6 @@ int main( )
     wl.setAnchoredRight( 10, 50 );
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
-
-
 
 	UEyeUsbCamera * cam = 0;
 

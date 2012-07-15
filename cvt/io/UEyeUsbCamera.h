@@ -21,16 +21,26 @@ namespace cvt
 class UEyeUsbCamera : public Camera
     {
         public:
-            enum UEyeRunMode {
+            enum RunMode {
                 UEYE_MODE_TRIGGERED,
-                UEYE_MODE_FREERUN
+                UEYE_MODE_FREERUN,
+                UEYE_MODE_HW_TRIGGER
             };
 
             enum FlashMode {
-                FLASH_PERMANENT_HIGH,
-                FLASH_PERMANENT_LOW,
-                FLASH_HIGH_ON_EXPOSURE,
-                FLASH_LOW_ON_EXPOSUE
+                FLASH_PERMANENT_HIGH = IO_FLASH_MODE_CONSTANT_HIGH,
+                FLASH_PERMANENT_LOW = IO_FLASH_MODE_CONSTANT_LOW,
+                FLASH_HIGH_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_HI_ACTIVE,
+                FLASH_LOW_ON_EXPOSUE = IO_FLASH_MODE_TRIGGER_LO_ACTIVE
+            };
+
+            enum TriggerMode {
+                TRIGGER_OFF         = IS_SET_TRIGGER_OFF,
+                TRIGGER_SOFTWARE    = IS_SET_TRIGGER_SOFTWARE,
+                TRIGGER_HI_LO       = IS_SET_TRIGGER_HI_LO, /* Trigger on falling edge */
+                TRIGGER_LO_HI       = IS_SET_TRIGGER_LO_HI, /* Trigger on raising edge */
+                TRIGGER_HI_LO_SYNC  = IS_SET_TRIGGER_HI_LO_SYNC, /* Trigger on falling edge in freerun */
+                TRIGGER_LO_HI_SYNC  = IS_SET_TRIGGER_LO_HI_SYNC /* Trigger on raising edge in freerun */
             };
 
             UEyeUsbCamera( size_t camIndex, const CameraMode& mode );
@@ -63,7 +73,13 @@ class UEyeUsbCamera : public Camera
 			void	getHardwareGains( int& master, int& red, int& green, int& blue );
 			void	setHardwareGains( int master, int red, int green, int blue );
 			
-			void	setLiveMode( bool val );
+            void	setRunMode( RunMode mode );
+
+            void    setTriggerMode( TriggerMode mode );
+            void    setFlashMode( FlashMode mode );
+
+            void    setTriggerDelay( size_t microSecs );
+            void    setFlashDelayAndDuration( size_t delayMuSecs, size_t durationMuSecs );
 
 			void	saveParameters( const String& filename ) const;
 			void	loadParameters( const String& filename );
@@ -81,10 +97,11 @@ class UEyeUsbCamera : public Camera
 
 
 			void	enableFreerun();
-			void	disableFreerun();
-			void	enableTriggered();
+			void	disableFreerun();			
 			void	enableEvents();
 			void	disableEvents();
+
+            void    bufferToFrame();
 
             int             _camIndex;
 
@@ -98,9 +115,9 @@ class UEyeUsbCamera : public Camera
             uint8_t*		_buffers[ _numImageBuffers ];
             INT				_bufferIds[ _numImageBuffers ];
 
-			mutable Image	_frame;
+            Image           _frame;
             String          _identifier;
-			UEyeRunMode		_runMode;
+            RunMode         _runMode;
     };
 
 	inline size_t UEyeUsbCamera::width() const

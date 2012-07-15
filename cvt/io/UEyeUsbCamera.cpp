@@ -243,9 +243,8 @@ namespace cvt
 	}
 
 	void UEyeUsbCamera::startCapture()
-	{
-		bool val = ( _runMode == UEYE_MODE_FREERUN );
-		setLiveMode( val );
+	{		
+        setRunMode( _runMode );
 		enableEvents();
 	}
 
@@ -260,63 +259,55 @@ namespace cvt
 
 	void UEyeUsbCamera::nextFrame()
 	{
-		uint8_t* curBuffer  = NULL;
-		uint8_t* lastBuffer = NULL;
-		INT	bufferId = 0;
+        INT ret = IS_SUCCESS;
 
-		if( _runMode == UEYE_MODE_FREERUN ){
-			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 200 /* this is 5fps */ );
-			switch( ret ){
-				case IS_SUCCESS:
-					{
-						// new frame available:
-						if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&curBuffer, ( char** )&lastBuffer ) == IS_SUCCESS ){
-							int bufSeqNum = bufNumForAddr( curBuffer );
-							is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )curBuffer );
-
-							size_t stride;
-							uint8_t * framePtr = _frame.map( &stride );
-
-							// TODO: use our memcpy here with _stride and stride!
-							is_CopyImageMem( _camHandle, (char*)curBuffer, bufSeqNum, (char*)framePtr );
-							
-							if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)curBuffer ) == IS_NO_SUCCESS ){
-								std::cout << "UNLOCK FAILED" << std::endl;
-							}
-							
-							_frame.unmap( framePtr );
-						}
-					}
-					break;
-				case IS_TIMED_OUT:
-					std::cout << "Timeout in nextFrame()" << std::endl;
-					break;
-			}
-		} else {
-			is_SetImageMem( _camHandle, (char*)_buffers[ 0 ], _bufferIds[ 0 ] );
-			if( is_FreezeVideo( _camHandle, IS_DONT_WAIT ) == IS_NO_SUCCESS ){
-				std::cout << "ERROR IN IS_FREEZEVIDEO" << std::endl;
-			}
-		}
+        switch( _runMode ){
+            case UEYE_MODE_FREERUN:
+                ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 200 /* this is 5fps */ );
+                if( ret == IS_TIMED_OUT ){
+                    std::cout << "Timeout in nextFrame()" << std::endl;
+                } else if ( ret == IS_SUCCESS ){
+                    // new frame available:
+                    bufferToFrame();
+                }
+                break;
+            default:
+                ret = is_FreezeVideo( _camHandle, 1000 );
+                if( ret == IS_TIMED_OUT ){
+                    std::cout << "Timeout in nextFrame()" << std::endl;
+                } else if ( ret == IS_SUCCESS ){
+                    // new frame available:
+                    bufferToFrame();
+                }
+        }
 	}
+
+    void UEyeUsbCamera::bufferToFrame()
+    {
+        uint8_t* curBuffer  = NULL;
+        uint8_t* lastBuffer = NULL;
+        INT	bufferId = 0;
+        if( is_GetActSeqBuf( _camHandle, &bufferId, ( char** )&curBuffer, ( char** )&lastBuffer ) == IS_SUCCESS ){
+            int bufSeqNum = bufNumForAddr( curBuffer );
+            is_LockSeqBuf( _camHandle, bufSeqNum, ( char* )curBuffer );
+
+            size_t stride;
+            uint8_t * framePtr = _frame.map( &stride );
+
+            // TODO: use our memcpy here with _stride and stride!?
+            is_CopyImageMem( _camHandle, (char*)curBuffer, bufSeqNum, (char*)framePtr );
+
+            if( is_UnlockSeqBuf( _camHandle, bufSeqNum, (char*)curBuffer ) == IS_NO_SUCCESS ){
+                std::cout << "UNLOCK FAILED" << std::endl;
+            }
+
+            _frame.unmap( framePtr );
+        }
+    }
 
 	const Image & UEyeUsbCamera::frame() const
 	{
-		if( _runMode == UEYE_MODE_FREERUN ){
-			return _frame;
-		} else {
-			INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, 1000 );
-			if ( ret == IS_SUCCESS ) {
-				size_t stride;
-				uint8_t * framePtr = _frame.map( &stride );
-				is_CopyImageMem( _camHandle, (char*)_buffers[ 0 ], 0, (char*)framePtr );
-				_frame.unmap( framePtr );
-				return _frame;
-			} else {
-				std::cout << "timeout -> no new frame arrived" << std::endl;	
-				return _frame;
-			}	
-		}
+        return _frame;
 	}
 
 	size_t UEyeUsbCamera::count()
@@ -402,21 +393,73 @@ namespace cvt
 		return -1;
 	}
 
-	void UEyeUsbCamera::setLiveMode( bool val )
+    void UEyeUsbCamera::setRunMode( RunMode mode )
 	{
-		if( val ) {
-			_runMode = UEYE_MODE_FREERUN;
-			is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_OFF );
-			enableFreerun();
-		} else {
-			if( _runMode == UEYE_MODE_FREERUN ){
-				disableFreerun();
-				enableTriggered();
-			}
-			is_SetExternalTrigger( _camHandle, IS_SET_TRIGGER_SOFTWARE );
-			_runMode = UEYE_MODE_TRIGGERED;
+        if( _runMode == UEYE_MODE_FREERUN &&
+            mode     != UEYE_MODE_FREERUN ){
+            disableFreerun();
+        }
+
+        switch( mode ){
+            case UEYE_MODE_FREERUN:
+                setTriggerMode( TRIGGER_OFF );
+                enableFreerun();
+                break;
+            case UEYE_MODE_TRIGGERED:
+                setTriggerMode( TRIGGER_SOFTWARE );
+                break;
+            case UEYE_MODE_HW_TRIGGER:
+                setTriggerMode( TRIGGER_HI_LO );
+                break;
 		}
+        _runMode = mode;
 	}
+
+    void UEyeUsbCamera::setTriggerMode( TriggerMode mode )
+    {
+        is_SetExternalTrigger( _camHandle, mode );
+    }
+
+    void UEyeUsbCamera::setFlashMode( FlashMode mode )
+    {
+        UINT nMode = mode;
+        is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, ( void* )nMode, sizeof( nMode ) );
+    }
+
+    void UEyeUsbCamera::setTriggerDelay( size_t microSecs )
+    {
+        INT ret = is_SetTriggerDelay( _camHandle, ( INT )microSecs );
+        if( ret != IS_SUCCESS ){
+            std::cout << "Could not set Trigger Delay" << std::endl;
+        }
+    }
+
+    void UEyeUsbCamera::setFlashDelayAndDuration( size_t delayMuSecs, size_t durationMuSecs )
+    {
+        IO_FLASH_PARAMS params, min, max;
+
+        INT ret = IS_SUCCESS;
+
+        ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MIN, ( void* )&min, sizeof( min ) );
+        if( ret == IS_SUCCESS ){
+            if( min.u32Delay    > delayMuSecs )    delayMuSecs    = min.u32Delay;
+            if( min.u32Duration > durationMuSecs ) durationMuSecs = min.u32Delay;
+        }
+
+        ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MAX, ( void* )&max, sizeof( max ) );
+        if( ret == IS_SUCCESS ){
+            if( max.u32Delay    < delayMuSecs )    delayMuSecs    = max.u32Delay;
+            if( max.u32Duration < durationMuSecs ) durationMuSecs = max.u32Delay;
+        }
+
+        params.u32Delay    = delayMuSecs;
+        params.u32Duration = durationMuSecs;
+
+        ret = is_IO( _camHandle, IS_IO_CMD_FLASH_SET_PARAMS, ( void* )&params, sizeof( params ) );
+        if( ret != IS_SUCCESS ){
+            std::cerr << "Could not set delay and duration for Flash";
+        }
+    }
 
 	void UEyeUsbCamera::saveParameters( const String& filename ) const
 	{
@@ -497,19 +540,7 @@ namespace cvt
                 std::cout << "IO_FLASH_MODE_GPIO_4 ";
             }
             std::cout << std::endl;
-        }
-
-
-        /*
-        supportedIOs = is_SetFlashStrobe( _camHandle, IS_GET_SUPPORTED_FLASH_IO_PORTS, 0 );
-
-        std::cout << "Supported Flash IO Ports: ";
-        if( supportedIOs & IS_SET_FLASH_IO_1 ) std::cout << "IS_SET_FLSAH_IO_1 ";
-        if( supportedIOs & IS_SET_FLASH_IO_2 ) std::cout << "IS_SET_FLSAH_IO_2 ";
-        */
-
-
-
+        }        
     }
 
 	void UEyeUsbCamera::enableFreerun()
@@ -521,23 +552,15 @@ namespace cvt
 	{
 		if( is_StopLiveVideo( _camHandle, IS_WAIT ) == IS_NO_SUCCESS )
 			throw CVTException( "Could not stop capture process" );
-	}
-
-	void UEyeUsbCamera::enableTriggered()
-	{
-		/*
-		UINT nMode = IO_FLASH_MODE_TRIGGER_HI_ACTIVE;
-		is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, (void*)&nMode, sizeof(nMode) );
-		*/
-	}
+    }
 
 	void UEyeUsbCamera::enableEvents()
 	{
-		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
+		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );        
 	}
 
 	void UEyeUsbCamera::disableEvents()
 	{
-		is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
+        is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
 	}
 }
