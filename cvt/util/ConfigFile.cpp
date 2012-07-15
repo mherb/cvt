@@ -19,23 +19,19 @@ namespace cvt {
 
     ConfigFile::ConfigFile( const String& filename )
     {
-        if( !FileSystem::exists( filename ) ){
-            String msg;
-            msg.sprintf( "Could not find config file: %s", filename.c_str() );
-            throw CVTException(  msg.c_str() );
-        }
+		if( FileSystem::exists( filename ) ){
+			Data data;
+			FileSystem::load( data, filename );
+			DataIterator it( data );
 
-        Data data;
-        FileSystem::load( data, filename );
-        DataIterator it( data );
-
-        while( it.hasNext() ){
-            std::vector<String> tokens;
-            it.tokenizeNextLine( tokens, "= " );
-            if( tokens.size() == 2 ){
-                _values[ tokens[ 0 ] ] = tokens[ 1 ];
-            }
-        }
+			while( it.hasNext() ){
+				std::vector<String> tokens;
+				it.tokenizeNextLine( tokens, "= " );
+				if( tokens.size() == 2 ){
+					_values[ tokens[ 0 ] ] = tokens[ 1 ];
+				}
+			}
+		}
     }
 
     void ConfigFile::save( const String& filename ) const
