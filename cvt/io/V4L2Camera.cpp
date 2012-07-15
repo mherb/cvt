@@ -221,7 +221,7 @@ namespace cvt {
 		}
 	}
 
-	void V4L2Camera::nextFrame()
+	bool V4L2Camera::nextFrame( size_t tout )
 	{
 		fd_set rdset;
 		struct timeval timeout;
@@ -233,15 +233,15 @@ namespace cvt {
 		FD_ZERO(&rdset);
 		FD_SET(_fd, &rdset);
 		timeout.tv_sec = 0; // 1 sec timeout
-		timeout.tv_usec = 50000; // 50ms
+		timeout.tv_usec = tout * 1000; // ms
 
 		// select - wait for data or timeout
 		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
 		if (ret < 0){
 			throw CVTException("Could not grab image (select error)");
 		} else if( ret == 0 ) {
-			return;
-//			throw CVTException( "Could not grab image (select timeout)" );
+			// timeout!
+			return false;
 		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -275,6 +275,8 @@ namespace cvt {
 		if (ret < 0){
 			throw CVTException("Unable to requeue buffer");
 		}
+
+		return true;
 	}
 
 	const Image & V4L2Camera::frame() const

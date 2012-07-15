@@ -38,7 +38,7 @@ namespace cvt
 
             void			startCapture();
             void			stopCapture();
-            void			nextFrame();
+            bool			nextFrame( size_t timeOut = 30 );
             const Image&	frame() const;
             const Image&	depth() const;
 

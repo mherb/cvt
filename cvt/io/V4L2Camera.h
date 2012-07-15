@@ -30,7 +30,7 @@ namespace cvt {
 			size_t height() const;
 			const IFormat & format() const;
 			const Image & frame() const;
-			void nextFrame();
+			bool nextFrame( size_t timeout = 30 );
 			void startCapture();
 			void stopCapture();
 

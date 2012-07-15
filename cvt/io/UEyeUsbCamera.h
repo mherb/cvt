@@ -31,7 +31,7 @@ class UEyeUsbCamera : public Camera
                 FLASH_PERMANENT_HIGH = IO_FLASH_MODE_CONSTANT_HIGH,
                 FLASH_PERMANENT_LOW = IO_FLASH_MODE_CONSTANT_LOW,
                 FLASH_HIGH_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_HI_ACTIVE,
-                FLASH_LOW_ON_EXPOSUE = IO_FLASH_MODE_TRIGGER_LO_ACTIVE
+                FLASH_LOW_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_LO_ACTIVE
             };
 
             enum TriggerMode {
@@ -48,7 +48,7 @@ class UEyeUsbCamera : public Camera
 
             void			startCapture();
             void			stopCapture();
-			void			nextFrame();
+			bool			nextFrame( size_t timeout = 50 );
             const Image&	frame() const;
 
             static size_t	count();
