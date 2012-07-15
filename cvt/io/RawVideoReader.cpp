@@ -100,7 +100,7 @@ namespace cvt
 	}
 
 
-	void RawVideoReader::nextFrame()
+	bool RawVideoReader::nextFrame( size_t )
 	{
 		if( _currentFrame < _numFrames ){
 			size_t istride;
@@ -123,7 +123,9 @@ namespace cvt
 			}
 			_frame.unmap( iptr );
 			_currentFrame++;
+			return true;
 		}
+		return false;
 	}
 }
 

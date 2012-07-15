@@ -134,7 +134,7 @@ namespace cvt {
 		}
 	}
 
-	void VideoReader::nextFrame()
+	bool VideoReader::nextFrame( size_t )
 	{
 		int	frameFinished;
 
@@ -194,6 +194,7 @@ namespace cvt {
 
 		if( ret < 0 && _autoRewind )
 			this->rewind();
+		return true;
 	}
 
 	void VideoReader::rewind()

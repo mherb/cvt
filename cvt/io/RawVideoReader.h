@@ -27,7 +27,7 @@ namespace cvt {
 			size_t  height() const;
 			const   IFormat & format() const;
 			const   Image & frame() const;
-			void    nextFrame();
+			bool    nextFrame( size_t timeout = 0 );
 			size_t	numFrames() const { return _numFrames; };
 
 		private:
