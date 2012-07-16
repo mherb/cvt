@@ -31,14 +31,16 @@ class UEyeUsbCamera : public Camera
                 FLASH_PERMANENT_HIGH = IO_FLASH_MODE_CONSTANT_HIGH,
                 FLASH_PERMANENT_LOW = IO_FLASH_MODE_CONSTANT_LOW,
                 FLASH_HIGH_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_HI_ACTIVE,
-                FLASH_LOW_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_LO_ACTIVE
+                FLASH_LOW_ON_EXPOSURE = IO_FLASH_MODE_TRIGGER_LO_ACTIVE,
+                FLASH_HIGH_ON_EXPOSURE_FR = IO_FLASH_MODE_FREERUN_HI_ACTIVE,
+                FLASH_LOW_ON_EXPOSURE_FR = IO_FLASH_MODE_FREERUN_LO_ACTIVE
             };
 
             enum TriggerMode {
                 TRIGGER_OFF         = IS_SET_TRIGGER_OFF,
                 TRIGGER_SOFTWARE    = IS_SET_TRIGGER_SOFTWARE,
                 TRIGGER_HI_LO       = IS_SET_TRIGGER_HI_LO, /* Trigger on falling edge */
-                TRIGGER_LO_HI       = IS_SET_TRIGGER_LO_HI, /* Trigger on raising edge */
+                TRIGGER_LO_HI       = IS_SET_TRIGGER_LO_HI, /* Trigger on raising edge */                
                 TRIGGER_HI_LO_SYNC  = IS_SET_TRIGGER_HI_LO_SYNC, /* Trigger on falling edge in freerun */
                 TRIGGER_LO_HI_SYNC  = IS_SET_TRIGGER_LO_HI_SYNC /* Trigger on raising edge in freerun */
             };
@@ -49,6 +51,7 @@ class UEyeUsbCamera : public Camera
             void			startCapture();
             void			stopCapture();
 			bool			nextFrame( size_t timeout = 50 );
+            bool            waitFrame( size_t timeout = 50 );
             const Image&	frame() const;
 
             static size_t	count();
@@ -85,6 +88,8 @@ class UEyeUsbCamera : public Camera
 			void	loadParameters( const String& filename );
 
             void    testIOSupport();
+
+            bool    waitTriggerEvent( size_t timeout );
 
         private:
             bool	initCam();

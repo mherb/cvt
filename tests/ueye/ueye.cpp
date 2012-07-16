@@ -35,9 +35,14 @@ class CameraTimeout : public TimeoutHandler
 		{
             _cam->setFramerate( 30 );
 			_cam->startCapture();
-            _cam->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
 
-            _cam->setTriggerDelay( 0 );
+            //_cam->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
+            _cam->setRunMode( UEyeUsbCamera::UEYE_MODE_TRIGGERED );
+
+            _cam->setFlashMode( UEyeUsbCamera::FLASH_LOW_ON_EXPOSURE );
+            _cam->setFlashDelayAndDuration( 0, 40 );
+
+            //_cam->setTriggerDelay( 0 );
 
 			_cam->setHardwareGains( 0, 8, 0, 14 );
 			_timer.reset();
