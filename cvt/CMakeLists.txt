@@ -688,6 +688,7 @@ IF( UEYEUSB_FOUND AND CVT_USEUEYE )
    SET(${MODULE_NAME}_HEADERS
       ${${MODULE_NAME}_HEADERS}
       io/UEyeUsbCamera.h
+      io/UEyeStereo.h
    )
    SET(${MODULE_NAME}_SOURCES
       ${${MODULE_NAME}_SOURCES}

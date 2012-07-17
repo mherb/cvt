@@ -12,7 +12,7 @@
 #include <cvt/gui/BasicTimer.h>
 #include <cvt/gui/TimeoutHandler.h>
 
-#include <UEyeStereo.h>
+#include <cvt/io/UEyeStereo.h>
 
 using namespace cvt;
 
@@ -77,12 +77,12 @@ class MultiCamApp : public TimeoutHandler
 
 		void onTimeout()
 		{
-			_stereo.nextFrame();
+            if( _stereo.nextFrame() ){
+                _views[ 0 ]->setImage( _stereo.masterFrame() );
+                _views[ 1 ]->setImage( _stereo.slaveFrame() );
+                _frames++;
+            }
 
-			_views[ 0 ]->setImage( _stereo.masterFrame() );
-			_views[ 1 ]->setImage( _stereo.slaveFrame() );
-			
-			_frames++;
 			if( _timer.elapsedSeconds() > 2.0f ) {
 				char buf[ 200 ];
 				sprintf( buf,"UEye synced  FPS: %.2f", _frames / _timer.elapsedSeconds() );
@@ -134,12 +134,13 @@ int main( int, char** )
 {
 
 	ConfigFile	config( "ueye_config.cfg" );
+    String masterId = config.valueForName<String>( "master", "4002738790" );
+    String slaveId  = config.valueForName<String>( "slave",  "4002738788" );
 
-	String slaveId  = config.valueForName<String>( "slave",  "TODOFILL ID" );
-	String masterId = config.valueForName<String>( "master", "TODOFILL ID" );
+    config.save( "ueye_config.cfg" );
 
-	UEyeStereo stereo( masterId, slaveId );
 	try {
+        UEyeStereo stereo( masterId, slaveId );
 		MultiCamApp camTimeOut( stereo );
 		Application::run();
 

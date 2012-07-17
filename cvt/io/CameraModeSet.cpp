@@ -92,7 +92,7 @@ namespace cvt {
 
 	const CameraMode & CameraModeSet::mode( size_t index ) const
 	{
-		if( index > _modes.size() ){
+        if( index >= _modes.size() ){
 			throw CVTException( "Mode index out of bounds" );
 		}
 
