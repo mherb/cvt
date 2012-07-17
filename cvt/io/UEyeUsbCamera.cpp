@@ -263,27 +263,43 @@ namespace cvt
 
         switch( _runMode ){
             case UEYE_MODE_FREERUN:
-                ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, timeout );
-				if( ret == IS_TIMED_OUT ){
-					// timeout
-					return false; 
-				} else if ( ret == IS_SUCCESS ){
-                    // new frame available:
-                    bufferToFrame();
-                }
+                if( timeout )
+                    return waitFrame( timeout );
                 break;
-            default:
-                ret = is_FreezeVideo( _camHandle, timeout );
-                if( ret == IS_TIMED_OUT ){
-					// timeout
-					return false; 
-                } else if ( ret == IS_SUCCESS ){
-                    // new frame available:
-                    bufferToFrame();
+            default:                
+                ret = is_FreezeVideo( _camHandle, IS_DONT_WAIT );
+                if( ret == IS_SUCCESS ){
+                    if( timeout )
+                        return waitFrame( timeout );
                 }
         }
-		return true;
+        return false;
 	}
+
+    bool UEyeUsbCamera::waitFrame( size_t ms )
+    {
+        if( ms && ms < 10 )
+            ms = 10;
+        else
+            ms = ms * 0.1f;
+        INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_FRAME, ms );
+
+        if( ret == IS_SUCCESS ){
+            bufferToFrame();
+            return true;
+        }
+        return false;
+    }
+
+    bool UEyeUsbCamera::waitTriggerEvent( size_t timeout )
+    {
+        int tout = timeout / 10;
+        INT ret = is_WaitEvent( _camHandle, IS_SET_EVENT_EXTTRIG, tout );
+
+        if( ret == IS_SUCCESS )
+            return true;
+        return false;
+    }
 
     void UEyeUsbCamera::bufferToFrame()
     {
@@ -398,8 +414,8 @@ namespace cvt
 
     void UEyeUsbCamera::setRunMode( RunMode mode )
 	{
-        if( _runMode == UEYE_MODE_FREERUN &&
-            mode     != UEYE_MODE_FREERUN ){
+        if( ( _runMode == UEYE_MODE_FREERUN ) &&
+            ( mode     != UEYE_MODE_FREERUN ) ){
             disableFreerun();
         }
 
@@ -410,6 +426,7 @@ namespace cvt
                 break;
             case UEYE_MODE_TRIGGERED:
                 setTriggerMode( TRIGGER_SOFTWARE );
+                //setTriggerMode( TRIGGER_OFF );
                 break;
             case UEYE_MODE_HW_TRIGGER:
                 setTriggerMode( TRIGGER_HI_LO );
@@ -420,13 +437,20 @@ namespace cvt
 
     void UEyeUsbCamera::setTriggerMode( TriggerMode mode )
     {
-        is_SetExternalTrigger( _camHandle, mode );
+        int ret = is_SetExternalTrigger( _camHandle, mode );
+
+        if( ret != IS_SUCCESS ){
+            std::cerr << "Could not set trigger mode!" << std::endl;
+        }
     }
 
     void UEyeUsbCamera::setFlashMode( FlashMode mode )
     {
-        UINT nMode = mode;
-        is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, ( void* )nMode, sizeof( nMode ) );
+        INT nMode = mode;
+        int ret = is_IO( _camHandle, IS_IO_CMD_FLASH_SET_MODE, ( void* )&nMode, sizeof( nMode ) );
+        if( ret != IS_SUCCESS ){
+            std::cerr << "Could not set flashmode" << std::endl;
+        }
     }
 
     void UEyeUsbCamera::setTriggerDelay( size_t microSecs )
@@ -441,22 +465,30 @@ namespace cvt
     {
         IO_FLASH_PARAMS params, min, max;
 
+        memset( &params, 0, sizeof( params ) );
+        memset( &min, 0, sizeof( min ) );
+        memset( &max, 0, sizeof( max ) );
+
         INT ret = IS_SUCCESS;
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MIN, ( void* )&min, sizeof( min ) );
         if( ret == IS_SUCCESS ){
             if( min.u32Delay    > delayMuSecs )    delayMuSecs    = min.u32Delay;
-            if( min.u32Duration > durationMuSecs ) durationMuSecs = min.u32Delay;
+            if( min.u32Duration > durationMuSecs ) durationMuSecs = min.u32Duration;
         }
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MAX, ( void* )&max, sizeof( max ) );
         if( ret == IS_SUCCESS ){
             if( max.u32Delay    < delayMuSecs )    delayMuSecs    = max.u32Delay;
-            if( max.u32Duration < durationMuSecs ) durationMuSecs = max.u32Delay;
+            if( max.u32Duration < durationMuSecs ) durationMuSecs = max.u32Duration;
         }
 
         params.u32Delay    = delayMuSecs;
         params.u32Duration = durationMuSecs;
+
+        std::cout << "Delay: " << delayMuSecs << " Duration: " << durationMuSecs << std::endl;
+        std::cout << "Min Delay: " << min.u32Delay << " Duration: " << min.u32Duration << std::endl;
+        std::cout << "Max Delay: " << max.u32Delay << " Duration: " << max.u32Duration << std::endl;
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_SET_PARAMS, ( void* )&params, sizeof( params ) );
         if( ret != IS_SUCCESS ){
@@ -559,11 +591,13 @@ namespace cvt
 
 	void UEyeUsbCamera::enableEvents()
 	{
-		is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );        
+        is_EnableEvent( _camHandle, IS_SET_EVENT_FRAME );
+        is_EnableEvent( _camHandle, IS_SET_EVENT_EXTTRIG );
 	}
 
 	void UEyeUsbCamera::disableEvents()
 	{
         is_DisableEvent( _camHandle, IS_SET_EVENT_FRAME );
+        is_DisableEvent( _camHandle, IS_SET_EVENT_EXTTRIG );
 	}
 }
