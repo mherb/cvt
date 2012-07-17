@@ -17,6 +17,7 @@
 #include <cvt/math/SE3.h>
 #include <cvt/util/EigenBridge.h>
 #include <cvt/util/Signal.h>
+#include <cvt/util/CVTAssert.h>
 
 namespace cvt {
 
@@ -160,12 +161,12 @@ namespace cvt {
     template <class DerivedKF>
     inline void RGBDVisualOdometry<DerivedKF>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
-        Image dFloat( depth.width(), depth.height(), IFormat::GRAY_FLOAT );
-        depth.convert( dFloat );
+        CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
+        CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
         if( _activeKeyframe )
             delete _activeKeyframe;
-        _activeKeyframe = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
+        _activeKeyframe = KeyframeType::create( gray, depth, kfPose, _intrinsics, _params );
 
         // DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
         //_keyframes.push_back( kf );

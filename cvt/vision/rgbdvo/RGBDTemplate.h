@@ -54,7 +54,7 @@ namespace cvt {
             /* extract 3D Points from depth & corresponding pixel values */
             void updateTemplate( const Image& gray, const Image& depth, const Matrix4<T>& pose, const Matrix3Type& K, const Params &params );
 
-            const WorldPointType*   points()    const { return &_points3d[ 0 ]; }            
+            const WorldPointType*   points()    const { return &_points3d[ 0 ]; }
             const float*            pixels()    const { return &_pixelValues[ 0 ]; }
             size_t                  numPoints() const { return _points3d.size(); }
 
@@ -101,6 +101,9 @@ namespace cvt {
         size_t floatStride = grayMap.stride() / sizeof( float );
 
         { // prereserve space
+            _pixelValues.clear();
+            _pointOffsets.clear();
+            _points3d.clear();
             const size_t reserveSize = gray.width() * gray.height() * 0.8;
             _pixelValues.reserve( reserveSize );
             _pointOffsets.reserve( reserveSize );
@@ -117,20 +120,15 @@ namespace cvt {
                 if( z > params.minDepth ){
                     _pixelValues.push_back( value[ x ] );
                     _pointOffsets.push_back( floatStride * y + x );
+
                     Vector3f p( tmpx[ x ] * z, tmpy[ y ] * z, z );
-                    _points3d.push_back( pose * p );
-
-
-
-                    std::cout << "Added Point:  " << p << std::endl;
-                    std::cout << "Scale: " << scale << std::endl;
-                    //std::cout << "World Coords: " << _points3d.back() << std::endl;
-
+                    //_points3d.push_back( pose * p );
+                    _points3d.push_back( p );
                 }
             }
             grayMap++;
         }
-	}
+    }
 
 }
 
