@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
 */
 
 #include <cvt/io/FileSystem.h>
@@ -19,19 +19,19 @@ namespace cvt {
 
     ConfigFile::ConfigFile( const String& filename )
     {
-		if( FileSystem::exists( filename ) ){
-			Data data;
-			FileSystem::load( data, filename );
-			DataIterator it( data );
+        if( FileSystem::exists( filename ) ){
+            Data data;
+            FileSystem::load( data, filename );
+            DataIterator it( data );
 
-			while( it.hasNext() ){
-				std::vector<String> tokens;
-				it.tokenizeNextLine( tokens, "= " );
-				if( tokens.size() == 2 ){
-					_values[ tokens[ 0 ] ] = tokens[ 1 ];
-				}
-			}
-		}
+            while( it.hasNext() ){
+                std::vector<String> tokens;
+                it.tokenizeNextLine( tokens, "= " );
+                if( tokens.size() == 2 ){
+                    _values[ tokens[ 0 ] ] = tokens[ 1 ];
+                }
+            }
+        }
     }
 
     void ConfigFile::save( const String& filename ) const
@@ -94,12 +94,36 @@ namespace cvt {
     double ConfigFile::valueForName<double>( const String& name, double defaultValue )
     {
         MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){String sval;
+        if( it == _values.end() ){
+            String sval;
             sval.sprintf( "%0.10g", defaultValue );
             _values[ name ] = sval;
             return defaultValue;
         } else {
             return it->second.toDouble();
+        }
+    }
+
+    template <>
+    bool ConfigFile::valueForName<bool>( const String& name, bool defaultValue )
+    {
+        MapType::const_iterator it = _values.find( name );
+        if( it == _values.end() ){
+            if( defaultValue ){
+                _values[ name ] = "true";
+            } else {
+                _values[ name ] = "false";
+            }
+            return defaultValue;
+        } else {
+            String lower( it->second );
+            lower.toLower();
+            if( lower == "true" ||
+                it->second == "1" ){
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
