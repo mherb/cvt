@@ -55,24 +55,31 @@ namespace cvt
         _parser.loadNext();
         while( _parser.data().poseValid == false )
             _parser.loadNext();
+
+        Image dFloat;
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
-        _vo.addNewKeyframe( gray, _parser.data().depth, _parser.data().pose );
+        _parser.data().depth.convert( dFloat, IFormat::GRAY_FLOAT );
+
+
+        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose );
 
         _alignerRelativePose = _parser.data().pose;
 
-        _aligner.alignFrames( _alignerRelativePose, gray, _parser.data().depth );
+        _aligner.alignFrames( _alignerRelativePose, gray, dFloat );
 #endif
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
 
         _fileOut.open( "trajectory.txt" );
+        _fileOutFwd.open( "trajectoryFwd.txt" );
     }
 
     RGBDVOApp::~RGBDVOApp()
     {
         Application::unregisterTimer( _timerId );
         _fileOut.close();
+        _fileOutFwd.close();
     }
 
     bool RGBDVOApp::positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose )
@@ -112,19 +119,23 @@ namespace cvt
             Matrix4f lastPose;
             _vo.pose( lastPose );
             Time t;
+
+            Image depth, gray;
+
 #ifdef USE_CAM
-            Image gray;
             _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
-            _vo.updatePose( gray, _cam.depth() );
+            _cam.frame().convert( depth, IFormat::GRAY_FLOAT );
+            _vo.updatePose( gray, depth );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
+
             // try to align:
-            Image gray( d.rgb.width(), d.rgb.height(), IFormat::GRAY_FLOAT );
-            d.rgb.convert( gray );
+            d.rgb.convert( gray, IFormat::GRAY_FLOAT );
+            d.depth.convert( depth, IFormat::GRAY_FLOAT );
 
-            _vo.updatePose( gray, d.depth );
-
-            _aligner.alignFrames( _alignerRelativePose, gray, d.depth );
+            _vo.updatePose( gray, depth );
+            _aligner.alignFrames( _alignerRelativePose, gray, depth );
+            std::cout << "Forward Compositional: \n" << _alignerRelativePose << std::endl;
 #endif
 
             const VOResult& result = _vo.lastResult();
@@ -138,17 +149,12 @@ namespace cvt
             title.sprintf( "RGBDVO: Avg. Speed %0.1f ms", _cumulativeAlignmentSpeed / _numAlignments );
             _mainWindow.setTitle( title );
 
-
             // update the absolute pose
             Matrix4f absPose;
             _vo.pose( absPose );
             if( positionJumped( absPose, lastPose) ){
-                std::cout << "Position Jump at iteratio: " << iter << std::endl;
+                std::cout << "Position Jump at iteration: " << iter << std::endl;
             }
-
-            std::cout << "Inverse Compositional Pose: \n" << absPose << std::endl;
-            std::cout << "Forward Compositional Pose: \n" << _alignerRelativePose << std::endl;
-            std::cout << "Difference: \n" << absPose - _alignerRelativePose << std::endl;
 
 #ifndef USE_CAM
             if( d.poseValid ){
@@ -157,7 +163,8 @@ namespace cvt
                 _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - d.pose[ 2 ][ 3 ] );
                 _validPoseCounter++;
             }
-            writePose( absPose, d.stamp );
+            writePose( _fileOut, absPose, d.stamp );
+            writePose( _fileOutFwd, _alignerRelativePose, d.stamp );
             _poseView.setGTPose( d.pose );
 #endif
 
@@ -165,12 +172,12 @@ namespace cvt
         }
     }
 
-    void RGBDVOApp::writePose( const Matrix4f& pose, double stamp )
+    void RGBDVOApp::writePose( std::ofstream &file, const Matrix4f &pose, double stamp )
     {
         Quaternionf q( pose.toMatrix3() );
 
-        _fileOut.precision( 15 );
-        _fileOut << std::fixed << stamp << " "
+        file.precision( 15 );
+        file << std::fixed << stamp << " "
                  << pose[ 0 ][ 3 ] << " "
                  << pose[ 1 ][ 3 ] << " "
                  << pose[ 2 ][ 3 ] << " "
@@ -178,7 +185,6 @@ namespace cvt
                  << q.y << " "
                  << q.z << " "
                  << q.w << std::endl;
-
     }
 
     void RGBDVOApp::setupGui()
