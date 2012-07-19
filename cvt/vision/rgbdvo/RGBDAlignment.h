@@ -94,15 +94,12 @@ namespace cvt
             {
                 int lx = ( int )pos.x;
                 int ly = ( int )pos.y;
-                mix.x = pos.x - lx;
-                mix.y = pos.y - ly;
+                mix.x = ( float )pos.x - lx;
+                mix.y = ( float )pos.y - ly;
             }
 
             float interpolatePixelValue( const float* p0, const float* p1, const Vector2f& mix ) const
             {
-                //const float* p0 = ptr + ly * stride + lx;
-                //const float* p1 = p0 + stride;
-
                 float v0 = Math::mix( p0[ 0 ], p0[ 1 ], mix.x );
                 float v1 = Math::mix( p1[ 0 ], p1[ 1 ], mix.x );
                 return Math::mix( v0, v1, mix.y );
@@ -157,11 +154,16 @@ namespace cvt
             return;
         }
 
-        Matrix4<T> poseEstimate = pose.inverse();
-        Eigen::Matrix<T, 4, 4> pE;
-        EigenBridge::toEigen( pE, poseEstimate );
+        //Matrix4<T> poseEstimate = pose.inverse();
+        //Eigen::Matrix<T, 4, 4> pE;
+        //EigenBridge::toEigen( pE, poseEstimate );
+
+        Matrix4<T> poseEstimate;
+        poseEstimate.setIdentity();
         SE3<T> poseRep;
-        poseRep.set( pE );
+
+        // TODO: relative pose! We start at identity
+        //poseRep.set( pE );
 
         typename SE3<T>::ScreenJacType sJ;
         typename SE3<T>::PointType point3DEigen;
@@ -188,15 +190,15 @@ namespace cvt
             pts2d.resize( tData.numPoints() );
             pts3d.resize( tData.numPoints() );
 
-            size_t w = currI.width();
-            size_t h = currI.height();
+            size_t w = currI.width() - 1;
+            size_t h = currI.height() - 1;
 
             EigenBridge::toEigen( KEigen, _calibForScale[ o ] );
 
             IMapScoped<const float> gxMap( gx );
             IMapScoped<const float> gyMap( gy );
             IMapScoped<const float> iMap( currI );
-            size_t floatStride = gxMap.stride() / sizeof( float );
+            size_t floatStride = iMap.stride() / sizeof( float );
 
             while( iter < _params.maxIterationsPerScale ){
                 // warp the template points to image space using K, R & t
@@ -209,53 +211,39 @@ namespace cvt
                 // for each point that projects into the image:
                 for( size_t i = 0; i < pts2d.size(); i++ ){
                     const Vector2<T>& p2 = pts2d[ i ];
-                    if( p2.x >= 0.0 && p2.x < w && p2.y >= 0 && p2.y < h ){
-                        //  * evaluate the jacobian: involves gradient interpolation
-                        //  * evaluate the residual by interpolation
+                    if( pts3d[ i ].z > 0 && p2.x >= 0.0 && p2.x < w && p2.y >= 0 && p2.y < h ){
+
                         EigenBridge::toEigen( point3DEigen, pts3d[ i ] );
                         poseRep.screenJacobian( sJ, point3DEigen, KEigen );
 
-
-                        size_t offset0 = ( size_t ) p2.y * floatStride + p2.x;
+                        int x = p2.x;
+                        int y = p2.y;
+                        size_t offset0 = y * floatStride + x;
                         size_t offset1 = offset0 + floatStride;
 
                         computeMixingCoeffs( interpolationWeights, p2 );
 
                         // interpolate the gradient & the pixel value:
                         grad( 0, 0 ) = interpolatePixelValue( gxMap.ptr() + offset0,
-                                                              gxMap.ptr() + offset1,
-                                                              interpolationWeights );
+                                                           gxMap.ptr() + offset1,
+                                                           interpolationWeights );
                         grad( 0, 1 ) = interpolatePixelValue( gyMap.ptr() + offset0,
-                                                              gyMap.ptr() + offset1,
-                                                              interpolationWeights );
+                                                           gyMap.ptr() + offset1,
+                                                           interpolationWeights );
 
                         float v = interpolatePixelValue( iMap.ptr() + offset0,
                                                          iMap.ptr() + offset1,
                                                          interpolationWeights );
 
-                        /*
-                        std::cout << "Point3D: " << pts3d[ i ] << std::endl;
-                        std::cout << "Gradient: " << grad << std::endl;
-                        std::cout << "Pixel: " << v << std::endl;
-                        std::cout << "Residual: " << v - templatePixels[ i ] << std::endl;
-                        */
-
-
-
                         // the final jacobian
                         j = grad * sJ;
-                        jtjSum.noalias() += ( j.transpose() * j );
-                        jSum.noalias()   += j * ( v -  templatePixels[ i ] );
+                        jtjSum += ( j.transpose() * j );
+                        jSum   += ( j * ( v -  templatePixels[ i ] ) );
+
                     }
                 }
 
                 delta = -jtjSum.inverse() * jSum.transpose();
-
-                std::cout << "H\n" << jtjSum << std::endl;
-                std::cout << "jres\n" << jSum << std::endl;
-                std::cout << "delta\n" << delta << std::endl;
-                getchar();
-
                 if( delta.norm() < _params.minParamUpdate )
                     break;
 
@@ -266,7 +254,10 @@ namespace cvt
                 iter++;
             }
         }
-        pose = poseEstimate.inverse();
+
+        pose = pose * poseEstimate.inverse();
+
+        updateTemplateData( depth, pose );
     }
 
     template <typename T>

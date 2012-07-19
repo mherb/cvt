@@ -16,6 +16,7 @@
 #include <math.h>
 #include <float.h>
 #include <iostream>
+#include <limits>
 
 #include <cvt/util/Exception.h>
 
@@ -77,7 +78,12 @@ namespace cvt {
 
         template<typename T> static inline T sqr( T v ) { return v * v; }
 
-        template<typename T> static inline T isNaN( T v ) { return v != v; }
+        template<typename T> static inline bool isNaN( T v ) { return v != v; }
+        template<typename T> static inline bool isInf( T v )
+        {
+            return ( std::numeric_limits<T>::has_infinity &&
+                     v == std::numeric_limits<T>::infinity() );
+        }
 
         size_t solveQuadratic( float a, float b, float c, float (&result)[ 2 ] );
         size_t solveQuadratic( double a, double b, double c, double (&result)[ 2 ] );
