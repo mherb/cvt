@@ -192,7 +192,7 @@ namespace cvt
         //_master->setRunMode( UEyeUsbCamera::UEYE_MODE_FREERUN );
         //_master->setFlashMode( UEyeUsbCamera::FLASH_LOW_ON_EXPOSURE_FR );
 
-        _master->setFlashDelayAndDuration( 200, 200 );
+        _master->setFlashDelayAndDuration( 20, 200 );
 
 		// slave is triggered by hardware (master)!
 		_slave->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
