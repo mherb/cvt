@@ -66,6 +66,7 @@ namespace cvt
                 size_t                      _validPoseCounter;
 
                 std::ofstream               _fileOut;
+                std::ofstream               _fileOutFwd;
 
                 float                       _cumulativeAlignmentSpeed;
                 size_t                      _numAlignments;
@@ -99,7 +100,7 @@ namespace cvt
                 void optimizePressed();
                 void toggleStepping();
 
-                void writePose( const Matrix4f& pose, double stamp );
+                void writePose( std::ofstream& file, const Matrix4f& pose, double stamp );
 
                 bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
     };

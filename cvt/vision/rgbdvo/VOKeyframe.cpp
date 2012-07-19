@@ -139,10 +139,10 @@ namespace cvt
         size_t floatStride = grayMap.stride() / sizeof( float );
 
 
-        Image warpedOut( gray.width(), gray.height(), gray.format() );
-        warpedOut.fill( Color::WHITE );
-        IMapScoped<float> warpedMap( warpedOut );
-        float* wOut = warpedMap.ptr();
+        //Image warpedOut( gray.width(), gray.height(), gray.format() );
+        //warpedOut.fill( Color::WHITE );
+        //IMapScoped<float> warpedMap( warpedOut );
+        //float* wOut = warpedMap.ptr();
         while( result.iterations < params.maxIters ){
             // build the updated projection Matrix
             const Eigen::Matrix4f& m = predicted.pose.transformation();
@@ -163,7 +163,7 @@ namespace cvt
                     pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
                     float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
 
-                    wOut[ _pixelOffsets[ i ] ] = v;
+          //          wOut[ _pixelOffsets[ i ] ] = v;
 
                     // compute the delta
                     float delta = _pixelValues[ i ] - v;
@@ -184,10 +184,11 @@ namespace cvt
                 break;
         }
 
+        /*
         String outName;
         outName.sprintf( "warped_%d_%d.png", gray.width(), gray.height() );
         warpedOut.save( outName );
-
+        */
         return result;
     }
 }
