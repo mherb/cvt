@@ -513,7 +513,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/IScaleFilter.cpp
    gfx/IKernel.cpp
    gfx/ColorspaceXYZ.cpp
-   geom/KDTree.cpp
+   geom/KDTreeTest.cpp
    geom/Rect.cpp
    geom/PointSetTest.cpp
    geom/scene/Scene.cpp
