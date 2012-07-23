@@ -27,9 +27,22 @@ namespace cvt
             {
                 Image		rgb;
                 Image		depth;
-                Matrix4f	pose;
+
+                Quaterniond orientation;
+                Vector3d    position;
+
                 bool        poseValid;
                 double		stamp;
+
+                template<typename T>
+                Matrix4<T> pose() const
+                {
+                    Matrix4d mat = orientation.toMatrix4();
+                    mat[ 0 ][ 3 ] = position.x;
+                    mat[ 1 ][ 3 ] = position.y;
+                    mat[ 2 ][ 3 ] = position.z;
+                    return ( Matrix4<T> )mat;
+                }
             };
 
             RGBDParser( const String& folder, double maxStampDiff = 0.05 );
@@ -42,14 +55,15 @@ namespace cvt
             const RGBDSample&	data()    const { return _sample; }
 
         private:
-            const double			_maxStampDiff;
-            String					_folder;
+            const double			 _maxStampDiff;
+            String					 _folder;
 
-            std::vector<Matrix4f>	_groundTruthPoses;
-            std::vector<String>		_rgbFiles;
-            std::vector<String>		_depthFiles;
-            std::vector<double>		_stamps;
-            std::vector<bool>		_poseValid;
+            std::vector<Quaterniond> _orientations;
+            std::vector<Vector3d>    _positions;
+            std::vector<String>		 _rgbFiles;
+            std::vector<String>		 _depthFiles;
+            std::vector<double>		 _stamps;
+            std::vector<bool>		 _poseValid;
 
             RGBDSample				_sample;
             size_t					_idx;
@@ -59,7 +73,8 @@ namespace cvt
             void loadDepthFilenames( std::vector<double> & stamps );
             void loadDepthAndRGB( std::vector<double>& rgbStamps, std::vector<double>& depthStamps );
 
-            bool readNext( Matrix4f& pose, double& stamp, DataIterator& iter );
+            bool readNext( Quaterniond& orientation, Vector3d& position, double& stamp, DataIterator& iter );
+
             bool readNextFilename( String& filename, double& stamp, DataIterator& iter );
 
             void sortOutData( const std::vector<double>& rgbStamps,
