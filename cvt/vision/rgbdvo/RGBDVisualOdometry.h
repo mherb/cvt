@@ -64,7 +64,7 @@ namespace cvt {
             Signal<const Matrix4f&>    keyframeAdded;
 
             /**
-             *  \brief  Signal that will be emitted when a the active keyframe changed
+             *  \brief  Signal that will be emitted when the active keyframe changed
              */
             Signal<void>               activeKeyframeChanged;
 

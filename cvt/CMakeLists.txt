@@ -172,6 +172,7 @@ SET(${MODULE_NAME}_HEADERS
    container/List.h
    container/RBTree.h
    geom/ArcBall.h
+   geom/Ellipse.h
    geom/QBezier.h
    geom/CBezier.h
    geom/KDTree.h
@@ -188,6 +189,7 @@ SET(${MODULE_NAME}_HEADERS
    geom/scene/SceneMaterial.h
    geom/scene/SceneMesh.h
    geom/scene/SceneNode.h
+   geom/scene/ScenePoints.h
    geom/scene/SceneSpatial.h
    geom/scene/SceneTexture.h
    gfx/Color.h
