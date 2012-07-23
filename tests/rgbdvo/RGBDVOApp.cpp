@@ -61,9 +61,9 @@ namespace cvt
         _parser.data().depth.convert( dFloat, IFormat::GRAY_FLOAT );
 
 
-        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose );
+        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose<float>() );
 
-        _alignerRelativePose = _parser.data().pose;
+        _alignerRelativePose = _parser.data().pose<float>();
 
         _aligner.alignFrames( _alignerRelativePose, gray, dFloat );
 #endif
@@ -157,15 +157,16 @@ namespace cvt
             }
 
 #ifndef USE_CAM
+            Matrix4f gtPose = d.pose<float>();
             if( d.poseValid ){
-                _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - d.pose[ 0 ][ 3 ] );
-                _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - d.pose[ 1 ][ 3 ] );
-                _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - d.pose[ 2 ][ 3 ] );
+                _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - gtPose[ 0 ][ 3 ] );
+                _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - gtPose[ 1 ][ 3 ] );
+                _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - gtPose[ 2 ][ 3 ] );
                 _validPoseCounter++;
             }
             writePose( _fileOut, absPose, d.stamp );
             writePose( _fileOutFwd, _alignerRelativePose, d.stamp );
-            _poseView.setGTPose( d.pose );
+            _poseView.setGTPose( gtPose );
 #endif
 
             _poseView.setCamPose( absPose );
@@ -174,7 +175,7 @@ namespace cvt
 
     void RGBDVOApp::writePose( std::ofstream &file, const Matrix4f &pose, double stamp )
     {
-        Quaternionf q( pose.toMatrix3() );
+        Quaterniond q( ( Matrix3d )pose.toMatrix3() );
 
         file.precision( 15 );
         file << std::fixed << stamp << " "

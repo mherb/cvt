@@ -74,7 +74,8 @@ int main( int argc, char** argv )
 //			camcalib.setExtrinsics( rgbddata.data().pose );
 //			rgbddata.data().rgb.convert( image, IFormat::RGBA_FLOAT );
 
-            gridToCam = rgbddata.data().pose.inverse() * gridToWorld;
+            Matrix4f pose = rgbddata.data().pose<float>();
+            gridToCam = pose.inverse() * gridToWorld;
             CLBuffer clglobal( ( void*)gridToCam.ptr(), sizeof( float ) * 12 );
 
             kernadd.setArg( 0, cv );
