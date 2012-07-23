@@ -424,13 +424,10 @@ SET(${MODULE_NAME}_HEADERS
    vision/StereoCameraCalibration.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
-   vision/rgbdvo/AIIKeyframe.h
-   vision/rgbdvo/ESMKeyframe.h
+   vision/rgbdvo/AIIKeyframe.h   
    vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/MIKeyframe.h
-   vision/rgbdvo/MultiscaleKeyframe.h
-   vision/rgbdvo/RGBDAlignment.h
-   vision/rgbdvo/RGBDTemplate.h
+   vision/rgbdvo/MultiscaleKeyframe.h   
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RobustAIIKeyframe.h
    vision/rgbdvo/RobustKeyframe.h
@@ -618,8 +615,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
-   vision/rgbdvo/AIIKeyframe.cpp
-   vision/rgbdvo/ESMKeyframe.cpp
+   vision/rgbdvo/AIIKeyframe.cpp   
    vision/rgbdvo/MIKeyframe.cpp
    vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
