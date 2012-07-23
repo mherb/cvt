@@ -9,7 +9,24 @@
     PARTICULAR PURPOSE.
 */
 
-#ifndef CVT_RGBDALIGNMENT_H
+#ifnd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ef CVT_RGBDALIGNMENT_H
 #define CVT_RGBDALIGNMENT_H
 
 #include <vector>
@@ -28,10 +45,10 @@ namespace cvt
 
             struct Params {
                 Params() :
-                    octaves( 3 ),
+                    octaves( 4 ),
                     octaveScale( 0.5 ),
-                    minParamUpdate( 1e-5 ),
-                    maxIterationsPerScale( 20 )
+                    minParamUpdate( 1e-7 ),
+                    maxIterationsPerScale( 40 )
                 {
                 }
 
@@ -225,11 +242,11 @@ namespace cvt
 
                         // interpolate the gradient & the pixel value:
                         grad( 0, 0 ) = interpolatePixelValue( gxMap.ptr() + offset0,
-                                                           gxMap.ptr() + offset1,
-                                                           interpolationWeights );
+                                                              gxMap.ptr() + offset1,
+                                                              interpolationWeights );
                         grad( 0, 1 ) = interpolatePixelValue( gyMap.ptr() + offset0,
-                                                           gyMap.ptr() + offset1,
-                                                           interpolationWeights );
+                                                              gyMap.ptr() + offset1,
+                                                              interpolationWeights );
 
                         float v = interpolatePixelValue( iMap.ptr() + offset0,
                                                          iMap.ptr() + offset1,
