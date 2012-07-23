@@ -9,24 +9,7 @@
     PARTICULAR PURPOSE.
 */
 
-#ifnd
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ef CVT_RGBDALIGNMENT_H
+#ifndef CVT_RGBDALIGNMENT_H
 #define CVT_RGBDALIGNMENT_H
 
 #include <vector>
