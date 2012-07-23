@@ -231,7 +231,7 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     //Image smoothed( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
     sample.rgb.convert( gray );
     //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
-    vo.addNewKeyframe( gray, sample.depth, sample.pose ); // add initial
+    vo.addNewKeyframe( gray, sample.depth, sample.pose<float>() ); // add initial
 
     std::ofstream file;
     file.open( "trajectory.txt" );

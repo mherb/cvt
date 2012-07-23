@@ -57,7 +57,8 @@ namespace cvt
         _sample.stamp	= _stamps[ _idx ];
         _sample.rgb.load( _rgbFiles[ _idx ] );
         _sample.depth.load( _depthFiles[ _idx ] );
-        _sample.pose = _groundTruthPoses[ _idx ];
+        _sample.orientation = _orientations[ _idx ];
+        _sample.position = _positions[ _idx ];
         _sample.poseValid = _poseValid[ _idx ];
         _idx++;
     }
@@ -72,9 +73,12 @@ namespace cvt
 
         DataIterator iter( gtFile );
 
-        Matrix4f p; double stamp;
-        while( readNext( p, stamp, iter ) ){
-            _groundTruthPoses.push_back( p );
+        Quaterniond q;
+        Vector3d    p;
+        double stamp;
+        while( readNext( q, p, stamp, iter ) ){
+            _orientations.push_back( q );
+            _positions.push_back( p );
             _stamps.push_back( stamp );
         }
     }
@@ -146,7 +150,7 @@ namespace cvt
     }
 
     // read next line from the gtfile
-    bool RGBDParser::readNext( Matrix4f& pose, double& stamp, DataIterator& iter )
+    bool RGBDParser::readNext( Quaterniond& orientation, Vector3d& position, double& stamp, DataIterator& iter )
     {
         if( !iter.hasNext() )
             return false;
@@ -165,19 +169,13 @@ namespace cvt
         if( tokens.size() != 8 ) std::cout << "File corrupt?!" << std::endl;
 
         stamp = tokens[ 0 ].toDouble();
-        float tx = tokens[ 1 ].toFloat();
-        float ty = tokens[ 2 ].toFloat();
-        float tz = tokens[ 3 ].toFloat();
-        float qx = tokens[ 4 ].toFloat();
-        float qy = tokens[ 5 ].toFloat();
-        float qz = tokens[ 6 ].toFloat();
-        float qw = tokens[ 7 ].toFloat();
-        Quaternionf q( qx, qy, qz, qw );
-
-        pose = q.toMatrix4();
-        pose[ 0 ][ 3 ] = tx;
-        pose[ 1 ][ 3 ] = ty;
-        pose[ 2 ][ 3 ] = tz;        
+        position.x = tokens[ 1 ].toDouble();
+        position.y = tokens[ 2 ].toDouble();
+        position.z = tokens[ 3 ].toDouble();
+        orientation.x = tokens[ 4 ].toDouble();
+        orientation.y = tokens[ 5 ].toDouble();
+        orientation.z = tokens[ 6 ].toDouble();
+        orientation.w = tokens[ 7 ].toDouble();
 
         return true;
     }
@@ -211,7 +209,7 @@ namespace cvt
     size_t RGBDParser::findClosestMatchInGTStamps( double val, size_t startIdx )
     {
         size_t bestIdx = startIdx;
-        double best = Math::abs( _stamps[ startIdx ] - val );        
+        double best = Math::abs( _stamps[ startIdx ] - val );
         for( size_t i = startIdx + 1; i < _stamps.size(); i++ ){
             double cur = Math::abs( _stamps[ i ] - val );
             if( cur < best ){
@@ -229,7 +227,8 @@ namespace cvt
         size_t rgbIdx = 0;
 
         std::vector<double> stamps;
-        std::vector<Matrix4f> poses;
+        std::vector<Quaterniond> orientations;
+        std::vector<Vector3d>    positions;
         std::vector<String> color;
         std::vector<String> depth;
         std::vector<bool> validity;
@@ -250,28 +249,27 @@ namespace cvt
                 if( Math::abs( _stamps[ bestGtIdx ] - rgbStamps[ rgbIdx ] ) < _maxStampDiff ){
                     // take it
                     stamps.push_back( _stamps[ bestGtIdx ] );
-                    poses.push_back( _groundTruthPoses[ bestGtIdx ] );
+                    orientations.push_back( _orientations[ bestGtIdx ] );
+                    positions.push_back( _positions[ bestGtIdx ] );
                     validity.push_back( true );
                 } else {
                     stamps.push_back( rgbStamps[ rgbIdx ] );
-                    poses.push_back( poses.back() );
+                    orientations.push_back( orientations.back() );
+                    positions.push_back( positions.back() );
                     validity.push_back( false );
-                    //std::cout.precision( 15 );
-                    //std::cout << "Could not find match in GT stamps for: " << std::fixed << rgbStamps[ rgbIdx ] << std::endl;
                 }
-           } else {
-                //std::cout.precision( 15 );
-                //std::cout << "Could not find match in depth stamps for: " << std::fixed << rgbStamps[ rgbIdx ] << std::endl;
            }
            rgbIdx++;
         }
         std::cout << "Found: " << stamps.size() << " matches" << std::endl;
 
-        _groundTruthPoses = poses;
+        _orientations = orientations;
+        _positions = positions;
+        _poseValid = validity;
         _stamps = stamps;
         _rgbFiles = color;
         _depthFiles = depth;
-        _poseValid = validity;
+
     }
 
 
