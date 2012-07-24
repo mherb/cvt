@@ -208,6 +208,7 @@ namespace cvt {
 			y = q.y;
 			z = q.z;
 			w = q.w;
+            return *this;
 		}
 
 	template<typename T>
