@@ -67,16 +67,16 @@ namespace cvt {
 
 	};
 
-	Canny::Canny() : IFilter( "Canny", _canny_params, 7, IFILTER_CPU )
+	inline Canny::Canny() : IFilter( "Canny", _canny_params, 7, IFILTER_CPU )
 	{
 	}
 
-	Canny::~Canny()
+	inline Canny::~Canny()
 	{
 	}
 
 
-	void Canny::apply( Image& out, const Image& in, float low, float high ) const
+	inline void Canny::apply( Image& out, const Image& in, float low, float high ) const
 	{
 		Image dx( in.width(), in.height(), IFormat::GRAY_FLOAT );
 		Image dy( in.width(), in.height(), IFormat::GRAY_FLOAT );
@@ -120,7 +120,6 @@ namespace cvt {
 			mapdir++;
 			mapdst++;
 		}
-
 
 		Stack<uint8_t*> stack( 1024 );
 		mapdst.reset();
@@ -219,7 +218,7 @@ namespace cvt {
 		}
 	}
 
-	void Canny::apply( const ParamSet* attribs, IFilterType iftype ) const
+	inline void Canny::apply( const ParamSet* attribs, IFilterType iftype ) const
         {
             Image * in = attribs->arg<Image*>( 0 );
             Image * out = attribs->arg<Image*>( 4 );

@@ -19,50 +19,48 @@ namespace cvt
 {
 
 #define PT( n ) _pts[ _ptidx[ n ] ][ idx ]
-#define SWAP( a, b ) do { uint32_t t = _ptidx[ a ]; _ptidx[ a ] = _ptidx[ b ]; _ptidx[ b ] = t; } while( 0 )
+#define SWAP( a, b ) do { ssize_t t = _ptidx[ a ]; _ptidx[ a ] = _ptidx[ b ]; _ptidx[ b ] = t; } while( 0 )
 
-        template<class _T=Point2f>
+    template<class _T=Point2f>
 	class KDTree {
 		public:
 			KDTree( const std::vector<_T> & pts );
 			~KDTree();
 
 			// return index of nearest neighbor
-			uint32_t locate( const _T & pt, float dist );
-                        void rangeSearch( std::vector<_T> &output, const _T &pt, float dist );
+			ssize_t locate( const _T & pt, float dist );
+            void rangeSearch( std::vector<_T> &output, const _T &pt, float dist );
 
 		private:
-                        void build( int32_t l, int32_t h, uint32_t idx );
-                        uint32_t partition( int32_t l, int32_t h, uint32_t x, uint32_t idx );
-			void medsort( uint32_t l, uint32_t h, uint32_t med, int idx );
-
+            void build( ssize_t l, ssize_t h, ssize_t idx );
+            ssize_t partition( ssize_t l, ssize_t h, ssize_t x, ssize_t idx );
 			/* select the x-th element according to dimension idx */
-            void select(  int32_t l, int32_t h, int32_t x, uint32_t idx );
+            void select(  ssize_t l, ssize_t h, ssize_t x, ssize_t idx );
+
+            ssize_t visit( ssize_t low, ssize_t high, const _T & pt, float distance, ssize_t idx );
+            void visit( std::vector<_T> &output, const _T &pt, double *min, double *max, double distance, ssize_t low, ssize_t high, ssize_t idx );
+
 			void print();
-            void check( int32_t l, int32_t h, uint32_t idx );
+            void check( ssize_t l, ssize_t h, ssize_t idx );
 
-            uint32_t visit( uint32_t low, uint32_t high, const _T & pt, float distance, uint32_t idx );
-                        void visit( std::vector<_T> &output, const _T &pt, double *min, double *max, double distance, int low, int high, int idx );
-
-			const std::vector<_T> & _pts;
-			uint32_t* _ptidx;
-                        uint32_t _dim;
+			const std::vector<_T>&	_pts;
+			ssize_t*				_ptidx;
+            size_t					_dim;
 	};
 
     template <class _T>
     inline KDTree<_T>::KDTree( const std::vector<_T> & pts ) : _pts( pts )
     {
-        uint32_t npts = _pts.size();
+        size_t npts = _pts.size();
         if( npts == 0 )
             return;
-        _ptidx = new uint32_t[ npts ];
+        _ptidx = new ssize_t[ npts ];
         _dim = pts[0].dimension();
 
         for( size_t i = 0; i < npts; i++ )
             _ptidx[ i ] = i;
 
         build( 0, npts - 1, 0 );
-        check( 0, npts - 1, 0 );
     }
 
     template<class _T>
@@ -72,19 +70,19 @@ namespace cvt
     }
 
     template <class _T>
-    inline uint32_t KDTree<_T>::locate( const _T & pt, float dist )
+    inline ssize_t KDTree<_T>::locate( const _T & pt, float dist )
     {
-        uint32_t nearestIndex = visit( 0, _pts.size() - 1, pt, dist, 0 );
+        ssize_t nearestIndex = visit( 0, _pts.size() - 1, pt, dist, 0 );
 
         return _ptidx[ nearestIndex ];
     }
 
     template <class _T>
-    inline void KDTree<_T>::build( int32_t l, int32_t h, uint32_t idx )
+    inline void KDTree<_T>::build( ssize_t l, ssize_t h, ssize_t idx )
     {
         if (l<h)
         {
-            uint32_t med = (l+h)>>1;
+            ssize_t med = (l+h)>>1;
             select( l, h, med, idx );
 
             build( l, med-1, (idx+1)%_dim );
@@ -93,13 +91,13 @@ namespace cvt
     }
 
     template <class _T>
-    inline uint32_t KDTree<_T>::partition( int32_t l, int32_t h, uint32_t x, uint32_t idx )
+    inline ssize_t KDTree<_T>::partition( ssize_t l, ssize_t h, ssize_t x, ssize_t idx )
     {
-        int32_t pivot = l;
+        ssize_t pivot = l;
 
         SWAP( x, h );
 
-        for ( int32_t i = l; i < h; ++i )
+        for ( ssize_t i = l; i < h; ++i )
         {
             if ( PT(i) < PT(h) )
             {
@@ -113,11 +111,11 @@ namespace cvt
     }
 
     template <class _T>
-    void KDTree<_T>::select( int32_t l, int32_t h, int32_t x, uint32_t idx )
+    void KDTree<_T>::select( ssize_t l, ssize_t h, ssize_t x, ssize_t idx )
     {
         if (h>l)
         {
-            int32_t pivot = partition( l, h, x, idx );
+            ssize_t pivot = partition( l, h, x, idx );
 
             if ( pivot > x )
                 select( l, pivot-1, x, idx );
@@ -127,8 +125,8 @@ namespace cvt
     }
 
     template <class _T>
-    inline uint32_t KDTree<_T>::visit( uint32_t low, uint32_t high,
-                                       const _T & pt, float dist, uint32_t idx )
+    inline ssize_t KDTree<_T>::visit( ssize_t low, ssize_t high,
+                                       const _T & pt, float dist, ssize_t idx )
     {
         if( high - low < 2 ){
             // check low and high
@@ -139,7 +137,7 @@ namespace cvt
                 return high;
         }
 
-        uint32_t medianIdx = ( high + low ) >> 1;
+        ssize_t medianIdx = ( high + low ) >> 1;
 
         float min = pt[ idx ] - dist;
         float max = pt[ idx ] + dist;
@@ -155,11 +153,11 @@ namespace cvt
         }
 
         // search both halfes and compare the results and also the median!:
-        uint32_t bestLow = visit( low, medianIdx - 1, pt, dist, (idx+1)%_dim );
-        uint32_t bestHigh = visit( medianIdx + 1, high, pt, dist, (idx+1)%_dim );
+        ssize_t bestLow = visit( low, medianIdx - 1, pt, dist, (idx+1)%_dim );
+        ssize_t bestHigh = visit( medianIdx + 1, high, pt, dist, (idx+1)%_dim );
 
         const _T & other = _pts[ _ptidx[ medianIdx ] ];
-        uint32_t bestIdx = medianIdx;
+        ssize_t bestIdx = medianIdx;
         float nearestDistance = ( other - pt ).length();
 
         float tmp = ( _pts[ _ptidx[ bestLow ] ] - pt ).length();
@@ -183,7 +181,7 @@ namespace cvt
         double min[ _dim ];
         double max[ _dim ];
 
-        for( uint32_t i = 0; i < _dim; ++i ){
+        for( size_t i = 0; i < _dim; ++i ){
             min[i] = pt[i] - distance;
             max[i] = pt[i] + distance;
         }
@@ -192,9 +190,9 @@ namespace cvt
     }
 
     template<class _T>
-    void KDTree<_T>::visit( std::vector<_T> &output, const _T &pt, double *min, double *max, double distance, int32_t l, int32_t h, int idx )
+    void KDTree<_T>::visit( std::vector<_T> &output, const _T &pt, double *min, double *max, double distance, ssize_t l, ssize_t h, ssize_t idx )
     {
-        uint32_t med = (l+h) >> 1;
+        ssize_t med = (l+h) >> 1;
         const _T &root = _pts[ _ptidx[ med ] ];
 
         if (h >= l)
@@ -218,74 +216,14 @@ namespace cvt
     }
 
     template<class _T>
-    inline void KDTree<_T>::print()
+    inline void KDTree<_T>::check( ssize_t l, ssize_t h, ssize_t idx )
     {
-        for( int idx = 0; idx < _dim; ++idx ) {
-            printf( "dim %d : ", idx );
-            for( uint32_t i = 0; i < _pts.size(); i++ ){
-                std::cout << PT( i ) << " ";
-            }
-            printf( "\n\n" );
-        }
-    }
-
-    template<class _T>
-    inline void KDTree<_T>::medsort( uint32_t _l, uint32_t _h, uint32_t med, int idx )
-    {
-        uint32_t l = _l;
-        uint32_t h = _h;
-        uint32_t p;
-
-        if( h <= l + 1 )
-            return;
-
-        while( 1 ) {
-            if( h <= l ) {
-                medsort( _l, med - 1, ( _l + med - 1 ) >> 1, (idx+1)%_dim );
-                medsort( med + 1, _h, ( _h + med + 1 ) >> 1, (idx+1)%_dim );
-                return;
-            } else {
-                uint32_t mid = ( l + h ) >> 1;
-                uint32_t i, k;
-
-                if( PT( l ) > PT( mid ) ){
-                    SWAP( l, mid  );
-                }
-                if( PT( mid ) > PT( h ) )
-                    SWAP( mid, h );
-                if( PT( l ) > PT( mid ) )
-                    SWAP( l, mid  );
-                SWAP( mid, h );
-
-                p = h;
-                h--;
-                i = l;
-                k = h;
-                while( 1 ) {
-                    while( PT( i ) < PT( p ) && i < k ) i++;
-                    while( PT( k ) >= PT( p ) && k ) k--;
-                    if( i >= k ) break;
-                    SWAP( i, k );
-                }
-                SWAP( i , p);
-                h++;
-
-                if( med < i ) h = i;
-                else if( med > i ) l = ++i;
-                else { h = l; };
-            }
-        }
-    }
-
-    template<class _T>
-    inline void KDTree<_T>::check( int32_t l, int32_t h, uint32_t idx )
-    {
-        int32_t med = ( l + h ) >> 1;
+        ssize_t med = ( l + h ) >> 1;
 
         if( l >= h )
             return;
 
-        for( int32_t x = l; x < h; x++ ) {
+        for( ssize_t x = l; x < h; x++ ) {
             if( x < med && PT( x ) > PT( med ) )
                 std::cout << "lower than median has bigger value" << std::endl;
             if( x > med && PT( x ) < PT( med ) )
@@ -295,6 +233,17 @@ namespace cvt
         check( med + 1, h, (idx+1)%_dim );
     }
 
+    template<class _T>
+    inline void KDTree<_T>::print()
+    {
+        for( size_t idx = 0; idx < _dim; ++idx ) {
+            printf( "dim %d : ", idx );
+            for( ssize_t i = 0; i < _pts.size(); i++ ){
+                std::cout << PT( i ) << " ";
+            }
+            printf( "\n\n" );
+        }
+    }
 }
 
 #endif
