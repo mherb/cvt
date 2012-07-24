@@ -7,8 +7,9 @@
 #include <cvt/io/RGBDParser.h>
 #include <PoseView.h>
 
+
 #include <cvt/vision/rgbdvo/KeyframeBase.h>
-#include <cvt/vision/rgbdvo/RGBDAlignment.h>
+#include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
 #include <cvt/vision/rgbdvo/MIKeyframe.h>
 #include <cvt/vision/rgbdvo/VOKeyframe.h>
@@ -59,14 +60,10 @@ namespace cvt
                 //typedef cvt::MIKeyframe KFType;
                 RGBDVisualOdometry<KFType>  _vo;
 
-                RGBDAlignment<float>        _aligner;
-                Matrix4<float>              _alignerRelativePose;
-
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
 
-                std::ofstream               _fileOut;
-                std::ofstream               _fileOutFwd;
+                std::ofstream               _fileOut;                
 
                 float                       _cumulativeAlignmentSpeed;
                 size_t                      _numAlignments;

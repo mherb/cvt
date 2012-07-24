@@ -13,8 +13,7 @@ namespace cvt
 #else
         _parser( folder, 0.02f ),
 #endif
-        _vo( K, params ),
-        _aligner( K ),
+        _vo( K, params ),        
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
         _mainWindow( "RGBD-VO" ),
@@ -61,25 +60,19 @@ namespace cvt
         _parser.data().depth.convert( dFloat, IFormat::GRAY_FLOAT );
 
 
-        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose<float>() );
-
-        _alignerRelativePose = _parser.data().pose<float>();
-
-        _aligner.alignFrames( _alignerRelativePose, gray, dFloat );
+        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose<float>() );                
 #endif
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
 
-        _fileOut.open( "trajectory.txt" );
-        _fileOutFwd.open( "trajectoryFwd.txt" );
+        _fileOut.open( "trajectory.txt" );        
     }
 
     RGBDVOApp::~RGBDVOApp()
     {
         Application::unregisterTimer( _timerId );
-        _fileOut.close();
-        _fileOutFwd.close();
+        _fileOut.close();        
     }
 
     bool RGBDVOApp::positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose )
@@ -134,8 +127,6 @@ namespace cvt
             d.depth.convert( depth, IFormat::GRAY_FLOAT );
 
             _vo.updatePose( gray, depth );
-            _aligner.alignFrames( _alignerRelativePose, gray, depth );
-            std::cout << "Forward Compositional: \n" << _alignerRelativePose << std::endl;
 #endif
 
             const VOResult& result = _vo.lastResult();
@@ -164,8 +155,7 @@ namespace cvt
                 _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - gtPose[ 2 ][ 3 ] );
                 _validPoseCounter++;
             }
-            writePose( _fileOut, absPose, d.stamp );
-            writePose( _fileOutFwd, _alignerRelativePose, d.stamp );
+            writePose( _fileOut, absPose, d.stamp );            
             _poseView.setGTPose( gtPose );
 #endif
 
