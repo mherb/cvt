@@ -138,7 +138,6 @@ namespace cvt
         IMapScoped<const float> grayMap( gray );
         size_t floatStride = grayMap.stride() / sizeof( float );
 
-
         //Image warpedOut( gray.width(), gray.height(), gray.format() );
         //warpedOut.fill( Color::WHITE );
         //IMapScoped<float> warpedMap( warpedOut );

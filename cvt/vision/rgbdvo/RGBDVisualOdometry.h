@@ -19,6 +19,9 @@
 #include <cvt/util/Signal.h>
 #include <cvt/util/CVTAssert.h>
 
+#include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/AlignmentOptimizer.h>
+
 namespace cvt {
 
     template <class DerivedKF>
@@ -39,7 +42,7 @@ namespace cvt {
             void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
 
             /**
-             *  \param kfPose   pose of the keyframe: T_wk or T_kw?
+             *  \param kfPose   pose of the keyframe: T_wk
              */
             void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
@@ -92,6 +95,12 @@ namespace cvt {
             PoseRepresentation          _relativePose;
             VOResult                    _lastResult;
 
+            typedef RGBDKeyframe<float> KType;
+            KType                       _keyframeTest;
+            AlignmentOptimizer<float>   _aligner;
+            Matrix4<float>              _testPose;
+            ImagePyramid                _pyramid;
+
             bool needNewKeyframe( const VOResult& alignResult ) const;
     };
 
@@ -103,8 +112,15 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 ),
-        _numCreated( 0 )
+        _numCreated( 0 ),
+        _keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_RELATIVE ),
+        //_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_ABSOLUTE ),
+        _aligner( params.maxIters, params.minParameterUpdate ),
+        _pyramid( params.octaves, params.pyrScale )
     {
+        _keyframeTest.setDepthMapScaleFactor( params.depthScale );
+        _keyframeTest.setMinimumDepth( params.minDepth );
+        _keyframeTest.setGradientThreshold( params.gradientThreshold );
     }
 
     template <class DerivedKF>
@@ -123,12 +139,20 @@ namespace cvt {
         // align with the current keyframe
         _lastResult = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
-        //std::cout << "Gain: " << _relativePose.gain << ", Bias: " << _relativePose.bias << std::endl;
+
+        AlignmentOptimizer<float>::Result aResult;
+
+        _pyramid.update( gray );
+        _aligner.align( aResult, _testPose, _pyramid, _keyframeTest );
+        _testPose = aResult.pose;
+
+        Matrix4f absPose;
+        pose( absPose );
+
+        std::cout << "New - Old:\n" << ( aResult.pose - absPose ) << std::endl;
 
         // check if we need a new keyframe
-        if( needNewKeyframe( _lastResult ) ){
-            Matrix4f absPose;
-            pose( absPose );
+        if( needNewKeyframe( _lastResult ) ){            
             addNewKeyframe( gray, depth, absPose );
             keyframeAdded.notify( absPose );
             activeKeyframeChanged.notify();
@@ -167,6 +191,16 @@ namespace cvt {
         if( _activeKeyframe )
             delete _activeKeyframe;
         _activeKeyframe = KeyframeType::create( gray, depth, kfPose, _intrinsics, _params );
+
+        _pyramid.update( gray );
+        static bool first = true;
+        if( first ){
+            _keyframeTest.updateOfflineData( kfPose, _pyramid, depth );
+            _testPose = kfPose;
+            first = false;
+        } else {
+            _keyframeTest.updateOfflineData( _testPose, _pyramid, depth );
+        }
 
         // DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
         //_keyframes.push_back( kf );
