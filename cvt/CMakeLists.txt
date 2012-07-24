@@ -424,10 +424,13 @@ SET(${MODULE_NAME}_HEADERS
    vision/StereoCameraCalibration.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
-   vision/rgbdvo/AIIKeyframe.h   
+   vision/rgbdvo/AlignmentOptimizer.h
+   vision/rgbdvo/AIIKeyframe.h
    vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/MIKeyframe.h
    vision/rgbdvo/MultiscaleKeyframe.h   
+   vision/rgbdvo/RGBDAlignment.h
+   vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RobustAIIKeyframe.h
    vision/rgbdvo/RobustKeyframe.h
