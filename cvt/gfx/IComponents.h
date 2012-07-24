@@ -37,6 +37,7 @@ namespace cvt {
 
 		private:
 			void traceComponent( PointSet<2,T>& ptset, IMapScoped<uint8_t>& map, int width, int height );
+			void traceComponent( PointSet<2,T>& ptset, IMapScoped<float>& map, int width, int height );
 
 			std::vector<PointSet<2,T> > _components;
 	};
@@ -126,33 +127,90 @@ namespace cvt {
 				cy = ( int ) ptset[ current ].y;
 			}
 		}
+	}
 
+	template<typename T>
+	inline void IComponents<T>::traceComponent( PointSet<2,T>& ptset, IMapScoped<float>& map, int width, int height )
+	{
+		int dir[][2] = { { -1, -1 }, { 0, -1 }, { 1, -1 }, { 1,  0 }, { 1,  1 }, { 0,  1 }, { -1,  1 }, { -1,  0 } };
+
+		bool onContour = true;
+		size_t current = 0;
+		int newx, newy;
+		float* pixel = 0;
+
+		int cx = ptset[ current ].x;
+		int cy = ptset[ current ].y;
+
+		while ( onContour )
+		{
+			for ( size_t i = 0, order = 0; i < 8; ++i )
+			{
+				newx	= Math::clamp( cx + dir[ order ][ 0 ], 0, width-1 );
+				newy	= Math::clamp( cy + dir[ order ][ 1 ], 0, height-1 );
+
+				pixel	= ( float* ) ( ( uint8_t* ) map.base() + newy * map.stride() + newx * sizeof( float ) );
+				order	= ( order + ( *pixel == 0 ) ) % 8;
+
+				if ( *pixel != 0 )
+				{
+					ptset.add( Vector2<T>( newx, newy ) );
+					*pixel = 0.0f;
+				}
+			}
+
+			current++;
+			onContour = current < ptset.size();
+			if ( onContour )
+			{
+				cx = ( int ) ptset[ current ].x;
+				cy = ( int ) ptset[ current ].y;
+			}
+		}
 	}
 
 	template<typename T>
 	inline void IComponents<T>::extract( const Image& img )
 	{
-		if( img.format().formatID != IFORMAT_GRAY_UINT8 )
-			throw CVTException( "Unsupported image format!" );
-
-		Image tmp( img ); // create copy to leave img untouched
-		IMapScoped<uint8_t> mapsrc( tmp );
-		int width = tmp.width();
-		int height = tmp.height();
-		for( int y = 0; y < height; y++ ) {
-			uint8_t* ptr = mapsrc.ptr();
-			for( int x = 0; x < width; x++ ) {
-				if( *ptr ) {
-					*ptr = 0;
-					_components.push_back( PointSet<2,T>() );
-					_components.back().add( Vector2<T>( x, y ) );
-					traceComponent( _components.back(), mapsrc, width, height );
+		if( img.format().formatID == IFORMAT_GRAY_UINT8 ) {
+			Image tmp( img ); // create copy to leave img untouched
+			IMapScoped<uint8_t> mapsrc( tmp );
+			int width = tmp.width();
+			int height = tmp.height();
+			for( int y = 0; y < height; y++ ) {
+				uint8_t* ptr = mapsrc.ptr();
+				for( int x = 0; x < width; x++ ) {
+					if( *ptr != 0 ) {
+						*ptr = 0;
+						_components.push_back( PointSet<2,T>() );
+						_components.back().add( Vector2<T>( x, y ) );
+						traceComponent( _components.back(), mapsrc, width, height );
+					}
+					ptr++;
 				}
-				ptr++;
+				mapsrc++;
 			}
-			mapsrc++;
+		} else if( img.format().formatID == IFORMAT_GRAY_FLOAT ) {
+			Image tmp( img ); // create copy to leave img untouched
+			IMapScoped<float> mapsrc( tmp );
+			int width = tmp.width();
+			int height = tmp.height();
+			for( int y = 0; y < height; y++ ) {
+				float* ptr = mapsrc.ptr();
+				for( int x = 0; x < width; x++ ) {
+					if( *ptr != 0 ) {
+						*ptr = 0;
+						_components.push_back( PointSet<2,T>() );
+						_components.back().add( Vector2<T>( x, y ) );
+						traceComponent( _components.back(), mapsrc, width, height );
+					}
+					ptr++;
+				}
+				mapsrc++;
+			}
+		} else {
+			throw CVTException( "Unsupported image format!" );
 		}
 	}
 }
-
 #endif
