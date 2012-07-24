@@ -149,7 +149,7 @@ namespace cvt {
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Ellipse<T>& e )
 	{
-		out << e.center() << " " << e.semiMajor() << " , " << e.semiMinor() << " " << Math::rad2Deg( e.orientation() ) << std::endl;
+		out << e.center() << " " << e.semiMajor() << " , " << e.semiMinor() << " " << Math::rad2Deg( e.orientation() ) << " ( Area: " << e.area() << " )" << std::endl;
 		return out;
 	}
 }

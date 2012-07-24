@@ -394,6 +394,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/alignment/KLTPatch.h
    vision/alignment/PatchBase.h
    vision/BinaryDescriptor.h
+   vision/BoardDetector.h
    vision/Brief.h
    vision/CameraCalibration.h
    vision/ESM.h
@@ -599,6 +600,7 @@ SET(${MODULE_NAME}_SOURCES
    util/PluginManager.cpp
    util/PluginFile.cpp
    vision/Brief.cpp
+   vision/BoardDetector.cpp
    vision/CameraCalibrationTest.cpp
    vision/FAST.cpp
    vision/fast/fast9.cpp
