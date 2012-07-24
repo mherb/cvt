@@ -248,14 +248,15 @@ namespace cvt {
             virtual void transformPointsHomogenize( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
             virtual void transformPointsHomogenize( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
 
-                        /**
-                         *  \brief project 3D points to 2D coordinates
-                         *  \param dst      the resulting 2D positions
-                         *  \param mat      the projection matrix (only 3x4 part will be taken!)
-                         *  \param src      the 3D source points
-                         *  \param n        the number of points to transform
-                         */
-                        virtual void projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+            /**
+             *  \brief project 3D points to 2D coordinates
+             *  \param dst      the resulting 2D positions
+             *  \param mat      the projection matrix (only 3x4 part will be taken!)
+             *  \param src      the 3D source points
+             *  \param n        the number of points to transform
+             */
+            virtual void projectPoints( Vector2f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+            virtual void projectPoints( Vector2d* dst, const Matrix4d& mat, const Vector3d* src, size_t n ) const;
 
             virtual std::string name() const;
             virtual SIMDType type() const;
