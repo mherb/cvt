@@ -280,20 +280,20 @@ void convergenceAnalysis( VOParams& params, const Matrix3f& K, const String& fol
         convergenceTest<AIIKeyframe>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        convergenceTest<RobustKeyframe<Huber> >( params, K, folder, cfg );
+        convergenceTest<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        convergenceTest<RobustKeyframe<Tukey> >( params, K, folder, cfg );
+        convergenceTest<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_VO" ) {
         convergenceTest<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_AII" ) {
         convergenceTest<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Huber> > >( params, K, folder, cfg );
+       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Tukey> > >( params, K, folder, cfg );
+       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }
@@ -309,32 +309,32 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
         runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustKeyframe<Huber> >( params, K, folder, cfg );
+        runVOWithKFType<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustAIIKeyframe<Huber> >( params, K, folder, cfg );
+        runVOWithKFType<RobustAIIKeyframe<Huber<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustKeyframe<Tukey> >( params, K, folder, cfg );
+        runVOWithKFType<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "ROBUST_AII_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustAIIKeyframe<Tukey> >( params, K, folder, cfg );
+        runVOWithKFType<RobustAIIKeyframe<Tukey<float> > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_VO" ) {
         runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );    
     } else if( kftypeString.toUpper() == "MS_AII" ) {
         runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber> > >( params, K, folder, cfg );
+       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey> > >( params, K, folder, cfg );
+       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Huber> > >( params, K, folder, cfg );
+       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Huber<float> > > >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "MS_ROBUST_AII_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Tukey> > >( params, K, folder, cfg );
+       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Tukey<float> > > >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }

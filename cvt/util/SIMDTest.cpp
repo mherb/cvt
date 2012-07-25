@@ -144,13 +144,13 @@ static bool _projectTest()
 	tmp = K * R;
 	t = K * t;
 
+    projectionMat.setIdentity();
 	for( size_t r = 0; r < 3; r++ ){
 		for( size_t c = 0; c < 3; c++ ){
 			projectionMat[ r ][ c ] = tmp[ r ][ c ];
 		}
 		projectionMat[ r ][ 3 ] = t[ r ];
-	}
-	projectionMat.setIdentity();
+    }
 
 	Vector2f res;
 	Vector3f p, pp;
@@ -175,8 +175,7 @@ static bool _projectTest()
 	for( size_t i = 0; i < result.size(); i++ ){
 		if( result[ i ] != gtProjected[ i ] ){
 			testResult = false;
-			std::cout << "Error: 3D: " << pts3d[ i ] << ", True: " << gtProjected[ i ] << " Simd: " << result[ i ] << std::endl;
-			break;
+			std::cout << "Error: 3D: " << pts3d[ i ] << ", True: " << gtProjected[ i ] << " Simd: " << result[ i ] << std::endl;			
 		}
 	}
 

@@ -18,26 +18,33 @@
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/EigenBridge.h>
 
+#include <cvt/vision/rgbdvo/RGBDWarp.h>
+#include <cvt/vision/rgbdvo/RobustWeighting.h>
+
 namespace cvt
 {
-    template <class T>
+    template <class WarpFunc, class Weighter = NoWeighting<typename WarpFunc::Type> >
     class RGBDKeyframe {
         public:
+            struct Result {
+                size_t      iterations;
+                size_t      numPixels;
+                float       costs;
+                WarpFunc    warp;
+            };
+
             enum PointStorage {
                 STORE_RELATIVE,
                 STORE_ABSOLUTE
             };
 
+            typedef typename WarpFunc::Type  T;
             typedef Vector3<T> PointType;
             typedef Matrix3<T> Mat3Type;
 
-            // TODO:
-            // these typedef have to go into a AlignmentCostFunc
-            // e.g. atm we use std. SSD
-            // for Affine Lighting, we need 2 more
-            // for MI the evaluation is different
-            typedef Eigen::Matrix<T, 1, 6>  JacobianType;
-            typedef Eigen::Matrix<T, 6, 6>  HessianType;
+            typedef typename WarpFunc::JacobianType  JacobianType;
+            typedef typename WarpFunc::HessianType   HessianType;
+            typedef WarpFunc                         WarpFunction;
 
             struct AlignmentData {
                 std::vector<PointType>      points3d;
@@ -70,11 +77,22 @@ namespace cvt
             const AlignmentData& dataForScale( size_t o ) const { return _dataForScale[ o ]; }
             const Matrix4<T>&    pose()                   const { return _pose; }
 
-            void setDepthMapScaleFactor( float scaleFactor );
-            void setMinimumDepth( T depthTresh );
-            void setGradientThreshold( float thresh );
+            void setDepthMapScaleFactor( float scaleFactor )        { _depthScaling = ( float )0xffff / scaleFactor; }
+            void setMinimumDepth( T depthTresh )                    { _minDepth = depthTresh; }
+            void setGradientThreshold( float thresh )               { _gradientThreshold = Math::sqr( thresh ); }
+            void setMaxIter( size_t maxiter )                       { _maxIters = maxiter; }
+            void setMinUpdate( T minUpdate )                        { _minUpdate = minUpdate; }
+            void setTranslationJumpThreshold( T maxTDiff )          { _translationJumpThreshold = maxTDiff; }
+            void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
+            void setRobustParam( T v )                              { _weighter = Weighter( v ); }
 
             PointStorage    pointStorageType() const { return _storageType; }
+
+            /**
+             *  \brief align the current camera frame with this keyframe
+             *  \param prediction   predicted pose of the camera frame in world frame (T_wc)
+             */
+            void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr );
 
         private:
             const PointStorage          _storageType;
@@ -88,14 +106,29 @@ namespace cvt
             float                       _depthScaling;
             T                           _minDepth;
             float                       _gradientThreshold;
+            size_t                      _maxIters;
+            T                           _minUpdate;
+            T                           _translationJumpThreshold;
+            float                       _minPixelPercentage;
+
+            Weighter                    _weighter;
+
 
             void updateIntrinsics( const Mat3Type& K, T scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
+            void alignSingleScale( Result& result, const Image& gray, const AlignmentData& kfdata );
+
+            float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
+            bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
+
+            void alignSingleScaleNonRobust( Result& result, const Image& gray, const AlignmentData& kfdata );
+            void alignSingleScaleRobust( Result& result, const Image& gray, const AlignmentData& kfdata );
+
     };
 
-    template <class T>
-    inline RGBDKeyframe<T>::RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale, PointStorage storage ) :
+    template <class WarpFunc, class Weighter>
+    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale, PointStorage storage ) :
         _storageType( storage ),
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
@@ -103,7 +136,12 @@ namespace cvt
         _gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
-        _gradientThreshold( 0.0f )
+        _gradientThreshold( 0.0f ),
+        _maxIters( 5 ),
+        _minUpdate( (T)1e-6 ),
+        _translationJumpThreshold( ( T )0.8 ),
+        _minPixelPercentage( 0.3f ),
+        _weighter( (T)0.7 )
     {
         _kx.scale( -0.5 );
         _ky.scale( -0.5 );
@@ -112,13 +150,13 @@ namespace cvt
         updateIntrinsics( K, scale );
     }
 
-    template <class T>
-    inline RGBDKeyframe<T>::~RGBDKeyframe()
+    template <class WarpFunc, class Weighter>
+    inline RGBDKeyframe<WarpFunc, Weighter>::~RGBDKeyframe()
     {
     }
 
-    template <class T>
-    inline void RGBDKeyframe<T>::updateIntrinsics( const Mat3Type& K, T scale )
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::updateIntrinsics( const Mat3Type& K, T scale )
     {
         _dataForScale[ 0 ].intrinsics = K;
         for( size_t o = 1; o < _dataForScale.size(); o++ ){
@@ -127,20 +165,19 @@ namespace cvt
         }
     }
 
-    template <class T>
-    inline void RGBDKeyframe<T>::updateOfflineData( const Matrix4<T>& poseMat,
-                                                    const ImagePyramid& pyramid,
-                                                    const Image& depth )
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::updateOfflineData( const Matrix4<T>& poseMat,
+                                                              const ImagePyramid& pyramid,
+                                                              const Image& depth )
     {
         _pose = poseMat;
 
         Image gxI, gyI;
         float scale = 1.0f;
-        Eigen::Matrix<T, 3, 1> p3d;
-        Vector3<T> cvtPoint;
+
+        Vector3<T> p3d;
         Eigen::Matrix<T, 2, 1> g;
-        Eigen::Matrix<T, 1, 6> j;
-        typename SE3<T>::ScreenJacType J;
+        JacobianType j;
         HessianType H;
 
         IMapScoped<const float> depthMap( depth );
@@ -151,7 +188,7 @@ namespace cvt
 
             AlignmentData& data = _dataForScale[ i ];
             data.clear();
-            data.reserve( 0.5f * gray.width() * gray.height() );
+            data.reserve( 0.6f * gray.width() * gray.height() );
 
             float invFx = 1.0f / data.intrinsics[ 0 ][ 0 ];
             float invFy = 1.0f / data.intrinsics[ 1 ][ 1 ];
@@ -175,10 +212,8 @@ namespace cvt
 
             Eigen::Matrix<T, 3, 3> K;
             EigenBridge::toEigen( K, data.intrinsics );
-            SE3<T> pose;
 
             H.setZero();
-
             for( size_t y = 0; y < gray.height(); y++ ){
                 const float* gx = gxMap.ptr();
                 const float* gy = gyMap.ptr();
@@ -195,25 +230,21 @@ namespace cvt
                         if( g.squaredNorm() < _gradientThreshold )
                             continue;
 
-                        cvtPoint[ 0 ] = tmpx[ x ] * z;
-                        cvtPoint[ 1 ] = tmpy[ y ] * z;
-                        cvtPoint[ 2 ] = z;
+                        p3d[ 0 ] = tmpx[ x ] * z;
+                        p3d[ 1 ] = tmpy[ y ] * z;
+                        p3d[ 2 ] = z;
 
                         if( _storageType == STORE_ABSOLUTE ){
-                            cvtPoint = _pose * cvtPoint;
-                            if( cvtPoint.z < _minDepth )
+                            p3d = _pose * p3d;
+                            if( p3d.z < _minDepth )
                                 continue;
                         }
 
-                        EigenBridge::toEigen( p3d, cvtPoint );
-
-                        pose.screenJacobian( J, p3d, K );
-
-                        j = g.transpose() * J;
+                        WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
 
                         data.jacobians.push_back( j );
                         data.pixelValues.push_back( value[ x ] );                        
-                        data.points3d.push_back( cvtPoint );
+                        data.points3d.push_back( p3d );
                         H.noalias() += j.transpose() * j;
                     }
                 }
@@ -230,26 +261,8 @@ namespace cvt
     }
 
 
-    template <class T>
-    inline void RGBDKeyframe<T>::setDepthMapScaleFactor( float scaleFactor )
-    {
-        _depthScaling = ( float )0xffff / scaleFactor;
-    }
-
-    template <class T>
-    inline void RGBDKeyframe<T>::setMinimumDepth( T depthTresh )
-    {
-        _minDepth = depthTresh;
-    }
-
-    template <class T>
-    inline void RGBDKeyframe<T>::setGradientThreshold( float thresh )
-    {
-        _gradientThreshold = Math::sqr( thresh );
-    }
-
-    template <class T>
-    inline void RGBDKeyframe<T>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
     {
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
@@ -261,6 +274,212 @@ namespace cvt
         // normal
         //gray.convolve( gx, kx );
         //gray.convolve( gy, ky );
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::align( Result& result,
+                                                  const Matrix4<T>& prediction,
+                                                  const ImagePyramid& pyr )
+    {
+        Result scaleResult;
+
+        Matrix4<T> tmp4;
+        tmp4 = prediction.inverse();
+
+        bool isRelative = ( _storageType == STORE_RELATIVE );
+        if( isRelative ){
+            tmp4 *= _pose;
+        }
+
+        result.warp.setPose( tmp4 );
+
+        scaleResult = result;
+        for( int o = pyr.octaves() - 1; o >= 0; o-- ){
+            const AlignmentData& data = _dataForScale[ o ];
+            alignSingleScale( scaleResult, pyr[ o ], data );
+
+            if( checkResult( scaleResult, result.warp.poseMatrix(), data.points3d.size() ) ){
+                // seems to be a good alignment
+                result = scaleResult;
+            } else {
+                scaleResult = result;
+            }
+        }
+
+        tmp4 = result.warp.poseMatrix();
+        tmp4.inverseSelf();
+        if( isRelative ){
+            tmp4 = _pose * tmp4;
+        }
+        result.warp.setPose( tmp4 );
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::alignSingleScale( Result& result, const Image& gray, const AlignmentData& kfdata )
+    {
+        if( IsRobustWeighting<Weighter>::Value ){
+            alignSingleScaleRobust( result, gray, kfdata );
+        } else {
+            alignSingleScaleNonRobust( result, gray, kfdata );
+        }
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::alignSingleScaleRobust( Result& result, const Image& gray, const AlignmentData& kfdata )
+    {
+        SIMD* simd = SIMD::instance();
+        Matrix4f projMat;
+
+        std::vector<Vector2<T> > warpedPts;
+        warpedPts.resize( kfdata.points3d.size() );
+
+        Matrix4<T> K4( kfdata.intrinsics );
+
+        // sum of jacobians * delta
+        JacobianType deltaSum, jtmp;
+        HessianType  hessian;
+
+        IMapScoped<const float> grayMap( gray );
+        size_t floatStride = grayMap.stride() / sizeof( float );
+
+        result.iterations = 0;
+        while( result.iterations < _maxIters ){
+            // build the updated projection Matrix
+            projMat = K4 * result.warp.poseMatrix();
+
+            // project the points:
+            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], kfdata.points3d.size() );
+
+            deltaSum.setZero();
+            hessian.setZero();
+
+            result.numPixels = 0;
+            result.costs = 0.0f;
+            for( size_t i = 0; i < warpedPts.size(); i++ ){
+                const Vector2<T> & pw = warpedPts[ i ];
+
+                if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
+                    pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
+
+                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
+
+                    // compute the delta
+                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], v );
+                    result.costs += Math::sqr( delta );
+                    result.numPixels++;
+
+                    T weight = _weighter.weight( delta );
+                    jtmp = weight * kfdata.jacobians[ i ];
+                    hessian = jtmp.transpose() * kfdata.jacobians[ i ];
+                    deltaSum += jtmp * delta;
+                }
+            }
+
+            if( !result.numPixels ){
+                break;
+            }
+
+            // evaluate the delta parameters
+            typename WarpFunc::DeltaVectorType deltaP = -hessian.inverse() * deltaSum.transpose();
+            result.warp.updateParameters( deltaP );
+
+            result.iterations++;
+            if( deltaP.norm() < _minUpdate )
+                break;
+        }
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::alignSingleScaleNonRobust( Result& result, const Image& gray, const AlignmentData& kfdata )
+    {
+        SIMD* simd = SIMD::instance();
+        Matrix4f projMat;
+
+        std::vector<Vector2<T> > warpedPts;
+        warpedPts.resize( kfdata.points3d.size() );
+
+        Matrix4<T> K4( kfdata.intrinsics );
+
+        // sum of jacobians * delta
+        JacobianType deltaSum, jtmp;
+
+        IMapScoped<const float> grayMap( gray );
+        size_t floatStride = grayMap.stride() / sizeof( float );
+
+        result.iterations = 0;
+        while( result.iterations < _maxIters ){
+            // build the updated projection Matrix
+            projMat = K4 * result.warp.poseMatrix();
+
+            // project the points:
+            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], kfdata.points3d.size() );
+
+            deltaSum.setZero();
+            result.numPixels = 0;
+            result.costs = 0.0f;
+            for( size_t i = 0; i < warpedPts.size(); i++ ){
+                const Vector2<T> & pw = warpedPts[ i ];
+
+                if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
+                    pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
+
+                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
+
+                    // compute the delta
+                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], v );
+                    result.costs += Math::sqr( delta );
+                    result.numPixels++;
+
+                    jtmp = delta * kfdata.jacobians[ i ];
+                    deltaSum += jtmp;
+                }
+            }
+
+            if( !result.numPixels ){
+                break;
+            }
+
+            // evaluate the delta parameters
+            typename WarpFunc::DeltaVectorType deltaP = -kfdata.inverseHessian * deltaSum.transpose();
+            result.warp.updateParameters( deltaP );
+
+            result.iterations++;
+            if( deltaP.norm() < _minUpdate )
+                break;
+        }
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline float RGBDKeyframe<WarpFunc, Weighter>::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
+    {
+        int   lx = ( int )pos.x;
+        int   ly = ( int )pos.y;
+        float fx = pos.x - lx;
+        float fy = pos.y - ly;
+
+        const float* p0 = ptr + ly * stride + lx;
+        const float* p1 = p0 + stride;
+
+        float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
+        float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
+        return Math::mix( v0, v1, fy );
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline bool RGBDKeyframe<WarpFunc, Weighter>::checkResult( const Result& res, const Matrix4<T>& lastPose, size_t numPixels ) const
+    {
+        // to few pixels projected into image
+        float pixelPercentage = (float)res.numPixels / ( float )numPixels;
+        if( pixelPercentage < _minPixelPercentage ){
+            return false;
+        }
+
+        // jump
+        Matrix4<T> mat = res.warp.poseMatrix();
+        if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
+            return false;
+        }
+        return true;
     }
 }
 
