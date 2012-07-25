@@ -8,10 +8,9 @@
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
     PARTICULAR PURPOSE.
  */
-/*
+/**
  * Special Euclidean Group Transformation:
- * 		- 3D Euclidean Transformation Parametrization using Lie Algebras
- *		- alpha, beta, gamma (angles in radians), tx, ty, tz
+ * 		- 3D Euclidean Transformation Parametrization using Lie Algebras 
  */
 #ifndef CVT_SE3_H
 #define CVT_SE3_H
@@ -21,6 +20,8 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+
+#include <cvt/math/Matrix.h>
 
 #include <vector>
 
@@ -58,12 +59,55 @@ namespace cvt
             void jacobian( JacMatType & J, const PointTypeHom & p ) const;
 
             /**
-             *  \brief  evaluates the screen jacobians for a given 3D point in camera coordinates (jac. around current pose estimate!)
-             *  \param  J   (output) the result
-             *  \param  p   the 3D point given in camera coordinates
-             *  \param  m   the intrinsic calibration matrix
+             *  \brief  evaluates the screen jacobians for a given 3D point in camera coordinates
+             *          (jacobian around current pose estimate!)
+             *  \param  J               (output) the result
+             *  \param  p               the 3D point given in camera coordinates
+             *  \param  intrinsics      the intrinsic calibration matrix
              */
-            void screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & m ) const;
+            static void screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & intrinsics )
+            {
+                T zz = 1.0/Math::sqr( p.z() );
+                T z = 1.0/p.z();
+                T xx = Math::sqr( p.x() );
+                T yy = Math::sqr( p.y() );
+
+                J( 0, 0 ) = -intrinsics( 0, 0 ) * p.x() * p.y() * zz;
+                J( 0, 1 ) =  intrinsics( 0, 0 ) * xx * zz + intrinsics( 0, 0 );
+                J( 0, 2 ) = -intrinsics( 0, 0 ) * p.y() * z;
+                J( 0, 3 ) =  intrinsics( 0, 0 ) * z;
+                J( 0, 4 ) = 0.0;
+                J( 0, 5 ) = -intrinsics( 0, 0 ) * p.x() * zz;
+
+                J( 1, 0 ) = -intrinsics( 1, 1 ) * yy * zz - intrinsics( 1, 1 );
+                J( 1, 1 ) =  intrinsics( 1, 1 ) * p.x() * p.y() * zz;
+                J( 1, 2 ) =  intrinsics( 1, 1 ) * p.x() * z;
+                J( 1, 3 ) =  0.0;
+                J( 1, 4 ) =  intrinsics( 1, 1 ) * z;
+                J( 1, 5 ) = -intrinsics( 1, 1 ) * p.y() * zz;
+            }
+
+            static void screenJacobian( ScreenJacType & J, const Vector3<T> & p, const Matrix3<T> & intrinsics )
+            {
+                T z = 1.0 / p.z;
+                T zz = 1.0 / Math::sqr( p.z );
+                T xx = Math::sqr( p.x );
+                T yy = Math::sqr( p.y );
+
+                J( 0, 0 ) = -intrinsics[ 0 ][ 0 ] * p.x * p.y * zz;
+                J( 0, 1 ) =  intrinsics[ 0 ][ 0 ] * xx * zz + intrinsics[ 0 ][ 0 ];
+                J( 0, 2 ) = -intrinsics[ 0 ][ 0 ] * p.y * z;
+                J( 0, 3 ) =  intrinsics[ 0 ][ 0 ] * z;
+                J( 0, 4 ) = 0.0;
+                J( 0, 5 ) = -intrinsics[ 0 ][ 0 ] * p.x * zz;
+
+                J( 1, 0 ) = -intrinsics[ 1 ][ 1 ] * yy * zz - intrinsics[ 1 ][ 1 ];
+                J( 1, 1 ) =  intrinsics[ 1 ][ 1 ] * p.x * p.y * zz;
+                J( 1, 2 ) =  intrinsics[ 1 ][ 1 ] * p.x * z;
+                J( 1, 3 ) =  0.0;
+                J( 1, 4 ) =  intrinsics[ 1 ][ 1 ] * z;
+                J( 1, 5 ) = -intrinsics[ 1 ][ 1 ] * p.y * zz;
+            }
 
             void hessian( HessMatType & h, const PointType & p ) const;
 
@@ -221,51 +265,6 @@ namespace cvt
         warped = _current.template block<3, 3>( 0, 0 ) * p + _current.template block<3, 1>( 0, 3 );
     }
 
-/*
-    template < typename T >
-    inline void SE3<T>::project( Eigen::Matrix<T, 2, 1> & sp, const CamModel<T> & cam, const PointType & p3d ) const
-    {
-        PointTypeHom pHom;
-        pHom.template segment<3>( 0 ) = p3d;
-        pHom[ 3 ] = 1.0;
-
-        pHom = cam.projection() * _current * pHom;
-        sp[ 0 ] = pHom[ 0 ] / pHom[ 2 ];
-        sp[ 1 ] = pHom[ 1 ] / pHom[ 2 ];
-    }
-
-    template < typename T >
-    inline void SE3<T>::project( Eigen::Matrix<T, 2, 1> & sp,
-                                 Eigen::Matrix<T, 2, 6> & screenJac,
-                                 const CamModel<T> & cam,
-                                 const PointType & p3d ) const
-    {
-        PointTypeHom pHom, p;
-        pHom.template segment<3>( 0 ) = p3d;
-        pHom[ 3 ] = 1.0;
-
-        p = _current * pHom;
-        Eigen::Matrix<T, 3, 6> poseJ;
-        this->jacobianAroundT( poseJ, p );
-
-        pHom = cam.projection() * p;
-        sp[ 0 ] = pHom[ 0 ] / pHom[ 2 ];
-        sp[ 1 ] = pHom[ 1 ] / pHom[ 2 ];
-
-        const Eigen::Matrix<T, 3, 3> & K = cam.K();
-        Eigen::Matrix<T, 2, 3> projJ;
-        projJ( 0, 0 ) = K( 0, 0 ) / pHom[ 2 ];
-        projJ( 0, 1 ) = K( 0, 1 ) / pHom[ 2 ];
-        projJ( 0, 2 ) = ( K( 0, 2 ) - sp[ 0 ] ) / pHom[ 2 ];
-
-        projJ( 1, 0 ) = 0;
-        projJ( 1, 1 ) = K( 1, 1 ) / pHom[ 2 ];
-        projJ( 1, 2 ) = ( K( 1, 2 ) - sp[ 1 ] ) / pHom[ 2 ];
-
-        screenJac = projJ * poseJ;
-    }
-*/
-
     template <typename T>
     inline void SE3<T>::hessian( HessMatType & h, const PointType & p ) const
     {
@@ -305,30 +304,6 @@ namespace cvt
 
         h( 20, 1 ) = 0.5;
         h( 21, 0 ) = -0.5;
-    }
-
-
-    template <typename T>
-    inline void SE3<T>::screenJacobian( ScreenJacType & J, const PointType & p, const Eigen::Matrix<T, 3, 3> & intrinsics ) const
-    {
-        T zz = 1.0/Math::sqr( p.z() );
-        T z = 1.0/p.z();
-        T xx = Math::sqr( p.x() );
-        T yy = Math::sqr( p.y() );
-
-        J( 0, 0 ) = -intrinsics( 0, 0 ) * p.x() * p.y() * zz;
-        J( 0, 1 ) =  intrinsics( 0, 0 ) * xx * zz + intrinsics( 0, 0 );
-        J( 0, 2 ) = -intrinsics( 0, 0 ) * p.y() * z;
-        J( 0, 3 ) =  intrinsics( 0, 0 ) * z;
-        J( 0, 4 ) = 0.0;
-        J( 0, 5 ) = -intrinsics( 0, 0 ) * p.x() * zz;
-
-        J( 1, 0 ) = -intrinsics( 1, 1 ) * yy * zz - intrinsics( 1, 1 );
-        J( 1, 1 ) =  intrinsics( 1, 1 ) * p.x() * p.y() * zz;
-        J( 1, 2 ) =  intrinsics( 1, 1 ) * p.x() * z;
-        J( 1, 3 ) =  0.0;
-        J( 1, 4 ) =  intrinsics( 1, 1 ) * z;
-        J( 1, 5 ) = -intrinsics( 1, 1 ) * p.y() * zz;
     }
 
     template <typename T>
