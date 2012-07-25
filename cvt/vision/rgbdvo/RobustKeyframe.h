@@ -217,9 +217,10 @@ namespace cvt
                     result.SSD += Math::sqr( delta );
                     result.numPixels++;
 
+
                     jtmp = _weighter.weight( delta ) * _jacobians[ i ];
 
-                    H += jtmp.transpose() * jtmp;
+                    H += jtmp.transpose() * _jacobians[ i ];
                     deltaSum += ( delta * jtmp );
                 }
             }

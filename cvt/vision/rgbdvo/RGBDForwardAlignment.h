@@ -1,19 +1,18 @@
 /*
             CVT - Computer Vision Tools Library
-
+            
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-
+     
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
     PARTICULAR PURPOSE.
 */
 
-#ifndef CVT_RGBDALIGNMENT_H
-#define CVT_RGBDALIGNMENT_H
+#ifndef RGBDFORWARDALIGNMENT_H
+#define RGBDFORWARDALIGNMENT_H
 
 #include <vector>
-
 #include <cvt/vision/rgbdvo/RGBDTemplate.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IKernel.h>
@@ -22,7 +21,7 @@
 namespace cvt
 {
     template <typename T>
-    class RGBDAlignment {
+    class RGBDForwardAlignment {
         public:
             typedef typename RGBDTemplate<T>::Params TemplateParams;
 
@@ -42,8 +41,8 @@ namespace cvt
                 TemplateParams          templateParams;
             };
 
-            RGBDAlignment( const Matrix3<T>& intrinsics );
-            ~RGBDAlignment();
+            RGBDForwardAlignment( const Matrix3<T>& intrinsics );
+            ~RGBDForwardAlignment();
 
             /**
              *  \brief align the given images with the internally stored template data
@@ -108,7 +107,7 @@ namespace cvt
     };
 
     template <typename T>
-    inline RGBDAlignment<T>::RGBDAlignment( const Matrix3<T> & intrinsics ) :
+    inline RGBDForwardAlignment<T>::RGBDForwardAlignment( const Matrix3<T> & intrinsics ) :
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
         _gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
@@ -130,12 +129,12 @@ namespace cvt
     }
 
     template <typename T>
-    inline RGBDAlignment<T>::~RGBDAlignment()
+    inline RGBDForwardAlignment<T>::~RGBDForwardAlignment()
     {
     }
 
     template <typename T>
-    inline void RGBDAlignment<T>::updateTemplateData( const Image& depth, const Matrix4<T>& pose )
+    inline void RGBDForwardAlignment<T>::updateTemplateData( const Image& depth, const Matrix4<T>& pose )
     {
         for( size_t i = 0; i < _currentImagePyramid.octaves(); i++ ){
             _templateForScale[ i ].updateTemplate( _currentImagePyramid[ i ], depth, pose,  _calibForScale[ i ], _params.templateParams );
@@ -143,7 +142,7 @@ namespace cvt
     }
 
     template <typename T>
-    inline void RGBDAlignment<T>::alignFrames( Matrix4<T>& pose, const Image& gray, const Image& depth )
+    inline void RGBDForwardAlignment<T>::alignFrames( Matrix4<T>& pose, const Image& gray, const Image& depth )
     {
         // update the pyramid:
         _currentImagePyramid.update( gray );
@@ -261,7 +260,7 @@ namespace cvt
     }
 
     template <typename T>
-    inline void RGBDAlignment<T>::transformPoints( Vector3<T>* warped3d,
+    inline void RGBDForwardAlignment<T>::transformPoints( Vector3<T>* warped3d,
                                                    Vector2<T>* warped2d,
                                                    const Vector3<T>* pts3d,
                                                    const Matrix4<T> & mat,
@@ -277,4 +276,4 @@ namespace cvt
 
 }
 
-#endif // CVT_RGBDALIGNMENT_H
+#endif // RGBDFORWARDALIGNMENT_H
