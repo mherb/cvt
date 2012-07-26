@@ -26,6 +26,8 @@ namespace cvt {
 
     struct PoseRepresentation
     {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         PoseRepresentation() :
             gain( 0.0f ), bias( 0.0f )
         {

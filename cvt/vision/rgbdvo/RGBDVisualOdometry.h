@@ -77,6 +77,7 @@ namespace cvt {
              */
             Signal<void>               activeKeyframeChanged;
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             Matrix3f                    _intrinsics;
             VOParams                    _params;
