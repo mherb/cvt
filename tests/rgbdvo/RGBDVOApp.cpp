@@ -39,7 +39,7 @@ namespace cvt
         _vo.keyframeAdded.add( kfAddDel );
         _vo.activeKeyframeChanged.add( actkfChgDel );
 
-        Image gray;
+        Image gray, depth;
 #ifdef USE_CAM
         _cam.setRegisterDepthToRGB( true );
         //_cam.setSyncRGBDepth( true );
@@ -47,9 +47,10 @@ namespace cvt
         _cam.nextFrame();
 
         _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+        _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
 
         Matrix4f tmp; tmp.setIdentity();
-        _vo.addNewKeyframe( gray, _cam.depth(), tmp );
+        _vo.addNewKeyframe( gray, depth, tmp );
 #else
         _parser.loadNext();
         while( _parser.data().poseValid == false )
