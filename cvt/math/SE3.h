@@ -39,7 +39,6 @@ namespace cvt
                         typedef Eigen::Matrix<T, 6, 1>  ParameterVectorType;
                         typedef Eigen::Matrix<T, 3, 1>  PointType;
                         typedef Eigen::Matrix<T, 4, 1>  PointTypeHom;
-            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
             /**
              *	angles in radians
@@ -133,6 +132,7 @@ namespace cvt
 
             void evalExp( MatrixType& expT, const ParameterVectorType& delta ) const;
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             MatrixType				_current;
     };

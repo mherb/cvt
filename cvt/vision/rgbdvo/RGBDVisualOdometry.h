@@ -21,6 +21,8 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
+//#define USE_NEW_VERSION
+
 namespace cvt {
 
     template <class DerivedKF>
@@ -58,6 +60,7 @@ namespace cvt {
             void setMaxTranslationDistance( float dist )      { _maxTranslationDistance = dist; }
             void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
             void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
+            void setParams( const VOParams& p )               { _params = p; }
 
             size_t numOverallKeyframes() const { return _numCreated; }
             const VOResult& lastResult() const { return _lastResult; }
@@ -74,6 +77,7 @@ namespace cvt {
              */
             Signal<void>               activeKeyframeChanged;
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             Matrix3f                    _intrinsics;
             VOParams                    _params;
@@ -94,13 +98,16 @@ namespace cvt {
             PoseRepresentation          _relativePose;
             VOResult                    _lastResult;
 
+#ifdef USE_NEW_VERSION
             typedef StandardWarp<float>       WarpType;
             //typedef AffineLightingWarp<float>   WarpType;
             typedef RGBDKeyframe<WarpType, Huber<float> >      KType;
             KType                       _keyframeTest;
             Matrix4<float>              _testPose;
-
             ImagePyramid                _pyramid;
+#endif
+
+
 
             bool needNewKeyframe( const VOResult& alignResult ) const;
     };
@@ -113,17 +120,21 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 ),
-        _numCreated( 0 ),
-        _keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_RELATIVE ),
+        _numCreated( 0 )
+    #ifdef USE_NEW_VERSION
+        ,_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_RELATIVE ),
         //_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_ABSOLUTE ),
         _pyramid( params.octaves, params.pyrScale )
+  #endif
     {
+        #ifdef USE_NEW_VERSION
         _keyframeTest.setDepthMapScaleFactor( params.depthScale );
         _keyframeTest.setMinimumDepth( params.minDepth );
         _keyframeTest.setGradientThreshold( params.gradientThreshold );
         _keyframeTest.setRobustParam( params.robustParam );
         _keyframeTest.setMaxIter( params.maxIters );
         _keyframeTest.setMinUpdate( params.minParameterUpdate );
+#endif
     }
 
     template <class DerivedKF>
@@ -142,16 +153,18 @@ namespace cvt {
         // align with the current keyframe
         _lastResult = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
 
+        #ifdef USE_NEW_VERSION
         KType::Result aResult;
-
         _pyramid.update( gray );
         _keyframeTest.align( aResult, _testPose, _pyramid );
         _testPose = aResult.warp.poseMatrix();
+        #endif
 
         Matrix4f absPose;
         pose( absPose );
+        std::cout << "Current Pose:\n" << absPose << std::endl;
 
-        std::cout << "New - Old:\n" << ( _testPose - absPose ) << std::endl;
+        //std::cout << "New - Old:\n" << ( _testPose - absPose ) << std::endl;
 
         // check if we need a new keyframe
         if( needNewKeyframe( _lastResult ) ){
@@ -194,6 +207,7 @@ namespace cvt {
             delete _activeKeyframe;
         _activeKeyframe = KeyframeType::create( gray, depth, kfPose, _intrinsics, _params );
 
+        #ifdef USE_NEW_VERSION
         _pyramid.update( gray );
         static bool first = true;
         if( first ){
@@ -203,6 +217,7 @@ namespace cvt {
         } else {
             _keyframeTest.updateOfflineData( _testPose, _pyramid, depth );
         }
+        #endif
 
         // DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
         //_keyframes.push_back( kf );
