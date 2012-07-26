@@ -94,10 +94,10 @@ namespace cvt {
             PoseRepresentation          _relativePose;
             VOResult                    _lastResult;
 
-            //typedef StandardWarp<float>       WarpType;
-            typedef AffineLightingWarp<float>   WarpType;
+            typedef StandardWarp<float>       WarpType;
+            //typedef AffineLightingWarp<float>   WarpType;
             typedef RGBDKeyframe<WarpType, Huber<float> >      KType;
-            KType                       _keyframeTest;            
+            KType                       _keyframeTest;
             Matrix4<float>              _testPose;
 
             ImagePyramid                _pyramid;
@@ -115,12 +115,15 @@ namespace cvt {
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
         _keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_RELATIVE ),
-        //_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_ABSOLUTE ),        
+        //_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_ABSOLUTE ),
         _pyramid( params.octaves, params.pyrScale )
     {
         _keyframeTest.setDepthMapScaleFactor( params.depthScale );
         _keyframeTest.setMinimumDepth( params.minDepth );
         _keyframeTest.setGradientThreshold( params.gradientThreshold );
+        _keyframeTest.setRobustParam( params.robustParam );
+        _keyframeTest.setMaxIter( params.maxIters );
+        _keyframeTest.setMinUpdate( params.minParameterUpdate );
     }
 
     template <class DerivedKF>
@@ -151,7 +154,7 @@ namespace cvt {
         std::cout << "New - Old:\n" << ( _testPose - absPose ) << std::endl;
 
         // check if we need a new keyframe
-        if( needNewKeyframe( _lastResult ) ){            
+        if( needNewKeyframe( _lastResult ) ){
             addNewKeyframe( gray, depth, absPose );
             keyframeAdded.notify( absPose );
             activeKeyframeChanged.notify();
