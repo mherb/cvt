@@ -60,6 +60,7 @@ namespace cvt {
             void setMaxTranslationDistance( float dist )      { _maxTranslationDistance = dist; }
             void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
             void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
+            void setParams( const VOParams& p )               { _params = p; }
 
             size_t numOverallKeyframes() const { return _numCreated; }
             const VOResult& lastResult() const { return _lastResult; }
