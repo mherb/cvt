@@ -1,8 +1,8 @@
 /*
             CVT - Computer Vision Tools Library
-            
+
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-     
+
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -23,7 +23,8 @@
 
 namespace cvt
 {
-    template <class WarpFunc, class Weighter = NoWeighting<typename WarpFunc::Type> >
+    template <class WarpFunc,
+              class Weighter = NoWeighting<typename WarpFunc::Type> >
     class RGBDKeyframe {
         public:
             struct Result {
@@ -141,7 +142,7 @@ namespace cvt
         _minUpdate( (T)1e-6 ),
         _translationJumpThreshold( ( T )0.8 ),
         _minPixelPercentage( 0.3f ),
-        _weighter( (T)0.7 )
+        _weighter( (T)0.1 )
     {
         _kx.scale( -0.5 );
         _ky.scale( -0.5 );
@@ -243,7 +244,7 @@ namespace cvt
                         WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
 
                         data.jacobians.push_back( j );
-                        data.pixelValues.push_back( value[ x ] );                        
+                        data.pixelValues.push_back( value[ x ] );
                         data.points3d.push_back( p3d );
                         H.noalias() += j.transpose() * j;
                     }
@@ -368,7 +369,7 @@ namespace cvt
                     result.costs += Math::sqr( delta );
                     result.numPixels++;
 
-                    T weight = _weighter.weight( delta );
+                    T weight = _weighter.weight( delta * delta );
                     jtmp = weight * kfdata.jacobians[ i ];
                     hessian = jtmp.transpose() * kfdata.jacobians[ i ];
                     deltaSum += jtmp * delta;
