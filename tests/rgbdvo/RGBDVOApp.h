@@ -10,7 +10,6 @@
 
 #include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 #include <cvt/vision/rgbdvo/MIKeyframe.h>
 #include <cvt/vision/rgbdvo/VOKeyframe.h>
 #include <cvt/vision/rgbdvo/AIIKeyframe.h>
@@ -20,7 +19,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
-//#define USE_CAM
+#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
