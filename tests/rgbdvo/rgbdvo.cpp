@@ -109,6 +109,7 @@ void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, 
 template <class KFType>
 void convergenceTest( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
+    /*
     RGBDParser parser( folder, 0.05f );
 
     // go to an image somewhere inside the dataset
@@ -127,10 +128,8 @@ void convergenceTest( const VOParams& params, const Matrix3f& K, const String& f
     Matrix4f poseMat;
     poseMat.setIdentity();
 
-    KFType* keyframe = KFType::create( gray, dFloat, poseMat, K, params );
-    PoseRepresentation relPose;
-    relPose.bias = 0.0f;
-    relPose.gain = 0.0f;
+    KFType keyframe( K, params.octaves, params.pyrScale );
+
 
     const float angleRange = cfg.valueForName( "convTestRotoRangeDeg", 20.0f ) * Math::PI / 180.0f;
     const float transRange = cfg.valueForName( "convTestTransRangeM", 1.5f );
@@ -213,6 +212,7 @@ void convergenceTest( const VOParams& params, const Matrix3f& K, const String& f
     }
     std::cout << std::endl;
     delete keyframe;
+    */
 }
 
 template <class KFType>
@@ -249,16 +249,12 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
         time.reset();
         d.rgb.convert( gray );
-        //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
         vo.updatePose( gray, d.depth );
 
         timeSum += time.elapsedMilliSeconds();
         iters++;
 
-        vo.pose( pose );
-        writePoseToFile( file, pose, d.stamp );
-
-       //testQuaternionPrecision( d.pose );
+        writePoseToFile( file, vo.pose(), d.stamp );
 
         if( parser.iter() % stepIter == 0 )
             std::cout << "#"; std::flush( std::cout );
@@ -272,28 +268,29 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
 void convergenceAnalysis( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
+    typedef StandardWarp<float> StandardWarpf;
+    typedef AffineLightingWarp<float> ALWarpf;
+    typedef Huber<float> Huberf;
+    typedef Tukey<float> Tukeyf;
+
+    String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "VO" ){
-        convergenceTest<VOKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII" ) {
-        convergenceTest<AIIKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
+    if( kftypeString.toUpper() == "STD" ){
+        convergenceTest<RGBDKeyframe<StandardWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        convergenceTest<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
+        convergenceTest<RGBDKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        convergenceTest<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_VO" ) {
-        convergenceTest<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_AII" ) {
-        convergenceTest<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
+        convergenceTest<RGBDKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII" ) {
+        convergenceTest<RGBDKeyframe<ALWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
+        convergenceTest<RGBDKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+        convergenceTest<RGBDKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }
@@ -301,40 +298,30 @@ void convergenceAnalysis( VOParams& params, const Matrix3f& K, const String& fol
 
 void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
+
+    typedef StandardWarp<float> StandardWarpf;
+    typedef AffineLightingWarp<float> ALWarpf;
+    typedef Huber<float> Huberf;
+    typedef Tukey<float> Tukeyf;
+
+    String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "VO" ){
-        runVOWithKFType<VOKeyframe>( params, K, folder, cfg );    
+    if( kftypeString.toUpper() == "STD" ){
+        runVOWithKFType<RGBDKeyframe<StandardWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        runVOWithKFType<RGBDKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+        runVOWithKFType<RGBDKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
+        runVOWithKFType<RGBDKeyframe<ALWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustAIIKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustAIIKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_VO" ) {
-        runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );    
-    } else if( kftypeString.toUpper() == "MS_AII" ) {
-        runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Tukey<float> > > >( params, K, folder, cfg );
+        runVOWithKFType<RGBDKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+        runVOWithKFType<RGBDKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }
@@ -374,10 +361,6 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 2 ] = 249.7f;
 
 
-    //typedef MultiscaleKeyframe<MIKeyframe> testKF;
-    //typedef MultiscaleKeyframe<VOKeyframe> testKF;
-    //typedef MultiscaleKeyframe<RobustKeyframe<Huber> > testKF;
-    //typedef MIKeyframe testKF;
 //    testFunc<testKF>( params, K, folder, cfg );
 //    cfg.save( "rgbdvo.cfg" );
 //    return 0;

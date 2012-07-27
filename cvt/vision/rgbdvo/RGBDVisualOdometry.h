@@ -14,25 +14,23 @@
 
 #include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/gfx/Image.h>
-#include <cvt/math/SE3.h>
 #include <cvt/util/EigenBridge.h>
 #include <cvt/util/Signal.h>
 #include <cvt/util/CVTAssert.h>
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
-//#define USE_NEW_VERSION
-
 namespace cvt {
 
     template <class DerivedKF>
     class RGBDVisualOdometry
     {
-        typedef KeyframeBase<DerivedKF> KeyframeType;
+
         public:
             RGBDVisualOdometry( const Matrix3f& K, const VOParams& params );
             ~RGBDVisualOdometry();
 
+            // TODO remove this one
             void updatePose( const Image& gray, const Image& depth );
 
             /**
@@ -50,20 +48,21 @@ namespace cvt {
             /**
              *  \brief  get the absolute (world) pose of the last added image
              */
-            void pose( Matrix4f& pose ) const;
+            const Matrix4f& pose() const;
 
             size_t              numKeyframes()          const { return _keyframes.size(); }
-            const KeyframeType& keyframe( size_t idx )  const { return *_keyframes[ idx ]; }
-            const KeyframeType& activeKeyframe()        const { return *_activeKeyframe; }
             const Matrix3f&     intrinsics()            const { return _intrinsics; }
 
             void setMaxTranslationDistance( float dist )      { _maxTranslationDistance = dist; }
             void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
             void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
             void setParams( const VOParams& p )               { _params = p; }
+            void setPose( const Matrix4f& pose )              { _currentPose = pose; }
 
             size_t numOverallKeyframes() const { return _numCreated; }
-            const VOResult& lastResult() const { return _lastResult; }
+
+            float  lastSSD()         const { return _lastResult.costs; }
+            size_t lastNumPixels()   const { return _lastResult.numPixels; }
 
             /******** SIGNALS ************/
             /**
@@ -88,28 +87,17 @@ namespace cvt {
 
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
-
             size_t						_numCreated;
+            std::vector<DerivedKF>      _keyframes;
 
-            /* vector of all the keyframes (TODO: maybe graph would be cooler) */
-            std::vector<DerivedKF*>     _keyframes;
-
-            /* current / last pose w.r.t. active keyframe */
-            PoseRepresentation          _relativePose;
-            VOResult                    _lastResult;
-
-#ifdef USE_NEW_VERSION
-            typedef StandardWarp<float>       WarpType;
-            //typedef AffineLightingWarp<float>   WarpType;
-            typedef RGBDKeyframe<WarpType, Huber<float> >      KType;
-            KType                       _keyframeTest;
-            Matrix4<float>              _testPose;
             ImagePyramid                _pyramid;
-#endif
+            Matrix4<float>              _currentPose;
 
+            typename DerivedKF::Result  _lastResult;
 
+            bool needNewKeyframe() const;
 
-            bool needNewKeyframe( const VOResult& alignResult ) const;
+            void setKeyframeParams( DerivedKF& kf );
     };
 
     template <class DerivedKF>
@@ -120,29 +108,15 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _activeKeyframe( 0 ),
-        _numCreated( 0 )
-    #ifdef USE_NEW_VERSION
-        ,_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_RELATIVE ),
-        //_keyframeTest( K, params.octaves, params.pyrScale, KType::STORE_ABSOLUTE ),
+        _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
-  #endif
     {
-        #ifdef USE_NEW_VERSION
-        _keyframeTest.setDepthMapScaleFactor( params.depthScale );
-        _keyframeTest.setMinimumDepth( params.minDepth );
-        _keyframeTest.setGradientThreshold( params.gradientThreshold );
-        _keyframeTest.setRobustParam( params.robustParam );
-        _keyframeTest.setMaxIter( params.maxIters );
-        _keyframeTest.setMinUpdate( params.minParameterUpdate );
-#endif
+        _currentPose.setIdentity();
     }
 
     template <class DerivedKF>
     inline RGBDVisualOdometry<DerivedKF>::~RGBDVisualOdometry()
     {
-        for( size_t i = 0; i < _keyframes.size(); i++ ){
-            delete _keyframes[ i ];
-        }
         _activeKeyframe = 0;
         _keyframes.clear();
     }
@@ -150,26 +124,18 @@ namespace cvt {
     template <class DerivedKF>
     inline void RGBDVisualOdometry<DerivedKF>::updatePose( const Image& gray, const Image& depth )
     {
-        // align with the current keyframe
-        _lastResult = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
-
-        #ifdef USE_NEW_VERSION
-        KType::Result aResult;
         _pyramid.update( gray );
-        _keyframeTest.align( aResult, _testPose, _pyramid );
-        _testPose = aResult.warp.poseMatrix();
-        #endif
 
-        Matrix4f absPose;
-        pose( absPose );
-        std::cout << "Current Pose:\n" << absPose << std::endl;
+        _activeKeyframe->align( _lastResult, _currentPose, _pyramid );
 
-        //std::cout << "New - Old:\n" << ( _testPose - absPose ) << std::endl;
+        _currentPose = _lastResult.warp.poseMatrix();
+
 
         // check if we need a new keyframe
-        if( needNewKeyframe( _lastResult ) ){
-            addNewKeyframe( gray, depth, absPose );
-            keyframeAdded.notify( absPose );
+        if( needNewKeyframe() ){
+            std::cout << "NEED A NEW KF" << std::endl;
+            addNewKeyframe( gray, depth, _currentPose );
+            keyframeAdded.notify( _currentPose );
             activeKeyframeChanged.notify();
         }
     }
@@ -177,24 +143,9 @@ namespace cvt {
     template <class DerivedKF>
     inline void RGBDVisualOdometry<DerivedKF>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
-        // align with the current keyframe
-        // convert pose to a relative prediction:
-        const Matrix4f& kfPose = _activeKeyframe->pose();
-        pose = pose.inverse() * kfPose;
-        Eigen::Matrix4f tmp;
-        EigenBridge::toEigen( tmp, pose );
-        _relativePose.pose.set( tmp );
-        VOResult result = _activeKeyframe->computeRelativePose( _relativePose, gray, _intrinsics, _params );
-
-        // get back the absolute pose;
-        this->pose( pose );
-
-        // check if we need a new keyframe
-        if( needNewKeyframe( result ) ){
-            addNewKeyframe( gray, depth, pose );
-            keyframeAdded.notify( pose );
-            activeKeyframeChanged.notify();
-        }
+        _currentPose = pose;
+        updatePose( gray, depth );
+        pose = _currentPose;
     }
 
     template <class DerivedKF>
@@ -203,71 +154,66 @@ namespace cvt {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
-        if( _activeKeyframe )
-            delete _activeKeyframe;
-        _activeKeyframe = KeyframeType::create( gray, depth, kfPose, _intrinsics, _params );
-
-        #ifdef USE_NEW_VERSION
-        _pyramid.update( gray );
-        static bool first = true;
-        if( first ){
-            _keyframeTest.updateOfflineData( kfPose, _pyramid, depth );
-            _testPose = kfPose;
-            first = false;
-        } else {
-            _keyframeTest.updateOfflineData( _testPose, _pyramid, depth );
+        if( !_activeKeyframe ){
+            _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
+            _activeKeyframe = &_keyframes[ 0 ];
+            setKeyframeParams( *_activeKeyframe );
+            _currentPose = kfPose;
+            _pyramid.update( gray );
         }
-        #endif
-
-        // DerivedKF* kf = KeyframeType::create( gray, dFloat, kfPose, _intrinsics, _params );
-        //_keyframes.push_back( kf );
-        //_activeKeyframe = _keyframes.back();
-
-        // set the relative pose to identity
-        SE3<float>::MatrixType I = SE3<float>::MatrixType::Identity();
-        _relativePose.pose.set( I );
-        _relativePose.bias = 0.0f;
-        _relativePose.gain = 0.0f;
+        _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
         _numCreated++;
     }
 
     template <class DerivedKF>
-    inline bool RGBDVisualOdometry<DerivedKF>::needNewKeyframe( const VOResult& alignResult ) const
+    inline void RGBDVisualOdometry<DerivedKF>::setKeyframeParams( DerivedKF& kf )
+    {
+        kf.setDepthMapScaleFactor( _params.depthScale );
+        kf.setMinimumDepth( _params.minDepth );
+        kf.setGradientThreshold( _params.gradientThreshold );
+        kf.setRobustParam( _params.robustParam );
+        kf.setMaxIter( _params.maxIters );
+        kf.setMinUpdate( _params.minParameterUpdate );
+    }
+
+    template <class DerivedKF>
+    inline bool RGBDVisualOdometry<DerivedKF>::needNewKeyframe() const
     {
         // check the ssd:
-        float avgSSD = alignResult.SSD / alignResult.numPixels;
+        float avgSSD = -1.0f;
+        if( _lastResult.numPixels )
+            avgSSD = _lastResult.costs / _lastResult.numPixels;
+
         if( avgSSD > _maxSSDSqr ){
-            //std::cout << "Avg SSD: " << avgSSD << std::endl;
+            std::cout << "Avg SSD: " << avgSSD << std::endl;
             return true;
         }
 
-        const Eigen::Matrix4f& rel = _relativePose.pose.transformation();
+        Matrix4f relPose = _currentPose.inverse() * _activeKeyframe->pose();
 
-        float tmp = rel.block<3, 1>( 0, 3 ).norm();
+        Vector4f t = relPose.col( 3 );
+        t[ 3 ] = 0;
+        float tmp = t.length();
         if( tmp > _maxTranslationDistance ){
-            //std::cout << "Translation Distance: " << tmp << std::endl;
+            std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
 
-        Matrix3f R;
-        const Eigen::Matrix3f& RE = rel.block<3, 3>( 0, 0 );
-        EigenBridge::toCVT( R, RE );
+        Matrix3f R = relPose.toMatrix3();
         Quaternionf q( R );
         Vector3f euler = q.toEuler();
         tmp = euler.length();
         if( tmp > _maxRotationDistance ){
-            //std::cout << "Rotation Distance: " << tmp << std::endl;
+            std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
         return false;
     }
 
     template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::pose( Matrix4f& pose ) const
+    inline const Matrix4f& RGBDVisualOdometry<DerivedKF>::pose() const
     {
-        Matrix4f tmp;
-        EigenBridge::toCVT( tmp, _relativePose.pose.transformation() );
-        pose = _activeKeyframe->pose() * tmp.inverse();
+        return _currentPose;
     }
 
 }
