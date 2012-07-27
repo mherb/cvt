@@ -19,7 +19,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
-#define USE_CAM
+//#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
@@ -48,21 +48,25 @@ namespace cvt
                 RGBDParser                          _parser;
 #endif
 
+
+                typedef StandardWarp<float>           WarpType;
+                //typedef AffineLightingWarp<float>   WarpType;
+                typedef RGBDKeyframe<WarpType, Huber<WarpType::Type> >      KFType;
+
+
                 //typedef ESMKeyframe KFType;
                 //typedef AIIKeyframe KFType;
                 //typedef VOKeyframe KFType;
                 //typedef RobustKeyframe<Tukey> KFType;
                 //typedef RobustKeyframe<Huber> KFType;
-                //typedef MultiscaleKeyframe<ESMKeyframe> KFType;
-                typedef MultiscaleKeyframe<VOKeyframe> KFType;
+                //typedef MultiscaleKeyframe<VOKeyframe> KFType;
                 //typedef MultiscaleKeyframe<AIIKeyframe> KFType;
-                //typedef cvt::MIKeyframe KFType;
                 RGBDVisualOdometry<KFType>  _vo;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
 
-                std::ofstream               _fileOut;                
+                std::ofstream               _fileOut;
 
                 float                       _cumulativeAlignmentSpeed;
                 size_t                      _numAlignments;

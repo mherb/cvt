@@ -96,7 +96,7 @@ namespace cvt
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr );
 
         private:
-            const PointStorage          _storageType;
+            PointStorage                _storageType;
             Matrix4<T>                  _pose;
             std::vector<AlignmentData>  _dataForScale;
             IKernel                     _kx;
@@ -168,8 +168,8 @@ namespace cvt
 
     template <class WarpFunc, class Weighter>
     inline void RGBDKeyframe<WarpFunc, Weighter>::updateOfflineData( const Matrix4<T>& poseMat,
-                                                              const ImagePyramid& pyramid,
-                                                              const Image& depth )
+                                                                     const ImagePyramid& pyramid,
+                                                                     const Image& depth )
     {
         _pose = poseMat;
 
@@ -293,6 +293,9 @@ namespace cvt
         }
 
         result.warp.setPose( tmp4 );
+        result.costs = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
 
         scaleResult = result;
         for( int o = pyr.octaves() - 1; o >= 0; o-- ){
@@ -369,9 +372,10 @@ namespace cvt
                     result.costs += Math::sqr( delta );
                     result.numPixels++;
 
-                    T weight = _weighter.weight( delta * delta );
+                    T weight = _weighter.weight( delta );
                     jtmp = weight * kfdata.jacobians[ i ];
-                    hessian = jtmp.transpose() * kfdata.jacobians[ i ];
+
+                    hessian.noalias() += jtmp.transpose() * kfdata.jacobians[ i ];
                     deltaSum += jtmp * delta;
                 }
             }
