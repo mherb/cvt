@@ -64,8 +64,6 @@ namespace cvt {
 			void enqueueUnmap( const CLMemory& mem, const void* ptr,
 							   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
-			void waitEvents( const std::vector<CLEvent>& waitevents );
-			void waitEvent( const CLEvent& event );
 			void flush();
 			void finish();
 
@@ -212,29 +210,6 @@ namespace cvt {
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
-
-	/**
-	  Wait for events in waitevents to be executed.
-	 */
-	inline void CLCommandQueue::waitEvents( const std::vector<CLEvent>& waitevents )
-	{
-		cl_int err;
-		err = ::clEnqueueWaitForEvents( _object, waitevents.size(), ( const cl_event* ) &waitevents[0] );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
-
-	}
-
-	/**
-		Wait for a single event to be executed.
-	  */
-	inline void CLCommandQueue::waitEvent( const CLEvent& event )
-	{
-		cl_int err;
-		err = ::clEnqueueWaitForEvents( _object, 1, ( const cl_event* ) &event );
-		if( err != CL_SUCCESS )
-			throw CLException( __PRETTY_FUNCTION__, err );
-	}
 
 	/**
 	  Flush the CL command-queue.
