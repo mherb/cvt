@@ -142,6 +142,8 @@ namespace cvt
             Matrix4f absPose = _vo.pose();
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteration: " << iter << std::endl;
+                _step = true;
+                _optimize = false;
                 _vo.setPose( lastPose );
             }
 
@@ -255,6 +257,11 @@ namespace cvt
     void RGBDVOApp::activeKeyframeChangedCallback()
     {
         // TODO: draw the active keyframe in green in the view
+#ifdef USE_CAM
+        _keyframeImage.setImage( _cam.frame() );
+#else
+        _keyframeImage.setImage( _parser.data().rgb );
+#endif
     }
 
 }
