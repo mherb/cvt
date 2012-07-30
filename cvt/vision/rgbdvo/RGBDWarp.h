@@ -1,8 +1,8 @@
 /*
             CVT - Computer Vision Tools Library
-            
+
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-     
+
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -11,6 +11,8 @@
 
 #ifndef RGBDWARP_H
 #define RGBDWARP_H
+
+#include <cvt/math/SE3.h>
 
 namespace cvt
 {
@@ -29,6 +31,11 @@ namespace cvt
         StandardWarp( const StandardWarp& other ) :
             _pose( other._pose )
         {}
+
+        void initialize( const Matrix4<T>& pose )
+        {
+            setPose( pose );
+        }
 
         void setPose( const Matrix4<T>& pose )
         {
@@ -78,7 +85,7 @@ namespace cvt
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;
 
         AffineLightingWarp() :
-            _alpha( 1.0 ),
+            _alpha( 0.0 ),
             _beta( 0.0 )
         {}
 
@@ -89,6 +96,21 @@ namespace cvt
             _alpha( other._alpha ),
             _beta( other._beta )
         {}
+
+        AffineLightingWarp& operator= ( const AffineLightingWarp& other )
+        {
+            _pose = other._pose;
+            _alpha = other._alpha;
+            _beta = other._beta;
+            return *this;
+        }
+
+        void initialize( const Matrix4<T>& pose )
+        {
+            setPose( pose );
+            _alpha = 0.0;
+            _beta = 0.0;
+        }
 
         void setPose( const Matrix4<T>& pose )
         {
@@ -108,8 +130,8 @@ namespace cvt
         {
             _pose.applyInverse( -v.template head<6>() );
             T ta = 1.0 + v[ 6 ];
-            _alpha = ( _alpha + v[ 6 ] ) / ta;
-            _beta  = ( _beta  + v[ 7 ] ) / ta;
+            _alpha = ( _alpha - v[ 6 ] ) / ta;
+            _beta  = ( _beta  - v[ 7 ] ) / ta;
         }
 
         static void computeJacobian( JacobianType& j,
@@ -127,7 +149,7 @@ namespace cvt
 
         float computeResidual( float templateValue, float warpedValue ) const
         {
-            return templateValue - ( 1.0f + _alpha ) * warpedValue + _beta;
+            return templateValue - ( 1.0f + _alpha ) * warpedValue - _beta;
         }
 
         private:

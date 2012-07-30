@@ -28,15 +28,19 @@ namespace cvt
     class RGBDKeyframe {
         public:
             struct Result {
+                Result() :
+                    success( false ),
+                    iterations( 0 ),
+                    numPixels( 0 ),
+                    costs( 0.0f )
+                {
+                }
+
+                bool        success;
                 size_t      iterations;
                 size_t      numPixels;
                 float       costs;
                 WarpFunc    warp;
-            };
-
-            enum PointStorage {
-                STORE_RELATIVE,
-                STORE_ABSOLUTE
             };
 
             typedef typename WarpFunc::Type  T;
@@ -69,7 +73,7 @@ namespace cvt
                 }
             };
 
-            RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale, PointStorage storage = STORE_RELATIVE );
+            RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale );
 
             ~RGBDKeyframe();
 
@@ -87,8 +91,6 @@ namespace cvt
             void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
             void setRobustParam( T v )                              { _weighter = Weighter( v ); }
 
-            PointStorage    pointStorageType() const { return _storageType; }
-
             /**
              *  \brief align the current camera frame with this keyframe
              *  \param prediction   predicted pose of the camera frame in world frame (T_wc)
@@ -96,7 +98,7 @@ namespace cvt
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr );
 
         private:
-            PointStorage                _storageType;
+
             Matrix4<T>                  _pose;
             std::vector<AlignmentData>  _dataForScale;
             IKernel                     _kx;
@@ -114,13 +116,10 @@ namespace cvt
 
             Weighter                    _weighter;
 
-
             void updateIntrinsics( const Mat3Type& K, T scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
             void alignSingleScale( Result& result, const Image& gray, const AlignmentData& kfdata );
-
-            float interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const;
             bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
 
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const AlignmentData& kfdata );
@@ -129,8 +128,7 @@ namespace cvt
     };
 
     template <class WarpFunc, class Weighter>
-    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale, PointStorage storage ) :
-        _storageType( storage ),
+    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale ) :
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
         _gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
@@ -168,8 +166,8 @@ namespace cvt
 
     template <class WarpFunc, class Weighter>
     inline void RGBDKeyframe<WarpFunc, Weighter>::updateOfflineData( const Matrix4<T>& poseMat,
-                                                                     const ImagePyramid& pyramid,
-                                                                     const Image& depth )
+                                                                                    const ImagePyramid& pyramid,
+                                                                                    const Image& depth )
     {
         _pose = poseMat;
 
@@ -211,9 +209,6 @@ namespace cvt
             IMapScoped<const float> gyMap( gyI );
             IMapScoped<const float> grayMap( gray );
 
-            Eigen::Matrix<T, 3, 3> K;
-            EigenBridge::toEigen( K, data.intrinsics );
-
             H.setZero();
             for( size_t y = 0; y < gray.height(); y++ ){
                 const float* gx = gxMap.ptr();
@@ -234,12 +229,6 @@ namespace cvt
                         p3d[ 0 ] = tmpx[ x ] * z;
                         p3d[ 1 ] = tmpy[ y ] * z;
                         p3d[ 2 ] = z;
-
-                        if( _storageType == STORE_ABSOLUTE ){
-                            p3d = _pose * p3d;
-                            if( p3d.z < _minDepth )
-                                continue;
-                        }
 
                         WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
 
@@ -279,18 +268,13 @@ namespace cvt
 
     template <class WarpFunc, class Weighter>
     inline void RGBDKeyframe<WarpFunc, Weighter>::align( Result& result,
-                                                  const Matrix4<T>& prediction,
-                                                  const ImagePyramid& pyr )
+                                                         const Matrix4<T>& prediction,
+                                                         const ImagePyramid& pyr )
     {
         Result scaleResult;
 
         Matrix4<T> tmp4;
-        tmp4 = prediction.inverse();
-
-        bool isRelative = ( _storageType == STORE_RELATIVE );
-        if( isRelative ){
-            tmp4 *= _pose;
-        }
+        tmp4 = prediction.inverse() * _pose;
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
@@ -311,10 +295,7 @@ namespace cvt
         }
 
         tmp4 = result.warp.poseMatrix();
-        tmp4.inverseSelf();
-        if( isRelative ){
-            tmp4 = _pose * tmp4;
-        }
+        tmp4 = _pose * tmp4.inverse();
         result.warp.setPose( tmp4 );
     }
 
@@ -332,11 +313,17 @@ namespace cvt
     inline void RGBDKeyframe<WarpFunc, Weighter>::alignSingleScaleRobust( Result& result, const Image& gray, const AlignmentData& kfdata )
     {
         SIMD* simd = SIMD::instance();
-        Matrix4f projMat;
 
+        const size_t num = kfdata.points3d.size();
+        const size_t width = gray.width();
+        const size_t height = gray.height();
         std::vector<Vector2<T> > warpedPts;
-        warpedPts.resize( kfdata.points3d.size() );
+        warpedPts.resize( num );
 
+        std::vector<float> interpolatedPixels;
+        interpolatedPixels.resize( num );
+
+        Matrix4f projMat;
         Matrix4<T> K4( kfdata.intrinsics );
 
         // sum of jacobians * delta
@@ -344,7 +331,6 @@ namespace cvt
         HessianType  hessian;
 
         IMapScoped<const float> grayMap( gray );
-        size_t floatStride = grayMap.stride() / sizeof( float );
 
         result.iterations = 0;
         while( result.iterations < _maxIters ){
@@ -353,22 +339,17 @@ namespace cvt
 
             // project the points:
             simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], kfdata.points3d.size() );
+            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
 
             deltaSum.setZero();
             hessian.setZero();
 
             result.numPixels = 0;
             result.costs = 0.0f;
-            for( size_t i = 0; i < warpedPts.size(); i++ ){
-                const Vector2<T> & pw = warpedPts[ i ];
-
-                if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
-                    pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
-
-                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
-
+            for( size_t i = 0; i < num; i++ ){
+                if( interpolatedPixels[ i ] > 0.0f ){
                     // compute the delta
-                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], v );
+                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], interpolatedPixels[ i ] );
                     result.costs += Math::sqr( delta );
                     result.numPixels++;
 
@@ -400,8 +381,14 @@ namespace cvt
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;
 
+        const size_t num = kfdata.points3d.size();
+        const size_t width = gray.width();
+        const size_t height = gray.height();
         std::vector<Vector2<T> > warpedPts;
-        warpedPts.resize( kfdata.points3d.size() );
+        warpedPts.resize( num );
+
+        std::vector<float> interpolatedPixels;
+        interpolatedPixels.resize( num );
 
         Matrix4<T> K4( kfdata.intrinsics );
 
@@ -409,7 +396,6 @@ namespace cvt
         JacobianType deltaSum, jtmp;
 
         IMapScoped<const float> grayMap( gray );
-        size_t floatStride = grayMap.stride() / sizeof( float );
 
         result.iterations = 0;
         while( result.iterations < _maxIters ){
@@ -417,27 +403,23 @@ namespace cvt
             projMat = K4 * result.warp.poseMatrix();
 
             // project the points:
-            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], kfdata.points3d.size() );
+            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], num );
+            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
 
             deltaSum.setZero();
             result.numPixels = 0;
             result.costs = 0.0f;
-            for( size_t i = 0; i < warpedPts.size(); i++ ){
-                const Vector2<T> & pw = warpedPts[ i ];
-
-                if( pw.x > 0.0f && pw.x < ( gray.width()  - 1 ) &&
-                    pw.y > 0.0f && pw.y < ( gray.height() - 1 ) ){
-
-                    float v = interpolatePixelValue( pw, grayMap.ptr(), floatStride );
-
-                    // compute the delta
-                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], v );
+            for( size_t i = 0; i < num; i++ ){
+                // compute the delta
+                if( interpolatedPixels[ i ] > 0.0f ){
+                    float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], interpolatedPixels[ i ] );
                     result.costs += Math::sqr( delta );
                     result.numPixels++;
 
                     jtmp = delta * kfdata.jacobians[ i ];
                     deltaSum += jtmp;
                 }
+
             }
 
             if( !result.numPixels ){
@@ -452,22 +434,6 @@ namespace cvt
             if( deltaP.norm() < _minUpdate )
                 break;
         }
-    }
-
-    template <class WarpFunc, class Weighter>
-    inline float RGBDKeyframe<WarpFunc, Weighter>::interpolatePixelValue( const Vector2f& pos, const float* ptr, size_t stride ) const
-    {
-        int   lx = ( int )pos.x;
-        int   ly = ( int )pos.y;
-        float fx = pos.x - lx;
-        float fy = pos.y - ly;
-
-        const float* p0 = ptr + ly * stride + lx;
-        const float* p1 = p0 + stride;
-
-        float v0 = Math::mix( p0[ 0 ], p0[ 1 ], fx );
-        float v1 = Math::mix( p1[ 0 ], p1[ 1 ], fx );
-        return Math::mix( v0, v1, fy );
     }
 
     template <class WarpFunc, class Weighter>

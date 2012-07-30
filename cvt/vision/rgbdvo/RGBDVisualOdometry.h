@@ -95,6 +95,7 @@ namespace cvt {
 
             typename DerivedKF::Result  _lastResult;
 
+
             bool needNewKeyframe() const;
 
             void setKeyframeParams( DerivedKF& kf );
@@ -133,7 +134,7 @@ namespace cvt {
 
         // check if we need a new keyframe
         if( needNewKeyframe() ){
-            std::cout << "NEED A NEW KF" << std::endl;
+            //std::cout << "NEED A NEW KF" << std::endl;
             addNewKeyframe( gray, depth, _currentPose );
             keyframeAdded.notify( _currentPose );
             activeKeyframeChanged.notify();
@@ -162,6 +163,7 @@ namespace cvt {
             _pyramid.update( gray );
         }
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
+        _lastResult.warp.initialize( kfPose );
         _numCreated++;
     }
 
@@ -185,7 +187,7 @@ namespace cvt {
             avgSSD = _lastResult.costs / _lastResult.numPixels;
 
         if( avgSSD > _maxSSDSqr ){
-            std::cout << "Avg SSD: " << avgSSD << std::endl;
+            //std::cout << "Avg SSD: " << avgSSD << std::endl;
             return true;
         }
 
@@ -195,7 +197,7 @@ namespace cvt {
         t[ 3 ] = 0;
         float tmp = t.length();
         if( tmp > _maxTranslationDistance ){
-            std::cout << "Translation Distance: " << tmp << std::endl;
+            //std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
 
@@ -204,7 +206,7 @@ namespace cvt {
         Vector3f euler = q.toEuler();
         tmp = euler.length();
         if( tmp > _maxRotationDistance ){
-            std::cout << "Rotation Distance: " << tmp << std::endl;
+            //std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
         return false;
