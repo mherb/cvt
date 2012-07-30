@@ -317,6 +317,7 @@ namespace cvt
         const size_t num = kfdata.points3d.size();
         const size_t width = gray.width();
         const size_t height = gray.height();
+
         std::vector<Vector2<T> > warpedPts;
         warpedPts.resize( num );
 
@@ -347,7 +348,7 @@ namespace cvt
             result.numPixels = 0;
             result.costs = 0.0f;
             for( size_t i = 0; i < num; i++ ){
-                if( interpolatedPixels[ i ] > 0.0f ){
+                if( interpolatedPixels[ i ] >= 0.0f ){
                     // compute the delta
                     float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], interpolatedPixels[ i ] );
                     result.costs += Math::sqr( delta );
@@ -411,7 +412,7 @@ namespace cvt
             result.costs = 0.0f;
             for( size_t i = 0; i < num; i++ ){
                 // compute the delta
-                if( interpolatedPixels[ i ] > 0.0f ){
+                if( interpolatedPixels[ i ] >= 0.0f ){
                     float delta = result.warp.computeResidual( kfdata.pixelValues[ i ], interpolatedPixels[ i ] );
                     result.costs += Math::sqr( delta );
                     result.numPixels++;

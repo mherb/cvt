@@ -13,6 +13,7 @@
 #define RGBDWARP_H
 
 #include <cvt/math/SE3.h>
+#include <cvt/util/SIMD.h>
 
 namespace cvt
 {
@@ -65,6 +66,11 @@ namespace cvt
         float computeResidual( float templateValue, float warpedValue )
         {
             return templateValue - warpedValue;
+        }
+
+        void computeResiduals( float* residuals, const float* referenceValues, const float* warped, size_t n )
+        {
+            SIMD::instance()->Sub( residuals, referenceValues, warped, n );
         }
 
         void updateParameters( const DeltaVectorType& v )
@@ -150,6 +156,13 @@ namespace cvt
         float computeResidual( float templateValue, float warpedValue ) const
         {
             return templateValue - ( 1.0f + _alpha ) * warpedValue - _beta;
+        }
+
+        void computeResiduals( float* residuals, const float* referenceValues, const float* warped, size_t n )
+        {
+            SIMD* simd = SIMD::instance();
+            simd->SubValue1f( residuals, referenceValues, _beta, n );
+            simd->MulSubValue1f( residuals, warped, ( 1.0f + _alpha ), n );
         }
 
         private:
