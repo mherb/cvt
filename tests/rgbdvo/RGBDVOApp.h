@@ -52,8 +52,8 @@ namespace cvt
                 typedef StandardWarp<float>           WarpType;
                 //typedef AffineLightingWarp<float>   WarpType;
                 //typedef RGBDKeyframe<WarpType, Huber<WarpType::Type> >      KFType;
-                typedef RGBDKeyframe<WarpType, Tukey<WarpType::Type> >      KFType;
-                //typedef RGBDKeyframe<WarpType>                              KFType;
+                //typedef RGBDKeyframe<WarpType, Tukey<WarpType::Type> >      KFType;
+                typedef RGBDKeyframe<WarpType>                              KFType;
 
                 RGBDVisualOdometry<KFType>  _vo;
 
