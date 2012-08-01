@@ -13,7 +13,7 @@ namespace cvt
 #else
         _parser( folder, 0.02f ),
 #endif
-        _vo( K, params ),        
+        _vo( K, params ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
         _mainWindow( "RGBD-VO" ),
@@ -56,24 +56,22 @@ namespace cvt
         while( _parser.data().poseValid == false )
             _parser.loadNext();
 
-        Image dFloat;
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
-        _parser.data().depth.convert( dFloat, IFormat::GRAY_FLOAT );
+        _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
-
-        _vo.addNewKeyframe( gray, dFloat, _parser.data().pose<float>() );                
+        _vo.addNewKeyframe( gray, depth, _parser.data().pose<float>() );
 #endif
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
 
-        _fileOut.open( "trajectory.txt" );        
+        _fileOut.open( "trajectory.txt" );
     }
 
     RGBDVOApp::~RGBDVOApp()
     {
         Application::unregisterTimer( _timerId );
-        _fileOut.close();        
+        _fileOut.close();
     }
 
     bool RGBDVOApp::positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose )
@@ -111,7 +109,7 @@ namespace cvt
 
         if( _optimize ){
             Matrix4f lastPose;
-            _vo.pose( lastPose );
+            lastPose = _vo.pose();
             Time t;
 
             Image depth, gray;
@@ -130,9 +128,8 @@ namespace cvt
             _vo.updatePose( gray, depth );
 #endif
 
-            const VOResult& result = _vo.lastResult();
             String str;
-            str.sprintf( "SSD: %0.2f", result.SSD / result.numPixels );
+            str.sprintf( "SSD: %0.2f", _vo.lastSSD() / _vo.lastNumPixels() );
             _ssdLabel.setLabel( str );
 
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
@@ -142,10 +139,12 @@ namespace cvt
             _mainWindow.setTitle( title );
 
             // update the absolute pose
-            Matrix4f absPose;
-            _vo.pose( absPose );
+            Matrix4f absPose = _vo.pose();
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteration: " << iter << std::endl;
+                _step = true;
+                _optimize = false;
+                _vo.setPose( lastPose );
             }
 
 #ifndef USE_CAM
@@ -156,7 +155,7 @@ namespace cvt
                 _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - gtPose[ 2 ][ 3 ] );
                 _validPoseCounter++;
             }
-            writePose( _fileOut, absPose, d.stamp );            
+            writePose( _fileOut, absPose, d.stamp );
             _poseView.setGTPose( gtPose );
 #endif
 
@@ -258,6 +257,11 @@ namespace cvt
     void RGBDVOApp::activeKeyframeChangedCallback()
     {
         // TODO: draw the active keyframe in green in the view
+#ifdef USE_CAM
+        _keyframeImage.setImage( _cam.frame() );
+#else
+        _keyframeImage.setImage( _parser.data().rgb );
+#endif
     }
 
 }

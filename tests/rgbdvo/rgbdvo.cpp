@@ -107,115 +107,6 @@ void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, 
 }
 
 template <class KFType>
-void convergenceTest( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
-{
-    RGBDParser parser( folder, 0.05f );
-
-    // go to an image somewhere inside the dataset
-    size_t iter = 0;
-    while( iter++ < 100 )
-        parser.loadNext();
-
-    const RGBDParser::RGBDSample& d = parser.data();
-
-    Image gray;
-    d.rgb.convert( gray, IFormat::GRAY_FLOAT );
-
-    Image dFloat;
-    d.depth.convert( dFloat, IFormat::GRAY_FLOAT );
-
-    Matrix4f poseMat;
-    poseMat.setIdentity();
-
-    KFType* keyframe = KFType::create( gray, dFloat, poseMat, K, params );
-    PoseRepresentation relPose;
-    relPose.bias = 0.0f;
-    relPose.gain = 0.0f;
-
-    const float angleRange = cfg.valueForName( "convTestRotoRangeDeg", 20.0f ) * Math::PI / 180.0f;
-    const float transRange = cfg.valueForName( "convTestTransRangeM", 1.5f );
-    Vector3f randVec3, v3;
-
-
-    std::ofstream rotfile, transfile, rottransfile;
-    rotfile.open( "rotation_convergence.txt" );
-    transfile.open( "translation_convergence.txt" );
-    rottransfile.open( "rotation_translation_convergence.txt" );
-
-    // rotation test
-    int numSamples = cfg.valueForName( "convTestSamples", 10000 );
-    size_t dumpIter = numSamples / 100;
-
-    std::cout << "Rotation convergence:\t\t";
-    for( int i = 0; i < numSamples; i++ ){
-        // generate random rotation offset:
-        randVec3[ 0 ] = Math::rand( -angleRange, angleRange );
-        randVec3[ 1 ] = Math::rand( -angleRange, angleRange );
-        randVec3[ 2 ] = Math::rand( -angleRange, angleRange );
-        relPose.pose.set( randVec3.x, randVec3.y, randVec3.z, 0.0f, 0.0f, 0.0f );
-
-        VOResult result = keyframe->computeRelativePose( relPose, gray, K, params );
-        EigenBridge::toCVT( poseMat, relPose.pose.transformation() );
-        Vector3f vt( poseMat[ 0 ][ 3 ], poseMat[ 1 ][ 3 ], poseMat[ 2 ][ 3 ] );
-        Quaternionf q( poseMat.toMatrix3() );
-        Vector3f v( q.toEuler() );
-
-        writeConvergenceTestSampleToFile( rotfile, randVec3.length(), 0.0f, v.length(), vt.length(), result.iterations, result.SSD, result.numPixels );
-        if( i % dumpIter == 0 ){
-            std::cout << "#"; std::flush( std::cout );
-        }
-    }
-    std::cout << std::endl;
-
-    std::cout << "Translation convergence:\t";
-    for( int i = 0; i < numSamples; i++ ){
-        // generate random rotation offset:
-        randVec3[ 0 ] = Math::rand( -transRange, transRange );
-        randVec3[ 1 ] = Math::rand( -transRange, transRange );
-        randVec3[ 2 ] = Math::rand( -transRange, transRange );
-        relPose.pose.set( 0.0f, 0.0f, 0.0f, randVec3.x, randVec3.y, randVec3.z );
-
-        VOResult result = keyframe->computeRelativePose( relPose, gray, K, params );
-        EigenBridge::toCVT( poseMat, relPose.pose.transformation() );
-        Vector3f vt( poseMat[ 0 ][ 3 ], poseMat[ 1 ][ 3 ], poseMat[ 2 ][ 3 ] );
-        Quaternionf q( poseMat.toMatrix3() );
-        Vector3f v( q.toEuler() );
-
-        writeConvergenceTestSampleToFile( transfile, 0.0f, randVec3.length(), v.length(), vt.length(), result.iterations, result.SSD, result.numPixels );
-
-        if( i % dumpIter == 0 ){
-            std::cout << "#"; std::flush( std::cout );
-        }
-    }
-    std::cout << std::endl;
-
-    std::cout << "RotoTranslation convergence:\t";
-    for( int i = 0; i < numSamples; i++ ){
-        // generate random rotation offset:
-        v3[ 0 ] = Math::rand( -angleRange, angleRange );
-        v3[ 1 ] = Math::rand( -angleRange, angleRange );
-        v3[ 2 ] = Math::rand( -angleRange, angleRange );
-        randVec3[ 0 ] = Math::rand( -transRange, transRange );
-        randVec3[ 1 ] = Math::rand( -transRange, transRange );
-        randVec3[ 2 ] = Math::rand( -transRange, transRange );
-        relPose.pose.set( v3.x, v3.y, v3.z, randVec3.x, randVec3.y, randVec3.z );
-
-        VOResult result = keyframe->computeRelativePose( relPose, gray, K, params );
-        EigenBridge::toCVT( poseMat, relPose.pose.transformation() );
-        Vector3f vt( poseMat[ 0 ][ 3 ], poseMat[ 1 ][ 3 ], poseMat[ 2 ][ 3 ] );
-        Quaternionf q( poseMat.toMatrix3() );
-        Vector3f v( q.toEuler() );
-
-        writeConvergenceTestSampleToFile( rottransfile, v3.length(), randVec3.length(), v.length(), vt.length(), result.iterations, result.SSD, result.numPixels );
-        if( i % dumpIter == 0 ){
-            std::cout << "#"; std::flush( std::cout );
-        }
-    }
-    std::cout << std::endl;
-    delete keyframe;
-}
-
-template <class KFType>
 void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     RGBDParser parser( folder, 0.05f );
@@ -249,16 +140,12 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
         time.reset();
         d.rgb.convert( gray );
-        //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
         vo.updatePose( gray, d.depth );
 
         timeSum += time.elapsedMilliSeconds();
         iters++;
 
-        vo.pose( pose );
-        writePoseToFile( file, pose, d.stamp );
-
-       //testQuaternionPrecision( d.pose );
+        writePoseToFile( file, vo.pose(), d.stamp );
 
         if( parser.iter() % stepIter == 0 )
             std::cout << "#"; std::flush( std::cout );
@@ -270,71 +157,32 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     std::cout << "Number of Create Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
-void convergenceAnalysis( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
-{
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
-    std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "VO" ){
-        convergenceTest<VOKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII" ) {
-        convergenceTest<AIIKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        convergenceTest<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        convergenceTest<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_VO" ) {
-        convergenceTest<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_AII" ) {
-        convergenceTest<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       convergenceTest<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
-    } else {
-        std::cout << "Unknown keyframe type" << std::endl;
-    }
-}
-
 void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "VO" );
+
+    typedef StandardWarp<float> StandardWarpf;
+    typedef AffineLightingWarp<float> ALWarpf;
+    typedef Huber<float> Huberf;
+    typedef Tukey<float> Tukeyf;
+
+    String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "VO" ){
-        runVOWithKFType<VOKeyframe>( params, K, folder, cfg );    
+    if( kftypeString.toUpper() == "STD" ){
+        runVOWithKFType<RGBDKeyframe<StandardWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
+        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+        runVOWithKFType<RGBDKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+        runVOWithKFType<RGBDKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<AIIKeyframe>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_HUBER" ) {
+        runVOWithKFType<RGBDKeyframe<ALWarpf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RobustAIIKeyframe<Huber<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "ROBUST_AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-        runVOWithKFType<RobustAIIKeyframe<Tukey<float> > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_VO" ) {
-        runVOWithKFType<MultiscaleKeyframe<VOKeyframe> >( params, K, folder, cfg );    
-    } else if( kftypeString.toUpper() == "MS_AII" ) {
-        runVOWithKFType<MultiscaleKeyframe<AIIKeyframe> >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.3f );
-       runVOWithKFType<MultiscaleKeyframe<RobustKeyframe<Tukey<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Huber<float> > > >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "MS_ROBUST_AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2f );
-       runVOWithKFType<MultiscaleKeyframe<RobustAIIKeyframe<Tukey<float> > > >( params, K, folder, cfg );
+        runVOWithKFType<RGBDKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
+    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
+        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+        runVOWithKFType<RGBDKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }
@@ -374,10 +222,6 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 2 ] = 249.7f;
 
 
-    //typedef MultiscaleKeyframe<MIKeyframe> testKF;
-    //typedef MultiscaleKeyframe<VOKeyframe> testKF;
-    //typedef MultiscaleKeyframe<RobustKeyframe<Huber> > testKF;
-    //typedef MIKeyframe testKF;
 //    testFunc<testKF>( params, K, folder, cfg );
 //    cfg.save( "rgbdvo.cfg" );
 //    return 0;
