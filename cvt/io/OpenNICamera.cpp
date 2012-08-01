@@ -98,10 +98,11 @@ namespace cvt
     {
         XnStatus status = XN_STATUS_OK;
 
-        status = _context.WaitAndUpdateAll();
-        if( status != XN_STATUS_OK )
+        status = _context.WaitAnyUpdateAll();
+        //status = _context.WaitAndUpdateAll();
+        if( status != XN_STATUS_OK ){
             throw CVTException( "Error in WaitAndUpdateData for depth" );
-
+        }
         copyImage();
         copyDepth();
 
