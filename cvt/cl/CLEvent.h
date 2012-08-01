@@ -33,6 +33,8 @@ namespace cvt {
 
 			void wait() const;
 
+			static void waitEvents( const std::vector<CLEvent>& waitevents );
+
 			CLCommandQueue queue() const;
 			CLContext context() const;
 
@@ -46,6 +48,14 @@ namespace cvt {
 	{
 		cl_int err;
 		err = ::clWaitForEvents( 1, ( cl_event* ) this );
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+	}
+
+	inline void CLEvent::waitEvents( const std::vector<CLEvent>& waitevents )
+	{
+		cl_int err;
+		err = ::clWaitForEvents( waitevents.size(), ( cl_event* )  ( const cl_event* ) &waitevents[0] );
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}

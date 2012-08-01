@@ -58,6 +58,5 @@ namespace cvt {
 			delete CL::_device;
 		if( CL::_queue )
 			delete CL::_queue;
-		clUnloadCompiler();
 	}
 }

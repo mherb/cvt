@@ -13,7 +13,7 @@ namespace cvt
     template <typename T>
     struct NoWeighting {
         NoWeighting( T ){}
-        T weight( T r ){ return (T)1; }
+        T weight( T ){ return (T)1; }
     };
 
     template< typename T >
@@ -23,114 +23,114 @@ namespace cvt
     };
 
     template <typename T>
-	struct Huber
-	{
+    struct Huber
+    {
         Huber( T t ) : c( t ) {}
 
         T weight( T r ) const
-		{
+        {
             T t = Math::abs( r );
-			if ( t < c ) 
+            if ( t < c )
                 return 1;
-			else 
-				return c / t;
-		}
+            else
+                return c / t;
+        }
 
         T c;
-	};
+    };
 
     template <typename T>
-	struct Tukey
-	{
-		/**
-		 *	\brief	cut-off at threshold (0 influence of outliers!)
-		 */
+    struct Tukey
+    {
+        /**
+         *	\brief	cut-off at threshold (0 influence of outliers!)
+         */
         Tukey( T t ) : c( t ) {}
-		
+
         T weight( T r ) const
-		{
+        {
             T t = Math::abs( r );
-			if ( t > c ) 
+            if ( t > c )
                 return (T)0;
-			else 
-				return Math::sqr( 1 - Math::sqr( r / c ) );
-		}
+            else
+                return Math::sqr( 1 - Math::sqr( r / c ) );
+        }
 
         T c;
-	};
+    };
 
     template <typename T>
-	struct Welsch 
-	{
+    struct Welsch
+    {
         Welsch( T t ) : c( t ) {}
-		
+
         T weight( T r ) const
-		{
-			return Math::exp( - Math::sqr( r / c ) );
-		}
+        {
+            return Math::exp( - Math::sqr( r / c ) );
+        }
 
         T c;
-	};
-	
+    };
+
     template <typename T>
-	struct Cauchy 
-	{
+    struct Cauchy
+    {
         Cauchy( T t ) : c( t ) {}
-		
+
         T weight( T r ) const
-		{
+        {
             return (T)1.0 / ( (T)1.0 + Math::sqr( r / c ) );
-		}
+        }
 
         T c;
-	};
+    };
 
     template <typename T>
-	struct GemanMcClure 
-	{
+    struct GemanMcClure
+    {
         GemanMcClure( T ) {}
-		
-        T weight( T r ) const
-		{
-            return (T)1 / Math::sqr( (T)1 + Math::sqr( r ) );
-		}
 
-	};
-	
-    template <typename T>
-	struct Fair 
-	{
-        Fair( T t ) : c( t ) {}
-		
         T weight( T r ) const
-		{
+        {
+            return (T)1 / Math::sqr( (T)1 + Math::sqr( r ) );
+        }
+
+    };
+
+    template <typename T>
+    struct Fair
+    {
+        Fair( T t ) : c( t ) {}
+
+        T weight( T r ) const
+        {
             return (T)1 / ( (T)1 + Math::abs( r ) / c );
-		}
+        }
 
         T c;
-	};
+    };
 
     template <typename T>
-	struct L1L2Diff 
-	{
+    struct L1L2Diff
+    {
         L1L2Diff( T ) {}
-		
+
         T weight( T r ) const
-		{
+        {
             return (T)1 / Math::sqrt( (T)1 + Math::sqr( r ) / 2 );
-		}
-	};
-	
+        }
+    };
+
     template <typename T>
-	struct L1
-	{
+    struct L1
+    {
         L1( T ) {}
-		
+
         T weight( T r ) const
-		{
+        {
             return (T)1 / Math::abs( r );
-		}
-	};
+        }
+    };
 
 }
 
