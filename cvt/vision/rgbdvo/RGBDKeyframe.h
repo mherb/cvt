@@ -71,6 +71,8 @@ namespace cvt
                     pixelValues.clear();
                     jacobians.clear();
                 }
+
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             };
 
             RGBDKeyframe( const Mat3Type &K, size_t octaves, T scale );
@@ -97,6 +99,7 @@ namespace cvt
              */
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr );
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
 
             Matrix4<T>                  _pose;
