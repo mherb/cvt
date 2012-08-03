@@ -51,12 +51,16 @@ namespace cvt
 #endif
 
 
-                typedef StandardWarp<float>           WarpType;
+                typedef StandardWarp<float>         WarpType;
                 //typedef AffineLightingWarp<float>   WarpType;
-                //typedef IntensityKeyframe<WarpType, Huber<WarpType::Type> >      KFType;
-                //typedef IntensityKeyframe<WarpType, Tukey<WarpType::Type> >      KFType;
-                //typedef IntensityKeyframe<WarpType>                           KFType;
-                typedef IntensityDepthKeyframe<WarpType>                           KFType;
+
+                //typedef NoWeighting<float>          LossFunc;
+                typedef Huber<float>                LossFunc;
+                //typedef Tukey<float>                LossFunc;
+
+
+                //typedef IntensityKeyframe<WarpType, LossFunc>     KFType;
+                typedef IntensityDepthKeyframe<WarpType, LossFunc>  KFType;
 
                 RGBDVisualOdometry<KFType>  _vo;
 
