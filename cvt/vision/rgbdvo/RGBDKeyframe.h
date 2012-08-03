@@ -21,6 +21,8 @@
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 
+#include<Eigen/StdVector>
+
 namespace cvt
 {
     template <class WarpFunc,
@@ -52,6 +54,7 @@ namespace cvt
             typedef WarpFunc                         WarpFunction;
 
             struct AlignmentData {
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 std::vector<PointType>      points3d;
                 std::vector<float>          pixelValues;
                 std::vector<JacobianType>   jacobians;
@@ -97,10 +100,13 @@ namespace cvt
              */
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr );
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
 
             Matrix4<T>                  _pose;
-            std::vector<AlignmentData>  _dataForScale;
+
+            typedef std::vector<AlignmentData, Eigen::aligned_allocator<AlignmentData> > AlignmentDataVector;
+            AlignmentDataVector         _dataForScale;
             IKernel                     _kx;
             IKernel                     _ky;
             IKernel                     _gaussX;
