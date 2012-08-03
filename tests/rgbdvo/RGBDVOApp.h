@@ -9,7 +9,10 @@
 
 
 #include <cvt/vision/rgbdvo/KeyframeBase.h>
+
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/IntensityKeyframe.h>
+#include <cvt/vision/rgbdvo/IntensityDepthKeyframe.h>
 #include <cvt/vision/rgbdvo/MIKeyframe.h>
 #include <cvt/vision/rgbdvo/VOKeyframe.h>
 #include <cvt/vision/rgbdvo/AIIKeyframe.h>
@@ -23,7 +26,6 @@
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
-
 
 #include <fstream>
 
@@ -51,9 +53,10 @@ namespace cvt
 
                 typedef StandardWarp<float>           WarpType;
                 //typedef AffineLightingWarp<float>   WarpType;
-                //typedef RGBDKeyframe<WarpType, Huber<WarpType::Type> >      KFType;
-                //typedef RGBDKeyframe<WarpType, Tukey<WarpType::Type> >      KFType;
-                typedef RGBDKeyframe<WarpType>                              KFType;
+                //typedef IntensityKeyframe<WarpType, Huber<WarpType::Type> >      KFType;
+                //typedef IntensityKeyframe<WarpType, Tukey<WarpType::Type> >      KFType;
+                //typedef IntensityKeyframe<WarpType>                           KFType;
+                typedef IntensityDepthKeyframe<WarpType>                           KFType;
 
                 RGBDVisualOdometry<KFType>  _vo;
 

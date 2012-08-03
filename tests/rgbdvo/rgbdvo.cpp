@@ -168,21 +168,21 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
     String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
     if( kftypeString.toUpper() == "STD" ){
-        runVOWithKFType<RGBDKeyframe<StandardWarpf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RGBDKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<RGBDKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<RGBDKeyframe<ALWarpf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<RGBDKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<RGBDKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }
