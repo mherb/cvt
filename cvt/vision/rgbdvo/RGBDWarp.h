@@ -23,6 +23,7 @@ namespace cvt
         static const size_t NumParameters = 6;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
+        typedef typename SE3<T>::ScreenJacType                  ScreenJacType;
         typedef Eigen::Matrix<T, NumParameters, NumParameters>  HessianType;
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;
 
@@ -52,14 +53,21 @@ namespace cvt
             return p;
         }
 
+        static void screenJacobian( ScreenJacType& j,
+                                    const Vector3<T>& point,
+                                    const Matrix3<T>& K )
+        {
+            SE3<T>::screenJacobian( j, point, K );
+        }
+
         static void computeJacobian( JacobianType& j,
                                      const Vector3<T>& point,
                                      const Matrix3<T>& K,
                                      const Eigen::Matrix<T, 2, 1>& g,
                                      float /* pixval */ )
         {
-            typename SE3<T>::ScreenJacType J;
-            SE3<T>::screenJacobian( J, point, K );
+            ScreenJacType J;
+            screenJacobian( J, point, K );
             j = g.transpose() * J;
         }
 
@@ -87,6 +95,7 @@ namespace cvt
         static const size_t NumParameters = 8;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
+        typedef typename SE3<T>::ScreenJacType                  ScreenJacType;
         typedef Eigen::Matrix<T, NumParameters, NumParameters>  HessianType;
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;
 
@@ -138,6 +147,13 @@ namespace cvt
             T ta = 1.0 + v[ 6 ];
             _alpha = ( _alpha - v[ 6 ] ) / ta;
             _beta  = ( _beta  - v[ 7 ] ) / ta;
+        }
+
+        static void screenJacobian( ScreenJacType& j,
+                                    const Vector3<T>& point,
+                                    const Matrix3<T>& K )
+        {
+            SE3<T>::screenJacobian( j, point, K );
         }
 
         static void computeJacobian( JacobianType& j,
