@@ -127,10 +127,9 @@ namespace cvt {
     {
         _pyramid.update( gray );
 
-        _activeKeyframe->align( _lastResult, _currentPose, _pyramid );
+        _activeKeyframe->align( _lastResult, _currentPose, _pyramid, depth );
 
         _currentPose = _lastResult.warp.poseMatrix();
-
 
         // check if we need a new keyframe
         if( needNewKeyframe() ){
