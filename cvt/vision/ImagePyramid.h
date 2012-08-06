@@ -56,9 +56,9 @@ namespace cvt
             void setNumOctaves( size_t o );
 
         private:
-            std::vector<Image>	 _image;
-            float				 _scaleFactor;
-            const IScaleFilterBilinear  _filter;
+            std::vector<Image>      _image;
+            float                   _scaleFactor;
+            const IScaleFilterGauss _filter;
 
             /* recompute the scale space from the first octave */
             void recompute();
