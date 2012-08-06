@@ -135,6 +135,7 @@ namespace cvt
             virtual void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
+            void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
     };
 
     template <class WarpFunc, class Weighter>
@@ -296,6 +297,15 @@ namespace cvt
         }
 
         return Math::mix( z0, z1, wy ) * _depthScaling;
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void  RGBDKeyframe<WarpFunc, Weighter>::initializePointLookUps( float* vals, size_t n, float foc, float c ) const
+    {
+        float invF = 1.0f / foc;
+        for( size_t i = 0; i < n; i++ ){
+            vals[ i ] = ( i - c ) * invF;
+        }
     }
 }
 

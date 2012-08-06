@@ -85,21 +85,11 @@ namespace cvt
             data.clear();
             data.reserve( 0.6f * gray.width() * gray.height() );
 
-            float invFx = 1.0f / data.intrinsics[ 0 ][ 0 ];
-            float invFy = 1.0f / data.intrinsics[ 1 ][ 1 ];
-            float cx    = data.intrinsics[ 0 ][ 2 ];
-            float cy    = data.intrinsics[ 1 ][ 2 ];
-
             // temp vals
             std::vector<float> tmpx( gray.width() );
             std::vector<float> tmpy( gray.height() );
-
-            for( size_t i = 0; i < tmpx.size(); i++ ){
-                tmpx[ i ] = ( i - cx ) * invFx;
-            }
-            for( size_t i = 0; i < tmpy.size(); i++ ){
-                tmpy[ i ] = ( i - cy ) * invFy;
-            }
+            Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
+            Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
 
             IMapScoped<const float> gxMap( gxI );
             IMapScoped<const float> gyMap( gyI );

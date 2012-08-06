@@ -51,8 +51,16 @@ namespace cvt
                 typename Base::HessianType  hessian;
                 T                           lambda;
 
-                void reserve( size_t n ){ jacobians.reserve( n ); }
-                void clear()            { jacobians.clear(); }
+                void reserve( size_t n )
+                {
+                    jacobians.reserve( n );
+                }
+
+                void clear()
+                {
+                    jacobians.clear();
+                    lambda = 0.05f;
+                }
             };
 
             std::vector<DepthData>  _depthDataForScale;
@@ -86,7 +94,7 @@ namespace cvt
         float scale = 1.0f;
 
         Vector3<T> p3d;
-        Eigen::Matrix<T, 2, 1> g;
+        Eigen::Matrix<T, 2, 1> g, depthGrad;
         typename Base::JacobianType j;
 
         DepthJacType    dJac = DepthJacType::Zero();
@@ -108,34 +116,27 @@ namespace cvt
             data.reserve( 0.6f * gray.width() * gray.height() );
             depthData.reserve( 0.6f * gray.width() * gray.height() );
 
-            float invFx = 1.0f / data.intrinsics[ 0 ][ 0 ];
-            float invFy = 1.0f / data.intrinsics[ 1 ][ 1 ];
-            float cx    = data.intrinsics[ 0 ][ 2 ];
-            float cy    = data.intrinsics[ 1 ][ 2 ];
-
             // temp vals
             std::vector<float> tmpx( gray.width() );
             std::vector<float> tmpy( gray.height() );
-
-            for( size_t i = 0; i < tmpx.size(); i++ ){
-                tmpx[ i ] = ( i - cx ) * invFx;
-            }
-            for( size_t i = 0; i < tmpy.size(); i++ ){
-                tmpy[ i ] = ( i - cy ) * invFy;
-            }
+            Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
+            Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
 
             IMapScoped<const float> gxMap( gxI );
             IMapScoped<const float> gyMap( gyI );
             IMapScoped<const float> grayMap( gray );
 
+            std::vector<float> depthLastY( gray.width() );
+
             data.hessian.setZero();
-            data.depthHessian.setZero();
+            depthData.hessian.setZero();
             for( size_t y = 0; y < gray.height(); y++ ){
                 currP.y = scale * y;
                 const float* gx = gxMap.ptr();
                 const float* gy = gyMap.ptr();
                 const float* value = grayMap.ptr();
 
+                float lastZ = 0.0f;
                 for( size_t x = 0; x < gray.width(); x++ ){
                     currP.x = scale * x;
                     float z = Base::interpolateDepth( currP, dPtr, depthStride );
@@ -143,28 +144,37 @@ namespace cvt
                         g[ 0 ] = gx[ x ];
                         g[ 1 ] = gy[ x ];
 
+                        depthGrad.setZero();
+
+                        if( lastZ > this->_minDepth )
+                            depthGrad[ 0 ] = z - lastZ;
+                        if( depthLastY[ x ] > this->_minDepth )
+                            depthGrad[ 1 ] = z - depthLastY[ x ];
+
                         // TODO: selection should be based on depth and gradient threshold
                         float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
-                        if( salience < this->_gradientThreshold )
-                            continue;
+                        salience += depthData.lambda * ( Math::abs( depthGrad[ 0 ] ) + Math::abs( depthGrad[ 1 ] ) );
 
-                        p3d[ 0 ] = tmpx[ x ] * z;
-                        p3d[ 1 ] = tmpy[ y ] * z;
-                        p3d[ 2 ] = z;
+                        if( salience > this->_gradientThreshold ){
+                            p3d[ 0 ] = tmpx[ x ] * z;
+                            p3d[ 1 ] = tmpy[ y ] * z;
+                            p3d[ 2 ] = z;
 
-                        // the depth value jacobian:
-                        // TODO: this is plain wrong?!
-                        //evalDepthJacobian( dJac, p3d );
+                            WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+                            data.jacobians.push_back( j );
+                            data.pixelValues.push_back( value[ x ] );
+                            data.points3d.push_back( p3d );
+                            data.hessian.noalias() += j.transpose() * j;
 
-                        WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+                            WarpFunc::computeJacobian( dJac, p3d, data.intrinsics, depthGrad, z );
+                            dJac *= depthData.lambda;
 
-                        data.jacobians.push_back( j );
-                        data.pixelValues.push_back( value[ x ] );
-                        data.points3d.push_back( p3d );
-                        data.hessian.noalias() += j.transpose() * j;
-
-                        //data.depthHessian.noalias() += dJac.transpose() * dJac;
+                            depthData.hessian.noalias() += dJac.transpose() * dJac;
+                            depthData.jacobians.push_back( dJac );
+                        }
                     }
+                    lastZ = z;
+                    depthLastY[ x ] = z;
                 }
                 gxMap++;
                 gyMap++;
@@ -172,7 +182,7 @@ namespace cvt
             }
 
             // precompute the inverse hessian
-            data.inverseHessian = ( data.hessian  ).inverse();
+            data.inverseHessian = ( data.hessian + depthData.hessian ).inverse();
 
             scale /= pyramid.scaleFactor();
         }
@@ -185,6 +195,7 @@ namespace cvt
         SIMD* simd = SIMD::instance();
 
         const typename Base::AlignmentData& kfdata = Base::_dataForScale[ octave ];
+        const DepthData& depthData = _depthDataForScale[ octave ];
 
         T scale = ( T )depth.width() / ( T )gray.width();
 
@@ -211,8 +222,6 @@ namespace cvt
         const float* dPtr = depthMap.ptr();
         size_t dStride = depthMap.stride() / sizeof( float );
 
-        DepthJacType depthJacobian = DepthJacType::Zero();
-
         result.iterations = 0;
         while( result.iterations < Base::_maxIters ){
             // build the updated projection Matrix
@@ -238,18 +247,17 @@ namespace cvt
                     hessian.noalias() += jtmp.transpose() * kfdata.jacobians[ i ];
                     deltaSum += jtmp * delta;
 
-                    // the depth values:
-                    Vector2<T> p2d = scale * warpedPts[ i ];
-                    float currDepth = dPtr[ ( int )p2d.y * dStride + ( int )p2d.x ] * Base::_depthScaling;
-                    if( currDepth  > Base::_minDepth ){
-                        evalDepthJacobian( depthJacobian, kfdata.points3d[ i ] );
-                        float depthDelta = kfdata.points3d[ i ].z - currDepth;
-                        // TODO: also use a robust estimator here
-                        deltaSum += depthJacobian * depthDelta;
-                    }
-
                     result.numPixels++;
                     result.costs += weight * Math::sqr( delta );
+
+                    // the depth values:
+                    Vector2<T> p2d = scale * warpedPts[ i ];
+                    float currZ = Base::interpolateDepth( p2d, dPtr, dStride );
+                    if( currZ  > Base::_minDepth ){
+                        float depthDelta = kfdata.points3d[ i ].z - currZ;
+                        // TODO: also use a robust estimator here
+                        deltaSum += depthData.jacobians[ i ] * depthDelta;
+                    }
                 }
             }
 
@@ -258,7 +266,7 @@ namespace cvt
             }
 
             // evaluate the delta parameters
-            hessian.noalias() += kfdata.depthHessian;
+            hessian.noalias() += depthData.hessian;
             typename WarpFunc::DeltaVectorType deltaP = -hessian.inverse() * deltaSum.transpose();
             result.warp.updateParameters( deltaP );
 
@@ -275,6 +283,8 @@ namespace cvt
         Matrix4f projMat;
 
         const typename Base::AlignmentData& kfdata = Base::_dataForScale[ octave ];
+        const DepthData& depthData = _depthDataForScale[ octave ];
+
         const size_t num = kfdata.points3d.size();
         const size_t width = gray.width();
         const size_t height = gray.height();
@@ -296,7 +306,6 @@ namespace cvt
         size_t dStride = depthMap.stride() / sizeof( float );
 
         T scale = ( T )depth.width() / ( T )gray.width();
-        DepthJacType depthJacobian = DepthJacType::Zero();
 
         result.iterations = 0;
         while( result.iterations < Base::_maxIters ){
@@ -322,11 +331,10 @@ namespace cvt
 
                     // the depth values:
                     Vector2<T> p2d = scale * warpedPts[ i ];
-                    float currDepth = dPtr[ ( int )p2d.y * dStride + ( int )p2d.x ] * Base::_depthScaling;
-                    if( currDepth  > Base::_minDepth ){
-                        evalDepthJacobian( depthJacobian, kfdata.points3d[ i ] );
-                        float depthDelta = kfdata.points3d[ i ].z - currDepth;
-                        deltaSum += depthJacobian * depthDelta;
+                    float currZ = Base::interpolateDepth( p2d, dPtr, dStride );
+                    if( currZ  > Base::_minDepth ){
+                        float depthDelta = kfdata.points3d[ i ].z - currZ;
+                        deltaSum += depthData.jacobians[ i ] * depthDelta;
                     }
                 }
 
