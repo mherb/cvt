@@ -35,6 +35,7 @@ namespace cvt
                     success( false ),
                     iterations( 0 ),
                     numPixels( 0 ),
+                    pixelPercentage( 0.0f ),
                     costs( 0.0f )
                 {
                 }
@@ -42,6 +43,7 @@ namespace cvt
                 bool        success;
                 size_t      iterations;
                 size_t      numPixels;
+                float       pixelPercentage; /* between 0 and 1 */
                 float       costs;
                 WarpFunc    warp;
             };
@@ -129,7 +131,7 @@ namespace cvt
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
             void alignSingleScale( Result& result, const Image& gray, const Image& depth, size_t octave );
-            bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
+            bool checkResult( const Result& res, const Matrix4<T> &lastPose ) const;
 
             virtual void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
             virtual void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
@@ -150,11 +152,12 @@ namespace cvt
         _maxIters( 5 ),
         _minUpdate( (T)1e-6 ),
         _translationJumpThreshold( ( T )0.8 ),
-        _minPixelPercentage( 0.3f ),
+        _minPixelPercentage( 0.2f ),
         _weighter( (T)0.1 )
     {
-        _kx.scale( -0.5 );
-        _ky.scale( -0.5 );
+        float s = -0.5f;
+        _kx.scale( s );
+        _ky.scale( s );
 
         _dataForScale.resize( octaves );
         updateIntrinsics( K, scale );
@@ -182,12 +185,12 @@ namespace cvt
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
 
         // sobel
-        gray.convolve( gx, _kx, _gaussY );
-        gray.convolve( gy, _gaussX, _ky );
+        //gray.convolve( gx, _kx, _gaussY );
+        //gray.convolve( gy, _gaussX, _ky );
 
         // normal
-        //gray.convolve( gx, kx );
-        //gray.convolve( gy, ky );
+        gray.convolve( gx, _kx );
+        gray.convolve( gy, _ky );
     }
 
     template <class WarpFunc, class Weighter>
@@ -195,22 +198,22 @@ namespace cvt
                                                          const Matrix4<T>& prediction,
                                                          const ImagePyramid& pyr, const Image &depth )
     {
-        Result scaleResult;
-
         Matrix4<T> tmp4;
         tmp4 = prediction.inverse() * _pose;
+
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
         result.iterations = 0;
         result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
 
+        Result scaleResult;
         scaleResult = result;
         for( int o = pyr.octaves() - 1; o >= 0; o-- ){
-            const AlignmentData& data = _dataForScale[ o ];
             alignSingleScale( scaleResult, pyr[ o ], depth, o );
 
-            if( checkResult( scaleResult, result.warp.poseMatrix(), data.points3d.size() ) ){
+            if( checkResult( scaleResult, result.warp.poseMatrix() ) ){
                 // seems to be a good alignment
                 result = scaleResult;
             } else {
@@ -234,19 +237,21 @@ namespace cvt
     }
 
     template <class WarpFunc, class Weighter>
-    inline bool RGBDKeyframe<WarpFunc, Weighter>::checkResult( const Result& res, const Matrix4<T>& lastPose, size_t numPixels ) const
+    inline bool RGBDKeyframe<WarpFunc, Weighter>::checkResult( const Result& res, const Matrix4<T>& lastPose ) const
     {
         // to few pixels projected into image
-        float pixelPercentage = (float)res.numPixels / ( float )numPixels;
-        if( pixelPercentage < _minPixelPercentage ){
+        if( res.pixelPercentage < _minPixelPercentage ){
+            std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
             return false;
         }
 
         // jump
         Matrix4<T> mat = res.warp.poseMatrix();
         if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
+            std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
             return false;
         }
+
         return true;
     }
 

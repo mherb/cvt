@@ -238,6 +238,7 @@ int main( int argc, char* argv[] )
     app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
     app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
+    app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
     Application::run();
 
 

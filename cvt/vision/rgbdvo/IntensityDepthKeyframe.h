@@ -223,6 +223,7 @@ namespace cvt
         size_t dStride = depthMap.stride() / sizeof( float );
 
         result.iterations = 0;
+        result.pixelPercentage = 0;
         while( result.iterations < Base::_maxIters ){
             // build the updated projection Matrix
             projMat = K4 * result.warp.poseMatrix();
@@ -274,6 +275,8 @@ namespace cvt
             if( deltaP.norm() < Base::_minUpdate )
                 break;
         }
+
+        result.pixelPercentage = result.numPixels / num;
     }
 
     template <class WarpFunc, class Weighter>
@@ -308,6 +311,7 @@ namespace cvt
         T scale = ( T )depth.width() / ( T )gray.width();
 
         result.iterations = 0;
+        result.numPixels = 0;
         while( result.iterations < Base::_maxIters ){
             // build the updated projection Matrix
             projMat = K4 * result.warp.poseMatrix();
@@ -352,6 +356,7 @@ namespace cvt
             if( deltaP.norm() < Base::_minUpdate )
                 break;
         }
+        result.pixelPercentage = result.numPixels / num;
     }
 }
 

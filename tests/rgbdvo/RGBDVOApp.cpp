@@ -28,8 +28,8 @@ namespace cvt
         _optimizeButton( "optimize" ),
         _optimize( true ),
         _ssdLabel( "SSD:" ),
-        _tdistLabel( "T-Distance:" ),
-        _rotDistLabel( "R-Distance:" )
+        _numPixelLabel( "# Pixel: 0" ),
+        _pixelPercentLabel( "\% Pixel: 0\%" )
     {
         _timerId = Application::registerTimer( 10, this );
         setupGui();
@@ -43,9 +43,17 @@ namespace cvt
         Image gray, depth;
 #ifdef USE_CAM
         _cam.setRegisterDepthToRGB( true );
-        //_cam.setSyncRGBDepth( true );
+        _cam.setSyncRGBDepth( true );
         _cam.startCapture();
-        _cam.nextFrame();
+        _cam.setAntiFlicker( OpenNICamera::OFF );
+
+        _cam.setAutoExposure( false );
+        _cam.setBacklightCompensation( false );
+        _cam.setGain();
+
+        int skipFrames = 50;
+        while( skipFrames-- )
+            _cam.nextFrame();
 
         _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
         _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
@@ -117,7 +125,7 @@ namespace cvt
 
 #ifdef USE_CAM
             _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
-            _cam.frame().convert( depth, IFormat::GRAY_FLOAT );
+            _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
             _vo.updatePose( gray, depth );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
@@ -136,6 +144,10 @@ namespace cvt
             String str;
             str.sprintf( "SSD: %0.2f", _vo.lastSSD() / _vo.lastNumPixels() );
             _ssdLabel.setLabel( str );
+            str.sprintf( "# Pixel: %d", _vo.lastNumPixels() );
+            _numPixelLabel.setLabel( str );
+            str.sprintf( "\% Pixel: %0.1f\%", _vo.lastPixelPercentage() );
+            _pixelPercentLabel.setLabel( str );
 
 
             String title;
@@ -235,9 +247,9 @@ namespace cvt
         wl.setAnchoredRight( 5, 150 );
         _mainWindow.addWidget( &_ssdLabel, wl );
         wl.setAnchoredBottom( 145, 30 );
-        _mainWindow.addWidget( &_tdistLabel, wl );
+        _mainWindow.addWidget( &_numPixelLabel, wl );
         wl.setAnchoredBottom( 180, 30 );
-        _mainWindow.addWidget( &_rotDistLabel, wl );
+        _mainWindow.addWidget( &_pixelPercentLabel, wl );
 
         _mainWindow.setVisible( true );
     }
