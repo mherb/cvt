@@ -1,8 +1,8 @@
 /*
             CVT - Computer Vision Tools Library
-            
+
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-     
+
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -73,6 +73,9 @@ namespace cvt
         typename Base::JacobianType j;
 
         IMapScoped<const float> depthMap( depth );
+        const float* d = depthMap.ptr();
+        size_t depthStride = depthMap.stride() / sizeof( float );
+        Vector2f currP;
 
         for( size_t i = 0; i < pyramid.octaves(); i++ ){
             const Image& gray = pyramid[ i ];
@@ -108,15 +111,16 @@ namespace cvt
                 const float* gy = gyMap.ptr();
                 const float* value = grayMap.ptr();
 
-                depthMap.setLine( scale * y );
-                const float* d = depthMap.ptr();
+                currP.y = scale * y;
                 for( size_t x = 0; x < gray.width(); x++ ){
-                    float z = d[ ( size_t ) scale * x ] * this->_depthScaling;
+                    currP.x = scale * x;
+                    float z = Base::interpolateDepth( currP, d, depthStride );
                     if( z > this->_minDepth ){
                         g[ 0 ] = gx[ x ];
                         g[ 1 ] = gy[ x ];
 
-                        if( g.squaredNorm() < this->_gradientThreshold )
+                        float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
+                        if( salience < Base::_gradientThreshold )
                             continue;
 
                         p3d[ 0 ] = tmpx[ x ] * z;

@@ -1,8 +1,8 @@
 /*
             CVT - Computer Vision Tools Library
-            
+
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-     
+
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -22,7 +22,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
 
 namespace cvt
 {
@@ -44,26 +44,30 @@ namespace cvt
             void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
 
         private:
+            struct DepthData
+            {
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                std::vector<DepthJacType>   jacobians;
+                typename Base::HessianType  hessian;
+                T                           lambda;
+
+                void reserve( size_t n ){ jacobians.reserve( n ); }
+                void clear()            { jacobians.clear(); }
+            };
+
+            std::vector<DepthData>  _depthDataForScale;
 
             bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
             void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
 
-            void evalDepthJacobian( DepthJacType& j, const Vector3<T> & p )
-            {
-                j[ 0 ] =  p[ 1 ];
-                j[ 1 ] = -p[ 0 ];
-                //j[ 2 ] =	  0 ;
-                //j[ 3 ] =	  0 ;
-                //j[ 4 ] =	  0 ;
-                j[ 5 ] =  p[ 3 ];
-            }
     };
 
     template <class WarpFunc, class Weighter>
     inline IntensityDepthKeyframe<WarpFunc, Weighter>::IntensityDepthKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
         RGBDKeyframe<WarpFunc, Weighter>( K, octaves, scale )
     {
+        _depthDataForScale.resize( octaves );
     }
 
     template <class WarpFunc, class Weighter>
@@ -88,14 +92,21 @@ namespace cvt
         DepthJacType    dJac = DepthJacType::Zero();
 
         IMapScoped<const float> depthMap( depth );
+        const float* dPtr = depthMap.ptr();
+        size_t depthStride = depthMap.stride() / sizeof( float );
+        Vector2f currP;
 
         for( size_t i = 0; i < pyramid.octaves(); i++ ){
             const Image& gray = pyramid[ i ];
-            this->computeImageGradients( gxI, gyI, gray );
+            Base::computeImageGradients( gxI, gyI, gray );
 
             typename Base::AlignmentData& data = this->_dataForScale[ i ];
+            DepthData & depthData = _depthDataForScale[ i ];
+
             data.clear();
+            depthData.clear();
             data.reserve( 0.6f * gray.width() * gray.height() );
+            depthData.reserve( 0.6f * gray.width() * gray.height() );
 
             float invFx = 1.0f / data.intrinsics[ 0 ][ 0 ];
             float invFy = 1.0f / data.intrinsics[ 1 ][ 1 ];
@@ -120,19 +131,21 @@ namespace cvt
             data.hessian.setZero();
             data.depthHessian.setZero();
             for( size_t y = 0; y < gray.height(); y++ ){
+                currP.y = scale * y;
                 const float* gx = gxMap.ptr();
                 const float* gy = gyMap.ptr();
                 const float* value = grayMap.ptr();
 
-                depthMap.setLine( scale * y );
-                const float* d = depthMap.ptr();
                 for( size_t x = 0; x < gray.width(); x++ ){
-                    float z = d[ ( size_t ) scale * x ] * this->_depthScaling;
+                    currP.x = scale * x;
+                    float z = Base::interpolateDepth( currP, dPtr, depthStride );
                     if( z > this->_minDepth ){
                         g[ 0 ] = gx[ x ];
                         g[ 1 ] = gy[ x ];
 
-                        if( g.squaredNorm() < this->_gradientThreshold )
+                        // TODO: selection should be based on depth and gradient threshold
+                        float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
+                        if( salience < this->_gradientThreshold )
                             continue;
 
                         p3d[ 0 ] = tmpx[ x ] * z;
@@ -140,7 +153,8 @@ namespace cvt
                         p3d[ 2 ] = z;
 
                         // the depth value jacobian:
-                        evalDepthJacobian( dJac, p3d );
+                        // TODO: this is plain wrong?!
+                        //evalDepthJacobian( dJac, p3d );
 
                         WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
 
@@ -148,7 +162,8 @@ namespace cvt
                         data.pixelValues.push_back( value[ x ] );
                         data.points3d.push_back( p3d );
                         data.hessian.noalias() += j.transpose() * j;
-                        data.depthHessian.noalias() += dJac.transpose() * dJac;
+
+                        //data.depthHessian.noalias() += dJac.transpose() * dJac;
                     }
                 }
                 gxMap++;
@@ -157,7 +172,7 @@ namespace cvt
             }
 
             // precompute the inverse hessian
-            data.inverseHessian = ( data.hessian + data.depthHessian ).inverse();
+            data.inverseHessian = ( data.hessian  ).inverse();
 
             scale /= pyramid.scaleFactor();
         }
