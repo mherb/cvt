@@ -64,9 +64,6 @@ namespace cvt
                     HessianType                 hessian;
                     HessianType                 inverseHessian;
 
-                    HessianType                 depthHessian;
-                    HessianType                 inverseDepthHessian;
-
                     Mat3Type                    intrinsics;
 
                     void reserve( size_t size )
@@ -90,9 +87,10 @@ namespace cvt
             const AlignmentData& dataForScale( size_t o ) const { return _dataForScale[ o ]; }
             const Matrix4<T>&    pose()                   const { return _pose; }
 
-            void setDepthMapScaleFactor( float scaleFactor )        { _depthScaling = ( float )0xffff / scaleFactor; }
+            /* originally, the depth map is stored as uint16_t, and when we convert it to float it will be mapped between 0 and 1!*/
+            void setDepthMapScaleFactor( float scaleFactor )        { _depthScaling = ( ( float )0xFFFF ) / scaleFactor; }
             void setMinimumDepth( T depthTresh )                    { _minDepth = depthTresh; }
-            void setGradientThreshold( float thresh )               { _gradientThreshold = Math::sqr( thresh ); }
+            void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
             void setMaxIter( size_t maxiter )                       { _maxIters = maxiter; }
             void setMinUpdate( T minUpdate )                        { _minUpdate = minUpdate; }
             void setTranslationJumpThreshold( T maxTDiff )          { _translationJumpThreshold = maxTDiff; }
@@ -136,6 +134,7 @@ namespace cvt
             virtual void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
             virtual void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
 
+            float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
     };
 
     template <class WarpFunc, class Weighter>
@@ -248,6 +247,55 @@ namespace cvt
             return false;
         }
         return true;
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline float RGBDKeyframe<WarpFunc, Weighter>::interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const
+    {
+        // get the fractions:
+        int xi = p.x;
+        int yi = p.y;
+
+        const float* curr = ptr + yi * stride + xi ;
+
+        float wx = p.x - xi;
+        float wy = p.y - yi;
+
+        float z0 = 0.0f;
+        if( curr[ 0 ] > 0.0f ){
+            if( curr[ 1 ] > _minDepth ){
+                // both values valid
+                z0 = Math::mix( curr[ 0 ], curr[ 1 ], wx );
+            }  else {
+                z0 = curr[ 0 ];
+            }
+        } else {
+            if( curr[ 1 ] ){
+                z0 = curr[ 1 ];
+            } else {
+                // no value valid in this line
+                wy = 1.0f;
+            }
+        }
+
+        float z1 = 0.0f;
+        if( curr[ stride ] > 0.0f ){
+            if( curr[ stride + 1 ] > 0.0f ){
+                // both values valid
+                z1 = Math::mix( curr[ stride ], curr[ stride + 1 ], wx );
+            }  else {
+                z1 = curr[ stride ];
+            }
+        } else {
+            if( curr[ stride + 1 ] > 0.0f ){
+                z1 = curr[ stride + 1 ];
+            } else {
+                // no value valid in this line
+                wy = 0.0f;
+            }
+        }
+
+        return Math::mix( z0, z1, wy ) * _depthScaling;
     }
 }
 
