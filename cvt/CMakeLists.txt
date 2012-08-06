@@ -424,11 +424,13 @@ SET(${MODULE_NAME}_HEADERS
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
    vision/Vision.h
-   vision/SparseBundleAdjustment.h   
+   vision/SparseBundleAdjustment.h
    vision/rgbdvo/AIIKeyframe.h
+   vision/rgbdvo/IntensityKeyframe.h
+   vision/rgbdvo/IntensityDepthKeyframe.h
    vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/MIKeyframe.h
-   vision/rgbdvo/MultiscaleKeyframe.h      
+   vision/rgbdvo/MultiscaleKeyframe.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
@@ -619,7 +621,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
-   vision/rgbdvo/AIIKeyframe.cpp   
+   vision/rgbdvo/AIIKeyframe.cpp
    vision/rgbdvo/MIKeyframe.cpp
    vision/rgbdvo/VOKeyframe.cpp
    vision/slam/Keyframe.cpp
