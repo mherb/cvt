@@ -48,21 +48,23 @@ namespace cvt {
             /**
              *  \brief  get the absolute (world) pose of the last added image
              */
-            const Matrix4f& pose() const;
-
+            const Matrix4f&     pose() const;
             size_t              numKeyframes()          const { return _keyframes.size(); }
             const Matrix3f&     intrinsics()            const { return _intrinsics; }
 
             void setMaxTranslationDistance( float dist )      { _maxTranslationDistance = dist; }
             void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
             void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
+            void setMinPixelPercentage( float v )             { _minPixPerc = v; }
+
             void setParams( const VOParams& p )               { _params = p; }
             void setPose( const Matrix4f& pose )              { _currentPose = pose; }
 
             size_t numOverallKeyframes() const { return _numCreated; }
 
-            float  lastSSD()         const { return _lastResult.costs; }
-            size_t lastNumPixels()   const { return _lastResult.numPixels; }
+            float  lastSSD()             const { return _lastResult.costs; }
+            size_t lastNumPixels()       const { return _lastResult.numPixels; }
+            float  lastPixelPercentage() const { return _lastResult.pixelPercentage * 100.0f; }
 
             /******** SIGNALS ************/
             /**
@@ -84,6 +86,7 @@ namespace cvt {
             float                       _maxTranslationDistance;
             float                       _maxRotationDistance;
             float                       _maxSSDSqr;
+            float                       _minPixPerc;
 
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
@@ -108,6 +111,7 @@ namespace cvt {
         _maxTranslationDistance( 0.4f ),
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
+        _minPixPerc( 0.5f ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
@@ -133,10 +137,7 @@ namespace cvt {
 
         // check if we need a new keyframe
         if( needNewKeyframe() ){
-            //std::cout << "NEED A NEW KF" << std::endl;
             addNewKeyframe( gray, depth, _currentPose );
-            keyframeAdded.notify( _currentPose );
-            activeKeyframeChanged.notify();
         }
     }
 
@@ -164,6 +165,10 @@ namespace cvt {
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
+
+        // notify observers
+        keyframeAdded.notify( _currentPose );
+        activeKeyframeChanged.notify();
     }
 
     template <class DerivedKF>
@@ -185,9 +190,11 @@ namespace cvt {
         if( _lastResult.numPixels )
             avgSSD = _lastResult.costs / _lastResult.numPixels;
 
-        if( avgSSD > _maxSSDSqr ){
-            //std::cout << "Avg SSD: " << avgSSD << std::endl;
-            return true;
+        if( _lastResult.pixelPercentage < _minPixPerc ){
+            if( avgSSD < _maxSSDSqr ){
+                // we only should add a keyframe, if the last SSD was ok
+                return true;
+            }
         }
 
         Matrix4f relPose = _currentPose.inverse() * _activeKeyframe->pose();

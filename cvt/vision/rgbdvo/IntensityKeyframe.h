@@ -42,7 +42,6 @@ namespace cvt
             void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
 
         private:
-            bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
             void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
     };
@@ -165,17 +164,20 @@ namespace cvt
         IMapScoped<const float> grayMap( gray );
 
         result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
         while( result.iterations < Base::_maxIters ){
             // build the updated projection Matrix
             projMat = K4 * result.warp.poseMatrix();
 
             // project the points:
-            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], kfdata.points3d.size() );
+            simd->projectPoints( &warpedPts[ 0 ], projMat, &kfdata.points3d[ 0 ], num );
             simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
 
             deltaSum.setZero();
             hessian.setZero();
 
+            result.pixelPercentage = 0;
             result.numPixels = 0;
             result.costs = 0.0f;
             for( size_t i = 0; i < num; i++ ){
@@ -194,6 +196,7 @@ namespace cvt
             }
 
             if( !result.numPixels ){
+                // not a single pixel projected into the image
                 break;
             }
 
@@ -205,6 +208,8 @@ namespace cvt
             if( deltaP.norm() < Base::_minUpdate )
                 break;
         }
+        if( result.numPixels )
+            result.pixelPercentage = ( float )result.numPixels / ( float )num;
     }
 
     template <class WarpFunc, class Weighter>
@@ -231,6 +236,8 @@ namespace cvt
         IMapScoped<const float> grayMap( gray );
 
         result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
         while( result.iterations < Base::_maxIters ){
             // build the updated projection Matrix
             projMat = K4 * result.warp.poseMatrix();
@@ -267,6 +274,9 @@ namespace cvt
             if( deltaP.norm() < Base::_minUpdate )
                 break;
         }
+
+        if( result.numPixels )
+            result.pixelPercentage = ( float )result.numPixels / ( float )num;
     }
 }
 
