@@ -59,8 +59,8 @@ namespace cvt
                 //typedef Tukey<float>                LossFunc;
 
 
-                //typedef IntensityKeyframe<WarpType, LossFunc>     KFType;
-                typedef IntensityDepthKeyframe<WarpType, LossFunc>  KFType;
+                typedef IntensityKeyframe<WarpType, LossFunc>     KFType;
+                //typedef IntensityDepthKeyframe<WarpType, LossFunc>  KFType;
 
                 RGBDVisualOdometry<KFType>  _vo;
 
@@ -79,9 +79,15 @@ namespace cvt
                 Moveable                    _kfMov;
                 ImageView                   _currentImage;
                 Moveable                    _imageMov;
+
+                ImageView                   _depthView;
+                Moveable                    _depthViewMov;
+
                 PoseView                    _poseView;
                 Moveable                    _poseMov;
                 Button                      _nextButton;
+
+
 
                 bool                        _nextPressed;
                 Button                      _stepButton;
