@@ -19,6 +19,7 @@ namespace cvt
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
+        _depthViewMov( &_depthView ),
         _poseMov( &_poseView ),
         _nextButton( "next" ),
         _nextPressed( false ),
@@ -127,13 +128,16 @@ namespace cvt
 
             _vo.updatePose( gray, depth );
 #endif
+            _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
+            _numAlignments++;
+
+            _depthView.setImage( depth );
 
             String str;
             str.sprintf( "SSD: %0.2f", _vo.lastSSD() / _vo.lastNumPixels() );
             _ssdLabel.setLabel( str );
 
-            _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
-            _numAlignments++;
+
             String title;
             title.sprintf( "RGBDVO: Avg. Speed %0.1f ms", _cumulativeAlignmentSpeed / _numAlignments );
             _mainWindow.setTitle( title );
@@ -184,10 +188,15 @@ namespace cvt
 
         _mainWindow.addWidget( &_kfMov );
         _mainWindow.addWidget( &_imageMov );
+        _mainWindow.addWidget( &_depthViewMov );
 
         // add widgets as necessary
         _kfMov.setSize( 300, 200 );
         _kfMov.setTitle( "Current Keyframe" );
+
+        _depthViewMov.setSize( 300, 200 );
+        _depthViewMov.setTitle( "Current Depth" );
+        _depthViewMov.setPosition( 200, 0 );
 
         _imageMov.setSize( 300, 200 );
         _imageMov.setPosition( 300, 0 );
@@ -195,7 +204,7 @@ namespace cvt
 
         _mainWindow.addWidget( &_poseMov );
         _poseMov.setSize( 300, 200 );
-        _poseMov.setPosition( 600, 200 );
+        _poseMov.setPosition( 300, 200 );
         _poseMov.setTitle( "Poses" );
 
         WidgetLayout wl;
