@@ -201,7 +201,6 @@ namespace cvt
         Matrix4<T> tmp4;
         tmp4 = prediction.inverse() * _pose;
 
-
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
         result.iterations = 0;
@@ -241,14 +240,14 @@ namespace cvt
     {
         // to few pixels projected into image
         if( res.pixelPercentage < _minPixelPercentage ){
-            std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
+            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
             return false;
         }
 
         // jump
         Matrix4<T> mat = res.warp.poseMatrix();
         if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
-            std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
+            //std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
             return false;
         }
 
