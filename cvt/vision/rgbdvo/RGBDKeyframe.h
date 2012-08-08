@@ -185,12 +185,12 @@ namespace cvt
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
 
         // sobel
-        //gray.convolve( gx, _kx, _gaussY );
-        //gray.convolve( gy, _gaussX, _ky );
+        gray.convolve( gx, _kx, _gaussY );
+        gray.convolve( gy, _gaussX, _ky );
 
         // normal
-        gray.convolve( gx, _kx );
-        gray.convolve( gy, _ky );
+        //gray.convolve( gx, _kx );
+        //gray.convolve( gy, _ky );
     }
 
     template <class WarpFunc, class Weighter>
