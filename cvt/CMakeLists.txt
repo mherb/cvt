@@ -364,7 +364,6 @@ SET(${MODULE_NAME}_HEADERS
    util/DataIterator.h
    util/Exception.h
    util/EigenBridge.h
-   util/Inserter.h
    util/Mutex.h
    util/ParamInfo.h
    util/ParamSet.h
