@@ -125,23 +125,23 @@ namespace cvt {
 
 		// Guided filter, same for all cost slices
 		_intfilter.apply( iint, cam1 );
-		_boxfilter.apply( imeanG, iint, RADIUS );
+		_boxfilter.apply( imeanG, iint, RADIUS, IFILTER_OPENCL );
 
-		_boxfilter.apply( imeanG1, iint, BOXRADIUS );
+		_boxfilter.apply( imeanG1, iint, BOXRADIUS, IFILTER_OPENCL );
 
 		// NCC / GuidedFilter
 		_intfilter.apply( iint, cam0 );
-		_boxfilter.apply( imeanG0, iint, BOXRADIUS );
+		_boxfilter.apply( imeanG0, iint, BOXRADIUS, IFILTER_OPENCL );
 
 		_intfilter.apply( iint, cam1, &cam1 );
-		_boxfilter.apply( imeanG12, iint, BOXRADIUS );
+		_boxfilter.apply( imeanG12, iint, BOXRADIUS, IFILTER_OPENCL );
 		_intfilter.apply( iint, cam0, &cam0 );
-		_boxfilter.apply( imeanG02, iint, BOXRADIUS );
+		_boxfilter.apply( imeanG02, iint, BOXRADIUS, IFILTER_OPENCL );
 
 		// GuidedFilter
 		_intfilter.applyOuterRGB( iint, iint2, cam1 );
-		_boxfilter.apply( imean_RR_RG_RB, iint, RADIUS );
-		_boxfilter.apply( imean_GG_GB_BB, iint2, RADIUS );
+		_boxfilter.apply( imean_RR_RG_RB, iint, RADIUS, IFILTER_OPENCL );
+		_boxfilter.apply( imean_GG_GB_BB, iint2, RADIUS, IFILTER_OPENCL );
 
 		GuidedFilter _gf;
 
@@ -170,7 +170,7 @@ namespace cvt {
 
 #elif defined( USENCC )
 			_intfilter.applyShifted( iint, cam1, cam0, -d );
-			_boxfilter.apply( imeanGS, iint, BOXRADIUS );
+			_boxfilter.apply( imeanGS, iint, BOXRADIUS, IFILTER_OPENCL );
 
 			_cldepthcostncc.setArg( 0, cost );
 			_cldepthcostncc.setArg( 1, imeanGS );
@@ -187,9 +187,9 @@ namespace cvt {
 			//_gf.apply( costgf, cost, cam1, RADIUS, EPSILON, false );
 
 			_intfilter.apply( iint, cost );
-			_boxfilter.apply( imeanS, iint, RADIUS );
+			_boxfilter.apply( imeanS, iint, RADIUS, IFILTER_OPENCL );
 			_intfilter.apply( iint, cam1, &cost );
-			_boxfilter.apply( imeanGS, iint, RADIUS );
+			_boxfilter.apply( imeanGS, iint, RADIUS, IFILTER_OPENCL );
 
 			_clguidedfilter_calcab_outerrgb.setArg( 0, ia );
 			_clguidedfilter_calcab_outerrgb.setArg( 1, ib );
@@ -202,9 +202,9 @@ namespace cvt {
 			_clguidedfilter_calcab_outerrgb.run( global, CLNDRange( 16, 16 ) );
 
 			_intfilter.apply( iint, ia );
-			_boxfilter.apply( ia, iint, RADIUS );
+			_boxfilter.apply( ia, iint, RADIUS, IFILTER_OPENCL );
 			_intfilter.apply( iint, ib );
-			_boxfilter.apply( ib, iint, RADIUS );
+			_boxfilter.apply( ib, iint, RADIUS, IFILTER_OPENCL );
 
 			_clguidedfilter_applyab_gc_outer.setArg( 0, costgf );
 			_clguidedfilter_applyab_gc_outer.setArg( 1, cam1 );

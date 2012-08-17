@@ -126,7 +126,7 @@ namespace cvt {
 
 				Image* ps[ 3 ] = { &p0, &p1/*, &p2*/ };
 			// WARPS
-			for( int i = 0; i < 20; i++ ) {
+			for( int i = 0; i < 5; i++ ) {
 				if( median ) {
 					_median3.setArg( 0, flow0 );
 					_median3.setArg( 1, *us[ 1 ] );
@@ -150,7 +150,7 @@ namespace cvt {
 
 				Image* tmp;
 				// NUMBER of ROF/THRESHOLD iterations
-#define ROFITER 75
+#define ROFITER 10
 				for( int k = 0; k < ROFITER; k++ ) {
 					_tvl1.setArg( 0, *ps[ 0 ] );
 					_tvl1.setArg( 1, *us[ 0 ] );

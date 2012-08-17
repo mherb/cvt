@@ -65,13 +65,13 @@ namespace cvt {
 		Image imeanGG( src.width(), src.height(), IFormat::floatEquivalent( guide.format() ), IALLOCATOR_CL );
 
 		_intfilter.apply( iint, guide );
-		_boxfilter.apply( imeanG, iint, radius );
+		_boxfilter.apply( imeanG, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, src );
-		_boxfilter.apply( imeanS, iint, radius );
+		_boxfilter.apply( imeanS, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, guide, &src );
-		_boxfilter.apply( imeanGS, iint, radius );
+		_boxfilter.apply( imeanGS, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, guide, &guide );
-		_boxfilter.apply( imeanGG, iint, radius );
+		_boxfilter.apply( imeanGG, iint, radius, IFILTER_OPENCL );
 
 		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
 		CLNDRange local( 16, 16 );
@@ -86,9 +86,9 @@ namespace cvt {
 		_clguidedfilter_calcab.run( global, local);
 
 		_intfilter.apply( iint, ia );
-		_boxfilter.apply( ia, iint, radius );
+		_boxfilter.apply( ia, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, ib );
-		_boxfilter.apply( ib, iint, radius );
+		_boxfilter.apply( ib, iint, radius, IFILTER_OPENCL );
 
 		dst.reallocate( src.width(), src.height(), src.format(), IALLOCATOR_CL );
 		_clguidedfilter_applyab_gc.setArg( 0, dst );
@@ -112,14 +112,14 @@ namespace cvt {
 		Image imean_GG_GB_BB( src.width(), src.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 		_intfilter.apply( iint, guide );
-		_boxfilter.apply( imeanG, iint, radius );
+		_boxfilter.apply( imeanG, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, src );
-		_boxfilter.apply( imeanS, iint, radius );
+		_boxfilter.apply( imeanS, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, guide, &src );
-		_boxfilter.apply( imeanGS, iint, radius );
+		_boxfilter.apply( imeanGS, iint, radius, IFILTER_OPENCL );
 		_intfilter.applyOuterRGB( iint, iint2, guide );
-		_boxfilter.apply( imean_RR_RG_RB, iint, radius );
-		_boxfilter.apply( imean_GG_GB_BB, iint2, radius );
+		_boxfilter.apply( imean_RR_RG_RB, iint, radius, IFILTER_OPENCL );
+		_boxfilter.apply( imean_GG_GB_BB, iint2, radius, IFILTER_OPENCL );
 
 
 		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
@@ -136,9 +136,9 @@ namespace cvt {
 		_clguidedfilter_calcab_outerrgb.run( global, local );
 
 		_intfilter.apply( iint, ia );
-		_boxfilter.apply( ia, iint, radius );
+		_boxfilter.apply( ia, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, ib );
-		_boxfilter.apply( ib, iint, radius );
+		_boxfilter.apply( ib, iint, radius, IFILTER_OPENCL );
 
 		dst.reallocate( src.width(), src.height(), src.format(), IALLOCATOR_CL );
 		_clguidedfilter_applyab_gc_outer.setArg( 0, dst );
@@ -160,13 +160,13 @@ namespace cvt {
 		Image imeanGG( src.width(), src.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 		_intfilter.apply( iint, guide );
-		_boxfilter.apply( imeanG, iint, radius );
+		_boxfilter.apply( imeanG, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, src );
-		_boxfilter.apply( imeanS, iint, radius );
+		_boxfilter.apply( imeanS, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, guide, &src );
-		_boxfilter.apply( imeanGS, iint, radius );
+		_boxfilter.apply( imeanGS, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, guide, &guide );
-		_boxfilter.apply( imeanGG, iint, radius );
+		_boxfilter.apply( imeanGG, iint, radius, IFILTER_OPENCL );
 
 		CLNDRange global( Math::pad16( src.width() ), Math::pad16( src.height() ) );
 		CLNDRange local( 16, 16 );
@@ -181,9 +181,9 @@ namespace cvt {
 		_clguidedfilter_calcab.run( global, local );
 
 		_intfilter.apply( iint, ia );
-		_boxfilter.apply( ia, iint, radius );
+		_boxfilter.apply( ia, iint, radius, IFILTER_OPENCL );
 		_intfilter.apply( iint, ib );
-		_boxfilter.apply( ib, iint, radius );
+		_boxfilter.apply( ib, iint, radius, IFILTER_OPENCL );
 
 		dst.reallocate( src.width(), src.height(), src.format(), IALLOCATOR_CL );
 		_clguidedfilter_applyab_cc.setArg( 0, dst );
