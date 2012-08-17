@@ -11,7 +11,6 @@ GUI
 - Add startAnimation( FPS ), stopAnimation to Widget
 - Extend GFX
 - Add KeyEvents
-- Add Plot widget for data
 - Add more basic widgets
 
 
@@ -21,22 +20,10 @@ Math
 
 Vision/GFX/Image
 ==========
-- unmap without pointer
-( - BSP Tree ( doom src ) )
 - Rapid
-- Guided filter
-- Haar-Cascade/AdaBoost -> face detection ?
-- Add Image::load, Image::save
-- Add PluginManager ( IFilter, ILoader, ISaver -> PNG, JPG, TGA, CVTRAW )
-
-General
-=======
-(- Red-Black-Tree )
 
 Philipp:
 ========
-- Guided filter implementation
-
 - ActiveShape
 	o Image::sampleLine
 	o Edge-based optimization for model -> to get Similarity and basis components
@@ -45,7 +32,6 @@ Philipp:
 	o use ActiveShape to build/calc PCA of face
 	o face recognition using PCA of faces
 	o Intensity based optimization for model -> to get Similarity and basis components
-
 
 - Refactor GFX system:
 	o add GFXEngineGL, GFXEngineGLWin GFXEngineGLFBO, GFXEngineRaster

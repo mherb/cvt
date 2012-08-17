@@ -42,17 +42,17 @@ int main( int argc, char** argv )
 //		CLKernel kerncvup( _stereoCVFBP_source, "stereoCV_FBP_HALFDOWN" );
 //		CLKernel kerncvdown( _stereoCVFBP_source, "stereoCV_FBP_HALFUP" );
 
-	//	Image tmp2( clleft, IALLOCATOR_CL );
-	//	kerncvsobel.setArg( 0, clleft );
-	//	kerncvsobel.setArg( 1, tmp2 );
-	//	kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
-	//	clleft.save("sobell.png");
+		Image tmp2( clleft, IALLOCATOR_CL );
+		kerncvsobel.setArg( 0, clleft );
+		kerncvsobel.setArg( 1, tmp2 );
+		kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		clleft.save("sobell.png");
 
-	//	Image tmp3( clright, IALLOCATOR_CL );
-	//	kerncvsobel.setArg( 0, clright );
-	//	kerncvsobel.setArg( 1, tmp3 );
-	//	kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
-	//	clright.save("sobelr.png");
+		Image tmp3( clright, IALLOCATOR_CL );
+		kerncvsobel.setArg( 0, clright );
+		kerncvsobel.setArg( 1, tmp3 );
+		kerncvsobel.run( CLNDRange( Math::pad( left.width(), 16 ), Math::pad( left.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		clright.save("sobelr.png");
 
 		CLBuffer cv( sizeof( cl_float2 ) * left.width() * left.height() * depth  );
 //		CLBuffer cv2( sizeof( cl_float2 ) * ( left.width() / 2 )  * ( left.height() / 2 ) * depth  );

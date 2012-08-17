@@ -1,7 +1,7 @@
-#define FBP_LAMBDA 2.0f
+#define FBP_LAMBDA 100.0f
 #define FBP_DATATRUNC 0.5f
 #define FBP_DISCPENALTY 1.0f
-#define FBP_DISCTRUNC 3.0f
+#define FBP_DISCTRUNC 25.0f
 #define FBP_INF	1e20f
 
 __kernel void stereoCV_FBP_WTA( __write_only image2d_t dmap, global const float2* cv, const int depth )
@@ -159,9 +159,9 @@ inline void stereoCV_FBP_distanceTransformMinNormalize( float* buf, const int de
 		minval = fmin( minval, buf[ d ] );
 	}
 
-	maxval = minval + FBP_DISCTRUNC;
+//	maxval = minval + FBP_DISCTRUNC;
 	for( int d = 0; d < depth; d++ ) {
-		buf[ d ] = fmin( maxval, buf[ d ] ) - minval;
+		buf[ d ] = fmin( FBP_DISCTRUNC, buf[ d ] - minval );// - minval;
 	}
 }
 
@@ -206,7 +206,7 @@ __kernel void stereoCV_FBP( global float2* cv, const int width, const int height
 		barrier( CLK_LOCAL_MEM_FENCE );
 
 		if( in ) {
-			buf[ d ] = ( cvptr->x - cvptr->y * ( 0.8f - ( gx==1 || gx == width - 2) ?0.2f:0 - ( gy == 1 || gy == height - 2)?0.2f:0 ) // current pixel
+			buf[ d ] = ( cvptr->x - 1.0f * cvptr->y //* ( 0.8f - ( gx==1 || gx == width - 2) ?0.2f:0 - ( gy == 1 || gy == height - 2)?0.2f:0 ) // current pixel
 				+ lbuf[ ly ][ lx + off ]
 				+ lbuf[ ly + 1 ][ lx ]
 				+ lbuf[ ly + 1 ][ lx + 1 ]

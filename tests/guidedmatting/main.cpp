@@ -21,9 +21,9 @@ int main( int argc, char* argv[] )
 	GuidedFilter gf;
     Image i0, i1, tmp;
 	tmp.load( argv[ 1 ] );
-	tmp.convert( i0, IFormat::RGBA_UINT8 );
+	tmp.convert( i0, IFormat::RGBA_FLOAT );
 	tmp.load( argv[ 2 ] );
-	tmp.convert( i1, IFormat::RGBA_UINT8 );
+	tmp.convert( i1, IFormat::RGBA_FLOAT );
 
 	Image img0( i0, IALLOCATOR_CL );
 	Image img1( i1, IALLOCATOR_CL );
