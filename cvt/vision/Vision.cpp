@@ -436,6 +436,64 @@ namespace cvt {
 		return true;
 	}
 
+	template<typename T>
+	static bool _planeSweepHomography()
+	{
+
+		Matrix3<T> H25(
+					   0.96062,     0.013129,       313.42,
+					   -0.025338,       1.0067,      -32.779,
+					   -2.4123e-05,   6.9148e-06,       1.0251 );
+
+
+		Matrix3<T> H75(
+					   0.96062,     0.013129,       257.86,
+					   -0.025338,       1.0067,      -26.737,
+					   -2.4123e-05,   6.9148e-06,       1.0269 );
+
+
+		Matrix3<T> H100(
+						0.96062,     0.013129,       250.92,
+						-0.025338,       1.0067,      -25.982,
+						-2.4123e-05,   6.9148e-06,       1.0271 );
+
+
+		Matrix3<T> H150(
+						0.96062,     0.013129,       243.97,
+						-0.025338,       1.0067,      -25.227,
+						-2.4123e-05,   6.9148e-06,       1.0273 );
+
+
+		Matrix4<T> T0( 9.9776885e-01,  -1.5470000e-02,  -6.4946200e-02,  8.6385170e-01,
+					  1.7084844e-02,   9.9955669e-01,   2.4383000e-02, -2.7568581e-01,
+					  6.4540204e-02,  -2.5438193e-02,   9.9759083e-01, -1.0694305e+00,
+					  0.00000000	,   0.00000000	 ,  0.00000000	  ,1.00000000 );
+
+		Matrix3<T> K0( 2780.1700000000000728, 0, 1539.25,
+					  0, 2773.5399999999999636, 1001.2699999999999818,
+					  0, 0, 1 );
+
+		Matrix4<T> T1( 9.9989024e-01,  -1.4662000e-02,   2.1287000e-03,   7.7862946e-02,
+					  1.4650766e-02,   9.9987915e-01,   5.2004500e-03,  -2.1781616e-01,
+					  -2.2046917e-03,  -5.1686921e-03,   9.9998421e-01,  -1.0034388e+00,
+					  0.00000000,	   0.00000000,	   0.00000000,	   1.00000000 );
+
+		Matrix3<T> K1( 2780.1700000000000728, 0, 1539.25,
+					  0, 2773.5399999999999636, 1001.2699999999999818,
+					  0, 0, 1 );
+		Matrix3<T> H;
+		Vision::planeSweepHomography<T>( H, K1, T1, K0, T0, Vector3<T>( 0, 0, 1 ), 25.0 );
+		bool b = _compare( H25, H,  (T)0.01 );
+		Vision::planeSweepHomography<T>( H, K1, T1, K0, T0, Vector3<T>( 0, 0, 1 ), 75.0 );
+		b &= _compare( H75, H,  (T)0.01 );
+		Vision::planeSweepHomography<T>( H, K1, T1, K0, T0, Vector3<T>( 0, 0, 1 ), 100.0 );
+		b &= _compare( H100, H,  (T)0.01 );
+		Vision::planeSweepHomography<T>( H, K1, T1, K0, T0, Vector3<T>( 0, 0, 1 ), 150.0 );
+		b &= _compare( H150, H,  (T)0.01 );
+
+		return b;
+	}
+
 BEGIN_CVTTEST( Vision )
     bool testResult = true;
     bool b;
@@ -463,6 +521,16 @@ BEGIN_CVTTEST( Vision )
 	b = _poseFromHomography<double>();
     CVTTEST_PRINT( "poseFromHomography<double>()\t", b );
 	testResult &= b;
+
+
+	b = _planeSweepHomography<float>();
+    CVTTEST_PRINT( "planeSweepHomography<float>()\t", b );
+	testResult &= b;
+
+	b = _planeSweepHomography<double>();
+    CVTTEST_PRINT( "planeSweepHomography<double>()\t", b );
+	testResult &= b;
+
 
     return testResult;
 END_CVTTEST

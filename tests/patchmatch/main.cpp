@@ -61,7 +61,7 @@ int main( int argc, char** argv )
 
 
 		Time timer;
-		int patchsize = 15;
+		int patchsize = 16;
 
 		clpminit.setArg( 0, clmatches1 );
 		clpminit.setArg( 1, clinput1 );
@@ -104,7 +104,6 @@ int main( int argc, char** argv )
 //			clpmpropagate.setArg( 9, CLLocalSpace( ( 16 + 2 * patchsize ) * ( 16 + 2 * patchsize ) * sizeof( float ) * 2 ) );
 			clpmpropagate.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
-//			patchsize--;
 		}
 
 /*		clpmapply.setArg( 0, cloutput );

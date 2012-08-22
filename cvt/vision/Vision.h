@@ -112,6 +112,18 @@ namespace cvt
                                          const Matrix4<T>& T0,
                                          const Matrix3<T>& K1,
                                          const Matrix4<T>& T1 );
+
+		/*
+		 @brief Compute homography induced by plane between two cameras.
+		 */
+		template<typename T>
+		static void planeSweepHomography( Matrix3<T>& H,
+												 const Matrix3<T>& KDst,
+                                                 const Matrix4<T>& TDst,
+                                                 const Matrix3<T>& KSrc,
+                                                 const Matrix4<T>& TSrc,
+												 const Vector3<T>& normal, T depth );
+
         /**
          *	@brief	correct point correspondences according to fundamental constraint
          *			using first order Sampson Approximation
@@ -603,6 +615,25 @@ namespace cvt
             e1 = V.row( 2 );
         }
 
+		template<typename T>
+		inline void Vision::planeSweepHomography( Matrix3<T>& H,
+												 const Matrix3<T>& KDst,
+                                                 const Matrix4<T>& TDst,
+                                                 const Matrix3<T>& KSrc,
+                                                 const Matrix4<T>& TSrc,
+												 const Vector3<T>& normal, T depth )
+		{
+			Vector3<T> tsrc( TSrc[ 0 ][ 3 ], TSrc[ 1 ][ 3 ], TSrc[ 2 ][ 3 ] );
+			Vector3<T> tdst( TDst[ 0 ][ 3 ], TDst[ 1 ][ 3 ], TDst[ 2 ][ 3 ] );
+
+			Vector3<T> tall = -tdst + tsrc;
+			/*
+				K_t * ( R_t^T * R_s + ( -R_t^T * t_t + R_s^T * t_s ) * normal/depth ) * K_s^-1
+			 */
+			Matrix3<T> outer( tall[ 0 ] / depth * normal, tall[ 1 ] / depth * normal, tall[ 2 ] / depth * normal  );
+
+			H =  KDst * ( TDst.toMatrix3() * TSrc.toMatrix3().transpose() + outer ) * KSrc.inverse();
+		}
 
         template<typename T>
         inline void Vision::stereoRectification( Matrix3<T>& K0new,
