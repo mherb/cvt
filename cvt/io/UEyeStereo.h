@@ -11,7 +11,7 @@ namespace cvt
 	class UEyeStereo 
 	{
 		public:
-			UEyeStereo( const String& masterId, const String& slaveId );
+			UEyeStereo( const String& masterId, const String& slaveId, size_t flashDelay = 20, size_t flashDuration = 200 );
 			~UEyeStereo();
 
 			/**
@@ -35,6 +35,8 @@ namespace cvt
             void setFramerate( double value );
             void setExposureTime( double value );
 
+			void setTimeout( size_t to ){ _timeout = to; }
+
             const UEyeUsbCamera& master() const { return *_master; }
             const UEyeUsbCamera& slave() const { return *_slave; }
 
@@ -43,16 +45,21 @@ namespace cvt
 			UEyeUsbCamera*	_slave;
 
             size_t _nM, _nS;
+			size_t _timeout;
 
 			void syncCameraSettings();
-			void setupSyncing();
+			void setupSyncing( size_t flashDelay, size_t flashDuration );
 	};
 
 	inline UEyeStereo::UEyeStereo( const String& masterId, 
-								   const String& slaveId ):
+								   const String& slaveId,
+								   size_t flashDelay,
+								   size_t flashDuration ):
 		_master( 0 ),
         _slave( 0 ),
-        _nM( 0 ), _nS( 0 )
+        _nM( 0 ), 
+		_nS( 0 ),
+		_timeout( 500 )
 	{
 		size_t numCams = UEyeUsbCamera::count();
 		if( numCams < 2 ){
@@ -91,7 +98,7 @@ namespace cvt
 			throw CVTException( "Could not find UEye Cam for slave id" );
 			
         syncCameraSettings();
-        setupSyncing();
+        setupSyncing( flashDelay, flashDuration );
 
         _slave->startCapture();
         _master->startCapture();
@@ -153,8 +160,8 @@ namespace cvt
 
 	inline bool UEyeStereo::nextFrame()
     {        
-        bool gotM = _master->waitFrame( 500 );
-        bool gotS = _slave->waitFrame( 500 );
+        bool gotM = _master->waitFrame( _timeout );
+        bool gotS = _slave->waitFrame( _timeout );
 
         if( gotM ) _nM++;
         if( gotS ) _nS++;
@@ -180,19 +187,16 @@ namespace cvt
 		{
             //_master->saveParameters( "tmp.ini" );
             //_slave->loadParameters( "tmp.ini" );
+			
 		}
 	}
 
-	inline void UEyeStereo::setupSyncing()
+	inline void UEyeStereo::setupSyncing( size_t flashDelay, size_t flashDuration )
 	{
 		// master is triggered by software!
         _master->setRunMode( UEyeUsbCamera::UEYE_MODE_TRIGGERED );
         _master->setFlashMode( UEyeUsbCamera::FLASH_LOW_ON_EXPOSURE );
-
-        //_master->setRunMode( UEyeUsbCamera::UEYE_MODE_FREERUN );
-        //_master->setFlashMode( UEyeUsbCamera::FLASH_LOW_ON_EXPOSURE_FR );
-
-        _master->setFlashDelayAndDuration( 20, 200 );
+        _master->setFlashDelayAndDuration( flashDelay, flashDuration );
 
 		// slave is triggered by hardware (master)!
 		_slave->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
