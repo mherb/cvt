@@ -132,15 +132,18 @@ class MultiCamApp : public TimeoutHandler
 
 int main( int, char** )
 {
-
 	ConfigFile	config( "ueye_config.cfg" );
-    String masterId = config.valueForName<String>( "master", "4002738790" );
-    String slaveId  = config.valueForName<String>( "slave",  "4002738788" );
+    String masterId		= config.valueForName<String>( "master", "4002738790" );
+    String slaveId		= config.valueForName<String>( "slave",  "4002738788" );
+    int flashDelay		= config.valueForName<int>( "flashDelay",  50 );
+    int flashDuration	= config.valueForName<int>( "flashDuration",  500 );
+    int frameTimeout	= config.valueForName<int>( "timeout",  500 );
 
     config.save( "ueye_config.cfg" );
 
 	try {
-        UEyeStereo stereo( masterId, slaveId );
+        UEyeStereo stereo( masterId, slaveId, flashDelay, flashDuration );
+		stereo.setTimeout( frameTimeout );
 		MultiCamApp camTimeOut( stereo );
 		Application::run();
 
