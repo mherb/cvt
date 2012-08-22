@@ -124,10 +124,10 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 200.0f
-#define TYMAX 75.0f
-#define TAU 15.0f
-#define PROPSIZE 2
+#define TXMAX 150.0f
+#define TYMAX 1.0f
+#define TAU 25.0f
+#define PROPSIZE 3
 #define ALPHA 0.05f
 
 //#define FLOW
@@ -155,7 +155,8 @@ float distL1GTrunc( const float4 a, const float4 b, const float2 ga, const float
 
 float weight( const float4 a, const float4 b, const float tau, const float2 dist )
 {
-	return exp( -fast_length(  a - b ) * ( tau ) );// * exp( - fast_length( dist ) * 0.05f );
+//	float distance = fast_length( dist );
+	return exp( -fast_length(  a - b ) * ( tau ) );// * exp( - distance * 0.15f );
 }
 
 
@@ -218,7 +219,7 @@ float4 refineStereo( mwc64x_state_t* rng, const float4 state, const float2 coord
 	n.y = -state.y * n.z;
 
 //	z = fmin( fmax( z + ( MWC64X_NextFloat( rng ) - 0.5f ) * 1.0f, 0 ), TXMAX );
-	z += ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f * mul;
+	z += ( MWC64X_NextFloat( rng ) - 0.5f ) * 1.0f * mul;
 	z = clamp( z, 0.0f, TXMAX );
 	n.x += ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.5f * mul;
 	n.y += ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.5f * mul;
@@ -382,7 +383,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 			neighbour = buf[ iy ][ ix ];
 			if( neighbour.w > self.w )
 				continue;
-			neighbour = refineStereo( &rng, neighbour, coordf, 1.0f );
+//			neighbour = refineStereo( &rng, neighbour, coordf, 0.5f );
 			neighbour.w = 0;
 
 			float  wsum = 0;
@@ -424,7 +425,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 			neighbour = initFlow( &rng );
 #else
 		if( self.w < 0.05 )
-			neighbour = refineStereo( &rng, self, coordf, 2.0f );
+			neighbour = refineStereo( &rng, self, coordf, 1.0f );
 		else
 			neighbour = initStereo( &rng, coordf );
 #endif
@@ -496,9 +497,9 @@ kernel void patchmatchToFlow( write_only image2d_t output, read_only image2d_t m
 //	write_imagef( output, coord, stateToNormal( match ) );
 //	write_imagef( output, coord, ( float4 ) ( match.xy, 0, 0 ) );
 	float4 val;
-	val = ( float4 ) ( match.xy, 0.0f, 1.0f );
-//	val.xyz = -match.x / TXMAX;
-//	val.w = 1.0f;
+//	val = ( float4 ) ( match.xy, 0.0f, 1.0f );
+	val.xyz = -match.x / TXMAX;
+	val.w = 1.0f;
 #else
 	float4 val;
 	val.xyz =  transformStereo( match, ( float2 ) ( coord.x, coord.y ) ).x / TXMAX;
