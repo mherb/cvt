@@ -432,7 +432,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/MultiscaleKeyframe.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
-   vision/rgbdvo/RGBDWarp.h
+   vision/rgbdvo/RGBDWarp.h   
    vision/rgbdvo/RobustAIIKeyframe.h
    vision/rgbdvo/RobustKeyframe.h
    vision/rgbdvo/RobustWeighting.h
@@ -518,6 +518,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/ColorspaceXYZ.cpp
    geom/KDTreeTest.cpp
    geom/Rect.cpp
+   geom/PointSet.cpp
    geom/PointSetTest.cpp
    geom/scene/Scene.cpp
    geom/scene/SceneGeometry.cpp
