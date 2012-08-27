@@ -423,20 +423,15 @@ SET(${MODULE_NAME}_HEADERS
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
    vision/Vision.h
-   vision/SparseBundleAdjustment.h
-   vision/rgbdvo/AIIKeyframe.h
+   vision/SparseBundleAdjustment.h   
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/IntensityDepthKeyframe.h
+   vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/KeyframeBase.h
-   vision/rgbdvo/MIKeyframe.h
-   vision/rgbdvo/MultiscaleKeyframe.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
-   vision/rgbdvo/RGBDWarp.h   
-   vision/rgbdvo/RobustAIIKeyframe.h
-   vision/rgbdvo/RobustKeyframe.h
+   vision/rgbdvo/RGBDWarp.h      
    vision/rgbdvo/RobustWeighting.h
-   vision/rgbdvo/VOKeyframe.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
@@ -467,7 +462,7 @@ SET(${MODULE_NAME}_HEADERS
    io/xml/XMLText.h
    ${GLSL_GEN_HEADER_${MODULE_NAME}}
    ${CL_GEN_HEADER_${MODULE_NAME}}
-   ${GLSL_SHADER} # FIXME: this way, the shaders and cl kernels will be shipped ...
+   ${GLSL_SHADER}
    ${CL_KERNELS}
 )
 
@@ -620,10 +615,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/ORBTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
-   vision/SparseBundleAdjustment.cpp
-   vision/rgbdvo/AIIKeyframe.cpp
-   vision/rgbdvo/MIKeyframe.cpp
-   vision/rgbdvo/VOKeyframe.cpp
+   vision/SparseBundleAdjustment.cpp   
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp
