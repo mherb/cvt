@@ -32,6 +32,8 @@ namespace cvt {
 			const Matrix4f&			 extrinsics() const;
 			void					 setExtrinsics( const Matrix4f & extr );
 
+			void					 rectificationMatrices( Matrix3f& left, Matrix3f& right, bool verticalStereo = false ) const;
+
 			void					 undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright,
 													   size_t width, size_t height, bool verticalstereo = false ) const;
 
@@ -43,8 +45,6 @@ namespace cvt {
 			// de-/serialization interface
 			void	 deserialize( XMLNode* node );
 			XMLNode* serialize() const;
-
-
 
 		private:
 			struct UndistortRectifyWarp {
@@ -140,18 +140,13 @@ namespace cvt {
         _extrinsics = extr;
     }
 
-	inline void StereoCameraCalibration::undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright, size_t width, size_t height, bool verticalstereo ) const
-	{
-		/*
-			Algorithm from Matlab Camera Calibration Toolbox
-		 */
-		Vector3f axis, t, u;
-		Vector2f cleft, cright;
-		float fleft, fright, fnew;
-		float angle;
-		_extrinsics.toMatrix3().toAxisAngle( axis, angle );
-		Matrix3f Rleft, Rright, R2;
-		CameraCalibration cam0, cam1;
+    inline void StereoCameraCalibration::rectificationMatrices( Matrix3f& Rleft, Matrix3f& Rright, bool verticalstereo ) const
+    {
+        Vector3f axis, t, u;
+
+        float angle;
+        _extrinsics.toMatrix3().toAxisAngle( axis, angle );
+        Matrix3f R2;
 
 		/* align orientation of cameras, by rotating both cameras with half of the extrinsic rotation */
 		Rleft.setRotation( axis,   0.5f * angle );
@@ -175,6 +170,23 @@ namespace cvt {
 		/* apply the rotation to the left/right cameras*/
 		Rright = R2 * Rright;
 		Rleft  = R2 * Rleft;
+	}
+
+	inline void StereoCameraCalibration::undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright, size_t width, size_t height, bool verticalstereo ) const
+	{
+		/*
+			Algorithm from Matlab Camera Calibration Toolbox
+		 */
+		Vector2f cleft, cright;
+		float fleft, fright, fnew;
+		Vector3f t, u;
+
+		CameraCalibration cam0, cam1;
+
+		Matrix3f Rleft, Rright;
+		rectificationMatrices( Rleft, Rright );
+
+		t = Rright * Vector3f( _extrinsics.col( 3 ) );
 
 		/* save the extrinsics of the new camera system*/
 		Matrix4f extnew;
