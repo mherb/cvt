@@ -9,8 +9,8 @@
     PARTICULAR PURPOSE.
 */
 
-#ifndef INFORMATIONSELECTION_H
-#define INFORMATIONSELECTION_H
+#ifndef CVT_INFORMATIONSELECTION_H
+#define CVT_INFORMATIONSELECTION_H
 
 #include <set>
 #include <algorithm>
@@ -22,8 +22,9 @@ namespace cvt {
     {
         public:
             InformationSelection( size_t numpixels );
+            ~InformationSelection();
 
-            const std::set<size_T>& selectInformation( JType* j, size_t n );
+            const std::set<size_t>& selectInformation( JType* j, size_t n );
 
             void setNumPixels( size_t n ){ _numPixels = n; }
 
@@ -66,7 +67,7 @@ namespace cvt {
     inline InformationSelection<JType>::~InformationSelection(){}
 
     template <class JType>
-    inline const std::set<size_T>& InformationSelection<JType>::selectInformation( JType* j, size_t n )
+    inline const std::set<size_t>& InformationSelection<JType>::selectInformation( JType* j, size_t n )
     {
         _ids.clear();
 
@@ -95,10 +96,10 @@ namespace cvt {
             }
 
             _ids.insert( currVec[ idx ] );
-            _currDim++;
+            currDim++;
 
-            if( _currDim >= _sortedIds.size() )
-                _currDim = 0;
+            if( currDim >= _sortedIds.size() )
+                currDim = 0;
         }
 
         return _ids;

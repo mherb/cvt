@@ -21,6 +21,7 @@
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/InformationSelection.h>
 
 #include<Eigen/StdVector>
 
