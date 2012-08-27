@@ -615,7 +615,8 @@ SET(${MODULE_NAME}_SOURCES
    vision/ORBTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
-   vision/SparseBundleAdjustment.cpp   
+   vision/SparseBundleAdjustment.cpp
+   vision/rgbdvo/InformationSelectionTest.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp

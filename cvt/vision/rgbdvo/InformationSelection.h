@@ -14,6 +14,8 @@
 
 #include <set>
 #include <algorithm>
+#include <vector>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 
@@ -75,6 +77,15 @@ namespace cvt {
         _sortedIds[ 0 ].clear();
         _sortedIds[ 0 ].resize( n );
         for( size_t i = 0; i < n; i++ ) _sortedIds[ 0 ][ i ] = i;
+
+
+        {
+            IndexComparator cmp( j, 0 );
+            std::partial_sort( _sortedIds[ 0 ].begin(),
+                               _sortedIds[ 0 ].begin() + _numPixels,
+                               _sortedIds[ 0 ].end(), cmp );
+        }
+
         for( size_t i = 1; i < _sortedIds.size(); i++ ) {
             _sortedIds[ i ] = _sortedIds[ 0 ];
             IndexComparator cmp( j, i );
@@ -89,13 +100,14 @@ namespace cvt {
         size_t idx = 0; // idx into id vector
         while( _ids.size() < _numPixels ){
             idx = idForDim[ currDim ];
-            const std::vector<size_t>& currVec = _sortedIds[ currDim ];
+            const std::vector<size_t>& currVec = _sortedIds[ currDim ];            
             while( _ids.find( currVec[ idx ] ) != _ids.end() ){
-                idx++;
-                idForDim[ currDim ] = idx;
+                idx++;                
             }
 
             _ids.insert( currVec[ idx ] );
+
+            idForDim[ currDim ] = idx + 1;
             currDim++;
 
             if( currDim >= _sortedIds.size() )
