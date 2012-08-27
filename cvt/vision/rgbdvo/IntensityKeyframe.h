@@ -44,6 +44,8 @@ namespace cvt
         private:
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
             void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
+
+            void selectGoodBixels();
     };
 
     template <class WarpFunc, class Weighter>
