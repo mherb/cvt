@@ -141,6 +141,7 @@ namespace cvt
 
 
       Matrix4d estimated;
+	  estimated.setIdentity();
       float inlierPercentage = 0.0f;
 
       float minInThresh = 0.6f;
