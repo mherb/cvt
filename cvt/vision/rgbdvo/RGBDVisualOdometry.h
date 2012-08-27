@@ -28,10 +28,7 @@ namespace cvt {
 
         public:
             RGBDVisualOdometry( const Matrix3f& K, const VOParams& params );
-            ~RGBDVisualOdometry();
-
-            // TODO remove this one
-            void updatePose( const Image& gray, const Image& depth );
+            ~RGBDVisualOdometry();            
 
             /**
              *  \brief  update the pose by using the given pose as starting point
@@ -39,6 +36,11 @@ namespace cvt {
              *          it has to be the pose from world to camera!
              */
             void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
+
+            /**
+             *
+             */
+            void computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth );
 
             /**
              *  \param kfPose   pose of the keyframe: T_wk
@@ -127,11 +129,11 @@ namespace cvt {
     }
 
     template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::updatePose( const Image& gray, const Image& depth )
+    inline void RGBDVisualOdometry<DerivedKF>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
 
-        _activeKeyframe->align( _lastResult, _currentPose, _pyramid, depth );
+        _activeKeyframe->align( _lastResult, pose, _pyramid, depth );
 
         _currentPose = _lastResult.warp.poseMatrix();
 
@@ -139,13 +141,24 @@ namespace cvt {
         if( needNewKeyframe() ){
             addNewKeyframe( gray, depth, _currentPose );
         }
+
+        pose = _currentPose;
     }
 
     template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
+    inline void RGBDVisualOdometry<DerivedKF>::computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth )
     {
-        _currentPose = pose;
-        updatePose( gray, depth );
+        _pyramid.update( gray );
+
+        _activeKeyframe->align( _lastResult, pose, _pyramid, depth );
+
+        _currentPose = _lastResult.warp.poseMatrix();
+
+        // check if we need a new keyframe
+        if( needNewKeyframe() ){
+            addNewKeyframe( gray, depth, _currentPose );
+        }
+
         pose = _currentPose;
     }
 

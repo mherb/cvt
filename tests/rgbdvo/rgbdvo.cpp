@@ -134,18 +134,20 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     size_t iters = 0;
     float timeSum = 0;
 
+    pose = vo.pose();
     while( parser.hasNext() ){
         parser.loadNext();
         const RGBDParser::RGBDSample& d = parser.data();
 
         time.reset();
         d.rgb.convert( gray );
-        vo.updatePose( gray, d.depth );
+        pose = vo.pose();
+        vo.updatePose( pose, gray, d.depth );
 
         timeSum += time.elapsedMilliSeconds();
         iters++;
 
-        writePoseToFile( file, vo.pose(), d.stamp );
+        writePoseToFile( file, pose, d.stamp );
 
         if( parser.iter() % stepIter == 0 )
             std::cout << "#"; std::flush( std::cout );

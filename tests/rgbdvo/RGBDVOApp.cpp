@@ -123,10 +123,13 @@ namespace cvt
 
             Image depth, gray;
 
+            // update the absolute pose
+            Matrix4f absPose = _vo.pose();
+
 #ifdef USE_CAM
             _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
             _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
-            _vo.updatePose( gray, depth );
+            _vo.updatePose( absPose, gray, depth );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
 
@@ -134,7 +137,7 @@ namespace cvt
             d.rgb.convert( gray, IFormat::GRAY_FLOAT );
             d.depth.convert( depth, IFormat::GRAY_FLOAT );
 
-            _vo.updatePose( gray, depth );
+            _vo.updatePose( absPose, gray, depth );
 #endif
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
@@ -154,8 +157,6 @@ namespace cvt
             title.sprintf( "RGBDVO: Avg. Speed %0.1f ms", _cumulativeAlignmentSpeed / _numAlignments );
             _mainWindow.setTitle( title );
 
-            // update the absolute pose
-            Matrix4f absPose = _vo.pose();
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteration: " << iter << std::endl;
                 _step = true;
