@@ -98,13 +98,13 @@ namespace cvt
             IMapScoped<const float> grayMap( gray );
 
             data.hessian.setZero();
-            for( size_t y = 0; y < gray.height(); y++ ){
+            for( size_t y = 0; y < gray.height()-1; y++ ){
                 const float* gx = gxMap.ptr();
                 const float* gy = gyMap.ptr();
                 const float* value = grayMap.ptr();
 
                 currP.y = scale * y;
-                for( size_t x = 0; x < gray.width(); x++ ){
+                for( size_t x = 0; x < gray.width()-1; x++ ){
                     currP.x = scale * x;
                     float z = Base::interpolateDepth( currP, d, depthStride );
                     if( z > this->_minDepth ){
