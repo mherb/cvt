@@ -38,7 +38,7 @@ int main( int argc, char** argv )
 	cam2.load( argv[ 3 ] );
 
 	Matrix3f htmp;
-	Vision::planeSweepHomography( htmp, cam0.intrinsics(), cam0.extrinsics(), cam1.intrinsics(), cam1.extrinsics(), Vector3f( 0.0f, 0.0f, 1.0f ), 10.0f );
+//	Vision::planeSweepHomography( htmp, cam0.intrinsics(), cam0.extrinsics(), cam1.intrinsics(), cam1.extrinsics(), Vector3f( 0.0f, 0.0f, 1.0f ), 10.0f );
 	mat[ 0 ] = cam0.intrinsics().pseudoInverse().toMatrix4();
 	mat[ 1 ] = cam0.extrinsics();
 	mat[ 2 ] = cam1.intrinsics().toMatrix4();
@@ -98,7 +98,7 @@ int main( int argc, char** argv )
 		clgradxy.run( CLNDRange( Math::pad( clinput3.width(), 16 ), Math::pad( clinput3.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		Time timer;
-		int patchsize = 9;
+		int patchsize = 15;
 
 		clpminit.setArg( 0, clmatches1 );
 		clpminit.setArg( 1, clinput1 );
@@ -106,12 +106,12 @@ int main( int argc, char** argv )
 		clpminit.setArg( 3, clinput3 );
 		clpminit.setArg( 4, clinput1g );
 		clpminit.setArg( 5, clinput2g );
-		clpminit.setArg( 6, clinput2g );
+		clpminit.setArg( 6, clinput3g );
 		clpminit.setArg( 7, mats );
 		clpminit.setArg( 8, patchsize );
 		clpminit.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
-		for( int iter = 0; iter < 100; iter++ ) {
+		for( int iter = 0; iter < 40; iter++ ) {
 			int swap = iter & 1;
 
 #if 1
