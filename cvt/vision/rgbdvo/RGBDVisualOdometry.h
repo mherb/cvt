@@ -58,6 +58,7 @@ namespace cvt {
             void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
             void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
             void setMinPixelPercentage( float v )             { _minPixPerc = v; }
+            void setSelectionPixelPercentage( float v )       { _selectionPixelPercentage = v; }
 
             void setParams( const VOParams& p )               { _params = p; }
             void setPose( const Matrix4f& pose )              { _currentPose = pose; }
@@ -89,6 +90,7 @@ namespace cvt {
             float                       _maxRotationDistance;
             float                       _maxSSDSqr;
             float                       _minPixPerc;
+            float                       _selectionPixelPercentage;
 
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
@@ -114,6 +116,7 @@ namespace cvt {
         _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _minPixPerc( 0.5f ),
+        _selectionPixelPercentage( 0.3f ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
@@ -170,11 +173,11 @@ namespace cvt {
 
         if( !_activeKeyframe ){
             _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
-            _activeKeyframe = &_keyframes[ 0 ];
-            setKeyframeParams( *_activeKeyframe );
+            _activeKeyframe = &_keyframes[ 0 ];            
             _currentPose = kfPose;
             _pyramid.update( gray );
         }
+        setKeyframeParams( *_activeKeyframe );
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
@@ -193,6 +196,7 @@ namespace cvt {
         kf.setRobustParam( _params.robustParam );
         kf.setMaxIter( _params.maxIters );
         kf.setMinUpdate( _params.minParameterUpdate );
+        kf.setSelectionPixelPercentage( _selectionPixelPercentage );
     }
 
     template <class DerivedKF>

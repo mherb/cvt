@@ -21,7 +21,6 @@
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-#include <cvt/vision/rgbdvo/InformationSelection.h>
 
 #include<Eigen/StdVector>
 
@@ -35,6 +34,7 @@ namespace cvt
             typedef RGBDKeyframe<WarpFunc, Weighter>    Base;
             typedef typename Base::T                    T;
             typedef typename Base::Result               Result;
+            typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::Mat3Type             Mat3Type;
 
             IntensityKeyframe( const Mat3Type &K, size_t octaves, float scale );
@@ -46,7 +46,6 @@ namespace cvt
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
             void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
 
-            void selectGoodBixels();
     };
 
     template <class WarpFunc, class Weighter>
@@ -72,7 +71,7 @@ namespace cvt
 
         Vector3<T> p3d;
         Eigen::Matrix<T, 2, 1> g;
-        typename Base::JacobianType j;
+        JacobianType j;
 
         IMapScoped<const float> depthMap( depth );
         const float* d = depthMap.ptr();
@@ -85,7 +84,8 @@ namespace cvt
 
             typename Base::AlignmentData& data = this->_dataForScale[ i ];
             data.clear();
-            data.reserve( 0.6f * gray.width() * gray.height() );
+            size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+            data.reserve( 0.6f * pixelsOnOctave );
 
             // temp vals
             std::vector<float> tmpx( gray.width() );
@@ -98,13 +98,13 @@ namespace cvt
             IMapScoped<const float> grayMap( gray );
 
             data.hessian.setZero();
-            for( size_t y = 0; y < gray.height(); y++ ){
+            for( size_t y = 0; y < gray.height() - 1; y++ ){
                 const float* gx = gxMap.ptr();
                 const float* gy = gyMap.ptr();
                 const float* value = grayMap.ptr();
 
                 currP.y = scale * y;
-                for( size_t x = 0; x < gray.width(); x++ ){
+                for( size_t x = 0; x < gray.width() - 1; x++ ){
                     currP.x = scale * x;
                     float z = Base::interpolateDepth( currP, d, depthStride );
                     if( z > this->_minDepth ){
@@ -124,13 +124,24 @@ namespace cvt
                         data.jacobians.push_back( j );
                         data.pixelValues.push_back( value[ x ] );
                         data.points3d.push_back( p3d );
-                        data.hessian.noalias() += j.transpose() * j;
+                        //data.hessian.noalias() += j.transpose() * j;
                     }
                 }
                 gxMap++;
                 gyMap++;
                 grayMap++;
             }
+
+
+            // select best N jacobians:
+            size_t numPixels = Base::_pixelPercentageToSelect * pixelsOnOctave;
+            std::cout << "SELECTING N PIXELS: " << Base::_pixelPercentageToSelect << std::endl;
+            if( data.jacobians.size() <= numPixels )
+                Base::updateHessian( data );
+            else
+                Base::selectInformation( data, numPixels );
+
+            std::cout << "J size: " << data.jacobians.size() << std::endl;
 
             // precompute the inverse hessian
             data.inverseHessian = data.hessian.inverse();
