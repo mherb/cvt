@@ -20,6 +20,7 @@
 
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
+#include <cvt/vision/rgbdvo/InformationSelection.h>
 
 #include<Eigen/StdVector>
 
@@ -98,6 +99,7 @@ namespace cvt
             void setTranslationJumpThreshold( T maxTDiff )          { _translationJumpThreshold = maxTDiff; }
             void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
             void setRobustParam( T v )                              { _weighter = Weighter( v ); }
+            void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
 
             /**
              *  \brief align the current camera frame with this keyframe
@@ -105,7 +107,7 @@ namespace cvt
              */
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr, const Image& depth );
 
-            virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
+            virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;            
 
         protected:
             Matrix4<T>                  _pose;
@@ -124,6 +126,7 @@ namespace cvt
             T                           _minUpdate;
             T                           _translationJumpThreshold;
             float                       _minPixelPercentage;
+            float                       _pixelPercentageToSelect;
 
             Weighter                    _weighter;
 
@@ -138,6 +141,8 @@ namespace cvt
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
+            void  selectInformation( AlignmentData& data, size_t n );
+            void  updateHessian( AlignmentData& data );
     };
 
     template <class WarpFunc, class Weighter>
@@ -153,6 +158,7 @@ namespace cvt
         _minUpdate( (T)1e-6 ),
         _translationJumpThreshold( ( T )0.8 ),
         _minPixelPercentage( 0.2f ),
+        _pixelPercentageToSelect( 0.3f ),
         _weighter( (T)0.1 )
     {
         float s = -0.5f;
@@ -309,6 +315,46 @@ namespace cvt
         float invF = 1.0f / foc;
         for( size_t i = 0; i < n; i++ ){
             vals[ i ] = ( i - c ) * invF;
+        }
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::selectInformation( AlignmentData& data, size_t n )
+    {
+        InformationSelection<JacobianType> selector( n );
+        const std::set<size_t>& ids = selector.selectInformation( &data.jacobians[ 0 ], data.jacobians.size() );
+
+        // now rearrange the data according to the ids:
+        std::set<size_t>::const_iterator it = ids.begin();
+        const std::set<size_t>::const_iterator end = ids.end();
+
+        size_t saveIdx = 0;
+        data.hessian.setZero();
+        while( it != end ){
+            data.jacobians[ saveIdx ] = data.jacobians[ *it ];
+            data.points3d[ saveIdx ] = data.points3d[ *it ];
+            data.pixelValues[ saveIdx ] = data.pixelValues[ *it ];
+            data.hessian.noalias() += data.jacobians[ saveIdx ].transpose() * data.jacobians[ saveIdx ];
+
+            saveIdx++;
+            it++;
+        }
+
+        // remove the rest
+        data.jacobians.erase( data.jacobians.begin() + n, data.jacobians.end() );
+        data.points3d.erase( data.points3d.begin() + n, data.points3d.end() );
+        data.pixelValues.erase( data.pixelValues.begin() + n, data.pixelValues.end() );
+    }
+
+    template <class WarpFunc, class Weighter>
+    inline void RGBDKeyframe<WarpFunc, Weighter>::updateHessian( AlignmentData& data )
+    {
+        typename std::vector<JacobianType>::const_iterator it = data.jacobians.begin();
+        typename std::vector<JacobianType>::const_iterator end = data.jacobians.end();
+        data.hessian.setZero();
+        while( it != end ){
+            data.hessian.noalias() += it->transpose() * *it;
+            it++;
         }
     }
 }

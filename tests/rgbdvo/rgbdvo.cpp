@@ -241,6 +241,7 @@ int main( int argc, char* argv[] )
     app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
     app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
     app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
+    app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
     Application::run();
 
 

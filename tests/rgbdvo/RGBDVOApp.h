@@ -22,7 +22,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 
-#define USE_CAM
+//#define USE_CAM
 #ifdef USE_CAM
 #include <cvt/io/OpenNICamera.h>
 #endif
@@ -43,6 +43,7 @@ namespace cvt
                 void setMaxRotationDistance( float dist )         { _vo.setMaxRotationDistance( dist ); }
                 void setMaxSSD( float dist )                      { _vo.setMaxSSD( dist ); }
                 void setMinPixelPercentage( float v )             { _vo.setMinPixelPercentage( v ); }
+                void setSelectionPixelPercentage( float v )       { _vo.setSelectionPixelPercentage( v ); }
 
             private:
 #ifdef USE_CAM
