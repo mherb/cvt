@@ -1,7 +1,7 @@
 #include "IPolygonRaster.h"
 
 namespace cvt {
-	Fixed IPolygonRaster::_offsets8[ 8 ] = {
+	const Fixed IPolygonRaster::_offsets8[ 8 ] = {
 		( 5.0f / 8.0f ),
 		( 0.0f / 8.0f ),
 		( 3.0f / 8.0f ),

@@ -62,7 +62,7 @@ namespace cvt
 			Rectf			_cliprect;
 			List<PolyEdge>  _edges;
 
-			static Fixed _offsets8[ 8 ];
+			static const Fixed _offsets8[ 8 ];
 	};
 
 

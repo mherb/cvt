@@ -124,10 +124,10 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 250.0f
+#define TXMAX 200.0f
 #define TYMAX 0.0f
-#define TAU 25.0f
-#define PROPSIZE 4
+#define TAU 35.0f
+#define PROPSIZE 5
 #define ALPHA 0.05f
 
 float distEuclidean( const float4 a, const float4 b )
@@ -148,13 +148,13 @@ float distL1Trunc( const float4 a, const float4 b, const float trunc )
 float distL1GTrunc( const float4 a, const float4 b, const float2 ga, const float2 gb )
 {
 //	return ALPHA * fmin( dot( fabs( a - b ), ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f ) ), 0.04f ) + 0.9f * fmin( dot( fabs( ga - gb ), ( float2 ) 0.5f ), 0.02f );
-	return ALPHA * fmin( fast_length( ( a - b).xyz ), 0.04f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.02f );
+	return ALPHA * fmin( fast_length( a - b ), 0.04f * 1.0f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.02f * 1.0f );
 }
 
 float weight( const float4 a, const float4 b, const float tau, const float2 dist )
 {
 //	float distance = fast_length( dist );
-	return exp( -fast_length(  a - b ) * ( tau ) );// * exp( - distance * 0.15f );
+	return exp( -fast_length(  ( a - b ).xyz ) * ( tau ) );// * exp( - distance * 0.15f );
 }
 
 float4 initStereo( mwc64x_state_t* rng )
@@ -162,28 +162,28 @@ float4 initStereo( mwc64x_state_t* rng )
 	float4 n;
 	n.x = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f;
 	n.y = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f;
-	n.z = 0.1f + MWC64X_NextFloat( rng ) * TXMAX;
+	n.z = 0.01f + MWC64X_NextFloat( rng ) * TXMAX;
 
-	float len = fast_length( n.xy );
+	float len = length( n.xy );
 	if( len > 1.0f )
 		n.xy = n.xy / ( len );
 
 	return ( float4 ) ( n.xyz, 0.0f );
 }
 
-float4 refineStereo( mwc64x_state_t* rng, const float4 state, float mul )
+float4 refineStereo( mwc64x_state_t* rng, const float4 state, float zmul, float nmul )
 {
 	float4 n;
 	float z = state.z;
 	n.x = state.x;
 	n.y = state.y;
 
-	z += ( MWC64X_NextFloat( rng ) - 0.5f ) * 1.0f * mul;
+	z += ( MWC64X_NextFloat( rng ) - 0.5f ) * zmul;
 	z = clamp( z, 0.01f, TXMAX );
-	n.x += ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.5f * mul;
-	n.y += ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.5f * mul;
+	n.x += ( MWC64X_NextFloat( rng ) - 0.5f ) * nmul;
+	n.y += ( MWC64X_NextFloat( rng ) - 0.5f ) * nmul;
 
-	float len = fast_length( n.xy );
+	float len = length( n.xy );
 	if( len > 1.0f )
 		n.xy = n.xy / ( len );
 
@@ -218,6 +218,15 @@ float3 Mat4_MulVec3( struct Mat4* mat, const float3 vec )
 					   dot( mat->m[ 1 ].xyz, vec ),
 					   dot( mat->m[ 2 ].xyz, vec ) );
 }
+
+float3 Mat4_TransMulVec3( struct Mat4* mat, const float3 vec )
+{
+	return ( float3 ) ( dot( ( float3 ) ( mat->m[ 0 ].x, mat->m[ 1 ].x, mat->m[ 2 ].x ), vec ),
+						dot( ( float3 ) ( mat->m[ 0 ].y, mat->m[ 1 ].y, mat->m[ 2 ].y ), vec ),
+						dot( ( float3 ) ( mat->m[ 0 ].z, mat->m[ 1 ].z, mat->m[ 2 ].z ), vec ) );
+}
+
+
 
 float2 Mat4_MulVec3Proj2( struct Mat4* mat, const float2 vec )
 {
@@ -271,6 +280,7 @@ void Mat4_Add( struct Mat4* dst, struct Mat4* a, struct Mat4* b )
 	dst->m[ 0 ] = a->m[ 0 ] + b->m[ 0 ];
 	dst->m[ 1 ] = a->m[ 1 ] + b->m[ 1 ];
 	dst->m[ 2 ] = a->m[ 2 ] + b->m[ 2 ];
+	dst->m[ 3 ] = a->m[ 3 ] + b->m[ 3 ];
 }
 
 
@@ -278,20 +288,21 @@ void Mat4_planeSweep( struct Mat4* output, struct Mat4* KDst, struct Mat4* TDst,
 {
 	float3 tsrc = ( float3 )( TSrc->m[ 0 ].w, TSrc->m[ 1 ].w, TSrc->m[ 2 ].w );
 	float3 tdst = ( float3 )( TDst->m[ 0 ].w, TDst->m[ 1 ].w, TDst->m[ 2 ].w );
-	float3 tall = -tdst + tsrc;
-	float3 nd = ( float3 ) ( state.x, state.y, sqrt( 1.0f - state.x * state.x - state.y * state.y ) ) / -state.z;
+	float3 tall;// = tdst - Mat4_TransMulVec3( TSrc, tsrc );
+	float3 nd = ( float3 ) ( state.x, state.y, sqrt( 1.0f - state.x * state.x - state.y * state.y ) ) / state.z;
 //	float3 nd = ( float3 ) ( 0.0f, 0.0f, 1.0f ) / state.z;
 
 	/*
 	   K_t * ( R_t^T * R_s + ( -R_t^T * t_t + R_s^T * t_s ) * normal/depth ) * K_s^-1
 	 */
 	struct Mat4 outer, tmp1, tmp2;
-	Mat4_Outer3( &outer, tall, nd );
 
 	Mat4_MatMulTranspose3( &tmp1, TDst, TSrc );
+	tall = -Mat4_MulVec3( &tmp1, tsrc ) + tdst;
+	Mat4_Outer3( &outer, tall, nd );
 	Mat4_Add( &tmp2, &tmp1, &outer );
-	Mat4_MatMul3( &tmp1, KDst, &tmp2 );
-	Mat4_MatMul3( output, &tmp1, KInvSrc );
+	Mat4_MatMul3( &tmp1, &tmp2, KInvSrc );
+	Mat4_MatMul3( output, KDst, &tmp1 );
 }
 
 kernel void planeSweep( write_only image2d_t output, read_only image2d_t input, global read_only struct Mat4* mat, const int depth )
@@ -309,7 +320,7 @@ kernel void planeSweep( write_only image2d_t output, read_only image2d_t input, 
 
 	KDst     = mat[ 0 ];
     TDst     = mat[ 1 ];
-    KSrc1 = mat[ 2 ];
+    KSrc1	 = mat[ 2 ];
     TSrc1    = mat[ 3 ];
 
 //	H = mat[ 0 ];
@@ -342,11 +353,11 @@ kernel void patchmatchInit( write_only image2d_t matches,
 	if( coord.x >= width || coord.y >= height )
 		return;
 
-	KInvDst     = mat[ 0 ];
+	KInvDst  = mat[ 0 ];
     TDst     = mat[ 1 ];
-    KSrc1 = mat[ 2 ];
+    KSrc1	 = mat[ 2 ];
     TSrc1    = mat[ 3 ];
-    KSrc2 = mat[ 4 ];
+    KSrc2	 = mat[ 4 ];
     TSrc2    = mat[ 5 ];
 
 
@@ -354,6 +365,7 @@ kernel void patchmatchInit( write_only image2d_t matches,
 	MWC64X_Skip( &rng, ( coord.y * width + coord.x ) * 3 );
 
 	float4 ret = initStereo( &rng );
+	ret.w = 0;
 
 	float4 valcenter = read_imagef( img1, samplerlin, coordf );
 	float  wsum = 0;
@@ -377,7 +389,7 @@ kernel void patchmatchInit( write_only image2d_t matches,
 			wsum += w * 2.0f;
 			ret.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
 			ret.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
-
+//			ret.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
 		}
 	}
 	ret.w /= wsum;
@@ -437,13 +449,12 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 	if(	gx >= width || gy >= height )
 		return;
 
-	KInvDst     = mat[ 0 ];
+	KInvDst  = mat[ 0 ];
     TDst     = mat[ 1 ];
-    KSrc1 = mat[ 2 ];
+    KSrc1	 = mat[ 2 ];
     TSrc1    = mat[ 3 ];
-    KSrc2 = mat[ 4 ];
+    KSrc2	 = mat[ 4 ];
     TSrc2    = mat[ 5 ];
-
 
 	MWC64X_SeedStreams( &rng, iter, 0 );
 	MWC64X_Skip( &rng, ( gy * width + gx ) * iter * 3 * 2 );
@@ -465,9 +476,10 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 				continue;
 
 			neighbour = buf[ iy ][ ix ];
-//			if( neighbour.w > self.w )
-//				continue;
-			neighbour = refineStereo( &rng, neighbour, 0.5f );
+			if( neighbour.w > self.w )
+				neighbour = refineStereo( &rng, neighbour, 20.0f, 1.0f );
+//			else
+//				neighbour = refineStereo( &rng, neighbour, 1.0f, 0.1f );
 			neighbour.w = 0;
 			Mat4_planeSweep( &H1, &KSrc1, &TSrc1, &KInvDst, &TDst, neighbour );
 			Mat4_planeSweep( &H2, &KSrc2, &TSrc2, &KInvDst, &TDst, neighbour );
@@ -496,7 +508,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					wsum += w * 2.0f;
 					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
 					neighbour.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
-
+//					neighbour.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
 
 				}
 			}
@@ -509,7 +521,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 	for( int i = 0; i < 2; i++ ) {
 
 		if( self.w < 0.05 )
-			neighbour = refineStereo( &rng, self, 1.0f );
+			neighbour = refineStereo( &rng, self, 1.0f, 0.1f );
 		else
 			neighbour = initStereo( &rng );
 
@@ -538,7 +550,9 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
 					wsum += w * 2.0f;
 					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
-					neighbour.w += w * distL1GTrunc( val1, val3, gval1, gval3 );			}
+					neighbour.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
+//					neighbour.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
+			}
 		}
 		neighbour.w /= wsum;
 		if( neighbour.w <= self.w )
@@ -584,11 +598,14 @@ kernel void patchmatchToFlow( write_only image2d_t output, read_only image2d_t m
 	Kinv = mat[ 0 ];
 
 	float4 state = read_imagef( matches, samplernn, coord );
-	float4 nd = ( float4 ) ( state.x, state.y, sqrt( 1.0f - state.x * state.x - state.y * state.y ), -state.z );
+	float3 nd = ( float3 ) ( state.x, state.y, sqrt( 1.0f - state.x * state.x - state.y * state.y ) );
+//	float3 nd = ( float3 ) ( 0, 0, 1.0f );
 	float4 val;
-	val.xyz = fabs( dot( nd, ( float4 ) ( Mat4_MulVec3( &Kinv, ( float3 ) ( coord.x, coord.y, 1.0f ) ), 1.0f ) ) ) / TXMAX;
+	val.xyz = ( state.z / ( dot( nd, ( float3 ) ( Mat4_MulVec3( &Kinv, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) ) ) ) / TXMAX;
+//	val.xyz = state.w;
 //	val = stateToNormal( state );
 //	val.xyz =  ( state.z ) / TXMAX;
+//	val.xyz = ( float3 ) ( state.xy*0.5f + 0.5f, state.z / TXMAX );
 //	if( val.x < 0 || val.x > 1.0f )
 //		val.xyz = ( float3 )( 1, 0, 0 );
 	val.w = 1.0f;

@@ -68,6 +68,7 @@ namespace cvt
         bool hasDistortion() const { return ( _flags & DISTORTION ); }
 
 		void load( const String& file );
+		void save( const String& file );
 
         // de-/serialization interface
         void	 deserialize( XMLNode* node );
@@ -116,6 +117,13 @@ namespace cvt
 
 		XMLNode* node = xmlDoc.nodeByName( "CameraCalibration" );
 		this->deserialize( node );
+	}
+
+	inline void CameraCalibration::save( const String& filename )
+	{
+		XMLDocument xmlDoc;
+		xmlDoc.addNode( this->serialize() );
+		xmlDoc.save( filename );
 	}
 
     inline XMLNode* CameraCalibration::serialize() const
