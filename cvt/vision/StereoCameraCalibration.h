@@ -40,11 +40,12 @@ namespace cvt {
             float                    baseLine()    const;
             float                    focalLength() const { return _first.intrinsics()[ 0 ][ 0 ]; }
 
-			void load( const String& file );
+			void                     load( const String& file );
+			void                     save( const String& file ) const;
 
 			// de-/serialization interface
-			void	 deserialize( XMLNode* node );
-			XMLNode* serialize() const;
+			void					deserialize( XMLNode* node );
+			XMLNode*				serialize() const;
 
 		private:
 			struct UndistortRectifyWarp {
@@ -264,6 +265,13 @@ namespace cvt {
 
 		XMLNode* node = xmlDoc.nodeByName( "StereoCameraCalibration" );
 		this->deserialize( node );
+	}
+
+	inline void StereoCameraCalibration::save( const String& filename ) const
+	{
+		XMLDocument xmlDoc;
+		xmlDoc.addNode( this->serialize() );
+		xmlDoc.save( filename );
 	}
 
    inline XMLNode* StereoCameraCalibration::serialize() const
