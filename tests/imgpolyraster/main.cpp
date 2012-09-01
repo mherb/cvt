@@ -14,7 +14,7 @@ int main()
 
 	Polygonf poly;
 	poly.addPoint( Vector2f( 20, 20 ) );
-	poly.addPoint( Vector2f( 120, 120 ) );
+	poly.addPoint( Vector2f( 150, 120 ) );
 	poly.addPoint( Vector2f( 20, 120 ) );
 
 	IPolygonRaster raster( poly, Rectf( 0, 0, output.width(), output.height() ) );
