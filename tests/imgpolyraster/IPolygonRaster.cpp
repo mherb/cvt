@@ -281,7 +281,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 			mask = 1;
 
 			node = ++it;
-			PolyEdge& edge = *it;
+			PolyEdge edge = *it;
 
 			fcx = edge.cx;
 			cx = fcx.floor();

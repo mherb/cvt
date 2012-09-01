@@ -48,6 +48,14 @@ namespace cvt
 						slope = dy;
 				}
 
+				PolyEdge( const PolyEdge& edge ) :
+					pt1( edge.pt1 ),
+					pt2( edge.pt2 ),
+					slope( edge.slope ),
+					dir( edge.dir )
+				{
+				}
+
 				bool operator<( const PolyEdge& edge ) const
 				{
 					return pt1.y.native() < edge.pt1.y.native();
