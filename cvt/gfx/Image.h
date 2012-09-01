@@ -106,7 +106,7 @@ namespace cvt {
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
 
-			Image& operator*( float alpha );
+		/*	Image& operator*( float alpha );
 			Image& operator+( float alpha );
 			Image& operator-( float alpha );
 
@@ -115,7 +115,7 @@ namespace cvt {
 			Image& operator-( const Color& c );
 
 			Image& operator+( const Image& i );
-			Image& operator-( const Image& i );
+			Image& operator-( const Image& i );*/
 
 /*			Color operator() (int x, int y) const;
 			Color operator() (float x, float y) const;*/
@@ -207,7 +207,7 @@ namespace cvt {
 		return *this;
 	}
 
-	inline Image& Image::operator*( float alpha )
+/*	inline Image& Image::operator*( float alpha )
 	{
 		mul( alpha );
 		return *this;
@@ -253,7 +253,7 @@ namespace cvt {
 	{
 		sub( i );
 		return *this;
-	}
+	}*/
 
 	inline size_t Image::channels() const
 	{

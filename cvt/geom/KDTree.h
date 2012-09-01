@@ -237,7 +237,7 @@ namespace cvt
     inline void KDTree<_T>::print()
     {
         for( size_t idx = 0; idx < _dim; ++idx ) {
-            printf( "dim %d : ", idx );
+            printf( "dim %lu : ", idx );
             for( ssize_t i = 0; i < _pts.size(); i++ ){
                 std::cout << PT( i ) << " ";
             }

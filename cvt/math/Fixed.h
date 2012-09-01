@@ -50,6 +50,7 @@ namespace cvt
 			Fixed operator+( uint8_t other ) const;
 			Fixed operator/( Fixed other ) const;
 			Fixed operator<<( uint8_t other ) const;
+			Fixed operator>>( uint8_t other ) const;
 			int32_t native() const;
 
 			Fixed operator+=( Fixed other );
@@ -206,6 +207,13 @@ namespace cvt
 	{
 		Fixed ret( *this );
 		ret._val <<= other;
+		return ret;
+	}
+
+	inline Fixed Fixed::operator>>( uint8_t other ) const
+	{
+		Fixed ret( *this );
+		ret._val >>= other;
 		return ret;
 	}
 

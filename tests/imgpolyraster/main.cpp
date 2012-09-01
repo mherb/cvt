@@ -2,12 +2,24 @@
 #include <cvt/geom/Polygon.h>
 #include <cvt/geom/Rect.h>
 
+#include "IPolygonRaster.h"
+
 using namespace cvt;
 
 
 int main()
 {
-	Image output( 800, 600, IFormat::GRAY_UINT8 );
+	Image output( 800, 600, IFormat::RGBA_UINT8 );
+	output.fill( Color::BLACK );
+
+	Polygonf poly;
+	poly.addPoint( Vector2f( 20, 20 ) );
+	poly.addPoint( Vector2f( 120, 120 ) );
+	poly.addPoint( Vector2f( 20, 120 ) );
+
+	IPolygonRaster raster( poly, Rectf( 0, 0, output.width(), output.height() ) );
+	raster.rasterize( output, Color::WHITE );
+	output.save( "bla.png" );
 
 	return 0;
 }
