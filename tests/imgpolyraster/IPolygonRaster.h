@@ -26,10 +26,10 @@ namespace cvt
 				PolyEdge( const Vector2f& p1, const Vector2f& p2 )
 				{
 					if( p1.y > p2.y ) {
-						pt1.x = p1.x;
-						pt1.y = p1.y;
-						pt2.x = p2.x;
-						pt2.y = p2.y;
+						pt2.x = p1.x;
+						pt2.y = p1.y;
+						pt1.x = p2.x;
+						pt1.y = p2.y;
 						dir = 1;
 					} else {
 						pt1.x = p1.x;

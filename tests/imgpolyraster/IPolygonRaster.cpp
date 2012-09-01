@@ -240,7 +240,7 @@ void IPolygonRaster::rasterize( Image& dst, const Color& color )
 void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 {
 	int i,cy,cx;
-	List<PolyEdge>::Iterator it, node, etit;
+	List<PolyEdge>::Iterator it, etit;
 	uint32_t mask;
 	uint32_t *mptr,*mend;
 	uint32_t *dst;
@@ -263,11 +263,20 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 	xoffset = Math::floor( _bounds.x );
 /*	dst = &((uint32_t*)img->pixel)[(img->stride>>2)*(gfximg->gfx.cbounds.y+zfixed_floor(poly->bounds.y)-gfximg->gfx.bounds.y)+(gfximg->gfx.cbounds.x+zfixed_floor(poly->bounds.x)-gfximg->gfx.bounds.x)];*/
 
+	for( List<PolyEdge>::Iterator it = _edges.begin(); it != _edges.end(); it++ )
+	{
+		std::cout << it->pt1.x << " " << it->pt1.y << " " << it->pt2.x << " " << it->pt2.y << std::endl;
+	}
+
 	List<PolyEdge> aet;
 	etit = _edges.begin();
 	cy = etit->pt1.y.floor();
 
 	while( etit != _edges.end() || !aet.isEmpty() ) {
+
+		std::cout << "EDGES: " << _edges.size() << std::endl;
+		std::cout << "AET: " << aet.size() << std::endl;
+		std::cout << cy << std::endl;
 
 		minx = maskwidth;
 		maxx = 0;
@@ -280,8 +289,8 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 
 			mask = 1;
 
-			node = ++it;
 			PolyEdge edge = *it;
+			std::cout << "Active-Edge: " << edge.pt1.x << " " << edge.pt1.y << "   " << edge.pt2.x << " " << edge.pt2.y << " " << std::endl;
 
 			fcx = edge.cx;
 			cx = fcx.floor();
@@ -305,7 +314,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 					if( cx > maxx ) maxx = cx;
 					if( cx < minx ) minx = cx;
 				}
-				aet.remove( it );
+				it = aet.remove( it );
 			} else {
 				if( cx > maxx ) maxx = cx;
 				if( cx < minx ) minx = cx;
@@ -346,8 +355,8 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 				if( cx < minx ) minx = cx;
 
 				edge.cx += edge.slope;
+				it++;
 			}
-			it=node;
 		}
 
 		/*process edges beginning in the current scanline*/
@@ -355,8 +364,8 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 			Fixed fcx;
 			int suby,sube;
 
-			PolyEdge& edge = *etit;
-			if( edge.pt1.y != edge.pt2.y){
+			PolyEdge edge = *etit;
+			if( edge.pt1.y != edge.pt2.y ) {
 				edge.cx = edge.pt1.x - ( Math::floor( _bounds.x ) );
 				edge.subslope = edge.slope >> 3;
 
@@ -404,10 +413,11 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 						if( cx < minx ) minx = cx;
 					}
 					edge.cx = fcx;
+					std::cout << "Appended edge: " << edge.pt1.x << " " << edge.pt1.y << " " << edge.pt2.x << " " << edge.pt2.y << std::endl;
 					aet.append( edge );
 				}
 			}
-			etit = ++etit;
+			etit++;
 		}
 
 		/*process current mask from minx to maxx+1*/
@@ -425,7 +435,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 				do {
 					mask = *mptr++;
 				} while (mask == 0); 
-				*(mptr-1) = 0;
+				*( mptr - 1 ) = 0;
 				dst += mptr - smp;
 			} else if (mask == FULL_COVER8) {
 				do {
