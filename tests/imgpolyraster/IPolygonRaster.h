@@ -10,10 +10,16 @@ namespace cvt
 	{
 		public:
 			IPolygonRaster( const Polygonf& poly, const Rectf& cliprect );
-			void rasterize( Image& dst );
+			void rasterize( Image& dst, const Color& c );
 
 		private:
-			void polygonToEdges( const Polygonf& poly );
+			void addEdge( const Vector2f& pt1, const Vector2f& pt2 );
+			void addEdgeClip( const Vector2f& pt1, const Vector2f& pt2 );
+			void addEdgeClipTop( Vector2f& pt1, Vector2f& pt2 );
+			void addEdgeClipBottom( Vector2f& pt1, Vector2f& pt2 );
+			void addEdgeClipLeft( Vector2f& pt1, Vector2f& pt2 );
+			void addEdgeClipRight( Vector2f& pt1, Vector2f& pt2 );
+			void rasterizeEvenOdd( Image& dst, const Color& color );
 
 			struct PolyEdge {
 
@@ -60,6 +66,10 @@ namespace cvt
 			};
 
 			Rectf			_cliprect;
+			float			_left, _right, _top, _bot;
+			bool			_hasCTop, _hasCBot, _hasCLeft, _hasCRight;
+			Vector2f		_cleft, _cright, _ctop, _cbot;
+			Rectf			_bounds;
 			List<PolyEdge>  _edges;
 
 			static const Fixed _offsets8[ 8 ];
@@ -68,6 +78,16 @@ namespace cvt
 
 	inline IPolygonRaster::IPolygonRaster( const Polygonf& poly, const Rectf& cliprect ) : _cliprect( cliprect )
 	{
-		polygonToEdges( poly );
+		_left = _cliprect.x;
+		_right = _cliprect.x + _cliprect.width;
+		_top = _cliprect.y;
+		_bot = _cliprect.y + _cliprect.height;
+
+		size_t n = poly.size() - 1;
+		for( size_t i = 0; i < n; i++ )
+			addEdgeClip( poly[ i ], poly[ i + 1 ] );
+		addEdgeClip( poly[ n ], poly[ 0 ] );
+
+		_edges.sort();
 	}
 }

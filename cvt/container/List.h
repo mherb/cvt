@@ -90,7 +90,8 @@ namespace cvt {
 					Iterator& operator--() { _it = _it->_prev; return *this; }
 					Iterator operator--( int ) { Iterator ret( *this ); _it = _it->_prev; return ret; }
 
-					T& operator*() { return ( ( Node* ) _it )->_data; }
+					T& operator*() const { return ( ( Node* ) _it )->_data; }
+					T* operator->() const { return  &( ( Node* ) _it )->_data; }
 
 				private:
 					Iterator( NodeBase* it ) : _it( it ) {}
@@ -112,7 +113,8 @@ namespace cvt {
 					ReverseIterator& operator--() { _it = _it->_next; return *this; }
 					ReverseIterator operator--( int ) { ReverseIterator ret( *this ); _it = _it->_next; return ret; }
 
-					T& operator*() { return ( ( Node* ) _it )->_data; }
+					T& operator*() const { return ( ( Node* ) _it )->_data; }
+					T* operator->() const { return  &( ( Node* ) _it )->_data; }
 
 				private:
 					ReverseIterator( NodeBase* it ) : _it( it ) {}
