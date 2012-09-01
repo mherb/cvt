@@ -254,6 +254,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 
 	ScopedBuffer<uint32_t,true> smaskbuf( Math::ceil( _bounds.width ) + 2 );
 	uint32_t* maskbuf = smaskbuf.ptr();
+	SIMD::instance()->SetValueU32( maskbuf, 0, Math::ceil( _bounds.width ) + 2 );
 
 	maskwidth = Math::ceil( _bounds.width ) + 1;
 	mend = &maskbuf[ maskwidth ];
