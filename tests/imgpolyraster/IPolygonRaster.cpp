@@ -262,15 +262,26 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 	map.setLine( Math::floor( _bounds.y ) );
 	xoffset = Math::floor( _bounds.x );
 
+
 	List<PolyEdge> aet;
 	etit = _edges.begin();
 	cy = etit->pt1.y.floor();
 
 	while( etit != _edges.end() || !aet.isEmpty() ) {
 
+		std::cout << "EDGES: " << _edges.size() << std::endl;
+		std::cout << "AET: " << aet.size() << std::endl;
+		std::cout << cy << std::endl;
+
 		minx = maskwidth;
 		maxx = 0;
 
+		for( List<PolyEdge>::Iterator it = aet.begin(); it != aet.end(); it++ )
+		{
+			it.addr();
+		}
+
+		std::cout << aet.size() << std::endl;
 		it = aet.begin();
 
 		/*process active edges*/
@@ -280,6 +291,8 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 			mask = 1;
 
 			PolyEdge& edge = *it;
+			std::cout << &edge << std::endl;
+			std::cout << "Active-Edge: " << edge.pt1.x << " " << edge.pt1.y << "   " << edge.pt2.x << " " << edge.pt2.y << " " << std::endl;
 
 			fcx = edge.cx;
 			cx = fcx.floor();
@@ -349,9 +362,11 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 		}
 
 		/*process edges beginning in the current scanline*/
-		while( etit != _edges.end() && etit->pt1.y.floor() == cy ) {
+		while( etit != _edges.end()  ) {
 			Fixed fcx;
 			int suby,sube;
+			if( etit->pt1.y.floor() == cy )
+				break;
 
 			PolyEdge& edge = *etit;
 			if( edge.pt1.y != edge.pt2.y ) {
@@ -402,11 +417,13 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 						if( cx < minx ) minx = cx;
 					}
 					edge.cx = fcx;
+					std::cout << "Appended edge: " << edge.pt1.x << " " << edge.pt1.y << " " << edge.pt2.x << " " << edge.pt2.y << std::endl;
 					aet.append( edge );
 				}
 			}
 			etit++;
 		}
+
 
 		/*process current mask from minx to maxx+1*/
 		mask = maskbuf[ minx ];

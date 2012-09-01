@@ -20,6 +20,7 @@ namespace cvt {
 
 	template<typename T>
 	class List {
+
 		private:
 			struct NodeBase {
 				NodeBase( NodeBase* next = NULL , NodeBase* prev = NULL ) : _next( next ), _prev( prev ) {}
@@ -92,6 +93,8 @@ namespace cvt {
 
 					T& operator*() const { return ( ( Node* ) _it )->_data; }
 					T* operator->() const { return  &( ( Node* ) _it )->_data; }
+
+					void addr() const {  std::cout << ( void* ) _it << " " << ( void*  ) _it->_next << " " << ( void* ) _it->_prev << std::endl; }
 
 				private:
 					Iterator( NodeBase* it ) : _it( it ) {}
