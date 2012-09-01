@@ -450,8 +450,6 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 					*mptr++ = 0;
 				} while (! ( mask == 0 || mask == FULL_COVER8 ) && mptr <= mend );
 			}
-			imgdst.save("tmp.png");
-			getchar();
 		}
 		cy++;
 		map++;
