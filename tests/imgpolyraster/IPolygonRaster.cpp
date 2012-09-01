@@ -290,7 +290,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 
 			mask = 1;
 
-			PolyEdge& edge = *it;
+			PolyEdge edge = *it;
 			std::cout << &edge << std::endl;
 			std::cout << "Active-Edge: " << edge.pt1.x << " " << edge.pt1.y << "   " << edge.pt2.x << " " << edge.pt2.y << " " << std::endl;
 
@@ -368,10 +368,9 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 			if( etit->pt1.y.floor() == cy )
 				break;
 
-			PolyEdge& edge = *etit;
+			PolyEdge edge = *etit;
 			if( edge.pt1.y != edge.pt2.y ) {
 				edge.cx = edge.pt1.x - ( Math::floor( _bounds.x ) );
-				edge.subslope = edge.slope >> 3;
 
 				fcx = edge.cx;
 				cx = fcx.floor();
@@ -433,7 +432,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 		mend = &maskbuf[ maxx + 1 ];
 		*mend = FULL_COVER8;
 
-		while (mptr <= mend)
+		while( mptr <= mend )
 		{
 			if (mask == 0) {
 				uint32_t* smp = mptr;
