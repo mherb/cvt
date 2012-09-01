@@ -46,13 +46,15 @@ namespace cvt
 						slope = dx / dy;
 					else
 						slope = dy;
+					subslope = slope >> 3;
 				}
 
 				PolyEdge( const PolyEdge& edge ) :
 					pt1( edge.pt1 ),
 					pt2( edge.pt2 ),
+					dir( edge.dir ),
 					slope( edge.slope ),
-					dir( edge.dir )
+					subslope( edge.subslope )
 				{
 				}
 
@@ -67,10 +69,10 @@ namespace cvt
 				struct {
 					Fixed x, y;
 				} pt2;
+				int8_t dir;
 				Fixed  slope;
 				Fixed  subslope;
 				Fixed  cx;
-				int8_t dir;
 			};
 
 			Rectf			_cliprect;
