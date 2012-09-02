@@ -15,13 +15,13 @@ int main()
 	Polygonf poly;
 #if 0
 	poly.addPoint( Vector2f( 20, 20 ) );
-	poly.addPoint( Vector2f( 150, 120 ) );
-	poly.addPoint( Vector2f( 20, 120 ) );
+	poly.addPoint( Vector2f( 150, 110 ) );
+	poly.addPoint( Vector2f( 10, 120 ) );
 #else
 	poly.addPoint( Vector2f( 120, 20 ) );
 	poly.addPoint( Vector2f( 160, 80 ) );
-	poly.addPoint( Vector2f( 100, 40 ) );
-	poly.addPoint( Vector2f( 140, 40 ) );
+	poly.addPoint( Vector2f( 60, 40 ) );
+	poly.addPoint( Vector2f( 180, 40 ) );
 	poly.addPoint( Vector2f( 80, 80 ) );
 //	poly.addPoint( Vector2f( 120, 20 ) );
 #endif

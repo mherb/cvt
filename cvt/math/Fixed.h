@@ -52,6 +52,7 @@ namespace cvt
 			Fixed operator<<( uint8_t other ) const;
 			Fixed operator>>( uint8_t other ) const;
 			int32_t native() const;
+			int32_t& native();
 
 			Fixed operator+=( Fixed other );
 			Fixed operator-=( Fixed other );
@@ -222,6 +223,10 @@ namespace cvt
 		return _val;
 	}
 
+	inline int32_t& Fixed::native()
+	{
+		return _val;
+	}
 
 	inline Fixed Fixed::operator+=( Fixed other )
 	{
