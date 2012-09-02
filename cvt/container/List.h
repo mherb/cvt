@@ -94,8 +94,6 @@ namespace cvt {
 					T& operator*() const { return ( ( Node* ) _it )->_data; }
 					T* operator->() const { return  &( ( Node* ) _it )->_data; }
 
-					void addr() const {  std::cout << ( void* ) _it << " " << ( void*  ) _it->_next << " " << ( void* ) _it->_prev << std::endl; }
-
 				private:
 					Iterator( NodeBase* it ) : _it( it ) {}
 					NodeBase* _it;

@@ -13,15 +13,18 @@ int main()
 	output.fill( Color::BLACK );
 
 	Polygonf poly;
-/*	poly.addPoint( Vector2f( 20, 20 ) );
+#if 0
+	poly.addPoint( Vector2f( 20, 20 ) );
 	poly.addPoint( Vector2f( 150, 120 ) );
-	poly.addPoint( Vector2f( 20, 120 ) );*/
+	poly.addPoint( Vector2f( 20, 120 ) );
+#else
 	poly.addPoint( Vector2f( 120, 20 ) );
-	poly.addPoint( Vector2f( 140, 80 ) );
-	poly.addPoint( Vector2f( 80, 40 ) );
-	poly.addPoint( Vector2f( 160, 40 ) );
-	poly.addPoint( Vector2f( 100, 80 ) );
-	poly.addPoint( Vector2f( 120, 20 ) );
+	poly.addPoint( Vector2f( 160, 80 ) );
+	poly.addPoint( Vector2f( 100, 40 ) );
+	poly.addPoint( Vector2f( 140, 40 ) );
+	poly.addPoint( Vector2f( 80, 80 ) );
+//	poly.addPoint( Vector2f( 120, 20 ) );
+#endif
 
 	IPolygonRaster raster( poly, Rectf( 0, 0, output.width(), output.height() ) );
 	raster.rasterize( output, Color::WHITE );
