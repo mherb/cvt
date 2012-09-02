@@ -54,7 +54,8 @@ namespace cvt
 					pt2( edge.pt2 ),
 					dir( edge.dir ),
 					slope( edge.slope ),
-					subslope( edge.subslope )
+					subslope( edge.subslope ),
+					cx( edge.cx )
 				{
 				}
 
