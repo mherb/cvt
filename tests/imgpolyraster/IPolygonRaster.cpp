@@ -514,7 +514,7 @@ void IPolygonRaster::rasterizeWinding( Image& imgdst, const Color& color )
 	List<PolyEdge>::Iterator it, etit;
 	WindingMask8 mask[ 1 ];
 	WindingMask8 *mptr, *mend, *temp;
-	uint32_t *dst, *tmpdst;
+	uint32_t *dst;
 	int32_t maskwidth;
 	int minx, maxx, xoffset;
 	IMapScoped<uint32_t> map( imgdst );
