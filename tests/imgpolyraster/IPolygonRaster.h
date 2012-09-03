@@ -20,6 +20,7 @@ namespace cvt
 			void addEdgeClipLeft( Vector2f& pt1, Vector2f& pt2 );
 			void addEdgeClipRight( Vector2f& pt1, Vector2f& pt2 );
 			void rasterizeEvenOdd( Image& dst, const Color& color );
+			void rasterizeWinding( Image& dst, const Color& color );
 
 			struct PolyEdge {
 
