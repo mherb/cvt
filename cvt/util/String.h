@@ -365,7 +365,7 @@ namespace cvt {
 	inline bool String::isAlpha() const
 	{
 		const char* s = _str;
-		while ( ( *s | 0x20 )- 'a' < 0x1AU ) s++;
+		while ( ( unsigned char ) ( ( *s | 0x20 )- 'a' ) < 0x1AU ) s++;
 		return !*s;
 	}
 
