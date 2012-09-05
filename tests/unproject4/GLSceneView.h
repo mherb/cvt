@@ -39,6 +39,7 @@ namespace cvt {
 	inline GLSceneView::GLSceneView( const ScenePoints& pts ) : _scale( 1.0f ), _points( pts ), _box( pts.boundingBox(), Color::GREEN )
 	{
 		_transformation.setIdentity();
+		_points.setPointSize( 2.0f );
 	}
 
 	inline GLSceneView::~GLSceneView()

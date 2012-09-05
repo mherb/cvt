@@ -3777,6 +3777,46 @@ void SIMDSSE2::adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const
 	}
 }
 
+void SIMDSSE2::adaptiveThreshold1_f_to_f( float* dst, const float* src, const float* srcmean, size_t n, float t ) const
+{
+	__m128 rsrc, rmean, res;
+	const __m128 rt = _mm_set1_ps( t );
+	const __m128 ones = _mm_set1_ps( 1.0f );
+	size_t i = n >> 2;
+
+	if( ( ( size_t ) dst | ( size_t ) src | ( size_t ) srcmean ) & 0xf ) {
+		while( i-- ) {
+			rsrc = _mm_loadu_ps( src );
+			rmean = _mm_loadu_ps( srcmean );
+
+			res = _mm_cmpge_ps( _mm_sub_ps( rsrc, rmean ), rt );
+			_mm_storeu_ps( dst, _mm_and_ps( res, ones ) );
+
+			src += 4;
+			srcmean += 4;
+			dst += 4;
+		}
+	} else {
+		while( i-- ) {
+			rsrc = _mm_load_ps( src );
+			rmean = _mm_load_ps( srcmean );
+
+			res = _mm_cmpge_ps( _mm_sub_ps( rsrc, rmean ), rt );
+			_mm_stream_ps( dst, _mm_and_ps( res, ones ) );
+
+			src += 4;
+			srcmean += 4;
+			dst += 4;
+		}
+	}
+
+	i = n & 0x3;
+	while ( i-- )
+	{
+		*dst++ = ( *src++ - *srcmean++ ) > t ? 0xff : 0x0;
+	}
+}
+
 void SIMDSSE2::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
 {
 	__m128 result = _mm_setzero_ps();
