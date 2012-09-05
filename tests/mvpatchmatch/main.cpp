@@ -98,7 +98,7 @@ int main( int argc, char** argv )
 		clgradxy.run( CLNDRange( Math::pad( clinput3.width(), 16 ), Math::pad( clinput3.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		Time timer;
-		int patchsize = 15;
+		int patchsize = 11;
 
 		clpminit.setArg( 0, clmatches1 );
 		clpminit.setArg( 1, clinput1 );
@@ -144,8 +144,8 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 8, mats );
 			clpmpropagate.setArg( 9, iter );
 			clpmpropagate.setArg( 10, patchsize );
-//			clpmpropagate.setArg( 8, CLLocalSpace( ( 16 + 2 * patchsize ) * ( 16 + 2 * patchsize ) * sizeof( float ) * 4 ) );
-//			clpmpropagate.setArg( 9, CLLocalSpace( ( 16 + 2 * patchsize ) * ( 16 + 2 * patchsize ) * sizeof( float ) * 2 ) );
+			clpmpropagate.setArg( 11, CLLocalSpace( ( 16 + 2 * patchsize ) * ( 16 + 2 * patchsize ) * sizeof( float ) * 4 ) );
+			clpmpropagate.setArg( 12, CLLocalSpace( ( 16 + 2 * patchsize ) * ( 16 + 2 * patchsize ) * sizeof( float ) * 2 ) );
 			clpmpropagate.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		}

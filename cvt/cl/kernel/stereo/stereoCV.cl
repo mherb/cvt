@@ -54,7 +54,7 @@ __kernel void stereoCV( global float* cv, const int depth, __read_only image2d_t
 
 	/* store the result of the cost function */
 	for( int d = 0; d < depth; d++ )
-		cvptr[ d * stride ] = costGRAY_L1( pixel, buf[ lx + d ] );
+		cvptr[ d * stride ] = costRGB_L1( pixel, buf[ lx + d ] );
 }
 
 __kernel void stereoCV_GRAY_AD( global float* cv, const int depth, __read_only image2d_t src1, __read_only image2d_t src2, __local float* buf  )
@@ -102,7 +102,7 @@ __kernel void stereoCV_GRAY_SAD( global float* cv, const int depth, __read_only 
 	const int gy = get_global_id( 1 );
 	const int base = mul24( gid, lw );
 	const int width = get_image_width( src1 );
-	const int height = get_image_height( src2 );
+	const int height = get_image_height( src1 );
 	const int buflen = depth + lw;
 	const int stride = mul24( width, height );
 	float pixel[ ( 2 * R + 1 ) * ( 2 * R + 1 ) ];
@@ -112,7 +112,7 @@ __kernel void stereoCV_GRAY_SAD( global float* cv, const int depth, __read_only 
 	for( int d = lx; d < buflen; d += lw )
 		for( int dy =-R; dy <= R; dy++ )
 			for( int dx =-R; dx <= R; dx++ )
-				buf[ d * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * R + dx + R ] = read_imagef( src2, sampler, ( int2 )( base + d + dx, gy + dy ) ).x;
+				buf[ d * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * ( 2 * R + 1 ) + dx + R ] = read_imagef( src2, sampler, ( int2 )( base + d + dx, gy + dy ) ).x;
 
 	barrier( CLK_LOCAL_MEM_FENCE );
 
@@ -130,11 +130,36 @@ __kernel void stereoCV_GRAY_SAD( global float* cv, const int depth, __read_only 
 		float val = 0;
 		for( int dy =-R; dy <= R; dy++ ) {
 			for( int dx =-R; dx <= R; dx++ ) {
-				val += fabs( pixel[ ( dy + R ) * R + dx + R ] - buf[ ( lx + d ) * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * R + dx + R] );
+				val += fabs( pixel[ ( dy + R ) * ( 2 * R + 1 ) + dx + R ] - buf[ ( lx + d ) * ( ( 2 * R + 1 ) * ( 2 * R + 1 ) ) + ( dy + R ) * ( 2 * R + 1 ) + dx + R] );
 			}
 		}
 		cvptr[ d * stride ] = val / ( float ) ( ( 2 * R + 1 ) * ( 2 * R + 1 ) );
 	}
+}
+
+
+__kernel void stereoCV_GRAY_SAD2( global float* cv, const int depth, __read_only image2d_t src1, __read_only image2d_t src2 )
+{
+	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int gz = get_global_id( 2 );
+	const int width = get_image_width( src1 );
+	const int height = get_image_height( src1 );
+	const int stride = mul24( width, height );
+	global float* cvptr = cv + gy * width + gx;
+
+	if( gx >= width || gy >= height || gz >= depth )
+		return;
+
+#define RADIUS 1
+	float val = 0;
+	for( int dy =-RADIUS; dy <= RADIUS; dy++ ) {
+		for( int dx =-RADIUS; dx <= RADIUS; dx++ ) {
+			val += costRGB_L1( read_imagef( src1, sampler, ( int2 ) ( gx + dx, gy + dy ) ), read_imagef( src2, sampler, ( int2 ) ( gx - gz + dx, gy - gz + dy ) ) );
+		}
+	}
+	cvptr[ gz * stride ] = val / ( float ) ( ( 2 * RADIUS + 1 ) * ( 2 * RADIUS + 1 ) );
 }
 
 __kernel void stereoCV_WTA( __write_only image2d_t dmap, global const float* cv, const int depth )

@@ -214,8 +214,11 @@ SET(${MODULE_NAME}_HEADERS
    gfx/ifilter/BoxFilter.h
    gfx/ifilter/GuidedFilter.h
    gfx/ifilter/StereoGCVFilter.h
+   gfx/ifilter/Threshold.h
    gfx/ifilter/TVL1Flow.h
    gfx/ifilter/TVL1Stereo.h
+   gfx/ifilter/MorphErode.h
+   gfx/ifilter/MorphDilate.h
 #	gfx/ifilter/Sobel.h
    gfx/IFilter.h
    gfx/IScaleFilter.h
@@ -503,8 +506,11 @@ SET(${MODULE_NAME}_SOURCES
    gfx/ifilter/BoxFilter.cpp
    gfx/ifilter/GuidedFilter.cpp
    gfx/ifilter/StereoGCVFilter.cpp
+   gfx/ifilter/Threshold.cpp
    gfx/ifilter/TVL1Flow.cpp
    gfx/ifilter/TVL1Stereo.cpp
+   gfx/ifilter/MorphErode.cpp
+   gfx/ifilter/MorphDilate.cpp
 #	gfx/ifilter/Sobel.cpp
    gfx/ImageAllocatorCL.cpp
    gfx/ImageAllocatorGL.cpp
