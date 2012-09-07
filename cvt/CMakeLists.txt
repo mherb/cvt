@@ -426,6 +426,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
+   vision/TSDFVolume.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h   
    vision/rgbdvo/IntensityKeyframe.h
@@ -632,6 +633,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/stereo/StereoSLAM.cpp
    vision/slam/stereo/ORBStereoInit.cpp
    vision/slam/stereo/PatchStereoInit.cpp
+   vision/TSDFVolume.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp
    io/xml/XMLDecoderUTF8.cpp

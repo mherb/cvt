@@ -12,7 +12,7 @@ __kernel void TSDFVolume_clear( global float2* cv, int width, int height, int de
 }
 
 __kernel void TSDFVolume_add( global float2* cv, int width, int height, int depth, read_only image2d_t dmap, float dscale,
-							  constant float4 K[ 3 ], constant float4 TG2CAM[ 3 ], float truncaction )
+							 constant float4 TG2CAM[ 3 ], float truncaction )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int gx = get_global_id( 0 );
@@ -21,7 +21,7 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	const int iwidth = get_image_width( dmap );
 	const int iheight = get_image_height( dmap );
 	global float2* cvptr = cv + gz * width * height + gy * width + gx;
-	float4 gridpos = { gx, gy, gz, 1 }; // FIXME: 0.5 offset ?
+	float4 gridpos = { gx + 0.5f, gy + 0.5f, gz + 0.5f, 1.0f }; // FIXME: 0.5 offset ?
 	float4 gpos;
 	float2 ipos;
 	float z, d, sdf, tsdf, w;
@@ -33,8 +33,8 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	gpos = ( float4 ) ( dot( TG2CAM[ 0 ], gridpos ), dot( TG2CAM[ 1 ], gridpos ), dot( TG2CAM[ 2 ], gridpos ), 0.0f );
 
 	/* project into camera */
-	z = dot( K[ 2 ], gpos );
-	ipos = ( float2 ) ( dot( K[ 0 ], gpos ), dot( K[ 1 ], gpos ) ) / z;
+	z = gpos.z;
+	ipos = gpos.xy / z;
 
 	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
 		d = read_imagef( dmap, sampler, ipos ).x * dscale;

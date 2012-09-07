@@ -124,11 +124,11 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 5.0f
+#define TXMAX 8.0f
 #define TYMAX 0.0f
 #define TAU 15.0f
-#define TAU2 0.0f
-#define PROPSIZE 5
+#define TAU2 1.0f
+#define PROPSIZE 3
 #define ALPHA 0.05f
 
 float distEuclidean( const float4 a, const float4 b )
@@ -388,8 +388,8 @@ kernel void patchmatchInit( write_only image2d_t matches,
 			float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
 			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-			float w2 = weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
-			float w3 = weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
 			wsum += w * w2 + w * w3;
 			ret.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
 			ret.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );
@@ -481,7 +481,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 
 			neighbour = buf[ iy ][ ix ];
 			if( neighbour.w > self.w )
-				neighbour = refineStereo( &rng, neighbour, 2.0f, 1.0f );
+				neighbour = refineStereo( &rng, neighbour, 3.0f, 1.0f );
 //			else
 //				neighbour = refineStereo( &rng, neighbour, 0.5f, 0.05f );
 			neighbour.w = 0;
@@ -510,8 +510,8 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
 			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-			float w2 = weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
-			float w3 = weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
 			wsum += w * w2 + w * w3;
 			neighbour.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
 			neighbour.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );
@@ -528,7 +528,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 	for( int i = 0; i < 3; i++ ) {
 
 		if( self.w < 0.05 )
-			neighbour = refineStereo( &rng, self, 2.0f, 0.5f );
+			neighbour = refineStereo( &rng, self, 0.05f, 0.05f );
 		else
 			neighbour = initStereo( &rng );
 
@@ -555,9 +555,9 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float4 val3 = read_imagef( img3, samplerlin, pt );
 					float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
-							float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-			float w2 = weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
-			float w3 = weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
 			wsum += w * w2 + w * w3;
 			neighbour.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
 			neighbour.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );

@@ -10,18 +10,18 @@ void inverse3x3( float4* mat )
 	tmp.w = 0.0f;
 
 	det = dot( mat[ 0 ], tmp );
-/*	if( fabs( det ) < 1e-8f ) {
-		mat[ 0 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
-		mat[ 1 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
-		mat[ 2 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
-	} else {*/
-		D = ( float4 ) ( 1.0f / det );
+	if( fabs( det ) < 1e-10f ) {
+		mat[ 0 ] = ( float4 ) ( 0.1f, 0.0f, 0.0f, 0.0f );
+		mat[ 1 ] = ( float4 ) ( 0.0f, 0.1f, 0.0f, 0.0f );
+		mat[ 2 ] = ( float4 ) ( 0.0f, 0.0f, 0.1f, 0.0f );
+	} else {
+		D = ( float4 ) ( 1.0f / ( det ) );
 		tmp = mat[ 0 ];
 		mat[ 0 ] = cross( mat[ 1 ], mat[ 2 ] ) * D;
 		tmp2 = mat[ 1 ];
 		mat[ 1 ] = cross( mat[ 2 ], tmp ) * D;
 		mat[ 2 ] = cross( tmp, tmp2 ) * D;
-//	}
+	}
 }
 
 float4 LUSolve( float4* mat, float4 b )
@@ -89,12 +89,12 @@ __kernel void guidedfilter_calcab_outerrgb( __write_only image2d_t imga, __write
 	var[ 2 ].z += 1.0f * epsilon;
 
 
-//	inverse3x3( var );
-//
-//	a.x = dot( var[ 0 ], cov );
-//	a.y = dot( var[ 1 ], cov );
-//	a.z = dot( var[ 2 ], cov );
-//	a.w = 0.0f;
+	//inverse3x3( var );
+
+	//a.x = dot( var[ 0 ], cov );
+	//a.y = dot( var[ 1 ], cov );
+	//a.z = dot( var[ 2 ], cov );
+	//a.w = 0.0f;
 
 	a = LUSolve( var, cov );
 	b = meanS - ( float4 ) dot( meanG, a );

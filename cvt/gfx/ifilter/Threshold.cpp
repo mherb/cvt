@@ -35,9 +35,10 @@ namespace cvt {
 
 		if( dst.width() != src.width()
 		   || dst.height() != src.height()
-		   || dst.format().formatID != IFORMAT_GRAY_FLOAT
-		   || dst.format().formatID != IFORMAT_GRAY_UINT8 )
+		   || !( dst.format().formatID == IFORMAT_GRAY_FLOAT
+		   || dst.format().formatID == IFORMAT_GRAY_UINT8 ) ) {
 			dst.reallocate( src.width(), src.height(), IFormat::GRAY_UINT8 );
+		}
 
 		size_t w = src.width();
 		size_t h = src.height();

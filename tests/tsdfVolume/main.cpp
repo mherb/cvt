@@ -7,7 +7,7 @@
 #include <cvt/util/String.h>
 #include <cvt/util/Time.h>
 
-#include <cvt/cl/kernel/TSDFVolume/TSDFVolume.h>
+#include <cvt/vision/TSDFVolume.h>
 
 #include <cvt/io/RGBDParser.h>
 
@@ -17,6 +17,64 @@
 
 using namespace cvt;
 
+int main( int argc, char** argv )
+{
+    if( argc < 2 ){
+        std::cout << "Usage: " << argv[ 0 ] << " <data_set_folder>" << std::endl;
+        return 0;
+    }
+
+
+
+    std::vector<CLPlatform> platforms;
+    CLPlatform::get( platforms );
+    CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
+
+    try {
+
+        String folder( argv[ 1 ] );
+
+        RGBDParser rgbddata( folder );
+
+        Matrix3f intrinsics( 517.3f, 0.0f, 318.6f,
+                               0.0f,   516.5f, 255.3f,
+                                0.0,	  0.0f,  1.0f );
+
+        Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f, -0.2f,
+                              0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, 0.0f,
+                              0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), 0.4f,
+                              0.0f, 0.0f, 0.0f, 1.0f );
+
+
+		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH );
+		tsdf.clear();
+
+        Image depthmap;
+
+        Time t;
+        /* add the depth maps */
+        for( int i = 0; i < 700; i++) {
+            rgbddata.loadNext();
+            rgbddata.data().depth.convert( depthmap, IFormat::GRAY_UINT16, IALLOCATOR_CL );
+//			camcalib.setExtrinsics( rgbddata.data().pose );
+//			rgbddata.data().rgb.convert( image, IFormat::RGBA_FLOAT );
+
+            Matrix4f pose = rgbddata.data().pose<float>();
+
+			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
+        }
+        std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
+
+		tsdf.saveRaw( "data.raw" );
+
+
+    } catch( CLException& e ) {
+        std::cout << e.what() << std::endl;
+    }
+
+    return 0;
+}
+#if 0
 int main( int argc, char** argv )
 {
     if( argc < 2 ){
@@ -127,3 +185,4 @@ int main( int argc, char** argv )
 
     return 0;
 }
+#endif
