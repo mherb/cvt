@@ -17,9 +17,9 @@
 #include <cvt/vision/CameraCalibration.h>
 
 
-#define VOL_WIDTH  400
-#define VOL_HEIGHT 400
-#define VOL_DEPTH  400
+#define VOL_WIDTH  256
+#define VOL_HEIGHT 256
+#define VOL_DEPTH  256
 
 using namespace cvt;
 
@@ -43,7 +43,7 @@ int main( int argc, char** argv )
 
 
 		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.01f );
-		tsdf.clear( 2.0f );
+		tsdf.clear( 3.0f );
 
         Image depthmap, tmp;
 

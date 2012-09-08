@@ -8,7 +8,7 @@ __kernel void TSDFVolume_clear( global float2* cv, int width, int height, int de
 	if( gx >= width || gy >= height || gz >= depth )
 		return;
 
-	*cvptr = ( float2 ) ( -1.0f, weight );
+	*cvptr = ( float2 ) ( 1.0f, weight );
 }
 
 __kernel void TSDFVolume_add( global float2* cv, int width, int height, int depth, read_only image2d_t dmap, float dscale,
@@ -39,7 +39,7 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
 		d = read_imagef( dmap, sampler, ipos ).x * dscale;
 		if( d > 0 && z > 0 ) {
-			sdf = gpos.z - d;
+			sdf = d - gpos.z;
 			w = 1.0f;
 			tsdf = sdf / truncaction; //clamp( sdf / truncaction, -1.0f, 1.0f );
 			if( fabs( sdf ) <= truncaction ) {
