@@ -23,7 +23,7 @@ namespace cvt
 		public:
 			TSDFVolume( const Matrix4f& gridtoworld, size_t width, size_t height, size_t depth, float truncation = 0.1f );
 
-			void clear();
+			void clear( float weight = 0.0f );
 			void addDepthMap( const Matrix4f& proj, const Image& depthmap, float scale );
 			void addDepthMap( const Matrix3f& intrinsics, const Matrix4f& extrinsics, const Image& depthmap, float scale );
 
