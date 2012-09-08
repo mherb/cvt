@@ -11,13 +11,14 @@
 #include <cvt/gfx/ifilter/MorphErode.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/ScopedBuffer.h>
+#include <cvt/util/ParamSet.h>
 #include <cvt/math/Math.h>
 
 
 namespace cvt {
 	static ParamInfoTyped<Image*> pout( "Output", false );
 	static ParamInfoTyped<Image*> pin( "Input", true );
-	static ParamInfoTyped<size_t> pradius( "Radius", true );
+	static ParamInfoTyped<uint32_t> pradius( "Radius", true );
 
 	static ParamInfo * _params[ 3 ] = {
 		&pout,
@@ -244,7 +245,7 @@ namespace cvt {
 	{
 		Image * out = set->arg<Image*>( 0 );
 		Image * in = set->arg<Image*>( 1 );
-		size_t radius = set->arg<size_t>( 2 );
+		uint32_t radius = set->arg<uint32_t>( 2 );
 
 		apply( *out, *in, radius, t );
 	}
