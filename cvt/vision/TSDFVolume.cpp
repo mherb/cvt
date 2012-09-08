@@ -18,13 +18,14 @@ namespace cvt
 
 	}
 
-	void TSDFVolume::clear()
+	void TSDFVolume::clear( float weight )
 	{
 		/* clear the volume */
 		_clvolclear.setArg( 0, _clvolume );
 		_clvolclear.setArg( 1, ( int ) _width);
 		_clvolclear.setArg( 2, ( int ) _height );
 		_clvolclear.setArg( 3, ( int ) _depth);
+		_clvolclear.setArg( 4, weight );
 		// FIXME: maybe 8 x 8 x ? for the local range is better
 		_clvolclear.run( CLNDRange( Math::pad16( _width ), Math::pad16( _height ), _depth ), CLNDRange( 16, 16, 1 ) );
 	}

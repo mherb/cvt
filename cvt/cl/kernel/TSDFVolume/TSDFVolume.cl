@@ -1,4 +1,4 @@
-__kernel void TSDFVolume_clear( global float2* cv, int width, int height, int depth  )
+__kernel void TSDFVolume_clear( global float2* cv, int width, int height, int depth, float weight  )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -8,7 +8,7 @@ __kernel void TSDFVolume_clear( global float2* cv, int width, int height, int de
 	if( gx >= width || gy >= height || gz >= depth )
 		return;
 
-	*cvptr = ( float2 ) ( -1.0f, 0.0f );
+	*cvptr = ( float2 ) ( -1.0f, weight );
 }
 
 __kernel void TSDFVolume_add( global float2* cv, int width, int height, int depth, read_only image2d_t dmap, float dscale,

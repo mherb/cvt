@@ -43,7 +43,7 @@ int main( int argc, char** argv )
 
 
 		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.01f );
-		tsdf.clear();
+		tsdf.clear( 2.0f );
 
         Image depthmap, tmp;
 
