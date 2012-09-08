@@ -21,7 +21,7 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	const int iwidth = get_image_width( dmap );
 	const int iheight = get_image_height( dmap );
 	global float2* cvptr = cv + gz * width * height + gy * width + gx;
-	float4 gridpos = { gx + 0.5f, gy + 0.5f, gz + 0.5f, 1.0f }; // FIXME: 0.5 offset ?
+	float4 gridpos = { gx, gy, gz, 1.0f }; // FIXME: 0.5 offset ?
 	float4 gpos;
 	float2 ipos;
 	float z, d, sdf, tsdf, w;
@@ -41,13 +41,10 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 		if( d > 0 && z > 0 ) {
 			sdf = gpos.z - d;
 			w = 1.0f;
-			tsdf = sdf / truncaction;//clamp( sdf / truncaction, -1.0f, 1.0f );
-			if( sdf >= -truncaction ) {
-//				if( sdf <= truncaction ) {
+			tsdf = sdf / truncaction; //clamp( sdf / truncaction, -1.0f, 1.0f );
+			if( fabs( sdf ) <= truncaction ) {
 					float2 old = *cvptr;
-					*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * ( old.y + w )  ) / ( 2.0f * old.y + w ), old.y + w );
-//				} else
-//					*cvptr = ( float2 ) ( 1.0f, 0.0f );
+					*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * w  ) / ( old.y + w ), old.y + w );
 			}
 		}
 	}

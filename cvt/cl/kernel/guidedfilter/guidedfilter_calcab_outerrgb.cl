@@ -11,9 +11,9 @@ void inverse3x3( float4* mat )
 
 	det = dot( mat[ 0 ], tmp );
 	if( fabs( det ) < 1e-10f ) {
-		mat[ 0 ] = ( float4 ) ( 0.1f, 0.0f, 0.0f, 0.0f );
-		mat[ 1 ] = ( float4 ) ( 0.0f, 0.1f, 0.0f, 0.0f );
-		mat[ 2 ] = ( float4 ) ( 0.0f, 0.0f, 0.1f, 0.0f );
+		mat[ 0 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
+		mat[ 1 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
+		mat[ 2 ] = ( float4 ) ( 0.0f, 0.0f, 0.0f, 0.0f );
 	} else {
 		D = ( float4 ) ( 1.0f / ( det ) );
 		tmp = mat[ 0 ];

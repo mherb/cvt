@@ -29,7 +29,7 @@ int main( int argc, char** argv )
         ScenePoints pts( "Points" );
         for( int i = 0; i < 30; i++) {
             rgbddata.loadNext();
-            camcalib.setExtrinsics( rgbddata.data().pose<float>() );
+            camcalib.setExtrinsics( rgbddata.data().pose<float>().inverse() );
 //			std::cout << rgbddata.data().rgb << std::endl;
 //			std::cout << rgbddata.data().depth << std::endl;
             Image depthmap, image;
