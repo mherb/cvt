@@ -6,7 +6,7 @@ FIND_PATH( LIBPNG_INCLUDE_DIR png.h
 	      $ENV{HOME}/include/
 	      /usr/include/libpng/
 		  /usr/local/include/libpng
-		  /opt/local/include
+		  /opt/local/include/libpng14
 )
 
 FIND_LIBRARY(LIBPNG_LIBRARY
