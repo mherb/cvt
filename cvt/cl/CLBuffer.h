@@ -32,6 +32,8 @@ namespace cvt {
 			CLContext context() const;
 
 			size_t		size() const;
+			void		read( void* dst );
+			void		write( void* src );
 
 			void*		map();
 			const void* map() const;

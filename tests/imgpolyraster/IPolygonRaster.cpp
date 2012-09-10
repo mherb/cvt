@@ -9,6 +9,7 @@ namespace cvt {
 		uint32_t composite[2];
 	};
 
+#define  COMPOSITE_MIX8( a )  ( a ) |= ( a ) >> 14; ( a ) |= ( a ) >> 4;
 #define  NOHIGHBITS  0x7f7f7f7f
 #define  HIGHBITS    0x80808080
 
@@ -16,13 +17,62 @@ namespace cvt {
 #define SUBUNITS8 8
 #define FULL_COVER8 0xff
 
-#define  _zwindingmask8_record(_mask, _ySub, _dir) {\
+#define  windingmask8_record(_mask, _ySub, _dir) {\
 	uint32_t*  pt = &( _mask ).composite[ (_ySub) >> 2 ];\
 	uint32_t   t = *pt;\
 	(_mask).mask |= ( 1U << (_ySub) );\
 	*pt = (t + ( ( ( int ) _dir & 0x7f) << ( 8 * ( (_ySub) & 0x03) ) ) ) & NOHIGHBITS;\
 } while(0)
 
+inline void windingmask8_reset( WindingMask8* dst, WindingMask8* src )
+{
+    uint32_t dmask = 0;
+    uint32_t t;
+
+    t = src->composite[ 0 ] & NOHIGHBITS;
+    dst->composite[ 0 ] = t;
+    src->composite[ 0 ] = 0;
+    t = ( t + NOHIGHBITS ) & HIGHBITS;
+    dmask |= ( t >> ( 7 ) );
+
+    t = src->composite[ 1 ] & NOHIGHBITS;
+    dst->composite[ 1 ] = t;
+    src->composite[ 1 ] = 0;
+    t = ( t + NOHIGHBITS ) & HIGHBITS;
+    dmask |= ( t >> ( 6 ) );
+
+    COMPOSITE_MIX8( dmask );
+
+    dst->mask = dmask;
+    src->mask = 0;
+}
+
+inline void windingmask8_apply( WindingMask8* dst, WindingMask8* src )
+{
+    uint32_t dmask = 0;
+    uint32_t t, p;
+
+    t = dst->composite[ 0 ] + NOHIGHBITS;
+    p = ( dst->composite[ 0 ] + ( src->composite[ 0 ] & NOHIGHBITS ) ) & NOHIGHBITS;
+    src->composite[ 0 ] = 0;
+    dst->composite[ 0 ] = p;
+    p += NOHIGHBITS;
+    t  = ( t ^ p ) & HIGHBITS;
+    dmask |= ( t >> ( 7 ) );
+
+    t = dst->composite[ 1 ] + NOHIGHBITS;
+    p = ( dst->composite[ 1 ] + ( src->composite[ 1 ] & NOHIGHBITS ) ) & NOHIGHBITS;
+    src->composite[ 1 ] = 0;
+    dst->composite[ 1 ] = p;
+    p += NOHIGHBITS;
+    t  = ( t ^ p ) & HIGHBITS;
+    dmask |= ( t >> ( 6 ) );
+
+    COMPOSITE_MIX8( dmask );
+
+    dst->mask ^= dmask;
+    src->mask  = 0;
+}
 
 const Fixed IPolygonRaster::_offsets8[ 8 ] = {
 	( 5.0f / 8.0f ),
@@ -233,7 +283,7 @@ void IPolygonRaster::addEdgeClip( const Vector2f& pt1, const Vector2f& pt2 )
 
 void IPolygonRaster::rasterize( Image& dst, const Color& color )
 {
-	rasterizeEvenOdd( dst, color );
+	rasterizeWinding( dst, color );
 }
 
 void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
@@ -307,35 +357,35 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 				if( cx < minx ) minx = cx;
 
 				cx = ( fcx + _offsets8[ 0 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 1 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 2 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 3 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 4 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 5 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 6 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 				mask <<= 1;
 				fcx += edge.subslope;
 				cx = ( fcx + _offsets8[ 7 ] ).floor();
-				maskbuf[cx] ^= mask;
+				maskbuf[ cx ] ^= mask;
 
 				cx = fcx.floor();
 				if( cx > maxx ) maxx = cx;
@@ -348,7 +398,8 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 		/*process edges beginning in the current scanline*/
 		while( etit != _edges.end()  ) {
 			Fixed fcx;
-			int suby,sube;
+			int suby, sube;
+
 			if( etit->pt1.y.floor() > cy )
 				break;
 
@@ -371,7 +422,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 
 						for( i = suby; i < sube; i++ ) {
 							cx = ( fcx + _offsets8[i] ).floor();
-							maskbuf[cx] ^= mask;
+							maskbuf[ cx ] ^= mask;
 							mask <<= 1;
 							fcx += edge.subslope;
 						}
@@ -390,7 +441,7 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 
 						for( i = suby; i < SUBUNITS8; i++ ) {
 							cx = ( fcx + _offsets8[i] ).floor();
-							maskbuf[cx] ^= mask;
+							maskbuf[ cx ] ^= mask;
 							mask <<= 1;
 							fcx += edge.subslope;
 						}
@@ -457,222 +508,214 @@ void IPolygonRaster::rasterizeEvenOdd( Image& imgdst, const Color& color )
 	}
 }
 
-
-#if 0
-void zraster_polygonfx_aa8_winding(ZGFXImage* gfximg,ZPolygonfx* poly)
+void IPolygonRaster::rasterizeWinding( Image& imgdst, const Color& color )
 {
-	int i,cy,cx;
-	ZImage* img=gfximg->img;
-	ZList* aet;
-	ZPolyEdgefx* edge;
-	ZListNode *it,*node,*etit;
-	ZWindingMask8* maskbuf;
-	ZWindingMask8 mask[1];
-	ZWindingMask8 *mptr,*mend,*temp;
-	uint32_t *dst,*tmpdst;
-	ZColorPixel pcolor;
-	uint32_t color;
-	uint32_t maskwidth;
-	int minx, maxx;
+	int i, cy, cx;
+	List<PolyEdge>::Iterator it, etit;
+	WindingMask8 mask[ 1 ];
+	WindingMask8 *mptr, *mend, *temp;
+	uint32_t *dst;
+	int32_t maskwidth;
+	int minx, maxx, xoffset;
+	IMapScoped<uint32_t> map( imgdst );
+	Fixed fxoffset;
 
-	zcolor_get_imagepixel(&gfximg->gfx.color, img->type, &pcolor);
-	color = pcolor.c4_ub;
-
-	if(!zlist_size(poly->edges) || !zfixed_floor(poly->bounds.width) || !zfixed_floor(poly->bounds.height) )
+	if(!_edges.size() || _bounds.isEmpty() )
 		return;
 
-	maskbuf = zcalloc(zfixed_ceil(poly->bounds.width)+3,sizeof(ZWindingMask8));
+	ScopedBuffer<WindingMask8,true> smaskbuf( Math::ceil( _bounds.width ) + 2 );
+	WindingMask8* maskbuf = smaskbuf.ptr();
 
-	maskwidth = zfixed_ceil(poly->bounds.width)+1;
-	mend = &maskbuf[maskwidth];
+	maskwidth = Math::ceil( _bounds.width ) + 1;
+	mend = &maskbuf[ maskwidth ];
 
-	dst=&((uint32_t*)img->pixel)[(img->stride>>2)*(gfximg->gfx.cbounds.y+zfixed_floor(poly->bounds.y)-gfximg->gfx.bounds.y)+(gfximg->gfx.cbounds.x+zfixed_floor(poly->bounds.x)-gfximg->gfx.bounds.x)];
+	map.setLine( Math::floor( _bounds.y ) );
+	xoffset = Math::floor( _bounds.x );
+	fxoffset = Fixed( _bounds.x );
+	fxoffset.native() &= ( ~0xffff );
 
-	aet=zlist_new();
-	etit=zlist_first(poly->edges);
-	cy=zfixed_floor(((ZPolyEdgefx*)zlistnode_get_data(etit))->pt1.y);
+	List<PolyEdge> aet;
+	etit = _edges.begin();
+	cy = etit->pt1.y.floor();
 
-	while(etit || zlist_size(aet)){
-
+	while( etit != _edges.end() || !aet.isEmpty() ){
 		minx = maskwidth;
 		maxx = 0;
 
-		it=zlist_first(aet);
+		it = aet.begin();
 
-		while(it){
-			ZFixed fcx;
-			node=zlistnode_next(it);
-			edge=zlistnode_get_data(it);
+		while( it != aet.end() ){
+			Fixed fcx;
 
-			fcx=edge->cx;
-			cx = zfixed_floor(fcx);
+			PolyEdge& edge = *it;
+			fcx =  edge.cx;
+			cx = fcx.floor();
 
-			if(zfixed_floor(edge->pt2.y)==cy){ /*edge ends in the current scanline*/
+			if(  edge.pt2.y.floor() == cy) { /*edge ends in the current scanline*/
 				int suby;
 
-				suby=FIXED_TO_SUB8(edge->pt2.y);                
-				if(suby > 0) {
+				suby = FIXED_TO_SUB8( edge.pt2.y );
+				if( suby > 0 ) {
 					if( cx > maxx ) maxx = cx;
 					if( cx < minx ) minx = cx;
 
-					for(i=0;i<suby;i++){                    
-						cx = zfixed_floor(fcx + _offsets8[i]);
-						_zwindingmask8_record(maskbuf[cx],i,edge->dir);
-						fcx += edge->subslope;
+					for( i = 0 ; i < suby; i++ ) {
+						cx = ( fcx + _offsets8[i] ).floor();
+						windingmask8_record( maskbuf[ cx ], i, edge.dir );
+						fcx +=  edge.subslope;
 					}
 
-					cx = zfixed_floor(fcx - edge->subslope);
+					cx = ( fcx - edge.subslope ).floor();
 					if( cx > maxx ) maxx = cx;
 					if( cx < minx ) minx = cx;
 				}
-				zlist_delete(aet,it);
+				it = aet.remove( it );
 			} else { /*edge crosses complete scanline*/
 				if( cx > maxx ) maxx = cx;
 				if( cx < minx ) minx = cx;
 
-				cx = zfixed_floor(fcx + _offsets8[0]);
-				_zwindingmask8_record(maskbuf[cx],0,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 0 ] ).floor();
+				windingmask8_record(maskbuf[ cx ],0, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[1]);
-				_zwindingmask8_record(maskbuf[cx],1,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 1 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 1, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[2]);
-				_zwindingmask8_record(maskbuf[cx],2,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 2 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 2, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[3]);
-				_zwindingmask8_record(maskbuf[cx],3,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 3 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 3, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[4]);
-				_zwindingmask8_record(maskbuf[cx],4,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 4 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 4, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[5]);
-				_zwindingmask8_record(maskbuf[cx],5,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 5 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 5, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[6]);
-				_zwindingmask8_record(maskbuf[cx],6,edge->dir); 
-				fcx += edge->subslope;
+				cx = ( fcx + _offsets8[ 6 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 6, edge.dir);
+				fcx +=  edge.subslope;
 
-				cx = zfixed_floor(fcx + _offsets8[7]);
-				_zwindingmask8_record(maskbuf[cx],7,edge->dir); 
+				cx = ( fcx + _offsets8[ 7 ] ).floor();
+				windingmask8_record(maskbuf[ cx ], 7, edge.dir);
 
-				cx = zfixed_floor(fcx);
+				cx = fcx.floor();
 				if( cx > maxx ) maxx = cx;
 				if( cx < minx ) minx = cx;
-
-				edge->cx+=edge->slope;
+				edge.cx += edge.slope;
+				it++;
 			}
-			it=node;
 		}
 
 		/*add edges starting in the current scanline*/
-		while(etit && zfixed_floor(((ZPolyEdgefx*)zlistnode_get_data(etit))->pt1.y) == cy) {
-			ZFixed fcx;
-			int suby,sube;
+		while( etit != _edges.end()  ) {
+			Fixed fcx;
+			int suby, sube;
 
-			edge=zlistnode_get_data(etit);
-			if(edge->pt1.y != edge->pt2.y){
-				edge->cx=(edge->pt1.x-(poly->bounds.x&(~0xffff)));
-				edge->subslope = ((edge->slope)>>3);
+			if( etit->pt1.y.floor() > cy )
+				break;
 
-				fcx=edge->cx;
-				cx = zfixed_floor(fcx);
+			PolyEdge& edge = *etit;
+			if( edge.pt1.y !=  edge.pt2.y ){
+				edge.cx = ( edge.pt1.x - fxoffset );
+
+				fcx= edge.cx;
+				cx = fcx.floor();
 
 				/*edge starts and ends in the current scanline*/
-				if(zfixed_floor(edge->pt1.y)==zfixed_floor(edge->pt2.y)){
+				if( edge.pt1.y.floor() == edge.pt2.y.floor() ){
 
-					suby=FIXED_TO_SUB8(zfixed_frac(edge->pt1.y));
-					sube=FIXED_TO_SUB8(zfixed_frac(edge->pt2.y));
+					suby = FIXED_TO_SUB8( edge.pt1.y );
+					sube = FIXED_TO_SUB8( edge.pt2.y );
 
 					if(suby < sube) {
 						if( cx > maxx ) maxx = cx;
 						if( cx < minx ) minx = cx;
 
-						for(i=suby;i<sube;i++){
-							cx = zfixed_floor(fcx + _offsets8[i]);
-							_zwindingmask8_record(maskbuf[cx],i,edge->dir);
-							fcx += edge->subslope;
+						for( i = suby; i < sube; i++ ) {
+							cx = ( fcx + _offsets8[ i ] ).floor();
+							windingmask8_record(maskbuf[ cx ], i, edge.dir );
+							fcx += edge.subslope;
 						}
 
-						cx = zfixed_floor(fcx - edge->subslope);
+						cx = ( fcx - edge.subslope ).floor();
 						if( cx > maxx ) maxx = cx;
 						if( cx < minx ) minx = cx;
 					}
 				} else {
-					suby=FIXED_TO_SUB8(zfixed_frac(edge->pt1.y));
+					suby = FIXED_TO_SUB8( edge.pt1.y );
 
 					if(suby < SUBUNITS8) {
 						if( cx > maxx ) maxx = cx;
 						if( cx < minx ) minx = cx;
 
-						for(i=suby;i<SUBUNITS8;i++){
-							cx = zfixed_floor(fcx + _offsets8[i]);
-							_zwindingmask8_record(maskbuf[cx],i,edge->dir);
-							fcx += edge->subslope;
+						for( i = suby; i < SUBUNITS8; i++ ) {
+							cx = ( fcx + _offsets8[i] ).floor();
+							windingmask8_record( maskbuf[ cx ], i, edge.dir );
+							fcx += edge.subslope;
 						}
 
-						cx = zfixed_floor(fcx - edge->subslope);
+						cx = ( fcx - edge.subslope ).floor();
 						if( cx > maxx ) maxx = cx;
 						if( cx < minx ) minx = cx;
 					}
-					edge->cx+=zfixed_mul(edge->slope,(zfixed_from_int(1)-(zfixed_frac(edge->pt1.y))));
-					zlist_append(aet,edge);
+					Fixed tmp;
+					tmp.native() = Fixed((int16_t)1).native() - edge.pt1.y.frac();
+					edge.cx += edge.slope * tmp;
+					//edge.cx = fcx - edge.subslope;
+					aet.append( edge );
 				}
 			}
-			etit=zlistnode_next(etit);
+			etit++;
 		}
 
-		mptr = &maskbuf[minx];
-		mend = &maskbuf[maxx+1];
+		mptr = &maskbuf[ minx ];
+		mend = &maskbuf[ maxx + 1 ];
 		mend->mask = FULL_COVER8;
-		tmpdst = dst;
-		dst += minx;
 		temp = mptr++;
-		_zwindingmask8_reset(mask,temp);
+		windingmask8_reset(mask,temp);
+		dst = map.ptr() + xoffset + minx;
 
 		while (mptr <= mend) {
 			if (mask->mask == 0){
-				ZWindingMask8* smp = mptr;
+				WindingMask8* smp = mptr;
 				do {
 					temp = mptr++;
 				} while (temp->mask == 0);
 				dst += mptr - smp;
-				_zwindingmask8_reset(mask, temp);
-			} else if (mask->mask == FULL_COVER8){       
+				windingmask8_reset(mask, temp);
+			} else if ( mask->mask == FULL_COVER8 ) {
 				do {
-					ZPIXEL_PBGRA_UB_OVER(*dst, *dst, color);
-					dst++;
+					// FIXME
+					*dst++ = 0xffffffff;
 					mptr++;
-				} while(!mptr->mask);
-				_zwindingmask8_apply(mask, mptr);
+				} while( !mptr->mask );
+				windingmask8_apply( mask, mptr );
 			} else {
-				uint32_t alpha =((ztable_bitcount(mask->mask&0xff)*0xff)>>3);
-				uint32_t pixel;
+				uint32_t alpha = ( ( Math::popcount( mask->mask & 0xff ) * 0xff ) >> 3 );
+				// FIXME
+				uint32_t pixel = ( 0xff << 24 ) | ( alpha << 16 ) | ( alpha << 8 ) | alpha;
 
-				ZPIXEL_C4_UB_MUL(pixel, color, alpha);
 				do {
-					ZPIXEL_PBGRA_UB_OVER(*dst, *dst, pixel);
-					dst++;
+					// FIXME
+					*dst++ = pixel;
 					temp  = mptr++;
-					if (temp->mask){
-						_zwindingmask8_apply(mask, temp );
-						alpha = ((ztable_bitcount(mask->mask&0xff)*0xff)>>3);
-						ZPIXEL_C4_UB_MUL(pixel, color, alpha);
+					if ( temp->mask ) {
+						windingmask8_apply(mask, temp );
+						alpha = ( ( Math::popcount( mask->mask & 0xff ) * 0xff ) >> 3 );
+						pixel = ( 0xff << 24 ) | ( alpha << 16 ) | ( alpha << 8 ) | alpha;
 					}
 				} while (mask->mask != 0 && mask->mask != FULL_COVER8 && mptr <= mend);
 			}
 		}
 		cy++;
-		dst=tmpdst+(img->stride>>2);
+		map++;
 	}
-
-	zfree(maskbuf);
-	zlist_destroy(aet);
 }
-#endif
 }

@@ -1,4 +1,4 @@
-__kernel void TSDFVolume_clear( global float2* cv, int width, int height, int depth  )
+__kernel void TSDFVolume_clear( global float2* cv, int width, int height, int depth, float weight  )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -8,11 +8,11 @@ __kernel void TSDFVolume_clear( global float2* cv, int width, int height, int de
 	if( gx >= width || gy >= height || gz >= depth )
 		return;
 
-	*cvptr = ( float2 ) ( -1.0f, 0.0f );
+	*cvptr = ( float2 ) ( 1.0f, weight );
 }
 
 __kernel void TSDFVolume_add( global float2* cv, int width, int height, int depth, read_only image2d_t dmap, float dscale,
-							  constant float4 K[ 3 ], constant float4 TG2CAM[ 3 ], float truncaction )
+							 constant float4 TG2CAM[ 3 ], float truncaction )
 {
 	const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 	const int gx = get_global_id( 0 );
@@ -21,7 +21,7 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	const int iwidth = get_image_width( dmap );
 	const int iheight = get_image_height( dmap );
 	global float2* cvptr = cv + gz * width * height + gy * width + gx;
-	float4 gridpos = { gx, gy, gz, 1 }; // FIXME: 0.5 offset ?
+	float4 gridpos = { gx, gy, gz, 1.0f }; // FIXME: 0.5 offset ?
 	float4 gpos;
 	float2 ipos;
 	float z, d, sdf, tsdf, w;
@@ -33,21 +33,18 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	gpos = ( float4 ) ( dot( TG2CAM[ 0 ], gridpos ), dot( TG2CAM[ 1 ], gridpos ), dot( TG2CAM[ 2 ], gridpos ), 0.0f );
 
 	/* project into camera */
-	z = dot( K[ 2 ], gpos );
-	ipos = ( float2 ) ( dot( K[ 0 ], gpos ), dot( K[ 1 ], gpos ) ) / z;
+	z = gpos.z;
+	ipos = gpos.xy / z;
 
 	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
 		d = read_imagef( dmap, sampler, ipos ).x * dscale;
 		if( d > 0 && z > 0 ) {
-			sdf = gpos.z - d;
+			sdf = d - gpos.z;
 			w = 1.0f;
-			tsdf = sdf / truncaction;//clamp( sdf / truncaction, -1.0f, 1.0f );
-			if( sdf >= -truncaction ) {
-//				if( sdf <= truncaction ) {
+			tsdf = sdf / truncaction; //clamp( sdf / truncaction, -1.0f, 1.0f );
+			if( fabs( sdf ) <= truncaction ) {
 					float2 old = *cvptr;
-					*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * ( old.y + w )  ) / ( 2.0f * old.y + w ), old.y + w );
-//				} else
-//					*cvptr = ( float2 ) ( 1.0f, 0.0f );
+					*cvptr = ( float2 ) ( ( old.x * old.y + tsdf * w  ) / ( old.y + w ), old.y + w );
 			}
 		}
 	}

@@ -124,10 +124,11 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 200.0f
+#define TXMAX 8.0f
 #define TYMAX 0.0f
-#define TAU 35.0f
-#define PROPSIZE 5
+#define TAU 15.0f
+#define TAU2 1.0f
+#define PROPSIZE 3
 #define ALPHA 0.05f
 
 float distEuclidean( const float4 a, const float4 b )
@@ -148,7 +149,7 @@ float distL1Trunc( const float4 a, const float4 b, const float trunc )
 float distL1GTrunc( const float4 a, const float4 b, const float2 ga, const float2 gb )
 {
 //	return ALPHA * fmin( dot( fabs( a - b ), ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f ) ), 0.04f ) + 0.9f * fmin( dot( fabs( ga - gb ), ( float2 ) 0.5f ), 0.02f );
-	return ALPHA * fmin( fast_length( a - b ), 0.04f * 1.0f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.02f * 1.0f );
+	return ALPHA * fmin( fast_length( a - b ), 0.04f * 3.0f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.02f * 3.0f );
 }
 
 float weight( const float4 a, const float4 b, const float tau, const float2 dist )
@@ -378,17 +379,20 @@ kernel void patchmatchInit( write_only image2d_t matches,
 			float4 val1 = read_imagef( img1, samplerlin, coordf + ( float2 ) ( dx, dy ) );
 			float2 gval1 = read_imagef( gimg1, samplerlin, coordf + ( float2 ) ( dx, dy ) ).xy;
 
-			float4 val2 = read_imagef( img2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) ) );
-			float2 gval2 = read_imagef( gimg2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf + ( float2 ) ( dx, dy ) ) ).xy;
+			float2 pt = Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) );
+			float4 val2 = read_imagef( img2, samplerlin, pt );
+			float2 gval2 = read_imagef( gimg2, samplerlin, pt ).xy;
 
-			float4 val3 = read_imagef( img3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) ) );
-			float2 gval3 = read_imagef( gimg3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf + ( float2 ) ( dx, dy ) ) ).xy;
-
+			pt = Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) );
+			float4 val3 = read_imagef( img3, samplerlin, pt );
+			float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
 			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-			wsum += w * 2.0f;
-			ret.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
-			ret.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			wsum += w * w2 + w * w3;
+			ret.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
+			ret.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );
 //			ret.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
 		}
 	}
@@ -396,7 +400,7 @@ kernel void patchmatchInit( write_only image2d_t matches,
 	write_imagef( matches, coord, ret );
 }
 
-#define LOCALBUF 0
+#define LOCALBUF 1
 
 kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d_t oldmatches,
 							     read_only image2d_t img1, read_only image2d_t img2, read_only image2d_t img3,
@@ -477,9 +481,9 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 
 			neighbour = buf[ iy ][ ix ];
 			if( neighbour.w > self.w )
-				neighbour = refineStereo( &rng, neighbour, 20.0f, 1.0f );
+				neighbour = refineStereo( &rng, neighbour, 3.0f, 1.0f );
 //			else
-//				neighbour = refineStereo( &rng, neighbour, 1.0f, 0.1f );
+//				neighbour = refineStereo( &rng, neighbour, 0.5f, 0.05f );
 			neighbour.w = 0;
 			Mat4_planeSweep( &H1, &KSrc1, &TSrc1, &KInvDst, &TDst, neighbour );
 			Mat4_planeSweep( &H2, &KSrc2, &TSrc2, &KInvDst, &TDst, neighbour );
@@ -497,17 +501,20 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float4 val1 = read_imagef( img1, samplerlin, coordf + ( float2 ) ( dx, dy ) );
 					float2 gval1 = read_imagef( gimg1, samplerlin, coordf + ( float2 ) ( dx, dy ) ).xy;
 #endif
+					float2 pt = Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) );
+					float4 val2 = read_imagef( img2, samplerlin, pt );
+					float2 gval2 = read_imagef( gimg2, samplerlin, pt ).xy;
 
-					float4 val2 = read_imagef( img2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) ) );
-					float2 gval2 = read_imagef( gimg2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf + ( float2 ) ( dx, dy ) ) ).xy;
+					pt = Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) );
+					float4 val3 = read_imagef( img3, samplerlin, pt );
+					float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
-					float4 val3 = read_imagef( img3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) ) );
-					float2 gval3 = read_imagef( gimg3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf + ( float2 ) ( dx, dy ) ) ).xy;
-
-					float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-					wsum += w * 2.0f;
-					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
-					neighbour.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
+			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			wsum += w * w2 + w * w3;
+			neighbour.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
+			neighbour.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );
 //					neighbour.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
 
 				}
@@ -518,10 +525,10 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 		}
 	}
 
-	for( int i = 0; i < 2; i++ ) {
+	for( int i = 0; i < 3; i++ ) {
 
 		if( self.w < 0.05 )
-			neighbour = refineStereo( &rng, self, 1.0f, 0.1f );
+			neighbour = refineStereo( &rng, self, 0.05f, 0.05f );
 		else
 			neighbour = initStereo( &rng );
 
@@ -540,17 +547,20 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float4 val1 = read_imagef( img1, samplerlin, coordf + ( float2 ) ( dx, dy ) );
 					float2 gval1 = read_imagef( gimg1, samplerlin, coordf + ( float2 ) ( dx, dy ) ).xy;
 #endif
+					float2 pt = Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) );
+					float4 val2 = read_imagef( img2, samplerlin, pt );
+					float2 gval2 = read_imagef( gimg2, samplerlin, pt ).xy;
 
-					float4 val2 = read_imagef( img2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf  + ( float2 ) ( dx, dy ) ) );
-					float2 gval2 = read_imagef( gimg2, samplerlin, Mat4_MulVec3Proj2( &H1, coordf + ( float2 ) ( dx, dy ) ) ).xy;
+					pt = Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) );
+					float4 val3 = read_imagef( img3, samplerlin, pt );
+					float2 gval3 = read_imagef( gimg3, samplerlin, pt ).xy;
 
-					float4 val3 = read_imagef( img3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf  + ( float2 ) ( dx, dy ) ) );
-					float2 gval3 = read_imagef( gimg3, samplerlin, Mat4_MulVec3Proj2( &H2, coordf + ( float2 ) ( dx, dy ) ) ).xy;
-
-					float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
-					wsum += w * 2.0f;
-					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
-					neighbour.w += w * distL1GTrunc( val1, val3, gval1, gval3 );
+			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
+			float w2 = 1.0f;//weight( valcenter, val2, TAU2,  ( float2 ) ( dx, dy ) );
+			float w3 = 1.0f;//weight( valcenter, val3, TAU2,  ( float2 ) ( dx, dy ) );
+			wsum += w * w2 + w * w3;
+			neighbour.w += w * w2 * distL1GTrunc( val1, val2, gval1, gval2 );
+			neighbour.w += w * w3 * distL1GTrunc( val1, val3, gval1, gval3 );
 //					neighbour.w += w * 0.25f * distL1GTrunc( val2, val3, gval2, gval3 );
 			}
 		}
