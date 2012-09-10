@@ -702,6 +702,19 @@ namespace cvt {
         return __tmp + __tmp2;
     }
 
+
+	static inline uint8_t _addsU8( uint8_t a, uint8_t b )
+	{
+		uint16_t c = a + b;
+		return ( c | ( 0x100 - ( c >> 8 ) ) ) & 0xff;
+	}
+
+	static inline uint8_t _subsU8( uint8_t a, uint8_t b )
+	{
+		uint16_t c = a - b;
+		return ( c & ~( 0x100 - ( c >> 15 ) ) ) & 0xff;
+	}
+
     static inline int32_t _floor( float v )
     {
         Math::_flint32 fl;
@@ -1247,6 +1260,608 @@ namespace cvt {
             x &= 0x03;
         }
     }
+
+	void SIMD::MinValueU8( uint8_t* dst, const uint8_t* src1, const uint8_t* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 < *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MinValueU16( uint16_t* dst, const uint16_t* src1, const uint16_t* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 < *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MinValue1f( float* dst, const float* src1, const float* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 < *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MaxValueU8( uint8_t* dst, const uint8_t* src1, const uint8_t* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 > *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MaxValueU16( uint16_t* dst, const uint16_t* src1, const uint16_t* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 > *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MaxValue1f( float* dst, const float* src1, const float* src2, size_t n ) const
+	{
+		while( n-- ) {
+			*dst++ = *src1 > *src2 ? *src1 : *src2;
+			src1++;
+			src2++;
+		}
+	}
+
+	void SIMD::MinValueVertU8( uint8_t* dst, const uint8_t** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			uint8_t min0, min1, min2, min3;
+			const uint8_t* sptr = bufs[ 0 ] + i;
+			min0 = sptr[ 0 ];
+			min1 = sptr[ 1 ];
+			min2 = sptr[ 2 ];
+			min3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				min0 = min0 < sptr[ 0 ] ? min0 : sptr[ 0 ];
+				min1 = min1 < sptr[ 1 ] ? min1 : sptr[ 1 ];
+				min2 = min2 < sptr[ 2 ] ? min2 : sptr[ 2 ];
+				min3 = min3 < sptr[ 3 ] ? min3 : sptr[ 3 ];
+			}
+
+			*dst++ = min0;
+			*dst++ = min1;
+			*dst++ = min2;
+			*dst++ = min3;
+		}
+
+		for( ; i < n; i++ ) {
+			uint8_t min = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				min = min < *( bufs[ k ] + i ) ? min : *( bufs[ k ] + i );
+			}
+			*dst++ = min;
+		}
+	}
+
+	void SIMD::MinValueVertU16( uint16_t* dst, const uint16_t** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			uint16_t min0, min1, min2, min3;
+			const uint16_t* sptr = bufs[ 0 ] + i;
+			min0 = sptr[ 0 ];
+			min1 = sptr[ 1 ];
+			min2 = sptr[ 2 ];
+			min3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				min0 = min0 < sptr[ 0 ] ? min0 : sptr[ 0 ];
+				min1 = min1 < sptr[ 1 ] ? min1 : sptr[ 1 ];
+				min2 = min2 < sptr[ 2 ] ? min2 : sptr[ 2 ];
+				min3 = min3 < sptr[ 3 ] ? min3 : sptr[ 3 ];
+			}
+
+			*dst++ = min0;
+			*dst++ = min1;
+			*dst++ = min2;
+			*dst++ = min3;
+		}
+
+		for( ; i < n; i++ ) {
+			uint16_t min = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				min = min < *( bufs[ k ] + i ) ? min : *( bufs[ k ] + i );
+			}
+			*dst++ = min;
+		}
+	}
+
+	void SIMD::MinValueVert1f( float* dst, const float** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			float min0, min1, min2, min3;
+			const float* sptr = bufs[ 0 ] + i;
+			min0 = sptr[ 0 ];
+			min1 = sptr[ 1 ];
+			min2 = sptr[ 2 ];
+			min3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				min0 = min0 < sptr[ 0 ] ? min0 : sptr[ 0 ];
+				min1 = min1 < sptr[ 1 ] ? min1 : sptr[ 1 ];
+				min2 = min2 < sptr[ 2 ] ? min2 : sptr[ 2 ];
+				min3 = min3 < sptr[ 3 ] ? min3 : sptr[ 3 ];
+			}
+
+			*dst++ = min0;
+			*dst++ = min1;
+			*dst++ = min2;
+			*dst++ = min3;
+		}
+
+		for( ; i < n; i++ ) {
+			float min = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				min = min < *( bufs[ k ] + i ) ? min : *( bufs[ k ] + i );
+			}
+			*dst++ = min;
+		}
+	}
+
+	void SIMD::MaxValueVertU8( uint8_t* dst, const uint8_t** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			uint8_t max0, max1, max2, max3;
+			const uint8_t* sptr = bufs[ 0 ] + i;
+			max0 = sptr[ 0 ];
+			max1 = sptr[ 1 ];
+			max2 = sptr[ 2 ];
+			max3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				max0 = max0 > sptr[ 0 ] ? max0 : sptr[ 0 ];
+				max1 = max1 > sptr[ 1 ] ? max1 : sptr[ 1 ];
+				max2 = max2 > sptr[ 2 ] ? max2 : sptr[ 2 ];
+				max3 = max3 > sptr[ 3 ] ? max3 : sptr[ 3 ];
+			}
+
+			*dst++ = max0;
+			*dst++ = max1;
+			*dst++ = max2;
+			*dst++ = max3;
+		}
+
+		for( ; i < n; i++ ) {
+			uint8_t max = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				max = max > *( bufs[ k ] + i ) ? max : *( bufs[ k ] + i );
+			}
+			*dst++ = max;
+		}
+	}
+
+	void SIMD::MaxValueVertU16( uint16_t* dst, const uint16_t** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			uint16_t max0, max1, max2, max3;
+			const uint16_t* sptr = bufs[ 0 ] + i;
+			max0 = sptr[ 0 ];
+			max1 = sptr[ 1 ];
+			max2 = sptr[ 2 ];
+			max3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				max0 = max0 > sptr[ 0 ] ? max0 : sptr[ 0 ];
+				max1 = max1 > sptr[ 1 ] ? max1 : sptr[ 1 ];
+				max2 = max2 > sptr[ 2 ] ? max2 : sptr[ 2 ];
+				max3 = max3 > sptr[ 3 ] ? max3 : sptr[ 3 ];
+			}
+
+			*dst++ = max0;
+			*dst++ = max1;
+			*dst++ = max2;
+			*dst++ = max3;
+		}
+
+		for( ; i < n; i++ ) {
+			uint16_t max = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				max = max > *( bufs[ k ] + i ) ? max : *( bufs[ k ] + i );
+			}
+			*dst++ = max;
+		}
+	}
+
+	void SIMD::MaxValueVert1f( float* dst, const float** bufs, size_t numbufs, size_t n ) const
+	{
+		size_t i;
+
+		for( i = 0; i <= n - 4; i += 4  ) {
+			float max0, max1, max2, max3;
+			const float* sptr = bufs[ 0 ] + i;
+			max0 = sptr[ 0 ];
+			max1 = sptr[ 1 ];
+			max2 = sptr[ 2 ];
+			max3 = sptr[ 3 ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				sptr = bufs[ k ] + i;
+				max0 = max0 > sptr[ 0 ] ? max0 : sptr[ 0 ];
+				max1 = max1 > sptr[ 1 ] ? max1 : sptr[ 1 ];
+				max2 = max2 > sptr[ 2 ] ? max2 : sptr[ 2 ];
+				max3 = max3 > sptr[ 3 ] ? max3 : sptr[ 3 ];
+			}
+
+			*dst++ = max0;
+			*dst++ = max1;
+			*dst++ = max2;
+			*dst++ = max3;
+		}
+
+		for( ; i < n; i++ ) {
+			float max = *( bufs[ 0 ] + i );
+			for( size_t k = 1; k < numbufs; k++ ) {
+				max = max > *( bufs[ k ] + i ) ? max : *( bufs[ k ] + i );
+			}
+			*dst++ = max;
+		}
+	}
+
+
+
+	void SIMD::erodeSpanU8( uint8_t* dst, const uint8_t* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		uint8_t min;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( uint8_t ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find min in 0 to radius */
+		min = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			min = min < *( src + s )? min:*(src + s );
+		*dst++ = min;
+
+		/* update min by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			min = min < *( src + radius + i ) ? min : *( src + radius + i );
+			*dst++ = min;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			min = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			*dst++ = min < *( src + step ) ? min : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				min = min < *( src + s )? min:*(src + s );
+			*dst++ = min;
+			src++;
+		}
+	}
+
+	void SIMD::erodeSpanU16( uint16_t* dst, const uint16_t* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		uint16_t min;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( uint16_t ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find min in 0 to radius */
+		min = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			min = min < *( src + s )? min:*(src + s );
+		*dst++ = min;
+
+		/* update min by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			min = min < *( src + radius + i ) ? min : *( src + radius + i );
+			*dst++ = min;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			min = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			*dst++ = min < *( src + step ) ? min : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				min = min < *( src + s )? min:*(src + s );
+			*dst++ = min;
+			src++;
+		}
+	}
+
+	void SIMD::erodeSpan1f( float* dst, const float* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		float min;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( float ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find min in 0 to radius */
+		min = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			min = min < *( src + s )? min:*(src + s );
+		*dst++ = min;
+
+		/* update min by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			min = min < *( src + radius + i ) ? min : *( src + radius + i );
+			*dst++ = min;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			min = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			*dst++ = min < *( src + step ) ? min : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				min = min < *( src + s ) ? min : *( src + s );
+			}
+			*dst++ = min < *src ? min : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			min = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				min = min < *( src + s )? min:*(src + s );
+			*dst++ = min;
+			src++;
+		}
+	}
+
+	void SIMD::dilateSpanU8( uint8_t* dst, const uint8_t* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		uint8_t max;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( uint8_t ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find max in 0 to radius */
+		max = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			max = max > *( src + s )? max:*(src + s );
+		*dst++ = max;
+
+		/* update max by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			max = max > *( src + radius + i ) ? max : *( src + radius + i );
+			*dst++ = max;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			max = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			*dst++ = max > *( src + step ) ? max : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				max = max > *( src + s )? max:*(src + s );
+			*dst++ = max;
+			src++;
+		}
+	}
+
+	void SIMD::dilateSpanU16( uint16_t* dst, const uint16_t* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		uint16_t max;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( uint16_t ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find max in 0 to radius */
+		max = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			max = max > *( src + s )? max:*(src + s );
+		*dst++ = max;
+
+		/* update max by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			max = max > *( src + radius + i ) ? max : *( src + radius + i );
+			*dst++ = max;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			max = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			*dst++ = max > *( src + step ) ? max : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				max = max > *( src + s )? max:*(src + s );
+			*dst++ = max;
+			src++;
+		}
+	}
+
+	void SIMD::dilateSpan1f( float* dst, const float* src, size_t n, size_t radius ) const
+	{
+		size_t i = 0;
+		const size_t b2 = n - radius - 2;
+		const size_t step = radius * 2 + 1;
+		float max;
+
+		if( radius == 0 ) {
+			memcpy( dst, src, n * sizeof( float ) );
+			return;
+		}
+
+		/* border 1 */
+		/* find max in 0 to radius */
+		max = *src;
+		for( size_t s = 1; s <= radius; s++ )
+			max = max > *( src + s )? max:*(src + s );
+		*dst++ = max;
+
+		/* update max by including src + radius + i and update dst */
+		for( i = 1; i < radius; i++ ) {
+			max = max > *( src + radius + i ) ? max : *( src + radius + i );
+			*dst++ = max;
+		}
+
+		/* main part */
+		for(; i <= b2; i += 2 ) {
+			max = *( src + 1 );
+			for( size_t s = 2; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			*dst++ = max > *( src + step ) ? max : *( src + step );
+			src += 2;
+		}
+
+		for( ; i < n - radius; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step; s++ ) {
+				max = max > *( src + s ) ? max : *( src + s );
+			}
+			*dst++ = max > *src ? max : *src;
+			src++;
+		}
+
+		/* border 2 */
+		size_t nend = n - i;
+		for( i = 0; i < nend; i++ ) {
+			max = *src;
+			for( size_t s = 1; s < step - i - 1; s++ )
+				max = max > *( src + s )? max:*(src + s );
+			*dst++ = max;
+			src++;
+		}
+	}
 
     void SIMD::Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const
     {
@@ -5456,12 +6071,46 @@ namespace cvt {
 
 	void SIMD::adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const
 	{
-		while ( n-- )
-		{
+		while ( n-- ) {
 			*dst++ = ( *src++ - *srcmean++ ) > t ? 0xff : 0x0;
 		}
 	}
 
+	void SIMD::adaptiveThreshold1_f_to_f( float* dst, const float* src, const float* srcmean, size_t n, float t ) const
+	{
+		while ( n-- ) {
+			*dst++ = ( *src++ - *srcmean++ ) > t ? 1.0f : 0.0f;
+		}
+	}
+
+	void SIMD::threshold1_f_to_u8( uint8_t* dst, const float* src, size_t n, float t ) const
+	{
+		while ( n-- ) {
+			*dst++ = ( *src++ ) > t ? 0xff : 0x0;
+		}
+	}
+
+	void SIMD::threshold1_f_to_f( float* dst, const float* src, size_t n, float t ) const
+	{
+		while ( n-- ) {
+			*dst++ = ( *src++ ) > t ? 1.0f : 0.0f;
+		}
+	}
+
+
+	void SIMD::threshold1_u8_to_u8( uint8_t* dst, const uint8_t* src, size_t n, uint8_t t ) const
+	{
+		while( n-- ) {
+			*dst++ = ( *src++ ) > t ? 0xff : 0x0;
+		}
+	}
+
+	void SIMD::threshold1_u8_to_f( float* dst, const uint8_t* src, size_t n, uint8_t t ) const
+	{
+		while( n-- ) {
+			*dst++ = ( *src++ ) > t ? 1.0f : 0;
+		}
+	}
 
     void SIMD::sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const
     {

@@ -23,8 +23,10 @@ namespace cvt {
                     const unsigned int* indices, size_t isize, MeshType type );*/
             ~GLPoints();
 
-                        void setScenePoints( const ScenePoints& pts );
-            void draw();
+            void	setScenePoints( const ScenePoints& pts );
+            void	draw();
+			float	pointSize() const;
+			void	setPointSize( float size );
 
         private:
             GLVertexArray _vao;
@@ -52,16 +54,27 @@ namespace cvt {
     {
     }
 
-        inline void GLPoints::setScenePoints( const ScenePoints& pts )
-        {
-            _numPts = pts.vertexSize();
-            _vertices.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * pts.vertexSize(), pts.vertices() );
-            _colors.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 4 * pts.colorSize(), pts.colors() );
+	inline float GLPoints::pointSize() const
+	{
+		return _pointSize;
+	}
 
-            _vao.setVertexData( _vertices, 3, GL_FLOAT );
-            _vao.setColorData( _colors, 4, GL_FLOAT );
-            _pointSize = pts.pointSize();
-        }
+	inline void	GLPoints::setPointSize( float size )
+	{
+		_pointSize = size;
+	}
+
+
+	inline void GLPoints::setScenePoints( const ScenePoints& pts )
+	{
+		_numPts = pts.vertexSize();
+		_vertices.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * pts.vertexSize(), pts.vertices() );
+		_colors.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 4 * pts.colorSize(), pts.colors() );
+
+		_vao.setVertexData( _vertices, 3, GL_FLOAT );
+		_vao.setColorData( _colors, 4, GL_FLOAT );
+		_pointSize = pts.pointSize();
+	}
 
     inline void GLPoints::draw()
     {

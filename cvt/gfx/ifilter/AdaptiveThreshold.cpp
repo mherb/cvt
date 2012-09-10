@@ -34,25 +34,43 @@ namespace cvt {
 
 	void AdaptiveThreshold::apply( Image& dst, const Image& src, const Image& srcmean, const float threshold, IFilterType type ) const
 	{
-		if( type != IFILTER_CPU || src.format().formatID != IFORMAT_GRAY_FLOAT || srcmean.format().formatID != IFORMAT_GRAY_FLOAT )
+		if( type != IFILTER_CPU || src.format().formatID != IFORMAT_GRAY_FLOAT || srcmean.format().formatID != IFORMAT_GRAY_FLOAT  )
 			throw CVTException( "Not implemented" );
 
-		dst.reallocate( src.width(), src.height(), IFormat::GRAY_UINT8 );
-		cvt::IMapScoped<uint8_t> mapdst( dst );
-		cvt::IMapScoped<const float> mapsrc( src );
-		cvt::IMapScoped<const float> mapsrcmean( srcmean );
+		if( dst.width() != src.width()
+		   || dst.height() != src.height()
+		   || dst.format().formatID != IFORMAT_GRAY_FLOAT
+		   || dst.format().formatID != IFORMAT_GRAY_UINT8 )
+			dst.reallocate( src.width(), src.height(), IFormat::GRAY_UINT8 );
 
 		size_t w = src.width();
 		size_t h = src.height();
 		SIMD* simd = SIMD::instance();
 
-		while( h-- ) {
-			simd->adaptiveThreshold1_f_to_u8( mapdst.ptr(), mapsrc.ptr(), mapsrcmean.ptr(), w, threshold );
-			mapdst++;
-			mapsrc++;
-			mapsrcmean++;
-		}
+		if( dst.format().formatID == IFORMAT_GRAY_UINT8 ) {
+			cvt::IMapScoped<uint8_t> mapdst( dst );
+			cvt::IMapScoped<const float> mapsrc( src );
+			cvt::IMapScoped<const float> mapsrcmean( srcmean );
 
+			while( h-- ) {
+				simd->adaptiveThreshold1_f_to_u8( mapdst.ptr(), mapsrc.ptr(), mapsrcmean.ptr(), w, threshold );
+				mapdst++;
+				mapsrc++;
+				mapsrcmean++;
+			}
+		} else {
+			cvt::IMapScoped<float> mapdst( dst );
+			cvt::IMapScoped<const float> mapsrc( src );
+			cvt::IMapScoped<const float> mapsrcmean( srcmean );
+
+			while( h-- ) {
+				simd->adaptiveThreshold1_f_to_f( mapdst.ptr(), mapsrc.ptr(), mapsrcmean.ptr(), w, threshold );
+				mapdst++;
+				mapsrc++;
+				mapsrcmean++;
+			}
+
+		}
 	}
 
 	void AdaptiveThreshold::apply( const ParamSet* set, IFilterType t ) const

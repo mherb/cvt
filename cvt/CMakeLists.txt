@@ -214,8 +214,11 @@ SET(${MODULE_NAME}_HEADERS
    gfx/ifilter/BoxFilter.h
    gfx/ifilter/GuidedFilter.h
    gfx/ifilter/StereoGCVFilter.h
+   gfx/ifilter/Threshold.h
    gfx/ifilter/TVL1Flow.h
    gfx/ifilter/TVL1Stereo.h
+   gfx/ifilter/MorphErode.h
+   gfx/ifilter/MorphDilate.h
 #	gfx/ifilter/Sobel.h
    gfx/IFilter.h
    gfx/IScaleFilter.h
@@ -423,6 +426,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
+   vision/TSDFVolume.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h   
    vision/rgbdvo/IntensityKeyframe.h
@@ -503,8 +507,11 @@ SET(${MODULE_NAME}_SOURCES
    gfx/ifilter/BoxFilter.cpp
    gfx/ifilter/GuidedFilter.cpp
    gfx/ifilter/StereoGCVFilter.cpp
+   gfx/ifilter/Threshold.cpp
    gfx/ifilter/TVL1Flow.cpp
    gfx/ifilter/TVL1Stereo.cpp
+   gfx/ifilter/MorphErode.cpp
+   gfx/ifilter/MorphDilate.cpp
 #	gfx/ifilter/Sobel.cpp
    gfx/ImageAllocatorCL.cpp
    gfx/ImageAllocatorGL.cpp
@@ -626,6 +633,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/stereo/StereoSLAM.cpp
    vision/slam/stereo/ORBStereoInit.cpp
    vision/slam/stereo/PatchStereoInit.cpp
+   vision/TSDFVolume.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp
    io/xml/XMLDecoderUTF8.cpp

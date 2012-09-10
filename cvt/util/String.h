@@ -75,6 +75,7 @@ namespace cvt {
 			bool hasSuffix( const String& str ) const;
 			bool isEmpty() const;
 			int	 compare( const String& str ) const;
+			bool isAlpha() const;
 
 			ssize_t find( char c, ssize_t pos = 0 ) const;
 			ssize_t rfind( char c, ssize_t pos = -1 ) const;
@@ -361,6 +362,12 @@ namespace cvt {
 		return _len == 0;
 	}
 
+	inline bool String::isAlpha() const
+	{
+		const char* s = _str;
+		while ( ( unsigned char ) ( ( *s | 0x20 )- 'a' ) < 0x1AU ) s++;
+		return !*s;
+	}
 
 	inline int	String::compare( const String& str ) const
 	{

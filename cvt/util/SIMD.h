@@ -74,6 +74,32 @@ namespace cvt {
             virtual void MulAddValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
             virtual void MulSubValue4f( float* dst, float const* src1, const float (&value)[ 4 ], const size_t n ) const;
 
+			virtual void MinValueU8( uint8_t* dst, const uint8_t* src1, const uint8_t* src2, size_t n ) const;
+			virtual void MinValueU16( uint16_t* dst, const uint16_t* src1, const uint16_t* src2, size_t n ) const;
+			virtual void MinValue1f( float* dst, const float* src1, const float* src2, size_t n ) const;
+
+			virtual void MaxValueU8( uint8_t* dst, const uint8_t* src1, const uint8_t* src2, size_t n ) const;
+			virtual void MaxValueU16( uint16_t* dst, const uint16_t* src1, const uint16_t* src2, size_t n ) const;
+			virtual void MaxValue1f( float* dst, const float* src1, const float* src2, size_t n ) const;
+
+            virtual void MinValueVertU8( uint8_t* dst, const uint8_t** bufs, size_t numbufs, size_t n ) const;
+            virtual void MinValueVertU16( uint16_t* dst, const uint16_t** bufs, size_t numbufs, size_t n ) const;
+            virtual void MinValueVert1f( float* dst, const float** bufs, size_t numbufs, size_t n ) const;
+
+            virtual void MaxValueVertU8( uint8_t* dst, const uint8_t** bufs, size_t numbufs, size_t n ) const;
+            virtual void MaxValueVertU16( uint16_t* dst, const uint16_t** bufs, size_t numbufs, size_t n ) const;
+            virtual void MaxValueVert1f( float* dst, const float** bufs, size_t numbufs, size_t n ) const;
+
+
+			/* morphological ops */
+			virtual void erodeSpanU8( uint8_t* dst, const uint8_t* src, size_t n, size_t radius ) const;
+			virtual void erodeSpanU16( uint16_t* dst, const uint16_t* src, size_t n, size_t radius ) const;
+			virtual void erodeSpan1f( float* dst, const float* src, size_t n, size_t radius ) const;
+
+			virtual void dilateSpanU8( uint8_t* dst, const uint8_t* src, size_t n, size_t radius ) const;
+			virtual void dilateSpanU16( uint16_t* dst, const uint16_t* src, size_t n, size_t radius ) const;
+			virtual void dilateSpan1f( float* dst, const float* src, size_t n, size_t radius ) const;
+
             /* memory blocks */
                         /* floating point numbers */
             virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
@@ -227,6 +253,12 @@ namespace cvt {
 			virtual void boxFilterPrefixSum1_f_to_u8( uint8_t* dst, size_t dstride, const float* src, size_t srcstride, size_t width, size_t height, size_t boxwidth, size_t boxheight ) const;
 
 			virtual void adaptiveThreshold1_f_to_u8( uint8_t* dst, const float* src, const float* srcmean, size_t n, float t ) const;
+			virtual void adaptiveThreshold1_f_to_f( float* dst, const float* src, const float* srcmean, size_t n, float t ) const;
+
+			virtual void threshold1_f_to_u8( uint8_t* dst, const float* src, size_t n, float t ) const;
+			virtual void threshold1_f_to_f( float* dst, const float* src, size_t n, float t ) const;
+			virtual void threshold1_u8_to_u8( uint8_t* dst, const uint8_t* src, size_t n, uint8_t t ) const;
+			virtual void threshold1_u8_to_f( float* dst, const uint8_t* src, size_t n, uint8_t t ) const;
 
             virtual void sumPoints( Vector2f& dst, const Vector2f* src, size_t n ) const;
             virtual void sumPoints( Vector3f& dst, const Vector3f* src, size_t n ) const;

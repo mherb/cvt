@@ -8,17 +8,17 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#ifndef CVT_ADAPTIVETHRESHOLD_H
-#define CVT_ADAPTIVETHRESHOLD_H
+#ifndef CVT_THRESHOLD_H
+#define CVT_THRESHOLD_H
 
 #include <cvt/gfx/IFilter.h>
 #include <cvt/cl/CLKernel.h>
 
 namespace cvt {
-	class AdaptiveThreshold : public IFilter {
+	class Threshold : public IFilter {
 		public:
-			AdaptiveThreshold();
-			void apply( Image& dst, const Image& src, const Image& srcmean, const float threshold, IFilterType = IFILTER_CPU ) const;
+			Threshold();
+			void apply( Image& dst, const Image& src, const float threshold, IFilterType = IFILTER_CPU ) const;
 			void apply( const ParamSet* set, IFilterType t = IFILTER_CPU ) const;
 	};
 }

@@ -52,7 +52,7 @@ namespace cvt {
         }
 
         scenepts.setVerticesWithColor( &pts[ 0 ], &colors[ 0 ], pts.size() );
-        scenepts.transform( calibration.extrinsics() );
+        scenepts.transform( calibration.extrinsics().inverse() );
     }
 
     void Vision::unprojectToScenePoints( ScenePoints& scenepts, const Image& texture, const Image& depthmap, float dscale )

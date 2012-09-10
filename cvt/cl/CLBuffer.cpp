@@ -42,6 +42,16 @@ namespace cvt
 		return CLContext( _context() );
 	}
 
+	void CLBuffer::read( void* dst )
+	{
+		 CL::defaultQueue()->enqueueReadBuffer( *this, dst, _size );
+	}
+
+	void CLBuffer::write( void* src )
+	{
+		 CL::defaultQueue()->enqueueWriteBuffer( *this, src, _size );
+	}
+
 	/**
 	  Map the CLBuffer object memory in the host address-space for reading/writing using the default command-queue.
 	  \param stride the stride of the mapped image.
