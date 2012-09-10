@@ -32,6 +32,7 @@ namespace cvt
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             struct Result {
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 Result() :
                     success( false ),
                     iterations( 0 ),
@@ -66,7 +67,6 @@ namespace cvt
 
                     HessianType                 hessian;
                     HessianType                 inverseHessian;
-
                     Mat3Type                    intrinsics;
 
                     void reserve( size_t size )
@@ -107,7 +107,7 @@ namespace cvt
              */
             void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr, const Image& depth );
 
-            virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;            
+            virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
 
         protected:
             Matrix4<T>                  _pose;
@@ -134,7 +134,7 @@ namespace cvt
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
             void alignSingleScale( Result& result, const Image& gray, const Image& depth, size_t octave );
-            bool checkResult( const Result& res, const Matrix4<T> &lastPose ) const;
+            bool checkResult( const Result& res, const Matrix4<T>& lastPose ) const;
 
             virtual void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
             virtual void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
@@ -149,6 +149,8 @@ namespace cvt
     inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
+        //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
+        //_ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
         _gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
         _gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
@@ -162,6 +164,7 @@ namespace cvt
         _weighter( (T)0.1 )
     {
         float s = -0.5f;
+        //float s = -1.0f;
         _kx.scale( s );
         _ky.scale( s );
 
