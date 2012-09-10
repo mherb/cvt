@@ -2,11 +2,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/util/Exception.h>
 
-#ifdef __APPLE__
-    #include <libpng14/png.h>
-#else 
-    #include <png.h>
-#endif
+#include <png.h>
 
 namespace cvt {
 	class PNGLoader : public ILoader
