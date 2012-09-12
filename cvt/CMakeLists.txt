@@ -98,7 +98,7 @@ SET( CL_KERNELS
     cl/kernel/gradx.cl
     cl/kernel/gradxy.cl
     cl/kernel/median3.cl
-	cl/kernel/FlowColorCode.cl
+        cl/kernel/FlowColorCode.cl
     cl/kernel/fgp/fgp.cl
     cl/kernel/fgp/fgp_data.cl
     cl/kernel/fgp/fgpgrayweightedhuber.cl
@@ -428,14 +428,15 @@ SET(${MODULE_NAME}_HEADERS
    vision/StereoCameraCalibration.h
    vision/TSDFVolume.h
    vision/Vision.h
-   vision/SparseBundleAdjustment.h   
+   vision/SparseBundleAdjustment.h
    vision/rgbdvo/IntensityKeyframe.h
+   vision/rgbdvo/Optimizer.h
    vision/rgbdvo/IntensityDepthKeyframe.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
-   vision/rgbdvo/RGBDWarp.h      
+   vision/rgbdvo/RGBDWarp.h
    vision/rgbdvo/RobustWeighting.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
