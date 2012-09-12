@@ -151,7 +151,6 @@ namespace cvt
                         if( depthLastY[ x ] > this->_minDepth )
                             depthGrad[ 1 ] = z - depthLastY[ x ];
 
-                        // TODO: selection should be based on depth and gradient threshold
                         float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
                         salience += depthData.lambda * ( Math::abs( depthGrad[ 0 ] ) + Math::abs( depthGrad[ 1 ] ) );
 
