@@ -26,6 +26,35 @@
 
 namespace cvt
 {
+    template <size_t dim>
+    struct AlignmentData {
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+            typedef Eigen::Matrix<float, 1, dim>    JacobianType;
+            typedef Eigen::Matrix<float, dim, dim>  HessianType;
+
+            std::vector<Vector3f>       points3d;
+            std::vector<float>          pixelValues;
+            std::vector<JacobianType>   jacobians;
+
+            HessianType                 hessian;
+            HessianType                 inverseHessian;
+            Matrix3f                    intrinsics;
+
+            void reserve( size_t size )
+            {
+                points3d.reserve( size );
+                pixelValues.reserve( size );
+                jacobians.reserve( size );
+            }
+
+            void clear()
+            {
+                points3d.clear();
+                pixelValues.clear();
+                jacobians.clear();
+            }
+    };
+
     template <class WarpFunc,
               class Weighter>
     class RGBDKeyframe {
@@ -50,44 +79,17 @@ namespace cvt
                 WarpFunc    warp;
             };
 
-            typedef typename WarpFunc::Type  T;
-            typedef Vector3<T> PointType;
-            typedef Matrix3<T> Mat3Type;
-
             typedef typename WarpFunc::JacobianType  JacobianType;
             typedef typename WarpFunc::HessianType   HessianType;
             typedef WarpFunc                         WarpFunction;
+            typedef typename WarpFunc::Type               T;
+            typedef AlignmentData<WarpFunction::NumParameters> AlignDataType;
 
-            struct AlignmentData {
-                    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-                    std::vector<PointType>      points3d;
-                    std::vector<float>          pixelValues;
-                    std::vector<JacobianType>   jacobians;
-
-                    HessianType                 hessian;
-                    HessianType                 inverseHessian;
-                    Mat3Type                    intrinsics;
-
-                    void reserve( size_t size )
-                    {
-                        points3d.reserve( size );
-                        pixelValues.reserve( size );
-                        jacobians.reserve( size );
-                    }
-
-                    void clear()
-                    {
-                        points3d.clear();
-                        pixelValues.clear();
-                        jacobians.clear();
-                    }
-            };
-
-            RGBDKeyframe( const Mat3Type &K, size_t octaves, float scale );
+            RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
             virtual ~RGBDKeyframe();
 
-            const AlignmentData& dataForScale( size_t o ) const { return _dataForScale[ o ]; }
+            const AlignDataType& dataForScale( size_t o ) const { return _dataForScale[ o ]; }
             const Matrix4<T>&    pose()                   const { return _pose; }
 
             /* originally, the depth map is stored as uint16_t, and when we convert it to float it will be mapped between 0 and 1!*/
@@ -105,14 +107,17 @@ namespace cvt
              *  \brief align the current camera frame with this keyframe
              *  \param prediction   predicted pose of the camera frame in world frame (T_wc)
              */
-            void align( Result& result, const Matrix4<T>& prediction, const ImagePyramid& pyr, const Image& depth );
+            void align( Result& result,
+                        const Matrix4<T>& prediction,
+                        const ImagePyramid& pyr,
+                        const Image& depth );
 
             virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
 
         protected:
             Matrix4<T>                  _pose;
 
-            typedef std::vector<AlignmentData, Eigen::aligned_allocator<AlignmentData> > AlignmentDataVector;
+            typedef std::vector<AlignDataType, Eigen::aligned_allocator<AlignDataType> > AlignmentDataVector;
             AlignmentDataVector         _dataForScale;
             IKernel                     _kx;
             IKernel                     _ky;
@@ -130,7 +135,7 @@ namespace cvt
 
             Weighter                    _weighter;
 
-            void updateIntrinsics( const Mat3Type& K, float scale );
+            void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
             void alignSingleScale( Result& result, const Image& gray, const Image& depth, size_t octave );
@@ -141,12 +146,12 @@ namespace cvt
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
-            void  selectInformation( AlignmentData& data, size_t n );
-            void  updateHessian( AlignmentData& data );
+            void  selectInformation( AlignDataType& data, size_t n );
+            void  updateHessian( AlignDataType& data );
     };
 
     template <class WarpFunc, class Weighter>
-    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
+    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
         //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
@@ -178,7 +183,7 @@ namespace cvt
     }
 
     template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::updateIntrinsics( const Mat3Type& K, float scale )
+    inline void RGBDKeyframe<WarpFunc, Weighter>::updateIntrinsics( const Matrix3f& K, float scale )
     {
         _dataForScale[ 0 ].intrinsics = K;
         for( size_t o = 1; o < _dataForScale.size(); o++ ){
@@ -322,7 +327,7 @@ namespace cvt
     }
 
     template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::selectInformation( AlignmentData& data, size_t n )
+    inline void RGBDKeyframe<WarpFunc, Weighter>::selectInformation( AlignDataType &data, size_t n )
     {
         InformationSelection<JacobianType> selector( n );
         const std::set<size_t>& ids = selector.selectInformation( &data.jacobians[ 0 ], data.jacobians.size() );
@@ -350,7 +355,7 @@ namespace cvt
     }
 
     template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::updateHessian( AlignmentData& data )
+    inline void RGBDKeyframe<WarpFunc, Weighter>::updateHessian( AlignDataType& data )
     {
         typename std::vector<JacobianType>::const_iterator it = data.jacobians.begin();
         typename std::vector<JacobianType>::const_iterator end = data.jacobians.end();

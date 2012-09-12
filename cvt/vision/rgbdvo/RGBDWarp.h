@@ -17,6 +17,15 @@
 
 namespace cvt
 {
+    /*
+    template <class T>
+    class RGBDWarpBase
+    {
+        public:
+            RGBDWarpBase(){}
+
+            virtual static size_t NumParameters() = 0;
+    };*/
 
     template <class T>
     struct StandardWarp {

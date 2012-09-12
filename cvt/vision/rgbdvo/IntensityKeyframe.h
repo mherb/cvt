@@ -35,9 +35,8 @@ namespace cvt
             typedef typename Base::T                    T;
             typedef typename Base::Result               Result;
             typedef typename Base::JacobianType         JacobianType;
-            typedef typename Base::Mat3Type             Mat3Type;
 
-            IntensityKeyframe( const Mat3Type &K, size_t octaves, float scale );
+            IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~IntensityKeyframe();
 
             void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
@@ -49,7 +48,7 @@ namespace cvt
     };
 
     template <class WarpFunc, class Weighter>
-    inline IntensityKeyframe<WarpFunc, Weighter>::IntensityKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
+    inline IntensityKeyframe<WarpFunc, Weighter>::IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
         RGBDKeyframe<WarpFunc, Weighter>( K, octaves, scale )
     {
     }
@@ -82,7 +81,7 @@ namespace cvt
             const Image& gray = pyramid[ i ];
             this->computeImageGradients( gxI, gyI, gray );
 
-            typename Base::AlignmentData& data = this->_dataForScale[ i ];
+            typename Base::AlignDataType& data = this->_dataForScale[ i ];
             data.clear();
             size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
             data.reserve( 0.6f * pixelsOnOctave );
@@ -169,7 +168,7 @@ namespace cvt
     {
         SIMD* simd = SIMD::instance();
 
-        const typename Base::AlignmentData& kfdata = Base::_dataForScale[ octave ];
+        const typename Base::AlignDataType& kfdata = Base::_dataForScale[ octave ];
 
         const size_t num = kfdata.points3d.size();
         const size_t width = gray.width();
@@ -245,7 +244,7 @@ namespace cvt
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;
 
-        const typename Base::AlignmentData& kfdata = Base::_dataForScale[ octave ];
+        const typename Base::AlignDataType& kfdata = Base::_dataForScale[ octave ];
         const size_t num = kfdata.points3d.size();
         const size_t width = gray.width();
         const size_t height = gray.height();
