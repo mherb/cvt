@@ -106,11 +106,11 @@ void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, 
     delete keyframe;
 }
 
-template <class KFType>
+template <class KFType, class LossFunc>
 void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     RGBDParser parser( folder, 0.05f );
-    RGBDVisualOdometry<KFType> vo( K, params );
+    RGBDVisualOdometry<KFType, LossFunc> vo( K, params );
     vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
     vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
@@ -166,25 +166,26 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
     typedef AffineLightingWarp<float> ALWarpf;
     typedef Huber<float> Huberf;
     typedef Tukey<float> Tukeyf;
+    typedef NoWeighting<float> NoWeighting;
 
     String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
     if( kftypeString.toUpper() == "STD" ){
-        runVOWithKFType<IntensityKeyframe<StandardWarpf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf, Huberf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf, Tukeyf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<IntensityKeyframe<ALWarpf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf>, NoWeighting >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII_HUBER" ) {
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<ALWarpf, Huberf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf>, Huberf >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<ALWarpf, Tukeyf> >( params, K, folder, cfg );
+        runVOWithKFType<IntensityKeyframe<ALWarpf>, Tukeyf>( params, K, folder, cfg );
     } else {
         std::cout << "Unknown keyframe type" << std::endl;
     }

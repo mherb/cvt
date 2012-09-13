@@ -17,18 +17,9 @@
 
 namespace cvt
 {
-    /*
-    template <class T>
-    class RGBDWarpBase
-    {
-        public:
-            RGBDWarpBase(){}
-
-            virtual static size_t NumParameters() = 0;
-    };*/
-
     template <class T>
     struct StandardWarp {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static const size_t NumParameters = 6;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
@@ -101,6 +92,7 @@ namespace cvt
 
     template <class T>
     struct AffineLightingWarp {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static const size_t NumParameters = 8;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;

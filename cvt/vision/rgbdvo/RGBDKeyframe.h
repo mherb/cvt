@@ -55,8 +55,7 @@ namespace cvt
             }
     };
 
-    template <class WarpFunc,
-              class Weighter>
+    template <class WarpFunc>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -82,35 +81,23 @@ namespace cvt
             typedef typename WarpFunc::JacobianType  JacobianType;
             typedef typename WarpFunc::HessianType   HessianType;
             typedef WarpFunc                         WarpFunction;
-            typedef typename WarpFunc::Type               T;
+            typedef typename WarpFunc::Type          T;
             typedef AlignmentData<WarpFunction::NumParameters> AlignDataType;
-
 
             RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
             virtual ~RGBDKeyframe();
 
-            const AlignDataType& dataForScale( size_t o ) const { return _dataForScale[ o ]; }
-            const Matrix4<T>&    pose()                   const { return _pose; }
+            const AlignDataType& dataForScale( size_t o )       const { return _dataForScale[ o ]; }
+
+            const Matrix4<T>&    pose()                         const { return _pose; }
 
             /* originally, the depth map is stored as uint16_t, and when we convert it to float it will be mapped between 0 and 1!*/
             void setDepthMapScaleFactor( float scaleFactor )        { _depthScaling = ( ( float )0xFFFF ) / scaleFactor; }
             void setMinimumDepth( T depthTresh )                    { _minDepth = depthTresh; }
             void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
-            void setMaxIter( size_t maxiter )                       { _maxIters = maxiter; }
-            void setMinUpdate( T minUpdate )                        { _minUpdate = minUpdate; }
             void setTranslationJumpThreshold( T maxTDiff )          { _translationJumpThreshold = maxTDiff; }
             void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
-            void setRobustParam( T v )                              { _weighter = Weighter( v ); }
             void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
-
-            /**
-             *  \brief align the current camera frame with this keyframe
-             *  \param prediction   predicted pose of the camera frame in world frame (T_wc)
-             */
-            void align( Result& result,
-                        const Matrix4<T>& prediction,
-                        const ImagePyramid& pyr,
-                        const Image& depth );
 
             virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
 
@@ -127,22 +114,14 @@ namespace cvt
             float                       _depthScaling;
             T                           _minDepth;
             float                       _gradientThreshold;
-            size_t                      _maxIters;
-            T                           _minUpdate;
             T                           _translationJumpThreshold;
             float                       _minPixelPercentage;
             float                       _pixelPercentageToSelect;
 
-            Weighter                    _weighter;
-
             void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
-            void alignSingleScale( Result& result, const Image& gray, const Image& depth, size_t octave );
             bool checkResult( const Result& res, const Matrix4<T>& lastPose ) const;
-
-            virtual void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
-            virtual void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave ) = 0;
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
@@ -150,8 +129,8 @@ namespace cvt
             void  updateHessian( AlignDataType& data );
     };
 
-    template <class WarpFunc, class Weighter>
-    inline RGBDKeyframe<WarpFunc, Weighter>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
+    template <class WarpFunc>
+    inline RGBDKeyframe<WarpFunc>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
         _kx( IKernel::HAAR_HORIZONTAL_3 ),
         _ky( IKernel::HAAR_VERTICAL_3 ),
         //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
@@ -161,12 +140,9 @@ namespace cvt
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _gradientThreshold( 0.0f ),
-        _maxIters( 5 ),
-        _minUpdate( (T)1e-6 ),
         _translationJumpThreshold( ( T )0.8 ),
         _minPixelPercentage( 0.2f ),
-        _pixelPercentageToSelect( 0.3f ),
-        _weighter( (T)0.1 )
+        _pixelPercentageToSelect( 0.3f )
     {
         float s = -0.5f;
         //float s = -1.0f;
@@ -177,13 +153,13 @@ namespace cvt
         updateIntrinsics( K, scale );
     }
 
-    template <class WarpFunc, class Weighter>
-    inline RGBDKeyframe<WarpFunc, Weighter>::~RGBDKeyframe()
+    template <class WarpFunc>
+    inline RGBDKeyframe<WarpFunc>::~RGBDKeyframe()
     {
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::updateIntrinsics( const Matrix3f& K, float scale )
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::updateIntrinsics( const Matrix3f& K, float scale )
     {
         _dataForScale[ 0 ].intrinsics = K;
         for( size_t o = 1; o < _dataForScale.size(); o++ ){
@@ -192,8 +168,8 @@ namespace cvt
         }
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
     {
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
@@ -207,50 +183,8 @@ namespace cvt
         //gray.convolve( gy, _ky );
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::align( Result& result,
-                                                         const Matrix4<T>& prediction,
-                                                         const ImagePyramid& pyr, const Image &depth )
-    {
-        Matrix4<T> tmp4;
-        tmp4 = prediction.inverse() * _pose;
-
-        result.warp.setPose( tmp4 );
-        result.costs = 0.0f;
-        result.iterations = 0;
-        result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
-
-        Result scaleResult;
-        scaleResult = result;
-        for( int o = pyr.octaves() - 1; o >= 0; o-- ){
-            alignSingleScale( scaleResult, pyr[ o ], depth, o );
-
-            if( checkResult( scaleResult, result.warp.poseMatrix() ) ){
-                // seems to be a good alignment
-                result = scaleResult;
-            } else {
-                scaleResult = result;
-            }
-        }
-
-        tmp4 = result.warp.poseMatrix();
-        tmp4 = _pose * tmp4.inverse();
-        result.warp.setPose( tmp4 );
-    }
-
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::alignSingleScale( Result& result, const Image& gray, const Image& depth, size_t octave )
-    {
-        if( IsRobustWeighting<Weighter>::Value ){
-            alignSingleScaleRobust( result, gray, depth, octave );
-        } else {
-            alignSingleScaleNonRobust( result, gray, depth, octave );
-        }
-    }
-
-    template <class WarpFunc, class Weighter>
-    inline bool RGBDKeyframe<WarpFunc, Weighter>::checkResult( const Result& res, const Matrix4<T>& lastPose ) const
+    template <class WarpFunc>
+    inline bool RGBDKeyframe<WarpFunc>::checkResult( const Result& res, const Matrix4<T>& lastPose ) const
     {
         // to few pixels projected into image
         if( res.pixelPercentage < _minPixelPercentage ){
@@ -268,8 +202,8 @@ namespace cvt
         return true;
     }
 
-    template <class WarpFunc, class Weighter>
-    inline float RGBDKeyframe<WarpFunc, Weighter>::interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const
+    template <class WarpFunc>
+    inline float RGBDKeyframe<WarpFunc>::interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const
     {
         // get the fractions:
         int xi = p.x;
@@ -317,8 +251,8 @@ namespace cvt
         return Math::mix( z0, z1, wy ) * _depthScaling;
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void  RGBDKeyframe<WarpFunc, Weighter>::initializePointLookUps( float* vals, size_t n, float foc, float c ) const
+    template <class WarpFunc>
+    inline void  RGBDKeyframe<WarpFunc>::initializePointLookUps( float* vals, size_t n, float foc, float c ) const
     {
         float invF = 1.0f / foc;
         for( size_t i = 0; i < n; i++ ){
@@ -326,8 +260,8 @@ namespace cvt
         }
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::selectInformation( AlignDataType &data, size_t n )
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::selectInformation( AlignDataType &data, size_t n )
     {
         InformationSelection<JacobianType> selector( n );
         const std::set<size_t>& ids = selector.selectInformation( &data.jacobians[ 0 ], data.jacobians.size() );
@@ -354,8 +288,8 @@ namespace cvt
         data.pixelValues.erase( data.pixelValues.begin() + n, data.pixelValues.end() );
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void RGBDKeyframe<WarpFunc, Weighter>::updateHessian( AlignDataType& data )
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::updateHessian( AlignDataType& data )
     {
         typename std::vector<JacobianType>::const_iterator it = data.jacobians.begin();
         typename std::vector<JacobianType>::const_iterator end = data.jacobians.end();

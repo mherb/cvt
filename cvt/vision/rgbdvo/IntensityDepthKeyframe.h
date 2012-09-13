@@ -26,12 +26,11 @@
 
 namespace cvt
 {
-    template <class WarpFunc,
-              class Weighter = NoWeighting<typename WarpFunc::Type> >
-    class IntensityDepthKeyframe : public RGBDKeyframe<WarpFunc, Weighter> {
+    template <class WarpFunc>
+    class IntensityDepthKeyframe : public RGBDKeyframe<WarpFunc> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef RGBDKeyframe<WarpFunc, Weighter>    Base;
+            typedef RGBDKeyframe<WarpFunc>    Base;
             typedef typename Base::T                    T;
             typedef typename Base::Result               Result;
             typedef typename Base::Mat3Type             Mat3Type;
@@ -71,20 +70,20 @@ namespace cvt
 
     };
 
-    template <class WarpFunc, class Weighter>
-    inline IntensityDepthKeyframe<WarpFunc, Weighter>::IntensityDepthKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
-        RGBDKeyframe<WarpFunc, Weighter>( K, octaves, scale )
+    template <class WarpFunc>
+    inline IntensityDepthKeyframe<WarpFunc>::IntensityDepthKeyframe( const Mat3Type &K, size_t octaves, float scale ) :
+        RGBDKeyframe<WarpFunc>( K, octaves, scale )
     {
         _depthDataForScale.resize( octaves );
     }
 
-    template <class WarpFunc, class Weighter>
-    inline IntensityDepthKeyframe<WarpFunc, Weighter>::~IntensityDepthKeyframe()
+    template <class WarpFunc>
+    inline IntensityDepthKeyframe<WarpFunc>::~IntensityDepthKeyframe()
     {
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void IntensityDepthKeyframe<WarpFunc, Weighter>::updateOfflineData( const Matrix4<T>& poseMat,
+    template <class WarpFunc>
+    inline void IntensityDepthKeyframe<WarpFunc>::updateOfflineData( const Matrix4<T>& poseMat,
                                                                                const ImagePyramid& pyramid,
                                                                                const Image& depth )
     {
@@ -188,8 +187,8 @@ namespace cvt
     }
 
 
-    template <class WarpFunc, class Weighter>
-    inline void IntensityDepthKeyframe<WarpFunc, Weighter>::alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave )
+    template <class WarpFunc>
+    inline void IntensityDepthKeyframe<WarpFunc>::alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave )
     {
         SIMD* simd = SIMD::instance();
 
@@ -278,8 +277,8 @@ namespace cvt
         result.pixelPercentage = result.numPixels / num;
     }
 
-    template <class WarpFunc, class Weighter>
-    inline void IntensityDepthKeyframe<WarpFunc, Weighter>::alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave )
+    template <class WarpFunc>
+    inline void IntensityDepthKeyframe<WarpFunc>::alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave )
     {
         SIMD* simd = SIMD::instance();
         Matrix4f projMat;

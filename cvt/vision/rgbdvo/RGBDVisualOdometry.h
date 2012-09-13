@@ -19,16 +19,17 @@
 #include <cvt/util/CVTAssert.h>
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/Optimizer.h>
 
 namespace cvt {
 
-    template <class DerivedKF>
+    template <class DerivedKF, class LossFunction>
     class RGBDVisualOdometry
     {
 
         public:
             RGBDVisualOdometry( const Matrix3f& K, const VOParams& params );
-            ~RGBDVisualOdometry();            
+            ~RGBDVisualOdometry();
 
             /**
              *  \brief  update the pose by using the given pose as starting point
@@ -83,6 +84,10 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
+            typedef typename DerivedKF::WarpFunction WFunc;
+            typedef Optimizer<WFunc, LossFunction> OptimizerType;
+
+            OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;
             VOParams                    _params;
 
@@ -102,14 +107,13 @@ namespace cvt {
 
             typename DerivedKF::Result  _lastResult;
 
-
             bool needNewKeyframe() const;
 
             void setKeyframeParams( DerivedKF& kf );
     };
 
-    template <class DerivedKF>
-    inline RGBDVisualOdometry<DerivedKF>::RGBDVisualOdometry( const Matrix3f& K, const VOParams& params ) :
+    template <class DerivedKF, class LossFunction>
+    inline RGBDVisualOdometry<DerivedKF, LossFunction>::RGBDVisualOdometry( const Matrix3f& K, const VOParams& params ) :
         _intrinsics( K ),
         _params( params ),
         _maxTranslationDistance( 0.4f ),
@@ -124,15 +128,33 @@ namespace cvt {
         _currentPose.setIdentity();
     }
 
-    template <class DerivedKF>
-    inline RGBDVisualOdometry<DerivedKF>::~RGBDVisualOdometry()
+    template <class DerivedKF, class LossFunction>
+    inline RGBDVisualOdometry<DerivedKF, LossFunction>::~RGBDVisualOdometry()
     {
         _activeKeyframe = 0;
         _keyframes.clear();
     }
 
-    template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
+    {
+        _pyramid.update( gray );
+
+        //_activeKeyframe->align( _lastResult, pose, _pyramid, depth );
+        _optimizer.optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
+
+        _currentPose = _lastResult.warp.poseMatrix();
+
+        // check if we need a new keyframe
+        if( needNewKeyframe() ){
+            addNewKeyframe( gray, depth, _currentPose );
+        }
+
+        pose = _currentPose;
+    }
+
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
 
@@ -148,32 +170,15 @@ namespace cvt {
         pose = _currentPose;
     }
 
-    template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth )
-    {
-        _pyramid.update( gray );
-
-        _activeKeyframe->align( _lastResult, pose, _pyramid, depth );
-
-        _currentPose = _lastResult.warp.poseMatrix();
-
-        // check if we need a new keyframe
-        if( needNewKeyframe() ){
-            addNewKeyframe( gray, depth, _currentPose );
-        }
-
-        pose = _currentPose;
-    }
-
-    template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
         if( !_activeKeyframe ){
             _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
-            _activeKeyframe = &_keyframes[ 0 ];            
+            _activeKeyframe = &_keyframes[ 0 ];
             _currentPose = kfPose;
             _pyramid.update( gray );
         }
@@ -187,20 +192,21 @@ namespace cvt {
         activeKeyframeChanged.notify();
     }
 
-    template <class DerivedKF>
-    inline void RGBDVisualOdometry<DerivedKF>::setKeyframeParams( DerivedKF& kf )
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::setKeyframeParams( DerivedKF& kf )
     {
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
         kf.setGradientThreshold( _params.gradientThreshold );
-        kf.setRobustParam( _params.robustParam );
-        kf.setMaxIter( _params.maxIters );
-        kf.setMinUpdate( _params.minParameterUpdate );
         kf.setSelectionPixelPercentage( _selectionPixelPercentage );
+
+        _optimizer.setRobustThreshold( _params.robustParam );
+        _optimizer.setMaxIterations( _params.maxIters );
+        _optimizer.setMinUpdate( _params.minParameterUpdate );
     }
 
-    template <class DerivedKF>
-    inline bool RGBDVisualOdometry<DerivedKF>::needNewKeyframe() const
+    template <class DerivedKF, class LossFunction>
+    inline bool RGBDVisualOdometry<DerivedKF, LossFunction>::needNewKeyframe() const
     {
         // check the ssd:
         float avgSSD = -1.0f;
@@ -235,8 +241,8 @@ namespace cvt {
         return false;
     }
 
-    template <class DerivedKF>
-    inline const Matrix4f& RGBDVisualOdometry<DerivedKF>::pose() const
+    template <class DerivedKF, class LossFunction>
+    inline const Matrix4f& RGBDVisualOdometry<DerivedKF, LossFunction>::pose() const
     {
         return _currentPose;
     }
