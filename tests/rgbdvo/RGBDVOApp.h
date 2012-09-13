@@ -60,11 +60,9 @@ namespace cvt
                 typedef Huber<float>                LossFunc;
                 //typedef Tukey<float>                LossFunc;
 
-
-                typedef IntensityKeyframe<WarpType, LossFunc>     KFType;
-                //typedef IntensityDepthKeyframe<WarpType, LossFunc>  KFType;
-
-                RGBDVisualOdometry<KFType>  _vo;
+                typedef IntensityKeyframe<WarpType>     KFType;
+                //typedef IntensityDepthKeyframe<WarpType>  KFType;
+                RGBDVisualOdometry<KFType, LossFunc>    _vo;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
