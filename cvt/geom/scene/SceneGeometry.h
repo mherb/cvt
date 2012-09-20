@@ -33,9 +33,12 @@ namespace cvt {
 			SceneGeometryType	type() const;
 
 			virtual Boxf		boundingBox() const = 0;
+			const String&		material() const;
+			void				setMaterial( const String& name );
 
 		private:
 			SceneGeometryType _type;
+			String			  _material;
 	};
 
 	inline SceneGeometry::SceneGeometry( const String& name, SceneGeometryType type ) : SceneSpatial( name ), _type( type )
@@ -45,6 +48,17 @@ namespace cvt {
 	inline SceneGeometry::~SceneGeometry()
 	{
 	}
+
+	inline const String& SceneGeometry::material() const
+	{
+		return _material;
+	}
+
+	inline void	SceneGeometry::setMaterial( const String& name )
+	{
+		_material = name;
+	}
+
 
 	inline SceneGeometryType SceneGeometry::type() const
 	{

@@ -11,10 +11,24 @@
 #ifndef CVT_GLSMATERIAL_H
 #define CVT_GLSMATERIAL_H
 
-#include <cvt/gl/scene/GLSNode.h>
 #include <cvt/gfx/Color.h>
+#include <cvt/gl/GLTexture.h>
 
 namespace cvt {
+	enum GLSMaterialFeatures {
+		GL_SCENEMATERIAL_AMBIENT		= ( 1 << 1 ), // rgba ambient
+		GL_SCENEMATERIAL_DIFFUSE		= ( 1 << 2 ),
+		GL_SCENEMATERIAL_SPECULAR		= ( 1 << 3 ),
+		GL_SCENEMATERIAL_DIFFUSE_MAP	= ( 1 << 4 ),
+		GL_SCENEMATERIAL_AMBIENT_MAP	= ( 1 << 5 ),
+		GL_SCENEMATERIAL_SPECULAR_MAP	= ( 1 << 6 ), // rgb = color, a = shininess
+		GL_SCENEMATERIAL_NORMALMAP		= ( 1 << 7 )
+	};
+
+	CVT_ENUM_TO_FLAGS( GLSMaterialFeatures, GLSMaterialFlags )
+
+
+
 	class GLSMaterial
 	{
 		public:
@@ -32,12 +46,31 @@ namespace cvt {
 			const Color& ambientColor() const;
 			void		 setAmbientColor( const Color& c );
 
+
+			GLSMaterialFlags flags() const { return _flags; }
+
 		private:
+			GLSMaterialFlags _flags;
 			Color	_ambient;
 			Color	_diffuse;
 			Color	_specular;
-			float	_specularIntensity;
+			float	_shininess;;
+			GLTexture* _ambientMap;
+			GLTexture* _diffuseMap;
+			GLTexture* _specMap;
+			GLTexture* _normalMap;
 	};
+
+	inline GLSMaterial::GLSMaterial()
+	{
+	}
+
+
+	inline GLSMaterial::~GLSMaterial()
+	{
+	}
+
+
 }
 
 #endif

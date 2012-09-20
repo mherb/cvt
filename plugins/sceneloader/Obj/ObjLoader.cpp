@@ -463,9 +463,9 @@ namespace cvt {
 				d.skip( ws );
 
 			} else if( token == "usemtl" ) { // reference material
-				// discard
-				d.skipInverse( "\n" );
-				d.skip( ws );
+				d.nextToken( token, ws );
+				d.nextToken( token, ws );
+				cur->setMaterial( token );
 			} else if( token == "v" ) { // vertices
 				ObjReadVertices( d, vertices );
 			} else if( token == "vn" ) { // normals
