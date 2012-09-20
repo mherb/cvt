@@ -545,6 +545,9 @@ SET(${MODULE_NAME}_SOURCES
    gl/progs/GLDrawModelProg.cpp
    gl/progs/GLFillPathProg.cpp
    gl/progs/GLTexMLSProg.cpp
+   gl/scene/GLSVisitor.cpp
+   gl/scene/GLSRenderableGroup.cpp
+   gl/scene/GLSBaseModel.cpp
    gui/Application.cpp
    gui/BasicTimer.cpp
    gui/Button.cpp

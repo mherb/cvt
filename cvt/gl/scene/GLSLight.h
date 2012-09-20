@@ -11,7 +11,7 @@
 #ifndef CVT_GLSLIGHT_H
 #define CVT_GLSLIGHT_H
 
-#include <cvt/gl/scene/GLSNode.h>
+#include <cvt/gl/scene/GLSTransformable.h>
 #include <cvt/math/Vector.h>
 #include <cvt/gfx/Color.h>
 
@@ -21,26 +21,27 @@ namespace cvt {
 		GLSLIGHT_SPOT
 	};
 
-	class GLSLight : public GLSNode
+	class GLSLight : public GLSTransformable
 	{
 		public:
 			GLSLight( GLSLightType ltype );
 			~GLSLight();
 
 			GLSLightType	 lightType() const;
-			void			 setPosition( const Vector3f& pos );
-			const Vector3f&	 position() const;
 
 			void			 setColor( const Color& c );
 			const Color&	 color() const;
 
+			bool			 visible() const { return _visible; }
+			void			 setVisible( bool b ) { _visible = b; }
+
 		private:
 			GLSLightType _ltype;
-			Vector3f	 _position;
 			Color		 _color;
+			bool		 _visible;
 	};
 
-	inline GLSLight::GLSLight( GLSLightType ltype ) : GLSNode( GLSNODE_LIGHT ), _ltype( ltype )
+	inline GLSLight::GLSLight( GLSLightType ltype ) :  _ltype( ltype )
 	{
 	}
 
@@ -53,15 +54,6 @@ namespace cvt {
 		return _ltype;
 	}
 
-	inline const Vector3f& GLSLight::position() const
-	{
-		return _position;
-	}
-
-	inline void GLSLight::setPosition( const Vector3f& pos )
-	{
-		_position = pos;
-	}
 
 	inline const Color& GLSLight::color() const
 	{

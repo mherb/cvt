@@ -67,8 +67,8 @@ namespace cvt {
 		mapToSphere( v1, x1, y1 );
 		mapToSphere( v2, x2, y2 );
 
-		v1.normalize();
-		v2.normalize();
+	//	v1.normalize();
+	//	v2.normalize();
 		c.cross( v2, v1 );
 		float lsqrt = c.lengthSqr();
 		if( lsqrt > Math::EPSILONF ) {
