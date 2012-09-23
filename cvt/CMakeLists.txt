@@ -438,6 +438,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
    vision/rgbdvo/RobustWeighting.h
+   vision/rgbdvo/SystemBuilder.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
