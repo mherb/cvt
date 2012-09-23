@@ -53,11 +53,11 @@ namespace cvt
 #endif
 
 
-                typedef StandardWarp<float>         WarpType;
-                //typedef AffineLightingWarp<float>   WarpType;
+                //typedef StandardWarp<float>         WarpType;
+                typedef AffineLightingWarp<float>   WarpType;
 
-                //typedef NoWeighting<float>          LossFunc;
-                typedef Huber<float>                LossFunc;
+                typedef NoWeighting<float>          LossFunc;
+                //typedef Huber<float>                LossFunc;
                 //typedef Tukey<float>                LossFunc;
 
                 typedef IntensityKeyframe<WarpType>     KFType;
