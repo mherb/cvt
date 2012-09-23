@@ -64,7 +64,7 @@ namespace cvt {
 		_vao.setTexCoordData( _texcoords, 2, GL_FLOAT );
 		_vao.setNormalData( _normals, 3, GL_FLOAT );
 		
-		_vao.setColor( Color::GRAY );
+		_vao.setColor( Color::RED );
 	}
 
 	inline GLMesh::~GLMesh()

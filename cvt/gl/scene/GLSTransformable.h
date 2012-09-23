@@ -8,8 +8,8 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#ifndef CVT_GLSTRANSFORM_H
-#define CVT_GLSTRANSFORM_H
+#ifndef CVT_GLSTRANSFORMABLE_H
+#define CVT_GLSTRANSFORMABLE_H
 
 #include <cvt/math/Matrix.h>
 
@@ -17,8 +17,10 @@ namespace cvt {
 	class GLSTransformable
 	{
 		public:
+			GLSTransformable( const GLSTransformable& t );
+			GLSTransformable( );
 			GLSTransformable( const Matrix4f& mat );
-			~GLSTransformable();
+			virtual ~GLSTransformable();
 
 			const Matrix4f& transformation() const;
 			Matrix4f&		transformation();
@@ -28,7 +30,16 @@ namespace cvt {
 			Matrix4f	_transformation;
 	};
 
-	inline GLSTransformable::GLSTransformable( const Matrix4f& mat ) : GLSNode( GLSNODE_TRANSFORMATION ), _transformation( mat )
+	inline GLSTransformable::GLSTransformable( const GLSTransformable& t ) : _transformation( t._transformation )
+	{
+	}
+
+	inline GLSTransformable::GLSTransformable( )
+	{
+		_transformation.setIdentity();
+	}
+
+	inline GLSTransformable::GLSTransformable( const Matrix4f& mat ) : _transformation( mat )
 	{
 	}
 

@@ -12,8 +12,8 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
-	if( argc != 3 ){
-		std::cout << "Usage: " << argv[ 0 ] << " <scenefile> <geometry-index>" << std::endl;
+	if( argc != 2 ){
+		std::cout << "Usage: " << argv[ 0 ] << " <scenefile>" << std::endl;
 		return 0;
 	}
 
@@ -21,25 +21,21 @@ int main( int argc, char** argv )
 	Time t;
 	s.load( argv[ 1 ] );
 	std::cout << "Loading took: " << t.elapsedMilliSeconds() << " ms" << std::endl;
+	std::cout << s << std::endl;
 
-	size_t index = String( argv[ 2 ] ).toInteger();
+/*	size_t index = String( argv[ 2 ] ).toInteger();
 	std::cout << index << std::endl;
 	if( index >= s.geometrySize() ) {
 		std::cout << "No such mesh" << std::endl;
 		return 0;
-	}
+	} */
 
 
 	Window w( "meshView" );
 	w.setSize( 640, 480 );
-	SceneMesh* mesh = ( ( SceneMesh* ) s.geometry( index ) );
-//	mesh->translate( -mesh->centroid() );
-//	Matrix4f r;
-//	r.setRotationY( Math::deg2Rad( 45.0f ) );
-//	mesh->transform( r );
-//	mesh->scale( 0.01f );
-//	mesh->calculateNormals( 1.0f, 0.5f );
-	GLSceneView view( *( ( SceneMesh* ) s.geometry( index ) ) );
+
+	GLScene glscene( s );
+	GLSceneView view( glscene );
 
 	WidgetLayout wl;
 	wl.setAnchoredTopBottom( 0, 0 );
