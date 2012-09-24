@@ -38,7 +38,7 @@ namespace cvt {
                                    const Image& depthImage ) const;
 
 
-        private:
+        protected:
             typedef typename WarpFunc::JacobianType     JacobianType;
             typedef typename WarpFunc::HessianType      HessianType;
             typedef typename WarpFunc::DeltaVectorType  DeltaType;
@@ -119,7 +119,7 @@ namespace cvt {
                 simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
                 // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
+                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
@@ -127,7 +127,6 @@ namespace cvt {
                 scaleResult.numPixels = builder.build( hessian, deltaSum,
                                                        referenceJ,
                                                        &residuals[ 0 ],
-                                                       &interpolatedPixels[ 0 ],
                                                        scaleResult.costs,
                                                        num );
                 if( !scaleResult.numPixels ){

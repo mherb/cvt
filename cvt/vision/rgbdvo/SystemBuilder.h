@@ -17,7 +17,6 @@ namespace cvt {
             size_t build( HessType& H, JType& b,
                           const JType* jacobians,
                           const float* residuals,
-                          const float* interpolated,
                           float & ssd,
                           size_t n ) const
             {
@@ -29,16 +28,16 @@ namespace cvt {
                 H.setZero();
                 for( size_t i = 0; i < n; i++ ){
                     // compute the delta
-                    if( interpolated[ i ] >= 0.0f ){
-                        ssd += Math::sqr( residuals[ i ] );
-                        numPixels++;
 
-                        float weight = _lossFunc.weight( residuals[ i ] );
-                        jtmp = weight * jacobians[ i ];
+                    ssd += Math::sqr( residuals[ i ] );
+                    numPixels++;
 
-                        H.noalias() += jtmp.transpose() * jacobians[ i ];
-                        b.noalias() += jtmp * residuals[ i ];
-                    }
+                    float weight = _lossFunc.weight( residuals[ i ] );
+                    jtmp = weight * jacobians[ i ];
+
+                    H.noalias() += jtmp.transpose() * jacobians[ i ];
+                    b.noalias() += jtmp * residuals[ i ];
+
                 }
                 return numPixels;
             }
@@ -53,7 +52,6 @@ namespace cvt {
     inline size_t SystemBuilder<NoWeighting<float> >::build( HessType&, JType& b,
                                                              const JType* jacobians,
                                                              const float* residuals,
-                                                             const float* interpolated,
                                                              float & ssd,
                                                              size_t n ) const
     {
@@ -62,14 +60,12 @@ namespace cvt {
         b.setZero();
         for( size_t i = 0; i < n; i++ ){
             // compute the delta
-            if( interpolated[ i ] >= 0.0f ){
-                ssd += Math::sqr( residuals[ i ] );
-                numPixels++;
-                b.noalias() += jacobians[ i ] * residuals[ i ];
-            }
+            ssd += Math::sqr( residuals[ i ] );
+            numPixels++;
+            b.noalias() += jacobians[ i ] * residuals[ i ];
+
         }
         return numPixels;
-        return 0;
     }
 
 }
