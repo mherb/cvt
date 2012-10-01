@@ -1,3 +1,5 @@
+INCLUDE( MacroPlugin )
+ADD_CUSTOM_TARGET( Plugins )
 ADD_SUBDIRECTORY(ifilter)
 ADD_SUBDIRECTORY(iloader)
 ADD_SUBDIRECTORY(isaver)

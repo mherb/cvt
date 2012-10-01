@@ -125,7 +125,7 @@ namespace cvt
                         data.jacobians.push_back( j );
                         data.pixelValues.push_back( value[ x ] );
                         data.points3d.push_back( p3d );
-                        //data.hessian.noalias() += j.transpose() * j;
+            //            data.hessian.noalias() += j.transpose() * j;
                     }
                 }
                 gxMap++;
@@ -135,6 +135,7 @@ namespace cvt
 
 
             // select best N jacobians:
+
             size_t numPixels = Base::_pixelPercentageToSelect * pixelsOnOctave;
             if( data.jacobians.size() <= numPixels )
                 Base::updateHessian( data );
@@ -145,6 +146,7 @@ namespace cvt
             // precompute the inverse hessian
             data.inverseHessian = data.hessian.inverse();
 
+            /*
             cvt::String hessString;
             float normalizer = data.jacobians.size();
             std::cout << "Octave: " << i << std::endl;
@@ -156,7 +158,7 @@ namespace cvt
                                 data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
                                 data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
             std::cout << hessString << std::endl;
-
+            */
 
             scale /= pyramid.scaleFactor();
         }
