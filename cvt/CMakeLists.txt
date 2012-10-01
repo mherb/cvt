@@ -182,10 +182,11 @@ SET(${MODULE_NAME}_HEADERS
    geom/PointSet.h
    geom/Rect.h
    geom/Box.h
+   geom/scene/Scene.h
    geom/scene/SceneCamera.h
    geom/scene/SceneGeometry.h
-   geom/scene/Scene.h
    geom/scene/SceneLight.h
+   geom/scene/SceneLines.h
    geom/scene/SceneLoader.h
    geom/scene/SceneMaterial.h
    geom/scene/SceneMesh.h
@@ -262,6 +263,17 @@ SET(${MODULE_NAME}_HEADERS
    gl/progs/GLDrawModelProg.h
    gl/progs/GLFillPathProg.h
    gl/progs/GLTexMLSProg.h
+   gl/scene/GLSBaseModel.h
+   gl/scene/GLSCamera.h
+   gl/scene/GLSLight.h
+   gl/scene/GLSMaterial.h
+   gl/scene/GLSRenderable.h
+   gl/scene/GLSRenderableGroup.h
+   gl/scene/GLSShader.h
+   gl/scene/GLSTransform.h
+   gl/scene/GLSTransformable.h
+   gl/scene/GLSVisitor.h
+   gl/scene/GLScene.h
    gui/Application.h
    gui/BasicTimer.h
    gui/Button.h

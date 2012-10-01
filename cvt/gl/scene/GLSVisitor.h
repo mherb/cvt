@@ -36,7 +36,7 @@ namespace cvt {
 			void visit( GLSBaseModel& bmodel );
 
 		private:
-			GLSShader _shader;
+			GLSShader& _shader;
 	};
 
 }

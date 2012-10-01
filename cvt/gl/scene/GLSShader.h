@@ -46,7 +46,7 @@ namespace cvt {
 	inline GLSShader::GLSShader()
 	{
 		_prog.bind();
-		_prog.setLightPosition( Vector3f( 0.0f, 10.0f, 20.0f ) );
+		_prog.setLightPosition( Vector3f( 1.0f, 1.0f, -2.0f ) );
 		_prog.unbind();
 	}
 
@@ -66,7 +66,6 @@ namespace cvt {
 		_transformation = mat;
 		if( setuniform ) {
 			setUniforms();
-			std::cout << _transformation << std::endl;
 		}
 	}
 }

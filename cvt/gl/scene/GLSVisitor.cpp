@@ -31,7 +31,7 @@ namespace cvt {
 		Matrix4f told = _shader.transformation();
 		Matrix4f tnew = told * bmodel.transformation();
 
-		std::cout << "DRAW !" << std::endl;
+//		std::cout << _shader.transformation() << std::endl;
 
 		_shader.bind();
 		_shader.setTransformation( tnew, true );
