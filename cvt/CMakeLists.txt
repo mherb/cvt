@@ -13,6 +13,10 @@ cmake_policy(SET CMP0012 NEW)
 
 PROJECT(${MODULE_NAME} CXX C)
 
+SET( CMAKE_LIBRARY_PATH
+	${CMAKE_LIBRARY_PATH}
+	"/usr/lib/nvidia-current" )
+
 FIND_PACKAGE(Doxygen)
 if(DOXYGEN_FOUND)
    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../doc/Doxyfile.in
