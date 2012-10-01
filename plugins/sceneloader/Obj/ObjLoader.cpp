@@ -464,7 +464,10 @@ namespace cvt {
 
 			} else if( token == "usemtl" ) { // reference material
 				d.nextToken( token, ws );
-				d.nextToken( token, ws );
+				if( !d.nextToken( token, ws ) ) {
+					scene.clear();
+					return;
+				}
 				cur->setMaterial( token );
 			} else if( token == "v" ) { // vertices
 				ObjReadVertices( d, vertices );

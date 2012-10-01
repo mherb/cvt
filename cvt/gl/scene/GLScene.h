@@ -51,7 +51,7 @@ namespace cvt {
 			std::vector<GLSLight>		_lights;
 			std::vector<GLSMaterial>	_materials;
 			std::vector<GLTexture>		_textures;
-			std::vector<GLMesh>			_meshes;
+			std::vector<GLMesh*>			_meshes;
 			GLSRenderableGroup*			_renderables;
 			GLSShader					_shader;
 
@@ -70,65 +70,39 @@ namespace cvt {
 	inline GLScene::GLScene( const Scene& scene ) :
 		_mesh( *( ( SceneMesh* ) scene.geometry( 0 ) ) )
 	{
-#if 0
 		_renderables = new GLSRenderableGroup();
 
 		for( size_t i = 0; i < scene.geometrySize(); i++ ) {
 			if( scene.geometry( i )->type() == SCENEGEOMETRY_MESH ) {
-				_meshes.push_back( GLMesh( *( ( SceneMesh* ) scene.geometry( i ) ) ) );
-				_renderables->add( new GLSBaseModel( &_meshes.back(), NULL ) );
+				_meshes.push_back( new GLMesh( *( ( SceneMesh* ) scene.geometry( i ) ) ) );
+				_renderables->add( new GLSBaseModel( _meshes.back(), NULL ) );
 			}
 		}
 
 		if( _cams.size() == 0 ) {
-			_cams.push_back( GLSCamera( 60.0f, 1.333f, 1.0f, 100.0f ) );
+			_cams.push_back( GLSCamera( 80.0f, 1.333f, 0.01f, 100.0f ) );
 			Matrix4f t;
 			t.setIdentity();
-			//t *= 10.0f;
-			//t[ 3 ][ 3 ] = 1.0f;
-			t[ 2 ][ 3 ] = 5.0f;
+			t *= 10.0f;
+			t[ 3 ][ 3 ] = 1.0f;
+			t[ 1 ][ 3 ] = 20.0f;
+			t[ 2 ][ 3 ] = 180.0f;
 			_cams.back().setTransformation( t );
 		}
-#endif
 	}
 
 	inline GLScene::~GLScene()
 	{
-//		delete _renderables;
+		delete _renderables;
 	}
 
 	inline void GLScene::draw( size_t cam )
 	{
-//		_shader.setCamera( _cams[ cam ] );
-//		glClearColor( 1.0f, 1.0f, 0.0f, 1.0f );
-//		glClearDepth( 0.0f );
-//		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-//		GLSRenderVisitor rvisitor( _shader );
-		_shader._prog.bind();
-
-		float _scale = 0.25f;
-
-			Matrix4f proj, tmp;
-			GL::perspective( proj, 60.0f, 1.0f, 0.01f, 100.0f );
-			tmp.setIdentity();
-			tmp[ 2 ][ 3 ] = -5.5f;
-			Matrix4f diag;
-			diag.setDiagonal( Vector4f( _scale, _scale, _scale, 1.0f ) );
-			tmp *= diag;
-
-			_shader._prog.setLightPosition( Vector3f( 1.0f, 1.0f, -1.0f ) );
-			_shader._prog.setProjection( proj, tmp );
-
-
-		_shader.setUniforms();
+		_shader.setCamera( _cams[ cam ] );
+		GLSRenderVisitor rvisitor( _shader );
 		glEnable( GL_DEPTH_TEST );
-		_mesh.draw();
-
-		//_renderables->accept( rvisitor );
-	glDisable( GL_DEPTH_TEST );
-
-		_shader._prog.unbind();
+		_renderables->accept( rvisitor );
+		glDisable( GL_DEPTH_TEST );
 	}
 
 }

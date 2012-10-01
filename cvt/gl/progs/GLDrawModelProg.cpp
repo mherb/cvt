@@ -19,11 +19,11 @@ namespace cvt {
 	GLDrawModelProg::GLDrawModelProg()
 	{
 		try {
-		//	if( GL::isGLSLVersionSupported( 1, 50 ) ) {
+			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
 				build( _basiclight_150_vert_source, _basiclight_150_frag_source );
-		//	} else {
-		//		build( _basiclight_120_vert_source, _basiclight_120_frag_source );
-		//	}
+			} else {
+				build( _basiclight_120_vert_source, _basiclight_120_frag_source );
+			}
 		} catch( GLException e ) {
 			std::cout << e.what() << e.log() << std::endl;
 		}

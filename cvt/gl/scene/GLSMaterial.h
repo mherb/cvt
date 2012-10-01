@@ -37,7 +37,7 @@ namespace cvt {
 
 			const Color& specularColor() const;
 			void		 setSpecularColor( const Color& c );
-			const float	 specularIntensity() const;
+			float		 specularIntensity() const;
 			void		 setSpecularIntensity( float intensity );
 
 			const Color& diffuseColor() const;

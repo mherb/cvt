@@ -13,6 +13,7 @@
 
 
 #include <cvt/geom/scene/SceneSpatial.h>
+#include <cvt/util/String.h>
 #include <cvt/geom/Box.h>
 
 namespace cvt {
@@ -37,11 +38,13 @@ namespace cvt {
 			void				setMaterial( const String& name );
 
 		private:
-			SceneGeometryType _type;
-			String			  _material;
+			SceneGeometryType	_type;
+			String				_material;
 	};
 
-	inline SceneGeometry::SceneGeometry( const String& name, SceneGeometryType type ) : SceneSpatial( name ), _type( type )
+	inline SceneGeometry::SceneGeometry( const String& name, SceneGeometryType type ) :
+		SceneSpatial( name ),
+		_type( type )
 	{
 	}
 
