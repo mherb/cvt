@@ -81,6 +81,16 @@ namespace cvt
             SIMD::instance()->Sub( residuals, referenceValues, warped, n );
         }
 
+        float costs( const float* residuals, size_t n )
+        {
+            float ssd = 0.0f;
+            size_t evaluated = n;
+            while( n-- ){
+                    ssd += Math::sqr( *residuals++ );
+            }
+            return ssd / evaluated;
+        }
+
         void updateParameters( const DeltaVectorType& v )
         {
             _pose.applyInverse( -v );
@@ -180,6 +190,17 @@ namespace cvt
             SIMD* simd = SIMD::instance();
             simd->SubValue1f( residuals, referenceValues, _beta, n );
             simd->MulSubValue1f( residuals, warped, ( 1.0f + _alpha ), n );
+        }
+
+        float costs( const float* residuals, size_t n )
+        {
+            float ssd = 0.0f;
+            size_t evaluated = n;
+            while( n-- ){
+                    ssd += Math::sqr( *residuals++ );
+            }
+            return ssd / evaluated;
+
         }
 
         private:

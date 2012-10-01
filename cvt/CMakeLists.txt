@@ -13,6 +13,10 @@ cmake_policy(SET CMP0012 NEW)
 
 PROJECT(${MODULE_NAME} CXX C)
 
+SET( CMAKE_LIBRARY_PATH
+	${CMAKE_LIBRARY_PATH}
+	"/usr/lib/nvidia-current" )
+
 FIND_PACKAGE(Doxygen)
 if(DOXYGEN_FOUND)
    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../doc/Doxyfile.in
@@ -443,6 +447,8 @@ SET(${MODULE_NAME}_HEADERS
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/Optimizer.h
+   vision/rgbdvo/LMOptimizer.h
+   vision/rgbdvo/TROptimizer.h
    vision/rgbdvo/IntensityDepthKeyframe.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/KeyframeBase.h
@@ -450,6 +456,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
    vision/rgbdvo/RobustWeighting.h
+   vision/rgbdvo/SystemBuilder.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
