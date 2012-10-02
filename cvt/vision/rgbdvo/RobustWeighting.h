@@ -14,6 +14,8 @@ namespace cvt
     struct NoWeighting {
         NoWeighting( T ){}
         T weight( T ){ return (T)1; }
+
+        void setSigma( T /*sigma*/ ){}
     };
 
     template< typename T >
@@ -36,6 +38,8 @@ namespace cvt
                 return c / t;
         }
 
+        void setSigma( T sigma ){ c = sigma; }
+
         T c;
     };
 
@@ -56,6 +60,8 @@ namespace cvt
                 return Math::sqr( 1 - Math::sqr( r / c ) );
         }
 
+        void setSigma( T sigma ){ c = sigma; }
+
         T c;
     };
 
@@ -68,6 +74,8 @@ namespace cvt
         {
             return Math::exp( - Math::sqr( r / c ) );
         }
+
+        void setSigma( T sigma ){ c = sigma; }
 
         T c;
     };
@@ -82,6 +90,8 @@ namespace cvt
             return (T)1.0 / ( (T)1.0 + Math::sqr( r / c ) );
         }
 
+        void setSigma( T sigma ){ c = sigma; }
+
         T c;
     };
 
@@ -95,6 +105,8 @@ namespace cvt
             return (T)1 / Math::sqr( (T)1 + Math::sqr( r ) );
         }
 
+        void setSigma( T /*sigma*/ ){}
+
     };
 
     template <typename T>
@@ -106,6 +118,8 @@ namespace cvt
         {
             return (T)1 / ( (T)1 + Math::abs( r ) / c );
         }
+
+        void setSigma( T sigma ){ c = sigma; }
 
         T c;
     };
@@ -119,6 +133,8 @@ namespace cvt
         {
             return (T)1 / Math::sqrt( (T)1 + Math::sqr( r ) / 2 );
         }
+
+        void setSigma( T /*sigma*/ ){}
     };
 
     template <typename T>
@@ -130,6 +146,8 @@ namespace cvt
         {
             return (T)1 / Math::abs( r );
         }
+
+        void setSigma( T /*sigma*/ ){}
     };
 
 }
