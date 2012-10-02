@@ -26,6 +26,7 @@ namespace cvt {
                 JType jtmp;
                 b.setZero();
                 H.setZero();
+
                 for( size_t i = 0; i < n; i++ ){
                     // compute the delta
 

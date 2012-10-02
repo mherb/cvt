@@ -88,8 +88,8 @@ namespace cvt {
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            //typedef Optimizer<WFunc, LossFunction> OptimizerType;
-            typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+            typedef Optimizer<WFunc, LossFunction> OptimizerType;
+            //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;

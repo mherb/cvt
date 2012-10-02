@@ -17,6 +17,61 @@
 
 namespace cvt {
 
+    class HistMedianSelect {
+        public:
+            HistMedianSelect( float min, float max, float resolution ) :
+                _min( min ),
+                _max( max ),
+                _resolution( resolution )
+            {
+                float range = _max - _min;
+                size_t nBins = range / resolution;
+                _hist.resize( nBins, 0 );
+            }
+
+            void add( float value )
+            {
+                value = Math::clamp( value, _min, _max );
+
+                size_t bin = ( value - _min ) / _resolution;
+                _hist[ bin ]++;
+            }
+
+            // approximate the nth value
+            float approximateNth( size_t nth )
+            {
+                size_t bin = 1;
+                size_t num = _hist[ 0 ];
+
+                while( num < nth ){
+                    num += _hist[ bin ];
+                    bin++;
+                }
+                bin--;
+                size_t nPrev = num - _hist[ bin ];
+
+                if( bin )
+                    bin--;
+
+                // previous is smaller:
+                float frac = ( nth - nPrev ) / ( float )( num - nPrev );
+
+                return ( bin + frac ) * _resolution;
+            }
+
+            void clearHistogram()
+            {
+                for( size_t i = 0; i < _hist.size(); i++ ){
+                    _hist[ i ] = 0;
+                }
+            }
+
+        private:
+            float               _min;
+            float               _max;
+            float               _resolution;
+            std::vector<size_t> _hist;
+    };
 
     template <class WarpFunc, class Weighter>
     class Optimizer
@@ -46,6 +101,17 @@ namespace cvt {
             size_t  _maxIter;
             float   _minUpdate;
             float   _robustThreshold;
+
+            float computeMedian( const float* residuals, size_t n ) const
+            {
+                HistMedianSelect medianSelector( 0.0f, 1.0f, 0.01f );
+                size_t num = n;
+                while( num-- ){
+                    medianSelector.add( Math::abs( *residuals++ ) );
+                }
+
+                return medianSelector.approximateNth( n >> 1 );
+            }
 
     };
 
@@ -121,6 +187,9 @@ namespace cvt {
                 // interpolate the pixel values
                 simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
+
+                float median = computeMedian( &residuals[ 0 ], num );
+                weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
                 hessian = data.hessian;
