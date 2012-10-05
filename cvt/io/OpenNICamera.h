@@ -16,7 +16,7 @@ namespace cvt
                 UYVY_COMPRESSED		= 1,
                 JPEG				= 2,
                 UYVY_UNCOMPRESSED	= 5,
-                BAYER_UNCOMPRESSED	= 6,
+                BAYER_UNCOMPRESSED	= 6
             };
 
             enum CaptureMode
