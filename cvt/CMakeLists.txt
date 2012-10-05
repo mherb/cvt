@@ -447,6 +447,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/Optimizer.h
+   vision/rgbdvo/SplittedOptimizer.h
    vision/rgbdvo/LMOptimizer.h
    vision/rgbdvo/TROptimizer.h
    vision/rgbdvo/IntensityDepthKeyframe.h

@@ -67,7 +67,6 @@ namespace cvt
             bool checkResult( const Result& res, const Matrix4<T> &lastPose, size_t numPixels ) const;
             void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
             void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
-
     };
 
     template <class WarpFunc>

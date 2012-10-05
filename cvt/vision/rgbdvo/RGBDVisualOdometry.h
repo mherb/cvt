@@ -21,6 +21,7 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/LMOptimizer.h>
+#include <cvt/vision/rgbdvo/SplittedOptimizer.h>
 #include <cvt/vision/rgbdvo/TROptimizer.h>
 
 namespace cvt {
@@ -88,7 +89,8 @@ namespace cvt {
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            typedef Optimizer<WFunc, LossFunction> OptimizerType;
+            typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
+            //typedef Optimizer<WFunc, LossFunction> OptimizerType;
             //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
