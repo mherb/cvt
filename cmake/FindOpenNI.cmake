@@ -5,7 +5,7 @@ FIND_PATH(OPENNI_INCLUDES
 	/usr/local/dc1394/include/ni
 	/usr/local/include/ni
 	/usr/include/ni
-        /usr/include/openni
+    /usr/include/openni
 	/opt/local/include/ni
 )
 
