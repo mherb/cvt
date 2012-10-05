@@ -123,6 +123,9 @@ namespace cvt {
             simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
             scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
+            float median = this->computeMedian( &residuals[ 0 ], num );
+            weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
+
             /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
             hessian = data.hessian;
             scaleResult.numPixels = builder.build( hessian, deltaSum,
@@ -167,6 +170,9 @@ namespace cvt {
                     // keep step: update model
                     scaleResult.iterations++;
                     tmpPose = scaleResult.warp.poseMatrix();
+
+                    median = this->computeMedian( &residuals[ 0 ], num );
+                    weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                     hessian = data.hessian;
                     scaleResult.numPixels = builder.build( hessian, deltaSum,
