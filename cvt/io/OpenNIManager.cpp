@@ -12,6 +12,14 @@
 
 namespace cvt {
 
+	std::ostream& operator<<( std::ostream& out, const OpenNIManager::DeviceInformation& dInfo )
+	{
+		out << "Name: " << dInfo.name;
+		out << " Serial: " << dInfo.serial;
+		out << " Vendor Specific: " << dInfo.vendorSpecific;
+		return out;
+	}
+
 	OpenNIManager& OpenNIManager::instance()
 	{
 		static OpenNIManager _instance;
@@ -41,12 +49,12 @@ namespace cvt {
 
 		if( status != XN_STATUS_OK ){
             // this causes a problem if no device is connected!
-//			throw CVTException( "Error enumerating production trees" );
+            //throw CVTException( "Error enumerating production trees" );
+            return;
 		}
 
 		xn::NodeInfoList::Iterator it= devices.Begin();
 		xn::NodeInfoList::Iterator itEnd = devices.End();
-
 		
 		while( it!= itEnd ){
 			xn::Device device;
@@ -55,19 +63,23 @@ namespace cvt {
 			status = context.CreateProductionTree( nodeInfo, device );
 
 			DeviceInformation devInfo;
-			nameAndSerialForDevice( devInfo.name, devInfo.serial, device );
+			nameAndSerialForDevice( devInfo.name, devInfo.serial, devInfo.vendorSpecific, device );
 			
 			if( isNewDevice( devInfo.name, devInfo.serial ) ){
+				std::cout << "Found new device: kill" << devInfo << std::endl;
 				size_t index = _deviceList.size();
 				_deviceList.push_back( devInfo );
 				fillCameraModes( index, device );
 			}
 
+			device.Release();
+
 			it++;
 		}
+		context.Release();
 	}
 
-	void OpenNIManager::nameAndSerialForDevice( String& name, String& serial, xn::Device& device ) const
+	void OpenNIManager::nameAndSerialForDevice( String& name, String& serial, String& vendorSpec, xn::Device& device ) const
 	{
         const size_t bufsize = 1024;
 		char buffer[ bufsize ];
@@ -86,6 +98,13 @@ namespace cvt {
 			serial = buffer;
 		} else {
 			serial = "UNKNOWN";
+		}
+
+		status = idCap.GetVendorSpecificData( buffer, bufsize );
+		if( status == XN_STATUS_OK ){
+			vendorSpec = buffer;
+		} else {
+			vendorSpec = "UNKNOWN";
 		}
 	}
 
@@ -113,9 +132,9 @@ namespace cvt {
 				_deviceList[ idx ].rgbInfo.setIndex( idx );
 				_deviceList[ idx ].rgbInfo.setType( CAMERATYPE_OPENNI );
 				findSupportedModes( _deviceList[ idx ].rgbInfo , uniqueModes, imgGen );
-			}
-			
+			}			
 		}
+		imgGen.Release();
 		
 		// check all supported image formats etc:
 		xn::DepthGenerator	depthGen;
@@ -141,6 +160,7 @@ namespace cvt {
 				}
 			}
 		}
+		depthGen.Release();
 
 		xn::IRGenerator	irGen;
 		if( createIRGeneratorForDevice( irGen, idx, context ) ){
@@ -162,9 +182,9 @@ namespace cvt {
 				}
 			}
 		}
-			
+		irGen.Release();
+		context.Release();
 	}
-
 			
 	void OpenNIManager::getUniqueModeList( const XnMapOutputMode* modes, size_t num, std::vector<XnMapOutputMode> & unique )
 	{
@@ -261,15 +281,20 @@ namespace cvt {
 		xn::NodeInfoList::Iterator it = nodeList.Begin();
 		xn::NodeInfoList::Iterator itEnd = nodeList.End();
 
+		std::cout << __FUNCTION__ << std::endl;
+
 		while( it != itEnd ){
 			xn::NodeInfo n( *it );
 			if( nodeBelongsToDeviceIdx( idx, n, context ) ){
+				std::cout << "Found node for device " << std::endl;
 				// create the image generator from this node and return
-				status = context.CreateProductionTree( n, generator );
-				if( status == XN_STATUS_OK )
+				status = context.CreateProductionTree( n, generator );				
+				if( status == XN_STATUS_OK ){
+					std::cout << "Successfully created production tree" << std::endl;
 					return true;
-				else
+				} else {
 					throw CVTException( "Could not create Image Generator for device" );
+				}
 			}
 
 			it++;
@@ -277,7 +302,6 @@ namespace cvt {
 
 		return false;
 	}
-
 
 	bool OpenNIManager::createDepthGeneratorForDevice( xn::DepthGenerator& generator, size_t idx, xn::Context& context )
 	{
@@ -395,7 +419,7 @@ namespace cvt {
 
 		const DeviceInformation& neededDevice = _deviceList[ idx ];
 
-		String currName, currSerial;
+		String currName, currSerial, currVendor;
 		XnStatus status = XN_STATUS_OK;
 		while( it != itEnd ){
 			xn::NodeInfo n( *it );
@@ -406,8 +430,10 @@ namespace cvt {
 				status = context.CreateProductionTree( n, dev );
                 if( status == XN_STATUS_OK ){
                     // get the name
-                    nameAndSerialForDevice( currName, currSerial, dev );
-                    if( currName == neededDevice.name && currSerial == neededDevice.serial ){
+                    nameAndSerialForDevice( currName, currSerial, currVendor, dev );
+                    if( currName == neededDevice.name &&
+                        currSerial == neededDevice.serial &&
+                        currVendor == neededDevice.vendorSpecific ){
                         return true;
                     }
                 }

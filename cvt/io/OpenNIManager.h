@@ -25,6 +25,7 @@ namespace cvt {
 			{
 				String		name;
 				String		serial;
+				String		vendorSpecific;
 
 				CameraInfo	rgbInfo;
 				CameraInfo	depthInfo;
@@ -35,7 +36,7 @@ namespace cvt {
 
 			void updateDeviceList();
 
-			size_t deviceCount() const { return _deviceList.size(); };
+			size_t deviceCount() const { return _deviceList.size(); }
 			const CameraInfo& cameraInfoForDevice( size_t idx ) const { return _deviceList[ idx ].rgbInfo; }
 			
 			const DeviceInformation& deviceInfoForCam( size_t idx ) const 
@@ -85,7 +86,7 @@ namespace cvt {
 
 			bool nodeBelongsToDeviceIdx( size_t idx, xn::NodeInfo& nodeInfo, xn::Context& context ) const;
 
-			void nameAndSerialForDevice( String& name, String& serial, xn::Device& device ) const;
+			void nameAndSerialForDevice( String& name, String& serial, String &vendorSpec, xn::Device &device ) const;
 
 			void getUniqueModeList( const XnMapOutputMode* modes,  size_t num, std::vector<XnMapOutputMode> & unique );
 
@@ -94,6 +95,8 @@ namespace cvt {
 			// device list:
 			std::vector<DeviceInformation>	_deviceList;
 	};
+
+	std::ostream& operator<<( std::ostream& out, const OpenNIManager::DeviceInformation& dInfo );
 
 }
 

@@ -17,6 +17,7 @@ namespace cvt
     OpenNICamera::OpenNICamera( size_t idx, const CameraMode& mode ) :
         _captureMode( DEPTH_RGB )
     {
+        // initialize a context
         XnStatus status = _context.Init();
         if( status != XN_STATUS_OK ){
             throw CVTException( "Could not initialize context" );
@@ -39,7 +40,7 @@ namespace cvt
 
         if( !manager.createDepthGeneratorForDevice( _depthGen, idx, _context ) ){
             // device does not support imageGen
-            throw CVTException( "Device cannot generate rgb images" );
+            throw CVTException( "Device cannot generate depth images" );
         }
 
         _rgb.reallocate( mode.width, mode.height, mode.format );
@@ -52,6 +53,8 @@ namespace cvt
     OpenNICamera::~OpenNICamera()
     {
         stopCapture();
+        _context.StopGeneratingAll();
+        _context.Release();
     }
 
 
