@@ -53,24 +53,22 @@ namespace cvt {
             /**
              *  \brief  get the absolute (world) pose of the last added image
              */
-            const Matrix4f&     pose() const;
-            size_t              numKeyframes()          const { return _keyframes.size(); }
-            const Matrix3f&     intrinsics()            const { return _intrinsics; }
-
-            void setMaxTranslationDistance( float dist )      { _maxTranslationDistance = dist; }
-            void setMaxRotationDistance( float dist )         { _maxRotationDistance = Math::deg2Rad( dist ); }
-            void setMaxSSD( float dist )                      { _maxSSDSqr = Math::sqr( dist ); }
-            void setMinPixelPercentage( float v )             { _minPixPerc = v; }
-            void setSelectionPixelPercentage( float v )       { _selectionPixelPercentage = v; }
-
-            void setParams( const VOParams& p )               { _params = p; }
-            void setPose( const Matrix4f& pose )              { _currentPose = pose; }
-
-            size_t numOverallKeyframes() const { return _numCreated; }
-
-            float  lastSSD()             const { return _lastResult.costs; }
-            size_t lastNumPixels()       const { return _lastResult.numPixels; }
-            float  lastPixelPercentage() const { return _lastResult.pixelPercentage * 100.0f; }
+            const Matrix4f& pose()          const;
+            size_t          numKeyframes()  const                   { return _keyframes.size(); }
+            const Matrix3f& intrinsics()    const                   { return _intrinsics; }
+            void            setMaxTranslationDistance( float dist ) { _maxTranslationDistance = dist; }
+            void            setMaxRotationDistance( float dist )    { _maxRotationDistance = Math::deg2Rad( dist ); }
+            void            setMaxSSD( float dist )                 { _maxSSDSqr = Math::sqr( dist ); }
+            void            setMinPixelPercentage( float v )        { _minPixPerc = v; }
+            void            setSelectionPixelPercentage( float v )  { _selectionPixelPercentage = v; }
+            void            setParams( const VOParams& p )          { _params = p; }
+            void            setPose( const Matrix4f& pose )         { _currentPose = pose; }
+            size_t          numOverallKeyframes() const             { return _numCreated; }
+            float           lastSSD()             const             { return _lastResult.costs; }
+            size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
+            float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
+            void            autoReferenceUpdate() const             { return _autoReferenceUpdate; }
+            void            setAutoReferenceUpdate( bool v )        { _autoReferenceUpdate = v; }
 
             /******** SIGNALS ************/
             /**
@@ -101,6 +99,8 @@ namespace cvt {
             float                       _minPixPerc;
             float                       _selectionPixelPercentage;
 
+            bool                        _autoReferenceUpdate;
+
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
             size_t						_numCreated;
@@ -112,7 +112,6 @@ namespace cvt {
             typename DerivedKF::Result  _lastResult;
 
             bool needNewKeyframe() const;
-
             void setKeyframeParams( DerivedKF& kf );
     };
 
@@ -125,6 +124,7 @@ namespace cvt {
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _minPixPerc( 0.5f ),
         _selectionPixelPercentage( 0.3f ),
+        _autoReferenceUpdate( true ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
@@ -150,7 +150,7 @@ namespace cvt {
         _currentPose = _lastResult.warp.poseMatrix();
 
         // check if we need a new keyframe
-        if( needNewKeyframe() ){
+        if( _autoReferenceUpdate && needNewKeyframe() ){
             addNewKeyframe( gray, depth, _currentPose );
         }
 
