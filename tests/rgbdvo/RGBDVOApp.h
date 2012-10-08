@@ -87,8 +87,6 @@ namespace cvt
                 Moveable                    _poseMov;
                 Button                      _nextButton;
 
-
-
                 bool                        _nextPressed;
                 Button                      _stepButton;
                 bool                        _step;
@@ -110,5 +108,7 @@ namespace cvt
                 void writePose( std::ofstream& file, const Matrix4f& pose, double stamp );
 
                 bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
+
+                void preprocessGrayImage( Image& pp, const Image& gray ) const;
     };
 }

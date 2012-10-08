@@ -60,12 +60,12 @@ namespace cvt {
 			size_t bpp() const;
 
 			const IFormat & format() const;
-			IAllocatorType memType() const { return _mem->type(); };
-			uint8_t* map( size_t* stride ) { return _mem->map( stride ); };
-			const uint8_t * map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); };
+			IAllocatorType memType() const { return _mem->type(); }
+			uint8_t* map( size_t* stride ) { return _mem->map( stride ); }
+			const uint8_t * map( size_t* stride ) const { return ( const uint8_t* ) _mem->map( stride ); }
 			template<typename _T> _T* map( size_t* stride );
 			template<typename _T> const _T* map( size_t* stride ) const;
-			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); };
+			void unmap( const uint8_t* ptr ) const { _mem->unmap( ptr ); }
 			template<typename _T> void unmap( const _T* ptr ) const;
 
 			void reallocate( size_t w, size_t h, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );

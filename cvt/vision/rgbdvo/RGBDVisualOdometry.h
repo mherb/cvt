@@ -42,11 +42,6 @@ namespace cvt {
             void updatePose( Matrix4f& pose, const Image& gray, const Image& depth );
 
             /**
-             *
-             */
-            void computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth );
-
-            /**
              *  \param kfPose   pose of the keyframe: T_wk
              */
             void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
@@ -87,9 +82,9 @@ namespace cvt {
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
+            //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef Optimizer<WFunc, LossFunction> OptimizerType;
-            //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+            typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;
@@ -153,23 +148,6 @@ namespace cvt {
 
         // check if we need a new keyframe
         if( _autoReferenceUpdate && needNewKeyframe() ){
-            addNewKeyframe( gray, depth, _currentPose );
-        }
-
-        pose = _currentPose;
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::computeAlignment( Matrix4f& pose, const Image& gray, const Image& depth )
-    {
-        _pyramid.update( gray );
-
-        _activeKeyframe->align( _lastResult, pose, _pyramid, depth );
-
-        _currentPose = _lastResult.warp.poseMatrix();
-
-        // check if we need a new keyframe
-        if( needNewKeyframe() ){
             addNewKeyframe( gray, depth, _currentPose );
         }
 
