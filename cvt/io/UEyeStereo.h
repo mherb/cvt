@@ -34,6 +34,8 @@ namespace cvt
             void setAutoSensorShutter( bool value );
             void setFramerate( double value );
             void setExposureTime( double value );
+            void setAutoGain( bool value );
+            void setGainBoost( bool value );
 
 			void setTimeout( size_t to ){ _timeout = to; }
 
@@ -187,7 +189,6 @@ namespace cvt
 		{
             //_master->saveParameters( "tmp.ini" );
             //_slave->loadParameters( "tmp.ini" );
-			
 		}
 	}
 
@@ -202,6 +203,18 @@ namespace cvt
 		_slave->setRunMode( UEyeUsbCamera::UEYE_MODE_HW_TRIGGER );
         _slave->setTriggerMode( UEyeUsbCamera::TRIGGER_HI_LO );
         _slave->setTriggerDelay( 0 );
+	}
+
+	inline void UEyeStereo::setAutoGain( bool value )
+	{
+		_master->setAutoGain( value );
+		_slave->setAutoGain( value );
+	}
+
+	inline void UEyeStereo::setGainBoost( bool value )
+	{
+		_master->setGainBoost( value );
+		_slave->setGainBoost( value );
 	}
 
 }
