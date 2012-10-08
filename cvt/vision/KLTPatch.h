@@ -48,9 +48,9 @@ namespace cvt
             uint8_t*		 transformed( size_t octave = 0 )		 { return _patchDataForScale[ octave ].transformed; }
 
             const HessType&  inverseHessian( size_t octave = 0 ) const { return _patchDataForScale[ octave ].inverseHessian; }
-                        const JacType*   jacobians( size_t octave = 0 )      const { return _patchDataForScale[ octave ].jac; }
+            const JacType*   jacobians( size_t octave = 0 )      const { return _patchDataForScale[ octave ].jac; }
 
-                        static size_t size() { return pSize; }
+            static size_t size() { return pSize; }
 
 
             /**

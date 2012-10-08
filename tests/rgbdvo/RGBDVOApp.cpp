@@ -41,6 +41,7 @@ namespace cvt
         _vo.activeKeyframeChanged.add( actkfChgDel );
 
         Image gray, depth;
+        Matrix4f initPose;
 #ifdef USE_CAM
         _cam.setRegisterDepthToRGB( true );
         _cam.setSyncRGBDepth( true );
@@ -58,8 +59,7 @@ namespace cvt
         _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
         _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
 
-        Matrix4f tmp; tmp.setIdentity();
-        _vo.addNewKeyframe( gray, depth, tmp );
+        initPose.setIdentity();
 #else
         _parser.loadNext();
         while( _parser.data().poseValid == false )
@@ -68,8 +68,14 @@ namespace cvt
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
         _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
-        _vo.addNewKeyframe( gray, depth, _parser.data().pose<float>() );
+        initPose = _parser.data().pose<float>();
 #endif
+        // preprocess the gray image
+        Image preprocessed;
+        preprocessed.reallocate( gray );
+        preprocessGrayImage( preprocessed, gray );
+
+        _vo.addNewKeyframe( preprocessed, depth, initPose );
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
@@ -93,6 +99,64 @@ namespace cvt
             return true;
 
         return false;
+    }
+
+    static void demeanNormalize( Image& pp, const Image& input )
+    {
+        // compute the two values
+        float x, xx;
+        x = xx = 0.0f;
+        {
+            IMapScoped<const float> inMap( input );
+
+            size_t h = input.height();
+            while( h-- ){
+                const float* ptr = inMap.ptr();
+                for( size_t i = 0; i < input.width(); i++ ){
+                    x  += ptr[ i ];
+                    xx += Math::sqr( ptr[ i ] );
+                }
+                inMap.nextLine();
+            }
+            x  /= ( input.width() * input.height() ); // mean
+            xx /= ( input.width() * input.height() );
+        }
+
+        float stdDev = Math::sqrt( xx - Math::sqr( x ) );
+
+        pp = input;
+        pp.sub( x );
+        pp.mul( 1.0f / stdDev );
+
+        /*
+        x = xx = 0.0f;
+        {
+            IMapScoped<const float> inMap( pp );
+
+            size_t h = pp.height();
+            while( h-- ){
+                const float* ptr = inMap.ptr();
+                for( size_t i = 0; i < pp.width(); i++ ){
+                    x  += ptr[ i ];
+                    xx += Math::sqr( ptr[ i ] );
+                }
+                inMap.nextLine();
+            }
+            x  /= ( input.width() * input.height() ); // mean
+            xx /= ( input.width() * input.height() );
+        }
+
+        stdDev = Math::sqrt( xx - Math::sqr( x ) );
+        std::cout << "Mean: " << x << " stdDev: " << stdDev << std::endl;
+        */
+    }
+
+    void RGBDVOApp::preprocessGrayImage( Image& pp, const Image& gray ) const
+    {
+        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+        demeanNormalize( pp, gray );
     }
 
     void RGBDVOApp::onTimeout()
@@ -121,24 +185,25 @@ namespace cvt
             lastPose = _vo.pose();
             Time t;
 
-            Image depth, gray;
+            Image depth, gray, grayf;
 
             // update the absolute pose
             Matrix4f absPose = _vo.pose();
 
 #ifdef USE_CAM
-            _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+            _cam.frame().convert( grayf, IFormat::GRAY_FLOAT );
             _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
-            _vo.updatePose( absPose, gray, depth );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
 
             // try to align:
-            d.rgb.convert( gray, IFormat::GRAY_FLOAT );
+            d.rgb.convert( grayf, IFormat::GRAY_FLOAT );
             d.depth.convert( depth, IFormat::GRAY_FLOAT );
-
-            _vo.updatePose( absPose, gray, depth );
 #endif
+            gray.reallocate( grayf );
+            preprocessGrayImage( gray, grayf );
+            _vo.updatePose( absPose, gray, depth );
+
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
 
