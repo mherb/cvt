@@ -245,6 +245,9 @@ namespace cvt
                     // more than x m change in error
                     std::fixed( std::cout );
                     std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;
+
+                    _step = true;
+                    _optimize = false;
                 }
                 _lastTError = currError;
 
@@ -361,6 +364,12 @@ namespace cvt
         _keyframeImage.setImage( _cam.frame() );
 #else
         _keyframeImage.setImage( _parser.data().rgb );
+
+        // save the current keyframe images & poses?
+        _parser.data().rgb.save( "keyframe_rgb.png" );
+        _parser.data().depth.save( "keyframe_depth.png" );
+
+        std::cout << "Keyframe pose:(current vo)\n" << _vo.pose() << std::endl;
 #endif
     }
 

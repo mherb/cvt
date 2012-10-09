@@ -81,10 +81,10 @@ namespace cvt {
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
-            //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
+            typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef Optimizer<WFunc, LossFunction> OptimizerType;
-            typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+            //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;

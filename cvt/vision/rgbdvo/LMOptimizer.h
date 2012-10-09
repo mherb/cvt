@@ -71,7 +71,7 @@ namespace cvt {
         typename Base::HessianType  hessian;
         typename Base::HessianType  damping( Base::HessianType::Identity() );
 
-        const float costThreshold = 0.002;
+        const float costThreshold = 0.0002;
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             ResultType scaleResult;
@@ -156,10 +156,22 @@ namespace cvt {
                                                            scaleResult.costs,
                                                            num );
                     lastCosts = scaleResult.costs / scaleResult.numPixels;
-                    lambda /=2.0f;
+
+                    std::cout << "Scale:\t" << o << "\tCosts:\t" << lastCosts << "\tDelta:" <<
+                                 deltaP[ 0 ] << ", " <<
+                                 deltaP[ 1 ] << ", " <<
+                                 deltaP[ 2 ] << ", " <<
+                                 deltaP[ 3 ] << ", " <<
+                                 deltaP[ 4 ] << ", " <<
+                                 deltaP[ 5 ] << "\tlambda:" << lambda <<  std::endl;
+
+
+                    lambda /= 2.0f;
                     scaleResult.iterations++;
                     tmpPose = scaleResult.warp.poseMatrix();
-                    if( deltaP.norm() < Base::_minUpdate ){
+
+                    if( deltaP.maxCoeff() < Base::_minUpdate ){
+                    //if( deltaP.norm() < Base::_minUpdate ){
                         break;
                     }
                 } else {
@@ -170,6 +182,8 @@ namespace cvt {
                 if( lastCosts < costThreshold || lambda > 1e15f )
                     break;
             }
+
+            std::cout << std::endl;
 
             if( scaleResult.numPixels )
                 scaleResult.pixelPercentage = ( float )scaleResult.numPixels / ( float )num;
