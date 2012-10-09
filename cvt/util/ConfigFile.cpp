@@ -24,11 +24,13 @@ namespace cvt {
             FileSystem::load( data, filename );
             DataIterator it( data );
 
+            String currentGroup = "default";
+
             while( it.hasNext() ){
                 std::vector<String> tokens;
                 it.tokenizeNextLine( tokens, "= " );
-                if( tokens.size() == 2 ){
-                    _values[ tokens[ 0 ] ] = tokens[ 1 ];
+                if( tokens.size() == 2 ){                    
+                    _groups[ currentGroup ][ tokens[ 0 ] ] = tokens[ 1 ];
                 }
             }
         }
@@ -39,92 +41,103 @@ namespace cvt {
         std::ofstream file;
         file.open( filename.c_str() );
 
-        MapType::const_iterator it = _values.begin();
-        const MapType::const_iterator end = _values.end();
+        GroupMapType::const_iterator groupIter = _groups.begin();
+        GroupMapType::const_iterator groupEnd = _groups.end();
 
-        while( it != end ){
-            file << it->first << " = " << it->second << std::endl;
-            it++;
+        while( groupIter != groupEnd ){
+            file << "[" << groupIter->first << "]" << std::endl;
+            writeGroup( file, groupIter->second );
+            groupIter++;
+
+            file << std::endl;
         }
 
         file.close();
-    }
+    }    
 
-    template <>
-    String ConfigFile::valueForName<String>( const String& name, String defaultValue )
+    void ConfigFile::writeGroup( std::ofstream& out, const MapType& map ) const
     {
-        MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){
-            _values[ name ] = defaultValue;
-            return defaultValue;
-        } else {
-            return it->second;
+        MapType::const_iterator it = map.begin();
+        const MapType::const_iterator end = map.end();
+
+        while( it != end ){
+            out << it->first << " = " << it->second << std::endl;
+            it++;
         }
     }
 
     template <>
-    int ConfigFile::valueForName<int>( const String& name, int defaultValue )
+    String ConfigFile::valueFromString<String>( const String& strVal ) const
     {
-        MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){
-            String sval;
-            sval.sprintf( "%d", defaultValue );
-            _values[ name ] = sval;
-            return defaultValue;
+        return strVal;
+    }
+
+    template <>
+    String  ConfigFile::stringFromValue<String>( const String& val ) const
+    {
+        return val;
+    }
+
+    template <>
+    int ConfigFile::valueFromString<int>( const String& strVal ) const
+    {
+        return strVal.toInteger();
+    }
+
+    template <>
+    String  ConfigFile::stringFromValue<int>( const int& val ) const
+    {
+        String sval;
+        sval.sprintf( "%d", val );
+        return sval;
+    }
+
+    template <>
+    float ConfigFile::valueFromString<float>( const String& strVal ) const
+    {
+        return strVal.toFloat();
+    }
+
+    template <>
+    String  ConfigFile::stringFromValue<float>( const float& val ) const
+    {
+        String sval;
+        sval.sprintf( "%0.6f", val );
+        return sval;
+    }
+
+    template <>
+    double ConfigFile::valueFromString<double>( const String& strVal ) const
+    {
+        return strVal.toFloat();
+    }
+
+    template <>
+    String  ConfigFile::stringFromValue<double>( const double& val ) const
+    {
+        String sval;
+        sval.sprintf( "%0.10g", val );
+        return sval;
+    }
+
+    template <>
+    bool ConfigFile::valueFromString<bool>( const String& strVal ) const
+    {
+        String lower( strVal );
+        lower.toLower();
+        if( lower == "true" ||
+            strVal == "1" ){
+            return true;
         } else {
-            return it->second.toInteger();
+            return false;
         }
     }
 
     template <>
-    float ConfigFile::valueForName<float>( const String& name, float defaultValue )
+    String  ConfigFile::stringFromValue<bool>( const bool& val ) const
     {
-        MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){
-            String sval;
-            sval.sprintf( "%0.6f", defaultValue );
-            _values[ name ] = sval;
-            return defaultValue;
-        } else {
-            return it->second.toFloat();
-        }
+        if( val )
+            return "true";
+        return "false";
     }
-
-    template <>
-    double ConfigFile::valueForName<double>( const String& name, double defaultValue )
-    {
-        MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){
-            String sval;
-            sval.sprintf( "%0.10g", defaultValue );
-            _values[ name ] = sval;
-            return defaultValue;
-        } else {
-            return it->second.toDouble();
-        }
-    }
-
-    template <>
-    bool ConfigFile::valueForName<bool>( const String& name, bool defaultValue )
-    {
-        MapType::const_iterator it = _values.find( name );
-        if( it == _values.end() ){
-            if( defaultValue ){
-                _values[ name ] = "true";
-            } else {
-                _values[ name ] = "false";
-            }
-            return defaultValue;
-        } else {
-            String lower( it->second );
-            lower.toLower();
-            if( lower == "true" ||
-                it->second == "1" ){
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
 }
