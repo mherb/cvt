@@ -97,6 +97,8 @@ namespace cvt
                 Label                       _numPixelLabel;
                 Label                       _pixelPercentLabel;
 
+                float                       _lastTError;
+
                 void keyframeAddedCallback( const Matrix4f& pose );
                 void activeKeyframeChangedCallback();
 
