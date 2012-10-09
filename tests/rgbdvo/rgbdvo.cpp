@@ -115,6 +115,7 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
     vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
 
+    parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
     parser.loadNext();
     const RGBDParser::RGBDSample& sample = parser.data();
 
@@ -122,9 +123,6 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     Image depth( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
     sample.rgb.convert( gray );
     sample.depth.convert( depth );
-
-    //Image smoothed;
-    //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
     vo.addNewKeyframe( gray, depth, sample.pose<float>() ); // add initial
 
@@ -135,6 +133,8 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     Time time;
     size_t iters = 0;
     float timeSum = 0;
+
+    float translationError = 0.0f;
 
     pose = vo.pose();
     while( parser.hasNext() ){
@@ -150,10 +150,20 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
         timeSum += time.elapsedMilliSeconds();
         iters++;
 
+        if( d.poseValid ){
+            float currError = ( d.pose<float>() - pose ).col( 3 ).length();
+
+            float errorChange = currError - translationError;
+            std::cout << "ErrorChange: " << errorChange << std::endl;
+            translationError = currError;
+        }
+
+
         writePoseToFile( file, pose, d.stamp );
 
         std::cout << "\r" << parser.iter() << " / " << parser.size();
         std::flush( std::cout );
+        getchar();
     }
     std::cout << std::endl;
     file.close();
@@ -231,7 +241,8 @@ int main( int argc, char* argv[] )
     std::cout << "Saving config" << std::endl;
 
 
-    if( cfg.valueForName( "runBatch", false ) ){
+    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
+    if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;
         runBatch( params, K, folder, cfg );
     } else {

@@ -50,9 +50,11 @@ namespace cvt
             void loadNext();
 
             size_t				iter()    const { return _idx; }
-            size_t				size()    const { return _stamps.size(); }
+            size_t				size()    const { return _stamps.size(); }            
             bool                hasNext() const { return _idx < _stamps.size(); }
             const RGBDSample&	data()    const { return _sample; }
+
+            void                setIdx( size_t idx ) { _idx = idx; }
 
         private:
             const double			 _maxStampDiff;

@@ -29,7 +29,13 @@ namespace cvt {
             while( it.hasNext() ){
                 std::vector<String> tokens;
                 it.tokenizeNextLine( tokens, "= " );
-                if( tokens.size() == 2 ){                    
+
+                if( tokens.size() > 1 ){
+                    // skip comments
+                    if( tokens[ 0 ][ 0 ] == '#' ){
+                        continue;
+                    }
+
                     _groups[ currentGroup ][ tokens[ 0 ] ] = tokens[ 1 ];
                 }
             }
