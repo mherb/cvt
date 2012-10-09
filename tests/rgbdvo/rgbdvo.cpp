@@ -119,16 +119,18 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     const RGBDParser::RGBDSample& sample = parser.data();
 
     Image gray( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
-    //Image smoothed( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
+    Image depth( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
     sample.rgb.convert( gray );
+    sample.depth.convert( depth );
+
+    //Image smoothed;
     //gray.convolve( smoothed, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
-    vo.addNewKeyframe( gray, sample.depth, sample.pose<float>() ); // add initial
+
+    vo.addNewKeyframe( gray, depth, sample.pose<float>() ); // add initial
 
     std::ofstream file;
     file.open( "trajectory.txt" );
     Matrix4f pose; pose.setIdentity();
-
-    size_t stepIter = parser.size() / 20;
 
     Time time;
     size_t iters = 0;
@@ -141,22 +143,23 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
         time.reset();
         d.rgb.convert( gray );
+        d.depth.convert( depth );
         pose = vo.pose();
-        vo.updatePose( pose, gray, d.depth );
+        vo.updatePose( pose, gray, depth );
 
         timeSum += time.elapsedMilliSeconds();
         iters++;
 
         writePoseToFile( file, pose, d.stamp );
 
-        if( parser.iter() % stepIter == 0 )
-            std::cout << "#"; std::flush( std::cout );
+        std::cout << "\r" << parser.iter() << " / " << parser.size();
+        std::flush( std::cout );
     }
     std::cout << std::endl;
     file.close();
 
     std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
-    std::cout << "Number of Create Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
+    std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
 void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
@@ -224,28 +227,22 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 1 ] = 521.0f;
     K[ 1 ][ 2 ] = 249.7f;
 
-
-//    testFunc<testKF>( params, K, folder, cfg );
-//    cfg.save( "rgbdvo.cfg" );
-//    return 0;
-
-//    runBatch( params, K, folder, cfg );
-//    convergenceAnalysis( params, K, folder, cfg );
-//    cfg.save( "rgbdvo.cfg" );
-//    return 0;
-
     cfg.save( "rgbdvo.cfg" );
-
-//	std::cout << "Num Cams: " << OpenNICamera::count() << std::endl;
-    RGBDVOApp app( folder, K, params );
-    app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-    app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
-    app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-    app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
-    app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
-    Application::run();
+    std::cout << "Saving config" << std::endl;
 
 
+    if( cfg.valueForName( "runBatch", false ) ){
+        std::cout << "Starting batch mode" << std::endl;
+        runBatch( params, K, folder, cfg );
+    } else {
+        RGBDVOApp app( folder, K, params );
+        app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
+        app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
+        app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
+        app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
+        app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
+        Application::run();
+    }
 
     return 0;
 }

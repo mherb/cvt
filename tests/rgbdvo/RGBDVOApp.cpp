@@ -29,7 +29,8 @@ namespace cvt
         _optimize( true ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
-        _pixelPercentLabel( "\% Pixel: 0\%" )
+        _pixelPercentLabel( "\% Pixel: 0\%" ),
+        _lastTError( 0.0f )
     {
         _timerId = Application::registerTimer( 10, this );
         setupGui();
@@ -93,7 +94,7 @@ namespace cvt
     {
 
         Vector4f t0 = lastPose.col( 3 );
-        Vector4f t1 = currentPose.col( 3 );
+        Vector4f t1 = currentPose.col( 3 );        
 
         if( ( t0 - t1 ).length() > 0.5f )
             return true;
@@ -153,10 +154,10 @@ namespace cvt
 
     void RGBDVOApp::preprocessGrayImage( Image& pp, const Image& gray ) const
     {
-        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+        gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
         //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
         //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
-        demeanNormalize( pp, gray );
+        //demeanNormalize( pp, gray );
     }
 
     void RGBDVOApp::onTimeout()
@@ -224,17 +225,29 @@ namespace cvt
 
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteration: " << iter << std::endl;
-                _step = true;
-                _optimize = false;
-                _vo.setPose( lastPose );
+                //_step = true;
+                //_optimize = false;
+                //_vo.setPose( lastPose );
             }
+
 
 #ifndef USE_CAM
             Matrix4f gtPose = d.pose<float>();
             if( d.poseValid ){
-                _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - gtPose[ 0 ][ 3 ] );
-                _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - gtPose[ 1 ][ 3 ] );
-                _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - gtPose[ 2 ][ 3 ] );
+                Vector4f eps = absPose.col( 3 ) - gtPose.col( 3 );
+                _avgTransError.x += Math::abs( eps.x );
+                _avgTransError.y += Math::abs( eps.y );
+                _avgTransError.z += Math::abs( eps.z );
+
+                float currError = eps.length();
+                float errorChange = currError - _lastTError;
+                if( errorChange > 0.02f ){
+                    // more than x m change in error
+                    std::fixed( std::cout );
+                    std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;
+                }
+                _lastTError = currError;
+
                 _validPoseCounter++;
             }
             writePose( _fileOut, absPose, d.stamp );
