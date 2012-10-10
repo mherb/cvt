@@ -65,7 +65,7 @@ namespace cvt {
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-        result.iterations = 0;
+        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
@@ -106,7 +106,7 @@ namespace cvt {
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
 
-            scaleResult.iterations = 0;
+            scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
             scaleResult.pixelPercentage = 0.0f;
 
@@ -144,7 +144,7 @@ namespace cvt {
             Matrix4f tmpPose = scaleResult.warp.poseMatrix();
             float lambda = _initialLambda;
 
-            while( scaleResult.iterations < Base::_maxIter ){
+            while( scaleResult.iterationsOnOctave[ o ] < Base::_maxIter ){
                 // compute the update:
                 step = lambda * deltaP;
                 scaleResult.warp.updateParameters( step );
@@ -168,7 +168,7 @@ namespace cvt {
                     lambda *= _trDecreaseFactor;
                 } else {
                     // keep step: update model
-                    scaleResult.iterations++;
+                    scaleResult.iterationsOnOctave[ o ]++;
                     tmpPose = scaleResult.warp.poseMatrix();
 
                     median = this->computeMedian( &residuals[ 0 ], num );

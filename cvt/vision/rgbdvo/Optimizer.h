@@ -136,7 +136,8 @@ namespace cvt {
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-        result.iterations = 0;
+
+        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
@@ -173,11 +174,11 @@ namespace cvt {
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
 
-            scaleResult.iterations = 0;
+            scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
             scaleResult.pixelPercentage = 0.0f;
 
-            while( scaleResult.iterations < _maxIter ){
+            while( scaleResult.iterationsOnOctave[ o ] < _maxIter ){
                 // build the updated projection Matrix
                 projMat = K4 * scaleResult.warp.poseMatrix();
 
@@ -206,7 +207,17 @@ namespace cvt {
                 DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
                 scaleResult.warp.updateParameters( deltaP );
 
-                scaleResult.iterations++;
+
+                /*std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
+                             deltaP[ 0 ] << ", " <<
+                             deltaP[ 1 ] << ", " <<
+                             deltaP[ 2 ] << ", " <<
+                             deltaP[ 3 ] << ", " <<
+                             deltaP[ 4 ] << ", " <<
+                             deltaP[ 5 ] <<  std::endl;*/
+
+                scaleResult.iterationsOnOctave[ o ]++;
+                //if( deltaP.maxCoeff() < _minUpdate )
                 if( deltaP.norm() < _minUpdate )
                     break;
             }

@@ -26,6 +26,11 @@
 
 namespace cvt
 {
+    struct ScaleFeatures {
+        std::vector<Vector2f>   positions;
+        std::vector<size_t>     nonDepthFeatures;
+    };
+
     template <size_t dim>
     struct AlignmentData {
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -52,8 +57,10 @@ namespace cvt
                 points3d.clear();
                 pixelValues.clear();
                 jacobians.clear();
+                hessian.setZero();
+                inverseHessian.setZero();
             }
-    };
+    };    
 
     template <class WarpFunc>
     class RGBDKeyframe {
@@ -62,20 +69,20 @@ namespace cvt
             struct Result {
                 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 Result() :
-                    success( false ),
-                    iterations( 0 ),
+                    success( false ),                    
                     numPixels( 0 ),
                     pixelPercentage( 0.0f ),
                     costs( 0.0f )
                 {
                 }
 
-                bool        success;
-                size_t      iterations;
-                size_t      numPixels;
-                float       pixelPercentage; /* between 0 and 1 */
-                float       costs;
-                WarpFunc    warp;
+                bool                success;
+
+                std::vector<size_t> iterationsOnOctave;
+                size_t              numPixels;
+                float               pixelPercentage; /* between 0 and 1 */
+                float               costs;
+                WarpFunc            warp;
             };
 
             typedef typename WarpFunc::JacobianType  JacobianType;
@@ -99,7 +106,12 @@ namespace cvt
             void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
             void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
 
-            virtual void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
+            void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
+
+            virtual void updateOfflineDataForScale( AlignDataType& data,
+                                                    const Image& gray,
+                                                    const Image& depth,
+                                                    float scale ) = 0;
 
         protected:
             Matrix4<T>                  _pose;
@@ -131,10 +143,10 @@ namespace cvt
 
     template <class WarpFunc>
     inline RGBDKeyframe<WarpFunc>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
-        _kx( IKernel::HAAR_HORIZONTAL_3 ),
-        _ky( IKernel::HAAR_VERTICAL_3 ),
-        //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
-        //_ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
+        //_kx( IKernel::HAAR_HORIZONTAL_3 ),
+        //_ky( IKernel::HAAR_VERTICAL_3 ),
+        _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
+        _ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
         _gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
         _gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
@@ -144,8 +156,8 @@ namespace cvt
         _minPixelPercentage( 0.2f ),
         _pixelPercentageToSelect( 0.3f )
     {
-        float s = -0.5f;
-        //float s = -1.0f;
+        //float s = -0.5f;
+        float s = -1.0f;
         _kx.scale( s );
         _ky.scale( s );
 
@@ -156,6 +168,20 @@ namespace cvt
     template <class WarpFunc>
     inline RGBDKeyframe<WarpFunc>::~RGBDKeyframe()
     {
+    }
+
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::updateOfflineData( const Matrix4<T>& poseMat,
+                                                           const ImagePyramid& pyramid,
+                                                           const Image& depth )
+    {
+        this->_pose = poseMat;
+
+        float scale = 1.0f;
+        for( size_t i = 0; i < pyramid.octaves(); i++ ){
+            this->updateOfflineDataForScale( _dataForScale[ i ], pyramid[ i ], depth, scale );
+            scale /= pyramid.scaleFactor();
+        }
     }
 
     template <class WarpFunc>

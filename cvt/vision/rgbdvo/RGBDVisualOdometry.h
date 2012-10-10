@@ -81,9 +81,9 @@ namespace cvt {
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
-            typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
+            //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
-            //typedef Optimizer<WFunc, LossFunction> OptimizerType;
+            typedef Optimizer<WFunc, LossFunction> OptimizerType;
             //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
@@ -110,6 +110,10 @@ namespace cvt {
 
             bool needNewKeyframe() const;
             void setKeyframeParams( DerivedKF& kf );
+
+
+            std::vector<ScaleFeatures>  _gridForScale;
+            void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
     };
 
     template <class DerivedKF, class LossFunction>
@@ -165,9 +169,15 @@ namespace cvt {
             _activeKeyframe = &_keyframes[ 0 ];
             _currentPose = kfPose;
             _pyramid.update( gray );
+
+            _gridForScale.resize( _params.octaves );
+            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
+                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
+            }
         }
         setKeyframeParams( *_activeKeyframe );
-        _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
+        //_activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
+        _activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
 
@@ -229,6 +239,26 @@ namespace cvt {
     inline const Matrix4f& RGBDVisualOdometry<DerivedKF, LossFunction>::pose() const
     {
         return _currentPose;
+    }
+
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny )
+    {
+        float stepx = ( float )width / ( nx + 2 );
+        float stepy = ( float )height / ( ny + 2 );
+
+        features.reserve( nx * ny );
+        Vector2f p;
+        p.y = stepy;
+
+        for( size_t y = 0; y < ny; y++ ){
+            p.x = stepx;
+            for( size_t x = 0; x < nx; x++ ){
+                features.push_back( p );
+                p.x += stepx;
+            }
+            p.y += stepy;
+        }
     }
 
 }
