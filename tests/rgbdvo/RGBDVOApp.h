@@ -57,8 +57,8 @@ namespace cvt
                 //typedef AffineLightingWarp<float>   WarpType;
 
                 //typedef NoWeighting<float>          LossFunc;
-                //typedef Huber<float>                LossFunc;
-                typedef Tukey<float>                LossFunc;
+                typedef Huber<float>                LossFunc;
+                //typedef Tukey<float>                LossFunc;
 
                 typedef IntensityKeyframe<WarpType>     KFType;
                 //typedef IntensityDepthKeyframe<WarpType>  KFType;

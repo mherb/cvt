@@ -26,6 +26,7 @@
 
 namespace cvt
 {
+
     template <class WarpFunc>
     class IntensityKeyframe : public RGBDKeyframe<WarpFunc> {
         public:
@@ -34,17 +35,27 @@ namespace cvt
             typedef typename Base::T                    T;
             typedef typename Base::Result               Result;
             typedef typename Base::JacobianType         JacobianType;
+            typedef typename Base::AlignDataType        AlignDataType;
 
 
             IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~IntensityKeyframe();
 
-            void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
+            void updateOfflineDataForScale( typename Base::AlignDataType& data,
+                                            const Image& gray,
+                                            const Image& depth,
+                                            float scale );
+            void sparseOfflineDataForScale( AlignDataType& data,
+                                            ScaleFeatures& features,
+                                            const Image& gray,
+                                            const Image& depth,
+                                            float scale );
 
-        private:
-            void alignSingleScaleNonRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
-            void alignSingleScaleRobust( Result& result, const Image& gray, const Image& depth, size_t octave );
 
+            void sparseOfflineData( std::vector<ScaleFeatures>& featuresForScale,
+                                    const Matrix4<T>& pose,
+                                    const ImagePyramid& pyramid,
+                                    const Image& depth );
     };
 
     template <class WarpFunc>
@@ -59,107 +70,187 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline void IntensityKeyframe<WarpFunc>::updateOfflineData( const Matrix4<T>& poseMat,
-                                                                const ImagePyramid& pyramid,
-                                                                const Image& depth )
+    inline void IntensityKeyframe<WarpFunc>::updateOfflineDataForScale( typename Base::AlignDataType& data,
+                                                                        const Image& gray,
+                                                                        const Image& depth,
+                                                                        float scale )
     {
-        this->_pose = poseMat;
+        IMapScoped<const float> depthMap( depth );
+        const float* d = depthMap.ptr();
+        size_t depthStride = depthMap.stride() / sizeof( float );
 
-        Image gxI, gyI;
-        float scale = 1.0f;
-
+        Vector2f currP;
         Vector3<T> p3d;
         Eigen::Matrix<T, 2, 1> g;
         JacobianType j;
 
+        // compute the image gradients
+        Image gxI, gyI;
+        this->computeImageGradients( gxI, gyI, gray );
+
+        data.clear();
+        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+        data.reserve( 0.4f * pixelsOnOctave );
+
+        // temp vals
+        std::vector<float> tmpx( gray.width() );
+        std::vector<float> tmpy( gray.height() );
+        Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
+        Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
+
+        IMapScoped<const float> gxMap( gxI );
+        IMapScoped<const float> gyMap( gyI );
+        IMapScoped<const float> grayMap( gray );
+
+        data.hessian.setZero();
+
+        for( size_t y = 0; y < gray.height() - 1; y++ ){
+            const float* gx = gxMap.ptr();
+            const float* gy = gyMap.ptr();
+            const float* value = grayMap.ptr();
+
+            // scale the point
+            currP.y = scale * y;
+
+            for( size_t x = 0; x < gray.width() - 1; x++ ){
+                currP.x = scale * x;
+                float z = Base::interpolateDepth( currP, d, depthStride );
+                if( z > this->_minDepth ){
+                    g[ 0 ] = gx[ x ];
+                    g[ 1 ] = gy[ x ];
+
+                    float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
+                    if( salience < Base::_gradientThreshold )
+                        continue;
+
+                    p3d[ 0 ] = tmpx[ x ] * z;
+                    p3d[ 1 ] = tmpy[ y ] * z;
+                    p3d[ 2 ] = z;
+
+                    WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+
+                    data.jacobians.push_back( j );
+                    data.pixelValues.push_back( value[ x ] );
+                    data.points3d.push_back( p3d );
+                    data.hessian.noalias() += j.transpose() * j;
+                }
+            }
+            gxMap++;
+            gyMap++;
+            grayMap++;
+        }
+
+
+        // select best N jacobians:
+/*
+        size_t numPixels = Base::_pixelPercentageToSelect * pixelsOnOctave;
+        if( data.jacobians.size() <= numPixels )
+            Base::updateHessian( data );
+        else
+            Base::selectInformation( data, numPixels );
+*/
+
+        // precompute the inverse hessian
+        data.inverseHessian = data.hessian.inverse();
+
+        /*
+        cvt::String hessString;
+        float normalizer = data.jacobians.size();
+        std::cout << "Octave: " << i << std::endl;
+        hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
+                            data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
+                            data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
+        std::cout << hessString << std::endl;
+        hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
+                            data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
+                            data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
+        std::cout << hessString << std::endl;
+        */
+    }
+
+
+    template <class WarpFunc>
+    inline void IntensityKeyframe<WarpFunc>::sparseOfflineDataForScale( AlignDataType& data,
+                                                                        ScaleFeatures& features,
+                                                                        const Image& gray,
+                                                                        const Image& depth,
+                                                                        float scale )
+    {
         IMapScoped<const float> depthMap( depth );
         const float* d = depthMap.ptr();
         size_t depthStride = depthMap.stride() / sizeof( float );
+
         Vector2f currP;
+        Vector3<T> p3d;
+        Eigen::Matrix<T, 2, 1> g;
+        JacobianType j;
 
-        for( size_t i = 0; i < pyramid.octaves(); i++ ){
-            const Image& gray = pyramid[ i ];
-            this->computeImageGradients( gxI, gyI, gray );
+        // compute the image gradients
+        Image gxI, gyI;
+        this->computeImageGradients( gxI, gyI, gray );
 
-            typename Base::AlignDataType& data = this->_dataForScale[ i ];
-            data.clear();
-            size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
-            data.reserve( 0.6f * pixelsOnOctave );
+        data.clear();
+        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+        data.reserve( 0.4f * pixelsOnOctave );
 
-            // temp vals
-            std::vector<float> tmpx( gray.width() );
-            std::vector<float> tmpy( gray.height() );
-            Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
-            Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
+        // temp vals
+        std::vector<float> tmpx( gray.width() );
+        std::vector<float> tmpy( gray.height() );
+        Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
+        Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
 
-            IMapScoped<const float> gxMap( gxI );
-            IMapScoped<const float> gyMap( gyI );
-            IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> gxMap( gxI );
+        IMapScoped<const float> gyMap( gyI );
+        IMapScoped<const float> grayMap( gray );
 
-            data.hessian.setZero();
+        const float* gx = gxMap.ptr();
+        const float* gy = gyMap.ptr();
+        const float* value = grayMap.ptr();
 
-            for( size_t y = 0; y < gray.height() - 1; y++ ){
-                const float* gx = gxMap.ptr();
-                const float* gy = gyMap.ptr();
-                const float* value = grayMap.ptr();
+        size_t gStride = gxMap.stride() / sizeof( float );
+        size_t grayStride = grayMap.stride() / sizeof( float );
 
-                currP.y = scale * y;
+        for( size_t i = 0; i < features.positions.size(); i++ ){
+            const Vector2f& pos = features.positions[ i ];
 
-                for( size_t x = 0; x < gray.width() - 1; x++ ){
-                    currP.x = scale * x;
-                    float z = Base::interpolateDepth( currP, d, depthStride );
-                    if( z > this->_minDepth ){
-                        g[ 0 ] = gx[ x ];
-                        g[ 1 ] = gy[ x ];
+            // scale the point to highest level
+            currP = scale * pos;
+            float z = Base::interpolateDepth( currP, d, depthStride );
+            if( z > this->_minDepth ){
+                g[ 0 ] = gx[ gStride * ( int )pos.y + ( int )pos.x ];
+                g[ 1 ] = gy[ gStride * ( int )pos.y + ( int )pos.x ];
 
-                        float salience = Math::abs( g[ 0 ] ) + Math::abs( g[ 1 ] );
-                        if( salience < Base::_gradientThreshold )
-                            continue;
+                p3d[ 0 ] = tmpx[ (int)pos.x ] * z;
+                p3d[ 1 ] = tmpy[ (int)pos.y ] * z;
+                p3d[ 2 ] = z;
 
-                        p3d[ 0 ] = tmpx[ x ] * z;
-                        p3d[ 1 ] = tmpy[ y ] * z;
-                        p3d[ 2 ] = z;
+                float v = value[ grayStride * ( int )pos.y + ( int )pos.x ];
 
-                        WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+                WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, v );
 
-                        data.jacobians.push_back( j );
-                        data.pixelValues.push_back( value[ x ] );
-                        data.points3d.push_back( p3d );
-                        data.hessian.noalias() += j.transpose() * j;
-                    }
-                }
-                gxMap++;
-                gyMap++;
-                grayMap++;
+                data.jacobians.push_back( j );
+                data.pixelValues.push_back( v );
+                data.points3d.push_back( p3d );
+                data.hessian.noalias() += j.transpose() * j;
+            } else {
+                // remember the free features
+                features.nonDepthFeatures.push_back( i );
             }
+        }
+        data.inverseHessian = data.hessian.inverse();
+    }
 
+    template <class WarpFunc>
+    inline void IntensityKeyframe<WarpFunc>::sparseOfflineData( std::vector<ScaleFeatures>& features,
+                                                                const Matrix4<T>& pose,
+                                                                const ImagePyramid& pyramid,
+                                                                const Image& depth )
+    {
+        this->_pose = pose;
 
-            // select best N jacobians:
-/*
-            size_t numPixels = Base::_pixelPercentageToSelect * pixelsOnOctave;
-            if( data.jacobians.size() <= numPixels )
-                Base::updateHessian( data );
-            else
-                Base::selectInformation( data, numPixels );
-*/
-
-            // precompute the inverse hessian
-            data.inverseHessian = data.hessian.inverse();
-
-            /*
-            cvt::String hessString;
-            float normalizer = data.jacobians.size();
-            std::cout << "Octave: " << i << std::endl;
-            hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
-                                data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
-                                data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
-            std::cout << hessString << std::endl;
-            hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
-                                data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
-                                data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
-            std::cout << hessString << std::endl;
-            */
-
+        float scale = 1.0f;
+        for( size_t i = 0; i < pyramid.octaves(); i++ ){
+            this->sparseOfflineDataForScale( Base::_dataForScale[ i ], features[ i ], pyramid[ i ], depth, scale );
             scale /= pyramid.scaleFactor();
         }
     }

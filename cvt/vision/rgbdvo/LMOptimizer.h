@@ -54,7 +54,7 @@ namespace cvt {
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-        result.iterations = 0;
+        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
@@ -94,7 +94,7 @@ namespace cvt {
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
 
-            scaleResult.iterations = 0;
+            scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
             scaleResult.pixelPercentage = 0.0f;
 
@@ -126,7 +126,7 @@ namespace cvt {
             // mean costs
             lastCosts = scaleResult.costs / scaleResult.numPixels;
 
-            while( scaleResult.iterations < Base::_maxIter ){
+            while( scaleResult.iterationsOnOctave[ o ] < Base::_maxIter ){
                 // compute the update:
                 typename Base::DeltaType deltaP = -( hessian + lambda * damping ).inverse() * deltaSum.transpose();
                 scaleResult.warp.updateParameters( deltaP );
@@ -157,17 +157,17 @@ namespace cvt {
                                                            num );
                     lastCosts = scaleResult.costs / scaleResult.numPixels;
 
-                    std::cout << "Scale:\t" << o << "\tCosts:\t" << lastCosts << "\tDelta:" <<
+                    /*std::cout << "Scale:\t" << o << "\tCosts:\t" << lastCosts << "\tDelta:" <<
                                  deltaP[ 0 ] << ", " <<
                                  deltaP[ 1 ] << ", " <<
                                  deltaP[ 2 ] << ", " <<
                                  deltaP[ 3 ] << ", " <<
                                  deltaP[ 4 ] << ", " <<
-                                 deltaP[ 5 ] << "\tlambda:" << lambda <<  std::endl;
+                                 deltaP[ 5 ] << "\tlambda:" << lambda <<  std::endl;*/
 
 
                     lambda /= 2.0f;
-                    scaleResult.iterations++;
+                    scaleResult.iterationsOnOctave[ o ]++;
                     tmpPose = scaleResult.warp.poseMatrix();
 
                     if( deltaP.maxCoeff() < Base::_minUpdate ){
@@ -183,7 +183,7 @@ namespace cvt {
                     break;
             }
 
-            std::cout << std::endl;
+           // std::cout << std::endl;
 
             if( scaleResult.numPixels )
                 scaleResult.pixelPercentage = ( float )scaleResult.numPixels / ( float )num;
