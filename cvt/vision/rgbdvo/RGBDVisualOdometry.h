@@ -88,7 +88,7 @@ namespace cvt {
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;
-            VOParams                    _params;
+            VOParams                    _params;            
 
             float                       _maxTranslationDistance;
             float                       _maxRotationDistance;
@@ -106,7 +106,7 @@ namespace cvt {
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
 
-            typename DerivedKF::Result  _lastResult;
+            typename DerivedKF::Result  _lastResult;            
 
             bool needNewKeyframe() const;
             void setKeyframeParams( DerivedKF& kf );
@@ -130,7 +130,7 @@ namespace cvt {
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
     {
-        _currentPose.setIdentity();
+        _currentPose.setIdentity();        
     }
 
     template <class DerivedKF, class LossFunction>
@@ -145,7 +145,6 @@ namespace cvt {
     {
         _pyramid.update( gray );
 
-        //_activeKeyframe->align( _lastResult, pose, _pyramid, depth );
         _optimizer.optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
 
         _currentPose = _lastResult.warp.poseMatrix();
@@ -170,14 +169,16 @@ namespace cvt {
             _currentPose = kfPose;
             _pyramid.update( gray );
 
-            _gridForScale.resize( _params.octaves );
-            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
-                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
-            }
+//            _gridForScale.resize( _params.octaves );
+//            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
+//                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
+//            }
+
         }
+
         setKeyframeParams( *_activeKeyframe );
-        //_activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
-        _activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
+        _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
+        //_activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
 

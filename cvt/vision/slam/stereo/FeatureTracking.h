@@ -30,11 +30,11 @@ namespace cvt
           * \param predictedPositions	vector of predicted feature positions
           * \param img					the current image
           */
-         virtual void trackFeatures( PointSet2d&							trackedPositions,
-                                     std::vector<size_t>&				trackedFeatureIds,
+         virtual void trackFeatures( PointSet2d&                    trackedPositions,
+                                     std::vector<size_t>&           trackedFeatureIds,
                                      const std::vector<Vector2f>&	predictedPositions,
                                      const std::vector<size_t>&		predictedIds,
-                                     const Image&							img ) = 0;
+                                     const Image&                   img ) = 0;
 
 
          virtual void addFeatureToDatabase( const Vector2f & f, size_t id ) = 0;
