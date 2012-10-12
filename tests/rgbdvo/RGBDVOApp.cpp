@@ -188,7 +188,7 @@ namespace cvt
 
             Image depth, gray, grayf;
 
-            // update the absolute pose
+            // current the absolute pose
             Matrix4f absPose = _vo.pose();
 
 #ifdef USE_CAM
@@ -203,6 +203,12 @@ namespace cvt
 #endif
             gray.reallocate( grayf );
             preprocessGrayImage( gray, grayf );
+
+
+            Matrix4f startRelative = _activeKFPose.inverse() * absPose;
+            Matrix4f gtPose = d.pose<float>();
+            Matrix4f gtRel = _keyframeGTPose.inverse() * gtPose;
+            size_t activeIdx = _activeKFIdx;
 
             _vo.updatePose( absPose, gray, depth );
 
@@ -233,7 +239,7 @@ namespace cvt
 
 
 #ifndef USE_CAM
-            Matrix4f gtPose = d.pose<float>();
+
             if( d.poseValid ){
                 Vector4f eps = absPose.col( 3 ) - gtPose.col( 3 );
                 _avgTransError.x += Math::abs( eps.x );
@@ -242,13 +248,20 @@ namespace cvt
 
                 float currError = eps.length();
                 float errorChange = currError - _lastTError;
-                if( errorChange > 0.02f ){
+                if( errorChange > 0.01f ){
                     // more than x m change in error
                     std::fixed( std::cout );
                     std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;
+                    std::cout << "Current RGB File:" << _parser.rgbFile( _parser.iter() ) << std::endl;
+                    std::cout << "Current Depth File:" << _parser.depthFile( _parser.iter() ) << std::endl;
+                    std::cout << "Keyframe RGB File:" << _parser.rgbFile( activeIdx ) << std::endl;
+                    std::cout << "Keyframe Depth File:" << _parser.depthFile( activeIdx ) << std::endl;
 
-                  //  _step = true;
-                  //  _optimize = false;
+                    std::cout << "True relative pose:\n" << gtRel << std::endl;
+                    std::cout << "Stared relative pose:\n" << startRelative << std::endl;
+
+                    //_step = true;
+                    //_optimize = false;
                 }
                 _lastTError = currError;
 
@@ -356,6 +369,15 @@ namespace cvt
     void RGBDVOApp::keyframeAddedCallback( const Matrix4f& pose )
     {
         _poseView.addKeyframe( pose );
+
+        // remember the keyframe ground truth pose!
+        _keyframeGTPose = _parser.data().pose<float>();
+        _activeKFPose = pose;
+        _activeKFRGB.reallocate( _parser.data().rgb );
+        _activeKFDepth.reallocate( _parser.data().depth );
+        _activeKFRGB   = _parser.data().rgb;
+        _activeKFDepth = _parser.data().depth;
+        _activeKFIdx = _parser.iter();
     }
 
     void RGBDVOApp::activeKeyframeChangedCallback()

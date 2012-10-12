@@ -56,6 +56,9 @@ namespace cvt
 
             void                setIdx( size_t idx ) { _idx = idx; }
 
+            const String&       rgbFile( size_t idx ) const { return _rgbFiles[ idx ]; }
+            const String&       depthFile( size_t idx ) const { return _depthFiles[ idx ]; }
+
         private:
             const double			 _maxStampDiff;
             String					 _folder;
