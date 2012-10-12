@@ -93,6 +93,8 @@ class UEyeUsbCamera : public Camera
 
             bool    waitTriggerEvent( size_t timeout );
 
+            void    setAreaOfInterest( const Recti& roi );
+
         private:
             bool	initCam();
             void	open( const CameraMode & mode );

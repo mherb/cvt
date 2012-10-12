@@ -62,8 +62,8 @@ namespace cvt
 
                 typedef IntensityKeyframe<WarpType>     KFType;
                 //typedef IntensityDepthKeyframe<WarpType>  KFType;
-                //RGBDVisualOdometry<KFType, LossFunc>    _vo;
-                DirectFeatureVO                     _vo;
+                RGBDVisualOdometry<KFType, LossFunc>    _vo;
+                //DirectFeatureVO                     _vo;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

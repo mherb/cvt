@@ -25,7 +25,7 @@ namespace cvt {
 		virtual const Image & frame() const = 0;
 
 		/* trigger / load next frame, timeOut in ms */
-		virtual bool nextFrame( size_t timeOut = 0 ) = 0;
+		virtual bool nextFrame( size_t timeOut = 5 ) = 0;
 		
 		virtual const IFormat & format() const = 0;
 	};

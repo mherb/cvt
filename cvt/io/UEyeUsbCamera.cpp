@@ -10,6 +10,8 @@
  */
 #include "UEyeUsbCamera.h"
 
+#include <cvt/gfx/IMapScoped.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -24,8 +26,8 @@ namespace cvt
 		this->open( mode );
 		this->setIdentifier();
 
-		// load internally stored parameters as default starting point	
-		loadParameters( "/cam/set1" );
+		// load internally stored parameters as default starting point
+		// loadParameters( "//cam//set1" );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
@@ -171,7 +173,7 @@ namespace cvt
 
 	void UEyeUsbCamera::setHardwareGains( int master, int red, int green, int blue )
 	{
-		int ret = is_SetHardwareGain( _camHandle, master, red, green, blue );
+		int ret = is_SetHardwareGain( _camHandle, master, red, green, blue );		
 		if( ret != IS_SUCCESS )
 			throw CVTException( "Error when setting hardware gains" );
 	}
@@ -219,27 +221,39 @@ namespace cvt
 		if( !initCam() )
 			throw CVTException( "Could not initialize camera" );
 
-		IS_RECT aoiRect;
-		aoiRect.s32X = 0;
-		aoiRect.s32Y = 0;
-		aoiRect.s32Width = _width;
-		aoiRect.s32Height = _height;
-		is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) );
+		setAreaOfInterest( Recti( 0, 0, _width, _height ) );
 		
-		is_GetImageMemPitch( _camHandle, &_stride );
+		if( mode.format == IFormat::BAYER_RGGB_UINT8 ){
+			is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
 
-		_frame.reallocate( _width, _height, _frame.format() );
+		} else {
+			throw CVTException( "Color mode not supported by UEyeUsbCamera class" );
+		}
+
+		is_GetImageMemPitch( _camHandle, &_stride );		
+		_frame.reallocate( _width, _height, mode.format );
+
+		this->initMemories( mode );
+		if( is_InitImageQueue( _camHandle, 0 ) != IS_SUCCESS ){
+			std::cout << "COULD NOT INIT IMAGE QUEUE" << std::endl;
+		}
 
 		double newFPS;
 		if( is_SetFrameRate( _camHandle, mode.fps, &newFPS ) == IS_NO_SUCCESS ){
 			std::cout << "Could not set FrameRate" << std::endl;
 		}
+	}
 
-		this->initMemories( mode );
-		if( is_InitImageQueue( _camHandle, 0 ) != IS_SUCCESS )
-			std::cout << "COULD NOT INIT IMAGE QUEUE" << std::endl;
+	void UEyeUsbCamera::setAreaOfInterest( const Recti& roi )
+	{
+		IS_RECT aoiRect;
+		aoiRect.s32X = roi.x | IS_AOI_IMAGE_POS_ABSOLUTE;
+		aoiRect.s32Y = roi.y | IS_AOI_IMAGE_POS_ABSOLUTE;
+		aoiRect.s32Width = roi.width;
+		aoiRect.s32Height = roi.height;
 
-		is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
+		if( is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) ) == IS_NO_SUCCESS ){
+		}
 	}
 
 	void UEyeUsbCamera::initMemories( const CameraMode & mode )

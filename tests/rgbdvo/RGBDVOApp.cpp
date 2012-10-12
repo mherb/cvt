@@ -203,6 +203,7 @@ namespace cvt
 #endif
             gray.reallocate( grayf );
             preprocessGrayImage( gray, grayf );
+
             _vo.updatePose( absPose, gray, depth );
 
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
