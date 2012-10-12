@@ -18,7 +18,7 @@ namespace cvt {
 	class VideoInput
 	{
 	public:
-		virtual ~VideoInput(){};
+		virtual ~VideoInput() {}
 		virtual size_t width() const = 0;
 		virtual size_t height() const = 0;
 
