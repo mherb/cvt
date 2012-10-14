@@ -26,86 +26,6 @@ void writePoseToFile( std::ofstream& file, const Matrix4f& pose, double stamp )
              << q.w << std::endl;
 }
 
-void testQuaternionPrecision( const Matrix4f& pose )
-{
-    Matrix3f R = pose.toMatrix3();
-    Quaternionf q( R );
-    Matrix3f tmp = q.toMatrix3();
-
-    std::cout << tmp-R << std::endl;
-
-}
-
-void writeConvergenceTestSampleToFile( std::ofstream& file,
-                                       float initialROffset, float initialTOffset,
-                                       float finalROffset, float finalTOffset,
-                                       size_t iterations, float finalSSD, size_t numPixels )
-{
-    file.precision( 15 );
-    file << std::fixed << initialROffset << " "
-                       << initialTOffset << " "
-                       << finalROffset << " "
-                       << finalTOffset << " "
-                       << iterations << " "
-                       << finalSSD << " "
-                       << numPixels << " "
-                       << std::endl;
-}
-
-template <class KFType>
-void testFunc( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
-{
-    RGBDParser parser( folder, 0.05f );
-
-    // go to an image somewhere inside the dataset
-    size_t iter = 0;
-    while( iter++ < 100 )
-        parser.loadNext();
-    const RGBDParser::RGBDSample& d = parser.data();
-
-    Image gray;
-    d.rgb.convert( gray, IFormat::GRAY_FLOAT );
-
-    Image dFloat;
-    d.depth.convert( dFloat, IFormat::GRAY_FLOAT );
-
-    Matrix4f poseMat;
-    poseMat.setIdentity();
-
-    KFType* keyframe = KFType::create( gray, dFloat, poseMat, K, params );
-    PoseRepresentation relPose;
-    relPose.bias = 0.0f;
-    relPose.gain = 0.0f;
-
-    //const float angleRange = cfg.valueForName( "convTestRotoRangeDeg", 20.0f ) * Math::PI / 180.0f;
-    const float tx = cfg.valueForName( "convergenceTestTx", 0.06f );
-    const float ty = cfg.valueForName( "convergenceTestTy", 0.02f );
-    const float tz = cfg.valueForName( "convergenceTestTz", 0.02f );
-
-    relPose.pose.set( 0.0f, 0.0f, 0.0f, tx, ty, tz );
-
-    iter = 0;
-    while( true ){
-        VOResult result = keyframe->computeRelativePose( relPose, gray, K, params );
-        EigenBridge::toCVT( poseMat, relPose.pose.transformation() );
-        Vector3f vt( poseMat[ 0 ][ 3 ], poseMat[ 1 ][ 3 ], poseMat[ 2 ][ 3 ] );
-        Quaternionf q( poseMat.toMatrix3() );
-        Vector3f v( q.toEuler() );
-
-        iter++;
-        std::cout << "\n**** Iteration -> " << iter << " <- *****" << std::endl;
-        std::cout << "Euler Angles: " << v << std::endl;
-        std::cout << "delta T: " << vt << std::endl;
-        std::cout << "abs T diff: " << vt.length() << std::endl;
-        std::cout << "Valid pixels: " << result.numPixels << std::endl;
-
-        if( vt.length() < 0.03f )
-            break;
-        //getchar();
-    }
-    delete keyframe;
-}
-
 template <class KFType, class LossFunc>
 void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
@@ -237,11 +157,11 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 1 ] = 521.0f;
     K[ 1 ][ 2 ] = 249.7f;
 
+    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
+
     cfg.save( "rgbdvo.cfg" );
     std::cout << "Saving config" << std::endl;
 
-
-    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
     if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;
         runBatch( params, K, folder, cfg );

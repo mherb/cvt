@@ -1,8 +1,8 @@
 /*
             CVT - Computer Vision Tools Library
-            
+
      Copyright (c) 2012, Philipp Heise, Sebastian Klose
-     
+
     THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
     KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -83,7 +83,7 @@ namespace cvt {
             float                       _minPixPerc;
             float                       _selectionPixelPercentage;
             size_t						_numCreated;
-            typename Keyframe::Result   _lastResult;
+            Keyframe::Result            _lastResult;
 
             std::vector<Keyframe>   _keyframes;
             Keyframe*               _activeKeyframe;

@@ -58,11 +58,10 @@ namespace cvt {
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-        result.iterations = 0;
+        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
-        /* TODO: robust statistics should use median of residuals for threshold */
         LossFunc weighter( Base::_robustThreshold );
         SystemBuilder<LossFunc> builder( weighter );
 
@@ -95,7 +94,7 @@ namespace cvt {
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
 
-            scaleResult.iterations = 0;
+            scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
             scaleResult.pixelPercentage = 0.0f;
 
@@ -105,7 +104,8 @@ namespace cvt {
 
             //Base::_maxIter += ( rotoOpts + transOpts );
 
-            while( scaleResult.iterations < Base::_maxIter ){
+            std::vector<size_t> indices;
+            while( scaleResult.iterationsOnOctave[ 0 ] < Base::_maxIter ){
                 // build the updated projection Matrix
                 projMat = K4 * scaleResult.warp.poseMatrix();
 
@@ -113,10 +113,12 @@ namespace cvt {
                 simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
                 // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
+                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
-                float median = Base::computeMedian( &residuals[ 0 ], num );
+                this->validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
+
+                float median = Base::computeMedian( &residuals[ 0 ], num, indices );
                 weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
@@ -124,13 +126,13 @@ namespace cvt {
                 scaleResult.numPixels = builder.build( hessian, deltaSum,
                                                        referenceJ,
                                                        &residuals[ 0 ],
-                                                       scaleResult.costs,
-                                                       num );
+                                                       indices,
+                                                       scaleResult.costs );
                 if( !scaleResult.numPixels ){
                     break;
                 }
 
-                scaleResult.iterations++;
+                scaleResult.iterationsOnOctave[ o ]++;
 
                 if( translationOnly ){
                     Eigen::Matrix<float, 3, 3> h3;

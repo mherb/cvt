@@ -170,8 +170,7 @@ namespace cvt {
                     scaleResult.iterationsOnOctave[ o ]++;
                     tmpPose = scaleResult.warp.poseMatrix();
 
-                    if( deltaP.maxCoeff() < Base::_minUpdate ){
-                    //if( deltaP.norm() < Base::_minUpdate ){
+                    if( deltaP.norm() < Base::_minUpdate ){
                         break;
                     }
                 } else {

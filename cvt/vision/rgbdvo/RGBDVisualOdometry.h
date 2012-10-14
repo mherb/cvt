@@ -82,13 +82,13 @@ namespace cvt {
         private:
             typedef typename DerivedKF::WarpFunction WFunc;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
-            typedef Optimizer<WFunc, LossFunction> OptimizerType;
+            typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
+            //typedef Optimizer<WFunc, LossFunction> OptimizerType;
             //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;
-            VOParams                    _params;            
+            VOParams                    _params;
 
             float                       _maxTranslationDistance;
             float                       _maxRotationDistance;
@@ -106,7 +106,7 @@ namespace cvt {
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
 
-            typename DerivedKF::Result  _lastResult;            
+            typename DerivedKF::Result  _lastResult;
 
             bool needNewKeyframe() const;
             void setKeyframeParams( DerivedKF& kf );
@@ -130,7 +130,7 @@ namespace cvt {
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
     {
-        _currentPose.setIdentity();        
+        _currentPose.setIdentity();
     }
 
     template <class DerivedKF, class LossFunction>

@@ -102,15 +102,30 @@ namespace cvt {
             float   _minUpdate;
             float   _robustThreshold;
 
-            float computeMedian( const float* residuals, size_t n ) const
+            float computeMedian( const float* residuals, size_t /*n*/, const std::vector<size_t>& indices ) const
             {
                 HistMedianSelect medianSelector( 0.0f, 1.0f, 0.01f );
-                size_t num = n;
-                while( num-- ){
-                    medianSelector.add( Math::abs( *residuals++ ) );
+
+                std::vector<size_t>::const_iterator it = indices.begin();
+                const std::vector<size_t>::const_iterator end = indices.end();
+                while( it != end ){
+                    medianSelector.add( Math::abs( residuals[ *it ] ) );
+                    ++it;
                 }
 
-                return medianSelector.approximateNth( n >> 1 );
+                return medianSelector.approximateNth( indices.size() >> 1 );
+            }
+
+            void validIndices( std::vector<size_t>& indices, const float* vals, size_t num, float minVal ) const
+            {
+                indices.clear();
+                indices.reserve( num );
+
+                for( size_t i = 0; i < num; i++ ){
+                    if( vals[ i ] > minVal ){
+                        indices.push_back( i );
+                    }
+                }
             }
 
     };
@@ -149,6 +164,7 @@ namespace cvt {
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
         std::vector<float> residuals;
+        std::vector<size_t> indices;
         // sum of jacobians * delta
         JacobianType deltaSum;
         HessianType  hessian;
@@ -186,10 +202,13 @@ namespace cvt {
                 simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
                 // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
+                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
-                float median = computeMedian( &residuals[ 0 ], num );
+                indices.clear();
+                validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
+
+                float median = computeMedian( &residuals[ 0 ], num, indices );
                 weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
@@ -197,8 +216,8 @@ namespace cvt {
                 scaleResult.numPixels = builder.build( hessian, deltaSum,
                                                        referenceJ,
                                                        &residuals[ 0 ],
-                                                       scaleResult.costs,
-                                                       num );
+                                                       indices,
+                                                       scaleResult.costs );
                 if( !scaleResult.numPixels ){
                     break;
                 }
@@ -208,16 +227,18 @@ namespace cvt {
                 scaleResult.warp.updateParameters( deltaP );
 
 
-                /*std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
-                             deltaP[ 0 ] << ", " <<
-                             deltaP[ 1 ] << ", " <<
-                             deltaP[ 2 ] << ", " <<
-                             deltaP[ 3 ] << ", " <<
-                             deltaP[ 4 ] << ", " <<
-                             deltaP[ 5 ] <<  std::endl;*/
+//                std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
+//                             deltaP[ 0 ] << ", " <<
+//                             deltaP[ 1 ] << ", " <<
+//                             deltaP[ 2 ] << ", " <<
+//                             deltaP[ 3 ] << ", " <<
+//                             deltaP[ 4 ] << ", " <<
+//                             deltaP[ 5 ] <<  std::endl;
+//                std::cout << "Pose:\n" << scaleResult.warp.poseMatrix() << std::endl;
 
                 scaleResult.iterationsOnOctave[ o ]++;
-                //if( deltaP.maxCoeff() < _minUpdate )
+
+
                 if( deltaP.norm() < _minUpdate )
                     break;
             }

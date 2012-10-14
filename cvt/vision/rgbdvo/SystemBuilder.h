@@ -17,8 +17,8 @@ namespace cvt {
             size_t build( HessType& H, JType& b,
                           const JType* jacobians,
                           const float* residuals,
-                          float & ssd,
-                          size_t n ) const
+                          const std::vector<size_t>& indices,
+                          float & ssd ) const
             {
                 // standard: assume robust lossfunc
                 ssd = 0;
@@ -27,17 +27,16 @@ namespace cvt {
                 b.setZero();
                 H.setZero();
 
-                for( size_t i = 0; i < n; i++ ){
+                for( size_t i = 0; i < indices.size(); i++ ){
                     // compute the delta
-
-                    ssd += Math::sqr( residuals[ i ] );
+                    ssd += Math::sqr( residuals[ indices[ i ] ] );
                     numPixels++;
 
-                    float weight = _lossFunc.weight( residuals[ i ] );
-                    jtmp = weight * jacobians[ i ];
+                    float weight = _lossFunc.weight( residuals[ indices[ i ] ] );
+                    jtmp = weight * jacobians[ indices[ i ] ];
 
-                    H.noalias() += jtmp.transpose() * jacobians[ i ];
-                    b.noalias() += jtmp * residuals[ i ];
+                    H.noalias() += jtmp.transpose() * jacobians[ indices[ i ] ];
+                    b.noalias() += jtmp * residuals[ indices[ i ] ];
 
                 }
                 return numPixels;
@@ -53,17 +52,17 @@ namespace cvt {
     inline size_t SystemBuilder<NoWeighting<float> >::build( HessType&, JType& b,
                                                              const JType* jacobians,
                                                              const float* residuals,
-                                                             float & ssd,
-                                                             size_t n ) const
+                                                             const std::vector<size_t>& indices,
+                                                             float & ssd ) const
     {
         ssd = 0;
         size_t numPixels = 0;
         b.setZero();
-        for( size_t i = 0; i < n; i++ ){
+        for( size_t i = 0; i < indices.size(); i++ ){
             // compute the delta
-            ssd += Math::sqr( residuals[ i ] );
+            ssd += Math::sqr( residuals[ indices[ i ] ] );
             numPixels++;
-            b.noalias() += jacobians[ i ] * residuals[ i ];
+            b.noalias() += jacobians[ indices[ i ] ] * residuals[ indices[ i ] ];
 
         }
         return numPixels;

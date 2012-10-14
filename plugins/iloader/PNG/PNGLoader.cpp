@@ -26,8 +26,11 @@ namespace cvt {
 	{
 		size_t rdlen;
 		FILE *fp = fopen( path.c_str(), "rb");
-		if (!fp)
-			throw CVTException( "Cannot open PNG image file" );
+		if (!fp){
+			String msg;
+			msg.sprintf( "Cannot open PNG file: %s", path.c_str() );
+			throw CVTException( msg.c_str() );
+		}
 
 		unsigned char header[8];
 		png_uint_32 width, height;
@@ -76,14 +79,14 @@ namespace cvt {
 						png_set_expand( png_ptr );
 					img.reallocate( width, height, IFormat::GRAY_UINT8 );
 				} else if( bit_depth == 16 ) {
-				    png_set_swap( png_ptr );
+					png_set_swap( png_ptr );
 					img.reallocate( width, height, IFormat::GRAY_UINT16 );
 				} else
 					throw CVTException("Unsupported PNG format");
 				break;
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
 				if( bit_depth == 16 ) {
-				    png_set_swap( png_ptr );
+					png_set_swap( png_ptr );
 					img.reallocate( width, height, IFormat::GRAYALPHA_UINT16 );
 				} else if( bit_depth == 8 )
 					img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );
