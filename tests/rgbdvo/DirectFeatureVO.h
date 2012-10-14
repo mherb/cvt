@@ -107,8 +107,8 @@ namespace cvt {
         _maxSSDSqr( Math::sqr( 0.2f ) ),
         _minPixPerc( 0.5f ),
         _selectionPixelPercentage( 0.3f ),
-        _activeKeyframe( 0 ),
         _numCreated( 0 ),
+        _activeKeyframe( 0 ),
         _intrinsics( K ),
         _pyramid( params.octaves, params.pyrScale )
 

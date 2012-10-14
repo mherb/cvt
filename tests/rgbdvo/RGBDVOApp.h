@@ -113,5 +113,12 @@ namespace cvt
                 bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
 
                 void preprocessGrayImage( Image& pp, const Image& gray ) const;
+
+                // DEBUG STUFF
+                Matrix4f    _keyframeGTPose;
+                Matrix4f    _activeKFPose;
+                Image       _activeKFRGB;
+                Image       _activeKFDepth;
+                size_t      _activeKFIdx;
     };
 }

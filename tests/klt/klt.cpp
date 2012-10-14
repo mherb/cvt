@@ -58,7 +58,7 @@ int main( int argc, char* argv[] )
 		video = new RawVideoReader( argv[ 1 ] );
 	}
 
-	video->nextFrame();
+	video->nextFrame( 10 );
 
 	KLTWindow kltWin( *video );
 	Application::run();

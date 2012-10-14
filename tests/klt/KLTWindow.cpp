@@ -184,7 +184,7 @@ namespace cvt
         drawFeatures( debug );
         _imView.setImage( debug );
 
-        _video.nextFrame();
+        _video.nextFrame( 10 );
     }
 
     void KLTWindow::drawFeatures( Image & img )

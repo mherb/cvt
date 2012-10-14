@@ -73,7 +73,7 @@ class MultiCamApp : public TimeoutHandler
 		void onTimeout()
 		{
 			for( size_t i = 0; i < _cams.size(); i++ ){
-				_cams[ i ]->nextFrame();
+				_cams[ i ]->nextFrame( 10 );
 			}
 
 			for( size_t i = 0; i < _cams.size(); i++ ){
@@ -177,7 +177,6 @@ int main( int argc, char* argv[] )
 	for( int i = 0; i < camerasToSelect; i++ ){
 		cameras.push_back( selectCamera( selectedIndices ) );
 	}
-
 
 	try {
 		MultiCamApp camTimeOut( cameras );
