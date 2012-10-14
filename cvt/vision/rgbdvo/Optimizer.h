@@ -102,7 +102,7 @@ namespace cvt {
             float   _minUpdate;
             float   _robustThreshold;
 
-            float computeMedian( const float* residuals, size_t /*n*/, const std::vector<size_t>& indices ) const
+            float computeMedian( const float* residuals, const std::vector<size_t>& indices ) const
             {
                 HistMedianSelect medianSelector( 0.0f, 1.0f, 0.01f );
 
@@ -208,7 +208,7 @@ namespace cvt {
                 indices.clear();
                 validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
 
-                float median = computeMedian( &residuals[ 0 ], num, indices );
+                float median = computeMedian( &residuals[ 0 ], indices );
                 weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/

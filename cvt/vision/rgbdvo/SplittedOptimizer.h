@@ -118,7 +118,7 @@ namespace cvt {
 
                 this->validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
 
-                float median = Base::computeMedian( &residuals[ 0 ], num, indices );
+                float median = Base::computeMedian( &residuals[ 0 ], indices );
                 weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
