@@ -9,6 +9,34 @@
 
 using namespace cvt;
 
+Matrix4f poseFromVals( ConfigFile& cfg, const String& base )
+{
+    String query;
+
+    query.sprintf( "%s_q_w", base.c_str() );
+    float qw = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_q_x", base.c_str() );
+    float qx = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_q_y", base.c_str() );
+    float qy = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_q_z", base.c_str() );
+    float qz = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_t_x", base.c_str() );
+    float tx = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_t_y", base.c_str() );
+    float ty = cfg.valueForName<float>( query, 0.0f );
+    query.sprintf( "%s_t_z", base.c_str() );
+    float tz = cfg.valueForName<float>( query, 0.0f );
+
+
+    Matrix4f mat( cvt::Quaternionf( qx, qy, qz, qw ).toMatrix4() );
+    mat[ 0 ][ 3 ] = tx;
+    mat[ 1 ][ 3 ] = ty;
+    mat[ 2 ][ 3 ] = tz;
+
+    return mat;
+}
+
 void run( ConfigFile& cfg )
 {
     typedef StandardWarp<float> Warp;
@@ -24,7 +52,7 @@ void run( ConfigFile& cfg )
 
     size_t nOctaves = cfg.valueForName<int>( "octaves", 3 );
     float  scale    = cfg.valueForName<float>( "scale", 0.5f );
-    float  dScale   = cfg.valueForName<float>( "depthScale", 1000.0f );
+    float  dScale   = cfg.valueForName<float>( "depthScale", 1.0f );
     float  dFactor  = cfg.valueForName<float>( "depthFactor", 1000.0f );
     float  gThresh  = cfg.valueForName<float>( "gradientThreshold", 0.02f );
 
@@ -55,27 +83,23 @@ void run( ConfigFile& cfg )
     cd.convert( curdepth, IFormat::GRAY_FLOAT );
 
     ImagePyramid pyr( nOctaves, scale );
-    pyr.update( refgray );
 
+    // update reference keyframe
+    pyr.update( refgray );
     Matrix4f start;
     start.setIdentity();
-
     keyframe.updateOfflineData( start, pyr, refdepth );
 
+    // compute relative pose using current image
     pyr.update( curgray );
-
-
-    start = Matrix4f(   0.99803,     -0.00527,      0.06215,      0.03010,
-                        0.00458,      0.99992,      0.01120,      0.00440,
-                       -0.06223,     -0.01088,      0.99799,     -0.03222,
-                        0.00000,      0.00000,      0.00000,      1.00000 );
-
-
+    start = poseFromVals( cfg, "start" );
     KeyframeType::Result result;
     optimizer.optimize( result, start, keyframe, pyr, curdepth );
 
-    std::cout << result.warp.poseMatrix() << std::endl;
-
+    Matrix4f gt = poseFromVals( cfg, "gt" );
+    std::cout << "Estimated\n" << result.warp.poseMatrix() << std::endl;
+    std::cout << "True\n" << gt << std::endl;
+    std::cout << "Delta\n" << gt.inverse() * result.warp.poseMatrix() << std::endl;
 }
 
 int main( int argc, char* argv[] )

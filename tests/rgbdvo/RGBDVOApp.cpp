@@ -252,16 +252,31 @@ namespace cvt
                     // more than x m change in error
                     std::fixed( std::cout );
                     std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;
-                    std::cout << "Current RGB File:" << _parser.rgbFile( _parser.iter() ) << std::endl;
-                    std::cout << "Current Depth File:" << _parser.depthFile( _parser.iter() ) << std::endl;
-                    std::cout << "Keyframe RGB File:" << _parser.rgbFile( activeIdx ) << std::endl;
-                    std::cout << "Keyframe Depth File:" << _parser.depthFile( activeIdx ) << std::endl;
+                    std::cout << "referenceRGB = " << _parser.rgbFile( _parser.iter() ) << std::endl;
+                    std::cout << "referenceDepth = " << _parser.depthFile( _parser.iter() ) << std::endl;
+                    std::cout << "currentRGB = " << _parser.rgbFile( activeIdx ) << std::endl;
+                    std::cout << "currentDepth = " << _parser.depthFile( activeIdx ) << std::endl;
 
-                    std::cout << "True relative pose:\n" << gtRel << std::endl;
-                    std::cout << "Stared relative pose:\n" << startRelative << std::endl;
+                    Quaternionf qTrue( gtRel.toMatrix3() );
+                    Quaternionf qStart( startRelative.toMatrix3() );
+                    std::cout << "gt_q_w = " << qTrue.w << std::endl;
+                    std::cout << "gt_q_x = " << qTrue.x << std::endl;
+                    std::cout << "gt_q_y = " << qTrue.y << std::endl;
+                    std::cout << "gt_q_z = " << qTrue.z << std::endl;
+                    std::cout << "gt_t_x = " << gtRel[ 0 ][ 3 ] << std::endl;
+                    std::cout << "gt_t_y = " << gtRel[ 1 ][ 3 ] << std::endl;
+                    std::cout << "gt_t_z = " << gtRel[ 2 ][ 3 ] << std::endl;
 
-                    //_step = true;
-                    //_optimize = false;
+                    std::cout << "start_q_w = " << qStart.w << std::endl;
+                    std::cout << "start_q_x = " << qStart.x << std::endl;
+                    std::cout << "start_q_y = " << qStart.y << std::endl;
+                    std::cout << "start_q_z = " << qStart.z << std::endl;
+                    std::cout << "start_t_x = " << startRelative[ 0 ][ 3 ] << std::endl;
+                    std::cout << "start_t_y = " << startRelative[ 1 ][ 3 ] << std::endl;
+                    std::cout << "start_t_z = " << startRelative[ 2 ][ 3 ] << std::endl;
+
+                    _step = true;
+                    _optimize = false;
                 }
                 _lastTError = currError;
 

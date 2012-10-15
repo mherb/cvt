@@ -115,7 +115,7 @@ namespace cvt
             for( size_t x = 0; x < gray.width() - 1; x++ ){
                 currP.x = scale * x;
                 float z = Base::interpolateDepth( currP, d, depthStride );
-                if( z > this->_minDepth ){
+                if( z > this->_minDepth && z < 7.0f ){
                     g[ 0 ] = gx[ x ];
                     g[ 1 ] = gy[ x ];
 
