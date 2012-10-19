@@ -81,14 +81,20 @@ namespace cvt
             SIMD::instance()->Sub( residuals, referenceValues, warped, n );
         }
 
-        float costs( const float* residuals, size_t n )
+        float costs( const float* residuals, const std::vector<size_t>& indices ) const
         {
             float ssd = 0.0f;
-            size_t evaluated = n;
-            while( n-- ){
-                    ssd += Math::sqr( *residuals++ );
+
+            for( std::vector<size_t>::const_iterator it = indices.begin(), end = indices.end();
+                 it != end;
+                 ++it ){
+                ssd += Math::sqr( residuals[ *it ] );
             }
-            return ssd / evaluated;
+
+            if( indices.size() )
+                return ssd / indices.size();
+            else
+                return 1.0f;
         }
 
         void updateParameters( const DeltaVectorType& v )
@@ -192,15 +198,20 @@ namespace cvt
             simd->MulSubValue1f( residuals, warped, ( 1.0f + _alpha ), n );
         }
 
-        float costs( const float* residuals, size_t n )
+        float costs( const float* residuals, const std::vector<size_t>& indices ) const
         {
             float ssd = 0.0f;
-            size_t evaluated = n;
-            while( n-- ){
-                    ssd += Math::sqr( *residuals++ );
-            }
-            return ssd / evaluated;
 
+            for( std::vector<size_t>::const_iterator it = indices.begin(), end = indices.end();
+                 it != end;
+                 ++it ){
+                ssd += Math::sqr( residuals[ *it ] );
+            }
+
+            if( indices.size() )
+                return ssd / indices.size();
+            else
+                return 1.0f;
         }
 
         private:

@@ -63,6 +63,7 @@ class UEyeUsbCamera : public Camera
             
 			void	setFramerate( double fps );
 			void	setAutoGain( bool value );
+			void	setGainBoost( bool value );
             void	setAutoWhiteBalance( bool value );
 			void	setWhiteBalanceOnce();
             void	setAutoShutter( bool value );
@@ -70,19 +71,20 @@ class UEyeUsbCamera : public Camera
             void	setMaxAutoShutter( double value );
             void	setExposureTime( double value );
             void	setPixelClock( unsigned int value );
+            void    pixelClockRange( unsigned int& min, unsigned int& max, unsigned int& step ) const;
             void	setHorizontalMirror( bool value );
             void	setVerticalMirror( bool value );
 
 			void	getHardwareGains( int& master, int& red, int& green, int& blue );
 			void	setHardwareGains( int master, int red, int green, int blue );
 			
-            void	setRunMode( RunMode mode );
+            void	setRunMode( RunMode mode );            
 
             void    setTriggerMode( TriggerMode mode );
             void    setFlashMode( FlashMode mode );
 
             void    setTriggerDelay( size_t microSecs );
-            void    setFlashDelayAndDuration( size_t delayMuSecs, size_t durationMuSecs );
+            void    setFlashDelayAndDuration( int32_t delayMuSecs, size_t durationMuSecs );
 
 			void	saveParameters( const String& filename ) const;
 			void	loadParameters( const String& filename );
@@ -90,6 +92,8 @@ class UEyeUsbCamera : public Camera
             void    testIOSupport();
 
             bool    waitTriggerEvent( size_t timeout );
+
+            void    setAreaOfInterest( const Recti& roi );
 
         private:
             bool	initCam();

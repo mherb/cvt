@@ -65,7 +65,7 @@ namespace cvt {
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-        result.iterations = 0;
+        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
@@ -84,6 +84,9 @@ namespace cvt {
         const float costThreshold = 0.001f;
 
         float expectedDecrease;
+
+        // indices of points that projected into the image
+        std::vector<size_t> indices;
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             ResultType scaleResult;
@@ -106,7 +109,7 @@ namespace cvt {
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
 
-            scaleResult.iterations = 0;
+            scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
             scaleResult.pixelPercentage = 0.0f;
 
@@ -120,16 +123,21 @@ namespace cvt {
             simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
             // interpolate the pixel values
-            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
+            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
             scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
+
+            this->validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
+
+            float median = this->computeMedian( &residuals[ 0 ], indices );
+            weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
             /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
             hessian = data.hessian;
             scaleResult.numPixels = builder.build( hessian, deltaSum,
                                                    referenceJ,
                                                    &residuals[ 0 ],
-                                                   scaleResult.costs,
-                                                   num );
+                                                   indices,
+                                                   scaleResult.costs );
             // mean costs
             lastCosts = scaleResult.costs / scaleResult.numPixels;
             typename Base::DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
@@ -141,7 +149,7 @@ namespace cvt {
             Matrix4f tmpPose = scaleResult.warp.poseMatrix();
             float lambda = _initialLambda;
 
-            while( scaleResult.iterations < Base::_maxIter ){
+            while( scaleResult.iterationsOnOctave[ o ] < Base::_maxIter ){
                 // compute the update:
                 step = lambda * deltaP;
                 scaleResult.warp.updateParameters( step );
@@ -152,9 +160,11 @@ namespace cvt {
                 simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
                 // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, 0.5f, num );
+                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
-                float currentCosts = scaleResult.warp.costs( &residuals[ 0 ], num );
+
+                this->validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
+                float currentCosts = scaleResult.warp.costs( &residuals[ 0 ], indices );
 
                 float costFidelity = ( lastCosts - currentCosts ) / ( expectedDecrease );
 
@@ -165,15 +175,18 @@ namespace cvt {
                     lambda *= _trDecreaseFactor;
                 } else {
                     // keep step: update model
-                    scaleResult.iterations++;
+                    scaleResult.iterationsOnOctave[ o ]++;
                     tmpPose = scaleResult.warp.poseMatrix();
+
+                    median = this->computeMedian( &residuals[ 0 ], indices );
+                    weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
                     hessian = data.hessian;
                     scaleResult.numPixels = builder.build( hessian, deltaSum,
                                                            referenceJ,
                                                            &residuals[ 0 ],
-                                                           scaleResult.costs,
-                                                           num );
+                                                           indices,
+                                                           scaleResult.costs );
                     lastCosts = scaleResult.costs / scaleResult.numPixels;
                     deltaP = -hessian.inverse() * deltaSum.transpose();
 
@@ -196,7 +209,6 @@ namespace cvt {
             if( scaleResult.numPixels )
                 scaleResult.pixelPercentage = ( float )scaleResult.numPixels / ( float )num;
 
-            // TODO: ensure the result on this scale is good enough (pixel percentage & error )
             result = scaleResult;
         }
 

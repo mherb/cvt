@@ -73,7 +73,7 @@ class MultiCamApp : public TimeoutHandler
 		void onTimeout()
 		{
 			for( size_t i = 0; i < _cams.size(); i++ ){
-				_cams[ i ]->nextFrame();
+				_cams[ i ]->nextFrame( 10 );
 			}
 
 			for( size_t i = 0; i < _cams.size(); i++ ){
@@ -144,7 +144,8 @@ Camera* selectCamera( std::set<size_t>& alreadySelected )
 	}
 	
 	try {	
-		Camera* cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
+		Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::UYVY_UINT8 );
+		//Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::BAYER_GRBG_UINT8	 );
 		cam->startCapture();
 		alreadySelected.insert( selection );
 		return cam;
@@ -176,7 +177,6 @@ int main( int argc, char* argv[] )
 	for( int i = 0; i < camerasToSelect; i++ ){
 		cameras.push_back( selectCamera( selectedIndices ) );
 	}
-
 
 	try {
 		MultiCamApp camTimeOut( cameras );

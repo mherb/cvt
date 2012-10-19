@@ -10,6 +10,8 @@
  */
 #include "UEyeUsbCamera.h"
 
+#include <cvt/gfx/IMapScoped.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -24,8 +26,8 @@ namespace cvt
 		this->open( mode );
 		this->setIdentifier();
 
-		// load internally stored parameters as default starting point	
-		loadParameters( "/cam/set1" );
+		// load internally stored parameters as default starting point
+		// loadParameters( "//cam//set1" );
 	}
 
 	UEyeUsbCamera::~UEyeUsbCamera()
@@ -55,6 +57,14 @@ namespace cvt
 		double pVal1 = value?1:0;
 		double pVal2 = 0;
 		is_SetAutoParameter( _camHandle, IS_SET_ENABLE_AUTO_GAIN, &pVal1, &pVal2 );
+	}
+
+	void UEyeUsbCamera::setGainBoost( bool value )
+	{
+		INT mode = IS_SET_GAINBOOST_ON;
+		if( !value )
+			mode = IS_SET_GAINBOOST_OFF;
+		is_SetGainBoost( _camHandle, mode );
 	}
 
 	void UEyeUsbCamera::setAutoShutter( bool value )
@@ -124,7 +134,17 @@ namespace cvt
 
 	void UEyeUsbCamera::setPixelClock( unsigned int value )
 	{
-		is_SetPixelClock( _camHandle, value );
+		//is_SetPixelClock( _camHandle, value );
+		is_PixelClock( _camHandle, IS_PIXELCLOCK_CMD_SET, (void*)&value, sizeof( unsigned int ) );
+	}
+
+	void UEyeUsbCamera::pixelClockRange( unsigned int& min, unsigned int& max, unsigned int& step ) const
+	{
+		UINT range[ 3 ];
+		is_PixelClock( _camHandle, IS_PIXELCLOCK_CMD_GET_RANGE, ( void* )range, sizeof( range ) );
+		min = range[ 0 ];
+		max = range[ 1 ];
+		step = range[ 2 ];
 	}
 
 	void UEyeUsbCamera::setHorizontalMirror( bool value )
@@ -153,7 +173,7 @@ namespace cvt
 
 	void UEyeUsbCamera::setHardwareGains( int master, int red, int green, int blue )
 	{
-		int ret = is_SetHardwareGain( _camHandle, master, red, green, blue );
+		int ret = is_SetHardwareGain( _camHandle, master, red, green, blue );		
 		if( ret != IS_SUCCESS )
 			throw CVTException( "Error when setting hardware gains" );
 	}
@@ -188,7 +208,6 @@ namespace cvt
 		return false;
 	}
 
-
 	void UEyeUsbCamera::open( const CameraMode & mode )
 	{
 		if ( _camHandle != 0 ) {
@@ -202,27 +221,39 @@ namespace cvt
 		if( !initCam() )
 			throw CVTException( "Could not initialize camera" );
 
-		IS_RECT aoiRect;
-		aoiRect.s32X = 0;
-		aoiRect.s32Y = 0;
-		aoiRect.s32Width = _width;
-		aoiRect.s32Height = _height;
-		is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) );
+		setAreaOfInterest( Recti( 0, 0, _width, _height ) );
 		
-		is_GetImageMemPitch( _camHandle, &_stride );
+		if( mode.format == IFormat::BAYER_RGGB_UINT8 ){
+			is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
 
-		_frame.reallocate( _width, _height, _frame.format() );
+		} else {
+			throw CVTException( "Color mode not supported by UEyeUsbCamera class" );
+		}
+
+		is_GetImageMemPitch( _camHandle, &_stride );		
+		_frame.reallocate( _width, _height, mode.format );
+
+		this->initMemories( mode );
+		if( is_InitImageQueue( _camHandle, 0 ) != IS_SUCCESS ){
+			std::cout << "COULD NOT INIT IMAGE QUEUE" << std::endl;
+		}
 
 		double newFPS;
 		if( is_SetFrameRate( _camHandle, mode.fps, &newFPS ) == IS_NO_SUCCESS ){
 			std::cout << "Could not set FrameRate" << std::endl;
 		}
+	}
 
-		this->initMemories( mode );
-		if( is_InitImageQueue( _camHandle, 0 ) != IS_SUCCESS )
-			std::cout << "COULD NOT INIT IMAGE QUEUE" << std::endl;
+	void UEyeUsbCamera::setAreaOfInterest( const Recti& roi )
+	{
+		IS_RECT aoiRect;
+		aoiRect.s32X = roi.x | IS_AOI_IMAGE_POS_ABSOLUTE;
+		aoiRect.s32Y = roi.y | IS_AOI_IMAGE_POS_ABSOLUTE;
+		aoiRect.s32Width = roi.width;
+		aoiRect.s32Height = roi.height;
 
-		is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
+		if( is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) ) == IS_NO_SUCCESS ){
+		}
 	}
 
 	void UEyeUsbCamera::initMemories( const CameraMode & mode )
@@ -339,7 +370,6 @@ namespace cvt
 		return (size_t)ret;
 	}
 
-
 	void UEyeUsbCamera::cameraInfo( size_t index, CameraInfo & info )
 	{
 		size_t camCount = ( ULONG )UEyeUsbCamera::count();
@@ -370,11 +400,12 @@ namespace cvt
 			if( is_GetSensorInfo( handle, &sensorInfo ) == IS_NO_SUCCESS )
 				throw CVTException( "Could not get image information" );
 
-			INT pixClkMin = 0, pixClkMax = 0;
-			if( is_GetPixelClockRange( handle, &pixClkMin, &pixClkMax ) == IS_NO_SUCCESS ){
+			UINT pxClkRange[ 3 ] = { 0, 0, 0 };
+			if( is_PixelClock( handle, IS_PIXELCLOCK_CMD_GET_RANGE, ( void* )pxClkRange, sizeof( pxClkRange ) ) == IS_NO_SUCCESS ){
 				std::cout << "Could not get PixelClockRange" << std::endl;
 			}
-			if( is_SetPixelClock( handle, pixClkMax ) == IS_NO_SUCCESS ){
+
+			if( is_PixelClock( handle, IS_PIXELCLOCK_CMD_SET, (void*)&pxClkRange[ 1 ]/**/, sizeof( unsigned int ) ) == IS_NO_SUCCESS ){
 				std::cout << "Could not set PixelClock" << std::endl;
 			}
 
@@ -461,7 +492,7 @@ namespace cvt
         }
     }
 
-    void UEyeUsbCamera::setFlashDelayAndDuration( size_t delayMuSecs, size_t durationMuSecs )
+    void UEyeUsbCamera::setFlashDelayAndDuration( int32_t delayMuSecs, size_t durationMuSecs )
     {
         IO_FLASH_PARAMS params, min, max;
 
@@ -473,22 +504,22 @@ namespace cvt
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MIN, ( void* )&min, sizeof( min ) );
         if( ret == IS_SUCCESS ){
-            if( min.u32Delay    > delayMuSecs )    delayMuSecs    = min.u32Delay;
+            if( min.s32Delay    > delayMuSecs )    delayMuSecs    = min.s32Delay;
             if( min.u32Duration > durationMuSecs ) durationMuSecs = min.u32Duration;
         }
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_GET_PARAMS_MAX, ( void* )&max, sizeof( max ) );
         if( ret == IS_SUCCESS ){
-            if( max.u32Delay    < delayMuSecs )    delayMuSecs    = max.u32Delay;
+            if( max.s32Delay    < delayMuSecs )    delayMuSecs    = max.s32Delay;
             if( max.u32Duration < durationMuSecs ) durationMuSecs = max.u32Duration;
         }
 
-        params.u32Delay    = delayMuSecs;
+        params.s32Delay    = delayMuSecs;
         params.u32Duration = durationMuSecs;
 
         std::cout << "Delay: " << delayMuSecs << " Duration: " << durationMuSecs << std::endl;
-        std::cout << "Min Delay: " << min.u32Delay << " Duration: " << min.u32Duration << std::endl;
-        std::cout << "Max Delay: " << max.u32Delay << " Duration: " << max.u32Duration << std::endl;
+        std::cout << "Min Delay: " << min.s32Delay << " Duration: " << min.u32Duration << std::endl;
+        std::cout << "Max Delay: " << max.s32Delay << " Duration: " << max.u32Duration << std::endl;
 
         ret = is_IO( _camHandle, IS_IO_CMD_FLASH_SET_PARAMS, ( void* )&params, sizeof( params ) );
         if( ret != IS_SUCCESS ){
@@ -497,16 +528,16 @@ namespace cvt
     }
 
 	void UEyeUsbCamera::saveParameters( const String& filename ) const
-	{
-		int ret = is_SaveParameters( _camHandle, ( const IS_CHAR* )filename.c_str() );
+	{		
+		int ret = is_ParameterSet( _camHandle, IS_PARAMETERSET_CMD_SAVE_FILE, ( void* )filename.c_str(), 0 );
 		if( ret != IS_SUCCESS ){
 			std::cout << "Could not save parameters to file" << std::endl;
 		}
 	}
 
 	void UEyeUsbCamera::loadParameters( const String& filename )
-	{
-		int ret = is_LoadParameters( _camHandle, ( const IS_CHAR* )filename.c_str() );	
+	{		
+		int ret = is_ParameterSet( _camHandle, IS_PARAMETERSET_CMD_LOAD_FILE, ( void* )filename.c_str(), 0 );
 		if( ret != IS_SUCCESS )
 			std::cout << "Error loading parameters from file" << std::endl;
 	}

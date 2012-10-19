@@ -21,6 +21,7 @@
 #include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
+#include <DirectFeatureVO.h>
 
 //#define USE_CAM
 #ifdef USE_CAM
@@ -52,7 +53,6 @@ namespace cvt
                 RGBDParser                          _parser;
 #endif
 
-
                 typedef StandardWarp<float>         WarpType;
                 //typedef AffineLightingWarp<float>   WarpType;
 
@@ -63,6 +63,7 @@ namespace cvt
                 typedef IntensityKeyframe<WarpType>     KFType;
                 //typedef IntensityDepthKeyframe<WarpType>  KFType;
                 RGBDVisualOdometry<KFType, LossFunc>    _vo;
+                //DirectFeatureVO                     _vo;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;
@@ -87,8 +88,6 @@ namespace cvt
                 Moveable                    _poseMov;
                 Button                      _nextButton;
 
-
-
                 bool                        _nextPressed;
                 Button                      _stepButton;
                 bool                        _step;
@@ -98,6 +97,8 @@ namespace cvt
                 Label                       _ssdLabel;
                 Label                       _numPixelLabel;
                 Label                       _pixelPercentLabel;
+
+                float                       _lastTError;
 
                 void keyframeAddedCallback( const Matrix4f& pose );
                 void activeKeyframeChangedCallback();
@@ -110,5 +111,14 @@ namespace cvt
                 void writePose( std::ofstream& file, const Matrix4f& pose, double stamp );
 
                 bool positionJumped( const Matrix4f& currentPose, const Matrix4f& lastPose );
+
+                void preprocessGrayImage( Image& pp, const Image& gray ) const;
+
+                // DEBUG STUFF
+                Matrix4f    _keyframeGTPose;
+                Matrix4f    _activeKFPose;
+                Image       _activeKFRGB;
+                Image       _activeKFDepth;
+                size_t      _activeKFIdx;
     };
 }

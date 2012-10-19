@@ -29,7 +29,8 @@ namespace cvt
         _optimize( true ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
-        _pixelPercentLabel( "\% Pixel: 0\%" )
+        _pixelPercentLabel( "\% Pixel: 0\%" ),
+        _lastTError( 0.0f )
     {
         _timerId = Application::registerTimer( 10, this );
         setupGui();
@@ -41,6 +42,7 @@ namespace cvt
         _vo.activeKeyframeChanged.add( actkfChgDel );
 
         Image gray, depth;
+        Matrix4f initPose;
 #ifdef USE_CAM
         _cam.setRegisterDepthToRGB( true );
         _cam.setSyncRGBDepth( true );
@@ -58,8 +60,7 @@ namespace cvt
         _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
         _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
 
-        Matrix4f tmp; tmp.setIdentity();
-        _vo.addNewKeyframe( gray, depth, tmp );
+        initPose.setIdentity();
 #else
         _parser.loadNext();
         while( _parser.data().poseValid == false )
@@ -68,8 +69,14 @@ namespace cvt
         _parser.data().rgb.convert( gray, IFormat::GRAY_FLOAT );
         _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
-        _vo.addNewKeyframe( gray, depth, _parser.data().pose<float>() );
+        initPose = _parser.data().pose<float>();
 #endif
+        // preprocess the gray image
+        Image preprocessed;
+        preprocessed.reallocate( gray );
+        preprocessGrayImage( preprocessed, gray );
+
+        _vo.addNewKeyframe( preprocessed, depth, initPose );
 
         _avgTransError.setZero();
         _validPoseCounter = 0;
@@ -87,12 +94,70 @@ namespace cvt
     {
 
         Vector4f t0 = lastPose.col( 3 );
-        Vector4f t1 = currentPose.col( 3 );
+        Vector4f t1 = currentPose.col( 3 );        
 
         if( ( t0 - t1 ).length() > 0.5f )
             return true;
 
         return false;
+    }
+
+    static void demeanNormalize( Image& pp, const Image& input )
+    {
+        // compute the two values
+        float x, xx;
+        x = xx = 0.0f;
+        {
+            IMapScoped<const float> inMap( input );
+
+            size_t h = input.height();
+            while( h-- ){
+                const float* ptr = inMap.ptr();
+                for( size_t i = 0; i < input.width(); i++ ){
+                    x  += ptr[ i ];
+                    xx += Math::sqr( ptr[ i ] );
+                }
+                inMap.nextLine();
+            }
+            x  /= ( input.width() * input.height() ); // mean
+            xx /= ( input.width() * input.height() );
+        }
+
+        float stdDev = Math::sqrt( xx - Math::sqr( x ) );
+
+        pp = input;
+        pp.sub( x );
+        pp.mul( 1.0f / stdDev );
+
+        /*
+        x = xx = 0.0f;
+        {
+            IMapScoped<const float> inMap( pp );
+
+            size_t h = pp.height();
+            while( h-- ){
+                const float* ptr = inMap.ptr();
+                for( size_t i = 0; i < pp.width(); i++ ){
+                    x  += ptr[ i ];
+                    xx += Math::sqr( ptr[ i ] );
+                }
+                inMap.nextLine();
+            }
+            x  /= ( input.width() * input.height() ); // mean
+            xx /= ( input.width() * input.height() );
+        }
+
+        stdDev = Math::sqrt( xx - Math::sqr( x ) );
+        std::cout << "Mean: " << x << " stdDev: " << stdDev << std::endl;
+        */
+    }
+
+    void RGBDVOApp::preprocessGrayImage( Image& pp, const Image& gray ) const
+    {
+        gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+        //gray.convolve( pp, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+        //demeanNormalize( pp, gray );
     }
 
     void RGBDVOApp::onTimeout()
@@ -121,24 +186,32 @@ namespace cvt
             lastPose = _vo.pose();
             Time t;
 
-            Image depth, gray;
+            Image depth, gray, grayf;
 
-            // update the absolute pose
+            // current the absolute pose
             Matrix4f absPose = _vo.pose();
 
 #ifdef USE_CAM
-            _cam.frame().convert( gray, IFormat::GRAY_FLOAT );
+            _cam.frame().convert( grayf, IFormat::GRAY_FLOAT );
             _cam.depth().convert( depth, IFormat::GRAY_FLOAT );
-            _vo.updatePose( absPose, gray, depth );
 #else
             const RGBDParser::RGBDSample& d = _parser.data();
 
             // try to align:
-            d.rgb.convert( gray, IFormat::GRAY_FLOAT );
+            d.rgb.convert( grayf, IFormat::GRAY_FLOAT );
             d.depth.convert( depth, IFormat::GRAY_FLOAT );
+#endif
+            gray.reallocate( grayf );
+            preprocessGrayImage( gray, grayf );
+
+
+            Matrix4f startRelative = _activeKFPose.inverse() * absPose;
+            Matrix4f gtPose = d.pose<float>();
+            Matrix4f gtRel = _keyframeGTPose.inverse() * gtPose;
+            size_t activeIdx = _activeKFIdx;
 
             _vo.updatePose( absPose, gray, depth );
-#endif
+
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;
 
@@ -159,17 +232,54 @@ namespace cvt
 
             if( positionJumped( absPose, lastPose) ){
                 std::cout << "Position Jump at iteration: " << iter << std::endl;
-                _step = true;
-                _optimize = false;
-                _vo.setPose( lastPose );
+                //_step = true;
+                //_optimize = false;
+                //_vo.setPose( lastPose );
             }
 
+
 #ifndef USE_CAM
-            Matrix4f gtPose = d.pose<float>();
+
             if( d.poseValid ){
-                _avgTransError.x += Math::abs( absPose[ 0 ][ 3 ] - gtPose[ 0 ][ 3 ] );
-                _avgTransError.y += Math::abs( absPose[ 1 ][ 3 ] - gtPose[ 1 ][ 3 ] );
-                _avgTransError.z += Math::abs( absPose[ 2 ][ 3 ] - gtPose[ 2 ][ 3 ] );
+                Vector4f eps = absPose.col( 3 ) - gtPose.col( 3 );
+                _avgTransError.x += Math::abs( eps.x );
+                _avgTransError.y += Math::abs( eps.y );
+                _avgTransError.z += Math::abs( eps.z );
+
+                float currError = eps.length();
+                float errorChange = currError - _lastTError;
+                if( errorChange > 0.01f ){
+                    // more than x m change in error
+                    std::fixed( std::cout );
+                    std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;
+                    std::cout << "referenceRGB = " << _parser.rgbFile( _parser.iter() ) << std::endl;
+                    std::cout << "referenceDepth = " << _parser.depthFile( _parser.iter() ) << std::endl;
+                    std::cout << "currentRGB = " << _parser.rgbFile( activeIdx ) << std::endl;
+                    std::cout << "currentDepth = " << _parser.depthFile( activeIdx ) << std::endl;
+
+                    Quaternionf qTrue( gtRel.toMatrix3() );
+                    Quaternionf qStart( startRelative.toMatrix3() );
+                    std::cout << "gt_q_w = " << qTrue.w << std::endl;
+                    std::cout << "gt_q_x = " << qTrue.x << std::endl;
+                    std::cout << "gt_q_y = " << qTrue.y << std::endl;
+                    std::cout << "gt_q_z = " << qTrue.z << std::endl;
+                    std::cout << "gt_t_x = " << gtRel[ 0 ][ 3 ] << std::endl;
+                    std::cout << "gt_t_y = " << gtRel[ 1 ][ 3 ] << std::endl;
+                    std::cout << "gt_t_z = " << gtRel[ 2 ][ 3 ] << std::endl;
+
+                    std::cout << "start_q_w = " << qStart.w << std::endl;
+                    std::cout << "start_q_x = " << qStart.x << std::endl;
+                    std::cout << "start_q_y = " << qStart.y << std::endl;
+                    std::cout << "start_q_z = " << qStart.z << std::endl;
+                    std::cout << "start_t_x = " << startRelative[ 0 ][ 3 ] << std::endl;
+                    std::cout << "start_t_y = " << startRelative[ 1 ][ 3 ] << std::endl;
+                    std::cout << "start_t_z = " << startRelative[ 2 ][ 3 ] << std::endl;
+
+                    _step = true;
+                    _optimize = false;
+                }
+                _lastTError = currError;
+
                 _validPoseCounter++;
             }
             writePose( _fileOut, absPose, d.stamp );
@@ -274,6 +384,15 @@ namespace cvt
     void RGBDVOApp::keyframeAddedCallback( const Matrix4f& pose )
     {
         _poseView.addKeyframe( pose );
+
+        // remember the keyframe ground truth pose!
+        _keyframeGTPose = _parser.data().pose<float>();
+        _activeKFPose = pose;
+        _activeKFRGB.reallocate( _parser.data().rgb );
+        _activeKFDepth.reallocate( _parser.data().depth );
+        _activeKFRGB   = _parser.data().rgb;
+        _activeKFDepth = _parser.data().depth;
+        _activeKFIdx = _parser.iter();
     }
 
     void RGBDVOApp::activeKeyframeChangedCallback()
@@ -283,6 +402,11 @@ namespace cvt
         _keyframeImage.setImage( _cam.frame() );
 #else
         _keyframeImage.setImage( _parser.data().rgb );
+
+        // save the current keyframe images & poses?
+        //_parser.data().rgb.save( "keyframe_rgb.png" );
+        //_parser.data().depth.save( "keyframe_depth.png" );
+        //std::cout << "Keyframe pose:(current vo)\n" << _vo.pose() << std::endl;
 #endif
     }
 
