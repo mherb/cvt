@@ -40,8 +40,6 @@ namespace cvt {
 		gfx->color().set( 0.4f, 0.4f, 0.4f, 1.0f );
 		gfx->fillRect( 0, 0, r.width, r.height );
 		gfx->color().set( 0.0f, 0.0f, 1.0f, 1.0f );
-		int w, h;
-		size( w, h );
 		paintChildren( gfx, r );
 	}
 

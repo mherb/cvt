@@ -242,11 +242,14 @@ namespace cvt {
 		return _translation;
 	}
 
-
 	void GFX::setTranslationGlobal( const Vector2i& translation )
 	{
 		_translationGlobal = translation;
 	}
 
+	void GFX::getTranslationGlobal( Vector2i& translation ) const
+	{
+		translation = _translationGlobal;
+	}
 
 }

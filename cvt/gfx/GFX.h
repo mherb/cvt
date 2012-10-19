@@ -104,6 +104,7 @@ namespace cvt {
 
 			/* setDefault needs to be called after changing the global translation */
 			void setTranslationGlobal( const Vector2i& translation );
+			void getTranslationGlobal( Vector2i& translation ) const;
 
 			GFXEngine* _engine;
 			bool	   _active;

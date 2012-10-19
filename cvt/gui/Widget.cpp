@@ -157,6 +157,8 @@ namespace cvt {
 
 		/* get current cliprect and translation */
 		Recti cliprect = gfx->clipRect();
+		Vector2i gtransold;
+		gfx->getTranslationGlobal( gtransold );
 		/* get child rectangle in global coords */
 		Recti newcliprect = w->rect();
 		Recti childrect = newcliprect;
@@ -172,8 +174,7 @@ namespace cvt {
 		gfx->setDefault();
 		w->paintEvent( &pe, gfx );
 		/* restore old viewport */
-		Recti thisrect = this->rect();
-		gfx->setTranslationGlobal( Vector2i( thisrect.x, thisrect.y ) );
+		gfx->setTranslationGlobal( gtransold );
 		gfx->setDefault();
 		gfx->setClipRect( cliprect );
 	}

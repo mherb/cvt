@@ -61,7 +61,7 @@ int main( int argc, char** argv )
 
 
 		Time timer;
-		int patchsize = 16;
+		int patchsize = 10;
 
 		clpminit.setArg( 0, clmatches1 );
 		clpminit.setArg( 1, clinput1 );
@@ -71,7 +71,7 @@ int main( int argc, char** argv )
 		clpminit.setArg( 5, patchsize );
 		clpminit.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
-		for( int iter = 0; iter < 50; iter++ ) {
+		for( int iter = 0; iter < 40; iter++ ) {
 			int swap = iter & 1;
 
 #if 1

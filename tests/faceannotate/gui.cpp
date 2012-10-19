@@ -52,11 +52,11 @@ class FaceUI : public Window
 
 	void paintEvent( PaintEvent* e, GFX* g )
 	{
-		Window::paintEvent( e, g );
-
 		int w, h;
 		float aspect;
 		size( w, h );
+
+		Window::paintEvent( e, g );
 
 		aspect = ( ( float ) _glimage.width() / ( float ) _glimage.height() );
 
@@ -73,7 +73,12 @@ class FaceUI : public Window
 		for( int i =0, end = _pts.size(); i < end; i++ ) {
 			float dx = ( _pts[ i ].x + 0.5f ) * _dw;
 			float dy = ( _pts[ i ].y + 0.5f ) * _dh;
-			g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
+			if( _selection == i ) {
+				g->color().set( 1.0f, 0.0f, 0.0f, 0.5f );
+				g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
+				g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
+			} else
+				g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
 		}
 		Matrix3f t;
 		t.setIdentity();
@@ -82,6 +87,7 @@ class FaceUI : public Window
 		t[ 0 ][ 2 ] = _dw * 0.5f;
 		t[ 1 ][ 2 ] = _dh * 0.5f;
 		_pts.draw( g, t );
+
 	}
 
 	void mousePressEvent( MousePressEvent* event )
@@ -96,10 +102,12 @@ class FaceUI : public Window
 			Rectf r( dx - 4, dy - 4, 8, 8 );
 			if( r.contains( event->x, event->y ) ) {
 				_selection = i;
+				update();
 				return;
 			}
 		}
 		_selection = -1;
+		update();
 		WidgetContainer::mousePressEvent( event );
 	}
 
@@ -117,7 +125,7 @@ class FaceUI : public Window
 			WidgetContainer::mouseMoveEvent( event );
 		    if( _toggle.state() ) {
 				if( event->buttonMask() & 1 )
-					_pts.translate( Point2f( -dx, -dy ) );
+					_pts.translate( Point2f( dx, dy ) );
 				else if ( event->buttonMask() & 2 ) {
 					Matrix2f t( 1.0f + dx, 0.0f, 0.0f, 1.0f + dy );
 					_pts.transform( t );

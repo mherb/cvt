@@ -104,11 +104,10 @@ namespace cvt {
 			}
 		} else {
 			String cvtstr( ( const char* ) glGetString( GL_EXTENSIONS ) );
-			std::cout << cvtstr << std::endl;
 			cvtstr.tokenize( _extensions, ' ' );
 		}
 
-		if( existsExtension( "GL_ARB_vertex_array_object" ) || _glmajor > 2 ) {
+		if( existsExtension( "GL_ARB_vertex_array_object" ) || ( _glmajor > 2 || ( _glmajor == 2 && _glminor >= 1 ) ) ) {
 			glGenVertexArrays = ( void (*)( GLsizei, GLuint* ) ) getProcAddress( "glGenVertexArrays" );
 			glDeleteVertexArrays = ( void (*)( GLsizei, const GLuint* ) ) getProcAddress( "glDeleteVertexArrays" );
 			glBindVertexArray = ( void (*)( GLuint ) ) getProcAddress( "glBindVertexArray" );
