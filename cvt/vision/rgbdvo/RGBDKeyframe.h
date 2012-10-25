@@ -60,7 +60,7 @@ namespace cvt
                 hessian.setZero();
                 inverseHessian.setZero();
             }
-    };    
+    };
 
     template <class WarpFunc>
     class RGBDKeyframe {
@@ -69,7 +69,7 @@ namespace cvt
             struct Result {
                 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 Result() :
-                    success( false ),                    
+                    success( false ),
                     numPixels( 0 ),
                     pixelPercentage( 0.0f ),
                     costs( 0.0f )
@@ -143,12 +143,12 @@ namespace cvt
 
     template <class WarpFunc>
     inline RGBDKeyframe<WarpFunc>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
-        //_kx( IKernel::HAAR_HORIZONTAL_3 ),
-        //_ky( IKernel::HAAR_VERTICAL_3 ),
-        _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
-        _ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
-        _gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
-        _gaussY( IKernel::GAUSS_VERTICAL_3 ),
+        _kx( IKernel::HAAR_HORIZONTAL_3 ),
+        _ky( IKernel::HAAR_VERTICAL_3 ),
+        //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
+        //_ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
+        //_gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
+        //_gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _gradientThreshold( 0.0f ),
@@ -156,8 +156,8 @@ namespace cvt
         _minPixelPercentage( 0.2f ),
         _pixelPercentageToSelect( 0.3f )
     {
-        //float s = -0.5f;
-        float s = -1.0f;
+        float s = -0.5f;
+        //float s = -2.0f;
         _kx.scale( s );
         _ky.scale( s );
 
@@ -200,13 +200,13 @@ namespace cvt
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
 
-        // sobel
-        gray.convolve( gx, _kx, _gaussY );
-        gray.convolve( gy, _gaussX, _ky );
+        // sobel style
+        //gray.convolve( gx, _kx, _gaussY );
+        //gray.convolve( gy, _gaussX, _ky );
 
         // normal
-        //gray.convolve( gx, _kx );
-        //gray.convolve( gy, _ky );
+        gray.convolve( gx, _kx );
+        gray.convolve( gy, _ky );
     }
 
     template <class WarpFunc>

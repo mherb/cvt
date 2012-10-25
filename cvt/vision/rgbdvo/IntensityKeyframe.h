@@ -88,6 +88,13 @@ namespace cvt
         Image gxI, gyI;
         this->computeImageGradients( gxI, gyI, gray );
 
+        String file;
+        file.sprintf( "gradx_%f.png", scale );
+        gxI.save( file );
+        file.sprintf( "grady_%f.png", scale );
+        gyI.save( file );
+
+
         data.clear();
         size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
         data.reserve( 0.4f * pixelsOnOctave );
@@ -153,10 +160,10 @@ namespace cvt
         // precompute the inverse hessian
         data.inverseHessian = data.hessian.inverse();
 
-        /*
+
         cvt::String hessString;
         float normalizer = data.jacobians.size();
-        std::cout << "Octave: " << i << std::endl;
+        std::cout << "Octave: " << scale << std::endl;
         hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
                             data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
                             data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
@@ -165,7 +172,7 @@ namespace cvt
                             data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
                             data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
         std::cout << hessString << std::endl;
-        */
+
     }
 
 
