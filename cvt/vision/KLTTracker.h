@@ -108,8 +108,8 @@ namespace cvt
         }
 
         template <class PoseType, size_t pSize>
-                bool KLTTracker<PoseType, pSize>::trackPatchMultiscale( KLTPType& patch,
-                                                                        const ImagePyramid& pyramid )
+        bool KLTTracker<PoseType, pSize>::trackPatchMultiscale( KLTPType& patch,
+                                                                const ImagePyramid& pyramid )
         {
             typename KLTPType::JacType jSum;
             typename PoseType::ParameterVectorType delta;
