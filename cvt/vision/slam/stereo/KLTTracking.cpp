@@ -51,15 +51,9 @@ namespace cvt
             if( patch == 0 ){
                 // this was a bad PATCH
                 continue;
-            }
+            }        
 
-            //  update patch position to current predicted one
-            /*
-            Eigen::Matrix3f & m = patch->pose().transformation();
-            //m.setIdentity();
-            m( 0, 2 ) = p.x;
-            m( 1, 2 ) = p.y;*/
-
+            // start from predicted position
             patch->initPose( p );
 
             //  try to track the patch

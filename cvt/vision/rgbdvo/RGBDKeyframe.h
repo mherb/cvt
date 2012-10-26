@@ -45,6 +45,10 @@ namespace cvt
             HessianType                 inverseHessian;
             Matrix3f                    intrinsics;
 
+            Image                       gray;
+            Image                       gradX;
+            Image                       gradY;
+
             void reserve( size_t size )
             {
                 points3d.reserve( size );
@@ -107,17 +111,23 @@ namespace cvt
             void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
 
             void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
+            void addPoints( const std::vector<Vector3f>& pts );
 
             virtual void updateOfflineDataForScale( AlignDataType& data,
                                                     const Image& gray,
                                                     const Image& depth,
                                                     float scale ) = 0;
 
+            virtual void addPointsOnScale( AlignDataType& data,
+                                           const std::vector<Vector3f>& pts,
+                                           const Matrix4f& referenceToWorld ) = 0;
+
         protected:
             Matrix4<T>                  _pose;
 
             typedef std::vector<AlignDataType, Eigen::aligned_allocator<AlignDataType> > AlignmentDataVector;
             AlignmentDataVector         _dataForScale;
+            Image                       _depth;
             IKernel                     _kx;
             IKernel                     _ky;
             IKernel                     _gaussX;
@@ -181,6 +191,15 @@ namespace cvt
         for( size_t i = 0; i < pyramid.octaves(); i++ ){
             this->updateOfflineDataForScale( _dataForScale[ i ], pyramid[ i ], depth, scale );
             scale /= pyramid.scaleFactor();
+        }
+    }
+
+    template <class WarpFunc>
+    inline void RGBDKeyframe<WarpFunc>::addPoints( const std::vector<Vector3f>& pts )
+    {
+        Matrix4f refToWorld = _pose.inverse();
+        for( size_t i = 0; i < _dataForScale.size(); i++ ){
+            this->addPointsOnScale( _dataForScale[ i ], pts, refToWorld );
         }
     }
 

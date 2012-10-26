@@ -50,6 +50,12 @@ namespace cvt {
              *  \brief  get the absolute (world) pose of the last added image
              */
             const Matrix4f& pose()          const;
+
+            /**
+             *  \brief add additional points to the reference frame
+             */
+            void addFeaturesToKeyframe( const std::vector<Vector3f>& pts );
+
             size_t          numKeyframes()  const                   { return _keyframes.size(); }
             const Matrix3f& intrinsics()    const                   { return _intrinsics; }
             void            setMaxTranslationDistance( float dist ) { _maxTranslationDistance = dist; }
@@ -260,6 +266,12 @@ namespace cvt {
             }
             p.y += stepy;
         }
+    }
+
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addFeaturesToKeyframe( const std::vector<Vector3f>& pts )
+    {
+        _activeKeyframe->addPoints( pts );
     }
 
 }

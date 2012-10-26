@@ -44,6 +44,8 @@ namespace cvt
             void addFeatureToDatabase( const Vector2f & f, size_t id );
             void clear();
 
+            const ImagePyramid& pyramid() const { return _pyramid; }
+
         private:
             typedef GA2<float>          PoseType;
             static const size_t         PatchSize = 16;

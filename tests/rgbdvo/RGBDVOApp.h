@@ -21,7 +21,8 @@
 #include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
-#include <DirectFeatureVO.h>
+//#include <DirectFeatureVO.h>
+#include <FeatureAugmentation.h>
 
 //#define USE_CAM
 #ifdef USE_CAM
@@ -63,7 +64,9 @@ namespace cvt
                 typedef IntensityKeyframe<WarpType>     KFType;
                 //typedef IntensityDepthKeyframe<WarpType>  KFType;
                 RGBDVisualOdometry<KFType, LossFunc>    _vo;
-                //DirectFeatureVO                     _vo;
+                //DirectFeatureVO                       _vo;
+
+                FeatureAugmentation         _featureAugmentation;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

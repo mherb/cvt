@@ -14,6 +14,7 @@ namespace cvt
         _parser( folder, 0.02f ),
 #endif
         _vo( K, params ),
+        _featureAugmentation( K ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
         _mainWindow( "RGBD-VO" ),
@@ -204,13 +205,18 @@ namespace cvt
             gray.reallocate( grayf );
             preprocessGrayImage( gray, grayf );
 
-
             Matrix4f startRelative = _activeKFPose.inverse() * absPose;
             Matrix4f gtPose = d.pose<float>();
             Matrix4f gtRel = _keyframeGTPose.inverse() * gtPose;
             size_t activeIdx = _activeKFIdx;
 
             _vo.updatePose( absPose, gray, depth );
+
+            std::vector<Vector3f> new3dPoints;
+            _featureAugmentation.trackAndTriangulate( new3dPoints, gray, depth, absPose );
+
+            // add those features to the current reference:
+            _vo.addFeaturesToKeyframe( new3dPoints );
 
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;

@@ -17,6 +17,8 @@ namespace cvt {
 
             /**
               * \brief  track features frame by frame and triangulate new features
+              * \param  img     uint8 grayscale
+              * \param  depth   float depthmap
               */
             void trackAndTriangulate( std::vector<Vector3f>& newPoints,
                                       const Image& img,
@@ -26,9 +28,16 @@ namespace cvt {
 
         private:
             struct FeatureTrack {
+                    FeatureTrack( const Vector2f& pos, const Matrix4f& pMat )
+                    {
+                        positions.reserve( 4 );
+                        projectionMat.reserve( 4 );
+                        positions.push_back( pos );
+                        projectionMat.push_back( pMat );
+                    }
+
                     std::vector<Vector2f> positions;
                     std::vector<Matrix4f> projectionMat;
-
             };
 
             Matrix3f                        _intrinsics;
@@ -45,8 +54,15 @@ namespace cvt {
             // current feature Tracks
             typedef std::map<size_t, FeatureTrack> MapType;
             MapType                         _featureTracks;
+            Image                           _mask;
 
-            void trackFeatures( const Image &img, const Matrix4f &pose );
+            size_t                          _minTrackLength;
+
+            void trackFeatures( const Image &img, const Matrix4f &projMat );
+
+            void initializeNewFeatures( std::vector<Vector3f>& newPoints );
+
+            void detectNewFeatures( const Matrix4f& projMat );
 
     };
 

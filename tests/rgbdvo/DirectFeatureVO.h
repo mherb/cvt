@@ -57,6 +57,12 @@ namespace cvt {
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
 
 
+            void addPointsOnScale( Base::AlignDataType& data,
+                                   const std::vector<Vector3f>& pts )
+            {
+                throw CVTException( "Not implemented for this keyframe type" );
+            }
+
             /******** SIGNALS ************/
             /**
              *  \brief  Signal that will be emitted when a new keyframe was added
