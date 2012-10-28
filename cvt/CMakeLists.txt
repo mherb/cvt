@@ -410,8 +410,6 @@ SET(${MODULE_NAME}_HEADERS
    util/PluginManager.h
    util/PluginFile.h
    util/internal/ParamTypes.def
-   vision/alignment/KLTPatch.h
-   vision/alignment/PatchBase.h
    vision/BinaryDescriptor.h
    vision/BoardDetector.h
    vision/Brief.h
