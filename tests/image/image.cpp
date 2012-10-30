@@ -21,10 +21,10 @@ int main()
 
 	try {
 		{
-            Image ppm( resources.find( "lena.ppm" ) );
-            ppm.save( "ppm.png" );
-            ppm.load( resources.find( "ppmtestc.ppm" ) );
-            ppm.save( "ppmc.png" );
+			Image ppm( resources.find( "lena.ppm" ) );
+			ppm.save( "ppm.png" );
+			ppm.load( resources.find( "ppmtestc.ppm" ) );
+			ppm.save( "ppmc.png" );
 
 
 			cvt::Image stst;
@@ -38,12 +38,13 @@ int main()
 		}
 
 		// RGBA UBYTE IMAGE
-		cvt::Image img, img2;
+		cvt::Image img, img2, gradx;
 		img.load( inputFile.c_str() );
+
 		cvt::Image imgF( img.width(), img.height(), cvt::IFormat::floatEquivalent( img.format() ) );
 		img.convert( imgF );
-
 		imgF.save( "float.png" );
+
 
 		cvt::Image resized;
 
@@ -66,13 +67,18 @@ int main()
 
 		imgGray.load( inputGray.c_str() );
 
+		gradx.reallocate( imgGray.width(), imgGray.height(), IFormat::GRAY_INT16 );
 		std::cout << "Loaded image: " << imgGray << std::endl;
+		std::cout << "Dest. image: " << gradx << std::endl;
+		imgGray.convolve( gradx, IKernel::HAAR_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 
-		// save the gray image
+		gradx.save( "i16_grad.png" );
+
+        // save the gray image
         imgGray.save( "gray.cvtraw" );
         imgGray.load( "gray.cvtraw" );
 
-		imgGray.save( "out_gray.png");
+        imgGray.save( "out_gray.png");
 
 	} catch( cvt::Exception e ) {
 		std::cerr << e.what() << std::endl;

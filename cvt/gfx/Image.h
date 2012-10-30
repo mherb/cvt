@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef CVTIMAGE_H
 #define CVTIMAGE_H
@@ -45,10 +45,10 @@ namespace cvt {
 			~Image();
 			size_t width() const;
 			size_t height() const;
-            Recti rect() const;
+			Recti rect() const;
 
 			size_t channels() const;
-			
+
 			/**
 			 * @return bits per channel
 			 */
@@ -125,9 +125,9 @@ namespace cvt {
             void integralImage( Image & dst ) const;
             void squaredIntegralImage( Image & dst ) const;
 
-			void pyrdown( Image& dst ) const;
+            void pyrdown( Image& dst ) const;
 
-			void printValues( std::ostream& o, const Recti& rect ) const;
+            void printValues( std::ostream& o, const Recti& rect ) const;
 
 		private:
 			void convolveFloat( Image& dst, const IKernel& kernel ) const;
@@ -135,6 +135,7 @@ namespace cvt {
 			void convolveSeperableU8( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
 			void convolveSeperableFloat( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
 			void convolveU8_to_S16( Image& idst, const IKernel& kernel ) const;
+			void convolveSeperableU8_to_S16( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const;
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 			void scaleU8( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
 

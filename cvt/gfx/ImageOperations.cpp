@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Math.h>
@@ -364,8 +364,8 @@ namespace cvt {
 					unmap( dbase );
 				}
 				break;
-            case IFORMAT_TYPE_UINT16:
-                {
+			case IFORMAT_TYPE_UINT16:
+				{
 					size_t stride;
 					uint16_t* dst = map<uint16_t>( &stride );
 					uint16_t* dbase = dst;
@@ -377,7 +377,7 @@ namespace cvt {
 					}
 					unmap( dbase );
 				}
-                break;
+				break;
 			default:
 				throw CVTException("Unimplemented");
 
@@ -441,8 +441,8 @@ namespace cvt {
 	void Image::add( const Image& i )
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -474,8 +474,8 @@ namespace cvt {
 	void Image::sub( const Image& i )
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -507,8 +507,8 @@ namespace cvt {
 	void Image::mul( const Image& i )
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -540,8 +540,8 @@ namespace cvt {
 	void Image::mad( const Image& i, float alpha )
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -568,8 +568,8 @@ namespace cvt {
 	float Image::ssd( const Image& i ) const
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -623,8 +623,8 @@ namespace cvt {
 	float Image::sad( const Image& i ) const
 	{
 		if( _mem->_width != i._mem->_width ||
-		    _mem->_height != i._mem->_height ||
-		    _mem->_format != i._mem->_format )
+			_mem->_height != i._mem->_height ||
+			_mem->_format != i._mem->_format )
 			throw CVTException("Image mismatch");
 
 		SIMD* simd = SIMD::instance();
@@ -695,8 +695,8 @@ namespace cvt {
 			convolveSeperableFloat( idst, hkernel, vkernel );
 		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_UINT8 )
 			convolveSeperableU8( idst, hkernel, vkernel );
-/*		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_INT16 )
-			convolveU8_to_S16( idst, hkernel, vkernel );*/
+		else if( _mem->_format.type == IFORMAT_TYPE_UINT8 && idst._mem->_format.type == IFORMAT_TYPE_INT16 )
+			convolveSeperableU8_to_S16( idst, hkernel, vkernel );
 		else {
 			throw CVTException("Unimplemented");
 		}
@@ -846,6 +846,7 @@ namespace cvt {
 
 		widthchannels = _mem->_width * _mem->_format.channels;
 
+		// get aligned space for one line in buf
 		if( posix_memalign( ( void** ) &buf, 16, sizeof( Fixed ) * widthchannels ) )
 			throw CVTException("Out of memory");
 
@@ -1188,6 +1189,153 @@ namespace cvt {
 				simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
 			}
 			simd->Conv_fx_to_u8( dst, accumBuf, widthchannels );
+			curbuf = ( curbuf + 1 ) % kheight;
+			dst += dstride;
+		}
+
+		unmap( osrc );
+		idst.unmap( odst );
+		free( accumBuf );
+		free( bufmem );
+		delete[] buf;
+		delete[] vweights;
+		delete[] hweights;
+	}
+
+
+	void Image::convolveSeperableU8_to_S16( Image& idst, const IKernel& hkernel, const IKernel& vkernel ) const
+	{
+		Fixed* hweights;
+		Fixed* vweights;
+		Fixed* pweights;
+		size_t kwidth, kheight;
+		const uint8_t* src;
+		const uint8_t* osrc;
+		Fixed** buf;
+		Fixed* bufmem;
+		Fixed* accumBuf;
+		size_t curbuf;
+		uint8_t* dst;
+		uint8_t* odst;
+		size_t i, k, b1, b2, widthchannels;
+		size_t sstride, dstride;
+		void (SIMD::*convfunc)( Fixed* _dst, const uint8_t* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
+		SIMD* simd = SIMD::instance();
+
+		if( _mem->_format.channels == 1 ) {
+			convfunc = &SIMD::ConvolveClampSet1fx;
+		} else if( _mem->_format.channels == 2 ) {
+			convfunc = &SIMD::ConvolveClampSet2fx;
+		} else {
+			convfunc = &SIMD::ConvolveClampSet4fx;
+		}
+
+		// kernel should at least fit once into the image
+		if( _mem->_width < hkernel.width() || _mem->_height < vkernel.height() ) {
+			throw CVTException( "Image smaller than convolution kernel");
+		}
+
+		if( _mem->_format.channels != idst.format().channels ){
+			throw CVTException( "src and dst image number of channels differ" );
+		}
+
+		osrc = src = map( &sstride );
+		odst = dst = idst.map( &dstride );
+
+		kwidth = hkernel.width();
+		kheight = vkernel.height();
+		hweights = new Fixed[ kwidth ];
+		vweights = new Fixed[ kheight ];
+
+		for( size_t kx = 0; kx < kwidth; kx++ ) {
+			hweights[ kx ] = hkernel( kx, 0 );
+		}
+
+		for( size_t ky = 0; ky < kheight; ky++ ) {
+			vweights[ ky ] = vkernel( 0, ky );
+		}
+
+		// number of data elements per line
+		widthchannels = _mem->_width * _mem->_format.channels;
+		buf = new Fixed*[ kheight ];
+
+		// allocate and fill buffer
+		size_t bstride = Math::pad16( sizeof( Fixed ) * widthchannels );
+		if( posix_memalign( ( void** ) &bufmem, 16, bstride * kheight ) ) {
+			delete[] hweights;
+			delete[] vweights;
+			delete[] buf;
+			throw CVTException("Out of memory");
+		}
+
+		buf[ 0 ] = bufmem;
+		for( i = 0; i < kheight; i++ ) {
+			if( i != 0 )
+				buf[ i ] = ( Fixed* ) ( ( uint8_t* )buf[ i - 1 ] + bstride );
+			( simd->*convfunc )( buf[ i ], ( uint8_t* ) src, _mem->_width, hweights, kwidth );
+			src += sstride;
+		}
+		if( posix_memalign( ( void** ) &accumBuf, 16, sizeof( Fixed ) * ( widthchannels ) ) ) {
+			delete[] hweights;
+			delete[] vweights;
+			delete[] buf;
+			free( bufmem );
+			throw CVTException("Out of memory");
+		}
+
+
+		b1 = ( kheight - ( 1 - ( kheight & 1 ) ) ) / 2;
+		b2 = ( kheight + ( 1 - ( kheight & 1 ) ) ) / 2;
+
+		// upper border
+		i = b1;
+		while( i-- ) {
+			pweights = vweights;
+			simd->MulValue1fx( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+			k = i;
+			while( k-- ) {
+				simd->MulAddValue1fx( accumBuf, buf[ 0 ], *pweights++, widthchannels );
+			}
+			k = kheight - ( i + 1 );
+			curbuf = 0;
+			while( k-- ) {
+				simd->MulAddValue1fx( accumBuf, buf[ curbuf++ ], *pweights++, widthchannels );
+			}
+			simd->Conv_fx_to_s16( ( int16_t* )dst, accumBuf, widthchannels );
+			dst += dstride;
+		}
+
+		// center
+		i = _mem->_height - kheight + 1;
+		while( i-- ) {
+			simd->ConvolveClampVert_fx_to_s16( ( int16_t* ) dst, ( const Fixed** ) buf, vweights, kheight, widthchannels );
+
+			if( i != 0 ) {
+				Fixed* tmp = buf[ 0 ];
+				for( size_t k = 0; k < kheight - 1; k++ )
+					buf[ k ] = buf[ k + 1 ];
+				buf[ kheight - 1 ] = tmp;
+				( simd->*convfunc )( tmp, ( uint8_t* ) src, _mem->_width, hweights, kwidth );
+			}
+
+			dst += dstride;
+			src += sstride;
+		}
+
+		// lower border
+		curbuf = 0;
+		i = b2;
+		while( i-- ) {
+			pweights = vweights;
+			simd->MulValue1fx( accumBuf, buf[ curbuf ], *pweights++, widthchannels );
+			for( k = 1; k < b1 + i + 1; k++ ) {
+				simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + k ) % kheight ], *pweights++, widthchannels );
+			}
+			k = b2 - i;
+			while( k-- ) {
+				simd->MulAddValue1fx( accumBuf, buf[ ( curbuf + b1 + i ) % kheight ], *pweights++, widthchannels );
+			}
+			simd->Conv_fx_to_s16( ( int16_t* )dst, accumBuf, widthchannels );
 			curbuf = ( curbuf + 1 ) % kheight;
 			dst += dstride;
 		}
@@ -1624,11 +1772,11 @@ namespace cvt {
             break;
             case IFORMAT_BGRA_UINT8:
             case IFORMAT_RGBA_UINT8:
-			{
-				const uint8_t* in = this->map<uint8_t > ( &inStride );
-				simd->prefixSum1_xxxxu8_to_f( out, dstStride, in, inStride, width( ), height( ) );
-				this->unmap( in );
-			}
+            {
+                const uint8_t* in = this->map<uint8_t > ( &inStride );
+                simd->prefixSum1_xxxxu8_to_f( out, dstStride, in, inStride, width( ), height( ) );
+                this->unmap( in );
+            }
                 break;
             default:
                 this->unmap( out );
@@ -1675,7 +1823,7 @@ namespace cvt {
 
 	void Image::pyrdown( Image& dst ) const
 	{
-        dst.reallocate( width() / 2, height() / 2, format(), _mem->type() );
+		dst.reallocate( width() / 2, height() / 2, format(), _mem->type() );
 
 		IFormatID fId = this->format().formatID;
 		switch( fId ) {

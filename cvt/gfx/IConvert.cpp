@@ -127,6 +127,20 @@ namespace cvt {
         CONV( Conv_f_to_u8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
     }
 
+    static void Conv_s16_to_u8( Image & dstImage, const Image & sourceImage, IConvertFlags )
+    {
+        SIMD* simd = SIMD::instance();
+        const uint8_t* src;
+        const uint8_t* sbase;
+        size_t sstride;
+        size_t dstride;
+        uint8_t* dst;
+        uint8_t* dbase;
+        size_t h;
+
+        CONV( Conv_s16_to_u8, dstImage, uint8_t*, sourceImage, int16_t*, sourceImage.width() * dstImage.channels() )
+    }
+
     static void Conv_GRAYf_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
@@ -676,6 +690,9 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_GRAY_UINT16, IFORMAT_GRAY_UINT8 ) = &Conv_u16_to_u8;
         TABLE( _convertFuncs, IFORMAT_GRAY_UINT16, IFORMAT_RGBA_UINT8 ) = &Conv_u16_to_XXXAu8;
         TABLE( _convertFuncs, IFORMAT_GRAY_UINT16, IFORMAT_BGRA_UINT8 ) = &Conv_u16_to_XXXAu8;
+
+        /* GRAY_INT16 TO X */
+        TABLE( _convertFuncs, IFORMAT_GRAY_INT16, IFORMAT_GRAY_UINT8 ) = &Conv_s16_to_u8;
 
         /* GRAY_FLOAT TO X */
         TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_GRAY_UINT8 ) = &Conv_GRAYf_to_GRAYu8;
