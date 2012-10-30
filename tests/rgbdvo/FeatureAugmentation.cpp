@@ -59,10 +59,8 @@ namespace cvt {
     FeatureAugmentation::FeatureAugmentation( const Matrix3f& intrinsics ) :
         _intrinsics( intrinsics ),
         _nextId( 0 ),
-        _fastDetector(),        
-        _featureTracking( 3, 0.5f ),
-        _mask( 640, 480, IFormat::GRAY_UINT8 ),
-        _minTrackLength( 10 )
+        _fastDetector(),
+        _featureTracking( 3, 0.5f )
     {
         _fastDetector.setBorder( 16 );
         _fastDetector.setNonMaxSuppress( true );
@@ -86,7 +84,7 @@ namespace cvt {
         Matrix4f projMat = pose3d * Matrix4f( _intrinsics );
 
         // track current features of the tracks
-        trackFeatures( grayu8, projMat );
+        //trackFeatures( img );
 
         // depth initialize tracks with sufficient length or confidence
         initializeNewFeatures( newPoints );
