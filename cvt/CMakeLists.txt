@@ -639,6 +639,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/Ferns.cpp
    vision/Flow.cpp
    vision/IntegralImage.cpp
+   vision/ImagePyramidTest.cpp
    vision/ORB.cpp
    vision/ORB2.cpp
    vision/ORB2Test.cpp
