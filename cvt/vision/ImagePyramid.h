@@ -19,7 +19,7 @@ namespace cvt
     class ImagePyramid
     {
         public:
-            ImagePyramid( size_t octaves, float scaleFactor );
+            ImagePyramid( size_t octaves, float scaleFactor, const IScaleFilter& sfilter = IScaleFilterGauss() );
 
             /**
              * \brief operators to access the scale space images
@@ -55,17 +55,24 @@ namespace cvt
              */
             void setNumOctaves( size_t o );
 
+            void save( const String& basename ) const;
+
+            template <class Func>
+            void apply( ImagePyramid& out, const Func& f ) const;
+
+
         private:
-            std::vector<Image>      _image;
-            float                   _scaleFactor;
-            const IScaleFilterGauss _filter;
+            std::vector<Image>       _image;
+            float                    _scaleFactor;
+            const IScaleFilter&      _filter;
 
             /* recompute the scale space from the first octave */
             void recompute();
     };
 
-    inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor ) :
-        _scaleFactor( scaleFactor )
+    inline ImagePyramid::ImagePyramid( size_t octaves, float scaleFactor, const IScaleFilter& sfilter ) :
+        _scaleFactor( scaleFactor ),
+        _filter( sfilter )
     {
         setNumOctaves( octaves );
     }
@@ -95,6 +102,28 @@ namespace cvt
             return;
 
         _image.resize( o );
+    }
+
+    inline void ImagePyramid::save( const String& basename ) const
+    {
+        String base, ext;
+        ssize_t dpos = basename.rfind( '.' );
+        base = basename.substring( 0, dpos );
+        ext = basename.substring( dpos, basename.length() - dpos );
+
+        String filename;
+        for( size_t i = 0; i < _image.size(); i++ ){
+            filename.sprintf( "%s_octave_%02d.%s", base.c_str(), i, ext.c_str() );
+            _image[ i ].save( filename );
+        }
+    }
+
+    template <class Func>
+    inline void ImagePyramid::apply( ImagePyramid& out, const Func& f ) const
+    {
+        for( size_t i = 0; i < _image.size(); i++ ){
+            f( _image[ i ], out[ i ] );
+        }
     }
 
 }
