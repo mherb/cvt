@@ -429,7 +429,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/Flow.h
    vision/HCalibration.h
    vision/KLTPatch.h
-   vision/KLTTracker.h
    vision/LSH.h
    vision/MeasurementModel.h
    vision/ORB.h
@@ -640,6 +639,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/Flow.cpp
    vision/IntegralImage.cpp
    vision/ImagePyramidTest.cpp
+   vision/KLTPatchTest.cpp
    vision/ORB.cpp
    vision/ORB2.cpp
    vision/ORB2Test.cpp

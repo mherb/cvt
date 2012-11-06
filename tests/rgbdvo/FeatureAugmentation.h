@@ -21,9 +21,9 @@ namespace cvt {
               * \param  depth   float depthmap
               */
             void trackAndTriangulate( std::vector<Vector3f>& newPoints,
-                                      const Image& img,
-                                      const Image& depth,
-                                      const Matrix4f& pose3d );
+                                      const ImagePyramid &pyramidU8,
+                                      const ImagePyramid &pyramidF,
+                                      const Image &depth, const Matrix4f &pose3d );
 
 
         private:
@@ -62,7 +62,7 @@ namespace cvt {
 
             void initializeNewFeatures( std::vector<Vector3f>& newPoints );
 
-            void detectNewFeatures( const Matrix4f& projMat );
+            void detectNewFeatures( const Matrix4f& projMat, const ImagePyramid &pyr );
 
     };
 

@@ -132,23 +132,23 @@ namespace cvt {
 
             IMapScoped<const float> src( disparity );
             IMapScoped<float> dst( depthmap );
-			float fb = focallength * baseline;
+            float fb = focallength * baseline;
 
-			size_t height = disparity.height();
+            size_t height = disparity.height();
             while( height-- ){
                 float* dptr = dst.ptr();
                 const float* sptr = src.ptr();
                 for( size_t x = 0; x < disparity.width(); x++ ){
-					float disp = sptr[ x ] * dispscale;
-					if( disp > dispthres )
-						dptr[ x ] = fb / disp;
-					else
-						dptr[ x ] = 0;
+                    float disp = sptr[ x ] * dispscale;
+                    if( disp > dispthres )
+                        dptr[ x ] = fb / disp;
+                    else
+                        dptr[ x ] = 0;
                 }
-				src++;
-				dst++;
+                src++;
+                dst++;
             }
-		}
+        }
 
     template <typename T>
     static bool _compare( const Matrix3<T> & a, const Matrix3<T> & b, T epsilon )
@@ -399,21 +399,21 @@ namespace cvt {
         return ret;
     }
 
-    template <typename T>
+	template <typename T>
 	static bool _poseFromHomography()
 	{
 		Matrix3<T> K( 600.0,   0.0, 320.0,
 					 0.0, 600.0, 240.0,
 					 0.0,   0.0,   1.0 );
 
-		for( size_t i = 0; i < 10; i++ ){
+		for( size_t i = 0; i < 100; i++ ){
 			Matrix4<T> T1, T2;
-			T1.setRotationXYZ( Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
-							  Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ),
-							  Math::rand( ( T )-Math::PI/12.0, ( T )Math::PI/12.0 ));
-			T1.setTranslation( Math::rand( ( T )-0.5, ( T )0.5 ),
-							  Math::rand( ( T )-0.5, ( T )0.5 ),
-							  Math::rand( ( T )-0.5, ( T )0.5 ) );
+			T1.setRotationXYZ( Math::rand( ( T )-Math::PI/4.0, ( T )Math::PI/4.0 ),
+							  Math::rand( ( T )-Math::PI/4.0, ( T )Math::PI/4.0 ),
+							  Math::rand( ( T )-Math::PI/4.0, ( T )Math::PI/4.0 ));
+			T1.setTranslation( Math::rand( ( T )-5, ( T )5 ),
+							  Math::rand( ( T )-5, ( T )5 ),
+							  Math::rand( ( T )0.1, ( T )5 ) );
 
 			Matrix3<T> RT = T1.toMatrix3();
 			RT[ 0 ][ 2 ] = T1[ 0 ][ 3 ];
@@ -421,17 +421,20 @@ namespace cvt {
 			RT[ 2 ][ 2 ] = T1[ 2 ][ 3 ];
 
 			Matrix3<T> H = K * RT;
+			H *= ( T )1.0 / H[ 2 ][ 2 ];
 
 			Vision::poseFromHomography( T2, K, H );
+
 			T1 -= T2;
 			T sum = 0;
 			for( int y = 0; y < 4; y++ )
 				for( int x = 0; x < 4; x++ )
 					sum += T1[ y ][ x ];
 			sum /= ( T ) 16;
-			if( sum < 1e-3 )
-				continue;
-			return false;
+			if( sum > (T)1e-3 ){
+				std::cout << T1 << std::endl;
+				return false;
+			}
 		}
 		return true;
 	}
@@ -518,18 +521,22 @@ BEGIN_CVTTEST( Vision )
     CVTTEST_PRINT( "triangulateMultiView<double>()\t", b );
     testResult &= b;
 
-	b = _poseFromHomography<double>();
+    b = _poseFromHomography<float>();
+    CVTTEST_PRINT( "poseFromHomography<float>()\t", b );
+    testResult &= b;
+
+    b = _poseFromHomography<double>();
     CVTTEST_PRINT( "poseFromHomography<double>()\t", b );
-	testResult &= b;
+    testResult &= b;
 
 
-	b = _planeSweepHomography<float>();
+    b = _planeSweepHomography<float>();
     CVTTEST_PRINT( "planeSweepHomography<float>()\t", b );
-	testResult &= b;
+    testResult &= b;
 
-	b = _planeSweepHomography<double>();
+    b = _planeSweepHomography<double>();
     CVTTEST_PRINT( "planeSweepHomography<double>()\t", b );
-	testResult &= b;
+    testResult &= b;
 
 
     return testResult;

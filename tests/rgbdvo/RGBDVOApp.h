@@ -66,7 +66,7 @@ namespace cvt
                 RGBDVisualOdometry<KFType, LossFunc>    _vo;
                 //DirectFeatureVO                       _vo;
 
-                FeatureAugmentation         _featureAugmentation;
+               // FeatureAugmentation         _featureAugmentation;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

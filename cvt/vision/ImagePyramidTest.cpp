@@ -9,8 +9,22 @@ using namespace cvt;
 static bool _filterTest( const cvt::Image& img, const cvt::IScaleFilter& filter )
 {
     try {
-        cvt::ImagePyramid pyr( 3, 0.5f, filter );
+        cvt::ImagePyramid pyr( 3, 0.5f );
+        pyr.update( img, filter );
+    } catch( const cvt::Exception& e ){
+        return false;
+    }
+
+    return true;
+}
+
+static bool _convertTest( const cvt::Image& img )
+{
+    try {
+        cvt::ImagePyramid pyr( 3, 0.5f );
+        cvt::ImagePyramid pyrf( 3, 0.5f );
         pyr.update( img );
+        pyr.convert( pyrf, IFormat::GRAY_FLOAT );
     } catch( const cvt::Exception& e ){
         return false;
     }

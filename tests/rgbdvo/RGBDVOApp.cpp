@@ -14,7 +14,7 @@ namespace cvt
         _parser( folder, 0.02f ),
 #endif
         _vo( K, params ),
-        _featureAugmentation( K ),
+        //_featureAugmentation( K ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
         _mainWindow( "RGBD-VO" ),
@@ -95,7 +95,7 @@ namespace cvt
     {
 
         Vector4f t0 = lastPose.col( 3 );
-        Vector4f t1 = currentPose.col( 3 );        
+        Vector4f t1 = currentPose.col( 3 );
 
         if( ( t0 - t1 ).length() > 0.5f )
             return true;
@@ -212,11 +212,11 @@ namespace cvt
 
             _vo.updatePose( absPose, gray, depth );
 
-            std::vector<Vector3f> new3dPoints;
-            _featureAugmentation.trackAndTriangulate( new3dPoints, gray, depth, absPose );
+            //std::vector<Vector3f> new3dPoints;
+            //_featureAugmentation.trackAndTriangulate( new3dPoints, gray, depth, absPose );
 
             // add those features to the current reference:
-            _vo.addFeaturesToKeyframe( new3dPoints );
+            //_vo.addFeaturesToKeyframe( new3dPoints );
 
             _cumulativeAlignmentSpeed += t.elapsedMilliSeconds();
             _numAlignments++;

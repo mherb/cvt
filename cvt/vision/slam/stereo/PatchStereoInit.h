@@ -15,7 +15,7 @@
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
-#include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/KLTPatch.h>
 #include <cvt/math/GA2.h>
 #include <cvt/math/Translation2D.h>
 
@@ -54,6 +54,9 @@ namespace cvt {
             FAST            _detector;
             ImagePyramid    _pyramidView0;
             ImagePyramid    _pyramidView1;
+            ImagePyramid    _pyrGradX;
+            ImagePyramid    _pyrGradY;
+
             ParamSet        _pset;
             Parameters*     _params;
 
@@ -62,8 +65,7 @@ namespace cvt {
             // subpixel position refiner
             //typedef GA2<float> PoseT;
             typedef Translation2D<float> PoseT;
-            typedef KLTTracker<PoseT, PatchSize> KLTType;
-            KLTType     _refiner;
+            typedef KLTPatch<PatchSize, PoseT> PatchType;
 
             void detectFeatures( std::vector<Feature2Df>& features, const ImagePyramid& pyramid );
 
@@ -75,11 +77,13 @@ namespace cvt {
                                       const std::vector<Vector2f>& f0,
                                       const std::vector<Feature2Df>& f1 );
 
-            size_t computePatchSAD( const uint8_t* p0, size_t s0,
-                                    const uint8_t* p1, size_t s1 ) const;
+            size_t computePatchSAD( const float *p0, size_t s0,
+                                    const float *p1, size_t s1 ) const;
 
-            bool refinePositionSubPixel( KLTType::KLTPType& patch,
-                                         const uint8_t* ptr, size_t stride );
+            bool refinePositionSubPixel( PatchType& patch,
+                                         IMapScoped<const float>& map );
+
+            void updatePyramids( const Image& img0, const Image img1 );
 
     };
 

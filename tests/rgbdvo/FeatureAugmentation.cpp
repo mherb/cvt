@@ -59,8 +59,7 @@ namespace cvt {
     FeatureAugmentation::FeatureAugmentation( const Matrix3f& intrinsics ) :
         _intrinsics( intrinsics ),
         _nextId( 0 ),
-        _fastDetector(),
-        _featureTracking( 3, 0.5f )
+        _fastDetector()
     {
         _fastDetector.setBorder( 16 );
         _fastDetector.setNonMaxSuppress( true );
@@ -72,14 +71,12 @@ namespace cvt {
     }
 
     void FeatureAugmentation::trackAndTriangulate( std::vector<Vector3f>& newPoints,
-                                                   const Image& img,
+                                                   const ImagePyramid& pyramidU8,
+                                                   const ImagePyramid& pyramidF,
                                                    const Image& depth,
                                                    const Matrix4f& pose3d )
     {
         depth.convert( _mask, IFormat::GRAY_UINT8 );
-
-        Image grayu8;
-        img.convert( grayu8, IFormat::GRAY_UINT8 );
 
         Matrix4f projMat = pose3d * Matrix4f( _intrinsics );
 
@@ -90,7 +87,7 @@ namespace cvt {
         initializeNewFeatures( newPoints );
 
         // detect new features and initialize new tracks
-        detectNewFeatures( projMat );
+        detectNewFeatures( projMat, pyramidU8 );
 
         _mask.save( "mask.png" );
 
@@ -175,11 +172,8 @@ namespace cvt {
         }
     }
 
-    void FeatureAugmentation::detectNewFeatures( const Matrix4f& projMat )
+    void FeatureAugmentation::detectNewFeatures( const Matrix4f& projMat, const ImagePyramid& pyr )
     {
-        // detect fast features in areas with NO depth information!
-        const ImagePyramid& pyr = _featureTracking.pyramid();
-
         float scale = 1.0f;
         NoDepthFeatureInserter inserter( _mask );
         for( size_t i = 0; i < pyr.octaves(); i++ ){

@@ -13,7 +13,7 @@
 
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/DescriptorDatabase.h>
-#include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/KLTPatch.h>
 #include <cvt/math/GA2.h>
 
 
@@ -22,7 +22,7 @@ namespace cvt
     class KLTTracking : public FeatureTracking
     {
         public:
-            KLTTracking( size_t kltOctaves, float scaleFactor );
+            KLTTracking();
             ~KLTTracking();
 
             /**
@@ -36,28 +36,39 @@ namespace cvt
                                 std::vector<size_t>&            trackedFeatureIds,
                                 const std::vector<Vector2f>&	predictedPositions,
                                 const std::vector<size_t>&      predictedIds,
-                                const Image&                    img );
+                                const ImagePyramid &            pyr );
+
+            void trackFeatures( PointSet2d&                    trackedPositions,
+                                std::vector<size_t>&           trackedFeatureIds,
+                                const std::vector<Vector2f>&	predictedPositions,
+                                const std::vector<size_t>&		predictedIds,
+                                const Image&                   img )
+            {
+                throw CVTException( "Not implemented" );
+            }
 
             /**
              * \brief add a new feature to the database! (e.g. after triangulation)
              */
-            void addFeatureToDatabase( const Vector2f & f, size_t id );
+            void addFeatureToDatabase( const ImagePyramid &pyr,
+                                       const ImagePyramid &pyrGradX,
+                                       const ImagePyramid &pyrGradY,
+                                       const Vector2f &f, size_t id );
             void clear();
 
-            const ImagePyramid& pyramid() const { return _pyramid; }
+            void addFeatureToDatabase( const Vector2f &, size_t )
+            {
+                throw CVTException( "NOT IMPLEMENTED" );
+            }
 
         private:
             typedef GA2<float>          PoseType;
             static const size_t         PatchSize = 16;
-            typedef KLTTracker<PoseType, PatchSize> KLTType;
-            typedef KLTType::KLTPType   PatchType;
+            typedef KLTPatch<PatchSize, PoseType> PatchType;
 
             std::vector<PatchType*>     _patchForId;
-            KLTType                     _klt;
-            size_t                      _numOctaves;
-            ImagePyramid                _pyramid;
             float                       _ssdThreshold;
-            size_t                      _sadThreshold;
+            float                       _sadThreshold;
     };
 }
 #endif
