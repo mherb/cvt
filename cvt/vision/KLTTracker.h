@@ -20,7 +20,7 @@
 #include <cvt/math/Translation2D.h>
 #include <cvt/math/Math.h>
 #include <cvt/util/EigenBridge.h>
-
+#include <cvt/util/CVTAssert.h>
 
 namespace cvt
 {
@@ -44,7 +44,7 @@ namespace cvt
 
                 /* track a single scale patch */
                 bool trackPatch( KLTPType& patch,
-                                 const uint8_t* current, size_t currStride,
+                                 const float *current, size_t currStride,
                                  size_t width, size_t height );
 
 
@@ -56,7 +56,11 @@ namespace cvt
                 size_t _maxIters;
 
                 /* warps all the patch pixels */
-                float buildSystem( KLTPType& patch, typename KLTPType::JacType& jacSum, const Matrix3f& pose, const uint8_t* iPtr, size_t iStride, size_t octave = 0 );
+                float buildSystem( KLTPType& patch, typename KLTPType::JacType& jacSum,
+                                   const Matrix3f& pose,
+                                   const float *iPtr, size_t iStride,
+                                   size_t width, size_t height,
+                                   size_t octave = 0 );
 
                 bool patchIsInImage( const Matrix3f& pose, size_t w, size_t h ) const;
         };
@@ -70,7 +74,7 @@ namespace cvt
 
         template <class PoseType, size_t pSize>
         inline bool KLTTracker<PoseType, pSize>::trackPatch( KLTPType& patch,
-                                                             const uint8_t* current, size_t currStride,
+                                                             const float* current, size_t currStride,
                                                              size_t width, size_t height )
         {
             typename KLTPType::JacType jSum;
@@ -93,8 +97,7 @@ namespace cvt
                     return false;
                 }
 
-                diffSum = buildSystem( patch, jSum, pose, current, currStride );
-
+                diffSum = buildSystem( patch, jSum, pose, current, currStride, width, height );
                 if( diffSum > maxDiff )
                     return false;
 
@@ -111,6 +114,8 @@ namespace cvt
         bool KLTTracker<PoseType, pSize>::trackPatchMultiscale( KLTPType& patch,
                                                                 const ImagePyramid& pyramid )
         {
+            CVT_ASSERT( pyramid[ 0 ].format() == IFormat::GRAY_FLOAT, "Format must be GRAY_FLOAT!" );
+
             typename KLTPType::JacType jSum;
             typename PoseType::ParameterVectorType delta;
 
@@ -130,7 +135,7 @@ namespace cvt
             const float maxDiff = Math::sqr( pSize * 255.0f );
             float diffSum = maxDiff;
             for( int oc = pyramid.octaves() - 1; oc >= 0; --oc ){
-                IMapScoped<const uint8_t> map( pyramid[ oc ] );
+                IMapScoped<const float> map( pyramid[ oc ] );
                 size_t w = pyramid[ oc ].width();
                 size_t h = pyramid[ oc ].height();
                 size_t iter = 0;
@@ -139,7 +144,7 @@ namespace cvt
                     //pose matrix
                     EigenBridge::toCVT( poseMat, tmpPose.transformation() );
 
-                    // first test if all points transform into the image
+                    // first test if all points of the patch transform into the image
                     if( !patchIsInImage( poseMat, w, h ) ){
                         return false;
                     }
@@ -147,17 +152,17 @@ namespace cvt
                     jSum.setZero();
                     diffSum = buildSystem( patch, jSum, poseMat,
                                            map.ptr(), map.stride(),
+                                           w, h,
                                            oc );
 
                     if( diffSum >= maxDiff ){
                         return false;
                     }
 
-
                     // solve for the delta:
                     delta = patch.inverseHessian( oc ) * jSum;
 
-                    if( delta.norm() < 1e-7 )
+                    if( delta.norm() < 1e-6 )
                         break;
 
                     tmpPose.applyInverse( -delta );
@@ -183,50 +188,41 @@ namespace cvt
         float KLTTracker<PoseType, pSize>::buildSystem( KLTPType& patch,
                                                         typename KLTPType::JacType& jacSum,
                                                         const Matrix3f& pose,
-                                                        const uint8_t* imgPtr, size_t iStride,
+                                                        const float* imgPtr, size_t iStride,
+                                                        size_t width, size_t height,
                                                         size_t octave )
         {
             // the warped current ones
-            uint8_t* warped = patch.transformed( octave );
+            float* warped = patch.transformed( octave );
             // the original template pixels
-            const uint8_t* temp = patch.pixels( octave );
+            const float* temp = patch.pixels( octave );
             const typename KLTPType::JacType* J = patch.jacobians( octave );
 
-            static const float half = pSize >> 1;
             float diffSum = 0.0f;
 
+            // check for nans in matrix
             for( size_t i = 0; i < 3; i++ )
                 for( size_t k = 0; k < 3; k++ )
                     if( Math::isNaN( pose[ i ][ k ] ) )
                         return Math::MAXF;
 
-            Vector2f pcur, ppcur;
-            pcur.y = -half;
-            for( size_t y = 0; y < pSize; y++ ){
-                pcur.x = -half;
-                for( size_t i = 0; i < pSize; i++ ){
-                    ppcur = pose * pcur;
+            SIMD* simd = SIMD::instance();
+            // transform the points:
+            std::vector<Vector2f> warpedPts( KLTPType::numPatchPoints() );
+            simd->transformPoints( &warpedPts[ 0 ], pose, KLTPType::patchPoints(), warpedPts.size() );
+            simd->warpBilinear1f( warped, &warpedPts[ 0 ].x, imgPtr, iStride, width, height, -1.0f, warpedPts.size() );
 
-                    int ix = ( int )ppcur.x;
-                    int iy = ( int )ppcur.y;
-                    float fracx = ppcur.x - ix;
-                    float fracy = ppcur.y - iy;
+            // compute the residuals
+            float residuals[ pSize * pSize ];
+            simd->Sub( residuals, warped, temp, warpedPts.size() );
 
-                    const uint8_t* px = imgPtr + iy * iStride + ix;
-                    uint8_t v0 = Math::mix( px[ 0 ], px[ 1 ], fracx );
-                    px += iStride;
-
-                    uint8_t v1 = Math::mix( px[ 0 ], px[ 1 ], fracx );
-                    v0 = Math::mix( v0, v1, fracy );
-                    warped[ y * pSize + i ] = v0;
-
-                    float deltaImg = ( int16_t )v0 - ( int16_t )temp[ y * pSize + i ];
-                    diffSum += Math::sqr( deltaImg );
-                    jacSum += ( *J *  deltaImg );
-                    J++;
-                    pcur.x += 1.0f;
-                }
-                pcur.y += 1.0f;
+            size_t num = warpedPts.size();
+            const float* r = residuals;
+            while( num-- ){
+                diffSum += Math::sqr( *r );
+                jacSum += ( *J *  *r );
+                J++;
+                r++;
             }
             return diffSum;
         }
