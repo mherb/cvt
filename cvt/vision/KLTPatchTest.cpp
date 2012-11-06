@@ -44,7 +44,7 @@ static bool _trackPatch( const ImagePyramid& gray,
         std::cout << "UPDATE AT POSITION FAILED!" << std::endl;
     }
 
-    Vector2f initial( truePos.x + 10, truePos.y - 10 );
+    Vector2f initial( truePos.x + 8, truePos.y - 8 );
     p.initPose( initial );
     p.currentCenter( initial );
     p.align( gray );
@@ -60,7 +60,7 @@ static bool _trackPatch( const ImagePyramid& gray,
     return true;
 }
 
-BEGIN_CVTTEST( KLTTracker )
+BEGIN_CVTTEST( KLTPatch )
 
 Resources resources;
 String file = resources.find( "lena.png" );
