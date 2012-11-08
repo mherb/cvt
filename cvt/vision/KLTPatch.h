@@ -85,15 +85,14 @@ namespace cvt
                                         const std::vector<Vector2f> & positions,
                                         const ImagePyramid & pyramid,
                                         const ImagePyramid & gradX,
-                                        const ImagePyramid & gradY );
-
-            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                                        const ImagePyramid & gradY );            
 
             static const Vector2f* patchPoints()    { return &PatchPoints[ 0 ]; }
             static size_t          numPatchPoints() { return PatchPoints.size(); }
 
             void toImage( Image& img, size_t octave = 0 ) const;
 
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
             /* this stores the transform from the
              * Template space to the image space*/
@@ -125,7 +124,7 @@ namespace cvt
                 std::vector<Vector2f> points;
                 points.reserve( pSize * pSize );
 
-                size_t half = pSize >> 1;
+                int half = pSize >> 1;
                 Vector2f p( -half, -half );
                 for( size_t rows = 0; rows < pSize; rows++ ){
                     p.x = -half;
@@ -445,7 +444,7 @@ namespace cvt
                 diffSum = buildSystem( jSum, poseMat,
                                        map.ptr(), map.stride(),
                                        w, h,
-                                       oc );
+                                       oc );                
 
                 if( diffSum >= maxDiff ){
                     return false;
@@ -475,6 +474,7 @@ namespace cvt
         return true;
     }
 
+
     template <size_t pSize, class PoseType>
     inline float KLTPatch<pSize, PoseType>::buildSystem( JacType& jacSum,
                                                          const Matrix3f& pose,
@@ -499,8 +499,8 @@ namespace cvt
 
         SIMD* simd = SIMD::instance();
         // transform the points:
-        std::vector<Vector2f> warpedPts( PatchPoints.size() );
-        simd->transformPoints( &warpedPts[ 0 ], pose, &PatchPoints[ 0 ], warpedPts.size() );
+        std::vector<Vector2f> warpedPts( numPatchPoints() );
+        simd->transformPoints( &warpedPts[ 0 ], pose, patchPoints(), warpedPts.size() );
         simd->warpBilinear1f( warped, &warpedPts[ 0 ].x, imgPtr, iStride, width, height, -1.0f, warpedPts.size() );
 
         // compute the residuals

@@ -30,12 +30,41 @@ static bool _dumpPatch( const ImagePyramid& gray,
     return true;
 }
 
+template <size_t Size>
+static bool _patchPoints()
+{
+    typedef Translation2D<float> PoseType;
+    typedef KLTPatch<Size, PoseType> Patch;
+
+    int half = Size >> 1;
+    Vector2f pos( -half, -half );
+
+    const Vector2f* points = Patch::patchPoints();
+
+    size_t iter = 0;
+    for( size_t r = 0; r < Size; r++ ){
+        pos.x = -half;
+        for( size_t r = 0; r < Size; r++ ){
+            if( points[ iter ] != pos ){
+                std::cout << "#" << iter << ": " << points[ iter ] << " -> " << pos << std::endl;
+                return false;
+            }
+            pos.x += 1.0f;
+            iter++;
+        }
+        pos.y+= 1.0f;
+    }
+
+
+    return true;
+}
+
 template<class PoseType>
 static bool _trackPatch( const ImagePyramid& gray,
                          const ImagePyramid& gx,
                          const ImagePyramid& gy )
 {
-    typedef KLTPatch<20, PoseType> Patch;
+    typedef KLTPatch<16, PoseType> Patch;
 
     Vector2f truePos( 266, 266 ), estimated;
 
@@ -47,7 +76,7 @@ static bool _trackPatch( const ImagePyramid& gray,
     Vector2f initial( truePos.x + 8, truePos.y - 8 );
     p.initPose( initial );
     p.currentCenter( initial );
-    p.align( gray );
+    p.align( gray, 5 );
     p.currentCenter( estimated );
 
     if( ( truePos - estimated ).length() > 1e-1 ){
@@ -86,6 +115,20 @@ bool b = true;
 
 b = _dumpPatch( pyrf, gx, gy );
 CVTTEST_PRINT( "Patch Dumping", b );
+result &= b;
+
+b = _patchPoints<16>();
+CVTTEST_PRINT( "patchPoints<16>", b );
+result &= b;
+
+b = _patchPoints<17>();
+CVTTEST_PRINT( "patchPoints<17>", b );
+result &= b;
+b = _patchPoints<20>();
+CVTTEST_PRINT( "patchPoints<20>", b );
+result &= b;
+b = _patchPoints<31>();
+CVTTEST_PRINT( "patchPoints<31>", b );
 result &= b;
 
 b = _trackPatch<Translation2D<float> >( pyrf, gx, gy );
