@@ -4,25 +4,25 @@
 # FFMPEG_FOUND		whether the library has been found or not 
 
 
-FIND_PATH(AVFORMAT_INCLUDE_DIR avformat.h
+FIND_PATH(AVFORMAT_INCLUDE_DIR libavformat/avformat.h
 		  ${CMAKE_INCLUDE_PATH}/
-		  /usr/include/libavformat/
-		  /usr/local/include/libavformat/
-		  /opt/local/include/libavformat/
+		  /usr/include/
+		  /usr/local/include/
+		  /opt/local/include/
 )
 
-FIND_PATH(AVCODEC_INCLUDE_DIR  avcodec.h
+FIND_PATH(AVCODEC_INCLUDE_DIR  libavcodec/avcodec.h
 		  ${CMAKE_INCLUDE_PATH}
-		  /usr/include/libavcodec/
-		  /usr/local/include/libavcodec/
-		  /opt/local/include/libavcodec/
+		  /usr/include/
+		  /usr/local/include/
+		  /opt/local/include/
 )
 
-FIND_PATH(AVUTIL_INCLUDE_DIR  avutil.h
+FIND_PATH(AVUTIL_INCLUDE_DIR  libavutil/avutil.h
 		  ${CMAKE_INCLUDE_PATH}
-		  /usr/include/libavutil/
-		  /usr/local/include/libavutil/
-		  /opt/local/include/libavutil/
+		  /usr/include/
+		  /usr/local/include/
+		  /opt/local/include/
 )
 
 FIND_LIBRARY(AVFORMAT_LIB
