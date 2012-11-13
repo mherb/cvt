@@ -254,7 +254,7 @@ float4 stateToNormal( const float4 state )
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
 	n.w = 1.0f;
-	n.xyz = n.xyz * 0.5 + 0.5f;
+	n.xyz = n.xyz * 0.5f + 0.5f;
 	return n;
 }
 

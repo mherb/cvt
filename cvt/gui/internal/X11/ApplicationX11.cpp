@@ -59,9 +59,9 @@ namespace cvt {
 				for( size_t i = 0; i < clplatforms.size() && !clinit; i++ ) {
 					//std::cout << clplatforms[ i ] << std::endl;
 					std::vector<CLDevice> devs;
-					clplatforms[ i ].devices( devs );
+					clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_GPU );
 					for( size_t k = 0; k < devs.size() && !clinit; k++ ) {
-						//std::cout << devs[ k ] << std::endl;
+
 						std::vector<String> exts;
 						devs[ i ].extensions( exts );
 						for( size_t l = 0; l < exts.size(); l++) {
