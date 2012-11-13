@@ -17,7 +17,7 @@
 
 namespace cvt
 {
-    template <typename T>
+	template <typename T>
 	static void generate3dPoints( std::vector<Vector3<T> > & pts, size_t n )
 	{
 		Vector3<T> p;
@@ -27,6 +27,18 @@ namespace cvt
 			p.y = Math::rand( ( T )-1000, ( T )1000 );
 			p.z = Math::rand( ( T )-1000, ( T )1000 );
 			pts.push_back( p );
+		}
+	}
+
+	template <typename T>
+	static void generate2dPointSet( PointSet<2, T> & pts, size_t n )
+	{
+		Vector2<T> p;
+		srandom( time( NULL ) );
+		while( n-- ){
+			p.x = Math::rand( ( T )-1000, ( T )1000 );
+			p.y = Math::rand( ( T )-1000, ( T )1000 );
+			pts.add( p );
 		}
 	}
 	
@@ -72,7 +84,7 @@ namespace cvt
 	}
 
 	template <typename T>
-	static bool alignRigidTest()
+	static bool _alignRigidTest()
 	{
 		bool ret = true;
 
@@ -107,6 +119,69 @@ namespace cvt
 
 		return ret;
 	}
+
+    template <typename T>
+    static bool _alignSimilarityTest( T epsilon )
+    {
+        int numtrials = 20;
+
+        while( numtrials-- ){
+            PointSet<3, T> ptset;
+            generate3dPointSet( ptset, 20 );
+
+            Matrix4<T> m, ms;
+            m.setIdentity();
+            m[ 0 ][ 3 ] = Math::rand( (T)-100, (T)100 );
+            m[ 1 ][ 3 ] = Math::rand( (T)-100, (T)100 );
+            m[ 2 ][ 3 ] = Math::rand( (T)-100, (T)100 );
+
+            Quaternion<T> qrot;
+            qrot.setRotation( 1.0f, 0.0f, 0.0f, Math::rand( (T)-1.0, (T)1.0 ) );
+            m *= qrot.toMatrix4();
+
+            PointSet<3, T> ptset2( ptset );
+            ptset2.transform( m );
+
+            ms = ptset.alignSimilarity( ptset2 );
+            if( !ms.isEqual( m, epsilon ) ){
+                std::cout << "Diff\n" << (m - ms) << std::endl;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <typename T>
+    static bool _alignPerspectiveTest( T epsilon )
+    {
+        int trials = 20;
+        while( trials-- ){
+            PointSet<2, T> p0;
+            generate2dPointSet( p0, 20 );
+            PointSet<2, T> p1( p0 );
+
+            Matrix3<T> H;
+            T theta = Math::rand( ( T )-Math::PI / 8.0, ( T )-Math::PI / 8.0 );
+            T phi   = Math::rand( ( T )-Math::PI / 10.0, ( T )-Math::PI / 10.0 );
+            T sx    = Math::rand( ( T )0.8, ( T )1.4 );
+            T sy    = Math::rand( ( T )0.8, ( T )1.4 );
+            T tx    = Math::rand( ( T )-300, ( T )300 );
+            T ty    = Math::rand( ( T )-300, ( T )300 );
+            T v0    = Math::rand( ( T )-0.001, ( T )0.001 );
+            T v1    = Math::rand( ( T )-0.001, ( T )0.001 );
+            H.setHomography( theta, phi, sx, sy, tx, ty, v0, v1 );
+
+            p1.transform( H );
+
+            Matrix3<T> hEst = p0.alignPerspective( p1 );
+
+            if( !hEst.isEqual( H, epsilon ) ){
+                std::cout << __FUNCTION__ << "Error:\n" << H - hEst << std::endl;
+                return false;
+            }
+        }
+        return true;
+    }
 
     template <typename T>
     static bool _essentialTest( T epsilon )
@@ -159,12 +234,26 @@ BEGIN_CVTTEST( PointSet )
 
     bool b;
     
-	b = alignRigidTest<float>();
+    b = _alignRigidTest<float>();
     CVTTEST_PRINT( "alignRigid<float>(): ", b );
 	result &= b;
-	b = alignRigidTest<double>();
+	b = _alignRigidTest<double>();
     CVTTEST_PRINT( "alignRigid<double>(): ", b );
 	result &= b;
+
+    b = _alignPerspectiveTest<float>( 0.01f );
+    CVTTEST_PRINT( "alignPerspective<float>(): ", b );
+    result &= b;
+    b = _alignPerspectiveTest<double>( 0.01 );
+    CVTTEST_PRINT( "alignPerspective<double>(): ", b );
+    result &= b;
+
+    b = _alignSimilarityTest<float>( 0.01f );
+    CVTTEST_PRINT( "alignSimilarityTest<float>(): ", b );
+    result &= b;
+    b = _alignSimilarityTest<double>( 0.01 );
+    CVTTEST_PRINT( "alignSimilarityTest<double>(): ", b );
+    result &= b;
 
     b = _essentialTest<double>( 0.01 );
     CVTTEST_PRINT( "essentialMatrix<double>(): ", b );

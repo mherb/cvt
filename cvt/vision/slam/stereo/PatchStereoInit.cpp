@@ -36,6 +36,8 @@ namespace cvt {
         DepthInitializer( c0, c1, w0, h0 ),
         _pyramidView0( 3, 0.5f ),
         _pyramidView1( 3, 0.5f ),
+        _pyrGradX( 3, 0.5f ),
+        _pyrGradY( 3, 0.5f ),
         _pset( _pinfos, 9, false )
     {
         _params = _pset.ptr<Parameters>();
@@ -51,12 +53,20 @@ namespace cvt {
         _simd = 0;
     }
 
+    void PatchStereoInit::updatePyramids( const Image& img0, const Image img1 )
+    {
+        _pyramidView0.update( img0 );
+        _pyramidView1.update( img1 );
+
+        _pyramidView0.convolve( _pyrGradX, IKernel::HAAR_HORIZONTAL_3 );
+        _pyramidView0.convolve( _pyrGradY, IKernel::HAAR_VERTICAL_3 );
+    }
+
     void PatchStereoInit::triangulateFeatures( std::vector<DepthInitResult> & triangulated,
                                                const std::vector<Vector2f> & avoidPositionsImg0,
                                                const Image& view0, const Image& view1 )
     {
-        _pyramidView0.update( view0 );
-        _pyramidView1.update( view1 );
+        updatePyramids( view0, view1 );
 
         std::vector<Feature2Df> features0, features1;
 
@@ -122,8 +132,14 @@ namespace cvt {
 
         std::set<size_t> assigned;
 
-        IMapScoped<const uint8_t> map0( _pyramidView0[ 0 ] );
-        IMapScoped<const uint8_t> map1( _pyramidView1[ 0 ] );
+        CVT_ASSERT( _pyramidView0[ 0 ].format() == IFormat::GRAY_FLOAT, "Pyramid 0 has to be GRAY_FLOAT" );
+        CVT_ASSERT( _pyramidView1[ 0 ].format() == IFormat::GRAY_FLOAT, "Pyramid 1 has to be GRAY_FLOAT" );
+
+
+        IMapScoped<const float> map0( _pyramidView0[ 0 ] );
+        IMapScoped<const float> gxMap( _pyrGradX[ 0 ] );
+        IMapScoped<const float> gyMap( _pyrGradY[ 0 ] );
+        IMapScoped<const float> map1( _pyramidView1[ 0 ] );
         const size_t PatchHalf = PatchSize >> 1;
         size_t maxSAD = _params->maxSAD * Math::sqr( PatchSize );
 
@@ -134,7 +150,7 @@ namespace cvt {
         size_t w1 = _pyramidView1[ 0 ].width();
         size_t h1 = _pyramidView1[ 0 ].height();
 
-        KLTType::KLTPType patch( 10 );
+        PatchType patch( 1 );
 
         float baseLine = _stereoCalib.baseLine();
         const Matrix3f& K = _stereoCalib.firstCamera().intrinsics();
@@ -142,11 +158,11 @@ namespace cvt {
         float cx = K[ 0 ][ 2 ];
         float cy = K[ 1 ][ 2 ];
 
-        //std::cout << "Baseline: " << baseLine << std::endl;
-        //std::cout << "FocalLen: " << focalLen << std::endl;
-
         float minDisp = focalLen * baseLine / depthRange.max;
         float maxDisp = focalLen * baseLine / depthRange.min;
+
+        size_t f0Stride = map0.stride() / sizeof( float );
+        size_t f1Stride = map1.stride() / sizeof( float );
 
         for( size_t i = 0; i < f0.size(); i++ ){
             const Vector2f& pos0 = f0[ i ];
@@ -158,7 +174,7 @@ namespace cvt {
                 p0.y < PatchHalf || ( p0.y + PatchHalf ) >= h0 )
                 continue;
 
-            const uint8_t* ptr0 = map0.ptr() + (int)( p0.y - PatchHalf ) * map0.stride() + (int)p0.x - PatchHalf;
+            const float* ptr0 = map0.ptr() + (int)( p0.y - PatchHalf ) * f0Stride + (int)p0.x - PatchHalf;
 
             const std::set<size_t>::const_iterator assignedEnd = assigned.end();
             size_t bestSAD = maxSAD;
@@ -175,9 +191,9 @@ namespace cvt {
                     float d = Math::abs( p0.y - p1.y );
 
                     if( d < _params->maxEpilineDistance && p1.x < p0.x ){
-                        const uint8_t* ptr1 = map1.ptr() + (int)( p1.y - PatchHalf ) * map1.stride() + (int)p1.x - PatchHalf;
+                        const float* ptr1 = map1.ptr() + (int)( p1.y - PatchHalf ) * f1Stride + (int)p1.x - PatchHalf;
                         // check if SAD is smaller than current best
-                        size_t sad = computePatchSAD( ptr0, map0.stride(), ptr1, map1.stride() );
+                        size_t sad = computePatchSAD( ptr0, f0Stride, ptr1, f1Stride );
 
                         if( sad < bestSAD ){
                             bestSAD = sad;
@@ -193,10 +209,10 @@ namespace cvt {
                 result.meas0 = pos0;
                 result.meas1 = f1[ bestIdx ].pt;
 
-                patch.update( map0.ptr(), map0.stride(), pos0, 0 );
+                patch.update( map0, gxMap, gyMap, pos0, w0, h0, 0 );
                 patch.initPose( result.meas1 );
 
-                if( refinePositionSubPixel( patch, map1.ptr(), map1.stride() ) ){
+                if( refinePositionSubPixel( patch, map1 ) ){
 
                     // refined:
                     patch.currentCenter( result.meas1 );
@@ -220,8 +236,8 @@ namespace cvt {
         }
     }
 
-    size_t PatchStereoInit::computePatchSAD( const uint8_t* p0, size_t s0,
-                                             const uint8_t* p1, size_t s1 ) const
+    size_t PatchStereoInit::computePatchSAD( const float* p0, size_t s0,
+                                             const float* p1, size_t s1 ) const
     {
         size_t n = PatchSize;
         size_t ret = 0;
@@ -235,13 +251,13 @@ namespace cvt {
         return ret;
     }
 
-    bool PatchStereoInit::refinePositionSubPixel( PatchStereoInit::KLTType::KLTPType& patch,
-                                                  const uint8_t* ptr, size_t stride )
+    bool PatchStereoInit::refinePositionSubPixel( PatchType & patch,
+                                                  IMapScoped<const float>& map )
     {
-        if( _refiner.trackPatch( patch, ptr, stride, _pyramidView1[ 0 ].width(), _pyramidView1[ 0 ].height() ) ){
+        if( patch.align( map.ptr(), map.stride(), _pyramidView1[ 0 ].width(), _pyramidView1[ 0 ].height() ) ){
             // check the SAD
             float sad = _simd->SAD( patch.pixels(), patch.transformed(), NumPatchPixel ) / float( NumPatchPixel );
-            if( sad < _params->maxSAD )
+            if( sad < _params->maxSAD / 255.0f )
                 return true;
         }
 

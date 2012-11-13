@@ -5,7 +5,7 @@
 #include <cvt/vision/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/FeatureFilter.h>
-#include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/KLTPatch.h>
 #include <cvt/util/Util.h>
 #include <cvt/math/GA2.h>
 
@@ -39,13 +39,15 @@ namespace cvt
         private:
             static const size_t PatchSize = 16;
             typedef GA2<float>							PoseType;
-            typedef KLTTracker<PoseType, PatchSize>		KLTType;
-            typedef KLTType::KLTPType					PatchType;
+            typedef KLTPatch<PatchSize, PoseType>		PatchType;
 
             FAST					_detector;
             ImagePyramid			_pyramid;
-
-            KLTType					_klt;
+            ImagePyramid			_pyrf;
+            ImagePyramid			_pyrGx;
+            ImagePyramid			_pyrGy;
+            IKernel                 _kx, _ky;
+            size_t                  _kltIters;
 
             size_t					_fastMatchingWindowSqr;
             float					_fastMaxSADThreshold;

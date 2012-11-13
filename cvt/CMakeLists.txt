@@ -410,8 +410,6 @@ SET(${MODULE_NAME}_HEADERS
    util/PluginManager.h
    util/PluginFile.h
    util/internal/ParamTypes.def
-   vision/alignment/KLTPatch.h
-   vision/alignment/PatchBase.h
    vision/BinaryDescriptor.h
    vision/BoardDetector.h
    vision/Brief.h
@@ -431,7 +429,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/Flow.h
    vision/HCalibration.h
    vision/KLTPatch.h
-   vision/KLTTracker.h
    vision/LSH.h
    vision/MeasurementModel.h
    vision/ORB.h
@@ -641,6 +638,8 @@ SET(${MODULE_NAME}_SOURCES
    vision/Ferns.cpp
    vision/Flow.cpp
    vision/IntegralImage.cpp
+   vision/ImagePyramidTest.cpp
+   vision/KLTPatchTest.cpp
    vision/ORB.cpp
    vision/ORB2.cpp
    vision/ORB2Test.cpp

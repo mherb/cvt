@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef IMAGEALLOCATOR_H
 #define IMAGEALLOCATOR_H
@@ -29,7 +29,7 @@ namespace cvt {
 		friend class ImageAllocatorGL;
 
 		public:
-			virtual ~ImageAllocator() {};
+			virtual ~ImageAllocator() {}
 			virtual void alloc( size_t width, size_t height, const IFormat & format ) = 0;
 			virtual void copy( const ImageAllocator* x, const Recti* r = NULL ) = 0;
 			virtual uint8_t* map( size_t* stride ) = 0;
@@ -38,7 +38,7 @@ namespace cvt {
 			virtual IAllocatorType type() const = 0;
 
 		protected:
-			ImageAllocator() : _width( 0 ), _height( 0 ), _format( IFormat::RGBA_UINT8 ) {};
+			ImageAllocator() : _width( 0 ), _height( 0 ), _format( IFormat::RGBA_UINT8 ) {}
 			ImageAllocator( const ImageAllocator& );
 
 		protected:

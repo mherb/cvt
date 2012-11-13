@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #include <cvt/io/VideoReader.h>
 
@@ -17,8 +17,8 @@
 #include <iostream>
 
 extern "C" {
-	#include <avformat.h>
-	#include <avcodec.h>
+	#include <libavformat/avformat.h>
+	#include <libavcodec/avcodec.h>
 }
 
 namespace cvt {
@@ -36,8 +36,8 @@ namespace cvt {
 		_autoRewind( autoRewind )
 	{
 		if( !FileSystem::exists( fileName ) ){
-            String message( "File does not exist: " );
-            message += fileName;
+			String message( "File does not exist: " );
+			message += fileName;
 			throw CVTException( message.c_str() );
 		}
 		av_register_all();
@@ -51,8 +51,8 @@ namespace cvt {
 #else /* 54 */
 		if( avformat_open_input( &_formatContext, fileName.c_str(), NULL, NULL ) < 0 )
 			throw CVTException( "Could not open file!" );
-        if( avformat_find_stream_info( _formatContext, NULL ) < 0 )
-            throw CVTException( "Could not find stream information" );
+		if( avformat_find_stream_info( _formatContext, NULL ) < 0 )
+			throw CVTException( "Could not find stream information" );
 #endif
 
 		// find first video stream:
@@ -95,11 +95,11 @@ namespace cvt {
 			delete _frame;
 
 		av_free( _avFrame );
-		avcodec_close( _codecContext );        
+		avcodec_close( _codecContext );
 #if LIBAVFORMAT_VERSION_MAJOR == 52
-        av_close_input_file( _formatContext );
+		av_close_input_file( _formatContext );
 #else /* silently assume 54*/
-        avformat_close_input( &_formatContext );
+		avformat_close_input( &_formatContext );
 #endif
 	}
 

@@ -12,10 +12,7 @@
 
 namespace cvt
 {
-    KLTTracking::KLTTracking( size_t kltOctaves, float scaleFactor ) :
-        _klt( 10 ),
-        _numOctaves( kltOctaves ),
-        _pyramid( _numOctaves, scaleFactor ),
+    KLTTracking::KLTTracking() :
         _ssdThreshold( Math::sqr( 30.0f ) ),
         _sadThreshold( 30 )
     {
@@ -30,10 +27,8 @@ namespace cvt
                                      std::vector<size_t>&           trackedFeatureIds,
                                      const std::vector<Vector2f>&	predictedPositions,
                                      const std::vector<size_t>&		predictedIds,
-                                     const Image&                   img )
+                                     const ImagePyramid&            pyr )
     {
-        _pyramid.update( img );
-
         SIMD* simd = SIMD::instance();
         const size_t nPixels = Math::sqr( PatchType::size() );
         const float  maxSSD = nPixels * _ssdThreshold;
@@ -53,17 +48,11 @@ namespace cvt
                 continue;
             }
 
-            //  update patch position to current predicted one
-            /*
-            Eigen::Matrix3f & m = patch->pose().transformation();
-            //m.setIdentity();
-            m( 0, 2 ) = p.x;
-            m( 1, 2 ) = p.y;*/
-
+            // start from predicted position
             patch->initPose( p );
 
             //  try to track the patch
-            if( _klt.trackPatchMultiscale( *patch, _pyramid ) ){
+            if( patch->align( pyr, 5 ) ){
                 // successfully tracked: check SSD, SAD values
                 float ssd = simd->SSD( patch->pixels(), patch->transformed(), nPixels );
                 if( ssd < maxSSD ){
@@ -78,13 +67,16 @@ namespace cvt
         }
     }
 
-    void KLTTracking::addFeatureToDatabase( const Vector2f & f, size_t id )
+    void KLTTracking::addFeatureToDatabase( const ImagePyramid& pyr,
+                                            const ImagePyramid& pyrGradX,
+                                            const ImagePyramid& pyrGradY,
+                                            const Vector2f & f, size_t id )
     {
         std::vector<PatchType*> patches;
         std::vector<Vector2f>  feature;
         feature.push_back( f );
 
-        PatchType::extractPatches( patches, feature, _pyramid );
+        PatchType::extractPatches( patches, feature, pyr, pyrGradX, pyrGradY );
 
         if( id != _patchForId.size() ){
             throw CVTException( "Patch IDs out of sync" );

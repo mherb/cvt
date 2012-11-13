@@ -27,6 +27,31 @@
 namespace cvt
 {
 
+    static void saveGradientImages( const Image& gxI, const Image& gyI, float scale )
+    {
+        String file;
+        file.sprintf( "gradx_%f.png", scale );
+        gxI.save( file );
+        file.sprintf( "grady_%f.png", scale );
+        gyI.save( file );
+    }
+
+    template <class T>
+    static void dumpDataInfo( const T& data, float scale )
+    {
+        cvt::String hessString;
+        float normalizer = data.jacobians.size();
+        std::cout << "Octave: " << scale << std::endl;
+        hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
+                            data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
+                            data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
+        std::cout << hessString << std::endl;
+        hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
+                            data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
+                            data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
+        std::cout << hessString << std::endl;
+    }
+
     template <class WarpFunc>
     class IntensityKeyframe : public RGBDKeyframe<WarpFunc> {
         public:
@@ -51,6 +76,9 @@ namespace cvt
                                             const Image& depth,
                                             float scale );
 
+            void addPointsOnScale( AlignDataType& data,
+                                   const std::vector<Vector3f>& pts,
+                                   const Matrix4f& referenceToWorld );
 
             void sparseOfflineData( std::vector<ScaleFeatures>& featuresForScale,
                                     const Matrix4<T>& pose,
@@ -84,23 +112,24 @@ namespace cvt
         Eigen::Matrix<T, 2, 1> g;
         JacobianType j;
 
-        // compute the image gradients
-        Image gxI, gyI;
-        this->computeImageGradients( gxI, gyI, gray );
+        // compute the image gradients        
+        this->computeImageGradients( data.gradX, data.gradY, gray );
+        data.gray = gray;
 
         data.clear();
         size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
         data.reserve( 0.4f * pixelsOnOctave );
 
+        // TODO: replace this by a simd function!
         // temp vals
         std::vector<float> tmpx( gray.width() );
         std::vector<float> tmpy( gray.height() );
         Base::initializePointLookUps( &tmpx[ 0 ], tmpx.size(), data.intrinsics[ 0 ][ 0 ], data.intrinsics[ 0 ][ 2 ] );
         Base::initializePointLookUps( &tmpy[ 0 ], tmpy.size(), data.intrinsics[ 1 ][ 1 ], data.intrinsics[ 1 ][ 2 ] );
 
-        IMapScoped<const float> gxMap( gxI );
-        IMapScoped<const float> gyMap( gyI );
-        IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> gxMap( data.gradX );
+        IMapScoped<const float> gyMap( data.gradY );
+        IMapScoped<const float> grayMap( data.gray );
 
         data.hessian.setZero();
 
@@ -140,32 +169,65 @@ namespace cvt
             grayMap++;
         }
 
-
-        // select best N jacobians:
-/*
-        size_t numPixels = Base::_pixelPercentageToSelect * pixelsOnOctave;
-        if( data.jacobians.size() <= numPixels )
-            Base::updateHessian( data );
-        else
-            Base::selectInformation( data, numPixels );
-*/
-
         // precompute the inverse hessian
-        data.inverseHessian = data.hessian.inverse();
+        data.inverseHessian = data.hessian.inverse();        
 
-        /*
-        cvt::String hessString;
-        float normalizer = data.jacobians.size();
-        std::cout << "Octave: " << i << std::endl;
-        hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
-                            data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
-                            data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
-        std::cout << hessString << std::endl;
-        hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
-                            data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
-                            data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
-        std::cout << hessString << std::endl;
-        */
+    }
+
+    template <class WarpFunc>
+    inline void IntensityKeyframe<WarpFunc>::addPointsOnScale( AlignDataType& data,
+                                                               const std::vector<Vector3f>& pts,
+                                                               const Matrix4f& referenceToWorld )
+    {
+        // reproject the points into this reference frame: we need x, y, z & u, v
+        SIMD* simd = SIMD::instance();
+
+        std::vector<Vector3f> transformed;
+        transformed.resize( pts.size() );
+        simd->transformPoints( &transformed[ 0 ], referenceToWorld, &pts[ 0 ], pts.size() );
+
+        std::vector<Vector3f>::const_iterator pit;
+        const std::vector<Vector3f>::const_iterator pitEnd;
+
+        const Matrix3f& K = data.intrinsics;
+
+        IMapScoped<const float> gxMap( data.gradX );
+        IMapScoped<const float> gyMap( data.gradY );
+        IMapScoped<const float> grayMap( data.gray );
+
+        const float* gVals = grayMap.ptr();
+        const float* gxVals = gxMap.ptr();
+        const float* gyVals = gyMap.ptr();
+
+        JacobianType j;
+        Eigen::Matrix<T, 2, 1> g;
+
+        while( pit != pitEnd ){
+            // project to screen
+            Vector2f w( K * *pit );
+
+            // we need: pixel value and gradient at that position (nearest neighbour for testing)
+            int x = ( int )( w.x + 0.5f );
+            int y = ( int )( w.y + 0.5f );
+
+            // access the values: intensity, gx, gy
+            size_t offset = y * grayMap.stride() + x;
+
+            // evaluate the jacobian
+            g[ 0 ] = gxVals[ offset ];
+            g[ 1 ] = gyVals[ offset ];
+            WarpFunc::computeJacobian( j, *pit, data.intrinsics, g, gVals[ offset ] );
+
+            // add it to the data
+            data.jacobians.push_back( j );
+            data.pixelValues.push_back( gVals[ offset ] );
+            data.points3d.push_back( *pit );
+            data.hessian.noalias() += j.transpose() * j;
+
+            ++pit;
+        }
+
+        data.inverseHessian = data.hessian.inverse();
     }
 
 

@@ -13,12 +13,19 @@ namespace cvt
         _video( video ),
         _kltTimeSum( 0.0 ),
         _kltIters( 0 ),
-        _pyramid( 1, 0.5f ),
+        _pyramid( 3, 0.5f ),
+        _pyrf( _pyramid.octaves(), _pyramid.scaleFactor() ),
+        _pyrGx( _pyramid.octaves(), _pyramid.scaleFactor() ),
+        _pyrGy( _pyramid.octaves(), _pyramid.scaleFactor() ),
+        _kx( IKernel::HAAR_HORIZONTAL_3 ),
+        _ky( IKernel::HAAR_VERTICAL_3 ),
         _redetectThreshold( 20 ),
         _gridFilter( 40, video.width(), video.height() )
     {
-        _ssdThresh = Math::sqr( 20 );
+        _kx.scale( -0.5f );
+        _ky.scale( -0.5f );
 
+        _ssdThresh = Math::sqr( 20 );
         _timerId = Application::registerTimer( 10, this );
         _window.setSize( 640, 480 );
         WidgetLayout wl;
@@ -51,21 +58,16 @@ namespace cvt
         _window.setVisible( true );
         _window.update();
 
-        _video.nextFrame();
-        _video.nextFrame();
-        _video.nextFrame();
-        _video.nextFrame();
-        _video.nextFrame();
-        _video.nextFrame();
-
-        Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
-        _video.frame().convert( gray, IFormat::GRAY_UINT8 );
-
-        _pyramid.update( gray );
 
         _fast.setThreshold( 20 );
         _fast.setNonMaxSuppress( true );
         _fast.setBorder( PATCH_SIZE / 2 + 1 );
+
+        _video.nextFrame( 1000 );
+
+        Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
+        _video.frame().convert( gray );
+        updatePyramids( gray );
 
         redetectMultiScale();
         std::cout << "Numinitial: " << _patches.size() << std::endl;
@@ -115,16 +117,17 @@ namespace cvt
 
         SIMD* simd = SIMD::instance();
         const size_t nPixels = Math::sqr( PATCH_SIZE );
-        const float maxSSD = nPixels * _ssdThresh;
+        const float maxSSD = nPixels * _ssdThresh / 255.0f;
 
         // track all patches
         for( size_t i = 0; i < _patches.size(); i++ ){
-            if( _patches[ i ]->alignWithImage( _pyramid[ 0 ] ) ){
+            if( _patches[ i ]->align( _pyrf, 5 ) ){
                 float ssd = simd->SSD( _patches[ i ]->pixels(), _patches[ i ]->transformed(), nPixels );
-                if( ssd < maxSSD )
+                if( ssd < maxSSD ){
                     tracked.push_back( _patches[ i ] );
-                else
+                } else {
                     lost.push_back( _patches[ i ] );
+                }
             } else {
                 lost.push_back( _patches[ i ] );
             }
@@ -142,18 +145,17 @@ namespace cvt
         if( _stepping && !_next )
             return;
         _next = false;
+
+        _video.nextFrame( 20 );
+
         // convert to grayscale
         Image gray( _video.width(), _video.height(), IFormat::GRAY_UINT8 );
-        _video.frame().convert( gray, IFormat::GRAY_UINT8 );
-        _pyramid.update( gray );
+        _video.frame().convert( gray );
+        updatePyramids( gray );
 
         _kltTime.reset();
 
-        //size_t lost = trackSingleScale( _pyramid[ 0 ] );
         size_t lost = track();
-
-        //createPatchImage( _patches );
-        //_patchImage.save( "featurepatches.png" );
 
         size_t numAll = _patches.size() + lost;
 
@@ -161,9 +163,7 @@ namespace cvt
         _kltIters++;
 
         size_t numTracked = _patches.size();
-
-        if( _patches.size() < _redetectThreshold ){
-            //redetectFeatures( _pyramid[ 0 ] );
+        if( numTracked < _redetectThreshold ){
             redetectMultiScale();
         }
 
@@ -183,8 +183,6 @@ namespace cvt
         _pyramid[ 0 ].convert( debug, IFormat::RGBA_UINT8 );
         drawFeatures( debug );
         _imView.setImage( debug );
-
-        _video.nextFrame( 10 );
     }
 
     void KLTWindow::drawFeatures( Image & img )
@@ -222,7 +220,6 @@ namespace cvt
             // insert the features
             features.insert( features.end(), scaleFeatures.begin(), scaleFeatures.end() );
             if( i != 0 ){
-
                 scale /= _pyramid.scaleFactor();
                 for( size_t f = start; f < features.size(); f++ ){
                     features[ f ].pt *= scale;
@@ -246,66 +243,33 @@ namespace cvt
             _patches[ i ]->currentCenter( patchPositions[ i ] );
         }
 
-        IMapScoped<const uint8_t> map( _pyramid[ 0 ] );
         for( size_t k = 0; k < filtered.size(); k++ ){
             bool good = true;
             for( size_t i = 0; i < patchPositions.size(); i++ ){
-                if( ( patchPositions[ i ] - filtered[ k ]->pt ).lengthSqr() < 100.0f ){
+                // ensure minimum distance to tracked features
+                if( ( patchPositions[ i ] - filtered[ k ]->pt ).lengthSqr() < PatchType::PatchSize ){
                     good = false;
                     break;
                 }
             }
             if( good ){
                 filteredUnique.push_back( filtered[ k ]->pt );
-                _patches.push_back( new PatchType() );
-                _patches.back()->update( map.ptr(), map.stride(), filtered[ k ]->pt );
+                PatchType* currPatch = new PatchType( _pyrf.octaves() );
+                if( currPatch->update( _pyrf, _pyrGx, _pyrGy, filtered[ k ]->pt ) ){
+                    _patches.push_back( currPatch );
+                } else {
+                    delete currPatch;
+                }
             }
         }
-
-
     }
 
-    void KLTWindow::createPatchImage( const std::vector<PatchType*>& patches )
+    void KLTWindow::updatePyramids( const Image& grayU8 )
     {
-        // according to the number of
-        //patches: say we have an image with 1024:
-        size_t spacePerPatch = PATCH_SIZE + 5;
-        size_t heightPerPatch = 2 * PATCH_SIZE + 5;
-        size_t numPatchesPerLine = 640.0f / spacePerPatch;
-        size_t numLines = 1 + patches.size() / numPatchesPerLine;
-        _patchImage.reallocate( 640, numLines * heightPerPatch, IFormat::GRAY_UINT8 );
-
-        _patchImage.fill( Color::BLACK );
-
-        IMapScoped<uint8_t> map( _patchImage );
-        uint8_t* ptr = map.ptr();
-        size_t currentXPos = 0;
-        SIMD * simd = SIMD::instance();
-
-        for( size_t i = 0; i < patches.size(); i++ ){
-            uint8_t * p = ptr + currentXPos * spacePerPatch;
-            const uint8_t * patch = patches[ i ]->pixels();
-            size_t n = PATCH_SIZE;
-            while( n-- ){
-                simd->Memcpy( p, patch, PATCH_SIZE );
-                p += map.stride();
-                patch += PATCH_SIZE;
-            }
-            n = PATCH_SIZE;
-            patch = patches[ i ]->transformed();
-            while( n-- ){
-                simd->Memcpy( p, patch, PATCH_SIZE );
-                p += map.stride();
-                patch += PATCH_SIZE;
-            }
-
-            // set the pointer:
-            currentXPos++;
-            if( currentXPos == numPatchesPerLine ){
-                ptr += map.stride() * heightPerPatch;
-                currentXPos = 0;
-            }
-        }
+        _pyramid.update( grayU8 );
+        _pyramid.convert( _pyrf, IFormat::GRAY_FLOAT );
+        _pyrf.convolve( _pyrGx, _kx );
+        _pyrf.convolve( _pyrGy, _ky );
     }
 
     void KLTWindow::dumpPatch( PatchType& patch, size_t i )
@@ -313,21 +277,21 @@ namespace cvt
         // evaluate some cost functions:
         SIMD* simd = SIMD::instance();
 
-        size_t sad = simd->SAD( patch.pixels(), patch.transformed(), Math::sqr( PATCH_SIZE ) );
-        float  ssd = simd->SSD( patch.pixels(), patch.transformed(), Math::sqr( PATCH_SIZE ) );
+        float sad = simd->SAD( patch.pixels(), patch.transformed(), Math::sqr( PATCH_SIZE ) );
+        float ssd = simd->SSD( patch.pixels(), patch.transformed(), Math::sqr( PATCH_SIZE ) );
 
 
-        if( sad > ( size_t )( 30 * Math::sqr( PATCH_SIZE ) ) ) {
-            Image out( PATCH_SIZE * 2, PATCH_SIZE, IFormat::GRAY_UINT8 );
+        if( sad > ( size_t )( 0.12 * Math::sqr( PATCH_SIZE ) ) ) {
+            Image out( PATCH_SIZE * 2, PATCH_SIZE, IFormat::GRAY_FLOAT );
 
             {
-                IMapScoped<uint8_t> map( out );
-                const uint8_t* p = patch.pixels();
-                const uint8_t* t = patch.transformed();
+                IMapScoped<float> map( out );
+                const float* p = patch.pixels();
+                const float* t = patch.transformed();
 
                 size_t h = PATCH_SIZE;
                 while( h-- ){
-                    uint8_t* pout = map.ptr();
+                    float* pout = map.ptr();
 
                     for( size_t i = 0; i < PATCH_SIZE; i++ ){
                         *pout++ = *p++;
@@ -335,6 +299,7 @@ namespace cvt
                     for( size_t i = 0; i < PATCH_SIZE; i++ ){
                         *pout++ = *t++;
                     }
+                    // next line
                     map++;
                 }
             }

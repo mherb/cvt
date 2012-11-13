@@ -1877,6 +1877,20 @@ namespace cvt {
             *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
     }
 
+    void SIMD::Conv_s16_to_u8( uint8_t* dst, int16_t const* src, const size_t n ) const
+    {
+        size_t i = n >> 2;
+        while( i-- ) {
+            *dst++ = ( uint8_t ) Math::clamp( *src++ >> 8, 0, 255 );
+            *dst++ = ( uint8_t ) Math::clamp( *src++ >> 8, 0, 255 );
+            *dst++ = ( uint8_t ) Math::clamp( *src++ >> 8, 0, 255 );
+            *dst++ = ( uint8_t ) Math::clamp( *src++ >> 8, 0, 255 );
+        }
+        i = n & 0x03;
+        while( i-- )
+            *dst++ = ( uint8_t ) Math::clamp( *src++ >> 8, 0, 255 );
+    }
+
     void SIMD::Conv_GRAYALPHAf_to_GRAYf( float* dst, const float* src, const size_t n ) const
     {
         size_t i = n;
@@ -4093,6 +4107,68 @@ namespace cvt {
         }
     }
 
+    void SIMD::ConvolveClampVert_fx_to_s16( int16_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
+    {
+        Fixed tmp[ 8 ];
+        size_t x;
+
+        for( x = 0; x <= width - 8; x += 8 ) {
+            tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp[ 1 ] = bufs[ 0 ][ x + 1 ] * *weights;
+            tmp[ 2 ] = bufs[ 0 ][ x + 2 ] * *weights;
+            tmp[ 3 ] = bufs[ 0 ][ x + 3 ] * *weights;
+            tmp[ 4 ] = bufs[ 0 ][ x + 4 ] * *weights;
+            tmp[ 5 ] = bufs[ 0 ][ x + 5 ] * *weights;
+            tmp[ 6 ] = bufs[ 0 ][ x + 6 ] * *weights;
+            tmp[ 7 ] = bufs[ 0 ][ x + 7 ] * *weights;
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp[ 1 ] += bufs[ k ][ x + 1 ] * weights[ k ];
+                tmp[ 2 ] += bufs[ k ][ x + 2 ] * weights[ k ];
+                tmp[ 3 ] += bufs[ k ][ x + 3 ] * weights[ k ];
+                tmp[ 4 ] += bufs[ k ][ x + 4 ] * weights[ k ];
+                tmp[ 5 ] += bufs[ k ][ x + 5 ] * weights[ k ];
+                tmp[ 6 ] += bufs[ k ][ x + 6 ] * weights[ k ];
+                tmp[ 7 ] += bufs[ k ][ x + 7 ] * weights[ k ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 0 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 1 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 2 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 3 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 4 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 5 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 6 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 7 ].native() >> 8, INT16_MIN, INT16_MAX );
+        }
+
+        for( ; x <= width - 4; x += 4 ) {
+            tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp[ 1 ] = bufs[ 0 ][ x + 1 ] * *weights;
+            tmp[ 2 ] = bufs[ 0 ][ x + 2 ] * *weights;
+            tmp[ 3 ] = bufs[ 0 ][ x + 3 ] * *weights;
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp[ 1 ] += bufs[ k ][ x + 1 ] * weights[ k ];
+                tmp[ 2 ] += bufs[ k ][ x + 2 ] * weights[ k ];
+                tmp[ 3 ] += bufs[ k ][ x + 3 ] * weights[ k ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 0 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 1 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 2 ].native() >> 8, INT16_MIN, INT16_MAX );
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 3 ].native() >> 8, INT16_MIN, INT16_MAX );
+        }
+
+        for( ; x < width; x++ ) {
+            tmp[ 0 ] = bufs[ 0 ][ x + 0 ] * *weights;
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp[ 0 ] += bufs[ k ][ x + 0 ] * weights[ k ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp[ 0 ].native() >> 8, INT16_MIN, INT16_MAX );
+        }
+    }
 
     void SIMD::ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
     {
@@ -5272,7 +5348,7 @@ namespace cvt {
 #define HQPTR(x,off) ( ( int ) *((x)+off) )
 
 #define BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 ) ( ( ( ( HQPTR(p3,-1) + HQPTR(p3,1) + HQPTR(p2,0) + HQPTR(p4,0) ) << 1 ) \
-												 + ( HQPTR(p3,0) << 2 ) - HQPTR(p1,0) - HQPTR(p5,0) - HQPTR(p3,-2) - HQPTR(p3,2) ) >> 3 )
+                                                 + ( HQPTR(p3,0) << 2 ) - HQPTR(p1,0) - HQPTR(p5,0) - HQPTR(p3,-2) - HQPTR(p3,2) ) >> 3 )
 
 #define BAYER_HQ_G_AT_B( p1, p2, p3, p4, p5 ) BAYER_HQ_G_AT_R( p1, p2, p3, p4, p5 )
 
@@ -5296,7 +5372,7 @@ namespace cvt {
 
 #define BAYER_HQ_R_AT_B_ODD( p1, p2, p3, p4, p5 ) BAYER_HQ_B_AT_R_EVEN( p1, p2, p3, p4, p5 )
 
-    void SIMD::debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
+	void SIMD::debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
 											 const uint32_t* _src4, const uint32_t* _src5, size_t n ) const
 	{
 		uint32_t v;
@@ -5376,7 +5452,7 @@ namespace cvt {
 		src5++;
 	}
 
-    void SIMD::debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
+	void SIMD::debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* _src1, const uint32_t* _src2, const uint32_t* _src3,
 											 const uint32_t* _src4, const uint32_t* _src5, size_t n ) const
 	{
 		uint32_t v;
@@ -6223,7 +6299,7 @@ namespace cvt {
     }
 
     void SIMD::projectPoints( Vector2d* dst, const Matrix4d& mat, const Vector3d* src, size_t n ) const
-    {        
+    {
         Vector3d pp;
         while( n-- ){
             pp = mat * *src++;

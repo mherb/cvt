@@ -33,6 +33,8 @@ namespace cvt {
 	class CL {
 		friend class Application;
 		friend class ApplicationX11;
+		friend class ApplicationOSX;
+
 		public:
 			static CLContext* defaultContext() { return _ctx; }
 			static CLCommandQueue* defaultQueue() { return _queue; }

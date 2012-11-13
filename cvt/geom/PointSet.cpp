@@ -357,62 +357,6 @@ namespace cvt {
 	}
 
 	template<>
-	Matrix3<float> PointSet<2,float>::alignPerspective( const PointSet<2,float>& ptset ) const
-	{
-		if( size() != ptset.size() )
-			throw CVTException( "PointSets differ in size!" );
-		if( size() <= 2 )
-			throw CVTException( "PointSets to small!" );
-
-		Eigen::MatrixXf A( 2 * size(), 8 );
-		Eigen::VectorXf b( 2 * size() );
-		Eigen::Matrix<float, 8, 1> x;
-		Matrix3<float> ret;
-		Matrix3<float> sim1, sim2;
-		PointSet<2,float> n1 = *this;
-		PointSet<2,float> n2 = ptset;
-
-		n1.normalize( sim1 );
-		n2.normalize( sim2 );
-		size_t n = size();
-
-		for( size_t i = 0; i < n; i++ ){
-			A( 2 * i, 0 )	  = 0.0;
-			A( 2 * i, 1 )	  = 0.0;
-			A( 2 * i, 2 )	  = 0.0;
-			A( 2 * i, 3 )	  = -n1[ i ][ 0 ];
-			A( 2 * i, 4 )	  = -n1[ i ][ 1 ];
-			A( 2 * i, 5 )	  = -1.0;
-			A( 2 * i, 6 )	  = n1[ i ][ 0 ] * n2[ i ][ 1 ];
-			A( 2 * i, 7 )	  = n1[ i ][ 1 ] * n2[ i ][ 1 ];
-
-			A( 2 * i + 1, 0 ) = n1[ i ][ 0 ];
-			A( 2 * i + 1, 1 ) = n1[ i ][ 1 ];
-			A( 2 * i + 1, 2 ) = 1.0;
-			A( 2 * i + 1, 3 ) = 0.0;
-			A( 2 * i + 1, 4 ) = 0.0;
-			A( 2 * i + 1, 5 ) = 0.0;
-			A( 2 * i + 1, 6 ) = -n1[ i ][ 0 ] * n2[ i ][ 0 ];
-			A( 2 * i + 1, 7 ) = -n1[ i ][ 1 ] * n2[ i ][ 0 ];
-
-			b[ 2 * i ]		  = -n2[ i ][ 1 ];
-			b[ 2 * i + 1 ]	  =  n2[ i ][ 0 ];
-		}
-
-		Eigen::JacobiSVD<Eigen::MatrixXf> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
-		x = svd.solve( b );
-
-		ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];
-		ret[ 1 ][ 0 ] = x[ 3 ];	ret[ 1 ][ 1 ] = x[ 4 ]; ret[ 1 ][ 2 ] = x[ 5 ];
-		ret[ 2 ][ 0 ] = x[ 6 ];	ret[ 2 ][ 1 ] = x[ 7 ]; ret[ 2 ][ 2 ] = 1.0;
-
-		sim2.inverseSelf();
-		ret = sim2 * ret * sim1;
-		ret *= 1.0f / ret[ 2 ][ 2 ];
-		return ret;
-	}
-
-	template<>
 	Matrix3<double> PointSet<2,double>::alignPerspective( const PointSet<2,double>& ptset ) const
 	{
 		if( size() != ptset.size() )
@@ -420,9 +364,10 @@ namespace cvt {
 		if( size() <= 2 )
 			throw CVTException( "PointSets to small!" );
 
-		Eigen::MatrixXd A( 2 * size(), 8 );
-		Eigen::VectorXd b( 2 * size() );
-		Eigen::Matrix<double, 8, 1> x;
+		Eigen::Matrix<double, 9, 9> A;
+		Eigen::Matrix<double, 3, 3> AS[ 4 ];
+
+		Eigen::Matrix<double, 9, 1> x;
 		Matrix3<double> ret;
 		Matrix3<double> sim1, sim2;
 		PointSet<2,double> n1 = *this;
@@ -432,35 +377,190 @@ namespace cvt {
 		n2.normalize( sim2 );
 		size_t n = size();
 
+		AS[ 0 ].setZero();
+		AS[ 1 ].setZero();
+		AS[ 2 ].setZero();
+		AS[ 3 ].setZero();
+
 		for( size_t i = 0; i < n; i++ ){
-			A( 2 * i, 0 )	  = 0.0;
-			A( 2 * i, 1 )	  = 0.0;
-			A( 2 * i, 2 )	  = 0.0;
-			A( 2 * i, 3 )	  = -n1[ i ][ 0 ];
-			A( 2 * i, 4 )	  = -n1[ i ][ 1 ];
-			A( 2 * i, 5 )	  = -1.0;
-			A( 2 * i, 6 )	  = n1[ i ][ 0 ] * n2[ i ][ 1 ];
-			A( 2 * i, 7 )	  = n1[ i ][ 1 ] * n2[ i ][ 1 ];
+			AS[ 0 ]( 0, 0 ) += Math::sqr( n1[ i ][ 0 ] );
+			AS[ 0 ]( 0, 1 ) += n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 0 ]( 0, 2 ) += n1[ i ][ 0 ];
 
-			A( 2 * i + 1, 0 ) = n1[ i ][ 0 ];
-			A( 2 * i + 1, 1 ) = n1[ i ][ 1 ];
-			A( 2 * i + 1, 2 ) = 1.0;
-			A( 2 * i + 1, 3 ) = 0.0;
-			A( 2 * i + 1, 4 ) = 0.0;
-			A( 2 * i + 1, 5 ) = 0.0;
-			A( 2 * i + 1, 6 ) = -n1[ i ][ 0 ] * n2[ i ][ 0 ];
-			A( 2 * i + 1, 7 ) = -n1[ i ][ 1 ] * n2[ i ][ 0 ];
+			AS[ 0 ]( 1, 1 ) += Math::sqr( n1[ i ][ 1 ] );
+			AS[ 0 ]( 1, 2 ) += n1[ i ][ 1 ];
 
-			b[ 2 * i ]		  = -n2[ i ][ 1 ];
-			b[ 2 * i + 1 ]	  =  n2[ i ][ 0 ];
+			AS[ 0 ]( 2, 2 ) += 1.0;
+
+			/* -------------- */
+
+			AS[ 1 ]( 0, 0 ) -= n2[ i ][ 0 ] * Math::sqr( n1[ i ][ 0 ] );
+			AS[ 1 ]( 0, 1 ) -= n2[ i ][ 0 ] * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 1 ]( 0, 2 ) -= n2[ i ][ 0 ] * n1[ i ][ 0 ];
+
+			AS[ 1 ]( 1, 1 ) -= n2[ i ][ 0 ] * Math::sqr( n1[ i ][ 1 ] );
+			AS[ 1 ]( 1, 2 ) -= n2[ i ][ 0 ] * n1[ i ][ 1 ];
+
+			AS[ 1 ]( 2, 2 ) -= n2[ i ][ 0 ];
+
+			/* -------------- */
+
+			AS[ 2 ]( 0, 0 ) -= n2[ i ][ 1 ] * Math::sqr( n1[ i ][ 0 ] );
+			AS[ 2 ]( 0, 1 ) -= n2[ i ][ 1 ] * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 2 ]( 0, 2 ) -= n2[ i ][ 1 ] * n1[ i ][ 0 ];
+
+			AS[ 2 ]( 1, 1 ) -= n2[ i ][ 1 ] * Math::sqr( n1[ i ][ 1 ] );
+			AS[ 2 ]( 1, 2 ) -= n2[ i ][ 1 ] * n1[ i ][ 1 ];
+
+			AS[ 2 ]( 2, 2 ) -= n2[ i ][ 1 ];
+
+
+			/* -------------- */
+
+			AS[ 3 ]( 0, 0 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * Math::sqr( n1[ i ][ 0 ]);
+			AS[ 3 ]( 0, 1 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 3 ]( 0, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 0 ];
+
+
+			AS[ 3 ]( 1, 1 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * Math::sqr( n1[ i ][ 1 ]);
+			AS[ 3 ]( 1, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 1 ];
+
+
+			AS[ 3 ]( 2, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) );
 		}
 
-		Eigen::JacobiSVD<Eigen::MatrixXd> svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
-		x = svd.solve( b );
+		/* make the submatrices AS symmertric */
+		for( int i = 0; i < 4; i++ ) {
+			AS[ i ]( 1, 0 ) = AS[ i ]( 0, 1 );
+			AS[ i ]( 2, 0 ) = AS[ i ]( 0, 2 );
+			AS[ i ]( 2, 1 ) = AS[ i ]( 1, 2 );
+		}
+
+		/* move the submatrices AS into A */
+		A.setZero();
+		A.block<3, 3>( 0, 0 ) = AS[ 0 ];
+		A.block<3, 3>( 3, 3 ) = AS[ 0 ];
+
+		A.block<3, 3>( 0, 6 ) = AS[ 1 ];
+		A.block<3, 3>( 6, 0 ) = AS[ 1 ];
+
+		A.block<3, 3>( 3, 6 ) = AS[ 2 ];
+		A.block<3, 3>( 6, 3 ) = AS[ 2 ];
+
+		A.block<3, 3>( 6, 6 ) = AS[ 3 ];
+
+		Eigen::JacobiSVD<Eigen::Matrix<double, 9, 9> > svd( A, Eigen::ComputeFullV );
+		x = svd.matrixV().col( 8 );
 
 		ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];
 		ret[ 1 ][ 0 ] = x[ 3 ];	ret[ 1 ][ 1 ] = x[ 4 ]; ret[ 1 ][ 2 ] = x[ 5 ];
-		ret[ 2 ][ 0 ] = x[ 6 ];	ret[ 2 ][ 1 ] = x[ 7 ]; ret[ 2 ][ 2 ] = 1.0;
+		ret[ 2 ][ 0 ] = x[ 6 ];	ret[ 2 ][ 1 ] = x[ 7 ]; ret[ 2 ][ 2 ] = x[ 8 ];
+
+		sim2.inverseSelf();
+		ret = sim2 * ret * sim1;
+		ret *= 1.0 / ret[ 2 ][ 2 ];
+		return ret;
+	}
+
+	template<>
+	Matrix3<float> PointSet<2,float>::alignPerspective( const PointSet<2,float>& ptset ) const
+	{
+		if( size() != ptset.size() )
+			throw CVTException( "PointSets differ in size!" );
+		if( size() <= 2 )
+			throw CVTException( "PointSets to small!" );
+
+		Eigen::Matrix<float, 9, 9> A;
+		Eigen::Matrix<float, 3, 3> AS[ 4 ];
+
+		Eigen::Matrix<float, 9, 1> x;
+		Matrix3<float> ret;
+		Matrix3<float> sim1, sim2;
+		PointSet<2,float> n1 = *this;
+		PointSet<2,float> n2 = ptset;
+
+		n1.normalize( sim1 );
+		n2.normalize( sim2 );
+		size_t n = size();
+
+		AS[ 0 ].setZero();
+		AS[ 1 ].setZero();
+		AS[ 2 ].setZero();
+		AS[ 3 ].setZero();
+
+		for( size_t i = 0; i < n; i++ ){
+			AS[ 0 ]( 0, 0 ) += Math::sqr( n1[ i ][ 0 ] );
+			AS[ 0 ]( 0, 1 ) += n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 0 ]( 0, 2 ) += n1[ i ][ 0 ];
+
+			AS[ 0 ]( 1, 1 ) += Math::sqr( n1[ i ][ 1 ] );
+			AS[ 0 ]( 1, 2 ) += n1[ i ][ 1 ];
+
+			AS[ 0 ]( 2, 2 ) += 1.0f;
+
+			/* -------------- */
+
+			AS[ 1 ]( 0, 0 ) -= n2[ i ][ 0 ] * Math::sqr( n1[ i ][ 0 ] );
+			AS[ 1 ]( 0, 1 ) -= n2[ i ][ 0 ] * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 1 ]( 0, 2 ) -= n2[ i ][ 0 ] * n1[ i ][ 0 ];
+
+			AS[ 1 ]( 1, 1 ) -= n2[ i ][ 0 ] * Math::sqr( n1[ i ][ 1 ] );
+			AS[ 1 ]( 1, 2 ) -= n2[ i ][ 0 ] * n1[ i ][ 1 ];
+
+			AS[ 1 ]( 2, 2 ) -= n2[ i ][ 0 ];
+
+			/* -------------- */
+
+			AS[ 2 ]( 0, 0 ) -= n2[ i ][ 1 ] * Math::sqr( n1[ i ][ 0 ] );
+			AS[ 2 ]( 0, 1 ) -= n2[ i ][ 1 ] * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 2 ]( 0, 2 ) -= n2[ i ][ 1 ] * n1[ i ][ 0 ];
+
+			AS[ 2 ]( 1, 1 ) -= n2[ i ][ 1 ] * Math::sqr( n1[ i ][ 1 ] );
+			AS[ 2 ]( 1, 2 ) -= n2[ i ][ 1 ] * n1[ i ][ 1 ];
+
+			AS[ 2 ]( 2, 2 ) -= n2[ i ][ 1 ];
+
+
+			/* -------------- */
+
+			AS[ 3 ]( 0, 0 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * Math::sqr( n1[ i ][ 0 ]);
+			AS[ 3 ]( 0, 1 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 0 ] * n1[ i ][ 1 ];
+			AS[ 3 ]( 0, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 0 ];
+
+
+			AS[ 3 ]( 1, 1 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * Math::sqr( n1[ i ][ 1 ]);
+			AS[ 3 ]( 1, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) ) * n1[ i ][ 1 ];
+
+
+			AS[ 3 ]( 2, 2 ) += ( Math::sqr( n2[ i ][ 1 ] ) + Math::sqr( n2[ i ][ 0 ] ) );
+		}
+
+		/* make the submatrices AS symmertric */
+		for( int i = 0; i < 4; i++ ) {
+			AS[ i ]( 1, 0 ) = AS[ i ]( 0, 1 );
+			AS[ i ]( 2, 0 ) = AS[ i ]( 0, 2 );
+			AS[ i ]( 2, 1 ) = AS[ i ]( 1, 2 );
+		}
+
+		/* move the submatrices AS into A */
+		A.setZero();
+		A.block<3, 3>( 0, 0 ) = AS[ 0 ];
+		A.block<3, 3>( 3, 3 ) = AS[ 0 ];
+
+		A.block<3, 3>( 0, 6 ) = AS[ 1 ];
+		A.block<3, 3>( 6, 0 ) = AS[ 1 ];
+
+		A.block<3, 3>( 3, 6 ) = AS[ 2 ];
+		A.block<3, 3>( 6, 3 ) = AS[ 2 ];
+
+		A.block<3, 3>( 6, 6 ) = AS[ 3 ];
+
+		Eigen::JacobiSVD<Eigen::Matrix<float, 9, 9> > svd( A, Eigen::ComputeFullV );
+		x = svd.matrixV().col( 8 );
+
+		ret[ 0 ][ 0 ] = x[ 0 ];	ret[ 0 ][ 1 ] = x[ 1 ]; ret[ 0 ][ 2 ] = x[ 2 ];
+		ret[ 1 ][ 0 ] = x[ 3 ];	ret[ 1 ][ 1 ] = x[ 4 ]; ret[ 1 ][ 2 ] = x[ 5 ];
+		ret[ 2 ][ 0 ] = x[ 6 ];	ret[ 2 ][ 1 ] = x[ 7 ]; ret[ 2 ][ 2 ] = x[ 8 ];
 
 		sim2.inverseSelf();
 		ret = sim2 * ret * sim1;

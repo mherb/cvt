@@ -23,23 +23,21 @@
 #include <cvt/math/Sim2.h>
 #include <cvt/math/GA2.h>
 
-//#include <cvt/vision/KLTTracker.h>
+#include <cvt/vision/KLTPatch.h>
 
 #include <cvt/gfx/GFXEngineImage.h>
-#include <cvt/vision/alignment/KLTPatch.h>
 
-#define PATCH_SIZE ( 16 )
+
+#define PATCH_SIZE ( 20 )
 
 namespace cvt {
 
     class KLTWindow : public TimeoutHandler
     {
         public:
-            typedef GA2<float>			  PoseType;
-            //typedef Sim2<float>			  PoseType;
-            //typedef Translation2D<float>	  PoseType;
-            //typedef KLTTracker<PoseType, PATCH_SIZE>  KLTType;
-            //typedef KLTType::KLTPType		  KLTPType;
+            typedef GA2<float>                    PoseType;
+            //typedef Sim2<float>                   PoseType;
+            //typedef Translation2D<float>          PoseType;
             typedef KLTPatch<PATCH_SIZE, PoseType>  PatchType;
 
             KLTWindow( VideoInput & video );
@@ -68,7 +66,6 @@ namespace cvt {
 
             VideoInput &				_video;
 
-            //KLTType						_klt;
             Time						_kltTime;
             double						_kltTimeSum;
             size_t						_kltIters;
@@ -78,6 +75,10 @@ namespace cvt {
             double						_fps;
             size_t						_iter;
             ImagePyramid				_pyramid;
+            ImagePyramid				_pyrf;
+            ImagePyramid				_pyrGx;
+            ImagePyramid				_pyrGy;
+            IKernel                     _kx, _ky;
 
             size_t						_redetectThreshold;
 
@@ -90,12 +91,11 @@ namespace cvt {
 
             Image						_patchImage;
 
-            /* create an image with the patches inside */
-            void createPatchImage( const std::vector<PatchType*> & patches );
 
             /* returns number of lost features */
             size_t track();
             void dumpPatch( PatchType& patch, size_t i );
+            void updatePyramids( const Image& img );
 
     };
 

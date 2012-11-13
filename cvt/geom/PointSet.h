@@ -392,31 +392,6 @@ namespace cvt
 		return ( _T* ) &_pts[ 0 ];
 	}
 
-    template<int dim, typename _T>
-    inline Matrix3<_T> PointSet<dim,_T>::alignPerspective( const PointSet<dim,_T>& ) const
-    {
-        Matrix3<_T> ret;
-        ret.setZero();
-        return ret;
-    }
-
-    template<int dim, typename _T>
-    inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>&, const Matrix3<_T> & ) const
-        {
-            Matrix3<_T> E;
-            E.setZero();
-            return E;
-        }
-
-    template<int dim, typename _T>
-    inline Matrix3<_T> PointSet<dim, _T>::essentialMatrix( const PointSet<dim, _T>&, const Matrix3<_T> &, const Matrix3<_T> & ) const
-    {
-        // default implementation for dimensions that do not make sense
-        Matrix3<_T> E;
-        E.setZero();
-        return E;
-    }
-
 	template<int dim, typename _T>
 	inline std::ostream& operator<<( std::ostream& out, const PointSet<dim,_T>& ptset )
 	{

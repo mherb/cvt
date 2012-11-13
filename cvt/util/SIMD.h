@@ -39,11 +39,11 @@ namespace cvt {
     {
         friend class Application;
         protected:
-            SIMD() {};
-            SIMD( const SIMD& ) {};
+            SIMD() {}
+            SIMD( const SIMD& ) {}
 
         public:
-            virtual ~SIMD() {};
+            virtual ~SIMD() {}
 
             virtual void Memcpy( uint8_t* dst, uint8_t const* src, const size_t n ) const;
 
@@ -148,6 +148,7 @@ namespace cvt {
             virtual void ConvolveClampAdd4fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
 
             virtual void ConvolveClampVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
+            virtual void ConvolveClampVert_fx_to_s16( int16_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
 
             virtual void ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
@@ -157,11 +158,16 @@ namespace cvt {
             virtual void ConvolveAdaptive2Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const;
             virtual void ConvolveAdaptive4Fixed( Fixed* _dst, uint8_t const* _src, size_t width, IConvolveAdaptiveFixed* conva ) const;
 
-
             virtual void Conv_f_to_u8( uint8_t* dst, float const* src, const size_t n ) const;
             virtual void Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const;
             virtual void Conv_fx_to_s16( int16_t* dst, const Fixed* src, const size_t n ) const;
+
+            // uint8_t -> ...
             virtual void Conv_u8_to_f( float* dst, const uint8_t* src, const size_t n ) const;
+
+            // int16_t -> ...
+            virtual void Conv_s16_to_u8( uint8_t* dst, int16_t const* src, const size_t n ) const;
+
             virtual void Conv_u16_to_f( float* dst, const uint16_t* src, const size_t n ) const;
             virtual void Conv_u16_to_u8( uint8_t* dst, const uint16_t* src, const size_t n ) const;
             virtual void Conv_u16_to_XXXAu8( uint8_t* dst, const uint16_t* src, const size_t n ) const;
@@ -227,9 +233,9 @@ namespace cvt {
             virtual void debayer_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
             virtual void debayer_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
-            virtual void debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
+			virtual void debayerhq_EVEN_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
 													   const uint32_t* src4, const uint32_t* src5, size_t n ) const;
-            virtual void debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
+			virtual void debayerhq_ODD_RGGBu8_RGBAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3,
 													   const uint32_t* src4, const uint32_t* src5, size_t n ) const;
 
             virtual void debayer_EVEN_RGGBu8_BGRAu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
@@ -238,7 +244,7 @@ namespace cvt {
             virtual void debayer_EVEN_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
             virtual void debayer_ODD_RGGBu8_GRAYu8( uint32_t* dst, const uint32_t* src1, const uint32_t* src2, const uint32_t* src3, size_t n ) const;
 
-			virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
+            virtual size_t hammingDistance( const uint8_t* src1, const uint8_t* src2, size_t n ) const;
 
 			// prefix sum for 1 channel images
 			virtual void prefixSum1_u8_to_f( float * dst, size_t dstStride, const uint8_t* src, size_t srcStride, size_t width, size_t height ) const;
