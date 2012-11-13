@@ -124,9 +124,9 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 70.0f
+#define TXMAX 120.0f
 #define TYMAX 0.0f
-#define TAU 15.0f
+#define TAU 20.0f
 #define PROPSIZE 2
 #define ALPHA 0.05f
 
@@ -149,16 +149,16 @@ float distL1Trunc( const float4 a, const float4 b, const float trunc )
 
 float distL1GTrunc( const float4 a, const float4 b, const float2 ga, const float2 gb )
 {
-//	return ALPHA * fmin( dot( fabs( a - b ), ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f ) ), 0.04f ) + ( 1.0f - ALPHA ) * fmin( dot( fabs( ga - gb ), ( float2 ) 0.5f ), 0.02f );
-	return ALPHA * fmin( fast_length( ( a - b).xyz ), 0.06f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.03f );
+//	return ALPHA * fmin( dot( fabs( a - b ), ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f ) ), 0.04f ) + ( 1.0f - ALPHA ) * fmin( dot( fabs( ga - gb ), ( float2 ) 0.02f ), 0.02f );
+	return ALPHA * fmin( fast_length( ( a - b).xyz ), 0.04f ) + ( 1.0f - ALPHA ) * fmin( fast_length( ga - gb ), 0.04f );
 }
 
 float weight( const float4 a, const float4 b, const float tau, const float2 dist )
 {
-	float distance = fast_length( dist );
+//	float distance = fast_length( dist );
 //	float distance = dot( dist, dist );
 //	return exp( - distance * 0.1f );
-	return  exp( -fast_length(  a.xyz - b.xyz ) * ( tau ) ) * exp( - distance * 0.1f );
+	return  exp( -fast_length(  a.xyz - b.xyz ) * ( tau ) );// * exp( - distance * 0.01f );
 //	return  exp( -dot( fabs(  a - b ), ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f ) ) * ( tau ) ) * exp( - distance * 0.15f );
 }
 
@@ -254,7 +254,7 @@ float4 stateToNormal( const float4 state )
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
 	n.w = 1.0f;
-	n.xyz = n.xyz * 0.5 + 0.5f;
+	n.xyz = n.xyz * 0.5f + 0.5f;
 	return n;
 }
 
@@ -280,26 +280,13 @@ float4 refineFlow( mwc64x_state_t* rng, const float4 state )
 	return ret;
 }
 
-float weightState( const float4 a, const float4 b, const float4 tau, float2 coord )
-{
-	float4 na, nb;
-	float za = transformStereo( a, coord ).x;
-	float zb = transformStereo( b, coord ).x;
+#define GRADVAL( img, sampler, pos, state ) \
+ ( float2 ) (  dot( read_imagef( img, sampler, pos + ( float2 ) ( 1, 0 ) - transformStereo( state, pos + ( float2 ) ( 1, 0 ) ) ), ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f ) ) - \
+			  dot( read_imagef( img, sampler, pos - ( float2 ) ( 1, 0 ) - transformStereo( state, pos  - ( float2 ) ( 1, 0 ) ) ), ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f ) ), \
+			  dot( read_imagef( img, sampler, pos + ( float2 ) ( 0, 1 ) - transformStereo( state, pos  + ( float2 ) ( 0, 1 ) ) ), ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f ) ) - \
+			  dot( read_imagef( img, sampler, pos - ( float2 ) ( 0, 1 ) - transformStereo( state, pos  - ( float2 ) ( 0, 1 ) ) ), ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f ) ) )
 
-	na.z = fabs( sqrt( 1.0f / ( a.x * a.x + a.y * a.y + 1.0f ) ) );
-	na.x = -a.x * na.z;
-	na.y = -a.y * na.z;
 
-	nb.z = fabs( sqrt( 1.0f / ( b.x * b.x + b.y * b.y + 1.0f ) ) );
-	nb.x = -b.x * nb.z;
-	nb.y = -b.y * nb.z;
-
-//	if( b.w < 0.05 && a.w < 0.05 )
-//		return exp( -( fast_length( na.xyz - nb.xyz ) * tau.x + fabs( za - zb ) * tau.y ) );
-//	else
-//		return 1.0f;
-		return exp( -( fabs( za - zb ) * tau.y )  );
-}
 
 
 kernel void patchmatchInit( write_only image2d_t matches, read_only image2d_t img1, read_only image2d_t img2, read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize)
@@ -336,8 +323,9 @@ kernel void patchmatchInit( write_only image2d_t matches, read_only image2d_t im
 			float4 val2 = read_imagef( img2, samplerlin, coordf + transformFlow ( ret, ( float2 ) ( dx, dy ) ) );
 			float2 gval2 = read_imagef( gimg2, samplerlin, coordf + transformFlow ( ret, ( float2 ) ( dx, dy ) ) ).xy;
 #else
+			float2 pos = coordf + ( float2 ) ( dx, dy );
 			float4 val2 = read_imagef( img2, samplerlin, coordf - transformStereo( ret, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) );
-			float2 gval2 = read_imagef( gimg2, samplerlin, coordf - transformStereo( ret, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
+			float2 gval2 =  GRADVAL( img2, samplerlin, pos, ret ); //read_imagef( gimg2, samplerlin, coordf - transformStereo( ret, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
 #endif
 			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );// * weight( valcenter2, val2, TAU,  ( float2 ) ( dx, dy ) );
 			wsum += w;
@@ -440,11 +428,11 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float4 val2 = read_imagef( img2, samplerlin, coordf + transformFlow( neighbour, ( float2 ) ( dx, dy ) ) );
 					float2 gval2 = read_imagef( gimg2, samplerlin, coordf + transformFlow( neighbour, ( float2 ) ( dx, dy ) ) ).xy;
 #else
-					float4 val2 = read_imagef( img2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) );
-					float2 gval2 = read_imagef( gimg2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
+					float2 pos = coordf + ( float2 ) ( dx, dy );
+					float4 val2 = read_imagef( img2, samplerlin, coordf - transformStereo( neighbour,  coordf + ( float2 ) ( dx, dy )  ) + ( float2 ) ( dx, dy ) );
+					float2 gval2 = GRADVAL( img2, samplerlin, pos, neighbour );//read_imagef( gimg2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
 #endif
-//					float4 state2 = buf[ ly + PROPSIZE + dy ][ lx + PROPSIZE + dx ];
-			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );// * weight( valcenter2, val2, TAU,  ( float2 ) ( dx, dy ) );
+					float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
 					wsum += w;
 					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
 
@@ -485,11 +473,11 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 					float4 val2 = read_imagef( img2, samplerlin, coordf + transformFlow( neighbour, ( float2 ) ( dx, dy ) ) );
 					float2 gval2 = read_imagef( gimg2, samplerlin, coordf + transformFlow( neighbour, ( float2 ) ( dx, dy ) ) ).xy;
 #else
+					float2 pos = coordf + ( float2 ) ( dx, dy );
 					float4 val2 = read_imagef( img2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) );
-					float2 gval2 = read_imagef( gimg2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
+					float2 gval2 =  GRADVAL( img2, samplerlin, pos, neighbour ); //read_imagef( gimg2, samplerlin, coordf - transformStereo( neighbour, coordf + ( float2 ) ( dx, dy ) ) + ( float2 ) ( dx, dy ) ).xy;
 #endif
-//					float4 state2 = buf[ ly + PROPSIZE + dy ][ lx + PROPSIZE + dx ];
-			float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );// * weight( valcenter2, val2, TAU,  ( float2 ) ( dx, dy ) );
+					float w = weight( valcenter, val1, TAU,  ( float2 ) ( dx, dy ) );
 					wsum += w;
 					neighbour.w += w * distL1GTrunc( val1, val2, gval1, gval2 );
 			}
@@ -544,7 +532,7 @@ kernel void patchmatchToFlow( write_only image2d_t output, read_only image2d_t m
 	val.w = 1.0f;
 #else
 	float4 val;
-//	val.xyz = match.xyz;
+	val.xyz = match.xyz;
 	val.xyz =  transformStereo( match, ( float2 ) ( coord.x, coord.y ) ).x / TXMAX;
 //	if( val.x < 0 || val.x > 1.0f )
 //		val.xyz = ( float3 )( 1, 0, 0 );

@@ -29,8 +29,8 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	if( gx >= width || gy >= height )
 		return;
 
-	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) ) * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
-	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) ) * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
+	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) );// * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
+	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) );// * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
 
 
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( dx, dy, 0.0f, 0.0f ) );
