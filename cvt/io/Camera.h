@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef CVT_CAMERA_H
 #define CVT_CAMERA_H
@@ -33,7 +33,8 @@ namespace cvt {
 
 			/* will create camera with index and closest possible parameters */
 			static Camera* get( size_t index, size_t width = 640, size_t height = 480,
-							    size_t fps = 60, const IFormat & format = IFormat::BGRA_UINT8 );
+								size_t fps = 60, const IFormat & format = IFormat::BGRA_UINT8 );
+			static Camera* get( size_t index, const CameraMode& mode );
 
 		private:
 			Camera( const Camera & other );

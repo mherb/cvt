@@ -73,7 +73,6 @@ class CameraTimeout : public TimeoutHandler
             _dump( false ),
             _dumpIter( 0 )
         {
-            _cam->startCapture();
             _timer.reset();
 
 #ifdef WRITE_PNGS
@@ -150,34 +149,70 @@ class CameraTimeout : public TimeoutHandler
 #endif
 };
 
+Camera* selectCam()
+{
+	Camera::updateInfo();
+	size_t numCams = Camera::count();
+
+	std::cout << "Overall number of Cameras: " << numCams << std::endl;
+	if( numCams == 0 ){
+		std::cout << "Please connect a camera!" << std::endl;
+		return 0;
+	}
+
+	for( size_t i = 0; i < numCams; i++ ){
+		const CameraInfo & info = Camera::info( i );
+		std::cout << "Camera " << i << ": " << info << std::endl;
+	}
+
+	size_t selection = numCams;
+	if( numCams == 1 )
+		selection = 0;
+	else {
+		std::cout << "Select camera: ";
+		std::cin >> selection;
+		while ( selection >= numCams ){
+			std::cout << "Index out of bounds -> select camera in Range:";
+			std::cin >> selection;
+		}
+	}
+
+	// get the modeset of the camera
+	const CameraModeSet& modeset = Camera::info( selection ).modeSet();
+	for( size_t i = 0; i < modeset.size(); i++ ){
+		const CameraMode& mode = modeset.mode( i );
+		std::cout << "Mode " << i << ": " << mode << std::endl;
+	}
+
+	size_t selectedMode;
+	if( modeset.size() == 1 )
+		selectedMode = 0;
+	else {
+		std::cout << "Select mode: ";
+		std::cin >> selectedMode;
+		while ( selectedMode >= modeset.size() ){
+			std::cout << "Index out of bounds -> select mode in Range: 0 - " << modeset.size() - 1 << std::endl;
+			std::cin >> selectedMode;
+		}
+	}
+
+	Camera * cam = 0;
+
+	try {
+		cam = Camera::get( selection, modeset.mode( selectedMode ) );
+	} catch( cvt::Exception e ) {
+		std::cout << e.what() << std::endl;
+		return 0;
+	}
+
+	cam->startCapture();
+
+	return cam;
+}
+
 int main( )
 {
-    Camera::updateInfo();
-    size_t numCams = Camera::count();
-
-    std::cout << "Overall number of Cameras: " << numCams << std::endl;
-    if( numCams == 0 ){
-        std::cout << "Please connect a camera!" << std::endl;
-        return 0;
-    }
-
-    for( size_t i = 0; i < numCams; i++ ){
-        const CameraInfo & info = Camera::info( i );
-        std::cout << "Camera " << i << ": " << info << std::endl;
-    }
-
-    size_t selection = numCams;
-    if( numCams == 1 )
-        selection = 0;
-    else {
-        std::cout << "Select camera: ";
-        std::cin >> selection;
-        while ( selection >= numCams ){
-            std::cout << "Index out of bounds -> select camera in Range:";
-            std::cin >> selection;
-        }
-    }
-
+    Camera* cam = selectCam();
     Window w( "Camera Test" );
     w.setSize( 800, 600 );
     w.setVisible( true );
@@ -191,9 +226,7 @@ int main( )
     wl.setAnchoredBottom( 10, 20 );
     w.addWidget( &button, wl );
 
-    Camera * cam = 0;
     try {
-        cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
         ImageView camView;
         Moveable m( &camView );
         m.setTitle( "Camera" );

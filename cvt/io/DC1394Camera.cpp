@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #include "DC1394Camera.h"
 #include <cvt/util/Exception.h>
@@ -39,10 +39,10 @@ namespace cvt
 
 		if( !_camera )
 			throw CVTException( "Could not open camera" );
-		
-		dcSettings( mode );
-        
-        _identifier.sprintf( "%llu", _camera->guid );
+
+        dcSettings( mode );
+
+		_identifier.sprintf( "%llu", _camera->guid );
 	}
 
 	DC1394Camera::~DC1394Camera( )
@@ -77,36 +77,36 @@ namespace cvt
 	void DC1394Camera::startCapture( )
 	{
 		this->init();
-		
+
 		if( _capturing )
 			return;
-		
+
 		dc1394error_t error;
-		
-		error = dc1394_video_set_iso_speed( _camera, _speed );		
+
+		error = dc1394_video_set_iso_speed( _camera, _speed );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-		
+
 		error = dc1394_video_set_mode( _camera, _mode );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-		
+
 		if( dc1394_video_set_framerate( _camera, _framerate ) == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-		
+
 		error = dc1394_capture_setup( _camera, _dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-		
+
 		error = dc1394_video_set_transmission( _camera, DC1394_ON );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-		
+
 //		enableWhiteBalanceAuto( false );
 //		enableShutterAuto( false );
 //		enableGainAuto( false );
@@ -134,19 +134,19 @@ namespace cvt
 		// TODO: howto use timeout with DC1394? This is blocking ATM!
 		dc1394video_frame_t* frame;
 		dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_WAIT, &frame );
-		
+
 		size_t stride;
 		uint8_t* dst = _frame.map( &stride );
-		
+
 		size_t bytesPerRow = ( frame->stride - frame->padding_bytes );
-		
+
 		for( size_t i = 0; i < _height; i++ )
 			memcpy( dst + i * stride, frame->image + i * frame->stride, bytesPerRow );
 		_frame.unmap( dst );
 
 		/* FIXME: convert to image format ... */
 		dc1394_capture_enqueue( _camera, frame );
-		
+
 		return true;
 	}
 
@@ -161,7 +161,7 @@ namespace cvt
 	{
 		if( !_capturing)
 			throw CVTException( "Camera is not in capturing mode!" );
-		return _frame;		
+		return _frame;
 	}
 
 	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
@@ -235,14 +235,14 @@ namespace cvt
 
 		dc1394_feature_set_mode( _camera, DC1394_FEATURE_IRIS, mode );
 	}
-	
+
 	void DC1394Camera::dcSettings( const CameraMode & mode )
 	{
 		// get equivalent dc video mode
 		_mode = dcMode( mode );
-		
+
 		// set framerate equivalent:
-		if( _fps ==240 )
+		if( _fps == 240 )
 			_framerate = DC1394_FRAMERATE_240;
 		else if( _fps == 120 )
 			_framerate = DC1394_FRAMERATE_120;
@@ -256,12 +256,12 @@ namespace cvt
 			_framerate = DC1394_FRAMERATE_7_5;
 		else if( _fps == 4 )
 			_framerate = DC1394_FRAMERATE_3_75;
-		else 
+		else
 			_framerate = DC1394_FRAMERATE_1_875;
-		
+
 		// TODO: check if device supports this mode?
 	}
-	
+
 	dc1394video_mode_t DC1394Camera::dcMode( const CameraMode & mode ) {
 		/* check fixed dc sizes */
 		if( mode.width == 320 && mode.height == 240 ){
@@ -271,7 +271,7 @@ namespace cvt
 				throw CVTException( "No equivalent DC video mode for requested CameraMode" );
 			}
 		}
-		
+
 		if( mode.width == 640 && mode.height == 480 ){
 			switch ( mode.format.formatID ) {
 				case IFORMAT_UYVY_UINT8:		return DC1394_VIDEO_MODE_640x480_YUV422;
@@ -281,7 +281,7 @@ namespace cvt
 					break;
 			}
 		}
-		
+
 		if( mode.width == 800 && mode.height == 600 ){
 			switch ( mode.format.formatID ) {
 				case IFORMAT_YUYV_UINT8:		return DC1394_VIDEO_MODE_800x600_YUV422;
@@ -301,7 +301,7 @@ namespace cvt
 					break;
 			}
 		}
-		
+
 		if( mode.width == 1280 && mode.height == 960 ){
 			switch ( mode.format.formatID ) {
 				case IFORMAT_YUYV_UINT8:		return DC1394_VIDEO_MODE_1280x960_YUV422;
@@ -309,7 +309,7 @@ namespace cvt
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
-			}			
+			}
 		}
 		if( mode.width == 1600 && mode.height == 1200 ){
 			switch ( mode.format.formatID ) {
@@ -320,7 +320,7 @@ namespace cvt
 					break;
 			}
 		}
-		
+
 		throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 	}
 
@@ -358,18 +358,18 @@ namespace cvt
 		String name;
 		name += cam->vendor;
 		name += " ";
-	    name += cam->model;
+		name += cam->model;
 		info.setName( name );
 
 		// get supported frame formats + speeds
 		dc1394error_t error;
 		dc1394video_modes_t videoModes;
 		error = dc1394_video_get_supported_modes( cam, &videoModes );
-		
+
 		if( error == DC1394_FAILURE ){
 			throw CVTException( "Could not query supported video modes from device" );
 		}
-		
+
 		for( unsigned int i = 0; i < videoModes.num; i++ ){
 			IFormat cvtFormat = IFormat::BGRA_UINT8;
 			size_t width = 0, height = 0;
@@ -417,7 +417,7 @@ namespace cvt
 				case DC1394_VIDEO_MODE_1600x1200_MONO8:
 					cvtFormat = IFormat::BAYER_RGGB_UINT8;
 					width = 1600; height = 1200;
-					break;				
+					break;
 				case DC1394_VIDEO_MODE_1600x1200_MONO16:
 				case DC1394_VIDEO_MODE_FORMAT7_0:
 				case DC1394_VIDEO_MODE_FORMAT7_1:
@@ -434,7 +434,7 @@ namespace cvt
 					continue;
 					break;
 			}
-			
+
 			dc1394framerates_t framerates;
 			dc1394_video_get_supported_framerates( cam, videoModes.modes[ i ], &framerates );
 			size_t fps = 0;
@@ -442,7 +442,7 @@ namespace cvt
 				switch ( framerates.framerates[ f ]) {
 					case DC1394_FRAMERATE_1_875:
 						fps = 2;
-						break;						
+						break;
 					case DC1394_FRAMERATE_3_75:
 						fps = 4;
 						break;

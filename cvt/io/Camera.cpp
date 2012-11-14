@@ -1,17 +1,17 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #include <cvt/io/Camera.h>
 
 #ifdef APPLE
-	#include <cvt/io/QTKitCamera.h>
+    #include <cvt/io/QTKitCamera.h>
 #endif
 
 #ifdef LINUX
@@ -38,7 +38,7 @@ namespace cvt {
 	}
 
 	Camera::~Camera()
-	{        
+	{
 	}
 
 	void Camera::updateInfo()
@@ -131,5 +131,10 @@ namespace cvt {
 		}
 
 		return cam;
+	}
+
+	Camera* Camera::get( size_t index, const CameraMode& mode )
+	{
+		return Camera::get( index, mode.width, mode.height, mode.fps, mode.format );
 	}
 }

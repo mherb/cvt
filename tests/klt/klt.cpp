@@ -9,7 +9,7 @@ using namespace cvt;
 
 Camera* selectCam()
 {
-    Camera::updateInfo();
+	Camera::updateInfo();
 	size_t numCams = Camera::count();
 
 	std::cout << "Overall number of Cameras: " << numCams << std::endl;
@@ -35,18 +35,25 @@ Camera* selectCam()
 		}
 	}
 
-    Camera * cam = 0;
+	// get the modeset of the camera
+	const CameraModeSet& modeset = Camera::info( selection ).modeSet();
+	for( size_t i = 0; i < modeset.size(); i++ ){
+		const CameraMode& mode = modeset.mode( i );
+		std::cout << "Mode " << i << ": " << mode << std::endl;
+	}
 
-    try {
+	Camera * cam = 0;
+
+	try {
 		cam = Camera::get( selection, 640, 480, 60, IFormat::UYVY_UINT8 );
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
-        return 0;
+		return 0;
 	}
 
 	cam->startCapture();
 
-    return cam;
+	return cam;
 }
 
 int main( int argc, char* argv[] )
