@@ -124,11 +124,11 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 #endif
 
 
-#define TXMAX 120.0f
+#define TXMAX 70.0f
 #define TYMAX 0.0f
-#define TAU 20.0f
-#define PROPSIZE 2
-#define ALPHA 0.05f
+#define TAU 40.0f
+#define PROPSIZE 1
+#define ALPHA 0.075f
 
 //#define FLOW
 
@@ -346,8 +346,8 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 	)
 #endif
 {
-	const sampler_t samplernn = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
-	const sampler_t samplerlin = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
+	const sampler_t samplernn = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+	const sampler_t samplerlin = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 	const int width = get_image_width( img1 );
 	const int height = get_image_height( img1 );
 	const int gx = get_global_id( 0 );
@@ -386,7 +386,7 @@ kernel void patchmatchPropagate( write_only image2d_t matches, read_only image2d
 		return;
 
 	MWC64X_SeedStreams( &rng, iter, 0 );
-	MWC64X_Skip( &rng, ( gy * width + gx ) * iter * 4 * 2 );
+	MWC64X_Skip( &rng, ( ( gy * width + gx ) + iter ) * 4 * 2 );
 
 	float4 self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
 #if LOCALBUF
