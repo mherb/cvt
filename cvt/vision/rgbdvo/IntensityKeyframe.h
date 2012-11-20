@@ -66,10 +66,11 @@ namespace cvt
             IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~IntensityKeyframe();
 
-            void updateOfflineDataForScale( typename Base::AlignDataType& data,
+            void updateOfflineDataForScale( AlignDataType& data,
                                             const Image& gray,
                                             const Image& depth,
                                             float scale );
+
             void sparseOfflineDataForScale( AlignDataType& data,
                                             ScaleFeatures& features,
                                             const Image& gray,
@@ -84,6 +85,8 @@ namespace cvt
                                     const Matrix4<T>& pose,
                                     const ImagePyramid& pyramid,
                                     const Image& depth );
+
+
     };
 
     template <class WarpFunc>
@@ -112,7 +115,7 @@ namespace cvt
         Eigen::Matrix<T, 2, 1> g;
         JacobianType j;
 
-        // compute the image gradients        
+        // compute the image gradients
         this->computeImageGradients( data.gradX, data.gradY, gray );
         data.gray = gray;
 
@@ -170,7 +173,7 @@ namespace cvt
         }
 
         // precompute the inverse hessian
-        data.inverseHessian = data.hessian.inverse();        
+        data.inverseHessian = data.hessian.inverse();
 
     }
 

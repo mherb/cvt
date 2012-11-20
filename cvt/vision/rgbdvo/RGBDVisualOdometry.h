@@ -120,6 +120,8 @@ namespace cvt {
 
             std::vector<ScaleFeatures>  _gridForScale;
             void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
+
+            void propagateDepth( Image& depth, const Matrix4f& pose ) const;
     };
 
     template <class DerivedKF, class LossFunction>
@@ -169,24 +171,35 @@ namespace cvt {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
+        Image dCopy( depth );
+        // for the moment, only one keyframe
         if( !_activeKeyframe ){
             _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
             _activeKeyframe = &_keyframes[ 0 ];
             _currentPose = kfPose;
+            std::cout << "Updating pyramid" << std::endl;
             _pyramid.update( gray );
 
 //            _gridForScale.resize( _params.octaves );
 //            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
 //                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
 //            }
-
+        } else {
+            // propagate the depth values to the current frame
+            std::cout << "Propagating depth values: " << std::endl;
+            propagateDepth( dCopy, kfPose );
+            std::cout << "DONE " << std::endl;
         }
 
         setKeyframeParams( *_activeKeyframe );
-        _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
+        _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
         //_activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
+
+        // testing:
+        dCopy.sub( depth );
+        dCopy.save( "propagated_depth.png" );
 
         // notify observers
         keyframeAdded.notify( _currentPose );
@@ -246,6 +259,45 @@ namespace cvt {
     inline const Matrix4f& RGBDVisualOdometry<DerivedKF, LossFunction>::pose() const
     {
         return _currentPose;
+    }
+
+    template <class DerivedKF, class LossFunction>
+    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::propagateDepth( Image& depth, const Matrix4f& pose ) const
+    {
+        // project the points of the current keyframe onto the depth image
+        if( _activeKeyframe ){
+            const typename DerivedKF::AlignDataType& d = _activeKeyframe->dataForScale( 0 );
+
+            IMapScoped<float> dMap( depth );
+
+            // pose is T_W_C
+            // keyframe pose is T_W_K
+            // we need T_C_K to transform points from K to C
+            // T_C_K = T_W_C^-1 * T_W_K
+            Matrix4f relativePose = pose.inverse() * _activeKeyframe->pose();
+
+            // tranform points to the other frame
+            std::vector<Vector3f> transformedPts( d.points3d.size() );
+            SIMD* simd = SIMD::instance();
+            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points3d[ 0 ], transformedPts.size() );
+
+            for( size_t i = 0; i < transformedPts.size(); i++ ){
+                Vector2f uv = _intrinsics * transformedPts[ i ];
+                if( uv.x >= 0 && uv.x < depth.width() &&
+                    uv.y >= 0 && uv.y < depth.height() ){
+                    // scale the Z value:
+                   int x = uv.x;
+                   int y = uv.y;
+                   float& dpos = dMap( y, x );
+                   if( dpos > 1 ){
+                       // average the Z value:
+                       dpos = 0.5f * ( dpos + transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF );
+                   } else {
+                       dpos = transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF;
+                   }
+                }
+            }
+        }
     }
 
     template <class DerivedKF, class LossFunction>

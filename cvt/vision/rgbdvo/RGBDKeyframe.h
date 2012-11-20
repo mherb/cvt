@@ -22,7 +22,7 @@
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/InformationSelection.h>
 
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
 
 namespace cvt
 {
@@ -126,6 +126,7 @@ namespace cvt
             Matrix4<T>                  _pose;
 
             typedef std::vector<AlignDataType, Eigen::aligned_allocator<AlignDataType> > AlignmentDataVector;
+
             AlignmentDataVector         _dataForScale;
             Image                       _depth;
             IKernel                     _kx;
