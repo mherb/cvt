@@ -9,91 +9,19 @@
  	PARTICULAR PURPOSE.
  */
 
-template<class PointContainer>
-inline void FAST::doExtract( const Image & img, PointContainer & features )
-{
-	switch ( _fastSize ) {
-		case SEGMENT_9:
-			detect9( img, _threshold, features, _border );
-			break;
-		case SEGMENT_10:
-			detect10( img, _threshold, features, _border );
-			break;
-		case SEGMENT_11:
-			detect11( img, _threshold, features, _border );
-			break;
-		case SEGMENT_12:
-			detect12( img, _threshold, features, _border );
-			break;
-		default:
-			throw CVTException( "Unkown FAST size" );
-			break;
-	}
-}
 
-template<class PointContainer>
-inline void FAST::extract( const Image & img, PointContainer & features )
-{
-	if( img.format() != IFormat::GRAY_UINT8 )
-		throw CVTException( "Input Image format must be GRAY_UINT8" );
-
-	if( _suppress ){
-		std::vector<Feature2Df> allCorners;
-		VectorFeature2DInserter<float> tmpInserter( allCorners );
-
-		// detect candidates
-		doExtract( img, tmpInserter );
-
-		switch ( _fastSize ) {
-			case SEGMENT_9:
-				score9( img, allCorners, _threshold );
-				break;
-			case SEGMENT_10:
-				score10( img, allCorners, _threshold );
-				break;
-			case SEGMENT_11:
-				score11( img, allCorners, _threshold );
-				break;
-			case SEGMENT_12:
-				score12( img, allCorners, _threshold );
-				break;
-			default:
-				throw CVTException( "Unkown FAST size" );
-				break;
-		}
-
-		// non maximal suppression
-		// FIXME: this is a hack -> we have to copy the features in the end
-		if( allCorners.size() == 0 ){
-			return;
-		}
-		std::vector<Feature2Df> suppressed;
-		this->nonmaxSuppression( suppressed, allCorners );	
-
-		for( size_t i = 0; i < suppressed.size(); i++ ){
-			features( suppressed[ i ].pt.x, suppressed[ i ].pt.y );
-		}	
-	} else {
-		doExtract<PointContainer>( img, features );
-	}
-
-}
-
-template <class PointContainer>
-inline void FAST::detect9( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+inline void FAST::detect9( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
 {
 	// check the cpu flags to determine the right version
 	CPUFeatures cpu = cpuFeatures();
-	if( cpu & CPU_SSE2 ){
+	if( cpu & CPU_SSE2 ) {
 		detect9simd( img, threshold, features, border );
-		//detect9cpu( img, threshold, features, border );
 	} else {
 		detect9cpu( img, threshold, features, border );
 	}
 }
 
-template <class PointContainer>
-inline void FAST::detect9cpu( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+inline void FAST::detect9cpu( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
 {
 	size_t stride;
 	const uint8_t * im = img.map( &stride );
@@ -117,8 +45,7 @@ inline void FAST::detect9cpu( const Image & img, uint8_t threshold, PointContain
 }
 
 
-template <class PointContainer>
-inline void FAST::detect10( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+inline void FAST::detect10( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
 {
 	size_t stride;
 	const uint8_t * im = img.map( &stride );
@@ -141,8 +68,7 @@ inline void FAST::detect10( const Image & img, uint8_t threshold, PointContainer
 	img.unmap( im );
 }
 
-template <class PointContainer>
-inline void FAST::detect11( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+inline void FAST::detect11( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
 {
 	size_t stride;
 	const uint8_t * im = img.map( &stride );
@@ -165,8 +91,7 @@ inline void FAST::detect11( const Image & img, uint8_t threshold, PointContainer
 	img.unmap( im );
 }
 
-template <class PointContainer>
-inline void FAST::detect12( const Image & img, uint8_t threshold, PointContainer & corners, size_t border )
+inline void FAST::detect12( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
 {
 	size_t stride;
 	const uint8_t * im = img.map( &stride );
@@ -189,8 +114,7 @@ inline void FAST::detect12( const Image & img, uint8_t threshold, PointContainer
 	img.unmap( im );
 }
 
-template <class PointContainer>
-inline void FAST::detect9simd( const Image & img, uint8_t threshold, PointContainer & features, size_t border )
+inline void FAST::detect9simd( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
 {
 #define CHECK_BARRIER(lo, hi, other, flags)		\
 	{                                               \

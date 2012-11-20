@@ -13,6 +13,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/vision/ImagePyramid.h>
+#include <cvt/vision/features/FeatureSet.h>
 
 namespace cvt {
 

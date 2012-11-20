@@ -13,7 +13,7 @@
 namespace cvt {
 
     /* calc the scores for all the corners */
-	void FAST::score10( const Image & img, std::vector<Feature2Df> & corners, uint8_t threshold )
+	void FAST::score10( const Image& img, FeatureSet& corners, uint8_t threshold )
 	{
         size_t stride;
         const uint8_t * p = img.map( &stride );
@@ -26,7 +26,7 @@ namespace cvt {
         img.unmap( p );
 	}
 
-	int FAST::score10Pixel(const uint8_t* p, const int * offsets, uint8_t threshold )
+	int FAST::score10Pixel(const uint8_t* p, const int* offsets, uint8_t threshold )
 	{
 		int bmin = threshold;
 		int bmax = 255;
@@ -2336,7 +2336,7 @@ end_if:
 	}
 
 
-    bool FAST::isCorner10( const uint8_t * p, const int * offsets, uint8_t threshold )
+    bool FAST::isCorner10( const uint8_t* p, const int* offsets, uint8_t threshold )
 	{
 		int cb = *p + threshold;
 		int c_b= *p - threshold;
