@@ -36,7 +36,7 @@ namespace cvt {
 				img.convert( _img );
 			} else {
 				_img.reallocate( img.width(), img.height(), img.format(), IALLOCATOR_GL );
-				_img.copy( img );
+				_img = img;
 
 			}
 		} catch( Exception e ) {

@@ -232,7 +232,7 @@ namespace cvt {
 #endif
 
 #define TAU 0.249f
-		dst.copy( src );
+		dst = src;
 		px.reallocate( src );
 		py.reallocate( src );
 		dx.reallocate( dst );

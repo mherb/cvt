@@ -71,7 +71,6 @@ namespace cvt {
 			void reallocate( size_t w, size_t h, const IFormat & format = IFormat::RGBA_UINT8, IAllocatorType memtype = IALLOCATOR_MEM );
 			void reallocate( const Image& i, IAllocatorType memtype = IALLOCATOR_MEM );
 
-			void copy( const Image& i );
 			void copyRect( int x, int y, const Image& i, const Recti & roi );
 
 			Image* clone() const;
@@ -202,9 +201,10 @@ namespace cvt {
 		 _mem->unmap( ( uint8_t* ) ptr );
 	}
 
-	inline Image& Image::operator=( const Image& c )
+	inline Image& Image::operator=( const Image& img )
 	{
-		copy( c );
+		if( this != &img )
+			_mem->copy( img._mem );
 		return *this;
 	}
 

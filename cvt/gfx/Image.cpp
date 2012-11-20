@@ -94,15 +94,6 @@ namespace cvt {
 		_mem->alloc( w, h, format );
 	}
 
-	void Image::copy( const Image& img )
-	{
-		if( this == &img )
-			return;
-
-		checkFormatAndSize( img, __PRETTY_FUNCTION__, __LINE__ );
-		_mem->copy( img._mem );
-	}
-
 	void Image::copyRect( int x, int y, const Image& img, const Recti & rect )
 	{
 		checkFormat( img, __PRETTY_FUNCTION__, __LINE__, _mem->_format );

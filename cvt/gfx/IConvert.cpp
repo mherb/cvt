@@ -768,7 +768,7 @@ namespace cvt {
     void IConvert::convert( Image & dst, const Image & src, IConvertFlags flags )
     {
         if( src.format() == dst.format() ) {
-            dst.copy( src );
+            dst = src;
             return;
         }
 
