@@ -11,30 +11,30 @@ namespace cvt
     class PoseView : public GLView
     {
         public:
-                        PoseView();
+            PoseView();
 
-                        /**
-                         *  \brief set the current estimated pose
-                         *  \param m    pose from World TO Camera
-                         */
+            /**
+             *  \brief set the current estimated pose
+             *  \param m    pose from World TO Camera
+             */
             void setCamPose( const Matrix4f & m );
 
-                        /**
-                         *  \brief set the current ground truth pose
-                         *  \param m    pose from World TO Camera
-                         */
-                        void setGTPose( const Matrix4f & m );
+            /**
+             *  \brief set the current ground truth pose
+             *  \param m    pose from World TO Camera
+             */
+            void setGTPose( const Matrix4f & m );
 
-                        /**
-                         *  \brief will reset the virtual view slightly behind the current camera pose
-                         */
+            /**
+             *  \brief will reset the virtual view slightly behind the current camera pose
+             */
             void resetCameraView();
 
-                        /**
-                         *  \brief add another keyframe pose
-                         *  \param pose     pose from World TO Camera
-                         */
-                        void addKeyframe( const Matrix4f& pose );
+            /**
+             *  \brief add another keyframe pose
+             *  \param pose     pose from World TO Camera
+             */
+            void addKeyframe( const Matrix4f& pose );
 
         protected:
             void paintGLEvent( PaintEvent* );
@@ -54,7 +54,7 @@ namespace cvt
             Matrix4f	_cam;
 
             // Current GT pose
-            Matrix4f        _gtPose;
+            Matrix4f    _gtPose;
 
             ArcBall		_arcball;
             Vector2i	_press;
@@ -62,22 +62,19 @@ namespace cvt
 
             GLBasicProg	_basicProg;
 
-
             // base level grid
             GLVertexArray	_grid;
             GLBuffer	_gridLines;
             size_t		_numLines;
 
             GLVertexArray	_axes;
-                GLBuffer	_axesBuf;
-                GLBuffer	_axesColBuf;
+            GLBuffer	_axesBuf;
+            GLBuffer	_axesColBuf;
 
-                size_t		_numKeyframes;
-                size_t		_maxKeyframes;
+            size_t		_numKeyframes;
+            size_t		_maxKeyframes;
             GLVertexArray	_keyframes;
-                        GLBuffer	_keyframesAxesBuffer;
-
-
+            GLBuffer	_keyframesAxesBuffer;
 
             void createGrid( ssize_t halfRes );
             void createAxes();

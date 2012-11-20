@@ -108,8 +108,12 @@ namespace cvt
 
                 void setupGui();
                 void nextPressed();
-                void optimizePressed();
-                void toggleStepping();
+
+                void setStepping( bool val );
+                void setOptimize( bool val );
+
+                void toggleStepping() { setStepping( !_step ); }
+                void toggleOptimize() { setOptimize( !_optimize ); }
 
                 void writePose( std::ofstream& file, const Matrix4f& pose, double stamp );
 

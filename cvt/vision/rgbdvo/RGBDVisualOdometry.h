@@ -49,7 +49,7 @@ namespace cvt {
             /**
              *  \brief  get the absolute (world) pose of the last added image
              */
-            const Matrix4f& pose()          const;
+            const Matrix4f& pose() const;
 
             /**
              *  \brief add additional points to the reference frame
@@ -171,24 +171,22 @@ namespace cvt {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
-        Image dCopy( depth );
+        Image dCopy( depth );        
         // for the moment, only one keyframe
         if( !_activeKeyframe ){
             _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
             _activeKeyframe = &_keyframes[ 0 ];
             _currentPose = kfPose;
-            std::cout << "Updating pyramid" << std::endl;
-            _pyramid.update( gray );
+
+            _pyramid.update( gray );            
 
 //            _gridForScale.resize( _params.octaves );
 //            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
 //                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
 //            }
         } else {
-            // propagate the depth values to the current frame
-            std::cout << "Propagating depth values: " << std::endl;
-            propagateDepth( dCopy, kfPose );
-            std::cout << "DONE " << std::endl;
+            // propagate the depth values to the current frame            
+            propagateDepth( dCopy, kfPose );            
         }
 
         setKeyframeParams( *_activeKeyframe );

@@ -24,9 +24,9 @@ namespace cvt
         _poseMov( &_poseView ),
         _nextButton( "next" ),
         _nextPressed( false ),
-        _stepButton( "toggle stepping" ),
+        _stepButton( "enable stepping" ),
         _step( false ),
-        _optimizeButton( "optimize" ),
+        _optimizeButton( "Stop optimizing" ),
         _optimize( true ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
@@ -281,8 +281,8 @@ namespace cvt
                     std::cout << "start_t_y = " << startRelative[ 1 ][ 3 ] << std::endl;
                     std::cout << "start_t_z = " << startRelative[ 2 ][ 3 ] << std::endl;
 
-                    _step = true;
-                    _optimize = false;
+                    setStepping( true );
+                    setOptimize( false );
                 }
                 _lastTError = currError;
 
@@ -345,7 +345,7 @@ namespace cvt
         */
 
         wl.setAnchoredBottom( 5, 30 );
-        wl.setAnchoredRight( 5, 70 );
+        wl.setAnchoredRight( 5, 120 );
         _mainWindow.addWidget( &_nextButton, wl );
         Delegate<void ()> d( this, &RGBDVOApp::nextPressed );
         _nextButton.clicked.add( d );
@@ -357,7 +357,7 @@ namespace cvt
 
         wl.setAnchoredBottom( 75, 30 );
         _mainWindow.addWidget( &_optimizeButton, wl );
-        Delegate<void ()> d2( this, &RGBDVOApp::optimizePressed );
+        Delegate<void ()> d2( this, &RGBDVOApp::toggleOptimize );
         _optimizeButton.clicked.add( d2 );
 
         wl.setAnchoredBottom( 110, 30 );
@@ -377,14 +377,24 @@ namespace cvt
         _nextPressed = true;
     }
 
-    void RGBDVOApp::optimizePressed()
+    void RGBDVOApp::setOptimize( bool val )
     {
-        _optimize = !_optimize;
+        _optimize = val;
+        if( _optimize ){
+            _optimizeButton.setLabel( "Stop Opt." );
+        } else {
+            _optimizeButton.setLabel( "Start Opt." );
+        }
     }
 
-    void RGBDVOApp::toggleStepping()
+    void RGBDVOApp::setStepping( bool val )
     {
-        _step = !_step;
+        _step = val;
+        if( _step ){
+            _stepButton.setLabel( "run continuous" );
+        } else {
+            _stepButton.setLabel( "enable stepping" );
+        }
     }
 
     void RGBDVOApp::keyframeAddedCallback( const Matrix4f& pose )
