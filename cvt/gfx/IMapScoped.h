@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef CVT_IMAPSCOPED_H
 #define CVT_IMAPSCOPED_H
@@ -51,6 +51,8 @@ namespace cvt {
 				void		operator++( int );
 				void		operator--( int );
 				size_t		stride() const;
+				T&			operator()( size_t row, size_t col );
+				const T&	operator()( size_t row, size_t col ) const;
 
 			private:
 				IType	    _img;
@@ -126,6 +128,18 @@ namespace cvt {
 	inline size_t IMapScoped<T>::stride() const
 	{
 		return _stride;
+	}
+
+	template<typename T>
+	inline T& IMapScoped<T>::operator()( size_t row, size_t col )
+	{
+		return (T&)_base[ row * _stride + col * sizeof( T ) ];
+	}
+
+	template<typename T>
+	inline const T& IMapScoped<T>::operator()( size_t row, size_t col ) const
+	{
+		return (const T&)_base[ row * _stride + col * sizeof( T ) ];
 	}
 
 }
