@@ -27,6 +27,47 @@ namespace cvt {
 
 			virtual void filter() {};
 	};
+
+    class FeatureSetWrapper
+	{
+		public:
+			FeatureSetWrapper( FeatureSet& set, float scale = 1.0f, size_t octave ) :
+				_featureset( set ),
+				_scale( scale ),
+				_octave( octave )
+			{}
+
+			void operator()( float x, float y, float score = 0.0f )
+			{
+				_featureset.add( Feature( x * _scale, y * _scale, score, _octave ) );
+			}
+
+
+		private:
+			FeatureSet& _featureset;
+			float		_scale;
+			size_t		_octave;
+
+			FeatureSetWrapper( const FeatureSet& );
+	};
+
+	class FeatureSetNoFilter : public FeatureSet
+	{
+		public:
+			FeatureSetNoFilter() {}
+			~FeatureSetNoFilter() {}
+
+			void add( const Feature& feature ) const { _features.push_back( feaure ); }
+
+			size_t size() const { return _features.size(); }
+			Feature& operator[]( size_t i ) { return _features[ i ]; }
+			const Feature& operator[]( size_t i ) const { return _features[ i ]; }
+
+		pivate:
+			std::vector<Feature> _features;
+	};
+
+
 }
 
 #endif

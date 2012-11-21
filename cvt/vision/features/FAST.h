@@ -12,6 +12,7 @@
 #define CVT_FAST_H
 
 #include <cvt/vision/features/FeatureDetector.h>
+#include <cvt/math/Math.h>
 #include <cvt/util/CPU.h>
 #include <cvt/util/Exception.h>
 #include <cvt/gfx/Image.h>
@@ -39,7 +40,7 @@ namespace cvt
 			void setThreshold( uint8_t threshold )	{ _threshold = threshold; }
 			uint8_t threshold() const				{ return _threshold; }
 
-			void setBorder( size_t border )			{ _border = border; }
+			void setBorder( size_t border )			{ _border = Math::max( border, 3 ); }
 			size_t border() const					{ return _border; }
 
 		private:

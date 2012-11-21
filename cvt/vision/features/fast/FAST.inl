@@ -1,27 +1,30 @@
 /*
 			CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+	PARTICULAR PURPOSE.
  */
 
 
-inline void FAST::detect9( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
+template <class PointContainer>
+inline void FAST::detect9( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
 {
 	// check the cpu flags to determine the right version
 	CPUFeatures cpu = cpuFeatures();
-	if( cpu & CPU_SSE2 ) {
+	if( cpu & CPU_SSE2 ){
 		detect9simd( img, threshold, features, border );
+		//detect9cpu( img, threshold, features, border );
 	} else {
 		detect9cpu( img, threshold, features, border );
 	}
 }
 
-inline void FAST::detect9cpu( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
+template <class PointContainer>
+inline void FAST::detect9cpu( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
 {
 	size_t stride;
 	const uint8_t * im = img.map( &stride );
@@ -38,83 +41,14 @@ inline void FAST::detect9cpu( const Image & img, uint8_t threshold, FeatureSet& 
 			const uint8_t* p = im + y*stride + x;
 
 			if( isCorner9( p, offsets, threshold ) )
-				features( x, y );
+				features( x, y, score9Pixel( p, offsets, threshold ) );
 		}
 	}
 	img.unmap( im );
 }
 
-
-inline void FAST::detect10( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
-{
-	size_t stride;
-	const uint8_t * im = img.map( &stride );
-
-	size_t x, y;
-	size_t xsize = img.width() - border;
-	size_t ysize = img.height() - border;
-
-	int offsets[ 16 ];
-	make_offsets( offsets, stride );
-
-	for( y=border; y < ysize; y++ ){
-		for( x=border; x < xsize; x++ ){
-			const uint8_t* p = im + y*stride + x;
-
-			if( isCorner10( p, offsets, threshold ) )
-				corners( x, y );
-		}
-	}
-	img.unmap( im );
-}
-
-inline void FAST::detect11( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
-{
-	size_t stride;
-	const uint8_t * im = img.map( &stride );
-
-	size_t x, y;
-	size_t xsize = img.width() - border;
-	size_t ysize = img.height() - border;
-
-	int offsets[ 16 ];
-	make_offsets( offsets, stride );
-
-	for( y=border; y < ysize; y++ ){
-		for( x=border; x < xsize; x++ ){
-			const uint8_t* p = im + y*stride + x;
-
-			if( isCorner11( p, offsets, threshold ) )
-				corners( x, y );
-		}
-	}
-	img.unmap( im );
-}
-
-inline void FAST::detect12( const Image & img, uint8_t threshold, FeatureSet& corners, size_t border )
-{
-	size_t stride;
-	const uint8_t * im = img.map( &stride );
-
-	size_t x, y;
-	size_t xsize = img.width() - border;
-	size_t ysize = img.height() - border;
-
-	int offsets[ 16 ];
-	make_offsets( offsets, stride );
-
-	for( y=border; y < ysize; y++ ){
-		for( x=border; x < xsize; x++ ){
-			const uint8_t* p = im + y*stride + x;
-
-			if( isCorner12( p, offsets, threshold ) )
-				corners( x, y );
-		}
-	}
-	img.unmap( im );
-}
-
-inline void FAST::detect9simd( const Image & img, uint8_t threshold, FeatureSet& features, size_t border )
+template <class PointContainer>
+inline void FAST::detect9simd( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
 {
 #define CHECK_BARRIER(lo, hi, other, flags)		\
 	{                                               \
@@ -152,7 +86,7 @@ inline void FAST::detect9simd( const Image & img, uint8_t threshold, FeatureSet&
 		ptr = im + border;
 		for ( size_t x = border; x < aligned_start; x++ ){
 			if( isCorner9( ptr, offsets, threshold ) )
-				features( x, y );
+				features( x, y, score9Pixel( ptr, offsets, threshold ) );
 			ptr++;
 		}
 
@@ -334,47 +268,47 @@ inline void FAST::detect9simd( const Image & img, uint8_t threshold, FeatureSet&
 			//if(possible & 0x0f) //Does this make it faster?
 			{
 				if ( possible & (1 << 0) )
-					features( x + 0, y );
+					features( x, y, score9Pixel( ptr, offsets, threshold ) );
 				if ( possible & (1 << 1) )
-					features( x + 1, y );
+					features( x + 1, y, score9Pixel( ptr + 1, offsets, threshold ) );
 				if ( possible & (1 << 2) )
-					features( x + 2, y );
+					features( x + 2, y, score9Pixel( ptr + 2, offsets, threshold ) );
 				if ( possible & (1 << 3) )
-					features( x + 3, y );
+					features( x + 3, y, score9Pixel( ptr + 3, offsets, threshold ) );
 				if ( possible & (1 << 4) )
-					features( x + 4, y );
+					features( x + 4, y, score9Pixel( ptr + 4, offsets, threshold ) );
 				if ( possible & (1 << 5) )
-					features( x + 5, y );
+					features( x + 5, y, score9Pixel( ptr + 5, offsets, threshold ) );
 				if ( possible & (1 << 6) )
-					features( x + 6, y );
+					features( x + 6, y, score9Pixel( ptr + 6, offsets, threshold ) );
 				if ( possible & (1 << 7) )
-					features( x + 7, y );
+					features( x + 7, y, score9Pixel( ptr + 7, offsets, threshold ) );
 			}
 
 			//if(possible & 0xf0) //Does this mak( ,  fast)r?
 			{
 				if ( possible & (1 << 8) )
-					features( x + 8, y );
+					features( x + 8, y, score9Pixel( ptr + 8, offsets, threshold ) );
 				if ( possible & (1 << 9) )
-					features( x + 9, y );
+					features( x + 9, y, score9Pixel( ptr + 9, offsets, threshold ) );
 				if ( possible & (1 << 10) )
-					features( x + 10, y );
+					features( x + 10, y, score9Pixel( ptr + 10, offsets, threshold ) );
 				if ( possible & (1 << 11) )
-					features( x + 11, y );
+					features( x + 11, y, score9Pixel( ptr + 11, offsets, threshold ) );
 				if ( possible & (1 << 12) )
-					features( x + 12, y );
+					features( x + 12, y, score9Pixel( ptr + 12, offsets, threshold ) );
 				if ( possible & (1 << 13) )
-					features( x + 13, y );
+					features( x + 13, y, score9Pixel( ptr + 13, offsets, threshold ) );
 				if ( possible & (1 << 14) )
-					features( x + 14, y );
+					features( x + 14, y, score9Pixel( ptr + 14, offsets, threshold ) );
 				if ( possible & (1 << 15) )
-					features( x + 15, y );
+					features( x + 15, y, score9Pixel( ptr + 15, offsets, threshold ) );
 			}
 		}
 
 		for ( size_t x = xend; x < width - border; x++ ){
 			if( isCorner9( ptr, offsets, threshold ) )
-				features( x, y );
+				features( x, y, score9Pixel( ptr, offsets, threshold ) );
 			ptr++;
 		}
 		im += stride;
@@ -383,3 +317,77 @@ inline void FAST::detect9simd( const Image & img, uint8_t threshold, FeatureSet&
 
 #undef CHECK_BARRIER
 }
+
+template <class PointContainer>
+inline void FAST::detect10( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
+{
+	size_t stride;
+	const uint8_t * im = img.map( &stride );
+
+	size_t x, y;
+	size_t xsize = img.width() - border;
+	size_t ysize = img.height() - border;
+
+	int offsets[ 16 ];
+	make_offsets( offsets, stride );
+
+	for( y=border; y < ysize; y++ ){
+		for( x=border; x < xsize; x++ ){
+			const uint8_t* p = im + y*stride + x;
+
+			if( isCorner10( p, offsets, threshold ) )
+				features( x, y, score10Pixel( p, offsets, threshold ) );
+		}
+	}
+	img.unmap( im );
+}
+
+template <class PointContainer>
+inline void FAST::detect11( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
+{
+	size_t stride;
+	const uint8_t * im = img.map( &stride );
+
+	size_t x, y;
+	size_t xsize = img.width() - border;
+	size_t ysize = img.height() - border;
+
+	int offsets[ 16 ];
+	make_offsets( offsets, stride );
+
+	for( y=border; y < ysize; y++ ){
+		for( x=border; x < xsize; x++ ){
+			const uint8_t* p = im + y*stride + x;
+
+			if( isCorner11( p, offsets, threshold ) )
+				features( x, y, score11Pixel( p, offsets, threshold ) );
+		}
+	}
+	img.unmap( im );
+}
+
+template <class PointContainer>
+inline void FAST::detect12( const Image& img, uint8_t threshold, PointContainer& features, size_t border )
+{
+	size_t stride;
+	const uint8_t * im = img.map( &stride );
+
+	size_t x, y;
+	size_t xsize = img.width() - border;
+	size_t ysize = img.height() - border;
+
+	int offsets[ 16 ];
+	make_offsets( offsets, stride );
+
+	for( y=border; y < ysize; y++ ){
+		for( x=border; x < xsize; x++ ){
+			const uint8_t* p = im + y*stride + x;
+
+			if( isCorner12( p, offsets, threshold ) )
+				features( x, y, score12Pixel( p, offsets, threshold ) );
+		}
+	}
+	img.unmap( im );
+}
+
+
