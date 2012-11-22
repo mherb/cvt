@@ -20,6 +20,8 @@ namespace cvt {
 	class FeatureSet
 	{
 		public:
+			virtual ~FeatureSet() {}
+
 			virtual void add( const Feature& feature ) = 0;
 			inline void operator()( const Feature& feature ) { add( feature ); }
 
