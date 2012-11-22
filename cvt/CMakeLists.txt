@@ -416,14 +416,14 @@ SET(${MODULE_NAME}_HEADERS
    vision/CameraCalibration.h
    vision/ESM.h
    vision/EPnP.h
-   vision/FAST.h
-   vision/fast/FAST.inl
-   vision/Feature2D.h
-   vision/FeatureMatcher.h
-   vision/FeatureFilter.h
-   vision/FeatureMatch.h
-   vision/Ferns.h
-   vision/internal/Fern.h
+   vision/features/FAST.h
+   vision/features/fast/FAST.inl
+   vision/features/Feature.h
+   vision/features/FeatureSet.h
+   vision/features/FeatureDetector.h
+   vision/features/FeatureDescriptor.h
+# vision/Ferns.h
+#   vision/internal/Fern.h
    vision/IntegralImage.h
    vision/ImagePyramid.h
    vision/Flow.h
@@ -431,10 +431,10 @@ SET(${MODULE_NAME}_HEADERS
    vision/KLTPatch.h
    vision/LSH.h
    vision/MeasurementModel.h
-   vision/ORB.h
-   vision/ORBPatterns.h
-   vision/ORB2.h
-   vision/ORB2Patterns.h
+#  vision/ORB.h
+#   vision/ORBPatterns.h
+#   vision/ORB2.h
+#   vision/ORB2Patterns.h
    vision/Patch.h
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
@@ -462,14 +462,14 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/stereo/StereoSLAM.h
    vision/slam/stereo/DescriptorDatabase.h
    vision/slam/stereo/FeatureTracking.h
-   vision/slam/stereo/ORBTracking.h
+#  vision/slam/stereo/ORBTracking.h
    vision/slam/stereo/KLTTracking.h
-   vision/slam/stereo/ORBStereoMatching.h
+#   vision/slam/stereo/ORBStereoMatching.h
    vision/slam/stereo/MapOptimizer.h
    vision/slam/stereo/FeatureAnalyzer.h
    vision/slam/stereo/DepthInitializer.h
-   vision/slam/stereo/ORBStereoInit.h
-   vision/slam/stereo/PatchStereoInit.h
+#   vision/slam/stereo/ORBStereoInit.h
+#   vision/slam/stereo/PatchStereoInit.h
    io/xml/XMLAttribute.h
    io/xml/XMLCData.h
    io/xml/XMLComment.h
@@ -630,20 +630,20 @@ SET(${MODULE_NAME}_SOURCES
    vision/Brief.cpp
    vision/BoardDetector.cpp
    vision/CameraCalibrationTest.cpp
-   vision/FAST.cpp
-   vision/fast/fast9.cpp
-   vision/fast/fast10.cpp
-   vision/fast/fast11.cpp
-   vision/fast/fast12.cpp
-   vision/Ferns.cpp
+   vision/features/FAST.cpp
+   vision/features/fast/fast9.cpp
+   vision/features/fast/fast10.cpp
+   vision/features/fast/fast11.cpp
+   vision/features/fast/fast12.cpp
+# vision/Ferns.cpp
    vision/Flow.cpp
    vision/IntegralImage.cpp
    vision/ImagePyramidTest.cpp
    vision/KLTPatchTest.cpp
-   vision/ORB.cpp
-   vision/ORB2.cpp
-   vision/ORB2Test.cpp
-   vision/ORBTest.cpp
+#vision/ORB.cpp
+#   vision/ORB2.cpp
+#   vision/ORB2Test.cpp
+#   vision/ORBTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
@@ -652,10 +652,10 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp
    vision/slam/stereo/KLTTracking.cpp
-   vision/slam/stereo/ORBTracking.cpp
+#  vision/slam/stereo/ORBTracking.cpp
    vision/slam/stereo/StereoSLAM.cpp
-   vision/slam/stereo/ORBStereoInit.cpp
-   vision/slam/stereo/PatchStereoInit.cpp
+# vision/slam/stereo/ORBStereoInit.cpp
+#   vision/slam/stereo/PatchStereoInit.cpp
    vision/TSDFVolume.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp

@@ -8,15 +8,15 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/vision/FAST.h>
+#include <cvt/vision/features/FAST.h>
 #include <cvt/gfx/IScaleFilter.h>
 
 namespace cvt
 {
 
-	FAST::FAST( FASTSize size = SEGMENT_9, uint8_t threshold = 30, size_t border = 3 )
+	FAST::FAST( FASTSize size, uint8_t threshold, size_t border ) :
         _fastSize( size ),
-		_threshold( threshold ),
+		_threshold( threshold )
 	{
 		setBorder( border );
 	}
@@ -25,12 +25,12 @@ namespace cvt
 	{
 	}
 
-	void FAST::detect( FeatureSet& features, const Image& img )
+	void FAST::detect( FeatureSet& featureset, const Image& img )
 	{
 		if( img.format() != IFormat::GRAY_UINT8 )
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
 
-		FeatureSetWrapper features( features );
+		FeatureSetWrapper features( featureset );
 
 		switch ( _fastSize ) {
 			case SEGMENT_9:
@@ -50,31 +50,31 @@ namespace cvt
 				break;
 		}
 
-		features.filter();
+		featureset.filter();
 
 	}
 
-	void FAST::detect( FeatureSet& features, const ImagePyramid& imgpyr )
+	void FAST::detect( FeatureSet& featureset, const ImagePyramid& imgpyr )
 	{
 		if( imgpyr[ 0 ].format() != IFormat::GRAY_UINT8 )
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
 
 		for( size_t coctave = 0; coctave < imgpyr.octaves(); coctave++ ) {
 			float cscale = Math::pow( imgpyr.scaleFactor(), ( float ) -coctave );
-			FeatureSetWrapper features( features, cscale, coctave );
+			FeatureSetWrapper features( featureset, cscale, coctave );
 
 			switch ( _fastSize ) {
 				case SEGMENT_9:
-					detect9( img, _threshold, features, _border );
+					detect9( imgpyr[ coctave ], _threshold, features, _border );
 					break;
 				case SEGMENT_10:
-					detect10( img, _threshold, features, _border );
+					detect10( imgpyr[ coctave ], _threshold, features, _border );
 					break;
 				case SEGMENT_11:
-					detect11( img, _threshold, features, _border );
+					detect11( imgpyr[ coctave ], _threshold, features, _border );
 					break;
 				case SEGMENT_12:
-					detect12( img, _threshold, features, _border );
+					detect12( imgpyr[ coctave ], _threshold, features, _border );
 					break;
 				default:
 					throw CVTException( "Unkown FAST size" );
@@ -82,7 +82,7 @@ namespace cvt
 			}
 		}
 
-		features.filter();
+		featureset.filter();
 	}
 
 }

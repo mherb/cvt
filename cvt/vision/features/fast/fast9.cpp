@@ -8,7 +8,7 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/vision/FAST.h>
+#include <cvt/vision/features/FAST.h>
 
 namespace cvt {
 

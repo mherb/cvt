@@ -20,8 +20,8 @@ namespace cvt {
 	class FeatureDetector
 	{
 		public:
-			virtual void detect( FeatureSet& set, const Image& img ) const = 0;
-			virtual void detect( FeatureSet& set, const ImagePyramid& imgpyr) const = 0;
+			virtual void detect( FeatureSet& set, const Image& img ) = 0;
+			virtual void detect( FeatureSet& set, const ImagePyramid& imgpyr) = 0;
 	};
 }
 

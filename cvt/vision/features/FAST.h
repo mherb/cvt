@@ -34,13 +34,13 @@ namespace cvt
 			FAST( FASTSize size = SEGMENT_9, uint8_t threshold = 30, size_t border = 3 );
 			~FAST();
 
-			void detect( const Image& image, FeatureSet& features );
-			void detect( const ImagePyramid& image, FeatureSet& features );
+			void detect( FeatureSet& features, const Image& image );
+			void detect( FeatureSet& features, const ImagePyramid& image );
 
 			void setThreshold( uint8_t threshold )	{ _threshold = threshold; }
 			uint8_t threshold() const				{ return _threshold; }
 
-			void setBorder( size_t border )			{ _border = Math::max( border, 3 ); }
+			void setBorder( size_t border )			{ _border = Math::max<size_t>( border, 3 ); }
 			size_t border() const					{ return _border; }
 
 		private:
@@ -50,17 +50,24 @@ namespace cvt
 
             static void make_offsets( int * offsets, size_t row_stride );
 
-            static void detect9( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
-            static void score9( const Image & img, FeatureSet& corners, uint8_t threshold );
+			template<typename PointContainer>
+            static void detect9( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
 
-            static void detect10( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
-            static void score10( const Image & img, FeatureSet& corners, uint8_t threshold );
+			template<typename PointContainer>
+            static void detect9cpu( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
 
-            static void detect11( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
-            static void score11( const Image & img, FeatureSet& corners, uint8_t threshold );
+			template<typename PointContainer>
+            static void detect9simd( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
 
-            static void detect12( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
-            static void score12( const Image & img, FeatureSet& corners, uint8_t threshold );
+
+			template<typename PointContainer>
+            static void detect10( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
+
+			template<typename PointContainer>
+            static void detect11( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
+
+			template<typename PointContainer>
+            static void detect12( const Image& img, uint8_t threshold, PointContainer& features, size_t border = 3 );
 
             static int score9Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
             static int score10Pixel( const uint8_t* p, const int * offsets, uint8_t threshold );
@@ -72,8 +79,6 @@ namespace cvt
             static bool isCorner11( const uint8_t * p, const int * offsets, uint8_t threshold );
             static bool isCorner12( const uint8_t * p, const int * offsets, uint8_t threshold );
 
-            static void detect9cpu( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
-            static void detect9simd( const Image & img, uint8_t threshold, FeatureSet& features, size_t border = 3 );
 	};
 
 	inline void FAST::make_offsets( int* offsets, size_t row_stride )
@@ -96,7 +101,7 @@ namespace cvt
 		offsets[ 15 ] = -1 + row_stride * 3;
     }
 
-    #include <cvt/vision/fast/FAST.inl>
+    #include <cvt/vision/features/fast/FAST.inl>
 
 }
 
