@@ -34,15 +34,16 @@ namespace cvt
 
 	void FeatureApp::onTimeout()
 	{
+		_video.nextFrame();
+		_view.setImage( _video.frame() );
+
 		FeatureSetNoFilter featureset;
 
-		_video.nextFrame();
 		_video.frame().convert( _gray, IFormat::GRAY_UINT8 );
 		Time detectTime;
 		_detector->detect( featureset, _gray );
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
 
-		_view.setImage( _gray );
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 
 		_iter++;
