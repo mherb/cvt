@@ -20,23 +20,86 @@ namespace cvt {
 	class FeatureSet
 	{
 		public:
-			virtual ~FeatureSet() {}
+			FeatureSet();
+			~FeatureSet();
 
-			virtual void add( const Feature& feature ) = 0;
-			inline void operator()( const Feature& feature ) { add( feature ); }
+			void			add( const Feature& feature );
 
-			virtual size_t size() const = 0;
-			virtual Feature& operator[]( size_t i ) = 0;
-			virtual const Feature& operator[]( size_t i ) const = 0;
+			size_t			size() const;
+			Feature&		operator[]( size_t i );
+			const Feature&	operator[]( size_t i ) const;
 
-			void toPointSet2f( PointSet2f& ptset ) const {
-				ptset.clear();
-				for( size_t i = 0; i < size(); i++ )
-					ptset.add( ( *this )[ i ].pt );
-			}
+			void			toPointSet2f( PointSet2f& ptset ) const;
+			void			setFeatures( const Feature* f, size_t n );
 
-			virtual void filter() {};
+			void			filterNMS( int radius, bool sort = false );
+			void			filterANMS( int radius, float threshold = 0.9f, bool sort = false );
+			void			filterBest( size_t n, bool sort = true );
+
+		private:
+			class CmpScore
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						return f1.score < f2.score;
+					}
+			};
+
+			class CmpPos
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						if( f1.pt.y == f2.pt.y )
+							return f1.pt.x < f2.pt.x;
+						return f1.pt.y < f2.pt.y;
+					}
+			};
+
+			std::vector<Feature> _features;
 	};
+
+
+	inline FeatureSet::FeatureSet()
+	{
+	}
+
+	inline FeatureSet::~FeatureSet()
+	{
+	}
+
+	inline void FeatureSet::add( const Feature& feature )
+	{
+		_features.push_back( feature );
+	}
+
+	inline size_t FeatureSet::size() const
+	{
+		return _features.size();
+	}
+
+	inline Feature& FeatureSet::operator[]( size_t i )
+	{
+		return _features[ i ];
+	}
+
+	inline const Feature& FeatureSet::operator[]( size_t i ) const
+	{
+		return _features[ i ];
+	}
+
+	inline void FeatureSet::toPointSet2f( PointSet2f& ptset ) const
+	{
+		ptset.clear();
+		for( size_t i = 0; i < size(); i++ )
+			ptset.add( ( *this )[ i ].pt );
+	}
+
+	inline void FeatureSet::setFeatures( const Feature* f, size_t n )
+	{
+		_features.assign( f, f + n );
+	}
 
     class FeatureSetWrapper
 	{
@@ -60,23 +123,6 @@ namespace cvt {
 
 			FeatureSetWrapper( const FeatureSet& );
 	};
-
-	class FeatureSetNoFilter : public FeatureSet
-	{
-		public:
-			FeatureSetNoFilter() {}
-			~FeatureSetNoFilter() {}
-
-			void add( const Feature& feature ) { _features.push_back( feature ); }
-
-			size_t size() const { return _features.size(); }
-			Feature& operator[]( size_t i ) { return _features[ i ]; }
-			const Feature& operator[]( size_t i ) const { return _features[ i ]; }
-
-		private:
-			std::vector<Feature> _features;
-	};
-
 
 }
 

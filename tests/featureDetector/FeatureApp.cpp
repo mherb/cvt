@@ -37,12 +37,13 @@ namespace cvt
 		_video.nextFrame();
 		_view.setImage( _video.frame() );
 
-		FeatureSetNoFilter featureset;
+		FeatureSet featureset;
 
 		_video.frame().convert( _gray, IFormat::GRAY_UINT8 );
 		Time detectTime;
 		_detector->detect( featureset, _gray );
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
+		featureset.filterNMS( 1 );
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 

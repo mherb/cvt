@@ -29,7 +29,7 @@ namespace cvt
 			void setThreshold( float threshold ) { _threshold = threshold; }
 			float threshold() const	{ return _threshold; }
 
-			void setBorder( size_t border )	{ _border = Math::max<size_t>( border, 3 ); }
+			void setBorder( size_t border )	{ _border = border; }
 			size_t border() const	{ return _border; }
 
 		private:

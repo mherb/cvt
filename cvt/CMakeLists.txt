@@ -422,6 +422,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/features/FeatureSet.h
    vision/features/FeatureDetector.h
    vision/features/FeatureDescriptor.h
+   vision/features/NMSFilter.h
 # vision/Ferns.h
 #   vision/internal/Fern.h
    vision/IntegralImage.h
@@ -635,6 +636,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/features/fast/fast10.cpp
    vision/features/fast/fast11.cpp
    vision/features/fast/fast12.cpp
+   vision/features/FeatureSet.cpp
 # vision/Ferns.cpp
    vision/Flow.cpp
    vision/IntegralImage.cpp

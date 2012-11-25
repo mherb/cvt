@@ -49,9 +49,6 @@ namespace cvt
 				throw CVTException( "Unkown FAST size" );
 				break;
 		}
-
-		featureset.filter();
-
 	}
 
 	void FAST::detect( FeatureSet& featureset, const ImagePyramid& imgpyr )
@@ -81,8 +78,6 @@ namespace cvt
 					break;
 			}
 		}
-
-		featureset.filter();
 	}
 
 }
