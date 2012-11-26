@@ -8,6 +8,7 @@
 #include <cvt/util/Time.h>
 #include <cvt/gui/TimeoutHandler.h>
 #include <cvt/vision/features/FAST.h>
+#include <cvt/vision/features/Harris.h>
 
 #include "FeatureView.h"
 

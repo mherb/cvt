@@ -33,6 +33,10 @@ namespace cvt {
 			void normalize();
 			void scale( float value );
 
+
+
+			static const IKernel IDENTITY;
+
 			static const IKernel GAUSS_HORIZONTAL_3;
 			static const IKernel GAUSS_HORIZONTAL_5;
 			static const IKernel GAUSS_HORIZONTAL_7;

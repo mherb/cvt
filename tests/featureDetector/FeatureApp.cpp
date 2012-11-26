@@ -23,7 +23,8 @@ namespace cvt
 		_window.addWidget( &_view, wl );
 		_window.setVisible( true );
 		_window.update();
-		_detector = new FAST();
+		//_detector = new FAST();
+		_detector = new Harris();
 	}
 
 	FeatureApp::~FeatureApp()
@@ -39,11 +40,11 @@ namespace cvt
 
 		FeatureSet featureset;
 
-		_video.frame().convert( _gray, IFormat::GRAY_UINT8 );
+		_video.frame().convert( _gray, IFormat::GRAY_FLOAT );
 		Time detectTime;
 		_detector->detect( featureset, _gray );
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
-		featureset.filterNMS( 1 );
+		featureset.filterNMS( 2 );
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 

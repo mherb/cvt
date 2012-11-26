@@ -136,7 +136,7 @@ namespace cvt {
 				}
 			}
 			filtered.push_back( _features[ i ] );
-suppressed:
+	suppressed:
 			;
 		}
 
