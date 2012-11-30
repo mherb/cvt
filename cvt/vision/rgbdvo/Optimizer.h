@@ -14,6 +14,7 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
+#include <Eigen/LU>
 
 #include <Eigen/LU>
 
@@ -74,6 +75,7 @@ namespace cvt {
             float               _resolution;
             std::vector<size_t> _hist;
     };
+
 
     template <class WarpFunc, class Weighter>
     class Optimizer
@@ -164,12 +166,23 @@ namespace cvt {
         Matrix4f projMat;
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
+        std::vector<float> interpolatedGx;
+        std::vector<float> interpolatedGy;
         std::vector<float> residuals;
         std::vector<size_t> indices;
+
+        // TODO: compose this into one multicchannel image
+        ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
+        ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
+
+        grayPyramid.convolve( gradX, reference.kernelDx() );
+        grayPyramid.convolve( gradY, reference.kernelDy());
 
         // sum of jacobians * delta
         JacobianType deltaSum;
         HessianType  hessian;
+
+        std::vector<JacobianType> esmJacobian;
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             ResultType scaleResult;
@@ -183,14 +196,21 @@ namespace cvt {
             const size_t num = data.points3d.size();
             Matrix4f K4( data.intrinsics );
             const Vector3f* p3dPtr = &data.points3d[ 0 ];
+            const Vector2f* refGrads = &data.gradients[ 0 ];
+
             const float* referencePixVals = &data.pixelValues[ 0 ];
-            const JacobianType* referenceJ = &data.jacobians[ 0 ];
+            //const JacobianType* referenceJ = &data.jacobians[ 0 ];
 
             warpedPts.resize( num );
             interpolatedPixels.resize( num );
+            interpolatedGx.resize( num );
+            interpolatedGy.resize( num );
             residuals.resize( num );
+            esmJacobian.resize( num );
 
             IMapScoped<const float> grayMap( grayPyramid[ o ] );
+            IMapScoped<const float> gxMap( gradX[ o ] );
+            IMapScoped<const float> gyMap( gradY[ o ] );
 
             scaleResult.iterationsOnOctave[ o ] = 0;
             scaleResult.numPixels = 0;
@@ -207,45 +227,78 @@ namespace cvt {
                 simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
-                indices.clear();
                 validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
 
                 float median = computeMedian( &residuals[ 0 ], indices );
                 weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
 
+
+                // interpolate the gradient for ESM
+                simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );
+                simd->warpBilinear1f( &interpolatedGy[ 0 ], &warpedPts[ 0 ].x, gyMap.ptr(), gyMap.stride(), width, height, -20.0f, num );
+
+                std::cout << "Indices: " << indices.size() << " num: " << num << std::endl;
+
+                Eigen::Vector2f gVec;
+                for( size_t i = 0; i < indices.size(); i++ ){
+                    size_t idx = indices[ i ];
+
+                    gVec[ 0 ] = refGrads[ idx ].x;
+                    gVec[ 1 ] = refGrads[ idx ].y;
+                    /*
+                    if( interpolatedGx[ idx ] != -20.0f ){
+                        gVec[ 0 ] += interpolatedGx[ idx ];
+                        gVec[ 0 ] *= 0.5f;
+                    }
+                    if( interpolatedGy[ idx ] != -20.0f ){
+                        gVec[ 1 ] += interpolatedGy[ idx ];
+                        gVec[ 1 ] *= 0.5f;
+                    }*/
+                    esmJacobian[ i ] = gVec.transpose() * data.screenJacobians[ idx ];
+                    if( hasNaN( esmJacobian[ i ] ) ){
+                        std::cout << "ESMJacobian contains NaN" << std::endl;
+                    }
+                }
+
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
                 hessian = data.hessian;
                 scaleResult.numPixels = builder.build( hessian, deltaSum,
-                                                       referenceJ,
+                                                       //referenceJ,
+                                                       &esmJacobian[ 0 ],
                                                        &residuals[ 0 ],
                                                        indices,
                                                        scaleResult.costs );
-                if( !scaleResult.numPixels ){
+                if( !scaleResult.numPixels ||
+                    scaleResult.costs / scaleResult.numPixels < 0.005f ){
                     break;
                 }
 
                 // evaluate the delta parameters
                 Eigen::FullPivLU<HessianType> lu( hessian );
+
                 if( !lu.isInvertible() ){
-                    std::cout << "Hessian not invertible!" << std::endl;
-                } {
-                    std::cout << "inversion possible" << std::endl;
+                    std::cout << "Hessian is not invertible\n" << hessian << std::endl;
+                    getchar();
+                    //checkJacobians( esmJacobian );
+                    getchar();
+
+                    break;
                 }
                 DeltaType deltaP = -lu.inverse() * deltaSum.transpose();
                 scaleResult.warp.updateParameters( deltaP );
 
-
-//                std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
-//                             deltaP[ 0 ] << ", " <<
-//                             deltaP[ 1 ] << ", " <<
-//                             deltaP[ 2 ] << ", " <<
-//                             deltaP[ 3 ] << ", " <<
-//                             deltaP[ 4 ] << ", " <<
-//                             deltaP[ 5 ] <<  std::endl;
-//                std::cout << "Pose:\n" << scaleResult.warp.poseMatrix() << std::endl;
+                /*
+                std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
+                             deltaP[ 0 ] << ", " <<
+                             deltaP[ 1 ] << ", " <<
+                             deltaP[ 2 ] << ", " <<
+                             deltaP[ 3 ] << ", " <<
+                             deltaP[ 4 ] << ", " <<
+                             deltaP[ 5 ] <<  std::endl;
+                std::cout << "NumPixel: " << scaleResult.numPixels << std::endl;
+                std::cout << "Pose:\n" << scaleResult.warp.poseMatrix()  << "\n" << std::endl;*/
 
                 scaleResult.iterationsOnOctave[ o ]++;
-
 
                 if( deltaP.norm() < _minUpdate )
                     break;
@@ -261,6 +314,7 @@ namespace cvt {
         tmp4 = result.warp.poseMatrix();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
+        std::cout << "Current Pose: \n" << tmp4 << std::endl;
     }
 
 }

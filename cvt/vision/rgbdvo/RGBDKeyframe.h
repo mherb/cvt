@@ -35,11 +35,20 @@ namespace cvt
     struct AlignmentData {
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef Eigen::Matrix<float, 1, dim>    JacobianType;
+            typedef Eigen::Matrix<float, 2, dim>    ScreenJacobianType;
+            //typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
+            typedef std::vector<ScreenJacobianType> ScreenJacVec;
+
             typedef Eigen::Matrix<float, dim, dim>  HessianType;
+
 
             std::vector<Vector3f>       points3d;
             std::vector<float>          pixelValues;
             std::vector<JacobianType>   jacobians;
+
+            /* reference screen jacobians of the warp*/
+            ScreenJacVec                screenJacobians;
+            std::vector<Vector2f>       gradients;
 
             HessianType                 hessian;
             HessianType                 inverseHessian;
@@ -54,6 +63,9 @@ namespace cvt
                 points3d.reserve( size );
                 pixelValues.reserve( size );
                 jacobians.reserve( size );
+
+                screenJacobians.reserve( size );
+                gradients.reserve( size );
             }
 
             void clear()
@@ -61,6 +73,10 @@ namespace cvt
                 points3d.clear();
                 pixelValues.clear();
                 jacobians.clear();
+
+                screenJacobians.clear();
+                gradients.clear();
+
                 hessian.setZero();
                 inverseHessian.setZero();
             }
@@ -121,6 +137,9 @@ namespace cvt
             virtual void addPointsOnScale( AlignDataType& data,
                                            const std::vector<Vector3f>& pts,
                                            const Matrix4f& referenceToWorld ) = 0;
+
+            const IKernel& kernelDx() const { return _kx; }
+            const IKernel& kernelDy() const { return _ky; }
 
         protected:
             Matrix4<T>                  _pose;

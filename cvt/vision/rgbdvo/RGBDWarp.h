@@ -23,7 +23,8 @@ namespace cvt
         static const size_t NumParameters = 6;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
-        typedef typename SE3<T>::ScreenJacType                  ScreenJacType;
+        //typedef typename SE3<T>::ScreenJacType                ScreenJacType;
+        typedef Eigen::Matrix<T, 2, NumParameters>              ScreenJacType;
         typedef Eigen::Matrix<T, NumParameters, NumParameters>  HessianType;
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;
 
@@ -110,9 +111,11 @@ namespace cvt
     struct AffineLightingWarp {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static const size_t NumParameters = 8;
+        static const size_t PoseParameters = 6;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
-        typedef typename SE3<T>::ScreenJacType                  ScreenJacType;
+        typedef Eigen::Matrix<T, 2, NumParameters>              ScreenJacType;
+        typedef Eigen::Matrix<T, 2, PoseParameters>             PoseScreenJacType;
         typedef Eigen::Matrix<T, NumParameters, NumParameters>  HessianType;
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;
 
@@ -170,7 +173,8 @@ namespace cvt
                                     const Vector3<T>& point,
                                     const Matrix3<T>& K )
         {
-            SE3<T>::screenJacobian( j, point, K );
+            throw CVTException( "Affine Illumination needs refactoring before using like this" );
+            //SE3<T>::screenJacobian( j, point, K );
         }
 
         static void computeJacobian( JacobianType& j,

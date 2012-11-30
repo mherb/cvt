@@ -2,8 +2,22 @@
 #define CVT_SYSTEMBUILDER_H
 
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
+    template <class EigenMat>
+    static bool hasNaN( const EigenMat& mat )
+    {
+        for( size_t i = 0; i < mat.rows(); i++ ){
+            for( size_t k = 0; k < mat.cols(); k++ ){
+                if( Math::isNaN( mat( i, k ) ) ||
+                    Math::isInf( mat( i, k ) ) ){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     template <class LossFunc>
     class SystemBuilder
@@ -20,23 +34,51 @@ namespace cvt {
                           const std::vector<size_t>& indices,
                           float & ssd ) const
             {
-                // standard: assume robust lossfunc
+                // standard: robust lossfunc
                 ssd = 0;
                 size_t numPixels = 0;
                 JType jtmp;
                 b.setZero();
                 H.setZero();
 
+                HessType bkp;
+
                 for( size_t i = 0; i < indices.size(); i++ ){
                     // compute the delta
-                    ssd += Math::sqr( residuals[ indices[ i ] ] );
+                    size_t idx = indices[ i ];
+                    ssd += Math::sqr( residuals[ idx ] );
                     numPixels++;
 
-                    float weight = _lossFunc.weight( residuals[ indices[ i ] ] );
-                    jtmp = weight * jacobians[ indices[ i ] ];
+                    float weight = _lossFunc.weight( residuals[ idx ] );
+                    jtmp = weight * jacobians[ idx ];
 
-                    H.noalias() += jtmp.transpose() * jacobians[ indices[ i ] ];
-                    b.noalias() += jtmp * residuals[ indices[ i ] ];
+                    if( hasNaN( jtmp ) ){
+                        std::cout << "jtmp has nan value(s)" << std::endl;
+                        std::cout << "idx: " << idx << std::endl;
+                        std::cout << "i: " << i << std::endl;
+                        std::cout << "weight: " << weight << std::endl;
+                        std::cout << "residual: " << residuals[idx] << std::endl;
+                    }
+                    if( hasNaN( jacobians[ idx ] ) ){
+                        std::cout << "jacobian has nan value(s)" << std::endl;
+                        std::cout << jacobians[ idx ] << std::endl;
+                    }
+
+                    bkp = H;
+                    H.noalias() += jtmp.transpose() * jacobians[ idx ];
+                    b.noalias() += jtmp * residuals[ idx ];
+
+                    if( hasNaN( H ) ){
+                        std::cout << "hessian has nan value(s)" << std::endl;
+                        std::cout << "Before: \n" << bkp << std::endl;
+                        std::cout << "Now: \n" << H << std::endl;
+                        std::cout << "jac: \n" << jacobians[ idx ] << std::endl;
+                        std::cout << "jtmp: \n" << jtmp << std::endl;
+                        std::cout << "idx: " << idx << std::endl;
+                        std::cout << "i: " << i << std::endl;
+                        std::cout << "weight: " << weight << std::endl;
+                        std::cout << "residual: " << residuals[idx] << std::endl;
+                    }
 
                 }
                 return numPixels;

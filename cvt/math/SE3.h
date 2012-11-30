@@ -10,7 +10,7 @@
  */
 /**
  * Special Euclidean Group Transformation:
- * 		- 3D Euclidean Transformation Parametrization using Lie Algebras 
+ * 		- 3D Euclidean Transformation Parametrization using Lie Algebras
  */
 #ifndef CVT_SE3_H
 #define CVT_SE3_H
@@ -31,14 +31,14 @@ namespace cvt
     class SE3
         {
         public:
-                        typedef Eigen::Matrix<T, 4, 4>  MatrixType;
-                        typedef Eigen::Matrix<T, 3, 6>  JacMatType;
-                        typedef Eigen::Matrix<T, 24, 6> HessMatType;
-                        typedef Eigen::Matrix<T, 2, 6>  ScreenJacType;
-                        typedef Eigen::Matrix<T, 6, 6>  ScreenHessType;
-                        typedef Eigen::Matrix<T, 6, 1>  ParameterVectorType;
-                        typedef Eigen::Matrix<T, 3, 1>  PointType;
-                        typedef Eigen::Matrix<T, 4, 1>  PointTypeHom;
+            typedef Eigen::Matrix<T, 4, 4>  MatrixType;
+            typedef Eigen::Matrix<T, 3, 6>  JacMatType;
+            typedef Eigen::Matrix<T, 24, 6> HessMatType;
+            typedef Eigen::Matrix<T, 2, 6>  ScreenJacType;
+            typedef Eigen::Matrix<T, 6, 6>  ScreenHessType;
+            typedef Eigen::Matrix<T, 6, 1>  ParameterVectorType;
+            typedef Eigen::Matrix<T, 3, 1>  PointType;
+            typedef Eigen::Matrix<T, 4, 1>  PointTypeHom;
 
             /**
              *	angles in radians

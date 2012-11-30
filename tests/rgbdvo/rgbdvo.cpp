@@ -29,6 +29,10 @@ void writePoseToFile( std::ofstream& file, const Matrix4f& pose, double stamp )
 template <class KFType, class LossFunc>
 void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
+    std::cout << "Press enter to start ...";
+    std::flush( std::cout );
+    getchar();
+
     RGBDParser parser( folder, 0.05f );
     RGBDVisualOdometry<KFType, LossFunc> vo( K, params );
     vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
@@ -83,7 +87,7 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
         std::cout << "\r" << parser.iter() << " / " << parser.size();
         std::flush( std::cout );
-        getchar();
+        //getchar();
     }
     std::cout << std::endl;
     file.close();
@@ -104,11 +108,14 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
     String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
     if( kftypeString.toUpper() == "STD" ){
+        std::cout << "Running with normal Squared Lossfunc" << std::endl;
         runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_HUBER" ) {
+        std::cout << "Running with Huber Lossfunc" << std::endl;
         params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
         runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
+        std::cout << "Running with Tukey Lossfunc" << std::endl;
         params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
         runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
     } else if( kftypeString.toUpper() == "AII" ) {

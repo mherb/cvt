@@ -399,6 +399,7 @@ namespace cvt
 
     void RGBDVOApp::keyframeAddedCallback( const Matrix4f& pose )
     {
+        std::cout << "Added a keyframe!" << std::endl;
         _poseView.addKeyframe( pose );
 
         // remember the keyframe ground truth pose!

@@ -61,6 +61,7 @@ namespace cvt
             typedef typename Base::Result               Result;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::AlignDataType        AlignDataType;
+            typedef typename AlignDataType::ScreenJacobianType    ScreenJacobianType;
 
 
             IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
@@ -114,6 +115,7 @@ namespace cvt
         Vector3<T> p3d;
         Eigen::Matrix<T, 2, 1> g;
         JacobianType j;
+        ScreenJacobianType sj;
 
         // compute the image gradients
         this->computeImageGradients( data.gradX, data.gradY, gray );
@@ -134,7 +136,6 @@ namespace cvt
         IMapScoped<const float> gyMap( data.gradY );
         IMapScoped<const float> grayMap( data.gray );
 
-        data.hessian.setZero();
 
         for( size_t y = 0; y < gray.height() - 1; y++ ){
             const float* gx = gxMap.ptr();
@@ -147,7 +148,7 @@ namespace cvt
             for( size_t x = 0; x < gray.width() - 1; x++ ){
                 currP.x = scale * x;
                 float z = Base::interpolateDepth( currP, d, depthStride );
-                if( z > this->_minDepth && z < 7.0f ){
+                if( z > this->_minDepth && z < 10.0f ){
                     g[ 0 ] = gx[ x ];
                     g[ 1 ] = gy[ x ];
 
@@ -159,12 +160,19 @@ namespace cvt
                     p3d[ 1 ] = tmpy[ y ] * z;
                     p3d[ 2 ] = z;
 
-                    WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+                    WarpFunc::screenJacobian( sj, p3d, data.intrinsics );
+                    //WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+                    j = g.transpose() * sj;
+
+                    data.hessian.noalias() += j.transpose() * j;
 
                     data.jacobians.push_back( j );
                     data.pixelValues.push_back( value[ x ] );
                     data.points3d.push_back( p3d );
-                    data.hessian.noalias() += j.transpose() * j;
+                    data.gradients.push_back( Vector2f( gx[ x ], gy[ x ] ) );
+                    data.screenJacobians.push_back( sj );
+
+
                 }
             }
             gxMap++;
@@ -174,6 +182,9 @@ namespace cvt
 
         // precompute the inverse hessian
         data.inverseHessian = data.hessian.inverse();
+
+        std::cout << "# data points" << data.gradients.size() << std::endl;
+        std::cout << "Hessian: " << data.hessian << ", inverse: " << data.inverseHessian << std::endl;
 
     }
 
