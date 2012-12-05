@@ -204,6 +204,7 @@ SET(${MODULE_NAME}_HEADERS
    gfx/IFormat.h
    gfx/IComponents.h
    gfx/IConvert.h
+   gfx/IConvolve.h
    gfx/IMapScoped.h
    gfx/IMorphological.h
    gfx/IThreshold.h
@@ -510,6 +511,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/GFX.cpp
    gfx/GFXEngineImage.cpp
    gfx/IConvert.cpp
+   gfx/IConvolve.cpp
    gfx/IFill.cpp
    gfx/IFormat.cpp
    gfx/Color.cpp

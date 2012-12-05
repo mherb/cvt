@@ -15,7 +15,8 @@ namespace cvt {
 
 	namespace IBorder {
 
-		int value( int value, int len, IBorderType type )
+		template<typename T>
+		T value( T value, T len, IBorderType type )
 		{
 			switch( type ) {
 				case IBORDER_CLAMP: if( value < 0 )
@@ -39,6 +40,7 @@ namespace cvt {
 				default:
 									if( value < 0 || value >= len ) return -1;
 			}
+			return -1;
 		}
 
 

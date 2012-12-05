@@ -28,6 +28,7 @@ namespace cvt {
 
 			float& operator()( int x, int y );
 			const float& operator()( int x, int y ) const;
+			const float* ptr() const;
 
 			float sum() const;
 			void normalize();
@@ -140,6 +141,11 @@ namespace cvt {
 	inline const float& IKernel::operator()( int x, int y ) const
 	{
 		return _data[ y * _width + x ];
+	}
+
+	inline const float* IKernel::ptr() const
+	{
+		return _data;
 	}
 
 	inline float IKernel::sum() const
