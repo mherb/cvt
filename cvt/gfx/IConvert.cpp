@@ -18,7 +18,7 @@ namespace cvt {
 
 #define TABLE( table, source, dst ) table[ ( ( source ) - 1 ) * LAST_FORMAT + ( dst ) - 1 ]
 
-    IConvert * IConvert::_instance = 0;
+    IConvert* IConvert::_instance = 0;
 
 
     #define CONV( func, dI, dsttype, sI, srctype, width )				\
@@ -672,8 +672,9 @@ namespace cvt {
     IConvert::IConvert():
         _convertFuncs( 0 )
     {
-        _convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ];
-        memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
+		std::cout << "OK" << std::endl;
+        _convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ]();
+        //memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
 
         this->initTable();
     }
@@ -755,7 +756,7 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_UYVYu8_to_GRAYf;
     }
 
-    const IConvert & IConvert::instance()
+    const IConvert& IConvert::instance()
     {
         if( IConvert::_instance == 0 ){
             _instance = new IConvert();
@@ -780,7 +781,7 @@ namespace cvt {
         if( dstID > LAST_FORMAT )
             throw CVTException( "Destination format unkown" );
 
-        IConvert self = IConvert::instance();
+        const IConvert& self = IConvert::instance();
         if( self.TABLE( _convertFuncs, sourceID, dstID ) ){
             self.TABLE( _convertFuncs, sourceID, dstID)( dst, src, flags );
         } else {
