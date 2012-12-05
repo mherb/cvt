@@ -48,6 +48,8 @@ void testConvolutionCVT2()
 {
 	Resources resources;
 	Image lena( resources.find( "lena.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::RGBA_FLOAT );
 	Image outx( lena );
 	Image outy( lena );
 
