@@ -113,6 +113,7 @@ void testConvolutionGRAYCVT2()
 		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 	}
 	std::cout << "CVT2:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT2GRAY.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_7;
 	ky = IKernel::GAUSS_VERTICAL_7;
@@ -199,6 +200,7 @@ void testConvolutionGRAYCVT()
 		lena.convolve( outx, kx, ky );
 	}
 	std::cout << "CVT:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVTGRAY.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_7;
 	ky = IKernel::GAUSS_VERTICAL_7;
