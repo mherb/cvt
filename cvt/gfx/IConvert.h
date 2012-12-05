@@ -8,8 +8,8 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#ifndef CVT_ICONVERT
-#define CVT_ICONVERT
+#ifndef CVT_ICONVERT_H
+#define CVT_ICONVERT_H
 
 #include <cvt/gfx/IFormat.h>
 #include <cvt/util/Flags.h>
@@ -45,6 +45,7 @@ namespace cvt
 
 		private:
 			IConvert();
+			IConvert( const IConvert& ) {}
 
 			static IConvert * _instance;
 			ConversionFunction * _convertFuncs;

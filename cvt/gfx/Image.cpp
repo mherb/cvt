@@ -12,10 +12,16 @@
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>
+
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/PluginManager.h>
+
+#include <cvt/gfx/IConvert.h>
+#include <cvt/gfx/IFill.h>
+#include <cvt/gfx/IMorphological.h>
+#include <cvt/gfx/IThreshold.h>
 
 #include <fstream>
 
@@ -205,6 +211,49 @@ namespace cvt {
 				throw CVTException( "No ISaver for file available" );
 		}
 		saver->save( path, *this );
+	}
+
+	void Image::convert( Image& dst, IConvertFlags flags ) const
+	{
+		IConvert::convert( dst, *this, flags );
+	}
+
+	void Image::convert( Image & dst, const IFormat & dstFormat, IConvertFlags flags  ) const
+	{
+		dst.reallocate( _mem->_width, _mem->_height, dstFormat, dst.memType() );
+		IConvert::convert( dst, *this, flags );
+	}
+
+	void Image::convert( Image& dst, const IFormat & dstformat, IAllocatorType memtype, IConvertFlags flags ) const
+	{
+		dst.reallocate( _mem->_width, _mem->_height, dstformat, memtype );
+		IConvert::convert( dst, *this, flags );
+	}
+
+	void Image::fill( const Color& c )
+	{
+		IFill::fill( *this, c );
+	}
+
+	void Image::dilate( Image& dst, size_t radius ) const
+	{
+		IMorphological::dilate( dst, *this, radius );
+	}
+
+	void Image::erode( Image& dst, size_t radius ) const
+	{
+		IMorphological::erode( dst, *this, radius );
+	}
+
+
+	void Image::threshold( Image& dst, float threshold ) const
+	{
+		IThreshold::threshold( dst, *this, threshold );
+	}
+
+	void Image::thresholdAdaptive( Image& dst, const Image& boxfiltered, float threshold ) const
+	{
+		IThreshold::thresholdAdaptive( dst, *this, boxfiltered, threshold );
 	}
 
 }

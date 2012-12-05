@@ -200,10 +200,14 @@ SET(${MODULE_NAME}_HEADERS
    geom/scene/SceneTexture.h
    gfx/Color.h
    gfx/Image.h
+   gfx/IFill.h
    gfx/IFormat.h
    gfx/IComponents.h
    gfx/IConvert.h
+   gfx/IConvolve.h
    gfx/IMapScoped.h
+   gfx/IMorphological.h
+   gfx/IThreshold.h
    gfx/ILoader.h
    gfx/ISaver.h
    gfx/ifilter/AdaptiveThreshold.h
@@ -508,11 +512,15 @@ SET(${MODULE_NAME}_SOURCES
    gfx/GFX.cpp
    gfx/GFXEngineImage.cpp
    gfx/IConvert.cpp
+   gfx/IConvolve.cpp
+   gfx/IFill.cpp
    gfx/IFormat.cpp
    gfx/Color.cpp
    gfx/Image.cpp
    gfx/ImageOperations.cpp
    gfx/ImageTest.cpp
+   gfx/IMorphological.cpp
+   gfx/IThreshold.cpp
    gfx/ifilter/AdaptiveThreshold.cpp
    gfx/ifilter/ColorCode.cpp
    gfx/ifilter/ROFDenoise.cpp
