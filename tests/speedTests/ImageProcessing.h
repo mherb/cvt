@@ -94,6 +94,8 @@ void testConvolutionGRAYCVT2()
 {
 	Resources resources;
 	Image lena( resources.find( "lena_g.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::GRAY_FLOAT );
 	Image outx( lena );
 	Image outy( lena );
 
