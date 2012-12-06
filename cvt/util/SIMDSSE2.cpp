@@ -783,7 +783,7 @@ namespace cvt
 			mul = _mm_load_ss( weights );
 			mul = _mm_shuffle_ps( mul, mul, 0 );
 
-			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x - b1 ) );
+			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - b1 ) << 1 ) ) );
 			x2 = _mm_unpackhi_epi8( x0, z );
 			x0 = _mm_unpacklo_epi8( x0, z );
 
@@ -801,7 +801,7 @@ namespace cvt
 				mul = _mm_load_ss( weights + k );
 				mul = _mm_shuffle_ps( mul, mul, 0 );
 
-				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x - b1 + k ) );
+				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - b1 + k ) << 1 ) ) );
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
 
@@ -878,7 +878,7 @@ namespace cvt
 			mul = _mm_load_ss( weights );
 			mul = _mm_shuffle_ps( mul, mul, 0 );
 
-			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x - b1 ) );
+			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - b1 ) << 2 ) )  );
 			x2 = _mm_unpackhi_epi8( x0, z );
 			x0 = _mm_unpacklo_epi8( x0, z );
 
@@ -896,7 +896,7 @@ namespace cvt
 				mul = _mm_load_ss( weights + k );
 				mul = _mm_shuffle_ps( mul, mul, 0 );
 
-				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x - b1 + k ) );
+				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - b1 + k ) << 2 ) )  );
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
 
