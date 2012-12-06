@@ -48,6 +48,8 @@ void testConvolutionCVT2()
 {
 	Resources resources;
 	Image lena( resources.find( "lena.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::RGBA_FLOAT );
 	Image outx( lena );
 	Image outy( lena );
 
@@ -92,6 +94,8 @@ void testConvolutionGRAYCVT2()
 {
 	Resources resources;
 	Image lena( resources.find( "lena_g.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::GRAY_FLOAT );
 	Image outx( lena );
 	Image outy( lena );
 
@@ -113,6 +117,7 @@ void testConvolutionGRAYCVT2()
 		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
 	}
 	std::cout << "CVT2:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT2GRAY.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_7;
 	ky = IKernel::GAUSS_VERTICAL_7;
@@ -199,6 +204,7 @@ void testConvolutionGRAYCVT()
 		lena.convolve( outx, kx, ky );
 	}
 	std::cout << "CVT:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVTGRAY.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_7;
 	ky = IKernel::GAUSS_VERTICAL_7;
