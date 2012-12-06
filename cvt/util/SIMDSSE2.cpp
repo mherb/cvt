@@ -701,10 +701,10 @@ namespace cvt
 			x2 = _mm_unpackhi_epi8( x0, z );
 			x0 = _mm_unpacklo_epi8( x0, z );
 
-			x3 = _mm_unpackhi_epi8( x2, z );
-			x2 = _mm_unpacklo_epi8( x2, z );
-			x1 = _mm_unpackhi_epi8( x0, z );
-			x0 = _mm_unpacklo_epi8( x0, z );
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
 
 			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
 			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
@@ -719,10 +719,10 @@ namespace cvt
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
 
-				x3 = _mm_unpackhi_epi8( x2, z );
-				x2 = _mm_unpacklo_epi8( x2, z );
-				x1 = _mm_unpackhi_epi8( x0, z );
-				x0 = _mm_unpacklo_epi8( x0, z );
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
 
 				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
 				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
@@ -787,10 +787,10 @@ namespace cvt
 			x2 = _mm_unpackhi_epi8( x0, z );
 			x0 = _mm_unpacklo_epi8( x0, z );
 
-			x3 = _mm_unpackhi_epi8( x2, z );
-			x2 = _mm_unpacklo_epi8( x2, z );
-			x1 = _mm_unpackhi_epi8( x0, z );
-			x0 = _mm_unpacklo_epi8( x0, z );
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
 
 			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
 			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
@@ -805,10 +805,10 @@ namespace cvt
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
 
-				x3 = _mm_unpackhi_epi8( x2, z );
-				x2 = _mm_unpacklo_epi8( x2, z );
-				x1 = _mm_unpackhi_epi8( x0, z );
-				x0 = _mm_unpacklo_epi8( x0, z );
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
 
 				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
 				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
@@ -882,10 +882,10 @@ namespace cvt
 			x2 = _mm_unpackhi_epi8( x0, z );
 			x0 = _mm_unpacklo_epi8( x0, z );
 
-			x3 = _mm_unpackhi_epi8( x2, z );
-			x2 = _mm_unpacklo_epi8( x2, z );
-			x1 = _mm_unpackhi_epi8( x0, z );
-			x0 = _mm_unpacklo_epi8( x0, z );
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
 
 			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
 			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
@@ -900,10 +900,10 @@ namespace cvt
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
 
-				x3 = _mm_unpackhi_epi8( x2, z );
-				x2 = _mm_unpacklo_epi8( x2, z );
-				x1 = _mm_unpackhi_epi8( x0, z );
-				x0 = _mm_unpacklo_epi8( x0, z );
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
 
 				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
 				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
