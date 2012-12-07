@@ -8,8 +8,8 @@ namespace cvt {
     template <class EigenMat>
     static bool hasNaN( const EigenMat& mat )
     {
-        for( size_t i = 0; i < mat.rows(); i++ ){
-            for( size_t k = 0; k < mat.cols(); k++ ){
+        for( int i = 0; i < mat.rows(); i++ ){
+            for( int k = 0; k < mat.cols(); k++ ){
                 if( Math::isNaN( mat( i, k ) ) ||
                     Math::isInf( mat( i, k ) ) ){
                     return true;
@@ -58,10 +58,12 @@ namespace cvt {
                         std::cout << "i: " << i << std::endl;
                         std::cout << "weight: " << weight << std::endl;
                         std::cout << "residual: " << residuals[idx] << std::endl;
+                        getchar();
                     }
                     if( hasNaN( jacobians[ idx ] ) ){
                         std::cout << "jacobian has nan value(s)" << std::endl;
                         std::cout << jacobians[ idx ] << std::endl;
+                        getchar();
                     }
 
                     bkp = H;
@@ -76,8 +78,10 @@ namespace cvt {
                         std::cout << "jtmp: \n" << jtmp << std::endl;
                         std::cout << "idx: " << idx << std::endl;
                         std::cout << "i: " << i << std::endl;
+                        std::cout << "numindices: " << indices.size() << std::endl;
                         std::cout << "weight: " << weight << std::endl;
                         std::cout << "residual: " << residuals[idx] << std::endl;
+                        getchar();
                     }
 
                 }

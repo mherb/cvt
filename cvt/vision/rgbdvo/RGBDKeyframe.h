@@ -36,8 +36,8 @@ namespace cvt
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef Eigen::Matrix<float, 1, dim>    JacobianType;
             typedef Eigen::Matrix<float, 2, dim>    ScreenJacobianType;
-            //typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
-            typedef std::vector<ScreenJacobianType> ScreenJacVec;
+            typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
+            //typedef std::vector<ScreenJacobianType> ScreenJacVec;
 
             typedef Eigen::Matrix<float, dim, dim>  HessianType;
 

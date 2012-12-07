@@ -171,8 +171,6 @@ namespace cvt
                     data.points3d.push_back( p3d );
                     data.gradients.push_back( Vector2f( gx[ x ], gy[ x ] ) );
                     data.screenJacobians.push_back( sj );
-
-
                 }
             }
             gxMap++;

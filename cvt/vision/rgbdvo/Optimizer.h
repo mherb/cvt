@@ -25,30 +25,30 @@ namespace cvt {
             HistMedianSelect( float min, float max, float resolution ) :
                 _min( min ),
                 _max( max ),
+                _range( _max - _min ),
                 _resolution( resolution )
             {
-                float range = _max - _min;
-                size_t nBins = range / resolution;
+                size_t nBins = _range / resolution;
                 _hist.resize( nBins, 0 );
             }
 
             void add( float value )
             {
                 value = Math::clamp( value, _min, _max );
+                float fidx =  value / ( _range ) * ( float ) ( _hist.size() - 1 ) + 0.5f;
+                int idx = ( int ) fidx;
 
-                size_t bin = ( value - _min ) / _resolution;
-                _hist[ bin ]++;
+                _hist[ idx ] += 1;
             }
 
             // approximate the nth value
             float approximateNth( size_t nth )
             {
-                size_t bin = 1;
-                size_t num = _hist[ 0 ];
+                size_t bin = 0;
+                size_t num = _hist[ bin++ ];
 
                 while( num < nth ){
-                    num += _hist[ bin ];
-                    bin++;
+                    num += _hist[ bin++ ];
                 }
                 bin--;
                 size_t nPrev = num - _hist[ bin ];
@@ -72,6 +72,7 @@ namespace cvt {
         private:
             float               _min;
             float               _max;
+            float               _range;
             float               _resolution;
             std::vector<size_t> _hist;
     };
@@ -132,6 +133,31 @@ namespace cvt {
                 }
             }
 
+            bool testIndices( const std::vector<size_t>& foundValid, const std::vector<Vector2f>& pts, size_t width, size_t height ) const
+            {
+                std::vector<size_t>::const_iterator it = foundValid.begin();
+                const std::vector<size_t>::const_iterator itEnd = foundValid.end();
+
+                while( it != itEnd ){
+
+                    if( *it >= pts.size() ){
+                        std::cerr << "Index out of bounds: pts[ " << *it << " ], " << " pts size:" <<  pts.size() << std::endl;
+                        return false;
+                    }
+
+                    const Vector2f& p = pts[ *it ];
+                    if( p.x < 0 || p.x >= width ||
+                        p.y < 0 || p.y >= height ){
+                        std::cerr << "Point out of image: " << p << " [w,h]: [" << width << ", " << height << "]" << std::endl;
+                        return false;
+                    }
+
+                    ++it;
+                }
+
+                return true;
+            }
+
     };
 
     template <class WarpFunc, class LossFunc>
@@ -171,7 +197,7 @@ namespace cvt {
         std::vector<float> residuals;
         std::vector<size_t> indices;
 
-        // TODO: compose this into one multicchannel image
+        // TODO: compose this into one multichannel image
         ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
         ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
 
@@ -224,40 +250,42 @@ namespace cvt {
                 simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
 
                 // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
+                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -10.0f, num );
                 scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
 
-                validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
+                // compute the valid indices: (those that are within the image)
+                validIndices( indices, &interpolatedPixels[ 0 ], num, -0.1f );
 
                 float median = computeMedian( &residuals[ 0 ], indices );
-                weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
+
+                /* this is an estimate for the standard deviation:
+                 * TODO: check if this is the same as described in the paper
+                 */
+                weighter.setSigma( 1.4f * median );
 
 
-                // interpolate the gradient for ESM
+                // interpolate the warped gradient for ESM
                 simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );
                 simd->warpBilinear1f( &interpolatedGy[ 0 ], &warpedPts[ 0 ].x, gyMap.ptr(), gyMap.stride(), width, height, -20.0f, num );
 
-                std::cout << "Indices: " << indices.size() << " num: " << num << std::endl;
-
                 Eigen::Vector2f gVec;
-                for( size_t i = 0; i < indices.size(); i++ ){
-                    size_t idx = indices[ i ];
+                std::vector<size_t>::const_iterator idxIter = indices.begin();
+                const std::vector<size_t>::const_iterator idxIterEnd = indices.end();
 
-                    gVec[ 0 ] = refGrads[ idx ].x;
-                    gVec[ 1 ] = refGrads[ idx ].y;
-                    /*
-                    if( interpolatedGx[ idx ] != -20.0f ){
-                        gVec[ 0 ] += interpolatedGx[ idx ];
+                while( idxIter != idxIterEnd ){
+                    gVec[ 0 ] = refGrads[ *idxIter ].x;
+                    gVec[ 1 ] = refGrads[ *idxIter ].y;
+
+                    if( interpolatedGx[ *idxIter ] != -20.0f ){
+                        gVec[ 0 ] += interpolatedGx[ *idxIter ];
                         gVec[ 0 ] *= 0.5f;
                     }
-                    if( interpolatedGy[ idx ] != -20.0f ){
-                        gVec[ 1 ] += interpolatedGy[ idx ];
+                    if( interpolatedGy[ *idxIter ] != -20.0f ){
+                        gVec[ 1 ] += interpolatedGy[ *idxIter ];
                         gVec[ 1 ] *= 0.5f;
-                    }*/
-                    esmJacobian[ i ] = gVec.transpose() * data.screenJacobians[ idx ];
-                    if( hasNaN( esmJacobian[ i ] ) ){
-                        std::cout << "ESMJacobian contains NaN" << std::endl;
                     }
+                    esmJacobian[ *idxIter ] = gVec.transpose() * data.screenJacobians[ *idxIter ];
+                    ++idxIter;
                 }
 
                 /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
@@ -278,8 +306,6 @@ namespace cvt {
 
                 if( !lu.isInvertible() ){
                     std::cout << "Hessian is not invertible\n" << hessian << std::endl;
-                    getchar();
-                    //checkJacobians( esmJacobian );
                     getchar();
 
                     break;
