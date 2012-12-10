@@ -141,6 +141,10 @@ namespace cvt {
             virtual void ConvolveHorizontal2f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal4f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
 
+            virtual void ConvolveHorizontalSym1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
+            virtual void ConvolveHorizontalSym2f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
+            virtual void ConvolveHorizontalSym4f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
+
             virtual void ConvolveHorizontal1u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal2u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal4u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const;
@@ -148,6 +152,10 @@ namespace cvt {
             virtual void ConvolveHorizontal1u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
+
+            virtual void ConvolveHorizontalSym1u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
+            virtual void ConvolveHorizontalSym2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
+            virtual void ConvolveHorizontalSym4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
 
             virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
             virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
@@ -167,6 +175,9 @@ namespace cvt {
             virtual void ConvolveClampVert_fx_to_s16( int16_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
+
+            virtual void ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
+            virtual void ConvolveClampVertSym_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
 
             virtual void ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
             virtual void ConvolveAdaptiveClamp2f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;

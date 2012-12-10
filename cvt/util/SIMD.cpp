@@ -2782,6 +2782,157 @@ namespace cvt {
         }
 	}
 
+	void SIMD::ConvolveHorizontalSym1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp;
+			tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k );
+				ssize_t pos2 = ( x + k );
+				tmp += wsym[ k ] * ( src[ pos1 ] + src[ pos2 ] );
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym2f( float* dst, const float* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 2 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ];
+			ssize_t pos = ( x ) << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym4f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 4 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+				tmp[ 2 ] += wsym[ k ] * ( src[ pos1 + 2 ] + src[ pos2 + 2 ] );
+				tmp[ 3 ] += wsym[ k ] * ( src[ pos1 + 3 ] + src[ pos2 + 3 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+		for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+	}
+
 	void SIMD::ConvolveHorizontal1u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
 	{
         if( wn == 1 ) {
@@ -3054,6 +3205,158 @@ namespace cvt {
 				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
 				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
 				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+
+	}
+
+	void SIMD::ConvolveHorizontalSym1u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp;
+			tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k );
+				ssize_t pos2 = ( x + k );
+				tmp += wsym[ k ] * ( src[ pos1 ] + src[ pos2 ] );
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width * 2 );
+            return;
+        }
+
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ];
+			ssize_t pos = ( x ) << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width * 4 );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+				tmp[ 2 ] += wsym[ k ] * ( src[ pos1 + 2 ] + src[ pos2 + 2 ] );
+				tmp[ 3 ] += wsym[ k ] * ( src[ pos1 + 3 ] + src[ pos2 + 3 ] );
 			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
@@ -4619,10 +4922,10 @@ namespace cvt {
         float tmp;
 
         for( x = 0 ; x < width; x++ ) {
-            tmp = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp = bufs[ 0 ][ x ] * *weights;
 
             for( size_t k = 1; k < numw; k++ ) {
-                tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp += bufs[ k ][ x ] * weights[ k ];
             }
             *dst++ = tmp;
         }
@@ -4634,10 +4937,46 @@ namespace cvt {
         float tmp;
 
         for( x = 0 ; x < width; x++ ) {
-            tmp = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp = bufs[ 0 ][ x ] * *weights;
 
             for( size_t k = 1; k < numw; k++ ) {
-                tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp += bufs[ k ][ x ] * weights[ k ];
+            }
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+            }
+            *dst++ = tmp;
+        }
+    }
+
+    void SIMD::ConvolveClampVertSym_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
             }
             *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
         }

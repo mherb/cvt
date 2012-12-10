@@ -316,18 +316,233 @@ namespace cvt
             _mm_store_ps( dst + 4, s1 );
             dst += 8;
         }
-        for( ; x < ( ssize_t ) width - b2 - 2; x += 2 ) {
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = ( x - b1 + k ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1 || ( x < ( ssize_t ) width && ( ( ( size_t ) dst ) & 0xf ) ); x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+
+        for( ; x < ( ssize_t ) width - b2 - 8; x+= 8 ) {
             __m128 f;
-		    __m128 s0 = _mm_setzero_ps(), s1 = s0;
+		    __m128 s0, s1;
 		    __m128 x0, x1;
 
-            for( size_t k = 0; k < wn; k++ )
+			f = _mm_load_ss( wsym );
+            f = _mm_shuffle_ps( f, f, 0 );
+
+			x0 = _mm_loadu_ps( src + x );
+			x1 = _mm_loadu_ps( src + x + 4 );
+			s0 = _mm_mul_ps( x0, f );
+			s1 = _mm_mul_ps( x1, f );
+
+            for( ssize_t k = 1; k <= b1; k++ )
             {
-                f = _mm_load_ss( weights + k );
+                f = _mm_load_ss( wsym + k );
                 f = _mm_shuffle_ps( f, f, 0 );
 
-                x0 = _mm_loadu_ps( src + ( ( x - b1 + k ) << 2 ) );
-                x1 = _mm_loadu_ps( src + ( ( x - b1 + k ) << 2 ) + 4 );
+                x0 = _mm_loadu_ps( src + x - k );
+                x1 = _mm_loadu_ps( src + x - k + 4 );
+
+                x0 = _mm_add_ps( x0, _mm_loadu_ps( src + x + k ) );
+                x1 = _mm_add_ps( x1, _mm_loadu_ps( src + x + k + 4 ) );
+
+                s0 = _mm_add_ps( s0, _mm_mul_ps( x0, f ) );
+                s1 = _mm_add_ps( s1, _mm_mul_ps( x1, f ) );
+            }
+            _mm_store_ps( dst, s0 );
+            _mm_store_ps( dst + 4, s1 );
+            dst += 8;
+        }
+
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = x - b1 + k;
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym2f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 2 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1 || ( x < ( ssize_t ) width && ( ( ( size_t ) dst ) & 0xf ) ); x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2 - 4; x += 4 ) {
+            __m128 f;
+		    __m128 s0, s1;
+		    __m128 x0, x1;
+
+			f = _mm_load_ss( wsym );
+            f = _mm_shuffle_ps( f, f, 0 );
+
+			x0 = _mm_loadu_ps( src + ( x << 1 ) );
+			x1 = _mm_loadu_ps( src + ( x << 1 ) + 4 );
+			s0 = _mm_mul_ps( x0, f );
+			s1 = _mm_mul_ps( x1, f );
+
+            for( ssize_t k = 1; k <= b1; k++ )
+            {
+                f = _mm_load_ss( wsym + k );
+                f = _mm_shuffle_ps( f, f, 0 );
+
+                x0 = _mm_loadu_ps( src + ( ( x - k ) << 1 ) );
+                x1 = _mm_loadu_ps( src + ( ( x - k ) << 1 ) + 4 );
+
+                x0 = _mm_add_ps( x0, _mm_loadu_ps( src + ( ( x + k ) << 1 ) ) );
+                x1 = _mm_add_ps( x1, _mm_loadu_ps( src + ( ( x + k ) << 1 ) + 4 ) );
+
+                s0 = _mm_add_ps( s0, _mm_mul_ps( x0, f ) );
+                s1 = _mm_add_ps( s1, _mm_mul_ps( x1, f ) );
+            }
+            _mm_store_ps( dst, s0 );
+            _mm_store_ps( dst + 4, s1 );
+            dst += 8;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = ( x - b1 + k ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym4f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 4 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+		for( ; x < ( ssize_t ) width - b2 - 2; x+= 2 ) {
+            __m128 f;
+		    __m128 s0, s1;
+		    __m128 x0, x1;
+
+			f = _mm_load_ss( wsym );
+            f = _mm_shuffle_ps( f, f, 0 );
+
+			x0 = _mm_loadu_ps( src + ( x << 2 ) );
+			x1 = _mm_loadu_ps( src + ( x << 2 ) + 4 );
+			s0 = _mm_mul_ps( x0, f );
+			s1 = _mm_mul_ps( x1, f );
+
+            for( ssize_t k = 1; k <= b1; k++ )
+            {
+                f = _mm_load_ss( wsym + k );
+                f = _mm_shuffle_ps( f, f, 0 );
+
+                x0 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) );
+                x1 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) + 4 );
+
+                x0 = _mm_add_ps( x0, _mm_loadu_ps( src + ( ( x + k ) << 2 ) ) );
+                x1 = _mm_add_ps( x1, _mm_loadu_ps( src + ( ( x + k ) << 2 ) + 4 ) );
+
                 s0 = _mm_add_ps( s0, _mm_mul_ps( x0, f ) );
                 s1 = _mm_add_ps( s1, _mm_mul_ps( x1, f ) );
             }
@@ -899,6 +1114,300 @@ namespace cvt
 				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - b1 + k ) << 2 ) )  );
 				x2 = _mm_unpackhi_epi8( x0, z );
 				x0 = _mm_unpacklo_epi8( x0, z );
+
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul ) );
+			}
+			_mm_store_ps( ( dst ), s0);
+			_mm_store_ps( ( dst + 4 ), s1);
+			_mm_store_ps( ( dst + 8 ), s2);
+			_mm_store_ps( ( dst + 12 ), s3);
+			dst += 16;
+		}
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = ( x - b1 + k ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym1u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width );
+            return;
+        }
+
+		const __m128i z = _mm_setzero_si128();
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1 || ( x < ( ssize_t ) width && ( ( ( size_t ) dst ) & 0xf ) ); x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+
+		for( ; x < ( ssize_t ) width - b2 - 16; x+= 16 ) {
+			__m128	mul;
+			__m128	s0, s1, s2, s3;
+			__m128i x0, x1, x2, x3, tmp;
+
+			mul = _mm_load_ss( wsym );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x ) );
+			x2 = _mm_unpackhi_epi8( x0, z );
+			x0 = _mm_unpacklo_epi8( x0, z );
+
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
+
+			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
+			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
+			s2 = _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul );
+			s3 = _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul );
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				mul = _mm_load_ss( wsym + k );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + x - k ) );
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+
+				tmp = _mm_loadu_si128( ( const __m128i* ) ( src + x + k ) );
+				x2 = _mm_add_epi16( x2, _mm_unpackhi_epi8( tmp, z ) );
+				x0 = _mm_add_epi16( x0, _mm_unpacklo_epi8( tmp, z ) );
+
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul ) );
+			}
+			_mm_store_ps( ( dst ), s0);
+			_mm_store_ps( ( dst + 4 ), s1);
+			_mm_store_ps( ( dst + 8 ), s2);
+			_mm_store_ps( ( dst + 12 ), s3);
+			dst += 16;
+		}
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = x - b1 + k;
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width * 2 );
+            return;
+        }
+
+		const __m128i z = _mm_setzero_si128();
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1 || ( x < ( ssize_t ) width && ( ( ( size_t ) dst ) & 0xf ) ); x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+		for( ; x < ( ssize_t ) width - b2 - 8; x+= 8 ) {
+			__m128 mul;
+			__m128	s0, s1, s2, s3;
+			__m128i x0, x1, x2, x3, tmp;
+
+			mul = _mm_load_ss( wsym );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( x << 1 ) ) );
+			x2 = _mm_unpackhi_epi8( x0, z );
+			x0 = _mm_unpacklo_epi8( x0, z );
+
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
+
+			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
+			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
+			s2 = _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul );
+			s3 = _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul );
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				mul = _mm_load_ss( wsym + k );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - k ) << 1 ) ) );
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+
+				tmp = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x + k ) << 1 ) ) );
+				x2 = _mm_add_epi16( x2, _mm_unpackhi_epi8( tmp, z ) );
+				x0 = _mm_add_epi16( x0, _mm_unpacklo_epi8( tmp, z ) );
+
+				x3 = _mm_unpackhi_epi16( x2, z );
+				x2 = _mm_unpacklo_epi16( x2, z );
+				x1 = _mm_unpackhi_epi16( x0, z );
+				x0 = _mm_unpacklo_epi16( x0, z );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul ) );
+			}
+			_mm_store_ps( ( dst ), s0);
+			_mm_store_ps( ( dst + 4 ), s1);
+			_mm_store_ps( ( dst + 8 ), s2);
+			_mm_store_ps( ( dst + 12 ), s3);
+			dst += 16;
+		}
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = ( x - b1 + k ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMDSSE2::ConvolveHorizontalSym4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1f( dst, src, *weights, width * 4 );
+            return;
+        }
+
+		const __m128i z = _mm_setzero_si128();
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+
+		for( ; x < ( ssize_t ) width - b2 - 4; x+= 4 ) {
+			__m128 mul;
+			__m128	s0, s1, s2, s3;
+			__m128i x0, x1, x2, x3, tmp;
+
+			mul = _mm_load_ss( wsym );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( x << 2 ) )  );
+			x2 = _mm_unpackhi_epi8( x0, z );
+			x0 = _mm_unpacklo_epi8( x0, z );
+
+			x3 = _mm_unpackhi_epi16( x2, z );
+			x2 = _mm_unpacklo_epi16( x2, z );
+			x1 = _mm_unpackhi_epi16( x0, z );
+			x0 = _mm_unpacklo_epi16( x0, z );
+
+			s0 = _mm_mul_ps( _mm_cvtepi32_ps( x0 ), mul );
+			s1 = _mm_mul_ps( _mm_cvtepi32_ps( x1 ), mul );
+			s2 = _mm_mul_ps( _mm_cvtepi32_ps( x2 ), mul );
+			s3 = _mm_mul_ps( _mm_cvtepi32_ps( x3 ), mul );
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				mul = _mm_load_ss( wsym + k );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x - k ) << 2 ) ) );
+				x2 = _mm_unpackhi_epi8( x0, z );
+				x0 = _mm_unpacklo_epi8( x0, z );
+
+				tmp = _mm_loadu_si128( ( const __m128i* ) ( src + ( ( x + k ) << 2 ) ) );
+				x2 = _mm_add_epi16( x2, _mm_unpackhi_epi8( tmp, z ) );
+				x0 = _mm_add_epi16( x0, _mm_unpacklo_epi8( tmp, z ) );
 
 				x3 = _mm_unpackhi_epi16( x2, z );
 				x2 = _mm_unpacklo_epi16( x2, z );
@@ -1674,6 +2183,125 @@ namespace cvt
 				x1 = _mm_load_ps( bufs[ k ] + x + 4 );
 				x2 = _mm_load_ps( bufs[ k ] + x + 8 );
 				x3 = _mm_load_ps( bufs[ k ] + x + 12 );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
+			}
+
+			out0 = _mm_packs_epi32( _mm_cvtps_epi32( s0 ),_mm_cvtps_epi32( s1 ) );
+			out1 = _mm_packs_epi32( _mm_cvtps_epi32( s2 ), _mm_cvtps_epi32( s3 ) );
+
+			out0 = _mm_packus_epi16( out0, out1 );
+			_mm_store_si128( ( __m128i* ) dst, out0 );
+			dst += 16;
+		}
+
+		float tmp;
+		for( ; x < width; x++ ) {
+			tmp = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+		}
+	}
+
+	void SIMDSSE2::ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+		__m128 s0, s1, s2, s3, mul;
+		__m128 x0, x1, x2, x3;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			mul = _mm_load_ss( wsym );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_load_ps( bufs[ b1 ] + x );
+			x1 = _mm_load_ps( bufs[ b1 ] + x + 4 );
+			x2 = _mm_load_ps( bufs[ b1 ] + x + 8 );
+			x3 = _mm_load_ps( bufs[ b1 ] + x + 12 );
+			s0 = _mm_mul_ps( x0, mul );
+			s1 = _mm_mul_ps( x1, mul );
+			s2 = _mm_mul_ps( x2, mul );
+			s3 = _mm_mul_ps( x3, mul );
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				mul = _mm_load_ss( wsym + k );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_load_ps( bufs[ b1 - k ] + x  );
+				x1 = _mm_load_ps( bufs[ b1 - k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ b1 - k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ b1 - k ] + x + 12 );
+
+				x0 = _mm_add_ps( x0, _mm_load_ps( bufs[ b1 + k ] + x  ) );
+				x1 = _mm_add_ps( x1, _mm_load_ps( bufs[ b1 + k ] + x + 4 ) );
+				x2 = _mm_add_ps( x2, _mm_load_ps( bufs[ b1 + k ] + x + 8 ) );
+				x3 = _mm_add_ps( x3, _mm_load_ps( bufs[ b1 + k ] + x + 12 ) );
+
+				s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
+				s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
+				s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
+				s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
+			}
+			_mm_store_ps( dst + 0 , s0 );
+			_mm_store_ps( dst + 4 , s1 );
+			_mm_store_ps( dst + 8 , s2 );
+			_mm_store_ps( dst + 12 , s3 );
+			dst += 16;
+		}
+
+		float tmp;
+		for( ; x < width; x++ ) {
+			tmp = bufs[ 0 ][ x + 0 ] * *weights;
+
+			for( size_t k = 1; k < numw; k++ ) {
+				tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+			}
+			*dst++ = tmp;
+		}
+	}
+
+	void SIMDSSE2::ConvolveClampVertSym_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+		__m128 s0, s1, s2, s3, mul;
+		__m128 x0, x1, x2, x3;
+		__m128i out0, out1;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			mul = _mm_load_ss( wsym );
+			mul = _mm_shuffle_ps( mul, mul, 0 );
+
+			x0 = _mm_load_ps( bufs[ b1 ] + x );
+			x1 = _mm_load_ps( bufs[ b1 ] + x + 4 );
+			x2 = _mm_load_ps( bufs[ b1 ] + x + 8 );
+			x3 = _mm_load_ps( bufs[ b1 ] + x + 12 );
+			s0 = _mm_mul_ps( x0, mul );
+			s1 = _mm_mul_ps( x1, mul );
+			s2 = _mm_mul_ps( x2, mul );
+			s3 = _mm_mul_ps( x3, mul );
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				mul = _mm_load_ss( ( wsym + k ) );
+				mul = _mm_shuffle_ps( mul, mul, 0 );
+
+				x0 = _mm_load_ps( bufs[ b1 - k ] + x  );
+				x1 = _mm_load_ps( bufs[ b1 - k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ b1 - k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ b1 - k ] + x + 12 );
+
+				x0 = _mm_add_ps( x0, _mm_load_ps( bufs[ b1 + k ] + x  ) );
+				x1 = _mm_add_ps( x1, _mm_load_ps( bufs[ b1 + k ] + x + 4 ) );
+				x2 = _mm_add_ps( x2, _mm_load_ps( bufs[ b1 + k ] + x + 8 ) );
+				x3 = _mm_add_ps( x3, _mm_load_ps( bufs[ b1 + k ] + x + 12 ) );
 
 				s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
 				s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );

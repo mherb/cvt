@@ -34,6 +34,9 @@ namespace cvt {
 			void normalize();
 			void scale( float value );
 
+			bool isSymmetrical() const;
+			bool isAsymmetrical() const;
+
 			static const IKernel GAUSS_HORIZONTAL_3;
 			static const IKernel GAUSS_HORIZONTAL_5;
 			static const IKernel GAUSS_HORIZONTAL_7;
@@ -173,6 +176,41 @@ namespace cvt {
 		float* ptr = _data;
 		while( n-- )
 			*ptr++ *= value;
+	}
+
+
+	inline bool IKernel::isSymmetrical() const
+	{
+		if( !( _width & 1 ) || !( _height & 1 ) )
+			return false;
+
+		const size_t iend = _width * _height;
+		for( size_t i = 0; i < iend; i++ )
+		{
+			float a = _data[ i ];
+			float b = _data[ iend - i - 1 ];
+			if( a != b )
+				return false;
+		}
+		return true;
+	}
+
+	inline bool IKernel::isAsymmetrical() const
+	{
+		if( !( _width & 1 ) || !( _height & 1 ) )
+			return false;
+
+		const size_t iend = _width * _height;
+		for( size_t i = 0; i < iend; i++ )
+		{
+			if( i == iend - i - 1 )
+				continue;
+			float a = _data[ i ];
+			float b = _data[ iend - i - 1 ];
+			if( a != -b )
+				return false;
+		}
+		return true;
 	}
 
 }
