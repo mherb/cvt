@@ -121,6 +121,20 @@ namespace cvt {
                 return medianSelector.approximateNth( indices.size() >> 1 );
             }
 
+            float computeMAD( const float* residuals, const std::vector<size_t>& indices, float median ) const
+            {
+                HistMedianSelect medianSelector( 0.0f, 0.5f, 0.01f );
+
+                std::vector<size_t>::const_iterator it = indices.begin();
+                const std::vector<size_t>::const_iterator end = indices.end();
+                while( it != end ){
+                    medianSelector.add( Math::abs( residuals[ *it ] - median ) );
+                    ++it;
+                }
+
+                return medianSelector.approximateNth( indices.size() >> 1 );
+            }
+
             void validIndices( std::vector<size_t>& indices, const float* vals, size_t num, float minVal ) const
             {
                 indices.clear();
@@ -257,12 +271,12 @@ namespace cvt {
                 validIndices( indices, &interpolatedPixels[ 0 ], num, -0.1f );
 
                 float median = computeMedian( &residuals[ 0 ], indices );
+                float mad = computeMAD( &residuals[ 0 ], indices, median );
 
                 /* this is an estimate for the standard deviation:
                  * TODO: check if this is the same as described in the paper
                  */
-                weighter.setSigma( 1.4f * median );
-
+                weighter.setScale( 1.4826f * mad );
 
                 // interpolate the warped gradient for ESM
                 simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );

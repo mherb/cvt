@@ -9,13 +9,23 @@ namespace cvt
         static const bool Value = true;
     };
 
+    template <typename T>
+    struct RobustWeighting
+    {
+        /* does this lf have a scale parameter? */
+        virtual bool hasScale();
+        virtual void setScale( T scale );
+        virtual void setParameter( T p );
+    };
+
 
     template <typename T>
     struct NoWeighting {
         NoWeighting( T ){}
         T weight( T ){ return (T)1; }
 
-        void setSigma( T /*sigma*/ ){}
+        void setThreshold( T /*thresh*/ ){}
+        void setScale( T /*sigma*/ ){}
     };
 
     template< typename T >
@@ -27,18 +37,19 @@ namespace cvt
     template <typename T>
     struct Huber
     {
-        Huber( T t ) : c( t ) {}
+        Huber( T _c ) : c( _c  ) {}
 
         T weight( T r ) const
         {
             T t = Math::abs( r );
             if ( t < c )
-                return 1;
+                return ( T )1;
             else
                 return c / t;
         }
 
-        void setSigma( T sigma ){ c = sigma; }
+        void setThreshold( T thresh ){ c = thresh; }
+        void setScale( T /*sigma*/ ){}
 
         T c;
     };
@@ -49,22 +60,25 @@ namespace cvt
         /**
          *	\brief	cut-off at threshold (0 influence of outliers!)
          */
-        Tukey( T t ) : c( t ) {}
+        Tukey( T _c ) : c( _c ), s( 1 ) {}
 
         T weight( T r ) const
         {
-            T t = Math::abs( r );
-            if ( t > c )
+            T rs = Math::abs( r / s );
+            if ( rs > c )
                 return (T)0;
             else
-                return Math::sqr( 1 - Math::sqr( r / c ) );
+                return Math::sqr( 1 - Math::sqr( rs / c ) );
         }
 
-        void setSigma( T sigma ){ c = sigma; }
+        void setThreshold( T thresh ){ c = thresh; }
+        void setScale( T sigma ){ s = sigma; }
 
         T c;
+        T s;
     };
 
+    /*
     template <typename T>
     struct Welsch
     {
@@ -105,8 +119,7 @@ namespace cvt
             return (T)1 / Math::sqr( (T)1 + Math::sqr( r ) );
         }
 
-        void setSigma( T /*sigma*/ ){}
-
+        void setSigma( T sigma ){}
     };
 
     template <typename T>
@@ -134,7 +147,7 @@ namespace cvt
             return (T)1 / Math::sqrt( (T)1 + Math::sqr( r ) / 2 );
         }
 
-        void setSigma( T /*sigma*/ ){}
+        void setSigma( T sigma ){}
     };
 
     template <typename T>
@@ -147,8 +160,8 @@ namespace cvt
             return (T)1 / Math::abs( r );
         }
 
-        void setSigma( T /*sigma*/ ){}
-    };
+        void setSigma( T sigma ){}
+    };*/
 
 }
 
