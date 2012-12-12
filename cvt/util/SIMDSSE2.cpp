@@ -151,6 +151,130 @@ namespace cvt
 		return sad;
 	}
 
+	void SIMDSSE2::AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const
+	{
+		size_t x;
+		__m128 s0, s1, s2, s3;
+		__m128 x0, x1, x2, x3;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			s0 = _mm_load_ps( bufs[ 0 ] + x );
+			s1 = _mm_load_ps( bufs[ 0 ] + x + 4 );
+			s2 = _mm_load_ps( bufs[ 0 ] + x + 8 );
+			s3 = _mm_load_ps( bufs[ 0 ] + x + 12 );
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				x0 = _mm_load_ps( bufs[ k ] + x  );
+				x1 = _mm_load_ps( bufs[ k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ k ] + x + 12 );
+
+				s0 = _mm_add_ps( s0, x0 );
+				s1 = _mm_add_ps( s1, x1 );
+				s2 = _mm_add_ps( s2, x2 );
+				s3 = _mm_add_ps( s3, x3 );
+			}
+			_mm_store_ps( dst + 0 , s0 );
+			_mm_store_ps( dst + 4 , s1 );
+			_mm_store_ps( dst + 8 , s2 );
+			_mm_store_ps( dst + 12 , s3 );
+			dst += 16;
+		}
+
+        for( ; x < width; x++ ) {
+            float tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numbufs; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMDSSE2::AddVert_f_to_u8( uint8_t* dst, const float**bufs, size_t numbufs, size_t width ) const
+	{
+		size_t x;
+		__m128 s0, s1, s2, s3;
+		__m128 x0, x1, x2, x3;
+		__m128i out0, out1;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			s0 = _mm_load_ps( bufs[ 0 ] + x );
+			s1 = _mm_load_ps( bufs[ 0 ] + x + 4 );
+			s2 = _mm_load_ps( bufs[ 0 ] + x + 8 );
+			s3 = _mm_load_ps( bufs[ 0 ] + x + 12 );
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				x0 = _mm_load_ps( bufs[ k ] + x  );
+				x1 = _mm_load_ps( bufs[ k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ k ] + x + 12 );
+
+				s0 = _mm_add_ps( s0, x0 );
+				s1 = _mm_add_ps( s1, x1 );
+				s2 = _mm_add_ps( s2, x2 );
+				s3 = _mm_add_ps( s3, x3 );
+			}
+			out0 = _mm_packs_epi32( _mm_cvtps_epi32( s0 ),_mm_cvtps_epi32( s1 ) );
+			out1 = _mm_packs_epi32( _mm_cvtps_epi32( s2 ), _mm_cvtps_epi32( s3 ) );
+
+			out0 = _mm_packus_epi16( out0, out1 );
+			_mm_store_si128( ( __m128i* ) dst, out0 );
+			dst += 16;
+		}
+
+		for( ; x < width; x++ ) {
+			float tmp = bufs[ 0 ][ x ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				tmp += bufs[ k ][ x ];
+			}
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+		}
+	}
+
+	void SIMDSSE2::AddVert_f_to_s16( int16_t* dst, const float**bufs, size_t numbufs, size_t width ) const
+	{
+		size_t x;
+		__m128 s0, s1, s2, s3;
+		__m128 x0, x1, x2, x3;
+		__m128i out0, out1;
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			s0 = _mm_load_ps( bufs[ 0 ] + x );
+			s1 = _mm_load_ps( bufs[ 0 ] + x + 4 );
+			s2 = _mm_load_ps( bufs[ 0 ] + x + 8 );
+			s3 = _mm_load_ps( bufs[ 0 ] + x + 12 );
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				x0 = _mm_load_ps( bufs[ k ] + x  );
+				x1 = _mm_load_ps( bufs[ k ] + x + 4 );
+				x2 = _mm_load_ps( bufs[ k ] + x + 8 );
+				x3 = _mm_load_ps( bufs[ k ] + x + 12 );
+
+				s0 = _mm_add_ps( s0, x0 );
+				s1 = _mm_add_ps( s1, x1 );
+				s2 = _mm_add_ps( s2, x2 );
+				s3 = _mm_add_ps( s3, x3 );
+			}
+			out0 = _mm_packs_epi32( _mm_cvtps_epi32( s0 ),_mm_cvtps_epi32( s1 ) );
+			out1 = _mm_packs_epi32( _mm_cvtps_epi32( s2 ), _mm_cvtps_epi32( s3 ) );
+
+			_mm_store_si128( ( __m128i* ) dst, out0 );
+			_mm_store_si128( ( __m128i* ) ( dst + 8 ), out1 );
+			dst += 16;
+		}
+
+		for( ; x < width; x++ ) {
+			float tmp = bufs[ 0 ][ x ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				tmp += bufs[ k ][ x ];
+			}
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
+		}
+	}
+
 	void SIMDSSE2::ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
 	{
 		if( wn == 1 ) {

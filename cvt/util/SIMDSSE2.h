@@ -28,6 +28,11 @@ namespace cvt {
 			using SIMDSSE::SAD;
 			virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
+			/* Add vertical */
+			virtual void AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const;
+			virtual void AddVert_f_to_u8( uint8_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
+			virtual void AddVert_f_to_s16( int16_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
+
 			/* Convolution */
             virtual void ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal2f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;

@@ -136,6 +136,11 @@ namespace cvt {
             virtual void IIR4BwdVertical4Fx( uint8_t * dst, size_t dstride, Fixed* fwdRes,
                                              size_t h, const Fixed * n, const Fixed * d, const Fixed & b ) const;
 
+			/* add vertical */
+			virtual void AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const;
+			virtual void AddVert_f_to_u8( uint8_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
+			virtual void AddVert_f_to_s16( int16_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
+
 			/* Convolution */
             virtual void ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontal2f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;
@@ -175,9 +180,11 @@ namespace cvt {
             virtual void ConvolveClampVert_fx_to_s16( int16_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
+            virtual void ConvolveClampVert_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
 
             virtual void ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVertSym_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
+            virtual void ConvolveClampVertSym_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
 
             virtual void ConvolveAdaptiveClamp1f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;
             virtual void ConvolveAdaptiveClamp2f( float* _dst, float const* _src, const size_t width, IConvolveAdaptivef* conva ) const;

@@ -2647,6 +2647,53 @@ namespace cvt {
         }
     }
 
+    void SIMD::AddVert_f( float* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = tmp;
+        }
+    }
+
+    void SIMD::AddVert_f_to_u8( uint8_t* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::AddVert_f_to_s16( int16_t* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
+        }
+    }
+
+
+
 	void SIMD::ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
 	{
 		if( wn == 1 ) {
@@ -4946,6 +4993,21 @@ namespace cvt {
         }
     }
 
+    void SIMD::ConvolveClampVert_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ] * *weights;
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ] * weights[ k ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
+        }
+    }
+
     void SIMD::ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
     {
         size_t x;
@@ -4979,6 +5041,24 @@ namespace cvt {
                 tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
             }
             *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::ConvolveClampVertSym_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
         }
     }
 
