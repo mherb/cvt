@@ -3060,7 +3060,8 @@ namespace cvt {
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
         }
-        for( ; x < ( ssize_t ) width - b2; x++ ) {
+		for( ; x < ( ssize_t ) width - b2; x++ ) {
+
 			Fixed tmp[ 2 ];
 			tmp[ 0 ].native() = 0;
 			tmp[ 1 ].native() = 0;
@@ -3069,9 +3070,9 @@ namespace cvt {
 				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
 				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
 			}
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-        }
+			*dst++ = tmp[ 0 ];
+			*dst++ = tmp[ 1 ];
+		}
         for( ; x < ( ssize_t ) width; x++ ) {
 			Fixed tmp[ 2 ];
 			tmp[ 0 ].native() = 0;
@@ -3127,6 +3128,182 @@ namespace cvt {
 				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
 				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
 				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp[ 4 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			tmp[ 2 ].native() = 0;
+			tmp[ 3 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+
+	}
+
+	void SIMD::ConvolveHorizontalSym1u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp;
+			tmp.native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = x + k;
+				ssize_t pos2 = x - k;
+				Fixed val;
+				val.native() = ( ( int32_t ) src[ pos1 ] + ( int32_t ) src[ pos2 ] ) << 16;
+				tmp += wsym[ k ] * val;
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp;
+			tmp.native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym2u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width * 2 );
+            return;
+        }
+
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp[ 2 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp[ 2 ];
+			size_t pos = x << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				Fixed val[ 2 ];
+				val[ 0 ].native() = ( ( int32_t ) src[ pos1 + 0 ] + ( int32_t ) src[ pos2 + 0 ] ) << 16;
+				val[ 1 ].native() = ( ( int32_t ) src[ pos1 + 1 ] + ( int32_t ) src[ pos2 + 1 ] ) << 16;
+				tmp[ 0 ] += wsym[ k ] * val[ 0 ];
+				tmp[ 1 ] += wsym[ k ] * val[ 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp[ 2 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym4u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width * 4 );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp[ 4 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			tmp[ 2 ].native() = 0;
+			tmp[ 3 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				Fixed val[ 3 ];
+				val[ 0 ].native() = ( ( int32_t ) src[ pos1 + 0 ] + ( int32_t ) src[ pos2 + 0 ] ) << 16;
+				val[ 1 ].native() = ( ( int32_t ) src[ pos1 + 1 ] + ( int32_t ) src[ pos2 + 1 ] ) << 16;
+				val[ 2 ].native() = ( ( int32_t ) src[ pos1 + 2 ] + ( int32_t ) src[ pos2 + 2 ] ) << 16;
+				val[ 3 ].native() = ( ( int32_t ) src[ pos1 + 3 ] + ( int32_t ) src[ pos2 + 3 ] ) << 16;
+				tmp[ 0 ] += wsym[ k ] * val[ 0 ];
+				tmp[ 1 ] += wsym[ k ] * val[ 1 ];
+				tmp[ 2 ] += wsym[ k ] * val[ 2 ];
+				tmp[ 3 ] += wsym[ k ] * val[ 3 ];
 			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
@@ -5023,6 +5200,25 @@ namespace cvt {
             *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
         }
     }
+
+	void SIMD::ConvolveClampVertSym_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		Fixed tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const Fixed* wsym = weights + b1;
+
+		for( x = 0 ; x < width; x++ ) {
+			tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+			}
+
+            *dst++ = ( uint8_t ) Math::clamp( tmp.round(), 0x0, 0xff );
+		}
+	}
 
     void SIMD::ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
     {

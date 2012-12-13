@@ -243,15 +243,27 @@ namespace cvt {
 			for( size_t ky = 0; ky < vkernel.height(); ky++ )
 				vkern.ptr()[ ky ] = vkernel( 0, ky );
 
-			if( src.channels() == 1 )
-				return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
-																   &SIMD::ConvolveHorizontal1u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
-			else if( src.channels() == 2 )
-				return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
-																   &SIMD::ConvolveHorizontal2u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
-			else if( src.channels() == 4 )
-				return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
-																   &SIMD::ConvolveHorizontal4u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
+			if( symh && symv ) {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontalSym1u8_to_fx, &SIMD::ConvolveClampVertSym_fx_to_u8, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontalSym2u8_to_fx, &SIMD::ConvolveClampVertSym_fx_to_u8, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontalSym4u8_to_fx, &SIMD::ConvolveClampVertSym_fx_to_u8, btype );
+			} else  {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal1u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal2u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, hkern.ptr(), hkernel.width(), vkern.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal4u8_to_fx, &SIMD::ConvolveClampVert_fx_to_u8, btype );
+			}
 #else
 			if( symh && !symv ) {
 				if( src.channels() == 1 )
