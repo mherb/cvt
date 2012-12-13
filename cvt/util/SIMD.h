@@ -101,7 +101,8 @@ namespace cvt {
 			virtual void dilateSpan1f( float* dst, const float* src, size_t n, size_t radius ) const;
 
             /* memory blocks */
-                        /* floating point numbers */
+
+            /* floating point numbers */
             virtual void Add( float* dst, float const* src1, float const* src2, const size_t n ) const;
             virtual void Sub( float* dst, float const* src1, float const* src2, const size_t n ) const;
             virtual void Mul( float* dst, float const* src1, float const* src2, const size_t n ) const;
@@ -140,6 +141,8 @@ namespace cvt {
 			virtual void AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const;
 			virtual void AddVert_f_to_u8( uint8_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
 			virtual void AddVert_f_to_s16( int16_t* dst, const float**bufs, size_t numbufs, size_t width ) const;
+
+			virtual void AddVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, size_t numbufs, size_t width ) const;
 
 			/* Convolution */
             virtual void ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const;

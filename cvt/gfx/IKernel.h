@@ -35,7 +35,7 @@ namespace cvt {
 			void scale( float value );
 
 			bool isSymmetrical() const;
-			bool isAsymmetrical() const;
+			bool isPointSymmetrical() const;
 
 			static const IKernel GAUSS_HORIZONTAL_3;
 			static const IKernel GAUSS_HORIZONTAL_5;
@@ -195,7 +195,7 @@ namespace cvt {
 		return true;
 	}
 
-	inline bool IKernel::isAsymmetrical() const
+	inline bool IKernel::isPointSymmetrical() const
 	{
 		if( !( _width & 1 ) || !( _height & 1 ) )
 			return false;

@@ -275,6 +275,59 @@ namespace cvt
 		}
 	}
 
+#if 1
+	void SIMDSSE2::AddVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, size_t numbufs, size_t width ) const
+	{
+		size_t x;
+		__m128i s0, s1, s2, s3;
+		__m128i x0, x1, x2, x3;
+		const __m128i rnd = _mm_set1_epi32( 0x8000 );
+
+		for( x = 0; x <= width - 16; x += 16 ) {
+			s0 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x ) );
+			s1 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 4 ) );
+			s2 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 8 ) );
+			s3 = _mm_load_si128( ( __m128i* ) ( bufs[ 0 ] + x + 12 ) );
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				x0 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x ) );
+				x1 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 4 ) );
+				x2 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 8 ) );
+				x3 = _mm_load_si128( ( __m128i* ) ( bufs[ k ] + x + 12 ) );
+
+				s0 = _mm_add_epi32( s0, x0 );
+				s1 = _mm_add_epi32( s1, x1 );
+				s2 = _mm_add_epi32( s2, x2 );
+				s3 = _mm_add_epi32( s3, x3 );
+			}
+
+			x0 = _mm_srai_epi32( _mm_add_epi32( s0, rnd ), 16 );
+			x1 = _mm_srai_epi32( _mm_add_epi32( s1, rnd ), 16 );
+			x2 = _mm_srai_epi32( _mm_add_epi32( s2, rnd ), 16 );
+			x3 = _mm_srai_epi32( _mm_add_epi32( s3, rnd ), 16 );
+
+			x0 = _mm_packs_epi32( x0, x1 );
+			x1 = _mm_packs_epi32( x2, x3 );
+
+			x0 = _mm_packus_epi16( x0, x1 );
+
+			_mm_store_si128( ( __m128i* ) dst, x0 );
+			dst += 16;
+		}
+
+		for( ; x < width; x++ ) {
+			Fixed tmp = bufs[ 0 ][ x ];
+
+			for( size_t k = 1; k < numbufs; k++ ) {
+				tmp += bufs[ k ][ x ];
+			}
+
+            *dst++ = ( uint8_t ) Math::clamp( tmp.round(), 0x0, 0xff );
+		}
+	}
+#endif
+
+
 	void SIMDSSE2::ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
 	{
 		if( wn == 1 ) {
@@ -643,18 +696,23 @@ namespace cvt
             *dst++ = tmp[ 2 ];
             *dst++ = tmp[ 3 ];
         }
-		for( ; x < ( ssize_t ) width - b2 - 2; x+= 2 ) {
+		for( ; x < ( ssize_t ) width - b2 - 4; x+= 4 ) {
             __m128 f;
-		    __m128 s0, s1;
-		    __m128 x0, x1;
+		    __m128 s0, s1, s2, s3;
+		    __m128 x0, x1, x2, x3;
 
 			f = _mm_load_ss( wsym );
             f = _mm_shuffle_ps( f, f, 0 );
 
 			x0 = _mm_loadu_ps( src + ( x << 2 ) );
 			x1 = _mm_loadu_ps( src + ( x << 2 ) + 4 );
+			x2 = _mm_loadu_ps( src + ( x << 2 ) + 8 );
+			x3 = _mm_loadu_ps( src + ( x << 2 ) + 12 );
+
 			s0 = _mm_mul_ps( x0, f );
 			s1 = _mm_mul_ps( x1, f );
+			s2 = _mm_mul_ps( x2, f );
+			s3 = _mm_mul_ps( x3, f );
 
             for( ssize_t k = 1; k <= b1; k++ )
             {
@@ -663,16 +721,24 @@ namespace cvt
 
                 x0 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) );
                 x1 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) + 4 );
+                x2 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) + 8 );
+                x3 = _mm_loadu_ps( src + ( ( x - k ) << 2 ) + 12 );
 
                 x0 = _mm_add_ps( x0, _mm_loadu_ps( src + ( ( x + k ) << 2 ) ) );
                 x1 = _mm_add_ps( x1, _mm_loadu_ps( src + ( ( x + k ) << 2 ) + 4 ) );
+                x2 = _mm_add_ps( x2, _mm_loadu_ps( src + ( ( x + k ) << 2 ) + 8 ) );
+                x3 = _mm_add_ps( x3, _mm_loadu_ps( src + ( ( x + k ) << 2 ) + 12 ) );
 
                 s0 = _mm_add_ps( s0, _mm_mul_ps( x0, f ) );
                 s1 = _mm_add_ps( s1, _mm_mul_ps( x1, f ) );
+                s2 = _mm_add_ps( s2, _mm_mul_ps( x2, f ) );
+                s3 = _mm_add_ps( s3, _mm_mul_ps( x3, f ) );
             }
             _mm_store_ps( dst, s0 );
             _mm_store_ps( dst + 4, s1 );
-            dst += 8;
+            _mm_store_ps( dst + 8, s2 );
+            _mm_store_ps( dst + 12, s3 );
+            dst += 16;
         }
         for( ; x < ( ssize_t ) width - b2; x++ ) {
 			float tmp[ 4 ] = { 0, 0, 0, 0 };
@@ -2455,8 +2521,8 @@ namespace cvt
 	void SIMDSSE2::Conv_fx_to_u8( uint8_t* dst, const Fixed* src, const size_t n ) const
 	{
 		size_t i = n >> 4;
-		__m128i x0, x1, x2, x3, rnd;
-		rnd = _mm_set1_epi32( 0x8000 );
+		__m128i x0, x1, x2, x3;
+		const __m128i rnd = _mm_set1_epi32( 0x8000 );
 
 		if( ( ( size_t ) src | ( size_t ) dst ) & 0xf ) {
 			while( i-- ) {

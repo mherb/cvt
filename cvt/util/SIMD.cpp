@@ -2692,6 +2692,22 @@ namespace cvt {
         }
     }
 
+    void SIMD::AddVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        Fixed tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+
+            *dst++ = ( uint8_t ) Math::clamp( tmp.round(), 0x0, 0xff );
+        }
+    }
+
 
 
 	void SIMD::ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const

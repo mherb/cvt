@@ -153,6 +153,7 @@ namespace cvt {
 				return convolveTemplate<float,float,float,float>( dst, src, kernel.ptr(), kernel.width(), kernel.height(),
 																		  &SIMD::ConvolveHorizontal4f, &SIMD::AddVert_f, btype );
 		}  else if( src.format().type == IFORMAT_TYPE_UINT8 && dst.format().type == IFORMAT_TYPE_UINT8 ) {
+#if 0
 			if( src.channels() == 1 )
 				return convolveTemplate<uint8_t,uint8_t,float,float>( dst, src, kernel.ptr(), kernel.width(), kernel.height(),
 																		  &SIMD::ConvolveHorizontal1u8_to_f, &SIMD::AddVert_f_to_u8, btype );
@@ -162,6 +163,22 @@ namespace cvt {
 			else if( src.channels() == 4 )
 				return convolveTemplate<uint8_t,uint8_t,float,float>( dst, src, kernel.ptr(), kernel.width(), kernel.height(),
 																		  &SIMD::ConvolveHorizontal4u8_to_f, &SIMD::AddVert_f_to_u8, btype );
+#else
+			ScopedBuffer<Fixed,true> kern( kernel.width() * kernel.height() );
+			for( size_t i = 0; i < kernel.width() * kernel.height(); i++ )
+					kern.ptr()[ i ] = kernel.ptr()[ i ];
+
+			if( src.channels() == 1 )
+				return convolveTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, kern.ptr(), kernel.width(), kernel.height(),
+																		  &SIMD::ConvolveHorizontal1u8_to_fx, &SIMD::AddVert_fx_to_u8, btype );
+			else if( src.channels() == 2 )
+				return convolveTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, kern.ptr(), kernel.width(), kernel.height(),
+																		  &SIMD::ConvolveHorizontal2u8_to_fx, &SIMD::AddVert_fx_to_u8, btype );
+			else if( src.channels() == 4 )
+				return convolveTemplate<uint8_t,uint8_t,Fixed,Fixed>( dst, src, kern.ptr(), kernel.width(), kernel.height(),
+																		  &SIMD::ConvolveHorizontal4u8_to_fx, &SIMD::AddVert_fx_to_u8, btype );
+
+#endif
 		}
 
 	}
@@ -279,7 +296,47 @@ namespace cvt {
 			}
 #endif
 		} else if( src.format().type == IFORMAT_TYPE_UINT8 && dst.format().type == IFORMAT_TYPE_INT16 ) {
-			//convolveSeperableU8_to_S16( idst, hkernel, vkernel );
+			if( symh && !symv ) {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym1u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym2u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym4u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+			} else if( !symh && symv ) {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontal1u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontal2u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontal4u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+			} else if( symh && symv ) {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym1u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym2u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																			  &SIMD::ConvolveHorizontalSym4u8_to_f, &SIMD::ConvolveClampVertSym_f_to_s16, btype );
+			} else {
+				if( src.channels() == 1 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal1u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+				else if( src.channels() == 2 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal2u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+				else if( src.channels() == 4 )
+					return convolveSeparableTemplate<int16_t,uint8_t,float,float>( dst, src, hkernel.ptr(), hkernel.width(), vkernel.ptr(), vkernel.height(),
+																				  &SIMD::ConvolveHorizontal4u8_to_f, &SIMD::ConvolveClampVert_f_to_s16, btype );
+			}
 		}
 
 		throw CVTException("Unimplemented");
