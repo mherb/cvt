@@ -2421,6 +2421,24 @@ namespace cvt {
         }
     }
 
+    void SIMD::Conv_YUYVu8_to_GRAYf( float* dst, const uint8_t* _src, const size_t n ) const
+    {
+        size_t n1 = n >> 1;
+        uint32_t* src = ( uint32_t* ) _src;
+        uint32_t yuyv;
+        int y0, y1;
+
+        while( n1-- ) {
+            yuyv = *src++;
+            y1 = ( ( ( int ) ( ( yuyv >> 16 ) & 0xff ) - 16 ) * 1192 ) >> 10;
+            y0 = ( ( ( int ) ( yuyv & 0xff ) - 16 ) * 1192 ) >> 10;
+
+            // clamp the values
+            *dst++ = SRGB_U8_TO_F( Math::clamp( y0, 0, 255 ) );
+            *dst++ = SRGB_U8_TO_F( Math::clamp( y1, 0, 255 ) );
+        }
+    }
+
     void SIMD::Conv_YUYVu8_to_GRAYALPHAu8( uint8_t* dst, const uint8_t* _src, const size_t n ) const
     {
         size_t n1 = n >> 1;

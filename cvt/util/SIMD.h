@@ -227,6 +227,8 @@ namespace cvt {
 
             virtual void Conv_YUYVu8_to_GRAYu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
             virtual void Conv_YUYVu8_to_GRAYALPHAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
+            virtual void Conv_YUYVu8_to_GRAYf( float* dst, const uint8_t* src, const size_t n ) const;
+
             virtual void Conv_UYVYu8_to_GRAYu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
             virtual void Conv_UYVYu8_to_GRAYALPHAu8( uint8_t* dst, const uint8_t* src, const size_t n ) const;
             virtual void Conv_UYVYu8_to_GRAYf( float* dst, const uint8_t* src, const size_t n ) const;
