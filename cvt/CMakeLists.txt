@@ -200,6 +200,7 @@ SET(${MODULE_NAME}_HEADERS
    geom/scene/SceneTexture.h
    gfx/Color.h
    gfx/Image.h
+   gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h
    gfx/IComponents.h
@@ -510,6 +511,7 @@ SET(${MODULE_NAME}_SOURCES
    cl/CLProgram.cpp
    gfx/GFX.cpp
    gfx/GFXEngineImage.cpp
+   gfx/IBoxFilter.cpp
    gfx/IConvert.cpp
    gfx/IConvolve.cpp
    gfx/IFill.cpp

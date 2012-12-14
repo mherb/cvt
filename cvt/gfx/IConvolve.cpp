@@ -1,4 +1,3 @@
-
 #include <cvt/gfx/IConvolve.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IMapScoped.h>

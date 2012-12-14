@@ -169,20 +169,6 @@ namespace cvt {
             virtual void ConvolveHorizontalSym2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
             virtual void ConvolveHorizontalSym4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const;
 
-            virtual void ConvolveClampSet1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd1f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-            virtual void ConvolveClampSet2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd2f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-            virtual void ConvolveClampSet4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd4f( float* _dst, float const* _src, const size_t width, float const* weights, const size_t wn ) const;
-
-            virtual void ConvolveClampSet1fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd1fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-            virtual void ConvolveClampSet2fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd2fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-            virtual void ConvolveClampSet4fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-            virtual void ConvolveClampAdd4fx( Fixed* _dst, uint8_t const* _src, const size_t width, const Fixed* weights, const size_t wn ) const;
-
             virtual void ConvolveClampVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_fx_to_s16( int16_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const;
             virtual void ConvolveClampVert_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const;
@@ -248,6 +234,14 @@ namespace cvt {
             virtual void Conv_YUV420u8_to_RGBAu8( uint8_t* dst, const uint8_t* srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const;
             virtual void Conv_YUV420u8_to_BGRAu8( uint8_t* dst, const uint8_t* srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const;
 
+
+			virtual void BoxFilter_1u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const;
+			/*virtual void BoxFilter_2u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const;
+			virtual void BoxFilter_4u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const;
+
+			virtual void BoxFilter_1f( float* dst, const float* src, size_t radius, size_t width ) const;
+			virtual void BoxFilter_2f( float* dst, const float* src, size_t radius, size_t width ) const;
+			virtual void BoxFilter_4f( float* dst, const float* src, size_t radius, size_t width ) const;*/
 
             /* convolve with horizontal gaussian [ 1 4 6 4 1 ] and store the odd results in u16 - even results are discarded/not calculated */
             virtual void pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const;
