@@ -2647,6 +2647,101 @@ namespace cvt {
         }
     }
 
+
+	void SIMD::BoxFilter_1u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const
+	{
+		size_t x;
+		float accum;
+		float invmean = 1.0f / ( float ) ( 2 * radius + 1 );
+
+		accum = *src * ( float ) ( radius + 1 );
+		for( x = 1; x <= radius; x++ )
+			accum += ( float ) src[ x ];
+
+		*dst++ = accum * invmean;
+
+		for( x = 1; x <= radius; x++ ) {
+			accum -= ( float ) src[ 0 ];
+			accum += ( float ) src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width - radius; x++ ) {
+			accum -= ( float ) src[ x - radius - 1 ];
+			accum += ( float ) src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width; x++ ) {
+			accum -= ( float ) src[ x - radius - 1 ];
+			accum += ( float ) src[ width - 1 ];
+			*dst++ = accum * invmean;
+		}
+	}
+
+    void SIMD::AddVert_f( float* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = tmp;
+        }
+    }
+
+    void SIMD::AddVert_f_to_u8( uint8_t* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::AddVert_f_to_s16( int16_t* dst, const float** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
+        }
+    }
+
+    void SIMD::AddVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, size_t numw, size_t width ) const
+    {
+        size_t x;
+        Fixed tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ];
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ];
+            }
+
+            *dst++ = ( uint8_t ) Math::clamp( tmp.round(), 0x0, 0xff );
+        }
+    }
+
+
+
 	void SIMD::ConvolveHorizontal1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
 	{
 		if( wn == 1 ) {
@@ -2782,6 +2877,157 @@ namespace cvt {
         }
 	}
 
+	void SIMD::ConvolveHorizontalSym1f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp;
+			tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k );
+				ssize_t pos2 = ( x + k );
+				tmp += wsym[ k ] * ( src[ pos1 ] + src[ pos2 ] );
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym2f( float* dst, const float* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 2 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ];
+			ssize_t pos = ( x ) << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym4f( float* dst, const float* src, const size_t width, float const* weights, const size_t wn, IBorderType btype ) const
+	{
+		if( wn == 1 ) {
+			MulValue1f( dst, src, *weights, width * 4 );
+			return;
+		}
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+				tmp[ 2 ] += wsym[ k ] * ( src[ pos1 + 2 ] + src[ pos2 + 2 ] );
+				tmp[ 3 ] += wsym[ k ] * ( src[ pos1 + 3 ] + src[ pos2 + 3 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+		for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+	}
+
 	void SIMD::ConvolveHorizontal1u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
 	{
         if( wn == 1 ) {
@@ -2846,7 +3092,8 @@ namespace cvt {
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
         }
-        for( ; x < ( ssize_t ) width - b2; x++ ) {
+		for( ; x < ( ssize_t ) width - b2; x++ ) {
+
 			Fixed tmp[ 2 ];
 			tmp[ 0 ].native() = 0;
 			tmp[ 1 ].native() = 0;
@@ -2855,9 +3102,9 @@ namespace cvt {
 				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
 				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
 			}
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-        }
+			*dst++ = tmp[ 0 ];
+			*dst++ = tmp[ 1 ];
+		}
         for( ; x < ( ssize_t ) width; x++ ) {
 			Fixed tmp[ 2 ];
 			tmp[ 0 ].native() = 0;
@@ -2913,6 +3160,182 @@ namespace cvt {
 				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
 				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
 				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp[ 4 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			tmp[ 2 ].native() = 0;
+			tmp[ 3 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+
+	}
+
+	void SIMD::ConvolveHorizontalSym1u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp;
+			tmp.native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = x + k;
+				ssize_t pos2 = x - k;
+				Fixed val;
+				val.native() = ( ( int32_t ) src[ pos1 ] + ( int32_t ) src[ pos2 ] ) << 16;
+				tmp += wsym[ k ] * val;
+			}
+            *dst++ = tmp;
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp;
+			tmp.native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
+            *dst++ = tmp;
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym2u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width * 2 );
+            return;
+        }
+
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp[ 2 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp[ 2 ];
+			size_t pos = x << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				Fixed val[ 2 ];
+				val[ 0 ].native() = ( ( int32_t ) src[ pos1 + 0 ] + ( int32_t ) src[ pos2 + 0 ] ) << 16;
+				val[ 1 ].native() = ( ( int32_t ) src[ pos1 + 1 ] + ( int32_t ) src[ pos2 + 1 ] ) << 16;
+				tmp[ 0 ] += wsym[ k ] * val[ 0 ];
+				tmp[ 1 ] += wsym[ k ] * val[ 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+
+        }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			Fixed tmp[ 2 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+        }
+	}
+
+	void SIMD::ConvolveHorizontalSym4u8_to_fx( Fixed* dst, const uint8_t* src, const size_t width, const Fixed* weights, const size_t wn, IBorderType btype ) const
+	{
+        if( wn == 1 ) {
+            MulU8Value1fx( dst, src, *weights, width * 4 );
+            return;
+        }
+
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const Fixed* wsym = weights + b1;
+
+        for( x = 0; x < b1; x++ ) {
+			Fixed tmp[ 4 ];
+			tmp[ 0 ].native() = 0;
+			tmp[ 1 ].native() = 0;
+			tmp[ 2 ].native() = 0;
+			tmp[ 3 ].native() = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
+        }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			Fixed tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				Fixed val[ 3 ];
+				val[ 0 ].native() = ( ( int32_t ) src[ pos1 + 0 ] + ( int32_t ) src[ pos2 + 0 ] ) << 16;
+				val[ 1 ].native() = ( ( int32_t ) src[ pos1 + 1 ] + ( int32_t ) src[ pos2 + 1 ] ) << 16;
+				val[ 2 ].native() = ( ( int32_t ) src[ pos1 + 2 ] + ( int32_t ) src[ pos2 + 2 ] ) << 16;
+				val[ 3 ].native() = ( ( int32_t ) src[ pos1 + 3 ] + ( int32_t ) src[ pos2 + 3 ] ) << 16;
+				tmp[ 0 ] += wsym[ k ] * val[ 0 ];
+				tmp[ 1 ] += wsym[ k ] * val[ 1 ];
+				tmp[ 2 ] += wsym[ k ] * val[ 2 ];
+				tmp[ 3 ] += wsym[ k ] * val[ 3 ];
 			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
@@ -3077,1415 +3500,157 @@ namespace cvt {
 
 	}
 
-    void SIMD::ConvolveClampSet1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp;
-        size_t i, k, b1, b2;
-
+	void SIMD::ConvolveHorizontalSym1u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
         if( wn == 1 ) {
-            MulValue1f( dst, src, *weights, width );
+            MulU8Value1f( dst, src, *weights, width );
             return;
         }
 
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
 
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp * *wp++;
-            k = i;
-            while( k-- )
-                tmp += *sp * *wp++;
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
+        for( x = 0; x < b1; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
             *dst++ = tmp;
         }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp = *sp++ * *wp++;
-            k--;
-            while( k-- )
-                tmp += *sp++ * *wp++;
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp;
+			tmp = wsym[ 0 ] * src[ x ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k );
+				ssize_t pos2 = ( x + k );
+				tmp += wsym[ k ] * ( src[ pos1 ] + src[ pos2 ] );
+			}
             *dst++ = tmp;
-            src++;
         }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp++ * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            k = b2 - i;
-            sp--;
-            while( k-- )
-                tmp += *sp * *wp++;
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp = 0;
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype );
+				tmp += weights[ k ] * src[ pos ];
+			}
             *dst++ = tmp;
-            src++;
         }
-    }
+	}
 
-    void SIMD::ConvolveClampAdd1f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp;
-        size_t i, k, b1, b2;
-
+	void SIMD::ConvolveHorizontalSym2u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
         if( wn == 1 ) {
-            MulAddValue1f( dst, src, *weights, width );
+            MulU8Value1f( dst, src, *weights, width * 2 );
             return;
         }
 
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
 
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp * *wp++;
-            k = i;
-            while( k-- )
-                tmp += *sp * *wp++;
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            *dst++ += tmp;
-        }
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
 
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp = *sp++ * *wp++;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            tmp += *sp++ * *wp++;
-                            k--;
-                            case 7:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 6:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 5:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 4:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 3:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 2:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 1:	tmp += *sp++ * *wp++;
-                                    k--;
-                        }
-            }
-            *dst++ += tmp;
-            src++;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp++ * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            k = b2 - i;
-            sp--;
-            while( k-- )
-                tmp += *sp * *wp++;
-            *dst++ += tmp;
-            src++;
-        }
-    }
-
-    void SIMD::ConvolveClampSet2f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp[ 2 ];
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulValue1f( dst, src, *weights, width * 2 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
         }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            sp += 2;
-            k--;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 2 ];
+			ssize_t pos = ( x ) << 1;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 1;
+				ssize_t pos2 = ( x + k ) << 1;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
-            src += 2;
         }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 2;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 2 ] = { 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 1;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
-            src += 2;
         }
-    }
+	}
 
-    void SIMD::ConvolveClampAdd2f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp[ 2 ];
-        size_t i, k, b1, b2;
-
+	void SIMD::ConvolveHorizontalSym4u8_to_f( float* dst, const uint8_t* src, const size_t width, const float* weights, const size_t wn, IBorderType btype ) const
+	{
         if( wn == 1 ) {
-            MulAddValue1f( dst, src, *weights, width * 2 );
+            MulU8Value1f( dst, src, *weights, width * 4 );
             return;
         }
 
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
+		ssize_t b1 = ( wn >> 1 );
+		ssize_t b2 = wn - b1 - 1;
+		ssize_t x;
+		const float* wsym = weights + b1;
 
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
+        for( x = 0; x < b1; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
         }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            float w;
-            k = wn;
-            sp = src;
-            wp = weights;
-            w = *wp++;
-            tmp[ 0 ] = *( sp + 0 ) * w;
-            tmp[ 1 ] = *( sp + 1 ) * w;
-            sp += 2;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 7:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 6:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 5:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 4:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 3:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 2:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 1:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                        }
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            src += 2;
+        for( ; x < ( ssize_t ) width - b2; x++ ) {
+			float tmp[ 4 ];
+			ssize_t pos = ( x ) << 2;
+			tmp[ 0 ] = wsym[ 0 ] * src[ pos + 0 ];
+			tmp[ 1 ] = wsym[ 0 ] * src[ pos + 1 ];
+			tmp[ 2 ] = wsym[ 0 ] * src[ pos + 2 ];
+			tmp[ 3 ] = wsym[ 0 ] * src[ pos + 3 ];
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				ssize_t pos1 = ( x - k ) << 2;
+				ssize_t pos2 = ( x + k ) << 2;
+				tmp[ 0 ] += wsym[ k ] * ( src[ pos1 + 0 ] + src[ pos2 + 0 ] );
+				tmp[ 1 ] += wsym[ k ] * ( src[ pos1 + 1 ] + src[ pos2 + 1 ] );
+				tmp[ 2 ] += wsym[ k ] * ( src[ pos1 + 2 ] + src[ pos2 + 2 ] );
+				tmp[ 3 ] += wsym[ k ] * ( src[ pos1 + 3 ] + src[ pos2 + 3 ] );
+			}
+            *dst++ = tmp[ 0 ];
+            *dst++ = tmp[ 1 ];
+            *dst++ = tmp[ 2 ];
+            *dst++ = tmp[ 3 ];
         }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 2;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            src += 2;
-        }
-    }
-
-    void SIMD::ConvolveClampSet4f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp[ 4 ], w;
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            this->MulValue1f( dst, src, ( const float ) *weights, width * 4 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-            }
+        for( ; x < ( ssize_t ) width; x++ ) {
+			float tmp[ 4 ] = { 0, 0, 0, 0 };
+			for( size_t k = 0; k < wn; k++ ) {
+				ssize_t pos = IBorder::value<ssize_t>( x - b1 + k, width, btype ) << 2;
+				tmp[ 0 ] += weights[ k ] * src[ pos + 0 ];
+				tmp[ 1 ] += weights[ k ] * src[ pos + 1 ];
+				tmp[ 2 ] += weights[ k ] * src[ pos + 2 ];
+				tmp[ 3 ] += weights[ k ] * src[ pos + 3 ];
+			}
             *dst++ = tmp[ 0 ];
             *dst++ = tmp[ 1 ];
             *dst++ = tmp[ 2 ];
             *dst++ = tmp[ 3 ];
         }
 
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            sp += 4;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 7:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 6:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 5:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 4:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 3:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 2:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 1:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                        }
-            }
-
-            /*			while( k-- ) {
-                        tmp[ 0 ] += *( sp + 0 ) * *wp;
-                        tmp[ 1 ] += *( sp + 1 ) * *wp;
-                        tmp[ 2 ] += *( sp + 2 ) * *wp;
-                        tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                        sp += 4;
-                        } */
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            *dst++ = tmp[ 2 ];
-            *dst++ = tmp[ 3 ];
-            src += 4;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 4;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            *dst++ = tmp[ 2 ];
-            *dst++ = tmp[ 3 ];
-            src += 4;
-        }
-    }
-
-    void SIMD::ConvolveClampAdd4f( float* dst, float const* src, const size_t width, float const* weights, const size_t wn ) const
-    {
-        float const* wp;
-        float const* sp;
-        float tmp[ 4 ];
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulAddValue1f( dst, src, *weights, width * 4 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            float w;
-            k = wn;
-            sp = src;
-            wp = weights;
-            w = *wp++;
-            tmp[ 0 ] = *( sp + 0 ) * w;
-            tmp[ 1 ] = *( sp + 1 ) * w;
-            tmp[ 2 ] = *( sp + 2 ) * w;
-            tmp[ 3 ] = *( sp + 3 ) * w;
-            sp += 4;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 7:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 6:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 5:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 4:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 3:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 2:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 1:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                        }
-            }
-            /*	while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-                }*/
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-            src += 4;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 4;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-            src += 4;
-        }
-    }
-
-    void SIMD::ConvolveClampSet1fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp;
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulU8Value1fx( dst, src, *weights, width );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp * *wp++;
-            k = i;
-            while( k-- )
-                tmp += *sp * *wp++;
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            *dst++ = tmp;
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp = *sp++ * *wp++;
-            k--;
-            while( k-- )
-                tmp += *sp++ * *wp++;
-            *dst++ = tmp;
-            src++;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp++ * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            k = b2 - i;
-            sp--;
-            while( k-- )
-                tmp += *sp * *wp++;
-            *dst++ = tmp;
-            src++;
-        }
-    }
-
-    void SIMD::ConvolveClampAdd1fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp;
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulAddU8Value1fx( dst, src, *weights, width );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp * *wp++;
-            k = i;
-            while( k-- )
-                tmp += *sp * *wp++;
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            *dst++ += tmp;
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp = *sp++ * *wp++;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            tmp += *sp++ * *wp++;
-                            k--;
-                            case 7:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 6:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 5:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 4:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 3:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 2:	tmp += *sp++ * *wp++;
-                                    k--;
-                            case 1:	tmp += *sp++ * *wp++;
-                                    k--;
-                        }
-            }
-            *dst++ += tmp;
-            src++;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp = *sp++ * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                tmp += *sp++ * *wp++;
-            }
-            k = b2 - i;
-            sp--;
-            while( k-- )
-                tmp += *sp * *wp++;
-            *dst++ += tmp;
-            src++;
-        }
-    }
-
-    void SIMD::ConvolveClampSet2fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp[ 2 ];
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulU8Value1fx( dst, src, *weights, width * 2 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            sp += 2;
-            k--;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            src += 2;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 2;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            src += 2;
-        }
-    }
-
-    void SIMD::ConvolveClampAdd2fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp[ 2 ];
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulAddU8Value1fx( dst, src, *weights, width * 2 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-                sp += 2;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            float w;
-            k = wn;
-            sp = src;
-            wp = weights;
-            w = ( *wp++ ).toFloat();
-            tmp[ 0 ] = *( sp + 0 ) * w;
-            tmp[ 1 ] = *( sp + 1 ) * w;
-            sp += 2;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 7:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 6:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 5:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 4:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 3:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 2:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                            case 1:
-                            w = ( *wp++ ).toFloat();
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            sp += 2;
-                            k--;
-                        }
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            src += 2;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 2;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp++;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            src += 2;
-        }
-    }
-
-    void SIMD::ConvolveClampSet4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp[ 4 ], w;
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            this->MulU8Value1fx( dst, src, *weights, width * 4 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            *dst++ = tmp[ 2 ];
-            *dst++ = tmp[ 3 ];
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            sp += 4;
-            k--;
-/*			switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 7:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 6:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 5:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 4:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 3:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 2:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 1:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                        }
-            }*/
-
-            while( k-- ) {
-                        tmp[ 0 ] += *( sp + 0 ) * *wp;
-                        tmp[ 1 ] += *( sp + 1 ) * *wp;
-                        tmp[ 2 ] += *( sp + 2 ) * *wp;
-                        tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                        sp += 4;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            *dst++ = tmp[ 2 ];
-            *dst++ = tmp[ 3 ];
-            src += 4;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 4;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            *dst++ = tmp[ 0 ];
-            *dst++ = tmp[ 1 ];
-            *dst++ = tmp[ 2 ];
-            *dst++ = tmp[ 3 ];
-            src += 4;
-        }
-    }
-
-    void SIMD::ConvolveClampAdd4fx( Fixed* dst, uint8_t const* src, const size_t width, const Fixed* weights, const size_t wn ) const
-    {
-        const Fixed* wp;
-        const uint8_t* sp;
-        Fixed tmp[ 4 ], w;
-        size_t i, k, b1, b2;
-
-        if( wn == 1 ) {
-            MulAddU8Value1fx( dst, src, *weights, width * 4 );
-            return;
-        }
-
-        b1 = ( wn - ( 1 - ( wn & 1 ) ) ) / 2;
-        b2 = ( wn + ( 1 - ( wn & 1 ) ) ) / 2;
-
-        /* border 1 */
-        i = b1;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = wn - 1 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-        }
-
-
-        /* center */
-        i = width - wn + 1;
-        while( i-- ) {
-            k = wn;
-            sp = src;
-            wp = weights;
-            w = *wp++;
-            tmp[ 0 ] = *( sp + 0 ) * w;
-            tmp[ 1 ] = *( sp + 1 ) * w;
-            tmp[ 2 ] = *( sp + 2 ) * w;
-            tmp[ 3 ] = *( sp + 3 ) * w;
-            sp += 4;
-            k--;
-            switch( k & 7 ) {
-                case 0: while( k ) {
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 7:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 6:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 5:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 4:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 3:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 2:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                            case 1:
-                            w = *wp++;
-                            tmp[ 0 ] += *( sp + 0 ) * w;
-                            tmp[ 1 ] += *( sp + 1 ) * w;
-                            tmp[ 2 ] += *( sp + 2 ) * w;
-                            tmp[ 3 ] += *( sp + 3 ) * w;
-                            sp += 4;
-                            k--;
-                        }
-            }
-            /*	while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-                sp += 4;
-                }*/
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-            src += 4;
-        }
-
-        /* border 2 */
-        i = b2;
-        while( i-- ) {
-            wp = weights;
-            sp = src;
-            tmp[ 0 ] = *( sp + 0 ) * *wp;
-            tmp[ 1 ] = *( sp + 1 ) * *wp;
-            tmp[ 2 ] = *( sp + 2 ) * *wp;
-            tmp[ 3 ] = *( sp + 3 ) * *wp++;
-            k = b1 + i;
-            while( k-- ) {
-                sp += 4;
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            k = b2 - i;
-            while( k-- ) {
-                tmp[ 0 ] += *( sp + 0 ) * *wp;
-                tmp[ 1 ] += *( sp + 1 ) * *wp;
-                tmp[ 2 ] += *( sp + 2 ) * *wp;
-                tmp[ 3 ] += *( sp + 3 ) * *wp++;
-            }
-            *dst++ += tmp[ 0 ];
-            *dst++ += tmp[ 1 ];
-            *dst++ += tmp[ 2 ];
-            *dst++ += tmp[ 3 ];
-            src += 4;
-        }
-    }
+	}
 
     void SIMD::ConvolveClampVert_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
     {
@@ -4619,10 +3784,10 @@ namespace cvt {
         float tmp;
 
         for( x = 0 ; x < width; x++ ) {
-            tmp = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp = bufs[ 0 ][ x ] * *weights;
 
             for( size_t k = 1; k < numw; k++ ) {
-                tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp += bufs[ k ][ x ] * weights[ k ];
             }
             *dst++ = tmp;
         }
@@ -4634,12 +3799,100 @@ namespace cvt {
         float tmp;
 
         for( x = 0 ; x < width; x++ ) {
-            tmp = bufs[ 0 ][ x + 0 ] * *weights;
+            tmp = bufs[ 0 ][ x ] * *weights;
 
             for( size_t k = 1; k < numw; k++ ) {
-                tmp += bufs[ k ][ x + 0 ] * weights[ k ];
+                tmp += bufs[ k ][ x ] * weights[ k ];
             }
             *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::ConvolveClampVert_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = bufs[ 0 ][ x ] * *weights;
+
+            for( size_t k = 1; k < numw; k++ ) {
+                tmp += bufs[ k ][ x ] * weights[ k ];
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
+        }
+    }
+
+	void SIMD::ConvolveClampVertSym_fx_to_u8( uint8_t* dst, const Fixed** bufs, const Fixed* weights, size_t numw, size_t width ) const
+	{
+		size_t x;
+		Fixed tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const Fixed* wsym = weights + b1;
+
+		for( x = 0 ; x < width; x++ ) {
+			tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+			for( ssize_t k = 1; k <= b1; k++ ) {
+				tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+			}
+
+            *dst++ = ( uint8_t ) Math::clamp( tmp.round(), 0x0, 0xff );
+		}
+	}
+
+    void SIMD::ConvolveClampVertSym_f( float* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+            }
+            *dst++ = tmp;
+        }
+    }
+
+    void SIMD::ConvolveClampVertSym_f_to_u8( uint8_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+            }
+            *dst++ = ( uint8_t ) Math::clamp( tmp, 0.0f, 255.0f );
+        }
+    }
+
+    void SIMD::ConvolveClampVertSym_f_to_s16( int16_t* dst, const float** bufs, const float* weights, size_t numw, size_t width ) const
+    {
+        size_t x;
+        float tmp;
+
+		ssize_t b1 = ( numw >> 1 );
+		const float* wsym = weights + b1;
+
+        for( x = 0 ; x < width; x++ ) {
+            tmp = wsym[ 0 ] * bufs[ b1 ][ x ];
+
+            for( ssize_t k = 1; k <= b1; k++ ) {
+                tmp += wsym[ k ] * ( bufs[ b1 + k ][ x ] + bufs[ b1 - k ][ x ] );
+            }
+            *dst++ = ( int16_t ) Math::clamp( tmp, ( float ) INT16_MIN, ( float ) INT16_MAX );
         }
     }
 
