@@ -116,7 +116,7 @@ namespace cvt {
 		int iend = _features.size();
 		for( int i = 0; i < iend; i++ ) {
 			int lowerx = _features[ i ].pt.x - ( float ) radius;
-			int curx = ( ssize_t ) _features[ i ].pt.x;
+			//int curx = ( ssize_t ) _features[ i ].pt.x;
 			int cury = ( ssize_t ) _features[ i ].pt.y;
 
 			for( int r = -radius; r <= radius; r++ ) {

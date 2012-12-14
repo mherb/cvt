@@ -42,8 +42,8 @@ namespace cvt
             size_t		_border;
 			BoxFilter	_boxfilter;
 
-			const float _kappa = 0.04; // 0.04 to 0.15 - TODO: make parameter
-			const int	_radius = 3;
+			static const float  _kappa = 0.04; // 0.04 to 0.15 - TODO: make parameter
+			static const int	_radius = 3;
 	};
 
 	inline Harris::Harris( float threshold, size_t border ) :
