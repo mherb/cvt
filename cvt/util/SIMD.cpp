@@ -3327,7 +3327,7 @@ namespace cvt {
 			for( ssize_t k = 1; k <= b1; k++ ) {
 				ssize_t pos1 = ( x - k ) << 2;
 				ssize_t pos2 = ( x + k ) << 2;
-				Fixed val[ 3 ];
+				Fixed val[ 4 ];
 				val[ 0 ].native() = ( ( int32_t ) src[ pos1 + 0 ] + ( int32_t ) src[ pos2 + 0 ] ) << 16;
 				val[ 1 ].native() = ( ( int32_t ) src[ pos1 + 1 ] + ( int32_t ) src[ pos2 + 1 ] ) << 16;
 				val[ 2 ].native() = ( ( int32_t ) src[ pos1 + 2 ] + ( int32_t ) src[ pos2 + 2 ] ) << 16;

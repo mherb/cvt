@@ -8,6 +8,9 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
+
+#define __STDC_LIMIT_MACROS 1
+
 #include <cvt/util/SIMDSSE2.h>
 
 #include <xmmintrin.h>
