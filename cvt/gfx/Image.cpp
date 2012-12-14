@@ -22,6 +22,7 @@
 #include <cvt/gfx/IFill.h>
 #include <cvt/gfx/IMorphological.h>
 #include <cvt/gfx/IThreshold.h>
+#include <cvt/gfx/IConvolve.h>
 
 #include <fstream>
 
@@ -256,4 +257,13 @@ namespace cvt {
 		IThreshold::thresholdAdaptive( dst, *this, boxfiltered, threshold );
 	}
 
+	void Image::convolve( Image& dst, const IKernel& kernel ) const
+	{
+		IConvolve::convolve( dst, *this, kernel );
+	}
+
+	void Image::convolve( Image& dst, const IKernel& hkernel, const IKernel& vkernel ) const
+	{
+		IConvolve::convolve( dst, *this, hkernel, vkernel );
+	}
 }
