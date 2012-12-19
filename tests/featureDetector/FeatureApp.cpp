@@ -15,7 +15,7 @@ namespace cvt
 		_avgDetectorTime( 0.0 ),
 		_allIter( 0 )
 	{
-		_timerId = Application::registerTimer( 33, this );
+		_timerId = Application::registerTimer( 15, this );
 		_window.setSize( 640, 480 );
 		WidgetLayout wl;
 		wl.setAnchoredTopBottom( 0, 0 );

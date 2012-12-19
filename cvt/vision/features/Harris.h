@@ -87,11 +87,6 @@ namespace cvt
 		dx.mul( dx );
 		dy.mul( dy );
 
-		Image idx, idy, idxy;
-		dx.integralImage( idx );
-		dy.integralImage( idy );
-		dxy.integralImage( idxy );
-
 		dx.boxfilter( dx, _radius );
 		dy.boxfilter( dy, _radius );
 		dxy.boxfilter( dxy, _radius );
