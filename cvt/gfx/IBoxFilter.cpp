@@ -78,8 +78,10 @@ namespace cvt
 
 	void IBoxFilter::boxfilter( Image& dst, const Image& src, size_t radiushorizontal, size_t radiusvertical )
 	{
-		radiusvertical   = Math::max<size_t>( radiusvertical, 1 );
 		radiushorizontal = Math::max<size_t>( radiushorizontal, 1 );
+		if( !radiusvertical )
+			radiusvertical = radiushorizontal;
+		radiusvertical   = Math::max<size_t>( radiusvertical, 1 );
 
 		if( src.format().type == IFORMAT_TYPE_UINT8 ) {
 			dst.reallocate( src.width(), src.height(), IFormat::GRAY_UINT8 );
@@ -88,6 +90,17 @@ namespace cvt
 				return boxfilterTemplate<uint8_t,float>( dst, src, radiushorizontal, radiusvertical,
 														&SIMD::BoxFilterHorizontal_1u8_to_f,
 														&SIMD::BoxFilterVert_f_to_u8,
+														&SIMD::MulValue1f,
+														&SIMD::Add );
+			} else
+				throw CVTException("Unimplemented");
+		} else if( src.format().type == IFORMAT_TYPE_FLOAT ) {
+			dst.reallocate( src.width(), src.height(), IFormat::GRAY_FLOAT );
+
+			if( src.channels() == 1 ) {
+				return boxfilterTemplate<float,float>( dst, src, radiushorizontal, radiusvertical,
+														&SIMD::BoxFilterHorizontal_1f,
+														&SIMD::BoxFilterVert_f,
 														&SIMD::MulValue1f,
 														&SIMD::Add );
 			} else

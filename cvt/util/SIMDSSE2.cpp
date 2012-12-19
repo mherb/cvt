@@ -3403,6 +3403,63 @@ namespace cvt
 	}
 
 
+	void SIMDSSE2::BoxFilterHorizontal_1f( float* dst, const float* src, size_t radius, size_t width ) const
+	{
+		size_t x;
+		float accum;
+		float invmean = 1.0f / ( float ) ( 2 * radius + 1 );
+		__m128 xf, y, mul;
+
+		mul  = _mm_set1_ps( invmean );
+
+		accum = *src * ( float ) ( radius + 1 );
+		for( x = 1; x <= radius; x++ )
+			accum += ( float ) src[ x ];
+
+		*dst++ = accum * invmean;
+
+		for( x = 1; x <= radius; x++ ) {
+			accum -= src[ 0 ];
+			accum += src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width - radius && ( ( size_t ) dst & 0xf ); x++ ) {
+			accum -= src[ x - radius - 1 ];
+			accum += src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		y = _mm_set1_ps( accum );
+		for( ; x < width - radius - 4; x += 4 ) {
+			xf = _mm_loadu_ps( src + x + radius );
+			xf = _mm_sub_ps( xf, _mm_loadu_ps( src + x - radius - 1 ) );
+
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 8 ) );
+
+			xf = _mm_add_ps( xf, y );
+			_mm_store_ps( dst, _mm_mul_ps( xf, mul ) );
+
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+			dst += 4;
+		}
+		_mm_store_ss( &accum, y );
+
+		for( ; x < width - radius; x++ ) {
+			accum -= src[ x - radius - 1 ];
+			accum += src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width; x++ ) {
+			accum -= src[ x - radius - 1 ];
+			accum += src[ width - 1 ];
+			*dst++ = accum * invmean;
+		}
+	}
+
+
 	void SIMDSSE2::BoxFilterVert_f_to_u8( uint8_t* dst, float* accum, const float* add, const float* sub, size_t radius, size_t width ) const
 	{
 		size_t x;
@@ -3460,8 +3517,61 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::BoxFilterVert_f( float* dst, float* accum, const float* add, const float* sub, size_t radius, size_t width ) const
+	{
+		size_t x;
 
+		float invmean = 1.0f / ( float ) ( 2 * radius + 1 );
+		const __m128 mul = _mm_set1_ps( invmean );
 
+		for( x = 0; x < width - 16; x += 16 ) {
+			__m128 acc0, acc1, acc2, acc3, accadd, accsub;
+
+			acc0 = _mm_load_ps( ( const float* ) accum );
+			accadd = _mm_load_ps( add );
+			accsub = _mm_load_ps( sub );
+			acc0 = _mm_sub_ps( _mm_add_ps( acc0, accadd ), accsub );
+			acc1 = _mm_load_ps( ( const float* ) ( accum + 4 ) );
+			accadd = _mm_load_ps( add + 4 );
+			accsub = _mm_load_ps( sub + 4 );
+			acc1 = _mm_sub_ps( _mm_add_ps( acc1, accadd ), accsub );
+			acc2 = _mm_load_ps( ( const float* ) ( accum + 8 ) );
+			accadd = _mm_load_ps( add + 8 );
+			accsub = _mm_load_ps( sub + 8 );
+			acc2 = _mm_sub_ps( _mm_add_ps( acc2, accadd ), accsub );
+			acc3 = _mm_load_ps( ( const float* ) ( accum + 12 ) );
+			accadd = _mm_load_ps( add + 12 );
+			accsub = _mm_load_ps( sub + 12 );
+			acc3 = _mm_sub_ps( _mm_add_ps( acc3, accadd ), accsub );
+
+			_mm_store_ps( accum +  0, acc0 );
+			_mm_store_ps( accum +  4, acc1 );
+			_mm_store_ps( accum +  8, acc2 );
+			_mm_store_ps( accum + 12, acc3 );
+
+			acc0 = _mm_mul_ps( acc0, mul );
+			acc1 = _mm_mul_ps( acc1, mul );
+			acc2 = _mm_mul_ps( acc2, mul );
+			acc3 = _mm_mul_ps( acc3, mul );
+
+			_mm_store_ps( dst +  0, acc0 );
+			_mm_store_ps( dst +  4, acc1 );
+			_mm_store_ps( dst +  8, acc2 );
+			_mm_store_ps( dst + 12, acc3 );
+
+			accum += 16;
+			add += 16;
+			sub += 16;
+			dst += 16;
+		}
+
+		for( ; x < width; x++ ) {
+			float tmp;
+			tmp = *accum + *add++ - *sub++;
+			*accum++ = tmp;
+            *dst++ = tmp * invmean;
+		}
+	}
 
 	void SIMDSSE2::pyrdownHalfHorizontal_1u8_to_1u16( uint16_t* dst, const uint8_t* src, size_t n ) const
 	{

@@ -2697,6 +2697,37 @@ namespace cvt {
 		}
 	}
 
+	void SIMD::BoxFilterHorizontal_1f( float* dst, const float* src, size_t radius, size_t width ) const
+	{
+		size_t x;
+		float accum;
+		float invmean = 1.0f / ( float ) ( 2 * radius + 1 );
+
+		accum = *src * ( float ) ( radius + 1 );
+		for( x = 1; x <= radius; x++ )
+			accum += src[ x ];
+
+		*dst++ = accum * invmean;
+
+		for( x = 1; x <= radius; x++ ) {
+			accum -= src[ 0 ];
+			accum += src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width - radius; x++ ) {
+			accum -= src[ x - radius - 1 ];
+			accum += src[ x + radius ];
+			*dst++ = accum * invmean;
+		}
+
+		for( ; x < width; x++ ) {
+			accum -= src[ x - radius - 1 ];
+			accum += src[ width - 1 ];
+			*dst++ = accum * invmean;
+		}
+	}
+
 
 	void SIMD::BoxFilterVert_f_to_u8( uint8_t* dst, float* accum, const float* add, const float* sub, size_t radius, size_t width ) const
 	{
@@ -2709,6 +2740,20 @@ namespace cvt {
 			tmp = *accum + *add++ - *sub++;
 			*accum++ = tmp;
             *dst++ = ( uint8_t ) Math::clamp( tmp * invmean, 0.0f, 255.0f );
+		}
+	}
+
+	void SIMD::BoxFilterVert_f( float* dst, float* accum, const float* add, const float* sub, size_t radius, size_t width ) const
+	{
+		size_t x;
+
+		float invmean = 1.0f / ( float ) ( 2 * radius + 1 );
+
+		for( x = 0; x < width; x++ ) {
+			float tmp;
+			tmp = *accum + *add++ - *sub++;
+			*accum++ = tmp;
+            *dst++ = tmp * invmean;
 		}
 	}
 

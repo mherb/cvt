@@ -108,6 +108,8 @@ namespace cvt {
 			void threshold( Image& dst, float threshold ) const;
 			void thresholdAdaptive( Image& dst, const Image& boxfiltered, float threshold ) const;
 
+			void boxfilter( Image& dst, size_t hradius, size_t vradius = 0 ) const;
+
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
 
