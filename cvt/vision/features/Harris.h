@@ -40,7 +40,6 @@ namespace cvt
 
 			float		_threshold;
             size_t		_border;
-			BoxFilter	_boxfilter;
 
 			static const float  _kappa = 0.04; // 0.04 to 0.15 - TODO: make parameter
 			static const int	_radius = 3;
@@ -80,28 +79,22 @@ namespace cvt
 		Image dy( w, h, IFormat::GRAY_FLOAT );
 		Image dxy( w, h, IFormat::GRAY_FLOAT );
 
-		image.convolve( dx, IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL );
-		image.convolve( dy, IKernel::FIVEPOINT_DERIVATIVE_VERTICAL );
+		image.convolve( dx, IKernel::HAAR_HORIZONTAL_3 );
+		image.convolve( dy, IKernel::HAAR_VERTICAL_3 );
 
 		dxy = dx;
 		dxy.mul( dy );
 		dx.mul( dx );
 		dy.mul( dy );
 
-#if 1
 		Image idx, idy, idxy;
 		dx.integralImage( idx );
 		dy.integralImage( idy );
 		dxy.integralImage( idxy );
 
-		_boxfilter.apply( dx, idx, _radius );
-		_boxfilter.apply( dy, idy, _radius );
-		_boxfilter.apply( dxy, idxy, _radius );
-#else
-		dx.convolve( dx, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
-		dy.convolve( dy, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
-		dxy.convolve( dxy, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
-#endif
+		dx.boxfilter( dx, _radius );
+		dy.boxfilter( dy, _radius );
+		dxy.boxfilter( dxy, _radius );
 
 		Image tr = dx;
 		tr.add( dy );

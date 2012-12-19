@@ -76,6 +76,7 @@ ADD_SUBDIRECTORY(harriscircular)
 ADD_SUBDIRECTORY(homography)
 ADD_SUBDIRECTORY(homoStitch)
 
+ADD_SUBDIRECTORY(iboxfilter)
 ADD_SUBDIRECTORY(idgen)
 ADD_SUBDIRECTORY(image)
 ADD_SUBDIRECTORY(imageSequence)

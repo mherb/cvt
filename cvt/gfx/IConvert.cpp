@@ -687,7 +687,6 @@ namespace cvt {
     IConvert::IConvert():
         _convertFuncs( 0 )
     {
-		std::cout << "OK" << std::endl;
         _convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ]();
         //memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
 

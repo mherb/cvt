@@ -22,6 +22,11 @@ Vision/GFX/Image
 - Convolution:
 	o make use of PointSymmetric kernels
 	o add special versions for ( Sym/PtSym and normal ) 3x3, 5x5, 7x7
+- Add fast-path for FLOAT to U8 with gamma correction
+- Add fast-path for YUYV/UYUV to GRAY float
+- check code for UINT8 to FLOAT with srgb gamma correction
+- refactor SIMD names
+
 
 Philipp:
 ========

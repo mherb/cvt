@@ -23,6 +23,7 @@
 #include <cvt/gfx/IMorphological.h>
 #include <cvt/gfx/IThreshold.h>
 #include <cvt/gfx/IConvolve.h>
+#include <cvt/gfx/IBoxFilter.h>
 
 #include <fstream>
 
@@ -266,4 +267,11 @@ namespace cvt {
 	{
 		IConvolve::convolve( dst, *this, hkernel, vkernel );
 	}
+
+	void Image::boxfilter( Image& dst, size_t hradius, size_t vradius ) const
+	{
+		IBoxFilter::boxfilter( dst, *this, hradius, vradius );
+	}
+
+
 }
