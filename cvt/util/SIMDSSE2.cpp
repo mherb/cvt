@@ -3431,18 +3431,41 @@ namespace cvt
 		}
 
 		y = _mm_set1_ps( accum );
-		for( ; x < width - radius - 4; x += 4 ) {
+		for( ; x < width - radius - 16; x += 16 ) {
 			xf = _mm_loadu_ps( src + x + radius );
 			xf = _mm_sub_ps( xf, _mm_loadu_ps( src + x - radius - 1 ) );
-
 			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 4 ) );
 			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 8 ) );
-
 			xf = _mm_add_ps( xf, y );
 			_mm_store_ps( dst, _mm_mul_ps( xf, mul ) );
-
 			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
-			dst += 4;
+
+			xf = _mm_loadu_ps( src + x + 4 + radius );
+			xf = _mm_sub_ps( xf, _mm_loadu_ps( src + x + 4 - radius - 1 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 8 ) );
+			xf = _mm_add_ps( xf, y );
+			_mm_store_ps( dst + 4, _mm_mul_ps( xf, mul ) );
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+			xf = _mm_loadu_ps( src + x + 8 + radius );
+			xf = _mm_sub_ps( xf, _mm_loadu_ps( src + x + 8 - radius - 1 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 8 ) );
+			xf = _mm_add_ps( xf, y );
+			_mm_store_ps( dst + 8, _mm_mul_ps( xf, mul ) );
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+			xf = _mm_loadu_ps( src + x + 12 + radius );
+			xf = _mm_sub_ps( xf, _mm_loadu_ps( src + x + 12 - radius - 1 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 4 ) );
+			xf = _mm_add_ps( xf, ( __m128 ) _mm_slli_si128( ( __m128i ) xf, 8 ) );
+			xf = _mm_add_ps( xf, y );
+			_mm_store_ps( dst + 12, _mm_mul_ps( xf, mul ) );
+			y = _mm_shuffle_ps( xf, xf, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+
+			dst += 16;
 		}
 		_mm_store_ss( &accum, y );
 
