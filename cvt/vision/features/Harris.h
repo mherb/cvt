@@ -15,6 +15,7 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/ifilter/BoxFilter.h>
 #include <cvt/gfx/IMapScoped.h>
+#include <cvt/util/ScopedBuffer.h>
 
 
 namespace cvt
@@ -68,12 +69,10 @@ namespace cvt
 
 	inline void Harris::detectFloat( FeatureSet& features, const Image& image )
 	{
-		size_t w, h, xend;
+		size_t w, h;
 
 		w = image.width();
 		h = image.height();
-
-		xend = w - _border;
 
 		Image dx( w, h, IFormat::GRAY_FLOAT );
 		Image dy( w, h, IFormat::GRAY_FLOAT );
@@ -90,7 +89,7 @@ namespace cvt
 		dx.boxfilter( dx, _radius );
 		dy.boxfilter( dy, _radius );
 		dxy.boxfilter( dxy, _radius );
-
+#if 0
 		Image tr = dx;
 		tr.add( dy );
 		tr.mul( tr );
@@ -112,6 +111,31 @@ namespace cvt
 			}
 			score++;
 		}
+#else
+		IMapScoped<const float> dxmap( dx );
+		IMapScoped<const float> dymap( dy );
+		IMapScoped<const float> dxymap( dxy );
+
+		SIMD* simd = SIMD::instance();
+		size_t yend = h - _border;
+		size_t xend = w - _border;
+		ScopedBuffer<float,true> scorebuf( w );
+		dxmap.setLine( _border );
+		dymap.setLine( _border );
+		dxymap.setLine( _border );
+
+		for( size_t y = _border; y < yend; y++ ) {
+			float* ptr = scorebuf.ptr();
+			simd->harrisScore1f( ptr, dxmap.ptr(), dymap.ptr(), dxymap.ptr(), 0.10, w );
+			for( size_t x = _border;  x < xend; x++ ) {
+				if( ptr[ x ] > _threshold  )
+					features.add( Feature( x, y, 0, 0, ptr[ x ] ) );
+			}
+			dxmap++;
+			dymap++;
+			dxymap++;
+		}
+#endif
 	}
 
 	inline void Harris::detectU8( FeatureSet& features, const Image& image )

@@ -4553,6 +4553,19 @@ namespace cvt {
 
     }
 
+	void SIMD::harrisScore1f( float* dst, const float* boxdx2, const float* boxdy2, const float* boxdxdy, float k, size_t width ) const
+	{
+		size_t x;
+
+		for( x = 0; x < width; x++ ) {
+			float a, b, c;
+			a = *boxdx2++;
+			b = *boxdy2++;
+			c = *boxdxdy++;
+			*dst++ = ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		}
+	}
+
 
     float SIMD::harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const
     {

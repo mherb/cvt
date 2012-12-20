@@ -270,6 +270,8 @@ namespace cvt {
             virtual void warpBilinear1u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint8_t fill, size_t n ) const;
             virtual void warpBilinear4u8( uint8_t* dst, const float* coords, const uint8_t* src, size_t srcStride, size_t srcWidth, size_t srcHeight, uint32_t fill, size_t n ) const;
 
+			virtual void harrisScore1f( float* dst, const float* boxdx2, const float* boxdy2, const float* boxdxdy, float kappa, size_t width ) const;
+
             virtual float harrisResponse1u8( const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const;
             virtual float harrisResponse1u8( float & xx, float & xy, float& yy, const uint8_t* _src, size_t srcStride, size_t w, size_t h, const float k ) const;
             virtual float harrisResponseCircular1u8( float & xx, float & xy, float & yy, const uint8_t* _src, size_t srcStride, const float k ) const;

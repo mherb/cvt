@@ -3685,6 +3685,55 @@ namespace cvt
 		}
 	}
 
+	void SIMDSSE2::harrisScore1f( float* dst, const float* boxdx2, const float* boxdy2, const float* boxdxy, float k, size_t width ) const
+	{
+		size_t x;
+		__m128 kappa = _mm_set1_ps( k );
+
+
+		if( ( ( size_t ) dst ) & 0xf || ( ( size_t ) boxdx2 ) & 0xf || ( ( size_t ) boxdy2 ) & 0xf || ( ( size_t ) boxdxy ) & 0xf   ) {
+			__m128 a, b, c, tmp1, tmp2;
+			for( x = 0 ; x < width; x += 4 ) {
+				a = _mm_loadu_ps( boxdx2 );
+				b = _mm_loadu_ps( boxdy2 );
+				c = _mm_loadu_ps( boxdxy );
+				tmp1 = _mm_sub_ps( _mm_mul_ps( a, b ), _mm_mul_ps( c, c ) );
+				tmp2 = _mm_add_ps( a, b );
+				tmp2 = _mm_mul_ps( _mm_mul_ps( tmp2, tmp2 ), kappa );
+				_mm_storeu_ps( dst, _mm_sub_ps( tmp1, tmp2 ) );
+				dst += 4;
+				boxdx2 += 4;
+				boxdy2 += 4;
+				boxdxy += 4;
+			}
+		} else {
+			__m128 a, b, c, tmp1, tmp2;
+			for( x = 0; x < width; x += 4 ) {
+				a = _mm_load_ps( boxdx2 );
+				b = _mm_load_ps( boxdy2 );
+				c = _mm_load_ps( boxdxy );
+				tmp1 = _mm_sub_ps( _mm_mul_ps( a, b ), _mm_mul_ps( c, c ) );
+				tmp2 = _mm_add_ps( a, b );
+				tmp2 = _mm_mul_ps( _mm_mul_ps( tmp2, tmp2 ), kappa );
+				_mm_store_ps( dst, _mm_sub_ps( tmp1, tmp2 ) );
+				dst += 4;
+				boxdx2 += 4;
+				boxdy2 += 4;
+				boxdxy += 4;
+			}
+		}
+
+		for( ; x < width; x++ ) {
+			float a, b, c;
+			a = *boxdx2++;
+			b = *boxdy2++;
+			c = *boxdxy++;
+			*dst++ = ( a * b - c * c ) - ( k * Math::sqr(a + b) );
+		}
+	}
+
+
+
 	float SIMDSSE2::harrisResponse1u8( const uint8_t* ptr, size_t stride, size_t , size_t , const float k ) const
 	{
 		const uint8_t* src = ptr - 4 * stride - 4;
