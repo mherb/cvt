@@ -37,7 +37,7 @@ namespace cvt
 		SIMD* simd = SIMD::instance();
 		cvt::IMapScoped<DSTTYPE> mapdst( dst );
 		cvt::IMapScoped<const SRCTYPE> mapsrc( src );
-		cvt::IMapScoped<const SRCTYPE> mapsrcmean( src );
+		cvt::IMapScoped<const SRCTYPE> mapsrcmean( srcmean );
 		size_t w = src.width();
 		size_t h = src.height();
 
