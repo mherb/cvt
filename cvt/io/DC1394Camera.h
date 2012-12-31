@@ -44,7 +44,11 @@ namespace cvt
 			void init();
 			void reset();
 		
-			void enableWhiteBalanceAuto(bool enable);
+			/**
+			 * \brief enable/disable automatic white-balance
+			 */
+			void enableWhiteBalanceAuto( bool enable );
+
 			void getWhiteBalance(unsigned int* ubValue, unsigned int* vrValue);
 			void setWhiteBalance(unsigned int ubValue, unsigned int vrValue);
 			void enableShutterAuto(bool enable);
