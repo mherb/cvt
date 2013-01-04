@@ -71,6 +71,7 @@ namespace cvt {
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
             void            autoReferenceUpdate() const             { return _autoReferenceUpdate; }
             void            setAutoReferenceUpdate( bool v )        { _autoReferenceUpdate = v; }
+            void            setPropagateDepthValues( bool v )       { _propagateDepth = v; }
 
             /******** SIGNALS ************/
             /**
@@ -103,6 +104,7 @@ namespace cvt {
             float                       _selectionPixelPercentage;
 
             bool                        _autoReferenceUpdate;
+            bool                        _propagateDepth;
 
             // current active keyframe
             DerivedKF*                  _activeKeyframe;
@@ -134,6 +136,7 @@ namespace cvt {
         _minPixPerc( 0.5f ),
         _selectionPixelPercentage( 0.3f ),
         _autoReferenceUpdate( true ),
+        _propagateDepth( true ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
         _pyramid( params.octaves, params.pyrScale )
@@ -177,28 +180,19 @@ namespace cvt {
         if( !_activeKeyframe ){
             _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
             _activeKeyframe = &_keyframes[ 0 ];
-
             // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
             _pyramid.update( gray );
-
-//            _gridForScale.resize( _params.octaves );
-//            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
-//                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
-//            }
-        } else {
-            // propagate the depth values to the current frame
+        } else if( _propagateDepth ){
             propagateDepth( dCopy, kfPose );
         }
 
         setKeyframeParams( *_activeKeyframe );
-        //_activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
-        //_activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
 
         // testing:
-        //dCopy.sub( depth );
+        // dCopy.sub( depth );
         // dCopy.save( "propagated_depth.png" );
 
         // notify observers

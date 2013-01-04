@@ -28,7 +28,8 @@ namespace cvt {
             }
 
             template <class HessType, class JType>
-            size_t build( HessType& H, JType& b,
+            size_t build( HessType& H,
+                          JType& b,
                           const JType* jacobians,
                           const float* residuals,
                           const std::vector<size_t>& indices,
@@ -41,8 +42,6 @@ namespace cvt {
                 b.setZero();
                 H.setZero();
 
-                HessType bkp;
-
                 for( size_t i = 0; i < indices.size(); i++ ){
                     // compute the delta
                     size_t idx = indices[ i ];
@@ -52,6 +51,7 @@ namespace cvt {
                     float weight = _lossFunc.weight( residuals[ idx ] );
                     jtmp = weight * jacobians[ idx ];
 
+                    /*
                     if( hasNaN( jtmp ) ){
                         std::cout << "jtmp has nan value(s)" << std::endl;
                         std::cout << "idx: " << idx << std::endl;
@@ -64,12 +64,12 @@ namespace cvt {
                         std::cout << "jacobian has nan value(s)" << std::endl;
                         std::cout << jacobians[ idx ] << std::endl;
                         getchar();
-                    }
+                    }*/
 
-                    bkp = H;
                     H.noalias() += jtmp.transpose() * jacobians[ idx ];
                     b.noalias() += jtmp * residuals[ idx ];
 
+                    /*
                     if( hasNaN( H ) ){
                         std::cout << "hessian has nan value(s)" << std::endl;
                         std::cout << "Before: \n" << bkp << std::endl;
@@ -82,7 +82,7 @@ namespace cvt {
                         std::cout << "weight: " << weight << std::endl;
                         std::cout << "residual: " << residuals[idx] << std::endl;
                         getchar();
-                    }
+                    }*/
 
                 }
                 return numPixels;

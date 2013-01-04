@@ -23,7 +23,6 @@ namespace cvt
         static const size_t NumParameters = 6;
         typedef T                                               Type;
         typedef Eigen::Matrix<T, 1, NumParameters>              JacobianType;
-        //typedef typename SE3<T>::ScreenJacType                ScreenJacType;
         typedef Eigen::Matrix<T, 2, NumParameters>              ScreenJacType;
         typedef Eigen::Matrix<T, NumParameters, NumParameters>  HessianType;
         typedef Eigen::Matrix<T, NumParameters, 1>              DeltaVectorType;

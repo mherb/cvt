@@ -166,8 +166,8 @@ int main( int argc, char* argv[] )
 
     String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
 
-    cfg.save( "rgbdvo.cfg" );
-    std::cout << "Saving config" << std::endl;
+    //cfg.save( "rgbdvo.cfg" );
+    //std::cout << "Saving config" << std::endl;
 
     if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;

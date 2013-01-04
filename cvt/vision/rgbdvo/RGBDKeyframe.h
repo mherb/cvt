@@ -97,8 +97,7 @@ namespace cvt
                 }
 
                 bool                success;
-
-                std::vector<size_t> iterationsOnOctave;
+                size_t              iterations;
                 size_t              numPixels;
                 float               pixelPercentage; /* between 0 and 1 */
                 float               costs;
@@ -138,6 +137,11 @@ namespace cvt
                                            const std::vector<Vector3f>& pts,
                                            const Matrix4f& referenceToWorld ) = 0;
 
+            virtual void updateOnlineData( const ImagePyramid& pyrGray, const Image& depth ){}
+
+            /* get/eval the jacobians */
+            virtual void jacobians(){}
+
             const IKernel& kernelDx() const { return _kx; }
             const IKernel& kernelDy() const { return _ky; }
 
@@ -173,10 +177,10 @@ namespace cvt
 
     template <class WarpFunc>
     inline RGBDKeyframe<WarpFunc>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
-        _kx( IKernel::HAAR_HORIZONTAL_3 ),
-        _ky( IKernel::HAAR_VERTICAL_3 ),
-        //_kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
-        //_ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
+        //_kx( IKernel::HAAR_HORIZONTAL_3 ),
+        //_ky( IKernel::HAAR_VERTICAL_3 ),
+        _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
+        _ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
         //_gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
         //_gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
@@ -186,8 +190,9 @@ namespace cvt
         _minPixelPercentage( 0.2f ),
         _pixelPercentageToSelect( 0.3f )
     {
-        float s = -0.5f;
+        //float s = -0.5f;
         //float s = -2.0f;
+        float s = -1.0f;
         _kx.scale( s );
         _ky.scale( s );
 

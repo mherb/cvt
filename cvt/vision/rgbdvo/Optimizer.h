@@ -91,11 +91,11 @@ namespace cvt {
             void setMinUpdate( float v )         { _minUpdate = v; }
             void setRobustThreshold( float v )   { _robustThreshold = v; }
 
-            virtual void optimize( ResultType& result,
-                                   const Matrix4f& posePrediction,
-                                   RGBDKeyframe<WarpFunc>& reference,
-                                   const ImagePyramid& grayPyramid,
-                                   const Image& depthImage ) const;
+            void optimize( ResultType& result,
+                           const Matrix4f& posePrediction,
+                           RGBDKeyframe<WarpFunc>& reference,
+                           const ImagePyramid& grayPyramid,
+                           const Image& depthImage ) const;
 
 
         protected:
@@ -106,6 +106,13 @@ namespace cvt {
             size_t  _maxIter;
             float   _minUpdate;
             float   _robustThreshold;
+
+            virtual void optimizeSingleScale( ResultType& result,
+                                              const AlignDataType& data,
+                                              const Image& gray,
+                                              const Image& gradx,
+                                              const Image& grady,
+                                              const Image& depthImage ) const;
 
             float computeMedian( const float* residuals, const std::vector<size_t>& indices ) const
             {
@@ -183,25 +190,30 @@ namespace cvt {
     }
 
     template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimize( ResultType& result,
-                                                         const Matrix4f& posePrediction,
-                                                         RGBDKeyframe<WarpFunc> &reference,
-                                                         const ImagePyramid& grayPyramid,
-                                                         const Image& /*depthImage*/ ) const
+    inline void Optimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
+                                                                    //const Matrix4f& posePrediction,
+                                                                    const AlignDataType& data,
+                                                                    const Image& gray,
+                                                                    const Image& gradx,
+                                                                    const Image& grady,
+                                                                    const Image& /*depthImage*/ ) const
     {
         SIMD* simd = SIMD::instance();
-        Matrix4f tmp4;
-        tmp4 = posePrediction.inverse() * reference.pose();
 
-        result.warp.setPose( tmp4 );
-        result.costs = 0.0f;
+        const size_t width = gray.width();
+        const size_t height = gray.height();
+        const size_t num = data.points3d.size();
 
-        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
-        result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
+        Matrix4f K4( data.intrinsics );
 
-        LossFunc weighter( _robustThreshold );
-        SystemBuilder<LossFunc> builder( weighter );
+        // 3D points in the reference frame (for projection)
+        const Vector3f* p3dPtr = &data.points3d[ 0 ];
+
+        // gradient of the reference frame (for ESM)
+        const Vector2f* refGrads = &data.gradients[ 0 ];
+
+        const float* referencePixVals = &data.pixelValues[ 0 ];
+        //const JacobianType* referenceJ = &data.jacobians[ 0 ];
 
         Matrix4f projMat;
         std::vector<Vector2f> warpedPts;
@@ -210,151 +222,138 @@ namespace cvt {
         std::vector<float> interpolatedGy;
         std::vector<float> residuals;
         std::vector<size_t> indices;
+        warpedPts.resize( num );
+        interpolatedPixels.resize( num );
+        interpolatedGx.resize( num );
+        interpolatedGy.resize( num );
+        residuals.resize( num );
 
-        // TODO: compose this into one multichannel image
+        JacobianType deltaSum;
+        HessianType  hessian;
+        std::vector<JacobianType> esmJacobian;
+        esmJacobian.resize( num );
+
+        IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> gxMap( gradx );
+        IMapScoped<const float> gyMap( grady );
+
+        result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
+
+        LossFunc weighter( _robustThreshold );
+        SystemBuilder<LossFunc> builder( weighter );
+
+        while( result.iterations < _maxIter ){
+            // build the updated projection Matrix
+            projMat = K4 * result.warp.poseMatrix();
+
+            // project the points:
+            simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
+
+            // interpolate the pixel values
+            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -10.0f, num );
+            result.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
+
+            // compute the valid indices: (those that are within the image)
+            validIndices( indices, &interpolatedPixels[ 0 ], num, 0.0f );
+
+            float median = computeMedian( &residuals[ 0 ], indices );
+            float mad = computeMAD( &residuals[ 0 ], indices, median );
+
+
+            // this is an estimate for the standard deviation:
+            weighter.setScale( 1.4826f * mad );
+
+            // interpolate the warped gradient for ESM
+            simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );
+            simd->warpBilinear1f( &interpolatedGy[ 0 ], &warpedPts[ 0 ].x, gyMap.ptr(), gyMap.stride(), width, height, -20.0f, num );
+
+            Eigen::Vector2f gVec;
+            std::vector<size_t>::const_iterator idxIter = indices.begin();
+            const std::vector<size_t>::const_iterator idxIterEnd = indices.end();
+
+            while( idxIter != idxIterEnd ){
+                gVec[ 0 ] = refGrads[ *idxIter ].x;
+                gVec[ 1 ] = refGrads[ *idxIter ].y;
+
+                if( interpolatedGx[ *idxIter ] != -20.0f ){
+                    gVec[ 0 ] += interpolatedGx[ *idxIter ];
+                    gVec[ 0 ] *= 0.5f;
+                }
+                if( interpolatedGy[ *idxIter ] != -20.0f ){
+                    gVec[ 1 ] += interpolatedGy[ *idxIter ];
+                    gVec[ 1 ] *= 0.5f;
+                }
+                esmJacobian[ *idxIter ] = gVec.transpose() * data.screenJacobians[ *idxIter ];
+                ++idxIter;
+            }
+
+            /* a hack: the builder does not touch the hessian if its a non robust lossfunc!
+             * this is acutally a problem, as this way ESM cannot be used non-robustly
+             */
+            hessian = data.hessian;
+            result.numPixels = builder.build( hessian,
+                                              deltaSum,
+                                              &esmJacobian[ 0 ],
+                                              &residuals[ 0 ],
+                                              indices,
+                                              result.costs );
+
+            if( !result.numPixels ||
+                result.costs / result.numPixels < 0.005f ){
+                break;
+            }
+
+            DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
+
+            if( deltaP.norm() < _minUpdate )
+                break;
+
+            result.warp.updateParameters( deltaP );
+            result.iterations++;
+        }
+
+        result.pixelPercentage = ( float )result.numPixels / ( float )num;
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline void Optimizer<WarpFunc, LossFunc>::optimize( ResultType& result,
+                                                         const Matrix4f& posePrediction,
+                                                         RGBDKeyframe<WarpFunc> &reference,
+                                                         const ImagePyramid& grayPyramid,
+                                                         const Image& depthImage ) const
+    {
+        Matrix4f tmp4;
+        tmp4 = posePrediction.inverse() * reference.pose();
+
+        result.warp.setPose( tmp4 );
+        result.costs = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
+
+        // this is for computing the ESM jacobians
         ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
         ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
-
         grayPyramid.convolve( gradX, reference.kernelDx() );
         grayPyramid.convolve( gradY, reference.kernelDy());
 
-        // sum of jacobians * delta
-        JacobianType deltaSum;
-        HessianType  hessian;
-
-        std::vector<JacobianType> esmJacobian;
-
+        ResultType saveResult = result;
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            ResultType scaleResult;
-            scaleResult = result;
-
-            const size_t width = grayPyramid[ o ].width();
-            const size_t height = grayPyramid[ o ].height();
-
             const AlignDataType& data = reference.dataForScale( o );
 
-            const size_t num = data.points3d.size();
-            Matrix4f K4( data.intrinsics );
-            const Vector3f* p3dPtr = &data.points3d[ 0 ];
-            const Vector2f* refGrads = &data.gradients[ 0 ];
-
-            const float* referencePixVals = &data.pixelValues[ 0 ];
-            //const JacobianType* referenceJ = &data.jacobians[ 0 ];
-
-            warpedPts.resize( num );
-            interpolatedPixels.resize( num );
-            interpolatedGx.resize( num );
-            interpolatedGy.resize( num );
-            residuals.resize( num );
-            esmJacobian.resize( num );
-
-            IMapScoped<const float> grayMap( grayPyramid[ o ] );
-            IMapScoped<const float> gxMap( gradX[ o ] );
-            IMapScoped<const float> gyMap( gradY[ o ] );
-
-            scaleResult.iterationsOnOctave[ o ] = 0;
-            scaleResult.numPixels = 0;
-            scaleResult.pixelPercentage = 0.0f;
-
-            while( scaleResult.iterationsOnOctave[ o ] < _maxIter ){
-                // build the updated projection Matrix
-                projMat = K4 * scaleResult.warp.poseMatrix();
-
-                // project the points:
-                simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
-
-                // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -10.0f, num );
-                scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
-
-                // compute the valid indices: (those that are within the image)
-                validIndices( indices, &interpolatedPixels[ 0 ], num, -0.1f );
-
-                float median = computeMedian( &residuals[ 0 ], indices );
-                float mad = computeMAD( &residuals[ 0 ], indices, median );
-
-                /* this is an estimate for the standard deviation:
-                 * TODO: check if this is the same as described in the paper
-                 */
-                weighter.setScale( 1.4826f * mad );
-
-                // interpolate the warped gradient for ESM
-                simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );
-                simd->warpBilinear1f( &interpolatedGy[ 0 ], &warpedPts[ 0 ].x, gyMap.ptr(), gyMap.stride(), width, height, -20.0f, num );
-
-                Eigen::Vector2f gVec;
-                std::vector<size_t>::const_iterator idxIter = indices.begin();
-                const std::vector<size_t>::const_iterator idxIterEnd = indices.end();
-
-                while( idxIter != idxIterEnd ){
-                    gVec[ 0 ] = refGrads[ *idxIter ].x;
-                    gVec[ 1 ] = refGrads[ *idxIter ].y;
-
-                    if( interpolatedGx[ *idxIter ] != -20.0f ){
-                        gVec[ 0 ] += interpolatedGx[ *idxIter ];
-                        gVec[ 0 ] *= 0.5f;
-                    }
-                    if( interpolatedGy[ *idxIter ] != -20.0f ){
-                        gVec[ 1 ] += interpolatedGy[ *idxIter ];
-                        gVec[ 1 ] *= 0.5f;
-                    }
-                    esmJacobian[ *idxIter ] = gVec.transpose() * data.screenJacobians[ *idxIter ];
-                    ++idxIter;
-                }
-
-                /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
-                hessian = data.hessian;
-                scaleResult.numPixels = builder.build( hessian, deltaSum,
-                                                       //referenceJ,
-                                                       &esmJacobian[ 0 ],
-                                                       &residuals[ 0 ],
-                                                       indices,
-                                                       scaleResult.costs );
-                if( !scaleResult.numPixels ||
-                    scaleResult.costs / scaleResult.numPixels < 0.005f ){
-                    break;
-                }
-
-                // evaluate the delta parameters
-                Eigen::FullPivLU<HessianType> lu( hessian );
-
-                if( !lu.isInvertible() ){
-                    std::cout << "Hessian is not invertible\n" << hessian << std::endl;
-                    getchar();
-
-                    break;
-                }
-                DeltaType deltaP = -lu.inverse() * deltaSum.transpose();
-                scaleResult.warp.updateParameters( deltaP );
-
-                /*
-                std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
-                             deltaP[ 0 ] << ", " <<
-                             deltaP[ 1 ] << ", " <<
-                             deltaP[ 2 ] << ", " <<
-                             deltaP[ 3 ] << ", " <<
-                             deltaP[ 4 ] << ", " <<
-                             deltaP[ 5 ] <<  std::endl;
-                std::cout << "NumPixel: " << scaleResult.numPixels << std::endl;
-                std::cout << "Pose:\n" << scaleResult.warp.poseMatrix()  << "\n" << std::endl;*/
-
-                scaleResult.iterationsOnOctave[ o ]++;
-
-                if( deltaP.norm() < _minUpdate )
-                    break;
-            }
-
-            if( scaleResult.numPixels )
-                scaleResult.pixelPercentage = ( float )scaleResult.numPixels / ( float )num;
+            this->optimizeSingleScale( result, data, grayPyramid[ o ], gradX[ o ], gradY[ o ], depthImage );
 
             // TODO: ensure the result on this scale is good enough (pixel percentage & error )
-            result = scaleResult;
+            saveResult = result;
         }
 
+        result = saveResult;
         tmp4 = result.warp.poseMatrix();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
-        std::cout << "Current Pose: \n" << tmp4 << std::endl;
+        //std::cout << "Current Pose: \n" << tmp4 << std::endl;
     }
 
 }
