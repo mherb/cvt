@@ -336,6 +336,23 @@ SET(${MODULE_NAME}_HEADERS
    io/AsyncTCPServer.h
    io/AsyncTCPClient.h
    io/AsyncUDPClient.h
+   io/audio/AudioDevice.h
+   io/audio/AudioOutput.h
+   io/audio/AudioOutputInfo.h
+   io/audio/AudioPlugin.h
+   io/xml/XMLAttribute.h
+   io/xml/XMLCData.h
+   io/xml/XMLComment.h
+   io/xml/XMLDecl.h
+   io/xml/XMLDecoder.h
+   io/xml/XMLDecoderUTF8.h
+   io/xml/XMLDocument.h
+   io/xml/XMLElement.h
+   io/xml/XMLEncoding.h
+   io/xml/XMLLeaf.h
+   io/xml/XMLNode.h
+   io/xml/XMLSerializable.h
+   io/xml/XMLText.h
    math/CostFunction.h
    math/Complex.h
    math/Fixed.h
@@ -470,19 +487,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/stereo/DepthInitializer.h
    vision/slam/stereo/ORBStereoInit.h
    vision/slam/stereo/PatchStereoInit.h
-   io/xml/XMLAttribute.h
-   io/xml/XMLCData.h
-   io/xml/XMLComment.h
-   io/xml/XMLDecl.h
-   io/xml/XMLDecoder.h
-   io/xml/XMLDecoderUTF8.h
-   io/xml/XMLDocument.h
-   io/xml/XMLElement.h
-   io/xml/XMLEncoding.h
-   io/xml/XMLLeaf.h
-   io/xml/XMLNode.h
-   io/xml/XMLSerializable.h
-   io/xml/XMLText.h
    ${GLSL_GEN_HEADER_${MODULE_NAME}}
    ${CL_GEN_HEADER_${MODULE_NAME}}
    ${GLSL_SHADER}
@@ -598,6 +602,9 @@ SET(${MODULE_NAME}_SOURCES
    io/TCPClient.cpp
    io/TCPServer.cpp
    io/UDPClient.cpp
+   io/audio/AudioDevice.cpp
+   io/xml/XMLDecoder.cpp
+   io/xml/XMLDecoderUTF8.cpp
    math/Complex.cpp
    math/Fixed.cpp
    math/JointMeasurements.cpp
@@ -658,8 +665,6 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/stereo/PatchStereoInit.cpp
    vision/TSDFVolume.cpp
    vision/Vision.cpp
-   io/xml/XMLDecoder.cpp
-   io/xml/XMLDecoderUTF8.cpp
 )
 
 

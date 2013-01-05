@@ -35,11 +35,12 @@ namespace cvt {
 	}
 
 	enum PluginType {
-		PLUGIN_ILOADER,
+		PLUGIN_ILOADER = 0,
 		PLUGIN_ISAVER,
 		PLUGIN_IFILTER,
 		PLUGIN_SCENELOADER,
-		PLUGIN_SCENESAVER
+		PLUGIN_SCENESAVER,
+		PLUGIN_AUDIO
 	};
 
 	class Plugin {
