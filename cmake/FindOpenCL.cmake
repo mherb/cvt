@@ -36,7 +36,7 @@ ELSE (WIN32)
 		)
 	ELSE(APPLE)
 		# Unix style platforms
-		# We also search for OpenCL in the NVIDIA SDK default location
+		# NVIDIA SDK default location
 		FIND_PATH(OPENCL_INCLUDE_DIR
 		   NAMES	
 			CL/opencl.h 
@@ -49,6 +49,7 @@ ELSE (WIN32)
 			$ENV{ATISTREAMSDKROOT}/include
 		)
 	
+		# AMD Stream SDK, (should be updated to APPSDK) default location
 		FIND_LIBRARY(OPENCL_LIBRARIES 
 			OpenCL 
 			ENV LD_LIBRARY_PATH
@@ -58,10 +59,11 @@ ELSE (WIN32)
 	ENDIF (APPLE)
 ENDIF (WIN32)
 
-SET( OPENCL_FOUND "NO" )
-IF(OPENCL_LIBRARIES )
-	SET( OPENCL_FOUND "YES" )
-ENDIF(OPENCL_LIBRARIES)
+include(FindPackageHandleStandardArgs)
+# handle the QUIETLY and REQUIRED arguments and set OPENCL_FOUND to TRUE
+# if all listed variables are TRUE
+FIND_PACKAGE_HANDLE_STANDARD_ARGS( OpenCL DEFAULT_MSG
+								   OPENCL_LIBRARIES OPENCL_INCLUDE_DIR)
 
 MARK_AS_ADVANCED(
 	OPENCL_INCLUDE_DIR

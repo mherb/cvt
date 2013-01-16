@@ -158,7 +158,6 @@ namespace cvt {
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
-        /* TODO: robust statistics should use median of residuals for threshold */
         LossFunc weighter( _robustThreshold );
         SystemBuilder<LossFunc> builder( weighter );
 
@@ -167,6 +166,7 @@ namespace cvt {
         std::vector<float> interpolatedPixels;
         std::vector<float> residuals;
         std::vector<size_t> indices;
+
         // sum of jacobians * delta
         JacobianType deltaSum;
         HessianType  hessian;
