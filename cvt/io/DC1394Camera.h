@@ -39,13 +39,75 @@ namespace cvt
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
 
+			enum ExternalTriggerPolarity {
+				TRIGGER_ON_FALLING_EDGE = DC1394_TRIGGER_ACTIVE_LOW,
+				TRIGGER_ON_RISING_EDGE = DC1394_TRIGGER_ACTIVE_HIGH
+				// there are even more options,
+				// concerning the exposure time, multi trigger, etc.
+			};
+
+			enum ExternalTriggerMode {
+				EDGE_TRIGGERED_FIXED_EXPOSURE = DC1394_TRIGGER_MODE_0,
+				EDGE_TRIGGERED_EDGE_EXPOSURE,
+				EDGE_TRIGGERED_STOP_NTH_EDGE,
+				DC1394_TRIGGER_MODE_3,//TODO: lookup meaning of these modes
+				DC1394_TRIGGER_MODE_4,
+				DC1394_TRIGGER_MODE_5,
+				VENDOR_SPEC_TRIGGER_0,
+				VENDOR_SPEC_TRIGGER_1
+			};
+
+			enum ExternalTriggerSource {
+				TRIGGER_SOURCE_0 = DC1394_TRIGGER_SOURCE_0,
+				TRIGGER_SOURCE_1 = DC1394_TRIGGER_SOURCE_1,
+				TRIGGER_SOURCE_2 = DC1394_TRIGGER_SOURCE_2,
+				TRIGGER_SOURCE_3 = DC1394_TRIGGER_SOURCE_3,
+				TRIGGER_SOURCE_SOFTWARE = DC1394_TRIGGER_SOURCE_SOFTWARE
+			};
+			typedef std::vector<ExternalTriggerSource> TriggerSourceVec;
+
+			void supportedTriggerSources( TriggerSourceVec& sources );
+			ExternalTriggerSource triggerSource() const;
+			void setTriggerSource( ExternalTriggerSource src ) const;
+
+			void setExternalTriggerMode( ExternalTriggerMode mode );
+			ExternalTriggerMode externalTriggerMode() const;
+
+			void enableExternalTrigger( bool enable );
+			bool isExternalTriggered() const;
+
+			bool isSoftwareTriggered() const;
+			void setSoftwareTrigger( bool enable );
+
+			void setRegister( uint64_t offset, uint32_t value );
+			uint32_t getRegister( uint64_t offset ) const;
+
+			/**
+			 * @brief if camera supports switching of polarity from
+			 *	      trigger on falling edge (default) to rising
+			 * @return whether it's supported or not
+			 */
+			bool externalTriggerSupportsPolarity() const;
+
+			/**
+			 * @brief query polarity of the external trigger
+			 * @return polarity of the external trigger
+			 */
+			ExternalTriggerPolarity externalTriggerPolarity() const;
+
+			void setExternalTriggerPolarity( ExternalTriggerPolarity pol );
+
+			void printAllFeatures();
+
+			void setPIO();
+
 		private:
 			void close();
 			void init();
 			void reset();
 		
 			/**
-			 * \brief enable/disable automatic white-balance
+			 * @brief enable/disable automatic white-balance
 			 */
 			void enableWhiteBalanceAuto( bool enable );
 
@@ -56,11 +118,11 @@ namespace cvt
 			void setShutter(unsigned int value);
 			void enableGainAuto(bool enable);
 			void enableIrisAuto(bool enable);
-					
+
 			/* find fitting dc1394 settings for given camera mode */
 			void dcSettings( const CameraMode & mode );
-		
 			dc1394video_mode_t dcMode( const CameraMode & mode );
+
 			
 			int     _dmaBufNum;
 			size_t  _camIndex;

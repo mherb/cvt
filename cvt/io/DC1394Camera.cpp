@@ -15,11 +15,17 @@
 
 namespace cvt
 {
-
 	DC1394Camera::DC1394Camera( size_t camIndex, const CameraMode & mode ) :
-		_dmaBufNum( 10 ), _camIndex( camIndex ), _frame( mode.width, mode.height, mode.format ),
-		_width( mode.width ), _height( mode.height ), _fps( mode.fps ), _capturing( false ),
-		_dcHandle( NULL ), _camera( NULL ),  _speed( DC1394_ISO_SPEED_400 )
+		_dmaBufNum( 10 ),
+		_camIndex( camIndex ),
+		_frame( mode.width, mode.height, mode.format ),
+		_width( mode.width ),
+		_height( mode.height ),
+		_fps( mode.fps ),
+		_capturing( false ),
+		_dcHandle( NULL ),
+		_camera( NULL ),
+		_speed( DC1394_ISO_SPEED_400 )
 	{
 		_dcHandle = dc1394_new( );
 		dc1394camera_list_t* list;
@@ -164,6 +170,25 @@ namespace cvt
 		return _frame;
 	}
 
+	void DC1394Camera::setRegister( uint64_t offset, uint32_t value )
+	{
+		dc1394error_t status = dc1394_set_registers( _camera, offset, &value, 1 );
+		if( status != DC1394_SUCCESS ){
+			throw CVTException( "error in dc1394_set_registers" );
+		}
+	}
+
+	uint32_t DC1394Camera::getRegister( uint64_t offset ) const
+	{
+		uint32_t val;
+		dc1394error_t status = dc1394_get_registers( _camera, offset, &val, 1 );
+		if( status != DC1394_SUCCESS ){
+			throw CVTException( "error in dc1394_get_registers" );
+		}
+
+		return val;
+	}
+
 	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
 	{
 		dc1394feature_mode_t mode;
@@ -234,6 +259,131 @@ namespace cvt
 		}
 
 		dc1394_feature_set_mode( _camera, DC1394_FEATURE_IRIS, mode );
+	}
+
+	bool DC1394Camera::isSoftwareTriggered() const
+	{
+		dc1394switch_t sw;
+		dc1394error_t error = dc1394_software_trigger_get_power( _camera, &sw );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not get software trigger status" );
+		}
+
+		return ( sw == DC1394_ON ) ? true : false;
+	}
+
+	void DC1394Camera::setSoftwareTrigger( bool enable )
+	{
+		dc1394switch_t sw = enable ? DC1394_ON : DC1394_OFF;
+		dc1394error_t error = dc1394_software_trigger_set_power( _camera, sw );
+
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not enable/disable software triggering" );
+		}
+	}
+
+	void DC1394Camera::enableExternalTrigger( bool enable )
+	{
+		dc1394switch_t sw = enable ? DC1394_ON : DC1394_OFF;
+		dc1394error_t error = dc1394_external_trigger_set_power( _camera, sw );
+
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not enable/disable external triggering" );
+		}
+	}
+
+	bool DC1394Camera::isExternalTriggered() const
+	{
+		dc1394switch_t sw;
+		dc1394error_t error = dc1394_external_trigger_get_power( _camera, &sw );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not get external trigger status" );
+		}
+
+		return ( sw == DC1394_ON ) ? true : false;
+	}
+
+	bool DC1394Camera::externalTriggerSupportsPolarity() const
+	{
+		dc1394bool_t v;
+		dc1394error_t error = dc1394_external_trigger_has_polarity( _camera, &v );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not query polarity support" );
+		}
+
+		return ( v == DC1394_TRUE ) ? true : false;
+	}
+
+	DC1394Camera::ExternalTriggerPolarity DC1394Camera::externalTriggerPolarity() const
+	{
+		dc1394trigger_polarity_t pol;
+		dc1394error_t error = dc1394_external_trigger_get_polarity( _camera, &pol );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not query trigger polarity" );
+		}
+
+		return ( ExternalTriggerPolarity )pol;
+	}
+
+	void DC1394Camera::setExternalTriggerPolarity( ExternalTriggerPolarity pol )
+	{
+		dc1394error_t error = dc1394_external_trigger_set_polarity( _camera, ( dc1394trigger_polarity_t )pol );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not set trigger polarity" );
+		}
+	}
+
+	void DC1394Camera::supportedTriggerSources( TriggerSourceVec& srcVec )
+	{
+		dc1394trigger_sources_t sources;
+		sources.num = 0;
+
+		dc1394error_t error = dc1394_external_trigger_get_supported_sources( _camera, &sources );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not get supported trigger sources" );
+		}
+
+		for( size_t i = 0; i < sources.num; i++ ){
+			srcVec.push_back( ( ExternalTriggerSource )sources.sources[ i ] );
+		}
+	}
+
+	DC1394Camera::ExternalTriggerSource DC1394Camera::triggerSource() const
+	{
+		dc1394trigger_source_t src;
+		dc1394error_t error = dc1394_external_trigger_get_source( _camera, &src );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not query trigger source" );
+		}
+
+		return ( ExternalTriggerSource )src;
+	}
+
+	void DC1394Camera::setTriggerSource( ExternalTriggerSource src ) const
+	{
+		dc1394error_t error = dc1394_external_trigger_set_source( _camera, ( dc1394trigger_source_t )src );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not query trigger source" );
+		}
+	}
+
+	void DC1394Camera::setExternalTriggerMode( ExternalTriggerMode mode )
+	{
+		dc1394error_t error = dc1394_external_trigger_set_mode( _camera, ( dc1394trigger_mode_t )mode );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not set trigger mode" );
+		}
+	}
+
+	DC1394Camera::ExternalTriggerMode DC1394Camera::externalTriggerMode() const
+	{
+		dc1394trigger_mode_t tm;
+		dc1394error_t error = dc1394_external_trigger_get_mode( _camera, &tm );
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not get trigger mode" );
+		}
+
+		return ( ExternalTriggerMode )tm;
 	}
 
 	void DC1394Camera::dcSettings( const CameraMode & mode )
@@ -475,5 +625,18 @@ namespace cvt
 		dc1394_camera_free( cam );
 		dc1394_camera_free_list( list );
 		dc1394_free( handle );
+	}
+
+
+	void DC1394Camera::printAllFeatures()
+	{
+		dc1394featureset_t featureSet;
+		dc1394error_t error = dc1394_feature_get_all( _camera, &featureSet );
+
+		if( error != DC1394_SUCCESS ){
+			throw CVTException( "could not query features from camera" );
+		}
+
+		dc1394_feature_print_all( &featureSet, stdout );
 	}
 }
