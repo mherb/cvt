@@ -44,7 +44,7 @@ namespace cvt
 		Time detectTime;
 		_detector->detect( featureset, _gray );
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
-		featureset.filterNMS( 2 );
+		featureset.filterNMS( 1 );
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 
@@ -54,9 +54,10 @@ namespace cvt
 		double t = _time.elapsedSeconds();
 		if( t > 3.0 ){
 			String title;
-			title.sprintf( "Features - FPS %0.1f - Avg. Detection time: %0.1fms" , _iter / t, _avgDetectorTime / _allIter );
+			title.sprintf( "Features - FPS %0.1f - Avg. Detection time: %0.1fms" , _iter / t, _avgDetectorTime / _iter );
 			_window.setTitle( title );
 			_iter = 0;
+			_avgDetectorTime = 0;
 			_time.reset();
 		}
 	}
