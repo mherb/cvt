@@ -29,6 +29,12 @@ namespace cvt {
 			AudioDeviceID			   deviceID() const;
 
 		private:
+			bool setOutputSampleRate( size_t samplerate );
+			size_t getOutputSampleRate() const;
+
+			bool setVolume( float value );
+			float getVolume() const;
+
 			bool isDefaultOutput() const;
 			bool isDefaultInput() const;
 			bool isInput() const;
@@ -70,6 +76,29 @@ namespace cvt {
 			_features |= AUDIO_DEVICE_OUTPUT;
 			if( isDefaultOutput() )
 				_features |= AUDIO_DEVICE_DEFAULTOUTPUT;
+
+		}
+
+		if( _features & AUDIO_DEVICE_OUTPUT )
+		{
+			OSStatus err = noErr;
+			UInt32 size = 0;
+			AudioObjectPropertyAddress property = { kAudioDevicePropertyStreamConfiguration, kAudioDevicePropertyScopeOutput, kAudioObjectPropertyElementMaster };
+			err = AudioObjectGetPropertyDataSize( _id, &property, 0, NULL, &size );
+			if ( err != noErr )
+				return;
+
+			std::cout <<  size / sizeof( AudioBufferList ) << std::endl;
+
+			AudioBufferList* buflist = new AudioBufferList[ size / sizeof( AudioBufferList ) ];
+			err = AudioObjectGetPropertyData( _id, &property, 0, NULL, &size, buflist );
+			if ( err != noErr )
+				return;
+
+			for( size_t i = 0, end = buflist->mNumberBuffers; i < end; i++ ) {
+				std::cout << buflist->mBuffers[i].mNumberChannels << std::endl;
+			}
+			delete[] buflist;
 
 		}
 	}
@@ -142,6 +171,68 @@ namespace cvt {
 		if( err != noErr )
 			return false;
 		return ( size != 0 );
+	}
+
+	inline size_t CoreAudioDevice::getOutputSampleRate() const
+	{
+		OSStatus err = noErr;
+		AudioObjectPropertyAddress rateaddr = { kAudioDevicePropertyNominalSampleRate, kAudioDevicePropertyScopeOutput, kAudioObjectPropertyElementMaster };
+		UInt32 size = sizeof( Float64 );
+		Float64 rate;
+		err = AudioObjectGetPropertyData( _id, &rateaddr, 0, NULL, &size, &rate );
+		if( err != noErr )
+			return 0;
+		return rate;
+	}
+
+	inline bool CoreAudioDevice::setOutputSampleRate( size_t samplerate )
+	{
+		OSStatus err = noErr;
+		AudioObjectPropertyAddress rateaddr = { kAudioDevicePropertyNominalSampleRate, kAudioDevicePropertyScopeOutput, kAudioObjectPropertyElementMaster };
+		Float64 rate = ( Float64 ) samplerate;
+		err = AudioObjectSetPropertyData( _id, &rateaddr, 0, NULL, sizeof( Float64 ), &rate );
+		if( err != noErr )
+			return false;
+		return true;
+	}
+
+	inline bool CoreAudioDevice::setVolume( float value )
+	{
+		// TODO: this sucks - how to set channels?
+		OSStatus err = noErr;
+		AudioObjectPropertyAddress voladdr1 = { kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, 1 };
+		AudioObjectPropertyAddress voladdr2 = { kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, 2 };
+		Float32 vol = ( Float32 ) value;
+		err = AudioObjectSetPropertyData( _id, &voladdr1, 0, NULL, sizeof( Float32 ), &vol );
+		if( err != noErr )
+			return false;
+		err = AudioObjectSetPropertyData( _id, &voladdr2, 0, NULL, sizeof( Float32 ), &vol );
+		if( err != noErr )
+			return false;
+		return true;
+	}
+
+	inline float CoreAudioDevice::getVolume() const
+	{
+		// TODO: this sucks - how to set channels?
+		OSStatus err = noErr;
+		AudioObjectPropertyAddress voladdr1 = { kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, 1 };
+		AudioObjectPropertyAddress voladdr2 = { kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, 2 };
+		float ret;
+
+		UInt32 size = sizeof( Float32 );
+		Float32 volume;
+		err = AudioObjectGetPropertyData( _id, &voladdr1, 0, NULL, &size, &volume );
+		if( err != noErr )
+			return 0;
+		std::cout << volume << std::endl;
+		ret = volume;
+		err = AudioObjectGetPropertyData( _id, &voladdr2, 0, NULL, &size, &volume );
+		if( err != noErr )
+			return 0;
+		std::cout << volume << std::endl;
+		ret += volume;
+		return ret / 2;
 	}
 
 }

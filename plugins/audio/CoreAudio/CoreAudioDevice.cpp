@@ -17,6 +17,9 @@ namespace cvt
 
 	AudioOutput* CoreAudioDevice::createAudioOutput( const AudioFormat& format, AudioIOHandler& handler ) const
 	{
+		if( !( _features & AUDIO_DEVICE_OUTPUT ) )
+			return NULL;
+
 		return new CoreAudioOutput( *this, format, handler );
 	}
 }

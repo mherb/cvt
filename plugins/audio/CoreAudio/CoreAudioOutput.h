@@ -35,6 +35,20 @@ namespace cvt
 			const AudioFormat& format() const;
 
 		private:
+			static OSStatus audioIOProc( AudioDeviceID dev,
+									     const AudioTimeStamp* inNow,
+										 const AudioBufferList* inInputData,
+										 const AudioTimeStamp* inInputTime,
+										 AudioBufferList* outOutputData,
+										 const AudioTimeStamp* inOutputTime,
+										 void* ptr );
+
+			static OSStatus audioDevProc( AudioDeviceID dev,
+										  UInt32 line,
+										  const AudioObjectPropertyAddress* pa,
+										  void* ptr );
+
+
 			AudioDeviceID	_id;
 			AudioFormat		_format;
 			AudioIOHandler& _handler;
