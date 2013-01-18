@@ -12,10 +12,9 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	const int2 base = ( int2 )( get_group_id( 0 ) * lw - 1, get_group_id( 1 ) * lh - 1 );
 	const int bstride = lw + 2;
 	float dx, dy;
-	float4 c;
 	local float buf[ 18 ][ 18 ];
 
-	c = read_imagef( src, sampler, ( int2 ) ( gx, gy ) );
+//	float4 c = read_imagef( src, sampler, ( int2 ) ( gx, gy ) );
 
 	for( int y = ly; y < lh + 2; y += lh ) {
 		for( int x = lx; x < lw + 2; x += lw ) {
@@ -31,7 +30,9 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 
 	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) );// * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
 	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) );// * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
+	float dxy = ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1  ) );
+	float dyx = ( BUF( lx- 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) );
 
 
-	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( dx, dy, 0.0f, 0.0f ) );
+	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( dx, dy, dxy, dyx ) );
 }
