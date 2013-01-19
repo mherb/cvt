@@ -120,6 +120,9 @@ namespace cvt
 //		setShutter( 300 );
 
 		_capturing = true;
+
+		std::cout << "PIO_CSR: " << std::hex << _camera->PIO_control_csr << std::endl;
+		std::cout << "PIO_CSR: " << std::hex << _camera->strobe_control_csr << std::endl;
 	}
 
 	void DC1394Camera::stopCapture( )

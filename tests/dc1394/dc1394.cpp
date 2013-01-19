@@ -144,6 +144,11 @@ int main( int argc, char* argv[] )
 	cameras.push_back( &cam );
 
 	try {
+
+		uint64_t csr = 0xf011f0 + 0x11f8;
+		//uint64_t csr = 0xf011f0 + 0x;
+		std::cout << std::hex << cam.getRegister( csr );
+
 		MultiCamApp camTimeOut( cameras );
 		Application::run();
 
