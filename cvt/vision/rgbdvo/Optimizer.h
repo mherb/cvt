@@ -15,6 +15,8 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
 
+#include <Eigen/LU>
+
 namespace cvt {
 
     class HistMedianSelect {
@@ -223,7 +225,13 @@ namespace cvt {
                 }
 
                 // evaluate the delta parameters
-                DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
+                Eigen::FullPivLU<HessianType> lu( hessian );
+                if( !lu.isInvertible() ){
+                    std::cout << "Hessian not invertible!" << std::endl;
+                } {
+                    std::cout << "inversion possible" << std::endl;
+                }
+                DeltaType deltaP = -lu.inverse() * deltaSum.transpose();
                 scaleResult.warp.updateParameters( deltaP );
 
 

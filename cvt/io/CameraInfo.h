@@ -37,6 +37,9 @@ namespace cvt {
 			const String & name() const;
 			void setName( const String & name );
 
+			const String & identifier() const;
+			void setIdentifier( const String & id );
+
 			CameraType type() const;
 			void setType( CameraType type );
 
@@ -50,9 +53,10 @@ namespace cvt {
 			const CameraModeSet & modeSet() const;
 
 		private:
-			String _name;
-			CameraType _type;
-			size_t _index;
+			String		_name;
+			String		_identifier;
+			CameraType	_type;
+			size_t		_index;
 			CameraModeSet _modeSet;
 	};
 
@@ -68,6 +72,16 @@ namespace cvt {
 	inline void CameraInfo::setName( const String & name )
 	{
 		_name = name;
+	}
+
+	inline const String & CameraInfo::identifier() const
+	{
+		return _identifier;
+	}
+
+	inline void CameraInfo::setIdentifier( const String & id )
+	{
+		_identifier = id;
 	}
 
 	inline CameraType CameraInfo::type() const

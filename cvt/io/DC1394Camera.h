@@ -29,15 +29,21 @@ namespace cvt
 			void startCapture();
 			void stopCapture();
 
-			bool nextFrame( size_t timeout = 30 );
-			const Image& frame() const;
-			size_t width() const { return _width;}
-			size_t height() const { return _height;}
-			const IFormat & format() const { return _frame.format();}
-            const String& identifier() const { return _identifier;}
+			bool			nextFrame( size_t timeout = 30 );
 
-			static size_t count();
-			static void cameraInfo( size_t index, CameraInfo & info );
+			const Image&	frame() const;
+
+			size_t			width() const { return _width;}
+
+			size_t			height() const { return _height;}
+
+			const IFormat&	format() const { return _frame.format();}
+
+            const String&	identifier() const { return _identifier;}
+
+			static size_t	count();
+
+			static void		cameraInfo( size_t index, CameraInfo & info );
 
 			enum ExternalTriggerPolarity {
 				TRIGGER_ON_FALLING_EDGE = DC1394_TRIGGER_ACTIVE_LOW,
