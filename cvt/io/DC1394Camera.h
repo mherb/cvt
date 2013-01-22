@@ -22,28 +22,11 @@ namespace cvt
 	{
 
 		public:
-			DC1394Camera( size_t camIndex, const CameraMode & mode );
-
-			~DC1394Camera();
-
-			void startCapture();
-			void stopCapture();
-
-			bool			nextFrame( size_t timeout = 30 );
-
-			const Image&	frame() const;
-
-			size_t			width() const { return _width;}
-
-			size_t			height() const { return _height;}
-
-			const IFormat&	format() const { return _frame.format();}
-
-            const String&	identifier() const { return _identifier;}
-
-			static size_t	count();
-
-			static void		cameraInfo( size_t index, CameraInfo & info );
+			enum RunMode {
+				RUNMODE_CONTINUOUS,
+				RUNMODE_SW_TRIGGER,
+				RUNMODE_HW_TRIGGER
+			};
 
 			enum ExternalTriggerPolarity {
 				TRIGGER_ON_FALLING_EDGE = DC1394_TRIGGER_ACTIVE_LOW,
@@ -72,21 +55,66 @@ namespace cvt
 			};
 			typedef std::vector<ExternalTriggerSource> TriggerSourceVec;
 
-			void supportedTriggerSources( TriggerSourceVec& sources );
-			ExternalTriggerSource triggerSource() const;
-			void setTriggerSource( ExternalTriggerSource src ) const;
+			DC1394Camera( size_t camIndex, const CameraMode & mode );
 
-			void setExternalTriggerMode( ExternalTriggerMode mode );
+			~DC1394Camera();
+
+			void startCapture();
+			void stopCapture();
+
+			/**
+			 * @brief try to update the current frame with one from the ringbuffer
+			 * @param timeout 0 -> return if no frame in ringbuffer, > 0 -> wait until a frame is in the buffer
+			 * @return whether the current frame has been updated
+			 */
+			bool			nextFrame( size_t timeout = 30 );
+
+			/**
+			 *	@brief when using software triggering
+			 *	request camera to capture a frame now
+			 */
+			void			triggerFrame();
+
+			const Image&	frame() const;
+
+			size_t			width() const { return _width;}
+
+			size_t			height() const { return _height;}
+
+			const IFormat&	format() const { return _frame.format();}
+
+			const String&	identifier() const { return _identifier;}
+
+			void            setRunMode( RunMode mode );
+			RunMode         runMode() const;
+
+			static size_t	count();
+
+			static void		cameraInfo( size_t index, CameraInfo & info );
+
+			void			supportedTriggerSources( TriggerSourceVec& sources ) const;
+
+			ExternalTriggerSource triggerSource() const;
+			void			setTriggerSource( ExternalTriggerSource src ) const;
+
+			void			setExternalTriggerMode( ExternalTriggerMode mode );
 			ExternalTriggerMode externalTriggerMode() const;
 
-			void enableExternalTrigger( bool enable );
-			bool isExternalTriggered() const;
+			void			enableExternalTrigger( bool enable );
+			bool			isExternalTriggered() const;
 
-			bool isSoftwareTriggered() const;
-			void setSoftwareTrigger( bool enable );
+			// TODO: this actually is for triggering the camera
+			bool			isSoftwareTriggered() const;
+			void			setSoftwareTrigger( bool enable );
 
-			void setRegister( uint64_t offset, uint32_t value );
-			uint32_t getRegister( uint64_t offset ) const;
+			void			setRegister( uint64_t address, uint32_t value );
+			uint32_t		getRegister( uint64_t address ) const;
+
+			/**
+			 * @brief commandRegistersBase
+			 * @return base address for command registers
+			 */
+			uint64_t		commandRegistersBase() const;
 
 			/**
 			 * @brief if camera supports switching of polarity from
@@ -144,6 +172,7 @@ namespace cvt
 			dc1394video_mode_t  _mode;
 			dc1394framerate_t   _framerate;
             String              _identifier;
+            RunMode             _runMode;
 	};
 
 }
