@@ -54,6 +54,7 @@ int main( int argc, char** argv )
 		CLKernel clpminit( _pmstereo_source, "pmstereo_init" );
 		CLKernel clpmpropagate( _pmstereo_source, "pmstereo_propagate_view" );
 		CLKernel clpmdepthmap( _pmstereo_source, "pmstereo_depthmap" );
+		CLKernel clpmlr( _pmstereo_source, "pmstereo_lr_check" );
 		CLKernel clpmviewbufclear( _pmstereo_source, "pmstereo_viewbuf_clear" );
 		CLKernel clgradxy( _gradxy_source, "gradxy" );
 
@@ -95,7 +96,7 @@ int main( int argc, char** argv )
 		clpmviewbufclear.run( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 
-		for( int iter = 0; iter < 20; iter++ ) {
+		for( int iter = 0; iter < 15; iter++ ) {
 			int swap = iter & 1;
 
 #if 1
@@ -164,7 +165,16 @@ int main( int argc, char** argv )
 		cloutput2.save( "stereo2.cvtraw" );
 
 
+		Image cloutputfinal( input1.width(), input1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		clpmlr.setArg( 0, cloutputfinal );
+		clpmlr.setArg( 1, cloutput1 );
+		clpmlr.setArg( 2, cloutput2 );
+		clpmlr.setArg( 3, 1.0f );
+		clpmlr.setArg( 4, lr );
+		clpmlr.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
+		cloutputfinal.save( "stereolr.png" );
+		cloutputfinal.save( "stereolr.cvtraw" );
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;

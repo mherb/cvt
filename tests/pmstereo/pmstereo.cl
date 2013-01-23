@@ -144,8 +144,8 @@ typedef mwc64x_state_t RNG;
 
 #define COLORWEIGHT 25.0f
 #define COLORGRADALPHA 0.05f
-#define COLORMAXDIFF 0.05f
-#define GRADMAXDIFF 0.05f
+#define COLORMAXDIFF 0.1f
+#define GRADMAXDIFF 0.1f
 
 // #define USELOCALBUF  1
 
@@ -270,7 +270,7 @@ float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only ima
 
 	float wsum1sqr = wsum1 * wsum1;
 
-//	return 1.0f * dot( fabs( ( float ) 1.0f - clamp( ( float4 ) 0.0f, ( float4 ) 1.0f, ( ( m12 / wsum1 - m1 * m2 / wsum1sqr ) / sqrt( max( 1e-8f, ( m1sq / wsum1 - m1 * m1 / wsum1sqr ) * ( m2sq / wsum1 - m2 * m2 / wsum1sqr ) ) ) ) ) ), ( float4 ) 0.25f ) + 0.0f * ret1 / wsum1;
+//	return 0.25f * dot( fabs( ( float ) 1.0f - clamp( ( float4 ) 0.0f, ( float4 ) 1.0f, ( ( m12 / wsum1 - m1 * m2 / wsum1sqr ) / sqrt( max( 1e-8f, ( m1sq / wsum1 - m1 * m1 / wsum1sqr ) * ( m2sq / wsum1 - m2 * m2 / wsum1sqr ) ) ) ) ) ), ( float4 ) 0.25f ) + 0.75f * ret1 / wsum1;
 	return ret1 / wsum1;
 }
 
@@ -523,4 +523,27 @@ kernel void pmstereo_colormap( write_only image2d_t normalmap, read_only image2d
 	float4 self = read_imagef( old, SAMPLER_NN, coord );
 	float4 val = nd_state_to_color( self, ( float2 ) ( coord.x, coord.y ) );
 	write_imagef( normalmap, coord, val );
+}
+
+kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, const int lr )
+{
+	int2 coord;
+	const int width = get_image_width( input1 );
+	const int height = get_image_height( input1 );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float dorig = read_imagef( input1, SAMPLER_NN, coord ).x;
+	float d = DEPTHMAX * dorig;
+
+	int2 coord2 = coord;
+	coord2.x += ( int ) ( select( d, -d, lr ) + 0.5f );
+	float d2 = DEPTHMAX * read_imagef( input2, SAMPLER_NN, coord2 ).x;
+	float4 out = ( float4 ) select( 0.0f, dorig, fabs( d - d2) < maxdiff );
+	out.w = 1.0f;
+	write_imagef( output, coord, out );
 }
