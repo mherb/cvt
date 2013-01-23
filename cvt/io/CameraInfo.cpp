@@ -23,6 +23,7 @@ namespace cvt
 		};
 
 		out << "Name: " << info.name() <<
+			   ", identifier: " << info.identifier() <<
 			   ", local Index: " << info.index() <<
 			   ", Type: " << _typeNames[ info.type() ] << "\n";
 

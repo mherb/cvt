@@ -47,6 +47,7 @@ namespace cvt
 		if( !_camera )
 			throw CVTException( "Could not open camera" );
 
+        loadPreset( PRESET_FACTORY );
         dcSettings( mode );
 
 		_identifier.sprintf( "%llu", _camera->guid );
@@ -83,8 +84,6 @@ namespace cvt
 
 	void DC1394Camera::startCapture( )
 	{
-		this->init();
-
 		if( _capturing )
 			return;
 
@@ -109,8 +108,8 @@ namespace cvt
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
 
-		// TODO: this might only be needed for CONTINOUS mode
 		error = dc1394_video_set_transmission( _camera, DC1394_ON );
+
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
@@ -132,8 +131,11 @@ namespace cvt
 	{
 		if( !_capturing )
 			return;
-		dc1394_video_set_transmission( _camera, DC1394_OFF );
-		dc1394_capture_stop( _camera );
+
+		if( _runMode == RUNMODE_CONTINUOUS )
+			dc1394_video_set_transmission( _camera, DC1394_OFF );
+
+			dc1394_capture_stop( _camera );
 		_capturing = false;
 	}
 
@@ -153,7 +155,7 @@ namespace cvt
 
 		dc1394error_t error = dc1394_capture_dequeue( _camera, capturePolicy, &frame );
 
-		if( error != DC1394_SUCCESS ){
+		if( error != DC1394_SUCCESS || frame == 0 ){
 			return false;
 		}
 
@@ -216,6 +218,20 @@ namespace cvt
 	uint64_t DC1394Camera::commandRegistersBase() const
 	{
 		return _camera->command_registers_base;
+	}
+
+	void DC1394Camera::loadPreset( CameraPreset preset )
+	{
+		dc1394_memory_load( _camera, ( uint32_t )preset );
+	}
+
+	void DC1394Camera::savePreset( CameraPreset preset )
+	{
+		if( preset == PRESET_FACTORY ){
+			throw CVTException( "Factory channel is read-only!" );
+		}
+
+		dc1394_memory_save( _camera, ( uint32_t )preset );
 	}
 
 	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
@@ -314,7 +330,8 @@ namespace cvt
 	void DC1394Camera::enableExternalTrigger( bool enable )
 	{
 		dc1394switch_t sw = enable ? DC1394_ON : DC1394_OFF;
-		dc1394error_t error = dc1394_external_trigger_set_power( _camera, sw );
+
+		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_TRIGGER, sw );
 
 		if( error != DC1394_SUCCESS ){
 			throw CVTException( "could not enable/disable external triggering" );
@@ -510,13 +527,13 @@ namespace cvt
 
 		switch( mode ){
 			case RUNMODE_CONTINUOUS:
-				// TODO: maybe enable transmission
+				dc1394_video_set_transmission( _camera, DC1394_ON );
 				break;
 			case RUNMODE_SW_TRIGGER:
-				// TODO: maybe disable transmission
+				//dc1394_video_set_transmission( _camera, DC1394_OFF );
 				break;
 			case RUNMODE_HW_TRIGGER:
-				// TODO: maybe disable transmission
+				//dc1394_video_set_transmission( _camera, DC1394_OFF );
 				break;
 			default:
 				throw CVTException( "unkown runmode!" );

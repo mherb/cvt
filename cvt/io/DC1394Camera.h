@@ -55,6 +55,12 @@ namespace cvt
 			};
 			typedef std::vector<ExternalTriggerSource> TriggerSourceVec;
 
+			enum CameraPreset {
+				PRESET_FACTORY = 0,
+				PRESET_USER0,
+				PRESET_USER1
+			};
+
 			DC1394Camera( size_t camIndex, const CameraMode & mode );
 
 			~DC1394Camera();
@@ -134,6 +140,9 @@ namespace cvt
 			void printAllFeatures();
 
 			void setPIO();
+
+			void loadPreset( CameraPreset preset );
+			void savePreset( CameraPreset preset = PRESET_USER0 );
 
 		private:
 			void close();

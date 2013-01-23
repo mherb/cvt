@@ -18,7 +18,7 @@ using namespace cvt;
 class MultiCamApp : public TimeoutHandler
 {
 	public:
-		MultiCamApp( std::vector<Camera*>& cams ) :
+		MultiCamApp( std::vector<DC1394Camera*>& cams ) :
 			TimeoutHandler(),
 			_cams( cams ),
 			_frames( 0.0f ),
@@ -26,7 +26,8 @@ class MultiCamApp : public TimeoutHandler
 			_dumpIter( 0 ),
 			_window( "Multicam App" ),
 			_quitButton( "Quit" ),
-			_saveButton( "Save" )
+			_saveButton( "Save" ),
+			_triggerButton( "Trigger" )
 	{
 		_timer.reset();
 
@@ -47,7 +48,12 @@ class MultiCamApp : public TimeoutHandler
 		wl.setAnchoredBottom( 40, 20 );
 		_window.addWidget( &_saveButton, wl );
 
-		_timerId = Application::registerTimer( 20, this );
+		Delegate<void ()> trigger( this, &MultiCamApp::trigger );
+		_triggerButton.clicked.add( trigger );
+		wl.setAnchoredBottom( 70, 20 );
+		_window.addWidget( &_triggerButton, wl );
+
+		_timerId = Application::registerTimer( 10, this );
 
 		String movTitle;
 		for( size_t i = 0; i < _cams.size(); i++ ){
@@ -73,12 +79,16 @@ class MultiCamApp : public TimeoutHandler
 
 		void onTimeout()
 		{
+			std::vector<bool> newFrame( _cams.size() );
 			for( size_t i = 0; i < _cams.size(); i++ ){
-				_cams[ i ]->nextFrame( 10 );
+				newFrame[ i ] = _cams[ i ]->nextFrame( 10 );
 			}
 
 			for( size_t i = 0; i < _cams.size(); i++ ){
-				_views[ i ]->setImage( _cams[ i ]->frame() );
+				if( newFrame[ i ] ){
+					_views[ i ]->setImage( _cams[ i ]->frame() );
+					_cams[ i ]->triggerFrame();
+				}
 			}
 			
 			_frames++;
@@ -108,8 +118,27 @@ class MultiCamApp : public TimeoutHandler
 
 		void setDump(){ _dump = true; }
 
+		void trigger()
+		{
+			std::cout << "Trigger ... " << std::endl;
+
+#define CHAMELEON_SW_TRIGGER ( 0x62C )
+			uint32_t addrBase = _cams[ 0 ]->commandRegistersBase();
+			uint32_t value = 0;
+
+			value = _cams[ 0 ]->getRegister( addrBase + CHAMELEON_SW_TRIGGER );
+			std::cout << "Software Trigger: " << value << std::endl;
+
+			//value = 0x80000000;
+			//_cams[ 0 ]->setRegister( addrBase + CHAMELEON_SW_TRIGGER, value );
+			//value = _cams[ 0 ]->getRegister( addrBase + CHAMELEON_SW_TRIGGER );
+
+			//std::cout << "Software Trigger: " << value << std::endl;
+			_cams[ 0 ]->triggerFrame();
+		}
+
 	private:
-		std::vector<Camera*>&		_cams;
+		std::vector<DC1394Camera*>&		_cams;
 		Time						_timer;
 		float						_frames;
 		bool						_dump;
@@ -118,6 +147,7 @@ class MultiCamApp : public TimeoutHandler
 		Window						_window;
 		Button						_quitButton;
 		Button						_saveButton;
+		Button						_triggerButton;
 		std::vector<Moveable*>		_moveables;
 		std::vector<ImageView*>		_views;
 
@@ -125,8 +155,44 @@ class MultiCamApp : public TimeoutHandler
 
 };
 
+#define PG_STROBE_PRESENCE_BIT ( 1 << 31 )
+#define PG_STROBE_ON_OFF_BIT ( 1 << 25 )
+#define PG_SIG_POLARITY_BIT ( 1 << 24 )
 
-#define PTG_PIO_DIRECTION ( 0x11F8 )
+void configureStrobe( DC1394Camera* _master, int pin )
+{
+	// configure strobePin to output strobe, as long as exposure time
+	uint64_t baseAddress = _master->commandRegistersBase();
+	static const uint64_t StrobeOutputInq = 0x48C;
+	uint32_t strobeAddress = _master->getRegister( baseAddress + StrobeOutputInq );
+
+	strobeAddress = ( strobeAddress << 2 ) & 0xFFFFF;
+
+	uint32_t strobeCtrlInq = _master->getRegister( baseAddress + strobeAddress );
+
+	uint32_t pinOffset = strobeAddress + 0x200 + 4 * pin;
+
+	if( pin > 3 || pin < 0 ){
+		throw CVTException( "unknown pin!" );
+	}
+
+	if( !( strobeCtrlInq & ( 1 << ( 31 - pin ) ) ) ){
+		throw CVTException( "Strobe not present for requested pin" );
+	}
+
+	uint32_t strobeReg = _master->getRegister( baseAddress + pinOffset );
+
+	// stop strobe when streaming stops
+	strobeReg |= PG_STROBE_ON_OFF_BIT;
+
+	// trigger on rising edge
+	strobeReg |= PG_SIG_POLARITY_BIT;
+
+	// no delay, strobe length = expose length
+	strobeReg &= 0xFF000000;
+	_master->setRegister( baseAddress + pinOffset, strobeReg );
+}
+
 int main( int argc, char* argv[] )
 {
 	uint32_t offset = 0x1110; 
@@ -147,19 +213,26 @@ int main( int argc, char* argv[] )
 	CameraInfo cinfo;
 	DC1394Camera::cameraInfo( 0, cinfo );
 	DC1394Camera cam( 0, cinfo.bestMatchingMode( IFormat::GRAY_UINT8, 640, 480, 30 ) );
-	cam.startCapture();
 
-	std::vector<Camera*> cameras;
+	std::cout << "TRIGGER REG: " << cam.getRegister( cam.commandRegistersBase() + 0x62C ) << std::endl;
+	cam.startCapture();
+	cam.setRunMode( DC1394Camera::RUNMODE_SW_TRIGGER );
+	cam.enableExternalTrigger( true );
+	cam.setExternalTriggerMode( DC1394Camera::EDGE_TRIGGERED_FIXED_EXPOSURE );
+	cam.setTriggerSource( DC1394Camera::TRIGGER_SOURCE_SOFTWARE );
+
+	configureStrobe( &cam, 1 );
+
+	cam.triggerFrame();
+	//std::cout << "TRIGGER REG: " << std::hex << cam.getRegister( cam.commandRegistersBase() + 0x62C ) << std::endl;
+	//cam.setRegister( cam.commandRegistersBase() + 0x62C, 0x80000000 );
+
+	std::vector<DC1394Camera*> cameras;
 	cameras.push_back( &cam );
 
 	try {
-		static const uint64_t BASE = 0xF00000;
-		//uint64_t csr = 0xf011f0 + 0x;
-		std::cout << "Requesting register: 0x" << std::hex << offset << std::endl;
-		uint32_t val = cam.getRegister( BASE + offset );
-		std::cout << "Value: 0x" << std::hex << val << std::endl;;
-		//		MultiCamApp camTimeOut( cameras );
-//		Application::run();
+		MultiCamApp camTimeOut( cameras );
+		Application::run();
 
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;
