@@ -139,10 +139,10 @@ typedef mwc64x_state_t RNG;
 #define PROPSIZE 2
 #define DEPTHREFINEMUL 1.0f
 #define NORMALREFINEMUL 0.25f
-#define NORMALCOMPMAX 0.75f
+#define NORMALCOMPMAX 0.5f
 #define NUMRNDTRIES	 3
 
-#define COLORWEIGHT 15.0f
+#define COLORWEIGHT 25.0f
 #define COLORGRADALPHA 0.05f
 #define COLORMAXDIFF 0.05f
 #define GRADMAXDIFF 0.05f
@@ -157,8 +157,8 @@ float4 nd_state_init( RNG* rng, const float2 coord )
 {
 	float z = RNG_float( rng ) * DEPTHMAX;
 	float4 n;
-	n.x = ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.1f;
-	n.y = ( MWC64X_NextFloat( rng ) - 0.5f ) * 0.1f;
+	n.x = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
+	n.y = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
 
 	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
@@ -232,6 +232,8 @@ float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only ima
 {
 	float wsum1 = 0;
 	float ret1 = 0;
+	float4 m1 = 0, m2 = 0, m12 = 0;
+	float4 m1sq = 0, m2sq = 0;
 
 	float4 valcenter = read_imagef( colimg1, SAMPLER_NN, coord );
 
@@ -243,6 +245,9 @@ float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only ima
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos );
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos );
 
+			float w1 = exp( -fast_length( valcenter.xyz - val1.xyz ) * COLORWEIGHT );
+			wsum1 += w1;
+
 			// transform point
 			float d = nd_state_transform( state, pos );
 			pos.x += select( d, -d, lr );
@@ -250,13 +255,22 @@ float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only ima
 			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos );
 			float4 gval2 = read_imagef( gradimg2, SAMPLER_BILINEAR, pos );
 
-			float w1 = exp( -fast_length( valcenter.xyz - val2.xyz ) * COLORWEIGHT );
-			wsum1 += w1;
 			float C = COLORGRADALPHA * fmin( fast_length( ( val1 - val2 ).xyz ), COLORMAXDIFF ) + ( 1.0f - COLORGRADALPHA ) * fmin( fast_length( gval1 - gval2 ), GRADMAXDIFF );
 			ret1 += w1 * C;
+
+			m1 = m1 + val1 * w1;
+			m2 = m2 + val2 * w1;
+			m12 = m12 + val1 * val2 * w1;
+
+			m1sq += val1 * val1 * w1;
+			m2sq += val2 * val2 * w1;
+
 		}
 	}
 
+	float wsum1sqr = wsum1 * wsum1;
+
+//	return 1.0f * dot( fabs( ( float ) 1.0f - clamp( ( float4 ) 0.0f, ( float4 ) 1.0f, ( ( m12 / wsum1 - m1 * m2 / wsum1sqr ) / sqrt( max( 1e-8f, ( m1sq / wsum1 - m1 * m1 / wsum1sqr ) * ( m2sq / wsum1 - m2 * m2 / wsum1sqr ) ) ) ) ) ), ( float4 ) 0.25f ) + 0.0f * ret1 / wsum1;
 	return ret1 / wsum1;
 }
 
@@ -343,6 +357,115 @@ kernel void pmstereo_propagate( write_only image2d_t output, read_only image2d_t
 
 	if( neighbour.w <= self.w  )
 		self = neighbour;
+
+	write_imagef( output, coord, self );
+}
+
+#define VIEWSAMPLES 2
+
+typedef struct {
+	int n;
+	float4 value[ VIEWSAMPLES ];// __attribute__ ((packed));
+} VIEWPROP_t;
+
+kernel void pmstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, const int height )
+{
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+
+	if(	gx >= width || gy >= height )
+		return;
+
+	vbuf[ width * gy + gx ].n = 0;
+}
+
+kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
+							    read_only image2d_t img1, read_only image2d_t img2,
+								read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize, const int lr, const int iter,
+							    global VIEWPROP_t* viewin, global VIEWPROP_t* viewout )
+{
+	RNG rng;
+	const int width = get_image_width( img1 );
+	const int height = get_image_height( img1 );
+	const int gx = get_global_id( 0 );
+	const int gy = get_global_id( 1 );
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+    const int lw = get_local_size( 0 );
+    const int lh = get_local_size( 1 );
+	const int2 base = ( int2 )( get_group_id( 0 ) * lw - PROPSIZE, get_group_id( 1 ) * lh - PROPSIZE );
+	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
+	const float2 coordf = ( float2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
+
+	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
+	float4 self, neighbour;
+
+	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
+		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
+			buf[ y ][ x ] = read_imagef( old, SAMPLER_NN, base + ( int2 )( x, y ) );
+		}
+	}
+
+	barrier( CLK_LOCAL_MEM_FENCE );
+
+	if(	gx >= width || gy >= height )
+		return;
+
+	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
+
+	RNG_init( &rng, ( coord.y * width + coord.x ) + iter, ( ( 2 * PROPSIZE + 1 ) * ( 2 * PROPSIZE + 1 ) - 1 ) + NUMRNDTRIES );
+
+	// sample the nd_state of the neighbours
+	for( int py = -PROPSIZE; py <= PROPSIZE; py++ ) {
+		for( int px = -PROPSIZE; px <= PROPSIZE; px++ ) {
+
+			if( px == 0 && py == 0 )
+				continue;
+
+			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
+			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+
+			if( neighbour.w <= self.w  )
+				self = neighbour;
+		}
+	}
+	// random try
+	neighbour = nd_state_init( &rng, coordf );
+	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+	if( neighbour.w <= self.w  )
+		self = neighbour;
+
+	// try other view
+#if 1
+	int nview = min( viewin[ width * gy + gx ].n, ( int ) VIEWSAMPLES );
+	for( int i = 0; i < nview; i++ ) {
+		neighbour = viewin[ width * gy + gx ].value[ i ];
+		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+		if( neighbour.w <= self.w  )
+			self = neighbour;
+	}
+#endif
+
+	// randomized refinement
+	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
+		neighbour = nd_state_refine( &rng, self, coordf );
+		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+
+		if( neighbour.w <= self.w  )
+			self = neighbour;
+	}
+
+	// store view prop result
+	// maybe inconsistent r/w access - but random anyway
+#if 1
+	float d = nd_state_transform( self, coordf );
+	int disp = ( int ) ( select( d, -d, lr ) + coordf.x + 0.5f );
+	if( disp >= 0 && disp < width ) {
+		int nold = atomic_inc( &viewout[ coord.y * width + disp ].n );
+		if( nold < VIEWSAMPLES )
+			viewout[ coord.y * width + disp ].value[ nold ] = self;
+	}
+#endif
 
 	write_imagef( output, coord, self );
 }
