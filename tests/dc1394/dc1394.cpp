@@ -1,4 +1,5 @@
 #include <set>
+#include <sstream>
 #include <cvt/io/DC1394Camera.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/Exception.h>
@@ -125,9 +126,17 @@ class MultiCamApp : public TimeoutHandler
 };
 
 
+#define PTG_PIO_DIRECTION ( 0x11F8 )
 int main( int argc, char* argv[] )
 {
+	uint32_t offset = 0x1110; 
 	int numCams = DC1394Camera::count();
+
+	if( argc == 2 ){
+		std::stringstream ss;
+		ss << std::hex << argv[ 1 ];
+		ss >> offset;
+	}
 
 	std::cout << "Overall number of Cameras: " << numCams << std::endl;
 	if( numCams == 0 ){
@@ -144,8 +153,13 @@ int main( int argc, char* argv[] )
 	cameras.push_back( &cam );
 
 	try {
-		MultiCamApp camTimeOut( cameras );
-		Application::run();
+		static const uint64_t BASE = 0xF00000;
+		//uint64_t csr = 0xf011f0 + 0x;
+		std::cout << "Requesting register: 0x" << std::hex << offset << std::endl;
+		uint32_t val = cam.getRegister( BASE + offset );
+		std::cout << "Value: 0x" << std::hex << val << std::endl;;
+		//		MultiCamApp camTimeOut( cameras );
+//		Application::run();
 
 	} catch( cvt::Exception e ) {
 		std::cout << e.what() << std::endl;

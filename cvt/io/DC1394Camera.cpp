@@ -25,7 +25,8 @@ namespace cvt
 		_capturing( false ),
 		_dcHandle( NULL ),
 		_camera( NULL ),
-		_speed( DC1394_ISO_SPEED_400 )
+		_speed( DC1394_ISO_SPEED_400 ),
+		_runMode( RUNMODE_CONTINUOUS )
 	{
 		_dcHandle = dc1394_new( );
 		dc1394camera_list_t* list;
@@ -108,6 +109,7 @@ namespace cvt
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
 
+		// TODO: this might only be needed for CONTINOUS mode
 		error = dc1394_video_set_transmission( _camera, DC1394_ON );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
@@ -120,6 +122,10 @@ namespace cvt
 //		setShutter( 300 );
 
 		_capturing = true;
+
+		std::cout << "PIO_CSR: " << std::hex << _camera->PIO_control_csr << std::endl;
+		std::cout << "PIO_STROBE_CTRL_REGISTER: " << std::hex << _camera->strobe_control_csr << std::endl;
+		std::cout << "Command Reg Base: " << std::hex << _camera->command_registers_base << std::endl;
 	}
 
 	void DC1394Camera::stopCapture( )
@@ -132,14 +138,24 @@ namespace cvt
 	}
 
 
-	bool DC1394Camera::nextFrame( size_t /*timeout*/ )
+	bool DC1394Camera::nextFrame( size_t timeout )
 	{
 		if( !_capturing )
 			return false;
 
-		// TODO: howto use timeout with DC1394? This is blocking ATM!
 		dc1394video_frame_t* frame;
-		dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_WAIT, &frame );
+		dc1394capture_policy_t capturePolicy = DC1394_CAPTURE_POLICY_WAIT;
+
+		if( timeout == 0 ){
+			// don't wait, poll frame
+			capturePolicy = DC1394_CAPTURE_POLICY_POLL;
+		}
+
+		dc1394error_t error = dc1394_capture_dequeue( _camera, capturePolicy, &frame );
+
+		if( error != DC1394_SUCCESS ){
+			return false;
+		}
 
 		size_t stride;
 		uint8_t* dst = _frame.map( &stride );
@@ -154,6 +170,14 @@ namespace cvt
 		dc1394_capture_enqueue( _camera, frame );
 
 		return true;
+	}
+
+	void DC1394Camera::triggerFrame()
+	{
+		// only supported in SW Trigger Mode
+		if( _runMode == RUNMODE_SW_TRIGGER ){
+			setSoftwareTrigger( true );
+		}
 	}
 
 	/**
@@ -187,6 +211,11 @@ namespace cvt
 		}
 
 		return val;
+	}
+
+	uint64_t DC1394Camera::commandRegistersBase() const
+	{
+		return _camera->command_registers_base;
 	}
 
 	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
@@ -333,7 +362,7 @@ namespace cvt
 		}
 	}
 
-	void DC1394Camera::supportedTriggerSources( TriggerSourceVec& srcVec )
+	void DC1394Camera::supportedTriggerSources( TriggerSourceVec& srcVec ) const
 	{
 		dc1394trigger_sources_t sources;
 		sources.num = 0;
@@ -474,6 +503,32 @@ namespace cvt
 		throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 	}
 
+	void DC1394Camera::setRunMode( RunMode mode )
+	{
+		if( mode == _runMode )
+			return;
+
+		switch( mode ){
+			case RUNMODE_CONTINUOUS:
+				// TODO: maybe enable transmission
+				break;
+			case RUNMODE_SW_TRIGGER:
+				// TODO: maybe disable transmission
+				break;
+			case RUNMODE_HW_TRIGGER:
+				// TODO: maybe disable transmission
+				break;
+			default:
+				throw CVTException( "unkown runmode!" );
+		}
+		_runMode = mode;
+	}
+
+	DC1394Camera::RunMode DC1394Camera::runMode() const
+	{
+		return _runMode;
+	}
+
 	size_t DC1394Camera::count()
 	{
 		size_t numCameras = 0;
@@ -493,7 +548,7 @@ namespace cvt
 		info.setType( CAMERATYPE_DC1394 );
 
 		dc1394camera_list_t* list;
-		dc1394_t* handle = dc1394_new( );
+		dc1394_t* handle = dc1394_new();
 		dc1394_camera_enumerate( handle, &list );
 
 		if( index > list->num )
@@ -510,6 +565,10 @@ namespace cvt
 		name += " ";
 		name += cam->model;
 		info.setName( name );
+
+		String camId;
+		camId.sprintf( "%llu", cam->guid );
+		info.setIdentifier( camId );
 
 		// get supported frame formats + speeds
 		dc1394error_t error;
