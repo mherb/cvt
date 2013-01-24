@@ -61,6 +61,12 @@ namespace cvt
 				PRESET_USER1
 			};
 
+			enum FeatureMode {
+				AUTO = DC1394_FEATURE_MODE_AUTO,
+				MANUAL = DC1394_FEATURE_MODE_MANUAL,
+				ONE_SHOT = DC1394_FEATURE_MODE_ONE_PUSH_AUTO
+			};
+
 			DC1394Camera( size_t camIndex, const CameraMode & mode );
 
 			~DC1394Camera();
@@ -137,35 +143,54 @@ namespace cvt
 
 			void setExternalTriggerPolarity( ExternalTriggerPolarity pol );
 
-			void printAllFeatures();
-
-			void setPIO();
+			void printAllFeatures();			
 
 			void loadPreset( CameraPreset preset );
 			void savePreset( CameraPreset preset = PRESET_USER0 );
+
+			void getWhiteBalance(unsigned int* ubValue, unsigned int* vrValue);
+			void setWhiteBalance(unsigned int ubValue, unsigned int vrValue);
+
+			uint32_t shutter() const;
+			float shutterAbs() const;
+			void setShutter( uint32_t value );
+			void setShutterAbs( float value );
+
+			void enableIrisAuto( bool enable );			
+
+			uint32_t exposureValue() const;
+			float exposureValueAbs() const;
+			void setExposureValue( uint32_t val );
+			void setExposureValueAbs( float val );
+
+			void setWhiteBalanceMode( FeatureMode mode );
+			void setShutterMode( FeatureMode mode );
+			void setExposureMode( FeatureMode mode );
+			void setGainMode( FeatureMode mode );
+
+			FeatureMode whiteBalanceMode() const;
+			FeatureMode shutterMode() const;
+			FeatureMode exposureMode() const;
+			FeatureMode gainMode() const;
+
+			uint32_t gain() const;
+			float gainAbs() const;
+			void setGain( uint32_t );
+			void setGainAbs( float value );
+
+			void setFrameRate( float fps );
+			float frameRate() const;
 
 		private:
 			void close();
 			void init();
 			void reset();
-		
-			/**
-			 * @brief enable/disable automatic white-balance
-			 */
-			void enableWhiteBalanceAuto( bool enable );
-
-			void getWhiteBalance(unsigned int* ubValue, unsigned int* vrValue);
-			void setWhiteBalance(unsigned int ubValue, unsigned int vrValue);
-			void enableShutterAuto(bool enable);
-			void getShutter(unsigned int* value);
-			void setShutter(unsigned int value);
-			void enableGainAuto(bool enable);
-			void enableIrisAuto(bool enable);
 
 			/* find fitting dc1394 settings for given camera mode */
 			void dcSettings( const CameraMode & mode );
 			dc1394video_mode_t dcMode( const CameraMode & mode );
 
+			dc1394framerate_t closestFixedFrameRate( float fps );
 			
 			int     _dmaBufNum;
 			size_t  _camIndex;

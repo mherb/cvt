@@ -81,7 +81,6 @@ namespace cvt
 		dc1394_camera_reset( _camera );
 	}
 
-
 	void DC1394Camera::startCapture( )
 	{
 		if( _capturing )
@@ -139,6 +138,37 @@ namespace cvt
 		_capturing = false;
 	}
 
+	const IFormat& _formatForDC( dc1394color_filter_t filter, dc1394color_coding_t coding ){
+		switch( coding ){
+			case DC1394_COLOR_CODING_MONO8:
+				return IFormat::GRAY_UINT8;
+			case DC1394_COLOR_CODING_YUV422:
+				return IFormat::YUYV_UINT8;
+			case DC1394_COLOR_CODING_RGB8:
+				return IFormat::RGBA_UINT8;
+			case DC1394_COLOR_CODING_MONO16:
+				return IFormat::RGBA_UINT16;
+			case DC1394_COLOR_CODING_RGB16:
+				return IFormat::RGBA_UINT16;
+			case DC1394_COLOR_CODING_MONO16S:
+				return IFormat::GRAY_INT16;
+			case DC1394_COLOR_CODING_RGB16S:
+				return IFormat::RGBA_INT16;
+			case DC1394_COLOR_CODING_RAW8:
+				switch( filter ){
+					case DC1394_COLOR_FILTER_RGGB:
+						return IFormat::BAYER_RGGB_UINT8;
+					case DC1394_COLOR_FILTER_GRBG:
+						return IFormat::BAYER_GRBG_UINT8;
+					case DC1394_COLOR_FILTER_GBRG:
+					case DC1394_COLOR_FILTER_BGGR:
+					default:
+						throw CVTException( "unsupported bayer format" );
+				}
+			default:
+				throw CVTException( "unsupported format" );
+		}
+	}
 
 	bool DC1394Camera::nextFrame( size_t timeout )
 	{
@@ -153,10 +183,20 @@ namespace cvt
 			capturePolicy = DC1394_CAPTURE_POLICY_POLL;
 		}
 
-		dc1394error_t error = dc1394_capture_dequeue( _camera, capturePolicy, &frame );
+		dc1394error_t error = dc1394_capture_dequeue( _camera, capturePolicy, &frame );		
 
 		if( error != DC1394_SUCCESS || frame == 0 ){
 			return false;
+		}
+
+		if( frame->color_coding != DC1394_COLOR_CODING_RAW8 &&
+			( _frame.format() == IFormat::BAYER_GRBG_UINT8 || _frame.format() == IFormat::BAYER_RGGB_UINT8 ) ){
+			// reallocate to MONO
+			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
+		} else if( frame->color_coding == DC1394_COLOR_CODING_RAW8 &&
+			( _frame.format() != IFormat::BAYER_GRBG_UINT8 || _frame.format() != IFormat::BAYER_RGGB_UINT8 ) ){
+			// reallocate to BAYER
+			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
 		}
 
 		size_t stride;
@@ -234,19 +274,6 @@ namespace cvt
 		dc1394_memory_save( _camera, ( uint32_t )preset );
 	}
 
-	void DC1394Camera::enableWhiteBalanceAuto( bool enable )
-	{
-		dc1394feature_mode_t mode;
-
-		if( enable ) {
-			mode = DC1394_FEATURE_MODE_AUTO;
-		} else   {
-			mode = DC1394_FEATURE_MODE_MANUAL;
-		}
-
-		dc1394_feature_set_mode( _camera, DC1394_FEATURE_WHITE_BALANCE, mode );
-	}
-
 	void DC1394Camera::getWhiteBalance( unsigned int* ubValue, unsigned int* vrValue )
 	{
 		dc1394_feature_whitebalance_get_value( _camera, ubValue, vrValue );
@@ -257,40 +284,32 @@ namespace cvt
 		dc1394_feature_whitebalance_set_value( _camera, ubValue, vrValue );
 	}
 
-	void DC1394Camera::enableShutterAuto( bool enable )
+	uint32_t DC1394Camera::shutter() const
 	{
-		dc1394feature_mode_t mode;
-
-		if( enable ) {
-			mode = DC1394_FEATURE_MODE_AUTO;
-		} else   {
-			mode = DC1394_FEATURE_MODE_MANUAL;
-		}
-
-		dc1394_feature_set_mode( _camera, DC1394_FEATURE_SHUTTER, mode );
+		uint32_t val;
+		dc1394_feature_get_value( _camera, DC1394_FEATURE_SHUTTER, &val );
+		return val;
 	}
 
-	void DC1394Camera::getShutter( unsigned int* value )
+	float DC1394Camera::shutterAbs() const
 	{
-		dc1394_feature_get_value( _camera, DC1394_FEATURE_SHUTTER, value );
+		float value;
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_SHUTTER, DC1394_ON );
+		dc1394_feature_get_absolute_value( _camera, DC1394_FEATURE_SHUTTER, &value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_SHUTTER, DC1394_OFF );
+		return value;
 	}
 
-	void DC1394Camera::setShutter( unsigned int value )
+	void DC1394Camera::setShutter( uint32_t value )
 	{
 		dc1394_feature_set_value( _camera, DC1394_FEATURE_SHUTTER, value );
 	}
 
-	void DC1394Camera::enableGainAuto( bool enable )
+	void DC1394Camera::setShutterAbs( float value )
 	{
-		dc1394feature_mode_t mode;
-
-		if( enable ) {
-			mode = DC1394_FEATURE_MODE_AUTO;
-		} else   {
-			mode = DC1394_FEATURE_MODE_MANUAL;
-		}
-
-		dc1394_feature_set_mode( _camera, DC1394_FEATURE_GAIN, mode );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_SHUTTER, DC1394_ON );
+		dc1394_feature_set_absolute_value( _camera, DC1394_FEATURE_SHUTTER, value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_SHUTTER, DC1394_OFF );
 	}
 
 	void DC1394Camera::enableIrisAuto( bool enable )
@@ -304,6 +323,151 @@ namespace cvt
 		}
 
 		dc1394_feature_set_mode( _camera, DC1394_FEATURE_IRIS, mode );
+	}
+
+	uint32_t DC1394Camera::exposureValue() const
+	{
+		uint32_t val;
+		dc1394_feature_get_value( _camera, DC1394_FEATURE_EXPOSURE, &val );
+		return val;
+	}
+
+	float DC1394Camera::exposureValueAbs() const
+	{
+		float value;
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_EXPOSURE, DC1394_ON );
+		dc1394_feature_get_absolute_value( _camera, DC1394_FEATURE_EXPOSURE, &value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_EXPOSURE, DC1394_OFF );
+		return value;
+	}
+
+	void DC1394Camera::setExposureValue( uint32_t val )
+	{
+		dc1394_feature_set_value( _camera, DC1394_FEATURE_EXPOSURE, val );
+	}
+
+	void DC1394Camera::setExposureValueAbs( float value )
+	{
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_EXPOSURE, DC1394_ON );
+		dc1394_feature_set_absolute_value( _camera, DC1394_FEATURE_EXPOSURE, value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_EXPOSURE, DC1394_OFF );
+	}
+
+	float DC1394Camera::gainAbs() const
+	{
+		float value;
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_GAIN, DC1394_ON );
+		dc1394_feature_get_absolute_value( _camera, DC1394_FEATURE_GAIN, &value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_GAIN, DC1394_OFF );
+		return value;
+	}
+
+	void DC1394Camera::setGainAbs( float value )
+	{
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_GAIN, DC1394_ON );
+		dc1394_feature_set_absolute_value( _camera, DC1394_FEATURE_GAIN, value );
+		dc1394_feature_set_absolute_control( _camera, DC1394_FEATURE_GAIN, DC1394_OFF );
+	}
+
+	uint32_t DC1394Camera::gain() const
+	{
+		uint32_t value;
+		dc1394_feature_get_value( _camera, DC1394_FEATURE_GAIN, &value );
+		return value;
+	}
+
+	void DC1394Camera::setGain( uint32_t value )
+	{
+		dc1394_feature_set_value( _camera, DC1394_FEATURE_GAIN, value );
+	}
+
+	void DC1394Camera::setWhiteBalanceMode( FeatureMode mode )
+	{
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_WHITE_BALANCE, ( dc1394feature_mode_t )mode );
+	}
+
+	void DC1394Camera::setShutterMode( FeatureMode mode )
+	{
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_SHUTTER, ( dc1394feature_mode_t )mode );
+	}
+
+	void DC1394Camera::setExposureMode( FeatureMode mode )
+	{
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_EXPOSURE, ( dc1394feature_mode_t )mode );
+	}
+
+	void DC1394Camera::setGainMode( FeatureMode mode )
+	{
+		dc1394_feature_set_mode( _camera, DC1394_FEATURE_GAIN, ( dc1394feature_mode_t )mode );
+	}
+
+	DC1394Camera::FeatureMode DC1394Camera::whiteBalanceMode() const
+	{
+		dc1394feature_mode_t m;
+		dc1394_feature_get_mode( _camera, DC1394_FEATURE_WHITE_BALANCE, &m );
+		return ( FeatureMode )m;
+	}
+
+	DC1394Camera::FeatureMode DC1394Camera::shutterMode() const
+	{
+		dc1394feature_mode_t m;
+		dc1394_feature_get_mode( _camera, DC1394_FEATURE_SHUTTER, &m );
+		return ( FeatureMode )m;
+	}
+
+	DC1394Camera::FeatureMode DC1394Camera::exposureMode() const
+	{
+		dc1394feature_mode_t m;
+		dc1394_feature_get_mode( _camera, DC1394_FEATURE_EXPOSURE, &m );
+		return ( FeatureMode )m;
+	}
+
+	DC1394Camera::FeatureMode DC1394Camera::gainMode() const
+	{
+		dc1394feature_mode_t m;
+		dc1394_feature_get_mode( _camera, DC1394_FEATURE_GAIN, &m );
+		return ( FeatureMode )m;
+	}
+
+	void DC1394Camera::setFrameRate( float fps )
+	{
+		dc1394framerate_t newFR = closestFixedFrameRate( fps );
+		dc1394error_t status = dc1394_video_set_framerate( _camera, newFR );
+		if( status == DC1394_SUCCESS ){
+			_framerate = newFR;
+		} else {
+			std::cout << "Could not set framerate: " << dc1394_error_get_string( status ) << std::endl;
+		}
+	}
+
+	float DC1394Camera::frameRate() const
+	{
+		float fr = 0.0f;
+		dc1394_framerate_as_float( _framerate, &fr );
+		return fr;
+	}
+
+	dc1394framerate_t DC1394Camera::closestFixedFrameRate( float fps )
+	{
+		dc1394framerates_t framerates;
+		dc1394_video_get_supported_framerates( _camera, _mode, &framerates );
+
+		float floatFps;
+		dc1394_framerate_as_float( framerates.framerates[ 0 ], &floatFps );
+		size_t idx = 0;
+		float bestDistance = Math::abs( floatFps - fps );
+		for( size_t i = 1; i < framerates.num; i++ ){
+			dc1394_framerate_as_float( framerates.framerates[ i ], &floatFps );
+
+			float currDist = Math::abs( floatFps - fps );
+
+			if( currDist < bestDistance ){
+				bestDistance = currDist;
+				idx = i;
+				std::cout << "Best Framerate: " << floatFps << std::endl;
+			}
+		}
+		return framerates.framerates[ idx ];
 	}
 
 	bool DC1394Camera::isSoftwareTriggered() const
@@ -437,25 +601,7 @@ namespace cvt
 		// get equivalent dc video mode
 		_mode = dcMode( mode );
 
-		// set framerate equivalent:
-		if( _fps == 240 )
-			_framerate = DC1394_FRAMERATE_240;
-		else if( _fps == 120 )
-			_framerate = DC1394_FRAMERATE_120;
-		else if( _fps == 60 )
-			_framerate = DC1394_FRAMERATE_60;
-		else if( _fps == 30 )
-			_framerate = DC1394_FRAMERATE_30;
-		else if( _fps == 15 )
-			_framerate = DC1394_FRAMERATE_15;
-		else if( _fps == 8 )
-			_framerate = DC1394_FRAMERATE_7_5;
-		else if( _fps == 4 )
-			_framerate = DC1394_FRAMERATE_3_75;
-		else
-			_framerate = DC1394_FRAMERATE_1_875;
-
-		// TODO: check if device supports this mode?
+		_framerate = closestFixedFrameRate( mode.fps );
 	}
 
 	dc1394video_mode_t DC1394Camera::dcMode( const CameraMode & mode ) {
@@ -608,10 +754,11 @@ namespace cvt
 					cvtFormat = IFormat::UYVY_UINT8;
 					width = 640; height = 480;
 					break;
-				case DC1394_VIDEO_MODE_640x480_MONO8:
+				case DC1394_VIDEO_MODE_640x480_MONO8:{
 					cvtFormat = IFormat::BAYER_RGGB_UINT8;
 					width = 640; height = 480;
 					break;
+					}
 				case DC1394_VIDEO_MODE_800x600_YUV422:
 					cvtFormat = IFormat::UYVY_UINT8;
 					width = 800; height = 600;
