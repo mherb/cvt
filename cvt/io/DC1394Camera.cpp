@@ -178,15 +178,44 @@ namespace cvt
 		dc1394video_frame_t* frame;
 		dc1394capture_policy_t capturePolicy = DC1394_CAPTURE_POLICY_WAIT;
 
+
+
 		if( timeout == 0 ){
 			// don't wait, poll frame
 			capturePolicy = DC1394_CAPTURE_POLICY_POLL;
 		}
 
-		dc1394error_t error = dc1394_capture_dequeue( _camera, capturePolicy, &frame );		
 
-		if( error != DC1394_SUCCESS || frame == 0 ){
-			return false;
+		dc1394error_t error;
+		if( timeout > 0 ) {
+			int fd = dc1394_capture_get_fileno( _camera );
+			fd_set fdset;
+			struct timeval tv;
+
+			FD_ZERO( &fdset );
+			FD_SET( fd, &fdset );
+
+			tv.tv_sec = timeout / 1000;
+			tv.tv_usec = timeout % 1000;
+			select( fd + 1, &fdset, 0, 0, &tv );
+
+			if( FD_ISSET( fd, &fdset ) ){
+				// can read without blocking
+				error = dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_WAIT, &frame );
+				if( error != DC1394_SUCCESS || frame == 0 ){
+					return false;
+				}
+				FD_ZERO( &fdset );
+			} else {
+				FD_ZERO( &fdset );
+				return false;
+			}
+		} else {
+			// don't wait
+			error = dc1394_capture_dequeue( _camera, DC1394_CAPTURE_POLICY_POLL, &frame );
+			if( error != DC1394_SUCCESS || frame == 0 ){
+				return false;
+			}
 		}
 
 		if( frame->color_coding != DC1394_COLOR_CODING_RAW8 &&

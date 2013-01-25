@@ -184,7 +184,7 @@ namespace cvt
 		private:
 			void close();
 			void init();
-			void reset();
+			void reset();			
 
 			/* find fitting dc1394 settings for given camera mode */
 			void dcSettings( const CameraMode & mode );
