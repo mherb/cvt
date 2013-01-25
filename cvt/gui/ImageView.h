@@ -27,7 +27,6 @@ namespace cvt {
 		protected:
 			void paintEvent( PaintEvent* ev, GFX* g );
 
-		private:
 			float _alpha;
 			Image _img;
 	};
