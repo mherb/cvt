@@ -175,18 +175,8 @@ namespace cvt
 		if( !_capturing )
 			return false;
 
-		dc1394video_frame_t* frame;
-		dc1394capture_policy_t capturePolicy = DC1394_CAPTURE_POLICY_WAIT;
-
-
-
-		if( timeout == 0 ){
-			// don't wait, poll frame
-			capturePolicy = DC1394_CAPTURE_POLICY_POLL;
-		}
-
-
-		dc1394error_t error;
+        dc1394video_frame_t* frame = 0;
+        dc1394error_t error = DC1394_SUCCESS;
 		if( timeout > 0 ) {
 			int fd = dc1394_capture_get_fileno( _camera );
 			fd_set fdset;
