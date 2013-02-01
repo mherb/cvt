@@ -224,7 +224,12 @@ namespace cvt
 		setAreaOfInterest( Recti( 0, 0, _width, _height ) );
 		
 		if( mode.format == IFormat::BAYER_RGGB_UINT8 ){
+// this is gone in 4.20!
+#ifdef IS_CM_BAYER_RG8
 			is_SetColorMode( _camHandle, IS_CM_BAYER_RG8 );
+#else
+            is_SetColorMode( _camHandle, IS_CM_SENSOR_RAW8 );
+#endif
 
 		} else {
 			throw CVTException( "Color mode not supported by UEyeUsbCamera class" );
