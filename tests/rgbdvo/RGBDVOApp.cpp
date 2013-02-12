@@ -7,13 +7,13 @@
 
 namespace cvt
 {
-    RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params) :
+    RGBDVOApp::RGBDVOApp( const String& folder, const Matrix3f& K, ConfigFile& config) :
 #ifdef USE_CAM
         _cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
 #else
         _parser( folder, 0.02f ),
 #endif
-        _vo( K, params ),
+        _vo( K, VOType::Params( config ) ),
         //_featureAugmentation( K ),
         _cumulativeAlignmentSpeed( 0.0f ),
         _numAlignments( 0 ),
@@ -38,9 +38,7 @@ namespace cvt
 
         // observe the vo changes:
         Delegate<void ( const Matrix4f& )> kfAddDel( this, &RGBDVOApp::keyframeAddedCallback );
-        Delegate<void ()> actkfChgDel( this, &RGBDVOApp::activeKeyframeChangedCallback );
         _vo.keyframeAdded.add( kfAddDel );
-        _vo.activeKeyframeChanged.add( actkfChgDel );
 
         Image gray, depth;
         Matrix4f initPose;
@@ -411,20 +409,4 @@ namespace cvt
         _activeKFDepth = _parser.data().depth;
         _activeKFIdx = _parser.iter();
     }
-
-    void RGBDVOApp::activeKeyframeChangedCallback()
-    {
-        // TODO: draw the active keyframe in green in the view
-#ifdef USE_CAM
-        _keyframeImage.setImage( _cam.frame() );
-#else
-        _keyframeImage.setImage( _parser.data().rgb );
-
-        // save the current keyframe images & poses?
-        //_parser.data().rgb.save( "keyframe_rgb.png" );
-        //_parser.data().depth.save( "keyframe_depth.png" );
-        //std::cout << "Keyframe pose:(current vo)\n" << _vo.pose() << std::endl;
-#endif
-    }
-
 }

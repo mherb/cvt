@@ -21,6 +21,8 @@
 #include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
+#include <cvt/util/ConfigFile.h>
+
 //#include <DirectFeatureVO.h>
 #include <FeatureAugmentation.h>
 
@@ -36,16 +38,10 @@ namespace cvt
     class RGBDVOApp : public TimeoutHandler
     {
             public:
-                RGBDVOApp( const String& folder, const Matrix3f& K, const VOParams& params );
+                RGBDVOApp( const String& folder, const Matrix3f& K, ConfigFile& config );
                 ~RGBDVOApp();
 
                 void onTimeout();
-
-                void setMaxTranslationDistance( float dist )      { _vo.setMaxTranslationDistance( dist ); }
-                void setMaxRotationDistance( float dist )         { _vo.setMaxRotationDistance( dist ); }
-                void setMaxSSD( float dist )                      { _vo.setMaxSSD( dist ); }
-                void setMinPixelPercentage( float v )             { _vo.setMinPixelPercentage( v ); }
-                void setSelectionPixelPercentage( float v )       { _vo.setSelectionPixelPercentage( v ); }
 
             private:
 #ifdef USE_CAM
@@ -63,7 +59,8 @@ namespace cvt
 
                 typedef IntensityKeyframe<WarpType>     KFType;
                 //typedef IntensityDepthKeyframe<WarpType>  KFType;
-                RGBDVisualOdometry<KFType, LossFunc>    _vo;
+                typedef RGBDVisualOdometry<KFType, LossFunc> VOType;
+                VOType                                  _vo;
                 //DirectFeatureVO                       _vo;
 
                // FeatureAugmentation         _featureAugmentation;
@@ -104,7 +101,6 @@ namespace cvt
                 float                       _lastTError;
 
                 void keyframeAddedCallback( const Matrix4f& pose );
-                void activeKeyframeChangedCallback();
 
                 void setupGui();
                 void nextPressed();

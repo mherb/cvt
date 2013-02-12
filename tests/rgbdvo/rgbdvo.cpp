@@ -96,9 +96,8 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
     std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
-void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+void runBatch( const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
-
     typedef StandardWarp<float> StandardWarpf;
     typedef AffineLightingWarp<float> ALWarpf;
     typedef Huber<float> Huberf;
@@ -107,28 +106,30 @@ void runBatch( VOParams& params, const Matrix3f& K, const String& folder, Config
 
     String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
     std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "STD" ){
-        std::cout << "Running with normal Squared Lossfunc" << std::endl;
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
-        std::cout << "Running with Huber Lossfunc" << std::endl;
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
-        std::cout << "Running with Tukey Lossfunc" << std::endl;
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, NoWeighting >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, Huberf >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, Tukeyf>( params, K, folder, cfg );
-    } else {
-        std::cout << "Unknown keyframe type" << std::endl;
-    }
+
+//    if( kftypeString.toUpper() == "STD" ){
+//        std::cout << "Running with normal Squared Lossfunc" << std::endl;
+//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
+//    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
+//        std::cout << "Running with Huber Lossfunc" << std::endl;
+//        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
+//    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
+//        std::cout << "Running with Tukey Lossfunc" << std::endl;
+//        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
+//    } else if( kftypeString.toUpper() == "AII" ) {
+//        runVOWithKFType<IntensityKeyframe<ALWarpf>, NoWeighting >( params, K, folder, cfg );
+//    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
+//        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
+//        runVOWithKFType<IntensityKeyframe<ALWarpf>, Huberf >( params, K, folder, cfg );
+//    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
+//        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
+//        runVOWithKFType<IntensityKeyframe<ALWarpf>, Tukeyf>( params, K, folder, cfg );
+//    } else {
+//        std::cout << "Unknown keyframe type" << std::endl;
+//    }
+
 }
 
 int main( int argc, char* argv[] )
@@ -142,14 +143,6 @@ int main( int argc, char* argv[] )
     }
 
     String folder( argv[ 1 ] );
-    VOParams params;
-    params.maxIters = cfg.valueForName( "maxIterations", 10 );
-    params.gradientThreshold = cfg.valueForName( "gradientThreshold", 0.2f );
-    params.depthScale = cfg.valueForName( "depthFactor", 5000.0f ) * cfg.valueForName( "depthScale", 1.0f );
-    params.minParameterUpdate = cfg.valueForName( "minDeltaP", 0.0f );
-    params.pyrScale = cfg.valueForName( "pyrScale", 0.5f );
-    params.octaves = cfg.valueForName( "pyrOctaves", 3 );
-    params.robustParam = cfg.valueForName( "robustParam", 0.3f );
 
     Matrix3f K;
     K.setIdentity();
@@ -171,14 +164,9 @@ int main( int argc, char* argv[] )
 
     if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;
-        runBatch( params, K, folder, cfg );
+        runBatch( K, folder, cfg );
     } else {
-        RGBDVOApp app( folder, K, params );
-        app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-        app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
-        app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-        app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
-        app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
+        RGBDVOApp app( folder, K, cfg );
         Application::run();
     }
 

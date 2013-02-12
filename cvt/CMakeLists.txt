@@ -450,7 +450,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/TROptimizer.h
    vision/rgbdvo/IntensityDepthKeyframe.h
    vision/rgbdvo/InformationSelection.h
-   vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
