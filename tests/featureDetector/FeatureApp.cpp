@@ -46,6 +46,9 @@ namespace cvt
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
 		featureset.filterNMS( 2 );
 
+		BRIEF brief;
+
+
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 
 		_iter++;

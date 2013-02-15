@@ -15,22 +15,23 @@
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/features/FeatureDescriptor.h>
+#include <cvt/vision/features/FeatureDescriptorExtractor.h>
 
 namespace cvt {
 
 	template<size_t N>
-	class BRIEF
+	class BRIEF : public FeatureDescriptorExtractor
 	{
 		public:
-			typedef FeatureDescriptor<N, uint8_t, FEATUREDESC_CMP_HAMMING> Descriptor;
+			typedef FeatureDescriptorInternal<N, uint8_t, FEATUREDESC_CMP_HAMMING> Descriptor;
 
 			BRIEF( size_t boxradius = 4 );
 			BRIEF( const BRIEF& brief );
 			~BRIEF();
 
-			size_t			  size() const;
-			Descriptor&		  operator[]( size_t i );
-			const Descriptor& operator[]( size_t i ) const;
+			size_t					  size() const;
+			FeatureDescriptor&		  operator[]( size_t i );
+			const FeatureDescriptor&  operator[]( size_t i ) const;
 
 			void extract( const Image& img, const FeatureSet& features );
 			void extract( const ImagePyramid& pyr, const FeatureSet& features );
@@ -72,13 +73,13 @@ namespace cvt {
 	}
 
 	template<size_t N>
-	inline BRIEF<N>::Descriptor& BRIEF<N>::operator[]( size_t i )
+	inline FeatureDescriptor& BRIEF<N>::operator[]( size_t i )
 	{
 		return _features[ i ];
 	}
 
 	template<size_t N>
-	inline const BRIEF<N>::Descriptor& BRIEF<N>::operator[]( size_t i ) const
+	inline const FeatureDescriptor& BRIEF<N>::operator[]( size_t i ) const
 	{
 		return _features[ i ];
 	}
@@ -101,12 +102,19 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
+#include <cvt/vision/features/BRIEFPattern.h>
+#define DOBRIEFTEST(n) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
+
 		IMapScoped<const float> map( boximg );
 		size_t iend = features.size();
 		for( size_t i = 0; i < iend; ++i ) {
+			_features.push_back( Descriptor( features[ i ] ) );
 			for( size_t n = 0; n < N; n++ ) {
-				//TODO: do the 8 tests
-				uint8_t tests;
+				uint8_t tests  = 0;
+				size_t  offset = n * 8;
+				for( int t = 0; t < 8; t++ )
+					tests |= DOBRIEFTEST( offset + t ) << t;
+				_features.back().desc[ n ] = tests;
 			}
 		}
 
