@@ -421,12 +421,16 @@ SET(${MODULE_NAME}_HEADERS
    vision/CameraCalibration.h
    vision/ESM.h
    vision/EPnP.h
+   vision/features/BRIEF.h
+   vision/features/BRIEFPattern.h
    vision/features/FAST.h
    vision/features/fast/FAST.inl
    vision/features/Feature.h
-   vision/features/FeatureSet.h
-   vision/features/FeatureDetector.h
    vision/features/FeatureDescriptor.h
+   vision/features/FeatureDescriptorExtractor.h
+   vision/features/FeatureDetector.h
+   vision/features/FeatureSet.h
+   vision/features/Harris.h
    vision/features/NMSFilter.h
 # vision/Ferns.h
 #   vision/internal/Fern.h
@@ -647,6 +651,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/features/fast/fast11.cpp
    vision/features/fast/fast12.cpp
    vision/features/FeatureSet.cpp
+   vision/features/Harris.cpp
 # vision/Ferns.cpp
    vision/Flow.cpp
    vision/IntegralImage.cpp

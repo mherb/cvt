@@ -1,10 +1,7 @@
 #include <cvt/gui/Application.h>
-#include <cvt/vision/ORB.h>
-
-#include "VideoInputGui.h"
-#include "ORBTemplateTracker.h"
-
 #include <cvt/io/Camera.h>
+
+#include <FeaturesHomographyApp.h>
 
 using namespace cvt;
 
@@ -57,18 +54,17 @@ int main( int argc, char* argv[] )
     }
 
     Image reference( argv[ 1 ] );
-    Image ref_gray;
-
-    reference.convert( ref_gray, IFormat::GRAY_UINT8 );
-
     Camera * cam = selectCam();
 
-    if( !cam )
+    if( !cam ){
+        std::cout << "could not create camera!" << std::endl;
         return 1;
+    }
 
     cam->startCapture();
 
-    VideoInputGui gui( cam, ref_gray );
+    // create the app
+    FeaturesHomographyApp app( cam, reference );
     Application::run();
 
     cam->stopCapture();

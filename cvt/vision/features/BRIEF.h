@@ -36,6 +36,8 @@ namespace cvt {
 			void extract( const Image& img, const FeatureSet& features );
 			void extract( const ImagePyramid& pyr, const FeatureSet& features );
 
+			void matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const;
+
 		private:
 			void extractF( const Image& img, const FeatureSet& features );
 			void extractU8( const Image& img, const FeatureSet& features );
@@ -148,7 +150,36 @@ namespace cvt {
 				_features.back().desc[ n ] = tests;
 			}
 		}
+	}
 
+	template<size_t N>
+	inline void BRIEF<N>::matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const
+	{
+		const BRIEF<N>& bOther = ( const BRIEF<N>& )other;
+
+		SIMD* simd = SIMD::instance();
+
+		matches.reserve( _features.size() );
+		for( size_t i = 0; i < _features.size(); i++ )
+		{
+			FeatureMatch m;
+			const Descriptor& d0 = _features[ i ];
+			m.feature0 = &d0;
+			m.feature1 = 0;
+			m.distance = distThresh;
+			for( size_t k = 0; k < bOther.size(); k++ ){
+				const Descriptor& d1 = bOther._features[ k ];
+				float distance = simd->hammingDistance( d0.desc, d1.desc, N );
+
+				if( distance < m.distance ){
+					m.feature1 = &d1;
+					m.distance = distance;
+				}
+			}
+
+			if( m.feature1 )
+				matches.push_back( m );
+		}
 	}
 }
 

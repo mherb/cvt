@@ -11,6 +11,8 @@
 #ifndef CVT_FEATURE_DESCRIPTOR_EXTRACTOR_H
 #define CVT_FEATURE_DESCRIPTOR_EXTRACTOR_H
 
+#include <cvt/vision/FeatureMatch.h>
+
 namespace cvt {
 	class FeatureDescriptorExtractor
 	{
@@ -23,6 +25,8 @@ namespace cvt {
 
 			virtual void extract( const Image& img, const FeatureSet& features ) = 0;
 			virtual void extract( const ImagePyramid& pyr, const FeatureSet& features ) = 0;
+
+			virtual void matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float maxDistance ) const = 0;
 	};
 }
 
