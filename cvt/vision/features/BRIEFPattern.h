@@ -1,7 +1,7 @@
 #ifndef CVT_BRIEF_PATTERN16_H
 #define CVT_BRIEF_PATTERN16_H
 
-int _brief_pattern[][ 4 ] = {
+static const int _brief_pattern[][ 4 ] = {
 	{-2,-1,7,-1},
 	{-14,-1,-3,3},
 	{1,-2,11,2},

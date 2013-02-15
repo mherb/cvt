@@ -38,11 +38,14 @@ namespace cvt {
 
 		private:
 			void extractF( const Image& img, const FeatureSet& features );
-			//void extractU8( const Image& img, const FeatureSet& features );
+			void extractU8( const Image& img, const FeatureSet& features );
 
 			size_t					_boxradius;
 			std::vector<Descriptor> _features;
+
 	};
+
+#include <cvt/vision/features/BRIEFPattern.h>
 
 	typedef BRIEF<16> BRIEF16;
 	typedef BRIEF<32> BRIEF32;
@@ -84,6 +87,10 @@ namespace cvt {
 		return _features[ i ];
 	}
 
+	template<size_t N>
+	inline void BRIEF<N>::extract( const ImagePyramid& img, const FeatureSet& features )
+	{
+	}
 
 	template<size_t N>
 	inline void BRIEF<N>::extract( const Image& img, const FeatureSet& features )
@@ -91,8 +98,10 @@ namespace cvt {
 		if( img.channels() != 1 || ( img.format() != IFormat::GRAY_UINT8 && img.format() != IFormat::GRAY_FLOAT ) )
 			throw CVTException( "Unimplemented" );
 
-		if( img.format() ==IFormat::GRAY_FLOAT )
+		if( img.format() == IFormat::GRAY_FLOAT )
 			extractF( img, features );
+		else if( img.format() == IFormat::GRAY_UINT8 )
+			extractU8( img, features );
 	}
 
 
@@ -102,8 +111,7 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#include <cvt/vision/features/BRIEFPattern.h>
-#define DOBRIEFTEST(n) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
+#define DOBRIEFTEST( n ) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
 
 		IMapScoped<const float> map( boximg );
 		size_t iend = features.size();
@@ -120,6 +128,28 @@ namespace cvt {
 
 	}
 
+	template<size_t N>
+	inline void BRIEF<N>::extractU8( const Image& img, const FeatureSet& features )
+	{
+		Image boximg;
+		img.boxfilter( boximg, _boxradius );
+
+#define DOBRIEFTEST( n ) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
+
+		IMapScoped<const uint8_t> map( boximg );
+		size_t iend = features.size();
+		for( size_t i = 0; i < iend; ++i ) {
+			_features.push_back( Descriptor( features[ i ] ) );
+			for( size_t n = 0; n < N; n++ ) {
+				uint8_t tests  = 0;
+				size_t  offset = n * 8;
+				for( int t = 0; t < 8; t++ )
+					tests |= DOBRIEFTEST( offset + t ) << t;
+				_features.back().desc[ n ] = tests;
+			}
+		}
+
+	}
 }
 
 #endif
