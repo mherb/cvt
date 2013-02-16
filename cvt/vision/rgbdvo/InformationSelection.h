@@ -37,7 +37,7 @@ namespace cvt {
             /* ids of all selected pixels */
             std::set<size_t>    _ids;
 
-            /* sort input decending by parameter */
+            /* sort input descending by parameter */
             std::vector<std::vector<size_t> > _sortedIds;
 
             class IndexComparator {
