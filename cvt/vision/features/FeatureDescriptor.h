@@ -43,6 +43,11 @@ namespace cvt {
 	template<size_t N, typename T, FeatureDescriptorComparator CMPTYPE>
 	struct FeatureDescriptorInternal : public FeatureDescriptor
 	{
+		FeatureDescriptorInternal( const FeatureDescriptorInternal<N,T,CMPTYPE>& other ) : FeatureDescriptor( ( const Feature& ) other )
+		{
+			SIMD::instance()->Memcpy( desc, other.desc, N * sizeof( T ) );
+		}
+
 		FeatureDescriptorInternal( const Feature& f ) : FeatureDescriptor( f )
 		{
 		}
