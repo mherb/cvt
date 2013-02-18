@@ -54,7 +54,7 @@ namespace cvt
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 		if( _oldset ) {
 			std::vector<FeatureMatch> matches;
-			brief->matchBruteForce( matches, *_oldset, 40.0f );
+			brief->matchBruteForce( matches, *_oldset, 20.0f );
 			_view.setTracks( matches, _gray.width(), _gray.height()  );
 			delete _oldset;
 		}

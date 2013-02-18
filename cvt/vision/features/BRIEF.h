@@ -144,7 +144,7 @@ namespace cvt {
 		int W = img.width();
 		int H = img.height();
 
-#define DOCHECK( x, y ) if( !(x >= 0 && x < W && y >= 0 && y < H ) ) std::cout << "FAILED:" << x << "," << y << std::endl << std::flush;
+#define DOCHECK( x, y ) if( ( x ) < 0 || ( x ) >= W || ( y ) < 0 || ( y ) >= H ) { std::cerr << "FAILED:" << x << "," << y << std::flush << std::endl; }
 #define DOCHECKTEST( n ) DOCHECK( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) \
 						 DOCHECK( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] )
 
@@ -154,7 +154,11 @@ namespace cvt {
 			int px, py;
 			px = features[ i ].pt.x;
 			py = features[ i ].pt.y;
-			_features.push_back( Descriptor( features[ i ] ) );
+
+			if( px < 30 || px > W - 30 || py < 30 || py > H - 30 )
+				std::cout << "SHIT" << px << "," << py << std::endl;
+
+			Descriptor desc( features[ i ] );
 			for( size_t n = 0; n < N; n++ ) {
 				uint8_t tests  = 0;
 
@@ -162,8 +166,9 @@ namespace cvt {
 					DOCHECKTEST( n * 8 + t )
 					tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
 				}
-				_features.back().desc[ n ] = tests;
+				desc.desc[ n ] = tests;
 			}
+			_features.push_back( desc );
 		}
 	}
 
