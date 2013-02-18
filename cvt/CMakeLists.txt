@@ -441,8 +441,8 @@ SET(${MODULE_NAME}_HEADERS
    vision/KLTPatch.h
    vision/LSH.h
    vision/MeasurementModel.h
-#  vision/ORB.h
-#   vision/ORBPatterns.h
+   vision/features/ORB.h
+   vision/features/ORBPattern.h
 #   vision/ORB2.h
 #   vision/ORB2Patterns.h
    vision/Patch.h
@@ -657,7 +657,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/IntegralImage.cpp
    vision/ImagePyramidTest.cpp
    vision/KLTPatchTest.cpp
-#vision/ORB.cpp
+   vision/features/ORB.cpp
 #   vision/ORB2.cpp
 #   vision/ORB2Test.cpp
 #   vision/ORBTest.cpp

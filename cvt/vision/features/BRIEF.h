@@ -14,8 +14,11 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/vision/ImagePyramid.h>
+#include <cvt/vision/features/FeatureSet.h>
 #include <cvt/vision/features/FeatureDescriptor.h>
 #include <cvt/vision/features/FeatureDescriptorExtractor.h>
+
+#include "MatchBruteForce.inl"
 
 namespace cvt {
 
@@ -39,10 +42,25 @@ namespace cvt {
 			void matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const;
 
 		private:
+			struct DistFunc {
+				DistFunc() : _simd( SIMD::instance() )
+				{
+				}
+
+				float operator()( const Descriptor& a, const Descriptor& b ) const
+				{
+					return _simd->hammingDistance( a.desc, b.desc, N );
+				}
+
+				SIMD* _simd;
+			};
+
+
+
 			void extractF( const Image& img, const FeatureSet& features );
 			void extractU8( const Image& img, const FeatureSet& features );
 
-			size_t					_boxradius;
+			const size_t			_boxradius;
 			std::vector<Descriptor> _features;
 
 	};
@@ -147,49 +165,23 @@ namespace cvt {
 			int px, py;
 			px = features[ i ].pt.x;
 			py = features[ i ].pt.y;
-			Descriptor desc( features[ i ] );
+			_features.push_back( Descriptor( features[ i ] ) );
 			for( size_t n = 0; n < N; n++ ) {
 				uint8_t tests  = 0;
 
 				for( int t = 0; t < 8; t++ ) {
 					tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
 				}
-				desc.desc[ n ] = tests;
+				_features.back().desc[ n ] = tests;
 			}
-			_features.push_back( desc );
 		}
 	}
 
 	template<size_t N>
 	inline void BRIEF<N>::matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const
 	{
-		const BRIEF<N>& bOther = ( const BRIEF<N>& )other;
-
-		SIMD* simd = SIMD::instance();
-
-		matches.reserve( _features.size() );
-		for( size_t i = 0; i < _features.size(); i++ ) {
-			FeatureMatch m;
-			const Descriptor& d0 = _features[ i ];
-
-			m.feature0 = &d0;
-			m.feature1 = 0;
-			m.distance = distThresh;
-			for( size_t k = 0; k < bOther.size(); k++ ) {
-				const Descriptor& d1 = bOther._features[ k ];
-				float distance = simd->hammingDistance( d0.desc, d1.desc, N );
-
-				if( distance < m.distance ) {
-					m.feature1 = &d1;
-					m.distance = distance;
-				}
-			}
-
-			if( m.feature1 ) {
-				matches.push_back( m );
-				//std::cout << m.distance << std::endl;
-			}
-		}
+		DistFunc dfunc;
+		FeatureMatcher::matchBruteForce<Descriptor, typename BRIEF<N>::DistFunc>( matches, this->_features, ( ( const BRIEF<N>& ) other)._features, dfunc, distThresh );
 	}
 }
 

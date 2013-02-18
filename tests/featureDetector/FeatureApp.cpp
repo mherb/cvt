@@ -25,7 +25,7 @@ namespace cvt
 		_window.update();
 		_detector = new FAST();
 		//_detector = new Harris();
-		_detector->setBorder( 30 );
+		_detector->setBorder( 45 );
 		_oldset = NULL;
 	}
 
@@ -37,6 +37,8 @@ namespace cvt
 
 	void FeatureApp::onTimeout()
 	{
+		typedef ORB FeatureType;
+
 		_video.nextFrame();
 		_view.setImage( _video.frame() );
 
@@ -48,17 +50,17 @@ namespace cvt
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
 		featureset.filterNMS( 2 );
 
-		BRIEF32* brief = new BRIEF32();
-		brief->extract( _gray, featureset );
+		FeatureType* featuredesc = new FeatureType();
+		featuredesc->extract( _gray, featureset );
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
 		if( _oldset ) {
 			std::vector<FeatureMatch> matches;
-			brief->matchBruteForce( matches, *_oldset, 20.0f );
+			featuredesc->matchBruteForce( matches, *_oldset, 20.0f );
 			_view.setTracks( matches, _gray.width(), _gray.height()  );
 			delete _oldset;
 		}
-		_oldset = brief;
+		_oldset = featuredesc;
 
 		_iter++;
 		_allIter++;
