@@ -112,7 +112,7 @@ namespace cvt {
 
 			void operator()( float x, float y, float score = 0.0f )
 			{
-				_featureset.add( Feature( x * _scale, y * _scale, score, _octave ) );
+				_featureset.add( Feature( x * _scale, y * _scale, 0, _octave, score ) );
 			}
 
 

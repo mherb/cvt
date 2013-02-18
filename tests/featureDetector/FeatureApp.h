@@ -7,8 +7,10 @@
 #include <cvt/io/VideoInput.h>
 #include <cvt/util/Time.h>
 #include <cvt/gui/TimeoutHandler.h>
+
 #include <cvt/vision/features/FAST.h>
 #include <cvt/vision/features/Harris.h>
+#include <cvt/vision/features/BRIEF.h>
 
 #include "FeatureView.h"
 
@@ -27,6 +29,7 @@ namespace cvt
 			FeatureView	_view;
 			VideoInput&	_video;
 			FeatureDetector* _detector;
+			FeatureDescriptorExtractor* _oldset;
 
 			Time		_time;
 			double		_fps;

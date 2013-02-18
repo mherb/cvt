@@ -12,85 +12,133 @@
 #define CVT_FEATUREDESCRPTOR_H
 
 #include <cvt/vision/features/Feature.h>
+#include <cvt/util/Exception.h>
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
-
 	enum FeatureDescriptorComparator {
 		FEATUREDESC_CMP_SSD		= 0,
 		FEATUREDESC_CMP_SAD		= 1,
 		FEATUREDESC_CMP_HAMMING = 2,
 	};
 
-	template<size_t N, typename T>
-	struct FeatureDescriptorBase : public Feature
+	struct FeatureDescriptor : public Feature
 	{
-		FeatureDescriptorBase( float x, float y, float a, size_t o, float sc ) : Feature( x, y, a, o, sc )
+		FeatureDescriptor( const Feature& f ) : Feature( f )
 		{
 		}
 
-		float distance( const FeatureDescriptorBase<N,T>& desc ) const;
+		virtual ~FeatureDescriptor()
+		{
+		}
+
+		virtual size_t length() const = 0;
+		virtual const uint8_t* ptr() const = 0;
+		virtual FeatureDescriptorComparator compareType() const = 0;
+	};
+
+	template<size_t N, typename T, FeatureDescriptorComparator CMPTYPE>
+	class FeatureDescriptorDistance;
+
+	template<size_t N, typename T, FeatureDescriptorComparator CMPTYPE>
+	struct FeatureDescriptorInternal : public FeatureDescriptor
+	{
+		FeatureDescriptorInternal( const Feature& f ) : FeatureDescriptor( f )
+		{
+		}
+
+		FeatureDescriptorInternal( float x, float y, float a, size_t o, float sc ) : FeatureDescriptor( x, y, a, o, sc )
+		{
+		}
+
+		virtual ~FeatureDescriptorInternal()
+		{
+		}
+
+		virtual size_t length() const
+		{
+			return sizeof( T ) * N;
+		}
+
+		virtual const uint8_t* ptr() const
+		{
+			return ( uint8_t* ) desc;
+		}
+
+		virtual FeatureDescriptorComparator compareType() const
+		{
+			return CMPTYPE;
+		}
+
+		float distance( const FeatureDescriptorInternal<N,T,CMPTYPE>& desc ) const
+		{
+			return FeatureDescriptorDistance<N,T,CMPTYPE>::distance( *this, desc );
+		}
 
 		T desc[ N ];
 	};
 
+
 	template<size_t N, typename T, FeatureDescriptorComparator CMPTYPE>
-	struct FeatureDescriptor : public FeatureDescriptorBase<N,T>
+	struct FeatureDescriptorDistance
 	{
-		float distance( const FeatureDescriptorBase<N,T>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,T,CMPTYPE>& a, const FeatureDescriptorInternal<N,T,CMPTYPE>& b )
 		{
+			throw CVTException( "Error" );
+			return 0;
 		}
 	};
 
 	/* float, SSD */
 	template<size_t N>
-	struct FeatureDescriptor<N, float, FEATUREDESC_CMP_SSD> : public FeatureDescriptorBase<N,float>
+	struct FeatureDescriptorDistance<N, float, FEATUREDESC_CMP_SSD>
 	{
-		float distance( const FeatureDescriptorBase<N,float>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,float, FEATUREDESC_CMP_SSD>& a, const FeatureDescriptorInternal<N,float, FEATUREDESC_CMP_SSD>& b )
 		{
-			return SIMD::instance()->SSD( this->desc, other.desc, N );
+			return SIMD::instance()->SSD( a.desc, b.desc, N );
 		}
 	};
 
 	/* uint8_t, SSD */
 	template<size_t N>
-	struct FeatureDescriptor<N, uint8_t, FEATUREDESC_CMP_SSD> : public FeatureDescriptorBase<N,uint8_t>
+	struct FeatureDescriptorDistance<N, uint8_t, FEATUREDESC_CMP_SSD>
 	{
-		float distance( const FeatureDescriptorBase<N,uint8_t>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_SSD>& a, const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_SSD>& b )
 		{
-			return SIMD::instance()->SSD( this->desc, other.desc, N );
+			return SIMD::instance()->SSD( a.desc, b.desc, N );
 		}
 	};
 
 	/* float, SAD */
 	template<size_t N>
-	struct FeatureDescriptor<N, float, FEATUREDESC_CMP_SAD> : public FeatureDescriptorBase<N,float>
+	struct FeatureDescriptorDistance<N, float, FEATUREDESC_CMP_SAD>
 	{
-		float distance( const FeatureDescriptorBase<N,float>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,float, FEATUREDESC_CMP_SAD>& a, const FeatureDescriptorInternal<N,float, FEATUREDESC_CMP_SAD>& b )
 		{
-			return SIMD::instance()->SAD( this->desc, other.desc, N );
+			return SIMD::instance()->SAD( a.desc, b.desc, N );
 		}
 	};
 
 	/* uint8_t, SAD */
 	template<size_t N>
-	struct FeatureDescriptor<N, uint8_t, FEATUREDESC_CMP_SAD> : public FeatureDescriptorBase<N,uint8_t>
+	struct FeatureDescriptorDistance<N, uint8_t, FEATUREDESC_CMP_SAD>
 	{
-		float distance( const FeatureDescriptorBase<N,uint8_t>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_SAD>& a, const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_SAD>& b )
 		{
-			return SIMD::instance()->SAD( this->desc, other.desc, N );
+			return SIMD::instance()->SAD( a.desc, b.desc, N );
 		}
 	};
 
 	/* uint8_t, hamming */
 	template<size_t N>
-	struct FeatureDescriptor<N, uint8_t, FEATUREDESC_CMP_HAMMING> : public FeatureDescriptorBase<N,uint8_t>
+	struct FeatureDescriptorDistance<N, uint8_t, FEATUREDESC_CMP_HAMMING>
 	{
-		float distance( const FeatureDescriptorBase<N,uint8_t>& other ) const
+		static float distance( const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_HAMMING>& a, const FeatureDescriptorInternal<N,uint8_t, FEATUREDESC_CMP_HAMMING>& b )
 		{
-			return SIMD::instance()->hammingDistance( this->desc, other.desc, N );
+			return SIMD::instance()->hammingDistance( a.desc, b.desc, N );
 		}
 	};
+
 }
 
 #endif

@@ -23,7 +23,7 @@ namespace cvt
 	class Harris : public FeatureDetector
 	{
 		public:
-			Harris( float threshold = 1e-6f, size_t border = 3 );
+			Harris( float threshold = 5e-5f, size_t border = 3 );
 			~Harris();
 
 			void detect( FeatureSet& features, const Image& image );
@@ -89,29 +89,7 @@ namespace cvt
 		dx.boxfilter( dx, _radius );
 		dy.boxfilter( dy, _radius );
 		dxy.boxfilter( dxy, _radius );
-#if 0
-		Image tr = dx;
-		tr.add( dy );
-		tr.mul( tr );
 
-		dxy.mul( dxy );
-
-		dx.mul( dy );
-		dx.sub( dxy );
-		dx.mad( tr, -0.10f );
-
-		IMapScoped<const float> score( dx );
-		size_t yend = h - _border;
-		score.setLine( _border );
-		for( size_t y = _border; y < yend; y++ ) {
-			const float* ptr = score.ptr();
-			for( size_t x = _border;  x < xend; x++ ) {
-				if( ptr[ x ] > _threshold  )
-					features.add( Feature( x, y, 0, 0, ptr[ x ] ) );
-			}
-			score++;
-		}
-#else
 		IMapScoped<const float> dxmap( dx );
 		IMapScoped<const float> dymap( dy );
 		IMapScoped<const float> dxymap( dxy );
@@ -126,7 +104,7 @@ namespace cvt
 
 		for( size_t y = _border; y < yend; y++ ) {
 			float* ptr = scorebuf.ptr();
-			simd->harrisScore1f( ptr, dxmap.ptr(), dymap.ptr(), dxymap.ptr(), 0.10, w );
+			simd->harrisScore1f( ptr, dxmap.ptr(), dymap.ptr(), dxymap.ptr(), _kappa, w );
 			for( size_t x = _border;  x < xend; x++ ) {
 				if( ptr[ x ] > _threshold  )
 					features.add( Feature( x, y, 0, 0, ptr[ x ] ) );
@@ -135,7 +113,6 @@ namespace cvt
 			dymap++;
 			dxymap++;
 		}
-#endif
 	}
 
 	inline void Harris::detectU8( FeatureSet& features, const Image& image )
