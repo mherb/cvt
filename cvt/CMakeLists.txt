@@ -442,7 +442,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/TSDFVolume.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
-   vision/rgbdvo/AlignmentCostFunction.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/SplittedOptimizer.h

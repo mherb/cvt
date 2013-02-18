@@ -10,16 +10,6 @@ namespace cvt
     };
 
     template <typename T>
-    struct RobustWeighting
-    {
-        /* does this lf have a scale parameter? */
-        virtual bool hasScale();
-        virtual void setScale( T scale );
-        virtual void setParameter( T p );
-    };
-
-
-    template <typename T>
     struct NoWeighting {
         NoWeighting( T ){}
         T weight( T ){ return (T)1; }
