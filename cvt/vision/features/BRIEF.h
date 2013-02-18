@@ -113,7 +113,7 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
+#define DOBRIEFTEST( n ) ( map( py + _brief_pattern[ n ][ 1 ], px + _brief_pattern[ n ][ 0 ] ) < map( py + _brief_pattern[ n ][ 3 ], px + _brief_pattern[ n ][ 2 ] ) )
 
 		IMapScoped<const float> map( boximg );
 		size_t iend = features.size();
@@ -139,14 +139,7 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
-
-		int W = img.width();
-		int H = img.height();
-
-#define DOCHECK( x, y ) if( ( x ) < 0 || ( x ) >= W || ( y ) < 0 || ( y ) >= H ) { std::cerr << "FAILED:" << x << "," << y << std::flush << std::endl; }
-#define DOCHECKTEST( n ) DOCHECK( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) \
-						 DOCHECK( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] )
+#define DOBRIEFTEST( n ) ( map( py + _brief_pattern[ n ][ 1 ], px + _brief_pattern[ n ][ 0 ] ) < map( py + _brief_pattern[ n ][ 3 ], px + _brief_pattern[ n ][ 2 ] ) )
 
 		IMapScoped<const uint8_t> map( boximg );
 		size_t iend = features.size();
@@ -154,16 +147,11 @@ namespace cvt {
 			int px, py;
 			px = features[ i ].pt.x;
 			py = features[ i ].pt.y;
-
-			if( px < 30 || px > W - 30 || py < 30 || py > H - 30 )
-				std::cout << "SHIT" << px << "," << py << std::endl;
-
 			Descriptor desc( features[ i ] );
 			for( size_t n = 0; n < N; n++ ) {
 				uint8_t tests  = 0;
 
 				for( int t = 0; t < 8; t++ ) {
-					DOCHECKTEST( n * 8 + t )
 					tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
 				}
 				desc.desc[ n ] = tests;
