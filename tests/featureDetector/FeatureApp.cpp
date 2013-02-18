@@ -25,7 +25,8 @@ namespace cvt
 		_window.update();
 		_detector = new FAST();
 		//_detector = new Harris();
-		_detector->setBorder( 16 );
+		_detector->setBorder( 30 );
+		_oldset = NULL;
 	}
 
 	FeatureApp::~FeatureApp()
@@ -47,10 +48,17 @@ namespace cvt
 		_avgDetectorTime += detectTime.elapsedMilliSeconds();
 		featureset.filterNMS( 2 );
 
-		BRIEF32 brief;
-		brief.extract( _gray, featureset );
+		BRIEF32* brief = new BRIEF32();
+		brief->extract( _gray, featureset );
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
+		if( _oldset ) {
+			std::vector<FeatureMatch> matches;
+			brief->matchBruteForce( matches, *_oldset, 40.0f );
+			_view.setTracks( matches, _gray.width(), _gray.height()  );
+			delete _oldset;
+		}
+		_oldset = brief;
 
 		_iter++;
 		_allIter++;

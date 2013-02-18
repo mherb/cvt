@@ -25,7 +25,7 @@ namespace cvt {
 		public:
 			typedef FeatureDescriptorInternal<N, uint8_t, FEATUREDESC_CMP_HAMMING> Descriptor;
 
-			BRIEF( size_t boxradius = 4 );
+			BRIEF( size_t boxradius = 3 );
 			BRIEF( const BRIEF& brief );
 			~BRIEF();
 
@@ -113,17 +113,20 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
+#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
 
 		IMapScoped<const float> map( boximg );
 		size_t iend = features.size();
 		for( size_t i = 0; i < iend; ++i ) {
+			int px, py;
+			px = features[ i ].pt.x;
+			py = features[ i ].pt.y;
 			_features.push_back( Descriptor( features[ i ] ) );
 			for( size_t n = 0; n < N; n++ ) {
 				uint8_t tests  = 0;
 				size_t  offset = n * 8;
 				for( int t = 0; t < 8; t++ )
-					tests |= DOBRIEFTEST( offset + t ) << t;
+					tests |= DOBRIEFTEST( n * 8 + t ) << t;
 				_features.back().desc[ n ] = tests;
 			}
 		}
@@ -136,17 +139,29 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( _brief_pattern[ n ][ 0 ], _brief_pattern[ n ][ 1 ] ) < map( _brief_pattern[ n ][ 2 ], _brief_pattern[ n ][ 3 ] ) )
+#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
+
+		int W = img.width();
+		int H = img.height();
+
+#define DOCHECK( x, y ) if( !(x >= 0 && x < W && y >= 0 && y < H ) ) std::cout << "FAILED:" << x << "," << y << std::endl << std::flush;
+#define DOCHECKTEST( n ) DOCHECK( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) \
+						 DOCHECK( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] )
 
 		IMapScoped<const uint8_t> map( boximg );
 		size_t iend = features.size();
 		for( size_t i = 0; i < iend; ++i ) {
+			int px, py;
+			px = features[ i ].pt.x;
+			py = features[ i ].pt.y;
 			_features.push_back( Descriptor( features[ i ] ) );
 			for( size_t n = 0; n < N; n++ ) {
 				uint8_t tests  = 0;
-				size_t  offset = n * 8;
-				for( int t = 0; t < 8; t++ )
-					tests |= DOBRIEFTEST( offset + t ) << t;
+
+				for( int t = 0; t < 8; t++ ) {
+					DOCHECKTEST( n * 8 + t )
+					tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
+				}
 				_features.back().desc[ n ] = tests;
 			}
 		}
@@ -160,25 +175,27 @@ namespace cvt {
 		SIMD* simd = SIMD::instance();
 
 		matches.reserve( _features.size() );
-		for( size_t i = 0; i < _features.size(); i++ )
-		{
+		for( size_t i = 0; i < _features.size(); i++ ) {
 			FeatureMatch m;
 			const Descriptor& d0 = _features[ i ];
+
 			m.feature0 = &d0;
 			m.feature1 = 0;
 			m.distance = distThresh;
-			for( size_t k = 0; k < bOther.size(); k++ ){
+			for( size_t k = 0; k < bOther.size(); k++ ) {
 				const Descriptor& d1 = bOther._features[ k ];
 				float distance = simd->hammingDistance( d0.desc, d1.desc, N );
 
-				if( distance < m.distance ){
+				if( distance < m.distance ) {
 					m.feature1 = &d1;
 					m.distance = distance;
 				}
 			}
 
-			if( m.feature1 )
+			if( m.feature1 ) {
 				matches.push_back( m );
+				//std::cout << m.distance << std::endl;
+			}
 		}
 	}
 }

@@ -11,7 +11,7 @@
 #ifndef CVT_FEATURE_DESCRIPTOR_EXTRACTOR_H
 #define CVT_FEATURE_DESCRIPTOR_EXTRACTOR_H
 
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 
 namespace cvt {
 	class FeatureDescriptorExtractor

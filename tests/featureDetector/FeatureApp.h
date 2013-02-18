@@ -29,6 +29,7 @@ namespace cvt
 			FeatureView	_view;
 			VideoInput&	_video;
 			FeatureDetector* _detector;
+			FeatureDescriptorExtractor* _oldset;
 
 			Time		_time;
 			double		_fps;
