@@ -11,6 +11,7 @@
 #include <cvt/vision/features/FAST.h>
 #include <cvt/vision/features/Harris.h>
 #include <cvt/vision/features/BRIEF.h>
+#include <cvt/vision/features/ORB.h>
 
 #include "FeatureView.h"
 
