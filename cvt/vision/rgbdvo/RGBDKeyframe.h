@@ -32,15 +32,13 @@ namespace cvt
     };
 
     template <size_t dim>
-    struct AlignmentData {
+    class AlignmentData {
+        public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef Eigen::Matrix<float, 1, dim>    JacobianType;
             typedef Eigen::Matrix<float, 2, dim>    ScreenJacobianType;
             typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
-            //typedef std::vector<ScreenJacobianType> ScreenJacVec;
-
             typedef Eigen::Matrix<float, dim, dim>  HessianType;
-
 
             std::vector<Vector3f>       points3d;
             std::vector<float>          pixelValues;
@@ -82,7 +80,7 @@ namespace cvt
             }
     };
 
-    template <class WarpFunc>
+    template <size_t DIM>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -101,31 +99,23 @@ namespace cvt
                 size_t              numPixels;
                 float               pixelPercentage; /* between 0 and 1 */
                 float               costs;
-                WarpFunc            warp;
+
+                /* this won't work as the Warp is a Base class!*/
+                Warp3D<DIM>         warp;
             };
 
-            typedef typename WarpFunc::JacobianType  JacobianType;
-            typedef typename WarpFunc::HessianType   HessianType;
-            typedef WarpFunc                         WarpFunction;
-            typedef typename WarpFunc::Type          T;
-            typedef AlignmentData<WarpFunction::NumParameters> AlignDataType;
+            typedef Warp3D<DIM>::JacobianType   JacobianType;
+            typedef Warp3D<DIM>::JacobianType   HessianType;
+            typedef AlignmentData<DIM>          AlignDataType;
 
             RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
+
             virtual ~RGBDKeyframe();
 
-            const AlignDataType& dataForScale( size_t o )       const { return _dataForScale[ o ]; }
+            const AlignDataType&    dataForScale( size_t o )       const { return _dataForScale[ o ]; }
+            const Matrix4f&         pose()                         const { return _pose; }
 
-            const Matrix4<T>&    pose()                         const { return _pose; }
-
-            /* originally, the depth map is stored as uint16_t, and when we convert it to float it will be mapped between 0 and 1!*/
-            void setDepthMapScaleFactor( float scaleFactor )        { _depthScaling = ( ( float )0xFFFF ) / scaleFactor; }
-            void setMinimumDepth( T depthTresh )                    { _minDepth = depthTresh; }
-            void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
-            void setTranslationJumpThreshold( T maxTDiff )          { _translationJumpThreshold = maxTDiff; }
-            void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
-            void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
-
-            void updateOfflineData( const Matrix4<T>& pose, const ImagePyramid& pyramid, const Image& depth );
+            void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
             void addPoints( const std::vector<Vector3f>& pts );
 
             virtual void updateOfflineDataForScale( AlignDataType& data,
@@ -137,32 +127,25 @@ namespace cvt
                                            const std::vector<Vector3f>& pts,
                                            const Matrix4f& referenceToWorld ) = 0;
 
-            virtual void updateOnlineData( const ImagePyramid& pyrGray, const Image& depth ){}
-
-            /* get/eval the jacobians */
-            virtual void jacobians(){}
-
             const IKernel& kernelDx() const { return _kx; }
             const IKernel& kernelDy() const { return _ky; }
 
         protected:
-            Matrix4<T>                  _pose;
-
             typedef std::vector<AlignDataType, Eigen::aligned_allocator<AlignDataType> > AlignmentDataVector;
+            Matrix4f            _pose;
+            AlignmentDataVector _dataForScale;
+            Image               _depth;
+            IKernel             _kx;
+            IKernel             _ky;
+            IKernel             _gaussX;
+            IKernel             _gaussY;
 
-            AlignmentDataVector         _dataForScale;
-            Image                       _depth;
-            IKernel                     _kx;
-            IKernel                     _ky;
-            IKernel                     _gaussX;
-            IKernel                     _gaussY;
-
-            float                       _depthScaling;
-            T                           _minDepth;
-            float                       _gradientThreshold;
-            T                           _translationJumpThreshold;
-            float                       _minPixelPercentage;
-            float                       _pixelPercentageToSelect;
+            float               _depthScaling;
+            float               _minDepth;
+            float               _gradientThreshold;
+            float               _translationJumpThreshold;
+            float               _minPixelPercentage;
+            float               _pixelPercentageToSelect;
 
             void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
@@ -175,8 +158,8 @@ namespace cvt
             void  updateHessian( AlignDataType& data );
     };
 
-    template <class WarpFunc>
-    inline RGBDKeyframe<WarpFunc>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
+    template <size_t DIM>
+    inline RGBDKeyframe<DIM>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
         //_kx( IKernel::HAAR_HORIZONTAL_3 ),
         //_ky( IKernel::HAAR_VERTICAL_3 ),
         _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
@@ -206,7 +189,7 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateOfflineData( const Matrix4<T>& poseMat,
+    inline void RGBDKeyframe<WarpFunc>::updateOfflineData( const Matrix4f& poseMat,
                                                            const ImagePyramid& pyramid,
                                                            const Image& depth )
     {

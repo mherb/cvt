@@ -98,7 +98,7 @@ void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& f
 
 void runBatch( const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
-    typedef StandardWarp<float> StandardWarpf;
+    typedef StandardWarp StandardWarpf;
     typedef AffineLightingWarp<float> ALWarpf;
     typedef Huber<float> Huberf;
     typedef Tukey<float> Tukeyf;

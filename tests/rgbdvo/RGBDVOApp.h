@@ -50,16 +50,15 @@ namespace cvt
                 RGBDParser                          _parser;
 #endif
 
-                typedef StandardWarp<float>         WarpType;
-                //typedef AffineLightingWarp<float>   WarpType;
+                typedef StandardWarp                WarpType;
 
                 //typedef NoWeighting<float>          LossFunc;
                 //typedef Huber<float>                LossFunc;
                 typedef Tukey<float>                LossFunc;
 
                 typedef IntensityKeyframe<WarpType>     KFType;
-                //typedef IntensityDepthKeyframe<WarpType>  KFType;
                 typedef RGBDVisualOdometry<KFType, LossFunc> VOType;
+
                 VOType                                  _vo;
                 //DirectFeatureVO                       _vo;
 

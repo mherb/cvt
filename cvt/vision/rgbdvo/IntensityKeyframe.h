@@ -136,7 +136,7 @@ namespace cvt
         IMapScoped<const float> gyMap( data.gradY );
         IMapScoped<const float> grayMap( data.gray );
 
-
+        WarpFunc warp;
         for( size_t y = 0; y < gray.height() - 1; y++ ){
             const float* gx = gxMap.ptr();
             const float* gy = gyMap.ptr();
@@ -160,7 +160,7 @@ namespace cvt
                     p3d[ 1 ] = tmpy[ y ] * z;
                     p3d[ 2 ] = z;
 
-                    WarpFunc::screenJacobian( sj, p3d, data.intrinsics );
+                    warp.screenJacobian( sj, p3d, data.intrinsics );
                     //WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
                     j = g.transpose() * sj;
 
@@ -214,6 +214,7 @@ namespace cvt
         JacobianType j;
         Eigen::Matrix<T, 2, 1> g;
 
+        WarpFunc warp;
         while( pit != pitEnd ){
             // project to screen
             Vector2f w( K * *pit );
@@ -228,7 +229,7 @@ namespace cvt
             // evaluate the jacobian
             g[ 0 ] = gxVals[ offset ];
             g[ 1 ] = gyVals[ offset ];
-            WarpFunc::computeJacobian( j, *pit, data.intrinsics, g, gVals[ offset ] );
+            warp.computeJacobian( j, *pit, data.intrinsics, g, gVals[ offset ] );
 
             // add it to the data
             data.jacobians.push_back( j );

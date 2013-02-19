@@ -136,7 +136,7 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            // TODO: THE OPTIMIZER SHOULD GET A CONSTRUCTOR PARAMETER
+            // TODO: THE OPTIMIZER SHOULD GET A CONSTRUCTOR PARAMETER: Warp
             typedef typename DerivedKF::WarpFunction WFunc;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
@@ -205,7 +205,7 @@ namespace cvt {
 
         _optimizer.optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
 
-        _currentPose = _lastResult.warp.poseMatrix();
+        _currentPose = _lastResult.warp.pose();
 
         // check if we need a new keyframe
         if( _params.autoReferenceUpdate && needNewKeyframe() ){

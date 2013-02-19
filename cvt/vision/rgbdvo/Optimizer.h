@@ -14,69 +14,13 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
+#include <cvt/vision/rgbdvo/ApproxMedian.h>
+
 #include <Eigen/LU>
 
 #include <Eigen/LU>
 
 namespace cvt {
-
-    class HistMedianSelect {
-        public:
-            HistMedianSelect( float min, float max, float resolution ) :
-                _min( min ),
-                _max( max ),
-                _range( _max - _min ),
-                _resolution( resolution )
-            {
-                size_t nBins = _range / resolution;
-                _hist.resize( nBins, 0 );
-            }
-
-            void add( float value )
-            {
-                value = Math::clamp( value, _min, _max );
-                float fidx =  value / ( _range ) * ( float ) ( _hist.size() - 1 ) + 0.5f;
-                int idx = ( int ) fidx;
-
-                _hist[ idx ] += 1;
-            }
-
-            // approximate the nth value
-            float approximateNth( size_t nth )
-            {
-                size_t bin = 0;
-                size_t num = _hist[ bin++ ];
-
-                while( num < nth ){
-                    num += _hist[ bin++ ];
-                }
-                bin--;
-                size_t nPrev = num - _hist[ bin ];
-
-                if( bin )
-                    bin--;
-
-                // previous is smaller:
-                float frac = ( nth - nPrev ) / ( float )( num - nPrev );
-
-                return ( bin + frac ) * _resolution;
-            }
-
-            void clearHistogram()
-            {
-                for( size_t i = 0; i < _hist.size(); i++ ){
-                    _hist[ i ] = 0;
-                }
-            }
-
-        private:
-            float               _min;
-            float               _max;
-            float               _range;
-            float               _resolution;
-            std::vector<size_t> _hist;
-    };
-
 
     template <class WarpFunc, class Weighter>
     class Optimizer
@@ -116,7 +60,7 @@ namespace cvt {
 
             float computeMedian( const float* residuals, const std::vector<size_t>& indices ) const
             {
-                HistMedianSelect medianSelector( 0.0f, 1.0f, 0.01f );
+                ApproxMedian medianSelector( 0.0f, 1.0f, 0.02f );
 
                 std::vector<size_t>::const_iterator it = indices.begin();
                 const std::vector<size_t>::const_iterator end = indices.end();
@@ -130,7 +74,7 @@ namespace cvt {
 
             float computeMAD( const float* residuals, const std::vector<size_t>& indices, float median ) const
             {
-                HistMedianSelect medianSelector( 0.0f, 0.5f, 0.01f );
+                ApproxMedian medianSelector( 0.0f, 0.5f, 0.02f );
 
                 std::vector<size_t>::const_iterator it = indices.begin();
                 const std::vector<size_t>::const_iterator end = indices.end();
@@ -246,7 +190,7 @@ namespace cvt {
 
         while( result.iterations < _maxIter ){
             // build the updated projection Matrix
-            projMat = K4 * result.warp.poseMatrix();
+            projMat = K4 * result.warp.pose();
 
             // project the points:
             simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
@@ -300,8 +244,8 @@ namespace cvt {
                                               indices,
                                               result.costs );
 
-            if( !result.numPixels ||
-                result.costs / result.numPixels < 0.005f ){
+            if( !result.numPixels /* no pixels projected */ ||
+                result.costs / result.numPixels < 0.005f /* low cost threshold*/ ){
                 break;
             }
 
@@ -350,7 +294,7 @@ namespace cvt {
         }
 
         result = saveResult;
-        tmp4 = result.warp.poseMatrix();
+        tmp4 = result.warp.pose();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
         //std::cout << "Current Pose: \n" << tmp4 << std::endl;
