@@ -31,6 +31,7 @@ namespace cvt
         std::vector<size_t>     nonDepthFeatures;
     };
 
+    // TODO: ALignmentData should be subclassed for ESM / IC / Fwd
     template <size_t dim>
     class AlignmentData {
         public:
@@ -80,7 +81,7 @@ namespace cvt
             }
     };
 
-    template <size_t DIM>
+    template <class Warp>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -100,13 +101,13 @@ namespace cvt
                 float               pixelPercentage; /* between 0 and 1 */
                 float               costs;
 
-                /* this won't work as the Warp is a Base class!*/
-                Warp3D<DIM>         warp;
+                Warp                warp;
             };
 
-            typedef Warp3D<DIM>::JacobianType   JacobianType;
-            typedef Warp3D<DIM>::JacobianType   HessianType;
-            typedef AlignmentData<DIM>          AlignDataType;
+            typedef Warp                            WarpType;
+            typedef typename Warp::JacobianType     JacobianType;
+            typedef typename Warp::HessianType      HessianType;
+            typedef AlignmentData<Warp::NParams>    AlignDataType;
 
             RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
 
@@ -116,6 +117,17 @@ namespace cvt
             const Matrix4f&         pose()                         const { return _pose; }
 
             void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
+
+            // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
+            // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
+            //  val pixvals = 1m -> scale by (float_denorm) * 1/val
+            void setDepthMapScaleFactor( float val )                { _depthScaling = ( float )( 0xFFFF ) / val; }
+            void setMinimumDepth( float depthTresh )                { _minDepth = depthTresh; }
+            void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
+            void setTranslationJumpThreshold( float maxTDiff )      { _translationJumpThreshold = maxTDiff; }
+            void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
+            void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
+
             void addPoints( const std::vector<Vector3f>& pts );
 
             virtual void updateOfflineDataForScale( AlignDataType& data,
@@ -127,7 +139,16 @@ namespace cvt
                                            const std::vector<Vector3f>& pts,
                                            const Matrix4f& referenceToWorld ) = 0;
 
+            /**
+             * @brief kernelDx - retrieve the kernel used to compute x derivatives
+             * @return kernelx
+             */
             const IKernel& kernelDx() const { return _kx; }
+
+            /**
+             * @brief kernelDy - retrieve the kernel used to compute the y derivatives
+             * @return kernely
+             */
             const IKernel& kernelDy() const { return _ky; }
 
         protected:
@@ -150,16 +171,22 @@ namespace cvt
             void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
-            bool checkResult( const Result& res, const Matrix4<T>& lastPose ) const;
+            bool checkResult( const Result& res, const Matrix4f& lastPose ) const;
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
             void  selectInformation( AlignDataType& data, size_t n );
             void  updateHessian( AlignDataType& data );
+
+//            /**
+//             * @brief createDataForScale - Factory for the concrete AlignmentData for this reference
+//             * @return
+//             */
+//            AlignDataType*  createDataForScale() = 0;
     };
 
-    template <size_t DIM>
-    inline RGBDKeyframe<DIM>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
+    template <class Warp>
+    inline RGBDKeyframe<Warp>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
         //_kx( IKernel::HAAR_HORIZONTAL_3 ),
         //_ky( IKernel::HAAR_VERTICAL_3 ),
         _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
@@ -169,7 +196,6 @@ namespace cvt
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _gradientThreshold( 0.0f ),
-        _translationJumpThreshold( ( T )0.8 ),
         _minPixelPercentage( 0.2f ),
         _pixelPercentageToSelect( 0.3f )
     {
@@ -215,9 +241,9 @@ namespace cvt
     inline void RGBDKeyframe<WarpFunc>::updateIntrinsics( const Matrix3f& K, float scale )
     {
         _dataForScale[ 0 ].intrinsics = K;
-        for( size_t o = 1; o < _dataForScale.size(); o++ ){
-            _dataForScale[ o ].intrinsics = _dataForScale[ o - 1 ].intrinsics * ( T )scale;
-            _dataForScale[ o ].intrinsics[ 2 ][ 2 ] = ( T )1.0;
+        for( size_t o = 1; o < _dataForScale.size(); ++o ){
+            _dataForScale[ o ].intrinsics = _dataForScale[ o - 1 ].intrinsics * scale;
+            _dataForScale[ o ].intrinsics[ 2 ][ 2 ] = 1.0f;
         }
     }
 
@@ -237,7 +263,7 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline bool RGBDKeyframe<WarpFunc>::checkResult( const Result& res, const Matrix4<T>& lastPose ) const
+    inline bool RGBDKeyframe<WarpFunc>::checkResult( const Result& res, const Matrix4f& lastPose ) const
     {
         // to few pixels projected into image
         if( res.pixelPercentage < _minPixelPercentage ){
@@ -246,11 +272,11 @@ namespace cvt
         }
 
         // jump
-        Matrix4<T> mat = res.warp.poseMatrix();
-        if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
-            //std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
-            return false;
-        }
+        Matrix4f mat = res.warp.poseMatrix();
+//        if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
+//            //std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
+//            return false;
+//        }
 
         return true;
     }

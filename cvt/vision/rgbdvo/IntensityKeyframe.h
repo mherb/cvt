@@ -57,7 +57,7 @@ namespace cvt
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef RGBDKeyframe<WarpFunc>              Base;
-            typedef typename Base::T                    T;
+            typedef float                               T;
             typedef typename Base::Result               Result;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::AlignDataType        AlignDataType;

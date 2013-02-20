@@ -17,46 +17,17 @@
 
 namespace cvt
 {
-    template <size_t pDim>
-    class Warp3D {
-        public:
-            typedef float                           Type;
-            typedef Eigen::Matrix<Type, 1, pDim>    JacobianType;
-            typedef Eigen::Matrix<Type, 2, pDim>    ScreenJacType;
-            typedef Eigen::Matrix<Type, pDim, pDim> HessianType;
-            typedef Eigen::Matrix<Type, pDim, 1>    DeltaVectorType;
 
-            virtual void initialize( const Matrix4f& pose ) = 0;
-            virtual void setPose( const Matrix4f& pose ) = 0;
-            virtual Matrix4f pose() const = 0;
-
-            virtual void screenJacobian( ScreenJacType& j,
-                                         const Vector3f& point,
-                                         const Matrix3f& K ) const = 0;
-
-            virtual void computeJacobian( JacobianType& j,
-                                          const Vector3f& point,
-                                          const Matrix3f& K,
-                                          const Eigen::Matrix<float, 2, 1>& g,
-                                          float pixval ) = 0;
-
-            virtual float computeResidual( float templateValue, float warpedValue ) const = 0;
-            virtual void computeResiduals( float* residuals, const float* referenceValues, const float* warped, size_t n ) const = 0;
-
-            // this should become part of the costfunction later on!
-            virtual float costs( const float* residuals, const std::vector<size_t>& indices ) const = 0;
-            virtual void updateParameters( const DeltaVectorType& v ) = 0;
-
-            Warp3D(){}
-            virtual ~Warp3D(){}
-
-    };
-
-    class StandardWarp : public Warp3D<6>
+    class StandardWarp
     {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             static const size_t NParams = 6;
+            typedef float                               Type;
+            typedef Eigen::Matrix<Type, 1, NParams>     JacobianType;
+            typedef Eigen::Matrix<Type, 2, NParams>     ScreenJacType;
+            typedef Eigen::Matrix<Type, NParams, NParams> HessianType;
+            typedef Eigen::Matrix<Type, NParams, 1>     DeltaVectorType;
 
             StandardWarp() {}
             ~StandardWarp(){}
@@ -84,9 +55,9 @@ namespace cvt
                 return p;
             }
 
-            void screenJacobian( ScreenJacType& j,
-                                 const Vector3f& point,
-                                 const Matrix3f& K ) const
+            static void screenJacobian( ScreenJacType& j,
+                                        const Vector3f& point,
+                                        const Matrix3f& K )
             {
                 SE3<float>::screenJacobian( j, point, K );
             }
@@ -95,7 +66,7 @@ namespace cvt
                                   const Vector3f& point,
                                   const Matrix3f& K,
                                   const Eigen::Matrix<float, 2, 1>& g,
-                                  float /* pixval */ )
+                                  float /* pixval */ ) const
             {
                 ScreenJacType J;
                 screenJacobian( J, point, K );
@@ -112,7 +83,6 @@ namespace cvt
                 SIMD::instance()->Sub( residuals, referenceValues, warped, n );
             }
 
-            // this should become part of the costfunction later on!
             float costs( const float* residuals, const std::vector<size_t>& indices ) const
             {
                 float ssd = 0.0f;

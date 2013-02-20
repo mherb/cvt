@@ -26,15 +26,15 @@
 
 namespace cvt {
 
-    template <class DerivedKF, class LossFunction>
+    template <class KFType, class LossFunction>
     class RGBDVisualOdometry
     {
 
         public:
             struct Params {
                 Params() :
-                    octaves( 3 ),
-                    scale( 0.5f ),
+                    pyrOctaves( 3 ),
+                    pyrScale( 0.5f ),
                     maxTranslationDistance( 0.4f ),
                     maxRotationDistance( Math::deg2Rad( 5.0f ) ),
                     maxSSDSqr( Math::sqr( 0.2f ) ),
@@ -50,27 +50,29 @@ namespace cvt {
                 {}
 
                 Params( ConfigFile& cfg ) :
-                    octaves( 3 ),
-                    scale( 0.5f ),
-                    maxTranslationDistance( 0.4f ),
-                    maxRotationDistance( Math::deg2Rad( 5.0f ) ),
-                    maxSSDSqr( Math::sqr( 0.2f ) ),
-                    minPixelPercentage( 0.3f ),
-                    autoReferenceUpdate( true ),
-                    propagateDepth( true ),
-                    depthScale( 1000.0f ),
-                    minDepth( 0.5f ),
-                    gradientThreshold( 0.02f ),
-                    robustThreshold( 0.5f ),
-                    maxIters( 10 ),
-                    minParameterUpdate( 1e-6 )
+                    pyrOctaves( cfg.valueForName<int>( "pyrOctaves", 3 ) ),
+                    pyrScale( cfg.valueForName<float>( "pyrScale", 0.5f ) ),
+                    maxTranslationDistance( cfg.valueForName<float>( "maxTranslationDistance", 0.4f ) ),
+                    maxRotationDistance( Math::deg2Rad( cfg.valueForName<float>( "maxRotationDistance", 5.0f ) ) ),
+                    maxSSDSqr( Math::sqr( cfg.valueForName<float>( "maxSSD", 0.2f ) ) ),
+                    minPixelPercentage( cfg.valueForName<float>( "minPixelPercentage", 0.3f ) ),
+                    autoReferenceUpdate( cfg.valueForName<bool>( "autoReferenceUpdate", true ) ),
+                    propagateDepth( cfg.valueForName<bool>( "propagateDepth", true ) ),
+                    depthScale( cfg.valueForName<float>( "depthFactor", 1000.0f ) *
+                                cfg.valueForName<float>( "depthScale", 1.0f ) ),
+                    minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
+                    gradientThreshold( cfg.valueForName<float>( "gradientThreshold", 0.02f ) ),
+                    robustThreshold( cfg.valueForName<float>( "robustThreshold", 0.5f ) ),
+                    maxIters( cfg.valueForName<int>( "maxIters", 10 ) ),
+                    minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) )
                 {
-                    // TODO!
+                    // TODO: Params should become a parameterset
+                    // conversion between paramset and configfile!
                 }
 
                // pyramid
-               size_t octaves;
-               float scale;
+               size_t pyrOctaves;
+               float  pyrScale;
 
                // keyframe recreation thresholds
                float maxTranslationDistance;
@@ -83,6 +85,8 @@ namespace cvt {
                // propagate depth on keyframe update
                bool propagateDepth;
 
+               // how many pixels are one meter
+               // d_meters = d_pix / depthScale
                float depthScale;
                float minDepth;
                float gradientThreshold;
@@ -136,29 +140,30 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            // TODO: THE OPTIMIZER SHOULD GET A CONSTRUCTOR PARAMETER: Warp
-            typedef typename DerivedKF::WarpFunction WFunc;
+            typedef typename KFType::WarpType Warp;
+
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
-            typedef Optimizer<WFunc, LossFunction> OptimizerType;
+            typedef Optimizer<Warp, LossFunction> OptimizerType;
             //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+
+            Params                      _params;
 
             OptimizerType               _optimizer;
             Matrix3f                    _intrinsics;
 
             // current active keyframe
-            DerivedKF*                  _activeKeyframe;
-            size_t						_numCreated;
-            std::vector<DerivedKF>      _keyframes;
+            KFType*                     _activeKeyframe;
+            size_t                      _numCreated;
+            std::vector<KFType>         _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
-            Params                      _params;
 
-            typename DerivedKF::Result  _lastResult;
+            typename KFType::Result   _lastResult;
 
             bool needNewKeyframe() const;
-            void setKeyframeParams( DerivedKF& kf );
+            void setKeyframeParams( KFType& kf );
 
 
             std::vector<ScaleFeatures>  _gridForScale;
@@ -167,27 +172,14 @@ namespace cvt {
             void propagateDepth( Image& depth, const Matrix4f& pose ) const;
     };
 
-    template <class DerivedKF, class LossFunction>
-    inline RGBDVisualOdometry<DerivedKF, LossFunction>::RGBDVisualOdometry( const Matrix3f& K, const Params& p ) :
-        _intrinsics( K ),
+    template <class KFType, class LossFunction>
+    inline RGBDVisualOdometry<KFType, LossFunction>::RGBDVisualOdometry( const Matrix3f& K, const Params& p ) :
         _params( p ),
+        _intrinsics( K ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
-        _pyramid( p.octaves, p.scale )
+        _pyramid( p.pyrOctaves, p.pyrScale )
     {
-        //    VOParams params;
-        //    params.maxIters = cfg.valueForName( "maxIterations", 10 );
-        //    params.gradientThreshold = cfg.valueForName( "gradientThreshold", 0.2f );
-        //    params.depthScale = cfg.valueForName( "depthFactor", 5000.0f ) * cfg.valueForName( "depthScale", 1.0f );
-        //    params.minParameterUpdate = cfg.valueForName( "minDeltaP", 0.0f );
-        //    params.pyrScale = cfg.valueForName( "pyrScale", 0.5f );
-        //    params.octaves = cfg.valueForName( "pyrOctaves", 3 );
-        //    params.robustParam = cfg.valueForName( "robustParam", 0.3f );
-        //    app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-        //    app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
-        //    app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-        //    app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
-        //    app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
         _currentPose.setIdentity();
     }
 
@@ -215,8 +207,8 @@ namespace cvt {
         pose = _currentPose;
     }
 
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
+    template <class KFType, class LossFunction>
+    inline void RGBDVisualOdometry<KFType, LossFunction>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
@@ -225,7 +217,7 @@ namespace cvt {
         Image dCopy( depth );
         // for the moment, only one keyframe
         if( !_activeKeyframe ){
-            _keyframes.push_back( DerivedKF( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
+            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
             _activeKeyframe = &_keyframes[ 0 ];
             // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
             _pyramid.update( gray );
@@ -246,8 +238,8 @@ namespace cvt {
         keyframeAdded.notify( _currentPose );
     }
 
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::setKeyframeParams( DerivedKF& kf )
+    template <class KFType, class LossFunction>
+    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFType &kf )
     {
         // TODO: introduce keyframe parameters
         kf.setDepthMapScaleFactor( _params.depthScale );

@@ -12,13 +12,6 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/IntensityKeyframe.h>
-#include <cvt/vision/rgbdvo/IntensityDepthKeyframe.h>
-#include <cvt/vision/rgbdvo/MIKeyframe.h>
-#include <cvt/vision/rgbdvo/VOKeyframe.h>
-#include <cvt/vision/rgbdvo/AIIKeyframe.h>
-#include <cvt/vision/rgbdvo/RobustAIIKeyframe.h>
-#include <cvt/vision/rgbdvo/RobustKeyframe.h>
-#include <cvt/vision/rgbdvo/MultiscaleKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 #include <cvt/util/ConfigFile.h>
