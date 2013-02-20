@@ -1780,7 +1780,9 @@ namespace cvt {
                 break;
             default:
                 this->unmap( out );
-                throw CVTException( "IntegralImage not implemented for type: " + fId );
+                String msg;
+                msg.sprintf( "IntegralImage not implemented for type: %s", fId );
+                throw CVTException( msg.c_str() );
         }
         dst.unmap( out );
     }
@@ -1815,7 +1817,9 @@ namespace cvt {
 
             default:
                 this->unmap( out );
-                throw CVTException( "Squared integralImage not implemented for type: " + fId );
+                String msg;
+                msg.sprintf( "Squared integralImage not implemented for type: %s", fId );
+                throw CVTException( msg.c_str() );
         }
         dst.unmap( out );
     }
@@ -1828,7 +1832,10 @@ namespace cvt {
 		IFormatID fId = this->format().formatID;
 		switch( fId ) {
 			case IFORMAT_GRAY_UINT8: return pyrdown1U8( dst );
-			default: throw CVTException( "Pyrdown not implemented for type: " + fId );
+			default:
+				String msg;
+				msg.sprintf( "Pyrdown not implemented for type: %s", fId );
+				throw CVTException( msg.c_str() );
 		}
 	}
 

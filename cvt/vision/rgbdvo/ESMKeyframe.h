@@ -9,47 +9,20 @@
     PARTICULAR PURPOSE.
 */
 
-#ifndef CVT_ICKEYFRAME_H
-#define CVT_ICKEYFRAME_H
+#ifndef CVT_ESMKEYFRAME_H
+#define CVT_ESMKEYFRAME_H
 
 #include <cvt/math/Matrix.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/EigenBridge.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
 
 namespace cvt
 {
-
-    static void saveGradientImages( const Image& gxI, const Image& gyI, float scale )
-    {
-        String file;
-        file.sprintf( "gradx_%f.png", scale );
-        gxI.save( file );
-        file.sprintf( "grady_%f.png", scale );
-        gyI.save( file );
-    }
-
-    template <class T>
-    static void dumpDataInfo( const T& data, float scale )
-    {
-        cvt::String hessString;
-        float normalizer = data.jacobians.size();
-        std::cout << "Octave: " << scale << std::endl;
-        hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
-                            data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
-                            data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
-        std::cout << hessString << std::endl;
-        hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
-                            data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
-                            data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
-        std::cout << hessString << std::endl;
-    }
-
     template <class WarpFunc>
-    class ICKeyframe : public RGBDKeyframe<WarpFunc> {
+    class ESMKeyframe : public RGBDKeyframe<WarpFunc> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef RGBDKeyframe<WarpFunc>              Base;
@@ -60,29 +33,41 @@ namespace cvt
             typedef typename Base::AlignmentData        AlignmentData;
             typedef typename Base::GradientType         GradientType;
 
-            ICKeyframe( const Matrix3f &K, size_t octaves, float scale );
-            ~ICKeyframe();
+            ESMKeyframe( const Matrix3f &K, size_t octaves, float scale );
+            ~ESMKeyframe();
 
-            void recompute( std::vector<float>& residuals,
+            void updateOfflineDataForScale( AlignmentData& data,
+                                            const Image& gray,
+                                            const Image& depth,
+                                            float scale );
+			
+			void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
+            
+			void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
                             const WarpFunc& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
+		private:
+			ImagePyramid	_onlineGradientsX;
+			ImagePyramid	_onlineGradientsY;
     };
 
     template <class WarpFunc>
-    inline ICKeyframe<WarpFunc>::ICKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-        RGBDKeyframe<WarpFunc>( K, octaves, scale )
+    inline ESMKeyframe<WarpFunc>::ESMKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+        RGBDKeyframe<WarpFunc>( K, octaves, scale ),
+		_onlineGradientsX( octaves, scale ),
+		_onlineGradientsY( octaves, scale )
     {
     }
 
     template <class WarpFunc>
-    inline ICKeyframe<WarpFunc>::~ICKeyframe()
+    inline ESMKeyframe<WarpFunc>::~ESMKeyframe()
     {
     }
 
     template <class WarpFunc>
-    inline void ICKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
+    inline void ESMKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
                                                  JacobianVec& jacobians,
                                                  const WarpFunc& warp,
                                                  const IMapScoped<const float>& gray,
@@ -113,7 +98,9 @@ namespace cvt
         // interpolate the pixel values
         simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, gray.ptr(), gray.stride(), width, height, -10.0f, n );
 
-        // compute the residuals
+		// interpolate the gradients for ESM
+        
+		// compute the residuals
         warp.computeResiduals( &residuals[ 0 ], &data.pixels()[ 0 ], &interpolatedPixels[ 0 ], n );
 
         // sort out bad pixels (out of image)
@@ -129,7 +116,14 @@ namespace cvt
         }
         residuals.erase( residuals.begin() + savePos, residuals.end() );
     }
+
+	template <class WarpFunc>
+    inline void ESMKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& depth )
+	{
+		pyrf.convolve( _onlineGradientsX, this->_kx );
+		pyrf.convolve( _onlineGradientsY, this->_ky );
+	}
 }
 
 
-#endif // ICKEYFRAME_H
+#endif // ESMKEYFRAME_H

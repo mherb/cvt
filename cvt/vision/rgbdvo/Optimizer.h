@@ -26,16 +26,35 @@ namespace cvt {
     class Optimizer
     {
         public:
-            typedef typename RGBDKeyframe<WarpFunc>::Result   ResultType;
+            struct Result {
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                Result() :
+                    success( false ),
+                    numPixels( 0 ),
+                    pixelPercentage( 0.0f ),
+                    costs( 0.0f )
+                {
+                }
+
+                bool        success;
+                size_t      iterations;
+                size_t      numPixels;
+                float       pixelPercentage; /* between 0 and 1 */
+                float       costs;
+
+                WarpFunc    warp;
+            };
 
             Optimizer();
             virtual ~Optimizer(){}
 
-            void setMaxIterations( size_t iter ) { _maxIter = iter; }
-            void setMinUpdate( float v )         { _minUpdate = v; }
-            void setRobustThreshold( float v )   { _robustThreshold = v; }
+            void setMaxIterations( size_t iter )    { _maxIter = iter; }
+            void setMinUpdate( float v )            { _minUpdate = v; }
+            void setRobustThreshold( float v )      { _robustThreshold = v; }
+            void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
 
-            void optimize( ResultType& result,
+            // scale-space optimization
+            void optimize( Result& result,
                            const Matrix4f& posePrediction,
                            RGBDKeyframe<WarpFunc>& reference,
                            const ImagePyramid& grayPyramid,
@@ -46,44 +65,38 @@ namespace cvt {
             typedef typename WarpFunc::JacobianType     JacobianType;
             typedef typename WarpFunc::HessianType      HessianType;
             typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef typename RGBDKeyframe<WarpFunc>::AlignDataType AlignDataType;
+            typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
             size_t  _maxIter;
             float   _minUpdate;
             float   _robustThreshold;
+            float   _minPixelPercentage;
 
-            virtual void optimizeSingleScale( ResultType& result,
-                                              const AlignDataType& data,
+            virtual void optimizeSingleScale( Result& result,
+                                              RGBDKeyframe<WarpFunc>& reference,
                                               const Image& gray,
-                                              const Image& gradx,
-                                              const Image& grady,
-                                              const Image& depthImage ) const;
+                                              const Image& depthImage,
+                                              size_t octave ) const;
 
-            float computeMedian( const float* residuals, const std::vector<size_t>& indices ) const
+            float computeMedian( const float* residuals, size_t n ) const
             {
                 ApproxMedian medianSelector( 0.0f, 1.0f, 0.02f );
 
-                std::vector<size_t>::const_iterator it = indices.begin();
-                const std::vector<size_t>::const_iterator end = indices.end();
-                while( it != end ){
-                    medianSelector.add( Math::abs( residuals[ *it ] ) );
-                    ++it;
+                for( size_t i = 0; i < n; ++i ){
+                    medianSelector.add( Math::abs( residuals[ i ] ) );
                 }
 
-                return medianSelector.approximateNth( indices.size() >> 1 );
+                return medianSelector.approximateNth( n >> 1 );
             }
 
-            float computeMAD( const float* residuals, const std::vector<size_t>& indices, float median ) const
+            float computeMAD( const float* residuals, size_t n, float median ) const
             {
                 ApproxMedian medianSelector( 0.0f, 0.5f, 0.02f );
 
-                std::vector<size_t>::const_iterator it = indices.begin();
-                const std::vector<size_t>::const_iterator end = indices.end();
-                while( it != end ){
-                    medianSelector.add( Math::abs( residuals[ *it ] - median ) );
-                    ++it;
+                for( size_t i = 0; i < n; ++i ){
+                    medianSelector.add( Math::abs( residuals[ i ] - median ) );
                 }
 
-                return medianSelector.approximateNth( indices.size() >> 1 );
+                return medianSelector.approximateNth( n >> 1 );
             }
 
             void validIndices( std::vector<size_t>& indices, const float* vals, size_t num, float minVal ) const
@@ -98,30 +111,7 @@ namespace cvt {
                 }
             }
 
-            bool testIndices( const std::vector<size_t>& foundValid, const std::vector<Vector2f>& pts, size_t width, size_t height ) const
-            {
-                std::vector<size_t>::const_iterator it = foundValid.begin();
-                const std::vector<size_t>::const_iterator itEnd = foundValid.end();
-
-                while( it != itEnd ){
-
-                    if( *it >= pts.size() ){
-                        std::cerr << "Index out of bounds: pts[ " << *it << " ], " << " pts size:" <<  pts.size() << std::endl;
-                        return false;
-                    }
-
-                    const Vector2f& p = pts[ *it ];
-                    if( p.x < 0 || p.x >= width ||
-                        p.y < 0 || p.y >= height ){
-                        std::cerr << "Point out of image: " << p << " [w,h]: [" << width << ", " << height << "]" << std::endl;
-                        return false;
-                    }
-
-                    ++it;
-                }
-
-                return true;
-            }
+            bool checkResult( const Result& res ) const;
 
     };
 
@@ -129,57 +119,22 @@ namespace cvt {
     inline Optimizer<WarpFunc, LossFunc>::Optimizer() :
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
-        _robustThreshold( 0.1f )
+        _robustThreshold( 0.1f ),
+        _minPixelPercentage( 0.8f )
     {
     }
 
     template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
-                                                                    //const Matrix4f& posePrediction,
-                                                                    const AlignDataType& data,
+    inline void Optimizer<WarpFunc, LossFunc>::optimizeSingleScale( Result& result,
+                                                                    RGBDKeyframe<WarpFunc>& reference,
                                                                     const Image& gray,
-                                                                    const Image& gradx,
-                                                                    const Image& grady,
-                                                                    const Image& /*depthImage*/ ) const
+                                                                    const Image& /*depthImage*/,
+                                                                    size_t octave ) const
     {
-        SIMD* simd = SIMD::instance();
-
-        const size_t width = gray.width();
-        const size_t height = gray.height();
-        const size_t num = data.points3d.size();
-
-        Matrix4f K4( data.intrinsics );
-
-        // 3D points in the reference frame (for projection)
-        const Vector3f* p3dPtr = &data.points3d[ 0 ];
-
-        // gradient of the reference frame (for ESM)
-        const Vector2f* refGrads = &data.gradients[ 0 ];
-
-        const float* referencePixVals = &data.pixelValues[ 0 ];
-        //const JacobianType* referenceJ = &data.jacobians[ 0 ];
-
-        Matrix4f projMat;
-        std::vector<Vector2f> warpedPts;
-        std::vector<float> interpolatedPixels;
-        std::vector<float> interpolatedGx;
-        std::vector<float> interpolatedGy;
-        std::vector<float> residuals;
-        std::vector<size_t> indices;
-        warpedPts.resize( num );
-        interpolatedPixels.resize( num );
-        interpolatedGx.resize( num );
-        interpolatedGy.resize( num );
-        residuals.resize( num );
-
         JacobianType deltaSum;
         HessianType  hessian;
-        std::vector<JacobianType> esmJacobian;
-        esmJacobian.resize( num );
 
         IMapScoped<const float> grayMap( gray );
-        IMapScoped<const float> gxMap( gradx );
-        IMapScoped<const float> gyMap( grady );
 
         result.iterations = 0;
         result.numPixels = 0;
@@ -188,61 +143,29 @@ namespace cvt {
         LossFunc weighter( _robustThreshold );
         SystemBuilder<LossFunc> builder( weighter );
 
+
+        std::vector<float> residuals;
+        typename RGBDKeyframe<WarpFunc>::JacobianVec jacobians;
+
         while( result.iterations < _maxIter ){
-            // build the updated projection Matrix
-            projMat = K4 * result.warp.pose();
+            residuals.clear();
+            jacobians.clear();
 
-            // project the points:
-            simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
+            // re-evaluate the cost function
+            reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
 
-            // interpolate the pixel values
-            simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -10.0f, num );
-            result.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
-
-            // compute the valid indices: (those that are within the image)
-            validIndices( indices, &interpolatedPixels[ 0 ], num, 0.0f );
-
-            float median = computeMedian( &residuals[ 0 ], indices );
-            float mad = computeMAD( &residuals[ 0 ], indices, median );
-
+            float median = computeMedian( &residuals[ 0 ], residuals.size() );
+            float mad = computeMAD( &residuals[ 0 ], residuals.size(), median );
+            result.numPixels = residuals.size();
 
             // this is an estimate for the standard deviation:
             weighter.setScale( 1.4826f * mad );
 
-            // interpolate the warped gradient for ESM
-            simd->warpBilinear1f( &interpolatedGx[ 0 ], &warpedPts[ 0 ].x, gxMap.ptr(), gxMap.stride(), width, height, -20.0f, num );
-            simd->warpBilinear1f( &interpolatedGy[ 0 ], &warpedPts[ 0 ].x, gyMap.ptr(), gyMap.stride(), width, height, -20.0f, num );
-
-            Eigen::Vector2f gVec;
-            std::vector<size_t>::const_iterator idxIter = indices.begin();
-            const std::vector<size_t>::const_iterator idxIterEnd = indices.end();
-
-            while( idxIter != idxIterEnd ){
-                gVec[ 0 ] = refGrads[ *idxIter ].x;
-                gVec[ 1 ] = refGrads[ *idxIter ].y;
-
-                if( interpolatedGx[ *idxIter ] != -20.0f ){
-                    gVec[ 0 ] += interpolatedGx[ *idxIter ];
-                    gVec[ 0 ] *= 0.5f;
-                }
-                if( interpolatedGy[ *idxIter ] != -20.0f ){
-                    gVec[ 1 ] += interpolatedGy[ *idxIter ];
-                    gVec[ 1 ] *= 0.5f;
-                }
-                esmJacobian[ *idxIter ] = gVec.transpose() * data.screenJacobians[ *idxIter ];
-                ++idxIter;
-            }
-
-            /* a hack: the builder does not touch the hessian if its a non robust lossfunc!
-             * this is acutally a problem, as this way ESM cannot be used non-robustly
-             */
-            hessian = data.hessian;
-            result.numPixels = builder.build( hessian,
+            result.costs = builder.build( hessian,
                                               deltaSum,
-                                              &esmJacobian[ 0 ],
+                                              &jacobians[ 0 ],
                                               &residuals[ 0 ],
-                                              indices,
-                                              result.costs );
+                                              residuals.size() );
 
             if( !result.numPixels /* no pixels projected */ ||
                 result.costs / result.numPixels < 0.005f /* low cost threshold*/ ){
@@ -258,11 +181,11 @@ namespace cvt {
             result.iterations++;
         }
 
-        result.pixelPercentage = ( float )result.numPixels / ( float )num;
+        result.pixelPercentage = ( float )result.numPixels / ( float )reference.dataSize( octave );
     }
 
     template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimize( ResultType& result,
+    inline void Optimizer<WarpFunc, LossFunc>::optimize( Result& result,
                                                          const Matrix4f& posePrediction,
                                                          RGBDKeyframe<WarpFunc> &reference,
                                                          const ImagePyramid& grayPyramid,
@@ -277,27 +200,43 @@ namespace cvt {
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
-        // this is for computing the ESM jacobians
-        ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
-        ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
-        grayPyramid.convolve( gradX, reference.kernelDx() );
-        grayPyramid.convolve( gradY, reference.kernelDy());
+//      this is for computing the ESM jacobians
+//        ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
+//        ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
+//        grayPyramid.convolve( gradX, reference.kernelDx() );
+//        grayPyramid.convolve( gradY, reference.kernelDy());
 
-        ResultType saveResult = result;
+        // at least on one scale it should work
+        bool resultOk = false;
+        Result saveResult = result;
+
+        reference.updateOnlineData( grayPyramid, dephtImage );
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            const AlignDataType& data = reference.dataForScale( o );
+            this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
-            this->optimizeSingleScale( result, data, grayPyramid[ o ], gradX[ o ], gradY[ o ], depthImage );
-
-            // TODO: ensure the result on this scale is good enough (pixel percentage & error )
-            saveResult = result;
+            if( checkResult( result ) ){
+                saveResult = result;
+                resultOk = true;
+            }
         }
 
         result = saveResult;
+
+        // convert relative result to absolute pose: TODO: maybe do this outside
         tmp4 = result.warp.pose();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
-        //std::cout << "Current Pose: \n" << tmp4 << std::endl;
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline bool Optimizer<WarpFunc, LossFunc>::checkResult( const Result& res ) const
+    {
+        // too few pixels projected into image
+        if( res.pixelPercentage < _minPixelPercentage ){
+            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
+            return false;
+        }
+        return true;
     }
 
 }

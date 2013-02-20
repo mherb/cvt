@@ -27,14 +27,14 @@ void writePoseToFile( std::ofstream& file, const Matrix4f& pose, double stamp )
 }
 
 template <class KFType, class LossFunc>
-void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+void runVOWithKFType( const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
     std::cout << "Press enter to start ...";
     std::flush( std::cout );
     getchar();
 
     RGBDParser parser( folder, 0.05f );
-    RGBDVisualOdometry<KFType, LossFunc> vo( K, params );
+    RGBDVisualOdometry<KFType, LossFunc> vo( K, cfg );
     vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
     vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
     vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
@@ -167,8 +167,10 @@ int main( int argc, char* argv[] )
         runBatch( K, folder, cfg );
     } else {
         RGBDVOApp app( folder, K, cfg );
+        cfg.save( "rgbdvo.cfg" );
         Application::run();
     }
+
 
     return 0;
 }

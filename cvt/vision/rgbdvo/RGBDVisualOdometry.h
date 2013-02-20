@@ -29,7 +29,6 @@ namespace cvt {
     template <class KFType, class LossFunction>
     class RGBDVisualOdometry
     {
-
         public:
             struct Params {
                 Params() :
@@ -140,11 +139,12 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            typedef typename KFType::WarpType Warp;
-
+            typedef typename KFType::WarpType    Warp;
+            typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
             //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
             //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
             typedef Optimizer<Warp, LossFunction> OptimizerType;
+            typedef typename OptimizerType::Result  Result;
             //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
 
             Params                      _params;
@@ -160,14 +160,14 @@ namespace cvt {
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
 
-            typename KFType::Result   _lastResult;
+            Result                      _lastResult;
 
             bool needNewKeyframe() const;
             void setKeyframeParams( KFType& kf );
 
 
-            std::vector<ScaleFeatures>  _gridForScale;
-            void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
+            //std::vector<ScaleFeatures>  _gridForScale;
+            //void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
 
             void propagateDepth( Image& depth, const Matrix4f& pose ) const;
     };
@@ -249,6 +249,7 @@ namespace cvt {
         _optimizer.setRobustThreshold( _params.robustThreshold );
         _optimizer.setMaxIterations( _params.maxIters );
         _optimizer.setMinUpdate( _params.minParameterUpdate );
+        _optimizer.setMinPixelPercentage( _params.minPixelPercentage );
     }
 
     template <class DerivedKF, class LossFunction>
@@ -298,7 +299,7 @@ namespace cvt {
     {
         // project the points of the current keyframe onto the depth image
         if( _activeKeyframe ){
-            const typename DerivedKF::AlignDataType& d = _activeKeyframe->dataForScale( 0 );
+            const AlignDataType& d = _activeKeyframe->dataForScale( 0 );
 
             IMapScoped<float> dMap( depth );
 
@@ -309,9 +310,9 @@ namespace cvt {
             Matrix4f relativePose = pose.inverse() * _activeKeyframe->pose();
 
             // tranform points to the other frame
-            std::vector<Vector3f> transformedPts( d.points3d.size() );
+            std::vector<Vector3f> transformedPts( d.size() );
             SIMD* simd = SIMD::instance();
-            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points3d[ 0 ], transformedPts.size() );
+            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points()[ 0 ], transformedPts.size() );
 
             for( size_t i = 0; i < transformedPts.size(); i++ ){
                 Vector2f uv = _intrinsics * transformedPts[ i ];
@@ -330,32 +331,6 @@ namespace cvt {
                 }
             }
         }
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny )
-    {
-        float stepx = ( float )width / ( nx + 2 );
-        float stepy = ( float )height / ( ny + 2 );
-
-        features.reserve( nx * ny );
-        Vector2f p;
-        p.y = stepy;
-
-        for( size_t y = 0; y < ny; y++ ){
-            p.x = stepx;
-            for( size_t x = 0; x < nx; x++ ){
-                features.push_back( p );
-                p.x += stepx;
-            }
-            p.y += stepy;
-        }
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addFeaturesToKeyframe( const std::vector<Vector3f>& pts )
-    {
-        _activeKeyframe->addPoints( pts );
     }
 
 }

@@ -34,25 +34,22 @@ namespace cvt
                 void onTimeout();
 
             private:
+                typedef StandardWarp                            WarpType;
+                //typedef NoWeighting<float>                    LossFunc;
+                typedef Huber<float>                            LossFunc;
+                //typedef Tukey<float>                          LossFunc;
+                typedef ICKeyframe<WarpType>                    KFType;
+                typedef RGBDVisualOdometry<KFType, LossFunc>    VOType;
+
 #ifdef USE_CAM
                 OpenNICamera						_cam;
 #else
                 RGBDParser                          _parser;
 #endif
 
-                typedef StandardWarp                WarpType;
 
-                //typedef NoWeighting<float>          LossFunc;
-                //typedef Huber<float>                LossFunc;
-                typedef Tukey<float>                LossFunc;
 
-                typedef ICKeyframe<WarpType>     KFType;
-                typedef RGBDVisualOdometry<KFType, LossFunc> VOType;
-
-                VOType                                  _vo;
-                //DirectFeatureVO                       _vo;
-
-               // FeatureAugmentation         _featureAugmentation;
+                VOType                      _vo;
 
                 Vector3f                    _avgTransError;
                 size_t                      _validPoseCounter;

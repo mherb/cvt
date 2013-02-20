@@ -28,64 +28,29 @@ namespace cvt {
             }
 
             template <class HessType, class JType>
-            size_t build( HessType& H,
+            float build( HessType& H,
                           JType& b,
                           const JType* jacobians,
                           const float* residuals,
-                          const std::vector<size_t>& indices,
-                          float & ssd ) const
+                          size_t n ) const
             {
                 // standard: robust lossfunc
-                ssd = 0;
-                size_t numPixels = 0;
                 JType jtmp;
                 b.setZero();
                 H.setZero();
 
-                for( size_t i = 0; i < indices.size(); i++ ){
+                float ssd = 0.0f;
+                for( size_t i = 0; i < n; ++i ){
                     // compute the delta
-                    size_t idx = indices[ i ];
-                    ssd += Math::sqr( residuals[ idx ] );
-                    numPixels++;
+                    ssd += Math::sqr( residuals[ i ] );
 
-                    float weight = _lossFunc.weight( residuals[ idx ] );
-                    jtmp = weight * jacobians[ idx ];
-
-                    /*
-                    if( hasNaN( jtmp ) ){
-                        std::cout << "jtmp has nan value(s)" << std::endl;
-                        std::cout << "idx: " << idx << std::endl;
-                        std::cout << "i: " << i << std::endl;
-                        std::cout << "weight: " << weight << std::endl;
-                        std::cout << "residual: " << residuals[idx] << std::endl;
-                        getchar();
-                    }
-                    if( hasNaN( jacobians[ idx ] ) ){
-                        std::cout << "jacobian has nan value(s)" << std::endl;
-                        std::cout << jacobians[ idx ] << std::endl;
-                        getchar();
-                    }*/
-
-                    H.noalias() += jtmp.transpose() * jacobians[ idx ];
-                    b.noalias() += jtmp * residuals[ idx ];
-
-                    /*
-                    if( hasNaN( H ) ){
-                        std::cout << "hessian has nan value(s)" << std::endl;
-                        std::cout << "Before: \n" << bkp << std::endl;
-                        std::cout << "Now: \n" << H << std::endl;
-                        std::cout << "jac: \n" << jacobians[ idx ] << std::endl;
-                        std::cout << "jtmp: \n" << jtmp << std::endl;
-                        std::cout << "idx: " << idx << std::endl;
-                        std::cout << "i: " << i << std::endl;
-                        std::cout << "numindices: " << indices.size() << std::endl;
-                        std::cout << "weight: " << weight << std::endl;
-                        std::cout << "residual: " << residuals[idx] << std::endl;
-                        getchar();
-                    }*/
+                    float weight = _lossFunc.weight( residuals[ i ] );
+                    jtmp = weight * jacobians[ i ];
+                    H.noalias() += jtmp.transpose() * jacobians[ i ];
+                    b.noalias() += jtmp * residuals[ i ];
 
                 }
-                return numPixels;
+                return ssd;
             }
 
         private:
@@ -95,23 +60,25 @@ namespace cvt {
     // specialized implementation for non robust lossfunc
     template <>
     template <class HessType, class JType>
-    inline size_t SystemBuilder<NoWeighting<float> >::build( HessType&, JType& b,
+    inline float SystemBuilder<NoWeighting<float> >::build( HessType& H, JType& b,
                                                              const JType* jacobians,
                                                              const float* residuals,
-                                                             const std::vector<size_t>& indices,
-                                                             float & ssd ) const
+                                                             size_t n ) const
     {
-        ssd = 0;
-        size_t numPixels = 0;
+        // standard: robust lossfunc
+        float ssd = 0.0f;
         b.setZero();
-        for( size_t i = 0; i < indices.size(); i++ ){
+        H.setZero();
+        for( size_t i = 0; i < n; ++i ){
             // compute the delta
-            ssd += Math::sqr( residuals[ indices[ i ] ] );
-            numPixels++;
-            b.noalias() += jacobians[ indices[ i ] ] * residuals[ indices[ i ] ];
+            ssd += Math::sqr( residuals[ i ] );
+
+            const JType& jtmp = jacobians[ i ];
+            H.noalias() += jtmp.transpose() * jtmp;
+            b.noalias() += jtmp * residuals[ i ];
 
         }
-        return numPixels;
+        return ssd;
     }
 
 }

@@ -69,6 +69,7 @@ namespace cvt
         _parser.data().depth.convert( depth, IFormat::GRAY_FLOAT );
 
         initPose = _parser.data().pose<float>();
+        _poseView.setOffsetPose( initPose );
 #endif
         // preprocess the gray image
         Image preprocessed;
@@ -252,7 +253,7 @@ namespace cvt
 
                 float currError = eps.length();
                 float errorChange = currError - _lastTError;
-                if( errorChange > 0.01f ){
+                if( errorChange > 0.04 ){
                     // more than x m change in error
                     std::fixed( std::cout );
                     std::cout << "Stamp: " << d.stamp << ", dataIdx: " << _parser.iter() << " ERROR CHANGE: " << errorChange << std::endl;

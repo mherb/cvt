@@ -24,94 +24,79 @@
 
 namespace cvt
 {
-    struct ScaleFeatures {
-        std::vector<Vector2f>   positions;
-        std::vector<size_t>     nonDepthFeatures;
-    };
 
     // TODO: ALignmentData should be subclassed for ESM / IC / Fwd
-    template <size_t dim>
-    class AlignmentData {
-        public:
-            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef Eigen::Matrix<float, 1, dim>    JacobianType;
-            typedef Eigen::Matrix<float, 2, dim>    ScreenJacobianType;
-            typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
-            typedef Eigen::Matrix<float, dim, dim>  HessianType;
 
-            std::vector<Vector3f>       points3d;
-            std::vector<float>          pixelValues;
-            std::vector<JacobianType>   jacobians;
-
-            /* reference screen jacobians of the warp*/
-            ScreenJacVec                screenJacobians;
-            std::vector<Vector2f>       gradients;
-
-            HessianType                 hessian;
-            HessianType                 inverseHessian;
-            Matrix3f                    intrinsics;
-
-            Image                       gray;
-            Image                       gradX;
-            Image                       gradY;
-
-            void reserve( size_t size )
-            {
-                points3d.reserve( size );
-                pixelValues.reserve( size );
-                jacobians.reserve( size );
-
-                screenJacobians.reserve( size );
-                gradients.reserve( size );
-            }
-
-            void clear()
-            {
-                points3d.clear();
-                pixelValues.clear();
-                jacobians.clear();
-
-                screenJacobians.clear();
-                gradients.clear();
-
-                hessian.setZero();
-                inverseHessian.setZero();
-            }
-    };
 
     template <class Warp>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            struct Result {
-                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-                Result() :
-                    success( false ),
-                    numPixels( 0 ),
-                    pixelPercentage( 0.0f ),
-                    costs( 0.0f )
-                {
-                }
-
-                bool                success;
-                size_t              iterations;
-                size_t              numPixels;
-                float               pixelPercentage; /* between 0 and 1 */
-                float               costs;
-
-                Warp                warp;
-            };
-
             typedef Warp                            WarpType;
             typedef typename Warp::JacobianType     JacobianType;
+            typedef typename Warp::ScreenJacType    ScreenJacobianType;
             typedef typename Warp::HessianType      HessianType;
-            typedef AlignmentData<Warp::NParams>    AlignDataType;
+            typedef Eigen::Matrix<float, 1, 2>      GradientType;
+            typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
+            typedef std::vector<JacobianType, Eigen::aligned_allocator<JacobianType> > JacobianVec;
+
+            class AlignmentData {
+                public:
+                    Image                       gray;
+                    Image                       gradX;
+                    Image                       gradY;
+
+                    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                    void reserve( size_t size )
+                    {
+                        _points3d.reserve( size );
+                        _pixelValues.reserve( size );
+                        _jacobians.reserve( size );
+                        _screenJacobians.reserve( size );
+                    }
+                    void clear()
+                    {
+                        _points3d.clear();
+                        _pixelValues.clear();
+                        _jacobians.clear();
+                        _screenJacobians.clear();
+                    }
+
+                    void add( const Vector3f& point,
+                              const ScreenJacobianType& jac,
+                              const GradientType& iGrad,
+                              float val )
+                    {
+                        _points3d.push_back( point );
+                        _screenJacobians.push_back( jac );
+                        _jacobians.push_back( iGrad * jac );
+                        _pixelValues.push_back( val );
+                    }
+
+                    size_t size() const { return _points3d.size(); }
+
+                    const Matrix3f& intrinsics() const { return _intrinsics; }
+                    void setIntrinsics( const Matrix3f& intr ){ _intrinsics = intr; }
+
+                    const std::vector<Vector3f>&     points()    const { return _points3d; }
+                    const std::vector<float>&        pixels()    const { return _pixelValues; }
+
+                    // these are the offline jacobians
+                    const JacobianVec& jacobians() const { return _jacobians; }
+
+                protected:
+                    std::vector<Vector3f>       _points3d;
+                    std::vector<float>          _pixelValues;
+                    JacobianVec                 _jacobians;
+                    ScreenJacVec                _screenJacobians;
+                    Matrix3f                    _intrinsics;
+            };
 
             RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
 
             virtual ~RGBDKeyframe();
 
-            const AlignDataType&    dataForScale( size_t o )       const { return _dataForScale[ o ]; }
+            const AlignmentData&    dataForScale( size_t o )       const { return _dataForScale[ o ]; }
             const Matrix4f&         pose()                         const { return _pose; }
 
             void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
@@ -122,20 +107,9 @@ namespace cvt
             void setDepthMapScaleFactor( float val )                { _depthScaling = ( float )( 0xFFFF ) / val; }
             void setMinimumDepth( float depthTresh )                { _minDepth = depthTresh; }
             void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
-            void setTranslationJumpThreshold( float maxTDiff )      { _translationJumpThreshold = maxTDiff; }
-            void setMinPixelPercentage( float minPixelPercentage )  { _minPixelPercentage = minPixelPercentage; }
             void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
 
             void addPoints( const std::vector<Vector3f>& pts );
-
-            virtual void updateOfflineDataForScale( AlignDataType& data,
-                                                    const Image& gray,
-                                                    const Image& depth,
-                                                    float scale ) = 0;
-
-            virtual void addPointsOnScale( AlignDataType& data,
-                                           const std::vector<Vector3f>& pts,
-                                           const Matrix4f& referenceToWorld ) = 0;
 
             /**
              * @brief kernelDx - retrieve the kernel used to compute x derivatives
@@ -149,8 +123,24 @@ namespace cvt
              */
             const IKernel& kernelDy() const { return _ky; }
 
+            virtual void updateOfflineDataForScale( AlignmentData& data,
+                                                    const Image& gray,
+                                                    const Image& depth,
+                                                    float scale );
+
+            size_t dataSize( size_t octave ) const { return _dataForScale[ octave ].size(); }
+
+            virtual void updateOnlineData( const ImagePyramid& /*pyrf*/, const Image& /*depth*/ ){}
+
+            virtual void recompute( std::vector<float>& residuals,
+                                    JacobianVec& jacobians,
+                                    const Warp& warp,
+                                    const IMapScoped<const float>& gray,
+                                    size_t octave ) = 0;
+
+
         protected:
-            typedef std::vector<AlignDataType, Eigen::aligned_allocator<AlignDataType> > AlignmentDataVector;
+            typedef std::vector<AlignmentData, Eigen::aligned_allocator<AlignmentData> > AlignmentDataVector;
             Matrix4f            _pose;
             AlignmentDataVector _dataForScale;
             Image               _depth;
@@ -162,25 +152,14 @@ namespace cvt
             float               _depthScaling;
             float               _minDepth;
             float               _gradientThreshold;
-            float               _translationJumpThreshold;
-            float               _minPixelPercentage;
             float               _pixelPercentageToSelect;
 
             void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
-            bool checkResult( const Result& res, const Matrix4f& lastPose ) const;
-
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
-            void  selectInformation( AlignDataType& data, size_t n );
-            void  updateHessian( AlignDataType& data );
-
-//            /**
-//             * @brief createDataForScale - Factory for the concrete AlignmentData for this reference
-//             * @return
-//             */
-//            AlignDataType*  createDataForScale() = 0;
+            void  selectInformation( AlignmentData& data, size_t n );
     };
 
     template <class Warp>
@@ -194,7 +173,6 @@ namespace cvt
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _gradientThreshold( 0.0f ),
-        _minPixelPercentage( 0.2f ),
         _pixelPercentageToSelect( 0.3f )
     {
         //float s = -0.5f;
@@ -238,10 +216,12 @@ namespace cvt
     template <class WarpFunc>
     inline void RGBDKeyframe<WarpFunc>::updateIntrinsics( const Matrix3f& K, float scale )
     {
-        _dataForScale[ 0 ].intrinsics = K;
+        _dataForScale[ 0 ].setIntrinsics( K );
+        Matrix3f Ks = K;
         for( size_t o = 1; o < _dataForScale.size(); ++o ){
-            _dataForScale[ o ].intrinsics = _dataForScale[ o - 1 ].intrinsics * scale;
-            _dataForScale[ o ].intrinsics[ 2 ][ 2 ] = 1.0f;
+            Ks *= scale;
+            Ks[ 2 ][ 2 ] = 1.0f;
+            _dataForScale[ o ].setIntrinsics( Ks );
         }
     }
 
@@ -258,25 +238,6 @@ namespace cvt
         // normal
         gray.convolve( gx, _kx );
         gray.convolve( gy, _ky );
-    }
-
-    template <class WarpFunc>
-    inline bool RGBDKeyframe<WarpFunc>::checkResult( const Result& res, const Matrix4f& lastPose ) const
-    {
-        // to few pixels projected into image
-        if( res.pixelPercentage < _minPixelPercentage ){
-            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
-            return false;
-        }
-
-        // jump
-        Matrix4f mat = res.warp.poseMatrix();
-//        if( ( mat.col( 3 ) - lastPose.col( 3 ) ).length() > _translationJumpThreshold ){
-//            //std::cout << "Delta T: " << mat.col( 3 ) << " : " << lastPose.col( 3 ) << std::endl;
-//            return false;
-//        }
-
-        return true;
     }
 
     template <class WarpFunc>
@@ -338,7 +299,7 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::selectInformation( AlignDataType &data, size_t n )
+    inline void RGBDKeyframe<WarpFunc>::selectInformation( AlignmentData &data, size_t n )
     {
         InformationSelection<JacobianType> selector( n );
         const std::set<size_t>& ids = selector.selectInformation( &data.jacobians[ 0 ], data.jacobians.size() );
@@ -353,7 +314,6 @@ namespace cvt
             data.jacobians[ saveIdx ] = data.jacobians[ *it ];
             data.points3d[ saveIdx ] = data.points3d[ *it ];
             data.pixelValues[ saveIdx ] = data.pixelValues[ *it ];
-            data.hessian.noalias() += data.jacobians[ saveIdx ].transpose() * data.jacobians[ saveIdx ];
 
             saveIdx++;
             it++;
@@ -366,16 +326,78 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateHessian( AlignDataType& data )
+    inline void RGBDKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData& data,
+                                                                   const Image& gray,
+                                                                   const Image& depth,
+                                                                   float scale )
     {
-        typename std::vector<JacobianType>::const_iterator it = data.jacobians.begin();
-        typename std::vector<JacobianType>::const_iterator end = data.jacobians.end();
-        data.hessian.setZero();
-        while( it != end ){
-            data.hessian.noalias() += it->transpose() * *it;
-            it++;
+        IMapScoped<const float> depthMap( depth );
+        const float* d = depthMap.ptr();
+        size_t depthStride = depthMap.stride() / sizeof( float );
+
+        Vector2f currP;
+        Vector3f p3d;
+        GradientType g;
+        JacobianType j;
+        ScreenJacobianType sj;
+
+        // compute the image gradients
+        this->computeImageGradients( data.gradX, data.gradY, gray );
+        data.gray = gray;
+
+        data.clear();
+        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+        data.reserve( 0.4f * pixelsOnOctave );
+
+        // TODO: replace this by a simd function!
+        // temp vals
+        std::vector<float> tmpx( gray.width() );
+        std::vector<float> tmpy( gray.height() );
+
+        const Matrix3f& intr = data.intrinsics();
+        initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+        initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+        IMapScoped<const float> gxMap( data.gradX );
+        IMapScoped<const float> gyMap( data.gradY );
+        IMapScoped<const float> grayMap( data.gray );
+
+        for( size_t y = 0; y < gray.height() - 1; y++ ){
+            const float* gx = gxMap.ptr();
+            const float* gy = gyMap.ptr();
+            const float* value = grayMap.ptr();
+
+            // scale the point
+            currP.y = scale * y;
+
+            for( size_t x = 0; x < gray.width() - 1; x++ ){
+                currP.x = scale * x;
+                float z = interpolateDepth( currP, d, depthStride );
+                if( z > this->_minDepth && z < 10.0f ){
+                    g( 0, 0 ) = gx[ x ];
+                    g( 0, 1 ) = gy[ x ];
+
+                    float salience = Math::abs( g( 0, 0 ) ) + Math::abs( g( 0, 1 ) );
+                    if( salience < _gradientThreshold )
+                        continue;
+
+                    p3d[ 0 ] = tmpx[ x ] * z;
+                    p3d[ 1 ] = tmpy[ y ] * z;
+                    p3d[ 2 ] = z;
+
+                    WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
+                    //WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
+
+                    data.add( p3d, sj, g, value[ x ] );
+                }
+            }
+            gxMap++;
+            gyMap++;
+            grayMap++;
         }
+        // TODO: run informationselector on the data!!
     }
+
 }
 
 #endif // RGBDKEYFRAME_H

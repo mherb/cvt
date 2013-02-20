@@ -444,8 +444,9 @@ SET(${MODULE_NAME}_HEADERS
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/ApproxMedian.h
    vision/rgbdvo/ICKeyframe.h
-   vision/rgbdvo/Optimizer.h
    vision/rgbdvo/InformationSelection.h
+   vision/rgbdvo/Optimizer.h
+   vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h

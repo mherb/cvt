@@ -14,6 +14,7 @@ namespace cvt
         createAxes();
         createKeyframeBuffer();
 
+        _offset.setIdentity();
         _rot.setIdentity();
         _cam.setIdentity();
         _gtPose.setIdentity();
@@ -21,14 +22,19 @@ namespace cvt
 
     void PoseView::setCamPose( const Matrix4f & m )
     {
-        _cam = m;
+        _cam = _offset * m;
         update();
     }
 
     void PoseView::setGTPose( const Matrix4f & m )
     {
-        _gtPose = m;
+        _gtPose = _offset * m;
         update();
+    }
+
+    void PoseView::setOffsetPose( const Matrix4f& pose )
+    {
+        _offset = pose.inverse();
     }
 
     void PoseView::paintGLEvent( PaintEvent* )
@@ -56,7 +62,7 @@ namespace cvt
 
         _basicProg.setProjection( proj );
 
-                // draw the grid
+        // draw the grid
         glLineWidth( 1.0f );
         _grid.draw( GL_LINES, 0, _numLines );
 
@@ -64,7 +70,7 @@ namespace cvt
         _keyframes.setColor( Color::RED );
         _keyframes.draw( GL_LINES, 0, 6 * _numKeyframes );
 
-                // draw the current camera pose
+        // draw the current camera pose
         proj = persp * view * _cam;
         _basicProg.setProjection( proj );
         _axes.draw( GL_LINES, 0, 6 );
@@ -126,7 +132,7 @@ namespace cvt
         if( e->buttonMask() & 2 || e->buttonMask() & 4 ) {
             _trans.x += 0.01f * ( e->x - _panPress.x );
             _trans.y -= 0.01f * ( e->y - _panPress.y );
-                        update();
+            update();
             _panPress.x = e->x;
             _panPress.y = e->y;
         }
@@ -206,7 +212,7 @@ namespace cvt
         _keyframes.setVertexData( _keyframesAxesBuffer, 3, GL_FLOAT );
     }
 
-        void PoseView::resetCameraView()
+    void PoseView::resetCameraView()
     {
         Matrix4f R;
         R.setRotationXYZ( 0, Math::PI, Math::PI );
@@ -215,60 +221,62 @@ namespace cvt
         _trans.z = _cam[ 2 ][ 3 ] - 1.0f;
     }
 
-        void PoseView::addKeyframe( const Matrix4f& world2Cam )
+    void PoseView::addKeyframe( const Matrix4f& world2Cam0 )
     {
         if( _numKeyframes == _maxKeyframes ){
             // need to reallocate!
-                    throw CVTException( "IMPLEMENT KEYFRAME REALLOCATION" );
+            throw CVTException( "IMPLEMENT KEYFRAME REALLOCATION" );
         }
 
-                GLfloat* ptr = ( GLfloat* )_keyframesAxesBuffer.map();
-                ptr += _numKeyframes * 18;
+        Matrix4f world2Cam = _offset * world2Cam0;
 
-                Vector3f p, pp, o;
-                p.x = 0.0f; p.y = 0.0f; p.z = 0.0f;
-                o = world2Cam * p;
+        GLfloat* ptr = ( GLfloat* )_keyframesAxesBuffer.map();
+        ptr += _numKeyframes * 18;
 
-                p.x = 0.2f;
-                p.y = 0.0f;
-                p.z = 0.0f;
-                pp = world2Cam * p;
-                ptr[ 0 ] = o.x;
-                ptr[ 1 ] = o.y;
-                ptr[ 2 ] = o.z;
-                ptr += 3;
-                ptr[ 0 ] = pp.x;
-                ptr[ 1 ] = pp.y;
-                ptr[ 2 ] = pp.z;
-                ptr += 3;
+        Vector3f p, pp, o;
+        p.x = 0.0f; p.y = 0.0f; p.z = 0.0f;
+        o = world2Cam * p;
 
-                p.x = 0.0f;
-                p.y = 0.2f;
-                p.z = 0.0f;
-                pp = world2Cam * p;
-                ptr[ 0 ] = o.x;
-                ptr[ 1 ] = o.y;
-                ptr[ 2 ] = o.z;
-                ptr += 3;
-                ptr[ 0 ] = pp.x;
-                ptr[ 1 ] = pp.y;
-                ptr[ 2 ] = pp.z;
-                ptr += 3;
+        p.x = 0.2f;
+        p.y = 0.0f;
+        p.z = 0.0f;
+        pp = world2Cam * p;
+        ptr[ 0 ] = o.x;
+        ptr[ 1 ] = o.y;
+        ptr[ 2 ] = o.z;
+        ptr += 3;
+        ptr[ 0 ] = pp.x;
+        ptr[ 1 ] = pp.y;
+        ptr[ 2 ] = pp.z;
+        ptr += 3;
 
-                p.x = 0.0f;
-                p.y = 0.0f;
-                p.z = 0.2f;
-                pp = world2Cam * p;
-                ptr[ 0 ] = o.x;
-                ptr[ 1 ] = o.y;
-                ptr[ 2 ] = o.z;
-                ptr += 3;
-                ptr[ 0 ] = pp.x;
-                ptr[ 1 ] = pp.y;
-                ptr[ 2 ] = pp.z;
+        p.x = 0.0f;
+        p.y = 0.2f;
+        p.z = 0.0f;
+        pp = world2Cam * p;
+        ptr[ 0 ] = o.x;
+        ptr[ 1 ] = o.y;
+        ptr[ 2 ] = o.z;
+        ptr += 3;
+        ptr[ 0 ] = pp.x;
+        ptr[ 1 ] = pp.y;
+        ptr[ 2 ] = pp.z;
+        ptr += 3;
 
-                _keyframesAxesBuffer.unmap();
+        p.x = 0.0f;
+        p.y = 0.0f;
+        p.z = 0.2f;
+        pp = world2Cam * p;
+        ptr[ 0 ] = o.x;
+        ptr[ 1 ] = o.y;
+        ptr[ 2 ] = o.z;
+        ptr += 3;
+        ptr[ 0 ] = pp.x;
+        ptr[ 1 ] = pp.y;
+        ptr[ 2 ] = pp.z;
 
-                _numKeyframes++;
+        _keyframesAxesBuffer.unmap();
+
+        _numKeyframes++;
     }
 }
