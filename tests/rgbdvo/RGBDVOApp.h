@@ -7,11 +7,8 @@
 #include <cvt/io/RGBDParser.h>
 #include <PoseView.h>
 
-
-#include <cvt/vision/rgbdvo/KeyframeBase.h>
-
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-#include <cvt/vision/rgbdvo/IntensityKeyframe.h>
+#include <cvt/vision/rgbdvo/ICKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 #include <cvt/util/ConfigFile.h>
@@ -49,7 +46,7 @@ namespace cvt
                 //typedef Huber<float>                LossFunc;
                 typedef Tukey<float>                LossFunc;
 
-                typedef IntensityKeyframe<WarpType>     KFType;
+                typedef ICKeyframe<WarpType>     KFType;
                 typedef RGBDVisualOdometry<KFType, LossFunc> VOType;
 
                 VOType                                  _vo;

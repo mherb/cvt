@@ -443,7 +443,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/Vision.h
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/ApproxMedian.h
-   vision/rgbdvo/IntensityKeyframe.h
+   vision/rgbdvo/ICKeyframe.h
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/RGBDKeyframe.h

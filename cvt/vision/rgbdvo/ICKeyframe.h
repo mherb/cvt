@@ -9,17 +9,13 @@
     PARTICULAR PURPOSE.
 */
 
-#ifndef INTENSITYKEYFRAME_H
-#define INTENSITYKEYFRAME_H
+#ifndef CVT_ICKEYFRAME_H
+#define CVT_ICKEYFRAME_H
 
 #include <cvt/math/Matrix.h>
-#include <cvt/math/SE3.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/EigenBridge.h>
-
-#include <cvt/vision/rgbdvo/RGBDWarp.h>
-#include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
 #include<Eigen/StdVector>
@@ -72,21 +68,9 @@ namespace cvt
                                             const Image& depth,
                                             float scale );
 
-            void sparseOfflineDataForScale( AlignDataType& data,
-                                            ScaleFeatures& features,
-                                            const Image& gray,
-                                            const Image& depth,
-                                            float scale );
-
             void addPointsOnScale( AlignDataType& data,
                                    const std::vector<Vector3f>& pts,
                                    const Matrix4f& referenceToWorld );
-
-            void sparseOfflineData( std::vector<ScaleFeatures>& featuresForScale,
-                                    const Matrix4<T>& pose,
-                                    const ImagePyramid& pyramid,
-                                    const Image& depth );
-
 
     };
 
@@ -313,21 +297,6 @@ namespace cvt
             }
         }
         data.inverseHessian = data.hessian.inverse();
-    }
-
-    template <class WarpFunc>
-    inline void IntensityKeyframe<WarpFunc>::sparseOfflineData( std::vector<ScaleFeatures>& features,
-                                                                const Matrix4<T>& pose,
-                                                                const ImagePyramid& pyramid,
-                                                                const Image& depth )
-    {
-        this->_pose = pose;
-
-        float scale = 1.0f;
-        for( size_t i = 0; i < pyramid.octaves(); i++ ){
-            this->sparseOfflineDataForScale( Base::_dataForScale[ i ], features[ i ], pyramid[ i ], depth, scale );
-            scale /= pyramid.scaleFactor();
-        }
     }
 }
 

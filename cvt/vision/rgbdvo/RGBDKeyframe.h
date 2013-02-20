@@ -13,13 +13,11 @@
 #define RGBDKEYFRAME_H
 
 #include <cvt/math/Matrix.h>
-#include <cvt/math/SE3.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/EigenBridge.h>
 
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
-#include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/InformationSelection.h>
 
 #include <Eigen/StdVector>
