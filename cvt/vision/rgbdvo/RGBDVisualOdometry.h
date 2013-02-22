@@ -20,6 +20,7 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
+#include <cvt/vision/rgbdvo/GNOptimizer.h>
 
 namespace cvt {
 
@@ -136,9 +137,9 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            typedef typename KFType::WarpType    Warp;
+            typedef typename KFType::WarpType   Warp;
             typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
-            typedef Optimizer<Warp, LossFunction> OptimizerType;
+            typedef GNOptimizer<Warp, LossFunction> OptimizerType;
             typedef typename OptimizerType::Result  Result;
 
 
@@ -317,7 +318,7 @@ namespace cvt {
                    int x = uv.x;
                    int y = uv.y;
                    float& dpos = dMap( y, x );
-                   if( dpos > 1 ){
+                   if( dpos > 1.0f /* there is a value */ ){
                        // average the Z value:
                        dpos = 0.5f * ( dpos + transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF );
                    } else {
