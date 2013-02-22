@@ -9,6 +9,7 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/ICKeyframe.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 #include <cvt/vision/rgbdvo/RobustWeighting.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 #include <cvt/util/ConfigFile.h>
@@ -38,7 +39,8 @@ namespace cvt
                 //typedef NoWeighting<float>                    LossFunc;
                 typedef Huber<float>                            LossFunc;
                 //typedef Tukey<float>                          LossFunc;
-                typedef ICKeyframe<WarpType>                    KFType;
+                //typedef ICKeyframe<WarpType>                    KFType;
+                typedef ESMKeyframe<WarpType>                    KFType;
                 typedef RGBDVisualOdometry<KFType, LossFunc>    VOType;
 
 #ifdef USE_CAM

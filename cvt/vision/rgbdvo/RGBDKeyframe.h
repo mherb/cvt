@@ -83,6 +83,7 @@ namespace cvt
 
                     // these are the offline jacobians
                     const JacobianVec& jacobians() const { return _jacobians; }
+                    const ScreenJacVec& screenJacobians() const { return _screenJacobians; }
 
                 protected:
                     std::vector<Vector3f>       _points3d;

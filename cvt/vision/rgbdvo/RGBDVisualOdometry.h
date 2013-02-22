@@ -20,9 +20,6 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
-#include <cvt/vision/rgbdvo/LMOptimizer.h>
-#include <cvt/vision/rgbdvo/SplittedOptimizer.h>
-#include <cvt/vision/rgbdvo/TROptimizer.h>
 
 namespace cvt {
 
@@ -141,11 +138,9 @@ namespace cvt {
         private:
             typedef typename KFType::WarpType    Warp;
             typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
-            //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
             typedef Optimizer<Warp, LossFunction> OptimizerType;
             typedef typename OptimizerType::Result  Result;
-            //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+
 
             Params                      _params;
 

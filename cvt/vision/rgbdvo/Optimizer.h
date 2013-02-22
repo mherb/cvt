@@ -206,11 +206,11 @@ namespace cvt {
 //        grayPyramid.convolve( gradX, reference.kernelDx() );
 //        grayPyramid.convolve( gradY, reference.kernelDy());
 
-        // at least on one scale it should work
+        // ensure that we had a successful optimization
         bool resultOk = false;
         Result saveResult = result;
 
-        reference.updateOnlineData( grayPyramid, dephtImage );
+        reference.updateOnlineData( grayPyramid, depthImage );
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 

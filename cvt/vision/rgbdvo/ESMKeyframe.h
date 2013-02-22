@@ -30,17 +30,13 @@ namespace cvt
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;
             typedef typename Base::AlignmentData        AlignmentData;
             typedef typename Base::GradientType         GradientType;
 
             ESMKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~ESMKeyframe();
 
-            void updateOfflineDataForScale( AlignmentData& data,
-                                            const Image& gray,
-                                            const Image& depth,
-                                            float scale );
-			
 			void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
             
 			void recompute( std::vector<float>& residuals,
@@ -51,6 +47,8 @@ namespace cvt
 		private:
 			ImagePyramid	_onlineGradientsX;
 			ImagePyramid	_onlineGradientsY;
+
+            void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
     };
 
     template <class WarpFunc>
@@ -78,6 +76,8 @@ namespace cvt
         const size_t height = gray.height();
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
+        std::vector<float> intGradX;
+        std::vector<float> intGradY;
 
         const AlignmentData& data = this->dataForScale( octave );
         size_t n = data.size();
@@ -89,6 +89,8 @@ namespace cvt
         // resize the data storage
         warpedPts.resize( n );
         interpolatedPixels.resize( n );
+        intGradX.resize( n );
+        intGradY.resize( n );
         residuals.resize( n );
         jacobians.reserve( n );
 
@@ -99,17 +101,24 @@ namespace cvt
         simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, gray.ptr(), gray.stride(), width, height, -10.0f, n );
 
 		// interpolate the gradients for ESM
+		interpolateGradients( intGradX, _onlineGradientsX[ octave ], warpedPts, simd );
+		interpolateGradients( intGradY, _onlineGradientsY[ octave ], warpedPts, simd );
         
 		// compute the residuals
         warp.computeResiduals( &residuals[ 0 ], &data.pixels()[ 0 ], &interpolatedPixels[ 0 ], n );
 
         // sort out bad pixels (out of image)
         const JacobianVec& refJacs = data.jacobians();
+        const ScreenJacVec& sj = data.screenJacobians();
+        GradientType grad;
         size_t savePos = 0;
+        // TODO: move this right after the bilinear interpolation step!
         for( size_t i = 0; i < n; ++i ){
             if( interpolatedPixels[ i ] >= 0.0f ){
-                // OK
-                jacobians[ savePos ] = refJacs[ i ];
+                grad( 0, 0 ) = intGradX[ i ];
+                grad( 0, 1 ) = intGradY[ i ];
+                // compute the ESM jacobians
+                jacobians[ savePos ] = 0.5f * ( refJacs[ i ] + grad * sj[ i ] );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
             }
@@ -123,6 +132,13 @@ namespace cvt
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );
 	}
+
+    template <class WarpFunc>
+    inline void ESMKeyframe<WarpFunc>::interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const
+    {
+        IMapScoped<const float> map( gradImg );
+        simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );
+    }
 }
 
 
