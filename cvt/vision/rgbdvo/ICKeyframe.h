@@ -105,7 +105,7 @@ namespace cvt
         warpedPts.resize( n );
         interpolatedPixels.resize( n );
         residuals.resize( n );
-        jacobians.reserve( n );
+        jacobians.resize( n );
 
         // project the points:
         simd->projectPoints( &warpedPts[ 0 ], projMat, &data.points()[ 0 ], n );
@@ -128,6 +128,7 @@ namespace cvt
             }
         }
         residuals.erase( residuals.begin() + savePos, residuals.end() );
+        jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
     }
 }
 

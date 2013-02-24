@@ -50,15 +50,21 @@ namespace cvt {
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
-            void setRobustThreshold( float v )      { _robustThreshold = v; }
+            void setRobustThreshold( float v )      { _weighter.setThreshold( v ); }
             void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
+
+            /**
+             * @brief setCostStopThreshold
+             * @param v early stepout, if average costs are below v!
+             */
+            void setCostStopThreshold( float v )    { _costStopThreshold = v; }
 
             // scale-space optimization
             void optimize( Result& result,
                            const Matrix4f& posePrediction,
                            RGBDKeyframe<WarpFunc>& reference,
                            const ImagePyramid& grayPyramid,
-                           const Image& depthImage ) const;
+                           const Image& depthImage );
 
 
         protected:
@@ -68,14 +74,17 @@ namespace cvt {
             typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
             size_t  _maxIter;
             float   _minUpdate;
-            float   _robustThreshold;
             float   _minPixelPercentage;
+            float   _costStopThreshold;
+
+            Weighter                _weighter;
+            SystemBuilder<Weighter> _builder;
 
             virtual void optimizeSingleScale( Result& result,
                                               RGBDKeyframe<WarpFunc>& reference,
                                               const Image& gray,
                                               const Image& depthImage,
-                                              size_t octave ) const = 0;
+                                              size_t octave ) = 0;
 
             float computeMedian( const float* residuals, size_t n ) const;
             float computeMAD( const float* residuals, size_t n, float median ) const;
@@ -87,8 +96,10 @@ namespace cvt {
     inline Optimizer<WarpFunc, LossFunc>::Optimizer() :
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
-        _robustThreshold( 0.1f ),
-        _minPixelPercentage( 0.8f )
+        _minPixelPercentage( 0.8f ),
+        _costStopThreshold( 0.005f ),
+        _weighter( 0.1f ),
+        _builder( _weighter )
     {
     }
 
@@ -97,7 +108,7 @@ namespace cvt {
                                                          const Matrix4f& posePrediction,
                                                          RGBDKeyframe<WarpFunc> &reference,
                                                          const ImagePyramid& grayPyramid,
-                                                         const Image& depthImage ) const
+                                                         const Image& depthImage )
     {
         Matrix4f tmp4;
         tmp4 = posePrediction.inverse() * reference.pose();

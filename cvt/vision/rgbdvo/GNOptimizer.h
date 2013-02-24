@@ -36,7 +36,7 @@ namespace cvt {
                                       RGBDKeyframe<WarpFunc>& reference,
                                       const Image& gray,
                                       const Image& /*depthImage*/,
-                                      size_t octave ) const;
+                                      size_t octave );
     };
 
     template <class WarpFunc, class LossFunc>
@@ -50,7 +50,7 @@ namespace cvt {
                                                                       RGBDKeyframe<WarpFunc>& reference,
                                                                       const Image& gray,
                                                                       const Image& /*depthImage*/,
-                                                                      size_t octave ) const
+                                                                      size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
@@ -60,10 +60,6 @@ namespace cvt {
         result.iterations = 0;
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
-
-        LossFunc weighter( this->_robustThreshold );
-        SystemBuilder<LossFunc> builder( weighter );
-
 
         std::vector<float> residuals;
         typename RGBDKeyframe<WarpFunc>::JacobianVec jacobians;
@@ -80,16 +76,16 @@ namespace cvt {
             result.numPixels = residuals.size();
 
             // this is an estimate for the standard deviation:
-            weighter.setScale( 1.4826f * mad );
+            this->_weighter.setScale( 1.4826f * mad );
 
-            result.costs = builder.build( hessian,
-                                              deltaSum,
-                                              &jacobians[ 0 ],
-                                              &residuals[ 0 ],
-                                              residuals.size() );
+            result.costs = this->_builder.build( hessian,
+                                                 deltaSum,
+                                                 &jacobians[ 0 ],
+                                                 &residuals[ 0 ],
+                                                 residuals.size() );
 
             if( !result.numPixels /* no pixels projected */ ||
-                result.costs / result.numPixels < 0.005f /* low cost threshold*/ ){
+                result.costs / result.numPixels < this->_costStopThreshold ){
                 break;
             }
 

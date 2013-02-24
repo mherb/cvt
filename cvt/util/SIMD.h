@@ -114,8 +114,24 @@ namespace cvt {
             virtual void MulAddU8Value1fx( Fixed* dst, const uint8_t* src, Fixed value, size_t n ) const;
 
             /* memory block reductions */
+            /**
+             * @brief SSD   sum of squared differences
+             * @param src1  first input
+             * @param src2  second input
+             * @param n     size of array
+             * @return \sum_i ( src1[ i ] - src2[ i ] )^2
+             */
             virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
             virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
+
+            /**
+             * @brief sumSqr - compute sum of squares
+             * @param src   input values
+             * @param n     size of array
+             * @return \sum_i ( src[ i ] )^2
+             */
+            virtual float sumSqr( float const* src, const size_t n ) const;
+
             virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
             virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
