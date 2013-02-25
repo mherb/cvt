@@ -449,6 +449,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/LMOptimizer.h
+   vision/rgbdvo/TROptimizer.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h

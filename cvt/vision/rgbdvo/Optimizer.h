@@ -80,15 +80,19 @@ namespace cvt {
             Weighter                _weighter;
             SystemBuilder<Weighter> _builder;
 
+            float computeMedian( const float* residuals, size_t n ) const;
+            float computeMAD( const float* residuals, size_t n, float median ) const;
+            bool checkResult( const Result& res ) const;
+
+            float evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
+                                  const JacobianType* jacobians, const float* residuals, size_t n );
+
+        private:
             virtual void optimizeSingleScale( Result& result,
                                               RGBDKeyframe<WarpFunc>& reference,
                                               const Image& gray,
                                               const Image& depthImage,
                                               size_t octave ) = 0;
-
-            float computeMedian( const float* residuals, size_t n ) const;
-            float computeMAD( const float* residuals, size_t n, float median ) const;
-            bool checkResult( const Result& res ) const;
 
     };
 
@@ -180,6 +184,23 @@ namespace cvt {
             return false;
         }
         return true;
+    }
+
+
+    template <class WarpFunc, class LossFunc>
+    inline float Optimizer<WarpFunc, LossFunc>::evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
+                                                                const JacobianType* jacobians, const float* residuals, size_t n  )
+    {
+        float median = this->computeMedian( residuals, n );
+        float mad = this->computeMAD( residuals, n, median );
+
+        // this is an estimate for the standard deviation:
+        _weighter.setScale( 1.4826f * mad );
+        return _builder.build( hessian,
+                               deltaSum,
+                               jacobians,
+                               residuals,
+                               n );
     }
 
 }

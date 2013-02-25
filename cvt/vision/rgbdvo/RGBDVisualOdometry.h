@@ -22,6 +22,7 @@
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/GNOptimizer.h>
 #include <cvt/vision/rgbdvo/LMOptimizer.h>
+#include <cvt/vision/rgbdvo/TROptimizer.h>
 
 namespace cvt {
 
@@ -141,7 +142,8 @@ namespace cvt {
             typedef typename KFType::WarpType   Warp;
             typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
             //typedef GNOptimizer<Warp, LossFunction> OptimizerType;
-            typedef LMOptimizer<Warp, LossFunction> OptimizerType;
+            //typedef LMOptimizer<Warp, LossFunction> OptimizerType;
+            typedef TROptimizer<Warp, LossFunction> OptimizerType;
             typedef typename OptimizerType::Result  Result;
 
             Params                      _params;

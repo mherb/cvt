@@ -8,22 +8,22 @@
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
     PARTICULAR PURPOSE.
 */
-#ifndef CVT_LMOPTIMIZER_H
-#define CVT_LMOPTIMIZER_H
+
+#ifndef CVT_TROPTIMIZER_H
+#define CVT_TROPTIMIZER_H
 
 #include <cvt/vision/rgbdvo/Optimizer.h>
 
 namespace cvt {
 
     template <class WarpFunc, class LossFunc>
-    class LMOptimizer : public Optimizer<WarpFunc, LossFunc>
+    class TROptimizer : public Optimizer<WarpFunc, LossFunc>
     {
         public:
-            LMOptimizer();
-            ~LMOptimizer(){}
+            TROptimizer();
+            ~TROptimizer(){}
 
-
-        private:
+        protected:
             typedef typename WarpFunc::JacobianType         JacobianType;
             typedef typename WarpFunc::HessianType          HessianType;
             typedef typename WarpFunc::DeltaVectorType      DeltaType;
@@ -38,16 +38,28 @@ namespace cvt {
                                       const Image& gray,
                                       const Image& /*depthImage*/,
                                       size_t octave );
+
+        private:
+            float   _acceptStepThresh;
+            float   _increaseTRThresh;
+            float   _trIncreaseFactor;
+            float   _trDecreaseFactor;
+            float   _initialLambda;
+
     };
 
     template <class WarpFunc, class LossFunc>
-    inline LMOptimizer<WarpFunc, LossFunc>::LMOptimizer() :
-        Base()
+    inline TROptimizer<WarpFunc, LossFunc>::TROptimizer() :
+        _acceptStepThresh( 0.02f ),
+        _increaseTRThresh( 0.1f ),
+        _trIncreaseFactor( 2.0f ),
+        _trDecreaseFactor( 0.1f ),
+        _initialLambda( 2.0f )
     {
     }
 
     template <class WarpFunc, class LossFunc>
-    inline void LMOptimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
+    inline void TROptimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
                                                                       ReferenceType& reference,
                                                                       const Image& gray,
                                                                       const Image& /*depthImage*/,
@@ -55,8 +67,7 @@ namespace cvt {
     {
         JacobianType deltaSum;
         HessianType  hessian;
-        JacobianType dampingFactor( JacobianType::Ones() );
-        dampingFactor *= 0.01f;
+        JacobianType step( JacobianType::Zero() );
 
         IMapScoped<const float> grayMap( gray );
 
@@ -72,54 +83,72 @@ namespace cvt {
         // initial costs
         reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
         result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
+        // compute the step:
+        DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
+        // model for the expected decrease
+        float expectedDecrease = -2.0f * deltaP.dot( deltaSum.transpose() );
         result.numPixels = residuals.size();
+
         WarpFunc savedWarp( result.warp );
 
-        HessianType hTmp;
+        float lambda = _initialLambda;
         while( result.iterations < this->_maxIter ){
-            // compute the step:
-            hTmp = hessian;
-            hTmp.diagonal() += dampingFactor;
-            DeltaType deltaP = -hTmp.inverse() * deltaSum.transpose();
 
             if( deltaP.norm() < this->_minUpdate )
                 break;
-            result.warp.updateParameters( deltaP );
+
+            // compute the step
+            step = lambda * deltaP;
+            result.warp.updateParameters( step );
 
             // re-evaluate the cost function
             reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
-            float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() );
-
             if( !residuals.size() ){
                 result.warp = savedWarp;
                 break;
             }
 
-            if( currentCosts < result.costs ){
-                // update the system:
-                result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
+            float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() );
+            float costFidelity = ( result.costs - currentCosts ) / ( expectedDecrease );
+
+            if( costFidelity < _acceptStepThresh ){
+                // step is worse than expected:
+                // undo
+                result.warp = savedWarp;
+                lambda *= _trDecreaseFactor;
+            } else {
+                // accept step & update model
                 savedWarp = result.warp;
-                dampingFactor *= 0.5f;
-                result.iterations++;
+                result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 result.numPixels = residuals.size();
+                result.iterations++;
+
+                // compute the step:
+                deltaP = -hessian.inverse() * deltaSum.transpose();
+
+                // model for the expected decrease
+                expectedDecrease = -2.0f * deltaP.dot( deltaSum.transpose() );
+
+                // very good step -> increase trust region
+                if( costFidelity > _increaseTRThresh ){
+                    lambda *= _trIncreaseFactor;
+                }
 
                 if( result.costs / result.numPixels < Base::_costStopThreshold ){
-                    // stop optimization, costs have reached sufficient minimum
                     break;
                 }
-            } else {
-                // undo the step
-                result.warp = savedWarp;
-
-                // update the damping
-                dampingFactor *= 10.0f;
+            }
+            if ( lambda * deltaP.norm() < Base::_minUpdate ||
+                 lambda > 1e15f ||
+                 lambda < 1e-8f ){
+                break;
             }
         }
 
         result.pixelPercentage = ( float )result.numPixels / ( float )reference.dataSize( octave );
     }
 
+
 }
 
-
-#endif // LMOPTIMIZER_H
+#endif // TROPTIMIZER_H
