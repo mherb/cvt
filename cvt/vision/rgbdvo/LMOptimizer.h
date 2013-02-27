@@ -97,6 +97,7 @@ namespace cvt {
 
             if( currentCosts < result.costs ){
                 // update the system:
+                this->_overallDelta.noalias() += deltaP;
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 savedWarp = result.warp;
                 dampingFactor *= 0.5f;

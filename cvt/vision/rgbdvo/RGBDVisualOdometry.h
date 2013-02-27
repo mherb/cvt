@@ -20,9 +20,6 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
-#include <cvt/vision/rgbdvo/GNOptimizer.h>
-#include <cvt/vision/rgbdvo/LMOptimizer.h>
-#include <cvt/vision/rgbdvo/TROptimizer.h>
 
 namespace cvt {
 
@@ -30,6 +27,14 @@ namespace cvt {
     class RGBDVisualOdometry
     {
         public:
+            typedef typename KFType::WarpType   Warp;
+            typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
+            typedef Optimizer<Warp, LossFunction> OptimizerType;
+            typedef typename OptimizerType::Result  Result;
+            //typedef GNOptimizer<Warp, LossFunction> OptimizerType;
+            //typedef LMOptimizer<Warp, LossFunction> OptimizerType;
+            //typedef TROptimizer<Warp, LossFunction> OptimizerType;
+
             struct Params {
                 Params() :
                     pyrOctaves( 3 ),
@@ -43,7 +48,7 @@ namespace cvt {
                     depthScale( 1000.0f ),
                     minDepth( 0.5f ),
                     gradientThreshold( 0.02f ),
-                    robustThreshold( 0.5f ),
+                    //robustThreshold( 0.5f ),
                     maxIters( 10 ),
                     minParameterUpdate( 1e-6 )
                 {}
@@ -61,7 +66,7 @@ namespace cvt {
                                 cfg.valueForName<float>( "depthScale", 1.0f ) ),
                     minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
                     gradientThreshold( cfg.valueForName<float>( "gradientThreshold", 0.02f ) ),
-                    robustThreshold( cfg.valueForName<float>( "robustThreshold", 0.5f ) ),
+                    //robustThreshold( cfg.valueForName<float>( "robustThreshold", 0.5f ) ),
                     maxIters( cfg.valueForName<int>( "maxIters", 10 ) ),
                     minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) )
                 {
@@ -91,12 +96,12 @@ namespace cvt {
                float gradientThreshold;
 
                // optimizer:
-               float    robustThreshold;
+               //float    robustThreshold;
                size_t   maxIters;
                float    minParameterUpdate;
             };
 
-            RGBDVisualOdometry( const Matrix3f& K, const Params& params );
+            RGBDVisualOdometry( OptimizerType* optimizer, const Matrix3f& K, const Params& params );
             ~RGBDVisualOdometry();
 
             /**
@@ -139,16 +144,9 @@ namespace cvt {
 
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            typedef typename KFType::WarpType   Warp;
-            typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
-            //typedef GNOptimizer<Warp, LossFunction> OptimizerType;
-            //typedef LMOptimizer<Warp, LossFunction> OptimizerType;
-            typedef TROptimizer<Warp, LossFunction> OptimizerType;
-            typedef typename OptimizerType::Result  Result;
-
             Params                      _params;
 
-            OptimizerType               _optimizer;
+            OptimizerType*              _optimizer;
             Matrix3f                    _intrinsics;
 
             // current active keyframe
@@ -164,7 +162,6 @@ namespace cvt {
             bool needNewKeyframe() const;
             void setKeyframeParams( KFType& kf );
 
-
             //std::vector<ScaleFeatures>  _gridForScale;
             //void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
 
@@ -172,8 +169,9 @@ namespace cvt {
     };
 
     template <class KFType, class LossFunction>
-    inline RGBDVisualOdometry<KFType, LossFunction>::RGBDVisualOdometry( const Matrix3f& K, const Params& p ) :
+    inline RGBDVisualOdometry<KFType, LossFunction>::RGBDVisualOdometry( OptimizerType* optimizer, const Matrix3f& K, const Params& p ) :
         _params( p ),
+        _optimizer( optimizer ),
         _intrinsics( K ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
@@ -194,7 +192,7 @@ namespace cvt {
     {
         _pyramid.update( gray );
 
-        _optimizer.optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
+        _optimizer->optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
 
         _currentPose = _lastResult.warp.pose();
 
@@ -245,10 +243,9 @@ namespace cvt {
         kf.setMinimumDepth( _params.minDepth );
         kf.setGradientThreshold( _params.gradientThreshold );
 
-        _optimizer.setRobustThreshold( _params.robustThreshold );
-        _optimizer.setMaxIterations( _params.maxIters );
-        _optimizer.setMinUpdate( _params.minParameterUpdate );
-        _optimizer.setMinPixelPercentage( _params.minPixelPercentage );
+        _optimizer->setMaxIterations( _params.maxIters );
+        _optimizer->setMinUpdate( _params.minParameterUpdate );
+        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
     }
 
     template <class DerivedKF, class LossFunction>

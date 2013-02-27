@@ -26,6 +26,11 @@ namespace cvt {
     class Optimizer
     {
         public:
+            typedef typename WarpFunc::JacobianType     JacobianType;
+            typedef typename WarpFunc::HessianType      HessianType;
+            typedef typename WarpFunc::DeltaVectorType  DeltaType;
+            typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
+
             struct Result {
                 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 Result() :
@@ -50,8 +55,10 @@ namespace cvt {
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
-            void setRobustThreshold( float v )      { _weighter.setThreshold( v ); }
+            //void setRobustThreshold( float v )      { _weighter.setThreshold( v ); }
             void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
+            void setUseRegularization( bool v )     { _useRegularizer = v; }
+            void setRegularizationMatrix( const HessianType& m ) { _regularizer = m; }
 
             /**
              * @brief setCostStopThreshold
@@ -66,16 +73,14 @@ namespace cvt {
                            const ImagePyramid& grayPyramid,
                            const Image& depthImage );
 
-
         protected:
-            typedef typename WarpFunc::JacobianType     JacobianType;
-            typedef typename WarpFunc::HessianType      HessianType;
-            typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
-            size_t  _maxIter;
-            float   _minUpdate;
-            float   _minPixelPercentage;
-            float   _costStopThreshold;
+            size_t          _maxIter;
+            float           _minUpdate;
+            float           _minPixelPercentage;
+            float           _costStopThreshold;
+            bool            _useRegularizer;
+            HessianType     _regularizer;
+            DeltaType       _overallDelta;
 
             Weighter                _weighter;
             SystemBuilder<Weighter> _builder;
@@ -86,6 +91,8 @@ namespace cvt {
 
             float evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
                                   const JacobianType* jacobians, const float* residuals, size_t n );
+
+            void resetOverallDelta();
 
         private:
             virtual void optimizeSingleScale( Result& result,
@@ -102,8 +109,10 @@ namespace cvt {
         _minUpdate( 1e-6 ),
         _minPixelPercentage( 0.8f ),
         _costStopThreshold( 0.005f ),
-        _weighter( 0.1f ),
-        _builder( _weighter )
+        _builder( _weighter ),
+        _useRegularizer( false ),
+        _regularizer( HessianType::Zero() ),
+        _overallDelta( DeltaType::Zero() )
     {
     }
 
@@ -133,6 +142,10 @@ namespace cvt {
         bool resultOk = false;
         Result saveResult = result;
 
+        if( _useRegularizer ){
+            resetOverallDelta();
+        }
+
         reference.updateOnlineData( grayPyramid, depthImage );
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
@@ -149,6 +162,12 @@ namespace cvt {
         tmp4 = result.warp.pose();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline void Optimizer<WarpFunc, LossFunc>::resetOverallDelta()
+    {
+        _overallDelta.setZero();
     }
 
     template <class WarpFunc, class LossFunc>
@@ -196,11 +215,17 @@ namespace cvt {
 
         // this is an estimate for the standard deviation:
         _weighter.setScale( 1.4826f * mad );
-        return _builder.build( hessian,
-                               deltaSum,
-                               jacobians,
-                               residuals,
-                               n );
+        float costs = _builder.build( hessian,
+                                      deltaSum,
+                                      jacobians,
+                                      residuals,
+                                      n );
+        if( _useRegularizer ){
+            hessian.noalias()  += _regularizer;
+            deltaSum.noalias() += _regularizer * _overallDelta;
+        }
+
+        return costs;
     }
 
 }

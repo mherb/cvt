@@ -166,13 +166,13 @@ namespace cvt
         _current.block( 0, 0, 3, 3 ) = ( Eigen::AngleAxis<T>( alpha, Eigen::Matrix<T, 3, 1>::UnitX() ) *
                                          Eigen::AngleAxis<T>( beta, Eigen::Matrix<T, 3, 1>::UnitY() ) *
                                          Eigen::AngleAxis<T>( gamma, Eigen::Matrix<T, 3, 1>::UnitZ() ) ).toRotationMatrix();
-        _current( 0, 3 ) = tx;
-        _current( 1, 3 ) = ty;
-        _current( 2, 3 ) = tz;
-        _current( 3, 0 ) = 0;
-        _current( 3, 1 ) = 0;
-        _current( 3, 2 ) = 0;
-        _current( 3, 3 ) = 1.0;
+        _current.coeffRef( 0, 3 ) = tx;
+        _current.coeffRef( 1, 3 ) = ty;
+        _current.coeffRef( 2, 3 ) = tz;
+        _current.coeffRef( 3, 0 ) = 0;
+        _current.coeffRef( 3, 1 ) = 0;
+        _current.coeffRef( 3, 2 ) = 0;
+        _current.coeffRef( 3, 3 ) = 1.0;
     }
 
     template<typename T>

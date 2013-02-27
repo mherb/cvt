@@ -11,7 +11,7 @@ namespace cvt
 
     template <typename T>
     struct NoWeighting {
-        NoWeighting( T ){}
+        NoWeighting(){}
         T weight( T ){ return (T)1; }
 
         void setThreshold( T /*thresh*/ ){}
@@ -27,11 +27,11 @@ namespace cvt
     template <typename T>
     struct Huber
     {
-        Huber( T _c ) : c( _c  ) {}
+        Huber() : c( ( T )1.345 ), s( 1.0f ) {}
 
         T weight( T r ) const
         {
-            T t = Math::abs( r );
+            T t = Math::abs( r/s );
             if ( t < c )
                 return ( T )1;
             else
@@ -39,9 +39,10 @@ namespace cvt
         }
 
         void setThreshold( T thresh ){ c = thresh; }
-        void setScale( T /*sigma*/ ){}
+        void setScale( T scale ){ s = scale; }
 
         T c;
+        T s;
     };
 
     template <typename T>
@@ -50,7 +51,7 @@ namespace cvt
         /**
          *	\brief	cut-off at threshold (0 influence of outliers!)
          */
-        Tukey( T _c ) : c( _c ), s( 1 ) {}
+        Tukey() : c( ( T )4.685 ), s( 1 ) {}
 
         T weight( T r ) const
         {
@@ -153,6 +154,9 @@ namespace cvt
         void setSigma( T sigma ){}
     };*/
 
+    typedef Huber<float> Huberf;
+    typedef Tukey<float> Tukeyf;
+    typedef NoWeighting<float> NoWeightingf;
 }
 
 #endif

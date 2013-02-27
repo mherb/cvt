@@ -90,6 +90,7 @@ namespace cvt {
             }
 
             DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
+            this->_overallDelta.noalias() += deltaP;
 
             if( deltaP.norm() < this->_minUpdate )
                 break;

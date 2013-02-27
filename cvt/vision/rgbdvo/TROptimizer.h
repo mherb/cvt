@@ -118,6 +118,7 @@ namespace cvt {
                 lambda *= _trDecreaseFactor;
             } else {
                 // accept step & update model
+                this->_overallDelta.noalias() += deltaP;
                 savedWarp = result.warp;
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 result.numPixels = residuals.size();

@@ -69,7 +69,8 @@ namespace cvt
                     {
                         _points3d.push_back( point );
                         _screenJacobians.push_back( jac );
-                        _jacobians.push_back( iGrad * jac );
+                        _jacobians.push_back( JacobianType() );
+                        Warp::computeJacobian( _jacobians.back(), jac, iGrad, val );
                         _pixelValues.push_back( val );
                     }
 
@@ -378,7 +379,7 @@ namespace cvt
                     g( 0, 0 ) = gx[ x ];
                     g( 0, 1 ) = gy[ x ];
 
-                    float salience = Math::abs( g( 0, 0 ) ) + Math::abs( g( 0, 1 ) );
+                    float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
                     if( salience < _gradientThreshold )
                         continue;
 
@@ -387,8 +388,6 @@ namespace cvt
                     p3d[ 2 ] = z;
 
                     WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
-                    //WarpFunc::computeJacobian( j, p3d, data.intrinsics, g, value[ x ] );
-
                     data.add( p3d, sj, g, value[ x ] );
                 }
             }

@@ -37,7 +37,7 @@ namespace cvt
             ESMKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~ESMKeyframe();
 
-			void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
+            void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
             
 			void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
@@ -112,13 +112,15 @@ namespace cvt
         const ScreenJacVec& sj = data.screenJacobians();
         GradientType grad;
         size_t savePos = 0;
-        // TODO: move this right after the bilinear interpolation step!
+        // TODO: move this right after the bilinear interpolation step?
+        JacobianType jCur;
         for( size_t i = 0; i < n; ++i ){
             if( interpolatedPixels[ i ] >= 0.0f ){
-                grad( 0, 0 ) = intGradX[ i ];
-                grad( 0, 1 ) = intGradY[ i ];
+                grad.coeffRef( 0, 0 ) = intGradX[ i ];
+                grad.coeffRef( 0, 1 ) = intGradY[ i ];
                 // compute the ESM jacobians
-                jacobians[ savePos ] = 0.5f * ( refJacs[ i ] + grad * sj[ i ] );
+                WarpFunc::computeJacobian( jCur, sj[ i ], grad, interpolatedPixels[ i ] );
+                jacobians[ savePos ] = 0.5f * ( refJacs[ i ] + jCur );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
             }
@@ -128,7 +130,7 @@ namespace cvt
     }
 
 	template <class WarpFunc>
-    inline void ESMKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& depth )
+	inline void ESMKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
 	{
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );

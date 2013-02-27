@@ -6,6 +6,13 @@
 
 #include <RGBDVOApp.h>
 #include <cvt/util/ConfigFile.h>
+#include <cvt/vision/rgbdvo/Optimizer.h>
+#include <cvt/vision/rgbdvo/GNOptimizer.h>
+#include <cvt/vision/rgbdvo/LMOptimizer.h>
+#include <cvt/vision/rgbdvo/TROptimizer.h>
+#include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/ICKeyframe.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
 #include <Eigen/Geometry>
 
@@ -96,40 +103,91 @@ void runVOWithKFType( const Matrix3f& K, const String& folder, ConfigFile& cfg )
     std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
 }
 
-void runBatch( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+template <class Warp, class LossFunc>
+inline Optimizer<Warp, LossFunc>* createOptimizer( const String& optimizerName )
 {
-    typedef StandardWarp StandardWarpf;
-    typedef AffineLightingWarp<float> ALWarpf;
-    typedef Huber<float> Huberf;
-    typedef Tukey<float> Tukeyf;
-    typedef NoWeighting<float> NoWeighting;
+    if( optimizerName == "GaussNewton" ){
+        std::cout << "Creating GaussNewton Optimizer" << std::endl;
+        return new GNOptimizer<Warp, LossFunc>();
+    }
+    if( optimizerName == "LevenbergMarquardt" ){
+        std::cout << "Creating LevenbergMarquardt Optimizer" << std::endl;
+        return new LMOptimizer<Warp, LossFunc>();
+    }
+    if( optimizerName == "TrustRegion" ){
+        std::cout << "Creating TrustRegion Optimizer" << std::endl;
+        return new TROptimizer<Warp, LossFunc>();
+    }
 
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
-    std::cout << "Keyframetype: " << kftypeString << std::endl;
+    throw CVTException( "unknown OptimizerType requested" );
+}
 
-//    if( kftypeString.toUpper() == "STD" ){
-//        std::cout << "Running with normal Squared Lossfunc" << std::endl;
-//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
-//    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
-//        std::cout << "Running with Huber Lossfunc" << std::endl;
-//        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
-//    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
-//        std::cout << "Running with Tukey Lossfunc" << std::endl;
-//        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-//        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
-//    } else if( kftypeString.toUpper() == "AII" ) {
-//        runVOWithKFType<IntensityKeyframe<ALWarpf>, NoWeighting >( params, K, folder, cfg );
-//    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
-//        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-//        runVOWithKFType<IntensityKeyframe<ALWarpf>, Huberf >( params, K, folder, cfg );
-//    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
-//        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-//        runVOWithKFType<IntensityKeyframe<ALWarpf>, Tukeyf>( params, K, folder, cfg );
-//    } else {
-//        std::cout << "Unknown keyframe type" << std::endl;
-//    }
+template <class KF, class WF, class LF>
+void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    Optimizer<WF, LF>* optimizer = createOptimizer<WF, LF>( cfg.valueForName<String>( "optimizer", "GaussNewton" ) );
 
+    bool useRegularization = cfg.valueForName( "useRegularization", false );
+    if( useRegularization ){
+        typename Optimizer<WF, LF>::HessianType reg;
+        reg.setIdentity();
+        optimizer->setUseRegularization( true );
+        optimizer->setRegularizationMatrix( reg );
+    }
+
+    RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
+    {
+        RGBDVOApp<KF, LF> app( &vo, folder );
+        cfg.save( "rgbdvo.cfg" );
+        Application::run();
+    }
+    delete optimizer;
+}
+
+template <class KFType, class WarpType>
+void createAppDefineLF( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    String lfType = cfg.valueForName<String>( "lossFunction", "Squared" );
+    if ( lfType == "Squared" ){
+        std::cout << "Using Squared Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, NoWeightingf>( K, folder, cfg );
+    } else if( lfType == "Huber" ){
+        std::cout << "Using Huber Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, Huberf>( K, folder, cfg );
+    } else if( lfType == "Tukey" ){
+        std::cout << "Using Tukey Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, Tukeyf>( K, folder, cfg );
+    } else {
+        throw CVTException( "unknown keyframeType" );
+    }
+}
+
+template <class WarpType>
+void createAppDefineKF( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    String keyframeType = cfg.valueForName<String>( "keyframe", "IC" );
+    if ( keyframeType == "IC" ){
+        std::cout << "Using InverseCompositional Algorithm" << std::endl;
+        createAppDefineLF<ICKeyframe<WarpType>, WarpType>( K, folder, cfg );
+    } else if( keyframeType == "ESM" ){
+        std::cout << "Using ESM Algorithm" << std::endl;
+        createAppDefineLF<ESMKeyframe<WarpType>, WarpType>( K, folder, cfg );
+    } else {
+        throw CVTException( "unknown keyframeType" );
+    }
+}
+
+void runApplication( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    // define warp:
+    String warpType = cfg.valueForName<String>( "warp", "Standard" );
+    if( warpType == "Standard" ){
+        createAppDefineKF<StandardWarp>( K, folder, cfg );
+    } else if( warpType == "AI" ){
+        createAppDefineKF<AffineLightingWarp>( K, folder, cfg );
+    } else {
+        throw CVTException( "unkown warp" );
+    }
 }
 
 int main( int argc, char* argv[] )
@@ -164,11 +222,9 @@ int main( int argc, char* argv[] )
 
     if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;
-        runBatch( K, folder, cfg );
+        //runBatch( K, folder, cfg );
     } else {
-        RGBDVOApp app( folder, K, cfg );
-        cfg.save( "rgbdvo.cfg" );
-        Application::run();
+        runApplication( K, folder, cfg );
     }
 
 
