@@ -109,10 +109,10 @@ namespace cvt {
         _minUpdate( 1e-6 ),
         _minPixelPercentage( 0.8f ),
         _costStopThreshold( 0.005f ),
-        _builder( _weighter ),
         _useRegularizer( false ),
         _regularizer( HessianType::Zero() ),
-        _overallDelta( DeltaType::Zero() )
+        _overallDelta( DeltaType::Zero() ),
+        _builder( _weighter )
     {
     }
 

@@ -5,6 +5,7 @@
 #include <cvt/gui/Application.h>
 
 #include <RGBDVOApp.h>
+#include <BatchEvaluation.h>
 #include <cvt/util/ConfigFile.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/GNOptimizer.h>
@@ -18,36 +19,13 @@
 
 using namespace cvt;
 
-void writePoseToFile( std::ofstream& file, const Matrix4f& pose, double stamp )
-{
-    Quaternionf q( pose.toMatrix3() );
-
-    file.precision( 15 );
-    file << std::fixed << stamp << " "
-             << pose[ 0 ][ 3 ] << " "
-             << pose[ 1 ][ 3 ] << " "
-             << pose[ 2 ][ 3 ] << " "
-             << q.x << " "
-             << q.y << " "
-             << q.z << " "
-             << q.w << std::endl;
-}
-
 template <class KFType, class LossFunc>
-void runVOWithKFType( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+void runVOWithKFType( RGBDVisualOdometry<KFType, LossFunc>& vo, const String& folder, ConfigFile& cfg )
 {
-    std::cout << "Press enter to start ...";
-    std::flush( std::cout );
-    getchar();
-
     RGBDParser parser( folder, 0.05f );
-    RGBDVisualOdometry<KFType, LossFunc> vo( K, cfg );
-    vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-    vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
-    vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-
     parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
     parser.loadNext();
+
     const RGBDParser::RGBDSample& sample = parser.data();
 
     Image gray( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
@@ -57,15 +35,15 @@ void runVOWithKFType( const Matrix3f& K, const String& folder, ConfigFile& cfg )
 
     vo.addNewKeyframe( gray, depth, sample.pose<float>() ); // add initial
 
-    std::ofstream file;
-    file.open( "trajectory.txt" );
+    BatchEvaluation evaluator;
+
     Matrix4f pose; pose.setIdentity();
 
     Time time;
     size_t iters = 0;
     float timeSum = 0;
 
-    float translationError = 0.0f;
+    //float translationError = 0.0f;
 
     pose = vo.pose();
     while( parser.hasNext() ){
@@ -82,22 +60,22 @@ void runVOWithKFType( const Matrix3f& K, const String& folder, ConfigFile& cfg )
         iters++;
 
         if( d.poseValid ){
-            float currError = ( d.pose<float>() - pose ).col( 3 ).length();
+            Matrix4f poseGT = d.pose<float>();
+            //float currError = ( poseGT - pose ).col( 3 ).length();
 
-            float errorChange = currError - translationError;
-            std::cout << "ErrorChange: " << errorChange << std::endl;
-            translationError = currError;
+            evaluator.add( d.stamp, pose, poseGT );
+
+            //float errorChange = currError - translationError;
+            //std::cout << "ErrorChange: " << errorChange << std::endl;
+            //translationError = currError;
         }
-
-
-        writePoseToFile( file, pose, d.stamp );
 
         std::cout << "\r" << parser.iter() << " / " << parser.size();
         std::flush( std::cout );
-        //getchar();
     }
-    std::cout << std::endl;
-    file.close();
+
+    evaluator.writeComputedFile( "trajectory.txt" );
+    evaluator.evalRPEPerSecond();
 
     std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
     std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
@@ -131,17 +109,27 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
     if( useRegularization ){
         typename Optimizer<WF, LF>::HessianType reg;
         reg.setIdentity();
+        String parName;
+        for( int i = 0; i < reg.cols(); i++ ){
+            parName.sprintf( "reg_dim_%02d", i );
+            reg.coeffRef( i, i ) = cfg.valueForName<float>( parName, 1.0f );
+        }
         optimizer->setUseRegularization( true );
         optimizer->setRegularizationMatrix( reg );
     }
 
     RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
-    {
+
+    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
+    if( runMode == "BATCH" ){
+        std::cout << "Starting batch mode" << std::endl;
+        runVOWithKFType<KF, LF>( vo, folder, cfg );
+    } else {
         RGBDVOApp<KF, LF> app( &vo, folder );
-        cfg.save( "rgbdvo.cfg" );
         Application::run();
     }
     delete optimizer;
+    cfg.save( "rgbdvo.cfg" );
 }
 
 template <class KFType, class WarpType>
@@ -215,18 +203,6 @@ int main( int argc, char* argv[] )
     K[ 1 ][ 1 ] = 521.0f;
     K[ 1 ][ 2 ] = 249.7f;
 
-    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
-
-    //cfg.save( "rgbdvo.cfg" );
-    //std::cout << "Saving config" << std::endl;
-
-    if( runMode == "BATCH" ){
-        std::cout << "Starting batch mode" << std::endl;
-        //runBatch( K, folder, cfg );
-    } else {
-        runApplication( K, folder, cfg );
-    }
-
-
+    runApplication( K, folder, cfg );
     return 0;
 }

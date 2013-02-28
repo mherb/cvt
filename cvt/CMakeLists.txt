@@ -389,7 +389,6 @@ SET(${MODULE_NAME}_HEADERS
    util/ParamSet.h
    util/Range.h
    util/RNG.h
-   util/SharedPtr.h
    util/Signal.h
    util/SIMDDebug.h
    util/SIMD.h
