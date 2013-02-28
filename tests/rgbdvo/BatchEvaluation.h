@@ -124,7 +124,7 @@ namespace cvt {
 
             float computeAngleError( const Matrix4f& m )
             {
-                return Math::acos( Math::clamp( 0.5f * ( m.trace() - 1.0f ), -1.0f, 1.0f ) );
+                return Math::acos( Math::clamp( 0.5f * ( m.toMatrix3().trace() - 1.0f ), -1.0f, 1.0f ) );
             }
 
     };
