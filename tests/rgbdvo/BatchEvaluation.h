@@ -39,6 +39,61 @@ namespace cvt {
                 file.close();
             }
 
+            void writeEstimatedFile( const String& filename ) const
+            {
+                std::ofstream file;
+                file.open( filename.c_str() );
+
+                std::vector<PosePair>::const_iterator it = _data.begin();
+                const std::vector<PosePair>::const_iterator itEnd = _data.end();
+
+                std::cout << "# <time_stamp> "
+                          << " <tx_estimated> "
+                          << " <ty_estimated> "
+                          << " <tz_estimated> "
+                          << " <q_x_estimated> "
+                          << " <q_y_estimated> "
+                          << " <q_z_estimated> "
+                          << " <q_w_estimated> "
+                          << " <tx_gt> "
+                          << " <ty_gt> "
+                          << " <tz_gt> "
+                          << " <q_x_gt> "
+                          << " <q_y_gt> "
+                          << " <q_z_gt> "
+                          << " <q_w_gt> "
+                          << " <delta_rot_euler_x> "
+                          << " <delta_rot_euler_y> "
+                          << " <delta_rot_euler_z> "
+                          << std::endl;
+
+                file.precision( 15 );
+                while( it != itEnd ){
+                    const PosePair& d = *it;
+                    Quaternionf qerr( d.errorMat.toMatrix3() );
+                    Vector3f euler = qerr.toEuler();
+                    file << std::fixed
+                         << d.timeStamp << " "
+                         << d.tEstimated.x << " "
+                         << d.tEstimated.y << " "
+                         << d.tEstimated.z << " "
+                         << d.qEstimated.x << " "
+                         << d.qEstimated.y << " "
+                         << d.qEstimated.z << " "
+                         << d.qEstimated.w << " "
+                         << d.tGroundTruth.x << " "
+                         << d.tGroundTruth.y << " "
+                         << d.tGroundTruth.z << " "
+                         << d.qGroundTruth.x << " "
+                         << d.qGroundTruth.y << " "
+                         << d.qGroundTruth.z << " "
+                         << d.qGroundTruth.w << " "
+                         << "\n";
+                    ++it;
+                }
+                file.close();
+            }
+
             void evalRPEPerSecond()
             {
                 Matrix4f deltaError;
