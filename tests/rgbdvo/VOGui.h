@@ -15,10 +15,6 @@ namespace cvt {
         public:
             VOGui();
 
-            Button          _nextButton;
-            Button          _stepButton;
-            Button          _optimizeButton;
-
             void setStepping( bool val );
             void setOptimize( bool val );
             void setOffsetPose( const Matrix4f& pose );
@@ -37,6 +33,9 @@ namespace cvt {
 
             void addKeyframe( const Matrix4f& pose );
 
+            Button          _nextButton;
+            Button          _stepButton;
+            Button          _optimizeButton;
         private:
             Window                      _mainWindow;
             ImageView                   _keyframeImage;

@@ -1,7 +1,9 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-#include <cvt/vision/rgbdvo/IntensityKeyframe.h>
+#include <cvt/vision/rgbdvo/ICKeyframe.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
+#include <cvt/vision/rgbdvo/GNOptimizer.h>
 #include <cvt/vision/rgbdvo/LMOptimizer.h>
 #include <cvt/vision/rgbdvo/TROptimizer.h>
 
@@ -39,10 +41,11 @@ Matrix4f poseFromVals( ConfigFile& cfg, const String& base )
 
 void run( ConfigFile& cfg )
 {
-    typedef StandardWarp<float> Warp;
-    typedef Huber<float>        LossFunc;
+    typedef StandardWarp Warp;
+    typedef Huber<float> LossFunc;
+    typedef GNOptimizer<Warp, LossFunc> OptimizerType;
 
-    Optimizer<Warp, LossFunc>   optimizer;
+    GNOptimizer<Warp, LossFunc>   optimizer;
     optimizer.setMaxIterations( cfg.valueForName<int>( "maxiters", 10 ) );
     optimizer.setMinUpdate( cfg.valueForName<float>( "minupdate", 0.000001f ) );
 
@@ -56,7 +59,7 @@ void run( ConfigFile& cfg )
     float  dFactor  = cfg.valueForName<float>( "depthFactor", 1000.0f );
     float  gThresh  = cfg.valueForName<float>( "gradientThreshold", 0.02f );
 
-    typedef IntensityKeyframe<Warp> KeyframeType;
+    typedef ICKeyframe<Warp> KeyframeType;
     KeyframeType keyframe( K, nOctaves, scale );
     keyframe.setDepthMapScaleFactor( dScale * dFactor );
     keyframe.setGradientThreshold( gThresh );
@@ -93,13 +96,13 @@ void run( ConfigFile& cfg )
     // compute relative pose using current image
     pyr.update( curgray );
     start = poseFromVals( cfg, "start" );
-    KeyframeType::Result result;
+    OptimizerType::Result result;
     optimizer.optimize( result, start, keyframe, pyr, curdepth );
 
     Matrix4f gt = poseFromVals( cfg, "gt" );
-    std::cout << "Estimated\n" << result.warp.poseMatrix() << std::endl;
+    std::cout << "Estimated\n" << result.warp.pose() << std::endl;
     std::cout << "True\n" << gt << std::endl;
-    std::cout << "Delta\n" << gt.inverse() * result.warp.poseMatrix() << std::endl;
+    std::cout << "Delta\n" << gt.inverse() * result.warp.pose() << std::endl;
 }
 
 int main( int argc, char* argv[] )

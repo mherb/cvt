@@ -3,14 +3,14 @@
 namespace cvt {
 
     VOGui::VOGui() :
+        _nextButton( "next" ),
+        _stepButton( "enable stepping" ),
+        _optimizeButton( "Stop optimizing" ),
         _mainWindow( "RGBD-VO" ),
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
         _depthViewMov( &_depthView ),
         _poseMov( &_poseView ),
-        _nextButton( "next" ),
-        _stepButton( "enable stepping" ),
-        _optimizeButton( "Stop optimizing" ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
         _pixelPercentLabel( "\% Pixel: 0\%" )
