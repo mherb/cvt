@@ -15,9 +15,6 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
 #include <cvt/vision/rgbdvo/ApproxMedian.h>
-
-#include <Eigen/LU>
-
 #include <Eigen/LU>
 
 namespace cvt {
