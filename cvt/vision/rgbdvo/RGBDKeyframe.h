@@ -54,6 +54,7 @@ namespace cvt
                         _jacobians.reserve( size );
                         _screenJacobians.reserve( size );
                     }
+
                     void clear()
                     {
                         _points3d.clear();
@@ -86,6 +87,36 @@ namespace cvt
                     const JacobianVec& jacobians() const { return _jacobians; }
                     const ScreenJacVec& screenJacobians() const { return _screenJacobians; }
 
+                    void selectInformation( size_t n )
+                    {
+                        if( size() < n )
+                            return;
+
+                        InformationSelection<JacobianType> selector( n );
+                        const std::set<size_t>& ids = selector.selectInformation( &_jacobians[ 0 ], _jacobians.size() );
+
+                        // now rearrange the data according to the ids:
+                        std::set<size_t>::const_iterator it = ids.begin();
+                        const std::set<size_t>::const_iterator end = ids.end();
+
+                        size_t saveIdx = 0;
+                        while( it != end ){
+                            _jacobians[ saveIdx ] = _jacobians[ *it ];
+                            _points3d[ saveIdx ] = _points3d[ *it ];
+                            _pixelValues[ saveIdx ] = _pixelValues[ *it ];
+                            _screenJacobians[ saveIdx ] = _screenJacobians[ *it ];
+
+                            ++saveIdx;
+                            ++it;
+                        }
+
+                        // remove the rest
+                        _jacobians.erase( _jacobians.begin() + n, _jacobians.end() );
+                        _points3d.erase( _points3d.begin() + n, _points3d.end() );
+                        _pixelValues.erase( _pixelValues.begin() + n, _pixelValues.end() );
+                        _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
+                    }
+
                 protected:
                     std::vector<Vector3f>       _points3d;
                     std::vector<float>          _pixelValues;
@@ -106,10 +137,11 @@ namespace cvt
             // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
             // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
             //  val pixvals = 1m -> scale by (float_denorm) * 1/val
-            void setDepthMapScaleFactor( float val )                { _depthScaling = ( float )( 0xFFFF ) / val; }
-            void setMinimumDepth( float depthTresh )                { _minDepth = depthTresh; }
-            void setGradientThreshold( float thresh )               { _gradientThreshold = thresh; }
-            void setSelectionPixelPercentage( float n )             { _pixelPercentageToSelect = n; }
+            void setDepthMapScaleFactor( float val )        { _depthScaling = ( float )( 0xFFFF ) / val; }
+            void setMinimumDepth( float depthTresh )        { _minDepth = depthTresh; }
+            void setGradientThreshold( float thresh )       { _gradientThreshold = thresh; }
+            void setSelectionPixelPercentage( float n )     { _pixelPercentageToSelect = n; }
+            void setUseInformationSelection( bool v )       { _useInformationSelection = v; }
 
             void addPoints( const std::vector<Vector3f>& pts );
 
@@ -155,13 +187,13 @@ namespace cvt
             float               _minDepth;
             float               _gradientThreshold;
             float               _pixelPercentageToSelect;
+            bool                _useInformationSelection;
 
             void updateIntrinsics( const Matrix3f& K, float scale );
             void computeImageGradients( Image& gx, Image& gy, const Image& gray ) const;
 
             float interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const;
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
-            void  selectInformation( AlignmentData& data, size_t n );
     };
 
     template <class Warp>
@@ -175,7 +207,8 @@ namespace cvt
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _gradientThreshold( 0.0f ),
-        _pixelPercentageToSelect( 0.3f )
+        _pixelPercentageToSelect( 0.3f ),
+        _useInformationSelection( false )
     {
         //float s = -0.5f;
         //float s = -2.0f;
@@ -200,8 +233,12 @@ namespace cvt
         this->_pose = poseMat;
 
         float scale = 1.0f;
+        size_t nPixels = pyramid[ 0 ].width() * pyramid[ 0 ].height();
         for( size_t i = 0; i < pyramid.octaves(); i++ ){
             this->updateOfflineDataForScale( _dataForScale[ i ], pyramid[ i ], depth, scale );
+            if( _useInformationSelection ){
+                _dataForScale[ i ].selectInformation( nPixels * Math::sqr( scale ) * _pixelPercentageToSelect );
+            }
             scale /= pyramid.scaleFactor();
         }
     }
@@ -298,33 +335,6 @@ namespace cvt
         for( size_t i = 0; i < n; i++ ){
             vals[ i ] = ( i - c ) * invF;
         }
-    }
-
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::selectInformation( AlignmentData &data, size_t n )
-    {
-        InformationSelection<JacobianType> selector( n );
-        const std::set<size_t>& ids = selector.selectInformation( &data.jacobians[ 0 ], data.jacobians.size() );
-
-        // now rearrange the data according to the ids:
-        std::set<size_t>::const_iterator it = ids.begin();
-        const std::set<size_t>::const_iterator end = ids.end();
-
-        size_t saveIdx = 0;
-        data.hessian.setZero();
-        while( it != end ){
-            data.jacobians[ saveIdx ] = data.jacobians[ *it ];
-            data.points3d[ saveIdx ] = data.points3d[ *it ];
-            data.pixelValues[ saveIdx ] = data.pixelValues[ *it ];
-
-            saveIdx++;
-            it++;
-        }
-
-        // remove the rest
-        data.jacobians.erase( data.jacobians.begin() + n, data.jacobians.end() );
-        data.points3d.erase( data.points3d.begin() + n, data.points3d.end() );
-        data.pixelValues.erase( data.pixelValues.begin() + n, data.pixelValues.end() );
     }
 
     template <class WarpFunc>

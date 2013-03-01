@@ -48,7 +48,6 @@ namespace cvt {
                     depthScale( 1000.0f ),
                     minDepth( 0.5f ),
                     gradientThreshold( 0.02f ),
-                    //robustThreshold( 0.5f ),
                     maxIters( 10 ),
                     minParameterUpdate( 1e-6 )
                 {}
