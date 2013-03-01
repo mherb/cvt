@@ -48,6 +48,7 @@ namespace cvt {
                     depthScale( 1000.0f ),
                     minDepth( 0.5f ),
                     gradientThreshold( 0.02f ),
+                    useInformationSelection( false ),
                     maxIters( 10 ),
                     minParameterUpdate( 1e-6 )
                 {}
@@ -65,7 +66,8 @@ namespace cvt {
                                 cfg.valueForName<float>( "depthScale", 1.0f ) ),
                     minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
                     gradientThreshold( cfg.valueForName<float>( "gradientThreshold", 0.02f ) ),
-                    //robustThreshold( cfg.valueForName<float>( "robustThreshold", 0.5f ) ),
+                    useInformationSelection( cfg.valueForName<bool>( "useInformationSelection", false ) ),
+                    selectionPixelPercentage( cfg.valueForName<float>( "selectionPixelPercentage", 0.3f ) ),
                     maxIters( cfg.valueForName<int>( "maxIters", 10 ) ),
                     minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) )
                 {
@@ -93,6 +95,9 @@ namespace cvt {
                float depthScale;
                float minDepth;
                float gradientThreshold;
+
+               bool  useInformationSelection;
+               float selectionPixelPercentage;
 
                // optimizer:
                //float    robustThreshold;
@@ -241,6 +246,8 @@ namespace cvt {
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
         kf.setGradientThreshold( _params.gradientThreshold );
+        kf.setUseInformationSelection( _params.useInformationSelection );
+        kf.setSelectionPixelPercentage( _params.selectionPixelPercentage );
 
         _optimizer->setMaxIterations( _params.maxIters );
         _optimizer->setMinUpdate( _params.minParameterUpdate );

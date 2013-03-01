@@ -89,7 +89,7 @@ namespace cvt
 
                     void selectInformation( size_t n )
                     {
-                        if( size() < n )
+                        if( size() <= n )
                             return;
 
                         InformationSelection<JacobianType> selector( n );
