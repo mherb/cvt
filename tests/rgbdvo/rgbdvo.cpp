@@ -1,11 +1,10 @@
 #include <cvt/util/String.h>
 #include <cvt/util/EigenBridge.h>
-#include <cvt/util/Time.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/gui/Application.h>
 
 #include <RGBDVOApp.h>
-#include <BatchEvaluation.h>
+#include <EvalRun.h>
 #include <cvt/util/ConfigFile.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/GNOptimizer.h>
@@ -27,7 +26,6 @@ void runVOWithKFType( RGBDVisualOdometry<KFType, LossFunc>& vo, const String& fo
     parser.loadNext();
 
     const RGBDParser::RGBDSample& sample = parser.data();
-
     Image gray( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
     Image depth( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
     sample.rgb.convert( gray );
@@ -124,6 +122,7 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
     if( runMode == "BATCH" ){
         std::cout << "Starting batch mode" << std::endl;
         runVOWithKFType<KF, LF>( vo, folder, cfg );
+    } else if( runMode == "EVAL_CONVERGENCE" ) {
     } else {
         RGBDVOApp<KF, LF> app( &vo, folder );
         Application::run();
