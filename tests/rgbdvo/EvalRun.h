@@ -2,6 +2,7 @@
 #define CONVERGENCETESTS_H
 
 #include <cvt/util/ConfigFile.h>
+#include <cvt/util/Time.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 #include <cvt/io/RGBDParser.h>
@@ -17,20 +18,16 @@ namespace cvt {
                 _vo( vo ),
                 _parser( folder, 0.03f )
             {
-                parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
-                parser.loadNext();
+                _parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
+                _parser.loadNext();
 
-                const RGBDParser::RGBDSample& sample = parser.data();
+                const RGBDParser::RGBDSample& sample = _parser.data();
                 _gray.reallocate( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
                 _depth.reallocate( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
                 convertCurrent();
 
                 // add initial
                 _vo.addNewKeyframe( _gray, _depth, sample.pose<float>() );
-            }
-
-            void evaluateConvergenceArea( ConfigFile& cfg )
-            {
             }
 
             void evaluateDataSetPerformance( ConfigFile& cfg )
@@ -46,16 +43,15 @@ namespace cvt {
 
                 //float translationError = 0.0f;
 
-                pose = vo.pose();
-                while( parser.hasNext() ){
-                    parser.loadNext();
-                    const RGBDParser::RGBDSample& d = parser.data();
+                pose = _vo.pose();
+                while( _parser.hasNext() ){
+                    _parser.loadNext();
+                    const RGBDParser::RGBDSample& d = _parser.data();
 
                     time.reset();
-                    d.rgb.convert( gray );
-                    d.depth.convert( depth );
-                    pose = vo.pose();
-                    vo.updatePose( pose, gray, depth );
+                    convertCurrent();
+                    pose = _vo.pose();
+                    _vo.updatePose( pose, _gray, _depth );
 
                     timeSum += time.elapsedMilliSeconds();
                     iters++;
@@ -71,15 +67,14 @@ namespace cvt {
                         //translationError = currError;
                     }
 
-                    std::cout << "\r" << parser.iter() << " / " << parser.size();
+                    std::cout << "\r" << _parser.iter() << " / " << _parser.size();
                     std::flush( std::cout );
                 }
 
                 evaluator.writeComputedFile( "trajectory.txt" );
-                evaluator.evalRPEPerSecond();
-
+                //evaluator.evalRPEPerSecond();
                 std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
-                std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
+                std::cout << "Number of created Keyframes:\t "	<< _vo.numOverallKeyframes() << std::endl;
             }
 
         private:
@@ -91,7 +86,7 @@ namespace cvt {
 
             void convertCurrent()
             {
-                const RGBDParser::RGBDSample& sample = parser.data();
+                const RGBDParser::RGBDSample& sample = _parser.data();
                 sample.rgb.convert( _gray );
                 sample.depth.convert( _depth );
             }

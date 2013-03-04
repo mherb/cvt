@@ -18,67 +18,6 @@
 
 using namespace cvt;
 
-template <class KFType, class LossFunc>
-void runVOWithKFType( RGBDVisualOdometry<KFType, LossFunc>& vo, const String& folder, ConfigFile& cfg )
-{
-    RGBDParser parser( folder, 0.05f );
-    parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
-    parser.loadNext();
-
-    const RGBDParser::RGBDSample& sample = parser.data();
-    Image gray( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
-    Image depth( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
-    sample.rgb.convert( gray );
-    sample.depth.convert( depth );
-
-    vo.addNewKeyframe( gray, depth, sample.pose<float>() ); // add initial
-
-    BatchEvaluation evaluator;
-
-    Matrix4f pose; pose.setIdentity();
-
-    Time time;
-    size_t iters = 0;
-    float timeSum = 0;
-
-    //float translationError = 0.0f;
-
-    pose = vo.pose();
-    while( parser.hasNext() ){
-        parser.loadNext();
-        const RGBDParser::RGBDSample& d = parser.data();
-
-        time.reset();
-        d.rgb.convert( gray );
-        d.depth.convert( depth );
-        pose = vo.pose();
-        vo.updatePose( pose, gray, depth );
-
-        timeSum += time.elapsedMilliSeconds();
-        iters++;
-
-        if( d.poseValid ){
-            Matrix4f poseGT = d.pose<float>();
-            //float currError = ( poseGT - pose ).col( 3 ).length();
-
-            evaluator.add( d.stamp, pose, poseGT );
-
-            //float errorChange = currError - translationError;
-            //std::cout << "ErrorChange: " << errorChange << std::endl;
-            //translationError = currError;
-        }
-
-        std::cout << "\r" << parser.iter() << " / " << parser.size();
-        std::flush( std::cout );
-    }
-
-    evaluator.writeComputedFile( "trajectory.txt" );
-    evaluator.evalRPEPerSecond();
-
-    std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
-    std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
-}
-
 template <class Warp, class LossFunc>
 inline Optimizer<Warp, LossFunc>* createOptimizer( const String& optimizerName )
 {
@@ -119,13 +58,14 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
     RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
 
     String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
-    if( runMode == "BATCH" ){
-        std::cout << "Starting batch mode" << std::endl;
-        runVOWithKFType<KF, LF>( vo, folder, cfg );
-    } else if( runMode == "EVAL_CONVERGENCE" ) {
-    } else {
+
+    if( runMode == "GUI" ){
         RGBDVOApp<KF, LF> app( &vo, folder );
         Application::run();
+    } else if ( runMode == "BATCH" ){
+        std::cout << "Starting batch mode" << std::endl;
+        EvalRun<KF, LF> eval( vo, folder, cfg );
+        eval.evaluateDataSetPerformance( cfg );
     }
     delete optimizer;
     cfg.save( "rgbdvo.cfg" );
