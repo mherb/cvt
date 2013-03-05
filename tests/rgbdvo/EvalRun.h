@@ -3,7 +3,6 @@
 
 #include <cvt/util/ConfigFile.h>
 #include <cvt/util/Time.h>
-#include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/RGBDVisualOdometry.h>
 #include <cvt/io/RGBDParser.h>
 #include <BatchEvaluation.h>
@@ -30,7 +29,7 @@ namespace cvt {
                 _vo.addNewKeyframe( _gray, _depth, sample.pose<float>() );
             }
 
-            void evaluateDataSetPerformance( ConfigFile& cfg )
+            void evaluateDataSetPerformance( ConfigFile& /*cfg*/ )
             {
                 BatchEvaluation evaluator;
 

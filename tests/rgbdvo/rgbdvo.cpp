@@ -5,6 +5,7 @@
 
 #include <RGBDVOApp.h>
 #include <EvalRun.h>
+#include <ConvergenceEval.h>
 #include <cvt/util/ConfigFile.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/GNOptimizer.h>
@@ -53,19 +54,23 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
         }
         optimizer->setUseRegularization( true );
         optimizer->setRegularizationMatrix( reg );
+        optimizer->setRegularizationAlpha( cfg.valueForName<float>( "regularization_alpha", 0.3f ) );
     }
 
-    RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
-
     String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
-
-    if( runMode == "GUI" ){
-        RGBDVOApp<KF, LF> app( &vo, folder );
-        Application::run();
-    } else if ( runMode == "BATCH" ){
-        std::cout << "Starting batch mode" << std::endl;
-        EvalRun<KF, LF> eval( vo, folder, cfg );
-        eval.evaluateDataSetPerformance( cfg );
+    if( runMode == "CONV_EVAL" ){
+        ConvergenceEval<KF, LF> eval( optimizer, K, folder, cfg );
+        eval.evaluate();
+    } else {
+        RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
+        if( runMode == "GUI" ){
+            RGBDVOApp<KF, LF> app( &vo, folder );
+            Application::run();
+        } else if( runMode == "BATCH" ){
+            std::cout << "Starting batch mode" << std::endl;
+            EvalRun<KF, LF> eval( vo, folder, cfg );
+            eval.evaluateDataSetPerformance( cfg );
+        }
     }
     delete optimizer;
     cfg.save( "rgbdvo.cfg" );

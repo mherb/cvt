@@ -195,9 +195,7 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF, LossFunction>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
-
         _optimizer->optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
-
         _currentPose = _lastResult.warp.pose();
 
         // check if we need a new keyframe

@@ -52,10 +52,10 @@ namespace cvt {
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
-            //void setRobustThreshold( float v )      { _weighter.setThreshold( v ); }
             void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
             void setUseRegularization( bool v )     { _useRegularizer = v; }
             void setRegularizationMatrix( const HessianType& m ) { _regularizer = m; }
+            void setRegularizationAlpha( float v )  { _regAlpha = v; }
 
             /**
              * @brief setCostStopThreshold
@@ -76,6 +76,7 @@ namespace cvt {
             float           _minPixelPercentage;
             float           _costStopThreshold;
             bool            _useRegularizer;
+            float           _regAlpha;
             HessianType     _regularizer;
             DeltaType       _overallDelta;
 
@@ -105,8 +106,9 @@ namespace cvt {
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
         _minPixelPercentage( 0.8f ),
-        _costStopThreshold( 0.005f ),
+        _costStopThreshold( 0.002f ),
         _useRegularizer( false ),
+        _regAlpha( 0.2f ),
         _regularizer( HessianType::Zero() ),
         _overallDelta( DeltaType::Zero() ),
         _builder( _weighter )
@@ -170,6 +172,10 @@ namespace cvt {
     template <class WarpFunc, class LossFunc>
     inline float Optimizer<WarpFunc, LossFunc>::computeMedian( const float* residuals, size_t n ) const
     {
+        if( n == 1 ){
+            return residuals[ 0 ];
+        }
+
         ApproxMedian medianSelector( 0.0f, 1.0f, 0.02f );
 
         for( size_t i = 0; i < n; ++i ){
@@ -218,8 +224,10 @@ namespace cvt {
                                       residuals,
                                       n );
         if( _useRegularizer ){
-            hessian.noalias()  += _regularizer;
-            deltaSum.noalias() += _regularizer * _overallDelta;
+            hessian *= ( 1.0f - _regAlpha );
+            deltaSum *= ( 1.0f - _regAlpha );
+            hessian.noalias()  += _regAlpha * _regularizer;
+            deltaSum.noalias() += _regAlpha * _regularizer * _overallDelta;
         }
 
         return costs;
