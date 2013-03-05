@@ -131,14 +131,6 @@ namespace cvt {
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
-//      this is for computing the ESM jacobians
-//        ImagePyramid gradX( grayPyramid.octaves(), grayPyramid.scaleFactor() );
-//        ImagePyramid gradY( grayPyramid.octaves(), grayPyramid.scaleFactor() );
-//        grayPyramid.convolve( gradX, reference.kernelDx() );
-//        grayPyramid.convolve( gradY, reference.kernelDy());
-
-        // ensure that we had a successful optimization
-        bool resultOk = false;
         Result saveResult = result;
 
         if( _useRegularizer ){
@@ -150,8 +142,7 @@ namespace cvt {
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
             if( checkResult( result ) ){
-                saveResult = result;
-                resultOk = true;
+                saveResult = result;                
             }
         }
 

@@ -233,6 +233,9 @@ namespace cvt
         std::vector<String> depth;
         std::vector<bool> validity;
 
+        Quaterniond qlast;
+        Vector3d    tlast;
+        tlast.setZero();
         while( rgbIdx < rgbStamps.size() ){
             // find best depth for this rgb
             size_t bestDepthIdx = rgbIdx;
@@ -240,6 +243,7 @@ namespace cvt
                 bestDepthIdx = findClosestMatchInDepthStamps( rgbStamps[ rgbIdx ], 0, depthStamps );
             }
             double depthDist = Math::abs( rgbStamps[ rgbIdx ] - depthStamps[ bestDepthIdx ] );
+
             if( depthDist < _maxStampDiff ){
                 // now we have the match: rgbIdx & depthIdx and should search for the closest gt
                 depth.push_back( _depthFiles[ bestDepthIdx ] );
@@ -252,10 +256,12 @@ namespace cvt
                     orientations.push_back( _orientations[ bestGtIdx ] );
                     positions.push_back( _positions[ bestGtIdx ] );
                     validity.push_back( true );
+                    tlast = positions.back();
+                    qlast = orientations.back();
                 } else {
                     stamps.push_back( rgbStamps[ rgbIdx ] );
-                    orientations.push_back( orientations.back() );
-                    positions.push_back( positions.back() );
+                    orientations.push_back( qlast );
+                    positions.push_back( tlast );
                     validity.push_back( false );
                 }
            }

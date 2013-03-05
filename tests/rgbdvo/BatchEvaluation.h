@@ -47,31 +47,35 @@ namespace cvt {
                 std::vector<PosePair>::const_iterator it = _data.begin();
                 const std::vector<PosePair>::const_iterator itEnd = _data.end();
 
-                std::cout << "# <time_stamp> "
-                          << " <tx_estimated> "
-                          << " <ty_estimated> "
-                          << " <tz_estimated> "
-                          << " <q_x_estimated> "
-                          << " <q_y_estimated> "
-                          << " <q_z_estimated> "
-                          << " <q_w_estimated> "
-                          << " <tx_gt> "
-                          << " <ty_gt> "
-                          << " <tz_gt> "
-                          << " <q_x_gt> "
-                          << " <q_y_gt> "
-                          << " <q_z_gt> "
-                          << " <q_w_gt> "
-                          << " <delta_rot_euler_x> "
-                          << " <delta_rot_euler_y> "
-                          << " <delta_rot_euler_z> "
-                          << std::endl;
+                file << "# <time_stamp> "
+                     << " <tx_estimated> "
+                     << " <ty_estimated> "
+                     << " <tz_estimated> "
+                     << " <q_x_estimated> "
+                     << " <q_y_estimated> "
+                     << " <q_z_estimated> "
+                     << " <q_w_estimated> "
+                     << " <tx_gt> "
+                     << " <ty_gt> "
+                     << " <tz_gt> "
+                     << " <q_x_gt> "
+                     << " <q_y_gt> "
+                     << " <q_z_gt> "
+                     << " <q_w_gt> "
+                     << " <delta_rot_euler_x> "
+                     << " <delta_rot_euler_y> "
+                     << " <delta_rot_euler_z> "
+                     << " <delta_t_x> "
+                     << " <delta_t_y> "
+                     << " <delta_t_z> "
+                     << std::endl;
 
                 file.precision( 15 );
                 while( it != itEnd ){
                     const PosePair& d = *it;
                     Quaternionf qerr( d.errorMat.toMatrix3() );
                     Vector3f euler = qerr.toEuler();
+                    Vector3f dt = d.errorMat.col( 3 );
                     file << std::fixed
                          << d.timeStamp << " "
                          << d.tEstimated.x << " "
@@ -87,7 +91,13 @@ namespace cvt {
                          << d.qGroundTruth.x << " "
                          << d.qGroundTruth.y << " "
                          << d.qGroundTruth.z << " "
-                         << d.qGroundTruth.w << " "
+                         << d.qGroundTruth.w << " "                            
+                         << euler.x << " "
+                         << euler.y << " "
+                         << euler.z << " "
+                         << dt.x << " "
+                         << dt.y << " "
+                         << dt.z << " "
                          << "\n";
                     ++it;
                 }
