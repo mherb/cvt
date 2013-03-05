@@ -75,7 +75,8 @@ namespace cvt {
 
                         evalConvergenceForCurrentRef( refIdx );
                     }
-                    refIdx += 10;
+
+                    refIdx += 50;
 
                     std::cout.precision( 2 );
                     std::cout << "\r" << std::fixed << 100.0f * (float)refIdx / (float)_parser.size() << "%";
