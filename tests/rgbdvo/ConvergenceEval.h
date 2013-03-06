@@ -35,8 +35,9 @@ namespace cvt {
                 _optimizer( optimizer ),
                 _reference( K, cfg.valueForName<int>( "pyrOctaves", 3 ), cfg.valueForName<float>( "pyrScale", 0.5f ) ),
                 _pyramid( cfg.valueForName<int>( "pyrOctaves", 3 ), cfg.valueForName<float>( "pyrScale", 0.5f ) ),
-                _angleWeight( cfg.valueForName<float>( "conv_area_success_thresh", 0.02f ) ),
-                _successThresh( cfg.valueForName<float>( "conv_area_angle_weight", 0.1f ) )
+                _angleWeight( cfg.valueForName<float>( "conv_area_angle_weight", 0.5f ) ),
+                _successThresh( cfg.valueForName<float>( "conv_area_success_thresh", 0.02f ) ),
+                _nFailsStepOut( cfg.valueForName<int>( "conv_area_max_seq_fails", 5 ) )
             {
                 _reference.setDepthMapScaleFactor( cfg.valueForName<float>( "depthFactor", 1000.0f ) *
                                                    cfg.valueForName<float>( "depthScale", 1.0f ) );
@@ -75,7 +76,8 @@ namespace cvt {
 
                         evalConvergenceForCurrentRef( refIdx );
                     }
-                    refIdx += 10;
+
+                    refIdx += 50;
 
                     std::cout.precision( 2 );
                     std::cout << "\r" << std::fixed << 100.0f * (float)refIdx / (float)_parser.size() << "%";
@@ -100,15 +102,18 @@ namespace cvt {
             float                           _successThresh;
             Vector2f                        _angleExtent;
             Vector2f                        _tExtent;
+            size_t                          _nFailsStepOut;
 
             void evalConvergenceForCurrentRef( size_t startIdx )
             {
                 // move from startIdx backward
                 int idx = startIdx;
                 size_t seqFails = 0;
-                while( idx >= 0 && seqFails < 5 ){
+                while( idx >= 0 && seqFails < _nFailsStepOut ){
                     if( !computeAlignment( idx ) ){
                         seqFails++;
+                    } else {
+                        seqFails = 0;
                     }
                     idx--;
                 }
@@ -116,9 +121,11 @@ namespace cvt {
                 // move from startIdx forward
                 idx = startIdx;
                 seqFails = 0;
-                while( idx < _parser.size() && seqFails < 5 ){
+                while( idx < ( int )_parser.size() && seqFails < _nFailsStepOut ){
                     if( !computeAlignment( idx ) ){
                         seqFails++;
+                    } else {
+                        seqFails = 0;
                     }
                     idx++;
                 }
