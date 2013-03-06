@@ -304,8 +304,8 @@ namespace cvt {
         if( _useRegularizer ){
             hessian *= ( 1.0f - _regAlpha );
             deltaSum *= ( 1.0f - _regAlpha );
-            hessian.noalias()  += _regAlpha * _regularizer;
-            deltaSum.noalias() += _regAlpha * _regularizer * _overallDelta;
+            hessian.noalias()  += ( _regAlpha * _regularizer );
+            deltaSum.noalias() += ( _regAlpha * _regularizer * _overallDelta ).transpose();
         }
 
         return costs;

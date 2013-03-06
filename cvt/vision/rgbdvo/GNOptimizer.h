@@ -71,19 +71,12 @@ namespace cvt {
             // re-evaluate the cost function
             reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
 
-            float median = this->computeMedian( &residuals[ 0 ], residuals.size() );
-            float mad = this->computeMAD( &residuals[ 0 ], residuals.size(), median );
             result.numPixels = residuals.size();
-
-            // this is an estimate for the standard deviation:
-            this->_weighter.setScale( 1.4826f * mad );
-
-            result.costs = this->_builder.build( hessian,
+            result.costs = this->evaluateSystem( hessian,
                                                  deltaSum,
                                                  &jacobians[ 0 ],
                                                  &residuals[ 0 ],
                                                  residuals.size() );
-
             if( this->_logError ){
                 float avgCosts = 1.0f;
                 size_t n = residuals.size();
