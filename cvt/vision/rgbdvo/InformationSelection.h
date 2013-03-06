@@ -34,10 +34,10 @@ namespace cvt {
             /* number of pixels to select */
             size_t              _numPixels;
 
-            /* ids of the selected pixels */
+            /* ids of all selected pixels */
             std::set<size_t>    _ids;
 
-            /* sort input decending by parameter */
+            /* sort input descending by parameter */
             std::vector<std::vector<size_t> > _sortedIds;
 
             class IndexComparator {
@@ -62,11 +62,14 @@ namespace cvt {
     inline InformationSelection<JType>::InformationSelection( size_t numPixels ) :
         _numPixels( numPixels )
     {
-        _sortedIds.resize( 6 );
+        // array for each degree of freedom
+        _sortedIds.resize( JType::ColsAtCompileTime );
     }
 
     template <class JType>
-    inline InformationSelection<JType>::~InformationSelection(){}
+    inline InformationSelection<JType>::~InformationSelection()
+    {
+    }
 
     template <class JType>
     inline const std::set<size_t>& InformationSelection<JType>::selectInformation( JType* j, size_t n )
@@ -75,9 +78,12 @@ namespace cvt {
 
         // sort the first _numpixel parts for each dimension
         _sortedIds[ 0 ].clear();
-        _sortedIds[ 0 ].resize( n );
-        for( size_t i = 0; i < n; i++ ) _sortedIds[ 0 ][ i ] = i;
 
+        // initialize the indices for the first dof
+        _sortedIds[ 0 ].resize( n );
+        for( size_t i = 0; i < n; i++ ){
+            _sortedIds[ 0 ][ i ] = i;
+        }
 
         {
             IndexComparator cmp( j, 0 );
@@ -94,9 +100,10 @@ namespace cvt {
                                _sortedIds[ i ].end(), cmp );
         }
 
-        // select the best information
-        std::vector<size_t> idForDim( 6, 0 );
-        size_t currDim = 0;// alternate dimensions while selecting
+        // ids for each DOF
+        std::vector<size_t> idForDim( _sortedIds.size(), 0 );
+
+        size_t currDim = 0;// alternate dimensions while selecting the jacobians
         size_t idx = 0; // idx into id vector
         while( _ids.size() < _numPixels ){
             idx = idForDim[ currDim ];

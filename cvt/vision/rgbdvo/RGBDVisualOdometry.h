@@ -12,26 +12,100 @@
 #ifndef CVT_RGBDVISUALODOMETRY_H
 #define CVT_RGBDVISUALODOMETRY_H
 
-#include <cvt/vision/rgbdvo/KeyframeBase.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/util/EigenBridge.h>
 #include <cvt/util/Signal.h>
 #include <cvt/util/CVTAssert.h>
+#include <cvt/util/ConfigFile.h>
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/Optimizer.h>
-#include <cvt/vision/rgbdvo/LMOptimizer.h>
-#include <cvt/vision/rgbdvo/SplittedOptimizer.h>
-#include <cvt/vision/rgbdvo/TROptimizer.h>
 
 namespace cvt {
 
-    template <class DerivedKF, class LossFunction>
+    template <class KFType, class LossFunction>
     class RGBDVisualOdometry
     {
-
         public:
-            RGBDVisualOdometry( const Matrix3f& K, const VOParams& params );
+            typedef typename KFType::WarpType   Warp;
+            typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
+            typedef Optimizer<Warp, LossFunction> OptimizerType;
+            typedef typename OptimizerType::Result  Result;
+            //typedef GNOptimizer<Warp, LossFunction> OptimizerType;
+            //typedef LMOptimizer<Warp, LossFunction> OptimizerType;
+            //typedef TROptimizer<Warp, LossFunction> OptimizerType;
+
+            struct Params {
+                Params() :
+                    pyrOctaves( 3 ),
+                    pyrScale( 0.5f ),
+                    maxTranslationDistance( 0.4f ),
+                    maxRotationDistance( Math::deg2Rad( 5.0f ) ),
+                    maxSSDSqr( Math::sqr( 0.2f ) ),
+                    minPixelPercentage( 0.3f ),
+                    autoReferenceUpdate( true ),
+                    propagateDepth( true ),
+                    depthScale( 1000.0f ),
+                    minDepth( 0.5f ),
+                    gradientThreshold( 0.02f ),
+                    useInformationSelection( false ),
+                    maxIters( 10 ),
+                    minParameterUpdate( 1e-6 )
+                {}
+
+                Params( ConfigFile& cfg ) :
+                    pyrOctaves( cfg.valueForName<int>( "pyrOctaves", 3 ) ),
+                    pyrScale( cfg.valueForName<float>( "pyrScale", 0.5f ) ),
+                    maxTranslationDistance( cfg.valueForName<float>( "maxTranslationDistance", 0.4f ) ),
+                    maxRotationDistance( Math::deg2Rad( cfg.valueForName<float>( "maxRotationDistance", 5.0f ) ) ),
+                    maxSSDSqr( Math::sqr( cfg.valueForName<float>( "maxSSD", 0.2f ) ) ),
+                    minPixelPercentage( cfg.valueForName<float>( "minPixelPercentage", 0.3f ) ),
+                    autoReferenceUpdate( cfg.valueForName<bool>( "autoReferenceUpdate", true ) ),
+                    propagateDepth( cfg.valueForName<bool>( "propagateDepth", true ) ),
+                    depthScale( cfg.valueForName<float>( "depthFactor", 1000.0f ) *
+                                cfg.valueForName<float>( "depthScale", 1.0f ) ),
+                    minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
+                    gradientThreshold( cfg.valueForName<float>( "gradientThreshold", 0.02f ) ),
+                    useInformationSelection( cfg.valueForName<bool>( "useInformationSelection", false ) ),
+                    selectionPixelPercentage( cfg.valueForName<float>( "selectionPixelPercentage", 0.3f ) ),
+                    maxIters( cfg.valueForName<int>( "maxIters", 10 ) ),
+                    minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) )
+                {
+                    // TODO: Params should become a parameterset
+                    // conversion between paramset and configfile!
+                }
+
+               // pyramid
+               size_t pyrOctaves;
+               float  pyrScale;
+
+               // keyframe recreation thresholds
+               float maxTranslationDistance;
+               float maxRotationDistance;
+               float maxSSDSqr;
+               float minPixelPercentage;
+
+               // automatic update of reference when needed
+               bool autoReferenceUpdate;
+               // propagate depth on keyframe update
+               bool propagateDepth;
+
+               // how many pixels are one meter
+               // d_meters = d_pix / depthScale
+               float depthScale;
+               float minDepth;
+               float gradientThreshold;
+
+               bool  useInformationSelection;
+               float selectionPixelPercentage;
+
+               // optimizer:
+               //float    robustThreshold;
+               size_t   maxIters;
+               float    minParameterUpdate;
+            };
+
+            RGBDVisualOdometry( OptimizerType* optimizer, const Matrix3f& K, const Params& params );
             ~RGBDVisualOdometry();
 
             /**
@@ -58,19 +132,12 @@ namespace cvt {
 
             size_t          numKeyframes()  const                   { return _keyframes.size(); }
             const Matrix3f& intrinsics()    const                   { return _intrinsics; }
-            void            setMaxTranslationDistance( float dist ) { _maxTranslationDistance = dist; }
-            void            setMaxRotationDistance( float dist )    { _maxRotationDistance = Math::deg2Rad( dist ); }
-            void            setMaxSSD( float dist )                 { _maxSSDSqr = Math::sqr( dist ); }
-            void            setMinPixelPercentage( float v )        { _minPixPerc = v; }
-            void            setSelectionPixelPercentage( float v )  { _selectionPixelPercentage = v; }
-            void            setParams( const VOParams& p )          { _params = p; }
             void            setPose( const Matrix4f& pose )         { _currentPose = pose; }
             size_t          numOverallKeyframes() const             { return _numCreated; }
             float           lastSSD()             const             { return _lastResult.costs; }
             size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
-            void            autoReferenceUpdate() const             { return _autoReferenceUpdate; }
-            void            setAutoReferenceUpdate( bool v )        { _autoReferenceUpdate = v; }
+            void            setParameters( const Params& p )        { _params = p; }
 
             /******** SIGNALS ************/
             /**
@@ -79,64 +146,40 @@ namespace cvt {
              */
             Signal<const Matrix4f&>    keyframeAdded;
 
-            /**
-             *  \brief  Signal that will be emitted when the active keyframe changed
-             */
-            Signal<void>               activeKeyframeChanged;
-
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         private:
-            typedef typename DerivedKF::WarpFunction WFunc;
-            //typedef LMOptimizer<WFunc, LossFunction> OptimizerType;
-            //typedef SplittedOptimizer<WFunc, LossFunction> OptimizerType;
-            typedef Optimizer<WFunc, LossFunction> OptimizerType;
-            //typedef TROptimizer<WFunc, LossFunction> OptimizerType;
+            Params                      _params;
 
-            OptimizerType               _optimizer;
+            OptimizerType*              _optimizer;
             Matrix3f                    _intrinsics;
-            VOParams                    _params;
-
-            float                       _maxTranslationDistance;
-            float                       _maxRotationDistance;
-            float                       _maxSSDSqr;
-            float                       _minPixPerc;
-            float                       _selectionPixelPercentage;
-
-            bool                        _autoReferenceUpdate;
 
             // current active keyframe
-            DerivedKF*                  _activeKeyframe;
-            size_t						_numCreated;
-            std::vector<DerivedKF>      _keyframes;
+            KFType*                     _activeKeyframe;
+            size_t                      _numCreated;
+            std::vector<KFType>         _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
 
-            typename DerivedKF::Result  _lastResult;
+            Result                      _lastResult;
 
             bool needNewKeyframe() const;
-            void setKeyframeParams( DerivedKF& kf );
+            void setKeyframeParams( KFType& kf );
 
-
-            std::vector<ScaleFeatures>  _gridForScale;
-            void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
+            //std::vector<ScaleFeatures>  _gridForScale;
+            //void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
 
             void propagateDepth( Image& depth, const Matrix4f& pose ) const;
     };
 
-    template <class DerivedKF, class LossFunction>
-    inline RGBDVisualOdometry<DerivedKF, LossFunction>::RGBDVisualOdometry( const Matrix3f& K, const VOParams& params ) :
+    template <class KFType, class LossFunction>
+    inline RGBDVisualOdometry<KFType, LossFunction>::RGBDVisualOdometry( OptimizerType* optimizer, const Matrix3f& K, const Params& p ) :
+        _params( p ),
+        _optimizer( optimizer ),
         _intrinsics( K ),
-        _params( params ),
-        _maxTranslationDistance( 0.4f ),
-        _maxRotationDistance( Math::deg2Rad( 5.0f ) ),
-        _maxSSDSqr( Math::sqr( 0.2f ) ),
-        _minPixPerc( 0.5f ),
-        _selectionPixelPercentage( 0.3f ),
-        _autoReferenceUpdate( true ),
         _activeKeyframe( 0 ),
         _numCreated( 0 ),
-        _pyramid( params.octaves, params.pyrScale )
+        _pyramid( p.pyrOctaves, p.pyrScale )
     {
         _currentPose.setIdentity();
     }
@@ -152,69 +195,61 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF, LossFunction>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
-
-        _optimizer.optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
-
-        _currentPose = _lastResult.warp.poseMatrix();
+        _optimizer->optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
+        _currentPose = _lastResult.warp.pose();
 
         // check if we need a new keyframe
-        if( _autoReferenceUpdate && needNewKeyframe() ){
+        if( _params.autoReferenceUpdate && needNewKeyframe() ){
             addNewKeyframe( gray, depth, _currentPose );
         }
 
         pose = _currentPose;
     }
 
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
+    template <class KFType, class LossFunction>
+    inline void RGBDVisualOdometry<KFType, LossFunction>::addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose )
     {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
-        Image dCopy( depth );        
+        _currentPose = kfPose;
+        Image dCopy( depth );
         // for the moment, only one keyframe
         if( !_activeKeyframe ){
-            _keyframes.push_back( DerivedKF( _intrinsics, _params.octaves, _params.pyrScale ) );
+            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
             _activeKeyframe = &_keyframes[ 0 ];
-            _currentPose = kfPose;
-
-            _pyramid.update( gray );            
-
-//            _gridForScale.resize( _params.octaves );
-//            for( size_t i = 0; i < _pyramid.octaves(); i++ ){
-//                generateFeatureGrid( _gridForScale[ i ].positions, _pyramid[ i ].width(), _pyramid[ i ].height(), _pyramid[ i ].width() / 4, _pyramid[ i ].height() / 4 );
-//            }
-        } else {
-            // propagate the depth values to the current frame            
-            propagateDepth( dCopy, kfPose );            
+            // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
+            _pyramid.update( gray );
+        } else if( _params.propagateDepth ){
+            propagateDepth( dCopy, kfPose );
         }
 
         setKeyframeParams( *_activeKeyframe );
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
-        //_activeKeyframe->sparseOfflineData( _gridForScale, kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
 
         // testing:
-        dCopy.sub( depth );
-        dCopy.save( "propagated_depth.png" );
+        // dCopy.sub( depth );
+        // dCopy.save( "propagated_depth.png" );
 
         // notify observers
         keyframeAdded.notify( _currentPose );
-        activeKeyframeChanged.notify();
     }
 
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::setKeyframeParams( DerivedKF& kf )
+    template <class KFType, class LossFunction>
+    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFType &kf )
     {
+        // TODO: introduce keyframe parameters
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
         kf.setGradientThreshold( _params.gradientThreshold );
-        kf.setSelectionPixelPercentage( _selectionPixelPercentage );
+        kf.setUseInformationSelection( _params.useInformationSelection );
+        kf.setSelectionPixelPercentage( _params.selectionPixelPercentage );
 
-        _optimizer.setRobustThreshold( _params.robustParam );
-        _optimizer.setMaxIterations( _params.maxIters );
-        _optimizer.setMinUpdate( _params.minParameterUpdate );
+        _optimizer->setMaxIterations( _params.maxIters );
+        _optimizer->setMinUpdate( _params.minParameterUpdate );
+        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
     }
 
     template <class DerivedKF, class LossFunction>
@@ -225,8 +260,8 @@ namespace cvt {
         if( _lastResult.numPixels )
             avgSSD = _lastResult.costs / _lastResult.numPixels;
 
-        if( _lastResult.pixelPercentage < _minPixPerc ){
-            if( avgSSD < _maxSSDSqr ){
+        if( _lastResult.pixelPercentage < _params.minPixelPercentage ){
+            if( avgSSD < _params.maxSSDSqr ){
                 // we only should add a keyframe, if the last SSD was ok
                 return true;
             }
@@ -237,7 +272,7 @@ namespace cvt {
         Vector4f t = relPose.col( 3 );
         t[ 3 ] = 0;
         float tmp = t.length();
-        if( tmp > _maxTranslationDistance ){
+        if( tmp > _params.maxTranslationDistance ){
             //std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
@@ -246,7 +281,7 @@ namespace cvt {
         Quaternionf q( R );
         Vector3f euler = q.toEuler();
         tmp = euler.length();
-        if( tmp > _maxRotationDistance ){
+        if( tmp > _params.maxRotationDistance ){
             //std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
@@ -264,7 +299,7 @@ namespace cvt {
     {
         // project the points of the current keyframe onto the depth image
         if( _activeKeyframe ){
-            const typename DerivedKF::AlignDataType& d = _activeKeyframe->dataForScale( 0 );
+            const AlignDataType& d = _activeKeyframe->dataForScale( 0 );
 
             IMapScoped<float> dMap( depth );
 
@@ -275,9 +310,9 @@ namespace cvt {
             Matrix4f relativePose = pose.inverse() * _activeKeyframe->pose();
 
             // tranform points to the other frame
-            std::vector<Vector3f> transformedPts( d.points3d.size() );
+            std::vector<Vector3f> transformedPts( d.size() );
             SIMD* simd = SIMD::instance();
-            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points3d[ 0 ], transformedPts.size() );
+            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points()[ 0 ], transformedPts.size() );
 
             for( size_t i = 0; i < transformedPts.size(); i++ ){
                 Vector2f uv = _intrinsics * transformedPts[ i ];
@@ -287,7 +322,7 @@ namespace cvt {
                    int x = uv.x;
                    int y = uv.y;
                    float& dpos = dMap( y, x );
-                   if( dpos > 1 ){
+                   if( dpos > 1.0f /* there is a value */ ){
                        // average the Z value:
                        dpos = 0.5f * ( dpos + transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF );
                    } else {
@@ -296,32 +331,6 @@ namespace cvt {
                 }
             }
         }
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny )
-    {
-        float stepx = ( float )width / ( nx + 2 );
-        float stepy = ( float )height / ( ny + 2 );
-
-        features.reserve( nx * ny );
-        Vector2f p;
-        p.y = stepy;
-
-        for( size_t y = 0; y < ny; y++ ){
-            p.x = stepx;
-            for( size_t x = 0; x < nx; x++ ){
-                features.push_back( p );
-                p.x += stepx;
-            }
-            p.y += stepy;
-        }
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::addFeaturesToKeyframe( const std::vector<Vector3f>& pts )
-    {
-        _activeKeyframe->addPoints( pts );
     }
 
 }

@@ -14,121 +14,177 @@
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
-
+#include <cvt/vision/rgbdvo/ApproxMedian.h>
 #include <Eigen/LU>
 
 namespace cvt {
 
-    class HistMedianSelect {
+    class ErrorLogger {
         public:
-            HistMedianSelect( float min, float max, float resolution ) :
-                _min( min ),
-                _max( max ),
-                _resolution( resolution )
+            ErrorLogger()
+            {}
+
+            ~ErrorLogger()
             {
-                float range = _max - _min;
-                size_t nBins = range / resolution;
-                _hist.resize( nBins, 0 );
-            }
-
-            void add( float value )
-            {
-                value = Math::clamp( value, _min, _max );
-
-                size_t bin = ( value - _min ) / _resolution;
-                _hist[ bin ]++;
-            }
-
-            // approximate the nth value
-            float approximateNth( size_t nth )
-            {
-                size_t bin = 1;
-                size_t num = _hist[ 0 ];
-
-                while( num < nth ){
-                    num += _hist[ bin ];
-                    bin++;
+                if( _data.size() ){
+                    saveResult();
                 }
-                bin--;
-                size_t nPrev = num - _hist[ bin ];
-
-                if( bin )
-                    bin--;
-
-                // previous is smaller:
-                float frac = ( nth - nPrev ) / ( float )( num - nPrev );
-
-                return ( bin + frac ) * _resolution;
             }
 
-            void clearHistogram()
+            void log( size_t octave, size_t iteration, float avgError )
             {
-                for( size_t i = 0; i < _hist.size(); i++ ){
-                    _hist[ i ] = 0;
-                }
+                _data.push_back( LogData( octave, iteration, avgError ) );
+                _maxOctave = Math::max( _maxOctave, octave );
+                _maxIteration = Math::max( _maxIteration, iteration );
             }
 
         private:
-            float               _min;
-            float               _max;
-            float               _resolution;
-            std::vector<size_t> _hist;
+            struct LogData {
+                LogData( size_t o, size_t i, float e ):
+                    octave( o ), iteration( i ), error( e )
+                {}
+
+                size_t  octave;
+                size_t  iteration;
+                float   error;
+            };
+
+            std::vector<LogData>    _data;
+            size_t                  _maxOctave;
+            size_t                  _maxIteration;
+
+            struct ScaleResult {
+                ScaleResult( size_t maxIters )
+                {
+                    errorInIteration.resize( maxIters, 0.0f );
+                    samplesForIteration.resize( maxIters, 0 );
+                }
+
+                void add( size_t iter, float error )
+                {
+                    errorInIteration[ iter ] += error;
+                    samplesForIteration[ iter ]++;
+                }
+
+                float avgForIteration( size_t i ) const
+                {
+                    size_t n = samplesForIteration[ i ];
+                    if( n == 0 )
+                        return 0.0f;
+                    return errorInIteration[ i ] / n;
+                }
+
+                std::vector<float>  errorInIteration;
+                std::vector<size_t> samplesForIteration;
+            };
+
+            void saveResult()
+            {
+                std::ofstream file;
+                file.open( "conv_speed.txt" );
+                file.precision( 15 );
+                file << "# <octave> <error iter0> <...> <error itern>" << std::endl;
+
+                std::vector<ScaleResult> resultForOctave( _maxOctave + 1, ScaleResult( _maxIteration + 1 ) );
+                for( size_t i = 0; i < _data.size(); i++ ){
+                    const LogData& d = _data[ i ];
+                    resultForOctave[ d.octave ].add( d.iteration, d.error );
+                }
+
+                for( size_t k = 0; k < _maxIteration + 1; k++ ){
+                    file << k << " ";
+                    for( size_t i = 0; i < resultForOctave.size(); i++ ){
+                        file << std::fixed << resultForOctave[ i ].avgForIteration( k ) << " ";
+                    }
+                    file << "\n";
+                }
+
+                file.close();
+            }
     };
 
     template <class WarpFunc, class Weighter>
     class Optimizer
     {
         public:
-            typedef typename RGBDKeyframe<WarpFunc>::Result   ResultType;
+            typedef typename WarpFunc::JacobianType     JacobianType;
+            typedef typename WarpFunc::HessianType      HessianType;
+            typedef typename WarpFunc::DeltaVectorType  DeltaType;
+            typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
+
+            struct Result {
+                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+                Result() :
+                    success( false ),
+                    numPixels( 0 ),
+                    pixelPercentage( 0.0f ),
+                    costs( 0.0f )
+                {
+                }
+
+                bool        success;
+                size_t      iterations;
+                size_t      numPixels;
+                float       pixelPercentage; /* between 0 and 1 */
+                float       costs;
+
+                WarpFunc    warp;
+            };
 
             Optimizer();
             virtual ~Optimizer(){}
 
-            void setMaxIterations( size_t iter ) { _maxIter = iter; }
-            void setMinUpdate( float v )         { _minUpdate = v; }
-            void setRobustThreshold( float v )   { _robustThreshold = v; }
+            void setMaxIterations( size_t iter )    { _maxIter = iter; }
+            void setMinUpdate( float v )            { _minUpdate = v; }
+            void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
+            void setUseRegularization( bool v )     { _useRegularizer = v; }
+            void setRegularizationMatrix( const HessianType& m ) { _regularizer = m; }
+            void setRegularizationAlpha( float v )  { _regAlpha = v; }
+            void setLogError( bool v )              { _logError = v; }
 
-            virtual void optimize( ResultType& result,
-                                   const Matrix4f& posePrediction,
-                                   RGBDKeyframe<WarpFunc>& reference,
-                                   const ImagePyramid& grayPyramid,
-                                   const Image& depthImage ) const;
+            /**
+             * @brief setCostStopThreshold
+             * @param v early stepout, if average costs are below v!
+             */
+            void setCostStopThreshold( float v )    { _costStopThreshold = v; }
 
+            // scale-space optimization
+            void optimize( Result& result,
+                           const Matrix4f& posePrediction,
+                           RGBDKeyframe<WarpFunc>& reference,
+                           const ImagePyramid& grayPyramid,
+                           const Image& depthImage );
 
         protected:
-            typedef typename WarpFunc::JacobianType     JacobianType;
-            typedef typename WarpFunc::HessianType      HessianType;
-            typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef typename RGBDKeyframe<WarpFunc>::AlignDataType AlignDataType;
-            size_t  _maxIter;
-            float   _minUpdate;
-            float   _robustThreshold;
+            size_t          _maxIter;
+            float           _minUpdate;
+            float           _minPixelPercentage;
+            float           _costStopThreshold;
+            bool            _useRegularizer;
+            float           _regAlpha;
+            HessianType     _regularizer;
+            DeltaType       _overallDelta;
+            bool            _logError;
+            ErrorLogger     _logger;
 
-            float computeMedian( const float* residuals, const std::vector<size_t>& indices ) const
-            {
-                HistMedianSelect medianSelector( 0.0f, 1.0f, 0.01f );
+            Weighter                _weighter;
+            SystemBuilder<Weighter> _builder;
 
-                std::vector<size_t>::const_iterator it = indices.begin();
-                const std::vector<size_t>::const_iterator end = indices.end();
-                while( it != end ){
-                    medianSelector.add( Math::abs( residuals[ *it ] ) );
-                    ++it;
-                }
+            float computeMedian( const float* residuals, size_t n ) const;
+            float computeMAD( const float* residuals, size_t n, float median ) const;
+            bool checkResult( const Result& res ) const;
 
-                return medianSelector.approximateNth( indices.size() >> 1 );
-            }
+            float evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
+                                  const JacobianType* jacobians, const float* residuals, size_t n );
 
-            void validIndices( std::vector<size_t>& indices, const float* vals, size_t num, float minVal ) const
-            {
-                indices.clear();
-                indices.reserve( num );
+            void resetOverallDelta();
 
-                for( size_t i = 0; i < num; i++ ){
-                    if( vals[ i ] > minVal ){
-                        indices.push_back( i );
-                    }
-                }
-            }
+        private:
+            virtual void optimizeSingleScale( Result& result,
+                                              RGBDKeyframe<WarpFunc>& reference,
+                                              const Image& gray,
+                                              const Image& depthImage,
+                                              size_t octave ) = 0;
 
     };
 
@@ -136,131 +192,123 @@ namespace cvt {
     inline Optimizer<WarpFunc, LossFunc>::Optimizer() :
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
-        _robustThreshold( 0.1f )
+        _minPixelPercentage( 0.8f ),
+        _costStopThreshold( 0.002f ),
+        _useRegularizer( false ),
+        _regAlpha( 0.2f ),
+        _regularizer( HessianType::Zero() ),
+        _overallDelta( DeltaType::Zero() ),
+        _builder( _weighter )
     {
     }
 
     template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimize( ResultType& result,
+    inline void Optimizer<WarpFunc, LossFunc>::optimize( Result& result,
                                                          const Matrix4f& posePrediction,
                                                          RGBDKeyframe<WarpFunc> &reference,
                                                          const ImagePyramid& grayPyramid,
-                                                         const Image& /*depthImage*/ ) const
+                                                         const Image& depthImage )
     {
-        SIMD* simd = SIMD::instance();
         Matrix4f tmp4;
         tmp4 = posePrediction.inverse() * reference.pose();
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
-
-        result.iterationsOnOctave.resize( grayPyramid.octaves(), 0 );
+        result.iterations = 0;
         result.numPixels = 0;
         result.pixelPercentage = 0.0f;
 
-        LossFunc weighter( _robustThreshold );
-        SystemBuilder<LossFunc> builder( weighter );
+        Result saveResult = result;
 
-        Matrix4f projMat;
-        std::vector<Vector2f> warpedPts;
-        std::vector<float> interpolatedPixels;
-        std::vector<float> residuals;
-        std::vector<size_t> indices;
-
-        // sum of jacobians * delta
-        JacobianType deltaSum;
-        HessianType  hessian;
-
-        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            ResultType scaleResult;
-            scaleResult = result;
-
-            const size_t width = grayPyramid[ o ].width();
-            const size_t height = grayPyramid[ o ].height();
-
-            const AlignDataType& data = reference.dataForScale( o );
-
-            const size_t num = data.points3d.size();
-            Matrix4f K4( data.intrinsics );
-            const Vector3f* p3dPtr = &data.points3d[ 0 ];
-            const float* referencePixVals = &data.pixelValues[ 0 ];
-            const JacobianType* referenceJ = &data.jacobians[ 0 ];
-
-            warpedPts.resize( num );
-            interpolatedPixels.resize( num );
-            residuals.resize( num );
-
-            IMapScoped<const float> grayMap( grayPyramid[ o ] );
-
-            scaleResult.iterationsOnOctave[ o ] = 0;
-            scaleResult.numPixels = 0;
-            scaleResult.pixelPercentage = 0.0f;
-
-            while( scaleResult.iterationsOnOctave[ o ] < _maxIter ){
-                // build the updated projection Matrix
-                projMat = K4 * scaleResult.warp.poseMatrix();
-
-                // project the points:
-                simd->projectPoints( &warpedPts[ 0 ], projMat, p3dPtr, num );
-
-                // interpolate the pixel values
-                simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, grayMap.ptr(), grayMap.stride(), width, height, -1.0f, num );
-                scaleResult.warp.computeResiduals( &residuals[ 0 ], referencePixVals, &interpolatedPixels[ 0 ], num );
-
-                indices.clear();
-                validIndices( indices, &interpolatedPixels[ 0 ], num, -0.01f );
-
-                float median = computeMedian( &residuals[ 0 ], indices );
-                weighter.setSigma( 1.4f * median ); /* this is an estimate for the standard deviation */
-
-                /* a hack: the builder does not touch the hessian if its a non robust lossfunc!*/
-                hessian = data.hessian;
-                scaleResult.numPixels = builder.build( hessian, deltaSum,
-                                                       referenceJ,
-                                                       &residuals[ 0 ],
-                                                       indices,
-                                                       scaleResult.costs );
-                if( !scaleResult.numPixels ){
-                    break;
-                }
-
-                // evaluate the delta parameters
-                Eigen::FullPivLU<HessianType> lu( hessian );
-                if( !lu.isInvertible() ){
-                    std::cout << "Hessian not invertible!" << std::endl;
-                } {
-                    std::cout << "inversion possible" << std::endl;
-                }
-                DeltaType deltaP = -lu.inverse() * deltaSum.transpose();
-                scaleResult.warp.updateParameters( deltaP );
-
-
-//                std::cout << "Scale:\t" << o << "\tCosts:\t" << scaleResult.costs << "\tDelta:" <<
-//                             deltaP[ 0 ] << ", " <<
-//                             deltaP[ 1 ] << ", " <<
-//                             deltaP[ 2 ] << ", " <<
-//                             deltaP[ 3 ] << ", " <<
-//                             deltaP[ 4 ] << ", " <<
-//                             deltaP[ 5 ] <<  std::endl;
-//                std::cout << "Pose:\n" << scaleResult.warp.poseMatrix() << std::endl;
-
-                scaleResult.iterationsOnOctave[ o ]++;
-
-
-                if( deltaP.norm() < _minUpdate )
-                    break;
-            }
-
-            if( scaleResult.numPixels )
-                scaleResult.pixelPercentage = ( float )scaleResult.numPixels / ( float )num;
-
-            // TODO: ensure the result on this scale is good enough (pixel percentage & error )
-            result = scaleResult;
+        if( _useRegularizer ){
+            resetOverallDelta();
         }
 
-        tmp4 = result.warp.poseMatrix();
+        reference.updateOnlineData( grayPyramid, depthImage );
+        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
+            this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
+
+            if( checkResult( result ) ){
+                saveResult = result;                
+            }
+        }
+
+        result = saveResult;
+
+        // convert relative result to absolute pose: TODO: maybe do this outside
+        tmp4 = result.warp.pose();
         tmp4 = reference.pose() * tmp4.inverse();
         result.warp.setPose( tmp4 );
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline void Optimizer<WarpFunc, LossFunc>::resetOverallDelta()
+    {
+        _overallDelta.setZero();
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline float Optimizer<WarpFunc, LossFunc>::computeMedian( const float* residuals, size_t n ) const
+    {
+        if( n == 1 ){
+            return residuals[ 0 ];
+        }
+
+        ApproxMedian medianSelector( 0.0f, 1.0f, 0.02f );
+
+        for( size_t i = 0; i < n; ++i ){
+            medianSelector.add( Math::abs( residuals[ i ] ) );
+        }
+
+        return medianSelector.approximateNth( n >> 1 );
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline float Optimizer<WarpFunc, LossFunc>::computeMAD( const float* residuals, size_t n, float median ) const
+    {
+        ApproxMedian medianSelector( 0.0f, 0.5f, 0.02f );
+
+        for( size_t i = 0; i < n; ++i ){
+            medianSelector.add( Math::abs( residuals[ i ] - median ) );
+        }
+
+        return medianSelector.approximateNth( n >> 1 );
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline bool Optimizer<WarpFunc, LossFunc>::checkResult( const Result& res ) const
+    {
+        // too few pixels projected into image
+        if( res.pixelPercentage < _minPixelPercentage ){
+            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+
+    template <class WarpFunc, class LossFunc>
+    inline float Optimizer<WarpFunc, LossFunc>::evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
+                                                                const JacobianType* jacobians, const float* residuals, size_t n  )
+    {
+        float median = this->computeMedian( residuals, n );
+        float mad = this->computeMAD( residuals, n, median );
+
+        // this is an estimate for the standard deviation:
+        _weighter.setScale( 1.4826f * mad );
+        float costs = _builder.build( hessian,
+                                      deltaSum,
+                                      jacobians,
+                                      residuals,
+                                      n );
+        if( _useRegularizer ){
+            hessian *= ( 1.0f - _regAlpha );
+            deltaSum *= ( 1.0f - _regAlpha );
+            hessian.noalias()  += ( _regAlpha * _regularizer );
+            deltaSum.noalias() += ( _regAlpha * _regularizer * _overallDelta ).transpose();
+        }
+
+        return costs;
     }
 
 }

@@ -442,14 +442,14 @@ SET(${MODULE_NAME}_HEADERS
    vision/TSDFVolume.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
-   vision/rgbdvo/IntensityKeyframe.h
+   vision/rgbdvo/ApproxMedian.h
+   vision/rgbdvo/ESMKeyframe.h
+   vision/rgbdvo/ICKeyframe.h
+   vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/Optimizer.h
-   vision/rgbdvo/SplittedOptimizer.h
+   vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/LMOptimizer.h
    vision/rgbdvo/TROptimizer.h
-   vision/rgbdvo/IntensityDepthKeyframe.h
-   vision/rgbdvo/InformationSelection.h
-   vision/rgbdvo/KeyframeBase.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h

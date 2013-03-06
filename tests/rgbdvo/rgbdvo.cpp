@@ -1,133 +1,135 @@
 #include <cvt/util/String.h>
 #include <cvt/util/EigenBridge.h>
-#include <cvt/util/Time.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/gui/Application.h>
 
 #include <RGBDVOApp.h>
+#include <EvalRun.h>
+#include <ConvergenceEval.h>
 #include <cvt/util/ConfigFile.h>
+#include <cvt/vision/CameraCalibration.h>
+#include <cvt/vision/rgbdvo/Optimizer.h>
+#include <cvt/vision/rgbdvo/GNOptimizer.h>
+#include <cvt/vision/rgbdvo/LMOptimizer.h>
+#include <cvt/vision/rgbdvo/TROptimizer.h>
+#include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/vision/rgbdvo/ICKeyframe.h>
+#include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
 #include <Eigen/Geometry>
 
 using namespace cvt;
 
-void writePoseToFile( std::ofstream& file, const Matrix4f& pose, double stamp )
+template <class Warp, class LossFunc>
+inline Optimizer<Warp, LossFunc>* createOptimizer( const String& optimizerName )
 {
-    Quaternionf q( pose.toMatrix3() );
-
-    file.precision( 15 );
-    file << std::fixed << stamp << " "
-             << pose[ 0 ][ 3 ] << " "
-             << pose[ 1 ][ 3 ] << " "
-             << pose[ 2 ][ 3 ] << " "
-             << q.x << " "
-             << q.y << " "
-             << q.z << " "
-             << q.w << std::endl;
-}
-
-template <class KFType, class LossFunc>
-void runVOWithKFType( const VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
-{
-    RGBDParser parser( folder, 0.05f );
-    RGBDVisualOdometry<KFType, LossFunc> vo( K, params );
-    vo.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-    vo.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 3.0f ) );
-    vo.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-
-    parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
-    parser.loadNext();
-    const RGBDParser::RGBDSample& sample = parser.data();
-
-    Image gray( sample.rgb.width(), sample.rgb.height(), IFormat::GRAY_FLOAT );
-    Image depth( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
-    sample.rgb.convert( gray );
-    sample.depth.convert( depth );
-
-    vo.addNewKeyframe( gray, depth, sample.pose<float>() ); // add initial
-
-    std::ofstream file;
-    file.open( "trajectory.txt" );
-    Matrix4f pose; pose.setIdentity();
-
-    Time time;
-    size_t iters = 0;
-    float timeSum = 0;
-
-    float translationError = 0.0f;
-
-    pose = vo.pose();
-    while( parser.hasNext() ){
-        parser.loadNext();
-        const RGBDParser::RGBDSample& d = parser.data();
-
-        time.reset();
-        d.rgb.convert( gray );
-        d.depth.convert( depth );
-        pose = vo.pose();
-        vo.updatePose( pose, gray, depth );
-
-        timeSum += time.elapsedMilliSeconds();
-        iters++;
-
-        if( d.poseValid ){
-            float currError = ( d.pose<float>() - pose ).col( 3 ).length();
-
-            float errorChange = currError - translationError;
-            std::cout << "ErrorChange: " << errorChange << std::endl;
-            translationError = currError;
-        }
-
-
-        writePoseToFile( file, pose, d.stamp );
-
-        std::cout << "\r" << parser.iter() << " / " << parser.size();
-        std::flush( std::cout );
-        getchar();
+    if( optimizerName == "GaussNewton" ){
+        std::cout << "Creating GaussNewton Optimizer" << std::endl;
+        return new GNOptimizer<Warp, LossFunc>();
     }
-    std::cout << std::endl;
-    file.close();
+    if( optimizerName == "LevenbergMarquardt" ){
+        std::cout << "Creating LevenbergMarquardt Optimizer" << std::endl;
+        return new LMOptimizer<Warp, LossFunc>();
+    }
+    if( optimizerName == "TrustRegion" ){
+        std::cout << "Creating TrustRegion Optimizer" << std::endl;
+        return new TROptimizer<Warp, LossFunc>();
+    }
 
-    std::cout << "Average Proc. Time per frame:\t " << timeSum / iters << "ms" << std::endl;
-    std::cout << "Number of created Keyframes:\t "	<< vo.numOverallKeyframes() << std::endl;
+    throw CVTException( "unknown OptimizerType requested" );
 }
 
-void runBatch( VOParams& params, const Matrix3f& K, const String& folder, ConfigFile& cfg )
+template <class KF, class WF, class LF>
+void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
 {
+    Optimizer<WF, LF>* optimizer = createOptimizer<WF, LF>( cfg.valueForName<String>( "optimizer", "GaussNewton" ) );
 
-    typedef StandardWarp<float> StandardWarpf;
-    typedef AffineLightingWarp<float> ALWarpf;
-    typedef Huber<float> Huberf;
-    typedef Tukey<float> Tukeyf;
-    typedef NoWeighting<float> NoWeighting;
+    bool useRegularization = cfg.valueForName( "useRegularization", false );
+    if( useRegularization ){
+        typename Optimizer<WF, LF>::HessianType reg;
+        reg.setIdentity();
+        String parName;
+        for( int i = 0; i < reg.cols(); i++ ){
+            parName.sprintf( "reg_dim_%02d", i );
+            reg.coeffRef( i, i ) = cfg.valueForName<float>( parName, 1.0f );
+        }
+        optimizer->setUseRegularization( true );
+        optimizer->setRegularizationMatrix( reg );
+        optimizer->setRegularizationAlpha( cfg.valueForName<float>( "regularization_alpha", 0.3f ) );
+    }
 
-    String kftypeString = cfg.valueForName<String>( "keyframeType", "STD" );
-    std::cout << "Keyframetype: " << kftypeString << std::endl;
-    if( kftypeString.toUpper() == "STD" ){
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, NoWeighting >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "STD_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Huberf >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "STD_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<StandardWarpf>, Tukeyf>( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII" ) {
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, NoWeighting >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII_HUBER" ) {
-        params.robustParam = cfg.valueForName( "huberThreshold", 0.1f );
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, Huberf >( params, K, folder, cfg );
-    } else if( kftypeString.toUpper() == "AII_TUKEY" ) {
-        params.robustParam = cfg.valueForName( "tukeyThreshold", 0.2 );
-        runVOWithKFType<IntensityKeyframe<ALWarpf>, Tukeyf>( params, K, folder, cfg );
+    optimizer->setLogError( cfg.valueForName<bool>( "optimizer_log_error", false ) );
+    optimizer->setCostStopThreshold( cfg.valueForName<float>( "optimizer_cost_stop_thresh", 0.0001f ) );
+
+    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
+    if( runMode == "CONV_EVAL" ){
+        ConvergenceEval<KF, LF> eval( optimizer, K, folder, cfg );
+        eval.evaluate();
     } else {
-        std::cout << "Unknown keyframe type" << std::endl;
+        RGBDVisualOdometry<KF, LF> vo( optimizer, K,  cfg );
+        if( runMode == "GUI" ){
+            RGBDVOApp<KF, LF> app( &vo, folder );
+            Application::run();
+        } else if( runMode == "BATCH" ){
+            std::cout << "Starting batch mode" << std::endl;
+            EvalRun<KF, LF> eval( vo, folder, cfg );
+            eval.evaluateDataSetPerformance( cfg );
+        }
+    }
+    std::cout << "BYE" << std::endl;
+    delete optimizer;
+    cfg.save( "rgbdvo.cfg" );
+}
+
+template <class KFType, class WarpType>
+void createAppDefineLF( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    String lfType = cfg.valueForName<String>( "lossFunction", "Squared" );
+    if ( lfType == "Squared" ){
+        std::cout << "Using Squared Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, NoWeightingf>( K, folder, cfg );
+    } else if( lfType == "Huber" ){
+        std::cout << "Using Huber Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, Huberf>( K, folder, cfg );
+    } else if( lfType == "Tukey" ){
+        std::cout << "Using Tukey Loss" << std::endl;
+        runAppWithTypes<KFType, WarpType, Tukeyf>( K, folder, cfg );
+    } else {
+        throw CVTException( "unknown keyframeType" );
+    }
+}
+
+template <class WarpType>
+void createAppDefineKF( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    String keyframeType = cfg.valueForName<String>( "keyframe", "IC" );
+    if ( keyframeType == "IC" ){
+        std::cout << "Using InverseCompositional Algorithm" << std::endl;
+        createAppDefineLF<ICKeyframe<WarpType>, WarpType>( K, folder, cfg );
+    } else if( keyframeType == "ESM" ){
+        std::cout << "Using ESM Algorithm" << std::endl;
+        createAppDefineLF<ESMKeyframe<WarpType>, WarpType>( K, folder, cfg );
+    } else {
+        throw CVTException( "unknown keyframeType" );
+    }
+}
+
+void runApplication( const Matrix3f& K, const String& folder, ConfigFile& cfg )
+{
+    // define warp:
+    String warpType = cfg.valueForName<String>( "warp", "Standard" );
+    if( warpType == "Standard" ){
+        createAppDefineKF<StandardWarp>( K, folder, cfg );
+    } else if( warpType == "AI" ){
+        createAppDefineKF<AffineLightingWarp>( K, folder, cfg );
+    } else {
+        throw CVTException( "unkown warp" );
     }
 }
 
 int main( int argc, char* argv[] )
 {
-    ConfigFile cfg( "rgbdvo.cfg" );
-    //ConfigFile cfg( "rgbdvo_freiburg1.cfg" );
+    ConfigFile cfg( "rgbdvo.cfg" );    
 
     if( argc < 2 ){
         std::cout << "Usage: " << argv[ 0 ] << " <rgbd_dataset_folder>" << std::endl;
@@ -135,45 +137,13 @@ int main( int argc, char* argv[] )
     }
 
     String folder( argv[ 1 ] );
-    VOParams params;
-    params.maxIters = cfg.valueForName( "maxIterations", 10 );
-    params.gradientThreshold = cfg.valueForName( "gradientThreshold", 0.2f );
-    params.depthScale = cfg.valueForName( "depthFactor", 5000.0f ) * cfg.valueForName( "depthScale", 1.0f );
-    params.minParameterUpdate = cfg.valueForName( "minDeltaP", 0.0f );
-    params.pyrScale = cfg.valueForName( "pyrScale", 0.5f );
-    params.octaves = cfg.valueForName( "pyrOctaves", 3 );
-    params.robustParam = cfg.valueForName( "robustParam", 0.3f );
+    if( folder[ folder.length() - 1 ] != '/' )
+        folder += "/";
 
-    Matrix3f K;
-    K.setIdentity();
-    // freiburg 1
-    // K[ 0 ][ 0 ] = 517.306408;
-    // K[ 0 ][ 2 ] = 318.643040;
-    // K[ 1 ][ 1 ] = 516.469215;
-    // K[ 1 ][ 2 ] = 255.313989;
-    // freiburg 2
-    K[ 0 ][ 0 ] = 520.9f;
-    K[ 0 ][ 2 ] = 325.1f;
-    K[ 1 ][ 1 ] = 521.0f;
-    K[ 1 ][ 2 ] = 249.7f;
+    String calibFile( folder + "calib.xml" );
+    CameraCalibration calib;
+    calib.load( calibFile );
 
-    String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
-
-    cfg.save( "rgbdvo.cfg" );
-    std::cout << "Saving config" << std::endl;
-
-    if( runMode == "BATCH" ){
-        std::cout << "Starting batch mode" << std::endl;
-        runBatch( params, K, folder, cfg );
-    } else {
-        RGBDVOApp app( folder, K, params );
-        app.setMaxRotationDistance( cfg.valueForName( "maxRotationDist", 3.0f ) );
-        app.setMaxTranslationDistance( cfg.valueForName( "maxTranslationDist", 0.3f ) );
-        app.setMaxSSD( cfg.valueForName( "maxSSD", 0.2f ) );
-        app.setMinPixelPercentage( cfg.valueForName( "minPixelPercentage", 0.5f ) );
-        app.setSelectionPixelPercentage( cfg.valueForName( "selectionPixelPercentage", 0.3f ) );
-        Application::run();
-    }
-
+    runApplication( calib.intrinsics(), folder, cfg );
     return 0;
 }

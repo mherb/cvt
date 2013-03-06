@@ -138,6 +138,6 @@ namespace cvt {
 
 	void ApplicationOSX::exitApp()
 	{
-		[ NSApp terminate: nil ];
+		[ NSApp stop: nil ];
 	}
 }

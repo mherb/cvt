@@ -1,4 +1,4 @@
-SET(CMAKE_CONFIGURATION_TYPES Debug Release Atom)
+SET(CMAKE_CONFIGURATION_TYPES Debug Release Atom zeroopt)
 
 # set the default build type if needed
 IF(NOT CMAKE_BUILD_TYPE)

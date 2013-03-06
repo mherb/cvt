@@ -1159,6 +1159,26 @@ namespace cvt {
         return ssd;
     }
 
+    float SIMD::sumSqr( float const* src, const size_t n ) const
+    {
+        size_t i = n >> 2;
+
+        float sum = 0.0f;
+        while( i-- ) {
+            sum += Math::sqr( *src++ );
+            sum += Math::sqr( *src++ );
+            sum += Math::sqr( *src++ );
+            sum += Math::sqr( *src++ );
+        }
+
+        i = n & 0x03;
+        while( i-- ) {
+            sum += Math::sqr( *src++ );
+        }
+
+        return sum;
+    }
+
     float SIMD::SAD( float const* src1, float const* src2, const size_t n ) const
     {
         size_t i = n >> 2;

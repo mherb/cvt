@@ -27,6 +27,9 @@ namespace cvt {
 	template<typename T>
 		class PPCA {
 			public:
+				typedef Eigen::Matrix<T, Eigen::Dynamic, 1>				 VectorType;
+				typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
+
 				PPCA( size_t dimension, size_t subdimension, size_t mixcomponents );
 				virtual ~PPCA();
 
@@ -34,22 +37,22 @@ namespace cvt {
 				size_t subDimension() const;
 				size_t mixtureComponents() const;
 
-				void addSample( const Eigen::Matrix<T, Eigen::Dynamic, 1>& sample );
+				void addSample( const VectorType& sample );
 				void addSample( const T* sample );
 
 				void setRandomMeans();
-				void setMean( size_t index, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value );
+				void setMean( size_t index, const VectorType& value );
 
-				virtual void preprocessSample( Eigen::Matrix<T, Eigen::Dynamic, 1>& output, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value );
-				virtual void postprocessMean( Eigen::Matrix<T, Eigen::Dynamic, 1>& mean );
+				virtual void preprocessSample( VectorType& output, const VectorType& mean, const VectorType& value );
+				virtual void postprocessMean( VectorType& mean );
 
 				void calculate( size_t iterations );
 
-				void mean( size_t i, Eigen::Matrix<T, Eigen::Dynamic, 1>& m ) const;
+				void mean( size_t i, VectorType& m ) const;
 				T weight( size_t i ) const;
-				void principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p ) const;
-				void principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues ) const;
-				void principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues, T& sigma ) const;
+				void principleComponents( size_t i, MatrixType& p ) const;
+				void principleComponents( size_t i, MatrixType& p, VectorType& svalues ) const;
+				void principleComponents( size_t i, MatrixType& p, VectorType& svalues, T& sigma ) const;
 
 			private:
 				size_t _dimension;
@@ -59,12 +62,12 @@ namespace cvt {
 				T probability( const Eigen::Matrix<T, Eigen::Dynamic, 1>& value, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& covariance, T normalization );
 
 
-				std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> > _samples;
-				Eigen::Matrix<T, Eigen::Dynamic, 1>* _means;
-				T* _weights;
-				T* _sigmas2;
-				Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>* _pc;
-				Eigen::Matrix<T, Eigen::Dynamic, 1>* _evalues;
+				std::vector<VectorType>	_samples;
+				VectorType*				_means;
+				T*						_weights;
+				T*						_sigmas2;
+				MatrixType*				_pc;
+				VectorType*				_evalues;
 		};
 
 	template<typename T>
@@ -72,11 +75,11 @@ namespace cvt {
 	{
 		if( subDimension > dimension )
 			throw CVTException( "Subdimension has to be less than dimension");
-		_means = new Eigen::Matrix<T, Eigen::Dynamic,1>[ _mixcomponents ];
+		_means = new VectorType[ _mixcomponents ];
 		_weights = new T[ _mixcomponents ];
 		_sigmas2 = new T[ _mixcomponents ];
-		_pc = new Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>[ _mixcomponents ];
-		_evalues = new Eigen::Matrix<T, Eigen::Dynamic,1>[ _mixcomponents ];
+		_pc = new MatrixType[ _mixcomponents ];
+		_evalues = new VectorType[ _mixcomponents ];
 	}
 
 	template<typename T>
@@ -118,7 +121,7 @@ namespace cvt {
 	template<typename T>
 		inline void PPCA<T>::addSample( const T* data )
 		{
-			Eigen::Map< Eigen::Matrix<T, Eigen::Dynamic, 1> > sample( data, _dimension );
+			Eigen::Map<VectorType> sample( data, _dimension );
 			_samples.push_back( sample );
 		}
 
@@ -133,7 +136,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::setMean( size_t i, const Eigen::Matrix<T, Eigen::Dynamic, 1>& value )
+		inline void PPCA<T>::setMean( size_t i, const VectorType& value )
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
@@ -144,7 +147,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::mean( size_t i, Eigen::Matrix<T, Eigen::Dynamic, 1>& m ) const
+		inline void PPCA<T>::mean( size_t i, VectorType& m ) const
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
@@ -161,7 +164,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p ) const
+		inline void PPCA<T>::principleComponents( size_t i, MatrixType& p ) const
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
@@ -169,7 +172,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues ) const
+		inline void PPCA<T>::principleComponents( size_t i, MatrixType& p,  VectorType& svalues ) const
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
@@ -178,7 +181,7 @@ namespace cvt {
 		}
 
 	template<typename T>
-		inline void PPCA<T>::principleComponents( size_t i, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& p,  Eigen::Matrix<T, Eigen::Dynamic, 1>& svalues, T& sigma2 ) const
+		inline void PPCA<T>::principleComponents( size_t i, MatrixType& p,  VectorType& svalues, T& sigma2 ) const
 		{
 			if( i >= _mixcomponents )
 				throw CVTException( "Out of bounds" );
@@ -189,20 +192,20 @@ namespace cvt {
 
 
 	template<typename T>
-	inline void PPCA<T>::preprocessSample( Eigen::Matrix<T, Eigen::Dynamic, 1>& output, const Eigen::Matrix<T, Eigen::Dynamic, 1>& , const Eigen::Matrix<T, Eigen::Dynamic, 1>& value )
+	inline void PPCA<T>::preprocessSample( VectorType& output, const VectorType& , const VectorType& value )
 	{
 		output = value;
 	}
 
 	template<typename T>
-	inline void PPCA<T>::postprocessMean( Eigen::Matrix<T, Eigen::Dynamic, 1>& )
+	inline void PPCA<T>::postprocessMean( VectorType& )
 	{
 	}
 
 	template<typename T>
-	 inline T PPCA<T>::probability( const Eigen::Matrix<T, Eigen::Dynamic, 1>& value, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& invcovariance, T normalization )
+	 inline T PPCA<T>::probability( const VectorType& value, const VectorType& mean, const MatrixType& invcovariance, T normalization )
 	 {
-		Eigen::Matrix<T, Eigen::Dynamic, 1> d = value - mean;
+		VectorType d = value - mean;
 		return normalization * Math::exp( - ( ( T ) 0.5 ) * d.dot( invcovariance * d )  );
 	 }
 
@@ -211,10 +214,10 @@ namespace cvt {
 		{
 			T weights[ _mixcomponents ];
 			T pnormalize[ _mixcomponents ];
-			Eigen::Matrix<T, Eigen::Dynamic,1> newmeans[ _mixcomponents ];
-			Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> newcovar[ _mixcomponents ];
-			Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> C[ _mixcomponents ];
-			Eigen::Matrix<T, Eigen::Dynamic,1> samples[ _mixcomponents ];
+			std::vector<VectorType> newmeans( _mixcomponents );
+			std::vector<MatrixType> newcovar( _mixcomponents );
+			std::vector<MatrixType> C( _mixcomponents );
+			std::vector<VectorType> samples( _mixcomponents );
 
 			/* reset the prior weights for the mixture components */
 			/* reset the new means */

@@ -12,8 +12,8 @@ namespace cvt{
 
 	class BoardDetector {
 		public:
-			BoardDetector() {};
-			~BoardDetector() {};
+			BoardDetector() {}
+			~BoardDetector() {}
 
 			bool detectACirclePattern( PointSet2f& h, const Image& im, size_t dotCount1, size_t dotCount2 );
 

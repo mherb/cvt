@@ -36,6 +36,8 @@ namespace cvt
              */
             void addKeyframe( const Matrix4f& pose );
 
+            void setOffsetPose( const Matrix4f& pose );
+
         protected:
             void paintGLEvent( PaintEvent* );
             void mousePressEvent( MousePressEvent* e );
@@ -45,6 +47,7 @@ namespace cvt
 
         private:
             // view transform (virtual cam)
+            Matrix4f    _offset;
             Matrix4f	_rot;
             Vector3f	_trans;
             float		_near;
