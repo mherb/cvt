@@ -22,16 +22,6 @@
 
 namespace cvt
 {
-
-    static void saveGradientImages( const Image& gxI, const Image& gyI, float scale )
-    {
-        String file;
-        file.sprintf( "gradx_%f.png", scale );
-        gxI.save( file );
-        file.sprintf( "grady_%f.png", scale );
-        gyI.save( file );
-    }
-
     template <class T>
     static void dumpDataInfo( const T& data, float scale )
     {
