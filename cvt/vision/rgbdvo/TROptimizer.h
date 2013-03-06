@@ -89,6 +89,13 @@ namespace cvt {
         float expectedDecrease = -2.0f * deltaP.dot( deltaSum.transpose() );
         result.numPixels = residuals.size();
 
+        if( this->_logError ){
+            float avgCosts = 1.0f;
+            if( result.numPixels > 0 )
+                avgCosts = result.costs / result.numPixels;
+            this->_logger.log( octave, result.iterations, avgCosts );
+        }
+
         WarpFunc savedWarp( result.warp );
 
         float lambda = _initialLambda;
@@ -123,6 +130,13 @@ namespace cvt {
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 result.numPixels = residuals.size();
                 result.iterations++;
+
+                if( this->_logError ){
+                    float avgCosts = 1.0f;
+                    if( result.numPixels > 0 )
+                        avgCosts = result.costs / result.numPixels;
+                    this->_logger.log( octave, result.iterations, avgCosts );
+                }
 
                 // compute the step:
                 deltaP = -hessian.inverse() * deltaSum.transpose();

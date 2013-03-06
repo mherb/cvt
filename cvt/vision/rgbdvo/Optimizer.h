@@ -19,6 +19,90 @@
 
 namespace cvt {
 
+    class ErrorLogger {
+        public:
+            ErrorLogger()
+            {}
+
+            ~ErrorLogger()
+            {
+                if( _data.size() ){
+                    saveResult();
+                }
+            }
+
+            void log( size_t octave, size_t iteration, float avgError )
+            {
+                _data.push_back( LogData( octave, iteration, avgError ) );
+                _maxOctave = Math::max( _maxOctave, octave );
+                _maxIteration = Math::max( _maxIteration, iteration );
+            }
+
+        private:
+            struct LogData {
+                LogData( size_t o, size_t i, float e ):
+                    octave( o ), iteration( i ), error( e )
+                {}
+
+                size_t  octave;
+                size_t  iteration;
+                float   error;
+            };
+
+            std::vector<LogData>    _data;
+            size_t                  _maxOctave;
+            size_t                  _maxIteration;
+
+            struct ScaleResult {
+                ScaleResult( size_t maxIters )
+                {
+                    errorInIteration.resize( maxIters, 0.0f );
+                    samplesForIteration.resize( maxIters, 0 );
+                }
+
+                void add( size_t iter, float error )
+                {
+                    errorInIteration[ iter ] += error;
+                    samplesForIteration[ iter ]++;
+                }
+
+                float avgForIteration( size_t i ) const
+                {
+                    size_t n = samplesForIteration[ i ];
+                    if( n == 0 )
+                        return 0.0f;
+                    return errorInIteration[ i ] / n;
+                }
+
+                std::vector<float>  errorInIteration;
+                std::vector<size_t> samplesForIteration;
+            };
+
+            void saveResult()
+            {
+                std::ofstream file;
+                file.open( "conv_speed.txt" );
+                file.precision( 15 );
+                file << "# <octave> <error iter0> <...> <error itern>" << std::endl;
+
+                std::vector<ScaleResult> resultForOctave( _maxOctave + 1, ScaleResult( _maxIteration + 1 ) );
+                for( size_t i = 0; i < _data.size(); i++ ){
+                    const LogData& d = _data[ i ];
+                    resultForOctave[ d.octave ].add( d.iteration, d.error );
+                }
+
+                for( size_t k = 0; k < _maxIteration + 1; k++ ){
+                    file << k << " ";
+                    for( size_t i = 0; i < resultForOctave.size(); i++ ){
+                        file << std::fixed << resultForOctave[ i ].avgForIteration( k ) << " ";
+                    }
+                    file << "\n";
+                }
+
+                file.close();
+            }
+    };
+
     template <class WarpFunc, class Weighter>
     class Optimizer
     {
@@ -56,6 +140,7 @@ namespace cvt {
             void setUseRegularization( bool v )     { _useRegularizer = v; }
             void setRegularizationMatrix( const HessianType& m ) { _regularizer = m; }
             void setRegularizationAlpha( float v )  { _regAlpha = v; }
+            void setLogError( bool v )              { _logError = v; }
 
             /**
              * @brief setCostStopThreshold
@@ -79,6 +164,8 @@ namespace cvt {
             float           _regAlpha;
             HessianType     _regularizer;
             DeltaType       _overallDelta;
+            bool            _logError;
+            ErrorLogger     _logger;
 
             Weighter                _weighter;
             SystemBuilder<Weighter> _builder;

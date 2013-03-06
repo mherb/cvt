@@ -58,6 +58,8 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
         optimizer->setRegularizationAlpha( cfg.valueForName<float>( "regularization_alpha", 0.3f ) );
     }
 
+    optimizer->setLogError( cfg.valueForName<bool>( "optimizer_log_error", false ) );
+
     String runMode = cfg.valueForName<String>( "runMode", "BATCH" );
     if( runMode == "CONV_EVAL" ){
         ConvergenceEval<KF, LF> eval( optimizer, K, folder, cfg );

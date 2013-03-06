@@ -75,6 +75,13 @@ namespace cvt {
         result.numPixels = residuals.size();
         WarpFunc savedWarp( result.warp );
 
+        if( this->_logError ){
+            float avgCosts = 1.0f;
+            if( result.numPixels > 0 )
+                avgCosts = result.costs / result.numPixels;
+            this->_logger.log( octave, result.iterations, avgCosts );
+        }
+
         HessianType hTmp;
         while( result.iterations < this->_maxIter ){
             // compute the step:
@@ -103,6 +110,13 @@ namespace cvt {
                 dampingFactor *= 0.5f;
                 result.iterations++;
                 result.numPixels = residuals.size();
+
+                if( this->_logError ){
+                    float avgCosts = 1.0f;
+                    if( result.numPixels > 0 )
+                        avgCosts = result.costs / result.numPixels;
+                    this->_logger.log( octave, result.iterations, avgCosts );
+                }
 
                 if( result.costs / result.numPixels < Base::_costStopThreshold ){
                     // stop optimization, costs have reached sufficient minimum

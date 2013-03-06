@@ -84,6 +84,14 @@ namespace cvt {
                                                  &residuals[ 0 ],
                                                  residuals.size() );
 
+            if( this->_logError ){
+                float avgCosts = 1.0f;
+                size_t n = residuals.size();
+                if( n > 0 )
+                    avgCosts = result.costs / n;
+                this->_logger.log( octave, result.iterations, avgCosts );
+            }
+
             if( !result.numPixels /* no pixels projected */ ||
                 result.costs / result.numPixels < this->_costStopThreshold ){
                 break;
