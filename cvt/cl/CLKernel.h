@@ -65,7 +65,7 @@ namespace cvt {
 		cl_int err;
 		_object = ::clCreateKernel( prog, name, &err );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline CLKernel::CLKernel( const CLProgram& prog, const String& name )
@@ -73,14 +73,14 @@ namespace cvt {
 		cl_int err;
 		_object = ::clCreateKernel( prog, name.c_str(), &err );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 
 	inline CLKernel::CLKernel( const String& source, const String& name )
 	{
 		CLProgram prog( *CL::defaultContext(), source );
-		if( ! prog.build( *CL::defaultDevice() ,"-cl-single-precision-constant"/*, "-cl-single-precision-constant -cl-denorms-are-zero -cl-mad-enable -cl-fast-relaxed-math"*/ ) ) {
+		if( ! prog.build( *CL::defaultDevice() ,"-cl-denorms-are-zero"/*, "-cl-single-precision-constant -cl-denorms-are-zero -cl-mad-enable -cl-fast-relaxed-math"*/ ) ) {
 			String log;
 			prog.buildLog( *CL::defaultDevice(), log );
 			throw CVTException( log.c_str() );
@@ -88,8 +88,9 @@ namespace cvt {
 
 		cl_int err;
 		_object = ::clCreateKernel( prog, name.c_str(), &err );
-		if( err != CL_SUCCESS )
+		if( err != CL_SUCCESS ) {
 			throw CLException( __PRETTY_FUNCTION__, err );
+		}
 	}
 
 	inline size_t CLKernel::maxWorkGroupSize() const
@@ -154,7 +155,7 @@ namespace cvt {
 		cl_mem mem = ( cl_mem ) buf;
 		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline void CLKernel::setArg( cl_uint index, const CLBuffer& buf ) const
@@ -163,7 +164,7 @@ namespace cvt {
 		cl_mem mem = ( cl_mem ) buf;
 		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline void CLKernel::setArg( cl_uint index, CLImage2D& img ) const
@@ -173,7 +174,7 @@ namespace cvt {
 		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
 
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline void CLKernel::setArg( cl_uint index, const CLImage2D& img ) const
@@ -183,7 +184,7 @@ namespace cvt {
 		err = ::clSetKernelArg( _object, index, sizeof( cl_mem ), &mem );
 
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	inline void CLKernel::setArg( cl_uint index, Image& img ) const
@@ -209,7 +210,7 @@ namespace cvt {
 		cl_int err;
 		err = ::clSetKernelArg( _object, index, sizeof( arg ), &arg );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 	template<>
@@ -218,7 +219,7 @@ namespace cvt {
 		cl_int err;
 		err = ::clSetKernelArg( _object, index, s.size, NULL );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 

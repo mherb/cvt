@@ -16,6 +16,9 @@
 
 using namespace cvt;
 
+#define KX 16
+#define KY 16
+
 
 int main( int argc, char** argv )
 {
@@ -48,8 +51,10 @@ int main( int argc, char** argv )
 		Image clmatches2_2( input2.width(), input2.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image* clmatches2[ 2 ] = { &clmatches2_1, &clmatches2_2 };
 
-		CLBuffer viewbuf1( ( sizeof( cl_float4 ) * 3 + 2 * sizeof( cl_int ) ) * input1.width() * input1.height() );
-		CLBuffer viewbuf2( ( sizeof( cl_float4 ) * 3 + 2 * sizeof( cl_int ) ) * input2.width() * input2.height() );
+		CLBuffer viewbuf1( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input1.width() * input1.height() );
+		CLBuffer viewbuf2( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input2.width() * input2.height() );
+
+
 
 		CLKernel clpminit( _pmstereo_source, "pmstereo_init" );
 		CLKernel clpmpropagate( _pmstereo_source, "pmstereo_propagate_view" );
@@ -57,6 +62,7 @@ int main( int argc, char** argv )
 		CLKernel clpmlr( _pmstereo_source, "pmstereo_lr_check" );
 		CLKernel clpmviewbufclear( _pmstereo_source, "pmstereo_viewbuf_clear" );
 		CLKernel clgradxy( _gradxy_source, "gradxy" );
+		CLKernel clconsistency( _pmstereo_source, "pmstereo_consistency" );
 
 		clgradxy.setArg( 0, clinput1g );
 		clgradxy.setArg( 1, clinput1 );
@@ -67,9 +73,10 @@ int main( int argc, char** argv )
 		clgradxy.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		Time timer;
-		int patchsize = 20;
+		int patchsize = 17;
 		int lr = 1;
 		int rl = 0;
+
 
 		clpminit.setArg( 0, *clmatches1[ 0 ] );
 		clpminit.setArg( 1, clinput1 );
@@ -96,7 +103,7 @@ int main( int argc, char** argv )
 		clpmviewbufclear.run( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 
-		for( int iter = 0; iter < 15; iter++ ) {
+		for( int iter = 0; iter < 20; iter++ ) {
 			int swap = iter & 1;
 
 #if 1
@@ -110,13 +117,19 @@ int main( int argc, char** argv )
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 			cloutput1.save("stereo2.png");
 
+		/*	clconsistency.setArg( 0, cloutput1 );
+			clconsistency.setArg( 1, *clmatches1[ swap ] );
+			clconsistency.setArg( 2, *clmatches2[ swap ] );
+			clconsistency.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+			cloutput1.save("stereoconsistency.png");*/
+
 			getchar();
 #endif
 
 			clpmviewbufclear.setArg( 0, viewbuf1 );
 			clpmviewbufclear.setArg( 1, ( int ) input1.width() );
 			clpmviewbufclear.setArg( 2, ( int ) input1.height() );
-			clpmviewbufclear.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
+			clpmviewbufclear.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clpmpropagate.setArg( 0, *clmatches1[ 1 - swap ] );
 			clpmpropagate.setArg( 1, *clmatches1[ swap ] );
@@ -129,12 +142,12 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 8, iter );
 			clpmpropagate.setArg( 9, viewbuf2 );
 			clpmpropagate.setArg( 10, viewbuf1 );
-			clpmpropagate.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
+			clpmpropagate.run( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clpmviewbufclear.setArg( 0, viewbuf2 );
 			clpmviewbufclear.setArg( 1, ( int ) input2.width() );
 			clpmviewbufclear.setArg( 2, ( int ) input2.height() );
-			clpmviewbufclear.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+			clpmviewbufclear.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clpmpropagate.setArg( 0, *clmatches2[ 1 - swap ] );
 			clpmpropagate.setArg( 1, *clmatches2[ swap ] );
@@ -147,7 +160,7 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 8, iter );
 			clpmpropagate.setArg( 9, viewbuf1 );
 			clpmpropagate.setArg( 10, viewbuf2 );
-			clpmpropagate.run( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+			clpmpropagate.run( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;
