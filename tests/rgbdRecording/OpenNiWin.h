@@ -56,13 +56,13 @@ namespace cvt
 //					d->_rgb.save( out );
 //					out.sprintf( "%s/depth_%07d.cvtraw", _folder.c_str(), _iter );
 //					d->_depth.save( out );
-//					_iter++;
+					_iter++;
 
 					//d->_depth.convert( dFloat, IFormat::GRAY_FLOAT );
 					_rgbWriter.write( d->_rgb );
 					_depthWriter.write( d->_depth );
 
-					if( ( _iter % 150 ) == 0 ){
+					if( ( _iter % 180 ) == 0 ){
 						std::cout << "#";
 						std::flush( std::cout );
 					}
