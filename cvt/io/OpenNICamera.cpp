@@ -101,13 +101,20 @@ namespace cvt
     {
         XnStatus status = XN_STATUS_OK;
 
-        status = _context.WaitAnyUpdateAll();
+        status = _imageGen.WaitAndUpdateData();
         //status = _context.WaitAndUpdateAll();
         if( status != XN_STATUS_OK ){
-            throw CVTException( "Error in WaitAndUpdateData for depth" );
+            throw CVTException( "Error in WaitAndUpdateData for img" );
+        } else {
+            copyImage();
         }
-        copyImage();
-        copyDepth();
+
+        status = _depthGen.WaitAndUpdateData();
+        if( status != XN_STATUS_OK ){
+            throw CVTException( "Error in WaitAndUpdateData for depth" );
+        } else {
+            copyDepth();
+        }
 
 		return true;
     }
@@ -142,7 +149,6 @@ namespace cvt
     void OpenNICamera::setRegisterDepthToRGB( bool val )
     {
         xn::AlternativeViewPointCapability cap = _depthGen.GetAlternativeViewPointCap();
-
         bool canRegisterToRGB = cap.IsViewPointSupported( _imageGen );
         if( canRegisterToRGB ){
             bool isRegistered = cap.IsViewPointAs( _imageGen );

@@ -8,6 +8,7 @@
 #include <cvt/util/Time.h>
 #include <cvt/util/Thread.h>
 #include <cvt/util/TQueue.h>
+#include <cvt/util/ConfigFile.h>
 
 namespace cvt
 {
@@ -28,11 +29,13 @@ namespace cvt
 			ImageWriter( const String& folder ) :
 				_folder( folder ),
 				_iter( 0 ),
-				_stop( false )
+				_stop( false ),
+				_rgbWriter( "rgb.cvtraw" ),
+				_depthWriter( "depth.cvtraw" )
 			{
-				if( !FileSystem::exists( folder ) ){
-					FileSystem::mkdir( folder );
-				}
+//				if( !FileSystem::exists( folder ) ){
+//					FileSystem::mkdir( folder );
+//				}
 			}
 
 			~ImageWriter()
@@ -43,15 +46,21 @@ namespace cvt
 
 			void execute( void* )
 			{
+
+				//Image dFloat;
 				while( !_stop ){
 					QueueData* d = _queue.waitNext();
 
-					String out;
-					out.sprintf( "%s/rgb_%07d.cvtraw", _folder.c_str(), _iter );
-					d->_rgb.save( out );
-					out.sprintf( "%s/depth_%07d.cvtraw", _folder.c_str(), _iter );
-					d->_depth.save( out );
-					_iter++;
+//					String out;
+//					out.sprintf( "%s/rgb_%07d.cvtraw", _folder.c_str(), _iter );
+//					d->_rgb.save( out );
+//					out.sprintf( "%s/depth_%07d.cvtraw", _folder.c_str(), _iter );
+//					d->_depth.save( out );
+//					_iter++;
+
+					//d->_depth.convert( dFloat, IFormat::GRAY_FLOAT );
+					_rgbWriter.write( d->_rgb );
+					_depthWriter.write( d->_depth );
 
 					if( ( _iter % 150 ) == 0 ){
 						std::cout << "#";
@@ -73,44 +82,52 @@ namespace cvt
 			bool				_stop;
 			TQueue<QueueData*>	_queue;
 
+			RawVideoWriter		_rgbWriter;
+			RawVideoWriter		_depthWriter;
+
 	};
 
-	class OpenNiWin : public TimeoutHandler
+	class OpenNiRecorder
 	{
 		public:
-			OpenNiWin();
-			~OpenNiWin();
+			OpenNiRecorder( ConfigFile& cfg );
+			~OpenNiRecorder();
 
-			void onTimeout();
+			void run();
 
 		private:
-			uint32_t		_timerId;
 			OpenNICamera	_cam;
 			ImageWriter		_writer;
+			Image			_dFloat;
 	};
 
-	inline OpenNiWin::OpenNiWin() :
-		_cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) ),
+	inline OpenNiRecorder::OpenNiRecorder( ConfigFile& cfg ) :
+		_cam( 0, CameraMode( cfg.valueForName<int>( "width", 640 ),
+							 cfg.valueForName<int>( "height", 480 ),
+							 cfg.valueForName<int>( "fps", 30 ),
+							 IFormat::UYVY_UINT8 ) ),
 		_writer( "rgbdRecording" )
 	{
 		_writer.run( NULL );
 
-		_timerId = Application::registerTimer( 10, this );
         _cam.startCapture();
+        _cam.setSyncRGBDepth( cfg.valueForName<bool>( "sync_frames", false ) );
+        _cam.setRegisterDepthToRGB( cfg.valueForName<bool>( "register_frames", true ) );
+        cfg.save( "config.cfg" );
 	}
 
-	inline OpenNiWin::~OpenNiWin()
+	inline OpenNiRecorder::~OpenNiRecorder()
 	{
-		Application::unregisterTimer( _timerId );
 		_cam.stopCapture();
 	}
 
-	inline void OpenNiWin::onTimeout()
+	inline void OpenNiRecorder::run()
 	{
-		_cam.nextFrame();
-
-		ImageWriter::QueueData* data = new ImageWriter::QueueData( _cam.frame(), _cam.depth() );
-		_writer.addData( data );
+		while( true ){
+			_cam.nextFrame();
+			ImageWriter::QueueData* data = new ImageWriter::QueueData( _cam.frame(), _cam.depth() );
+			_writer.addData( data );
+		}
 	}
 }
 
