@@ -13,12 +13,14 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	const int bstride = lw + 2;
 	float dx, dy;
 	local float buf[ 18 ][ 18 ];
+	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );
+//	const float4 grayWeight =  ( float4 ) ( 0.333f, 0.333f, 0.333f, 0.0f );
 
 //	float4 c = read_imagef( src, sampler, ( int2 ) ( gx, gy ) );
 
 	for( int y = ly; y < lh + 2; y += lh ) {
 		for( int x = lx; x < lw + 2; x += lw ) {
-			buf[ y ][ x ] = dot( read_imagef( src, sampler, base + ( int2 )( x, y ) ), ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f ) );
+			buf[ y ][ x ] = dot( read_imagef( src, sampler, base + ( int2 )( x, y ) ), grayWeight );
 		}
 	}
 	barrier( CLK_LOCAL_MEM_FENCE );
@@ -28,8 +30,8 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	if( gx >= width || gy >= height )
 		return;
 
-	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) );// * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
-	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) );// * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
+	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) ) * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
+	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) ) * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
 	float dxy = ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1  ) );
 	float dyx = ( BUF( lx- 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) );
 

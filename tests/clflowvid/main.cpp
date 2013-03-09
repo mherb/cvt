@@ -30,7 +30,7 @@ class CameraTimeout : public TimeoutHandler
             _view( imageView ),
 			_evenodd( 0 ),
             _frames( 0.0f ),
-			_flow( 0.7, 5 ),
+			_flow( 0.9, 10 ),
 			_clccode( _FlowColorCode_source, "FlowColorCode" )
         {
             _cam->startCapture();
@@ -150,7 +150,7 @@ int main( )
 
         CameraTimeout camTimeOut( cam, &m, &camView );
 
-        uint32_t timerId = Application::registerTimer( 5, &camTimeOut );
+        uint32_t timerId = Application::registerTimer( 15, &camTimeOut );
         Application::run();
         Application::unregisterTimer( timerId );
 

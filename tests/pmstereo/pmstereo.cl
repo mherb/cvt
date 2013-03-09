@@ -135,17 +135,19 @@ typedef mwc64x_state_t RNG;
 #define RNG_float( x ) MWC64X_NextFloat( x )
 
 
-#define DEPTHMAX 80.0f
+#define DEPTHMAX 70.0f
 #define PROPSIZE 2
-#define DEPTHREFINEMUL 1.0f
-#define NORMALREFINEMUL 0.25f
-#define NORMALCOMPMAX 0.5f
+#define DEPTHREFINEMUL 2.0f
+#define NORMALREFINEMUL 0.05f
+#define NORMALCOMPMAX 0.95f
 #define NUMRNDTRIES	 3
 
-#define COLORWEIGHT 25.0f
+#define COLORWEIGHT 20.0f
 #define COLORGRADALPHA 0.05f
-#define COLORMAXDIFF 0.1f
-#define GRADMAXDIFF 0.1f
+#define COLORMAXDIFF 0.04f
+#define GRADMAXDIFF 0.01f
+#define OVERSAMPLE 1.0f
+#define VIEWSAMPLES 3
 
 // #define USELOCALBUF  1
 
@@ -153,7 +155,9 @@ const sampler_t SAMPLER_NN		 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 const sampler_t SAMPLER_BILINEAR = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 
 
-float4 nd_state_init( RNG* rng, const float2 coord )
+float4 nd_state_viewprop( const float4 state, const float2 coord, const float _disp, const int lr );
+
+float4 nd_state_init( RNG* rng, const float2 coord, int lr )
 {
 	float z = RNG_float( rng ) * DEPTHMAX;
 	float4 n;
@@ -162,12 +166,21 @@ float4 nd_state_init( RNG* rng, const float2 coord )
 
 	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
-	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
+//	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
+	float4 ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
+	if( !lr )
+		ret = nd_state_viewprop( ret, 0, 0, 0 );
+//	ret = select( ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret,( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) + ret, ( int4 ) lr );
+	return ret;
 }
 
-float4 nd_state_refine( RNG* rng, const float4 state, const float2 coord )
+float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int lr )
 {
 	float4 n;
+	float4 state = _state;
+	if( !lr )
+		state = nd_state_viewprop( state, 0, 0, 0 );
+	state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - state;
 	float z = state.x * coord.x + state.y * coord.y + state.z;
 	n.z = ( sqrt( 1.0f / ( state.x * state.x + state.y * state.y + 1.0f ) ) );
 	n.x = -state.x * n.z;
@@ -183,12 +196,40 @@ float4 nd_state_refine( RNG* rng, const float4 state, const float2 coord )
 
 	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
-	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
+//	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
+	float4 ret = ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
+	ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret;
+	if( !lr )
+		ret = nd_state_viewprop( state, 0, 0, 0 );
+	return ret;
 }
 
-float nd_state_transform( const float4 state, const float2 coord )
+
+float4 nd_state_viewprop2( const float4 state )
 {
-	return state.x * coord.x + state.y * coord.y + state.z;
+	float4 n = state;
+	n.x = 1.0f + n.x;
+	return ( float4 ) ( ( 1.0f / n.x ) - 1.0f, -n.y / n.x, -n.z / n.x, 0.0f );
+}
+
+float4 nd_state_viewprop( const float4 state, const float2 coord, const float _disp, const int lr )
+{
+	float4 n = state;
+//	float newx = //select( _disp, -_disp, lr ) + coord.x;
+//	if( lr ) {
+//		n.x = 1.0f - n.x;
+//		return -( float4 ) ( ( 1.0f / n.x ), n.y / n.x, n.z / n.x - coord.x, 0.0f );
+//	} else {
+//		n.x = 1.0f + n.x;
+		float4 ret = ( float4 ) ( ( 1.0f / n.x ), -n.y / n.x, -n.z / n.x, 0.0f );
+		return ret;
+//		return select( -ret, ret, ( int4 ) lr );
+//	}
+}
+
+float2 nd_state_transform( const float4 state, const float2 coord )
+{
+	return ( float2 ) ( state.x * coord.x + state.y * coord.y + state.z, coord.y );
 }
 
 float4 nd_state_to_color( const float4 state, const float2 coord )
@@ -226,51 +267,45 @@ kernel float patch_eval_color_grad_weighted_localbuf( int2 lcoord, local float4*
 
 #endif
 
-float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only image2d_t gradimg1,
+inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only image2d_t gradimg1,
 									  read_only image2d_t colimg2, read_only image2d_t gradimg2,
 									  const float2 coord, const float4 state, const int patchsize, const int lr )
 {
 	float wsum1 = 0;
 	float ret1 = 0;
-	float4 m1 = 0, m2 = 0, m12 = 0;
-	float4 m1sq = 0, m2sq = 0;
 
-	float4 valcenter = read_imagef( colimg1, SAMPLER_NN, coord );
+	float4 valcenter = read_imagef( colimg1, SAMPLER_BILINEAR, coord );
 
-	for( int dy = -patchsize; dy <= patchsize; dy++ ) {
-		for( int dx = -patchsize; dx <= patchsize; dx++ ) {
+	for( float dy = -patchsize; dy <= patchsize; dy+=1.0f ) {
+		for( float dx = -patchsize; dx <= patchsize; dx+=1.0f ) {
 
-			float2 pos = coord + ( float2 ) ( dx, dy );
+			float2 displace = ( float2 ) ( dx * OVERSAMPLE, dy * OVERSAMPLE );
+//			float2 displace = ( float2 ) ( dx + 0.01 * pow(dx,3), dy + 0.01 * pow( dy, 3 ) );
+			float2 pos = coord + displace;
 
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos );
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos );
 
-			float w1 = exp( -fast_length( valcenter.xyz - val1.xyz ) * COLORWEIGHT );
+			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 			wsum1 += w1;
 
 			// transform point
-			float d = nd_state_transform( state, pos );
-			pos.x += select( d, -d, lr );
+	//		float d = nd_state_transform( state, pos );
+	//		pos.x += select( d, -d, lr );
+			pos = nd_state_transform( state, pos );
 
 			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos );
+
 			float4 gval2 = read_imagef( gradimg2, SAMPLER_BILINEAR, pos );
 
-			float C = COLORGRADALPHA * fmin( fast_length( ( val1 - val2 ).xyz ), COLORMAXDIFF ) + ( 1.0f - COLORGRADALPHA ) * fmin( fast_length( gval1 - gval2 ), GRADMAXDIFF );
+			float C = COLORGRADALPHA * dot( fmin( fabs( ( val1 - val2 ).xyz ), COLORMAXDIFF ), ( float3 ) 0.333f ) + ( 1.0f - COLORGRADALPHA ) * dot( fmin( fabs( ( gval1 - gval2 ) ), GRADMAXDIFF ), ( float4 ) 0.25f );
+
+//			float C = log( 0.25f * exp(-1.0f * fmin( fast_length( ( val1 - val2 ).xyz ), COLORMAXDIFF  ) ) + 0.75f * exp( -1.0f * fmin( fast_length( ( gval1 - gval2 ) ), GRADMAXDIFF ) ) ) / -1.0f;
+
 			ret1 += w1 * C;
-
-			m1 = m1 + val1 * w1;
-			m2 = m2 + val2 * w1;
-			m12 = m12 + val1 * val2 * w1;
-
-			m1sq += val1 * val1 * w1;
-			m2sq += val2 * val2 * w1;
-
 		}
 	}
 
-	float wsum1sqr = wsum1 * wsum1;
-
-//	return 0.25f * dot( fabs( ( float ) 1.0f - clamp( ( float4 ) 0.0f, ( float4 ) 1.0f, ( ( m12 / wsum1 - m1 * m2 / wsum1sqr ) / sqrt( max( 1e-8f, ( m1sq / wsum1 - m1 * m1 / wsum1sqr ) * ( m2sq / wsum1 - m2 * m2 / wsum1sqr ) ) ) ) ) ), ( float4 ) 0.25f ) + 0.75f * ret1 / wsum1;
 	return ret1 / wsum1;
 }
 
@@ -287,7 +322,7 @@ kernel void pmstereo_init( write_only image2d_t output, read_only image2d_t img1
 
 	RNG_init( &rng, coord.y * width + coord.x, 3 );
 
-	float4 ret = nd_state_init( &rng, coordf );
+	float4 ret = nd_state_init( &rng, coordf, lr );
 
 	ret.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, ret, patchsize, lr );
 
@@ -345,14 +380,14 @@ kernel void pmstereo_propagate( write_only image2d_t output, read_only image2d_t
 	}
 	// randomized refinement
 	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
-		neighbour = nd_state_refine( &rng, self, coordf );
+		neighbour = nd_state_refine( &rng, self, coordf, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
 		if( neighbour.w <= self.w  )
 			self = neighbour;
 	}
 	// random try
-	neighbour = nd_state_init( &rng, coordf );
+	neighbour = nd_state_init( &rng, coordf, lr );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
 	if( neighbour.w <= self.w  )
@@ -361,7 +396,6 @@ kernel void pmstereo_propagate( write_only image2d_t output, read_only image2d_t
 	write_imagef( output, coord, self );
 }
 
-#define VIEWSAMPLES 2
 
 typedef struct {
 	int n;
@@ -430,7 +464,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 		}
 	}
 	// random try
-	neighbour = nd_state_init( &rng, coordf );
+	neighbour = nd_state_init( &rng, coordf, lr );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 	if( neighbour.w <= self.w  )
 		self = neighbour;
@@ -448,7 +482,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 
 	// randomized refinement
 	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
-		neighbour = nd_state_refine( &rng, self, coordf );
+		neighbour = nd_state_refine( &rng, self, coordf, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
 		if( neighbour.w <= self.w  )
@@ -458,12 +492,12 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	// store view prop result
 	// maybe inconsistent r/w access - but random anyway
 #if 1
-	float d = nd_state_transform( self, coordf );
-	int disp = ( int ) ( select( d, -d, lr ) + coordf.x + 0.5f );
+	float2 pos2 = nd_state_transform( self, coordf );
+	int disp = ( int ) ( pos2.x + 0.5f );
 	if( disp >= 0 && disp < width ) {
-		int nold = atomic_inc( &viewout[ coord.y * width + disp ].n );
+		int nold = atomic_inc( &viewout[ gy * width + disp ].n );
 		if( nold < VIEWSAMPLES )
-			viewout[ coord.y * width + disp ].value[ nold ] = self;
+			viewout[ gy * width + disp ].value[ nold ] = nd_state_viewprop( self, coordf, 0, lr );
 	}
 #endif
 
@@ -484,10 +518,39 @@ kernel void pmstereo_depthmap( write_only image2d_t depthmap, read_only image2d_
 
 	float4 state = read_imagef( old, SAMPLER_NN, coord );
 	float4 val;
-	val.xyz = nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ) / DEPTHMAX;
+	val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - coord.x ) / DEPTHMAX;
 	val.w = 1.0f;
 	write_imagef( depthmap, coord, val );
 }
+
+kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right )
+{
+	int2 coord;
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 statel = read_imagef( left, SAMPLER_NN, coord );
+	float2 coord2 = nd_state_transform( statel, ( float2 ) ( coord.x, coord.y ) );
+	float4 stater = read_imagef( right, SAMPLER_NN, coord2 );
+	float4 val;
+
+    val.xyz = length( ( statel - nd_state_viewprop( stater, ( float2 ) ( coord.x, coord.y ), 0, 1 ) ).xyz );
+	val.w = 1.0f;
+//	if( length( ( stater - nd_state_viewprop2( statel ) ).xyz ) < 1e-1f )
+//		val = ( float4 ) 1.0f;
+//	else
+//		val = ( float4 ) ( 1.0f, 0.0f, 0.0f, 1.0f );
+
+	write_imagef( output, coord, val );
+}
+
+
 
 kernel void pmstereo_normalmap( write_only image2d_t normalmap, read_only image2d_t old )
 
@@ -540,10 +603,10 @@ kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t 
 	float dorig = read_imagef( input1, SAMPLER_NN, coord ).x;
 	float d = DEPTHMAX * dorig;
 
-	int2 coord2 = coord;
-	coord2.x += ( int ) ( select( d, -d, lr ) + 0.5f );
-	float d2 = DEPTHMAX * read_imagef( input2, SAMPLER_NN, coord2 ).x;
-	float4 out = ( float4 ) select( 0.0f, dorig, fabs( d - d2) < maxdiff );
+	float2 coord2 = ( float2 ) ( coord.x, coord.y );
+	coord2.x += select( d, -d, lr );
+	float d2 = DEPTHMAX * read_imagef( input2, SAMPLER_BILINEAR, coord2 ).x;
+	float4 out = ( float4 ) select( 0.0f, dorig /* * ( DEPTHMAX * 4.0f / 256.0f )*/, fabs( d - d2) < maxdiff );
 	out.w = 1.0f;
 	write_imagef( output, coord, out );
 }

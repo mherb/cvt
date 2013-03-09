@@ -50,7 +50,7 @@ namespace cvt {
 		if( err == CL_BUILD_PROGRAM_FAILURE )
 			return false;
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 		return true;
 	}
 
@@ -61,7 +61,7 @@ namespace cvt {
 		if( err == CL_BUILD_PROGRAM_FAILURE )
 			return false;
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 		return true;
 	}
 
@@ -71,11 +71,11 @@ namespace cvt {
 		size_t size;
 		err = ::clGetProgramBuildInfo( *this, dev, CL_PROGRAM_BUILD_LOG, 0, NULL, &size );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 		log.resize( size );
 		err = ::clGetProgramBuildInfo( *this, dev, CL_PROGRAM_BUILD_LOG, size, &log[ 0 ], &size );
 		if( err != CL_SUCCESS )
-			throw CLException( err );
+			throw CLException( __PRETTY_FUNCTION__, err );
 	}
 
 }
