@@ -21,8 +21,10 @@ namespace cvt {
 
     class ErrorLogger {
         public:
-            ErrorLogger()
-            {}
+            ErrorLogger() :
+                _maxOctave( 0 ), _maxIteration( 0 )
+            {
+            }
 
             ~ErrorLogger()
             {
