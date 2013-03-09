@@ -12,13 +12,7 @@
 #ifndef CVT_ICKEYFRAME_H
 #define CVT_ICKEYFRAME_H
 
-#include <cvt/math/Matrix.h>
-#include <cvt/vision/ImagePyramid.h>
-#include <cvt/gfx/IMapScoped.h>
-#include <cvt/util/EigenBridge.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
-
-#include<Eigen/StdVector>
 
 namespace cvt
 {

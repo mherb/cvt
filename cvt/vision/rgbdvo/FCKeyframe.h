@@ -8,16 +8,14 @@
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
     PARTICULAR PURPOSE.
 */
-
-#ifndef CVT_ESMKEYFRAME_H
-#define CVT_ESMKEYFRAME_H
+#ifndef CVT_FCKEYFRAME_H
+#define CVT_FCKEYFRAME_H
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
-namespace cvt
-{
+namespace cvt {
     template <class WarpFunc>
-    class ESMKeyframe : public RGBDKeyframe<WarpFunc> {
+    class FCKeyframe : public RGBDKeyframe<WarpFunc> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef RGBDKeyframe<WarpFunc>              Base;
@@ -29,38 +27,38 @@ namespace cvt
             typedef typename Base::AlignmentData        AlignmentData;
             typedef typename Base::GradientType         GradientType;
 
-            ESMKeyframe( const Matrix3f &K, size_t octaves, float scale );
-            ~ESMKeyframe();
+            FCKeyframe( const Matrix3f &K, size_t octaves, float scale );
+            ~FCKeyframe();
 
             void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
-            
-			void recompute( std::vector<float>& residuals,
+
+            void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
                             const WarpFunc& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
-		private:
-			ImagePyramid	_onlineGradientsX;
-			ImagePyramid	_onlineGradientsY;
+        private:
+            ImagePyramid	_onlineGradientsX;
+            ImagePyramid	_onlineGradientsY;
 
             void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
     };
 
     template <class WarpFunc>
-    inline ESMKeyframe<WarpFunc>::ESMKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+    inline FCKeyframe<WarpFunc>::FCKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
         RGBDKeyframe<WarpFunc>( K, octaves, scale ),
-		_onlineGradientsX( octaves, scale ),
-		_onlineGradientsY( octaves, scale )
+        _onlineGradientsX( octaves, scale ),
+        _onlineGradientsY( octaves, scale )
     {
     }
 
     template <class WarpFunc>
-    inline ESMKeyframe<WarpFunc>::~ESMKeyframe()
+    inline FCKeyframe<WarpFunc>::~FCKeyframe()
     {
     }
 
     template <class WarpFunc>
-    inline void ESMKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
+    inline void FCKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
                                                  JacobianVec& jacobians,
                                                  const WarpFunc& warp,
                                                  const IMapScoped<const float>& gray,
@@ -95,27 +93,24 @@ namespace cvt
         // interpolate the pixel values
         simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, gray.ptr(), gray.stride(), width, height, -10.0f, n );
 
-		// interpolate the gradients for ESM
+		// evaluate the gradients at the warped positions
 		interpolateGradients( intGradX, _onlineGradientsX[ octave ], warpedPts, simd );
 		interpolateGradients( intGradY, _onlineGradientsY[ octave ], warpedPts, simd );
-        
-		// compute the residuals
+
+        // compute the residuals
         warp.computeResiduals( &residuals[ 0 ], &data.pixels()[ 0 ], &interpolatedPixels[ 0 ], n );
 
         // sort out bad pixels (out of image)
-        const JacobianVec& refJacs = data.jacobians();
         const ScreenJacVec& sj = data.screenJacobians();
         GradientType grad;
         size_t savePos = 0;
-        // TODO: move this right after the bilinear interpolation step?
-        JacobianType jCur;
+
         for( size_t i = 0; i < n; ++i ){
             if( interpolatedPixels[ i ] >= 0.0f ){
                 grad.coeffRef( 0, 0 ) = intGradX[ i ];
                 grad.coeffRef( 0, 1 ) = intGradY[ i ];
-                // compute the ESM jacobians
-                WarpFunc::computeJacobian( jCur, sj[ i ], grad, interpolatedPixels[ i ] );
-                jacobians[ savePos ] = 0.5f * ( refJacs[ i ] + jCur );
+                // compute the Fwd jacobians
+                WarpFunc::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolatedPixels[ i ] );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
             }
@@ -125,19 +120,21 @@ namespace cvt
     }
 
 	template <class WarpFunc>
-	inline void ESMKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
+	inline void FCKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
 	{
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );
 	}
 
     template <class WarpFunc>
-    inline void ESMKeyframe<WarpFunc>::interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const
+    inline void FCKeyframe<WarpFunc>::interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const
     {
         IMapScoped<const float> map( gradImg );
         simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );
     }
+
+
+
 }
 
-
-#endif // ESMKEYFRAME_H
+#endif // CVT_FCKEYFRAME_H
