@@ -49,8 +49,8 @@ namespace cvt {
 
 	inline void ArcBall::mapToSphere( Vector3f& vec, int _x, int _y )
 	{
-		vec[ 0 ] = -( ( ( float ) _x / ( float ) _width ) - 0.5f );
-		vec[ 1 ] = ( ( float ) _y / ( float ) _height ) - 0.5f;
+		vec[ 0 ] = -( ( ( float ) _x / ( ( float ) _width - 1.0f ) ) - 0.5f );
+		vec[ 1 ] = ( ( float ) _y / ( ( float ) _height - 1.0f ) ) - 0.5f;
 
 		float len = Math::sqr( vec[ 0 ] ) + Math::sqr( vec[ 1 ] );
 		if( len < Math::sqr( _radius ) * 0.5f ) {
