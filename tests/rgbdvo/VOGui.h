@@ -47,7 +47,6 @@ namespace cvt {
             Moveable                    _depthViewMov;
 
             PoseView                    _poseView;
-            Moveable                    _poseMov;
 
             Label                       _ssdLabel;
             Label                       _numPixelLabel;

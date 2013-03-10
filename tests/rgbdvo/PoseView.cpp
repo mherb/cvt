@@ -7,6 +7,7 @@ namespace cvt
         _trans( 0.0f, 0.0f, -10.0f ),
         _near( 0.1f ),
         _far( 100.0f ),
+        _arcball( 320, 240, 2.0f ),
         _numKeyframes( 0 ),
         _maxKeyframes( 5000 )
     {

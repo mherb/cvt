@@ -10,7 +10,6 @@ namespace cvt {
         _kfMov( &_keyframeImage ),
         _imageMov( &_currentImage ),
         _depthViewMov( &_depthView ),
-        _poseMov( &_poseView ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
         _pixelPercentLabel( "\% Pixel: 0\%" )
@@ -38,13 +37,8 @@ namespace cvt {
         _imageMov.setPosition( 300, 0 );
         _imageMov.setTitle( "Current Image" );
 
-        _mainWindow.addWidget( &_poseMov );
-        _poseMov.setSize( 300, 200 );
-        _poseMov.setPosition( 300, 200 );
-        _poseMov.setTitle( "Poses" );
 
         WidgetLayout wl;
-
         wl.setAnchoredBottom( 5, 30 );
         wl.setAnchoredRight( 5, 120 );
         _mainWindow.addWidget( &_nextButton, wl );
@@ -60,6 +54,10 @@ namespace cvt {
         wl.setAnchoredBottom( 180, 30 );
         _mainWindow.addWidget( &_pixelPercentLabel, wl );
         _mainWindow.setVisible( true );
+
+        wl.setRelativeLeftRight( 0.0f, 0.7f );
+        wl.setRelativeTopBottom( 0.0f, 0.7f );
+        _mainWindow.addWidget( &_poseView, wl );
     }
 
     void VOGui::setOptimize( bool val )
