@@ -67,17 +67,17 @@ namespace cvt
 
             // base level grid
             GLVertexArray	_grid;
-            GLBuffer	_gridLines;
-            size_t		_numLines;
+            GLBuffer        _gridLines;
+            size_t          _numLines;
 
             GLVertexArray	_axes;
-            GLBuffer	_axesBuf;
-            GLBuffer	_axesColBuf;
+            GLBuffer        _axesBuf;
+            GLBuffer        _axesColBuf;
 
-            size_t		_numKeyframes;
-            size_t		_maxKeyframes;
+            size_t          _numKeyframes;
+            size_t          _maxKeyframes;
             GLVertexArray	_keyframes;
-            GLBuffer	_keyframesAxesBuffer;
+            GLBuffer        _keyframesAxesBuffer;
 
             void createGrid( ssize_t halfRes );
             void createAxes();
