@@ -63,6 +63,7 @@ int main( int argc, char** argv )
 		CLKernel clpmviewbufclear( _pmstereo_source, "pmstereo_viewbuf_clear" );
 		CLKernel clgradxy( _gradxy_source, "gradxy" );
 		CLKernel clconsistency( _pmstereo_source, "pmstereo_consistency" );
+		CLKernel clfilldepthmap( _pmstereo_source, "pmstereo_fill_depthmap" );
 
 		clgradxy.setArg( 0, clinput1g );
 		clgradxy.setArg( 1, clinput1 );
@@ -117,11 +118,19 @@ int main( int argc, char** argv )
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 			cloutput1.save("stereo2.png");
 
-		/*	clconsistency.setArg( 0, cloutput1 );
+			clconsistency.setArg( 0, cloutput1 );
 			clconsistency.setArg( 1, *clmatches1[ swap ] );
 			clconsistency.setArg( 2, *clmatches2[ swap ] );
 			clconsistency.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
-			cloutput1.save("stereoconsistency.png");*/
+			cloutput1.save("stereoconsistency.png");
+
+			clfilldepthmap.setArg( 0, cloutput2 );
+			clfilldepthmap.setArg( 1, cloutput1 );
+			clfilldepthmap.setArg( 2, 1.0f / 70.0f );
+			clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+
+			cloutput2.save("stereofill.png");
+			cloutput2.save("stereofill.cvtraw");
 
 			getchar();
 #endif

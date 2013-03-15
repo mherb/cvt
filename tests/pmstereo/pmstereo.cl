@@ -147,6 +147,7 @@ typedef mwc64x_state_t RNG;
 #define COLORMAXDIFF 0.04f
 #define GRADMAXDIFF 0.01f
 #define OVERSAMPLE 1.0f
+#define OVERSAMPLECUBE 0.05f
 #define VIEWSAMPLES 3
 
 // #define USELOCALBUF  1
@@ -282,7 +283,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 		for( float dx = -patchsize; dx <= patchsize; dx+=1.0f ) {
 
 //			float2 displace = ( float2 ) ( dx * OVERSAMPLE, dy * OVERSAMPLE );
-			float2 displace = ( float2 ) ( dx + 0.01 * pow( dx, 3 ), dy + 0.01 * pow( dy, 3 ) );
+			float2 displace = ( float2 ) ( dx + OVERSAMPLECUBE * pow( dx, 3 ), dy + OVERSAMPLECUBE * pow( dy, 3 ) );
 			float2 pos = coord + displace;
 
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos );
@@ -520,7 +521,7 @@ kernel void pmstereo_depthmap( write_only image2d_t depthmap, read_only image2d_
 
 	float4 state = read_imagef( old, SAMPLER_NN, coord );
 	float4 val;
-	val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - coord.x ) / DEPTHMAX;
+	val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
 	val.w = 1.0f;
 	write_imagef( depthmap, coord, val );
 }
@@ -542,13 +543,61 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	float4 stater = read_imagef( right, SAMPLER_NN, coord2 );
 	float4 val;
 
-    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : nd_state_to_normal( statel );
+//    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
+    val = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>1.0f?( float4 ) 0.0f : ( statel );
 	val.w = 1.0f;
 
 	write_imagef( output, coord, val );
 }
 
 
+kernel void pmstereo_fill_depthmap( write_only image2d_t output, read_only image2d_t input, const float scale )
+{
+	int2 coord;
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 val;
+	float4 state = read_imagef( input, SAMPLER_NN, coord );
+
+	if( length( state.xyz ) < 1e-1f ) {
+		float4 left = ( float4 ) 0;
+		int x = coord.x - 1;
+		while( length( left.xyz ) < 1e-1f && x >= 0 ) {
+			left = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x--;
+		}
+
+		float4 right = ( float4 ) 0;
+		x = coord.x + 1;
+		while( length( right.xyz ) < 1e-1f && x < width ) {
+			right = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x++;
+		}
+
+		if( length( left.xyz ) < 1e-1f ) left.xyz = ( float3 ) -1e5f;
+		if( length( right.xyz ) < 1e-1f ) right.xyz = ( float3 ) -1e5f;
+
+		left.w = -( nd_state_transform( left, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+		right.w = -( nd_state_transform( right, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+
+		val.xyz = ( float3 ) fmin( left.w, right.w );
+		val.w = 1.0f;
+
+	} else {
+		val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+		val.w = 1.0f;
+	}
+
+	val.xyz *= scale;
+	write_imagef( output, coord, val );
+}
 
 kernel void pmstereo_normalmap( write_only image2d_t normalmap, read_only image2d_t old )
 
