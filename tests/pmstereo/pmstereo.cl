@@ -182,7 +182,7 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 		state = nd_state_viewprop( state, 0, 0, 0 );
 	state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - state;
 	float z = state.x * coord.x + state.y * coord.y + state.z;
-	n.z = ( sqrt( 1.0f / ( state.x * state.x + state.y * state.y + 1.0f ) ) );
+	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x * n.z;
 	n.y = -state.y * n.z;
 
@@ -232,9 +232,10 @@ float2 nd_state_transform( const float4 state, const float2 coord )
 	return ( float2 ) ( state.x * coord.x + state.y * coord.y + state.z, coord.y );
 }
 
-float4 nd_state_to_color( const float4 state, const float2 coord )
+float4 nd_state_to_color( const float4 _state, const float2 coord )
 {
 	float4 n;
+	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
@@ -244,9 +245,10 @@ float4 nd_state_to_color( const float4 state, const float2 coord )
 	return n;
 }
 
-float4 nd_state_to_normal( const float4 state )
+float4 nd_state_to_normal( const float4 _state )
 {
 	float4 n;
+	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
@@ -279,8 +281,8 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	for( float dy = -patchsize; dy <= patchsize; dy+=1.0f ) {
 		for( float dx = -patchsize; dx <= patchsize; dx+=1.0f ) {
 
-			float2 displace = ( float2 ) ( dx * OVERSAMPLE, dy * OVERSAMPLE );
-//			float2 displace = ( float2 ) ( dx + 0.01 * pow(dx,3), dy + 0.01 * pow( dy, 3 ) );
+//			float2 displace = ( float2 ) ( dx * OVERSAMPLE, dy * OVERSAMPLE );
+			float2 displace = ( float2 ) ( dx + 0.01 * pow( dx, 3 ), dy + 0.01 * pow( dy, 3 ) );
 			float2 pos = coord + displace;
 
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos );
@@ -540,12 +542,8 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	float4 stater = read_imagef( right, SAMPLER_NN, coord2 );
 	float4 val;
 
-    val.xyz = length( ( statel - nd_state_viewprop( stater, ( float2 ) ( coord.x, coord.y ), 0, 1 ) ).xyz );
+    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : nd_state_to_normal( statel );
 	val.w = 1.0f;
-//	if( length( ( stater - nd_state_viewprop2( statel ) ).xyz ) < 1e-1f )
-//		val = ( float4 ) 1.0f;
-//	else
-//		val = ( float4 ) ( 1.0f, 0.0f, 0.0f, 1.0f );
 
 	write_imagef( output, coord, val );
 }
