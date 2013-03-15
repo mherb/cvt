@@ -15,7 +15,9 @@ namespace cvt {
         public:
             EvalRun( RGBDVisualOdometry<KFType, LossFunc>&vo, const String& folder, ConfigFile& cfg ) :
                 _vo( vo ),
-                _parser( folder, 0.03f )
+                _parser( folder, 0.03f ),
+                _log( cfg.valueForName<bool>( "optimizer_log_error", false ) ),
+                _refHasGt( false )
             {
                 _parser.setIdx( cfg.valueForName( "dataStartIdx", 0 ) );
                 _parser.loadNext();
@@ -25,8 +27,19 @@ namespace cvt {
                 _depth.reallocate( sample.depth.width(), sample.depth.height(), IFormat::GRAY_FLOAT );
                 convertCurrent();
 
+                Delegate<void (const Matrix4f&)> d( this, &EvalRun::newKeyframeAdded );
+                _vo.keyframeAdded.add( d );
+
                 // add initial
-                _vo.addNewKeyframe( _gray, _depth, sample.pose<float>() );
+                _refHasGt = sample.poseValid;
+                if( _refHasGt ){
+                    _vo.addNewKeyframe( _gray, _depth, sample.pose<float>() );
+                } else {
+                    Matrix4f m; m.setIdentity();
+                    _vo.addNewKeyframe( _gray, _depth, m );
+                }
+
+
             }
 
             void evaluateDataSetPerformance( ConfigFile& /*cfg*/ )
@@ -47,6 +60,15 @@ namespace cvt {
                     _parser.loadNext();
                     const RGBDParser::RGBDSample& d = _parser.data();
 
+                    if( _log && _refHasGt && d.poseValid ){
+                        // compute the true relative pose
+                        // set it in the optimizer
+                        _vo.optimizer()->setErrorLoggerGTPose( d.pose<float>().inverse() * _gtRefPose );
+                        _vo.optimizer()->setLogError( true );
+                    } else {
+                        _vo.optimizer()->setLogError( false );
+                    }
+
                     time.reset();
                     convertCurrent();
                     pose = _vo.pose();
@@ -54,6 +76,7 @@ namespace cvt {
 
                     timeSum += time.elapsedMilliSeconds();
                     iters++;
+
 
                     if( d.poseValid ){
                         Matrix4f poseGT = d.pose<float>();
@@ -76,9 +99,23 @@ namespace cvt {
                 std::cout << "Number of created Keyframes:\t "	<< _vo.numOverallKeyframes() << std::endl;
             }
 
+            void newKeyframeAdded( const Matrix4f& )
+            {
+                const RGBDParser::RGBDSample& sample = _parser.data();
+                if( sample.poseValid ){
+                    _refHasGt = true;
+                    _gtRefPose = sample.pose<float>();
+                } else {
+                    _refHasGt = false;
+                }
+            }
+
         private:
             RGBDVisualOdometry<KFType, LossFunc>&    _vo;
             RGBDParser                               _parser;
+            bool                                     _log;
+            bool                                     _refHasGt;
+            Matrix4f                                 _gtRefPose;
 
             Image   _gray;
             Image   _depth;

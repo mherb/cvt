@@ -56,10 +56,9 @@ void runAppWithTypes( const Matrix3f& K, const String& folder, ConfigFile& cfg )
         }
         optimizer->setUseRegularization( true );
         optimizer->setRegularizationMatrix( reg );
-        optimizer->setRegularizationAlpha( cfg.valueForName<float>( "regularization_alpha", 0.3f ) );
+        optimizer->setRegularizationAlpha( cfg.valueForName<float>( "regularization_alpha", 0.5f ) );
     }
 
-    optimizer->setLogError( cfg.valueForName<bool>( "optimizer_log_error", false ) );
     optimizer->setCostStopThreshold( cfg.valueForName<float>( "optimizer_cost_stop_thresh", 0.0001f ) );
 
     String runMode = cfg.valueForName<String>( "runMode", "BATCH" );

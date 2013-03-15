@@ -90,10 +90,7 @@ namespace cvt {
         result.numPixels = residuals.size();
 
         if( this->_logError ){
-            float avgCosts = 1.0f;
-            if( result.numPixels > 0 )
-                avgCosts = result.costs / result.numPixels;
-            this->_logger.log( octave, result.iterations, avgCosts );
+            this->_logger.log( octave, result.iterations, result.warp.pose() );
         }
 
         WarpFunc savedWarp( result.warp );
@@ -132,10 +129,7 @@ namespace cvt {
                 result.iterations++;
 
                 if( this->_logError ){
-                    float avgCosts = 1.0f;
-                    if( result.numPixels > 0 )
-                        avgCosts = result.costs / result.numPixels;
-                    this->_logger.log( octave, result.iterations, avgCosts );
+                    this->_logger.log( octave, result.iterations, result.warp.pose() );
                 }
 
                 // compute the step:
