@@ -28,6 +28,9 @@ namespace cvt
                 Image		rgb;
                 Image		depth;
 
+                /**
+                 * @brief orientation from world: q_wc
+                 */
                 Quaterniond orientation;
                 Vector3d    position;
 

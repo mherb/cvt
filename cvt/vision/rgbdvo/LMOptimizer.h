@@ -55,8 +55,7 @@ namespace cvt {
     {
         JacobianType deltaSum;
         HessianType  hessian;
-        JacobianType dampingFactor( JacobianType::Ones() );
-        dampingFactor *= 0.01f;
+        float lambda = 0.01f;
 
         IMapScoped<const float> grayMap( gray );
 
@@ -76,17 +75,16 @@ namespace cvt {
         WarpFunc savedWarp( result.warp );
 
         if( this->_logError ){
-            float avgCosts = 1.0f;
-            if( result.numPixels > 0 )
-                avgCosts = result.costs / result.numPixels;
-            this->_logger.log( octave, result.iterations, avgCosts );
+            this->_logger.log( octave, result.iterations, result.warp.pose() );
         }
 
         HessianType hTmp;
         while( result.iterations < this->_maxIter ){
             // compute the step:
             hTmp = hessian;
-            hTmp.diagonal() += dampingFactor;
+
+            // multiplicative damping
+            hTmp.diagonal() *= ( 1.0f + lambda );
             DeltaType deltaP = -hTmp.inverse() * deltaSum.transpose();
 
             if( deltaP.norm() < this->_minUpdate )
@@ -107,15 +105,12 @@ namespace cvt {
                 this->_overallDelta.noalias() += deltaP;
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 savedWarp = result.warp;
-                dampingFactor *= 0.5f;
+                lambda *= 0.5f;
                 result.iterations++;
                 result.numPixels = residuals.size();
 
                 if( this->_logError ){
-                    float avgCosts = 1.0f;
-                    if( result.numPixels > 0 )
-                        avgCosts = result.costs / result.numPixels;
-                    this->_logger.log( octave, result.iterations, avgCosts );
+                    this->_logger.log( octave, result.iterations, result.warp.pose() );
                 }
 
                 if( result.costs / result.numPixels < Base::_costStopThreshold ){
@@ -127,7 +122,7 @@ namespace cvt {
                 result.warp = savedWarp;
 
                 // update the damping
-                dampingFactor *= 10.0f;
+                lambda *= 10.0f;
             }
         }
 

@@ -121,7 +121,7 @@ namespace cvt {
             void addNewKeyframe( const Image& gray, const Image& depth, const Matrix4f& kfPose );
 
             /**
-             *  \brief  get the absolute (world) pose of the last added image
+             *  \brief  get the absolute (world) pose of the last aligned image
              */
             const Matrix4f& pose() const;
 
@@ -138,6 +138,7 @@ namespace cvt {
             size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
             void            setParameters( const Params& p )        { _params = p; }
+            OptimizerType*  optimizer()                             { return _optimizer; }
 
             /******** SIGNALS ************/
             /**
