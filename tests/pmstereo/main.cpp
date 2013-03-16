@@ -74,7 +74,7 @@ int main( int argc, char** argv )
 		clgradxy.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		Time timer;
-		int patchsize = 17;
+		int patchsize = 19;
 		int lr = 1;
 		int rl = 0;
 
@@ -151,7 +151,7 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 8, iter );
 			clpmpropagate.setArg( 9, viewbuf2 );
 			clpmpropagate.setArg( 10, viewbuf1 );
-			clpmpropagate.run( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
+			clpmpropagate.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clpmviewbufclear.setArg( 0, viewbuf2 );
 			clpmviewbufclear.setArg( 1, ( int ) input2.width() );
@@ -169,34 +169,31 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 8, iter );
 			clpmpropagate.setArg( 9, viewbuf1 );
 			clpmpropagate.setArg( 10, viewbuf2 );
-			clpmpropagate.run( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
+			clpmpropagate.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 		}
 
 		std::cout << timer.elapsedMilliSeconds() << " ms" << std::endl;
 
-		clpmdepthmap.setArg( 0, cloutput1 );
-		clpmdepthmap.setArg( 1, clmatches1_1 );
-		clpmdepthmap.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
-		cloutput1.save( "stereo.png" );
-		cloutput1.save( "stereo.cvtraw" );
+		clconsistency.setArg( 0, cloutput1 );
+		clconsistency.setArg( 1, *clmatches1[ 1 ] );
+		clconsistency.setArg( 2, *clmatches2[ 1 ] );
+		clconsistency.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		cloutput1.save("stereoconsistency.png");
 
-		clpmdepthmap.setArg( 0, cloutput2 );
-		clpmdepthmap.setArg( 1, clmatches2_1 );
-		clpmdepthmap.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
-		cloutput2.save( "stereo2.png" );
-		cloutput2.save( "stereo2.cvtraw" );
+		Image cloutputfinal( input1.width(), input1.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
+		clfilldepthmap.setArg( 0, cloutputfinal );
+		clfilldepthmap.setArg( 1, cloutput1 );
+		clfilldepthmap.setArg( 2, ( 8.0f / 255.0f ) );
+		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
+		cloutputfinal.save( "stereofinal.png" );
 
-		Image cloutputfinal( input1.width(), input1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
-		clpmlr.setArg( 0, cloutputfinal );
-		clpmlr.setArg( 1, cloutput1 );
-		clpmlr.setArg( 2, cloutput2 );
-		clpmlr.setArg( 3, 1.0f );
-		clpmlr.setArg( 4, lr );
-		clpmlr.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
-
-		cloutputfinal.save( "stereolr.png" );
-		cloutputfinal.save( "stereolr.cvtraw" );
+		Image cloutputfinal2( input1.width(), input1.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+		clfilldepthmap.setArg( 0, cloutputfinal2 );
+		clfilldepthmap.setArg( 1, cloutput1 );
+		clfilldepthmap.setArg( 2, ( 8.0f / 255.0f ) );
+		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
+		cloutputfinal2.save( "stereofinal.cvtraw" );
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
