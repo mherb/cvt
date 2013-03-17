@@ -137,12 +137,12 @@ typedef mwc64x_state_t RNG;
 
 #define DEPTHMAX 70.0f
 #define PROPSIZE 2
-#define DEPTHREFINEMUL 2.0f
+#define DEPTHREFINEMUL 1.0f
 #define NORMALREFINEMUL 0.05f
 #define NORMALCOMPMAX 0.95f
 #define NUMRNDTRIES	 3
 
-#define COLORWEIGHT 20.0f
+#define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
 #define COLORMAXDIFF 0.04f
 #define GRADMAXDIFF 0.01f
@@ -279,24 +279,24 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	int width = get_image_width( colimg2 );
 	int height = get_image_height( colimg2 );
 
-	float4 valcenter = read_imagef( colimg1, SAMPLER_BILINEAR, coord );
+	float4 valcenter = read_imagef( colimg1, SAMPLER_BILINEAR, coord + ( float2 ) ( 0.5f, 0.5f) );
 
 	for( float dy = -patchsize; dy <= patchsize; dy+=1.0f ) {
 		for( float dx = -patchsize; dx <= patchsize; dx+=1.0f ) {
 
 			float2 displace = ( float2 ) ( dx * OVERSAMPLE, dy * OVERSAMPLE );
-//			float2 displace = ( float2 ) ( dx + OVERSAMPLECUBE * pow( dx, 3 ), dy + OVERSAMPLECUBE * pow( dy, 3 ) );
+			//float2 displace = ( float2 ) ( dx + OVERSAMPLECUBE * pow( dx, 3 ), dy + OVERSAMPLECUBE * pow( dy, 3 ) );
 			float2 pos = coord + displace;
 
 			if( pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height )
 				continue;
 
-			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos );
-			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos );
+			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
+			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-//			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( dot( displace, displace ) * 0.5f + 10.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( dot( displace, displace ) * 0.05f + 10.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
-			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
+			//float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
 			// transform point
 	//		float d = nd_state_transform( state, pos );
@@ -307,11 +307,11 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 
 			wsum1 += w1;
 
-			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos );
+			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float4 gval2 = read_imagef( gradimg2, SAMPLER_BILINEAR, pos );
+			float4 gval2 = read_imagef( gradimg2, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float C = COLORGRADALPHA * dot( fmin( fabs( ( val1 - val2 ).xyz ), COLORMAXDIFF ), ( float3 ) 0.333f ) + ( 1.0f - COLORGRADALPHA ) * dot( fmin( fabs( ( gval1 - gval2 ) ), GRADMAXDIFF ), ( float4 ) 0.25f );
+			float C = COLORGRADALPHA * dot( fmin( fabs( ( val1 - val2 ).xyz ), COLORMAXDIFF ), ( float3 ) 1.0f ) + ( 1.0f - COLORGRADALPHA ) * dot( fmin( fabs( ( gval1 - gval2 ) ), GRADMAXDIFF ), ( float4 ) 1.0f );
 
 //			float C = log( 0.25f * exp(-1.0f * fmin( fast_length( ( val1 - val2 ).xyz ), COLORMAXDIFF  ) ) + 0.75f * exp( -1.0f * fmin( fast_length( ( gval1 - gval2 ) ), GRADMAXDIFF ) ) ) / -1.0f;
 
@@ -319,7 +319,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 		}
 	}
 
-	if( wsum1 < 0.9f )
+	if( wsum1 <= 0.95f )
 		return 1e5f;
 	return ret1 / wsum1;
 }
@@ -556,7 +556,8 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	if( coord2.x < 0 || coord2.x >= width )
 		stater = ( float4 ) 1e5f;
 	else
-		stater = read_imagef( right, SAMPLER_BILINEAR, coord2 );
+		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f));
+		//stater = read_imagef( right, SAMPLER_, ( int2 ) ( coord2.x + 0.5f, coord2.y ) );
 	float4 val;
 
 //    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
