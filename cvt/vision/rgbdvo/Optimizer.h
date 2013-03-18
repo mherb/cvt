@@ -264,7 +264,8 @@ namespace cvt {
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
             if( checkResult( result ) ){
-                saveResult = result;                
+                saveResult = result;
+                saveResult.success = true;
             }
         }
 
