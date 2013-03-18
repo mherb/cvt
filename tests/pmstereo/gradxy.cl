@@ -30,10 +30,10 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	if( gx >= width || gy >= height )
 		return;
 
-	dx = ( BUF( lx + 1, ly ) - BUF( lx - 1, ly  ) ) * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
-	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) ) * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
-	float dxy = ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1  ) );
-	float dyx = ( BUF( lx- 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) );
+	dx = ( BUF( lx + 1, ly ) - BUF( lx , ly  ) );// * 0.5 + ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly - 1  ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly + 1 ) ) * 0.25;
+	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly ) );// * 0.5 + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25 + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25 ;
+	float dxy = ( BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) );
+	float dyx = ( BUF( lx + 1, ly - 1 ) - BUF( lx - 1, ly + 1 ) );
 
 
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( dx, dy, dxy, dyx ) );
