@@ -135,8 +135,8 @@ typedef mwc64x_state_t RNG;
 #define RNG_float( x ) MWC64X_NextFloat( x )
 
 
-#define DEPTHMAX 70.0f
-#define PROPSIZE 2
+#define DEPTHMAX 60.0f
+#define PROPSIZE 3
 #define DEPTHREFINEMUL 1.0f
 #define NORMALREFINEMUL 0.05f
 #define NORMALCOMPMAX 0.95f
@@ -279,6 +279,8 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	int width = get_image_width( colimg2 );
 	int height = get_image_height( colimg2 );
 
+//	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );
+
 	float4 valcenter = read_imagef( colimg1, SAMPLER_BILINEAR, coord + ( float2 ) ( 0.5f, 0.5f) );
 
 	for( float dy = -patchsize; dy <= patchsize; dy+=1.0f ) {
@@ -294,9 +296,9 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( dot( displace, displace ) * 0.05f + 10.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.0f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
-			//float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
+//			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
 			// transform point
 	//		float d = nd_state_transform( state, pos );
@@ -307,8 +309,9 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 
 			wsum1 += w1;
 
-			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
+#define TOGRAY(x) dot( x, grayWeight )
 
+			float4 val2 = read_imagef( colimg2, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval2 = read_imagef( gradimg2, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
 			float C = COLORGRADALPHA * dot( fmin( fabs( ( val1 - val2 ).xyz ), COLORMAXDIFF ), ( float3 ) 1.0f ) + ( 1.0f - COLORGRADALPHA ) * dot( fmin( fabs( ( gval1 - gval2 ) ), GRADMAXDIFF ), ( float4 ) 1.0f );
@@ -319,7 +322,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 		}
 	}
 
-	if( wsum1 <= 0.95f )
+	if( wsum1 <= 1.1f )
 		return 1e5f;
 	return ret1 / wsum1;
 }
@@ -558,8 +561,8 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	else
 		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f));
 		//stater = read_imagef( right, SAMPLER_, ( int2 ) ( coord2.x + 0.5f, coord2.y ) );
-	float4 val;
 
+	float4 val;
 //    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
     val = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f?( float4 ) 0.0f : ( statel );
 //    val = length( statel - nd_state_viewprop( stater, 0, 0, 0 ) ) > 2.0f?( float4 ) 0.0f : ( statel );
