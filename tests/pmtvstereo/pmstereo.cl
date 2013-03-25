@@ -175,6 +175,21 @@ float4 nd_state_init( RNG* rng, const float2 coord, int lr )
 	return ret;
 }
 
+float4 nd_state_to_ref_normal_depth( const float4 state, const float2 coord, const int lr )
+{
+	float4 ret;
+	float4 _state = state;
+	if( !lr )
+		_state = nd_state_viewprop( state, 0, 0, 0 );
+	_state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
+	ret.w = _state.x * coord.x + _state.y * coord.y + _state.z;
+	ret.z = rsqrt( _state.x * _state.x + _state.y * _state.y + 1.0f );
+	ret.x = -_state.x * ret.z;
+	ret.y = -_state.y * ret.z;
+
+	return ret;
+}
+
 float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int lr )
 {
 	float4 n;
@@ -429,6 +444,23 @@ kernel void pmstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, co
 		return;
 
 	vbuf[ width * gy + gx ].n = 0;
+}
+
+inline float4 minimumStateHQ( const float4 current, const float4 other, const float4 hq, const float4 diageta, const float2 coord, const int lr )
+{
+  float4 a = nd_state_to_ref_normal_depth( current, coord, lr );
+  float4 b = nd_state_to_ref_normal_depth( other, coord, lr );
+  float4 c = nd_state_to_ref_normal_depth( hq, coord, lr );
+
+  float da = a - c;
+  float wa = current.w + dot( da, dot( da, diageta ) );
+
+  float db = b - c;
+  float wb = other.w + dot( db, dot( db, diageta ) );
+
+  if( wb <= wa )
+	  return other;
+  return current;
 }
 
 kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,

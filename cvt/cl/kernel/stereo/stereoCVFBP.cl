@@ -1,7 +1,7 @@
-#define FBP_LAMBDA 100.0f
-#define FBP_DATATRUNC 0.5f
-#define FBP_DISCPENALTY 1.0f
-#define FBP_DISCTRUNC 25.0f
+#define FBP_LAMBDA 50.0f
+#define FBP_DATATRUNC 0.1f
+#define FBP_DISCPENALTY 0.5f
+#define FBP_DISCTRUNC 1.5f
 #define FBP_INF	1e20f
 
 __kernel void stereoCV_FBP_WTA( __write_only image2d_t dmap, global const float2* cv, const int depth )
