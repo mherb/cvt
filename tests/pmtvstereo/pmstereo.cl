@@ -275,16 +275,6 @@ float4 nd_state_to_normal( const float4 _state )
 }
 
 
-
-#if 0
-kernel float patch_eval_color_grad_weighted_localbuf( int2 lcoord, local float4* colorbuf, local float2* gradbuf, size_t bstride,
-												      read_only image2d_t colimg2, read_only image2d_t gradimg2,
-												      float2 coord, float4 state, const int patchsize )
-{
-}
-
-#endif
-
 inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only image2d_t gradimg1,
 									  read_only image2d_t colimg2, read_only image2d_t gradimg2,
 									  const float2 coord, const float4 state, const int patchsize, const int lr )
@@ -362,74 +352,6 @@ kernel void pmstereo_init( write_only image2d_t output, read_only image2d_t img1
 	write_imagef( output, coord, ret );
 }
 
-kernel void pmstereo_propagate( write_only image2d_t output, read_only image2d_t old,
-							    read_only image2d_t img1, read_only image2d_t img2,
-								read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize, const int lr, const int iter )
-{
-	RNG rng;
-	const int width = get_image_width( img1 );
-	const int height = get_image_height( img1 );
-	const int gx = get_global_id( 0 );
-	const int gy = get_global_id( 1 );
-	const int lx = get_local_id( 0 );
-	const int ly = get_local_id( 1 );
-    const int lw = get_local_size( 0 );
-    const int lh = get_local_size( 1 );
-	const int2 base = ( int2 )( get_group_id( 0 ) * lw - PROPSIZE, get_group_id( 1 ) * lh - PROPSIZE );
-	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
-	const float2 coordf = ( float2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
-
-	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
-	float4 self, neighbour;
-
-	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
-		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
-			buf[ y ][ x ] = read_imagef( old, SAMPLER_NN, base + ( int2 )( x, y ) );
-		}
-	}
-
-	barrier( CLK_LOCAL_MEM_FENCE );
-
-	if(	gx >= width || gy >= height )
-		return;
-
-	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
-
-	RNG_init( &rng, ( coord.y * width + coord.x ) + iter, ( ( 2 * PROPSIZE + 1 ) * ( 2 * PROPSIZE + 1 ) - 1 ) + NUMRNDTRIES );
-
-	// sample the nd_state of the neighbours
-	for( int py = -PROPSIZE; py <= PROPSIZE; py++ ) {
-		for( int px = -PROPSIZE; px <= PROPSIZE; px++ ) {
-
-			if( px == 0 && py == 0 )
-				continue;
-
-			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
-			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-
-			if( neighbour.w <= self.w  )
-				self = neighbour;
-		}
-	}
-	// randomized refinement
-	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
-		neighbour = nd_state_refine( &rng, self, coordf, lr );
-		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-
-		if( neighbour.w <= self.w  )
-			self = neighbour;
-	}
-	// random try
-	neighbour = nd_state_init( &rng, coordf, lr );
-	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-
-	if( neighbour.w <= self.w  )
-		self = neighbour;
-
-	write_imagef( output, coord, self );
-}
-
-
 typedef struct {
 	int n;
 	float4 value[ VIEWSAMPLES ];// __attribute__ ((packed));
@@ -446,20 +368,17 @@ kernel void pmstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, co
 	vbuf[ width * gy + gx ].n = 0;
 }
 
-float4 minimumStateHQ( const float4 current, const float4 other, const float4 smooth, const float4 diageta, const float2 coord, const int lr )
+float2 smoothDistance( const float4 current, const float4 other, const float4 smooth, const float2 coord, int lr )
 {
+  float2 ret;
   float4 a = nd_state_to_ref_normal_depth( current, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( other, coord, lr );
 
   float4 da = a - smooth;
-  float wa = current.w + 0.0f * dot( da, da * diageta );
+  ret.x = dot( da, da );
 
   float4 db = b - smooth;
-  float wb = other.w + 0.0f * dot( db, db * diageta );
-
-  if( wb <= wa )
-	  return other;
-  return current;
+  ret.y = dot( db, db );
 }
 
 kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
@@ -482,7 +401,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	const float2 coordf = ( float2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
 
 	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
-	float4 self, neighbour, smooth, diag;
+	float4 self, neighbour, smooth;
 
 	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
 		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
@@ -490,14 +409,13 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 		}
 	}
 
-	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
-	smooth = ( float4 ) ( smooth.x, smooth.y, sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
-	diag   = ( float4 ) 0.0f;
-
 	barrier( CLK_LOCAL_MEM_FENCE );
 
 	if(	gx >= width || gy >= height )
 		return;
+
+	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
+	smooth = ( float4 ) ( smooth.x, smooth.y, sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
 
 	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
 
@@ -513,13 +431,16 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-			self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
+			float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
+			if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
 		}
 	}
 	// random try
 	neighbour = nd_state_init( &rng, coordf, lr );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-	self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
+	float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
+	if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
+
 
 	// try other view
 #if 1
@@ -527,7 +448,9 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	for( int i = 0; i < nview; i++ ) {
 		neighbour = viewin[ width * gy + gx ].value[ i ];
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-		self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
+		float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
+		if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
+
 	}
 #endif
 
@@ -535,8 +458,9 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
 		neighbour = nd_state_refine( &rng, self, coordf, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+		float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
+		if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
 
-		self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
 	}
 
 	// store view prop result
@@ -685,7 +609,7 @@ kernel void pmstereo_colormap( write_only image2d_t normalmap, read_only image2d
 }
 
 
-kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, const int lr )
+kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, int lr )
 
 {
 	int2 coord;
@@ -704,7 +628,7 @@ kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2
 	write_imagef( output, coord, val );
 }
 
-kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, const int lr )
+kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, int lr )
 {
 	int2 coord;
 	const int width = get_image_width( input1 );

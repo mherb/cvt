@@ -36,7 +36,7 @@ int main( int argc, char** argv )
 	Image input1( argv[ 1 ] );
 	Image input2( argv[ 2 ] );
 	try {
-		ROFFGPFilter rof;
+		ROFFGPFilter* rof = new ROFFGPFilter();
 
 		Image clinput1( input1, IALLOCATOR_CL );
 		Image clinput2( input2, IALLOCATOR_CL );
@@ -79,7 +79,7 @@ int main( int argc, char** argv )
 		clgradxy.run( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		Time timer;
-		int patchsize = 5;
+		int patchsize = 2;
 		int lr = 1;
 		int rl = 0;
 
@@ -118,11 +118,13 @@ int main( int argc, char** argv )
 			clpmdepthmap.setArg( 1, *clmatches1[ swap ]  );
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput1.width(), 16 ), Math::pad( clinput1.height(), 16 ) ), CLNDRange( 16, 16 ) );
 			cloutput1.save("stereo1.png");
+			std::cout << "Wrote stereo1.png" << std::endl;
 
 			clpmdepthmap.setArg( 0, cloutput1 );
 			clpmdepthmap.setArg( 1, *clmatches2[ swap ]  );
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 			cloutput1.save("stereo2.png");
+			std::cout << "Wrote stereo2.png" << std::endl;
 
 			clconsistency.setArg( 0, cloutput1 );
 			clconsistency.setArg( 1, *clmatches1[ swap ] );
@@ -182,20 +184,22 @@ int main( int argc, char** argv )
 			clpmpropagate.setArg( 12, viewbuf2 );
 			clpmpropagate.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 
-#if TV
+#if 0
 			cltonormaldepth.setArg( 0, clsmoothtmp );
 			cltonormaldepth.setArg( 1, *clmatches1[ 1 - swap ] );
 			cltonormaldepth.setArg( 2, lr );
 			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
-			rof.apply( clsmooth1, clsmoothtmp );
+			clsmoothtmp.save("stereosmoothorig.png");
+			rof->apply( clsmooth1, clsmoothtmp, 0.05f, 10 );
+			clsmooth1.save("stereosmooth.png");
 
 			cltonormaldepth.setArg( 0, clsmoothtmp );
 			cltonormaldepth.setArg( 1, *clmatches2[ 1 - swap ] );
 			cltonormaldepth.setArg( 2, rl );
-			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
+			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 
-			rof.apply( clsmooth2, clsmoothtmp );
+			rof->apply( clsmooth2, clsmoothtmp );
 
 			theta = Math::smoothstep( ( iter / 23.0f )  ) * 0.1f;
 #endif
