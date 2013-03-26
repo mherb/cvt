@@ -446,17 +446,16 @@ kernel void pmstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, co
 	vbuf[ width * gy + gx ].n = 0;
 }
 
-inline float4 minimumStateHQ( const float4 current, const float4 other, const float4 hq, const float4 diageta, const float2 coord, const int lr )
+float4 minimumStateHQ( const float4 current, const float4 other, const float4 smooth, const float4 diageta, const float2 coord, const int lr )
 {
   float4 a = nd_state_to_ref_normal_depth( current, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( other, coord, lr );
-  float4 c = nd_state_to_ref_normal_depth( hq, coord, lr );
 
-  float da = a - c;
-  float wa = current.w + dot( da, dot( da, diageta ) );
+  float4 da = a - smooth;
+  float wa = current.w + 0.0f * dot( da, da * diageta );
 
-  float db = b - c;
-  float wb = other.w + dot( db, dot( db, diageta ) );
+  float4 db = b - smooth;
+  float wb = other.w + 0.0f * dot( db, db * diageta );
 
   if( wb <= wa )
 	  return other;
@@ -465,7 +464,8 @@ inline float4 minimumStateHQ( const float4 current, const float4 other, const fl
 
 kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
 							    read_only image2d_t img1, read_only image2d_t img2,
-								read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize, const int lr, const int iter,
+								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float theta,
+								const int patchsize, const int lr, const int iter,
 							    global VIEWPROP_t* viewin, global VIEWPROP_t* viewout )
 {
 	RNG rng;
@@ -482,13 +482,17 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	const float2 coordf = ( float2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
 
 	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
-	float4 self, neighbour;
+	float4 self, neighbour, smooth, diag;
 
 	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
 		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
 			buf[ y ][ x ] = read_imagef( old, SAMPLER_NN, base + ( int2 )( x, y ) );
 		}
 	}
+
+	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
+	smooth = ( float4 ) ( smooth.x, smooth.y, sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
+	diag   = ( float4 ) 0.0f;
 
 	barrier( CLK_LOCAL_MEM_FENCE );
 
@@ -509,15 +513,13 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-			if( neighbour.w <= self.w  )
-				self = neighbour;
+			self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
 		}
 	}
 	// random try
 	neighbour = nd_state_init( &rng, coordf, lr );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-	if( neighbour.w <= self.w  )
-		self = neighbour;
+	self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
 
 	// try other view
 #if 1
@@ -525,8 +527,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	for( int i = 0; i < nview; i++ ) {
 		neighbour = viewin[ width * gy + gx ].value[ i ];
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-		if( neighbour.w <= self.w  )
-			self = neighbour;
+		self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
 	}
 #endif
 
@@ -535,8 +536,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 		neighbour = nd_state_refine( &rng, self, coordf, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-		if( neighbour.w <= self.w  )
-			self = neighbour;
+		self = minimumStateHQ( self, neighbour, smooth, diag, coordf, lr );
 	}
 
 	// store view prop result
@@ -682,6 +682,26 @@ kernel void pmstereo_colormap( write_only image2d_t normalmap, read_only image2d
 	float4 self = read_imagef( old, SAMPLER_NN, coord );
 	float4 val = nd_state_to_color( self, ( float2 ) ( coord.x, coord.y ) );
 	write_imagef( normalmap, coord, val );
+}
+
+
+kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, const int lr )
+
+{
+	int2 coord;
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 self = read_imagef( input, SAMPLER_NN, coord );
+	float4 val = nd_state_to_ref_normal_depth( self, ( float2 ) ( coord.x, coord.y ), lr );
+	val = ( float4 ) ( val.x, val.y, val.w / DEPTHMAX, 1.0f );
+	write_imagef( output, coord, val );
 }
 
 kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, const int lr )
