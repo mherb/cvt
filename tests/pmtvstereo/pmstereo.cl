@@ -1,4 +1,4 @@
-#pragma SELECT_ROUNDING_MODE rtz
+//#pragma SELECT_ROUNDING_MODE rtz
 
 /*
 Part of MWC64X by David Thomas, dt10@imperial.ac.uk
@@ -379,11 +379,13 @@ float2 smoothDistance( const float4 current, const float4 other, const float4 sm
 
   float4 db = b - smooth;
   ret.y = dot( db, db );
+
+  return ret;
 }
 
 kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
 							    read_only image2d_t img1, read_only image2d_t img2,
-								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float theta,
+								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float _theta,
 								const int patchsize, const int lr, const int iter,
 							    global VIEWPROP_t* viewin, global VIEWPROP_t* viewout )
 {
@@ -402,6 +404,8 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 
 	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
 	float4 self, neighbour, smooth;
+
+	float theta = 0;
 
 	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
 		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
