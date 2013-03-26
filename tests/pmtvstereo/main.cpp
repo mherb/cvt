@@ -57,8 +57,14 @@ int main( int argc, char** argv )
 		Image clmatches2_2( input2.width(), input2.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image* clmatches2[ 2 ] = { &clmatches2_1, &clmatches2_2 };
 
-		CLBuffer viewbuf1( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input1.width() * input1.height() );
-		CLBuffer viewbuf2( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input2.width() * input2.height() );
+#define VIEWSAMPLES 3;
+		struct VIEWPROP_t {
+			cl_int n;
+			cl_float4 samples[ 3 ];
+		};
+
+		CLBuffer viewbuf1( sizeof( VIEWPROP_t ) * input1.width() * input1.height() );
+		CLBuffer viewbuf2( sizeof( VIEWPROP_t ) * input2.width() * input2.height() );
 
 
 		CLKernel clpminit( _pmstereo_source, "pmstereo_init" );
