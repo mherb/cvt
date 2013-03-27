@@ -1,4 +1,4 @@
-//#pragma SELECT_ROUNDING_MODE rtz
+#pragma SELECT_ROUNDING_MODE rtz
 
 /*
 Part of MWC64X by David Thomas, dt10@imperial.ac.uk
@@ -148,7 +148,7 @@ typedef mwc64x_state_t RNG;
 #define GRADMAXDIFF 0.01f
 #define OVERSAMPLE 1.0f
 #define OVERSAMPLECUBE 0.01f
-#define VIEWSAMPLES 3
+#define VIEWSAMPLES 4
 
 // #define USELOCALBUF  1
 
@@ -156,7 +156,7 @@ const sampler_t SAMPLER_NN		 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 const sampler_t SAMPLER_BILINEAR = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
 
 
-float4 nd_state_viewprop( const float4 state, const float2 coord, const float _disp, const int lr );
+float4 nd_state_viewprop( const float4 state );
 
 float4 nd_state_init( RNG* rng, const float2 coord, int lr )
 {
@@ -170,7 +170,7 @@ float4 nd_state_init( RNG* rng, const float2 coord, int lr )
 //	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
 	float4 ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	if( !lr )
-		ret = nd_state_viewprop( ret, 0, 0, 0 );
+		ret = nd_state_viewprop( ret );
 //	ret = select( ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret,( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) + ret, ( int4 ) lr );
 	return ret;
 }
@@ -180,12 +180,15 @@ float4 nd_state_to_ref_normal_depth( const float4 state, const float2 coord, con
 	float4 ret;
 	float4 _state = state;
 	if( !lr )
-		_state = nd_state_viewprop( state, 0, 0, 0 );
+		_state = nd_state_viewprop( state );
 	_state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	ret.w = _state.x * coord.x + _state.y * coord.y + _state.z;
 	ret.z = rsqrt( _state.x * _state.x + _state.y * _state.y + 1.0f );
 	ret.x = -_state.x * ret.z;
 	ret.y = -_state.y * ret.z;
+
+	if( !all(isfinite(ret.xyz)))
+		return (float4) (0.0f,0.0f,1.0f,0.0f);
 
 	return ret;
 }
@@ -195,7 +198,7 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 	float4 n;
 	float4 state = _state;
 	if( !lr )
-		state = nd_state_viewprop( state, 0, 0, 0 );
+		state = nd_state_viewprop( state );
 	state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - state;
 	float z = state.x * coord.x + state.y * coord.y + state.z;
 	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
@@ -216,31 +219,15 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 	float4 ret = ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret;
 	if( !lr )
-		ret = nd_state_viewprop( state, 0, 0, 0 );
+		ret = nd_state_viewprop( state );
 	return ret;
 }
 
-
-float4 nd_state_viewprop2( const float4 state )
+float4 nd_state_viewprop( const float4 state )
 {
 	float4 n = state;
-	n.x = 1.0f + n.x;
-	return ( float4 ) ( ( 1.0f / n.x ) - 1.0f, -n.y / n.x, -n.z / n.x, 0.0f );
-}
-
-float4 nd_state_viewprop( const float4 state, const float2 coord, const float _disp, const int lr )
-{
-	float4 n = state;
-//	float newx = //select( _disp, -_disp, lr ) + coord.x;
-//	if( lr ) {
-//		n.x = 1.0f - n.x;
-//		return -( float4 ) ( ( 1.0f / n.x ), n.y / n.x, n.z / n.x - coord.x, 0.0f );
-//	} else {
-//		n.x = 1.0f + n.x;
-		float4 ret = ( float4 ) ( ( 1.0f / n.x ), -n.y / n.x, -n.z / n.x, 0.0f );
-		return ret;
-//		return select( -ret, ret, ( int4 ) lr );
-//	}
+	float4 ret = ( float4 ) ( ( 1.0f / n.x ), -n.y / n.x, -n.z / n.x, 0.0f );
+	return ret;
 }
 
 float2 nd_state_transform( const float4 state, const float2 coord )
@@ -261,7 +248,19 @@ float4 nd_state_to_color( const float4 _state, const float2 coord )
 	return n;
 }
 
-float4 nd_state_to_normal( const float4 _state )
+float3 nd_state_to_normal( const float4 _state )
+{
+	float3 n;
+	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
+	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
+	n.x = -state.x / n.z;
+	n.y = -state.y / n.z;
+	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	return n;
+}
+
+
+float4 nd_state_to_normal_color( const float4 _state )
 {
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
@@ -283,6 +282,12 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	float ret1 = 0;
 	int width = get_image_width( colimg2 );
 	int height = get_image_height( colimg2 );
+
+	if( !all(isfinite(state.xyz)))
+		return 1e5f;
+
+//	if( !all(isless(fabs(state.xyz),(float3)50.0f)))
+//		return 1e5f;
 
 //	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );
 
@@ -368,24 +373,29 @@ kernel void pmstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, co
 	vbuf[ width * gy + gx ].n = 0;
 }
 
-float2 smoothDistance( const float4 current, const float4 other, const float4 smooth, const float2 coord, int lr )
+float2 smoothDistance( const float4 statea, const float4 stateb, const float4 smooth, const float2 coord, int lr )
 {
   float2 ret;
-  float4 a = nd_state_to_ref_normal_depth( current, coord, lr );
-  float4 b = nd_state_to_ref_normal_depth( other, coord, lr );
+  float4 a = nd_state_to_ref_normal_depth( statea, coord, lr );
+  float4 b = nd_state_to_ref_normal_depth( stateb, coord, lr );
+  const float4 diag = ( float4 ) ( 1.0f );
+
+  if( !all( isfinite( a ) ) || !all( isfinite( b ) ) )
+	  return ( float2 ) 0.0f;
 
   float4 da = a - smooth;
-  ret.x = dot( da, da );
+  ret.x = dot( da, diag * da );
 
   float4 db = b - smooth;
-  ret.y = dot( db, db );
+  ret.y = dot( db, diag * db );
 
   return ret;
 }
 
+
 kernel void pmstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
 							    read_only image2d_t img1, read_only image2d_t img2,
-								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float _theta,
+								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float theta,
 								const int patchsize, const int lr, const int iter,
 							    global VIEWPROP_t* viewin, global VIEWPROP_t* viewout )
 {
@@ -404,8 +414,6 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 
 	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
 	float4 self, neighbour, smooth;
-
-	float theta = 0;
 
 	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
 		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
@@ -435,16 +443,27 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-			float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
-			if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
+		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 		}
 	}
+
+	// try smooth
+	neighbour = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - smooth.x / smooth.z, - smooth.y / smooth.z, ( smooth.x * coordf.x + smooth.y * coordf.y ) / smooth.z + smooth.w, 0.0f );
+	if( !lr )
+		neighbour = nd_state_viewprop( neighbour );
+	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+
+	float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
+
+
 	// random try
 	neighbour = nd_state_init( &rng, coordf, lr );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-	float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
-	if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
 
+	sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 
 	// try other view
 #if 1
@@ -452,9 +471,9 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	for( int i = 0; i < nview; i++ ) {
 		neighbour = viewin[ width * gy + gx ].value[ i ];
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-		float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
-		if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
 
+		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 	}
 #endif
 
@@ -462,9 +481,9 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
 		neighbour = nd_state_refine( &rng, self, coordf, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
-		float2 sdist = smoothDistance( self, neighbour, smooth, coordf, lr );
-		if( self.w + theta * sdist.x <= neighbour.w + theta * sdist.y ) self = neighbour;
 
+		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 	}
 
 	// store view prop result
@@ -475,7 +494,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	if( disp >= 0 && disp < width ) {
 		int nold = atomic_inc( &viewout[ gy * width + disp ].n );
 		if( nold < VIEWSAMPLES )
-			viewout[ gy * width + disp ].value[ nold ] = nd_state_viewprop( self, coordf, 0, lr );
+			viewout[ gy * width + disp ].value[ nold ] = nd_state_viewprop( self );
 	}
 #endif
 
@@ -519,13 +538,14 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	if( coord2.x < 0 || coord2.x >= width )
 		stater = ( float4 ) 1e5f;
 	else
-		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f));
-		//stater = read_imagef( right, SAMPLER_, ( int2 ) ( coord2.x + 0.5f, coord2.y ) );
+		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
+		//stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( coord2.x + 0.5f, coord2.y ) );
 
 	float4 val;
 //    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
-    val = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f?( float4 ) 0.0f : ( statel );
-//    val = length( statel - nd_state_viewprop( stater, 0, 0, 0 ) ) > 2.0f?( float4 ) 0.0f : ( statel );
+	float ndiff = length( nd_state_to_normal( statel ) - nd_state_to_normal( nd_state_viewprop( stater ) ) );
+    val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f||ndiff>1.5f)?( float4 ) 0.0f : ( statel );
+//    val = length( (statel - nd_state_viewprop( stater )).xyz ) > 4.0f?( float4 ) 0.0f : ( statel );
 	val.w = 1.0f;
 	write_imagef( output, coord, val );
 }
@@ -590,7 +610,7 @@ kernel void pmstereo_normalmap( write_only image2d_t normalmap, read_only image2
 		return;
 
 	float4 self = read_imagef( old, SAMPLER_NN, coord );
-	float4 val = nd_state_to_normal( self );
+	float4 val = nd_state_to_normal_color( self );
 	write_imagef( normalmap, coord, val );
 }
 
@@ -611,6 +631,23 @@ kernel void pmstereo_colormap( write_only image2d_t normalmap, read_only image2d
 	float4 val = nd_state_to_color( self, ( float2 ) ( coord.x, coord.y ) );
 	write_imagef( normalmap, coord, val );
 }
+
+kernel void pmstereo_clear( write_only image2d_t output )
+
+{
+	int2 coord;
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	write_imagef( output, coord, ( float4 ) 0.0f );
+}
+
 
 
 kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, int lr )
