@@ -121,7 +121,7 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 {
 	uint res=s->x ^ s->c;
 	MWC64X_Step(s);
-	return  2.3283064365386962890625e-10f * ( float ) res;
+	return 2.3283064365386962890625e-10f * ( float ) res;
 }
 #endif
 
@@ -136,11 +136,12 @@ typedef mwc64x_state_t RNG;
 
 
 #define DEPTHMAX 60.0f
-#define PROPSIZE 3
-#define DEPTHREFINEMUL 1.0f
-#define NORMALREFINEMUL 0.05f
+#define PROPSIZE 1
+#define DEPTHREFINEMUL 2.0f
+#define NORMALREFINEMUL 0.2f
 #define NORMALCOMPMAX 0.95f
 #define NUMRNDTRIES	 3
+#define NUMRNDSAMPLE 2
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -158,20 +159,18 @@ const sampler_t SAMPLER_BILINEAR = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLA
 
 float4 nd_state_viewprop( const float4 state );
 
-float4 nd_state_init( RNG* rng, const float2 coord, int lr )
+float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul )
 {
 	float z = RNG_float( rng ) * DEPTHMAX;
 	float4 n;
-	n.x = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
-	n.y = ( MWC64X_NextFloat( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
+	n.x = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
+	n.y = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
 
-	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
-//	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
 	float4 ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	if( !lr )
 		ret = nd_state_viewprop( ret );
-//	ret = select( ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret,( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) + ret, ( int4 ) lr );
 	return ret;
 }
 
@@ -183,7 +182,7 @@ float4 nd_state_to_ref_normal_depth( const float4 state, const float2 coord, con
 		_state = nd_state_viewprop( state );
 	_state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	ret.w = _state.x * coord.x + _state.y * coord.y + _state.z;
-	ret.z = rsqrt( _state.x * _state.x + _state.y * _state.y + 1.0f );
+	ret.z = native_rsqrt( _state.x * _state.x + _state.y * _state.y + 1.0f );
 	ret.x = -_state.x * ret.z;
 	ret.y = -_state.y * ret.z;
 
@@ -201,7 +200,7 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 		state = nd_state_viewprop( state );
 	state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - state;
 	float z = state.x * coord.x + state.y * coord.y + state.z;
-	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
+	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x * n.z;
 	n.y = -state.y * n.z;
 
@@ -213,13 +212,12 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
-	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
-//	return ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y + n.z * z  ) / n.z, 0.0f );
 	float4 ret = ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret;
 	if( !lr )
-		ret = nd_state_viewprop( state );
+		return nd_state_viewprop( state );
 	return ret;
 }
 
@@ -239,7 +237,7 @@ float4 nd_state_to_color( const float4 _state, const float2 coord )
 {
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
-	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
+	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
 	n.xy = n.xy * 0.5f + 0.5f;
@@ -252,10 +250,10 @@ float3 nd_state_to_normal( const float4 _state )
 {
 	float3 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
-	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
+	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
-	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 	return n;
 }
 
@@ -264,10 +262,10 @@ float4 nd_state_to_normal_color( const float4 _state )
 {
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
-	n.z = rsqrt( state.x * state.x + state.y * state.y + 1.0f );
+	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
-	n.z = sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 	n.xyz = n.xyz * 0.5f + 0.5f;
 	n.w = 1.0f;
 	return n;
@@ -286,9 +284,6 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	if( !all(isfinite(state.xyz)))
 		return 1e5f;
 
-//	if( !all(isless(fabs(state.xyz),(float3)50.0f)))
-//		return 1e5f;
-
 //	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );
 
 	float4 valcenter = read_imagef( colimg1, SAMPLER_BILINEAR, coord + ( float2 ) ( 0.5f, 0.5f) );
@@ -306,7 +301,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.0f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 35.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 0.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
@@ -332,7 +327,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 		}
 	}
 
-	if( wsum1 <= 1.1f )
+	if( wsum1 <= 2.0f )
 		return 1e5f;
 	return ret1 / wsum1;
 }
@@ -350,7 +345,7 @@ kernel void pmstereo_init( write_only image2d_t output, read_only image2d_t img1
 
 	RNG_init( &rng, coord.y * width + coord.x, 3 );
 
-	float4 ret = nd_state_init( &rng, coordf, lr );
+	float4 ret = nd_state_init( &rng, coordf, lr, 0.5f );
 
 	ret.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, ret, patchsize, lr );
 
@@ -378,9 +373,9 @@ float2 smoothDistance( const float4 statea, const float4 stateb, const float4 sm
   float2 ret;
   float4 a = nd_state_to_ref_normal_depth( statea, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( stateb, coord, lr );
-  const float4 diag = ( float4 ) ( 1.0f );
+  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 1.0f, 1e-3f );
 
-  if( !all( isfinite( a ) ) || !all( isfinite( b ) ) )
+  if( !all( isfinite( statea.xyz ) ) || !all( isfinite( stateb.xyz ) ) )
 	  return ( float2 ) 0.0f;
 
   float4 da = a - smooth;
@@ -427,11 +422,11 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 		return;
 
 	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
-	smooth = ( float4 ) ( smooth.x, smooth.y, sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
+	smooth = ( float4 ) ( smooth.x, smooth.y, native_sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
 
 	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
 
-	RNG_init( &rng, ( coord.y * width + coord.x ) + iter, ( ( 2 * PROPSIZE + 1 ) * ( 2 * PROPSIZE + 1 ) - 1 ) + NUMRNDTRIES );
+	RNG_init( &rng, ( coord.y * width + coord.x ) + iter, ( ( ( 2 * PROPSIZE + 1 ) * ( 2 * PROPSIZE + 1 ) - 1 ) + NUMRNDTRIES ) * 3 + 2 * NUMRNDSAMPLE );
 
 	// sample the nd_state of the neighbours
 	for( int py = -PROPSIZE; py <= PROPSIZE; py++ ) {
@@ -457,9 +452,17 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 	float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
 	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 
+	// rand neighbourhood tries
+	for( int i = 0; i < NUMRNDSAMPLE; i++ ) {
+			neighbour = read_imagef( old, SAMPLER_NN, (int2)(gx,gy) + ( int2 )( RNG_float(&rng) * 7.0f + 0.5f, RNG_float(&rng) * 7.0f + 0.5f ) );
+			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
+
+			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+			if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
+	}
 
 	// random try
-	neighbour = nd_state_init( &rng, coordf, lr );
+	neighbour = nd_state_init( &rng, coordf, lr, 2.0f );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
 	sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
@@ -515,7 +518,14 @@ kernel void pmstereo_depthmap( write_only image2d_t depthmap, read_only image2d_
 
 	float4 state = read_imagef( old, SAMPLER_NN, coord );
 	float4 val;
-	val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
+	float x = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
+	if( x >= 0.0f && x <= DEPTHMAX )
+		val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
+	else {
+		val.xyz = ( float3 ) ( 1.0f, 0.0f, 0.0f );
+		if( !all(isfinite(state.xyz)))
+			val.xyz = ( float3 ) ( 0.0f, 0.0f, 1.0f );
+	}
 	val.w = 1.0f;
 	write_imagef( depthmap, coord, val );
 }
@@ -539,12 +549,12 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 		stater = ( float4 ) 1e5f;
 	else
 		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
-		//stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( coord2.x + 0.5f, coord2.y ) );
+//		stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( round(coord2.x), coord2.y ) );
 
 	float4 val;
 //    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
 	float ndiff = length( nd_state_to_normal( statel ) - nd_state_to_normal( nd_state_viewprop( stater ) ) );
-    val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f||ndiff>1.5f)?( float4 ) 0.0f : ( statel );
+    val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f||ndiff>1.0f)?( float4 ) 0.0f : ( statel );
 //    val = length( (statel - nd_state_viewprop( stater )).xyz ) > 4.0f?( float4 ) 0.0f : ( statel );
 	val.w = 1.0f;
 	write_imagef( output, coord, val );

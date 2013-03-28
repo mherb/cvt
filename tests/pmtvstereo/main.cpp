@@ -10,6 +10,7 @@
 #include <cvt/io/FloFile.h>
 
 #include <cvt/util/Time.h>
+#include <cvt/gfx/IMapScoped.h>
 
 #include <cvt/gfx/ifilter/ROFFGPFilter.h>
 
@@ -93,7 +94,7 @@ int main( int argc, char** argv )
 
 
 		Time timer;
-		int patchsize = 5;
+		int patchsize = 25;
 		int lr = 1;
 		int rl = 0;
 
@@ -205,7 +206,7 @@ int main( int argc, char** argv )
 			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clsmoothtmp.save("stereosmoothorig1.png");
-			rof->apply( clsmooth1, clsmoothtmp, 1.0f / ( theta * 10000.0f + 100.0f ), 50 );
+			rof->apply( clsmooth1, clsmoothtmp, 1.0f / ( theta * 1000.0f + 10.0f ), 40 );
 			clsmooth1.save("stereosmooth1.png");
 
 			cltonormaldepth.setArg( 0, clsmoothtmp );
@@ -214,11 +215,14 @@ int main( int argc, char** argv )
 			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clsmoothtmp.save("stereosmoothorig2.png");
-			rof->apply( clsmooth2, clsmoothtmp, 1.0f / ( theta * 10000.0f + 100.0f ), 50 );
+			rof->apply( clsmooth2, clsmoothtmp, 1.0f / ( theta * 1000.0f + 10.0f ), 40 );
 			clsmooth2.save("stereosmooth2.png");
 
-			theta = Math::smoothstep<float>( ( ( iter - 10.0f ) / ( 47.0f - 10.0f ) )  ) * 1.0f;
-			//theta = Math::smoothstep<float>( ( ( iter - 10 ) / ( 47.0f - 10.0f ) )  ) * 10.0f;
+			//theta = theta * 2.0f + 0.001f;
+//			theta = Math::smoothstep<float>( ( ( iter - 10.0f ) / ( 47.0f - 10.0f ) )  ) * 1.0f;
+//			theta = Math::smoothstep<float>( ( ( iter - 10 ) / ( 47.0f - 10.0f ) )  ) * 10.0f;
+
+			theta = Math::smoothstep<float>( ( ( iter - 10 ) / ( 47.0f - 10.0f ) )  ) * 1.0f;
 #endif
 
 		}
