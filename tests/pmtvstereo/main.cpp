@@ -94,7 +94,7 @@ int main( int argc, char** argv )
 
 
 		Time timer;
-		int patchsize = 25;
+		int patchsize = 20;
 		int lr = 1;
 		int rl = 0;
 
@@ -206,7 +206,7 @@ int main( int argc, char** argv )
 			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clsmoothtmp.save("stereosmoothorig1.png");
-			rof->apply( clsmooth1, clsmoothtmp, 1.0f / ( theta * 1000.0f + 10.0f ), 40 );
+			rof->apply( clsmooth1, clsmoothtmp, 1.0f / ( theta * 100.0f + 10.0f ), 40 );
 			clsmooth1.save("stereosmooth1.png");
 
 			cltonormaldepth.setArg( 0, clsmoothtmp );
@@ -215,7 +215,7 @@ int main( int argc, char** argv )
 			cltonormaldepth.runWait( CLNDRange( Math::pad( clinput2.width(), KX ), Math::pad( clinput2.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			clsmoothtmp.save("stereosmoothorig2.png");
-			rof->apply( clsmooth2, clsmoothtmp, 1.0f / ( theta * 1000.0f + 10.0f ), 40 );
+			rof->apply( clsmooth2, clsmoothtmp, 1.0f / ( theta * 100.0f + 10.0f ), 40 );
 			clsmooth2.save("stereosmooth2.png");
 
 			//theta = theta * 2.0f + 0.001f;
@@ -238,7 +238,7 @@ int main( int argc, char** argv )
 		Image cloutputfinal( input1.width(), input1.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
 		clfilldepthmap.setArg( 0, cloutputfinal );
 		clfilldepthmap.setArg( 1, cloutput1 );
-		clfilldepthmap.setArg( 2, ( 4.0f / 255.0f ) );
+		clfilldepthmap.setArg( 2, ( 8.0f / 255.0f ) );
 		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		cloutputfinal.save( "stereofinal.png" );
@@ -246,7 +246,7 @@ int main( int argc, char** argv )
 		Image cloutputfinal2( input1.width(), input1.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		clfilldepthmap.setArg( 0, cloutputfinal2 );
 		clfilldepthmap.setArg( 1, cloutput1 );
-		clfilldepthmap.setArg( 2, ( 4.0f / 255.0f ) );
+		clfilldepthmap.setArg( 2, ( 8.0f / 255.0f ) );
 		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 		cloutputfinal2.save( "stereofinal.cvtraw" );
 

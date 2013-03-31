@@ -301,7 +301,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 35.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 0.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
@@ -327,7 +327,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 		}
 	}
 
-	if( wsum1 <= 2.0f )
+	if( wsum1 <= 1.1f )
 		return 1e5f;
 	return ret1 / wsum1;
 }
@@ -373,7 +373,7 @@ float2 smoothDistance( const float4 statea, const float4 stateb, const float4 sm
   float2 ret;
   float4 a = nd_state_to_ref_normal_depth( statea, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( stateb, coord, lr );
-  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 1.0f, 1e-3f );
+  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 1.0f, 1.0f / ( DEPTHMAX * DEPTHMAX ) );
 
   if( !all( isfinite( statea.xyz ) ) || !all( isfinite( stateb.xyz ) ) )
 	  return ( float2 ) 0.0f;
