@@ -10,7 +10,7 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	const int width = get_image_width( out );
 	const int height = get_image_height( out );
 	const int2 base = ( int2 )( get_group_id( 0 ) * lw - 1, get_group_id( 1 ) * lh - 1 );
-	const int bstride = lw + 2;
+//	const int bstride = lw + 2;
 	float dx, dy;
 	local float buf[ 18 ][ 18 ];
 	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );

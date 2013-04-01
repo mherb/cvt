@@ -30,7 +30,7 @@ int main( int argc, char** argv )
 		depthmap.convert( dmap, IFormat::GRAY_FLOAT );
 		Vision::unprojectToScenePoints( pts, c, dmap, scale);
 
-		pts.translate( -pts.centroid() );
+//		pts.translate( -pts.centroid() );
 
 
 		Window w( "meshView" );
