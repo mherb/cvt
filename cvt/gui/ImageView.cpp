@@ -37,7 +37,6 @@ namespace cvt {
 			} else {
 				_img.reallocate( img.width(), img.height(), img.format(), IALLOCATOR_GL );
 				_img = img;
-
 			}
 		} catch( Exception e ) {
 			std::cerr << "Copy error: " << e.what() << std::endl;
