@@ -143,6 +143,8 @@ SET( CL_KERNELS
     cl/kernel/tvl1stereo/tvl1_warp.cl
     cl/kernel/TSDFVolume/TSDFVolume.cl
 	cl/kernel/PDROF.cl
+	cl/kernel/PDHuber.cl
+	cl/kernel/PDHuberWeighted.cl
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )

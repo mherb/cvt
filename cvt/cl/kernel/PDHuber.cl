@@ -3,9 +3,10 @@ const sampler_t SAMPLER_NN = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | C
 
 #define SIGMA ( 1.0f / sqrt( 8.0f ) )
 #define TAU   ( 1.0f / sqrt( 8.0f ) )
-#define THETA  0.8f
+#define THETA  1.0f
+#define ALPHA  0.01f
 
-__kernel void PDROF( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, const float lambda, __local float4* buf, __local float8* buf2  )
+__kernel void PDHuber( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, const float lambda, __local float4* buf, __local float8* buf2  )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -41,9 +42,9 @@ __kernel void PDROF( __write_only image2d_t out, __write_only image2d_t outp, __
 
 			float8 p;
 			coord.x = base2.x + ( x << 1 );
-		    p.lo = read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx;
+		    p.lo = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
 			coord.x += 1;
-			p.hi = read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy;
+			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
 
 			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( p.lo * p.lo + p.hi * p.hi ) );
 
