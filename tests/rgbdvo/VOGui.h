@@ -6,14 +6,21 @@
 #include <cvt/gui/Moveable.h>
 #include <cvt/gui/Label.h>
 #include <cvt/gui/Button.h>
+#include <cvt/gui/TimeoutHandler.h>
+#include <cvt/util/Mutex.h>
+#include <cvt/vision/CameraCalibration.h>
 #include <PoseView.h>
+#include <VOThread.h>
 
 namespace cvt {
 
-    class VOGui
+    class VOGui : public TimeoutHandler
     {
         public:
-            VOGui();
+            VOGui( const Matrix3f& intrinsics, float depthScale );
+            ~VOGui();
+
+            void onTimeout();
 
             void setStepping( bool val );
             void setOptimize( bool val );
@@ -21,9 +28,9 @@ namespace cvt {
 
             void setCurrentRGB( const Image& rgb );
             void setCurrentDepth( const Image& depth );
-            void setCurrentKeyframe( const Image& img );
+            void setCurrentKeyframe( const Image& img, const Image& depth );
 
-            void setPose( const Matrix4f& pose );
+            void setPose(const Matrix4f &data );
             void setGroundTruthPose( const Matrix4f& pose );
 
             void setSSDLabel( float ssd );
@@ -31,7 +38,7 @@ namespace cvt {
             void setPixelPercentage( float val );
             void setSpeed( float speed );
 
-            void addKeyframe( const Matrix4f& pose );
+            void addKeyframe( const KeyframeData &data );
 
             Button          _nextButton;
             Button          _stepButton;
@@ -51,8 +58,31 @@ namespace cvt {
             Label                       _ssdLabel;
             Label                       _numPixelLabel;
             Label                       _pixelPercentLabel;
+            float                       _ssd;
+            size_t                      _numPixel;
+            float                       _pixelPercent;
+            float                       _avgSpeed;
+
+            Image                       _currentRGB;
+            Image                       _currentDepth;
+
+            Matrix4f                    _camPose;
+            Matrix4f                    _gtPose;
+
+            uint32_t                    _timerId;
+
+            Mutex                       _dataMutex;
+            Mutex                       _keyframeDataMutex;
+            std::vector<KeyframeData>   _newKeyframeData;
+
+            CameraCalibration           _camCalib;
+            float                       _depthFactor;
+            ScenePoints                 _allPoints;
+            size_t                      _nKfs;
+
 
             void setupGui();
+            void processOutstandingKeyframes();
 
 
     };

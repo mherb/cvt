@@ -71,6 +71,8 @@ namespace cvt
         _keyframes.setColor( Color::RED );
         _keyframes.draw( GL_LINES, 0, 6 * _numKeyframes );
 
+        _scenePoints.draw();
+
         // draw the current camera pose
         proj = persp * view * _cam;
         _basicProg.setProjection( proj );
@@ -220,6 +222,11 @@ namespace cvt
         _rot = R * _cam;
         _rot.setTranslation( 0.0f, 0.0f, 0.0f );
         _trans.z = _cam[ 2 ][ 3 ] - 1.0f;
+    }
+
+    void PoseView::setScenePoints( const ScenePoints& pts )
+    {
+        _scenePoints.setScenePoints( pts );
     }
 
     void PoseView::addKeyframe( const Matrix4f& world2Cam0 )
