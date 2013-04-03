@@ -4,10 +4,10 @@ const sampler_t SAMPLER_NN = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | C
 
 #define SIGMA ( 1.0f / sqrt( 8.0f ) )
 #define TAU   ( 1.0f / sqrt( 8.0f ) )
-#define THETA  0.1f
-#define ALPHA  0.01f
+#define THETA  0.5f
+#define ALPHA  0.001f
 
-__kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, __read_only image2d_t weights, __read_only image2d_t mask, const float lambda, __local float4* buf, __local float8* buf2, __local float* buf3  )
+__kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, __read_only image2d_t weights, __read_only image2d_t mask, const float4 lambda, __local float4* buf, __local float8* buf2, __local float* buf3  )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -48,7 +48,8 @@ __kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only i
 			coord.x += 1;
 			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
 
-			float4 pproj = fmax( ( float4 ) 1.0f, ( float4 ) ( ( sqrt(dot( p.lo * p.lo + p.hi * p.hi,(float4)1.0f ))) ) );
+//			float4 pproj = fmax( ( float4 ) 1.0f, ( float4 ) ( ( sqrt(dot( p.lo * p.lo + p.hi * p.hi,(float4)1.0f ))) ) );
+			float4 pproj = fmax( ( float4 ) 1.0f, ( float4 ) ( ( sqrt( p.lo * p.lo + p.hi * p.hi)) ) );
 
 			buf2[ mad24( y, bstride, x ) ] = p / ( float8 ) ( pproj, pproj );
 		}
@@ -66,13 +67,12 @@ __kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only i
 	float w = BUFW( lx, ly );
 	div = w * ( p.lo - BUF2( lx - 1, ly ).lo + p.hi - BUF2( lx, ly - 1 ).hi );
 
-	float  lambdamask = lambda * read_imagef( mask, SAMPLER_NN, ( int2 )( gx, gy ) ).x;
-	if( lambdamask < 0.5f )
-		lambdamask = 0.0f;
+	float4  lambdamask = lambda * read_imagef( mask, SAMPLER_NN, ( int2 )( gx, gy ) ).x;
 	float4 img    = read_imagef( image, SAMPLER_NN, ( int2 )( gx, gy ) );
-    float4 imgnew = ( BUF( lx + 1, ly + 1 ) + TAU * ( lambdamask * img -  div ) )/( float4 ) ( 1.0 + TAU * lambdamask );
+    float4 imgnew = ( BUF( lx + 1, ly + 1 ) + TAU * ( lambdamask * img - div ) ) /  ( ( float4 )1.0 + TAU * lambdamask );
 	imgnew += THETA * ( imgnew - BUF( lx + 1, ly + 1 )  );
 
+	imgnew.w = 1.0f;
 	write_imagef( out, ( int2 ) ( gx, gy ), imgnew  );
 	write_imagef( outp, ( int2 ) ( gx << 1, gy ), p.lo );
 	write_imagef( outp, ( int2 ) ( ( gx << 1 ) + 1, gy ), p.hi );

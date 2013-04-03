@@ -71,7 +71,9 @@ int main( int argc, char** argv )
 		fill.setArg( 1, fillvalue );
 		fill.run( CLNDRange( Math::pad( clp2.width(), 16 ), Math::pad( clp2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
-		for( int i = 0; i < 1000; i++ ) {
+		std::cout << std::endl;
+
+		for( int i = 0; i < 5000; i++ ) {
 			pdrof.setArg( 0, clout1 );
 			pdrof.setArg( 1, clp1 );
 			pdrof.setArg( 2, clout2 );
@@ -98,8 +100,13 @@ int main( int argc, char** argv )
 			pdrof.setArg( 10, CLLocalSpace( sizeof( cl_float ) * 18 * 18 ) );
 			pdrof.run( CLNDRange( Math::pad( clinput.width(), 16 ), Math::pad( clinput.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
-			clout2.save("pdopt.png");
+			std::cout << "\r" << i << std::flush;
+
+			if( i % 250 == 0 )
+				clout2.save("pdopt.png");
 		}
+		std::cout << std::endl;
+
 		pdrof.setArg( 0, clout1 );
 		pdrof.setArg( 1, clp1 );
 		pdrof.setArg( 2, clout2 );

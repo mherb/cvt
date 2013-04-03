@@ -301,7 +301,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.0f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
@@ -530,7 +530,7 @@ kernel void pmstereo_depthmap( write_only image2d_t depthmap, read_only image2d_
 	write_imagef( depthmap, coord, val );
 }
 
-kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right )
+kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right, int lr )
 {
 	int2 coord;
 	const int width = get_image_width( output );
@@ -547,19 +547,72 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	float4 stater;
 	if( coord2.x < 0 || coord2.x >= width )
 		stater = ( float4 ) 1e5f;
-	else
-		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
-//		stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( round(coord2.x), coord2.y ) );
+	else {
+		stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( round(coord2.x), coord2.y ) );
+//		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
+	}
 
-	float4 val;
-//    val = length( ( float2 ) ( coord.x, coord.y) - nd_state_transform( stater, coord2 ) )>1.0f?( float4 ) 0.0f : ( statel );
-	float ndiff = length( nd_state_to_normal( statel ) - nd_state_to_normal( nd_state_viewprop( stater ) ) );
-    val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=1.0f||ndiff>1.0f)?( float4 ) 0.0f : ( statel );
-//    val = length( (statel - nd_state_viewprop( stater )).xyz ) > 4.0f?( float4 ) 0.0f : ( statel );
-	val.w = 1.0f;
+	//		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
+
+
+	float ndiff;
+	if( lr )
+		ndiff = dot( nd_state_to_normal( statel ), nd_state_to_normal( nd_state_viewprop( stater ) ) );
+	else
+		ndiff = dot( nd_state_to_normal( stater ), nd_state_to_normal( nd_state_viewprop( statel ) ) );
+
+	float dmax = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x );
+//	float dmax = fmin( dmax, fabs( ( float ) coord.x - nd_state_transform( stater2, coord2 ).x ) );
+
+    float4 val = (dmax>=0.5f||acos(ndiff)>=1.0f)?( float4 ) 0.0f : ( statel );
 	write_imagef( output, coord, val );
 }
 
+kernel void pmstereo_fill_state( write_only image2d_t output, read_only image2d_t input, int lr )
+{
+	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 val;
+	float4 state = read_imagef( input, SAMPLER_NN, coord );
+
+	if( length( state ) < 1e-1f ) {
+		float4 left = ( float4 ) 0;
+		int x = coord.x - 1;
+		while( length( left ) < 1e-1f && x >= 0 ) {
+			left = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x--;
+		}
+
+		float4 right = ( float4 ) 0;
+		x = coord.x + 1;
+		while( length( right ) < 1e-1f && x < width ) {
+			right = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x++;
+		}
+
+		if( length( left ) < 1e-1f ) left = ( float4 ) 1e5f;
+		if( length( right) < 1e-1f ) right = ( float4 ) 1e5f;
+
+		left.w = fabs( nd_state_transform( left, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+		right.w = fabs( nd_state_transform( right, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+
+		if( left.w < right.w )
+			val = left;
+		else
+			val = right;
+	} else {
+		val = state;
+	}
+
+	val = nd_state_to_ref_normal_depth( val, ( float2 ) ( coord.x, coord.y ), lr );
+	val = ( float4 ) ( val.x, val.y, val.w / DEPTHMAX, 1.0f );
+	write_imagef( output, coord, val );
+}
 
 kernel void pmstereo_fill_depthmap( write_only image2d_t output, read_only image2d_t input, const float scale )
 {
@@ -677,6 +730,38 @@ kernel void pmstereo_normal_depth( write_only image2d_t output, read_only image2
 	float4 val = nd_state_to_ref_normal_depth( self, ( float2 ) ( coord.x, coord.y ), lr );
 	val = ( float4 ) ( val.x, val.y, val.w / DEPTHMAX, 1.0f );
 	write_imagef( output, coord, val );
+}
+
+kernel void pmstereo_occmap( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right, const float maxdiff, int lr )
+{
+	int2 coord;
+	const int width = get_image_width( left );
+	const int height = get_image_height( left );
+
+	coord.x = get_global_id( 0 );
+	coord.y = get_global_id( 1 );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 statel = read_imagef( left, SAMPLER_NN, coord );
+	float2 coord2 = nd_state_transform( statel, ( float2 ) ( coord.x, coord.y ) );
+	float4 stater;
+	if( coord2.x < 0 || coord2.x >= width )
+		stater = ( float4 ) 1e5f;
+	else
+		stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( round(coord2.x), coord2.y ) );
+
+//		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
+
+	float ndiff;
+	if( lr )
+		ndiff = dot( nd_state_to_normal( statel ), nd_state_to_normal( nd_state_viewprop( stater ) ) );
+	else
+		ndiff = dot( nd_state_to_normal( stater ), nd_state_to_normal( nd_state_viewprop( statel ) ) );
+
+	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=maxdiff||acos(ndiff)>=1.0)? 0.0f : 1.0f;
+	write_imagef( output, coord, ( float4 ) ( val, val, val, 1.0f ) );
 }
 
 kernel void pmstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, int lr )
