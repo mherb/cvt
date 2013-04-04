@@ -24,6 +24,8 @@ namespace cvt {
                 float fidx =  value / ( _range ) * ( float ) ( _hist.size() - 1 ) + 0.5f;
                 int idx = ( int ) fidx;
 
+//                if( idx < 0 || idx >= _hist.size() )
+//                    std::cout << "value: " << value << " idx = " << idx << std::endl;
                 _hist[ idx ] += 1;
             }
 

@@ -326,9 +326,9 @@ namespace cvt {
     template <class WarpFunc, class LossFunc>
     inline float Optimizer<WarpFunc, LossFunc>::evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
                                                                 const JacobianType* jacobians, const float* residuals, size_t n  )
-    {
+    {        
         float median = this->computeMedian( residuals, n );
-        float mad = this->computeMAD( residuals, n, median );
+        float mad = this->computeMAD( residuals, n, median );        
 
         // this is an estimate for the standard deviation:
         _weighter.setScale( 1.4826f * mad );
