@@ -18,7 +18,7 @@ using namespace cvt;
 
 #define KX 16
 #define KY 16
-
+#define VIEWSAMPLES 3
 
 int main( int argc, char** argv )
 {
@@ -51,10 +51,13 @@ int main( int argc, char** argv )
 		Image clmatches2_2( input2.width(), input2.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image* clmatches2[ 2 ] = { &clmatches2_1, &clmatches2_2 };
 
-		CLBuffer viewbuf1( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input1.width() * input1.height() );
-		CLBuffer viewbuf2( ( sizeof( cl_float4 ) * 4 + 1 * sizeof( cl_int ) ) * input2.width() * input2.height() );
+		struct VIEWPROP_t {
+			cl_int n;
+			cl_float4 samples[ VIEWSAMPLES ];
+		};
 
-
+		CLBuffer viewbuf1( sizeof( VIEWPROP_t ) * input1.width() * input1.height() );
+		CLBuffer viewbuf2( sizeof( VIEWPROP_t ) * input2.width() * input2.height() );
 
 		CLKernel clpminit( _pmstereo_source, "pmstereo_init" );
 		CLKernel clpmpropagate( _pmstereo_source, "pmstereo_propagate_view" );
@@ -104,7 +107,7 @@ int main( int argc, char** argv )
 		clpmviewbufclear.run( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 
-		for( int iter = 0; iter < 20; iter++ ) {
+		for( int iter = 0; iter < 24; iter++ ) {
 			int swap = iter & 1;
 
 #if 1
@@ -126,7 +129,7 @@ int main( int argc, char** argv )
 
 			clfilldepthmap.setArg( 0, cloutput2 );
 			clfilldepthmap.setArg( 1, cloutput1 );
-			clfilldepthmap.setArg( 2, 1.0f / 70.0f );
+			clfilldepthmap.setArg( 2, 4.0f / 255.0f );
 			clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 			cloutput2.save("stereofill.png");
@@ -183,7 +186,7 @@ int main( int argc, char** argv )
 		Image cloutputfinal( input1.width(), input1.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
 		clfilldepthmap.setArg( 0, cloutputfinal );
 		clfilldepthmap.setArg( 1, cloutput1 );
-		clfilldepthmap.setArg( 2, ( 16.0f / 255.0f ) );
+		clfilldepthmap.setArg( 2, ( 4.0f / 255.0f ) );
 		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
 		cloutputfinal.save( "stereofinal.png" );
@@ -191,7 +194,7 @@ int main( int argc, char** argv )
 		Image cloutputfinal2( input1.width(), input1.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		clfilldepthmap.setArg( 0, cloutputfinal2 );
 		clfilldepthmap.setArg( 1, cloutput1 );
-		clfilldepthmap.setArg( 2, ( 16.0f / 255.0f ) );
+		clfilldepthmap.setArg( 2, ( 4.0f / 255.0f ) );
 		clfilldepthmap.runWait( CLNDRange( Math::pad( clinput2.width(), 16 ), Math::pad( clinput2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 		cloutputfinal2.save( "stereofinal.cvtraw" );
 

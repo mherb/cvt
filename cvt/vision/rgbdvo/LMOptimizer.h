@@ -55,7 +55,7 @@ namespace cvt {
     {
         JacobianType deltaSum;
         HessianType  hessian;
-        float lambda = 0.01f;
+        float lambda = 0.1f;
 
         IMapScoped<const float> grayMap( gray );
 
@@ -122,7 +122,7 @@ namespace cvt {
                 result.warp = savedWarp;
 
                 // update the damping
-                lambda *= 10.0f;
+                lambda += 0.5f;
             }
         }
 

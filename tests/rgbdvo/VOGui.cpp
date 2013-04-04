@@ -1,8 +1,11 @@
 #include "VOGui.h"
+#include <cvt/gui/Application.h>
+#include <cvt/geom/scene/ScenePoints.h>
+#include <cvt/vision/Vision.h>
 
 namespace cvt {
 
-    VOGui::VOGui() :
+    VOGui::VOGui( const Matrix3f &intrinsics, float depthScale ) :
         _nextButton( "next" ),
         _stepButton( "enable stepping" ),
         _optimizeButton( "Stop optimizing" ),
@@ -12,9 +15,83 @@ namespace cvt {
         _depthViewMov( &_depthView ),
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
-        _pixelPercentLabel( "\% Pixel: 0\%" )
+        _pixelPercentLabel( "\% Pixel: 0\%" ),
+        _ssd( 0.0f ),
+        _numPixel( 0 ),
+        _pixelPercent( 0.0f ),
+        _avgSpeed( 0.0 ),
+        _depthFactor( depthScale ),
+        _allPoints( "pointcloud" ),
+        _nKfs( 0 )
     {
+        _camCalib.setIntrinsics( intrinsics );
+        _gtPose.setIdentity();
+        _camPose.setIdentity();
+
         setupGui();
+
+        _timerId = Application::registerTimer( 20 /*50fps*/, this );
+    }
+
+    VOGui::~VOGui()
+    {
+        Application::unregisterTimer( _timerId );
+    }
+
+    void VOGui::onTimeout()
+    {
+        try {
+            processOutstandingKeyframes();
+
+            ScopeLock lock( &_dataMutex );
+            _depthView.setImage( _currentDepth );
+            _currentImage.setImage( _currentRGB );
+            _poseView.setCamPose( _camPose );
+            _poseView.setGTPose( _gtPose );
+
+            // update the title and labels
+            String str;
+            str.sprintf( "RGBDVO: Avg. Speed %0.1f ms", _avgSpeed );
+            _mainWindow.setTitle( str );
+
+            str.sprintf( "\% Pixel: %0.1f\%", _pixelPercent );
+            _pixelPercentLabel.setLabel( str );
+
+            str.sprintf( "# Pixel: %d", _numPixel );
+            _numPixelLabel.setLabel( str );
+
+            str.sprintf( "SSD: %0.2f", _ssd );
+            _ssdLabel.setLabel( str );
+        } catch ( const cvt::Exception& e ){
+            std::cout << e.what() << std::endl;
+        }
+    }
+
+    void VOGui::processOutstandingKeyframes()
+    {
+        ScopeLock lock( &_keyframeDataMutex );
+        if( _newKeyframeData.size() ){
+            std::vector<KeyframeData>::const_iterator it = _newKeyframeData.begin();
+            const std::vector<KeyframeData>::const_iterator itEnd = _newKeyframeData.end();
+            while( it != itEnd ){
+                _poseView.addKeyframe( it->pose );
+
+                if( _nKfs % 2 == 0 ){
+                    _camCalib.setExtrinsics( it->pose.inverse() );
+                    ScenePoints curPts( "curTmp" );
+                    Vision::unprojectToScenePoints( curPts, it->rgb, it->depth, _camCalib, ( float ) ( 0xffff ) / _depthFactor );
+                    _allPoints.add( curPts );
+                }
+                ++it;
+                _nKfs++;
+            }
+            --it;
+            _keyframeImage.setImage( it->rgb );
+            _newKeyframeData.clear();
+
+            // add the new points to the scene
+            _poseView.setScenePoints( _allPoints );
+        }
     }
 
     void VOGui::setupGui()
@@ -80,65 +157,62 @@ namespace cvt {
 
     void VOGui::setOffsetPose( const Matrix4f& pose )
     {
+        ScopeLock lock( &_dataMutex );
         _poseView.setOffsetPose( pose );
     }
 
     void VOGui::setCurrentRGB( const Image& rgb )
     {
-        _currentImage.setImage( rgb );
+        ScopeLock lock( &_dataMutex );
+        _currentRGB = rgb;
     }
 
     void VOGui::setCurrentDepth( const Image& depth )
     {
-        _depthView.setImage( depth );
-    }
-
-    void VOGui::setCurrentKeyframe( const Image& img )
-    {
-        _keyframeImage.setImage( img );
+        ScopeLock lock( &_dataMutex );
+        _currentDepth = depth;
     }
 
     void VOGui::setPose( const Matrix4f& pose )
     {
-        _poseView.setCamPose( pose );
+        ScopeLock lock( &_dataMutex );
+        _camPose = pose;
     }
 
     void VOGui::setGroundTruthPose( const Matrix4f& pose )
     {
-        _poseView.setGTPose( pose );
+        ScopeLock lock( &_dataMutex );
+        _gtPose = pose;
     }
 
     void VOGui::setSSDLabel( float ssd )
     {
-        String str;
-        str.sprintf( "SSD: %0.2f", ssd );
-        _ssdLabel.setLabel( str );
+        ScopeLock lock( &_dataMutex );
+        _ssd = ssd;
     }
 
     void VOGui::setNumPixels( size_t n )
     {
-        String str;
-        str.sprintf( "# Pixel: %d", n );
-        _numPixelLabel.setLabel( str );
+        ScopeLock lock( &_dataMutex );
+        _numPixel = n;
     }
 
     void VOGui::setPixelPercentage( float val )
     {
-        String str;
-        str.sprintf( "\% Pixel: %0.1f\%", val );
-        _pixelPercentLabel.setLabel( str );
+        ScopeLock lock( &_dataMutex );
+        _pixelPercent = val;
     }
 
     void VOGui::setSpeed( float speed )
     {
-        String title;
-        title.sprintf( "RGBDVO: Avg. Speed %0.1f ms", speed );
-        _mainWindow.setTitle( title );
+        ScopeLock lock( &_dataMutex );
+        _avgSpeed = speed;
     }
 
-    void VOGui::addKeyframe( const Matrix4f& pose )
+    void VOGui::addKeyframe( const KeyframeData& data )
     {
-        _poseView.addKeyframe( pose );
+        ScopeLock lock( &_keyframeDataMutex );
+        _newKeyframeData.push_back( data );
     }
 
 }

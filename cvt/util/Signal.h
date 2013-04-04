@@ -24,10 +24,10 @@ namespace cvt {
 			typedef typename std::list<Delegate<void ( T )> >::iterator ListTypeIterator;
 
 			public:
-				Signal() {};
-				~Signal() {};
+				Signal() {}
+				~Signal() {}
 				void add( const Delegate<void ( T )>& d ) { _delegates.push_back( d ); }
-				void remove( const Delegate<void ( T )>& d ) { _delegates.remove( d ); };
+				void remove( const Delegate<void ( T )>& d ) { _delegates.remove( d ); }
 				void notify( T arg );
 				void notify( );
 
@@ -50,10 +50,10 @@ namespace cvt {
 			typedef std::list<Delegate<void ( )> >::iterator ListTypeIterator;
 
 			public:
-				Signal() {};
-				~Signal() {};
+				Signal() {}
+				~Signal() {}
 				void add( const Delegate<void ( )>& d ) { _delegates.push_back( d ); }
-				void remove( const Delegate<void ( )>& d ) { _delegates.remove( d ); };
+				void remove( const Delegate<void ( )>& d ) { _delegates.remove( d ); }
 				void notify( void );
 
 			private:

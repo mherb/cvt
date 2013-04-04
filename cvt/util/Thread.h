@@ -19,7 +19,7 @@ namespace cvt {
 	class Thread {
 		public:
 			Thread();
-			virtual ~Thread() {};
+			virtual ~Thread() {}
 			void run( T* );
 			virtual void execute( T* arg ) = 0;
 			void join();

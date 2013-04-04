@@ -34,8 +34,8 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 	dy = ( BUF( lx, ly + 1 ) - BUF( lx, ly - 1 ) );// * 0.5f + ( BUF( lx - 1, ly + 1 ) - BUF( lx - 1, ly - 1 ) ) * 0.25f + ( BUF( lx + 1, ly + 1 ) - BUF( lx + 1, ly - 1 ) ) * 0.25f ;
 //	float dxx = 0.125f * ( - BUF( lx + 1, ly ) * 0.5f - BUF( lx, ly + 1 ) * 0.5f + BUF( lx, ly ) );
 //	float dyy = 0.125f * ( - BUF( lx - 1, ly ) * 0.5f - BUF( lx, ly - 1 ) * 0.5f +  BUF( lx, ly ) );
-	float dxy = BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1 );
-	float dyx = BUF( lx - 1, ly + 1 ) - BUF( lx + 1, ly - 1 );
+//	float dxy = BUF( lx + 1, ly + 1 ) - BUF( lx - 1, ly - 1 );
+//	float dyx = BUF( lx - 1, ly + 1 ) - BUF( lx + 1, ly - 1 );
 
 //	float lap = - BUF( lx, ly + 1 ) * 0.5f
 //				- BUF( lx, ly - 1 ) * 0.5f
@@ -43,5 +43,6 @@ __kernel void gradxy( __write_only image2d_t out, __read_only image2d_t src  )
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( dx, dy, dxy, dyx ) );
+	float w = exp(-1.0f * pow( sqrt( dx * dx + dy * dy ), 0.8f ) );
+	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }

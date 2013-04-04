@@ -93,35 +93,39 @@ namespace cvt {
 
         void Vision::unprojectToXYZ( PointSet3f& pts, Image& depth, const Matrix3f& K, float depthScale )
         {
-            IMapScoped<const uint16_t> depthMap( depth );
-            float invFx = 1.0f / K[ 0 ][ 0 ];
-            float invFy = 1.0f / K[ 1 ][ 1 ];
-            float cx    = K[ 0 ][ 2 ];
-            float cy    = K[ 1 ][ 2 ];
+            if( depth.format() == IFormat::GRAY_UINT16 ){
+                IMapScoped<const uint16_t> depthMap( depth );
+                float invFx = 1.0f / K[ 0 ][ 0 ];
+                float invFy = 1.0f / K[ 1 ][ 1 ];
+                float cx    = K[ 0 ][ 2 ];
+                float cy    = K[ 1 ][ 2 ];
 
-            // temp vals
-            std::vector<float> tmpx( depth.width() );
-            std::vector<float> tmpy( depth.height() );
+                // temp vals
+                std::vector<float> tmpx( depth.width() );
+                std::vector<float> tmpy( depth.height() );
 
-            for( size_t i = 0; i < tmpx.size(); i++ ){
-                tmpx[ i ] = ( i - cx ) * invFx;
-            }
-            for( size_t i = 0; i < tmpy.size(); i++ ){
-                tmpy[ i ] = ( i - cy ) * invFy;
-            }
-
-            Vector3f p3d;
-            for( size_t y = 0; y < depth.height(); y++ ){
-                const uint16_t* dptr = depthMap.ptr();
-                for( size_t x = 0; x < depth.width(); x++ ){
-                    float d = dptr[ x ] * depthScale;
-                    p3d[ 0 ] = tmpx[ x ] * d;
-                    p3d[ 1 ] = tmpy[ y ] * d;
-                    p3d[ 2 ] = d;
-                    pts.add( p3d );
+                for( size_t i = 0; i < tmpx.size(); i++ ){
+                    tmpx[ i ] = ( i - cx ) * invFx;
                 }
-                // next line in depth image
-                depthMap++;
+                for( size_t i = 0; i < tmpy.size(); i++ ){
+                    tmpy[ i ] = ( i - cy ) * invFy;
+                }
+
+                Vector3f p3d;
+                for( size_t y = 0; y < depth.height(); y++ ){
+                    const uint16_t* dptr = depthMap.ptr();
+                    for( size_t x = 0; x < depth.width(); x++ ){
+                        float d = dptr[ x ] * depthScale;
+                        p3d[ 0 ] = tmpx[ x ] * d;
+                        p3d[ 1 ] = tmpy[ y ] * d;
+                        p3d[ 2 ] = d;
+                        pts.add( p3d );
+                    }
+                    // next line in depth image
+                    depthMap++;
+                }
+            } else {
+                throw CVTException( "Unproject not implemented for given format" );
             }
         }
 

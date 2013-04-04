@@ -5,6 +5,8 @@
 #include <cvt/gui/GLView.h>
 #include <cvt/gl/progs/GLBasicProg.h>
 #include <cvt/gl/GLLines.h>
+#include <cvt/geom/scene/ScenePoints.h>
+#include <cvt/gl/GLPoints.h>
 
 namespace cvt
 {
@@ -37,6 +39,8 @@ namespace cvt
             void addKeyframe( const Matrix4f& pose );
 
             void setOffsetPose( const Matrix4f& pose );
+
+            void setScenePoints( const ScenePoints& pts );
 
         protected:
             void paintGLEvent( PaintEvent* );
@@ -78,6 +82,8 @@ namespace cvt
             size_t          _maxKeyframes;
             GLVertexArray	_keyframes;
             GLBuffer        _keyframesAxesBuffer;
+
+            GLPoints        _scenePoints;
 
             void createGrid( ssize_t halfRes );
             void createAxes();
