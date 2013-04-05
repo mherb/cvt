@@ -9,10 +9,7 @@ namespace cvt {
         _nextButton( "next" ),
         _stepButton( "enable stepping" ),
         _optimizeButton( "Stop optimizing" ),
-        _mainWindow( "RGBD-VO" ),
-        _kfMov( &_keyframeImage ),
-        _imageMov( &_currentImage ),
-        _depthViewMov( &_depthView ),
+        _mainWindow( "RGBD-VO" ),        
         _ssdLabel( "SSD:" ),
         _numPixelLabel( "# Pixel: 0" ),
         _pixelPercentLabel( "\% Pixel: 0\%" ),
@@ -96,45 +93,42 @@ namespace cvt {
 
     void VOGui::setupGui()
     {
-        _mainWindow.setSize( 800, 600 );
+        _mainWindow.setSize( 1024, 768 );
 
-        _mainWindow.addWidget( &_kfMov );
-        _mainWindow.addWidget( &_imageMov );
-        _mainWindow.addWidget( &_depthViewMov );
+        WidgetLayout wl;        
 
-        // add widgets as necessary
-        _kfMov.setSize( 300, 200 );
-        _kfMov.setTitle( "Current Keyframe" );
-
-        _depthViewMov.setSize( 300, 200 );
-        _depthViewMov.setTitle( "Current Depth" );
-        _depthViewMov.setPosition( 200, 0 );
-
-        _imageMov.setSize( 300, 200 );
-        _imageMov.setPosition( 300, 0 );
-        _imageMov.setTitle( "Current Image" );
-
-
-        WidgetLayout wl;
-        wl.setAnchoredBottom( 5, 30 );
-        wl.setAnchoredRight( 5, 120 );
-        _mainWindow.addWidget( &_nextButton, wl );
-        wl.setAnchoredBottom( 40, 30 );
-        _mainWindow.addWidget( &_stepButton, wl );
-        wl.setAnchoredBottom( 75, 30 );
-        _mainWindow.addWidget( &_optimizeButton, wl );
-        wl.setAnchoredBottom( 110, 30 );
-        wl.setAnchoredRight( 5, 150 );
-        _mainWindow.addWidget( &_ssdLabel, wl );
-        wl.setAnchoredBottom( 145, 30 );
-        _mainWindow.addWidget( &_numPixelLabel, wl );
-        wl.setAnchoredBottom( 180, 30 );
-        _mainWindow.addWidget( &_pixelPercentLabel, wl );
-        _mainWindow.setVisible( true );
-
-        wl.setRelativeLeftRight( 0.0f, 0.7f );
-        wl.setRelativeTopBottom( 0.0f, 0.7f );
+        wl.setRelativeLeftRight( 0.0f, 1.0f );
+        wl.setRelativeTopBottom( 0.0f, 0.69f );
         _mainWindow.addWidget( &_poseView, wl );
+
+
+        wl.setRelativeTopBottom( 0.7f, 0.99f );
+
+        wl.setRelativeLeftRight( 0.0f, 0.24f );
+        _mainWindow.addWidget( &_currentImage, wl );
+        wl.setRelativeLeftRight( 0.25f, 0.49f );
+        _mainWindow.addWidget( &_depthView, wl );
+        wl.setRelativeLeftRight( 0.5f, 0.74f );
+        _mainWindow.addWidget( &_keyframeImage, wl );
+
+        wl.setRelativeLeftRight( 0.75f, 0.99f );
+        wl.setRelativeTopBottom( 0.7f, 0.75f );
+        _mainWindow.addWidget( &_ssdLabel, wl );
+        wl.setRelativeTopBottom( 0.76f, 0.8f );
+        _mainWindow.addWidget( &_numPixelLabel, wl );
+        wl.setRelativeTopBottom( 0.81f, 0.85f );
+        _mainWindow.addWidget( &_pixelPercentLabel, wl );
+
+        wl.setRelativeTopBottom( 0.86f, 0.9f );
+        wl.setRelativeLeftRight( 0.75f, 0.874f );
+        _mainWindow.addWidget( &_nextButton, wl );
+        wl.setRelativeLeftRight( 0.875f, 0.99f );
+        _mainWindow.addWidget( &_stepButton, wl );
+        wl.setRelativeLeftRight( 0.75f, 0.874f );
+        wl.setRelativeTopBottom( 0.91f, 0.95f );
+        _mainWindow.addWidget( &_optimizeButton, wl );
+
+        _mainWindow.setVisible( true );
     }
 
     void VOGui::setOptimize( bool val )
