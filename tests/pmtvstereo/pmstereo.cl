@@ -345,7 +345,7 @@ kernel void pmstereo_init( write_only image2d_t output, read_only image2d_t img1
 
 	RNG_init( &rng, coord.y * width + coord.x, 3 );
 
-	float4 ret = nd_state_init( &rng, coordf, lr, 0.5f );
+	float4 ret = nd_state_init( &rng, coordf, lr, 0.25f );
 
 	ret.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, ret, patchsize, lr );
 
@@ -373,7 +373,7 @@ float2 smoothDistance( const float4 statea, const float4 stateb, const float4 sm
   float2 ret;
   float4 a = nd_state_to_ref_normal_depth( statea, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( stateb, coord, lr );
-  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 1.0f, 1.0f / ( DEPTHMAX * DEPTHMAX ) );
+  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 0.0f, 1.0f / ( DEPTHMAX * DEPTHMAX ) );
 
   if( !all( isfinite( statea.xyz ) ) || !all( isfinite( stateb.xyz ) ) )
 	  return ( float2 ) 0.0f;

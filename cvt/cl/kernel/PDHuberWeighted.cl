@@ -5,7 +5,7 @@ const sampler_t SAMPLER_NN = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | C
 #define SIGMA ( 1.0f / sqrt( 8.0f ) )
 #define TAU   ( 1.0f / sqrt( 8.0f ) )
 #define THETA  0.5f
-#define ALPHA  0.0001f
+#define ALPHA  0.001f
 
 __kernel void PDHuberWeighted( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, __read_only image2d_t weights, const float4 lambda, __local float4* buf, __local float8* buf2, __local float* buf3  )
 {
@@ -49,8 +49,8 @@ __kernel void PDHuberWeighted( __write_only image2d_t out, __write_only image2d_
 			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
 
 			float4 ptmp = p.lo * p.lo + p.hi * p.hi;
-//			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( ( float4 ) ( ptmp.x + ptmp.y,ptmp.x + ptmp.y, ptmp.z, 0.0f ) ) );
-			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( ( float4 ) ( ptmp ) ) );
+			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( ( float4 ) ( ptmp.x + ptmp.y,ptmp.x + ptmp.y, ptmp.z, 0.0f ) ) );
+//			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( ptmp ) );
 
 			buf2[ mad24( y, bstride, x ) ] = p / ( float8 ) ( pproj, pproj );
 		}
