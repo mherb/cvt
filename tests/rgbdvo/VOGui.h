@@ -45,13 +45,9 @@ namespace cvt {
             Button          _optimizeButton;
         private:
             Window                      _mainWindow;
-            ImageView                   _keyframeImage;
-            Moveable                    _kfMov;
+            ImageView                   _keyframeImage;            
             ImageView                   _currentImage;
-            Moveable                    _imageMov;
-
-            ImageView                   _depthView;
-            Moveable                    _depthViewMov;
+            ImageView                   _depthView;            
 
             PoseView                    _poseView;
 

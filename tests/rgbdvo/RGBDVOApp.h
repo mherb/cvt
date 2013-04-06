@@ -41,6 +41,11 @@ namespace cvt
                 void resultCb( const StepResult& r );
                 void writePose( std::ofstream& file, const Matrix4f& pose, double stamp );
 
+                void steppingPressedCb();
+                void nextPressedCb();
+                void optimizePressedCb();
+
+
                 void computeResidualImage( const Image& currGray, const Matrix4f& currPose ) const;
 
                 PointSet3f  _refPts;
@@ -124,12 +129,39 @@ namespace cvt
         Delegate<void ( const Image& )> cimgDel( this, &RGBDVOApp<KFType, LossFunc>::colorCb );
         Delegate<void ( const StepResult& )> resultDel( this, &RGBDVOApp<KFType, LossFunc>::resultCb );
 
+        Delegate<void ()> steppButtonDel( this, &RGBDVOApp<KFType, LossFunc>::steppingPressedCb );
+        Delegate<void ()> nextButtonDel( this, &RGBDVOApp<KFType, LossFunc>::nextPressedCb );
+        Delegate<void ()> optButtonDel( this, &RGBDVOApp<KFType, LossFunc>::optimizePressedCb );
+        _gui._stepButton.clicked.add( steppButtonDel );
+        _gui._optimizeButton.clicked.add( optButtonDel );
+        _gui._nextButton.clicked.add( nextButtonDel );
+
         _voThread.keyframeSignal.add( kfAddDel );
         _voThread.gtPose.add( gtDel );
         _voThread.currentColor.add( cimgDel );
         _voThread.currentDepth.add( dimgDel );
         _voThread.resultSignal.add( resultDel );
 
+    }
+
+    template <class KFType, class LossFunc>
+    inline void RGBDVOApp<KFType, LossFunc>::steppingPressedCb()
+    {
+        _voThread.toggleStepping();
+        _gui.setStepping( _voThread.isStepping() );
+    }
+
+    template <class KFType, class LossFunc>
+    inline void RGBDVOApp<KFType, LossFunc>::optimizePressedCb()
+    {
+        _voThread.toggleOptimize();
+        _gui.setOptimize( _voThread.isOptimizing() );
+    }
+
+    template <class KFType, class LossFunc>
+    inline void RGBDVOApp<KFType, LossFunc>::nextPressedCb()
+    {
+        _voThread.setNextPressed();
     }
 
     template <class KFType, class LossFunc>
