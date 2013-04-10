@@ -44,9 +44,9 @@ __kernel void PDHuberWeighted( __write_only image2d_t out, __write_only image2d_
 
 			float8 p;
 			coord.x = base2.x + ( x << 1 );
-		    p.lo = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
+		    p.lo = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx ) / ( float4 ) ( 1.0f + SIGMA * ALPHA / weight );
 			coord.x += 1;
-			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
+			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA / weight );
 
 			float4 ptmp = p.lo * p.lo + p.hi * p.hi;
 			float4 pproj = fmax( ( float4 ) 1.0f, sqrt( ( float4 ) ( ptmp.x + ptmp.y,ptmp.x + ptmp.y, ptmp.z, 0.0f ) ) );
