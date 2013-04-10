@@ -71,6 +71,7 @@ int main( int argc, char** argv )
 		fill.setArg( 1, fillvalue );
 		fill.run( CLNDRange( Math::pad( clp2.width(), 16 ), Math::pad( clp2.height(), 16 ) ), CLNDRange( 16, 16 ) );
 
+
 		std::cout << std::endl;
 
 		for( int i = 0; i < 5000; i++ ) {
@@ -102,8 +103,10 @@ int main( int argc, char** argv )
 
 			std::cout << "\r" << i << std::flush;
 
-			if( i % 250 == 0 )
+			if( i % 100 == 0 ) {
 				clout2.save("pdopt.png");
+				sleep( 1 );
+			}
 		}
 		std::cout << std::endl;
 

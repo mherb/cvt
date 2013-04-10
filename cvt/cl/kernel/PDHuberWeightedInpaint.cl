@@ -7,7 +7,7 @@ const sampler_t SAMPLER_NN = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | C
 #define THETA  0.5f
 #define ALPHA  0.001f
 
-__kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, __read_only image2d_t weights, __read_only image2d_t mask, const float4 lambda, __local float4* buf, __local float8* buf2, __local float* buf3  )
+__kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only image2d_t outp, __read_only image2d_t last, __read_only image2d_t imgp, __read_only image2d_t image, __read_only image2d_t weights, __read_only image2d_t mask, const float lambda, __local float4* buf, __local float8* buf2, __local float* buf3  )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -44,9 +44,9 @@ __kernel void PDHuberWeightedInpaint( __write_only image2d_t out, __write_only i
 
 			float8 p;
 			coord.x = base2.x + ( x << 1 );
-		    p.lo = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
+		    p.lo = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dx ) / ( float4 ) ( 1.0f + SIGMA * ALPHA / weight );
 			coord.x += 1;
-			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA );
+			p.hi = ( read_imagef( imgp, SAMPLER_NN, coord ) + SIGMA * dy ) / ( float4 ) ( 1.0f + SIGMA * ALPHA / weight );
 
 //			float4 pproj = fmax( ( float4 ) 1.0f, ( float4 ) ( ( sqrt(dot( p.lo * p.lo + p.hi * p.hi,(float4)1.0f ))) ) );
 			float4 pproj = fmax( ( float4 ) 1.0f, ( float4 ) ( ( sqrt( p.lo * p.lo + p.hi * p.hi)) ) );

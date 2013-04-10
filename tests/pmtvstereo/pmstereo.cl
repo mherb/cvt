@@ -301,7 +301,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 1.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
@@ -345,7 +345,7 @@ kernel void pmstereo_init( write_only image2d_t output, read_only image2d_t img1
 
 	RNG_init( &rng, coord.y * width + coord.x, 3 );
 
-	float4 ret = nd_state_init( &rng, coordf, lr, 0.25f );
+	float4 ret = nd_state_init( &rng, coordf, lr, 1.0f );
 
 	ret.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, ret, patchsize, lr );
 
@@ -409,6 +409,7 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 
 	local float4 buf[ 16 + 2 * PROPSIZE ][ 16 + 2 * PROPSIZE ];
 	float4 self, neighbour, smooth;
+//	float theta = 0.1f * _theta;
 
 	for( int y = ly; y < lh + 2 * PROPSIZE; y += lh ) {
 		for( int x = lx; x < lw + 2 * PROPSIZE; x += lw ) {
@@ -438,8 +439,8 @@ kernel void pmstereo_propagate_view( write_only image2d_t output, read_only imag
 			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
-		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
+			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+			if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 		}
 	}
 
@@ -564,7 +565,7 @@ kernel void pmstereo_consistency( write_only image2d_t output, read_only image2d
 	float dmax = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x );
 //	float dmax = fmin( dmax, fabs( ( float ) coord.x - nd_state_transform( stater2, coord2 ).x ) );
 
-    float4 val = (dmax>=0.5f||acos(ndiff)>=1.0f)?( float4 ) 0.0f : ( statel );
+    float4 val = (dmax>=0.5f||acospi(ndiff)>=5.0f/180.0f)?( float4 ) 0.0f : ( statel );
 	write_imagef( output, coord, val );
 }
 
@@ -749,10 +750,10 @@ kernel void pmstereo_occmap( write_only image2d_t output, read_only image2d_t le
 	float4 stater;
 	if( coord2.x < 0 || coord2.x >= width )
 		stater = ( float4 ) 1e5f;
-	else
+	else {
 		stater = read_imagef( right, SAMPLER_NN, ( int2 ) ( round(coord2.x), coord2.y ) );
-
 //		stater = read_imagef( right, SAMPLER_BILINEAR, coord2  + ( float2 ) ( 0.5f, 0.5f ) );
+	}
 
 	float ndiff;
 	if( lr )
@@ -760,7 +761,7 @@ kernel void pmstereo_occmap( write_only image2d_t output, read_only image2d_t le
 	else
 		ndiff = dot( nd_state_to_normal( stater ), nd_state_to_normal( nd_state_viewprop( statel ) ) );
 
-	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=maxdiff||acos(ndiff)>=1.0)? 0.0f : 1.0f;
+	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=0.5f||acospi(ndiff)>=5.0/180.0f)? 0.0f : 1.0f;
 	write_imagef( output, coord, ( float4 ) ( val, val, val, 1.0f ) );
 }
 
