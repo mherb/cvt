@@ -42,6 +42,6 @@ __kernel void weight( __write_only image2d_t out, __read_only image2d_t src  )
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	float w = exp(-6.0f * pow( sqrt(  dx * dx + dy * dy ), 0.5f ) );
+	float w = exp(-3.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }

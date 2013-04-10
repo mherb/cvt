@@ -301,7 +301,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 1.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
