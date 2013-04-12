@@ -342,6 +342,7 @@ SET(${MODULE_NAME}_HEADERS
    io/AsyncUDPClient.h
    math/CostFunction.h
    math/Complex.h
+   math/FFT.h
    math/Fixed.h
    math/Function.h
    math/JointMeasurements.h
@@ -604,6 +605,7 @@ SET(${MODULE_NAME}_SOURCES
    io/TCPServer.cpp
    io/UDPClient.cpp
    math/Complex.cpp
+   math/FFT.cpp
    math/Fixed.cpp
    math/JointMeasurements.cpp
    math/JointMeasurementsTest.cpp
