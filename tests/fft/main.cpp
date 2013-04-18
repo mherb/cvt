@@ -43,9 +43,9 @@ int main( int argc, char** argv )
 			map++;
 		}
 		map.reset();
-		for( size_t x = 0; x < xend; x++ ){
-			FFT::fftStridedRadix2( ( Complexf* ) ( map.ptr() + x ), map.height() / 2, stride, false );
-		}
+	//	for( size_t x = 0; x < xend; x++ ){
+	//		FFT::fftStridedRadix2( ( Complexf* ) ( map.ptr() + x ), map.height() / 2, stride, false );
+	//	}
 	}
 	{
 		IMapScoped<float> map( fin );
@@ -57,9 +57,9 @@ int main( int argc, char** argv )
 			map++;
 		}
 		map.reset();
-		for( size_t x = 0; x < xend; x++ ){
-			FFT::fftStridedRadix2( ( Complexf* ) ( map.ptr() + x ), map.height() / 2, stride, true );
-		}
+	//	for( size_t x = 0; x < xend; x++ ){
+	//		FFT::fftStridedRadix2( ( Complexf* ) ( map.ptr() + x ), map.height() / 2, stride, true );
+	//	}
 	}
 	fin.save("ffttest.png");
 
