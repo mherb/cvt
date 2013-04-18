@@ -12,10 +12,10 @@ using namespace cvt;
 
 int main( int argc, char** argv )
 {
-    if( argc != 5 ){
-        std::cout << "Usage: " << argv[ 0 ] << "stereo-calib image disparity dscale" << std::endl;
-        return 0;
-    }
+//    if( argc != 5 ){
+  //      std::cout << "Usage: " << argv[ 0 ] << "stereo-calib image disparity dscale" << std::endl;
+    //    return 0;
+    //}
 
     try {
 
@@ -24,12 +24,17 @@ int main( int argc, char** argv )
 		float dispscale = String( argv[ 4 ] ).toFloat();
 
         ScenePoints pts( "Points" );
-		Image tmp, depthmap, disparity, image;
+		Image tmp, depthmap, disparity, image, mask;
 		tmp.load( argv[ 2 ] );
         tmp.convert( image, IFormat::RGBA_FLOAT );
 		tmp.load( argv[ 3 ] );
         tmp.convert( disparity, IFormat::GRAY_FLOAT );
+		tmp.load( argv[ 5 ] );
+        tmp.convert( mask, IFormat::GRAY_FLOAT );
+		disparity.mul( mask );
+
 		Vision::disparityToDepthmap( depthmap, disparity, dispscale, calib.focalLength(), calib.baseLine() );
+		image.mul( 1.5f );
 
 //		disparity.save("disparity.cvtraw");
 //		depthmap.mul( 1.0f / 40.0f );
@@ -37,8 +42,9 @@ int main( int argc, char** argv )
 		ScenePoints ptsnew( "BLA" );
 		Vision::unprojectToScenePoints( ptsnew, image, depthmap, calib.firstCamera(), 1.0f );
 		pts.add( ptsnew );
-//		pts.scale( 0.2 );
+		pts.scale( 0.001 );
 //		pts.translate( -pts.centroid() );
+		pts.translate( -Vector3f( 0, 0, 15.0f ) );
 
         std::cout << pts.boundingBox() << std::endl;
 

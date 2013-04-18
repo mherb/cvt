@@ -56,6 +56,8 @@ namespace cvt {
 		setViewport( rect() );
 		_prog.bind();
 
+		glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+		glClear( GL_COLOR_BUFFER_BIT );
 		{
 			Matrix4f proj, tmp;
 			GL::perspective( proj, 60.0f, ( float ) rect().width / ( float ) rect().height, 0.01f, 100.0f );
@@ -70,7 +72,7 @@ namespace cvt {
 			glEnable( GL_DEPTH_TEST );
 			//glPointSize( 15.0f );
 			_points.draw();
-			_box.draw();
+//			_box.draw();
 		/*	Boxf box( -0.2, 0.0, 0.4, 0.8f, 1.0f, 1.4f );
 			GLLines glbox( box, Color::RED );
 			glbox.draw();*/
