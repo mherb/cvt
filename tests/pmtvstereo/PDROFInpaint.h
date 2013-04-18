@@ -33,7 +33,7 @@ namespace cvt {
 		Image* clp[ 2 ] = { &clp1, &clp2 };
 
 		cl_float4 fillvalue = {{ 0.0f, 0.0f, 0.0f, 0.0f }};
-		cl_float4 lambda4 = {{ lambda, lambda, 10.0f * lambda, 0.0f }};
+//		cl_float4 lambda4 = {{ lambda, lambda, 10.0f * lambda, 0.0f }};
 
 		_clfill.setArg( 0, *clp[ 1 ] );
 		_clfill.setArg( 1, fillvalue );
@@ -50,7 +50,7 @@ namespace cvt {
 			_clrof.setArg( 4, input );
 			_clrof.setArg( 5, weight );
 			_clrof.setArg( 6, mask );
-			_clrof.setArg( 7, lambda4 );
+			_clrof.setArg( 7, lambda );
 			_clrof.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * 18 * 18 ) );
 			_clrof.setArg( 9, CLLocalSpace( sizeof( cl_float8 ) * 18 * 18 ) );
 			_clrof.setArg( 10, CLLocalSpace( sizeof( cl_float ) * 18 * 18 ) );
@@ -65,7 +65,7 @@ namespace cvt {
 			_clrof.setArg( 4, input );
 			_clrof.setArg( 5, weight );
 			_clrof.setArg( 6, mask );
-			_clrof.setArg( 7, lambda4 );
+			_clrof.setArg( 7, lambda );
 			_clrof.setArg( 8, CLLocalSpace( sizeof( cl_float4 ) * 18 * 18 ) );
 			_clrof.setArg( 9, CLLocalSpace( sizeof( cl_float8 ) * 18 * 18 ) );
 			_clrof.setArg( 10, CLLocalSpace( sizeof( cl_float ) * 18 * 18 ) );

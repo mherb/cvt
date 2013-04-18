@@ -135,7 +135,7 @@ typedef mwc64x_state_t RNG;
 #define RNG_float( x ) MWC64X_NextFloat( x )
 
 
-#define DEPTHMAX 60.0f
+#define DEPTHMAX 100.0f
 #define PROPSIZE 1
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.2f
@@ -761,7 +761,7 @@ kernel void pmstereo_occmap( write_only image2d_t output, read_only image2d_t le
 	else
 		ndiff = dot( nd_state_to_normal( stater ), nd_state_to_normal( nd_state_viewprop( statel ) ) );
 
-	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=0.5f||acospi(ndiff)>=5.0/180.0f)? 0.0f : 1.0f;
+	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=0.5f||acospi(ndiff)>=5.0f/180.0f)? 0.0f : 1.0f;
 	write_imagef( output, coord, ( float4 ) ( val, val, val, 1.0f ) );
 }
 

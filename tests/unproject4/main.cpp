@@ -37,8 +37,8 @@ int main( int argc, char** argv )
         Vision::unprojectToScenePoints( pts, image, depthmap, camcalib, scale );
 
         std::cout << pts.boundingBox() << std::endl;
-		pts.translate( -pts.centroid() );
-		pts.scale( 2.0f );
+//		pts.translate( -pts.centroid() );
+//		pts.scale( 2.0f );
 
 
         Window w( "meshView" );
