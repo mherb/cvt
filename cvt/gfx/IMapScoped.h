@@ -46,6 +46,7 @@ namespace cvt {
 				T*			ptr();
 				T*			ptr() const;
 				T*			base();
+				T*			line( size_t y );
 				void		prevLine();
 				void		nextLine();
 				void		setLine( size_t l );
@@ -101,6 +102,13 @@ namespace cvt {
 		return ( T* ) _base;
 	}
 
+
+	template<typename T>
+	inline T* IMapScoped<T>::line( size_t y )
+	{
+		return ( T* ) ( _base + _stride * y );
+	}
+
 	template <typename T>
 	inline void IMapScoped<T>::setLine( size_t l )
 	{
@@ -142,13 +150,13 @@ namespace cvt {
 	template<typename T>
 	inline T& IMapScoped<T>::operator()( size_t row, size_t col )
 	{
-		return (T&)_base[ row * _stride + col * sizeof( T ) ];
+		return *( ( T* ) ( _base + row * _stride + col * sizeof( T ) ) );
 	}
 
 	template<typename T>
 	inline const T& IMapScoped<T>::operator()( size_t row, size_t col ) const
 	{
-		return (const T&)_base[ row * _stride + col * sizeof( T ) ];
+		return *( ( const T* ) ( _base + row * _stride + col * sizeof( T ) ) );
 	}
 
 	template<typename T>

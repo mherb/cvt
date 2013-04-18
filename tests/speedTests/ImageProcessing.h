@@ -3,6 +3,7 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IKernel.h>
+#include <cvt/gfx/IConvolve.h>
 #include <cvt/util/Time.h>
 #include <cvt/util/String.h>
 #include <cvt/io/Resources.h>
@@ -43,6 +44,101 @@ void testIntegralImage()
     std::cout << "OCV IntegralImage: " << t.elapsedMicroSeconds() / NUMSAMPLES << " microSecs" << std::endl;
 }
 
+void testConvolutionCVT2()
+{
+	Resources resources;
+	Image lena( resources.find( "lena.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::RGBA_FLOAT );
+	Image outx( lena );
+	Image outy( lena );
+
+	IKernel kx( IKernel::GAUSS_HORIZONTAL_3 );
+	IKernel ky( IKernel::GAUSS_VERTICAL_3 );
+	Time t;
+
+	std::cout << "Running Convolution Tests" << std::endl;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+	}
+	std::cout << "CVT2:\tGauss_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT2.png");
+
+	kx = IKernel::GAUSS_HORIZONTAL_5;
+	ky = IKernel::GAUSS_VERTICAL_5;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+	}
+	std::cout << "CVT2:\tGauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+
+	kx = IKernel::GAUSS_HORIZONTAL_7;
+	ky = IKernel::GAUSS_VERTICAL_7;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+	}
+	std::cout << "CVT2:\tGauss_7x7\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+
+	kx = IKernel::LAPLACE_33;
+	float data[] = { 1, 2, 1, 2, 4, 2, 1, 2, 1 };
+	IKernel bla( 3, 3, data );
+	bla.normalize();
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, bla );
+	}
+	std::cout << "CVT:\tLaplace_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT2X.png");
+}
+
+void testConvolutionGRAYCVT2()
+{
+	Resources resources;
+	Image lena( resources.find( "lena_g.png" ) );
+//	Image lena;
+//	tmp.convert( lena, IFormat::GRAY_FLOAT );
+	Image outx( lena );
+	Image outy( lena );
+
+	IKernel kx( IKernel::GAUSS_HORIZONTAL_3 );
+	IKernel ky( IKernel::GAUSS_VERTICAL_3 );
+	Time t;
+
+	std::cout << "Running Convolution Tests" << std::endl;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
+	}
+	std::cout << "CVT2:\tgray Gauss_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+
+	kx = IKernel::GAUSS_HORIZONTAL_5;
+	ky = IKernel::GAUSS_VERTICAL_5;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_5, IKernel::GAUSS_VERTICAL_5 );
+	}
+	std::cout << "CVT2:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT2GRAY.png");
+
+	kx = IKernel::GAUSS_HORIZONTAL_7;
+	ky = IKernel::GAUSS_VERTICAL_7;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, IKernel::GAUSS_HORIZONTAL_7, IKernel::GAUSS_VERTICAL_7 );
+	}
+	std::cout << "CVT2:\tgray Gauss_7x7\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+
+	kx = IKernel::LAPLACE_33;
+	t.reset();
+	for( size_t i = 0; i <  NUMSAMPLES; i++ ){
+		IConvolve::convolve( outx, lena, kx );
+	}
+	std::cout << "CVT:\tLaplace_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenalaplaceCVT2.png");
+}
+
 void testConvolutionCVT()
 {
 	Resources resources;
@@ -60,6 +156,7 @@ void testConvolutionCVT()
 		lena.convolve( outx, IKernel::GAUSS_HORIZONTAL_3, IKernel::GAUSS_VERTICAL_3 );
 	}
 	std::cout << "CVT:\tGauss_3x3\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVT.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_5;
 	ky = IKernel::GAUSS_VERTICAL_5;
@@ -110,6 +207,7 @@ void testConvolutionGRAYCVT()
 		lena.convolve( outx, kx, ky );
 	}
 	std::cout << "CVT:\tgray Gauss_5x5\t-> avg. " << t.elapsedMilliSeconds() / NUMSAMPLES << "ms" << std::endl;
+	outx.save("lenaCVTGRAY.png");
 
 	kx = IKernel::GAUSS_HORIZONTAL_7;
 	ky = IKernel::GAUSS_VERTICAL_7;
@@ -289,17 +387,20 @@ void testORB()
 
 void testImageProcessing()
 {
-    std::cout << "ORB" << std::endl;
-    testORB();
+ //   std::cout << "ORB" << std::endl;
+//    testORB();
 
-    return;
+   // return;
 
-    std::cout << "FAST Corners" << std::endl;
-    testFAST9();
+   // std::cout << "FAST Corners" << std::endl;
+    //testFAST9();
 
 	std::cout << "**************** CVT ****************" << std::endl;
 	testConvolutionCVT();
 	testConvolutionGRAYCVT();
+	std::cout << "**************** CVT2 ****************" << std::endl;
+	testConvolutionCVT2();
+	testConvolutionGRAYCVT2();
 	std::cout << "**************** OCV ****************" << std::endl;
 	testConvolutionOCV();
 	testConvolutionGRAYOCV();

@@ -11,6 +11,8 @@
 #include <cvt/gfx/IKernel.h>
 
 namespace cvt {
+	static float _id[] = { 1.0f };
+
 	static float _gauss3_data[] = { 0.25f, 0.5f, 0.25f };
 	static float _gauss5_data[] = { 1.0f / 17.0f, 4.0f / 17.0f, 7.0f / 17.0f, 4.0f / 17.0f, 1.0f / 17.0f };
 	static float _gauss7_data[] ={ 1.0f / 226.0f, 12.0f / 226.0f, 55.0f / 226.0f, 90.0f / 226.0f, 55.0f / 226.0f, 12.0f / 226.0f, 1.0f / 226.0f };
@@ -27,6 +29,8 @@ namespace cvt {
 	static float _laplace3_data[] = { -1.0f,  2.0f, -1.0f };
 
 	static float _laplace5_data[] = { -1.0f, 0.0f,  2.0f, 0.0f, -1.0f };
+
+	const IKernel IKernel::IDENTITY = IKernel( 1, 1, _id );
 
 	const IKernel IKernel::GAUSS_HORIZONTAL_3 = IKernel( 3, 1, _gauss3_data );
 	const IKernel IKernel::GAUSS_HORIZONTAL_5 = IKernel( 5, 1, _gauss5_data );

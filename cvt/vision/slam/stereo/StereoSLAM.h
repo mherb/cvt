@@ -16,7 +16,7 @@
 #include <cvt/util/Signal.h>
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>

@@ -17,7 +17,7 @@ namespace cvt {
 #define SUBUNITS8 8
 #define FULL_COVER8 0xff
 
-#define  windingmask8_record(_mask, _ySub, _dir) {\
+#define  windingmask8_record(_mask, _ySub, _dir) do {\
 	uint32_t*  pt = &( _mask ).composite[ (_ySub) >> 2 ];\
 	uint32_t   t = *pt;\
 	(_mask).mask |= ( 1U << (_ySub) );\

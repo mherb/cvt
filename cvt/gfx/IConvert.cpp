@@ -18,7 +18,7 @@ namespace cvt {
 
 #define TABLE( table, source, dst ) table[ ( ( source ) - 1 ) * LAST_FORMAT + ( dst ) - 1 ]
 
-    IConvert * IConvert::_instance = 0;
+    IConvert* IConvert::_instance = 0;
 
 
     #define CONV( func, dI, dsttype, sI, srctype, width )				\
@@ -426,6 +426,8 @@ namespace cvt {
         CONV( Conv_UYVYu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
+
+
     static void Conv_UYVYu8_to_GRAYALPHAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
@@ -468,6 +470,19 @@ namespace cvt {
         CONV( Conv_YUYVu8_to_GRAYALPHAu8, dstImage, uint8_t*, sourceImage, uint8_t*, sourceImage.width() )
     }
 
+    static void Conv_YUYVu8_to_GRAYf( Image & dstImage, const Image & sourceImage, IConvertFlags )
+    {
+        SIMD* simd = SIMD::instance();
+        const uint8_t* src;
+        const uint8_t* sbase;
+        size_t sstride;
+        size_t dstride;
+        uint8_t* dst;
+        uint8_t* dbase;
+        size_t h;
+
+        CONV( Conv_YUYVu8_to_GRAYf, dstImage, float*, sourceImage, uint8_t*, sourceImage.width() )
+    }
 
 #undef CONV
 
@@ -672,8 +687,8 @@ namespace cvt {
     IConvert::IConvert():
         _convertFuncs( 0 )
     {
-        _convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ];
-        memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
+        _convertFuncs = new ConversionFunction[ Math::sqr( (int)LAST_FORMAT ) ]();
+        //memset( _convertFuncs, 0, Math::sqr( (int)LAST_FORMAT ) );
 
         this->initTable();
     }
@@ -746,6 +761,7 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_YUYVu8_to_GRAYALPHAu8;
         TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_YUYVu8_to_RGBAu8;
         TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_YUYVu8_to_BGRAu8;
+        TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_YUYVu8_to_GRAYf;
 
         /* UYVY_UINT8 to X */
         TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_UYVYu8_to_GRAYu8;
@@ -755,7 +771,7 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_UYVY_UINT8, IFORMAT_GRAY_FLOAT ) = &Conv_UYVYu8_to_GRAYf;
     }
 
-    const IConvert & IConvert::instance()
+    const IConvert& IConvert::instance()
     {
         if( IConvert::_instance == 0 ){
             _instance = new IConvert();
@@ -780,7 +796,7 @@ namespace cvt {
         if( dstID > LAST_FORMAT )
             throw CVTException( "Destination format unkown" );
 
-        IConvert self = IConvert::instance();
+        const IConvert& self = IConvert::instance();
         if( self.TABLE( _convertFuncs, sourceID, dstID ) ){
             self.TABLE( _convertFuncs, sourceID, dstID)( dst, src, flags );
         } else {
