@@ -24,6 +24,10 @@ namespace cvt {
 
 	struct FeatureDescriptor : public Feature
 	{
+		FeatureDescriptor( float x, float y, float a, size_t o, float sc ) : Feature( x, y, a, o, sc )
+		{
+		}
+
 		FeatureDescriptor( const Feature& f ) : Feature( f )
 		{
 		}
