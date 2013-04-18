@@ -1,8 +1,6 @@
 Camera
 =======
-
-	IMPORTANT
-
+- refactor to plugins
 - nextFrame: bool nextFrame( timeout );
 - callback on new Frame ?
 
@@ -16,11 +14,19 @@ GUI
 
 Math
 ====
-- more Lie parametrized transforms (pose abstraction)
+- Add matrix stuff up to 9x9 ( maybe make generic template )
+- Add LUp test-code to Matrix(2,3,4)
 
 Vision/GFX/Image
-==========
-- Rapid
+================
+- Convolution:
+	o make use of PointSymmetric kernels
+	o add special versions for ( Sym/PtSym and normal ) 3x3, 5x5, 7x7
+- Add fast-path for FLOAT to U8 with gamma correction
+- Add fast-path for YUYV/UYUV to GRAY float
+- check code for UINT8 to FLOAT with srgb gamma correction
+- refactor SIMD names
+
 
 Philipp:
 ========
@@ -28,6 +34,7 @@ Philipp:
 	o Image::sampleLine
 	o Edge-based optimization for model -> to get Similarity and basis components
 	o Track faces and expressions
+
 - AAM
 	o use ActiveShape to build/calc PCA of face
 	o face recognition using PCA of faces
@@ -38,6 +45,7 @@ Philipp:
 	o GFXEngine
 		- add stroke, fill of polygons
 
+- Rapid stuff ( Popescu GLSL shader )
 
 Sebastian:
 ==========
