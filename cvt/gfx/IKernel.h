@@ -28,10 +28,16 @@ namespace cvt {
 
 			float& operator()( int x, int y );
 			const float& operator()( int x, int y ) const;
+			const float* ptr() const;
 
 			float sum() const;
 			void normalize();
 			void scale( float value );
+
+			bool isSymmetrical() const;
+			bool isPointSymmetrical() const;
+
+			static const IKernel IDENTITY;
 
 			static const IKernel GAUSS_HORIZONTAL_3;
 			static const IKernel GAUSS_HORIZONTAL_5;
@@ -142,6 +148,11 @@ namespace cvt {
 		return _data[ y * _width + x ];
 	}
 
+	inline const float* IKernel::ptr() const
+	{
+		return _data;
+	}
+
 	inline float IKernel::sum() const
 	{
 		size_t n = _width * _height;
@@ -167,6 +178,41 @@ namespace cvt {
 		float* ptr = _data;
 		while( n-- )
 			*ptr++ *= value;
+	}
+
+
+	inline bool IKernel::isSymmetrical() const
+	{
+		if( !( _width & 1 ) || !( _height & 1 ) )
+			return false;
+
+		const size_t iend = _width * _height;
+		for( size_t i = 0; i < iend; i++ )
+		{
+			float a = _data[ i ];
+			float b = _data[ iend - i - 1 ];
+			if( a != b )
+				return false;
+		}
+		return true;
+	}
+
+	inline bool IKernel::isPointSymmetrical() const
+	{
+		if( !( _width & 1 ) || !( _height & 1 ) )
+			return false;
+
+		const size_t iend = _width * _height;
+		for( size_t i = 0; i < iend; i++ )
+		{
+			if( i == iend - i - 1 )
+				continue;
+			float a = _data[ i ];
+			float b = _data[ iend - i - 1 ];
+			if( a != -b )
+				return false;
+		}
+		return true;
 	}
 
 }

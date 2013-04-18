@@ -18,7 +18,7 @@
 #ifndef CVT_FEATUREMATCH_H
 #define	CVT_FEATUREMATCH_H
 
-#include <cvt/vision/Feature2D.h>
+#include <cvt/vision/features/Feature.h>
 
 namespace cvt {
 
@@ -44,9 +44,9 @@ namespace cvt {
             return *this;
         }
 
-        const Feature2Df* 	feature0;
-        const Feature2Df* 	feature1;
-        float				distance;
+        const Feature* 	feature0;
+        const Feature* 	feature1;
+        float			distance;
     } ;
 
 }
