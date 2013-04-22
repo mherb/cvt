@@ -762,7 +762,7 @@ OPTION( CVT_USE_DC1394 "Use DC1394 library if available" TRUE )
 
 IF( ${CVT_USE_DC1394} )
    FIND_PACKAGE(DC1394)
-   IF( ${LIBDC1394_FOUND} )
+   IF( ${DC1394_FOUND} )
       SET(${MODULE_NAME}_HEADERS
          ${${MODULE_NAME}_HEADERS}
          io/DC1394Camera.h

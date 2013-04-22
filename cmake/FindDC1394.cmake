@@ -18,12 +18,9 @@ FIND_LIBRARY(LIBDC1394_LIBRARY
 	/opt/local/lib
 )
 
-IF(LIBDC1394_LIBRARY)
-	SET(LIBDC1394_FOUND TRUE)
-	ADD_DEFINITIONS( -DDC1394_FOUND )
-ENDIF (LIBDC1394_LIBRARY)
-
-MARK_AS_ADVANCED(
-	LIBDC1394_INCLUDE_DIR
-	LIBDC1394_LIBRARY
-) 
+INCLUDE( LibFindMacros )
+# Set the include dir variables and the libraries and let libfind_process do the rest.
+# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
+set( DC1394_PROCESS_INCLUDES LIBDC1394_INCLUDE_DIR )
+set( DC1394_PROCESS_LIBS LIBDC1394_LIBRARY )
+libfind_process( DC1394 )

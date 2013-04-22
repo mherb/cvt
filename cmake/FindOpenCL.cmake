@@ -4,7 +4,6 @@
 #  OPENCL_FOUND        - system has OpenCL installed
 #  OPENCL_INCLUDE_DIR  - the OpenCL include directory
 #  OPENCL_LIBRARIES    - link these to use OpenCL
-
 IF (WIN32)
 	FIND_PATH(OPENCL_INCLUDE_DIR 
 		CL/cl.h 
@@ -12,15 +11,15 @@ IF (WIN32)
 
 	# TODO this is only a hack assuming the 64 bit library will
 	# not be found on 32 bit system
-	FIND_LIBRARY(OPENCL_LIBRARIES 
+	FIND_LIBRARY(OPENCL_LIBRARY 
 		opencl64
 	)
 	
-	IF( OPENCL_LIBRARIES )
-		FIND_LIBRARY(OPENCL_LIBRARIES 
+	IF( OPENCL_LIBRARY )
+		FIND_LIBRARY(OPENCL_LIBRARY 
 			opencl32 
 		)
-	ENDIF( OPENCL_LIBRARIES )
+	ENDIF( OPENCL_LIBRARY )
 
 ELSE (WIN32)
 	IF(APPLE)
@@ -30,7 +29,7 @@ ELSE (WIN32)
 			PATHS
 			/System/Library/Frameworks/OpenCL.framework/Headers
 		)
-		SET(OPENCL_LIBRARIES 
+		SET(OPENCL_LIBRARY 
 			"-framework OpenCL"
 			CACHE STRING "Apple OpenCL Framework"
 		)
@@ -59,14 +58,10 @@ ELSE (WIN32)
 	ENDIF (APPLE)
 ENDIF (WIN32)
 
-include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set OPENCL_FOUND to TRUE
-# if all listed variables are TRUE
-FIND_PACKAGE_HANDLE_STANDARD_ARGS( OpenCL DEFAULT_MSG
-								   OPENCL_LIBRARIES OPENCL_INCLUDE_DIR)
+INCLUDE( LibFindMacros )
 
-MARK_AS_ADVANCED(
-	OPENCL_INCLUDE_DIR
-	OPENCL_LIBRARIES
-	OPENCL_FOUND
-)
+# Set the include dir variables and the libraries and let libfind_process do the rest.
+# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
+set( OPENCL_PROCESS_INCLUDES OPENCL_INCLUDE_DIR OPENCL_INCLUDE_DIRS)
+set( OPENCL_PROCESS_LIBS OPENCL_LIBRARY )
+libfind_process( OPENCL )
