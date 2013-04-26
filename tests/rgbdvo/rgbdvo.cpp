@@ -11,7 +11,7 @@
 #include <cvt/vision/rgbdvo/Optimizer.h>
 #include <cvt/vision/rgbdvo/GNOptimizer.h>
 #include <cvt/vision/rgbdvo/LMOptimizer.h>
-#include <cvt/vision/rgbdvo/TROptimizer.h>
+#include <cvt/vision/rgbdvo/DLOptimizer.h>
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/ICKeyframe.h>
 #include <cvt/vision/rgbdvo/FCKeyframe.h>
@@ -27,14 +27,12 @@ inline Optimizer<Warp, LossFunc>* createOptimizer( const String& optimizerName )
     if( optimizerName == "GaussNewton" ){
         std::cout << "Creating GaussNewton Optimizer" << std::endl;
         return new GNOptimizer<Warp, LossFunc>();
-    }
-    if( optimizerName == "LevenbergMarquardt" ){
+    } else if( optimizerName == "LevenbergMarquardt" ){
         std::cout << "Creating LevenbergMarquardt Optimizer" << std::endl;
         return new LMOptimizer<Warp, LossFunc>();
-    }
-    if( optimizerName == "TrustRegion" ){
+    } else if( optimizerName == "DogLeg" ){
         std::cout << "Creating TrustRegion Optimizer" << std::endl;
-        return new TROptimizer<Warp, LossFunc>();
+        return new DLOptimizer<Warp, LossFunc>();
     }
 
     throw CVTException( "unknown OptimizerType requested" );

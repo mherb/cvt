@@ -47,6 +47,7 @@ namespace cvt {
                     propagateDepth( true ),
                     depthScale( 1000.0f ),
                     minDepth( 0.5f ),
+                    maxDepth( 10.0f ),
                     gradientThreshold( 0.02f ),
                     useInformationSelection( false ),
                     maxIters( 10 ),
@@ -65,6 +66,7 @@ namespace cvt {
                     depthScale( cfg.valueForName<float>( "depthFactor", 1000.0f ) *
                                 cfg.valueForName<float>( "depthScale", 1.0f ) ),
                     minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
+                    maxDepth( cfg.valueForName<float>( "maxDepth", 10.0f ) ),
                     gradientThreshold( cfg.valueForName<float>( "gradientThreshold", 0.02f ) ),
                     useInformationSelection( cfg.valueForName<bool>( "useInformationSelection", false ) ),
                     selectionPixelPercentage( cfg.valueForName<float>( "selectionPixelPercentage", 0.3f ) ),
@@ -94,6 +96,7 @@ namespace cvt {
                // d_meters = d_pix / depthScale
                float depthScale;
                float minDepth;
+               float maxDepth;
                float gradientThreshold;
 
                bool  useInformationSelection;
@@ -246,6 +249,7 @@ namespace cvt {
         // TODO: introduce keyframe parameters
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
+        kf.setMaximumDepth( _params.maxDepth );
         kf.setGradientThreshold( _params.gradientThreshold );
         kf.setUseInformationSelection( _params.useInformationSelection );
         kf.setSelectionPixelPercentage( _params.selectionPixelPercentage );
