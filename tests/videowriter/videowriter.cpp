@@ -61,8 +61,9 @@ int main( int argc, char* argv[] )
 
 		Time t;
 		while( t.elapsedSeconds() < maxSeconds ){
-			cam->nextFrame();
-			writer.write( cam->frame() );
+			if( cam->nextFrame( 100 ) ){
+				writer.write( cam->frame() );
+			}
 		}
 	} catch ( const Exception & e ){
 		std::cout << e.what() << std::endl;

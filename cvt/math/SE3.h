@@ -22,6 +22,7 @@
 #include <Eigen/Geometry>
 
 #include <cvt/math/Matrix.h>
+#include <cvt/util/EigenBridge.h>
 
 #include <vector>
 
@@ -51,6 +52,7 @@ namespace cvt
             void set( T alpha, T beta, T gamma, T tx, T ty, T tz );
             void set( const ParameterVectorType & p );
             void set( const MatrixType & t ) { _current = t; }
+            void set(const cvt::Matrix4<T> &t );
             void apply( const ParameterVectorType & delta );
                         void applyInverse( const ParameterVectorType & delta );
             void transform( PointType & warped, const PointType & p ) const;
@@ -179,6 +181,12 @@ namespace cvt
     void inline SE3<T>::set( const ParameterVectorType & p )
     {
         this->set( p[ 0 ], p[ 1 ], p[ 2 ], p[ 3 ], p[ 4 ], p[ 5 ] );
+    }
+
+    template<typename T>
+    void inline SE3<T>::set( const cvt::Matrix4<T>& t )
+    {
+        EigenBridge::toEigen( _current, t );
     }
 
     template <typename T>

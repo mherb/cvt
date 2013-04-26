@@ -139,6 +139,7 @@ namespace cvt
             //  val pixvals = 1m -> scale by (float_denorm) * 1/val
             void setDepthMapScaleFactor( float val )        { _depthScaling = ( float )( 0xFFFF ) / val; }
             void setMinimumDepth( float depthTresh )        { _minDepth = depthTresh; }
+            void setMaximumDepth( float depthTresh )        { _maxDepth = depthTresh; }
             void setGradientThreshold( float thresh )       { _gradientThreshold = thresh; }
             void setSelectionPixelPercentage( float n )     { _pixelPercentageToSelect = n; }
             void setUseInformationSelection( bool v )       { _useInformationSelection = v; }
@@ -185,6 +186,7 @@ namespace cvt
 
             float               _depthScaling;
             float               _minDepth;
+            float               _maxDepth;
             float               _gradientThreshold;
             float               _pixelPercentageToSelect;
             bool                _useInformationSelection;
@@ -206,6 +208,7 @@ namespace cvt
         //_gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
+        _maxDepth( 10.0 ),
         _gradientThreshold( 0.0f ),
         _pixelPercentageToSelect( 0.3f ),
         _useInformationSelection( false )
@@ -385,7 +388,7 @@ namespace cvt
             for( size_t x = 0; x < gray.width() - 1; x++ ){
                 currP.x = scale * x;
                 float z = interpolateDepth( currP, d, depthStride );
-                if( z > this->_minDepth && z < 10.0f ){
+                if( z > this->_minDepth && z < _maxDepth ){
                     g( 0, 0 ) = gx[ x ];
                     g( 0, 1 ) = gy[ x ];
 

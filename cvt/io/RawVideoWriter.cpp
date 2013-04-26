@@ -10,6 +10,7 @@
  */
 #include <cvt/io/RawVideoWriter.h>
 #include <cvt/util/Exception.h>
+#include <cvt/gfx/IMapScoped.h>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -75,12 +76,11 @@ namespace cvt
 
 	void RawVideoWriter::write( const Image & img )
 	{
-		size_t iStride;
-		const uint8_t * imgData = img.map<uint8_t>( &iStride );
+		IMapScoped<const uint8_t> map( img );
 		if( _width == 0 ){
 			_width = img.width();
 			_height = img.height();
-			_stride = iStride;
+			_stride = map.stride();
 			_formatID = (size_t)img.format().formatID;
 			_imgSize = _height * _stride;
 
@@ -91,7 +91,7 @@ namespace cvt
 			// check size and format
 			if( _width != img.width() ||
 				_height != img.height() ||
-				_stride != iStride ||
+				_stride != map.stride() ||
 				_formatID != ( size_t )img.format().formatID ){
 				throw CVTException( "Trying to mix different image resolution or format in a single video!");
 			}
@@ -103,13 +103,11 @@ namespace cvt
 		}
 
 		SIMD * simd = SIMD::instance();
-		simd->Memcpy( _pos, imgData, _imgSize );
-		//memcpy( _pos, imgData, _imgSize );
+		simd->Memcpy( _pos, map.ptr(), _imgSize );
 
-		img.unmap( imgData );
-
+		// compute page aligned pointer position
 		uint8_t* ppos = (uint8_t*)( ( size_t )_pos &( ~( _pageSize - 1 ) ) );
-		size_t len = ( ( size_t )_pos + _imgSize - ( size_t )ppos ) & ( ~( _pageSize -1 ) );
+		size_t len = ( ( size_t )_pos + _imgSize - ( size_t )ppos );// & ( ~( _pageSize -1 ) );
 		if( msync( ppos, len, MS_ASYNC ) == -1 ){
 			char * err = strerror( errno );
 			String msg( "Could not msync: " );

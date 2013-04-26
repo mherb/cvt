@@ -468,7 +468,9 @@ namespace cvt {
 				bwdVert = &SIMD::IIR4BwdVertical4Fx;
 				break;
 			default:
-				throw CVTException( "Not implement for number of channles: " + channels );
+				String msg;
+				msg.sprintf( "Not implement for number of channles: %d", channels );
+				throw CVTException( msg.c_str() );
 				break;
 		}
 		
