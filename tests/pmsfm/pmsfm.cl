@@ -139,7 +139,7 @@ typedef mwc64x_state_t RNG;
 #define DEPTHMIN  1e-6f
 
 #define TRANSMAX  1.0f
-#define ROTMAX   ( ( 35.0f / 180.0f ) * M_PI )
+#define ROTMAX	  0.225f;
 #define NORMALCOMPMAX 0.95f
 
 #define PROPSIZE 1
@@ -246,6 +246,52 @@ inline void Mat3_Sub( Mat3* dst, Mat3* a, Mat3* b )
 	dst->m[ 2 ] = a->m[ 2 ] - b->m[ 2 ];
 }
 
+inline void Mat3_AxisAngleRotation( Mat3* mat, float3 rot )
+{
+        float rad = length( rot );
+		float3 axis = normalize( rot );
+        float x, y, z, c, s;
+        float wx, wy, wz;
+        float xx, yy, yz;
+        float xy, xz, zz;
+        float x2, y2, z2;
+
+        c = cos( rad * 0.5f );
+        s = sin( rad * 0.5f );
+
+        x = axis.x * s;
+        y = axis.y * s;
+        z = axis.z * s;
+
+        x2 = x + x;
+        y2 = y + y;
+        z2 = z + z;
+
+        xx = x * x2;
+        xy = x * y2;
+        xz = x * z2;
+
+        yy = y * y2;
+        yz = y * z2;
+        zz = z * z2;
+
+        wx = c * x2;
+        wy = c * y2;
+        wz = c * z2;
+
+        mat->m[ 0 ].x = 1.0f - ( yy + zz );
+        mat->m[ 0 ].y = xy - wz;
+        mat->m[ 0 ].z = xz + wy;
+
+        mat->m[ 1 ].x = xy + wz;
+        mat->m[ 1 ].y = 1.0f - ( xx + zz );
+        mat->m[ 1 ].z = yz - wx;
+
+        mat->m[ 2 ].x = xz - wy;
+        mat->m[ 2 ].y = yz + wx;
+        mat->m[ 2 ].z = 1.0f - ( xx + yy );
+}
+
 inline void Mat3_Rotation( Mat3* mat, float3 rot )
 {
 	float3 c;
@@ -296,8 +342,9 @@ float8 pmsfm_state_init( RNG* rng )
 	n.y = ( RNG_float( rng ) - 0.5f ) * 0.5f * NORMALCOMPMAX;
 
 	rot.x = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
-	rot.y = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
 	rot.z = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
+	rot.y = sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
+	rot  *= ( RNG_float( rng ) - 0.5f ) * 2.0f * ( 15.0f / 180.0f ) * M_PI;
 
 	trans.x = ( RNG_float( rng ) - 0.5f ) * 2.0f * TRANSMAX;
 	trans.y = ( RNG_float( rng ) - 0.5f ) * 2.0f * TRANSMAX;
@@ -312,7 +359,7 @@ float8 pmsfm_state_init( RNG* rng )
 float8 pmsfm_state_refine( RNG* rng, const float8 state )
 {
 	float8 ret;
-	float z, len;
+	float z, len, rotlen;
 	float3 n;
 	float3 rot;
 	float3 trans;
@@ -328,12 +375,16 @@ float8 pmsfm_state_refine( RNG* rng, const float8 state )
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
 	rot   = state.s012;
+	rotlen = length( rot );
+	rot   = normalize( rot );
 	rot.x += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
-	rot.y += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
 	rot.z += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
 	rot.x = clamp( rot.x, -ROTMAX, ROTMAX );
 	rot.y = clamp( rot.y, -ROTMAX, ROTMAX );
-	rot.z = clamp( rot.z, -ROTMAX, ROTMAX );
+	rot.y = sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
+	rotlen += ( RNG_float( rng ) - 0.5f ) * 2.0f * ( 1.0f / 180.0f ) * M_PI;
+	rotlen = clamp( rotlen, -( 15.0f / 180.0f ) * M_PI, ( 15.0f / 180.0f ) * M_PI );
+	rot  *= rotlen;
 
 	trans = normalize( state.s345 );
 	trans.x += ( RNG_float( rng ) - 0.5f ) * 2.0f * ( TRANSREFINEMUL );
@@ -352,13 +403,13 @@ inline void pmsfm_state_to_matrix( const float8 state, Mat3* matrix, const Mat3*
 {
 	Mat3 rot, outer, tmp;
 	// rotation matrix
-	Mat3_Rotation( &rot, state.s012 );
+	Mat3_AxisAngleRotation( &rot, state.s012 );
 	// translation
 	float3 t = state.s345;
 	// normal
 	float3 n = ( float3 ) ( state.s6, state.s7, sqrt( 1.0f - state.s6 * state.s6 - state.s7 * state.s7 ) );
 	// K_dst ( R^T + (1/d) (R^T t) n^T ) K_src
-	Mat3_Outer( &outer, Mat3_TransMulVec( &rot, t ), n );
+	Mat3_Outer( &outer, /*Mat3_TransMulVec( &rot, t )*/ -t, n );
 	Mat3_Add( &tmp, &rot, &outer );
 	Mat3_Mul( &rot,  &tmp, Ksrc );
 	Mat3_Mul( matrix, Kdst, &rot );
