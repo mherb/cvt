@@ -460,6 +460,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/ApproxMedian.h
    vision/rgbdvo/ESMKeyframe.h
    vision/rgbdvo/FCKeyframe.h
+   vision/rgbdvo/GlobalFCKeyframe.h
    vision/rgbdvo/ICKeyframe.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/Optimizer.h
