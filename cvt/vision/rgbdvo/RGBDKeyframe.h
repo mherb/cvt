@@ -351,7 +351,7 @@ namespace cvt
         size_t depthStride = depthMap.stride() / sizeof( float );
 
         Vector2f currP;
-        Vector3f p3d;
+        Vector3f p3d, p3dw;
         GradientType g;
         JacobianType j;
         ScreenJacobianType sj;
@@ -400,15 +400,18 @@ namespace cvt
                     p3d[ 1 ] = tmpy[ y ] * z;
                     p3d[ 2 ] = z;
 
+                    // point in world coord frame
+                    p3dw = this->_pose * p3d;
+
                     WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
-                    data.add( p3d, sj, g, value[ x ] );
+
+                    data.add( p3dw, sj, g, value[ x ] );
                 }
             }
             gxMap++;
             gyMap++;
             grayMap++;
-        }
-        // TODO: run informationselector on the data!!
+        }        
     }
 
 }

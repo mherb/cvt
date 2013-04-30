@@ -53,41 +53,6 @@ namespace cvt {
                 return ssd;
             }
 
-//            template <class HessType, class JType>
-//            float build( HessType& H,
-//                          JType& b,
-//                          const JType* jacobians,
-//                          const float* residuals,
-//                          size_t n ) const
-//            {
-//                // standard: robust lossfunc
-//                b.setZero();
-//                H.setZero();
-
-//                float ssd = 0.0f;
-//                const JType* curr = jacobians;
-//                for( size_t i = 0; i < n; i++ ){
-//                    float w = _lossFunc.weight( residuals[ i ] );
-//                    ssd += Math::sqr( residuals[ i ] );
-//                    for( size_t r = 0; r < HessType::RowsAtCompileTime; r++ ){
-//                        float a = w * curr->coeff( 0, r );
-//                        b.coeffRef( 0, r ) += residuals[ i ] * a;
-//                        for( size_t c = r; c < HessType::RowsAtCompileTime; c++ ){
-//                            H.coeffRef( r, c ) += a * curr->coeff( 0, c );
-//                        }
-//                    }
-//                    curr++;
-//                }
-
-//                for( size_t r = 1; r < HessType::RowsAtCompileTime; r++ ){
-//                    for( size_t c = 0; c < r; c++ ){
-//                        H.coeffRef( r, c ) = H.coeff( c, r );
-//                    }
-//                }
-
-//                return ssd;
-//            }
-
         private:
             const LossFunc& _lossFunc;
     };

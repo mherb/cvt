@@ -245,7 +245,7 @@ namespace cvt {
                                                          const Image& depthImage )
     {
         Matrix4f tmp4;
-        tmp4 = posePrediction.inverse() * reference.pose();
+        tmp4 = posePrediction.inverse();
 
         result.warp.setPose( tmp4 );
         result.costs = 0.0f;
@@ -271,9 +271,7 @@ namespace cvt {
 
         result = saveResult;
 
-        // convert relative result to absolute pose: TODO: maybe do this outside
-        tmp4 = result.warp.pose();
-        tmp4 = reference.pose() * tmp4.inverse();
+        tmp4 = result.warp.pose().inverse();
         result.warp.setPose( tmp4 );
     }
 

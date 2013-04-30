@@ -90,7 +90,7 @@ namespace cvt {
         result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
         result.numPixels = residuals.size();
 
-        DeltaType sdStep, gnStep, dlStep;
+        DeltaType sdStep( DeltaType::Zero() ), gnStep( DeltaType::Zero() ), dlStep( DeltaType::Zero() );
 
         // initial trust region radius
         float trustRegionRadius = 1.0f;
