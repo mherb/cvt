@@ -31,9 +31,7 @@ namespace cvt {
             typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
             typedef Optimizer<Warp, LossFunction> OptimizerType;
             typedef typename OptimizerType::Result  Result;
-            //typedef GNOptimizer<Warp, LossFunction> OptimizerType;
-            //typedef LMOptimizer<Warp, LossFunction> OptimizerType;
-            //typedef TROptimizer<Warp, LossFunction> OptimizerType;
+
 
             struct Params {
                 Params() :
@@ -51,7 +49,8 @@ namespace cvt {
                     gradientThreshold( 0.02f ),
                     useInformationSelection( false ),
                     maxIters( 10 ),
-                    minParameterUpdate( 1e-6 )
+                    minParameterUpdate( 1e-6 ),
+                    maxNumKeyframes( 1 )
                 {}
 
                 Params( ConfigFile& cfg ) :
@@ -71,7 +70,8 @@ namespace cvt {
                     useInformationSelection( cfg.valueForName<bool>( "useInformationSelection", false ) ),
                     selectionPixelPercentage( cfg.valueForName<float>( "selectionPixelPercentage", 0.3f ) ),
                     maxIters( cfg.valueForName<int>( "maxIters", 10 ) ),
-                    minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) )
+                    minParameterUpdate( cfg.valueForName<float>( "minParameterUpdate", 1e-6f ) ),
+                    maxNumKeyframes( cfg.valueForName<int>( "maxNumKeyframes", 1 ) )
                 {
                     // TODO: Params should become a parameterset
                     // conversion between paramset and configfile!
@@ -106,6 +106,8 @@ namespace cvt {
                //float    robustThreshold;
                size_t   maxIters;
                float    minParameterUpdate;
+
+               int      maxNumKeyframes;
             };
 
             RGBDVisualOdometry( OptimizerType* optimizer, const Matrix3f& K, const Params& params );
@@ -162,7 +164,7 @@ namespace cvt {
             // current active keyframe
             KFType*                     _activeKeyframe;
             size_t                      _numCreated;
-            std::vector<KFType>         _keyframes;
+            std::vector<KFType*>        _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
@@ -194,6 +196,9 @@ namespace cvt {
     inline RGBDVisualOdometry<DerivedKF, LossFunction>::~RGBDVisualOdometry()
     {
         _activeKeyframe = 0;
+        for( size_t i = 0; i < _keyframes.size(); i++ ){
+            delete _keyframes[ i ];
+        }
         _keyframes.clear();
     }
 
@@ -201,7 +206,7 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF, LossFunction>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
-        _optimizer->optimize( _lastResult, pose, *_activeKeyframe, _pyramid, depth );
+        _optimizer->optimizeMultiframe( _lastResult, pose, _keyframes[ 0 ], _keyframes.size(), _pyramid, depth );
         _currentPose = _lastResult.warp.pose();
 
         // check if we need a new keyframe
@@ -220,13 +225,34 @@ namespace cvt {
 
         _currentPose = kfPose;
         Image dCopy( depth );
+
         // for the moment, only one keyframe
-        if( !_activeKeyframe ){
-            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
-            _activeKeyframe = &_keyframes[ 0 ];
+        if( _keyframes.size() < _params.maxNumKeyframes ){
+            _keyframes.push_back( new KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
+            _activeKeyframe = _keyframes[ _keyframes.size() - 1 ];
+
             // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
             _pyramid.update( gray );
-        } else if( _params.propagateDepth ){
+        } else {
+            // select one of the keyframes to be exchanged:
+            float maxDist = 0;
+            size_t idx = 0;
+            Matrix4f curInv = kfPose.inverse();
+            for( size_t i = 0; i < _keyframes.size(); i++ ){
+                // compute relative pose of this
+                Matrix4f rel = curInv * _keyframes[ i ]->pose();
+                Quaternionf q( rel.toMatrix3() );
+                float dist = q.toEuler().length();
+                dist += Math::sqr( rel.col( 3 ).lengthSqr() - 1.0f );
+                if( dist > maxDist ){
+                    idx = i;
+                }
+            }
+
+            _activeKeyframe = _keyframes[ idx ];
+        }
+
+        if( _keyframes.size() > 1 && _params.propagateDepth ){
             propagateDepth( dCopy, kfPose );
         }
 
@@ -234,10 +260,6 @@ namespace cvt {
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
-
-        // testing:
-        // dCopy.sub( depth );
-        // dCopy.save( "propagated_depth.png" );
 
         // notify observers
         keyframeAdded.notify( _currentPose );

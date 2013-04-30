@@ -173,7 +173,8 @@ namespace cvt
 
             void updateParameters( const DeltaVectorType& v )
             {
-                _pose.applyInverse( -v.head<6>() );
+                _pose.apply( -v.head<6>() );
+
                 Type ta = 1.0 + v[ 6 ];
                 _alpha = ( _alpha - v[ 6 ] ) / ta;
                 _beta  = ( _beta  - v[ 7 ] ) / ta;

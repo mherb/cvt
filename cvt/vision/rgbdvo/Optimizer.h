@@ -143,7 +143,9 @@ namespace cvt {
             typedef typename WarpFunc::JacobianType     JacobianType;
             typedef typename WarpFunc::HessianType      HessianType;
             typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef typename RGBDKeyframe<WarpFunc>::AlignmentData AlignDataType;
+            typedef RGBDKeyframe<WarpFunc>              KFType;
+            typedef typename KFType::AlignmentData      AlignDataType;
+
 
             struct Result {
                 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -188,6 +190,12 @@ namespace cvt {
                            const ImagePyramid& grayPyramid,
                            const Image& depthImage );
 
+            void optimizeMultiframe( Result& result,
+                                     const Matrix4f& posePrediction,
+                                     KFType* references, size_t nRefs,
+                                     const ImagePyramid& grayPyramid,
+                                     const Image& depthImage );
+
             void setErrorLoggerGTPose( const Matrix4f& mat ){ _logger.setGTPose( mat ); }
 
         protected:
@@ -220,6 +228,15 @@ namespace cvt {
                                               const Image& gray,
                                               const Image& depthImage,
                                               size_t octave ) = 0;
+
+            virtual void optimizeSingleScale( Result& result,
+                                              KFType* references, size_t nRefs,
+                                              const Image& gray,
+                                              const Image& depthImage,
+                                              size_t octave )
+            {
+                throw CVTException( "this optimizer does not implement multi-reference alignment" );
+            }
 
     };
 
@@ -262,6 +279,47 @@ namespace cvt {
         reference.updateOnlineData( grayPyramid, depthImage );
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
+
+            if( checkResult( result ) ){
+                saveResult = result;
+                saveResult.success = true;
+            }
+        }
+
+        result = saveResult;
+
+        tmp4 = result.warp.pose().inverse();
+        result.warp.setPose( tmp4 );
+    }
+
+    template <class WarpFunc, class LossFunc>
+    inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
+                                                                   const Matrix4f& posePrediction,
+                                                                   KFType* references, size_t nRefs,
+                                                                   const ImagePyramid& grayPyramid,
+                                                                   const Image& depthImage )
+    {
+        Matrix4f tmp4;
+        tmp4 = posePrediction.inverse();
+
+        result.warp.setPose( tmp4 );
+        result.costs = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
+
+        Result saveResult = result;
+
+        if( _useRegularizer ){
+            resetOverallDelta();
+        }
+
+        for( size_t i = 0; i < nRefs; i++ ){
+            references[ i ].updateOnlineData( grayPyramid, depthImage );
+        }
+
+        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
+            this->optimizeSingleScale( result, references, nRefs, grayPyramid[ o ], depthImage, o );
 
             if( checkResult( result ) ){
                 saveResult = result;
