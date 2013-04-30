@@ -62,15 +62,15 @@ namespace cvt
                 SE3<float>::screenJacobian( j, point, K );
             }
 
-            void computeJacobian( JacobianType& j,
+            static void computeJacobian( JacobianType& j,
                                   const Vector3f& point,
                                   const Matrix3f& K,
-                                  const Eigen::Matrix<float, 2, 1>& g,
-                                  float /* pixval */ ) const
+                                  const Eigen::Matrix<float, 1, 2>& g,
+                                  float pixval )
             {
                 ScreenJacType J;
                 screenJacobian( J, point, K );
-                j = g.transpose() * J;
+                computeJacobian( j, J, g, pixval );
             }
 
             static void computeJacobian( JacobianType& j,
@@ -109,7 +109,8 @@ namespace cvt
 
             void updateParameters( const DeltaVectorType& v )
             {
-                _pose.applyInverse( -v );
+                //_pose.applyInverse( -v );
+                _pose.apply( -v );
             }
 
         private:
@@ -183,6 +184,17 @@ namespace cvt
                                         const Matrix3<Type>& K )
             {
                 SE3<Type>::screenJacobian( j, point, K );
+            }
+
+            static void computeJacobian( JacobianType& j,
+                                         const Vector3f& point,
+                                         const Matrix3f& K,
+                                         const Eigen::Matrix<float, 1, 2>& g,
+                                         float pixval )
+            {
+                ScreenJacType J;
+                screenJacobian( J, point, K );
+                computeJacobian( j, J, g, pixval );
             }
 
             static void computeJacobian( JacobianType& j,
