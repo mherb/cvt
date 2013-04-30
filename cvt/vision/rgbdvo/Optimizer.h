@@ -337,6 +337,47 @@ namespace cvt {
     }
 
     template <class WarpFunc, class LossFunc>
+    inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
+                                                                   const Matrix4f& posePrediction,
+                                                                   KFType* references, size_t nRefs,
+                                                                   const ImagePyramid& grayPyramid,
+                                                                   const Image& depthImage )
+    {
+        Matrix4f tmp4;
+        tmp4 = posePrediction.inverse();
+
+        result.warp.setPose( tmp4 );
+        result.costs = 0.0f;
+        result.iterations = 0;
+        result.numPixels = 0;
+        result.pixelPercentage = 0.0f;
+
+        Result saveResult = result;
+
+        if( _useRegularizer ){
+            resetOverallDelta();
+        }
+
+        for( size_t i = 0; i < nRefs; i++ ){
+            references[ i ].updateOnlineData( grayPyramid, depthImage );
+        }
+
+        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
+            this->optimizeSingleScale( result, references, nRefs, grayPyramid[ o ], depthImage, o );
+
+            if( checkResult( result ) ){
+                saveResult = result;
+                saveResult.success = true;
+            }
+        }
+
+        result = saveResult;
+
+        tmp4 = result.warp.pose().inverse();
+        result.warp.setPose( tmp4 );
+    }
+
+    template <class WarpFunc, class LossFunc>
     inline void Optimizer<WarpFunc, LossFunc>::resetOverallDelta()
     {
         _overallDelta.setZero();
