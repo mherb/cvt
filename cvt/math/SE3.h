@@ -197,13 +197,13 @@ namespace cvt
         _current = trans * _current;
     }
 
-        template <typename T>
-        inline void SE3<T>::applyInverse( const ParameterVectorType & delta )
-        {
-            MatrixType trans;
-            evalExp( trans, delta );
-            _current*= trans;
-        }
+    template <typename T>
+    inline void SE3<T>::applyInverse( const ParameterVectorType & delta )
+    {
+        MatrixType trans;
+        evalExp( trans, delta );
+        _current *= trans;
+    }
 
     template <typename T>
     inline void SE3<T>::evalExp( MatrixType& trans, const ParameterVectorType& delta ) const
