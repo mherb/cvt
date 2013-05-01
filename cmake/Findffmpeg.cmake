@@ -55,25 +55,9 @@ FIND_LIBRARY(AVUTIL_LIB
 	/opt/local/lib
 )
 
-IF(AVFORMAT_LIB AND AVCODEC_LIB AND AVUTIL_LIB)
-	SET(FFMPEG_FOUND TRUE)
-ENDIF()
-
-
-SET(FFMPEG_INCLUDES
-	${AVFORMAT_INCLUDE_DIR}
-	${AVCODEC_INCLUDE_DIR}
-	${AVUTIL_INCLUDE_DIR}
-)
-
-SET(FFMPEG_LIBRARIES
-	${AVFORMAT_LIB}
-	${AVCODEC_LIB}
-	${AVUTIL_LIB}
-)
-
-MARK_AS_ADVANCED(
-	FFMPEG_FOUND
-	FFMPEG_INCLUDES
-	FFMPEG_LIBRARIES
-) 
+INCLUDE( LibFindMacros )
+# Set the include dir variables and the libraries and let libfind_process do the rest.
+# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
+set( ffmpeg_PROCESS_INCLUDES AVFORMAT_INCLUDE_DIR AVCODEC_INCLUDE_DIR AVUTIL_INCLUDE_DIR )
+set( ffmpeg_PROCESS_LIBS AVFORMAT_LIB AVCODEC_LIB AVUTIL_LIB )
+libfind_process( ffmpeg )

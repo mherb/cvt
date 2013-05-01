@@ -1,4 +1,4 @@
-# this is definitely needed
+# search required dependencies
 FIND_PACKAGE( Eigen3 REQUIRED QUIET )
 FIND_PACKAGE( OpenCL REQUIRED QUIET )
 
@@ -202,15 +202,14 @@ ADD_SUBDIRECTORY(xml)
 
 ADD_SUBDIRECTORY(yuyvconv)
 
-FIND_PACKAGE( OpenNI )
-IF( ${OPENNI_FOUND} )
-        MESSAGE( "OPENNI FOUND!" )
+FIND_PACKAGE( OpenNI QUIET )
+IF( ${OpenNI_FOUND} )
 	ADD_SUBDIRECTORY(openni)
 	ADD_SUBDIRECTORY(rgbdvo)
 	ADD_SUBDIRECTORY(rgbdRecording)
 ENDIF()
 
-FIND_PACKAGE( uEyeUsbCamera )
+FIND_PACKAGE( uEyeUsb )
 IF( ${UEYEUSB_FOUND} )
 	ADD_SUBDIRECTORY( ueye )
 	ADD_SUBDIRECTORY( ueyeStereo )

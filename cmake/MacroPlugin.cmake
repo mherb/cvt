@@ -24,7 +24,7 @@ INCLUDE_DIRECTORIES(
         "${CMAKE_SOURCE_DIR}"
         "${CMAKE_SOURCE_DIR}/cvt"
         "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${EIGEN3_INCLUDE_DIR}"
+        "${Eigen3_INCLUDE_DIR}"
         "${OpenCL_INCLUDE_DIR}"
         ${ADDITIONAL_INCLUDES}
 )
