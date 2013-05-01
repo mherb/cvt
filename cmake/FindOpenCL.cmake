@@ -1,9 +1,9 @@
 # - Find OpenCL
 #  Afterwards, the following variables will be set
 #
-#  OPENCL_FOUND        - system has OpenCL installed
-#  OPENCL_INCLUDE_DIR  - the OpenCL include directory
-#  OPENCL_LIBRARIES    - link these to use OpenCL
+#  OpenCL_FOUND        - system has OpenCL installed
+#  OpenCL_INCLUDE_DIR  - the OpenCL include directory
+#  OpenCL_LIBRARIES    - link these to use OpenCL
 INCLUDE( LibFindMacros )
 IF (WIN32)
 	FIND_PATH(OpenCL_INCLUDE_DIR 
@@ -50,9 +50,10 @@ ELSE (WIN32)
 		)
 	
 		# AMD Stream SDK, (should be updated to APPSDK) default location
-		FIND_LIBRARY(OpenCL_LIBRARIES 
+		FIND_LIBRARY(OpenCL_LIBRARY 
 			OpenCL 
-			ENV LD_LIBRARY_PATH
+            PATHS
+			$ENV{LD_LIBRARY_PATH}
 			/usr/local/ati-stream-sdk/lib/x86_64
 			/usr/local/ati-stream-sdk/lib/x86
 		)
@@ -61,6 +62,6 @@ ENDIF (WIN32)
 
 # Set the include dir variables and the libraries and let libfind_process do the rest.
 # NOTE: Singular variables for this library, plural for libraries this this lib depends on.
-set( OpenCL_PROCESS_INCLUDES OpenCL_INCLUDE_DIR OpenCL_INCLUDE_DIRS)
+set( OpenCL_PROCESS_INCLUDES OpenCL_INCLUDE_DIR )
 set( OpenCL_PROCESS_LIBS OpenCL_LIBRARY )
 libfind_process( OpenCL )
