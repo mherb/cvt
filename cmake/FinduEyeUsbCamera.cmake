@@ -19,28 +19,10 @@ FIND_LIBRARY(UEYEUSB_LIBRARY
 	$ENV{ProgramFiles}/IDS/ueye/Develop/lib
 )
 
-IF (UEYEUSB_LIBRARY)
-	SET(UEYEUSB_LIBRARY_FOUND TRUE)
-ENDIF (UEYEUSB_LIBRARY)
-
-
-SET(
-	UEYEUSB_INCLUDES
-	${UEYEUSB_INCLUDE_DIR}
-)
-
-SET(
-	UEYEUSB_LIBRARIES
-	${UEYEUSB_LIBRARY}
-)
-
-IF (UEYEUSB_INCLUDE_DIR)
-	SET(UEYEUSB_FOUND TRUE)
-ENDIF (UEYEUSB_INCLUDE_DIR)
-
-MARK_AS_ADVANCED(
-	UEYEUSB_FOUND
-	UEYEUSB_INCLUDES
-	UEYEUSB_LIBRARIES
-) 
+INCLUDE( LibFindMacros )
+# Set the include dir variables and the libraries and let libfind_process do the rest.
+# NOTE: Singular variables for this library, plural for libraries this lib depends on.
+set( UEYEUSB_PROCESS_INCLUDES UEYEUSB_INCLUDE_DIR )
+set( UEYEUSB_PROCESS_LIBS UEYEUSB_LIBRARY )
+libfind_process( UEYEUSB )
 
