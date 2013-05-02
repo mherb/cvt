@@ -164,7 +164,7 @@ namespace cvt {
             // current active keyframe
             KFType*                     _activeKeyframe;
             size_t                      _numCreated;
-            std::vector<KFType*>        _keyframes;
+            std::vector<KFType>        _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
@@ -196,9 +196,6 @@ namespace cvt {
     inline RGBDVisualOdometry<DerivedKF, LossFunction>::~RGBDVisualOdometry()
     {
         _activeKeyframe = 0;
-        for( size_t i = 0; i < _keyframes.size(); i++ ){
-            delete _keyframes[ i ];
-        }
         _keyframes.clear();
     }
 
@@ -206,7 +203,7 @@ namespace cvt {
     inline void RGBDVisualOdometry<DerivedKF, LossFunction>::updatePose( Matrix4f& pose, const Image& gray, const Image& depth )
     {
         _pyramid.update( gray );
-        _optimizer->optimizeMultiframe( _lastResult, pose, _keyframes[ 0 ], _keyframes.size(), _pyramid, depth );
+        _optimizer->optimizeMultiframe( _lastResult, pose, &_keyframes[ 0 ], _keyframes.size(), _pyramid, depth );
         _currentPose = _lastResult.warp.pose();
 
         // check if we need a new keyframe
@@ -228,8 +225,8 @@ namespace cvt {
 
         // for the moment, only one keyframe
         if( _keyframes.size() < _params.maxNumKeyframes ){
-            _keyframes.push_back( new KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
-            _activeKeyframe = _keyframes[ _keyframes.size() - 1 ];
+            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
+            _activeKeyframe = &_keyframes[ _keyframes.size() - 1 ];
 
             // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
             _pyramid.update( gray );
@@ -237,19 +234,21 @@ namespace cvt {
             // select one of the keyframes to be exchanged:
             float maxDist = 0;
             size_t idx = 0;
-            Matrix4f curInv = kfPose.inverse();
-            for( size_t i = 0; i < _keyframes.size(); i++ ){
-                // compute relative pose of this
-                Matrix4f rel = curInv * _keyframes[ i ]->pose();
-                Quaternionf q( rel.toMatrix3() );
-                float dist = q.toEuler().length();
-                dist += Math::sqr( rel.col( 3 ).lengthSqr() - 1.0f );
-                if( dist > maxDist ){
-                    idx = i;
+            if( _keyframes.size() > 1 ){
+                Matrix4f curInv = kfPose.inverse();
+                for( size_t i = 0; i < _keyframes.size(); i++ ){
+                    // compute relative pose of this
+                    Matrix4f rel = curInv * _keyframes[ i ].pose();
+                    Quaternionf q( rel.toMatrix3() );
+                    float dist = q.toEuler().length();
+                    dist += Math::sqr( rel.col( 3 ).lengthSqr() - 1.0f );
+                    if( dist > maxDist ){
+                        idx = i;
+                    }
                 }
             }
 
-            _activeKeyframe = _keyframes[ idx ];
+            _activeKeyframe = &_keyframes[ idx ];
         }
 
         if( _keyframes.size() > 1 && _params.propagateDepth ){
