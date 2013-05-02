@@ -42,7 +42,7 @@ namespace cvt
 			float		_threshold;
             size_t		_border;
 
-			static const float  _kappa = 0.04; // 0.04 to 0.15 - TODO: make parameter
+			static const float  _kappa = 0.04f; // 0.04 to 0.15 - TODO: make parameter
 			static const int	_radius = 3;
 	};
 
