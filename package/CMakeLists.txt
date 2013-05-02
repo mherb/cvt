@@ -1,6 +1,6 @@
 SET( ADDITIONAL_FILES
 	 "${PROJECT_SOURCE_DIR}/cmake/FindOpenCL.cmake" 
-	 "${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsbCamera.cmake" 
+	 "${PROJECT_SOURCE_DIR}/cmake/FinduEyeUsb.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/FindOpenNI.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake" 
 	 "${PROJECT_SOURCE_DIR}/cmake/shipped/GLCLTOHEADER.cmake" 
