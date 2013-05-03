@@ -42,15 +42,11 @@ namespace cvt
     {
         _timerId = Application::registerTimer( 10, this );
 
-
         _cam.setCaptureMode( OpenNICamera::DEPTH_RGB );
-
         _cam.startCapture();
 
         _cam.setRegisterDepthToRGB( true );
-
-        _cam.setSyncRGBDepth( true );
-
+        _cam.setSyncRGBDepth( false );
         _cam.setAntiFlicker( OpenNICamera::HZ_50 );
 
         _window.setSize( 800, 600 );
