@@ -1,3 +1,2 @@
 INCLUDE(MacroTestApplication)
-
 MACRO_TEST_APPLICATION( "" "" )

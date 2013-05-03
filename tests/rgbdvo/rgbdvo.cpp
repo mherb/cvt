@@ -15,6 +15,7 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/ICKeyframe.h>
 #include <cvt/vision/rgbdvo/FCKeyframe.h>
+#include <cvt/vision/rgbdvo/GlobalFCKeyframe.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
 #include <Eigen/Geometry>
@@ -107,6 +108,9 @@ void createAppDefineKF( const Matrix3f& K, const String& folder, ConfigFile& cfg
     } else if( keyframeType == "FC" ){
         std::cout << "Using Fwd Compositional Algorithm" << std::endl;
         createAppDefineLF<FCKeyframe<WarpType>, WarpType>( K, folder, cfg );
+    } else if( keyframeType == "GFC" ){
+        std::cout << "Using Global Fwd Compositional Algorithm" << std::endl;
+        createAppDefineLF<GlobalFCKeyframe<WarpType>, WarpType>( K, folder, cfg );
     } else if( keyframeType == "ESM" ){
         std::cout << "Using ESM Algorithm" << std::endl;
         createAppDefineLF<ESMKeyframe<WarpType>, WarpType>( K, folder, cfg );

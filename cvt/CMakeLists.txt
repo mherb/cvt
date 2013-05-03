@@ -28,10 +28,9 @@ if(DOXYGEN_FOUND)
    )
 endif(DOXYGEN_FOUND)
 
-FIND_PACKAGE(Eigen3 REQUIRED)
-FIND_PACKAGE(LibPng REQUIRED)
-FIND_PACKAGE(ffmpeg REQUIRED)
-FIND_PACKAGE(OpenCL REQUIRED)
+FIND_PACKAGE(Eigen3 REQUIRED QUIET)
+FIND_PACKAGE(ffmpeg REQUIRED QUIET)
+FIND_PACKAGE(OpenCL REQUIRED QUIET)
 
 IF( UNIX AND NOT APPLE )
    FIND_PACKAGE(OpenGL REQUIRED)
@@ -42,9 +41,9 @@ ENDIF()
 SET(${MODULE_NAME}_DEP_LIBRARIES
    ${LIBPNG_LIBRARY}
    ${OPENGL_LIBRARIES}
-   ${OPENCL_LIBRARIES}
+   ${OpenCL_LIBRARIES}
    ${X11_X11_LIB}
-   ${FFMPEG_LIBRARIES}
+   ${ffmpeg_LIBRARIES}
 )
 
 CONFIGURE_FILE (
@@ -102,7 +101,7 @@ SET( CL_KERNELS
     cl/kernel/gradx.cl
     cl/kernel/gradxy.cl
     cl/kernel/median3.cl
-        cl/kernel/FlowColorCode.cl
+	cl/kernel/FlowColorCode.cl
     cl/kernel/fgp/fgp.cl
     cl/kernel/fgp/fgp_data.cl
     cl/kernel/fgp/fgpgrayweightedhuber.cl
@@ -159,7 +158,6 @@ FOREACH( GLSLFILE ${GLSL_SHADER} )
    SET( GLSL_GEN_HEADER_${MODULE_NAME} ${GLSL_GEN_HEADER_${MODULE_NAME}} ${GLSL_GEN_OUTPUT} )
 ENDFOREACH(GLSLFILE)
 
-
 SET(${MODULE_NAME}_HEADERS
    cl/CLBuffer.h
    cl/CLCommandQueue.h
@@ -204,6 +202,7 @@ SET(${MODULE_NAME}_HEADERS
    geom/scene/SceneSpatial.h
    geom/scene/SceneTexture.h
    gfx/Color.h
+   gfx/IBorder.h
    gfx/Image.h
    gfx/IBoxFilter.h
    gfx/IFill.h
@@ -461,6 +460,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/ApproxMedian.h
    vision/rgbdvo/ESMKeyframe.h
    vision/rgbdvo/FCKeyframe.h
+   vision/rgbdvo/GlobalFCKeyframe.h
    vision/rgbdvo/ICKeyframe.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/Optimizer.h
@@ -688,7 +688,6 @@ SET(${MODULE_NAME}_SOURCES
    io/xml/XMLDecoderUTF8.cpp
 )
 
-
 IF(UNIX)
    IF(APPLE)
       SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
@@ -737,7 +736,7 @@ IF(UNIX)
 ENDIF()
 
 # optional uEyeUsbCamera driver if available
-FIND_PACKAGE(uEyeUsbCamera)
+FIND_PACKAGE(uEyeUsb)
 OPTION( CVT_USEUEYE "Use UEyeUsbCamera" TRUE )
 IF( UEYEUSB_FOUND AND CVT_USEUEYE )
    SET(${MODULE_NAME}_HEADERS
@@ -751,11 +750,11 @@ IF( UEYEUSB_FOUND AND CVT_USEUEYE )
    )
    INCLUDE_DIRECTORIES(
       BEFORE
-      ${UEYEUSB_INCLUDE_DIR}
+      ${UEYEUSB_INCLUDE_DIRS}
    )
    SET(${MODULE_NAME}_DEP_LIBRARIES
       ${${MODULE_NAME}_DEP_LIBRARIES}
-      ${UEYEUSB_LIBRARY}
+      ${UEYEUSB_LIBRARIES}
    )
    ADD_DEFINITIONS( -DUEYE_FOUND )
 ENDIF()
@@ -786,7 +785,7 @@ ENDIF()
 
 FIND_PACKAGE( OpenNI )
 OPTION( CVT_USE_OPENNI "Use OpenNI" TRUE )
-IF( OPENNI_FOUND AND CVT_USE_OPENNI )
+IF( OpenNI_FOUND AND CVT_USE_OPENNI )
    SET(${MODULE_NAME}_HEADERS
       ${${MODULE_NAME}_HEADERS}
       io/OpenNICamera.h
@@ -799,11 +798,11 @@ IF( OPENNI_FOUND AND CVT_USE_OPENNI )
    )
    INCLUDE_DIRECTORIES(
       BEFORE
-      ${OPENNI_INCLUDES}
+      ${OpenNI_INCLUDE_DIRS}
    )
    SET(${MODULE_NAME}_DEP_LIBRARIES
       ${${MODULE_NAME}_DEP_LIBRARIES}
-      ${OPENNI_LIBRARIES}
+      ${OpenNI_LIBRARIES}
    )
 ENDIF()
 
@@ -811,11 +810,10 @@ ENDIF()
 INCLUDE_DIRECTORIES(
     BEFORE
    ${CMAKE_CURRENT_SOURCE_DIR}
-   ${EIGEN3_INCLUDE_DIR}
-   ${LIBPNG_INCLUDE_DIR}
-   ${OPENCL_INCLUDE_DIR}
+   ${Eigen3_INCLUDE_DIRS}
+   ${OpenCL_INCLUDE_DIRS}
    ${X11_X11_INCLUDE_PATH}
-   ${FFMPEG_INCLUDES}
+   ${ffmpeg_INCLUDE_DIRS}
 )
 
 MODULE_CONFIGURATION("${MODULE_NAME}"
