@@ -15,6 +15,7 @@
 #include <cvt/cl/CLKernel.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/String.h>
+#include <cvt/geom/MarchingCubes.h>
 
 namespace cvt
 {
@@ -30,6 +31,9 @@ namespace cvt
 			size_t width() const { return _width; }
 			size_t height() const { return _height; }
 			size_t depth() const { return _depth; }
+
+			void toSceneMesh( SceneMesh& mesh ) const;
+
 			/*
 			   o save or map-data
 			   o to SceneMesh / GLMesh using MC
@@ -51,6 +55,7 @@ namespace cvt
 			CLKernel _clvolclear;
 			CLKernel _clvoladd;
 	};
+
 
 }
 

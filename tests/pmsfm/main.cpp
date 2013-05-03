@@ -19,6 +19,7 @@
 #include "gradxy.h"
 
 #include <cvt/cl/kernel/fill.h>
+#include <cvt/cl/kernel/FlowColorCode.h>
 
 //#include "PDROF.h"
 //#include "pmstereo.h"
@@ -60,7 +61,7 @@ int main( int argc, char** argv )
 	}
 
 	try {
-		int patchsize = 18;
+		int patchsize = 10;
 		std::vector<CLPlatform> platforms;
 		std::vector<CLDevice> devs;
 
@@ -97,7 +98,8 @@ int main( int argc, char** argv )
 		Image clinput1g( clinput1.width(), clinput1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image clinput2g( clinput2.width(), clinput2.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image cldmap( clinput1.width(), clinput1.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
-		Image clnmap( clinput1.width(), clinput1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image cltmp( clinput1.width(), clinput1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+		Image cltmp2( clinput1.width(), clinput1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 
 		clinput1.save("input1.png");
 		clinput2.save("input2.png");
@@ -112,6 +114,7 @@ int main( int argc, char** argv )
 		CLKernel clpmfwdwarp( _pmsfm_source, "pmsfm_fwdwarp" );
 		CLKernel clgradxy( _gradxy_source, "gradxy" );
 		CLKernel clfill( _fill_source, "fill" );
+		CLKernel clcolorcode( _FlowColorCode_source, "FlowColorCode");
 
 		CLBuffer state1( sizeof( cl_float8 ) * clinput1.width() * clinput1.height() );
 		CLBuffer state2( sizeof( cl_float8 ) * clinput1.width() * clinput1.height() );
@@ -149,23 +152,25 @@ int main( int argc, char** argv )
 #if DEBUG
 			clpmdepthmap.setArg( 0, cldmap );
 			clpmdepthmap.setArg( 1, state2 );
+			clpmdepthmap.setArg( 2, sizeof( Mat3 ), &clKinv );
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 			cldmap.save("dmap.png");
+			cldmap.save("dmap.cvtraw");
 
-			clpmnormalmap.setArg( 0, clnmap );
+			clpmnormalmap.setArg( 0, cltmp );
 			clpmnormalmap.setArg( 1, state2 );
 			clpmnormalmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("nmap.png");
+			cltmp.save("nmap.png");
 
-			clpmrotmap.setArg( 0, clnmap );
+			clpmrotmap.setArg( 0, cltmp );
 			clpmrotmap.setArg( 1, state2 );
 			clpmrotmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("rotmap.png");
+			cltmp.save("rotmap.png");
 
-			clpmtransmap.setArg( 0, clnmap );
+			clpmtransmap.setArg( 0, cltmp );
 			clpmtransmap.setArg( 1, state2 );
 			clpmtransmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("transmap.png");
+			cltmp.save("transmap.png");
 
 
 			getchar();
@@ -188,37 +193,44 @@ int main( int argc, char** argv )
 
 			clpmdepthmap.setArg( 0, cldmap );
 			clpmdepthmap.setArg( 1, state1 );
+			clpmdepthmap.setArg( 2, sizeof( Mat3 ), &clKinv );
 			clpmdepthmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 			cldmap.save("dmap.png");
 
-			clpmnormalmap.setArg( 0, clnmap );
+			clpmnormalmap.setArg( 0, cltmp );
 			clpmnormalmap.setArg( 1, state1 );
 			clpmnormalmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("nmap.png");
+			cltmp.save("nmap.png");
 
-			clpmrotmap.setArg( 0, clnmap );
+			clpmrotmap.setArg( 0, cltmp );
 			clpmrotmap.setArg( 1, state1 );
 			clpmrotmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("rotmap.png");
+			cltmp.save("rotmap.png");
 
-			clpmtransmap.setArg( 0, clnmap );
+			clpmtransmap.setArg( 0, cltmp );
 			clpmtransmap.setArg( 1, state1 );
 			clpmtransmap.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("transmap.png");
+			cltmp.save("transmap.png");
 
 
 			cl_float4 black = {{0.0f, 0.0f, 0.0f, 1.0f }};
-			clfill.setArg( 0, clnmap );
+			clfill.setArg( 0, cltmp );
 			clfill.setArg( 1, black );
 			clfill.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
 
-			clpmfwdwarp.setArg( 0, clnmap );
+			clpmfwdwarp.setArg( 0, cltmp );
 			clpmfwdwarp.setArg( 1, clinput1 );
 			clpmfwdwarp.setArg( 2, state1 );
 			clpmfwdwarp.setArg( 3, sizeof( Mat3 ), &clK  );
 			clpmfwdwarp.setArg( 4, sizeof( Mat3 ), &clKinv );
 			clpmfwdwarp.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
-			clnmap.save("warp.png");
+			cltmp.save("warp.png");
+
+/*			clcolorcode.setArg( 0, cltmp2 );
+			clcolorcode.setArg( 1, cltmp );
+			clcolorcode.setArg( 2, 25.0f );
+			clcolorcode.runWait( CLNDRange( Math::pad( clinput1.width(), KX ), Math::pad( clinput1.height(), KY ) ), CLNDRange( KX, KY ) );
+			cltmp2.save("warp.png");*/
 
 			getchar();
 #endif

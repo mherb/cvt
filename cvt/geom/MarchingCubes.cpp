@@ -307,55 +307,8 @@ namespace cvt {
 		{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
 
-	void MarchingCubes::vertexInterp( Vector3f& vtx, const Vector3f& p1, const Vector3f& p2, float val1, float val2, float isolevel )
-	{
-#define ISO_EPSILON 1e-6f
 
-		if( Math::abs( isolevel - val1 ) <  ISO_EPSILON ) {
-			vtx = p1;
-			return;
-		}
-		if( Math::abs( isolevel - val2 ) <  ISO_EPSILON ) {
-			vtx = p2;
-			return;
-		}
-		if( Math::abs( val1 - val2 ) <  ISO_EPSILON ) {
-			vtx = p1;
-			return;
-		}
-		float alpha = ( isolevel - val1 ) / ( val2 - val1 );
-		vtx.mix( p1, p2, alpha );
-	}
-
-
-	void MarchingCubes::vertexNormalInterp( Vector3f& vtx, const Vector3f& p1, const Vector3f& p2, Vector3f& norm, const Vector3f& n1, const Vector3f& n2, float val1, float val2, float isolevel )
-	{
-#define ISO_EPSILON 1e-6f
-
-		if( Math::abs( isolevel - val1 ) <  ISO_EPSILON ) {
-			vtx = p1;
-			norm = n1;
-			return;
-		}
-		if( Math::abs( isolevel - val2 ) <  ISO_EPSILON ) {
-			vtx = p2;
-			norm = n2;
-			return;
-		}
-		if( Math::abs( val1 - val2 ) <  ISO_EPSILON ) {
-			vtx = p1;
-			norm = n1;
-			return;
-		}
-		float alpha = ( isolevel - val1 ) / ( val2 - val1 );
-		vtx.mix( p1, p2, alpha );
-		norm.mix( n1, n2, alpha );
-		norm.normalize();
-	}
-
-#define VOLUME( x, y, z ) _volume[ ( ( z ) * _height + ( y ) ) * _width + ( x ) ]
-
-	void MarchingCubes::triangulate( SceneMesh& mesh, float isolevel ) const
+	void MarchingCubes::triangulateDistance( SceneMesh& mesh, float isolevel ) const
 	{
 		float gridval[ 8 ];
 		Vector3f gridvtx[ 8 ];
@@ -368,10 +321,12 @@ namespace cvt {
 		size_t xend = _width - 1;
 		size_t yend = _height - 1;
 		size_t zend = _depth - 1;
+
 		for( size_t z = 0; z < zend; z++  ) {
 			for( size_t y = 0; y < yend; y++ ) {
 				for( size_t x = 0; x < xend; x++ ) {
 
+#define VOLUME( x, y, z ) _volume[ ( ( z ) * _height + ( y ) ) * _width + ( x ) ]
 					/* get the values of the current grid voxel */
 					gridval[ 0 ] = VOLUME( x, y, z );
 					gridval[ 1 ] = VOLUME( x + 1, y, z );
@@ -381,6 +336,7 @@ namespace cvt {
 					gridval[ 5 ] = VOLUME( x + 1, y, z + 1 );
 					gridval[ 6 ] = VOLUME( x + 1, y + 1, z + 1);
 					gridval[ 7 ] = VOLUME( x, y + 1, z + 1 );
+#undef VOLUME
 
 					/*
 					   Determine the index into the edge table which
@@ -454,7 +410,7 @@ namespace cvt {
 		mesh.setFaces( &faces[ 0 ], faces.size(), SCENEMESH_TRIANGLES );
 	}
 
-	void MarchingCubes::triangulateWithNormals( SceneMesh& mesh, float isolevel ) const
+	void MarchingCubes::triangulateWithNormalsDistance( SceneMesh& mesh, float isolevel ) const
 	{
 		float gridval[ 8 ];
 		Vector3f gridvtx[ 8 ];
@@ -474,6 +430,7 @@ namespace cvt {
 			for( size_t y = 1; y < yend; y++ ) {
 				for( size_t x = 1; x < xend; x++ ) {
 
+#define VOLUME( x, y, z ) _volume[ ( ( z ) * _height + ( y ) ) * _width + ( x ) ]
 					/* get the values of the current grid voxel */
 					gridval[ 0 ] = VOLUME( x, y, z );
 					gridval[ 1 ] = VOLUME( x + 1, y, z );
@@ -525,16 +482,8 @@ namespace cvt {
 					gridnormal[ 6 ] = VOLNORMAL( x + 1, y + 1, z + 1);
 					gridnormal[ 7 ] = VOLNORMAL( x, y + 1, z + 1 );
 
-					//gridnormal[ 0 ].normalize();
-					//gridnormal[ 1 ].normalize();
-					//gridnormal[ 2 ].normalize();
-					//gridnormal[ 3 ].normalize();
-					//gridnormal[ 4 ].normalize();
-					//gridnormal[ 5 ].normalize();
-					//gridnormal[ 6 ].normalize();
-					//gridnormal[ 7 ].normalize();
-
-
+#undef VOLNORMAL
+#undef VOLUME
 					/* Find the vertices where the surface intersects the cube */
 					if ( _edgeTable[ cubeindex ] & 1)
 						vertexNormalInterp( vertlist[ 0 ], gridvtx[ 0 ], gridvtx[ 1 ],
@@ -606,5 +555,277 @@ namespace cvt {
 		mesh.setFaces( &faces[ 0 ], faces.size(), SCENEMESH_TRIANGLES );
 	}
 
+	void MarchingCubes::triangulateWeightedDistance( SceneMesh& mesh, float isolevel ) const
+	{
+		const float WEIGHT_EPSILON = _minweight;
+		float gridval[ 8 ];
+		Vector3f gridvtx[ 8 ];
+		int cubeindex;
+		Vector3f vertlist[ 12 ];
+		size_t vtxIdx = 0;
+		std::vector<Vector3f> vertices;
+		std::vector<unsigned int> faces;
+
+		size_t xend = _width - 1;
+		size_t yend = _height - 1;
+		size_t zend = _depth - 1;
+
+		for( size_t z = 0; z < zend; z++  ) {
+			for( size_t y = 0; y < yend; y++ ) {
+				for( size_t x = 0; x < xend; x++ ) {
+
+#define VOLUME( x, y, z ) _volume[ ( ( ( z ) * _height + ( y ) ) * _width + ( x ) ) * 2 ]
+#define VOLUMEWEIGHT( x, y, z ) _volume[ ( ( ( z ) * _height + ( y ) ) * _width + ( x ) ) * 2 + 1 ]
+
+					/* get the values of the current grid voxel */
+					gridval[ 0 ] = VOLUME( x, y, z );
+					if( VOLUMEWEIGHT( x, y, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 1 ] = VOLUME( x + 1, y, z );
+					if( VOLUMEWEIGHT( x + 1, y, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 2 ] = VOLUME( x + 1, y + 1, z );
+					if( VOLUMEWEIGHT( x + 1, y + 1, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 3 ] = VOLUME( x, y + 1, z );
+					if( VOLUMEWEIGHT( x, y + 1, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 4 ] = VOLUME( x, y, z + 1 );
+					if( VOLUMEWEIGHT( x, y, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 5 ] = VOLUME( x + 1, y, z + 1 );
+					if( VOLUMEWEIGHT( x + 1, y, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 6 ] = VOLUME( x + 1, y + 1, z + 1);
+					if( VOLUMEWEIGHT( x + 1, y + 1, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 7 ] = VOLUME( x, y + 1, z + 1 );
+					if( VOLUMEWEIGHT( x, y + 1, z + 1 ) <= WEIGHT_EPSILON ) continue;
+#undef VOLUME
+
+					/*
+					   Determine the index into the edge table which
+					   tells us which vertices are inside of the surface
+					 */
+					cubeindex = 0;
+					if( gridval[ 0 ] < isolevel ) cubeindex |= 1;
+					if( gridval[ 1 ] < isolevel ) cubeindex |= 2;
+					if( gridval[ 2 ] < isolevel ) cubeindex |= 4;
+					if( gridval[ 3 ] < isolevel ) cubeindex |= 8;
+					if( gridval[ 4 ] < isolevel ) cubeindex |= 16;
+					if( gridval[ 5 ] < isolevel ) cubeindex |= 32;
+					if( gridval[ 6 ] < isolevel ) cubeindex |= 64;
+					if( gridval[ 7 ] < isolevel ) cubeindex |= 128;
+
+					/* Cube is entirely in/out of the surface */
+					if ( _edgeTable[ cubeindex ] == 0)
+						continue;
+
+					/* set the vertex positions of the current cell */
+					gridvtx[ 0 ].set( x, y, z );
+					gridvtx[ 1 ].set( x + 1, y, z );
+					gridvtx[ 2 ].set( x + 1, y + 1, z );
+					gridvtx[ 3 ].set( x, y + 1, z );
+					gridvtx[ 4 ].set( x, y, z + 1 );
+					gridvtx[ 5 ].set( x + 1, y, z + 1 );
+					gridvtx[ 6 ].set( x + 1, y + 1, z + 1);
+					gridvtx[ 7 ].set( x, y + 1, z + 1 );
+
+
+					/* Find the vertices where the surface intersects the cube */
+					if ( _edgeTable[ cubeindex ] & 1)
+						vertexInterp( vertlist[ 0 ], gridvtx[ 0 ], gridvtx[ 1 ], gridval[ 0 ], gridval[ 1 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 2)
+						vertexInterp( vertlist[ 1 ], gridvtx[ 1 ], gridvtx[ 2 ], gridval[ 1 ], gridval[ 2 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 4)
+						vertexInterp( vertlist[ 2 ], gridvtx[ 2 ], gridvtx[ 3 ], gridval[ 2 ], gridval[ 3 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 8)
+						vertexInterp( vertlist[ 3 ], gridvtx[ 3 ], gridvtx[ 0 ], gridval[ 3 ], gridval[ 0 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 16)
+						vertexInterp( vertlist[ 4 ], gridvtx[ 4 ], gridvtx[ 5 ], gridval[ 4 ], gridval[ 5 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 32)
+						vertexInterp( vertlist[ 5 ], gridvtx[ 5 ], gridvtx[ 6 ], gridval[ 5 ], gridval[ 6 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 64)
+						vertexInterp( vertlist[ 6 ], gridvtx[ 6 ], gridvtx[ 7 ], gridval[ 6 ], gridval[ 7 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 128)
+						vertexInterp( vertlist[ 7 ], gridvtx[ 7 ], gridvtx[ 4 ], gridval[ 7 ], gridval[ 4 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 256)
+						vertexInterp( vertlist[ 8 ], gridvtx[ 0 ], gridvtx[ 4 ], gridval[ 0 ], gridval[ 4 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 512)
+						vertexInterp( vertlist[ 9 ], gridvtx[ 1 ], gridvtx[ 5 ], gridval[ 1 ], gridval[ 5 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 1024)
+						vertexInterp( vertlist[ 10 ], gridvtx[ 2 ], gridvtx[ 6 ], gridval[ 2 ], gridval[ 6 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 2048)
+						vertexInterp( vertlist[ 11 ], gridvtx[ 3 ], gridvtx[ 7 ], gridval[ 3 ], gridval[ 7 ], isolevel );
+
+					/* Create the triangle */
+					for( int i = 0; _triTable[ cubeindex ][ i ] !=-1; i += 3 ) {
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i     ] ] );
+						faces.push_back( vtxIdx++ );
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i + 1 ] ] );
+						faces.push_back( vtxIdx++ );
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i + 2 ] ] );
+						faces.push_back( vtxIdx++ );
+					}
+				}
+			}
+		}
+		mesh.clear();
+		mesh.setVertices( &vertices[ 0 ], vertices.size() );
+		mesh.setFaces( &faces[ 0 ], faces.size(), SCENEMESH_TRIANGLES );
+	}
+
+	void MarchingCubes::triangulateWithNormalsWeightedDistance( SceneMesh& mesh, float isolevel ) const
+	{
+		const float WEIGHT_EPSILON = _minweight;
+		float gridval[ 8 ];
+		Vector3f gridvtx[ 8 ];
+		Vector3f gridnormal[ 8 ];
+		int cubeindex;
+		Vector3f vertlist[ 12 ];
+		Vector3f normlist[ 12 ];
+		size_t vtxIdx = 0;
+		std::vector<Vector3f> vertices;
+		std::vector<Vector3f> normals;
+		std::vector<unsigned int> faces;
+
+		size_t xend = _width - 2;
+		size_t yend = _height - 2;
+		size_t zend = _depth - 2;
+		for( size_t z = 1; z < zend; z++  ) {
+			for( size_t y = 1; y < yend; y++ ) {
+				for( size_t x = 1; x < xend; x++ ) {
+
+#define VOLUME( x, y, z ) _volume[ ( ( ( z ) * _height + ( y ) ) * _width + ( x ) ) * 2 ]
+#define VOLUMEWEIGHT( x, y, z ) _volume[ ( ( ( z ) * _height + ( y ) ) * _width + ( x ) ) * 2 + 1 ]
+
+					/* get the values of the current grid voxel */
+					gridval[ 0 ] = VOLUME( x, y, z );
+					if( VOLUMEWEIGHT( x, y, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 1 ] = VOLUME( x + 1, y, z );
+					if( VOLUMEWEIGHT( x + 1, y, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 2 ] = VOLUME( x + 1, y + 1, z );
+					if( VOLUMEWEIGHT( x + 1, y + 1, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 3 ] = VOLUME( x, y + 1, z );
+					if( VOLUMEWEIGHT( x, y + 1, z ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 4 ] = VOLUME( x, y, z + 1 );
+					if( VOLUMEWEIGHT( x, y, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 5 ] = VOLUME( x + 1, y, z + 1 );
+					if( VOLUMEWEIGHT( x + 1, y, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 6 ] = VOLUME( x + 1, y + 1, z + 1);
+					if( VOLUMEWEIGHT( x + 1, y + 1, z + 1 ) <= WEIGHT_EPSILON ) continue;
+					gridval[ 7 ] = VOLUME( x, y + 1, z + 1 );
+					if( VOLUMEWEIGHT( x, y + 1, z + 1 ) <= WEIGHT_EPSILON ) continue;
+
+					/*
+					   Determine the index into the edge table which
+					   tells us which vertices are inside of the surface
+					 */
+					cubeindex = 0;
+					if( gridval[ 0 ] < isolevel ) cubeindex |= 1;
+					if( gridval[ 1 ] < isolevel ) cubeindex |= 2;
+					if( gridval[ 2 ] < isolevel ) cubeindex |= 4;
+					if( gridval[ 3 ] < isolevel ) cubeindex |= 8;
+					if( gridval[ 4 ] < isolevel ) cubeindex |= 16;
+					if( gridval[ 5 ] < isolevel ) cubeindex |= 32;
+					if( gridval[ 6 ] < isolevel ) cubeindex |= 64;
+					if( gridval[ 7 ] < isolevel ) cubeindex |= 128;
+
+					/* Cube is entirely in/out of the surface */
+					if ( _edgeTable[ cubeindex ] == 0)
+						continue;
+
+					/* set the vertex positions of the current cell */
+					gridvtx[ 0 ].set( x, y, z );
+					gridvtx[ 1 ].set( x + 1, y, z );
+					gridvtx[ 2 ].set( x + 1, y + 1, z );
+					gridvtx[ 3 ].set( x, y + 1, z );
+					gridvtx[ 4 ].set( x, y, z + 1 );
+					gridvtx[ 5 ].set( x + 1, y, z + 1 );
+					gridvtx[ 6 ].set( x + 1, y + 1, z + 1);
+					gridvtx[ 7 ].set( x, y + 1, z + 1 );
+
+#define VOLNORMAL( x, y, z )   -Vector3f( VOLUME( ( x ) + 1, ( y ), ( z ) ) - VOLUME( ( x ) - 1, ( y ), ( z ) ), \
+										 VOLUME( ( x ), ( y ) + 1, ( z ) ) - VOLUME( ( x ) , ( y ) - 1, ( z ) ), \
+										 VOLUME( ( x ), ( y ), ( z ) + 1 ) - VOLUME( ( x ) , ( y ), ( z ) - 1 ) )
+
+					gridnormal[ 0 ] = VOLNORMAL( x, y, z );
+					gridnormal[ 1 ] = VOLNORMAL( x + 1, y, z );
+					gridnormal[ 2 ] = VOLNORMAL( x + 1, y + 1, z );
+					gridnormal[ 3 ] = VOLNORMAL( x, y + 1, z );
+					gridnormal[ 4 ] = VOLNORMAL( x, y, z + 1 );
+					gridnormal[ 5 ] = VOLNORMAL( x + 1, y, z + 1 );
+					gridnormal[ 6 ] = VOLNORMAL( x + 1, y + 1, z + 1);
+					gridnormal[ 7 ] = VOLNORMAL( x, y + 1, z + 1 );
+
+#undef VOLNORMAL
+#undef VOLUME
+#undef VOLUMEWEIGHT
+
+					/* Find the vertices where the surface intersects the cube */
+					if ( _edgeTable[ cubeindex ] & 1)
+						vertexNormalInterp( vertlist[ 0 ], gridvtx[ 0 ], gridvtx[ 1 ],
+										    normlist[ 0 ], gridnormal[ 0 ], gridnormal[ 1 ],
+										    gridval[ 0 ], gridval[ 1 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 2)
+						vertexNormalInterp( vertlist[ 1 ], gridvtx[ 1 ], gridvtx[ 2 ],
+										    normlist[ 1 ], gridnormal[ 1 ], gridnormal[ 2 ],
+										    gridval[ 1 ], gridval[ 2 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 4)
+						vertexNormalInterp( vertlist[ 2 ], gridvtx[ 2 ], gridvtx[ 3 ],
+										    normlist[ 2 ], gridnormal[ 2 ], gridnormal[ 3 ],
+										    gridval[ 2 ], gridval[ 3 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 8)
+						vertexNormalInterp( vertlist[ 3 ], gridvtx[ 3 ], gridvtx[ 0 ],
+										    normlist[ 3 ], gridnormal[ 3 ], gridnormal[ 0 ],
+										    gridval[ 3 ], gridval[ 0 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 16)
+						vertexNormalInterp( vertlist[ 4 ], gridvtx[ 4 ], gridvtx[ 5 ],
+										    normlist[ 4 ], gridnormal[ 4 ], gridnormal[ 5 ],
+										    gridval[ 4 ], gridval[ 5 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 32)
+						vertexNormalInterp( vertlist[ 5 ], gridvtx[ 5 ], gridvtx[ 6 ],
+										    normlist[ 5 ], gridnormal[ 5 ], gridnormal[ 6 ],
+										    gridval[ 5 ], gridval[ 6 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 64)
+						vertexNormalInterp( vertlist[ 6 ], gridvtx[ 6 ], gridvtx[ 7 ],
+										    normlist[ 6 ], gridnormal[ 6 ], gridnormal[ 7 ],
+										    gridval[ 6 ], gridval[ 7 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 128)
+						vertexNormalInterp( vertlist[ 7 ], gridvtx[ 7 ], gridvtx[ 4 ],
+										    normlist[ 7 ], gridnormal[ 7 ], gridnormal[ 4 ],
+										    gridval[ 7 ], gridval[ 4 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 256)
+						vertexNormalInterp( vertlist[ 8 ], gridvtx[ 0 ], gridvtx[ 4 ],
+										    normlist[ 8 ], gridnormal[ 0 ], gridnormal[ 4 ],
+										    gridval[ 0 ], gridval[ 4 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 512)
+						vertexNormalInterp( vertlist[ 9 ], gridvtx[ 1 ], gridvtx[ 5 ],
+										    normlist[ 9 ], gridnormal[ 1 ], gridnormal[ 5 ],
+										    gridval[ 1 ], gridval[ 5 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 1024)
+						vertexNormalInterp( vertlist[ 10 ], gridvtx[ 2 ], gridvtx[ 6 ],
+										    normlist[ 10 ], gridnormal[ 2 ], gridnormal[ 6 ],
+										    gridval[ 2 ], gridval[ 6 ], isolevel );
+					if ( _edgeTable[ cubeindex ] & 2048)
+						vertexNormalInterp( vertlist[ 11 ], gridvtx[ 3 ], gridvtx[ 7 ],
+										    normlist[ 11 ], gridnormal[ 3 ], gridnormal[ 7 ],
+										    gridval[ 3 ], gridval[ 7 ], isolevel );
+
+					/* Create the triangle */
+					for( int i = 0; _triTable[ cubeindex ][ i ] !=-1; i += 3 ) {
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i     ] ] );
+						normals.push_back( normlist[ _triTable[ cubeindex ][ i     ] ] );
+						faces.push_back( vtxIdx++ );
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i + 1 ] ] );
+						normals.push_back( normlist[ _triTable[ cubeindex ][ i + 1 ] ] );
+						faces.push_back( vtxIdx++ );
+						vertices.push_back( vertlist[ _triTable[ cubeindex ][ i + 2 ] ] );
+						normals.push_back( normlist[ _triTable[ cubeindex ][ i + 2 ] ] );
+						faces.push_back( vtxIdx++ );
+					}
+				}
+			}
+		}
+		mesh.clear();
+		mesh.setVertices( &vertices[ 0 ], vertices.size() );
+		mesh.setNormals( &normals[ 0 ], normals.size() );
+		mesh.setFaces( &faces[ 0 ], faces.size(), SCENEMESH_TRIANGLES );
+	}
 }
+
+
 

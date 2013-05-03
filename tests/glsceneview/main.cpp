@@ -33,11 +33,11 @@ int main( int argc, char** argv )
 	Window w( "meshView" );
 	w.setSize( 640, 480 );
 	SceneMesh* mesh = ( ( SceneMesh* ) s.geometry( index ) );
-//	mesh->translate( -mesh->centroid() );
+	mesh->translate( -mesh->centroid() );
 //	Matrix4f r;
 //	r.setRotationY( Math::deg2Rad( 45.0f ) );
 //	mesh->transform( r );
-//	mesh->scale( 0.01f );
+	mesh->scale( 0.1f );
 //	mesh->calculateNormals( 1.0f, 0.5f );
 	GLSceneView view( *( ( SceneMesh* ) s.geometry( index ) ) );
 
