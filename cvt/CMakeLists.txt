@@ -201,6 +201,7 @@ SET(${MODULE_NAME}_HEADERS
    geom/scene/SceneSpatial.h
    geom/scene/SceneTexture.h
    gfx/Color.h
+   gfx/IBorder.h
    gfx/Image.h
    gfx/IBoxFilter.h
    gfx/IFill.h
