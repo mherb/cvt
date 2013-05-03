@@ -17,7 +17,7 @@
 #ifdef LINUX
 	#include <cvt/io/V4L2Camera.h>
 #endif
-#ifdef UEYE_FOUND
+#ifdef UEYEUSB_FOUND
 	#include <cvt/io/UEyeUsbCamera.h>
 #endif
 
@@ -25,7 +25,7 @@
 #include <cvt/io/DC1394Camera.h>
 #endif
 
-#ifdef OPENNI_FOUND
+#ifdef OpenNI_FOUND
 #include <cvt/io/OpenNICamera.h>
 #endif
 
@@ -69,7 +69,7 @@ namespace cvt {
 #endif
 
 		// ueye cameras
-#ifdef UEYE_FOUND
+#ifdef UEYEUSB_FOUND
 		count = UEyeUsbCamera::count();
 		for( size_t i = 0; i < count; i++){
 			Camera::_camInfos.push_back( CameraInfo() );
@@ -77,7 +77,7 @@ namespace cvt {
 		}
 #endif
 
-#ifdef OPENNI_FOUND
+#ifdef OpenNI_FOUND
 		count = OpenNICamera::count();
 		for( size_t i = 0; i < count; i++ ){
 			Camera::_camInfos.push_back( CameraInfo() );
@@ -122,7 +122,7 @@ namespace cvt {
 #endif
 				break;
 			case CAMERATYPE_OPENNI:
-#ifdef OPENNI_FOUND
+#ifdef OpenNI_FOUND
 				cam = new OpenNICamera( camInfo.index(), mode );
 #endif
 				break;
