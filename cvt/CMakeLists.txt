@@ -179,15 +179,16 @@ SET(${MODULE_NAME}_HEADERS
    container/List.h
    container/RBTree.h
    geom/ArcBall.h
-   geom/Ellipse.h
-   geom/QBezier.h
+   geom/Box.h
    geom/CBezier.h
+   geom/Ellipse.h
    geom/KDTree.h
    geom/Line2D.h
+   geom/MarchingCubes.h
    geom/Polygon.h
    geom/PointSet.h
+   geom/QBezier.h
    geom/Rect.h
-   geom/Box.h
    geom/scene/Scene.h
    geom/scene/SceneCamera.h
    geom/scene/SceneGeometry.h
@@ -559,6 +560,7 @@ SET(${MODULE_NAME}_SOURCES
    gfx/IKernel.cpp
    gfx/ColorspaceXYZ.cpp
    geom/KDTreeTest.cpp
+   geom/MarchingCubes.cpp
    geom/Rect.cpp
    geom/PointSet.cpp
    geom/PointSetTest.cpp

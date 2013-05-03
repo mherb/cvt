@@ -135,24 +135,27 @@ typedef mwc64x_state_t RNG;
 #define RNG_float( x ) MWC64X_NextFloat( x )
 
 // values in meter
-#define DEPTHMAX  0.2f
-#define DEPTHMIN  1e-6f
+#define DEPTHMAX  0.2
+#define DEPTHMIN  1e-4f
 
 #define TRANSMAX  1.0f
-#define ROTMAX	  0.225f;
-#define NORMALCOMPMAX 0.95f
+//#define ROTMAX	  0.25f
+//#define ROTYMAX ( ( 30.0f / 180.0f ) * M_PI )
+
+#define ROTMAX ( ( 30.0f / 180.0f ) * M_PI )
+#define NORMALCOMPMAX 0.90f
 
 #define PROPSIZE 1
 #define NUMRNDTRIES	 2
-#define NUMRNDSAMPLE  2
+#define NUMRNDSAMPLE  3
 
-#define DEPTHREFINEMUL 0.001f
+#define DEPTHREFINEMUL 0.05f
 #define NORMALREFINEMUL 0.05f
 #define TRANSREFINEMUL  0.05f
-#define ROTREFINEMUL ( ( 0.25f / 180.0f ) * M_PI )
+#define ROTREFINEMUL 0.02f
 
-#define COLORWEIGHT 16.0f
-#define COLORGRADALPHA 0.1f
+#define COLORWEIGHT 10.0f
+#define COLORGRADALPHA 0.3f
 #define COLORMAXDIFF 0.2f
 #define GRADMAXDIFF 0.1f
 #define OVERSAMPLE 1.0f
@@ -169,14 +172,14 @@ struct Mat3 {
 
 typedef struct Mat3 Mat3;
 
-inline float3 Mat3_MulVec( Mat3* mat, const float3 vec )
+inline float3 Mat3_MulVec( const Mat3* mat, const float3 vec )
 {
 	return ( float3 ) ( dot( mat->m[ 0 ].xyz, vec ),
 					   dot( mat->m[ 1 ].xyz, vec ),
 					   dot( mat->m[ 2 ].xyz, vec ) );
 }
 
-inline float3 Mat3_TransMulVec( Mat3* mat, const float3 vec )
+inline float3 Mat3_TransMulVec( const Mat3* mat, const float3 vec )
 {
 	return ( float3 ) ( dot( ( float3 ) ( mat->m[ 0 ].x, mat->m[ 1 ].x, mat->m[ 2 ].x ), vec ),
 						dot( ( float3 ) ( mat->m[ 0 ].y, mat->m[ 1 ].y, mat->m[ 2 ].y ), vec ),
@@ -185,7 +188,7 @@ inline float3 Mat3_TransMulVec( Mat3* mat, const float3 vec )
 
 
 
-inline float2 Mat3_MulVecProj2( Mat3* mat, const float2 vec )
+inline float2 Mat3_MulVecProj2( const Mat3* mat, const float2 vec )
 {
 	float3 hvec = ( float3 ) ( vec.x, vec.y, 1.0f );
 	float3 tmp = ( float3 ) ( dot( mat->m[ 0 ].xyz, hvec ),
@@ -232,18 +235,32 @@ inline void Mat3_MulTranspose( Mat3* dst, const Mat3* a, const Mat3* b )
 	dst->m[ 2 ].z = dot( a->m[ 2 ].xyz, b->m[ 2 ].xyz );
 }
 
-inline void Mat3_Add( Mat3* dst, Mat3* a, Mat3* b )
+inline void Mat3_MulScalar( Mat3* dst, float s, const Mat3* m )
+{
+	dst->m[ 0 ] = s * m->m[ 0 ];
+	dst->m[ 1 ] = s * m->m[ 1 ];
+	dst->m[ 2 ] = s * m->m[ 2 ];
+}
+
+inline void Mat3_Add( Mat3* dst, const Mat3* a, const Mat3* b )
 {
 	dst->m[ 0 ] = a->m[ 0 ] + b->m[ 0 ];
 	dst->m[ 1 ] = a->m[ 1 ] + b->m[ 1 ];
 	dst->m[ 2 ] = a->m[ 2 ] + b->m[ 2 ];
 }
 
-inline void Mat3_Sub( Mat3* dst, Mat3* a, Mat3* b )
+inline void Mat3_Sub( Mat3* dst, const Mat3* a, const Mat3* b )
 {
 	dst->m[ 0 ] = a->m[ 0 ] - b->m[ 0 ];
 	dst->m[ 1 ] = a->m[ 1 ] - b->m[ 1 ];
 	dst->m[ 2 ] = a->m[ 2 ] - b->m[ 2 ];
+}
+
+inline void Mat3_Transpose( Mat3* dst, const Mat3* mat )
+{
+  dst->m[ 0 ] = ( float3 ) ( mat->m[ 0 ].x, mat->m[ 1 ].x, mat->m[ 2 ].x );
+  dst->m[ 1 ] = ( float3 ) ( mat->m[ 0 ].y, mat->m[ 1 ].y, mat->m[ 2 ].y );
+  dst->m[ 2 ] = ( float3 ) ( mat->m[ 0 ].z, mat->m[ 1 ].z, mat->m[ 2 ].z );
 }
 
 inline void Mat3_AxisAngleRotation( Mat3* mat, float3 rot )
@@ -338,13 +355,14 @@ float8 pmsfm_state_init( RNG* rng )
 
 	z = DEPTHMIN + RNG_float( rng ) * ( DEPTHMAX - DEPTHMIN  ) ;
 
-	n.x = ( RNG_float( rng ) - 0.5f ) * 0.5f * NORMALCOMPMAX;
-	n.y = ( RNG_float( rng ) - 0.5f ) * 0.5f * NORMALCOMPMAX;
+	n.x = ( RNG_float( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
+	n.y = ( RNG_float( rng ) - 0.5f ) * 2.0f * NORMALCOMPMAX;
 
 	rot.x = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
+	rot.y = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
 	rot.z = ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTMAX;
-	rot.y = sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
-	rot  *= ( RNG_float( rng ) - 0.5f ) * 2.0f * ( 15.0f / 180.0f ) * M_PI;
+//	rot.y = sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
+//	rot  *= ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTYMAX;
 
 	trans.x = ( RNG_float( rng ) - 0.5f ) * 2.0f * TRANSMAX;
 	trans.y = ( RNG_float( rng ) - 0.5f ) * 2.0f * TRANSMAX;
@@ -375,16 +393,18 @@ float8 pmsfm_state_refine( RNG* rng, const float8 state )
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
 	rot   = state.s012;
-	rotlen = length( rot );
-	rot   = normalize( rot );
+//	rotlen = length( rot );
+//	rot   = normalize( rot );
 	rot.x += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
+	rot.y += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
 	rot.z += ( RNG_float( rng ) - 0.5f ) * 2.0f * ROTREFINEMUL;
 	rot.x = clamp( rot.x, -ROTMAX, ROTMAX );
 	rot.y = clamp( rot.y, -ROTMAX, ROTMAX );
-	rot.y = sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
-	rotlen += ( RNG_float( rng ) - 0.5f ) * 2.0f * ( 1.0f / 180.0f ) * M_PI;
-	rotlen = clamp( rotlen, -( 15.0f / 180.0f ) * M_PI, ( 15.0f / 180.0f ) * M_PI );
-	rot  *= rotlen;
+	rot.z = clamp( rot.z, -ROTMAX, ROTMAX );
+//	rot.y = sign( rot.y ) * sqrt( 1.0f - rot.x * rot.x - rot.z * rot.z );
+//	rotlen += ( RNG_float( rng ) - 0.5f ) * 2.0f * ( 1.0f / 180.0f ) * M_PI;
+//	rotlen = clamp( rotlen, -ROTYMAX, ROTYMAX );
+//	rot  *= rotlen;
 
 	trans = normalize( state.s345 );
 	trans.x += ( RNG_float( rng ) - 0.5f ) * 2.0f * ( TRANSREFINEMUL );
@@ -399,41 +419,43 @@ float8 pmsfm_state_refine( RNG* rng, const float8 state )
 	return ( float8 )( rot.x, rot.y, rot.z, trans.x, trans.y, trans.z, n.x, n.y );
 }
 
+inline float3 pmsfm_state_to_normal( const float8 state )
+{
+	return ( float3 ) ( state.s6, state.s7, sqrt( 1.0f - state.s6 * state.s6 - state.s7 * state.s7 ) );
+}
+
 inline void pmsfm_state_to_matrix( const float8 state, Mat3* matrix, const Mat3* Kdst, const Mat3* Ksrc )
 {
 	Mat3 rot, outer, tmp;
 	// rotation matrix
-	Mat3_AxisAngleRotation( &rot, state.s012 );
+	Mat3_RotationTranspose( &rot, state.s012 );
+//	Mat3_AxisAngleRotation( &tmp, state.s012 );
+//	Mat3_Transpose( &rot, &tmp );
 	// translation
 	float3 t = state.s345;
 	// normal
-	float3 n = ( float3 ) ( state.s6, state.s7, sqrt( 1.0f - state.s6 * state.s6 - state.s7 * state.s7 ) );
+	float3 n = ( float3 ) pmsfm_state_to_normal( state );
 	// K_dst ( R^T + (1/d) (R^T t) n^T ) K_src
-	Mat3_Outer( &outer, /*Mat3_TransMulVec( &rot, t )*/ -t, n );
+	Mat3_Outer( &outer, -Mat3_MulVec( &rot, t ), n );
 	Mat3_Add( &tmp, &rot, &outer );
 	Mat3_Mul( &rot,  &tmp, Ksrc );
 	Mat3_Mul( matrix, Kdst, &rot );
 }
 
-float8 pmsfm_state_viewprop( const float8 state )
+inline float8 pmsfm_state_viewprop( const float8 state )
 {
 	// TODO, if needed at all
 	return ( float8 ) 0.0f;
 }
 
-float3 pmsfm_state_to_normal( const float8 state )
-{
-	return ( float3 ) ( state.s6, state.s7, sqrt( 1.0f - state.s6 * state.s6 - state.s7 * state.s7 ) );
-}
-
-float pmsfm_state_to_depth( const float8 state )
+inline float pmsfm_state_to_depth( const float8 state )
 {
 	return length( state.s345 );
 }
 
-float pmsfm_state_to_unitdepth( const float8 state )
+inline float pmsfm_state_to_unitdepth( const float8 state )
 {
-	return length( state.s345 ) / ( DEPTHMAX );
+	return length( state.s345 ) / DEPTHMAX;
 }
 
 
@@ -446,6 +468,15 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	int width = get_image_width( colimg2 );
 	int height = get_image_height( colimg2 );
 	Mat3 mat;
+//	Mat3 mat2;
+
+	Mat3_AxisAngleRotation( &mat, state.s012 );
+//	Mat3_Transpose( &mat, &mat2 );
+//	if( dot( Mat3_MulVec( &mat, state.s345 ), pmsfm_state_to_normal( state ) ) - 1.0f < 0.0f )
+//		return 1e5f;
+//	if( dot( state.s345, pmsfm_state_to_normal( state ) ) - 1.0f > 0.0f )
+//		return 1e5f;
+
 	pmsfm_state_to_matrix( state, &mat, Kdst, Ksrc );
 
 //	const float4 grayWeight =  ( float4 ) ( 0.2126f, 0.7152f, 0.0722f, 0.0f );
@@ -577,6 +608,7 @@ Kdst.m[2] = ( float3 ) (0.0f, 0.0f,  1.0f );
 
 			neighbour = old[ width * spos.y + spos.x ];
 			ncost  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, &Kdst, &Ksrc, patchsize );
+
 			if( ncost <= cost  ) {
 				self = neighbour;
 				cost = ncost;
@@ -642,7 +674,7 @@ kernel void pmsfm_normalmap( write_only image2d_t normalmap, read_only global fl
 	write_imagef( normalmap, coord, val );
 }
 
-kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global float8* states )
+kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global float8* states, const Mat3 Ksrc )
 {
 	int2 coord;
 	const int width = get_image_width( depthmap );
@@ -655,7 +687,10 @@ kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global floa
 		return;
 
 	float8 state = states[ width * coord.y + coord.x ];
-	float val    = pmsfm_state_to_unitdepth( state );
+
+	float d = length( state.s345 ) * ( dot( pmsfm_state_to_normal( state ), Mat3_MulVec( &Ksrc, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) );
+
+	float val = 0.01f / d;//pmsfm_state_to_unitdepth( state );
 
 	write_imagef( depthmap, coord, val );
 }
@@ -719,7 +754,10 @@ kernel void pmsfm_rotmap( write_only image2d_t depthmap, read_only global float8
 
 	float8 state = states[ width * coord.y + coord.x ];
 	float4 val;
-	val.xyz = ( state.s012 / ( float3 ) ROTMAX ) * 0.5f + 0.5f;
+	val.xyz = ( state.s012 / ( float3 ) ROTMAX ) * ( float3 ) 0.5f + ( float3 ) 0.5f;
+//	float roty = length( state.s012 );
+//	val.xyz = ( normalize(state.s012) / ( float3 ) ROTMAX ) * 0.5f + 0.5f;
+//	val.y   = ( roty / ROTYMAX ) * 0.5f + 0.5f;
 	val.w = 1.0f;
 
 	write_imagef( depthmap, coord, val );
@@ -763,8 +801,16 @@ kernel void pmsfm_fwdwarp( write_only image2d_t output, read_only image2d_t imag
 	Mat3 mat;
 	pmsfm_state_to_matrix( state, &mat, &Kdst, &Ksrc );
 	float2 pt = Mat3_MulVecProj2( &mat, ( float2 ) ( coord.x, coord.y ) );
+#if 0
+	pt -= ( float2 ) ( coord.x, coord.y );
+	val.xy = pt;
+	val.z = 0.0f;
+	val.w = 1.0f;
+	write_imagef( output, coord, val );
+#else
 	int2 coord2 = ( int2 )  ( round( pt.x ), round( pt.y ) );
 	if( coord2.x >= 0 && coord2.x < width && coord2.y >= 0 && coord2.y < height )
 		write_imagef( output, coord2, val );
+#endif
 }
 

@@ -54,7 +54,7 @@ int main( int argc, char** argv )
 	}
 
 	try {
-		Image image( argv[ 1 ] ), depthmap( argv[ 2 ] ), mask( argv[ 4 ]);
+		Image image( argv[ 1 ] ), depthmap( argv[ 2 ] );//, mask( argv[ 4 ]);
 		float scale = String( argv[ 3 ] ).toFloat();
 
 		CameraCalibration camcalib;
@@ -66,8 +66,8 @@ int main( int argc, char** argv )
 		Image c, dmap, msk;
 		image.convert( c, IFormat::RGBA_FLOAT );
 		depthmap.convert( dmap, IFormat::GRAY_FLOAT );
-		mask.convert( msk, IFormat::GRAY_FLOAT );
-		dmap.mul( msk );
+//		mask.convert( msk, IFormat::GRAY_FLOAT );
+//		dmap.mul( msk );
 		Vision::unprojectToScenePoints( pts, c, dmap, scale);
 
 //		pts.translate( -pts.centroid() );

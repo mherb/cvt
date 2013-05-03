@@ -78,7 +78,7 @@ __kernel void color_code_displacement( __write_only image2d_t out, __read_only i
     index1 = ( ( unsigned int ) findex1 ) % NUMCOLORS;
     index2 = ( index1 + 1 ) % NUMCOLORS;
     color = mix( colorwheel[ index1 ], colorwheel[ index2 ], frac  ).zyxw;
-    color = mix( white, color, fmin( rad / 2.0f, 1.0f ) );
+    color = mix( white, color, fmin( rad / 25.0f, 1.0f ) );
 /*    if( rad > 20.0f )
 	color = ( float4 ) 0.0f;*/
     write_imagef( out, coord, color );

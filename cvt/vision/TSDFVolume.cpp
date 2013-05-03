@@ -56,6 +56,13 @@ namespace cvt
 		addDepthMap( proj, depthmap, scale );
 	}
 
+	void TSDFVolume::toSceneMesh( SceneMesh& mesh ) const
+	{
+		float* ptr = ( float* ) _clvolume.map();
+		MarchingCubes mc( ptr, _width, _height, _depth, true );
+		mc.triangulateWithNormals( mesh, 0.0f );
+		_clvolume.unmap( ptr );
+	}
 
 	void TSDFVolume::saveRaw( const String& path ) const
 	{

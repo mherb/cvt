@@ -11,11 +11,34 @@
 
 #include <cvt/io/RGBDParser.h>
 
-#define VOL_WIDTH  256
-#define VOL_HEIGHT 256
-#define VOL_DEPTH  256
+#define VOL_WIDTH  512
+#define VOL_HEIGHT 512
+#define VOL_DEPTH  512
 
 using namespace cvt;
+
+void meshToOBJ( const String& file, const SceneMesh& mesh  )
+{
+	FILE* f = fopen( file.c_str(), "wb" );
+
+	for( size_t idx = 0; idx < mesh.vertexSize(); idx++ ) {
+		Vector3f vtx = mesh.vertex( idx );
+		fprintf( f, "v %f %f %f\n", vtx.x, vtx.y, vtx.z );
+	}
+
+	for( size_t idx = 0; idx < mesh.normalSize(); idx++ ) {
+		Vector3f vtx = mesh.normal( idx );
+		fprintf( f, "vn %f %f %f\n", vtx.x, vtx.y, vtx.z );
+	}
+
+	const unsigned int* faces = mesh.faces();
+	for( size_t idx = 0; idx < mesh.faceSize(); idx++ ) {
+		fprintf( f, "f %d %d %d\n", *( faces) + 1, *( faces + 1 ) + 1, *( faces + 2 ) + 1);
+		faces += 3;
+	}
+
+	fclose( f );
+}
 
 int main( int argc, char** argv )
 {
@@ -36,17 +59,25 @@ int main( int argc, char** argv )
 
         RGBDParser rgbddata( folder );
 
-        Matrix3f intrinsics( 517.3f, 0.0f, 318.6f,
+/*        Matrix3f intrinsics( 517.3f, 0.0f, 318.6f,
                                0.0f,   516.5f, 255.3f,
                                 0.0,	  0.0f,  1.0f );
+		*/
+		Matrix3f intrinsics(
+				   525.0f, 0.0f, 319.5,
+				   0.0f, 525.0, 239.5,
+				   0.0f, 0.0f,  1.0f
+				  );
 
-        Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f, -0.2f,
-                              0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, 0.0f,
-                              0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), 0.4f,
-                              0.0f, 0.0f, 0.0f, 1.0f );
+
+        Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f,  -0.25f,
+                              0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, -1.5f,
+                              0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), -0.5f,
+                              0.0f, 0.0f, 0.0f, 0.5f );
+		gridToWorld *= 2.0f;
 
 
-		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH );
+		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.07f );
 		tsdf.clear();
 
         Image depthmap;
@@ -65,7 +96,10 @@ int main( int argc, char** argv )
         }
         std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
-		tsdf.saveRaw( "data.raw" );
+		SceneMesh mesh( "TSDF-Output" );
+		tsdf.toSceneMesh( mesh );
+		meshToOBJ( "tsdf.obj", mesh );
+//		tsdf.saveRaw( "data.raw" );
 
 
     } catch( CLException& e ) {
