@@ -195,6 +195,23 @@ namespace cvt {
 		_activeWidget = NULL;
 	}
 
+	void WidgetContainer::keyPressEvent( const KeyEvent& event )
+	{
+		if( _activeWidget ) {
+			_activeWidget->keyPressEvent( event );
+		}
+		std::cout << "KeyPress" << std::endl;
+	}
+
+	void WidgetContainer::keyReleaseEvent( const KeyEvent& event )
+	{
+		if( _activeWidget ) {
+			_activeWidget->keyPressEvent( event );
+		}
+		std::cout << "KeyRelease" << std::endl;
+	}
+
+
 	void WidgetContainer::raiseChild( Widget* c )
 	{
 		if( c->parent() != this )

@@ -68,8 +68,8 @@ namespace cvt {
 			virtual void mouseWheelEvent() {}
 			virtual void mouseEnterEvent() {}
 			virtual void mouseLeaveEvent() {}
-			virtual void keyPressEvent() {}
-			virtual void keyReleaseEvent() {}
+			virtual void keyPressEvent( const KeyEvent& event __attribute__((unused)) ) {}
+			virtual void keyReleaseEvent( const KeyEvent& event __attribute__((unused)) ) {}
 
 			virtual void raiseChild( Widget* ) {}
 			virtual void lowerChild( Widget* ) {}

@@ -39,6 +39,8 @@ namespace cvt {
 			void mousePressEvent( MousePressEvent* event );
 			void mouseMoveEvent( MouseMoveEvent* event );
 			void mouseReleaseEvent( MouseReleaseEvent* event );
+			void keyPressEvent( const KeyEvent& event );
+			void keyReleaseEvent( const KeyEvent& event );
 
 		protected:
 			void paintChildren( GFX* gfx, const Recti& r );

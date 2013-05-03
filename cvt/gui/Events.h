@@ -21,5 +21,7 @@
 #include <cvt/gui/event/MousePressEvent.h>
 #include <cvt/gui/event/MouseReleaseEvent.h>
 #include <cvt/gui/event/MouseMoveEvent.h>
+#include <cvt/gui/event/KeyEvent.h>
+
 
 #endif

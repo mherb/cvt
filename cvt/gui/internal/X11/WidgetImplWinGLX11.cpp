@@ -22,7 +22,7 @@ namespace cvt {
 
 		const ::XVisualInfo* visinfo = _ctx->XVisualInfo();
 		attr.colormap = ::XCreateColormap( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), visinfo->visual, AllocNone);
-		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | ExposureMask;
+		attr.event_mask = StructureNotifyMask | ButtonPressMask | ButtonReleaseMask | ButtonMotionMask | KeyPressMask | KeyReleaseMask | ExposureMask;
 		attr.background_pixmap = None;
 		attr.border_pixel = 0;
 

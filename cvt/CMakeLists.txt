@@ -301,6 +301,7 @@ SET(${MODULE_NAME}_HEADERS
    gui/event/PaintEvent.h
    gui/event/ResizeEvent.h
    gui/event/ShowEvent.h
+   gui/event/KeyEvent.h
    gui/GLView.h
    gui/ImageView.h
    gui/internal/TimerInfo.h

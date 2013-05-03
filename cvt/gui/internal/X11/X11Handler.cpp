@@ -133,6 +133,24 @@ namespace cvt {
 					( ( Window* ) win->_widget )->mouseReleaseEvent( &mr );
 				}
 				break;
+			case KeyPress:
+				{
+					win = ( *_windows )[ xevent.xkey.window ];
+					char buf[ 10 ];
+					KeySym keysym;
+					int count = XLookupString( &xevent.xkey, buf, 10, &keysym, 0);
+					std::cout << count << " : " << buf << std::endl;
+					KeyEvent ke;
+					( ( Window* ) win->_widget )->keyPressEvent( ke );
+				}
+				break;
+			case KeyRelease:
+				{
+					win = ( *_windows )[ xevent.xkey.window ];
+					KeyEvent ke;
+					( ( Window* ) win->_widget )->keyReleaseEvent( ke );
+				}
+				break;
 			case MotionNotify:
 				{
 					win = ( *_windows )[ xevent.xmotion.window ];
