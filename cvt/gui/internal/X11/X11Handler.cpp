@@ -9,6 +9,7 @@
  	PARTICULAR PURPOSE.
  */
 #include <cvt/gui/internal/X11/X11Handler.h>
+#include <cvt/gui/internal/X11/X11KeyMap.h>
 
 namespace cvt {
 
@@ -136,11 +137,9 @@ namespace cvt {
 			case KeyPress:
 				{
 					win = ( *_windows )[ xevent.xkey.window ];
-					char buf[ 10 ];
-					KeySym keysym;
-					int count = XLookupString( &xevent.xkey, buf, 10, &keysym, 0);
-					std::cout << count << " : " << buf << std::endl;
 					KeyEvent ke;
+					X11KeyMap::mapToKeyEvent( ke, &xevent.xkey );
+					std::cout << ke << std::endl;
 					( ( Window* ) win->_widget )->keyPressEvent( ke );
 				}
 				break;
@@ -148,6 +147,7 @@ namespace cvt {
 				{
 					win = ( *_windows )[ xevent.xkey.window ];
 					KeyEvent ke;
+					X11KeyMap::mapToKeyEvent( ke, &xevent.xkey );
 					( ( Window* ) win->_widget )->keyReleaseEvent( ke );
 				}
 				break;

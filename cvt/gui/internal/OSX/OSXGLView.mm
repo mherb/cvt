@@ -1,5 +1,6 @@
 #import <cvt/gui/internal/OSX/OSXGLView.h>
 #include <cvt/gui/internal/OSX/WidgetImplWinGLOSX.h>
+#include <cvt/gui/internal/OSX/OSXKeyMap.h>
 
 
 @implementation OSXGLView
@@ -28,6 +29,11 @@
 }
 
 - (BOOL)isFlipped
+{
+	return YES;
+}
+
+- (BOOL)acceptsFirstResponder
 {
 	return YES;
 }
@@ -67,12 +73,38 @@
 	_widgetimpl->paintEvent( &pe );
 }
 
+- (void)keyDown:(NSEvent *)e
+{
+	cvt::KeyEvent ke;
+	cvt::OSXKeyMap::mapToKeyEvent( ke, e );
+	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
+	std::cout << ke << std::endl;
+	_widgetimpl->keyPressEvent( ke );
+}
+
+- (void)keyUp:(NSEvent *)e
+{
+	cvt::KeyEvent ke;
+	cvt::OSXKeyMap::mapToKeyEvent( ke, e );
+	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
+	std::cout << ke << std::endl;
+	_widgetimpl->keyReleaseEvent( ke );
+}
+
+
+- (void)flagsChanged:(NSEvent *)e
+{
+	cvt::KeyEvent ke;
+	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
+}
+
 - (void)mouseDown:(NSEvent *)e
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MousePressEvent pe( pt.x, pt.y, [ e buttonNumber ] + 1 );
 	_widgetimpl->mousePressEvent( &pe );
 }
+
 
 - (void)mouseUp:(NSEvent *)e
 {

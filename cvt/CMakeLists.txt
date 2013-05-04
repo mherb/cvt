@@ -699,6 +699,8 @@ IF(UNIX)
          gui/internal/OSX/OSXTimerHandler.h
          gui/internal/OSX/TimerInfoListOSX.h
          gui/internal/OSX/TimerInfoOSX.h
+		 gui/internal/OSX/OSXKeyMap.h
+		 gui/internal/OSX/CGLContext.h
       )
 
       SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
@@ -726,12 +728,14 @@ IF(UNIX)
          gui/internal/X11/ApplicationX11.h
          gui/internal/X11/WidgetImplWinGLX11.h
          gui/internal/X11/X11Handler.h
+		 gui/internal/X11/X11KeyMap.h
       )
       SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
          io/V4L2Camera.cpp
          gui/internal/X11/ApplicationX11.cpp
          gui/internal/X11/WidgetImplWinGLX11.cpp
          gui/internal/X11/X11Handler.cpp
+		 gui/internal/X11/X11KeyMap.cpp
       )
    ENDIF(APPLE)
 ENDIF()

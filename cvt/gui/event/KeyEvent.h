@@ -20,10 +20,10 @@ namespace cvt {
 	enum KeyModifierFlags {
 		NO_MODIFIER = ( 0 << 0 ),
 		SHIFT_MODIFIER = ( 1 << 0 ),
-		CTRL_MODIFIER  = ( 1 << 1 ),
-		ALT_MODIFIER   = ( 1 << 2 ),
-		META_MODIFIER  = ( 1 << 3 ),
-		KP_MODIFIER    = ( 1 << 4 )
+		SHIFTLOCK_MODIFIER = ( 1 << 1 ),
+		CTRL_MODIFIER  = ( 1 << 2 ),
+		ALT_MODIFIER   = ( 1 << 3 ),
+		META_MODIFIER  = ( 1 << 4 ),
 	};
 
 	CVT_ENUM_TO_FLAGS( KeyModifierFlags, KeyModifier)
@@ -31,10 +31,10 @@ namespace cvt {
 	class KeyEvent : public Event
 	{
 		public:
-							 KeyEvent( KeyCode keycode = KEY_UNKNOWN, KeyModifier modifier = NO_MODIFIER, const String& text = "" ) : Event( EVENT_KEY ), _key( keycode ), _modifier( modifier ), _text( text ) {}
+							 KeyEvent( KeyCode keycode = KEY_Unknown, KeyModifier modifier = NO_MODIFIER, const String& text = "" ) : Event( EVENT_KEY ), _key( keycode ), _modifier( modifier ), _text( text ) {}
 							 KeyEvent( const KeyEvent& kev ) : Event( EVENT_KEY ), _key( kev._key ), _modifier( kev._modifier), _text( kev._text ) {}
 
-			int				 key();
+			KeyCode			 key() const { return _key; }
 			KeyModifier		 modifiers() const { return _modifier; }
 			const String&	 text() const { return _text; }
 
@@ -43,6 +43,30 @@ namespace cvt {
 			KeyModifier	_modifier;
 			String		_text;
 	};
+
+    static inline std::ostream& operator<<( std::ostream& out, const KeyEvent& k )
+    {
+		KeyModifier mods = k.modifiers();
+
+		out << "KeyEvent" << std::endl;
+		out << "\tModifier: ";
+		if( mods & SHIFT_MODIFIER )
+			out << " Shift";
+		if( mods & SHIFTLOCK_MODIFIER)
+			out << " ShiftLock";
+		if( mods & CTRL_MODIFIER )
+			out << " Control";
+		if( mods & ALT_MODIFIER )
+			out << " Alt";
+		if( mods & META_MODIFIER )
+			out << " Meta";
+		out << std::endl;
+
+		out << "\tCode: " << std::hex << "0x" << k.key() << std::endl;
+		out << "\tText: " << "'" <<k.text() << "'";
+        return out;
+    }
+
 };
 
 #endif

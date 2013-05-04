@@ -1,7 +1,7 @@
 #ifndef CVT_X11KEYMAP_H
 #define CVT_X11KEYMAP_H
 
-#include <cvt/gui/Event.h>
+#include <cvt/gui/Events.h>
 #include <cvt/gui/internal/X11/X.h>
 
 namespace cvt {
@@ -19,26 +19,6 @@ namespace cvt {
 			X11KeyMap( const X11KeyMap& );
 	};
 
-	inline void X11KeyMap::mapToKeyEvent( KeyEvent& kev, XKeyEvent* xev )
-	{
-		char buf[ 10 ];
-		KeySym keysym;
-
-		int count = XLookupString( xev, buf, 10, &keysym, NULL );
-		kev = KeyEvent( XKeySymToKeycode( keysym ), XModifierToKeyModifier( xev ), String( buf, count ) );
-	}
-
-
-	static inline KeyCode X11KeyMap::XKeySymToKeycode( KeySym sym )
-	{
-
-	}
-
-
-	static KeyModifier XModifierToKeyModifier( XKeyEvent* xev )
-	{
-	
-	}
 }
 
 #endif

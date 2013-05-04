@@ -60,6 +60,8 @@ namespace cvt {
 			void mousePressEvent( MousePressEvent* event ) { _widget->mousePressEvent( event ); }
 			void mouseReleaseEvent( MouseReleaseEvent* event ) { _widget->mouseReleaseEvent( event ); }
 			void mouseMoveEvent( MouseMoveEvent* event ) { _widget->mouseMoveEvent( event ); }
+			void keyPressEvent( const KeyEvent& ke ) { _widget->keyPressEvent( ke ); }
+			void keyReleaseEvent( const KeyEvent& ke ) { _widget->keyReleaseEvent( ke ); }
 
 		private:
 			Widget*		    _widget;

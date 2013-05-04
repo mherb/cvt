@@ -13,7 +13,7 @@
 #include <cvt/cl/OpenCL.h>
 #include <cvt/util/SIMD.h>
 
-#ifdef APPLE
+#if defined( APPLE ) && !defined( APPLE_X11 )
 #include <cvt/gui/internal/OSX/ApplicationOSX.h>
 #else
 #include <cvt/gui/internal/X11/ApplicationX11.h>
@@ -26,7 +26,7 @@ namespace cvt {
 	Application* Application::instance()
 	{
 		if( !_app ) {
-#ifdef APPLE
+#if defined( APPLE ) && !defined( APPLE_X11 )
 			_app = new ApplicationOSX();
 #else
 			_app = new ApplicationX11();
