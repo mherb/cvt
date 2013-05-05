@@ -40,8 +40,8 @@ namespace cvt {
 	{
 		_ctx->makeCurrent();
 		glEnable( GL_BLEND );
-		glEnable( GL_TEXTURE_2D );
-		glEnable( GL_POINT_SPRITE );
+//		glEnable( GL_TEXTURE_2D );
+//		glEnable( GL_POINT_SPRITE );
 		glEnable( GL_SCISSOR_TEST );
 		glDisable( GL_DEPTH_TEST );
 		glEnable( GL_LINE_SMOOTH );

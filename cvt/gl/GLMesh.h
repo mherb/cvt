@@ -78,7 +78,7 @@ namespace cvt {
 
 	inline void GLMesh::draw()
 	{
-		_vao.drawIndirect( _indices, GL_UNSIGNED_INT, _type == SCENEMESH_TRIANGLES ? GL_TRIANGLES : GL_QUADS, _numIndices );
+		_vao.drawIndirect( _indices, GL_UNSIGNED_INT, _type == SCENEMESH_TRIANGLES ? GL_TRIANGLES : 0, _numIndices ); //FIXME: GL3 has no support for GL_QUADS ...
 	}
 }
 

@@ -139,15 +139,15 @@ namespace cvt {
 	void ImageAllocatorGL::getGLFormat( const IFormat & format, GLenum& glformat, GLenum& gltype ) const
 	{
 		switch ( format.formatID ) {
-			case IFORMAT_GRAY_UINT8:		glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
-			case IFORMAT_GRAY_UINT16:		glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_SHORT; break;
-			case IFORMAT_GRAY_INT16:		glformat = GL_LUMINANCE; gltype = GL_SHORT; break;
-			case IFORMAT_GRAY_FLOAT:		glformat = GL_LUMINANCE; gltype = GL_FLOAT; break;
+			case IFORMAT_GRAY_UINT8:		glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAY_UINT16:		glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAY_INT16:		glformat = GL_RED; gltype = GL_SHORT; break;
+			case IFORMAT_GRAY_FLOAT:		glformat = GL_RED; gltype = GL_FLOAT; break;
 
-			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_LUMINANCE_ALPHA; gltype = GL_UNSIGNED_BYTE; break;
-			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_LUMINANCE_ALPHA; gltype = GL_UNSIGNED_SHORT; break;
-			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_LUMINANCE_ALPHA; gltype = GL_SHORT; break;
-			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_LUMINANCE_ALPHA; gltype = GL_FLOAT; break;
+			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RED; gltype = GL_SHORT; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RED; gltype = GL_FLOAT; break;
 
 			case IFORMAT_RGBA_UINT8:		glformat = GL_RGBA; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_RGBA_UINT16:		glformat = GL_RGBA; gltype = GL_UNSIGNED_SHORT; break;
@@ -159,8 +159,8 @@ namespace cvt {
 			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
 
-                        case IFORMAT_BAYER_RGGB_UINT8:          glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
-                        case IFORMAT_BAYER_GRBG_UINT8:          glformat = GL_LUMINANCE; gltype = GL_UNSIGNED_BYTE; break;
+                        case IFORMAT_BAYER_RGGB_UINT8:          glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+                        case IFORMAT_BAYER_GRBG_UINT8:          glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
 
 			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
