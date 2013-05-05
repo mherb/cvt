@@ -46,6 +46,8 @@ namespace cvt {
 			const GLSceneDrawFlags& drawMode() const { return _drawFlags; }
 
 			const Time& time() const { return _time; }
+
+			GLSCamera& camera( int i ) { return _cams[ i ]; }
 		private:
 			std::vector<GLSCamera>		_cams;
 			std::vector<GLSLight>		_lights;

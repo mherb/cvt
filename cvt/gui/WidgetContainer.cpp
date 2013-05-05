@@ -13,12 +13,12 @@
 
 
 namespace cvt {
-	WidgetContainer::WidgetContainer() : Widget( false ), _activeWidget( NULL )
+	WidgetContainer::WidgetContainer() : Widget( false ), _activeWidget( NULL ), _focusWidget( NULL )
 	{
 
 	}
 
-	WidgetContainer::WidgetContainer( bool toplevel ) : Widget( toplevel ), _activeWidget( NULL )
+	WidgetContainer::WidgetContainer( bool toplevel ) : Widget( toplevel ), _activeWidget( NULL ), _focusWidget( NULL )
 	{
 
 	}
@@ -26,6 +26,16 @@ namespace cvt {
 	WidgetContainer::~WidgetContainer()
 	{
 		_children.clear();
+	}
+
+
+	void WidgetContainer::setFocusWidget()
+	{
+		if( !childrenCount() ) {
+			_focusWidget = NULL;
+			return;
+		}
+		_focusWidget = _children.front().first;
 	}
 
 	Widget* WidgetContainer::childAt( int x, int y )
@@ -58,6 +68,7 @@ namespace cvt {
 			Widget* widget = it->first;
 			if( widget == w ) {
 				_children.erase( it );
+				setFocusWidget();
 				return;
 			}
 			++it;
@@ -173,7 +184,6 @@ namespace cvt {
 		} else {
 			_activeWidget = NULL;
 		}
-
 	}
 
 	void WidgetContainer::mouseMoveEvent( MouseMoveEvent& event )
@@ -197,18 +207,17 @@ namespace cvt {
 
 	void WidgetContainer::keyPressEvent( KeyEvent& event )
 	{
-		if( _activeWidget ) {
-			_activeWidget->keyPressEvent( event );
+		if( _focusWidget ) {
+			_focusWidget->keyPressEvent( event );
+
 		}
-		std::cout << "KeyPress" << std::endl;
 	}
 
 	void WidgetContainer::keyReleaseEvent( KeyEvent& event )
 	{
-		if( _activeWidget ) {
-			_activeWidget->keyPressEvent( event );
+		if( _focusWidget ) {
+			_focusWidget->keyReleaseEvent( event );
 		}
-		std::cout << "KeyRelease" << std::endl;
 	}
 
 

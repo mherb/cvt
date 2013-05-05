@@ -18,6 +18,7 @@ namespace cvt {
 			void mouseReleaseEvent( MouseReleaseEvent& e );
 			void mouseMoveEvent( MouseMoveEvent& e);
 			void resizeEvent( ResizeEvent& e );
+			void keyPressEvent( KeyEvent& e );
 
 		private:
 			GLScene&		_scene;
@@ -82,6 +83,54 @@ namespace cvt {
 			_mousepress.y = e.y;
 
 			update();
+		}
+	}
+
+
+	inline void GLSceneView::keyPressEvent( KeyEvent& e )
+	{
+		Matrix4f t;
+
+		switch( e.key() ) {
+			case KEY_Left:
+				 t.setRotationY( 2.0f / 180.0f * Math::PI );
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			case KEY_Right:
+				 t.setIdentity();
+				 t.setRotationY( -2.0f / 180.0f * Math::PI );
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			case KEY_W:
+			case KEY_w:
+				 t.setIdentity();
+				 t[ 2 ][ 3 ] = -0.5f;
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			case KEY_S:
+			case KEY_s:
+				 t.setIdentity();
+				 t[ 2 ][ 3 ] = 0.5f;
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			case KEY_Up:
+				 t.setIdentity();
+				 t[ 1 ][ 3 ] = 0.5f;
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			case KEY_Down:
+				 t.setIdentity();
+				 t[ 1 ][ 3 ] = -0.5f;
+				 _scene.camera( 0 ).transformation() *= t;
+				 update();
+				 break;
+			default:
+				 break;
 		}
 	}
 }

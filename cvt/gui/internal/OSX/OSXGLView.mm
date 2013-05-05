@@ -77,8 +77,6 @@
 {
 	cvt::KeyEvent ke;
 	cvt::OSXKeyMap::mapToKeyEvent( ke, e );
-	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
-	std::cout << ke << std::endl;
 	_widgetimpl->keyPressEvent( ke );
 }
 
@@ -86,8 +84,6 @@
 {
 	cvt::KeyEvent ke;
 	cvt::OSXKeyMap::mapToKeyEvent( ke, e );
-	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
-	std::cout << ke << std::endl;
 	_widgetimpl->keyReleaseEvent( ke );
 }
 

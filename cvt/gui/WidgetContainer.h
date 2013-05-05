@@ -53,9 +53,11 @@ namespace cvt {
 			typedef std::list< std::pair<Widget*, WidgetLayout> > ChildList;
 
 			WidgetContainer( bool toplevel );
+			void setFocusWidget();
 
 			ChildList _children;
 			Widget* _activeWidget;
+			Widget* _focusWidget;
 	};
 
 	inline size_t WidgetContainer::childrenCount() const
@@ -70,6 +72,7 @@ namespace cvt {
 		w->setVisible( true );
 		_children.push_back( std::pair<Widget*, WidgetLayout>( w, layout ) );
 		resizeChildren();
+		setFocusWidget();
 	}
 
 	inline void WidgetContainer::addWidget( Widget* w )
@@ -78,6 +81,7 @@ namespace cvt {
 		w->setVisible( true );
 		_children.push_front( std::pair<Widget*, WidgetLayout>( w, WidgetLayout() ) );
 		resizeChildren();
+		setFocusWidget();
 	}
 
 
