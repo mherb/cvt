@@ -41,7 +41,7 @@ namespace cvt {
 			size_t length() const;
 			void resize( size_t newsize );
 
-			const char operator[]( int i ) const;
+			char operator[]( int i ) const;
 			char& operator[]( int i );
 
 			String substring( int start, int len = - 1 ) const;
@@ -174,7 +174,7 @@ namespace cvt {
 			_grow( Math::pad16( newsize + 1 ) );
 	}
 
-	inline const char String::operator[]( int i ) const
+	inline char String::operator[]( int i ) const
 	{
 		return *( _str + i );
 	}
