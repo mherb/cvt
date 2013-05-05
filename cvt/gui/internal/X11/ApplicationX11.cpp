@@ -169,7 +169,7 @@ namespace cvt {
 					win = updates.front();
 					updates.pop_front();
 					if( win->needsupdate )
-						win->paintEvent( &pe );
+						win->paintEvent( pe );
 				}
 			}
 		}

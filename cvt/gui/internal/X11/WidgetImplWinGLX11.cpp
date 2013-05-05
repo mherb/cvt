@@ -176,19 +176,19 @@ namespace cvt {
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfxgl->setViewport( viewport );
 		GFX g( gfxgl );
-		_widget->paintEvent( event, &g );
+		_widget->paintEvent( event, g );
 		needsupdate = false;
 	}
 
 	void WidgetImplWinGLX11::resizeEvent( ResizeEvent& event )
 	{
-		event->getSize( _rect.width, _rect.height );
+		event.getSize( _rect.width, _rect.height );
 		_widget->resizeEvent( event );
 	}
 
 	void WidgetImplWinGLX11::moveEvent( MoveEvent& event )
 	{
-		event->position( _rect.x, _rect.y );
+		event.position( _rect.x, _rect.y );
 		_widget->moveEvent( event );
 	}
 

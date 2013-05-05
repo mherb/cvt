@@ -62,7 +62,7 @@ namespace cvt {
 			out << " Meta";
 		out << std::endl;
 
-		out << "\tCode: " << std::hex << "0x" << k.key() << std::endl;
+		out << "\tCode: " << std::hex << "0x" << ( unsigned int ) k.key() << std::endl;
 		out << "\tText: " << "'" <<k.text() << "'";
         return out;
     }
