@@ -31,7 +31,7 @@ class MyGLView : public GLView
 
 	protected:
 
-		void paintGLEvent( PaintEvent* )
+		void paintGLEvent( PaintEvent& )
 		{
 			Recti r = rect();
 			float asp = ( float )r.width / ( float )r.height;
@@ -66,44 +66,44 @@ class MyGLView : public GLView
 		}
 
 
-		void mousePressEvent( MousePressEvent* e )
+		void mousePressEvent( MousePressEvent& e )
 		{
-			if( e->button() == 1 ) {
-				_press.x = e->x;
-				_press.y = e->y;
+			if( e.button() == 1 ) {
+				_press.x = e.x;
+				_press.y = e.y;
 			}
 		}
 
 
-		void mouseReleaseEvent( MouseReleaseEvent* e )
+		void mouseReleaseEvent( MouseReleaseEvent& e )
 		{
-			if( e->button() == 4 ) {
+			if( e.button() == 4 ) {
 				_trans += 0.25f;
 				update();
-			} else if( e->button() == 5 ) {
+			} else if( e.button() == 5 ) {
 				_trans -= 0.25f;
 				update();
 			}
 		}
 
-		void mouseMoveEvent( MouseMoveEvent* e )
+		void mouseMoveEvent( MouseMoveEvent& e )
 		{
-			if( e->buttonMask() & 1 ) {
+			if( e.buttonMask() & 1 ) {
 				Matrix4f rot;
-				_arcball.getRotation( rot, _press.x, _press.y, e->x, e->y );
+				_arcball.getRotation( rot, _press.x, _press.y, e.x, e.y );
 				
 				_rot = rot * _rot;
 
 				update();
-				_press.x = e->x;
-				_press.y = e->y;
+				_press.x = e.x;
+				_press.y = e.y;
 			}
 		}
 
 
-		void resizeEvent( ResizeEvent* e )
+		void resizeEvent( ResizeEvent& e )
 		{
-			_arcball.setViewportSize( e->width(), e->height() );
+			_arcball.setViewportSize( e.width(), e.height() );
 		}
 
 		void setCamPose( const Matrix4f & m )

@@ -32,18 +32,18 @@ class FaceShapeWin : public Window
 		update();
 	}
 
-	void paintEvent( PaintEvent* event, GFX* gfx )
+	void paintEvent( PaintEvent& event, GFX& g )
 	{
 		int w, h;
 		size( w, h );
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->fillRect( 0, 0, w, h );
+		g.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		g.fillRect( 0, 0, w, h );
 
 
-		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawLines( &_pts[ 0 ], _pts.size() );
-		gfx->drawIcons( &_pts[ 0 ], _pts.size(), GFX::ICON_CROSS );
-		paintChildren( gfx, Recti( 0, 0, w, h ) );
+		g.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		g.drawLines( &_pts[ 0 ], _pts.size() );
+		g.drawIcons( &_pts[ 0 ], _pts.size(), GFX::ICON_CROSS );
+		paintChildren( g, Recti( 0, 0, w, h ) );
 	};
 
 	void recalc()

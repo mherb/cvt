@@ -101,30 +101,30 @@ class FaceShapeWin : public Window
 		update();
 	}
 
-	void paintEvent( PaintEvent* event, GFX* gfx )
+	void paintEvent( PaintEvent& event, GFX& gfx )
 	{
 		int w, h;
 		size( w, h );
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-		gfx->fillRect( 0, 0, w, h );
+		gfx.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx.fillRect( 0, 0, w, h );
 
 
-		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawLines( &_pts[ 0 ], _pts.size() );
+		gfx.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		gfx.drawLines( &_pts[ 0 ], _pts.size() );
 		for( int i = 0; i < SAMPLEPTS; i++ ) {
 			int x, y;
 			char buf[ 200 ];
 			x = _current( i * 2 );
 			y = _current( i * 2 + 1 );
 			sprintf( buf, "%d", i );
-			gfx->drawText( x, y, buf );
+			gfx.drawText( x, y, buf );
 		}
 
-		gfx->color().set( 1.0f, 0.0f, 0.0f, 1.0f );
-		gfx->drawIcon( 250 - 8, 250 - 8, GFX::ICON_CROSS );
+		gfx.color().set( 1.0f, 0.0f, 0.0f, 1.0f );
+		gfx.drawIcon( 250 - 8, 250 - 8, GFX::ICON_CROSS );
 
-		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
-		gfx->drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
+		gfx.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+		gfx.drawIcons( ( const Vector2f* ) &_current(0), _current.rows() / 2, GFX::ICON_CROSS );
 		paintChildren( gfx, Recti( 0, 0, w, h ) );
 	};
 

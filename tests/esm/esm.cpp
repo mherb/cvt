@@ -32,58 +32,58 @@ public:
 		pts[ 3 ][ 1 ] = 0;
 	}
 	
-	void mouseMoveEvent( MouseMoveEvent* e )
+	void mouseMoveEvent( MouseMoveEvent& e )
 	{
-		if( ! ( e->buttonMask() & 1 ) ) return;
+		if( ! ( e.buttonMask() & 1 ) ) return;
 		
 		int w, h;
 		this->size( w, h );
-		float x = ( float )e->x / ( float )w;
-		float y = ( float )e->y / ( float )h;
+		float x = ( float )e.x / ( float )w;
+		float y = ( float )e.y / ( float )h;
 		updateSelection( x, y );			
 	}
 	
-	void mousePressEvent( MousePressEvent* e )
+	void mousePressEvent( MousePressEvent& e )
 	{
-		if( e->button() != 1 ) return;		
+		if( e.button() != 1 ) return;		
 		
 		int w, h;
 		this->size( w, h );
 		
-		_firstClick[ 0 ] = ( float )( e->x ) / ( float )w;
-		_firstClick[ 1 ] = ( float )( e->y ) / ( float )h;
+		_firstClick[ 0 ] = ( float )( e.x ) / ( float )w;
+		_firstClick[ 1 ] = ( float )( e.y ) / ( float )h;
 		
 		updateSelection( _firstClick[ 0 ] , _firstClick[ 1 ] );
 		selectionDidStart.notify();
 	}
 	
-	void mouseReleaseEvent( MouseReleaseEvent* e )
+	void mouseReleaseEvent( MouseReleaseEvent& e )
 	{
-		if( e->button() != 1 ) return;
+		if( e.button() != 1 ) return;
 		
 		int w, h;
 		this->size( w, h );
-		float x = ( float )e->x / ( float )w;
-		float y = ( float )e->y / ( float )h;
+		float x = ( float )e.x / ( float )w;
+		float y = ( float )e.y / ( float )h;
 
 		updateSelection( x, y );
 		
 		selectionComplete.notify();
 	}
 	
-	void paintEvent( PaintEvent* e , GFX* gfx ) 
+	void paintEvent( PaintEvent& e , GFX& gfx ) 
 	{
 		ImageView::paintEvent( e, gfx );
 		
 		int w, h;
 		
 		this->size( w, h );
-		gfx->color().set( 0.0f, 1.0f, 0.0f, 1.0f );		
-		gfx->setLineWidth( 5 );
-		gfx->drawLine( w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ], w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ] );
-		gfx->drawLine( w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ], w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ] );
-		gfx->drawLine( w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ], w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ] );
-		gfx->drawLine( w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ], w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ] );
+		gfx.color().set( 0.0f, 1.0f, 0.0f, 1.0f );		
+		gfx.setLineWidth( 5 );
+		gfx.drawLine( w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ], w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ] );
+		gfx.drawLine( w*pts[ 1 ][ 0 ], h*pts[ 1 ][ 1 ], w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ] );
+		gfx.drawLine( w*pts[ 2 ][ 0 ], h*pts[ 2 ][ 1 ], w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ] );
+		gfx.drawLine( w*pts[ 3 ][ 0 ], h*pts[ 3 ][ 1 ], w*pts[ 0 ][ 0 ], h*pts[ 0 ][ 1 ] );
 	}
 	
 	void selectedRect( Rectf & r )

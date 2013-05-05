@@ -19,35 +19,35 @@ class NodeUI : public Widget
 		}
 		~NodeUI() {};
 
-		void paintEvent( PaintEvent* , GFX* g )
+		void paintEvent( PaintEvent& , GFX& g )
 		{
-			g->color().set( 0.0f, 0.8f, 0.0f, 0.5f );
+			g.color().set( 0.0f, 0.8f, 0.0f, 0.5f );
 			Recti r;
 			size( r.width, r.height );
 			r.setPosition( 0, 0 );
-			g->fillRoundRect( r, r.width / 2 );
+			g.fillRoundRect( r, r.width / 2 );
 
-			g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
+			g.color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 			String s;
 			s.sprintf("%d - %d", name, level );
-			g->drawText( r, ALIGN_CENTER | ALIGN_VCENTER, s.c_str() );
+			g.drawText( r, ALIGN_CENTER | ALIGN_VCENTER, s.c_str() );
 		}
 
-		void mousePressEvent( MousePressEvent* e )
+		void mousePressEvent( MousePressEvent& e )
 		{
-			if( e->button() == 1 ) {
+			if( e.button() == 1 ) {
 				_move = true;
-				e->position( _lx, _ly );
+				e.position( _lx, _ly );
 				mapGlobal( _lx, _ly );
 			}
 		}
 
-		void mouseMoveEvent( MouseMoveEvent* e )
+		void mouseMoveEvent( MouseMoveEvent& e )
 		{
 			if( _move ) {
 				int dx, dy;
 				int cx, cy;
-				e->position( cx, cy );
+				e.position( cx, cy );
 				mapGlobal( cx, cy );
 				dx = cx - _lx;
 				dy = cy - _ly;
@@ -59,7 +59,7 @@ class NodeUI : public Widget
 			}
 		}
 
-		void mouseReleaseEvent( MouseReleaseEvent* e )
+		void mouseReleaseEvent( MouseReleaseEvent& e )
 		{
 			if( _move )
 				_move = false;
@@ -152,7 +152,7 @@ class GraphUI : public Window
 
 		};
 
-		void paintEdge( NodeUI* n, int cx, int cy, GFX* g )
+		void paintEdge( NodeUI* n, int cx, int cy, GFX& g )
 		{
 			int px, py;
 			n->position( px, py  );
@@ -161,10 +161,10 @@ class GraphUI : public Window
 			if( norm.length() < 25.0f )
 				return;
 			norm.normalize();
-			g->drawLine( px + 25 - 25.0f * norm.x, py + 25 - 25.0f * norm.y, cx, cy );
+			g.drawLine( px + 25 - 25.0f * norm.x, py + 25 - 25.0f * norm.y, cx, cy );
 		}
 
-		void paintEdge( NodeUI* n1, NodeUI* n2, GFX* g )
+		void paintEdge( NodeUI* n1, NodeUI* n2, GFX& g )
 		{
 			int px, py, cx, cy;
 			n1->position( px, py );
@@ -172,30 +172,31 @@ class GraphUI : public Window
 
 			Vector2f norm( px - cx, py - cy );
 			norm.normalize();
-			g->drawLine( px + 25 - 25.0f * norm.x, py + 25 - 25.0f * norm.y, cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y );
+			g.drawLine( px + 25 - 25.0f * norm.x, py + 25 - 25.0f * norm.y, cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y );
 			Vector2f normr( -norm.y, norm.x );
-			g->drawLine( cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y, cx + 25 + 30.0f * norm.x + 5.0f * normr.x , cy + 25 + 30.0f * norm.y + 5.0f * normr.y  );
-			g->drawLine( cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y, cx + 25 + 30.0f * norm.x - 5.0f * normr.x , cy + 25 + 30.0f * norm.y - 5.0f * normr.y  );
+			g.drawLine( cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y, cx + 25 + 30.0f * norm.x + 5.0f * normr.x , cy + 25 + 30.0f * norm.y + 5.0f * normr.y  );
+			g.drawLine( cx + 25 + 25.0f * norm.x, cy + 25 + 25.0f * norm.y, cx + 25 + 30.0f * norm.x - 5.0f * normr.x , cy + 25 + 30.0f * norm.y - 5.0f * normr.y  );
 		}
 
-		void paintEvent( PaintEvent* pe, GFX* g )
+		void paintEvent( PaintEvent& pe, GFX& g )
 		{
+			g.setLineWidth( 1.0f );
 			Recti r;
 			r.setPosition( 0, 0 );
 			size( r.width, r.height );
-			g->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-			g->fillRect( r );
+			g.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+			g.fillRect( r );
 
 			if( _csrc ) {
-				g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-				g->setLineWidth( 1.0f );
+				g.color().set( 0.0f, 0.0f, 0.0f, 1.0f );
+				g.setLineWidth( 1.0f );
 				if( _cdst && _cdst != _csrc )
 					paintEdge( _csrc, _cdst, g );
 				else
 					paintEdge( _csrc, _cx, _cy, g );
 			}
 
-			g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
+			g.color().set( 0.0f, 0.0f, 0.0f, 1.0f );
 			for( size_t i = 0, iend = _graph.nodeSize(); i < iend; i++ ) {
 				GraphNode<NodeUI*,int>* node = _graph.node( i );
 				for( size_t k = 0, kend = node->outSize(); k < kend; k++ ) {
@@ -206,34 +207,34 @@ class GraphUI : public Window
 			paintChildren( g, r );
 		}
 
-		void mousePressEvent( MousePressEvent* e )
+		void mousePressEvent( MousePressEvent& e )
 		{
 			NodeUI* node;
-			if( ( node = dynamic_cast<NodeUI*>( childAt( e->x, e->y ) ) ) && e->button() == 3 ) {
+			if( ( node = dynamic_cast<NodeUI*>( childAt( e.x, e.y ) ) ) && e.button() == 3 ) {
 				_csrc = node;
-				_cx = e->x;
-				_cy = e->y;
+				_cx = e.x;
+				_cy = e.y;
 				update();
 			} else
 				Window::mousePressEvent( e );
 		}
 
-		void mouseMoveEvent( MouseMoveEvent* e )
+		void mouseMoveEvent( MouseMoveEvent& e )
 		{
 			if( _csrc ) {
-				_cdst = dynamic_cast<NodeUI*>( childAt( e->x, e->y ) );
-				_cx = e->x;
-				_cy = e->y;
+				_cdst = dynamic_cast<NodeUI*>( childAt( e.x, e.y ) );
+				_cx = e.x;
+				_cy = e.y;
 				update();
 			} else
 				Window::mouseMoveEvent( e );
 		}
 
-		void mouseReleaseEvent( MouseReleaseEvent*  e )
+		void mouseReleaseEvent( MouseReleaseEvent&  e )
 		{
 			if( _csrc ) {
 				NodeUI* node;
-				if( ( _cdst = dynamic_cast<NodeUI*>( childAt( e->x, e->y ) ) ) )
+				if( ( _cdst = dynamic_cast<NodeUI*>( childAt( e.x, e.y ) ) ) )
 					_csrc->node()->addEdgeTo( _cdst->node(), 0 );
 				_csrc = NULL;
 				_cdst = NULL;

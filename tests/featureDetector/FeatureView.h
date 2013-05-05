@@ -20,22 +20,22 @@ class FeatureView : public cvt::ImageView
         cvt::PointSet2f    _points;
         cvt::PointSet2f    _tracks;
 	protected:
-		void paintEvent( cvt::PaintEvent* ev, cvt::GFX* g );
+		void paintEvent( cvt::PaintEvent& ev, cvt::GFX& g );
 };
 
 inline FeatureView::FeatureView() : cvt::ImageView()
 {
 }
 
-inline void FeatureView::paintEvent( cvt::PaintEvent* ev, cvt::GFX* g )
+inline void FeatureView::paintEvent( cvt::PaintEvent& ev, cvt::GFX& g )
 {
 	cvt::ImageView::paintEvent( ev, g );
 
-	g->setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 1.0f ) );
-	g->drawIcons( &_points[ 0 ], _points.size(), cvt::GFX::ICON_CROSS );
+	g.setColor( cvt::Color( 0.0f, 1.0f, 0.0f, 1.0f ) );
+	g.drawIcons( &_points[ 0 ], _points.size(), cvt::GFX::ICON_CROSS );
 
-	g->setColor( cvt::Color( 0.0f, 0.0f, 1.0f, 1.0f ) );
-	g->drawLines( &_tracks[ 0 ], _tracks.size() );
+	g.setColor( cvt::Color( 0.0f, 0.0f, 1.0f, 1.0f ) );
+	g.drawLines( &_tracks[ 0 ], _tracks.size() );
 }
 
 inline FeatureView::~FeatureView()

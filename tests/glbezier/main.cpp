@@ -98,17 +98,17 @@ class MyGLView : public GLView
 
 	protected:
 
-		void paintEvent( PaintEvent* ev, GFX* g )
+		void paintEvent( PaintEvent& ev, GFX& g )
 		{
 			GLView::paintEvent( ev, g );
 
-			g->color().set( 1.0f, 0.0f, 0.0f, 0.5f );
+			g.color().set( 1.0f, 0.0f, 0.0f, 0.5f );
 			for( int i = 0; i < 8; i++ )
-				g->fillRoundRect( _tri[ i ].x - 5, _tri[ i ].y - 5,  10, 10, 5.0f );
+				g.fillRoundRect( _tri[ i ].x - 5, _tri[ i ].y - 5,  10, 10, 5.0f );
 
 		}
 
-		void paintGLEvent( PaintEvent* )
+		void paintGLEvent( PaintEvent& )
 		{
 			Recti r = rect();
 			setViewport( 0, 0, r.width, r.height );
@@ -182,7 +182,7 @@ class MyGLView : public GLView
 			_glprog.unbind();
 			_basicProg.bind();
 			_basicProg.setProjection( proj );
-			_basicProg.setColor( Color( 1.0f, 0.0f, 0.0f, 0.25f ) );
+			_basicProg.setColor( Color( 1.0f, 0.0f, 0.0f, 1.0f ) );
 			_basicProg.fillRect( min.x, min.y, max.x - min.x, max.y - min.y );
 			_basicProg.unbind();
 
@@ -192,10 +192,10 @@ class MyGLView : public GLView
 		}
 
 
-	void mousePressEvent( MousePressEvent* event )
+	void mousePressEvent( MousePressEvent& event )
 	{
 		Vector2f d, p;
-		p.set( event->x, event->y );
+		p.set( event.x, event.y );
 		for( int i = 0; i < 8; i++ ) {
 			d = _tri[ i ] - p;
 			if( d.length() < 10.0f ) {
@@ -206,22 +206,22 @@ class MyGLView : public GLView
 		_selection = -1;
 	}
 
-	void mouseMoveEvent( MouseMoveEvent* event )
+	void mouseMoveEvent( MouseMoveEvent& event )
 	{
 		if( _selection < 0 )
 			return;
 		Vector2f p;
-		p.set( event->x, event->y );
+		p.set( event.x, event.y );
 		_tri[ _selection ] = p;
 		update();
 	}
 
-	void mouseReleaseEvent( MouseReleaseEvent* e )
+	void mouseReleaseEvent( MouseReleaseEvent& e )
 	{
 		_selection = -1;
 	}
 
-	void resizeEvent( ResizeEvent* e )
+	void resizeEvent( ResizeEvent& e )
 	{
 		update();
 	}

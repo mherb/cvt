@@ -56,7 +56,7 @@ class GLMLS : public Window
 	{
 	}
 
-	void paintEvent( PaintEvent* e, GFX* g )
+	void paintEvent( PaintEvent& e, GFX& g )
 	{
 		Window::paintEvent( e, g );
 
@@ -85,27 +85,27 @@ class GLMLS : public Window
 
 		/* Draw displacements */
 		if( _toggle.state() ) {
-			g->color() = Color::BLUE;
-			g->color().setAlpha( 0.5f );
+			g.color() = Color::BLUE;
+			g.color().setAlpha( 0.5f );
 			for( size_t i = 0; i < _displacements.size(); i++) {
 				Vector4f dp = _displacements[ i ];
-				g->drawIcon( dp.x * _dw - 8, dp.y * _dh - 8, GFX::ICON_CIRCLE );
+				g.drawIcon( dp.x * _dw - 8, dp.y * _dh - 8, GFX::ICON_CIRCLE );
 			}
-			g->color() = Color::YELLOW;
-			g->color().setAlpha( 0.5f );
+			g.color() = Color::YELLOW;
+			g.color().setAlpha( 0.5f );
 			for( size_t i = 0; i < _displacements.size(); i++) {
 				Vector4f dp = _displacements[ i ];
-				g->drawIcon( dp.z * _dw - 8, dp.w * _dh - 8, GFX::ICON_CIRCLE );
+				g.drawIcon( dp.z * _dw - 8, dp.w * _dh - 8, GFX::ICON_CIRCLE );
 			}
 		}
 
 	}
 
-	void mousePressEvent( MousePressEvent* event )
+	void mousePressEvent( MousePressEvent& event )
 	{
-		Vector2f pt( event->x, event->y );
+		Vector2f pt( event.x, event.y );
 		Recti r( 0, 0, _dw, _dh );
-		if( r.contains( event->x, event->y ) ) {
+		if( r.contains( event.x, event.y ) ) {
 			for( size_t i = 0; i < _displacements.size(); i++) {
 				Vector4f dp = _displacements[ i ];
 				Vector2f pt1( dp.x * _dw, dp.y * _dh );
@@ -123,8 +123,8 @@ class GLMLS : public Window
 					return;
 				}
 			}
-			float nx = ( float ) event->x / ( float ) _dw;
-			float ny = ( float ) event->y / ( float ) _dh;
+			float nx = ( float ) event.x / ( float ) _dw;
+			float ny = ( float ) event.y / ( float ) _dh;
 			_displacements.push_back( Vector4f( nx, ny, nx, ny ) );
 			_selection = -1;
 			updateDisplacements();
@@ -133,21 +133,21 @@ class GLMLS : public Window
 		}
 	}
 
-	void mouseMoveEvent( MouseMoveEvent* event )
+	void mouseMoveEvent( MouseMoveEvent& event )
 	{
 		if( _selection >= 0 ) {
 			if( _orig ) {
-				_displacements[ _selection ].x = ( float ) event->x / ( float ) _dw;
-				_displacements[ _selection ].y = ( float ) event->y / ( float ) _dh;
+				_displacements[ _selection ].x = ( float ) event.x / ( float ) _dw;
+				_displacements[ _selection ].y = ( float ) event.y / ( float ) _dh;
 			} else {
-				_displacements[ _selection ].z = ( float ) event->x / ( float ) _dw;
-				_displacements[ _selection ].w = ( float ) event->y / ( float ) _dh;
+				_displacements[ _selection ].z = ( float ) event.x / ( float ) _dw;
+				_displacements[ _selection ].w = ( float ) event.y / ( float ) _dh;
 			}
 			updateDisplacements();
 		}
 	}
 
-	void mouseReleaseEvent( MouseReleaseEvent* event )
+	void mouseReleaseEvent( MouseReleaseEvent& event )
 	{
 		_selection = -1;
 		WidgetContainer::mouseReleaseEvent( event );

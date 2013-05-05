@@ -17,7 +17,7 @@
 	return self;
 }
 
-- ( void ) dealloc
+- ( void )dealloc
 {
     [ _glcontext release ];
     [ super dealloc ];

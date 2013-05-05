@@ -1,4 +1,4 @@
-#include "MarchingCubes.h"
+#include <cvt/geom/MarchingCubes.h>
 #include <cvt/geom/scene/SceneMesh.h>
 
 #include <stdio.h>

@@ -18,12 +18,12 @@ namespace cvt {
 			GLSceneView( const ScenePoints& mesh );
 			~GLSceneView();
 
-			void paintGLEvent( PaintEvent* );
+			void paintGLEvent( PaintEvent& );
 
-			void mousePressEvent( MousePressEvent* e );
-			void mouseReleaseEvent( MouseReleaseEvent* e );
-			void mouseMoveEvent( MouseMoveEvent* e);
-			void resizeEvent( ResizeEvent* e );
+			void mousePressEvent( MousePressEvent& e );
+			void mouseReleaseEvent( MouseReleaseEvent& e );
+			void mouseMoveEvent( MouseMoveEvent& e);
+			void resizeEvent( ResizeEvent& e );
 
 		private:
 //			GLProgram _prog;
@@ -50,7 +50,7 @@ namespace cvt {
 		return _scene;
 	}*/
 
-	inline void GLSceneView::paintGLEvent( PaintEvent* )
+	inline void GLSceneView::paintGLEvent( PaintEvent& )
 	{
 		setViewport( rect() );
 		_prog.bind();
@@ -80,43 +80,43 @@ namespace cvt {
 	}
 
 
-	inline void GLSceneView::resizeEvent( ResizeEvent* e )
+	inline void GLSceneView::resizeEvent( ResizeEvent& e )
 	{
-		_arcball.setViewportSize( e->width(), e->height() );
+		_arcball.setViewportSize( e.width(), e.height() );
 	}
 
 
 
-	inline void GLSceneView::mousePressEvent( MousePressEvent* e )
+	inline void GLSceneView::mousePressEvent( MousePressEvent& e )
 	{
-		if( e->button() == 1 ) {
-			_mousepress.x = e->x;
-			_mousepress.y = e->y;
+		if( e.button() == 1 ) {
+			_mousepress.x = e.x;
+			_mousepress.y = e.y;
 		}
 	}
 
 
-	inline void GLSceneView::mouseReleaseEvent( MouseReleaseEvent* e )
+	inline void GLSceneView::mouseReleaseEvent( MouseReleaseEvent& e )
 	{
-		if( e->button() == 4 ) {
+		if( e.button() == 4 ) {
 			_scale += 0.05f;
 			update();
-		} else if( e->button() == 5 ) {
+		} else if( e.button() == 5 ) {
 			_scale -= 0.05f;
 			update();
 		}
 	}
 
-	inline void GLSceneView::mouseMoveEvent( MouseMoveEvent* e )
+	inline void GLSceneView::mouseMoveEvent( MouseMoveEvent& e )
 	{
-		if( e->buttonMask() & 1 ) {
+		if( e.buttonMask() & 1 ) {
 			Matrix4f rot;
-			_arcball.getRotation( rot, _mousepress.x, _mousepress.y, e->x, e->y );
+			_arcball.getRotation( rot, _mousepress.x, _mousepress.y, e.x, e.y );
 
 			_transformation = rot * _transformation;
 
-			_mousepress.x = e->x;
-			_mousepress.y = e->y;
+			_mousepress.x = e.x;
+			_mousepress.y = e.y;
 
 			update();
 		}

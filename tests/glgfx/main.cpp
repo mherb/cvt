@@ -57,21 +57,21 @@ class View : public Window
 		update();
 	}
 
-	void paintEvent( PaintEvent* e, GFX* g )
+	void paintEvent( PaintEvent& e, GFX& g )
 	{
 		static size_t frames = 0;
 		Window::paintEvent( e, g );
 #ifndef BUTTERFLY
-		g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
-		g->fillPath( _path, GFX::WINDING_EVEN_ODD );
+		g.color().set( 0.0f, 1.0f, 0.0f, 0.5f );
+		g.fillPath( _path, GFX::WINDING_EVEN_ODD );
 #else
-		g->setLineWidth( 0.0f );
-		g->color().set( 0.95f, 0.5f, 0.0f, 1.0f );
-		g->fillPath( p1 );
-		g->color().set( 0.0f, 0.0f, 0.0f, 1.0f );
-		g->fillPath( p3 );
-		g->color().set( 1.0f, 0.95f, 0.9f, 1.0f );
-		g->fillPath( p2 );
+		g.setLineWidth( 0.0f );
+		g.color().set( 0.95f, 0.5f, 0.0f, 1.0f );
+		g.fillPath( p1 );
+		g.color().set( 0.0f, 0.0f, 0.0f, 1.0f );
+		g.fillPath( p3 );
+		g.color().set( 1.0f, 0.95f, 0.9f, 1.0f );
+		g.fillPath( p2 );
 
 		frames++;
 
@@ -98,7 +98,7 @@ int main( int argc, char** argv )
 {
 	View ui;
 	Delegate<void ( BasicTimer* )> d( &ui, &View::timeout );
-	BasicTimer timer( 5 );
+	BasicTimer timer( 30 );
 	timer.timeout.add( d );
 	timer.start();
 

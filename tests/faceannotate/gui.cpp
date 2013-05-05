@@ -50,7 +50,7 @@ class FaceUI : public Window
 		delete out;
 	}
 
-	void paintEvent( PaintEvent* e, GFX* g )
+	void paintEvent( PaintEvent& e, GFX& g )
 	{
 		int w, h;
 		float aspect;
@@ -67,18 +67,18 @@ class FaceUI : public Window
 			_dh = h;
 			_dw = aspect * _dh;
 		}
-		g->drawImage( 0, 0, _dw, _dh, _glimage );
+		g.drawImage( 0, 0, _dw, _dh, _glimage );
 
-		g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
+		g.color().set( 0.0f, 1.0f, 0.0f, 0.5f );
 		for( int i =0, end = _pts.size(); i < end; i++ ) {
 			float dx = ( _pts[ i ].x + 0.5f ) * _dw;
 			float dy = ( _pts[ i ].y + 0.5f ) * _dh;
 			if( _selection == i ) {
-				g->color().set( 1.0f, 0.0f, 0.0f, 0.5f );
-				g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
-				g->color().set( 0.0f, 1.0f, 0.0f, 0.5f );
+				g.color().set( 1.0f, 0.0f, 0.0f, 0.5f );
+				g.fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
+				g.color().set( 0.0f, 1.0f, 0.0f, 0.5f );
 			} else
-				g->fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
+				g.fillRoundRect( dx - 4, dy - 4, 8, 8, 4 );
 		}
 		Matrix3f t;
 		t.setIdentity();
@@ -86,21 +86,21 @@ class FaceUI : public Window
 		t[ 1 ][ 1 ] = _dh;
 		t[ 0 ][ 2 ] = _dw * 0.5f;
 		t[ 1 ][ 2 ] = _dh * 0.5f;
-		_pts.draw( g, t );
+		_pts.draw( &g, t );
 
 	}
 
-	void mousePressEvent( MousePressEvent* event )
+	void mousePressEvent( MousePressEvent& event )
 	{
 		Rectf r( 0, 0, _dw, _dh );
-		_lx = event->x;
-		_ly = event->y;
+		_lx = event.x;
+		_ly = event.y;
 
 		for( int i =0, end = _pts.size(); i < end; i++ ) {
 			float dx = ( _pts[ i ].x + 0.5f ) * _dw;
 			float dy = ( _pts[ i ].y + 0.5f ) * _dh;
 			Rectf r( dx - 4, dy - 4, 8, 8 );
-			if( r.contains( event->x, event->y ) ) {
+			if( r.contains( event.x, event.y ) ) {
 				_selection = i;
 				update();
 				return;
@@ -111,12 +111,12 @@ class FaceUI : public Window
 		WidgetContainer::mousePressEvent( event );
 	}
 
-	void mouseMoveEvent( MouseMoveEvent* event )
+	void mouseMoveEvent( MouseMoveEvent& event )
 	{
-		float dx = ( event->x - _lx ) / _dw;
-		float dy = ( event->y - _ly ) / _dh;
-		_lx = event->x;
-		_ly = event->y;
+		float dx = ( event.x - _lx ) / _dw;
+		float dy = ( event.y - _ly ) / _dh;
+		_lx = event.x;
+		_ly = event.y;
 
 		if( _selection >= 0 ) {
 			_pts[ _selection ] += Point2f( dx, dy );
@@ -124,9 +124,9 @@ class FaceUI : public Window
 		} else {
 			WidgetContainer::mouseMoveEvent( event );
 		    if( _toggle.state() ) {
-				if( event->buttonMask() & 1 )
+				if( event.buttonMask() & 1 )
 					_pts.translate( Point2f( dx, dy ) );
-				else if ( event->buttonMask() & 2 ) {
+				else if ( event.buttonMask() & 2 ) {
 					Matrix2f t( 1.0f + dx, 0.0f, 0.0f, 1.0f + dy );
 					_pts.transform( t );
 				}
@@ -135,7 +135,7 @@ class FaceUI : public Window
 		}
 	}
 
-	void mouseReleaseEvent( MouseReleaseEvent* e )
+	void mouseReleaseEvent( MouseReleaseEvent& e )
 	{
 		if( _selection >= 0 ) {
 //			std::cout << "x=\"" << _pts[ _selection ].x << "\" "
