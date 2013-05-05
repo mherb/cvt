@@ -144,33 +144,33 @@ namespace cvt {
 	}
 
 
-	void WidgetImplWinGLOSX::paintEvent( PaintEvent* event )
+	void WidgetImplWinGLOSX::paintEvent( PaintEvent& event )
 	{
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		_gfxgl->setViewport( viewport );
 		GFX g( _gfxgl );
-		_widget->paintEvent( event, &g );
+		_widget->paintEvent( event, g );
 	}
 
-	void WidgetImplWinGLOSX::resizeEvent( ResizeEvent* event )
+	void WidgetImplWinGLOSX::resizeEvent( ResizeEvent& event )
 	{
-		event->getSize( _rect.width, _rect.height );
+		event.getSize( _rect.width, _rect.height );
 		_widget->resizeEvent( event );
 	}
 
-	void WidgetImplWinGLOSX::moveEvent( MoveEvent* event )
+	void WidgetImplWinGLOSX::moveEvent( MoveEvent& event )
 	{
-		event->position( _rect.x, _rect.y );
+		event.position( _rect.x, _rect.y );
 		_widget->moveEvent( event );
 	}
 
-	void WidgetImplWinGLOSX::showEvent( ShowEvent* event )
+	void WidgetImplWinGLOSX::showEvent( ShowEvent& event )
 	{
 		_visible = true;
 		_widget->showEvent( event );
 	}
 
-	void WidgetImplWinGLOSX::hideEvent( HideEvent* event )
+	void WidgetImplWinGLOSX::hideEvent( HideEvent& event )
 	{
 		_visible = false;
 		_widget->hideEvent( event );

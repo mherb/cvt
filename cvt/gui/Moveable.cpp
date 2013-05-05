@@ -47,30 +47,30 @@ namespace cvt {
 		_title = title;
 	}
 
-	void Moveable::paintEvent( PaintEvent* , GFX* gfx )
+	void Moveable::paintEvent( PaintEvent& , GFX& gfx )
 	{
 		int w, h;
 
 		size( w, h );
-		gfx->color().set( 0.2f, 0.2f, 0.2f, 0.8f );
-		gfx->fillRoundRect( 0, 0, w, h, 10.0f );
+		gfx.color().set( 0.2f, 0.2f, 0.2f, 0.8f );
+		gfx.fillRoundRect( 0, 0, w, h, 10.0f );
 
 
-		gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+		gfx.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
 		Recti rtitle( 10, 2, w - 20, 18 );
-		gfx->drawText( rtitle, ALIGN_LEFT | ALIGN_VCENTER, _title.c_str() );
+		gfx.drawText( rtitle, ALIGN_LEFT | ALIGN_VCENTER, _title.c_str() );
 
 
 		Recti r = rect();
 		paintChildren( gfx, r );
 
 		if( !_togglebutton.state() ) {
-			gfx->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-			gfx->drawIcon( w - 18, h - 18, GFX::ICON_CORNER );
+			gfx.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+			gfx.drawIcon( w - 18, h - 18, GFX::ICON_CORNER );
 		}
 	}
 
-	void Moveable::resizeEvent( ResizeEvent* )
+	void Moveable::resizeEvent( ResizeEvent& )
 	{
 		resizeChildren();
 	}
@@ -99,14 +99,14 @@ namespace cvt {
 		update();
 	}
 
-	void Moveable::mousePressEvent( MousePressEvent* event )
+	void Moveable::mousePressEvent( MousePressEvent& event )
 	{
 		int gx, gy;
 		Recti rcorner;
 
 
 		raise();
-		event->position( _lx, _ly );
+		event.position( _lx, _ly );
 		size( rcorner.x, rcorner.y );
 		rcorner.x -= 18;
 		rcorner.y -= 18;
@@ -114,12 +114,12 @@ namespace cvt {
 		if( rcorner.contains( _lx, _ly  ) && !_togglebutton.state() ) {
 			_activeMode = 2;
 		} else {
-			event->position( gx, gy );
+			event.position( gx, gy );
 			mapGlobal( gx, gy );
 			_activeWidget = childAt( gx, gy );
 			if( _activeWidget ) {
-				mapGlobal( event->x, event->y );
-				_activeWidget->mapLocal( event->x, event->y );
+				mapGlobal( event.x, event.y );
+				_activeWidget->mapLocal( event.x, event.y );
 				_activeWidget->mousePressEvent( event );
 			} else {
 				_activeMode = 1;
@@ -127,12 +127,12 @@ namespace cvt {
 		}
 	}
 
-	void Moveable::mouseMoveEvent( MouseMoveEvent* event )
+	void Moveable::mouseMoveEvent( MouseMoveEvent& event )
 	{
 		if( _activeMode == 1 ) {
 			int cx, cy, nx, ny, dx, dy;
 			position( cx, cy );
-			event->position( nx, ny );
+			event.position( nx, ny );
 			dx = nx - _lx;
 			dy = ny - _ly;
 			setPosition( cx + dx, cy + dy );
@@ -141,7 +141,7 @@ namespace cvt {
 			update();
 		} else if( _activeMode == 2 ) {
 			int cw, ch, nx, ny, dx, dy;
-			event->position( nx, ny );
+			event.position( nx, ny );
 			dx = nx - _lx;
 			dy = ny - _ly;
 			size( cw, ch );
@@ -152,19 +152,19 @@ namespace cvt {
 			_ly = ny;
 			update();
 		} else if( _activeWidget ) {
-			mapGlobal( event->x, event->y );
-			_activeWidget->mapLocal( event->x, event->y );
+			mapGlobal( event.x, event.y );
+			_activeWidget->mapLocal( event.x, event.y );
 			_activeWidget->mouseMoveEvent( event );
 		}
 	}
 
-	void Moveable::mouseReleaseEvent( MouseReleaseEvent* event )
+	void Moveable::mouseReleaseEvent( MouseReleaseEvent& event )
 	{
 		if( _activeMode ) {
 			_activeMode = 0;
 		} else	if( _activeWidget ) {
-			mapGlobal( event->x, event->y );
-			_activeWidget->mapLocal( event->x, event->y );
+			mapGlobal( event.x, event.y );
+			_activeWidget->mapLocal( event.x, event.y );
 			_activeWidget->mouseReleaseEvent( event );
 			_activeWidget = NULL;
 		}

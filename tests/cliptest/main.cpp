@@ -13,28 +13,28 @@ class ClipUI : public Window
 		_rect.set( 100, 100, 300, 300 );
 	}
 
-	void paintEvent( PaintEvent* e, GFX* g )
+	void paintEvent( PaintEvent& e, GFX& g )
 	{
 		Window::paintEvent( e, g );
-		g->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		g->fillRect( _rect );
+		g.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		g.fillRect( _rect );
 
 		if( _selection == 1 ) {
-			g->color().set( 0.0f, 1.0f, 0.0f, 1.0f );
-			g->setLineWidth( 1.0f );
-			g->drawLine( _out[ 0 ].x, _out[ 0 ].y , _out[ 1 ].x, _out[ 1 ].y );
+			g.color().set( 0.0f, 1.0f, 0.0f, 1.0f );
+			g.setLineWidth( 1.0f );
+			g.drawLine( _out[ 0 ].x, _out[ 0 ].y , _out[ 1 ].x, _out[ 1 ].y );
 		}
 
 	}
 
-	void mousePressEvent( MousePressEvent* event )
+	void mousePressEvent( MousePressEvent& event )
 	{
-		_pt[ 0 ].set( event->x, event->y );
+		_pt[ 0 ].set( event.x, event.y );
 	}
 
-	void mouseMoveEvent( MouseMoveEvent* event )
+	void mouseMoveEvent( MouseMoveEvent& event )
 	{
-		_pt[ 1 ].set( event->x, event->y );
+		_pt[ 1 ].set( event.x, event.y );
 		if( _pt[ 0 ].x != _pt[ 1 ].x || _pt[ 0 ].y != _pt[ 1 ].y ) {
 			_selection = 1;
 			_out[ 0 ] = _pt[ 0 ];
@@ -45,7 +45,7 @@ class ClipUI : public Window
 		}
 	}
 
-	void mouseReleaseEvent( MouseReleaseEvent* e )
+	void mouseReleaseEvent( MouseReleaseEvent& e )
 	{
 	}
 

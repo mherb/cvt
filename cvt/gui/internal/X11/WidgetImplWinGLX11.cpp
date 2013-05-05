@@ -171,7 +171,7 @@ namespace cvt {
 	}
 
 
-	void WidgetImplWinGLX11::paintEvent( PaintEvent* event )
+	void WidgetImplWinGLX11::paintEvent( PaintEvent& event )
 	{
 		Recti viewport( 0, 0, _rect.width, _rect.height );
 		gfxgl->setViewport( viewport );
@@ -180,25 +180,25 @@ namespace cvt {
 		needsupdate = false;
 	}
 
-	void WidgetImplWinGLX11::resizeEvent( ResizeEvent* event )
+	void WidgetImplWinGLX11::resizeEvent( ResizeEvent& event )
 	{
 		event->getSize( _rect.width, _rect.height );
 		_widget->resizeEvent( event );
 	}
 
-	void WidgetImplWinGLX11::moveEvent( MoveEvent* event )
+	void WidgetImplWinGLX11::moveEvent( MoveEvent& event )
 	{
 		event->position( _rect.x, _rect.y );
 		_widget->moveEvent( event );
 	}
 
-	void WidgetImplWinGLX11::showEvent( ShowEvent* event )
+	void WidgetImplWinGLX11::showEvent( ShowEvent& event )
 	{
 		visible = true;
 		_widget->showEvent( event );
 	}
 
-	void WidgetImplWinGLX11::hideEvent( HideEvent* event )
+	void WidgetImplWinGLX11::hideEvent( HideEvent& event )
 	{
 		visible = false;
 		_widget->hideEvent( event );

@@ -57,24 +57,24 @@ namespace cvt {
 			virtual Widget* childAt( int , int ) { return NULL; }
 
 		protected:
-			virtual void resizeEvent( ResizeEvent* ) {}
-			virtual void moveEvent( MoveEvent* ) {}
-			virtual void paintEvent( PaintEvent* , GFX* ) {}
-			virtual void showEvent( ShowEvent* ) {}
-			virtual void hideEvent( HideEvent* ) {}
-			virtual void mouseMoveEvent( MouseMoveEvent* ) {}
-			virtual void mousePressEvent( MousePressEvent* ) {}
-			virtual void mouseReleaseEvent( MouseReleaseEvent* ) {}
+			virtual void resizeEvent( ResizeEvent& __attribute__ ((unused)) ) {}
+			virtual void moveEvent( MoveEvent&  __attribute__ ((unused)) ) {}
+			virtual void paintEvent( PaintEvent& __attribute__ ((unused)) , GFX& __attribute__ ((unused)) ) {}
+			virtual void showEvent( ShowEvent& __attribute__ ((unused)) ) {}
+			virtual void hideEvent( HideEvent& __attribute__ ((unused)) ) {}
+			virtual void mouseMoveEvent( MouseMoveEvent& __attribute__ ((unused))) {}
+			virtual void mousePressEvent( MousePressEvent& __attribute__ ((unused))) {}
+			virtual void mouseReleaseEvent( MouseReleaseEvent& __attribute__ ((unused))) {}
 			virtual void mouseWheelEvent() {}
 			virtual void mouseEnterEvent() {}
 			virtual void mouseLeaveEvent() {}
-			virtual void keyPressEvent( const KeyEvent& event __attribute__((unused)) ) {}
-			virtual void keyReleaseEvent( const KeyEvent& event __attribute__((unused)) ) {}
+			virtual void keyPressEvent( KeyEvent& event __attribute__((unused)) ) {}
+			virtual void keyReleaseEvent( KeyEvent& event __attribute__((unused)) ) {}
 
 			virtual void raiseChild( Widget* ) {}
 			virtual void lowerChild( Widget* ) {}
 
-			void paintChild( Widget* w, GFX* gfx, const Recti& rect ) const;
+			void paintChild( Widget* w, GFX& gfx, const Recti& rect ) const;
 
 			GFXEngine* gfxEngine();
 

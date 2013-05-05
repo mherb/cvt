@@ -31,16 +31,16 @@ namespace cvt {
 	}
 
 
-	void PlotView::paintEvent( PaintEvent* , GFX* g )
+	void PlotView::paintEvent( PaintEvent& , GFX& g )
 	{
 		int w, h;
 		size( w, h );
 
 		// fill background
-		g->color() = Color::WHITE;
-		g->fillRect( 0, 0, w, h );
+		g.color() = Color::WHITE;
+		g.fillRect( 0, 0, w, h );
 
-		g->setLineWidth( 1.0f );
+		g.setLineWidth( 1.0f );
 
 
 		if( w <= 2 * _xmargin || h <= 2 * _ymargin )
@@ -54,38 +54,38 @@ namespace cvt {
 
 		// draw grid
 		if( _grid ) {
-			g->setColor( Color( 0.0f, 0.0f, 0.0f, 0.1f ) );
+			g.setColor( Color( 0.0f, 0.0f, 0.0f, 0.1f ) );
 			// draw vertical lines
 			for( float x = _xmargin; x <= w - _xmargin + 1; x += xtic  )
-				g->drawLine( x, _ymargin, x, h - _ymargin );
+				g.drawLine( x, _ymargin, x, h - _ymargin );
 			// draw horizontal lines
 			for( float y = _ymargin; y <= h - _ymargin + 1; y += ytic  )
-				g->drawLine( _xmargin, y, w - _xmargin, y );
+				g.drawLine( _xmargin, y, w - _xmargin, y );
 		}
 
 		// draw x/y axes
-		g->color() = Color::BLACK;
-		g->drawLine( _xmargin, _ymargin, _xmargin, h - _ymargin - 1 );
-		g->drawLine( _xmargin, h - _ymargin, w - _xmargin - 1, h - _ymargin );
+		g.color() = Color::BLACK;
+		g.drawLine( _xmargin, _ymargin, _xmargin, h - _ymargin - 1 );
+		g.drawLine( _xmargin, h - _ymargin, w - _xmargin - 1, h - _ymargin );
 
 
 		// draw x tics and label
 		for( float x = _xmargin, xpos = _view.x; x <= w - _xmargin + 1; x += xtic, xpos += _xtics  ) {
-			g->drawLine( x, h - _ymargin, x, h - _ymargin - 5 );
+			g.drawLine( x, h - _ymargin, x, h - _ymargin - 5 );
 			tmp.sprintf( _xticslabel.c_str(), xpos  );
-			g->drawText( x - 20.0f, h - _ymargin + _xticslabelmargin, 40, 15, ALIGN_CENTER, tmp.c_str() );
+			g.drawText( x - 20.0f, h - _ymargin + _xticslabelmargin, 40, 15, ALIGN_CENTER, tmp.c_str() );
 		}
 
 		// draw y tics and label
 		for( float y = _ymargin, ypos = _view.y + _view.height; y <= h - _ymargin + 1; y += ytic, ypos -= _ytics  ) {
-			g->drawLine( _xmargin, y, _xmargin + 5, y );
+			g.drawLine( _xmargin, y, _xmargin + 5, y );
 			tmp.sprintf( _yticslabel.c_str(), ypos  );
-			g->drawText( 0, y - 10, _xmargin - _yticslabelmargin, 20, ALIGN_RIGHT | ALIGN_VCENTER, tmp.c_str() );
+			g.drawText( 0, y - 10, _xmargin - _yticslabelmargin, 20, ALIGN_RIGHT | ALIGN_VCENTER, tmp.c_str() );
 		}
 
 		// Draw data
 		for( List<PlotDataStyled>::Iterator it = _pdata.begin(); it != _pdata.end(); ++it ) {
-			g->setColor( ( *it )._pdata->plotColor() );
+			g.setColor( ( *it )._pdata->plotColor() );
 			switch(  ( *it )._pdata->plotStyle() ) {
 				case PLOT_STYLE_DOTS:
 					{
@@ -95,19 +95,19 @@ namespace cvt {
 						size_t n = ( *it)._data.size();
 						for( size_t i = 0; i < n; i++ ) {
 							Vector2f pt = T * ( *it )._data[ i ];
-							g->drawIcons( &pt, 1, GFX::ICON_TINY_CROSS  );
+							g.drawIcons( &pt, 1, GFX::ICON_TINY_CROSS  );
 						}
 					}
 					break;
 				case PLOT_STYLE_LINES:
 					{
-						g->setLineWidth( ( *it )._pdata->plotSize() );
+						g.setLineWidth( ( *it )._pdata->plotSize() );
 						Matrix3f T( sx, 0, -sx * _view.x + _xmargin ,
 								   0, -sy, sy * _view.y + h - _ymargin,
 								   0, 0, 1.0f );
 						size_t n = ( *it)._data.size() >> 1;
 						for( size_t i = 0; i < n; i++ ) {
-							g->drawLine( T * ( *it )._data[ i << 1 ] , T * ( *it )._data[ ( i << 1 ) + 1 ] );
+							g.drawLine( T * ( *it )._data[ i << 1 ] , T * ( *it )._data[ ( i << 1 ) + 1 ] );
 						}
 					}
 					break;

@@ -26,11 +26,11 @@ namespace cvt {
 			void setTitle( const String& title );
 
 		private:
-			void paintEvent( PaintEvent* ev, GFX* g );
-			void resizeEvent( ResizeEvent* ev );
-			void mousePressEvent( MousePressEvent* ev );
-			void mouseMoveEvent( MouseMoveEvent* ev );
-			void mouseReleaseEvent( MouseReleaseEvent* ev );
+			void paintEvent( PaintEvent& ev, GFX& g );
+			void resizeEvent( ResizeEvent& ev );
+			void mousePressEvent( MousePressEvent& ev );
+			void mouseMoveEvent( MouseMoveEvent& ev );
+			void mouseReleaseEvent( MouseReleaseEvent& ev );
 
 			void onToggle( ToggleButton* button );
 

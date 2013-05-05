@@ -30,8 +30,8 @@ namespace cvt
 			void setViewport( int x, int y, size_t w, size_t h );
 
 		protected:
-			void paintEvent( PaintEvent* ev, GFX* g );
-			virtual void paintGLEvent( PaintEvent* ev ) = 0;
+			void paintEvent( PaintEvent& ev, GFX& g );
+			virtual void paintGLEvent( PaintEvent& ev ) = 0;
 
 			Recti	_viewport;
 			bool	_allowViewportChange;

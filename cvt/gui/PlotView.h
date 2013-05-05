@@ -53,7 +53,7 @@ namespace cvt {
 			void			removePlotData( PlotData* pdata );
 			size_t			plotDataSize() const;
 
-			void paintEvent( PaintEvent* pe, GFX* g);
+			void paintEvent( PaintEvent& pe, GFX& g);
 
 		private:
 			int				_xmargin, _ymargin;

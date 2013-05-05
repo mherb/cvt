@@ -54,11 +54,11 @@ namespace cvt {
 			virtual GFXEngine* gfxEngine();
 
 		private:
-			void paintEvent( PaintEvent* event );
-			void resizeEvent( ResizeEvent* event );
-			void moveEvent( MoveEvent* event );
-			void showEvent( ShowEvent* event );
-			void hideEvent( HideEvent* event );
+			void paintEvent( PaintEvent& event );
+			void resizeEvent( ResizeEvent& event );
+			void moveEvent( MoveEvent& event );
+			void showEvent( ShowEvent& event );
+			void hideEvent( HideEvent& event );
 
 		private:
 			Widget* _widget;

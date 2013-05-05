@@ -64,7 +64,7 @@ namespace cvt {
 		}
 	}
 
-	void WidgetContainer::resizeEvent( ResizeEvent* )
+	void WidgetContainer::resizeEvent( ResizeEvent& )
 	{
 		resizeChildren();
 	}
@@ -96,10 +96,10 @@ namespace cvt {
 		}
 	}
 
-	void WidgetContainer::moveEvent( MoveEvent* me )
+	void WidgetContainer::moveEvent( MoveEvent& me )
 	{
-		int dx = me->x - me->oldx;
-		int dy = me->y - me->oldy;
+		int dx = me.x - me.oldx;
+		int dy = me.y - me.oldy;
 		moveChildren( dx, dy );
 	}
 
@@ -129,13 +129,13 @@ namespace cvt {
 		}
 	}
 
-	void WidgetContainer::paintEvent( PaintEvent* , GFX* gfx )
+	void WidgetContainer::paintEvent( PaintEvent& , GFX& gfx )
 	{
 		Recti r = rect();
 		paintChildren( gfx, r );
 	}
 
-	void WidgetContainer::paintChildren( GFX* gfx, const Recti& r )
+	void WidgetContainer::paintChildren( GFX& gfx, const Recti& r )
 	{
 
 		ChildList::reverse_iterator it = _children.rbegin();
@@ -158,17 +158,17 @@ namespace cvt {
 		}
 	}
 
-	void WidgetContainer::mousePressEvent( MousePressEvent* event )
+	void WidgetContainer::mousePressEvent( MousePressEvent& event )
 	{
 		int x, y;
 
-		event->position( x, y );
+		event.position( x, y );
 		mapGlobal( x, y );
 		_activeWidget = childAt( x, y );
 
 		if( _activeWidget && _activeWidget->isVisible() ) {
-			mapGlobal( event->x, event->y );
-			_activeWidget->mapLocal( event->x, event->y );
+			mapGlobal( event.x, event.y );
+			_activeWidget->mapLocal( event.x, event.y );
 			_activeWidget->mousePressEvent( event );
 		} else {
 			_activeWidget = NULL;
@@ -176,26 +176,26 @@ namespace cvt {
 
 	}
 
-	void WidgetContainer::mouseMoveEvent( MouseMoveEvent* event )
+	void WidgetContainer::mouseMoveEvent( MouseMoveEvent& event )
 	{
 		if( _activeWidget ) {
-			mapGlobal( event->x, event->y );
-			_activeWidget->mapLocal( event->x, event->y );
+			mapGlobal( event.x, event.y );
+			_activeWidget->mapLocal( event.x, event.y );
 			_activeWidget->mouseMoveEvent( event );
 		}
 	}
 
-	void WidgetContainer::mouseReleaseEvent( MouseReleaseEvent* event )
+	void WidgetContainer::mouseReleaseEvent( MouseReleaseEvent& event )
 	{
 		if( _activeWidget ) {
-			mapGlobal( event->x, event->y );
-			_activeWidget->mapLocal( event->x, event->y );
+			mapGlobal( event.x, event.y );
+			_activeWidget->mapLocal( event.x, event.y );
 			_activeWidget->mouseReleaseEvent( event );
 		}
 		_activeWidget = NULL;
 	}
 
-	void WidgetContainer::keyPressEvent( const KeyEvent& event )
+	void WidgetContainer::keyPressEvent( KeyEvent& event )
 	{
 		if( _activeWidget ) {
 			_activeWidget->keyPressEvent( event );
@@ -203,7 +203,7 @@ namespace cvt {
 		std::cout << "KeyPress" << std::endl;
 	}
 
-	void WidgetContainer::keyReleaseEvent( const KeyEvent& event )
+	void WidgetContainer::keyReleaseEvent( KeyEvent& event )
 	{
 		if( _activeWidget ) {
 			_activeWidget->keyPressEvent( event );

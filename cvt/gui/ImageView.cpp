@@ -20,12 +20,12 @@ namespace cvt {
 	{
 	}
 
-	void ImageView::paintEvent( PaintEvent*, GFX* g )
+	void ImageView::paintEvent( PaintEvent&, GFX& g )
 	{
 		int w, h;
 		size( w, h );
-		g->color().setAlpha( _alpha );
-		g->drawImage( 0, 0, w, h, _img );
+		g.color().setAlpha( _alpha );
+		g.drawImage( 0, 0, w, h, _img );
 	}
 
 	void ImageView::setImage( const Image& img )

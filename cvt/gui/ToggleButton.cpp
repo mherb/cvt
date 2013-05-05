@@ -24,32 +24,32 @@ namespace cvt {
 
 	}
 
-	void ToggleButton::paintEvent( PaintEvent* , GFX* g )
+	void ToggleButton::paintEvent( PaintEvent& , GFX& g )
 	{
 		int w, h;
 		size( w, h );
 		if( _label.isEmpty() ) {
 			w = ( w - 16 ) >> 1;
 			h = ( h - 16 ) >> 1;
-			g->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-			g->drawIcon( w, h, _state? _iconon : _iconoff );
+			g.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+			g.drawIcon( w, h, _state? _iconon : _iconoff );
 		} else {
 			w = 2;
 			h = ( h - 16 ) >> 1;
-			g->color().set( 0.6f, 0.6f, 0.6f, 1.0f );
-			g->drawIcon( w, h, _state? _iconon : _iconoff );
-			g->color().set( 0.8f, 0.8f, 0.8f, 1.0f );
+			g.color().set( 0.6f, 0.6f, 0.6f, 1.0f );
+			g.drawIcon( w, h, _state? _iconon : _iconoff );
+			g.color().set( 0.8f, 0.8f, 0.8f, 1.0f );
 			size( w, h );
-			g->drawText( 20, 0, w - 20 , h, ALIGN_LEFT | ALIGN_VCENTER , _label.c_str() );
+			g.drawText( 20, 0, w - 20 , h, ALIGN_LEFT | ALIGN_VCENTER , _label.c_str() );
 		}
 	}
 
-	void ToggleButton::mouseReleaseEvent( MouseReleaseEvent* event )
+	void ToggleButton::mouseReleaseEvent( MouseReleaseEvent& event )
 	{
 		Recti self;
 		self.setPosition( 0, 0 );
 		size( self.width, self.height );
-		if( self.contains( event->x, event->y ) && event->button() == 1 ) {
+		if( self.contains( event.x, event.y ) && event.button() == 1 ) {
 			_state = !_state;
 			toggled.notify( this );
 		}

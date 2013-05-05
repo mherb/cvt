@@ -27,8 +27,8 @@ namespace cvt {
 			Signal<ToggleButton*> toggled;
 
 		private:
-			void paintEvent( PaintEvent* e, GFX* g );
-			void mouseReleaseEvent( MouseReleaseEvent* event );
+			void paintEvent( PaintEvent& e, GFX& g );
+			void mouseReleaseEvent( MouseReleaseEvent& event );
 
 			ToggleButton( const ToggleButton& b );
 

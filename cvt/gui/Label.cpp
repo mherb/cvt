@@ -20,12 +20,12 @@ namespace cvt {
 
 	}
 
-	void Label::paintEvent( PaintEvent* , GFX* g )
+	void Label::paintEvent( PaintEvent& , GFX& g )
 	{
 		int w, h;
-		g->color() = _color;
+		g.color() = _color;
 		size( w, h );
-		g->drawText( 0, 0, w, h, _aligment, _label.c_str() );
+		g.drawText( 0, 0, w, h, _aligment, _label.c_str() );
 	}
 
 }

@@ -30,7 +30,7 @@ namespace cvt {
 			Color& color();
 
 		private:
-			void paintEvent( PaintEvent* e, GFX* g );
+			void paintEvent( PaintEvent& e, GFX& g );
 			Label( const Label& b );
 
 			String _label;

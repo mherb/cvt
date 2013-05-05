@@ -28,10 +28,9 @@ namespace cvt {
 
 			Signal<T> valueChanged;
 		protected:
-			void paintEvent( PaintEvent* e, GFX* g );
-			void mousePressEvent( MousePressEvent* event );
-			void mouseMoveEvent( MouseMoveEvent* event );
-//			void mouseReleaseEvent( MouseReleaseEvent* event );
+			void paintEvent( PaintEvent& e, GFX& g );
+			void mousePressEvent( MousePressEvent& event );
+			void mouseMoveEvent( MouseMoveEvent& event );
 
 		private:
 			void xToValue( int x );
@@ -85,35 +84,35 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline void Slider<T>::paintEvent( PaintEvent*, GFX* gfx )
+	inline void Slider<T>::paintEvent( PaintEvent&, GFX& gfx )
 	{
 		int w, h;
 		size( w, h );
-		gfx->color().set( 0.5f, 0.5f, 0.5f, 1.0f );
-		gfx->fillRoundRect( 0, 0, w, h, 0.5f * ( float ) h );
+		gfx.color().set( 0.5f, 0.5f, 0.5f, 1.0f );
+		gfx.fillRoundRect( 0, 0, w, h, 0.5f * ( float ) h );
 		float pos = ( float ) ( w - h ) * ( float  ) ( _value - _min ) / ( float ) ( _max - _min );
-		gfx->color().set( 0.2f, 0.2f, 0.2f, 1.0f );
-		gfx->fillRoundRect( ( int ) pos, 0, h, h, 0.5f * ( float ) h );
+		gfx.color().set( 0.2f, 0.2f, 0.2f, 1.0f );
+		gfx.fillRoundRect( ( int ) pos, 0, h, h, 0.5f * ( float ) h );
 
 /*		char buf[ 200 ];
 		sprintf( buf, "%f", ( float ) _value );
-		gfx->color().set( 1.0f, 1.0f, 1.0f, 1.0f );
-		gfx->drawText( 0, 10, buf );*/
+		gfx.color().set( 1.0f, 1.0f, 1.0f, 1.0f );
+		gfx.drawText( 0, 10, buf );*/
 	}
 
 	template<typename T>
-	void Slider<T>::mousePressEvent( MousePressEvent* event )
+	void Slider<T>::mousePressEvent( MousePressEvent& event )
 	{
-		if( event->button() == 1 ) {
-			xToValue( event->x );
+		if( event.button() == 1 ) {
+			xToValue( event.x );
 		}
 	}
 
 	template<typename T>
-	void Slider<T>::mouseMoveEvent( MouseMoveEvent* event )
+	void Slider<T>::mouseMoveEvent( MouseMoveEvent& event )
 	{
-		if( event->buttonMask() & 1 ) {
-			xToValue( event->x );
+		if( event.buttonMask() & 1 ) {
+			xToValue( event.x );
 		}
 	}
 

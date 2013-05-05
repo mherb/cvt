@@ -25,7 +25,7 @@ namespace cvt {
 			void setImage( const Image& img );
 
 		protected:
-			void paintEvent( PaintEvent* ev, GFX* g );
+			void paintEvent( PaintEvent& ev, GFX& g );
 
 			float _alpha;
 			Image _img;

@@ -40,12 +40,12 @@ namespace cvt {
 
 					if( oldx != nx  || oldy != ny ) {
 						MoveEvent me( nx, ny, oldx, oldy );
-						win->moveEvent( &me );
+						win->moveEvent( me );
 					}
 
 					if( oldwidth != nw || oldheight != nh ) {
 						ResizeEvent re( nw, nh, oldwidth, oldheight );
-						win->resizeEvent( & re );
+						win->resizeEvent( re );
 					}
 				}
 				break;
@@ -60,7 +60,7 @@ namespace cvt {
 					XTranslateCoordinates( _dpy, xevent.xreparent.window, RootWindow( _dpy, DefaultScreen( _dpy ) ), 0, 0, &nx, &ny, &child );
 					if( oldx != nx  || oldy != ny ) {
 						MoveEvent me( nx, ny, oldx, oldy );
-						win->moveEvent( &me );
+						win->moveEvent( me );
 					}
 				}
 				break;
@@ -69,7 +69,7 @@ namespace cvt {
 					ShowEvent se;
 
 					win = (*_windows)[ xevent.xmap.window ];
-					win->showEvent( &se );
+					win->showEvent( se );
 				}
 				break;
 			case UnmapNotify:
@@ -77,7 +77,7 @@ namespace cvt {
 					HideEvent he;
 
 					win = (*_windows)[ xevent.xmap.window ];
-					win->hideEvent( &he );
+					win->hideEvent( he );
 				}
 				break;
 			case Expose:
@@ -103,12 +103,12 @@ namespace cvt {
 
 						if( oldx != nx  || oldy != ny ) {
 							MoveEvent me( nx, ny, oldx, oldy );
-							win->moveEvent( &me );
+							win->moveEvent( me );
 						}
 
 						if( oldwidth != nw || oldheight != nh ) {
 							ResizeEvent re( nw, nh, oldwidth, oldheight );
-							win->resizeEvent( & re );
+							win->resizeEvent( re );
 						}
 					}
 #endif
@@ -117,21 +117,21 @@ namespace cvt {
 					while( XCheckTypedWindowEvent( _dpy, xevent.xexpose.window, Expose, &xevent ) )
 						;
 					PaintEvent pe( 0, 0, win->_rect.width, win->_rect.height );
-					win->paintEvent( &pe );
+					win->paintEvent( pe );
 				}
 				break;
 			case ButtonPress:
 				{
 					win = ( *_windows )[ xevent.xbutton.window ];
 					MousePressEvent mp( xevent.xbutton.x, xevent.xbutton.y, xevent.xbutton.button );
-					( ( Window* ) win->_widget )->mousePressEvent( &mp );
+					( ( Window* ) win->_widget )->mousePressEvent( mp );
 				}
 				break;
 			case ButtonRelease:
 				{
 					win = ( *_windows )[ xevent.xbutton.window ];
 					MouseReleaseEvent mr( xevent.xbutton.x, xevent.xbutton.y, xevent.xbutton.button );
-					( ( Window* ) win->_widget )->mouseReleaseEvent( &mr );
+					( ( Window* ) win->_widget )->mouseReleaseEvent( mr );
 				}
 				break;
 			case KeyPress:
@@ -158,7 +158,7 @@ namespace cvt {
 					while( XCheckTypedWindowEvent( _dpy, xevent.xmotion.window, MotionNotify, &xevent ) )
 						;
 					MouseMoveEvent mme( xevent.xmotion.x, xevent.xmotion.y, ( xevent.xmotion.state >> 8 ) & 0x1F );
-					( ( Window* ) win->_widget )->mouseMoveEvent( &mme );
+					( ( Window* ) win->_widget )->mouseMoveEvent( mme );
 				}
 				break;
 			case ClientMessage:
@@ -166,7 +166,7 @@ namespace cvt {
 					if( xevent.xclient.message_type == xatom_wmproto && ( ::Atom ) xevent.xclient.data.l[0] == xatom_wmdelete ) {
 						CloseEvent ce;
 						win = ( *_windows )[ xevent.xclient.window ];
-						( ( Window* ) win->_widget )->closeEvent( &ce );
+						( ( Window* ) win->_widget )->closeEvent( ce );
 					}
 				}
 				break;

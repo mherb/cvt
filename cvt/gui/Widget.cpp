@@ -150,15 +150,15 @@ namespace cvt {
 		y -= gy;
 	}
 
-	void Widget::paintChild( Widget* w, GFX* gfx, const Recti& rect ) const
+	void Widget::paintChild( Widget* w, GFX& gfx, const Recti& rect ) const
 	{
 		if( w->parent() != this )
 			return;
 
 		/* get current cliprect and translation */
-		Recti cliprect = gfx->clipRect();
+		Recti cliprect = gfx.clipRect();
 		Vector2i gtransold;
-		gfx->getTranslationGlobal( gtransold );
+		gfx.getTranslationGlobal( gtransold );
 		/* get child rectangle in global coords */
 		Recti newcliprect = w->rect();
 		Recti childrect = newcliprect;
@@ -166,17 +166,17 @@ namespace cvt {
 		newcliprect.intersect( cliprect );
 
 		/* set new clipping  */
-		gfx->setClipRect( newcliprect );
+		gfx.setClipRect( newcliprect );
 		/* do painting with default GFX, only paint currently visible part */
 		newcliprect.intersect( rect );
 		PaintEvent pe( newcliprect );
-		gfx->setTranslationGlobal( Vector2i( childrect.x, childrect.y ) );
-		gfx->setDefault();
-		w->paintEvent( &pe, gfx );
+		gfx.setTranslationGlobal( Vector2i( childrect.x, childrect.y ) );
+		gfx.setDefault();
+		w->paintEvent( pe, gfx );
 		/* restore old viewport */
-		gfx->setTranslationGlobal( gtransold );
-		gfx->setDefault();
-		gfx->setClipRect( cliprect );
+		gfx.setTranslationGlobal( gtransold );
+		gfx.setDefault();
+		gfx.setClipRect( cliprect );
 	}
 
 	GFXEngine* Widget::gfxEngine()

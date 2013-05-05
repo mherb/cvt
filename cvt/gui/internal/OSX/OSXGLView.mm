@@ -52,7 +52,7 @@
 
 	NSRect rself = [self bounds];
 	cvt::ResizeEvent re( rself.size.width, rself.size.height, oldFrameSize.width, oldFrameSize.height );
-	_widgetimpl->resizeEvent( &re );
+	_widgetimpl->resizeEvent( re );
 	[_glcontext update];
 }
 
@@ -63,14 +63,14 @@
 	_widgetimpl->position( ox, oy );
 	NSRect rself = [ [ notification object ] frame];
 	cvt::MoveEvent me( rself.origin.x, rself.origin.y, ox, oy );
-	_widgetimpl->moveEvent( &me );
+	_widgetimpl->moveEvent( me );
 }
 
 - ( void ) drawRect:(NSRect) r
 {
 	// process the paint event
 	cvt::PaintEvent pe( r.origin.x, r.origin.y, r.size.width, r.size.height );
-	_widgetimpl->paintEvent( &pe );
+	_widgetimpl->paintEvent( pe );
 }
 
 - (void)keyDown:(NSEvent *)e
@@ -102,7 +102,7 @@
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MousePressEvent pe( pt.x, pt.y, [ e buttonNumber ] + 1 );
-	_widgetimpl->mousePressEvent( &pe );
+	_widgetimpl->mousePressEvent( pe );
 }
 
 
@@ -110,14 +110,14 @@
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MouseReleaseEvent re( pt.x, pt.y, [ e buttonNumber ] + 1 );
-	_widgetimpl->mouseReleaseEvent( &re );
+	_widgetimpl->mouseReleaseEvent( re );
 }
 
 - (void)mouseDragged:(NSEvent *)e
 {
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MouseMoveEvent me( pt.x, pt.y, [ e buttonNumber ] + 1 );
-	_widgetimpl->mouseMoveEvent( &me );
+	_widgetimpl->mouseMoveEvent( me );
 }
 
 - (void)scrollWheel:(NSEvent *)e
@@ -128,9 +128,9 @@
 	
 	NSPoint pt = [ self convertPoint: [ e locationInWindow ] fromView:nil ];
 	cvt::MousePressEvent pe( pt.x, pt.y, button );
-	_widgetimpl->mousePressEvent( &pe );
+	_widgetimpl->mousePressEvent( pe );
 	cvt::MouseReleaseEvent re( pt.x, pt.y, button );
-	_widgetimpl->mouseReleaseEvent( &re );
+	_widgetimpl->mouseReleaseEvent( re );
 }
 
 @end

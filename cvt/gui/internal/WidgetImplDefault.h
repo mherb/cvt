@@ -73,7 +73,7 @@ namespace cvt {
 		ResizeEvent re( width, height, _rect.width, _rect.height );
 		_rect.width  = width;
 		_rect.height = height;
-		_widget->resizeEvent( &re );
+		_widget->resizeEvent( re );
 	}
 
 	inline void WidgetImplDefault::size( int& width, int& height ) const
@@ -89,7 +89,7 @@ namespace cvt {
 		MoveEvent me( x, y, _rect.x, _rect.y );
 		_rect.x  = x;
 		_rect.y  = y;
-		_widget->moveEvent( &me );
+		_widget->moveEvent( me );
 	}
 
 	inline void WidgetImplDefault::position( int& x, int& y ) const
@@ -116,10 +116,10 @@ namespace cvt {
 		_visible = visibility;
 		if( _visible ) {
 			ShowEvent se;
-			_widget->showEvent( &se );
+			_widget->showEvent( se );
 		} else {
 			HideEvent he;
-			_widget->hideEvent( &he );
+			_widget->hideEvent( he );
 		}
 	}
 

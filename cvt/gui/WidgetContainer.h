@@ -33,17 +33,17 @@ namespace cvt {
 			size_t	childrenCount() const;
 			Widget* childAt( int x, int y );
 
-			void resizeEvent( ResizeEvent* event );
-			void moveEvent( MoveEvent* event );
-			void paintEvent( PaintEvent* event, GFX* gfx );
-			void mousePressEvent( MousePressEvent* event );
-			void mouseMoveEvent( MouseMoveEvent* event );
-			void mouseReleaseEvent( MouseReleaseEvent* event );
-			void keyPressEvent( const KeyEvent& event );
-			void keyReleaseEvent( const KeyEvent& event );
+			void resizeEvent( ResizeEvent& event );
+			void moveEvent( MoveEvent& event );
+			void paintEvent( PaintEvent& event, GFX& gfx );
+			void mousePressEvent( MousePressEvent& event );
+			void mouseMoveEvent( MouseMoveEvent& event );
+			void mouseReleaseEvent( MouseReleaseEvent& event );
+			void keyPressEvent( KeyEvent& event );
+			void keyReleaseEvent( KeyEvent& event );
 
 		protected:
-			void paintChildren( GFX* gfx, const Recti& r );
+			void paintChildren( GFX& gfx, const Recti& r );
 			void resizeChildren( );
 			void moveChildren( int dx, int dy );
 			void raiseChild( Widget* c );
