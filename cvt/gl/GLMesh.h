@@ -23,12 +23,9 @@ namespace cvt {
 				    const unsigned int* indices, size_t isize, MeshType type );*/
 			~GLMesh();
 
-			SceneMeshType type() const;
 			void draw();
 
 		private:
-			SceneMeshType _type;
-
 			GLVertexArray _vao;
 			GLBuffer _vertices;
 			GLBuffer _normals;
@@ -52,13 +49,19 @@ namespace cvt {
 		_texcoords( GL_ARRAY_BUFFER ),
 		_indices( GL_ELEMENT_ARRAY_BUFFER )
 	{
-		_type = mesh.meshType();
-
 		_vertices.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * mesh.vertexSize(), mesh.vertices() );
 		_normals.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * mesh.normalSize(), mesh.normals() );
 		_texcoords.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 2 * mesh.texcoordSize(), mesh.texcoords() );
-		_numIndices = mesh.faceSize() * ( _type == SCENEMESH_TRIANGLES ? 3 : 4 );
-		_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numIndices, mesh.faces() );
+		if( mesh.meshType() == SCENEMESH_QUADS ) {
+			std::vector<unsigned int> faces;
+			mesh.facesTriangles( faces );
+			_numIndices = faces.size();
+			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numIndices, &faces[ 0 ] );
+
+		} else {
+			_numIndices = mesh.faceSize() * 3;
+			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numIndices, mesh.faces() );
+		}
 
 		_vao.setVertexData( _vertices, 3, GL_FLOAT );
 		_vao.setTexCoordData( _texcoords, 2, GL_FLOAT );
@@ -71,14 +74,11 @@ namespace cvt {
 	{
 	}
 
-	inline SceneMeshType GLMesh::type() const
-	{
-		return _type;
-	}
+
 
 	inline void GLMesh::draw()
 	{
-		_vao.drawIndirect( _indices, GL_UNSIGNED_INT, _type == SCENEMESH_TRIANGLES ? GL_TRIANGLES : 0, _numIndices ); //FIXME: GL3 has no support for GL_QUADS ...
+		_vao.drawIndirect( _indices, GL_UNSIGNED_INT, GL_TRIANGLES, _numIndices ); //FIXME: GL3 has no support for GL_QUADS ...
 	}
 }
 

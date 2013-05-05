@@ -77,6 +77,26 @@ namespace cvt {
 		_meshtype = SCENEMESH_TRIANGLES;
 	}
 
+
+	void SceneMesh::facesTriangles( std::vector<unsigned int>& output ) const
+	{
+		const unsigned int table[] = { 0, 1, 2, 2, 3, 0 };
+
+		if( _meshtype != SCENEMESH_QUADS ) {
+			output = _vindices;
+			return;
+		};
+
+		output.clear();
+		size_t size = _vindices.size();
+		for( size_t n = 0; n < size; n += 4 ) {
+				// Convert quad to triangle
+				for( int i = 0; i < 6; i++ ) {
+					output.push_back( _vindices[ n + table[ i ] ] );
+				}
+		}
+	}
+
 	void SceneMesh::calculateNormals( float angleweight, float areaweight )
 	{
 		_normals.clear();

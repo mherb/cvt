@@ -54,6 +54,7 @@ namespace cvt {
 			const Vector3f*		tangents() const;
 			const Vector2f*		texcoords() const;
 			const unsigned int* faces() const;
+			void				facesTriangles( std::vector<unsigned int>& output ) const;
 
 			Vector3f			centroid() const;
 			Boxf				boundingBox() const;
