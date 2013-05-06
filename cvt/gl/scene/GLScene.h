@@ -23,6 +23,10 @@
 #include <cvt/gl/GLMesh.h>
 #include <cvt/util/Time.h>
 
+#include <cvt/gl/GLFBO.h>
+#include <cvt/gl/GLRBO.h>
+#include <cvt/gl/progs/GLDrawImageProg.h>
+
 namespace cvt {
 	enum GLSceneDrawFeatures {
 		GLS_SHOW_FPS	 = ( 1 << 0 ),
@@ -53,19 +57,24 @@ namespace cvt {
 			std::vector<GLSLight>		_lights;
 			std::vector<GLSMaterial>	_materials;
 			std::vector<GLTexture>		_textures;
-			std::vector<GLMesh*>			_meshes;
+			std::vector<GLMesh*>		_meshes;
 			GLSRenderableGroup*			_renderables;
 			GLSShader					_shader;
+			GLDrawImageProg				_drawimgp;
+
 
 			GLSceneDrawFlags			_drawFlags;
 			float						_fps;
 			Time						_time;
 			GLMesh						_mesh;
+			GLTexture					_texture;
 	};
 
 	inline GLScene::GLScene()
 	{
 		_renderables = new GLSRenderableGroup();
+
+		_texture.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
 	}
 
 
@@ -91,6 +100,8 @@ namespace cvt {
 			t[ 2 ][ 3 ] = 180.0f;
 			_cams.back().setTransformation( t );
 		}
+
+		_texture.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
 	}
 
 	inline GLScene::~GLScene()
@@ -100,11 +111,36 @@ namespace cvt {
 
 	inline void GLScene::draw( size_t cam )
 	{
+		GLFBO fbo( 640, 480 );
+//		GLRBO rbo( GL_RGBA, 640, 480 );
+//		GLTexture tex;
+//		tex.alloc( GL_RGBA, 640, 480, GL_RGBA, GL_UNSIGNED_BYTE );
+
 		_shader.setCamera( _cams[ cam ] );
 		GLSRenderVisitor rvisitor( _shader );
+
+		fbo.bind();
+//		fbo.attach( GL_COLOR_ATTACHMENT0, tex );
+		fbo.attach( GL_DEPTH_ATTACHMENT, _texture );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glEnable( GL_DEPTH_TEST );
 		_renderables->accept( rvisitor );
 		glDisable( GL_DEPTH_TEST );
+		fbo.unbind();
+
+		glEnable( GL_DEPTH_TEST );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		_renderables->accept( rvisitor );
+		glDisable( GL_DEPTH_TEST );
+
+		Matrix4f proj;
+		GL::orthoTranslation( proj, 0, ( float ) 640, 0, ( float ) 480, ( float ) 0, ( float ) 0, -1000.0f, 1000.0f, true );
+		_drawimgp.bind();
+		_drawimgp.setProjection( proj );
+		_drawimgp.setAlpha( 1.0f );
+		_drawimgp.drawImage( 0, 0, 320, 240, _texture );
+		_drawimgp.unbind();
+
 	}
 
 }

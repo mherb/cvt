@@ -15,7 +15,16 @@
 #include <cvt/gl/scene/GLSCamera.h>
 #include <cvt/gl/scene/GLSMaterial.h>
 
+#include <cvt/util/Flags.h>
+
 namespace cvt {
+	enum GLSShaderMode {
+		GLSSHADER_DEFAULT	   = 0,
+		GLSSHADER_DEPTH        = 1,
+		GLSSHADER_NORMAL	   = 2,
+		GLSSHADER_DEPTH_NORMAL = 3
+	};
+
 	class GLSShader {
 		friend class GLScene;
 		public:
@@ -27,16 +36,15 @@ namespace cvt {
 			const Matrix4f& transformation() const { return _transformation; }
 			void setMaterial( const GLSMaterial& mat );
 
-			void setShadowMode( bool b );
-			void setNormalDepthMode( bool b );
+			void setMode( GLSShaderMode mode );
+			GLSShaderMode mode() const;
 
 			void bind() { _prog.bind(); }
 			void unbind() { _prog.unbind(); }
 
 			void setUniforms();
 		private:
-			bool	 _shadowMode;
-			bool	 _normalDepthMode;
+			GLSShaderMode _mode;
 			Matrix4f _proj;
 			Matrix4f _transformation;
 			//GLProgram* all programs for possible states
@@ -54,6 +62,16 @@ namespace cvt {
 	{
 		_proj = camera.projection();
 		_transformation = camera.transformation().inverse();
+	}
+
+	inline void GLSShader::setMode( GLSShaderMode mode )
+	{
+		_mode = mode;
+	}
+
+	inline GLSShaderMode GLSShader::mode() const
+	{
+		return _mode;
 	}
 
 	inline void GLSShader::setUniforms()

@@ -39,6 +39,7 @@ namespace cvt {
 			GLSLightType _ltype;
 			Color		 _color;
 			bool		 _visible;
+//			GLTexture*	 _shadowmap;
 	};
 
 	inline GLSLight::GLSLight( GLSLightType ltype ) :  _ltype( ltype )
@@ -47,6 +48,8 @@ namespace cvt {
 
 	inline GLSLight::~GLSLight()
 	{
+//		if( _shadowmap )
+//			delete _shadowmap;
 	}
 
 	inline GLSLightType GLSLight::lightType() const
