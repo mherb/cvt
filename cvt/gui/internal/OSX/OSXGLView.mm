@@ -91,7 +91,7 @@
 - (void)flagsChanged:(NSEvent *)e
 {
 	cvt::KeyEvent ke;
-	std::cout << std::hex << "0x" << [ e keyCode ] << std::endl;
+	//FIXME: check keyCode and modifierFlags to generate KeyEvents
 }
 
 - (void)mouseDown:(NSEvent *)e

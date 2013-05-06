@@ -139,7 +139,6 @@ namespace cvt {
 					win = ( *_windows )[ xevent.xkey.window ];
 					KeyEvent ke;
 					X11KeyMap::mapToKeyEvent( ke, &xevent.xkey );
-					std::cout << ke << std::endl;
 					( ( Window* ) win->_widget )->keyPressEvent( ke );
 				}
 				break;
