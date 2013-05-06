@@ -91,7 +91,7 @@ namespace cvt {
 		}
 
 		if( _cams.size() == 0 ) {
-			_cams.push_back( GLSCamera( 80.0f, 1.333f, 0.01f, 100.0f ) );
+			_cams.push_back( GLSCamera( 80.0f, 1.333f, 0.1f, 150.0f ) );
 			Matrix4f t;
 			t.setIdentity();
 			t *= 10.0f;
@@ -134,7 +134,7 @@ namespace cvt {
 		glDisable( GL_DEPTH_TEST );
 
 		Matrix4f proj;
-		GL::orthoTranslation( proj, 0, ( float ) 640, 0, ( float ) 480, ( float ) 0, ( float ) 0, -1000.0f, 1000.0f, true );
+		GL::orthoTranslation( proj, 0, ( float ) 640, 0, ( float ) 480, ( float ) 0, ( float ) 0, -100.0f, 100.0f, true );
 		_drawimgp.bind();
 		_drawimgp.setProjection( proj );
 		_drawimgp.setAlpha( 1.0f );

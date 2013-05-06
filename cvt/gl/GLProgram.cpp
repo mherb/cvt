@@ -80,7 +80,7 @@ namespace cvt {
 		}
 
 		if( geomsrc ) {
-			gs = glCreateShader( GL_GEOMETRY_SHADER_EXT );
+			gs = glCreateShader( GL_GEOMETRY_SHADER );
 			if( !gs ) {
 				glDeleteShader( vs );
 				throw GLException("Geometry-Shader creation failed!\n");

@@ -12,6 +12,8 @@ namespace cvt {
 			GLSceneView( GLScene& scene );
 			~GLSceneView();
 
+
+			void paintEvent( PaintEvent& e, GFX& g );
 			void paintGLEvent( PaintEvent& );
 
 			void mousePressEvent( MousePressEvent& e );
@@ -34,6 +36,12 @@ namespace cvt {
 
 	inline GLSceneView::~GLSceneView()
 	{
+	}
+
+	inline void GLSceneView::paintEvent( PaintEvent& e, GFX& g )
+	{
+		GLView::paintEvent( e, g );
+		g.drawText( 10, 10, _scene.camera( 0 ).transformation().col( 3 ).toString().c_str() );
 	}
 
 
@@ -93,39 +101,39 @@ namespace cvt {
 
 		switch( e.key() ) {
 			case KEY_Left:
-				 t.setRotationY( 2.0f / 180.0f * Math::PI );
+				 t.setRotationY( 5.0f / 180.0f * Math::PI );
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;
 			case KEY_Right:
 				 t.setIdentity();
-				 t.setRotationY( -2.0f / 180.0f * Math::PI );
+				 t.setRotationY( -5.0f / 180.0f * Math::PI );
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;
 			case KEY_W:
 			case KEY_w:
 				 t.setIdentity();
-				 t[ 2 ][ 3 ] = -0.5f;
+				 t[ 2 ][ 3 ] = -1.0f;
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;
 			case KEY_S:
 			case KEY_s:
 				 t.setIdentity();
-				 t[ 2 ][ 3 ] = 0.5f;
+				 t[ 2 ][ 3 ] = 1.0f;
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;
 			case KEY_Up:
 				 t.setIdentity();
-				 t[ 1 ][ 3 ] = 0.5f;
+				 t[ 1 ][ 3 ] = 1.0f;
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;
 			case KEY_Down:
 				 t.setIdentity();
-				 t[ 1 ][ 3 ] = -0.5f;
+				 t[ 1 ][ 3 ] = -1.0f;
 				 _scene.camera( 0 ).transformation() *= t;
 				 update();
 				 break;

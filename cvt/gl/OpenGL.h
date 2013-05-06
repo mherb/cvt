@@ -18,8 +18,9 @@
 #ifdef APPLE
 //#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 	#include <OpenGL/gl3.h>
+    #include <OpenGL/gl3ext.h>
   //  #include <OpenGL/gl.h>
-    #include <OpenGL/glext.h>
+  //  #include <OpenGL/glext.h>
     #include <OpenGL/OpenGL.h>
 #else
 	#include <GL/gl.h>

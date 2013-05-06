@@ -43,7 +43,7 @@ namespace cvt {
 	inline GLRBO::GLRBO( GLenum format, GLsizei width, GLsizei height ) : _rbo( 0 ), _format( format ), _width( width ), _height( height )
 	{
 		GL::glGenRenderbuffers( 1, &_rbo );
-		GL::glBindRenderbuffer( GL_RENDERBUFFER_EXT, _rbo );
+		GL::glBindRenderbuffer( GL_RENDERBUFFER, _rbo );
 		GL::glRenderbufferStorage( GL_RENDERBUFFER, _format, _width, _height );
 		GL::glBindRenderbuffer( GL_RENDERBUFFER, 0 );
 	}

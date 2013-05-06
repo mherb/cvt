@@ -30,6 +30,9 @@ namespace cvt {
 
 	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat & format )
 	{
+		static const GLint GRAY_SWIZZLE[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+		static const GLint GRAYALPHA_SWIZZLE[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+
 		GLenum glformat, gltype/*, internalformat*/;
 
 		if( _width == width && _height == height && _format == format )
@@ -48,6 +51,13 @@ namespace cvt {
 		glBindTexture( GL_TEXTURE_2D, _tex2d );
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		if( format.channels == 1 )
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, GRAY_SWIZZLE );
+		if( format.channels == 2 )
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, GRAYALPHA_SWIZZLE );
+
+
 		glPixelStorei( GL_UNPACK_ROW_LENGTH, ( GLint ) ( _stride / ( _format.bpp ) ) );
 		getGLFormat( _format, glformat, gltype );
 /*		if( _format.bpc <= 1 )
@@ -55,6 +65,7 @@ namespace cvt {
 		else*/
 //		    internalformat = GL_RGBA;
 		/* do not copy non-meaningful PBO content - just allocate space, since current PBO content is undefined */
+
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 	}
 
@@ -144,10 +155,10 @@ namespace cvt {
 			case IFORMAT_GRAY_INT16:		glformat = GL_RED; gltype = GL_SHORT; break;
 			case IFORMAT_GRAY_FLOAT:		glformat = GL_RED; gltype = GL_FLOAT; break;
 
-			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
-			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RED; gltype = GL_UNSIGNED_SHORT; break;
-			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RED; gltype = GL_SHORT; break;
-			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RED; gltype = GL_FLOAT; break;
+			case IFORMAT_GRAYALPHA_UINT8:	glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
+			case IFORMAT_GRAYALPHA_UINT16:	glformat = GL_RG; gltype = GL_UNSIGNED_SHORT; break;
+			case IFORMAT_GRAYALPHA_INT16:	glformat = GL_RG; gltype = GL_SHORT; break;
+			case IFORMAT_GRAYALPHA_FLOAT:	glformat = GL_RG; gltype = GL_FLOAT; break;
 
 			case IFORMAT_RGBA_UINT8:		glformat = GL_RGBA; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_RGBA_UINT16:		glformat = GL_RGBA; gltype = GL_UNSIGNED_SHORT; break;
@@ -159,8 +170,8 @@ namespace cvt {
 			case IFORMAT_BGRA_INT16:		glformat = GL_BGRA; gltype = GL_SHORT; break;
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
 
-                        case IFORMAT_BAYER_RGGB_UINT8:          glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
-                        case IFORMAT_BAYER_GRBG_UINT8:          glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+            case IFORMAT_BAYER_RGGB_UINT8:  glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+            case IFORMAT_BAYER_GRBG_UINT8:  glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
 
 			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
