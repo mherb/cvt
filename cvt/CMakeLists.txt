@@ -86,6 +86,8 @@ SET( GLSL_SHADER
    gl/shader/150/basicrr_150.frag
    gl/shader/150/basiclight_150.frag
    gl/shader/150/basiclight_150.vert
+   gl/shader/150/basiclighttex_150.frag
+   gl/shader/150/basiclighttex_150.vert
    gl/shader/150/texmls_150.frag
    gl/shader/150/texmls_150.vert
 )
@@ -274,6 +276,7 @@ SET(${MODULE_NAME}_HEADERS
    gl/progs/GLDrawImageProg.h
    gl/progs/GLDrawIconProg.h
    gl/progs/GLDrawModelProg.h
+   gl/progs/GLDrawTexModelProg.h
    gl/progs/GLFillPathProg.h
    gl/progs/GLTexMLSProg.h
    gl/scene/GLSBaseModel.h
@@ -584,6 +587,7 @@ SET(${MODULE_NAME}_SOURCES
    gl/progs/GLDrawImageProg.cpp
    gl/progs/GLDrawIconProg.cpp
    gl/progs/GLDrawModelProg.cpp
+   gl/progs/GLDrawTexModelProg.cpp
    gl/progs/GLFillPathProg.cpp
    gl/progs/GLTexMLSProg.cpp
    gl/scene/GLSVisitor.cpp

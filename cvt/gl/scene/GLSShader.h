@@ -12,6 +12,7 @@
 #define CVT_GLSSHADER_H
 
 #include <cvt/gl/progs/GLDrawModelProg.h>
+#include <cvt/gl/progs/GLDrawTexModelProg.h>
 #include <cvt/gl/scene/GLSCamera.h>
 #include <cvt/gl/scene/GLSMaterial.h>
 
@@ -34,28 +35,30 @@ namespace cvt {
 			void setCamera( const GLSCamera& camera );
 			void setTransformation( const Matrix4f& mat, bool setuniform = false );
 			const Matrix4f& transformation() const { return _transformation; }
-			void setMaterial( const GLSMaterial& mat );
+			void setMaterial( const GLSMaterial* mat );
 
 			void setMode( GLSShaderMode mode );
 			GLSShaderMode mode() const;
 
-			void bind() { _prog.bind(); }
-			void unbind() { _prog.unbind(); }
+			void bind();
+			void unbind();
 
 			void setUniforms();
 		private:
+			const GLSMaterial*  _mat;
 			GLSShaderMode _mode;
 			Matrix4f _proj;
 			Matrix4f _transformation;
 			//GLProgram* all programs for possible states
 			GLDrawModelProg _prog;
+			GLDrawTexModelProg _progtex;
 	};
 
-	inline GLSShader::GLSShader()
+	inline GLSShader::GLSShader() : _mat( NULL )
 	{
-		_prog.bind();
-		_prog.setLightPosition( Vector3f( 1.0f, 1.0f, -2.0f ) );
-		_prog.unbind();
+		_progtex.bind();
+		_progtex.setLightPosition( Vector3f( 1.0f, 1.0f, -2.0f ) );
+		_progtex.unbind();
 	}
 
 	inline void GLSShader::setCamera( const GLSCamera& camera )
@@ -74,9 +77,36 @@ namespace cvt {
 		return _mode;
 	}
 
+
+	inline void GLSShader::setMaterial( const GLSMaterial* mat )
+	{
+//		if( _mode == GLSSHADER_DEFAULT ) {
+			_mat = mat;
+//		}
+	}
+
+	inline void GLSShader::bind()
+	{
+		if( _mat ) {
+			if( _mat->diffuseMap() )
+				_mat->diffuseMap()->bind();
+		}
+		_progtex.bind();
+	}
+
+	inline void GLSShader::unbind()
+	{
+		if( _mat ) {
+			if( _mat->diffuseMap() )
+				_mat->diffuseMap()->unbind();
+		}
+		_progtex.unbind();
+	}
+
+
 	inline void GLSShader::setUniforms()
 	{
-		_prog.setProjection( _proj, _transformation );
+		_progtex.setProjection( _proj, _transformation );
 	}
 
 	inline void GLSShader::setTransformation( const Matrix4f& mat, bool setuniform )

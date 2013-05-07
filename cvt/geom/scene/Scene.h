@@ -35,11 +35,14 @@ namespace cvt {
 			const SceneMaterial*	material( size_t index ) const;
 			size_t					materialSize() const;
 			void					addMaterial( SceneMaterial* geometry );
+			const SceneMaterial*	material( const String& name ) const;
 
 			SceneTexture*			texture( size_t index );
 			const SceneTexture*		texture( size_t index ) const;
 			size_t					textureSize() const;
 			void					addTexture( SceneTexture* tex );
+			const SceneTexture*		texture( const String& name ) const;
+
 
 			void					load( const String& path, SceneLoader* loader = NULL );
 
@@ -102,7 +105,6 @@ namespace cvt {
 		return _materials[ index ];
 	}
 
-
 	inline size_t Scene::materialSize() const
 	{
 		return _materials.size();
@@ -111,6 +113,16 @@ namespace cvt {
 	inline void Scene::addMaterial( SceneMaterial* mat )
 	{
 		_materials.push_back( mat );
+	}
+
+	inline const SceneMaterial* Scene::material( const String& name ) const
+	{
+		for( size_t i = 0; i < _materials.size(); i++ ) {
+			if( _materials[ i ]->name() == name ) {
+				return _materials[ i ];
+			}
+		}
+		return NULL;
 	}
 
 	inline SceneTexture* Scene::texture( size_t index )
@@ -131,6 +143,17 @@ namespace cvt {
 	inline void Scene::addTexture( SceneTexture* tex )
 	{
 		_textures.push_back( tex );
+	}
+
+
+	inline const SceneTexture* Scene::texture( const String& name ) const
+	{
+		for( size_t i = 0; i < _textures.size(); i++ ) {
+			if( _textures[ i ]->name() == name ) {
+				return _textures[ i ];
+			}
+		}
+		return NULL;
 	}
 
 	inline std::ostream& operator<<( std::ostream& out, const Scene& s )

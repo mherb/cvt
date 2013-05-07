@@ -33,6 +33,7 @@ namespace cvt {
 
 //		std::cout << _shader.transformation() << std::endl;
 
+		_shader.setMaterial( bmodel.material() );
 		_shader.bind();
 		_shader.setTransformation( tnew, true );
 		bmodel.mesh()->draw();

@@ -20,7 +20,7 @@ namespace cvt {
 
 	class GLSBaseModel : public GLSRenderable {
 		public:
-			GLSBaseModel( GLMesh* mesh, GLSMaterial* material );
+			GLSBaseModel( GLMesh* mesh, GLSMaterial* material = NULL );
 			~GLSBaseModel();
 
 			GLMesh*		 mesh() { return _mesh; }

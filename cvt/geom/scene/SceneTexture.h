@@ -21,7 +21,7 @@ namespace cvt {
 							~SceneTexture();
 
 			void			load( const String& path );
-			const Image&	image();
+			const Image&	image() const;
 
 		private:
 			Image _image;
@@ -46,7 +46,7 @@ namespace cvt {
 		}
 	}
 
-	inline const Image& SceneTexture::image()
+	inline const Image& SceneTexture::image() const
 	{
 		return _image;
 	}

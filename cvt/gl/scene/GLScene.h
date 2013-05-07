@@ -55,8 +55,7 @@ namespace cvt {
 		private:
 			std::vector<GLSCamera>		_cams;
 			std::vector<GLSLight>		_lights;
-			std::vector<GLSMaterial>	_materials;
-			std::vector<GLTexture>		_textures;
+			std::vector<GLSMaterial*>	_materials;
 			std::vector<GLMesh*>		_meshes;
 			GLSRenderableGroup*			_renderables;
 			GLSShader					_shader;
@@ -85,8 +84,13 @@ namespace cvt {
 
 		for( size_t i = 0; i < scene.geometrySize(); i++ ) {
 			if( scene.geometry( i )->type() == SCENEGEOMETRY_MESH ) {
+				const SceneMaterial* mat;
 				_meshes.push_back( new GLMesh( *( ( SceneMesh* ) scene.geometry( i ) ) ) );
-				_renderables->add( new GLSBaseModel( _meshes.back(), NULL ) );
+				if( ( mat = scene.material( scene.geometry( i )->material() ) ) != NULL ) {
+					_materials.push_back( new GLSMaterial( *mat, scene ) );
+					_renderables->add( new GLSBaseModel( _meshes.back(), _materials.back() ) );
+				} else
+					_renderables->add( new GLSBaseModel( _meshes.back(), NULL ) );
 			}
 		}
 
@@ -138,6 +142,8 @@ namespace cvt {
 		_drawimgp.bind();
 		_drawimgp.setProjection( proj );
 		_drawimgp.setAlpha( 1.0f );
+//		GLTexture* _tex = _materials[ 0 ]->diffuseMap();
+//		_drawimgp.drawImage( 0, 0, 320, 240, *_tex );
 		_drawimgp.drawImage( 0, 0, 320, 240, _texture );
 		_drawimgp.unbind();
 

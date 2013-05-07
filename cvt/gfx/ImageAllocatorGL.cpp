@@ -28,7 +28,7 @@ namespace cvt {
 		glDeleteBuffers( 1, &_glbuf );
 	}
 
-	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat & format )
+	void ImageAllocatorGL::alloc( size_t width, size_t height, const IFormat& format )
 	{
 		static const GLint GRAY_SWIZZLE[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
 		static const GLint GRAYALPHA_SWIZZLE[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };

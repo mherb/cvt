@@ -75,6 +75,9 @@ namespace cvt {
 			const String&	alphaMap() const;
 			const String&	normalMap() const;
 
+			SceneMaterialFlags flags() const;
+			SceneMaterialFlags& flags();
+
 		private:
 			Color	_emit;
 			Color	_ambient;
@@ -93,7 +96,7 @@ namespace cvt {
 			String	_alphamap;
 			String  _normalmap;
 
-			SceneMaterialFlags _features;
+			SceneMaterialFlags _flags;
 	};
 
 	inline SceneMaterial::SceneMaterial( const String& name ) : SceneNode( name ),
@@ -108,41 +111,52 @@ namespace cvt {
 	{
 	}
 
+	inline SceneMaterialFlags SceneMaterial::flags() const
+	{
+		return _flags;
+	}
+
+	inline SceneMaterialFlags& SceneMaterial::flags()
+	{
+		return _flags;
+	}
+
+
 	inline void SceneMaterial::setEmitColor( const Color& c )
 	{
 		_emit = c;
 		if( _emit != Color::BLACK )
-			_features |= SCENEMATERIAL_EMIT;
+			_flags |= SCENEMATERIAL_EMIT;
 	}
 
 	inline void SceneMaterial::setAmbientColor( const Color& c )
 	{
 		_ambient = c;
-		_features |= SCENEMATERIAL_AMBIENT;
+		_flags |= SCENEMATERIAL_AMBIENT;
 	}
 
 	inline void SceneMaterial::setDiffuseColor( const Color& c )
 	{
 		_diffuse = c;
-		_features |= SCENEMATERIAL_DIFFUSE;
+		_flags |= SCENEMATERIAL_DIFFUSE;
 	}
 
 	inline void SceneMaterial::setSpecularColor( const Color& c )
 	{
 		_specular = c;
-		_features |= SCENEMATERIAL_SPECULAR;
+		_flags |= SCENEMATERIAL_SPECULAR;
 	}
 
 	inline void SceneMaterial::setReflectiveColor( const Color& c )
 	{
 		_reflective = c;
-		_features |= SCENEMATERIAL_REFLECTIVE;
+		_flags |= SCENEMATERIAL_REFLECTIVE;
 	}
 
 	inline void SceneMaterial::setTransmissonColor( const Color& c )
 	{
 		_transmisson = c;
-		_features |= SCENEMATERIAL_TRANSMISSON;
+		_flags |= SCENEMATERIAL_TRANSMISSON;
 	}
 
 	inline void SceneMaterial::setShininess( float s )
@@ -168,31 +182,31 @@ namespace cvt {
 	inline void SceneMaterial::setAmbientMap( const String& name )
 	{
 		_ambientmap = name;
-		_features |= SCENEMATERIAL_AMBIENTMAP;
+		_flags |= SCENEMATERIAL_AMBIENTMAP;
 	}
 
 	inline void SceneMaterial::setDiffuseMap( const String& name )
 	{
 		_diffusemap = name;
-		_features |= SCENEMATERIAL_DIFFUSEMAP;
+		_flags |= SCENEMATERIAL_DIFFUSEMAP;
 	}
 
 	inline void SceneMaterial::setSpecularMap( const String& name )
 	{
 		_specularmap = name;
-		_features |= SCENEMATERIAL_SPECULARMAP;
+		_flags |= SCENEMATERIAL_SPECULARMAP;
 	}
 
 	inline void SceneMaterial::setAlphaMap( const String& name )
 	{
 		_alphamap = name;
-		_features |= SCENEMATERIAL_ALPHAMAP;
+		_flags |= SCENEMATERIAL_ALPHAMAP;
 	}
 
 	inline void SceneMaterial::setNormalMap( const String& name )
 	{
 		_normalmap = name;
-		_features |= SCENEMATERIAL_NORMALMAP;
+		_flags |= SCENEMATERIAL_NORMALMAP;
 	}
 
 	inline const Color&	SceneMaterial::emitColor() const
