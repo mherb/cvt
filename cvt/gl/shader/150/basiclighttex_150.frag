@@ -9,7 +9,7 @@ out vec4 Output;
 
 void main()
 {
-    float intensity = abs( dot( normalize( LIGHTPOS ), vtx_Normal ) );
+    float intensity = max(0.0,( dot( normalize( LIGHTPOS ), vtx_Normal ) ));
 	vec4 c = texture( Tex, vtx_TexCoord  );
-    Output = vec4( c.xyz * intensity, c.w );
+    Output = vec4( c.xyz * ( intensity + 0.2 ), c.w );
 }

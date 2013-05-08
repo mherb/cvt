@@ -17,11 +17,11 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
-	Scene s;
 	Time t;
-	s.load( argv[ 1 ] );
+	Scene* s = new Scene();
+	s->load( argv[ 1 ] );
 	std::cout << "Loading took: " << t.elapsedMilliSeconds() << " ms" << std::endl;
-	std::cout << s << std::endl;
+	std::cout << ( const Scene&)( *s ) << std::endl;
 
 /*	size_t index = String( argv[ 2 ] ).toInteger();
 	std::cout << index << std::endl;
@@ -34,7 +34,8 @@ int main( int argc, char** argv )
 	Window w( "meshView" );
 	w.setSize( 640, 480 );
 
-	GLScene glscene( s );
+	GLScene glscene( *s );
+	delete s;
 	GLSceneView view( glscene );
 
 	WidgetLayout wl;

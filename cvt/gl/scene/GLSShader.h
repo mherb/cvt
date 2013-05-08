@@ -57,7 +57,7 @@ namespace cvt {
 	inline GLSShader::GLSShader() : _mat( NULL )
 	{
 		_progtex.bind();
-		_progtex.setLightPosition( Vector3f( 1.0f, 1.0f, -2.0f ) );
+		_progtex.setLightPosition( Vector3f( -100.0f, 340.0f, 65.0f ) );
 		_progtex.unbind();
 	}
 

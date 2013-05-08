@@ -69,9 +69,13 @@ namespace cvt {
 		for( std::vector<SceneMaterial*>::iterator it = _materials.begin(); it != _materials.end(); ++it ) {
 			delete *it;
 		}
+		for( std::vector<SceneTexture*>::iterator it = _textures.begin(); it != _textures.end(); ++it ) {
+			delete *it;
+		}
 
 		_geometries.clear();
 		_materials.clear();
+		_textures.clear();
 	}
 
 	inline SceneGeometry* Scene::geometry( size_t index )
