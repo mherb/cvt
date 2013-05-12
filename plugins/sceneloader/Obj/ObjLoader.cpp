@@ -312,7 +312,8 @@ namespace cvt {
 
 			d.nextToken( token, ws );
 			t.x = d.nextDouble();
-			t.y = d.nextDouble();
+			// inverse the y coordinate
+			t.y = 1.0 - d.nextDouble();
 			d.skipInverse("\n");
 			d.skip( ws );
 			texcoords.push_back( t );
@@ -347,6 +348,8 @@ namespace cvt {
 		}
 
 		v = d.nextLong();
+		vt = 0;
+		vn = 0;
 		if( *d.pos() != ' ' && *d.pos() != '\n' && *d.pos() != '\r' && *d.pos() != '\t' ) {
 				// must be followed by vt and or vn
 				// parse vt
@@ -360,19 +363,16 @@ namespace cvt {
 					vt = d.nextLong();
 
 				// parse vn
-				if( *d.pos() == ' ' ) // check if empty
+				if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' ) // check if empty
 					vn = 0;
 				else if( *d.pos() == '/' ) {
 					d.skip( 1 );
-					if( *d.pos() == ' ' ) // check if empty
+					if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' ) // check if empty
 						vn = 0;
 					else
 						vn = d.nextLong();
 				} else // error
 					return false;
-		} else {
-			vt = v;
-			vn = v;
 		}
 
 		return true;
@@ -432,8 +432,11 @@ namespace cvt {
 			if( token == "g" ) { // group
 				if( faces.size() ) {
 					ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
-					if( !cur->isEmpty() )
+					if( !cur->isEmpty() ) {
+						if( !cur->normalSize() )
+							cur->calculateNormals();
 						scene.addGeometry( cur );
+					}
 					faces.clear();
 				} else
 					delete cur;
@@ -468,6 +471,16 @@ namespace cvt {
 					scene.clear();
 					return;
 				}
+
+				//fix this shit
+				if( faces.size() && cur->material()!="" ) {
+					ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
+					if( !cur->normalSize() )
+						cur->calculateNormals();
+					scene.addGeometry( cur );
+					faces.clear();
+					cur = new SceneMesh( "XXX" );
+				}
 				cur->setMaterial( token );
 			} else if( token == "v" ) { // vertices
 				ObjReadVertices( d, vertices );
@@ -497,8 +510,11 @@ namespace cvt {
 
 		if( faces.size() ) {
 			ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
-			if( !cur->isEmpty() )
+			if( !cur->isEmpty() ) {
+				if( !cur->normalSize() )
+					cur->calculateNormals();
 				scene.addGeometry( cur );
+			}
 		} else
 			delete cur;
 

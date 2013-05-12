@@ -133,9 +133,11 @@ namespace cvt {
 		fbo.unbind();
 
 		glEnable( GL_DEPTH_TEST );
+		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		_renderables->accept( rvisitor );
 		glDisable( GL_DEPTH_TEST );
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
 		Matrix4f proj;
 		GL::orthoTranslation( proj, 0, ( float ) 640, 0, ( float ) 480, ( float ) 0, ( float ) 0, -100.0f, 100.0f, true );

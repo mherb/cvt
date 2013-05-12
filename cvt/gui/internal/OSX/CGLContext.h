@@ -47,11 +47,11 @@ namespace cvt {
 		};
 
 		if( _format.samples() != 0 ) {
-			attribs[ 7 ] = kCGLPFASampleBuffers;
-			attribs[ 8 ] = ( CGLPixelFormatAttribute ) 1;
-			attribs[ 9 ] = kCGLPFASamples;
-			attribs[ 10 ] = ( CGLPixelFormatAttribute ) _format.samples();
-			attribs[ 11 ] = ( CGLPixelFormatAttribute ) 0;
+			attribs[ 9 ] = kCGLPFASampleBuffers;
+			attribs[ 10 ] = ( CGLPixelFormatAttribute ) 1;
+			attribs[ 11 ] = kCGLPFASamples;
+			attribs[ 12 ] = ( CGLPixelFormatAttribute ) _format.samples();
+			attribs[ 13 ] = ( CGLPixelFormatAttribute ) 0;
 		}
 
 		if( CGLChoosePixelFormat( attribs, &pixfmt, &npix ) )

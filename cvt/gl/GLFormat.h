@@ -61,7 +61,7 @@ namespace cvt {
 		_red = _green = _blue = _alpha = 8;
 		_depth = 16;
 		_stencil = 8;
-		_samples = 0;
+		_samples = 2;
 		_db = true;
 		_direct = true;
 	}

@@ -89,7 +89,7 @@ namespace cvt {
 
 			img.unmap( ptr );
 		} else {
-			glTexImage2D( GL_TEXTURE_2D, 0, _internalFormat, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ( GLsizei ) _width, ( GLsizei ) _height, 0, glformat, gltype, NULL );
 		}
 	}
 

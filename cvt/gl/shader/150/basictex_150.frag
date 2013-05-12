@@ -8,6 +8,6 @@ out vec4 Output;
 
 void main()
 {
-	vec4 c = texture( Tex, vtx_TexCoord  ) * vtx_Color.a;
+	vec4 c = texture( Tex, vtx_TexCoord  );
 	Output = c;
 }
