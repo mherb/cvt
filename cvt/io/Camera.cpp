@@ -102,7 +102,7 @@ namespace cvt {
 
 		switch( camInfo.type() ){
 			case CAMERATYPE_UEYE:
-#ifdef UEYE_FOUND
+#ifdef UEYEUSB_FOUND
 				cam = new UEyeUsbCamera( camInfo.index(), mode );
 #endif
 				break;
