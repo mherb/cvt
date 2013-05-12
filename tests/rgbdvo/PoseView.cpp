@@ -38,7 +38,7 @@ namespace cvt
         _offset = pose.inverse();
     }
 
-    void PoseView::paintGLEvent( PaintEvent* )
+    void PoseView::paintGLEvent( PaintEvent& )
     {
         Recti r = rect();
         float asp = ( float )r.width / ( float )r.height;
@@ -87,25 +87,25 @@ namespace cvt
         _basicProg.unbind();
     }
 
-    void PoseView::mousePressEvent( MousePressEvent* e )
+    void PoseView::mousePressEvent( MousePressEvent& e )
     {
-        switch( e->button() ){
+        switch( e.button() ){
             case 1:
-                _press.x = e->x;
-                _press.y = e->y;
+                _press.x = e.x;
+                _press.y = e.y;
                 break;
             case 2:
             case 3:
-                _panPress.x = e->x;
-                _panPress.y = e->y;
+                _panPress.x = e.x;
+                _panPress.y = e.y;
             default:
                 break;
         }
     }
 
-    void PoseView::mouseReleaseEvent( MouseReleaseEvent* e )
+    void PoseView::mouseReleaseEvent( MouseReleaseEvent& e )
     {
-        switch( e->button() ) {
+        switch( e.button() ) {
             case 4:
                 _trans.z += 0.25f;
                 update();
@@ -119,31 +119,31 @@ namespace cvt
         }
     }
 
-    void PoseView::mouseMoveEvent( MouseMoveEvent* e )
+    void PoseView::mouseMoveEvent( MouseMoveEvent& e )
     {
-        if( e->buttonMask() & 1 ) {
+        if( e.buttonMask() & 1 ) {
             Matrix4f rot;
-            _arcball.getRotation( rot, _press.x, _press.y, e->x, e->y );
+            _arcball.getRotation( rot, _press.x, _press.y, e.x, e.y );
 
             _rot = rot * _rot;
 
             update();
-            _press.x = e->x;
-            _press.y = e->y;
+            _press.x = e.x;
+            _press.y = e.y;
         }
 
-        if( e->buttonMask() & 2 || e->buttonMask() & 4 ) {
-            _trans.x += 0.01f * ( e->x - _panPress.x );
-            _trans.y -= 0.01f * ( e->y - _panPress.y );
+        if( e.buttonMask() & 2 || e.buttonMask() & 4 ) {
+            _trans.x += 0.01f * ( e.x - _panPress.x );
+            _trans.y -= 0.01f * ( e.y - _panPress.y );
             update();
-            _panPress.x = e->x;
-            _panPress.y = e->y;
+            _panPress.x = e.x;
+            _panPress.y = e.y;
         }
     }
 
-    void PoseView::resizeEvent( ResizeEvent* e )
+    void PoseView::resizeEvent( ResizeEvent& e )
     {
-        _arcball.setViewportSize( e->width(), e->height() );
+        _arcball.setViewportSize( e.width(), e.height() );
     }
 
     void PoseView::createGrid( ssize_t halfRes )
