@@ -764,6 +764,7 @@ namespace cvt
 		for( unsigned int i = 0; i < videoModes.num; i++ ){
 			IFormat cvtFormat = IFormat::BGRA_UINT8;
 			size_t width = 0, height = 0;
+			bool fixedFrameRate = true;
 			switch ( videoModes.modes[ i ] ) {
 				case DC1394_VIDEO_MODE_320x240_YUV422:
 					cvtFormat = IFormat::UYVY_UINT8;
@@ -811,14 +812,33 @@ namespace cvt
 					width = 1600; height = 1200;
 					break;
 				case DC1394_VIDEO_MODE_1600x1200_MONO16:
+					cvtFormat = IFormat::GRAYALPHA_UINT16;
+					width = 1600; height = 1200;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_0:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_1:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_2:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_3:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_4:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_5:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_6:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_FORMAT7_7:
+					fixedFrameRate = false;
+					break;
 				case DC1394_VIDEO_MODE_160x120_YUV444:
 				case DC1394_VIDEO_MODE_640x480_YUV411:
 				case DC1394_VIDEO_MODE_EXIF:
@@ -827,39 +847,53 @@ namespace cvt
 					break;
 			}
 
-			dc1394framerates_t framerates;
-			dc1394_video_get_supported_framerates( cam, videoModes.modes[ i ], &framerates );
-			size_t fps = 0;
-			for( size_t f = 0; f < framerates.num; f++ ){
-				switch ( framerates.framerates[ f ]) {
-					case DC1394_FRAMERATE_1_875:
-						fps = 2;
-						break;
-					case DC1394_FRAMERATE_3_75:
-						fps = 4;
-						break;
-					case DC1394_FRAMERATE_7_5:
-						fps = 8;
-						break;
-					case DC1394_FRAMERATE_15:
-						fps = 15;
-						break;
-					case DC1394_FRAMERATE_30:
-						fps = 30;
-						break;
-					case DC1394_FRAMERATE_60:
-						fps = 60;
-						break;
-					case DC1394_FRAMERATE_120:
-						fps = 120;
-						break;
-					case DC1394_FRAMERATE_240:
-						fps = 240;
-						break;
-					default:
-						break;
+			if( fixedFrameRate ){
+				dc1394framerates_t framerates;
+				dc1394_video_get_supported_framerates( cam, videoModes.modes[ i ], &framerates );
+				size_t fps = 0;
+				for( size_t f = 0; f < framerates.num; f++ ){
+					switch ( framerates.framerates[ f ]) {
+						case DC1394_FRAMERATE_1_875:
+							fps = 2;
+							break;
+						case DC1394_FRAMERATE_3_75:
+							fps = 4;
+							break;
+						case DC1394_FRAMERATE_7_5:
+							fps = 8;
+							break;
+						case DC1394_FRAMERATE_15:
+							fps = 15;
+							break;
+						case DC1394_FRAMERATE_30:
+							fps = 30;
+							break;
+						case DC1394_FRAMERATE_60:
+							fps = 60;
+							break;
+						case DC1394_FRAMERATE_120:
+							fps = 120;
+							break;
+						case DC1394_FRAMERATE_240:
+							fps = 240;
+							break;
+						default:
+							break;
+					}
+					info.addMode( CameraMode( width, height, fps, cvtFormat ) );
 				}
-				info.addMode( CameraMode( width, height, fps, cvtFormat ) );
+			} else {
+				// this is the format 7 case: get the supported ranges
+				dc1394format7mode_t f7Mode;
+				dc1394_format7_get_mode_info( cam, videoModes.modes[ i ], &f7Mode );
+				// format 7 modes are resizeable (aoi)
+				width = f7Mode.max_size_x;
+				height = f7Mode.max_size_y;
+
+				for( size_t c = 0; c < f7Mode.color_codings.num; c++ ){
+					// TODO: get the appropriate IFormat
+				}
+
 			}
 		}
 

@@ -18,8 +18,6 @@
 #include <cvt/vision/rgbdvo/GlobalFCKeyframe.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
-#include <Eigen/Geometry>
-
 using namespace cvt;
 
 template <class Warp, class LossFunc>
