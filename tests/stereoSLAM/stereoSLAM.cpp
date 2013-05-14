@@ -109,7 +109,6 @@ int main( int argc, char* argv[] )
         }
     }
 
-
     std::vector<VideoInput*> input;
     std::vector<CameraCalibration> calibs;
 

@@ -21,11 +21,11 @@ namespace cvt
 
 		protected:
 
-			void paintGLEvent( PaintEvent* );
-			void mousePressEvent( MousePressEvent* e );
-			void mouseReleaseEvent( MouseReleaseEvent* e );
-			void mouseMoveEvent( MouseMoveEvent* e );
-			void resizeEvent( ResizeEvent* e );
+			void paintGLEvent( PaintEvent& );
+			void mousePressEvent( MousePressEvent& e );
+			void mouseReleaseEvent( MouseReleaseEvent& e );
+			void mouseMoveEvent( MouseMoveEvent& e );
+			void resizeEvent( ResizeEvent& e );
 
 		private:
 			// view transform (virtual cam)

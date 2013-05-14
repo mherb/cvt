@@ -23,7 +23,7 @@ namespace cvt
 
 			void setCurrentImage( const Image& img );
 			void setNumTrackedFeatures( size_t n );
-			void resizeEvent( ResizeEvent* event );
+			void resizeEvent( ResizeEvent& event );
 			void updateStereoView( const Image& img );
 			void updateCameraPose( const Matrix4f & m );
 
@@ -132,7 +132,7 @@ namespace cvt
 		setVisible( true );
 	}
 			
-	inline void SLAMGui::resizeEvent( ResizeEvent* event )
+	inline void SLAMGui::resizeEvent( ResizeEvent& event )
 	{
 		Window::resizeEvent( event );
 	}
