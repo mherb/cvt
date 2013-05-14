@@ -173,7 +173,7 @@ namespace cvt {
 		Rleft  = R2 * Rleft;
 	}
 
-	inline void StereoCameraCalibration::undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright, size_t width, size_t height, bool verticalstereo ) const
+	inline void StereoCameraCalibration::undistortRectify( StereoCameraCalibration& stereo, Image& warpleft, Image& warpright, size_t, size_t, bool verticalstereo ) const
 	{
 		/*
 			Algorithm from Matlab Camera Calibration Toolbox
