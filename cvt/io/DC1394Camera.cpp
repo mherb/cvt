@@ -14,7 +14,61 @@
 #include <cvt/util/String.h>
 
 namespace cvt
-{
+{    
+	static IFormat _formatForDC( dc1394color_filter_t filter, dc1394color_coding_t coding ){
+		switch( coding ){
+			case DC1394_COLOR_CODING_MONO8:
+				return IFormat::GRAY_UINT8;
+			case DC1394_COLOR_CODING_YUV422:
+				return IFormat::YUYV_UINT8;
+			case DC1394_COLOR_CODING_RGB8:
+				return IFormat::RGBA_UINT8;
+			case DC1394_COLOR_CODING_MONO16:
+				return IFormat::RGBA_UINT16;
+			case DC1394_COLOR_CODING_RGB16:
+				return IFormat::RGBA_UINT16;
+			case DC1394_COLOR_CODING_MONO16S:
+				return IFormat::GRAY_INT16;
+			case DC1394_COLOR_CODING_RGB16S:
+				return IFormat::RGBA_INT16;
+			case DC1394_COLOR_CODING_RAW8:
+				switch( filter ){
+					case DC1394_COLOR_FILTER_RGGB:
+						return IFormat::BAYER_RGGB_UINT8;
+					case DC1394_COLOR_FILTER_GRBG:
+						return IFormat::BAYER_GRBG_UINT8;
+					case DC1394_COLOR_FILTER_GBRG:
+					case DC1394_COLOR_FILTER_BGGR:
+					default:
+						throw CVTException( "unsupported bayer format" );
+				}
+			default:
+				throw CVTException( "unsupported format" );
+		}
+	}
+
+    static bool _isFormat7Mode( dc1394video_mode_t mode )
+    {
+        switch( mode ){
+            case DC1394_VIDEO_MODE_FORMAT7_0:
+            case DC1394_VIDEO_MODE_FORMAT7_1:
+            case DC1394_VIDEO_MODE_FORMAT7_2:
+            case DC1394_VIDEO_MODE_FORMAT7_3:
+            case DC1394_VIDEO_MODE_FORMAT7_4:
+            case DC1394_VIDEO_MODE_FORMAT7_5:
+            case DC1394_VIDEO_MODE_FORMAT7_6:
+            case DC1394_VIDEO_MODE_FORMAT7_7:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static float _calcFormat7FPS( size_t bytesPerPacket, size_t width, size_t height, float bytesPerPixel )
+    {
+        return ( float )( bytesPerPacket * 8000 /* 8000 packets per second */ ) / ( float )( width * height * bytesPerPixel );
+    }
+
 	DC1394Camera::DC1394Camera( size_t camIndex, const CameraMode & mode ) :
 		_dmaBufNum( 10 ),
 		_camIndex( camIndex ),
@@ -98,9 +152,7 @@ namespace cvt
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
 
-		if( dc1394_video_set_framerate( _camera, _framerate ) == DC1394_FAILURE ){
-			throw CVTException( dc1394_error_get_string( error ) );
-		}
+		setFrameRate( _fps );
 
 		error = dc1394_capture_setup( _camera, _dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
 		if( error == DC1394_FAILURE ){
@@ -113,17 +165,11 @@ namespace cvt
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
 
-//		enableWhiteBalanceAuto( false );
-//		enableShutterAuto( false );
-//		enableGainAuto( false );
-//		enableIrisAuto( false );
-//		setShutter( 300 );
-
 		_capturing = true;
 
-		std::cout << "PIO_CSR: " << std::hex << _camera->PIO_control_csr << std::endl;
-		std::cout << "PIO_STROBE_CTRL_REGISTER: " << std::hex << _camera->strobe_control_csr << std::endl;
-		std::cout << "Command Reg Base: " << std::hex << _camera->command_registers_base << std::endl;
+//		std::cout << "PIO_CSR: " << std::hex << _camera->PIO_control_csr << std::endl;
+//		std::cout << "PIO_STROBE_CTRL_REGISTER: " << std::hex << _camera->strobe_control_csr << std::endl;
+//		std::cout << "Command Reg Base: " << std::hex << _camera->command_registers_base << std::endl;
 	}
 
 	void DC1394Camera::stopCapture( )
@@ -136,38 +182,6 @@ namespace cvt
 
 			dc1394_capture_stop( _camera );
 		_capturing = false;
-	}
-
-	const IFormat& _formatForDC( dc1394color_filter_t filter, dc1394color_coding_t coding ){
-		switch( coding ){
-			case DC1394_COLOR_CODING_MONO8:
-				return IFormat::GRAY_UINT8;
-			case DC1394_COLOR_CODING_YUV422:
-				return IFormat::YUYV_UINT8;
-			case DC1394_COLOR_CODING_RGB8:
-				return IFormat::RGBA_UINT8;
-			case DC1394_COLOR_CODING_MONO16:
-				return IFormat::RGBA_UINT16;
-			case DC1394_COLOR_CODING_RGB16:
-				return IFormat::RGBA_UINT16;
-			case DC1394_COLOR_CODING_MONO16S:
-				return IFormat::GRAY_INT16;
-			case DC1394_COLOR_CODING_RGB16S:
-				return IFormat::RGBA_INT16;
-			case DC1394_COLOR_CODING_RAW8:
-				switch( filter ){
-					case DC1394_COLOR_FILTER_RGGB:
-						return IFormat::BAYER_RGGB_UINT8;
-					case DC1394_COLOR_FILTER_GRBG:
-						return IFormat::BAYER_GRBG_UINT8;
-					case DC1394_COLOR_FILTER_GBRG:
-					case DC1394_COLOR_FILTER_BGGR:
-					default:
-						throw CVTException( "unsupported bayer format" );
-				}
-			default:
-				throw CVTException( "unsupported format" );
-		}
 	}
 
 	bool DC1394Camera::nextFrame( size_t timeout )
@@ -450,13 +464,52 @@ namespace cvt
 
 	void DC1394Camera::setFrameRate( float fps )
 	{
-		dc1394framerate_t newFR = closestFixedFrameRate( fps );
-		dc1394error_t status = dc1394_video_set_framerate( _camera, newFR );
-		if( status == DC1394_SUCCESS ){
-			_framerate = newFR;
+		if( _isFormat7 ){
+			setBandwidth( fps );
 		} else {
-			std::cout << "Could not set framerate: " << dc1394_error_get_string( status ) << std::endl;
+			dc1394framerate_t newFR = closestFixedFrameRate( fps );
+			dc1394error_t status = dc1394_video_set_framerate( _camera, newFR );
+			if( status == DC1394_SUCCESS ){
+				_framerate = newFR;
+				float f;
+				dc1394_framerate_as_float( _framerate, &f );
+				_fps = ( size_t )f;
+			} else {
+				std::cout << "Could not set framerate: " << dc1394_error_get_string( status ) << std::endl;
+			}
 		}
+	}
+
+	void DC1394Camera::setBandwidth( float fps )
+	{
+		// this should use the current AOI later on
+		uint32_t w = _width;
+		uint32_t h = _height;
+
+		dc1394_format7_set_image_size( _camera, _mode, w, h );
+		dc1394_format7_set_color_coding( _camera, _mode, _colorCoding );
+
+		uint32_t packetUnits, maxBytes;
+		dc1394_format7_get_packet_parameters( _camera, _mode, &packetUnits, &maxBytes );
+
+		uint32_t bitsPerPixel = 0;
+		dc1394_get_color_coding_data_depth( _colorCoding, &bitsPerPixel );
+		size_t bytesPerFrame = ( w * h * bitsPerPixel ) >> 3;
+
+		// we need to calculate the packet size needed to reach the frame rate
+		// fps = ( packet_size * n_packets_per_second ) / size_of_one_frame
+		uint32_t packetSize = fps * bytesPerFrame / 8000.0f;
+		if( packetSize > maxBytes ){
+			packetSize = maxBytes;
+		} else {
+			// pad to unit
+			float rest = packetSize % packetUnits;
+			packetSize += ( ( int )( rest + 1 ) ) * packetUnits;
+		}
+		dc1394_format7_set_packet_size( _camera, _mode, packetSize );
+
+		dc1394_format7_get_packet_size( _camera, _mode, &packetSize );
+		_fps = _calcFormat7FPS( packetSize, w, h, bitsPerPixel >> 3 );
 	}
 
 	float DC1394Camera::frameRate() const
@@ -596,6 +649,23 @@ namespace cvt
 		}
 	}
 
+	void DC1394Camera::setAreaOfInterest( const Recti& rect )
+	{
+		// only format 7 modes support this
+		if( _isFormat7 ){
+			uint32_t packSize = 0;
+			dc1394_format7_get_packet_size( _camera, _mode, &packSize );
+			dc1394_format7_set_roi( _camera,
+									_mode,
+									_colorCoding,
+									packSize,
+									( uint32_t )rect.x,
+									( uint32_t )rect.y,
+									( uint32_t )rect.width,
+									( uint32_t )rect.height );
+		}
+	}
+
 	void DC1394Camera::setExternalTriggerMode( ExternalTriggerMode mode )
 	{
 		dc1394error_t error = dc1394_external_trigger_set_mode( _camera, ( dc1394trigger_mode_t )mode );
@@ -619,11 +689,41 @@ namespace cvt
 	{
 		// get equivalent dc video mode
 		_mode = dcMode( mode );
-
-		_framerate = closestFixedFrameRate( mode.fps );
 	}
 
 	dc1394video_mode_t DC1394Camera::dcMode( const CameraMode & mode ) {
+		/* first try to use the format7 mode if possible */
+		dc1394error_t error;
+		dc1394video_modes_t videoModes;
+		error = dc1394_video_get_supported_modes( _camera, &videoModes );
+		if( error == DC1394_FAILURE ){
+			throw CVTException( "Could not query supported video modes from device" );
+		}
+
+		for( size_t m = 0; m < videoModes.num; m++ ){
+			if( _isFormat7Mode( videoModes.modes[ m ] ) ){
+				// get modeinfo
+				dc1394format7mode_t f7m;
+				dc1394_format7_get_mode_info( _camera, videoModes.modes[ m ], &f7m );
+
+				for( size_t c = 0; c < f7m.color_codings.num; c++ ){
+					try {
+						IFormat cvtFormat = _formatForDC( f7m.color_filter, f7m.color_codings.codings[ c ] );
+						if( f7m.max_size_x == mode.width &&
+							f7m.max_size_y == mode.height &&
+							mode.format == cvtFormat ){
+							_colorCoding = f7m.color_codings.codings[ c ];
+							_colorFilter = f7m.color_filter;
+							_isFormat7 = true;
+							return videoModes.modes[ m ];
+						}
+					} catch( const cvt::Exception& e ){
+					}
+				}
+			}
+		}
+
+		_isFormat7 = false;
 		/* check fixed dc sizes */
 		if( mode.width == 320 && mode.height == 240 ){
 			if ( mode.format == IFormat::YUYV_UINT8 ) {
@@ -635,8 +735,13 @@ namespace cvt
 
 		if( mode.width == 640 && mode.height == 480 ){
 			switch ( mode.format.formatID ) {
-				case IFORMAT_UYVY_UINT8:		return DC1394_VIDEO_MODE_640x480_YUV422;
-				case IFORMAT_BAYER_RGGB_UINT8:	return DC1394_VIDEO_MODE_640x480_MONO8;
+				case IFORMAT_UYVY_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_YUV422;
+					return DC1394_VIDEO_MODE_640x480_YUV422;
+				case IFORMAT_BAYER_RGGB_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_RAW8;
+					_colorFilter = DC1394_COLOR_FILTER_RGGB;
+					return DC1394_VIDEO_MODE_640x480_MONO8;
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
@@ -645,8 +750,13 @@ namespace cvt
 
 		if( mode.width == 800 && mode.height == 600 ){
 			switch ( mode.format.formatID ) {
-				case IFORMAT_YUYV_UINT8:		return DC1394_VIDEO_MODE_800x600_YUV422;
-				case IFORMAT_BAYER_RGGB_UINT8:	return DC1394_VIDEO_MODE_800x600_MONO8;
+				case IFORMAT_YUYV_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_YUV422;
+					return DC1394_VIDEO_MODE_800x600_YUV422;
+				case IFORMAT_BAYER_RGGB_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_RAW8;
+					_colorFilter = DC1394_COLOR_FILTER_RGGB;
+					return DC1394_VIDEO_MODE_800x600_MONO8;
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
@@ -655,8 +765,13 @@ namespace cvt
 
 		if( mode.width == 1024 && mode.height == 768 ){
 			switch ( mode.format.formatID ) {
-				case IFORMAT_YUYV_UINT8:		return DC1394_VIDEO_MODE_1024x768_YUV422;
-				case IFORMAT_BAYER_RGGB_UINT8:	return DC1394_VIDEO_MODE_1024x768_MONO8;
+				case IFORMAT_YUYV_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_YUV422;
+					return DC1394_VIDEO_MODE_1024x768_YUV422;
+				case IFORMAT_BAYER_RGGB_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_RAW8;
+					_colorFilter = DC1394_COLOR_FILTER_RGGB;
+					return DC1394_VIDEO_MODE_1024x768_MONO8;
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
@@ -665,8 +780,13 @@ namespace cvt
 
 		if( mode.width == 1280 && mode.height == 960 ){
 			switch ( mode.format.formatID ) {
-				case IFORMAT_YUYV_UINT8:		return DC1394_VIDEO_MODE_1280x960_YUV422;
-				case IFORMAT_BAYER_RGGB_UINT8:	return DC1394_VIDEO_MODE_1280x960_MONO8;
+				case IFORMAT_YUYV_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_YUV422;
+					return DC1394_VIDEO_MODE_1280x960_YUV422;
+				case IFORMAT_BAYER_RGGB_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_RAW8;
+					_colorFilter = DC1394_COLOR_FILTER_RGGB;
+					return DC1394_VIDEO_MODE_1280x960_MONO8;
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
@@ -674,8 +794,13 @@ namespace cvt
 		}
 		if( mode.width == 1600 && mode.height == 1200 ){
 			switch ( mode.format.formatID ) {
-				case IFORMAT_YUYV_UINT8:	return DC1394_VIDEO_MODE_1600x1200_YUV422;
-				case IFORMAT_GRAY_UINT8:	return DC1394_VIDEO_MODE_1600x1200_MONO8;
+				case IFORMAT_YUYV_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_YUV422;
+					return DC1394_VIDEO_MODE_1600x1200_YUV422;
+				case IFORMAT_GRAY_UINT8:
+					_colorCoding = DC1394_COLOR_CODING_RAW8;
+					_colorFilter = DC1394_COLOR_FILTER_RGGB;
+					return DC1394_VIDEO_MODE_1600x1200_MONO8;
 				default:
 					throw CVTException( "No equivalent dc1394 mode for given CameraMode" );
 					break;
@@ -756,7 +881,6 @@ namespace cvt
 		dc1394error_t error;
 		dc1394video_modes_t videoModes;
 		error = dc1394_video_get_supported_modes( cam, &videoModes );
-
 		if( error == DC1394_FAILURE ){
 			throw CVTException( "Could not query supported video modes from device" );
 		}
@@ -886,23 +1010,38 @@ namespace cvt
 				// this is the format 7 case: get the supported ranges
 				dc1394format7mode_t f7Mode;
 				dc1394_format7_get_mode_info( cam, videoModes.modes[ i ], &f7Mode );
-				// format 7 modes are resizeable (aoi)
+
+				// this actually should never happen
+				if( !f7Mode.present )
+					continue;
+
 				width = f7Mode.max_size_x;
 				height = f7Mode.max_size_y;
 
 				for( size_t c = 0; c < f7Mode.color_codings.num; c++ ){
-					// TODO: get the appropriate IFormat
-				}
+					try {
+						// get the matching cvt format
+						cvtFormat = _formatForDC( f7Mode.color_filter, f7Mode.color_codings.codings[ c ] );
 
+						// get the bits per pixel that go over the bus for this color coding
+						uint32_t bitsPerPixel = 0;
+						dc1394_get_color_coding_data_depth( f7Mode.color_codings.codings[ c ], &bitsPerPixel );
+
+						// compute the maximum possible framerate
+						float fps = _calcFormat7FPS( f7Mode.max_packet_size, width, height, ( float )bitsPerPixel / 8.0f );
+
+						info.addMode( CameraMode( width, height, fps, cvtFormat ) );
+					} catch( const cvt::Exception& e ){
+						std::cout << "Skipping dc1394 video mode: " << e.what() << std::endl;
+					}
+				}
 			}
 		}
-
 
 		dc1394_camera_free( cam );
 		dc1394_camera_free_list( list );
 		dc1394_free( handle );
 	}
-
 
 	void DC1394Camera::printAllFeatures()
 	{
