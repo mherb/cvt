@@ -15,7 +15,7 @@
 
 namespace cvt
 {    
-	static IFormat _formatForDC( dc1394color_filter_t filter, dc1394color_coding_t coding ){
+	static IFormat _formatForDC( dc1394color_filter_t filter, dc1394color_coding_t coding ){        
 		switch( coding ){
 			case DC1394_COLOR_CODING_MONO8:
 				return IFormat::GRAY_UINT8;
@@ -38,11 +38,14 @@ namespace cvt
 					case DC1394_COLOR_FILTER_GRBG:
 						return IFormat::BAYER_GRBG_UINT8;
 					case DC1394_COLOR_FILTER_GBRG:
-					case DC1394_COLOR_FILTER_BGGR:
+                        return IFormat::BAYER_GBRG_UINT8;
+					case DC1394_COLOR_FILTER_BGGR:                    
 					default:
+                        std::cout << "filter" << ( int )filter << std::endl;
 						throw CVTException( "unsupported bayer format" );
 				}
-			default:
+            default:
+                std::cout << "coding " << ( int )coding << std::endl;
 				throw CVTException( "unsupported format" );
 		}
 	}
@@ -718,6 +721,7 @@ namespace cvt
 							return videoModes.modes[ m ];
 						}
 					} catch( const cvt::Exception& e ){
+                        std::cout << "IGNORING UNSUPPORTED CODING" << std::endl;
 					}
 				}
 			}
@@ -887,7 +891,7 @@ namespace cvt
 
 		for( unsigned int i = 0; i < videoModes.num; i++ ){
 			IFormat cvtFormat = IFormat::BGRA_UINT8;
-			size_t width = 0, height = 0;
+            uint32_t width = 0, height = 0;
 			bool fixedFrameRate = true;
 			switch ( videoModes.modes[ i ] ) {
 				case DC1394_VIDEO_MODE_320x240_YUV422:
@@ -1007,29 +1011,29 @@ namespace cvt
 					info.addMode( CameraMode( width, height, fps, cvtFormat ) );
 				}
 			} else {
-				// this is the format 7 case: get the supported ranges
-				dc1394format7mode_t f7Mode;
-				dc1394_format7_get_mode_info( cam, videoModes.modes[ i ], &f7Mode );
+                std::cout << "TESTING FORMAT7 MODE" << std::endl;
+                dc1394color_codings_t codings;
+                dc1394color_filter_t filter;
+                uint32_t packetUnit, maxPacket;
 
-				// this actually should never happen
-				if( !f7Mode.present )
-					continue;
+                dc1394_format7_get_max_image_size( cam, videoModes.modes[ i ], &width, &height );
+                dc1394_format7_get_packet_parameters( cam, videoModes.modes[ i ], &packetUnit, &maxPacket );
+                dc1394_format7_get_color_codings( cam, videoModes.modes[ i ], &codings );
+                dc1394_format7_get_color_filter( cam, videoModes.modes[ i ], &filter );
 
-				width = f7Mode.max_size_x;
-				height = f7Mode.max_size_y;
-
-				for( size_t c = 0; c < f7Mode.color_codings.num; c++ ){
+                for( size_t c = 0; c < codings.num; c++ ){
 					try {
 						// get the matching cvt format
-						cvtFormat = _formatForDC( f7Mode.color_filter, f7Mode.color_codings.codings[ c ] );
+                        cvtFormat = _formatForDC( filter, codings.codings[ c ] );
 
 						// get the bits per pixel that go over the bus for this color coding
 						uint32_t bitsPerPixel = 0;
-						dc1394_get_color_coding_data_depth( f7Mode.color_codings.codings[ c ], &bitsPerPixel );
+                        dc1394_get_color_coding_data_depth( codings.codings[ c ], &bitsPerPixel );
 
 						// compute the maximum possible framerate
-						float fps = _calcFormat7FPS( f7Mode.max_packet_size, width, height, ( float )bitsPerPixel / 8.0f );
+                        float fps = _calcFormat7FPS( maxPacket, width, height, ( float )bitsPerPixel / 8.0f );
 
+                        std::cout << "ADDING MODE " << width << ", " << height << ", " << fps << ", " << cvtFormat << std::endl;
 						info.addMode( CameraMode( width, height, fps, cvtFormat ) );
 					} catch( const cvt::Exception& e ){
 						std::cout << "Skipping dc1394 video mode: " << e.what() << std::endl;
