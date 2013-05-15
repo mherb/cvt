@@ -250,14 +250,21 @@ namespace cvt
 		size_t stride;
 		uint8_t* dst = _frame.map( &stride );
 
-		size_t bytesPerRow = ( frame->stride - frame->padding_bytes );
+        /* numpixels * bytesperpixel*/
+        uint32_t bitsPerPixel;
+        error = dc1394_get_color_coding_bit_size( frame->color_coding, &bitsPerPixel );
+        if( error != DC1394_SUCCESS )
+            throw CVTException( dc1394_error_get_string( error ) );
 
+        size_t bytesPerRow = ( frame->size[ 0 ] * bitsPerPixel ) >> 3;
 		for( size_t i = 0; i < _height; i++ )
 			memcpy( dst + i * stride, frame->image + i * frame->stride, bytesPerRow );
 		_frame.unmap( dst );
 
 		/* FIXME: convert to image format ... */
-		dc1394_capture_enqueue( _camera, frame );
+        error = dc1394_capture_enqueue( _camera, frame );
+        if( error != DC1394_SUCCESS )
+            throw CVTException( dc1394_error_get_string( error ) );
 
 		return true;
 	}
@@ -270,14 +277,7 @@ namespace cvt
 		}
 	}
 
-	/**
-	 * @brief Return a reference to the next image.
-	 * @return reference to the image raw data within the dma ring buffer.
-	 *
-	 * Use reference to read the image data from the camera. You may also
-	 * need to know the image size and format to avoid memory access violations.
-	 */
-	const Image& DC1394Camera::frame() const
+    const Image& DC1394Camera::frame() const
 	{
 		if( !_capturing)
 			throw CVTException( "Camera is not in capturing mode!" );
