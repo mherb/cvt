@@ -181,6 +181,8 @@ namespace cvt
 			void setFrameRate( float fps );
 			float frameRate() const;
 
+			void setAreaOfInterest( const Recti& rect );
+
 		private:
 			void close();
 			void init();
@@ -191,6 +193,7 @@ namespace cvt
 			dc1394video_mode_t dcMode( const CameraMode & mode );
 
 			dc1394framerate_t closestFixedFrameRate( float fps );
+			void setBandwidth( float fps );
 			
 			int     _dmaBufNum;
 			size_t  _camIndex;
@@ -199,14 +202,17 @@ namespace cvt
 			size_t  _height;
 			size_t  _fps;
 
-			bool                _capturing;
-			dc1394_t*           _dcHandle;
-			dc1394camera_t*     _camera;
-			dc1394speed_t       _speed;
-			dc1394video_mode_t  _mode;
-			dc1394framerate_t   _framerate;
-            String              _identifier;
-            RunMode             _runMode;
+			bool                 _capturing;
+			dc1394_t*            _dcHandle;
+			dc1394camera_t*      _camera;
+			dc1394speed_t        _speed;
+			dc1394video_mode_t   _mode;
+			dc1394color_coding_t _colorCoding;
+			dc1394color_filter_t _colorFilter;
+			dc1394framerate_t    _framerate;
+			bool				 _isFormat7;
+			String               _identifier;
+			RunMode              _runMode;
 	};
 
 }

@@ -258,6 +258,7 @@ namespace cvt
 		aoiRect.s32Height = roi.height;
 
 		if( is_AOI( _camHandle, IS_AOI_IMAGE_SET_AOI, &aoiRect, sizeof( aoiRect ) ) == IS_NO_SUCCESS ){
+            throw CVTException( "error when setting AOI" );
 		}
 	}
 

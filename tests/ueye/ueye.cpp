@@ -45,6 +45,9 @@ class CameraTimeout : public TimeoutHandler
             //_cam->setTriggerDelay( 0 );
 
 			_cam->setHardwareGains( 0, 8, 0, 14 );
+
+            //Recti aoi( 40, 40, 150, 200 );
+            //_cam->setAreaOfInterest( aoi );
 			_timer.reset();
 
             //_cam->testIOSupport();

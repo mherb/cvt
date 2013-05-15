@@ -683,6 +683,202 @@ namespace cvt {
         sourceImage.unmap( osrc );
     }
 
+    void Conv_BAYER_GBRG_to_RGBAu8( Image & dstImage, const Image & sourceImage, IConvertFlags flags )
+    {
+        const uint32_t* src1;
+        const uint32_t* src2;
+        const uint32_t* src3;
+        const uint32_t* src4;
+        const uint32_t* src5;
+        const uint8_t* osrc;
+        uint32_t* dst;
+        uint8_t* odst;
+        size_t sstride;
+        size_t dstride;
+        size_t h;
+        size_t w;
+        size_t i;
+
+        SIMD* simd = SIMD::instance();
+
+        osrc = sourceImage.map( &sstride );
+        src1 = ( uint32_t* ) osrc;
+        sstride = sstride >> 2;
+        src2 = src1 + sstride;
+        src3 = src2 + sstride;
+        src4 = src3 + sstride;
+        src5 = src4 + sstride;
+        w = sourceImage.width();
+        h = sourceImage.height();
+        odst = dstImage.map( &dstride );
+        dst = ( uint32_t* ) odst;
+        dstride = dstride >> 2;
+
+		if( flags & ICONVERT_DEBAYER_HQLINEAR ) {
+			simd->debayer_ODD_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
+			dst += dstride;
+			simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+			dst += dstride;
+			for( i = 2; i < h - 2; i += 2 ) {
+				simd->debayerhq_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				src4 += sstride;
+				src5 += sstride;
+				simd->debayerhq_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				src4 += sstride;
+				src5 += sstride;
+			}
+			if( h - 2 == i ) {
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src2, src3, src4, w >> 2 );
+				dst += dstride;
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src3, src4, src3, w >> 2 );
+			} else {
+				simd->debayerhq_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, src4, src5, w );
+				dst += dstride;
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src3, src4, src5, w >> 2 );
+				dst += dstride;
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src3, src4, src3, w >> 2 );
+			}
+
+		} else {
+			simd->debayer_ODD_RGGBu8_RGBAu8( dst, src2, src1, src2, w >> 2 );
+			dst += dstride;
+			for( i = 1; i < h - 1; i += 2 ) {
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				src1 += sstride;
+				src2 += sstride;
+				src3 += sstride;
+			}
+			if( h - 1 == i )
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src1, w >> 2 );
+			else {
+				simd->debayer_EVEN_RGGBu8_RGBAu8( dst, src1, src2, src3, w >> 2 );
+				dst += dstride;
+				simd->debayer_ODD_RGGBu8_RGBAu8( dst, src2, src3, src2, w >> 2 );
+			}
+		}
+
+            dstImage.unmap( odst );
+            sourceImage.unmap( osrc );
+    }
+
+    void Conv_BAYER_GBRG_to_GRAYu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
+    {
+        const uint32_t* src1;
+        const uint32_t* src2;
+        const uint32_t* src3;
+        const uint8_t* osrc;
+        uint32_t* dst;
+        uint8_t* odst;
+        size_t sstride;
+        size_t dstride;
+        size_t h;
+        size_t w;
+        size_t i;
+
+        SIMD* simd = SIMD::instance();
+
+        osrc = sourceImage.map( &sstride );
+        src1 = ( uint32_t* ) osrc;
+        sstride = sstride >> 2;
+        src2 = src1 + sstride;
+        src3 = src2 + sstride;
+        w = sourceImage.width();
+        h = sourceImage.height();
+        odst = dstImage.map( &dstride );
+        dst = ( uint32_t* ) odst;
+        dstride = dstride >> 2;
+
+        simd->debayer_ODD_RGGBu8_GRAYu8( dst, src2, src1, src2, w >> 2 );
+        dst += dstride;
+        for( i = 1; i < h - 1; i += 2 ) {
+            simd->debayer_EVEN_RGGBu8_GRAYu8( dst, src1, src2, src3, w >> 2 );
+            dst += dstride;
+            src1 += sstride;
+            src2 += sstride;
+            src3 += sstride;
+            simd->debayer_ODD_RGGBu8_GRAYu8( dst, src1, src2, src3, w >> 2 );
+            dst += dstride;
+            src1 += sstride;
+            src2 += sstride;
+            src3 += sstride;
+        }
+        if( i < h ) {
+            if( ++i & 1 ) {
+                simd->debayer_EVEN_RGGBu8_GRAYu8( dst, src1, src2, src1, w >> 2 );
+            } else {
+                simd->debayer_ODD_RGGBu8_GRAYu8( dst, src1, src2, src1, w >> 2 );
+            }
+        }
+        simd->debayer_ODD_RGGBu8_GRAYu8( dst, src2, src1, src2, w >> 2 );
+        dstImage.unmap( odst );
+        sourceImage.unmap( osrc );
+    }
+
+    void Conv_BAYER_GBRG_to_BGRAu8( Image & dstImage, const Image & sourceImage, IConvertFlags )
+    {
+        const uint32_t* src1;
+        const uint32_t* src2;
+        const uint32_t* src3;
+        const uint8_t* osrc;
+        uint32_t* dst;
+        uint8_t* odst;
+        size_t sstride;
+        size_t dstride;
+        size_t h;
+        size_t w;
+        size_t i;
+
+        SIMD* simd = SIMD::instance();
+
+        osrc = sourceImage.map( &sstride );
+        src1 = ( uint32_t* ) osrc;
+        sstride = sstride >> 2;
+        src2 = src1 + sstride;
+        src3 = src2 + sstride;
+        w = sourceImage.width();
+        h = sourceImage.height();
+        odst = dstImage.map( &dstride );
+        dst = ( uint32_t* ) odst;
+        dstride = dstride >> 2;
+
+        simd->debayer_ODD_RGGBu8_BGRAu8( dst, src2, src1, src2, w >> 2 );
+        dst += dstride;
+        for( i = 1; i < h - 1; i += 2 ) {
+            simd->debayer_EVEN_RGGBu8_BGRAu8( dst, src1, src2, src3, w >> 2 );
+            dst += dstride;
+            src1 += sstride;
+            src2 += sstride;
+            src3 += sstride;
+            simd->debayer_ODD_RGGBu8_BGRAu8( dst, src1, src2, src3, w >> 2 );
+            dst += dstride;
+            src1 += sstride;
+            src2 += sstride;
+            src3 += sstride;
+        }
+        if( i < h ) {
+            if( i & 1 ) {
+                simd->debayer_EVEN_RGGBu8_BGRAu8( dst, src1, src2, src1, w >> 2 );
+            } else {
+                simd->debayer_ODD_RGGBu8_BGRAu8( dst, src1, src2, src1, w >> 2 );
+            }
+        }
+        dstImage.unmap( odst );
+        sourceImage.unmap( osrc );
+    }
 
     IConvert::IConvert():
         _convertFuncs( 0 )
@@ -755,6 +951,11 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_BAYER_RGGB_to_GRAYu8;
         TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_BAYER_RGGB_to_RGBAu8;
         TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_BAYER_RGGB_to_BGRAu8;
+
+        /* GBRG_UINT8 to X */
+        TABLE( _convertFuncs, IFORMAT_BAYER_GBRG_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_BAYER_RGGB_to_GRAYu8;
+        TABLE( _convertFuncs, IFORMAT_BAYER_GBRG_UINT8, IFORMAT_RGBA_UINT8 ) = &Conv_BAYER_GBRG_to_RGBAu8;
+        TABLE( _convertFuncs, IFORMAT_BAYER_GBRG_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_BAYER_GBRG_to_BGRAu8;
 
         /* YUYV_UINT8 to X */
         TABLE( _convertFuncs, IFORMAT_YUYV_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_YUYVu8_to_GRAYu8;

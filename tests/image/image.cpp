@@ -19,6 +19,8 @@ int main()
 	String inputGray = resources.find( "lena_g.png" );
 	String inputSTest = resources.find( "scaletest.png" );
 
+    String gbrg = resources.find( "gbrg.cvtraw" );
+
 	try {
 		{
 			Image ppm( resources.find( "lena.ppm" ) );
@@ -36,6 +38,11 @@ int main()
 			stst2.scale( out, stst.width() / 2, stst.height( ) / 2, filter );
 			out.save( "scaleoutput.png" );
 		}
+
+        Image bayer( gbrg );
+        Image debayered;
+        bayer.convert( debayered, IFormat::RGBA_UINT8 );
+        debayered.save( "gbrg_deb.png" );
 
 		// RGBA UBYTE IMAGE
 		cvt::Image img, img2, gradx;

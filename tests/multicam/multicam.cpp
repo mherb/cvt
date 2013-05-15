@@ -144,9 +144,9 @@ Camera* selectCamera( std::set<size_t>& alreadySelected )
 	}
 	
 	try {	
-		Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::UYVY_UINT8 );
-		//Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::BAYER_GRBG_UINT8	 );
-		cam->startCapture();
+		//Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::UYVY_UINT8 );
+        Camera* cam = Camera::get( selection, 640, 480, 30, IFormat::BAYER_GRBG_UINT8 );
+        cam->startCapture();
 		alreadySelected.insert( selection );
 		return cam;
 	} catch( const cvt::Exception& ex ){
