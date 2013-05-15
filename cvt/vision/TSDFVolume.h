@@ -34,6 +34,10 @@ namespace cvt
 
 			void toSceneMesh( SceneMesh& mesh ) const;
 
+			void sliceX( Image& img ) const;
+			void sliceY( Image& img ) const;
+			void sliceZ( Image& img ) const;
+
 			/*
 			   o save or map-data
 			   o to SceneMesh / GLMesh using MC
@@ -54,6 +58,7 @@ namespace cvt
 			CLBuffer _clproj;
 			CLKernel _clvolclear;
 			CLKernel _clvoladd;
+			CLKernel _clsliceX, _clsliceY, _clsliceZ;
 	};
 
 

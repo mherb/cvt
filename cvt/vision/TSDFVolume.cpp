@@ -13,7 +13,10 @@ namespace cvt
 		_clvolume( sizeof( cl_float2 ) * width * height * depth ),
 		_clproj( sizeof( float ) * 12 ),
 		_clvolclear( _TSDFVolume_source, "TSDFVolume_clear" ),
-		_clvoladd( _TSDFVolume_source, "TSDFVolume_add" )
+		_clvoladd( _TSDFVolume_source, "TSDFVolume_add" ),
+		_clsliceX( _TSDFVolume_source, "TSDFVolume_sliceX"),
+		_clsliceY( _TSDFVolume_source, "TSDFVolume_sliceY"),
+		_clsliceZ( _TSDFVolume_source, "TSDFVolume_sliceZ")
 	{
 
 	}
@@ -63,6 +66,19 @@ namespace cvt
 		mc.triangulateWithNormals( mesh, 0.0f );
 		_clvolume.unmap( ptr );
 	}
+
+	void TSDFVolume::sliceX( Image& img ) const
+	{
+	}
+
+	void TSDFVolume::sliceY( Image& img ) const
+	{
+	}
+
+	void TSDFVolume::sliceZ( Image& img ) const
+	{
+	}
+
 
 	void TSDFVolume::saveRaw( const String& path ) const
 	{
