@@ -240,7 +240,9 @@ namespace cvt
 			// reallocate to MONO
 			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
 		} else if( frame->color_coding == DC1394_COLOR_CODING_RAW8 &&
-			( _frame.format() != IFormat::BAYER_GRBG_UINT8 || _frame.format() != IFormat::BAYER_RGGB_UINT8 ) ){
+			( _frame.format() != IFormat::BAYER_GRBG_UINT8 ||
+			  _frame.format() != IFormat::BAYER_RGGB_UINT8 ||
+			  _frame.format() != IFormat::BAYER_GBRG_UINT8 ) ){
 			// reallocate to BAYER
 			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
 		}
