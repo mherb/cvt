@@ -618,7 +618,7 @@ namespace cvt
 				_framerate = newFR;
 				float f;
 				dc1394_framerate_as_float( _framerate, &f );
-				_fps = ( size_t )f;
+				_fps = f;
 			} else {                
                 throw CVTException( dc1394_error_get_string( status ) );
 			}
@@ -691,12 +691,7 @@ namespace cvt
 
 	float DC1394Camera::frameRate() const
 	{
-		float fr = 0.0f;
-        dc1394error_t error = dc1394_framerate_as_float( _framerate, &fr );
-        if( error != DC1394_SUCCESS )
-            throw CVTException( dc1394_error_get_string( error ) );
-
-		return fr;
+		return _fps;
 	}
 
 	dc1394framerate_t DC1394Camera::closestFixedFrameRate( float fps )
