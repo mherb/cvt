@@ -13,9 +13,12 @@ namespace cvt
 		_clvolume( sizeof( cl_float2 ) * width * height * depth ),
 		_clproj( sizeof( float ) * 12 ),
 		_clvolclear( _TSDFVolume_source, "TSDFVolume_clear" ),
-		_clvoladd( _TSDFVolume_source, "TSDFVolume_add" )
+		_clvoladd( _TSDFVolume_source, "TSDFVolume_add" ),
+		_clsliceX( _TSDFVolume_source, "TSDFVolume_sliceX"),
+		_clsliceY( _TSDFVolume_source, "TSDFVolume_sliceY"),
+		_clsliceZ( _TSDFVolume_source, "TSDFVolume_sliceZ"),
+		_clraycastdepth( _TSDFVolume_source, "TSDFVolume_rayCastDepthmap" )
 	{
-
 	}
 
 	void TSDFVolume::clear( float weight )
@@ -35,7 +38,6 @@ namespace cvt
 	{
 		// update projection matrix
 		Matrix4f projall = proj * _g2w;
-		_clproj.write( ( void* ) projall.ptr() );
 
 		// add depthmap
 		_clvoladd.setArg( 0, _clvolume );
@@ -44,7 +46,7 @@ namespace cvt
 		_clvoladd.setArg( 3, ( int ) _depth );
 		_clvoladd.setArg( 4, depthmap );
 		_clvoladd.setArg( 5, scale );
-		_clvoladd.setArg( 6, _clproj );
+		_clvoladd.setArg( 6, sizeof( float ) * 16, projall.ptr() );
 		_clvoladd.setArg( 7, _trunc );
 		_clvoladd.run( CLNDRange( Math::pad16( _width ), Math::pad16( _height ), _depth ), CLNDRange( 16, 16, 1 ) );
 	}
@@ -56,6 +58,32 @@ namespace cvt
 		addDepthMap( proj, depthmap, scale );
 	}
 
+
+	void TSDFVolume::rayCastDepthMap( Image& depthmap, const Matrix3f& intrinsics, const Matrix4f& extrinsics, float scale )
+	{
+		Matrix4f proj = intrinsics.toMatrix4();
+		proj *= extrinsics;
+		rayCastDepthMap( depthmap, proj, scale );
+	}
+
+	void TSDFVolume::rayCastDepthMap( Image& depthmap, const Matrix4f& proj, float scale )
+	{
+		Matrix4f projall = proj * _g2w;
+
+		depthmap.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+
+		_clraycastdepth.setArg( 0, depthmap );
+		_clraycastdepth.setArg( 1, _clvolume );
+		_clraycastdepth.setArg( 2, ( int ) _width);
+		_clraycastdepth.setArg( 3, ( int ) _height );
+		_clraycastdepth.setArg( 4, ( int ) _depth);
+		_clraycastdepth.setArg( 5, sizeof( float ) * 16, projall.inverse().ptr() );
+		_clraycastdepth.setArg( 6, sizeof( float ) * 16, projall.ptr() );
+		_clraycastdepth.setArg( 7, scale );
+		_clraycastdepth.run( CLNDRange( Math::pad16( depthmap.width() ), Math::pad16( depthmap.height() ) ), CLNDRange( 16, 16 ) );
+	}
+
+
 	void TSDFVolume::toSceneMesh( SceneMesh& mesh ) const
 	{
 		float* ptr = ( float* ) _clvolume.map();
@@ -63,6 +91,19 @@ namespace cvt
 		mc.triangulateWithNormals( mesh, 0.0f );
 		_clvolume.unmap( ptr );
 	}
+
+	void TSDFVolume::sliceX( Image& img ) const
+	{
+	}
+
+	void TSDFVolume::sliceY( Image& img ) const
+	{
+	}
+
+	void TSDFVolume::sliceZ( Image& img ) const
+	{
+	}
+
 
 	void TSDFVolume::saveRaw( const String& path ) const
 	{

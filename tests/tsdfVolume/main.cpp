@@ -33,7 +33,9 @@ void meshToOBJ( const String& file, const SceneMesh& mesh  )
 
 	const unsigned int* faces = mesh.faces();
 	for( size_t idx = 0; idx < mesh.faceSize(); idx++ ) {
-		fprintf( f, "f %d %d %d\n", *( faces) + 1, *( faces + 1 ) + 1, *( faces + 2 ) + 1);
+		fprintf( f, "f %d//%d %d//%d %d//%d\n", *( faces) + 1, *( faces) + 1,
+												*( faces + 1 ) + 1, *( faces + 1 ) + 1,
+												*( faces + 2 ) + 1, *( faces + 2 ) + 1 );
 		faces += 3;
 	}
 
@@ -59,22 +61,22 @@ int main( int argc, char** argv )
 
         RGBDParser rgbddata( folder );
 
-/*        Matrix3f intrinsics( 517.3f, 0.0f, 318.6f,
+        Matrix3f intrinsics( 517.3f, 0.0f, 318.6f,
                                0.0f,   516.5f, 255.3f,
                                 0.0,	  0.0f,  1.0f );
-		*/
+/*
 		Matrix3f intrinsics(
 				   525.0f, 0.0f, 319.5,
 				   0.0f, 525.0, 239.5,
 				   0.0f, 0.0f,  1.0f
-				  );
+				  );*/
 
 
         Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f,  -0.25f,
                               0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, -1.5f,
                               0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), -0.5f,
-                              0.0f, 0.0f, 0.0f, 0.5f );
-		gridToWorld *= 2.0f;
+                              0.0f, 0.0f, 0.0f, 0.25 );
+		gridToWorld *= 4.0f;
 
 
 		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.07f );
@@ -83,8 +85,10 @@ int main( int argc, char** argv )
         Image depthmap;
 
         Time t;
+
+            Image raycast;
         /* add the depth maps */
-        for( int i = 0; i < 700; i++) {
+        for( int i = 0; i < 750; i++) {
             rgbddata.loadNext();
             rgbddata.data().depth.convert( depthmap, IFormat::GRAY_UINT16, IALLOCATOR_CL );
 //			camcalib.setExtrinsics( rgbddata.data().pose );
@@ -93,6 +97,17 @@ int main( int argc, char** argv )
             Matrix4f pose = rgbddata.data().pose<float>();
 
 			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
+
+#if 0
+
+			rgbddata.data().rgb.save("color.png");
+			raycast.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+
+			tsdf.rayCastDepthMap( raycast, intrinsics, pose.inverse(), ( float ) 0.1f );
+			raycast.save( "raycast.png" );
+			std::cout << "RAYCAST..." << std::endl;
+			getchar();
+#endif
         }
         std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
