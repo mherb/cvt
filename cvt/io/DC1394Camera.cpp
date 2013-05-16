@@ -72,22 +72,18 @@ namespace cvt
         return ( float )( bytesPerPacket * 8000 /* 8000 packets per second */ ) / ( float )( width * height * bytesPerPixel );
     }
 
-	DC1394Camera::DC1394Camera( size_t camIndex, const CameraMode & mode ) :
-		_dmaBufNum( 10 ),
+    DC1394Camera::DC1394Camera( size_t camIndex, const CameraMode & mode, const Parameters& params ) :
+        _params( params ),
 		_camIndex( camIndex ),
-		_frame( mode.width, mode.height, mode.format ),
-		_width( mode.width ),
-		_height( mode.height ),
+		_frame( mode.width, mode.height, mode.format ),        
 		_fps( mode.fps ),
 		_capturing( false ),
 		_dcHandle( NULL ),
-		_camera( NULL ),
-		_speed( DC1394_ISO_SPEED_400 ),
-		_runMode( RUNMODE_CONTINUOUS )
+		_camera( NULL ),        
+        _runMode( params.runMode )
 	{
-		_dcHandle = dc1394_new( );
+        _dcHandle = dc1394_new();
 		dc1394camera_list_t* list;
-
 		dc1394_camera_enumerate( _dcHandle, &list );
 
 		if( list->num == 0 ) {
@@ -104,8 +100,10 @@ namespace cvt
 		if( !_camera )
 			throw CVTException( "Could not open camera" );
 
-        loadPreset( PRESET_FACTORY );
+        setISOSpeed( _params.isoSpeed );
+        loadPreset( _params.preset );
         dcSettings( mode );
+        setFrameRate( _fps );
 
 		_identifier.sprintf( "%llu", _camera->guid );
 	}
@@ -128,10 +126,10 @@ namespace cvt
 	{
 		if( _capturing ) {
 			stopCapture();
-            reset();
+            //reset();
 			startCapture();
         } else {
-            reset();
+            //reset();
         }
 	}
 
@@ -140,18 +138,44 @@ namespace cvt
 		dc1394_camera_reset( _camera );
 	}
 
+    void DC1394Camera::setISOSpeed( uint32_t speed )
+    {
+        dc1394speed_t isoSpeed = DC1394_ISO_SPEED_400;
+        switch( speed ){
+            case 100:
+                isoSpeed = DC1394_ISO_SPEED_100;
+                break;
+            case 200:
+                isoSpeed = DC1394_ISO_SPEED_200;
+                break;
+            case 400:
+                isoSpeed = DC1394_ISO_SPEED_400;
+                break;
+            case 800:
+                isoSpeed = DC1394_ISO_SPEED_800;
+                break;
+            case 1600:
+                isoSpeed = DC1394_ISO_SPEED_1600;
+                break;
+            case 3200:
+                isoSpeed = DC1394_ISO_SPEED_3200;
+                break;
+        default:
+            break;
+        }
+
+        dc1394error_t error = dc1394_video_set_iso_speed( _camera, isoSpeed );
+        if( error == DC1394_FAILURE ){
+            throw CVTException( dc1394_error_get_string( error ) );
+        }
+    }
+
 	void DC1394Camera::startCapture( )
 	{
 		if( _capturing )
-			return;
+			return;        
 
 		dc1394error_t error;
-
-		error = dc1394_video_set_iso_speed( _camera, _speed );
-		if( error == DC1394_FAILURE ){
-			throw CVTException( dc1394_error_get_string( error ) );
-		}
-
 		error = dc1394_video_set_mode( _camera, _mode );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
@@ -159,7 +183,9 @@ namespace cvt
 
 		setFrameRate( _fps );
 
-		error = dc1394_capture_setup( _camera, _dmaBufNum, DC1394_CAPTURE_FLAGS_DEFAULT );
+        std::cout << "Max. Mem Channels: " << _camera->max_mem_channel << std::endl;
+        _params.numDMABuf = Math::max<uint32_t>( _camera->max_mem_channel, _params.numDMABuf );
+        error = dc1394_capture_setup( _camera, _params.numDMABuf, DC1394_CAPTURE_FLAGS_DEFAULT );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
@@ -257,7 +283,7 @@ namespace cvt
             throw CVTException( dc1394_error_get_string( error ) );
 
         size_t bytesPerRow = ( frame->size[ 0 ] * bitsPerPixel ) >> 3;
-		for( size_t i = 0; i < _height; i++ )
+        for( size_t i = 0; i < _frame.height(); i++ )
 			memcpy( dst + i * stride, frame->image + i * frame->stride, bytesPerRow );
 		_frame.unmap( dst );
 
@@ -602,8 +628,8 @@ namespace cvt
 	void DC1394Camera::setBandwidth( float fps )
 	{
 		// this should use the current AOI later on
-		uint32_t w = _width;
-		uint32_t h = _height;
+        uint32_t w = _frame.width();
+        uint32_t h = _frame.height();
 
         dc1394error_t error = DC1394_SUCCESS;
 
@@ -644,11 +670,13 @@ namespace cvt
 		uint32_t packetSize = fps * bytesPerFrame / 8000.0f;
         // pad to unit
         float rest = packetSize % packetUnits;
-        packetSize += ( ( int )( rest + 1 ) ) * packetUnits;
-
+        uint32_t min = packetSize - rest;
+        uint32_t max = min + packetUnits;
+        packetSize = max;
 		if( packetSize > maxBytes ){
 			packetSize = maxBytes;
         }
+
         std::cout << "Packet size: " << packetSize << std::endl;
         error = dc1394_format7_set_packet_size( _camera, _mode, packetSize );
         if( error != DC1394_SUCCESS )
@@ -658,6 +686,7 @@ namespace cvt
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
 		_fps = _calcFormat7FPS( packetSize, w, h, bitsPerPixel >> 3 );
+        std::cout << "FPS: " << _fps << std::endl;
 	}
 
 	float DC1394Camera::frameRate() const

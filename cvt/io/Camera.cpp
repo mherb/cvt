@@ -108,7 +108,7 @@ namespace cvt {
 				break;
 			case CAMERATYPE_DC1394:
 #ifdef DC1394_FOUND
-				cam = new DC1394Camera( camInfo.index(), mode );
+				cam = new DC1394Camera( camInfo.index(), mode );                
 #endif
 				break;
 			case CAMERATYPE_V4L2:

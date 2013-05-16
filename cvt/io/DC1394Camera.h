@@ -67,7 +67,30 @@ namespace cvt
 				ONE_SHOT = DC1394_FEATURE_MODE_ONE_PUSH_AUTO
 			};
 
-			DC1394Camera( size_t camIndex, const CameraMode & mode );
+            struct Parameters {
+                Parameters():
+                    numDMABuf( 5 ),
+                    runMode( RUNMODE_CONTINUOUS ),
+                    preset( PRESET_FACTORY ),
+                    isoSpeed( 400 )
+                {
+                }
+
+                Parameters( const Parameters& other ) :
+                    numDMABuf( other.numDMABuf ),
+                    runMode( other.runMode ),
+                    preset( other.preset ),
+                    isoSpeed( other.isoSpeed )
+                {
+                }
+
+                uint32_t        numDMABuf;
+                RunMode         runMode;
+                CameraPreset    preset;
+                uint32_t        isoSpeed;
+            };
+
+            DC1394Camera( size_t camIndex, const CameraMode & mode, const Parameters& params = Parameters() );
 
 			~DC1394Camera();
 
@@ -89,23 +112,14 @@ namespace cvt
 
 			const Image&	frame() const;
 
-			size_t			width() const { return _width;}
-
-			size_t			height() const { return _height;}
-
-			const IFormat&	format() const { return _frame.format();}
-
-			const String&	identifier() const { return _identifier;}
-
+            size_t			width() const { return _frame.width(); }
+            size_t			height() const { return _frame.height(); }
+            const IFormat&	format() const { return _frame.format(); }
+            const String&	identifier() const { return _identifier; }
 			void            setRunMode( RunMode mode );
-			RunMode         runMode() const;
-
-			static size_t	count();
-
-			static void		cameraInfo( size_t index, CameraInfo & info );
+            RunMode         runMode() const;
 
 			void			supportedTriggerSources( TriggerSourceVec& sources ) const;
-
 			ExternalTriggerSource triggerSource() const;
 			void			setTriggerSource( ExternalTriggerSource src ) const;
 
@@ -182,7 +196,10 @@ namespace cvt
 			float frameRate() const;
 
 			void setAreaOfInterest( const Recti& rect );
+            void setISOSpeed( uint32_t speed );
 
+            static size_t	count();
+            static void		cameraInfo( size_t index, CameraInfo & info );
 		private:
 			void close();
 			void init();
@@ -195,25 +212,22 @@ namespace cvt
 			dc1394framerate_t closestFixedFrameRate( float fps );
 			void setBandwidth( float fps );
 			
-			int     _dmaBufNum;
-			size_t  _camIndex;
-			Image   _frame;
-			size_t  _width;
-			size_t  _height;
-			size_t  _fps;
+            Parameters  _params;
+            size_t      _camIndex;
+            Image       _frame;
+            float       _fps;
 
 			bool                 _capturing;
 			dc1394_t*            _dcHandle;
-			dc1394camera_t*      _camera;
-			dc1394speed_t        _speed;
+			dc1394camera_t*      _camera;			
 			dc1394video_mode_t   _mode;
 			dc1394color_coding_t _colorCoding;
 			dc1394color_filter_t _colorFilter;
 			dc1394framerate_t    _framerate;
 			bool				 _isFormat7;
 			String               _identifier;
-			RunMode              _runMode;
-	};
+            RunMode              _runMode;
+    };
 
 }
 
