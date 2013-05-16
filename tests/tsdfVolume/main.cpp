@@ -75,11 +75,11 @@ int main( int argc, char** argv )
         Matrix4f gridToWorld( 2.0f / ( float )( VOL_WIDTH ), 0.0f, 0.0f,  -0.25f,
                               0.0f, 2.0f / ( float )( VOL_HEIGHT ), 0.0f, -1.5f,
                               0.0f, 0.0f, 2.0f / ( float ) ( VOL_DEPTH ), -0.5f,
-                              0.0f, 0.0f, 0.0f, 0.25f );
+                              0.0f, 0.0f, 0.0f, 0.25 );
 		gridToWorld *= 4.0f;
 
 
-		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.035f );
+		TSDFVolume tsdf( gridToWorld, VOL_WIDTH, VOL_HEIGHT, VOL_DEPTH, 0.07f );
 		tsdf.clear();
 
         Image depthmap;
@@ -88,7 +88,7 @@ int main( int argc, char** argv )
 
             Image raycast;
         /* add the depth maps */
-        for( int i = 0; i < 700; i++) {
+        for( int i = 0; i < 750; i++) {
             rgbddata.loadNext();
             rgbddata.data().depth.convert( depthmap, IFormat::GRAY_UINT16, IALLOCATOR_CL );
 //			camcalib.setExtrinsics( rgbddata.data().pose );
@@ -98,12 +98,16 @@ int main( int argc, char** argv )
 
 			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
 
+#if 0
+
+			rgbddata.data().rgb.save("color.png");
 			raycast.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
 			tsdf.rayCastDepthMap( raycast, intrinsics, pose.inverse(), ( float ) 0.1f );
 			raycast.save( "raycast.png" );
 			std::cout << "RAYCAST..." << std::endl;
 			getchar();
+#endif
         }
         std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 

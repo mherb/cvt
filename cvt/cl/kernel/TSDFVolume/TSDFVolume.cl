@@ -28,7 +28,7 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	float4 gridpos = ( float4 ) ( gx, gy, gz, 1.0f );
 	float4 gpos;
 	float2 ipos;
-	float z, d, sdf, tsdf, w;
+	float d, sdf, tsdf, w;
 
 	if( gx >= width || gy >= height || gz >= depth )
 		return;
@@ -37,13 +37,11 @@ __kernel void TSDFVolume_add( global float2* cv, int width, int height, int dept
 	gpos = mat4f_transform( &TG2CAM, gridpos );
 
 	/* project into camera */
-	z = gpos.z;
-//	ipos = gpos.xy / z;
-	ipos = gpos.xy / z + ( float ) 0.5f;
+	ipos = gpos.xy / gpos.z; //+ ( float ) 0.5f;
 
 	if( ipos.x < iwidth && ipos.y < iheight && ipos.x >= 0 && ipos.y >= 0 ) { // FIXME: only test for d > 0 ?
-		d = read_imagef( dmap, SAMPLER_LIN, ipos ).x * dscale;
-		if( d > 0 && z > 0 ) {
+		d = read_imagef( dmap, SAMPLER_NN, ipos ).x * dscale;
+		if( d > 0 && gpos.z > 0 ) {
 			sdf = d - gpos.z;
 			w = 1.0f;
 			tsdf = sdf / truncaction; //clamp( sdf / truncaction, -1.0f, 1.0f );
@@ -123,24 +121,46 @@ static inline float TSDFVolume_rayEnd( const float3 origin, const float3 directi
 
 static inline float TSDFVolume_trilinearValue( global float2* cv, int width, int height, int depth, float3 pos )
 {
-	pos = fmax( fmin( ( float3 ) 0.0f, pos ), ( float3 ) ( width - 1, height - 1, depth - 1 ) );
+	pos = fmin( fmax( ( float3 ) 0.0f, pos ), ( float3 ) ( width - 2, height - 2, depth - 2 ) );
 
 	float3 base  = floor( pos );
-	float3 alpha = pos - alpha;
-	int3   ibase = convert_int3( base );
+	float3 alpha = pos - base;
+	int3   ibase = ( int3 )( base.x, base.y, base.z );
 
 //	if( any( ibase ) || any( ibase - ( int3 ) ( width - 1, height - 1, depth - 1 ) ) )
 //	   return 1e10f;
-#define VALUE( x, y, z ) ( *( cv + ( ( z ) * height + ( y ) ) * width + ( x ) ) )
+
+#define TSDFWEIGHT( _x, _y, _z ) ( *( cv + ( ( _z ) * height + ( _y ) ) * width + ( _x ) ) ).y
+
+if( TSDFWEIGHT( ibase.x, ibase.y, ibase.z ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x, ibase.y, ibase.z + 1 ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x, ibase.y + 1, ibase.z ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x, ibase.y + 1, ibase.z + 1 ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x + 1, ibase.y, ibase.z ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x + 1, ibase.y, ibase.z + 1 ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x + 1, ibase.y + 1, ibase.z ) < 1.0f )
+	return 1e10f;
+if( TSDFWEIGHT( ibase.x + 1, ibase.y + 1, ibase.z + 1 ) < 1.0f )
+	return 1e10f;
+
+
+
+#define TSDFVALUE( _x, _y, _z ) ( *( cv + ( ( _z ) * height + ( _y ) ) * width + ( _x ) ) ).x
 	float8 values;
-	values.s0 = VALUE( ibase.x, ibase.y, ibase.z ).x;
-	values.s1 = VALUE( ibase.x, ibase.y, ibase.z + 1 ).x;
-	values.s2 = VALUE( ibase.x, ibase.y + 1, ibase.z + 1 ).x;
-	values.s3 = VALUE( ibase.x, ibase.y + 1, ibase.z + 1 ).x;
-	values.s4 = VALUE( ibase.x + 1, ibase.y, ibase.z ).x;
-	values.s5 = VALUE( ibase.x + 1, ibase.y, ibase.z + 1 ).x;
-	values.s6 = VALUE( ibase.x + 1, ibase.y + 1, ibase.z + 1 ).x;
-	values.s7 = VALUE( ibase.x + 1, ibase.y + 1, ibase.z + 1 ).x;
+	values.s0 = TSDFVALUE( ibase.x, ibase.y, ibase.z );
+	values.s1 = TSDFVALUE( ibase.x, ibase.y, ibase.z + 1 );
+	values.s2 = TSDFVALUE( ibase.x, ibase.y + 1, ibase.z );
+	values.s3 = TSDFVALUE( ibase.x, ibase.y + 1, ibase.z + 1 );
+	values.s4 = TSDFVALUE( ibase.x + 1, ibase.y, ibase.z );
+	values.s5 = TSDFVALUE( ibase.x + 1, ibase.y, ibase.z + 1 );
+	values.s6 = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z );
+	values.s7 = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z + 1 );
 
 	float4 interpx = mix( values.s0123, values.s4567, alpha.x );
 	float2 interpy = mix( interpx.s01, interpx.s23, alpha.y );
@@ -148,10 +168,11 @@ static inline float TSDFVolume_trilinearValue( global float2* cv, int width, int
 
 	return interpz;
 
-#undef VALUE
+#undef TSDFVALUE
+#undef TSDFWEIGHT
 }
 
-__kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float2* cv, int width, int height, int depth, const Mat4f CAM2TG, float scale )
+__kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float2* cv, int width, int height, int depth, const Mat4f TCAM2G, const Mat4f TG2CAM, float scale )
 {
 	const int gx = get_global_id( 0 );
 	const int gy = get_global_id( 1 );
@@ -161,20 +182,20 @@ __kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float
 	if( gx >= iwidth || gy >= iheight )
 		return;
 
-	float3 rayOrigin = mat4f_transform( &CAM2TG, ( float4 ) ( 0.0f, 0.0f, 0.0f, 1.0f ) ).xyz;
-	float3 raytmp    = mat4f_transform( &CAM2TG, ( float4 ) ( ( float ) gx, ( float ) gy, 1.0f, 1.0f ) ).xyz;
+	float3 rayOrigin = mat4f_transform( &TCAM2G, ( float4 ) ( 0.0f, 0.0f, 0.0f, 1.0f ) ).xyz;
+	float3 raytmp    = mat4f_transform( &TCAM2G, ( float4 ) ( ( float ) gx, ( float ) gy, 1.0f, 1.0f ) ).xyz;
 	float3 rayDir	 = normalize( raytmp - rayOrigin );
 
 	float rayStart = TSDFVolume_rayStart( rayOrigin, rayDir, width, height, depth );
 	float rayEnd   = TSDFVolume_rayEnd( rayOrigin, rayDir, width, height, depth );
 
-	if( rayStart < rayEnd && isfinite( rayStart ) && isfinite( rayEnd ) ) {
+	if( rayStart < rayEnd && isfinite( rayStart ) && isfinite( rayEnd ) && all(isfinite( rayDir )) ) {
 		float val_prev, val, ret;
-		float3 pos;
-		float lambda_step = ( rayEnd - rayStart ) / 100.0f;
+		float3 pos_prev, pos;
+		float lambda_step = ( rayEnd - rayStart ) / 1000.0f;
 
-		pos = rayOrigin + rayDir * rayStart;
-		val_prev = TSDFVolume_trilinearValue( cv, width, height, depth, pos );
+		pos_prev = rayOrigin + rayDir * rayStart;
+		val_prev = TSDFVolume_trilinearValue( cv, width, height, depth, pos_prev );
 		ret = 0.0f;
 
 		for( float lambda = rayStart + lambda_step; lambda <= rayEnd; lambda += lambda_step ) {
@@ -186,9 +207,13 @@ __kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float
 			}
 
 			if ( val_prev > 0.0f && val < 0.0f) {
-				ret = val * scale;
+				float alpha = -val / ( val_prev - val );
+				float3 gpos = ( mix( pos.z, pos_prev.z, alpha ) );
+				ret = fmax( -( mat4f_transform( &TG2CAM, ( float4 ) ( gpos, 1.0f ) ).z ) * scale, 0.0f );
 				break;
 			}
+			val_prev = val;
+			pos_prev = pos;
 		}
 		write_imagef( out, ( int2 ) ( gx, gy ), ( float4 ) ret );
 	} else {

@@ -78,7 +78,8 @@ namespace cvt
 		_clraycastdepth.setArg( 3, ( int ) _height );
 		_clraycastdepth.setArg( 4, ( int ) _depth);
 		_clraycastdepth.setArg( 5, sizeof( float ) * 16, projall.inverse().ptr() );
-		_clraycastdepth.setArg( 6, scale );
+		_clraycastdepth.setArg( 6, sizeof( float ) * 16, projall.ptr() );
+		_clraycastdepth.setArg( 7, scale );
 		_clraycastdepth.run( CLNDRange( Math::pad16( depthmap.width() ), Math::pad16( depthmap.height() ) ), CLNDRange( 16, 16 ) );
 	}
 
