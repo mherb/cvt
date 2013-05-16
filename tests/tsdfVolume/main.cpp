@@ -85,6 +85,8 @@ int main( int argc, char** argv )
         Image depthmap;
 
         Time t;
+
+            Image raycast;
         /* add the depth maps */
         for( int i = 0; i < 700; i++) {
             rgbddata.loadNext();
@@ -95,6 +97,13 @@ int main( int argc, char** argv )
             Matrix4f pose = rgbddata.data().pose<float>();
 
 			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
+
+			raycast.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+
+			tsdf.rayCastDepthMap( raycast, intrinsics, pose.inverse(), ( float ) 0.1f );
+			raycast.save( "raycast.png" );
+			std::cout << "RAYCAST..." << std::endl;
+			getchar();
         }
         std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 

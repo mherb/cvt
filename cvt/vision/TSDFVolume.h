@@ -26,7 +26,10 @@ namespace cvt
 
 			void clear( float weight = 0.0f );
 			void addDepthMap( const Matrix4f& proj, const Image& depthmap, float scale );
-			void addDepthMap( const Matrix3f& intrinsics, const Matrix4f& extrinsics, const Image& depthmap, float scale );
+			void addDepthMap( const Matrix3f& intrinsics, const Matrix4f& extrinsics, const Image& depthmap, float scale = 1.0f );
+
+			void rayCastDepthMap( Image& depthmap, const Matrix4f& proj, float scale );
+			void rayCastDepthMap( Image& depthmap, const Matrix3f& intrinsics, const Matrix4f& extrinsics, float scale = 1.0f );
 
 			size_t width() const { return _width; }
 			size_t height() const { return _height; }
@@ -59,6 +62,7 @@ namespace cvt
 			CLKernel _clvolclear;
 			CLKernel _clvoladd;
 			CLKernel _clsliceX, _clsliceY, _clsliceZ;
+			CLKernel _clraycastdepth;
 	};
 
 
