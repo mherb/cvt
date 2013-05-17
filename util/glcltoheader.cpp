@@ -37,6 +37,21 @@ void importFile( std::ofstream& output, const std::string& _path )
     input.close();
 }
 
+void escapeString( std::ofstream& output, const std::string& string )
+{
+	int len = string.length();
+	for( int i = 0; i < len; i++ ) {
+		char val = string[ i ];
+		switch( val ) {
+			case '"': output << "\\\"";
+					  break;
+			case '\\': output << "\\\\";
+					   break;
+			default: output << val;
+		}
+	}
+}
+
 void escapeStream( std::ofstream& output, std::ifstream& input, const std::string& filename = "" )
 {
     char val;
@@ -52,7 +67,7 @@ void escapeStream( std::ofstream& output, std::ifstream& input, const std::strin
 				case '\n': output << "\\n\" \\"  << std::endl << "\"";
 						   line++;
 						   break;
-				case '\"': output << "\\\"";
+				case '"': output << "\\\"";
 						   break;
 				case '\\': output << "\\\\";
 						   break;
@@ -65,7 +80,8 @@ void escapeStream( std::ofstream& output, std::ifstream& input, const std::strin
 							   output << "#line " << line << " \\\"" << filename << "\\\" \\n\" \\" << std::endl << "\"";
 						   } else {
 							   output << '#';
-							   output << hashline << "\\n\" \\" << std::endl << "\"";
+							   escapeString( output, hashline );
+							   output << "\\n\" \\"  << std::endl << "\"";
 						   }
 						   break;
 				default: output << val;

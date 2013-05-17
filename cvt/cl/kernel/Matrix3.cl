@@ -179,52 +179,50 @@ inline void mat3f_rotation_transpose( Mat3f* mat, float3 rot )
 
 void mat3f_inverse( Mat3f* dst, Mat3f* src )
 {
-	float4 tmp, tmp2;
-	float4 D;
+	float3 tmp, tmp2;
+	float3 D;
 	float det;
 
-	tmp.x = src[ 1 ].y * src[ 2 ].z - src[ 2 ].y * src[ 1 ].z;
-	tmp.y = src[ 2 ].x * src[ 1 ].z - src[ 1 ].x * src[ 2 ].z;
-	tmp.z = src[ 1 ].x * src[ 2 ].y - src[ 2 ].x * src[ 1 ].y;
-	tmp.w = 0.0f;
+	tmp.x = src->m[ 1 ].y * src->m[ 2 ].z - src->m[ 2 ].y * src->m[ 1 ].z;
+	tmp.y = src->m[ 2 ].x * src->m[ 1 ].z - src->m[ 1 ].x * src->m[ 2 ].z;
+	tmp.z = src->m[ 1 ].x * src->m[ 2 ].y - src->m[ 2 ].x * src->m[ 1 ].y;
 
-	det = dot( src[ 0 ], tmp );
+	det = dot( src->m[ 0 ], tmp );
 	if( fabs( det ) < 1e-10f ) {
-		dst[ 0 ] = ( float3 ) ( 0.0f );
-		dst[ 1 ] = ( float3 ) ( 0.0f );
-		dst[ 2 ] = ( float3 ) ( 0.0f );
+		dst->m[ 0 ] = ( float3 ) ( 0.0f );
+		dst->m[ 1 ] = ( float3 ) ( 0.0f );
+		dst->m[ 2 ] = ( float3 ) ( 0.0f );
 	} else {
-		D = ( float4 ) ( 1.0f / ( det ) );
-		tmp = mat[ 0 ];
-		dst[ 0 ] = cross( mat[ 1 ], mat[ 2 ] ) * D;
-		tmp2 = mat[ 1 ];
-		dst[ 1 ] = cross( mat[ 2 ], tmp ) * D;
-		dst[ 2 ] = cross( tmp, tmp2 ) * D;
+		D = ( float3 ) ( 1.0f / ( det ) );
+		tmp = src->m[ 0 ];
+		dst->m[ 0 ] = cross( src->m[ 1 ], src->m[ 2 ] ) * D;
+		tmp2 = src->m[ 1 ];
+		dst->m[ 1 ] = cross( src->m[ 2 ], tmp ) * D;
+		dst->m[ 2 ] = cross( tmp, tmp2 ) * D;
 	}
 }
 
 float3 mat3_lusolve( Mat3f* mat, float3 b )
 {
 	// LU decomposition
-	mat[ 1 ].x /= mat[ 0 ].x;
-	mat[ 2 ].x /= mat[ 0 ].x;
+	mat->m[ 1 ].x /= mat->m[ 0 ].x;
+	mat->m[ 2 ].x /= mat->m[ 0 ].x;
 
-	mat[ 1 ].yz -= mat[ 1 ].x * mat[ 0 ].yz;
-	mat[ 2 ].yz -= mat[ 2 ].x * mat[ 0 ].yz;
+	mat->m[ 1 ].yz -= mat->m[ 1 ].x * mat->m[ 0 ].yz;
+	mat->m[ 2 ].yz -= mat->m[ 2 ].x * mat->m[ 0 ].yz;
 
-	mat[ 2 ].y /= mat[ 1 ].y;
-	mat[ 2 ].z -= mat[ 2 ].y * mat[ 1 ].z;
+	mat->m[ 2 ].y /= mat->m[ 1 ].y;
+	mat->m[ 2 ].z -= mat->m[ 2 ].y * mat->m[ 1 ].z;
 
 	// forward substitution
-	b.y -= mat[ 1 ].x * b.x;
-	b.z -= dot( mat[ 2 ].xy, b.xy );
+	b.y -= mat->m[ 1 ].x * b.x;
+	b.z -= dot( mat->m[ 2 ].xy, b.xy );
 
 	// backward substiution
-	float4 x;
-	x.z = b.z / mat[ 2 ].z;
-	x.y = ( b.y - mat[ 1 ].z * x.z ) / mat[ 1 ].y;
-	x.x = ( b.x - dot( mat[ 0 ].yz, x.yz ) ) / mat[ 0 ].x;
-	x.w = 0.0f;
+	float3 x;
+	x.z = b.z / mat->m[ 2 ].z;
+	x.y = ( b.y - mat->m[ 1 ].z * x.z ) / mat->m[ 1 ].y;
+	x.x = ( b.x - dot( mat->m[ 0 ].yz, x.yz ) ) / mat->m[ 0 ].x;
 	return x;
 }
 
