@@ -452,35 +452,39 @@ namespace cvt {
 
     static bool testExponential()
     {
-        bool ret = true;
         SE3<double> pose;
 
         Eigen::Matrix4d S, expectedExp, closedForm;
         S.setZero(); expectedExp.setZero(), closedForm.setZero();
 
         SE3<double>::ParameterVectorType delta;
-        delta[ 0 ] = 0.2;
-        delta[ 1 ] = 0.3;
-        delta[ 2 ] = 0.2;
-        delta[ 3 ] = 2.2;
-        delta[ 4 ] = 3.2;
-        delta[ 5 ] = 4.2;
 
-        bool b = true;
-        fillExpMatrix( S, delta );
-        cvt::Math::exponential( S, expectedExp, 6 );
-        pose.evalExp( closedForm, delta );
-        b &= ( ( expectedExp - closedForm ).array().abs().sum() / 12 < 0.00001 );
+		size_t n = 5000;
 
-        if( !b ){
-            std::cout << "Expected: \n" << expectedExp << std::endl;
-            std::cout << "Closed Form: \n" << closedForm << std::endl;
-        }
+		bool b = true;
+		while( n-- ){
+			delta[ 0 ] = Math::rand( -2.6, 2.6 );
+			delta[ 1 ] = Math::rand( -2.6, 2.6 );
+			delta[ 2 ] = Math::rand( -2.6, 2.6 );
+			delta[ 3 ] = Math::rand( -10.0, 10.0 );
+			delta[ 4 ] = Math::rand( -10.0, 10.0 );
+			delta[ 5 ] = Math::rand( -10.0, 10.0 );
+
+			fillExpMatrix( S, delta );
+			cvt::Math::exponential( S, expectedExp, 10 );
+			pose.evalExp( closedForm, delta );
+			bool res = ( ( expectedExp - closedForm ).array().abs().sum() / 12 < 0.00001 );
+
+			if( !res ){
+				std::cout << "Expected: \n" << expectedExp << std::endl;
+				std::cout << "Closed Form: \n" << closedForm << std::endl;
+			}
+			b &= res;
+		}
 
         CVTTEST_PRINT( "exp()", b );
 
-
-        return ret;
+        return b;
     }
 
 BEGIN_CVTTEST( SE3 )
