@@ -127,49 +127,43 @@ static inline float TSDFVolume_trilinearValue( global float2* cv, int width, int
 	float3 alpha = pos - base;
 	int3   ibase = ( int3 )( base.x, base.y, base.z );
 
-//	if( any( ibase ) || any( ibase - ( int3 ) ( width - 1, height - 1, depth - 1 ) ) )
-//	   return 1e10f;
+#define TSDFVALUE( _x, _y, _z ) ( *( cv + ( ( _z ) * height + ( _y ) ) * width + ( _x ) ) )
 
-#define TSDFWEIGHT( _x, _y, _z ) ( *( cv + ( ( _z ) * height + ( _y ) ) * width + ( _x ) ) ).y
-
-if( TSDFWEIGHT( ibase.x, ibase.y, ibase.z ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x, ibase.y, ibase.z + 1 ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x, ibase.y + 1, ibase.z ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x, ibase.y + 1, ibase.z + 1 ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x + 1, ibase.y, ibase.z ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x + 1, ibase.y, ibase.z + 1 ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x + 1, ibase.y + 1, ibase.z ) < 1.0f )
-	return 1e10f;
-if( TSDFWEIGHT( ibase.x + 1, ibase.y + 1, ibase.z + 1 ) < 1.0f )
-	return 1e10f;
-
-
-
-#define TSDFVALUE( _x, _y, _z ) ( *( cv + ( ( _z ) * height + ( _y ) ) * width + ( _x ) ) ).x
+	float2 tmp;
 	float8 values;
-	values.s0 = TSDFVALUE( ibase.x, ibase.y, ibase.z );
-	values.s1 = TSDFVALUE( ibase.x, ibase.y, ibase.z + 1 );
-	values.s2 = TSDFVALUE( ibase.x, ibase.y + 1, ibase.z );
-	values.s3 = TSDFVALUE( ibase.x, ibase.y + 1, ibase.z + 1 );
-	values.s4 = TSDFVALUE( ibase.x + 1, ibase.y, ibase.z );
-	values.s5 = TSDFVALUE( ibase.x + 1, ibase.y, ibase.z + 1 );
-	values.s6 = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z );
-	values.s7 = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z + 1 );
+	tmp		  = TSDFVALUE( ibase.x    , ibase.y    , ibase.z );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s0 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x + 1, ibase.y    , ibase.z );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s1 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x    , ibase.y + 1, ibase.z );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s2 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s3 = tmp.x;
 
-	float4 interpx = mix( values.s0123, values.s4567, alpha.x );
-	float2 interpy = mix( interpx.s01, interpx.s23, alpha.y );
-	float  interpz = mix( interpy.s0, interpy.s1, alpha.z );
+	tmp		  = TSDFVALUE( ibase.x    , ibase.y    , ibase.z + 1 );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s4 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x + 1, ibase.y    , ibase.z + 1 );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s5 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x    , ibase.y + 1, ibase.z + 1 );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s6 = tmp.x;
+	tmp		  = TSDFVALUE( ibase.x + 1, ibase.y + 1, ibase.z + 1 );
+	if( tmp.y < 1.0f ) return 1e10f;
+	values.s7 = tmp.x;
 
-	return interpz;
+	float4 interpz = mix( values.s0123, values.s4567, alpha.z );
+	float2 interpy = mix( interpz.s01, interpz.s23, alpha.y );
+	float  interpx = mix( interpy.s0, interpy.s1, alpha.x );
+
+	return interpx;
 
 #undef TSDFVALUE
-#undef TSDFWEIGHT
 }
 
 __kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float2* cv, int width, int height, int depth, const Mat4f TCAM2G, const Mat4f TG2CAM, float scale )
@@ -192,7 +186,8 @@ __kernel void TSDFVolume_rayCastDepthmap( write_only image2d_t out, global float
 	if( rayStart < rayEnd && isfinite( rayStart ) && isfinite( rayEnd ) && all(isfinite( rayDir )) ) {
 		float val_prev, val, ret;
 		float3 pos_prev, pos;
-		float lambda_step = ( rayEnd - rayStart ) / 1000.0f;
+		float3 rayVec = fabs( rayDir * ( rayEnd - rayStart ) );
+		float lambda_step = 0.5f * length( rayVec ) / fmax( rayVec.x, fmax( rayVec.y, rayVec.z ) );
 
 		pos_prev = rayOrigin + rayDir * rayStart;
 		val_prev = TSDFVolume_trilinearValue( cv, width, height, depth, pos_prev );
