@@ -98,12 +98,12 @@ int main( int argc, char** argv )
 
 			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
 
-#if 0
+#if 1
 
 			rgbddata.data().rgb.save("color.png");
 			raycast.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 
-			tsdf.rayCastDepthMap( raycast, intrinsics, pose.inverse(), ( float ) 0.1f );
+			tsdf.rayCastDepthMap( raycast, intrinsics, pose.inverse(), ( float ) 0.5f );
 			raycast.save( "raycast.png" );
 			std::cout << "RAYCAST..." << std::endl;
 			getchar();

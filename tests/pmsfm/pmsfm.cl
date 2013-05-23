@@ -1,138 +1,7 @@
+#import "../../cvt/cl/kernel/RNG.cl"
+#import "../../cvt/cl/kernel/Matrix3.cl"
+
 #pragma SELECT_ROUNDING_MODE rtz
-
-/*
-Part of MWC64X by David Thomas, dt10@imperial.ac.uk
-This is provided under BSD, full license is with the main package.
-See http://www.doc.ic.ac.uk/~dt10/research
-*/
-#ifndef dt10_mwc64x_rng_cl
-#define dt10_mwc64x_rng_cl
-
-// Pre: a<M, b<M
-// Post: r=(a+b) mod M
-ulong MWC_AddMod64(ulong a, ulong b, ulong M)
-{
-	ulong v=a+b;
-	if( (v>=M) || (v<a) )
-		v=v-M;
-	return v;
-}
-
-// Pre: a<M,b<M
-// Post: r=(a*b) mod M
-// This could be done more efficently, but it is portable, and should
-// be easy to understand. It can be replaced with any of the better
-// modular multiplication algorithms (for example if you know you have
-// double precision available or something).
-ulong MWC_MulMod64(ulong a, ulong b, ulong M)
-{	
-	ulong r=0;
-	while(a!=0){
-		if(a&1)
-			r=MWC_AddMod64(r,b,M);
-		b=MWC_AddMod64(b,b,M);
-		a=a>>1;
-	}
-	return r;
-}
-
-
-// Pre: a<M, e>=0
-// Post: r=(a^b) mod M
-// This takes at most ~64^2 modular additions, so probably about 2^15 or so instructions on
-// most architectures
-ulong MWC_PowMod64(ulong a, ulong e, ulong M)
-{
-	ulong sqr=a, acc=1;
-	while(e!=0){
-		if(e&1)
-			acc=MWC_MulMod64(acc,sqr,M);
-		sqr=MWC_MulMod64(sqr,sqr,M);
-		e=e>>1;
-	}
-	return acc;
-}
-
-uint2 MWC_SkipImpl_Mod64(uint2 curr, ulong A, ulong M, ulong distance)
-{
-	ulong m=MWC_PowMod64(A, distance, M);
-	ulong x=curr.x*(ulong)A+curr.y;
-	x=MWC_MulMod64(x, m, M);
-	return (uint2)((uint)(x/A), (uint)(x%A));
-}
-
-uint2 MWC_SeedImpl_Mod64(ulong A, ulong M, uint vecSize, uint vecOffset, ulong streamBase, ulong streamGap)
-{
-	// This is an arbitrary constant for starting LCG jumping from. I didn't
-	// want to start from 1, as then you end up with the two or three first values
-	// being a bit poor in ones - once you've decided that, one constant is as
-	// good as any another. There is no deep mathematical reason for it, I just
-	// generated a random number.
-	enum{ MWC_BASEID = 4077358422479273989UL };
-	
-	ulong dist=streamBase + (get_global_id(0)*vecSize+vecOffset)*streamGap;
-	ulong m=MWC_PowMod64(A, dist, M);
-	
-	ulong x=MWC_MulMod64(MWC_BASEID, m, M);
-	return (uint2)((uint)(x/A), (uint)(x%A));
-}
-
-//! Represents the state of a particular generator
-typedef struct{ uint x; uint c; } mwc64x_state_t;
-
-enum{ MWC64X_A = 4294883355U };
-enum{ MWC64X_M = 18446383549859758079UL };
-
-void MWC64X_Step(mwc64x_state_t *s)
-{
-	uint X=s->x, C=s->c;
-	
-	uint Xn=MWC64X_A*X+C;
-	uint carry=(uint)(Xn<C);				// The (Xn<C) will be zero or one for scalar
-	uint Cn=mad_hi(MWC64X_A,X,carry);  
-	
-	s->x=Xn;
-	s->c=Cn;
-}
-
-void MWC64X_Skip(mwc64x_state_t *s, ulong distance)
-{
-	uint2 tmp=MWC_SkipImpl_Mod64((uint2)(s->x,s->c), MWC64X_A, MWC64X_M, distance);
-	s->x=tmp.x;
-	s->c=tmp.y;
-}
-
-void MWC64X_SeedStreams(mwc64x_state_t *s, ulong baseOffset, ulong perStreamOffset)
-{
-	uint2 tmp=MWC_SeedImpl_Mod64(MWC64X_A, MWC64X_M, 1, 0, baseOffset, perStreamOffset);
-	s->x=tmp.x;
-	s->c=tmp.y;
-}
-
-//! Return a 32-bit integer in the range [0..2^32)
-uint MWC64X_NextUint(mwc64x_state_t *s)
-{
-	uint res=s->x ^ s->c;
-	MWC64X_Step(s);
-	return res;
-}
-
-float MWC64X_NextFloat(mwc64x_state_t *s)
-{
-	uint res=s->x ^ s->c;
-	MWC64X_Step(s);
-	return  2.3283064365386962890625e-10f * ( float ) res;
-}
-#endif
-
-typedef mwc64x_state_t RNG;
-
-#define RNG_init( x, linpos, numdraws ) do {\
-	MWC64X_SeedStreams( &rng, 0, 0 ); \
-	MWC64X_Skip( &rng, ( linpos ) * numdraws ); \
-} while( 0 )
-
-#define RNG_float( x ) MWC64X_NextFloat( x )
 
 // values in meter
 #define DEPTHMAX  0.2
@@ -165,185 +34,6 @@ typedef mwc64x_state_t RNG;
 
 const sampler_t SAMPLER_NN		 = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 const sampler_t SAMPLER_BILINEAR = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
-
-struct Mat3 {
-	float3 m[ 3 ];
-};
-
-typedef struct Mat3 Mat3;
-
-inline float3 Mat3_MulVec( const Mat3* mat, const float3 vec )
-{
-	return ( float3 ) ( dot( mat->m[ 0 ].xyz, vec ),
-					   dot( mat->m[ 1 ].xyz, vec ),
-					   dot( mat->m[ 2 ].xyz, vec ) );
-}
-
-inline float3 Mat3_TransMulVec( const Mat3* mat, const float3 vec )
-{
-	return ( float3 ) ( dot( ( float3 ) ( mat->m[ 0 ].x, mat->m[ 1 ].x, mat->m[ 2 ].x ), vec ),
-						dot( ( float3 ) ( mat->m[ 0 ].y, mat->m[ 1 ].y, mat->m[ 2 ].y ), vec ),
-						dot( ( float3 ) ( mat->m[ 0 ].z, mat->m[ 1 ].z, mat->m[ 2 ].z ), vec ) );
-}
-
-
-
-inline float2 Mat3_MulVecProj2( const Mat3* mat, const float2 vec )
-{
-	float3 hvec = ( float3 ) ( vec.x, vec.y, 1.0f );
-	float3 tmp = ( float3 ) ( dot( mat->m[ 0 ].xyz, hvec ),
-						      dot( mat->m[ 1 ].xyz, hvec ),
-				              dot( mat->m[ 2 ].xyz, hvec ) );
-	return ( float2 ) ( tmp.x / tmp.z, tmp.y / tmp.z );
-}
-
-inline void Mat3_Outer( Mat3* dst, const float3 a, const float3 b )
-{
-	dst->m[ 0 ].xyz = a.x * b;
-	dst->m[ 1 ].xyz = a.y * b;
-	dst->m[ 2 ].xyz = a.z * b;
-}
-
-inline void Mat3_Mul( Mat3* dst, const Mat3* a, const Mat3* b )
-{
-	dst->m[ 0 ].x = dot( a->m[ 0 ].xyz, ( float3 ) ( b->m[ 0 ].x, b->m[ 1 ].x, b->m[ 2 ].x ) );
-	dst->m[ 0 ].y = dot( a->m[ 0 ].xyz, ( float3 ) ( b->m[ 0 ].y, b->m[ 1 ].y, b->m[ 2 ].y ) );
-	dst->m[ 0 ].z = dot( a->m[ 0 ].xyz, ( float3 ) ( b->m[ 0 ].z, b->m[ 1 ].z, b->m[ 2 ].z ) );
-
-	dst->m[ 1 ].x = dot( a->m[ 1 ].xyz, ( float3 ) ( b->m[ 0 ].x, b->m[ 1 ].x, b->m[ 2 ].x ) );
-	dst->m[ 1 ].y = dot( a->m[ 1 ].xyz, ( float3 ) ( b->m[ 0 ].y, b->m[ 1 ].y, b->m[ 2 ].y ) );
-	dst->m[ 1 ].z = dot( a->m[ 1 ].xyz, ( float3 ) ( b->m[ 0 ].z, b->m[ 1 ].z, b->m[ 2 ].z ) );
-
-	dst->m[ 2 ].x = dot( a->m[ 2 ].xyz, ( float3 ) ( b->m[ 0 ].x, b->m[ 1 ].x, b->m[ 2 ].x ) );
-	dst->m[ 2 ].y = dot( a->m[ 2 ].xyz, ( float3 ) ( b->m[ 0 ].y, b->m[ 1 ].y, b->m[ 2 ].y ) );
-	dst->m[ 2 ].z = dot( a->m[ 2 ].xyz, ( float3 ) ( b->m[ 0 ].z, b->m[ 1 ].z, b->m[ 2 ].z ) );
-}
-
-
-inline void Mat3_MulTranspose( Mat3* dst, const Mat3* a, const Mat3* b )
-{
-	dst->m[ 0 ].x = dot( a->m[ 0 ].xyz, b->m[ 0 ].xyz );
-	dst->m[ 0 ].y = dot( a->m[ 0 ].xyz, b->m[ 1 ].xyz );
-	dst->m[ 0 ].z = dot( a->m[ 0 ].xyz, b->m[ 2 ].xyz );
-
-	dst->m[ 1 ].x = dot( a->m[ 1 ].xyz, b->m[ 0 ].xyz );
-	dst->m[ 1 ].y = dot( a->m[ 1 ].xyz, b->m[ 1 ].xyz );
-	dst->m[ 1 ].z = dot( a->m[ 1 ].xyz, b->m[ 2 ].xyz );
-
-	dst->m[ 2 ].x = dot( a->m[ 2 ].xyz, b->m[ 0 ].xyz );
-	dst->m[ 2 ].y = dot( a->m[ 2 ].xyz, b->m[ 1 ].xyz );
-	dst->m[ 2 ].z = dot( a->m[ 2 ].xyz, b->m[ 2 ].xyz );
-}
-
-inline void Mat3_MulScalar( Mat3* dst, float s, const Mat3* m )
-{
-	dst->m[ 0 ] = s * m->m[ 0 ];
-	dst->m[ 1 ] = s * m->m[ 1 ];
-	dst->m[ 2 ] = s * m->m[ 2 ];
-}
-
-inline void Mat3_Add( Mat3* dst, const Mat3* a, const Mat3* b )
-{
-	dst->m[ 0 ] = a->m[ 0 ] + b->m[ 0 ];
-	dst->m[ 1 ] = a->m[ 1 ] + b->m[ 1 ];
-	dst->m[ 2 ] = a->m[ 2 ] + b->m[ 2 ];
-}
-
-inline void Mat3_Sub( Mat3* dst, const Mat3* a, const Mat3* b )
-{
-	dst->m[ 0 ] = a->m[ 0 ] - b->m[ 0 ];
-	dst->m[ 1 ] = a->m[ 1 ] - b->m[ 1 ];
-	dst->m[ 2 ] = a->m[ 2 ] - b->m[ 2 ];
-}
-
-inline void Mat3_Transpose( Mat3* dst, const Mat3* mat )
-{
-  dst->m[ 0 ] = ( float3 ) ( mat->m[ 0 ].x, mat->m[ 1 ].x, mat->m[ 2 ].x );
-  dst->m[ 1 ] = ( float3 ) ( mat->m[ 0 ].y, mat->m[ 1 ].y, mat->m[ 2 ].y );
-  dst->m[ 2 ] = ( float3 ) ( mat->m[ 0 ].z, mat->m[ 1 ].z, mat->m[ 2 ].z );
-}
-
-inline void Mat3_AxisAngleRotation( Mat3* mat, float3 rot )
-{
-        float rad = length( rot );
-		float3 axis = normalize( rot );
-        float x, y, z, c, s;
-        float wx, wy, wz;
-        float xx, yy, yz;
-        float xy, xz, zz;
-        float x2, y2, z2;
-
-        c = cos( rad * 0.5f );
-        s = sin( rad * 0.5f );
-
-        x = axis.x * s;
-        y = axis.y * s;
-        z = axis.z * s;
-
-        x2 = x + x;
-        y2 = y + y;
-        z2 = z + z;
-
-        xx = x * x2;
-        xy = x * y2;
-        xz = x * z2;
-
-        yy = y * y2;
-        yz = y * z2;
-        zz = z * z2;
-
-        wx = c * x2;
-        wy = c * y2;
-        wz = c * z2;
-
-        mat->m[ 0 ].x = 1.0f - ( yy + zz );
-        mat->m[ 0 ].y = xy - wz;
-        mat->m[ 0 ].z = xz + wy;
-
-        mat->m[ 1 ].x = xy + wz;
-        mat->m[ 1 ].y = 1.0f - ( xx + zz );
-        mat->m[ 1 ].z = yz - wx;
-
-        mat->m[ 2 ].x = xz - wy;
-        mat->m[ 2 ].y = yz + wx;
-        mat->m[ 2 ].z = 1.0f - ( xx + yy );
-}
-
-inline void Mat3_Rotation( Mat3* mat, float3 rot )
-{
-	float3 c;
-	float3 s = sincos( rot, &c );
-
-	mat->m[ 0 ].x =  c.y * c.z;
-	mat->m[ 0 ].y = -c.y * s.z;
-	mat->m[ 0 ].z =        s.y;
-
-	mat->m[ 1 ].x = c.x * s.z + c.z * s.x * s.y;
-	mat->m[ 1 ].y = c.x * c.z - s.x *  s.y * s.z;
-	mat->m[ 1 ].z =               -c.y * s.x;
-
-	mat->m[ 2 ].x =  s.x * s.z - c.x * c.z *  s.y;
-	mat->m[ 2 ].y =  c.x * s.y * s.z + c.z * s.x;
-	mat->m[ 2 ].z =                    c.x * c.y;
-}
-
-inline void Mat3_RotationTranspose( Mat3* mat, float3 rot )
-{
-	float3 c;
-	float3 s = sincos( rot, &c );
-
-	mat->m[ 0 ].x =  c.y * c.z;
-	mat->m[ 1 ].x = -c.y * s.z;
-	mat->m[ 2 ].x =        s.y;
-
-	mat->m[ 0 ].y = c.x * s.z + c.z * s.x *  s.y;
-	mat->m[ 1 ].y = c.x * c.z - s.x *  s.y * s.z;
-	mat->m[ 2 ].y =               -c.y * s.x;
-
-	mat->m[ 0 ].z =       s.x * s.z - c.x * c.z *  s.y;
-	mat->m[ 1 ].z =  c.x * s.y * s.z +     c.z * s.x;
-	mat->m[ 2 ].z =                         c.x * c.y;
-}
 
 float8 pmsfm_state_init( RNG* rng )
 {
@@ -424,22 +114,22 @@ inline float3 pmsfm_state_to_normal( const float8 state )
 	return ( float3 ) ( state.s6, state.s7, sqrt( 1.0f - state.s6 * state.s6 - state.s7 * state.s7 ) );
 }
 
-inline void pmsfm_state_to_matrix( const float8 state, Mat3* matrix, const Mat3* Kdst, const Mat3* Ksrc )
+inline void pmsfm_state_to_matrix( const float8 state, Mat3f* matrix, const Mat3f* Kdst, const Mat3f* Ksrc )
 {
-	Mat3 rot, outer, tmp;
+	Mat3f rot, outer, tmp;
 	// rotation matrix
-	Mat3_RotationTranspose( &rot, state.s012 );
-//	Mat3_AxisAngleRotation( &tmp, state.s012 );
-//	Mat3_Transpose( &rot, &tmp );
+	mat3f_rotation_transpose( &rot, state.s012 );
+//	mat3f_axisangle_rotation( &tmp, state.s012 );
+//	mat3f_transpose( &rot, &tmp );
 	// translation
 	float3 t = state.s345;
 	// normal
 	float3 n = ( float3 ) pmsfm_state_to_normal( state );
 	// K_dst ( R^T + (1/d) (R^T t) n^T ) K_src
-	Mat3_Outer( &outer, -Mat3_MulVec( &rot, t ), n );
-	Mat3_Add( &tmp, &rot, &outer );
-	Mat3_Mul( &rot,  &tmp, Ksrc );
-	Mat3_Mul( matrix, Kdst, &rot );
+	mat3f_outer( &outer, -mat3f_transform( &rot, t ), n );
+	mat3f_add( &tmp, &rot, &outer );
+	mat3f_mul( &rot,  &tmp, Ksrc );
+	mat3f_mul( matrix, Kdst, &rot );
 }
 
 inline float8 pmsfm_state_viewprop( const float8 state )
@@ -461,18 +151,18 @@ inline float pmsfm_state_to_unitdepth( const float8 state )
 
 inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_only image2d_t gradimg1,
 											 read_only image2d_t colimg2, read_only image2d_t gradimg2,
-											 const float2 coord, const float8 state, const Mat3* Kdst, const Mat3* Ksrc, const int patchsize )
+											 const float2 coord, const float8 state, const Mat3f* Kdst, const Mat3f* Ksrc, const int patchsize )
 {
 	float wsum1 = 0;
 	float ret1 = 0;
 	int width = get_image_width( colimg2 );
 	int height = get_image_height( colimg2 );
-	Mat3 mat;
-//	Mat3 mat2;
+	Mat3f mat;
+//	Mat3f mat2;
 
-	Mat3_AxisAngleRotation( &mat, state.s012 );
-//	Mat3_Transpose( &mat, &mat2 );
-//	if( dot( Mat3_MulVec( &mat, state.s345 ), pmsfm_state_to_normal( state ) ) - 1.0f < 0.0f )
+	mat3f_axisangle_rotation( &mat, state.s012 );
+//	mat3f_transpose( &mat, &mat2 );
+//	if( dot( mat3f_transform( &mat, state.s345 ), pmsfm_state_to_normal( state ) ) - 1.0f < 0.0f )
 //		return 1e5f;
 //	if( dot( state.s345, pmsfm_state_to_normal( state ) ) - 1.0f > 0.0f )
 //		return 1e5f;
@@ -499,7 +189,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.0f * COLORWEIGHT + 5.0f ) );
 
 			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );
-			pos = Mat3_MulVecProj2( &mat, pos );
+			pos = mat3f_transform_proj2( &mat, pos );
 			if( pos.x < 0 || pos.x >= width )
 				continue;
 
@@ -536,7 +226,7 @@ kernel void pmsfm_init( write_only global float8* output, int width, int height 
 kernel void pmsfm_propagate( write_only global float8* output, read_only global float8* old,
 							 read_only image2d_t img1, read_only image2d_t img2,
 							 read_only image2d_t gimg1, read_only image2d_t gimg2,
-							 read_only Mat3 Kdst, read_only Mat3 Ksrc, const int patchsize, const int iter )
+							 read_only Mat3f Kdst, read_only Mat3f Ksrc, const int patchsize, const int iter )
 {
 	RNG rng;
 	const int width = get_image_width( img1 );
@@ -569,7 +259,7 @@ kernel void pmsfm_propagate( write_only global float8* output, read_only global 
 	if(	gx >= width || gy >= height )
 		return;
 
-/*	Mat3 Kdst, Ksrc;
+/*	Mat3f Kdst, Ksrc;
 Kdst.m[0] = ( float3 ) (525.0f, 0.0f, 319.5 );
 Kdst.m[1] = ( float3 ) (0.0f, 525.0, 239.5 );
 Kdst.m[2] = ( float3 ) (0.0f, 0.0f,  1.0f );
@@ -674,7 +364,7 @@ kernel void pmsfm_normalmap( write_only image2d_t normalmap, read_only global fl
 	write_imagef( normalmap, coord, val );
 }
 
-kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global float8* states, const Mat3 Ksrc )
+kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global float8* states, const Mat3f Ksrc )
 {
 	int2 coord;
 	const int width = get_image_width( depthmap );
@@ -688,7 +378,7 @@ kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global floa
 
 	float8 state = states[ width * coord.y + coord.x ];
 
-	float d = length( state.s345 ) * ( dot( pmsfm_state_to_normal( state ), Mat3_MulVec( &Ksrc, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) );
+	float d = length( state.s345 ) * ( dot( pmsfm_state_to_normal( state ), mat3f_transform( &Ksrc, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) );
 
 	float val = 0.01f / d;//pmsfm_state_to_unitdepth( state );
 
@@ -783,7 +473,7 @@ kernel void pmsfm_transmap( write_only image2d_t depthmap, read_only global floa
 	write_imagef( depthmap, coord, val );
 }
 
-kernel void pmsfm_fwdwarp( write_only image2d_t output, read_only image2d_t image, read_only global float8* states, const Mat3 Kdst, const Mat3 Ksrc )
+kernel void pmsfm_fwdwarp( write_only image2d_t output, read_only image2d_t image, read_only global float8* states, const Mat3f Kdst, const Mat3f Ksrc )
 {
 	int2 coord;
 	const int width = get_image_width( image );
@@ -798,9 +488,9 @@ kernel void pmsfm_fwdwarp( write_only image2d_t output, read_only image2d_t imag
 	float8 state = states[ width * coord.y + coord.x ];
 	float4 val = read_imagef( image, SAMPLER_NN, coord );
 
-	Mat3 mat;
+	Mat3f mat;
 	pmsfm_state_to_matrix( state, &mat, &Kdst, &Ksrc );
-	float2 pt = Mat3_MulVecProj2( &mat, ( float2 ) ( coord.x, coord.y ) );
+	float2 pt = mat3f_transform_proj2( &mat, ( float2 ) ( coord.x, coord.y ) );
 #if 0
 	pt -= ( float2 ) ( coord.x, coord.y );
 	val.xy = pt;
