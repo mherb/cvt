@@ -24,6 +24,7 @@ namespace cvt {
 			~FeatureSet();
 
 			void			add( const Feature& feature );
+			void			clear();
 
 			size_t			size() const;
 			Feature&		operator[]( size_t i );
@@ -72,6 +73,11 @@ namespace cvt {
 	inline void FeatureSet::add( const Feature& feature )
 	{
 		_features.push_back( feature );
+	}
+
+	inline void FeatureSet::clear()
+	{
+		_features.clear();
 	}
 
 	inline size_t FeatureSet::size() const

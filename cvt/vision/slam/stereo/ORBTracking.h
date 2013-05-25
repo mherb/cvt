@@ -12,11 +12,11 @@
 #define ORB_TRACKING_H
 
 #include <cvt/vision/Vision.h>
-#include <cvt/vision/ORB.h>
+#include <cvt/vision/features/ORB.h>
 #include <cvt/vision/slam/MapFeature.h>
 #include <cvt/vision/slam/stereo/DescriptorDatabase.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 
 namespace cvt
 {
@@ -36,14 +36,14 @@ namespace cvt
                              const std::vector<size_t>&     predictedIds,
                              const Image&                   img );
 
-         void addFeatureToDatabase( const Vector2f & f, size_t id );
+		 void addFeatureToDatabase( const Vector2f& f, size_t id );
 
          void clear();
 
       private:
-         DescriptorDatabase<ORBFeature> _descriptors;
-         size_t                         _maxDescDistance;
-         float                          _windowRadius;
+		 DescriptorDatabase<FeatureDescriptor> _descriptors;
+		 size_t								   _maxDescDistance;
+		 float								   _windowRadius;
 
          /* orb parameters */
          size_t                         _orbOctaves;

@@ -2,7 +2,7 @@
 #define CVT_REFINED_FASTTRACKING_H
 
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
-#include <cvt/vision/FAST.h>
+#include <cvt/vision/features/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/FeatureFilter.h>
 #include <cvt/vision/KLTPatch.h>
@@ -32,9 +32,9 @@ namespace cvt
             void addFeatureToDatabase( const Vector2f & f, size_t id );
             void clear();
 
-            const std::vector<Feature2Df>&  lastDetectedFeatures()  const { return _currentFeatures; }
-            const std::set<size_t>&         associatedFeatures()    const { return _associatedIndexes; }
-            const ImagePyramid&             pyramid()               const { return _pyramid; }
+			const FeatureSet&			lastDetectedFeatures()  const { return _currentFeatures; }
+			const std::set<size_t>&		associatedFeatures()    const { return _associatedIndexes; }
+			const ImagePyramid&			pyramid()               const { return _pyramid; }
 
         private:
             static const size_t PatchSize = 16;
@@ -55,7 +55,7 @@ namespace cvt
 
             std::vector<PatchType*> _patchForId;
 
-            std::vector<Feature2Df>	_currentFeatures;
+			FeatureSet				_currentFeatures;
             std::set<size_t>		_associatedIndexes;
 
             /* cache the simd instance here */

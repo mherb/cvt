@@ -426,7 +426,6 @@ SET(${MODULE_NAME}_HEADERS
    util/internal/ParamTypes.def
    vision/BinaryDescriptor.h
    vision/BoardDetector.h
-   vision/Brief.h
    vision/CameraCalibration.h
    vision/ESM.h
    vision/EPnP.h
@@ -450,10 +449,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/KLTPatch.h
    vision/LSH.h
    vision/MeasurementModel.h
-   vision/features/ORB.h
    vision/features/ORBPattern.h
-#   vision/ORB2.h
-#   vision/ORB2Patterns.h
    vision/Patch.h
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
@@ -483,14 +479,14 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/stereo/StereoSLAM.h
    vision/slam/stereo/DescriptorDatabase.h
    vision/slam/stereo/FeatureTracking.h
-#  vision/slam/stereo/ORBTracking.h
-   vision/slam/stereo/KLTTracking.h
-#   vision/slam/stereo/ORBStereoMatching.h
+   #vision/slam/stereo/ORBTracking.h
+   #vision/slam/stereo/KLTTracking.h
+   #vision/slam/stereo/ORBStereoMatching.h
    vision/slam/stereo/MapOptimizer.h
    vision/slam/stereo/FeatureAnalyzer.h
    vision/slam/stereo/DepthInitializer.h
-#   vision/slam/stereo/ORBStereoInit.h
-#   vision/slam/stereo/PatchStereoInit.h
+   #vision/slam/stereo/ORBStereoInit.h
+   #vision/slam/stereo/PatchStereoInit.h
    io/xml/XMLAttribute.h
    io/xml/XMLCData.h
    io/xml/XMLComment.h
@@ -656,7 +652,6 @@ SET(${MODULE_NAME}_SOURCES
    util/String.cpp
    util/PluginManager.cpp
    util/PluginFile.cpp
-   vision/Brief.cpp
    vision/BoardDetector.cpp
    vision/CameraCalibrationTest.cpp
    vision/features/FAST.cpp
@@ -672,9 +667,6 @@ SET(${MODULE_NAME}_SOURCES
    vision/ImagePyramidTest.cpp
    vision/KLTPatchTest.cpp
    vision/features/ORB.cpp
-#   vision/ORB2.cpp
-#   vision/ORB2Test.cpp
-#   vision/ORBTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
@@ -682,11 +674,11 @@ SET(${MODULE_NAME}_SOURCES
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
    vision/slam/stereo/FeatureTracking.cpp
-   vision/slam/stereo/KLTTracking.cpp
-#  vision/slam/stereo/ORBTracking.cpp
+   #vision/slam/stereo/KLTTracking.cpp
+   #vision/slam/stereo/ORBTracking.cpp
    vision/slam/stereo/StereoSLAM.cpp
-# vision/slam/stereo/ORBStereoInit.cpp
-#   vision/slam/stereo/PatchStereoInit.cpp
+   #vision/slam/stereo/ORBStereoInit.cpp
+   #vision/slam/stereo/PatchStereoInit.cpp
    vision/TSDFVolume.cpp
    vision/Vision.cpp
    io/xml/XMLDecoder.cpp
@@ -853,8 +845,6 @@ ENDIF()
 #special flags for some files
 set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
 set_source_files_properties(util/SIMDSSE2.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
-set_source_files_properties(vision/fast/fast9simd.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
-set_source_files_properties(vision/internal/orbsimd.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 set_source_files_properties(util/SIMDSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3")
 set_source_files_properties(util/SIMDSSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3")
 set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")

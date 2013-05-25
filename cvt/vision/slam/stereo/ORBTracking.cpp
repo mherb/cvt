@@ -19,8 +19,7 @@ namespace cvt
       _orbScaleFactor( 0.5f ),
       _orbCornerThreshold( 15 ),
       _orbMaxFeatures( 2000 ),
-      _orbNonMaxSuppression( true ),
-      _orb0( _orbOctaves, _orbScaleFactor, _orbCornerThreshold, _orbMaxFeatures, _orbNonMaxSuppression )
+	  _orbNonMaxSuppression( true )
    {
    }
 
@@ -35,7 +34,7 @@ namespace cvt
                                     const Image&			img )
    {
       // create the ORB
-      _orb0.update( img );
+	  //_orb0.update( img );
 
       // we want to find the best matching orb feature from current, that lies
       // within a certain distance from the "predicted" position

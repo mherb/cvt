@@ -13,7 +13,7 @@
 #define CVT_PATCHSTEREOINIT_H
 
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
-#include <cvt/vision/FAST.h>
+#include <cvt/vision/features/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/KLTPatch.h>
 #include <cvt/math/GA2.h>

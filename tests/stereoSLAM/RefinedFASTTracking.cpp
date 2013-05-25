@@ -1,4 +1,4 @@
-#include <RefinedFASTTracking.h>
+#include "RefinedFASTTracking.h"
 #include <cvt/util/CVTAssert.h>
 
 namespace cvt
@@ -20,7 +20,8 @@ namespace cvt
         _ky.scale( -0.5f );
 
         _detector.setBorder( PatchSize );
-        _detector.setNonMaxSuppress( true );
+		// TODO: non-max suppression?
+		//_detector.setNonMaxSuppress( true );
         _detector.setThreshold( 30 );
 
         _simd = SIMD::instance();
@@ -121,23 +122,9 @@ namespace cvt
 
         float scale = 1.0f;
         // detect for each scale
-        for( size_t i = 0; i < _pyramid.octaves(); i++ ){
-            std::vector<Feature2Df> scaleFeatures;
-            VectorFeature2DInserter<float> inserter( scaleFeatures );
-            _detector.extract( _pyramid[ i ], inserter );
-
-            size_t start = _currentFeatures.size();
-
-            // insert the features
-            _currentFeatures.insert( _currentFeatures.end(), scaleFeatures.begin(), scaleFeatures.end() );
-            if( i != 0 ){
-                scale /= _pyramid.scaleFactor();
-                for( size_t f = start; f < _currentFeatures.size(); f++ ){
-                    _currentFeatures[ f ].pt *= scale;
-                }
-            }
-        }
-
+		_currentFeatures.clear();
+		_detector.detect( _currentFeatures, _pyramid );
+		_currentFeatures.filterNMS( 3 );
     }
 
     int RefinedFASTTracking::bestFASTFeatureInRadius( const PatchType& patch )

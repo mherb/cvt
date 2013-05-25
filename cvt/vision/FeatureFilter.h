@@ -11,7 +11,7 @@
 #ifndef CVT_FEATURE_FILTER_H
 #define CVT_FEATURE_FILTER_H
 
-#include <cvt/vision/Feature2D.h>
+#include <cvt/vision/features/Feature.h>
 #include <vector>
 
 namespace cvt
@@ -24,12 +24,12 @@ namespace cvt
             {
             }
 
-            void addFeature( const Feature2Df* f )
+			void addFeature( const Feature* f )
             {
                 _grid.addFeature( f );
             }
 
-            void gridFilteredFeatures( std::vector<const Feature2Df*>& features, size_t maxnum )
+			void gridFilteredFeatures( std::vector<const Feature*>& features, size_t maxnum )
             {
                 features.clear();
                 features.reserve( maxnum );
@@ -87,11 +87,11 @@ namespace cvt
         private:
             struct Cell
             {
-                void addFeature( const Feature2Df* f )
+				void addFeature( const Feature* f )
                 {
                     // start from the end
-                    std::vector<const Feature2Df*>::iterator it = features.begin();
-                    const std::vector<const Feature2Df*>::iterator itEnd = features.end();
+					std::vector<const Feature*>::iterator it = features.begin();
+					const std::vector<const Feature*>::iterator itEnd = features.end();
 
                     while( it != itEnd ){
                         if( ( *it )->score < f->score )
@@ -100,7 +100,7 @@ namespace cvt
                     }
                     features.insert( it, f );
                 }
-                std::vector<const Feature2Df*> features;
+				std::vector<const Feature*> features;
             };
 
             struct Grid
@@ -124,7 +124,7 @@ namespace cvt
                     return grid[ y * n + x ];
                 }
 
-                void addFeature( const Feature2Df* f )
+				void addFeature( const Feature* f )
                 {
                     size_t x = f->pt.x / cellWidth;
                     size_t y = f->pt.y / cellHeight;
