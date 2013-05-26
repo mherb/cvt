@@ -19,7 +19,7 @@ namespace cvt {
 	enum FeatureDescriptorComparator {
 		FEATUREDESC_CMP_SSD		= 0,
 		FEATUREDESC_CMP_SAD		= 1,
-		FEATUREDESC_CMP_HAMMING = 2,
+		FEATUREDESC_CMP_HAMMING = 2
 	};
 
 	struct FeatureDescriptor : public Feature
