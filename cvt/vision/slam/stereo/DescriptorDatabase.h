@@ -12,31 +12,29 @@
 #define CVT_DESCRIPTOR_DATA_BASE_H
 
 #include <vector>
+#include <cvt/vision/features/FeatureDescriptor.h>
 
 namespace cvt
 {
-	template <class Desc>
 	class DescriptorDatabase
 	{
 		public:
 			DescriptorDatabase();
 			~DescriptorDatabase();
 
-			void clear();
-			void addDescriptor( const Desc & desc, size_t id );
-                        const Desc& descriptor( size_t id ) const;
+			void						clear();
+			void						addDescriptor( const FeatureDescriptor& desc, size_t id );
+			const FeatureDescriptor&	operator[]( size_t id ) const;
 
 		private:
-			std::vector<Desc*>	_descriptors;
+			std::vector<FeatureDescriptor*>	_descriptors;
 	};
 
-	template <class Desc>
-	inline DescriptorDatabase<Desc>::DescriptorDatabase()
+	inline DescriptorDatabase::DescriptorDatabase()
 	{
 	}
 
-	template <class Desc>
-	inline DescriptorDatabase<Desc>::~DescriptorDatabase()
+	inline DescriptorDatabase::~DescriptorDatabase()
 	{
 		for( size_t i = 0; i < _descriptors.size(); i++ ){
 			if( _descriptors[ i ] != 0 )
@@ -44,17 +42,16 @@ namespace cvt
 		}
 	}
 
-	template <class Desc>
-	inline void DescriptorDatabase<Desc>::clear()
+	inline void DescriptorDatabase::clear()
 	{
 		_descriptors.clear();
 	}
 
-	template <class Desc>
-	inline void DescriptorDatabase<Desc>::addDescriptor( const Desc & d, size_t id )
+	inline void DescriptorDatabase::addDescriptor( const FeatureDescriptor& d, size_t id )
 	{
 		size_t numDesc = _descriptors.size();
 		if( id < numDesc ){
+			// already have this id -> update this descriptor
 			if( _descriptors[ id ] != 0 ){
 				*_descriptors[ id ] = d;
 			} else {
@@ -68,6 +65,7 @@ namespace cvt
 			return;
 		}
 
+		// handle non-consecutive id insertion
 		size_t lastId = numDesc;
 		_descriptors.resize( ( id+1 ) );
 		while( lastId < id )
@@ -75,10 +73,13 @@ namespace cvt
 		_descriptors[ id ] = new Desc( d );
 	}
 
-	template <class Desc>
-	inline const Desc & DescriptorDatabase<Desc>::descriptor( size_t id ) const
+	inline const FeatureDescriptor& DescriptorDatabase::operator[]( size_t id ) const
 	{
-		return *_descriptors[ id ];
+		const FeatureDescriptor* des = _descriptors[ i ];
+		if( desc == 0 ){
+			throw CVTException( "descriptor for requested id does not exist" );
+		}
+		return des;
 	}
 }
 
