@@ -53,23 +53,21 @@ b = ( K == cc.intrinsics() );
 CVTTEST_PRINT( "setIntrinsics()", b );
 result &= b;
 
-XMLDocument xmlDoc;
-xmlDoc.addNode( cc.serialize() );
-xmlDoc.save( "camcalibtest.xml" );
+cc.setWidth( 640 );
+cc.setHeight( 480 );
 
-XMLDocument doc;
-doc.load( "camcalibtest.xml" );
+cc.save( "camcalibtest.xml" );
 
-XMLNode * node = doc.nodeByName( "CameraCalibration" );
 
 CameraCalibration cc2;
-cc2.deserialize( node );
+cc2.load( "camcalibtest.xml" );
 
 b  = ( cc.intrinsics() == cc2.intrinsics() );
 b &= ( cc.extrinsics() == cc2.extrinsics() );
-
-//b &= ( cc.radialDistortion() == cc2.radialDistortion() );
-//b &= ( cc.tangentialDistortion() == cc2.tangentialDistortion() );
+b &= ( cc.radialDistortion() == cc2.radialDistortion() );
+b &= ( cc.tangentialDistortion() == cc2.tangentialDistortion() );
+b &= ( cc.width() == cc2.width() );
+b &= ( cc.height() == cc2.height() );
 
 CVTTEST_PRINT( "serialize/deserialize", b );
 

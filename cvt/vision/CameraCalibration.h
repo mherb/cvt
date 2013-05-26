@@ -47,20 +47,25 @@ namespace cvt
         const CameraCalibrationFlags & flags()  const { return _flags; }
 		const Vector2f	 center()				const { return Vector2f( _intrinsics[ 0 ][ 2 ], _intrinsics[ 1 ][ 2 ] ); }
 		const Vector2f	 focalLength()			const { return Vector2f( _intrinsics[ 0 ][ 0 ], _intrinsics[ 1 ][ 1 ] ); }
+		size_t			 width()				const { return _width; }
+		size_t			 height()				const { return _height; }
+		void			 setWidth( size_t w )		  { _width = w; }
+		void			 setHeight( size_t h )		  { _height = h; }
+
 
         /**
          * set the extrinsics of the camera
          * @param extr Transformation from Camera to World!
          */
         void setExtrinsics( const Matrix4f & extr );
-
         void setIntrinsics( const Matrix3f & intr );
         void setIntrinsics( float fx, float fy, float cx, float cy, float alpha = 0.0f );
-
         void setDistortion( const Vector3f & radial, const Vector2f & tangential );
+
 		Vector2f undistortPoint( const Vector2f& in ) const;
 		Vector2f inverseUndistortPoint( const Vector2f& in ) const;
 		Vector2f inverseUndistortPoint2( const Vector2f& in ) const;
+
 		void calcUndistortRects( Rectf& min, Rectf& max, const Rectf& input ) const;
 
         bool hasExtrinsics() const { return ( _flags & EXTRINSICS ); }
@@ -83,14 +88,19 @@ namespace cvt
         Vector3f                _radial;
         Vector2f                _tangential;
 
+		size_t					_width;
+		size_t					_height;
+
         CameraCalibrationFlags  _flags;
 
         void updateProjectionMatrix();
 
     };
 
-    inline CameraCalibration::CameraCalibration() :
-		XMLSerializable()
+	inline CameraCalibration::CameraCalibration() :
+		XMLSerializable(),
+		_width( 0 ),
+		_height( 0 )
     {
         _intrinsics.setIdentity();
         _extrinsics.setIdentity();
@@ -106,6 +116,8 @@ namespace cvt
         _projection( other._projection ),
         _radial( other._radial ),
         _tangential( other._tangential ),
+		_width( other._width ),
+		_height( other._height ),
         _flags( other._flags )
     {
     }
@@ -131,6 +143,17 @@ namespace cvt
         XMLNode * root;
 
         root = new XMLElement( "CameraCalibration" );
+		cvt::String val;
+
+		XMLElement* wElement = new XMLElement( "Width" );
+		val.sprintf( "%lu", _width );
+		wElement->addChild( new XMLText( val ) );
+		root->addChild( wElement );
+
+		val.sprintf( "%lu", _height );
+		XMLElement* hElement = new XMLElement( "Height" );
+		hElement->addChild( new XMLText( val ) );
+		root->addChild( hElement );
 
         if( hasExtrinsics() ){
             XMLElement * element = new XMLElement( "Extrinsics" );
@@ -165,6 +188,19 @@ namespace cvt
         if( node->name() != "CameraCalibration" )
             throw CVTException( "this is not a camera calibration node" );
         XMLNode * n;
+
+		n = node->childByName( "Width" );
+		if( n != NULL ){
+			size_t v = n->child( 0 )->value().toInteger();
+			setWidth( v );
+		}
+
+		n = node->childByName( "Height" );
+		if( n != NULL ){
+			size_t v = n->child( 0 )->value().toInteger();
+			setHeight( v );
+		}
+
         n = node->childByName( "Extrinsics" );
         if( n != NULL ){
             Matrix4f mat = Matrix4f::fromString( n->child( 0 )->value() );
