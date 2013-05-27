@@ -62,8 +62,8 @@ namespace cvt
 			};
 
 			enum FeatureMode {
-				AUTO = DC1394_FEATURE_MODE_AUTO,
-				MANUAL = DC1394_FEATURE_MODE_MANUAL,
+                MANUAL = DC1394_FEATURE_MODE_MANUAL,
+				AUTO = DC1394_FEATURE_MODE_AUTO,				
 				ONE_SHOT = DC1394_FEATURE_MODE_ONE_PUSH_AUTO
 			};
 
@@ -162,8 +162,8 @@ namespace cvt
 			void loadPreset( CameraPreset preset );
 			void savePreset( CameraPreset preset = PRESET_USER0 );
 
-			void getWhiteBalance(unsigned int* ubValue, unsigned int* vrValue);
-			void setWhiteBalance(unsigned int ubValue, unsigned int vrValue);
+            void getWhiteBalance( unsigned int* ubValue, unsigned int* vrValue );
+            void setWhiteBalance( uint32_t ubValue, uint32_t vrValue );
 
 			uint32_t shutter() const;
 			float shutterAbs() const;

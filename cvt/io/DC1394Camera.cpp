@@ -362,7 +362,7 @@ namespace cvt
         }
 	}
 
-	void DC1394Camera::setWhiteBalance( unsigned int ubValue, unsigned int vrValue )
+    void DC1394Camera::setWhiteBalance( uint32_t ubValue, uint32_t vrValue )
 	{
         dc1394error_t error = dc1394_feature_whitebalance_set_value( _camera, ubValue, vrValue );
         if( error != DC1394_SUCCESS ){
@@ -677,7 +677,6 @@ namespace cvt
 			packetSize = maxBytes;
         }
 
-        std::cout << "Packet size: " << packetSize << std::endl;
         error = dc1394_format7_set_packet_size( _camera, _mode, packetSize );
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
@@ -685,6 +684,7 @@ namespace cvt
         error = dc1394_format7_get_packet_size( _camera, _mode, &packetSize );
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
+        std::cout << "Packet size: " << packetSize << std::endl;
 		_fps = _calcFormat7FPS( packetSize, w, h, bitsPerPixel >> 3 );
         std::cout << "FPS: " << _fps << std::endl;
 	}

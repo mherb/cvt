@@ -7,6 +7,15 @@ static std::string INCLUDEDIR;
 
 void escapeStream( std::ofstream& output, std::ifstream& input, const std::string& filename );
 
+bool hasEnding( const std::string& fullString, const std::string& ending)
+{
+	if (fullString.length() >= ending.length()) {
+		return  ( fullString.compare(fullString.length() - ending.length(), ending.length(), ending) == 0 );
+	} else {
+        return false;
+    }
+}
+
 std::string trimImport( const std::string& str )
 {
 	const char* ptr = str.c_str();
@@ -59,7 +68,9 @@ void escapeStream( std::ofstream& output, std::ifstream& input, const std::strin
 	std::string hashline;
 	std::string importprefix = "import";
 
-	output << "#line " << line << " \\\"" << filename << "\\\" \\n\" \\" << std::endl << "\"";
+	if( !hasEnding( filename, ".vert" ) && !hasEnding( filename, ".frag" ) )
+		output << "#line " << line << " \\\"" << filename << "\\\" \\n\" \\" << std::endl << "\"";
+
 	while( !input.eof() ) {
 		input.get( val );
 		if( !input.eof() ) {
