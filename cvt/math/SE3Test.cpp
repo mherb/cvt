@@ -148,7 +148,7 @@ namespace cvt {
         bool b, ret = true;
         Eigen::Matrix<double, 24, 6> jDiff;
         jDiff = hN - hA;
-        b = ( jDiff.array().abs().sum() / ( 24.0 * 6.0 ) ) < 0.00001;
+		b = ( jDiff.array().abs().sum() / ( double )( jDiff.rows() * jDiff.cols() ) ) < 0.00001;
 
         CVTTEST_PRINT( "Pose Hessian", b );
         if( !b ){
@@ -218,7 +218,7 @@ namespace cvt {
         bool b, ret = true;
         Eigen::Matrix<double, 2, 6> jDiff;
         jDiff = shNumeric - sh;
-        b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / ( double )( jDiff.rows() * jDiff.cols() ) ) < 0.0001;
 
         CVTTEST_PRINT( "Pose ScreenJacobian", b );
         if( !b ){
@@ -317,8 +317,8 @@ namespace cvt {
 
         bool b, ret = true;
         Eigen::Matrix<double, 6, 6> jDiff;
-        jDiff = shNumericX - shX;
-        b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+		jDiff = shNumericX - shX;
+		b = ( jDiff.array().abs().sum() / ( double )( jDiff.rows() * jDiff.cols() ) ) < 0.0001;
 
         CVTTEST_PRINT( "Pose ScreenHessian X", b );
         if( !b ){
@@ -329,7 +329,7 @@ namespace cvt {
         ret &= b;
 
         jDiff = shNumericY - shY;
-        b = ( jDiff.array().abs().sum() / 36.0 ) < 0.001;
+		b = ( jDiff.array().abs().sum() / ( double )( jDiff.rows() * jDiff.cols() ) ) < 0.0001;
 
         CVTTEST_PRINT( "Pose ScreenHessian Y", b );
         if( !b ){
