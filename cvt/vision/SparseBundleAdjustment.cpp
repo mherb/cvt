@@ -338,7 +338,6 @@ namespace cvt {
         }
     }
 
-
     void SparseBundleAdjustment::updateInverseAugmentedPointHessians()
     {
         double lambdaAug = 1.0 + _lambda;
@@ -353,7 +352,6 @@ namespace cvt {
         }
     }
 
-
     void SparseBundleAdjustment::setBlockInReducedSparse( const CamJTJ & m,
                                                           size_t bRow,
                                                           size_t bCol )
@@ -361,6 +359,7 @@ namespace cvt {
         size_t r = camParamDim * bRow;
         size_t c = camParamDim * bCol;
 
+		// TODO: check -> access has to be with increasing idx?
         for( size_t i = 0; i < camParamDim; i++ )
             for( size_t k = 0; k < camParamDim; k++ )
                 _sparseReduced.coeffRef( r+k, c+i ) = m( k, i );

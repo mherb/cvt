@@ -13,11 +13,10 @@
 
 namespace cvt
 {
-
-
-
-   bool FeatureTracking::checkFeatureSAD( const Vector2f& point0, const Vector2f& point1,
-                                 const Image & i0, const Image & i1 ) const
+   bool FeatureTracking::checkFeatureSAD( const Vector2f& point0,
+										  const Vector2f& point1,
+										  const Image & i0,
+										  const Image & i1 ) const
    {
       size_t s0, s1;
       const uint8_t* ptr0 = i0.map( &s0 );
@@ -37,10 +36,9 @@ namespace cvt
       i1.unmap( ptr1 );
 
       // average & normalize
-      sad = 1.0f - ( sad / Math::sqr( 256.0 ) );
+	  sad = 1.0f - ( sad / Math::sqr( 255.0 ) );
 
-      if( sad > 0.7 ){
-         //std::cout << sad << std::endl;
+	  if( sad > 0.7 /* TODO: make param */ ){
          return true;
       } else {
          return false;

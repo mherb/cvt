@@ -18,7 +18,7 @@ namespace cvt
 	class SLAMGui : public Window 
 	{
 		public:
-                        SLAMGui( ParamSet& depthInitParams );
+			SLAMGui();
 			~SLAMGui();
 
 			void setCurrentImage( const Image& img );
@@ -50,19 +50,15 @@ namespace cvt
 			Label		_fpsLabel;
 			Button		_resetCamera;
 			Button		_saveMap;
-            Button          _resetMap;
-            ParamSetView    _depthInitParamsView;
-            Moveable        _depthParamsMov;
-
+			Button		_resetMap;
 
 			float		_imageAspect;
-			
 			PointSet2d	_trackedPoints;
 			
 			void setupGui();
 	};
 
-        inline SLAMGui::SLAMGui( ParamSet& depthInitParams ) : Window( "SLAMGui" ),
+		inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
 		_currentMov( &_currentImg ),
 		_stereoMov( &_stereoView ),
 		_slamMov( &_slamView ),
@@ -72,8 +68,6 @@ namespace cvt
 		_resetCamera( "Set Cam" ),
 		_saveMap( "Save Map" ),
 		_resetMap( "Clear Map" ),
-                _depthInitParamsView( depthInitParams ),
-                _depthParamsMov( &_depthInitParamsView ),
 		_imageAspect( 1.5f )
 	{
 		setupGui();
@@ -99,10 +93,6 @@ namespace cvt
 		_stereoMov.setPosition( 0, 300 );
 
 		_slamMov.setSize( 320, 240 );
-
-                _depthParamsMov.setSize( 320, 300 );
-                _depthParamsMov.setTitle( "DepthInit Parameters" );
-                addWidget( &_depthParamsMov );
 
 		// buttons to the top right
 		WidgetLayout wl;
@@ -141,11 +131,6 @@ namespace cvt
 	{
 		_currentImg.setImage( img );
 		_imageAspect = (float)img.width() / (float)img.height();
-
-       /* static size_t iter = 0;
-        cvt::String name;
-        name.sprintf( "mono_%04d.png", iter++ );
-        img.save( name );*/
 	}
 
 
@@ -159,13 +144,6 @@ namespace cvt
 	inline void SLAMGui::updateStereoView( const Image& img )
 	{
 		_stereoView.setImage( img );
-/*
-        static size_t iter = 0;
-        cvt::String name;
-        name.sprintf( "stereo_%04d.png", iter++ );
-        img.save( name );
-*/
-
 	}
 
 	inline void SLAMGui::updateCameraPose( const Matrix4f & m )

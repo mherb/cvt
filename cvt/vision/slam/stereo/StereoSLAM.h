@@ -20,7 +20,6 @@
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
-#include <cvt/vision/slam/stereo/DepthInitializer.h>
 #include <cvt/vision/slam/stereo/MapOptimizer.h>
 
 #include <set>
@@ -31,17 +30,14 @@ namespace cvt
    class StereoSLAM
    {
       public:
-         StereoSLAM( FeatureTracking* ft, DepthInitializer* di );
+		 StereoSLAM( FeatureTracking* ft, const StereoCameraCalibration& calib );
 
-         // new round with two new images, maybe also hand in a pose prediction?
-         void newImages( const Image& img0, const Image& img1 );
-
-         const Image& undistorted( size_t idx = 0 ) const
-         {
-            if( idx )
-               return _undist1;
-            return _undist0;
-         }
+		 /**
+		  * @brief newImages
+		  * @param imgLeft	undistorted-rectified left frame
+		  * @param imgRight undistorted-rectified right frame
+		  */
+		 void newImages( const Image& imgLeft, const Image& imgRight );
 
          const SlamMap & map() const { return _map; }
          void clear();
@@ -57,12 +53,8 @@ namespace cvt
          Signal<size_t>             numTrackedPoints;
 
       private:
-         /* undistorted images */
-         Image              _undist0;
-         Image              _undist1;
-
-         FeatureTracking*   _featureTracking;
-         DepthInitializer*  _depthInit;
+		 FeatureTracking*			_featureTracking;
+		 StereoCameraCalibration	_calib;
 
          // minimum needed features before new keyframe is added
          size_t             _minTrackedFeatures;
@@ -91,17 +83,19 @@ namespace cvt
          void fillPointsetFromIds( PointSet3d& pset,
                                    const std::vector<size_t>& ids ) const;
 
+		 /*
          void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
                               const PointSet2d& p2d,
                               const std::vector<size_t>& trackedIds,
                               const std::vector<size_t>& inliers );
+		*/
 
          void createDebugImageMono( Image & debugImage,
                                     const PointSet2d & tracked,
                                     const std::vector<Vector2f> & predPos ) const;
 
-         void createDebugImageStereo( Image & debugImage,
-                                      const std::vector<DepthInitializer::DepthInitResult>& triang ) const;         
+		 //void createDebugImageStereo( Image & debugImage,
+		 //                             const std::vector<DepthInitializer::DepthInitResult>& triang ) const;
    };
 
 }

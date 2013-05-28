@@ -454,6 +454,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
+   vision/StereoRectification.h
    vision/TSDFVolume.h
    vision/Vision.h
    vision/SparseBundleAdjustment.h
@@ -670,6 +671,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
+   vision/StereoRectification.cpp
    vision/rgbdvo/InformationSelectionTest.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
