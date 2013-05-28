@@ -37,6 +37,10 @@ namespace cvt {
 			bool isSymmetrical() const;
 			bool isPointSymmetrical() const;
 
+
+			static IKernel createGaussian( float sigma );
+			static IKernel createGabor( float sigma, float theta, float lambda, float gamma, float psi );
+
 			static const IKernel IDENTITY;
 
 			static const IKernel GAUSS_HORIZONTAL_3;
@@ -213,6 +217,50 @@ namespace cvt {
 				return false;
 		}
 		return true;
+	}
+
+	inline IKernel IKernel::createGaussian( float sigma )
+	{
+		const float nstds = 3.0f;
+		int max = Math::max( ( int ) Math::ceil( nstds * sigma ), 1 );
+		float mul = 1.0f / ( 2.0f * Math::PI * Math::sqr( sigma ) );
+
+		IKernel ret( 2 * max + 1, 2 * max + 1 );
+
+		for( int y = -max; y <= max; y++ ) {
+			for( int x = -max; x <= max; x++ ) {
+				ret( x, y ) = mul * Math::exp( -( Math::sqr( ( float ) x ) + Math::sqr( ( float ) y ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+			}
+		}
+
+		return ret;
+	}
+
+	inline IKernel IKernel::createGabor( float sigma, float theta, float lambda, float gamma, float psi )
+	{
+		const float nstds = 3.0f;
+		float sigma_x = sigma;
+		float sigma_y = sigma / gamma;
+
+		float c = Math::cos( theta );
+		float s = Math::sin( theta );
+
+		int xmax = Math::ceil( Math::max( Math::abs( nstds * sigma_x * c ), Math::abs( nstds * sigma_y * s ) ) );
+			xmax = Math::max( 1, xmax );
+		int ymax = Math::ceil( Math::max( Math::abs( nstds * sigma_x * s ), Math::abs( nstds * sigma_y * c ) ) );
+			ymax = Math::max( 1, ymax );
+
+		IKernel ret( 2 * xmax + 1, 2 * ymax + 1 );
+
+		for( int y = -ymax; y <= ymax; y++ ) {
+			for( int x = -xmax; x <= xmax; x++ ) {
+				float rotx =  ( float ) x * c + ( float ) y * s;
+				float roty = -( float ) x * s + ( float ) y * c;
+				ret( x, y ) = Math::exp( -0.5f * ( Math::sqr( rotx / sigma_x ) + Math::sqr( roty / sigma_y ) ) ) *  Math::cos( 2.0f * Math::PI * rotx / lambda + psi );
+			}
+		}
+
+		return ret;
 	}
 
 }
