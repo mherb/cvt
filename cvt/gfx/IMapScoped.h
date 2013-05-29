@@ -53,8 +53,8 @@ namespace cvt {
 				void		operator++( int );
 				void		operator--( int );
 				size_t		stride() const;
-				T&			operator()( size_t row, size_t col );
-				const T&	operator()( size_t row, size_t col ) const;
+				T&			operator()( size_t x, size_t y );
+				const T&	operator()( size_t x, size_t y ) const;
 				size_t		width() const;
 				size_t		height() const;
 
@@ -148,15 +148,15 @@ namespace cvt {
 	}
 
 	template<typename T>
-	inline T& IMapScoped<T>::operator()( size_t row, size_t col )
+	inline T& IMapScoped<T>::operator()( size_t x, size_t y )
 	{
-		return *( ( T* ) ( _base + row * _stride + col * sizeof( T ) ) );
+		return *( ( T* ) ( _base + y * _stride + x * sizeof( T ) ) );
 	}
 
 	template<typename T>
-	inline const T& IMapScoped<T>::operator()( size_t row, size_t col ) const
+	inline const T& IMapScoped<T>::operator()( size_t x, size_t y ) const
 	{
-		return *( ( const T* ) ( _base + row * _stride + col * sizeof( T ) ) );
+		return *( ( const T* ) ( _base + y * _stride + x * sizeof( T ) ) );
 	}
 
 	template<typename T>

@@ -52,10 +52,10 @@ class Grid {
 
 				int x = p.x;
 				int y = p.y;
-				float d = dmap( y, x );
+				float d = dmap( x, y );
 				if( d > 0.1 ){
 					const Vector2f& pc = _canonicalPoints[ i ];
-					intensities.push_back( imap( y, x ) );
+					intensities.push_back( imap( x, y ) );
 					points.push_back( Vector3f( pc.x * d, pc.y * d, d ) );
 				}
 			}

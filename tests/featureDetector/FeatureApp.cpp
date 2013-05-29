@@ -37,7 +37,7 @@ namespace cvt
 
 	void FeatureApp::onTimeout()
 	{
-		typedef ORB FeatureType;
+		typedef BRIEF64 FeatureType;
 
 		_video.nextFrame();
 		_view.setImage( _video.frame() );

@@ -61,7 +61,7 @@ int main( int argc, char** argv )
 	}
 
 	try {
-		int patchsize = 10;
+		int patchsize = 17;
 		std::vector<CLPlatform> platforms;
 		std::vector<CLDevice> devs;
 
@@ -136,7 +136,7 @@ int main( int argc, char** argv )
 		matrix3f_to_Mat3( clK, K );
 		matrix3f_to_Mat3( clKinv, Kinv );
 
-		for( int iter = 0; iter < 100; iter++ ) {
+		for( int iter = 0; iter < 200; iter++ ) {
 			clpmpropagate.setArg( 0, state2 );
 			clpmpropagate.setArg( 1, state1 );
 			clpmpropagate.setArg( 2, clinput1 );

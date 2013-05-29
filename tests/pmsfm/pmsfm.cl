@@ -4,8 +4,8 @@
 #pragma SELECT_ROUNDING_MODE rtz
 
 // values in meter
-#define DEPTHMAX  0.2
-#define DEPTHMIN  1e-4f
+#define DEPTHMAX  10.0f
+#define DEPTHMIN  0.5f
 
 #define TRANSMAX  1.0f
 //#define ROTMAX	  0.25f
@@ -23,7 +23,7 @@
 #define TRANSREFINEMUL  0.05f
 #define ROTREFINEMUL 0.02f
 
-#define COLORWEIGHT 10.0f
+#define COLORWEIGHT 20.0f
 #define COLORGRADALPHA 0.3f
 #define COLORMAXDIFF 0.2f
 #define GRADMAXDIFF 0.1f

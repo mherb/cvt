@@ -131,7 +131,7 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( py + _brief_pattern[ n ][ 1 ], px + _brief_pattern[ n ][ 0 ] ) < map( py + _brief_pattern[ n ][ 3 ], px + _brief_pattern[ n ][ 2 ] ) )
+#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
 
 		IMapScoped<const float> map( boximg );
 		size_t iend = features.size();
@@ -157,7 +157,7 @@ namespace cvt {
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( py + _brief_pattern[ n ][ 1 ], px + _brief_pattern[ n ][ 0 ] ) < map( py + _brief_pattern[ n ][ 3 ], px + _brief_pattern[ n ][ 2 ] ) )
+#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
 
 		IMapScoped<const uint8_t> map( boximg );
 		size_t iend = features.size();

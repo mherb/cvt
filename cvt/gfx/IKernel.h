@@ -38,7 +38,8 @@ namespace cvt {
 			bool isPointSymmetrical() const;
 
 
-			static IKernel createGaussian( float sigma );
+			static IKernel createGaussian1D( float sigma, bool vertical = false );
+			static IKernel createGaussian2D( float sigma );
 			static IKernel createGabor( float sigma, float theta, float lambda, float gamma, float psi );
 
 			static const IKernel IDENTITY;
@@ -219,7 +220,29 @@ namespace cvt {
 		return true;
 	}
 
-	inline IKernel IKernel::createGaussian( float sigma )
+
+	inline IKernel IKernel::createGaussian1D( float sigma, bool vertical )
+	{
+		const float nstds = 3.0f;
+		int max = Math::max( ( int ) Math::ceil( nstds * sigma ), 1 );
+		float mul = 1.0f / Math::sqrt( 2.0f * Math::PI * Math::sqr( sigma ) );
+
+		if( vertical ) {
+			IKernel ret( 1, 2 * max + 1 );
+			for( int x = -max; x <= max; x++ ) {
+				ret( 1, x ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+			}
+			return ret;
+		} else {
+			IKernel ret( 2 * max + 1, 1 );
+			for( int x = -max; x <= max; x++ ) {
+				ret( x, 1 ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+			}
+			return ret;
+		}
+	}
+
+	inline IKernel IKernel::createGaussian2D( float sigma )
 	{
 		const float nstds = 3.0f;
 		int max = Math::max( ( int ) Math::ceil( nstds * sigma ), 1 );
