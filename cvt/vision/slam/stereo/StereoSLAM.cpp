@@ -32,7 +32,7 @@ namespace cvt
        _maxKeyframeDistance( 0.4 )
    {
       Eigen::Matrix3d K;
-	  //EigenBridge::toEigen( K, _depthInit->calibration0().intrinsics() );
+	  EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
       _map.setIntrinsics( K );
    }
 

@@ -55,6 +55,7 @@ namespace cvt
       private:
 		 FeatureTracking*			_featureTracking;
 		 StereoCameraCalibration	_calib;
+		 /*TODO: MotionEstimation class*/
 
          // minimum needed features before new keyframe is added
          size_t             _minTrackedFeatures;

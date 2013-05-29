@@ -13,7 +13,7 @@ namespace cvt
 	  _slam( _featureTracking, StereoCameraCalibration( calibs[ 0 ], calibs[ 1 ] ) ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
-	  _gui( _depthInit->parameters() ),
+	  _gui(),
       _stepping( true ),
       _nextImage( true )
    {
