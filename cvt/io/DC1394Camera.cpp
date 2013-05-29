@@ -183,8 +183,6 @@ namespace cvt
 
 		setFrameRate( _fps );
 
-        std::cout << "Max. Mem Channels: " << _camera->max_mem_channel << std::endl;
-        _params.numDMABuf = Math::max<uint32_t>( _camera->max_mem_channel, _params.numDMABuf );
         error = dc1394_capture_setup( _camera, _params.numDMABuf, DC1394_CAPTURE_FLAGS_DEFAULT );
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
@@ -197,10 +195,6 @@ namespace cvt
 		}
 
 		_capturing = true;
-
-//		std::cout << "PIO_CSR: " << std::hex << _camera->PIO_control_csr << std::endl;
-//		std::cout << "PIO_STROBE_CTRL_REGISTER: " << std::hex << _camera->strobe_control_csr << std::endl;
-//		std::cout << "Command Reg Base: " << std::hex << _camera->command_registers_base << std::endl;
 	}
 
 	void DC1394Camera::stopCapture( )
@@ -287,7 +281,6 @@ namespace cvt
 			memcpy( dst + i * stride, frame->image + i * frame->stride, bytesPerRow );
 		_frame.unmap( dst );
 
-		/* FIXME: convert to image format ... */
         error = dc1394_capture_enqueue( _camera, frame );
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
@@ -653,11 +646,6 @@ namespace cvt
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
 
-		uint32_t packetUnits, maxBytes;
-        error = dc1394_format7_get_packet_parameters( _camera, _mode, &packetUnits, &maxBytes );
-        if( error != DC1394_SUCCESS )
-            throw CVTException( dc1394_error_get_string( error ) );
-
 		uint32_t bitsPerPixel = 0;
         error = dc1394_get_color_coding_data_depth( _colorCoding, &bitsPerPixel );
         if( error != DC1394_SUCCESS )
@@ -666,27 +654,40 @@ namespace cvt
 		size_t bytesPerFrame = ( w * h * bitsPerPixel ) >> 3;
 
 		// we need to calculate the packet size needed to reach the frame rate
-		// fps = ( packet_size * n_packets_per_second ) / size_of_one_frame
-		uint32_t packetSize = fps * bytesPerFrame / 8000.0f;
-        // pad to unit
-        float rest = packetSize % packetUnits;
-        uint32_t min = packetSize - rest;
-        uint32_t max = min + packetUnits;
-        packetSize = max;
-		if( packetSize > maxBytes ){
-			packetSize = maxBytes;
-        }
+		uint32_t pacSize = fps * bytesPerFrame / 8000.0f;        
+		setPacketSize( pacSize );
+        pacSize = packetSize();
+        _fps = _calcFormat7FPS( pacSize, w, h, bitsPerPixel >> 3 );        
+	}
 
-        error = dc1394_format7_set_packet_size( _camera, _mode, packetSize );
+	void DC1394Camera::setPacketSize( size_t pacSize )
+	{
+		if( !_isFormat7 ){
+			return;
+		}
+		uint32_t packetUnits, maxBytes;
+		dc1394error_t error = dc1394_format7_get_packet_parameters( _camera, _mode, &packetUnits, &maxBytes );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+
+		// pad to unit		
+		size_t rest = pacSize % packetUnits;
+		uint32_t min = pacSize - rest;
+		uint32_t max = min + packetUnits;
+		pacSize = Math::min( max, maxBytes );
+
+        error = dc1394_format7_set_packet_size( _camera, _mode, pacSize );        
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
+    }
 
-        error = dc1394_format7_get_packet_size( _camera, _mode, &packetSize );
-        if( error != DC1394_SUCCESS )
-            throw CVTException( dc1394_error_get_string( error ) );
-        std::cout << "Packet size: " << packetSize << std::endl;
-		_fps = _calcFormat7FPS( packetSize, w, h, bitsPerPixel >> 3 );
-        std::cout << "FPS: " << _fps << std::endl;
+	size_t DC1394Camera::packetSize() const
+	{
+		uint32_t packetSize = 0;
+		dc1394error_t error = dc1394_format7_get_packet_size( _camera, _mode, &packetSize );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+		return packetSize;
 	}
 
 	float DC1394Camera::frameRate() const

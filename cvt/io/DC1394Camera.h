@@ -195,6 +195,9 @@ namespace cvt
 			void setFrameRate( float fps );
 			float frameRate() const;
 
+			void setPacketSize( size_t packetSize );
+			size_t packetSize() const;
+
 			void setAreaOfInterest( const Recti& rect );
             void setISOSpeed( uint32_t speed );
 
