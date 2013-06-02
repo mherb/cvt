@@ -1,8 +1,11 @@
 #ifndef CVT_RDCLASSHISTOGRAM_H
 #define CVT_RDCLASSHISTOGRAM_H
 
-#include <cvt/math/Math.h>
+#include <iostream>
 #include <string.h>
+
+#include <cvt/math/Math.h>
+
 
 namespace cvt {
 	template<size_t N>
@@ -14,13 +17,14 @@ namespace cvt {
 			~RDFClassHistogram();
 
 			RDFClassHistogram<N>& operator=( const RDFClassHistogram<N>& other );
+			RDFClassHistogram<N>& operator+=( const RDFClassHistogram<N>& other );
 
-			float			  probability( size_t ) const;
-			float			  entropy() const;
+			float				  probability( size_t ) const;
+			float				  entropy() const;
 
-			void			  addSample( size_t classLabel );
-			size_t			  sampleCount() const;
-			void			  clear();
+			void				  addSample( size_t classLabel );
+			size_t				  sampleCount() const;
+			void				  clear();
 
 		private:
 			size_t		 _numSamples;
@@ -51,7 +55,6 @@ namespace cvt {
 		return ( float ) _bin[ classN ] / ( float ) _numSamples;
 	}
 
-
 	template<size_t N>
 	inline RDFClassHistogram<N>& RDFClassHistogram<N>::operator=( const RDFClassHistogram<N>& other )
 	{
@@ -59,6 +62,15 @@ namespace cvt {
 			_numSamples = other._numSamples;
 			::memcpy( _bin, other._bin, sizeof( size_t ) * N );
 		}
+		return *this;
+	}
+
+	template<size_t N>
+	inline RDFClassHistogram<N>& RDFClassHistogram<N>::operator+=( const RDFClassHistogram<N>& other )
+	{
+		_numSamples += other._numSamples;
+		for( size_t i = 0; i < N; i++ )
+			_bin [ i ] += other._bin[ i ];
 		return *this;
 	}
 
@@ -97,6 +109,16 @@ namespace cvt {
 		_numSamples = 0;
 		::memset( _bin, 0, sizeof( size_t  ) * N );
 	}
+
+    template<size_t N>
+    std::ostream& operator<<( std::ostream& out, const RDFClassHistogram<N>& hist )
+    {
+		for( size_t i = 0; i < N; i++ )
+			out << " | " <<  i << " : " << hist.probability( i );
+		out << " |";
+        return out;
+    }
+
 }
 
 #endif

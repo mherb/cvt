@@ -1,5 +1,6 @@
 
 #include <cvt/ml/rdf/RDFClassificationTrainer2D.h>
+#include <cvt/ml/rdf/RDFClassifier.h>
 
 #include <cvt/math/Vector.h>
 
@@ -29,9 +30,20 @@ int main( int argc, char** argv )
 		iter.skip( "\t\n\r " );
 	};
 
-	RDFNode<Vector2f,RDFClassHistogram<2> >* node =  rdftrainer.train( traindata, 3, 50000 );
+	RDFClassifier<Vector2f,2> rdfclassifier;
+	for( size_t i = 0; i < 20; i++ ) {
+		rdfclassifier.addTree( rdftrainer.train( traindata, 6, 50000 ) );
+	}
 
 
+	for( size_t i = 0; i < traindata.size(); i++ ) {
+		Vector3f tdata = traindata[ i ];
+		Vector2f pos( tdata.x, tdata.y );
+		std::cout << "GT: " << tdata.z << std::endl;
+		RDFClassHistogram<2> chist;
+		rdfclassifier.classify( chist, pos );
+		std::cout <<  chist << std::endl;
+	}
 
 
 	return 0;

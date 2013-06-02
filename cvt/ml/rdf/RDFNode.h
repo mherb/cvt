@@ -14,16 +14,18 @@ namespace cvt {
 			RDFNode( NODEDATA* data, RDFTest<DATA>*, RDFNode<DATA,NODEDATA>* left, RDFNode<DATA,NODEDATA>* right );
 			~RDFNode();
 
-			bool				   test( const DATA& data, size_t index );
-			RDFNode<DATA,NODEDATA>* left();
+			bool				    test( const DATA& data );
+			RDFNode<DATA,NODEDATA>*	left();
 			RDFNode<DATA,NODEDATA>* right();
-			RDFTest<DATA>*		   test();
-			NODEDATA*			   data();
-			const NODEDATA*		   data() const;
+			RDFTest<DATA>*			test();
+			NODEDATA*				data();
+			const NODEDATA*			data() const;
+
+			bool					isLeaf() const;
 
 		private:
-			NODEDATA*			   _data;
-			RDFTest<DATA>*		   _test;
+			NODEDATA*				_data;
+			RDFTest<DATA>*			_test;
 			RDFNode<DATA,NODEDATA>* _left;
 			RDFNode<DATA,NODEDATA>* _right;
 	};
@@ -54,9 +56,16 @@ namespace cvt {
 	}
 
 	template<typename DATA, typename NODEDATA>
-	inline bool RDFNode<DATA, NODEDATA>::test( const DATA& data, size_t index )
+	inline bool RDFNode<DATA, NODEDATA>::test( const DATA& data )
 	{
-		return _test->operator()( data, index );
+		return _test->operator()( data );
+	}
+
+
+	template<typename DATA, typename NODEDATA>
+	inline RDFTest<DATA>* RDFNode<DATA, NODEDATA>::test()
+	{
+		return _test;
 	}
 
 	template<typename DATA, typename NODEDATA>
@@ -81,6 +90,12 @@ namespace cvt {
 	inline const NODEDATA* RDFNode<DATA, NODEDATA>::data() const
 	{
 		return _data;
+	}
+
+	template<typename DATA, typename NODEDATA>
+	inline bool RDFNode<DATA, NODEDATA>::isLeaf() const
+	{
+		return _test == NULL;
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <cvt/ml/rdf/RDFNode.h>
 #include <cvt/ml/rdf/RDFTest.h>
 #include <cvt/ml/rdf/RDFClassHistogram.h>
+#include <cvt/ml/rdf/RDFClassificationTree.h>
 
 namespace cvt {
 
@@ -21,7 +22,7 @@ namespace cvt {
 			virtual size_t		   classLabel( const DATACOLLECTION& data, size_t index ) = 0;
 			virtual DATA&		   trainingData( const DATACOLLECTION& data, size_t index ) = 0;
 
-			RDFNode<DATA,RDFClassHistogram<N> >* train( const DATACOLLECTION& data, size_t maxdepth, size_t randTries );
+			RDFClassificationTree<DATA,N>* train( const DATACOLLECTION& data, size_t maxdepth, size_t randTries );
 
 		private:
 			RDFNode<DATA,RDFClassHistogram<N> >* trainRecursive( const DATACOLLECTION& data, const RDFClassHistogram<N>& hist, std::vector<size_t>& indices, size_t level, size_t randTries );
@@ -54,7 +55,7 @@ namespace cvt {
 	}
 
 	template<typename DATA, typename DATACOLLECTION, size_t N>
-	inline RDFNode<DATA,RDFClassHistogram<N> >* RDFClassificationTrainer<DATA,DATACOLLECTION,N>::train( const DATACOLLECTION& data, size_t level, size_t randTries )
+	inline RDFClassificationTree<DATA,N>* RDFClassificationTrainer<DATA,DATACOLLECTION,N>::train( const DATACOLLECTION& data, size_t level, size_t randTries )
 	{
 		RDFTest<DATA>* best = NULL;
 		RDFNode<DATA,RDFClassHistogram<N> >* left;
@@ -111,7 +112,7 @@ namespace cvt {
 
 		left  = trainRecursive( data, histbestleft, leftindices, level - 1, randTries );
 		right = trainRecursive( data, histbestright, rightindices, level - 1, randTries );
-		return new RDFNode<DATA,RDFClassHistogram<N> >( NULL, best, left, right );
+		return new RDFClassificationTree<DATA,N>( new RDFNode<DATA,RDFClassHistogram<N> >( NULL, best, left, right ) );
 	}
 
 	template<typename DATA, typename DATACOLLECTION, size_t N>
@@ -177,7 +178,7 @@ namespace cvt {
 
 		left  = trainRecursive( data, histbestleft, leftindices, level - 1, randTries );
 		right = trainRecursive( data, histbestright, rightindices, level - 1, randTries );
-		return new RDFNode<DATA,RDFClassHistogram<N> >( level==1?new RDFClassHistogram<N>( hist ):NULL, best, left, right );
+		return new RDFNode<DATA,RDFClassHistogram<N> >( NULL, best, left, right );
 	}
 
 }
