@@ -314,6 +314,16 @@ namespace cvt {
             return ::log( x );
         }
 
+        static inline float log2( float x )
+        {
+            return ::log2f( x );
+        }
+
+        static inline double log2( double x )
+        {
+            return ::log2( x );
+        }
+
         static inline float tan( float x )
         {
             return ::tanf( x );
