@@ -14,6 +14,9 @@
 #include <vector>
 #include <cvt/geom/PointSet.h>
 #include <cvt/util/Signal.h>
+#include <cvt/vision/features/FeatureDetector.h>
+#include <cvt/vision/features/FeatureDescriptor.h>
+#include <cvt/vision/features/FeatureDescriptorExtractor.h>
 #include <cvt/gfx/Image.h>
 
 namespace cvt
@@ -21,28 +24,15 @@ namespace cvt
     class FeatureTracking
     {
         public:
-            virtual ~FeatureTracking() {}
+			FeatureTracking();
+			~FeatureTracking();
 
-            /**
-              * \brief track features in the current Image
-              * \param trackedPositions		positions of the tracked 2D features
-              * \param trackedFeatureIds		ids (of predictedIds) that have been tracked
-              * \param predictedPositions	vector of predicted feature positions
-              * \param img					the current image
-              */
-            virtual void trackFeatures( PointSet2d&                    trackedPositions,
-                                        std::vector<size_t>&           trackedFeatureIds,
-                                        const std::vector<Vector2f>&	predictedPositions,
-                                        const std::vector<size_t>&		predictedIds,
-                                        const Image&                   img ) = 0;
+			void track( std::vector<size_t> &tracked,
+						const Image& currGray,
+						const std::vector<FeatureDescriptor*>& descriptors );
 
 
-            virtual void addFeatureToDatabase( const Vector2f & f, size_t id ) = 0;
-
-            /* clear all internally cached data if neccessary */
-            virtual void clear() = 0;
-
-        protected:
+		private:
             bool checkFeatureSAD( const Vector2f& p0, const Vector2f& p1, const Image & i0, const Image & i1 ) const;
     };
 }
