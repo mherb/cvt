@@ -11,7 +11,7 @@
 #ifndef CVT_SPARSE_BUNDLE_ADJUSTMENT
 #define CVT_SPARSE_BUNDLE_ADJUSTMENT
 
-#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
+//#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/StdVector>
 #include <set>
 
@@ -62,11 +62,11 @@ namespace cvt {
 			PointResidualType*	_pointResiduals;
 			
 			/* Sparse Upper Left of the approx. Hessian */
-			SparseBlockMatrix<camParamDim, pointParamDim>				_camPointJTJ;
-			JointMeasurements											_jointMeasures;
+			SparseBlockMatrix<camParamDim, pointParamDim>			_camPointJTJ;
+			JointMeasurements										_jointMeasures;
 			
-			Eigen::SparseMatrix<double, Eigen::ColMajor>				_sparseReduced;
-			Eigen::VectorXd												_reducedRHS;
+			Eigen::SparseMatrix<double, Eigen::ColMajor>			_sparseReduced;
+			Eigen::VectorXd											_reducedRHS;
 
 			// levenberg marquard damping
 			double _lambda;

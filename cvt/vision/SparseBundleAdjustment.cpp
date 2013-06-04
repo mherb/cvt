@@ -227,8 +227,7 @@ namespace cvt {
             }
 
             // initial lambda
-            _lambda = avgDiag / ( ( _nCams + _nPts ) * 1000.0 );
-            //_lambda = 1.0;
+			_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
         }
     }
 
@@ -287,15 +286,14 @@ namespace cvt {
         Eigen::Matrix<double, camParamDim, pointParamDim> tmpEval;
         CamResidualType tmpRes;
 
-        double lambdaAug = 1.0 + _lambda;
+		double lambdaAug = _lambda;
         size_t numCams = map.numKeyframes();
         for( size_t c = 0; c < numCams; c++ ){
             // first create block for this cam:
             tmpBlock = _camsJTJ[ c ];
             tmpRes   = _camResiduals[ c ];
 
-            // augment
-            //tmpBlock.diagonal().array() *= lambdaAug;
+			// augment the jacobian diagonal
             tmpBlock.diagonal().array() += lambdaAug;
 
             // go over all point measures:
@@ -340,7 +338,7 @@ namespace cvt {
 
     void SparseBundleAdjustment::updateInverseAugmentedPointHessians()
     {
-        double lambdaAug = 1.0 + _lambda;
+		double lambdaAug = _lambda;
         PointJTJ inv;
         for( size_t i = 0; i < _nPts; i++ ){
             inv = _pointsJTJ[ i ];
