@@ -16,6 +16,7 @@
 #include <cvt/util/Signal.h>
 #include <cvt/vision/slam/SlamMap.h>
 #include <cvt/vision/slam/Keyframe.h>
+#include <cvt/vision/slam/stereo/DescriptorDatabase.h>
 #include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/vision/CameraCalibration.h>
 #include <cvt/vision/StereoCameraCalibration.h>
@@ -29,21 +30,59 @@ namespace cvt
    // Managing class for stereo SLAM
    class StereoSLAM
    {
-      public:
-		 StereoSLAM( FeatureTracking* ft, const StereoCameraCalibration& calib );
+	   public:
+		   struct Params {
+				Params():
+				   keyframeSelectionRadius( 1.0f ),
+				   pyramidOctaves( 4 ),
+				   pyramidScaleFactor( 0.5f ),
+				   matchingWindow( 40.0f ),
+				   matchingMaxDescDistance( 60.0f ),
+				   minTrackedFeatures( 60 ),
+				   maxKeyframeDistance( 0.4f ),
+				   minFeaturesForKeyframe( 10 ),
+				   minDisparity( 0.1f ),
+				   maxDisparity( 7.0f ),
+				   maxEpilineDistance( 2.0f )
+				{
+				}
+
+				float  keyframeSelectionRadius;
+				size_t pyramidOctaves;
+				float  pyramidScaleFactor;
+
+				/* radius matching*/
+				float  matchingWindow;
+				float  matchingMaxDescDistance;
+
+				/* keyframe recreation */
+				size_t minTrackedFeatures;
+				float  maxKeyframeDistance;
+				size_t minFeaturesForKeyframe;
+
+				/* stereo matching params*/
+				float minDisparity;
+				float maxDisparity;
+				float maxEpilineDistance;
+		   };
+
+		   StereoSLAM( FeatureDetector* detector,
+					   FeatureDescriptorExtractor* descExtractor,
+					   const StereoCameraCalibration& calib );
 
 		 /**
 		  * @brief newImages
 		  * @param imgLeft	undistorted-rectified left frame
 		  * @param imgRight undistorted-rectified right frame
 		  */
-		 void newImages( const Image& imgLeft, const Image& imgRight );
+		 void				newImages( const Image& imgLeft,
+									   const Image& imgRight );
 
-         const SlamMap & map() const { return _map; }
-         void clear();
+		 const SlamMap&		map() const { return _map; }
 
-         void setPose( const Matrix4d& pose );
-         const SE3<double>& pose() const { return _pose; }
+		 void				clear();
+		 void				setPose( const Matrix4f& pose );
+		 const SE3<float>&	pose() const { return _pose; }
 
          Signal<const Image&>       newStereoView;
          Signal<const Image&>       trackedFeatureImage;
@@ -53,50 +92,63 @@ namespace cvt
          Signal<size_t>             numTrackedPoints;
 
       private:
-		 FeatureTracking*			_featureTracking;
-		 StereoCameraCalibration	_calib;
-		 /*TODO: MotionEstimation class*/
-
-         // minimum needed features before new keyframe is added
-         size_t             _minTrackedFeatures;
+		 Params						 _params;
+		 FeatureDetector*			 _detector;
+		 FeatureDescriptorExtractor* _descExtractorLeft;
+		 FeatureDescriptorExtractor* _descExtractorRight;
+		 DescriptorDatabase			 _descriptorDatabase;
+		 ImagePyramid				 _pyrLeft;
+		 ImagePyramid				 _pyrRight;
+		 StereoCameraCalibration	 _calib;
 
          /* the current pose of the camera rig */
-         SE3<double>        _pose;
+		 SE3<float>					 _pose;
+		 int						 _activeKF;
+		 SlamMap					 _map;
+		 MapOptimizer				 _bundler;
+		 Image						 _lastImage;
 
-         /* the active Keyframe Id (closest to _pose) */
-         int                _activeKF;
-         double             _minKeyframeDistance;
-         double             _maxKeyframeDistance;
+		 void extractFeatures( const Image& left, const Image& right );
 
-         SlamMap            _map;
+		 void predictVisibleFeatures( std::vector<Vector2f>& imgPositions,
+									  std::vector<size_t>& ids,
+									  std::vector<FeatureDescriptor*>& descriptors,
+									  const Eigen::Matrix4d& cameraPose );
 
-         MapOptimizer       _bundler;
-         Image              _lastImage;
+		 void createCorrespondences( PointSet2f& points2d,
+									 PointSet3f& points3d,
+									 std::vector<size_t>& mapIndices,
+									 const std::vector<MatchingIndices>& matchedIndices,
+									 const std::vector<size_t>& ids ) const;
 
-         void estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3d & p3d, const PointSet2d & p2d );
+		 void estimateCameraPose( std::vector<size_t>& inlierIndices,
+								  const PointSet3f & p3d,
+								  const PointSet2f & p2d );
+
+		 bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
+
+		 void sortOutFreeFeatures( std::vector<const FeatureDescriptor*>& freeFeatures,
+								   const FeatureDescriptorExtractor* extractor,
+								   const std::vector<size_t>& inliers,
+								   const std::vector<MatchingIndices>& matches ) const;
+
+		 void stereoMatchesTo3DPoints( PointSet3f& newPts,
+									   std::vector<const FeatureDescriptor*>& newDescriptors,
+									   const std::vector<FeatureMatch>& stereoMatches ) const;
+
+		 void addNewKeyframe( const std::vector<const FeatureDescriptor*>& newDescriptors,
+							  const PointSet3f& newPoints3d,
+							  const PointSet2f& trackedMapPoints,
+							  const std::vector<size_t>& trackedMapIds,
+							  const std::vector<size_t>& inliers );
 
          void debugPatchWorkImage( const std::set<size_t>&          indices,
                                    const std::vector<size_t>&       featureIds,
                                    const std::vector<FeatureMatch>& matches );
 
-         bool newKeyframeNeeded( size_t numTrackedFeatures ) const;
-
-         void fillPointsetFromIds( PointSet3d& pset,
-                                   const std::vector<size_t>& ids ) const;
-
-		 /*
-         void addNewKeyframe( const std::vector<DepthInitializer::DepthInitResult> & triangulated,
-                              const PointSet2d& p2d,
-                              const std::vector<size_t>& trackedIds,
-                              const std::vector<size_t>& inliers );
-		*/
-
          void createDebugImageMono( Image & debugImage,
-                                    const PointSet2d & tracked,
+									const PointSet2f & tracked,
                                     const std::vector<Vector2f> & predPos ) const;
-
-		 //void createDebugImageStereo( Image & debugImage,
-		 //                             const std::vector<DepthInitializer::DepthInitResult>& triang ) const;
    };
 
 }
