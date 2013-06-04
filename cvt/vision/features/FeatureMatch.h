@@ -47,7 +47,13 @@ namespace cvt {
         const Feature* 	feature0;
         const Feature* 	feature1;
         float			distance;
-    } ;
+	};
+
+	struct MatchingIndices {
+		size_t	srcIdx;
+		size_t	dstIdx;
+		float	distance;
+	};
 
 }
 
