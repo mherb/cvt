@@ -74,17 +74,17 @@ namespace cvt
           *	\param	camCalib			calibration of the camera
           *	\param	maxDistance			maximum distance of keyframes that are taken into account for projection
           */
-         void   selectVisibleFeatures( std::vector<size_t>	   & visibleFeatureIds,
-                                 std::vector<Vector2f>	   & projections,
-                                const Eigen::Matrix4d	   & cameraPose,
-                                const CameraCalibration  & camCalib,
-                                double maxDistance = 3.0	) const;
+		 void   selectVisibleFeatures( std::vector<size_t>& visibleFeatureIds,
+									   std::vector<Vector2f>& projections,
+									   const Eigen::Matrix4d& cameraPose,
+									   const CameraCalibration& camCalib,
+									   double maxDistance = 3.0	) const;
 
          const MapFeature&		featureForId( size_t id ) const  { return _features[ id ];}
-         MapFeature&				featureForId( size_t id )		 { return _features[ id ];}
-         const Keyframe&			keyframeForId( size_t id ) const { return _keyframes[ id ];}
+		 MapFeature&			featureForId( size_t id )		 { return _features[ id ];}
+		 const Keyframe&		keyframeForId( size_t id ) const { return _keyframes[ id ];}
          Keyframe&				keyframeForId( size_t id )		 { return _keyframes[ id ];}
-         const Eigen::Matrix3d&  intrinsics() const { return _intrinsics; }
+		 const Eigen::Matrix3d&	intrinsics() const { return _intrinsics; }
          void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
          size_t numFeatures()	 const { return _features.size(); }
@@ -95,11 +95,15 @@ namespace cvt
          XMLNode* serialize() const;
 
          void load( const cvt::String& filename );
+		 // TODO: void save( const cvt::String& filename ) const;
 
       private:
-         std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> >		_keyframes;
-         std::vector<MapFeature, Eigen::aligned_allocator<MapFeature> >	_features;
-         Eigen::Matrix3d			_intrinsics;
+		 typedef std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> > KeyframeVectorType;
+		 typedef std::vector<MapFeature, Eigen::aligned_allocator<Keyframe> > MapFeatureVectorType;
+
+		 KeyframeVectorType		_keyframes;
+		 MapFeatureVectorType	_features;
+		 Eigen::Matrix3d		_intrinsics;
          size_t					_numMeas;
    };
 }

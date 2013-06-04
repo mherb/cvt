@@ -63,7 +63,6 @@ namespace cvt
       _numMeas++;
    }
 
-
    int SlamMap::findClosestKeyframe( const Eigen::Matrix4d& worldT ) const
    {
       double nearest = Math::MAXF;
@@ -76,7 +75,6 @@ namespace cvt
             kf = i;
          }
       }
-
       return kf;
    }
 
