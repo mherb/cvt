@@ -11,9 +11,9 @@
 #ifndef CVT_FEATUREDESCRPTOR_H
 #define CVT_FEATUREDESCRPTOR_H
 
-#include <cvt/vision/features/Feature.h>
 #include <cvt/util/Exception.h>
 #include <cvt/util/SIMD.h>
+#include <cvt/vision/features/Feature.h>
 
 namespace cvt {
 	enum FeatureDescriptorComparator {
@@ -39,6 +39,7 @@ namespace cvt {
 		virtual size_t length() const = 0;
 		virtual const uint8_t* ptr() const = 0;
 		virtual FeatureDescriptorComparator compareType() const = 0;
+		virtual FeatureDescriptor* clone() const = 0;
 	};
 
 	template<size_t N, typename T, FeatureDescriptorComparator CMPTYPE>
@@ -77,6 +78,11 @@ namespace cvt {
 		virtual FeatureDescriptorComparator compareType() const
 		{
 			return CMPTYPE;
+		}
+
+		virtual FeatureDescriptorInternal<N, T, CMPTYPE>* clone() const
+		{
+			return new FeatureDescriptorInternal<N, T, CMPTYPE>( *this );
 		}
 
 		float distance( const FeatureDescriptorInternal<N,T,CMPTYPE>& desc ) const
