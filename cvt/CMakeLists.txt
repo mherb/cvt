@@ -333,6 +333,7 @@ SET(${MODULE_NAME}_HEADERS
    io/ImageSequence.h
    io/IOHandler.h
    io/IOSelect.h
+   io/KittiVOParser.h
    io/Resources.h
    io/RawVideoWriter.h
    io/RawVideoReader.h
@@ -613,6 +614,7 @@ SET(${MODULE_NAME}_SOURCES
    io/FloFile.cpp
    io/ImageSequence.cpp
    io/IOSelect.cpp
+   io/KittiVOParser.cpp
    io/Resources.cpp
    io/RawVideoWriter.cpp
    io/RawVideoReader.cpp
