@@ -5,12 +5,17 @@
 
 #include <RefinedFASTTracking.h>
 
+#include <cvt/vision/features/ORB.h>
+#include <cvt/vision/features/FAST.h>
+
 namespace cvt
 {
    StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,
 								 const std::vector<CameraCalibration>& calibs ) :
       _cams( cams ),
-	  _slam( _featureTracking, StereoCameraCalibration( calibs[ 0 ], calibs[ 1 ] ) ),
+	  _slam( new FAST( SEGMENT_10, 20, 32 ),
+			 new ORB(),
+			 StereoCameraCalibration( calibs[ 0 ], calibs[ 1 ] ) ),
       _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
       _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
 	  _gui(),
@@ -56,8 +61,6 @@ namespace cvt
       for( size_t i = 0; i < _cams.size(); i++ ){
          delete _cams[ i ];
       }
-
-      delete _featureTracking;
    }
 
    void StereoSLAMApp::onTimeout()

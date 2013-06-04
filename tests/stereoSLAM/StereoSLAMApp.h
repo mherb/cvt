@@ -7,7 +7,6 @@
 #include <cvt/util/Time.h>
 
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
-#include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
 
 #include "SLAMGui.h"
@@ -36,7 +35,6 @@ namespace cvt
 
       private:
          std::vector<VideoInput*>   _cams;
-         FeatureTracking*           _featureTracking;
          StereoSLAM                 _slam;
          Image                      _img0, _img1;
 

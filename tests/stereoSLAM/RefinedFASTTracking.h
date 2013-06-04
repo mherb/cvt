@@ -1,7 +1,6 @@
 #ifndef CVT_REFINED_FASTTRACKING_H
 #define CVT_REFINED_FASTTRACKING_H
 
-#include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/features/FAST.h>
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/vision/FeatureFilter.h>
@@ -14,7 +13,7 @@
 
 namespace cvt
 {
-    class RefinedFASTTracking : public FeatureTracking
+	class RefinedFASTTracking
     {
         public:
             RefinedFASTTracking();
