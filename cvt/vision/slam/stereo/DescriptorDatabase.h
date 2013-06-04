@@ -26,12 +26,16 @@ namespace cvt
 			void						addDescriptor( const FeatureDescriptor& desc, size_t id );
 			const FeatureDescriptor&	operator[]( size_t id ) const;
 
+			void descriptorsForIds( std::vector<FeatureDescriptor*>& descriptors,
+									const std::vector<size_t>& ids );
+
 		private:
 			std::vector<FeatureDescriptor*>	_descriptors;
 	};
 
 	inline DescriptorDatabase::DescriptorDatabase()
 	{
+		_descriptors.reserve( 2000 );
 	}
 
 	inline DescriptorDatabase::~DescriptorDatabase()
@@ -55,13 +59,13 @@ namespace cvt
 			if( _descriptors[ id ] != 0 ){
 				*_descriptors[ id ] = d;
 			} else {
-				_descriptors[ id ] = new Desc( d );
+				_descriptors[ id ] = d.clone();
 			}
 			return;
 		}
 
 		if( id == numDesc ){
-			_descriptors.push_back( new Desc( d ) );
+			_descriptors.push_back( d.clone() );
 			return;
 		}
 
@@ -70,16 +74,25 @@ namespace cvt
 		_descriptors.resize( ( id+1 ) );
 		while( lastId < id )
 			_descriptors[ lastId++ ] = 0;
-		_descriptors[ id ] = new Desc( d );
+		_descriptors[ id ] = d.clone();
 	}
 
 	inline const FeatureDescriptor& DescriptorDatabase::operator[]( size_t id ) const
 	{
-		const FeatureDescriptor* des = _descriptors[ i ];
-		if( desc == 0 ){
+		const FeatureDescriptor* des = _descriptors[ id ];
+		if( des == 0 ){
 			throw CVTException( "descriptor for requested id does not exist" );
 		}
-		return des;
+		return *des;
+	}
+
+	inline void DescriptorDatabase::descriptorsForIds( std::vector<FeatureDescriptor*>& descriptors,
+													   const std::vector<size_t>& ids )
+	{
+		descriptors.resize( ids.size() );
+		for( size_t i = 0; i < ids.size(); ++i ){
+			descriptors[ i ] = _descriptors[ ids[ i ] ];
+		}
 	}
 }
 
