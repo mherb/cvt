@@ -655,6 +655,7 @@ SET(${MODULE_NAME}_SOURCES
    util/PluginFile.cpp
    vision/BoardDetector.cpp
    vision/CameraCalibrationTest.cpp
+   vision/EPnP.cpp
    vision/features/FAST.cpp
    vision/features/fast/fast9.cpp
    vision/features/fast/fast10.cpp
