@@ -32,14 +32,18 @@ namespace cvt {
 			BRIEF( const BRIEF& brief );
 			~BRIEF();
 
-			size_t					  size() const;
-			FeatureDescriptor&		  operator[]( size_t i );
-			const FeatureDescriptor&  operator[]( size_t i ) const;
+			size_t						size() const;
+			BRIEF<N>*					clone() const;
+			FeatureDescriptor&			operator[]( size_t i );
+			const FeatureDescriptor&	operator[]( size_t i ) const;
 
+			void clear();
 			void extract( const Image& img, const FeatureSet& features );
 			void extract( const ImagePyramid& pyr, const FeatureSet& features );
 
 			void matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const;
+			void matchInWindow( std::vector<MatchingIndices>& matches, const std::vector<FeatureDescriptor*>& other, float maxFeatureDist, float maxDescDistance ) const;
+			void scanLineMatch( std::vector<FeatureMatch>& matches, const std::vector<const FeatureDescriptor*>& left, float minDisp, float maxDisp, float maxDescDist, float maxLineDist ) const;
 
 		private:
 			struct DistFunc {
@@ -96,6 +100,14 @@ namespace cvt {
 	}
 
 	template<size_t N>
+	inline BRIEF<N>* BRIEF<N>::clone() const
+	{
+		BRIEF<N>* bcopy = new BRIEF<N>( _boxradius );
+		bcopy->_features = _features;
+		return bcopy;
+	}
+
+	template<size_t N>
 	inline FeatureDescriptor& BRIEF<N>::operator[]( size_t i )
 	{
 		return _features[ i ];
@@ -108,8 +120,15 @@ namespace cvt {
 	}
 
 	template<size_t N>
+	inline void BRIEF<N>::clear()
+	{
+		_features.clear();
+	}
+
+	template<size_t N>
 	inline void BRIEF<N>::extract( const ImagePyramid& img, const FeatureSet& features )
 	{
+		throw CVTException( "MultiscaleExtraction not implemented yet" );
 	}
 
 	template<size_t N>
@@ -123,7 +142,6 @@ namespace cvt {
 		else if( img.format() == IFormat::GRAY_UINT8 )
 			extractU8( img, features );
 	}
-
 
 	template<size_t N>
 	inline void BRIEF<N>::extractF( const Image& img, const FeatureSet& features )
@@ -182,6 +200,40 @@ namespace cvt {
 	{
 		DistFunc dfunc;
 		FeatureMatcher::matchBruteForce<Descriptor, typename BRIEF<N>::DistFunc>( matches, this->_features, ( ( const BRIEF<N>& ) other)._features, dfunc, distThresh );
+	}
+
+	template<size_t N>
+	inline void BRIEF<N>::matchInWindow( std::vector<MatchingIndices>& matches,
+										 const std::vector<FeatureDescriptor*>& other,
+										 float maxFeatureDist,
+										 float maxDescDistance ) const
+	{
+		DistFunc dfunc;
+		FeatureMatcher::matchInWindow<Descriptor, DistFunc>( matches,
+															 other,
+															 this->_features,
+															 dfunc,
+															 maxFeatureDist,
+															 maxDescDistance );
+	}
+
+	template<size_t N>
+	inline void BRIEF<N>::scanLineMatch( std::vector<FeatureMatch>& matches,
+										 const std::vector<const FeatureDescriptor*>& left,
+										 float minDisp,
+										 float maxDisp,
+										 float maxDescDist,
+										 float maxLineDist ) const
+	{
+		DistFunc dfunc;
+		FeatureMatcher::scanLineMatch( matches,
+									   left,
+									   _features,
+									   dfunc,
+									   minDisp,
+									   maxDisp,
+									   maxDescDist,
+									   maxLineDist );
 	}
 }
 
