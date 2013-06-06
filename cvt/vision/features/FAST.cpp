@@ -57,7 +57,7 @@ namespace cvt
 			throw CVTException( "Input Image format must be GRAY_UINT8" );
 
 		for( size_t coctave = 0; coctave < imgpyr.octaves(); coctave++ ) {
-			float cscale = Math::pow( imgpyr.scaleFactor(), ( float ) -coctave );
+			float cscale = Math::pow( imgpyr.scaleFactor(), -( float )coctave );
 			FeatureSetWrapper features( featureset, cscale, coctave );
 
 			switch ( _fastSize ) {
