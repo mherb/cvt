@@ -20,6 +20,7 @@ namespace cvt {
 	{
 		public:
 			StereoCameraCalibration();
+			StereoCameraCalibration( const StereoCameraCalibration& other );
 			StereoCameraCalibration( const CameraCalibration& first, const CameraCalibration& second );
 			StereoCameraCalibration( const CameraCalibration& first, const CameraCalibration& second, const Matrix4f& extrinsics );
 
@@ -93,6 +94,13 @@ namespace cvt {
 	inline StereoCameraCalibration::StereoCameraCalibration()
 	{
 		_extrinsics.setIdentity();
+	}
+
+	inline StereoCameraCalibration::StereoCameraCalibration( const StereoCameraCalibration& other ) :
+		_first( other._first ),
+		_second( other._second ),
+		_extrinsics( other._extrinsics )
+	{
 	}
 
 	inline StereoCameraCalibration::StereoCameraCalibration( const CameraCalibration& first, const CameraCalibration& second ) :
