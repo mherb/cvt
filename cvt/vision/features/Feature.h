@@ -16,7 +16,8 @@
 namespace cvt {
 
     struct Feature {
-        Feature( float x = 0, float y = 0, float angle = 0.0f, int octave = 0, float score = 0.0f );
+        Feature( float x = 0, float y = 0, float angle = 0.0f, int octave = 0, float score = 0.0f );        
+        Feature( const Feature& other );
 
         Vector2f pt;
         float angle;
@@ -25,6 +26,11 @@ namespace cvt {
     };
 
     inline Feature::Feature( float x, float y, float a, int o, float sc ) : pt( x, y ), angle( a ), octave( o ), score( sc )
+    {
+    }
+
+    inline Feature::Feature( const Feature& other ) :
+        pt( other.pt ), angle( other.angle ), octave( other.octave ), score( other.score )
     {
     }
 
