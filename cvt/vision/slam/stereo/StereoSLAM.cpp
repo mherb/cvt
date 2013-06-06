@@ -40,11 +40,14 @@ namespace cvt
 
    void StereoSLAM::newImages( const Image& imgLeftGray, const Image& imgRightGray )
    {
-	   CVT_ASSERT( imgLeftGray.format() == IFormat::GRAY_FLOAT, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
-	   CVT_ASSERT( imgRightGray.format() == IFormat::GRAY_FLOAT, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
+       CVT_ASSERT( imgLeftGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
+       CVT_ASSERT( imgRightGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
 
-	   // detect current keypoints and extract descriptors
-	   extractFeatures( imgLeftGray, imgRightGray );
+	  // detect current keypoints and extract descriptors
+	  extractFeatures( imgLeftGray, imgRightGray );
+
+	  std::cout << "CurrentFeatures Left: "  << _descExtractorLeft->size() << std::endl;
+	  std::cout << "CurrentFeatures Right: " << _descExtractorRight->size() << std::endl;
 
 	  // predict current visible features by projecting with current estimate of pose
 	  std::vector<Vector2f> predictedPositions;
@@ -63,7 +66,6 @@ namespace cvt
 										 predictedDescriptors,
 										 _params.matchingWindow,
 										 _params.matchingMaxDescDistance );
-
 
 	  // build up the correspondences for camera tracking
 	  PointSet2f points2d;
@@ -88,12 +90,13 @@ namespace cvt
 
 		  // try to match the free features with right frame
 		  std::vector<FeatureMatch> stereoMatches;
+		  std::cout << "Free features: " << freeFeaturesLeft.size() << std::endl;
 		  _descExtractorRight->scanLineMatch( stereoMatches,
 											  freeFeaturesLeft,
 											  _params.minDisparity,
 											  _params.maxDisparity,
 											  _params.matchingMaxDescDistance,
-											  _params.maxEpilineDistance );
+											  _params.maxEpilineDistance );		  
 
 		  PointSet3f newPts3d;
 		  std::vector<const FeatureDescriptor*> newDescriptors;
@@ -104,8 +107,6 @@ namespace cvt
 			  _bundler.join();
 		  }
 
-		  // TODO: create new keyframe with points and tracked 3d points
-		  // TODO: add descriptors of new points to database
 
 		  // a new keyframe should have a minimum number of features
 		 if( ( newPts3d.size() + trackingInliers.size() ) > _params.minFeaturesForKeyframe ){
@@ -118,7 +119,7 @@ namespace cvt
 
 			 /* bundle adjust if we have at least 2 keyframes*/
 			 if( _map.numKeyframes() >  2 ){
-			   _bundler.run( &_map );
+			   //_bundler.run( &_map );
 			 }
 
 			 keyframeAdded.notify();
@@ -133,6 +134,7 @@ namespace cvt
 	  }
 
 	  Image debugMono;
+	  imgLeftGray.convert( debugMono, IFormat::RGBA_UINT8 );
 	  createDebugImageMono( debugMono, points2d, predictedPositions );
 	  trackedFeatureImage.notify( debugMono );
 
@@ -154,6 +156,11 @@ namespace cvt
 	   _detector->detect( leftFeatures, _pyrLeft );
 	   _detector->detect( rightFeatures, _pyrRight );
 
+	   leftFeatures.filterNMS( 1, true );
+	   rightFeatures.filterNMS( 1, true );
+	   leftFeatures.filterBest( 3000, true );
+	   rightFeatures.filterBest( 3000, true );
+
 	   // extract the descriptors
 	   _descExtractorLeft->clear();
 	   _descExtractorLeft->extract( _pyrLeft, leftFeatures );
@@ -172,6 +179,8 @@ namespace cvt
 								   cameraPose,
 								   _calib.firstCamera(),
 								   _params.keyframeSelectionRadius );
+
+	   std::cout << "Selected points: " << ids.size() << std::endl;
 
 	   // get the corresponding descriptors
 	   _descriptorDatabase.descriptorsForIds( descriptors, ids );
@@ -203,8 +212,8 @@ namespace cvt
    void StereoSLAM::estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3f & p3d, const PointSet2f& p2d )
    {
 	  const Matrix3f & k = _calib.firstCamera().intrinsics();
-	  //Matrix3f kinv( k.inverse() );
 
+      //Matrix3f kinv( k.inverse() );
       //P3PSac model( p3d, p2d, k, kinv );
       //RANSAC<P3PSac> ransac( model, 5.0, 0.2 );
 
@@ -217,19 +226,21 @@ namespace cvt
 	  Matrix4f estimated;
 	  estimated.setIdentity();
       float inlierPercentage = 0.0f;
+//      float minInThresh = 0.6f;
+//      size_t iter = 0;
+//      while( inlierPercentage < minInThresh ){
+//        estimated = ransac.estimate( 1000 );
+//        inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
+//        iter++;
 
-      float minInThresh = 0.6f;
-      size_t iter = 0;
-      while( inlierPercentage < minInThresh ){
-        estimated = ransac.estimate( 3000 );
-        inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
-        iter++;
-
-        if( iter == 10 ){
-            minInThresh *= 0.9f;
-            iter = 0;
-        }
-      }
+//        if( iter == 10 ){
+//            minInThresh *= 0.9f;
+//            iter = 0;
+//        }
+//      }
+      estimated = ransac.estimate( 1000 );
+      inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
+      std::cout << "Inlier Percentage: " << inlierPercentage << std::endl;
 
 	  Eigen::Matrix4f me;
       EigenBridge::toEigen( me, estimated );
@@ -344,11 +355,12 @@ namespace cvt
 		   const Vector3f& cP3d = newPoints3d[ i ];
 
 		   EigenBridge::toEigen( mm.point, p2d );
-		   p3d[ 0 ] = cP3d[ 0 ]; p3d[ 1 ] = cP3d[ 1 ];
-		   p3d[ 2 ] = cP3d[ 2 ]; p3d[ 3 ] = 1;
+		   p3d[ 0 ] = cP3d[ 0 ];
+		   p3d[ 1 ] = cP3d[ 1 ];
+		   p3d[ 2 ] = cP3d[ 2 ];
+		   p3d[ 3 ] = 1;
            mf.estimate() = poseInv * p3d;
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
-
 		   _descriptorDatabase.addDescriptor( *desc, featureId );
        }
    }
@@ -362,11 +374,15 @@ namespace cvt
       }
 
       // if distance is too far from active, always create a new one:
-	  if( kfDist > _params.maxKeyframeDistance )
-         return true;
-
-	  if( numTrackedFeatures < _params.minTrackedFeatures )
+      if( kfDist > _params.maxKeyframeDistance ){
+          std::cout << "New keyframe needed - too far from active keyframe: " << kfDist << std::endl;
           return true;
+      }
+
+      if( numTrackedFeatures < _params.minTrackedFeatures ){
+          std::cout << "New keyframe needed - too few inliers: " << numTrackedFeatures << std::endl;
+          return true;
+      }
 
       return false;
    }

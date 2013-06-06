@@ -33,17 +33,17 @@ namespace cvt
 	   public:
 		   struct Params {
 				Params():
-				   keyframeSelectionRadius( 1.0f ),
+				   keyframeSelectionRadius( 3.0f ),
 				   pyramidOctaves( 4 ),
-				   pyramidScaleFactor( 0.5f ),
-				   matchingWindow( 40.0f ),
-				   matchingMaxDescDistance( 60.0f ),
+				   pyramidScaleFactor( 0.6f ),
+				   matchingWindow( 50.0f ),
+				   matchingMaxDescDistance( 80.0f ),
 				   minTrackedFeatures( 60 ),
-				   maxKeyframeDistance( 0.4f ),
+				   maxKeyframeDistance( 1.0f ),
 				   minFeaturesForKeyframe( 10 ),
-				   minDisparity( 0.1f ),
-				   maxDisparity( 7.0f ),
-				   maxEpilineDistance( 2.0f )
+				   minDisparity( 1 ),
+				   maxDisparity( 20.0f ),
+				   maxEpilineDistance( 1.0f )
 				{
 				}
 
