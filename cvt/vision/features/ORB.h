@@ -64,8 +64,8 @@ namespace cvt {
 				SIMD* _simd;
 			};
 
-			void centroidAngle( Descriptor& feature, const float* iimgptr, size_t widthstep );
-			void descriptor( Descriptor& feature, const float* iimgptr, size_t widthstep );
+			float centroidAngle( const Vector2f &pt, const float *iimgptr, size_t widthstep );
+			void descriptor( Descriptor& feature, const Vector2f& pt, const float* iimgptr, size_t widthstep );
 
 			static const int		_patterns[ 30 ][ 512 ][ 2 ];
 			static const int		_circularoffset[ 31 ];
@@ -113,13 +113,46 @@ namespace cvt {
 		_features.clear();
 	}
 
-	inline void ORB::extract( const ImagePyramid& img, const FeatureSet& features )
+	inline void ORB::extract( const ImagePyramid& pyr, const FeatureSet& features )
 	{
+		if( pyr[ 0 ].channels() != 1 ||
+			( pyr[ 0 ].format() != IFormat::GRAY_UINT8 && pyr[ 0 ].format() != IFormat::GRAY_FLOAT ) )
+			throw CVTException( "Unimplemented" );
+
+		ImagePyramid integralPyr( pyr.octaves(), pyr.scaleFactor() );
+		pyr.integralImage( integralPyr );
+
+		size_t octaves = pyr.octaves();
+		std::vector<IMapScoped<const float>*> maps;
+		std::vector<size_t> widthsteps;
+		std::vector<float> scales;
+		for( size_t i = 0; i < octaves; ++i ){
+			maps.push_back( new IMapScoped<const float>( integralPyr[ i ] ) );
+			widthsteps.push_back( maps.back()->stride() / sizeof( float ) );
+			scales.push_back( Math::pow( integralPyr.scaleFactor(), ( float )i ) );
+		}
+
+		size_t iend = features.size();
+		Vector2f vs;
+		for( size_t i = 0; i < iend; ++i ) {
+			_features.push_back( Descriptor( features[ i ] ) );
+			Descriptor& desc = _features.back();
+			size_t o = desc.octave;
+			vs = desc.pt * scales[ o ];
+
+			desc.angle = centroidAngle( vs, maps[ o ]->base(), widthsteps[ o ] );			
+			descriptor( desc, vs, maps[ o ]->base(), widthsteps[ o ] );
+		}
+
+		for( size_t i = 0; i < octaves; ++i ){
+			delete maps[ i ];
+		}
 	}
 
 	inline void ORB::extract( const Image& img, const FeatureSet& features )
 	{
-		if( img.channels() != 1 || ( img.format() != IFormat::GRAY_UINT8 && img.format() != IFormat::GRAY_FLOAT ) )
+		if( img.channels() != 1 ||
+			( img.format() != IFormat::GRAY_UINT8 && img.format() != IFormat::GRAY_FLOAT ) )
 			throw CVTException( "Unimplemented" );
 
 		IntegralImage iimage( img );
@@ -131,49 +164,50 @@ namespace cvt {
 		for( size_t i = 0; i < iend; ++i ) {
 			_features.push_back( Descriptor( features[ i ] ) );
 			Descriptor& desc = _features.back();
-			centroidAngle( desc, ptr, widthstep );
-			descriptor( desc, ptr, widthstep );
+			desc.angle = centroidAngle( desc.pt, ptr, widthstep );
+			descriptor( desc, desc.pt, ptr, widthstep );
 		}
 	}
 
-	inline void ORB::centroidAngle( Descriptor& feature, const float* iimgptr, size_t widthstep )
+	inline float ORB::centroidAngle( const Vector2f& pt, const float *iimgptr, size_t widthstep )
 	{
 		float mx = 0;
 		float my = 0;
+		float angle = 0.0f;
 
-		int cury = ( int ) feature.pt.y - 15;
-		int curx = ( int ) feature.pt.x;
+		int cury = ( int ) pt.y - 15;
+		int curx = ( int ) pt.x;
 
 		for( int i = 0; i < 15; i++ ) {
 			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep )
 											- IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
 		}
 
-		cury = ( int ) feature.pt.y;
-		curx = ( int ) feature.pt.x - 15;
+		cury = ( int ) pt.y;
+		curx = ( int ) pt.x - 15;
 		for( int i = 0; i < 15; i++ ) {
 			my += ( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep )
 											 - IntegralImage::area( iimgptr, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep ) );
 		}
 
-		feature.angle = Math::atan2( my, mx );
+		angle = Math::atan2( my, mx );
 
+		if( angle < 0 )
+			angle += Math::TWO_PI;
+		angle = Math::TWO_PI - angle + Math::HALF_PI;
 
-		if( feature.angle < 0 )
-			feature.angle += Math::TWO_PI;
-		feature.angle = Math::TWO_PI - feature.angle + Math::HALF_PI;
-
-		while( feature.angle > Math::TWO_PI )
-			feature.angle -= Math::TWO_PI;
+		while( angle > Math::TWO_PI )
+			angle -= Math::TWO_PI;
+		return angle;
 	}
 
-	inline void ORB::descriptor( Descriptor& feature, const float* iimgptr, size_t widthstep )
+	inline void ORB::descriptor( Descriptor& feature, const Vector2f& pt, const float* iimgptr, size_t widthstep )
 	{
 		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
 		if( index >= 30 )
 			index = 0;
-		int x = ( int ) feature.pt.x;
-		int y = ( int ) feature.pt.y;
+		int x = ( int ) pt.x;
+		int y = ( int ) pt.y;
 
 
 #define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2,\
