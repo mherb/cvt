@@ -10,14 +10,13 @@
 
 namespace cvt
 {
-   StereoSLAMApp::StereoSLAMApp( const std::vector<VideoInput*> & cams,
-								 const std::vector<CameraCalibration>& calibs ) :
-      _cams( cams ),
-	  _slam( new FAST( SEGMENT_10, 20, 32 ),
+   StereoSLAMApp::StereoSLAMApp( StereoInput* stereoInput ) :
+       _stereoInput( stereoInput ),
+      _slam( new FAST( SEGMENT_9, 15, 30 ),
 			 new ORB(),
-			 StereoCameraCalibration( calibs[ 0 ], calibs[ 1 ] ) ),
-      _img0( cams[ 0 ]->width(), cams[ 0 ]->height(), cams[ 0 ]->format() ),
-      _img1( cams[ 1 ]->width(), cams[ 1 ]->height(), cams[ 1 ]->format() ),
+			 _stereoInput->stereoCalib() ),
+	  _img0( _stereoInput->left() ),
+	  _img1( _stereoInput->right() ),
 	  _gui(),
       _stepping( true ),
       _nextImage( true )
@@ -57,21 +56,17 @@ namespace cvt
 
    StereoSLAMApp::~StereoSLAMApp()
    {
-      Application::unregisterTimer( _timerId );
-      for( size_t i = 0; i < _cams.size(); i++ ){
-         delete _cams[ i ];
-      }
+      Application::unregisterTimer( _timerId );      
    }
 
    void StereoSLAMApp::onTimeout()
    {
       if( !_stepping || ( _stepping && _nextImage ) ){
-         _cams[ 0 ]->nextFrame();
-         _cams[ 1 ]->nextFrame();
+         _stereoInput->nextFrame();
          _nextImage = false;
 
-         _cams[ 0 ]->frame().convert( _img0, IFormat::GRAY_UINT8 );
-         _cams[ 1 ]->frame().convert( _img1, IFormat::GRAY_UINT8 );
+         _stereoInput->left().convert( _img0, IFormat::GRAY_UINT8 );
+         _stereoInput->right().convert( _img1, IFormat::GRAY_UINT8 );
          _slam.newImages( _img0, _img1 );
       }
 
@@ -86,13 +81,9 @@ namespace cvt
    void StereoSLAMApp::saveMap()
    {
       std::cout << "Saving map ...";
-      XMLDocument doc;
-      doc.addNode( _slam.map().serialize() );
-      doc.save( "map.xml" );
-
+      _slam.map().save( "map.xml" );
       std::cout << " done" << std::endl;
    }
-
 
    void StereoSLAMApp::toggleStepping()
    {
@@ -109,10 +100,10 @@ namespace cvt
    {
       static size_t keyframeIter = 0;
       String savename;
-      savename.sprintf( "ueye_4002738790_keyframe_%05d.cvtraw", keyframeIter );
-      _cams[ 0 ]->frame().save( savename );
-      savename.sprintf( "ueye_4002738788_keyframe_%05d.cvtraw", keyframeIter );
-      _cams[ 1 ]->frame().save( savename );
+      savename.sprintf( "left_keyframe_%05d.cvtraw", keyframeIter );
+      _stereoInput->left().save( savename );
+      savename.sprintf( "right_keyframe_%05d.cvtraw", keyframeIter );
+      _stereoInput->right().save( savename );
       keyframeIter++;
    }
 }

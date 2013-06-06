@@ -8,6 +8,7 @@
 
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
 #include <cvt/vision/slam/stereo/DepthInitializer.h>
+#include <cvt/io/StereoInput.h>
 
 #include "SLAMGui.h"
 
@@ -16,8 +17,7 @@ namespace cvt
    class StereoSLAMApp : public TimeoutHandler
    {
       public:
-         StereoSLAMApp( const std::vector<VideoInput*> & cams,
-                        const std::vector<CameraCalibration>& calibs );
+         StereoSLAMApp( StereoInput* stereoInput );
 
          ~StereoSLAMApp();
 
@@ -34,7 +34,7 @@ namespace cvt
          void saveImages();
 
       private:
-         std::vector<VideoInput*>   _cams;
+         StereoInput*               _stereoInput;
          StereoSLAM                 _slam;
          Image                      _img0, _img1;
 

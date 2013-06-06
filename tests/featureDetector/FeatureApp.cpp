@@ -37,26 +37,31 @@ namespace cvt
 
 	void FeatureApp::onTimeout()
 	{
-		typedef BRIEF64 FeatureType;
+		typedef ORB FeatureType;
 
 		_video.nextFrame();
 		_view.setImage( _video.frame() );
+
+		ImagePyramid pyr( 4, 0.6f );
 
 		FeatureSet featureset;
 
 		_video.frame().convert( _gray, IFormat::GRAY_UINT8 );
 		Time detectTime;
-		_detector->detect( featureset, _gray );
-		_avgDetectorTime += detectTime.elapsedMilliSeconds();
-		featureset.filterNMS( 1 );
+		pyr.update( _gray );
+		_detector->detect( featureset, pyr );
+
+		featureset.filterBest( 3000, true );
+		featureset.filterNMS( 2, true );
 
 		FeatureType* featuredesc = new FeatureType();
-		featuredesc->extract( _gray, featureset );
+		featuredesc->extract( pyr, featureset );
+		_avgDetectorTime += detectTime.elapsedMilliSeconds();
 
 		_view.setFeatures( featureset, _gray.width(), _gray.height() );
+		std::vector<FeatureMatch> matches;
 		if( _oldset ) {
-			std::vector<FeatureMatch> matches;
-			featuredesc->matchBruteForce( matches, *_oldset, 20.0f );
+			featuredesc->matchBruteForce( matches, *_oldset, 35.0f );
 			_view.setTracks( matches, _gray.width(), _gray.height()  );
 			delete _oldset;
 		}
@@ -68,7 +73,7 @@ namespace cvt
 		double t = _time.elapsedSeconds();
 		if( t > 3.0 ){
 			String title;
-			title.sprintf( "Features - FPS %0.1f - Avg. Detection time: %0.1fms" , _iter / t, _avgDetectorTime / _iter );
+			title.sprintf( "Features - FPS %0.1f - Avg. Detection time: %0.1fms, Matches: %d" , _iter / t, _avgDetectorTime / _iter, matches.size() );
 			_window.setTitle( title );
 			_iter = 0;
 			_avgDetectorTime = 0;

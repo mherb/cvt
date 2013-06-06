@@ -58,7 +58,8 @@ namespace cvt
 			void setupGui();
 	};
 
-		inline SLAMGui::SLAMGui() : Window( "SLAMGui" ),
+	inline SLAMGui::SLAMGui() :
+		Window( "SLAMGui" ),
 		_currentMov( &_currentImg ),
 		_stereoMov( &_stereoView ),
 		_slamMov( &_slamView ),
@@ -113,8 +114,8 @@ namespace cvt
 		this->addWidget( &_currentMov );
 		this->addWidget( &_stereoMov );
 		this->addWidget( &_slamMov );
-		_slamMov.setTitle( "3D View" );
 
+		_slamMov.setTitle( "3D View" );
 		_stereoMov.setTitle( "Last KF" );
 
 		setNumTrackedFeatures( 0 );
@@ -129,6 +130,7 @@ namespace cvt
 
 	inline void SLAMGui::setCurrentImage( const Image& img )
 	{
+		std::cout << img << std::endl;
 		_currentImg.setImage( img );
 		_imageAspect = (float)img.width() / (float)img.height();
 	}

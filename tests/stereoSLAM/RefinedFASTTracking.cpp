@@ -124,7 +124,7 @@ namespace cvt
         // detect for each scale
 		_currentFeatures.clear();
 		_detector.detect( _currentFeatures, _pyramid );
-		_currentFeatures.filterNMS( 3 );
+		_currentFeatures.filterNMS( 3, true );
     }
 
     int RefinedFASTTracking::bestFASTFeatureInRadius( const PatchType& patch )

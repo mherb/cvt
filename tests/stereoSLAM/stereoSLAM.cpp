@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include <cvt/io/Resources.h>
 #include <cvt/io/xml/XMLDocument.h>
 #include <cvt/io/ImageSequence.h>
 #include <cvt/io/RawVideoReader.h>
 #include <cvt/io/Camera.h>
+#include <cvt/io/KittiVOParser.h>
 #include <cvt/vision/CameraCalibration.h>
 
 #include <cvt/gui/Application.h>
@@ -95,52 +95,20 @@ void loadSequenceFromFolder( std::vector<VideoInput*> & videos,
 int main( int argc, char* argv[] )
 {
     srand( time(NULL) );
-    bool useSeq = false;
-    String folder = "";
-    Resources r;
-    if( argc > 1 ){
-        String option( argv[ 1 ] );
-        if( option.toUpper() == "SEQUENCE" )
-            useSeq = true;
-        if( argc > 2 ){
-            folder = argv[ 2 ];
-        } else {
-            folder = r.find( "stereoSLAM/floor_2min_44fps" );
-        }
+
+    if( argc < 2 ){
+        std::cout << "Usage: " << argv[ 0 ] << " <kitti_folder>" << std::endl;
+        return 0;
     }
 
-    std::vector<VideoInput*> input;
-    std::vector<CameraCalibration> calibs;
-
-    if( useSeq ){
-        if( folder[ folder.length() - 1 ] != '/' )
-            folder += "/";
-        loadSequenceFromFolder( input, calibs, folder );
-    } else {
-        calibs.resize( 2 );
-        String id0( "4002738791" );
-        String id1( "4002738788" );
-        initCameras( input, id0, id1 );
-        String path;
-        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id0.c_str() );
-        String calib0 = r.find( path );
-        path.sprintf( "stereoSLAM/calib_fsdcam/ueye_%s.xml", id1.c_str() );
-        String calib1 = r.find( path );
-        calibs[ 0 ].load( calib0 );
-        calibs[ 1 ].load( calib1 );
+    try {
+        cvt::String folder( argv[ 1 ] );
+        StereoInput* input = new KittiVOParser( folder );
+        StereoSLAMApp slamApp( input );
+        Application::run();
+    } catch( const cvt::Exception& e ){
+        std::cerr << e.what() << std::endl;
     }
-
-    std::cout << "Calib0: " << std::endl;
-    std::cout << calibs[ 0 ].extrinsics() << std::endl;
-    std::cout << calibs[ 0 ].intrinsics() << std::endl;
-    std::cout << calibs[ 0 ].projectionMatrix() << std::endl;
-
-
-    input[ 0 ]->nextFrame();
-    input[ 1 ]->nextFrame();
-
-    StereoSLAMApp slamApp( input, calibs );
-    Application::run();
 
     return 0;
 }
