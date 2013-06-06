@@ -42,28 +42,29 @@ namespace cvt {
 			MatchingIndices m;
 			float distanceSquare = Math::sqr( maxFeatureDist );
 			for( size_t i = 0; i < setA.size(); ++i ) {
-				const T& d0 = *( setA[ i ] );
+				const T& d0 = *( ( const T* )setA[ i ] );
 				m.srcIdx = i;
 				m.dstIdx = 0;
 				m.distance = maxDescDistance;
 				for( size_t k = 0; k < setB.size(); ++k ) {
 					const T& d1 = setB[ k ];
-
 					// euclidean distance
 					float ptDist = ( d1.pt - d0.pt ).lengthSqr();
 					if( ptDist > distanceSquare )
 						continue;
-
 					// descriptor distance
 					float distance = dfunc( d0, d1 );
+
 					if( distance < m.distance ) {
 						m.dstIdx = k;
 						m.distance = distance;
 					}
 				}
 
-				if( m.distance < maxDescDistance )
+				if( m.distance < maxDescDistance ){					
+
 					matches.push_back( m );
+				}
 			}
 		}
 
@@ -80,19 +81,19 @@ namespace cvt {
 			matches.reserve( left.size() );
 			FeatureMatch m;
 			for( size_t i = 0; i < left.size(); ++i ){
-				const FeatureDescriptor* d = left[ i ];
+				const T* d = ( const T* )left[ i ];
 				m.distance = maxDescDist;
 				m.feature0 = d;
 				m.feature1 = 0;
 
 				for( size_t k = 0; k < right.size(); ++k ){
-					const FeatureDescriptor& dr = right[ k ];
+					const T& dr = right[ k ];
 					float yDist = Math::abs( d->pt[ 1 ] - dr.pt[ 1 ] );
 					if( yDist < maxLineDist &&
 						d->octave == dr.octave &&
 						Math::abs( d->angle - dr.angle ) < 0.1f ){
 						float disp = d->pt[ 0 ] - dr.pt[ 0 ];
-						if( disp < minDisp && disp > maxDisp ){
+						if( disp > minDisp && disp < maxDisp ){
 							float descDist = dfunc( *d, dr );
 							if( descDist < m.distance ){
 								m.distance = descDist;
