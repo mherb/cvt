@@ -117,11 +117,12 @@ namespace cvt
 
 	inline void Harris::detectU8( FeatureSet& features, const Image& image )
 	{
+		throw CVTException( "uint8 detection not implemented" );
 	}
 
 	inline void Harris::detect( FeatureSet& features, const ImagePyramid& image )
-	{
-		// fuck this
+	{		
+		throw CVTException( "multiscale detection not implemented" );
 	}
 
 }
