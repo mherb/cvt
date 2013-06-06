@@ -95,7 +95,7 @@ namespace cvt
          XMLNode* serialize() const;
 
          void load( const cvt::String& filename );
-		 // TODO: void save( const cvt::String& filename ) const;
+         void save( const cvt::String& filename ) const;
 
       private:
 		 typedef std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> > KeyframeVectorType;

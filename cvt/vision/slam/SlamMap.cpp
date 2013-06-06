@@ -50,7 +50,6 @@ namespace cvt
    {
       size_t pointId = addFeature( world );
       addMeasurement( pointId, keyframeId, feature );
-
       return pointId;
    }
 
@@ -90,12 +89,12 @@ namespace cvt
       Vector2f pointInScreen;
 
       // this is a hack: we should store the image width/height with the calibration object!
-      Vector2f c = camCalib.center();
-      c *= 2.0f;
+      size_t w = camCalib.width();
+      size_t h = camCalib.height();
 
       std::set<size_t> usedPoints;
       for( size_t i = 0; i < _keyframes.size(); i++ ){
-          double kfDistance = _keyframes[ i ].distance( cameraPose );
+          double kfDistance = _keyframes[ i ].distance( cameraPose );          
           if( kfDistance < maxDistance ){
             // check if the points of this keyframe project to this camera
             const Keyframe& kf = _keyframes[ i ];
@@ -105,7 +104,7 @@ namespace cvt
 
             while( iter != measEnd ){
                size_t fId = iter->first;
-               const MapFeature& feature = _features[ fId ];
+               const MapFeature& feature = _features[ fId ];               
 
                if( usedPoints.find( fId ) == usedPoints.end() ){
                   pointInCam = cameraPose * feature.estimate();
@@ -120,12 +119,12 @@ namespace cvt
                      // project it to the screen:
                      sp = camCalib.projectionMatrix() * pic;
                      pointInScreen.x = sp.x / sp.z;
-                     pointInScreen.y = sp.y / sp.z;
+                     pointInScreen.y = sp.y / sp.z;                     
 
                      if( pointInScreen.x > 0 &&
-                         pointInScreen.x < c.x &&
+                         pointInScreen.x < w &&
                          pointInScreen.y > 0 &&
-                         pointInScreen.y < c.y ){
+                         pointInScreen.y < h ){
                         usedPoints.insert( fId );
                         visibleFeatureIds.push_back( fId );
                         projections.push_back( pointInScreen );
@@ -217,5 +216,12 @@ namespace cvt
 
        XMLNode* node = xmlDoc.nodeByName( "SlamMap" );
        this->deserialize( node );
+   }
+
+   void SlamMap::save( const String& filename ) const
+   {
+       XMLDocument doc;
+       doc.addNode( this->serialize() );
+       doc.save( filename );
    }
 }
