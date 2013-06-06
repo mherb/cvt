@@ -1,3 +1,14 @@
+/*
+            CVT - Computer Vision Tools Library
+
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
+ */
+
 #include <cvt/io/KittiVOParser.h>
 #include <cvt/util/DataIterator.h>
 #include <cvt/util/Exception.h>
@@ -24,7 +35,13 @@ namespace cvt {
         checkFileExistence( rightFolder );
         checkFileExistence( calibFile );
         checkFileExistence( timesFile );
-        checkFileExistence( poseFile );
+
+        bool hasPoseFile = true;
+        try {
+            checkFileExistence( poseFile );
+        } catch( const cvt::Exception&e ){
+            hasPoseFile = false;
+        }
 
         std::vector<cvt::String>   filesLeft;
         std::vector<cvt::String>   filesRight;
@@ -34,12 +51,12 @@ namespace cvt {
         loadImageNames( filesLeft, leftFolder );
         loadImageNames( filesRight, rightFolder );
 
-        std::cout << "Loading poses: " << std::endl;
-        loadPoses( poses, poseFile );
+        if( hasPoseFile ){
+            std::cout << "Loading poses: " << std::endl;
+            loadPoses( poses, poseFile );
+        }
         std::cout << "Loading stamps: " << std::endl;
         loadStamps( stamps, timesFile );
-        std::cout << "Loading calibFile: " << std::endl;
-        loadCalibration( calibFile );
 
         // check sizes:
         size_t n = filesLeft.size();
@@ -47,7 +64,7 @@ namespace cvt {
             throw CVTException( "Unequal number of images in subfolders" );
         }
 
-        if( n != poses.size() ){
+        if( hasPoseFile && ( n != poses.size() ) ){
             throw CVTException( "Unequal number of images and poses" );
         }
 
@@ -60,28 +77,40 @@ namespace cvt {
             _sequence[ i ].timestamp    = stamps[ i ];
             _sequence[ i ].leftFile     = filesLeft[ i ];
             _sequence[ i ].rightFile    = filesRight[ i ];
-            _sequence[ i ].hasPose      = true;
-            _sequence[ i ].pose         = poses[ i ];
+            if( hasPoseFile ){
+                _sequence[ i ].hasPose      = true;
+                _sequence[ i ].pose         = poses[ i ];
+            } else {
+                _sequence[ i ].hasPose      = false;
+            }
         }
 
         _curSample = &_sequence[ _iter ];
         loadImages();
+
+        // get the stereo calibration: we need the images sizes, that's why it has to be done after the load
+        std::cout << "Loading calibFile: " << std::endl;
+        loadCalibration( calibFile );
     }
 
     KittiVOParser::~KittiVOParser()
     {
     }
 
-    void KittiVOParser::loadNext()
+    bool KittiVOParser::nextFrame()
     {
-        _iter++;
-        _curSample = &_sequence[ _iter ];
-        loadImages();
+        if( hasNext() ){
+            _iter++;
+            _curSample = &_sequence[ _iter ];
+            loadImages();
+            return true;
+        }
+        return false;
     }
 
     bool KittiVOParser::hasNext() const
     {
-        return _iter < _sequence.size();
+        return ( _iter + 1 ) < _sequence.size();
     }    
 
     void KittiVOParser::checkFileExistence( const cvt::String& file )
@@ -172,7 +201,6 @@ namespace cvt {
 
         bool found0 = false;
         bool found1 = false;
-
         while( iter.nextLine( line ) && !( found0 && found1 ) ){
             std::vector<cvt::String> lineTokens;
             line.tokenize( lineTokens, ' ' );
@@ -225,6 +253,30 @@ namespace cvt {
         if( !found0 || !found1 ){
             throw CVTException( "Could not find calibration file!" );
         }
+
+        // update the StereoCalibration
+        Vector3f    radialDist( 0.0f, 0.0f, 0.0f );
+        Vector2f    tangentialDist( 0.0f, 0.0f );
+        Matrix4f    extrinsics; extrinsics.setIdentity();
+        Matrix3f intr = _calibLeft.toMatrix3();
+
+        CameraCalibration cLeft, cRight;
+        cLeft.setDistortion( radialDist, tangentialDist );
+        cLeft.setExtrinsics( extrinsics );
+        cLeft.setIntrinsics( intr );
+        cLeft.setWidth( _left.width() );
+        cLeft.setHeight( _left.height() );
+        _calib.setFirstCamera( cLeft );
+
+        intr = _calibRight.toMatrix3();
+        extrinsics[ 0 ][ 3 ] = _calibRight[ 0 ][ 3 ] / intr[ 0 ][ 0 ];
+        cRight.setDistortion( radialDist, tangentialDist );
+        cRight.setIntrinsics( intr );
+        cRight.setExtrinsics( extrinsics );
+        cRight.setWidth( _right.width() );
+        cRight.setHeight( _right.height() );
+        _calib.setSecondCamera( cRight );
+        _calib.setExtrinsics( extrinsics );
     }
 
 
