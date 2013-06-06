@@ -344,6 +344,7 @@ SET(${MODULE_NAME}_HEADERS
    io/GFXEnginePS.h
    io/Host.h
    io/Socket.h
+   io/StereoInput.h
    io/TCPClient.h
    io/TCPServer.h
    io/UDPClient.h
