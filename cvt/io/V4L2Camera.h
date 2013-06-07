@@ -14,7 +14,7 @@
 #include <cvt/io/Camera.h>
 
 #include <linux/videodev2.h>
-#include <gfx/Image.h>
+#include <cvt/gfx/Image.h>
 
 namespace cvt {
 
