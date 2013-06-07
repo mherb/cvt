@@ -72,9 +72,21 @@ class MultiCamApp : public TimeoutHandler
 
 		void onTimeout()
 		{
+
+			bool gotFrame = false;
 			for( size_t i = 0; i < _cams.size(); i++ ){
-				_cams[ i ]->nextFrame( 10 );
+				gotFrame |= _cams[ i ]->nextFrame( 10 );
 			}
+
+			if( !gotFrame )
+				return;
+
+//			String out;
+//			static double lastT = 0.0f;
+//			double ct = _cams[ 0 ]->stamp();
+//			out.sprintf( "Cam[ %d ]: # -> %lu, t -> %.7f", 0, _cams[ 0 ]->frameIndex(), ct-lastT );
+//			lastT = ct;
+//			std::cout << out << std::endl;
 
 			for( size_t i = 0; i < _cams.size(); i++ ){
 				_views[ i ]->setImage( _cams[ i ]->frame() );
