@@ -26,6 +26,9 @@ namespace cvt {
 			virtual void stopCapture() = 0;
 			virtual const String& identifier() const = 0;
 
+			virtual size_t frameIndex() const;
+			virtual double stamp() const;
+
 			/* number of available cameras */
 			static size_t count();
 			static const CameraInfo & info( size_t index );
@@ -55,6 +58,16 @@ namespace cvt {
 		}
 
 		return _camInfos[ index ];
+	}
+
+	inline size_t Camera::frameIndex() const
+	{
+		return 0;
+	}
+
+	inline double Camera::stamp() const
+	{
+		return 0.0;
 	}
 }
 

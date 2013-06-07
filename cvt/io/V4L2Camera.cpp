@@ -41,6 +41,8 @@ namespace cvt {
 		_buffers(0),
 		_frame(NULL),
 		_format( mode.format ),
+		_stamp( 0.0 ),
+		_frameIdx( 0 ),
 		_extControlsToSet(0),
 		_autoExposure(false),
 		_autoIris(false),
@@ -245,7 +247,7 @@ namespace cvt {
 		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			_buffer.memory = V4L2_MEMORY_MMAP;
+			_buffer.memory = V4L2_MEMORY_MMAP;			
 
 			ret = ioctl( _fd, VIDIOC_DQBUF, &_buffer );
 			if ( ret < 0 ) {
@@ -263,13 +265,18 @@ namespace cvt {
 			size_t h = _frame->height();
 			uint8_t * bufPtr = (uint8_t*)_buffers[ _buffer.index ];
 			size_t bufStride = _frame->width() * _format.bpp;
+			SIMD* simd = SIMD::instance();
 			while( h-- ){
-				memcpy( ptr, bufPtr, bufStride );
+				simd->Memcpy( ptr, bufPtr, bufStride );
 				ptr += stride;
 				bufPtr += bufStride;
 			}
 			_frame->unmap( ptrM );
 		}
+
+		_frameIdx = _buffer.sequence;
+		_stamp    = ( double )_buffer.timestamp.tv_sec +
+					( double )( _buffer.timestamp.tv_usec ) / 1000000.0;
 
 		ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
 		if (ret < 0){

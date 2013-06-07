@@ -34,6 +34,11 @@ namespace cvt {
 			void startCapture();
 			void stopCapture();
 
+			/* unique identifier */
+			const String&	identifier() const { return _identifier; }
+			size_t			frameIndex() const { return _frameIdx; }
+			double			stamp() const { return _stamp; }
+
 			void updateAutoIrisExp();
 			void setAutoIris(bool b);
 			void setAutoExposure(bool b);
@@ -42,21 +47,18 @@ namespace cvt {
 			void setAutoWhiteBalance(bool b);
 			void setBacklightCompensation(bool b);
 
-			/* unique identifier */
-			const String& identifier() const { return _identifier; }
-
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
 
 		private:
-			size_t _width;
-			size_t _height;
-			size_t _fps;
-			size_t _numBuffers;
-			size_t _camIndex;
-			bool _opened;
-			bool _capturing;
-			int _nextBuf;
+			size_t	_width;
+			size_t	_height;
+			size_t	_fps;
+			size_t	_numBuffers;
+			size_t	_camIndex;
+			bool	_opened;
+			bool	_capturing;
+			int		_nextBuf;
 
 			// the device file descriptor
 			int _fd;
@@ -64,8 +66,13 @@ namespace cvt {
 			// memory buffers for mmap frames
 			void** _buffers;
 
-			Image* _frame;
+			Image*	_frame;
 			IFormat _format;
+
+			// frame acquisition time
+			double	_stamp;
+			// sequence number of last acquired frame
+			size_t  _frameIdx;
 
 			/** V4L2 specific **/
 			v4l2_ext_control *	_extControlsToSet;
