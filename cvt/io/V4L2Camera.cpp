@@ -228,8 +228,7 @@ namespace cvt {
 		fd_set rdset;
 		struct timeval timeout;
 
-		//make sure we are capturing
-		if(_capturing)
+		if( !_capturing )
 			startCapture();
 
 		FD_ZERO(&rdset);
