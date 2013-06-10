@@ -48,6 +48,8 @@ namespace cvt {
 			void join( T x, T y, T w, T h );
 			void join( const Vector2<T>& pt );
 			void join( T x, T y );
+			void grow( T border );
+
 			bool isEmpty() const;
 			bool operator==( const Rect<T>& r2 ) const;
 
@@ -276,6 +278,15 @@ namespace cvt {
 		y = Math::min( y, py );
 		width = xend - x;
 		height = yend - y;
+	}
+
+	template<typename T>
+	inline void Rect<T>::grow( T border )
+	{
+		x      -= border;
+		y	   -= border;
+		width  += border * ( T ) 2;
+		height += border * ( T ) 2;
 	}
 
 

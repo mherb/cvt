@@ -56,6 +56,8 @@ namespace cvt {
 			bool operator==( const Color& c ) const;
 			bool operator!=( const Color& c ) const;
 
+			void mix( const Color& c1, const Color& c2, float alpha );
+
 			const float* data() const { return &_r; };
 
 			static const Color BLACK;
@@ -225,6 +227,14 @@ namespace cvt {
 	{
 		return !( _r == c._r && _g == c._g &&_b == c._b && _a == c._a );
 	}
+
+    inline void Color::mix( const Color& c1, const Color& c2, float alpha )
+    {
+        _r = Math::mix( c1._r, c2._r, alpha );
+        _g = Math::mix( c1._g, c2._g, alpha );
+        _b = Math::mix( c1._b, c2._b, alpha );
+        _a = Math::mix( c1._a, c2._a, alpha );
+    }
 
 	inline std::ostream& operator<<( std::ostream& out, const Color& c )
 	{

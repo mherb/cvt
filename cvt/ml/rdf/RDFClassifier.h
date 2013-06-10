@@ -14,7 +14,7 @@ namespace cvt {
 			void    addTree( RDFClassificationTree<DATA,N>* tree );
 			size_t  treeCount() const;
 
-			void    classify( RDFClassHistogram<N>& classhist, const DATA& data );
+			void    classify( RDFClassHistogram<N>& classhist, const DATA& data ) const;
 
 		private:
 			std::vector<RDFClassificationTree<DATA,N>*> _trees;
@@ -43,7 +43,7 @@ namespace cvt {
 	}
 
 	template<typename DATA, size_t N>
-	inline void RDFClassifier<DATA,N>::classify( RDFClassHistogram<N>& chist, const DATA& data )
+	inline void RDFClassifier<DATA,N>::classify( RDFClassHistogram<N>& chist, const DATA& data ) const
 	{
 		size_t iend = _trees.size();
 		chist.clear();
