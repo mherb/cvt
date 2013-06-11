@@ -50,7 +50,9 @@ namespace cvt
             void currentCenter( Vector2f& center )  const;
 
             PoseType&	pose()	{ return _pose; }
+			Matrix3f	poseMat() const;
             void		initPose( const Vector2f& pos );
+			void		initPose( const Matrix3f& mat );
 
             const float*   pixels( size_t octave = 0 )       const { return _patchDataForScale[ octave ].patch; }
             const float*   transformed( size_t octave = 0 )  const { return _patchDataForScale[ octave ].transformed; }
@@ -79,7 +81,7 @@ namespace cvt
                                         const Image & gradY );
 
             /**
-             * \brief extract patches a multiscale fashion from a image pyramid
+			 * \brief extract patches from an image pyramid
              * */
             static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
                                         const std::vector<Vector2f> & positions,
@@ -527,6 +529,14 @@ namespace cvt
         center.y = tmp( 1, 2 );
     }
 
+	template <size_t pSize, class PoseType>
+	inline Matrix3f KLTPatch<pSize, PoseType>::poseMat() const
+	{
+		Matrix3f m;
+		EigenBridge::toCVT( m, _pose.transformation() );
+		return m;
+	}
+
     template <size_t pSize, class PoseType>
     inline void KLTPatch<pSize, PoseType>::initPose( const Vector2f& pos )
     {
@@ -536,6 +546,12 @@ namespace cvt
         m[ 1 ][ 2 ] = pos.y;
         _pose.set( m );
     }
+
+	template <size_t pSize, class PoseType>
+	inline void KLTPatch<pSize, PoseType>::initPose( const Matrix3f& mat )
+	{
+		_pose.set( mat );
+	}
 
     template <size_t pSize, class PoseType>
     inline void KLTPatch<pSize, PoseType>::toImage( Image& img, size_t octave ) const
