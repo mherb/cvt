@@ -19,7 +19,7 @@ namespace cvt {
 	*/
 	class XMLSerializable {
 		public:
-			virtual ~XMLSerializable() {};
+			virtual ~XMLSerializable() {}
 			virtual void	 deserialize( XMLNode* node ) = 0;
 			virtual XMLNode* serialize( ) const = 0;
 	};
