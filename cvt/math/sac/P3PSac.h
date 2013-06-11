@@ -26,23 +26,31 @@
 
 namespace cvt
 {
-    class P3PSac;
+	template <class T> class P3PSac;
 
     template<>
-    struct SACModelTraits<P3PSac>
+	struct SACModelTraits<P3PSac<double> >
     {
         typedef Matrix4d   ResultType;
         typedef double     DistanceType;
     };
 
-    class P3PSac : public SampleConsensusModel<P3PSac>
-{
-      public:
-        typedef SACModelTraits<P3PSac>::ResultType       ResultType;
-        typedef SACModelTraits<P3PSac>::DistanceType     DistanceType;
+	template<>
+	struct SACModelTraits<P3PSac<float> >
+	{
+		typedef Matrix4f	ResultType;
+		typedef float		DistanceType;
+	};
+
+	template <class T>
+	class P3PSac : public SampleConsensusModel<P3PSac<T> >
+	{
+		public:
+			typedef typename SACModelTraits<P3PSac<T> >::ResultType       ResultType;
+			typedef typename SACModelTraits<P3PSac<T> >::DistanceType     DistanceType;
 
 
-        P3PSac( const PointSet3d & p3d, const PointSet2d & p2d, const Matrix3d & K, const Matrix3d& Kinv ); 
+		P3PSac( const PointSet<3, T> & p3d, const PointSet<2, T> & p2d, const Matrix3<T> & K, const Matrix3<T>& Kinv );
 
         size_t size() const { return _points3d.size(); }
 
@@ -59,14 +67,18 @@ namespace cvt
         void inliers( std::vector<size_t> & inlierIndices, const ResultType & estimate, const DistanceType maxDistance ) const;
 
       private:
-        const PointSet3d &    _points3d;
-        const PointSet2d &    _points2d;
-        const Matrix3d	 &    _intrinsics;
-        const Matrix3d	 &    _intrinsicsInv;
+		const PointSet<3, T> &    _points3d;
+		const PointSet<2, T> &    _points2d;
+		const Matrix3<T>	 &    _intrinsics;
+		const Matrix3<T>	 &    _intrinsicsInv;
     };
 
         
-	inline P3PSac::P3PSac( const PointSet3d & p3d, const PointSet2d & p2d, const Matrix3d & K, const Matrix3d& Kinv ) :
+	template <class T>
+	inline P3PSac<T>::P3PSac( const PointSet<3, T> & p3d,
+							  const PointSet<2, T> & p2d,
+							  const Matrix3<T> & K,
+							  const Matrix3<T>& Kinv ) :
 		_points3d( p3d ),
 		_points2d( p2d ),
 		_intrinsics( K ),
@@ -74,13 +86,14 @@ namespace cvt
     {
     }
 
-    inline P3PSac::ResultType P3PSac::estimate( const std::vector<size_t> & sampleIndices ) const
+	template <class T>
+	inline typename P3PSac<T>::ResultType P3PSac<T>::estimate( const std::vector<size_t> & sampleIndices ) const
     {
-        PointSet3d worldPts;
-        PointSet3d featureVecs;
+		PointSet<3, T> worldPts;
+		PointSet<3, T> featureVecs;
 
-		Vector3d tmp;
-        Vector3d tmp2;
+		Vector3<T> tmp;
+		Vector3<T> tmp2;
         for( size_t i = 0; i < sampleIndices.size(); i++ ){
             worldPts.add( _points3d[ sampleIndices[ i ] ] );
             tmp2.x = _points2d[ sampleIndices[ i ] ].x;
@@ -91,11 +104,11 @@ namespace cvt
             featureVecs.add( tmp );
         }
 	
-		std::vector<Matrix4d> results;
-        Vision::p3p( results, ( Vector3d* )featureVecs.ptr(), ( Vector3d* )worldPts.ptr() );
+		std::vector<Matrix4<T> > results;
+		Vision::p3p( results, ( const Vector3<T>* )featureVecs.ptr(), ( const Vector3<T>* )worldPts.ptr() );
 
-        Vector3d pcam;
-        Vector2d pp;
+		Vector3<T> pcam;
+		Vector2<T> pp;
 
         double best = 10000;
         int bestIdx = -1;
@@ -113,7 +126,7 @@ namespace cvt
         }
 
         if( bestIdx == -1 ){
-            Matrix4d trans;
+			Matrix4<T> trans;
             trans.setIdentity();
             return trans;
         }
@@ -121,17 +134,18 @@ namespace cvt
         return results[ bestIdx ];
     }
 
-    inline P3PSac::ResultType P3PSac::refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const
+	template <class T>
+	inline typename P3PSac<T>::ResultType P3PSac<T>::refine( const ResultType& res, const std::vector<size_t> & inlierIndices ) const
     {
-        Eigen::Matrix3d K;
-        Eigen::Matrix4d ext( Eigen::Matrix4d::Identity() ), me;
+		Eigen::Matrix<T, 3, 3> K;
+		Eigen::Matrix<T, 4, 4> ext( Eigen::Matrix<T, 4, 4>::Identity() ), me;
 
-        PointCorrespondences3d2d<double> pointCorresp( K, ext );
+		PointCorrespondences3d2d<T> pointCorresp( K, ext );
         EigenBridge::toEigen( me, res );
         pointCorresp.setPose( me );
 
-        Eigen::Vector3d p3;
-        Eigen::Vector2d p2;
+		Eigen::Matrix<T, 3, 1> p3;
+		Eigen::Matrix<T, 2, 1> p2;
         for( size_t i = 0; i < inlierIndices.size(); i++ ){
             size_t idx = inlierIndices[ i ];
            p3[ 0 ] = _points3d[ idx ].x;
@@ -143,31 +157,32 @@ namespace cvt
            pointCorresp.add( p3, p2 );
         }
 
-        RobustHuber<double, PointCorrespondences3d2d<double>::MeasType> costFunction( 1.0 );
-        LevenbergMarquard<double> lm;
-        TerminationCriteria<double> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
-        termCriteria.setCostThreshold( 0.1 );
+		RobustHuber<T, typename PointCorrespondences3d2d<T>::MeasType> costFunction( 1.0 );
+		LevenbergMarquard<T> lm;
+		TerminationCriteria<T> termCriteria( TERM_COSTS_THRESH | TERM_MAX_ITER );
+		termCriteria.setCostThreshold( (T)0.1 );
         termCriteria.setMaxIterations( 20 );
         lm.optimize( pointCorresp, costFunction, termCriteria );
 
         me = pointCorresp.pose().transformation();
 
-        Matrix4d refined;
+		Matrix4<T> refined;
         EigenBridge::toCVT( refined, me );
         return refined;
     }
 
-    inline void P3PSac::inliers( std::vector<size_t> & inlierIndices,
-                                 const ResultType & estimate,
-                                 const DistanceType maxDistance ) const
+	template <class T>
+	inline void P3PSac<T>::inliers( std::vector<size_t> & inlierIndices,
+									const ResultType & estimate,
+									const DistanceType maxDistance ) const
     {
         // reproject all matches and compute the inliers
-        Vector2d p2;
-        Vector3d p3;
+		Vector2<T> p2;
+		Vector3<T> p3;
 
 		/* invert the pose */
-		Matrix3d R = _intrinsics * estimate.toMatrix3();
-        Vector3d t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 3 ] );
+		Matrix3<T> R = _intrinsics * estimate.toMatrix3();
+		Vector3<T> t( estimate[ 0 ][ 3 ], estimate[ 1 ][ 3 ], estimate[ 2 ][ 3 ] );
 		// apply intrinsics
 		t = _intrinsics * t;
 
@@ -175,7 +190,7 @@ namespace cvt
             // calc p' = estimate * p
             p3 = R * _points3d[ i ] + t;
 
-			if( Math::abs( p3.z ) < 1e-6 )
+			if( Math::abs( p3.z ) < (T)1e-6 )
 				continue;
 
 			p2.x = p3.x / p3.z;
