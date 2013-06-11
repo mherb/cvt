@@ -97,6 +97,7 @@ namespace cvt {
 	}
 
 	inline StereoCameraCalibration::StereoCameraCalibration( const StereoCameraCalibration& other ) :
+		XMLSerializable(),
 		_first( other._first ),
 		_second( other._second ),
 		_extrinsics( other._extrinsics )
