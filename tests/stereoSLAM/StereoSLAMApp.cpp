@@ -12,7 +12,7 @@ namespace cvt
 {
    StereoSLAMApp::StereoSLAMApp( StereoInput* stereoInput ) :
        _stereoInput( stereoInput ),
-      _slam( new FAST( SEGMENT_9, 15, 30 ),
+	  _slam( new FAST( SEGMENT_10, 15, 30 ),
 			 new ORB(),
 			 _stereoInput->stereoCalib() ),
 	  _img0( _stereoInput->left() ),

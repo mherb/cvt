@@ -30,21 +30,31 @@ namespace cvt
 	   _descExtractorRight( descExtractor->clone() ),
 	   _pyrLeft( _params.pyramidOctaves, _params.pyramidScaleFactor ),
 	   _pyrRight( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+	   _pyrLeftf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+	   _pyrRightf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+	   _gradXl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+	   _gradYl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+	   _kernelGx( IKernel::HAAR_HORIZONTAL_3 ),
+	   _kernelGy( IKernel::HAAR_VERTICAL_3 ),
 	   _calib( calib ),
 	   _activeKF( -1 )
    {
-      Eigen::Matrix3d K;
-	  EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
-      _map.setIntrinsics( K );
+	   _kernelGx.scale( -0.5f );
+	   _kernelGy.scale( -0.5f );
+
+	   Eigen::Matrix3d K;
+	   EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
+	   _map.setIntrinsics( K );
    }
 
    void StereoSLAM::newImages( const Image& imgLeftGray, const Image& imgRightGray )
    {
-       CVT_ASSERT( imgLeftGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
-       CVT_ASSERT( imgRightGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_FLOAT" );
+	   CVT_ASSERT( imgLeftGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_UINT8" );
+	   CVT_ASSERT( imgRightGray.format() == IFormat::GRAY_UINT8, "INPUT IMAGES NEED TO BE GRAY_UINT8" );
 
 	  // detect current keypoints and extract descriptors
 	  extractFeatures( imgLeftGray, imgRightGray );
+
 
 	  std::cout << "CurrentFeatures Left: "  << _descExtractorLeft->size() << std::endl;
 	  std::cout << "CurrentFeatures Right: " << _descExtractorRight->size() << std::endl;
@@ -53,89 +63,49 @@ namespace cvt
 	  std::vector<Vector2f> predictedPositions;
 	  std::vector<size_t>   predictedFeatureIds;
 	  std::vector<FeatureDescriptor*> predictedDescriptors;
+	  std::vector<PatchType*> predictedPatches;
+
 	  // predict visible features based on last pose
 	  Eigen::Matrix4d poseEigen = _pose.transformation().cast<double>();
 	  predictVisibleFeatures( predictedPositions,
 							  predictedFeatureIds,
 							  predictedDescriptors,
+							  predictedPatches,
 							  poseEigen );
 
-	  // match with current left features
+	  TrackedFeatures tracked;
 	  std::vector<MatchingIndices> matchedIndices;
-	  _descExtractorLeft->matchInWindow( matchedIndices,
-										 predictedDescriptors,
-										 _params.matchingWindow,
-										 _params.matchingMaxDescDistance );
+	  trackPredictedFeatures( tracked,
+							  matchedIndices,
+							  predictedDescriptors,
+							  predictedPatches,
+							  predictedFeatureIds );
 
-	  // build up the correspondences for camera tracking
-	  PointSet2f points2d;
-	  PointSet3f points3d;
-	  std::vector<size_t> mapIndices;
-	  createCorrespondences( points2d, points3d, mapIndices, matchedIndices, predictedFeatureIds );
-
-	  size_t numTrackedFeatures = points3d.size();
+	  size_t numTrackedFeatures = tracked.size();
 	  numTrackedPoints.notify( numTrackedFeatures );
 
 	  std::vector<size_t> trackingInliers;
-	  if( numTrackedFeatures > 6 ){
-		  estimateCameraPose( trackingInliers, points3d, points2d );
-	  } else {
-		  // too few features -> lost track: relocalization needed
-		  std::cout << "Too few features tracked - relocalization needed" << std::endl;
-	  }
+	  estimateCameraPose( trackingInliers, tracked.points3d, tracked.points2d );
 
 	  if( newKeyframeNeeded( trackingInliers.size() ) ){
-		  std::vector<const FeatureDescriptor*> freeFeaturesLeft;
-		  sortOutFreeFeatures( freeFeaturesLeft, _descExtractorLeft, trackingInliers, matchedIndices );
-
-		  // try to match the free features with right frame
-		  std::vector<FeatureMatch> stereoMatches;
-		  std::cout << "Free features: " << freeFeaturesLeft.size() << std::endl;
-		  _descExtractorRight->scanLineMatch( stereoMatches,
-											  freeFeaturesLeft,
-											  _params.minDisparity,
-											  _params.maxDisparity,
-											  _params.matchingMaxDescDistance,
-											  _params.maxEpilineDistance );		  
-
 		  PointSet3f newPts3d;
 		  std::vector<const FeatureDescriptor*> newDescriptors;
-		  stereoMatchesTo3DPoints( newPts3d, newDescriptors, stereoMatches );
+		  std::vector<PatchType*> newPatches;
+		  initNewStereoFeatures( newPts3d, newDescriptors, newPatches, trackingInliers, matchedIndices );
 
-		  // wait until current ba thread is ready
-		  if( _bundler.isRunning() ){
-			  _bundler.join();
-		  }
-
-
-		  // a new keyframe should have a minimum number of features
-		 if( ( newPts3d.size() + trackingInliers.size() ) > _params.minFeaturesForKeyframe ){
-			 // create new keyframe with map features
-			 addNewKeyframe( newDescriptors,
-							 newPts3d,
-							 points2d,
-							 mapIndices,
-							 trackingInliers );
-
-			 /* bundle adjust if we have at least 2 keyframes*/
-			 if( _map.numKeyframes() >  2 ){
-			   //_bundler.run( &_map );
-			 }
-
-			 keyframeAdded.notify();
-			 mapChanged.notify( _map );
-			 std::cout << "New Keyframe Added" << std::endl;
-			 std::cout << "Triangulated: " << newPts3d.size() << std::endl;
-
-		 } else {
-			 std::cout << "Could only triangulate " << newPts3d.size() << " new features " << std::endl;
-		 }
-
+		  // create new keyframe with map features
+		  addNewKeyframe( newDescriptors,
+						  newPatches,
+						  newPts3d,
+						  tracked.points2d,
+						  tracked.mapFeatureIds,
+						  trackingInliers );
 	  }
 
 	  Image debugMono;
 	  imgLeftGray.convert( debugMono, IFormat::RGBA_UINT8 );
-	  createDebugImageMono( debugMono, points2d, predictedPositions );
+	  // TODO: only draw inliers of pose estimation
+	  createDebugImageMono( debugMono, tracked.points2d, predictedPositions );
 	  trackedFeatureImage.notify( debugMono );
 
       int last = _activeKF;
@@ -156,10 +126,13 @@ namespace cvt
 	   _detector->detect( leftFeatures, _pyrLeft );
 	   _detector->detect( rightFeatures, _pyrRight );
 
-	   leftFeatures.filterNMS( 1, true );
-	   rightFeatures.filterNMS( 1, true );
-	   leftFeatures.filterBest( 3000, true );
-	   rightFeatures.filterBest( 3000, true );
+	   leftFeatures.filterNMS( 5, true );
+	   rightFeatures.filterNMS( 5, true );
+
+	   // TODO: gridfiltering instead of best N
+	   leftFeatures.filterBest( 6000, true );
+	   // maybe do not filter the right features?
+	   rightFeatures.filterBest( 7000, true );
 
 	   // extract the descriptors
 	   _descExtractorLeft->clear();
@@ -172,6 +145,7 @@ namespace cvt
    void StereoSLAM::predictVisibleFeatures( std::vector<Vector2f>& imgPositions,
 											std::vector<size_t>& ids,
 											std::vector<FeatureDescriptor*>& descriptors,
+											std::vector<PatchType*>& patches,
 											const Eigen::Matrix4d& cameraPose )
    {
 	   _map.selectVisibleFeatures( ids,
@@ -183,74 +157,144 @@ namespace cvt
 	   std::cout << "Selected points: " << ids.size() << std::endl;
 
 	   // get the corresponding descriptors
-	   _descriptorDatabase.descriptorsForIds( descriptors, ids );
+	   _descriptorDatabase.descriptorsAndPatchesForIds( descriptors, patches, ids );
 	   for( size_t i = 0; i < descriptors.size(); ++i ){
 		   descriptors[ i ]->pt = imgPositions[ i ];
 	   }
    }
 
-   void StereoSLAM::createCorrespondences( PointSet2f& points2d,
-										   PointSet3f& points3d, std::vector<size_t> &mapIndices,
-										   const std::vector<MatchingIndices>& matchedIndices,
-										   const std::vector<size_t>& ids ) const
+   void StereoSLAM::trackPredictedFeatures( TrackedFeatures& tracked,
+											std::vector<MatchingIndices>& matchedIndices,
+											const std::vector<FeatureDescriptor*>& predictedDescriptors,
+											std::vector<StereoSLAM::PatchType*>& predictedPatches,
+											const std::vector<size_t>& predictedIds )
    {
-	   Vector4f vec;
-	   mapIndices.reserve( matchedIndices.size() );
-	   for( size_t i = 0; i < matchedIndices.size(); ++i ){
-		   const MatchingIndices& m = matchedIndices[ i ];
+	   _pyrLeft.convert( _pyrLeftf, IFormat::GRAY_FLOAT  );
 
-		   size_t curMapIdx = ids[ m.srcIdx ];
-		   mapIndices.push_back( curMapIdx );
+		 // match with current left features
+		 _descExtractorLeft->matchInWindow( matchedIndices,
+											predictedDescriptors,
+											_params.matchingWindow,
+											_params.matchingMaxDescDistance );
 
-		   const MapFeature& mapFeature = _map.featureForId( curMapIdx );
-		   EigenBridge::toCVT( vec, mapFeature.estimate() );
-		   points3d.add( Vector3f( vec ) );
-		   points2d.add( (*_descExtractorLeft)[ m.dstIdx ].pt );
-	   }
+		 // refine matched positions using KLT
+		 tracked.reserve( matchedIndices.size() );
+		 Vector4f vec;
+		 Vector2f refined;
+		 for( size_t i = 0; i < matchedIndices.size(); ++i ){
+			 const MatchingIndices& m = matchedIndices[ i ];
+			 size_t curMapIdx = predictedIds[ m.srcIdx ];
+			 PatchType* patch = predictedPatches[ m.srcIdx ];
+
+			 // refine the position
+			 const Vector2f& pt = ( *_descExtractorLeft )[ m.dstIdx ].pt;
+			 // TODO: try to only update the position and keep the rest of the patch pose
+			 patch->initPose( pt );
+			 patch->align( _pyrLeftf, 2 /*per octave!*/ );
+			 patch->currentCenter( refined );
+
+			 const MapFeature& mapFeature = _map.featureForId( curMapIdx );
+			 EigenBridge::toCVT( vec, mapFeature.estimate() );
+
+			 tracked.points3d.add( Vector3f( vec ) );
+			 tracked.points2d.add( refined );
+			 tracked.mapFeatureIds.push_back( curMapIdx );
+		 }
    }
 
    void StereoSLAM::estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3f & p3d, const PointSet2f& p2d )
    {
-	  const Matrix3f & k = _calib.firstCamera().intrinsics();
+	   if( p3d.size() < 6 ){
+		   // too few features -> lost track: relocalization needed
+		   std::cout << "Too few features tracked - relocalization needed" << std::endl;
+		   return;
+	   }
 
-      //Matrix3f kinv( k.inverse() );
-      //P3PSac model( p3d, p2d, k, kinv );
-      //RANSAC<P3PSac> ransac( model, 5.0, 0.2 );
+	   const Matrix3f & k = _calib.firstCamera().intrinsics();
 
-	  // TODO: integrate this with the pointset
-	  // TODO: add Non.-Linear Pose estimation to point set
+//	   Matrix3f kinv( k.inverse() );
+//	   P3PSac<float> model( p3d, p2d, k, kinv );
+//	   RANSAC<P3PSac<float> > ransac( model, 5.0, 0.5 );
 
-	  EPnPSAC<float> model( p3d, p2d, k );
-	  RANSAC<EPnPSAC<float> > ransac( model, 5.0, 0.4 );
+	   EPnPSAC<float> model( p3d, p2d, k );
+	   RANSAC<EPnPSAC<float> > ransac( model, 5.0, 0.5 );
 
-	  Matrix4f estimated;
-	  estimated.setIdentity();
-      float inlierPercentage = 0.0f;
-//      float minInThresh = 0.6f;
-//      size_t iter = 0;
-//      while( inlierPercentage < minInThresh ){
-//        estimated = ransac.estimate( 1000 );
-//        inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
-//        iter++;
+	   Matrix4f estimated;
+	   estimated.setIdentity();
+	   estimated = ransac.estimate( 2000 );
+	   float inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
+	   std::cout << "Inlier Percentage: " << inlierPercentage << std::endl;
 
-//        if( iter == 10 ){
-//            minInThresh *= 0.9f;
-//            iter = 0;
-//        }
-//      }
-      estimated = ransac.estimate( 1000 );
-      inlierPercentage = (float)ransac.inlierIndices().size() / (float)p3d.size();
-      std::cout << "Inlier Percentage: " << inlierPercentage << std::endl;
+	   Eigen::Matrix4f me;
+	   EigenBridge::toEigen( me, estimated );
+	   _pose.set( me );
 
-	  Eigen::Matrix4f me;
-      EigenBridge::toEigen( me, estimated );
-      _pose.set( me );
+	   inlierIndices = ransac.inlierIndices();
 
-      inlierIndices = ransac.inlierIndices();
+	   newCameraPose.notify( estimated );
+   }
 
-      Matrix4f mf;
-      EigenBridge::toCVT( mf, me );
-      newCameraPose.notify( mf );
+   void StereoSLAM::initNewStereoFeatures( PointSet3f& newPts3d,
+										   std::vector<const FeatureDescriptor*>& newDescriptors,
+										   std::vector<PatchType*>& newPatches,
+										   const std::vector<size_t>& trackingInliers,
+										   const std::vector<MatchingIndices>& matchedIndices )
+   {
+	   std::vector<const FeatureDescriptor*> freeFeaturesLeft;
+	   sortOutFreeFeatures( freeFeaturesLeft, _descExtractorLeft, trackingInliers, matchedIndices );
+
+	   // try to match the free features with right frame
+	   std::vector<FeatureMatch> stereoMatches;
+	   std::cout << "Free features: " << freeFeaturesLeft.size() << std::endl;
+	   _descExtractorRight->scanLineMatch( stereoMatches,
+										   freeFeaturesLeft,
+										   _params.minDisparity,
+										   _params.maxDisparity,
+										   _params.matchingMaxDescDistance,
+										   _params.maxEpilineDistance );
+
+	   // left is already converted to float
+	   _pyrLeftf.convolve( _gradXl, _kernelGx );
+	   _pyrLeftf.convolve( _gradYl, _kernelGy );
+	   _pyrRight.convert( _pyrRightf, IFormat::GRAY_FLOAT );
+	   // maybe also update the patches of the currently tracked features
+
+	   // subpixel refinement of the stereo matches
+	   newPts3d.reserve( stereoMatches.size() );
+	   newDescriptors.reserve( stereoMatches.size() );
+	   newPatches.reserve( stereoMatches.size() );
+	   Vector2f rnew;
+
+	   float f = _calib.focalLength();
+	   float b = _calib.baseLine();
+	   float cx = _calib.firstCamera().intrinsics()[ 0 ][ 2 ];
+	   float cy = _calib.firstCamera().intrinsics()[ 1 ][ 2 ];
+	   float disp = 0.0f;
+	   float bd = 0.0f;
+	   for( size_t i = 0; i < stereoMatches.size(); ++i ){
+		   DescriptorDatabase::PatchType* patch = new DescriptorDatabase::PatchType( _pyrLeft.octaves() );
+		   FeatureMatch& m = stereoMatches[ i ];
+		   const Vector2f& posL = m.feature0->pt;
+		   const Vector2f& posR = m.feature1->pt;
+		   patch->update( _pyrLeftf, _gradXl, _gradYl, posL );
+		   patch->initPose( posR );
+		   patch->align( _pyrRightf, _params.kltStereoIters );
+		   patch->currentCenter( rnew );
+
+		   float dy = Math::abs( posL[ 1 ] - rnew[ 1 ] );
+		   if( dy < _params.maxEpilineDistance ){
+			   // init the 3d point
+			   disp = posL[ 0 ] - rnew[ 0 ];
+			   bd = b / disp;
+
+			   newPts3d.add( Vector3f( ( posL[ 0 ] - cx ) * bd,
+									   ( posL[ 1 ] - cy ) * bd,
+									   f * bd ) );
+
+			   newDescriptors.push_back( ( const FeatureDescriptor* )m.feature0 );
+			   newPatches.push_back( patch );
+		   }
+	   }
    }
 
    void StereoSLAM::sortOutFreeFeatures( std::vector<const FeatureDescriptor*>& freeFeaturesLeft,
@@ -273,36 +317,6 @@ namespace cvt
 	   }
    }
 
-   void StereoSLAM::stereoMatchesTo3DPoints( PointSet3f& newPts,
-											 std::vector<const FeatureDescriptor*>& newDescriptors,
-											 const std::vector<FeatureMatch>& stereoMatches ) const
-   {
-	   newPts.resize( stereoMatches.size() );
-	   newDescriptors.resize( stereoMatches.size() );
-
-	   float f = _calib.focalLength();
-	   float b = _calib.baseLine();
-	   float cx = _calib.firstCamera().intrinsics()[ 0 ][ 2 ];
-	   float cy = _calib.firstCamera().intrinsics()[ 1 ][ 2 ];
-	   float disp = 0.0f;
-	   float bd = 0.0f;
-	   for( size_t i = 0; i < stereoMatches.size(); ++i ){
-		   const FeatureMatch& match = stereoMatches[ i ];
-		   const FeatureDescriptor* left = ( const FeatureDescriptor* )match.feature0;
-		   const FeatureDescriptor* right = ( const FeatureDescriptor* )match.feature1;
-
-		   disp = left->pt[ 0 ] - right->pt[ 0 ];
-		   bd = b / disp;
-
-		   Vector3f& curPt = newPts[ i ];
-		   curPt[ 0 ] = ( left->pt[ 0 ] - cx ) * bd;
-		   curPt[ 1 ] = ( left->pt[ 1 ] - cy ) * bd;
-		   curPt[ 2 ] = f * bd;
-
-		   newDescriptors[ i ] = left;
-	   }
-   }
-
    void StereoSLAM::clear()
    {
       if( _bundler.isRunning() )
@@ -322,11 +336,25 @@ namespace cvt
 
 
    void StereoSLAM::addNewKeyframe( const std::vector<const FeatureDescriptor*>& newDescriptors,
+									std::vector<PatchType*>& newPatches,
 									const PointSet3f& newPoints3d,
 									const PointSet2f& trackedMapPoints,
 									const std::vector<size_t>& trackedMapIds,
 									const std::vector<size_t>& inliers )
    {
+	   // a new keyframe should have a minimum number of features
+	  if( ( newPoints3d.size() + trackedMapPoints.size() ) < _params.minFeaturesForKeyframe ){
+		  std::cout << "Could only triangulate " << newPoints3d.size() << " new features " << std::endl;
+		  return;
+	  }
+	  // wait until current ba thread is ready
+	  if( _bundler.isRunning() ){
+		  _bundler.join();
+	  }
+
+	  keyframeAdded.notify();
+	  mapChanged.notify( _map );
+	  std::cout << "Triangulated: " << newPoints3d.size() << std::endl;
 	   // add a new Keyframe to the map
 	   Eigen::Matrix4d transform( _pose.transformation().cast<double>() );
 	   size_t kid = _map.addKeyframe( transform );
@@ -351,6 +379,7 @@ namespace cvt
 	   Eigen::Matrix4d poseInv = transform.inverse();
 	   for( size_t i = 0; i < newPoints3d.size(); ++i ){
 		   const FeatureDescriptor* desc = newDescriptors[ i ];
+		   PatchType* patch = newPatches[ i ];
 		   const Vector2f& p2d = desc->pt;
 		   const Vector3f& cP3d = newPoints3d[ i ];
 
@@ -362,7 +391,13 @@ namespace cvt
            mf.estimate() = poseInv * p3d;
            size_t featureId = _map.addFeatureToKeyframe( mf, mm, kid );
 		   _descriptorDatabase.addDescriptor( *desc, featureId );
+		   _descriptorDatabase.addPatch( patch, featureId );
        }
+
+	   /* bundle adjust if we have at least 2 keyframes*/
+	   if( _map.numKeyframes() >  2 ){
+		 //_bundler.run( &_map );
+	   }
    }
 
    bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
