@@ -39,6 +39,14 @@ namespace cvt
 			PointSet();
 			~PointSet();
 			PointSet( const PointSet<dim,_T>& ptset );
+
+			/**
+			 * @brief PointSet create pointset by using a subset of another pointset
+			 * @param pset	the other pointset
+			 * @param ids	the indices of the other pointset to use
+			 */
+			PointSet( const PointSet<dim, _T>& pset, const std::vector<size_t>& ids );
+
 			PointSet( const _T* data, size_t npts );
 			void add( const PTTYPE& pt );
 			void clear();
@@ -48,6 +56,7 @@ namespace cvt
 			PTTYPE variance() const;
 			size_t size() const;
 			void resize( size_t );
+			void reserve( size_t );
 			void translate( const PTTYPE& t );
 			void scale( _T t );
 			void transform( const MATTYPENT& mat );
@@ -63,7 +72,15 @@ namespace cvt
 			_T	 fitEllipse( Ellipse<_T>& ellipse ) const;
 
 			/**
-				 * Computes the essential matrix between two views from the same camera
+			 * @brief ePnP		compute pose from n point correspondences using epnp
+			 * @param ptset2d	corresponding 2d points
+			 * @param K			intrinsics
+			 * @return pose aligning the pointsets
+			 */
+			MATTYPE ePnP( const PointSet<2, _T>& ptset2d, const cvt::Matrix3<_T>& K ) const;
+
+			/**
+				* Computes the essential matrix between two views from the same camera
 				 * @param other the second point set
 				 * @param K     intrinsic calibration matrix
 				 * @return      3x3 essential Matrix from this to other
@@ -98,6 +115,16 @@ namespace cvt
 	template<int dim, typename _T>
 		inline PointSet<dim,_T>::PointSet( const PointSet<dim,_T>& ptset ) : _pts( ptset._pts )
 	{
+	}
+
+	template<int dim, typename _T>
+	inline PointSet<dim,_T>::PointSet( const PointSet<dim, _T>& pset, const std::vector<size_t>& ids )
+	{
+		size_t n = ids.size();
+		_pts.resize( n );
+		for( size_t i = 0; i < n; ++i ){
+			_pts[ i ] = pset[ ids[ i ] ];
+		}
 	}
 
 	template<int dim, typename _T>
@@ -384,6 +411,12 @@ namespace cvt
 	inline void PointSet<dim,_T>::resize( size_t n )
 	{
 		return _pts.resize( n );
+	}
+
+	template<int dim, typename _T>
+	inline void PointSet<dim,_T>::reserve( size_t n )
+	{
+		return _pts.reserve( n );
 	}
 
 	template<int dim, typename _T>

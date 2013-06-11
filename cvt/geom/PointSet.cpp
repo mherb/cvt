@@ -10,6 +10,7 @@
 */
 
 #include <cvt/geom/PointSet.h>
+#include <cvt/vision/EPnP.h>
 
 namespace cvt {
 
@@ -566,6 +567,24 @@ namespace cvt {
 		ret = sim2 * ret * sim1;
 		ret *= 1.0 / ret[ 2 ][ 2 ];
 		return ret;
+	}
+
+	template<>
+	Matrix4d PointSet<3, double>::ePnP( const PointSet<2, double>& ptset2d, const cvt::Matrix3d& K ) const
+	{
+		Matrix4d transform;
+		EPnP<double> epnp( *this );
+		epnp.solve( transform, ptset2d, K );
+		return transform;
+	}
+
+	template<>
+	Matrix4f PointSet<3, float>::ePnP( const PointSet<2, float>& ptset2d, const cvt::Matrix3f& K ) const
+	{
+		Matrix4f transform;
+		EPnP<float> epnp( *this );
+		epnp.solve( transform, ptset2d, K );
+		return transform;
 	}
 
     template<>
