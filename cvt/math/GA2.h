@@ -51,7 +51,7 @@ namespace cvt {
 			typedef Eigen::Matrix<T, 2, 1>					SPType;
 
 			GA2();
-			~GA2(){};
+			~GA2(){}
 
 			/* set: angles in radians! */
 			void set( T scale, T alpha, T tx, T ty );
