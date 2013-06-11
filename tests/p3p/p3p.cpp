@@ -159,8 +159,8 @@ void ransacTest()
 
     Matrix4d estimated;
     Time time;
-    P3PSac model( ptset, ptset2d, K, kinv );
-    RANSAC<P3PSac> ransac( model, 2.0, 0.2 );
+	P3PSac<double> model( ptset, ptset2d, K, kinv );
+	RANSAC<P3PSac<double> > ransac( model, 2.0, 0.2 );
     estimated = ransac.estimate( 10000 );
 
     std::cout << "speed: " << time.elapsedMilliSeconds() << "ms" << std::endl;
