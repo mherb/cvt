@@ -78,6 +78,7 @@ namespace cvt {
 	}
 
 	inline ORB::ORB( const ORB& orb ) :
+		FeatureDescriptorExtractor(),
 		_features( orb._features )
 	{
 	}
