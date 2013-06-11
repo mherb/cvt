@@ -34,7 +34,7 @@ namespace cvt
 	class MeasurementModel
 	{
 		public:			
-			virtual ~MeasurementModel() {};
+			virtual ~MeasurementModel() {}
             
 			inline T buildLSSystem( AType & A, bType & b, const CostFunction<T, MeasType> & costFunc )
 			{ 
