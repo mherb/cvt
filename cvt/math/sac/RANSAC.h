@@ -39,7 +39,7 @@ namespace cvt
 
         ResultType estimate( size_t maxIter = 0 );
 
-        const std::vector<size_t> &  inlierIndices() const { return _lastInliers; };
+		const std::vector<size_t> &  inlierIndices() const { return _lastInliers; }
 
       private:
         SampleConsensusModel<Model>&  _model;
