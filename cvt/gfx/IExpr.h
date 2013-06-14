@@ -34,15 +34,15 @@ namespace cvt {
 				expr.eval( dst );
 			}
 
-		T1 _op1;
-		T2 _op2;
+		T1		  _op1;
+		T2		  _op2;
 	};
 
     template<typename T1, typename T2, IExprType op>
     std::ostream& operator<<( std::ostream& out, const IExprBinary<T1,T2,op>& expr )
     {
 		char opToChar[] = { '+' , '*' };
-		out << expr._op1 << opToChar[ op ] << expr._op2;
+		out << "(" << expr._op1 << opToChar[ op ] << expr._op2 << ")";
         return out;
     }
 
@@ -88,6 +88,20 @@ namespace cvt {
 	}
 
 	/*
+		Image - float
+		float - Image
+	 */
+	IExprBinary<const Image&,float,IEXPR_ADD> operator-( const Image& img, const float val )
+	{
+		return IExprBinary<const Image&,float,IEXPR_ADD>( img, -val );
+	}
+
+	IExprBinary<IExprBinary<const Image&,float,IEXPR_MUL>,float,IEXPR_ADD> operator-( const float val, const Image& img )
+	{
+		return IExprBinary<IExprBinary<const Image&,float,IEXPR_MUL>,float,IEXPR_ADD>( IExprBinary<const Image&,float,IEXPR_MUL>( img, -1.0f ), val );
+	}
+
+	/*
 		Image * float
 		float * Image
 	 */
@@ -102,33 +116,69 @@ namespace cvt {
 	}
 
 	/*
-		( Image + float ) + float -> Image + float
-		float + ( Image + float ) -> Image + float
+		( Expr + float ) + float -> Expr + float
 	 */
-	IExprBinary<const Image&,float,IEXPR_ADD> operator+( const IExprBinary<const Image&,float,IEXPR_ADD>& expr, const float value )
-	{
-		return IExprBinary<const Image&,float,IEXPR_ADD>( expr._op1, expr._op2 + value );
-	}
 
-	IExprBinary<const Image&,float,IEXPR_ADD> operator+( const float value, const IExprBinary<const Image&,float,IEXPR_ADD>& expr )
+	template<typename T1>
+	IExprBinary<T1,float,IEXPR_ADD> operator+( const IExprBinary<T1,float,IEXPR_ADD>& expr1, const float value )
 	{
-		return IExprBinary<const Image&,float,IEXPR_ADD>( expr._op1, expr._op2 + value );
+		return IExprBinary<T1,float,IEXPR_ADD>( expr1._op1, expr1._op2 + value );
 	}
 
 	/*
-		( Image * float ) * float -> Image * float
-		float * ( Image * float ) -> Image * float
+		( Expr + float ) - float -> Expr + float
 	 */
-	IExprBinary<const Image&,float,IEXPR_MUL> operator*( const IExprBinary<const Image&,float,IEXPR_MUL>& expr, const float value )
+
+	template<typename T1>
+	IExprBinary<T1,float,IEXPR_ADD> operator-( const IExprBinary<T1,float,IEXPR_ADD>& expr1, const float value )
 	{
-		return IExprBinary<const Image&,float,IEXPR_MUL>( expr._op1, expr._op2 * value );
+		return IExprBinary<T1,float,IEXPR_ADD>( expr1._op1, expr1._op2 - value );
 	}
 
-	IExprBinary<const Image&,float,IEXPR_MUL> operator*( const float value, const IExprBinary<const Image&,float,IEXPR_MUL>& expr )
+
+	/*
+		( Expr * float ) * float -> Expr * float
+	 */
+
+	template<typename T1>
+	IExprBinary<T1,float,IEXPR_MUL> operator*( const IExprBinary<T1,float,IEXPR_MUL>& expr1, const float value )
 	{
-		return IExprBinary<const Image&,float,IEXPR_MUL>( expr._op1, expr._op2 * value );
+		return IExprBinary<T1,float,IEXPR_MUL>( expr1._op1, expr1._op2 * value );
 	}
 
+
+	/*
+		( Expr1 + float ) + Expr2 -> ( Expr1 + Expr2 ) + float
+	 */
+	template<typename T1, typename T2>
+	IExprBinary<IExprBinary<T1,T2,IEXPR_ADD>, float, IEXPR_ADD> operator+( const IExprBinary<T1,float,IEXPR_ADD>& expr1, const T2& expr2 )
+	{
+		return IExprBinary<IExprBinary<T1,T2,IEXPR_ADD>, float, IEXPR_ADD>( IExprBinary<T1,T2,IEXPR_ADD>( expr1._op1, expr2 ), expr1._op2 );
+	}
+
+	/*
+		( Expr1 + float ) - Expr2 -> ( Expr1 + ( Expr2 * -1 ) ) + float
+	 */
+	template<typename T1, typename T2>
+	IExprBinary<IExprBinary<T1,IExprBinary<T2,float,IEXPR_MUL>,IEXPR_ADD>, float, IEXPR_ADD> operator-( const IExprBinary<T1,float,IEXPR_ADD>& expr1, const T2& expr2 )
+	{
+		return IExprBinary<IExprBinary<T1,IExprBinary<T2,float,IEXPR_MUL>,IEXPR_ADD>, float, IEXPR_ADD>( IExprBinary<T1,IExprBinary<T2,float,IEXPR_MUL>,IEXPR_ADD>( expr1._op1, IExprBinary<T2,float,IEXPR_MUL>( expr2, -1.0f) ), expr1._op2 );
+	}
+
+	/*
+		( Expr1 * float ) * Expr2 -> ( Expr1 * Expr2 ) * float
+	 */
+	template<typename T1, typename T2>
+	IExprBinary<IExprBinary<T1,T2,IEXPR_MUL>, float, IEXPR_MUL> operator*( const IExprBinary<T1,float,IEXPR_MUL>& expr1, const T2& expr2 )
+	{
+		std::cout << expr1 << " + " << expr2 << std::endl;
+		return IExprBinary<IExprBinary<T1,T2,IEXPR_MUL>, float, IEXPR_MUL>( IExprBinary<T1,T2,IEXPR_MUL>( expr1._op1, expr2 ), expr1._op2 );
+	}
+
+
+	/*
+		General stuff
+	 */
 
 	template<typename T1_1, typename T2_1, IExprType op_1, typename T2>
 	IExprBinary<IExprBinary<T1_1,T2_1,op_1>, T2, IEXPR_MUL> operator*( const IExprBinary<T1_1,T2_1,op_1>& expr1, const T2& expr2 )
@@ -142,6 +192,11 @@ namespace cvt {
 		return IExprBinary<IExprBinary<T1_1,T2_1,op_1>, T2,IEXPR_ADD>( expr1, expr2 );
 	}
 
+	template<typename T1_1, typename T2_1, IExprType op_1, typename T2>
+	IExprBinary<IExprBinary<T1_1,T2_1,op_1>,IExprBinary<T2,float,IEXPR_MUL>, IEXPR_ADD> operator-( const IExprBinary<T1_1,T2_1,op_1>& expr1, const T2& expr2 )
+	{
+		return IExprBinary<IExprBinary<T1_1,T2_1,op_1>, T2,IEXPR_ADD>( expr1, IExprBinary<T2,float,IEXPR_MUL>( expr2, -1.0f) );
+	}
 }
 
 
