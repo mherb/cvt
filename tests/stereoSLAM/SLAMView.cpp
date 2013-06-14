@@ -5,10 +5,10 @@ namespace cvt
 {
 	SLAMView::SLAMView() : 
 		_trans( 0.0f, 0.0f, -10.0f ),
-		_near( 0.1f ),
-		_far( 100.0f ),
+		_near( 0.5f ),
+		_far( 600.0f ),
 		_numKeyframes( 0 ),
-		_maxKeyframes( 500 ),
+		_maxKeyframes( 1000 ),
 		_numPoints( 0 ),
 		_maxPoints( 0 )
 	{
@@ -100,11 +100,11 @@ namespace cvt
 	{
 		switch( e.button() ) {
 			case 4:
-				_trans.z += 0.25f;
+				_trans.z += 0.5f;
 				update();
 				break;
 			case 5:
-				_trans.z -= 0.25f;
+				_trans.z -= 0.5f;
 				update();
 				break;
 			default:
@@ -229,6 +229,7 @@ namespace cvt
 
 		// update the keyframes: 
 		_numKeyframes = map.numKeyframes();
+		std::cout << "NumKeyframes: " << map.numKeyframes() << std::endl;
 		data = ( GLfloat* )_keyframesAxesBuffer.map();
 		for( size_t i = 0; i < _numKeyframes; i++ ){
 			const Keyframe & kf = map.keyframeForId( i );

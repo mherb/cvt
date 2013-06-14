@@ -99,11 +99,11 @@ namespace cvt
    void StereoSLAMApp::saveImages()
    {
       static size_t keyframeIter = 0;
-      String savename;
-      savename.sprintf( "left_keyframe_%05d.cvtraw", keyframeIter );
-      _stereoInput->left().save( savename );
-      savename.sprintf( "right_keyframe_%05d.cvtraw", keyframeIter );
-      _stereoInput->right().save( savename );
+//      String savename;
+//      savename.sprintf( "left_keyframe_%05d.cvtraw", keyframeIter );
+//      _stereoInput->left().save( savename );
+//      savename.sprintf( "right_keyframe_%05d.cvtraw", keyframeIter );
+//      _stereoInput->right().save( savename );
       keyframeIter++;
    }
 }

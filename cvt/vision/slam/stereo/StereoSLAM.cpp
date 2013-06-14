@@ -171,11 +171,11 @@ namespace cvt
    {
 	   _pyrLeft.convert( _pyrLeftf, IFormat::GRAY_FLOAT  );
 
-		 // match with current left features
-		 _descExtractorLeft->matchInWindow( matchedIndices,
-											predictedDescriptors,
-											_params.matchingWindow,
-											_params.matchingMaxDescDistance );
+	   // match with current left features
+	   _descExtractorLeft->matchInWindow( matchedIndices,
+										  predictedDescriptors,
+										  _params.matchingWindow,
+										  _params.matchingMaxDescDistance );
 
 		 // refine matched positions using KLT
 		 tracked.reserve( matchedIndices.size() );
