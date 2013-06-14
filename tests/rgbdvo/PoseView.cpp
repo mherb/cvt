@@ -64,14 +64,14 @@ namespace cvt
         _basicProg.setProjection( proj );
 
         // draw the grid
-        glLineWidth( 1.0f );
-        _grid.draw( GL_LINES, 0, _numLines );
+        glLineWidth( 2.0f );
+        _scenePoints.draw();
+        //_grid.draw( GL_LINES, 0, _numLines );
 
         // draw the keyframes
         _keyframes.setColor( Color::RED );
         _keyframes.draw( GL_LINES, 0, 6 * _numKeyframes );
 
-        _scenePoints.draw();
 
         // draw the current camera pose
         proj = persp * view * _cam;
