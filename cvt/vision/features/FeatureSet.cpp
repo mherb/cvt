@@ -32,7 +32,6 @@ namespace cvt {
 			CmpPos cmp;
 			std::sort( _features.begin(), _features.end(), cmp );
 		}
-
 	}
 
 	void FeatureSet::filterBest( size_t n, bool sort )

@@ -20,6 +20,9 @@ namespace cvt {
 	class FeatureSet
 	{
 		public:
+			typedef std::vector<Feature>::iterator			iterator;
+			typedef std::vector<Feature>::const_iterator	const_iterator;
+
 			FeatureSet();
 			~FeatureSet();
 
@@ -37,7 +40,12 @@ namespace cvt {
 			void			filterANMS( int radius, float threshold, bool sortPosition );
 			void			filterBest( size_t n, bool sortScore );
 
-		private:
+			iterator		begin()			{ return _features.begin(); }
+			const_iterator	begin() const	{ return _features.begin(); }
+			iterator		end()			{ return _features.end(); }
+			const_iterator	end()	const	{ return _features.end(); }
+			const Feature&  back()	const	{ return _features.back(); }
+
 			class CmpScore
 			{
 				public:
@@ -58,6 +66,16 @@ namespace cvt {
 					}
 			};
 
+			class CmpY
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						return f1.pt.y < f2.pt.y;
+					}
+			};
+
+		private:
 			std::vector<Feature> _features;
 	};
 
