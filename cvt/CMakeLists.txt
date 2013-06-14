@@ -385,6 +385,7 @@ SET(${MODULE_NAME}_HEADERS
    math/Vector2.h
    math/Vector3.h
    math/Vector4.h
+   math/Vector6.h
    math/graph/Graph.h
    math/graph/GraphNode.h
    math/graph/GraphEdge.h
@@ -444,6 +445,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/features/FeatureSet.h
    vision/features/Harris.h
    vision/features/NMSFilter.h
+   vision/features/RowLookupTable.h
 # vision/Ferns.h
 #   vision/internal/Fern.h
    vision/IntegralImage.h
@@ -675,6 +677,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/ImagePyramidTest.cpp
    vision/KLTPatchTest.cpp
    vision/features/ORB.cpp
+   vision/features/RowLookupTable.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
