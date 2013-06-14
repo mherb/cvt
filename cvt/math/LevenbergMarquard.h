@@ -24,13 +24,16 @@ namespace cvt {
 	class LevenbergMarquard
 	{
 		public:
-			LevenbergMarquard(){}		
-			~LevenbergMarquard(){}
+			LevenbergMarquard()
+			{}
+
+			~LevenbergMarquard()
+			{}
 
 			template < template <typename Type> class Derived, class AType, class bType, class ParamType, class MeasType >
 			void	optimize( MeasurementModel<T, Derived, AType, bType, ParamType, MeasType> & model, 
 							  const CostFunction<T, MeasType> & costFunc, 
-							  const TerminationCriteria<T> & termCrit );			
+							  const TerminationCriteria<T> & termCrit );
 			T		costs() const { return _lastCosts; }
 			size_t	iterations() const { return _iterations; }
 							
