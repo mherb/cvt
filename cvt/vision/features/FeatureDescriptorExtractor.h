@@ -13,6 +13,8 @@
 
 #include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/vision/features/FeatureDescriptor.h>
+#include <cvt/gfx/Image.h>
+#include <cvt/vision/ImagePyramid.h>
 
 namespace cvt {
 	class FeatureDescriptorExtractor
@@ -37,6 +39,15 @@ namespace cvt {
 										float maxDisp,
 										float maxDescDist,
 										float maxLineDist = 1 ) const = 0;
+
+			class CmpY
+			{
+				public:
+					bool operator()( const FeatureDescriptor& f1, const FeatureDescriptor& f2 )
+					{
+						return f1.pt.y < f2.pt.y;
+					}
+			};
 	};
 }
 
