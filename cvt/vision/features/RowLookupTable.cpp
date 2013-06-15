@@ -15,64 +15,60 @@
 
 namespace cvt 
 {
-	template<> class RowLookupTable<FeatureSet>;
-	//template<> class RowLookupTable<FeatureDescriptorExtractor>;
 
-	template <class PointContainer>
-	RowLookupTable<PointContainer>::RowLookupTable( const PointContainer& fset ) :
-		_features( fset )
+	RowLookupTable::RowLookupTable( const FeatureSet& fset ) :
+		_maxY( -1 ), _minY ( -1 )
 	{
-		buildIndex();
+		buildIndex( fset );
 	}
 
-	template <class PointContainer>
-	RowLookupTable<PointContainer>::~RowLookupTable()
+	RowLookupTable::~RowLookupTable()
 	{
 	}
 			
 
-	template <class PointContainer>
-	const typename RowLookupTable<PointContainer>::Row& RowLookupTable<PointContainer>::row( size_t r ) const
+	const RowLookupTable::Row& RowLookupTable::row( size_t r ) const
 	{
 		return _rowIndex[ r ];
 	}
 
-	template <class PointContainer>
-	bool RowLookupTable<PointContainer>::isValidRow( size_t r ) const
+	bool RowLookupTable::isValidRow( int r ) const
 	{
-		if( r > _maxY )
+		if( r > _maxY || r < _minY )
 			return false;
+
 		return row( r ).valid();
 	}
 
-	template <class PointContainer>
-	void RowLookupTable<PointContainer>::buildIndex()
+	void RowLookupTable::buildIndex( const FeatureSet & fset )
 	{
-		if( !_features.size() )
+		size_t n = fset.size();
+		if( !n )
 			return;
-		_maxY = ( int )_features.back().pt.y;
+		_maxY = ( int )fset[ n - 1 ].pt.y;
+		
 		_rowIndex.resize( _maxY + 1, Row() );
 
-		int cy = ( int )_features[ 0 ].pt.y;
-		Row& row = _rowIndex[ cy ];
-		row.start = 0;
-		++cy;
+		int cy = ( int )fset[ 0 ].pt.y;
+		_minY = cy;
+		_rowIndex[ cy ].start = 0;
 
-		typename PointContainer::CmpY cmp;
-		for( ; cy < _maxY; ++cy ){
-			int start = std::upper_bound( &_features[ row.start ],
-										  &_features[ _features.size() ],
-										  _features[ row.start ],
-					cmp ) - &_features[ 0 ];
-			if( start == row.start ) {
+		FeatureSet::CmpY cmp;
+		while( cy < _maxY ){
+			int prevStart = _rowIndex[ cy ].start;
+			// calculate the upper bound for the previous y coord
+			int start = std::upper_bound( &fset[ prevStart ],
+										  &fset[ n - 1 ],
+										  fset[ prevStart ], cmp ) - &fset[ 0 ];
+
+			if( start == prevStart ) {
 				break;
 			}
-			row.len = start - row.start;
+			_rowIndex[ cy ].len = start - prevStart;
 
-			cy = ( int ) _features[ start ].pt.y;
-			row = _rowIndex[ cy ];
-			row.start = start;
+			cy = ( int ) fset[ start ].pt.y;
+			_rowIndex[ cy ].start = start;
 		}
-		row.len = _features.size() - row.start;
+		_rowIndex[ cy ].len = fset.size() - _rowIndex[ cy ].start;
 	}
 }

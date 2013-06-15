@@ -13,10 +13,10 @@
 #define CVT_ROWLOOKUPTABLE_H
 
 #include <vector>
+#include <cvt/vision/features/FeatureSet.h>
 
 namespace cvt 
 {
-	template <class PointContainer>
 	class RowLookupTable {
 		public:
 			struct Row
@@ -27,24 +27,22 @@ namespace cvt
 
 				int		start;
 				size_t	len;
-				bool valid() const { return start != -1; }
+				bool valid() const { return start != -1 && len > 0; }
 			};
 
 			/**
 			 *	@param fset		the sorted featureset to operate on
 			 */
-			RowLookupTable( const PointContainer& fset );
+			RowLookupTable( const FeatureSet& fset );
 			~RowLookupTable();
 
 			const Row& row( size_t r ) const;
-			bool  isValidRow( size_t r ) const;
+			bool  isValidRow( int r ) const;
 			
 		private:
-			const PointContainer&	_features;
-			int						_maxY;
+			int						_maxY, _minY;
 			std::vector<Row>		_rowIndex;
-
-			void buildIndex();
+			void buildIndex( const FeatureSet& fset );
 
 	};
 }
