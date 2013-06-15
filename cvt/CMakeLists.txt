@@ -678,6 +678,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/KLTPatchTest.cpp
    vision/features/ORB.cpp
    vision/features/RowLookupTable.cpp
+   vision/features/RowLookupTableTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
    vision/SparseBundleAdjustment.cpp
