@@ -1,3 +1,4 @@
+#include <cvt/gfx/Image.h>
 #include <cvt/gfx/IExpr.h>
 #include <iostream>
 

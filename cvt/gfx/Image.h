@@ -23,10 +23,13 @@
 #include <cvt/gfx/ImageAllocator.h>
 #include <cvt/gfx/IKernel.h>
 #include <cvt/util/String.h>
+#include <cvt/gfx/IExprType.h>
 
 namespace cvt {
 	class ISaver;
 	class ILoader;
+
+	template<typename T1, typename T2, IExprType op> class IExprBinary;
 
 	class Image
 	{
@@ -112,6 +115,10 @@ namespace cvt {
 
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
+
+
+			template<typename T1, typename T2, IExprType op>
+			Image& operator=( const IExprBinary<T1,T2,op>& expr );
 
 		/*	Image& operator*( float alpha );
 			Image& operator+( float alpha );
@@ -273,5 +280,6 @@ namespace cvt {
 		return _mem->_format.bpp;
 	}
 }
+
 
 #endif

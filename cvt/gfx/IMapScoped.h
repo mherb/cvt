@@ -12,6 +12,7 @@
 #define CVT_IMAPSCOPED_H
 
 #include <cvt/gfx/Image.h>
+#include <stdlib.h>
 
 namespace cvt {
 

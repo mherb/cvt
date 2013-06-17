@@ -206,6 +206,7 @@ SET(${MODULE_NAME}_HEADERS
    gfx/Color.h
    gfx/IBorder.h
    gfx/Image.h
+   gfx/IExpr.h
    gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h

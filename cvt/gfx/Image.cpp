@@ -12,6 +12,7 @@
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>
+#include <cvt/gfx/IMapScoped.h>
 
 #include <cvt/math/Math.h>
 #include <cvt/util/SIMD.h>
@@ -24,6 +25,8 @@
 #include <cvt/gfx/IThreshold.h>
 #include <cvt/gfx/IConvolve.h>
 #include <cvt/gfx/IBoxFilter.h>
+
+#include <cvt/gfx/IExpr.h>
 
 #include <fstream>
 
@@ -273,5 +276,11 @@ namespace cvt {
 		IBoxFilter::boxfilter( dst, *this, hradius, vradius );
 	}
 
+	template<typename T1, typename T2, IExprType op>
+	Image& Image::operator=( const IExprBinary<T1,T2,op>& expr )
+	{
+		expr.eval( *this );
+		return *this;
+	}
 
 }
