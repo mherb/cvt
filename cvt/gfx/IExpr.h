@@ -160,9 +160,6 @@ namespace cvt {
 	};
 
 
-
-
-
     template<typename T1, typename T2, IExprType op>
     std::ostream& operator<<( std::ostream& out, const IExprBinary<T1,T2,op>& expr )
     {
@@ -183,10 +180,16 @@ namespace cvt {
         return out;
     }
 
+
+	/*
+		SIMD special cases go here:
+	 */
+#if 0
 	template<>
-	void IExprBinary<Image&,IExprScalar,IEXPR_MUL>::eval( Image& dst )
+	void IExprBinary<IExprImage,IExprScalar,IEXPR_MUL>::eval( Image& dst )
 	{
 	}
+#endif
 
 	/*
 		- Image -> Image * -1
