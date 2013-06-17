@@ -276,11 +276,4 @@ namespace cvt {
 		IBoxFilter::boxfilter( dst, *this, hradius, vradius );
 	}
 
-	template<typename T1, typename T2, IExprType op>
-	Image& Image::operator=( const IExprBinary<T1,T2,op>& expr )
-	{
-		expr.eval( *this );
-		return *this;
-	}
-
 }

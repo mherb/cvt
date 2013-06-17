@@ -29,7 +29,7 @@ int main()
 	a.fill( Color( 2.0f ) );
 	b.fill( Color( 1.0f ) );
 
-	( b * 0.25f ).eval( c );
+	c = b * 0.25f + 0.5f;
 
 	print( c );
 

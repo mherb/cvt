@@ -32,7 +32,7 @@ namespace cvt {
 		public:
 			IExprBinary( const T1& opa, const T2& opb ) : op1( opa ), op2( opb ) {}
 
-			void eval( Image& dst )
+			void eval( Image& dst ) const
 			{
 				if( !hasSizeFormat( dst.width(), dst.height(), dst.format() ) )
 					throw CVTException( "Invalid image expression or assignment!" );
@@ -324,6 +324,16 @@ namespace cvt {
 	inline IExprBinary<IExprBinary<T1,T2,op>,typename IExprTypeFromT<T3>::T,IEXPR_MUL> operator*( const IExprBinary<T1,T2,op>& expr1, const T3& expr2 )
 	{
 		return IExprBinary<IExprBinary<T1,T2,op>,typename IExprTypeFromT<T3>::T,IEXPR_MUL>( expr1, typename IExprTypeFromT<T3>::T( expr2 ) );
+	}
+
+	/*
+		FIXME: seems to be the only way to put it here ...
+	 */
+	template<typename T1, typename T2, IExprType op>
+	inline Image& Image::operator=( const IExprBinary<T1,T2,op>& expr )
+	{
+		expr.eval( *this );
+		return *this;
 	}
 
 
