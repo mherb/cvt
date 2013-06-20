@@ -640,6 +640,7 @@ SET(${MODULE_NAME}_SOURCES
    math/SL3Test.cpp
    math/Sim2Test.cpp
    math/GA2Test.cpp
+   util/Data.cpp
    util/ConfigFile.cpp
    util/ParamInfo.cpp
    util/ParamSet.cpp

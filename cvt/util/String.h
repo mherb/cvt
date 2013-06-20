@@ -84,9 +84,12 @@ namespace cvt {
             String& toUpper();
 
 			void	 tokenize( std::vector<String>& tokens, char delimiter ) const;
-			long int toInteger() const;
+			long	 toInteger() const;
 			float	 toFloat() const;
 			double	 toDouble() const;
+
+			template<typename T>
+			T		 to() const;
 
 			const char* c_str() const;
 		private:
@@ -474,7 +477,7 @@ namespace cvt {
         return *this;
     }
 
-	inline long int String::toInteger() const
+	inline long String::toInteger() const
 	{
 		return strtol( _str, NULL, 0 );
 	}
@@ -487,6 +490,30 @@ namespace cvt {
 	inline double String::toDouble() const
 	{
 		return strtod( _str, NULL );
+	}
+
+	template<>
+	inline int String::to<int>() const
+	{
+		return toInteger();
+	}
+
+	template<>
+	inline long String::to<long>() const
+	{
+		return toInteger();
+	}
+
+	template<>
+	inline float String::to<float>() const
+	{
+		return toFloat();
+	}
+
+	template<>
+	inline double String::to<double>() const
+	{
+		return toDouble();
 	}
 
 	inline void String::sprintf( const char* format, ... )

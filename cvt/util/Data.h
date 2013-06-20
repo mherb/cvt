@@ -12,8 +12,7 @@
 #define CVT_DATA_H
 
 #include <stdint.h>
-#include <cvt/util/SIMD.h>
-#include <cvt/math/Math.h>
+#include <stdlib.h>
 
 namespace cvt {
 	class Data {
@@ -29,10 +28,13 @@ namespace cvt {
 			const uint8_t* ptr() const;
 			uint8_t* ptr();
 
+			void assign( const uint8_t* data, size_t size );
+
 			void allocate( size_t size );
 			void reallocate( size_t size );
 
 		private:
+
 			uint8_t* _data;
 			size_t	 _size;
 			bool     _dealloc;
@@ -52,14 +54,14 @@ namespace cvt {
 	inline Data::Data( const uint8_t* ptr, size_t size ) : _data( NULL ), _dealloc( false )
 	{
 		allocate( size );
-		SIMD::instance()->Memcpy( _data, ptr, size );
+		assign( ptr, size );
 	}
 	
 	inline Data::Data( uint8_t* ptr, size_t size, bool copyData ) : _data( NULL ), _dealloc( copyData )
 	{
 		if( copyData ){
 			allocate( size );
-			SIMD::instance()->Memcpy( _data, ptr, size );
+			assign( ptr, size );
 		} else {
 			_data = ptr;
 			_size = size;
@@ -71,14 +73,14 @@ namespace cvt {
 		if( &data == this )
 			return;
 		allocate( data._size );
-		SIMD::instance()->Memcpy( _data, data._data , _size );
+		assign( data._data, data._size );
 		_dealloc = true;
 	}
 
 	inline Data& Data::operator=( const Data& data )
 	{
 		allocate( data._size );
-		SIMD::instance()->Memcpy( _data, data._data , _size );
+		assign( data._data, data._size );
 		return *this;
 	}
 
@@ -97,31 +99,7 @@ namespace cvt {
 		return _data;
 	}
 
-	inline void Data::allocate( size_t size )
-	{
-		if( _data && _dealloc )
-			delete[] _data;
-		_size = size;
-		_dealloc = true;
 
-		if( size )
-			_data = new uint8_t[ _size ];
-		else
-			_data = NULL;
-	}
-
-	inline void Data::reallocate( size_t size )
-	{
-		uint8_t* newdata = new uint8_t[ size ];
-
-		if( _data ) {
-			SIMD::instance()->Memcpy( newdata, _data, Math::min( _size, size ) );
-			if( _dealloc )
-				delete[] _data;
-		}
-		_data = newdata;
-		_size = size;
-	}
 }
 
 #endif
