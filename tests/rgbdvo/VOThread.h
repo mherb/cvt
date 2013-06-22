@@ -170,6 +170,7 @@ namespace cvt {
                 _numAlignments++;
 
                 result.avgSpeed = _cumulativeAlignmentSpeed / _numAlignments;
+				result.numPixels = _vo->lastNumPixels();
                 result.avgSSDError = _vo->lastSSD() / _vo->lastNumPixels();
                 result.pixelPercentage = _vo->lastPixelPercentage();
                 result.pose = absPose;
