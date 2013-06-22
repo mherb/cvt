@@ -171,12 +171,14 @@ namespace cvt {
 			case IFORMAT_BGRA_FLOAT:		glformat = GL_BGRA; gltype = GL_FLOAT; break;
 
             case IFORMAT_BAYER_RGGB_UINT8:  glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
+            case IFORMAT_BAYER_GBRG_UINT8:  glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
             case IFORMAT_BAYER_GRBG_UINT8:  glformat = GL_RED; gltype = GL_UNSIGNED_BYTE; break;
 
 			case IFORMAT_YUYV_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			case IFORMAT_UYVY_UINT8:		glformat = GL_RG; gltype = GL_UNSIGNED_BYTE; break;
 			default:
-				throw CVTException( "No equivalent GL format found" );
+				std::cout << format << std::endl;
+				throw CVTException( "No Equivalent GL Format found" );
 				break;
 		}
 	}
