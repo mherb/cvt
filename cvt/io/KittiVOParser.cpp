@@ -97,7 +97,7 @@ namespace cvt {
     {
     }
 
-    bool KittiVOParser::nextFrame()
+    bool KittiVOParser::nextFrame( size_t /*timeout*/ )
     {
         if( hasNext() ){
             _iter++;

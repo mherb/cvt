@@ -26,7 +26,7 @@ namespace cvt {
 
             const Image&    left()  const { return _left; }
             const Image&    right() const { return _right; }
-            bool            nextFrame();
+            bool            nextFrame( size_t timeout );
             const StereoCameraCalibration& stereoCalib() const { return _calib; }
 
             const cvt::Matrix4d& projectionLeft()  const { return _calibLeft; }

@@ -20,7 +20,7 @@ namespace cvt {
         public:
             virtual ~StereoInput(){}
 
-            virtual bool            nextFrame() = 0;
+            virtual bool            nextFrame( size_t timeout ) = 0;
 
             /**
               left rectified image

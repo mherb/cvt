@@ -62,7 +62,7 @@ namespace cvt
    void StereoSLAMApp::onTimeout()
    {
       if( !_stepping || ( _stepping && _nextImage ) ){
-         _stereoInput->nextFrame();
+         _stereoInput->nextFrame( 10 );
          _nextImage = false;
 
          _stereoInput->left().convert( _img0, IFormat::GRAY_UINT8 );
