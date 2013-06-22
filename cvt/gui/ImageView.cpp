@@ -31,7 +31,11 @@ namespace cvt {
 	void ImageView::setImage( const Image& img )
 	{
 		try {
-			if( img.format() == IFormat::BAYER_RGGB_UINT8 || img.format() == IFormat::YUYV_UINT8 || img.format() == IFormat::UYVY_UINT8 ) {
+			if( img.format() == IFormat::BAYER_RGGB_UINT8 ||
+				img.format() == IFormat::BAYER_GBRG_UINT8 ||
+				img.format() == IFormat::BAYER_GRBG_UINT8 ||
+				img.format() == IFormat::YUYV_UINT8 ||
+				img.format() == IFormat::UYVY_UINT8 ) {
 				_img.reallocate( img.width(), img.height(), IFormat::RGBA_UINT8, IALLOCATOR_GL );
 				img.convert( _img );
 			} else {
