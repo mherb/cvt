@@ -100,10 +100,12 @@ namespace cvt
 		if( !_camera )
 			throw CVTException( "Could not open camera" );
 
-        setISOSpeed( _params.isoSpeed );
-        loadPreset( _params.preset );
+        if( _params.usePreset ){
+            loadPreset( _params.preset );
+        }
+        //setISOSpeed( _params.isoSpeed );
+        //setFrameRate( _fps );
         dcSettings( mode );
-        setFrameRate( _fps );
 
 		_identifier.sprintf( "%llu", _camera->guid );
 	}
@@ -291,9 +293,10 @@ namespace cvt
 	void DC1394Camera::triggerFrame()
 	{
 		// only supported in SW Trigger Mode
-		if( _runMode == RUNMODE_SW_TRIGGER ){
-			setSoftwareTrigger( true );
-		}
+		//if( _runMode == RUNMODE_SW_TRIGGER ){
+		setSoftwareTrigger( true );
+		setSoftwareTrigger( false );
+		//}
 	}
 
     const Image& DC1394Camera::frame() const
@@ -564,6 +567,36 @@ namespace cvt
             throw CVTException( dc1394_error_get_string( error ) );
 	}
 
+	void DC1394Camera::enableAutoExposure( bool v )
+	{
+		dc1394switch_t sw = DC1394_OFF;
+		if( v )
+			sw = DC1394_ON;
+		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_EXPOSURE, sw );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+	}
+
+	void DC1394Camera::enableAutoGain( bool v )
+	{
+		dc1394switch_t sw = DC1394_OFF;
+		if( v )
+			sw = DC1394_ON;
+		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_GAIN, sw );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+	}
+
+	void DC1394Camera::enableAutoShutter( bool v )
+	{
+		dc1394switch_t sw = DC1394_OFF;
+		if( v )
+			sw = DC1394_ON;
+		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_SHUTTER, sw );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+	}
+
 	DC1394Camera::FeatureMode DC1394Camera::whiteBalanceMode() const
 	{
 		dc1394feature_mode_t m;
@@ -656,7 +689,8 @@ namespace cvt
 		// we need to calculate the packet size needed to reach the frame rate
 		uint32_t pacSize = fps * bytesPerFrame / 8000.0f;        
 		setPacketSize( pacSize );
-        pacSize = packetSize();
+		std::cout << "PacketSize: " << pacSize << std::endl;
+		//pacSize = packetSize();
         _fps = _calcFormat7FPS( pacSize, w, h, bitsPerPixel >> 3 );        
 	}
 
@@ -741,6 +775,7 @@ namespace cvt
 	{
 		dc1394switch_t sw = enable ? DC1394_ON : DC1394_OFF;
 		dc1394error_t error = dc1394_software_trigger_set_power( _camera, sw );
+
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
 	}

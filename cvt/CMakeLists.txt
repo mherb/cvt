@@ -207,6 +207,7 @@ SET(${MODULE_NAME}_HEADERS
    gfx/IBorder.h
    gfx/Image.h
    gfx/IExpr.h
+   gfx/IExprType.h
    gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h
@@ -775,10 +776,12 @@ IF( ${CVT_USE_DC1394} )
       SET(${MODULE_NAME}_HEADERS
          ${${MODULE_NAME}_HEADERS}
          io/DC1394Camera.h
+         io/ChameleonStereo.h
       )
       SET(${MODULE_NAME}_SOURCES
          ${${MODULE_NAME}_SOURCES}
          io/DC1394Camera.cpp
+         io/ChameleonStereo.cpp
       )
       INCLUDE_DIRECTORIES(
          BEFORE

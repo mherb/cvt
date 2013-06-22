@@ -71,6 +71,7 @@ namespace cvt
                 Parameters():
                     numDMABuf( 5 ),
                     runMode( RUNMODE_CONTINUOUS ),
+                    usePreset( false ),
                     preset( PRESET_FACTORY ),
                     isoSpeed( 400 )
                 {
@@ -79,6 +80,7 @@ namespace cvt
                 Parameters( const Parameters& other ) :
                     numDMABuf( other.numDMABuf ),
                     runMode( other.runMode ),
+                    usePreset( other.preset ),
                     preset( other.preset ),
                     isoSpeed( other.isoSpeed )
                 {
@@ -86,6 +88,7 @@ namespace cvt
 
                 uint32_t        numDMABuf;
                 RunMode         runMode;
+                bool            usePreset;
                 CameraPreset    preset;
                 uint32_t        isoSpeed;
             };
@@ -181,6 +184,10 @@ namespace cvt
 			void setShutterMode( FeatureMode mode );
 			void setExposureMode( FeatureMode mode );
 			void setGainMode( FeatureMode mode );
+
+			void enableAutoExposure( bool v );
+			void enableAutoGain( bool v );
+			void enableAutoShutter( bool v );
 
 			FeatureMode whiteBalanceMode() const;
 			FeatureMode shutterMode() const;
