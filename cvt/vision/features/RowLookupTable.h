@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <cvt/vision/features/FeatureSet.h>
+#include <cvt/vision/features/FeatureDescriptorExtractor.h>
 
 namespace cvt 
 {
@@ -34,6 +35,12 @@ namespace cvt
 			 *	@param fset		the sorted featureset to operate on
 			 */
 			RowLookupTable( const FeatureSet& fset );
+
+			/**
+			 * @brief RowLookupTable
+			 * @param constructor for feature descriptorset
+			 */
+			RowLookupTable( const FeatureDescriptorExtractor& fdset );
 			~RowLookupTable();
 
 			const Row& row( size_t r ) const;
@@ -43,6 +50,7 @@ namespace cvt
 			int						_maxY, _minY;
 			std::vector<Row>		_rowIndex;
 			void buildIndex( const FeatureSet& fset );
+			void buildIndex( const FeatureDescriptorExtractor& fset );
 
 	};
 }

@@ -39,6 +39,8 @@ namespace cvt {
 			void			filterNMS( int radius, bool sortPosition );
 			void			filterANMS( int radius, float threshold, bool sortPosition );
 			void			filterBest( size_t n, bool sortScore );
+			void			filterGrid( size_t cellWidth, size_t n );
+			void			sortPosition();
 
 			iterator		begin()			{ return _features.begin(); }
 			const_iterator	begin() const	{ return _features.begin(); }
@@ -72,6 +74,26 @@ namespace cvt {
 					bool operator()( const Feature& f1, const Feature& f2 )
 					{
 						return f1.pt.y < f2.pt.y;
+					}
+			};
+
+			class CmpPosi
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						if( ( int )f1.pt.y == ( int )f2.pt.y )
+							return ( int )f1.pt.x < ( int )f2.pt.x;
+						return ( int )f1.pt.y < ( int )f2.pt.y;
+					}
+			};
+
+			class CmpYi
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						return ( int )f1.pt.y < ( int )f2.pt.y;
 					}
 			};
 

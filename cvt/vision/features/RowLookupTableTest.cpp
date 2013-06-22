@@ -1,4 +1,5 @@
 #include <cvt/vision/features/RowLookupTable.h>
+#include <cvt/vision/features/ORB.h>
 #include <cvt/util/CVTTest.h>
 
 using namespace cvt;

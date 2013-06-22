@@ -42,7 +42,18 @@ namespace cvt {
 			void extract( const ImagePyramid& pyr, const FeatureSet& features );
 
 			void matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const;
-			void matchInWindow( std::vector<MatchingIndices>& matches, const std::vector<FeatureDescriptor*>& other, float maxFeatureDist, float maxDescDistance ) const;
+
+			void matchInWindow( std::vector<MatchingIndices>& matches,
+								const std::vector<FeatureDescriptor*>& other,
+								float maxFeatureDist,
+								float maxDescDistance ) const;
+
+			void matchInWindow( std::vector<MatchingIndices>& matches,
+								const RowLookupTable& rlt,
+								const std::vector<FeatureDescriptor*>& other,
+								float maxFeatureDist,
+								float maxDescDistance ) const;
+
 			void scanLineMatch( std::vector<FeatureMatch>& matches, const std::vector<const FeatureDescriptor*>& left, float minDisp, float maxDisp, float maxDescDist, float maxLineDist ) const;
 
 		private:
@@ -210,6 +221,23 @@ namespace cvt {
 	{
 		DistFunc dfunc;
 		FeatureMatcher::matchInWindow<Descriptor, DistFunc>( matches,
+															 other,
+															 this->_features,
+															 dfunc,
+															 maxFeatureDist,
+															 maxDescDistance );
+	}
+
+	template<size_t N>
+	inline void BRIEF<N>::matchInWindow( std::vector<MatchingIndices>& matches,
+						const RowLookupTable& rlt,
+						const std::vector<FeatureDescriptor*>& other,
+						float maxFeatureDist,
+						float maxDescDistance ) const
+	{
+		DistFunc dfunc;
+		FeatureMatcher::matchInWindow<Descriptor, DistFunc>( matches,
+															 rlt,
 															 other,
 															 this->_features,
 															 dfunc,

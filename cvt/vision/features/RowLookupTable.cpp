@@ -22,6 +22,12 @@ namespace cvt
 		buildIndex( fset );
 	}
 
+	RowLookupTable::RowLookupTable( const FeatureDescriptorExtractor& fset ) :
+		_maxY( -1 ), _minY ( -1 )
+	{
+		buildIndex( fset );
+	}
+
 	RowLookupTable::~RowLookupTable()
 	{
 	}
@@ -53,13 +59,46 @@ namespace cvt
 		_minY = cy;
 		_rowIndex[ cy ].start = 0;
 
-		FeatureSet::CmpY cmp;
+		FeatureSet::CmpYi cmp;
 		while( cy < _maxY ){
 			int prevStart = _rowIndex[ cy ].start;
 			// calculate the upper bound for the previous y coord
 			int start = std::upper_bound( &fset[ prevStart ],
 										  &fset[ n - 1 ],
 										  fset[ prevStart ], cmp ) - &fset[ 0 ];
+
+			if( start == prevStart ) {
+				break;
+			}
+			_rowIndex[ cy ].len = start - prevStart;
+
+			cy = ( int ) fset[ start ].pt.y;
+			_rowIndex[ cy ].start = start;
+		}
+		_rowIndex[ cy ].len = fset.size() - _rowIndex[ cy ].start;
+	}
+
+	void RowLookupTable::buildIndex( const FeatureDescriptorExtractor& fset )
+	{
+		size_t n = fset.size();
+		if( !n )
+			return;
+		_maxY = ( int )fset[ n - 1 ].pt.y;
+		_rowIndex.resize( _maxY + 1, Row() );
+
+		int cy = ( int )fset[ 0 ].pt.y;
+		_minY = cy;
+		_rowIndex[ cy ].start = 0;
+
+		while( cy < _maxY ){
+			int prevStart = _rowIndex[ cy ].start;
+			int start = prevStart;
+
+			while( cy == ( int )fset[ start ].pt.y ){
+				start++;
+				if( start == n )
+					break;
+			}
 
 			if( start == prevStart ) {
 				break;

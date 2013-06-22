@@ -17,6 +17,7 @@
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/vision/Vision.h>
+#include <cvt/vision/features/RowLookupTable.h>
 #include <cvt/vision/slam/stereo/FeatureAnalyzer.h>
 #include <cvt/util/Time.h>
 
@@ -130,9 +131,12 @@ namespace cvt
 	   rightFeatures.filterNMS( 5, true );
 
 	   // TODO: gridfiltering instead of best N
-	   leftFeatures.filterBest( 6000, true );
+	   leftFeatures.filterBest( 3000, true );
+	   leftFeatures.sortPosition();
+
 	   // maybe do not filter the right features?
-	   rightFeatures.filterBest( 7000, true );
+	   rightFeatures.filterBest( 3000, true );
+	   rightFeatures.sortPosition();
 
 	   // extract the descriptors
 	   _descExtractorLeft->clear();
@@ -172,7 +176,9 @@ namespace cvt
 	   _pyrLeft.convert( _pyrLeftf, IFormat::GRAY_FLOAT  );
 
 	   // match with current left features
+	   RowLookupTable rlt( *_descExtractorLeft );
 	   _descExtractorLeft->matchInWindow( matchedIndices,
+										  rlt,
 										  predictedDescriptors,
 										  _params.matchingWindow,
 										  _params.matchingMaxDescDistance );
@@ -190,7 +196,7 @@ namespace cvt
 			 const Vector2f& pt = ( *_descExtractorLeft )[ m.dstIdx ].pt;
 			 // TODO: try to only update the position and keep the rest of the patch pose
 			 patch->initPose( pt );
-			 patch->align( _pyrLeftf, 2 /*per octave!*/ );
+			 patch->align( _pyrLeftf, 1 /*per octave!*/ );
 			 patch->currentCenter( refined );
 
 			 const MapFeature& mapFeature = _map.featureForId( curMapIdx );
