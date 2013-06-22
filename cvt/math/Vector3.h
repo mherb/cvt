@@ -10,6 +10,8 @@
  */
 #ifdef CVT_VECTOR_H
 
+#include <cvt/util/DataIterator.h>
+
 namespace cvt {
 
     template<typename T> class Vector4;
@@ -385,6 +387,23 @@ namespace cvt {
         s.sprintf( "%0.10f %0.10f %0.10f", x, y, z );
 
         return s;
+    }
+
+    template<typename T>
+    Vector3<T> Vector3<T>::fromString( const String& s )
+    {
+        Vector3<T> m;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 3; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            m[ i ] = token.to<T>();
+        }
+
+        return m;
     }
 
     template<typename T>

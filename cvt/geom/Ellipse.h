@@ -12,12 +12,16 @@
 #define CVT_ELLIPSE_H
 
 #include <cvt/math/Vector.h>
+#include <cvt/util/String.h>
+
+#include <cvt/util/DataIterator.h>
 
 namespace cvt {
 	template<typename T>
 	class Ellipse {
 		public:
 			Ellipse();
+			Ellipse( T x, T y, T semimajor, T semiminor, T orientation );
 			Ellipse( const Vector2<T>& center, T semimajor, T semiminor, T orientation );
 			Ellipse( const Ellipse<T>& ellipse );
 			~Ellipse();
@@ -38,6 +42,9 @@ namespace cvt {
 
 			T					area() const;
 
+			String				toString() const;
+
+			static Ellipse<T>	fromString( const String& str );
 		private:
 			Vector2<T>	_center;
 			T			_smajor;
@@ -54,6 +61,15 @@ namespace cvt {
 		_smajor( 0 ),
 		_sminor( 0 ),
 		_orientation( 0 )
+	{
+	}
+
+	template<typename T>
+	inline Ellipse<T>::Ellipse( T x, T y, T semimajor, T semiminor, T orientation ) :
+		_center( x, y ),
+		_smajor( semimajor ),
+		_sminor( semiminor ),
+		_orientation( orientation )
 	{
 	}
 
@@ -145,6 +161,43 @@ namespace cvt {
 	{
 		return Math::PI * _smajor * _sminor;
 	}
+
+    template<typename T>
+    String Ellipse<T>::toString( void ) const
+    {
+        String s;
+        s.sprintf( "%f %f %f %f %f", _center.x , _center.y , _sminor, _sminor, _orientation );
+        return s;
+    }
+
+    template<typename T>
+    Ellipse<T> Ellipse<T>::fromString( const String& s )
+    {
+        Ellipse<T> ret;
+
+        DataIterator it( s );
+        String token;
+        String deliminators("\n\r\t ");
+        for( size_t i = 0; i < 5; i++ ){
+            if( !it.nextToken( token, deliminators ) )
+                throw CVTException( "Could not create Matrix from String!" );
+            T val = token.to<T>();
+			switch( i ) {
+				case 0: ret.center().x = val;
+						break;
+				case 1: ret.center().y = val;
+						break;
+				case 2: ret.semiMajor() = val;
+						break;
+				case 3: ret.semiMinor() = val;
+						break;
+				case 4: ret.orientation() = val;
+						break;
+			}
+        }
+
+        return ret;
+    }
 
 	template<typename T>
 	inline std::ostream& operator<<( std::ostream& out, const Ellipse<T>& e )
