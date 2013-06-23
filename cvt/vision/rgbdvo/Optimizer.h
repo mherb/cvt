@@ -229,13 +229,13 @@ namespace cvt {
                                               const Image& depthImage,
                                               size_t octave ) = 0;
 
-            virtual void optimizeSingleScale( Result& result,
-                                              KFType* references, size_t nRefs,
-                                              const Image& gray,
-                                              const Image& depthImage,
-                                              size_t octave )
+			virtual void optimizeSingleScale( Result& /*result*/,
+											  KFType* /*references*/, size_t /*nRefs*/,
+											  const Image& /*gray*/,
+											  const Image& /*depthImage*/,
+											  size_t /*octave*/ )
             {
-                throw CVTException( "this optimizer does not implement multi-reference alignment" );
+				throw CVTException( "this optimizer does not implement multi-reference alignment yet" );
             }
 
     };
@@ -289,49 +289,6 @@ namespace cvt {
         result = saveResult;
 
         tmp4 = result.warp.pose().inverse();
-        result.warp.setPose( tmp4 );
-    }
-
-    template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
-                                                                   const Matrix4f& posePrediction,
-                                                                   KFType* references, size_t nRefs,
-                                                                   const ImagePyramid& grayPyramid,
-                                                                   const Image& depthImage )
-    {
-        Matrix4f tmp4;
-        tmp4 = posePrediction.inverse();
-
-        result.warp.setPose( tmp4 );
-        result.costs = 0.0f;
-        result.iterations = 0;
-        result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
-
-        Result saveResult = result;
-
-        if( _useRegularizer ){
-            resetOverallDelta();
-        }
-
-        for( size_t i = 0; i < nRefs; i++ ){
-            references[ i ].updateOnlineData( grayPyramid, depthImage );
-        }
-
-        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            this->optimizeSingleScale( result, references, nRefs, grayPyramid[ o ], depthImage, o );
-
-            if( checkResult( result ) ){
-                saveResult = result;
-                saveResult.success = true;
-            }
-        }
-
-        result = saveResult;
-
-        tmp4 = result.warp.pose().inverse();
-=======
->>>>>>> towards complete global formulation
         result.warp.setPose( tmp4 );
     }
 

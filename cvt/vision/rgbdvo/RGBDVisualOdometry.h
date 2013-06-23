@@ -224,7 +224,7 @@ namespace cvt {
         Image dCopy( depth );
 
         // for the moment, only one keyframe
-        if( _keyframes.size() < _params.maxNumKeyframes ){
+		if( _keyframes.size() < ( size_t )_params.maxNumKeyframes ){
             _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
             _activeKeyframe = &_keyframes[ _keyframes.size() - 1 ];
 
