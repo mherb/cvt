@@ -165,7 +165,9 @@ namespace cvt
 
             size_t dataSize( size_t octave ) const { return _dataForScale[ octave ].size(); }
 
-            virtual void updateOnlineData( const ImagePyramid& /*pyrf*/, const Image& /*depth*/ ){}
+			virtual void updateOnlineData( const ImagePyramid& /*pyrf*/, const Image& /*depth*/ )
+			{
+			}
 
             virtual void recompute( std::vector<float>& residuals,
                                     JacobianVec& jacobians,
