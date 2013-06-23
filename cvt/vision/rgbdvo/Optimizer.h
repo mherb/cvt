@@ -289,7 +289,6 @@ namespace cvt {
         result = saveResult;
 
         tmp4 = result.warp.pose().inverse();
-<<<<<<< HEAD
         result.warp.setPose( tmp4 );
     }
 
