@@ -42,8 +42,8 @@ namespace cvt {
 				_cells.reserve( cols * rows );
 				_rows = rows;
 				_cols = cols;
-				int hx = sx >> 1;
-				int hy = sy >> 1;
+				int hx = _sx >> 1;
+				int hy = _sy >> 1;
 				for( size_t r = 0; r < rows; ++r ){
 					for( size_t c = 0; c < cols; ++c ){
 						_cells.push_back( Cell( c + hx, r + hy ) );
@@ -54,7 +54,7 @@ namespace cvt {
 			void clearIds()
 			{
 				for( size_t i = 0; i < _cells.size(); ++i ){
-					const Cell& c = _cells[ i ];
+					Cell& c = _cells[ i ];
 					c.data_ids.clear();
 				}
 			}
@@ -69,8 +69,8 @@ namespace cvt {
 					throw CVTException( "point out of grid range" );
 				}
 
-				Cell& c = _cells[ r * _cols + c ];
-				c.data_ids.push_back( id );
+				Cell& cell = _cells[ r * _cols + c ];
+				cell.data_ids.push_back( id );
 			}
 
 			iterator		begin() { return _cells.begin(); }
