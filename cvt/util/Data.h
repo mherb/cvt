@@ -44,11 +44,11 @@ namespace cvt {
 	{
 		allocate( size );
 	}
-			
+
 	inline Data::~Data()
 	{
 		if( _dealloc && _data )
-		   delete[]	_data;	
+		   delete[]	_data;
 	}
 
 	inline Data::Data( const uint8_t* ptr, size_t size ) : _data( NULL ), _dealloc( false )
@@ -56,7 +56,7 @@ namespace cvt {
 		allocate( size );
 		assign( ptr, size );
 	}
-	
+
 	inline Data::Data( uint8_t* ptr, size_t size, bool copyData ) : _data( NULL ), _dealloc( copyData )
 	{
 		if( copyData ){

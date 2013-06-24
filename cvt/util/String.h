@@ -22,7 +22,7 @@
 	FIXME:
 	We can't use SIMD here since Vector/Matrix uses it, which itself is used by SIMD.
 	Therefore all Memcpy operations use the C memcpy ...
-	#include <cvt/util/SIMD.h>
+	#include <cvt/util/SIMD.h>, maybe we just put an assign in String.cpp
 */
 #include <cvt/util/Exception.h>
 
