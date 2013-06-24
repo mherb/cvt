@@ -120,20 +120,6 @@ namespace cvt {
 			template<typename T1, typename T2, IExprType op>
 			Image& operator=( const IExprBinary<T1,T2,op>& expr );
 
-		/*	Image& operator*( float alpha );
-			Image& operator+( float alpha );
-			Image& operator-( float alpha );
-
-			Image& operator*( const Color& c );
-			Image& operator+( const Color& c );
-			Image& operator-( const Color& c );
-
-			Image& operator+( const Image& i );
-			Image& operator-( const Image& i );*/
-
-/*			Color operator() (int x, int y) const;
-			Color operator() (float x, float y) const;*/
-
 			void warpBilinear( Image& idst, const Image& warp ) const;
 
             void integralImage( Image & dst ) const;
@@ -216,54 +202,6 @@ namespace cvt {
 			_mem->copy( img._mem );
 		return *this;
 	}
-
-/*	inline Image& Image::operator*( float alpha )
-	{
-		mul( alpha );
-		return *this;
-	}
-
-	inline Image& Image::operator+( float alpha )
-	{
-		add( alpha );
-		return *this;
-	}
-
-	inline Image& Image::operator-( float alpha )
-	{
-		sub( alpha );
-		return *this;
-	}
-
-	inline Image& Image::operator*( const Color& c )
-	{
-		mul( c );
-		return *this;
-	}
-
-	inline Image& Image::operator+( const Color& c )
-	{
-		add( c );
-		return *this;
-	}
-
-	inline Image& Image::operator-( const Color& c )
-	{
-		sub( c );
-		return *this;
-	}
-
-	inline Image& Image::operator+( const Image& i )
-	{
-		add( i );
-		return *this;
-	}
-
-	inline Image& Image::operator-( const Image& i )
-	{
-		sub( i );
-		return *this;
-	}*/
 
 	inline size_t Image::channels() const
 	{
