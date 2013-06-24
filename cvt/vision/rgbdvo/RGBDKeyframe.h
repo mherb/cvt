@@ -132,8 +132,6 @@ namespace cvt
             const AlignmentData&    dataForScale( size_t o )       const { return _dataForScale[ o ]; }
             const Matrix4f&         pose()                         const { return _pose; }
 
-            void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
-
             // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
             // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
             //  val pixvals = 1m -> scale by (float_denorm) * 1/val
@@ -158,7 +156,8 @@ namespace cvt
              */
             const IKernel& kernelDy() const { return _ky; }
 
-            virtual void updateOfflineDataForScale( AlignmentData& data,
+			virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
+			virtual void updateOfflineDataForScale( AlignmentData& data,
                                                     const Image& gray,
                                                     const Image& depth,
                                                     float scale );

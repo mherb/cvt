@@ -15,6 +15,7 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/ICKeyframe.h>
 #include <cvt/vision/rgbdvo/FCKeyframe.h>
+#include <cvt/vision/rgbdvo/GridFeatureKeyframe.h>
 #include <cvt/vision/rgbdvo/ESMKeyframe.h>
 
 using namespace cvt;
@@ -108,7 +109,10 @@ void createAppDefineKF( const Matrix3f& K, const String& folder, ConfigFile& cfg
     } else if( keyframeType == "ESM" ){
         std::cout << "Using ESM Algorithm" << std::endl;
         createAppDefineLF<ESMKeyframe<WarpType>, WarpType>( K, folder, cfg );
-    } else {
+	} else if( keyframeType == "GridKF" ){
+		std::cout << "Using Grid Feature Keyframe Algorithm" << std::endl;
+		createAppDefineLF<GridFeatureKeyframe<WarpType>, WarpType>( K, folder, cfg );
+	} else {
         throw CVTException( "unknown keyframeType" );
     }
 }
