@@ -27,6 +27,11 @@ namespace cvt {
 				delete[] _ellipse;
 			}
 
+			const String& file() const
+			{
+				return _file;
+			}
+
 			size_t size() const
 			{
 				return _size;
@@ -50,9 +55,13 @@ namespace cvt {
 
 	class FDDB {
 		public:
-			FDDB( const String& file, const String& imgpath ) : _imgpath( imgpath )
+			FDDB()
 			{
-				parse( file );
+			}
+
+			FDDB( const String& file, const String& imgpath )
+			{
+				parse( file, imgpath );
 			}
 
 			size_t size() const
@@ -65,14 +74,14 @@ namespace cvt {
 				return _entries[ i ];
 			}
 
+			void clear()
+			{
+				_entries.clear();
+			}
+	
 			void add( const FDDBEntry& entry )
 			{
 				_entries.push_back( entry );
-			}
-
-			const String& imagePath() const
-			{
-				return _imgpath;
 			}
 
 			const float averageArea() const
@@ -91,9 +100,53 @@ namespace cvt {
 				return a / n;
 			}
 
+			void averageSemiMajorMinor( float& major, float& minor ) const
+			{
+				float n = 0;
+				major = minor = 0;
+
+				size_t size = _entries.size();
+				for( size_t i = 0; i < size; i++ ) {
+					size_t size2 = _entries[ i ].size();
+					n += size2;
+					for( size_t k = 0; k < size2; k++ ) {
+						major += _entries[ i ][ k ].semiMajor();
+						minor += _entries[ i ][ k ].semiMinor();
+					}
+				}
+				major /= n;
+				minor /= n;
+			}
+
+
+			void filterArea( FDDB& output, float min, float max ) const
+			{
+				size_t size = _entries.size();
+				for( size_t i = 0; i < size; i++ ) {
+
+					size_t size2 = _entries[ i ].size();
+					size_t nsize = 0;
+					for( size_t k = 0; k < size2; k++ ) {
+						float area = _entries[ i ][ k ].area();
+						if( area > min && area < max )
+							nsize++;
+					}
+					if( nsize ) {
+						FDDBEntry entry( _entries[ i ].file(), nsize );
+						nsize = 0;
+						for( size_t k = 0; k < size2; k++ ) {
+							float area = _entries[ i ][ k ].area();
+							if( area > min && area < max )
+								entry[ nsize++ ] = _entries[ i ][ k ];
+						}
+						output.add( entry );
+					}
+				}
+			}
+
 
 		private:
-			void parse( const String& file )
+			void parse( const String& file, const String& imgpath )
 			{
 			  Data d;
 			  FileSystem::load( d, file );
@@ -106,7 +159,7 @@ namespace cvt {
 			  {
 				iter.nextLine( str1 );
 				iter.nextLine( str2 );
-				add( FDDBEntry( _imgpath + str1, str2.toInteger() ) );
+				add( FDDBEntry( imgpath + str1, str2.toInteger() ) );
 				FDDBEntry& entry = _entries.back();
 				for( size_t i = 0; i < entry.size(); i++ ) {
 					iter.nextToken( str1, delim );
@@ -125,7 +178,6 @@ namespace cvt {
 			  }
 			}
 
-			String				   _imgpath;
 			std::vector<FDDBEntry> _entries;
 	};
 }

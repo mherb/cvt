@@ -36,8 +36,8 @@ int main( int argc, char** argv )
 
 	srand( time( NULL ) );
 	RDFClassifier<Vector2f,2> rdfclassifier;
-	for( size_t i = 0; i < 200; i++ ) {
-		rdfclassifier.addTree( rdftrainer.train( traindata, 6, 20000 ) );
+	for( size_t i = 0; i < 30; i++ ) {
+		rdfclassifier.addTree( rdftrainer.train( traindata, 6, 10000 ) );
 	}
 
 	rect.grow( 200.0f );
