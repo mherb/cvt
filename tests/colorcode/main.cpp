@@ -22,6 +22,7 @@ int main()
 
 	Image out;
 
-	img.colorCode( out, ICOLORCODE_PM3D, 0, 1.0f );
+	img.colorCode( out, ICOLORCODE_AUTUMN, 0, 1.0f );
 	out.save( "bla.png" );
+	out.save( "bla.cvtraw" );
 }

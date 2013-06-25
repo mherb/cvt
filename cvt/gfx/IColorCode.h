@@ -81,6 +81,7 @@ namespace cvt {
 			case ICOLORCODE_OCEAN: return applyRGBFormula( dst, src, min, max, IColorCode::hot3, IColorCode::f28, IColorCode::id );
 			case ICOLORCODE_COLORGRAYPRINT: return applyRGBFormula( dst, src, min, max, IColorCode::cgprint1, IColorCode::cgprint2, IColorCode::cgprint3 );
 			case ICOLORCODE_RAINBOW: return applyRGBFormula( dst, src, min, max, IColorCode::f33, IColorCode::sin180, IColorCode::cos90 );
+			case ICOLORCODE_AUTUMN: return applyRGBFormula( dst, src, min, max, IColorCode::one, IColorCode::id, IColorCode::zero );
 		}
 	}
 
