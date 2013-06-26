@@ -65,6 +65,7 @@ namespace cvt
 
         // draw the grid
         glLineWidth( 2.0f );
+        glEnable( GL_DEPTH_TEST );
         _scenePoints.draw();
         //_grid.draw( GL_LINES, 0, _numLines );
 
@@ -84,6 +85,7 @@ namespace cvt
         _axes.setColor( Color::GREEN );
         _axes.draw( GL_LINES, 0, 6 );
 
+        glDisable( GL_DEPTH_TEST );
         _basicProg.unbind();
     }
 

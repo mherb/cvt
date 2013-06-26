@@ -68,8 +68,8 @@ namespace cvt {
 			_prog.setProjection( proj * tmp );
 
 			glEnable( GL_DEPTH_TEST );
-                        glPointSize( 3.0f );
-                        _points.draw();
+			glPointSize( 5.0f );
+			_points.draw();
 			glDisable( GL_DEPTH_TEST );
 
 		}

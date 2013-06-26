@@ -18,6 +18,7 @@ namespace cvt
 	  _img0( _stereoInput->left() ),
 	  _img1( _stereoInput->right() ),
 	  _gui(),
+	   _timeIter( 0 ),
       _stepping( true ),
       _nextImage( true )
    {
