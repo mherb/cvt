@@ -1,13 +1,13 @@
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IMapScoped.h>
 
-#include <cvt/gfx/ifilter/ColorCode.h>
+#include <cvt/gfx/IColorCode.h>
 
 using namespace cvt;
 
 int main()
 {
-	Image img( 500, 200, IFormat::GRAY_FLOAT );
+	Image img( 800, 600, IFormat::GRAY_FLOAT );
 
 	{
 		IMapScoped<float> map( img );
@@ -22,6 +22,7 @@ int main()
 
 	Image out;
 
-	ColorCode::apply( out, img, 0, 1.0f );
+	img.colorCode( out, ICOLORCODE_AUTUMN, 0, 1.0f );
 	out.save( "bla.png" );
+	out.save( "bla.cvtraw" );
 }

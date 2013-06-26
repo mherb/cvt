@@ -24,6 +24,7 @@
 #include <cvt/gfx/IKernel.h>
 #include <cvt/util/String.h>
 #include <cvt/gfx/IExprType.h>
+#include <cvt/gfx/IColorCodeMap.h>
 
 namespace cvt {
 	class ISaver;
@@ -112,6 +113,8 @@ namespace cvt {
 			void thresholdAdaptive( Image& dst, const Image& boxfiltered, float threshold ) const;
 
 			void boxfilter( Image& dst, size_t hradius, size_t vradius = 0 ) const;
+
+			void colorCode( Image& dst, IColorCodeMap map, float min = 0.0f, float max = 1.0f ) const;
 
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );

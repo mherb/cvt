@@ -37,19 +37,30 @@ namespace cvt {
 			{
 			}
 
-			void resize( size_t cols, size_t rows )
+			void resize( size_t width, size_t height )
 			{
-				_cells.reserve( cols * rows );
-				_rows = rows;
-				_cols = cols;
+				_rows = 1 + height / _sy;
+				_cols = 1 + width  / _sx;
+
+				_cells.reserve( _cols * _rows );
+
 				int hx = _sx >> 1;
 				int hy = _sy >> 1;
-				for( size_t r = 0; r < rows; ++r ){
-					for( size_t c = 0; c < cols; ++c ){
-						_cells.push_back( Cell( c + hx, r + hy ) );
+				int x, y;
+				y = hy;
+
+				// initialize center positions
+				for( size_t r = 0; r < _rows; ++r ){
+					x = hx;
+					for( size_t c = 0; c < _cols; ++c ){
+						_cells.push_back( Cell( x, y ) );
+						x += _sx;
 					}
+					y += _sy;
 				}
 			}
+
+			size_t numCells() const { return _cells.size(); }
 
 			void clearIds()
 			{
@@ -119,7 +130,7 @@ namespace cvt {
             ImagePyramid	_onlineGradientsX;
             ImagePyramid	_onlineGradientsY;
 
-			std::vector<Vector2f>	_gridPoints;
+			Grid			_grid;
 
             void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
 
@@ -130,8 +141,10 @@ namespace cvt {
     inline GridFeatureKeyframe<WarpFunc>::GridFeatureKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
         RGBDKeyframe<WarpFunc>( K, octaves, scale ),
         _onlineGradientsX( octaves, scale ),
-        _onlineGradientsY( octaves, scale )
+		_onlineGradientsY( octaves, scale ),
+		_grid( 5, 5 )
     {
+		_grid.resize( 640, 480 );
     }
 
     template <class WarpFunc>
@@ -221,27 +234,34 @@ namespace cvt {
 	{
 		this->_pose = pose;
 
-		// update the grid:
-		int sx = 8;
-		int sy = 6;
-		int hx = sx >> 1;
-		int hy = sy >> 1;
+		// clear the grid
+		_grid.clearIds();
 
-		// Map the depth image
+		// TODO: propagate the current features using the given pose
+		// add the 2d features to the grid
+		// use the consistent features also for this keyframe
+		// keep the 3D feature value?
+		// update the intensity?
+		// update the gradient?
+
 		IMapScoped<const float> depthMap( depth );
-		Vector2i p;
+		// go over all empty grid cells
+		Grid::const_iterator it = _grid.begin();
+		const Grid::const_iterator itEnd = _grid.end();
 
-		p.y = hy;
-		while( p.y < pyramid[ 0 ].height() ){
-			p.x = hx;
-			while( p.x < pyramid[ 0 ].width() ){
-				if( depthMap.line( p.y )[ p.x ] > this->_minDepth ){
-					_gridPoints.push_back( p );
+		std::vector<Vector3f> uvd;
+		while( it != itEnd ){
+			if( it->isEmpty() ){
+				const Cell& cell = *it;
+				float d = depthMap.ptr()[ cell.cy * depthMap.stride() + cell.cx ];
+				if( d > this->_minDepth && d < this->_maxDepth ){
+					uvd.push_back( Vector3f( cell.cx, cell.cy, d * this->_depthScaling ) );
 				}
-				p.x += sx;
 			}
-			p.y += sy;
+			++it;
 		}
+
+		// convert uvd to XYZ
 
 		float scale = 1.0f;
 		for( size_t i = 0; i < pyramid.octaves(); i++ ){

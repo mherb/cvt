@@ -26,6 +26,8 @@
 #include <cvt/gfx/IConvolve.h>
 #include <cvt/gfx/IBoxFilter.h>
 
+#include <cvt/gfx/IColorCode.h>
+
 #include <cvt/gfx/IExpr.h>
 
 #include <fstream>
@@ -276,4 +278,8 @@ namespace cvt {
 		IBoxFilter::boxfilter( dst, *this, hradius, vradius );
 	}
 
+	void Image::colorCode( Image& dst, IColorCodeMap map, float min, float max ) const
+	{
+		IColorCode::colorCode( dst, *this, map, min, max );
+	}
 }

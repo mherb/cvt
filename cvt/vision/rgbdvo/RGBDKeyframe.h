@@ -142,12 +142,10 @@ namespace cvt
             void setSelectionPixelPercentage( float n )     { _pixelPercentageToSelect = n; }
             void setUseInformationSelection( bool v )       { _useInformationSelection = v; }
 
-            void addPoints( const std::vector<Vector3f>& pts );
-
             /**
              * @brief kernelDx - retrieve the kernel used to compute x derivatives
              * @return kernelx
-             */
+			 */
             const IKernel& kernelDx() const { return _kx; }
 
             /**
@@ -244,15 +242,6 @@ namespace cvt
                 _dataForScale[ i ].selectInformation( nPixels * Math::sqr( scale ) * _pixelPercentageToSelect );
             }
             scale /= pyramid.scaleFactor();
-        }
-    }
-
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::addPoints( const std::vector<Vector3f>& pts )
-    {
-        Matrix4f refToWorld = _pose.inverse();
-        for( size_t i = 0; i < _dataForScale.size(); i++ ){
-            this->addPointsOnScale( _dataForScale[ i ], pts, refToWorld );
         }
     }
 

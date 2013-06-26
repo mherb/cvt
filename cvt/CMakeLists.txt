@@ -211,6 +211,8 @@ SET(${MODULE_NAME}_HEADERS
    gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h
+   gfx/IColorCode.h
+   gfx/IColorCodeMap.h
    gfx/IComponents.h
    gfx/IConvert.h
    gfx/IConvolve.h
