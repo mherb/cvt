@@ -151,12 +151,12 @@ inline void mat3f_rotation( Mat3f* mat, float3 rot )
 	mat->m[ 0 ].z =        s.y;
 
 	mat->m[ 1 ].x = c.x * s.z + c.z * s.x * s.y;
-	mat->m[ 1 ].y = c.x * c.z - s.x *  s.y * s.z;
-	mat->m[ 1 ].z =               -c.y * s.x;
+	mat->m[ 1 ].y = c.x * c.z - s.x * s.y * s.z;
+	mat->m[ 1 ].z =           -		  c.y * s.x;
 
-	mat->m[ 2 ].x =  s.x * s.z - c.x * c.z *  s.y;
-	mat->m[ 2 ].y =  c.x * s.y * s.z + c.z * s.x;
-	mat->m[ 2 ].z =                    c.x * c.y;
+	mat->m[ 2 ].x =		  s.x * s.z - c.x * c.z * s.y;
+	mat->m[ 2 ].y = c.x * s.y * s.z +		c.z * s.x;
+	mat->m[ 2 ].z =							c.x * c.y;
 }
 
 inline void mat3f_rotation_transpose( Mat3f* mat, float3 rot )
@@ -168,12 +168,12 @@ inline void mat3f_rotation_transpose( Mat3f* mat, float3 rot )
 	mat->m[ 1 ].x = -c.y * s.z;
 	mat->m[ 2 ].x =        s.y;
 
-	mat->m[ 0 ].y = c.x * s.z + c.z * s.x *  s.y;
-	mat->m[ 1 ].y = c.x * c.z - s.x *  s.y * s.z;
-	mat->m[ 2 ].y =               -c.y * s.x;
+	mat->m[ 0 ].y = c.x * s.z + c.z * s.x * s.y;
+	mat->m[ 1 ].y = c.x * c.z - s.x * s.y * s.z;
+	mat->m[ 2 ].y =           -		  c.y * s.x;
 
-	mat->m[ 0 ].z =       s.x * s.z - c.x * c.z *  s.y;
-	mat->m[ 1 ].z =  c.x * s.y * s.z +     c.z * s.x;
+	mat->m[ 0 ].z =       s.x * s.z - c.x * c.z * s.y;
+	mat->m[ 1 ].z = c.x * s.y * s.z +       c.z * s.x;
 	mat->m[ 2 ].z =                         c.x * c.y;
 }
 

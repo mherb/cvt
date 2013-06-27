@@ -61,7 +61,7 @@ int main( int argc, char** argv )
 	}
 
 	try {
-		int patchsize = 17;
+		int patchsize = 5;
 		std::vector<CLPlatform> platforms;
 		std::vector<CLDevice> devs;
 

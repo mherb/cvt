@@ -96,9 +96,9 @@ namespace cvt {
 
 			void  map() const {}
 			void  unmap() const {}
-			void  setLine( size_t y ) const {}
-			float eval( size_t x ) const { return value; }
-			bool  hasSizeFormat( size_t width, size_t height, const IFormat& format ) const { return true; }
+			void  setLine( size_t ) const {}
+			float eval( size_t ) const { return value; }
+			bool  hasSizeFormat( size_t, size_t , const IFormat& ) const { return true; }
 
 			float value;
 	};
@@ -167,7 +167,7 @@ namespace cvt {
         return out;
     }
 
-    inline std::ostream& operator<<( std::ostream& out, const IExprImage& image )
+    inline std::ostream& operator<<( std::ostream& out, const IExprImage& )
     {
 		out << "Image";
         return out;

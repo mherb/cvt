@@ -95,8 +95,6 @@ namespace cvt {
 		const float* psrc;
 		size_t w, h;
 		float val;
-		float alpha;
-		size_t i1, i2;
 		float low = Math::min( min, max );
 		float high = Math::max( min, max );
 

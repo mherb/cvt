@@ -1,7 +1,7 @@
 #import "../../cvt/cl/kernel/RNG.cl"
 #import "../../cvt/cl/kernel/Matrix3.cl"
 
-#pragma SELECT_ROUNDING_MODE rtz
+//#pragma SELECT_ROUNDING_MODE rtz
 
 // values in meter
 #define DEPTHMAX  10.0f
@@ -11,20 +11,22 @@
 //#define ROTMAX	  0.25f
 //#define ROTYMAX ( ( 30.0f / 180.0f ) * M_PI )
 
-#define ROTMAX ( ( 30.0f / 180.0f ) * M_PI )
-#define NORMALCOMPMAX 0.90f
+#define ROTMAX ( ( 25.0f / 180.0f ) * M_PI )
+#define NORMALCOMPMAX 0.95f
 
-#define PROPSIZE 1
+#define PROPSIZE 2
 #define NUMRNDTRIES	 2
-#define NUMRNDSAMPLE  3
+#define NUMRNDSAMPLE  2
 
-#define DEPTHREFINEMUL 0.05f
+#define RNDSAMPLERADIUS 20.0f
+
+#define DEPTHREFINEMUL 0.1f
 #define NORMALREFINEMUL 0.05f
-#define TRANSREFINEMUL  0.05f
-#define ROTREFINEMUL 0.02f
+#define TRANSREFINEMUL  0.01f
+#define ROTREFINEMUL 0.5f
 
-#define COLORWEIGHT 20.0f
-#define COLORGRADALPHA 0.3f
+#define COLORWEIGHT 10.0f
+#define COLORGRADALPHA 0.5f
 #define COLORMAXDIFF 0.2f
 #define GRADMAXDIFF 0.1f
 #define OVERSAMPLE 1.0f
@@ -59,7 +61,7 @@ float8 pmsfm_state_init( RNG* rng )
 	trans.z = ( RNG_float( rng ) - 0.5f ) * 2.0f * TRANSMAX;
 	trans = normalize( trans );
 
-	trans *= ( float3 ) z;
+	trans /= ( float3 ) z;
 
 	return ( float8 )( rot.x, rot.y, rot.z, trans.x, trans.y, trans.z, n.x, n.y );
 }
@@ -72,7 +74,7 @@ float8 pmsfm_state_refine( RNG* rng, const float8 state )
 	float3 rot;
 	float3 trans;
 
-	z = len = length( state.s345 );
+	z = len = 1.0f / length( state.s345 );
 	z += ( RNG_float( rng ) - 0.5f ) * 2.0f * DEPTHREFINEMUL;
 	z = clamp( z, DEPTHMIN, DEPTHMAX );
 
@@ -104,7 +106,7 @@ float8 pmsfm_state_refine( RNG* rng, const float8 state )
 //	trans.y = clamp( trans.y, -TRANSMAX/DEPTHMAX, TRANSMAX/DEPTHMAX );
 //	trans.z = clamp( trans.z, -TRANSMAX/DEPTHMAX, TRANSMAX/DEPTHMAX );
 	trans = normalize( trans );
-	trans *= z;
+	trans /= ( float3 ) z;
 
 	return ( float8 )( rot.x, rot.y, rot.z, trans.x, trans.y, trans.z, n.x, n.y );
 }
@@ -126,10 +128,10 @@ inline void pmsfm_state_to_matrix( const float8 state, Mat3f* matrix, const Mat3
 	// normal
 	float3 n = ( float3 ) pmsfm_state_to_normal( state );
 	// K_dst ( R^T + (1/d) (R^T t) n^T ) K_src
-	mat3f_outer( &outer, -mat3f_transform( &rot, t ), n );
+	mat3f_outer( &outer, mat3f_transform( &rot, t ), n );
 	mat3f_add( &tmp, &rot, &outer );
-	mat3f_mul( &rot,  &tmp, Ksrc );
-	mat3f_mul( matrix, Kdst, &rot );
+	mat3f_mul( &rot,  Kdst, &tmp );
+	mat3f_mul( matrix, &rot, Ksrc );
 }
 
 inline float8 pmsfm_state_viewprop( const float8 state )
@@ -292,7 +294,7 @@ Kdst.m[2] = ( float3 ) (0.0f, 0.0f,  1.0f );
 	}
 	// rand neighbourhood tries
 	for( int i = 0; i < NUMRNDSAMPLE; i++ ) {
-		    int2 spos = ( int2 )( gx, gy ) + ( int2 )( RNG_float(&rng) * 10.0f + 0.5f, RNG_float(&rng) * 10.0f + 0.5f );
+		    int2 spos = ( int2 )( gx, gy ) + ( int2 )( RNG_float(&rng) * RNDSAMPLERADIUS + 0.5f, RNG_float(&rng) * RNDSAMPLERADIUS + 0.5f );
 			spos.x = clamp( spos.x, 0, width - 1 );
 			spos.y = clamp( spos.y, 0, height - 1 );
 
@@ -378,7 +380,7 @@ kernel void pmsfm_depthmap( write_only image2d_t depthmap, read_only global floa
 
 	float8 state = states[ width * coord.y + coord.x ];
 
-	float d = length( state.s345 ) * ( dot( pmsfm_state_to_normal( state ), mat3f_transform( &Ksrc, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) );
+	float d = length( state.s345 ) / fabs( dot( pmsfm_state_to_normal( state ), mat3f_transform( &Ksrc, ( float3 ) ( coord.x, coord.y, 1.0f ) ) ) );
 
 	float val = 0.01f / d;//pmsfm_state_to_unitdepth( state );
 
