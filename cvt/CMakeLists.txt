@@ -314,6 +314,7 @@ SET(${MODULE_NAME}_HEADERS
    gui/internal/TimerInfo.h
    gui/internal/TimerInfoList.h
    gui/internal/WidgetImplDefault.h
+   gui/KeyCodes.h
    gui/Label.h
    gui/Moveable.h
    gui/ParamSetView.h
