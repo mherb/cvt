@@ -219,6 +219,7 @@ namespace cvt {
 	{
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );
+		// TODO: update the jacobians: for each scale?
 	}
 
     template <class WarpFunc>
@@ -249,19 +250,34 @@ namespace cvt {
 		Grid::const_iterator it = _grid.begin();
 		const Grid::const_iterator itEnd = _grid.end();
 
-		std::vector<Vector3f> uvd;
+		Vector2f p2d;
+		Vector3f p3d;
+
+		const Matrix3f& intr = this->dataForScale( 0 ).intrinsics();
+		std::vector<float> tmpx( pyramid[ 0 ].width() );
+		std::vector<float> tmpy( pyramid[ 1 ].height() );
+		this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+		this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+
 		while( it != itEnd ){
 			if( it->isEmpty() ){
 				const Cell& cell = *it;
-				float d = depthMap.ptr()[ cell.cy * depthMap.stride() + cell.cx ];
-				if( d > this->_minDepth && d < this->_maxDepth ){
-					uvd.push_back( Vector3f( cell.cx, cell.cy, d * this->_depthScaling ) );
+
+				p2d.x = cell.cx;
+				p2d.y = cell.cy;
+				p3d.z = this->interpolateDepth( p2d, depthMap.ptr(), depthMap.stride() );
+				if( p3d.z > this->_minDepth && p3d.z < this->_maxDepth ){
+					// use this point
+					p3d[ 0 ] = tmpx[ cell.cx ] * p3d.z;
+					p3d[ 1 ] = tmpy[ cell.cy ] * p3d.z;
+
+					// TODO: evaluate the jacobians - for forward, jacobian eval is actually not needed here?
 				}
 			}
 			++it;
 		}
 
-		// convert uvd to XYZ
 
 		float scale = 1.0f;
 		for( size_t i = 0; i < pyramid.octaves(); i++ ){
@@ -298,10 +314,9 @@ namespace cvt {
 
 		// TODO: replace this by a simd function!
 		// temp vals
+		const Matrix3f& intr = data.intrinsics();
 		std::vector<float> tmpx( gray.width() );
 		std::vector<float> tmpy( gray.height() );
-
-		const Matrix3f& intr = data.intrinsics();
 		this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
 		this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
 
