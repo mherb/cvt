@@ -14,6 +14,8 @@
 #include <cvt/util/SIMD.h>
 
 namespace cvt {
+	class Image;
+
 	class IKernel {
 		public:
 			IKernel();
@@ -37,9 +39,19 @@ namespace cvt {
 			bool isSymmetrical() const;
 			bool isPointSymmetrical() const;
 
+			void toImage( Image& dst ) const;
+
 
 			static IKernel createGaussian1D( float sigma, bool vertical = false );
 			static IKernel createGaussian2D( float sigma );
+
+			/**
+				@param sigma sigma of the gaussian
+				@param theta rotation in rad
+				@param lamba wavelength of the sinusoidal factor
+				@param gamma spatial aspect ratio
+				@param psi   phase offset
+			 */
 			static IKernel createGabor( float sigma, float theta, float lambda, float gamma, float psi );
 
 			static const IKernel IDENTITY;
@@ -230,13 +242,13 @@ namespace cvt {
 		if( vertical ) {
 			IKernel ret( 1, 2 * max + 1 );
 			for( int x = -max; x <= max; x++ ) {
-				ret( 1, x ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+				ret( 1, x + max ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
 			}
 			return ret;
 		} else {
 			IKernel ret( 2 * max + 1, 1 );
 			for( int x = -max; x <= max; x++ ) {
-				ret( x, 1 ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+				ret( x + max, 1 ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
 			}
 			return ret;
 		}
@@ -252,7 +264,7 @@ namespace cvt {
 
 		for( int y = -max; y <= max; y++ ) {
 			for( int x = -max; x <= max; x++ ) {
-				ret( x, y ) = mul * Math::exp( -( Math::sqr( ( float ) x ) + Math::sqr( ( float ) y ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+				ret( x + max, y + max ) = mul * Math::exp( -( Math::sqr( ( float ) x ) + Math::sqr( ( float ) y ) ) / ( 2.0f * Math::sqr( sigma ) ) );
 			}
 		}
 
@@ -279,7 +291,7 @@ namespace cvt {
 			for( int x = -xmax; x <= xmax; x++ ) {
 				float rotx =  ( float ) x * c + ( float ) y * s;
 				float roty = -( float ) x * s + ( float ) y * c;
-				ret( x, y ) = Math::exp( -0.5f * ( Math::sqr( rotx / sigma_x ) + Math::sqr( roty / sigma_y ) ) ) *  Math::cos( 2.0f * Math::PI * rotx / lambda + psi );
+				ret( x + xmax, y + ymax ) = Math::exp( -0.5f * ( Math::sqr( rotx / sigma_x ) + Math::sqr( roty / sigma_y ) ) ) *  Math::cos( 2.0f * Math::PI * rotx / lambda + psi );
 			}
 		}
 
