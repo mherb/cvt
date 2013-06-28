@@ -9,6 +9,8 @@
  	PARTICULAR PURPOSE.
  */
 #include <cvt/gfx/IKernel.h>
+#include <cvt/gfx/Image.h>
+#include <cvt/gfx/IMapScoped.h>
 
 namespace cvt {
 	static float _id[] = { 1.0f };
@@ -62,5 +64,20 @@ namespace cvt {
 
 	const IKernel IKernel::LAPLACE_5_XX = IKernel( 5, 1, _laplace5_data );
 	const IKernel IKernel::LAPLACE_5_YY = IKernel( 1, 1, _laplace5_data );
+
+	void IKernel::toImage( Image& dst ) const
+	{
+		dst.reallocate( width(), height(), IFormat::GRAY_FLOAT );
+
+		IMapScoped<float> map( dst );
+		size_t h = dst.height();
+		size_t w = dst.width();
+		for( size_t y = 0; y < h; y++ ) {
+			float* ptr = map.ptr();
+			for( size_t x = 0; x < w; x++ )
+				ptr[ x ] = operator()( x, y );
+			map++;
+		}
+	}
 
 }
