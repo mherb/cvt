@@ -27,6 +27,6 @@ int main()
 
 	IKernel k = IKernel::createGabor( 3.0f, Math::deg2Rad( 0.0f ), 15.0f, 1.0f, 0.0f );
 	k.toImage( img );
-	img.colorCode( out, ICOLORCODE_HOT, -1.0f, 1.0f );
+	img.colorCode( out, ICOLORCODE_PM3D, -1.0f, 1.0f );
 	out.save( "bla.png" );
 }
