@@ -451,7 +451,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/features/Harris.h
    vision/features/NMSFilter.h
    vision/features/MatchBruteForce.h
-   vision/features/ORB.cpp
+   vision/features/ORB.h
    vision/features/ORBPattern.h
    vision/features/RowLookupTable.h
 # vision/Ferns.h
