@@ -256,6 +256,8 @@ SET(${MODULE_NAME}_HEADERS
    gfx/Font.h
    gfx/Alignment.h
    gfx/Path.h
+   gfx/PDROF.h
+   gfx/PDROFInpaint.h
    gfx/DummyFont.h
    gl/OpenGL.h
    gl/GLFBO.h
@@ -448,6 +450,9 @@ SET(${MODULE_NAME}_HEADERS
    vision/features/FeatureSet.h
    vision/features/Harris.h
    vision/features/NMSFilter.h
+   vision/features/MatchBruteForce.h
+   vision/features/ORB.h
+   vision/features/ORBPattern.h
    vision/features/RowLookupTable.h
 # vision/Ferns.h
 #   vision/internal/Fern.h
@@ -458,7 +463,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/KLTPatch.h
    vision/LSH.h
    vision/MeasurementModel.h
-   vision/features/ORBPattern.h
    vision/Patch.h
    vision/PatchGenerator.h
    vision/PointCorrespondences3d2d.h

@@ -14,8 +14,8 @@
 
 #include <cvt/gfx/ifilter/ROFFGPFilter.h>
 
-#include "PDROF.h"
-//#include "PDROFInpaint.h"
+#include <cvt/gfx/PDROF.h>
+//#include <cvt/gfx/PDROFInpaint.h>
 
 #include "pmstereo.h"
 #include "gradxy.h"

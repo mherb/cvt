@@ -17,8 +17,7 @@
 #include <cvt/vision/features/FeatureSet.h>
 #include <cvt/vision/features/FeatureDescriptor.h>
 #include <cvt/vision/features/FeatureDescriptorExtractor.h>
-
-#include "MatchBruteForce.inl"
+#include <cvt/vision/features/MatchBruteForce.h>
 
 namespace cvt {
 
