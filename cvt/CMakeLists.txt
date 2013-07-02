@@ -472,6 +472,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/FCKeyframe.h
    vision/rgbdvo/GridFeatureKeyframe.h
    vision/rgbdvo/ICKeyframe.h
+   vision/rgbdvo/KeyframeData.h
    vision/rgbdvo/InformationSelection.h
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/GNOptimizer.h
