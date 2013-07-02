@@ -109,7 +109,7 @@ void createAppDefineKF( const Matrix3f& K, const String& folder, ConfigFile& cfg
     } else if( keyframeType == "ESM" ){
         std::cout << "Using ESM Algorithm" << std::endl;
         createAppDefineLF<ESMKeyframe<WarpType>, WarpType>( K, folder, cfg );
-	} else if( keyframeType == "GridKF" ){
+    } else if( keyframeType == "Grid" ){
 		std::cout << "Using Grid Feature Keyframe Algorithm" << std::endl;
 		createAppDefineLF<GridFeatureKeyframe<WarpType>, WarpType>( K, folder, cfg );
 	} else {
