@@ -256,6 +256,8 @@ SET(${MODULE_NAME}_HEADERS
    gfx/Font.h
    gfx/Alignment.h
    gfx/Path.h
+   gfx/PDROF.h
+   gfx/PDROFInpaint.h
    gfx/DummyFont.h
    gl/OpenGL.h
    gl/GLFBO.h
