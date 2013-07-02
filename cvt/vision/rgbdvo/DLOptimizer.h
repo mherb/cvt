@@ -40,6 +40,8 @@ namespace cvt {
                                       const Image& /*depthImage*/,
                                       size_t octave );
 
+            using Base::optimizeSingleScale;
+
         private:
             float   _trIncreaseFactor;
             float   _trDecreaseFactor;

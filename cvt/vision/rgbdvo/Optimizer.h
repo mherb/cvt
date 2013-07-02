@@ -144,7 +144,7 @@ namespace cvt {
             typedef typename WarpFunc::HessianType      HessianType;
             typedef typename WarpFunc::DeltaVectorType  DeltaType;
             typedef RGBDKeyframe<WarpFunc>              KFType;
-            typedef typename KFType::AlignmentData      AlignDataType;
+            typedef AlignmentData<WarpFunc>             AlignDataType;
 
 
             struct Result {
@@ -222,12 +222,13 @@ namespace cvt {
 
             void resetOverallDelta();
 
-        private:
+        protected:
             virtual void optimizeSingleScale( Result& result,
-                                              RGBDKeyframe<WarpFunc>& reference,
+                                              KFType& reference,
                                               const Image& gray,
                                               const Image& depthImage,
                                               size_t octave ) = 0;
+
 
 			virtual void optimizeSingleScale( Result& /*result*/,
 											  KFType* /*references*/, size_t /*nRefs*/,

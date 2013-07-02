@@ -38,6 +38,8 @@ namespace cvt {
                                       const Image& gray,
                                       const Image& /*depthImage*/,
                                       size_t octave );
+
+            using Base::optimizeSingleScale;
     };
 
     template <class WarpFunc, class LossFunc>
