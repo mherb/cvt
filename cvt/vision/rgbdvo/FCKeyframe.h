@@ -23,9 +23,9 @@ namespace cvt {
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;
-            typedef typename Base::ScreenJacVec         ScreenJacVec;
-            typedef typename Base::AlignmentData        AlignmentData;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;            
             typedef typename Base::GradientType         GradientType;
+            typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             FCKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~FCKeyframe();
@@ -72,7 +72,7 @@ namespace cvt {
         std::vector<float> intGradX;
         std::vector<float> intGradY;
 
-        const AlignmentData& data = this->dataForScale( octave );
+        const AlignmentDataType& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix

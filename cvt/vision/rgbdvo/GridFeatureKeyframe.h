@@ -12,6 +12,7 @@
 #define CVT_GRIDFEATURE_KEYFRAME_H
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
+#include <cvt/geom/PointSet.h>
 
 namespace cvt {
 
@@ -76,7 +77,7 @@ namespace cvt {
 				int r = pt.y / _sy;
 				int c = pt.x / _sx;
 
-				if( r >= _rows || c >= _cols ){
+				if( r >= (int)_rows || c >= (int)_cols ){
 					throw CVTException( "point out of grid range" );
 				}
 
@@ -105,9 +106,9 @@ namespace cvt {
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;
-            typedef typename Base::ScreenJacVec         ScreenJacVec;
-            typedef typename Base::AlignmentData        AlignmentData;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;            
             typedef typename Base::GradientType         GradientType;
+            typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             GridFeatureKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~GridFeatureKeyframe();
@@ -118,33 +119,32 @@ namespace cvt {
                             JacobianVec& jacobians,
                             const WarpFunc& warp,
                             const IMapScoped<const float>& gray,
-                            size_t octave );
-
-			virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
-			virtual void updateOfflineDataForScale( AlignmentData& data,
-													const Image& gray,
-													const Image& depth,
-													float scale );
+                            size_t octave );			
 
         private:
             ImagePyramid	_onlineGradientsX;
             ImagePyramid	_onlineGradientsY;
 
-			Grid			_grid;
+			size_t          _cellSizeX;
+			size_t          _cellSizeY;
 
-            void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
+			void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
 
-			void updateGrid();
+			void updateOfflineDataForScale( AlignmentData<WarpFunc> &data,
+											const Image& gray,
+											const Image& depth,
+											float scale );
+
     };
 
     template <class WarpFunc>
     inline GridFeatureKeyframe<WarpFunc>::GridFeatureKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
         RGBDKeyframe<WarpFunc>( K, octaves, scale ),
         _onlineGradientsX( octaves, scale ),
-		_onlineGradientsY( octaves, scale ),
-		_grid( 5, 5 )
+        _onlineGradientsY( octaves, scale ),
+        _cellSizeX( 10 ),
+        _cellSizeY( 10 )
     {
-		_grid.resize( 640, 480 );
     }
 
     template <class WarpFunc>
@@ -167,7 +167,7 @@ namespace cvt {
         std::vector<float> intGradX;
         std::vector<float> intGradY;
 
-        const AlignmentData& data = this->dataForScale( octave );
+        const AlignmentDataType& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix
@@ -204,7 +204,6 @@ namespace cvt {
             if( interpolatedPixels[ i ] >= 0.0f ){
                 grad.coeffRef( 0, 0 ) = intGradX[ i ];
                 grad.coeffRef( 0, 1 ) = intGradY[ i ];
-                // compute the Fwd jacobians
                 WarpFunc::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolatedPixels[ i ] );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
@@ -219,7 +218,6 @@ namespace cvt {
 	{
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );
-		// TODO: update the jacobians: for each scale?
 	}
 
     template <class WarpFunc>
@@ -230,136 +228,84 @@ namespace cvt {
     }
 
 
-	template <class WarpFunc>
-	inline void GridFeatureKeyframe<WarpFunc>::updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth )
-	{
-		this->_pose = pose;
+    template <class WarpFunc>
+    inline void GridFeatureKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData<WarpFunc> &data,
+                                                                          const Image& gray,
+                                                                          const Image& depth,
+                                                                          float scale )
+    {
+        IMapScoped<const float> depthMap( depth );
+        size_t depthStride = depthMap.stride() / sizeof( float );
 
-		// clear the grid
-		_grid.clearIds();
+        Vector2f currP;
+        Vector3f p3d, p3dw;
+        GradientType g;
+        JacobianType j;
+        ScreenJacobianType sj;
 
-		// TODO: propagate the current features using the given pose
-		// add the 2d features to the grid
-		// use the consistent features also for this keyframe
-		// keep the 3D feature value?
-		// update the intensity?
-		// update the gradient?
+        // compute the image gradients
+        this->computeImageGradients( data.gradX, data.gradY, gray );
+        data.gray = gray;
 
-		IMapScoped<const float> depthMap( depth );
 		// go over all empty grid cells
-		Grid::const_iterator it = _grid.begin();
-		const Grid::const_iterator itEnd = _grid.end();
+		Grid grid( _cellSizeX, _cellSizeY );
+		grid.resize( gray.width(), gray.height() );
 
-		Vector2f p2d;
-		Vector3f p3d;
+        // TODO: propagate the old values, not only clearing
+        data.clear();
+        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+        data.reserve( 0.4f * pixelsOnOctave );
 
-		const Matrix3f& intr = this->dataForScale( 0 ).intrinsics();
-		std::vector<float> tmpx( pyramid[ 0 ].width() );
-		std::vector<float> tmpy( pyramid[ 1 ].height() );
-		this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
-		this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+        std::vector<float> tmpx( gray.width() );
+        std::vector<float> tmpy( gray.height() );
 
+        const Matrix3f& intr = data.intrinsics();
+        this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+        this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
 
+        IMapScoped<const float> gxMap( data.gradX );
+        IMapScoped<const float> gyMap( data.gradY );
+        IMapScoped<const float> grayMap( data.gray );
+
+        const float* gx = gxMap.ptr();
+        const float* gy = gyMap.ptr();
+        const float* value = grayMap.ptr();
+        size_t fStride = gxMap.stride() / sizeof( float );
+
+		Grid::const_iterator it = grid.begin();
+		const Grid::const_iterator itEnd = grid.end();
 		while( it != itEnd ){
 			if( it->isEmpty() ){
 				const Cell& cell = *it;
+				// scale the point to standard resolution for depth access
+				if( cell.cx < ( int )gray.width() && cell.cy < ( int )gray.height() ){
+					currP.x = scale * cell.cx;
+					currP.y = scale * cell.cy;
+					p3d.z = this->interpolateDepth( currP, depthMap.ptr(), depthStride );
 
-				p2d.x = cell.cx;
-				p2d.y = cell.cy;
-				p3d.z = this->interpolateDepth( p2d, depthMap.ptr(), depthMap.stride() );
-				if( p3d.z > this->_minDepth && p3d.z < this->_maxDepth ){
-					// use this point
-					p3d[ 0 ] = tmpx[ cell.cx ] * p3d.z;
-					p3d[ 1 ] = tmpy[ cell.cy ] * p3d.z;
+					if( p3d.z > this->_minDepth && p3d.z < this->_maxDepth ){
+						// use this point
+						p3d[ 0 ] = tmpx[ cell.cx ] * p3d.z;
+						p3d[ 1 ] = tmpy[ cell.cy ] * p3d.z;
 
-					// TODO: evaluate the jacobians - for forward, jacobian eval is actually not needed here?
+						// gradient
+						size_t offset = (fStride * cell.cy) + cell.cx;
+						g( 0, 0 ) = gx[ offset ];
+						g( 0, 1 ) = gy[ offset ];
+
+						float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
+						if( salience > this->_gradientThreshold ){
+							// point in world coord frame
+							p3dw = this->_pose * p3d;
+							WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
+							data.add( p3dw, sj, g, value[ offset ] );
+						}
+					}
 				}
 			}
 			++it;
 		}
-
-
-		float scale = 1.0f;
-		for( size_t i = 0; i < pyramid.octaves(); i++ ){
-			this->updateOfflineDataForScale( this->_dataForScale[ i ], pyramid[ i ], depth, scale );
-			scale /= pyramid.scaleFactor();
-		}
 	}
-
-	template <class WarpFunc>
-	inline void GridFeatureKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData& data,
-																		  const Image& gray,
-																		  const Image& depth,
-																		  float scale )
-	{
-		IMapScoped<const float> depthMap( depth );
-		const float* d = depthMap.ptr();
-		size_t depthStride = depthMap.stride() / sizeof( float );
-
-		Vector2f currP;
-		Vector3f p3d, p3dw;
-		GradientType g;
-		JacobianType j;
-		ScreenJacobianType sj;
-
-		// compute the image gradients
-		this->computeImageGradients( data.gradX, data.gradY, gray );
-		data.gray = gray;
-
-		// TODO: try to reproject last features to this frame
-
-		data.clear();
-		size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
-		data.reserve( 0.4f * pixelsOnOctave );
-
-		// TODO: replace this by a simd function!
-		// temp vals
-		const Matrix3f& intr = data.intrinsics();
-		std::vector<float> tmpx( gray.width() );
-		std::vector<float> tmpy( gray.height() );
-		this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
-		this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
-
-		IMapScoped<const float> gxMap( data.gradX );
-		IMapScoped<const float> gyMap( data.gradY );
-		IMapScoped<const float> grayMap( data.gray );
-
-		for( size_t y = 0; y < gray.height() - 1; y++ ){
-			const float* gx = gxMap.ptr();
-			const float* gy = gyMap.ptr();
-			const float* value = grayMap.ptr();
-
-			// scale the point
-			currP.y = scale * y;
-
-			for( size_t x = 0; x < gray.width() - 1; x++ ){
-				currP.x = scale * x;
-				float z = this->interpolateDepth( currP, d, depthStride );
-				if( z > this->_minDepth && z < this->_maxDepth ){
-					g( 0, 0 ) = gx[ x ];
-					g( 0, 1 ) = gy[ x ];
-
-					float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
-					if( salience > this->_gradientThreshold ){
-						p3d[ 0 ] = tmpx[ x ] * z;
-						p3d[ 1 ] = tmpy[ y ] * z;
-						p3d[ 2 ] = z;
-
-						// point in world coord frame
-						p3dw = this->_pose * p3d;
-
-						WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
-
-						data.add( p3dw, sj, g, value[ x ] );
-					}
-				}
-			}
-			gxMap++;
-			gyMap++;
-			grayMap++;
-		}
-	}
-
 
 }
 

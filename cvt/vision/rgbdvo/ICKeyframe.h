@@ -40,9 +40,9 @@ namespace cvt
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
-            typedef typename Base::JacobianVec          JacobianVec;
-            typedef typename Base::AlignmentData        AlignmentData;
+            typedef typename Base::JacobianVec          JacobianVec;            
             typedef typename Base::GradientType         GradientType;
+            typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             ICKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~ICKeyframe();
@@ -78,7 +78,7 @@ namespace cvt
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
 
-        const AlignmentData& data = this->dataForScale( octave );
+        const AlignmentDataType& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix

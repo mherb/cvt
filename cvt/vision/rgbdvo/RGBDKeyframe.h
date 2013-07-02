@@ -19,15 +19,12 @@
 
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/InformationSelection.h>
+#include <cvt/vision/rgbdvo/KeyframeData.h>
 
 #include <Eigen/StdVector>
 
 namespace cvt
 {
-
-    // TODO: ALignmentData should be subclassed for ESM / IC / Fwd
-
-
     template <class Warp>
     class RGBDKeyframe {
         public:
@@ -38,99 +35,14 @@ namespace cvt
             typedef typename Warp::HessianType      HessianType;
             typedef Eigen::Matrix<float, 1, 2>      GradientType;
             typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
-            typedef std::vector<JacobianType, Eigen::aligned_allocator<JacobianType> > JacobianVec;
-
-            class AlignmentData {
-                public:
-                    Image                       gray;
-                    Image                       gradX;
-                    Image                       gradY;
-
-                    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-                    void reserve( size_t size )
-                    {
-                        _points3d.reserve( size );
-                        _pixelValues.reserve( size );
-                        _jacobians.reserve( size );
-                        _screenJacobians.reserve( size );
-                    }
-
-                    void clear()
-                    {
-                        _points3d.clear();
-                        _pixelValues.clear();
-                        _jacobians.clear();
-                        _screenJacobians.clear();
-                    }
-
-                    void add( const Vector3f& point,
-                              const ScreenJacobianType& jac,
-                              const GradientType& iGrad,
-                              float val )
-                    {
-                        _points3d.push_back( point );
-                        _screenJacobians.push_back( jac );
-                        _jacobians.push_back( JacobianType() );
-                        Warp::computeJacobian( _jacobians.back(), jac, iGrad, val );
-                        _pixelValues.push_back( val );
-                    }
-
-                    size_t size() const { return _points3d.size(); }
-
-                    const Matrix3f& intrinsics() const { return _intrinsics; }
-                    void setIntrinsics( const Matrix3f& intr ){ _intrinsics = intr; }
-
-                    const std::vector<Vector3f>&     points()    const { return _points3d; }
-                    const std::vector<float>&        pixels()    const { return _pixelValues; }
-
-                    // these are the offline jacobians
-                    const JacobianVec& jacobians() const { return _jacobians; }
-                    const ScreenJacVec& screenJacobians() const { return _screenJacobians; }
-
-                    void selectInformation( size_t n )
-                    {
-                        if( size() <= n )
-                            return;
-
-                        InformationSelection<JacobianType> selector( n );
-                        const std::set<size_t>& ids = selector.selectInformation( &_jacobians[ 0 ], _jacobians.size() );
-
-                        // now rearrange the data according to the ids:
-                        std::set<size_t>::const_iterator it = ids.begin();
-                        const std::set<size_t>::const_iterator end = ids.end();
-
-                        size_t saveIdx = 0;
-                        while( it != end ){
-                            _jacobians[ saveIdx ] = _jacobians[ *it ];
-                            _points3d[ saveIdx ] = _points3d[ *it ];
-                            _pixelValues[ saveIdx ] = _pixelValues[ *it ];
-                            _screenJacobians[ saveIdx ] = _screenJacobians[ *it ];
-
-                            ++saveIdx;
-                            ++it;
-                        }
-
-                        // remove the rest
-                        _jacobians.erase( _jacobians.begin() + n, _jacobians.end() );
-                        _points3d.erase( _points3d.begin() + n, _points3d.end() );
-                        _pixelValues.erase( _pixelValues.begin() + n, _pixelValues.end() );
-                        _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
-                    }
-
-                protected:
-                    std::vector<Vector3f>       _points3d;
-                    std::vector<float>          _pixelValues;
-                    JacobianVec                 _jacobians;
-                    ScreenJacVec                _screenJacobians;
-                    Matrix3f                    _intrinsics;
-            };
+            typedef std::vector<JacobianType, Eigen::aligned_allocator<JacobianType> > JacobianVec;           
 
             RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale );
 
             virtual ~RGBDKeyframe();
 
-            const AlignmentData&    dataForScale( size_t o )       const { return _dataForScale[ o ]; }
-            const Matrix4f&         pose()                         const { return _pose; }
+            const AlignmentData<Warp>&  dataForScale( size_t o )       const { return _dataForScale[ o ]; }
+            const Matrix4f&             pose()                         const { return _pose; }
 
             // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
             // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
@@ -155,7 +67,7 @@ namespace cvt
             const IKernel& kernelDy() const { return _ky; }
 
 			virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
-			virtual void updateOfflineDataForScale( AlignmentData& data,
+			virtual void updateOfflineDataForScale( AlignmentData<Warp>& data,
                                                     const Image& gray,
                                                     const Image& depth,
                                                     float scale );
@@ -174,7 +86,7 @@ namespace cvt
 
 
         protected:
-            typedef std::vector<AlignmentData, Eigen::aligned_allocator<AlignmentData> > AlignmentDataVector;
+            typedef std::vector<AlignmentData<Warp> , Eigen::aligned_allocator<AlignmentData<Warp> > > AlignmentDataVector;
             Matrix4f            _pose;
             AlignmentDataVector _dataForScale;
             Image               _depth;
@@ -331,7 +243,7 @@ namespace cvt
     }
 
     template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData& data,
+    inline void RGBDKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData<WarpFunc> &data,
                                                                    const Image& gray,
                                                                    const Image& depth,
                                                                    float scale )

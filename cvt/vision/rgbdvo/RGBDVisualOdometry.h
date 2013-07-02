@@ -27,11 +27,10 @@ namespace cvt {
     class RGBDVisualOdometry
     {
         public:
-            typedef typename KFType::WarpType   Warp;
-            typedef typename RGBDKeyframe<Warp>::AlignmentData   AlignDataType;
-            typedef Optimizer<Warp, LossFunction> OptimizerType;
+            typedef typename KFType::WarpType       Warp;
+            typedef AlignmentData<Warp>             AlignDataType;
+            typedef Optimizer<Warp, LossFunction>   OptimizerType;
             typedef typename OptimizerType::Result  Result;
-
 
             struct Params {
                 Params() :
