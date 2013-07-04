@@ -147,6 +147,7 @@ SET( CL_KERNELS
 	cl/kernel/PDHuber.cl
 	cl/kernel/PDHuberWeighted.cl
 	cl/kernel/PDHuberWeightedInpaint.cl
+	cl/kernel/pmhstereo.cl
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )
@@ -465,6 +466,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/MeasurementModel.h
    vision/Patch.h
    vision/PatchGenerator.h
+   vision/PMHuberStereo.h
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
    vision/StereoRectification.h
@@ -689,6 +691,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/features/RowLookupTableTest.cpp
    vision/PatchGenerator.cpp
    vision/Patch.cpp
+   vision/PMHuberStereo.cpp
    vision/SparseBundleAdjustment.cpp
    vision/StereoRectification.cpp
    vision/rgbdvo/InformationSelectionTest.cpp
