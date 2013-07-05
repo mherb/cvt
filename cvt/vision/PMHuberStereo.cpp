@@ -117,6 +117,7 @@ namespace cvt {
 		for( size_t iter = 0; iter < iterations; iter++ ) {
 			int swap = iter & 1;
 #if 1
+			std::cout << "Theta: " << theta << std::endl;
 			_clpmh_depthmap.setArg( 0, clsmoothtmp );
 			_clpmh_depthmap.setArg( 1, *clmatches1[ swap ]  );
 			_clpmh_depthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
@@ -217,7 +218,7 @@ namespace cvt {
 //			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 4 )
-				theta = Math::smoothstep<float>( ( ( iter - 4 ) / ( ( float ) iterations - 4.0f ) )  ) * 1.0f;
+				theta = Math::smoothstep<float>( ( ( iter - 4.0f ) / ( ( float ) iterations - 4.0f ) )  ) * 1.0f;
 		}
 
 		_clpmh_consistency.setArg( 0, clsmoothtmp );

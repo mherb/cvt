@@ -97,7 +97,7 @@ namespace cvt {
 						// match all features of this row
 						const RowLookupTable::Row& row = rlt.row( y );
 						int k = row.start;
-						int rEnd = k + row.len;
+						size_t rEnd = k + row.len;
 						for( size_t k = row.start; k < rEnd; ++k ){
 							const T& d1 = setB[ k ];
 							if( d1.pt.x < minX )
