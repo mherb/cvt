@@ -12,7 +12,7 @@ namespace cvt {
 			PMHuberStereo();
 			~PMHuberStereo();
 
-			void depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, size_t iterations, size_t viewsamples );
+			void depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples );
 
 		private:
 			CLKernel _clpmh_init;

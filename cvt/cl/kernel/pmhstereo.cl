@@ -1,12 +1,11 @@
 #import "RNG.cl"
 
-#define DEPTHMAX 100.0f
 #define PROPSIZE 1
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.2f
 #define NORMALCOMPMAX 0.95f
 #define NUMRNDTRIES	 3
-#define NUMRNDSAMPLE 2
+#define NUMRNDSAMPLE 3
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -24,9 +23,9 @@ const sampler_t SAMPLER_BILINEAR = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLA
 
 float4 nd_state_viewprop( const float4 state );
 
-float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul )
+float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul, const float depthmax )
 {
-	float z = RNG_float( rng ) * DEPTHMAX;
+	float z = RNG_float( rng ) * depthmax;
 	float4 n;
 	n.x = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
 	n.y = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
@@ -57,7 +56,7 @@ float4 nd_state_to_ref_normal_depth( const float4 state, const float2 coord, con
 	return ret;
 }
 
-float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int lr )
+float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, const float depthmax, int lr )
 {
 	float4 n;
 	float4 state = _state;
@@ -70,7 +69,7 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, int l
 	n.y = -state.y * n.z;
 
 	z += ( RNG_float( rng ) - 0.5f ) * DEPTHREFINEMUL;
-	z = clamp( z, 0.0f, DEPTHMAX );
+	z = clamp( z, 0.0f, depthmax );
 	n.x += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
 	n.y += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
 
@@ -98,7 +97,7 @@ float2 nd_state_transform( const float4 state, const float2 coord )
 	return ( float2 ) ( state.x * coord.x + state.y * coord.y + state.z, coord.y );
 }
 
-float4 nd_state_to_color( const float4 _state, const float2 coord )
+float4 nd_state_to_color( const float4 _state, const float2 coord, const float depthmax )
 {
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
@@ -106,7 +105,7 @@ float4 nd_state_to_color( const float4 _state, const float2 coord )
 	n.x = -state.x / n.z;
 	n.y = -state.y / n.z;
 	n.xy = n.xy * 0.5f + 0.5f;
-	n.z = ( state.x * coord.x + state.y * coord.y + state.z ) / DEPTHMAX;
+	n.z = ( state.x * coord.x + state.y * coord.y + state.z ) / depthmax;
 	n.w = 1.0f;
 	return n;
 }
@@ -197,7 +196,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 	return ret1 / wsum1;
 }
 
-kernel void pmhstereo_init( write_only image2d_t output, read_only image2d_t img1, read_only image2d_t img2, read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize, const int lr )
+kernel void pmhstereo_init( write_only image2d_t output, read_only image2d_t img1, read_only image2d_t img2, read_only image2d_t gimg1, read_only image2d_t gimg2, const int patchsize, const float depthmax, const int lr )
 {
 	RNG rng;
 	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
@@ -210,7 +209,7 @@ kernel void pmhstereo_init( write_only image2d_t output, read_only image2d_t img
 
 	RNG_init( &rng, coord.y * width + coord.x, 3 );
 
-	float4 ret = nd_state_init( &rng, coordf, lr, 1.0f );
+	float4 ret = nd_state_init( &rng, coordf, lr, 1.0f, depthmax );
 
 	ret.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, ret, patchsize, lr );
 
@@ -233,12 +232,12 @@ kernel void pmhstereo_viewbuf_clear( global VIEWPROP_t* vbuf, const int width, c
 	vbuf[ width * gy + gx ].n = 0;
 }
 
-float2 smoothDistance( const float4 statea, const float4 stateb, const float4 smooth, const float2 coord, int lr )
+float2 smoothDistance( const float4 statea, const float4 stateb, const float4 smooth, const float2 coord, const float depthmax, int lr )
 {
   float2 ret;
   float4 a = nd_state_to_ref_normal_depth( statea, coord, lr );
   float4 b = nd_state_to_ref_normal_depth( stateb, coord, lr );
-  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 0.0f, 1.0f / ( DEPTHMAX * DEPTHMAX ) );
+  const float4 diag = ( float4 ) ( 1.0f, 1.0f, 0.0f, 1.0f / ( depthmax * depthmax ) );
 
   if( !all( isfinite( statea.xyz ) ) || !all( isfinite( stateb.xyz ) ) )
 	  return ( float2 ) 0.0f;
@@ -256,7 +255,7 @@ float2 smoothDistance( const float4 statea, const float4 stateb, const float4 sm
 kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only image2d_t old,
 							    read_only image2d_t img1, read_only image2d_t img2,
 								read_only image2d_t gimg1, read_only image2d_t gimg2, read_only image2d_t imsmoooth, const float theta,
-								const int patchsize, const int lr, const int iter,
+								const int patchsize, const float depthmax, const int lr, const int iter,
 							    global VIEWPROP_t* viewin, global VIEWPROP_t* viewout )
 {
 	RNG rng;
@@ -288,7 +287,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 		return;
 
 	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
-	smooth = ( float4 ) ( smooth.x, smooth.y, native_sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * DEPTHMAX );
+	smooth = ( float4 ) ( smooth.x, smooth.y, native_sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * depthmax );
 
 	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
 
@@ -304,7 +303,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 			neighbour = buf[ ly + PROPSIZE + py ][ lx + PROPSIZE + px ];
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 			if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 		}
 	}
@@ -315,7 +314,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 		neighbour = nd_state_viewprop( neighbour );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-	float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+	float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 
 	// rand neighbourhood tries
@@ -323,15 +322,15 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 			neighbour = read_imagef( old, SAMPLER_NN, (int2)(gx,gy) + ( int2 )( RNG_float(&rng) * 7.0f + 0.5f, RNG_float(&rng) * 7.0f + 0.5f ) );
 			neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+			float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 			if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 	}
 
 	// random try
-	neighbour = nd_state_init( &rng, coordf, lr, 2.0f );
+	neighbour = nd_state_init( &rng, coordf, lr, 2.0f, depthmax );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-	sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+	sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 
 	// try other view
@@ -341,17 +340,17 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 		neighbour = viewin[ width * gy + gx ].value[ i ];
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 	}
 #endif
 
 	// randomized refinement
 	for( int i = 0; i < NUMRNDTRIES - 1; i++ ) {
-		neighbour = nd_state_refine( &rng, self, coordf, lr );
+		neighbour = nd_state_refine( &rng, self, coordf, depthmax, lr );
 		neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, lr );
+		float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 		if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 	}
 
@@ -370,7 +369,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 	write_imagef( output, coord, self );
 }
 
-kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d_t old )
+kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d_t old, const float depthmax )
 {
 	int2 coord;
 	const int width = get_image_width( depthmap );
@@ -384,9 +383,9 @@ kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d
 
 	float4 state = read_imagef( old, SAMPLER_NN, coord );
 	float4 val;
-	float x = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
-	if( x >= 0.0f && x <= DEPTHMAX )
-		val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / DEPTHMAX;
+	float x = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / depthmax;
+	if( x >= 0.0f && x <= depthmax )
+		val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / depthmax;
 	else {
 		val.xyz = ( float3 ) ( 1.0f, 0.0f, 0.0f );
 		if( !all(isfinite(state.xyz)))
@@ -434,7 +433,7 @@ kernel void pmhstereo_consistency( write_only image2d_t output, read_only image2
 	write_imagef( output, coord, val );
 }
 
-kernel void pmhstereo_fill_state( write_only image2d_t output, read_only image2d_t input, int lr )
+kernel void pmhstereo_fill_state( write_only image2d_t output, read_only image2d_t input, const float depthmax, int lr )
 {
 	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
 	const int width = get_image_width( output );
@@ -476,7 +475,7 @@ kernel void pmhstereo_fill_state( write_only image2d_t output, read_only image2d
 	}
 
 	val = nd_state_to_ref_normal_depth( val, ( float2 ) ( coord.x, coord.y ), lr );
-	val = ( float4 ) ( val.x, val.y, val.w / DEPTHMAX, 1.0f );
+	val = ( float4 ) ( val.x, val.y, val.w / depthmax, 1.0f );
 	write_imagef( output, coord, val );
 }
 
@@ -543,7 +542,7 @@ kernel void pmhstereo_normalmap( write_only image2d_t normalmap, read_only image
 	write_imagef( normalmap, coord, val );
 }
 
-kernel void pmhstereo_colormap( write_only image2d_t normalmap, read_only image2d_t old )
+kernel void pmhstereo_colormap( write_only image2d_t normalmap, read_only image2d_t old, const float depthmax )
 
 {
 	int2 coord;
@@ -557,7 +556,7 @@ kernel void pmhstereo_colormap( write_only image2d_t normalmap, read_only image2
 		return;
 
 	float4 self = read_imagef( old, SAMPLER_NN, coord );
-	float4 val = nd_state_to_color( self, ( float2 ) ( coord.x, coord.y ) );
+	float4 val = nd_state_to_color( self, ( float2 ) ( coord.x, coord.y ), depthmax );
 	write_imagef( normalmap, coord, val );
 }
 
@@ -579,7 +578,7 @@ kernel void pmhstereo_clear( write_only image2d_t output )
 
 
 
-kernel void pmhstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, int lr )
+kernel void pmhstereo_normal_depth( write_only image2d_t output, read_only image2d_t input, const float depthmax, int lr )
 
 {
 	int2 coord;
@@ -594,7 +593,7 @@ kernel void pmhstereo_normal_depth( write_only image2d_t output, read_only image
 
 	float4 self = read_imagef( input, SAMPLER_NN, coord );
 	float4 val = nd_state_to_ref_normal_depth( self, ( float2 ) ( coord.x, coord.y ), lr );
-	val = ( float4 ) ( val.x, val.y, val.w / DEPTHMAX, 1.0f );
+	val = ( float4 ) ( val.x, val.y, val.w / depthmax, 1.0f );
 	write_imagef( output, coord, val );
 }
 
@@ -630,7 +629,7 @@ kernel void pmhstereo_occmap( write_only image2d_t output, read_only image2d_t l
 	write_imagef( output, coord, ( float4 ) ( val, val, val, 1.0f ) );
 }
 
-kernel void pmhstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, int lr )
+kernel void pmhstereo_lr_check( write_only image2d_t output, read_only image2d_t input1, read_only image2d_t input2, const float maxdiff, const float depthmax, int lr )
 {
 	int2 coord;
 	const int width = get_image_width( input1 );
@@ -643,12 +642,12 @@ kernel void pmhstereo_lr_check( write_only image2d_t output, read_only image2d_t
 		return;
 
 	float dorig = read_imagef( input1, SAMPLER_NN, coord ).x;
-	float d = DEPTHMAX * dorig;
+	float d = depthmax * dorig;
 
 	float2 coord2 = ( float2 ) ( coord.x, coord.y );
 	coord2.x += select( d, -d, lr );
-	float d2 = DEPTHMAX * read_imagef( input2, SAMPLER_BILINEAR, coord2 ).x;
-	float4 out = ( float4 ) select( 0.0f, dorig /* * ( DEPTHMAX * 4.0f / 256.0f )*/, fabs( d - d2) < maxdiff );
+	float d2 = depthmax * read_imagef( input2, SAMPLER_BILINEAR, coord2 ).x;
+	float4 out = ( float4 ) select( 0.0f, dorig /* * ( depthmax * 4.0f / 256.0f )*/, fabs( d - d2) < maxdiff );
 	out.w = 1.0f;
 	write_imagef( output, coord, out );
 }
@@ -697,7 +696,7 @@ __kernel void pmhstereo_weight( __write_only image2d_t out, __read_only image2d_
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	float w = exp(-3.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
+	float w = exp(-8.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }
 

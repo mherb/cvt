@@ -36,7 +36,7 @@ namespace cvt {
 	{
 	}
 
-	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, size_t iterations, size_t viewsamples )
+	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples )
 	{
 		if( left.width() != right.width() || left.height() != right.height() ||
 		    left.memType() != IALLOCATOR_CL || right.memType() != IALLOCATOR_CL )
@@ -96,7 +96,8 @@ namespace cvt {
 		_clpmh_init.setArg( 3, leftgrad );
 		_clpmh_init.setArg( 4, rightgrad );
 		_clpmh_init.setArg( 5, ( int ) patchsize );
-		_clpmh_init.setArg<int>( 6, 1 );
+		_clpmh_init.setArg( 6, depthmax );
+		_clpmh_init.setArg<int>( 7, 1 );
 		_clpmh_init.run( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 
 		_clpmh_init.setArg( 0, *clmatches2[ 0 ] );
@@ -105,7 +106,8 @@ namespace cvt {
 		_clpmh_init.setArg( 3, rightgrad );
 		_clpmh_init.setArg( 4, leftgrad );
 		_clpmh_init.setArg( 5, ( int ) patchsize );
-		_clpmh_init.setArg<int>( 6, 0 );
+		_clpmh_init.setArg( 6, depthmax );
+		_clpmh_init.setArg<int>( 7, 0 );
 		_clpmh_init.run( CLNDRange( Math::pad( right.width(), KX ), Math::pad( right.height(), KY ) ), CLNDRange( KX, KY ) );
 
 		/* Clear view propagation buffer for the right view*/
@@ -119,13 +121,15 @@ namespace cvt {
 #if 1
 			std::cout << "Theta: " << theta << std::endl;
 			_clpmh_depthmap.setArg( 0, clsmoothtmp );
-			_clpmh_depthmap.setArg( 1, *clmatches1[ swap ]  );
+			_clpmh_depthmap.setArg( 1, *clmatches1[ swap ] );
+			_clpmh_depthmap.setArg( 2, depthmax );
 			_clpmh_depthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereo1.png");
 			std::cout << "Wrote stereo1.png" << std::endl;
 
 			_clpmh_depthmap.setArg( 0, clsmoothtmp );
 			_clpmh_depthmap.setArg( 1, *clmatches2[ swap ]  );
+			_clpmh_depthmap.setArg( 2, depthmax );
 			_clpmh_depthmap.runWait( CLNDRange( Math::pad( right.width(), KX ), Math::pad( right.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereo2.png");
 			std::cout << "Wrote stereo2.png" << std::endl;
@@ -161,10 +165,11 @@ namespace cvt {
 			_clpmh_propagate.setArg( 6, leftsmooth );
 			_clpmh_propagate.setArg( 7, theta );
 			_clpmh_propagate.setArg( 8, ( int ) patchsize );
-			_clpmh_propagate.setArg<int>( 9, 1 ); // left to right
-			_clpmh_propagate.setArg( 10, ( int ) iter );
-			_clpmh_propagate.setArg( 11, viewbuf2 );
-			_clpmh_propagate.setArg( 12, viewbuf1 );
+			_clpmh_propagate.setArg( 9, depthmax );
+			_clpmh_propagate.setArg<int>( 10, 1 ); // left to right
+			_clpmh_propagate.setArg( 11, ( int ) iter );
+			_clpmh_propagate.setArg( 12, viewbuf2 );
+			_clpmh_propagate.setArg( 13, viewbuf1 );
 			_clpmh_propagate.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			_clpmh_viewbufclear.setArg( 0, viewbuf2 );
@@ -181,10 +186,11 @@ namespace cvt {
 			_clpmh_propagate.setArg( 6, rightsmooth );
 			_clpmh_propagate.setArg( 7, theta );
 			_clpmh_propagate.setArg( 8, ( int ) patchsize );
-			_clpmh_propagate.setArg<int>( 9, 0 ); // right to left
-			_clpmh_propagate.setArg( 10, ( int ) iter );
-			_clpmh_propagate.setArg( 11, viewbuf1 );
-			_clpmh_propagate.setArg( 12, viewbuf2 );
+			_clpmh_propagate.setArg( 9, depthmax );
+			_clpmh_propagate.setArg<int>( 10, 0 ); // right to left
+			_clpmh_propagate.setArg( 11, ( int ) iter );
+			_clpmh_propagate.setArg( 12, viewbuf1 );
+			_clpmh_propagate.setArg( 13, viewbuf2 );
 			_clpmh_propagate.runWait( CLNDRange( Math::pad( right.width(), KX ), Math::pad( right.height(), KY ) ), CLNDRange( KX, KY ) );
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
@@ -195,12 +201,13 @@ namespace cvt {
 
 			_clpmh_fill.setArg( 0, clsmoothtmp2 );
 			_clpmh_fill.setArg( 1, clsmoothtmp );
-			_clpmh_fill.setArg<int>( 2, 1 ); // left to right
+			_clpmh_fill.setArg( 2, depthmax );
+			_clpmh_fill.setArg<int>( 3, 1 ); // left to right
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig1.png");
-			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 50.0f + 5.0f, 200 );
-//			leftsmooth.save("stereosmooth1.png");
+			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 100.0f + 5.0f, 200 );
+			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
 			_clpmh_consistency.setArg( 1, *clmatches2[ 1 - swap ] );
@@ -210,12 +217,13 @@ namespace cvt {
 
 			_clpmh_fill.setArg( 0, clsmoothtmp2 );
 			_clpmh_fill.setArg( 1, clsmoothtmp );
-			_clpmh_fill.setArg<int>( 2, 0 ); // right to left
+			_clpmh_fill.setArg( 2, depthmax );
+			_clpmh_fill.setArg<int>( 3, 0 ); // right to left
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig2.png");
-			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 50.0f + 5.0f, 200 );
-//			rightsmooth.save("stereosmooth2.png");
+			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 100.0f + 5.0f, 200 );
+			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 4 )
 				theta = Math::smoothstep<float>( ( ( iter - 4.0f ) / ( ( float ) iterations - 4.0f ) )  ) * 1.0f;
