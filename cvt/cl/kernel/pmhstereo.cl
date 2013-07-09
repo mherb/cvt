@@ -395,7 +395,7 @@ kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d
 	write_imagef( depthmap, coord, val );
 }
 
-kernel void pmhstereo_consistency( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right, int lr )
+kernel void pmhstereo_consistency( write_only image2d_t output, read_only image2d_t left, read_only image2d_t right, const float maxdepthdiff, const float maxnormaldegdiff, int lr )
 {
 	int2 coord;
 	const int width = get_image_width( output );
@@ -429,7 +429,7 @@ kernel void pmhstereo_consistency( write_only image2d_t output, read_only image2
 	float dmax = fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x );
 //	float dmax = fmin( dmax, fabs( ( float ) coord.x - nd_state_transform( stater2, coord2 ).x ) );
 
-    float4 val = (dmax>=0.5f||acospi(ndiff)>=5.0f/180.0f)?( float4 ) 0.0f : ( statel );
+    float4 val = (dmax>=maxdepthdiff||acospi(ndiff)>=maxnormaldegdiff/180.0f)?( float4 ) 0.0f : ( statel );
 	write_imagef( output, coord, val );
 }
 
@@ -625,7 +625,7 @@ kernel void pmhstereo_occmap( write_only image2d_t output, read_only image2d_t l
 	else
 		ndiff = dot( nd_state_to_normal( stater ), nd_state_to_normal( nd_state_viewprop( statel ) ) );
 
-	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=0.5f||acospi(ndiff)>=5.0f/180.0f)? 0.0f : 1.0f;
+	float val = (fabs( ( float ) coord.x - nd_state_transform( stater, coord2 ).x )>=maxdiff||acospi(ndiff)>=5.0f/180.0f)? 0.0f : 1.0f;
 	write_imagef( output, coord, ( float4 ) ( val, val, val, 1.0f ) );
 }
 
@@ -696,7 +696,7 @@ __kernel void pmhstereo_weight( __write_only image2d_t out, __read_only image2d_
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	float w = exp(-8.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
+	float w = exp(-6.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }
 

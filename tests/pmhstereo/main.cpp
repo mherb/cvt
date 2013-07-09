@@ -35,7 +35,7 @@ int main( int argc, char** argv )
 
 		PMHuberStereo pmhs;
 
-		pmhs.depthMap( dmap, clinput1, clinput2, 25, 20, 30, 4 );
+		pmhs.depthMapInpaint( dmap, clinput1, clinput2, 22, 100, 30, 4 );
 
 		dmap.save("pmh.png");
 

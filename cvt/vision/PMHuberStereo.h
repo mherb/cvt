@@ -5,6 +5,7 @@
 #include <cvt/cl/CLKernel.h>
 
 #include <cvt/gfx/PDROF.h>
+#include <cvt/gfx/PDROFInpaint.h>
 
 namespace cvt {
 	class PMHuberStereo {
@@ -13,6 +14,7 @@ namespace cvt {
 			~PMHuberStereo();
 
 			void depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples );
+			void depthMapInpaint( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples );
 
 		private:
 			CLKernel _clpmh_init;
@@ -28,6 +30,7 @@ namespace cvt {
 			CLKernel _clpmh_gradxy;
 			CLKernel _clpmh_weight;
 			PDROF	 _pdrof;
+			PDROFInpaint _pdrofinpaint;
 	};
 
 }
