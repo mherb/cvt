@@ -90,10 +90,10 @@ int main( int argc, char** argv )
 		CL::setDefaultDevice( devs[ 0 ] );
 
 		rgbddata.setIdx( idx1 );
-		rgbddata.loadNext();
+		rgbddata.nextFrame();
 		Image clinput1( rgbddata.data().rgb, IALLOCATOR_CL );
 		rgbddata.setIdx( idx2 );
-		rgbddata.loadNext();
+		rgbddata.nextFrame();
 		Image clinput2( rgbddata.data().rgb, IALLOCATOR_CL );
 		Image clinput1g( clinput1.width(), clinput1.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
 		Image clinput2g( clinput2.width(), clinput2.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );

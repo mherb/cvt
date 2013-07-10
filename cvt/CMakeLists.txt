@@ -345,6 +345,7 @@ SET(${MODULE_NAME}_HEADERS
    io/Resources.h
    io/RawVideoWriter.h
    io/RawVideoReader.h
+   io/RGBDInput.h
    io/RGBDParser.h
    io/VideoInput.h
    io/VideoReader.h
