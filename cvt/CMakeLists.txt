@@ -345,6 +345,7 @@ SET(${MODULE_NAME}_HEADERS
    io/Resources.h
    io/RawVideoWriter.h
    io/RawVideoReader.h
+   io/RGBDInput.h
    io/RGBDParser.h
    io/VideoInput.h
    io/VideoReader.h
@@ -476,7 +477,6 @@ SET(${MODULE_NAME}_HEADERS
    vision/rgbdvo/ApproxMedian.h
    vision/rgbdvo/ESMKeyframe.h
    vision/rgbdvo/FCKeyframe.h
-   vision/rgbdvo/GridFeatureKeyframe.h
    vision/rgbdvo/ICKeyframe.h
    vision/rgbdvo/KeyframeData.h
    vision/rgbdvo/InformationSelection.h

@@ -15,12 +15,13 @@
 #include <cvt/util/Data.h>
 #include <cvt/util/DataIterator.h>
 #include <cvt/io/FileSystem.h>
+#include <cvt/io/RGBDInput.h>
 #include <cvt/gfx/Image.h>
 #include <cvt/math/Matrix.h>
 
 namespace cvt
 {
-    class RGBDParser
+    class RGBDParser : public RGBDInput
     {
         public:
             struct RGBDSample
@@ -50,15 +51,19 @@ namespace cvt
 
             RGBDParser( const String& folder, double maxStampDiff = 0.05 );
 
-            void loadNext();
+            void nextFrame();
 
             size_t				iter()    const { return _idx; }
             size_t				size()    const { return _stamps.size(); }            
             bool                hasNext() const { return _idx < _stamps.size(); }
+
+            bool                hasGroundTruthPose() const { return _sample.poseValid; }
+            Matrix4d            groundTruthPose() const { return _sample.pose<double>(); }
+            const Image&        depth() const { return _sample.depth; }
+            const Image&        rgb() const   { return _sample.rgb; }
+
             const RGBDSample&	data()    const { return _sample; }
-
             void                setIdx( size_t idx ) { _idx = idx; }
-
             const String&       rgbFile( size_t idx ) const { return _rgbFiles[ idx ]; }
             const String&       depthFile( size_t idx ) const { return _depthFiles[ idx ]; }
 
@@ -75,6 +80,7 @@ namespace cvt
 
             RGBDSample				_sample;
             size_t					_idx;
+
 
             void loadGroundTruth();
             void loadRGBFilenames( std::vector<double> & stamps );
