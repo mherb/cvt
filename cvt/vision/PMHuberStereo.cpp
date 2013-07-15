@@ -208,8 +208,8 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig1.png");
-			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 150.0f + 5.0f, 200 );
-			leftsmooth.save("stereosmooth1.png");
+			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 150.0f + 5.0f, 50 );
+//			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
 			_clpmh_consistency.setArg( 1, *clmatches2[ 1 - swap ] );
@@ -226,8 +226,8 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig2.png");
-			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 150.0f + 5.0f, 200 );
-			rightsmooth.save("stereosmooth2.png");
+			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 150.0f + 5.0f, 50 );
+//			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 4 )
 				theta = Math::smoothstep<float>( ( ( iter - 4.0f ) / ( ( float ) iterations - 4.0f ) )  ) * 1.0f;
@@ -245,7 +245,7 @@ namespace cvt {
 		dmap.reallocate( left.width(), right.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
 		_clpmh_filldepthmap.setArg( 0, dmap );
 		_clpmh_filldepthmap.setArg( 1, clsmoothtmp );
-		_clpmh_filldepthmap.setArg( 2, 1.0f );
+		_clpmh_filldepthmap.setArg( 2, 1.0f / depthmax );
 		_clpmh_filldepthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		_clpmh_outputfinal.save( "stereofinal.png" );
 
