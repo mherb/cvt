@@ -58,11 +58,12 @@ namespace cvt
             bool                hasNext() const { return _idx < _stamps.size(); }
 
             bool                hasGroundTruthPose() const { return _sample.poseValid; }
-            Matrix4d            groundTruthPose() const { return _sample.pose<double>(); }
+			Matrix4d            groundTruthPose()    const { return _sample.pose<double>(); }
             const Image&        depth() const { return _sample.depth; }
-            const Image&        rgb() const   { return _sample.rgb; }
+			const Image&        rgb()   const { return _sample.rgb; }
+			double				stamp() const { return _sample.stamp; }
 
-            const RGBDSample&	data()    const { return _sample; }
+			const RGBDSample&	data()  const { return _sample; }
             void                setIdx( size_t idx ) { _idx = idx; }
             const String&       rgbFile( size_t idx ) const { return _rgbFiles[ idx ]; }
             const String&       depthFile( size_t idx ) const { return _depthFiles[ idx ]; }
