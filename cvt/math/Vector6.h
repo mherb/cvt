@@ -22,7 +22,7 @@ namespace cvt {
                     Vector6( T x, T y, T z, T u, T v, T w );
                     Vector6( const Vector6<T>& vec );
 
-        void		set( T x, T y, T z, T u, T, v, T w );
+		void		set( T x, T y, T z, T u, T v, T w );
         void		setZero( void );
 
         T			operator[]( int index ) const;
@@ -267,51 +267,51 @@ namespace cvt {
     template <typename T> template <typename T2>
     inline Vector6<T>::operator Vector6<T2>() const
     {
-        return Vector6<T2>( ( T2 ) x, ( T2 ) y, ( T2 ) z, ( T2 )u, ( T2 )v ( T2 ) w );
+		return Vector6<T2>( ( T2 )x, ( T2 )y, ( T2 )z, ( T2 )u, ( T2 )v, ( T2 )w );
     }
 
     template<>
-    inline bool Vector6<float>::operator==( const Vector6<float> &v ) const
+	inline bool Vector6<float>::operator==( const Vector6<float> &vec ) const
     {
-        return Math::abs( v.x - x ) < Math::EPSILONF
-            && Math::abs( v.y - y ) < Math::EPSILONF
-            && Math::abs( v.z - z ) < Math::EPSILONF
-            && Math::abs( v.u - u ) < Math::EPSILONF
-            && Math::abs( v.v - v ) < Math::EPSILONF
-            && Math::abs( v.w - w ) < Math::EPSILONF;
+		return Math::abs( vec.x - x ) < Math::EPSILONF
+			&& Math::abs( vec.y - y ) < Math::EPSILONF
+			&& Math::abs( vec.z - z ) < Math::EPSILONF
+			&& Math::abs( vec.u - u ) < Math::EPSILONF
+			&& Math::abs( vec.v - v ) < Math::EPSILONF
+			&& Math::abs( vec.w - w ) < Math::EPSILONF;
     }
 
     template<>
-    inline bool Vector6<float>::operator!=( const Vector6<float> &v ) const
+	inline bool Vector6<float>::operator!=( const Vector6<float> &vec ) const
     {
-        return Math::abs( v.x - x ) > Math::EPSILONF
-            || Math::abs( v.y - y ) > Math::EPSILONF
-            || Math::abs( v.z - z ) > Math::EPSILONF
-            || Math::abs( v.u - u ) > Math::EPSILONF
-            || Math::abs( v.v - v ) > Math::EPSILONF
-            || Math::abs( v.w - w ) > Math::EPSILONF;
+		return Math::abs( vec.x - x ) > Math::EPSILONF
+			|| Math::abs( vec.y - y ) > Math::EPSILONF
+			|| Math::abs( vec.z - z ) > Math::EPSILONF
+			|| Math::abs( vec.u - u ) > Math::EPSILONF
+			|| Math::abs( vec.v - v ) > Math::EPSILONF
+			|| Math::abs( vec.w - w ) > Math::EPSILONF;
     }
 
     template<>
-    inline bool Vector6<double>::operator==( const Vector6<double> &v ) const
+	inline bool Vector6<double>::operator==( const Vector6<double> &vec ) const
     {
-        return Math::abs( v.x - x ) < Math::EPSILOND
-            && Math::abs( v.y - y ) < Math::EPSILOND
-            && Math::abs( v.z - z ) < Math::EPSILOND
-            && Math::abs( v.u - u ) < Math::EPSILOND
-            && Math::abs( v.v - v ) < Math::EPSILOND
-            && Math::abs( v.w - w ) < Math::EPSILOND;
+		return Math::abs( vec.x - x ) < Math::EPSILOND
+			&& Math::abs( vec.y - y ) < Math::EPSILOND
+			&& Math::abs( vec.z - z ) < Math::EPSILOND
+			&& Math::abs( vec.u - u ) < Math::EPSILOND
+			&& Math::abs( vec.v - v ) < Math::EPSILOND
+			&& Math::abs( vec.w - w ) < Math::EPSILOND;
     }
 
     template<>
-    inline bool Vector6<double>::operator!=( const Vector6<double> &v ) const
+	inline bool Vector6<double>::operator!=( const Vector6<double> &vec ) const
     {
-        return Math::abs( v.x - x ) > Math::EPSILOND
-            || Math::abs( v.y - y ) > Math::EPSILOND
-            || Math::abs( v.z - z ) > Math::EPSILOND
-            || Math::abs( v.u - u ) > Math::EPSILOND
-            || Math::abs( v.v - v ) > Math::EPSILOND
-            || Math::abs( v.w - w ) > Math::EPSILOND;
+		return Math::abs( vec.x - x ) > Math::EPSILOND
+			|| Math::abs( vec.y - y ) > Math::EPSILOND
+			|| Math::abs( vec.z - z ) > Math::EPSILOND
+			|| Math::abs( vec.u - u ) > Math::EPSILOND
+			|| Math::abs( vec.v - v ) > Math::EPSILOND
+			|| Math::abs( vec.w - w ) > Math::EPSILOND;
     }
 
 
