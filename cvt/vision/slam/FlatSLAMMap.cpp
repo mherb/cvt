@@ -7,9 +7,8 @@ namespace cvt{
 
 FlatSLAMMap::FlatSLAMMap(SlamMap map){
 
+    //Load features
     int numberOfFeatures = map.numFeatures();
-    int numberOfKeyframes = map.numKeyframes();
-
     for(int featureIndex = 0; featureIndex < numberOfFeatures; featureIndex++){
         double * currentEstimate = map.featureForId(featureIndex).estimate().data();
         for(int i = 0; i < 4; i++){
@@ -17,6 +16,8 @@ FlatSLAMMap::FlatSLAMMap(SlamMap map){
         }
     }
 
+    //Load keyframes
+    int numberOfKeyframes = map.numKeyframes();
     for(int keyframeIndex = 0; keyframeIndex < numberOfKeyframes; keyframeIndex++){
         const double * pose = map.keyframeForId(keyframeIndex).pose().transformation().data();
         for(int i = 0; i < 16; i++){
@@ -24,12 +25,14 @@ FlatSLAMMap::FlatSLAMMap(SlamMap map){
         }
     }
 
+    //Load intrinsics
     Eigen::Matrix3d mapIntrinsics = map.intrinsics();
     double* intrinsicsDouble = mapIntrinsics.data();
     for(unsigned int i = 0; i < sizeof(mapIntrinsics.data()); i++){
         intrinsics.push_back((float)intrinsicsDouble[i]);
     }
 
+    //Load Measurements and fill the camera and the feature index arrays
     Keyframe currentKeyframe;
     Keyframe::MeasurementIterator measEnd;
     Keyframe::MeasurementIterator measIt;
@@ -58,6 +61,7 @@ FlatSLAMMap::FlatSLAMMap(SlamMap map){
             measIt++;
         }
     }
+
 }
 
 FlatSLAMMap::~FlatSLAMMap(){
