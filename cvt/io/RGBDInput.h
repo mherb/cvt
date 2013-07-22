@@ -27,8 +27,9 @@ namespace cvt {
             virtual bool            hasGroundTruthPose() const = 0;
             virtual cvt::Matrix4d   groundTruthPose() const = 0;
 
-            virtual const Image&             depth() const = 0;
-            virtual const Image&             rgb() const = 0;
+			virtual const Image&	depth() const = 0;
+			virtual const Image&	rgb()   const = 0;
+			virtual double			stamp() const { return 0.0; }
 
             const CameraCalibration& calibration() const { return _calib; }
             void setCalibration( const CameraCalibration& calib ) { _calib = calib; }
