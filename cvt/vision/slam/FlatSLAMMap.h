@@ -3,44 +3,70 @@
 
 #include <cvt/vision/slam/SlamMap.h>
 
+#include <cvt/math/Vector.h>
+#include <cvt/util/EigenBridge.h>
+
 
 namespace cvt
 {
 
-    class FlatSLAMMap{
+    class FlatSLAMMap {
+        public:
+            FlatSLAMMap( const SlamMap& map );
+            ~FlatSLAMMap();
 
-    public:
-        FlatSLAMMap(SlamMap map);
-        ~FlatSLAMMap();
+            const cvt::Matrix3f* intrinsics() const
+            {
+                return _intrinsics.data();
+            }
 
-        const float* getIntrinsics(){
-            return intrinsics.data();
-        }
-        const float* getFeatures(){
-            return features.data();
-        }
-        const float* getCameras(){
-            return cameras.data();
-        }
-        const float* getMeasurements2D(){
-            return measurements2D.data();
-        }
-        const float* getCamIdx(){
-            return camIdx.data();
-        }
-        const float* getFeatIdx(){
-            return featIdx.data();
-        }
+            const cvt::Vector4f* features() const
+            {
+                return _features.data();
+            }
 
-    private:
-        std::vector<float> intrinsics;
-        std::vector<float> features;
-        std::vector<float> cameras;
-        std::vector<float> measurements2D;
-        std::vector<float> camIdx;
-        std::vector<float> featIdx;
-        long measurementCounter;
+            const cvt::Matrix4f* cameras() const
+            {
+                return _cameras.data();
+            }
 
+            const Vector2f* measurements2D() const
+            {
+                return _measurements2D.data();
+            }
+
+            const size_t* camIdx() const
+            {
+                return _camIdx.data();
+            }
+
+            const size_t* featIdx() const
+            {
+                return _featIdx.data();
+            }
+
+            size_t measurementCounter() const
+            {
+                return _measurementCounter;
+            }
+
+            void setFeatureParam(size_t position, cvt::Vector4f featParam){
+                _features.at(position) = featParam;
+            }
+
+            void setCameraParam(size_t position, cvt::Matrix4f camParam){
+                _cameras.at(position) = camParam;
+            }
+
+
+        private:
+            std::vector<cvt::Matrix3f> _intrinsics;
+            std::vector<cvt::Vector4f> _features;
+            std::vector<cvt::Matrix4f> _cameras;
+            std::vector<cvt::Vector2f> _measurements2D;
+            std::vector<size_t>        _camIdx;
+            std::vector<size_t>        _featIdx;
+            size_t                     _measurementCounter;
     };
 
 }

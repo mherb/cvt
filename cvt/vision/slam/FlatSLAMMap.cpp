@@ -2,71 +2,66 @@
 
 using namespace std;
 
-
 namespace cvt{
 
-FlatSLAMMap::FlatSLAMMap(SlamMap map){
+    FlatSLAMMap::FlatSLAMMap( const SlamMap& map ){
 
-    //Load features
-    int numberOfFeatures = map.numFeatures();
-    for(int featureIndex = 0; featureIndex < numberOfFeatures; featureIndex++){
-        double * currentEstimate = map.featureForId(featureIndex).estimate().data();
-        for(int i = 0; i < 4; i++){
-            features.push_back(currentEstimate[i]);
+        //Load features
+        int numberOfFeatures = map.numFeatures();
+        for(int featureIndex = 0; featureIndex < numberOfFeatures; featureIndex++){
+            Vector4f currentEstimate;
+            EigenBridge::toCVT(currentEstimate, map.featureForId(featureIndex).estimate());
+            _features.push_back(currentEstimate);
         }
-    }
 
-    //Load keyframes
-    int numberOfKeyframes = map.numKeyframes();
-    for(int keyframeIndex = 0; keyframeIndex < numberOfKeyframes; keyframeIndex++){
-        const double * pose = map.keyframeForId(keyframeIndex).pose().transformation().data();
-        for(int i = 0; i < 16; i++){
-            cameras.push_back(pose[i]);
+        //Load keyframes
+        int numberOfKeyframes = map.numKeyframes();
+        for(int keyframeIndex = 0; keyframeIndex < numberOfKeyframes; keyframeIndex++){
+            Matrix4f pose;
+            EigenBridge::toCVT(pose, map.keyframeForId(keyframeIndex).pose().transformation());
+            _cameras.push_back(pose);
         }
-    }
 
-    //Load intrinsics
-    Eigen::Matrix3d mapIntrinsics = map.intrinsics();
-    double* intrinsicsDouble = mapIntrinsics.data();
-    for(unsigned int i = 0; i < sizeof(mapIntrinsics.data()); i++){
-        intrinsics.push_back((float)intrinsicsDouble[i]);
-    }
+        //Load intrinsics
+        cvt::Matrix3f mapIntrinsics;
+        EigenBridge::toCVT(mapIntrinsics, map.intrinsics());
+        _intrinsics.push_back(mapIntrinsics);
 
-    //Load Measurements and fill the camera and the feature index arrays
-    Keyframe currentKeyframe;
-    Keyframe::MeasurementIterator measEnd;
-    Keyframe::MeasurementIterator measIt;
-    int currentFeatureIndex;
-    Eigen::Vector2d currentMeasurement;
 
-    for(int keyframeIdx = 0; keyframeIdx < numberOfKeyframes; keyframeIdx++){
-        currentKeyframe = map.keyframeForId(keyframeIdx);
-        //Eigen::Matrix<double, 4, 4>
+        //Load Measurements and fill the camera and the feature index arrays
+        Keyframe currentKeyframe;
+        Keyframe::MeasurementIterator measEnd;
+        Keyframe::MeasurementIterator measIt;
+        int currentFeatureIndex;
+        Vector2f currentMeasurement;
 
-        measEnd = currentKeyframe.measurementsEnd();
-        measIt = currentKeyframe.measurementsBegin();
+        for(int keyframeIdx = 0; keyframeIdx < numberOfKeyframes; keyframeIdx++){
+            currentKeyframe = map.keyframeForId(keyframeIdx);
+            //Eigen::Matrix<double, 4, 4>
 
-        while(measIt != measEnd){
+            measEnd = currentKeyframe.measurementsEnd();
+            measIt = currentKeyframe.measurementsBegin();
 
-            currentFeatureIndex = measIt->first;
+            while(measIt != measEnd){
 
-            featIdx.push_back(currentFeatureIndex);
-            camIdx.push_back(keyframeIdx);
+                currentFeatureIndex = measIt->first;
 
-            currentMeasurement = measIt->second.point;
-            measurements2D.push_back(currentMeasurement(0));
-            measurements2D.push_back(currentMeasurement(1));
+                _featIdx.push_back(currentFeatureIndex);
+                _camIdx.push_back(keyframeIdx);
 
-            measurementCounter++;
-            measIt++;
+                EigenBridge::toCVT(currentMeasurement, measIt->second.point );
+                _measurements2D.push_back(currentMeasurement);
+
+                _measurementCounter++;
+                measIt++;
+            }
         }
+
     }
 
-}
+    FlatSLAMMap::~FlatSLAMMap(){
 
-FlatSLAMMap::~FlatSLAMMap(){
-
-}
+    }
 
 
 }//namespace cvt
