@@ -35,6 +35,7 @@ namespace cvt {
         Vector2<T>	operator-() const;
         T			operator*( const Vector2<T> &v ) const;
         Vector2<T>	operator*( const T c ) const;
+        T			dot( const Vector2<T>& v ) const;
         Vector2<T>	cmul( const Vector2<T>& v ) const;
         Vector2<T>	operator/( const T c ) const;
         Vector2<T>	operator/( const Vector2<T>& v ) const;
@@ -144,6 +145,12 @@ namespace cvt {
     inline Vector2<T> Vector2<T>::operator*( const T c ) const
     {
         return Vector2<T>( x * c, y * c );
+    }
+
+    template<typename T>
+    inline T Vector2<T>::dot( const Vector2<T>& v ) const
+    {
+        return v.x * x + v.y * y;
     }
 
     template<typename T>
