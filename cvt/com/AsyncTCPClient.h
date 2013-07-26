@@ -11,7 +11,8 @@
 #ifndef CVT_ASYNC_TCP_CLIENT_H
 #define CVT_ASYNC_TCP_CLIENT_H
 
-#include <cvt/io/TCPServer.h>
+#include <cvt/com/TCPServer.h>
+#include <cvt/com/TCPClient.h>
 
 #include <cvt/util/Signal.h>
 #include <cvt/io/IOHandler.h>

@@ -11,11 +11,12 @@
 #ifndef CVT_TCPSERVER_H
 #define CVT_TCPSERVER_H
 
-#include <cvt/io/Socket.h>
-#include <cvt/io/TCPClient.h>
+#include <cvt/com/Socket.h>
 
 namespace cvt
 {
+	class TCPClient;
+
 	class TCPServer : public Socket
 	{
 		public:

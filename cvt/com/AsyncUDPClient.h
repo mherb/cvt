@@ -11,7 +11,7 @@
 #ifndef CVT_ASYNC_UDPCLIENT_H
 #define CVT_ASYNC_UDPCLIENT_H
 
-#include <cvt/io/UDPClient.h>
+#include <cvt/com/UDPClient.h>
 #include <cvt/util/Signal.h>
 #include <cvt/io/IOHandler.h>
 

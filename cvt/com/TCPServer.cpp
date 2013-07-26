@@ -8,7 +8,8 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/io/TCPServer.h>
+#include <cvt/com/TCPServer.h>
+#include <cvt/com/TCPClient.h>
 
 namespace cvt
 {

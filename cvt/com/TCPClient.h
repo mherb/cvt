@@ -8,17 +8,25 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/io/UDPClient.h>
+#ifndef CVT_TCPSOCKET_H
+#define CVT_TCPSOCKET_H
+
+#include <cvt/com/Socket.h>
 
 namespace cvt
 {
-	UDPClient::UDPClient() : Socket( Socket::UDP_SOCKET )
+	class TCPClient : public Socket
 	{
-		bind( "0.0.0.0", 0 );
-	}
+		friend class TCPServer;
+		public:
+			TCPClient();
+			using Socket::connect;
+			using Socket::send;
+			using Socket::receive;
 
-	UDPClient::UDPClient( const String & addr, uint16_t port ) : Socket( Socket::UDP_SOCKET )
-	{
-		bind( addr, port );
-	}
+		private:
+			TCPClient( int fd );
+	};
 }
+
+#endif

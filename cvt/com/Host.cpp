@@ -8,7 +8,7 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/io/Host.h>
+#include <cvt/com/Host.h>
 #include <arpa/inet.h>
 
 namespace cvt

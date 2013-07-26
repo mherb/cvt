@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include <cvt/io/Host.h>
+#include <cvt/com/Host.h>
 #include <cvt/util/String.h>
 
 
@@ -32,7 +32,7 @@ namespace cvt
 			void close();
 			
 			/* get the socket file descriptor (for select) */
-			int socketDescriptor() const { return _sockfd; };
+			int socketDescriptor() const { return _sockfd; }
 
 			size_t bytesAvailableForReading();
 

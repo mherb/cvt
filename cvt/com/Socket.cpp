@@ -8,7 +8,7 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/io/Socket.h>
+#include <cvt/com/Socket.h>
 
 #include <stdio.h>
 #include <sys/ioctl.h>

@@ -181,6 +181,14 @@ SET(${MODULE_NAME}_HEADERS
    cl/OpenCL.h
    container/List.h
    container/RBTree.h
+   com/Host.h
+   com/Socket.h
+   com/TCPClient.h
+   com/TCPServer.h
+   com/UDPClient.h
+   com/AsyncTCPServer.h
+   com/AsyncTCPClient.h
+   com/AsyncUDPClient.h
    geom/ArcBall.h
    geom/Box.h
    geom/CBezier.h
@@ -351,15 +359,7 @@ SET(${MODULE_NAME}_HEADERS
    io/VideoReader.h
    io/Postscript.h
    io/GFXEnginePS.h
-   io/Host.h
-   io/Socket.h
    io/StereoInput.h
-   io/TCPClient.h
-   io/TCPServer.h
-   io/UDPClient.h
-   io/AsyncTCPServer.h
-   io/AsyncTCPClient.h
-   io/AsyncUDPClient.h
    math/CostFunction.h
    math/Complex.h
    math/FFT.h
@@ -539,6 +539,11 @@ SET(${MODULE_NAME}_SOURCES
    cl/CLImageFormat.cpp
    cl/CLKernel.cpp
    cl/CLProgram.cpp
+   com/Host.cpp
+   com/Socket.cpp
+   com/TCPClient.cpp
+   com/TCPServer.cpp
+   com/UDPClient.cpp
    gfx/GFX.cpp
    gfx/GFXEngineImage.cpp
    gfx/IBoxFilter.cpp
@@ -636,11 +641,6 @@ SET(${MODULE_NAME}_SOURCES
    io/RawVideoReader.cpp
    io/RGBDParser.cpp
    io/VideoReader.cpp
-   io/Host.cpp
-   io/Socket.cpp
-   io/TCPClient.cpp
-   io/TCPServer.cpp
-   io/UDPClient.cpp
    math/Complex.cpp
    math/FFT.cpp
    math/Fixed.cpp

@@ -1,10 +1,10 @@
-#include <cvt/io/Host.h>
-#include <cvt/io/AsyncTCPClient.h>
-#include <cvt/io/AsyncTCPServer.h>
-#include <cvt/io/AsyncUDPClient.h>
-#include <cvt/io/TCPServer.h>
-#include <cvt/io/TCPClient.h>
-#include <cvt/io/UDPClient.h>
+#include <cvt/com/Host.h>
+#include <cvt/com/AsyncTCPClient.h>
+#include <cvt/com/AsyncTCPServer.h>
+#include <cvt/com/AsyncUDPClient.h>
+#include <cvt/com/TCPServer.h>
+#include <cvt/com/TCPClient.h>
+#include <cvt/com/UDPClient.h>
 
 #include <cvt/util/Data.h>
 #include <cvt/util/String.h>

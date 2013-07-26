@@ -11,7 +11,7 @@
 #ifndef CVT_UDPCLIENT_H
 #define CVT_UDPCLIENT_H
 
-#include <cvt/io/Socket.h>
+#include <cvt/com/Socket.h>
 
 namespace cvt
 {

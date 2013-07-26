@@ -8,25 +8,16 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#ifndef CVT_TCPSOCKET_H
-#define CVT_TCPSOCKET_H
-
-#include <cvt/io/Socket.h>
+#include <cvt/com/TCPClient.h>
 
 namespace cvt
 {
-	class TCPClient : public Socket
+	TCPClient::TCPClient() : Socket( Socket::TCP_SOCKET )
 	{
-		friend class TCPServer;
-		public:
-			TCPClient();
-			using Socket::connect;
-			using Socket::send;
-			using Socket::receive;
+	}
 
-		private:
-			TCPClient( int fd );
-	};
+	TCPClient::TCPClient( int fd ) :
+		Socket( Socket::TCP_SOCKET, fd )
+	{
+	}
 }
-
-#endif

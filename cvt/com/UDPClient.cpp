@@ -8,16 +8,17 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
-#include <cvt/io/TCPClient.h>
+#include <cvt/com/UDPClient.h>
 
 namespace cvt
 {
-	TCPClient::TCPClient() : Socket( Socket::TCP_SOCKET )
+	UDPClient::UDPClient() : Socket( Socket::UDP_SOCKET )
 	{
+		bind( "0.0.0.0", 0 );
 	}
 
-	TCPClient::TCPClient( int fd ) :
-		Socket( Socket::TCP_SOCKET, fd )
+	UDPClient::UDPClient( const String & addr, uint16_t port ) : Socket( Socket::UDP_SOCKET )
 	{
+		bind( addr, port );
 	}
 }

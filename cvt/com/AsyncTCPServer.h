@@ -11,7 +11,7 @@
 #ifndef CVT_ASYNC_TCP_SERVER_H
 #define CVT_ASYNC_TCP_SERVER_H
 
-#include <cvt/io/Socket.h>
+#include <cvt/com/Socket.h>
 #include <cvt/io/IOHandler.h>
 #include <cvt/util/Signal.h>
 #include <cvt/util/String.h>
