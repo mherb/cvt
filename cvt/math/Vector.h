@@ -37,6 +37,9 @@ namespace cvt {
 	typedef Vector4<float> Vector4f;
 	typedef Vector4<double> Vector4d;
 
+    typedef Vector6<float> Vector6f;
+    typedef Vector6<double> Vector6d;
+
 	typedef Vector2f Point2f;
 	typedef Vector3f Point3f;
 
@@ -59,6 +62,11 @@ namespace cvt {
 		struct Vector<4, T> {
 			typedef Vector4<T> TYPE;
 		};
+
+    template<typename T>
+        struct Vector<6, T> {
+            typedef Vector6<T> TYPE;
+        };
 
 }
 
