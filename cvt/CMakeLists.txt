@@ -493,6 +493,7 @@ SET(${MODULE_NAME}_HEADERS
    vision/slam/Keyframe.h
    vision/slam/MapFeature.h
    vision/slam/MapMeasurement.h
+   vision/slam/FlatSLAMMap.h
    vision/slam/stereo/StereoSLAM.h
    vision/slam/stereo/DescriptorDatabase.h
    vision/slam/stereo/FeatureTracking.h
@@ -697,6 +698,7 @@ SET(${MODULE_NAME}_SOURCES
    vision/rgbdvo/InformationSelectionTest.cpp
    vision/slam/Keyframe.cpp
    vision/slam/SlamMap.cpp
+   vision/slam/FlatSLAMMap.cpp
    vision/slam/stereo/FeatureTracking.cpp
    #vision/slam/stereo/KLTTracking.cpp
    #vision/slam/stereo/ORBTracking.cpp
