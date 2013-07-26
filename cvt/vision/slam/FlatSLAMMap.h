@@ -46,9 +46,19 @@ namespace cvt
 				return _featIdx.data( );
 			}
 
-			size_t measurementCounter( ) const
+			size_t numMeasurements( ) const
 			{
 				return _measurementCounter;
+			}
+
+			size_t numFeatures( ) const
+			{
+				return _features.size();
+			}
+
+			size_t numCameras( ) const
+			{
+				return _cameras.size();
 			}
 
 			void setFeatureParam( size_t position, const cvt::Vector4f& featParam )
