@@ -1,21 +1,28 @@
 PROJECT(cvt CXX C)
 
-INCLUDE(LibraryConfig)
-INCLUDE(MacroModuleConfiguration)
+# add source, current source and binary dir to search for includes
+INCLUDE_DIRECTORIES( 
+	${CMAKE_SOURCE_DIR} 
+	${CMAKE_CURRENT_SOURCE_DIR} 
+	${CMAKE_BINARY_DIR} )
+
+# build type should be set
+IF(${CMAKE_BUILD_TYPE})
+	MESSAGE(FATAL_ERROR "Build type is empty.")
+ENDIF(${CMAKE_BUILD_TYPE})
+
+# put libs/archives into lib folder and executables into bin
+SET(EXECUTABLE_OUTPUT_PATH		"${CMAKE_BINARY_DIR}/bin")
+SET(RUNTIME_OUTPUT_DIRECTORY	"${CMAKE_BINARY_DIR}/bin")
+SET(LIBRARY_OUTPUT_PATH			"${CMAKE_BINARY_DIR}/lib")
+SET(ARCHIVE_OUTPUT_DIRECTORY	"${CMAKE_BINARY_DIR}/lib")
+SET(LIBRARY_OUTPUT_DIRECTORY	"${CMAKE_BINARY_DIR}/lib")
 
 INCLUDE(GLCLTOHEADER)
-
 INCLUDE(CVTTESTS)
 
-SET(MODULE_NAME "cvt")
-
-cmake_policy(SET CMP0012 NEW)
-
-PROJECT(${MODULE_NAME} CXX C)
-
-SET( CMAKE_LIBRARY_PATH
-	${CMAKE_LIBRARY_PATH}
-	"/usr/lib/nvidia-current" )
+# TODO: this should be part of the findscript?
+SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "/usr/lib/nvidia-current" )
 
 FIND_PACKAGE(Doxygen)
 if(DOXYGEN_FOUND)
@@ -28,6 +35,7 @@ if(DOXYGEN_FOUND)
    )
 endif(DOXYGEN_FOUND)
 
+# required dependencies
 FIND_PACKAGE(Eigen3 REQUIRED QUIET)
 FIND_PACKAGE(ffmpeg REQUIRED QUIET)
 FIND_PACKAGE(OpenCL REQUIRED QUIET)
@@ -38,7 +46,7 @@ IF( UNIX AND NOT APPLE )
 ENDIF()
 
 # libs
-SET(${MODULE_NAME}_DEP_LIBRARIES
+SET(CVT_DEP_LIBRARIES
    ${LIBPNG_LIBRARY}
    ${OPENGL_LIBRARIES}
    ${OpenCL_LIBRARIES}
@@ -46,17 +54,17 @@ SET(${MODULE_NAME}_DEP_LIBRARIES
    ${ffmpeg_LIBRARIES}
 )
 
+# configure the version file
 CONFIGURE_FILE (
    "CVTVersion.h.in"
    "${CMAKE_SOURCE_DIR}/cvt/util/Version.h"
 )
-# TODO: this file needs to be shipped as header!
 
 IF( UNIX AND NOT APPLE )
-   SET(${MODULE_NAME}_DEP_LIBRARIES
-      ${${MODULE_NAME}_DEP_LIBRARIES}
-      rt
-      pthread )
+	SET( CVT_DEP_LIBRARIES
+		 ${CVT_DEP_LIBRARIES}
+		 rt
+		 pthread )
 ENDIF()
 
 SET( GLSL_SHADER
@@ -153,15 +161,15 @@ SET( CL_KERNELS
 FOREACH( CLFILE ${CL_KERNELS} )
    CLTOHEADER( ${CLFILE} )
    # add it to the generated cl headers
-   SET( CL_GEN_HEADER_${MODULE_NAME} ${CL_GEN_HEADER_${MODULE_NAME}} ${CL_GEN_OUTPUT} )
+   SET( CL_GEN_HEADER_CVT ${CL_GEN_HEADER_CVT} ${CL_GEN_OUTPUT} )
 ENDFOREACH(CLFILE)
 
 FOREACH( GLSLFILE ${GLSL_SHADER} )
    GLSLTOHEADER( ${GLSLFILE} )
-   SET( GLSL_GEN_HEADER_${MODULE_NAME} ${GLSL_GEN_HEADER_${MODULE_NAME}} ${GLSL_GEN_OUTPUT} )
+   SET( GLSL_GEN_HEADER_CVT ${GLSL_GEN_HEADER_CVT} ${GLSL_GEN_OUTPUT} )
 ENDFOREACH(GLSLFILE)
 
-SET( ${MODULE_NAME}_HEADERS
+SET( CVT_HEADERS
    cl/CLBuffer.h
    cl/CLCommandQueue.h
    cl/CLContext.h
@@ -456,8 +464,6 @@ SET( ${MODULE_NAME}_HEADERS
    vision/features/ORB.h
    vision/features/ORBPattern.h
    vision/features/RowLookupTable.h
-# vision/Ferns.h
-#   vision/internal/Fern.h
    vision/IntegralImage.h
    vision/ImagePyramid.h
    vision/Flow.h
@@ -518,8 +524,8 @@ SET( ${MODULE_NAME}_HEADERS
    io/xml/XMLNode.h
    io/xml/XMLSerializable.h
    io/xml/XMLText.h
-   ${GLSL_GEN_HEADER_${MODULE_NAME}}
-   ${CL_GEN_HEADER_${MODULE_NAME}}
+   ${GLSL_GEN_HEADER_CVT}
+   ${CL_GEN_HEADER_CVT}
    ${GLSL_SHADER}
    ${CL_KERNELS}
 )
@@ -527,193 +533,192 @@ SET( ${MODULE_NAME}_HEADERS
 SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
 SOURCE_GROUP( CL FILES ${CL_KERNELS} )
 
-SET(${MODULE_NAME}_SOURCES
-   cl/OpenCL.cpp
-   cl/CLBuffer.cpp
-   cl/CLCommandQueue.cpp
-   cl/CLContext.cpp
-   cl/CLDevice.cpp
-   cl/CLEvent.cpp
-   cl/CLException.cpp
-   cl/CLImage2D.cpp
-   cl/CLImageFormat.cpp
-   cl/CLKernel.cpp
-   cl/CLProgram.cpp
-   com/Host.cpp
-   com/Socket.cpp
-   com/TCPClient.cpp
-   com/TCPServer.cpp
-   com/UDPClient.cpp
-   gfx/GFX.cpp
-   gfx/GFXEngineImage.cpp
-   gfx/IBoxFilter.cpp
-   gfx/IConvert.cpp
-   gfx/IConvolve.cpp
-   gfx/IFill.cpp
-   gfx/IFormat.cpp
-   gfx/Color.cpp
-   gfx/Image.cpp
-   gfx/ImageOperations.cpp
-   gfx/ImageTest.cpp
-   gfx/IMorphological.cpp
-   gfx/IThreshold.cpp
-   gfx/ifilter/AdaptiveThreshold.cpp
-   gfx/ifilter/ColorCode.cpp
-   gfx/ifilter/ROFDenoise.cpp
-   gfx/ifilter/ROFFGPFilter.cpp
-   gfx/ifilter/Homography.cpp
-   gfx/ifilter/GaussIIR.cpp
-   gfx/ifilter/BrightnessContrast.cpp
-   gfx/ifilter/ITransform.cpp
-   gfx/ifilter/IWarp.cpp
-   gfx/ifilter/IntegralFilter.cpp
-   gfx/ifilter/BoxFilter.cpp
-   gfx/ifilter/GuidedFilter.cpp
-   gfx/ifilter/StereoGCVFilter.cpp
-   gfx/ifilter/Threshold.cpp
-   gfx/ifilter/TVL1Flow.cpp
-   gfx/ifilter/TVL1Stereo.cpp
-   gfx/ifilter/MorphErode.cpp
-   gfx/ifilter/MorphDilate.cpp
+SET( CVT_SOURCES
+	cl/OpenCL.cpp
+	cl/CLBuffer.cpp
+	cl/CLCommandQueue.cpp
+	cl/CLContext.cpp
+	cl/CLDevice.cpp
+	cl/CLEvent.cpp
+	cl/CLException.cpp
+	cl/CLImage2D.cpp
+	cl/CLImageFormat.cpp
+	cl/CLKernel.cpp
+	cl/CLProgram.cpp
+	com/Host.cpp
+	com/Socket.cpp
+	com/TCPClient.cpp
+	com/TCPServer.cpp
+	com/UDPClient.cpp
+	gfx/GFX.cpp
+	gfx/GFXEngineImage.cpp
+	gfx/IBoxFilter.cpp
+	gfx/IConvert.cpp
+	gfx/IConvolve.cpp
+	gfx/IFill.cpp
+	gfx/IFormat.cpp
+	gfx/Color.cpp
+	gfx/Image.cpp
+	gfx/ImageOperations.cpp
+	gfx/ImageTest.cpp
+	gfx/IMorphological.cpp
+	gfx/IThreshold.cpp
+	gfx/ifilter/AdaptiveThreshold.cpp
+	gfx/ifilter/ColorCode.cpp
+	gfx/ifilter/ROFDenoise.cpp
+	gfx/ifilter/ROFFGPFilter.cpp
+	gfx/ifilter/Homography.cpp
+	gfx/ifilter/GaussIIR.cpp
+	gfx/ifilter/BrightnessContrast.cpp
+	gfx/ifilter/ITransform.cpp
+	gfx/ifilter/IWarp.cpp
+	gfx/ifilter/IntegralFilter.cpp
+	gfx/ifilter/BoxFilter.cpp
+	gfx/ifilter/GuidedFilter.cpp
+	gfx/ifilter/StereoGCVFilter.cpp
+	gfx/ifilter/Threshold.cpp
+	gfx/ifilter/TVL1Flow.cpp
+	gfx/ifilter/TVL1Stereo.cpp
+	gfx/ifilter/MorphErode.cpp
+	gfx/ifilter/MorphDilate.cpp
 #	gfx/ifilter/Sobel.cpp
-   gfx/ImageAllocatorCL.cpp
-   gfx/ImageAllocatorGL.cpp
-   gfx/ImageAllocatorMem.cpp
-   gfx/IScaleFilter.cpp
-   gfx/IKernel.cpp
-   gfx/ColorspaceXYZ.cpp
-   geom/KDTreeTest.cpp
-   geom/MarchingCubes.cpp
-   geom/Rect.cpp
-   geom/PointSet.cpp
-   geom/PointSetTest.cpp
-   geom/scene/Scene.cpp
-   geom/scene/SceneGeometry.cpp
-   geom/scene/SceneMesh.cpp
-   gl/GLContext.cpp
-   gl/GLBuffer.cpp
-   gl/GLFBO.cpp
-   gl/GLProgram.cpp
-   gl/GLTexture.cpp
-   gl/GLVertexArray.cpp
-   gl/OpenGL.cpp
-   gl/GFXEngineGL.cpp
-   gl/GLTexFont.cpp
-   gl/GLTeapot.cpp
-   gl/progs/GLBasicProg.cpp
-   gl/progs/GLFillRoundRectProg.cpp
-   gl/progs/GLDrawTextProg.cpp
-   gl/progs/GLDrawImageProg.cpp
-   gl/progs/GLDrawIconProg.cpp
-   gl/progs/GLDrawModelProg.cpp
-   gl/progs/GLDrawTexModelProg.cpp
-   gl/progs/GLFillPathProg.cpp
-   gl/progs/GLTexMLSProg.cpp
-   gl/scene/GLSVisitor.cpp
-   gl/scene/GLSRenderableGroup.cpp
-   gl/scene/GLSBaseModel.cpp
-   gui/Application.cpp
-   gui/BasicTimer.cpp
-   gui/Button.cpp
-   gui/GLView.cpp
-   gui/Moveable.cpp
-   gui/ParamSetView.cpp
-   gui/ParamView.cpp
-   gui/PlotView.cpp
-   gui/ImageView.cpp
-   gui/internal/TimerInfo.cpp
-   gui/internal/TimerInfoList.cpp
-   gui/ToggleButton.cpp
-   gui/Widget.cpp
-   gui/WidgetContainer.cpp
-   gui/Window.cpp
-   gui/Label.cpp
-   io/CameraInfo.cpp
-   io/CameraModeSet.cpp
-   io/Camera.cpp
-   io/FileSystem.cpp
-   io/FloFile.cpp
-   io/ImageSequence.cpp
-   io/IOSelect.cpp
-   io/KittiVOParser.cpp
-   io/Resources.cpp
-   io/RawVideoWriter.cpp
-   io/RawVideoReader.cpp
-   io/RGBDParser.cpp
-   io/VideoReader.cpp
-   math/Complex.cpp
-   math/FFT.cpp
-   math/Fixed.cpp
-   math/JointMeasurements.cpp
-   math/JointMeasurementsTest.cpp
-   math/Math.cpp
-   math/Vector.cpp
-   math/Matrix.cpp
-   math/Polynomial.cpp
-   math/SE3Test.cpp
-   math/SL3Test.cpp
-   math/Sim2Test.cpp
-   math/GA2Test.cpp
-   util/Data.cpp
-   util/ConfigFile.cpp
-   util/ParamInfo.cpp
-   util/ParamSet.cpp
-   util/Range.cpp
-   util/SIMD.cpp
-   util/SIMDSSE.cpp
-   util/SIMDSSE2.cpp
-   util/SIMDSSE3.cpp
-   util/SIMDSSSE3.cpp
-   util/SIMDSSE41.cpp
-   util/SIMDSSE42.cpp
-   util/SIMDAVX.cpp
-   util/SIMDTest.cpp
-   util/Time.cpp
-   util/String.cpp
-   util/PluginManager.cpp
-   util/PluginFile.cpp
-   vision/BoardDetector.cpp
-   vision/CameraCalibrationTest.cpp
-   vision/EPnP.cpp
-   vision/features/FAST.cpp
-   vision/features/fast/fast9.cpp
-   vision/features/fast/fast10.cpp
-   vision/features/fast/fast11.cpp
-   vision/features/fast/fast12.cpp
-   vision/features/FeatureSet.cpp
-   vision/features/Harris.cpp
-# vision/Ferns.cpp
-   vision/Flow.cpp
-   vision/IntegralImage.cpp
-   vision/ImagePyramidTest.cpp
-   vision/KLTPatchTest.cpp
-   vision/features/ORB.cpp
-   vision/features/RowLookupTable.cpp
-   vision/features/RowLookupTableTest.cpp
-   vision/PatchGenerator.cpp
-   vision/Patch.cpp
-   vision/PMHuberStereo.cpp
-   vision/SparseBundleAdjustment.cpp
-   vision/StereoRectification.cpp
-   vision/rgbdvo/InformationSelectionTest.cpp
-   vision/slam/Keyframe.cpp
-   vision/slam/SlamMap.cpp
+	gfx/ImageAllocatorCL.cpp
+	gfx/ImageAllocatorGL.cpp
+	gfx/ImageAllocatorMem.cpp
+	gfx/IScaleFilter.cpp
+	gfx/IKernel.cpp
+	gfx/ColorspaceXYZ.cpp
+	geom/KDTreeTest.cpp
+	geom/MarchingCubes.cpp
+	geom/Rect.cpp
+	geom/PointSet.cpp
+	geom/PointSetTest.cpp
+	geom/scene/Scene.cpp
+	geom/scene/SceneGeometry.cpp
+	geom/scene/SceneMesh.cpp
+	gl/GLContext.cpp
+	gl/GLBuffer.cpp
+	gl/GLFBO.cpp
+	gl/GLProgram.cpp
+	gl/GLTexture.cpp
+	gl/GLVertexArray.cpp
+	gl/OpenGL.cpp
+	gl/GFXEngineGL.cpp
+	gl/GLTexFont.cpp
+	gl/GLTeapot.cpp
+	gl/progs/GLBasicProg.cpp
+	gl/progs/GLFillRoundRectProg.cpp
+	gl/progs/GLDrawTextProg.cpp
+	gl/progs/GLDrawImageProg.cpp
+	gl/progs/GLDrawIconProg.cpp
+	gl/progs/GLDrawModelProg.cpp
+	gl/progs/GLDrawTexModelProg.cpp
+	gl/progs/GLFillPathProg.cpp
+	gl/progs/GLTexMLSProg.cpp
+	gl/scene/GLSVisitor.cpp
+	gl/scene/GLSRenderableGroup.cpp
+	gl/scene/GLSBaseModel.cpp
+	gui/Application.cpp
+	gui/BasicTimer.cpp
+	gui/Button.cpp
+	gui/GLView.cpp
+	gui/Moveable.cpp
+	gui/ParamSetView.cpp
+	gui/ParamView.cpp
+	gui/PlotView.cpp
+	gui/ImageView.cpp
+	gui/internal/TimerInfo.cpp
+	gui/internal/TimerInfoList.cpp
+	gui/ToggleButton.cpp
+	gui/Widget.cpp
+	gui/WidgetContainer.cpp
+	gui/Window.cpp
+	gui/Label.cpp
+	io/CameraInfo.cpp
+	io/CameraModeSet.cpp
+	io/Camera.cpp
+	io/FileSystem.cpp
+	io/FloFile.cpp
+	io/ImageSequence.cpp
+	io/IOSelect.cpp
+	io/KittiVOParser.cpp
+	io/Resources.cpp
+	io/RawVideoWriter.cpp
+	io/RawVideoReader.cpp
+	io/RGBDParser.cpp
+	io/VideoReader.cpp
+	math/Complex.cpp
+	math/FFT.cpp
+	math/Fixed.cpp
+	math/JointMeasurements.cpp
+	math/JointMeasurementsTest.cpp
+	math/Math.cpp
+	math/Vector.cpp
+	math/Matrix.cpp
+	math/Polynomial.cpp
+	math/SE3Test.cpp
+	math/SL3Test.cpp
+	math/Sim2Test.cpp
+	math/GA2Test.cpp
+	util/Data.cpp
+	util/ConfigFile.cpp
+	util/ParamInfo.cpp
+	util/ParamSet.cpp
+	util/Range.cpp
+	util/SIMD.cpp
+	util/SIMDSSE.cpp
+	util/SIMDSSE2.cpp
+	util/SIMDSSE3.cpp
+	util/SIMDSSSE3.cpp
+	util/SIMDSSE41.cpp
+	util/SIMDSSE42.cpp
+	util/SIMDAVX.cpp
+	util/SIMDTest.cpp
+	util/Time.cpp
+	util/String.cpp
+	util/PluginManager.cpp
+	util/PluginFile.cpp
+	vision/BoardDetector.cpp
+	vision/CameraCalibrationTest.cpp
+	vision/EPnP.cpp
+	vision/features/FAST.cpp
+	vision/features/fast/fast9.cpp
+	vision/features/fast/fast10.cpp
+	vision/features/fast/fast11.cpp
+	vision/features/fast/fast12.cpp
+	vision/features/FeatureSet.cpp
+	vision/features/Harris.cpp
+	vision/Flow.cpp
+	vision/IntegralImage.cpp
+	vision/ImagePyramidTest.cpp
+	vision/KLTPatchTest.cpp
+	vision/features/ORB.cpp
+	vision/features/RowLookupTable.cpp
+	vision/features/RowLookupTableTest.cpp
+	vision/PatchGenerator.cpp
+	vision/Patch.cpp
+	vision/PMHuberStereo.cpp
+	vision/SparseBundleAdjustment.cpp
+	vision/StereoRectification.cpp
+	vision/rgbdvo/InformationSelectionTest.cpp
+	vision/slam/Keyframe.cpp
    vision/slam/FlatSLAMMap.cpp
-   vision/slam/stereo/FeatureTracking.cpp
-   #vision/slam/stereo/KLTTracking.cpp
-   #vision/slam/stereo/ORBTracking.cpp
-   vision/slam/stereo/StereoSLAM.cpp
-   #vision/slam/stereo/ORBStereoInit.cpp
-   #vision/slam/stereo/PatchStereoInit.cpp
-   vision/TSDFVolume.cpp
-   vision/Vision.cpp
-   io/xml/XMLDecoder.cpp
-   io/xml/XMLDecoderUTF8.cpp
+	vision/slam/SlamMap.cpp
+	vision/slam/stereo/FeatureTracking.cpp
+	#vision/slam/stereo/KLTTracking.cpp
+	#vision/slam/stereo/ORBTracking.cpp
+	vision/slam/stereo/StereoSLAM.cpp
+	#vision/slam/stereo/ORBStereoInit.cpp
+	#vision/slam/stereo/PatchStereoInit.cpp
+	vision/TSDFVolume.cpp
+	vision/Vision.cpp
+	io/xml/XMLDecoder.cpp
+	io/xml/XMLDecoderUTF8.cpp
 )
 
 IF(UNIX)
    IF(APPLE)
-      SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
+	   SET(CVT_HEADERS ${CVT_HEADERS}
          io/QTKitCamera.h
          gui/internal/OSX/ApplicationOSX.h
          gui/internal/OSX/WidgetImplWinGLOSX.h
@@ -724,19 +729,18 @@ IF(UNIX)
 		 gui/internal/OSX/OSXKeyMap.h
 		 gui/internal/OSX/CGLContext.h
       )
+		SET( CVT_SOURCES ${CVT_SOURCES}
+			io/QTKitCamera.mm
+			gui/internal/OSX/ApplicationOSX.mm
+			gui/internal/OSX/WidgetImplWinGLOSX.mm
+			gui/internal/OSX/OSXGLView.mm
+			gui/internal/OSX/TimerInfoListOSX.cpp
+			gui/internal/OSX/OSXTimerHandler.mm
+			gui/internal/OSX/TimerInfoOSX.mm
+		)
 
-      SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
-         io/QTKitCamera.mm
-         gui/internal/OSX/ApplicationOSX.mm
-         gui/internal/OSX/WidgetImplWinGLOSX.mm
-         gui/internal/OSX/OSXGLView.mm
-         gui/internal/OSX/TimerInfoListOSX.cpp
-         gui/internal/OSX/OSXTimerHandler.mm
-         gui/internal/OSX/TimerInfoOSX.mm
-      )
-
-      SET(${MODULE_NAME}_DEP_LIBRARIES
-         ${${MODULE_NAME}_DEP_LIBRARIES}
+	SET( CVT_DEP_LIBRARIES
+		 ${CVT_DEP_LIBRARIES}
          "-framework Cocoa"
          "-framework CoreFoundation"
          "-framework QuartzCore"
@@ -744,7 +748,7 @@ IF(UNIX)
          "-framework OpenGL"
       )
    ELSE(APPLE)
-      SET(${MODULE_NAME}_HEADERS ${${MODULE_NAME}_HEADERS}
+	   SET(CVT_HEADERS ${CVT_HEADERS}
          io/V4L2Camera.h
          gui/internal/X11/GLXContext.h
          gui/internal/X11/ApplicationX11.h
@@ -752,7 +756,7 @@ IF(UNIX)
          gui/internal/X11/X11Handler.h
 		 gui/internal/X11/X11KeyMap.h
       )
-      SET(${MODULE_NAME}_SOURCES ${${MODULE_NAME}_SOURCES}
+  SET(CVT_SOURCES ${CVT_SOURCES}
          io/V4L2Camera.cpp
          gui/internal/X11/ApplicationX11.cpp
          gui/internal/X11/WidgetImplWinGLX11.cpp
@@ -766,21 +770,21 @@ ENDIF()
 FIND_PACKAGE(uEyeUsb)
 OPTION( CVT_USEUEYE "Use UEyeUsbCamera" TRUE )
 IF( UEYEUSB_FOUND AND CVT_USEUEYE )
-   SET(${MODULE_NAME}_HEADERS
-      ${${MODULE_NAME}_HEADERS}
+	SET(CVT_HEADERS
+		${CVT_HEADERS}
       io/UEyeUsbCamera.h
       io/UEyeStereo.h
    )
-   SET(${MODULE_NAME}_SOURCES
-      ${${MODULE_NAME}_SOURCES}
+   SET(CVT_SOURCES
+	   ${CVT_SOURCES}
       io/UEyeUsbCamera.cpp
    )
    INCLUDE_DIRECTORIES(
       BEFORE
       ${UEYEUSB_INCLUDE_DIRS}
    )
-   SET(${MODULE_NAME}_DEP_LIBRARIES
-      ${${MODULE_NAME}_DEP_LIBRARIES}
+   SET(CVT_DEP_LIBRARIES
+	   ${CVT_DEP_LIBRARIES}
       ${UEYEUSB_LIBRARIES}
    )
    ADD_DEFINITIONS( -DUEYEUSB_FOUND )
@@ -791,13 +795,13 @@ OPTION( CVT_USE_DC1394 "Use DC1394 library if available" TRUE )
 IF( ${CVT_USE_DC1394} )
    FIND_PACKAGE(DC1394)
    IF( ${DC1394_FOUND} )
-      SET(${MODULE_NAME}_HEADERS
-         ${${MODULE_NAME}_HEADERS}
+	   SET(CVT_HEADERS
+		   ${CVT_HEADERS}
          io/DC1394Camera.h
          io/ChameleonStereo.h
       )
-      SET(${MODULE_NAME}_SOURCES
-         ${${MODULE_NAME}_SOURCES}
+  SET(CVT_SOURCES
+	  ${CVT_SOURCES}
          io/DC1394Camera.cpp
          io/ChameleonStereo.cpp
       )
@@ -805,8 +809,8 @@ IF( ${CVT_USE_DC1394} )
          BEFORE
          ${LIBDC1394_INCLUDE_DIR}
       )
-      SET(${MODULE_NAME}_DEP_LIBRARIES
-         ${${MODULE_NAME}_DEP_LIBRARIES}
+  SET(CVT_DEP_LIBRARIES
+	  ${CVT_DEP_LIBRARIES}
          ${LIBDC1394_LIBRARY}
       )
       ADD_DEFINITIONS( -DDC1394_FOUND )
@@ -816,13 +820,13 @@ ENDIF()
 FIND_PACKAGE( OpenNI )
 OPTION( CVT_USE_OPENNI "Use OpenNI" TRUE )
 IF( OpenNI_FOUND AND CVT_USE_OPENNI )
-   SET(${MODULE_NAME}_HEADERS
-      ${${MODULE_NAME}_HEADERS}
+	SET(CVT_HEADERS
+		${CVT_HEADERS}
       io/OpenNICamera.h
       io/OpenNIManager.h
    )
-   SET(${MODULE_NAME}_SOURCES
-      ${${MODULE_NAME}_SOURCES}
+   SET(CVT_SOURCES
+	   ${CVT_SOURCES}
       io/OpenNICamera.cpp
       io/OpenNIManager.cpp
    )
@@ -830,8 +834,8 @@ IF( OpenNI_FOUND AND CVT_USE_OPENNI )
       BEFORE
       ${OpenNI_INCLUDE_DIRS}
    )
-   SET(${MODULE_NAME}_DEP_LIBRARIES
-      ${${MODULE_NAME}_DEP_LIBRARIES}
+   SET(CVT_DEP_LIBRARIES
+	   ${CVT_DEP_LIBRARIES}
       ${OpenNI_LIBRARIES}
    )
    ADD_DEFINITIONS( -DOpenNI_FOUND )
@@ -847,14 +851,35 @@ INCLUDE_DIRECTORIES(
    ${ffmpeg_INCLUDE_DIRS}
 )
 
-MODULE_CONFIGURATION("${MODULE_NAME}"
-                "${${MODULE_NAME}_HEADERS}"
-                "${${MODULE_NAME}_SOURCES}"
-                "${${MODULE_NAME}_DEP_LIBRARIES}"
-                #"${GENDEPS_${MODULE_NAME}}"
-)
 
-set_target_properties(${MODULE_NAME}
+SET(CVT_ALL "${CVT_HEADERS}" "${CVT_SOURCES}")
+
+ADD_LIBRARY("CVT" ${CVT_ALL})
+TARGET_LINK_LIBRARIES("CVT" "${CVT_DEP_LIBRARIES}" )
+
+SET( LIB_VERSION "${CVT_VERSION_MAJOR}.${CVT_VERSION_MINOR}.${CVT_VERSION_PATCH}" )
+SET_TARGET_PROPERTIES("CVT" PROPERTIES VERSION ${LIB_VERSION} )
+SET_TARGET_PROPERTIES("CVT" PROPERTIES DEBUG_POSTFIX "_d")	
+
+#PREFIX hack for needed for Xcode and MVSC Projects
+IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
+	SET_TARGET_PROPERTIES("CVT" PROPERTIES PREFIX "../")	
+ENDIF()
+
+# lib install
+INSTALL( TARGETS "CVT" LIBRARY DESTINATION lib COMPONENT "CVT" )
+
+GET_FILENAME_COMPONENT(folderName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+#install header
+foreach(HEADER_FILE ${CVT_HEADERS})
+	GET_FILENAME_COMPONENT(pathName "${HEADER_FILE}" PATH)
+	INSTALL(FILES "${HEADER_FILE}" 
+			DESTINATION "include/${folderName}/${pathName}" 
+			COMPONENT Headers
+	)
+endforeach(HEADER_FILE)
+
+set_target_properties( CVT
          PROPERTIES COMPILE_DEFINITIONS
          PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" )
 
@@ -867,7 +892,7 @@ IF( ${CMAKE_BUILD_TYPE} MATCHES "DEBUG" )
    IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
       SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")
    ENDIF()
-   target_link_libraries (cvttest ${MODULE_NAME})
+   target_link_libraries (cvttest CVT )
 ENDIF()
 
 #special flags for some files
@@ -880,3 +905,15 @@ set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -
 set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
 set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
+# CVTConfig file
+# TODO: use this for build tree export as well
+set( CVT_INCLUDE_DIRS	"${CMAKE_INSTALL_PREFIX}/include" )
+set( CVT_LIB_DIR		"${CMAKE_INSTALL_PREFIX}/lib" )
+set( CVT_SCRIPT_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/cmake" )
+set( CVT_PLUGIN_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/plugins" )
+CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" @ONLY )
+
+INSTALL( FILES 
+	"${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake"
+	DESTINATION share/cvt
+)
