@@ -22,6 +22,7 @@ namespace cvt {
 		public:
 			static bool   exists( const String & path );
 			static void   rename( const String & from, const String & to );
+			static void   touch( const String& file );
 			static bool   isFile( const String & file );
 			static bool   isDirectory( const String & dir );
 			static void   mkdir( const String & name );

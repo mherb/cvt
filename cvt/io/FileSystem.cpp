@@ -31,6 +31,15 @@ namespace cvt {
 			return true;
 	}
 
+	void FileSystem::touch( const String& file )
+	{
+		int fd;
+		if( ( fd = open( file.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP ) ) < 0 ){
+			throw CVTException( "Could not create file" );
+		}
+		close( fd );
+	}
+
 	void FileSystem::rename( const String & from, const String & to )
 	{
 		if ( ::rename( from.c_str(), to.c_str() ) < 0 )

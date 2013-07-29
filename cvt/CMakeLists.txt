@@ -161,7 +161,7 @@ FOREACH( GLSLFILE ${GLSL_SHADER} )
    SET( GLSL_GEN_HEADER_${MODULE_NAME} ${GLSL_GEN_HEADER_${MODULE_NAME}} ${GLSL_GEN_OUTPUT} )
 ENDFOREACH(GLSLFILE)
 
-SET(${MODULE_NAME}_HEADERS
+SET( ${MODULE_NAME}_HEADERS
    cl/CLBuffer.h
    cl/CLCommandQueue.h
    cl/CLContext.h
@@ -181,14 +181,15 @@ SET(${MODULE_NAME}_HEADERS
    cl/OpenCL.h
    container/List.h
    container/RBTree.h
+   com/AsyncTCPServer.h
+   com/AsyncTCPClient.h
+   com/AsyncUDPClient.h
    com/Host.h
+   com/SharedMemory.h
    com/Socket.h
    com/TCPClient.h
    com/TCPServer.h
    com/UDPClient.h
-   com/AsyncTCPServer.h
-   com/AsyncTCPClient.h
-   com/AsyncUDPClient.h
    geom/ArcBall.h
    geom/Box.h
    geom/CBezier.h
