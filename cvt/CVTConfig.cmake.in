@@ -1,0 +1,61 @@
+###################################################
+#  CVT CMake configuration file
+#
+#  From within your own CMake project, use:
+#    FIND_PACKAGE( cvt REQUIRED )
+#    TARGET_LINK_LIBRARIES( NAME ${CVT_LIBRARIES} )
+#
+#    This file will define the following variables:
+#      - CVT_LIBRARIES      : The list of libraries to links against.
+#      - CVT_INCLUDE_DIRS   : The CVT include directories.
+#
+###################################################
+
+set( CVT_INCLUDE_DIRS @CVT_INCLUDE_DIRS@ )
+set( CVT_LIBRARY_DIRS @CVT_LIB_DIR@ )
+ 
+# library ext. hardcoded to dylib on Apple 
+if( APPLE )
+  set( SO_EXT ".dylib" )
+else( APPLE )
+  set( SO_EXT ".so" )
+endif( APPLE )
+
+SET( CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	@CVT_SCRIPT_PATH@
+)
+
+FIND_PACKAGE(OpenCL REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+FIND_PACKAGE(Eigen3 REQUIRED)
+
+set( CVT_INCLUDE_DIRS 
+	${CVT_INCLUDE_DIRS}
+	${OPENGL_INCLUDE_DIR}
+	${OpenCL_INCLUDE_DIRS}
+	${Eigen3_INCLUDE_DIRS}
+)
+
+IF( CVT_LIBRARY )
+	SET( CVT_FOUND TRUE )
+ENDIF ( CVT_LIBRARY )
+
+
+IF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+	ADD_DEFINITIONS( -DPOSIX -DAPPLE -D__APPLE__ )
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+MARK_AS_ADVANCED(
+	CVT_INCLUDE_DIR
+	CVT_LIBRARY
+	CVT_LIBRARIES
+)
+
+
+# Set library names as absolute paths:
+set( CVT_LIBRARIES
+	@CVT_LIB_DIR@/libcvt${SO_EXT}
+	"${OPENGL_LIBRARIES}"
+	"${OpenCL_LIBRARIES}"
+)
