@@ -445,7 +445,6 @@ SET( ${MODULE_NAME}_HEADERS
    vision/features/BRIEF.h
    vision/features/BRIEFPattern.h
    vision/features/FAST.h
-   vision/features/fast/FAST.inl
    vision/features/Feature.h
    vision/features/FeatureDescriptor.h
    vision/features/FeatureDescriptorExtractor.h
@@ -879,4 +878,5 @@ set_source_files_properties(util/SIMDSSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -
 set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
 set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
 set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
