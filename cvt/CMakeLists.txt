@@ -854,20 +854,20 @@ INCLUDE_DIRECTORIES(
 
 SET(CVT_ALL "${CVT_HEADERS}" "${CVT_SOURCES}")
 
-ADD_LIBRARY("CVT" ${CVT_ALL})
-TARGET_LINK_LIBRARIES("CVT" "${CVT_DEP_LIBRARIES}" )
+ADD_LIBRARY( cvt ${CVT_ALL} )
+TARGET_LINK_LIBRARIES( cvt "${CVT_DEP_LIBRARIES}" )
 
 SET( LIB_VERSION "${CVT_VERSION_MAJOR}.${CVT_VERSION_MINOR}.${CVT_VERSION_PATCH}" )
-SET_TARGET_PROPERTIES("CVT" PROPERTIES VERSION ${LIB_VERSION} )
-SET_TARGET_PROPERTIES("CVT" PROPERTIES DEBUG_POSTFIX "_d")	
+SET_TARGET_PROPERTIES( cvt PROPERTIES VERSION ${LIB_VERSION} )
+SET_TARGET_PROPERTIES( cvt PROPERTIES DEBUG_POSTFIX "_d")	
 
 #PREFIX hack for needed for Xcode and MVSC Projects
 IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
-	SET_TARGET_PROPERTIES("CVT" PROPERTIES PREFIX "../")	
+	SET_TARGET_PROPERTIES( cvt PROPERTIES PREFIX "../")	
 ENDIF()
 
 # lib install
-INSTALL( TARGETS "CVT" LIBRARY DESTINATION lib COMPONENT "CVT" )
+INSTALL( TARGETS "cvt" LIBRARY DESTINATION lib COMPONENT cvt )
 
 GET_FILENAME_COMPONENT(folderName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 #install header
@@ -879,9 +879,10 @@ foreach(HEADER_FILE ${CVT_HEADERS})
 	)
 endforeach(HEADER_FILE)
 
-set_target_properties( CVT
+set_target_properties( cvt
          PROPERTIES COMPILE_DEFINITIONS
-         PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" )
+         PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" 
+)
 
 CVTTESTS(cvt util/cvttestsproto.h)
 
@@ -892,7 +893,7 @@ IF( ${CMAKE_BUILD_TYPE} MATCHES "DEBUG" )
    IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
       SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")
    ENDIF()
-   target_link_libraries (cvttest CVT )
+   target_link_libraries (cvttest cvt )
 ENDIF()
 
 #special flags for some files
@@ -906,14 +907,36 @@ set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -ms
 set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
 # CVTConfig file
-# TODO: use this for build tree export as well
+set( CVT_SEARCH_NAMES	"cvt cvt_d" )
 set( CVT_INCLUDE_DIRS	"${CMAKE_INSTALL_PREFIX}/include" )
 set( CVT_LIB_DIR		"${CMAKE_INSTALL_PREFIX}/lib" )
 set( CVT_SCRIPT_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/cmake" )
 set( CVT_PLUGIN_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/plugins" )
+set( CVT_FOUND_VAR		"CVT" )
 CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" @ONLY )
 
 INSTALL( FILES 
 	"${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake"
 	DESTINATION share/cvt
 )
+
+####### Build tree config #######
+IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
+	set( CVT_SEARCH_NAMES	"cvt_d" )
+	export( PACKAGE CVT_DEBUG )
+	set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR}" )
+	set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
+	set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
+	set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
+	set( CVT_FOUND_VAR		"CVT_DEBUG" )
+	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVT_DEBUGConfig.cmake" @ONLY )
+ELSE()
+	set( CVT_SEARCH_NAMES "cvt" )
+	export( PACKAGE CVT )
+	set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR}" )
+	set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
+	set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
+	set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
+	set( CVT_FOUND_VAR		"CVT" )
+	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVTConfig.cmake" @ONLY )
+ENDIF()
