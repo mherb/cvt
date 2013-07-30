@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include <cstdlib>
+#include <sys/stat.h>
+#include <errno.h>
 
 static std::string INCLUDEDIR;
 
@@ -102,6 +104,23 @@ void escapeStream( std::ofstream& output, std::ifstream& input, const std::strin
 
 }
 
+int mkpath( std::string s, mode_t mode )
+{
+    size_t pre=0,pos;
+    std::string dir;
+    int mdret = 0;
+
+    while( ( pos = s.find_first_of( '/', pre ) ) != std::string::npos ){
+        dir = s.substr( 0, pos++ );
+        pre = pos;
+        if( dir.size() ==0 ) continue; 
+        if( ( mdret = mkdir( dir.c_str(), mode ) ) && errno != EEXIST ){
+            return mdret;
+        }
+    }
+    return 0;
+}
+
 int main( int argc, char** argv )
 {
 
@@ -123,6 +142,12 @@ int main( int argc, char** argv )
 		return 1;
 	}
 	std::ofstream output;
+    int r;
+    if( (r = mkpath( argv[ 2 ], 0755 )) != 0 ){
+       std::cerr << "Could not create path: " << argv[ 2 ] << std::endl;
+       std::cerr << "Error: " << errno << std::endl;
+       return 1;
+    }
 	output.open( argv[ 2 ], std::ios::trunc );
 	if( !output.is_open() ) {
 		std::cerr << "Unable to open header-file!" << std::endl;

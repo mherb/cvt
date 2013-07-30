@@ -1,4 +1,4 @@
-# (C) 2010, Sebastian Klose, <kloses@in.tum.de>
+# (C) 2013, Sebastian Klose, <kloses@in.tum.de>
 
 #	this automatically generates a target executable, using all 
 #	.cpp, .c, .hpp and .h files of the current directory
@@ -48,6 +48,7 @@ ADD_EXECUTABLE(${APP_NAME} ${SRCS_${APP_NAME}} ${CLHEADER_${APP_NAME}} )
 INCLUDE_DIRECTORIES( 
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}"
 	"${Eigen3_INCLUDE_DIR}"
 	"${OpenCL_INCLUDE_DIR}"
 )
