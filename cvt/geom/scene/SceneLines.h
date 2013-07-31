@@ -25,6 +25,7 @@ namespace cvt {
 			bool				isEmpty() const;
 
 			void				add( const SceneLines& spts );
+			void				add( const Vector3f& pt, const Vector4f& color );
 
 			float				lineSize() const;
 			void				setLineSize( float linesize );
@@ -83,6 +84,12 @@ namespace cvt {
 	{
 		_vertices.insert( _vertices.end(), &spts._vertices[ 0 ], ( &spts._vertices[ 0 ] ) + spts.vertexSize() );
 		_colors.insert( _colors.end(), &spts._colors[ 0 ], ( &spts._colors[ 0 ] ) + spts.colorSize() );
+	}
+
+	inline void SceneLines::add( const Vector3f& pt, const Vector4f& color )
+	{
+		_vertices.push_back( pt );
+		_colors.push_back( color );
 	}
 
 	inline float SceneLines::lineSize() const
