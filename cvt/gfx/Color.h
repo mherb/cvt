@@ -37,16 +37,16 @@ namespace cvt {
 			void get( float& r, float& g, float& b, float& a ) const;
 			void get( int& r, int& g, int& b, int& a ) const;
 
-			float red() const { return _r; };
-			float green() const { return _g; };
-			float blue() const { return _b; };
-			float alpha() const { return _a; };
+			float red() const { return _r; }
+			float green() const { return _g; }
+			float blue() const { return _b; }
+			float alpha() const { return _a; }
 			float gray() const;
 
-			void setRed( float r ) { _r = r; };
-			void setGreen( float g ) { _g = g; };
-			void setBlue( float b ) { _b = b; };
-			void setAlpha( float a ) { _a = a; };
+			void setRed( float r ) { _r = r; }
+			void setGreen( float g ) { _g = g; }
+			void setBlue( float b ) { _b = b; }
+			void setAlpha( float a ) { _a = a; }
 
 			Color& operator=( const Color & c );
 			Color operator+( const Color & c ) const;
@@ -58,7 +58,7 @@ namespace cvt {
 
 			void mix( const Color& c1, const Color& c2, float alpha );
 
-			const float* data() const { return &_r; };
+			const float* data() const { return &_r; }
 
 			static const Color BLACK;
 			static const Color WHITE;
