@@ -49,6 +49,7 @@ INCLUDE_DIRECTORIES(
 	"${CMAKE_SOURCE_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_BINARY_DIR}" # needed for files generated in build tree
 	"${Eigen3_INCLUDE_DIR}"
 	"${OpenCL_INCLUDE_DIR}"
 )
