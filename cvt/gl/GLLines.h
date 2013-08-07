@@ -25,7 +25,7 @@ namespace cvt {
 				    const unsigned int* indices, size_t isize, MeshType type );*/
 			~GLLines();
 
-			void draw();
+			void draw( GLenum mode = GL_LINES );
 
 		private:
 			GLVertexArray _vao;
@@ -97,9 +97,9 @@ namespace cvt {
 	{
 	}
 
-	inline void GLLines::draw()
+	inline void GLLines::draw( GLenum mode )
 	{
-		_vao.draw( GL_LINES, 0, _numPts );
+		_vao.draw( mode, 0, _numPts );
 	}
 }
 

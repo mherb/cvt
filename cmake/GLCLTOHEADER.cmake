@@ -13,12 +13,12 @@ MACRO(GLSLTOHEADER _filename )
 		SET(_path "${_path}/" )
     ENDIF()
 
-	SET( GLSL_GEN_OUTPUT "${_path}${_basename}_${_ext}.h" )
+    SET( GLSL_GEN_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_path}${_basename}_${_ext}.h" )
 
-    ADD_CUSTOM_COMMAND(	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${GLSL_GEN_OUTPUT}
+    ADD_CUSTOM_COMMAND(	OUTPUT ${GLSL_GEN_OUTPUT}
 						COMMAND ${GLCLTOHEADER_DST} 
 						"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
-                        "${CMAKE_CURRENT_BINARY_DIR}/${GLSL_GEN_OUTPUT}"
+                        "${GLSL_GEN_OUTPUT}"
 						"${_basename}_${_ext}"
 						DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" "glcltoheader"
     )
@@ -36,12 +36,12 @@ MACRO(CLTOHEADER _filename)
     ENDIF()
 
 
-	SET( CL_GEN_OUTPUT "${_path}${_basename}.h" )
+    SET( CL_GEN_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_path}${_basename}.h" )
     ADD_CUSTOM_COMMAND(
-        OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${CL_GEN_OUTPUT}
+        OUTPUT  ${CL_GEN_OUTPUT}
 		COMMAND ${GLCLTOHEADER_DST}
                 ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
-                ${CMAKE_CURRENT_BINARY_DIR}/${CL_GEN_OUTPUT}
+                ${CL_GEN_OUTPUT}
 				${_basename}
 				DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_filename} glcltoheader
     )

@@ -886,8 +886,9 @@ set_target_properties( cvt
 
 CVTTESTS(cvt util/cvttestsproto.h)
 
-#link_directories (${CMAKE_BINARY_DIR}/lib/)
-IF( ${CMAKE_BUILD_TYPE} MATCHES "DEBUG" )
+IF( ${CMAKE_BUILD_TYPE} STREQUAL "DEBUG" OR
+    ${CMAKE_BUILD_TYPE} STREQUAL "ZEROOPT" )
+   MESSAGE( "DEBUG CONFIGURATION -> adding cvttest" )
    add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
 
    IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
@@ -921,7 +922,8 @@ INSTALL( FILES
 )
 
 ####### Build tree config #######
-IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
+IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR
+    CMAKE_BUILD_TYPE STREQUAL "ZEROOPT" )
 	set( CVT_SEARCH_NAMES	"cvt_d" )
 	export( PACKAGE CVT_DEBUG )
 	set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR}" )
