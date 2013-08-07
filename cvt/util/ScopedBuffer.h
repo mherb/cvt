@@ -60,7 +60,7 @@ namespace cvt {
 	template<typename T>
 	inline ScopedBuffer<T, false>::ScopedBuffer( size_t size, size_t alignment ) : _size( size )
 	{
-		size_t memsize = Math::pad( sizeof( T ) * _size, alignment );
+        size_t memsize = Math::pad( sizeof( T ) * _size, alignment ) + alignment;// needed for 32-bit architectures!
 		_memptr = new uint8_t[ memsize ];
 		_buffer = Util::alignPtr<T>( ( T* ) _memptr, alignment );
 		T* obj = _buffer;
@@ -85,9 +85,9 @@ namespace cvt {
 	template<typename T>
 	inline ScopedBuffer<T, true>::ScopedBuffer( size_t size, size_t alignment ) : _size( size )
 	{
-		size_t memsize = Math::pad( sizeof( T ) * _size, alignment );
+        size_t memsize = Math::pad( sizeof( T ) * _size, alignment ) + alignment;// needed for 32-bit architectures!
 		_memptr = new uint8_t[ memsize ];
-		_buffer = Util::alignPtr<T>( ( T* ) _memptr, alignment );
+        _buffer = Util::alignPtr<T>( ( T* ) _memptr, alignment );
 	}
 
 	template<typename T>
