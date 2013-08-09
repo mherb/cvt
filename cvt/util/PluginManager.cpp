@@ -12,6 +12,7 @@
 #include <cvt/util/Exception.h>
 #include <cvt/io/FileSystem.h>
 #include <cvt/util/String.h>
+#include <cvt/util/Util.h>
 #include <vector>
 
 namespace cvt {
@@ -35,6 +36,11 @@ namespace cvt {
 
 		if( FileSystem::exists( "/usr/share/cvt/plugins" ) ){
 			_pluginPaths.push_back( "/usr/share/cvt/plugins/" );
+		}
+
+		String envVar;
+		if( Util::getEnv( envVar, "CVT_PLUGIN_PATH" ) ){
+			_pluginPaths.push_back( envVar );
 		}
 	}
 
