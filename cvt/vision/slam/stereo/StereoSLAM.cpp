@@ -114,6 +114,7 @@ namespace cvt
 	  _activeKF = _map.findClosestKeyframe( poseEigen );
       if( _activeKF != last )
          std::cout << "Active KF: " << _activeKF << std::endl;
+
    }
 
    void StereoSLAM::extractFeatures( const Image& left, const Image& right )
@@ -174,6 +175,7 @@ namespace cvt
 											const std::vector<size_t>& predictedIds )
    {
 	   _pyrLeft.convert( _pyrLeftf, IFormat::GRAY_FLOAT  );
+
 
 	   // match with current left features
 	   RowLookupTable rlt( *_descExtractorLeft );
@@ -299,7 +301,9 @@ namespace cvt
 
 			   newDescriptors.push_back( ( const FeatureDescriptor* )m.feature0 );
 			   newPatches.push_back( patch );
-		   }
+           } else {
+               delete patch;
+           }
 	   }
    }
 
