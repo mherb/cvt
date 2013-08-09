@@ -59,7 +59,7 @@ namespace cvt
 
 		i = n & 0x03;
 		while( i-- )
-			*dst++ += *src++ * value;
+			*dst++ = *src++ * value;
 	}
 
 	void SIMDSSE2::MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const
