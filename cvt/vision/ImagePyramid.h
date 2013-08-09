@@ -144,6 +144,14 @@ namespace cvt
             _image[ i ].integralImage( out[ i ] );
         }
     }
+    
+    static inline std::ostream& operator<<( std::ostream& out, const ImagePyramid &p)
+    {
+	for( size_t i = 0; i < p.octaves(); ++i ){
+            out << p[ i ] << std::endl;
+	}
+        return out;
+    }
 
 }
 

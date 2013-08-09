@@ -96,6 +96,7 @@ namespace cvt
          Signal<const Matrix4f&>    newCameraPose;
          Signal<size_t>             numTrackedPoints;
 
+         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
       private:
 		 struct TrackedFeatures {
 			PointSet2f			points2d;

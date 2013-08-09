@@ -10,14 +10,9 @@
  */
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/util/SIMD.h>
+#include <cvt/util/Util.h>
 
 namespace cvt {
-
-	static inline uint8_t* alignptr( void* _ptr, size_t alignment )
-	{
-		size_t ptr = ( size_t ) _ptr;
-		return ( uint8_t* ) ( ( ptr + ( alignment - 1 ) ) & ( ~ ( alignment - 1 ) ) );
-	}
 
 	ImageAllocatorMem::ImageAllocatorMem() : ImageAllocator(), _data( 0 ), _mem( 0 ), _refcnt( 0 )
 	{
@@ -59,7 +54,7 @@ namespace cvt {
 		_format = format;
 		_stride = Math::pad16( _width * _format.bpp );
 		_mem = new uint8_t[ _stride * _height + 16 ];
-		_data = alignptr( _mem, 16 );
+		_data = Util::alignPtr( _mem, 16 );
 		_refcnt = new size_t;
 		*_refcnt = 0;
 		retain();
