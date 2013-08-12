@@ -41,8 +41,6 @@ namespace cvt {
 
 			T	   operator()( size_t row, size_t col ) const { return _op( row, col ); }
 
-			size_t rows() const { return N; }
-			size_t cols() const { return M; }
 
 		private:
 			const XPR _op;
@@ -65,8 +63,6 @@ namespace cvt {
 				return ret;
 			}
 
-			size_t  rows() const { return N; }
-			size_t  cols() const { return M; }
 
 		private:
 			const T1  _op1;
@@ -82,8 +78,6 @@ namespace cvt {
 
 			T	   operator()( size_t row, size_t col ) const { return _op( col, row ); }
 
-			size_t rows() const { return N; }
-			size_t cols() const { return M; }
 
 		private:
 			const T1 _op;
@@ -102,8 +96,6 @@ namespace cvt {
 				return op( _op1( row, col ), _op2( row, col ) );
 			}
 
-			size_t  rows() const { return N; }
-			size_t  cols() const { return M; }
 
 		private:
 			const T1  _op1;
@@ -116,8 +108,6 @@ namespace cvt {
 		public:
 			MVExprMatrix( const Matrix<N,M,T>& m ) : _mat( m ) {}
 			T		operator()( size_t row, size_t col ) const { return _mat( row, col ); }
-			size_t  rows() const { return N; }
-			size_t  cols() const { return M; }
 
 		private:
 			const Matrix<N,M,T>& _mat;
@@ -129,8 +119,6 @@ namespace cvt {
 		public:
 			MVExprVector( const Vector<N,T>& v ) : _vec( v ) {}
 			T		operator()( size_t row, size_t col ) const { return _vec[ col ]; }
-			size_t  rows() const { return N; }
-			size_t  cols() const { return 1; }
 
 		private:
 			const Vector<N,T>&	_vec;
@@ -142,8 +130,6 @@ namespace cvt {
 		public:
 			MVExprScalar( T s ) : _scalar( s ) {}
 			T		operator()( size_t row, size_t col ) const { return _scalar; }
-			size_t  rows() const { return 1; }
-			size_t  cols() const { return 1; }
 
 		private:
 			T	_scalar;
