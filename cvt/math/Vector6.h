@@ -53,7 +53,7 @@ namespace cvt {
         T			normalize( void );		// returns length
         void		clamp( const Vector6<T> &min, const Vector6<T> &max );
 
-        int			dimension( void ) const;
+        size_t		dimension( void ) const;
 
         bool        isEqual( const Vector6<T> & other, T epsilon ) const;
 
@@ -350,7 +350,7 @@ namespace cvt {
     }
 
     template<typename T>
-    int Vector6<T>::dimension( void ) const
+    size_t Vector6<T>::dimension( void ) const
     {
         return 6;
     }

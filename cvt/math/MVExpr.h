@@ -1,0 +1,180 @@
+#ifndef CVT_MVEXPR_H
+#define CVT_MVEXPR_H
+
+#include <cvt/math/VectorN.h>
+#include <cvt/math/MatrixNM.h>
+
+namespace cvt {
+
+	enum MVExprType {
+		MV_EXPR_ADD = 0,
+		MV_EXPR_SUB,
+		MV_EXPR_MUL
+	};
+
+	template<MVExprType type, typename T>
+	struct MVExprOp {
+		T operator()( T a, T b );
+	};
+
+	template<>
+	struct MVExprOp<MV_EXPR_ADD, float> {
+		float operator()( float a, float b ) { return a + b; }
+	};
+
+	template<>
+	struct MVExprOp<MV_EXPR_SUB, float> {
+		float operator()( float a, float b ) { return a - b; }
+	};
+
+	template<>
+	struct MVExprOp<MV_EXPR_MUL, float> {
+		float operator()( float a, float b ) { return a * b; }
+	};
+
+
+	template<typename XPR, size_t N, size_t M, typename T>
+	class MVExpr
+	{
+		public:
+			MVExpr( const XPR& op ) : _op( op ) {}
+
+			T	   operator()( size_t row, size_t col ) const { return _op( row, col ); }
+
+			size_t rows() const { return N; }
+			size_t cols() const { return M; }
+
+		private:
+			const XPR _op;
+	};
+
+
+	template<typename T1, typename T2, size_t N, size_t M, typename T>
+	class MVExprMul
+	{
+		public:
+			MVExprMul( const T1& op1, const T2& op2 ) : _op1( op1 ), _op2( op2 ) {}
+
+			T operator()( size_t row, size_t col ) const
+			{
+				T ret = 0;
+
+				for( size_t i = 0; i < M; i++ )
+					ret += _op1( row, i ) * _op2( i, col );
+
+				return ret;
+			}
+
+			size_t  rows() const { return N; }
+			size_t  cols() const { return M; }
+
+		private:
+			const T1  _op1;
+			const T2  _op2;
+
+	};
+
+	template<typename T1, size_t N, size_t M, typename T>
+	class MVExprTranspose
+	{
+		public:
+			MVExprTranspose( const T1& op ) : _op( op ) {}
+
+			T	   operator()( size_t row, size_t col ) const { return _op( col, row ); }
+
+			size_t rows() const { return N; }
+			size_t cols() const { return M; }
+
+		private:
+			const T1 _op;
+	};
+
+
+	template<typename T1, typename T2, size_t N, size_t M, typename T, MVExprType optype>
+	class MVExprCWise
+	{
+		public:
+			MVExprCWise( const T1& op1, const T2& op2 ) : _op1( op1 ), _op2( op2 ) {}
+
+			T	operator()( size_t row, size_t col ) const
+			{
+				MVExprOp<optype,T> op;
+				return op( _op1( row, col ), _op2( row, col ) );
+			}
+
+			size_t  rows() const { return N; }
+			size_t  cols() const { return M; }
+
+		private:
+			const T1  _op1;
+			const T2  _op2;
+	};
+
+	template<size_t N, size_t M, typename T>
+	class MVExprMatrix
+	{
+		public:
+			MVExprMatrix( const Matrix<N,M,T>& m ) : _mat( m ) {}
+			T		operator()( size_t row, size_t col ) const { return _mat( row, col ); }
+			size_t  rows() const { return N; }
+			size_t  cols() const { return M; }
+
+		private:
+			const Matrix<N,M,T>& _mat;
+	};
+
+	template<size_t N, typename T>
+	class MVExprVector
+	{
+		public:
+			MVExprVector( const Vector<N,T>& v ) : _vec( v ) {}
+			T		operator()( size_t row, size_t col ) const { return _vec[ col ]; }
+			size_t  rows() const { return N; }
+			size_t  cols() const { return 1; }
+
+		private:
+			const Vector<N,T>&	_vec;
+	};
+
+	template<typename T>
+	class MVExprScalar
+	{
+		public:
+			MVExprScalar( T s ) : _scalar( s ) {}
+			T		operator()( size_t row, size_t col ) const { return _scalar; }
+			size_t  rows() const { return 1; }
+			size_t  cols() const { return 1; }
+
+		private:
+			T	_scalar;
+	};
+
+
+	/*
+		Matrix * Matrix
+	 */
+	template<size_t N, size_t M, size_t O, typename T>
+	inline MVExpr<MVExprMul<MVExprMatrix<N,O,T>, MVExprMatrix<O,M,T>, N,M,T>,N,M,T> operator*( const Matrix<N,O,T>& m1, const Matrix<O,M,T>& m2 )
+	{
+		return  MVExpr<MVExprMul<MVExprMatrix<N,O,T>, MVExprMatrix<O,M,T>, N,M,T>,N,M,T>( MVExprMul<MVExprMatrix<N,O,T>, MVExprMatrix<O,M,T>, N,M,T>( MVExprMatrix<N,O,T>(m1), MVExprMatrix<O,M,T>(m2) ) );
+	}
+
+
+	/* Assignment */
+	template<size_t N, size_t M, typename T>
+	template<typename XPR>
+	Matrix<N,M,T>& Matrix<N,M,T>::operator=( const MVExpr<XPR, N, M, T>& expr )
+	{
+		for( size_t m = 0; m < M; m++ ) {
+			for( size_t n = 0; n < M; n++ ) {
+				this->operator()(n,m) = expr( n, m );
+			}
+		}
+		return *this;
+	}
+
+
+
+}
+
+#endif
