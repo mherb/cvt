@@ -4,7 +4,7 @@
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.2f
 #define NORMALCOMPMAX 0.95f
-#define NUMRNDTRIES	 3
+#define NUMRNDTRIES	 1
 #define NUMRNDSAMPLE 3
 
 #define COLORWEIGHT 26.0f
@@ -696,7 +696,7 @@ __kernel void pmhstereo_weight( __write_only image2d_t out, __read_only image2d_
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	float w = exp(-6.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) );
+	float w = exp(-16.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) ) + 0.01f;
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }
 

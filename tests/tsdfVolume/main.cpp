@@ -98,7 +98,7 @@ int main( int argc, char** argv )
 
 			tsdf.addDepthMap( intrinsics, pose.inverse(), depthmap,  ( float ) ( 0xffff ) / 5000.0f );
 
-#if 1
+#if 0
 
 			rgbddata.data().rgb.save("color.png");
 			raycast.reallocate( depthmap.width(), depthmap.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
@@ -114,7 +114,8 @@ int main( int argc, char** argv )
 		SceneMesh mesh( "TSDF-Output" );
 		tsdf.toSceneMesh( mesh );
 		meshToOBJ( "tsdf.obj", mesh );
-//		tsdf.saveRaw( "data.raw" );
+		std::cout << "Triangles:" << mesh.faceSize() << std::endl;
+		tsdf.saveRaw( "tsdf.raw", true );
 
 
     } catch( CLException& e ) {

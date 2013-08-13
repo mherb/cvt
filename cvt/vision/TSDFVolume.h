@@ -49,7 +49,7 @@ namespace cvt
 			   o add loadRaw with width, height, depth
 			 */
 
-			void saveRaw( const String& path ) const;
+			void saveRaw( const String& path, bool weighted ) const;
 
 		private:
 			size_t	 _width;

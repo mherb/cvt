@@ -157,6 +157,7 @@ SET( CL_KERNELS
 	cl/kernel/PDHuberWeighted.cl
 	cl/kernel/PDHuberWeightedInpaint.cl
 	cl/kernel/pmhstereo.cl
+	cl/kernel/MC.cl
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )

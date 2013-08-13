@@ -105,7 +105,7 @@ namespace cvt
 	}
 
 
-	void TSDFVolume::saveRaw( const String& path ) const
+	void TSDFVolume::saveRaw( const String& path, bool weighted ) const
 	{
 		float* ptr = ( float* ) _clvolume.map();
 		float* origptr = ptr;
@@ -113,9 +113,14 @@ namespace cvt
 
 		FILE* f;
 		f = fopen( path.c_str(),"wb");
-		while( n-- ) {
-			fwrite( ptr, sizeof( float ), 1, f );
-			ptr += 2;
+
+		if( weighted ) {
+			fwrite( ptr, sizeof( float ), 2 * n, f );
+		} else {
+			while( n-- ) {
+				fwrite( ptr, sizeof( float ), 1, f );
+				ptr += 2;
+			}
 		}
 		fclose( f );
 

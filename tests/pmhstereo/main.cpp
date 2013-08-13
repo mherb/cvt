@@ -35,9 +35,10 @@ int main( int argc, char** argv )
 
 		PMHuberStereo pmhs;
 
-		pmhs.depthMap( dmap, clinput1, clinput2, 2, 100, 20, 4 );
+		pmhs.depthMap( dmap, clinput1, clinput2, 20, 100, 30, 4 );
 
 		dmap.save("pmh.png");
+		dmap.save("pmh.cvtraw");
 
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;

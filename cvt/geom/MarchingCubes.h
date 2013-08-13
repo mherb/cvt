@@ -8,6 +8,8 @@
  	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
  	PARTICULAR PURPOSE.
  */
+#ifndef CVT_MARCHINGCUBES_H
+#define CVT_MARCHINGCUBES_H
 
 #include <cvt/geom/scene/SceneMesh.h>
 #include <cvt/math/Vector.h>
@@ -136,3 +138,5 @@ namespace cvt {
 		norm.normalize();
 	}
 }
+
+#endif

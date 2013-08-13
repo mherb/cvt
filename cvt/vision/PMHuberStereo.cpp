@@ -208,7 +208,7 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig1.png");
-			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 150.0f + 5.0f, 50 );
+			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 150.0f + 5.0f, 100 );
 //			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
@@ -226,7 +226,7 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig2.png");
-			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 150.0f + 5.0f, 50 );
+			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 150.0f + 5.0f, 100 );
 //			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 4 )
@@ -424,7 +424,7 @@ namespace cvt {
 			_clpmh_normaldepth.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereosmoothorig1.png");
 
-			_pdrofinpaint.apply( leftsmooth, clsmoothtmp, leftweight, cloccimg, theta * 50.0f + 5.0f, 300 );
+			_pdrofinpaint.apply( leftsmooth, clsmoothtmp, leftweight, cloccimg, theta * 20.0f + 5.0f, 100 );
 			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_occmap.setArg( 0, cloccimg );
@@ -442,7 +442,7 @@ namespace cvt {
 			_clpmh_normaldepth.runWait( CLNDRange( Math::pad( right.width(), KX ), Math::pad( right.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereosmoothorig2.png");
 
-			_pdrofinpaint.apply( rightsmooth, clsmoothtmp, rightweight, cloccimg, theta * 50.0f + 5.0f, 300 );
+			_pdrofinpaint.apply( rightsmooth, clsmoothtmp, rightweight, cloccimg, theta * 20.0f + 5.0f, 100 );
 			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 4 )
