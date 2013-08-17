@@ -491,7 +491,6 @@ SET( CVT_HEADERS
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/LMOptimizer.h
-   vision/rgbdvo/DLOptimizer.h
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h

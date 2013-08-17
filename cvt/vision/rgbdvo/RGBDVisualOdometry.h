@@ -41,7 +41,6 @@ namespace cvt {
                     maxSSDSqr( Math::sqr( 0.2f ) ),
                     minPixelPercentage( 0.3f ),
                     autoReferenceUpdate( true ),
-                    propagateDepth( true ),
                     depthScale( 1000.0f ),
                     minDepth( 0.5f ),
                     maxDepth( 10.0f ),
@@ -60,7 +59,6 @@ namespace cvt {
                     maxSSDSqr( Math::sqr( cfg.valueForName<float>( "maxSSD", 0.2f ) ) ),
                     minPixelPercentage( cfg.valueForName<float>( "minPixelPercentage", 0.3f ) ),
                     autoReferenceUpdate( cfg.valueForName<bool>( "autoReferenceUpdate", true ) ),
-                    propagateDepth( cfg.valueForName<bool>( "propagateDepth", true ) ),
                     depthScale( cfg.valueForName<float>( "depthFactor", 1000.0f ) *
                                 cfg.valueForName<float>( "depthScale", 1.0f ) ),
                     minDepth( cfg.valueForName<float>( "minDepth", 0.5f ) ),
@@ -88,11 +86,8 @@ namespace cvt {
 
                // automatic update of reference when needed
                bool autoReferenceUpdate;
-               // propagate depth on keyframe update
-               bool propagateDepth;
 
-               // how many pixels are one meter
-               // d_meters = d_pix / depthScale
+			   // depthScale = #pixels / m
                float depthScale;
                float minDepth;
                float maxDepth;
@@ -102,7 +97,6 @@ namespace cvt {
                float selectionPixelPercentage;
 
                // optimizer:
-               //float    robustThreshold;
                size_t   maxIters;
                float    minParameterUpdate;
 
@@ -128,11 +122,6 @@ namespace cvt {
              *  \brief  get the absolute (world) pose of the last aligned image
              */
             const Matrix4f& pose() const;
-
-            /**
-             *  \brief add additional points to the reference frame
-             */
-            void addFeaturesToKeyframe( const std::vector<Vector3f>& pts );
 
             size_t          numKeyframes()  const                   { return _keyframes.size(); }
             const Matrix3f& intrinsics()    const                   { return _intrinsics; }
@@ -172,11 +161,6 @@ namespace cvt {
 
             bool needNewKeyframe() const;
             void setKeyframeParams( KFType& kf );
-
-            //std::vector<ScaleFeatures>  _gridForScale;
-            //void generateFeatureGrid( std::vector<Vector2f>& features, size_t width, size_t height, size_t nx, size_t ny );
-
-            void propagateDepth( Image& depth, const Matrix4f& pose ) const;
     };
 
     template <class KFType, class LossFunction>
@@ -250,10 +234,6 @@ namespace cvt {
             _activeKeyframe = &_keyframes[ idx ];
         }
 
-        if( _keyframes.size() > 1 && _params.propagateDepth ){
-            propagateDepth( dCopy, kfPose );
-        }
-
         setKeyframeParams( *_activeKeyframe );
         _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
         _lastResult.warp.initialize( kfPose );
@@ -319,45 +299,6 @@ namespace cvt {
     inline const Matrix4f& RGBDVisualOdometry<DerivedKF, LossFunction>::pose() const
     {
         return _currentPose;
-    }
-
-    template <class DerivedKF, class LossFunction>
-    inline void RGBDVisualOdometry<DerivedKF, LossFunction>::propagateDepth( Image& depth, const Matrix4f& pose ) const
-    {
-        // project the points of the current keyframe onto the depth image
-        if( _activeKeyframe ){
-            const AlignDataType& d = _activeKeyframe->dataForScale( 0 );
-
-            IMapScoped<float> dMap( depth );
-
-            // pose is T_W_C
-            // keyframe pose is T_W_K
-            // we need T_C_K to transform points from K to C
-            // T_C_K = T_W_C^-1 * T_W_K
-            Matrix4f relativePose = pose.inverse() * _activeKeyframe->pose();
-
-            // tranform points to the other frame
-            std::vector<Vector3f> transformedPts( d.size() );
-            SIMD* simd = SIMD::instance();
-            simd->transformPoints( &transformedPts[ 0 ], relativePose, &d.points()[ 0 ], transformedPts.size() );
-
-            for( size_t i = 0; i < transformedPts.size(); i++ ){
-                Vector2f uv = _intrinsics * transformedPts[ i ];
-                if( uv.x >= 0 && uv.x < depth.width() &&
-                    uv.y >= 0 && uv.y < depth.height() ){
-                    // scale the Z value:
-                   int x = uv.x;
-                   int y = uv.y;
-                   float& dpos = dMap( y, x );
-                   if( dpos > 1.0f /* there is a value */ ){
-                       // average the Z value:
-                       dpos = 0.5f * ( dpos + transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF );
-                   } else {
-                       dpos = transformedPts[ i ].z * _params.depthScale / ( float )0xFFFF;
-                   }
-                }
-            }
-        }
     }
 
 }
