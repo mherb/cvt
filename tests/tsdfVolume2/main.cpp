@@ -96,7 +96,7 @@ int main( int argc, char** argv )
         }
         std::cout << t.elapsedMilliSeconds() << " ms" << std::endl;
 
-		tsdf.saveRaw( "tsdf2.raw" );
+		tsdf.saveRaw( "tsdf2.raw", false );
 
 
     } catch( CLException& e ) {
