@@ -13,6 +13,26 @@
 
 using namespace cvt;
 
+void writeOBJ( const float* vertices, size_t numtris )
+{
+		FILE* f;
+		cl_float3* vert = ( cl_float3* ) vertices;
+
+		f = fopen( "mcresult.obj", "wb" );
+		size_t idxend = numtris * 3;
+		for( size_t idx = 0; idx < idxend; idx++ ) {
+			cl_float3 vtx = vert[ idx ];
+			fprintf( f, "v %f %f %f\n", vtx.x, vtx.y, vtx.z );
+		}
+
+		for( size_t idx = 0; idx < numtris; idx++ ) {
+			fprintf( f, "f %lu %lu %lu\n", idx * 3 + 1, idx * 3 + 2, idx * 3 + 3);
+		}
+
+		fclose( f );
+}
+
+
 int main( int argc, char** argv )
 {
 	if( argc != 3 ) {
@@ -53,6 +73,15 @@ int main( int argc, char** argv )
 		unsigned int size = mccl.triangleSize( buf, grid, grid, grid );
 		std::cout << "Calculating number of triangles" << std::endl;
 		std::cout << size << std::endl;
+
+		CLBuffer tribuf( sizeof( cl_float3 ) * size * 3 );
+		mccl.extractTriangles( tribuf, buf, grid, grid, grid );
+
+		ptr = ( float* ) tribuf.map();
+		writeOBJ( ptr, size );
+		tribuf.unmap( ptr );
+
+
 	} catch( CLException& e ) {
 		std::cout << e.what() << std::endl;
 	}

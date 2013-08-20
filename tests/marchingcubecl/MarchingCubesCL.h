@@ -8,7 +8,9 @@ namespace cvt {
 	class MarchingCubesCL
 	{
 		public:
-			MarchingCubesCL() : _clMCsize( _MC_source, "MC_weighted_triangleSize" )
+			MarchingCubesCL() :
+				_clMCsize( _MC_source, "MC_weighted_triangleSize" ),
+				_clMCextract( _MC_source, "MC_weighted_extractTriangles" )
 			{
 			}
 
@@ -32,8 +34,27 @@ namespace cvt {
 				return ret;
 			}
 
+			void extractTriangles( CLBuffer& output, const CLBuffer& buf , size_t width, size_t height, size_t depth, float isolevel = 0.0f )
+			{
+				unsigned int ret = 0;
+				CLBuffer clbuf( &ret, sizeof( unsigned int ) );
+
+				_clMCextract.setArg( 0, output );
+				_clMCextract.setArg( 1, clbuf );
+				_clMCextract.setArg( 2, buf );
+				_clMCextract.setArg( 3, ( int ) width );
+				_clMCextract.setArg( 4, ( int ) height );
+				_clMCextract.setArg( 5, ( int ) depth );
+				_clMCextract.setArg( 6, isolevel );
+
+				Time t;
+				_clMCextract.runWait( CLNDRange( Math::pad16( width ), Math::pad16( height ), depth ), CLNDRange( 16, 16, 1 ) );
+				std::cout << "Extracting tris took "<< t.elapsedMilliSeconds() << " ms" << std::endl;
+			}
+
 		private:
 			CLKernel _clMCsize;
+			CLKernel _clMCextract;
 	};
 }
 

@@ -1,4 +1,38 @@
-	constant char _triTable[ 256 ][ 16 ] =
+constant int _edgeTable[ 256 ]={
+	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
+	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
+	0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
+	0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
+	0x230, 0x339, 0x33 , 0x13a, 0x636, 0x73f, 0x435, 0x53c,
+	0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
+	0x3a0, 0x2a9, 0x1a3, 0xaa , 0x7a6, 0x6af, 0x5a5, 0x4ac,
+	0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
+	0x460, 0x569, 0x663, 0x76a, 0x66 , 0x16f, 0x265, 0x36c,
+	0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
+	0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff , 0x3f5, 0x2fc,
+	0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
+	0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55 , 0x15c,
+	0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
+	0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc ,
+	0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
+	0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc,
+	0xcc , 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+	0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c,
+	0x15c, 0x55 , 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+	0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc,
+	0x2fc, 0x3f5, 0xff , 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+	0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c,
+	0x36c, 0x265, 0x16f, 0x66 , 0x76a, 0x663, 0x569, 0x460,
+	0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac,
+	0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa , 0x1a3, 0x2a9, 0x3a0,
+	0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c,
+	0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33 , 0x339, 0x230,
+	0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c,
+	0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
+	0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
+	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
+
+constant char _triTable[ 256 ][ 16 ] =
 	{{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -266,7 +300,33 @@ constant unsigned int _triSizeTable[ 256 ] =
   4,3,5,4,3,2,4,1,3,4,4,5,4,5,3,4,4,5,5,2,3,4,2,1,2,3,3,2,3,4,2,1,3,2,4,1,
   2,1,1,0 };
 
-static inline float MC_weighted_trilinearValue( global float2* cv, int width, int height, int depth, float3 pos )
+
+#define VOLUME( a, b, c )	( *( cv + ( ( c ) * height + ( b ) ) * width + ( a ) ) )
+
+inline void vertexInterp( float3* vtx, const float3 p1, const float3 p2, float val1, float val2, float isolevel )
+{
+	const float ISO_EPSILON = 1e-6f;
+
+	if( fabs( isolevel - val1 ) <  ISO_EPSILON ) {
+		*vtx = p1;
+		return;
+	}
+
+	if( fabs( isolevel - val2 ) <  ISO_EPSILON ) {
+		*vtx = p2;
+		return;
+	}
+
+	if( fabs( val1 - val2 ) <  ISO_EPSILON ) {
+		*vtx = p1;
+		return;
+	}
+
+	float alpha = ( isolevel - val1 ) / ( val2 - val1 );
+	*vtx = mix( p1, p2, alpha );
+}
+
+inline float MC_weighted_trilinearValue( global float2* cv, int width, int height, int depth, float3 pos )
 {
 	pos = fmin( fmax( ( float3 ) 0.0f, pos ), ( float3 ) ( width - 2, height - 2, depth - 2 ) );
 
@@ -310,7 +370,6 @@ static inline float MC_weighted_trilinearValue( global float2* cv, int width, in
 }
 
 
-#define VOLUME( a, b, c )	( *( cv + ( ( c ) * height + ( b ) ) * width + ( a ) ) )
 
 kernel void MC_weighted_triangleSize( global unsigned int* size, global float2* cv, int width, int height, int depth, float isolevel )
 {
@@ -370,4 +429,101 @@ kernel void MC_weighted_triangleSize( global unsigned int* size, global float2* 
 		unsigned int c = counter;
 		atomic_add( size, c );
 	}
+}
+
+kernel void MC_weighted_extractTriangles( global float3* output, global unsigned int* pos, global float2* cv, int width, int height, int depth, float isolevel )
+{
+	const float wepsilon = 20.0f;
+	const int x = get_global_id( 0 );
+	const int y = get_global_id( 1 );
+	const int z = get_global_id( 2 );
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+	const int lz = get_local_id( 2 );
+
+	if( x < width - 1 && y < height - 1 && z < depth - 1 ) {
+
+		unsigned int cubeindex = 0;
+		float2 gridval[ 8 ];
+
+		/* get the values of the current grid voxel */
+		gridval[ 0 ] = VOLUME( x, y, z );
+		gridval[ 1 ] = VOLUME( x + 1, y, z );
+		gridval[ 2 ] = VOLUME( x + 1, y + 1, z );
+		gridval[ 3 ] = VOLUME( x, y + 1, z );
+		gridval[ 4 ] = VOLUME( x, y, z + 1 );
+		gridval[ 5 ] = VOLUME( x + 1, y, z + 1 );
+		gridval[ 6 ] = VOLUME( x + 1, y + 1, z + 1 );
+		gridval[ 7 ] = VOLUME( x, y + 1, z + 1 );
+
+		if(  gridval[ 0 ].y > wepsilon
+		   && gridval[ 1 ].y > wepsilon
+		   && gridval[ 2 ].y > wepsilon
+		   && gridval[ 3 ].y > wepsilon
+		   && gridval[ 4 ].y > wepsilon
+		   && gridval[ 5 ].y > wepsilon
+		   && gridval[ 6 ].y > wepsilon
+		   && gridval[ 7 ].y > wepsilon ) {
+			if( gridval[ 0 ].x < isolevel ) cubeindex |= ( 1 << 0 );
+			if( gridval[ 1 ].x < isolevel ) cubeindex |= ( 1 << 1 );
+			if( gridval[ 2 ].x < isolevel ) cubeindex |= ( 1 << 2 );
+			if( gridval[ 3 ].x < isolevel ) cubeindex |= ( 1 << 3 );
+			if( gridval[ 4 ].x < isolevel ) cubeindex |= ( 1 << 4 );
+			if( gridval[ 5 ].x < isolevel ) cubeindex |= ( 1 << 5 );
+			if( gridval[ 6 ].x < isolevel ) cubeindex |= ( 1 << 6 );
+			if( gridval[ 7 ].x < isolevel ) cubeindex |= ( 1 << 7 );
+
+			unsigned int numtri = ( unsigned int ) _triSizeTable[ cubeindex ];
+			if( numtri ) {
+				float3 gridvtx[ 8 ];
+				float3 vertlist[ 12 ];
+				unsigned int lpos = atomic_add( pos, numtri * 3 );
+
+				gridvtx[ 0 ] = ( float3 ) ( x, y, z );
+				gridvtx[ 1 ] = ( float3 ) ( x + 1, y, z );
+				gridvtx[ 2 ] = ( float3 ) ( x + 1, y + 1, z );
+				gridvtx[ 3 ] = ( float3 ) ( x, y + 1, z );
+				gridvtx[ 4 ] = ( float3 ) ( x, y, z + 1 );
+				gridvtx[ 5 ] = ( float3 ) ( x + 1, y, z + 1 );
+				gridvtx[ 6 ] = ( float3 ) ( x + 1, y + 1, z + 1);
+				gridvtx[ 7 ] = ( float3 ) ( x, y + 1, z + 1 );
+
+				/* Find the vertices where the surface intersects the cube */
+				if ( _edgeTable[ cubeindex ] & 1)
+					vertexInterp( &vertlist[ 0 ], gridvtx[ 0 ], gridvtx[ 1 ], gridval[ 0 ].x, gridval[ 1 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 2)
+					vertexInterp( &vertlist[ 1 ], gridvtx[ 1 ], gridvtx[ 2 ], gridval[ 1 ].x, gridval[ 2 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 4)
+					vertexInterp( &vertlist[ 2 ], gridvtx[ 2 ], gridvtx[ 3 ], gridval[ 2 ].x, gridval[ 3 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 8)
+					vertexInterp( &vertlist[ 3 ], gridvtx[ 3 ], gridvtx[ 0 ], gridval[ 3 ].x, gridval[ 0 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 16)
+					vertexInterp( &vertlist[ 4 ], gridvtx[ 4 ], gridvtx[ 5 ], gridval[ 4 ].x, gridval[ 5 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 32)
+					vertexInterp( &vertlist[ 5 ], gridvtx[ 5 ], gridvtx[ 6 ], gridval[ 5 ].x, gridval[ 6 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 64)
+					vertexInterp( &vertlist[ 6 ], gridvtx[ 6 ], gridvtx[ 7 ], gridval[ 6 ].x, gridval[ 7 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 128)
+					vertexInterp( &vertlist[ 7 ], gridvtx[ 7 ], gridvtx[ 4 ], gridval[ 7 ].x, gridval[ 4 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 256)
+					vertexInterp( &vertlist[ 8 ], gridvtx[ 0 ], gridvtx[ 4 ], gridval[ 0 ].x, gridval[ 4 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 512)
+					vertexInterp( &vertlist[ 9 ], gridvtx[ 1 ], gridvtx[ 5 ], gridval[ 1 ].x, gridval[ 5 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 1024)
+					vertexInterp( &vertlist[ 10 ], gridvtx[ 2 ], gridvtx[ 6 ], gridval[ 2 ].x, gridval[ 6 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 2048)
+					vertexInterp( &vertlist[ 11 ], gridvtx[ 3 ], gridvtx[ 7 ], gridval[ 3 ].x, gridval[ 7 ].x, isolevel );
+
+
+				/* Create the triangles */
+				for( unsigned int i = 0; i < numtri; i++ ) {
+					const unsigned int i3 = i * 3;
+					output[ lpos + i3 + 0 ].xyz = vertlist[ _triTable[ cubeindex ][ i3     ] ];
+					output[ lpos + i3 + 1 ].xyz = vertlist[ _triTable[ cubeindex ][ i3 + 1 ] ];
+					output[ lpos + i3 + 2 ].xyz = vertlist[ _triTable[ cubeindex ][ i3 + 2 ] ];
+				}
+			}
+		}
+	}
+
 }
