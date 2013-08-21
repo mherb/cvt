@@ -305,6 +305,7 @@ constant unsigned int _triSizeTable[ 256 ] =
 
 inline void vertexInterp( float3* vtx, const float3 p1, const float3 p2, float val1, float val2, float isolevel )
 {
+	/*
 	const float ISO_EPSILON = 1e-6f;
 
 	if( fabs( isolevel - val1 ) <  ISO_EPSILON ) {
@@ -318,9 +319,10 @@ inline void vertexInterp( float3* vtx, const float3 p1, const float3 p2, float v
 	}
 
 	if( fabs( val1 - val2 ) <  ISO_EPSILON ) {
-		*vtx = p1;
+		*vtx = p2;
 		return;
 	}
+	*/
 
 	float alpha = ( isolevel - val1 ) / ( val2 - val1 );
 	*vtx = mix( p1, p2, alpha );
@@ -380,12 +382,6 @@ kernel void MC_weighted_triangleSize( global unsigned int* size, global float2* 
 	const int lx = get_local_id( 0 );
 	const int ly = get_local_id( 1 );
 	const int lz = get_local_id( 2 );
-	local unsigned int counter;
-
-//	if( !lx && !ly && !lz )
-	counter = 0;
-
-	barrier( CLK_LOCAL_MEM_FENCE );
 
 	if( x < width - 1 && y < height - 1 && z < depth - 1 ) {
 
@@ -419,15 +415,8 @@ kernel void MC_weighted_triangleSize( global unsigned int* size, global float2* 
 			if( val[ 6 ].x < isolevel ) cubeindex |= ( 1 << 6 );
 			if( val[ 7 ].x < isolevel ) cubeindex |= ( 1 << 7 );
 
-			atomic_add( &counter, ( unsigned int ) _triSizeTable[ cubeindex ] );
+			atomic_add( size, ( unsigned int ) _triSizeTable[ cubeindex ] );
 		}
-	}
-
-	barrier( CLK_LOCAL_MEM_FENCE );
-
-	if( !lx && !ly && !lz ) {
-		unsigned int c = counter;
-		atomic_add( size, c );
 	}
 }
 
