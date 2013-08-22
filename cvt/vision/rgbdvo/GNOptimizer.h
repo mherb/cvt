@@ -18,23 +18,23 @@
 
 namespace cvt {
 
-    template <class WarpFunc, class LossFunc>
-    class GNOptimizer : public Optimizer<WarpFunc, LossFunc>
+	template <class AlignData, class LossFunc>
+	class GNOptimizer : public Optimizer<AlignData, LossFunc>
     {
         public:
             GNOptimizer();
             virtual ~GNOptimizer(){}
 
         protected:
+			typedef typename AlignData::WarpType		WarpFunc;
             typedef typename WarpFunc::JacobianType     JacobianType;
             typedef typename WarpFunc::HessianType      HessianType;
             typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef typename Optimizer<WarpFunc, LossFunc>::Result ResultType;
-            typedef typename Optimizer<WarpFunc, LossFunc>::AlignDataType AlignDataType;
-            typedef RGBDKeyframe<WarpFunc>              KFType;
+			typedef typename Optimizer<AlignData, LossFunc>::Result ResultType;
+			typedef RGBDKeyframe<AlignData>              KFType;
 
             void optimizeSingleScale( ResultType& result,
-                                      RGBDKeyframe<WarpFunc>& reference,
+									  RGBDKeyframe<AlignData>& reference,
                                       const Image& gray,
                                       const Image& /*depthImage*/,
                                       size_t octave );
@@ -46,18 +46,18 @@ namespace cvt {
                                       size_t octave );
     };
 
-    template <class WarpFunc, class LossFunc>
-    inline GNOptimizer<WarpFunc, LossFunc>::GNOptimizer() :
-        Optimizer<WarpFunc, LossFunc>()
+	template <class AlignData, class LossFunc>
+	inline GNOptimizer<AlignData, LossFunc>::GNOptimizer() :
+		Optimizer<AlignData, LossFunc>()
     {
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline void GNOptimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
-                                                                      RGBDKeyframe<WarpFunc>& reference,
-                                                                      const Image& gray,
-                                                                      const Image& /*depthImage*/,
-                                                                      size_t octave )
+	template <class AlignData, class LossFunc>
+	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
+																	   RGBDKeyframe<AlignData>& reference,
+																	   const Image& gray,
+																	   const Image& /*depthImage*/,
+																	   size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
@@ -69,7 +69,7 @@ namespace cvt {
         result.pixelPercentage = 0.0f;
 
         std::vector<float> residuals;
-        typename RGBDKeyframe<WarpFunc>::JacobianVec jacobians;
+		typename RGBDKeyframe<AlignData>::JacobianVec jacobians;
 
         while( result.iterations < this->_maxIter ){
             residuals.clear();
@@ -106,12 +106,12 @@ namespace cvt {
         result.pixelPercentage = ( float )result.numPixels / ( float )reference.dataSize( octave );
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline void GNOptimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
-                                                                      KFType* references, size_t nRefs,
-                                                                      const Image& gray,
-                                                                      const Image& /*depthImage*/,
-                                                                      size_t octave )
+	template <class AlignData, class LossFunc>
+	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
+																	   KFType* references, size_t nRefs,
+																	   const Image& gray,
+																	   const Image& /*depthImage*/,
+																	   size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
@@ -123,7 +123,7 @@ namespace cvt {
         result.pixelPercentage = 0.0f;
 
         std::vector<float> residuals, resTmp;
-        typename RGBDKeyframe<WarpFunc>::JacobianVec jacobians, jacTmp;
+		typename RGBDKeyframe<AlignData>::JacobianVec jacobians, jacTmp;
 
         size_t overallPixels = 0;
 

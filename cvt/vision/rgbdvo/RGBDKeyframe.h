@@ -19,21 +19,23 @@
 
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/InformationSelection.h>
-#include <cvt/vision/rgbdvo/KeyframeData.h>
+//#include <cvt/vision/rgbdvo/KeyframeData.h>
 
 #include <Eigen/StdVector>
 
 namespace cvt
 {
-    template <class Warp>
+	template <class AlignData>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef Warp                            WarpType;
-            typedef typename Warp::JacobianType     JacobianType;
-            typedef typename Warp::ScreenJacType    ScreenJacobianType;
-            typedef typename Warp::HessianType      HessianType;
-            typedef Eigen::Matrix<float, 1, 2>      GradientType;
+			typedef AlignData							AlignDataType;
+			typedef typename AlignDataType::WarpType	WarpType;
+			typedef typename WarpType::JacobianType     JacobianType;
+			typedef typename WarpType::ScreenJacType    ScreenJacobianType;
+			typedef typename WarpType::HessianType      HessianType;
+			typedef Eigen::Matrix<float, 1, 2>			GradientType;
+
             typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
             typedef std::vector<JacobianType, Eigen::aligned_allocator<JacobianType> > JacobianVec;           
 
@@ -41,8 +43,8 @@ namespace cvt
 
             virtual ~RGBDKeyframe();
 
-            const AlignmentData<Warp>&  dataForScale( size_t o )       const { return _dataForScale[ o ]; }
-            const Matrix4f&             pose()                         const { return _pose; }
+			const AlignData&  dataForScale( size_t o )	const { return _dataForScale[ o ]; }
+			const Matrix4f&   pose()					const { return _pose; }
 
             // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
             // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
@@ -67,7 +69,8 @@ namespace cvt
             const IKernel& kernelDy() const { return _ky; }
 
 			virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth );
-			virtual void updateOfflineDataForScale( AlignmentData<Warp>& data,
+
+			virtual void updateOfflineDataForScale( AlignData& data,
                                                     const Image& gray,
                                                     const Image& depth,
                                                     float scale );
@@ -80,13 +83,13 @@ namespace cvt
 
             virtual void recompute( std::vector<float>& residuals,
                                     JacobianVec& jacobians,
-                                    const Warp& warp,
+									const WarpType& warp,
                                     const IMapScoped<const float>& gray,
                                     size_t octave ) = 0;
 
 
         protected:
-            typedef std::vector<AlignmentData<Warp> , Eigen::aligned_allocator<AlignmentData<Warp> > > AlignmentDataVector;
+			typedef std::vector<AlignData, Eigen::aligned_allocator<AlignData> > AlignmentDataVector;
             Matrix4f            _pose;
             AlignmentDataVector _dataForScale;
             Image               _depth;
@@ -109,8 +112,8 @@ namespace cvt
             void  initializePointLookUps( float* vals, size_t n, float foc, float center ) const;
     };
 
-    template <class Warp>
-    inline RGBDKeyframe<Warp>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
+	template <class AlignData>
+	inline RGBDKeyframe<AlignData>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
         //_kx( IKernel::HAAR_HORIZONTAL_3 ),
         //_ky( IKernel::HAAR_VERTICAL_3 ),
         _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
@@ -134,15 +137,15 @@ namespace cvt
         updateIntrinsics( K, scale );
     }
 
-    template <class WarpFunc>
-    inline RGBDKeyframe<WarpFunc>::~RGBDKeyframe()
+	template <class AlignData>
+	inline RGBDKeyframe<AlignData>::~RGBDKeyframe()
     {
     }
 
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateOfflineData( const Matrix4f& poseMat,
-                                                           const ImagePyramid& pyramid,
-                                                           const Image& depth )
+	template <class AlignData>
+	inline void RGBDKeyframe<AlignData>::updateOfflineData( const Matrix4f& poseMat,
+															const ImagePyramid& pyramid,
+															const Image& depth )
     {
         this->_pose = poseMat;
 
@@ -157,8 +160,8 @@ namespace cvt
         }
     }
 
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateIntrinsics( const Matrix3f& K, float scale )
+	template <class AlignData>
+	inline void RGBDKeyframe<AlignData>::updateIntrinsics( const Matrix3f& K, float scale )
     {
         _dataForScale[ 0 ].setIntrinsics( K );
         Matrix3f Ks = K;
@@ -169,8 +172,8 @@ namespace cvt
         }
     }
 
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
+	template <class AlignData>
+	inline void RGBDKeyframe<AlignData>::computeImageGradients( Image& gx, Image& gy, const Image& gray ) const
     {
         gx.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( gray.width(), gray.height(), IFormat::GRAY_FLOAT );
@@ -184,8 +187,8 @@ namespace cvt
         gray.convolve( gy, _ky );
     }
 
-    template <class WarpFunc>
-    inline float RGBDKeyframe<WarpFunc>::interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const
+	template <class AlignData>
+	inline float RGBDKeyframe<AlignData>::interpolateDepth( const Vector2f& p, const float* ptr, size_t stride ) const
     {
         // get the fractions:
         int xi = p.x;
@@ -233,8 +236,8 @@ namespace cvt
         return Math::mix( z0, z1, wy ) * _depthScaling;
     }
 
-    template <class WarpFunc>
-    inline void  RGBDKeyframe<WarpFunc>::initializePointLookUps( float* vals, size_t n, float foc, float c ) const
+	template <class AlignData>
+	inline void  RGBDKeyframe<AlignData>::initializePointLookUps( float* vals, size_t n, float foc, float c ) const
     {
         float invF = 1.0f / foc;
         for( size_t i = 0; i < n; i++ ){
@@ -242,11 +245,11 @@ namespace cvt
         }
     }
 
-    template <class WarpFunc>
-    inline void RGBDKeyframe<WarpFunc>::updateOfflineDataForScale( AlignmentData<WarpFunc> &data,
-                                                                   const Image& gray,
-                                                                   const Image& depth,
-                                                                   float scale )
+	template <class AlignData>
+	inline void RGBDKeyframe<AlignData>::updateOfflineDataForScale( AlignData &data,
+																	const Image& gray,
+																	const Image& depth,
+																	float scale )
     {
         IMapScoped<const float> depthMap( depth );
         const float* d = depthMap.ptr();
@@ -305,7 +308,7 @@ namespace cvt
                     // point in world coord frame
                     p3dw = this->_pose * p3d;
 
-                    WarpFunc::screenJacobian( sj, p3d, data.intrinsics() );
+					WarpType::screenJacobian( sj, p3d, data.intrinsics() );
 
                     data.add( p3dw, sj, g, value[ x ] );
                 }

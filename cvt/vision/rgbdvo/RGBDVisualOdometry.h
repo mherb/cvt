@@ -28,8 +28,8 @@ namespace cvt {
     {
         public:
             typedef typename KFType::WarpType       Warp;
-            typedef AlignmentData<Warp>             AlignDataType;
-            typedef Optimizer<Warp, LossFunction>   OptimizerType;
+			typedef typename KFType::AlignDataType	AlignDataType;
+			typedef Optimizer<AlignDataType, LossFunction>   OptimizerType;
             typedef typename OptimizerType::Result  Result;
 
             struct Params {

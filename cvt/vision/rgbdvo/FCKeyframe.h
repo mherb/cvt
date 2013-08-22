@@ -14,18 +14,17 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
 namespace cvt {
-    template <class WarpFunc>
-    class FCKeyframe : public RGBDKeyframe<WarpFunc> {
+	template <class AlignData>
+	class FCKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef RGBDKeyframe<WarpFunc>              Base;
+			typedef RGBDKeyframe<AlignData>             Base;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;
             typedef typename Base::ScreenJacVec         ScreenJacVec;            
             typedef typename Base::GradientType         GradientType;
-            typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             FCKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~FCKeyframe();
@@ -34,7 +33,7 @@ namespace cvt {
 
             void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
-                            const WarpFunc& warp,
+							const typename Base::WarpType& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
         private:
@@ -44,25 +43,25 @@ namespace cvt {
             void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
     };
 
-    template <class WarpFunc>
-    inline FCKeyframe<WarpFunc>::FCKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-        RGBDKeyframe<WarpFunc>( K, octaves, scale ),
+	template <class AlignData>
+	inline FCKeyframe<AlignData>::FCKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+		RGBDKeyframe<AlignData>( K, octaves, scale ),
         _onlineGradientsX( octaves, scale ),
         _onlineGradientsY( octaves, scale )
     {
     }
 
-    template <class WarpFunc>
-    inline FCKeyframe<WarpFunc>::~FCKeyframe()
+	template <class AlignData>
+	inline FCKeyframe<AlignData>::~FCKeyframe()
     {
     }
 
-    template <class WarpFunc>
-    inline void FCKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
-                                                 JacobianVec& jacobians,
-                                                 const WarpFunc& warp,
-                                                 const IMapScoped<const float>& gray,
-                                                 size_t octave )
+	template <class AlignData>
+	inline void FCKeyframe<AlignData>::recompute(std::vector<float>& residuals,
+												 JacobianVec& jacobians,
+												 const typename Base::WarpType &warp,
+												 const IMapScoped<const float>& gray,
+												 size_t octave )
     {
         SIMD* simd = SIMD::instance();
         const size_t width = gray.width();
@@ -72,7 +71,7 @@ namespace cvt {
         std::vector<float> intGradX;
         std::vector<float> intGradY;
 
-        const AlignmentDataType& data = this->dataForScale( octave );
+		const AlignData& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix
@@ -110,7 +109,7 @@ namespace cvt {
                 grad.coeffRef( 0, 0 ) = intGradX[ i ];
                 grad.coeffRef( 0, 1 ) = intGradY[ i ];
                 // compute the Fwd jacobians
-                WarpFunc::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolatedPixels[ i ] );
+				Base::WarpType::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolatedPixels[ i ] );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
             }

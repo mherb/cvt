@@ -228,7 +228,8 @@ namespace cvt {
             }
 
             // initial lambda
-			_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
+			//_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
+			_lambda = 0.0001;
         }
     }
 
@@ -287,7 +288,7 @@ namespace cvt {
         Eigen::Matrix<double, camParamDim, pointParamDim> tmpEval;
         CamResidualType tmpRes;
 
-		double lambdaAug = _lambda;
+		double lambdaAug = 1.0 + _lambda;
         size_t numCams = map.numKeyframes();
         for( size_t c = 0; c < numCams; c++ ){
             // first create block for this cam:
@@ -295,7 +296,7 @@ namespace cvt {
             tmpRes   = _camResiduals[ c ];
 
 			// augment the jacobian diagonal
-            tmpBlock.diagonal().array() += lambdaAug;
+			tmpBlock.diagonal().array() *= lambdaAug;
 
             // go over all point measures:
             const Keyframe & k = map.keyframeForId( c );
@@ -340,13 +341,12 @@ namespace cvt {
 
     void SparseBundleAdjustment::updateInverseAugmentedPointHessians()
     {
-		double lambdaAug = _lambda;
         PointJTJ inv;
         for( size_t i = 0; i < _nPts; i++ ){
             inv = _pointsJTJ[ i ];
             // augment the diagonal:
-            //inv.diagonal().array() *= lambdaAug;
-            inv.diagonal().array() += lambdaAug;
+			inv.diagonal().array() *= ( 1.0 + _lambda );
+			//inv.diagonal().array() += lambdaAug;
             // TODO: howto exploit symmetry when inverting with Eigen?
             _invAugPJTJ[ i ] = inv.inverse();
         }

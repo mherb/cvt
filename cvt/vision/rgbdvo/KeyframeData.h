@@ -19,6 +19,7 @@ namespace cvt {
     template <class Warp>
     class AlignmentData {
         public:
+			typedef Warp					WarpType;
             typedef typename Warp::JacobianType     JacobianType;
             typedef typename Warp::ScreenJacType    ScreenJacobianType;
             typedef typename Warp::HessianType      HessianType;

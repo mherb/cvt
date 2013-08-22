@@ -16,17 +16,17 @@
 
 namespace cvt
 {
-    template <class WarpFunc>
-    class ESMKeyframe : public RGBDKeyframe<WarpFunc> {
+	template <class AlignData>
+	class ESMKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef RGBDKeyframe<WarpFunc>              Base;
+			typedef RGBDKeyframe<AlignData>             Base;
+			typedef typename Base::WarpType				WarpType;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;
             typedef typename Base::ScreenJacVec         ScreenJacVec;
-            typedef AlignmentData<WarpFunc>             AlignmentDataType;
             typedef typename Base::GradientType         GradientType;
 
             ESMKeyframe( const Matrix3f &K, size_t octaves, float scale );
@@ -36,7 +36,7 @@ namespace cvt
             
 			void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
-                            const WarpFunc& warp,
+							const WarpType& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
 		private:
@@ -46,23 +46,23 @@ namespace cvt
             void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const;
     };
 
-    template <class WarpFunc>
-    inline ESMKeyframe<WarpFunc>::ESMKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-        RGBDKeyframe<WarpFunc>( K, octaves, scale ),
+	template <class AlignData>
+	inline ESMKeyframe<AlignData>::ESMKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+		RGBDKeyframe<AlignData>( K, octaves, scale ),
 		_onlineGradientsX( octaves, scale ),
 		_onlineGradientsY( octaves, scale )
     {
     }
 
-    template <class WarpFunc>
-    inline ESMKeyframe<WarpFunc>::~ESMKeyframe()
+	template <class AlignData>
+	inline ESMKeyframe<AlignData>::~ESMKeyframe()
     {
     }
 
-    template <class WarpFunc>
-    inline void ESMKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
+	template <class AlignData>
+	inline void ESMKeyframe<AlignData>::recompute( std::vector<float>& residuals,
                                                  JacobianVec& jacobians,
-                                                 const WarpFunc& warp,
+												 const WarpType& warp,
                                                  const IMapScoped<const float>& gray,
                                                  size_t octave )
     {
@@ -74,7 +74,7 @@ namespace cvt
         std::vector<float> intGradX;
         std::vector<float> intGradY;
 
-        const AlignmentDataType& data = this->dataForScale( octave );
+		const AlignData& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix
@@ -114,7 +114,7 @@ namespace cvt
                 grad.coeffRef( 0, 0 ) = intGradX[ i ];
                 grad.coeffRef( 0, 1 ) = intGradY[ i ];
                 // compute the ESM jacobians
-                WarpFunc::computeJacobian( jCur, sj[ i ], grad, interpolatedPixels[ i ] );
+				WarpType::computeJacobian( jCur, sj[ i ], grad, interpolatedPixels[ i ] );
                 jacobians[ savePos ] = 0.5f * ( refJacs[ i ] + jCur );
                 residuals[ savePos ] = residuals[ i ];
                 ++savePos;
@@ -124,15 +124,15 @@ namespace cvt
         jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
     }
 
-	template <class WarpFunc>
-	inline void ESMKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
+	template <class AlignData>
+	inline void ESMKeyframe<AlignData>::updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
 	{
 		pyrf.convolve( _onlineGradientsX, this->_kx );
 		pyrf.convolve( _onlineGradientsY, this->_ky );
 	}
 
-    template <class WarpFunc>
-    inline void ESMKeyframe<WarpFunc>::interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const
+	template <class AlignData>
+	inline void ESMKeyframe<AlignData>::interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd ) const
     {
         IMapScoped<const float> map( gradImg );
         simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );

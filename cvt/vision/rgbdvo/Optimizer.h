@@ -136,16 +136,15 @@ namespace cvt {
             }
     };
 
-    template <class WarpFunc, class Weighter>
+	template <class AlignData, class Weighter>
     class Optimizer
     {
         public:
-            typedef typename WarpFunc::JacobianType     JacobianType;
-            typedef typename WarpFunc::HessianType      HessianType;
-            typedef typename WarpFunc::DeltaVectorType  DeltaType;
-            typedef RGBDKeyframe<WarpFunc>              KFType;
-            typedef AlignmentData<WarpFunc>             AlignDataType;
-
+			typedef typename AlignData::WarpType		WarpType;
+			typedef typename WarpType::JacobianType     JacobianType;
+			typedef typename WarpType::HessianType      HessianType;
+			typedef typename WarpType::DeltaVectorType  DeltaType;
+			typedef RGBDKeyframe<AlignData>             KFType;
 
             struct Result {
                 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -163,7 +162,7 @@ namespace cvt {
                 float       pixelPercentage; /* between 0 and 1 */
                 float       costs;
 
-                WarpFunc    warp;
+				WarpType    warp;
             };
 
             Optimizer();
@@ -186,7 +185,7 @@ namespace cvt {
             // scale-space optimization
             void optimize( Result& result,
                            const Matrix4f& posePrediction,
-                           RGBDKeyframe<WarpFunc>& reference,
+						   KFType& reference,
                            const ImagePyramid& grayPyramid,
                            const Image& depthImage );
 
@@ -241,8 +240,8 @@ namespace cvt {
 
     };
 
-    template <class WarpFunc, class LossFunc>
-    inline Optimizer<WarpFunc, LossFunc>::Optimizer() :
+	template <class AlignData, class LossFunc>
+	inline Optimizer<AlignData, LossFunc>::Optimizer() :
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
         _minPixelPercentage( 0.8f ),
@@ -255,12 +254,12 @@ namespace cvt {
     {
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimize( Result& result,
-                                                         const Matrix4f& posePrediction,
-                                                         RGBDKeyframe<WarpFunc> &reference,
-                                                         const ImagePyramid& grayPyramid,
-                                                         const Image& depthImage )
+	template <class AlignData, class LossFunc>
+	inline void Optimizer<AlignData, LossFunc>::optimize( Result& result,
+														  const Matrix4f& posePrediction,
+														  RGBDKeyframe<AlignData> &reference,
+														  const ImagePyramid& grayPyramid,
+														  const Image& depthImage )
     {
         Matrix4f tmp4;
         tmp4 = posePrediction.inverse();

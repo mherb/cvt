@@ -15,8 +15,8 @@
 
 namespace cvt {
 
-    template <class WarpFunc, class LossFunc>
-    class LMOptimizer : public Optimizer<WarpFunc, LossFunc>
+	template <class AlignData, class LossFunc>
+	class LMOptimizer : public Optimizer<AlignData, LossFunc>
     {
         public:
             LMOptimizer();
@@ -24,14 +24,14 @@ namespace cvt {
 
 
         private:
+			typedef typename AlignData::WarpType			WarpFunc;
             typedef typename WarpFunc::JacobianType         JacobianType;
             typedef typename WarpFunc::HessianType          HessianType;
             typedef typename WarpFunc::DeltaVectorType      DeltaType;
-            typedef RGBDKeyframe<WarpFunc>                  ReferenceType;
-            typedef Optimizer<WarpFunc, LossFunc>           Base;
+			typedef RGBDKeyframe<AlignData>                 ReferenceType;
+			typedef Optimizer<AlignData, LossFunc>          Base;
             typedef typename ReferenceType::JacobianVec     JacobianVec;
             typedef typename Base::Result                   ResultType;
-            typedef typename Base::AlignDataType            AlignDataType;
 
             void optimizeSingleScale( ResultType& result,
                                       ReferenceType& reference,
@@ -42,18 +42,18 @@ namespace cvt {
             using Base::optimizeSingleScale;
     };
 
-    template <class WarpFunc, class LossFunc>
-    inline LMOptimizer<WarpFunc, LossFunc>::LMOptimizer() :
+	template <class AlignData, class LossFunc>
+	inline LMOptimizer<AlignData, LossFunc>::LMOptimizer() :
         Base()
     {
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline void LMOptimizer<WarpFunc, LossFunc>::optimizeSingleScale( ResultType& result,
-                                                                      ReferenceType& reference,
-                                                                      const Image& gray,
-                                                                      const Image& /*depthImage*/,
-                                                                      size_t octave )
+	template <class AlignData, class LossFunc>
+	inline void LMOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
+																	   ReferenceType& reference,
+																	   const Image& gray,
+																	   const Image& /*depthImage*/,
+																	   size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;

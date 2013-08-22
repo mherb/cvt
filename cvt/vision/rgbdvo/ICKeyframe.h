@@ -32,43 +32,43 @@ namespace cvt
         std::cout << hessString << std::endl;
     }
 
-    template <class WarpFunc>
-    class ICKeyframe : public RGBDKeyframe<WarpFunc> {
+	template <class AlignData>
+	class ICKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef RGBDKeyframe<WarpFunc>              Base;
+			typedef RGBDKeyframe<AlignData>             Base;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;            
             typedef typename Base::GradientType         GradientType;
-            typedef AlignmentData<WarpFunc>             AlignmentDataType;
+			//typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             ICKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~ICKeyframe();
 
             void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
-                            const WarpFunc& warp,
+							const typename Base::WarpType& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
     };
 
-    template <class WarpFunc>
-    inline ICKeyframe<WarpFunc>::ICKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-        RGBDKeyframe<WarpFunc>( K, octaves, scale )
+	template <class AlignData>
+	inline ICKeyframe<AlignData>::ICKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+		RGBDKeyframe<AlignData>( K, octaves, scale )
     {
     }
 
-    template <class WarpFunc>
-    inline ICKeyframe<WarpFunc>::~ICKeyframe()
+	template <class AlignData>
+	inline ICKeyframe<AlignData>::~ICKeyframe()
     {
     }
 
-    template <class WarpFunc>
-    inline void ICKeyframe<WarpFunc>::recompute( std::vector<float>& residuals,
+	template <class AlignData>
+	inline void ICKeyframe<AlignData>::recompute( std::vector<float>& residuals,
                                                  JacobianVec& jacobians,
-                                                 const WarpFunc& warp,
+												 const typename Base::WarpType& warp,
                                                  const IMapScoped<const float>& gray,
                                                  size_t octave )
     {
@@ -78,7 +78,7 @@ namespace cvt
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
 
-        const AlignmentDataType& data = this->dataForScale( octave );
+		const AlignData& data = this->dataForScale( octave );
         size_t n = data.size();
 
         // construct the projection matrix
