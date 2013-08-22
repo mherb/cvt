@@ -32,6 +32,7 @@ namespace cvt {
 		_arrays |= ( 1 << index );
 		buffer.bind();
 		glVertexAttribPointer( index, size, type, GL_FALSE, stride, offset );
+		glEnableVertexAttribArray( index );
 		buffer.unbind();
 		GL::glBindVertexArray( 0 );
 	}
@@ -81,6 +82,7 @@ namespace cvt {
 		buffer.bind();
 
 		glVertexAttribPointer( GLSL_VERTEX_IDX, size, type, GL_FALSE, stride, offset );
+		glEnableVertexAttribArray( GLSL_VERTEX_IDX );
 
 		buffer.unbind();
 		GL::glBindVertexArray( 0 );
@@ -92,22 +94,22 @@ namespace cvt {
 
 		GL::glBindVertexArray( _vao );
 
-		for( unsigned int i = 0; i < 16; i++ ) {
+		/*for( unsigned int i = 0; i < 16; i++ ) {
 			if( _arrays & ( 1 << i ) ) {
 				glEnableVertexAttribArray( i );
 			}
-		}
+		}*/
 
 		if( !( _arrays & ( 1 << GLSL_COLOR_IDX ) ) )
 			glVertexAttrib4fv( GLSL_COLOR_IDX, _color.data() );
 
 		glDrawArrays( mode, first, count );
 
-		for( unsigned int i = 0; i < 16; i++ ) {
+		/*for( unsigned int i = 0; i < 16; i++ ) {
 			if( _arrays & ( 1 << i ) ) {
 				glDisableVertexAttribArray( i );
 			}
-		}
+		}*/
 
 		GL::glBindVertexArray( 0 );
 	}
@@ -119,11 +121,11 @@ namespace cvt {
 
 		GL::glBindVertexArray( _vao );
 
-		for( unsigned int i = 0; i < 16; i++ ) {
+/*		for( unsigned int i = 0; i < 16; i++ ) {
 			if( _arrays & ( 1 << i ) ) {
 				glEnableVertexAttribArray( i );
 			}
-		}
+		}*/
 
 		if( !( _arrays & ( 1 << GLSL_COLOR_IDX ) ) )
 			glVertexAttrib4fv( GLSL_COLOR_IDX, _color.data() );
@@ -132,11 +134,11 @@ namespace cvt {
 		glDrawElements( mode, count, type, 0 );
 		elembuf.unbind();
 
-		for( unsigned int i = 0; i < 16; i++ ) {
+/*		for( unsigned int i = 0; i < 16; i++ ) {
 			if( _arrays & ( 1 << i ) ) {
 				glDisableVertexAttribArray( i );
 			}
-		}
+		}*/
 
 		GL::glBindVertexArray( 0 );
 	}
