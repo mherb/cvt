@@ -16,6 +16,11 @@
 
 namespace cvt {
 
+	enum GLPlatform {
+		GL_PLATFORM_X11,
+		GL_PLATFORM_OSX
+	};
+
 	/**
 	  \ingroup GL
 	*/
@@ -27,6 +32,8 @@ namespace cvt {
 			virtual void makeCurrent() = 0;
 			virtual void swapBuffers() = 0;
 			virtual void resetCurrent() = 0;
+
+			virtual GLPlatform platform() const = 0;
 
 			static GLContext* currentContext();
 

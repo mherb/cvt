@@ -28,6 +28,12 @@ namespace cvt {
 			virtual void makeCurrent();
 			virtual void swapBuffers();
 			virtual void resetCurrent();
+
+			virtual GLPlatform platform() const { return GL_PLATFORM_X11; }
+
+			::Display*	glXDisplay() const { return _dpy; }
+			::GLXContext glXContext() const { return _glxctx; }
+
 			const ::XVisualInfo* XVisualInfo() const;
 
 		private:

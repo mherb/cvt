@@ -26,6 +26,10 @@ namespace cvt {
 			virtual void swapBuffers();
 			virtual void resetCurrent();
 
+			virtual GLPlatform platform() const { return GL_PLATFORM_OSX; }
+
+			CGLContextObj cglContextObj() const { return _cglctx; }
+
 		private:
 			CGLContextObj _cglctx;
 	};
