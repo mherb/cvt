@@ -16,6 +16,8 @@
 #include <cvt/cl/CLCommandQueue.h>
 #include <cvt/cl/CLImageFormat.h>
 
+#include <cvt/gl/GLContext.h>
+
 namespace cvt {
 	class CLContext : public CLObject<cl_context> {
 		public:

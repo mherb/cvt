@@ -112,5 +112,4 @@ namespace cvt {
 			throw CLException( err );
 		formats.assign( fmts, fmts + size );
 	}
-
 }

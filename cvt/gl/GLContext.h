@@ -13,6 +13,7 @@
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLFormat.h>
+#include <cvt/cl/OpenCL.h>
 
 namespace cvt {
 
@@ -33,9 +34,12 @@ namespace cvt {
 			virtual void swapBuffers() = 0;
 			virtual void resetCurrent() = 0;
 
+			virtual void shareCL( cl_context_properties* props, int size, int* retsize ) const = 0;
+
 			virtual GLPlatform platform() const = 0;
 
 			static GLContext* currentContext();
+
 
 		protected:
 			GLContext( const GLFormat& format );

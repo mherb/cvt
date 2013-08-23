@@ -26,6 +26,8 @@ namespace cvt {
 			virtual void swapBuffers();
 			virtual void resetCurrent();
 
+			virtual void shareCL( cl_context_properties* props, int size, int* retsize ) const;
+
 			virtual GLPlatform platform() const { return GL_PLATFORM_OSX; }
 
 			CGLContextObj cglContextObj() const { return _cglctx; }
@@ -88,6 +90,19 @@ namespace cvt {
 	{
 		GLContext::setCurrent( NULL );
 		CGLSetCurrentContext( NULL );
+	}
+
+	inline void CGLContext::shareCL( cl_context_properties* props, int size, int* retsize ) const
+	{
+		if( !props || !size || retsize ) *retsize = 1;
+
+		if( !props || size < 1 )
+			throw CVTException( "Not enough memory for cl_context_properties!" );
+
+		CGLShareGroupObj sharegroup = CGLGetShareGroup( _cglctx );
+
+		*props++ = CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE;
+	    *props++ = (cl_context_properties) sharegroup;
 	}
 }
 

@@ -29,6 +29,8 @@ namespace cvt {
 			virtual void swapBuffers();
 			virtual void resetCurrent();
 
+			virtual void shareCL( cl_context_properties* props, int size, int* retsize ) const;
+
 			virtual GLPlatform platform() const { return GL_PLATFORM_X11; }
 
 			::Display*	glXDisplay() const { return _dpy; }
@@ -130,6 +132,18 @@ namespace cvt {
 		glXMakeCurrent( _dpy, None, NULL );
 	}
 
+	inline void GLXContext::shareCL( cl_context_properties* props, int size, int* retsize ) const
+	{
+		if( !props || !size || retsize ) *retsize = 2;
+
+		if( !props || size < 2 )
+			throw CVTException( "Not enough memory for cl_context_properties!" );
+
+		*props++ = CL_GL_CONTEXT_KHR;
+	    *props++ = (cl_context_properties) glXContext();
+		*props++ = CL_GLX_DISPLAY_KHR;
+	    *props++ = (cl_context_properties) glXDisplay();
+	}
 }
 
 #endif
