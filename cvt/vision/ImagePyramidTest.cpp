@@ -21,8 +21,8 @@ static bool _filterTest( const cvt::Image& img, const cvt::IScaleFilter& filter 
 static bool _convertTest( const cvt::Image& img )
 {
     try {
-        cvt::ImagePyramid pyr( 3, 0.5f );
-        cvt::ImagePyramid pyrf( 3, 0.5f );
+        cvt::ImagePyramid pyr( 3, 0.8f );
+        cvt::ImagePyramid pyrf( pyr.octaves(), pyr.scaleFactor() );
         pyr.update( img );
         pyr.convert( pyrf, IFormat::GRAY_FLOAT );
     } catch( const cvt::Exception& e ){
@@ -40,11 +40,13 @@ static void _gradX( const Image& in, Image& out )
 
 static bool _funcTest( const cvt::Image& img )
 {
-    cvt::ImagePyramid pyr0( 3, 0.5f );
-    cvt::ImagePyramid pyr1( 3, 0.5f );
+    cvt::ImagePyramid pyr0( 10, 0.7f );
+    cvt::ImagePyramid pyr1( pyr0.octaves(), pyr0.scaleFactor() );
 
     pyr0.update( img );
     pyr0.apply( pyr1, _gradX );
+
+    pyr0.saveCombined( "lena_comb.png", Color::WHITE );
 
     return true;
 }

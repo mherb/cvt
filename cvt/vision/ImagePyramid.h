@@ -50,6 +50,8 @@ namespace cvt
             void setScaleFactor( float scale ) { _scaleFactor = scale; }
 
             void save( const String& basename ) const;
+            void combinedImage( Image& comb, const Color& c = Color::BLACK ) const;
+            void saveCombined( const String& filename, const Color& c = Color::BLACK ) const;
 
             template <class Func>
             void apply( ImagePyramid& out, const Func& f ) const;
@@ -104,6 +106,48 @@ namespace cvt
             filename.sprintf( "%s_octave_%02d.%s", base.c_str(), i, ext.c_str() );
             _image[ i ].save( filename );
         }
+    }
+
+    inline void ImagePyramid::combinedImage( Image& comb, const Color& c ) const
+    {
+        if( octaves() == 1 ){
+            comb = _image[ 0 ];
+            return;
+        }
+
+        size_t w = 0;
+        size_t h = 0;
+
+        Vector2i offset( 0, 0 );
+        for( size_t i = 0; i < _image.size(); i++ ){
+            if( offset.x + _image[ i ].width() > w )
+                w = offset.x + _image[ i ].width();
+            if( offset.y + _image[ i ].height() > h )
+                h = offset.y + _image[ i ].height();
+            if( i & 1 )
+                offset.y += _image[ i ].height();
+            else
+                offset.x += _image[ i ].width();
+        }
+        comb.reallocate( w, h, _image[ 0 ].format() );
+        comb.fill( c );
+
+        offset.x = 0;
+        offset.y = 0;
+        for( size_t i = 0; i < _image.size(); i++ ){
+            comb.copyRect( offset.x, offset.y, _image[ i ], _image[ i ].rect() );
+            if( i & 1 )
+                offset.y += _image[ i ].height();
+            else
+                offset.x += _image[ i ].width();
+        }
+    }
+
+    inline void ImagePyramid::saveCombined( const String& filename, const Color& c ) const
+    {
+        Image out;
+        combinedImage( out, c );
+        out.save( filename );
     }
 
     template <class Func>
