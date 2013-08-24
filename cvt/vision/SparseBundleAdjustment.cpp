@@ -315,7 +315,7 @@ namespace cvt {
             setBlockInReducedSparse( tmpBlock, c, c );
             _reducedRHS.segment<camParamDim>( camParamDim * c ) = tmpRes;
 
-            tmpBlock.setZero();
+
             JointMeasurements::ConstMapIterType iter   = _jointMeasures.secondEntityIteratorBegin( c );
             JointMeasurements::ConstMapIterType iStop  = _jointMeasures.secondEntityIteratorEnd( c );
             while( iter != iStop ){
@@ -324,6 +324,7 @@ namespace cvt {
                 // iterate over the joint measurements of the two cameras
                 std::set<size_t>::const_iterator pIdIter = iter->second.begin();
                 std::set<size_t>::const_iterator pEnd    = iter->second.end();
+                tmpBlock.setZero();
                 while( pIdIter != pEnd ){
                     size_t pId = *pIdIter;
                     tmpBlock -= _camPointJTJ.block( c, pId ) * _invAugPJTJ[ pId ] * _camPointJTJ.block( c2, pId ).transpose();
