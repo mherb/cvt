@@ -228,8 +228,7 @@ namespace cvt {
             }
 
             // initial lambda
-			//_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
-			_lambda = 0.0001;
+			_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
         }
     }
 
@@ -288,7 +287,7 @@ namespace cvt {
         Eigen::Matrix<double, camParamDim, pointParamDim> tmpEval;
         CamResidualType tmpRes;
 
-		double lambdaAug = 1.0 + _lambda;
+		double lambdaAug = _lambda;
         size_t numCams = map.numKeyframes();
         for( size_t c = 0; c < numCams; c++ ){
             // first create block for this cam:
@@ -296,7 +295,7 @@ namespace cvt {
             tmpRes   = _camResiduals[ c ];
 
 			// augment the jacobian diagonal
-			tmpBlock.diagonal().array() *= lambdaAug;
+			tmpBlock.diagonal().array() += lambdaAug;
 
             // go over all point measures:
             const Keyframe & k = map.keyframeForId( c );
@@ -330,7 +329,7 @@ namespace cvt {
                 while( pIdIter != pEnd ){
                     size_t pId = *pIdIter;
                     tmpBlock -= _camPointJTJ.block( c, pId ) * _invAugPJTJ[ pId ] * _camPointJTJ.block( c2, pId ).transpose();
-                    pIdIter++;
+                    ++pIdIter;
                 }
                 ++iter;
 
@@ -345,9 +344,8 @@ namespace cvt {
         for( size_t i = 0; i < _nPts; i++ ){
             inv = _pointsJTJ[ i ];
             // augment the diagonal:
-			inv.diagonal().array() *= ( 1.0 + _lambda );
-			//inv.diagonal().array() += lambdaAug;
-            // TODO: howto exploit symmetry when inverting with Eigen?
+			inv.diagonal().array() += _lambda;
+            // TODO: is there a way to exploit symmetry when inverting with Eigen?
             _invAugPJTJ[ i ] = inv.inverse();
         }
     }
