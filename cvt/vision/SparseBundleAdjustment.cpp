@@ -145,6 +145,7 @@ namespace cvt {
 
         // for all 3D Points
         clear();
+        _costs = 0.0;
         for( size_t i = 0; i < _nPts; i++ ){
             _pointsJTJ[ i ].setZero();
             _pointResiduals[ i ].setZero();
