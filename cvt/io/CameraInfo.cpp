@@ -19,7 +19,8 @@ namespace cvt
 			"Apple QTKit",
 			"DC1394 Firewire",
 			"UEYE USB",
-			"OPENNI"
+			"OPENNI",
+			"OPENNI2",
 		};
 
 		out << "Name: " << info.name() <<

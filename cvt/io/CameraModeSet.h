@@ -21,6 +21,7 @@ namespace cvt {
 		public:
 			CameraModeSet();
 			~CameraModeSet();
+			CameraModeSet& operator=( const CameraModeSet& other );
 
 			void add( const CameraMode & mode );
 			CameraModeSet filterFormat( const IFormat & format ) const;

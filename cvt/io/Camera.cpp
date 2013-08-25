@@ -29,6 +29,10 @@
 #include <cvt/io/OpenNICamera.h>
 #endif
 
+#ifdef OpenNI2_FOUND
+#include <cvt/io/OpenNI2Camera.h>
+#endif
+
 namespace cvt {
 
 	std::vector<CameraInfo> Camera::_camInfos;
@@ -82,6 +86,14 @@ namespace cvt {
 		for( size_t i = 0; i < count; i++ ){
 			Camera::_camInfos.push_back( CameraInfo() );
 			OpenNICamera::cameraInfo( i, Camera::_camInfos.back() );
+		}
+#endif
+#ifdef OpenNI2_FOUND
+		count = OpenNI2Camera::count();
+		std::cout << "ONI2Devices " << count << std::endl;
+		for( size_t i = 0; i < count; i++ ){
+			Camera::_camInfos.push_back( CameraInfo() );
+			OpenNI2Camera::cameraInfo( i, Camera::_camInfos.back() );
 		}
 #endif
 	}

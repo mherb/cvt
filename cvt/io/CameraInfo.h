@@ -26,13 +26,16 @@ namespace cvt {
 		CAMERATYPE_QTKIT,
 		CAMERATYPE_DC1394,
 		CAMERATYPE_UEYE,
-		CAMERATYPE_OPENNI
+		CAMERATYPE_OPENNI,
+		CAMERATYPE_OPENNI2
 	};
 
 	class CameraInfo
 	{
 		public:
 			CameraInfo();
+			CameraInfo( const CameraInfo& );
+			CameraInfo& operator=( const CameraInfo& other );
 
 			const String & name() const;
 			void setName( const String & name );
@@ -62,6 +65,24 @@ namespace cvt {
 
 	inline CameraInfo::CameraInfo()
 	{
+	}
+
+	inline CameraInfo::CameraInfo( const CameraInfo& other ) :
+		_name( other._name ),
+		_identifier( other._identifier ),
+		_type( other._type ),
+		_index( other._index ),
+		_modeSet( other._modeSet )
+	{}
+
+	inline CameraInfo& CameraInfo::operator=( const CameraInfo& other )
+	{
+		_name = other.name();
+		_identifier = other.identifier();
+		_type = other.type();
+		_index = other.index();
+		_modeSet = other.modeSet();
+		return *this;
 	}
 
 	inline const String& CameraInfo::name() const
