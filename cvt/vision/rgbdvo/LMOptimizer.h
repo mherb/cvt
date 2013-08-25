@@ -36,7 +36,7 @@ namespace cvt {
             void optimizeSingleScale( ResultType& result,
                                       ReferenceType& reference,
                                       const Image& gray,
-                                      const Image& /*depthImage*/,
+                                      const Image& depthImage,
                                       size_t octave );
 
             using Base::optimizeSingleScale;

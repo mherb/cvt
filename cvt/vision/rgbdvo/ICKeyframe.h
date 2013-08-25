@@ -42,7 +42,6 @@ namespace cvt
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
             typedef typename Base::JacobianVec          JacobianVec;            
             typedef typename Base::GradientType         GradientType;
-			//typedef AlignmentData<WarpFunc>             AlignmentDataType;
 
             ICKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~ICKeyframe();

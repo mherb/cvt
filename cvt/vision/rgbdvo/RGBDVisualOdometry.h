@@ -203,15 +203,13 @@ namespace cvt {
         CVT_ASSERT( ( gray.format()  == IFormat::GRAY_FLOAT ), "Gray image format has to be GRAY_FLOAT" );
         CVT_ASSERT( ( depth.format() == IFormat::GRAY_FLOAT ), "Depth image format has to be GRAY_FLOAT" );
 
+        // update the current pose, to the pose of the new keyframe
         _currentPose = kfPose;
-        Image dCopy( depth );
-
-        // for the moment, only one keyframe
 		if( _keyframes.size() < ( size_t )_params.maxNumKeyframes ){
             _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
             _activeKeyframe = &_keyframes[ _keyframes.size() - 1 ];
 
-            // _pyramid only needs to be updated if its the first keyframe?! -> this is ugly!
+            // _pyramid only needs to be updated if its the first keyframe! -> this is ugly!
             _pyramid.update( gray );
         } else {
             // select one of the keyframes to be exchanged:
@@ -230,12 +228,11 @@ namespace cvt {
                     }
                 }
             }
-
             _activeKeyframe = &_keyframes[ idx ];
         }
 
         setKeyframeParams( *_activeKeyframe );
-        _activeKeyframe->updateOfflineData( kfPose, _pyramid, dCopy );
+        _activeKeyframe->updateOfflineData( kfPose, _pyramid, depth );
         _lastResult.warp.initialize( kfPose );
         _numCreated++;
 
@@ -246,7 +243,6 @@ namespace cvt {
     template <class KFType, class LossFunction>
     inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFType &kf )
     {
-        // TODO: introduce keyframe parameters
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
         kf.setMaximumDepth( _params.maxDepth );
