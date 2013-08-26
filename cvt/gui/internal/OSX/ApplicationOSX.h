@@ -41,7 +41,7 @@ namespace cvt {
 			virtual void _unregisterWindow( WidgetImpl* w );
 
 			virtual bool _hasGLSupport() { return true; }
-			virtual bool _hasCLSupport() { return false; /*_clsupport;*/ }
+			virtual bool _hasCLSupport() { return _clsupport; }
 
 			CGLContext* _defaultctx;
 			bool _clsupport;

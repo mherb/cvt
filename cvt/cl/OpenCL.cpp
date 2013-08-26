@@ -50,6 +50,64 @@ namespace cvt {
 		return true;
 	}
 
+	bool CL::init( const GLContext* ctx )
+	{
+		std::vector<CLPlatform> clplatforms;
+		CLPlatform::get( clplatforms );
+
+		if( !clplatforms.size() )
+			return false;
+
+		/* try to find platform/device with cl_APPLE_gl_sharing or cl_khr_gl_sharing */
+		if( ctx ) {
+			for( size_t i = 0; i < clplatforms.size(); i++ ) {
+				//std::cout << clplatforms[ i ] << std::endl;
+				std::vector<CLDevice> devs;
+				clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_GPU );
+				for( size_t k = 0; k < devs.size(); k++ ) {
+					std::vector<String> exts;
+					devs[ i ].extensions( exts );
+					for( size_t l = 0; l < exts.size(); l++) {
+						if( exts[ l ] == "cl_APPLE_gl_sharing" || exts[ l ] == "cl_khr_gl_sharing" ) {
+							try {
+								_ctx = new CLContext( clplatforms[ i ], devs[ k ], ctx );
+								_device = new CLDevice( devs[ k ] );
+								_queue = new CLCommandQueue( *_ctx, *_device );
+								_glsharing = true;
+								return true;
+							} catch( Exception& e ) {
+								if( _ctx ) { delete _ctx; _ctx = NULL; }
+								if( _device ) { delete _device; _device = NULL; }
+								if( _queue ) { delete _queue; _queue = NULL; }
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+		// Search for GPU
+		for( size_t i = 0; i < clplatforms.size(); i++ ) {
+			std::vector<CLDevice> devs;
+			clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_GPU );
+			if( devs.size() ) {
+				return CL::setDefaultDevice( devs[ 0 ] );
+			}
+		}
+
+		// Search for CPU
+		for( size_t i = 0; i < clplatforms.size(); i++ ) {
+			std::vector<CLDevice> devs;
+			clplatforms[ i ].devices( devs, CL_DEVICE_TYPE_CPU );
+			if( devs.size() ) {
+				return CL::setDefaultDevice( devs[ 0 ] );
+			}
+		}
+
+		return false;
+	}
+
 	void CL::cleanup()
 	{
 		if( CL::_ctx )

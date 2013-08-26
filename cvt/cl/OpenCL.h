@@ -25,6 +25,7 @@ namespace cvt {
 	class CLContext;
 	class CLCommandQueue;
 	class CLDevice;
+	class GLContext;
 
 	/**
 	  \ingroup CL
@@ -43,6 +44,7 @@ namespace cvt {
 			static bool setDefaultDevice( const CLDevice& dev );
 		private:
 			static bool init( cl_device_id id, cl_context_properties* props );
+			static bool init( const GLContext* glctx );
 			static void cleanup();
 
 			// default context, device and queue

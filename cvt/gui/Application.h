@@ -26,6 +26,8 @@ namespace cvt {
 		friend class GLContext;
 
 		public:
+			static void init() { instance(); }
+
 			static void run() { ::atexit( Application::atexit ); instance()->runApp(); };
 			static void exit() { instance()->exitApp(); };
 
