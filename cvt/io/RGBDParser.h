@@ -51,7 +51,7 @@ namespace cvt
 
             RGBDParser( const String& folder, double maxStampDiff = 0.05 );
 
-            void nextFrame();
+            void next();
 
             size_t				iter()    const { return _idx; }
             size_t				size()    const { return _stamps.size(); }            

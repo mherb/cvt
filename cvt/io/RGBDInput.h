@@ -22,10 +22,15 @@ namespace cvt {
         public:
             virtual ~RGBDInput(){}
 
-            virtual void            nextFrame() = 0;
+            virtual void            next() = 0;
 
-            virtual bool            hasGroundTruthPose() const = 0;
-            virtual cvt::Matrix4d   groundTruthPose() const = 0;
+            virtual bool            hasGroundTruthPose() const { return false; }
+            virtual cvt::Matrix4d   groundTruthPose() const
+            {
+                cvt::Matrix4d m;
+                m.setIdentity();
+                return m;
+            }
 
 			virtual const Image&	depth() const = 0;
 			virtual const Image&	rgb()   const = 0;

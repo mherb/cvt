@@ -241,23 +241,15 @@ namespace cvt {
             openni::VideoFrameRef frameRef;
             _rgbStream.readFrame( &frameRef );
             Openni2Helper::toCVTImage( _rgb, frameRef );
+            _rgbStamp = frameRef.getTimestamp();
 
             _depthStream.readFrame( &frameRef );
             Openni2Helper::toCVTImage( _depth, frameRef );
+            _depthStamp = frameRef.getTimestamp();
             return true;
         } else {
             return false;
         }
-    }
-    
-    const Image& OpenNI2Camera::frame() const
-    {
-        return _rgb;
-    }
-    
-    const Image& OpenNI2Camera::depth() const
-    {
-        return _depth;
     }
     
     void OpenNI2Camera::setSyncRGBDepth( bool val )

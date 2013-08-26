@@ -48,7 +48,7 @@ namespace cvt
 
     }
 
-    void RGBDParser::nextFrame()
+    void RGBDParser::next()
     {
         if( _idx >= _stamps.size() ){
             std::cout << "End of data !" << std::endl;
