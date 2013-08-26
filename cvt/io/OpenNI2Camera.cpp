@@ -2,70 +2,6 @@
 #include <cvt/gfx/IMapScoped.h>
 
 namespace cvt {
-    openni::PixelFormat _iformatToPixformat( const IFormat& iformat )
-    {
-        switch( iformat.formatID ){
-            case IFORMAT_RGBA_UINT8:  return openni::PIXEL_FORMAT_RGB888;
-            case IFORMAT_GRAY_UINT8:  return openni::PIXEL_FORMAT_GRAY8;
-            case IFORMAT_GRAY_UINT16: return openni::PIXEL_FORMAT_GRAY16;
-            case IFORMAT_UYVY_UINT8:  return openni::PIXEL_FORMAT_YUV422;
-            case IFORMAT_YUYV_UINT8:  return openni::PIXEL_FORMAT_YUYV;
-            default: throw CVTException( "no matching openni format" );
-        }
-    }
-
-    const IFormat& _pixformatToIformat( openni::PixelFormat fmt )
-    {
-        switch( fmt ){
-            case openni::PIXEL_FORMAT_DEPTH_1_MM:
-            case openni::PIXEL_FORMAT_DEPTH_100_UM:
-            case openni::PIXEL_FORMAT_GRAY16:   return IFormat::GRAY_UINT16;
-            case openni::PIXEL_FORMAT_GRAY8:    return IFormat::GRAY_UINT8;
-            case openni::PIXEL_FORMAT_RGB888:   return IFormat::RGBA_UINT8;
-            case openni::PIXEL_FORMAT_YUV422:   return IFormat::UYVY_UINT8;
-            case openni::PIXEL_FORMAT_YUYV:     return IFormat::YUYV_UINT8;
-            default:    throw CVTException( "unsupported pixelformat" );
-        }
-    }
-
-    static void _copyRGB( Image& dst, const uint8_t* p, size_t pStride )
-    {
-        IMapScoped<uint8_t> map( dst );
-        size_t h = dst.height();
-        SIMD* simd = SIMD::instance();
-        size_t n = dst.width() * 3;
-        while( h-- ){
-            simd->Conv_XXXu8_to_XXXAu8( map.ptr(), p, n );
-            map++;
-            p += pStride;
-        }
-    }
-
-    static void _copyData( Image& dst, const uint8_t* p, size_t pStride )
-    {
-        IMapScoped<uint8_t> map( dst );
-        size_t h = dst.height();
-        SIMD* simd = SIMD::instance();
-        size_t cStride = Math::min( map.stride(), pStride );
-        while( h-- ){
-            simd->Memcpy( map.ptr(), p, cStride );
-            map++;
-            p += pStride;
-        }
-    }
-
-    static void _videoFrameToImage( Image& dst, const openni::VideoFrameRef& frame )
-    {
-        dst.reallocate( frame.getWidth(), frame.getHeight(), _pixformatToIformat( frame.getVideoMode().getPixelFormat() ) );
-
-        switch( frame.getVideoMode().getPixelFormat() ){
-            case openni::PIXEL_FORMAT_RGB888:
-                _copyRGB( dst, ( const uint8_t* )frame.getData(), frame.getStrideInBytes() );
-                break;
-            default:
-                _copyData( dst, ( const uint8_t* )frame.getData(), frame.getStrideInBytes() );
-        }
-    }
 
     class Openni2Helper {
         public:
@@ -85,6 +21,45 @@ namespace cvt {
             const openni::DeviceInfo& deviceInfo( size_t idx ) const { return _deviceInfos[ idx ];}
 
             static const openni::VideoMode& findMatchingVideoMode(const CameraMode& cm, openni::Device &dev , openni::SensorType sensor );
+
+            static openni::PixelFormat toPixelFormat( const IFormat& iformat )
+            {
+                switch( iformat.formatID ){
+                    case IFORMAT_RGBA_UINT8:  return openni::PIXEL_FORMAT_RGB888;
+                    case IFORMAT_GRAY_UINT8:  return openni::PIXEL_FORMAT_GRAY8;
+                    case IFORMAT_GRAY_UINT16: return openni::PIXEL_FORMAT_GRAY16;
+                    case IFORMAT_UYVY_UINT8:  return openni::PIXEL_FORMAT_YUV422;
+                    case IFORMAT_YUYV_UINT8:  return openni::PIXEL_FORMAT_YUYV;
+                    default: throw CVTException( "no matching openni format" );
+                }
+            }
+
+            static const IFormat& toIFormat( openni::PixelFormat fmt )
+            {
+                switch( fmt ){
+                    case openni::PIXEL_FORMAT_DEPTH_1_MM:
+                    case openni::PIXEL_FORMAT_DEPTH_100_UM:
+                    case openni::PIXEL_FORMAT_GRAY16:   return IFormat::GRAY_UINT16;
+                    case openni::PIXEL_FORMAT_GRAY8:    return IFormat::GRAY_UINT8;
+                    case openni::PIXEL_FORMAT_RGB888:   return IFormat::RGBA_UINT8;
+                    case openni::PIXEL_FORMAT_YUV422:   return IFormat::UYVY_UINT8;
+                    case openni::PIXEL_FORMAT_YUYV:     return IFormat::YUYV_UINT8;
+                    default:    throw CVTException( "unsupported pixelformat" );
+                }
+            }
+
+            static void toCVTImage( Image& dst, const openni::VideoFrameRef& frame )
+            {
+                dst.reallocate( frame.getWidth(), frame.getHeight(), Openni2Helper::toIFormat( frame.getVideoMode().getPixelFormat() ) );
+
+                switch( frame.getVideoMode().getPixelFormat() ){
+                    case openni::PIXEL_FORMAT_RGB888:
+                        copyRGB( dst, ( const uint8_t* )frame.getData(), frame.getStrideInBytes() );
+                        break;
+                    default:
+                        copyData( dst, ( const uint8_t* )frame.getData(), frame.getStrideInBytes() );
+                }
+            }
 
         private:
             Openni2Helper()
@@ -111,7 +86,7 @@ namespace cvt {
                     for( size_t i = 0; i < vmodes.getSize(); ++i ){
                         const openni::VideoMode& vm = vmodes[ i ];
                         try {
-                            c.addMode( CameraMode( vm.getResolutionX(), vm.getResolutionY(), vm.getFps(), _pixformatToIformat( vm.getPixelFormat() ) ) );
+                            c.addMode( CameraMode( vm.getResolutionX(), vm.getResolutionY(), vm.getFps(), toIFormat( vm.getPixelFormat() ) ) );
                         } catch( const cvt::Exception& e ){}
                     }
                     d.close();
@@ -123,6 +98,35 @@ namespace cvt {
 
             openni::Array<openni::DeviceInfo> _deviceInfos;
             std::vector<CameraInfo>           _camInfos;
+
+            static void copyRGB( Image& dst, const uint8_t* p, size_t pStride )
+            {
+                IMapScoped<uint8_t> map( dst );
+                size_t h = dst.height();
+                SIMD* simd = SIMD::instance();
+                size_t n = dst.width() * 3;
+                while( h-- ){
+                    simd->Conv_XXXu8_to_XXXAu8( map.ptr(), p, n );
+                    map++;
+                    p += pStride;
+                }
+            }
+
+            static void copyData( Image& dst, const uint8_t* p, size_t pStride )
+            {
+                IMapScoped<uint8_t> map( dst );
+                size_t h = dst.height();
+                SIMD* simd = SIMD::instance();
+                size_t cStride = Math::min( map.stride(), pStride );
+                while( h-- ){
+                    simd->Memcpy( map.ptr(), p, cStride );
+                    map++;
+                    p += pStride;
+                }
+            }
+
+            static const openni::VideoMode& findExactMode( const CameraMode& cm, const openni::Array<openni::VideoMode>& vm );
+            static const openni::VideoMode& findApproximateMode( const CameraMode& cm, const openni::Array<openni::VideoMode>& vm );
     };
 
     static void dumpVM( const openni::VideoMode& vm ){
@@ -141,14 +145,40 @@ namespace cvt {
     const openni::VideoMode& Openni2Helper::findMatchingVideoMode( const CameraMode& cm, openni::Device& dev, openni::SensorType sensor )
     {
         const openni::Array<openni::VideoMode>& vm = dev.getSensorInfo( sensor )->getSupportedVideoModes();
+        if( sensor == openni::SENSOR_COLOR )
+            return findExactMode( cm, vm);
+        else
+            return findApproximateMode( cm, vm );
+    }
+
+    const openni::VideoMode& Openni2Helper::findExactMode( const CameraMode& cm, const openni::Array<openni::VideoMode>& vm )
+    {
         for( size_t i = 0; i < vm.getSize(); i++ ){
             if( vm[ i ].getResolutionX() == cm.width &&
                 vm[ i ].getResolutionY() == cm.height &&
                 vm[ i ].getFps() == cm.fps &&
-                vm[ i ].getPixelFormat() == _iformatToPixformat( cm.format ) )
+                vm[ i ].getPixelFormat() == toPixelFormat( cm.format ) )
                 return vm[ i ];
         }
         throw CVTException( "Could not find matching openni videomode for requested cvt CameraMode" );
+    }
+
+    const openni::VideoMode& Openni2Helper::findApproximateMode( const CameraMode& cm, const openni::Array<openni::VideoMode>& vm )
+    {
+        size_t bestIdx = 0;
+        int bestDist = 1000000;
+        for( size_t i = 0; i < vm.getSize(); i++ ){
+            if( vm[ i ].getPixelFormat() == openni::PIXEL_FORMAT_DEPTH_1_MM ){
+                int dist = Math::abs( vm[ 0 ].getResolutionX() - ( int )cm.width ) +
+                           Math::abs( vm[ 0 ].getResolutionY() - ( int )cm.height ) +
+                           Math::abs( vm[ 0 ].getFps() - ( int )cm.fps );
+                if( dist < bestDist ){
+                    bestDist = dist;
+                    bestIdx = i;
+                }
+            }
+        }
+        return vm[ bestIdx ];
     }
 
     OpenNI2Camera::OpenNI2Camera( size_t idx, const CameraMode& mode )
@@ -165,6 +195,10 @@ namespace cvt {
         }
         if( _device.hasSensor( openni::SENSOR_DEPTH ) ){
             _depthStream.create( _device, openni::SENSOR_DEPTH );
+            openni::Status status = _rgbStream.setVideoMode( Openni2Helper::findMatchingVideoMode( mode, _device, openni::SENSOR_DEPTH ) );
+            if( status != openni::STATUS_OK ){
+                std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+            }
         }
     }
     
@@ -206,10 +240,10 @@ namespace cvt {
         else if( status == openni::STATUS_OK ){
             openni::VideoFrameRef frameRef;
             _rgbStream.readFrame( &frameRef );
-            _videoFrameToImage( _rgb, frameRef );
+            Openni2Helper::toCVTImage( _rgb, frameRef );
 
             _depthStream.readFrame( &frameRef );
-            _videoFrameToImage( _depth, frameRef );
+            Openni2Helper::toCVTImage( _depth, frameRef );
             return true;
         } else {
             return false;
