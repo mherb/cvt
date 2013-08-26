@@ -19,22 +19,6 @@ namespace cvt
     class OpenNI2Camera : public Camera
     {
         public:
-            enum InputFormat
-            {
-                BAYER_COMPRESSED	= 0,
-                UYVY_COMPRESSED		= 1,
-                JPEG				= 2,
-                UYVY_UNCOMPRESSED	= 5,
-                BAYER_UNCOMPRESSED	= 6
-            };
-
-            enum CaptureMode
-            {
-                DEPTH_RGB,
-                DEPTH_ONLY,
-                RGB_ONLY
-            };
-
             OpenNI2Camera( size_t idx, const CameraMode& mode );
             ~OpenNI2Camera();
 
@@ -54,14 +38,27 @@ namespace cvt
             // enable / disable registration of RGB to Depth frame
             void            setRegisterDepthToRGB( bool val );
 
+            void            setAutoExposure( bool val );
+            void            setAutoWhiteBalance( bool val );
+            bool            autoExposure();
+            bool            autoWhiteBalance();
+
+            int             exposure();
+            void            setExposure( int val );
+            int             gain();
+            void            setGain( int val );
+
             static size_t	count();
             static void		cameraInfo( size_t index, CameraInfo & info );
 
         private:
-            CaptureMode			_captureMode;
             Image				_rgb;
             Image				_depth;
             String				_identifier;
+
+            openni::Device      _device;
+            openni::VideoStream _rgbStream;
+            openni::VideoStream _depthStream;
 
     };
 }

@@ -5,7 +5,7 @@
 #include <cvt/gui/Window.h>
 #include <cvt/gui/ImageView.h>
 #include <cvt/gui/Moveable.h>
-#include <cvt/io/OpenNICamera.h>
+#include <cvt/io/OpenNI2Camera.h>
 #include <cvt/util/Time.h>
 
 namespace cvt
@@ -25,7 +25,7 @@ namespace cvt
             ImageView		_depthView;
             Moveable		_rgbMov;
             Moveable		_depthMov;
-            OpenNICamera	_cam;
+            OpenNI2Camera	_cam;
 
             Time			_time;
             size_t			_iters;
@@ -36,18 +36,15 @@ namespace cvt
         _rgbMov( &_rgbView ),
         _depthMov( &_depthView ),
         _cam( 0, CameraMode( 640, 480, 30, IFormat::UYVY_UINT8 ) )
-//          _cam( 0, CameraMode( 320, 240, 60, IFormat::UYVY_UINT8 ) )
-    //      _cam( 0, CameraMode( 320, 240, 60, IFormat::BAYER_GRBG_UINT8 ) )
-    //  _cam( 0, CameraMode( 1280, 1024, 30, IFormat::UYVY_UINT8 ) )
     {
         _timerId = Application::registerTimer( 10, this );
 
-        _cam.setCaptureMode( OpenNICamera::DEPTH_RGB );
-        _cam.startCapture();
+        _cam.setAutoExposure( true );
+        _cam.setAutoWhiteBalance( true );
 
         _cam.setRegisterDepthToRGB( true );
         _cam.setSyncRGBDepth( false );
-        _cam.setAntiFlicker( OpenNICamera::HZ_50 );
+        _cam.startCapture();
 
         _window.setSize( 800, 600 );
         _depthMov.setSize( 320, 240 );
@@ -84,6 +81,8 @@ namespace cvt
             _window.setTitle( title );
             _iters = 0;
             _time.reset();
+
+            _cam.setAutoExposure( !_cam.autoExposure() );
         }
 
         Image img;

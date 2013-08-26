@@ -1,4 +1,4 @@
-#include <cvt/io/OpenNICamera.h>
+#include <cvt/io/OpenNI2Camera.h>
 
 #include <cvt/gui/Application.h>
 #include "OpenNiWin.h"
@@ -7,7 +7,7 @@ using namespace cvt;
 
 int main()
 {
-	size_t numCams = OpenNICamera::count();
+	size_t numCams = OpenNI2Camera::count();
 	std::cout << "Num Openni cams: " << numCams << std::endl;
 
 	if( numCams == 0 )

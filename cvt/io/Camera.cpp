@@ -113,31 +113,36 @@ namespace cvt {
 		std::cout << "Selecting mode: " << mode << std::endl;
 
 		switch( camInfo.type() ){
-			case CAMERATYPE_UEYE:
 #ifdef UEYEUSB_FOUND
+			case CAMERATYPE_UEYE:
 				cam = new UEyeUsbCamera( camInfo.index(), mode );
-#endif
 				break;
-			case CAMERATYPE_DC1394:
+#endif
 #ifdef DC1394_FOUND
+			case CAMERATYPE_DC1394:
 				cam = new DC1394Camera( camInfo.index(), mode );                
-#endif
 				break;
-			case CAMERATYPE_V4L2:
+#endif
 #ifdef LINUX
+			case CAMERATYPE_V4L2:
 				cam = new V4L2Camera( camInfo.index(), mode );
-#endif
 				break;
-			case CAMERATYPE_QTKIT:
+#endif
 #ifdef APPLE
+			case CAMERATYPE_QTKIT:
 				cam = new QTKitCamera( camInfo.index(), mode );
-#endif
 				break;
-			case CAMERATYPE_OPENNI:
+#endif
 #ifdef OpenNI_FOUND
+			case CAMERATYPE_OPENNI:
 				cam = new OpenNICamera( camInfo.index(), mode );
-#endif
 				break;
+#endif
+#ifdef OpenNI2_FOUND
+			case CAMERATYPE_OPENNI2:
+				cam = new OpenNI2Camera( camInfo.index(), mode );
+				break;
+#endif
 			default:
 				throw CVTException( "Unkown camera type" );
 		}
