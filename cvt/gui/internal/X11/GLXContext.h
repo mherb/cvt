@@ -134,7 +134,11 @@ namespace cvt {
 
 	inline void GLXContext::shareCL( cl_context_properties* props, int size, int* retsize ) const
 	{
-		if( !props || !size || retsize ) *retsize = 2;
+		if( retsize ) {
+			*retsize = 2;
+			if( !props )
+				return;
+		}
 
 		if( !props || size < 2 )
 			throw CVTException( "Not enough memory for cl_context_properties!" );

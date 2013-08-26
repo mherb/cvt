@@ -28,13 +28,22 @@ namespace cvt {
 	}
 
 
-	CLContext::CLContext( const CLPlatform& platform, const std::vector<CLDevice>& devices, bool cerrlog )
+	CLContext::CLContext( const CLPlatform& platform, const std::vector<CLDevice>& devices, const GLContext* share, bool cerrlog )
 	{
 		cl_int err;
-		cl_context_properties props[ 3 ];
+		cl_context_properties props[ 5 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
 		props[ 2 ] = 0;
+
+		if( share ) {
+			int size;
+			share->shareCL( NULL, 0, &size );
+			if( size > 2  )
+				throw CVTException( "OpenCL/GL sharing failed!" );
+			share->shareCL( &props[ 2 ], 2, &size );
+			props[ 2 + size ] = 0;
+		}
 
 		if( cerrlog )
 			_object = ::clCreateContext( props, devices.size(), ( cl_device_id* ) &devices[ 0 ], CLContext::cerrlog, NULL, &err );
@@ -44,13 +53,23 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	CLContext::CLContext( const CLPlatform& platform, const CLDevice& device, bool cerrlog )
+	CLContext::CLContext( const CLPlatform& platform, const CLDevice& device, const GLContext* share, bool cerrlog )
 	{
 		cl_int err;
-		cl_context_properties props[ 3 ];
+		cl_context_properties props[ 5 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
 		props[ 2 ] = 0;
+
+		if( share ) {
+			int size;
+			share->shareCL( NULL, 0, &size );
+			if( size > 2  )
+				throw CVTException( "OpenCL/GL sharing failed!" );
+			share->shareCL( &props[ 2 ], 2, &size );
+			props[ 2 + size ] = 0;
+		}
+
 
 		if( cerrlog )
 			_object = ::clCreateContext( props, 1,  ( cl_device_id* ) &device, CLContext::cerrlog, NULL, &err );
@@ -60,13 +79,23 @@ namespace cvt {
 			throw CLException( err );
 	}
 
-	CLContext::CLContext( const CLPlatform& platform, cl_device_type type, bool cerrlog )
+	CLContext::CLContext( const CLPlatform& platform, cl_device_type type, const GLContext* share, bool cerrlog )
 	{
 		cl_int err;
-		cl_context_properties props[ 3 ];
+		cl_context_properties props[ 5 ];
 		props[ 0 ] = CL_CONTEXT_PLATFORM;
 		props[ 1 ] = ( cl_context_properties ) platform;
 		props[ 2 ] = 0;
+
+		if( share ) {
+			int size;
+			share->shareCL( NULL, 0, &size );
+			if( size > 2  )
+				throw CVTException( "OpenCL/GL sharing failed!" );
+			share->shareCL( &props[ 2 ], 2, &size );
+			props[ 2 + size ] = 0;
+		}
+
 
 		if( cerrlog )
 			_object = ::clCreateContextFromType( props, type, CLContext::cerrlog, NULL, &err );

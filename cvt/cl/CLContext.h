@@ -23,9 +23,9 @@ namespace cvt {
 		public:
 			CLContext( cl_context ctx = NULL );
 			CLContext( const CLContext& ctx );
-			CLContext( const CLPlatform& platform, const std::vector<CLDevice>& devices, bool cerrlog = false );
-			CLContext( const CLPlatform& platform, const CLDevice& device, bool cerrlog = false );
-			CLContext( const CLPlatform& platform, cl_device_type type, bool cerrlog = false );
+			CLContext( const CLPlatform& platform, const std::vector<CLDevice>& devices, const GLContext* share = NULL, bool cerrlog = false );
+			CLContext( const CLPlatform& platform, const CLDevice& device, const GLContext* share = NULL, bool cerrlog = false );
+			CLContext( const CLPlatform& platform, cl_device_type type, const GLContext* share = NULL, bool cerrlog = false );
 			~CLContext();
 
 			void devices( std::vector<CLDevice>& devices ) const;

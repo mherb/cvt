@@ -94,7 +94,11 @@ namespace cvt {
 
 	inline void CGLContext::shareCL( cl_context_properties* props, int size, int* retsize ) const
 	{
-		if( !props || !size || retsize ) *retsize = 1;
+		if( retsize ) {
+			*retsize = 1;
+			if( !props )
+				return;
+		}
 
 		if( !props || size < 1 )
 			throw CVTException( "Not enough memory for cl_context_properties!" );
