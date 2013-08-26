@@ -74,6 +74,15 @@ namespace cvt {
 		GL::glBindVertexArray( 0 );*/
 	}
 
+
+	void GLVertexArray::resetAttrib( GLuint index )
+	{
+		GL::glBindVertexArray( _vao );
+		_arrays &= ~( 1 << GLSL_VERTEX_IDX );
+		glDisableVertexAttribArray( index );
+		GL::glBindVertexArray( 0 );
+	}
+
 	void GLVertexArray::setVertexData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride, const GLvoid* offset )
 	{
 		CVT_ASSERT( buffer.target() == GL_ARRAY_BUFFER, "Buffer is not an array buffer!" );

@@ -33,10 +33,10 @@ namespace cvt {
 			void setTexCoordData( const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride = 0, const GLvoid* offset = 0 );
 			void setAttribData( GLuint index, const GLBuffer& buffer, GLint size, GLenum type, GLsizei stride = 0, const GLvoid* offset = 0 );
 
-			void resetColor() { _arrays &= ~( 1 << GLSL_COLOR_IDX ); };
-			void resetNormal() { _arrays &= ~( 1 << GLSL_NORMAL_IDX ); };
-			void resetTexCoord() { _arrays &= ~( 1 << GLSL_TEXCOORD_IDX ); };
-			void resetAttrib( GLuint index ) { _arrays &= ~( 1 << index ); };
+			void resetColor() { resetAttrib( GLSL_COLOR_IDX ); }
+			void resetNormal() { resetAttrib( GLSL_NORMAL_IDX ); }
+			void resetTexCoord() { resetAttrib( GLSL_TEXCOORD_IDX ); }
+			void resetAttrib( GLuint index );
 
 			void setColor( const Color& color );
 // FIXME: Remove, the single attrib stuff is not part of the VAO state
