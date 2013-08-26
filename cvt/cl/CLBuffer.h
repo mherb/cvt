@@ -14,6 +14,8 @@
 #include <cvt/cl/CLObject.h>
 #include <cvt/cl/CLUtil.h>
 
+#include <cvt/gl/GLBuffer.h>
+
 namespace cvt {
 	class CLContext;
 
@@ -23,6 +25,9 @@ namespace cvt {
 			CLBuffer( const CLContext& context, size_t size, cl_mem_flags flags = CL_MEM_READ_WRITE, void* host_ptr = NULL );
 			CLBuffer( size_t size, cl_mem_flags = CL_MEM_READ_WRITE );
 			CLBuffer( void* data, size_t size, cl_mem_flags = CL_MEM_READ_WRITE );
+			CLBuffer( const CLContext& context, const GLBuffer& buf, cl_mem_flags flags = CL_MEM_READ_WRITE );
+			CLBuffer( const GLBuffer& buf, cl_mem_flags = CL_MEM_READ_WRITE );
+
 
 			CLUTIL_GETINFOTYPE( memType, CL_MEM_TYPE, cl_mem_object_type, _object, ::clGetMemObjectInfo )
 			CLUTIL_GETINFOTYPE( memFlags, CL_MEM_FLAGS, cl_mem_flags, _object, ::clGetMemObjectInfo )
@@ -30,6 +35,9 @@ namespace cvt {
 			CLUTIL_GETINFOTYPE( mapCount, CL_MEM_MAP_COUNT, cl_uint, _object, ::clGetMemObjectInfo )
 
 			CLContext context() const;
+
+			void		acquireGLObject() const;
+			void		releaseGLObject() const;
 
 			size_t		size() const;
 			void		read( void* dst );

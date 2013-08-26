@@ -37,6 +37,23 @@ namespace cvt
 			throw CLException( err );
 	}
 
+	CLBuffer::CLBuffer( const CLContext& context, const GLBuffer& buf, cl_mem_flags flags ) : _size( buf.size() )
+	{
+		cl_int err;
+		_object = ::clCreateFromGLBuffer( context, flags, buf.glObject(), &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
+	CLBuffer::CLBuffer( const GLBuffer& buf, cl_mem_flags flags ) : _size( buf.size() )
+	{
+		cl_int err;
+
+		_object = ::clCreateFromGLBuffer( *CL::defaultContext(), flags, buf.glObject(), &err );
+		if( err != CL_SUCCESS )
+			throw CLException( err );
+	}
+
 	CLContext CLBuffer::context() const
 	{
 		return CLContext( _context() );
@@ -79,5 +96,15 @@ namespace cvt
 	void CLBuffer::unmap( const void* ptr ) const
 	{
 		CL::defaultQueue()->enqueueUnmap( *( ( CLMemory* )this ), ptr );
+	}
+
+	void CLBuffer::acquireGLObject() const
+	{
+		CL::defaultQueue()->enqueueAcquireGLObject( *( ( CLMemory* )this ) );
+	}
+
+	void CLBuffer::releaseGLObject() const
+	{
+		CL::defaultQueue()->enqueueReleaseGLObject( *( ( CLMemory* )this ) );
 	}
 }

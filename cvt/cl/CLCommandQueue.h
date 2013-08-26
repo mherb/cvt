@@ -64,6 +64,11 @@ namespace cvt {
 			void enqueueUnmap( const CLMemory& mem, const void* ptr,
 							   const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
 
+			void enqueueAcquireGLObject( const CLMemory& mem, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+
+			void enqueueReleaseGLObject( const CLMemory& mem, const std::vector<CLEvent>* waitevents = NULL, CLEvent* event = NULL );
+
+
 			void flush();
 			void finish();
 
@@ -240,6 +245,27 @@ namespace cvt {
 		if( err != CL_SUCCESS )
 			throw CLException( __PRETTY_FUNCTION__, err );
 	}
+
+	inline void CLCommandQueue::enqueueAcquireGLObject( const CLMemory& mem, const std::vector<CLEvent>* waitevents , CLEvent* event )
+	{
+		cl_int err;
+
+		err = ::clEnqueueAcquireGLObjects( _object, 1, ( const cl_mem* ) &mem, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+	}
+
+	inline void CLCommandQueue::enqueueReleaseGLObject( const CLMemory& mem, const std::vector<CLEvent>* waitevents , CLEvent* event )
+	{
+		cl_int err;
+
+		err = ::clEnqueueReleaseGLObjects( _object, 1, ( const cl_mem* ) &mem, waitevents?waitevents->size() : 0, waitevents?( const cl_event* ) &(*waitevents)[0]:NULL, ( cl_event* ) event );
+
+		if( err != CL_SUCCESS )
+			throw CLException( __PRETTY_FUNCTION__, err );
+	}
+
 }
 
 #endif
