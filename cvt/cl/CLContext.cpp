@@ -42,7 +42,7 @@ namespace cvt {
 			if( size > 2  )
 				throw CVTException( "OpenCL/GL sharing failed!" );
 			share->shareCL( &props[ 2 ], 2, &size );
-			props[ 2 + size ] = 0;
+			props[ 2 + size * 2 ] = 0;
 		}
 
 		if( cerrlog )
@@ -67,7 +67,7 @@ namespace cvt {
 			if( size > 2  )
 				throw CVTException( "OpenCL/GL sharing failed!" );
 			share->shareCL( &props[ 2 ], 2, &size );
-			props[ 2 + size ] = 0;
+			props[ 2 + size * 2 ] = 0;
 		}
 
 
