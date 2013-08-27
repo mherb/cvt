@@ -43,7 +43,6 @@ namespace cvt {
 			static bool	defaultGLsharing() { return _glsharing; }
 			static bool setDefaultDevice( const CLDevice& dev );
 		private:
-			static bool init( cl_device_id id, cl_context_properties* props );
 			static bool init( const GLContext* glctx );
 			static void cleanup();
 
