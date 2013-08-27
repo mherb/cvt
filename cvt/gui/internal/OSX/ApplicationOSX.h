@@ -43,6 +43,8 @@ namespace cvt {
 			virtual bool _hasGLSupport() { return true; }
 			virtual bool _hasCLSupport() { return _clsupport; }
 
+			virtual GLContext* _defaultGLContext() { return _defaultctx; }
+
 			CGLContext* _defaultctx;
 			bool _clsupport;
 			TimerInfoListOSX _timers;

@@ -20,6 +20,7 @@ namespace cvt {
 	class WidgetImpl;
 	class Widget;
 	class GLContextImpl;
+	class GLContext;
 
 	class Application {
 		friend class Widget;
@@ -37,6 +38,8 @@ namespace cvt {
 			static bool hasGLSupport() { return instance()->_hasGLSupport(); }
 			static bool hasCLSupport() { return instance()->_hasCLSupport(); }
 
+			static GLContext* defaultGLContext() { return instance()->_defaultGLContext(); }
+
 		protected:
 			Application() {};
 			Application( const Application& );
@@ -53,6 +56,8 @@ namespace cvt {
 
 			virtual bool _hasGLSupport() = 0;
 			virtual bool _hasCLSupport() = 0;
+
+			virtual GLContext* _defaultGLContext() = 0;
 
 			virtual void runApp() = 0;
 			virtual void exitApp() = 0;

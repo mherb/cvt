@@ -1,8 +1,10 @@
+#include <cvt/gui/Application.h>
 #include <cvt/cl/OpenCL.h>
 #include <cvt/cl/CLPlatform.h>
 #include <cvt/cl/CLKernel.h>
 #include <cvt/cl/CLContext.h>
 #include <cvt/cl/CLBuffer.h>
+#include <cvt/gl/GLBuffer.h>
 
 #include "MarchingCubesCL.h"
 
@@ -40,10 +42,11 @@ int main( int argc, char** argv )
 		return 0;
 	}
 
-	std::vector<CLPlatform> platforms;
+	Application::init();
+	Application::defaultGLContext()->makeCurrent();
+/*	std::vector<CLPlatform> platforms;
     CLPlatform::get( platforms );
-    CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );
-
+    CL::setDefaultDevice( platforms[ 0 ].defaultDevice() );*/
 
 	int grid = String( argv[ 1 ]).toInteger();
 	std::cout << "Grid: " << grid << " x " << grid << " x " << grid << std::endl;
@@ -74,12 +77,20 @@ int main( int argc, char** argv )
 		std::cout << "Calculating number of triangles" << std::endl;
 		std::cout << size << std::endl;
 
-		CLBuffer tribuf( sizeof( cl_float3 ) * size * 3 );
+		GLBuffer glbuf;
+		glbuf.alloc( GL_DYNAMIC_COPY, sizeof( cl_float3 ) * size * 3 );
+		glFlush();
+
+		CLBuffer tribuf( glbuf );
+		tribuf.acquireGLObject();
+//		CLBuffer tribuf( sizeof( cl_float3 ) * size * 3 );
 		mccl.extractTriangles( tribuf, buf, grid, grid, grid );
 
 		ptr = ( float* ) tribuf.map();
 		writeOBJ( ptr, size );
 		tribuf.unmap( ptr );
+
+		tribuf.releaseGLObject();
 
 
 	} catch( CLException& e ) {

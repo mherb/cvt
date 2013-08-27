@@ -46,6 +46,8 @@ namespace cvt {
 			virtual bool _hasGLSupport() { return true; }
 			virtual bool _hasCLSupport() { return _clsupport; }
 
+			virtual GLContext* _defaultGLContext() { return _defaultctx; }
+
 			::Display* dpy;
 			GLXContext* _defaultctx;
 			::Atom xatom_wmdelete;
