@@ -89,7 +89,7 @@ int main( int argc, char** argv )
             Image raycast;
         /* add the depth maps */
         for( int i = 0; i < 750; i++) {
-            rgbddata.nextFrame();
+            rgbddata.next();
             rgbddata.data().depth.convert( depthmap, IFormat::GRAY_UINT16, IALLOCATOR_CL );
 //			camcalib.setExtrinsics( rgbddata.data().pose );
 //			rgbddata.data().rgb.convert( image, IFormat::RGBA_FLOAT );

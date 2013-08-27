@@ -25,6 +25,7 @@ namespace cvt {
             virtual void            next() = 0;
 
             virtual bool            hasGroundTruthPose() const { return false; }
+
             virtual cvt::Matrix4d   groundTruthPose() const
             {
                 cvt::Matrix4d m;

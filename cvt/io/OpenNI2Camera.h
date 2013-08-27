@@ -17,7 +17,7 @@
 
 namespace cvt
 {
-    class OpenNI2Camera : public Camera, RGBDInput
+    class OpenNI2Camera : public Camera, public RGBDInput
     {
         public:
             OpenNI2Camera( size_t idx, const CameraMode& mode );
@@ -54,9 +54,9 @@ namespace cvt
 
             /* RGBDInput interface */
             const Image&    rgb() const { return frame(); }
-            void            next()      { nextFrame(); }
             double          stamp() const { return _rgbStamp; }
             double          depthStamp() const { return _depthStamp; }
+            void            next() { nextFrame( 30 ); }
 
         private:
             Image				_rgb;
@@ -69,6 +69,7 @@ namespace cvt
 
             uint64_t            _rgbStamp;
             uint64_t            _depthStamp;
+
 
     };
 }

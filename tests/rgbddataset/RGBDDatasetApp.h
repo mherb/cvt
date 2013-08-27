@@ -44,7 +44,7 @@ namespace cvt
             void onTimeout()
             {
                 if( _loadNext ){
-                    _rgbdset.nextFrame();
+                    _rgbdset.next();
                     const RGBDParser::RGBDSample& sample = _rgbdset.data();
 
                     _rgbView.setImage( sample.rgb );

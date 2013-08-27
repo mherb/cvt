@@ -703,7 +703,7 @@ SET( CVT_SOURCES
 	vision/StereoRectification.cpp
 	vision/rgbdvo/InformationSelectionTest.cpp
 	vision/slam/Keyframe.cpp
-   vision/slam/FlatSLAMMap.cpp
+        vision/slam/FlatSLAMMap.cpp
 	vision/slam/SlamMap.cpp
 	vision/slam/stereo/FeatureTracking.cpp
 	#vision/slam/stereo/KLTTracking.cpp
@@ -741,7 +741,7 @@ IF(UNIX)
 		)
 
 	SET( CVT_DEP_LIBRARIES
-		 ${CVT_DEP_LIBRARIES}
+             ${CVT_DEP_LIBRARIES}
          "-framework Cocoa"
          "-framework CoreFoundation"
          "-framework QuartzCore"
