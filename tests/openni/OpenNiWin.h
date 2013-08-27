@@ -90,7 +90,7 @@ namespace cvt
 
         Image dFloat;
         _cam.depth().convert( dFloat, IFormat::GRAY_FLOAT );
-        dFloat.mul( 6.0f );
+        dFloat.mul( 10.0f );
         _rgbView.setImage( img );
         _depthView.setImage( dFloat );
     }

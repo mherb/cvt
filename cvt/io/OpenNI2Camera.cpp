@@ -132,6 +132,8 @@ namespace cvt {
     static void dumpVM( const openni::VideoMode& vm ){
         std::cout << "VideoMode: [" << vm.getResolutionX() << ", " << vm.getResolutionY() << "] @ " << vm.getFps();
         switch( vm.getPixelFormat() ){
+            case openni::PIXEL_FORMAT_DEPTH_100_UM:    std::cout << " DEPTH_100_UM" << std::endl; return;
+            case openni::PIXEL_FORMAT_DEPTH_1_MM:    std::cout << " DEPTH_1_MM" << std::endl; return;
             case openni::PIXEL_FORMAT_GRAY8:    std::cout << " GRAY_U8" << std::endl; return;
             case openni::PIXEL_FORMAT_GRAY16:   std::cout << " GRAY_U16" << std::endl; return;
             case openni::PIXEL_FORMAT_RGB888:   std::cout << " RGB_888" << std::endl; return;
@@ -169,15 +171,18 @@ namespace cvt {
         int bestDist = 1000000;
         for( size_t i = 0; i < vm.getSize(); i++ ){
             if( vm[ i ].getPixelFormat() == openni::PIXEL_FORMAT_DEPTH_1_MM ){
-                int dist = Math::abs( vm[ 0 ].getResolutionX() - ( int )cm.width ) +
-                           Math::abs( vm[ 0 ].getResolutionY() - ( int )cm.height ) +
-                           Math::abs( vm[ 0 ].getFps() - ( int )cm.fps );
+            //if( vm[ i ].getPixelFormat() == openni::PIXEL_FORMAT_DEPTH_100_UM ){
+                int dist = Math::abs( vm[ i ].getResolutionX() - ( int )cm.width ) +
+                           Math::abs( vm[ i ].getResolutionY() - ( int )cm.height ) +
+                           Math::abs( vm[ i ].getFps() - ( int )cm.fps );
                 if( dist < bestDist ){
                     bestDist = dist;
                     bestIdx = i;
                 }
             }
         }
+        std::cout << "DepthMode: ";
+        dumpVM( vm[ bestIdx ] );
         return vm[ bestIdx ];
     }
 
@@ -195,7 +200,7 @@ namespace cvt {
         }
         if( _device.hasSensor( openni::SENSOR_DEPTH ) ){
             _depthStream.create( _device, openni::SENSOR_DEPTH );
-            openni::Status status = _rgbStream.setVideoMode( Openni2Helper::findMatchingVideoMode( mode, _device, openni::SENSOR_DEPTH ) );
+            openni::Status status = _depthStream.setVideoMode( Openni2Helper::findMatchingVideoMode( mode, _device, openni::SENSOR_DEPTH ) );
             if( status != openni::STATUS_OK ){
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
