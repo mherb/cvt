@@ -23,9 +23,10 @@
 
 namespace cvt
 {
-   StereoSLAM::StereoSLAM( FeatureDetector* detector,
-						   FeatureDescriptorExtractor* descExtractor,
-						   const StereoCameraCalibration &calib ):
+   StereoSLAM::StereoSLAM(FeatureDetector* detector,
+                          FeatureDescriptorExtractor* descExtractor,
+                          const StereoCameraCalibration &calib ,
+                          const Params &params):
 	   _detector( detector ),
 	   _descExtractorLeft( descExtractor ),
 	   _descExtractorRight( descExtractor->clone() ),
@@ -46,6 +47,8 @@ namespace cvt
 	   Eigen::Matrix3d K;
 	   EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
 	   _map.setIntrinsics( K );
+
+       _params = params;
    }
 
    void StereoSLAM::newImages( const Image& imgLeftGray, const Image& imgRightGray )
