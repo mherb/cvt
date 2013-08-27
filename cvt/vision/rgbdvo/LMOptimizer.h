@@ -22,7 +22,6 @@ namespace cvt {
             LMOptimizer();
             ~LMOptimizer(){}
 
-
         private:
 			typedef typename AlignData::WarpType			WarpFunc;
             typedef typename WarpFunc::JacobianType         JacobianType;
@@ -57,7 +56,7 @@ namespace cvt {
     {
         JacobianType deltaSum;
         HessianType  hessian;
-        float lambda = 0.1f;
+        float lambda = 0.001f;
 
         IMapScoped<const float> grayMap( gray );
 
@@ -86,7 +85,8 @@ namespace cvt {
             hTmp = hessian;
 
             // multiplicative damping
-            hTmp.diagonal() *= ( 1.0f + lambda );
+            for( size_t i = 0; i < hTmp.rows(); ++i )
+                hTmp( i, i ) += ( lambda * Math::sqrt( hTmp( i, i ) ) );
             DeltaType deltaP = -hTmp.inverse() * deltaSum.transpose();
 
             if( deltaP.norm() < this->_minUpdate )
@@ -97,17 +97,12 @@ namespace cvt {
             reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
             float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() );
 
-            if( !residuals.size() ){
-                result.warp = savedWarp;
-                break;
-            }
-
-            if( currentCosts < result.costs ){
+            if( residuals.size() && currentCosts < result.costs ){
                 // update the system:
                 this->_overallDelta.noalias() += deltaP;
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
                 savedWarp = result.warp;
-                lambda *= 0.5f;
+                lambda *= 0.1f;
                 result.iterations++;
                 result.numPixels = residuals.size();
 
@@ -124,7 +119,7 @@ namespace cvt {
                 result.warp = savedWarp;
 
                 // update the damping
-                lambda += 0.5f;
+                lambda *= 10.0f;
             }
         }
 

@@ -16,10 +16,13 @@
 
 namespace cvt {
 
+    /**
+     * \class AlignmentData for reference (template) information
+     */
     template <class Warp>
     class AlignmentData {
         public:
-			typedef Warp					WarpType;
+            typedef Warp                            WarpType;
             typedef typename Warp::JacobianType     JacobianType;
             typedef typename Warp::ScreenJacType    ScreenJacobianType;
             typedef typename Warp::HessianType      HessianType;

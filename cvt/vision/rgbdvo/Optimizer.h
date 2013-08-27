@@ -229,13 +229,14 @@ namespace cvt {
                                               size_t octave ) = 0;
 
 
-			virtual void optimizeSingleScale( Result& /*result*/,
-											  KFType* /*references*/, size_t /*nRefs*/,
-											  const Image& /*gray*/,
-											  const Image& /*depthImage*/,
-											  size_t /*octave*/ )
+			virtual void optimizeSingleScale( Result& result,
+											  KFType* references, size_t /*nRefs*/,
+											  const Image& gray,
+											  const Image& depthImage,
+											  size_t octave )
             {
-				throw CVTException( "this optimizer does not implement multi-reference alignment yet" );
+                std::cerr << "this optimizer does not implement multi-reference alignment yet" << std::endl;
+                this->optimizeSingleScale( result, references[ 0 ], gray, depthImage, octave );
             }
 
     };
