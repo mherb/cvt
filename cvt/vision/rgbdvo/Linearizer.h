@@ -35,7 +35,7 @@ namespace cvt {
                 jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
             }
 
-            void updateOnlineData( const ImagePyramid&, const ImagePyramid& ) {}
+            void updateOnlineData( const ImagePyramid&, const Image& ) {}
     };
 
     template <class AlignData>

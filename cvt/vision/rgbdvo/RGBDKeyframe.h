@@ -77,9 +77,7 @@ namespace cvt
 
             size_t dataSize( size_t octave ) const { return _dataForScale[ octave ].size(); }
 
-			virtual void updateOnlineData( const ImagePyramid& /*pyrf*/, const Image& /*depth*/ )
-			{
-			}
+			virtual void updateOnlineData( const ImagePyramid& /*pyrf*/, const Image& /*depth*/ ){}
 
             virtual void recompute( std::vector<float>& residuals,
                                     JacobianVec& jacobians,
@@ -114,12 +112,8 @@ namespace cvt
 
 	template <class AlignData>
 	inline RGBDKeyframe<AlignData>::RGBDKeyframe( const Matrix3f& K, size_t octaves, float scale ) :
-        //_kx( IKernel::HAAR_HORIZONTAL_3 ),
-        //_ky( IKernel::HAAR_VERTICAL_3 ),
         _kx( IKernel::FIVEPOINT_DERIVATIVE_HORIZONTAL ),
         _ky( IKernel::FIVEPOINT_DERIVATIVE_VERTICAL ),
-        //_gaussX( IKernel::GAUSS_HORIZONTAL_3 ),
-        //_gaussY( IKernel::GAUSS_VERTICAL_3 ),
         _depthScaling( 1.0f ),
         _minDepth( 0.05 ),
         _maxDepth( 10.0 ),
@@ -127,8 +121,6 @@ namespace cvt
         _pixelPercentageToSelect( 0.3f ),
         _useInformationSelection( false )
     {
-        //float s = -0.5f;
-        //float s = -2.0f;
         float s = -1.0f;
         _kx.scale( s );
         _ky.scale( s );

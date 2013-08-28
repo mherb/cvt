@@ -8,14 +8,14 @@
     IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
     PARTICULAR PURPOSE.
 */
-#ifndef CVT_FCKEYFRAME_H
-#define CVT_FCKEYFRAME_H
+#ifndef CVT_INTENSITYKEYFRAME_H
+#define CVT_INTENSITYKEYFRAME_H
 
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
 namespace cvt {
-	template <class AlignData>
-	class FCKeyframe : public RGBDKeyframe<AlignData> {
+	template <class AlignData, class LinearizerType>
+	class IntensityKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 			typedef RGBDKeyframe<AlignData>             Base;
@@ -26,8 +26,8 @@ namespace cvt {
             typedef typename Base::ScreenJacVec         ScreenJacVec;            
             typedef typename Base::GradientType         GradientType;
 
-            FCKeyframe( const Matrix3f &K, size_t octaves, float scale );
-            ~FCKeyframe();
+            IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
+            ~IntensityKeyframe();
 
             void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
 
@@ -37,34 +37,33 @@ namespace cvt {
                             const IMapScoped<const float>& gray,
                             size_t octave );
         private:
-            FwdCompLinearizer<AlignData> _linearizer;
+            LinearizerType  _linearizer;
     };
 
-	template <class AlignData>
-	inline FCKeyframe<AlignData>::FCKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
+	template <class AlignData, class LinearizerType>
+	inline IntensityKeyframe<AlignData, LinearizerType>::IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
 		RGBDKeyframe<AlignData>( K, octaves, scale ),
 		_linearizer( this->_kx, this->_ky, octaves, scale )
     {
     }
 
-	template <class AlignData>
-	inline FCKeyframe<AlignData>::~FCKeyframe()
+	template <class AlignData, class LinearizerType>
+	inline IntensityKeyframe<AlignData, LinearizerType>::~IntensityKeyframe()
     {
     }
 
-	template <class AlignData>
-	inline void FCKeyframe<AlignData>::recompute(std::vector<float>& residuals,
-												 JacobianVec& jacobians,
-												 const typename Base::WarpType &warp,
-												 const IMapScoped<const float>& gray,
-												 size_t octave )
+	template <class AlignData, class LinearizerType>
+	inline void IntensityKeyframe<AlignData, LinearizerType>::recompute( std::vector<float>& residuals,
+																		 JacobianVec& jacobians,
+																		 const typename Base::WarpType &warp,
+																		 const IMapScoped<const float>& gray,
+																		 size_t octave )
     {
         SIMD* simd = SIMD::instance();
         const size_t width = gray.width();
         const size_t height = gray.height();
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
-
 
 		const AlignData& data = this->dataForScale( octave );
         size_t n = data.size();
@@ -91,14 +90,12 @@ namespace cvt {
         _linearizer.recomputeJacobians( jacobians, residuals, warpedPts, interpolatedPixels, data, octave );
     }
 
-	template <class WarpFunc>
-	inline void FCKeyframe<WarpFunc>::updateOnlineData( const ImagePyramid& pyrf, const Image& depth )
+	template <class WarpFunc, class LinearizerType>
+	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const ImagePyramid& pyrf, const Image& depth )
 	{
 		_linearizer.updateOnlineData( pyrf, depth );
 	}
 
-
-
 }
 
-#endif // CVT_FCKEYFRAME_H
+#endif
