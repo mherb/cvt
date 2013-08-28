@@ -23,6 +23,14 @@ namespace cvt {
 				    const unsigned int* indices, size_t isize, MeshType type );*/
 			~GLMesh();
 
+			GLBuffer& vertices();
+			GLBuffer& normals();
+			GLBuffer& texcoords();
+			GLBuffer& faceIndices();
+
+			size_t&   numTriangles();
+			size_t	  numTriangles() const;
+
 			void draw();
 
 		private:
@@ -31,7 +39,7 @@ namespace cvt {
 			GLBuffer _normals;
 			GLBuffer _texcoords;
 			GLBuffer _indices;
-			size_t	 _numIndices;
+			size_t	 _numTris;
 	};
 
 	inline GLMesh::GLMesh() :
@@ -55,12 +63,12 @@ namespace cvt {
 		if( mesh.meshType() == SCENEMESH_QUADS ) {
 			std::vector<unsigned int> faces;
 			mesh.facesTriangles( faces );
-			_numIndices = faces.size();
-			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numIndices, &faces[ 0 ] );
+			_numTris = faces.size() / 3;
+			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numTris * 3, &faces[ 0 ] );
 
 		} else {
-			_numIndices = mesh.faceSize() * 3;
-			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numIndices, mesh.faces() );
+			_numTris = mesh.faceSize();
+			_indices.alloc( GL_STATIC_DRAW, sizeof( GLuint ) * _numTris * 3, mesh.faces() );
 		}
 
 		_vao.setVertexData( _vertices, 3, GL_FLOAT );
@@ -74,11 +82,44 @@ namespace cvt {
 	{
 	}
 
+	inline GLBuffer& GLMesh::vertices()
+	{
+		return _vertices;
+	}
+
+	inline GLBuffer& GLMesh::normals()
+	{
+		return _normals;
+	}
+
+	inline GLBuffer& GLMesh::texcoords()
+	{
+		return _texcoords;
+	}
+
+	inline GLBuffer& GLMesh::faceIndices()
+	{
+		return _indices;
+	}
+
+	inline size_t& GLMesh::numTriangles()
+	{
+		return _numTris;
+	}
+
+	inline size_t GLMesh::numTriangles() const
+	{
+		return _numTris;
+	}
 
 
 	inline void GLMesh::draw()
 	{
-		_vao.drawIndirect( _indices, GL_UNSIGNED_INT, GL_TRIANGLES, _numIndices ); //FIXME: GL3 has no support for GL_QUADS ...
+		if( _indices.size() )
+			_vao.drawIndirect( _indices, GL_UNSIGNED_INT, GL_TRIANGLES, _numTris * 3 );
+		else
+			_vao.draw( GL_TRIANGLES, 0, _numTris );
+
 	}
 }
 

@@ -33,7 +33,7 @@ namespace cvt {
 			void* map( GLenum access = GL_READ_WRITE ) const;
 			void unmap() const;
 
-			GLuint glObject() const { return _buffer; }
+			GLuint glObject() const;
 			/*
 			void sync( size_t offset, size_t length ) const;
 			 */
@@ -57,6 +57,10 @@ namespace cvt {
 		return _target;
 	}
 
+	inline GLuint GLBuffer::glObject() const
+	{
+		return _buffer;
+	}
 }
 
 #endif
