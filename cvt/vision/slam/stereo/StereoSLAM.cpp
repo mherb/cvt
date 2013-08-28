@@ -39,7 +39,8 @@ namespace cvt
 	   _kernelGx( IKernel::HAAR_HORIZONTAL_3 ),
 	   _kernelGy( IKernel::HAAR_VERTICAL_3 ),
 	   _calib( calib ),
-	   _activeKF( -1 )
+	   _activeKF( -1 ),
+	   _params( params )
    {
 	   _kernelGx.scale( -0.5f );
 	   _kernelGy.scale( -0.5f );
@@ -47,8 +48,6 @@ namespace cvt
 	   Eigen::Matrix3d K;
 	   EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
 	   _map.setIntrinsics( K );
-
-       _params = params;
    }
 
    void StereoSLAM::newImages( const Image& imgLeftGray, const Image& imgRightGray )
