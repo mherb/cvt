@@ -15,20 +15,23 @@
 
 using namespace cvt;
 
-void writeOBJ( const float* vertices, size_t numtris )
+void writeOBJ( const float* vertices, const float* normals, size_t numtris )
 {
 		FILE* f;
 		cl_float3* vert = ( cl_float3* ) vertices;
+		cl_float3* norm = ( cl_float3* ) normals;
 
 		f = fopen( "mcresult.obj", "wb" );
 		size_t idxend = numtris * 3;
 		for( size_t idx = 0; idx < idxend; idx++ ) {
 			cl_float3 vtx = vert[ idx ];
 			fprintf( f, "v %f %f %f\n", vtx.x, vtx.y, vtx.z );
+			cl_float3 nrml = norm[ idx ];
+			fprintf( f, "vn %f %f %f\n", nrml.x, nrml.y, nrml.z );
 		}
 
 		for( size_t idx = 0; idx < numtris; idx++ ) {
-			fprintf( f, "f %lu %lu %lu\n", idx * 3 + 1, idx * 3 + 2, idx * 3 + 3);
+			fprintf( f, "f %lu//%lu %lu//%lu %lu//%lu\n",idx * 3 + 1, idx * 3 + 1, idx * 3 + 2, idx * 3 + 2, idx * 3 + 3, idx * 3 + 3);
 		}
 
 		fclose( f );
@@ -77,20 +80,25 @@ int main( int argc, char** argv )
 		std::cout << "Calculating number of triangles" << std::endl;
 		std::cout << size << std::endl;
 
-		GLBuffer glbuf;
-		glbuf.alloc( GL_DYNAMIC_COPY, sizeof( cl_float3 ) * size * 3 );
-		glFlush();
+		GLBuffer glbufvtx, glbufnormals;
+		glbufvtx.alloc( GL_DYNAMIC_COPY, sizeof( cl_float3 ) * size * 3 );
+		glbufnormals.alloc( GL_DYNAMIC_COPY, sizeof( cl_float3 ) * size * 3 );
 
-		CLBuffer tribuf( glbuf );
-		tribuf.acquireGLObject();
+		CLBuffer clbufvtx( glbufvtx );
+		CLBuffer clbufnormals( glbufnormals );
+		clbufvtx.acquireGLObject();
+		clbufnormals.acquireGLObject();
 //		CLBuffer tribuf( sizeof( cl_float3 ) * size * 3 );
-		mccl.extractTriangles( tribuf, buf, grid, grid, grid );
+		mccl.extractTriangles( clbufvtx, clbufnormals, buf, grid, grid, grid );
+		clbufvtx.releaseGLObject();
+		clbufnormals.releaseGLObject();
 
-		ptr = ( float* ) tribuf.map();
-		writeOBJ( ptr, size );
-		tribuf.unmap( ptr );
+		ptr = ( float* ) glbufvtx.map();
+		float* ptr2 = ( float* ) glbufnormals.map();
+		writeOBJ( ptr, ptr2, size );
+		glbufvtx.unmap( );
+		glbufnormals.unmap( );
 
-		tribuf.releaseGLObject();
 
 
 	} catch( CLException& e ) {

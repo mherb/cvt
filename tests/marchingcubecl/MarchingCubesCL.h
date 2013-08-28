@@ -9,8 +9,8 @@ namespace cvt {
 	{
 		public:
 			MarchingCubesCL() :
-				_clMCsize( _MC_source, "MC_weighted_triangleSize" ),
-				_clMCextract( _MC_source, "MC_weighted_extractTriangles" )
+				_clMCsize( _MC_source, "MC_weighted_triangleSizeWNormals" ),
+				_clMCextract( _MC_source, "MC_weighted_extractTrianglesNormals" )
 			{
 			}
 
@@ -34,18 +34,19 @@ namespace cvt {
 				return ret;
 			}
 
-			void extractTriangles( CLBuffer& output, const CLBuffer& buf , size_t width, size_t height, size_t depth, float isolevel = 0.0f )
+			void extractTriangles( CLBuffer& outputvtx, CLBuffer& outputnormal, const CLBuffer& buf , size_t width, size_t height, size_t depth, float isolevel = 0.0f )
 			{
 				unsigned int ret = 0;
 				CLBuffer clbuf( &ret, sizeof( unsigned int ) );
 
-				_clMCextract.setArg( 0, output );
-				_clMCextract.setArg( 1, clbuf );
-				_clMCextract.setArg( 2, buf );
-				_clMCextract.setArg( 3, ( int ) width );
-				_clMCextract.setArg( 4, ( int ) height );
-				_clMCextract.setArg( 5, ( int ) depth );
-				_clMCextract.setArg( 6, isolevel );
+				_clMCextract.setArg( 0, outputvtx );
+				_clMCextract.setArg( 1, outputnormal );
+				_clMCextract.setArg( 2, clbuf );
+				_clMCextract.setArg( 3, buf );
+				_clMCextract.setArg( 4, ( int ) width );
+				_clMCextract.setArg( 5, ( int ) height );
+				_clMCextract.setArg( 6, ( int ) depth );
+				_clMCextract.setArg( 7, isolevel );
 
 				Time t;
 				_clMCextract.runWait( CLNDRange( Math::pad16( width ), Math::pad16( height ), depth ), CLNDRange( 16, 16, 1 ) );

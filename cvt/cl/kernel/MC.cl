@@ -328,6 +328,32 @@ inline void vertexInterp( float3* vtx, const float3 p1, const float3 p2, float v
 	*vtx = mix( p1, p2, alpha );
 }
 
+inline void vertexNormalInterp( float3* vtx, const float3 p1, const float3 p2, float3* normal, const float3 n1, const float3 n2, float val1, float val2, float isolevel )
+{
+	/*
+	const float ISO_EPSILON = 1e-6f;
+
+	if( fabs( isolevel - val1 ) <  ISO_EPSILON ) {
+		*vtx = p1;
+		return;
+	}
+
+	if( fabs( isolevel - val2 ) <  ISO_EPSILON ) {
+		*vtx = p2;
+		return;
+	}
+
+	if( fabs( val1 - val2 ) <  ISO_EPSILON ) {
+		*vtx = p2;
+		return;
+	}
+	*/
+
+	float alpha = ( isolevel - val1 ) / ( val2 - val1 );
+	*vtx	    = mix( p1, p2, alpha );
+	*normal		= mix( n1, n2, alpha );
+}
+
 inline float MC_weighted_trilinearValue( global float2* cv, int width, int height, int depth, float3 pos )
 {
 	pos = fmin( fmax( ( float3 ) 0.0f, pos ), ( float3 ) ( width - 2, height - 2, depth - 2 ) );
@@ -384,6 +410,55 @@ kernel void MC_weighted_triangleSize( global unsigned int* size, global float2* 
 	const int lz = get_local_id( 2 );
 
 	if( x < width - 1 && y < height - 1 && z < depth - 1 ) {
+
+		unsigned int cubeindex = 0;
+		float2 val[ 8 ];
+
+		/* get the values of the current grid voxel */
+		val[ 0 ] = VOLUME( x, y, z );
+		val[ 1 ] = VOLUME( x + 1, y, z );
+		val[ 2 ] = VOLUME( x + 1, y + 1, z );
+		val[ 3 ] = VOLUME( x, y + 1, z );
+		val[ 4 ] = VOLUME( x, y, z + 1 );
+		val[ 5 ] = VOLUME( x + 1, y, z + 1 );
+		val[ 6 ] = VOLUME( x + 1, y + 1, z + 1 );
+		val[ 7 ] = VOLUME( x, y + 1, z + 1 );
+
+		if(  val[ 0 ].y > wepsilon
+		  && val[ 1 ].y > wepsilon
+		  && val[ 2 ].y > wepsilon
+		  && val[ 3 ].y > wepsilon
+		  && val[ 4 ].y > wepsilon
+		  && val[ 5 ].y > wepsilon
+		  && val[ 6 ].y > wepsilon
+		  && val[ 7 ].y > wepsilon ) {
+			if( val[ 0 ].x < isolevel ) cubeindex |= ( 1 << 0 );
+			if( val[ 1 ].x < isolevel ) cubeindex |= ( 1 << 1 );
+			if( val[ 2 ].x < isolevel ) cubeindex |= ( 1 << 2 );
+			if( val[ 3 ].x < isolevel ) cubeindex |= ( 1 << 3 );
+			if( val[ 4 ].x < isolevel ) cubeindex |= ( 1 << 4 );
+			if( val[ 5 ].x < isolevel ) cubeindex |= ( 1 << 5 );
+			if( val[ 6 ].x < isolevel ) cubeindex |= ( 1 << 6 );
+			if( val[ 7 ].x < isolevel ) cubeindex |= ( 1 << 7 );
+
+			atomic_add( size, ( unsigned int ) _triSizeTable[ cubeindex ] );
+		}
+	}
+}
+
+kernel void MC_weighted_triangleSizeWNormals( global unsigned int* size, global float2* cv, int width, int height, int depth, float isolevel )
+{
+	const float wepsilon = 20.0f;
+	const int x = get_global_id( 0 );
+	const int y = get_global_id( 1 );
+	const int z = get_global_id( 2 );
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+	const int lz = get_local_id( 2 );
+
+	if( x > 0 && x < width  - 2 &&
+	    y > 0 && y < height - 2 &&
+	    z > 0 && z < depth  - 2 ) {
 
 		unsigned int cubeindex = 0;
 		float2 val[ 8 ];
@@ -514,5 +589,147 @@ kernel void MC_weighted_extractTriangles( global float3* output, global unsigned
 			}
 		}
 	}
+}
 
+kernel void MC_weighted_extractTrianglesNormals( global float3* outputvtx, global float3* outputnormal, global unsigned int* pos, global float2* cv, int width, int height, int depth, float isolevel )
+{
+	const float wepsilon = 20.0f;
+	const int x = get_global_id( 0 );
+	const int y = get_global_id( 1 );
+	const int z = get_global_id( 2 );
+	const int lx = get_local_id( 0 );
+	const int ly = get_local_id( 1 );
+	const int lz = get_local_id( 2 );
+
+	if( x > 0 && x < width  - 2 &&
+	    y > 0 && y < height - 2 &&
+	    z > 0 && z < depth  - 2 ) {
+		unsigned int cubeindex = 0;
+		float2 gridval[ 8 ];
+
+		/* get the values of the current grid voxel */
+		gridval[ 0 ] = VOLUME( x, y, z );
+		gridval[ 1 ] = VOLUME( x + 1, y, z );
+		gridval[ 2 ] = VOLUME( x + 1, y + 1, z );
+		gridval[ 3 ] = VOLUME( x, y + 1, z );
+		gridval[ 4 ] = VOLUME( x, y, z + 1 );
+		gridval[ 5 ] = VOLUME( x + 1, y, z + 1 );
+		gridval[ 6 ] = VOLUME( x + 1, y + 1, z + 1 );
+		gridval[ 7 ] = VOLUME( x, y + 1, z + 1 );
+
+		if(  gridval[ 0 ].y > wepsilon
+		   && gridval[ 1 ].y > wepsilon
+		   && gridval[ 2 ].y > wepsilon
+		   && gridval[ 3 ].y > wepsilon
+		   && gridval[ 4 ].y > wepsilon
+		   && gridval[ 5 ].y > wepsilon
+		   && gridval[ 6 ].y > wepsilon
+		   && gridval[ 7 ].y > wepsilon ) {
+
+			if( gridval[ 0 ].x < isolevel ) cubeindex |= ( 1 << 0 );
+			if( gridval[ 1 ].x < isolevel ) cubeindex |= ( 1 << 1 );
+			if( gridval[ 2 ].x < isolevel ) cubeindex |= ( 1 << 2 );
+			if( gridval[ 3 ].x < isolevel ) cubeindex |= ( 1 << 3 );
+			if( gridval[ 4 ].x < isolevel ) cubeindex |= ( 1 << 4 );
+			if( gridval[ 5 ].x < isolevel ) cubeindex |= ( 1 << 5 );
+			if( gridval[ 6 ].x < isolevel ) cubeindex |= ( 1 << 6 );
+			if( gridval[ 7 ].x < isolevel ) cubeindex |= ( 1 << 7 );
+
+			unsigned int numtri = ( unsigned int ) _triSizeTable[ cubeindex ];
+			if( numtri ) {
+				float3 gridvtx[ 8 ];
+				float3 gridnormal[ 8 ];
+				float3 vertlist[ 12 ];
+				float3 normallist[ 12 ];
+				unsigned int lpos = atomic_add( pos, numtri * 3 );
+
+				gridvtx[ 0 ] = ( float3 ) ( x, y, z );
+				gridvtx[ 1 ] = ( float3 ) ( x + 1, y, z );
+				gridvtx[ 2 ] = ( float3 ) ( x + 1, y + 1, z );
+				gridvtx[ 3 ] = ( float3 ) ( x, y + 1, z );
+				gridvtx[ 4 ] = ( float3 ) ( x, y, z + 1 );
+				gridvtx[ 5 ] = ( float3 ) ( x + 1, y, z + 1 );
+				gridvtx[ 6 ] = ( float3 ) ( x + 1, y + 1, z + 1);
+				gridvtx[ 7 ] = ( float3 ) ( x, y + 1, z + 1 );
+
+#define VOLNORMAL( x, y, z )   -( float3 )( VOLUME( ( x ) + 1, ( y ), ( z ) ).s0 - VOLUME( ( x ) - 1, ( y ), ( z ) ).s0, \
+										  VOLUME( ( x ), ( y ) + 1, ( z ) ).s0 - VOLUME( ( x ) , ( y ) - 1, ( z ) ).s0, \
+										  VOLUME( ( x ), ( y ), ( z ) + 1 ).s0 - VOLUME( ( x ) , ( y ), ( z ) - 1 ).s0 )
+
+				gridnormal[ 0 ] = VOLNORMAL( x, y, z );
+				gridnormal[ 1 ] = VOLNORMAL( x + 1, y, z );
+				gridnormal[ 2 ] = VOLNORMAL( x + 1, y + 1, z );
+				gridnormal[ 3 ] = VOLNORMAL( x, y + 1, z );
+				gridnormal[ 4 ] = VOLNORMAL( x, y, z + 1 );
+				gridnormal[ 5 ] = VOLNORMAL( x + 1, y, z + 1 );
+				gridnormal[ 6 ] = VOLNORMAL( x + 1, y + 1, z + 1);
+				gridnormal[ 7 ] = VOLNORMAL( x, y + 1, z + 1 );
+
+#undef VOLNORMAL
+
+				/* Find the vertices where the surface intersects the cube */
+				if ( _edgeTable[ cubeindex ] & 1)
+					vertexNormalInterp( &vertlist[ 0 ], gridvtx[ 0 ], gridvtx[ 1 ],
+									    &normallist[ 0 ], gridnormal[ 0 ], gridnormal[ 1 ],
+										gridval[ 0 ].x, gridval[ 1 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 2)
+					vertexNormalInterp( &vertlist[ 1 ], gridvtx[ 1 ], gridvtx[ 2 ],
+										&normallist[ 1 ], gridnormal[ 1 ], gridnormal[ 2 ],
+										gridval[ 1 ].x, gridval[ 2 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 4)
+					vertexNormalInterp( &vertlist[ 2 ], gridvtx[ 2 ], gridvtx[ 3 ],
+										&normallist[ 2 ], gridnormal[ 2 ], gridnormal[ 3 ],
+										gridval[ 2 ].x, gridval[ 3 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 8)
+					vertexNormalInterp( &vertlist[ 3 ], gridvtx[ 3 ], gridvtx[ 0 ],
+										&normallist[ 3 ], gridnormal[ 3 ], gridnormal[ 0 ],
+										gridval[ 3 ].x, gridval[ 0 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 16)
+					vertexNormalInterp( &vertlist[ 4 ], gridvtx[ 4 ], gridvtx[ 5 ],
+										&normallist[ 4 ], gridnormal[ 4 ], gridnormal[ 5 ],
+										gridval[ 4 ].x, gridval[ 5 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 32)
+					vertexNormalInterp( &vertlist[ 5 ], gridvtx[ 5 ], gridvtx[ 6 ],
+										&normallist[ 5 ], gridnormal[ 5 ], gridnormal[ 6 ],
+										gridval[ 5 ].x, gridval[ 6 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 64)
+					vertexNormalInterp( &vertlist[ 6 ], gridvtx[ 6 ], gridvtx[ 7 ],
+										&normallist[ 6 ], gridnormal[ 6 ], gridnormal[ 7 ],
+										gridval[ 6 ].x, gridval[ 7 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 128)
+					vertexNormalInterp( &vertlist[ 7 ], gridvtx[ 7 ], gridvtx[ 4 ],
+										&normallist[ 7 ], gridnormal[ 7 ], gridnormal[ 4 ],
+										gridval[ 7 ].x, gridval[ 4 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 256)
+					vertexNormalInterp( &vertlist[ 8 ], gridvtx[ 0 ], gridvtx[ 4 ],
+										&normallist[ 8 ], gridnormal[ 0 ], gridnormal[ 4 ],
+										gridval[ 0 ].x, gridval[ 4 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 512)
+					vertexNormalInterp( &vertlist[ 9 ], gridvtx[ 1 ], gridvtx[ 5 ],
+										&normallist[ 9 ], gridnormal[ 1 ], gridnormal[ 5 ],
+										gridval[ 1 ].x, gridval[ 5 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 1024)
+					vertexNormalInterp( &vertlist[ 10 ], gridvtx[ 2 ], gridvtx[ 6 ],
+										&normallist[ 10 ], gridnormal[ 2 ], gridnormal[ 6 ],
+										gridval[ 2 ].x, gridval[ 6 ].x, isolevel );
+				if ( _edgeTable[ cubeindex ] & 2048)
+					vertexNormalInterp( &vertlist[ 11 ], gridvtx[ 3 ], gridvtx[ 7 ],
+										&normallist[ 11 ], gridnormal[ 3 ], gridnormal[ 7 ],
+										gridval[ 3 ].x, gridval[ 7 ].x, isolevel );
+
+
+				/* Create the triangles */
+				for( unsigned int i = 0; i < numtri; i++ ) {
+					const unsigned int i3 = i * 3;
+					outputvtx[ lpos + i3 + 0 ].xyz = vertlist[ _triTable[ cubeindex ][ i3     ] ];
+					outputvtx[ lpos + i3 + 1 ].xyz = vertlist[ _triTable[ cubeindex ][ i3 + 1 ] ];
+					outputvtx[ lpos + i3 + 2 ].xyz = vertlist[ _triTable[ cubeindex ][ i3 + 2 ] ];
+					outputnormal[ lpos + i3 + 0 ].xyz = normallist[ _triTable[ cubeindex ][ i3     ] ];
+					outputnormal[ lpos + i3 + 1 ].xyz = normallist[ _triTable[ cubeindex ][ i3 + 1 ] ];
+					outputnormal[ lpos + i3 + 2 ].xyz = normallist[ _triTable[ cubeindex ][ i3 + 2 ] ];
+
+				}
+			}
+		}
+	}
 }
