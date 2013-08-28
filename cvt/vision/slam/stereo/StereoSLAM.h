@@ -73,7 +73,9 @@ namespace cvt
 
 		   StereoSLAM( FeatureDetector* detector,
 					   FeatureDescriptorExtractor* descExtractor,
-					   const StereoCameraCalibration& calib );
+                       const StereoCameraCalibration& calib,
+                       const Params& params=Params());
+
 
 		 /**
 		  * @brief newImages

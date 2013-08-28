@@ -23,9 +23,10 @@
 
 namespace cvt
 {
-   StereoSLAM::StereoSLAM( FeatureDetector* detector,
-						   FeatureDescriptorExtractor* descExtractor,
-						   const StereoCameraCalibration &calib ):
+   StereoSLAM::StereoSLAM(FeatureDetector* detector,
+                          FeatureDescriptorExtractor* descExtractor,
+                          const StereoCameraCalibration &calib ,
+                          const Params &params):
 	   _detector( detector ),
 	   _descExtractorLeft( descExtractor ),
 	   _descExtractorRight( descExtractor->clone() ),
@@ -38,7 +39,8 @@ namespace cvt
 	   _kernelGx( IKernel::HAAR_HORIZONTAL_3 ),
 	   _kernelGy( IKernel::HAAR_VERTICAL_3 ),
 	   _calib( calib ),
-	   _activeKF( -1 )
+	   _activeKF( -1 ),
+	   _params( params )
    {
 	   _kernelGx.scale( -0.5f );
 	   _kernelGy.scale( -0.5f );
