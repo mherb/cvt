@@ -25,7 +25,7 @@
 
 namespace cvt
 {
-	template <class AlignData>
+    template <class AlignData>
     class RGBDKeyframe {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -87,7 +87,7 @@ namespace cvt
 
 
         protected:
-			typedef std::vector<AlignData, Eigen::aligned_allocator<AlignData> > AlignmentDataVector;
+            typedef std::vector<AlignData, Eigen::aligned_allocator<AlignData> > AlignmentDataVector;
             Matrix4f            _pose;
             AlignmentDataVector _dataForScale;
             Image               _depth;
