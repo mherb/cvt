@@ -29,8 +29,8 @@ namespace cvt {
 		public:
 			static void init() { instance(); }
 
-			static void run() { ::atexit( Application::atexit ); instance()->runApp(); };
-			static void exit() { instance()->exitApp(); };
+			static void run() { ::atexit( Application::atexit ); instance()->runApp(); }
+			static void exit() { instance()->exitApp(); }
 
 			static uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return instance()->_registerTimer( interval, t ); }
 			static void unregisterTimer( uint32_t id ) { instance()->_unregisterTimer( id ); }
@@ -41,9 +41,9 @@ namespace cvt {
 			static GLContext* defaultGLContext() { return instance()->_defaultGLContext(); }
 
 		protected:
-			Application() {};
+			Application() {}
 			Application( const Application& );
-			virtual ~Application() {};
+			virtual ~Application() {}
 
 			static WidgetImpl* registerWindow( Widget* w ) { return instance()->_registerWindow( w ); }
 			static void unregisterWindow( WidgetImpl* w ) { instance()->_unregisterWindow( w ); }

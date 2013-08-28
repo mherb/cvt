@@ -19,6 +19,7 @@ namespace cvt {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 			typedef RGBDKeyframe<AlignData>             Base;
+			typedef typename Base::WarpType				WarpType;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
@@ -36,7 +37,7 @@ namespace cvt {
 							const typename Base::WarpType& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
-        private:
+        protected:
             LinearizerType  _linearizer;
     };
 
