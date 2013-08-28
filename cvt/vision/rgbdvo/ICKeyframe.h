@@ -16,22 +16,6 @@
 
 namespace cvt
 {
-    template <class T>
-    static void dumpDataInfo( const T& data, float scale )
-    {
-        cvt::String hessString;
-        float normalizer = data.jacobians.size();
-        std::cout << "Octave: " << scale << std::endl;
-        hessString.sprintf( "Hessian: %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f",
-                            data.hessian( 0, 0 )/normalizer, data.hessian( 1, 1 )/normalizer, data.hessian( 2, 2 )/normalizer,
-                            data.hessian( 3, 3 )/normalizer, data.hessian( 4, 4 )/normalizer, data.hessian( 5, 5 )/normalizer );
-        std::cout << hessString << std::endl;
-        hessString.sprintf( "invHessian: %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f",
-                            data.inverseHessian( 0, 0 ), data.inverseHessian( 1, 1 ), data.inverseHessian( 2, 2 ),
-                            data.inverseHessian( 3, 3 ), data.inverseHessian( 4, 4 ), data.inverseHessian( 5, 5 ) );
-        std::cout << hessString << std::endl;
-    }
-
 	template <class AlignData>
 	class ICKeyframe : public RGBDKeyframe<AlignData> {
         public:
@@ -51,11 +35,14 @@ namespace cvt
 							const typename Base::WarpType& warp,
                             const IMapScoped<const float>& gray,
                             size_t octave );
+        private:
+            InvCompLinearizer<AlignData> _linearizer;
     };
 
 	template <class AlignData>
 	inline ICKeyframe<AlignData>::ICKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-		RGBDKeyframe<AlignData>( K, octaves, scale )
+		RGBDKeyframe<AlignData>( K, octaves, scale ),
+		_linearizer( this->_kx, this->_ky, octaves, scale )
     {
     }
 
@@ -66,10 +53,10 @@ namespace cvt
 
 	template <class AlignData>
 	inline void ICKeyframe<AlignData>::recompute( std::vector<float>& residuals,
-                                                 JacobianVec& jacobians,
-												 const typename Base::WarpType& warp,
-                                                 const IMapScoped<const float>& gray,
-                                                 size_t octave )
+												  JacobianVec& jacobians,
+												  const typename Base::WarpType& warp,
+												  const IMapScoped<const float>& gray,
+												  size_t octave )
     {
         SIMD* simd = SIMD::instance();
         const size_t width = gray.width();
@@ -99,19 +86,8 @@ namespace cvt
         // compute the residuals
         warp.computeResiduals( &residuals[ 0 ], &data.pixels()[ 0 ], &interpolatedPixels[ 0 ], n );
 
-        // sort out bad pixels (out of image)
-        const JacobianVec& refJacs = data.jacobians();
-        size_t savePos = 0;
-        for( size_t i = 0; i < n; ++i ){
-            if( interpolatedPixels[ i ] >= 0.0f ){
-                // OK
-                jacobians[ savePos ] = refJacs[ i ];
-                residuals[ savePos ] = residuals[ i ];
-                ++savePos;
-            }
-        }
-        residuals.erase( residuals.begin() + savePos, residuals.end() );
-        jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
+        // compute the jacobians
+        _linearizer.recomputeJacobians( jacobians, residuals, warpedPts, interpolatedPixels, data, octave );
     }
 }
 

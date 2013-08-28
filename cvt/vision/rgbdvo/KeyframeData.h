@@ -13,6 +13,7 @@
 
 #include <Eigen/Core>
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/IMapScoped.h>
 
 namespace cvt {
 
@@ -103,6 +104,12 @@ namespace cvt {
                 _points3d.erase( _points3d.begin() + n, _points3d.end() );
                 _pixelValues.erase( _pixelValues.begin() + n, _pixelValues.end() );
                 _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
+            }
+
+            static void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd )
+            {
+                IMapScoped<const float> map( gradImg );
+                simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );
             }
 
         protected:

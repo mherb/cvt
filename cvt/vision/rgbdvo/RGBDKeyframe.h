@@ -19,7 +19,7 @@
 
 #include <cvt/vision/rgbdvo/RGBDWarp.h>
 #include <cvt/vision/rgbdvo/InformationSelection.h>
-//#include <cvt/vision/rgbdvo/KeyframeData.h>
+#include <cvt/vision/rgbdvo/Linearizer.h>
 
 #include <Eigen/StdVector>
 
