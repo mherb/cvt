@@ -90,6 +90,7 @@ namespace cvt {
 
             void updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
             {
+                // compute the gradients of the input
                 pyrf.convolve( _onlineGradientsX, this->_kx );
                 pyrf.convolve( _onlineGradientsY, this->_ky );
             }
@@ -113,7 +114,8 @@ namespace cvt {
         public:
             ESMLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 FwdCompLinearizer<AlignData>( kdx, kdy, octaves, scale )
-            {}
+            {
+            }
 
             void recomputeJacobians( JacobianVecType& jacobians,
                                      std::vector<float>& residuals,

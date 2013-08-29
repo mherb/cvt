@@ -30,12 +30,19 @@ namespace cvt {
             IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
             ~IntensityKeyframe();
 
-            void updateOnlineData( const ImagePyramid& pyrf, const Image& depth );
+            void updateOfflineDataForScale( AlignData &data,
+                                            const Image& gray,
+                                            const Image& depth,
+                                            float scale );
+
+            void updateOnlineData( const ImagePyramid& pyrf,
+                                   const Image& depth );
 
             void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
 							const typename Base::WarpType& warp,
                             const IMapScoped<const float>& gray,
+                            const IMapScoped<const float>& depth,
                             size_t octave );
         protected:
             LinearizerType  _linearizer;
@@ -53,11 +60,86 @@ namespace cvt {
     {
     }
 
+    template <class AlignData, class LinearizerType>
+    inline void IntensityKeyframe<AlignData, LinearizerType>::updateOfflineDataForScale( AlignData &data,
+                                                                                         const Image& gray,
+                                                                                         const Image& depth,
+                                                                                         float scale )
+    {
+        IMapScoped<const float> depthMap( depth );
+        const float* d = depthMap.ptr();
+        size_t depthStride = depthMap.stride() / sizeof( float );
+
+        Vector2f currP;
+        Vector3f p3d, p3dw;
+        GradientType g;
+        JacobianType j;
+        ScreenJacobianType sj;
+
+        // compute the image gradients
+        this->computeImageGradients( data.gradX, data.gradY, gray );
+        data.gray = gray;
+
+        data.clear();
+        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
+        data.reserve( 0.4f * pixelsOnOctave );
+
+        // TODO: replace this by a simd function!
+        // temp vals
+        std::vector<float> tmpx( gray.width() );
+        std::vector<float> tmpy( gray.height() );
+
+        const Matrix3f& intr = data.intrinsics();
+        this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+        this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+        IMapScoped<const float> gxMap( data.gradX );
+        IMapScoped<const float> gyMap( data.gradY );
+        IMapScoped<const float> grayMap( data.gray );
+
+        for( size_t y = 0; y < gray.height() - 1; y++ ){
+            const float* gx = gxMap.ptr();
+            const float* gy = gyMap.ptr();
+            const float* value = grayMap.ptr();
+
+            // scale the point
+            currP.y = scale * y;
+
+            for( size_t x = 0; x < gray.width() - 1; x++ ){
+                currP.x = scale * x;
+                float z = this->interpolateDepth( currP, d, depthStride );
+                if( z > this->_minDepth && z < this->_maxDepth ){
+                    g( 0, 0 ) = gx[ x ];
+                    g( 0, 1 ) = gy[ x ];
+
+                    float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
+                    if( salience < this->_gradientThreshold )
+                        continue;
+
+                    p3d[ 0 ] = tmpx[ x ] * z;
+                    p3d[ 1 ] = tmpy[ y ] * z;
+                    p3d[ 2 ] = z;
+
+                    // point in world coord frame
+                    p3dw = this->_pose * p3d;
+
+                    WarpType::screenJacobian( sj, p3d, data.intrinsics() );
+
+                    data.add( p3dw, sj, g, value[ x ] );
+                }
+            }
+            gxMap++;
+            gyMap++;
+            grayMap++;
+        }
+    }
+
 	template <class AlignData, class LinearizerType>
 	inline void IntensityKeyframe<AlignData, LinearizerType>::recompute( std::vector<float>& residuals,
 																		 JacobianVec& jacobians,
 																		 const typename Base::WarpType &warp,
 																		 const IMapScoped<const float>& gray,
+																		 const IMapScoped<const float>& /*depth*/,
 																		 size_t octave )
     {
         SIMD* simd = SIMD::instance();
@@ -92,7 +174,8 @@ namespace cvt {
     }
 
 	template <class WarpFunc, class LinearizerType>
-	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const ImagePyramid& pyrf, const Image& depth )
+	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const ImagePyramid& pyrf,
+																			   const Image& depth )
 	{
 		_linearizer.updateOnlineData( pyrf, depth );
 	}

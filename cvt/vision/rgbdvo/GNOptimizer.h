@@ -36,13 +36,13 @@ namespace cvt {
             void optimizeSingleScale( ResultType& result,
 									  RGBDKeyframe<AlignData>& reference,
                                       const Image& gray,
-                                      const Image& /*depthImage*/,
+                                      const Image& depthImage,
                                       size_t octave );
 
             void optimizeSingleScale( ResultType& result,
                                       KFType* references, size_t nRefs,
                                       const Image& gray,
-                                      const Image& /*depthImage*/,
+                                      const Image& depthImage,
                                       size_t octave );
     };
 
@@ -56,13 +56,14 @@ namespace cvt {
 	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
 																	   RGBDKeyframe<AlignData>& reference,
 																	   const Image& gray,
-																	   const Image& /*depthImage*/,
+																	   const Image& depthImage,
 																	   size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
 
         IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> depthMap( depthImage );
 
         result.iterations = 0;
         result.numPixels = 0;
@@ -76,7 +77,7 @@ namespace cvt {
             jacobians.clear();
 
             // re-evaluate the cost function
-            reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
+            reference.recompute( residuals, jacobians, result.warp, grayMap, depthMap, octave );
 
             result.numPixels = residuals.size();
             result.costs = this->evaluateSystem( hessian,
@@ -110,13 +111,14 @@ namespace cvt {
 	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
 																	   KFType* references, size_t nRefs,
 																	   const Image& gray,
-																	   const Image& /*depthImage*/,
+																	   const Image& depthImage,
 																	   size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
 
         IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> depthMap( gray );
 
         result.iterations = 0;
         result.numPixels = 0;
@@ -136,7 +138,7 @@ namespace cvt {
             for( size_t r = 0; r < nRefs; r++ ){
                 resTmp.clear();
                 jacTmp.clear();
-                references[ r ].recompute( resTmp, jacTmp, result.warp, grayMap, octave );
+                references[ r ].recompute( resTmp, jacTmp, result.warp, grayMap, depthMap, octave );
 
                 residuals.insert( residuals.begin() + residuals.size(), resTmp.begin(), resTmp.end() );
                 jacobians.insert( jacobians.begin() + jacobians.size(), jacTmp.begin(), jacTmp.end() );

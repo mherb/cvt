@@ -51,7 +51,7 @@ namespace cvt {
 	inline void LMOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
 																	   ReferenceType& reference,
 																	   const Image& gray,
-																	   const Image& /*depthImage*/,
+																	   const Image& depthImage,
 																	   size_t octave )
     {
         JacobianType deltaSum;
@@ -59,6 +59,7 @@ namespace cvt {
         float lambda = 0.001f;
 
         IMapScoped<const float> grayMap( gray );
+        IMapScoped<const float> depthMap( depthImage );
 
         result.iterations = 0;
         result.numPixels = 0;
@@ -70,7 +71,7 @@ namespace cvt {
         JacobianVec jacobians;
 
         // initial costs
-        reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
+        reference.recompute( residuals, jacobians, result.warp, grayMap, depthMap, octave );
         result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
         result.numPixels = residuals.size();
         WarpFunc savedWarp( result.warp );
@@ -94,7 +95,7 @@ namespace cvt {
             result.warp.updateParameters( deltaP );
 
             // re-evaluate the cost function
-            reference.recompute( residuals, jacobians, result.warp, grayMap, octave );
+            reference.recompute( residuals, jacobians, result.warp, grayMap, depthMap, octave );
             float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() );
 
             if( residuals.size() && currentCosts < result.costs ){
