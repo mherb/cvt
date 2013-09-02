@@ -107,6 +107,7 @@ ADD_SUBDIRECTORY(metaio)
 ADD_SUBDIRECTORY(middleburyCamToXML)
 #ADD_SUBDIRECTORY(mitracker)
 #ADD_SUBDIRECTORY(mitrackerlog)
+ADD_SUBDIRECTORY(mmvstereo)
 ADD_SUBDIRECTORY(multicam)
 ADD_SUBDIRECTORY(mvpatchmatch)
 
