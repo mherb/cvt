@@ -491,6 +491,7 @@ namespace cvt {
 	{
 		std::vector<String> deviceNames;
 		listDevices( deviceNames );
+		int ret;
 
 		if( index >= deviceNames.size() )
 			throw CVTException( "No device with such index!" );
@@ -504,7 +505,7 @@ namespace cvt {
 
 		struct v4l2_capability caps;
 		if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) )
-			throw CVTException( "ioctl failed!" );
+			throw CVTException( "VIDIOC_QUERYCAP ioctl failed!" );
 
 		String name;
 		name.sprintf( "%s", (char*)caps.card );
@@ -555,7 +556,7 @@ namespace cvt {
 				frameSize.index = 0;
 				frameSize.pixel_format = formatDescription.pixelformat;
 
-				while( xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize ) == 0 ){
+				while( (ret = xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize )) == 0 ){
 					frameSize.index++;
 					if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
 						currentMode.width = frameSize.discrete.width;
@@ -576,6 +577,74 @@ namespace cvt {
 							}
 						}
 					}
+					else		//V4L2 docs indicate that only in the discrete case will increasing the index make sense
+						break;
+				}
+
+				//some drivers do not support frame size or frame interveral enumeration,
+				//such as the sensoray 2255m in these instances errno will be set to ENOTTY
+				//so enumeration makes no sense and we should quit
+				if(ret == -1 && errno == ENOTTY)
+					break;
+			}
+		}
+
+		//because some of drivers do not have a complete implementation, we have to negotiate the available modes
+		//instead of enumerating them
+		if(info.numModes() == 0)
+		{
+			//For the time being we fall back on the default setting currently set
+			//by the userspace tools
+			//ideally we would negotiate settings with VIDIOC_TRY_FMT
+			struct v4l2_format fmt;
+			memset(&fmt, 0, sizeof(fmt));
+			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			if( xioctl( fd, VIDIOC_G_FMT, &fmt ) == 0)
+			{
+				if( fmt.type & V4L2_BUF_TYPE_VIDEO_CAPTURE )
+				{
+					bool validFormat = true;
+					switch( fmt.fmt.pix.pixelformat ){
+					case V4L2_PIX_FMT_YUYV:
+						currentMode.format = IFormat::YUYV_UINT8;
+						break;
+
+					case V4L2_PIX_FMT_BGR32:
+						currentMode.format = IFormat::BGRA_UINT8;
+						break;
+					case V4L2_PIX_FMT_RGB32:
+						currentMode.format = IFormat::RGBA_UINT8;
+						break;
+					case V4L2_PIX_FMT_GREY:
+						currentMode.format = IFormat::GRAY_UINT8;
+						break;
+					default:
+						validFormat = false;
+						std::cout << "\tFOURCC: "	<< char( fmt.fmt.pix.pixelformat & 0xFF )
+															<< char( ( formatDescription.pixelformat >> 8 ) & 0xFF )
+															<< char( ( formatDescription.pixelformat >> 16 ) & 0xFF )
+															<< char( ( formatDescription.pixelformat >> 24 ) & 0xFF )
+															<< " available but not supported" << std::endl;
+						break;
+					}
+
+					if( validFormat )
+					{
+						currentMode.height = fmt.fmt.pix.height;
+						currentMode.width = fmt.fmt.pix.width;
+						currentMode.description = "default";
+
+						v4l2_streamparm sparm;
+						memset(&sparm, 0, sizeof(sparm));
+						sparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+						if(xioctl( fd, VIDIOC_G_PARM, &sparm) == 0)
+						{
+							currentMode.fps = sparm.parm.capture.timeperframe.denominator /
+									sparm.parm.capture.timeperframe.numerator;
+							info.addMode(currentMode);
+						}
+					}
 				}
 			}
 		}
@@ -591,7 +660,7 @@ namespace cvt {
 		struct v4l2_capability caps;
 		String ss;
 		for( size_t i = 0; i < possibleDevs.size(); i++ ){
-			if(verbose)
+			if( verbose )
 				std::cout << "trying v4l2 device: " << possibleDevs[ i ] << ". ";
 
 			ss = "/dev/";
@@ -599,17 +668,17 @@ namespace cvt {
 
 			//quick exclusion checks here
 			struct stat st;
-			if(-1 == stat(ss.c_str(), &st))
+			if( -1 == stat(ss.c_str(), &st) )
 			{
-				if(verbose)
+				if( verbose )
 					std::cout << "Failure! Unable to stat device." << std::endl;
 
 				continue;
 			}
 
-			if(!S_ISCHR(st.st_mode))
+			if( !S_ISCHR( st.st_mode ) )
 			{
-				if(verbose)
+				if( verbose )
 					std::cout << "Failure! Not a character device." << std::endl;
 
 				continue;
@@ -618,7 +687,7 @@ namespace cvt {
 			int fd = ::open( ss.c_str(), O_RDWR | O_NONBLOCK );
 			if( fd < 0 )
 			{
-				if(verbose)
+				if( verbose )
 					std::cout << "Failure! Unable to open device." << std::endl;
 
 				continue;
@@ -626,7 +695,7 @@ namespace cvt {
 
 			if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) )
 			{
-				if(verbose)
+				if( verbose )
 					std::cout << "Failure! Driver returned a negative v4l2 response." << std::endl;
 
 				continue;
@@ -635,11 +704,11 @@ namespace cvt {
 			if( caps.capabilities & ( V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING) )
 			{
 				devices.push_back( ss );
-				if(verbose)
+				if( verbose )
 					std::cout << "Success!" << std::endl;
 			}
 
-			else if(verbose)
+			else if( verbose )
 				std::cout << "Failure! Device does not support capture or streaming." << std::endl;
 
 			::close( fd );
