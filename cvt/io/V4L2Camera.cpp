@@ -487,6 +487,35 @@ namespace cvt {
 		return devs.size();
 	}
 
+	const IFormat& V4L2Camera::formatForV4L2PixFormat( uint32_t pixelformat )
+	{
+		switch( pixelformat )
+		{
+			case V4L2_PIX_FMT_YUYV:
+				return IFormat::YUYV_UINT8;
+				break;
+
+			case V4L2_PIX_FMT_BGR32:
+				return IFormat::BGRA_UINT8;
+				break;
+			case V4L2_PIX_FMT_RGB32:
+				return IFormat::RGBA_UINT8;
+				break;
+			case V4L2_PIX_FMT_GREY:
+				return IFormat::GRAY_UINT8;
+				break;
+		}
+
+		std::stringstream errorMsg;
+		errorMsg << "Unsupported V4L2 pixel format: "
+				<< char( pixelformat & 0xFF )
+				<< char( ( pixelformat >> 8 ) & 0xFF )
+				<< char( ( pixelformat >> 16 ) & 0xFF )
+				<< char( ( pixelformat >> 24 ) & 0xFF );
+
+		throw CVTException(errorMsg.str().c_str());
+	}
+
 	void V4L2Camera::cameraInfo( size_t index, CameraInfo & info )
 	{
 		std::vector<String> deviceNames;
@@ -522,64 +551,43 @@ namespace cvt {
 
 		while( xioctl( fd, VIDIOC_ENUM_FMT, &formatDescription ) == 0 ){
 			formatDescription.index++;
-			bool validFormat = true;
-			switch( formatDescription.pixelformat ){
-				case V4L2_PIX_FMT_YUYV:
-					currentMode.format = IFormat::YUYV_UINT8;
-					break;
-				/*
-				   case V4L2_PIX_FMT_SRGGB8:
-					currentMode.format = IFormat::BAYER_RGGB_UINT8;
-					break;
-				*/
-				case V4L2_PIX_FMT_BGR32:
-					currentMode.format = IFormat::BGRA_UINT8;
-					break;
-				case V4L2_PIX_FMT_RGB32:
-					currentMode.format = IFormat::RGBA_UINT8;
-					break;
-				case V4L2_PIX_FMT_GREY:
-					currentMode.format = IFormat::GRAY_UINT8;
-					break;
-				default:
-					validFormat = false;
-					std::cout << "\tFOURCC: " << char( formatDescription.pixelformat & 0xFF )
-											<< char( ( formatDescription.pixelformat >> 8 ) & 0xFF )
-											<< char( ( formatDescription.pixelformat >> 16 ) & 0xFF )
-											<< char( ( formatDescription.pixelformat >> 24 ) & 0xFF ) << " available but not supported" << std::endl;
-					break;
+			try
+			{
+				currentMode.format = formatForV4L2PixFormat(formatDescription.pixelformat);
+			}
+			catch( Exception& e )
+			{
+				continue;
 			}
 
-			if( validFormat ){
-				struct v4l2_frmsizeenum frameSize;
-				memset( &frameSize, 0, sizeof( v4l2_frmsizeenum ) );
-				frameSize.index = 0;
-				frameSize.pixel_format = formatDescription.pixelformat;
+			struct v4l2_frmsizeenum frameSize;
+			memset( &frameSize, 0, sizeof( v4l2_frmsizeenum ) );
+			frameSize.index = 0;
+			frameSize.pixel_format = formatDescription.pixelformat;
 
-				while( (ret = xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize )) == 0 ){
-					frameSize.index++;
-					if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
-						currentMode.width = frameSize.discrete.width;
-						currentMode.height = frameSize.discrete.height;
+			while( (ret = xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize )) == 0 ){
+				frameSize.index++;
+				if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
+					currentMode.width = frameSize.discrete.width;
+					currentMode.height = frameSize.discrete.height;
 
-						// enumerate frame intervals:
-						struct v4l2_frmivalenum fps;
-						memset( &fps, 0, sizeof( v4l2_frmivalenum ) );
-						fps.index = 0;
-						fps.pixel_format = formatDescription.pixelformat;
-						fps.width = frameSize.discrete.width;
-						fps.height = frameSize.discrete.height;
-						while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
-							fps.index++;
-							if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
-								currentMode.fps = fps.discrete.denominator / fps.discrete.numerator;
-								info.addMode( currentMode );
-							}
+					// enumerate frame intervals:
+					struct v4l2_frmivalenum fps;
+					memset( &fps, 0, sizeof( v4l2_frmivalenum ) );
+					fps.index = 0;
+					fps.pixel_format = formatDescription.pixelformat;
+					fps.width = frameSize.discrete.width;
+					fps.height = frameSize.discrete.height;
+					while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
+						fps.index++;
+						if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
+							currentMode.fps = fps.discrete.denominator / fps.discrete.numerator;
+							info.addMode( currentMode );
 						}
 					}
-					else		//V4L2 docs indicate that only in the discrete case will increasing the index make sense
-						break;
 				}
+				else		//V4L2 docs indicate that only in the discrete case will increasing the index make sense
+					break;
 
 				//some drivers do not support frame size or frame interveral enumeration,
 				//such as the sensoray 2255m in these instances errno will be set to ENOTTY
@@ -603,33 +611,10 @@ namespace cvt {
 			{
 				if( fmt.type & V4L2_BUF_TYPE_VIDEO_CAPTURE )
 				{
-					bool validFormat = true;
-					switch( fmt.fmt.pix.pixelformat ){
-					case V4L2_PIX_FMT_YUYV:
-						currentMode.format = IFormat::YUYV_UINT8;
-						break;
-
-					case V4L2_PIX_FMT_BGR32:
-						currentMode.format = IFormat::BGRA_UINT8;
-						break;
-					case V4L2_PIX_FMT_RGB32:
-						currentMode.format = IFormat::RGBA_UINT8;
-						break;
-					case V4L2_PIX_FMT_GREY:
-						currentMode.format = IFormat::GRAY_UINT8;
-						break;
-					default:
-						validFormat = false;
-						std::cout << "\tFOURCC: "	<< char( fmt.fmt.pix.pixelformat & 0xFF )
-															<< char( ( formatDescription.pixelformat >> 8 ) & 0xFF )
-															<< char( ( formatDescription.pixelformat >> 16 ) & 0xFF )
-															<< char( ( formatDescription.pixelformat >> 24 ) & 0xFF )
-															<< " available but not supported" << std::endl;
-						break;
-					}
-
-					if( validFormat )
+					try
 					{
+						currentMode.format = formatForV4L2PixFormat(fmt.fmt.pix.pixelformat);
+
 						currentMode.height = fmt.fmt.pix.height;
 						currentMode.width = fmt.fmt.pix.width;
 						currentMode.description = "default";
@@ -644,6 +629,9 @@ namespace cvt {
 									sparm.parm.capture.timeperframe.numerator;
 							info.addMode(currentMode);
 						}
+					}
+					catch( Exception& e )
+					{
 					}
 				}
 			}
