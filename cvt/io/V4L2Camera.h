@@ -110,6 +110,8 @@ namespace cvt {
 			void enqueueBuffers();
 			void extendedControl();
 			static void control( int fd, int field, int value );
+			static const IFormat& formatForV4L2PixFormat( uint32_t pixelformat );
+
 	};
 
 	inline size_t V4L2Camera::width() const

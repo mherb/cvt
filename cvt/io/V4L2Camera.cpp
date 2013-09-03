@@ -68,8 +68,8 @@ namespace cvt {
 		_absExposureVal(250),
 		_identifier( "v4l2_" )
 	{
-		this->open();
-		this->init();
+		open();
+		init();
 
 		_identifier += camIndex;
 	}
@@ -77,7 +77,7 @@ namespace cvt {
 	V4L2Camera::~V4L2Camera()
 	{
 		if( _opened )
-			this->close();
+			close();
 	}
 
 	void V4L2Camera::open()
@@ -205,8 +205,8 @@ namespace cvt {
 
 		_buffers = new void*[_numBuffers];
 
-		this->queryBuffers( false );
-		this->enqueueBuffers();
+		queryBuffers( false );
+		enqueueBuffers();
 	}
 
 	void V4L2Camera::startCapture()
@@ -329,13 +329,13 @@ namespace cvt {
 	void V4L2Camera::setAutoIris(bool b)
 	{
 		_autoIris = b;
-		this->updateAutoIrisExp();
+		updateAutoIrisExp();
 	}
 
 	void V4L2Camera::setAutoExposure(bool b)
 	{
 		_autoExposure = b;
-		this->updateAutoIrisExp();
+		updateAutoIrisExp();
 	}
 
 	void V4L2Camera::setExposureValue( unsigned int val )
