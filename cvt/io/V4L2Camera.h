@@ -50,6 +50,12 @@ namespace cvt {
 			static size_t count();
 			static void cameraInfo( size_t index, CameraInfo & info );
 
+			/**
+			 * \brief Function for determining capable devices on the system, can be used for debugging
+			 */
+			static void listDevices( std::vector<String> & devices, bool verbose=false );
+
+
 		private:
 			size_t	_width;
 			size_t	_height;
@@ -104,7 +110,6 @@ namespace cvt {
 			void enqueueBuffers();
 			void extendedControl();
 			static void control( int fd, int field, int value );
-			static void listDevices( std::vector<String> & devices );
 	};
 
 	inline size_t V4L2Camera::width() const

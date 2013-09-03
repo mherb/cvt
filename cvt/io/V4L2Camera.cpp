@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <asm/types.h>
 #include <errno.h>
 #include <linux/videodev2.h>
@@ -568,26 +569,63 @@ namespace cvt {
 	}
 
 	/* check for openable v4l devices in /sys/class/video4linux */
-	void V4L2Camera::listDevices( std::vector<String> & devices )
+	void V4L2Camera::listDevices( std::vector<String> & devices, bool verbose )
 	{
 		std::vector<String> possibleDevs;
 		FileSystem::ls( "/sys/class/video4linux", possibleDevs );
-
 		struct v4l2_capability caps;
 		String ss;
 		for( size_t i = 0; i < possibleDevs.size(); i++ ){
+			if(verbose)
+				std::cout << "trying v4l2 device: " << possibleDevs[ i ] << ". ";
+
 			ss = "/dev/";
 			ss += possibleDevs[ i ];
 
+			//quick exclusion checks here
+			struct stat st;
+			if(-1 == stat(ss.c_str(), &st))
+			{
+				if(verbose)
+					std::cout << "Failure! Unable to stat device." << std::endl;
+
+				continue;
+			}
+
+			if(!S_ISCHR(st.st_mode))
+			{
+				if(verbose)
+					std::cout << "Failure! Not a character device." << std::endl;
+
+				continue;
+			}
+
 			int fd = ::open( ss.c_str(), O_RDWR | O_NONBLOCK );
 			if( fd < 0 )
+			{
+				if(verbose)
+					std::cout << "Failure! Unable to open device." << std::endl;
+
 				continue;
+			}
 
 			if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
-				continue;
+			{
+				if(verbose)
+					std::cout << "Failure! Driver returned a negative v4l2 response." << std::endl;
 
-			if( caps.capabilities & V4L2_CAP_VIDEO_CAPTURE )
+				continue;
+			}
+
+			if( caps.capabilities & ( V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING) )
+			{
 				devices.push_back( ss );
+				if(verbose)
+					std::cout << "Success!" << std::endl;
+			}
+
+			else if(verbose)
+				std::cout << "Failure! Device does not support capture or streaming." << std::endl;
 
 			::close( fd );
 		}
