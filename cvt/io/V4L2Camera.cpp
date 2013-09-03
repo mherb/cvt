@@ -27,6 +27,21 @@
 #include "util/Exception.h"
 #include "math/Math.h"
 
+namespace {
+	int xioctl(int fh, int request, void *arg)
+	{
+		int ret;
+
+		do
+		{
+			ret = ioctl(fh, request, arg);
+		}
+		while(-1 == ret && EINTR == errno);
+
+		return ret;
+	}
+}
+
 namespace cvt {
 
 	V4L2Camera::V4L2Camera( size_t camIndex, const CameraMode & mode ) :
@@ -149,7 +164,7 @@ namespace cvt {
 				break;
 		}
 
-		ret = ioctl( _fd, VIDIOC_S_FMT, &_fmt);
+		ret = xioctl( _fd, VIDIOC_S_FMT, &_fmt);
 
 		if( ret < 0 ) {
 			throw CVTException( "Unable to set requested format!" );
@@ -167,7 +182,7 @@ namespace cvt {
 		_streamParameter.parm.capture.timeperframe.numerator=1;
 		_streamParameter.parm.capture.timeperframe.denominator=(int)_fps;
 
-		ret = ioctl( _fd, VIDIOC_S_PARM, &_streamParameter );
+		ret = xioctl( _fd, VIDIOC_S_PARM, &_streamParameter );
 		if( ret < 0 ){
 			throw CVTException( "Could not set stream parameters!" );
 		}
@@ -183,7 +198,7 @@ namespace cvt {
 		_requestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		_requestBuffers.memory = V4L2_MEMORY_MMAP;
 
-		ret = ioctl(_fd, VIDIOC_REQBUFS, &_requestBuffers);
+		ret = xioctl(_fd, VIDIOC_REQBUFS, &_requestBuffers);
 		if (ret < 0){
 			throw CVTException("VIDIOC_REQBUFS - Unable to allocate buffers");
 		}
@@ -200,7 +215,7 @@ namespace cvt {
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			int ret=0;
 
-			ret = ioctl(_fd, VIDIOC_STREAMON, &type);
+			ret = xioctl(_fd, VIDIOC_STREAMON, &type);
 			if (ret < 0)
 			{
 				throw CVTException( "Could not start streaming!" );
@@ -215,7 +230,7 @@ namespace cvt {
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			int ret=0;
 
-			ret = ioctl( _fd, VIDIOC_STREAMOFF, &type );
+			ret = xioctl( _fd, VIDIOC_STREAMOFF, &type );
 			if (ret < 0)
 			{
 				throw CVTException("Could not stop streaming!");
@@ -249,7 +264,7 @@ namespace cvt {
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			_buffer.memory = V4L2_MEMORY_MMAP;			
 
-			ret = ioctl( _fd, VIDIOC_DQBUF, &_buffer );
+			ret = xioctl( _fd, VIDIOC_DQBUF, &_buffer );
 			if ( ret < 0 ) {
 				throw CVTException( "Unable to dequeue buffer!" );
 			}
@@ -278,7 +293,7 @@ namespace cvt {
 		_stamp    = ( double )_buffer.timestamp.tv_sec +
 					( double )( _buffer.timestamp.tv_usec ) / 1000000.0;
 
-		ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
+		ret = xioctl(_fd, VIDIOC_QBUF, &_buffer);
 		if (ret < 0){
 			throw CVTException("Unable to requeue buffer");
 		}
@@ -355,7 +370,7 @@ namespace cvt {
 		// set the field
 		queryctrl.id = field;
 
-		if( ioctl( fd, VIDIOC_QUERYCTRL, &queryctrl) == -1 ){
+		if( xioctl( fd, VIDIOC_QUERYCTRL, &queryctrl) == -1 ){
 			std::cout << "Error: This ioctl is not supported by the device" << std::endl;
 		} else if( queryctrl.flags & V4L2_CTRL_FLAG_DISABLED ) {
 			std::cout << "Field " << field << " is not supported" << std::endl;
@@ -365,7 +380,7 @@ namespace cvt {
 			control.id = field;
 			control.value = value;
 
-			if( ioctl(fd, VIDIOC_S_CTRL, &control) == -1){
+			if( xioctl(fd, VIDIOC_S_CTRL, &control) == -1){
 				std::cout << "VIDIOC_S_CTRL ERROR: while setting value for field" << std::endl;
 			}
 		}
@@ -393,7 +408,7 @@ namespace cvt {
 		_extControlsToSet[1].id = V4L2_CID_TILT_ABSOLUTE;
 		//_extControlsToSet[1].value64 = -10*3600;
 
-		if(ioctl(_fd, VIDIOC_G_EXT_CTRLS, &_extendedControls) == -1 ){
+		if(xioctl(_fd, VIDIOC_G_EXT_CTRLS, &_extendedControls) == -1 ){
 			std::cout << "Error setting extended controls ..." << std::endl;
 
 			std::cout << "Error at index " << _extendedControls.error_idx << std::endl;
@@ -425,7 +440,7 @@ namespace cvt {
 			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
 			_buffer.timestamp.tv_usec = 0;
 			_buffer.memory = V4L2_MEMORY_MMAP;
-			ret = ioctl(_fd, VIDIOC_QUERYBUF, &_buffer);
+			ret = xioctl(_fd, VIDIOC_QUERYBUF, &_buffer);
 			if (ret < 0){
 				perror("VIDIOC_QUERYBUF - Unable to query buffer");
 				exit(0);
@@ -456,7 +471,7 @@ namespace cvt {
 			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
 			_buffer.timestamp.tv_usec = 0;
 			_buffer.memory = V4L2_MEMORY_MMAP;
-			ret = ioctl(_fd, VIDIOC_QBUF, &_buffer);
+			ret = xioctl(_fd, VIDIOC_QBUF, &_buffer);
 			if (ret < 0)
 			{
 				perror("VIDIOC_QBUF - Unable to queue buffer");
@@ -488,7 +503,7 @@ namespace cvt {
 		}
 
 		struct v4l2_capability caps;
-		if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
+		if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) )
 			throw CVTException( "ioctl failed!" );
 
 		String name;
@@ -504,7 +519,7 @@ namespace cvt {
 
 		CameraMode currentMode;
 
-		while( ioctl( fd, VIDIOC_ENUM_FMT, &formatDescription ) == 0 ){
+		while( xioctl( fd, VIDIOC_ENUM_FMT, &formatDescription ) == 0 ){
 			formatDescription.index++;
 			bool validFormat = true;
 			switch( formatDescription.pixelformat ){
@@ -540,7 +555,7 @@ namespace cvt {
 				frameSize.index = 0;
 				frameSize.pixel_format = formatDescription.pixelformat;
 
-				while( ioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize ) == 0 ){
+				while( xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize ) == 0 ){
 					frameSize.index++;
 					if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
 						currentMode.width = frameSize.discrete.width;
@@ -553,7 +568,7 @@ namespace cvt {
 						fps.pixel_format = formatDescription.pixelformat;
 						fps.width = frameSize.discrete.width;
 						fps.height = frameSize.discrete.height;
-						while( ioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
+						while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
 							fps.index++;
 							if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
 								currentMode.fps = fps.discrete.denominator / fps.discrete.numerator;
@@ -609,7 +624,7 @@ namespace cvt {
 				continue;
 			}
 
-			if( ioctl( fd, VIDIOC_QUERYCAP, &caps ) )
+			if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) )
 			{
 				if(verbose)
 					std::cout << "Failure! Driver returned a negative v4l2 response." << std::endl;
