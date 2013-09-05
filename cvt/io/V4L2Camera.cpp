@@ -191,7 +191,7 @@ namespace cvt {
 		if( Math::round(static_cast<float>(_streamParameter.parm.capture.timeperframe.denominator) /
 				static_cast<float>(_streamParameter.parm.capture.timeperframe.numerator)) != _fps )
 		{
-			std::cout << "Requested framerate (" << _fps << ") not supported by device => using " <<
+			std::cerr << "Requested framerate (" << _fps << ") not supported by device => using " <<
 				_streamParameter.parm.capture.timeperframe.denominator /
 				_streamParameter.parm.capture.timeperframe.numerator << " fps" << std::endl;
 		}
@@ -261,7 +261,7 @@ namespace cvt {
 		if (ret < 0){
 			throw CVTException("Could not grab image (select error)");
 		} else if( ret == 0 ) {
-			// timeout!
+			std::cerr << "V4L2 could not grab frame, Timeout" << std::endl;
 			return false;
 		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
 			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
@@ -429,35 +429,45 @@ namespace cvt {
 	{
 		int ret=0;
 
-		for (unsigned int i = 0; i < _numBuffers ; i++){
+		for( unsigned int i = 0; i < _numBuffers ; i++ )
+		{
 			// unmap old buffer
-			if(unmap) {
-				if( munmap(_buffers[i], _buffer.length) < 0 )
-					perror("couldn't unmap buff");
+			if( unmap )
+			{
+				if( -1 == munmap( _buffers[i], _buffer.length ) )
+				{
+					std::cerr << "Unable to unmap V4L2 buffer "<< i+1 << " of " << _numBuffers << ": "
+						<< strerror( errno ) << std::endl;
+					throw CVTException("V4L2 munmap failed");
+				}
 			}
 
-			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
+			memset( &_buffer, 0, sizeof( struct v4l2_buffer ) );
 			_buffer.index = i;
 			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			_buffer.flags = V4L2_BUF_FLAG_TIMECODE;
-			_buffer.timecode = _timeCode;
 			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
 			_buffer.timestamp.tv_usec = 0;
 			_buffer.memory = V4L2_MEMORY_MMAP;
-			ret = xioctl(_fd, VIDIOC_QUERYBUF, &_buffer);
-			if (ret < 0){
-				perror("VIDIOC_QUERYBUF - Unable to query buffer");
-				exit(0);
+			ret = xioctl( _fd, VIDIOC_QUERYBUF, &_buffer );
+			if( ret < 0 )
+			{
+				std::cerr << "Unable to query V4L2 buffer " << i+1 << " of " << _numBuffers << ": "
+						<< strerror( errno ) << std::endl;
+				throw CVTException("VIDIOC_QUERYBUF failed");
 			}
-			if (_buffer.length <= 0)
-				std::cerr << "WARNING VIDIOC_QUERYBUF - buffer length is " << _buffer.length << std::endl;
-
+			if( 0 == _buffer.length )
+			{
+				std::cerr << "V4L2 querried buffer length is 0"  << std::endl;
+				throw CVTException("V4L2 querried buffer length is 0");
+			}
 			// map new buffer
-			_buffers[i] = mmap( 0, _buffer.length, PROT_READ, MAP_SHARED, _fd, _buffer.m.offset );
+			_buffers[i] = mmap( NULL, _buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, _fd, _buffer.m.offset );
 			if (_buffers[i] == MAP_FAILED)
 			{
-				perror("Unable to map buffer");
-				exit(0);
+				std::cerr << "Unable to map V4L2 buffer " << i+1 << " of " << _numBuffers << ": "
+						<< strerror( errno ) << std::endl;
+				throw CVTException("V4L2 buffer mmap failed");
 			}
 		}
 
