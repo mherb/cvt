@@ -179,17 +179,21 @@ namespace cvt {
 
 		// set stream parameter (fps):
 		_streamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		_streamParameter.parm.capture.timeperframe.numerator=1;
-		_streamParameter.parm.capture.timeperframe.denominator=(int)_fps;
+		_streamParameter.parm.capture.timeperframe.numerator=1000;
+		_streamParameter.parm.capture.timeperframe.denominator=_fps*1000;
 
 		ret = xioctl( _fd, VIDIOC_S_PARM, &_streamParameter );
 		if( ret < 0 ){
 			throw CVTException( "Could not set stream parameters!" );
 		}
 
-		if(_streamParameter.parm.capture.timeperframe.denominator != _fps){
+		//We need to round because NTSC recording stuff uses non integer frame rates
+		if( Math::round(static_cast<float>(_streamParameter.parm.capture.timeperframe.denominator) /
+				static_cast<float>(_streamParameter.parm.capture.timeperframe.numerator)) != _fps )
+		{
 			std::cout << "Requested framerate (" << _fps << ") not supported by device => using " <<
-				_streamParameter.parm.capture.timeperframe.denominator << " fps" << std::endl;
+				_streamParameter.parm.capture.timeperframe.denominator /
+				_streamParameter.parm.capture.timeperframe.numerator << " fps" << std::endl;
 		}
 
 		// request the buffers:
@@ -581,7 +585,10 @@ namespace cvt {
 					while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
 						fps.index++;
 						if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
-							currentMode.fps = fps.discrete.denominator / fps.discrete.numerator;
+							//some drivers offer NTSC frame rates (like 30000 / 1001 or 29.97 FPS)
+							//so make sure we take the correct rounded value
+							currentMode.fps = Math::round(static_cast<float>(fps.discrete.denominator)
+									/ static_cast<float>(fps.discrete.numerator));
 							info.addMode( currentMode );
 						}
 					}
@@ -625,8 +632,10 @@ namespace cvt {
 
 						if(xioctl( fd, VIDIOC_G_PARM, &sparm) == 0)
 						{
-							currentMode.fps = sparm.parm.capture.timeperframe.denominator /
-									sparm.parm.capture.timeperframe.numerator;
+							//some drivers offer NTSC frame rates (like 30000 / 1001 or 29.97 FPS)
+							//so make sure we take the correct rounded value
+							currentMode.fps = Math::round(static_cast<float>(sparm.parm.capture.timeperframe.denominator) /
+									static_cast<float>(sparm.parm.capture.timeperframe.numerator));
 							info.addMode(currentMode);
 						}
 					}
