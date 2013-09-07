@@ -123,7 +123,6 @@ namespace cvt
 
             void updateParameters( const DeltaVectorType& v )
             {
-                //_pose.applyInverse( -v );
                 _pose.apply( -v );
             }
 
