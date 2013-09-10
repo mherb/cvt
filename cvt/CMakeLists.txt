@@ -1,4 +1,3 @@
-PROJECT(cvt CXX C)
 # add source, current source and binary dir to search for includes
 INCLUDE_DIRECTORIES( 
 	${CMAKE_SOURCE_DIR} 
