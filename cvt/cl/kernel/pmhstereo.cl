@@ -1,11 +1,11 @@
 #import "RNG.cl"
 
-#define PROPSIZE 1
+#define PROPSIZE 2
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.2f
 #define NORMALCOMPMAX 0.95f
 #define NUMRNDTRIES	 1
-#define NUMRNDSAMPLE 3
+#define NUMRNDSAMPLE 5
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -27,8 +27,11 @@ float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul,
 {
 	float z = RNG_float( rng ) * depthmax;
 	float4 n;
-	n.x = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
-	n.y = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
+	n.x = ( RNG_float( rng ) - 0.5f ) * normmul;// * NORMALCOMPMAX;
+	n.y = ( RNG_float( rng ) - 0.5f ) * normmul;// * NORMALCOMPMAX;
+
+	float nfactor = fmin( native_rsqrt( n.x * n.x + n.y * n.y ), 1.0f * NORMALCOMPMAX );
+	n.xy = nfactor * n.yx;
 
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
@@ -73,10 +76,12 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, const
 	n.x += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
 	n.y += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
 
-	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
-	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
-
+	float nfactor = fmin( native_rsqrt( n.x * n.x + n.y * n.y ), 1.0f * NORMALCOMPMAX );
+	n.xy = nfactor * n.yx;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
+//	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
+//	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
+
 
 	float4 ret = ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret;
