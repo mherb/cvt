@@ -383,6 +383,7 @@ SET( CVT_HEADERS
    math/Matrix2.h
    math/Matrix3.h
    math/Matrix4.h
+   math/Matrix6.h
    math/TerminationCriteria.h
    math/Polynomial.h
    math/Quaternion.h
