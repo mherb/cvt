@@ -17,32 +17,27 @@ namespace cvt
 		public:
 			Matrix6<T>( void );
 			Matrix6<T>( const Matrix6<T>& mat6 );
-			explicit            Matrix6<T>( const Vector6<T>& a, const Vector6<T>& b, const Vector6<T>& c, const Vector6<T>& d, const Vector6<T>& e, const Vector6<T>& f );
+			explicit            Matrix6<T>( const Vector6<T>& a, const Vector6<T>& b, const Vector6<T>& c,
+										    const Vector6<T>& d, const Vector6<T>& e, const Vector6<T>& f );
 			explicit            Matrix6<T>( const T src[ 6 ][ 6 ] );
 
 			const Vector6<T>&   operator[]( int index ) const;
-
 			Vector6<T>&         operator[]( int index );
-
 			Matrix6<T>          operator-( ) const;
-
 			Matrix6<T>          operator*( const T c ) const;
-
 			Matrix6<T>          operator+( const T c ) const;
-
 			Matrix6<T>          operator-( const T c ) const;
-
 			Vector6<T>          operator*( const Vector6<T> &vec ) const;
-
 			Matrix6<T>          operator+( const Matrix6<T>& m ) const;
 
 			Matrix6<T>          inverse( void ) const;
 			bool                inverseSelf( void );
 
 			Vector6<T>          row( size_t r ) const;
-
 			Vector6<T>          col( size_t c ) const;
+
 			void                setZero( void );
+			void				setIdentity( void );
 
 			Matrix6<T>          transpose( void ) const;
 			const T*            ptr( void ) const;
@@ -156,6 +151,17 @@ namespace cvt
 		mat[ 4 ].setZero( );
 		mat[ 5 ].setZero( );
 	}
+
+    template<typename T>
+    inline void Matrix6<T>::setIdentity()
+    {
+		for( int r = 0; r < 6; r++ ) {
+			for( int c = 0; c < 6; c++ ) {
+					mat[ r ][ c ] = ( r == c ) ? 1 : 0;
+			}
+		}
+    }
+
 
 	template<typename T>
 	inline Matrix6<T> Matrix6<T>::transpose( ) const

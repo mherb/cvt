@@ -187,6 +187,9 @@ namespace cvt
 	template<typename T>
 	bool Matrix6<T>::inverseSelf( )
 	{
+		// this is from the doom3-BFG and unverified
+		// FIXME: evaluate using sub-matrices
+
 		T* mat = ptr( );
 		T di, s, d;
 
