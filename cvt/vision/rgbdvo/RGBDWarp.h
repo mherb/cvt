@@ -77,10 +77,10 @@ namespace cvt
             }
 
             static void computeJacobian( JacobianType& j,
-                                  const Vector3f& point,
-                                  const Matrix3f& K,
-                                  const Eigen::Matrix<float, 1, 2>& g,
-                                  float pixval )
+                                         const Vector3f& point,
+                                         const Matrix3f& K,
+                                         const Eigen::Matrix<float, 1, 2>& g,
+                                         float pixval )
             {
                 ScreenJacType J;
                 screenJacobian( J, point, K );

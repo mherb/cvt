@@ -49,7 +49,8 @@ namespace cvt {
                                             const Image& depth,
                                             float scale );
 
-            void updateOnlineData( const ImagePyramid& pyrf,
+            void updateOnlineData( const Matrix4f& cam2World,
+                                   const ImagePyramid& pyrf,
                                    const Image& depth );
 
             void recompute( std::vector<float>& residuals,
@@ -188,10 +189,11 @@ namespace cvt {
     }
 
 	template <class WarpFunc, class LinearizerType>
-	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const ImagePyramid& pyrf,
+	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const Matrix4f& cam2World,
+																			   const ImagePyramid& pyrf,
 																			   const Image& depth )
 	{
-		_linearizer.updateOnlineData( pyrf, depth );
+		_linearizer.updateOnlineData( cam2World, pyrf, depth );
 	}
 
 }

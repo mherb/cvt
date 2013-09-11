@@ -62,7 +62,10 @@ namespace cvt {
                 jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
             }
 
-            void updateOnlineData( const ImagePyramid&, const Image& ) {}
+            void updateOnlineData( const Matrix4f&, const ImagePyramid&, const Image& )
+            {
+                // nothing to be done for inverse
+            }
     };
 
     template <class AlignData>
@@ -116,11 +119,15 @@ namespace cvt {
                 jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
             }
 
-            void updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
+            void updateOnlineData( const Matrix4f& cam2World,
+                                   const ImagePyramid& pyrf,
+                                   const Image& depth )
             {
                 // compute the gradients of the input
                 pyrf.convolve( _onlineGradientsX, this->_kx );
                 pyrf.convolve( _onlineGradientsY, this->_ky );
+
+                throw CVTException( "TODO: update keyframedata" );
             }
 
         protected:
@@ -143,8 +150,7 @@ namespace cvt {
 
             ESMLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 FwdCompLinearizer<AlignData>( kdx, kdy, octaves, scale )
-            {
-            }
+            {}
 
             void recomputeJacobians( JacobianVecType& jacobians,
                                      std::vector<float>& residuals,

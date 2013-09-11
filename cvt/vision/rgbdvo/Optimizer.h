@@ -292,7 +292,7 @@ namespace cvt {
             resetOverallDelta();
         }
 
-        reference.updateOnlineData( grayPyramid, depthImage );
+        reference.updateOnlineData( tmp4, grayPyramid, depthImage );
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
@@ -332,7 +332,7 @@ namespace cvt {
 
         // update the online data for each reference frame given
         for( size_t i = 0; i < nRefs; i++ ){
-            references[ i ].updateOnlineData( grayPyramid, depthImage );
+            references[ i ].updateOnlineData( tmp4, grayPyramid, depthImage );
         }
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
@@ -391,7 +391,6 @@ namespace cvt {
     {
         // too few pixels projected into image
         if( res.pixelPercentage < _minPixelPercentage ){
-            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
             return false;
         }
         return true;
