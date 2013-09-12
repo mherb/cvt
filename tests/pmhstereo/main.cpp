@@ -31,11 +31,13 @@ int main( int argc, char** argv )
 	try {
 		Image clinput1( input1, IALLOCATOR_CL );
 		Image clinput2( input2, IALLOCATOR_CL );
-		Image dmap( input1, IALLOCATOR_CL );
+		Image dmap( input1.width(), input1.height(), IFormat::GRAY_UINT8, IALLOCATOR_CL );
 
 		PMHuberStereo pmhs;
 
-		pmhs.depthMap( dmap, clinput1, clinput2, 20, 100, 30, 4 );
+		pmhs.depthMap( dmap, clinput1, clinput2, 20, 60.0f, 50, 4, 4.0f / 255.0f );
+
+		std::cout << dmap << std::endl;
 
 		dmap.save("pmh.png");
 		dmap.save("pmh.cvtraw");

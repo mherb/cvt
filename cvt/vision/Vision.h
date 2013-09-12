@@ -623,6 +623,7 @@ namespace cvt
                                                  const Matrix4<T>& TSrc,
 												 const Vector3<T>& normal, T depth )
 		{
+			//FIXME: this is wrong
 			Vector3<T> tsrc( TSrc[ 0 ][ 3 ], TSrc[ 1 ][ 3 ], TSrc[ 2 ][ 3 ] );
 			Vector3<T> tdst( TDst[ 0 ][ 3 ], TDst[ 1 ][ 3 ], TDst[ 2 ][ 3 ] );
 
