@@ -471,6 +471,9 @@ namespace cvt
 		mat[ 26 ] += mat[ 32 ] * d;
 		mat[ 27 ] += mat[ 33 ] * d;
 		mat[ 28 ] += mat[ 34 ] * d;
+
+        // FIXME: check if the inversion is correct
+        return true;
 	}
 
 	template bool Matrix6<float>::inverseSelf( );
