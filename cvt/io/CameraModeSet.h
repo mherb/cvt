@@ -34,6 +34,8 @@ namespace cvt {
 	{
 		public:
 			CameraModeSet();
+			CameraModeSet( const CameraModeSet& other );
+
 			~CameraModeSet();
 			CameraModeSet& operator=( const CameraModeSet& other );
 

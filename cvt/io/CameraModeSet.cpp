@@ -31,6 +31,11 @@ namespace cvt {
 	{
 	}
 
+	CameraModeSet::CameraModeSet( const CameraModeSet& other ) :
+		_modes( other._modes )
+	{
+	}
+
 	CameraModeSet::~CameraModeSet()
 	{
 	}
@@ -38,6 +43,7 @@ namespace cvt {
 	CameraModeSet& CameraModeSet::operator=( const CameraModeSet& other )
 	{
 		_modes = other._modes;
+		return *this;
 	}
 
 	void CameraModeSet::add( const CameraMode & m )
