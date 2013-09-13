@@ -16,11 +16,12 @@ MACRO(CVTTESTS _LIB _OUT )
 	ENDIF()
 
     ADD_CUSTOM_COMMAND(
-        OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/${_OUT}
+        OUTPUT  ${CMAKE_BINART_DIR}/${_OUT}
         COMMAND ${CMAKE_SOURCE_DIR}/util/extracttests.sh
                 ${CMAKE_BINARY_DIR}/${LIBNAME}
-		${CMAKE_CURRENT_SOURCE_DIR}/${_OUT}
+                ${CMAKE_BINARY_DIR}/${_OUT}
         DEPENDS ${_LIB}
     )
+    ADD_CUSTOM_TARGET( cvt_test_extraction DEPENDS ${CMAKE_BINART_DIR}/${_OUT} )
 ENDMACRO(CVTTESTS)
 

@@ -12,8 +12,7 @@
 #include <cstring>
 #include <exception>
 #include <cvt/util/Exception.h>
-
-#include "cvttestsproto.h"
+#include <cvt/util/cvttestsproto.h>
 
 static bool cvttest_run( CVTTestFunc func, const char* name )
 {
