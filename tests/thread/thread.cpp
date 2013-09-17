@@ -1,7 +1,7 @@
 #include <cvt/util/Thread.h>
 #include <cvt/util/TQueue.h>
 #include <iostream>
-
+#include <unistd.h>
 
 using namespace cvt;
 
