@@ -102,6 +102,11 @@ namespace cvt {
 
 			String	_identifier;
 
+			//formats
+			static const int supportedPixFormats[];
+			static const int standardWidths[];
+			static const int standardHeights[];
+
 			// private helper funcs ...
 			void open();
 			void close();

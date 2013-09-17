@@ -44,6 +44,12 @@ namespace {
 
 namespace cvt {
 
+	const int V4L2Camera::supportedPixFormats[] = { V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_YUYV,
+			V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_GREY, V4L2_PIX_FMT_Y16};
+
+	const int V4L2Camera::standardWidths[] = {1024, 640, 320, 704, 352};
+	const int V4L2Camera::standardHeights[] = {768, 480, 240, 576, 288};
+
 	V4L2Camera::V4L2Camera( size_t camIndex, const CameraMode & mode ) :
 		_width(mode.width),
 		_height(mode.height),
@@ -509,15 +515,24 @@ namespace cvt {
 				return IFormat::YUYV_UINT8;
 				break;
 
+			case V4L2_PIX_FMT_UYVY:
+				return IFormat::UYVY_UINT8;
+				break;
+
 			case V4L2_PIX_FMT_BGR32:
 				return IFormat::BGRA_UINT8;
 				break;
+
 			case V4L2_PIX_FMT_RGB32:
 				return IFormat::RGBA_UINT8;
 				break;
+
 			case V4L2_PIX_FMT_GREY:
 				return IFormat::GRAY_UINT8;
 				break;
+
+			case V4L2_PIX_FMT_Y16:
+				return IFormat::GRAY_UINT16;
 		}
 
 		std::stringstream errorMsg;
@@ -571,7 +586,7 @@ namespace cvt {
 			}
 			catch( Exception& e )
 			{
-				continue;
+				continue;	//the driver's pixformat is not supported, try the next one
 			}
 
 			struct v4l2_frmsizeenum frameSize;
@@ -599,6 +614,7 @@ namespace cvt {
 							//so make sure we take the correct rounded value
 							currentMode.fps = Math::round(static_cast<float>(fps.discrete.denominator)
 									/ static_cast<float>(fps.discrete.numerator));
+							currentMode.description = "enumerated";
 							info.addMode( currentMode );
 						}
 					}
@@ -608,7 +624,7 @@ namespace cvt {
 
 				//some drivers do not support frame size or frame interveral enumeration,
 				//such as the sensoray 2255m in these instances errno will be set to ENOTTY
-				//so enumeration makes no sense and we should quit
+				//so enumeration makes no sense and we should quit and check what was set
 				if(ret == -1 && errno == ENOTTY)
 					break;
 			}
@@ -624,33 +640,48 @@ namespace cvt {
 			struct v4l2_format fmt;
 			memset(&fmt, 0, sizeof(fmt));
 			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			if( xioctl( fd, VIDIOC_G_FMT, &fmt ) == 0)
+			if( xioctl( fd, VIDIOC_G_FMT, &fmt ) == 0 && ( fmt.type & V4L2_BUF_TYPE_VIDEO_CAPTURE ) )
 			{
-				if( fmt.type & V4L2_BUF_TYPE_VIDEO_CAPTURE )
+				for( size_t i = 0; i < sizeof(supportedPixFormats); i++ )
 				{
-					try
-					{
-						currentMode.format = formatForV4L2PixFormat(fmt.fmt.pix.pixelformat);
+					memset( &fmt, 0, sizeof( fmt ) );
+					fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+					fmt.fmt.pix.pixelformat = supportedPixFormats[i];
 
-						currentMode.height = fmt.fmt.pix.height;
-						currentMode.width = fmt.fmt.pix.width;
-						currentMode.description = "default";
+					for( size_t j = 0; j < sizeof(standardWidths); j++ )
+					{
+						fmt.fmt.pix.height = standardHeights[j];
+						fmt.fmt.pix.width = standardWidths[j];
+						fmt.fmt.pix.field = V4L2_FIELD_ANY;
+
+						//check if the format combination is supported
+						if( xioctl( fd, VIDIOC_TRY_FMT, &fmt) != 0)
+							continue;
+
+						//V4L2 API specifies that the driver can change the request parameters
+						//for the time being, if the params don't match up with our requrests,
+						//simply ignore them
+						if( fmt.fmt.pix.height != standardHeights[j] ||
+								fmt.fmt.pix.width != standardWidths[j] ||
+								fmt.fmt.pix.pixelformat != supportedPixFormats[i])
+							continue;
 
 						v4l2_streamparm sparm;
 						memset(&sparm, 0, sizeof(sparm));
 						sparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
 						if(xioctl( fd, VIDIOC_G_PARM, &sparm) == 0)
 						{
+							currentMode.format = formatForV4L2PixFormat(fmt.fmt.pix.pixelformat);
+							currentMode.height = fmt.fmt.pix.height;
+							currentMode.width = fmt.fmt.pix.width;
+							currentMode.description = "negotiated";
+
 							//some drivers offer NTSC frame rates (like 30000 / 1001 or 29.97 FPS)
 							//so make sure we take the correct rounded value
 							currentMode.fps = Math::round(static_cast<float>(sparm.parm.capture.timeperframe.denominator) /
 									static_cast<float>(sparm.parm.capture.timeperframe.numerator));
 							info.addMode(currentMode);
 						}
-					}
-					catch( Exception& e )
-					{
 					}
 				}
 			}
