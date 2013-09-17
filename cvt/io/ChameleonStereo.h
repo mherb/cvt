@@ -67,12 +67,21 @@ namespace cvt {
              */
             void setGain( float val );
 
+            void setExposure( float val );
+            void setWhiteBalance( uint32_t ubValue, uint32_t vrValue );
+
             void setAutoShutter( bool val );
             void setAutoGain( bool val );
             void setAutoExposure( bool val );
-            void setExposure( float val );
+            void setAutoWhiteBalance( bool val );
 
+            /* enable / disable features */
             void enableAutoExposure( bool val );
+            void enableAutoGain( bool val );
+            void enableAutoShutter( bool val );
+            void enableAutoWhiteBalance( bool val );
+
+            bool gainMode() const;
 
         private:
             StereoCameraCalibration _calib;
@@ -88,7 +97,6 @@ namespace cvt {
             void configureLeft( int strobePin );
             void configureRight( int triggerPin );
             void configureStrobe( int pin );
-
     };
 
 }
