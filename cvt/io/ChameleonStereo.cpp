@@ -33,7 +33,7 @@ namespace cvt {
 
         DC1394Camera::Parameters camParams;
         camParams.isoSpeed = 400;
-        camParams.numDMABuf = 4;
+        camParams.numDMABuf = 2;
         camParams.usePreset = true;
         camParams.preset = DC1394Camera::PRESET_USER0;
 
@@ -41,16 +41,17 @@ namespace cvt {
         camParams.runMode = DC1394Camera::RUNMODE_CONTINUOUS;
         CameraInfo cInfo;
         DC1394Camera::cameraInfo( leftIdx, cInfo );
-        CameraMode mode = cInfo.bestMatchingMode( IFormat::BAYER_GBRG_UINT8, 1296, 960, 15 );
+        CameraMode mode = cInfo.bestMatchingMode( IFormat::BAYER_GBRG_UINT8, 1296, 960, 18 );
 
         std::cout << mode << std::endl;
-        mode.fps = 16;
+        //mode.fps = 18;
 
         _leftCam = new DC1394Camera( leftIdx, mode, camParams );
 
         camParams.runMode = DC1394Camera::RUNMODE_HW_TRIGGER;
         _rightCam = new DC1394Camera( rightIdx, mode, camParams );
 
+        // done using preset parameters
         //configureLeft( params.leftStrobePin );
         //configureRight( params.rightTriggerPin );
 
@@ -192,6 +193,39 @@ namespace cvt {
     {
         _leftCam->setWhiteBalance( ubValue, vrValue );
         _rightCam->setWhiteBalance( ubValue, vrValue );
+    }
+
+    void ChameleonStereo::setFps( float fps )
+    {
+        _leftCam->setFrameRate( fps );
+        _rightCam->setFrameRate( fps );
+    }
+
+    float ChameleonStereo::fps() const
+    {
+        return _leftCam->frameRate();
+    }
+
+    void ChameleonStereo::setPacketSize( size_t n )
+    {
+        _leftCam->setPacketSize( n );
+        _rightCam->setPacketSize( n );
+    }
+
+    size_t ChameleonStereo::packetSize() const
+    {
+        return _leftCam->packetSize();
+    }
+
+    void ChameleonStereo::setAreaOfInterest( const Recti& rect )
+    {
+        _leftCam->setAreaOfInterest( rect );
+        _rightCam->setAreaOfInterest( rect );
+    }
+
+    Recti ChameleonStereo::areaOfInterest() const
+    {
+        return _leftCam->areaOfInterest();
     }
 
     void ChameleonStereo::setAutoShutter( bool val )
