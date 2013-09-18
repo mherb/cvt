@@ -28,7 +28,7 @@ IF( UNIX )
 	ELSE()
 		MESSAGE( "Linux: make package will build deb file" )
 		# deb specific
-		SET( CPACK_GENERATOR "DEB;TGZ" )
+		SET( CPACK_GENERATOR "DEB" )
 		SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Sebastian Klose, kloses@in.tum.de")
 		# dependencies: Eigen, ffmpeg
 		SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libpng12-dev (>=1.2.42), libeigen3-dev (>=3.0.1), libdc1394-22-dev, libavformat-dev (>=4:0.6), libavcodec-dev (>=4:0.6)")
