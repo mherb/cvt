@@ -60,7 +60,7 @@ namespace cvt {
 		_capturing(false),
 		_nextBuf(-1),
 		_fd(-1),
-		_buffers(0),
+		_buffers(NULL),
 		_frame(NULL),
 		_format( mode.format ),
 		_stamp( 0.0 ),
@@ -91,13 +91,15 @@ namespace cvt {
 		std::vector<String> devices;
 		V4L2Camera::listDevices( devices );
 
-		if( _camIndex >= devices.size() ){
+		if( _camIndex >= devices.size() )
+		{
 			throw CVTException( "device index out of bounds!" );
 		}
 
 		_fd = ::open( devices[ _camIndex ].c_str(), O_RDWR | O_NONBLOCK );
 
-		if( _fd == -1){
+		if( _fd == -1 )
+		{
 			String str( "Could not open device named \"");
 		    str +=	devices[ _camIndex ];
 		    str	+ "\"";
@@ -109,9 +111,12 @@ namespace cvt {
 
 	void V4L2Camera::close()
 	{
-		for(unsigned int i= 0; i < _numBuffers; i++){
-			if( ( _buffers[ i ] != MAP_FAILED ) && _buffer.length ){
-				if( munmap( _buffers[ i ], _buffer.length ) < 0 ){
+		for( size_t i= 0; i < _numBuffers; i++ )
+		{
+			if( ( _buffers[ i ].start != MAP_FAILED ) && _buffers[i].length )
+			{
+				if( munmap( _buffers[ i ].start, _buffers[i].length ) < 0 )
+				{
 					throw CVTException( "Could not unmap buffer " + i );
 				}
 			}
@@ -125,6 +130,7 @@ namespace cvt {
 
 		if( _fd != -1 )
 			::close(_fd);
+
 		_opened = false;
 	}
 
@@ -134,86 +140,92 @@ namespace cvt {
 		_timeCode.type = V4L2_TC_TYPE_30FPS;
 		_timeCode.flags = V4L2_TC_FLAG_DROPFRAME;
 
-		// ret value of ioctl ...
-		int ret = 0;
-
-		size_t reqWidth = _width;
-		size_t reqHeight = _height;
-
 		// initialize V4L2 stuff
-		memset( &_fmt, 0, sizeof( struct v4l2_format ) );
-		_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		_fmt.fmt.pix.width = (int)reqWidth;
-		_fmt.fmt.pix.height = (int)reqHeight;
-		_fmt.fmt.pix.field = V4L2_FIELD_ANY;
+		struct v4l2_format fmt = {0};
+		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		fmt.fmt.pix.width = _width;
+		fmt.fmt.pix.height = _height;
+		fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
-		switch( _format.formatID ){
+		switch( _format.formatID )
+		{
 			case IFORMAT_YUYV_UINT8:
-				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+				fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 				break;
+
+			case IFORMAT_UYVY_UINT8:
+				fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+				break;
+
 			case IFORMAT_BGRA_UINT8:
-				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
+				fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
 				break;
+
 			case IFORMAT_RGBA_UINT8:
-				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+				fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 				break;
+
 			case IFORMAT_GRAY_UINT8:
-				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
+				fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
 				break;
-			/*
-			case IFORMAT_BAYER_RGGB_UINT8:
-				_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8;
-				break;
-			*/
+
 			default:
 				throw CVTException( "Format not supported!" );
 				break;
 		}
 
-		ret = xioctl( _fd, VIDIOC_S_FMT, &_fmt);
 
-		if( ret < 0 ) {
+		if( xioctl( _fd, VIDIOC_S_FMT, &fmt) != 0 )
+		{
+			//TODO Read errno
 			throw CVTException( "Unable to set requested format!" );
 		}
 
-		_width = _fmt.fmt.pix.width;
-		_height = _fmt.fmt.pix.height;
+		_width = fmt.fmt.pix.width;
+		_height = fmt.fmt.pix.height;
 
 		if( _frame )
 			delete _frame;
+
 		_frame = new Image( _width, _height, _format );
 
 		// set stream parameter (fps):
-		_streamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		_streamParameter.parm.capture.timeperframe.numerator=1000;
-		_streamParameter.parm.capture.timeperframe.denominator=_fps*1000;
+		v4l2_streamparm streamParameter = {0};
+		streamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		streamParameter.parm.capture.timeperframe.numerator=1000;
+		streamParameter.parm.capture.timeperframe.denominator=_fps*1000;
 
-		ret = xioctl( _fd, VIDIOC_S_PARM, &_streamParameter );
-		if( ret < 0 ){
+		if( xioctl( _fd, VIDIOC_S_PARM, &streamParameter ) )
+		{
 			throw CVTException( "Could not set stream parameters!" );
 		}
 
 		//We need to round because NTSC recording stuff uses non integer frame rates
-		if( Math::round(static_cast<float>(_streamParameter.parm.capture.timeperframe.denominator) /
-				static_cast<float>(_streamParameter.parm.capture.timeperframe.numerator)) != _fps )
+		if( Math::round(static_cast<float>(streamParameter.parm.capture.timeperframe.denominator) /
+				static_cast<float>(streamParameter.parm.capture.timeperframe.numerator)) != _fps )
 		{
 			std::cerr << "Requested framerate (" << _fps << ") not supported by device => using " <<
-				_streamParameter.parm.capture.timeperframe.denominator /
-				_streamParameter.parm.capture.timeperframe.numerator << " fps" << std::endl;
+				streamParameter.parm.capture.timeperframe.denominator /
+				streamParameter.parm.capture.timeperframe.numerator << " fps" << std::endl;
 		}
 
-		// request the buffers:
-		memset( &_requestBuffers, 0, sizeof(struct v4l2_requestbuffers) );
-		_requestBuffers.count = (int)_numBuffers;
-		_requestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		_requestBuffers.memory = V4L2_MEMORY_MMAP;
+		// request the buffers
+		v4l2_requestbuffers requestBuffers = {0};
+		requestBuffers.count = _numBuffers;
+		requestBuffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		requestBuffers.memory = V4L2_MEMORY_MMAP;
 
-		ret = xioctl(_fd, VIDIOC_REQBUFS, &_requestBuffers);
-		if (ret < 0){
+		if ( xioctl(_fd, VIDIOC_REQBUFS, &requestBuffers) != 0 )
+		{
 			throw CVTException("VIDIOC_REQBUFS - Unable to allocate buffers");
 		}
 
-		_buffers = new void*[_numBuffers];
+		if( requestBuffers.count < _numBuffers )
+		{
+			throw CVTException("VIDIOC_REQBUFS: Unable to allocate the request number of buffers");
+		}
+
+		_buffers = new buffer_t[ _numBuffers ];
 
 		queryBuffers( false );
 		enqueueBuffers();
@@ -221,12 +233,11 @@ namespace cvt {
 
 	void V4L2Camera::startCapture()
 	{
-		if(!_capturing){
+		if( !_capturing )
+		{
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			int ret=0;
 
-			ret = xioctl(_fd, VIDIOC_STREAMON, &type);
-			if (ret < 0)
+			if ( xioctl(_fd, VIDIOC_STREAMON, &type) != 0 )
 			{
 				throw CVTException( "Could not start streaming!" );
 			}
@@ -236,12 +247,11 @@ namespace cvt {
 
 	void V4L2Camera::stopCapture()
 	{
-		if( _capturing ){
+		if( _capturing )
+		{
 			int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			int ret=0;
 
-			ret = xioctl( _fd, VIDIOC_STREAMOFF, &type );
-			if (ret < 0)
+			if ( xioctl( _fd, VIDIOC_STREAMOFF, &type ) )
 			{
 				throw CVTException("Could not stop streaming!");
 			}
@@ -252,59 +262,69 @@ namespace cvt {
 	bool V4L2Camera::nextFrame( size_t tout )
 	{
 		fd_set rdset;
-		struct timeval timeout;
+		struct timeval timeout = {0};
+
+		v4l2_buffer buffer = {0};
+		buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buffer.memory = V4L2_MEMORY_MMAP;
 
 		if( !_capturing )
 			startCapture();
 
 		FD_ZERO(&rdset);
 		FD_SET(_fd, &rdset);
-		timeout.tv_sec = 0; // 1 sec timeout
+
 		timeout.tv_usec = tout * 1000; // ms
 
 		// select - wait for data or timeout
 		int ret = select( _fd + 1, &rdset, NULL, NULL, &timeout );
-		if (ret < 0){
+		if (ret < 0)
+		{
 			throw CVTException("Could not grab image (select error)");
-		} else if( ret == 0 ) {
-			std::cerr << "V4L2 could not grab frame, Timeout" << std::endl;
+		}
+		else if( ret == 0 )
+		{
 			return false;
-		} else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) ){
-			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
-			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			_buffer.memory = V4L2_MEMORY_MMAP;			
-
-			ret = xioctl( _fd, VIDIOC_DQBUF, &_buffer );
-			if ( ret < 0 ) {
+		}
+		else if( ( ret > 0 ) && ( FD_ISSET(_fd, &rdset) ) )
+		{
+			if ( xioctl( _fd, VIDIOC_DQBUF, &buffer ) != 0 )
+			{
 				throw CVTException( "Unable to dequeue buffer!" );
 			}
 		}
 
-		// get frame from buffer
-		if( _buffer.bytesused >= _frame->height() * _frame->width() * _format.bpp ) {
-			size_t stride;
-			uint8_t* ptrM;
-			uint8_t* ptr;
-
-			ptrM = ptr = _frame->map( &stride );
-			size_t h = _frame->height();
-			uint8_t * bufPtr = (uint8_t*)_buffers[ _buffer.index ];
-			size_t bufStride = _frame->width() * _format.bpp;
-			SIMD* simd = SIMD::instance();
-			while( h-- ){
-				simd->Memcpy( ptr, bufPtr, bufStride );
-				ptr += stride;
-				bufPtr += bufStride;
-			}
-			_frame->unmap( ptrM );
+		//verify the frame size, this should really never fail
+		if( buffer.bytesused < _frame->height() * _frame->width() * _format.bpp )
+		{
+			throw CVTException("Buffer returned from diver is too small!");
 		}
 
-		_frameIdx = _buffer.sequence;
-		_stamp    = ( double )_buffer.timestamp.tv_sec +
-					( double )( _buffer.timestamp.tv_usec ) / 1000000.0;
+		// get frame from buffer
+		size_t stride;
+		uint8_t* ptrM;
+		uint8_t* ptr;
 
-		ret = xioctl(_fd, VIDIOC_QBUF, &_buffer);
-		if (ret < 0){
+		ptrM = ptr = _frame->map( &stride );
+		size_t h = _frame->height();
+		uint8_t * bufPtr = static_cast<uint8_t*>( _buffers[ buffer.index ].start);
+		size_t bufStride = _frame->width() * _format.bpp;
+		SIMD* simd = SIMD::instance();
+		while( h-- )
+		{
+			simd->Memcpy( ptr, bufPtr, bufStride );
+			ptr += stride;
+			bufPtr += bufStride;
+		}
+		_frame->unmap( ptrM );
+
+
+		_frameIdx = buffer.sequence;
+		_stamp    = static_cast<double>( buffer.timestamp.tv_sec ) +
+					static_cast<double>( buffer.timestamp.tv_usec ) / 1000000.0;
+
+		if ( xioctl(_fd, VIDIOC_QBUF, &buffer) != 0)
+		{
 			throw CVTException("Unable to requeue buffer");
 		}
 
@@ -440,62 +460,55 @@ namespace cvt {
 			// unmap old buffer
 			if( unmap )
 			{
-				if( -1 == munmap( _buffers[i], _buffer.length ) )
+				if( -1 == munmap( _buffers[i].start, _buffers[i].length ) )
 				{
 					std::cerr << "Unable to unmap V4L2 buffer "<< i+1 << " of " << _numBuffers << ": "
 						<< strerror( errno ) << std::endl;
-					throw CVTException("V4L2 munmap failed");
+					throw CVTException("V4L2 munmap failed: ");
 				}
 			}
 
-			memset( &_buffer, 0, sizeof( struct v4l2_buffer ) );
-			_buffer.index = i;
-			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			_buffer.flags = V4L2_BUF_FLAG_TIMECODE;
-			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
-			_buffer.timestamp.tv_usec = 0;
-			_buffer.memory = V4L2_MEMORY_MMAP;
-			ret = xioctl( _fd, VIDIOC_QUERYBUF, &_buffer );
-			if( ret < 0 )
+			v4l2_buffer buffer = {0};
+			buffer.index = i;
+			buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			buffer.timestamp.tv_sec = 0;				//get frame as soon as possible
+			buffer.timestamp.tv_usec = 0;
+			buffer.memory = V4L2_MEMORY_MMAP;
+
+			if( xioctl( _fd, VIDIOC_QUERYBUF, &buffer ) != 0 )
 			{
-				std::cerr << "Unable to query V4L2 buffer " << i+1 << " of " << _numBuffers << ": "
-						<< strerror( errno ) << std::endl;
 				throw CVTException("VIDIOC_QUERYBUF failed");
 			}
-			if( 0 == _buffer.length )
+
+			if( 0 == buffer.length )
 			{
-				std::cerr << "V4L2 querried buffer length is 0"  << std::endl;
 				throw CVTException("V4L2 querried buffer length is 0");
 			}
+
 			// map new buffer
-			_buffers[i] = mmap( NULL, _buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, _fd, _buffer.m.offset );
-			if (_buffers[i] == MAP_FAILED)
+			_buffers[i].start = mmap( NULL, buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, _fd, buffer.m.offset );
+			_buffers[i].length = buffer.length;
+
+			if (_buffers[i].start == MAP_FAILED)
 			{
-				std::cerr << "Unable to map V4L2 buffer " << i+1 << " of " << _numBuffers << ": "
-						<< strerror( errno ) << std::endl;
 				throw CVTException("V4L2 buffer mmap failed");
 			}
 		}
-
 	}
 
 	void V4L2Camera::enqueueBuffers()
 	{
-		int ret=0;
-		for (unsigned int i = 0; i < _numBuffers; i++) {
-			memset(&_buffer, 0, sizeof(struct v4l2_buffer));
-			_buffer.index = i;
-			_buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			_buffer.flags = V4L2_BUF_FLAG_TIMECODE;
-			_buffer.timecode = _timeCode;
-			_buffer.timestamp.tv_sec = 0;//get frame as soon as possible
-			_buffer.timestamp.tv_usec = 0;
-			_buffer.memory = V4L2_MEMORY_MMAP;
-			ret = xioctl(_fd, VIDIOC_QBUF, &_buffer);
-			if (ret < 0)
+		for (unsigned int i = 0; i < _numBuffers; i++)
+		{
+			v4l2_buffer buffer = {0};
+			buffer.index = i;
+			buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			buffer.timestamp.tv_sec = 0;//get frame as soon as possible
+			buffer.timestamp.tv_usec = 0;
+			buffer.memory = V4L2_MEMORY_MMAP;
+			if( xioctl(_fd, VIDIOC_QBUF, &buffer ) )
 			{
-				perror("VIDIOC_QBUF - Unable to queue buffer");
-				exit(0);
+				throw CVTException( "VIDIOC_QBUF - Unable to queue buffer" );
 			}
 		}
 	}
@@ -555,14 +568,15 @@ namespace cvt {
 			throw CVTException( "No device with such index!" );
 
 		int fd = ::open( deviceNames[ index ].c_str(), O_RDWR | O_NONBLOCK );
-		if( fd < 0 ) {
+		if( fd < 0 )
+		{
 			String str("Could not open device to get information: ");
 	        str += deviceNames[ index ];
 			throw CVTException( str.c_str() );
 		}
 
 		struct v4l2_capability caps;
-		if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) )
+		if( xioctl( fd, VIDIOC_QUERYCAP, &caps ) != 0 )
 			throw CVTException( "VIDIOC_QUERYCAP ioctl failed!" );
 
 		String name;
@@ -594,9 +608,11 @@ namespace cvt {
 			frameSize.index = 0;
 			frameSize.pixel_format = formatDescription.pixelformat;
 
-			while( (ret = xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize )) == 0 ){
+			while( xioctl( fd, VIDIOC_ENUM_FRAMESIZES, &frameSize ) == 0 )
+			{
 				frameSize.index++;
-				if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE ){
+				if( frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE )
+				{
 					currentMode.width = frameSize.discrete.width;
 					currentMode.height = frameSize.discrete.height;
 
@@ -607,9 +623,11 @@ namespace cvt {
 					fps.pixel_format = formatDescription.pixelformat;
 					fps.width = frameSize.discrete.width;
 					fps.height = frameSize.discrete.height;
-					while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 ){
+					while( xioctl( fd, VIDIOC_ENUM_FRAMEINTERVALS, &fps ) == 0 )
+					{
 						fps.index++;
-						if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE ){
+						if( fps.type == V4L2_FRMIVAL_TYPE_DISCRETE )
+						{
 							//some drivers offer NTSC frame rates (like 30000 / 1001 or 29.97 FPS)
 							//so make sure we take the correct rounded value
 							currentMode.fps = Math::round(static_cast<float>(fps.discrete.denominator)
@@ -620,12 +638,6 @@ namespace cvt {
 					}
 				}
 				else		//V4L2 docs indicate that only in the discrete case will increasing the index make sense
-					break;
-
-				//some drivers do not support frame size or frame interveral enumeration,
-				//such as the sensoray 2255m in these instances errno will be set to ENOTTY
-				//so enumeration makes no sense and we should quit and check what was set
-				if(ret == -1 && errno == ENOTTY)
 					break;
 			}
 		}
@@ -697,7 +709,8 @@ namespace cvt {
 		FileSystem::ls( "/sys/class/video4linux", possibleDevs );
 		struct v4l2_capability caps;
 		String ss;
-		for( size_t i = 0; i < possibleDevs.size(); i++ ){
+		for( size_t i = 0; i < possibleDevs.size(); i++ )
+		{
 			if( verbose )
 				std::cout << "trying v4l2 device: " << possibleDevs[ i ] << ". ";
 

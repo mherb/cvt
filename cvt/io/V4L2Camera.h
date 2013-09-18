@@ -55,6 +55,11 @@ namespace cvt {
 			 */
 			static void listDevices( std::vector<String> & devices, bool verbose=false );
 
+			typedef struct buffer {
+			        void   *start;
+			        size_t  length;
+			} buffer_t;
+
 
 		private:
 			size_t	_width;
@@ -70,7 +75,7 @@ namespace cvt {
 			int _fd;
 
 			// memory buffers for mmap frames
-			void** _buffers;
+			buffer_t* _buffers;
 
 			Image*	_frame;
 			IFormat _format;
@@ -80,12 +85,9 @@ namespace cvt {
 			// sequence number of last acquired frame
 			size_t  _frameIdx;
 
+			//TODO remove the rest of unnecessary state
 			/** V4L2 specific **/
 			v4l2_ext_control *	_extControlsToSet;
-			v4l2_format			_fmt;
-			v4l2_streamparm		_streamParameter;
-			v4l2_requestbuffers _requestBuffers;
-			v4l2_buffer			_buffer;
 			v4l2_timecode		_timeCode;
 			v4l2_queryctrl		_queryCtrl;
 			v4l2_querymenu		_queryMenu;
