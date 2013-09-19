@@ -11,6 +11,8 @@
 
 #include <string>
 
+#include <unistd.h>
+
 // for addrinfo
 
 using namespace cvt;
