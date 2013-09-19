@@ -1912,6 +1912,20 @@ namespace cvt {
             *dst++ = ( uint8_t ) Math::clamp( *src++ * 255.0f + 0.5f, 0.0f, 255.0f );
     }
 
+    void SIMD::Conv_f_to_u16( uint16_t* dst, const float* src, const size_t n ) const
+    {
+        size_t i = n >> 2;
+        while( i-- ) {
+            *dst++ = ( uint16_t ) Math::clamp( *src++ * 65535.0f + 0.5f, 0.0f, 65535.0f );
+            *dst++ = ( uint16_t ) Math::clamp( *src++ * 65535.0f + 0.5f, 0.0f, 65535.0f );
+            *dst++ = ( uint16_t ) Math::clamp( *src++ * 65535.0f + 0.5f, 0.0f, 65535.0f );
+            *dst++ = ( uint16_t ) Math::clamp( *src++ * 65535.0f + 0.5f, 0.0f, 65535.0f );
+        }
+        i = n & 0x03;
+        while( i-- )
+            *dst++ = ( uint16_t ) Math::clamp( *src++ * 65535.0f + 0.5f, 0.0f, 65535.0f );
+    }
+
     void SIMD::Conv_s16_to_u8( uint8_t* dst, int16_t const* src, const size_t n ) const
     {
         size_t i = n >> 2;

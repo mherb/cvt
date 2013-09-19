@@ -99,7 +99,14 @@ namespace cvt {
 				png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 			case PNG_COLOR_TYPE_RGBA:
 				//png_set_bgr(png_ptr);
-				img.reallocate( width, height, IFormat::RGBA_UINT8 );
+				if( bit_depth <= 8 ) {
+                    if(bit_depth < 8)
+						png_set_expand( png_ptr );
+				    img.reallocate( width, height, IFormat::RGBA_UINT8 );
+                } else if( bit_depth == 16 ) {
+					img.reallocate( width, height, IFormat::RGBA_UINT16 );
+				} else
+					throw CVTException("Unsupported PNG format");
 				break;
 			default:
 				std::cout << color_type << std::endl;
@@ -117,7 +124,7 @@ namespace cvt {
 		png_read_image(png_ptr, row_pointers);
 		png_read_end(png_ptr, info_ptr);
 
-		delete [] row_pointers;
+		delete[] row_pointers;
 		img.unmap( base );
 
 		fclose( fp );

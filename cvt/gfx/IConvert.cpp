@@ -127,6 +127,20 @@ namespace cvt {
         CONV( Conv_f_to_u8, dstImage, uint8_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
     }
 
+    static void Conv_f_to_u16( Image & dstImage, const Image & sourceImage, IConvertFlags )
+    {
+        SIMD* simd = SIMD::instance();
+        const uint8_t* src;
+        const uint8_t* sbase;
+        size_t sstride;
+        size_t dstride;
+        uint8_t* dst;
+        uint8_t* dbase;
+        size_t h;
+
+        CONV( Conv_f_to_u16, dstImage, uint16_t*, sourceImage, float*, sourceImage.width() * dstImage.channels() )
+    }
+
     static void Conv_s16_to_u8( Image & dstImage, const Image & sourceImage, IConvertFlags )
     {
         SIMD* simd = SIMD::instance();
@@ -906,9 +920,10 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_GRAY_INT16, IFORMAT_GRAY_UINT8 ) = &Conv_s16_to_u8;
 
         /* GRAY_FLOAT TO X */
-        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_GRAY_UINT8 ) = &Conv_GRAYf_to_GRAYu8;
-        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_RGBA_FLOAT ) = &Conv_GRAYf_to_XXXAf;
-        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_BGRA_FLOAT ) = &Conv_GRAYf_to_XXXAf;
+        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_GRAY_UINT8 )  = &Conv_GRAYf_to_GRAYu8;
+        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_GRAY_UINT16 ) = &Conv_f_to_u16;
+        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_RGBA_FLOAT )  = &Conv_GRAYf_to_XXXAf;
+        TABLE( _convertFuncs, IFORMAT_GRAY_FLOAT, IFORMAT_BGRA_FLOAT )  = &Conv_GRAYf_to_XXXAf;
 
         /* GRAYALPHA_UINT8 TO X */
         TABLE( _convertFuncs, IFORMAT_GRAYALPHA_UINT8, IFORMAT_GRAYALPHA_FLOAT ) = &Conv_u8_to_f;
@@ -918,8 +933,9 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_GRAYALPHA_UINT16, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_u16_to_u8;
 
         /* GRAYALPHA_FLOAT TO X */
-        TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAYALPHA_UINT8 ) = &Conv_f_to_u8;
-        TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAY_FLOAT ) = &Conv_GRAYALPHAf_to_GRAYf;
+        TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAYALPHA_UINT8 )  = &Conv_f_to_u8;
+        TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAYALPHA_UINT16 ) = &Conv_f_to_u16;
+        TABLE( _convertFuncs, IFORMAT_GRAYALPHA_FLOAT, IFORMAT_GRAY_FLOAT )       = &Conv_GRAYALPHAf_to_GRAYf;
 
         /* RGBA_UINT8 TO X */
         TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_RGBAu8_to_GRAYu8;
@@ -928,11 +944,15 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_BGRA_UINT8 ) = &Conv_XYZAu8_to_ZYXAu8;
         TABLE( _convertFuncs, IFORMAT_RGBA_UINT8, IFORMAT_BGRA_FLOAT ) = &Conv_XYZAu8_to_ZYXAf;
 
+        /* RGBA_UINT16 TO X */
+        TABLE( _convertFuncs, IFORMAT_RGBA_UINT16, IFORMAT_RGBA_FLOAT ) = &Conv_u16_to_f;
+
         /* RGBA_FLOAT TO X */
-        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_RGBA_UINT8 ) = &Conv_XXXAf_to_XXXAu8;
-        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_UINT8 ) = &Conv_XYZAf_to_ZYXAu8;
-        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_FLOAT ) = &Conv_XYZAf_to_ZYXAf;
-        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_GRAY_FLOAT ) = &Conv_RGBAf_to_GRAYf;
+        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_RGBA_UINT8 )  = &Conv_XXXAf_to_XXXAu8;
+        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_RGBA_UINT16 ) = &Conv_f_to_u16;
+        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_UINT8 )  = &Conv_XYZAf_to_ZYXAu8;
+        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_BGRA_FLOAT )  = &Conv_XYZAf_to_ZYXAf;
+        TABLE( _convertFuncs, IFORMAT_RGBA_FLOAT, IFORMAT_GRAY_FLOAT )  = &Conv_RGBAf_to_GRAYf;
 
         /* BGRA_UINT8 TO X */
         TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_BGRAu8_to_GRAYu8;
@@ -941,11 +961,15 @@ namespace cvt {
         TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_RGBA_FLOAT ) = &Conv_XYZAu8_to_ZYXAf;
         TABLE( _convertFuncs, IFORMAT_BGRA_UINT8, IFORMAT_BGRA_FLOAT ) = &Conv_XXXAu8_to_XXXAf;
 
+        /* RGBA_UINT16 TO X */
+        TABLE( _convertFuncs, IFORMAT_BGRA_UINT16, IFORMAT_BGRA_FLOAT ) = &Conv_u16_to_f;
+
         /* BGRA_FLOAT TO X */
-        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_BGRA_UINT8 ) = &Conv_XXXAf_to_XXXAu8;
-        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_UINT8 ) = &Conv_XYZAf_to_ZYXAu8;
-        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_FLOAT ) = &Conv_XYZAf_to_ZYXAf;
-        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_GRAY_FLOAT ) = &Conv_BGRAf_to_GRAYf;
+        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_BGRA_UINT8 )  = &Conv_XXXAf_to_XXXAu8;
+        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_BGRA_UINT16 ) = &Conv_f_to_u16;
+        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_UINT8 )  = &Conv_XYZAf_to_ZYXAu8;
+        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_RGBA_FLOAT )  = &Conv_XYZAf_to_ZYXAf;
+        TABLE( _convertFuncs, IFORMAT_BGRA_FLOAT, IFORMAT_GRAY_FLOAT )  = &Conv_BGRAf_to_GRAYf;
 
         /* RGGB_UINT8 to X */
         TABLE( _convertFuncs, IFORMAT_BAYER_RGGB_UINT8, IFORMAT_GRAY_UINT8 ) = &Conv_BAYER_RGGB_to_GRAYu8;

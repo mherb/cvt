@@ -15,6 +15,8 @@ int main( int argc, char* argv[] )
 
 	Image img( argv[ 1 ] );
 
+    std::cout << argv[ 1 ] << ": " << img << std::endl;
+
 	Window w( "imageView" );
 	w.setSize( 320, 240 );
 	ImageView imview;
