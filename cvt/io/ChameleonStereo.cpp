@@ -74,11 +74,13 @@ namespace cvt {
     {
         if( _leftCam->nextFrame( timeout ) ){
             _leftRect   = _leftCam->frame();
-            if( _rightCam->nextFrame( timeout ) ){
-                // TODO: undistort rectify with calibration data
-                _rightRect  = _rightCam->frame();
-                return true;
-            }
+            while( !_rightCam->nextFrame( timeout ) )
+                ;
+
+            // TODO: undistort rectify with calibration data
+            _rightRect  = _rightCam->frame();
+            return true;
+
         }
         return false;
     }
@@ -180,6 +182,18 @@ namespace cvt {
         _rightCam->setGainAbs( val );
     }
 
+    void ChameleonStereo::setExposure( float val )
+    {
+        _leftCam->setExposureValueAbs( val );
+        _rightCam->setExposureValueAbs( val );
+    }
+
+    void ChameleonStereo::setWhiteBalance( uint32_t ubValue, uint32_t vrValue )
+    {
+        _leftCam->setWhiteBalance( ubValue, vrValue );
+        _rightCam->setWhiteBalance( ubValue, vrValue );
+    }
+
     void ChameleonStereo::setAutoShutter( bool val )
     {
         DC1394Camera::FeatureMode mode = DC1394Camera::MANUAL;
@@ -196,8 +210,8 @@ namespace cvt {
         if( val ){
             mode = DC1394Camera::AUTO;
         }
-        _leftCam->setShutterMode( mode );
-        _rightCam->setShutterMode( mode );
+        _leftCam->setGainMode( mode );
+        _rightCam->setGainMode( mode );
     }
 
     void ChameleonStereo::setAutoExposure( bool val )
@@ -210,15 +224,43 @@ namespace cvt {
         _rightCam->setExposureMode( mode );
     }
 
+    void ChameleonStereo::setAutoWhiteBalance( bool val )
+    {
+        DC1394Camera::FeatureMode mode = DC1394Camera::MANUAL;
+        if( val ){
+            mode = DC1394Camera::AUTO;
+        }
+        _leftCam->setWhiteBalanceMode( mode );
+        _rightCam->setWhiteBalanceMode( mode );
+    }
+
     void ChameleonStereo::enableAutoExposure( bool val )
     {
         _leftCam->enableAutoExposure( val );
         _rightCam->enableAutoExposure( val );
     }
 
-    void ChameleonStereo::setExposure( float val )
+    void ChameleonStereo::enableAutoGain( bool val )
     {
-        _leftCam->setExposureValueAbs( val );
-        _rightCam->setExposureValueAbs( val );
+        _leftCam->enableAutoGain( val );
+        _rightCam->enableAutoGain( val );
+    }
+
+    void ChameleonStereo::enableAutoShutter( bool val )
+    {
+        _leftCam->enableAutoShutter( val );
+        _rightCam->enableAutoShutter( val );
+    }
+
+    void ChameleonStereo::enableAutoWhiteBalance( bool val )
+    {
+        _leftCam->enableAutoWhiteBalance( val );
+        _rightCam->enableAutoWhiteBalance( val );
+    }
+
+    bool ChameleonStereo::gainMode() const
+    {
+        return _leftCam->gainMode() == DC1394Camera::AUTO &&
+               _rightCam->gainMode() == DC1394Camera::AUTO;
     }
 }

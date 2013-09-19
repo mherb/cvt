@@ -257,6 +257,7 @@ namespace cvt
 			}
 		}
 
+		_framesBehind = frame->frames_behind;
 		if( frame->color_coding != DC1394_COLOR_CODING_RAW8 &&
 			( _frame.format() == IFormat::BAYER_GRBG_UINT8 || _frame.format() == IFormat::BAYER_RGGB_UINT8 ) ){
 			// reallocate to MONO
@@ -288,6 +289,11 @@ namespace cvt
             throw CVTException( dc1394_error_get_string( error ) );
 
 		return true;
+	}
+
+	size_t DC1394Camera::framesAvailable() const
+	{
+		return _framesBehind;
 	}
 
 	void DC1394Camera::triggerFrame()
@@ -593,6 +599,16 @@ namespace cvt
 		if( v )
 			sw = DC1394_ON;
 		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_SHUTTER, sw );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+	}
+
+	void DC1394Camera::enableAutoWhiteBalance( bool v )
+	{
+		dc1394switch_t sw = DC1394_OFF;
+		if( v )
+			sw = DC1394_ON;
+		dc1394error_t error = dc1394_feature_set_power( _camera, DC1394_FEATURE_WHITE_BALANCE, sw );
 		if( error != DC1394_SUCCESS )
 			throw CVTException( dc1394_error_get_string( error ) );
 	}
@@ -1284,6 +1300,17 @@ namespace cvt
 		dc1394_camera_free( cam );
 		dc1394_camera_free_list( list );
 		dc1394_free( handle );
+	}
+
+	bool DC1394Camera::hasFeature( dc1394feature_t feature ) const
+	{
+		dc1394bool_t value;
+		dc1394error_t error = dc1394_feature_is_present( _camera, feature, &value );
+		if( error != DC1394_SUCCESS )
+			throw CVTException( dc1394_error_get_string( error ) );
+		if( value == DC1394_TRUE )
+			return true;
+		return false;
 	}
 
 	void DC1394Camera::printAllFeatures()

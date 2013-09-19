@@ -28,6 +28,7 @@ namespace cvt {
 		_calib( cam ),
 		_imgpath( imgpath )
 	{
+
 	}
 
 	inline MMVStereoSample::MMVStereoSample( const MMVStereoSample& other ) :
@@ -65,6 +66,9 @@ namespace cvt {
 	inline MMVStereoParser::MMVStereoParser( const String& paramsfile, const String& imagepath ) :
 		_imgpath( imagepath )
 	{
+		if( ! _imgpath.hasSuffix( "/" ) ) {
+			_imgpath += "/";
+		}
 		load( paramsfile );
 	}
 

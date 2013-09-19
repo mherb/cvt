@@ -1,8 +1,7 @@
 # add source, current source and binary dir to search for includes
 INCLUDE_DIRECTORIES( 
 	${CMAKE_SOURCE_DIR} 
-	${CMAKE_CURRENT_SOURCE_DIR} 
-	${CMAKE_BINARY_DIR} )
+        ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # build type should be set
 IF(${CMAKE_BUILD_TYPE})
@@ -63,9 +62,9 @@ ENDIF()
 # configure the version file
 CONFIGURE_FILE (
    "CVTVersion.h.in"
-   "${CMAKE_SOURCE_DIR}/cvt/util/Version.h"
+   "${CMAKE_CURRENT_BINARY_DIR}/util/Version.h"
 )
-
+ADD_CUSTOM_TARGET( gen_version_file DEPENDS CVTVersion.h.in )
 
 SET( GLSL_SHADER
    gl/shader/120/basic_120.vert
@@ -111,7 +110,7 @@ SET( CL_KERNELS
     cl/kernel/gradx.cl
     cl/kernel/gradxy.cl
     cl/kernel/median3.cl
-	cl/kernel/FlowColorCode.cl
+    cl/kernel/FlowColorCode.cl
     cl/kernel/fgp/fgp.cl
     cl/kernel/fgp/fgp_data.cl
     cl/kernel/fgp/fgpgrayweightedhuber.cl
@@ -383,6 +382,7 @@ SET( CVT_HEADERS
    math/Matrix2.h
    math/Matrix3.h
    math/Matrix4.h
+   math/Matrix6.h
    math/TerminationCriteria.h
    math/Polynomial.h
    math/Quaternion.h
@@ -408,7 +408,6 @@ SET( CVT_HEADERS
    math/graph/GraphEdge.h
    math/graph/GraphVisitor.h
    math/SparseBlockMatrix.h
-   util/Version.h
    util/CPU.h
    util/CVTAssert.h
    util/CVTTest.h
@@ -527,6 +526,7 @@ SET( CVT_HEADERS
    ${CL_GEN_HEADER_CVT}
    ${GLSL_SHADER}
    ${CL_KERNELS}
+   ${CMAKE_CURRENT_BINARY_DIR}/util/Version.h
 )
 
 SOURCE_GROUP( GLSL FILES ${GLSL_SHADER} )
@@ -869,6 +869,7 @@ SET( LIB_VERSION "${CVT_VERSION_MAJOR}.${CVT_VERSION_MINOR}.${CVT_VERSION_PATCH}
 SET_TARGET_PROPERTIES( cvt PROPERTIES VERSION "${LIB_VERSION}" )
 SET_TARGET_PROPERTIES( cvt PROPERTIES DEBUG_POSTFIX "_d")	
 TARGET_LINK_LIBRARIES( cvt ${CVT_DEP_LIBRARIES} )
+ADD_DEPENDENCIES( cvt gen_version_file )
 
 #PREFIX hack for needed for Xcode and MVSC Projects
 IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
@@ -893,12 +894,12 @@ set_target_properties( cvt
          PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" 
 )
 
-CVTTESTS(cvt util/cvttestsproto.h)
-
+CVTTESTS(cvt cvt/util/cvttestsproto.h)
 IF( ${CMAKE_BUILD_TYPE} STREQUAL "DEBUG" OR
     ${CMAKE_BUILD_TYPE} STREQUAL "ZEROOPT" )
    MESSAGE( "DEBUG CONFIGURATION -> adding cvttest" )
-   add_executable(cvttest util/CVTTest.cpp util/cvttestsproto.h)
+   add_executable( cvttest util/CVTTest.cpp )
+   add_dependencies( cvttest cvt_test_extraction )
 
    IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
       SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")
@@ -931,23 +932,19 @@ INSTALL( FILES
 )
 
 ####### Build tree config #######
+set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}" )
+set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
+set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
+set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
 IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR
     CMAKE_BUILD_TYPE STREQUAL "ZEROOPT" )
 	set( CVT_SEARCH_NAMES	"cvt_d" )
 	export( PACKAGE CVT_DEBUG )
-	set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR}" )
-	set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
-	set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
-	set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
-	set( CVT_FOUND_VAR		"CVT_DEBUG" )
+	set( CVT_FOUND_VAR "CVT_DEBUG" )
 	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVT_DEBUGConfig.cmake" @ONLY )
 ELSE()
 	set( CVT_SEARCH_NAMES "cvt" )
 	export( PACKAGE CVT )
-	set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR}" )
-	set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
-	set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
-	set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
-	set( CVT_FOUND_VAR		"CVT" )
+	set( CVT_FOUND_VAR "CVT" )
 	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVTConfig.cmake" @ONLY )
 ENDIF()

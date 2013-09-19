@@ -36,7 +36,7 @@ namespace cvt {
 	{
 	}
 
-	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples )
+	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples, float dscale )
 	{
 		if( left.width() != right.width() || left.height() != right.height() ||
 		    left.memType() != IALLOCATOR_CL || right.memType() != IALLOCATOR_CL )
@@ -196,7 +196,7 @@ namespace cvt {
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
 			_clpmh_consistency.setArg( 1, *clmatches1[ 1 - swap ] );
 			_clpmh_consistency.setArg( 2, *clmatches2[ 1 - swap ] );
-			_clpmh_consistency.setArg( 3, 1.0f );
+			_clpmh_consistency.setArg( 3, 0.5f );
 			_clpmh_consistency.setArg( 4, 5.0f );
 			_clpmh_consistency.setArg<int>( 5, 1 ); // left to right
 			_clpmh_consistency.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
@@ -208,13 +208,13 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig1.png");
-			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 150.0f + 5.0f, 100 );
+			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 50.0f + 5.0f, 200 );
 //			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
 			_clpmh_consistency.setArg( 1, *clmatches2[ 1 - swap ] );
 			_clpmh_consistency.setArg( 2, *clmatches1[ 1 - swap ] );
-			_clpmh_consistency.setArg( 3, 1.0f );
+			_clpmh_consistency.setArg( 3, 0.5f );
 			_clpmh_consistency.setArg( 4, 5.0f );
 			_clpmh_consistency.setArg<int>( 5, 0 ); // right to left;
 			_clpmh_consistency.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
@@ -226,32 +226,35 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig2.png");
-			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 150.0f + 5.0f, 100 );
+			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 50.0f + 5.0f, 200 );
 //			rightsmooth.save("stereosmooth2.png");
 
-			if( iter >= 4 )
-				theta = Math::smoothstep<float>( ( ( iter - 4.0f ) / ( ( float ) iterations - 4.0f ) )  ) * 1.0f;
+			if( iter >= 5 )
+				theta = Math::smoothstep<float>( ( ( iter - 5.0f ) / ( ( float ) iterations - 5.0f ) )  ) * 1.0f;
 		}
 
 		_clpmh_consistency.setArg( 0, clsmoothtmp );
-		_clpmh_consistency.setArg( 1, *clmatches1[ 1 ] );
-		_clpmh_consistency.setArg( 2, *clmatches2[ 1 ] );
-		_clpmh_consistency.setArg( 3, 1.0f );
+		_clpmh_consistency.setArg( 1, *clmatches1[ 1 - ( iterations & 1 ) ] );
+		_clpmh_consistency.setArg( 2, *clmatches2[ 1 - ( iterations & 1 ) ] );
+		_clpmh_consistency.setArg( 3, 0.5f );
 		_clpmh_consistency.setArg( 4, 5.0f );
 		_clpmh_consistency.setArg<int>( 5, 1 ); // left to right
 		_clpmh_consistency.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		cloutput1.save("stereoconsistency.png");
 
-		dmap.reallocate( left.width(), right.height(), IFormat::GRAY_FLOAT, IALLOCATOR_CL );
+		if( dscale <= 0.0f )
+			dscale = 1.0f / depthmax;
+
+		dmap.reallocate( left.width(), left.height(), ( dmap.channels() != 1 ) ? IFormat::GRAY_FLOAT : dmap.format(), IALLOCATOR_CL );
 		_clpmh_filldepthmap.setArg( 0, dmap );
 		_clpmh_filldepthmap.setArg( 1, clsmoothtmp );
-		_clpmh_filldepthmap.setArg( 2, 1.0f / depthmax );
+		_clpmh_filldepthmap.setArg( 2, dscale );
 		_clpmh_filldepthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		_clpmh_outputfinal.save( "stereofinal.png" );
 
 	}
 
-	void PMHuberStereo::depthMapInpaint( Image& dmap, const Image& left, const Image& right, size_t patchsize, const float depthmax, size_t iterations, size_t viewsamples )
+	void PMHuberStereo::depthMapInpaint( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples )
 	{
 		if( left.width() != right.width() || left.height() != right.height() ||
 		    left.memType() != IALLOCATOR_CL || right.memType() != IALLOCATOR_CL )

@@ -1,12 +1,12 @@
 /*
-			CVT - Computer Vision Tools Library
+            CVT - Computer Vision Tools Library
 
- 	 Copyright (c) 2012, Philipp Heise, Sebastian Klose
+     Copyright (c) 2012, Philipp Heise, Sebastian Klose
 
- 	THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- 	KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- 	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- 	PARTICULAR PURPOSE.
+    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+    PARTICULAR PURPOSE.
  */
 #ifndef CVT_MATRIX_H
 #define CVT_MATRIX_H
@@ -21,11 +21,13 @@
 #include <cvt/math/Matrix2.h>
 #include <cvt/math/Matrix3.h>
 #include <cvt/math/Matrix4.h>
+#include <cvt/math/Matrix6.h>
 
-namespace cvt {
+namespace cvt
+{
 	/**
-	  \ingroup Math
-	*/
+	   \ingroup Math
+	 */
 	typedef Matrix2<float> Matrix2f;
 	typedef Matrix2<double> Matrix2d;
 
@@ -35,25 +37,34 @@ namespace cvt {
 	typedef Matrix4<float> Matrix4f;
 	typedef Matrix4<double> Matrix4d;
 
+	typedef Matrix6<float> Matrix6f;
+	typedef Matrix6<double> Matrix6d;
+
 	template<int dim, typename T>
-		struct Matrix {
-			typedef T TYPE;
-		};
+	struct Matrix {
+		typedef T TYPE;
+	};
 
 	template<typename T>
-		struct Matrix<2, T> {
-			typedef Matrix2<T> TYPE;
-		};
+	struct Matrix<2, T> {
+		typedef Matrix2<T> TYPE;
+	};
 
 	template<typename T>
-		struct Matrix<3, T> {
-			typedef Matrix3<T> TYPE;
-		};
+	struct Matrix<3, T> {
+		typedef Matrix3<T> TYPE;
+	};
 
 	template<typename T>
-		struct Matrix<4, T> {
-			typedef Matrix4<T> TYPE;
-		};
+	struct Matrix<4, T> {
+		typedef Matrix4<T> TYPE;
+	};
+
+	template<typename T>
+	struct Matrix<6, T> {
+		typedef Matrix6<T> TYPE;
+	};
+
 }
 
 #endif

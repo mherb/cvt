@@ -3,10 +3,12 @@
 
 typedef float4 Planef
 
-inline Planef planef_init( Planef p, float3 normal, float depth )
+inline Planef planef_init( float3 normal, float depth )
 {
+	float4 p;
 	p.xyz = normal;
 	p.w   = depth; // FIXME: use -depth
+	return p;
 }
 
 inline Planef planef_transform( Planef p, const Mat4f* mat )

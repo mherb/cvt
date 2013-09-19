@@ -125,8 +125,8 @@ float MWC64X_NextFloat(mwc64x_state_t *s)
 typedef mwc64x_state_t RNG;
 
 #define RNG_init( x, linpos, numdraws ) do {\
-	MWC64X_SeedStreams( &rng, 0, 0 ); \
-	MWC64X_Skip( &rng, ( linpos ) * numdraws ); \
+	MWC64X_SeedStreams( x, 0, 0 ); \
+	MWC64X_Skip( x, ( linpos ) * numdraws ); \
 } while( 0 )
 
 #define RNG_float( x ) MWC64X_NextFloat( x )

@@ -114,6 +114,7 @@ namespace cvt
 			void			triggerFrame();
 
 			const Image&	frame() const;
+			size_t			framesAvailable() const;
 
             size_t			width() const { return _frame.width(); }
             size_t			height() const { return _frame.height(); }
@@ -188,6 +189,7 @@ namespace cvt
 			void enableAutoExposure( bool v );
 			void enableAutoGain( bool v );
 			void enableAutoShutter( bool v );
+			void enableAutoWhiteBalance( bool v );
 
 			FeatureMode whiteBalanceMode() const;
 			FeatureMode shutterMode() const;
@@ -226,6 +228,7 @@ namespace cvt
             size_t      _camIndex;
             Image       _frame;
             float       _fps;
+            size_t      _framesBehind;
 
 			bool                 _capturing;
 			dc1394_t*            _dcHandle;
@@ -237,6 +240,8 @@ namespace cvt
 			bool				 _isFormat7;
 			String               _identifier;
             RunMode              _runMode;
+
+            bool hasFeature( dc1394feature_t feature ) const;
     };
 
 }

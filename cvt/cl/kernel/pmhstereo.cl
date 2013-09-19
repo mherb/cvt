@@ -2,10 +2,10 @@
 
 #define PROPSIZE 1
 #define DEPTHREFINEMUL 2.0f
-#define NORMALREFINEMUL 0.2f
+#define NORMALREFINEMUL 0.1f
 #define NORMALCOMPMAX 0.95f
-#define NUMRNDTRIES	 1
-#define NUMRNDSAMPLE 3
+#define NUMRNDTRIES	 3
+#define NUMRNDSAMPLE 2
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -30,6 +30,11 @@ float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul,
 	n.x = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
 	n.y = ( RNG_float( rng ) - 0.5f ) * normmul * NORMALCOMPMAX;
 
+	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
+	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
+
+	float nfactor = fmax( length( n.xy ) + 0.01f, 1.0f );
+	n.xy = n.xy / nfactor;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
 	float4 ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
@@ -72,11 +77,13 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, const
 	z = clamp( z, 0.0f, depthmax );
 	n.x += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
 	n.y += ( RNG_float( rng ) - 0.5f ) * NORMALREFINEMUL;
-
 	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
+	float nfactor = fmax( length( n.xy ) + 0.01f, 1.0f );
+	n.xy = n.xy / nfactor;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
+
 
 	float4 ret = ( float4 ) ( - n.x / n.z, - n.y / n.z, ( n.x * coord.x + n.y * coord.y ) / n.z + z, 0.0f );
 	ret = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ret;
@@ -165,7 +172,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 28.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 20.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 
@@ -696,7 +703,7 @@ __kernel void pmhstereo_weight( __write_only image2d_t out, __read_only image2d_
 //				- BUF( lx - 1, ly ) * 0.25f
 //				+  BUF( lx, ly );
 
-	float w = exp(-16.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) ) + 0.01f;
+	float w = exp(-3.0f * pow( sqrt(  dx * dx + dy * dy ), 0.8f ) ) + 0.0001f;
 	write_imagef( out,( int2 )( gx, gy ), ( float4 ) ( w ) );
 }
 
