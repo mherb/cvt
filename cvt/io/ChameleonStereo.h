@@ -70,6 +70,15 @@ namespace cvt {
             void setExposure( float val );
             void setWhiteBalance( uint32_t ubValue, uint32_t vrValue );
 
+            void setFps( float fps );
+            float fps() const;
+
+            void setPacketSize( size_t n );
+            size_t packetSize() const;
+
+            void setAreaOfInterest( const Recti& rect );
+            Recti areaOfInterest() const;
+
             void setAutoShutter( bool val );
             void setAutoGain( bool val );
             void setAutoExposure( bool val );

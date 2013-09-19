@@ -208,10 +208,13 @@ namespace cvt
 			size_t packetSize() const;
 
 			void setAreaOfInterest( const Recti& rect );
+			Recti areaOfInterest() const;
+
             void setISOSpeed( uint32_t speed );
 
             static size_t	count();
             static void		cameraInfo( size_t index, CameraInfo & info );
+
 		private:
 			void close();
 			void init();

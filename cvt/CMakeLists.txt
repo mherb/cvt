@@ -522,10 +522,10 @@ SET( CVT_HEADERS
    io/xml/XMLNode.h
    io/xml/XMLSerializable.h
    io/xml/XMLText.h
-   ${GLSL_GEN_HEADER_CVT}
-   ${CL_GEN_HEADER_CVT}
    ${GLSL_SHADER}
    ${CL_KERNELS}
+   ${GLSL_GEN_HEADER_CVT}
+   ${CL_GEN_HEADER_CVT}
    ${CMAKE_CURRENT_BINARY_DIR}/util/Version.h
 )
 
@@ -882,8 +882,9 @@ INSTALL( TARGETS "cvt" LIBRARY DESTINATION lib COMPONENT cvt )
 GET_FILENAME_COMPONENT(folderName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 #install header
 foreach(HEADER_FILE ${CVT_HEADERS})
-	GET_FILENAME_COMPONENT(pathName "${HEADER_FILE}" PATH)
-	INSTALL(FILES "${HEADER_FILE}" 
+    STRING( REPLACE "${CMAKE_CURRENT_BINARY_DIR}/" "" CLEAN_HEADER ${HEADER_FILE} )
+    GET_FILENAME_COMPONENT(pathName "${CLEAN_HEADER}" PATH)
+    INSTALL(FILES "${HEADER_FILE}" 
 			DESTINATION "include/${folderName}/${pathName}" 
 			COMPONENT Headers
 	)
@@ -918,6 +919,7 @@ set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -ms
 set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
 # CVTConfig file
+SET( CMAKE_INSTALL_PREFIX /usr )
 set( CVT_SEARCH_NAMES	"cvt cvt_d" )
 set( CVT_INCLUDE_DIRS	"${CMAKE_INSTALL_PREFIX}/include" )
 set( CVT_LIB_DIR		"${CMAKE_INSTALL_PREFIX}/lib" )
@@ -926,10 +928,7 @@ set( CVT_PLUGIN_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/plugins" )
 set( CVT_FOUND_VAR		"CVT" )
 CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" @ONLY )
 
-INSTALL( FILES 
-	"${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake"
-	DESTINATION share/cvt
-)
+INSTALL( FILES "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" DESTINATION share/cvt )
 
 ####### Build tree config #######
 set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}" )

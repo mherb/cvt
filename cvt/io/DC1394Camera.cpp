@@ -261,13 +261,13 @@ namespace cvt
 		if( frame->color_coding != DC1394_COLOR_CODING_RAW8 &&
 			( _frame.format() == IFormat::BAYER_GRBG_UINT8 || _frame.format() == IFormat::BAYER_RGGB_UINT8 ) ){
 			// reallocate to MONO
-			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
+			_frame.reallocate( frame->size[ 0 ], frame->size[ 1 ], _formatForDC( frame->color_filter, frame->color_coding ) );
 		} else if( frame->color_coding == DC1394_COLOR_CODING_RAW8 &&
 			( _frame.format() != IFormat::BAYER_GRBG_UINT8 ||
 			  _frame.format() != IFormat::BAYER_RGGB_UINT8 ||
 			  _frame.format() != IFormat::BAYER_GBRG_UINT8 ) ){
 			// reallocate to BAYER
-			_frame.reallocate( _frame.width(), _frame.height(), _formatForDC( frame->color_filter, frame->color_coding ) );
+			_frame.reallocate( frame->size[ 0 ], frame->size[ 1 ], _formatForDC( frame->color_filter, frame->color_coding ) );
 		}
 
 		size_t stride;
@@ -720,15 +720,23 @@ namespace cvt
 		if( error != DC1394_SUCCESS )
 			throw CVTException( dc1394_error_get_string( error ) );
 
-		// pad to unit		
-		size_t rest = pacSize % packetUnits;
-		uint32_t min = pacSize - rest;
+		// pad to unit				
+		uint32_t pSize = pacSize;
+		uint32_t nPacks = pSize / packetUnits;
+		uint32_t min = packetUnits * nPacks;
 		uint32_t max = min + packetUnits;
-		pacSize = Math::min( max, maxBytes );
+		if( ( pSize - min ) < ( max - pSize ) )
+			max = min;
+		pSize = Math::min( max, maxBytes );
 
-        error = dc1394_format7_set_packet_size( _camera, _mode, pacSize );        
-        if( error != DC1394_SUCCESS )
-            throw CVTException( dc1394_error_get_string( error ) );
+        uint32_t trials = 0;
+        do {
+            error = dc1394_format7_set_packet_size( _camera, _mode, pSize );
+            trials++;
+            if( error != DC1394_SUCCESS )
+                throw CVTException( dc1394_error_get_string( error ) );
+        } while( packetSize() != pSize && trials < 5 );
+
     }
 
 	size_t DC1394Camera::packetSize() const
@@ -892,6 +900,28 @@ namespace cvt
             if( error != DC1394_SUCCESS )
                 throw CVTException( dc1394_error_get_string( error ) );
 		}
+	}
+
+	Recti DC1394Camera::areaOfInterest() const
+	{
+		Recti aoi( 0, 0, width(), height() );
+		if( _isFormat7 ){
+			uint32_t l, t, w, h;
+			dc1394error_t error = dc1394_format7_get_image_position( _camera, _mode, &l, &t );
+			if( error != DC1394_SUCCESS ){
+				throw CVTException( dc1394_error_get_string( error ) );
+			}
+
+			error = dc1394_format7_get_image_size( _camera, _mode, &w, &h );
+			if( error != DC1394_SUCCESS ){
+				throw CVTException( dc1394_error_get_string( error ) );
+			}
+			aoi.x = l;
+			aoi.y = t;
+			aoi.width = w;
+			aoi.height = h;
+		}
+		return aoi;
 	}
 
 	void DC1394Camera::setExternalTriggerMode( ExternalTriggerMode mode )
