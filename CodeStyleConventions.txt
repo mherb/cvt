@@ -69,7 +69,7 @@ The pointer symbol should be next to the type e.g. int* func() instead of int *f
 
 If possible align variable and method declarations e.g.
 
-int				abc();
+int             abc();
 const size_t	size() const;
 
 instead of
