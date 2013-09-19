@@ -58,7 +58,6 @@ ELSE (WIN32)
                 ${_NVIDIA_SDK_DIRS}
 			    ~/NVIDIA_GPU_Computing_SDK/OpenCL/common
 			    /usr/local/nvgpu/OpenCL/common
-			    /usr/local/ati-stream-sdk
 			    /opt/AMDAPP
 			    $ENV{ATISTREAMSDKROOT}
 	        PATH_SUFFIXES
@@ -70,8 +69,7 @@ ELSE (WIN32)
 			OpenCL 
             PATHS
 			$ENV{LD_LIBRARY_PATH}
-			/usr/local/ati-stream-sdk/lib/x86_64
-			/usr/local/ati-stream-sdk/lib/x86
+			/opt/AMDAPP/lib/x86
 		)
 	ENDIF (APPLE)
 ENDIF (WIN32)
