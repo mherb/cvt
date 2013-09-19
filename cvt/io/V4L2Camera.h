@@ -31,9 +31,9 @@ namespace cvt
 			size_t height( ) const;
 			const IFormat & format( ) const;
 			const Image & frame( ) const;
-			bool nextFrame( size_t timeout = 30 );
-			void startCapture( );
-			void stopCapture( );
+			bool  nextFrame( size_t timeout = 30 );
+			void  startCapture( );
+			void  stopCapture( );
 
 			/* unique identifier */
 			const String&   identifier( ) const { return _identifier; }
@@ -49,7 +49,7 @@ namespace cvt
 			void setBacklightCompensation( bool b );
 
 			static size_t count( );
-			static void cameraInfo( size_t index, CameraInfo & info );
+			static void   cameraInfo( size_t index, CameraInfo & info );
 
 			/**
 			 * \brief Function for determining capable devices on the system, can be used for debugging
@@ -67,9 +67,9 @@ namespace cvt
 			size_t _fps;
 			size_t _numBuffers;
 			size_t _camIndex;
-			bool _opened;
-			bool _capturing;
-			int _nextBuf;
+			bool   _opened;
+			bool   _capturing;
+			int    _nextBuf;
 
 			// the device file descriptor
 			int _fd;
@@ -88,18 +88,18 @@ namespace cvt
 			//TODO remove the rest of unnecessary state
 			/** V4L2 specific **/
 			v4l2_ext_control*  _extControlsToSet;
-			v4l2_timecode _timeCode;
-			v4l2_queryctrl _queryCtrl;
-			v4l2_querymenu _queryMenu;
-			v4l2_input _input;
-			v4l2_control _control;
-			v4l2_ext_controls _extendedControls;
+			v4l2_timecode      _timeCode;
+			v4l2_queryctrl     _queryCtrl;
+			v4l2_querymenu     _queryMenu;
+			v4l2_input         _input;
+			v4l2_control       _control;
+			v4l2_ext_controls  _extendedControls;
 
-			bool _autoExposure;
-			bool _autoIris;
-			bool _autoFocus;
-			bool _autoWhiteBalance;
-			bool _backLightCompensation;
+			bool   _autoExposure;
+			bool   _autoIris;
+			bool   _autoFocus;
+			bool   _autoWhiteBalance;
+			bool   _backLightCompensation;
 			size_t _absExposureVal;
 
 			String _identifier;
@@ -110,13 +110,13 @@ namespace cvt
 			static const int standardHeights[];
 
 			// private helper funcs ...
-			void open( );
-			void close( );
-			void init( );
-			void queryBuffers( bool unmap = false );
-			void enqueueBuffers( );
-			void extendedControl( );
-			static void control( int fd, int field, int value );
+			void                  open( );
+			void                  close( );
+			void                  init( );
+			void                  queryBuffers( bool unmap = false );
+			void                  enqueueBuffers( );
+			void                  extendedControl( );
+			static void           control( int fd, int field, int value );
 			static const IFormat& formatForV4L2PixFormat( uint32_t pixelformat );
 
 	};
