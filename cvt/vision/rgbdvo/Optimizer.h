@@ -65,7 +65,7 @@ namespace cvt {
             };
 
             Optimizer();
-            virtual ~Optimizer(){}
+            virtual ~Optimizer() {}
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
