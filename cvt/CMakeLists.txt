@@ -481,6 +481,7 @@ SET( CVT_HEADERS
    vision/Vision.h
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/ApproxMedian.h
+   vision/rgbdvo/ErrorLogger.h
    vision/rgbdvo/Linearizer.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/KeyframeData.h
