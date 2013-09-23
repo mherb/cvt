@@ -102,9 +102,7 @@ namespace cvt
 
         if( _params.usePreset ){
             loadPreset( _params.preset );
-        }
-        //setISOSpeed( _params.isoSpeed );
-        //setFrameRate( _fps );
+        }        
         dcSettings( mode );
 
 		_identifier.sprintf( "%llu", _camera->guid );

@@ -29,6 +29,12 @@ namespace cvt {
                 int rightTriggerPin;
             };
 
+            enum SubCamera {
+                LEFT,
+                RIGHT,
+                BOTH
+            };
+
             ChameleonStereo( const Parameters& params );
 
             ~ChameleonStereo();
@@ -73,7 +79,7 @@ namespace cvt {
             void setFps( float fps );
             float fps() const;
 
-            void setPacketSize( size_t n );
+            void setPacketSize( size_t n, SubCamera cam = BOTH );
             size_t packetSize() const;
 
             void setAreaOfInterest( const Recti& rect );
@@ -91,6 +97,8 @@ namespace cvt {
             void enableAutoWhiteBalance( bool val );
 
             bool gainMode() const;
+
+            void loadPreset( DC1394Camera::CameraPreset preset );
 
         private:
             StereoCameraCalibration _calib;
