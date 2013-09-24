@@ -206,10 +206,20 @@ namespace cvt {
         return _leftCam->frameRate();
     }
 
-    void ChameleonStereo::setPacketSize( size_t n )
+    void ChameleonStereo::setPacketSize( size_t n, SubCamera cam )
     {
-        _leftCam->setPacketSize( n );
-        _rightCam->setPacketSize( n );
+        switch( cam ){
+            case LEFT:
+                _leftCam->setPacketSize( n );
+                break;
+            case RIGHT:
+                _rightCam->setPacketSize( n );
+                break;
+            case BOTH:
+                _leftCam->setPacketSize( n );
+                _rightCam->setPacketSize( n );
+                break;
+        }
     }
 
     size_t ChameleonStereo::packetSize() const
@@ -296,5 +306,11 @@ namespace cvt {
     {
         return _leftCam->gainMode() == DC1394Camera::AUTO &&
                _rightCam->gainMode() == DC1394Camera::AUTO;
+    }
+
+    void ChameleonStereo::loadPreset( DC1394Camera::CameraPreset preset )
+    {
+        _leftCam->loadPreset( preset );
+        _rightCam->loadPreset( preset );
     }
 }
