@@ -67,8 +67,7 @@ namespace cvt {
         /* Set up the output control if you are using standard C streams */
         png_init_io( png_ptr, fp );
 
-        if( tmpImage->format().type == IFORMAT_TYPE_UINT16 )
-            png_set_swap( png_ptr );
+
 
         int channels;
         switch( tmpImage->format().formatID ) {
@@ -94,16 +93,16 @@ namespace cvt {
                 break;
         }
 
-        png_set_IHDR(png_ptr, info_ptr, 
-                     tmpImage->width(), 
-                     tmpImage->height(), 
+        png_set_IHDR(png_ptr, info_ptr,
+                     tmpImage->width(),
+                     tmpImage->height(),
                      tmpImage->bpc() * 8,
                      channels,
-                     PNG_INTERLACE_NONE, 
-                     PNG_COMPRESSION_TYPE_BASE, 
-                     PNG_FILTER_TYPE_BASE);
+                     PNG_INTERLACE_NONE,
+                     PNG_COMPRESSION_TYPE_BASE,
+                     PNG_FILTER_TYPE_BASE );
 
-        /* 
+        /*
          *	Optional gamma chunk is strongly suggested if you have any guess
          *	as to the correct gamma of the image.
          */
@@ -111,7 +110,12 @@ namespace cvt {
         //png_set_gAMA(png_ptr, info_ptr, gamma);   
 
         /* Write the file header information.  REQUIRED */
-        png_write_info(png_ptr, info_ptr);
+        png_write_info( png_ptr, info_ptr );
+
+        /* WARNING: this must be after png_write_info - otherwise it is somehow ignored ?!*/
+        if( tmpImage->format().type == IFORMAT_TYPE_UINT16 ) {
+            png_set_swap( png_ptr );
+        }
 
         png_bytep row_pointers[ tmpImage->height() ];
 
@@ -124,7 +128,8 @@ namespace cvt {
         for(size_t k = 0; k < tmpImage->height(); k++)
             row_pointers[ k ] = ( png_bytep ) ( base + stride * k );
 
-        png_write_image(png_ptr, row_pointers);
+
+        png_write_image( png_ptr, row_pointers );
 
         /* It is REQUIRED to call this to finish writing the rest of the file */
         png_write_end( png_ptr, info_ptr );
@@ -132,7 +137,7 @@ namespace cvt {
         tmpImage->unmap( base );
 
         /* Clean up after the write, and free any memory allocated */
-        png_destroy_write_struct(&png_ptr, &info_ptr);
+        png_destroy_write_struct( &png_ptr, &info_ptr );
 
         /* Close the file */
         fclose( fp );

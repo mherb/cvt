@@ -4,8 +4,8 @@
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.1f
 #define NORMALCOMPMAX 0.95f
-#define NUMRNDTRIES	 3
-#define NUMRNDSAMPLE 2
+#define NUMRNDTRIES	 2
+#define NUMRNDSAMPLE 3
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -33,7 +33,7 @@ float4 nd_state_init( RNG* rng, const float2 coord, int lr, const float normmul,
 	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
-	float nfactor = fmax( length( n.xy ) + 0.01f, 1.0f );
+	float nfactor = fmax( length( n.xy ) + 0.001f, 1.0f );
 	n.xy = n.xy / nfactor;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
@@ -80,7 +80,7 @@ float4 nd_state_refine( RNG* rng, const float4 _state, const float2 coord, const
 	n.x = clamp( n.x, -NORMALCOMPMAX, NORMALCOMPMAX );
 	n.y = clamp( n.y, -NORMALCOMPMAX, NORMALCOMPMAX );
 
-	float nfactor = fmax( length( n.xy ) + 0.01f, 1.0f );
+	float nfactor = fmax( length( n.xy ) + 0.001f, 1.0f );
 	n.xy = n.xy / nfactor;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 
@@ -172,7 +172,7 @@ inline float patch_eval_color_grad_weighted( read_only image2d_t colimg1, read_o
 			float4 val1 = read_imagef( colimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 			float4 gval1 = read_imagef( gradimg1, SAMPLER_BILINEAR, pos  + ( float2 ) ( 0.5f, 0.5f));
 
-			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 20.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
+			float w1 = native_exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * ( smoothstep( 0.0f, 26.0f, length( displace ) ) * 1.5f * COLORWEIGHT + 5.0f ) );// * exp( -fast_length( displace ) * 0.05f );
 
 //			float w1 = exp( -dot( fabs( valcenter.xyz - val1.xyz ), ( float3 ) 1.0f ) * COLORWEIGHT );// * exp( -fast_length( displace ) * 0.05f );
 

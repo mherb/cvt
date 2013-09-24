@@ -72,21 +72,22 @@ namespace cvt {
 		if (color_type == PNG_COLOR_TYPE_PALETTE)
 			png_set_expand(png_ptr);
 
+        if( bit_depth > 8 /* && LITTLE_ENDIAN */)
+            png_set_swap( png_ptr );
+
 		switch (color_type) {
 			case PNG_COLOR_TYPE_GRAY:
 				if( bit_depth <= 8 ) {
-					if(bit_depth < 8)
+					if( bit_depth < 8 )
 						png_set_expand( png_ptr );
 					img.reallocate( width, height, IFormat::GRAY_UINT8 );
 				} else if( bit_depth == 16 ) {
-					png_set_swap( png_ptr );
 					img.reallocate( width, height, IFormat::GRAY_UINT16 );
 				} else
 					throw CVTException("Unsupported PNG format");
 				break;
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
 				if( bit_depth == 16 ) {
-					png_set_swap( png_ptr );
 					img.reallocate( width, height, IFormat::GRAYALPHA_UINT16 );
 				} else if( bit_depth == 8 )
 					img.reallocate( width, height, IFormat::GRAYALPHA_UINT8 );
@@ -96,7 +97,7 @@ namespace cvt {
 			case PNG_COLOR_TYPE_RGB:
 			case PNG_COLOR_TYPE_PALETTE:
 				/* expand paletted colors into true RGB triplets */
-				png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
+				png_set_add_alpha( png_ptr, 0xff, PNG_FILLER_AFTER );
 			case PNG_COLOR_TYPE_RGBA:
 				//png_set_bgr(png_ptr);
 				if( bit_depth <= 8 ) {
@@ -115,14 +116,14 @@ namespace cvt {
 		}
 
 
-		png_bytepp row_pointers = new png_bytep[height];
+		png_bytepp row_pointers = new png_bytep[ height ];
 		size_t stride;
 		uint8_t* base = img.map( &stride );
 		for (unsigned y = 0; y < height; y++)
 			row_pointers[y] = base + y * stride;
 
-		png_read_image(png_ptr, row_pointers);
-		png_read_end(png_ptr, info_ptr);
+		png_read_image( png_ptr, row_pointers );
+		png_read_end( png_ptr, info_ptr );
 
 		delete[] row_pointers;
 		img.unmap( base );
