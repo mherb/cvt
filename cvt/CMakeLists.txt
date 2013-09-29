@@ -739,7 +739,7 @@ IF(UNIX)
 		)
 
 	SET( CVT_DEP_LIBRARIES
-             ${CVT_DEP_LIBRARIES}
+         ${CVT_DEP_LIBRARIES}
          "-framework Cocoa"
          "-framework CoreFoundation"
          "-framework QuartzCore"
@@ -766,89 +766,54 @@ IF(UNIX)
 ENDIF()
 
 # optional uEyeUsbCamera driver if available
+SET( CVT_HAS_UEYE NO )
 FIND_PACKAGE(uEyeUsb)
 OPTION( CVT_USEUEYE "Use UEyeUsbCamera" TRUE )
 IF( UEYEUSB_FOUND AND CVT_USEUEYE )
-	SET(CVT_HEADERS
-		${CVT_HEADERS}
-      io/UEyeUsbCamera.h
-      io/UEyeStereo.h
-   )
-   SET(CVT_SOURCES
-	   ${CVT_SOURCES}
-      io/UEyeUsbCamera.cpp
-   )
-   INCLUDE_DIRECTORIES(
-      BEFORE
-      ${UEYEUSB_INCLUDE_DIRS}
-   )
-   SET(CVT_DEP_LIBRARIES
-	   ${CVT_DEP_LIBRARIES}
-      ${UEYEUSB_LIBRARIES}
-   )
-   ADD_DEFINITIONS( -DUEYEUSB_FOUND )
+    SET(CVT_HEADERS ${CVT_HEADERS} io/UEyeUsbCamera.h io/UEyeStereo.h )
+    SET(CVT_SOURCES ${CVT_SOURCES} io/UEyeUsbCamera.cpp )
+    INCLUDE_DIRECTORIES( BEFORE ${UEYEUSB_INCLUDE_DIRS} )
+    SET(CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${UEYEUSB_LIBRARIES})
+    ADD_DEFINITIONS( -DUEYEUSB_FOUND )
+    SET( CVT_HAS_UEYE YES )
 ENDIF()
 
 OPTION( CVT_USE_DC1394 "Use DC1394 library if available" TRUE )
-
+SET( CVT_HAS_DC1394 NO )
 IF( ${CVT_USE_DC1394} )
-   FIND_PACKAGE(DC1394)
-   IF( ${DC1394_FOUND} )
-	   SET(CVT_HEADERS
-		   ${CVT_HEADERS}
-         io/DC1394Camera.h
-         io/ChameleonStereo.h
-      )
-  SET(CVT_SOURCES
-	  ${CVT_SOURCES}
-         io/DC1394Camera.cpp
-         io/ChameleonStereo.cpp
-      )
-      INCLUDE_DIRECTORIES(
-         BEFORE
-         ${LIBDC1394_INCLUDE_DIR}
-      )
-  SET(CVT_DEP_LIBRARIES
-	  ${CVT_DEP_LIBRARIES}
-         ${LIBDC1394_LIBRARY}
-      )
-      ADD_DEFINITIONS( -DDC1394_FOUND )
+    FIND_PACKAGE(DC1394)
+    IF( ${DC1394_FOUND} )
+	    SET( CVT_HEADERS ${CVT_HEADERS} io/DC1394Camera.h io/ChameleonStereo.h )
+        SET( CVT_SOURCES ${CVT_SOURCES} io/DC1394Camera.cpp io/ChameleonStereo.cpp )
+        INCLUDE_DIRECTORIES( BEFORE ${LIBDC1394_INCLUDE_DIR} )
+        SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${LIBDC1394_LIBRARY} )
+        ADD_DEFINITIONS( -DDC1394_FOUND )
+        SET( CVT_HAS_DC1394 YES )
    ENDIF()
 ENDIF()
 
+SET( CVT_HAS_OpenNI NO )
 FIND_PACKAGE( OpenNI )
 OPTION( CVT_USE_OPENNI "Use OpenNI" TRUE )
 IF( OpenNI_FOUND AND CVT_USE_OPENNI )
-	SET(CVT_HEADERS
-		${CVT_HEADERS}
-      io/OpenNICamera.h
-      io/OpenNIManager.h
-   )
-   SET(CVT_SOURCES
-	   ${CVT_SOURCES}
-      io/OpenNICamera.cpp
-      io/OpenNIManager.cpp
-   )
-   INCLUDE_DIRECTORIES(
-      BEFORE
-      ${OpenNI_INCLUDE_DIRS}
-   )
-   SET(CVT_DEP_LIBRARIES
-	   ${CVT_DEP_LIBRARIES}
-      ${OpenNI_LIBRARIES}
-   )
-   ADD_DEFINITIONS( -DOpenNI_FOUND )
+    SET( CVT_HEADERS ${CVT_HEADERS} io/OpenNICamera.h io/OpenNIManager.h )
+    SET( CVT_SOURCES ${CVT_SOURCES} io/OpenNICamera.cpp io/OpenNIManager.cpp )
+    INCLUDE_DIRECTORIES( BEFORE ${OpenNI_INCLUDE_DIRS} )
+    SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${OpenNI_LIBRARIES} )
+    ADD_DEFINITIONS( -DOpenNI_FOUND )
+    SET( CVT_HAS_OPENNI YES )
 ENDIF()
 
+SET( CVT_HAS_OpenNI2 NO )
 FIND_PACKAGE( OpenNI2 )
 OPTION( CVT_USE_OPENNI2 "Use OpenNI2" TRUE )
 IF( OpenNI2_FOUND AND CVT_USE_OPENNI2 )
     SET( CVT_HEADERS ${CVT_HEADERS} io/OpenNI2Camera.h )
     SET( CVT_SOURCES ${CVT_SOURCES} io/OpenNI2Camera.cpp )
-    
     INCLUDE_DIRECTORIES( BEFORE ${OpenNI2_INCLUDE_DIRS} )   
     SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${OpenNI2_LIBRARIES} )
     ADD_DEFINITIONS( -DOpenNI2_FOUND )
+   SET( CVT_HAS_OPENNI2 YES )
 ENDIF()
 
 # include directories
@@ -860,7 +825,6 @@ INCLUDE_DIRECTORIES(
    ${X11_X11_INCLUDE_PATH}
    ${ffmpeg_INCLUDE_DIRS}
 )
-
 
 SET(CVT_ALL "${CVT_HEADERS}" "${CVT_SOURCES}")
 
