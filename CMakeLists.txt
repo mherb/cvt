@@ -17,6 +17,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # tool to generate header files out of shader or cl sources
 add_executable( glcltoheader util/glcltoheader.cpp )
+SET( CVT_GLCLTOHEADER ${PROJECT_BINARY_DIR}/bin/glcltoheader )
 INSTALL( TARGETS "glcltoheader" RUNTIME DESTINATION "share/cvt/utils" COMPONENT utils )
 
 # include build directory for the generated headers!

@@ -179,7 +179,7 @@ namespace cvt {
 
 	BEGIN_CVTTEST( filesystem )
 		bool result = true;
-	String dataFolder( DATA_FOLDER );
+	String dataFolder( CVT_DATA_FOLDER );
 	bool b = FileSystem::exists( "/usr/include" );
 	b &= FileSystem::exists( dataFolder );
 	b &= !FileSystem::exists( "bliblabluiamnothere" );

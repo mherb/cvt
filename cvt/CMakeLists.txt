@@ -159,13 +159,13 @@ SET( CL_KERNELS
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )
-   CLTOHEADER( ${CLFILE} )
+    CLTOHEADER( ${CLFILE} ${CMAKE_SOURCE_DIR} )
    # add it to the generated cl headers
    SET( CL_GEN_HEADER_CVT ${CL_GEN_HEADER_CVT} ${CL_GEN_OUTPUT} )
 ENDFOREACH(CLFILE)
 
 FOREACH( GLSLFILE ${GLSL_SHADER} )
-   GLSLTOHEADER( ${GLSLFILE} )
+    GLSLTOHEADER( ${GLSLFILE} ${CMAKE_SOURCE_DIR} )
    SET( GLSL_GEN_HEADER_CVT ${GLSL_GEN_HEADER_CVT} ${GLSL_GEN_OUTPUT} )
 ENDFOREACH(GLSLFILE)
 
@@ -919,23 +919,29 @@ set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -
 set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
 set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
-# CVTConfig file
+# CVTConfig file for installation/package
 SET( CMAKE_INSTALL_PREFIX /usr )
 set( CVT_SEARCH_NAMES	"cvt cvt_d" )
-set( CVT_INCLUDE_DIRS	"${CMAKE_INSTALL_PREFIX}/include" )
+set( CVT_INCLUDE_DIR	"${CMAKE_INSTALL_PREFIX}/include" )
+set( CVT_INCLUDE_DIRS	"${CVT_INCLUDE_DIR}" )
 set( CVT_LIB_DIR		"${CMAKE_INSTALL_PREFIX}/lib" )
 set( CVT_SCRIPT_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/cmake" )
 set( CVT_PLUGIN_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/plugins" )
+set( CVT_GLCLTOHEADER_EXEC "${CMAKE_INSTALL_PREFIX}/share/cvt/utils/glcltoheader" )
+set( CVT_DEFINITIONS -DCVT_DATA_FOLDER=\"${CMAKE_INSTALL_PREFIX}/share/cvt/data\" )
 set( CVT_FOUND_VAR		"CVT" )
 CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" @ONLY )
 
 INSTALL( FILES "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" DESTINATION share/cvt )
 
 ####### Build tree config #######
-set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}" )
+set( CVT_INCLUDE_DIR	"${CMAKE_SOURCE_DIR}" )
+set( CVT_INCLUDE_DIRS	"${CVT_INCLUDE_DIR} ${CMAKE_BINARY_DIR}" )
 set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
 set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
 set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
+set( CVT_GLCLTOHEADER_EXEC ${CVT_GLCLTOHEADER} )
+set( CVT_DEFINITIONS -DCVT_DATA_FOLDER=\"${CVT_DATA_FOLDER}\" )
 IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR
     CMAKE_BUILD_TYPE STREQUAL "ZEROOPT" )
 	set( CVT_SEARCH_NAMES	"cvt_d" )
