@@ -80,7 +80,7 @@ namespace cvt {
 	{
 		_transform.setIdentity();
 
-		std::string dataFolder(DATA_FOLDER);
+		std::string dataFolder( CVT_DATA_FOLDER );
 		std::string inputFile(dataFolder + "/face.data");
 		loadFaceShape( inputFile.c_str() );
 	}

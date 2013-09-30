@@ -24,6 +24,41 @@
 #include <Eigen/Core>
 
 namespace cvt {
+
+    static bool testJacobianWithGenerators()
+    {
+        Eigen::Matrix<double, 3, 8> jGenerated, jAnalytic, jDiff;
+
+		SL3<double> pose;
+		pose.set( Math::deg2Rad( 10 ), Math::deg2Rad( -25 ), 0.76, 0.89, 10, -10, 0.0001, 0.0002 );
+
+		Eigen::Matrix<double, 3, 1> point;
+		Eigen::Matrix<double, 3, 1> p, col;
+		point[ 0 ] = 13; point[ 1 ] = 8; point[ 2 ] = 12;;
+
+		pose.transform( p, point );
+
+		for( size_t i = 0; i < SL3<double>::NPARAMS; i++ ){
+
+			col = SL3<double>::generator( i ) * p;
+			jGenerated.block<3, 1>( 0, i ) = col;
+		}
+
+		pose.jacobian( jAnalytic, point );
+
+		bool b, ret = true;
+		jDiff = jAnalytic - jGenerated;
+		b = ( jDiff.array().abs().sum() / 24.0 ) < 0.00001;
+		CVTTEST_PRINT( "Generated Pose Jacobian", b );
+		if( !b ){
+			std::cout << "Analytic:\n" << jAnalytic << std::endl;
+			std::cout << "Generated:\n" << jGenerated << std::endl;
+			std::cout << "Difference:\n" << jDiff << std::endl;
+		}
+		ret &= b;
+
+        return ret;
+    }
     
 	static bool testJacobian()
 	{
@@ -316,6 +351,7 @@ BEGIN_CVTTEST( SL3 )
 	ret &= b;
 
 	ret &= testJacobian();
+	ret &= testJacobianWithGenerators();
     ret &= testHessian();
     ret &= testScreenHessian();
 

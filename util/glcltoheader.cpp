@@ -6,6 +6,7 @@
 #include <errno.h>
 
 static std::string INCLUDEDIR;
+static std::string CVT_INCLUDEDIR;
 
 void escapeStream( std::ofstream& output, std::ifstream& input, const std::string& filename );
 
@@ -37,13 +38,16 @@ void importFile( std::ofstream& output, const std::string& _path )
 	std::string path( INCLUDEDIR + _path );
     input.open( path.c_str() );
 
-	std::cout << "Importing " << path << std::endl;
-
     if( !input.is_open() ) {
-		std::cerr << "Failed to import file: \"" << path << "\"" << std::endl;
-		::exit( 1 );
-		return;
+	    path = CVT_INCLUDEDIR + _path;
+        input.open( path.c_str() );
+        if( !input.is_open() ){
+            std::cerr << "Failed to import file: \"" << path << "\"" << std::endl;
+            ::exit( 1 );
+            return;
+        }
 	}
+	std::cout << "Importing " << path << std::endl;
 	escapeStream( output, input, _path );
     input.close();
 }
@@ -124,13 +128,14 @@ int mkpath( std::string s, mode_t mode )
 int main( int argc, char** argv )
 {
 
-	if( argc != 4 ) {
-		std::cerr << "usage: " << argv[ 0 ] << " cl-file header-file name" << std::endl;
+	if( argc != 5 ) {
+		std::cerr << "usage: " << argv[ 0 ] << " cl-file header-file name cvt_include_dir" << std::endl;
 		return 1;
 	}
 
 	//	std::cout << "\n\n\n" << argv[ 0 ] << " " << argv[ 1 ] << " " << argv[ 2 ] << "\n\n\n" << std::endl;
 
+    CVT_INCLUDEDIR = std::string( argv[ 4 ] ) + "/";
 	std::string infile( argv[ 1 ] );
 	INCLUDEDIR = infile.substr( 0, infile.find_last_of("/") + 1 );
 	std::string inbasename = infile.substr( infile.find_last_of("/") + 1, std::string::npos );

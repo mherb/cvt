@@ -1,4 +1,0 @@
-INCLUDE(MacroTestApplication)
-
-SET( OTHER_LIBS "" )
-MACRO_TEST_APPLICATION( "${OTHER_LIBS}" )

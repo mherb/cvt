@@ -159,13 +159,13 @@ SET( CL_KERNELS
 )
 
 FOREACH( CLFILE ${CL_KERNELS} )
-   CLTOHEADER( ${CLFILE} )
+    CLTOHEADER( ${CLFILE} ${CMAKE_SOURCE_DIR} )
    # add it to the generated cl headers
    SET( CL_GEN_HEADER_CVT ${CL_GEN_HEADER_CVT} ${CL_GEN_OUTPUT} )
 ENDFOREACH(CLFILE)
 
 FOREACH( GLSLFILE ${GLSL_SHADER} )
-   GLSLTOHEADER( ${GLSLFILE} )
+    GLSLTOHEADER( ${GLSLFILE} ${CMAKE_SOURCE_DIR} )
    SET( GLSL_GEN_HEADER_CVT ${GLSL_GEN_HEADER_CVT} ${GLSL_GEN_OUTPUT} )
 ENDFOREACH(GLSLFILE)
 
@@ -739,7 +739,7 @@ IF(UNIX)
 		)
 
 	SET( CVT_DEP_LIBRARIES
-             ${CVT_DEP_LIBRARIES}
+         ${CVT_DEP_LIBRARIES}
          "-framework Cocoa"
          "-framework CoreFoundation"
          "-framework QuartzCore"
@@ -766,89 +766,54 @@ IF(UNIX)
 ENDIF()
 
 # optional uEyeUsbCamera driver if available
+SET( CVT_HAS_UEYE NO )
 FIND_PACKAGE(uEyeUsb)
 OPTION( CVT_USEUEYE "Use UEyeUsbCamera" TRUE )
 IF( UEYEUSB_FOUND AND CVT_USEUEYE )
-	SET(CVT_HEADERS
-		${CVT_HEADERS}
-      io/UEyeUsbCamera.h
-      io/UEyeStereo.h
-   )
-   SET(CVT_SOURCES
-	   ${CVT_SOURCES}
-      io/UEyeUsbCamera.cpp
-   )
-   INCLUDE_DIRECTORIES(
-      BEFORE
-      ${UEYEUSB_INCLUDE_DIRS}
-   )
-   SET(CVT_DEP_LIBRARIES
-	   ${CVT_DEP_LIBRARIES}
-      ${UEYEUSB_LIBRARIES}
-   )
-   ADD_DEFINITIONS( -DUEYEUSB_FOUND )
+    SET(CVT_HEADERS ${CVT_HEADERS} io/UEyeUsbCamera.h io/UEyeStereo.h )
+    SET(CVT_SOURCES ${CVT_SOURCES} io/UEyeUsbCamera.cpp )
+    INCLUDE_DIRECTORIES( BEFORE ${UEYEUSB_INCLUDE_DIRS} )
+    SET(CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${UEYEUSB_LIBRARIES})
+    ADD_DEFINITIONS( -DUEYEUSB_FOUND )
+    SET( CVT_HAS_UEYE YES )
 ENDIF()
 
 OPTION( CVT_USE_DC1394 "Use DC1394 library if available" TRUE )
-
+SET( CVT_HAS_DC1394 NO )
 IF( ${CVT_USE_DC1394} )
-   FIND_PACKAGE(DC1394)
-   IF( ${DC1394_FOUND} )
-	   SET(CVT_HEADERS
-		   ${CVT_HEADERS}
-         io/DC1394Camera.h
-         io/ChameleonStereo.h
-      )
-  SET(CVT_SOURCES
-	  ${CVT_SOURCES}
-         io/DC1394Camera.cpp
-         io/ChameleonStereo.cpp
-      )
-      INCLUDE_DIRECTORIES(
-         BEFORE
-         ${LIBDC1394_INCLUDE_DIR}
-      )
-  SET(CVT_DEP_LIBRARIES
-	  ${CVT_DEP_LIBRARIES}
-         ${LIBDC1394_LIBRARY}
-      )
-      ADD_DEFINITIONS( -DDC1394_FOUND )
+    FIND_PACKAGE(DC1394)
+    IF( ${DC1394_FOUND} )
+	    SET( CVT_HEADERS ${CVT_HEADERS} io/DC1394Camera.h io/ChameleonStereo.h )
+        SET( CVT_SOURCES ${CVT_SOURCES} io/DC1394Camera.cpp io/ChameleonStereo.cpp )
+        INCLUDE_DIRECTORIES( BEFORE ${LIBDC1394_INCLUDE_DIR} )
+        SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${LIBDC1394_LIBRARY} )
+        ADD_DEFINITIONS( -DDC1394_FOUND )
+        SET( CVT_HAS_DC1394 YES )
    ENDIF()
 ENDIF()
 
+SET( CVT_HAS_OpenNI NO )
 FIND_PACKAGE( OpenNI )
 OPTION( CVT_USE_OPENNI "Use OpenNI" TRUE )
 IF( OpenNI_FOUND AND CVT_USE_OPENNI )
-	SET(CVT_HEADERS
-		${CVT_HEADERS}
-      io/OpenNICamera.h
-      io/OpenNIManager.h
-   )
-   SET(CVT_SOURCES
-	   ${CVT_SOURCES}
-      io/OpenNICamera.cpp
-      io/OpenNIManager.cpp
-   )
-   INCLUDE_DIRECTORIES(
-      BEFORE
-      ${OpenNI_INCLUDE_DIRS}
-   )
-   SET(CVT_DEP_LIBRARIES
-	   ${CVT_DEP_LIBRARIES}
-      ${OpenNI_LIBRARIES}
-   )
-   ADD_DEFINITIONS( -DOpenNI_FOUND )
+    SET( CVT_HEADERS ${CVT_HEADERS} io/OpenNICamera.h io/OpenNIManager.h )
+    SET( CVT_SOURCES ${CVT_SOURCES} io/OpenNICamera.cpp io/OpenNIManager.cpp )
+    INCLUDE_DIRECTORIES( BEFORE ${OpenNI_INCLUDE_DIRS} )
+    SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${OpenNI_LIBRARIES} )
+    ADD_DEFINITIONS( -DOpenNI_FOUND )
+    SET( CVT_HAS_OPENNI YES )
 ENDIF()
 
+SET( CVT_HAS_OpenNI2 NO )
 FIND_PACKAGE( OpenNI2 )
 OPTION( CVT_USE_OPENNI2 "Use OpenNI2" TRUE )
 IF( OpenNI2_FOUND AND CVT_USE_OPENNI2 )
     SET( CVT_HEADERS ${CVT_HEADERS} io/OpenNI2Camera.h )
     SET( CVT_SOURCES ${CVT_SOURCES} io/OpenNI2Camera.cpp )
-    
     INCLUDE_DIRECTORIES( BEFORE ${OpenNI2_INCLUDE_DIRS} )   
     SET( CVT_DEP_LIBRARIES ${CVT_DEP_LIBRARIES} ${OpenNI2_LIBRARIES} )
     ADD_DEFINITIONS( -DOpenNI2_FOUND )
+   SET( CVT_HAS_OPENNI2 YES )
 ENDIF()
 
 # include directories
@@ -860,7 +825,6 @@ INCLUDE_DIRECTORIES(
    ${X11_X11_INCLUDE_PATH}
    ${ffmpeg_INCLUDE_DIRS}
 )
-
 
 SET(CVT_ALL "${CVT_HEADERS}" "${CVT_SOURCES}")
 
@@ -919,23 +883,29 @@ set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -
 set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
 set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
-# CVTConfig file
+# CVTConfig file for installation/package
 SET( CMAKE_INSTALL_PREFIX /usr )
 set( CVT_SEARCH_NAMES	"cvt cvt_d" )
-set( CVT_INCLUDE_DIRS	"${CMAKE_INSTALL_PREFIX}/include" )
+set( CVT_INCLUDE_DIR	"${CMAKE_INSTALL_PREFIX}/include" )
+set( CVT_INCLUDE_DIRS	"${CVT_INCLUDE_DIR}" )
 set( CVT_LIB_DIR		"${CMAKE_INSTALL_PREFIX}/lib" )
 set( CVT_SCRIPT_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/cmake" )
 set( CVT_PLUGIN_PATH	"${CMAKE_INSTALL_PREFIX}/share/cvt/plugins" )
+set( CVT_GLCLTOHEADER_EXEC "${CMAKE_INSTALL_PREFIX}/share/cvt/utils/glcltoheader" )
+set( CVT_DEFINITIONS -DCVT_DATA_FOLDER=\"${CMAKE_INSTALL_PREFIX}/share/cvt/data\" )
 set( CVT_FOUND_VAR		"CVT" )
 CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" @ONLY )
 
 INSTALL( FILES "${CMAKE_BINARY_DIR}/ship/CVTConfig.cmake" DESTINATION share/cvt )
 
 ####### Build tree config #######
-set( CVT_INCLUDE_DIRS	"${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}" )
+set( CVT_INCLUDE_DIR	"${CMAKE_SOURCE_DIR}" )
+set( CVT_INCLUDE_DIRS	"${CVT_INCLUDE_DIR} ${CMAKE_BINARY_DIR}" )
 set( CVT_LIB_DIR		"${LIBRARY_OUTPUT_PATH}" )
 set( CVT_SCRIPT_PATH	"${CMAKE_SOURCE_DIR}/cmake" )
 set( CVT_PLUGIN_PATH	"${CMAKE_BINARY_DIR}/bin/plugins" )
+set( CVT_GLCLTOHEADER_EXEC ${CVT_GLCLTOHEADER} )
+set( CVT_DEFINITIONS -DCVT_DATA_FOLDER=\"${CVT_DATA_FOLDER}\" )
 IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR
     CMAKE_BUILD_TYPE STREQUAL "ZEROOPT" )
 	set( CVT_SEARCH_NAMES	"cvt_d" )

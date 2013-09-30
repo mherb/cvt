@@ -40,7 +40,7 @@ namespace cvt {
 			typedef Eigen::Matrix<T, 3, 1> PointType;
 
 			SL3();
-			~SL3(){};
+			~SL3(){}
 
 			/* set: angles in radians! */
 			void set( T alpha, T phi, T sx, T sy, T tx, T ty, T v0, T v1 );
@@ -95,10 +95,42 @@ namespace cvt {
 			const MatrixType & transformation() const { return _current; }
 			MatrixType & transformation() { return _current; }
 
-			
+			static const MatrixType& generator( size_t i ) { return _generators[ i ]; }
 
 		private:
 			MatrixType		_current;
+
+			static MatrixType	_generators[ NPARAMS ];
+	};
+
+	template <typename T>
+	static typename SL3<T>::MatrixType _initGenerator( size_t i )
+	{
+		typename SL3<T>::MatrixType ret;
+		switch( i ){
+			case 0: ret << 0, 0, 1, 0,  0, 0, 0, 0, 0; break;
+			case 1: ret << 0, 0, 0, 0,  0, 1, 0, 0, 0; break;
+			case 2: ret << 0, 1, 0, 0,  0, 0, 0, 0, 0; break;
+			case 3: ret << 0, 0, 0, 1,  0, 0, 0, 0, 0; break;
+			case 4: ret << 1, 0, 0, 0, -1, 0, 0, 0, 0; break;
+			case 5: ret << 0, 0, 0, 0, -1, 0, 0, 0, 1; break;
+			case 6: ret << 0, 0, 0, 0,  0, 0, 1, 0, 0; break;
+			default: ret << 0, 0, 0, 0,  0, 0, 0, 1, 0; break;
+		}
+		return ret;
+	}
+
+	template <typename T>
+	typename SL3<T>::MatrixType SL3<T>::_generators[] =
+	{
+		_initGenerator<T>( 0 ),
+		_initGenerator<T>( 1 ),
+		_initGenerator<T>( 2 ),
+		_initGenerator<T>( 3 ),
+		_initGenerator<T>( 4 ),
+		_initGenerator<T>( 5 ),
+		_initGenerator<T>( 6 ),
+		_initGenerator<T>( 7 )
 	};
 
 	template < typename T >

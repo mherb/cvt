@@ -1,5 +1,4 @@
-SET( GLCLTOHEADER_DST "${CMAKE_BINARY_DIR}/bin/glcltoheader" )
-MACRO(GLSLTOHEADER _filename )
+MACRO(GLSLTOHEADER _filename cvt_includes_dir )
     GET_FILENAME_COMPONENT(_basename ${_filename} NAME_WE)
     GET_FILENAME_COMPONENT(_ext ${_filename} EXT )
     GET_FILENAME_COMPONENT(_path ${_filename} PATH )
@@ -16,15 +15,16 @@ MACRO(GLSLTOHEADER _filename )
     SET( GLSL_GEN_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_path}${_basename}_${_ext}.h" )
 
     ADD_CUSTOM_COMMAND(	OUTPUT ${GLSL_GEN_OUTPUT}
-						COMMAND ${GLCLTOHEADER_DST} 
+                        COMMAND ${CVT_GLCLTOHEADER} 
 						"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}"
                         "${GLSL_GEN_OUTPUT}"
 						"${_basename}_${_ext}"
+                        "${cvt_includes_dir}"
 						DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" "glcltoheader"
     )
 ENDMACRO(GLSLTOHEADER)
 
-MACRO(CLTOHEADER _filename)
+MACRO(CLTOHEADER _filename cvt_includes_dir)
     GET_FILENAME_COMPONENT(_basename ${_filename} NAME_WE)
     GET_FILENAME_COMPONENT(_path ${_filename} PATH )
 
@@ -35,14 +35,14 @@ MACRO(CLTOHEADER _filename)
 		SET(_path "${_path}/" )
     ENDIF()
 
-
     SET( CL_GEN_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_path}${_basename}.h" )
     ADD_CUSTOM_COMMAND(
         OUTPUT  ${CL_GEN_OUTPUT}
-		COMMAND ${GLCLTOHEADER_DST}
+        COMMAND ${CVT_GLCLTOHEADER} 
                 ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
                 ${CL_GEN_OUTPUT}
 				${_basename}
+                "${cvt_includes_dir}"
 				DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_filename} glcltoheader
     )
 ENDMACRO(CLTOHEADER)

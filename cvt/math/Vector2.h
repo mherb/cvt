@@ -22,6 +22,9 @@ namespace cvt {
     template<typename T>
     class Vector2 {
         public:
+        typedef     T TYPE;
+        enum        { DIMENSION = 2 };
+
                     Vector2();
                     Vector2( const T x, const T y );
                     Vector2( const Vector2<T>& vec2 );

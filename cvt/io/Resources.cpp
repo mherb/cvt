@@ -18,7 +18,7 @@
 namespace cvt {
 	Resources::Resources()
 	{
-		searchFolders.push_back( DATA_FOLDER );
+		searchFolders.push_back( CVT_DATA_FOLDER );
 		searchFolders.push_back( "." );
 	}
 
