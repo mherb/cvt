@@ -122,7 +122,9 @@ namespace cvt
 		_timeCode.flags = V4L2_TC_FLAG_DROPFRAME;
 
 		// initialize V4L2 stuff
-		struct v4l2_format fmt = {0};
+		struct v4l2_format fmt;
+		memset(&fmt, 0, sizeof fmt);
+
 		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		fmt.fmt.pix.width = _width;
 		fmt.fmt.pix.height = _height;
@@ -169,7 +171,9 @@ namespace cvt
 		_frame = new Image( _width, _height, _format );
 
 		// set stream parameter (fps):
-		v4l2_streamparm streamParameter = {0};
+		v4l2_streamparm streamParameter;
+		memset(&streamParameter, 0, sizeof streamParameter);
+
 		streamParameter.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		streamParameter.parm.capture.timeperframe.numerator = 1000;
 		streamParameter.parm.capture.timeperframe.denominator = _fps * 1000;
