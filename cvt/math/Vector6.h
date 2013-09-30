@@ -18,6 +18,10 @@ namespace cvt {
     template<typename T>
     class Vector6 {
         public:
+        typedef     T TYPE;
+        enum        { DIMENSION = 6 };
+
+
                     Vector6();
                     Vector6( T x, T y, T z, T u, T v, T w );
                     Vector6( const Vector6<T>& vec );

@@ -20,6 +20,9 @@ namespace cvt {
     template<typename T>
     class Vector4 {
         public:
+        typedef     T TYPE;
+        enum        { DIMENSION = 4 };
+
                     Vector4();
                     Vector4( T x, T y, T z, T w );
                     Vector4( const Vector4<T>& vec );

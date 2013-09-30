@@ -15,14 +15,19 @@ namespace cvt
 	class Matrix6
 	{
 		public:
-			Matrix6<T>( void );
-			Matrix6<T>( const Matrix6<T>& mat6 );
+            typedef             T TYPE;
+            enum                { DIMENSION = 6 };
+
+			                    Matrix6<T>( void );
+			                    Matrix6<T>( const Matrix6<T>& mat6 );
 			explicit            Matrix6<T>( const Vector6<T>& a, const Vector6<T>& b, const Vector6<T>& c,
 										    const Vector6<T>& d, const Vector6<T>& e, const Vector6<T>& f );
 			explicit            Matrix6<T>( const T src[ 6 ][ 6 ] );
 
 			const Vector6<T>&   operator[]( int index ) const;
 			Vector6<T>&         operator[]( int index );
+            const T&            operator()( int r, int c ) const;
+            T&                  operator()( int r, int c );
 			Matrix6<T>          operator-( ) const;
 			Matrix6<T>          operator*( const T c ) const;
 			Matrix6<T>          operator+( const T c ) const;
@@ -86,6 +91,18 @@ namespace cvt
 	{
 		return mat[ index ];
 	}
+
+    template<typename T>
+    inline const T& Matrix6<T>::operator()( int r, int c ) const
+    {
+        return mat[ r ][ c ];
+    }
+
+    template<typename T>
+    inline T& Matrix6<T>::operator()( int r, int c )
+    {
+        return mat[ r ][ c ];
+    }
 
 	template<typename T>
 	inline Matrix6<T> Matrix6<T>::operator-( ) const

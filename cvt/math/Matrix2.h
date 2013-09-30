@@ -23,6 +23,9 @@ namespace cvt {
     template<typename T>
     class Matrix2 {
         public:
+        typedef             T TYPE;
+        enum                { DIMENSION = 2 };
+
                             Matrix2<T>( void );
         explicit			Matrix2<T>( const Vector2<T>& x, const Vector2<T>& y );
         explicit			Matrix2<T>( const T a, const T b, const T c, const T d );
@@ -31,6 +34,8 @@ namespace cvt {
 
         const Vector2<T>&	operator[]( int index ) const;
         Vector2<T>&			operator[]( int index );
+        const T&            operator()( int r, int c ) const;
+        T&                  operator()( int r, int c );
         Matrix2<T>			operator-() const;
         Matrix2<T>			operator*( const T c ) const;
         Matrix2<T>			operator+( const T c ) const;
@@ -139,6 +144,18 @@ namespace cvt {
     inline Vector2<T>& Matrix2<T>::operator[]( int index )
     {
         return mat[ index ];
+    }
+
+    template<typename T>
+    inline const T& Matrix2<T>::operator()( int r, int c ) const
+    {
+        return mat[ r ][ c ];
+    }
+
+    template<typename T>
+    inline T& Matrix2<T>::operator()( int r, int c )
+    {
+        return mat[ r ][ c ];
     }
 
     template<typename T>
