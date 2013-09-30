@@ -42,7 +42,9 @@ namespace cvt {
 		    left.memType() != IALLOCATOR_CL || right.memType() != IALLOCATOR_CL )
 			throw CVTException( "Left/Right stereo images inconsistent or incompatible memory type" );
 
-		const float maxdispdiff = 0.5f;
+		const float maxdispdiff = 0.75f;
+		const float maxanglediff = 10.0f;
+		const float thetascale = 30.0f;
 		float theta = 0.0f;
 		CLBuffer viewbuf1( sizeof( PMHVIEWPROP ) * left.width() * left.height() );
 		CLBuffer viewbuf2( sizeof( PMHVIEWPROP ) * right.width() * right.height() );
@@ -198,7 +200,7 @@ namespace cvt {
 			_clpmh_consistency.setArg( 1, *clmatches1[ 1 - swap ] );
 			_clpmh_consistency.setArg( 2, *clmatches2[ 1 - swap ] );
 			_clpmh_consistency.setArg( 3, maxdispdiff );
-			_clpmh_consistency.setArg( 4, 5.0f );
+			_clpmh_consistency.setArg( 4, maxanglediff );
 			_clpmh_consistency.setArg<int>( 5, 1 ); // left to right
 			_clpmh_consistency.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
@@ -209,14 +211,14 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig1.png");
-			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * 60.0f + 5.0f, 250 );
+			_pdrof.apply( leftsmooth, clsmoothtmp2, leftweight, theta * thetascale + 5.0f, 250 );
 //			leftsmooth.save("stereosmooth1.png");
 
 			_clpmh_consistency.setArg( 0, clsmoothtmp );
 			_clpmh_consistency.setArg( 1, *clmatches2[ 1 - swap ] );
 			_clpmh_consistency.setArg( 2, *clmatches1[ 1 - swap ] );
 			_clpmh_consistency.setArg( 3, maxdispdiff );
-			_clpmh_consistency.setArg( 4, 5.0f );
+			_clpmh_consistency.setArg( 4, maxanglediff );
 			_clpmh_consistency.setArg<int>( 5, 0 ); // right to left;
 			_clpmh_consistency.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
@@ -227,7 +229,7 @@ namespace cvt {
 			_clpmh_fill.runWait( CLNDRange( Math::pad( clsmoothtmp.width(), KX ), Math::pad( clsmoothtmp.height(), KY ) ), CLNDRange( KX, KY ) );
 
 //			clsmoothtmp2.save("stereosmoothorig2.png");
-			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * 60.0f + 5.0f, 250 );
+			_pdrof.apply( rightsmooth, clsmoothtmp2, rightweight, theta * thetascale + 5.0f, 250 );
 //			rightsmooth.save("stereosmooth2.png");
 
 			if( iter >= 5 )
@@ -238,7 +240,7 @@ namespace cvt {
 		_clpmh_consistency.setArg( 1, *clmatches1[ 1 - ( ( iterations - 1 ) & 1 ) ] );
 		_clpmh_consistency.setArg( 2, *clmatches2[ 1 - ( ( iterations - 1 ) & 1 ) ] );
 		_clpmh_consistency.setArg( 3, maxdispdiff );
-		_clpmh_consistency.setArg( 4, 5.0f );
+		_clpmh_consistency.setArg( 4, maxanglediff );
 		_clpmh_consistency.setArg<int>( 5, 1 ); // left to right
 		_clpmh_consistency.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		cloutput1.save("stereoconsistency.png");
