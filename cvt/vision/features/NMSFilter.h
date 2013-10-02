@@ -12,6 +12,7 @@
 #define CVT_NMSFILTER_H
 
 #include <cvt/vision/features/Feature.h>
+#include <cvt/vision/features/FeatureSet.h>
 
 namespace cvt {
 
@@ -23,24 +24,6 @@ namespace cvt {
 
 			void filter( int radius );
 		private:
-			class CmpX
-			{
-				public:
-					bool operator()( const Feature& f1, const Feature& f2 )
-					{
-						return f1.pt.x < f2.pt.x;
-					}
-			};
-
-			class CmpY
-			{
-				public:
-					bool operator()( const Feature& f1, const Feature& f2 )
-					{
-						return f1.pt.y < f2.pt.y;
-					}
-			};
-
 			struct ScanlineIndex {
 				int offset;
 				int length;
@@ -79,7 +62,7 @@ namespace cvt {
 		if( !_features.size() )
 			return;
 
-		CmpY cmp;
+		FeatureSet::CmpYi cmp;
 		_maxY = ( int ) _features.back().pt.y;
 
 		_yindex = new ScanlineIndex[ _maxY + 1 ];
@@ -111,7 +94,7 @@ namespace cvt {
 	void NMSFilter::filter( int radius )
 	{
 		std::vector<Feature> filtered;
-		CmpX cmp;
+		FeatureSet::CmpX cmp;
 
 		int iend = _features.size();
 		for( int i = 0; i < iend; i++ ) {
@@ -136,7 +119,7 @@ namespace cvt {
 				}
 			}
 			filtered.push_back( _features[ i ] );
-	suppressed:
+			suppressed:
 			;
 		}
 
