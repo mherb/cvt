@@ -94,7 +94,7 @@ namespace cvt {
 	void NMSFilter::filter( int radius )
 	{
 		std::vector<Feature> filtered;
-		FeatureSet::CmpX cmp;
+		FeatureSet::CmpXi cmp;
 
 		int iend = _features.size();
 		for( int i = 0; i < iend; i++ ) {

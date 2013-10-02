@@ -97,6 +97,15 @@ namespace cvt {
 					}
 			};
 
+			class CmpXi
+			{
+				public:
+					bool operator()( const Feature& f1, const Feature& f2 )
+					{
+						return ( int ) f1.pt.x < ( int ) f2.pt.x;
+					}
+			};
+
 			class CmpYi
 			{
 				public:
