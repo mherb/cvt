@@ -46,9 +46,9 @@ namespace cvt
 			const AlignData&  dataForScale( size_t o )	const { return _dataForScale[ o ]; }
 			const Matrix4f&   pose()					const { return _pose; }
 
-            // TODO: how can we handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
+            // TODO: handle this more nicely: the problem is, that the Image has type float and is normalized between 0.0f-1.0f
             // for uint32_t the max value is 0xFFFF, we want to convert to meters, therefore we need to define the scaling
-            //  val pixvals = 1m -> scale by (float_denorm) * 1/val
+            // #val pixvals corresponds to 1m --> scale by (uint16_t max) * 1/val
             void setDepthMapScaleFactor( float val )        { _depthScaling = ( float )( 0xFFFF ) / val; }
             void setMinimumDepth( float depthTresh )        { _minDepth = depthTresh; }
             void setMaximumDepth( float depthTresh )        { _maxDepth = depthTresh; }

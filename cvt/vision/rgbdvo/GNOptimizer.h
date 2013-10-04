@@ -118,7 +118,7 @@ namespace cvt {
         HessianType  hessian;
 
         IMapScoped<const float> grayMap( gray );
-        IMapScoped<const float> depthMap( gray );
+        IMapScoped<const float> depthMap( depthImage );
 
         result.iterations = 0;
         result.numPixels = 0;

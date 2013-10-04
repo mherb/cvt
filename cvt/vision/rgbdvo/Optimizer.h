@@ -315,6 +315,7 @@ namespace cvt {
             resetOverallDelta();
         }
 
+        // update the online data for each reference frame given
         for( size_t i = 0; i < nRefs; i++ ){
             references[ i ].updateOnlineData( grayPyramid, depthImage );
         }
@@ -325,11 +326,13 @@ namespace cvt {
             if( checkResult( result ) ){
                 saveResult = result;
                 saveResult.success = true;
+            } else {
+                // set back to previous "good" one
+                result = saveResult;
             }
         }
 
         result = saveResult;
-
         tmp4 = result.warp.pose().inverse();
         result.warp.setPose( tmp4 );
     }
