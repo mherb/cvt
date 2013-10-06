@@ -194,6 +194,9 @@ namespace cvt {
 																			   const Image& depth )
 	{
 		_linearizer.updateOnlineData( cam2World, pyrf, depth );
+		for( size_t i = 0; i < pyrf.octaves(); ++i ){
+			_linearizer.relinearize( this->_dataForScale[ i ], cam2World );
+		}
 	}
 
 }

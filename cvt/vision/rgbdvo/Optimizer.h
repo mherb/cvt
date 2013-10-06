@@ -176,7 +176,9 @@ namespace cvt {
             resetOverallDelta();
         }
 
+        // update the online data
         reference.updateOnlineData( tmp4, grayPyramid, depthImage );
+
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
@@ -296,7 +298,7 @@ namespace cvt {
                                       residuals,
                                       n );
         if( _useRegularizer ){
-            float norm = 1.0f / (float) n;
+            float norm = 1.0f / ( float )n;
             hessian *= norm;
             deltaSum *= norm;
             hessian.noalias()  += ( 2 * _regAlpha * _regularizer );

@@ -66,6 +66,8 @@ namespace cvt {
             {
                 // nothing to be done for inverse
             }
+
+            void relinearize( AlignData&, const Matrix4f& ){ /* stays the same for inverse */ }
     };
 
     template <class AlignData>
@@ -126,8 +128,12 @@ namespace cvt {
                 // compute the gradients of the input
                 pyrf.convolve( _onlineGradientsX, this->_kx );
                 pyrf.convolve( _onlineGradientsY, this->_ky );
+            }
 
-                throw CVTException( "TODO: update keyframedata" );
+            // needed for Fwd and ESM linearizer only
+            void relinearize( AlignData& data, const Matrix4f& cam2World )
+            {
+                data.relinearize( cam2World );
             }
 
         protected:

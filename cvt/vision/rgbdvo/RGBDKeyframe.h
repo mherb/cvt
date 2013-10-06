@@ -191,10 +191,6 @@ namespace cvt
         gx.reallocate( img.width(), img.height(), IFormat::GRAY_FLOAT );
         gy.reallocate( img.width(), img.height(), IFormat::GRAY_FLOAT );
 
-        // sobel style
-        //gray.convolve( gx, _kx, _gaussY );
-        //gray.convolve( gy, _gaussX, _ky );
-
         // normal
         img.convolve( gx, _kx );
         img.convolve( gy, _ky );

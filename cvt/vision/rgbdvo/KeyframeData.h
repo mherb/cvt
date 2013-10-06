@@ -126,6 +126,18 @@ namespace cvt {
                 simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );
             }
 
+            void relinearize( const Matrix4f& cam2World )
+            {
+                // transform points into camera coordinate frame
+                std::vector<Vector3f> pCam( size() );
+                SIMD::instance()->transformPoints( pCam.data(), cam2World, _points3d.data(), size() );
+
+                // re-evaluate the screen jacobians
+                for( size_t i = 0; i < size(); ++i ){
+                    Warp::screenJacobian( _screenJacobians[ i ], pCam[ i ], _intrinsics );
+                }
+            }
+
         protected:
             std::vector<Vector3f>       _points3d;
             std::vector<float>          _pixelValues;
