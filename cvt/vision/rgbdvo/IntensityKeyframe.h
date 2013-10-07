@@ -32,7 +32,7 @@ namespace cvt {
 	class IntensityKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-			typedef RGBDKeyframe<AlignData>             Base;
+            typedef RGBDKeyframe<AlignData>             Base;
 			typedef typename Base::WarpType				WarpType;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;

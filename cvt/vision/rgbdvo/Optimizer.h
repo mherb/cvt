@@ -90,7 +90,7 @@ namespace cvt {
 
             void optimizeMultiframe( Result& result,
                                      const Matrix4f& posePrediction,
-                                     KFType* references, size_t nRefs,
+                                     KFType **references, size_t nRefs,
                                      const ImagePyramid& grayPyramid,
                                      const Image& depthImage );
 
@@ -129,13 +129,13 @@ namespace cvt {
 
 
 			virtual void optimizeSingleScale( Result& result,
-											  KFType* references, size_t /*nRefs*/,
+											  KFType** references, size_t /*nRefs*/,
 											  const Image& gray,
 											  const Image& depthImage,
 											  size_t octave )
             {
                 std::cerr << "this optimizer does not implement multi-reference alignment yet" << std::endl;
-                this->optimizeSingleScale( result, references[ 0 ], gray, depthImage, octave );
+                this->optimizeSingleScale( result, *references[ 0 ], gray, depthImage, octave );
             }
 
     };
@@ -197,7 +197,7 @@ namespace cvt {
     template <class WarpFunc, class LossFunc>
     inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
                                                                    const Matrix4f& posePrediction,
-                                                                   KFType* references, size_t nRefs,
+                                                                   KFType** references, size_t nRefs,
                                                                    const ImagePyramid& grayPyramid,
                                                                    const Image& depthImage )
     {
@@ -218,7 +218,7 @@ namespace cvt {
 
         // update the online data for each reference frame given
         for( size_t i = 0; i < nRefs; i++ ){
-            references[ i ].updateOnlineData( tmp4, grayPyramid, depthImage );
+            references[ i ]->updateOnlineData( tmp4, grayPyramid, depthImage );
         }
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){

@@ -55,7 +55,7 @@ namespace cvt {
                                       size_t octave );
 
             void optimizeSingleScale( ResultType& result,
-                                      KFType* references, size_t nRefs,
+                                      KFType **references, size_t nRefs,
                                       const Image& gray,
                                       const Image& depthImage,
                                       size_t octave );
@@ -124,7 +124,7 @@ namespace cvt {
 
 	template <class AlignData, class LossFunc>
 	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
-																	   KFType* references, size_t nRefs,
+																	   KFType** references, size_t nRefs,
 																	   const Image& gray,
 																	   const Image& depthImage,
 																	   size_t octave )
@@ -153,11 +153,11 @@ namespace cvt {
             for( size_t r = 0; r < nRefs; r++ ){
                 resTmp.clear();
                 jacTmp.clear();
-                references[ r ].recompute( resTmp, jacTmp, result.warp, grayMap, depthMap, octave );
+                references[ r ]->recompute( resTmp, jacTmp, result.warp, grayMap, depthMap, octave );
 
                 residuals.insert( residuals.begin() + residuals.size(), resTmp.begin(), resTmp.end() );
                 jacobians.insert( jacobians.begin() + jacobians.size(), jacTmp.begin(), jacTmp.end() );
-                overallPixels += references[ r ].dataSize( octave );
+                overallPixels += references[ r ]->dataSize( octave );
             }
 
             result.numPixels = residuals.size();

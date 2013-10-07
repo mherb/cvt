@@ -41,10 +41,12 @@ namespace cvt {
     class RGBDVisualOdometry
     {
         public:
-            typedef typename KFType::WarpType       Warp;
-			typedef typename KFType::AlignDataType	AlignDataType;
-			typedef Optimizer<AlignDataType, LossFunction> OptimizerType;
-            typedef typename OptimizerType::Result  Result;
+            typedef typename KFType::WarpType               Warp;
+            typedef typename KFType::AlignDataType          AlignDataType;
+            typedef RGBDKeyframe<AlignDataType>             KFBaseType;
+            typedef std::vector<KFBaseType*>                KFVector;
+            typedef Optimizer<AlignDataType, LossFunction>	OptimizerType;
+            typedef typename OptimizerType::Result			Result;
 
             struct Params {
                 Params() :
@@ -164,9 +166,9 @@ namespace cvt {
             Matrix3f                    _intrinsics;
 
             // current active keyframe
-            KFType*                     _activeKeyframe;
+            KFBaseType*                 _activeKeyframe;
             size_t                      _numCreated;
-            std::vector<KFType>        _keyframes;
+            KFVector                    _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
@@ -174,7 +176,7 @@ namespace cvt {
             Result                      _lastResult;
 
             bool needNewKeyframe() const;
-            void setKeyframeParams( KFType& kf );
+            void setKeyframeParams( KFBaseType& kf );
     };
 
     template <class KFType, class LossFunction>
@@ -193,6 +195,9 @@ namespace cvt {
     inline RGBDVisualOdometry<DerivedKF, LossFunction>::~RGBDVisualOdometry()
     {
         _activeKeyframe = 0;
+
+        for( size_t i = 0; i < _keyframes.size(); ++i )
+            delete _keyframes[ i ];
         _keyframes.clear();
     }
 
@@ -220,8 +225,8 @@ namespace cvt {
         // update the current pose, to the pose of the new keyframe
         _currentPose = kfPose;
 		if( _keyframes.size() < ( size_t )_params.maxNumKeyframes ){
-            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
-            _activeKeyframe = &_keyframes[ _keyframes.size() - 1 ];
+			_keyframes.push_back( new KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
+			_activeKeyframe = _keyframes[ _keyframes.size() - 1 ];
 
             // _pyramid only needs to be updated if its the first keyframe! -> this is ugly!
             _pyramid.update( gray );
@@ -233,7 +238,7 @@ namespace cvt {
                 Matrix4f curInv = kfPose.inverse();
                 for( size_t i = 0; i < _keyframes.size(); i++ ){
                     // compute relative pose of this
-                    Matrix4f rel = curInv * _keyframes[ i ].pose();
+                    Matrix4f rel = curInv * _keyframes[ i ]->pose();
                     Quaternionf q( rel.toMatrix3() );
                     float dist = q.toEuler().length();
                     dist += Math::sqr( rel.col( 3 ).lengthSqr() - 1.0f );
@@ -242,7 +247,7 @@ namespace cvt {
                     }
                 }
             }
-            _activeKeyframe = &_keyframes[ idx ];
+            _activeKeyframe = _keyframes[ idx ];
         }
 
         setKeyframeParams( *_activeKeyframe );
@@ -255,7 +260,7 @@ namespace cvt {
     }
 
     template <class KFType, class LossFunction>
-    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFType &kf )
+    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFBaseType &kf )
     {
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
