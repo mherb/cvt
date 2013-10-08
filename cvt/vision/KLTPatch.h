@@ -91,6 +91,7 @@ namespace cvt
 
             static const Vector2f* patchPoints()    { return &PatchPoints[ 0 ]; }
             static size_t          numPatchPoints() { return PatchPoints.size(); }
+            static void resample( float* dst, const IMapScoped<float>& iMap, const Matrix3f& mat, float fill = -1.0f );
 
             void toImage( Image& img, size_t octave = 0 ) const;
 
@@ -150,6 +151,15 @@ namespace cvt
     template <size_t pSize, class PoseType>
     std::vector<Vector2f> KLTPatch<pSize, PoseType>::PatchPoints( KLTPatch<pSize, PoseType>::initPatchPoints() );
 
+    template <size_t pSize, class PoseType>
+    void KLTPatch<pSize, PoseType>::resample( float* dst, const IMapScoped<float>& iMap, const Matrix3f& mat, float fill )
+    {
+        size_t n = numPatchPoints();
+        std::vector<Vector2f> warpedPts( n );
+        SIMD* simd = SIMD::instance();
+        simd->transformPoints( &warpedPts[ 0 ], mat, patchPoints(), warpedPts.size() );
+        simd->warpBilinear1f( dst, &warpedPts[ 0 ].x, iMap.ptr(), iMap.stride(), iMap.width(), iMap.height(), fill, n );
+    }
 
     template <size_t pSize, class PoseType>
     inline KLTPatch<pSize, PoseType>::KLTPatch( size_t octaves )
