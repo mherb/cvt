@@ -23,32 +23,32 @@
 
 namespace cvt
 {
-   StereoSLAM::StereoSLAM(FeatureDetector* detector,
-                          FeatureDescriptorExtractor* descExtractor,
-                          const StereoCameraCalibration &calib ,
-                          const Params &params):
-	   _detector( detector ),
-	   _descExtractorLeft( descExtractor ),
-	   _descExtractorRight( descExtractor->clone() ),
-	   _pyrLeft( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _pyrRight( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _pyrLeftf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _pyrRightf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _gradXl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _gradYl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
-	   _kernelGx( IKernel::HAAR_HORIZONTAL_3 ),
-	   _kernelGy( IKernel::HAAR_VERTICAL_3 ),
-	   _calib( calib ),
-	   _activeKF( -1 ),
-	   _params( params )
-   {
-	   _kernelGx.scale( -0.5f );
-	   _kernelGy.scale( -0.5f );
+    StereoSLAM::StereoSLAM( FeatureDetector* detector,
+                            FeatureDescriptorExtractor* descExtractor,
+                            const StereoCameraCalibration &calib ,
+                            const Params &params ):
+        _detector( detector ),
+        _descExtractorLeft( descExtractor ),
+        _descExtractorRight( descExtractor->clone() ),
+        _pyrLeft( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _pyrRight( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _pyrLeftf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _pyrRightf( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _gradXl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _gradYl( _params.pyramidOctaves, _params.pyramidScaleFactor ),
+        _kernelGx( IKernel::HAAR_HORIZONTAL_3 ),
+        _kernelGy( IKernel::HAAR_VERTICAL_3 ),
+        _calib( calib ),
+        _activeKF( -1 ),
+        _params( params )
+    {
+        _kernelGx.scale( -0.5f );
+        _kernelGy.scale( -0.5f );
 
-	   Eigen::Matrix3d K;
-	   EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
-	   _map.setIntrinsics( K );
-   }
+        Eigen::Matrix3d K;
+        EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
+        _map.setIntrinsics( K );
+    }
 
    void StereoSLAM::newImages( const Image& imgLeftGray, const Image& imgRightGray )
    {
