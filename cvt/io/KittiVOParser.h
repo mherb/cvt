@@ -21,7 +21,7 @@ namespace cvt {
     class KittiVOParser : public StereoInput
     {
         public:
-            KittiVOParser( const cvt::String& folder );
+            KittiVOParser( const cvt::String& folder, bool useColorCams = false );
             ~KittiVOParser();
 
             const Image&    left()  const { return _left; }
@@ -33,7 +33,7 @@ namespace cvt {
             const cvt::Matrix4d& projectionRight() const { return _calibRight; }
 
             bool            hasNext() const;
-            size_t          size()  const { return _sequence.size(); }
+            size_t          size()    const { return _sequence.size(); }
             bool            hasPose() const { return _curSample->hasPose; }
             const Matrix4d& pose()    const { return _curSample->pose; }
             double          stamp()   const { return _curSample->timestamp; }
@@ -47,15 +47,16 @@ namespace cvt {
                 cvt::Matrix4d   pose;
             };
 
-            size_t              _iter;
-            std::vector<Sample> _sequence;
-            cvt::Matrix4d       _calibLeft;
-            cvt::Matrix4d       _calibRight;
+            bool                    _useColor;
+            size_t                  _iter;
+            std::vector<Sample>     _sequence;
+            cvt::Matrix4d           _calibLeft;
+            cvt::Matrix4d           _calibRight;
             StereoCameraCalibration _calib;
 
-            Image               _left;
-            Image               _right;
-            Sample*             _curSample;
+            Image                   _left;
+            Image                   _right;
+            Sample*                 _curSample;
 
             void checkFileExistence( const cvt::String& file );
             void loadImageNames( std::vector<cvt::String>& names, const cvt::String& folder );

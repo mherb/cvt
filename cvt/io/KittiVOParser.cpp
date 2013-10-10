@@ -16,7 +16,8 @@
 
 namespace cvt {
 
-    KittiVOParser::KittiVOParser( const cvt::String& folder ) :
+    KittiVOParser::KittiVOParser( const cvt::String& folder, bool useColorCams ) :
+        _useColor( useColorCams ),
         _iter( 0 )
     {
         cvt::String leftFolder( folder );
@@ -25,8 +26,14 @@ namespace cvt {
         cvt::String timesFile( folder );
         cvt::String poseFile( folder );
 
-        leftFolder  += "/image_0/";
-        rightFolder += "/image_1/";
+        if( !_useColor ){
+            leftFolder  += "/image_0/";
+            rightFolder += "/image_1/";
+        } else {
+            leftFolder  += "/image_2/";
+            rightFolder += "/image_3/";
+        }
+
         calibFile   += "/calib.txt";
         timesFile   += "/times.txt";
         poseFile    += "/poses.txt";
@@ -199,6 +206,15 @@ namespace cvt {
         cvt::DataIterator iter( d );
         cvt::String line;
 
+        cvt::String query0, query1;
+        if( !_useColor ){
+            query0 = "P0:";
+            query1 = "P1:";
+        } else {
+            query0 = "P2:";
+            query1 = "P3:";
+        }
+
         bool found0 = false;
         bool found1 = false;
         while( iter.nextLine( line ) && !( found0 && found1 ) ){
@@ -209,7 +225,7 @@ namespace cvt {
                 throw CVTException( "Corrupt calib File" );
             }
 
-            if( !found0 && lineTokens[ 0 ] == "P0:" ){
+            if( !found0 && lineTokens[ 0 ] == query0 ){
                 found0 = true;
                 _calibLeft.setIdentity();
                 _calibLeft[ 0 ][ 0 ] = lineTokens[ 1  ].toDouble();
@@ -229,7 +245,7 @@ namespace cvt {
                 continue;
             }
 
-            if( !found1 && lineTokens[ 0 ] == "P1:" ){
+            if( !found1 && lineTokens[ 0 ] == query1 ){
                 found1 = true;
                 _calibRight.setIdentity();
                 _calibRight[ 0 ][ 0 ] = lineTokens[ 1  ].toDouble();
