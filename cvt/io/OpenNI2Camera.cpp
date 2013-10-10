@@ -205,6 +205,8 @@ namespace cvt {
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
         }
+
+        _identifier.sprintf( "%s_%s_%02d", dinfo.getVendor(), dinfo.getName(), idx );
     }
     
     OpenNI2Camera::~OpenNI2Camera()
