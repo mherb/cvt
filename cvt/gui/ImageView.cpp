@@ -12,7 +12,10 @@
 #include <cvt/gfx/IConvert.h>
 
 namespace cvt {
-	ImageView::ImageView() : _alpha( 1.0f ), _img( 1, 1, IFormat::BGRA_UINT8, IALLOCATOR_GL )
+	ImageView::ImageView() :
+		_alpha( 1.0f ),
+		_img( 1, 1, IFormat::BGRA_UINT8, IALLOCATOR_GL ),
+		_fixAspect( true )
 	{
 	}
 
@@ -20,11 +23,29 @@ namespace cvt {
 	{
 	}
 
+	void ImageView::setFixAspect( bool val )
+	{
+		_fixAspect = val;
+	}
+
 	void ImageView::paintEvent( PaintEvent&, GFX& g )
 	{
 		int w, h;
 		size( w, h );
 		g.color().setAlpha( _alpha );
+		if( _fixAspect ){
+			int iw = _img.width();
+			int ih = _img.height();
+			if( iw > ih ){
+				float aspect = ( float )ih / ( float )iw;
+				int hnew = aspect * w;
+				if( hnew > h ){
+					w = h / aspect;
+				} else {
+					h = hnew;
+				}
+			}
+		}
 		g.drawImage( 0, 0, w, h, _img );
 	}
 

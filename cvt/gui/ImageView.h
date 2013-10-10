@@ -22,6 +22,7 @@ namespace cvt {
 			~ImageView();
 			void setAlpha( float a );
 			float alpha() const;
+			void setFixAspect( bool val );
 			void setImage( const Image& img );
 
 		protected:
@@ -29,6 +30,7 @@ namespace cvt {
 
 			float _alpha;
 			Image _img;
+			bool  _fixAspect;
 	};
 
 	inline void ImageView::setAlpha( float a )
