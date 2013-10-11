@@ -145,7 +145,7 @@ namespace cvt {
             size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
             void            setParameters( const Params& p )        { _params = p; }
-            const Params&   parameters()          const             { return _params; }
+            const Params&   parameters() const                      { return _params; }
             OptimizerType*  optimizer()                             { return _optimizer; }
             const Matrix4f& activeKeyframePose() const              { return _activeKeyframe->pose(); }
 

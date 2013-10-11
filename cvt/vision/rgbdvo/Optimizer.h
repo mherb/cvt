@@ -155,6 +155,7 @@ namespace cvt {
     {
         public:
 			typedef typename AlignData::WarpType		WarpType;
+			typedef Weighter							LossFuncType;
 			typedef typename WarpType::JacobianType     JacobianType;
 			typedef typename WarpType::HessianType      HessianType;
 			typedef typename WarpType::DeltaVectorType  DeltaType;

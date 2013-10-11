@@ -36,6 +36,7 @@ namespace cvt {
 	class GNOptimizer : public Optimizer<AlignData, LossFunc>
     {
         public:
+            typedef LossFunc							LossFuncType;
             GNOptimizer();
             virtual ~GNOptimizer(){}
 

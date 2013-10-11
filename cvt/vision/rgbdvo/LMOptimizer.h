@@ -33,6 +33,7 @@ namespace cvt {
 	class LMOptimizer : public Optimizer<AlignData, LossFunc>
     {
         public:
+            typedef LossFunc                                LossFuncType;
             LMOptimizer();
             ~LMOptimizer(){}
 

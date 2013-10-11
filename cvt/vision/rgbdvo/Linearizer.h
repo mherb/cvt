@@ -34,8 +34,11 @@ namespace cvt {
     template <class AlignData>
     class InvCompLinearizer
     {
-            typedef typename AlignData::JacobianVec JacobianVecType;
         public:
+            typedef AlignData                       AlignDataType;
+            typedef typename AlignData::WarpType    WarpType;
+            typedef typename AlignData::JacobianVec JacobianVecType;
+
             InvCompLinearizer( const IKernel&, const IKernel&, size_t /*octaves*/, float /*scale*/ ){}
 
             void recomputeJacobians( JacobianVecType& jacobians,
@@ -64,12 +67,13 @@ namespace cvt {
 
     template <class AlignData>
     class FwdCompLinearizer {
+        public:
+            typedef AlignData                           AlignDataType;
+            typedef typename AlignData::WarpType        WarpType;
             typedef typename AlignData::JacobianVec     JacobianVecType;
             typedef typename AlignData::ScreenJacVec    ScreenJacVecType;
             typedef typename AlignData::GradientType    GradientType;
-            typedef typename AlignData::WarpType        WarpType;
 
-        public:
             FwdCompLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 _onlineGradientsX( octaves, scale ),
                 _onlineGradientsY( octaves, scale ),
@@ -129,13 +133,14 @@ namespace cvt {
     template <class AlignData>
     class ESMLinearizer : public FwdCompLinearizer<AlignData>
     {
+        public:
+            typedef AlignData                           AlignDataType;
+            typedef typename AlignData::WarpType        WarpType;
             typedef typename AlignData::JacobianType    JacobianType;
             typedef typename AlignData::JacobianVec     JacobianVecType;
             typedef typename AlignData::ScreenJacVec    ScreenJacVecType;
             typedef typename AlignData::GradientType    GradientType;
-            typedef typename AlignData::WarpType        WarpType;
 
-        public:
             ESMLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 FwdCompLinearizer<AlignData>( kdx, kdy, octaves, scale )
             {
