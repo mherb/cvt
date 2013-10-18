@@ -148,7 +148,7 @@ namespace cvt {
         _costStopThreshold( 0.002f ),
         _useRegularizer( false ),
         _regAlpha( 0.2f ),
-        _regularizer( HessianType::Zero() ),
+        _regularizer( HessianType::Identity() ),
         _overallDelta( DeltaType::Zero() ),
         _builder( _weighter )
     {
