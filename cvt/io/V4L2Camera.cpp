@@ -277,11 +277,6 @@ namespace cvt
 			}
 		}
 
-		//verify the frame size, this should really never fail
-		if( buffer.bytesused < _frame->height( ) * _frame->width( ) * _format.bpp ) {
-			throw CVTException( "Buffer returned from diver is too small!" );
-		}
-
 		// get frame from buffer
 		size_t stride;
 		uint8_t* ptrM;
