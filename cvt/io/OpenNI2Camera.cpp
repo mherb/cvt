@@ -221,6 +221,7 @@ namespace cvt {
             if( status != openni::STATUS_OK ){
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
+            setMirroring( false );
         }
         if( _device.hasSensor( openni::SENSOR_DEPTH ) ){
             _depthStream.create( _device, openni::SENSOR_DEPTH );
@@ -316,6 +317,19 @@ namespace cvt {
         if( status != openni::STATUS_OK ){
             std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
         }
+    }
+
+    void OpenNI2Camera::setMirroring( bool val )
+    {
+        openni::Status status = _rgbStream.setMirroringEnabled( val );
+        if( status != openni::STATUS_OK ){
+            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+        }
+    }
+
+    bool OpenNI2Camera::isMirroring() const
+    {
+        return _rgbStream.getMirroringEnabled();
     }
 
     void OpenNI2Camera::setAutoWhiteBalance( bool val )
