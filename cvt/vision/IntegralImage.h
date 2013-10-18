@@ -12,6 +12,7 @@
 #define CVT_INTEGRAL_IMAGE_H
 
 #include <cvt/gfx/Image.h>
+#include <cvt/gfx/IMapScoped.h>
 #include <cvt/util/Flags.h>
 #include <cvt/vision/Patch.h>
 
@@ -61,6 +62,8 @@ namespace cvt
 
             static inline float area( const float * p, size_t w, size_t h, size_t stride );
             static inline float area( const float * ptr, size_t x, size_t y, size_t w, size_t h, size_t stride );
+
+            static inline float area( const IMapScoped<const float>& map, size_t x, size_t y, size_t w, size_t h );
 
         private:
             Image              _sum;
@@ -118,6 +121,12 @@ namespace cvt
                -p[ widthstep * h - 1 ]
                +p[ -widthstep - 1 ];
     }
+
+     inline float IntegralImage::area( const IMapScoped<const float>& map, size_t x, size_t y, size_t w, size_t h )
+     {
+        w--; h--;
+        return map( x + w, y + h ) - map( x + w, y - 1 ) - map( x - 1, y + h ) + map( x - 1, y - 1 );
+     }
 
 }
 

@@ -71,8 +71,8 @@ namespace cvt {
 				SIMD* _simd;
 			};
 
-			float centroidAngle( const Vector2f &pt, const float *iimgptr, size_t widthstep );
-			void descriptor( Descriptor& feature, const Vector2f& pt, const float* iimgptr, size_t widthstep );
+			float centroidAngle( const Vector2f& pt, const IMapScoped<const float>& map );
+			void descriptor( Descriptor& feature, const Vector2f& pt, const IMapScoped<const float>& map );
 
 			static const int		_patterns[ 30 ][ 512 ][ 2 ];
 			static const int		_circularoffset[ 31 ];
@@ -132,11 +132,9 @@ namespace cvt {
 
 		size_t octaves = pyr.octaves();
 		std::vector<IMapScoped<const float>*> maps;
-		std::vector<size_t> widthsteps;
 		std::vector<float> scales;
 		for( size_t i = 0; i < octaves; ++i ){
 			maps.push_back( new IMapScoped<const float>( integralPyr[ i ] ) );
-			widthsteps.push_back( maps.back()->stride() / sizeof( float ) );
 			scales.push_back( Math::pow( integralPyr.scaleFactor(), ( float )i ) );
 		}
 
@@ -148,8 +146,8 @@ namespace cvt {
 			size_t o = desc.octave;
 			vs = desc.pt * scales[ o ];
 
-			desc.angle = centroidAngle( vs, maps[ o ]->base(), widthsteps[ o ] );			
-			descriptor( desc, vs, maps[ o ]->base(), widthsteps[ o ] );
+			desc.angle = centroidAngle( vs, *maps[ o ] );
+			descriptor( desc, vs, *maps[ o ] );
 		}
 
 		for( size_t i = 0; i < octaves; ++i ){
@@ -165,19 +163,17 @@ namespace cvt {
 
 		IntegralImage iimage( img );
 		IMapScoped<const float> map( iimage.sumImage() );
-		const float* ptr = map.base();
-		const size_t widthstep = map.stride() / sizeof( float );
 
 		size_t iend = features.size();
 		for( size_t i = 0; i < iend; ++i ) {
 			_features.push_back( Descriptor( features[ i ] ) );
 			Descriptor& desc = _features.back();
-			desc.angle = centroidAngle( desc.pt, ptr, widthstep );
-			descriptor( desc, desc.pt, ptr, widthstep );
+			desc.angle = centroidAngle( desc.pt, map );
+			descriptor( desc, desc.pt, map );
 		}
 	}
 
-	inline float ORB::centroidAngle( const Vector2f& pt, const float *iimgptr, size_t widthstep )
+	inline float ORB::centroidAngle( const Vector2f& pt, const IMapScoped<const float>& map )
 	{
 		float mx = 0;
 		float my = 0;
@@ -187,15 +183,15 @@ namespace cvt {
 		int curx = ( int ) pt.x;
 
 		for( int i = 0; i < 15; i++ ) {
-			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1, widthstep )
-											- IntegralImage::area( iimgptr, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1, widthstep ) );
+			mx +=( ( float ) i - 15.0f ) * ( IntegralImage::area( map, curx - _circularoffset[ i ], cury + i, 2 * _circularoffset[ i ] + 1, 1 )
+										   - IntegralImage::area( map, curx - _circularoffset[ i ], cury + 30 - i, 2 * _circularoffset[ i ] + 1, 1) );
 		}
 
 		cury = ( int ) pt.y;
 		curx = ( int ) pt.x - 15;
 		for( int i = 0; i < 15; i++ ) {
-			my += ( ( float ) i - 15.0f ) * ( IntegralImage::area( iimgptr, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep )
-											 - IntegralImage::area( iimgptr, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1, widthstep ) );
+			my += ( ( float ) i - 15.0f ) * ( IntegralImage::area( map, curx + i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1 )
+											- IntegralImage::area( map, curx + 30 - i, cury - _circularoffset[ i ], 1, 2 * _circularoffset[ i ] + 1 ) );
 		}
 
 		angle = Math::atan2( my, mx );
@@ -209,7 +205,7 @@ namespace cvt {
 		return angle;
 	}
 
-	inline void ORB::descriptor( Descriptor& feature, const Vector2f& pt, const float* iimgptr, size_t widthstep )
+	inline void ORB::descriptor( Descriptor& feature, const Vector2f& pt, const IMapScoped<const float>& map )
 	{
 		size_t index = ( size_t ) ( feature.angle * 30.0f / Math::TWO_PI );
 		if( index >= 30 )
@@ -218,10 +214,10 @@ namespace cvt {
 		int y = ( int ) pt.y;
 
 
-#define ORBTEST( n ) ( IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2,\
-										             y + _patterns[ index ][ ( n ) * 2 ][ 1 ] - 2, 5, 5, widthstep ) < \
-					   IntegralImage::area( iimgptr, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,\
-										             y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5, widthstep ) )
+#define ORBTEST( n ) ( IntegralImage::area( map, x + _patterns[ index ][ ( n ) * 2 ][ 0 ] - 2,\
+										         y + _patterns[ index ][ ( n ) * 2 ][ 1 ] - 2, 5, 5 ) < \
+					   IntegralImage::area( map, x + _patterns[ index ][ ( n ) * 2 + 1 ][ 0 ] - 2,\
+										         y + _patterns[ index ][ ( n ) * 2 + 1 ][ 1 ] - 2, 5, 5 ) )
 		int idx;
 		for( int i = 0; i < 32; i++ ) {
 			idx = i << 3;
