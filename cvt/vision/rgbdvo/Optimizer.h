@@ -1,13 +1,27 @@
 /*
-            CVT - Computer Vision Tools Library
+   The MIT License (MIT)
 
-     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
 
-    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
-    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-    PARTICULAR PURPOSE.
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
 */
+
 
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
@@ -15,132 +29,17 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 #include <cvt/vision/rgbdvo/SystemBuilder.h>
 #include <cvt/vision/rgbdvo/ApproxMedian.h>
+#include <cvt/vision/rgbdvo/ErrorLogger.h>
 #include <Eigen/LU>
 
 namespace cvt {
-
-    class ErrorLogger {
-        public:
-            ErrorLogger() :
-                _maxOctave( 0 ), _maxIteration( 0 )
-            {
-            }
-
-            ~ErrorLogger()
-            {
-                if( _data.size() ){
-                    saveResult();
-                }
-            }
-
-            void setGTPose( const Matrix4f& mat )
-            {
-                _gt = mat.inverse();
-            }
-
-            void log( size_t octave, size_t iteration, const Matrix4f& cur )
-            {
-                Matrix4f rel = _gt * cur;
-
-                float tError = Vector3f( rel.col( 3 ) ).length();
-                float rError = rotError( rel );
-                //std::cout << octave << " - " << iteration << " - " << rError << " - " << tError << std::endl;
-                _data.push_back( LogData( octave, iteration, rError, tError ) );
-                _maxOctave = Math::max( _maxOctave, octave );
-                _maxIteration = Math::max( _maxIteration, iteration );
-            }
-
-        private:
-            struct LogData {
-                LogData( size_t o, size_t i, float rotE, float tE ):
-                    octave( o ), iteration( i ), rError( rotE ), tError( tE )
-                {}
-
-                size_t  octave;
-                size_t  iteration;
-                float   rError;
-                float   tError;
-            };
-
-
-            float rotError( const Matrix4f& m )
-            {
-                return Math::acos( Math::clamp<float>( 0.5f * ( m.toMatrix3().trace() - 1.0f ), -1.0f, 1.0f ) );
-            }
-
-            std::vector<LogData>    _data;
-            size_t                  _maxOctave;
-            size_t                  _maxIteration;
-
-            Matrix4f                _gt;
-
-            struct ScaleResult {
-                ScaleResult( size_t maxIters )
-                {
-                    rotErrorInIteration.resize( maxIters, 0.0f );
-                    tErrorInIteration.resize( maxIters, 0.0f );
-                    samplesForIteration.resize( maxIters, 0 );
-                }
-
-                void add( size_t iter, float rError, float tError )
-                {
-                    rotErrorInIteration[ iter ] += rError;
-                    tErrorInIteration[ iter ] += tError;
-                    samplesForIteration[ iter ]++;
-                }
-
-                float avgRotErrorForIteration( size_t i ) const
-                {
-                    size_t n = samplesForIteration[ i ];
-                    if( n == 0 )
-                        return 0.0f;
-                    return rotErrorInIteration[ i ] / n;
-                }
-
-                float avgtErrorForIteration( size_t i ) const
-                {
-                    size_t n = samplesForIteration[ i ];
-                    if( n == 0 )
-                        return 0.0f;
-                    return tErrorInIteration[ i ] / n;
-                }
-
-                std::vector<float>  rotErrorInIteration;
-                std::vector<float>  tErrorInIteration;
-                std::vector<size_t> samplesForIteration;
-            };
-
-            void saveResult()
-            {
-                std::ofstream file;
-                file.open( "conv_speed.txt" );
-                file.precision( 15 );
-                file << "# <octave> <error iter0> <...> <error itern>" << std::endl;
-
-                std::vector<ScaleResult> resultForOctave( _maxOctave + 1, ScaleResult( _maxIteration + 1 ) );
-                for( size_t i = 0; i < _data.size(); i++ ){
-                    const LogData& d = _data[ i ];
-                    resultForOctave[ d.octave ].add( d.iteration, d.rError, d.tError );
-                }
-
-                for( size_t k = 0; k < _maxIteration + 1; k++ ){
-                    file << k << " ";
-                    for( size_t i = 0; i < resultForOctave.size(); i++ ){
-                        file << std::fixed << resultForOctave[ i ].avgRotErrorForIteration( k ) << " ";
-                        file << std::fixed << resultForOctave[ i ].avgtErrorForIteration( k ) << " ";
-                    }
-                    file << "\n";
-                }
-
-                file.close();
-            }
-    };
 
 	template <class AlignData, class Weighter>
     class Optimizer
     {
         public:
 			typedef typename AlignData::WarpType		WarpType;
+			typedef Weighter							LossFuncType;
 			typedef typename WarpType::JacobianType     JacobianType;
 			typedef typename WarpType::HessianType      HessianType;
 			typedef typename WarpType::DeltaVectorType  DeltaType;
@@ -166,7 +65,7 @@ namespace cvt {
             };
 
             Optimizer();
-            virtual ~Optimizer(){}
+            virtual ~Optimizer() {}
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
@@ -191,7 +90,7 @@ namespace cvt {
 
             void optimizeMultiframe( Result& result,
                                      const Matrix4f& posePrediction,
-                                     KFType* references, size_t nRefs,
+                                     KFType **references, size_t nRefs,
                                      const ImagePyramid& grayPyramid,
                                      const Image& depthImage );
 
@@ -230,13 +129,13 @@ namespace cvt {
 
 
 			virtual void optimizeSingleScale( Result& result,
-											  KFType* references, size_t /*nRefs*/,
+											  KFType** references, size_t /*nRefs*/,
 											  const Image& gray,
 											  const Image& depthImage,
 											  size_t octave )
             {
                 std::cerr << "this optimizer does not implement multi-reference alignment yet" << std::endl;
-                this->optimizeSingleScale( result, references[ 0 ], gray, depthImage, octave );
+                this->optimizeSingleScale( result, *references[ 0 ], gray, depthImage, octave );
             }
 
     };
@@ -249,7 +148,7 @@ namespace cvt {
         _costStopThreshold( 0.002f ),
         _useRegularizer( false ),
         _regAlpha( 0.2f ),
-        _regularizer( HessianType::Zero() ),
+        _regularizer( HessianType::Identity() ),
         _overallDelta( DeltaType::Zero() ),
         _builder( _weighter )
     {
@@ -277,7 +176,9 @@ namespace cvt {
             resetOverallDelta();
         }
 
-        reference.updateOnlineData( grayPyramid, depthImage );
+        // update the online data
+        reference.updateOnlineData( tmp4, grayPyramid, depthImage );
+
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
             this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
 
@@ -296,7 +197,7 @@ namespace cvt {
     template <class WarpFunc, class LossFunc>
     inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
                                                                    const Matrix4f& posePrediction,
-                                                                   KFType* references, size_t nRefs,
+                                                                   KFType** references, size_t nRefs,
                                                                    const ImagePyramid& grayPyramid,
                                                                    const Image& depthImage )
     {
@@ -317,7 +218,7 @@ namespace cvt {
 
         // update the online data for each reference frame given
         for( size_t i = 0; i < nRefs; i++ ){
-            references[ i ].updateOnlineData( grayPyramid, depthImage );
+            references[ i ]->updateOnlineData( tmp4, grayPyramid, depthImage );
         }
 
         for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
@@ -376,7 +277,6 @@ namespace cvt {
     {
         // too few pixels projected into image
         if( res.pixelPercentage < _minPixelPercentage ){
-            //std::cout << "Pixel Percentage: " << res.pixelPercentage << " : " << _minPixelPercentage << std::endl;
             return false;
         }
         return true;
@@ -398,7 +298,7 @@ namespace cvt {
                                       residuals,
                                       n );
         if( _useRegularizer ){
-            float norm = 1.0f / (float) n;
+            float norm = 1.0f / ( float )n;
             hessian *= norm;
             deltaSum *= norm;
             hessian.noalias()  += ( 2 * _regAlpha * _regularizer );

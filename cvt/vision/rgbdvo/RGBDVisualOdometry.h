@@ -1,13 +1,27 @@
 /*
-            CVT - Computer Vision Tools Library
+   The MIT License (MIT)
 
-     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
 
-    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
-    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-    PARTICULAR PURPOSE.
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
 */
+
 
 #ifndef CVT_RGBDVISUALODOMETRY_H
 #define CVT_RGBDVISUALODOMETRY_H
@@ -27,10 +41,12 @@ namespace cvt {
     class RGBDVisualOdometry
     {
         public:
-            typedef typename KFType::WarpType       Warp;
-			typedef typename KFType::AlignDataType	AlignDataType;
-			typedef Optimizer<AlignDataType, LossFunction> OptimizerType;
-            typedef typename OptimizerType::Result  Result;
+            typedef typename KFType::WarpType               Warp;
+            typedef typename KFType::AlignDataType          AlignDataType;
+            typedef RGBDKeyframe<AlignDataType>             KFBaseType;
+            typedef std::vector<KFBaseType*>                KFVector;
+            typedef Optimizer<AlignDataType, LossFunction>	OptimizerType;
+            typedef typename OptimizerType::Result			Result;
 
             struct Params {
                 Params() :
@@ -130,8 +146,8 @@ namespace cvt {
             float           lastSSD()             const             { return _lastResult.costs; }
             size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
-            void            setParameters( const Params& p )        { _params = p; }
-            const Params&   parameters()          const             { return _params; }
+            void            setParameters( const Params& p )        { _params = p; }// TODO: some updates might not get reflected this way!
+            const Params&   parameters() const                      { return _params; }
             OptimizerType*  optimizer()                             { return _optimizer; }
             const Matrix4f& activeKeyframePose() const              { return _activeKeyframe->pose(); }
 
@@ -150,9 +166,9 @@ namespace cvt {
             Matrix3f                    _intrinsics;
 
             // current active keyframe
-            KFType*                     _activeKeyframe;
+            KFBaseType*                 _activeKeyframe;
             size_t                      _numCreated;
-            std::vector<KFType>        _keyframes;
+            KFVector                    _keyframes;
 
             ImagePyramid                _pyramid;
             Matrix4<float>              _currentPose;
@@ -160,7 +176,7 @@ namespace cvt {
             Result                      _lastResult;
 
             bool needNewKeyframe() const;
-            void setKeyframeParams( KFType& kf );
+            void setKeyframeParams( KFBaseType& kf );
     };
 
     template <class KFType, class LossFunction>
@@ -172,6 +188,9 @@ namespace cvt {
         _numCreated( 0 ),
         _pyramid( p.pyrOctaves, p.pyrScale )
     {
+        _optimizer->setMaxIterations( _params.maxIters );
+        _optimizer->setMinUpdate( _params.minParameterUpdate );
+        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
         _currentPose.setIdentity();
     }
 
@@ -179,6 +198,9 @@ namespace cvt {
     inline RGBDVisualOdometry<DerivedKF, LossFunction>::~RGBDVisualOdometry()
     {
         _activeKeyframe = 0;
+
+        for( size_t i = 0; i < _keyframes.size(); ++i )
+            delete _keyframes[ i ];
         _keyframes.clear();
     }
 
@@ -206,8 +228,8 @@ namespace cvt {
         // update the current pose, to the pose of the new keyframe
         _currentPose = kfPose;
 		if( _keyframes.size() < ( size_t )_params.maxNumKeyframes ){
-            _keyframes.push_back( KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
-            _activeKeyframe = &_keyframes[ _keyframes.size() - 1 ];
+			_keyframes.push_back( new KFType( _intrinsics, _pyramid.octaves(), _pyramid.scaleFactor() ) );
+			_activeKeyframe = _keyframes[ _keyframes.size() - 1 ];
 
             // _pyramid only needs to be updated if its the first keyframe! -> this is ugly!
             _pyramid.update( gray );
@@ -219,7 +241,7 @@ namespace cvt {
                 Matrix4f curInv = kfPose.inverse();
                 for( size_t i = 0; i < _keyframes.size(); i++ ){
                     // compute relative pose of this
-                    Matrix4f rel = curInv * _keyframes[ i ].pose();
+                    Matrix4f rel = curInv * _keyframes[ i ]->pose();
                     Quaternionf q( rel.toMatrix3() );
                     float dist = q.toEuler().length();
                     dist += Math::sqr( rel.col( 3 ).lengthSqr() - 1.0f );
@@ -228,7 +250,7 @@ namespace cvt {
                     }
                 }
             }
-            _activeKeyframe = &_keyframes[ idx ];
+            _activeKeyframe = _keyframes[ idx ];
         }
 
         setKeyframeParams( *_activeKeyframe );
@@ -241,7 +263,7 @@ namespace cvt {
     }
 
     template <class KFType, class LossFunction>
-    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFType &kf )
+    inline void RGBDVisualOdometry<KFType, LossFunction>::setKeyframeParams( KFBaseType &kf )
     {
         kf.setDepthMapScaleFactor( _params.depthScale );
         kf.setMinimumDepth( _params.minDepth );
@@ -249,10 +271,6 @@ namespace cvt {
         kf.setGradientThreshold( _params.gradientThreshold );
         kf.setUseInformationSelection( _params.useInformationSelection );
         kf.setSelectionPixelPercentage( _params.selectionPixelPercentage );
-
-        _optimizer->setMaxIterations( _params.maxIters );
-        _optimizer->setMinUpdate( _params.minParameterUpdate );
-        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
     }
 
     template <class DerivedKF, class LossFunction>
@@ -260,8 +278,9 @@ namespace cvt {
     {
         // check the ssd:
         float avgSSD = -1.0f;
-        if( _lastResult.numPixels )
+        if( _lastResult.numPixels ){
             avgSSD = _lastResult.costs / _lastResult.numPixels;
+        }
 
         if( _lastResult.pixelPercentage < _params.minPixelPercentage ){
             if( avgSSD < _params.maxSSDSqr ){
@@ -276,7 +295,6 @@ namespace cvt {
         t[ 3 ] = 0;
         float tmp = t.length();
         if( tmp > _params.maxTranslationDistance ){
-            //std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
 
@@ -285,7 +303,6 @@ namespace cvt {
         Vector3f euler = q.toEuler();
         tmp = euler.length();
         if( tmp > _params.maxRotationDistance ){
-            //std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
         return false;

@@ -1,3 +1,27 @@
+/*
+   The MIT License (MIT)
+
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+*/
+
 #include <cvt/io/OpenNI2Camera.h>
 #include <cvt/gfx/IMapScoped.h>
 
@@ -197,6 +221,7 @@ namespace cvt {
             if( status != openni::STATUS_OK ){
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
+            setMirroring( false );
         }
         if( _device.hasSensor( openni::SENSOR_DEPTH ) ){
             _depthStream.create( _device, openni::SENSOR_DEPTH );
@@ -205,6 +230,8 @@ namespace cvt {
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
         }
+
+        _identifier.sprintf( "%s_%s_%02d", dinfo.getVendor(), dinfo.getName(), idx );
     }
     
     OpenNI2Camera::~OpenNI2Camera()
@@ -290,6 +317,19 @@ namespace cvt {
         if( status != openni::STATUS_OK ){
             std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
         }
+    }
+
+    void OpenNI2Camera::setMirroring( bool val )
+    {
+        openni::Status status = _rgbStream.setMirroringEnabled( val );
+        if( status != openni::STATUS_OK ){
+            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+        }
+    }
+
+    bool OpenNI2Camera::isMirroring() const
+    {
+        return _rgbStream.getMirroringEnabled();
     }
 
     void OpenNI2Camera::setAutoWhiteBalance( bool val )

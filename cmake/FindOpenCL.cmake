@@ -37,10 +37,7 @@ ELSE (WIN32)
 			PATHS
 			/System/Library/Frameworks/OpenCL.framework/Headers
 		)
-		SET(OpenCL_LIBRARY 
-			"-framework OpenCL"
-			CACHE STRING "Apple OpenCL Framework"
-		)
+        FIND_LIBRARY( OpenCL_LIBRARY OpenCL doc "OpenCL Framework on mac os" )
 	ELSE(APPLE)
 		# Unix style platforms
 

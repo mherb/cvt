@@ -1,13 +1,27 @@
 /*
-            CVT - Computer Vision Tools Library
+   The MIT License (MIT)
 
-     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
 
-    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
-    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-    PARTICULAR PURPOSE.
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
 */
+
 
 #ifndef CVT_GNOPTIMIZER_H
 #define CVT_GNOPTIMIZER_H
@@ -22,6 +36,7 @@ namespace cvt {
 	class GNOptimizer : public Optimizer<AlignData, LossFunc>
     {
         public:
+            typedef LossFunc							LossFuncType;
             GNOptimizer();
             virtual ~GNOptimizer(){}
 
@@ -40,7 +55,7 @@ namespace cvt {
                                       size_t octave );
 
             void optimizeSingleScale( ResultType& result,
-                                      KFType* references, size_t nRefs,
+                                      KFType **references, size_t nRefs,
                                       const Image& gray,
                                       const Image& depthImage,
                                       size_t octave );
@@ -109,7 +124,7 @@ namespace cvt {
 
 	template <class AlignData, class LossFunc>
 	inline void GNOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
-																	   KFType* references, size_t nRefs,
+																	   KFType** references, size_t nRefs,
 																	   const Image& gray,
 																	   const Image& depthImage,
 																	   size_t octave )
@@ -138,11 +153,11 @@ namespace cvt {
             for( size_t r = 0; r < nRefs; r++ ){
                 resTmp.clear();
                 jacTmp.clear();
-                references[ r ].recompute( resTmp, jacTmp, result.warp, grayMap, depthMap, octave );
+                references[ r ]->recompute( resTmp, jacTmp, result.warp, grayMap, depthMap, octave );
 
                 residuals.insert( residuals.begin() + residuals.size(), resTmp.begin(), resTmp.end() );
                 jacobians.insert( jacobians.begin() + jacobians.size(), jacTmp.begin(), jacTmp.end() );
-                overallPixels += references[ r ].dataSize( octave );
+                overallPixels += references[ r ]->dataSize( octave );
             }
 
             result.numPixels = residuals.size();

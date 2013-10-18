@@ -481,6 +481,7 @@ SET( CVT_HEADERS
    vision/Vision.h
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/ApproxMedian.h
+   vision/rgbdvo/ErrorLogger.h
    vision/rgbdvo/Linearizer.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/KeyframeData.h
@@ -855,7 +856,7 @@ foreach(HEADER_FILE ${CVT_HEADERS})
 	)
 endforeach(HEADER_FILE)
 
-set_target_properties( cvt
+SET_TARGET_PROPERTIES( cvt
          PROPERTIES COMPILE_DEFINITIONS
          PLUGIN_PATH="${CMAKE_BINARY_DIR}/bin/plugins/" 
 )
@@ -864,24 +865,24 @@ CVTTESTS(cvt cvt/util/cvttestsproto.h)
 IF( ${CMAKE_BUILD_TYPE} STREQUAL "DEBUG" OR
     ${CMAKE_BUILD_TYPE} STREQUAL "ZEROOPT" )
    MESSAGE( "DEBUG CONFIGURATION -> adding cvttest" )
-   add_executable( cvttest util/CVTTest.cpp )
-   add_dependencies( cvttest cvt_test_extraction )
+   ADD_EXECUTABLE( cvttest util/CVTTest.cpp )
+   ADD_DEPENDENCIES( cvttest cvt_test_extraction )
 
    IF( ${CMAKE_GENERATOR} MATCHES "Xcode" )
-      SET_TARGET_PROPERTIES(cvttest PROPERTIES PREFIX "../")
+      SET_TARGET_PROPERTIES( cvttest PROPERTIES PREFIX "../" )
    ENDIF()
-   target_link_libraries (cvttest cvt ${CVT_DEP_LIBRARIES} )
+   TARGET_LINK_LIBRARIES( cvttest cvt ${CVT_DEP_LIBRARIES} )
 ENDIF()
 
 #special flags for some files
-set_source_files_properties(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
-set_source_files_properties(util/SIMDSSE2.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
-set_source_files_properties(util/SIMDSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3")
-set_source_files_properties(util/SIMDSSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3")
-set_source_files_properties(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
-set_source_files_properties(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
-set_source_files_properties(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
-set_source_files_properties(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE2.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+SET_SOURCE_FILES_PROPERTIES(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
 # CVTConfig file for installation/package
 SET( CMAKE_INSTALL_PREFIX /usr )
@@ -908,13 +909,13 @@ set( CVT_GLCLTOHEADER_EXEC ${CVT_GLCLTOHEADER} )
 set( CVT_DEFINITIONS -DCVT_DATA_FOLDER=\"${CVT_DATA_FOLDER}\" )
 IF( CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR
     CMAKE_BUILD_TYPE STREQUAL "ZEROOPT" )
-	set( CVT_SEARCH_NAMES	"cvt_d" )
+	SET( CVT_SEARCH_NAMES	"cvt_d" )
 	export( PACKAGE CVT_DEBUG )
-	set( CVT_FOUND_VAR "CVT_DEBUG" )
+	SET( CVT_FOUND_VAR "CVT_DEBUG" )
 	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVT_DEBUGConfig.cmake" @ONLY )
 ELSE()
-	set( CVT_SEARCH_NAMES "cvt" )
+	SET( CVT_SEARCH_NAMES "cvt" )
 	export( PACKAGE CVT )
-	set( CVT_FOUND_VAR "CVT" )
+	SET( CVT_FOUND_VAR "CVT" )
 	CONFIGURE_FILE ( "CVTConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CVTConfig.cmake" @ONLY )
 ENDIF()

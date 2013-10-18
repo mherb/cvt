@@ -1,3 +1,27 @@
+/*
+   The MIT License (MIT)
+
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+*/
+
 #ifndef CVT_LINEARIZER_H
 #define CVT_LINEARIZER_H
 
@@ -10,8 +34,11 @@ namespace cvt {
     template <class AlignData>
     class InvCompLinearizer
     {
-            typedef typename AlignData::JacobianVec JacobianVecType;
         public:
+            typedef AlignData                       AlignDataType;
+            typedef typename AlignData::WarpType    WarpType;
+            typedef typename AlignData::JacobianVec JacobianVecType;
+
             InvCompLinearizer( const IKernel&, const IKernel&, size_t /*octaves*/, float /*scale*/ ){}
 
             void recomputeJacobians( JacobianVecType& jacobians,
@@ -35,17 +62,23 @@ namespace cvt {
                 jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
             }
 
-            void updateOnlineData( const ImagePyramid&, const Image& ) {}
+            void updateOnlineData( const Matrix4f&, const ImagePyramid&, const Image& )
+            {
+                // nothing to be done for inverse
+            }
+
+            void relinearize( AlignData&, const Matrix4f& ){ /* stays the same for inverse */ }
     };
 
     template <class AlignData>
     class FwdCompLinearizer {
+        public:
+            typedef AlignData                           AlignDataType;
+            typedef typename AlignData::WarpType        WarpType;
             typedef typename AlignData::JacobianVec     JacobianVecType;
             typedef typename AlignData::ScreenJacVec    ScreenJacVecType;
             typedef typename AlignData::GradientType    GradientType;
-            typedef typename AlignData::WarpType        WarpType;
 
-        public:
             FwdCompLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 _onlineGradientsX( octaves, scale ),
                 _onlineGradientsY( octaves, scale ),
@@ -88,11 +121,19 @@ namespace cvt {
                 jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
             }
 
-            void updateOnlineData( const ImagePyramid& pyrf, const Image& /*depth*/ )
+            void updateOnlineData( const Matrix4f& cam2World,
+                                   const ImagePyramid& pyrf,
+                                   const Image& depth )
             {
                 // compute the gradients of the input
                 pyrf.convolve( _onlineGradientsX, this->_kx );
                 pyrf.convolve( _onlineGradientsY, this->_ky );
+            }
+
+            // needed for Fwd and ESM linearizer only
+            void relinearize( AlignData& data, const Matrix4f& cam2World )
+            {
+                data.relinearize( cam2World );
             }
 
         protected:
@@ -105,17 +146,17 @@ namespace cvt {
     template <class AlignData>
     class ESMLinearizer : public FwdCompLinearizer<AlignData>
     {
+        public:
+            typedef AlignData                           AlignDataType;
+            typedef typename AlignData::WarpType        WarpType;
             typedef typename AlignData::JacobianType    JacobianType;
             typedef typename AlignData::JacobianVec     JacobianVecType;
             typedef typename AlignData::ScreenJacVec    ScreenJacVecType;
             typedef typename AlignData::GradientType    GradientType;
-            typedef typename AlignData::WarpType        WarpType;
 
-        public:
             ESMLinearizer( const IKernel& kdx, const IKernel& kdy, size_t octaves, float scale ) :
                 FwdCompLinearizer<AlignData>( kdx, kdy, octaves, scale )
-            {
-            }
+            {}
 
             void recomputeJacobians( JacobianVecType& jacobians,
                                      std::vector<float>& residuals,

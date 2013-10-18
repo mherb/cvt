@@ -1,13 +1,27 @@
 /*
-            CVT - Computer Vision Tools Library
+   The MIT License (MIT)
 
-     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
 
-    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
-    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-    PARTICULAR PURPOSE.
- */
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+*/
+
 
 #include <cvt/io/KittiVOParser.h>
 #include <cvt/util/DataIterator.h>
@@ -16,7 +30,8 @@
 
 namespace cvt {
 
-    KittiVOParser::KittiVOParser( const cvt::String& folder ) :
+    KittiVOParser::KittiVOParser( const cvt::String& folder, bool useColorCams ) :
+        _useColor( useColorCams ),
         _iter( 0 )
     {
         cvt::String leftFolder( folder );
@@ -25,8 +40,14 @@ namespace cvt {
         cvt::String timesFile( folder );
         cvt::String poseFile( folder );
 
-        leftFolder  += "/image_0/";
-        rightFolder += "/image_1/";
+        if( !_useColor ){
+            leftFolder  += "/image_0/";
+            rightFolder += "/image_1/";
+        } else {
+            leftFolder  += "/image_2/";
+            rightFolder += "/image_3/";
+        }
+
         calibFile   += "/calib.txt";
         timesFile   += "/times.txt";
         poseFile    += "/poses.txt";
@@ -199,6 +220,15 @@ namespace cvt {
         cvt::DataIterator iter( d );
         cvt::String line;
 
+        cvt::String query0, query1;
+        if( !_useColor ){
+            query0 = "P0:";
+            query1 = "P1:";
+        } else {
+            query0 = "P2:";
+            query1 = "P3:";
+        }
+
         bool found0 = false;
         bool found1 = false;
         while( iter.nextLine( line ) && !( found0 && found1 ) ){
@@ -209,7 +239,7 @@ namespace cvt {
                 throw CVTException( "Corrupt calib File" );
             }
 
-            if( !found0 && lineTokens[ 0 ] == "P0:" ){
+            if( !found0 && lineTokens[ 0 ] == query0 ){
                 found0 = true;
                 _calibLeft.setIdentity();
                 _calibLeft[ 0 ][ 0 ] = lineTokens[ 1  ].toDouble();
@@ -229,7 +259,7 @@ namespace cvt {
                 continue;
             }
 
-            if( !found1 && lineTokens[ 0 ] == "P1:" ){
+            if( !found1 && lineTokens[ 0 ] == query1 ){
                 found1 = true;
                 _calibRight.setIdentity();
                 _calibRight[ 0 ][ 0 ] = lineTokens[ 1  ].toDouble();

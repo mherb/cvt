@@ -1,13 +1,27 @@
 /*
-            CVT - Computer Vision Tools Library
+   The MIT License (MIT)
 
-     Copyright (c) 2012, Philipp Heise, Sebastian Klose
+   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
 
-    THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
-    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-    PARTICULAR PURPOSE.
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
 */
+
 #ifndef CVT_INTENSITYKEYFRAME_H
 #define CVT_INTENSITYKEYFRAME_H
 
@@ -18,7 +32,7 @@ namespace cvt {
 	class IntensityKeyframe : public RGBDKeyframe<AlignData> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-			typedef RGBDKeyframe<AlignData>             Base;
+            typedef RGBDKeyframe<AlignData>             Base;
 			typedef typename Base::WarpType				WarpType;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
@@ -35,7 +49,8 @@ namespace cvt {
                                             const Image& depth,
                                             float scale );
 
-            void updateOnlineData( const ImagePyramid& pyrf,
+            void updateOnlineData( const Matrix4f& cam2World,
+                                   const ImagePyramid& pyrf,
                                    const Image& depth );
 
             void recompute( std::vector<float>& residuals,
@@ -174,10 +189,14 @@ namespace cvt {
     }
 
 	template <class WarpFunc, class LinearizerType>
-	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const ImagePyramid& pyrf,
+	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const Matrix4f& cam2World,
+																			   const ImagePyramid& pyrf,
 																			   const Image& depth )
 	{
-		_linearizer.updateOnlineData( pyrf, depth );
+		_linearizer.updateOnlineData( cam2World, pyrf, depth );
+		for( size_t i = 0; i < pyrf.octaves(); ++i ){
+			_linearizer.relinearize( this->_dataForScale[ i ], cam2World );
+		}
 	}
 
 }
