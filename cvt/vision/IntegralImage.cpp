@@ -334,6 +334,17 @@ namespace cvt
 		}
         success &= area3;
 
+        {
+            IMapScoped<const float> map( sum );
+            float a4 = IntegralImage::area( map, rect.x, rect.y, rect.width, rect.height );
+            bool area4 = Math::abs( iArea - a4 ) < Math::EPSILONF;
+            if( !area4 ) {
+                std::cout << "GT: " << iArea << " Result: " << a4 << std::endl;
+                CVTTEST_PRINT( "IntegralImage::area( IMapScoped, x, y, width, height )", area4 );
+            }
+            success &= area4;
+        }
+
         sum.unmap( ptr );
 
         return success;

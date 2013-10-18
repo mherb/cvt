@@ -138,8 +138,8 @@ namespace cvt
 
      inline float IntegralImage::area( const IMapScoped<const float>& map, size_t x, size_t y, size_t w, size_t h )
      {
-        w--; h--;
-        return map( x + w, y + h ) - map( x + w, y - 1 ) - map( x - 1, y + h ) + map( x - 1, y - 1 );
+         x--; y--;
+        return map( x + w, y + h ) - map( x + w, y ) - map( x , y + h ) + map( x, y );
      }
 
 }
