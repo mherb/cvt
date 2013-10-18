@@ -146,7 +146,7 @@ namespace cvt {
             float           lastSSD()             const             { return _lastResult.costs; }
             size_t          lastNumPixels()       const             { return _lastResult.numPixels; }
             float           lastPixelPercentage() const             { return _lastResult.pixelPercentage * 100.0f; }
-            void            setParameters( const Params& p )        { _params = p; }
+            void            setParameters( const Params& p )        { _params = p; }// TODO: some updates might not get reflected this way!
             const Params&   parameters() const                      { return _params; }
             OptimizerType*  optimizer()                             { return _optimizer; }
             const Matrix4f& activeKeyframePose() const              { return _activeKeyframe->pose(); }
@@ -188,6 +188,9 @@ namespace cvt {
         _numCreated( 0 ),
         _pyramid( p.pyrOctaves, p.pyrScale )
     {
+        _optimizer->setMaxIterations( _params.maxIters );
+        _optimizer->setMinUpdate( _params.minParameterUpdate );
+        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
         _currentPose.setIdentity();
     }
 
@@ -268,10 +271,6 @@ namespace cvt {
         kf.setGradientThreshold( _params.gradientThreshold );
         kf.setUseInformationSelection( _params.useInformationSelection );
         kf.setSelectionPixelPercentage( _params.selectionPixelPercentage );
-
-        _optimizer->setMaxIterations( _params.maxIters );
-        _optimizer->setMinUpdate( _params.minParameterUpdate );
-        _optimizer->setMinPixelPercentage( _params.minPixelPercentage );
     }
 
     template <class DerivedKF, class LossFunction>
@@ -279,8 +278,9 @@ namespace cvt {
     {
         // check the ssd:
         float avgSSD = -1.0f;
-        if( _lastResult.numPixels )
+        if( _lastResult.numPixels ){
             avgSSD = _lastResult.costs / _lastResult.numPixels;
+        }
 
         if( _lastResult.pixelPercentage < _params.minPixelPercentage ){
             if( avgSSD < _params.maxSSDSqr ){
@@ -295,7 +295,6 @@ namespace cvt {
         t[ 3 ] = 0;
         float tmp = t.length();
         if( tmp > _params.maxTranslationDistance ){
-            //std::cout << "Translation Distance: " << tmp << std::endl;
             return true;
         }
 
@@ -304,7 +303,6 @@ namespace cvt {
         Vector3f euler = q.toEuler();
         tmp = euler.length();
         if( tmp > _params.maxRotationDistance ){
-            //std::cout << "Rotation Distance: " << tmp << std::endl;
             return true;
         }
         return false;
