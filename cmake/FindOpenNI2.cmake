@@ -4,6 +4,7 @@ FIND_PATH(OpenNI2_INCLUDE_DIR
 	${CMAKE_INCLUDE_PATH}
 	/usr/local/include
 	/usr/include
+	/usr/include/openni2
     $ENV{OPENNI2_INCLUDE}
 )
 
