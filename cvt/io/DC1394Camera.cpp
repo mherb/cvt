@@ -780,7 +780,9 @@ namespace cvt
             if( wasCapturing ) startCapture();
             throw CVTException( dc1394_error_get_string( error ) );
         }
-        _fps = _calcFormat7FPS( pacSize, width(), height(), bitsPerPixel >> 3 );
+        _fps = _calcFormat7FPS( actualSize, width(), height(), bitsPerPixel >> 3 );
+
+        std::cout << "PacketSize - Req = " << pacSize << " Adj = " << pSize << " actual = " << actualSize << std::endl;
 
         if( wasCapturing ) startCapture();
     }
