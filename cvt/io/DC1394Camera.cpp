@@ -123,12 +123,15 @@ namespace cvt
 		}
 
 		_mode = dcMode( mode );
+		setRunMode( _params.runMode );
 
         if( _params.usePreset ){
             loadPreset( _params.preset );
-        }        
+        }
 
         setFrameRate( _fps );
+
+
 
 		_identifier.sprintf( "%llu", _camera->guid );
 	}
@@ -319,11 +322,8 @@ namespace cvt
 
 	void DC1394Camera::triggerFrame()
 	{
-		// only supported in SW Trigger Mode
-		//if( _runMode == RUNMODE_SW_TRIGGER ){
 		setSoftwareTrigger( true );
 		setSoftwareTrigger( false );
-		//}
 	}
 
     const Image& DC1394Camera::frame() const

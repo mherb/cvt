@@ -56,18 +56,12 @@ namespace cvt {
         CameraInfo cInfo;
         DC1394Camera::cameraInfo( leftIdx, cInfo );
         CameraMode mode = cInfo.bestMatchingMode( IFormat::BAYER_GBRG_UINT8, 1296, 960, 18 );
-
         std::cout << mode << std::endl;
-        //mode.fps = 18;
 
         _leftCam = new DC1394Camera( leftIdx, mode, camParams );
 
         camParams.runMode = DC1394Camera::RUNMODE_HW_TRIGGER;
         _rightCam = new DC1394Camera( rightIdx, mode, camParams );
-
-        // done using preset parameters
-        //configureLeft( params.leftStrobePin );
-        //configureRight( params.rightTriggerPin );
 
         _leftCam->startCapture();
         _rightCam->startCapture();
