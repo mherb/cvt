@@ -114,10 +114,21 @@ namespace cvt
 		if( !_camera )
 			throw CVTException( "Could not open camera" );
 
+		// update the cameras format7 modeset:
+		for( int i = 0; i < DC1394_VIDEO_MODE_FORMAT7_NUM; i++ ) {
+		  _format7Modeset.mode[ i ].present = DC1394_FALSE;
+		}
+		if( dc1394_format7_get_modeset( _camera, &_format7Modeset ) != DC1394_SUCCESS ){
+			throw CVTException( "Could not query format7 modeset from camera" );
+		}
+
+		_mode = dcMode( mode );
+
         if( _params.usePreset ){
             loadPreset( _params.preset );
         }        
-        dcSettings( mode );
+
+        setFrameRate( _fps );
 
 		_identifier.sprintf( "%llu", _camera->guid );
 	}
@@ -140,11 +151,11 @@ namespace cvt
 	{
 		if( _capturing ) {
 			stopCapture();
-            //reset();
+			//reset();
 			startCapture();
-        } else {
-            //reset();
-        }
+		} else {
+			//reset();
+		}
 	}
 
 	void DC1394Camera::reset( )
@@ -194,8 +205,6 @@ namespace cvt
 		if( error == DC1394_FAILURE ){
 			throw CVTException( dc1394_error_get_string( error ) );
 		}
-
-		setFrameRate( _fps );
 
         error = dc1394_capture_setup( _camera, _params.numDMABuf, DC1394_CAPTURE_FLAGS_DEFAULT );
 		if( error == DC1394_FAILURE ){
@@ -368,7 +377,7 @@ namespace cvt
         }
 	}
 
-	void DC1394Camera::getWhiteBalance( unsigned int* ubValue, unsigned int* vrValue )
+	void DC1394Camera::whiteBalance( uint32_t *ubValue, uint32_t *vrValue )
 	{
         dc1394error_t error = dc1394_feature_whitebalance_get_value( _camera, ubValue, vrValue );
         if( error != DC1394_SUCCESS ){
@@ -682,8 +691,8 @@ namespace cvt
 	void DC1394Camera::setBandwidth( float fps )
 	{
 		// this should use the current AOI later on
-        uint32_t w = _frame.width();
-        uint32_t h = _frame.height();
+		uint32_t w = width();
+		uint32_t h = height();
 
         dc1394error_t error = DC1394_SUCCESS;
 
@@ -717,9 +726,6 @@ namespace cvt
 		// we need to calculate the packet size needed to reach the frame rate
 		uint32_t pacSize = fps * bytesPerFrame / 8000.0f;        
 		setPacketSize( pacSize );
-		std::cout << "PacketSize: " << pacSize << std::endl;
-		//pacSize = packetSize();
-        _fps = _calcFormat7FPS( pacSize, w, h, bitsPerPixel >> 3 );        
 	}
 
 	void DC1394Camera::setPacketSize( size_t pacSize )
@@ -727,10 +733,22 @@ namespace cvt
 		if( !_isFormat7 ){
 			return;
 		}
-		uint32_t packetUnits, maxBytes;
-		dc1394error_t error = dc1394_format7_get_packet_parameters( _camera, _mode, &packetUnits, &maxBytes );
-		if( error != DC1394_SUCCESS )
+
+		bool wasCapturing = _capturing;
+
+		if( _capturing )
+			stopCapture();
+
+		dc1394error_t error;
+		uint32_t packetUnits, maxBytes;		
+		int modeIdx = _mode - DC1394_VIDEO_MODE_FORMAT7_MIN;
+		packetUnits = _format7Modeset.mode[ modeIdx ].unit_packet_size;
+		maxBytes = _format7Modeset.mode[ modeIdx ].max_packet_size;
+
+		if( error != DC1394_SUCCESS ){
+			if( wasCapturing ) startCapture();
 			throw CVTException( dc1394_error_get_string( error ) );
+		}
 
 		// pad to unit				
 		uint32_t pSize = pacSize;
@@ -741,23 +759,35 @@ namespace cvt
 			max = min;
 		pSize = Math::min( max, maxBytes );
 
-        uint32_t trials = 0;
-        do {
-            error = dc1394_format7_set_packet_size( _camera, _mode, pSize );
-            trials++;
-            if( error != DC1394_SUCCESS )
-                throw CVTException( dc1394_error_get_string( error ) );
-        } while( packetSize() != pSize && trials < 5 );
+        error = dc1394_format7_set_packet_size( _camera, _mode, pSize );
+        if( error != DC1394_SUCCESS ){
+            if( wasCapturing ) startCapture();
+            throw CVTException( dc1394_error_get_string( error ) );
+        }
 
+		uint32_t actualSize = 0;
+		error = dc1394_format7_get_packet_size( _camera, _mode, &actualSize );
+		if( error != DC1394_SUCCESS ){
+			if( wasCapturing ) startCapture();
+			throw CVTException( dc1394_error_get_string( error ) );
+		}
+
+		_format7Modeset.mode[ modeIdx ].packet_size = actualSize;
+
+        uint32_t bitsPerPixel = 0;
+        error = dc1394_get_color_coding_data_depth( _colorCoding, &bitsPerPixel );
+        if( error != DC1394_SUCCESS ){
+            if( wasCapturing ) startCapture();
+            throw CVTException( dc1394_error_get_string( error ) );
+        }
+        _fps = _calcFormat7FPS( pacSize, width(), height(), bitsPerPixel >> 3 );
+
+        if( wasCapturing ) startCapture();
     }
 
 	size_t DC1394Camera::packetSize() const
 	{
-		uint32_t packetSize = 0;
-		dc1394error_t error = dc1394_format7_get_packet_size( _camera, _mode, &packetSize );
-		if( error != DC1394_SUCCESS )
-			throw CVTException( dc1394_error_get_string( error ) );
-		return packetSize;
+		return _format7Modeset.mode[ _mode - DC1394_VIDEO_MODE_FORMAT7_MIN ].packet_size;
 	}
 
 	float DC1394Camera::frameRate() const
@@ -953,12 +983,6 @@ namespace cvt
 		return ( ExternalTriggerMode )tm;
 	}
 
-	void DC1394Camera::dcSettings( const CameraMode & mode )
-	{
-		// get equivalent dc video mode
-		_mode = dcMode( mode );
-	}
-
 	dc1394video_mode_t DC1394Camera::dcMode( const CameraMode & mode ) {
 		/* first try to use the format7 mode if possible */
         dc1394error_t error = DC1394_SUCCESS;
@@ -986,8 +1010,8 @@ namespace cvt
 							_isFormat7 = true;
 							return videoModes.modes[ m ];
 						}
-					} catch( const cvt::Exception& e ){
-                        std::cout << "IGNORING UNSUPPORTED CODING" << std::endl;
+					} catch( const cvt::Exception& /*e*/ ){
+						//std::cout << "IGNORING UNSUPPORTED CODING" << std::endl;
 					}
 				}
 			}
@@ -1092,10 +1116,10 @@ namespace cvt
                 error = dc1394_video_set_transmission( _camera, DC1394_ON );
 				break;
 			case RUNMODE_SW_TRIGGER:
-				//dc1394_video_set_transmission( _camera, DC1394_OFF );
+				dc1394_video_set_transmission( _camera, DC1394_OFF );
 				break;
 			case RUNMODE_HW_TRIGGER:
-				//dc1394_video_set_transmission( _camera, DC1394_OFF );
+				dc1394_video_set_transmission( _camera, DC1394_OFF );
 				break;
 			default:
 				throw CVTException( "unkown runmode!" );
@@ -1296,7 +1320,6 @@ namespace cvt
 					info.addMode( CameraMode( width, height, fps, cvtFormat ) );
 				}
 			} else {
-                std::cout << "TESTING FORMAT7 MODE" << std::endl;
                 dc1394color_codings_t codings;
                 dc1394color_filter_t filter;
                 uint32_t packetUnit, maxPacket;
@@ -1332,8 +1355,8 @@ namespace cvt
                         float fps = _calcFormat7FPS( maxPacket, width, height, ( float )bitsPerPixel / 8.0f );
 
 						info.addMode( CameraMode( width, height, fps, cvtFormat ) );
-					} catch( const cvt::Exception& e ){
-						std::cout << "Skipping dc1394 video mode: " << e.what() << std::endl;
+					} catch( const cvt::Exception& /*e*/ ){
+						//std::cout << "Skipping dc1394 video mode: " << e.what() << std::endl;
 					}
 				}
 			}
@@ -1365,5 +1388,35 @@ namespace cvt
         error = dc1394_feature_print_all( &featureSet, stdout );
         if( error != DC1394_SUCCESS )
             throw CVTException( dc1394_error_get_string( error ) );
+	}
+
+	bool DC1394Camera::isVideoTransmitting() const
+	{
+		dc1394error_t error;
+		dc1394switch_t ison;
+		error = dc1394_video_get_transmission( _camera, &ison );
+		return ( ison == DC1394_ON ) ? true : false;
+	}
+
+	void DC1394Camera::setVideoTransmission( bool val ) const
+	{
+		bool isOn = isVideoTransmitting();
+		dc1394error_t error;
+		if( val ){
+			if( !isOn ){
+				// turn on
+				error = dc1394_video_set_transmission( _camera, DC1394_ON );
+				if( error == DC1394_FAILURE ){
+					throw CVTException( dc1394_error_get_string( error ) );
+				}
+			}
+		} else {
+			if( isOn ){
+				error = dc1394_video_set_transmission( _camera, DC1394_OFF );
+				if( error == DC1394_FAILURE ){
+					throw CVTException( dc1394_error_get_string( error ) );
+				}
+			}
+		}
 	}
 }

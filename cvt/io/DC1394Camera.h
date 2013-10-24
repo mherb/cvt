@@ -180,7 +180,7 @@ namespace cvt
 			void loadPreset( CameraPreset preset );
 			void savePreset( CameraPreset preset = PRESET_USER0 );
 
-            void getWhiteBalance( unsigned int* ubValue, unsigned int* vrValue );
+            void whiteBalance( uint32_t* ubValue, uint32_t* vrValue );
             void setWhiteBalance( uint32_t ubValue, uint32_t vrValue );
 
 			uint32_t shutter() const;
@@ -249,16 +249,20 @@ namespace cvt
 
 			bool                 _capturing;
 			dc1394_t*            _dcHandle;
-			dc1394camera_t*      _camera;			
+			dc1394camera_t*      _camera;
 			dc1394video_mode_t   _mode;
 			dc1394color_coding_t _colorCoding;
 			dc1394color_filter_t _colorFilter;
 			dc1394framerate_t    _framerate;
 			bool				 _isFormat7;
 			String               _identifier;
-            RunMode              _runMode;
+			RunMode              _runMode;
+
+			dc1394format7modeset_t	_format7Modeset;
 
             bool hasFeature( dc1394feature_t feature ) const;
+            bool isVideoTransmitting() const;
+            void setVideoTransmission( bool val ) const;
     };
 
 }
