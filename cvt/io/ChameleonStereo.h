@@ -94,7 +94,7 @@ namespace cvt {
             float fps() const;
 
             void setPacketSize( size_t n, SubCamera cam = BOTH );
-            size_t packetSize() const;
+            size_t packetSize( SubCamera cam = BOTH ) const;
 
             void setAreaOfInterest( const Recti& rect );
             Recti areaOfInterest() const;

@@ -236,9 +236,12 @@ namespace cvt {
         }
     }
 
-    size_t ChameleonStereo::packetSize() const
+    size_t ChameleonStereo::packetSize( SubCamera cam ) const
     {
-        return _leftCam->packetSize();
+        if( cam == RIGHT )
+            return _rightCam->packetSize();
+        else
+            return _leftCam->packetSize();
     }
 
     void ChameleonStereo::setAreaOfInterest( const Recti& rect )
