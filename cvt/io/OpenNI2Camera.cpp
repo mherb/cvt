@@ -325,6 +325,11 @@ namespace cvt {
         if( status != openni::STATUS_OK ){
             std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
         }
+        
+        status = _depthStream.setMirroringEnabled( val );
+        if( status != openni::STATUS_OK ){
+            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+        }
     }
 
     bool OpenNI2Camera::isMirroring() const
