@@ -899,7 +899,6 @@ SET_SOURCE_FILES_PROPERTIES(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -ms
 SET_SOURCE_FILES_PROPERTIES(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
 # CVTConfig file for installation/package
-SET( CMAKE_INSTALL_PREFIX /usr )
 set( CVT_SEARCH_NAMES	"cvt cvt_d" )
 set( CVT_INCLUDE_DIR	"${CMAKE_INSTALL_PREFIX}/include" )
 set( CVT_INCLUDE_DIRS	"${CVT_INCLUDE_DIR}" )
