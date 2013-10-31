@@ -36,7 +36,6 @@
 #include <cvt/vision/StereoCameraCalibration.h>
 #include <cvt/vision/slam/stereo/FeatureTracking.h>
 #include <cvt/vision/slam/stereo/MapOptimizer.h>
-
 #include <set>
 
 namespace cvt
@@ -55,11 +54,15 @@ namespace cvt
 				   minTrackedFeatures( 70 ),
 				   maxKeyframeDistance( 3.0f ),
 				   minFeaturesForKeyframe( 10 ),
-				   /* TODO: change param to DEPTH range*/
-				   minDisparity( 0.1f ),
-				   maxDisparity( 20.0f ),
+				   minDisparity( 10.0f ),
+				   maxDisparity( 80.0f ),
 				   maxEpilineDistance( 1.0f ),
-				   kltStereoIters( 2 )
+				   stereoMaxDescDistance( 80.0f ),
+				   kltStereoIters( 2 ),
+				   dbgShowFeatures( false ),
+				   dbgShowNMSFilteredFeatures( false ),
+				   dbgShowBest3kFeatures( false ),
+				   dbgShowStereoMatches( false )
 				{
 				}
 
@@ -80,15 +83,22 @@ namespace cvt
 				float minDisparity;
 				float maxDisparity;
 				float maxEpilineDistance;
+				float stereoMaxDescDistance;
 
 				/* klt params */
 				size_t kltStereoIters;
+
+				/* debug params */
+				bool dbgShowFeatures;
+				bool dbgShowNMSFilteredFeatures;
+				bool dbgShowBest3kFeatures;
+				bool dbgShowStereoMatches;
 		   };
 
 		   StereoSLAM( FeatureDetector* detector,
 					   FeatureDescriptorExtractor* descExtractor,
-                       const StereoCameraCalibration& calib,
-                       const Params& params=Params());
+					   const StereoCameraCalibration& calib,
+					   const Params& params=Params());
 
 
 		 /**
@@ -105,15 +115,19 @@ namespace cvt
 		 void				setPose( const Matrix4f& pose );
 		 const SE3<float>&	pose() const { return _pose; }
 
-         Signal<const Image&>       newStereoView;
-         Signal<const Image&>       trackedFeatureImage;
-         Signal<void>               keyframeAdded;
-         Signal<const SlamMap&>     mapChanged;
-         Signal<const Matrix4f&>    newCameraPose;
-         Signal<size_t>             numTrackedPoints;
+		 void setConfig( const Params& configParams );
 
-         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-      private:
+		 Signal<const Image&>       newStereoView;
+		 Signal<const Image&>       trackedFeatureImage;
+		 Signal<void>               keyframeAdded;
+		 Signal<const SlamMap&>     mapChanged;
+		 Signal<const Matrix4f&>    newCameraPose;
+		 Signal<size_t>             numTrackedPoints;
+		 Signal<const Image&>       newStereoMatches;
+		 Signal<const PointSet3f&>  triangulatedPoints;
+
+		 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	  private:
 		 struct TrackedFeatures {
 			PointSet2f			points2d;
 			PointSet3f			points3d;
@@ -151,12 +165,13 @@ namespace cvt
 
 		 StereoCameraCalibration	 _calib;
 
-         /* the current pose of the camera rig */
+		 /* the current pose of the camera rig */
 		 SE3<float>					 _pose;
 		 int						 _activeKF;
 		 SlamMap					 _map;
 		 MapOptimizer				 _bundler;
 		 Image						 _lastImage;
+		 Image						 _debugMono;
 
 		 void extractFeatures( const Image& left, const Image& right );
 
@@ -202,15 +217,29 @@ namespace cvt
 							  const std::vector<size_t>& trackedMapIds,
 							  const std::vector<size_t>& inliers );
 
-         void debugPatchWorkImage( const std::set<size_t>&          indices,
-                                   const std::vector<size_t>&       featureIds,
-                                   const std::vector<FeatureMatch>& matches );
+		 void debugPatchWorkImage( const std::set<size_t>&          indices,
+								   const std::vector<size_t>&       featureIds,
+								   const std::vector<FeatureMatch>& matches );
 
-         void createDebugImageMono( Image & debugImage,
+		 void createDebugImageMono( Image & debugImage,
 									const PointSet2f & tracked,
-                                    const std::vector<Vector2f> & predPos ) const;
-   };
+									const std::vector<Vector2f> & predPos ) const;
 
+		 void createDebugImageMono1( Image & debugImage,
+									 const TrackedFeatures& tracked,
+									 const std::vector<Vector2f>& predPos,
+									 const std::vector<MatchingIndices>& matchedIndices,
+									 const std::vector<size_t>& predictedFeatureIds) const;
+
+		 void debugImageDrawFeatures( Image & debugImage,
+									  const FeatureSet& featureSet,
+									  const Color& color=Color::BLUE,
+									  const size_t rectSize=5 ) const;
+
+		 void createStereoMatchingDebugImage( Image & debugImage,
+											  std::vector<FeatureMatch> stereoMatches );
+
+   };
 }
 
 #endif
