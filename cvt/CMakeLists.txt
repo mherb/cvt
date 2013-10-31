@@ -464,6 +464,7 @@ SET( CVT_HEADERS
    vision/features/ORB.h
    vision/features/ORBPattern.h
    vision/features/RowLookupTable.h
+   vision/features/GridFilter.h
    vision/IntegralImage.h
    vision/ImagePyramid.h
    vision/Flow.h
@@ -688,6 +689,7 @@ SET( CVT_SOURCES
 	vision/features/fast/fast12.cpp
 	vision/features/FeatureSet.cpp
 	vision/features/Harris.cpp
+	vision/features/GridFilter.cpp
 	vision/Flow.cpp
 	vision/IntegralImage.cpp
 	vision/ImagePyramidTest.cpp

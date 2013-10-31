@@ -32,6 +32,7 @@
 
 namespace cvt {
 	class RowLookupTable;
+
 	class FeatureDescriptorExtractor
 	{
 		public:
@@ -44,7 +45,7 @@ namespace cvt {
 
 			virtual void clear() = 0;
 			virtual void extract( const Image& img, const FeatureSet& features ) = 0;
-			virtual void extract( const ImagePyramid& pyr, const FeatureSet& features ) = 0;
+            virtual void extract( const ImagePyramid& pyr, const FeatureSet& features ) = 0;
 
 			virtual void matchBruteForce( std::vector<FeatureMatch>& matches,
 										  const FeatureDescriptorExtractor& other,

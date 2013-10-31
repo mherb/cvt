@@ -84,9 +84,14 @@ namespace cvt {
 			};
 
 
+            template <class ImgT>
+            void extractInternal( const ImagePyramid& pyr, const FeatureSet& features );
 
-			void extractF( const Image& img, const FeatureSet& features );
-			void extractU8( const Image& img, const FeatureSet& features );
+            template <class ImgT>
+            void extractInternal( const Image& img, const FeatureSet& features );
+
+            template <class ImgT>
+            void descriptor( Descriptor& feature, const Vector2f& pt, const IMapScoped<ImgT>& map );
 
 			const size_t			_boxradius;
 			std::vector<Descriptor> _features;
@@ -150,10 +155,16 @@ namespace cvt {
 	}
 
 	template<size_t N>
-	inline void BRIEF<N>::extract( const ImagePyramid& img, const FeatureSet& features )
-	{
-		throw CVTException( "MultiscaleExtraction not implemented yet" );
-	}
+    inline void BRIEF<N>::extract( const ImagePyramid& pyr, const FeatureSet& features )
+    {
+        if( pyr[ 0 ].channels() != 1 || ( pyr[ 0 ].format() != IFormat::GRAY_UINT8 && pyr[ 0 ].format() != IFormat::GRAY_FLOAT ) )
+            throw CVTException( "Unimplemented" );
+
+        if( pyr[ 0 ].format() == IFormat::GRAY_FLOAT )
+            extractInternal<const float>( pyr[ 0 ], features );
+        else if( pyr[ 0 ].format() == IFormat::GRAY_UINT8 )
+            extractInternal<const uint8_t>( pyr[ 0 ], features );
+    }
 
 	template<size_t N>
 	inline void BRIEF<N>::extract( const Image& img, const FeatureSet& features )
@@ -162,62 +173,74 @@ namespace cvt {
 			throw CVTException( "Unimplemented" );
 
 		if( img.format() == IFormat::GRAY_FLOAT )
-			extractF( img, features );
+            extractInternal<const float>( img, features );
 		else if( img.format() == IFormat::GRAY_UINT8 )
-			extractU8( img, features );
+            extractInternal<const uint8_t>( img, features );
 	}
 
-	template<size_t N>
-	inline void BRIEF<N>::extractF( const Image& img, const FeatureSet& features )
+    template<size_t N>
+    template<class ImgT>
+    inline void BRIEF<N>::extractInternal( const ImagePyramid& pyr, const FeatureSet& features )
+    {
+        ImagePyramid boxPyr( pyr.octaves(), pyr.scaleFactor() );
+        pyr.boxfilter( boxPyr, _boxradius );
+
+        size_t octaves = pyr.octaves();
+        std::vector<IMapScoped<ImgT>*> maps;
+        std::vector<float> scales;
+        for( size_t i = 0; i < octaves; ++i ){
+            maps.push_back( new IMapScoped<ImgT>( boxPyr[ i ] ) );
+            scales.push_back( Math::pow( boxPyr.scaleFactor(), ( float )i ) );
+        }
+
+        size_t iend = features.size();
+        Vector2f vs;
+        for( size_t i = 0; i < iend; ++i ) {
+            _features.push_back( Descriptor( features[ i ] ) );
+            Descriptor& desc = _features.back();
+            size_t o = desc.octave;
+            vs = desc.pt * scales[ o ];
+            descriptor( desc, vs, *maps[ o ] );
+        }
+
+        for( size_t i = 0; i < octaves; ++i ){
+            delete maps[ i ];
+        }
+    }
+
+    template<size_t N>
+    template<class ImgT>
+    inline void BRIEF<N>::extractInternal( const Image& img, const FeatureSet& features )
 	{
 		Image boximg;
 		img.boxfilter( boximg, _boxradius );
 
-#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
-
-		IMapScoped<const float> map( boximg );
+        IMapScoped<ImgT> map( boximg );
 		size_t iend = features.size();
 		for( size_t i = 0; i < iend; ++i ) {
-			int px, py;
-			px = features[ i ].pt.x;
-			py = features[ i ].pt.y;
 			_features.push_back( Descriptor( features[ i ] ) );
-			for( size_t n = 0; n < N; n++ ) {
-				uint8_t tests  = 0;
-				size_t  offset = n * 8;
-				for( int t = 0; t < 8; t++ )
-					tests |= DOBRIEFTEST( n * 8 + t ) << t;
-				_features.back().desc[ n ] = tests;
-			}
-		}
-
-	}
-
-	template<size_t N>
-	inline void BRIEF<N>::extractU8( const Image& img, const FeatureSet& features )
-	{
-		Image boximg;
-		img.boxfilter( boximg, _boxradius );
-
-#define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
-
-		IMapScoped<const uint8_t> map( boximg );
-		size_t iend = features.size();
-		for( size_t i = 0; i < iend; ++i ) {
-			int px, py;
-			px = features[ i ].pt.x;
-			py = features[ i ].pt.y;
-			_features.push_back( Descriptor( features[ i ] ) );
-			for( size_t n = 0; n < N; n++ ) {
-				uint8_t tests  = 0;
-
-				for( int t = 0; t < 8; t++ ) {
-					tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
-				}
-				_features.back().desc[ n ] = tests;
-			}
+            descriptor( _features.back(), features[ i ].pt, map );
 		}
 	}
+
+    template<size_t N>
+    template<class ImgT>
+    inline void BRIEF<N>::descriptor( Descriptor& feature, const Vector2f& pt, const IMapScoped<ImgT>& map )
+    {
+        int px = ( int ) pt.x;
+        int py = ( int ) pt.y;
+
+        #define DOBRIEFTEST( n ) ( map( px + _brief_pattern[ n ][ 0 ], py + _brief_pattern[ n ][ 1 ] ) < map( px + _brief_pattern[ n ][ 2 ], py + _brief_pattern[ n ][ 3 ] ) )
+        for( size_t n = 0; n < N; n++ ) {
+            uint8_t tests  = 0;
+
+            for( int t = 0; t < 8; t++ ) {
+                tests |= ( DOBRIEFTEST( n * 8 + t ) << t );
+            }
+            feature.desc[ n ] = tests;
+        }
+
+    }
 
 	template<size_t N>
 	inline void BRIEF<N>::matchBruteForce( std::vector<FeatureMatch>& matches, const FeatureDescriptorExtractor& other, float distThresh ) const

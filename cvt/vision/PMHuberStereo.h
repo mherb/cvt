@@ -37,7 +37,7 @@ namespace cvt {
 			PMHuberStereo();
 			~PMHuberStereo();
 
-			void depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples, float dscale = -1.0f );
+			void depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples, float dscale = -1.0f, Image* normalmap = NULL );
 			void depthMapInpaint( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples );
 
 		private:
@@ -49,6 +49,7 @@ namespace cvt {
 			CLKernel _clpmh_consistency;
 			CLKernel _clpmh_filldepthmap;
 			CLKernel _clpmh_normaldepth;
+			CLKernel _clpmh_fillnormalmap;
 			CLKernel _clpmh_clear;
 			CLKernel _clpmh_occmap;
 			CLKernel _clpmh_gradxy;

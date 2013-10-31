@@ -74,6 +74,7 @@ namespace cvt
             void convolve( ImagePyramid& out, const IKernel& hkernel, const IKernel& vkernel ) const;
             void convert( ImagePyramid& out, const IFormat& dstFormat ) const;
             void integralImage( ImagePyramid& out ) const;
+            void boxfilter( ImagePyramid& out, size_t hradius, size_t vradius = 0 ) const;
 
         private:
             std::vector<Image>       _image;
@@ -200,6 +201,13 @@ namespace cvt
     {
         for( size_t i = 0; i < _image.size(); i++ ){
             _image[ i ].integralImage( out[ i ] );
+        }
+    }
+
+    inline void ImagePyramid::boxfilter( ImagePyramid& out, size_t hradius, size_t vradius ) const
+    {
+        for( size_t i = 0; i < _image.size(); i++ ){
+            _image[ i ].boxfilter( out[ i ], hradius, vradius );
         }
     }
     

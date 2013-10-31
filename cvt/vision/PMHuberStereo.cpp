@@ -47,6 +47,7 @@ namespace cvt {
 		_clpmh_fill( _pmhstereo_source, "pmhstereo_fill_state" ),
 		_clpmh_consistency( _pmhstereo_source, "pmhstereo_consistency" ),
 		_clpmh_filldepthmap( _pmhstereo_source, "pmhstereo_fill_depthmap" ),
+		_clpmh_fillnormalmap( _pmhstereo_source, "pmhstereo_fill_normalmap" ),
 		_clpmh_normaldepth( _pmhstereo_source, "pmhstereo_normal_depth" ),
 		_clpmh_clear( _pmhstereo_source, "pmhstereo_clear" ),
 		_clpmh_occmap( _pmhstereo_source, "pmhstereo_occmap" ),
@@ -60,16 +61,20 @@ namespace cvt {
 	{
 	}
 
-	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples, float dscale )
+	void PMHuberStereo::depthMap( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples, float dscale, Image* normalmap )
 	{
 		if( left.width() != right.width() || left.height() != right.height() ||
 		    left.memType() != IALLOCATOR_CL || right.memType() != IALLOCATOR_CL )
 			throw CVTException( "Left/Right stereo images inconsistent or incompatible memory type" );
 
-		const float maxdispdiff = 0.75f;
+		const float maxdispdiff = 0.5f;
 		const float maxanglediff = 10.0f;
-		const float thetascale = 30.0f;
+		const float thetascale = 50.0f;
 		float theta = 0.0f;
+
+        if( dscale <= 0.0f )
+			dscale = 1.0f / depthmax;
+
 		CLBuffer viewbuf1( sizeof( PMHVIEWPROP ) * left.width() * left.height() );
 		CLBuffer viewbuf2( sizeof( PMHVIEWPROP ) * right.width() * right.height() );
 
@@ -149,14 +154,14 @@ namespace cvt {
 			std::cout << "Theta: " << theta << std::endl;
 			_clpmh_depthmap.setArg( 0, clsmoothtmp );
 			_clpmh_depthmap.setArg( 1, *clmatches1[ swap ] );
-			_clpmh_depthmap.setArg( 2, depthmax );
+			_clpmh_depthmap.setArg( 2, dscale );
 			_clpmh_depthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereo1.png");
 			std::cout << "Wrote stereo1.png" << std::endl;
 
 			_clpmh_depthmap.setArg( 0, clsmoothtmp );
 			_clpmh_depthmap.setArg( 1, *clmatches2[ swap ]  );
-			_clpmh_depthmap.setArg( 2, depthmax );
+			_clpmh_depthmap.setArg( 2, dscale );
 			_clpmh_depthmap.runWait( CLNDRange( Math::pad( right.width(), KX ), Math::pad( right.height(), KY ) ), CLNDRange( KX, KY ) );
 			clsmoothtmp.save("stereo2.png");
 			std::cout << "Wrote stereo2.png" << std::endl;
@@ -269,9 +274,7 @@ namespace cvt {
 		_clpmh_consistency.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		cloutput1.save("stereoconsistency.png");
 
-		if( dscale <= 0.0f )
-			dscale = 1.0f / depthmax;
-
+	
 		dmap.reallocate( left.width(), left.height(), ( dmap.channels() != 1 ) ? IFormat::GRAY_FLOAT : dmap.format(), IALLOCATOR_CL );
 		_clpmh_filldepthmap.setArg( 0, dmap );
 		_clpmh_filldepthmap.setArg( 1, clsmoothtmp );
@@ -279,6 +282,12 @@ namespace cvt {
 		_clpmh_filldepthmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
 //		_clpmh_outputfinal.save( "stereofinal.png" );
 
+		if( normalmap != NULL ) {
+			normalmap->reallocate( left.width(), left.height(), IFormat::RGBA_FLOAT, IALLOCATOR_CL );
+			_clpmh_fillnormalmap.setArg( 0, *normalmap );
+			_clpmh_fillnormalmap.setArg( 1, clsmoothtmp );
+			_clpmh_fillnormalmap.runWait( CLNDRange( Math::pad( left.width(), KX ), Math::pad( left.height(), KY ) ), CLNDRange( KX, KY ) );
+		}
 	}
 
 	void PMHuberStereo::depthMapInpaint( Image& dmap, const Image& left, const Image& right, size_t patchsize, float depthmax, size_t iterations, size_t viewsamples )

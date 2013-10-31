@@ -28,8 +28,8 @@
 #define DEPTHREFINEMUL 2.0f
 #define NORMALREFINEMUL 0.1f
 #define NORMALCOMPMAX 0.95f
-#define NUMRNDTRIES	 2
-#define NUMRNDSAMPLE 3
+#define NUMRNDTRIES	 3
+#define NUMRNDSAMPLE 6
 
 #define COLORWEIGHT 26.0f
 #define COLORGRADALPHA 0.05f
@@ -133,8 +133,8 @@ float4 nd_state_to_color( const float4 _state, const float2 coord, const float d
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
-	n.x = -state.x / n.z;
-	n.y = -state.y / n.z;
+	n.x = -state.x * n.z;
+	n.y = -state.y * n.z;
 	n.xy = n.xy * 0.5f + 0.5f;
 	n.z = ( state.x * coord.x + state.y * coord.y + state.z ) / depthmax;
 	n.w = 1.0f;
@@ -146,9 +146,9 @@ float3 nd_state_to_normal( const float4 _state )
 	float3 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
-	n.x = -state.x / n.z;
-	n.y = -state.y / n.z;
-	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
+	n.x = -state.x * n.z;
+	n.y = -state.y * n.z;
+	//n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 	return n;
 }
 
@@ -158,8 +158,8 @@ float4 nd_state_to_normal_color( const float4 _state )
 	float4 n;
 	float4 state =  ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - _state;
 	n.z = native_rsqrt( state.x * state.x + state.y * state.y + 1.0f );
-	n.x = -state.x / n.z;
-	n.y = -state.y / n.z;
+	n.x = -state.x * n.z;
+	n.y = -state.y * n.z;
 	n.z = native_sqrt( 1.0f - n.x * n.x - n.y * n.y );
 	n.xyz = n.xyz * 0.5f + 0.5f;
 	n.w = 1.0f;
@@ -318,6 +318,8 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 		return;
 
 	smooth = read_imagef( imsmoooth, SAMPLER_NN, coord );
+	float nfactor = fmax( length( smooth.xy ) + 0.001f, 1.0f );
+	smooth.xy = smooth.xy / nfactor;
 	smooth = ( float4 ) ( smooth.x, smooth.y, native_sqrt( 1.0f - smooth.x * smooth.x - smooth.y * smooth.y ), smooth.z * depthmax );
 
 	self = buf[ ly + PROPSIZE ][ lx + PROPSIZE ];
@@ -340,6 +342,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 	}
 
 	// try smooth
+    float2 sdist;
 	neighbour = ( float4 ) ( 1.0f, 0.0f, 0.0f, 0.0f ) - ( float4 ) ( - smooth.x / smooth.z, - smooth.y / smooth.z, ( smooth.x * coordf.x + smooth.y * coordf.y ) / smooth.z + smooth.w, 0.0f );
 	if( !lr )
 		neighbour = nd_state_viewprop( neighbour );
@@ -400,7 +403,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 	write_imagef( output, coord, self );
 }
 
-kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d_t old, const float depthmax )
+kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d_t old, const float scale )
 {
 	int2 coord;
 	const int width = get_image_width( depthmap );
@@ -414,14 +417,10 @@ kernel void pmhstereo_depthmap( write_only image2d_t depthmap, read_only image2d
 
 	float4 state = read_imagef( old, SAMPLER_NN, coord );
 	float4 val;
-	float x = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / depthmax;
-	if( x >= 0.0f && x <= depthmax )
-		val.xyz = fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x ) / depthmax;
-	else {
-		val.xyz = ( float3 ) ( 1.0f, 0.0f, 0.0f );
-		if( !all(isfinite(state.xyz)))
-			val.xyz = ( float3 ) ( 0.0f, 0.0f, 1.0f );
-	}
+    val.xyz = ( float3 ) fabs( nd_state_transform( state, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+    if( !all(isfinite(state.xyz)))
+        val.xyz = ( float3 ) ( 0.0f, 0.0f, 0.0f );
+	val.xyz *= scale;
 	val.w = 1.0f;
 	write_imagef( depthmap, coord, val );
 }
@@ -555,6 +554,56 @@ kernel void pmhstereo_fill_depthmap( write_only image2d_t output, read_only imag
 	write_imagef( output, coord, val );
 }
 
+kernel void pmhstereo_fill_normalmap( write_only image2d_t output, read_only image2d_t input )
+{
+	const int2 coord = ( int2 ) ( get_global_id( 0 ), get_global_id( 1 ) );
+	const int width = get_image_width( output );
+	const int height = get_image_height( output );
+
+	if( coord.x >= width || coord.y >= height )
+		return;
+
+	float4 val;
+	float4 state = read_imagef( input, SAMPLER_NN, coord );
+
+	if( length( state.xyz ) < 1e-1f ) {
+		float4 left = ( float4 ) 0;
+		int x = coord.x - 1;
+		while( length( left.xyz ) < 1e-1f && x >= 0 ) {
+			left = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x--;
+		}
+
+		float4 right = ( float4 ) 0;
+		x = coord.x + 1;
+		while( length( right.xyz ) < 1e-1f && x < width ) {
+			right = read_imagef( input, SAMPLER_NN, ( int2 ) ( x, coord.y ) );
+			x++;
+		}
+
+		if( length( left.xyz ) < 1e-1f ) left.xyz = ( float3 ) -1e5f;
+		if( length( right.xyz ) < 1e-1f ) right.xyz = ( float3 ) -1e5f;
+
+		left.w = -( nd_state_transform( left, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+		right.w = -( nd_state_transform( right, ( float2 ) ( coord.x, coord.y ) ).x - ( float ) coord.x );
+
+        if( left.w < right.w )
+		    val.xyz = nd_state_to_normal( left );
+        else
+		    val.xyz = nd_state_to_normal( right );
+
+		val.w = 0.0f;
+
+	} else {
+		val.xyz = nd_state_to_normal( state );
+		val.w = 0.0f;
+	}
+
+	write_imagef( output, coord, val );
+}
+
+
+
 kernel void pmhstereo_normalmap( write_only image2d_t normalmap, read_only image2d_t old )
 
 {
@@ -569,7 +618,9 @@ kernel void pmhstereo_normalmap( write_only image2d_t normalmap, read_only image
 		return;
 
 	float4 self = read_imagef( old, SAMPLER_NN, coord );
-	float4 val = nd_state_to_normal_color( self );
+	float4 val;
+	val.xyz = nd_state_to_normal( self );
+	val.w = 1.0f;
 	write_imagef( normalmap, coord, val );
 }
 
