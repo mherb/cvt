@@ -25,10 +25,12 @@
 
 #include <cvt/vision/features/FeatureSet.h>
 #include <cvt/vision/features/NMSFilter.h>
+#include <cvt/vision/features/GridFilter.h>
 #include <algorithm>
 
 namespace cvt {
-	void FeatureSet::filterNMS( int radius, bool sort )
+
+    void FeatureSet::filterNMS( int radius, bool sort )
 	{
 		if( sort) {
 			CmpPos cmp;
@@ -38,7 +40,6 @@ namespace cvt {
 		NMSFilter nms( _features );
 		nms.filter( radius );
 	}
-
 
 	void FeatureSet::filterANMS( int radius, float threshold, bool sort )
 	{
@@ -57,12 +58,11 @@ namespace cvt {
 			_features.resize( n );
 	}
 
-	void FeatureSet::filterGrid( size_t cellWidth, size_t n )
+    void FeatureSet::filterGrid( size_t imageWidth, size_t imageHeight,
+                                 size_t cellCountX, size_t cellCountY, size_t featuresPerCell )
 	{
-		// iterator over the set
-		// -> associate each feature to a cell
-		// calculate the features per cell (check which cells are empty)
-		// take the x best features per cell
+        GridFilter gridFilter( *this, featuresPerCell, imageWidth, imageHeight, cellCountX, cellCountY );
+        gridFilter.filterGrid();
 	}
 
 	void FeatureSet::sortPosition()
@@ -70,6 +70,5 @@ namespace cvt {
 		CmpPosi cmp;
 		std::sort( _features.begin(), _features.end(), cmp );
 	}
-
 
 }

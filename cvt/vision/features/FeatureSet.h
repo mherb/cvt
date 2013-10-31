@@ -46,6 +46,7 @@ namespace cvt {
 			size_t			size() const;
 			Feature&		operator[]( size_t i );
 			const Feature&	operator[]( size_t i ) const;
+			FeatureSet&		operator= (const FeatureSet& other);
 
 			void			toPointSet2f( PointSet2f& ptset ) const;
 			void			setFeatures( const Feature* f, size_t n );
@@ -53,7 +54,25 @@ namespace cvt {
 			void			filterNMS( int radius, bool sortPosition );
 			void			filterANMS( int radius, float threshold, bool sortPosition );
 			void			filterBest( size_t n, bool sortScore );
-			void			filterGrid( size_t cellWidth, size_t n );
+
+            /**
+             * @brief filterGrid - Perform a gridfiltering operation over features.
+             *  The basic idea is to get a better spread of features over the entire image
+             *  even when some features might have a lower score than spatially-independant /
+             *  global filtering only by score.
+             * @param imageWidth        Width of the input image
+             * @param imageHeight       Height of the input image
+             * @param cellCountX        Amount of cells in X direction
+             * @param cellCountY        Amount of cells in Y direction
+             * @param featuresPerCell   How many features to keep per cell
+             * @remarks Range-checking is disabled for speed reasons, if you perform this
+             *          method on a FeatureSet containing features with coordinates outside
+             *          the specified image width/height this WILL segfault!
+             */
+            void            filterGrid( size_t imageWidth, size_t imageHeight,
+                                        size_t cellCountX, size_t cellCountY,
+                                        size_t featuresPerCell );
+
 			void			sortPosition();
 
 			iterator		begin()			{ return _features.begin(); }
@@ -165,6 +184,12 @@ namespace cvt {
 	inline const Feature& FeatureSet::operator[]( size_t i ) const
 	{
 		return _features[ i ];
+	}
+
+	inline FeatureSet& FeatureSet::operator= (const FeatureSet& other)
+	{
+		// no check for self-assignment necessary because no raw pointers in class
+		_features.assign(other.begin(), other.end());
 	}
 
 	inline void FeatureSet::toPointSet2f( PointSet2f& ptset ) const

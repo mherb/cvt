@@ -48,8 +48,12 @@ namespace cvt
 			typedef typename Vector<dim,_T>::TYPE PTTYPE;
 			typedef typename Matrix<dim,_T>::TYPE MATTYPENT;
 			typedef typename Matrix<dim + 1,_T>::TYPE MATTYPE;
+			typedef std::vector<PTTYPE> PTCONTAINER;
 
 		public:
+			typedef typename PTCONTAINER::const_iterator const_iterator;
+			typedef typename PTCONTAINER::iterator iterator;
+
 			PointSet();
 			~PointSet();
 			PointSet( const PointSet<dim,_T>& ptset );
@@ -62,28 +66,33 @@ namespace cvt
 			PointSet( const PointSet<dim, _T>& pset, const std::vector<size_t>& ids );
 
 			PointSet( const _T* data, size_t npts );
-			void add( const PTTYPE& pt );
-			void clear();
-			PTTYPE& operator[]( int i );
-			const PTTYPE& operator[]( int i ) const;
-			PTTYPE mean() const;
-			PTTYPE variance() const;
-			size_t size() const;
-			void resize( size_t );
-			void reserve( size_t );
-			void translate( const PTTYPE& t );
-			void scale( _T t );
-			void transform( const MATTYPENT& mat );
-			void transform( const MATTYPE& mat );
-			void normalize( MATTYPE& mat );
-			void normalize( );
-			_T	 ssd( const PointSet<dim, _T>& ptset ) const;
-			_T	 maxSquaredDistance( const PointSet<dim, _T>& ptset ) const;
-			MATTYPE alignRigid( const PointSet<dim,_T>& ptset ) const;
-			MATTYPE alignSimilarity( const PointSet<dim,_T>& ptset ) const;
-			Matrix3<_T> alignPerspective( const PointSet<dim,_T>& ptset ) const;
 
-			_T	 fitEllipse( Ellipse<_T>& ellipse ) const;
+			void            add( const PTTYPE& pt );
+			void            clear();
+			PTTYPE&         operator[]( int i );
+			const PTTYPE&   operator[]( int i ) const;
+			PTTYPE          mean() const;
+			PTTYPE          variance() const;
+			size_t          size() const;
+			void            resize( size_t );
+			void            reserve( size_t );
+			iterator        begin( );
+			iterator        end( );
+			const_iterator  begin( ) const;
+			const_iterator  end( ) const;
+			void            translate( const PTTYPE& t );
+			void            scale( _T t );
+			void            transform( const MATTYPENT& mat );
+			void            transform( const MATTYPE& mat );
+			void            normalize( MATTYPE& mat );
+			void            normalize( );
+			_T	            ssd( const PointSet<dim, _T>& ptset ) const;
+			_T	            maxSquaredDistance( const PointSet<dim, _T>& ptset ) const;
+			MATTYPE         alignRigid( const PointSet<dim,_T>& ptset ) const;
+			MATTYPE         alignSimilarity( const PointSet<dim,_T>& ptset ) const;
+			Matrix3<_T>     alignPerspective( const PointSet<dim,_T>& ptset ) const;
+
+			_T	            fitEllipse( Ellipse<_T>& ellipse ) const;
 
 			/**
 			 * @brief ePnP		compute pose from n point correspondences using epnp
@@ -91,7 +100,7 @@ namespace cvt
 			 * @param K			intrinsics
 			 * @return pose aligning the pointsets
 			 */
-			MATTYPE ePnP( const PointSet<2, _T>& ptset2d, const cvt::Matrix3<_T>& K ) const;
+			MATTYPE         ePnP( const PointSet<2, _T>& ptset2d, const cvt::Matrix3<_T>& K ) const;
 
 			/**
 				* Computes the essential matrix between two views from the same camera
@@ -99,7 +108,7 @@ namespace cvt
 				 * @param K     intrinsic calibration matrix
 				 * @return      3x3 essential Matrix from this to other
 				 */
-			Matrix3<_T> essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K ) const;
+			Matrix3<_T>     essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K ) const;
 
 			/**
 				 * Computes the essential matrix between two views from different cameras
@@ -108,9 +117,9 @@ namespace cvt
 				 * @param K2 intrinsic matrix for other
 				 * @return 3x3 essential Matrix from this to other
 				 */
-			Matrix3<_T> essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const;
+			Matrix3<_T>     essentialMatrix( const PointSet<dim, _T>& other, const Matrix3<_T> & K1, const Matrix3<_T> & K2 ) const;
 
-			const _T* ptr() const;
+			const _T*       ptr() const;
 
 		private:
 			std::vector<PTTYPE>	_pts;
@@ -425,6 +434,30 @@ namespace cvt
 	inline void PointSet<dim,_T>::resize( size_t n )
 	{
 		return _pts.resize( n );
+	}
+
+	template<int dim, typename _T>
+	inline typename PointSet<dim,_T>::iterator PointSet<dim,_T>::begin( )
+	{
+		return _pts.begin( );
+	}
+
+	template<int dim, typename _T>
+	inline typename PointSet<dim,_T>::iterator PointSet<dim,_T>::end( )
+	{
+		return _pts.end( );
+	}
+
+	template<int dim, typename _T>
+	inline typename PointSet<dim,_T>::const_iterator PointSet<dim,_T>::begin( ) const
+	{
+		return _pts.begin( );
+	}
+
+	template<int dim, typename _T>
+	inline typename PointSet<dim,_T>::const_iterator PointSet<dim,_T>::end( ) const
+	{
+		return _pts.end( );
 	}
 
 	template<int dim, typename _T>
