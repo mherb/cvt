@@ -25,7 +25,7 @@ case $OSTYPE in
 		echo -e "\nCVTTest _tests[] = {" >> $2;
 		$symextractor | awk '/.*_test/ {print "\t{ "$6", \""$6"\" }," }' >> $2;
 		echo -e "\t{ NULL, NULL}\n};" >> $2;;
-    "darwin10.0"|"darwin11"|"darwin12")
+    "darwin10.0"|"darwin11"|"darwin12"|"darwin13")
 		symextractor="nm -g $1";
 		rm -f $2;
 		echo -e "#include <cvt/util/CVTTest.h>\n\nextern \"C\" { " >> $2;

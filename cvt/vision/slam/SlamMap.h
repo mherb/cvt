@@ -113,7 +113,7 @@ namespace cvt
 
       private:
 		 typedef std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> > KeyframeVectorType;
-		 typedef std::vector<MapFeature, Eigen::aligned_allocator<Keyframe> > MapFeatureVectorType;
+         typedef std::vector<MapFeature, Eigen::aligned_allocator<MapFeature> > MapFeatureVectorType;
 
 		 KeyframeVectorType		_keyframes;
 		 MapFeatureVectorType	_features;

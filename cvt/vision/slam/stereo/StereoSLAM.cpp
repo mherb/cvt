@@ -626,7 +626,7 @@ namespace cvt
             const size_t& featureID = predictedFeatureIds[ m.srcIdx ];
 
             // use this global ID to look up the tracked/refined feature:
-            std::vector<size_t>::const_iterator it( NULL );
+            std::vector<size_t>::const_iterator it;
 
             it = std::find( tracked.mapFeatureIds.begin(),
                             tracked.mapFeatureIds.end(),

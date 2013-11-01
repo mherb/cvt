@@ -30,7 +30,7 @@ namespace cvt {
 
     void GridFilter::filterGrid()
     {
-        FeatureSet::const_iterator it( NULL );
+        FeatureSet::const_iterator it;
         for ( it = _featureSet.begin(); it != _featureSet.end(); ++it ) {
             // -> associate each feature to a cell
             const Vector2f& featurePos( it->pt );
@@ -60,8 +60,8 @@ namespace cvt {
     void GridFilter::getBestFeatures()
     {
 
-        Grid::iterator rowIt( NULL );
-        GridCellRow::iterator cellIt( NULL );
+        Grid::iterator rowIt;
+        GridCellRow::iterator cellIt;
         CmpScore cmp;
         FeatureSet concatenatedFeatures;
         AddOperator addOp( concatenatedFeatures );
