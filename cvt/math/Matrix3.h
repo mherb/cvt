@@ -30,6 +30,7 @@ namespace cvt {
     template<typename T> class Matrix2;
     template<typename T> class Matrix3;
     template<typename T> class Matrix4;
+    template<typename T> class Quaternion;
 
     template<typename T>
     std::ostream& operator<<( std::ostream& out, const Matrix3<T>& m );
