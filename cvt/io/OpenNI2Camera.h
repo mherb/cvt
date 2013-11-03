@@ -62,8 +62,10 @@ namespace cvt
             void            setExposure( int val );
             int             gain();
             void            setGain( int val );
-            bool            isMirroring() const;
-            void            setMirroring( bool val );
+            bool            isRGBMirroring() const;
+            bool            isDepthMirroring() const;
+            void            setRGBMirroring( bool val );
+            void            setDepthMirroring( bool val );
 
             static size_t	count();
             static void		cameraInfo( size_t index, CameraInfo & info );

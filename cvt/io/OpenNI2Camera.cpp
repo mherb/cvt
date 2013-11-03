@@ -221,7 +221,7 @@ namespace cvt {
             if( status != openni::STATUS_OK ){
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
-            setMirroring( false );
+            setRGBMirroring( false );
         }
         if( _device.hasSensor( openni::SENSOR_DEPTH ) ){
             _depthStream.create( _device, openni::SENSOR_DEPTH );
@@ -229,6 +229,7 @@ namespace cvt {
             if( status != openni::STATUS_OK ){
                 std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
             }
+            setDepthMirroring( false );
         }
 
         _identifier.sprintf( "%s_%s_%02d", dinfo.getVendor(), dinfo.getName(), idx );
@@ -319,22 +320,30 @@ namespace cvt {
         }
     }
 
-    void OpenNI2Camera::setMirroring( bool val )
+    void OpenNI2Camera::setRGBMirroring( bool val )
     {
         openni::Status status = _rgbStream.setMirroringEnabled( val );
         if( status != openni::STATUS_OK ){
             std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
         }
-        
-        status = _depthStream.setMirroringEnabled( val );
+    }
+    
+    void OpenNI2Camera::setDepthMirroring( bool val )
+    {
+        openni::Status status = _depthStream.setMirroringEnabled( val );
         if( status != openni::STATUS_OK ){
             std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
         }
     }
 
-    bool OpenNI2Camera::isMirroring() const
+    bool OpenNI2Camera::isRGBMirroring() const
     {
         return _rgbStream.getMirroringEnabled();
+    }
+    
+    bool OpenNI2Camera::isDepthMirroring() const
+    {
+        return _depthStream.getMirroringEnabled();
     }
 
     void OpenNI2Camera::setAutoWhiteBalance( bool val )
