@@ -58,6 +58,12 @@ namespace cvt
 				   maxDisparity( 80.0f ),
 				   maxEpilineDistance( 1.0f ),
 				   stereoMaxDescDistance( 80.0f ),
+                   useGridFiltering( false ),
+                   maxFeaturesPerCell( 100 ),
+                   gridFilteringCellsX( 10 ),
+                   gridFilteringCellsY( 4 ),
+                   nonMaximumSuppressionRadius( 5 ),
+                   bestFeaturesCount( 3000 ),
 				   kltStereoIters( 2 ),
 				   dbgShowFeatures( false ),
 				   dbgShowNMSFilteredFeatures( false ),
@@ -84,6 +90,14 @@ namespace cvt
 				float maxDisparity;
 				float maxEpilineDistance;
 				float stereoMaxDescDistance;
+
+                /* Filtering */
+                bool    useGridFiltering;
+                int     maxFeaturesPerCell;
+                int     gridFilteringCellsX;
+                int     gridFilteringCellsY;
+                int     nonMaximumSuppressionRadius;
+                int     bestFeaturesCount;
 
 				/* klt params */
 				size_t kltStereoIters;

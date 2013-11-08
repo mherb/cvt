@@ -162,7 +162,7 @@ namespace cvt
 		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLUE );
 	   }
 
-       const int NMS_RADIUS( 5 ); //TODO: Dynamic reconfg param of this
+       const int NMS_RADIUS( _params.nonMaximumSuppressionRadius );
 	   leftFeatures.filterNMS( NMS_RADIUS, true );
 	   rightFeatures.filterNMS( NMS_RADIUS, true );
 
@@ -170,18 +170,19 @@ namespace cvt
 		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLACK );
 	   }
 
-	   const int X_CELLS( 10 );
-	   const int Y_CELLS( 4 );
-	   const int BEST_N_FEATURES( 100 );
-	   //leftFeatures.filterGrid( _pyrLeft[ 0 ].width(), _pyrLeft[ 0 ].height(),
-        //	   X_CELLS, Y_CELLS, BEST_N_FEATURES );
-       leftFeatures.filterBest( 3000, true );
-	   leftFeatures.sortPosition();
+	   const int X_CELLS = _params.gridFilteringCellsX;
+	   const int Y_CELLS = _params.gridFilteringCellsY;
+	   const int MAX_CELL_FEATURES = _params.maxFeaturesPerCell;
+       if ( _params.useGridFiltering ) {
+           leftFeatures.filterGrid( _pyrLeft[ 0 ].width(), _pyrLeft[ 0 ].height(), X_CELLS, Y_CELLS, MAX_CELL_FEATURES );
+           rightFeatures.filterGrid( _pyrLeft[ 0 ].width(), _pyrLeft[ 0 ].height(), X_CELLS, Y_CELLS, MAX_CELL_FEATURES );
+       } else {
+            leftFeatures.filterBest( _params.bestFeaturesCount, true );
+            rightFeatures.filterBest( _params.bestFeaturesCount, true );
+       }
 
-	   // maybe do not filter the right features?
-	   //rightFeatures.filterGrid( _pyrRight[ 0 ].width(), _pyrRight[ 0 ].height(),
-        //		   X_CELLS, Y_CELLS, BEST_N_FEATURES );
-       rightFeatures.filterBest( 3000, true );
+       //TODO: ask sebastian about the significance of this
+	   leftFeatures.sortPosition();
 	   rightFeatures.sortPosition();
 
 	   if ( _params.dbgShowBest3kFeatures ) {
