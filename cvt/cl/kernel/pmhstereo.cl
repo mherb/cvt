@@ -348,7 +348,7 @@ kernel void pmhstereo_propagate_view( write_only image2d_t output, read_only ima
 		neighbour = nd_state_viewprop( neighbour );
 	neighbour.w  = patch_eval_color_grad_weighted( img1, gimg1, img2, gimg2, coordf, neighbour, patchsize, lr );
 
-	float2 sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
+	sdist = smoothDistance( neighbour, self, smooth, coordf, depthmax, lr );
 	if( neighbour.w + theta * sdist.x <= self.w + theta * sdist.y ) self = neighbour;
 
 	// rand neighbourhood tries

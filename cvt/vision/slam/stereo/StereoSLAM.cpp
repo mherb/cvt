@@ -162,7 +162,7 @@ namespace cvt
 		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLUE );
 	   }
 
-	   const int NMS_RADIUS( 1 ); //TODO: Dynamic reconfg param of this
+       const int NMS_RADIUS( 5 ); //TODO: Dynamic reconfg param of this
 	   leftFeatures.filterNMS( NMS_RADIUS, true );
 	   rightFeatures.filterNMS( NMS_RADIUS, true );
 
@@ -173,13 +173,15 @@ namespace cvt
 	   const int X_CELLS( 10 );
 	   const int Y_CELLS( 4 );
 	   const int BEST_N_FEATURES( 100 );
-	   leftFeatures.filterGrid( _pyrLeft[ 0 ].width(), _pyrLeft[ 0 ].height(),
-		   X_CELLS, Y_CELLS, BEST_N_FEATURES );
+	   //leftFeatures.filterGrid( _pyrLeft[ 0 ].width(), _pyrLeft[ 0 ].height(),
+        //	   X_CELLS, Y_CELLS, BEST_N_FEATURES );
+       leftFeatures.filterBest( 3000, true );
 	   leftFeatures.sortPosition();
 
 	   // maybe do not filter the right features?
-	   rightFeatures.filterGrid( _pyrRight[ 0 ].width(), _pyrRight[ 0 ].height(),
-		   X_CELLS, Y_CELLS, BEST_N_FEATURES );
+	   //rightFeatures.filterGrid( _pyrRight[ 0 ].width(), _pyrRight[ 0 ].height(),
+        //		   X_CELLS, Y_CELLS, BEST_N_FEATURES );
+       rightFeatures.filterBest( 3000, true );
 	   rightFeatures.sortPosition();
 
 	   if ( _params.dbgShowBest3kFeatures ) {

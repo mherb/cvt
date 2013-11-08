@@ -52,7 +52,7 @@ namespace cvt
 				   matchingWindow( 50.0f ),
 				   matchingMaxDescDistance( 80.0f ),
 				   minTrackedFeatures( 70 ),
-				   maxKeyframeDistance( 3.0f ),
+				   maxKeyframeDistance( 1.0f ),
 				   minFeaturesForKeyframe( 10 ),
 				   minDisparity( 10.0f ),
 				   maxDisparity( 80.0f ),
