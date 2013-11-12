@@ -186,10 +186,11 @@ namespace cvt {
 		return _features[ i ];
 	}
 
-	inline FeatureSet& FeatureSet::operator= (const FeatureSet& other)
+    inline FeatureSet& FeatureSet::operator= ( const FeatureSet& other )
 	{
 		// no check for self-assignment necessary because no raw pointers in class
-		_features.assign(other.begin(), other.end());
+        _features.assign( other.begin(), other.end() );
+        return *this;
 	}
 
 	inline void FeatureSet::toPointSet2f( PointSet2f& ptset ) const
