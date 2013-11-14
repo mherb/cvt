@@ -22,7 +22,6 @@
    THE SOFTWARE.
 */
 
-
 #undef KLTDEBUG
 
 #include <cvt/vision/slam/stereo/StereoSLAM.h>
@@ -123,7 +122,7 @@ namespace cvt
             // and later on merge maps
         }
 
-        if ( newKeyframeNeeded( trackingInliers.size() ) ){
+        if( newKeyframeNeeded( trackingInliers.size() ) ){
             PointSet3f newPts3d;
             std::vector<const FeatureDescriptor*> newDescriptors;
             std::vector<PatchType*> newPatches;
@@ -181,7 +180,6 @@ namespace cvt
             rightFeatures.filterBest( _params.bestFeaturesCount, true );
        }
 
-       //TODO: ask sebastian about the significance of this
 	   leftFeatures.sortPosition();
 	   rightFeatures.sortPosition();
 
@@ -334,7 +332,7 @@ namespace cvt
 
         size_t overallMaxIters( 0 );
         float inlierPercentage( 0.0f );
-        while( inlierPercentage < 0.75f && overallMaxIters < 10000 ){
+        while( inlierPercentage < 0.75f && overallMaxIters < 1000 ){
             estimated = ransac.estimate( 100 );
             overallMaxIters += 100;
             inlierPercentage = ( float )ransac.inlierIndices().size() / ( float )p3d.size();
@@ -343,22 +341,24 @@ namespace cvt
         std::cout << "Inlier Percentage: " << inlierPercentage << " (RANSAC inliers: " <<
                      ransac.inlierIndices().size() << ")\n";
 
+        std::cout << "Estimated Pose: \n" << estimated << std::endl;
+
         // if we have a really bad inlier percentage, it doesnt make sense to actually use
         // the computed transform, because most likely it is garbage anyway.
         // For now we only ignore this
-        if ( inlierPercentage < 0.75f ) {
-            std::cout << "== REJECT == Camera pose estimation had too few inliers, pose estimation most likely bad.\n"
-                      << "\tRANSAC inliers: " << ransac.inlierIndices().size() << '\n'
-                      << "\tP3Ds: " << p3d.size() << '\n'
-                      << "\tP2Ds: " << p2d.size() << '\n';
+//        if ( inlierPercentage < 0.75f ) {
+//            std::cout << "== REJECT == Camera pose estimation had too few inliers, pose estimation most likely bad.\n"
+//                      << "\tRANSAC inliers: " << ransac.inlierIndices().size() << '\n'
+//                      << "\tP3Ds: " << p3d.size() << '\n'
+//                      << "\tP2Ds: " << p2d.size() << '\n';
 
-            std::cout << "== RECOVERY FAILED == Re-using last transform.\n";
-            _pyrLeft[ 0 ].save( "_low_inlier_left.png" );
-            _pyrRight[ 0 ].save( "_low_inlier_right.png" );
-            _debugMono.save( "_low_inlier_leftFeatures.png" );
-            inlierIndices.clear();
-            return;
-        }
+//            std::cout << "== RECOVERY FAILED == Re-using last transform.\n";
+//            _pyrLeft[ 0 ].save( "_low_inlier_left.png" );
+//            _pyrRight[ 0 ].save( "_low_inlier_right.png" );
+//            _debugMono.save( "_low_inlier_leftFeatures.png" );
+//            inlierIndices.clear();
+//            return;
+//        }
 
         Eigen::Matrix4f me;
         EigenBridge::toEigen( me, estimated );
@@ -402,7 +402,7 @@ namespace cvt
 	   newPts3d.reserve( stereoMatches.size() );
 	   newDescriptors.reserve( stereoMatches.size() );
 	   newPatches.reserve( stereoMatches.size() );
-	   //Vector2f rnew;
+       //Vector2f rnew;
 
 	   float f = _calib.focalLength();
 	   float b = _calib.baseLine();
@@ -431,7 +431,7 @@ namespace cvt
 //               }
 
 			   // init the 3d point
-			   //disp = posL[ 0 ] - rnew[ 0 ];
+               //disp = posL[ 0 ] - rnew[ 0 ];
                disp = posL[ 0 ] - posR[ 0 ];
 			   bd = b / disp;
 

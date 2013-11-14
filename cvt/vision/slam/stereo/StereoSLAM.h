@@ -46,16 +46,16 @@ namespace cvt
 	   public:
 		   struct Params {
 				Params():
-				   keyframeSelectionRadius( 3.0f ),
+                   keyframeSelectionRadius( 5.0f ),
 				   pyramidOctaves( 4 ),
 				   pyramidScaleFactor( 0.6f ),
-				   matchingWindow( 50.0f ),
+                   matchingWindow( 70.0f ),
 				   matchingMaxDescDistance( 80.0f ),
 				   minTrackedFeatures( 70 ),
 				   maxKeyframeDistance( 1.0f ),
 				   minFeaturesForKeyframe( 10 ),
-				   minDisparity( 10.0f ),
-				   maxDisparity( 80.0f ),
+                   minDisparity( 5.0f ),
+                   maxDisparity( 150.0f ),
 				   maxEpilineDistance( 1.0f ),
 				   stereoMaxDescDistance( 80.0f ),
                    useGridFiltering( false ),

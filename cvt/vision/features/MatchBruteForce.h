@@ -166,8 +166,8 @@ namespace cvt {
 					const T& dr = right[ k ];
 					float yDist = Math::abs( d->pt[ 1 ] - dr.pt[ 1 ] );
 					if( yDist < maxLineDist &&
-						d->octave == dr.octave &&
-						Math::abs( d->angle - dr.angle ) < 0.1f ){
+                        d->octave == dr.octave /*&&
+                        Math::abs( d->angle - dr.angle ) < 0.1f*/ ){
 						float disp = d->pt[ 0 ] - dr.pt[ 0 ];
 						if( disp > minDisp && disp < maxDisp ){
 							float descDist = dfunc( *d, dr );
@@ -176,7 +176,7 @@ namespace cvt {
 								m.feature1 = &dr;
 							}
 						}
-					}
+                    }
 				}
 				if( m.distance < maxDescDist ){
 					matches.push_back( m );
