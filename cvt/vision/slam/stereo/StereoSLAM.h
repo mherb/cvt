@@ -46,25 +46,26 @@ namespace cvt
 	   public:
 		   struct Params {
 				Params():
-                   keyframeSelectionRadius( 5.0f ),
+                   keyframeSelectionRadius( 8.0f ),
 				   pyramidOctaves( 4 ),
 				   pyramidScaleFactor( 0.6f ),
                    matchingWindow( 70.0f ),
 				   matchingMaxDescDistance( 80.0f ),
-				   minTrackedFeatures( 70 ),
-				   maxKeyframeDistance( 1.0f ),
-				   minFeaturesForKeyframe( 10 ),
-                   minDisparity( 5.0f ),
+                   minTrackedFeatures( 100 ),
+                   maxKeyframeDistance( 4.0f ),
+                   minFeaturesForKeyframe( 50 ),
+                   minDisparity( 13.0f ),
                    maxDisparity( 150.0f ),
-				   maxEpilineDistance( 1.0f ),
-				   stereoMaxDescDistance( 80.0f ),
-                   useGridFiltering( false ),
+                   maxEpilineDistance( 1.5f ),
+                   stereoMaxDescDistance( 70.0f ),
+                   useGridFiltering( true ),
                    maxFeaturesPerCell( 100 ),
                    gridFilteringCellsX( 10 ),
                    gridFilteringCellsY( 4 ),
-                   nonMaximumSuppressionRadius( 5 ),
-                   bestFeaturesCount( 3000 ),
+                   nonMaximumSuppressionRadius( 3 ),
+                   bestFeaturesCount( 4000 ),
 				   kltStereoIters( 2 ),
+                   useSBA( false ),
 				   dbgShowFeatures( false ),
 				   dbgShowNMSFilteredFeatures( false ),
 				   dbgShowBest3kFeatures( false ),
@@ -101,6 +102,9 @@ namespace cvt
 
 				/* klt params */
 				size_t kltStereoIters;
+
+                /* use SBA */
+                bool    useSBA;
 
 				/* debug params */
 				bool dbgShowFeatures;

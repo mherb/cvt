@@ -104,7 +104,8 @@ namespace cvt {
 
             if( _costs < lastCosts ){
                 // step was good -> update lambda and do next step
-                _lambda *= 0.1;                
+                if( _lambda > 1e-9 )
+                    _lambda *= 0.1;
             } else {
                 deltaCam	*= -1.0;
                 deltaPoint  *= -1.0;

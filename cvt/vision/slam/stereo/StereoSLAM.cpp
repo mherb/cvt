@@ -547,9 +547,9 @@ namespace cvt
 		   _descriptorDatabase.addPatch( patch, featureId );
 	   }
 
-	   /* bundle adjust if we have at least 2 keyframes*/
-	   if( _map.numKeyframes() >  2 ){
-		 //_bundler.run( &_map );
+       /* bundle adjust */
+       if( _params.useSBA && _map.numKeyframes() >  3 ){
+         _bundler.run( &_map );
 	   }
    }
 
