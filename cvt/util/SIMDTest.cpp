@@ -196,6 +196,58 @@ static bool _projectTest()
 	return testResult;
 }
 
+static void _SADTest( float* src1, float* src2, size_t n )
+{
+	float reference = 0.0f;
+	for( size_t i = 0; i < n; i++ ) {
+		src1[ i ] = Math::rand( -100.0f, 100.0f );
+		src2[ i ] = Math::rand( -100.0f, 100.0f );
+		reference += Math::abs( src1[ i ] - src2[ i ] );
+	}
+
+	SIMDType bestType = SIMD::bestSupportedType( );
+	for( int st = SIMD_BASE; st <= bestType; st++ ) {
+		SIMD* simd = SIMD::get( ( SIMDType ) st );
+		float result = simd->SAD( &src1[ 0 ], &src2[ 0 ], n );
+		bool fail = false;
+		if( Math::abs( reference - result ) / reference > 0.0001 ) {
+			fail = true;
+			std::cout << "Error: SAD: Reference: " << reference << ", " << simd->name( ) << ": " << result << std::endl;
+		}
+		std::stringstream ss;
+		ss << simd->name( );
+		ss << " SAD (float)";
+		CVTTEST_PRINT( ss.str( ), !fail );
+		delete simd;
+	}
+}
+
+static void _SSDTest( float* src1, float* src2, size_t n )
+{
+	float reference = 0.0f;
+	for( size_t i = 0; i < n; i++ ) {
+		src1[ i ] = Math::rand( -100.0f, 100.0f );
+		src2[ i ] = Math::rand( -100.0f, 100.0f );
+		reference += Math::sqr( src1[ i ] - src2[ i ] );
+	}
+
+	SIMDType bestType = SIMD::bestSupportedType( );
+	for( int st = SIMD_BASE; st <= bestType; st++ ) {
+		SIMD* simd = SIMD::get( ( SIMDType ) st );
+		float result = simd->SSD( &src1[ 0 ], &src2[ 0 ], n );
+		bool fail = false;
+		if( Math::abs( reference - result ) / reference > 0.0001 ) {
+			fail = true;
+			std::cout << "Error: SSD: Reference: " << reference << ", " << simd->name( ) << ": " << result << std::endl;
+		}
+		std::stringstream ss;
+		ss << simd->name( );
+		ss << " SSD (float)";
+		CVTTEST_PRINT( ss.str( ), !fail );
+		delete simd;
+	}
+}
+
 BEGIN_CVTTEST( simd )
 		float* fdst;
 		float* fsrc1;
@@ -220,6 +272,9 @@ BEGIN_CVTTEST( simd )
 		AC1TEST( SubValue1f, fdst, fsrc1, val1, TESTSIZE, - )
 		AC1TEST( MulValue1f, fdst, fsrc1, val1, TESTSIZE, * )
 		AC1TEST( DivValue1f, fdst, fsrc1, val1, TESTSIZE, / )
+
+		_SADTest( fsrc1, fsrc2, TESTSIZE );
+		_SSDTest( fsrc1, fsrc2, TESTSIZE );
 
 		delete[] fdst;
 		delete[] fsrc1;

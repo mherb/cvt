@@ -883,7 +883,7 @@ SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -m
 SET_SOURCE_FILES_PROPERTIES(util/SIMDSSSE3.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3")
 SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE41.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1")
 SET_SOURCE_FILES_PROPERTIES(util/SIMDSSE42.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
-SET_SOURCE_FILES_PROPERTIES(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
+SET_SOURCE_FILES_PROPERTIES(util/SIMDAVX.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx")
 SET_SOURCE_FILES_PROPERTIES(vision/features/FAST.cpp PROPERTIES COMPILE_FLAGS "-mmmx -msse -msse2")
 
 # CVTConfig file for installation/package
