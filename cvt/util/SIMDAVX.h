@@ -36,8 +36,8 @@ namespace cvt {
 			SIMDAVX() {}
 
 		public:
-			virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
-			virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
+            virtual float SAD( const float* src1, const float* src2, const size_t n ) const;
+            virtual float SSD( const float* src1, const float* src2, const size_t n ) const;
 
 			virtual std::string name() const;
 			virtual SIMDType type() const;

@@ -134,6 +134,91 @@ namespace cvt
 			*dst++ += *src++ * value;
 	}
 
+
+	float SIMDSSE2::SAD( const float* src1, const float* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+
+        const __m128i absmask =  _mm_set1_epi32( 0x7fffffff );
+		__m128 a, b, absdiff, sum;
+
+		sum = _mm_setzero_ps( );
+
+		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
+			while( i-- ) {
+				a = _mm_loadu_ps( src1 );
+				b = _mm_loadu_ps( src2 );
+				absdiff = _mm_and_ps( _mm_sub_ps( a, b ), ( __m128 ) absmask );
+				sum = _mm_add_ps( sum, absdiff );
+				src1 += 4; src2 += 4;
+			}
+		} else {
+			while( i-- ) {
+				a = _mm_load_ps( src1 );
+				b = _mm_load_ps( src2 );
+				absdiff = _mm_and_ps( _mm_sub_ps( a, b ),( __m128 ) absmask );
+				sum = _mm_add_ps( sum, absdiff );
+				src1 += 4; src2 += 4;
+			}
+		}
+
+		float sad = 0.0f;
+
+        sum = _mm_add_ps( sum, _mm_movehl_ps( sum, sum ) );
+        sum = _mm_add_ps( sum, _mm_shuffle_ps( sum, sum, _MM_SHUFFLE( 0, 0, 0, 1 ) ) );
+        _mm_store_ss( &sad, sum );
+
+		i = n & 0x3;
+		while( i-- ) {
+			sad += Math::abs( *src1++ - *src2++ );
+		}
+
+		return sad;
+	}
+
+	float SIMDSSE2::SSD( float const* src1, float const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+
+		__m128 a, b, diff, sqr, sum;
+
+		sum = _mm_setzero_ps( );
+
+		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
+			while( i-- ) {
+				a = _mm_loadu_ps( src1 );
+				b = _mm_loadu_ps( src2 );
+				diff = _mm_sub_ps( a, b );
+				sqr = _mm_mul_ps( diff, diff );
+				sum = _mm_add_ps( sum, sqr );
+				src1 += 4; src2 += 4;
+			}
+		} else {
+			while( i-- ) {
+				a = _mm_load_ps( src1 );
+				b = _mm_load_ps( src2 );
+				diff = _mm_sub_ps( a, b );
+				sqr = _mm_mul_ps( diff, diff );
+				sum = _mm_add_ps( sum, sqr );
+				src1 += 4; src2 += 4;
+			}
+		}
+
+		float ssd = 0.0f;
+
+        sum = _mm_add_ps( sum, _mm_movehl_ps( sum, sum ) );
+        sum = _mm_add_ps( sum, _mm_shuffle_ps( sum, sum, _MM_SHUFFLE( 0, 0, 0, 1 ) ) );
+        _mm_store_ss( &ssd, sum );
+
+		i = n & 0x3;
+		while( i-- ) {
+			ssd += Math::sqr( *src1++ - *src2++ );
+		}
+
+		return ssd;
+	}
+
+
 	size_t SIMDSSE2::SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const
 	{
 		size_t i = n >> 4;

@@ -139,7 +139,7 @@ namespace cvt {
              * @param n     size of array
              * @return \sum_i ( src1[ i ] - src2[ i ] )^2
              */
-            virtual float SSD( float const* src1, float const* src2, const size_t n ) const;
+            virtual float SSD( const float* src1, const float* src2, const size_t n ) const;
             virtual float SSD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
             /**
@@ -150,7 +150,7 @@ namespace cvt {
              */
             virtual float sumSqr( float const* src, const size_t n ) const;
 
-            virtual float SAD( float const* src1, float const* src2, const size_t n ) const;
+            virtual float SAD( const float* src1, const float* src2, const size_t n ) const;
             virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
             /* Infinite Impulse Response */

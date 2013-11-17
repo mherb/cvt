@@ -1148,7 +1148,7 @@ namespace cvt {
             *dst++ = *src++ * value;
 	}
 
-    float SIMD::SSD( float const* src1, float const* src2, const size_t n ) const
+    float SIMD::SSD( const float* src1, const float* src2, const size_t n ) const
     {
         size_t i = n >> 2;
 
@@ -1208,7 +1208,7 @@ namespace cvt {
         return sum;
     }
 
-    float SIMD::SAD( float const* src1, float const* src2, const size_t n ) const
+    float SIMD::SAD( const float* src1, const float* src2, const size_t n ) const
     {
         size_t i = n >> 2;
 

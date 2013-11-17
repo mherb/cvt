@@ -421,26 +421,52 @@ BEGIN_CVTTEST( simd )
 			std::cout << simd->name() << " Div Const "  << t  << " ms" << std::endl;
 			delete simd;
 		}
-        
-            uint8_t * usrc0 = new uint8_t[ TESTSIZE ];
-            for( int x = 0; x < TESTSIZE; x++ )
-                usrc0[ x ] = Math::max( x, 255 );
-        
-            for( int st = SIMD_BASE; st <= bestType; st++ ) {
-                SIMD* simd = SIMD::get( ( SIMDType ) st );
-                t = 0;
-                for( int iter = 0; iter < 100; iter++ ) {
-                    tmr.reset();
-                    simd->prefixSum1_u8_to_f( fdst, 0, usrc0, 0, TESTSIZE, 1 );
-                    t += tmr.elapsedMilliSeconds();
-                }
-                t /= 100.0;
-                std::cout << simd->name() << " prefixSum1 Const "  << t  << " ms" << std::endl;
-                                
-                
-                delete simd;
+
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->SSD( fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMilliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " SSD float "  << t  << " ms" << std::endl;
+			delete simd;
+		}
+
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->SAD( fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMilliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " SAD float "  << t  << " ms" << std::endl;
+			delete simd;
+		}
+
+        uint8_t * usrc0 = new uint8_t[ TESTSIZE ];
+        for( int x = 0; x < TESTSIZE; x++ )
+            usrc0[ x ] = Math::max( x, 255 );
+
+        for( int st = SIMD_BASE; st <= bestType; st++ ) {
+            SIMD* simd = SIMD::get( ( SIMDType ) st );
+            t = 0;
+            for( int iter = 0; iter < 100; iter++ ) {
+                tmr.reset();
+                simd->prefixSum1_u8_to_f( fdst, 0, usrc0, 0, TESTSIZE, 1 );
+                t += tmr.elapsedMilliSeconds();
             }
-        
+            t /= 100.0;
+            std::cout << simd->name() << " prefixSum1 Const "  << t  << " ms" << std::endl;
+
+
+            delete simd;
+        }
+
 		uint8_t * udst = new uint8_t[ TESTSIZE ];
 		for( int st = SIMD_BASE; st <= bestType; st++ ) {
 			SIMD* simd = SIMD::get( ( SIMDType ) st );
@@ -451,7 +477,7 @@ BEGIN_CVTTEST( simd )
 			}
 			t += tmr.elapsedMilliSeconds();
 			t /= 100.0;
-			std::cout << simd->name() << " SAD "  << t  << " ms" << std::endl;
+			std::cout << simd->name() << " SAD uint8_t "  << t  << " ms" << std::endl;
 			delete simd;
 		}
 		delete[] usrc0;

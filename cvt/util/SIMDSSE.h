@@ -58,7 +58,6 @@ namespace cvt {
 			virtual void MulAddValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
 			virtual void MulSubValue1f( float* dst, float const* src1, const float value, const size_t n ) const;
 
-
 			virtual void Conv_GRAYALPHAf_to_GRAYf( float* dst, const float* src, const size_t n ) const;
 			/*shuffle*/
 			virtual void Conv_XYZAf_to_ZYXAf( float* dst, float const* src, const size_t n ) const;

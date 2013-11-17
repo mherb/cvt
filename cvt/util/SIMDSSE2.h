@@ -39,8 +39,15 @@ namespace cvt {
 			using SIMDSSE::Mul;
 			virtual void MulValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;			
 			virtual void MulAddValue1fx( Fixed* dst, const Fixed* src, Fixed value, size_t n ) const;
+
 			using SIMDSSE::SAD;
 			virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
+            virtual float SAD( const float* src1, const float* src2, const size_t n ) const;
+
+			using SIMDSSE::SSD;
+            virtual float SSD( const float* src1, const float* src2, const size_t n ) const;
+
+
 
 			/* Add vertical */
 			virtual void AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const;

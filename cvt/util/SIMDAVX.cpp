@@ -27,48 +27,39 @@
 
 namespace cvt
 {
-	float SIMDAVX::SAD( float const* src1, float const* src2, const size_t n ) const
+	float SIMDAVX::SAD( const float* src1, const float* src2, const size_t n ) const
 	{
 		size_t i = n >> 3;
 
-		__m256 a, b, diff, negdiff, max, sum;
+        const __m256i absmask =  _mm256_set1_epi32( 0x7fffffff );
+		__m256 a, b, absdiff, sum;
+
+
 		sum = _mm256_setzero_ps( );
 		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0x1f ) {
 			while( i-- ) {
 				a = _mm256_loadu_ps( src1 );
 				b = _mm256_loadu_ps( src2 );
-				diff = _mm256_sub_ps( a, b );
-				negdiff = _mm256_sub_ps( _mm256_setzero_ps( ), diff );
-				max = _mm256_max_ps( diff, negdiff );
-				sum = _mm256_add_ps( sum, max );
+				absdiff = _mm256_and_ps( _mm256_sub_ps( a, b ), ( __m256 ) absmask );
+				sum = _mm256_add_ps( sum, absdiff );
 				src1 += 8; src2 += 8;
 			}
 		} else {
 			while( i-- ) {
 				a = _mm256_load_ps( src1 );
 				b = _mm256_load_ps( src2 );
-				diff = _mm256_sub_ps( a, b );
-				negdiff = _mm256_sub_ps( _mm256_setzero_ps( ), diff );
-				max = _mm256_max_ps( diff, negdiff );
-				sum = _mm256_add_ps( sum, max );
+				absdiff = _mm256_and_ps( _mm256_sub_ps( a, b ),( __m256 ) absmask );
+				sum = _mm256_add_ps( sum, absdiff );
 				src1 += 8; src2 += 8;
 			}
 		}
 
 		float sad = 0.0f;
 
-		// Reduce sum to single float
-		float tmp[ 8 ];
-		if( ( ( size_t ) tmp ) & 0x1f ) {
-			_mm256_storeu_ps( tmp, sum );
-		} else {
-			_mm256_stream_ps( tmp, sum );
-		}
-
-		i = 8;
-		while( i-- ) {
-			sad += tmp[ i ];
-		}
+        __m128 sum2 = _mm_add_ps( _mm256_castps256_ps128( sum ), _mm256_extractf128_ps( sum, 1 ) );
+        sum2 = _mm_add_ps( sum2, _mm_movehl_ps( sum2, sum2 ) );
+        sum2 = _mm_add_ps( sum2, _mm_shuffle_ps( sum2, sum2, _MM_SHUFFLE( 0, 0, 0, 1 ) ) );
+        _mm_store_ss( &sad, sum2 );
 
 		i = n & 0x7;
 		while( i-- ) {
@@ -81,7 +72,7 @@ namespace cvt
 		return sad;
 	}
 
-	float SIMDAVX::SSD( float const* src1, float const* src2, const size_t n ) const
+	float SIMDAVX::SSD( const float* src1, const float* src2, const size_t n ) const
 	{
 		size_t i = n >> 3;
 
@@ -109,18 +100,10 @@ namespace cvt
 
 		float ssd = 0.0f;
 
-		// Reduce sum to single float
-		float tmp[ 8 ];
-		if( ( ( size_t ) tmp ) & 0x1f ) {
-			_mm256_storeu_ps( tmp, sum );
-		} else {
-			_mm256_stream_ps( tmp, sum );
-		}
-
-		i = 8;
-		while( i-- ) {
-			ssd += tmp[ i ];
-		}
+        __m128 sum2 = _mm_add_ps( _mm256_castps256_ps128( sum ), _mm256_extractf128_ps( sum, 1 ) );
+        sum2 = _mm_add_ps( sum2, _mm_movehl_ps( sum2, sum2 ) );
+        sum2 = _mm_add_ps( sum2, _mm_shuffle_ps( sum2, sum2, _MM_SHUFFLE( 0, 0, 0, 1 ) ) );
+        _mm_store_ss( &ssd, sum2 );
 
 		i = n & 0x7;
 		while( i-- ) {
