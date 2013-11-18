@@ -259,7 +259,7 @@ namespace cvt
 			FD_SET( fd, &fdset );
 
 			tv.tv_sec = timeout / 1000;
-			tv.tv_usec = timeout % 1000;
+            tv.tv_usec = ( timeout % 1000 ) * 1000;
 			select( fd + 1, &fdset, 0, 0, &tv );
 
 			if( FD_ISSET( fd, &fdset ) ){
