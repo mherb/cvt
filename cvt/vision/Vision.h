@@ -52,7 +52,8 @@ namespace cvt
          * \return  vector of possible solutions
          *
          */
-        static inline void p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints );
+        template<class T>
+        static inline void p3p( std::vector<Matrix4<T> > & solutions, const Vector3<T>* featureVectors, const Vector3<T>* worldPoints );
 
         /**
          * @brief Decomposition of Essential Matrix into R and t
@@ -217,18 +218,19 @@ namespace cvt
         }
     };
 
-    inline void Vision::p3p( std::vector<Matrix4d> & solutions, const Vector3d* featureVectors, const Vector3d* worldPoints )
+    template<class T>
+    inline void Vision::p3p( std::vector<Matrix4<T> > & solutions, const Vector3<T>* featureVectors, const Vector3<T>* worldPoints )
     {
         // Extraction of world points
-        Vector3d P1, P2, P3, f1, f2, f3;
+        Vector3<T> P1, P2, P3, f1, f2, f3;
 
         P1 = worldPoints[ 0 ];
         P2 = worldPoints[ 1 ];
         P3 = worldPoints[ 2 ];
 
         // Verification that world points are not colinear
-        Vector3d temp1 = P2 - P1;
-        Vector3d temp2 = P3 - P1;
+        Vector3<T> temp1 = P2 - P1;
+        Vector3<T> temp2 = P3 - P1;
 
         if( temp1.cross( temp2 ).length() == 0)
             return;
@@ -239,17 +241,17 @@ namespace cvt
         f3 = featureVectors[ 2 ];
 
         // Creation of intermediate camera frame
-        Vector3d e1 = f1;
-        Vector3d e3 = f1.cross( f2 );
+        Vector3<T> e1 = f1;
+        Vector3<T> e3 = f1.cross( f2 );
         e3.normalize();
-        Vector3d e2 = e3.cross( e1 );
+        Vector3<T> e2 = e3.cross( e1 );
 
-        Matrix3d T;
-        T[ 0 ] = e1;
-        T[ 1 ] = e2;
-        T[ 2 ] = e3;
+        Matrix3<T> Tr;
+        Tr[ 0 ] = e1;
+        Tr[ 1 ] = e2;
+        Tr[ 2 ] = e3;
 
-        f3 = T * f3;
+        f3 = Tr * f3;
 
         // Reinforce that f3[2] > 0 for having theta in [0;pi]
         if( f3[ 2 ] > 0 ){
@@ -262,13 +264,13 @@ namespace cvt
             e3.normalize();
             e2 = e3.cross( e1 );
 
-            T[ 0 ] = e1;
-            T[ 1 ] = e2;
-            T[ 2 ] = e3;
+            Tr[ 0 ] = e1;
+            Tr[ 1 ] = e2;
+            Tr[ 2 ] = e3;
 
-            f3 = T * f3;
+            f3 = Tr * f3;
 
-            Vector3d tvec;
+            Vector3<T> tvec;
             tvec = P1;
             P1 = P2;
             P2 = tvec;
@@ -276,49 +278,49 @@ namespace cvt
 
 
         // Creation of intermediate world frame
-        Vector3d n1 = P2-P1;
+        Vector3<T> n1 = P2-P1;
         n1.normalize();
 
-        Vector3d n3 = n1.cross( P3-P1 );
+        Vector3<T> n3 = n1.cross( P3-P1 );
         n3.normalize();
 
-        Vector3d n2 = n3.cross( n1 );
+        Vector3<T> n2 = n3.cross( n1 );
 
-        Matrix3d N;
+        Matrix3<T> N;
         N[ 0 ] = n1;
         N[ 1 ] = n2;
         N[ 2 ] = n3;
 
         // Extraction of known parameters
         P3 = N * ( P3 - P1 );
-        double d_12 = ( P2 - P1 ).length();
-        double f_1 = f3[0]/f3[2];
-        double f_2 = f3[1]/f3[2];
-        double p_1 = P3[0];
-        double p_2 = P3[1];
+        T d_12 = ( P2 - P1 ).length();
+        T f_1 = f3[0]/f3[2];
+        T f_2 = f3[1]/f3[2];
+        T p_1 = P3[0];
+        T p_2 = P3[1];
 
-        double cos_beta = f1 * f2;
-        double b = 1 / (1-pow(cos_beta,2)) - 1;
+        T cos_beta = f1 * f2;
+        T b = 1 / ( 1-Math::pow( cos_beta, ( T )2 ) ) - 1;
 
         if (cos_beta < 0)
-            b = -sqrt(b);
+            b = -Math::sqrt( b );
         else
-            b = sqrt(b);
+            b = Math::sqrt( b );
 
         // Definition of temporary variables for avoiding multiple computation
-        double f_1_pw2 = pow(f_1,2);
-        double f_2_pw2 = pow(f_2,2);
-        double p_1_pw2 = pow(p_1,2);
-        double p_1_pw3 = p_1_pw2 * p_1;
-        double p_1_pw4 = p_1_pw3 * p_1;
-        double p_2_pw2 = pow(p_2,2);
-        double p_2_pw3 = p_2_pw2 * p_2;
-        double p_2_pw4 = p_2_pw3 * p_2;
-        double d_12_pw2 = pow(d_12,2);
-        double b_pw2 = pow(b,2);
+        T f_1_pw2 = Math::pow(f_1,2);
+        T f_2_pw2 = Math::pow(f_2,2);
+        T p_1_pw2 = Math::pow(p_1,2);
+        T p_1_pw3 = p_1_pw2 * p_1;
+        T p_1_pw4 = p_1_pw3 * p_1;
+        T p_2_pw2 = Math::pow(p_2,2);
+        T p_2_pw3 = p_2_pw2 * p_2;
+        T p_2_pw4 = p_2_pw3 * p_2;
+        T d_12_pw2 = Math::pow(d_12,2);
+        T b_pw2 = Math::pow(b,2);
 
         // Computation of factors of 4th degree polynomial
-        double factors[ 5 ];
+        T factors[ 5 ];
 
         factors[0] = -f_2_pw2*p_2_pw4
                      -p_2_pw4*f_1_pw2
@@ -357,6 +359,7 @@ namespace cvt
 
         // Computation of roots
         Vector4d realRoots;
+        // TODO: templatize
         Math::solveQuarticReal( realRoots,
                                 factors[ 0 ],
                                 factors[ 1 ],
@@ -378,23 +381,23 @@ namespace cvt
             if (cot_alpha < 0)
                 cos_alpha = -cos_alpha;
 
-            Vector3d C;
+            Vector3<T> C;
             C.x = d_12*cos_alpha*(sin_alpha*b+cos_alpha);
             C.y = cos_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
             C.z = sin_theta*d_12*sin_alpha*(sin_alpha*b+cos_alpha);
 
-            Matrix3d NT = N.transpose();
+            Matrix3<T> NT = N.transpose();
             C = P1 + NT * C;
 
-            Matrix3d R(    -cos_alpha,		-sin_alpha*cos_theta,	-sin_alpha*sin_theta,
-                            sin_alpha,		-cos_alpha*cos_theta,	-cos_alpha*sin_theta,
-                                    0,                -sin_theta,              cos_theta );
+            Matrix3<T> R( -cos_alpha, -sin_alpha*cos_theta,	-sin_alpha*sin_theta,
+                           sin_alpha, -cos_alpha*cos_theta,	-cos_alpha*sin_theta,
+                                   0, -sin_theta,            cos_theta );
 
-            R = NT * R.transpose() * T;
+            R = NT * R.transpose() * Tr;
             R.transposeSelf();
             C = -R*C;
 
-            Matrix4d & res = solutions[ i ];
+            Matrix4<T> & res = solutions[ i ];
 
             for( size_t r = 0; r < 3; r++ ){
                 for( size_t c = 0; c < 3; c++ ){
