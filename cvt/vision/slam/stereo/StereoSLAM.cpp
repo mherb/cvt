@@ -63,6 +63,7 @@ namespace cvt
 
         Eigen::Matrix3d K;
         EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
+
         _map.setIntrinsics( K );
     }
 
@@ -157,6 +158,8 @@ namespace cvt
 	   _detector->detect( leftFeatures, _pyrLeft );
 	   _detector->detect( rightFeatures, _pyrRight );
 
+       std::cout << "Left: "<< leftFeatures.size() << " - Right: " << rightFeatures.size() << std::endl;
+
 	   if ( _params.dbgShowFeatures ) {
 		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLUE );
 	   }
@@ -186,6 +189,8 @@ namespace cvt
 	   if ( _params.dbgShowBest3kFeatures ) {
 		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::GRAY );
 	   }
+
+       std::cout << "Left: "<< leftFeatures.size() << " - Right: " << rightFeatures.size() << std::endl;
 
 	   // extract the descriptors
 	   _descExtractorLeft->clear();
@@ -320,45 +325,24 @@ namespace cvt
 
         const Matrix3f & k = _calib.firstCamera().intrinsics();
 
-        //	   Matrix3f kinv( k.inverse() );
-        //	   P3PSac<float> model( p3d, p2d, k, kinv );
-        //	   RANSAC<P3PSac<float> > ransac( model, 5.0, 0.5 );
+//               Matrix3f kinv( k.inverse() );
+//               P3PSac<float> model( p3d, p2d, k, kinv );
+//               RANSAC<P3PSac<float> > ransac( model, 5.0, 0.5 );
 
         EPnPSAC<float> model( p3d, p2d, k );
-        RANSAC<EPnPSAC<float> > ransac( model, 5.0, 0.5 );
+        RANSAC<EPnPSAC<float> > ransac( model, 4.0, 0.5 );
 
         Matrix4f estimated;
         estimated.setIdentity();
 
-        size_t overallMaxIters( 0 );
-        float inlierPercentage( 0.0f );
-        while( inlierPercentage < 0.75f && overallMaxIters < 1000 ){
-            estimated = ransac.estimate( 100 );
-            overallMaxIters += 100;
-            inlierPercentage = ( float )ransac.inlierIndices().size() / ( float )p3d.size();
-        }
+        float inlierPercentage( 0.0f );        
+        estimated = ransac.estimate( 5000 );
+        inlierPercentage = ( float )ransac.inlierIndices().size() / ( float )p3d.size();
 
         std::cout << "Inlier Percentage: " << inlierPercentage << " (RANSAC inliers: " <<
                      ransac.inlierIndices().size() << ")\n";
 
         std::cout << "Estimated Pose: \n" << estimated << std::endl;
-
-        // if we have a really bad inlier percentage, it doesnt make sense to actually use
-        // the computed transform, because most likely it is garbage anyway.
-        // For now we only ignore this
-//        if ( inlierPercentage < 0.75f ) {
-//            std::cout << "== REJECT == Camera pose estimation had too few inliers, pose estimation most likely bad.\n"
-//                      << "\tRANSAC inliers: " << ransac.inlierIndices().size() << '\n'
-//                      << "\tP3Ds: " << p3d.size() << '\n'
-//                      << "\tP2Ds: " << p2d.size() << '\n';
-
-//            std::cout << "== RECOVERY FAILED == Re-using last transform.\n";
-//            _pyrLeft[ 0 ].save( "_low_inlier_left.png" );
-//            _pyrRight[ 0 ].save( "_low_inlier_right.png" );
-//            _debugMono.save( "_low_inlier_leftFeatures.png" );
-//            inlierIndices.clear();
-//            return;
-//        }
 
         Eigen::Matrix4f me;
         EigenBridge::toEigen( me, estimated );
@@ -510,6 +494,7 @@ namespace cvt
 	  std::cout << "Triangulated: " << newPoints3d.size() << std::endl;
 	   // add a new Keyframe to the map
 	   Eigen::Matrix4d transform( _pose.transformation().cast<double>() );
+
 	   size_t kid = _map.addKeyframe( transform );
 
 	   Eigen::Vector4d p3d;
@@ -609,18 +594,15 @@ namespace cvt
         GFXEngineImage ge( debugImage );
         GFX g( &ge );
 
-        // mind your eyes, ugly debug code with horrible O-complexity ahead.
-
         // draw current matches features:
-        g.color() = Color::PINK;
-        g.drawText( 0, 21, 10, 10, ALIGN_LEFT, "current" );
+        g.setColor( Color::PINK );
 
         for( size_t i = 0; i < matchedIndices.size(); ++i ) {
             const MatchingIndices& m = matchedIndices[ i ];
 
             // draw the current feature here:
             const Vector2f& p = ( *_descExtractorLeft )[ m.dstIdx ].pt;
-            g.color() = Color::PINK;
+            g.setColor( Color::PINK );
             g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
 
             // draw a line to the refined, current feature: (checks KLT)
@@ -649,7 +631,7 @@ namespace cvt
 
             // draw a line to the matched predicted position:
             const Vector2f& pt2 = predPos[ m.srcIdx ];
-            g.color() = Color::GREEN;
+            g.setColor( Color::GREEN );
             g.drawLine( pt2, p );
         }
         ++frameNo;
@@ -662,12 +644,12 @@ namespace cvt
     {
         GFXEngineImage ge( debugImage );
         GFX g( &ge );
+        g.setColor( color );
         const int offset = rectSize / 2;
         for ( int i=0; i != featureSet.size(); ++i ) {
             const Feature& feature = featureSet[ i ];
             const Vector2f& p = feature.pt;
 
-            g.color() = color;
             g.fillRect( ( int )p.x - offset, ( int )p.y - offset, rectSize, rectSize );
         }
     }
