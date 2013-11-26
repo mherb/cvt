@@ -43,6 +43,11 @@ namespace cvt {
                         const Matrix3<T>& intrinsics,
                         const RobustEstimator<T>& estimator = NoWeighting<T>() ) const;
 
+            T minimize( cvt::Matrix4<T>& pose,
+                        const std::vector<size_t>& inliers,
+                        const Matrix3<T>& intrinsics,
+                        const RobustEstimator<T>& estimator = NoWeighting<T>() ) const;
+
         private:
             const PointSet<3, T>&   _pts3d;
             const PointSet<2, T>&   _pts2d;
