@@ -27,6 +27,13 @@
 
 namespace cvt
 {
+    template <class T>
+    struct RobustEstimator
+    {
+        public:
+            virtual T weight( T res ) const = 0;
+    };
+
     template <class W>
     struct IsRobustWeighting
     {
@@ -34,9 +41,9 @@ namespace cvt
     };
 
     template <typename T>
-    struct NoWeighting {
+    struct NoWeighting : public RobustEstimator<T> {
         NoWeighting(){}
-        T weight( T ){ return (T)1; }
+        T weight( T ) const { return (T)1; }
 
         void setThreshold( T /*thresh*/ ){}
         void setScale( T /*sigma*/ ){}
@@ -49,7 +56,7 @@ namespace cvt
     };
 
     template <typename T>
-    struct Huber
+    struct Huber : public RobustEstimator<T>
     {
         Huber() : c( ( T )1.345 ), s( 1.0f ) {}
 
@@ -70,7 +77,7 @@ namespace cvt
     };
 
     template <typename T>
-    struct Tukey
+    struct Tukey : public RobustEstimator<T>
     {
         /**
          *	\brief	cut-off at threshold (0 influence of outliers!)

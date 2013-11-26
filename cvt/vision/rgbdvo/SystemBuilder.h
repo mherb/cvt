@@ -25,7 +25,7 @@
 #ifndef CVT_SYSTEMBUILDER_H
 #define CVT_SYSTEMBUILDER_H
 
-#include <cvt/vision/rgbdvo/RobustWeighting.h>
+#include <cvt/vision/RobustWeighting.h>
 #include <cvt/math/Math.h>
 
 namespace cvt {
@@ -53,10 +53,10 @@ namespace cvt {
 
             template <class HessType, class JType>
             float build( HessType& H,
-                          JType& b,
-                          const JType* jacobians,
-                          const float* residuals,
-                          size_t n ) const
+                         JType& b,
+                         const JType* jacobians,
+                         const float* residuals,
+                         size_t n ) const
             {
                 // standard: robust lossfunc
                 JType jtmp;
@@ -85,9 +85,9 @@ namespace cvt {
     template <>
     template <class HessType, class JType>
     inline float SystemBuilder<NoWeighting<float> >::build( HessType& H, JType& b,
-                                                             const JType* jacobians,
-                                                             const float* residuals,
-                                                             size_t n ) const
+                                                            const JType* jacobians,
+                                                            const float* residuals,
+                                                            size_t n ) const
     {
         // standard: robust lossfunc
         float ssd = 0.0f;

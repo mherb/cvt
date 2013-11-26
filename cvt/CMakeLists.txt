@@ -475,6 +475,7 @@ SET( CVT_HEADERS
    vision/Patch.h
    vision/PatchGenerator.h
    vision/PMHuberStereo.h
+   vision/ReprojectionError.h
    vision/PointCorrespondences3d2d.h
    vision/StereoCameraCalibration.h
    vision/StereoRectification.h
@@ -493,7 +494,7 @@ SET( CVT_HEADERS
    vision/rgbdvo/RGBDKeyframe.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
-   vision/rgbdvo/RobustWeighting.h
+   vision/RobustWeighting.h
    vision/rgbdvo/SystemBuilder.h
    vision/slam/SlamMap.h
    vision/slam/Keyframe.h
@@ -700,6 +701,7 @@ SET( CVT_SOURCES
 	vision/PatchGenerator.cpp
 	vision/Patch.cpp
 	vision/PMHuberStereo.cpp
+    vision/ReprojectionError.cpp
 	vision/SparseBundleAdjustment.cpp
 	vision/StereoRectification.cpp
 	vision/rgbdvo/InformationSelectionTest.cpp

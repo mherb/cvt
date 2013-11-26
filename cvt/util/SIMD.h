@@ -358,6 +358,7 @@ namespace cvt {
             virtual void transformPoints( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
             virtual void transformPoints( Vector3f* dst, const Matrix3f& mat, const Vector3f* src, size_t n ) const;
             virtual void transformPoints( Vector3f* dst, const Matrix4f& mat, const Vector3f* src, size_t n ) const;
+            virtual void transformPoints( Vector3d* dst, const Matrix4d& mat, const Vector3d* src, size_t n ) const;
             virtual void transformPoints( Vector4f* dst, const Matrix4f& mat, const Vector4f* src, size_t n ) const;
 
             virtual void transformPointsHomogenize( Vector2f* dst, const Matrix3f& mat, const Vector2f* src, size_t n ) const;
