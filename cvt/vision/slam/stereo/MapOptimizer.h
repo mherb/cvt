@@ -39,6 +39,8 @@ namespace cvt
             void execute( SlamMap* map );
             bool isRunning() const;
 
+            void setMaxIterations( size_t iters ) { _termCrit.setMaxIterations( iters ); }
+
         private:            
             TerminationCriteria<double>	_termCrit;
             bool						_isRunning;

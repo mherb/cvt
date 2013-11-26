@@ -66,6 +66,7 @@ namespace cvt
                    bestFeaturesCount( 4000 ),
 				   kltStereoIters( 2 ),
                    useSBA( false ),
+                   sbaIterations( 5 ),
 				   dbgShowFeatures( false ),
 				   dbgShowNMSFilteredFeatures( false ),
 				   dbgShowBest3kFeatures( false ),
@@ -105,6 +106,7 @@ namespace cvt
 
                 /* use SBA */
                 bool    useSBA;
+                size_t  sbaIterations;
 
 				/* debug params */
 				bool dbgShowFeatures;
@@ -133,7 +135,8 @@ namespace cvt
 		 void				setPose( const Matrix4f& pose );
 		 const SE3<float>&	pose() const { return _pose; }
 
-		 void setConfig( const Params& configParams );
+         void               setConfig( const Params& configParams );
+         const Params&      config() const { return _params; }
 
 		 Signal<const Image&>       newStereoView;
 		 Signal<const Image&>       trackedFeatureImage;

@@ -28,8 +28,6 @@
 #include <cvt/math/sac/RANSAC.h>
 #include <cvt/math/sac/P3PSac.h>
 #include <cvt/math/sac/EPnPSAC.h>
-#include <cvt/math/LevenbergMarquard.h>
-#include <cvt/vision/PointCorrespondences3d2d.h>
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/vision/Vision.h>
@@ -533,7 +531,10 @@ namespace cvt
 	   }
 
        /* bundle adjust */
-       if( _params.useSBA && _map.numKeyframes() >  3 ){
+       static size_t lastNKF = 0;
+       if( _params.useSBA && ( _map.numKeyframes() - lastNKF ) > 10 ){
+           _bundler.setMaxIterations( _params.sbaIterations );
+           lastNKF = _map.numKeyframes();
          _bundler.run( &_map );
 	   }
    }
