@@ -67,7 +67,20 @@ namespace cvt {
 								float maxFeatureDist,
 								float maxDescDistance ) const;
 
-			void scanLineMatch( std::vector<FeatureMatch>& matches, const std::vector<const FeatureDescriptor*>& left, float minDisp, float maxDisp, float maxDescDist, float maxLineDist ) const;
+            void scanLineMatch( std::vector<FeatureMatch>& matches,
+                                const std::vector<const FeatureDescriptor*>& left,
+                                float minDisp,
+                                float maxDisp,
+                                float maxDescDist,
+                                float maxLineDist ) const;
+
+            void scanLineMatch( std::vector<FeatureMatch>& matches,
+                                const RowLookupTable& rlt,
+                                const std::vector<const FeatureDescriptor*>& left,
+                                float minDisp,
+                                float maxDisp,
+                                float maxDescDist,
+                                float maxLineDist ) const;
 
 		private:
 			struct DistFunc {
@@ -264,12 +277,12 @@ namespace cvt {
 															 maxDescDistance );
 	}
 
-	template<size_t N>
-	inline void BRIEF<N>::matchInWindow( std::vector<MatchingIndices>& matches,
-						const RowLookupTable& rlt,
-						const std::vector<FeatureDescriptor*>& other,
-						float maxFeatureDist,
-						float maxDescDistance ) const
+    template<size_t N>
+    inline void BRIEF<N>::matchInWindow( std::vector<MatchingIndices>& matches,
+                                         const RowLookupTable& rlt,
+                                         const std::vector<FeatureDescriptor*>& other,
+                                         float maxFeatureDist,
+                                         float maxDescDistance ) const
 	{
 		DistFunc dfunc;
 		FeatureMatcher::matchInWindow<Descriptor, DistFunc>( matches,
@@ -299,6 +312,27 @@ namespace cvt {
 									   maxDescDist,
 									   maxLineDist );
 	}
+
+    template<size_t N>
+    inline void BRIEF<N>::scanLineMatch( std::vector<FeatureMatch>& matches,
+                                         const RowLookupTable& rlt,
+                                         const std::vector<const FeatureDescriptor*>& left,
+                                         float minDisp,
+                                         float maxDisp,
+                                         float maxDescDist,
+                                         float maxLineDist ) const
+    {
+        DistFunc dfunc;
+        FeatureMatcher::scanLineMatch( matches,
+                                       rlt,
+                                       left,
+                                       _features,
+                                       dfunc,
+                                       minDisp,
+                                       maxDisp,
+                                       maxDescDist,
+                                       maxLineDist );
+    }
 }
 
 #endif

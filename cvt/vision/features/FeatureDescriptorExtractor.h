@@ -69,6 +69,14 @@ namespace cvt {
 										float maxDescDist,
 										float maxLineDist = 1 ) const = 0;
 
+            virtual void scanLineMatch( std::vector<FeatureMatch>& matches,
+                                        const RowLookupTable& rlt,
+                                        const std::vector<const FeatureDescriptor*>& left,
+                                        float minDisp,
+                                        float maxDisp,
+                                        float maxDescDist,
+                                        float maxLineDist = 1 ) const = 0;
+
 			class CmpY
 			{
 				public:

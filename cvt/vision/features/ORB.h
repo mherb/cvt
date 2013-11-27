@@ -71,6 +71,14 @@ namespace cvt {
 								float maxDescDist,
 								float maxLineDist ) const;
 
+            void scanLineMatch( std::vector<FeatureMatch>& matches,
+                                const RowLookupTable& rlt,
+                                const std::vector<const FeatureDescriptor*>& left,
+                                float minDisp,
+                                float maxDisp,
+                                float maxDescDist,
+                                float maxLineDist ) const;
+
 		private:
 			struct DistFunc {
 				DistFunc() : _simd( SIMD::instance() )
@@ -299,6 +307,26 @@ namespace cvt {
 									   maxDescDist,
 									   maxLineDist );
 	}
+
+    inline void ORB::scanLineMatch( std::vector<FeatureMatch>& matches,
+                                    const RowLookupTable& rlt,
+                                    const std::vector<const FeatureDescriptor*>& left,
+                                    float minDisp,
+                                    float maxDisp,
+                                    float maxDescDist,
+                                    float maxLineDist ) const
+    {
+        DistFunc dfunc;
+        FeatureMatcher::scanLineMatch( matches,
+                                       rlt,
+                                       left,
+                                       _features,
+                                       dfunc,
+                                       minDisp,
+                                       maxDisp,
+                                       maxDescDist,
+                                       maxLineDist );
+    }
 }
 
 #endif

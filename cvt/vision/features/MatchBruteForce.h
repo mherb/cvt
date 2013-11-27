@@ -111,9 +111,9 @@ namespace cvt {
 				m.dstIdx = 0;
 				m.distance = maxDescDistance;
 
-				float minX = d0.pt.x - maxFeatureDist;
-				float maxX = d0.pt.x + maxFeatureDist;
-				float minY = d0.pt.y - maxFeatureDist;
+                float minX = d0.pt.x - maxFeatureDist;
+                float maxX = d0.pt.x + maxFeatureDist;
+                float minY = d0.pt.y - maxFeatureDist;
 				float maxY = d0.pt.y + maxFeatureDist;
 
 				for( int y = minY; y < maxY; ++y ){
@@ -183,6 +183,57 @@ namespace cvt {
 				}
 			}
 		}
+
+        template<typename T, typename DFUNC>
+        static inline void scanLineMatch( std::vector<FeatureMatch>& matches,
+                                          const RowLookupTable& rlt,
+                                          const std::vector<const FeatureDescriptor*>& left,
+                                          const std::vector<T>& right,
+                                          DFUNC dfunc,
+                                          float minDisp,
+                                          float maxDisp,
+                                          float maxDescDist,
+                                          float maxLineDist )
+        {
+            matches.reserve( left.size() );
+            FeatureMatch m;
+            for( size_t i = 0; i < left.size(); ++i ){
+                const T* d = ( const T* )left[ i ];
+                m.distance = maxDescDist;
+                m.feature0 = d;
+                m.feature1 = 0;
+
+                float minX = d->pt.x - maxDisp;
+                float maxX = d->pt.x - minDisp;
+                float minY = d->pt.y - maxLineDist;
+                float maxY = d->pt.y + maxLineDist;
+
+                for( int y = minY; y < maxY; ++y ){
+                    if( rlt.isValidRow( y ) ){
+                        const RowLookupTable::Row& row = rlt.row( y );
+                        int k = row.start;
+                        size_t rEnd = k + row.len;
+                        for( size_t k = row.start; k < rEnd; ++k ){
+                            const T& dr = right[ k ];
+                            if( dr.pt.x < minX )
+                                continue;
+                            if( dr.pt.x > maxX )
+                                break;
+
+                            // Match
+                            float distance = dfunc( *d, dr );
+                            if( distance < m.distance ) {
+                                m.feature1 = &dr;
+                                m.distance = distance;
+                            }
+                        }
+                    }
+                }
+                if( m.distance < maxDescDist ){
+                    matches.push_back( m );
+                }
+            }
+        }
 	}
 }
 
