@@ -28,6 +28,7 @@
 #include <cvt/math/sac/RANSAC.h>
 #include <cvt/math/sac/P3PSac.h>
 #include <cvt/math/sac/EPnPSAC.h>
+#include <cvt/vision/ReprojectionError.h>
 #include <cvt/gfx/ifilter/IWarp.h>
 #include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/vision/Vision.h>
@@ -340,12 +341,17 @@ namespace cvt
         std::cout << "Inlier Percentage: " << inlierPercentage << " (RANSAC inliers: " <<
                      ransac.inlierIndices().size() << ")\n";
 
-        std::cout << "Estimated Pose: \n" << estimated << std::endl;
+        std::cout << "EPnP: Estimated Pose: \n" << estimated << std::endl;
 
-        Eigen::Matrix4f me;
-        EigenBridge::toEigen( me, estimated );
-        _pose.set( me );
         inlierIndices = ransac.inlierIndices();
+
+        ReprojectionError<float> reprError( p3d, p2d, 10, 0.05f );
+        Huberf estimator;
+        estimator.setThreshold( 1.0f );
+        reprError.minimize( estimated, inlierIndices, k, estimator );
+        std::cout << "Refined Pose: \n" << estimated << std::endl;
+
+        _pose.set( estimated );
         newCameraPose.notify( estimated );
     }
 
@@ -355,13 +361,15 @@ namespace cvt
 										   const std::vector<size_t>& trackingInliers,
 										   const std::vector<MatchingIndices>& matchedIndices )
    {
+       // sort out free features (currently not tracked)
 	   std::vector<const FeatureDescriptor*> freeFeaturesLeft;
 	   sortOutFreeFeatures( freeFeaturesLeft, _descExtractorLeft, trackingInliers, matchedIndices );
 
 	   // try to match the free features with right frame
 	   std::vector<FeatureMatch> stereoMatches;
-	   std::cout << "Free features: " << freeFeaturesLeft.size() << std::endl;
+       RowLookupTable rltRight( *_descExtractorRight );
 	   _descExtractorRight->scanLineMatch( stereoMatches,
+                                           rltRight,
 										   freeFeaturesLeft,
 										   _params.minDisparity,
 										   _params.maxDisparity,
