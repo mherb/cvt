@@ -135,7 +135,7 @@ namespace cvt {
                 result.warp = savedWarp;
 
                 // update the damping
-                lambda *= 10.0f;
+                lambda *= 2.0f;
             }
         }
 
