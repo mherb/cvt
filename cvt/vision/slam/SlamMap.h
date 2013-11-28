@@ -101,8 +101,8 @@ namespace cvt
 		 const Eigen::Matrix3d&	intrinsics() const { return _intrinsics; }
          void setIntrinsics( const Eigen::Matrix3d & K ) { _intrinsics = K; }
 
-         size_t numFeatures()	 const { return _features.size(); }
-         size_t numKeyframes()	 const { return _keyframes.size(); }
+         size_t numFeatures()	  const { return _features.size(); }
+         size_t numKeyframes()	  const { return _keyframes.size(); }
          size_t numMeasurements() const { return _numMeas; }
 
          void deserialize( XMLNode* node );
@@ -110,6 +110,9 @@ namespace cvt
 
          void load( const cvt::String& filename );
          void save( const cvt::String& filename ) const;
+
+         void loadBinary( const cvt::String& filename );
+         void saveBinary( const cvt::String& filename ) const;
 
       private:
 		 typedef std::vector<Keyframe, Eigen::aligned_allocator<Keyframe> > KeyframeVectorType;

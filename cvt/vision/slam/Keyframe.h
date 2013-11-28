@@ -82,7 +82,7 @@ namespace cvt
 			SE3<double>	_pose;
 			Image*		_img;
 
-			// 2d meas of 3d feat with id
+            // 2d meas of 3d feat with certain id
 			MapType			_featMeas;
 	};
 
