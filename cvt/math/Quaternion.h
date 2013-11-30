@@ -45,6 +45,9 @@ namespace cvt {
 				void				set( T x, T y, T z, T w );
 				void				setRotation( T x, T y, T z, T rad );
 				void				setRotation( const Vector3<T>& axis, T rad );
+				void				setIdentity( void );
+				bool				isIdentity( void ) const;
+
 				T					operator[]( int index ) const;
 				T&					operator[]( int index );
 				Quaternion<T>		operator-() const;
@@ -196,6 +199,20 @@ namespace cvt {
 			this->w = c;
 		}
 
+	template<typename T>
+		inline void Quaternion<T>::setIdentity( void )
+		{
+			this->x = ( T ) 0;
+			this->y = ( T ) 0;
+			this->z = ( T ) 0;
+			this->w = ( T ) 1;
+		}
+
+	template<typename T>
+		inline bool Quaternion<T>::isIdentity( void ) const
+		{
+			return *this == Quaternion<T>( ( T ) 0, ( T ) 0, ( T ) 0, ( T ) 1 );
+		}
 
 	template<typename T>
 		inline T Quaternion<T>::operator[]( int index ) const
