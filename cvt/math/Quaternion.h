@@ -62,6 +62,9 @@ namespace cvt {
 				Quaternion<T>&		operator*=( const Quaternion<T>& q );
 				Quaternion<T>&		operator*=( T a );
 
+				template <typename T2>
+				operator Quaternion<T2>() const;
+
 				bool				operator==(	const Quaternion<T>& q ) const;
 				bool				operator!=(	const Quaternion<T>& q ) const;
 
@@ -326,6 +329,12 @@ namespace cvt {
 		{
 			*this = *this * q;
 			return *this;
+		}
+
+	template<typename T> template <typename T2>
+		inline Quaternion<T>::operator Quaternion<T2>() const
+		{
+			return Quaternion<T2>( ( T2 ) x, ( T2 ) y, ( T2 ) z, ( T2 ) w );
 		}
 
 	template<>
