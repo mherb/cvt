@@ -60,6 +60,16 @@ namespace cvt {
             delete[] _pointResiduals;
     }
 
+    static bool _vectorHasNaNOrInf( Eigen::VectorXd& v )
+    {
+        for( size_t i = 0; i < v.rows(); ++i ){
+            if( Math::isNaN( v[ i ] ) || Math::isInf( v[ i ] ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void SparseBundleAdjustment::optimize( SlamMap & map, const TerminationCriteria<double> & criteria )
     {
         _iterations = 0;
@@ -93,7 +103,14 @@ namespace cvt {
             solver.factorize( _sparseReduced );
             deltaCam = solver.solve( _reducedRHS );
 
-            // apply camera delta:
+            // safety check on computed delta
+            if( _vectorHasNaNOrInf( deltaCam ) ){
+                // increase lambda and try again
+                _lambda *= 5.0f;
+                continue;
+            }
+
+            // try apply the step:
             updateCameras( deltaCam, map );
 
             //	update the points and re-evaluate costs
@@ -104,8 +121,9 @@ namespace cvt {
 
             if( _costs < lastCosts ){
                 // step was good -> update lambda and do next step
-                if( _lambda > 1e-9 )
+                if( _lambda > 1e-8 )
                     _lambda *= 0.1;
+                _iterations++;
             } else {
                 deltaCam	*= -1.0;
                 deltaPoint  *= -1.0;
@@ -113,14 +131,12 @@ namespace cvt {
                 // undo the step
                 undoStep( deltaCam, deltaPoint, map );
 
-                // update the lamda
-                _lambda *= 5.0;
-
                 // reset the step
                 _costs = lastCosts;
-            }
 
-            _iterations++;
+                // update the lamda
+                _lambda *= 5.0;
+            }
 
             if( criteria.finished( _costs, _iterations ) ){
                 break;
@@ -243,7 +259,7 @@ namespace cvt {
             }
 
             // initial lambda
-			_lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
+            _lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 100000.0 );
         }
     }
 
@@ -302,7 +318,6 @@ namespace cvt {
         Eigen::Matrix<double, camParamDim, pointParamDim> tmpEval;
         CamResidualType tmpRes;
 
-		double lambdaAug = _lambda;
         size_t numCams = map.numKeyframes();
         for( size_t c = 0; c < numCams; c++ ){
             // first create block for this cam:
@@ -310,7 +325,8 @@ namespace cvt {
             tmpRes   = _camResiduals[ c ];
 
 			// augment the jacobian diagonal
-			tmpBlock.diagonal().array() += lambdaAug;
+            //tmpBlock.diagonal().array() += _lambda;
+            tmpBlock.diagonal().array() *= ( 1.0 + _lambda );
 
             // go over all point measures:
             const Keyframe & k = map.keyframeForId( c );
@@ -359,7 +375,8 @@ namespace cvt {
         for( size_t i = 0; i < _nPts; i++ ){
             inv = _pointsJTJ[ i ];
             // augment the diagonal:
-			inv.diagonal().array() += _lambda;
+            //inv.diagonal().array() += _lambda;
+            inv.diagonal().array() *= ( 1.0 + _lambda );
             // TODO: is there a way to exploit symmetry when inverting with Eigen?
             _invAugPJTJ[ i ] = inv.inverse();
         }
@@ -372,7 +389,6 @@ namespace cvt {
         size_t r = camParamDim * bRow;
         size_t c = camParamDim * bCol;
 
-		// TODO: check -> access has to be with increasing idx?
         for( size_t i = 0; i < camParamDim; i++ )
             for( size_t k = 0; k < camParamDim; k++ )
                 _sparseReduced.coeffRef( r+k, c+i ) = m( k, i );
