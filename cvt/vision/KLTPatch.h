@@ -40,6 +40,7 @@ namespace cvt
         public:
             typedef Eigen::Matrix<float, PoseType::NPARAMS, PoseType::NPARAMS> HessType;
             typedef Eigen::Matrix<float, PoseType::NPARAMS, 1>                 JacType;
+            typedef Eigen::Matrix<float, 2, PoseType::NPARAMS>                 ScreenJacType;
             static const size_t PatchSize = pSize;
 
             KLTPatch( size_t octaves = 1 );
@@ -136,6 +137,10 @@ namespace cvt
             KLTPatch& operator= (const KLTPatch& );
 
             static std::vector<Vector2f> PatchPoints;
+
+            typedef std::vector<ScreenJacType, Eigen::aligned_allocator<ScreenJacType> > ScreenJacVec;
+            static ScreenJacVec ScreenJacobiansAtIdentity;
+
             static std::vector<Vector2f> initPatchPoints()
             {
                 std::vector<Vector2f> points;
@@ -154,6 +159,21 @@ namespace cvt
                 return points;
             }
 
+            static ScreenJacVec initScreenJacobians()
+            {
+                std::vector<Vector2f> points = initPatchPoints();
+                PoseType pose;
+
+                ScreenJacVec jacobians;
+                Eigen::Vector2f p;
+                jacobians.resize( points.size() );
+                for( size_t i = 0; i < points.size(); ++i ){
+                    EigenBridge::toEigen( p, points[ i ] );
+                    pose.screenJacobian( jacobians[ i ], p );
+                }
+                return jacobians;
+            }
+
             bool patchIsInImage( const Matrix3f& pose, size_t w, size_t h ) const;
             float buildSystem( JacType& jacSum,
                                const Matrix3f& pose,
@@ -164,6 +184,9 @@ namespace cvt
 
     template <size_t pSize, class PoseType>
     std::vector<Vector2f> KLTPatch<pSize, PoseType>::PatchPoints( KLTPatch<pSize, PoseType>::initPatchPoints() );
+
+    template <size_t pSize, class PoseType>
+    typename KLTPatch<pSize, PoseType>::ScreenJacVec KLTPatch<pSize, PoseType>::ScreenJacobiansAtIdentity( KLTPatch<pSize, PoseType>::initScreenJacobians() );
 
     template <size_t pSize, class PoseType>
     void KLTPatch<pSize, PoseType>::resample( float* dst, const IMapScoped<float>& iMap, const Matrix3f& mat, float fill )
@@ -210,32 +233,25 @@ namespace cvt
 
         Eigen::Matrix<float, 2, 1> g;
         HessType hess( HessType::Zero() );
-        typename PoseType::ScreenJacType sj;
 
-        Eigen::Vector2f point( -pHalf, -pHalf );
-        while( numLines-- )
-        {
-            point[ 0 ] = -pHalf;
+        ScreenJacType* sj = &ScreenJacobiansAtIdentity[ 0 ];
+        while( numLines-- ){
             for( size_t i = 0; i < pSize; i++ ){
                 *p = *t = iptr[ i ];
                 g[ 0 ] = gxptr[ i ];
                 g[ 1 ] = gyptr[ i ];
 
-                _pose.screenJacobian( sj, point );
-                *J =  sj.transpose() * g;
-
+                *J =  sj->transpose() * g;
                 hess.noalias() += ( *J ) * J->transpose();
                 J++;
                 p++;
                 t++;
-
-                point[ 0 ] += 1.0f;
+                sj++;
             }
             iptr  += stride;
             gxptr += stride;
             gyptr += stride;
 
-            point[ 1 ] += 1.0f;
         }
 
         // initialize the _pose if at upper most octave
@@ -397,7 +413,6 @@ namespace cvt
         const PatchData& patchData = _patchDataForScale[ 0 ];
 
         float diffSum = 0.0f;
-        const float maxDiff = 0.7 * Math::sqr( pSize * 255.0f );
 
         size_t iter = 0;
         while( iter < maxIters ){
@@ -414,8 +429,6 @@ namespace cvt
             }
 
             diffSum = buildSystem( jSum, pose, current, currStride, width, height );
-            if( diffSum > maxDiff )
-                return false;
 
             // solve for the delta:
             delta = patchData.inverseHessian * jSum;
@@ -442,21 +455,22 @@ namespace cvt
         // get the pose of the patch
         Matrix3f poseMat;
         EigenBridge::toCVT( poseMat, _pose.transformation() );
+
         poseMat[ 0 ][ 2 ] *= scale;
         poseMat[ 1 ][ 2 ] *= scale;
+
 
         PoseType tmpPose;
         tmpPose.set( poseMat );
 
-        const float maxDiff = Math::sqr( pSize * 255.0f );
-        float diffSum = maxDiff;
+        float diffSum = 0.0f;
         for( int oc = pyramid.octaves() - 1; oc >= 0; --oc ){
             IMapScoped<const float> map( pyramid[ oc ] );
             const PatchData& patchData = _patchDataForScale[ oc ];
             size_t w = pyramid[ oc ].width();
             size_t h = pyramid[ oc ].height();
             size_t iter = 0;
-            diffSum = Math::sqr( pSize * 255 );
+            diffSum = 0.0f;
             while( iter < maxIters ){
                 //pose matrix
                 EigenBridge::toCVT( poseMat, tmpPose.transformation() );
@@ -471,10 +485,6 @@ namespace cvt
                                        map.ptr(), map.stride(),
                                        w, h,
                                        oc );                
-
-                if( diffSum >= maxDiff ){
-                    return false;
-                }
 
                 // solve for the delta:
                 delta = patchData.inverseHessian * jSum;
@@ -491,6 +501,7 @@ namespace cvt
                 EigenBridge::toCVT( poseMat, tmpPose.transformation() );
                 poseMat[ 0 ][ 2 ] *= invScale;
                 poseMat[ 1 ][ 2 ] *= invScale;
+
                 tmpPose.set( poseMat );
             }
         }
@@ -527,7 +538,7 @@ namespace cvt
         // transform the points:
         std::vector<Vector2f> warpedPts( numPatchPoints() );
         simd->transformPoints( &warpedPts[ 0 ], pose, patchPoints(), warpedPts.size() );
-        simd->warpBilinear1f( warped, &warpedPts[ 0 ].x, imgPtr, iStride, width, height, -1.0f, warpedPts.size() );
+        simd->warpBilinear1f( warped, &warpedPts[ 0 ].x, imgPtr, iStride, width, height, 2.0f, warpedPts.size() );
 
         // compute the residuals
         float residuals[ pSize * pSize ];
