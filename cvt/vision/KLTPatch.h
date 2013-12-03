@@ -51,49 +51,48 @@ namespace cvt
              *	\param stride	stride of the image
              *	\param pos		position of the feature in the image
              * */
-            bool update( IMapScoped<const float> &iMap,
-                         IMapScoped<const float> &gxMap,
-                         IMapScoped<const float> &gyMap,
-                         const Vector2f &pos,
-                         size_t w, size_t h, size_t octave = 0 );
+            bool            update( IMapScoped<const float> &iMap,
+                                    IMapScoped<const float> &gxMap,
+                                    IMapScoped<const float> &gyMap,
+                                    const Vector2f &pos,
+                                    size_t w, size_t h, size_t octave = 0 );
 
-            bool update( const ImagePyramid & pyrImg,
-                         const ImagePyramid & pyrGx,
-                         const ImagePyramid & pyrGy,
-                         const Vector2f &pos );
+            bool            update( const ImagePyramid & pyrImg,
+                                    const ImagePyramid & pyrGx,
+                                    const ImagePyramid & pyrGy,
+                                    const Vector2f &pos );
 
-            void currentCenter( Vector2f& center )  const;
+            void            currentCenter( Vector2f& center )  const;
 
-            PoseType&	pose()	{ return _pose; }
-			Matrix3f	poseMat() const;
-            void		initPose( const Vector2f& pos );
-			void		initPose( const Matrix3f& mat );
+            PoseType&       pose()	{ return _pose; }
+            Matrix3f        poseMat() const;
+            void            initPose( const Vector2f& pos );
+            void            initPose( const Matrix3f& mat );
 
-            const float*   pixels( size_t octave = 0 )       const { return _patchDataForScale[ octave ].patch; }
-            const float*   transformed( size_t octave = 0 )  const { return _patchDataForScale[ octave ].transformed; }
+            const float*    pixels( size_t octave = 0 )         const { return _patchDataForScale[ octave ].patch; }
+            const float*    transformed( size_t octave = 0 )    const { return _patchDataForScale[ octave ].transformed; }
 
-            const HessType&  inverseHessian( size_t octave = 0 ) const { return _patchDataForScale[ octave ].inverseHessian; }
-            const JacType*   jacobians( size_t octave = 0 )      const { return _patchDataForScale[ octave ].jac; }
+            const HessType& inverseHessian( size_t octave = 0 ) const { return _patchDataForScale[ octave ].inverseHessian; }
+            const JacType*  jacobians( size_t octave = 0 )      const { return _patchDataForScale[ octave ].jac; }
 
-            static size_t size() { return pSize; }
-
-            bool align( const float *current, size_t currStride,
-                        size_t width, size_t height, size_t maxIters = 2 );
+            bool            align( const float *current, size_t currStride,
+                                   size_t width, size_t height, size_t maxIters = 2, size_t octave = 0 );
 
             /* track patch through pyramid */
-            bool align( const ImagePyramid& pyramid, size_t maxIters = 2 );
-
+            bool            align( const ImagePyramid& pyramid, size_t maxIters = 2 );
 
             /**
              *	\brief	number of scales that are stored with this patch
              * */
-            size_t numScales() const { return _patchDataForScale.size(); }
+            size_t          numScales() const { return _patchDataForScale.size(); }
 
-            static void extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
-                                        const std::vector<Vector2f> & positions,
-                                        const Image & img,
-                                        const Image & gradX,
-                                        const Image & gradY );
+
+            static size_t   size() { return pSize; }
+            static void     extractPatches( std::vector<KLTPatch<pSize, PoseType>* > & patches,
+                                            const std::vector<Vector2f> & positions,
+                                            const Image & img,
+                                            const Image & gradX,
+                                            const Image & gradY );
 
             /**
 			 * \brief extract patches from an image pyramid
@@ -175,11 +174,7 @@ namespace cvt
             }
 
             bool patchIsInImage( const Matrix3f& pose, size_t w, size_t h ) const;
-            float buildSystem( JacType& jacSum,
-                               const Matrix3f& pose,
-                               const float *iPtr, size_t iStride,
-                               size_t width, size_t height,
-                               size_t octave = 0 );
+            float buildSystem( JacType& jacSum, const JacType *J, const float *r );
     };
 
     template <size_t pSize, class PoseType>
@@ -405,37 +400,70 @@ namespace cvt
     template <size_t pSize, class PoseType>
     inline bool KLTPatch<pSize, PoseType>::align( const float *current, size_t currStride,
                                                   size_t width, size_t height,
-                                                  size_t maxIters )
+                                                  size_t maxIters, size_t octave )
     {
-        JacType jSum;
+        JacType jSum( JacType::Zero() );
         typename PoseType::ParameterVectorType delta;
 
-        const PatchData& patchData = _patchDataForScale[ 0 ];
+        PatchData& data = _patchDataForScale[ octave ];
 
-        float diffSum = 0.0f;
+        size_t n = numPatchPoints();
+        std::vector<Vector2f> warpedPts( n );
+        std::vector<float> residuals( n );
+        SIMD* simd = SIMD::instance();
+
+        // first test if all points transform into the image
+        Matrix3f pose, poseSave;
+        EigenBridge::toCVT( pose, _pose.transformation() );
+        poseSave = pose;
+        if( !patchIsInImage( pose, width, height ) ){
+            return false;
+        }
+
+        // warp points and interpolate pixel value
+        simd->transformPoints( &warpedPts[ 0 ], pose, patchPoints(), n );
+        simd->warpBilinear1f( data.transformed, &warpedPts[ 0 ].x, current, currStride, width, height, 2.0f, n );
+        simd->Sub( &residuals[ 0 ], data.transformed, data.patch, n );
+        float diffSum = buildSystem( jSum, data.jac, &residuals[ 0 ] );
 
         size_t iter = 0;
         while( iter < maxIters ){
-            jSum.setZero();
-            diffSum = 0.0f;
-
-            //pose matrix
-            Matrix3f pose;
-            EigenBridge::toCVT( pose, _pose.transformation() );
-
-            // first test if all points transform into the image
-            if( !patchIsInImage( pose, width, height ) ){
-                return false;
-            }
-
-            diffSum = buildSystem( jSum, pose, current, currStride, width, height );
-
             // solve for the delta:
-            delta = patchData.inverseHessian * jSum;
-            _pose.applyInverse( -delta );
+            delta = data.inverseHessian * jSum;
 
+            float newError = diffSum + 1.0f;
+            while( newError > diffSum ){
+                if( Math::abs( delta.array().maxCoeff() ) < 1e-6 ){
+                    return true;
+                }
+
+                // set the backuped pose
+                EigenBridge::toEigen( _pose.transformation(), poseSave );
+
+                // apply pose change
+                _pose.applyInverse( -delta );
+
+                // evaluate the new costs
+                EigenBridge::toCVT( pose, _pose.transformation() );
+
+                if( patchIsInImage( pose, width, height ) ){
+                    simd->transformPoints( &warpedPts[ 0 ], pose, patchPoints(), n );
+                    simd->warpBilinear1f( data.transformed, &warpedPts[ 0 ].x, current, currStride, width, height, 2.0f, n );
+                    simd->Sub( &residuals[ 0 ], data.transformed, data.patch, n );
+                    newError = simd->sumSqr( &residuals[ 0 ], n );
+                }
+
+                // half the step
+                delta *= 0.5f;
+            }
+            poseSave = pose;
+
+            // evaluate the normal equations again
+            jSum.setZero();
+            diffSum = buildSystem( jSum, data.jac, &residuals[ 0 ] );
             iter++;
         }
+
         return true;
     }
 
@@ -443,10 +471,10 @@ namespace cvt
     template <size_t pSize, class PoseType>
     inline bool KLTPatch<pSize, PoseType>::align( const ImagePyramid& pyramid, size_t maxIters )
     {
-        CVT_ASSERT( pyramid[ 0 ].format() == IFormat::GRAY_FLOAT, "Format must be GRAY_FLOAT!" );
+        if( maxIters == 0 )
+            return true;
 
-        JacType jSum;
-        typename PoseType::ParameterVectorType delta;
+        CVT_ASSERT( pyramid[ 0 ].format() == IFormat::GRAY_FLOAT, "Format must be GRAY_FLOAT!" );
 
         size_t nOctaves = pyramid.octaves();
         float scale = Math::pow( pyramid.scaleFactor(), nOctaves-1 );
@@ -459,100 +487,48 @@ namespace cvt
         poseMat[ 0 ][ 2 ] *= scale;
         poseMat[ 1 ][ 2 ] *= scale;
 
+        // backup pose
+        PoseType tmpPose( _pose );
+        _pose.set( poseMat );
 
-        PoseType tmpPose;
-        tmpPose.set( poseMat );
-
-        float diffSum = 0.0f;
+        bool ret = false;
         for( int oc = pyramid.octaves() - 1; oc >= 0; --oc ){
             IMapScoped<const float> map( pyramid[ oc ] );
-            const PatchData& patchData = _patchDataForScale[ oc ];
             size_t w = pyramid[ oc ].width();
             size_t h = pyramid[ oc ].height();
-            size_t iter = 0;
-            diffSum = 0.0f;
-            while( iter < maxIters ){
-                //pose matrix
-                EigenBridge::toCVT( poseMat, tmpPose.transformation() );
 
-                // first test if all points of the patch transform into the image
-                if( !patchIsInImage( poseMat, w, h ) ){
-                    return false;
-                }
-
-                jSum.setZero();
-                diffSum = buildSystem( jSum, poseMat,
-                                       map.ptr(), map.stride(),
-                                       w, h,
-                                       oc );                
-
-                // solve for the delta:
-                delta = patchData.inverseHessian * jSum;
-
-                if( delta.norm() < 1e-6 )
-                    break;
-
-                tmpPose.applyInverse( -delta );
-                iter++;
+            ret = align( map.ptr(), map.stride(), w, h, maxIters, oc );
+            if( !ret ){
+                _pose.transformation() = tmpPose.transformation();
             }
 
             if( oc != 0 ){
                 // we need to scale up
-                EigenBridge::toCVT( poseMat, tmpPose.transformation() );
+                EigenBridge::toCVT( poseMat, _pose.transformation() );
                 poseMat[ 0 ][ 2 ] *= invScale;
                 poseMat[ 1 ][ 2 ] *= invScale;
 
-                tmpPose.set( poseMat );
+                _pose.set( poseMat );
+                // backup pose if alignment fails
+                tmpPose.transformation() = _pose.transformation();
             }
         }
-
-        // set the final patch pose accordingly
-        _pose.transformation() = tmpPose.transformation();
-        return true;
+        return ret;
     }
 
 
     template <size_t pSize, class PoseType>
-    inline float KLTPatch<pSize, PoseType>::buildSystem( JacType& jacSum,
-                                                         const Matrix3f& pose,
-                                                         const float* imgPtr, size_t iStride,
-                                                         size_t width, size_t height,
-                                                         size_t octave )
+    inline float KLTPatch<pSize, PoseType>::buildSystem( JacType& jacSum, const JacType* J, const float* r )
     {
-        // the warped current ones
-        PatchData& data = _patchDataForScale[ octave ];
-        float* warped = data.transformed;
-        // the original template pixels
-        const float* temp = data.patch;
-        const JacType* J = data.jac;
-
-        float diffSum = 0.0f;
-
-        // check for nans in matrix
-        for( size_t i = 0; i < 3; i++ )
-            for( size_t k = 0; k < 3; k++ )
-                if( Math::isNaN( pose[ i ][ k ] ) )
-                    return Math::MAXF;
-
-        SIMD* simd = SIMD::instance();
-        // transform the points:
-        std::vector<Vector2f> warpedPts( numPatchPoints() );
-        simd->transformPoints( &warpedPts[ 0 ], pose, patchPoints(), warpedPts.size() );
-        simd->warpBilinear1f( warped, &warpedPts[ 0 ].x, imgPtr, iStride, width, height, 2.0f, warpedPts.size() );
-
-        // compute the residuals
-        float residuals[ pSize * pSize ];
-        simd->Sub( residuals, warped, temp, warpedPts.size() );
-
-        size_t num = warpedPts.size();
-        const float* r = residuals;
+        size_t num = numPatchPoints();
+        float error = 0.0f;
         while( num-- ){
-            diffSum += Math::sqr( *r );
+            error += Math::sqr( *r );
             jacSum += ( *J *  *r );
             J++;
             r++;
         }
-        return diffSum;
+        return error;
     }
 
 
