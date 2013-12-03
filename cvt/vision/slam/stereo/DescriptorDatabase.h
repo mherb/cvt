@@ -36,7 +36,7 @@ namespace cvt
 	{
 		public:
 			typedef GA2<float> PatchPose;
-			typedef KLTPatch<16, PatchPose> PatchType;
+            typedef KLTPatch<7, PatchPose> PatchType;
 			DescriptorDatabase();
 			~DescriptorDatabase();
 
@@ -63,7 +63,8 @@ namespace cvt
 
 	inline DescriptorDatabase::DescriptorDatabase()
 	{
-		_descriptors.reserve( 2000 );
+        _descriptors.reserve( 10000 );
+        _patches.reserve( 10000 );
 	}
 
 	inline DescriptorDatabase::~DescriptorDatabase()
