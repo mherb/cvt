@@ -67,6 +67,7 @@ namespace cvt
 				   kltStereoIters( 2 ),
                    useSBA( false ),
                    sbaIterations( 5 ),
+                   sbaDeltaKeyframes( 1 ),
 				   dbgShowFeatures( false ),
 				   dbgShowNMSFilteredFeatures( false ),
 				   dbgShowBest3kFeatures( false ),
@@ -107,6 +108,10 @@ namespace cvt
                 /* use SBA */
                 bool    useSBA;
                 size_t  sbaIterations;
+
+                /* trigger sba when sbaDeltaKeyframes have been
+                 * added since last sba run */
+                size_t  sbaDeltaKeyframes;
 
 				/* debug params */
 				bool dbgShowFeatures;
@@ -189,6 +194,7 @@ namespace cvt
 		 /* the current pose of the camera rig */
 		 SE3<float>					 _pose;
 		 int						 _activeKF;
+         Eigen::Matrix4d             _keyframeRelativePose;
 		 SlamMap					 _map;
 		 MapOptimizer				 _bundler;
 		 Image						 _lastImage;

@@ -60,6 +60,8 @@ namespace cvt
         _kernelGx.scale( -0.5f );
         _kernelGy.scale( -0.5f );
 
+        _keyframeRelativePose.setIdentity();
+
         Eigen::Matrix3d K;
         EigenBridge::toEigen( K, calib.firstCamera().intrinsics() );
 
@@ -88,6 +90,13 @@ namespace cvt
 
         // predict visible features based on last pose
         Eigen::Matrix4d poseEigen = _pose.transformation().cast<double>();
+
+        if( _activeKF > -1 ){
+            Eigen::Matrix4d kfPose = _map.keyframeForId( _activeKF ).pose().transformation();
+            // transform the relative pose into
+            poseEigen = _keyframeRelativePose * kfPose;
+        }
+
         predictVisibleFeatures( predictedPositions,
                                 predictedFeatureIds,
                                 predictedDescriptors,
@@ -144,6 +153,14 @@ namespace cvt
             std::cout << "Active KF: " << _activeKF << std::endl;
         }
 
+        // update relative pose:
+        Eigen::Matrix4d kfPose = _map.keyframeForId( _activeKF ).pose().transformation();
+
+        std::cout << "Keyframe Pose: " << kfPose << std::endl;
+        // transform the relative pose into
+        _keyframeRelativePose = poseEigen * kfPose.inverse();
+
+        std::cout << "Relative Pose " << _keyframeRelativePose << std::endl;
    }
 
    void StereoSLAM::extractFeatures( const Image& left, const Image& right )
@@ -540,11 +557,11 @@ namespace cvt
 
        /* bundle adjust */
        static size_t lastNKF = 0;
-       if( _params.useSBA && ( _map.numKeyframes() - lastNKF ) > 10 ){
+       if( _params.useSBA && ( _map.numKeyframes() - lastNKF ) > _params.sbaDeltaKeyframes ){
            _bundler.setMaxIterations( _params.sbaIterations );
            lastNKF = _map.numKeyframes();
-         _bundler.run( &_map );
-	   }
+           _bundler.run( &_map );
+       }
    }
 
    bool StereoSLAM::newKeyframeNeeded( size_t numTrackedFeatures ) const
@@ -552,7 +569,7 @@ namespace cvt
 	  double kfDist = _params.maxKeyframeDistance + 1.0;
 	  if( _activeKF != -1 ){
 		  Eigen::Matrix4d pe = _pose.transformation().cast<double>();
-		  kfDist = _map.keyframeForId( _activeKF ).distance( pe );
+          kfDist = _map.keyframeForId( _activeKF ).distance( pe );
 	  }
 
 	  // if distance is too far from active, always create a new one:
