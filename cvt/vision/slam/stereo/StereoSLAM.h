@@ -64,6 +64,8 @@ namespace cvt
                    gridFilteringCellsY( 4 ),
                    nonMaximumSuppressionRadius( 3 ),
                    bestFeaturesCount( 4000 ),
+                   kltTrackingIters( 2 ),
+                   kltAvgSAD( 0.25f ),
 				   kltStereoIters( 2 ),
                    useSBA( false ),
                    sbaIterations( 5 ),
@@ -103,6 +105,8 @@ namespace cvt
                 int     bestFeaturesCount;
 
 				/* klt params */
+                size_t kltTrackingIters;
+                float  kltAvgSAD;
 				size_t kltStereoIters;
 
                 /* use SBA */

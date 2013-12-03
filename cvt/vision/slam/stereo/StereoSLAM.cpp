@@ -258,77 +258,38 @@ namespace cvt
         tracked.reserve( matchedIndices.size() );
         Vector4f vec;
         Vector2f refined;
-        std::vector<float> dst_patch_pixels( PatchType::numPatchPoints() );
-        const float KLT_DISTANCE_THRESHOLD( 3.0f ); // points further away than this get rejected
         for ( size_t i = 0; i < matchedIndices.size(); ++i ){
             const MatchingIndices& m = matchedIndices[ i ];
             size_t curMapIdx = predictedIds[ m.srcIdx ];
             PatchType* patch = predictedPatches[ m.srcIdx ];
 
-            // refine the position, sometimes this worsens the result, we need
-            // to add checks against that, see below.
-            const Vector2f& pt = ( *_descExtractorLeft )[ m.dstIdx ].pt;
-            // TODO: try to only update the position and keep the rest of the patch pose
-            patch->initPose( pt );
-            patch->align( _pyrLeftf, 1 /*per octave!*/ );
-            patch->currentCenter( refined );
 
-            // check distances between the refinements, there shouldnt be more than a few px diff
-            const float distance = ( pt - refined ).length();
+            const Vector2f& pt = ( *_descExtractorLeft )[ m.dstIdx ].pt;
+
+            // TODO: try to only update the position and keep the rest of the patch pose
+            //       the idea would be, that the last alignment/oriantation of this patch
+            //       is probably better than just using the position
+            patch->initPose( pt );
+
+            bool kltRes = patch->align( _pyrLeftf, _params.kltTrackingIters );
+            patch->currentCenter( refined );
 
             // compute SAD between patch->pixels() (original pixels saved in the patch/KF)
             // and patch->transformed() (pixels at refined patch location)
-            float sad_transformed = SIMD::instance( )->SAD( patch->pixels(),
-                                                            patch->transformed(),
-                                                            patch->numPatchPoints() );
-
-            // and in order to check if the result improved, we compute SAD between
-            // the original KF pixels and the starting location ( initpose(pt) )
-            // and check these two SADs against each other. The result should always
-            // improve, else we reject it.
-            IMapScoped<float> iMap( _pyrLeftf[ 0 ] );
-            patch->initPose( pt );
-            patch->resample( &dst_patch_pixels[ 0 ], iMap, patch->poseMat(), 0.0f );
-            float sad_initial = SIMD::instance()->SAD( patch->pixels(),
-                                                       &dst_patch_pixels[ 0 ],
-                                                       patch->numPatchPoints() );
+            float avgSAD = SIMD::instance()->SAD( patch->pixels(),
+                                                  patch->transformed(),
+                                                  patch->numPatchPoints() ) / patch->numPatchPoints();
 
             const MapFeature& mapFeature = _map.featureForId( curMapIdx );
             EigenBridge::toCVT( vec, mapFeature.estimate() );
 
-            if ( sad_transformed < sad_initial && distance < KLT_DISTANCE_THRESHOLD ) {
+            // klt was successful and SAD is reasonably small?
+            if ( kltRes && avgSAD < _params.kltAvgSAD ) {
                 tracked.points2d.add( refined );// refinement was an improvment
+                tracked.points3d.add( Vector3f( vec ) );
+                tracked.mapFeatureIds.push_back( curMapIdx );
             }
-#ifdef KLTDEBUG
-            else if  ( distance >= KLT_DISTANCE_THRESHOLD ) {
-                tracked.points2d.add( pt );	// rejected because too far away
-
-                ++refinementThresholdExceed;
-                std::cout << "Refinement threshold exceeded by: " <<
-                             ( int )( KLT_DISTANCE_THRESHOLD - 3 ) << " (rounded) \n";
-            }
-            else if ( sad_transformed >= sad_initial ) {
-                tracked.points2d.add( pt );    // rejected because score worsened
-
-                ++failedRefinementCount;
-                std::cout << "KLT: Rejected bad refinement (SAD: " << ( int )sad_transformed <<
-                             " vs. " << ( int )sad_initial << " )\n";
-            }
-#else
-            else {
-             tracked.points2d.add( pt );    // rejected because score worsened
-            }
-#endif
-            tracked.points3d.add( Vector3f( vec ) );
-            tracked.mapFeatureIds.push_back( curMapIdx );
         } // for matched indices
-#ifdef KLTDEBUG
-        std::cout << "Refinement threshold exceeded in " << refinementThresholdExceed <<
-                     " cases out of " << matchedIndices.size() << '\n';
-
-        std::cout << "Failed refinements: " << failedRefinementCount <<
-                     " (out of " << matchedIndices.size() << ")" << '\n';
-#endif
     }
 
     void StereoSLAM::estimateCameraPose( std::vector<size_t>& inlierIndices, const PointSet3f & p3d, const PointSet2f& p2d )
@@ -612,7 +573,7 @@ namespace cvt
                                            const TrackedFeatures& tracked,
                                            const std::vector<Vector2f>& predPos,
                                            const std::vector<MatchingIndices>& matchedIndices,
-                                           const std::vector<size_t>& predictedFeatureIds) const
+                                           const std::vector<size_t>& /*predictedFeatureIds*/ ) const
     {
         static int frameNo = 0;
         createDebugImageMono( debugImage, tracked.points2d, predPos );
@@ -631,31 +592,8 @@ namespace cvt
             g.setColor( Color::PINK );
             g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
 
-            // draw a line to the refined, current feature: (checks KLT)
-
-            // get global feature ID for this predicted feature
-            const size_t& featureID = predictedFeatureIds[ m.srcIdx ];
-
-            // use this global ID to look up the tracked/refined feature:
-            std::vector<size_t>::const_iterator it;
-
-            it = std::find( tracked.mapFeatureIds.begin(),
-                            tracked.mapFeatureIds.end(),
-                            featureID );
-
-            if ( it != tracked.mapFeatureIds.end() ) {
-                const size_t& index = it - tracked.mapFeatureIds.begin();
-                // sanity check:
-                if ( tracked.mapFeatureIds[ index ] != featureID ) {
-                    std::cout << "Inconsistent featureID!" << std::endl;
-                }
-                const Vector2f& pt = tracked.points2d[ index ];
-                g.drawLine( pt, p );
-            } else {
-                std::cout << "WARNING: no ID found!" << std::endl;
-            }
-
             // draw a line to the matched predicted position:
+            // TODO: better do this only for the inliers
             const Vector2f& pt2 = predPos[ m.srcIdx ];
             g.setColor( Color::GREEN );
             g.drawLine( pt2, p );
