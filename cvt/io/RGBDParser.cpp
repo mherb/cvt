@@ -51,8 +51,8 @@ namespace cvt
         }
         loadGroundTruth();
 
-        std::cout << "RGB: " << _rgbFiles.size() << std::endl;
-        std::cout << "Depth: " << _depthFiles.size() << std::endl;
+        std::cout << "RGB: "    << _rgbFiles.size() << std::endl;
+        std::cout << "Depth: "  << _depthFiles.size() << std::endl;
         std::cout << "Stamps: " << _stamps.size() << std::endl;
 
         sortOutData( rgbStamps, depthStamps, associated );
