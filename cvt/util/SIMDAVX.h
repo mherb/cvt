@@ -38,6 +38,7 @@ namespace cvt {
 		public:
             virtual float SAD( const float* src1, const float* src2, const size_t n ) const;
             virtual float SSD( const float* src1, const float* src2, const size_t n ) const;
+            virtual float NCC( const float* src1, const float* src2, const size_t n ) const;
 
 			virtual std::string name() const;
 			virtual SIMDType type() const;

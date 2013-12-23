@@ -253,6 +253,116 @@ namespace cvt
 		return sad;
 	}
 
+	float SIMDSSE2::NCC( float const* src1, float const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+
+		const float* ptr1 = src1;
+		const float* ptr2 = src2;
+		float mean1 = 0.0f;
+		float mean2 = 0.0f;
+		
+#define sse_reduce_sum( ptr, r ) \
+		r = _mm_add_ps( r, _mm_movehl_ps( r, r ) ); \
+		r = _mm_add_ps( r, _mm_shuffle_ps( r, r, _MM_SHUFFLE( 0, 0, 0, 1 ) ) ); \
+		_mm_store_ss( ptr, r );
+
+		__m128 a, b, simdSum, simdMean1, simdMean2, simdDiff1, simdDiff2, simdVar1, simdVar2;
+
+		simdSum = _mm_setzero_ps( );
+		simdMean1 = _mm_setzero_ps( );
+		simdMean2 = _mm_setzero_ps( );
+		simdVar1 = _mm_setzero_ps( );
+		simdVar2 = _mm_setzero_ps( );
+
+		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
+			while( i-- ) {
+				simdMean1 = _mm_add_ps( simdMean1, _mm_loadu_ps( ptr1 ) );
+				simdMean2 = _mm_add_ps( simdMean2, _mm_loadu_ps( ptr2 ) );
+				ptr1 += 4; ptr2 += 4;
+			}
+
+			sse_reduce_sum( &mean1, simdMean1 );
+			sse_reduce_sum( &mean2, simdMean2 );
+
+			i = n & 0x3;
+			while( i-- ) {
+				mean1 += *ptr1++;
+				mean2 += *ptr2++;
+			}
+
+			mean1 /= (float) n;
+			mean2 /= (float) n;
+			simdMean1 = _mm_load1_ps( &mean1 );
+			simdMean2 = _mm_load1_ps( &mean2 );
+
+			i = n >> 2;
+			while( i-- ) {
+				a = _mm_loadu_ps( src1 );
+				b = _mm_loadu_ps( src2 );
+				simdDiff1 = _mm_sub_ps( a, simdMean1 );
+				simdDiff2 = _mm_sub_ps( b, simdMean2 );
+				simdSum = _mm_add_ps( simdSum, _mm_mul_ps( simdDiff1, simdDiff2 ) );
+				simdVar1 = _mm_add_ps( simdVar1, _mm_mul_ps( simdDiff1, simdDiff1 ) );
+				simdVar2 = _mm_add_ps( simdVar2, _mm_mul_ps( simdDiff2, simdDiff2 ) );
+				src1 += 4; src2 += 4;
+			}
+		} else {
+			while( i-- ) {
+				simdMean1 = _mm_add_ps( simdMean1, _mm_load_ps( ptr1 ) );
+				simdMean2 = _mm_add_ps( simdMean2, _mm_load_ps( ptr2 ) );
+				ptr1 += 4; ptr2 += 4;
+			}
+
+			sse_reduce_sum( &mean1, simdMean1 );
+			sse_reduce_sum( &mean2, simdMean2 );
+
+			i = n & 0x3;
+			while( i-- ) {
+				mean1 += *ptr1++;
+				mean2 += *ptr2++;
+			}
+
+			mean1 /= (float) n;
+			mean2 /= (float) n;
+			simdMean1 = _mm_load1_ps( &mean1 );
+			simdMean2 = _mm_load1_ps( &mean2 );
+
+			i = n >> 2;
+			while( i-- ) {
+				a = _mm_load_ps( src1 );
+				b = _mm_load_ps( src2 );
+				simdDiff1 = _mm_sub_ps( a, simdMean1 );
+				simdDiff2 = _mm_sub_ps( b, simdMean2 );
+				simdSum = _mm_add_ps( simdSum, _mm_mul_ps( simdDiff1, simdDiff2 ) );
+				simdVar1 = _mm_add_ps( simdVar1, _mm_mul_ps( simdDiff1, simdDiff1 ) );
+				simdVar2 = _mm_add_ps( simdVar2, _mm_mul_ps( simdDiff2, simdDiff2 ) );
+				src1 += 4; src2 += 4;
+			}
+		}
+
+		float sum = 0.0f;
+		float var1 = 0.0f;
+		float var2 = 0.0f;
+
+		sse_reduce_sum( &sum, simdSum );
+		sse_reduce_sum( &var1, simdVar1 );
+		sse_reduce_sum( &var2, simdVar2 );
+
+#undef sse_reduce_sum
+		
+		i = n & 0x3;
+		while( i-- ) {
+			float diff1 = ( *src1++ - mean1 );
+			float diff2 = ( *src2++ - mean2 );
+			sum += diff1 * diff2;
+			var1 += Math::sqr( diff1 );
+			var2 += Math::sqr( diff2 );
+		}
+
+		return Math::invSqrt( var1 * var2 ) * sum;
+    }
+
 	void SIMDSSE2::AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const
 	{
 		size_t x;

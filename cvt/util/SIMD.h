@@ -153,6 +153,8 @@ namespace cvt {
             virtual float SAD( const float* src1, const float* src2, const size_t n ) const;
             virtual size_t SAD( uint8_t const* src1, uint8_t const* src2, const size_t n ) const;
 
+            virtual float NCC( const float* src1, const float* src2, const size_t n ) const;
+            
             /* Infinite Impulse Response */
             /* IIR_#coefs_#pass_#direction_#channels_inputType */
             virtual void IIR4FwdHorizontal4Fx( Fixed* dst, const uint8_t * src, size_t width, const Fixed * n,
