@@ -327,10 +327,14 @@ namespace cvt
 		meanSqr2 *= nInv;
 
 		float cov = mean12 - ( mean1 * mean2 );
-		float var1 = meanSqr1 - Math::sqr( mean1 );
-		float var2 = meanSqr2 - Math::sqr( mean2 );
+		float var1var2 = ( meanSqr1 - Math::sqr( mean1 ) ) * ( meanSqr2 - Math::sqr( mean2 ) );
 
-		return Math::invSqrt( var1 * var2 ) * cov;
+		// Avoid division by zero
+		if( var1var2 == 0.0f ) {
+			var1var2 = Math::floatNext( 0.0f );
+		}
+
+		return Math::invSqrt( var1var2 ) * cov;
 	}
 
 	void SIMDSSE2::AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const
