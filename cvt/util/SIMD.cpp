@@ -1248,6 +1248,44 @@ namespace cvt {
         return sad;
     }
 
+    float SIMD::NCC( const float* src1, const float* src2, const size_t n ) const
+    {
+        float mean1 = 0.0f;
+        float mean2 = 0.0f;
+        float mean12 = 0.0f;
+        float meanSqr1 = 0.0f;
+        float meanSqr2 = 0.0f;
+        
+        size_t i = n;
+        while( i-- ) {
+            float v1 = *src1++;
+            float v2 = *src2++;
+            
+            mean1 += v1;
+            mean2 += v2;
+            mean12 += v1 * v2;
+            meanSqr1 += Math::sqr( v1 );
+            meanSqr2 += Math::sqr( v2 );
+        }
+        
+        float nInv = 1.0f / (float) n;
+        mean1 *= nInv;
+        mean2 *= nInv;
+        mean12 *= nInv;
+        meanSqr1 *= nInv;
+        meanSqr2 *= nInv;
+        
+        float cov = mean12 - ( mean1 * mean2 );
+        float var1var2 = ( meanSqr1 - Math::sqr( mean1 ) ) * ( meanSqr2 - Math::sqr( mean2 ) );
+        
+        // Avoid division by zero
+        if( var1var2 == 0.0f ) {
+            var1var2 = Math::floatNext( 0.0f );
+        }
+
+        return Math::invSqrt( var1var2 ) * cov;
+    }
+
     void SIMD::MulAddValue1f( float* dst, float const* src1, const float value, const size_t n ) const
     {
         size_t i = n >> 2;

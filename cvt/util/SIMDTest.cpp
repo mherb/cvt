@@ -248,6 +248,57 @@ static void _SSDTest( float* src1, float* src2, size_t n )
 	}
 }
 
+static void _NCCTest( float* src1, float* src2, size_t n )
+{
+	float *constval = new float[ n ];
+	float mean1 = 0.0f;
+	float mean2 = 0.0f;
+	for( size_t i = 0; i < n; i++ ) {
+		src1[ i ] = Math::rand( -100.0f, 100.0f );
+		src2[ i ] = Math::rand( -100.0f, 100.0f );
+		constval[ i ] = 1.0f;
+		mean1 += src1[ i ];
+		mean2 += src2[ i ];
+	}
+	mean1 /= (float) n;
+	mean2 /= (float) n;
+	
+	float var1 = 0.0f;
+	float var2 = 0.0f;
+	float sum = 0.0f;
+	for( size_t i = 0; i < n; i++ ) {
+		sum += ( src1[ i ] - mean1 ) * ( src2[ i ] - mean2 );
+		var1 += Math::sqr( src1[ i ] - mean1 );
+		var2 += Math::sqr( src2[ i ] - mean2 );
+	}
+	
+	var1 /= (float) n;
+	var2 /= (float) n;
+	
+	float reference = sum / ( (float) n * Math::sqrt( var1 * var2 ) );
+    
+	SIMDType bestType = SIMD::bestSupportedType( );
+	for( int st = SIMD_BASE; st <= bestType; st++ ) {
+		SIMD* simd = SIMD::get( ( SIMDType ) st );
+		float result = simd->NCC( &src1[ 0 ], &src2[ 0 ], n );
+		bool fail = false;
+		if( Math::abs( result - reference ) > Math::EPSILONF ) {
+			fail = true;
+			std::cout << "Error: NCC: Reference: " << reference << ", " << simd->name( ) << ": " << result << std::endl;
+		}
+		std::stringstream ss;
+		ss << simd->name( );
+		ss << " NCC (float)";
+		CVTTEST_PRINT( ss.str( ), !fail );
+
+		// Assure that zero variance results in a non-NaN value
+		ss << " (zero variance)";
+		CVTTEST_PRINT( ss.str( ), !Math::isNaN( simd->NCC( &src1[ 0 ], &constval[ 0 ], n ) ) );
+		delete simd;
+	}
+	delete[] constval;
+}
+
 BEGIN_CVTTEST( simd )
 		float* fdst;
 		float* fsrc1;
@@ -275,6 +326,7 @@ BEGIN_CVTTEST( simd )
 
 		_SADTest( fsrc1, fsrc2, TESTSIZE );
 		_SSDTest( fsrc1, fsrc2, TESTSIZE );
+		_NCCTest( fsrc1, fsrc2, TESTSIZE );
 
 		delete[] fdst;
 		delete[] fsrc1;
@@ -445,6 +497,18 @@ BEGIN_CVTTEST( simd )
 			}
 			t /= 100.0;
 			std::cout << simd->name() << " SAD float "  << t  << " ms" << std::endl;
+			delete simd;
+		}
+		for( int st = SIMD_BASE; st <= bestType; st++ ) {
+			SIMD* simd = SIMD::get( ( SIMDType ) st );
+			t = 0;
+			for( int iter = 0; iter < 100; iter++ ) {
+				tmr.reset();
+				simd->NCC( fsrc1, fsrc2, TESTSIZE );
+				t += tmr.elapsedMilliSeconds();
+			}
+			t /= 100.0;
+			std::cout << simd->name() << " NCC float "  << t  << " ms" << std::endl;
 			delete simd;
 		}
 

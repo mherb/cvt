@@ -253,6 +253,90 @@ namespace cvt
 		return sad;
 	}
 
+	float SIMDSSE2::NCC( float const* src1, float const* src2, const size_t n ) const
+	{
+		size_t i = n >> 2;
+
+		float mean1 = 0.0f;
+		float mean2 = 0.0f;
+		float mean12 = 0.0f;
+		float meanSqr1 = 0.0f;
+		float meanSqr2 = 0.0f;
+
+		__m128 a, b, simdMean1, simdMean2, simdMean12, simdMeanSqr1, simdMeanSqr2;
+
+		simdMean1 = _mm_setzero_ps( );
+		simdMean2 = _mm_setzero_ps( );
+		simdMean12 = _mm_setzero_ps( );
+		simdMeanSqr1 = _mm_setzero_ps( );
+		simdMeanSqr2 = _mm_setzero_ps( );
+
+		if( ( ( size_t ) src1 | ( size_t ) src2 ) & 0xf ) {
+			while( i-- ) {
+				a = _mm_loadu_ps( src1 );
+				b = _mm_loadu_ps( src2 );
+				simdMean1 = _mm_add_ps( simdMean1, a );
+				simdMean2 = _mm_add_ps( simdMean2, b );
+				simdMean12 = _mm_add_ps( simdMean12, _mm_mul_ps( a, b ) );
+				simdMeanSqr1 = _mm_add_ps( simdMeanSqr1, _mm_mul_ps( a, a ) );
+				simdMeanSqr2 = _mm_add_ps( simdMeanSqr2, _mm_mul_ps( b, b ) );
+				src1 += 4; src2 += 4;
+			}
+		} else {
+			while( i-- ) {
+				a = _mm_load_ps( src1 );
+				b = _mm_load_ps( src2 );
+				simdMean1 = _mm_add_ps( simdMean1, a );
+				simdMean2 = _mm_add_ps( simdMean2, b );
+				simdMean12 = _mm_add_ps( simdMean12, _mm_mul_ps( a, b ) );
+				simdMeanSqr1 = _mm_add_ps( simdMeanSqr1, _mm_mul_ps( a, a ) );
+				simdMeanSqr2 = _mm_add_ps( simdMeanSqr2, _mm_mul_ps( b, b ) );
+				src1 += 4; src2 += 4;
+			}
+		}
+
+#define sse_reduce_sum( ptr, r ) \
+		r = _mm_add_ps( r, _mm_movehl_ps( r, r ) ); \
+		r = _mm_add_ps( r, _mm_shuffle_ps( r, r, _MM_SHUFFLE( 0, 0, 0, 1 ) ) ); \
+		_mm_store_ss( ptr, r );
+
+		sse_reduce_sum( &mean1, simdMean1 );
+		sse_reduce_sum( &mean2, simdMean2 );
+		sse_reduce_sum( &mean12, simdMean12 );
+		sse_reduce_sum( &meanSqr1, simdMeanSqr1 );
+		sse_reduce_sum( &meanSqr2, simdMeanSqr2 );
+
+#undef sse_reduce_sum
+
+		i = n & 0x3;
+		while( i-- ) {
+			float v1 = *src1++;
+			float v2 = *src2++;
+			mean1 += v1;
+			mean2 += v2;
+			mean12 += v1 * v2;
+			meanSqr1 += Math::sqr( v1 );
+			meanSqr2 += Math::sqr( v2 );
+		}
+
+		float nInv = 1.0f / (float) n;
+		mean1 *= nInv;
+		mean2 *= nInv;
+		mean12 *= nInv;
+		meanSqr1 *= nInv;
+		meanSqr2 *= nInv;
+
+		float cov = mean12 - ( mean1 * mean2 );
+		float var1var2 = ( meanSqr1 - Math::sqr( mean1 ) ) * ( meanSqr2 - Math::sqr( mean2 ) );
+
+		// Avoid division by zero
+		if( var1var2 == 0.0f ) {
+			var1var2 = Math::floatNext( 0.0f );
+		}
+
+		return Math::invSqrt( var1var2 ) * cov;
+	}
+
 	void SIMDSSE2::AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const
 	{
 		size_t x;

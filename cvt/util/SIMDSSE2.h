@@ -47,7 +47,7 @@ namespace cvt {
 			using SIMDSSE::SSD;
             virtual float SSD( const float* src1, const float* src2, const size_t n ) const;
 
-
+            virtual float NCC( float const* src1, float const* src2, const size_t n ) const;
 
 			/* Add vertical */
 			virtual void AddVert_f( float* dst, const float**bufs, size_t numbufs, size_t width ) const;
