@@ -450,6 +450,12 @@ SET( CVT_HEADERS
    vision/CameraCalibration.h
    vision/ESM.h
    vision/EPnP.h
+   vision/features/AGAST.h
+   vision/features/agast/ASTDetector.h
+   vision/features/agast/OAST9_16.h
+   vision/features/agast/Agast5_8.h
+   vision/features/agast/Agast7_12s.h
+   vision/features/agast/Agast7_12d.h
    vision/features/BRIEF.h
    vision/features/BRIEFPattern.h
    vision/features/FAST.h
@@ -683,6 +689,11 @@ SET( CVT_SOURCES
 	vision/BoardDetector.cpp
 	vision/CameraCalibrationTest.cpp
 	vision/EPnP.cpp
+    vision/features/AGAST.cpp
+    vision/features/agast/OAST9_16.cpp
+    vision/features/agast/Agast5_8.cpp
+    vision/features/agast/Agast7_12s.cpp
+    vision/features/agast/Agast7_12d.cpp
 	vision/features/FAST.cpp
 	vision/features/fast/fast9.cpp
 	vision/features/fast/fast10.cpp
@@ -706,7 +717,7 @@ SET( CVT_SOURCES
 	vision/StereoRectification.cpp
 	vision/rgbdvo/InformationSelectionTest.cpp
 	vision/slam/Keyframe.cpp
-        vision/slam/FlatSLAMMap.cpp
+    vision/slam/FlatSLAMMap.cpp
 	vision/slam/SlamMap.cpp
 	vision/slam/stereo/FeatureTracking.cpp
 	#vision/slam/stereo/KLTTracking.cpp
