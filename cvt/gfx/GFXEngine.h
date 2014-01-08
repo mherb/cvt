@@ -38,7 +38,7 @@ namespace cvt {
 	{
 		public:
 
-			virtual ~GFXEngine() {};
+            virtual ~GFXEngine() {}
 			virtual void begin() = 0;
 			virtual void end() = 0;
 			virtual void drawLines( const Vector2f* pts, size_t n, float width, const Color& c ) = 0;
