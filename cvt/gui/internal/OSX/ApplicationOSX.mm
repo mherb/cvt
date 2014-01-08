@@ -36,15 +36,17 @@ namespace cvt {
 	ApplicationOSX::ApplicationOSX()
 	{
 		/* transform to foreground app */
-		ProcessSerialNumber psn;
-		GetCurrentProcess(&psn);
-		TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-		SetFrontProcess(&psn);
+		//ProcessSerialNumber psn;
+		//GetCurrentProcess( &psn );
+		//TransformProcessType( &psn, kProcessTransformToForegroundApplication );
+		//SetFrontProcess( &psn );
 
 		/* setup cocoa stuff inside OSXData struct */
 		_osx = new OSXData();
 		_osx->_pool = [[ NSAutoreleasePool alloc ] init ];
 		[ NSApplication sharedApplication ];
+        [ NSApp setActivationPolicy:NSApplicationActivationPolicyRegular ];
+        [ NSMenu setMenuBarVisible:NO ];
 
 		/* replace default menu bar */
 		id menubar = [[NSMenu new] autorelease];
@@ -55,6 +57,7 @@ namespace cvt {
 		id quitMenuItem = [[[NSMenuItem alloc] initWithTitle: @"Quit" action:@selector(terminate:) keyEquivalent:@"q"] autorelease ];
 		[appMenu addItem:quitMenuItem];
 		[appMenuItem setSubmenu:appMenu];
+        [NSMenu setMenuBarVisible:YES];
 
 		/* create default gl context */
 		GLFormat format;
@@ -93,6 +96,7 @@ namespace cvt {
 
 	void ApplicationOSX::runApp()
 	{
+        [ NSApp activateIgnoringOtherApps:YES ];
 		[ NSApp run ];
 	}
 
