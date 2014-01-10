@@ -174,19 +174,17 @@ namespace cvt
 	   _detector->detect( leftFeatures, _pyrLeft );
 	   _detector->detect( rightFeatures, _pyrRight );
 
-       std::cout << "Left: "<< leftFeatures.size() << " - Right: " << rightFeatures.size() << std::endl;
-
-	   if ( _params.dbgShowFeatures ) {
-		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLUE );
-	   }
+       if ( _params.dbgShowFeatures ) {
+           debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLUE );
+       }
 
        const int NMS_RADIUS( _params.nonMaximumSuppressionRadius );
 	   leftFeatures.filterNMS( NMS_RADIUS, true );
 	   rightFeatures.filterNMS( NMS_RADIUS, true );
 
-	   if ( _params.dbgShowNMSFilteredFeatures ) {
-		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLACK );
-	   }
+       if ( _params.dbgShowNMSFilteredFeatures ) {
+           debugImageDrawFeatures( _debugMono, leftFeatures, Color::BLACK );
+       }
 
 	   const int X_CELLS = _params.gridFilteringCellsX;
 	   const int Y_CELLS = _params.gridFilteringCellsY;
@@ -202,9 +200,9 @@ namespace cvt
 	   leftFeatures.sortPosition();
 	   rightFeatures.sortPosition();
 
-	   if ( _params.dbgShowBest3kFeatures ) {
-		   debugImageDrawFeatures( _debugMono, leftFeatures, Color::GRAY );
-	   }
+       if ( _params.dbgShowBest3kFeatures ) {
+           debugImageDrawFeatures( _debugMono, leftFeatures, Color::GRAY );
+       }
 
        std::cout << "Left: "<< leftFeatures.size() << " - Right: " << rightFeatures.size() << std::endl;
 
@@ -552,17 +550,15 @@ namespace cvt
         GFXEngineImage ge( debugImage );
         GFX g( &ge );
 
+        // predicted features
         g.color() = Color::YELLOW;
-        g.drawText( 10,10,100,10, ALIGN_LEFT, "predPos" );
-
         for( size_t i = 0; i < predPos.size(); ++i ){
             const Vector2f & p = predPos[ i ];
             g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
         }
 
+        // tracked features
         g.color() = Color::GREEN;
-        g.drawText( 0, 11, 10, 10, ALIGN_LEFT, "tracked") ;
-
         for( size_t i = 0; i < tracked.size(); i++ ){
             const Vector2d & p = tracked[ i ];
             g.fillRect( ( int )p.x - 2, ( int )p.y - 2, 5, 5 );
@@ -595,7 +591,7 @@ namespace cvt
             // draw a line to the matched predicted position:
             // TODO: better do this only for the inliers
             const Vector2f& pt2 = predPos[ m.srcIdx ];
-            g.setColor( Color::GREEN );
+            //g.setColor( Color::GREEN );
             g.drawLine( pt2, p );
         }
         ++frameNo;
