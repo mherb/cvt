@@ -240,6 +240,7 @@ SET( CVT_HEADERS
    gfx/ILoader.h
    gfx/ISaver.h
    gfx/ifilter/AdaptiveThreshold.h
+   gfx/ifilter/Canny.h
    gfx/ifilter/ColorCode.h
    gfx/ifilter/ROFDenoise.h
    gfx/ifilter/ROFFGPFilter.h
