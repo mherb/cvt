@@ -38,9 +38,9 @@ namespace cvt
             void detect( const Image& img, uint8_t threshold, FeatureSetWrapper& features, size_t border );
 
         private:
-            size_t  _lastStride;
-            int16_t offset0, offset1, offset2, offset3, offset4, offset5, offset6, offset7;
-            int16_t offset8, offset9, offset10, offset11, offset12, offset13, offset14, offset15;
+            ssize_t  _lastStride;
+            ssize_t offset0, offset1, offset2, offset3, offset4, offset5, offset6, offset7;
+            ssize_t offset8, offset9, offset10, offset11, offset12, offset13, offset14, offset15;
 
             int cornerScore( const uint8_t* p, uint8_t thresh ) const;
             void updateOffsets();
