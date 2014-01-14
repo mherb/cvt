@@ -22,27 +22,54 @@
    THE SOFTWARE.
 */
 
-#include <cvt/gl/scene/GLSShaderFactory.h>
+#ifndef CVT_GLSTEXTURE_H
+#define CVT_GLSTEXTURE_H
 
-static const char* _glsshader_material =
-"struct Material {\n" \
-"\tuniform vec3 diffuse;\n"\
-"\tuniform vec3 specular;\n" \
-"\tuniform float shininess;\n" \
-"\tuniform sampler2D diffusemap;\n" \
-"\tuniform sampler2D specularmap;\n" \
-"\tuniform sampler2D normalmap;\n" \
-"\t"
-"}\n";
+#include <cvt/util/String.h>
+#include <cvt/gl/GLTexture.h>
+#include <cvt/geom/scene/SceneTexture.h>
 
-static const char* _glsshader_light =
-"struct Light {\n" \
-"\tuniform vec4 position;\n" \
-"\tuniform vec3 color;\n" \
-"\tuniform float attenuation[ 3 ];\n" \
-"}\n";
+namespace cvt {
+	class GLSTexture {
+		public:
+							    GLSTexture( const String& name, const Image& img );
+							    GLSTexture( const SceneTexture& texture );
+							    ~GLSTexture();
 
-static const char* _glsshader_ambientlight =
-"struct AmbientLight {\n" \
-"\tuniform vec3 color;\n" \
-"}\n";
+			const GLTexture*    texture() const;
+
+            const String&       name() const;
+
+		private:
+			void			    load( const String& path );
+
+	        String			 _name;
+            GLTexture*		 _texture;
+	};
+
+    inline GLSTexture::GLSTexture( const String& name, const Image& img ) : _name( name ), _texture( new GLTexture( img ) )
+    {
+    }
+
+    inline GLSTexture::GLSTexture( const SceneTexture& texture ) : _name( texture.name() ), _texture( new GLTexture( texture.image() ))
+    {
+    }
+
+    inline GLSTexture::~GLSTexture()
+    {
+        delete _texture;
+    }
+
+    inline const String& GLSTexture::name() const
+    {
+        return _name;
+    }
+
+    inline const GLTexture* GLSTexture::texture() const
+    {
+        return _texture;
+    }
+
+}
+
+#endif

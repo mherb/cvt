@@ -3,9 +3,9 @@
 #define MAX_LIGHTS 8
 
 struct Material {
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec4 Ka;
+    vec4 Kd;
+    vec4 Ks;
     float shininess;
     sampler2D diffusemap;
     sampler2D specularmap;
@@ -17,9 +17,9 @@ uniform Material material;
 struct Light {
     vec4 position;
     
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec4 La;
+    vec4 Ld;
+    vec4 Ls;
     float attenuation[ 3 ];
 };
 
@@ -58,6 +58,4 @@ void main( void )
     for( int i = 0; i < numlights; i++ ) {
        output += PhongLightModel( i, vtx_Position, vtx_Normal );
     }
-
-    output /= ( float ) numlights;
 } 

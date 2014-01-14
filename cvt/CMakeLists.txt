@@ -97,6 +97,8 @@ SET( GLSL_SHADER
    gl/shader/150/basiclighttex_150.vert
    gl/shader/150/texmls_150.frag
    gl/shader/150/texmls_150.vert
+   gl/scene/shader/gls_default.frag
+   gl/scene/shader/gls_default.vert
 )
 
 SET( CL_KERNELS
@@ -308,13 +310,14 @@ SET( CVT_HEADERS
    gl/scene/GLSCamera.h
    gl/scene/GLSLight.h
    gl/scene/GLSMaterial.h
+   gl/scene/GLSTexture.h
    gl/scene/GLSRenderable.h
    gl/scene/GLSRenderableGroup.h
    gl/scene/GLSShader.h
-   gl/scene/GLSTransform.h
    gl/scene/GLSTransformable.h
    gl/scene/GLSVisitor.h
    gl/scene/GLScene.h
+   gl/scene/GLSShaderDefault.h
    gui/Application.h
    gui/BasicTimer.h
    gui/Button.h
@@ -624,9 +627,12 @@ SET( CVT_SOURCES
 	gl/progs/GLDrawTexModelProg.cpp
 	gl/progs/GLFillPathProg.cpp
 	gl/progs/GLTexMLSProg.cpp
+    gl/scene/GLScene.cpp
+    gl/scene/GLSShader.cpp
 	gl/scene/GLSVisitor.cpp
 	gl/scene/GLSRenderableGroup.cpp
 	gl/scene/GLSBaseModel.cpp
+    gl/scene/GLSShaderDefault.cpp
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp

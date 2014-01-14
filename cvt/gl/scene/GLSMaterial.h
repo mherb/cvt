@@ -26,8 +26,10 @@
 #define CVT_GLSMATERIAL_H
 
 #include <cvt/gfx/Color.h>
-#include <cvt/geom/scene/Scene.h>
-#include <cvt/gl/GLTexture.h>
+#include <cvt/gl/scene/GLScene.h>
+#include <cvt/gl/scene/GLSTexture.h>
+
+#include <cvt/geom/scene/SceneMaterial.h>
 
 namespace cvt {
 	enum GLSMaterialFeatures {
@@ -49,7 +51,7 @@ namespace cvt {
 	{
 		public:
 			GLSMaterial( const String& name );
-			GLSMaterial( const SceneMaterial& mat, const Scene& scene );
+			GLSMaterial( const SceneMaterial& mat, const GLScene& scene );
 			~GLSMaterial();
 
 			const Color& specularColor() const;
@@ -66,32 +68,36 @@ namespace cvt {
 
 			const String& name() const;
 
-			GLTexture*   diffuseMap() const { return _diffuseMap; }
+			const GLTexture*  diffuseMap() const;
 
 
 			GLSMaterialFlags flags() const { return _flags; }
 			GLSMaterialFlags& flags() { return _flags; }
 
 		private:
-			String			 _name;
-			GLSMaterialFlags _flags;
-			Color			 _ambient;
-			Color		     _diffuse;
-			Color			 _specular;
-			float			 _shininess;
-			GLTexture*		 _ambientMap;
-			GLTexture*		 _diffuseMap;
-			GLTexture*		 _specMap;
-			GLTexture*		 _normalMap;
+			String			  _name;
+			GLSMaterialFlags  _flags;
+			Color			  _ambient;
+			Color		      _diffuse;
+			Color			  _specular;
+			float			  _shininess;
+			const GLSTexture* _ambientMap;
+			const GLSTexture* _diffuseMap;
+			const GLSTexture* _specMap;
+			const GLSTexture* _normalMap;
 	};
 
-	inline GLSMaterial::GLSMaterial( const String& name ) : _name( name ), _flags( GL_SCENEMATERIAL_NONE ), _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
+	inline GLSMaterial::GLSMaterial( const String& name ) : _name( name ), _flags( GL_SCENEMATERIAL_NONE ),
+         _ambient( Color::WHITE ), _diffuse( Color::WHITE ), _specular( Color::WHITE ),
+         _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
 	{
 	}
 
-	inline GLSMaterial::GLSMaterial( const SceneMaterial& mat, const Scene& scene ) : _name( mat.name() ), _flags( GL_SCENEMATERIAL_NONE ), _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
+	inline GLSMaterial::GLSMaterial( const SceneMaterial& mat, const GLScene& scene ) : _name( mat.name() ), _flags( GL_SCENEMATERIAL_NONE ),
+         _ambient( Color::WHITE ), _diffuse( Color::WHITE ), _specular( Color::WHITE ),
+        _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
 	{
-		const SceneTexture* tex;
+		const GLSTexture* tex;
 
 		if( mat.flags() & SCENEMATERIAL_AMBIENT ) {
 			_flags |= GL_SCENEMATERIAL_AMBIENT;
@@ -111,22 +117,22 @@ namespace cvt {
 
 		if( mat.flags() & SCENEMATERIAL_AMBIENTMAP && ( tex = scene.texture( mat.ambientMap() ) ) != NULL ) {
 			_flags |= GL_SCENEMATERIAL_AMBIENT_MAP;
-			_ambientMap = new GLTexture( tex->image()  );
+			_ambientMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_DIFFUSEMAP && ( tex = scene.texture( mat.diffuseMap() ) ) != NULL) {
 			_flags |= GL_SCENEMATERIAL_DIFFUSE_MAP;
-			_diffuseMap = new GLTexture( tex->image() );
+			_diffuseMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_SPECULARMAP && ( tex = scene.texture( mat.specularMap() ) ) != NULL) {
 			_flags |= GL_SCENEMATERIAL_SPECULAR_MAP;
-			_specMap = new GLTexture( tex->image() );
+			_specMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_NORMALMAP && ( tex = scene.texture( mat.normalMap() ) ) != NULL) {
 			_flags |= GL_SCENEMATERIAL_NORMALMAP;
-			_normalMap = new GLTexture( tex->image() );
+			_normalMap = tex;
 		}
 
 	}
@@ -134,10 +140,6 @@ namespace cvt {
 
 	inline GLSMaterial::~GLSMaterial()
 	{
-		if( _ambientMap ) delete _ambientMap;
-		if( _diffuseMap ) delete _diffuseMap;
-		if( _specMap )    delete _specMap;
-		if( _normalMap )  delete _normalMap;
 	}
 
 	inline const Color& GLSMaterial::specularColor() const
@@ -188,6 +190,11 @@ namespace cvt {
 		return _name;
 	}
 
+	inline const GLTexture* GLSMaterial::diffuseMap() const
+    {
+        if( !_diffuseMap ) return NULL;
+        return _diffuseMap->texture();
+    }
 }
 
 #endif

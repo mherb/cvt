@@ -22,35 +22,40 @@
    THE SOFTWARE.
 */
 
-#ifndef CVT_GLSSHADERFACTORY_H
-#define CVT_GLSSHADERFACTORY_H
+#ifndef CVT_GLDRAWMODELPROG_H
+#define CVT_GLDRAWMODELPROG_H
 
+#include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
-#include <cvt/gl/scene/GLSMaterial.h>
+#include <cvt/math/Matrix.h>
+#include <cvt/geom/Rect.h>
+
 #include <cvt/gl/scene/GLSLight.h>
+#include <cvt/gl/scene/GLSMaterial.h>
 
 namespace cvt {
-
-	class GLSShaderProgram : GLProgram {
+	class GLSShaderDefault : private GLProgram
+	{
 		public:
-			GLSShaderProgram();
-			~GLSShaderProgram();
+			GLSShaderDefault();
+			~GLSShaderDefault();
 
-			void setLight( int index, const GLSLight* light );
-			void setMaterial( const GLSMaterial* mat );
-			void setProjection( const Matrix4f& proj, const Matrix4f& modelview );
-	};
+			using GLProgram::bind;
+			using GLProgram::unbind;
 
-
-	class GLSShaderFactory {
-		public:
-			GLSShaderFactory()
-			~GLSShaderFactory();
-
-			GLSShaderProgram* programForMaterial( const GLSMaterial* mat );
+            void setNumLights( int n );
+			void setLight( size_t index, const GLSLight& light );
+			void setMaterial( const GLSMaterial& material );
+			void setProjection( const Matrix4f& projection, const Matrix4f& modelview );
 
 		private:
+            GLint _numlightsloc;
+			GLint _mvploc;
+			GLint _mvloc;
+			GLint _normmloc;
+			GLint _lightposloc[ 8 ];
 	};
+
 }
 
 #endif

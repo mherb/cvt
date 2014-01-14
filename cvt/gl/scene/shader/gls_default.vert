@@ -16,6 +16,6 @@ void main()
 {
 	vtx_Color	 = in_Color;
     vtx_Normal	 = normalize( NORMM * in_Normal );
-    vtx_position = MV  * vec4( in_Vertex, 1.0 );
+    vtx_Position = MV  * vec4( in_Vertex, 1.0 );
     gl_position	 = MVP * vec4( in_Vertex, 1.0 );
 }

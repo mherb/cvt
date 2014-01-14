@@ -56,7 +56,7 @@ namespace cvt {
 //			GLTexture*	 _shadowmap;
 	};
 
-	inline GLSLight::GLSLight( GLSLightType ltype ) :  _ltype( ltype )
+	inline GLSLight::GLSLight( GLSLightType ltype ) :  _ltype( ltype ), _color( Color::WHITE )
 	{
 	}
 

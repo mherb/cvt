@@ -21,49 +21,35 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 */
-
-#ifndef CVT_GLSTRANSFORM_H
-#define CVT_GLSTRANSFORM_H
-
-#include <cvt/math/Matrix.h>
+#include <cvt/gl/scene/GLSShader.h>
+#include <cvt/gl/scene/GLSMaterial.h>
 
 namespace cvt {
-	class GLSTransformable
+	void GLSShader::setMaterial( const GLSMaterial* mat )
 	{
-		public:
-			GLSTransformable( const Matrix4f& mat );
-			~GLSTransformable();
-
-			const Matrix4f& transformation() const;
-			Matrix4f&		transformation();
-			void			setTransformation( const Matrix4f& t );
-
-		protected:
-			Matrix4f	_transformation;
-	};
-
-	inline GLSTransformable::GLSTransformable( const Matrix4f& mat ) : GLSNode( GLSNODE_TRANSFORMATION ), _transformation( mat )
-	{
+//		if( _mode == GLSSHADER_DEFAULT ) {
+			_mat = mat;
+//		}
 	}
 
-	inline GLSTransformable::~GLSTransformable()
+	void GLSShader::bind()
 	{
+		if( _mat ) {
+			if( _mat->diffuseMap() )
+				_mat->diffuseMap()->bind();
+		}
+		_progtex.bind();
 	}
 
-	inline void GLSTransformable::setTransformation( const Matrix4f& t )
+	void GLSShader::unbind()
 	{
-		_transformation = t;
+		if( _mat ) {
+			if( _mat->diffuseMap() )
+				_mat->diffuseMap()->unbind();
+		}
+		_progtex.unbind();
 	}
 
-	inline const Matrix4f& GLSTransformable::transformation() const
-	{
-		return _transformation;
-	}
 
-	inline Matrix4f& GLSTransformable::transformation()
-	{
-		return _transformation;
-	}
+
 }
-
-#endif
