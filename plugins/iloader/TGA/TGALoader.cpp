@@ -1260,7 +1260,7 @@ static ZImage* _ztga_decode_cmap_rle( ZStream* strm, TGAHeader* header, TGAExten
 		FILE* file;
 
 		if( ( file = fopen( path.c_str(), "r" ) ) == NULL )
-			throw CVTException( "Unable to open TGA file" );
+			throw CVTException( ( String( "Unable to open TGA file:" ) + path ).c_str() );
 
 
 		/*check for TARGA file*/
