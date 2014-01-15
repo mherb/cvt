@@ -53,7 +53,7 @@ namespace cvt {
                     case IFORMAT_GRAY_UINT8:  return openni::PIXEL_FORMAT_GRAY8;
                     case IFORMAT_GRAY_UINT16: return openni::PIXEL_FORMAT_GRAY16;
                     case IFORMAT_UYVY_UINT8:  return openni::PIXEL_FORMAT_YUV422;
-                    case IFORMAT_YUYV_UINT8:  return openni::PIXEL_FORMAT_YUYV;
+                    //case IFORMAT_YUYV_UINT8:  return openni::PIXEL_FORMAT_YUYV;
                     default: throw CVTException( "no matching openni format" );
                 }
             }
@@ -67,7 +67,10 @@ namespace cvt {
                     case openni::PIXEL_FORMAT_GRAY8:    return IFormat::GRAY_UINT8;
                     case openni::PIXEL_FORMAT_RGB888:   return IFormat::RGBA_UINT8;
                     case openni::PIXEL_FORMAT_YUV422:   return IFormat::UYVY_UINT8;
-                    case openni::PIXEL_FORMAT_YUYV:     return IFormat::YUYV_UINT8;
+                    //case openni::PIXEL_FORMAT_YUYV:     return IFormat::YUYV_UINT8;
+                    case openni::PIXEL_FORMAT_SHIFT_9_2: // TODO: support the shift formats?
+                    case openni::PIXEL_FORMAT_SHIFT_9_3:
+                    case openni::PIXEL_FORMAT_JPEG:
                     default:    throw CVTException( "unsupported pixelformat" );
                 }
             }
@@ -156,13 +159,16 @@ namespace cvt {
     static void dumpVM( const openni::VideoMode& vm ){
         std::cout << "VideoMode: [" << vm.getResolutionX() << ", " << vm.getResolutionY() << "] @ " << vm.getFps();
         switch( vm.getPixelFormat() ){
-            case openni::PIXEL_FORMAT_DEPTH_100_UM:    std::cout << " DEPTH_100_UM" << std::endl; return;
-            case openni::PIXEL_FORMAT_DEPTH_1_MM:    std::cout << " DEPTH_1_MM" << std::endl; return;
-            case openni::PIXEL_FORMAT_GRAY8:    std::cout << " GRAY_U8" << std::endl; return;
-            case openni::PIXEL_FORMAT_GRAY16:   std::cout << " GRAY_U16" << std::endl; return;
-            case openni::PIXEL_FORMAT_RGB888:   std::cout << " RGB_888" << std::endl; return;
-            case openni::PIXEL_FORMAT_YUYV:     std::cout << " YUYV" << std::endl; return;
-            case openni::PIXEL_FORMAT_YUV422:   std::cout << " YUV422" << std::endl; return;
+            case openni::PIXEL_FORMAT_DEPTH_100_UM: std::cout << " DEPTH_100_UM" << std::endl; return;
+            case openni::PIXEL_FORMAT_DEPTH_1_MM:   std::cout << " DEPTH_1_MM" << std::endl; return;
+            case openni::PIXEL_FORMAT_SHIFT_9_2:    std::cout << " PIXEL_FORMAT_SHIFT_9_2" << std::endl;
+            case openni::PIXEL_FORMAT_SHIFT_9_3:    std::cout << " PIXEL_FORMAT_SHIFT_9_3" << std::endl;
+            case openni::PIXEL_FORMAT_GRAY8:        std::cout << " GRAY_U8" << std::endl; return;
+            case openni::PIXEL_FORMAT_GRAY16:       std::cout << " GRAY_U16" << std::endl; return;
+            case openni::PIXEL_FORMAT_RGB888:       std::cout << " RGB_888" << std::endl; return;
+            //case openni::PIXEL_FORMAT_YUYV:       std::cout << " YUYV" << std::endl; return;
+            case openni::PIXEL_FORMAT_YUV422:       std::cout << " YUV422" << std::endl; return;
+            case openni::PIXEL_FORMAT_JPEG:         std::cout << " JPEG" << std::endl; return;
             default:
                 std::cout << " unknown pxformat" << std::endl;
         }
@@ -366,27 +372,29 @@ namespace cvt {
 
     int OpenNI2Camera::exposure()
     {
-        return _rgbStream.getCameraSettings()->getExposure();
+        //return _rgbStream.getCameraSettings()->getExposure();
+        return 0;
     }
 
     void OpenNI2Camera::setExposure( int val )
     {
-        openni::Status status = _rgbStream.getCameraSettings()->setExposure( val );
-        if( status != openni::STATUS_OK ){
-            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
-        }
+//        openni::Status status = _rgbStream.getCameraSettings()->setExposure( val );
+//        if( status != openni::STATUS_OK ){
+//            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+//        }
     }
 
     int OpenNI2Camera::gain()
     {
-        return _rgbStream.getCameraSettings()->getGain();
+//        return _rgbStream.getCameraSettings()->getGain();
+        return 0;
     }
 
     void OpenNI2Camera::setGain( int val )
     {
-        openni::Status status = _rgbStream.getCameraSettings()->setGain( val );
-        if( status != openni::STATUS_OK ){
-            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
-        }
+//        openni::Status status = _rgbStream.getCameraSettings()->setGain( val );
+//        if( status != openni::STATUS_OK ){
+//            std::cout << "Error: " << openni::OpenNI::getExtendedError() << std::endl;
+//        }
     }
 }

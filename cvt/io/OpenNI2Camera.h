@@ -27,7 +27,7 @@
 
 #include <cvt/io/Camera.h>
 #include <cvt/io/RGBDInput.h>
-#include <OpenNI.h>
+#include <openni2/OpenNI.h>
 
 namespace cvt
 {
