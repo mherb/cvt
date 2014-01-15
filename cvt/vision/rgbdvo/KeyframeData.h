@@ -120,10 +120,10 @@ namespace cvt {
                 _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
             }
 
-            static void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd )
+            static void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd, float outOfBoundsVal = -20.0f )
             {
                 IMapScoped<const float> map( gradImg );
-                simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), -20.0f, positions.size() );
+                simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), outOfBoundsVal, positions.size() );
             }
 
             void relinearize( const Matrix4f& cam2World )
