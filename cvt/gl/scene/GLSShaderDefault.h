@@ -22,14 +22,15 @@
    THE SOFTWARE.
 */
 
-#ifndef CVT_GLDRAWMODELPROG_H
-#define CVT_GLDRAWMODELPROG_H
+#ifndef CVT_GLSSHADERDEFAULT_H
+#define CVT_GLSSHADERDEFAULT_H
 
 #include <cvt/gl/OpenGL.h>
 #include <cvt/gl/GLProgram.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/geom/Rect.h>
 
+#include <cvt/gl/scene/GLScene.h>
 #include <cvt/gl/scene/GLSLight.h>
 #include <cvt/gl/scene/GLSMaterial.h>
 
@@ -37,7 +38,7 @@ namespace cvt {
 	class GLSShaderDefault : private GLProgram
 	{
 		public:
-			GLSShaderDefault();
+            GLSShaderDefault( GLSMaterialFlags matflags, GLSceneDrawFlags sceneflags );
 			~GLSShaderDefault();
 
 			using GLProgram::bind;
@@ -49,11 +50,13 @@ namespace cvt {
 			void setProjection( const Matrix4f& projection, const Matrix4f& modelview );
 
 		private:
-            GLint _numlightsloc;
-			GLint _mvploc;
-			GLint _mvloc;
-			GLint _normmloc;
-			GLint _lightposloc[ 8 ];
+            GLSMaterialFlags _matflags;
+            GLSceneDrawFlags _sceneflags;
+            GLint            _numlightsloc;
+			GLint            _mvploc;
+			GLint            _mvloc;
+			GLint            _normmloc;
+			GLint            _lightposloc[ 8 ];
 	};
 
 }

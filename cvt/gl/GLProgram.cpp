@@ -50,7 +50,18 @@ namespace cvt {
 		glUseProgram( 0 );
 	}
 
+
 	void GLProgram::build( const char* vertsrc, const char* fragsrc, const char* geomsrc )
+    {
+        if( geomsrc )
+            build( &vertsrc, 1, &fragsrc, 1, &geomsrc, 1 );
+        else
+            build( &vertsrc, 1, &fragsrc, 1, NULL, 0 );
+    }
+
+	void GLProgram::build( const char** vertsrc, int vertcount,
+                           const char** fragsrc, int fragcount,
+                           const char** geomsrc, int geomcount )
 	{
 		GLuint vs = 0, fs = 0, gs = 0;
 		GLint status = GL_TRUE;
@@ -64,7 +75,7 @@ namespace cvt {
 		if( !vs )
 			throw GLException("Vertex-Shader creation failed!\n");
 
-		glShaderSource( vs, 1, &vertsrc, NULL );
+		glShaderSource( vs, vertcount, vertsrc, NULL );
 		glCompileShader( vs );
 		glGetShaderiv( vs, GL_COMPILE_STATUS, &status );
 		if( status == GL_FALSE ) {
@@ -81,7 +92,7 @@ namespace cvt {
 			throw GLException("Fragment-Shader creation failed!\n");
 		}
 
-		glShaderSource( fs, 1, &fragsrc, NULL );
+		glShaderSource( fs, fragcount, fragsrc, NULL );
 		glCompileShader( fs );
 		glGetShaderiv( fs, GL_COMPILE_STATUS, &status );
 		if( status == GL_FALSE ) {
@@ -100,7 +111,7 @@ namespace cvt {
 				throw GLException("Geometry-Shader creation failed!\n");
 			}
 
-			glShaderSource( gs, 1, &geomsrc, NULL );
+			glShaderSource( gs, geomcount, geomsrc, NULL );
 			glCompileShader( gs );
 			glGetShaderiv( gs, GL_COMPILE_STATUS, &status );
 			if( status == GL_FALSE ) {

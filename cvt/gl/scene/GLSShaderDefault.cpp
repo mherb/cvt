@@ -29,7 +29,9 @@
 
 namespace cvt {
 
-	GLSShaderDefault::GLSShaderDefault()
+    GLSShaderDefault::GLSShaderDefault( GLSMaterialFlags matflags, GLSceneDrawFlags sceneflags ) :
+        _matflags( matflags ),
+        _sceneflags( sceneflags )
 	{
 		try {
 			if( GL::isGLSLVersionSupported( 1, 50 ) ) {
@@ -74,7 +76,8 @@ namespace cvt {
 
 	void GLSShaderDefault::setMaterial( const GLSMaterial& material )
     {
-    
+        if( material.flags() != _matflags )
+            throw CVTException( "GLSShader not compatible to material!" );
     }
 
 }

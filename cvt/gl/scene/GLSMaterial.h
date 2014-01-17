@@ -34,13 +34,10 @@
 namespace cvt {
 	enum GLSMaterialFeatures {
 		GL_SCENEMATERIAL_NONE			= ( 1 << 0 ),
-		GL_SCENEMATERIAL_AMBIENT		= ( 1 << 1 ), // rgba ambient
-		GL_SCENEMATERIAL_DIFFUSE		= ( 1 << 2 ),
-		GL_SCENEMATERIAL_SPECULAR		= ( 1 << 3 ),
-		GL_SCENEMATERIAL_DIFFUSE_MAP	= ( 1 << 4 ),
-		GL_SCENEMATERIAL_AMBIENT_MAP	= ( 1 << 5 ),
-		GL_SCENEMATERIAL_SPECULAR_MAP	= ( 1 << 6 ), // rgb = color, a = shininess
-		GL_SCENEMATERIAL_NORMALMAP		= ( 1 << 7 )
+		GL_SCENEMATERIAL_DIFFUSE_MAP	= ( 1 << 1 ),
+		GL_SCENEMATERIAL_AMBIENT_MAP	= ( 1 << 2 ),
+		GL_SCENEMATERIAL_SPECULAR_MAP	= ( 1 << 3 ), // rgb = color, a = shininess
+		GL_SCENEMATERIAL_NORMALMAP		= ( 1 << 4 )
 	};
 
 	CVT_ENUM_TO_FLAGS( GLSMaterialFeatures, GLSMaterialFlags )
@@ -100,17 +97,14 @@ namespace cvt {
 		const GLSTexture* tex;
 
 		if( mat.flags() & SCENEMATERIAL_AMBIENT ) {
-			_flags |= GL_SCENEMATERIAL_AMBIENT;
 			_ambient = mat.ambientColor();
 		}
 
 		if( mat.flags() & SCENEMATERIAL_DIFFUSE ) {
-			_flags |= GL_SCENEMATERIAL_DIFFUSE;
 			_diffuse = mat.diffuseColor();
 		}
 
 		if( mat.flags() & SCENEMATERIAL_SPECULAR ) {
-			_flags |= GL_SCENEMATERIAL_SPECULAR;
 			_specular = mat.specularColor();
 			_shininess = mat.shininess();
 		}
@@ -150,7 +144,6 @@ namespace cvt {
 	inline void GLSMaterial::setSpecularColor( const Color& c )
 	{
 		_specular = c;
-		_flags |= GL_SCENEMATERIAL_SPECULAR;
 	}
 
 	inline float GLSMaterial::shininess() const
@@ -171,7 +164,6 @@ namespace cvt {
 	inline void GLSMaterial::setDiffuseColor( const Color& c )
 	{
 		_diffuse = c;
-		_flags |= GL_SCENEMATERIAL_DIFFUSE;
 	}
 
 	inline const Color& GLSMaterial::ambientColor() const
@@ -182,7 +174,6 @@ namespace cvt {
 	inline void GLSMaterial::setAmbientColor( const Color& c )
 	{
 		_ambient = c;
-		_flags |= GL_SCENEMATERIAL_AMBIENT;
 	}
 
 	inline const String& GLSMaterial::name() const

@@ -60,8 +60,8 @@ namespace cvt {
 
 			void setUniforms();
 		private:
-			const GLSMaterial*  _mat;
 			GLSShaderMode _mode;
+			const GLSMaterial*  _mat;
 			Matrix4f _proj;
 			Matrix4f _transformation;
 			//GLProgram* all programs for possible states
