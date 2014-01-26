@@ -297,6 +297,7 @@ namespace cvt {
 			v.y = d.nextDouble();
 			v.z = d.nextDouble();
 			vertices.push_back( v );
+			d.skipInverse( "\n" );
 		}
 	}
 
@@ -355,6 +356,7 @@ namespace cvt {
 				// parse vt
 				if( *d.pos() != '/' )
 					return false;
+
 				d.skip( 1 );
 				// check if empty
 				if( *d.pos() == '/' ) {
@@ -363,11 +365,11 @@ namespace cvt {
 					vt = d.nextLong();
 
 				// parse vn
-				if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' ) // check if empty
+				if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' || *d.pos() == '\n' ) // check if empty
 					vn = 0;
 				else if( *d.pos() == '/' ) {
 					d.skip( 1 );
-					if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' ) // check if empty
+					if( *d.pos() == ' ' || *d.pos() == '\t' || *d.pos() == '\r' || *d.pos() == '\n' ) // check if empty
 						vn = 0;
 					else
 						vn = d.nextLong();
@@ -429,7 +431,7 @@ namespace cvt {
 
 		DataIterator d( data );
 		while( d.peekNextToken( token, ws ) ) {
-			if( token == "g" ) { // group
+			if( token == "g" || token == "o" ) { // group
 				if( faces.size() ) {
 					ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
 					if( !cur->isEmpty() ) {
@@ -447,11 +449,7 @@ namespace cvt {
 					return;
 				}
 				cur = new SceneMesh( token );
-			} else if( token == "o" ) { // object
-				// discard
-				d.skipInverse( "\n" );
-				d.skip( ws );
-			} else if( token == "mtllib" ) { // material library
+			}  else if( token == "mtllib" ) { // material library
 				d.nextToken( token, ws );
 				if( !d.nextToken( token, ws ) ) {
 					scene.clear();
@@ -473,7 +471,7 @@ namespace cvt {
 				}
 
 				//fix this shit
-				if( faces.size() && cur->material()!="" ) {
+				if( faces.size() && cur->material() != "" ) {
 					ObjFacesToMesh( *cur, faces, vertices, normals, texcoords );
 					if( !cur->normalSize() )
 						cur->calculateNormals();
