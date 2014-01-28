@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include <cvt/gui/TimeoutHandler.h>
+#include <cvt/util/Signal.h>
 
 namespace cvt {
 	class WidgetImpl;
@@ -44,7 +45,7 @@ namespace cvt {
 			static void init() { instance(); }
 
 			static void run() { ::atexit( Application::atexit ); instance()->runApp(); }
-			static void exit() { instance()->exitApp(); }
+            static void exit() { instance()->exitApp(); }
 
 			static uint32_t registerTimer( size_t interval, TimeoutHandler* t ) { return instance()->_registerTimer( interval, t ); }
 			static void unregisterTimer( uint32_t id ) { instance()->_unregisterTimer( id ); }
@@ -53,6 +54,12 @@ namespace cvt {
 			static bool hasCLSupport() { return instance()->_hasCLSupport(); }
 
 			static GLContext* defaultGLContext() { return instance()->_defaultGLContext(); }
+
+
+            static void addExitDelegate( const Delegate<void ()>& d )
+            {
+                instance()->exitDelegates.add( d );
+            }
 
 		protected:
 			Application() {}
@@ -80,6 +87,8 @@ namespace cvt {
 
 			static Application* instance();
 			static Application* _app;
+
+            Signal<void>    exitDelegates;
 	};
 }
 
