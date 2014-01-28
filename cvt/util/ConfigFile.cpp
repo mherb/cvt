@@ -39,18 +39,23 @@ namespace cvt {
             DataIterator it( data );
 
             String currentGroup = "default";
+            const String groupDelim( "[]");
 
             while( it.hasNext() ){
-                std::vector<String> tokens;
-                it.tokenizeNextLine( tokens, "= " );
+                if( it.pos()[ 0 ] == '[' ){
+                    it.nextToken( currentGroup, groupDelim );
+                } else {
+                    std::vector<String> tokens;
+                    it.tokenizeNextLine( tokens, "= " );
 
-                if( tokens.size() > 1 ){
-                    // skip comments
-                    if( tokens[ 0 ][ 0 ] == '#' ){
-                        continue;
+                    if( tokens.size() > 1 ){
+                        // skip comments
+                        if( tokens[ 0 ][ 0 ] == '#' ){
+                            continue;
+                        }
+
+                        _groups[ currentGroup ][ tokens[ 0 ] ] = tokens[ 1 ];
                     }
-
-                    _groups[ currentGroup ][ tokens[ 0 ] ] = tokens[ 1 ];
                 }
             }
         }
