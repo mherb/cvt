@@ -493,7 +493,6 @@ SET( CVT_HEADERS
    vision/rgbdvo/CostFunction.h
    vision/rgbdvo/DVOCostFunction.h
    vision/rgbdvo/ErrorLogger.h
-   vision/rgbdvo/Linearizer.h
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/KeyframeData.h
    vision/rgbdvo/InformationSelection.h

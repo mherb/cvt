@@ -65,6 +65,8 @@ namespace cvt {
             typedef typename BaseType::ModelType            ModelType;
 
         public:
+            typedef IntensityKeyframe<Warp>     KFType;
+
             enum LinType
             {
                 InvComp,
@@ -84,8 +86,7 @@ namespace cvt {
                 }
             }
 
-            typedef Warp                        WarpType;
-            typedef IntensityKeyframe<Warp>     KFType;
+
 
             struct Params {
                     Params():
@@ -204,7 +205,7 @@ namespace cvt {
             // current grayscale pyramid:
             ImagePyramid        _grayPyr;
 
-            // TODO: do we need the depthmap here?
+            // current depthmap
             Image               _depthMap;
 
             // IntensityKeyframe holds the reference data
