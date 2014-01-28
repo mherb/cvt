@@ -34,36 +34,35 @@
 #include <deque>
 
 namespace cvt {
-	struct OSXData;
-	class ApplicationOSX : public Application
-	{
-		public:
-			ApplicationOSX();
-			~ApplicationOSX();
+    struct OSXData;
+    class ApplicationOSX : public Application
+    {
+        public:
+            ApplicationOSX();
+            ~ApplicationOSX();
 
-			virtual void runApp();
-			virtual void exitApp();
+            virtual void runApp();
+            virtual void exitApp();
+            virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); }
+            virtual void _unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); }
 
-			virtual uint32_t _registerTimer( size_t interval, TimeoutHandler* t ) { return _timers.registerTimer( interval, t ); };
-			virtual void _unregisterTimer( uint32_t id ) { _timers.unregisterTimer( id ); };
 
+        private:
+            ApplicationOSX( const Application& );
 
-		private:
-			ApplicationOSX( const Application& );
+            virtual WidgetImpl* _registerWindow( Widget* w );
+            virtual void _unregisterWindow( WidgetImpl* w );
 
-			virtual WidgetImpl* _registerWindow( Widget* w );
-			virtual void _unregisterWindow( WidgetImpl* w );
+            virtual bool _hasGLSupport() { return true; }
+            virtual bool _hasCLSupport() { return _clsupport; }
 
-			virtual bool _hasGLSupport() { return true; }
-			virtual bool _hasCLSupport() { return _clsupport; }
+            virtual GLContext* _defaultGLContext() { return _defaultctx; }
 
-			virtual GLContext* _defaultGLContext() { return _defaultctx; }
-
-			CGLContext* _defaultctx;
-			bool _clsupport;
-			TimerInfoListOSX _timers;
-			OSXData* _osx;
-	};
+            CGLContext* _defaultctx;
+            bool _clsupport;
+            TimerInfoListOSX _timers;
+            OSXData* _osx;
+    };
 }
 
 #endif
