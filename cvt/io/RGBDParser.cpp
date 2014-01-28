@@ -35,6 +35,16 @@ namespace cvt
         if( _folder[ _folder.length() - 1 ] != '/' )
             _folder += "/";
 
+        // intrinsics:
+        String calibFile( _folder + "calib.xml" );
+        if( FileSystem::exists( calibFile ) ){
+            _calib.load( calibFile );
+        } else {
+            String msg;
+            msg.sprintf( "Could not find calibration data for dataset: %s", calibFile.c_str() );
+            throw CVTException( msg.c_str() );
+        }
+
         std::vector<double> rgbStamps;
         std::vector<double> depthStamps;
 
@@ -59,7 +69,6 @@ namespace cvt
         std::cout << "RGB: " << _rgbFiles.size() << std::endl;
         std::cout << "Depth: " << _depthFiles.size() << std::endl;
         std::cout << "Stamps: " << _stamps.size() << std::endl;
-
     }
 
     void RGBDParser::next()
