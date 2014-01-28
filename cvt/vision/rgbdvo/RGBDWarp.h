@@ -126,6 +126,11 @@ namespace cvt
                 _pose.apply( -v );
             }
 
+            void updateParametersInv( const DeltaVectorType& v )
+            {
+                _pose.applyInverse( v );
+            }
+
         private:
             SE3<Type>  _pose;
     };
@@ -134,13 +139,13 @@ namespace cvt
     {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            static const size_t NumParameters = 8;
+            static const size_t NParams = 8;
             static const size_t PoseParameters = 6;
-            typedef float                                               Type;
-            typedef Eigen::Matrix<Type, 1, NumParameters>               JacobianType;
-            typedef Eigen::Matrix<Type, 2, PoseParameters>              ScreenJacType;
-            typedef Eigen::Matrix<Type, NumParameters, NumParameters>   HessianType;
-            typedef Eigen::Matrix<Type, NumParameters, 1>               DeltaVectorType;
+            typedef float                                   Type;
+            typedef Eigen::Matrix<Type, 1, NParams>         JacobianType;
+            typedef Eigen::Matrix<Type, 2, PoseParameters>  ScreenJacType;
+            typedef Eigen::Matrix<Type, NParams, NParams>   HessianType;
+            typedef Eigen::Matrix<Type, NParams, 1>         DeltaVectorType;
 
             AffineLightingWarp() :
                 _alpha( 0.0 ),
@@ -187,6 +192,15 @@ namespace cvt
             void updateParameters( const DeltaVectorType& v )
             {
                 _pose.apply( -v.head<6>() );
+
+                Type ta = 1.0 + v[ 6 ];
+                _alpha = ( _alpha - v[ 6 ] ) / ta;
+                _beta  = ( _beta  - v[ 7 ] ) / ta;
+            }
+
+            void updateParametersInv( const DeltaVectorType& v )
+            {
+                _pose.applyInverse( v.head<6>() );
 
                 Type ta = 1.0 + v[ 6 ];
                 _alpha = ( _alpha - v[ 6 ] ) / ta;

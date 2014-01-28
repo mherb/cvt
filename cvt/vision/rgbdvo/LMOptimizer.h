@@ -29,117 +29,103 @@
 
 namespace cvt {
 
-	template <class AlignData, class LossFunc>
-	class LMOptimizer : public Optimizer<AlignData, LossFunc>
+    template <class Derived>
+    class LMOptimizer : public Optimizer<Derived>
     {
+            typedef Optimizer<Derived>              Base;
+            typedef typename Base::T                T;
+            typedef typename Base::JacobianType     JacobianType;
+            typedef typename Base::HessianType      HessianType;
+            typedef typename Base::DeltaType        DeltaType;
+            typedef typename Base::Result           ResultType;
+
         public:
-            typedef LossFunc                                LossFuncType;
-            LMOptimizer();
+            LMOptimizer( RobustEstimator<T>* estimator );
             ~LMOptimizer(){}
 
         private:
-			typedef typename AlignData::WarpType			WarpFunc;
-            typedef typename WarpFunc::JacobianType         JacobianType;
-            typedef typename WarpFunc::HessianType          HessianType;
-            typedef typename WarpFunc::DeltaVectorType      DeltaType;
-			typedef RGBDKeyframe<AlignData>                 ReferenceType;
-			typedef Optimizer<AlignData, LossFunc>          Base;
-            typedef typename ReferenceType::JacobianVec     JacobianVec;
-            typedef typename Base::Result                   ResultType;
+            typedef typename CostFunction<Derived>::ModelType ModelType;
 
             void optimizeSingleScale( ResultType& result,
-                                      ReferenceType& reference,
-                                      const Image& gray,
-                                      const Image& depthImage,
+                                      CostFunction<Derived> &costFunc,
                                       size_t octave );
-
-            using Base::optimizeSingleScale;
     };
 
-	template <class AlignData, class LossFunc>
-	inline LMOptimizer<AlignData, LossFunc>::LMOptimizer() :
-        Base()
+    template <class Derived>
+    inline LMOptimizer<Derived>::LMOptimizer( RobustEstimator<T>* estimator ) :
+        Base( estimator )
     {
     }
 
-	template <class AlignData, class LossFunc>
-	inline void LMOptimizer<AlignData, LossFunc>::optimizeSingleScale( ResultType& result,
-																	   ReferenceType& reference,
-																	   const Image& gray,
-																	   const Image& depthImage,
-																	   size_t octave )
+    template <class Derived>
+    inline void LMOptimizer<Derived>::optimizeSingleScale( ResultType& result,
+                                                           CostFunction<Derived>& costFunc,
+                                                           size_t octave )
     {
         JacobianType deltaSum;
         HessianType  hessian;
-        float lambda = 0.001f;
-
-        IMapScoped<const float> grayMap( gray );
-        IMapScoped<const float> depthMap( depthImage );
+        float lambda = 0.00001f;
 
         result.iterations = 0;
         result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
 
         SIMD* simd = SIMD::instance();
 
         std::vector<float> residuals;
-        JacobianVec jacobians;
+        typename CostFunction<Derived>::JacobianVectorType jacobians;
+
 
         // initial costs
-        reference.recompute( residuals, jacobians, result.warp, grayMap, depthMap, octave );
+        costFunc.evaluate( residuals, jacobians, octave );
         result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
         result.numPixels = residuals.size();
-        WarpFunc savedWarp( result.warp );
 
-        if( this->_logError ){
-            this->_logger.log( octave, result.iterations, result.warp.pose() );
-        }
+        ModelType saved( costFunc.model() );
 
         HessianType hTmp;
         while( result.iterations < this->_maxIter ){
-            // compute the step:
             hTmp = hessian;
 
             // multiplicative damping
-            for( size_t i = 0; i < hTmp.rows(); ++i )
-                hTmp( i, i ) += ( lambda * Math::sqrt( hTmp( i, i ) ) );
+            for( int i = 0; i < hTmp.rows(); ++i )
+                hTmp( i, i ) += ( lambda * hTmp( i, i ) );
             DeltaType deltaP = -hTmp.inverse() * deltaSum.transpose();
 
             if( deltaP.norm() < this->_minUpdate )
                 break;
-            result.warp.updateParameters( deltaP );
+            costFunc.update( deltaP );
 
-            // re-evaluate the cost function
-            reference.recompute( residuals, jacobians, result.warp, grayMap, depthMap, octave );
-            float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() );
+            // TODO: here we would only need to evaluate the current costs
+            // not the jacobians etc.
+            costFunc.evaluate( residuals, jacobians, octave );
+            float currentCosts = simd->sumSqr( &residuals[ 0 ], residuals.size() ) / residuals.size();
 
             if( residuals.size() && currentCosts < result.costs ){
-                // update the system:
+                // step accept - update the system:
                 this->_overallDelta.noalias() += deltaP;
                 result.costs = Base::evaluateSystem( hessian, deltaSum, &jacobians[ 0 ], &residuals[ 0 ], residuals.size() );
-                savedWarp = result.warp;
+                saved = costFunc.model();
                 lambda *= 0.1f;
-                result.iterations++;
                 result.numPixels = residuals.size();
 
-                if( this->_logError ){
-                    this->_logger.log( octave, result.iterations, result.warp.pose() );
-                }
-
-                if( result.costs / result.numPixels < Base::_costStopThreshold ){
+                if( result.costs < Base::_costStopThreshold ){
                     // stop optimization, costs have reached sufficient minimum
                     break;
                 }
             } else {
+                // step reject
                 // undo the step
-                result.warp = savedWarp;
+                costFunc.setModel( saved );
 
                 // update the damping
                 lambda *= 2.0f;
             }
-        }
 
-        result.pixelPercentage = ( float )result.numPixels / ( float )reference.dataSize( octave );
+            result.iterations++;
+
+            residuals.clear();
+            jacobians.clear();
+        }
     }
 
 }

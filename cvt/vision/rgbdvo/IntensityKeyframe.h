@@ -28,12 +28,12 @@
 #include <cvt/vision/rgbdvo/RGBDKeyframe.h>
 
 namespace cvt {
-	template <class AlignData, class LinearizerType>
-	class IntensityKeyframe : public RGBDKeyframe<AlignData> {
+
+    template <class Warp>
+    class IntensityKeyframe : public RGBDKeyframe<Warp> {
         public:
             EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            typedef RGBDKeyframe<AlignData>             Base;
-			typedef typename Base::WarpType				WarpType;
+            typedef RGBDKeyframe<Warp>                  Base;
             typedef float                               T;
             typedef typename Base::JacobianType         JacobianType;
             typedef typename Base::ScreenJacobianType   ScreenJacobianType;
@@ -41,121 +41,71 @@ namespace cvt {
             typedef typename Base::ScreenJacVec         ScreenJacVec;            
             typedef typename Base::GradientType         GradientType;
 
-            IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale );
+            IntensityKeyframe( const IntensityDataFactory<Warp>& factory,
+                               const Matrix3f &K,
+                               size_t octaves,
+                               float scale );
             ~IntensityKeyframe();
 
-            void updateOfflineDataForScale( AlignData &data,
-                                            const Image& gray,
-                                            const Image& depth,
-                                            float scale );
 
             void updateOnlineData( const Matrix4f& cam2World,
                                    const ImagePyramid& pyrf,
                                    const Image& depth );
 
+            void updateOfflineData( const Matrix4f& cam2World,
+                                    const ImagePyramid& pyrf,
+                                    const Image& depth );
+
             void recompute( std::vector<float>& residuals,
                             JacobianVec& jacobians,
-							const typename Base::WarpType& warp,
+                            const Warp& warp,
                             const IMapScoped<const float>& gray,
                             const IMapScoped<const float>& depth,
                             size_t octave );
-        protected:
-            LinearizerType  _linearizer;
+
     };
 
-	template <class AlignData, class LinearizerType>
-	inline IntensityKeyframe<AlignData, LinearizerType>::IntensityKeyframe( const Matrix3f &K, size_t octaves, float scale ) :
-		RGBDKeyframe<AlignData>( K, octaves, scale ),
-		_linearizer( this->_kx, this->_ky, octaves, scale )
+    template <class Warp>
+    inline IntensityKeyframe<Warp>::IntensityKeyframe( const IntensityDataFactory<Warp>& factory,
+                                                       const Matrix3f &K,
+                                                       size_t octaves, float scale ) :
+        RGBDKeyframe<Warp>( factory, K, octaves, scale )
     {
     }
 
-	template <class AlignData, class LinearizerType>
-	inline IntensityKeyframe<AlignData, LinearizerType>::~IntensityKeyframe()
+    template <class AlignData>
+    inline IntensityKeyframe<AlignData>::~IntensityKeyframe()
     {
     }
 
-    template <class AlignData, class LinearizerType>
-    inline void IntensityKeyframe<AlignData, LinearizerType>::updateOfflineDataForScale( AlignData &data,
-                                                                                         const Image& gray,
-                                                                                         const Image& depth,
-                                                                                         float scale )
+    template <class Warp>
+    inline void IntensityKeyframe<Warp>::updateOfflineData( const Matrix4f& world2Cam,
+                                                            const ImagePyramid& grayPyr,
+                                                            const Image& depth )
     {
-        IMapScoped<const float> depthMap( depth );
-        const float* d = depthMap.ptr();
-        size_t depthStride = depthMap.stride() / sizeof( float );
+        float scale = 1.0f;
 
-        Vector2f currP;
-        Vector3f p3d, p3dw;
-        GradientType g;
-        JacobianType j;
-        ScreenJacobianType sj;
+        for( size_t i = 0; i < grayPyr.octaves(); i++ ){
+            IntensityData<Warp>* data = ( IntensityData<Warp>* )this->dataForScale( i );
 
-        // compute the image gradients
-        this->computeImageGradients( data.gradX, data.gradY, gray );
-        data.gray = gray;
+            data->updateOfflineData( world2Cam, grayPyr[ i ], depth, scale, this->_gradientThreshold );
 
-        data.clear();
-        size_t pixelsOnOctave = ( gray.width() - 1 ) * ( gray.height() - 1 );
-        data.reserve( 0.4f * pixelsOnOctave );
-
-        // TODO: replace this by a simd function!
-        // temp vals
-        std::vector<float> tmpx( gray.width() );
-        std::vector<float> tmpy( gray.height() );
-
-        const Matrix3f& intr = data.intrinsics();
-        this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
-        this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
-
-        IMapScoped<const float> gxMap( data.gradX );
-        IMapScoped<const float> gyMap( data.gradY );
-        IMapScoped<const float> grayMap( data.gray );
-
-        for( size_t y = 0; y < gray.height() - 1; y++ ){
-            const float* gx = gxMap.ptr();
-            const float* gy = gyMap.ptr();
-            const float* value = grayMap.ptr();
-
-            // scale the point
-            currP.y = scale * y;
-
-            for( size_t x = 0; x < gray.width() - 1; x++ ){
-                currP.x = scale * x;
-                float z = this->interpolateDepth( currP, d, depthStride );
-                if( z > this->_minDepth && z < this->_maxDepth ){
-                    g( 0, 0 ) = gx[ x ];
-                    g( 0, 1 ) = gy[ x ];
-
-                    float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
-                    if( salience < this->_gradientThreshold )
-                        continue;
-
-                    p3d[ 0 ] = tmpx[ x ] * z;
-                    p3d[ 1 ] = tmpy[ y ] * z;
-                    p3d[ 2 ] = z;
-
-                    // point in world coord frame
-                    p3dw = this->_pose * p3d;
-
-                    WarpType::screenJacobian( sj, p3d, data.intrinsics() );
-
-                    data.add( p3dw, sj, g, value[ x ] );
-                }
+            if( this->_useInformationSelection ){
+                throw CVTException( "TODO: reimplement Information Selection differently!" );
+                //    _dataForScale[ i ].selectInformation( nPixels * Math::sqr( scale ) * _pixelPercentageToSelect );
             }
-            gxMap++;
-            gyMap++;
-            grayMap++;
+            scale /= grayPyr.scaleFactor();
         }
+
     }
 
-	template <class AlignData, class LinearizerType>
-	inline void IntensityKeyframe<AlignData, LinearizerType>::recompute( std::vector<float>& residuals,
-																		 JacobianVec& jacobians,
-																		 const typename Base::WarpType &warp,
-																		 const IMapScoped<const float>& gray,
-																		 const IMapScoped<const float>& /*depth*/,
-																		 size_t octave )
+    template <class Warp>
+    inline void IntensityKeyframe<Warp>::recompute( std::vector<float>& residuals,
+                                                    JacobianVec& jacobians,
+                                                    const Warp &warp,
+                                                    const IMapScoped<const float>& gray,
+                                                    const IMapScoped<const float>& /*depth*/,
+                                                    size_t octave )
     {
         SIMD* simd = SIMD::instance();
         const size_t width = gray.width();
@@ -163,11 +113,11 @@ namespace cvt {
         std::vector<Vector2f> warpedPts;
         std::vector<float> interpolatedPixels;
 
-		const AlignData& data = this->dataForScale( octave );
-        size_t n = data.size();
+        const IntensityData<Warp>* data = ( const IntensityData<Warp>* )this->dataForScale( octave );
+        size_t n = data->size();
 
         // construct the projection matrix
-        Matrix4f projMat( data.intrinsics() );
+        Matrix4f projMat( data->intrinsics() );
         projMat *= warp.pose();
 
         // resize the data storage
@@ -177,25 +127,25 @@ namespace cvt {
         jacobians.resize( n );
 
         // project the points:
-        simd->projectPoints( &warpedPts[ 0 ], projMat, &data.points()[ 0 ], n );
+        simd->projectPoints( &warpedPts[ 0 ], projMat, data->points(), n );
 
         // interpolate the pixel values
         simd->warpBilinear1f( &interpolatedPixels[ 0 ], &warpedPts[ 0 ].x, gray.ptr(), gray.stride(), width, height, -10.0f, n );
 
         // compute the residuals
-        warp.computeResiduals( &residuals[ 0 ], &data.pixels()[ 0 ], &interpolatedPixels[ 0 ], n );
+        warp.computeResiduals( &residuals[ 0 ], data->pixels(), &interpolatedPixels[ 0 ], n );
 
-        _linearizer.recomputeJacobians( jacobians, residuals, warpedPts, interpolatedPixels, data, octave );
+        data->recomputeJacobians( jacobians, residuals, warpedPts, interpolatedPixels );
     }
 
-	template <class WarpFunc, class LinearizerType>
-	inline void IntensityKeyframe<WarpFunc, LinearizerType>::updateOnlineData( const Matrix4f& cam2World,
-																			   const ImagePyramid& pyrf,
-																			   const Image& depth )
+    template <class Warp>
+    inline void IntensityKeyframe<Warp>::updateOnlineData( const Matrix4f& cam2World,
+                                                           const ImagePyramid& pyrf,
+                                                           const Image& depth )
 	{
-		_linearizer.updateOnlineData( cam2World, pyrf, depth );
+        //Matrix4f iPose = cam2World.inverse();
 		for( size_t i = 0; i < pyrf.octaves(); ++i ){
-			_linearizer.relinearize( this->_dataForScale[ i ], cam2World );
+            this->_referenceData[ i ]->updateOnlineData( cam2World, pyrf[ i ], depth );
 		}
 	}
 

@@ -493,6 +493,8 @@ SET( CVT_HEADERS
    vision/Vision.h
    vision/SparseBundleAdjustment.h
    vision/rgbdvo/ApproxMedian.h
+   vision/rgbdvo/CostFunction.h
+   vision/rgbdvo/DVOCostFunction.h
    vision/rgbdvo/ErrorLogger.h
    vision/rgbdvo/Linearizer.h
    vision/rgbdvo/IntensityKeyframe.h
@@ -501,7 +503,10 @@ SET( CVT_HEADERS
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/LMOptimizer.h
+   vision/rgbdvo/PhotometricError.h
+   vision/rgbdvo/ReferenceFactory.h
    vision/rgbdvo/RGBDKeyframe.h
+   vision/rgbdvo/RGBDPreprocessor.h
    vision/rgbdvo/RGBDVisualOdometry.h
    vision/rgbdvo/RGBDWarp.h
    vision/RobustWeighting.h

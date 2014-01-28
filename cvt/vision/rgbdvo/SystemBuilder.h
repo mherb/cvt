@@ -43,20 +43,16 @@ namespace cvt {
         return false;
     }
 
-    template <class LossFunc>
     class SystemBuilder
     {
         public:
-            SystemBuilder( const LossFunc& lf ) : _lossFunc( lf )
-            {
-            }
-
             template <class HessType, class JType>
-            float build( HessType& H,
+            static float build( const RobustEstimator<float>& lossFunc,
+                         HessType& H,
                          JType& b,
                          const JType* jacobians,
                          const float* residuals,
-                         size_t n ) const
+                         size_t n )
             {
                 // standard: robust lossfunc
                 JType jtmp;
@@ -68,42 +64,15 @@ namespace cvt {
                     // compute the delta
                     ssd += Math::sqr( residuals[ i ] );
 
-                    float weight = _lossFunc.weight( residuals[ i ] );
+                    float weight = lossFunc.weight( residuals[ i ] );
                     jtmp = weight * jacobians[ i ];
                     H.noalias() += jtmp.transpose() * jacobians[ i ];
                     b.noalias() += jtmp * residuals[ i ];
 
                 }
-                return ssd;
+                return ssd / n;
             }
-
-        private:
-            const LossFunc& _lossFunc;
     };
-
-    // specialized implementation for non robust lossfunc
-    template <>
-    template <class HessType, class JType>
-    inline float SystemBuilder<NoWeighting<float> >::build( HessType& H, JType& b,
-                                                            const JType* jacobians,
-                                                            const float* residuals,
-                                                            size_t n ) const
-    {
-        // standard: robust lossfunc
-        float ssd = 0.0f;
-        b.setZero();
-        H.setZero();
-        for( size_t i = 0; i < n; ++i ){
-            // compute the delta
-            ssd += Math::sqr( residuals[ i ] );
-
-            const JType& jtmp = jacobians[ i ];
-            H.noalias() += jtmp.transpose() * jtmp;
-            b.noalias() += jtmp * residuals[ i ];
-
-        }
-        return ssd;
-    }
 
 }
 

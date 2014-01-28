@@ -31,13 +31,10 @@ namespace cvt
     struct RobustEstimator
     {
         public:
+            virtual ~RobustEstimator(){}
             virtual T weight( T res ) const = 0;
-    };
-
-    template <class W>
-    struct IsRobustWeighting
-    {
-        static const bool Value = true;
+            virtual void setScale( T sigma ) = 0;
+            virtual bool isRobust() const { return true; }
     };
 
     template <typename T>
@@ -47,12 +44,7 @@ namespace cvt
 
         void setThreshold( T /*thresh*/ ){}
         void setScale( T /*sigma*/ ){}
-    };
-
-    template< typename T >
-    struct IsRobustWeighting< NoWeighting<T> >
-    {
-        static const bool Value = false;
+        bool isRobust() const { return false; }
     };
 
     template <typename T>
