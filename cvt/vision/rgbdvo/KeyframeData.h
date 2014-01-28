@@ -27,16 +27,48 @@
 
 #include <Eigen/Core>
 #include <cvt/gfx/Image.h>
+#include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IMapScoped.h>
+#include <cvt/vision/rgbdvo/RGBDPreprocessor.h>
 
 namespace cvt {
+
+    class ReferencePoints
+    {
+        public:
+            ReferencePoints(){}
+            virtual ~ReferencePoints(){}
+
+            virtual void reserve( size_t size ){ _points3d.reserve( size ); }
+            virtual void clear(){ _points3d.clear(); }
+
+            void addPoint( const Vector3f& point ){ _points3d.push_back( point ); }
+
+            size_t size() const { return _points3d.size(); }
+
+            const Matrix3f& intrinsics() const { return _intrinsics; }
+            void setIntrinsics( const Matrix3f& intr ){ _intrinsics = intr; }
+
+            const Vector3f* points() const { return &_points3d[ 0 ]; }
+
+            virtual void updateOnlineData( const Matrix4f&,
+                                           const Image&,
+                                           const Image& ){}
+
+
+        protected:
+            Matrix3f                _intrinsics;
+            std::vector<Vector3f>   _points3d;
+
+    };
 
     /**
      * \class AlignmentData for reference (template) information
      */
     template <class Warp>
-    class AlignmentData {
+    class IntensityData : public ReferencePoints {
         public:
+            //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             typedef Warp                            WarpType;
             typedef typename Warp::JacobianType     JacobianType;
             typedef typename Warp::ScreenJacType    ScreenJacobianType;
@@ -45,80 +77,65 @@ namespace cvt {
             typedef std::vector<ScreenJacobianType, Eigen::aligned_allocator<ScreenJacobianType> > ScreenJacVec;
             typedef std::vector<JacobianType, Eigen::aligned_allocator<JacobianType> > JacobianVec;
 
-            Image                       gray;
-            Image                       gradX;
-            Image                       gradY;
+            IntensityData(){}
+            virtual ~IntensityData(){}
 
-            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-            void reserve( size_t size )
+            virtual void clear()
             {
-                _points3d.reserve( size );
-                _pixelValues.reserve( size );
-                _jacobians.reserve( size );
-                _screenJacobians.reserve( size );
-            }
-
-            void clear()
-            {
-                _points3d.clear();
+                ReferencePoints::clear();
                 _pixelValues.clear();
                 _jacobians.clear();
-                _screenJacobians.clear();
             }
 
-            void add( const Vector3f& point,
-                      const ScreenJacobianType& jac,
-                      const GradientType& iGrad,
-                      float val )
+            virtual void reserve( size_t size )
             {
-                _points3d.push_back( point );
-                _screenJacobians.push_back( jac );
-                _jacobians.push_back( JacobianType() );
-                Warp::computeJacobian( _jacobians.back(), jac, iGrad, val );
-                _pixelValues.push_back( val );
+                ReferencePoints::reserve( size );
+                _pixelValues.reserve( size );
+                _jacobians.reserve( size );
             }
 
-            size_t size() const { return _points3d.size(); }
+            virtual void recomputeJacobians( JacobianVec& jacobians,
+                                             std::vector<float>& residuals,
+                                             const std::vector<Vector2f>& warpedPts,
+                                             const std::vector<float>& interpolated ) const = 0;
 
-            const Matrix3f& intrinsics() const { return _intrinsics; }
-            void setIntrinsics( const Matrix3f& intr ){ _intrinsics = intr; }
+            const float* pixels()    const { return &_pixelValues[ 0 ]; }
 
-            const std::vector<Vector3f>&     points()    const { return _points3d; }
-            const std::vector<float>&        pixels()    const { return _pixelValues; }
+//            void selectInformation( size_t n )
+//            {
+//                if( size() <= n )
+//                    return;
 
-            // these are the offline jacobians
-            const JacobianVec& jacobians() const { return _jacobians; }
-            const ScreenJacVec& screenJacobians() const { return _screenJacobians; }
+//                InformationSelection<JacobianType> selector( n );
+//                const std::set<size_t>& ids = selector.selectInformation( &_jacobians[ 0 ], _jacobians.size() );
 
-            void selectInformation( size_t n )
+//                // now rearrange the data according to the ids:
+//                std::set<size_t>::const_iterator it = ids.begin();
+//                const std::set<size_t>::const_iterator end = ids.end();
+
+//                size_t saveIdx = 0;
+//                while( it != end ){
+//                    _jacobians[ saveIdx ] = _jacobians[ *it ];
+//                    _points3d[ saveIdx ] = _points3d[ *it ];
+//                    _pixelValues[ saveIdx ] = _pixelValues[ *it ];
+
+//                    _screenJacobians[ saveIdx ] = _screenJacobians[ *it ];
+
+//                    ++saveIdx;
+//                    ++it;
+//                }
+
+//                // remove the rest
+//                erase( n );
+//            }
+
+            virtual void erase( size_t n )
             {
-                if( size() <= n )
-                    return;
-
-                InformationSelection<JacobianType> selector( n );
-                const std::set<size_t>& ids = selector.selectInformation( &_jacobians[ 0 ], _jacobians.size() );
-
-                // now rearrange the data according to the ids:
-                std::set<size_t>::const_iterator it = ids.begin();
-                const std::set<size_t>::const_iterator end = ids.end();
-
-                size_t saveIdx = 0;
-                while( it != end ){
-                    _jacobians[ saveIdx ] = _jacobians[ *it ];
-                    _points3d[ saveIdx ] = _points3d[ *it ];
-                    _pixelValues[ saveIdx ] = _pixelValues[ *it ];
-                    _screenJacobians[ saveIdx ] = _screenJacobians[ *it ];
-
-                    ++saveIdx;
-                    ++it;
-                }
-
-                // remove the rest
                 _jacobians.erase( _jacobians.begin() + n, _jacobians.end() );
                 _points3d.erase( _points3d.begin() + n, _points3d.end() );
                 _pixelValues.erase( _pixelValues.begin() + n, _pixelValues.end() );
-                _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
             }
+
 
             static void interpolateGradients( std::vector<float>& result, const Image& gradImg, const std::vector<Vector2f>& positions, const SIMD* simd, float outOfBoundsVal = -20.0f )
             {
@@ -126,24 +143,471 @@ namespace cvt {
                 simd->warpBilinear1f( &result[ 0 ], &positions[ 0 ].x, map.ptr(), map.stride(), gradImg.width(), gradImg.height(), outOfBoundsVal, positions.size() );
             }
 
+            const JacobianVec& jacobians() const { return _jacobians; }
+
+            virtual void updateOfflineData( const Matrix4f& world2cam,
+                                            const Image& gray,
+                                            const Image& depth,
+                                            float scaleFac,
+                                            float gradientThresh ) = 0;
+
+        protected:
+            std::vector<float>          _pixelValues;
+            JacobianVec                 _jacobians;            
+
+            void  initializePointLookUps( float* vals, size_t n, float foc, float c ) const
+            {
+                float invF = 1.0f / foc;
+                for( size_t i = 0; i < n; i++ ){
+                    vals[ i ] = ( i - c ) * invF;
+                }
+            }
+    };
+
+    template <class Warp>
+    class IntensityDataInvComp : public IntensityData<Warp>
+    {
+        public:
+            typedef IntensityData<Warp>                 Base;
+            typedef typename Base::JacobianType         JacobianType;
+            typedef typename Base::JacobianVec          JacobianVecType;
+            typedef typename Base::ScreenJacobianType   ScreenJacobianType;
+            typedef typename Base::GradientType         GradientType;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;
+
+            IntensityDataInvComp(){}
+
+
+            void recomputeJacobians( JacobianVecType& jacobians,
+                                     std::vector<float>& residuals,
+                                     const std::vector<Vector2f>& /*warpedPts*/,
+                                     const std::vector<float>& interpolated ) const
+            {
+
+                const JacobianVecType& refJacs = this->jacobians();
+                size_t savePos = 0;
+                // sort out data which is out of image bounds:
+                for( size_t i = 0; i < this->size(); ++i ){
+                    if( interpolated[ i ] >= 0.0f ){
+                        jacobians[ savePos ] = refJacs[ i ];
+                        residuals[ savePos ] = residuals[ i ];
+                        ++savePos;
+                    }
+                }
+                residuals.erase( residuals.begin() + savePos, residuals.end() );
+                jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
+            }
+
+            void updateOfflineData( const Matrix4f& world2Cam,
+                                    const Image& gray,
+                                    const Image& depth,
+                                    float scaleFactor,
+                                    float gradientThresh )
+            {
+                IMapScoped<const float> depthMap( depth );
+                const float* d = depthMap.ptr();
+                size_t depthStride = depthMap.stride() / sizeof( float );
+
+                Vector2f currP;
+                Vector3f p3d, p3dw;
+                GradientType g;
+                JacobianType j;
+                ScreenJacobianType sj;
+
+                // compute image gradient
+                Image gradX, gradY;
+                RGBDPreprocessor::instance().gradient( gradX, gradY, gray );
+
+                // remove old data
+                this->clear();
+
+                size_t pixelsOnOctave = ( gray.width() * gray.height() );
+                this->reserve( 0.4f * pixelsOnOctave );
+
+                // TODO: replace this by a simd function!
+                // temp vals
+                std::vector<float> tmpx( gray.width() );
+                std::vector<float> tmpy( gray.height() );
+
+                const Matrix3f& intr = this->intrinsics();
+
+                this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+                this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+                IMapScoped<const float> gxMap( gradX );
+                IMapScoped<const float> gyMap( gradY );
+                IMapScoped<const float> grayMap( gray );
+
+                for( size_t y = 0; y < gray.height() - 1; y++ ){
+                    const float* gx = gxMap.ptr();
+                    const float* gy = gyMap.ptr();
+                    const float* value = grayMap.ptr();
+
+                    // scale the point
+                    currP.y = scaleFactor * y;
+
+                    for( size_t x = 0; x < gray.width() - 1; x++ ){
+                        g( 0, 0 ) = gx[ x ];
+                        g( 0, 1 ) = gy[ x ];
+                        float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
+                        if( salience < gradientThresh )
+                            continue;
+
+                        currP.x = scaleFactor * x;
+                        float z = RGBDPreprocessor::instance().interpolateDepth( currP, d, depthStride );
+                        if( z > 0.0f ){
+                            p3d[ 0 ] = tmpx[ x ] * z;
+                            p3d[ 1 ] = tmpy[ y ] * z;
+                            p3d[ 2 ] = z;
+
+                            // point in world coord frame
+                            // TODO: change back to KF relative storage of points?
+                            p3dw = world2Cam * p3d;
+
+                            Warp::screenJacobian( sj, p3d, intr );
+
+
+                            // add jacobian for the point
+                            this->_jacobians.push_back( JacobianType() );
+
+                            // precompute it using the gradient and screen jacobian value
+                            Warp::computeJacobian( this->_jacobians.back(), sj, g, value[ x ] );
+
+                            // add point
+                            this->_points3d.push_back( p3dw );
+
+                            // add pixel value
+                            this->_pixelValues.push_back( value[ x ] );
+
+                        }
+                    }
+                    gxMap++;
+                    gyMap++;
+                    grayMap++;
+                }
+            }
+
+    };
+
+    template <class Warp>
+    class IntensityDataFwdComp : public IntensityData<Warp>
+    {
+        public:
+            typedef IntensityData<Warp>                 Base;
+            typedef typename Base::JacobianType         JacobianType;
+            typedef typename Base::JacobianVec          JacobianVecType;
+            typedef typename Base::ScreenJacobianType   ScreenJacobianType;
+            typedef typename Base::GradientType         GradientType;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;
+
+            IntensityDataFwdComp(){}
+
+            virtual void reserve( size_t size )
+            {
+                IntensityData<Warp>::reserve( size );
+                _screenJacobians.reserve( size );
+            }
+
+            virtual void clear()
+            {
+                IntensityData<Warp>::clear();
+                _screenJacobians.clear();
+            }
+
+            const ScreenJacVec& screenJacobians() const { return _screenJacobians; }
+
+            virtual void recomputeJacobians( JacobianVecType& jacobians,
+                                             std::vector<float>& residuals,
+                                             const std::vector<Vector2f>& warpedPts,
+                                             const std::vector<float>& interpolated ) const
+            {
+                size_t n = this->size();
+                std::vector<float> intGradX( n );
+                std::vector<float> intGradY( n );
+
+                // evaluate the gradients at the warped positions
+                SIMD* simd = SIMD::instance();
+                this->interpolateGradients( intGradX, _gradX, warpedPts, simd );
+                this->interpolateGradients( intGradY, _gradY, warpedPts, simd );
+
+                // sort out bad pixels (out of image)
+                const ScreenJacVec& sj = _screenJacobians;
+                GradientType grad;
+                size_t savePos = 0;
+
+                for( size_t i = 0; i < n; ++i ){
+                    if( interpolated[ i ] >= 0.0f ){
+                        grad.coeffRef( 0, 0 ) = intGradX[ i ];
+                        grad.coeffRef( 0, 1 ) = intGradY[ i ];
+
+                        // compute the Fwd jacobians
+                        Warp::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolated[ i ] );
+                        residuals[ savePos ] = residuals[ i ];
+                        ++savePos;
+                    }
+                }
+                residuals.erase( residuals.begin() + savePos, residuals.end() );
+                jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
+            }
+
+
+            virtual void erase( size_t n )
+            {
+                IntensityData<Warp>::erase( n );
+                _screenJacobians.erase( _screenJacobians.begin() + n, _screenJacobians.end() );
+            }
+
+            virtual void updateOnlineData( const Matrix4f& pose,
+                                           const Image& gray,
+                                           const Image& /*depth*/ )
+            {
+                RGBDPreprocessor::instance().gradient( _gradX, _gradY, gray );
+                relinearize( pose );
+            }
+
+            /* update the screen jacobians */
             void relinearize( const Matrix4f& cam2World )
             {
                 // transform points into camera coordinate frame
-                std::vector<Vector3f> pCam( size() );
-                SIMD::instance()->transformPoints( pCam.data(), cam2World, _points3d.data(), size() );
+                size_t n = this->size();
+                std::vector<Vector3f> pCam( n );
+                SIMD::instance()->transformPoints( pCam.data(), cam2World, this->points(), n );
 
                 // re-evaluate the screen jacobians
-                for( size_t i = 0; i < size(); ++i ){
-                    Warp::screenJacobian( _screenJacobians[ i ], pCam[ i ], _intrinsics );
+                _screenJacobians.resize( n );
+                for( size_t i = 0; i < n; ++i ){
+                    Warp::screenJacobian( _screenJacobians[ i ], pCam[ i ], this->_intrinsics );
+                }
+            }
+
+            void updateOfflineData( const Matrix4f& pose,
+                                    const Image& gray,
+                                    const Image& depth,
+                                    float scaleFactor,
+                                    float gradientThresh )
+            {
+                IMapScoped<const float> depthMap( depth );
+                const float* d = depthMap.ptr();
+                size_t depthStride = depthMap.stride() / sizeof( float );
+
+                Vector2f currP;
+                Vector3f p3d, p3dw;
+                GradientType g;
+
+                // compute image gradient
+                Image gradX, gradY;
+                RGBDPreprocessor::instance().gradient( gradX, gradY, gray );
+
+                // remove old data
+                this->clear();
+
+                size_t pixelsOnOctave = ( gray.width() * gray.height() );
+                this->reserve( 0.4f * pixelsOnOctave );
+
+                // TODO: replace this by a simd function!
+                // temp vals
+                std::vector<float> tmpx( gray.width() );
+                std::vector<float> tmpy( gray.height() );
+
+                const Matrix3f& intr = this->intrinsics();
+                this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+                this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+                IMapScoped<const float> gxMap( gradX );
+                IMapScoped<const float> gyMap( gradY );
+                IMapScoped<const float> grayMap( gray );
+
+                for( size_t y = 0; y < gray.height() - 1; y++ ){
+                    const float* gx = gxMap.ptr();
+                    const float* gy = gyMap.ptr();
+                    const float* value = grayMap.ptr();
+
+                    // scale the point
+                    currP.y = scaleFactor * y;
+
+                    for( size_t x = 0; x < gray.width() - 1; x++ ){
+                        g( 0, 0 ) = gx[ x ];
+                        g( 0, 1 ) = gy[ x ];
+
+                        float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
+                        if( salience < gradientThresh )
+                            continue;
+
+                        currP.x = scaleFactor * x;
+                        float z = RGBDPreprocessor::instance().interpolateDepth( currP, d, depthStride );
+                        if( z > 0.0f ){
+                            p3d[ 0 ] = tmpx[ x ] * z;
+                            p3d[ 1 ] = tmpy[ y ] * z;
+                            p3d[ 2 ] = z;
+
+                            // point in world coord frame
+                            // TODO: change back to KF relative storage of points?
+                            p3dw = pose * p3d;
+
+                            // add point
+                            this->_points3d.push_back( p3dw );
+
+                            // add pixel value
+                            this->_pixelValues.push_back( value[ x ] );
+                        }
+                    }
+                    gxMap++;
+                    gyMap++;
+                    grayMap++;
                 }
             }
 
         protected:
-            std::vector<Vector3f>       _points3d;
-            std::vector<float>          _pixelValues;
-            JacobianVec                 _jacobians;
-            ScreenJacVec                _screenJacobians;
-            Matrix3f                    _intrinsics;
+            ScreenJacVec    _screenJacobians;
+            Image           _gradX;
+            Image           _gradY;
+    };
+
+    template <class Warp>
+    class IntensityDataESM : public IntensityDataFwdComp<Warp>
+    {
+        public:
+            typedef IntensityData<Warp>                 Base;
+            typedef typename Base::JacobianType         JacobianType;
+            typedef typename Base::JacobianVec          JacobianVecType;
+            typedef typename Base::ScreenJacobianType   ScreenJacobianType;
+            typedef typename Base::ScreenJacVec         ScreenJacVec;
+            typedef typename Base::GradientType         GradientType;
+
+            IntensityDataESM(){}
+
+            virtual void reserve( size_t size )
+            {
+                IntensityDataFwdComp<Warp>::reserve( size );
+                _referenceGradients.reserve( size );
+            }
+
+            virtual void clear()
+            {
+                IntensityDataFwdComp<Warp>::clear();
+                _referenceGradients.clear();
+            }
+
+            virtual void erase( size_t n )
+            {
+                IntensityDataFwdComp<Warp>::erase( n );
+                _referenceGradients.erase( _referenceGradients.begin() + n, _referenceGradients.end() );
+            }
+
+            void recomputeJacobians( JacobianVecType& jacobians,
+                                     std::vector<float>& residuals,
+                                     const std::vector<Vector2f>& warpedPts,
+                                     const std::vector<float>& interpolated ) const
+            {
+                size_t n = this->size();
+                std::vector<float> intGradX( n );
+                std::vector<float> intGradY( n );
+
+                // evaluate the gradients at the warped positions
+                SIMD* simd = SIMD::instance();
+                this->interpolateGradients( intGradX, this->_gradX, warpedPts, simd );
+                this->interpolateGradients( intGradY, this->_gradY, warpedPts, simd );
+
+                // sort out bad pixels (out of image)
+                const ScreenJacVec& sj = this->screenJacobians();
+                GradientType grad;
+                size_t savePos = 0;
+
+                for( size_t i = 0; i < n; ++i ){
+                    if( interpolated[ i ] >= 0.0f ){
+                        grad.coeffRef( 0, 0 ) = 0.5 * ( intGradX[ i ] + _referenceGradients[ i ].coeffRef( 0, 0 ) );
+                        grad.coeffRef( 0, 1 ) = 0.5 * ( intGradY[ i ] + _referenceGradients[ i ].coeffRef( 0, 1 ) );
+
+                        // compute the ESM jacobians
+                        Warp::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolated[ i ] );
+                        residuals[ savePos ] = residuals[ i ];
+                        ++savePos;
+                    }
+                }
+                residuals.erase( residuals.begin() + savePos, residuals.end() );
+                jacobians.erase( jacobians.begin() + savePos, jacobians.end() );
+            }
+
+            void updateOfflineData( const Matrix4f& pose,
+                                    const Image& gray,
+                                    const Image& depth,
+                                    float scaleFactor,
+                                    float gradientThresh )
+            {
+                IMapScoped<const float> depthMap( depth );
+                const float* d = depthMap.ptr();
+                size_t depthStride = depthMap.stride() / sizeof( float );
+
+                Vector2f currP;
+                Vector3f p3d, p3dw;
+                GradientType g;
+
+                // compute image gradient
+                Image gradX, gradY;
+                RGBDPreprocessor::instance().gradient( gradX, gradY, gray );
+
+                // remove old data
+                this->clear();
+
+                size_t pixelsOnOctave = ( gray.width() * gray.height() );
+                this->reserve( 0.4f * pixelsOnOctave );
+
+                // TODO: replace this by a simd function!
+                // temp vals
+                std::vector<float> tmpx( gray.width() );
+                std::vector<float> tmpy( gray.height() );
+
+                const Matrix3f& intr = this->intrinsics();
+                this->initializePointLookUps( &tmpx[ 0 ], tmpx.size(), intr[ 0 ][ 0 ], intr[ 0 ][ 2 ] );
+                this->initializePointLookUps( &tmpy[ 0 ], tmpy.size(), intr[ 1 ][ 1 ], intr[ 1 ][ 2 ] );
+
+                IMapScoped<const float> gxMap( gradX );
+                IMapScoped<const float> gyMap( gradY );
+                IMapScoped<const float> grayMap( gray );
+
+                for( size_t y = 0; y < gray.height() - 1; y++ ){
+                    const float* gx = gxMap.ptr();
+                    const float* gy = gyMap.ptr();
+                    const float* value = grayMap.ptr();
+
+                    // scale the point
+                    currP.y = scaleFactor * y;
+
+                    for( size_t x = 0; x < gray.width() - 1; x++ ){
+                        g( 0, 0 ) = gx[ x ];
+                        g( 0, 1 ) = gy[ x ];
+
+                        float salience = Math::abs( g.coeff( 0, 0 ) ) + Math::abs( g.coeff( 0, 1 ) );
+                        if( salience < gradientThresh )
+                            continue;
+
+                        currP.x = scaleFactor * x;
+                        float z = RGBDPreprocessor::instance().interpolateDepth( currP, d, depthStride );
+                        if( z > 0.0f ){
+                            p3d[ 0 ] = tmpx[ x ] * z;
+                            p3d[ 1 ] = tmpy[ y ] * z;
+                            p3d[ 2 ] = z;
+
+                            // point in world coord frame
+                            // TODO: change back to KF relative storage of points?
+                            p3dw = pose * p3d;
+
+                            // add point
+                            this->_points3d.push_back( p3dw );
+
+                            // add pixel value
+                            this->_pixelValues.push_back( value[ x ] );
+                            _referenceGradients.push_back( g );
+                        }
+                    }
+                    gxMap++;
+                    gyMap++;
+                    grayMap++;
+                }
+            }
+
+        protected:
+            std::vector<GradientType>  _referenceGradients;
     };
 
 }

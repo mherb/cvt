@@ -34,23 +34,20 @@
 
 namespace cvt {
 
-	template <class AlignData, class Weighter>
+    template <class Derived>
     class Optimizer
     {
         public:
-			typedef typename AlignData::WarpType		WarpType;
-			typedef Weighter							LossFuncType;
-			typedef typename WarpType::JacobianType     JacobianType;
-			typedef typename WarpType::HessianType      HessianType;
-			typedef typename WarpType::DeltaVectorType  DeltaType;
-			typedef RGBDKeyframe<AlignData>             KFType;
+            typedef CostFunction<Derived>                CostFuncType;
+            typedef typename CostFuncType::DataType      T;
+            typedef typename CostFuncType::JacobianType  JacobianType;
+            typedef typename CostFuncType::HessianType   HessianType;
+            typedef typename CostFuncType::ParameterType DeltaType;
 
             struct Result {
-                EIGEN_MAKE_ALIGNED_OPERATOR_NEW
                 Result() :
                     success( false ),
                     numPixels( 0 ),
-                    pixelPercentage( 0.0f ),
                     costs( 0.0f )
                 {
                 }
@@ -58,18 +55,14 @@ namespace cvt {
                 bool        success;
                 size_t      iterations;
                 size_t      numPixels;
-                float       pixelPercentage; /* between 0 and 1 */
                 float       costs;
-
-				WarpType    warp;
             };
 
-            Optimizer();
+            Optimizer( RobustEstimator<T>* robustEstimator );
             virtual ~Optimizer() {}
 
             void setMaxIterations( size_t iter )    { _maxIter = iter; }
             void setMinUpdate( float v )            { _minUpdate = v; }
-            void setMinPixelPercentage( float v )   { _minPixelPercentage = v; }
             void setUseRegularization( bool v )     { _useRegularizer = v; }
             void setRegularizationMatrix( const HessianType& m ) { _regularizer = m; }
             void setRegularizationAlpha( float v )  { _regAlpha = v; }
@@ -81,25 +74,14 @@ namespace cvt {
              */
             void setCostStopThreshold( float v )    { _costStopThreshold = v; }
 
-            // scale-space optimization
             void optimize( Result& result,
-                           const Matrix4f& posePrediction,
-						   KFType& reference,
-                           const ImagePyramid& grayPyramid,
-                           const Image& depthImage );
-
-            void optimizeMultiframe( Result& result,
-                                     const Matrix4f& posePrediction,
-                                     KFType **references, size_t nRefs,
-                                     const ImagePyramid& grayPyramid,
-                                     const Image& depthImage );
+                           CostFunction<Derived> &costFunc );
 
             void setErrorLoggerGTPose( const Matrix4f& mat ){ _logger.setGTPose( mat ); }
 
         protected:
             size_t          _maxIter;
             float           _minUpdate;
-            float           _minPixelPercentage;
             float           _costStopThreshold;
             bool            _useRegularizer;
             float           _regAlpha;
@@ -108,8 +90,7 @@ namespace cvt {
             bool            _logError;
             ErrorLogger     _logger;
 
-            Weighter                _weighter;
-            SystemBuilder<Weighter> _builder;
+            RobustEstimator<float>* _robustEstimator;
 
             float computeMedian( const float* residuals, size_t n ) const;
             float computeMAD( const float* residuals, size_t n, float median ) const;
@@ -121,131 +102,67 @@ namespace cvt {
             void resetOverallDelta();
 
         protected:
-            virtual void optimizeSingleScale( Result& result,
-                                              KFType& reference,
-                                              const Image& gray,
-                                              const Image& depthImage,
-                                              size_t octave ) = 0;
-
-
-			virtual void optimizeSingleScale( Result& result,
-											  KFType** references, size_t /*nRefs*/,
-											  const Image& gray,
-											  const Image& depthImage,
-											  size_t octave )
+            virtual void optimizeSingleScale( Result& /*result*/,
+                                              CostFunction<Derived>& /*costFunc*/,
+                                              size_t /*octave*/ )
             {
-                std::cerr << "this optimizer does not implement multi-reference alignment yet" << std::endl;
-                this->optimizeSingleScale( result, *references[ 0 ], gray, depthImage, octave );
+                throw CVTException( "new costfunction interface not yet implemented for this optimizer" );
             }
 
     };
 
-	template <class AlignData, class LossFunc>
-	inline Optimizer<AlignData, LossFunc>::Optimizer() :
+    template <class Derived>
+    inline Optimizer<Derived>::Optimizer( RobustEstimator<T>* estimator ) :
         _maxIter( 10 ),
         _minUpdate( 1e-6 ),
-        _minPixelPercentage( 0.8f ),
         _costStopThreshold( 0.002f ),
         _useRegularizer( false ),
         _regAlpha( 0.2f ),
         _regularizer( HessianType::Identity() ),
         _overallDelta( DeltaType::Zero() ),
-        _builder( _weighter )
+        _robustEstimator( estimator )
     {
     }
 
-	template <class AlignData, class LossFunc>
-	inline void Optimizer<AlignData, LossFunc>::optimize( Result& result,
-														  const Matrix4f& posePrediction,
-														  RGBDKeyframe<AlignData> &reference,
-														  const ImagePyramid& grayPyramid,
-														  const Image& depthImage )
+    template <class Derived>
+    inline void Optimizer<Derived>::optimize( Result& result,
+                                              CostFunction<Derived> &costFunc )
     {
-        Matrix4f tmp4;
-        tmp4 = posePrediction.inverse();
-
-        result.warp.setPose( tmp4 );
         result.costs = 0.0f;
         result.iterations = 0;
         result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
 
         Result saveResult = result;
+        typename CostFunction<Derived>::ModelType savedModel( costFunc.model() );
 
         if( _useRegularizer ){
             resetOverallDelta();
         }
 
-        // update the online data
-        reference.updateOnlineData( tmp4, grayPyramid, depthImage );
+        for( size_t s = costFunc.scales() ; s > 0; s-- ){
+            this->optimizeSingleScale( result, costFunc, s - 1 );
 
-        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            this->optimizeSingleScale( result, reference, grayPyramid[ o ], depthImage, o );
-
+            /* check */
             if( checkResult( result ) ){
                 saveResult = result;
                 saveResult.success = true;
-            }
-        }
-
-        result = saveResult;
-
-        tmp4 = result.warp.pose().inverse();
-        result.warp.setPose( tmp4 );
-    }
-
-    template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::optimizeMultiframe( Result& result,
-                                                                   const Matrix4f& posePrediction,
-                                                                   KFType** references, size_t nRefs,
-                                                                   const ImagePyramid& grayPyramid,
-                                                                   const Image& depthImage )
-    {
-        Matrix4f tmp4;
-        tmp4 = posePrediction.inverse();
-
-        result.warp.setPose( tmp4 );
-        result.costs = 0.0f;
-        result.iterations = 0;
-        result.numPixels = 0;
-        result.pixelPercentage = 0.0f;
-
-        Result saveResult = result;
-
-        if( _useRegularizer ){
-            resetOverallDelta();
-        }
-
-        // update the online data for each reference frame given
-        for( size_t i = 0; i < nRefs; i++ ){
-            references[ i ]->updateOnlineData( tmp4, grayPyramid, depthImage );
-        }
-
-        for( int o = grayPyramid.octaves() - 1; o >= 0; o-- ){
-            this->optimizeSingleScale( result, references, nRefs, grayPyramid[ o ], depthImage, o );
-
-            if( checkResult( result ) ){
-                saveResult = result;
-                saveResult.success = true;
+                savedModel = costFunc.model();
             } else {
-                // set back to previous "good" one
-                result = saveResult;
+                costFunc.setModel( savedModel );
             }
         }
 
         result = saveResult;
-        tmp4 = result.warp.pose().inverse();
-        result.warp.setPose( tmp4 );
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline void Optimizer<WarpFunc, LossFunc>::resetOverallDelta()
+    template <class Derived>
+    inline void Optimizer<Derived>::resetOverallDelta()
     {
         _overallDelta.setZero();
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline float Optimizer<WarpFunc, LossFunc>::computeMedian( const float* residuals, size_t n ) const
+    template <class Derived>
+    inline float Optimizer<Derived>::computeMedian( const float* residuals, size_t n ) const
     {
         if( n == 1 ){
             return residuals[ 0 ];
@@ -260,8 +177,8 @@ namespace cvt {
         return medianSelector.approximateNth( n >> 1 );
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline float Optimizer<WarpFunc, LossFunc>::computeMAD( const float* residuals, size_t n, float median ) const
+    template <class Derived>
+    inline float Optimizer<Derived>::computeMAD( const float* residuals, size_t n, float median ) const
     {
         ApproxMedian medianSelector( 0.0f, 0.5f, 0.02f );
 
@@ -272,31 +189,32 @@ namespace cvt {
         return medianSelector.approximateNth( n >> 1 );
     }
 
-    template <class WarpFunc, class LossFunc>
-    inline bool Optimizer<WarpFunc, LossFunc>::checkResult( const Result& res ) const
+    template <class Derived>
+    inline bool Optimizer<Derived>::checkResult( const Result& res ) const
     {
         // too few pixels projected into image
-        if( res.pixelPercentage < _minPixelPercentage ){
+        if( res.numPixels == 0 ){
             return false;
         }
         return true;
     }
 
 
-    template <class WarpFunc, class LossFunc>
-    inline float Optimizer<WarpFunc, LossFunc>::evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
-                                                                const JacobianType* jacobians, const float* residuals, size_t n  )
+    template <class Derived>
+    inline float Optimizer<Derived>::evaluateSystem( HessianType& hessian, JacobianType& deltaSum,
+                                                     const JacobianType* jacobians, const float* residuals, size_t n  )
     {        
         float median = this->computeMedian( residuals, n );
         float mad = this->computeMAD( residuals, n, median );        
 
         // this is an estimate for the standard deviation:
-        _weighter.setScale( 1.4826f * mad );
-        float costs = _builder.build( hessian,
-                                      deltaSum,
-                                      jacobians,
-                                      residuals,
-                                      n );
+        _robustEstimator->setScale( 1.4826f * mad );
+        float costs = SystemBuilder::build( *_robustEstimator,
+                                            hessian,
+                                            deltaSum,
+                                            jacobians,
+                                            residuals,
+                                            n );
         if( _useRegularizer ){
             float norm = 1.0f / ( float )n;
             hessian *= norm;
