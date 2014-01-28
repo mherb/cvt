@@ -22,8 +22,8 @@
    THE SOFTWARE.
 */
 
-#ifndef CVT_COSTFUNCTION_H
-#define CVT_COSTFUNCTION_H
+#ifndef CVTCOSTFUNCTION_H
+#define CVTCOSTFUNCTION_H
 
 #include <cvt/math/Math.h>
 
