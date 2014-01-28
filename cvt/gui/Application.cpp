@@ -53,6 +53,7 @@ namespace cvt {
 
 	void Application::atexit()
 	{
+        instance()->exitDelegates.notify();
 		PluginManager::cleanup();
 		CL::cleanup();
 		SIMD::cleanup();
