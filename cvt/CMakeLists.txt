@@ -446,7 +446,6 @@ SET( CVT_HEADERS
    util/PluginManager.h
    util/PluginFile.h
    util/internal/ParamTypes.def
-   vision/BinaryDescriptor.h
    vision/BoardDetector.h
    vision/CameraCalibration.h
    vision/ESM.h
