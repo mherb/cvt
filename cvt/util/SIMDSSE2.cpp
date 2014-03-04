@@ -2528,44 +2528,85 @@ namespace cvt
 		__m128 s0, s1, s2, s3, mul;
 		__m128 x0, x1, x2, x3;
 
-		for( x = 0; x <= width - 16; x += 16 ) {
-			mul = _mm_load_ss( wsym );
-			mul = _mm_shuffle_ps( mul, mul, 0 );
+        if( ( ( size_t ) dst  ) & 0x0f ) {
+            for( x = 0; x <= width - 16; x += 16 ) {
+                mul = _mm_load_ss( wsym );
+                mul = _mm_shuffle_ps( mul, mul, 0 );
 
-			x0 = _mm_load_ps( bufs[ b1 ] + x );
-			x1 = _mm_load_ps( bufs[ b1 ] + x + 4 );
-			x2 = _mm_load_ps( bufs[ b1 ] + x + 8 );
-			x3 = _mm_load_ps( bufs[ b1 ] + x + 12 );
-			s0 = _mm_mul_ps( x0, mul );
-			s1 = _mm_mul_ps( x1, mul );
-			s2 = _mm_mul_ps( x2, mul );
-			s3 = _mm_mul_ps( x3, mul );
+                x0 = _mm_load_ps( bufs[ b1 ] + x );
+                x1 = _mm_load_ps( bufs[ b1 ] + x + 4 );
+                x2 = _mm_load_ps( bufs[ b1 ] + x + 8 );
+                x3 = _mm_load_ps( bufs[ b1 ] + x + 12 );
+                s0 = _mm_mul_ps( x0, mul );
+                s1 = _mm_mul_ps( x1, mul );
+                s2 = _mm_mul_ps( x2, mul );
+                s3 = _mm_mul_ps( x3, mul );
 
-			for( ssize_t k = 1; k <= b1; k++ ) {
-				mul = _mm_load_ss( wsym + k );
-				mul = _mm_shuffle_ps( mul, mul, 0 );
+                for( ssize_t k = 1; k <= b1; k++ ) {
+                    mul = _mm_load_ss( wsym + k );
+                    mul = _mm_shuffle_ps( mul, mul, 0 );
 
-				x0 = _mm_load_ps( bufs[ b1 - k ] + x  );
-				x1 = _mm_load_ps( bufs[ b1 - k ] + x + 4 );
-				x2 = _mm_load_ps( bufs[ b1 - k ] + x + 8 );
-				x3 = _mm_load_ps( bufs[ b1 - k ] + x + 12 );
+                    x0 = _mm_load_ps( bufs[ b1 - k ] + x  );
+                    x1 = _mm_load_ps( bufs[ b1 - k ] + x + 4 );
+                    x2 = _mm_load_ps( bufs[ b1 - k ] + x + 8 );
+                    x3 = _mm_load_ps( bufs[ b1 - k ] + x + 12 );
 
-				x0 = _mm_add_ps( x0, _mm_load_ps( bufs[ b1 + k ] + x  ) );
-				x1 = _mm_add_ps( x1, _mm_load_ps( bufs[ b1 + k ] + x + 4 ) );
-				x2 = _mm_add_ps( x2, _mm_load_ps( bufs[ b1 + k ] + x + 8 ) );
-				x3 = _mm_add_ps( x3, _mm_load_ps( bufs[ b1 + k ] + x + 12 ) );
+                    x0 = _mm_add_ps( x0, _mm_load_ps( bufs[ b1 + k ] + x  ) );
+                    x1 = _mm_add_ps( x1, _mm_load_ps( bufs[ b1 + k ] + x + 4 ) );
+                    x2 = _mm_add_ps( x2, _mm_load_ps( bufs[ b1 + k ] + x + 8 ) );
+                    x3 = _mm_add_ps( x3, _mm_load_ps( bufs[ b1 + k ] + x + 12 ) );
 
-				s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
-				s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
-				s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
-				s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
-			}
-			_mm_store_ps( dst + 0 , s0 );
-			_mm_store_ps( dst + 4 , s1 );
-			_mm_store_ps( dst + 8 , s2 );
-			_mm_store_ps( dst + 12 , s3 );
-			dst += 16;
-		}
+                    s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
+                    s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
+                    s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
+                    s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
+                }
+                _mm_storeu_ps( dst + 0 , s0 );
+                _mm_storeu_ps( dst + 4 , s1 );
+                _mm_storeu_ps( dst + 8 , s2 );
+                _mm_storeu_ps( dst + 12 , s3 );
+                dst += 16;
+            }
+        } else {
+            for( x = 0; x <= width - 16; x += 16 ) {
+                mul = _mm_load_ss( wsym );
+                mul = _mm_shuffle_ps( mul, mul, 0 );
+
+                x0 = _mm_load_ps( bufs[ b1 ] + x );
+                x1 = _mm_load_ps( bufs[ b1 ] + x + 4 );
+                x2 = _mm_load_ps( bufs[ b1 ] + x + 8 );
+                x3 = _mm_load_ps( bufs[ b1 ] + x + 12 );
+                s0 = _mm_mul_ps( x0, mul );
+                s1 = _mm_mul_ps( x1, mul );
+                s2 = _mm_mul_ps( x2, mul );
+                s3 = _mm_mul_ps( x3, mul );
+
+                for( ssize_t k = 1; k <= b1; k++ ) {
+                    mul = _mm_load_ss( wsym + k );
+                    mul = _mm_shuffle_ps( mul, mul, 0 );
+
+                    x0 = _mm_load_ps( bufs[ b1 - k ] + x  );
+                    x1 = _mm_load_ps( bufs[ b1 - k ] + x + 4 );
+                    x2 = _mm_load_ps( bufs[ b1 - k ] + x + 8 );
+                    x3 = _mm_load_ps( bufs[ b1 - k ] + x + 12 );
+
+                    x0 = _mm_add_ps( x0, _mm_load_ps( bufs[ b1 + k ] + x  ) );
+                    x1 = _mm_add_ps( x1, _mm_load_ps( bufs[ b1 + k ] + x + 4 ) );
+                    x2 = _mm_add_ps( x2, _mm_load_ps( bufs[ b1 + k ] + x + 8 ) );
+                    x3 = _mm_add_ps( x3, _mm_load_ps( bufs[ b1 + k ] + x + 12 ) );
+
+                    s0 = _mm_add_ps( s0, _mm_mul_ps( x0, mul ) );
+                    s1 = _mm_add_ps( s1, _mm_mul_ps( x1, mul ) );
+                    s2 = _mm_add_ps( s2, _mm_mul_ps( x2, mul ) );
+                    s3 = _mm_add_ps( s3, _mm_mul_ps( x3, mul ) );
+                }
+                _mm_store_ps( dst + 0 , s0 );
+                _mm_store_ps( dst + 4 , s1 );
+                _mm_store_ps( dst + 8 , s2 );
+                _mm_store_ps( dst + 12 , s3 );
+                dst += 16;
+            }
+        }
 
 		float tmp;
 		for( ; x < width; x++ ) {
