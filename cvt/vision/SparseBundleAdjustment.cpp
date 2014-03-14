@@ -78,10 +78,9 @@ namespace cvt {
         // evaluate costs, resize the vectors
         size_t numPoints = map.numFeatures();
         size_t numCams	 = map.numKeyframes();
-        _nMeas    = map.numMeasurements();
 
         // resize internal structures for jacobians etc.
-        resize( numCams, numPoints );
+        resize( numCams, numPoints, map.numMeasurements() );
 
         Eigen::VectorXd	deltaCam( camParamDim * numCams );
         Eigen::VectorXd	deltaPoint( pointParamDim * numPoints );
@@ -259,7 +258,8 @@ namespace cvt {
             }
 
             // initial lambda
-            _lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 100000.0 );
+//            _lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 100000.0 );
+            _lambda = avgDiag / ( ( _nCams * 6 + _nPts * 3 ) * 1000.0 );
         }
     }
 
@@ -464,8 +464,10 @@ namespace cvt {
         }
     }
 
-    void SparseBundleAdjustment::resize( size_t numCams, size_t numPoints )
+    void SparseBundleAdjustment::resize( size_t numCams, size_t numPoints, size_t numMeas )
     {
+        _nMeas = numMeas;
+
         if( _nPts != numPoints ){
             if( _pointsJTJ )
                 delete[] _pointsJTJ;
