@@ -104,14 +104,14 @@ namespace cvt {
     }
 
     template<typename T>
-    inline Vector6<T>::Vector6( const Vector6<T>& v )
+    inline Vector6<T>::Vector6( const Vector6<T>& vec )
     {
-        x = v.x;
-        y = v.y;
-        z = v.z;
-        u = v.u;
-        v = v.v;
-        w = v.w;
+        x = vec.x;
+        y = vec.y;
+        z = vec.z;
+        u = vec.u;
+        v = vec.v;
+        w = vec.w;
     }
 
     template<typename T>
@@ -167,15 +167,15 @@ namespace cvt {
     }
 
     template<typename T>
-    inline Vector6<T> Vector6<T>::cmul( const Vector6<T>& v ) const
+    inline Vector6<T> Vector6<T>::cmul( const Vector6<T>& vec ) const
     {
-        return Vector6<T>( v.x * x, v.y * y, v.z * z, v.u * u, v.v * v, v.w * w );
+        return Vector6<T>( vec.x * x, vec.y * y, vec.z * z, vec.u * u, vec.v * v, vec.w * w );
     }
 
     template<typename T>
-    inline T Vector6<T>::operator*( const Vector6<T>& v ) const
+    inline T Vector6<T>::operator*( const Vector6<T>& vec ) const
     {
-        return v.x * x + v.y * y + v.z * z + v.u * u + v.v * v + v.w * w;
+        return vec.x * x + vec.y * y + vec.z * z + vec.u * u + vec.v * v + vec.w * w;
     }
 
     template<typename T>
@@ -186,50 +186,50 @@ namespace cvt {
     }
 
     template<typename T>
-    inline Vector6<T> Vector6<T>::operator+( const Vector6<T> &v ) const
+    inline Vector6<T> Vector6<T>::operator+( const Vector6<T> &vec ) const
     {
-        return Vector6<T>( x + v.x, y + v.y, z + v.z, u + v.u, v + v.v, w + v.w );
+        return Vector6<T>( x + vec.x, y + vec.y, z + vec.z, u + vec.u, v + vec.v, w + vec.w );
     }
 
     template<typename T>
-    inline Vector6<T> Vector6<T>::operator-( const Vector6<T> &v ) const
+    inline Vector6<T> Vector6<T>::operator-( const Vector6<T> &vec ) const
     {
-        return Vector6<T>( x - v.x, y - v.y, z - v.z, u - v.u, v - v.v, w - v.w );
+        return Vector6<T>( x - vec.x, y - vec.y, z - vec.z, u - vec.u, v - vec.v, w - vec.w );
     }
 
     template<typename T>
-    inline Vector6<T>& Vector6<T>::operator+=( const Vector6<T> &v )
+    inline Vector6<T>& Vector6<T>::operator+=( const Vector6<T> &vec )
     {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        u += v.u;
-        v += v.v;
-        w += v.w;
+        x += vec.x;
+        y += vec.y;
+        z += vec.z;
+        u += vec.u;
+        v += vec.v;
+        w += vec.w;
         return *this;
     }
 
     template<typename T>
-    inline Vector6<T>& Vector6<T>::operator-=( const Vector6<T> &v )
+    inline Vector6<T>& Vector6<T>::operator-=( const Vector6<T> &vec )
     {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        u -= v.u;
-        v -= v.v;
-        w -= v.w;
+        x -= vec.x;
+        y -= vec.y;
+        z -= vec.z;
+        u -= vec.u;
+        v -= vec.v;
+        w -= vec.w;
         return *this;
     }
 
     template<typename T>
-    inline Vector6<T>& Vector6<T>::operator/=( const Vector6<T> &v )
+    inline Vector6<T>& Vector6<T>::operator/=( const Vector6<T> &vec )
     {
-        x /= v.x;
-        y /= v.y;
-        z /= v.z;
-        u /= v.u;
-        v /= v.v;
-        w /= v.w;
+        x /= vec.x;
+        y /= vec.y;
+        z /= vec.z;
+        u /= vec.u;
+        v /= vec.v;
+        w /= vec.w;
         return *this;
     }
 
