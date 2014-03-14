@@ -47,9 +47,15 @@ namespace cvt {
 			void optimize( SlamMap & data, const TerminationCriteria<double> & criteria );
 
 			size_t iterations() const { return _iterations; }
-			double costs()	const { return _costs; }
+			void setIterations( size_t newValue ) { _iterations = newValue; }
 
-		private:
+			double costs( )  const { return _costs; }
+			void setCosts( double newValue ) { _costs = newValue; }
+
+			double lambda( ) const { return _lambda; }
+			void setLambda( double newValue ) { _lambda = newValue; }
+
+//		private:
 			/* jacobians for each point */		
 			static const size_t pointParamDim = 3;
 			static const size_t camParamDim   = 6;
@@ -58,9 +64,27 @@ namespace cvt {
 			typedef Eigen::Matrix<double, camParamDim, camParamDim>		CamJTJ;
 			typedef Eigen::Matrix<double, pointParamDim, pointParamDim>	PointJTJ;
 			typedef Eigen::Matrix<double, camParamDim, 1>				CamResidualType;
-			typedef Eigen::Matrix<double, pointParamDim, 1>				PointResidualType;
+			typedef Eigen::Matrix<double, pointParamDim, 1>				PointResidualType;			
+			typedef Eigen::Matrix<double, camParamDim, pointParamDim>   CamPointJTJ;
 
-			
+			const PointJTJ* getPJTJDiagonalElement( int index ){ return ( const PointJTJ* ) &( _pointsJTJ[ index ] ); }
+			const PointJTJ* getInvAugPJTJDiagonalElement( int index ){ return ( const PointJTJ* ) &( _invAugPJTJ[ index ] ); }
+			const CamJTJ* getCJTJDiagonalElement( int index ){ return ( const CamJTJ* ) &( _camsJTJ[ index ] ); }
+			const CamResidualType* getCamResidual( int index ){ return ( const CamResidualType* ) &( _camResiduals[ index ] ); }
+			const PointResidualType* getPointResudual( int index ){ return ( const PointResidualType* ) &( _pointResiduals[ index ] ); }
+			const Eigen::Matrix<double, camParamDim, pointParamDim>* getElementOfCamPointJTJ( int row, int column )
+			{
+				return ( const CamPointJTJ* ) &( _camPointJTJ.block( row, column ) );
+			}
+
+			const float sparseReducedGetElement( int row, int column ){return _sparseReduced.coeff( row, column ); }
+			const float reducedRHSGetElement( int index ){return _reducedRHS( index ); }
+
+			const Eigen::SparseMatrix<double, Eigen::ColMajor>* getSparseReduced( ){return ( const Eigen::SparseMatrix<double, Eigen::ColMajor>* ) & _sparseReduced; }
+			const Eigen::VectorXd* getReducedRHS( ){ return ( const Eigen::VectorXd* ) &_reducedRHS; }
+
+
+		private:
 			size_t _nPts;
 			size_t _nCams;
 			size_t _nMeas;
@@ -87,6 +111,7 @@ namespace cvt {
 			size_t _iterations;
 			double _costs;
 
+		public:
 			void buildReducedCameraSystem( const SlamMap & map );
 			void evaluateApproxHessians( const SlamMap & map );
 			void fillSparseMatrix( const SlamMap & map );
@@ -117,7 +142,7 @@ namespace cvt {
 						   const Eigen::VectorXd & dPoint,
 						   SlamMap & map );
 
-			void resize( size_t numCams, size_t numPoints );
+			void resize( size_t numCams, size_t numPoints, size_t numMeas );
 
 			void evalScreenJacWrtPoint( Eigen::Matrix<double, 2, 1> & reproj,
 										PointScreenJacType & jac,
