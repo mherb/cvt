@@ -45,6 +45,7 @@ namespace cvt
 			typedef std::pair<size_t, MapMeasurement> MapPairType;
 			typedef std::map<size_t, MapMeasurement, std::less<size_t>, Eigen::aligned_allocator<MapPairType> > MapType;
 			typedef MapType::const_iterator MeasurementIterator;
+			typedef MapType::iterator MeasurementAlterableIterator;
 
 			Keyframe( const Eigen::Matrix4d& pose, size_t id );
 			Keyframe();
@@ -73,7 +74,10 @@ namespace cvt
 
 			MeasurementIterator		measurementsBegin() const { return _featMeas.begin(); }
 			MeasurementIterator		measurementsEnd()   const { return _featMeas.end(); }
-	
+
+			MeasurementAlterableIterator	measurementsBeginAlterable()	{ return _featMeas.begin(); }
+			MeasurementAlterableIterator	measurementsEndAlterable()		{ return _featMeas.end(); }
+
 			void deserialize( XMLNode* node );
 			XMLNode* serialize() const;
 
