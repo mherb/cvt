@@ -1,1 +1,0 @@
-MACRO_PLUGIN( "Canny" "" "" )

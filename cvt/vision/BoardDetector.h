@@ -27,7 +27,6 @@
 
 #include <cvt/gfx/Image.h>
 #include <cvt/gfx/IComponents.h>
-#include <cvt/gfx/ifilter/Canny.h>
 #include <cvt/geom/Ellipse.h>
 #include <cvt/geom/Line2D.h>
 #include <cvt/geom/PointSet.h>

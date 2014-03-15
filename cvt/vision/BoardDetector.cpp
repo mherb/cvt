@@ -103,8 +103,7 @@ struct DirectionLineCmp
 		std::vector< std::vector<Ellipsef> > lines;
 
 		im.convert( in1, IFormat::GRAY_FLOAT );
-		Canny canny;
-		canny.apply( in2, in1, 0.05f, 0.3f );
+		in1.canny( in2, 0.05f, 0.3f );
 
 		IComponents<float> comps( in2 );
 
