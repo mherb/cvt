@@ -20,7 +20,7 @@
    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
-*/
+ */
 
 #ifndef FLATSLAMMAP_H
 #define FLATSLAMMAP_H
@@ -37,6 +37,11 @@ namespace cvt
 	class FlatSLAMMap
 	{
 		public:
+			FlatSLAMMap( )
+			{
+				_measurementCounter = 0;
+			}
+
 			FlatSLAMMap( const SlamMap& map );
 			~FlatSLAMMap( );
 
@@ -77,12 +82,22 @@ namespace cvt
 
 			size_t numFeatures( ) const
 			{
-				return _features.size();
+				return _features.size( );
 			}
 
 			size_t numCameras( ) const
 			{
-				return _cameras.size();
+				return _cameras.size( );
+			}
+
+			void setIntrinsics( const cvt::Matrix3f& newIntrinsics )
+			{
+				_intrinsics[ 0 ] = newIntrinsics;
+			}
+
+			void setMeasurement( size_t measIndex, const cvt::Vector2f& measParam )
+			{
+				_measurements2D[ measIndex ] = measParam;
 			}
 
 			void setFeatureParam( size_t position, const cvt::Vector4f& featParam )
@@ -93,6 +108,47 @@ namespace cvt
 			void setCameraParam( size_t position, const cvt::Matrix4f& camParam )
 			{
 				_cameras[ position ] = camParam;
+			}
+
+			void updateFeature( size_t featIndex, const cvt::Vector3f& delta )
+			{
+				_features[ featIndex ] += cvt::Vector4f( delta[ 0 ], delta[ 1 ], delta[ 2 ], 0.0f );
+			}
+
+			void updateCamera( size_t camIndex, const cvt::Matrix4f& delta )
+			{
+				_cameras[ camIndex ] = delta * _cameras[ camIndex ];
+			}
+
+			void pushCamIdx( size_t camIndex )
+			{
+				_camIdx.push_back( camIndex );
+			}
+
+			void pushFeatIdx( size_t featIdx )
+			{
+				_featIdx.push_back( featIdx );
+			}
+
+			void pushIntrinsics( cvt::Matrix3f intrin )
+			{
+				_intrinsics.push_back( intrin );
+			}
+
+			void pushFeature( cvt::Vector4f feat )
+			{
+				_features.push_back( feat );
+			}
+
+			void pushCamera( cvt::Matrix4f cam )
+			{
+				_cameras.push_back( cam );
+			}
+
+			void pushMeasurement( cvt::Vector2f meas )
+			{
+				_measurements2D.push_back( meas );
+				_measurementCounter++;
 			}
 
 		private:
