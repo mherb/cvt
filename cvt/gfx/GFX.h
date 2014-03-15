@@ -33,9 +33,17 @@
 #include <cvt/gfx/Font.h>
 #include <cvt/gfx/Alignment.h>
 #include <cvt/gfx/Path.h>
+#include <cvt/util/Flags.h>
 
 namespace cvt {
 	class GFXEngine;
+
+    enum GFXStatusEnum {
+        GFX_ACTIVE        = 1,
+        GFX_DELETE_ENGINE = 2
+    };
+
+    CVT_ENUM_TO_FLAGS( GFXStatusEnum, GFXStatus )
 
 	class GFX {
 		friend class Widget;
@@ -62,6 +70,7 @@ namespace cvt {
 			GFX( const GFX& g );
 			GFX( GFXEngine* engine );
 			GFX( Drawable* drawable );
+			GFX( Drawable& drawable );
 			~GFX();
 
 			void begin();
@@ -121,7 +130,7 @@ namespace cvt {
 			void getTranslationGlobal( Vector2i& translation ) const;
 
 			GFXEngine* _engine;
-			bool	   _active;
+			GFXStatus  _status;
 			Color	   _color;
 			float	   _linewidth;
 			Vector2i   _translation;

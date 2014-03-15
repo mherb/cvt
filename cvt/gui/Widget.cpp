@@ -193,9 +193,4 @@ namespace cvt {
 		gfx.setClipRect( cliprect );
 	}
 
-	GFXEngine* Widget::gfxEngine()
-	{
-		return impl->gfxEngine();
-	}
-
 }

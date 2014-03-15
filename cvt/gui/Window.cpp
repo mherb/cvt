@@ -57,8 +57,4 @@ namespace cvt {
 		paintChildren( gfx, r );
 	}
 
-	GFXEngine* Window::gfxEngine()
-	{
-		return Widget::gfxEngine();
-	}
 }

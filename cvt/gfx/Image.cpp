@@ -26,6 +26,8 @@
 #include <cvt/gfx/ImageAllocatorMem.h>
 #include <cvt/gfx/ImageAllocatorCL.h>
 #include <cvt/gfx/ImageAllocatorGL.h>
+#include <cvt/gfx/IExpr.h>
+#include <cvt/gfx/GFXEngineImage.h>
 #include <cvt/gfx/IMapScoped.h>
 
 #include <cvt/math/Math.h>
@@ -39,10 +41,8 @@
 #include <cvt/gfx/IThreshold.h>
 #include <cvt/gfx/IConvolve.h>
 #include <cvt/gfx/IBoxFilter.h>
-
 #include <cvt/gfx/IColorCode.h>
 
-#include <cvt/gfx/IExpr.h>
 
 #include <fstream>
 
@@ -172,6 +172,11 @@ namespace cvt {
 		fill( c );
 		return *this;
 	}
+
+	GFXEngine* Image::gfxEngine()
+    {
+        return new GFXEngineImage( *this );
+    }
 
 	std::ostream& operator<<( std::ostream &out, const Image &f )
 	{

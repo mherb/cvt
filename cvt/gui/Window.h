@@ -31,7 +31,7 @@
 
 namespace cvt {
 
-	class Window : public WidgetContainer, public Drawable
+	class Window : public WidgetContainer
 	{
 		public:
 			Window( const String& title );
@@ -40,7 +40,6 @@ namespace cvt {
 			virtual void closeEvent( CloseEvent& event );
 			virtual void moveEvent( MoveEvent& event );
 			virtual void paintEvent( PaintEvent& event, GFX& gfx );
-			GFXEngine* gfxEngine();
 
 		private:
 			Window( const Window& w );
