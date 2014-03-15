@@ -231,6 +231,7 @@ SET( CVT_HEADERS
    gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h
+   gfx/ICanny.h
    gfx/IColorCode.h
    gfx/IColorCodeMap.h
    gfx/IComponents.h
@@ -242,7 +243,6 @@ SET( CVT_HEADERS
    gfx/ILoader.h
    gfx/ISaver.h
    gfx/ifilter/AdaptiveThreshold.h
-   gfx/ifilter/Canny.h
    gfx/ifilter/ColorCode.h
    gfx/ifilter/ROFDenoise.h
    gfx/ifilter/ROFFGPFilter.h

@@ -131,6 +131,8 @@ namespace cvt {
 
 			void colorCode( Image& dst, IColorCodeMap map, float min = 0.0f, float max = 1.0f ) const;
 
+            void canny( Image& dst, float low, float hight ) const;
+
 			Image& operator=( const Color& c );
 			Image& operator=( const Image& c );
 

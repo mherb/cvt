@@ -41,6 +41,7 @@
 #include <cvt/gfx/IThreshold.h>
 #include <cvt/gfx/IConvolve.h>
 #include <cvt/gfx/IBoxFilter.h>
+#include <cvt/gfx/ICanny.h>
 #include <cvt/gfx/IColorCode.h>
 
 
@@ -301,4 +302,11 @@ namespace cvt {
 	{
 		IColorCode::colorCode( dst, *this, map, min, max );
 	}
+
+
+    void Image::canny( Image& dst, float low, float high ) const
+    {
+        ICanny::detectEdges( dst, *this, low, high );
+    }
+
 }
