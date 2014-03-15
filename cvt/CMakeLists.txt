@@ -240,8 +240,6 @@ SET( CVT_HEADERS
    gfx/IThreshold.h
    gfx/ILoader.h
    gfx/ISaver.h
-   gfx/ifilter/AdaptiveThreshold.h
-   gfx/ifilter/ColorCode.h
    gfx/ifilter/ROFDenoise.h
    gfx/ifilter/ROFFGPFilter.h
    gfx/ifilter/Homography.h
@@ -253,12 +251,8 @@ SET( CVT_HEADERS
    gfx/ifilter/BoxFilter.h
    gfx/ifilter/GuidedFilter.h
    gfx/ifilter/StereoGCVFilter.h
-   gfx/ifilter/Threshold.h
    gfx/ifilter/TVL1Flow.h
    gfx/ifilter/TVL1Stereo.h
-   gfx/ifilter/MorphErode.h
-   gfx/ifilter/MorphDilate.h
-#	gfx/ifilter/Sobel.h
    gfx/IFilter.h
    gfx/IScaleFilter.h
    gfx/ImageAllocator.h
@@ -575,8 +569,6 @@ SET( CVT_SOURCES
 	gfx/ImageTest.cpp
 	gfx/IMorphological.cpp
 	gfx/IThreshold.cpp
-	gfx/ifilter/AdaptiveThreshold.cpp
-	gfx/ifilter/ColorCode.cpp
 	gfx/ifilter/ROFDenoise.cpp
 	gfx/ifilter/ROFFGPFilter.cpp
 	gfx/ifilter/Homography.cpp
@@ -588,12 +580,8 @@ SET( CVT_SOURCES
 	gfx/ifilter/BoxFilter.cpp
 	gfx/ifilter/GuidedFilter.cpp
 	gfx/ifilter/StereoGCVFilter.cpp
-	gfx/ifilter/Threshold.cpp
 	gfx/ifilter/TVL1Flow.cpp
 	gfx/ifilter/TVL1Stereo.cpp
-	gfx/ifilter/MorphErode.cpp
-	gfx/ifilter/MorphDilate.cpp
-#	gfx/ifilter/Sobel.cpp
 	gfx/ImageAllocatorCL.cpp
 	gfx/ImageAllocatorGL.cpp
 	gfx/ImageAllocatorMem.cpp
