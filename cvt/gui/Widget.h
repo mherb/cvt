@@ -90,8 +90,6 @@ namespace cvt {
 
 			void paintChild( Widget* w, GFX& gfx, const Recti& rect ) const;
 
-			GFXEngine* gfxEngine();
-
 		private:
 			Widget( const Widget& w );
 

@@ -28,51 +28,62 @@
 
 namespace cvt {
 
-	GFX::GFX() : _engine( NULL ), _active( false )
+	GFX::GFX() : _engine( NULL )
 	{
 		setDefault();
 	}
 
-	GFX::GFX( const GFX& g ) :  _engine( NULL ), _active( false ), _color( g._color ), _linewidth( g._linewidth ), _translation( g._translation), _translationGlobal( 0, 0 )
+	GFX::GFX( const GFX& g ) :  _engine( NULL ), _color( g._color ), _linewidth( g._linewidth ), _translation( g._translation), _translationGlobal( 0, 0 )
 	{
 	}
 
-	GFX::GFX( GFXEngine* engine ) : _engine( engine ), _active( false ), _translationGlobal( 0, 0 )
+	GFX::GFX( GFXEngine* engine ) : _engine( engine ), _translationGlobal( 0, 0 )
 	{
 		setDefault();
 		begin();
 	}
 
 	GFX::~GFX()
-	{
-		if( _active )
-			end();
-	}
+    {
+        if( _status & GFX_ACTIVE )
+            end();
+        if( _status & GFX_DELETE_ENGINE )
+            delete _engine;
+    }
 
-	GFX::GFX( Drawable* drawable ) : _active( false )
+	GFX::GFX( Drawable* drawable )
 	{
 		setDefault();
 		_engine = drawable->gfxEngine();
+        _status |= GFX_DELETE_ENGINE;
+		begin();
+	}
+
+	GFX::GFX( Drawable& drawable )
+	{
+		setDefault();
+		_engine = drawable.gfxEngine();
+        _status |= GFX_DELETE_ENGINE;
 		begin();
 	}
 
 	void GFX::begin()
 	{
-		CVT_ASSERT( _active == false, "GFX engine already active" );
-		_active = true;
+		CVT_ASSERT( !( _status & GFX_ACTIVE ), "GFX engine already active" );
+		_status |= GFX_ACTIVE;
 		_engine->begin();
 	}
 
 	void GFX::begin( GFXEngine* engine )
 	{
-		CVT_ASSERT( _active == false && _engine == NULL && engine, "GFX engine already active or NULL"  );
+		CVT_ASSERT( ( !( _status & GFX_ACTIVE ) ) && _engine == NULL && engine, "GFX engine already active or NULL"  );
 		_engine = engine;
 		begin();
 	}
 
 	void GFX::begin( Drawable* draw )
 	{
-		CVT_ASSERT( _active == false && _engine == NULL && draw, "GFX engine already active or NULL"   );
+		CVT_ASSERT( ( !( _status & GFX_ACTIVE ) ) && _engine == NULL && draw, "GFX engine already active or NULL"   );
 		_engine = draw->gfxEngine();
 		CVT_ASSERT( _engine, "GFX engine is NULL" );
 		begin();
@@ -80,8 +91,8 @@ namespace cvt {
 
 	void GFX::end()
 	{
-		CVT_ASSERT( _active, "GFX engine is not active"  );
-		_active = false;
+		CVT_ASSERT( _status & GFX_ACTIVE, "GFX engine is not active"  );
+		_status &= ~GFX_ACTIVE;
 		_engine->end();
 	}
 

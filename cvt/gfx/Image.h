@@ -39,6 +39,7 @@
 #include <cvt/util/String.h>
 #include <cvt/gfx/IExprType.h>
 #include <cvt/gfx/IColorCodeMap.h>
+#include <cvt/gfx/Drawable.h>
 
 namespace cvt {
 	class ISaver;
@@ -46,7 +47,7 @@ namespace cvt {
 
 	template<typename T1, typename T2, IExprType op> class IExprBinary;
 
-	class Image
+	class Image : public Drawable
 	{
 		friend std::ostream& operator<<(std::ostream &os, const Image &f);
 		friend class CLKernel;
@@ -145,6 +146,8 @@ namespace cvt {
             void pyrdown( Image& dst ) const;
 
             void printValues( std::ostream& o, const Recti& rect ) const;
+
+            GFXEngine* gfxEngine();
 
 		private:
 			void scaleFloat( Image& idst, size_t width, size_t height, const IScaleFilter& filter ) const;
