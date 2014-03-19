@@ -50,7 +50,8 @@ namespace cvt {
 		_shader.setMaterial( bmodel.material() );
 		_shader.bind();
 		_shader.setTransformation( tnew, true );
-		bmodel.mesh()->draw();
+        if( bmodel.mesh() )
+		    bmodel.mesh()->draw();
 		_shader.unbind();
 		_shader.setTransformation( told );
 	}

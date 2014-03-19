@@ -90,7 +90,7 @@ namespace cvt {
     }
 
 
-	GLScene::GLScene( const Scene& scene )
+	GLScene::GLScene( const Scene& scene ) : _shader( *this )
 	{
 		_renderables = new GLSRenderableGroup();
 
@@ -106,16 +106,26 @@ namespace cvt {
 			}
 		}
 
-		if( _cams.size() == 0 ) {
+		if( cameraSize() == 0 ) {
 			_cams.push_back( GLSCamera( 80.0f, 1.333f, 0.1f, 150.0f ) );
 			Matrix4f t;
 			t.setIdentity();
 			t *= 10.0f;
-			t[ 3 ][ 3 ] = 1.0f;
+			t[ 0 ][ 3 ] = 0.0f;
 			t[ 1 ][ 3 ] = 20.0f;
 			t[ 2 ][ 3 ] = 180.0f;
+			t[ 3 ][ 3 ] = 1.0f;
 			_cams.back().setTransformation( t );
 		}
+
+        if( lightSize() == 0 ) {
+            _lights.push_back( GLSLight() );
+			Matrix4f t;
+			t[ 0 ][ 3 ] = 1.0f;
+			t[ 1 ][ 3 ] = 10.0f;
+			t[ 2 ][ 3 ] = 100.0f;
+            _lights.back().setTransformation( t );
+        }
 
 		_texture.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
 	}

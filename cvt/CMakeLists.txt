@@ -311,7 +311,7 @@ SET( CVT_HEADERS
    gl/scene/GLSTransformable.h
    gl/scene/GLSVisitor.h
    gl/scene/GLScene.h
-   gl/scene/GLSShaderDefault.h
+   gl/scene/GLSShaderProgram.h
    gui/Application.h
    gui/BasicTimer.h
    gui/Button.h
@@ -623,7 +623,7 @@ SET( CVT_SOURCES
 	gl/scene/GLSVisitor.cpp
 	gl/scene/GLSRenderableGroup.cpp
 	gl/scene/GLSBaseModel.cpp
-    gl/scene/GLSShaderDefault.cpp
+    gl/scene/GLSShaderProgram.cpp
 	gui/Application.cpp
 	gui/BasicTimer.cpp
 	gui/Button.cpp

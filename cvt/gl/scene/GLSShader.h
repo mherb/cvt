@@ -25,8 +25,6 @@
 #ifndef CVT_GLSSHADER_H
 #define CVT_GLSSHADER_H
 
-#include <cvt/gl/progs/GLDrawModelProg.h>
-#include <cvt/gl/progs/GLDrawTexModelProg.h>
 #include <cvt/gl/scene/GLSCamera.h>
 
 #include <cvt/util/Flags.h>
@@ -40,12 +38,14 @@ namespace cvt {
 	};
 
     class GLSMaterial;
+    class GLSShaderProgram;
+    class GLScene;
 
 	class GLSShader {
 		friend class GLScene;
 		public:
-			GLSShader();
-			~GLSShader() {}
+			GLSShader( const GLScene& scene );
+			~GLSShader();
 
 			void setCamera( const GLSCamera& camera );
 			void setTransformation( const Matrix4f& mat, bool setuniform = false );
@@ -58,23 +58,19 @@ namespace cvt {
 			void bind();
 			void unbind();
 
-			void setUniforms();
 		private:
-			GLSShaderMode _mode;
+            void generatePrograms();
+
+            const GLScene&      _scene;
+			GLSShaderMode       _mode;
 			const GLSMaterial*  _mat;
-			Matrix4f _proj;
-			Matrix4f _transformation;
-			//GLProgram* all programs for possible states
-			GLDrawModelProg _prog;
-			GLDrawTexModelProg _progtex;
+			Matrix4f            _proj;
+			Matrix4f            _transformation;
+            GLSMaterial*        _defaultmat;
+            GLSShaderProgram*   _progs[ 16 ];
 	};
 
-	inline GLSShader::GLSShader() : _mat( NULL )
-	{
-		_progtex.bind();
-		_progtex.setLightPosition( Vector3f( -100.0f, 340.0f, 65.0f ) );
-		_progtex.unbind();
-	}
+
 
 	inline void GLSShader::setCamera( const GLSCamera& camera )
 	{
@@ -92,18 +88,6 @@ namespace cvt {
 		return _mode;
 	}
 
-	inline void GLSShader::setUniforms()
-	{
-		_progtex.setProjection( _proj, _transformation );
-	}
-
-	inline void GLSShader::setTransformation( const Matrix4f& mat, bool setuniform )
-	{
-		_transformation = mat;
-		if( setuniform ) {
-			setUniforms();
-		}
-	}
 }
 
 #endif

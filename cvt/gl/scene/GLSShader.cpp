@@ -23,33 +23,63 @@
 */
 #include <cvt/gl/scene/GLSShader.h>
 #include <cvt/gl/scene/GLSMaterial.h>
+#include <cvt/gl/scene/GLSShaderProgram.h>
+#include <cvt/gl/scene/GLScene.h>
 
 namespace cvt {
+
+	GLSShader::GLSShader( const GLScene& scene ) : _scene( scene ), _mat( NULL )
+	{
+        _defaultmat = new GLSMaterial( "default" );
+        generatePrograms();
+	}
+
+    GLSShader::~GLSShader()
+    {
+        delete _defaultmat;
+        for( int i = 0; i < 16; i++ )
+            delete _progs[ i ];
+    }
+
 	void GLSShader::setMaterial( const GLSMaterial* mat )
 	{
-//		if( _mode == GLSSHADER_DEFAULT ) {
-			_mat = mat;
-//		}
+        if( mat )
+		    _mat = mat;
+        else
+            _mat = _defaultmat;
 	}
 
 	void GLSShader::bind()
 	{
-		if( _mat ) {
-			if( _mat->diffuseMap() )
-				_mat->diffuseMap()->bind();
-		}
-		_progtex.bind();
+		_progs[ _mat->flags() ]->bind();
+		_progs[ _mat->flags() ]->setMaterial( *_mat );
+        for( size_t i = 0; i < _scene.lightSize(); i++ )
+            _progs[ _mat->flags() ]->setLight( i, _scene.light( i ) );
+
+        _progs[ _mat->flags() ]->setNumLight( ( GLint ) _scene.lightSize() );
 	}
 
 	void GLSShader::unbind()
 	{
-		if( _mat ) {
-			if( _mat->diffuseMap() )
-				_mat->diffuseMap()->unbind();
-		}
-		_progtex.unbind();
+		_progs[ _mat->flags() ]->unbind();
 	}
 
+	void GLSShader::setTransformation( const Matrix4f& mat, bool setuniform )
+	{
+		_transformation = mat;
+        if( setuniform )
+		    _progs[ _mat->flags() ]->setProjection( _proj, _transformation );
+	}
 
+    void GLSShader::generatePrograms()
+    {
+        for( size_t flags = 0; flags < GLSMATERIAL_MAX; flags++ ) {
+            try {
+                _progs[ flags ] = new GLSShaderProgram( GLSMaterialFlags( flags ) );
+            } catch( GLException& e ) {
+                std::cout << e.log() << std::endl;
+            }
+        }
+    }
 
 }

@@ -65,9 +65,18 @@ namespace cvt {
             const GLSTexture*       texture( const String& path ) const;
             const GLSMaterial*      material( const String& name ) const;
 
-			const Time& time() const { return _time; }
+			const Time&             time() const { return _time; }
 
-			GLSCamera& camera( int i ) { return _cams[ i ]; }
+			GLSCamera&              camera( size_t i ) { return _cams[ i ]; }
+            GLSLight&               light( size_t i ) { return _lights[ i ];}
+
+            const GLSCamera&        camera( size_t i ) const { return _cams[ i ]; }
+            const GLSLight&         light( size_t i ) const { return _lights[ i ];}
+
+
+            size_t                  cameraSize() const { return _cams.size(); }
+            size_t                  lightSize() const { return _lights.size(); }
+
 		private:
             const GLSMaterial* addSceneMaterial( const SceneMaterial* mat, const Scene& scene );
             void               addSceneTexture( const SceneTexture* mat );
@@ -81,14 +90,13 @@ namespace cvt {
 			GLSShader					_shader;
 			GLDrawImageProg				_drawimgp;
 
-
 			GLSceneDrawFlags			_drawFlags;
 			float						_fps;
 			Time						_time;
 			GLTexture					_texture;
 	};
 
-	inline GLScene::GLScene()
+	inline GLScene::GLScene() : _shader( *this )
 	{
 		_renderables = new GLSRenderableGroup();
 

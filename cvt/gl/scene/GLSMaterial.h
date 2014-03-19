@@ -33,11 +33,11 @@
 
 namespace cvt {
 	enum GLSMaterialFeatures {
-		GL_SCENEMATERIAL_NONE			= ( 1 << 0 ),
-		GL_SCENEMATERIAL_DIFFUSE_MAP	= ( 1 << 1 ),
-		GL_SCENEMATERIAL_AMBIENT_MAP	= ( 1 << 2 ),
-		GL_SCENEMATERIAL_SPECULAR_MAP	= ( 1 << 3 ), // rgb = color, a = shininess
-		GL_SCENEMATERIAL_NORMALMAP		= ( 1 << 4 )
+		GLSMATERIAL_DIFFUSEMAP	    = ( 1 << 0 ),
+		GLSMATERIAL_AMBIENTMAP	    = ( 1 << 1 ),
+		GLSMATERIAL_SPECULARMAP	= ( 1 << 2 ), // rgb = color, a = shininess
+		GLSMATERIAL_NORMALMAP		= ( 1 << 3 ),
+        GLSMATERIAL_MAX             = ( 1 << 4 )
 	};
 
 	CVT_ENUM_TO_FLAGS( GLSMaterialFeatures, GLSMaterialFlags )
@@ -51,24 +51,26 @@ namespace cvt {
 			GLSMaterial( const SceneMaterial& mat, const GLScene& scene );
 			~GLSMaterial();
 
-			const Color& specularColor() const;
-			void		 setSpecularColor( const Color& c );
+			const Color&      specularColor() const;
+			void		      setSpecularColor( const Color& c );
 
-			float		 shininess() const;
-			void		 setShininess( float shininess );
+			float		      shininess() const;
+			void		      setShininess( float shininess );
 
-			const Color& diffuseColor() const;
-			void		 setDiffuseColor( const Color& c );
+			const Color&      diffuseColor() const;
+			void		      setDiffuseColor( const Color& c );
 
-			const Color& ambientColor() const;
-			void		 setAmbientColor( const Color& c );
+			const Color&      ambientColor() const;
+			void		      setAmbientColor( const Color& c );
 
-			const String& name() const;
+			const String&     name() const;
 
+			const GLTexture*  ambientMap() const;
 			const GLTexture*  diffuseMap() const;
+			const GLTexture*  specularMap() const;
+			const GLTexture*  normalMap() const;
 
-
-			GLSMaterialFlags flags() const { return _flags; }
+			GLSMaterialFlags  flags() const { return _flags; }
 			GLSMaterialFlags& flags() { return _flags; }
 
 		private:
@@ -84,48 +86,40 @@ namespace cvt {
 			const GLSTexture* _normalMap;
 	};
 
-	inline GLSMaterial::GLSMaterial( const String& name ) : _name( name ), _flags( GL_SCENEMATERIAL_NONE ),
-         _ambient( Color::WHITE ), _diffuse( Color::WHITE ), _specular( Color::WHITE ),
+	inline GLSMaterial::GLSMaterial( const String& name ) : _name( name ),
+         _ambient( Color::BLACK ), _diffuse( Color::GRAY ), _specular( Color::GRAY ),
          _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
 	{
 	}
 
-	inline GLSMaterial::GLSMaterial( const SceneMaterial& mat, const GLScene& scene ) : _name( mat.name() ), _flags( GL_SCENEMATERIAL_NONE ),
-         _ambient( Color::WHITE ), _diffuse( Color::WHITE ), _specular( Color::WHITE ),
+	inline GLSMaterial::GLSMaterial( const SceneMaterial& mat, const GLScene& scene ) : _name( mat.name() ),
+         _ambient( Color::BLACK ), _diffuse( Color::WHITE ), _specular( Color::WHITE ),
         _shininess( 1.0f ), _ambientMap( NULL ), _diffuseMap( NULL ), _specMap( NULL ), _normalMap( NULL )
 	{
 		const GLSTexture* tex;
 
-		if( mat.flags() & SCENEMATERIAL_AMBIENT ) {
-			_ambient = mat.ambientColor();
-		}
-
-		if( mat.flags() & SCENEMATERIAL_DIFFUSE ) {
-			_diffuse = mat.diffuseColor();
-		}
-
-		if( mat.flags() & SCENEMATERIAL_SPECULAR ) {
-			_specular = mat.specularColor();
-			_shininess = mat.shininess();
-		}
+        _ambient   = mat.ambientColor();
+        _diffuse   = mat.diffuseColor();
+        _specular  = mat.specularColor();
+        _shininess = mat.shininess();
 
 		if( mat.flags() & SCENEMATERIAL_AMBIENTMAP && ( tex = scene.texture( mat.ambientMap() ) ) != NULL ) {
-			_flags |= GL_SCENEMATERIAL_AMBIENT_MAP;
+			_flags |= GLSMATERIAL_AMBIENTMAP;
 			_ambientMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_DIFFUSEMAP && ( tex = scene.texture( mat.diffuseMap() ) ) != NULL) {
-			_flags |= GL_SCENEMATERIAL_DIFFUSE_MAP;
+			_flags |= GLSMATERIAL_DIFFUSEMAP;
 			_diffuseMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_SPECULARMAP && ( tex = scene.texture( mat.specularMap() ) ) != NULL) {
-			_flags |= GL_SCENEMATERIAL_SPECULAR_MAP;
+			_flags |= GLSMATERIAL_SPECULARMAP;
 			_specMap = tex;
 		}
 
 		if( mat.flags() & SCENEMATERIAL_NORMALMAP && ( tex = scene.texture( mat.normalMap() ) ) != NULL) {
-			_flags |= GL_SCENEMATERIAL_NORMALMAP;
+			_flags |= GLSMATERIAL_NORMALMAP;
 			_normalMap = tex;
 		}
 
@@ -181,10 +175,28 @@ namespace cvt {
 		return _name;
 	}
 
+    inline const GLTexture* GLSMaterial::ambientMap() const
+    {
+        if( !_ambientMap ) return NULL;
+        return _ambientMap->texture();
+    }
+
 	inline const GLTexture* GLSMaterial::diffuseMap() const
     {
         if( !_diffuseMap ) return NULL;
         return _diffuseMap->texture();
+    }
+
+	inline const GLTexture* GLSMaterial::specularMap() const
+    {
+        if( !_specMap ) return NULL;
+        return _specMap->texture();
+    }
+
+	inline const GLTexture* GLSMaterial::normalMap() const
+    {
+        if( !_normalMap ) return NULL;
+        return _normalMap->texture();
     }
 }
 

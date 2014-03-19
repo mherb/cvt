@@ -73,7 +73,7 @@ namespace cvt {
 	{
 		_vertices.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * mesh.vertexSize(), mesh.vertices() );
 		_normals.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 3 * mesh.normalSize(), mesh.normals() );
-		_texcoords.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 2 * mesh.texcoordSize(), mesh.texcoords() );
+    	_texcoords.alloc( GL_STATIC_DRAW, sizeof( GLfloat ) * 2 * mesh.texcoordSize(), mesh.texcoords() );
 		if( mesh.meshType() == SCENEMESH_QUADS ) {
 			std::vector<unsigned int> faces;
 			mesh.facesTriangles( faces );
@@ -86,8 +86,10 @@ namespace cvt {
 		}
 
 		_vao.setVertexData( _vertices, 3, GL_FLOAT );
-		_vao.setTexCoordData( _texcoords, 2, GL_FLOAT );
-		_vao.setNormalData( _normals, 3, GL_FLOAT );
+        if( _normals.size() )
+		    _vao.setNormalData( _normals, 3, GL_FLOAT );
+        if( _texcoords.size() )
+		    _vao.setTexCoordData( _texcoords, 2, GL_FLOAT );
 
 		_vao.setColor( Color::GRAY );
 	}
