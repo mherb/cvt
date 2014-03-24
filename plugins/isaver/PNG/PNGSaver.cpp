@@ -119,7 +119,7 @@ namespace cvt {
 
         png_bytep row_pointers[ tmpImage->height() ];
 
-        if (tmpImage->height() > PNG_UINT_32_MAX/sizeof(row_pointers)){
+        if (tmpImage->height() > PNG_UINT_32_MAX/sizeof(png_bytep)){
             throw CVTException("Image is too tall to process in memory");
         }
 
