@@ -457,6 +457,7 @@ SET( CVT_HEADERS
    vision/features/FeatureDescriptor.h
    vision/features/FeatureDescriptorExtractor.h
    vision/features/FeatureDetector.h
+   vision/features/FeatureMatch.h
    vision/features/FeatureSet.h
    vision/features/Harris.h
    vision/features/NMSFilter.h

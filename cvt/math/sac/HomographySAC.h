@@ -34,7 +34,7 @@
 
 #include <cvt/math/sac/SampleConsensusModel.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/geom/PointSet.h>
 
 

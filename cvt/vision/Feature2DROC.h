@@ -25,7 +25,7 @@
 #ifndef CVT_FEATURE2DROC_H
 #define CVT_FEATURE2DROC_H
 
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/math/Vector.h>
 #include <cvt/math/Matrix.h>
 #include <cvt/util/String.h>

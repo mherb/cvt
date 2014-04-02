@@ -22,18 +22,12 @@
    THE SOFTWARE.
 */
 
-/*
- * File:   EssentialSAC.h
- * Author: sebi
- *
- */
-
 #ifndef CVT_ESSENTIALSAC_H
 #define	CVT_ESSENTIALSAC_H
 
 #include <cvt/math/sac/SampleConsensusModel.h>
 #include <cvt/math/Matrix.h>
-#include <cvt/vision/FeatureMatch.h>
+#include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/geom/PointSet.h>
 
 namespace cvt
