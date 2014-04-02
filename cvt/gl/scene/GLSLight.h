@@ -56,8 +56,6 @@ namespace cvt {
 			bool			 active() const { return _active; }
 			void			 setActive( bool b ) { _active = b; }
 
-            Vector3f         position() const;
-
 		private:
 			GLSLightType _ltype;
 			Color		 _La;
@@ -120,14 +118,6 @@ namespace cvt {
 	{
 		_Ls = c;
 	}
-
-
-    inline Vector3f GLSLight::position() const
-    {
-        const Matrix4f& t = transformation();
-
-        return Vector3f( t[ 0 ][ 3 ], t[ 1 ][ 3 ], t[ 2 ][ 3 ] );
-    }
 
 };
 

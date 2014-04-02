@@ -121,9 +121,10 @@ namespace cvt {
         if( lightSize() == 0 ) {
             _lights.push_back( GLSLight() );
 			Matrix4f t;
-			t[ 0 ][ 3 ] = 1.0f;
-			t[ 1 ][ 3 ] = 10.0f;
-			t[ 2 ][ 3 ] = 100.0f;
+            t.setIdentity();
+			t[ 0 ][ 3 ] = 80.0f;
+			t[ 1 ][ 3 ] = 400.0f;
+			t[ 2 ][ 3 ] = -20.0f;
             _lights.back().setTransformation( t );
         }
 

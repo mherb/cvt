@@ -159,7 +159,7 @@ namespace cvt {
     {
         if( index >= MAX_LIGHTS ) return;
 
-        glUniform3fv( _lightloc[ index ].positionloc, 1, light.position().ptr() );
+        glUniform4fv( _lightloc[ index ].positionloc, 1, light.transformation().col( 3 ).ptr() );
         glUniform4fv( _lightloc[ index ].laloc, 1, light.ambientColor().ptr() );
         glUniform4fv( _lightloc[ index ].ldloc, 1, light.diffuseColor().ptr() );
         glUniform4fv( _lightloc[ index ].lsloc, 1, light.specularColor().ptr() );

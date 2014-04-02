@@ -52,7 +52,9 @@ namespace cvt {
 	void GLSShader::bind()
 	{
 		_progs[ _mat->flags() ]->bind();
+
 		_progs[ _mat->flags() ]->setMaterial( *_mat );
+
         for( size_t i = 0; i < _scene.lightSize(); i++ )
             _progs[ _mat->flags() ]->setLight( i, _scene.light( i ) );
 
