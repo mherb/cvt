@@ -45,6 +45,8 @@ namespace cvt {
 			GLProgram();
 			~GLProgram();
 			void build( const char* vertsrc, const char* fragsrc, const char* geomsrc = NULL );
+            void build( const char** vertsrc, int vertcount, const char** fragsrc, int fragcount, const char** geomsrc = NULL, int geomcount = 0 );
+
 			void bind();
 			void unbind();
 			void bindAttribLocation( const char *name, unsigned int location );

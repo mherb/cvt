@@ -25,20 +25,15 @@
 #ifndef CVT_GLSCENE_H
 #define CVT_GLSCENE_H
 
+#include <cvt/geom/scene/Scene.h>
 
 #include <cvt/gl/scene/GLSCamera.h>
 #include <cvt/gl/scene/GLSLight.h>
-#include <cvt/gl/scene/GLSMaterial.h>
-#include <cvt/gl/scene/GLSRenderable.h>
 #include <cvt/gl/scene/GLSRenderableGroup.h>
-#include <cvt/gl/scene/GLSBaseModel.h>
-#include <cvt/gl/scene/GLSVisitor.h>
 #include <cvt/gl/scene/GLSShader.h>
-#include <cvt/gl/GLMesh.h>
+
 #include <cvt/util/Time.h>
 
-#include <cvt/gl/GLFBO.h>
-#include <cvt/gl/GLRBO.h>
 #include <cvt/gl/progs/GLDrawImageProg.h>
 
 namespace cvt {
@@ -51,6 +46,10 @@ namespace cvt {
 
 	CVT_ENUM_TO_FLAGS( GLSceneDrawFeatures, GLSceneDrawFlags )
 
+    class GLSMaterial;
+    class GLSTexture;
+    class GLMesh;
+
 	class GLScene
 	{
 		public:
@@ -59,112 +58,52 @@ namespace cvt {
 			~GLScene();
 
 
-			void draw( size_t cam );
-			GLSceneDrawFlags& drawMode() { return _drawFlags; }
+			void                    draw( size_t cam );
+			GLSceneDrawFlags&       drawMode() { return _drawFlags; }
 			const GLSceneDrawFlags& drawMode() const { return _drawFlags; }
 
-			const Time& time() const { return _time; }
+            const GLSTexture*       texture( const String& path ) const;
+            const GLSMaterial*      material( const String& name ) const;
 
-			GLSCamera& camera( int i ) { return _cams[ i ]; }
+			const Time&             time() const { return _time; }
+
+			GLSCamera&              camera( size_t i ) { return _cams[ i ]; }
+            GLSLight&               light( size_t i ) { return _lights[ i ];}
+
+            const GLSCamera&        camera( size_t i ) const { return _cams[ i ]; }
+            const GLSLight&         light( size_t i ) const { return _lights[ i ];}
+
+
+            size_t                  cameraSize() const { return _cams.size(); }
+            size_t                  lightSize() const { return _lights.size(); }
+
 		private:
+            const GLSMaterial* addSceneMaterial( const SceneMaterial* mat, const Scene& scene );
+            void               addSceneTexture( const SceneTexture* mat );
+
 			std::vector<GLSCamera>		_cams;
 			std::vector<GLSLight>		_lights;
 			std::vector<GLSMaterial*>	_materials;
+			std::vector<GLSTexture*>	_textures;
 			std::vector<GLMesh*>		_meshes;
 			GLSRenderableGroup*			_renderables;
 			GLSShader					_shader;
 			GLDrawImageProg				_drawimgp;
 
-
 			GLSceneDrawFlags			_drawFlags;
 			float						_fps;
 			Time						_time;
-			GLMesh						_mesh;
 			GLTexture					_texture;
 	};
 
-	inline GLScene::GLScene()
+	inline GLScene::GLScene() : _shader( *this )
 	{
 		_renderables = new GLSRenderableGroup();
 
 		_texture.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
 	}
 
-
-	inline GLScene::GLScene( const Scene& scene ) :
-		_mesh( *( ( SceneMesh* ) scene.geometry( 0 ) ) )
-	{
-		_renderables = new GLSRenderableGroup();
-
-		for( size_t i = 0; i < scene.geometrySize(); i++ ) {
-			if( scene.geometry( i )->type() == SCENEGEOMETRY_MESH ) {
-				const SceneMaterial* mat;
-				_meshes.push_back( new GLMesh( *( ( SceneMesh* ) scene.geometry( i ) ) ) );
-				if( ( mat = scene.material( scene.geometry( i )->material() ) ) != NULL ) {
-					_materials.push_back( new GLSMaterial( *mat, scene ) );
-					_renderables->add( new GLSBaseModel( _meshes.back(), _materials.back() ) );
-				} else
-					_renderables->add( new GLSBaseModel( _meshes.back(), NULL ) );
-			}
-		}
-
-		if( _cams.size() == 0 ) {
-			_cams.push_back( GLSCamera( 80.0f, 1.333f, 0.1f, 150.0f ) );
-			Matrix4f t;
-			t.setIdentity();
-			t *= 10.0f;
-			t[ 3 ][ 3 ] = 1.0f;
-			t[ 1 ][ 3 ] = 20.0f;
-			t[ 2 ][ 3 ] = 180.0f;
-			_cams.back().setTransformation( t );
-		}
-
-		_texture.alloc( GL_DEPTH_COMPONENT, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT );
-	}
-
-	inline GLScene::~GLScene()
-	{
-		delete _renderables;
-	}
-
-	inline void GLScene::draw( size_t cam )
-	{
-		GLFBO fbo( 640, 480 );
-//		GLRBO rbo( GL_RGBA, 640, 480 );
-//		GLTexture tex;
-//		tex.alloc( GL_RGBA, 640, 480, GL_RGBA, GL_UNSIGNED_BYTE );
-
-		_shader.setCamera( _cams[ cam ] );
-		GLSRenderVisitor rvisitor( _shader );
-
-		fbo.bind();
-//		fbo.attach( GL_COLOR_ATTACHMENT0, tex );
-		fbo.attach( GL_DEPTH_ATTACHMENT, _texture );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		glEnable( GL_DEPTH_TEST );
-		_renderables->accept( rvisitor );
-		glDisable( GL_DEPTH_TEST );
-		fbo.unbind();
-
-		glEnable( GL_DEPTH_TEST );
-		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		_renderables->accept( rvisitor );
-		glDisable( GL_DEPTH_TEST );
-		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-
-		Matrix4f proj;
-		GL::orthoTranslation( proj, 0, ( float ) 640, 0, ( float ) 480, ( float ) 0, ( float ) 0, -100.0f, 100.0f, true );
-		_drawimgp.bind();
-		_drawimgp.setProjection( proj );
-		_drawimgp.setAlpha( 1.0f );
-//		GLTexture* _tex = _materials[ 0 ]->diffuseMap();
-//		_drawimgp.drawImage( 0, 0, 320, 240, *_tex );
-		_drawimgp.drawImage( 0, 0, 320, 240, _texture );
-		_drawimgp.unbind();
-
-	}
-
+ 
 }
 
 #endif

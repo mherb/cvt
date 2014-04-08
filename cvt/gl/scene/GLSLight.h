@@ -38,26 +38,36 @@ namespace cvt {
 	class GLSLight : public GLSTransformable
 	{
 		public:
-			GLSLight( GLSLightType ltype );
+			GLSLight( GLSLightType ltype = GLSLIGHT_POINT );
 			~GLSLight();
 
 			GLSLightType	 lightType() const;
 
 			void			 setColor( const Color& c );
-			const Color&	 color() const;
 
-			bool			 visible() const { return _visible; }
-			void			 setVisible( bool b ) { _visible = b; }
+			void			 setAmbientColor( const Color& c );
+			void			 setDiffuseColor( const Color& c );
+			void			 setSpecularColor( const Color& c );
+
+			const Color&	 ambientColor() const;
+			const Color&	 diffuseColor() const;
+			const Color&	 specularColor() const;
+
+			bool			 active() const { return _active; }
+			void			 setActive( bool b ) { _active = b; }
 
 		private:
 			GLSLightType _ltype;
-			Color		 _color;
-			bool		 _visible;
+			Color		 _La;
+			Color		 _Ld;
+			Color		 _Ls;
+			bool		 _active;
 //			GLTexture*	 _shadowmap;
 	};
 
 	inline GLSLight::GLSLight( GLSLightType ltype ) :  _ltype( ltype )
 	{
+        setColor( Color::WHITE );
 	}
 
 	inline GLSLight::~GLSLight()
@@ -72,14 +82,41 @@ namespace cvt {
 	}
 
 
-	inline const Color& GLSLight::color() const
+	inline const Color& GLSLight::ambientColor() const
 	{
-		return _color;
+		return _La;
+	}
+
+	inline const Color& GLSLight::diffuseColor() const
+	{
+		return _Ld;
+	}
+
+    inline const Color& GLSLight::specularColor() const
+	{
+		return _Ls;
 	}
 
 	inline void GLSLight::setColor( const Color& c )
 	{
-		_color = c;
+		setAmbientColor( Color::BLACK );
+        setDiffuseColor( c );
+        setSpecularColor( c );
+	}
+
+	inline void GLSLight::setAmbientColor( const Color& c )
+	{
+		_La = c;
+	}
+
+	inline void GLSLight::setDiffuseColor( const Color& c )
+	{
+		_Ld = c;
+	}
+
+	inline void GLSLight::setSpecularColor( const Color& c )
+	{
+		_Ls = c;
 	}
 
 };

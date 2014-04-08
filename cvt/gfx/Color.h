@@ -73,6 +73,7 @@ namespace cvt {
 			void mix( const Color& c1, const Color& c2, float alpha );
 
 			const float* data() const { return &_r; }
+			const float* ptr() const { return &_r; }
 
 			static const Color BLACK;
 			static const Color WHITE;

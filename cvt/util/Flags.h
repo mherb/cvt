@@ -31,6 +31,7 @@ namespace cvt
 	class Flags
 	{
 		public:
+			inline explicit Flags( size_t flags ) : _flags( flags ) {}
 			inline Flags( ) : _flags( 0 ) {}
 			inline Flags( const Flags<ENUM> &f ) : _flags( f._flags ) {}
 			inline Flags( ENUM f ) : _flags( f ) {}

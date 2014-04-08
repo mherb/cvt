@@ -34,23 +34,23 @@ namespace cvt {
 
 	class GLSBaseModel : public GLSRenderable {
 		public:
-			GLSBaseModel( GLMesh* mesh, GLSMaterial* material = NULL );
+			GLSBaseModel( GLMesh* mesh, const GLSMaterial* material = NULL );
 			~GLSBaseModel();
 
-			GLMesh*		 mesh() { return _mesh; }
-			GLSMaterial* material() { return _material; }
-			bool		 visible() const { return _visible; }
-			void		 setVisible( bool b ) { _visible = b; }
+			GLMesh*		       mesh() { return _mesh; }
+			const GLSMaterial* material() { return _material; }
+			bool		       visible() const { return _visible; }
+			void		       setVisible( bool b ) { _visible = b; }
 
-			void		 accept( GLSVisitor& visitor );
+			void		       accept( GLSVisitor& visitor );
 		private:
-			bool		 _visible;
-			GLMesh*		 _mesh;
-			GLSMaterial* _material;
+			bool		       _visible;
+			GLMesh*		       _mesh;
+			const GLSMaterial* _material;
 	};
 
 
-	inline GLSBaseModel::GLSBaseModel( GLMesh* mesh, GLSMaterial* mat ) :
+	inline GLSBaseModel::GLSBaseModel( GLMesh* mesh, const GLSMaterial* mat ) :
 		_mesh( mesh ),
 		_material( mat )
 	{

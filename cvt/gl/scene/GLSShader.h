@@ -25,10 +25,7 @@
 #ifndef CVT_GLSSHADER_H
 #define CVT_GLSSHADER_H
 
-#include <cvt/gl/progs/GLDrawModelProg.h>
-#include <cvt/gl/progs/GLDrawTexModelProg.h>
 #include <cvt/gl/scene/GLSCamera.h>
-#include <cvt/gl/scene/GLSMaterial.h>
 
 #include <cvt/util/Flags.h>
 
@@ -40,11 +37,15 @@ namespace cvt {
 		GLSSHADER_DEPTH_NORMAL = 3
 	};
 
+    class GLSMaterial;
+    class GLSShaderProgram;
+    class GLScene;
+
 	class GLSShader {
 		friend class GLScene;
 		public:
-			GLSShader();
-			~GLSShader() {}
+			GLSShader( const GLScene& scene );
+			~GLSShader();
 
 			void setCamera( const GLSCamera& camera );
 			void setTransformation( const Matrix4f& mat, bool setuniform = false );
@@ -57,23 +58,19 @@ namespace cvt {
 			void bind();
 			void unbind();
 
-			void setUniforms();
 		private:
+            void generatePrograms();
+
+            const GLScene&      _scene;
+			GLSShaderMode       _mode;
 			const GLSMaterial*  _mat;
-			GLSShaderMode _mode;
-			Matrix4f _proj;
-			Matrix4f _transformation;
-			//GLProgram* all programs for possible states
-			GLDrawModelProg _prog;
-			GLDrawTexModelProg _progtex;
+			Matrix4f            _proj;
+			Matrix4f            _transformation;
+            GLSMaterial*        _defaultmat;
+            GLSShaderProgram*   _progs[ 16 ];
 	};
 
-	inline GLSShader::GLSShader() : _mat( NULL )
-	{
-		_progtex.bind();
-		_progtex.setLightPosition( Vector3f( -100.0f, 340.0f, 65.0f ) );
-		_progtex.unbind();
-	}
+
 
 	inline void GLSShader::setCamera( const GLSCamera& camera )
 	{
@@ -91,45 +88,6 @@ namespace cvt {
 		return _mode;
 	}
 
-
-	inline void GLSShader::setMaterial( const GLSMaterial* mat )
-	{
-//		if( _mode == GLSSHADER_DEFAULT ) {
-			_mat = mat;
-//		}
-	}
-
-	inline void GLSShader::bind()
-	{
-		if( _mat ) {
-			if( _mat->diffuseMap() )
-				_mat->diffuseMap()->bind();
-		}
-		_progtex.bind();
-	}
-
-	inline void GLSShader::unbind()
-	{
-		if( _mat ) {
-			if( _mat->diffuseMap() )
-				_mat->diffuseMap()->unbind();
-		}
-		_progtex.unbind();
-	}
-
-
-	inline void GLSShader::setUniforms()
-	{
-		_progtex.setProjection( _proj, _transformation );
-	}
-
-	inline void GLSShader::setTransformation( const Matrix4f& mat, bool setuniform )
-	{
-		_transformation = mat;
-		if( setuniform ) {
-			setUniforms();
-		}
-	}
 }
 
 #endif
