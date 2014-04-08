@@ -35,7 +35,7 @@ namespace cvt {
 	enum GLSMaterialFeatures {
 		GLSMATERIAL_DIFFUSEMAP	    = ( 1 << 0 ),
 		GLSMATERIAL_AMBIENTMAP	    = ( 1 << 1 ),
-		GLSMATERIAL_SPECULARMAP	= ( 1 << 2 ), // rgb = color, a = shininess
+		GLSMATERIAL_SPECULARMAP	    = ( 1 << 2 ), // rgb = color, a = shininess
 		GLSMATERIAL_NORMALMAP		= ( 1 << 3 ),
         GLSMATERIAL_MAX             = ( 1 << 4 )
 	};
