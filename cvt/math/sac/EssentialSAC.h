@@ -76,7 +76,7 @@ namespace cvt
 			Matrix3f							_Kinv;
 	};
 
-    EssentialSAC::ResultType EssentialSAC::estimate( const std::vector<size_t> & sampleIndices ) const
+    inline EssentialSAC::ResultType EssentialSAC::estimate( const std::vector<size_t> & sampleIndices ) const
     {
         PointSet2f set0, set1;
         for( size_t i = 0; i < sampleIndices.size(); i++ ){
@@ -87,12 +87,12 @@ namespace cvt
         return set0.essentialMatrix( set1, _K );
     }
 
-    EssentialSAC::ResultType EssentialSAC::refine( const ResultType&, const std::vector<size_t> & inlierIndices ) const
+    inline EssentialSAC::ResultType EssentialSAC::refine( const ResultType&, const std::vector<size_t> & inlierIndices ) const
     {
         return estimate( inlierIndices );
     }
 
-    void EssentialSAC::inliers( std::vector<size_t> & inlierIndices,
+    inline void EssentialSAC::inliers( std::vector<size_t> & inlierIndices,
                                 const ResultType & estimate,
                                 const DistanceType maxDistance ) const
     {
@@ -104,7 +104,7 @@ namespace cvt
 			tmp[ 0 ] = _matches[ i ].feature0->pt.x;
 			tmp[ 1 ] = _matches[ i ].feature0->pt.y;
 			tmp[ 2 ] = 1.0f;
-            
+
 			// get the line in the other image
 			Line2Df line( funda *  tmp );
 
