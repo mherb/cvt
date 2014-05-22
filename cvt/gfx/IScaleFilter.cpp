@@ -22,8 +22,8 @@
    THE SOFTWARE.
 */
 
-#include "gfx/IScaleFilter.h"
-#include "math/Math.h"
+#include <cvt/gfx/IScaleFilter.h>
+#include <cvt/math/Math.h>
 
 namespace cvt {
 	/* Blackman window */
