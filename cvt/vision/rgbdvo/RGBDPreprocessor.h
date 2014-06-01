@@ -151,7 +151,7 @@ namespace cvt {
                                        float val,
                                        const IMapScoped<const float>& depthMap ) const;
 
-            void depthPyramidNearestNeighbor()
+            void depthPyramidNearestNeighbor();
 
         private:
             RGBDPreprocessor() :
