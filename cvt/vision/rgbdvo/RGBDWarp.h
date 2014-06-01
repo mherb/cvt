@@ -123,12 +123,20 @@ namespace cvt
 
             void updateParameters( const DeltaVectorType& v )
             {
-                _pose.apply( -v );
+                _pose.apply( v );
             }
 
             void updateParametersInv( const DeltaVectorType& v )
             {
                 _pose.applyInverse( v );
+            }
+
+            static void zJacobian( JacobianType& J, const Vector3f& pCam )
+            {
+                J.setZero();
+                J( 0, 0 ) =  pCam[ 1 ];
+                J( 0, 1 ) = -pCam[ 0 ];
+                J( 0, 5 ) =  1.0f;
             }
 
         private:
@@ -191,7 +199,7 @@ namespace cvt
 
             void updateParameters( const DeltaVectorType& v )
             {
-                _pose.apply( -v.head<6>() );
+                _pose.apply( v.head<6>() );
 
                 Type ta = 1.0 + v[ 6 ];
                 _alpha = ( _alpha - v[ 6 ] ) / ta;
@@ -261,6 +269,14 @@ namespace cvt
                     return ssd / indices.size();
                 else
                     return 1.0f;
+            }
+
+            static void zJacobian( JacobianType& J, const Vector3f& pCam )
+            {
+                J.setZero();
+                J( 0, 0 ) =  pCam[ 1 ];
+                J( 0, 1 ) = -pCam[ 0 ];
+                J( 0, 5 ) =  1.0f;
             }
 
         private:

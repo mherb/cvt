@@ -205,7 +205,7 @@ namespace cvt {
                                                      const JacobianType* jacobians, const float* residuals, size_t n  )
     {        
         float median = this->computeMedian( residuals, n );
-        float mad = this->computeMAD( residuals, n, median );        
+        float mad = this->computeMAD( residuals, n, median );
 
         // this is an estimate for the standard deviation:
         _robustEstimator->setScale( 1.4826f * mad );

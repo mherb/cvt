@@ -85,9 +85,10 @@ namespace cvt {
     {
         float scale = 1.0f;
 
+        // update the reference pose
+        this->_pose = world2Cam;
         for( size_t i = 0; i < grayPyr.octaves(); i++ ){
-            IntensityData<Warp>* data = ( IntensityData<Warp>* )this->dataForScale( i );
-
+            IntensityData<Warp>* data = ( IntensityData<Warp>* )this->_referenceData[ i ];
             data->updateOfflineData( world2Cam, grayPyr[ i ], depth, scale, this->_gradientThreshold );
 
             if( this->_useInformationSelection ){
@@ -143,9 +144,9 @@ namespace cvt {
                                                            const ImagePyramid& pyrf,
                                                            const Image& depth )
 	{
-        //Matrix4f iPose = cam2World.inverse();
 		for( size_t i = 0; i < pyrf.octaves(); ++i ){
-            this->_referenceData[ i ]->updateOnlineData( cam2World, pyrf[ i ], depth );
+            IntensityData<Warp>* data = ( IntensityData<Warp>* )this->_referenceData[ i ];
+            data->updateOnlineData( cam2World, pyrf[ i ], depth );
 		}
 	}
 

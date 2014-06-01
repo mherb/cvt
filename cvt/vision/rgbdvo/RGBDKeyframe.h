@@ -65,17 +65,10 @@ namespace cvt
             void setSelectionPixelPercentage( float n )     { _pixelPercentageToSelect = n; }
             void setUseInformationSelection( bool v )       { _useInformationSelection = v; }
 
-            virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
-            virtual void updateOnlineData( const Matrix4f& cam2World, const ImagePyramid& pyrf, const Image& depth ) = 0;
+//            virtual void updateOfflineData( const Matrix4f& pose, const ImagePyramid& pyramid, const Image& depth ) = 0;
+//            virtual void updateOnlineData( const Matrix4f& cam2World, const ImagePyramid& pyrf, const Image& depth ) = 0;
 
-            virtual void recompute( std::vector<float>& residuals,
-                                    JacobianVec& jacobians,
-                                    const Warp& warp,
-                                    const IMapScoped<const float>& gray,
-                                    const IMapScoped<const float>& depth,
-                                    size_t octave ) = 0;
-
-            const ReferencePoints*  dataForScale( size_t octave ){ return _referenceData[ octave ]; }
+            const ReferencePoints*  dataForScale( size_t octave ) const { return _referenceData[ octave ]; }
 
         protected:
             std::vector<ReferencePoints*> _referenceData;

@@ -42,7 +42,7 @@ namespace cvt {
             virtual void setPose( const Matrix4f& pose ) = 0;
             virtual const Matrix4f& referencePose() const = 0;
             virtual void updateOfflineData() = 0;
-            virtual size_t modelSize( size_t octave = 0 ) = 0;
+            virtual size_t modelSize( size_t octave = 0 ) const = 0;
 
     };
 

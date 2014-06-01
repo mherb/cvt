@@ -51,15 +51,18 @@ namespace cvt {
 
             const Vector3f* points() const { return &_points3d[ 0 ]; }
 
-            virtual void updateOnlineData( const Matrix4f&,
-                                           const Image&,
-                                           const Image& ){}
-
 
         protected:
             Matrix3f                _intrinsics;
             std::vector<Vector3f>   _points3d;
 
+            void  initializePointLookUps( float* vals, size_t n, float foc, float c ) const
+            {
+                float invF = 1.0f / foc;
+                for( size_t i = 0; i < n; i++ ){
+                    vals[ i ] = ( i - c ) * invF;
+                }
+            }
     };
 
     /**
@@ -151,17 +154,15 @@ namespace cvt {
                                             float scaleFac,
                                             float gradientThresh ) = 0;
 
+            virtual void updateOnlineData( const Matrix4f&,
+                                           const Image&,
+                                           const Image& ){}
+
         protected:
             std::vector<float>          _pixelValues;
             JacobianVec                 _jacobians;            
 
-            void  initializePointLookUps( float* vals, size_t n, float foc, float c ) const
-            {
-                float invF = 1.0f / foc;
-                for( size_t i = 0; i < n; i++ ){
-                    vals[ i ] = ( i - c ) * invF;
-                }
-            }
+
     };
 
     template <class Warp>
@@ -269,9 +270,13 @@ namespace cvt {
 
                             // add jacobian for the point
                             this->_jacobians.push_back( JacobianType() );
+                            JacobianType& j = this->_jacobians.back();
 
                             // precompute it using the gradient and screen jacobian value
-                            Warp::computeJacobian( this->_jacobians.back(), sj, g, value[ x ] );
+                            Warp::computeJacobian( j, sj, g, value[ x ] );
+
+                            // this is to get the inverse incremental pose update
+                            j.template head<6>() *= -1.0f;
 
                             // add point
                             this->_points3d.push_back( p3dw );
@@ -342,6 +347,7 @@ namespace cvt {
 
                         // compute the Fwd jacobians
                         Warp::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolated[ i ] );
+                        jacobians[ savePos ] *= -1.0f;
                         residuals[ savePos ] = residuals[ i ];
                         ++savePos;
                     }
@@ -520,6 +526,7 @@ namespace cvt {
 
                         // compute the ESM jacobians
                         Warp::computeJacobian( jacobians[ savePos ], sj[ i ], grad, interpolated[ i ] );
+                        jacobians[ savePos ] *= -1.0f;
                         residuals[ savePos ] = residuals[ i ];
                         ++savePos;
                     }

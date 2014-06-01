@@ -97,6 +97,8 @@ namespace cvt {
                 break;
             }
 
+            //std::cout << "Hessian\n " << hessian << std::endl;
+
             DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
             this->_overallDelta.noalias() += deltaP;
 

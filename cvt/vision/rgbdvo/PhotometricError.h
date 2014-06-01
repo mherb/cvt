@@ -86,8 +86,6 @@ namespace cvt {
                 }
             }
 
-
-
             struct Params {
                     Params():
                         octaves( 3 ),
@@ -134,10 +132,11 @@ namespace cvt {
             };
 
             PhotometricError( const Matrix3f& K,
-                              Params& p = Params() ) :
+                              const Params& p = Params() ) :
                 _grayPyr( p.octaves, p.scale ),
                 _reference( Factory( p.linearizer ), K, p.octaves, p.scale )
             {
+                // TODO: move this to DVOCostFunction
                 RGBDPreprocessor::instance().setDepthScale( p.depthScale );
                 RGBDPreprocessor::instance().setMaxDepth( p.maxDepth );
                 RGBDPreprocessor::instance().setMinDepth( p.minDepth );
@@ -196,7 +195,7 @@ namespace cvt {
 
             void updateOfflineData();
 
-            size_t modelSize( size_t octave = 0 ) { return _reference.dataForScale( octave )->size(); }
+            size_t modelSize( size_t octave = 0 ) const { return _reference.dataForScale( octave )->size(); }
 
         private:
             // current warp: cam -> world
