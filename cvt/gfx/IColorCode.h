@@ -26,12 +26,15 @@
 #define CVT_ICOLORCODE_H
 
 #include <cvt/gfx/IColorCodeMap.h>
+#include <cvt/gfx/Color.h>
+#include <cvt/gfx/IMapScoped.h>
 
 namespace cvt {
 
 	class IColorCode {
 		public:
 			static void colorCode( Image& dst, const Image& src, IColorCodeMap palette = ICOLORCODE_PM3D, float min = 0.0f, float max = 1.0f );
+            static void colorCode( Color& color, float val, IColorCodeMap palette = ICOLORCODE_PM3D, float min = 0.0f, float max = 1.0f );
 
 		private:
 			IColorCode();
@@ -94,6 +97,9 @@ namespace cvt {
 
 			template<typename T1, typename T2, typename T3>
 			static void applyRGBFormula( Image& idst, const Image& isrc, float min, float max, T1 rop, T2 gop, T3 bop );
+
+            template<typename T1, typename T2, typename T3>
+            static void applyRGBFormula( Color& c, float in, float min, float max, T1 rop, T2 gop, T3 bop );
 	};
 
 	void IColorCode::colorCode( Image& dst, const Image& src, IColorCodeMap map, float min, float max )
@@ -108,6 +114,19 @@ namespace cvt {
 			case ICOLORCODE_AUTUMN: return applyRGBFormula( dst, src, min, max, IColorCode::one, IColorCode::id, IColorCode::zero );
 		}
 	}
+
+    void IColorCode::colorCode( Color& color, float val, IColorCodeMap palette, float min, float max )
+    {
+        switch( palette ) {
+            case ICOLORCODE_PM3D: return applyRGBFormula( color, val, min, max, IColorCode::sqrt, IColorCode::cube, IColorCode::sin360 );
+            case ICOLORCODE_HOT: return applyRGBFormula( color, val, min, max, IColorCode::hot1, IColorCode::hot2, IColorCode::hot3 );
+            case ICOLORCODE_GRAY: return applyRGBFormula( color, val, min, max, IColorCode::id, IColorCode::id, IColorCode::id );
+            case ICOLORCODE_OCEAN: return applyRGBFormula( color, val, min, max, IColorCode::hot3, IColorCode::f28, IColorCode::id );
+            case ICOLORCODE_COLORGRAYPRINT: return applyRGBFormula( color, val, min, max, IColorCode::cgprint1, IColorCode::cgprint2, IColorCode::cgprint3 );
+            case ICOLORCODE_RAINBOW: return applyRGBFormula( color, val, min, max, IColorCode::f33, IColorCode::sin180, IColorCode::cos90 );
+            case ICOLORCODE_AUTUMN: return applyRGBFormula( color, val, min, max, IColorCode::one, IColorCode::id, IColorCode::zero );
+        }
+    }
 
 	template<typename T1, typename T2, typename T3>
 	void IColorCode::applyRGBFormula( Image& idst, const Image& isrc, float min, float max, T1 rop, T2 gop, T3 bop )
@@ -127,7 +146,6 @@ namespace cvt {
 		IMapScoped<float> dstmap( idst );
 		IMapScoped<const float> srcmap( isrc );
 
-
 		h = idst.height();
 		while( h-- ) {
 			pdst = dstmap.ptr();
@@ -145,6 +163,18 @@ namespace cvt {
 			srcmap++;
 		}
 	}
+
+    template<typename T1, typename T2, typename T3>
+    void IColorCode::applyRGBFormula( Color& c, float in, float min, float max, T1 rop, T2 gop, T3 bop )
+    {
+        float low = Math::min( min, max );
+        float high = Math::max( min, max );
+        float val = ( ( Math::clamp( in, low, high ) - min ) / ( max - min ) );
+        c.set( sRGB2Linear( Math::clamp( rop( val ), 0.0f, 1.0f ) ),
+               sRGB2Linear( Math::clamp( gop( val ), 0.0f, 1.0f ) ),
+               sRGB2Linear( Math::clamp( bop( val ), 0.0f, 1.0f ) ),
+               1.0f );
+    }
 
 }
 
