@@ -21,7 +21,7 @@ MACRO(GLSLTOHEADER _filename cvt_includes_dir )
                         "${GLSL_GEN_OUTPUT}"
                         "${_basename}_${_ext}"
                         "${cvt_includes_dir}"
-                        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" glcltoheader )
+                        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}" )
     
 ENDMACRO(GLSLTOHEADER)
 
@@ -45,7 +45,7 @@ MACRO(CLTOHEADER _filename cvt_includes_dir)
                 ${CL_GEN_OUTPUT}
 				${_basename}
                 "${cvt_includes_dir}"
-                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_filename} glcltoheader
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
     )
 ENDMACRO(CLTOHEADER)
 
