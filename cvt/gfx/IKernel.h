@@ -256,13 +256,13 @@ namespace cvt {
 		if( vertical ) {
 			IKernel ret( 1, 2 * max + 1 );
 			for( int x = -max; x <= max; x++ ) {
-				ret( 1, x + max ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+				ret( 0, x + max ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
 			}
 			return ret;
 		} else {
 			IKernel ret( 2 * max + 1, 1 );
 			for( int x = -max; x <= max; x++ ) {
-				ret( x + max, 1 ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
+				ret( x + max, 0 ) = mul * Math::exp( -( Math::sqr( ( float ) x ) ) / ( 2.0f * Math::sqr( sigma ) ) );
 			}
 			return ret;
 		}
