@@ -298,9 +298,9 @@ namespace cvt {
 		IBoxFilter::boxfilter( dst, *this, hradius, vradius );
 	}
 
-	void Image::colorCode( Image& dst, IColorCodeMap map, float min, float max ) const
+	void Image::colorCode( Image& dst, IColorCodeMap map, float min, float max, bool sRGB ) const
 	{
-		IColorCode::colorCode( dst, *this, map, min, max );
+		IColorCode::colorCode( dst, *this, map, min, max, sRGB );
 	}
 
 

@@ -129,7 +129,7 @@ namespace cvt {
 
 			void boxfilter( Image& dst, size_t hradius, size_t vradius = 0 ) const;
 
-			void colorCode( Image& dst, IColorCodeMap map, float min = 0.0f, float max = 1.0f ) const;
+			void colorCode( Image& dst, IColorCodeMap map, float min = 0.0f, float max = 1.0f, bool sRGB = true ) const;
 
             void canny( Image& dst, float low, float hight ) const;
 
