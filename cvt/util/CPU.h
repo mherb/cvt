@@ -1,7 +1,8 @@
 /*
    The MIT License (MIT)
 
-   Copyright (c) 2011 - 2013, Philipp Heise and Sebastian Klose
+   Copyright (c) 2011 - 2014, Philipp Heise and Sebastian Klose
+   Copyright (c) 2014, Brian Jensen <Jensen.J.Brian@gmail.com>
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -118,6 +119,22 @@ namespace cvt {
 			std::cout << "AVX ";
 		std::cout << std::endl;
 	}
+
+    static inline bool isLittleEndian()
+    {
+        typedef union
+        {
+            int i;
+            char c[ sizeof( int ) ];
+        } endian_t;
+        static const endian_t val = { 1 };
+        return val.c[ 0 ] == 1;
+    }
+
+    static inline bool isBigEndian()
+    {
+        return ! isLittleEndian();
+    }
 }
 
 #endif
