@@ -2213,29 +2213,41 @@ namespace cvt {
         }
     }
 
-        void SIMD::Conv_XXXu8_to_XXXAu8(uint8_t * dst, const uint8_t* src, size_t n) const {
-            size_t i = n;
-
-            while ( i ) {
-                *dst++ = *src++;
-                *dst++ = *src++;
-                *dst++ = *src++;
-                *dst++ = 255;
-                i-=3;
-            }
+    void SIMD::Conv_XXXu8_to_XXXAu8( uint8_t* dst, const uint8_t* src, size_t n ) const {
+        while ( n-- ) {
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = 255;
         }
+    }
 
-        void SIMD::Conv_XXXf_to_XXXAf(float * dst, const float* src, size_t n) const {
-            size_t i = n;
-
-            while ( i ) {
-                *dst++ = *src++;
-                *dst++ = *src++;
-                *dst++ = *src++;
-                *dst++ = 255;
-                i-=3;
-            }
+    void SIMD::Conv_XXXAu8_to_XXXu8( uint8_t* dst, const uint8_t* src, size_t n ) const {
+        while ( n-- ) {
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = *src++;
+            src++;
         }
+    }
+
+    void SIMD::Conv_XXXf_to_XXXAf( float* dst, const float* src, size_t n ) const {
+        while ( n-- ) {
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = 1.0f;
+        }
+    }
+
+    void SIMD::Conv_XXXAf_to_XXXf( float* dst, const float* src, size_t n ) const {
+        while ( n-- ) {
+            *dst++ = *src++;
+            *dst++ = *src++;
+            *dst++ = *src++;
+            src++;
+        }
+    }
 
     void SIMD::Conv_XYZAu8_to_ZYXAf( float* dst, uint8_t const* _src, const size_t n ) const
     {
