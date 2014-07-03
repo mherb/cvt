@@ -213,7 +213,7 @@ static void tga_decode_color( Image& img, FILE* file, TGAHeader* header, TGAExte
 		while( height-- ) {
 			if( ( read = fread( buffer.ptr(), sizeof( uint8_t ), header->width * 3, file ) ) != ( size_t ) header->width * 3 )
 				throw CVTException( "Corrupted TGA file!" );
-			simd->Conv_XXXu8_to_XXXAu8( pdst, buffer.ptr(), header->width * 3 );
+			simd->Conv_XXXu8_to_XXXAu8( pdst, buffer.ptr(), header->width );
 			pdst += sstride;
 		}
 		img.unmap( dst );
