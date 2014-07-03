@@ -424,6 +424,7 @@ SET( CVT_HEADERS
    util/Range.h
    util/RNG.h
    util/Signal.h
+   util/ScopedBuffer.h
    util/SIMDDebug.h
    util/SIMD.h
    util/SIMDSSE.h
