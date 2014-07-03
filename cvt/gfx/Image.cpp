@@ -43,6 +43,7 @@
 #include <cvt/gfx/IBoxFilter.h>
 #include <cvt/gfx/ICanny.h>
 #include <cvt/gfx/IColorCode.h>
+#include <cvt/gfx/IDecompose.h>
 
 
 #include <fstream>
@@ -261,6 +262,21 @@ namespace cvt {
 	{
 		IFill::fill( *this, c );
 	}
+
+    void Image::decompose( Image& chan1, Image& chan2, Image& chan3, Image& chan4 ) const
+    {
+        IDecompose::decompose( chan1, chan2, chan3, chan4, *this );
+    }
+
+    void Image::decompose( Image& chan1, Image& chan2, Image& chan3 ) const
+    {
+        IDecompose::decompose( chan1, chan2, chan3, *this );
+    }
+
+    void Image::decompose( Image& chan1, Image& chan2 ) const
+    {
+        IDecompose::decompose( chan1, chan2, *this );
+    }
 
 	void Image::dilate( Image& dst, size_t radius ) const
 	{

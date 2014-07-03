@@ -121,6 +121,22 @@ namespace cvt {
 			void convolve( Image& dst, const IKernel& kernel ) const;
 			void convolve( Image& dst, const IKernel& hkernel, const IKernel& vkernel ) const;
 
+            /**
+              @brief Decompose RGBA/BGRA image to seperate images containing the single channels
+             */
+            void decompose( Image& chan1, Image& chan2, Image& chan3, Image& chan4 ) const;
+
+            /**
+              @brief Decompose RGBA/BGRA image to seperate images containing the single channels except
+                     for the alpha channel which is skipped.
+             */
+            void decompose( Image& chan1, Image& chan2, Image& chan3 ) const;
+
+            /**
+              @brief Decompose GRAY-ALPHA image to sperate image conating the GRAY and the ALPHA channel only
+             */
+            void decompose( Image& chan1, Image& chan2 ) const;
+
 			void dilate( Image& dst, size_t radius ) const;
 			void erode( Image& dst, size_t radius ) const;
 

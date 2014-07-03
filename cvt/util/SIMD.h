@@ -273,6 +273,15 @@ namespace cvt {
             virtual void Conv_YUV420u8_to_BGRAu8( uint8_t* dst, const uint8_t* srcy, const uint8_t* srcu, const uint8_t* srcv, const size_t n ) const;
 
 
+            virtual void Decompose_4f( float* dst1, float* dst2, float* dst3, float* dst4, const float* src, size_t n ) const;
+            virtual void Decompose_4f_to_3f( float* dst1, float* dst2, float* dst3, const float* src, size_t n ) const;
+            virtual void Decompose_2f( float* dst1, float* dst2, const float* src, size_t n ) const;
+
+            virtual void Decompose_4u8( uint8_t* dst1, uint8_t* dst2, uint8_t* dst3, uint8_t* dst4, const uint8_t* src, size_t n ) const;
+            virtual void Decompose_4u8_to_3u8( uint8_t* dst1, uint8_t* dst2, uint8_t* dst3, const uint8_t* src, size_t n ) const;
+            virtual void Decompose_2u8( uint8_t* dst1, uint8_t* dst2, const uint8_t* src, size_t n ) const;
+
+
 			virtual void BoxFilterHorizontal_1u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const;
 			virtual void BoxFilterHorizontal_1f( float* dst, const float* src, size_t radius, size_t width ) const;
 

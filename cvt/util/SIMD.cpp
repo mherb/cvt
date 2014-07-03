@@ -2763,6 +2763,61 @@ namespace cvt {
         }
     }
 
+    void SIMD::Decompose_4f( float* dst1, float* dst2, float* dst3, float* dst4, const float* src, size_t n ) const
+    {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+            *dst3++ = *src++;
+            *dst4++ = *src++;
+        }
+    }
+
+    void SIMD::Decompose_4f_to_3f( float* dst1, float* dst2, float* dst3, const float* src, size_t n ) const
+    {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+            *dst3++ = *src++;
+            src++;
+        }
+    }
+
+    void SIMD::Decompose_2f( float* dst1, float* dst2, const float* src, size_t n ) const
+     {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+        }
+    }
+
+    void SIMD::Decompose_4u8( uint8_t* dst1, uint8_t* dst2, uint8_t* dst3, uint8_t* dst4, const uint8_t* src, size_t n ) const
+    {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+            *dst3++ = *src++;
+            *dst4++ = *src++;
+        }
+    }
+
+    void SIMD::Decompose_4u8_to_3u8( uint8_t* dst1, uint8_t* dst2, uint8_t* dst3, const uint8_t* src, size_t n ) const
+    {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+            *dst3++ = *src++;
+            src++;
+        }
+    }
+
+    void SIMD::Decompose_2u8( uint8_t* dst1, uint8_t* dst2, const uint8_t* src, size_t n ) const
+    {
+        while( n-- ) {
+            *dst1++ = *src++;
+            *dst2++ = *src++;
+        }
+    }
 
 	void SIMD::BoxFilterHorizontal_1u8_to_f( float* dst, const uint8_t* src, size_t radius, size_t width ) const
 	{

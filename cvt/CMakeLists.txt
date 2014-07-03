@@ -225,10 +225,11 @@ SET( CVT_HEADERS
    geom/scene/SceneTexture.h
    gfx/Color.h
    gfx/IBorder.h
+   gfx/IBoxFilter.h
+   gfx/IDecompose.h
    gfx/Image.h
    gfx/IExpr.h
    gfx/IExprType.h
-   gfx/IBoxFilter.h
    gfx/IFill.h
    gfx/IFormat.h
    gfx/ICanny.h
@@ -565,6 +566,7 @@ SET( CVT_SOURCES
 	gfx/IBoxFilter.cpp
 	gfx/IConvert.cpp
 	gfx/IConvolve.cpp
+    gfx/IDecompose.cpp
 	gfx/IFill.cpp
 	gfx/IFormat.cpp
 	gfx/Color.cpp
