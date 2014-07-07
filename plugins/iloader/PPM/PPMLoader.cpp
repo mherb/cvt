@@ -154,6 +154,7 @@ namespace cvt {
         uint8_t * iptr = img.map( &stride );
         uint8_t * ptr = iptr;
 
+        size_t width = img.width();
         size_t height = img.height();
 
         size_t n;
@@ -182,7 +183,7 @@ namespace cvt {
                 if( data.remainingBytes() < ( n * height * sizeof( float ) ) )
                     throw CVTException( "NOT ENOUGH DATA REMAINING" );
                 while ( height-- ) {
-                    simd->Conv_XXXf_to_XXXAf( ( float* )ptr, ( const float* )src, n );
+                    simd->Conv_XXXf_to_XXXAf( ( float* )ptr, ( const float* )src, width );
                     ptr += stride;
                     src += n * sizeof( float );
                 }
@@ -192,7 +193,7 @@ namespace cvt {
                     throw CVTException( "NOT ENOUGH DATA REMAINING" );
 
                 while ( height-- ) {
-                    simd->Conv_XXXu8_to_XXXAu8( ptr, src, n );
+                    simd->Conv_XXXu8_to_XXXAu8( ptr, src, width );
                     ptr += stride;
                     src += n;
                 }
