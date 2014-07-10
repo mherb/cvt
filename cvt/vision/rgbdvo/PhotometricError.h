@@ -84,6 +84,7 @@ namespace cvt {
                     case FwdComp: return FwdFac;
                     case ESM:     return ESMFac;
                 }
+                return InvFac; // should not happen!
             }
 
             struct Params {
