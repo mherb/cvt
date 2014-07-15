@@ -41,10 +41,16 @@ namespace cvt {
 
             void save( const String& filename ) const;
 
+            /**
+             *  Saving to original filename
+             */
+            void save() const;
+
         private:           
             typedef std::map<String, String> MapType;            
             typedef std::map<String, MapType> GroupMapType;
 
+            String       _fileName;
             GroupMapType _groups;
 
             template <class T>

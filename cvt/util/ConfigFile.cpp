@@ -31,7 +31,8 @@
 
 namespace cvt {
 
-    ConfigFile::ConfigFile( const String& filename )
+    ConfigFile::ConfigFile( const String& filename ):
+        _fileName( filename )
     {
         if( FileSystem::exists( filename ) ){
             Data data;
@@ -79,6 +80,11 @@ namespace cvt {
 
         file.close();
     }    
+
+    void ConfigFile::save() const
+    {
+        save( _fileName );
+    }
 
     void ConfigFile::writeGroup( std::ofstream& out, const MapType& map ) const
     {
