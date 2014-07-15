@@ -92,20 +92,24 @@ namespace cvt
         T s;
     };
 
-    /*
     template <typename T>
-    struct Welsch
+    struct BlakeZisserman : public RobustEstimator<T>
     {
-        Welsch( T t ) : c( t ) {}
+        BlakeZisserman() : c( (T)0.3 ), s( (T)1.0 )
+        {
+        }
 
         T weight( T r ) const
         {
-            return Math::exp( - Math::sqr( r / c ) );
+            T rs = Math::abs( r / s );
+            return 2.0 / ( ( T )1.0 + c * Math::exp( rs * rs ) );
         }
 
-        void setSigma( T sigma ){ c = sigma; }
+        void setThreshold( T thresh ){ c = thresh; }
+        void setScale( T sigma ){ s = sigma; }
 
         T c;
+        T s;
     };
 
     template <typename T>
@@ -179,6 +183,7 @@ namespace cvt
 
     typedef Huber<float> Huberf;
     typedef Tukey<float> Tukeyf;
+    typedef BlakeZisserman<float> BlakeZissermanf;
     typedef NoWeighting<float> NoWeightingf;
 }
 
