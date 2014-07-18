@@ -90,11 +90,6 @@ namespace cvt {
         for( size_t i = 0; i < grayPyr.octaves(); i++ ){
             IntensityData<Warp>* data = ( IntensityData<Warp>* )this->_referenceData[ i ];
             data->updateOfflineData( world2Cam, grayPyr[ i ], depth, scale, this->_gradientThreshold );
-
-            if( this->_useInformationSelection ){
-                throw CVTException( "TODO: reimplement Information Selection differently!" );
-                //    _dataForScale[ i ].selectInformation( nPixels * Math::sqr( scale ) * _pixelPercentageToSelect );
-            }
             scale /= grayPyr.scaleFactor();
         }
 

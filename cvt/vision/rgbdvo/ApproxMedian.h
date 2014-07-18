@@ -36,7 +36,8 @@ namespace cvt {
                 _min( min ),
                 _max( max ),
                 _range( _max - _min ),
-                _resolution( resolution )
+                _resolution( resolution ),
+                _samples( 0 )
             {
                 size_t nBins = _range / resolution;
                 _hist.resize( nBins, 0 );
@@ -51,10 +52,11 @@ namespace cvt {
 //                if( idx < 0 || idx >= _hist.size() )
 //                    std::cout << "value: " << value << " idx = " << idx << std::endl;
                 _hist[ idx ] += 1;
+                _samples++;
             }
 
             // approximate the nth value
-            float approximateNth( size_t nth )
+            float approximateNth( size_t nth ) const
             {
                 size_t bin = 0;
                 size_t num = _hist[ bin++ ];
@@ -74,11 +76,14 @@ namespace cvt {
                 return ( bin + frac ) * _resolution;
             }
 
+            size_t numSamples() const { return _samples; }
+
             void clearHistogram()
             {
                 for( size_t i = 0; i < _hist.size(); i++ ){
                     _hist[ i ] = 0;
                 }
+                _samples = 0;
             }
 
         private:
@@ -86,6 +91,7 @@ namespace cvt {
             float               _max;
             float               _range;
             float               _resolution;
+            size_t              _samples;
             std::vector<size_t> _hist;
     };
 

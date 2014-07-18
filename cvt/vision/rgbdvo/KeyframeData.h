@@ -30,6 +30,7 @@
 #include <cvt/vision/ImagePyramid.h>
 #include <cvt/gfx/IMapScoped.h>
 #include <cvt/vision/rgbdvo/RGBDPreprocessor.h>
+#include <cvt/vision/rgbdvo/GradientThresholdSelection.h>
 
 namespace cvt {
 
@@ -103,34 +104,6 @@ namespace cvt {
                                              const std::vector<float>& interpolated ) const = 0;
 
             const float* pixels()    const { return &_pixelValues[ 0 ]; }
-
-//            void selectInformation( size_t n )
-//            {
-//                if( size() <= n )
-//                    return;
-
-//                InformationSelection<JacobianType> selector( n );
-//                const std::set<size_t>& ids = selector.selectInformation( &_jacobians[ 0 ], _jacobians.size() );
-
-//                // now rearrange the data according to the ids:
-//                std::set<size_t>::const_iterator it = ids.begin();
-//                const std::set<size_t>::const_iterator end = ids.end();
-
-//                size_t saveIdx = 0;
-//                while( it != end ){
-//                    _jacobians[ saveIdx ] = _jacobians[ *it ];
-//                    _points3d[ saveIdx ] = _points3d[ *it ];
-//                    _pixelValues[ saveIdx ] = _pixelValues[ *it ];
-
-//                    _screenJacobians[ saveIdx ] = _screenJacobians[ *it ];
-
-//                    ++saveIdx;
-//                    ++it;
-//                }
-
-//                // remove the rest
-//                erase( n );
-//            }
 
             virtual void erase( size_t n )
             {
@@ -219,6 +192,12 @@ namespace cvt {
                 Image gradX, gradY;
                 RGBDPreprocessor::instance().gradient( gradX, gradY, gray );
 
+
+                GradientThresholdSelection threshSelector( gradX, gradY, depth );
+                //gradientThresh = threshSelector.threshold( gradientThresh * scaleFactor );
+                size_t selectionSize = gradX.width() * gradX.height() * gradientThresh * scaleFactor;
+                gradientThresh = threshSelector.selectBiggestN( selectionSize );
+
                 // remove old data
                 this->clear();
 
@@ -266,7 +245,6 @@ namespace cvt {
                             p3dw = world2Cam * p3d;
 
                             Warp::screenJacobian( sj, p3d, intr );
-
 
                             // add jacobian for the point
                             this->_jacobians.push_back( JacobianType() );

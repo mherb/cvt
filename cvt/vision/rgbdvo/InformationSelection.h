@@ -69,7 +69,6 @@ namespace cvt {
                     const JType* _data;
                     size_t       _idx;
             };
-
     };
 
     template <class JType>

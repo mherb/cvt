@@ -86,18 +86,11 @@ namespace cvt {
                                                  &jacobians[ 0 ],
                                                  &residuals[ 0 ],
                                                  residuals.size() );
-//            std::cout << "Octave: " << octave << " - ";
-//            std::cout << "Iteration: " << result.iterations << " - ";
-//            std::cout << "# Pixel: " << result.numPixels << " - ";
-//            std::cout << "Costs: " << result.costs;
-//            std::cout << std::endl;
 
             if( !result.numPixels /* no pixels projected */ ||
                 result.costs < this->_costStopThreshold ){
                 break;
             }
-
-            //std::cout << "Hessian\n " << hessian << std::endl;
 
             DeltaType deltaP = -hessian.inverse() * deltaSum.transpose();
             this->_overallDelta.noalias() += deltaP;

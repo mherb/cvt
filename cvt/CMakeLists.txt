@@ -495,6 +495,7 @@ SET( CVT_HEADERS
    vision/rgbdvo/IntensityKeyframe.h
    vision/rgbdvo/KeyframeData.h
    vision/rgbdvo/InformationSelection.h
+   vision/rgbdvo/GradientThresholdSelection.h
    vision/rgbdvo/Optimizer.h
    vision/rgbdvo/GNOptimizer.h
    vision/rgbdvo/LMOptimizer.h
