@@ -29,6 +29,7 @@
 #include <cvt/math/Matrix.h>
 #include <cvt/vision/features/FeatureMatch.h>
 #include <cvt/geom/PointSet.h>
+#include <cvt/math/Math.h>
 
 namespace cvt
 {
@@ -108,7 +109,7 @@ namespace cvt
 			// get the line in the other image
 			Line2Df line( funda *  tmp );
 
-            if(  line.distance( _matches[ i ].feature1->pt ) < maxDistance )
+            if(  Math::abs( line.distance( _matches[ i ].feature1->pt ) ) < maxDistance )
                 inlierIndices.push_back( i );
         }
     }
